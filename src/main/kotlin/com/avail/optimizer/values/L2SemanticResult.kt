@@ -1,5 +1,5 @@
 /*
- * package-info.java
+ * L2SemanticResult.java
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,7 +29,32 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.optimizer.values
 
-@NonnullByDefault
-package com.avail.optimizer.values;
-import com.avail.annotations.NonnullByDefault;
+/**
+ * A semantic value which represents the return value produced by the invocation
+ * corresponding to a particular [Frame].
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @constructor
+ * Create a new `L2SemanticResult` semantic value.
+ *
+ * @param frame
+ *   The frame for which this represents the return result.
+ */
+internal class L2SemanticResult constructor(frame: Frame)
+	: L2FrameSpecificSemanticValue(frame, 0x6ABDC9DB)
+{
+	override fun equals(obj: Any?): Boolean =
+		obj is L2SemanticResult && super.equals(obj)
+
+	override fun transform(
+		semanticValueTransformer: (L2SemanticValue) -> L2SemanticValue,
+		frameTransformer: (Frame) -> Frame): L2SemanticValue =
+			frameTransformer.invoke(frame()).let {
+				if (it == frame) this else L2SemanticResult(it)
+		}
+
+	override fun toString(): String = "Result of ${frame()}"
+}

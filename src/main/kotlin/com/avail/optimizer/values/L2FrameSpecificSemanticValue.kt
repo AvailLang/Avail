@@ -29,60 +29,41 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.optimizer.values;
+package com.avail.optimizer.values
 
-import java.util.function.UnaryOperator;
-
-import static com.avail.descriptor.representation.AvailObject.multiplier;
+import com.avail.descriptor.representation.AvailObject
 
 /**
- * A semantic value which is specific to a {@link Frame}.
+ * A semantic value which is specific to a [Frame].
+ *
+ * @property frame
+ *   The frame in which this is a semantic value.
+ *
+ * @constructor
+ * Create a new instance.
+ *
+ * @param frame
+ *   The frame for which this is a semantic value.
+ * @param hash
+ *   A hash value of this semantic value, which this constructor will combine with the frame's hash.
  */
-@SuppressWarnings("EqualsAndHashcode")
-abstract class L2FrameSpecificSemanticValue extends L2SemanticValue
+internal abstract class L2FrameSpecificSemanticValue constructor(
+		val frame: Frame,
+		hash: Int)
+	: L2SemanticValue(hash + frame.hashCode() * AvailObject.multiplier)
 {
-	/** The frame in which this is a semantic value. */
-	public final Frame frame;
 
 	/**
-	 * Create a new instance.
+	 * Answer the [Frame] in which this invocation takes place.
 	 *
-	 * @param frame
-	 *        The frame for which this is a semantic value.
-	 * @param hash
-	 *        A hash value of this semantic value, which this constructor will
-	 *        combine with the frame's hash.
+	 * @return
+	 *   The frame.
 	 */
-	L2FrameSpecificSemanticValue (
-		final Frame frame,
-		final int hash)
-	{
-		super(hash + frame.hashCode() * multiplier);
-		this.frame = frame;
-	}
+	fun frame(): Frame = frame
 
-	/**
-	 * Answer the {@link Frame} in which this invocation takes place.
-	 *
-	 * @return The frame.
-	 */
-	public final Frame frame ()
-	{
-		return frame;
-	}
+	override fun equals(obj: Any?): Boolean =
+		(obj is L2FrameSpecificSemanticValue && frame() == obj.frame())
 
-	@Override
-	public boolean equals (final Object obj)
-	{
-		return obj instanceof L2FrameSpecificSemanticValue
-			&& frame().equals(((L2FrameSpecificSemanticValue) obj).frame());
-	}
+	abstract override fun toString(): String
 
-	@Override
-	public abstract L2FrameSpecificSemanticValue transform (
-		final UnaryOperator<L2SemanticValue> semanticValueTransformer,
-		final UnaryOperator<Frame> frameTransformer);
-
-	@Override
-	public abstract String toString ();
 }

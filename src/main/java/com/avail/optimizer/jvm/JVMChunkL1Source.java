@@ -43,12 +43,7 @@ import java.lang.annotation.Target;
 import java.nio.file.Path;
 
 /**
- * {@code JVMChunkL1Source} captures an {@linkplain Path#isAbsolute() absolute}
- * {@linkplain Path path} to the disassembled L1 {@linkplain A_RawFunction code}
- * that serves as the basis for the annotated {@linkplain
- * ExecutableChunk#runChunk(Interpreter, int) method}, making it available in
- * generated class files. This annotation is only attached if {@link
- * JVMTranslator#debugJVM} is enabled.
+ * {@code JVMChunkL1Source} captures an {@linkplain Path#isAbsolute() absolute} {@linkplain Path path} to the disassembled L1 {@linkplain A_RawFunction code} that serves as the basis for the annotated {@linkplain ExecutableChunk#runChunk(Interpreter, int) method}, making it available in generated class files. This annotation is only attached if {@link JVMTranslator#debugJVM} is enabled.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -57,12 +52,10 @@ import java.nio.file.Path;
 public @interface JVMChunkL1Source
 {
 	/**
-	 * An {@linkplain Path#isAbsolute() absolute} {@linkplain Path path} to the
-	 * disassembled L1 {@linkplain A_RawFunction code} that serves as the basis
-	 * for the annotated {@linkplain ExecutableChunk#runChunk(Interpreter, int)
-	 * method}.
+	 * An {@linkplain Path#isAbsolute() absolute} {@linkplain Path path} to the disassembled L1 {@linkplain A_RawFunction code} that serves as the basis for the annotated {@linkplain ExecutableChunk#runChunk(Interpreter, int) method}.
 	 *
-	 * @return The path to the L1 source code.
+	 * @return
+	 * The path to the L1 source code.
 	 */
 	String sourcePath ();
 }

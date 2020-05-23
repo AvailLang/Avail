@@ -1,5 +1,5 @@
 /*
- * L2SemanticLabel.java
+ * L2SemanticConstant.java
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,55 +29,47 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.optimizer.values;
-import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments;
+package com.avail.optimizer.values
 
-import java.util.function.UnaryOperator;
+import com.avail.descriptor.representation.A_BasicObject
 
 /**
- * A semantic value which represents a label continuation created for the
- * indicated {@link Frame}.
+ * A semantic value which is a particular actual constant value.
  *
- * <p>TODO MvG - It's unclear how to deal with replacement arguments provided by
- * {@link P_RestartContinuationWithArguments}.  Perhaps the approach is to
- * create a duplicate Label using a new Frame.  It would have to merge control
- * flow into a loop, so maybe this just falls under the general case of phis
- * within loops.  Or maybe it should use the very same Arguments, since a
- * semantic value doesn't have a notion of value or register <em>directly</em>
- * associated with it, only through a manifest.
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @constructor
+ * Create a new `L2SemanticConstant` semantic value.
+ *
+ * @param value
+ *   The actual value of the constant.
  */
-@SuppressWarnings("EqualsAndHashcode")
-final class L2SemanticLabel extends L2FrameSpecificSemanticValue
+internal class L2SemanticConstant constructor(value: A_BasicObject) :
+	L2SemanticValue(value.hashCode())
 {
-	/**
-	 * Create a new {@code L2SemanticLabel} semantic value.
-	 *
-	 * @param frame
-	 *        The frame for which this represents a label.
-	 */
-	L2SemanticLabel (final Frame frame)
-	{
-		super(frame, 0x36B34F3D);
-	}
+	/** The constant Avail value represented by this semantic value.  */
+	val value: A_BasicObject = value.makeImmutable()
 
-	@Override
-	public boolean equals (final Object obj)
-	{
-		return obj instanceof L2SemanticLabel && super.equals(obj);
-	}
+	override fun equals(obj: Any?): Boolean =
+		obj is L2SemanticConstant && value.equals(obj.value)
 
-	@Override
-	public L2SemanticLabel transform (
-		final UnaryOperator<L2SemanticValue> semanticValueTransformer,
-		final UnaryOperator<Frame> frameTransformer)
-	{
-		final Frame newFrame = frameTransformer.apply(frame);
-		return newFrame.equals(frame) ? this : new L2SemanticLabel(newFrame);
-	}
+	override fun transform(
+		semanticValueTransformer: (L2SemanticValue) -> L2SemanticValue,
+		frameTransformer: (Frame) -> Frame): L2SemanticValue = this
 
-	@Override
-	public String toString ()
+	override val isConstant: Boolean
+		get() = true
+
+	override fun toString(): String
 	{
-		return "Label for " + frame;
+		var valueString = value.toString()
+		if (valueString.length > 50)
+		{
+			valueString = valueString.substring(0, 50) + '…'
+		}
+		valueString = valueString
+			.replace("\n", "\\n")
+			.replace("\t", "\\t")
+		return "Constant($valueString)"
 	}
 }

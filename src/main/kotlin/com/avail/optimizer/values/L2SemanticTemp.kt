@@ -29,75 +29,42 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.optimizer.values;
-
-import java.util.function.UnaryOperator;
+package com.avail.optimizer.values
 
 /**
- * A semantic value which holds a temporary value in a {@link Frame}.  The scope
+ * A semantic value which holds a temporary value in a [Frame].  The scope
  * of this value is usually local to a section of Java code that both produces
  * and consumes the value, and it might have no meaning beyond this simple
  * correlation of production and use.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @property uniqueId
+ *   An integer which should be unique across all other instances for the same
+ *   [Frame].
+ * @constructor
+ * Create a new `L2SemanticTemp` semantic value.
+ *
+ * @param frame
+ *   The frame for which this represents a temporary value.
+ * @param uniqueId
+ *   An integer which should be unique across all other instances of this class
+ *   created for this [Frame].
  */
-@SuppressWarnings("EqualsAndHashcode")
-final class L2SemanticTemp
-extends L2FrameSpecificSemanticValue
+internal class L2SemanticTemp constructor(frame: Frame, val uniqueId: Int)
+	: L2FrameSpecificSemanticValue(frame, uniqueId xor -0x5d6360e4)
 {
-	/**
-	 * An integer which should be unique across all other instances for the
-	 * same {@link Frame}.
-	 */
-	final int uniqueId;
+	override fun equals(obj: Any?): Boolean =
+		if (obj !is L2SemanticTemp) false
+		else super.equals(obj) && uniqueId == obj.uniqueId
 
-	/**
-	 * Create a new {@code L2SemanticTemp} semantic value.
-	 *
-	 * @param frame
-	 *        The frame for which this represents a temporary value.
-	 * @param uniqueId
-	 *        An integer which should be unique across all other instances of
-	 *        this class created for this {@link Frame}.
-	 */
-	L2SemanticTemp (final Frame frame, final int uniqueId)
-	{
-		super(frame, uniqueId ^ 0xA29C9F1C);
-		this.uniqueId = uniqueId;
-	}
+	override fun transform(
+		semanticValueTransformer: (L2SemanticValue) -> L2SemanticValue,
+		frameTransformer: (Frame) -> Frame): L2SemanticValue =
+			frameTransformer.invoke(frame).let {
+				if (it == frame) this else L2SemanticTemp(it, uniqueId)
+			}
 
-	@Override
-	public boolean equals (final Object obj)
-	{
-		if (!(obj instanceof L2SemanticTemp))
-		{
-			return false;
-		}
-		return super.equals(obj)
-			&& uniqueId == ((L2SemanticTemp) obj).uniqueId;
-	}
-
-	@Override
-	public L2SemanticTemp transform (
-		final UnaryOperator<L2SemanticValue> semanticValueTransformer,
-		final UnaryOperator<Frame> frameTransformer)
-	{
-		final Frame newFrame = frameTransformer.apply(frame);
-		return newFrame.equals(frame)
-			? this
-			: new L2SemanticTemp(newFrame, uniqueId);
-	}
-
-	@Override
-	public String toString ()
-	{
-		if (frame.depth() == 1)
-		{
-			return "Temp#" + uniqueId;
-		}
-		else
-		{
-			return "Temp#" + uniqueId + " in " + frame;
-		}
-	}
+	override fun toString(): String =
+		"Temp#$uniqueId${if (frame.depth() == 1) "" else "Temp#$uniqueId in $frame"}"
 }

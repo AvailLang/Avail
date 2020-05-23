@@ -38,9 +38,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * {@code ReferencedInGeneratedCode} indicates that the annotated method or
- * field is referenced from generated code, and therefore great care must be
- * taken when refactoring.
+ * {@code ReferencedInGeneratedCode} indicates that the annotated method or field is referenced from generated code, and therefore great care must be taken when refactoring.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

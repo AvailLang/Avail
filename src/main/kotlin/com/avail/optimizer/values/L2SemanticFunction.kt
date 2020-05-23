@@ -1,5 +1,5 @@
 /*
- * L2SemanticResult.java
+ * L2SemanticFunction.java
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,49 +29,33 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.optimizer.values;
-
-import java.util.function.UnaryOperator;
+package com.avail.optimizer.values
 
 /**
- * A semantic value which represents the return value produced by the invocation
- * corresponding to a particular {@link Frame}.
+ * A semantic value which represents the current function while running code for
+ * a particular [Frame].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @constructor
+ * Create a new `L2SemanticFunction` semantic value.
+ *
+ * @param frame
+ *   The frame for which this represents the invoked function.
  */
-@SuppressWarnings("EqualsAndHashcode")
-final class L2SemanticResult
-extends L2FrameSpecificSemanticValue
+internal class L2SemanticFunction constructor(frame: Frame)
+	: L2FrameSpecificSemanticValue(frame, -0xe519ffd)
 {
-	/**
-	 * Create a new {@code L2SemanticResult} semantic value.
-	 *
-	 * @param frame
-	 *        The frame for which this represents the return result.
-	 */
-	L2SemanticResult (final Frame frame)
-	{
-		super(frame, 0x6ABDC9DB);
-	}
+	override fun equals(obj: Any?): Boolean =
+		obj is L2SemanticFunction && super.equals(obj)
 
-	@Override
-	public boolean equals (final Object obj)
-	{
-		return obj instanceof L2SemanticResult && super.equals(obj);
-	}
+	override fun transform(
+		semanticValueTransformer: (L2SemanticValue) -> L2SemanticValue,
+		frameTransformer: (Frame) -> Frame): L2SemanticValue =
+			frameTransformer.invoke(frame).let {
+				if (it == frame) this else L2SemanticFunction(it)
+			}
 
-	@Override
-	public L2SemanticResult transform (
-		final UnaryOperator<L2SemanticValue> semanticValueTransformer,
-		final UnaryOperator<Frame> frameTransformer)
-	{
-		final Frame newFrame = frameTransformer.apply(frame());
-		return newFrame.equals(frame) ? this : new L2SemanticResult(newFrame);
-	}
-
-	@Override
-	public String toString ()
-	{
-		return "Result of " + frame();
-	}
+	override fun toString(): String =
+		"CurrentFunction${if (frame.depth() == 1) "" else "[$frame]"}"
 }

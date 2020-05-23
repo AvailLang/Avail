@@ -29,58 +29,39 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.optimizer.values;
-
-import java.util.function.UnaryOperator;
+package com.avail.optimizer.values
 
 /**
  * A semantic value which represents a numbered outer variable in the function
- * of some {@link Frame}.
+ * of some [Frame].
+ *
+ * @property outerIndex
+ *   The one-based index of the outer of the function.
+ *
+ * @constructor
+ * Create a new `L2SemanticOuter` semantic value.
+ *
+ * @param frame
+ *   The frame for which this represents an outer.
+ * @param outerIndex
+ *   The one-based index of the outer in the frame's function.
  */
-@SuppressWarnings("EqualsAndHashcode")
-final class L2SemanticOuter
-extends L2FrameSpecificSemanticValue
+internal class L2SemanticOuter constructor(frame: Frame, val outerIndex: Int)
+	: L2FrameSpecificSemanticValue(frame, outerIndex xor -0x22fc3786)
 {
-	/** The one-based index of the outer of the function. */
-	public final int outerIndex;
-
-	/**
-	 * Create a new {@code L2SemanticOuter} semantic value.
-	 *
-	 * @param frame
-	 *        The frame for which this represents an outer.
-	 * @param outerIndex
-	 *        The one-based index of the outer in the frame's function.
-	 */
-	L2SemanticOuter (final Frame frame, final int outerIndex)
-	{
-		super(frame, outerIndex ^ 0xDD03C87A);
-		this.outerIndex = outerIndex;
-	}
-
-	@Override
-	public boolean equals (final Object obj)
-	{
-		return obj instanceof L2SemanticOuter
+	override fun equals(obj: Any?): Boolean =
+		obj is L2SemanticOuter
 			&& super.equals(obj)
-			&& outerIndex == ((L2SemanticOuter) obj).outerIndex;
-	}
+			&& outerIndex == obj.outerIndex
 
-	@Override
-	public L2SemanticOuter transform (
-		final UnaryOperator<L2SemanticValue> semanticValueTransformer,
-		final UnaryOperator<Frame> frameTransformer)
-	{
-		final Frame newFrame = frameTransformer.apply(frame);
-		return newFrame.equals(frame)
-			? this
-			: new L2SemanticOuter(newFrame, outerIndex);
-	}
+	override fun transform(
+		semanticValueTransformer: (L2SemanticValue) -> L2SemanticValue,
+		frameTransformer: (Frame) -> Frame): L2SemanticValue =
+			frameTransformer.invoke(frame) .let {
+				if (it == frame) this else L2SemanticOuter(it, outerIndex)
+			}
 
-	@Override
-	public String toString ()
-	{
-		return "Outer#" + outerIndex +
-			(frame.depth() == 1 ? "" : "[" + frame + "]");
-	}
+	override fun toString(): String =
+		"Outer#$outerIndex + ${if (frame.depth() == 1) "" else "[$frame]"}"
+
 }
