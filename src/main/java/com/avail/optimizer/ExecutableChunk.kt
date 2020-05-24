@@ -29,51 +29,48 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.optimizer
 
-package com.avail.optimizer;
-
-import com.avail.descriptor.functions.CompiledCodeDescriptor;
-import com.avail.interpreter.execution.Interpreter;
-import com.avail.interpreter.levelTwo.L2Chunk;
-
-import javax.annotation.Nullable;
+import com.avail.descriptor.functions.CompiledCodeDescriptor
+import com.avail.interpreter.execution.Interpreter
+import com.avail.interpreter.levelTwo.L2Chunk
 
 /**
- * An {@link ExecutableChunk} represents an optimized implementation of a
- * {@linkplain CompiledCodeDescriptor compiled code object}.
+ * An [ExecutableChunk] represents an optimized implementation of a
+ * [compiled code object][CompiledCodeDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public interface ExecutableChunk
+interface ExecutableChunk
 {
 	/**
-	 * Answer a descriptive (non-unique) name for the {@code ExecutableChunk}.
+	 * Answer a descriptive (non-unique) name for the `ExecutableChunk`.
 	 *
 	 * @return
-	 * The effective name of the chunk.
+	 *   The effective name of the chunk.
 	 */
-	String name ();
+	fun name(): String
 
 	/**
-	 * Run the {@code ExecutableChunk} to completion. Note that a {@linkplain
-	 * StackReifier reification} request may cut this short. For an initial
-	 * invocation, the {@linkplain Interpreter#argsBuffer} will have been set up
-	 * for the call. For a return into this continuation, the offset will refer
-	 * to code that will rebuild the register set from the top reified
-	 * continuation, using the {@link Interpreter#getLatestResult()}. For
-	 * resuming the continuation, the offset will point to code that also
-	 * rebuilds the register set from the top reified continuation, but it won't
-	 * expect a return value. These re-entry points should perform validity
-	 * checks on the chunk, allowing an orderly off-ramp into the
-	 * {@link L2Chunk#unoptimizedChunk} (which simply interprets the L1
-	 * nybblecodes).
+	 * Run the `ExecutableChunk` to completion. Note that a
+	 * [reification][StackReifier] request may cut this short. For an initial
+	 * invocation, the [Interpreter.argsBuffer] will have been set up for the
+	 * call. For a return into this continuation, the offset will refer to code
+	 * that will rebuild the register set from the top reified continuation,
+	 * using the [Interpreter.getLatestResult]. For resuming the continuation,
+	 * the offset will point to code that also rebuilds the register set from
+	 * the top reified continuation, but it won't expect a return value. These
+	 * re-entry points should perform validity checks on the chunk, allowing an
+	 * orderly off-ramp into the [L2Chunk.unoptimizedChunk] (which simply
+	 * interprets the L1 nybblecodes).
 	 *
 	 * @param interpreter
-	 *        An interpreter that is appropriately setup to execute the receiver.
+	 *   An interpreter that is appropriately setup to execute the receiver.
 	 * @param offset
-	 *        The offset at which to begin execution.
+	 *   The offset at which to begin execution.
 	 * @return
-	 * {@code null} if returning normally, otherwise a {@link StackReifier} to effect reification.
+	 *   `null` if returning normally, otherwise a [StackReifier] to effect
+	 *   reification.
 	 */
-	@Nullable StackReifier runChunk (Interpreter interpreter, int offset);
+	fun runChunk(interpreter: Interpreter, offset: Int): StackReifier?
 }
