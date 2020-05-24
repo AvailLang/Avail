@@ -57,7 +57,8 @@ import java.util.*
 internal class EqualityRawPojoDescriptor(
 	mutability: Mutability,
 	javaObject: Any?
-) : RawPojoDescriptor(mutability, javaObject) {
+) : RawPojoDescriptor(mutability, javaObject)
+{
 	@AvailMethod
 	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean =
 		another.equalsEqualityRawPojoFor(self, javaObject)
@@ -67,22 +68,28 @@ internal class EqualityRawPojoDescriptor(
 		self: AvailObject,
 		otherEqualityRawPojo: AvailObject,
 		otherJavaObject: Any?
-	): Boolean = when {
-		javaObject == null -> otherJavaObject == null
-		otherJavaObject == null -> false
-		// Neither is null.
-		javaObject != otherJavaObject -> false
-		// They're equal.
-		!self.sameAddressAs(otherEqualityRawPojo) -> {
-			// They're equal, but distinct AvailObjects.
-			if (!isShared) {
-				self.becomeIndirectionTo(otherEqualityRawPojo)
-			} else if (!otherEqualityRawPojo.descriptor().isShared) {
-				otherEqualityRawPojo.becomeIndirectionTo(self)
+	): Boolean
+	{
+		return when
+		{
+			javaObject == null -> otherJavaObject == null
+			otherJavaObject == null -> false
+			// Neither is null.
+			javaObject != otherJavaObject -> false
+			// They're equal.
+			!self.sameAddressAs(otherEqualityRawPojo) ->
+			{
+				// They're equal, but distinct AvailObjects.
+				when
+				{
+					!isShared -> self.becomeIndirectionTo(otherEqualityRawPojo)
+					!otherEqualityRawPojo.descriptor().isShared ->
+						otherEqualityRawPojo.becomeIndirectionTo(self)
+				}
+				true
 			}
-			true
+			else -> true
 		}
-		else -> true
 	}
 
 	@AvailMethod
@@ -94,7 +101,8 @@ internal class EqualityRawPojoDescriptor(
 
 	@AvailMethod
 	override fun o_Hash(self: AvailObject): Int =
-		when (javaObject) {
+		when (javaObject)
+		{
 			null -> -0x3bb1116b
 			else -> javaObject.hashCode() xor 0x59EEE44C
 		}
@@ -104,11 +112,12 @@ internal class EqualityRawPojoDescriptor(
 	 * [javaObject] but is [immutable][Mutability.IMMUTABLE].
 	 */
 	@AvailMethod
-	override fun o_MakeImmutable(self: AvailObject): AvailObject {
-		if (isMutable) {
-			self.setDescriptor(EqualityRawPojoDescriptor(
-				Mutability.IMMUTABLE,
-				javaObject))
+	override fun o_MakeImmutable(self: AvailObject): AvailObject
+	{
+		if (isMutable)
+		{
+			self.setDescriptor(
+				EqualityRawPojoDescriptor(Mutability.IMMUTABLE, javaObject))
 		}
 		return self
 	}
@@ -118,11 +127,12 @@ internal class EqualityRawPojoDescriptor(
 	 * [javaObject] but is [shared][Mutability.SHARED].
 	 */
 	@AvailMethod
-	override fun o_MakeShared(self: AvailObject): AvailObject {
-		if (!isShared) {
-			self.setDescriptor(EqualityRawPojoDescriptor(
-				Mutability.SHARED,
-				javaObject))
+	override fun o_MakeShared(self: AvailObject): AvailObject
+	{
+		if (!isShared)
+		{
+			self.setDescriptor(
+				EqualityRawPojoDescriptor(Mutability.SHARED, javaObject))
 		}
 		return self
 	}
@@ -131,8 +141,8 @@ internal class EqualityRawPojoDescriptor(
 		self: AvailObject,
 		builder: StringBuilder,
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
-		indent: Int
-	) {
+		indent: Int)
+	{
 		builder.append("equality raw pojo: ")
 		builder.append(javaObject)
 	}

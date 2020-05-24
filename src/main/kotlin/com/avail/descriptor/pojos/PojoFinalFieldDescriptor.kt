@@ -40,10 +40,9 @@ import com.avail.descriptor.representation.AvailObject.Companion.multiplier
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.types.*
-import com.avail.descriptor.types.BottomTypeDescriptor.*
+import com.avail.descriptor.types.BottomTypeDescriptor.bottom
 import com.avail.descriptor.types.VariableTypeDescriptor.variableReadWriteType
 import com.avail.descriptor.variables.VariableDescriptor
-import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_MODIFY_FINAL_JAVA_FIELD
 import com.avail.exceptions.AvailErrorCode.E_JAVA_MARSHALING_FAILED
 import com.avail.exceptions.AvailRuntimeException
@@ -74,10 +73,11 @@ import java.util.*
 class PojoFinalFieldDescriptor(
 	mutability: Mutability
 ) : Descriptor(
-	mutability, TypeTag.VARIABLE_TAG, ObjectSlots::class.java, null
-) {
+	mutability, TypeTag.VARIABLE_TAG, ObjectSlots::class.java, null)
+{
 	/** The layout of the object slots.  */
-	enum class ObjectSlots : ObjectSlotsEnum {
+	enum class ObjectSlots : ObjectSlotsEnum
+	{
 		/**
 		 * A [raw&#32;pojo][RawPojoDescriptor] that wraps a [Field].
 		 */
@@ -101,7 +101,8 @@ class PojoFinalFieldDescriptor(
 	}
 
 	override fun o_ClearValue(self: AvailObject) = throw VariableSetException(
-		E_CANNOT_MODIFY_FINAL_JAVA_FIELD)
+		E_CANNOT_MODIFY_FINAL_JAVA_FIELD
+	)
 
 	@AvailMethod
 	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean =
@@ -120,24 +121,25 @@ class PojoFinalFieldDescriptor(
 		self.slot(CACHED_VALUE)
 
 	@AvailMethod
-	override fun o_Hash(self: AvailObject): Int {
+	override fun o_Hash(self: AvailObject): Int
+	{
 		var h = self.slot(FIELD).hash()
 		h *= multiplier
 		h += self.slot(RECEIVER).hash() xor 0x2199C0C3
 		return h
 	}
 
-	override fun o_HasValue(self: AvailObject): Boolean {
-		// A pojo final field has a value by definition.
-		return true
-	}
+	// A pojo final field has a value by definition.
+	override fun o_HasValue(self: AvailObject): Boolean = true
 
 	@AvailMethod
 	override fun o_Kind(self: AvailObject): A_Type = self.slot(KIND)
 
-	override fun o_SerializerOperation(self: AvailObject): SerializerOperation {
+	override fun o_SerializerOperation(self: AvailObject): SerializerOperation
+	{
 		val field = self.slot(FIELD).javaObjectNotNull<Field>()
-		if (field.modifiers and Modifier.STATIC != 0) {
+		if (field.modifiers and Modifier.STATIC != 0)
+		{
 			return SerializerOperation.STATIC_POJO_FIELD
 		}
 		throw unsupportedOperationException()
@@ -148,8 +150,8 @@ class PojoFinalFieldDescriptor(
 
 	override fun o_SetValueNoCheck(
 		self: AvailObject,
-		newValue: A_BasicObject
-	) {
+		newValue: A_BasicObject)
+	{
 		throw VariableSetException(E_CANNOT_MODIFY_FINAL_JAVA_FIELD)
 	}
 
@@ -157,34 +159,28 @@ class PojoFinalFieldDescriptor(
 	override fun o_Value(self: AvailObject): AvailObject =
 		self.slot(CACHED_VALUE)
 
-	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) {
-		writer.startObject()
-		writer.write("kind")
-		writer.write("variable")
-		writer.write("variable type")
-		self.kind().writeTo(writer)
-		writer.write("value")
-		self.value().writeSummaryTo(writer)
-		writer.endObject()
-	}
+	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("variable") }
+			at("variable type") { self.kind().writeTo(writer) }
+			at("value") { self.value().writeSummaryTo(writer) }
+		}
 
-	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) {
-		writer.startObject()
-		writer.write("kind")
-		writer.write("variable")
-		writer.write("variable type")
-		self.kind().writeSummaryTo(writer)
-		writer.endObject()
-	}
+	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("variable") }
+			at("variable type") { self.kind().writeSummaryTo(writer) }
+		}
 
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
-		indent: Int
-	) {
+		indent: Int)
+	{
 		val field = self.slot(FIELD).javaObjectNotNull<Field>()
-		if (!Modifier.isStatic(field.modifiers)) {
+		if (!Modifier.isStatic(field.modifiers))
+		{
 			builder.append('(')
 			self.slot(RECEIVER).printOnAvoidingIndent(
 				builder, recursionMap, indent + 1)
@@ -202,7 +198,8 @@ class PojoFinalFieldDescriptor(
 
 	override fun shared(): PojoFinalFieldDescriptor = shared
 
-	companion object {
+	companion object
+	{
 		/** The mutable [PojoFinalFieldDescriptor].  */
 		private val mutable = PojoFinalFieldDescriptor(Mutability.MUTABLE)
 
@@ -261,21 +258,27 @@ class PojoFinalFieldDescriptor(
 			field: AvailObject,
 			receiver: AvailObject,
 			innerType: A_Type
-		): AvailObject {
+		): AvailObject
+		{
 			val javaField = field.javaObjectNotNull<Field>()
 			assert(Modifier.isFinal(javaField.modifiers))
 			val javaReceiver = receiver.javaObject<Any>()
-			val value: AvailObject = try {
-				PojoTypeDescriptor.unmarshal(
-					javaField.get(javaReceiver), innerType)
-			} catch (e: Exception) {
-				throw AvailRuntimeException(E_JAVA_MARSHALING_FAILED, e)
-			}
+			val value: AvailObject =
+				try
+				{
+					PojoTypeDescriptor.unmarshal(
+						javaField.get(javaReceiver), innerType)
+				}
+				catch (e: Exception)
+				{
+					throw AvailRuntimeException(E_JAVA_MARSHALING_FAILED, e)
+				}
 			return forOuterType(
 				field,
 				receiver,
 				value,
-				variableReadWriteType(innerType, bottom()))
+				variableReadWriteType(innerType, bottom())
+			)
 		}
 	}
 }

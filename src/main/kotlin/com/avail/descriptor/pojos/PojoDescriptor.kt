@@ -54,6 +54,9 @@ import java.util.*
  * [pojo&#32;type][PojoTypeDescriptor] that describes the pojo contextually.
  *
  * @constructor
+ * Create a new [AvailObject] that wraps the specified
+ * [raw&#32;pojo][RawPojoDescriptor] and has the specified
+ * [pojo&#32;type][PojoTypeDescriptor].
  *
  * @param mutability
  *   The [mutability][Mutability] of the new descriptor.
@@ -62,9 +65,11 @@ import java.util.*
  */
 class PojoDescriptor private constructor(
 	mutability: Mutability
-) : Descriptor(mutability, TypeTag.POJO_TAG, ObjectSlots::class.java, null) {
+) : Descriptor(mutability, TypeTag.POJO_TAG, ObjectSlots::class.java, null)
+{
 	/** The layout of the object slots.  */
-	enum class ObjectSlots : ObjectSlotsEnum {
+	enum class ObjectSlots : ObjectSlotsEnum
+	{
 		/** A [raw&#32;pojo][RawPojoDescriptor]. */
 		RAW_POJO,
 
@@ -78,22 +83,26 @@ class PojoDescriptor private constructor(
 
 	@AvailMethod
 	override fun o_EqualsPojo(self: AvailObject, aPojo: AvailObject): Boolean =
-		when {
+		when
+		{
 			self.sameAddressAs(aPojo) -> true
 			!self.slot(RAW_POJO).equals(aPojo.slot(RAW_POJO)) -> false
-			else -> {
-				if (!isShared) {
-					self.becomeIndirectionTo(aPojo.makeImmutable())
-				}
-				else if (!aPojo.descriptor().isShared) {
-					aPojo.becomeIndirectionTo(self.makeImmutable())
+			else ->
+			{
+				when
+				{
+					!isShared ->
+						self.becomeIndirectionTo(aPojo.makeImmutable())
+					!aPojo.descriptor().isShared ->
+						aPojo.becomeIndirectionTo(self.makeImmutable())
 				}
 				true
 			}
 		}
 
 	@AvailMethod
-	override fun o_Hash(self: AvailObject): Int {
+	override fun o_Hash(self: AvailObject): Int
+	{
 		var hash = self.slot(RAW_POJO).hash() xor 0x749101DD
 		hash *= AvailObject.multiplier
 		hash += self.slot(KIND).hash()
@@ -109,9 +118,7 @@ class PojoDescriptor private constructor(
 	override fun o_MarshalToJava(
 		self: AvailObject,
 		ignoredClassHint: Class<*>?
-	): Any? {
-		return self.slot(RAW_POJO).javaObject<Any>()
-	}
+	): Any? = self.slot(RAW_POJO).javaObject<Any>()
 
 	@AvailMethod
 	override fun o_RawPojo(self: AvailObject): AvailObject = self.slot(RAW_POJO)
@@ -123,34 +130,30 @@ class PojoDescriptor private constructor(
 	override fun o_ShowValueInNameForDebugger(self: AvailObject): Boolean =
 		false
 
-	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) {
-		writer.startObject()
-		writer.write("kind")
-		writer.write("pojo")
-		writer.write("pojo type")
-		self.slot(KIND).writeTo(writer)
-		writer.write("description")
-		writer.write(self.slot(RAW_POJO).javaObject<String>())
-		writer.endObject()
-	}
+	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("pojo") }
+			at("pojo type") { self.slot(KIND).writeTo(writer) }
+			at("description") {
+				write(self.slot(RAW_POJO).javaObject<String>())
+			}
+		}
 
-	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) {
-		writer.startObject()
-		writer.write("kind")
-		writer.write("pojo")
-		writer.write("pojo type")
-		self.slot(KIND).writeSummaryTo(writer)
-		writer.write("description")
-		writer.write(self.slot(RAW_POJO).javaObject<String>())
-		writer.endObject()
-	}
+	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("pojo") }
+			at("pojo type") { self.slot(KIND).writeSummaryTo(writer) }
+			at("description") {
+				write(self.slot(RAW_POJO).javaObject<String>())
+			}
+		}
 
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
-		indent: Int
-	) {
+		indent: Int)
+	{
 		builder.append(self.slot(RAW_POJO).javaObject<Any>())
 		builder.append(" ∈ ")
 		self.slot(KIND).printOnAvoidingIndent(builder, recursionMap, indent)
@@ -162,7 +165,8 @@ class PojoDescriptor private constructor(
 
 	override fun shared(): PojoDescriptor = shared
 
-	companion object {
+	companion object
+	{
 		/** The mutable [PojoDescriptor].  */
 		private val mutable = PojoDescriptor(Mutability.MUTABLE)
 
@@ -188,7 +192,8 @@ class PojoDescriptor private constructor(
 		fun newPojo(
 			rawPojo: AvailObject,
 			pojoType: A_Type
-		): AvailObject = with(mutable.create()) {
+		): AvailObject = with(mutable.create())
+		{
 			setSlot(RAW_POJO, rawPojo)
 			setSlot(KIND, pojoType)
 			makeImmutable()
@@ -202,7 +207,8 @@ class PojoDescriptor private constructor(
 		 * Answer the [pojo][PojoDescriptor] that wraps Java's
 		 * `null`.
 		 *
-		 * @return The `null` pojo.
+		 * @return
+		 *   The `null` pojo.
 		 */
 		@JvmStatic
 		fun nullPojo(): AvailObject = nullObject

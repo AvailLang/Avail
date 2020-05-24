@@ -53,6 +53,10 @@ import java.util.*
  * defining [pojo&#32;types][PojoTypeDescriptor]).
  *
  * @constructor
+ * Create a [raw&#32;pojo][RawPojoDescriptor].  These structures are not usually
+ * created by end users, but are created for internal uses, such as to reify
+ * [Class] objects, or to have a private slot of an [AvailObject] hold onto a
+ * [WeakHashMap] or other Java/Kotlin construct.
  *
  * @param mutability
  *   The [mutability][Mutability] of the new descriptor.
@@ -66,8 +70,8 @@ import java.util.*
 open class RawPojoDescriptor protected constructor(
 	mutability: Mutability,
 	val javaObject: Any?
-) : Descriptor(mutability, TypeTag.POJO_TAG, null, null
-) {
+) : Descriptor(mutability, TypeTag.POJO_TAG, null, null)
+{
 	@AvailMethod
 	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean =
 		another.equalsRawPojoFor(self, javaObject)
@@ -84,8 +88,10 @@ open class RawPojoDescriptor protected constructor(
 		self: AvailObject,
 		otherRawPojo: AvailObject,
 		otherJavaObject: Any?
-	): Boolean {
-		when {
+	): Boolean
+	{
+		when
+		{
 			javaObject !== otherJavaObject -> return false
 			self.sameAddressAs(otherRawPojo) -> return true
 			!isShared -> self.becomeIndirectionTo(otherRawPojo)
@@ -96,7 +102,8 @@ open class RawPojoDescriptor protected constructor(
 	}
 
 	@AvailMethod
-	override fun o_Hash(self: AvailObject): Int {
+	override fun o_Hash(self: AvailObject): Int
+	{
 		// This ensures that mutations of the wrapped pojo do not corrupt hashed
 		// Avail data structures.
 		return System.identityHashCode(javaObject) xor 0x277AB9C3
@@ -117,8 +124,10 @@ open class RawPojoDescriptor protected constructor(
 	 * [javaObject] but is [immutable][Mutability.IMMUTABLE].
 	 */
 	@AvailMethod
-	override fun o_MakeImmutable(self: AvailObject): AvailObject {
-		if (isMutable) {
+	override fun o_MakeImmutable(self: AvailObject): AvailObject
+	{
+		if (isMutable)
+		{
 			self.setDescriptor(
 				RawPojoDescriptor(Mutability.IMMUTABLE, javaObject))
 		}
@@ -130,8 +139,10 @@ open class RawPojoDescriptor protected constructor(
 	 * [javaObject] but is [shared][Mutability.SHARED].
 	 */
 	@AvailMethod
-	override fun o_MakeShared(self: AvailObject): AvailObject {
-		if (!isShared) {
+	override fun o_MakeShared(self: AvailObject): AvailObject
+	{
+		if (!isShared)
+		{
 			self.setDescriptor(
 				RawPojoDescriptor(Mutability.SHARED, javaObject))
 		}
@@ -144,16 +155,15 @@ open class RawPojoDescriptor protected constructor(
 	): Any? = javaObject
 
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
-		when (javaObject) {
+		when (javaObject)
+		{
 			null -> SerializerOperation.RAW_POJO_NULL
-			is Class<*> -> {
-				val o = cast<Any, Class<*>>(javaObject)
-				when {
-					o.isPrimitive ->
-						SerializerOperation.RAW_PRIMITIVE_JAVA_CLASS
+			is Class<*> ->
+				when (cast<Any, Class<*>>(javaObject).isPrimitive)
+				{
+					true -> SerializerOperation.RAW_PRIMITIVE_JAVA_CLASS
 					else -> SerializerOperation.RAW_NONPRIMITIVE_JAVA_CLASS
 				}
-			}
 			is Method -> SerializerOperation.RAW_POJO_METHOD
 			is Constructor<*> -> SerializerOperation.RAW_POJO_CONSTRUCTOR
 			else -> super.o_SerializerOperation(self)
@@ -163,8 +173,8 @@ open class RawPojoDescriptor protected constructor(
 		self: AvailObject,
 		builder: StringBuilder,
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
-		indent: Int
-	) {
+		indent: Int)
+	{
 		// This is not a thread-safe read of the slot, but this method is just
 		// for debugging anyway, so don't bother acquiring the lock. Coherence
 		// isn't important here.
@@ -175,7 +185,8 @@ open class RawPojoDescriptor protected constructor(
 	/**
 	 * A fake enumeration of slots for a nice description of this pojo.
 	 */
-	internal enum class FakeSlots : ObjectSlotsEnum {
+	internal enum class FakeSlots : ObjectSlotsEnum
+	{
 		/** The sole (pseudo-)slot, the java object itself.  */
 		JAVA_OBJECT
 	}
@@ -187,7 +198,8 @@ open class RawPojoDescriptor protected constructor(
 	 */
 	override fun o_DescribeForDebugger(
 		self: AvailObject
-	): Array<AvailObjectFieldHelper> {
+	): Array<AvailObjectFieldHelper>
+	{
 		val fields: MutableList<AvailObjectFieldHelper> = ArrayList()
 		fields.add(
 			AvailObjectFieldHelper(
@@ -216,7 +228,8 @@ open class RawPojoDescriptor protected constructor(
 	override fun shared(): AbstractDescriptor =
 		throw unsupportedOperationException()
 
-	companion object {
+	companion object
+	{
 		/**
 		 * A [raw&#32;pojo][RawPojoDescriptor] for [Object]'s [class][Class].
 		 */

@@ -35,7 +35,6 @@ import com.avail.annotations.AvailMethod
 import com.avail.descriptor.Descriptor
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import com.avail.descriptor.pojos.PojoFieldDescriptor.ObjectSlots.*
-import com.avail.descriptor.pojos.PojoFinalFieldDescriptor.*
 import com.avail.descriptor.pojos.PojoFinalFieldDescriptor.Companion.pojoFinalFieldForInnerType
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
@@ -72,9 +71,11 @@ import java.util.*
 class PojoFieldDescriptor private constructor(
 	mutability: Mutability
 ) : Descriptor(
-	mutability, TypeTag.VARIABLE_TAG, ObjectSlots::class.java, null) {
+	mutability, TypeTag.VARIABLE_TAG, ObjectSlots::class.java, null)
+{
 	/** The layout of the object slots.  */
-	enum class ObjectSlots : ObjectSlotsEnum {
+	enum class ObjectSlots : ObjectSlotsEnum
+	{
 		/**
 		 * A [raw&#32;pojo][RawPojoDescriptor] that wraps a reflected Java
 		 * [Field].
@@ -94,26 +95,32 @@ class PojoFieldDescriptor private constructor(
 		KIND
 	}
 
-	override fun o_ClearValue(self: AvailObject) {
+	override fun o_ClearValue(self: AvailObject)
+	{
 		val receiver = self.slot(RECEIVER).javaObjectNotNull<Any>()
 		val field = self.slot(FIELD).javaObjectNotNull<Field>()
 		val fieldType = field.type
 		val defaultValue: Any?
 		// Sadly Java does not offer reflective access to the default values of
 		// its primitive types ...
-		defaultValue = when {
-			!fieldType.isPrimitive -> null
-			fieldType == Boolean::class.javaPrimitiveType ->
-				java.lang.Boolean.FALSE
-			fieldType == Float::class.javaPrimitiveType -> 0.0f
-			fieldType == Double::class.javaPrimitiveType -> 0.0
-			fieldType == Char::class.javaPrimitiveType -> 0.toChar()
-			else -> zero().marshalToJava(fieldType)
-		}
+		defaultValue =
+			when
+			{
+				!fieldType.isPrimitive -> null
+				fieldType == Boolean::class.javaPrimitiveType ->
+					java.lang.Boolean.FALSE
+				fieldType == Float::class.javaPrimitiveType -> 0.0f
+				fieldType == Double::class.javaPrimitiveType -> 0.0
+				fieldType == Char::class.javaPrimitiveType -> 0.toChar()
+				else -> zero().marshalToJava(fieldType)
+			}
 		// Clear the variable by writing the appropriate default value.
-		try {
+		try
+		{
 			synchronized(receiver) { field[receiver] = defaultValue }
-		} catch (e: Exception) {
+		}
+		catch (e: Exception)
+		{
 			throw MarshalingException(e)
 		}
 	}
@@ -132,28 +139,34 @@ class PojoFieldDescriptor private constructor(
 
 	@AvailMethod
 	@Throws(VariableGetException::class)
-	override fun o_GetValue(self: AvailObject): AvailObject {
+	override fun o_GetValue(self: AvailObject): AvailObject
+	{
 		val receiver = self.slot(RECEIVER).javaObjectNotNull<Any>()
 		val field = self.slot(FIELD).javaObjectNotNull<Field>()
 		val expectedType = self.slot(KIND).readType()
-		return try {
-			synchronized(receiver) {
+		try
+		{
+			return synchronized(receiver) {
 				PojoTypeDescriptor.unmarshal(field.get(receiver), expectedType)
 			}
-		} catch (e: Exception) {
+		}
+		catch (e: Exception)
+		{
 			throw AvailRuntimeException(E_JAVA_MARSHALING_FAILED, e)
 		}
 	}
 
 	@AvailMethod
-	override fun o_Hash(self: AvailObject): Int {
+	override fun o_Hash(self: AvailObject): Int
+	{
 		var h = self.slot(FIELD).hash() xor 0x2199C0C3
-		h *= multiplier;
+		h *= multiplier
 		h += self.slot(RECEIVER).hash()
 		return h
 	}
 
-	override fun o_HasValue(self: AvailObject): Boolean {
+	override fun o_HasValue(self: AvailObject): Boolean
+	{
 		// A pojo field has a value by definition, since we consider Java null
 		// as unequal to nil.
 		return true
@@ -164,9 +177,11 @@ class PojoFieldDescriptor private constructor(
 
 	override fun o_SerializerOperation(
 		self: AvailObject
-	): SerializerOperation {
+	): SerializerOperation
+	{
 		val field = self.slot(FIELD).javaObjectNotNull<Field>()
-		if (field.modifiers and Modifier.STATIC != 0) {
+		if (field.modifiers and Modifier.STATIC != 0)
+		{
 			return SerializerOperation.STATIC_POJO_FIELD
 		}
 		throw unsupportedOperationException()
@@ -176,15 +191,19 @@ class PojoFieldDescriptor private constructor(
 	override fun o_SetValue(
 		self: AvailObject,
 		newValue: A_BasicObject
-	) {
+	)
+	{
 		val receiver = self.slot(RECEIVER).javaObjectNotNull<Any>()
 		val field = self.slot(FIELD).javaObjectNotNull<Field>()
 		val classHint = field.type
-		try {
+		try
+		{
 			synchronized(receiver) {
 				field.set(receiver, newValue.marshalToJava(classHint))
 			}
-		} catch (e: Exception) {
+		}
+		catch (e: Exception)
+		{
 			throw AvailRuntimeException(E_JAVA_MARSHALING_FAILED, e)
 		}
 	}
@@ -192,64 +211,64 @@ class PojoFieldDescriptor private constructor(
 	override fun o_SetValueNoCheck(
 		self: AvailObject,
 		newValue: A_BasicObject
-	) {
+	)
+	{
 		// Actually check this write anyhow. Just in case.
 		val receiver = self.slot(RECEIVER).javaObjectNotNull<Any>()
 		val field = self.slot(FIELD).javaObjectNotNull<Field>()
 		val classHint = field.type
-		try {
+		try
+		{
 			synchronized(receiver) {
 				field.set(receiver, newValue.marshalToJava(classHint))
 			}
-		} catch (e: Exception) {
+		}
+		catch (e: Exception)
+		{
 			throw AvailRuntimeException(E_JAVA_MARSHALING_FAILED, e)
 		}
 	}
 
 	@AvailMethod
-	override fun o_Value(self: AvailObject): AvailObject {
+	override fun o_Value(self: AvailObject): AvailObject
+	{
 		val receiver = self.slot(RECEIVER).javaObjectNotNull<Any>()
 		val field = self.slot(FIELD).javaObjectNotNull<Field>()
 		val expectedType = self.slot(KIND).readType()
-		try {
-			synchronized(receiver) {
-				return PojoTypeDescriptor.unmarshal(
-					field.get(receiver), expectedType)
+		try
+		{
+			return synchronized(receiver) {
+				PojoTypeDescriptor.unmarshal(field.get(receiver), expectedType)
 			}
-		} catch (e: Exception) {
+		}
+		catch (e: Exception)
+		{
 			throw AvailRuntimeException(E_JAVA_MARSHALING_FAILED, e)
 		}
 	}
 
-	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) {
-		writer.startObject()
-		writer.write("kind")
-		writer.write("variable")
-		writer.write("variable type")
-		self.kind().writeTo(writer)
-		writer.write("value")
-		self.value().writeSummaryTo(writer)
-		writer.endObject()
-	}
+	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("variable") }
+			at("variable type") { self.kind().writeTo(writer) }
+			at("value") { self.value().writeSummaryTo(writer) }
+		}
 
-	override fun o_WriteSummaryTo(
-		self: AvailObject, writer: JSONWriter) {
-		writer.startObject()
-		writer.write("kind")
-		writer.write("variable")
-		writer.write("variable type")
-		self.kind().writeSummaryTo(writer)
-		writer.endObject()
-	}
+	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("variable") }
+			at("variable type") { self.kind().writeSummaryTo(writer) }
+		}
 
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
-		indent: Int
-	) {
+		indent: Int)
+	{
 		val field = self.slot(FIELD).javaObjectNotNull<Field>()
-		if (!Modifier.isStatic(field.modifiers)) {
+		if (!Modifier.isStatic(field.modifiers))
+		{
 			builder.append('(')
 			self.slot(RECEIVER).printOnAvoidingIndent(
 				builder, recursionMap, indent + 1)
@@ -266,7 +285,8 @@ class PojoFieldDescriptor private constructor(
 
 	override fun shared(): PojoFieldDescriptor = shared
 
-	companion object {
+	companion object
+	{
 		/** The mutable [PojoFieldDescriptor].  */
 		private val mutable = PojoFieldDescriptor(Mutability.MUTABLE)
 
@@ -321,9 +341,11 @@ class PojoFieldDescriptor private constructor(
 			field: AvailObject,
 			receiver: AvailObject,
 			innerType: A_Type
-		): AvailObject {
+		): AvailObject
+		{
 			val javaField = field.javaObjectNotNull<Field>()
-			return when {
+			return when
+			{
 				Modifier.isFinal(javaField.modifiers) ->
 					pojoFinalFieldForInnerType(field, receiver, innerType)
 				else ->
