@@ -38,7 +38,7 @@ import com.avail.descriptor.representation.IndirectionDescriptor
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.atoms.AtomWithPropertiesDescriptor.ObjectSlots.*
-import com.avail.descriptor.pojos.RawPojoDescriptor.identityPojo
+import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import com.avail.descriptor.representation.*
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.types.TypeTag

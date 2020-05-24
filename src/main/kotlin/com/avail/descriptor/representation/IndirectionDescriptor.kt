@@ -395,8 +395,13 @@ class IndirectionDescriptor private constructor(
 	/**
 	 * Define the infix ".." operator  to reducing redundancy in the many reflex
 	 * methods below.
+	 *
+	 * @param body
+	 *   The action to perform on the traversed receiver.
+	 * @return
+	 *   The value produced by the action.
 	 */
-	operator inline fun <R> AvailObject.rangeTo(
+	inline operator fun <R> AvailObject.rangeTo(
 		body: AvailObject.() -> R
 	): R = o_Traversed(this@rangeTo).body()
 
