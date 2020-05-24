@@ -188,18 +188,16 @@ object L2_TRY_PRIMITIVE : L2Operation(
 						null
 					}
 				interpreter.isReifying = true
-				StackReifier(
-					false,
-					primitive.reificationAbandonmentStat!!,
-					Continuation0 {
-						interpreter.setReifiedContinuation(newContinuation)
-						interpreter.function = newFunction
-						interpreter.chunk = newChunk
-						interpreter.setOffset(newOffset)
-						interpreter.returnNow = newReturnNow
-						interpreter.setLatestResult(newReturnValue)
-						interpreter.isReifying = false
-					})
+				StackReifier(false, primitive.reificationAbandonmentStat!!)
+				{
+					interpreter.setReifiedContinuation(newContinuation)
+					interpreter.function = newFunction
+					interpreter.chunk = newChunk
+					interpreter.setOffset(newOffset)
+					interpreter.returnNow = newReturnNow
+					interpreter.setLatestResult(newReturnValue)
+					interpreter.isReifying = false
+				}
 			}
 			Primitive.Result.FIBER_SUSPENDED ->
 			{
@@ -286,65 +284,63 @@ object L2_TRY_PRIMITIVE : L2Operation(
 		// where all frames have been reified, so returnNow
 		// would be unnecessary.
 		interpreter.isReifying = true
-		return StackReifier(
-			true,
-			primitive.reificationForNoninlineStat!!,
-			Continuation0 {
-				assert(interpreter.unreifiedCallDepth() == 0)
-					{ "Should have reified stack for non-inlineable primitive" }
-				interpreter.chunk = savedChunk
-				interpreter.setOffset(savedOffset)
-				stepper.pointers = savedPointers
-				interpreter.function = function
-				if (Interpreter.debugL2)
+		return StackReifier(true, primitive.reificationForNoninlineStat!!)
+		{
+			assert(interpreter.unreifiedCallDepth() == 0)
+				{ "Should have reified stack for non-inlineable primitive" }
+			interpreter.chunk = savedChunk
+			interpreter.setOffset(savedOffset)
+			stepper.pointers = savedPointers
+			interpreter.function = function
+			if (Interpreter.debugL2)
+			{
+				log(
+					Interpreter.loggerDebugL2,
+					Level.FINER,
+					"{0}          reified, now starting {1}",
+					interpreter.debugModeString,
+					primitive.fieldName())
+			}
+			val timeBefore =
+				interpreter.beforeAttemptPrimitive(primitive)
+			val result = primitive.attempt(interpreter)
+			interpreter.afterAttemptPrimitive(
+				primitive, timeBefore, result)
+			when (result)
+			{
+				Primitive.Result.SUCCESS ->
 				{
-					log(
-						Interpreter.loggerDebugL2,
-						Level.FINER,
-						"{0}          reified, now starting {1}",
-						interpreter.debugModeString,
-						primitive.fieldName())
+					assert(interpreter.latestResultOrNull() !== null)
+					interpreter.returnNow = true
+					interpreter.returningFunction = function
 				}
-				val timeBefore =
-					interpreter.beforeAttemptPrimitive(primitive)
-				val result = primitive.attempt(interpreter)
-				interpreter.afterAttemptPrimitive(
-					primitive, timeBefore, result)
-				when (result)
+				Primitive.Result.FAILURE ->
 				{
-					Primitive.Result.SUCCESS ->
-					{
-						assert(interpreter.latestResultOrNull() !== null)
-						interpreter.returnNow = true
-						interpreter.returningFunction = function
-					}
-					Primitive.Result.FAILURE ->
-					{
-						assert(interpreter.latestResultOrNull() !== null)
-						interpreter.function = function
-						interpreter.setOffset(
-							interpreter.chunk!!
-								.offsetAfterInitialTryPrimitive())
-						assert(!interpreter.returnNow)
-					}
-					Primitive.Result.READY_TO_INVOKE ->
-					{
-						assert(false)
-							{ "Invoking primitives should be inlineable" }
-					}
-					Primitive.Result.CONTINUATION_CHANGED ->
-					{
-						assert(primitive.hasFlag(
-							Primitive.Flag.CanSwitchContinuations))
-					}
-					Primitive.Result.FIBER_SUSPENDED ->
-					{
-						assert(interpreter.exitNow)
-						interpreter.returnNow = false
-					}
+					assert(interpreter.latestResultOrNull() !== null)
+					interpreter.function = function
+					interpreter.setOffset(
+						interpreter.chunk!!
+							.offsetAfterInitialTryPrimitive())
+					assert(!interpreter.returnNow)
 				}
-				interpreter.isReifying = false
-			})
+				Primitive.Result.READY_TO_INVOKE ->
+				{
+					assert(false)
+						{ "Invoking primitives should be inlineable" }
+				}
+				Primitive.Result.CONTINUATION_CHANGED ->
+				{
+					assert(primitive.hasFlag(
+						Primitive.Flag.CanSwitchContinuations))
+				}
+				Primitive.Result.FIBER_SUSPENDED ->
+				{
+					assert(interpreter.exitNow)
+					interpreter.returnNow = false
+				}
+			}
+			interpreter.isReifying = false
+		}
 	}
 
 	/**

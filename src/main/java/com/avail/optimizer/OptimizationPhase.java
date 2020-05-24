@@ -111,42 +111,35 @@ enum OptimizationPhase
 		L2Optimizer::removeDeadCode, FOLLOW_SEMANTIC_VALUES_AND_REGISTERS),
 
 	/**
-	 * If there are any {@link L2_VIRTUAL_CREATE_LABEL} instructions still
-	 * extant, replace them with the rather complex code that will reify the
-	 * caller if necessary, and create a label continuation.
+	 * If there are any {@link L2_VIRTUAL_CREATE_LABEL} instructions still extant, replace them with the rather complex code that will reify the caller if necessary, and create a label continuation.
 	 */
 	@Requires(IS_EDGE_SPLIT.class)
 	REPLACE_PLACEHOLDER_INSTRUCTIONS(
 		L2Optimizer::replacePlaceholderInstructions),
 
 	/**
-	 * Placeholder instructions may have been replaced with new subgraphs of
-	 * generated code.  Some of that might be dead, so clean it up, otherwise
-	 * the {@link L2Optimizer#postponeConditionallyUsedValues()} might get upset
-	 * about an instruction being in a place with no downstream uses.
+	 * Placeholder instructions may have been replaced with new subgraphs of generated code.  Some of that might be dead, so clean it up, otherwise the {@link L2Optimizer#postponeConditionallyUsedValues()} might get upset about an instruction being in a place with no downstream uses.
 	 */
 	@Requires(IS_EDGE_SPLIT.class)
 	REMOVE_DEAD_CODE_AFTER_REPLACEMENTS(
 		L2Optimizer::removeDeadCode, FOLLOW_SEMANTIC_VALUES_AND_REGISTERS),
 
 	/**
-	 * Recompute liveness information about all registers, now that dead
-	 * code has been eliminated after placeholder replacements.
+	 * Recompute liveness information about all registers, now that dead code
+	 * has been eliminated after placeholder replacements.
 	 */
 	COMPUTE_LIVENESS_AT_EDGES_2(L2Optimizer::computeLivenessAtEachEdge),
 
 	/**
-	 * If {@link #REPLACE_PLACEHOLDER_INSTRUCTIONS} made any changes,
-	 * give one more try at pushing conditionally used values.  Otherwise do
-	 * nothing.
+	 * If {@link #REPLACE_PLACEHOLDER_INSTRUCTIONS} made any changes, give one more try at pushing conditionally used values.  Otherwise do nothing.
 	 */
 	@Requires(IS_EDGE_SPLIT.class)
 	POSTPONE_CONDITIONALLY_USED_VALUES_2(
 		L2Optimizer::postponeConditionallyUsedValues),
 
 	/**
-	 * Insert phi moves along preceding edges.  This requires the CFG to be
-	 * in edge-split form, although strict SSA isn't required.
+	 * Insert phi moves along preceding edges.  This requires the CFG to be in
+	 * edge-split form, although strict SSA isn't required.
 	 */
 	@Requires(IS_EDGE_SPLIT.class)
 	@Sets(HAS_ELIMINATED_PHIS.class)
@@ -161,16 +154,16 @@ enum OptimizationPhase
 		L2Optimizer::removeDeadCode, FOLLOW_REGISTERS),
 
 	/**
-	 * Compute the register-coloring interference graph while we're just
-	 * out of SSA form – phis have been replaced by moves on incoming edges.
+	 * Compute the register-coloring interference graph while we're just out of
+	 * SSA form – phis have been replaced by moves on incoming edges.
 	 */
 	COMPUTE_INTERFERENCE_GRAPH(L2Optimizer::computeInterferenceGraph),
 
 	/**
-	 * Color all registers, using the previously computed interference
-	 * graph.  This creates a dense finalIndex numbering for the registers
-	 * in such a way that no two registers that have to maintain distinct
-	 * values at the same time will have the same number.
+	 * Color all registers, using the previously computed interference graph.
+	 * This creates a dense finalIndex numbering for the registers in such a way
+	 * that no two registers that have to maintain distinct values at the same
+	 * time will have the same number.
 	 */
 	COALESCE_REGISTERS_IN_NONINTERFERING_MOVES(
 		L2Optimizer::coalesceNoninterferingMoves),
@@ -248,7 +241,8 @@ enum OptimizationPhase
 	/**
 	 * Create the enumeration value.
 	 *
-	 * @param action The action to perform for this pass.
+	 * @param action
+	 * The action to perform for this pass.
 	 */
 	OptimizationPhase (final Continuation1<L2Optimizer> action)
 	{
@@ -317,8 +311,7 @@ enum OptimizationPhase
 	}
 
 	/**
-	 * Perform this phase's action.  Also check precondition {@link StateFlag}s
-	 * and set or clear them as indicated by this phase's annotations.
+	 * Perform this phase's action.  Also check precondition {@link StateFlag}s and set or clear them as indicated by this phase's annotations.
 	 *
 	 * @param optimizer
 	 *        The optimizer for which to run this phase.

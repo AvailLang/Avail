@@ -39,8 +39,9 @@ import com.avail.interpreter.execution.Interpreter;
 import com.avail.optimizer.jvm.CheckedMethod;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.performance.Statistic;
-import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1NotNull;
+import kotlin.Unit;
+import kotlin.jvm.functions.Function0;
 
 import javax.annotation.Nullable;
 import java.util.ArrayDeque;
@@ -72,20 +73,12 @@ public final class StackReifier
 	private final boolean actuallyReify;
 
 	/**
-	 * A {@link Continuation0} that should be executed once the {@link
-	 * Interpreter}'s stack has been fully reified.  For example, this might set
-	 * up a function/chunk/offset in the interpreter.  The interpreter will then
-	 * determine if it should continue running.
+	 * A lambda that should be executed once the {@link Interpreter}'s stack has been fully reified.  For example, this might set up a function/chunk/offset in the interpreter.  The interpreter will then determine if it should continue running.
 	 */
-	public final Continuation0 postReificationAction;
+	public final Function0<Unit> postReificationAction;
 
 	/**
-	 * The stack of lambdas that's accumulated as the call stack is popped.
-	 * After the call stack is empty, the outer {@link Interpreter} loop will
-	 * execute them in reverse order.  The typical action is to invoke some
-	 * L2Chunk at an entry point, and the L2 code will cause one or more stack
-	 * frames to be generated and pushed onto the {@link
-	 * Interpreter#setReifiedContinuation(A_Continuation)}.
+	 * The stack of lambdas that's accumulated as the call stack is popped. After the call stack is empty, the outer {@link Interpreter} loop will execute them in reverse order.  The typical action is to invoke some L2Chunk at an entry point, and the L2 code will cause one or more stack frames to be generated and pushed onto the {@link Interpreter#setReifiedContinuation(A_Continuation)}.
 	 */
 	private final Deque<Continuation1NotNull<Interpreter>> actionStack =
 		new ArrayDeque<>();
@@ -102,16 +95,14 @@ public final class StackReifier
 	 * @param actuallyReify
 	 *        Whether to reify the Java frames (rather than simply drop them).
 	 * @param reificationStatistic
-	 *        The {@link Statistic} under which to record this reification once
-	 *        it completes.  The timing of this event spans from this creation
-	 *        until just before the {@link #postReificationAction} action runs.
+	 *        The {@link Statistic} under which to record this reification once it completes.  The timing of this event spans from this creation until just before the {@link #postReificationAction} action runs.
 	 * @param postReificationAction
-	 *        The action to perform after the Java stack has been fully reified.
+	 * The action to perform after the Java stack has been fully reified.
 	 */
 	public StackReifier (
 		final boolean actuallyReify,
 		final Statistic reificationStatistic,
-		final Continuation0 postReificationAction)
+		final Function0<Unit> postReificationAction)
 	{
 		this.actuallyReify = actuallyReify;
 		this.postReificationAction = postReificationAction;
@@ -123,7 +114,8 @@ public final class StackReifier
 	 * Answer whether this {@code StackReifier} should cause reification (rather
 	 * than just clearing the Java stack).
 	 *
-	 * @return An indicator whether to reify versus discard the Java stack.
+	 * @return
+	 * An indicator whether to reify versus discard the Java stack.
 	 */
 	public boolean actuallyReify ()
 	{
@@ -135,8 +127,7 @@ public final class StackReifier
 	 * {@link Interpreter#getReifiedContinuation()} stack.
 	 *
 	 * @param interpreter
-	 *        The {@link Interpreter} with which to run the actions, in reverse
-	 *        order.
+	 *        The {@link Interpreter} with which to run the actions, in reverse order.
 	 */
 	public void runActions (
 		final Interpreter interpreter)
@@ -151,7 +142,8 @@ public final class StackReifier
 	 * Push an action on the {@link #actionStack}.  These will be executed in
 	 * reverse order, after the Java call stack has been emptied.
 	 *
-	 * @param action The {@link Continuation1NotNull} to push.
+	 * @param action
+	 * The {@link Continuation1NotNull} to push.
 	 */
 	public void pushAction (
 		final Continuation1NotNull<Interpreter> action)
@@ -173,9 +165,9 @@ public final class StackReifier
 	 * prior to running any previously pushed actions.</p>
 	 *
 	 * @param dummyContinuation
-	 *        A mutable continuation to add to the stack when more recently
-	 *        pushed actions have completed (thereby fully reifying the caller).
-	 * @return The receiver (a {@code StackReifier}), as a convenience.
+	 *        A mutable continuation to add to the stack when more recently pushed actions have completed (thereby fully reifying the caller).
+	 * @return
+	 * The receiver (a {@code StackReifier}), as a convenience.
 	 */
 	@ReferencedInGeneratedCode
 	public StackReifier pushContinuationAction (
@@ -234,12 +226,10 @@ public final class StackReifier
 			AvailObject.class);
 
 	/**
-	 * Record the fact that a reification has completed.  The specific {@link
-	 * Statistic} under which to record it was provided to the constructor.
+	 * Record the fact that a reification has completed.  The specific {@link Statistic} under which to record it was provided to the constructor.
 	 *
 	 * @param interpreterIndex
-	 *        The current {@link AvailThread}'s {@link Interpreter}'s index,
-	 *        used for contention-free statistics gathering.
+	 *        The current {@link AvailThread}'s {@link Interpreter}'s index, used for contention-free statistics gathering.
 	 */
 	public void recordCompletedReification (final int interpreterIndex)
 	{

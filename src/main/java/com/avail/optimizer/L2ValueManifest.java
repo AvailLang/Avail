@@ -46,13 +46,13 @@ import com.avail.optimizer.values.L2SemanticPrimitiveInvocation;
 import com.avail.optimizer.values.L2SemanticValue;
 import com.avail.utility.Casts;
 import com.avail.utility.Pair;
+import kotlin.jvm.functions.Function1;
 
 import javax.annotation.Nullable;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
-import java.util.function.UnaryOperator;
 
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.bottomRestriction;
 import static com.avail.interpreter.levelTwo.register.L2Register.RegisterKind.*;
@@ -64,16 +64,11 @@ import static java.util.EnumSet.noneOf;
 import static java.util.stream.Collectors.*;
 
 /**
- * The {@code L2ValueManifest} maintains information about which {@link
- * L2SemanticValue}s hold equivalent values at this point, the {@link
- * TypeRestriction}s for those semantic values, and the list of {@link
- * L2WriteOperand}s that are visible definitions of those values.
+ * The {@code L2ValueManifest} maintains information about which {@link L2SemanticValue}s hold equivalent values at this point, the {@link TypeRestriction}s for those semantic values, and the list of {@link L2WriteOperand}s that are visible definitions of those values.
  *
  * <p>In order to avoid reevaluating primitives with the same values, a manifest
  * also tracks </p>
- * {@link
- * L2Register}s hold values representing which {@link L2SemanticValue}s,
- * specifically using {@link L2Synonym}s as the binding mechanism.
+ * {@link L2Register}s hold values representing which {@link L2SemanticValue}s, specifically using {@link L2Synonym}s as the binding mechanism.
  *
  * <p>The mapping is keyed both ways (semantic value → synonym, and register →
  * synonym), so that registers can be efficiently removed.  This happens at
@@ -91,17 +86,13 @@ public final class L2ValueManifest
 		new HashMap<>();
 
 	/**
-	 * The {@link TypeRestriction}s currently in force on this manifest's {@link
-	 * L2Synonym}s.
+	 * The {@link TypeRestriction}s currently in force on this manifest's {@link L2Synonym}s.
 	 */
 	private final Map<L2Synonym, TypeRestriction> synonymRestrictions =
 		new HashMap<>();
 
 	/**
-	 * A map from each {@link L2Synonym} to a {@link List} of
-	 * {@link L2Register}s that are in {@link L2WriteOperand}s of
-	 * {@link L2Instruction}s that act as definitions of the {@link L2Synonym}'s
-	 * {@link L2SemanticValue}s.
+	 * A map from each {@link L2Synonym} to a {@link List} of {@link L2Register}s that are in {@link L2WriteOperand}s of {@link L2Instruction}s that act as definitions of the {@link L2Synonym}'s {@link L2SemanticValue}s.
 	 */
 	private final Map<L2Synonym, List<L2Register>> definitions =
 		new HashMap<>();
@@ -128,12 +119,12 @@ public final class L2ValueManifest
 	}
 
 	/**
-	 * Look up the given {@link L2SemanticValue}, answering the {@link
-	 * L2Synonym} that's bound to it.  Fail if it's not found.
+	 * Look up the given {@link L2SemanticValue}, answering the {@link L2Synonym} that's bound to it.  Fail if it's not found.
 	 *
 	 * @param semanticValue
 	 *        The semantic value to look up.
-	 * @return The {@link L2Synonym} bound to that semantic value.
+	 * @return
+	 * The {@link L2Synonym} bound to that semantic value.
 	 */
 	public L2Synonym semanticValueToSynonym (
 		final L2SemanticValue semanticValue)
@@ -142,16 +133,14 @@ public final class L2ValueManifest
 	}
 
 	/**
-	 * Look up the given {@link L2SemanticValue}, answering the {@link
-	 * L2Synonym} that's bound to it.  If not found, evaluate the {@link
-	 * Supplier} to produce an optional {@code Supplier} or {@code null}.
+	 * Look up the given {@link L2SemanticValue}, answering the {@link L2Synonym} that's bound to it.  If not found, evaluate the {@link Supplier} to produce an optional {@code Supplier} or {@code null}.
 	 *
 	 * @param semanticValue
 	 *        The semantic value to look up.
 	 * @param elseSupplier
 	 *        The code to run if the semantic value was not found.
-	 * @return The {@link L2Synonym} bound to that semantic value, or
-	 *         {@code null}.
+	 * @return
+	 * The {@link L2Synonym} bound to that semantic value, or {@code null}.
 	 */
 	public @Nullable L2Synonym semanticValueToSynonymOrElse (
 		final L2SemanticValue semanticValue,
@@ -162,9 +151,7 @@ public final class L2ValueManifest
 	}
 
 	/**
-	 * Capture information about a new {@link L2Synonym} and its {@link
-	 * TypeRestriction}.  It's an error if any of the semantic values of the
-	 * synonym are already bound to other synonyms in this manifest.
+	 * Capture information about a new {@link L2Synonym} and its {@link TypeRestriction}.  It's an error if any of the semantic values of the synonym are already bound to other synonyms in this manifest.
 	 *
 	 * @param freshSynonym
 	 *        The new {@link L2Synonym} to record.
@@ -190,7 +177,8 @@ public final class L2ValueManifest
 	 *
 	 * @param semanticValue
 	 *        The {@link L2SemanticValue}.
-	 * @return Whether there is a register known to be holding this value.
+	 * @return
+	 * Whether there is a register known to be holding this value.
 	 */
 	public boolean hasSemanticValue (
 		final L2SemanticValue semanticValue)
@@ -199,20 +187,14 @@ public final class L2ValueManifest
 	}
 
 	/**
-	 * Given an {@link L2SemanticValue}, see if there's already an equivalent
-	 * one in this manifest.  If an {@link L2SemanticPrimitiveInvocation} is
-	 * supplied, look for a recursively synonymous one.
+	 * Given an {@link L2SemanticValue}, see if there's already an equivalent one in this manifest.  If an {@link L2SemanticPrimitiveInvocation} is supplied, look for a recursively synonymous one.
 	 *
-	 * <p>Answer the extant {@link L2SemanticValue} if found, otherwise answer
-	 * {@code null}.  Note that there may be multiple {@link
-	 * L2SemanticPrimitiveInvocation}s that are equivalent, in which case an
-	 * arbitrary (and not necessarily stable) one is chosen.</p>
+	 * <p>Answer the extant {@link L2SemanticValue} if found, otherwise answer {@code null}.  Note that there may be multiple {@link L2SemanticPrimitiveInvocation}s that are equivalent, in which case an arbitrary (and not necessarily stable) one is chosen.</p>
 	 *
 	 * @param semanticValue
 	 *        The {@link L2SemanticValue} to look up.
-	 * @return An {@link L2SemanticValue} from this manifest which is equivalent
-	 *         to the given one, or {@code null} if no such value is in the
-	 *         manifest.
+	 * @return
+	 * An {@link L2SemanticValue} from this manifest which is equivalent to the given one, or {@code null} if no such value is in the manifest.
 	 */
 	public @Nullable L2SemanticValue equivalentSemanticValue (
 		final L2SemanticValue semanticValue)
@@ -300,14 +282,9 @@ public final class L2ValueManifest
 	}
 
 	/**
-	 * Merge a new {@link L2SemanticValue} into an existing {@link L2Synonym}.
-	 * Update the manifest to reflect the merge.
+	 * Merge a new {@link L2SemanticValue} into an existing {@link L2Synonym}. Update the manifest to reflect the merge.
 	 *
-	 * <p>Note that because the {@link L2SemanticValue} is new, we don't have to
-	 * check for existing {@link L2SemanticPrimitiveInvocation}s becoming
-	 * synonyms of each other, which is much faster than the general case in
-	 * {@link #mergeExistingSemanticValues(L2SemanticValue,
-	 * L2SemanticValue)}.</p>
+	 * <p>Note that because the {@link L2SemanticValue} is new, we don't have to check for existing {@link L2SemanticPrimitiveInvocation}s becoming synonyms of each other, which is much faster than the general case in {@link #mergeExistingSemanticValues(L2SemanticValue, L2SemanticValue)}.</p>
 	 *
 	 * @param existingSynonym
 	 *        An {@link L2Synonym}.
@@ -333,16 +310,12 @@ public final class L2ValueManifest
 	}
 
 	/**
-	 * Given two {@link L2SemanticValue}s, merge their {@link L2Synonym}s
-	 * together, if they're not already.  Update the manifest to reflect the
-	 * merged synonyms.
+	 * Given two {@link L2SemanticValue}s, merge their {@link L2Synonym}s together, if they're not already.  Update the manifest to reflect the merged synonyms.
 	 *
 	 * @param semanticValue1
 	 *        An {@link L2SemanticValue}.
 	 * @param semanticValue2
-	 *        Another {@link L2SemanticValue} representing what has just been
-	 *        shown to be the same value.  It may already be a synonym of the
-	 *        first semantic value.
+	 *        Another {@link L2SemanticValue} representing what has just been shown to be the same value.  It may already be a synonym of the first semantic value.
 	 */
 	public void mergeExistingSemanticValues (
 		final L2SemanticValue semanticValue1,
@@ -429,18 +402,14 @@ public final class L2ValueManifest
 	}
 
 	/**
-	 * Given two {@link L2SemanticValue}s, merge their {@link L2Synonym}s
-	 * together, if they're not already.  Update the manifest to reflect the
-	 * merged synonyms.  Do not yet merge synonyms of {@link
-	 * L2SemanticPrimitiveInvocation}s whose arguments have just become
-	 * equivalent.
+	 * Given two {@link L2SemanticValue}s, merge their {@link L2Synonym}s together, if they're not already.  Update the manifest to reflect the merged synonyms.  Do not yet merge synonyms of {@link L2SemanticPrimitiveInvocation}s whose arguments have just become equivalent.
 	 *
 	 * @param synonym1
 	 *        An {@link L2Synonym}.
 	 * @param synonym2
-	 *        Another {@link L2Synonym} representing what has just been shown to
-	 *        be the same value.  It may already be equal to the first synonym.
-	 * @return Whether any change was made to the manifest.
+	 *        Another {@link L2Synonym} representing what has just been shown to be the same value.  It may already be equal to the first synonym.
+	 * @return
+	 * Whether any change was made to the manifest.
 	 */
 	private boolean privateMergeSynonyms (
 		final L2Synonym synonym1,
@@ -470,8 +439,7 @@ public final class L2ValueManifest
 	}
 
 	/**
-	 * Retrieve the oldest definition of the given {@link L2SemanticValue} or an
-	 * equivalent, but having the given {@link RegisterKind}.
+	 * Retrieve the oldest definition of the given {@link L2SemanticValue} or an equivalent, but having the given {@link RegisterKind}.
 	 *
 	 * @param <R>
 	 *        The kind of {@link L2Register} to return.
@@ -479,7 +447,8 @@ public final class L2ValueManifest
 	 *        The {@link L2SemanticValue} being examined.
 	 * @param registerKind
 	 *        The {@link RegisterKind} of the desired register.
-	 * @return The requested {@link L2Register}.
+	 * @return
+	 * The requested {@link L2Register}.
 	 */
 	public <R extends L2Register>
 	R getDefinition (
@@ -499,8 +468,7 @@ public final class L2ValueManifest
 	}
 
 	/**
-	 * Retrieve all {@link L2Register}s known to contain the given
-	 * {@link L2SemanticValue}, but having the given {@link RegisterKind}.
+	 * Retrieve all {@link L2Register}s known to contain the given {@link L2SemanticValue}, but having the given {@link RegisterKind}.
 	 *
 	 * @param <R>
 	 *        The kind of {@link L2Register} to return.
@@ -524,9 +492,7 @@ public final class L2ValueManifest
 	}
 
 	/**
-	 * Replace the {@link TypeRestriction} associated with the given {@link
-	 * L2SemanticValue}, which must be known by this manifest.  Note that this
-	 * also restricts any synonymous semantic values.
+	 * Replace the {@link TypeRestriction} associated with the given {@link L2SemanticValue}, which must be known by this manifest.  Note that this also restricts any synonymous semantic values.
 	 *
 	 * @param semanticValue
 	 *        The given {@link L2SemanticValue}.
@@ -542,10 +508,7 @@ public final class L2ValueManifest
 	}
 
 	/**
-	 * Replace the {@link TypeRestriction} associated with the given {@link
-	 * L2SemanticValue}, which must be known by this manifest, with the
-	 * intersection of its current restriction and the given restriction.  Note
-	 * that this also restricts any synonymous semantic values.
+	 * Replace the {@link TypeRestriction} associated with the given {@link L2SemanticValue}, which must be known by this manifest, with the intersection of its current restriction and the given restriction. Note that this also restricts any synonymous semantic values.
 	 *
 	 * @param semanticValue
 	 *        The given {@link L2SemanticValue}.
@@ -563,10 +526,7 @@ public final class L2ValueManifest
 	}
 
 	/**
-	 * Replace the {@link TypeRestriction} associated with the given {@link
-	 * L2SemanticValue}, which must be known by this manifest, with the
-	 * difference between its current restriction and the given restriction.
-	 * Note that this also restricts any synonymous semantic values.
+	 * Replace the {@link TypeRestriction} associated with the given {@link L2SemanticValue}, which must be known by this manifest, with the difference between its current restriction and the given restriction. Note that this also restricts any synonymous semantic values.
 	 *
 	 * @param semanticValue
 	 *        The given {@link L2SemanticValue}.
@@ -584,12 +544,12 @@ public final class L2ValueManifest
 	}
 
 	/**
-	 * Look up the {@link TypeRestriction} that currently bounds this {@link
-	 * L2SemanticValue}.  Fail if there is none.
+	 * Look up the {@link TypeRestriction} that currently bounds this {@link L2SemanticValue}.  Fail if there is none.
 	 *
 	 * @param semanticValue
 	 *        The given {@link L2SemanticValue}.
-	 * @return The {@link TypeRestriction} that bounds the synonym.
+	 * @return
+	 * The {@link TypeRestriction} that bounds the synonym.
 	 */
 	public TypeRestriction restrictionFor (
 		final L2SemanticValue semanticValue)
@@ -598,10 +558,10 @@ public final class L2ValueManifest
 	}
 
 	/**
-	 * Answer an arbitrarily ordered array of the {@link L2Synonym}s in this
-	 * manifest.
+	 * Answer an arbitrarily ordered array of the {@link L2Synonym}s in this manifest.
 	 *
-	 * @return An array of {@link L2Synonym}s.
+	 * @return
+	 * An array of {@link L2Synonym}s.
 	 */
 	public L2Synonym[] synonymsArray ()
 	{
@@ -609,10 +569,10 @@ public final class L2ValueManifest
 	}
 
 	/**
-	 * Answer a {@link Set} of all {@link L2Register}s available in this
-	 * manifest.
+	 * Answer a {@link Set} of all {@link L2Register}s available in this manifest.
 	 *
-	 * @return A {@link Set} of {@link L2Register}s.
+	 * @return
+	 * A {@link Set} of {@link L2Register}s.
 	 */
 	public Set<L2Register> allRegisters ()
 	{
@@ -633,15 +593,9 @@ public final class L2ValueManifest
 	}
 
 	/**
-	 * Record the fact that an {@link L2Instruction} has been emitted, which
-	 * writes to the given {@link L2WriteOperand}.  Since this is the
-	 * introduction of a new {@link L2SemanticValue}, it must not yet be in this
-	 * manifest.
+	 * Record the fact that an {@link L2Instruction} has been emitted, which writes to the given {@link L2WriteOperand}.  Since this is the introduction of a new {@link L2SemanticValue}, it must not yet be in this manifest.
 	 *
-	 * <p>{@link L2Operation}s that move values between semantic values should
-	 * customize their {@link L2Operation#instructionWasAdded(L2Instruction,
-	 * L2ValueManifest)} method to use {@link
-	 * #recordDefinitionForMove(L2WriteOperand, L2SemanticValue)}.</p>
+	 * <p>{@link L2Operation}s that move values between semantic values should customize their {@link L2Operation#instructionWasAdded(L2Instruction, L2ValueManifest)} method to use {@link #recordDefinitionForMove(L2WriteOperand, L2SemanticValue)}.</p>
 	 *
 	 * @param writer
 	 *        The operand that received the value.
@@ -683,8 +637,7 @@ public final class L2ValueManifest
 	}
 
 	/**
-	 * Record the fact that an {@link L2Instruction} has been emitted, which
-	 * writes to the given {@link L2WriteOperand}.
+	 * Record the fact that an {@link L2Instruction} has been emitted, which writes to the given {@link L2WriteOperand}.
 	 *
 	 * @param writer
 	 *        The operand that received the value.
@@ -735,8 +688,7 @@ public final class L2ValueManifest
 	}
 
 	/**
-	 * Record the fact that an {@link L2Instruction} has been emitted, which
-	 * writes to the given {@link L2WriteOperand}.
+	 * Record the fact that an {@link L2Instruction} has been emitted, which writes to the given {@link L2WriteOperand}.
 	 *
 	 * @param writer
 	 *        The operand that received the value.
@@ -762,11 +714,7 @@ public final class L2ValueManifest
 	}
 
 	/**
-	 * Record the fact that an {@link L2Instruction} has been emitted, which
-	 * writes to the given {@link L2WriteOperand}.  The write is for a {@link
-	 * RegisterKind} which has not been written yet for this {@link
-	 * L2SemanticValue}, although there are definitions for other kinds for the
-	 * semantic value.
+	 * Record the fact that an {@link L2Instruction} has been emitted, which writes to the given {@link L2WriteOperand}.  The write is for a {@link RegisterKind} which has not been written yet for this {@link L2SemanticValue}, although there are definitions for other kinds for the semantic value.
 	 *
 	 * @param writer
 	 *        The operand that received the value.
@@ -791,8 +739,8 @@ public final class L2ValueManifest
 	 *
 	 * @param register
 	 *        The {@link L2Register} to find in this manifest.
-	 * @return A {@link List} of {@link L2Synonym}s that are mapped to the given
-	 *         register within this manifest.
+	 * @return
+	 * A {@link List} of {@link L2Synonym}s that are mapped to the given register within this manifest.
 	 */
 	public List<L2Synonym> synonymsForRegister (final L2Register register)
 	{
@@ -803,10 +751,7 @@ public final class L2ValueManifest
 	}
 
 	/**
-	 * Edit this manifest to include entries for the given {@link L2Register}.
-	 * It should be associated with the given {@link L2SemanticValue}s,
-	 * creating, extending, or merging {@link L2Synonym} as needed.  Also set
-	 * its {@link TypeRestriction}.
+	 * Edit this manifest to include entries for the given {@link L2Register}. It should be associated with the given {@link L2SemanticValue}s, creating, extending, or merging {@link L2Synonym} as needed.  Also set its {@link TypeRestriction}.
 	 *
 	 * @param register
 	 *        The {@link L2Register} to make available in this manifest.
@@ -868,8 +813,7 @@ public final class L2ValueManifest
 	}
 
 	/**
-	 * Erase the information about all {@link L2SemanticValue}s that are part of
-	 * the given {@link L2Synonym}.
+	 * Erase the information about all {@link L2SemanticValue}s that are part of the given {@link L2Synonym}.
 	 *
 	 * @param synonym
 	 *        The {@link L2Synonym} to forget.
@@ -884,13 +828,12 @@ public final class L2ValueManifest
 	}
 
 	/**
-	 * Create an {@link L2ReadBoxedOperand} for the {@link L2SemanticValue} of
-	 * the earliest known boxed write for any semantic values in the same {@link
-	 * L2Synonym} as the given semantic value.
+	 * Create an {@link L2ReadBoxedOperand} for the {@link L2SemanticValue} of the earliest known boxed write for any semantic values in the same {@link L2Synonym} as the given semantic value.
 	 *
 	 * @param semanticValue
 	 *        The {@link L2SemanticValue} to read as a boxed value.
-	 * @return An {@link L2ReadBoxedOperand} that reads the value.
+	 * @return
+	 * An {@link L2ReadBoxedOperand} that reads the value.
 	 */
 	public L2ReadBoxedOperand readBoxed (final L2SemanticValue semanticValue)
 	{
@@ -903,13 +846,12 @@ public final class L2ValueManifest
 	}
 
 	/**
-	 * Create an {@link L2ReadIntOperand} for the {@link L2SemanticValue} of
-	 * the earliest known unboxed int write for any semantic values in the
-	 * same {@link L2Synonym} as the given semantic value.
+	 * Create an {@link L2ReadIntOperand} for the {@link L2SemanticValue} of the earliest known unboxed int write for any semantic values in the same {@link L2Synonym} as the given semantic value.
 	 *
 	 * @param semanticValue
 	 *        The {@link L2SemanticValue} to read as an unboxed int value.
-	 * @return An {@link L2ReadIntOperand} that reads the value.
+	 * @return
+	 * An {@link L2ReadIntOperand} that reads the value.
 	 */
 	public L2ReadIntOperand readInt (final L2SemanticValue semanticValue)
 	{
@@ -922,13 +864,12 @@ public final class L2ValueManifest
 	}
 
 	/**
-	 * Create an {@link L2ReadFloatOperand} for the {@link L2SemanticValue} of
-	 * the earliest known unboxed float write for any semantic values in the
-	 * same {@link L2Synonym} as the given semantic value.
+	 * Create an {@link L2ReadFloatOperand} for the {@link L2SemanticValue} of the earliest known unboxed float write for any semantic values in the same {@link L2Synonym} as the given semantic value.
 	 *
 	 * @param semanticValue
 	 *        The {@link L2SemanticValue} to read as an unboxed int value.
-	 * @return An {@link L2ReadBoxedOperand} that reads from the synonym.
+	 * @return
+	 * An {@link L2ReadBoxedOperand} that reads from the synonym.
 	 */
 	public L2ReadFloatOperand readFloat (final L2SemanticValue semanticValue)
 	{
@@ -941,30 +882,16 @@ public final class L2ValueManifest
 	}
 
 	/**
-	 * Populate the empty receiver with bindings from the incoming manifests.
-	 * Only keep the bindings for {@link L2SemanticValue}s that occur in all
-	 * incoming manifests.  Generate phi functions as needed on the provided
-	 * {@link L2Generator}.  The phi functions' source registers correspond
-	 * positionally with the list of manifests.
+	 * Populate the empty receiver with bindings from the incoming manifests. Only keep the bindings for {@link L2SemanticValue}s that occur in all incoming manifests.  Generate phi functions as needed on the provided {@link L2Generator}. The phi functions' source registers correspond positionally with the list of manifests.
 	 *
 	 * @param manifests
 	 *        The list of manifests from which to populate the receiver.
 	 * @param generator
-	 *        The {@link L2Generator} on which to write any necessary phi
-	 *        functions.
+	 *        The {@link L2Generator} on which to write any necessary phi  functions.
 	 * @param forcePhis
-	 *        Whether to force creation of every possible phi instruction at
-	 *        this point, even if the values always come from the same source.
-	 *        This is needed for loop heads, where the back-edges only show up
-	 *        after that basic block has already produced instructions.
+	 *        Whether to force creation of every possible phi instruction at this point, even if the values always come from the same source. This is needed for loop heads, where the back-edges only show up after that basic block has already produced instructions.
 	 * @param suppressAllPhis
-	 *        Whether to suppress creation of phis.  This is only used during
-	 *        splicing of new code into an existing graph via
-	 *        {@link L2Generator#replaceInstructionByGenerating(L2Instruction)},
-	 *        which takes responsibility for replaying existing phis to
-	 *        reconstitute the {@code L2ValueManifest} at the position that the
-	 *        new code is being inserted. This flag and {@code forcePhis} are
-	 *        mutually exclusive.
+	 *        Whether to suppress creation of phis.  This is only used during splicing of new code into an existing graph via {@link L2Generator#replaceInstructionByGenerating(L2Instruction)}, which takes responsibility for replaying existing phis to reconstitute the {@code L2ValueManifest} at the position that the new code is being inserted. This flag and {@code forcePhis} are mutually exclusive.
 	 */
 	void populateFromIntersection (
 		final List<L2ValueManifest> manifests,
@@ -1083,22 +1010,14 @@ public final class L2ValueManifest
 	}
 
 	/**
-	 * Generate an {@link L2_PHI_PSEUDO_OPERATION} and any additional moves to
-	 * ensure the given set of related {@link L2SemanticValue}s are populated
-	 * with values from the given sources.
+	 * Generate an {@link L2_PHI_PSEUDO_OPERATION} and any additional moves to ensure the given set of related {@link L2SemanticValue}s are populated with values from the given sources.
 	 *
 	 * @param generator
 	 *        The {@link L2Generator} on which to write instructions.
 	 * @param relatedSemanticValues
-	 *        The {@link L2SemanticValue}s that should constitute a synonym in
-	 *        the current manifest, due to them being mutually connected to a
-	 *        synonym in each predecessor manifest.  The synonyms may differ in
-	 *        the predecessor manifests, but within each manifest there must be
-	 *        a synonym for that manifest that contains all of these semantic
-	 *        values.
+	 *        The {@link L2SemanticValue}s that should constitute a synonym in the current manifest, due to them being mutually connected to a synonym in each predecessor manifest.  The synonyms may differ in the predecessor manifests, but within each manifest there must be a synonym for that manifest that contains all of these semantic values.
 	 * @param forcePhiCreation
-	 *        Whether to force creation of a phi instruction, even if all
-	 *        incoming sources of the value are the same.
+	 *        Whether to force creation of a phi instruction, even if all incoming sources of the value are the same.
 	 * @param restriction
 	 *        The {@link TypeRestriction} to bound the synonym.
 	 * @param sources
@@ -1106,9 +1025,7 @@ public final class L2ValueManifest
 	 * @param phiOperation
 	 *        The {@link L2_PHI_PSEUDO_OPERATION} instruction to generate.
 	 * @param createWriter
-	 *        A {@link BiFunction} taking an {@link L2SemanticValue} and a
-	 *        {@link TypeRestriction}, and producing a suitable {@link
-	 *        L2WriteOperand}.
+	 *        A {@link BiFunction} taking an {@link L2SemanticValue} and a {@link TypeRestriction}, and producing a suitable {@link L2WriteOperand}.
 	 * @param <R>
 	 *        The kind of {@link L2Register}s to merge.
 	 * @param <RR>
@@ -1204,8 +1121,7 @@ public final class L2ValueManifest
 	}
 
 	/**
-	 * Transform this manifest by mapping its {@link L2SemanticValue}s and
-	 * {@link Frame}s.
+	 * Transform this manifest by mapping its {@link L2SemanticValue}s and {@link Frame}s.
 	 *
 	 * @param semanticValueTransformer
 	 *        The transformation for {@link L2SemanticValue}s.
@@ -1214,8 +1130,8 @@ public final class L2ValueManifest
 	 * @return The transformed manifest.
 	 */
 	public L2ValueManifest transform (
-		final UnaryOperator<L2SemanticValue> semanticValueTransformer,
-		final UnaryOperator<Frame> frameTransformer)
+		final Function1<L2SemanticValue, L2SemanticValue> semanticValueTransformer,
+		final Function1<Frame, Frame> frameTransformer)
 	{
 		final L2ValueManifest newManifest = new L2ValueManifest();
 		for (final L2Synonym oldSynonym : synonymsArray())
@@ -1233,11 +1149,9 @@ public final class L2ValueManifest
 	 * Produce all live definitions of the synonym having this semantic value.
 	 *
 	 * @param pickSemanticValue
-	 *        The {@link L2SemanticValue} used to look up an {@link L2Synonym},
-	 *        which is then used to look up all visible {@link L2WriteOperand}s
-	 *        that supply the value for the synonym.
-	 * @return A sequence of {@link L2Register}s that have visible definitions
-	 *         of the semantic value's synonym.
+	 *        The {@link L2SemanticValue} used to look up an {@link L2Synonym}, which is then used to look up all visible {@link L2WriteOperand}s that supply the value for the synonym.
+	 * @return
+	 * A sequence of {@link L2Register}s that have visible definitions of the semantic value's synonym.
 	 */
 	public Iterable<L2Register> definitionsForDescribing (
 		final L2SemanticValue pickSemanticValue)
@@ -1246,13 +1160,12 @@ public final class L2ValueManifest
 	}
 
 	/**
-	 * Retain as definitions only those {@link L2Register}s that are in the
-	 * given {@link Set}, removing the rest.
+	 * Retain as definitions only those {@link L2Register}s that are in the given {@link Set}, removing the rest.
 	 *
 	 * @param registersToRetain
-	 *        The {@link L2Register}s that can be retained by the list of
-	 *        definitions as all others are removed.
-	 * @return Whether the manifest was modified.
+	 *        The {@link L2Register}s that can be retained by the list of definitions as all others are removed.
+	 * @return
+	 * Whether the manifest was modified.
 	 */
 	public boolean retainRegisters (final Set<L2Register> registersToRetain)
 	{
@@ -1280,13 +1193,10 @@ public final class L2ValueManifest
 	}
 
 	/**
-	 * Remove all definitions related to this {@link L2WriteOperand}'s
-	 * {@link L2SemanticValue}s, then add this write operand as the sole
-	 * definition in this manifest.
+	 * Remove all definitions related to this {@link L2WriteOperand}'s {@link L2SemanticValue}s, then add this write operand as the sole definition in this manifest.
 	 *
 	 * @param writeOperand
-	 *        The {@link L2WriteOperand} to add and replace all other relevant
-	 *        definitions.
+	 *        The {@link L2WriteOperand} to add and replace all other relevant definitions.
 	 */
 	public void replaceDefinitions (final L2WriteOperand<?> writeOperand)
 	{
@@ -1299,8 +1209,7 @@ public final class L2ValueManifest
 
 
 	/**
-	 * Retain information only about the {@link L2SemanticValue}s that are
-	 * present in the given {@link Set}, removing the rest.
+	 * Retain information only about the {@link L2SemanticValue}s that are present in the given {@link Set}, removing the rest.
 	 *
 	 * @param semanticValuesToRetain
 	 *        The {@link L2SemanticValue}s that can be retained in the manifest.
@@ -1334,15 +1243,12 @@ public final class L2ValueManifest
 	}
 
 	/**
-	 * Forget the given registers from my definitions.  If all registers for a
-	 * synonym are removed, remove the entire synonym.  If all registers of a
-	 * particular {@link RegisterKind} are removed from a synonym, remove that
-	 * kind from its {@link TypeRestriction}.
+	 * Forget the given registers from my definitions.  If all registers for a synonym are removed, remove the entire synonym.  If all registers of a particular {@link RegisterKind} are removed from a synonym, remove that kind from its {@link TypeRestriction}.
 	 *
 	 * @param registersToForget
-	 *        The {@link Set} of {@link L2Register}s to remove knowledge about
-	 *        from this manifest.
-	 * @return Whether any registers were removed.
+	 *        The {@link Set} of {@link L2Register}s to remove knowledge about from this manifest.
+	 * @return
+	 * Whether any registers were removed.
 	 */
 	public boolean forgetRegisters (final Set<L2Register> registersToForget)
 	{
@@ -1386,14 +1292,9 @@ public final class L2ValueManifest
 	}
 
 	/**
-	 * Forget only the {@link RegisterKind#BOXED} register definitions for this
-	 * synonym.  Keep the synonym around in all circumstances, even if there are
-	 * no remaining definitions.  Also, do not alter the synonym's restriction.
+	 * Forget only the {@link RegisterKind#BOXED} register definitions for this synonym.  Keep the synonym around in all circumstances, even if there are no remaining definitions.  Also, do not alter the synonym's restriction.
 	 *
-	 * <p>This mechanism is used by {@link L2_MAKE_IMMUTABLE} to ensure
-	 * registers holding the mutable form aren't still accessible, which under
-	 * code motion could lead to the makeImmutable being bypassed, or a value
-	 * being incorrectly modified in place prior to becoming immutable.</p>
+	 * <p>This mechanism is used by {@link L2_MAKE_IMMUTABLE} to ensure registers holding the mutable form aren't still accessible, which under code motion could lead to the makeImmutable being bypassed, or a value being incorrectly modified in place prior to becoming immutable.</p>
 	 *
 	 * @param synonym
 	 *        The {@link L2Synonym} for which to forget all boxed definitions.

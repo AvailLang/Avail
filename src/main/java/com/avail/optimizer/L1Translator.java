@@ -83,6 +83,8 @@ import com.avail.performance.StatisticReport;
 import com.avail.utility.MutableInt;
 import com.avail.utility.Pair;
 import com.avail.utility.evaluation.Continuation0;
+import kotlin.Unit;
+import kotlin.jvm.functions.Function0;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -134,11 +136,7 @@ import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 
 /**
- * The {@code L1Translator} transliterates a sequence of {@link L1Operation
- * level one instructions} into one or more simple {@link L2Instruction level
- * two instructions}, under the assumption that further optimization steps will
- * be able to transform this code into something much more efficient – without
- * altering the level one semantics.
+ * The {@code L1Translator} transliterates a sequence of {@link L1Operation level one instructions} into one or more simple {@link L2Instruction level two instructions}, under the assumption that further optimization steps will be able to transform this code into something much more efficient – without altering the level one semantics.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -205,9 +203,7 @@ public final class L1Translator
 	}
 
 	/**
-	 * Answer the current {@link L2ValueManifest}, which tracks which {@link
-	 * L2Synonym}s hold which {@link L2SemanticValue}s at the current code
-	 * generation point.
+	 * Answer the current {@link L2ValueManifest}, which tracks which {@link L2Synonym}s hold which {@link L2SemanticValue}s at the current code generation point.
 	 *
 	 * @return The current {@link L2ValueManifest}.
 	 */
@@ -217,11 +213,12 @@ public final class L1Translator
 	}
 
 	/**
-	 * Answer the {@link L2SemanticValue} representing the virtual continuation
-	 * slot having the given one-based index.
+	 * Answer the {@link L2SemanticValue} representing the virtual continuation slot having the given one-based index.
 	 *
-	 * @param index The one-based slot number.
-	 * @return The {@link L2SemanticValue} for that slot.
+	 * @param index
+	 * The one-based slot number.
+	 * @return
+	 * The {@link L2SemanticValue} for that slot.
 	 */
 	private L2SemanticValue semanticSlot (final int index)
 	{
@@ -232,13 +229,11 @@ public final class L1Translator
 	 * Create a new L1 naive translator for the given {@link L2Generator}.
 	 *
 	 * @param generator
-	 *        The {@link L2Generator} for which I'm producing an initial
-	 *        translation from L1.
+	 *        The {@link L2Generator} for which I'm producing an initial translation from L1.
 	 * @param interpreter
 	 *        The {@link Interpreter} that tripped the translation request.
 	 * @param code
-	 *        The {@link A_RawFunction} which is the source of the chunk being
-	 *        created.
+	 *        The {@link A_RawFunction} which is the source of the chunk being created.
 	 */
 	private L1Translator (
 		final L2Generator generator,
@@ -261,11 +256,12 @@ public final class L1Translator
 	}
 
 	/**
-	 * Determine if the given {@link A_RawFunction}'s instantiations as {@link
-	 * A_Function}s must be mutually equal.
+	 * Determine if the given {@link A_RawFunction}'s instantiations as {@link A_Function}s must be mutually equal.
 	 *
-	 * @param theCode The {@link A_RawFunction}.
-	 * @return Either a canonical {@link A_Function} or {@code null}.
+	 * @param theCode
+	 * The {@link A_RawFunction}.
+	 * @return
+	 * Either a canonical {@link A_Function} or {@code null}.
 	 */
 	private static @Nullable A_Function computeExactFunctionOrNullForCode (
 		final A_RawFunction theCode)
@@ -291,14 +287,12 @@ public final class L1Translator
 	 * continuation slot. The slots are the arguments, then the locals, then the
 	 * stack entries. The slots are numbered starting at 1.
 	 *
-	 * <p>This is only public to allow primitives like
-	 * {@link P_RestartContinuation} to be able to fetch the current
-	 * arguments.</p>
+	 * <p>This is only public to allow primitives like {@link P_RestartContinuation} to be able to fetch the current arguments.</p>
 	 *
 	 * @param slotIndex
 	 *        The index into the continuation's slots.
-	 * @return An {@link L2ReadBoxedOperand} representing that continuation
-	 *         slot.
+	 * @return
+	 * An {@link L2ReadBoxedOperand} representing that continuation slot.
 	 */
 	public L2ReadBoxedOperand readSlot (final int slotIndex)
 	{
@@ -316,11 +310,11 @@ public final class L1Translator
 	 * @param slotIndex
 	 *        The index into the continuation's slots.
 	 * @param effectivePc
-	 *        The Level One pc at which this write should be considered
-	 *        effective.
+	 *        The Level One pc at which this write should be considered effective.
 	 * @param restriction
 	 *        The bounding {@link TypeRestriction} for the new register.
-	 * @return A register write representing that continuation slot.
+	 * @return
+	 * A register write representing that continuation slot.
 	 */
 	private L2WriteBoxedOperand writeSlot (
 		final int slotIndex,
@@ -336,17 +330,14 @@ public final class L1Translator
 	}
 
 	/**
-	 * Associate the specified {@link L2ReadBoxedOperand} with the semantic
-	 * slot having the given index and effective pc.  Restrict the type based on
-	 * the register-read's {@link TypeRestriction}.
+	 * Associate the specified {@link L2ReadBoxedOperand} with the semantic slot having the given index and effective pc.  Restrict the type based on the register-read's {@link TypeRestriction}.
 	 *
 	 * @param slotIndex
 	 *        The slot index to replace.
 	 * @param effectivePc
 	 *        The effective pc.
 	 * @param registerRead
-	 *        The {@link L2ReadBoxedOperand} that should now be considered the
-	 *        current register-read representing that slot.
+	 *        The {@link L2ReadBoxedOperand} that should now be considered the current register-read representing that slot.
 	 */
 	public void forceSlotRegister (
 		final int slotIndex,
@@ -372,8 +363,7 @@ public final class L1Translator
 	 * @param sourceSemanticValue
 	 *        The {@link L2SemanticValue} that is moved into the slot.
 	 * @param restriction
-	 *        The {@link TypeRestriction} that currently bounds the synonym's
-	 *        possible values.
+	 *        The {@link TypeRestriction} that currently bounds the synonym's possible values.
 	 */
 	private void forceSlotRegister (
 		final int slotIndex,
@@ -407,13 +397,12 @@ public final class L1Translator
 	}
 
 	/**
-	 * Given an {@link L2WriteBoxedOperand}, produce an {@link
-	 * L2ReadBoxedOperand} of the same value, but with the current manifest's
-	 * {@link TypeRestriction} applied.
+	 * Given an {@link L2WriteBoxedOperand}, produce an {@link L2ReadBoxedOperand} of the same value, but with the current manifest's {@link TypeRestriction} applied.
 	 *
 	 * @param write
 	 *        The {@link L2WriteBoxedOperand} for which to generate a read.
-	 * @return The {@link L2ReadBoxedOperand} that reads the value.
+	 * @return
+	 * The {@link L2ReadBoxedOperand} that reads the value.
 	 */
 	public L2ReadBoxedOperand readBoxed (
 		final L2WriteBoxedOperand write)
@@ -422,9 +411,8 @@ public final class L1Translator
 	}
 
 	/**
-	 * Write instructions to extract the current function, and answer an {@link
-	 * L2ReadBoxedOperand} for the register that will hold the function
-	 * afterward.
+	 * Write instructions to extract the current function, and answer an
+	 * {@link L2ReadBoxedOperand} for the register that will hold the function afterward.
 	 */
 	private L2ReadBoxedOperand getCurrentFunction ()
 	{
@@ -452,13 +440,14 @@ public final class L1Translator
 	}
 
 	/**
-	 * Write instructions to extract a numbered outer from the current function,
-	 * and answer an {@link L2ReadBoxedOperand} for the register that will
-	 * hold the outer value afterward.
+	 * Write instructions to extract a numbered outer from the current function, and answer an {@link L2ReadBoxedOperand} for the register that will hold the outer value afterward.
 	 *
-	 * @param outerIndex The index of the outer to get.
-	 * @param outerType The type that the outer is known to be.
-	 * @return The {@link L2ReadBoxedOperand} where the outer was written.
+	 * @param outerIndex
+	 * The index of the outer to get.
+	 * @param outerType
+	 * The type that the outer is known to be.
+	 * @return
+	 * The {@link L2ReadBoxedOperand} where the outer was written.
 	 */
 	private L2ReadBoxedOperand getOuterRegister (
 		final int outerIndex,
@@ -494,8 +483,8 @@ public final class L1Translator
 	 *
 	 * @param guaranteedType
 	 *        The type the return value is guaranteed to conform to.
-	 * @return An {@link L2ReadBoxedOperand} that now holds the returned
-	 *         value.
+	 * @return
+	 * An {@link L2ReadBoxedOperand} that now holds the returned value.
 	 */
 	private L2ReadBoxedOperand getLatestReturnValue (
 		final A_Type guaranteedType)
@@ -510,11 +499,10 @@ public final class L1Translator
 	}
 
 	/**
-	 * Capture the function that has just attempted to return via an {@link
-	 * L2_RETURN} instruction in this {@link Interpreter}.
+	 * Capture the function that has just attempted to return via an {@link L2_RETURN} instruction in this {@link Interpreter}.
 	 *
-	 * @return An {@link L2ReadBoxedOperand} that now holds the function that
-	 *         is returning.
+	 * @return
+	 * An {@link L2ReadBoxedOperand} that now holds the function that is returning.
 	 */
 	private L2ReadBoxedOperand getReturningFunctionRegister ()
 	{
@@ -529,8 +517,7 @@ public final class L1Translator
 	}
 
 	/**
-	 * Create and add an {@link L2Instruction} with the given {@link
-	 * L2Operation} and variable number of {@link L2Operand}s.
+	 * Create and add an {@link L2Instruction} with the given {@link L2Operation} and variable number of {@link L2Operand}s.
 	 *
 	 * @param operation
 	 *        The operation to invoke.
@@ -557,9 +544,7 @@ public final class L1Translator
 	}
 
 	/**
-	 * Generate instruction(s) to move the given {@link AvailObject} into a
-	 * fresh writable slot {@link L2Register} with the given slot index.  The
-	 * slot it occupies is tagged with the current pc.
+	 * Generate instruction(s) to move the given {@link AvailObject} into a fresh writable slot {@link L2Register} with the given slot index.  The slot it occupies is tagged with the current pc.
 	 *
 	 * @param value
 	 *        The value to move.
@@ -575,26 +560,12 @@ public final class L1Translator
 	}
 
 	/**
-	 * Generate code to create the current continuation, with a nil caller, then
-	 * {@link L2_RETURN_FROM_REIFICATION_HANDLER} – so the calling frames will
-	 * also get a chance to add their own nil-caller continuations to the
-	 * current {@link StackReifier}.  The execution machinery will then assemble
-	 * the chain of continuations, connecting them to any already reified
-	 * continuations in the interpreter.
+	 * Generate code to create the current continuation, with a nil caller, then {@link L2_RETURN_FROM_REIFICATION_HANDLER} – so the calling frames will also get a chance to add their own nil-caller continuations to the current {@link StackReifier}.  The execution machinery will then assemble the chain of continuations, connecting them to any already reified continuations in the interpreter.
 	 *
-	 * <p>After reification, the interpreter's next activity depends on the
-	 * flags set in the {@link StackReifier} (which was created via code
-	 * generated prior to this clause).  If it was for interrupt processing, the
-	 * continuation will be stored in the fiber while an interrupt is processed,
-	 * then most likely resumed at a later time.  If it was for getting into a
-	 * state suitable for creating an L1 label, the top continuation's chunk is
-	 * resumed immediately, whereupon the continuation will be popped and
-	 * exploded back into registers, and the actual label will be created from
-	 * the continuation that was just resumed.</p>
+	 * <p>After reification, the interpreter's next activity depends on the flags set in the {@link StackReifier} (which was created via code generated prior to this clause).  If it was for interrupt processing, the continuation will be stored in the fiber while an interrupt is processed, then most likely resumed at a later time.  If it was for getting into a state suitable for creating an L1 label, the top continuation's chunk is resumed immediately, whereupon the continuation will be popped and exploded back into registers, and the actual label will be created from the continuation that was just resumed.</p>
 	 *
 	 * @param expectedValueOrNull
-	 *        A constant type to replace the top-of-stack in the reified
-	 *        continuation.  If {@code null}, don't replace the top-of-stack.
+	 *        A constant type to replace the top-of-stack in the reified continuation.  If {@code null}, don't replace the top-of-stack.
 	 * @param typeOfEntryPoint
 	 *        The kind of {@link ChunkEntryPoint} to re-enter at.
 	 */
@@ -727,11 +698,10 @@ public final class L1Translator
 	}
 
 	/**
-	 * Generate code to extract the current {@link
-	 * AvailRuntime#resultDisagreedWithExpectedTypeFunction()} into a new
-	 * register, which is returned here.
+	 * Generate code to extract the current {@link AvailRuntime#resultDisagreedWithExpectedTypeFunction()} into a new register, which is returned here.
 	 *
-	 * @return The new register that will hold the invalid return function.
+	 * @return
+	 * The new register that will hold the invalid return function.
 	 */
 	private L2ReadBoxedOperand getInvalidResultFunctionRegister ()
 	{
@@ -766,8 +736,7 @@ public final class L1Translator
 		final L2BasicBlock passCheckBasicBlock;
 
 		/**
-		 * The {@link A_Type} that should be subtracted from argument's possible
-		 * type along the path where the type test fails.
+		 * The {@link A_Type} that should be subtracted from argument's possible type along the path where the type test fails.
 		 */
 		final A_Type typeToTest;
 
@@ -785,8 +754,7 @@ public final class L1Translator
 		 * @param typeToTest
 		 *        The type to test the argument against.
 		 * @param branchLabelCounter
-		 *        An int unique to this dispatch tree, monotonically
-		 *        allocated at each branch.
+		 *        An int unique to this dispatch tree, monotonically allocated at each branch.
 		 */
 		InternalNodeMemento (
 			final int argumentIndexToTest,
@@ -833,11 +801,7 @@ public final class L1Translator
 		public final A_Type expectedType;
 
 		/**
-		 * Bottom in the normal case, but for a super-call this is a tuple type
-		 * with the same size as the number of arguments.  For the purpose of
-		 * looking up the appropriate {@link A_Definition}, the type union of
-		 * each argument's dynamic type and the corresponding entry type from
-		 * this field is computed, and that's used for the lookup.
+		 * Bottom in the normal case, but for a super-call this is a tuple type with the same size as the number of arguments.  For the purpose of looking up the appropriate {@link A_Definition}, the type union of each argument's dynamic type and the corresponding entry type from this field is computed, and that's used for the lookup.
 		 */
 		public final A_Type superUnionType;
 
@@ -883,10 +847,7 @@ public final class L1Translator
 		final L2BasicBlock afterEverything;
 
 		/**
-		 * A map from each reachable looked-up {@link A_Function} to a {@link
-		 * Pair} containing an {@link L2BasicBlock} in which code generation for
-		 * invocation of this function should/did take place, and a {@link
-		 * Continuation0} which will cause that code generation to happen.
+		 * A map from each reachable looked-up {@link A_Function} to a {@link Pair} containing an {@link L2BasicBlock} in which code generation for invocation of this function should/did take place, and a {@link Continuation0} which will cause that code generation to happen.
 		 *
 		 * <p>This construct theoretically deals with method lookups that lead
 		 * to the same function multiple ways (it's unclear if the lookup tree
@@ -896,7 +857,7 @@ public final class L1Translator
 		 * only one particular definition that a successful slow lookup could
 		 * produce.</em>
 		 */
-		final Map<A_Function, Pair<L2BasicBlock, Continuation0>>
+		final Map<A_Function, Pair<L2BasicBlock, Function0<Unit>>>
 			invocationSitesToCreate;
 
 		/**
@@ -904,10 +865,7 @@ public final class L1Translator
 		 * register which is to represent the new top-of-stack value.
 		 *
 		 * @param answerReg
-		 *        The register which will already hold the return value at this
-		 *        point.  The value has not yet been type checked against the
-		 *        expectedType at this point, but it should comply with the type
-		 *        guarantees of the VM.
+		 *        The register which will already hold the return value at this point.  The value has not yet been type checked against the expectedType at this point, but it should comply with the type guarantees of the VM.
 		 */
 		public void useAnswer (final L2ReadBoxedOperand answerReg)
 		{
@@ -936,14 +894,12 @@ public final class L1Translator
 		}
 
 		/**
-		 * For every {@link L2BasicBlock} in my {@link #invocationSitesToCreate}
-		 * that is reachable, generate an invocation of the corresponding
-		 * {@link A_Function}.
+		 * For every {@link L2BasicBlock} in my {@link #invocationSitesToCreate} that is reachable, generate an invocation of the corresponding {@link A_Function}.
 		 */
 		void generateAllInvocationSites ()
 		{
 			invocationSitesToCreate.forEach(
-				(function, pair) -> pair.second().value());
+				(function, pair) -> pair.second().invoke());
 		}
 
 		/**
@@ -953,14 +909,9 @@ public final class L1Translator
 		 * @param bundle
 		 *        The {@link A_Bundle} being invoked.
 		 * @param superUnionType
-		 *        The type whose union with the arguments tuple type is used for
-		 *        lookup.  This is ⊥ for ordinary calls, and other types for
-		 *        super calls.
+		 *        The type whose union with the arguments tuple type is used for lookup.  This is ⊥ for ordinary calls, and other types for super calls.
 		 * @param expectedType
-		 *        The expected result type that has been strengthened by {@link
-		 *        A_SemanticRestriction}s at this call site.  The VM does not
-		 *        always guarantee this type will be returned, but it inserts
-		 *        runtime checks in the case that it can't prove it.
+		 *        The expected result type that has been strengthened by {@link A_SemanticRestriction}s at this call site.  The VM does not always guarantee this type will be returned, but it inserts runtime checks in the case that it can't prove it.
 		 */
 		CallSiteHelper (
 			final A_Bundle bundle,
@@ -1014,9 +965,7 @@ public final class L1Translator
 	 * @param expectedType
 	 *        The expected return {@linkplain TypeDescriptor type}.
 	 * @param superUnionType
-	 *        A tuple type to combine through a type union with the pushed
-	 *        arguments' dynamic types, to use during method lookup.  This is
-	 *        {@link BottomTypeDescriptor#bottom() bottom} for non-super calls.
+	 *        A tuple type to combine through a type union with the pushed arguments' dynamic types, to use during method lookup.  This is  {@link BottomTypeDescriptor#bottom() bottom} for non-super calls.
 	 */
 	private void generateCall (
 		final A_Bundle bundle,
@@ -1327,15 +1276,11 @@ public final class L1Translator
 	 * to the fallback lookup code to reproduce and handle lookup errors.
 	 *
 	 * @param semanticArguments
-	 *        The list of {@link L2SemanticValue}s supplying argument values.
-	 *        These become strengthened by type tests in the current manifest.
+	 *        The list of {@link L2SemanticValue}s supplying argument values. These become strengthened by type tests in the current manifest.
 	 * @param callSiteHelper
 	 *        The {@link CallSiteHelper} object for this dispatch.
 	 * @param solutions
-	 *        The {@link A_Tuple} of {@link A_Definition}s at this leaf of the
-	 *        lookup tree.  If there's exactly one and it's a method definition,
-	 *        the lookup is considered successful, otherwise it's a failed
-	 *        lookup.
+	 *        The {@link A_Tuple} of {@link A_Definition}s at this leaf of the lookup tree.  If there's exactly one and it's a method definition, the lookup is considered successful, otherwise it's a failed lookup.
 	 */
 	void leafVisit (
 		final List<L2SemanticValue> semanticArguments,
@@ -1369,17 +1314,16 @@ public final class L1Translator
 	 * @param function
 	 *        The {@link A_Definition} body {@link A_Function} to be invoked.
 	 * @param semanticArguments
-	 *        The list of {@link L2SemanticValue}s supplying argument values.
-	 *        These become strengthened by type tests in the current manifest.
+	 *        The list of {@link L2SemanticValue}s supplying argument values. These become strengthened by type tests in the current manifest.
 	 * @param callSiteHelper
 	 *        The {@link CallSiteHelper} object for this dispatch.
-	\	 */
+	 */
 	private void promiseToHandleCallForDefinitionBody (
 		final A_Function function,
 		final List<L2SemanticValue> semanticArguments,
 		final CallSiteHelper callSiteHelper)
 	{
-		final @Nullable Pair<L2BasicBlock, Continuation0> existingPair =
+		final @Nullable Pair<L2BasicBlock, Function0<Unit>> existingPair =
 			callSiteHelper.invocationSitesToCreate.get(function);
 		final L2BasicBlock block;
 		if (existingPair == null)
@@ -1387,7 +1331,7 @@ public final class L1Translator
 			block = generator.createBasicBlock("successful lookup");
 			// Safety check.
 			final MutableInt ran = new MutableInt(0);
-			final Continuation0 newAction = () ->
+			final Function0<Unit> newAction = () ->
 			{
 				assert ran.value == 0;
 				ran.value++;
@@ -1406,6 +1350,7 @@ public final class L1Translator
 						callSiteHelper);
 					assert !generator.currentlyReachable();
 				}
+				return null;
 			};
 			callSiteHelper.invocationSitesToCreate.put(
 				function, new Pair<>(block, newAction));
@@ -1420,23 +1365,18 @@ public final class L1Translator
 	}
 
 	/**
-	 * An expanded internal node has been reached.  Emit a type test to
-	 * determine which way to jump.  Answer a new {@link InternalNodeMemento}
-	 * to pass along to other visitor operations to coordinate branch targets.
+	 * An expanded internal node has been reached.  Emit a type test to determine which way to jump.  Answer a new {@link InternalNodeMemento} to pass along to other visitor operations to coordinate branch targets.
 	 *
 	 * @param callSiteHelper
 	 *        The {@link CallSiteHelper} object for this dispatch.
 	 * @param semanticArguments
-	 *        The list of {@link L2SemanticValue}s supplying argument values.
-	 *        These become strengthened by type tests in the current manifest.
+	 *        The list of {@link L2SemanticValue}s supplying argument values. These become strengthened by type tests in the current manifest.
 	 * @param argumentIndexToTest
-	 *        The argument number to test here.  This is a one-based index into
-	 *        the list of arguments (which is zero-based).
+	 *        The argument number to test here.  This is a one-based index into the list of arguments (which is zero-based).
 	 * @param typeToTest
 	 *        The type to check the argument against.
-	 * @return An {@link InternalNodeMemento} which is made available in other
-	 *         callbacks for this particular type test node.  It captures branch
-	 *         labels, for example.
+	 * @return
+	 * An {@link InternalNodeMemento} which is made available in other callbacks for this particular type test node.  It captures branch labels, for example.
 	 */
 	InternalNodeMemento preInternalVisit (
 		final CallSiteHelper callSiteHelper,
@@ -1469,24 +1409,18 @@ public final class L1Translator
 	}
 
 	/**
-	 * An expanded internal node has been reached.  Emit a type test to
-	 * determine which way to jump.  Answer a new {@link InternalNodeMemento}
-	 * to pass along to other visitor operations to coordinate branch targets.
-	 * Don't strengthen the tested argument type yet.
+	 * An expanded internal node has been reached.  Emit a type test to determine which way to jump.  Answer a new {@link InternalNodeMemento} to pass along to other visitor operations to coordinate branch targets. Don't strengthen the tested argument type yet.
 	 *
 	 * @param callSiteHelper
 	 *        The {@link CallSiteHelper} object for this dispatch.
 	 * @param semanticArguments
-	 *        The list of {@link L2SemanticValue}s supplying argument values.
-	 *        These become strengthened by type tests in the current manifest.
+	 *        The list of {@link L2SemanticValue}s supplying argument values. These become strengthened by type tests in the current manifest.
 	 * @param argumentIndexToTest
-	 *        The argument number to test here.  This is a one-based index into
-	 *        the list of arguments (which is zero-based).
+	 *        The argument number to test here.  This is a one-based index into the list of arguments (which is zero-based).
 	 * @param typeToTest
 	 *        The type to check the argument against.
-	 * @return An {@link InternalNodeMemento} which is made available in other
-	 *         callbacks for this particular type test node.  It captures branch
-	 *         labels, for example.
+	 * @return
+	 * An {@link InternalNodeMemento} which is made available in other callbacks for this particular type test node.  It captures branch labels, for example.
 	 */
 	private InternalNodeMemento preInternalVisitForJustTheJumps (
 		final CallSiteHelper callSiteHelper,
@@ -1628,9 +1562,7 @@ public final class L1Translator
 	}
 
 	/**
-	 * Generate conditional branch to either {@code passBlock} or
-	 * {@code failBlock}, based on whether the given register equals the given
-	 * constant value.
+	 * Generate conditional branch to either {@code passBlock} or {@code failBlock}, based on whether the given register equals the given constant value.
 	 *
 	 * <p>If the constant to compare against is a boolean, check the provenance
 	 * of the register.  If it's the result of a suitable comparison primitive,
@@ -1800,8 +1732,7 @@ public final class L1Translator
 	 * depending on whether the returned value is guaranteed to satisfy the
 	 * expectedType or not.
 	 *
-	 * <p>The code generation position is never {@link
-	 * L2Generator#currentlyReachable()} after this (Java) method completes.</p>
+	 * <p>The code generation position is never {@link L2Generator#currentlyReachable()} after this (Java) method completes.</p>
 	 *
 	 * <p>The final output from the entire polymorphic call will always be fully
 	 * strengthened to the intersection of the VM-guaranteed type and the
@@ -1809,16 +1740,11 @@ public final class L1Translator
 	 * have to be generate along some paths.</p>
 	 *
 	 * @param functionToCallReg
-	 *        The {@link L2ReadBoxedOperand} containing the function to
-	 *        invoke.
+	 *        The {@link L2ReadBoxedOperand} containing the function to invoke.
 	 * @param arguments
-	 *        The {@link List} of {@link L2ReadBoxedOperand}s that supply
-	 *        arguments to the function.
+	 *        The {@link List} of {@link L2ReadBoxedOperand}s that supply arguments to the function.
 	 * @param tryToGenerateSpecialPrimitiveInvocation
-	 *        {@code true} if an attempt should be made to generate a customized
-	 *        {@link L2Instruction} sequence for a {@link Primitive} invocation,
-	 *        {@code false} otherwise. This should generally be {@code false}
-	 *        only to prevent recursion from {@code Primitive} customization.
+	 *        {@code true} if an attempt should be made to generate a customized {@link L2Instruction} sequence for a {@link Primitive} invocation, {@code false} otherwise. This should generally be {@code false} only to prevent recursion from {@code Primitive} customization.
 	 * @param callSiteHelper
 	 *        Information about the call being generated.
 	 */
@@ -2014,14 +1940,7 @@ public final class L1Translator
 	}
 
 	/**
-	 * Generate code to perform a type check of the top-of-stack register
-	 * against the given expectedType (an {@link A_Type} that has been
-	 * strengthened by semantic restrictions).  If the check fails, invoke the
-	 * bottom-valued function accessed via {@link
-	 * #getInvalidResultFunctionRegister()}, never to return – but synthesizing
-	 * a proper continuation in the event of reification while it's running.  If
-	 * the check passes, the value will be strengthened in the top-of-stack
-	 * register.
+	 * Generate code to perform a type check of the top-of-stack register against the given expectedType (an {@link A_Type} that has been strengthened by semantic restrictions).  If the check fails, invoke the bottom-valued function accessed via {@link #getInvalidResultFunctionRegister()}, never to return – but synthesizing a proper continuation in the event of reification while it's running.  If the check passes, the value will be strengthened in the top-of-stack register.
 	 *
 	 * <p>It's incorrect to call this if the register's type is already strong
 	 * enough to satisfy the expectedType.</p>
@@ -2132,8 +2051,7 @@ public final class L1Translator
 
 	/**
 	 * Generate code to test the value in {@code valueRead} against the constant
-	 * {@code expectedType}, jumping to {@code passedCheck} if it conforms, or
-	 * {@code failedCheck} otherwise.
+	 * {@code expectedType}, jumping to {@code passedCheck} if it conforms, or {@code failedCheck} otherwise.
 	 *
 	 * @param valueRead
 	 *        The {@link L2ReadBoxedOperand} that provides the value to check.
@@ -2193,21 +2111,12 @@ public final class L1Translator
 	}
 
 	/**
-	 * Attempt to create a more specific instruction sequence than just an
-	 * {@link L2_INVOKE}.  In particular, see if the {@code functionToCallReg}
-	 * is known to contain a constant function (a common case) which is an
-	 * inlineable primitive, and if so, delegate this opportunity to the
-	 * primitive.
+	 * Attempt to create a more specific instruction sequence than just an {@link L2_INVOKE}.  In particular, see if the {@code functionToCallReg} is known to contain a constant function (a common case) which is an inlineable primitive, and if so, delegate this opportunity to the primitive.
 	 *
-	 * <p>We must either answer {@code false} and generate no code, or answer
-	 * {@code true} and generate code that has the same effect as having run the
-	 * function in the register without fear of reification or abnormal control
-	 * flow.  A folded primitive, for example, can generate a simple {@link
-	 * L2_MOVE_CONSTANT} into the top-of-stack register and answer true.</p>
+	 * <p>We must either answer {@code false} and generate no code, or answer {@code true} and generate code that has the same effect as having run the function in the register without fear of reification or abnormal control flow.  A folded primitive, for example, can generate a simple {@link L2_MOVE_CONSTANT} into the top-of-stack register and answer true.</p>
 	 *
 	 * @param functionToCallReg
-	 *        The register containing the {@linkplain A_Function function} to
-	 *        invoke.
+	 *        The register containing the {@linkplain A_Function function} to invoke.
 	 * @param rawFunction
 	 *        The {@linkplain A_RawFunction raw function} being invoked.
 	 * @param primitive
@@ -2215,11 +2124,9 @@ public final class L1Translator
 	 * @param arguments
 	 *        The arguments to supply to the function.
 	 * @param callSiteHelper
-	 *        Information about the method call site having its dispatch tree
-	 *        inlined.  It also contains merge points for this call, so if a
-	 *        specific code generation happens it should jump to one of these.
-	 * @return {@code true} if a special instruction sequence was generated,
-	 *         {@code false} otherwise.
+	 *        Information about the method call site having its dispatch tree inlined.  It also contains merge points for this call, so if a specific code generation happens it should jump to one of these.
+	 * @return
+	 * {@code true} if a special instruction sequence was generated, {@code false} otherwise.
 	 */
 	private boolean tryToGenerateSpecialInvocation (
 		final L2ReadBoxedOperand functionToCallReg,
@@ -2324,9 +2231,9 @@ public final class L1Translator
 	 * {@link A_RawFunction} it will be known to run, or {@code null}.
 	 *
 	 * @param functionToCallReg
-	 *        The {@link L2ReadBoxedOperand} containing the function to
-	 *        invoke.
-	 * @return Either {@code null} or the function's {@link A_RawFunction}.
+	 *        The {@link L2ReadBoxedOperand} containing the function to invoke.
+	 * @return
+	 * Either {@code null} or the function's {@link A_RawFunction}.
 	 */
 	private static @Nullable A_RawFunction determineRawFunction (
 		final L2ReadBoxedOperand functionToCallReg)
@@ -2354,8 +2261,7 @@ public final class L1Translator
 	 * @param callSiteHelper
 	 *        Information about the method call site.
 	 * @param semanticArguments
-	 *        The list of {@link L2SemanticValue}s supplying argument values.
-	 *        These become strengthened by type tests in the current manifest.
+	 *        The list of {@link L2SemanticValue}s supplying argument values. These become strengthened by type tests in the current manifest.
 	 */
 	private void generateSlowPolymorphicCall (
 		final CallSiteHelper callSiteHelper,
@@ -2545,8 +2451,7 @@ public final class L1Translator
 	 * @param callSiteHelper
 	 *        Information about the method call site.
 	 * @param errorCodeRead
-	 *        The register containing the numeric {@link AvailErrorCode}
-	 *        indicating the lookup problem.
+	 *        The register containing the numeric {@link AvailErrorCode} indicating the lookup problem.
 	 * @param argumentRestrictions
 	 *        The {@link TypeRestriction}s on the arguments.
 	 * @param argumentReads
@@ -2606,14 +2511,7 @@ public final class L1Translator
 	}
 
 	/**
-	 * Emit code to check for an interrupt and service it if necessary,
-	 * including generation of the subsequently continued on-ramp.  The
-	 * generated code should only be reachable at positions that are effectively
-	 * between L1 nybblecodes, since during such an interrupt any {@link
-	 * L2Chunk}s can be invalidated.  Not *all* positions between nybblecodes
-	 * need to check for interrupts, but there shouldn't be an arbitrarily large
-	 * amount of time that passes between when an interrupt is indicated and
-	 * when it is serviced.
+	 * Emit code to check for an interrupt and service it if necessary, including generation of the subsequently continued on-ramp.  The generated code should only be reachable at positions that are effectively between L1 nybblecodes, since during such an interrupt any {@link L2Chunk}s can be invalidated.  Not *all* positions between nybblecodes need to check for interrupts, but there shouldn't be an arbitrarily large amount of time that passes between when an interrupt is indicated and when it is serviced.
 	 */
 	private void emitInterruptOffRamp ()
 	{
@@ -2669,15 +2567,13 @@ public final class L1Translator
 	 * with the case that the variable is unassigned.
 	 *
 	 * @param getOperation
-	 *        The {@linkplain L2Operation#isVariableGet() variable reading}
-	 *        {@linkplain L2Operation operation}.
+	 *        The {@linkplain L2Operation#isVariableGet() variable reading} {@linkplain L2Operation operation}.
 	 * @param variable
 	 *        The location of the {@linkplain A_Variable variable}.
 	 * @param makeImmutable
-	 *        {@code true} if the extracted value should be made immutable,
-	 *        otherwise {@code false}.
-	 * @return The {@link L2ReadBoxedOperand} into which the variable's value
-	 *         will be written, including having made it immutable if requested.
+	 *        {@code true} if the extracted value should be made immutable, otherwise {@code false}.
+	 * @return
+	 * The {@link L2ReadBoxedOperand} into which the variable's value will be written, including having made it immutable if requested.
 	 */
 	public L2ReadBoxedOperand emitGetVariableOffRamp (
 		final L2Operation getOperation,
@@ -2742,14 +2638,10 @@ public final class L1Translator
 	}
 
 	/**
-	 * Emit the specified variable-writing instruction, and an off-ramp to deal
-	 * with the case that the variable has {@linkplain VariableAccessReactor
-	 * write reactors} but {@linkplain Interpreter#traceVariableWrites()
-	 * variable write tracing} is disabled.
+	 * Emit the specified variable-writing instruction, and an off-ramp to deal with the case that the variable has {@linkplain VariableAccessReactor write reactors} but {@linkplain Interpreter#traceVariableWrites() variable write tracing} is disabled.
 	 *
 	 * @param setOperation
-	 *        The {@linkplain L2Operation#isVariableSet() variable reading}
-	 *        {@linkplain L2Operation operation}.
+	 *        The {@linkplain L2Operation#isVariableSet() variable reading} {@linkplain L2Operation operation}.
 	 * @param variable
 	 *        The location of the {@linkplain A_Variable variable}.
 	 * @param newValue
@@ -3005,8 +2897,7 @@ public final class L1Translator
 	 * @param initialBlock
 	 *        The block to initially entry the default chunk for a call.
 	 * @param reenterFromRestartBlock
-	 *        The block to reenter to {@link P_RestartContinuation} an
-	 *        {@link A_Continuation}.
+	 *        The block to reenter to {@link P_RestartContinuation} an {@link A_Continuation}.
 	 * @param loopBlock
 	 *        The main loop of the interpreter.
 	 * @param reenterFromCallBlock
@@ -3015,7 +2906,8 @@ public final class L1Translator
 	 *        The entry point for resuming from an interrupt.
 	 * @param unreachableBlock
 	 *        A basic block that should be dynamically unreachable.
-	 * @return The {@link L2ControlFlowGraph} for the default chunk.
+	 * @return
+	 * The {@link L2ControlFlowGraph} for the default chunk.
 	 */
 	public static L2ControlFlowGraph generateDefaultChunkControlFlowGraph (
 		final L2BasicBlock initialBlock,
@@ -3102,23 +2994,14 @@ public final class L1Translator
 		new Statistic("L1 naive translation", L2_OPTIMIZATION_TIME);
 
 	/**
-	 * Translate the provided {@link A_RawFunction} to produce an optimized
-	 * {@link L2Chunk} that is then written back into the code for subsequent
-	 * executions.  Also update the {@link Interpreter}'s chunk and offset to
-	 * use this new chunk right away.  If the code was a primitive, make sure to
-	 * adjust the offset to just beyond its {@link L2_TRY_PRIMITIVE}
-	 * instruction, which must have <em>already</em> been attempted and failed
-	 * for us to have reached the {@link
-	 * L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO} that caused this
-	 * optimization to happen.
+	 * Translate the provided {@link A_RawFunction} to produce an optimized {@link L2Chunk} that is then written back into the code for subsequent executions.  Also update the {@link Interpreter}'s chunk and offset to use this new chunk right away.  If the code was a primitive, make sure to adjust the offset to just beyond its {@link L2_TRY_PRIMITIVE} instruction, which must have <em>already</em> been attempted and failed for us to have reached the {@link L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO} that caused this optimization to happen.
 	 *
 	 * @param code
 	 *        The {@link A_RawFunction} to optimize.
 	 * @param optimizationLevel
 	 *        How much optimization to attempt.
 	 * @param interpreter
-	 *        The {@link Interpreter} used for folding expressions, and to be
-	 *        updated with the new chunk and post-primitive offset.
+	 *        The {@link Interpreter} used for folding expressions, and to be updated with the new chunk and post-primitive offset.
 	 */
 	public static void translateToLevelTwo (
 		final A_RawFunction code,
@@ -3153,14 +3036,7 @@ public final class L1Translator
 	}
 
 	/**
-	 * Translate the supplied {@link A_RawFunction} into a sequence of {@link
-	 * L2Instruction}s.  The optimization level specifies how hard to try to
-	 * optimize this method.  It is roughly equivalent to the level of inlining
-	 * to attempt, or the ratio of code expansion that is permitted. An
-	 * optimization level of zero is the bare minimum, which produces a naïve
-	 * translation to {@linkplain L2Chunk Level Two code}.  The translation may
-	 * include code to decrement a counter and reoptimize with greater effort
-	 * when the counter reaches zero.
+	 * Translate the supplied {@link A_RawFunction} into a sequence of {@link L2Instruction}s.  The optimization level specifies how hard to try to optimize this method.  It is roughly equivalent to the level of inlining to attempt, or the ratio of code expansion that is permitted. An optimization level of zero is the bare minimum, which produces a naïve translation to {@linkplain L2Chunk Level Two code}.  The translation may include code to decrement a counter and reoptimize with greater effort when the counter reaches zero.
 	 */
 	private void translate ()
 	{

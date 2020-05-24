@@ -111,9 +111,9 @@ object L2_ENTER_L2_CHUNK : L2Operation(
 			translator.liveLocalNumbersByKindPerEntryPoint[instruction]
 		if (localNumberLists != null)
 		{
-			val boxedList = localNumberLists[RegisterKind.BOXED]!!
-			val intsList = localNumberLists[RegisterKind.INTEGER]!!
-			val floatsList = localNumberLists[RegisterKind.FLOAT]!!
+			val boxedList = localNumberLists[RegisterKind.BOXED]
+			val intsList = localNumberLists[RegisterKind.INTEGER]
+			val floatsList = localNumberLists[RegisterKind.FLOAT]
 			val boxedCount = boxedList.size
 			val intsCount = intsList.size
 			val floatsCount = floatsList.size

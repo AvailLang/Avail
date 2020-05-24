@@ -34,9 +34,7 @@ package com.avail.optimizer;
 import com.avail.interpreter.levelTwo.L2Instruction;
 
 /**
- * An {@code L2Entity} is an abstraction for things that have reads and writes
- * within the {@link L2Instruction}s of an {@link L2BasicBlock} of an
- * {@link L2ControlFlowGraph}.
+ * An {@code L2Entity} is an abstraction for things that have reads and writes within the {@link L2Instruction}s of an {@link L2BasicBlock} of an {@link L2ControlFlowGraph}.
  *
  * @see DataCouplingMode
  */

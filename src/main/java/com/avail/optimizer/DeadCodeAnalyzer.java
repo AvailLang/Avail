@@ -231,15 +231,16 @@ class DeadCodeAnalyzer
 						toVisit.add(predecessorBlock);
 					}
 				}
+				return null;
 			});
 		}
 	}
 
 	/**
-	 * Answer the {@link L2Instruction}s that were found to be live by a prior
-	 * call to {@link #analyzeReads()}.
+	 * Answer the {@link L2Instruction}s that were found to be live by a prior call to {@link #analyzeReads()}.
 	 *
-	 * @return An immutable {@link Set} of live {@link L2Instruction}s.
+	 * @return
+	 * An immutable {@link Set} of live {@link L2Instruction}s.
 	 */
 	public Set<L2Instruction> liveInstructions ()
 	{

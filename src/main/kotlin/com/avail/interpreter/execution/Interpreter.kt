@@ -1551,22 +1551,22 @@ class Interpreter(
 		isReifying = true
 		return StackReifier(
 			false,
-			StatisticCategory.ABANDON_BEFORE_RESTART_IN_L2.statistic,
-			Continuation0 {
-				val whichFunction = continuation.function()
-				val numArgs = whichFunction.code().numArgs()
-				argsBuffer.clear()
-				(1..numArgs).forEach {
-					argsBuffer.add(continuation.frameAt(it))
-				}
-				setReifiedContinuation(continuation.caller())
-				function = whichFunction
-				chunk = continuation.levelTwoChunk()
-				offset = continuation.levelTwoOffset()
-				returnNow = false
-				setLatestResult(null)
-				isReifying = false
-			})
+			StatisticCategory.ABANDON_BEFORE_RESTART_IN_L2.statistic)
+		{
+			val whichFunction = continuation.function()
+			val numArgs = whichFunction.code().numArgs()
+			argsBuffer.clear()
+			(1..numArgs).forEach {
+				argsBuffer.add(continuation.frameAt(it))
+			}
+			setReifiedContinuation(continuation.caller())
+			function = whichFunction
+			chunk = continuation.levelTwoChunk()
+			offset = continuation.levelTwoOffset()
+			returnNow = false
+			setLatestResult(null)
+			isReifying = false
+		}
 	}
 
 	/**
@@ -1597,12 +1597,12 @@ class Interpreter(
 			isReifying = true
 			StackReifier(
 				actuallyReify,
-				StatisticCategory.lookup(categoryIndex).statistic,
-				Continuation0 {
-					returnNow = false
-					isReifying = false
-					processInterrupt(getReifiedContinuation()!!)
-				})
+				StatisticCategory.lookup(categoryIndex).statistic)
+			{
+				returnNow = false
+				isReifying = false
+				processInterrupt(getReifiedContinuation()!!)
+			}
 		}
 		else -> {
 			// Capture the interpreter's state, reify the frames, and as an
@@ -1615,17 +1615,17 @@ class Interpreter(
 			isReifying = true
 			StackReifier(
 				actuallyReify,
-				StatisticCategory.lookup(categoryIndex).statistic,
-				Continuation0 {
-					val continuation = getReifiedContinuation()!!
-					function = savedFunction
-					chunk = continuation.levelTwoChunk()
-					offset = continuation.levelTwoOffset()
-					returnNow = newReturnNow
-					setLatestResult(newReturnValue)
-					// Return into the Interpreter's run loop.
-					isReifying = false
-				})
+				StatisticCategory.lookup(categoryIndex).statistic)
+			{
+				val continuation = getReifiedContinuation()!!
+				function = savedFunction
+				chunk = continuation.levelTwoChunk()
+				offset = continuation.levelTwoOffset()
+				returnNow = newReturnNow
+				setLatestResult(newReturnValue)
+				// Return into the Interpreter's run loop.
+				isReifying = false
+			}
 		}
 	}
 
@@ -1648,21 +1648,21 @@ class Interpreter(
 		isReifying = true
 		return StackReifier(
 			false,
-			StatisticCategory.ABANDON_BEFORE_RESTART_IN_L2.statistic,
-			Continuation0 {
-				val whichFunction = continuation.function()
-				val numArgs = whichFunction.code().numArgs()
-				assert(arguments.size == numArgs)
-				argsBuffer.clear()
-				argsBuffer.addAll(arguments)
-				setReifiedContinuation(continuation.caller())
-				function = whichFunction
-				chunk = continuation.levelTwoChunk()
-				offset = continuation.levelTwoOffset()
-				returnNow = false
-				setLatestResult(null)
-				isReifying = false
-			})
+			StatisticCategory.ABANDON_BEFORE_RESTART_IN_L2.statistic
+		) {
+			val whichFunction = continuation.function()
+			val numArgs = whichFunction.code().numArgs()
+			assert(arguments.size == numArgs)
+			argsBuffer.clear()
+			argsBuffer.addAll(arguments)
+			setReifiedContinuation(continuation.caller())
+			function = whichFunction
+			chunk = continuation.levelTwoChunk()
+			offset = continuation.levelTwoOffset()
+			returnNow = false
+			setLatestResult(null)
+			isReifying = false
+		}
 	}
 
 	/**
@@ -1880,7 +1880,7 @@ class Interpreter(
 				}
 				reifier.recordCompletedReification(interpreterIndex)
 				chunk = null // The postReificationAction should set this up.
-				reifier.postReificationAction.value()
+				reifier.postReificationAction()
 				if (exitNow) {
 					// The fiber has been dealt with. Exit the interpreter loop.
 					assert(fiber === null)

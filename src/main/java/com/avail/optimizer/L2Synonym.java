@@ -33,22 +33,20 @@ package com.avail.optimizer;
 
 import com.avail.optimizer.values.Frame;
 import com.avail.optimizer.values.L2SemanticValue;
+import kotlin.jvm.functions.Function1;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.UnaryOperator;
 
 import static java.util.Collections.singleton;
 import static java.util.Collections.unmodifiableSet;
 import static java.util.stream.Collectors.toCollection;
 
 /**
- * An {@code L2Synonym} is a set of {@link L2SemanticValue}s known to represent
- * the same value in some {@link L2ValueManifest}.  The manifest at each
- * instruction includes a set of synonyms which partition the semantic values.
+ * An {@code L2Synonym} is a set of {@link L2SemanticValue}s known to represent the same value in some {@link L2ValueManifest}.  The manifest at each instruction includes a set of synonyms which partition the semantic values.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -56,8 +54,7 @@ import static java.util.stream.Collectors.toCollection;
 public final class L2Synonym
 {
 	/**
-	 * The {@link L2SemanticValue}s for which this synonym's registers hold the
-	 * (same) value.
+	 * The {@link L2SemanticValue}s for which this synonym's registers hold the (same) value.
 	 */
 	private final Set<L2SemanticValue> semanticValues;
 
@@ -65,8 +62,7 @@ public final class L2Synonym
 	 * Create a synonym.
 	 *
 	 * @param semanticValues
-	 *        The non-empty collection of {@link L2SemanticValue}s bound to this
-	 *        synonym.
+	 *        The non-empty collection of {@link L2SemanticValue}s bound to this synonym.
 	 */
 	public L2Synonym (
 		final Collection<? extends L2SemanticValue> semanticValues)
@@ -81,7 +77,8 @@ public final class L2Synonym
 	/**
 	 * Answer the immutable set of {@link L2SemanticValue}s of this synonym.
 	 *
-	 * @return The {@link L2SemanticValue}s in this synonym.
+	 * @return
+	 * The {@link L2SemanticValue}s in this synonym.
 	 */
 	public Set<L2SemanticValue> semanticValues ()
 	{
@@ -91,29 +88,30 @@ public final class L2Synonym
 	/**
 	 * Choose one of the {@link L2SemanticValue}s from this {@code L2Synonym}.
 	 *
-	 * @return An arbitrary {@link L2SemanticValue} of this synonym.
+	 * @return
+	 * An arbitrary {@link L2SemanticValue} of this synonym.
 	 */
 	public L2SemanticValue pickSemanticValue () {
 		return semanticValues.iterator().next();
 	}
 
 	/**
-	 * Transform the {@link Frame}s and {@link L2SemanticValue}s within this
-	 * synonym to produce a new synonym.
+	 * Transform the {@link Frame}s and {@link L2SemanticValue}s within this  synonym to produce a new synonym.
 	 *
 	 * @param semanticValueTransformer
 	 *        How to transform each {@link L2SemanticValue}.
-	 * @return The transformed synonym, or the original if there was no change.
+	 * @return
+	 * The transformed synonym, or the original if there was no change.
 	 */
 	public L2Synonym transform (
-		final UnaryOperator<L2SemanticValue> semanticValueTransformer)
+		final Function1<L2SemanticValue, L2SemanticValue> semanticValueTransformer)
 	{
 		final Set<L2SemanticValue> newSemanticValues = new HashSet<>();
 		boolean changed = false;
 		for (final L2SemanticValue semanticValue : semanticValues)
 		{
 			final L2SemanticValue newSemanticValue =
-				semanticValueTransformer.apply(semanticValue);
+				semanticValueTransformer.invoke(semanticValue);
 			newSemanticValues.add(newSemanticValue);
 			changed |= !newSemanticValue.equals(semanticValue);
 		}

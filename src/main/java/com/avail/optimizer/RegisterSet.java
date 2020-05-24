@@ -50,9 +50,7 @@ import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.PrefixSharingList.append;
 
 /**
- * This class maintains register information during naive translation from Level
- * One compiled code (nybblecodes) to Level Two wordcodes, known as {@linkplain
- * L2Chunk chunks}.
+ * This class maintains register information during naive translation from Level One compiled code (nybblecodes) to Level Two wordcodes, known as {@linkplain L2Chunk chunks}.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -67,7 +65,8 @@ public final class RegisterSet
 	 * Output debug information about this RegisterSet to the specified
 	 * {@link StringBuilder}.
 	 *
-	 * @param builder Where to describe this RegisterSet.
+	 * @param builder
+	 * Where to describe this RegisterSet.
 	 */
 	void debugOn (
 		final StringBuilder builder)
@@ -114,14 +113,12 @@ public final class RegisterSet
 	}
 
 	/**
-	 * Answer the {@link RegisterState} for the specified {@link L2Register},
-	 * creating one and associating it with the register for subsequent lookups.
-	 * Ensure the RegisterState is modifiable, copying it and writing it back if
-	 * necessary.
+	 * Answer the {@link RegisterState} for the specified {@link L2Register}, creating one and associating it with the register for subsequent lookups. Ensure the RegisterState is modifiable, copying it and writing it back if necessary.
 	 *
-	 * @param register The L2Register to look up.
-	 * @return The mutable RegisterState that describes the state of the
-	 *         L2Register at a particular point in the generated code.
+	 * @param register
+	 * The L2Register to look up.
+	 * @return
+	 * The mutable RegisterState that describes the state of the L2Register at a particular point in the generated code.
 	 */
 	public RegisterState stateForModifying (
 		final L2Register register)
@@ -141,12 +138,12 @@ public final class RegisterSet
 	}
 
 	/**
-	 * Answer the {@link RegisterState} for the specified {@link L2Register},
-	 * creating one and associating it with the register for subsequent lookups.
+	 * Answer the {@link RegisterState} for the specified {@link L2Register}, creating one and associating it with the register for subsequent lookups.
 	 *
-	 * @param register The L2Register to look up.
-	 * @return The RegisterState that describes the state of the L2Register at
-	 *         a particular point in the generated code.
+	 * @param register
+	 * The L2Register to look up.
+	 * @return
+	 * The RegisterState that describes the state of the L2Register at a particular point in the generated code.
 	 */
 	public RegisterState stateForReading (
 		final L2Register register)
@@ -160,14 +157,14 @@ public final class RegisterSet
 	}
 
 	/**
-	 * Answer whether this register contains a constant at the current code
-	 * generation point.
+	 * Answer whether this register contains a constant at the current code generation point.
 	 *
-	 * @param register The register.
-	 * @return Whether the register has most recently been assigned a constant.
+	 * @param register
+	 * The register.
+	 * @return
+	 * Whether the register has most recently been assigned a constant.
 	 */
-	public boolean hasConstantAt (
-		final L2Register register)
+	public boolean hasConstantAt (final L2Register register)
 	{
 		return stateForReading(register).hasConstant();
 	}
@@ -176,10 +173,9 @@ public final class RegisterSet
 	 * Answer whether all of the supplied registers are constant here.
 	 *
 	 * @param registerReads
-	 *        The {@link List} of {@link L2ReadBoxedOperand}s to examine for
-	 *        being constant in this register set.
-	 * @return {@code true} if all of the registers are constants here,
-	 *         otherwise {@code false}.
+	 *        The {@link List} of {@link L2ReadBoxedOperand}s to examine for being constant in this register set.
+	 * @return
+	 * {@code true} if all of the registers are constants here, otherwise {@code false}.
 	 */
 	public boolean allRegistersAreConstant (
 		final List<L2ReadBoxedOperand> registerReads)
@@ -252,8 +248,10 @@ public final class RegisterSet
 	 * Retrieve the constant currently associated with this register.  Fail if
 	 * the register is not bound to a constant at this point.
 	 *
-	 * @param register The register.
-	 * @return The constant object.
+	 * @param register
+	 * The register.
+	 * @return
+	 * The constant object.
 	 */
 	public AvailObject constantAt (
 		final L2Register register)
@@ -264,7 +262,8 @@ public final class RegisterSet
 	/**
 	 * Remove any current constant binding for the specified register.
 	 *
-	 * @param register The register.
+	 * @param register
+	 * The register.
 	 */
 	public void removeConstantAt (
 		final L2Register register)
@@ -276,8 +275,10 @@ public final class RegisterSet
 	 * Answer whether this register has a type bound to it at the current code
 	 * generation point.
 	 *
-	 * @param register The register.
-	 * @return Whether the register has a known type at this point.
+	 * @param register
+	 * The register.
+	 * @return
+	 * Whether the register has a known type at this point.
 	 */
 	public boolean hasTypeAt (
 		final L2Register register)
@@ -288,8 +289,10 @@ public final class RegisterSet
 	/**
 	 * Answer the type bound to the register at this point in the code.
 	 *
-	 * @param register The register.
-	 * @return The type bound to the register, or null if not bound.
+	 * @param register
+	 * The register.
+	 * @return
+	 * The type bound to the register, or null if not bound.
 	 */
 	public A_Type typeAt (
 		final L2Register register)
@@ -345,12 +348,12 @@ public final class RegisterSet
 	 * Produce the set of all registers known to contain the same value as the
 	 * given register.
 	 *
-	 * <p>Follow all transitive {@link RegisterState#origins()} and {@link
-	 * RegisterState#invertedOrigins()} to get the complete set.</p>
+	 * <p>Follow all transitive {@link RegisterState#origins()} and {@link RegisterState#invertedOrigins()} to get the complete set.</p>
 	 *
-	 * @param register An {@link L2Register}
-	 * @return The set of all {@link L2Register}s known to contain the same
-	 *         value as the given register.
+	 * @param register
+	 * An {@link L2Register}
+	 * @return
+	 * The set of all {@link L2Register}s known to contain the same value as the given register.
 	 */
 	private Set<L2Register> allEquivalentRegisters (
 		final L2Register register)
@@ -384,8 +387,10 @@ public final class RegisterSet
 	 * <p>This is subtle, but we also update the type for each register which is
 	 * known to currently have the same value.</p>
 	 *
-	 * @param register The register that needs its type strengthened.
-	 * @param type The type to strengthen it to.
+	 * @param register
+	 * The register that needs its type strengthened.
+	 * @param type
+	 * The type to strengthen it to.
 	 */
 	public void strengthenTestedTypeAtPut (
 		final L2Register register,
@@ -404,8 +409,10 @@ public final class RegisterSet
 	 * <p>This is subtle, but we also update the known value for each register
 	 * which has been shown to have the same value.</p>
 	 *
-	 * @param register The register that needs its type strengthened.
-	 * @param value The value in the register.
+	 * @param register
+	 * The register that needs its type strengthened.
+	 * @param value
+	 * The value in the register.
 	 */
 	public void strengthenTestedValueAtPut (
 		final L2Register register,
@@ -420,7 +427,8 @@ public final class RegisterSet
 	/**
 	 * Unbind any type information from the register at this point in the code.
 	 *
-	 * @param register The register from which to clear type information.
+	 * @param register
+	 * The register from which to clear type information.
 	 */
 	public void removeTypeAt (
 		final L2Register register)
@@ -491,8 +499,10 @@ public final class RegisterSet
 	 * destination register is no longer related to any of its earlier sources.
 	 * </p>
 	 *
-	 * @param destinationRegister The {@link L2Register} being overwritten.
-	 * @param instruction The instruction doing the writing.
+	 * @param destinationRegister
+	 * The {@link L2Register} being overwritten.
+	 * @param instruction
+	 * The instruction doing the writing.
 	 */
 	public void propagateWriteTo (
 		final L2Register destinationRegister,
@@ -534,8 +544,10 @@ public final class RegisterSet
 	 * or the other.  Similarly, the constant information should degrade to type
 	 * information unless both sides say they should be the same constant.
 	 *
-	 * @param other The RegisterSet with information to mix into the receiver.
-	 * @return Whether the receiver changed due to the new information.
+	 * @param other
+	 * The RegisterSet with information to mix into the receiver.
+	 * @return
+	 * Whether the receiver changed due to the new information.
 	 */
 	boolean mergeFrom (final RegisterSet other)
 	{

@@ -198,20 +198,17 @@ object L2_PREPARE_NEW_FRAME_FOR_L1 : L2Operation()
 				zeroBasedStartIndex = 1)
 			// Push the continuation from above onto the reified stack.
 			interpreter.isReifying = true
-			return StackReifier(
-				true,
-				reificationForInterruptInL1Stat,
-				Continuation0 {
-
-					// Push the continuation from above onto the reified stack.
-					interpreter.returnNow = false
-					interpreter.setReifiedContinuation(
-						continuation.replacingCaller(
-							interpreter.getReifiedContinuation()!!))
-					interpreter.processInterrupt(
-						interpreter.getReifiedContinuation()!!)
-					interpreter.isReifying = false
-				})
+			return StackReifier(true, reificationForInterruptInL1Stat)
+			{
+				// Push the continuation from above onto the reified stack.
+				interpreter.returnNow = false
+				interpreter.setReifiedContinuation(
+					continuation.replacingCaller(
+						interpreter.getReifiedContinuation()!!))
+				interpreter.processInterrupt(
+					interpreter.getReifiedContinuation()!!)
+				interpreter.isReifying = false
+			}
 		}
 		return null
 	}

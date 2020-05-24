@@ -49,7 +49,8 @@ public interface ExecutableChunk
 	/**
 	 * Answer a descriptive (non-unique) name for the {@code ExecutableChunk}.
 	 *
-	 * @return The effective name of the chunk.
+	 * @return
+	 * The effective name of the chunk.
 	 */
 	String name ();
 
@@ -68,12 +69,11 @@ public interface ExecutableChunk
 	 * nybblecodes).
 	 *
 	 * @param interpreter
-	 *        An interpreter that is appropriately setup to execute the
-	 *        receiver.
+	 *        An interpreter that is appropriately setup to execute the receiver.
 	 * @param offset
 	 *        The offset at which to begin execution.
-	 * @return {@code null} if returning normally, otherwise a {@link
-	 *         StackReifier} to effect reification.
+	 * @return
+	 * {@code null} if returning normally, otherwise a {@link StackReifier} to effect reification.
 	 */
 	@Nullable StackReifier runChunk (Interpreter interpreter, int offset);
 }

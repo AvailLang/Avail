@@ -39,20 +39,19 @@ import com.avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK;
 import com.avail.interpreter.levelTwo.operation.L2_JUMP;
 import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION;
 import com.avail.optimizer.L2ControlFlowGraph.Zone;
+import kotlin.Unit;
+import kotlin.jvm.functions.Function1;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.function.Consumer;
 
 import static com.avail.utility.Casts.cast;
 import static com.avail.utility.PrefixSharingList.last;
 
 /**
- * This is a traditional basic block, consisting of a sequence of {@link
- * L2Instruction}s.  It has no incoming jumps except to the start, and has no
- * outgoing jumps or branches except from the last instruction.
+ * This is a traditional basic block, consisting of a sequence of {@link L2Instruction}s.  It has no incoming jumps except to the start, and has no outgoing jumps or branches except from the last instruction.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -65,16 +64,12 @@ public final class L2BasicBlock
 	private final List<L2Instruction> instructions = new ArrayList<>();
 
 	/**
-	 * The {@link L2PcOperand}s that point to basic blocks that follow this one,
-	 * taken in order from the last instruction.  This is kept synchronized with
-	 * the predecessor lists of the successor blocks.
+	 * The {@link L2PcOperand}s that point to basic blocks that follow this one, taken in order from the last instruction.  This is kept synchronized with the predecessor lists of the successor blocks.
 	 */
 	private final List<L2PcOperand> successorEdges = new ArrayList<>(2);
 
 	/**
-	 * The {@link L2PcOperand}s that point to this basic block.  They capture
-	 * their containing {@link L2Instruction}, which knows its own basic block,
-	 * so we can easily get to the originating basic block.
+	 * The {@link L2PcOperand}s that point to this basic block.  They capture their containing {@link L2Instruction}, which knows its own basic block, so we can easily get to the originating basic block.
 	 */
 	private final List<L2PcOperand> predecessorEdges = new ArrayList<>();
 
@@ -148,11 +143,10 @@ public final class L2BasicBlock
 	}
 
 	/**
-	 * Answer this block's {@link List} of {@link L2Instruction}.  They consist
-	 * of a sequence of non-branching instructions, ending in an instruction
-	 * that branches to zero or more targets via its {@link L2PcOperand}s.
+	 * Answer this block's {@link List} of {@link L2Instruction}. They consist of a sequence of non-branching instructions, ending in an instruction that branches to zero or more targets via its {@link L2PcOperand}s.
 	 *
-	 * @return The block's {@link List} of {@link L2Instruction}s.
+	 * @return
+	 * The block's {@link List} of {@link L2Instruction}s.
 	 */
 	@SuppressWarnings("AssignmentOrReturnOfFieldWithMutableType")
 	public List<L2Instruction> instructions ()
@@ -161,11 +155,10 @@ public final class L2BasicBlock
 	}
 
 	/**
-	 * Answer this block's last {@link L2Instruction}.  This instruction must be
-	 * a branching instruction of some sort, having zero or more target edges,
-	 * but not falling through to the next instruction (which doesn't exist).
+	 * Answer this block's last {@link L2Instruction}. This instruction must be a branching instruction of some sort, having zero or more target edges, but not falling through to the next instruction (which doesn't exist).
 	 *
-	 * @return The last {@link L2Instruction} of this block.
+	 * @return
+	 * The last {@link L2Instruction} of this block.
 	 */
 	L2Instruction finalInstruction ()
 	{
@@ -175,7 +168,8 @@ public final class L2BasicBlock
 	/**
 	 * Answer the number of predecessor edges that this block has.
 	 *
-	 * @return The number of predecessors.
+	 * @return
+	 * The number of predecessors.
 	 */
 	public int predecessorEdgesCount ()
 	{
@@ -183,10 +177,10 @@ public final class L2BasicBlock
 	}
 
 	/**
-	 * Answer an {@link Iterator} over the predecessor edges.  Don't change them
-	 * during iteration.
+	 * Answer an {@link Iterator} over the predecessor edges.  Don't change them during iteration.
 	 *
-	 * @return The iterator over predecessors.
+	 * @return
+	 * The iterator over predecessors.
 	 */
 	public Iterator<L2PcOperand> predecessorEdgesIterator ()
 	{
@@ -194,22 +188,22 @@ public final class L2BasicBlock
 	}
 
 	/**
-	 * Invoke the given {@link Consumer} with each incoming
-	 * {@link L2PcOperand edge}.
+	 * Invoke the given lambda with each incoming {@link L2PcOperand edge}.
 	 *
 	 * @param consumer
 	 *        What to do with each edge.
 	 */
 	public void predecessorEdgesDo (
-		final Consumer<L2PcOperand> consumer)
+		final Function1<? super L2PcOperand, Unit> consumer)
 	{
-		predecessorEdges.forEach(consumer);
+		predecessorEdges.forEach(consumer::invoke);
 	}
 
 	/**
 	 * Answer a copy of the list of predecessor edges.
 	 *
-	 * @return The predecessor edges, copied to a new list.
+	 * @return
+	 * The predecessor edges, copied to a new list.
 	 */
 	public List<L2PcOperand> predecessorEdgesCopy ()
 	{
@@ -217,11 +211,12 @@ public final class L2BasicBlock
 	}
 
 	/**
-	 * Answer the predecessor {@linkplain L2PcOperand edge} with the given index
-	 * in my list of predecessors.
+	 * Answer the predecessor {@linkplain L2PcOperand edge} with the given index in my list of predecessors.
 	 *
-	 * @param index The index of the incoming edge.
-	 * @return The indicated predecessor.
+	 * @param index
+	 * The index of the incoming edge.
+	 * @return
+	 * The indicated predecessor.
 	 */
 	public L2PcOperand predecessorEdgeAt (final int index)
 	{
@@ -233,7 +228,8 @@ public final class L2BasicBlock
 	 * that reaches this basic block.  Also allow backward edges to attach to
 	 * a loop head after code generation has already taken place in the target.
 	 *
-	 * @param predecessorEdge The {@link L2PcOperand} that leads here.
+	 * @param predecessorEdge
+	 * The {@link L2PcOperand} that leads here.
 	 */
 	public void addPredecessorEdge (
 		final L2PcOperand predecessorEdge)
@@ -268,7 +264,8 @@ public final class L2BasicBlock
 	/**
 	 * Remove a predecessor, perhaps due to a branch to it becoming unreachable.
 	 *
-	 * @param predecessorEdge The {@link L2PcOperand} that no longer leads here.
+	 * @param predecessorEdge
+	 * The {@link L2PcOperand} that no longer leads here.
 	 */
 	public void removePredecessorEdge (
 		final L2PcOperand predecessorEdge)
@@ -301,7 +298,8 @@ public final class L2BasicBlock
 	/**
 	 * Answer the number of successor edges that this block has.
 	 *
-	 * @return The number of successors.
+	 * @return
+	 * The number of successors.
 	 */
 	public int successorEdgesCount ()
 	{
@@ -312,7 +310,8 @@ public final class L2BasicBlock
 	 * Answer an {@link Iterator} over the successor edges.  Don't change them
 	 * during iteration.
 	 *
-	 * @return The iterator over successors.
+	 * @return
+	 * The iterator over successors.
 	 */
 	public Iterator<L2PcOperand> successorEdgesIterator ()
 	{
@@ -320,22 +319,22 @@ public final class L2BasicBlock
 	}
 
 	/**
-	 * Invoke the given {@link Consumer} with each outgoing
-	 * {@link L2PcOperand edge}.
+	 * Invoke the given lambda with each outgoing {@link L2PcOperand edge}.
 	 *
 	 * @param consumer
 	 *        What to do with each edge.
 	 */
 	public void successorEdgesDo (
-		final Consumer<L2PcOperand> consumer)
+		final Function1<? super L2PcOperand, Unit> consumer)
 	{
-		successorEdges.forEach(consumer);
+		successorEdges.forEach(consumer::invoke);
 	}
 
 	/**
 	 * Answer a copy of the list of successor edges.
 	 *
-	 * @return The successor edges, copied to a new list.
+	 * @return
+	 * The successor edges, copied to a new list.
 	 */
 	public List<L2PcOperand> successorEdgesCopy ()
 	{
@@ -343,11 +342,12 @@ public final class L2BasicBlock
 	}
 
 	/**
-	 * Answer the successor {@linkplain L2PcOperand edge} with the given index
-	 * in my list of successors.
+	 * Answer the successor {@linkplain L2PcOperand edge} with the given index in my list of successors.
 	 *
-	 * @param index The index of the outgoing edge.
-	 * @return The indicated successor.
+	 * @param index
+	 * The index of the outgoing edge.
+	 * @return
+	 * The indicated successor.
 	 */
 	public L2PcOperand successorEdgeAt (final int index)
 	{
@@ -360,8 +360,7 @@ public final class L2BasicBlock
 	 * @param successorEdge
 	 *        The {@link L2PcOperand} leaving this block.
 	 */
-	public void addSuccessorEdge (
-		final L2PcOperand successorEdge)
+	public void addSuccessorEdge (final L2PcOperand successorEdge)
 	{
 		successorEdges.add(successorEdge);
 	}
@@ -372,8 +371,7 @@ public final class L2BasicBlock
 	 * @param successorEdge
 	 *        The {@link L2PcOperand} that no longer leaves this block.
 	 */
-	public void removeSuccessorEdge (
-		final L2PcOperand successorEdge)
+	public void removeSuccessorEdge (final L2PcOperand successorEdge)
 	{
 		final boolean success = successorEdges.remove(successorEdge);
 		assert success;
@@ -425,8 +423,7 @@ public final class L2BasicBlock
 	 * @param instruction
 	 *        The {@link L2Instruction} to append.
 	 * @param manifest
-	 *        The {@link L2ValueManifest} that is active where this instruction
-	 *        was just added to its {@code L2BasicBlock}.
+	 *        The {@link L2ValueManifest} that is active where this instruction was just added to its {@code L2BasicBlock}.
 	 */
 	public void addInstruction (
 		final L2Instruction instruction,
@@ -442,7 +439,8 @@ public final class L2BasicBlock
 	 * that the instruction was just added.  Adding a phi instruction
 	 * automatically places it at the start.
 	 *
-	 * @param instruction The {@link L2Instruction} to append.
+	 * @param instruction
+	 * The {@link L2Instruction} to append.
 	 */
 	public void justAddInstruction (final L2Instruction instruction)
 	{
@@ -463,12 +461,10 @@ public final class L2BasicBlock
 	}
 
 	/**
-	 * Answer the zero-based index of the first index beyond any
-	 * {@link L2_ENTER_L2_CHUNK} or {@link L2_PHI_PSEUDO_OPERATION}s.  It might
-	 * be just past the last valid index (i.e., equal to the size).
+	 * Answer the zero-based index of the first index beyond any {@link L2_ENTER_L2_CHUNK} or {@link L2_PHI_PSEUDO_OPERATION}s.  It might be just past the last valid index (i.e., equal to the size).
 	 *
-	 * @return The index of the first instruction that isn't an entry point or
-	 *         phi.
+	 * @return
+	 * The index of the first instruction that isn't an entry point or phi.
 	 */
 	public int indexAfterEntryPointAndPhis ()
 	{
@@ -536,8 +532,8 @@ public final class L2BasicBlock
 	 * would be reachable.  Take into account whether the block itself seems to
 	 * be reachable.
 	 *
-	 * @return Whether it would be possible to reach a new instruction added to
-	 *         this block.
+	 * @return
+	 * Whether it would be possible to reach a new instruction added to this block.
 	 */
 	boolean currentlyReachable ()
 	{
@@ -553,9 +549,7 @@ public final class L2BasicBlock
 	 * @param isLoopHead
 	 *        Whether this block should be marked as the head of a loop.
 	 * @param zone
-	 *        A mechanism to visually group blocks in the
-	 *        {@link L2ControlFlowGraphVisualizer}, indicating the purpose of
-	 *        that group.
+	 *        A mechanism to visually group blocks in the {@link L2ControlFlowGraphVisualizer}, indicating the purpose of that group.
 	 */
 	public L2BasicBlock (
 		final String name,
@@ -570,7 +564,8 @@ public final class L2BasicBlock
 	/**
 	 * Create a new basic block.
 	 *
-	 * @param name A descriptive name for the block.
+	 * @param name
+	 * A descriptive name for the block.
 	 */
 	public L2BasicBlock (final String name)
 	{
@@ -578,13 +573,10 @@ public final class L2BasicBlock
 	}
 
 	/**
-	 * Add this block's instructions to the given instruction list.  Also do
-	 * a special peephole optimization by removing any preceding {@link L2_JUMP}
-	 * if its target is this block, <em>unless</em> this block is a loop head.
+	 * Add this block's instructions to the given instruction list.  Also do a special peephole optimization by removing any preceding {@link L2_JUMP} if its target is this block, <em>unless</em> this block is a loop head.
 	 *
 	 * @param output
-	 *        The {@link List} of {@link L2Instruction}s in which to append this
-	 *        basic block's instructions.
+	 *        The {@link List} of {@link L2Instruction}s in which to append this basic block's instructions.
 	 */
 	void generateOn (final List<L2Instruction> output)
 	{

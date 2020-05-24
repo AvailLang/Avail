@@ -52,7 +52,7 @@ import static com.avail.utility.Strings.increaseIndentation;
 import static java.util.Collections.disjoint;
 
 /**
- * This is a control graph.  The vertices are {@link L2BasicBlock}s, which are
+ * This is a control graph. The vertices are {@link L2BasicBlock}s, which are
  * connected via their successor and predecessor lists.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
@@ -66,12 +66,7 @@ public final class L2ControlFlowGraph
 	public abstract static class StateFlag
 	{
 		/**
-		 * Whether the control flow graph is in static single-assignment form.
-		 * In this form, every register has a single instruction that writes to
-		 * it.  Where control flow merges, the target {@link L2BasicBlock} can
-		 * contain "phi" ({@link L2_PHI_PSEUDO_OPERATION}) instructions.  Such
-		 * an instruction writes to its output register the value corresponding
-		 * to the numbered predecessor edge by which the block was reached.
+		 * Whether the control flow graph is in static single-assignment form. In this form, every register has a single instruction that writes to it.  Where control flow merges, the target {@link L2BasicBlock} can contain "phi" ({@link L2_PHI_PSEUDO_OPERATION}) instructions.  Such an instruction writes to its output register the value corresponding to the numbered predecessor edge by which the block was reached.
 		 */
 		public static final class IS_SSA extends StateFlag { }
 
@@ -83,9 +78,7 @@ public final class L2ControlFlowGraph
 		public static final class IS_EDGE_SPLIT extends StateFlag { }
 
 		/**
-		 * Indicates that every {@link L2_PHI_PSEUDO_OPERATION} has been
-		 * replaced by moves to the same {@link L2Register} along each (split)
-		 * incoming edge.
+		 * Indicates that every {@link L2_PHI_PSEUDO_OPERATION} has been replaced by moves to the same {@link L2Register} along each (split) incoming edge.
 		 */
 		public static final class HAS_ELIMINATED_PHIS extends StateFlag { }
 	}
@@ -143,10 +136,7 @@ public final class L2ControlFlowGraph
 	}
 
 	/**
-	 * {@link L2BasicBlock}s can be grouped into zones for better visualization
-	 * of the control flow graph by the {@link L2ControlFlowGraphVisualizer}.
-	 * This class is instantiated from the {@link ZoneType#createZone(String)}
-	 * factory method.
+	 * {@link L2BasicBlock}s can be grouped into zones for better visualization of the control flow graph by the {@link L2ControlFlowGraphVisualizer}. This class is instantiated from the {@link ZoneType#createZone(String)} factory method.
 	 */
 	public static class Zone
 	{
@@ -160,8 +150,10 @@ public final class L2ControlFlowGraph
 		 * Create a now Zone with the given optional name.  Clients should use
 		 * the {@link ZoneType#createZone(String)} factor method.
 		 *
-		 * @param zoneType The {@link ZoneType} of this zone.
-		 * @param zoneName The zone's optional (non-unique) descriptive name.
+		 * @param zoneType
+		 * The {@link ZoneType} of this zone.
+		 * @param zoneName
+		 * The zone's optional (non-unique) descriptive name.
 		 */
 		Zone (
 			final ZoneType zoneType,
@@ -173,8 +165,7 @@ public final class L2ControlFlowGraph
 	}
 
 	/**
-	 * A categorization of kinds of {@link Zone}s that will be shown as
-	 * subgraphs (clusters) by the {@link L2ControlFlowGraphVisualizer}.
+	 * A categorization of kinds of {@link Zone}s that will be shown as  subgraphs (clusters) by the {@link L2ControlFlowGraphVisualizer}.
 	 */
 	public enum ZoneType
 	{
@@ -182,17 +173,12 @@ public final class L2ControlFlowGraph
 		BEGIN_REIFICATION_FOR_INTERRUPT("#c0c0ff/505090", "#d8d8ff/282850"),
 
 		/**
-		 * A zone used for reifying the call stack to create an
-		 * {@link A_Continuation} to be used as a
-		 * {@linkplain L1Operation#L1Ext_doPushLabel label}.
+		 * A zone used for reifying the call stack to create an {@link A_Continuation} to be used as a {@linkplain L1Operation#L1Ext_doPushLabel label}.
 		 */
 		BEGIN_REIFICATION_FOR_LABEL("#e0d090/604010", "#ffe0b0/302010"),
 
 		/**
-		 * The target of an on-reification branch from an {@link L2_INVOKE} or
-		 * {@link L2_INVOKE_CONSTANT_FUNCTION}.  A reification is already in
-		 * progress when this zone is entered, and the invoke logic ensures the
-		 * callers have already been reified by the time this zone runs.
+		 * The target of an on-reification branch from an {@link L2_INVOKE} or {@link L2_INVOKE_CONSTANT_FUNCTION}.  A reification is already in progress when this zone is entered, and the invoke logic ensures the callers have already been reified by the time this zone runs.
 		 */
 		PROPAGATE_REIFICATION_FOR_INVOKE("#c0e0c0/10a010", "#e0ffe0/103010");
 
@@ -206,8 +192,10 @@ public final class L2ControlFlowGraph
 		 * Create a {@code ZoneType} enum value.  Capture the boundary color and
 		 * fill color, for use by the {@link L2ControlFlowGraphVisualizer}.
 		 *
-		 * @param color A string indicating the boundary color.
-		 * @param bgcolor A string indicating the fill color.
+		 * @param color
+		 * A string indicating the boundary color.
+		 * @param bgcolor
+		 * A string indicating the fill color.
 		 */
 		ZoneType(final String color, final String bgcolor)
 		{
@@ -219,8 +207,10 @@ public final class L2ControlFlowGraph
 		 * Create a new {@link Zone} of this type, with an optional descriptive
 		 * (non-unique) name.
 		 *
-		 * @param zoneName The optional descriptive name of the {@link Zone}.
-		 * @return A new {@link Zone}.
+		 * @param zoneName
+		 * The optional descriptive name of the {@link Zone}.
+		 * @return
+		 * A new {@link Zone}.
 		 */
 		public final Zone createZone (final @Nullable String zoneName)
 		{
@@ -238,8 +228,7 @@ public final class L2ControlFlowGraph
 	 * Begin code generation in the given block.
 	 *
 	 * @param block
-	 *        The {@link L2BasicBlock} in which to start generating {@link
-	 *        L2Instruction}s.
+	 *        The {@link L2BasicBlock} in which to start generating {@link L2Instruction}s.
 	 */
 	public void startBlock (final L2BasicBlock block)
 	{
@@ -252,10 +241,10 @@ public final class L2ControlFlowGraph
 	}
 
 	/**
-	 * Collect the list of all distinct {@link L2Register}s assigned anywhere
-	 * within this control flow graph.
+	 * Collect the list of all distinct {@link L2Register}s assigned anywhere within this control flow graph.
 	 *
-	 * @return A {@link List} of {@link L2Register}s without repetitions.
+	 * @return
+	 * A {@link List} of {@link L2Register}s without repetitions.
 	 */
 	public List<L2Register> allRegisters ()
 	{
@@ -279,6 +268,7 @@ public final class L2ControlFlowGraph
 			builder.append(block.name());
 			builder.append(":\n");
 			block.predecessorEdgesDo(edge ->
+			{
 				builder
 					.append("\t\tFrom: ")
 					.append(edge.sourceBlock().name())
@@ -287,7 +277,9 @@ public final class L2ControlFlowGraph
 					.append(edge.alwaysLiveInRegisters)
 					.append(", sometimes live-in: ")
 					.append(edge.sometimesLiveInRegisters)
-					.append("]\n"));
+					.append("]\n");
+				return null;
+			});
 			for (final L2Instruction instruction : block.instructions())
 			{
 				builder.append("\t");
@@ -318,7 +310,8 @@ public final class L2ControlFlowGraph
 	 * Answer a visualization of this {@code L2ControlFlowGraph}. This is a
 	 * debug method, intended to be called via evaluation during debugging.
 	 *
-	 * @return The requested visualization.
+	 * @return
+	 * The requested visualization.
 	 */
 	@SuppressWarnings("unused")
 	public String visualize ()

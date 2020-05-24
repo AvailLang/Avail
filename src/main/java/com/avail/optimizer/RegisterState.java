@@ -48,9 +48,7 @@ import static com.avail.utility.PrefixSharingList.*;
 import static java.util.Collections.emptyList;
 
 /**
- * This class maintains information about one {@linkplain L2Register} on behalf
- * of a {@link RegisterSet} held by an {@linkplain L2Instruction} inside an
- * {@linkplain L2Chunk} constructed by the {@link L2Generator}.
+ * This class maintains information about one {@linkplain L2Register} on behalf of a {@link RegisterSet} held by an {@linkplain L2Instruction} inside an {@linkplain L2Chunk} constructed by the {@link L2Generator}.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -85,16 +83,12 @@ public final class RegisterState
 	private List<L2Register> invertedOrigins = emptyList();
 
 	/**
-	 * The {@link Set} of {@link L2Instruction}s that may have provided the
-	 * current value in that register.  There may be more than one such
-	 * instruction due to multiple paths converging by jumping to labels.
+	 * The {@link Set} of {@link L2Instruction}s that may have provided the current value in that register.  There may be more than one such instruction due to multiple paths converging by jumping to labels.
 	 */
 	private List<L2Instruction> sourceInstructions = emptyList();
 
 	/**
-	 * Indicates whether this RegisterState may have been shared among multiple
-	 * {@link RegisterSet}s.  If so, the RegisterSet must not modify this
-	 * object, but must make a copy first.
+	 * Indicates whether this RegisterState may have been shared among multiple {@link RegisterSet}s.  If so, the RegisterSet must not modify this object, but must make a copy first.
 	 */
 	private boolean isShared;
 
@@ -102,7 +96,8 @@ public final class RegisterState
 	 * Answer whether this register contains a constant at the current code
 	 * generation point.
 	 *
-	 * @return Whether this register has most recently been assigned a constant.
+	 * @return
+	 * Whether this register has most recently been assigned a constant.
 	 */
 	public boolean hasConstant ()
 	{
@@ -110,10 +105,10 @@ public final class RegisterState
 	}
 
 	/**
-	 * Return the constant {@link AvailObject} that this register has in it at
-	 * this point, or {@code null} if no such exact value is known.
+	 * Return the constant {@link AvailObject} that this register has in it at this point, or {@code null} if no such exact value is known.
 	 *
-	 * @return The constant value or null.
+	 * @return
+	 * The constant value or null.
 	 */
 	public @Nullable AvailObject constant ()
 	{
@@ -121,10 +116,10 @@ public final class RegisterState
 	}
 
 	/**
-	 * Set the constant {@link AvailObject} that this register has in it at
-	 * this point.  Accept {@code null} to indicate no such value is known.
+	 * Set the constant {@link AvailObject} that this register has in it at this point. Accept {@code null} to indicate no such value is known.
 	 *
-	 * @param newConstant The constant value or null.
+	 * @param newConstant
+	 * The constant value or null.
 	 */
 	public void constant (final @Nullable AvailObject newConstant)
 	{
@@ -133,10 +128,10 @@ public final class RegisterState
 	}
 
 	/**
-	 * Return the {@link A_Type type} that constrains this register at this
-	 * point, or {@code null} if no type constraint is known.
+	 * Return the {@link A_Type type} that constrains this register at this point, or {@code null} if no type constraint is known.
 	 *
-	 * @return The constraining type or null.
+	 * @return
+	 * The constraining type or null.
 	 */
 	public @Nullable A_Type type ()
 	{
@@ -144,10 +139,10 @@ public final class RegisterState
 	}
 
 	/**
-	 * Set the {@link A_Type type} that constrains this register at this
-	 * point.  Accepts {@code null} if no type constraint is known.
+	 * Set the {@link A_Type type} that constrains this register at this Accepts {@code null} if no type constraint is known.
 	 *
-	 * @param newType The constraining type or null.
+	 * @param newType
+	 * The constraining type or null.
 	 */
 	public void type (final @Nullable A_Type newType)
 	{
@@ -156,10 +151,10 @@ public final class RegisterState
 	}
 
 	/**
-	 * Return the immutable {@link List} of {@link L2Instruction}s that may have
-	 * provided the current value in that register.
+	 * Return the immutable {@link List} of {@link L2Instruction}s that may have provided the current value in that register.
 	 *
-	 * @return An immutable list of L2Instructions.
+	 * @return
+	 * An immutable list of L2Instructions.
 	 */
 	public List<L2Instruction> sourceInstructions ()
 	{
@@ -197,7 +192,8 @@ public final class RegisterState
 	 * Answer the immutable {@link List} of {@link L2Register}s that provided
 	 * values for the represented register.
 	 *
-	 * @return The source registers.
+	 * @return
+	 * The source registers.
 	 */
 	public List<L2Register> origins ()
 	{
@@ -206,10 +202,10 @@ public final class RegisterState
 	}
 
 	/**
-	 * Replace the immutable {@link List} of {@link L2Register}s that provided
-	 * values for the represented register.
+	 * Replace the immutable {@link List} of {@link L2Register}s that provided values for the represented register.
 	 *
-	 * @param originRegisters The source registers.
+	 * @param originRegisters
+	 * The source registers.
 	 */
 	public void origins (final List<L2Register> originRegisters)
 	{
@@ -224,8 +220,7 @@ public final class RegisterState
 	 * The receiver must be mutable.
 	 *
 	 * @param origin
-	 *        The {@link L2Register} that the current register is no longer fed
-	 *        from.
+	 *        The {@link L2Register} that the current register is no longer fed from.
 	 */
 	public void removeOrigin (final L2Register origin)
 	{
@@ -247,7 +242,8 @@ public final class RegisterState
 	/**
 	 * Answer the {@link L2Register}s that this one feeds (via a move).
 	 *
-	 * @return An immutable list of registers.
+	 * @return
+	 * An immutable list of registers.
 	 */
 	public List<L2Register> invertedOrigins ()
 	{
@@ -256,10 +252,10 @@ public final class RegisterState
 	}
 
 	/**
-	 * Replace the immutable {@link List} of {@link L2Register}s that were
-	 * supplied values from the represented register.
+	 * Replace the immutable {@link List} of {@link L2Register}s that were supplied values from the represented register.
 	 *
-	 * @param invertedOriginRegisters The destination registers.
+	 * @param invertedOriginRegisters
+	 * The destination registers.
 	 */
 	public void invertedOrigins (final List<L2Register> invertedOriginRegisters)
 	{
@@ -271,8 +267,7 @@ public final class RegisterState
 	}
 
 	/**
-	 * Update my {@link #invertedOrigins} to include the specified {@link
-	 * L2Register}.  The receiver must be mutable.
+	 * Update my {@link #invertedOrigins} to include the specified {@link L2Register}.  The receiver must be mutable.
 	 *
 	 * @param invertedOrigin
 	 *        The {@link L2Register} that the current register feeds.
@@ -284,12 +279,10 @@ public final class RegisterState
 	}
 
 	/**
-	 * Update my {@link #invertedOrigins} to exclude the specified {@link
-	 * L2Register}.  The receiver must be mutable.
+	 * Update my {@link #invertedOrigins} to exclude the specified {@link L2Register}.  The receiver must be mutable.
 	 *
 	 * @param invertedOrigin
-	 *        The {@link L2Register} that the current register no longer is
-	 *        considered to feed.
+	 *        The {@link L2Register} that the current register no longer is considered to feed.
 	 */
 	public void removeInvertedOrigin (final L2Register invertedOrigin)
 	{
@@ -309,9 +302,7 @@ public final class RegisterState
 	}
 
 	/**
-	 * Mark this {@link RegisterState} as shared, preventing subsequent
-	 * modifications.  However, a mutable copy can be produced with the {@link
-	 * RegisterState#RegisterState(RegisterState) copy constructor}.
+	 * Mark this {@link RegisterState} as shared, preventing subsequent modifications.  However, a mutable copy can be produced with the {@link RegisterState#RegisterState(RegisterState) copy constructor}.
 	 */
 	public void share ()
 	{
@@ -319,10 +310,7 @@ public final class RegisterState
 	}
 
 	/**
-	 * Answer whether writing is allowed to this {@link RegisterState}.  {@link
-	 * RegisterSet}s that wish to write to a shared RegisterState must first
-	 * functionType a copy.  Cloning a RegisterState causes {@link #share()} to be
-	 * sent to each of its RegisterStates.
+	 * Answer whether writing is allowed to this {@link RegisterState}.  {@link RegisterSet}s that wish to write to a shared RegisterState must first functionType a copy.  Cloning a RegisterState causes {@link #share()} to be sent to each of its RegisterStates.
 	 *
 	 * @return
 	 */
@@ -355,7 +343,8 @@ public final class RegisterState
 	/**
 	 * Copy a {@code RegisterState}.
 	 *
-	 * @param original The original RegisterSet to copy.
+	 * @param original
+	 * The original RegisterSet to copy.
 	 */
 	RegisterState (final RegisterState original)
 	{

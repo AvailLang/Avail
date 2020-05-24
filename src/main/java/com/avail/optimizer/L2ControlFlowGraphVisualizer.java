@@ -70,9 +70,7 @@ import static java.util.Comparator.comparing;
 import static java.util.Comparator.comparingInt;
 
 /**
- * An {@code L2ControlFlowGraphVisualizer} generates a {@code dot} source file
- * that visualizes an {@link L2ControlFlowGraph}. It is intended to aid in
- * debugging {@link L2Chunk}s.
+ * An {@code L2ControlFlowGraphVisualizer} generates a {@code dot} source file that visualizes an {@link L2ControlFlowGraph}. It is intended to aid in debugging {@link L2Chunk}s.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -85,8 +83,7 @@ public class L2ControlFlowGraphVisualizer
 	private final String fileName;
 
 	/**
-	 * The {@linkplain L2Chunk#name() name} of the {@link L2Chunk}, to be used
-	 * as the name of the graph.
+	 * The {@linkplain L2Chunk#name() name} of the {@link L2Chunk}, to be used as the name of the graph.
 	 */
 	private final String name;
 
@@ -97,13 +94,11 @@ public class L2ControlFlowGraphVisualizer
 	private final int charactersPerLine;
 
 	/**
-	 * A color {@link String} suitable for {@link GraphWriter#adjust(String)},
-	 * specifying what foreground color to use for error text.
+	 * A color {@link String} suitable for {@link GraphWriter#adjust(String)}, specifying what foreground color to use for error text.
 	 */
 	private static final String errorTextColor = "#e04040/ff6060";
 	/**
-	 * The {@link L2ControlFlowGraph} that should be visualized by a {@code dot}
-	 * renderer.
+	 * The {@link L2ControlFlowGraph} that should be visualized by a {@code dot} renderer.
 	 */
 	private final L2ControlFlowGraph controlFlowGraph;
 
@@ -118,8 +113,7 @@ public class L2ControlFlowGraphVisualizer
 	private final boolean visualizeManifest;
 
 	/**
-	 * The {@linkplain Appendable accumulator} for the generated {@code dot}
-	 * source text.
+	 * The {@linkplain Appendable accumulator} for the generated {@code dot} source text.
 	 */
 	private final Appendable accumulator;
 
@@ -131,21 +125,16 @@ public class L2ControlFlowGraphVisualizer
 	 *        The name of the {@code dot} file.
 	 * @param name
 	 *        The {@linkplain L2Chunk#name() name} of the {@link L2Chunk}, to be
-	 *        used as the name of the graph.
-	 * @param charactersPerLine
-	 *        The number of characters to emit per line. Only applies to
-	 *        formatting of block comments.
+	 * @param charactersPerLine        
+	 *        The number of characters to emit per line. Only applies to formatting of block comments.
 	 * @param controlFlowGraph
 	 *        The {@code L2ControlFlowGraph}.
 	 * @param visualizeLiveness
-	 *        {@code true} if edges should be annotated with {@link L2Register}
-	 *        liveness, {@code false} otherwise.
+	 *        {@code true} if edges should be annotated with {@link L2Register} liveness, {@code false} otherwise.
 	 * @param visualizeManifest
-	 *        {@code true} if edges should be annotated with their {@link
-	 *        L2ValueManifest}, {@code false otherwise}.
+	 *        {@code true} if edges should be annotated with their {@link L2ValueManifest}, {@code false otherwise}.
 	 * @param accumulator
-	 *        The {@linkplain Appendable accumulator} for the generated {@code
-	 *        dot} source text.
+	 *        The {@linkplain Appendable accumulator} for the generated {@code dot} source text.
 	 */
 	public L2ControlFlowGraphVisualizer (
 		final String fileName,
@@ -192,9 +181,7 @@ public class L2ControlFlowGraphVisualizer
 	}
 
 	/**
-	 * A generator of unique identifiers, for construction of
-	 * {@link L2BasicBlock} names when the {@link L2ControlFlowGraph} is
-	 * incomplete or inconsistent.
+	 * A generator of unique identifiers, for construction of {@link L2BasicBlock} names when the {@link L2ControlFlowGraph} is incomplete or inconsistent.
 	 */
 	private int blockId = 0;
 
@@ -212,9 +199,8 @@ public class L2ControlFlowGraphVisualizer
 	 *
 	 * @param basicBlock
 	 *        The {@code L2BasicBlock}.
-	 * @return A unique name that includes the {@code L2BasicBlock}'s
-	 *         {@linkplain L2BasicBlock#offset() program counter} and its
-	 *         non-unique semantic {@linkplain L2BasicBlock#name() name}.
+	 * @return
+	 * A unique name that includes the {@code L2BasicBlock}'s {@linkplain L2BasicBlock#offset() program counter} and its non-unique semantic {@linkplain L2BasicBlock#name() name}.
 	 */
 	private String basicBlockName (final L2BasicBlock basicBlock)
 	{
@@ -238,7 +224,8 @@ public class L2ControlFlowGraphVisualizer
 	 *
 	 * @param s
 	 *        Some arbitrary text.
-	 * @return The escaped text.
+	 * @return
+	 * The escaped text.
 	 */
 	private static String escape (final String s)
 	{
@@ -275,16 +262,14 @@ public class L2ControlFlowGraphVisualizer
 	}
 
 	/**
-	 * Compute a reasonable description of the specified {@link L2Instruction}.
-	 * Any {@link L2PcOperand}s will be ignored in the rendition of the
-	 * {@code L2Instruction}, as they will be described along the edges instead
-	 * of within the nodes.
+	 * Compute a reasonable description of the specified {@link L2Instruction}. Any {@link L2PcOperand}s will be ignored in the rendition of the {@code L2Instruction}, as they will be described along the edges instead of within the nodes.
 	 *
 	 * @param instruction
 	 *        An {@code L2Instruction}.
 	 * @param writer
 	 *        A {@link GraphWriter} used to mediate the styling.
-	 * @return The requested description.
+	 * @return
+	 * The requested description.
 	 */
 	private static String instruction (
 		final L2Instruction instruction,
@@ -398,8 +383,7 @@ public class L2ControlFlowGraphVisualizer
 	 * @param writer
 	 *        The {@link GraphWriter} for emission.
 	 * @param started
-	 *        {@code true} if the basic block is starting, {@code false}
-	 *        otherwise.
+	 *        {@code true} if the basic block is starting, {@code false} otherwise.
 	 */
 	private void basicBlock (
 		final L2BasicBlock basicBlock,
@@ -731,7 +715,8 @@ public class L2ControlFlowGraphVisualizer
 	/**
 	 * Calculate how the basic blocks form clusters for reification sections.
 	 *
-	 * @param blocks A collection of {@link L2BasicBlock}s to classify.
+	 * @param blocks
+	 * A collection of {@link L2BasicBlock}s to classify.
 	 */
 	private void computeClusters (final Iterable<L2BasicBlock> blocks)
 	{
@@ -757,7 +742,8 @@ public class L2ControlFlowGraphVisualizer
 	 *        The {@link GraphWriter} to render them.
 	 * @param isStarted
 	 *        A test to tell if a block has started to be generated.
-	 * @throws IOException If it can't write.
+	 * @throws IOException
+	 * If it can't write.
 	 */
 	private void cluster(
 		final Zone zone,
@@ -850,6 +836,7 @@ public class L2ControlFlowGraphVisualizer
 						{
 							unstartedBlocks.add(target);
 						}
+						return null;
 					});
 				}
 
@@ -869,11 +856,18 @@ public class L2ControlFlowGraphVisualizer
 
 				final MutableInt edgeCounter = new MutableInt(1);
 				controlFlowGraph.basicBlockOrder.forEach(
-					block -> block.predecessorEdgesDo(
-						edge -> edge(edge, graph, true, edgeCounter)));
+					l2BasicBlock -> l2BasicBlock.predecessorEdgesDo(
+						(L2PcOperand edge) -> {
+							edge(edge, graph, true, edgeCounter);
+							return null;
+						}));
 				unstartedBlocks.forEach(
 					block -> block.predecessorEdgesDo(
-						edge -> edge(edge, graph, false, edgeCounter)));
+						edge ->
+						{
+							edge(edge, graph, false, edgeCounter);
+							return null;
+						}));
 			});
 		}
 		catch (final IOException e)

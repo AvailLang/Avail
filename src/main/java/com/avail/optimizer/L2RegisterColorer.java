@@ -59,8 +59,7 @@ public final class L2RegisterColorer
 	static class RegisterGroup
 	{
 		/**
-		 * The {@link Set} of {@link L2Register}s that may have the same color
-		 * because they don't carry values at the same time.
+		 * The {@link Set} of {@link L2Register}s that may have the same color because they don't carry values at the same time.
 		 */
 		final Set<L2Register> registers = new HashSet<>();
 
@@ -71,8 +70,7 @@ public final class L2RegisterColorer
 		 * Set the {@link #finalIndex} to {@code newFinalIndex}.
 		 *
 		 * @param newFinalIndex
-		 *        The index that represents the final color for registers in
-		 *        this group.
+		 *        The index that represents the final color for registers in this group.
 		 */
 		void setFinalIndex (final int newFinalIndex)
 		{
@@ -83,7 +81,8 @@ public final class L2RegisterColorer
 		/**
 		 * Get the {@link #finalIndex}, which acts as a color for this group.
 		 *
-		 * @return The finalIndex, an {@code int}.
+		 * @return
+		 * The finalIndex, an {@code int}.
 		 */
 		int finalIndex ()
 		{
@@ -111,8 +110,7 @@ public final class L2RegisterColorer
 	}
 
 	/**
-	 * The {@link List} of all {@link L2Register}s that occur in the control
-	 * flow graph.
+	 * The {@link List} of all {@link L2Register}s that occur in the control flow graph.
 	 */
 	private final List<L2Register> allRegisters;
 
@@ -155,7 +153,8 @@ public final class L2RegisterColorer
 	/**
 	 * Construct a new register colorer for the given control flow graph.
 	 *
-	 * @param controlFlowGraph The given {@link L2ControlFlowGraph}.
+	 * @param controlFlowGraph
+	 * The given {@link L2ControlFlowGraph}.
 	 */
 	public L2RegisterColorer (final L2ControlFlowGraph controlFlowGraph)
 	{
@@ -234,10 +233,7 @@ public final class L2RegisterColorer
 	 * @param block
 	 *        The {@link L2BasicBlock} in which to trace variable liveness.
 	 * @param statementIndex
-	 *        The zero-based index of the {@link L2Instruction} at which to
-	 *        begin tracing for live-in.  If this equals the number of
-	 *        instructions in the block, begin with a live-out trace at the
-	 *        last instruction.
+	 *        The zero-based index of the {@link L2Instruction} at which to begin tracing for live-in.  If this equals the number of instructions in the block, begin with a live-out trace at the last instruction.
 	 */
 	private void processLiveInAtStatement (
 		final L2BasicBlock block,
@@ -304,6 +300,7 @@ public final class L2RegisterColorer
 			{
 				blocksToTrace.add(sourceBlock);
 			}
+			return null;
 		});
 	}
 

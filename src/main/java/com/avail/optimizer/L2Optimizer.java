@@ -51,12 +51,12 @@ import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
 import com.avail.utility.MutableInt;
 import com.avail.utility.Pair;
+import kotlin.Unit;
+import kotlin.jvm.functions.Function1;
 
 import javax.annotation.Nullable;
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.function.Consumer;
-import java.util.function.ToIntFunction;
 
 import static com.avail.AvailRuntimeSupport.captureNanos;
 import static com.avail.utility.Casts.cast;
@@ -67,9 +67,7 @@ import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toCollection;
 
 /**
- * An {@code L2Optimizer} optimizes its {@link L2ControlFlowGraph}.
- * This is a control graph.  The vertices are {@link L2BasicBlock}s, which are
- * connected via their successor and predecessor lists.
+ * An {@code L2Optimizer} optimizes its {@link L2ControlFlowGraph}. This is a control graph.  The vertices are {@link L2BasicBlock}s, which are connected via their successor and predecessor lists.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -105,12 +103,10 @@ public final class L2Optimizer
 		StatisticReport.L2_OPTIMIZATION_TIME);
 
 	/**
-	 * Create an optimizer for the given {@link L2ControlFlowGraph} and its
-	 * mutable {@link List} of {@link L2BasicBlock}s.
+	 * Create an optimizer for the given {@link L2ControlFlowGraph} and its mutable {@link List} of {@link L2BasicBlock}s.
 	 *
 	 * @param generator
-	 *        An {@link L2Generator} used for splicing in short sequences of new
-	 *        code as part of optimization.
+	 *        An {@link L2Generator} used for splicing in short sequences of new code as part of optimization.
 	 */
 	L2Optimizer (final L2Generator generator)
 	{
@@ -168,10 +164,10 @@ public final class L2Optimizer
 	}
 
 	/**
-	 * Find the {@link L2BasicBlock} that are actually reachable recursively
-	 * from the blocks marked as {@link L2BasicBlock#isIrremovable()}.
+	 * Find the {@link L2BasicBlock} that are actually reachable recursively from the blocks marked as {@link L2BasicBlock#isIrremovable()}.
 	 *
-	 * @return {@code true} if any blocks were removed, otherwise {@code false}.
+	 * @return
+	 * {@code true} if any blocks were removed, otherwise {@code false}.
 	 */
 	boolean removeUnreachableBlocks ()
 	{
@@ -223,7 +219,8 @@ public final class L2Optimizer
 	 *
 	 * @param dataCouplingMode
 	 *        The {@link DataCouplingMode} that chooses how to trace liveness.
-	 * @return Whether any dead instructions were removed or changed.
+	 * @return
+	 * Whether any dead instructions were removed or changed.
 	 */
 	boolean removeDeadInstructions (
 		final DataCouplingMode dataCouplingMode)
@@ -272,10 +269,7 @@ public final class L2Optimizer
 	}
 
 	/**
-	 * Visit all manifests, retaining only the {@link L2Register}s that are
-	 * written by live code along <em>all</em> of that manifest's histories.
-	 * Loop edges may have to be visited multiple times to ensure convergence
-	 * to a maximal fixed point.
+	 * Visit all manifests, retaining only the {@link L2Register}s that are written by live code along <em>all</em> of that manifest's histories. Loop edges may have to be visited multiple times to ensure convergence to a maximal fixed point.
 	 */
 	private void updateAllManifests ()
 	{
@@ -295,12 +289,7 @@ public final class L2Optimizer
 	}
 
 	/**
-	 * Code has been removed, replaced, or moved.  As a consequence, some
-	 * {@link L2ReadOperand}s may now be referring to {@link L2SemanticValue}s
-	 * that are inaccessible at the point of read, via an {@link L2Register}
-	 * that is still accessible.  Replace the {@link L2SemanticValue} of that
-	 * read to one that's present in every {@link L2WriteOperand} that writes to
-	 * the register.
+	 * Code has been removed, replaced, or moved.  As a consequence, some {@link L2ReadOperand}s may now be referring to {@link L2SemanticValue}s that are inaccessible at the point of read, via an {@link L2Register} that is still accessible.  Replace the {@link L2SemanticValue} of that read to one that's present in every {@link L2WriteOperand} that writes to the register.
 	 *
 	 * <p>It should be the case that there will always be at least one common
 	 * semantic value among all writes to a register.</p>
@@ -383,6 +372,7 @@ public final class L2Optimizer
 			{
 				visibleRegisters.put(e, new HashSet<>());
 				visibleSemanticValues.put(e, new HashSet<>());
+				return null;
 			}));
 		// These two collections should maintain the same membership.
 		final Deque<L2BasicBlock> toVisitQueue = new ArrayDeque<>(blocks);
@@ -481,6 +471,7 @@ public final class L2Optimizer
 						// although we'll order the blocks later.
 						blocks.add(blocks.indexOf(targetBlock), newBlock);
 					}
+					return null;
 				});
 			}
 		}
@@ -500,6 +491,7 @@ public final class L2Optimizer
 			{
 				predecessor.alwaysLiveInRegisters.clear();
 				predecessor.sometimesLiveInRegisters.clear();
+				return null;
 			});
 		}
 
@@ -597,6 +589,7 @@ public final class L2Optimizer
 					}
 				}
 				edgeIndex.value++;
+				return null;
 			});
 		}
 	}
@@ -773,39 +766,22 @@ public final class L2Optimizer
 
 	/**
 	 * If this instruction can be moved/duplicated into one or more successor
-	 * blocks, answer a {@link List} of those blocks.  Otherwise answer {@code
-	 * null}.
+	 * blocks, answer a {@link List} of those blocks.  Otherwise answer {@code null}.
 	 *
 	 * @param instruction
 	 *        The instruction to analyze.
 	 * @param registersConsumedLaterInBlock
-	 *        The set of {@link L2Register}s which are consumed by instructions
-	 *        after the given one within the same {@link L2BasicBlock}.  If the
-	 *        given instruction produces an output consumed by a later
-	 *        instruction, the given instruction cannot be moved forward out of
-	 *        its basic block.
+	 *        The set of {@link L2Register}s which are consumed by instructions after the given one within the same {@link L2BasicBlock}.  If the given instruction produces an output consumed by a later instruction, the given instruction cannot be moved forward out of its basic block.
 	 * @param semanticValuesConsumedLaterInBlock
-	 *        The set of {@link L2SemanticValue}s which are consumed by
-	 *        instructions after the given one within the same block.  If the
-	 *        given instruction produces an output consumed by a later
-	 *        instruction, the given instruction cannot be moved forward out of
-	 *        its basic block.
+	 *        The set of {@link L2SemanticValue}s which are consumed by instructions after the given one within the same block.  If the given instruction produces an output consumed by a later instruction, the given instruction cannot be moved forward out of its basic block.
 	 * @param readMaskLaterInBlock
-	 *        A mask of {@link HiddenVariable} dependencies that instructions
-	 *        later in the block will read.  Writes to these hidden variables
-	 *        must not be moved past those reads, or the reads won't be able to
-	 *        access the values.
+	 *        A mask of {@link HiddenVariable} dependencies that instructions later in the block will read.  Writes to these hidden variables must not be moved past those reads, or the reads won't be able to access the values.
 	 * @param writeMaskLaterInBlock
-	 *        A mask of {@link HiddenVariable} dependencies that instructions
-	 *        later in the block will write.  Reads of these hidden variables
-	 *        must not be moved past those writes, or the reads won't be able to
-	 *        access the values.
+	 *        A mask of {@link HiddenVariable} dependencies that instructions later in the block will write.  Reads of these hidden variables must not be moved past those writes, or the reads won't be able to access the values.
 	 * @param candidateTargetEdges
-	 *        The edges that this instruction might be moved through.  These are
-	 *        all outbound edges in instructions that occur later in the current
-	 *        basic block.
-	 * @return The successor {@link L2PcOperand}s through which the instruction
-	 *         can be moved, or {@code null} if the instruction should not move.
+	 *        The edges that this instruction might be moved through.  These are all outbound edges in instructions that occur later in the current basic block.
+	 * @return
+	 * The successor {@link L2PcOperand}s through which the instruction can be moved, or {@code null} if the instruction should not move.
 	 */
 	private static @Nullable Set<L2PcOperand> successorEdgesToMoveThrough (
 		final L2Instruction instruction,
@@ -916,9 +892,7 @@ public final class L2Optimizer
 	}
 
 	/**
-	 * Find any remaining occurrences of {@link L2_VIRTUAL_CREATE_LABEL}, or any
-	 * other {@link L2Instruction} using an {@link L2Operation} that says it
-	 * {@link L2Operation#isPlaceholder()}.
+	 * Find any remaining occurrences of {@link L2_VIRTUAL_CREATE_LABEL}, or any other {@link L2Instruction} using an {@link L2Operation} that says it {@link L2Operation#isPlaceholder()}.
 	 *
 	 * <p>Replace the instruction with code it produces via
 	 * {@link L2Generator#replaceInstructionByGenerating(L2Instruction)}.</p>
@@ -1046,12 +1020,7 @@ public final class L2Optimizer
 	}
 
 	/**
-	 * For each {@link L2_MOVE} instruction, if the register groups associated
-	 * with the source and destination registers don't have an interference edge
-	 * between them then merge the groups together.  The resulting merged group
-	 * should have interferences with each group that the either the source
-	 * register's group or the destination register's group had interferences
-	 * with.
+	 * For each {@link L2_MOVE} instruction, if the register groups associated with the source and destination registers don't have an interference edge between them then merge the groups together.  The resulting merged group should have interferences with each group that the either the source register's group or the destination register's group had interferences with.
 	 */
 	void coalesceNoninterferingMoves ()
 	{
@@ -1072,8 +1041,7 @@ public final class L2Optimizer
 	 * Create a new register for every &lt;kind, finalIndex&gt; (i.e., color) of
 	 * an existing register, then transform every instruction of this control
 	 * flow graph to use the new registers.  The new registers have a
-	 * {@link L2Register#getUniqueValue()} that's the same as its {@link
-	 * L2Register#finalIndex() finalIndex}.
+	 * {@link L2Register#getUniqueValue()} that's the same as its {@link  L2Register#finalIndex() finalIndex}.
 	 */
 	void replaceRegistersByColor ()
 	{
@@ -1084,7 +1052,7 @@ public final class L2Optimizer
 		final Map<L2Register, L2Register> remap = new HashMap<>();
 		// Also collect all the old registers.
 		final HashSet<L2Register> oldRegisters = new HashSet<>();
-		final Consumer<L2Register> action = reg ->
+		final Function1<? super L2Register, Unit> action = reg ->
 		{
 			remap.put(
 				reg,
@@ -1093,13 +1061,14 @@ public final class L2Optimizer
 					.computeIfAbsent(
 						reg.finalIndex(), i -> reg.copyAfterColoring()));
 			oldRegisters.add(reg);
+			return null;
 		};
 		blocks.forEach(
 			block -> block.instructions().forEach(
 				instruction ->
 				{
-					instruction.sourceRegisters().forEach(action);
-					instruction.destinationRegisters().forEach(action);
+					instruction.sourceRegisters().forEach(action::invoke);
+					instruction.destinationRegisters().forEach(action::invoke);
 				}
 			));
 		// Actually remap every register.
@@ -1116,10 +1085,7 @@ public final class L2Optimizer
 	}
 
 	/**
-	 * Eliminate any {@link L2_MOVE}s between registers of the same color.  The
-	 * graph must have been colored already, and is not expected to be in SSA
-	 * form, and is certainly not after this, since removed moves are the SSA
-	 * definition points for their target registers.
+	 * Eliminate any {@link L2_MOVE}s between registers of the same color. The graph must have been colored already, and is not expected to be in SSA form, and is certainly not after this, since removed moves are the SSA definition points for their target registers.
 	 */
 	void removeSameColorMoves ()
 	{
@@ -1290,8 +1256,7 @@ public final class L2Optimizer
 	private static class UsedRegisters
 	{
 		/**
-		 * Which registers are live here, organized by {@link RegisterKind}'s
-		 * ordinal.
+		 * Which registers are live here, organized by {@link RegisterKind}'s ordinal.
 		 */
 		final BitSet[] liveRegistersByKind;
 
@@ -1299,8 +1264,10 @@ public final class L2Optimizer
 		 * Reduce the collection of registers live here by intersecting it with
 		 * the argument.  Answer whether it changed.
 		 *
-		 * @param another The other {@code UsedRegisters}.
-		 * @return Whether the intersection made a change.
+		 * @param another
+		 * The other {@code UsedRegisters}.
+		 * @return
+		 * Whether the intersection made a change.
 		 */
 		boolean restrictTo (final UsedRegisters another)
 		{
@@ -1325,10 +1292,10 @@ public final class L2Optimizer
 		 */
 		void readRegister (
 			final L2Register register,
-			final ToIntFunction<L2Register> registerIdFunction)
+			final Function1<L2Register, Integer> registerIdFunction)
 		{
 			assert liveRegistersByKind[register.registerKind().ordinal()]
-				.get(registerIdFunction.applyAsInt(register));
+				.get(registerIdFunction.invoke(register));
 		}
 
 		/**
@@ -1341,10 +1308,10 @@ public final class L2Optimizer
 		 */
 		void writeRegister (
 			final L2Register register,
-			final ToIntFunction<L2Register> registerIdFunction)
+			final Function1<L2Register, Integer> registerIdFunction)
 		{
 			liveRegistersByKind[register.registerKind().ordinal()]
-				.set(registerIdFunction.applyAsInt(register));
+				.set(registerIdFunction.invoke(register));
 		}
 
 		/**
@@ -1372,7 +1339,8 @@ public final class L2Optimizer
 		/**
 		 * Duplicate an existing instance.
 		 *
-		 * @param original The existing instance to duplicate.
+		 * @param original
+		 * The existing instance to duplicate.
 		 */
 		UsedRegisters (final UsedRegisters original)
 		{
@@ -1501,6 +1469,7 @@ public final class L2Optimizer
 				assert !edge.isBackward() || targetBlock.isLoopHead;
 				assert blocks.contains(targetBlock);
 				assert targetBlock.predecessorEdgesCopy().contains(edge);
+				return null;
 			});
 			// Also check incoming edges.
 			block.predecessorEdgesDo(inEdge ->
@@ -1509,6 +1478,7 @@ public final class L2Optimizer
 				final L2BasicBlock predecessorBlock = inEdge.sourceBlock();
 				assert blocks.contains(predecessorBlock);
 				assert predecessorBlock.successorEdgesCopy().contains(inEdge);
+				return null;
 			});
 		}
 	}
@@ -1520,12 +1490,10 @@ public final class L2Optimizer
 	 * this can be used for uncolored SSA and colored non-SSA graphs.
 	 *
 	 * @param registerIdFunction
-	 *        A function that transforms a register into the index that should
-	 *        be used to identify it.  This allows pre-colored and post-colored
-	 *        register uses to be treated differently.
+	 *        A function that transforms a register into the index that should be used to identify it.  This allows pre-colored and post-colored register uses to be treated differently.
 	 */
 	private void checkRegistersAreInitialized (
-		final ToIntFunction<L2Register> registerIdFunction)
+		final Function1<L2Register, Integer> registerIdFunction)
 	{
 		final Deque<Pair<L2BasicBlock, UsedRegisters>> blocksToCheck =
 			new ArrayDeque<>();
@@ -1607,9 +1575,7 @@ public final class L2Optimizer
 	}
 
 	/**
-	 * Ensure each instruction that's an
-	 * {@linkplain L2Instruction#isEntryPoint() entry point} occurs at the start
-	 * of a block.
+	 * Ensure each instruction that's an {@linkplain L2Instruction#isEntryPoint() entry point} occurs at the start of a block.
 	 */
 	private void checkEntryPoints ()
 	{
@@ -1647,7 +1613,8 @@ public final class L2Optimizer
 	/**
 	 * Optimize the graph of instructions.
 	 *
-	 * @param interpreter The current {@link Interpreter}.
+	 * @param interpreter
+	 * The current {@link Interpreter}.
 	 */
 	public void optimize (final Interpreter interpreter)
 	{
