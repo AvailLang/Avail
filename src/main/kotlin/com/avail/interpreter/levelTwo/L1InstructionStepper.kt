@@ -74,7 +74,6 @@ import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport
 import com.avail.utility.Casts
 import com.avail.utility.MutableInt
-import com.avail.utility.evaluation.Continuation0
 import java.util.*
 import java.util.logging.Level
 import java.util.regex.Pattern

@@ -48,7 +48,6 @@ import com.avail.optimizer.StackReifier
 import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.JVMTranslator
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-import com.avail.utility.evaluation.Continuation0
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import java.util.logging.Level
