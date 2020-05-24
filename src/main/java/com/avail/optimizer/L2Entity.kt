@@ -29,16 +29,15 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.optimizer;
+package com.avail.optimizer
 
-import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2Instruction
 
 /**
- * An {@code L2Entity} is an abstraction for things that have reads and writes within the {@link L2Instruction}s of an {@link L2BasicBlock} of an {@link L2ControlFlowGraph}.
+ * An `L2Entity` is an abstraction for things that have reads and writes within
+ * the [L2Instruction]s of an [L2BasicBlock] of an [L2ControlFlowGraph].
  *
  * @see DataCouplingMode
  */
-public interface L2Entity
-{
-	// No methods are needed, beyond equals() and hashCode().
-}
+interface L2Entity
+// No methods are needed, beyond equals() and hashCode().
