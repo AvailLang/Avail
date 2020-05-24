@@ -70,7 +70,7 @@ import com.avail.descriptor.parsing.A_ParsingPlanInProgress.Companion.parsingPla
 import com.avail.descriptor.parsing.ParsingPlanInProgressDescriptor.Companion.newPlanInProgress
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.pojos.RawPojoDescriptor
-import com.avail.descriptor.pojos.RawPojoDescriptor.identityPojo
+import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import com.avail.descriptor.representation.*
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet

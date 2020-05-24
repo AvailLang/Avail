@@ -176,7 +176,7 @@ abstract class L2ReadVectorOperand<RR : L2ReadOperand<R>, R
 				}
 				append(read.registerString())
 				val restriction = read.restriction()
-				if (restriction.constantOrNull == null)
+				if (restriction.constantOrNull === null)
 				{
 					// Don't redundantly print restriction information for
 					// constants.

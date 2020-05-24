@@ -90,7 +90,7 @@ object L2_JUMP_IF_KIND_OF_CONSTANT : L2ConditionalJump(
 		//		final L2PcOperand ifKind = instruction.operand(2);
 //		final L2PcOperand ifNotKind = instruction.operand(3);
 		val valueConstant: A_BasicObject? = value.constantOrNull()
-		if (valueConstant != null)
+		if (valueConstant !== null)
 		{
 			return if (valueConstant.isInstanceOf(constantType.constant))
 			{

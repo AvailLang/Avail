@@ -66,7 +66,7 @@ import java.util.*
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
- * 
+ *
  * @constructor
  * Create a `TypeRestriction` from the already-canonicalized
  * arguments.
@@ -256,7 +256,7 @@ class TypeRestriction private constructor(
 	 */
 	fun metaRestriction(): TypeRestriction
 	{
-		if (constantOrNull != null)
+		if (constantOrNull !== null)
 		{
 			// We're a constant, so the metaRestriction is also a constant type.
 			return restrictionForConstant(type, RestrictionFlagEncoding.BOXED)
@@ -296,7 +296,7 @@ class TypeRestriction private constructor(
 	 */
 	fun union(other: TypeRestriction): TypeRestriction
 	{
-		if (constantOrNull != null && other.constantOrNull != null
+		if (constantOrNull !== null && other.constantOrNull !== null
 			&& constantOrNull.equals(other.constantOrNull)
 			&& flags == other.flags)
 		{
@@ -358,7 +358,7 @@ class TypeRestriction private constructor(
 	 */
 	fun intersection(other: TypeRestriction): TypeRestriction
 	{
-		if (constantOrNull != null && other.constantOrNull != null
+		if (constantOrNull !== null && other.constantOrNull !== null
 			&& !constantOrNull.equals(other.constantOrNull))
 		{
 			// The restrictions are both constant, but disagree, so the
@@ -458,7 +458,7 @@ class TypeRestriction private constructor(
 	 */
 	fun containsEntireType(testType: A_Type): Boolean
 	{
-		if (constantOrNull != null)
+		if (constantOrNull !== null)
 		{
 			return if (constantOrNull.isType && !constantOrNull.isBottom)
 			{
@@ -520,7 +520,7 @@ class TypeRestriction private constructor(
 	 */
 	fun intersectsType(testType: A_Type): Boolean
 	{
-		if (constantOrNull != null)
+		if (constantOrNull !== null)
 		{
 			return constantOrNull.isInstanceOf(testType)
 		}
@@ -638,7 +638,7 @@ class TypeRestriction private constructor(
 		when
 		{
 			maximumCount >= 0 && this === bottomRestriction -> emptySet()
-			maximumCount >= 1 && constantOrNull != null -> set(constantOrNull)
+			maximumCount >= 1 && constantOrNull !== null -> set(constantOrNull)
 			type.isEnumeration && !type.isInstanceMeta
 			   && type.instanceCount().lessOrEqual(fromInt(maximumCount)) ->
 					type.instances()
@@ -679,7 +679,7 @@ class TypeRestriction private constructor(
 		}
 		return (this === other
 			|| (type.equals(other.type)
-				&& constantOrNull == other.constantOrNull
+				&& constantOrNull === other.constantOrNull
 				&& excludedTypes == other.excludedTypes
 				&& excludedValues == other.excludedValues
 				&& flags == other.flags))
@@ -742,7 +742,7 @@ class TypeRestriction private constructor(
 	fun suffixString(): String
 	{
 		val constant = constantOrNull
-		if (constant != null)
+		if (constant !== null)
 		{
 			return "=" + constant.typeTag().name.replace(
 				"_TAG", "")
@@ -758,7 +758,7 @@ class TypeRestriction private constructor(
 	override fun toString(): String =
 		buildString {
 			append("restriction(")
-			if (constantOrNull != null)
+			if (constantOrNull !== null)
 			{
 				append("c=")
 				var valueString = constantOrNull.toString()
@@ -947,7 +947,7 @@ class TypeRestriction private constructor(
 			givenExcludedValues.forEach { it.makeImmutable() }
 			return when
 			{
-				givenConstantOrNull != null ->
+				givenConstantOrNull !== null ->
 				{
 					// A constant was specified.  Use it if it satisfies the main type
 					// constraint and isn't specifically excluded, otherwise use the
@@ -1117,7 +1117,7 @@ class TypeRestriction private constructor(
 			givenExcludedValues: Set<A_BasicObject>,
 			flags: Int): TypeRestriction
 		{
-			if (constantOrNull == null && type.isEnumeration
+			if (constantOrNull === null && type.isEnumeration
 				&& (!type.isInstanceMeta || type.instance().isBottom))
 			{
 				// No constant was specified, but the type is a non-meta enumeration
@@ -1159,7 +1159,7 @@ class TypeRestriction private constructor(
 					}
 				}
 			}
-			if (constantOrNull != null)
+			if (constantOrNull !== null)
 			{
 				// A constant was specified.  Use it if it satisfies the main type
 				// constraint and isn't specifically excluded, otherwise use the
@@ -1324,7 +1324,7 @@ class TypeRestriction private constructor(
 					})
 		}
 	}
-	
+
 	init
 	{
 		// Make the Avail objects immutable.  They'll be made Shared if they

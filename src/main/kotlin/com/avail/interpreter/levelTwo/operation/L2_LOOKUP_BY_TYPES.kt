@@ -184,7 +184,7 @@ object L2_LOOKUP_BY_TYPES : L2ControlFlowOperation(
 		val registerSet = registerSets[1]
 
 		// TODO MvG Should be removed?
-		val numArgs = argTypeRegs.elements().size // TODO MvG Should be removed?
+//		val numArgs = argTypeRegs.elements().size
 
 		val argRestrictions = argTypeRegs.elements()
 			.map { argRegister: L2ReadBoxedOperand ->

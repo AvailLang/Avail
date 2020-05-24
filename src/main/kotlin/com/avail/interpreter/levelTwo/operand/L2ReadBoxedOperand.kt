@@ -132,7 +132,7 @@ class L2ReadBoxedOperand : L2ReadOperand<L2BoxedRegister>
 	fun exactSoleArgumentType(): A_Type?
 	{
 		val constantFunction: A_Function? = constantOrNull()
-		if (constantFunction != null)
+		if (constantFunction !== null)
 		{
 			// Function is a constant.
 			val functionType = constantFunction.code().functionType()

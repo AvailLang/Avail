@@ -72,9 +72,10 @@ object L2_JUMP_IF_SUBTYPE_OF_CONSTANT : L2ConditionalJump(
 		val exactType: A_BasicObject? = typeToCheck.constantOrNull()
 		return when
 		{
-			exactType != null && exactType.isInstanceOf(constantType.constant) ->
+			exactType !== null
+					&& exactType.isInstanceOf(constantType.constant) ->
 				BranchReduction.AlwaysTaken
-			exactType != null -> BranchReduction.NeverTaken
+			exactType !== null -> BranchReduction.NeverTaken
 			// It's a subtype, so it must always pass the type test.
 			typeToCheck.type().instance().isSubtypeOf(constantType.constant) ->
 				BranchReduction.AlwaysTaken
