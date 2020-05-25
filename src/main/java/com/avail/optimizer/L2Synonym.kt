@@ -29,123 +29,109 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.optimizer;
+package com.avail.optimizer
 
-import com.avail.optimizer.values.Frame;
-import com.avail.optimizer.values.L2SemanticValue;
-import kotlin.jvm.functions.Function1;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import static java.util.Collections.singleton;
-import static java.util.Collections.unmodifiableSet;
-import static java.util.stream.Collectors.toCollection;
+import com.avail.optimizer.values.Frame
+import com.avail.optimizer.values.L2SemanticValue
+import java.util.*
 
 /**
- * An {@code L2Synonym} is a set of {@link L2SemanticValue}s known to represent the same value in some {@link L2ValueManifest}.  The manifest at each instruction includes a set of synonyms which partition the semantic values.
+ * An `L2Synonym` is a set of [L2SemanticValue]s known to represent the same
+ * value in some [L2ValueManifest].  The manifest at each instruction includes a
+ * set of synonyms which partition the semantic values.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @constructor
+ * Create a synonym.
+ *
+ * @param semanticValues
+ *   The non-empty collection of [L2SemanticValue]s bound to this synonym.
  */
-public final class L2Synonym
+class L2Synonym(
+	semanticValues: Collection<L2SemanticValue>)
 {
 	/**
-	 * The {@link L2SemanticValue}s for which this synonym's registers hold the (same) value.
+	 * The [L2SemanticValue]s for which this synonym's registers hold the (same)
+	 * value.
 	 */
-	private final Set<L2SemanticValue> semanticValues;
+	private val semanticValues: Set<L2SemanticValue>
 
 	/**
-	 * Create a synonym.
-	 *
-	 * @param semanticValues
-	 *        The non-empty collection of {@link L2SemanticValue}s bound to this synonym.
-	 */
-	public L2Synonym (
-		final Collection<? extends L2SemanticValue> semanticValues)
-	{
-		final int size = semanticValues.size();
-		assert size > 0;
-		this.semanticValues = size == 1
-			? singleton(semanticValues.iterator().next())
-			: unmodifiableSet(new HashSet<>(semanticValues));
-	}
-
-	/**
-	 * Answer the immutable set of {@link L2SemanticValue}s of this synonym.
+	 * Answer the immutable set of [L2SemanticValue]s of this synonym.
 	 *
 	 * @return
-	 * The {@link L2SemanticValue}s in this synonym.
+	 *   The [L2SemanticValue]s in this synonym.
 	 */
-	public Set<L2SemanticValue> semanticValues ()
-	{
-		return semanticValues;
-	}
+	fun semanticValues(): Set<L2SemanticValue> = semanticValues
 
 	/**
-	 * Choose one of the {@link L2SemanticValue}s from this {@code L2Synonym}.
+	 * Choose one of the [L2SemanticValue]s from this `L2Synonym`.
 	 *
 	 * @return
-	 * An arbitrary {@link L2SemanticValue} of this synonym.
+	 *   An arbitrary [L2SemanticValue] of this synonym.
 	 */
-	public L2SemanticValue pickSemanticValue () {
-		return semanticValues.iterator().next();
-	}
+	fun pickSemanticValue(): L2SemanticValue = semanticValues.iterator().next()
 
 	/**
-	 * Transform the {@link Frame}s and {@link L2SemanticValue}s within this  synonym to produce a new synonym.
+	 * Transform the [Frame]s and [L2SemanticValue]s within this  synonym to
+	 * produce a new synonym.
 	 *
 	 * @param semanticValueTransformer
-	 *        How to transform each {@link L2SemanticValue}.
+	 *   How to transform each [L2SemanticValue].
 	 * @return
-	 * The transformed synonym, or the original if there was no change.
+	 *   The transformed synonym, or the original if there was no change.
 	 */
-	public L2Synonym transform (
-		final Function1<L2SemanticValue, L2SemanticValue> semanticValueTransformer)
+	fun transform(
+		semanticValueTransformer: Function1<L2SemanticValue?, L2SemanticValue>)
+		: L2Synonym
 	{
-		final Set<L2SemanticValue> newSemanticValues = new HashSet<>();
-		boolean changed = false;
-		for (final L2SemanticValue semanticValue : semanticValues)
+		val newSemanticValues: MutableSet<L2SemanticValue> = HashSet()
+		var changed = false
+		for (semanticValue in semanticValues)
 		{
-			final L2SemanticValue newSemanticValue =
-				semanticValueTransformer.invoke(semanticValue);
-			newSemanticValues.add(newSemanticValue);
-			changed |= !newSemanticValue.equals(semanticValue);
+			val newSemanticValue =
+				semanticValueTransformer.invoke(semanticValue)
+			newSemanticValues.add(newSemanticValue)
+			changed = changed or (newSemanticValue != semanticValue)
 		}
-		return changed ? new L2Synonym(newSemanticValues) : this;
+		return if (changed) L2Synonym(newSemanticValues) else this
 	}
 
-	@Override
-	public String toString ()
+	override fun toString(): String
 	{
-		final List<String> sortedStrings = semanticValues.stream()
-			.map(L2SemanticValue::toStringForSynonym)
-			.sorted(String::compareTo)
-			.collect(toCollection(ArrayList::new));
-		final StringBuilder builder = new StringBuilder();
-		builder.append('〖');
-		boolean first = true;
-		int column = 1;
-		for (final String string : sortedStrings)
+		val sortedStrings: MutableList<String> = semanticValues
+			.map { it.toStringForSynonym() }.toMutableList()
+		sortedStrings.sort()
+		val builder = StringBuilder()
+		builder.append('〖')
+		var first = true
+		var column = 1
+		for (string in sortedStrings)
 		{
 			if (column > 75)
 			{
-				builder.append("\n       ");
-				column = 8;
+				builder.append("\n       ")
+				column = 8
 			}
 			if (!first)
 			{
-				builder.append(" & ");
-				column += 3;
+				builder.append(" & ")
+				column += 3
 			}
-			builder.append(string);
-			column += string.codePointCount(0, string.length());
-			first = false;
+			builder.append(string)
+			column += string.codePointCount(0, string.length)
+			first = false
 		}
-		builder.append('〗');
-		return builder.toString();
+		builder.append('〗')
+		return builder.toString()
+	}
+
+	init
+	{
+		val size = semanticValues.size
+		assert(size > 0)
+		this.semanticValues = semanticValues.toSet()
 	}
 }
