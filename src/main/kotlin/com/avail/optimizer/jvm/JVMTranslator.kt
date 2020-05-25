@@ -79,7 +79,6 @@ import javax.annotation.Nonnull
 import javax.annotation.Nullable
 import kotlin.collections.HashMap
 import kotlin.collections.LinkedHashMap
-import kotlin.math.floor
 
 /**
  * A `JVMTranslator` converts a single [L2Chunk] into a [JVMChunk] in a naive
@@ -95,7 +94,8 @@ import kotlin.math.floor
  * @property chunkName
  *   The descriptive (non-unique) name of this chunk.
  * @property sourceFileName
- *   The optional name of the source file associated with the new class.
+ *   The optional name of the source file associated with the new class.  Use
+ *   `null` if no such file exists.
  * @property controlFlowGraph
  *   The [L2ControlFlowGraph] containing the instructions that are translated to
  *   JVM bytecodes.
@@ -894,18 +894,11 @@ class JVMTranslator constructor(
 	 */
 	fun floatConstant(method: MethodVisitor, value: Float)
 	{
-		when
+		when (value)
 		{
-			value == 0.0f -> method.visitInsn(FCONST_0)
-			value == 1.0f -> method.visitInsn(FCONST_1)
-			value == 2.0f -> method.visitInsn(FCONST_2)
-			value >= -33554431
-				 && value <= 33554431
-				 && value.toDouble() == floor(value.toDouble()) ->
-			{
-				intConstant(method, value.toInt())
-				method.visitInsn(I2F)
-			}
+			0.0f -> method.visitInsn(FCONST_0)
+			1.0f -> method.visitInsn(FCONST_1)
+			2.0f -> method.visitInsn(FCONST_2)
 			// This should emit an ldc instruction, whose result type is float;
 			// no conversion instruction is required.
 			else -> method.visitLdcInsn(value)
@@ -924,23 +917,10 @@ class JVMTranslator constructor(
 	 */
 	fun doubleConstant(method: MethodVisitor, value: Double)
 	{
-		when
+		when (value)
 		{
-			value == 0.0 -> method.visitInsn(DCONST_0)
-			value == 1.0 -> method.visitInsn(DCONST_1)
-			value >= Int.MIN_VALUE
-				&& value <= Int.MAX_VALUE
-				&& value == floor(value) ->
-			{
-				intConstant(method, value.toInt())
-				method.visitInsn(I2D)
-			}
-			value in -18014398509481983L..18014398509481983L
-				 && value == floor(value) ->
-			{
-				longConstant(method, value.toLong())
-				method.visitInsn(L2D)
-			}
+			0.0 -> method.visitInsn(DCONST_0)
+			1.0 -> method.visitInsn(DCONST_1)
 			// This should emit an ldc2_w instruction, whose result type is
 			// double; no conversion instruction is required.
 			else -> method.visitLdcInsn(value)
