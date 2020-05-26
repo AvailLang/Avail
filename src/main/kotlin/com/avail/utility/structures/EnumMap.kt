@@ -140,7 +140,9 @@ class EnumMap<K: Enum<K>, V : Any> constructor(
 	override fun isEmpty(): Boolean = false
 
 	override val entries: Set<Map.Entry<K, V>>
-		get() = enums.filter { sourceValues[it.ordinal] != null }.map {
+		get() = enums.filter {
+			sourceValues[it.ordinal] != null
+		}.map {
 			object : Map.Entry<K, V>
 			{
 				override val key: K = it

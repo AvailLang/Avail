@@ -163,6 +163,7 @@ class CheckedConstructor private constructor(
 		{
 			// Check the annotation before anything else, in case we selected
 			// the wrong constructor.
+			@Suppress("UNUSED_VARIABLE")
 			val annotation =
 				constructor.getAnnotation(ReferencedInGeneratedCode::class.java)
 				 	?: error(

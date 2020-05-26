@@ -56,6 +56,7 @@ import com.avail.interpreter.Primitive
  * @param argumentSemanticValues
  *   The semantic values supplied as arguments.
  */
+@Suppress("EqualsOrHashCode")
 class L2SemanticPrimitiveInvocation internal constructor(
 	@JvmField val primitive: Primitive,
 	@JvmField val argumentSemanticValues: List<L2SemanticValue>)
@@ -66,14 +67,14 @@ class L2SemanticPrimitiveInvocation internal constructor(
 		assert(primitive.hasFlag(Primitive.Flag.CanFold))
 	}
 
-	override fun equals(obj: Any?): Boolean
+	override fun equals(other: Any?): Boolean
 	{
-		if (obj !is L2SemanticPrimitiveInvocation)
+		if (other !is L2SemanticPrimitiveInvocation)
 		{
 			return false
 		}
-		return (primitive === obj.primitive
-			&& argumentSemanticValues == obj.argumentSemanticValues)
+		return (primitive === other.primitive
+			&& argumentSemanticValues == other.argumentSemanticValues)
 	}
 
 	override fun toString(): String = buildString {

@@ -58,6 +58,7 @@ import com.avail.descriptor.representation.AvailObject
  *   The L1 program counter just after the instruction responsible for
  *   effectively writing this value in the frame's slot.
  */
+@Suppress("EqualsOrHashCode")
 internal class L2SemanticSlot(
 	frame: Frame,
 	val slotIndex: Int,
@@ -70,16 +71,16 @@ internal class L2SemanticSlot(
 		assert(slotIndex >= 1)
 	}
 
-	override fun equals(obj: Any?): Boolean =
-		if (obj !is L2SemanticSlot)
+	override fun equals(other: Any?): Boolean =
+		if (other !is L2SemanticSlot)
 		{
 			false
 		}
 		else
 		{
-			frame() == obj.frame()
-			&& slotIndex == obj.slotIndex
-			&& pcAfter == obj.pcAfter
+			frame() == other.frame()
+			&& slotIndex == other.slotIndex
+			&& pcAfter == other.pcAfter
 		}
 
 	override fun transform(

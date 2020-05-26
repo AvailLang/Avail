@@ -54,7 +54,7 @@ import org.objectweb.asm.Opcodes
  * re-entered, such as returning into it, restarting it, or continuing it after
  * an interrupt has been handled.
  */
-@ReadsHiddenVariable(theValue = arrayOf(CURRENT_CONTINUATION::class))
+@ReadsHiddenVariable([CURRENT_CONTINUATION::class])
 @WritesHiddenVariable(CURRENT_CONTINUATION::class)
 object L2_ENTER_L2_CHUNK : L2Operation(
 	L2OperandType.INT_IMMEDIATE.named("entry point offset in default chunk"),
@@ -111,9 +111,9 @@ object L2_ENTER_L2_CHUNK : L2Operation(
 			translator.liveLocalNumbersByKindPerEntryPoint[instruction]
 		if (localNumberLists != null)
 		{
-			val boxedList = localNumberLists[RegisterKind.BOXED]!!
-			val intsList = localNumberLists[RegisterKind.INTEGER]!!
-			val floatsList = localNumberLists[RegisterKind.FLOAT]!!
+			val boxedList = localNumberLists[RegisterKind.BOXED]
+			val intsList = localNumberLists[RegisterKind.INTEGER]
+			val floatsList = localNumberLists[RegisterKind.FLOAT]
 			val boxedCount = boxedList.size
 			val intsCount = intsList.size
 			val floatsCount = floatsList.size

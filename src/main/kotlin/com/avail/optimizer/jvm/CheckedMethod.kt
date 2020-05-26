@@ -279,6 +279,7 @@ class CheckedMethod private constructor(
 		{
 			// Check the annotation before anything else, in case we selected
 			// the wrong method.
+			@Suppress("UNUSED_VARIABLE")
 			val annotation = method.getAnnotation(
 				ReferencedInGeneratedCode::class.java)
 					 ?: error("Method $methodNameString should have had " +

@@ -310,6 +310,7 @@ class CheckedField private constructor(
 		{
 			// Check the annotation before anything else, in case we selected
 			// the wrong method.
+			@Suppress("UNUSED_VARIABLE")
 			val annotation = field.getAnnotation(
 				ReferencedInGeneratedCode::class.java)
 					 ?: error("Field $fieldNameString should have had " +
