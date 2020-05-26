@@ -50,7 +50,7 @@ import com.avail.interpreter.levelOne.L1Operation
 import com.avail.interpreter.levelTwo.L2Chunk
 import com.avail.optimizer.L2Generator
 import com.avail.optimizer.jvm.CheckedMethod
-import com.avail.optimizer.jvm.CheckedMethod.instanceMethod
+import com.avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.performance.Statistic
 import com.avail.utility.evaluation.Continuation0

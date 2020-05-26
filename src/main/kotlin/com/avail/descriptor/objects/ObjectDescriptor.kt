@@ -61,7 +61,7 @@ import com.avail.descriptor.types.TypeTag
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.optimizer.L2Optimizer
 import com.avail.optimizer.jvm.CheckedMethod
-import com.avail.optimizer.jvm.CheckedMethod.staticMethod
+import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.Strings.newlineTab
@@ -469,7 +469,7 @@ class ObjectDescriptor internal constructor(
 			::setField.name,
 			AvailObject::class.java,
 			AvailObject::class.java,
-			Int::class.javaPrimitiveType,
+			Int::class.javaPrimitiveType!!,
 			AvailObject::class.java)
 
 		/**

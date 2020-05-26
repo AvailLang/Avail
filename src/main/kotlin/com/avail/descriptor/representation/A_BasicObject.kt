@@ -50,7 +50,7 @@ import com.avail.descriptor.types.FiberTypeDescriptor
 import com.avail.descriptor.types.FunctionTypeDescriptor
 import com.avail.descriptor.variables.VariableDescriptor
 import com.avail.optimizer.jvm.CheckedMethod
-import com.avail.optimizer.jvm.CheckedMethod.instanceMethod
+import com.avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.Casts.cast

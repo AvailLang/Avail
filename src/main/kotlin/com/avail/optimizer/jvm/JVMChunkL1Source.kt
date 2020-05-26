@@ -1,5 +1,5 @@
 /*
- * JVMChunkL2Source.java
+ * JVMChunkL1Source.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,34 +29,36 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.optimizer.jvm
 
-package com.avail.optimizer.jvm;
-
-import com.avail.interpreter.execution.Interpreter;
-import com.avail.interpreter.levelTwo.L2Chunk;
-import com.avail.optimizer.ExecutableChunk;
-import com.avail.optimizer.L2ControlFlowGraph;
-
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-import java.nio.file.Path;
+import com.avail.descriptor.functions.A_RawFunction
+import com.avail.optimizer.ExecutableChunk
+import java.nio.file.Path
 
 /**
- * {@code JVMChunkL2Source} captures an {@linkplain Path#isAbsolute() absolute} {@linkplain Path path} to the {@link L2ControlFlowGraph} of the {@link L2Chunk} that serves as the basis for the annotated {@linkplain ExecutableChunk#runChunk(Interpreter, int) method}, making it available in generated class files. This annotation is only attached if {@link JVMTranslator#debugJVM} is enabled.
+ * `JVMChunkL1Source` captures an [absolute][Path.isAbsolute] [path][Path] to
+ * the disassembled L1 [code][A_RawFunction] that serves as the basis for the
+ * annotated [method][ExecutableChunk.runChunk], making it available in
+ * generated class files. This annotation is only attached if
+ * [JVMTranslator.debugJVM] is enabled.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @property sourcePath
+ *   An [absolute][Path.isAbsolute] [path][Path] to the disassembled L1
+ *   [code][A_RawFunction] that serves as the basis for the annotated
+ *   [method][ExecutableChunk.runChunk].
+ *
+ * @constructor
+ * Construct a [JVMChunkL1Source].
+ *
+ * @param sourcePath
+ *   An [absolute][Path.isAbsolute] [path][Path] to the disassembled L1
+ *   [code][A_RawFunction] that serves as the basis for the annotated
+ *   [method][ExecutableChunk.runChunk].
  */
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
-public @interface JVMChunkL2Source
-{
-	/**
-	 * An {@linkplain Path#isAbsolute() absolute} {@linkplain Path path} to the {@link L2ControlFlowGraph} of the {@link L2Chunk} that serves as the basis for the annotated {@linkplain ExecutableChunk#runChunk(Interpreter, int) method}.
-	 *
-	 * @return
-	 * The path to the L2 source code.
-	 */
-	String sourcePath ();
-}
+@kotlin.annotation.Retention(AnnotationRetention.RUNTIME)
+@Target(AnnotationTarget.FUNCTION,
+		AnnotationTarget.PROPERTY_GETTER,
+		AnnotationTarget.PROPERTY_SETTER)
+annotation class JVMChunkL1Source constructor(val sourcePath: String)

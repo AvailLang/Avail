@@ -1,5 +1,5 @@
 /*
- * package-info.java
+ * JVMChunkL2Source.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -14,7 +14,7 @@
  *   and/or other materials provided with the distribution.
  *
  * * Neither the name of the copyright holder nor the names of the contributors
- *   may be used to endorse or promote products derived set this software
+ *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -29,7 +29,37 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.optimizer.jvm
 
-@NonnullByDefault
-package com.avail.optimizer.jvm;
-import com.avail.annotations.NonnullByDefault;
+import com.avail.interpreter.levelTwo.L2Chunk
+import com.avail.optimizer.L2ControlFlowGraph
+import com.avail.optimizer.ExecutableChunk
+import java.nio.file.Path
+
+/**
+ * `JVMChunkL2Source` captures an [absolute][Path.isAbsolute] [path][Path] to
+ * the [L2ControlFlowGraph] of the [L2Chunk] that serves as the basis for the
+ * annotated [method][ExecutableChunk.runChunk], making it available in
+ * generated class files. This annotation is only attached if
+ * [JVMTranslator.debugJVM] is enabled.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @property sourcePath
+ *   An [absolute][Path.isAbsolute] [path][Path] to the [L2ControlFlowGraph] of
+ *   the [L2Chunk] that serves as the basis for the annotated
+ *   [method][ExecutableChunk.runChunk].
+ *
+ * @constructor
+ * Construct a [JVMChunkL2Source].
+ *
+ * @param sourcePath
+ *   An [absolute][Path.isAbsolute] [path][Path] to the [L2ControlFlowGraph] of
+ *   the [L2Chunk] that serves as the basis for the annotated
+ *   [method][ExecutableChunk.runChunk].
+ */
+@kotlin.annotation.Retention(AnnotationRetention.RUNTIME)
+@Target(AnnotationTarget.FUNCTION,
+		AnnotationTarget.PROPERTY_GETTER,
+		AnnotationTarget.PROPERTY_SETTER)
+annotation class JVMChunkL2Source constructor(val sourcePath: String)

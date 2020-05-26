@@ -66,8 +66,8 @@ import com.avail.interpreter.primitive.controlflow.P_RestartContinuation
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments
 import com.avail.io.TextInterface
 import com.avail.optimizer.jvm.CheckedMethod
-import com.avail.optimizer.jvm.CheckedMethod.instanceMethod
-import com.avail.optimizer.jvm.CheckedMethod.staticMethod
+import com.avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
+import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.Casts.cast
@@ -562,10 +562,10 @@ class ContinuationDescriptor private constructor(
 			A_Function::class.java,
 			A_Continuation::class.java,
 			AvailObject::class.java,
-			Int::class.javaPrimitiveType,
-			Int::class.javaPrimitiveType,
+			Int::class.javaPrimitiveType!!,
+			Int::class.javaPrimitiveType!!,
 			L2Chunk::class.java,
-			Int::class.javaPrimitiveType)
+			Int::class.javaPrimitiveType!!)
 
 		/**
 		 * Create a mutable continuation with the specified fields.  Initialize
@@ -670,7 +670,7 @@ class ContinuationDescriptor private constructor(
 			Array<AvailObject>::class.java,
 			LongArray::class.java,
 			L2Chunk::class.java,
-			Int::class.javaPrimitiveType)
+			Int::class.javaPrimitiveType!!)
 
 		/** The mutable [ContinuationDescriptor]. */
 		private val mutable = ContinuationDescriptor(Mutability.MUTABLE)

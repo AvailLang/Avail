@@ -78,18 +78,8 @@ class L2SemanticPrimitiveInvocation internal constructor(
 
 	override fun toString(): String = buildString {
 		append(primitive.fieldName())
-		append('(')
-		var first = true
-		for (arg in argumentSemanticValues)
-		{
-			if (!first)
-			{
-				append(", ")
-			}
-			append(arg)
-			first = false
-		}
-		append(')')
+		append(argumentSemanticValues.joinToString(
+			separator = ", ", prefix = "(", postfix = ")" ))
 	}
 
 	override fun transform(

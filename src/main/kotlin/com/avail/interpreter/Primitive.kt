@@ -76,9 +76,9 @@ import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
 import com.avail.optimizer.L2Generator
 import com.avail.optimizer.jvm.CheckedField
-import com.avail.optimizer.jvm.CheckedField.enumField
+import com.avail.optimizer.jvm.CheckedField.Companion.enumField
 import com.avail.optimizer.jvm.CheckedMethod
-import com.avail.optimizer.jvm.CheckedMethod.instanceMethod
+import com.avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import com.avail.optimizer.jvm.JVMTranslator
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.optimizer.values.L2SemanticPrimitiveInvocation

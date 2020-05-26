@@ -1,5 +1,5 @@
 /*
- * RequiresNot.java
+ * RequiresNot.kt
  * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,31 +29,28 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.optimizer.annotations
 
-package com.avail.optimizer.annotations;
-
-import com.avail.optimizer.L2ControlFlowGraph;
-import com.avail.optimizer.L2ControlFlowGraph.StateFlag;
-
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import com.avail.optimizer.L2ControlFlowGraph
+import com.avail.optimizer.L2ControlFlowGraph.StateFlag
+import kotlin.reflect.KClass
 
 /**
- * {@code RequiresNot} indicates which {@link StateFlag}s must be clear for an
- * {@link L2ControlFlowGraph} upon starting the annotated optimization phase.
+ * `RequiresNot` indicates which [StateFlag]s must be clear for an
+ * [L2ControlFlowGraph] upon starting the annotated optimization phase.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @property value
+ *   The [StateFlag]s required to be already clear.
+ *
+ * @constructor
+ * Construct a [RequiresNot]
+ *
+ * @param value
+ *   The [StateFlag]s required to be already clear.
  */
-@Target(ElementType.FIELD)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface RequiresNot
-{
-	/**
-	 * The {@link StateFlag}s required to be already clear.
-	 *
-	 * @return An array of {@link StateFlag} subclasses.
-	 */
-	Class<? extends StateFlag>[] value ();
-}
+@Target(AnnotationTarget.FIELD)
+@kotlin.annotation.Retention(AnnotationRetention.RUNTIME)
+annotation class RequiresNot constructor(
+	vararg val value: KClass<out StateFlag>)

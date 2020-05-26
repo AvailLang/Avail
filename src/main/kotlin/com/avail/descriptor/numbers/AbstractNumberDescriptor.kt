@@ -45,7 +45,7 @@ import com.avail.descriptor.types.TypeDescriptor.Types.DOUBLE
 import com.avail.descriptor.types.TypeDescriptor.Types.FLOAT
 import com.avail.descriptor.types.TypeTag
 import com.avail.optimizer.jvm.CheckedMethod
-import com.avail.optimizer.jvm.CheckedMethod.instanceMethod
+import com.avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.utility.MutableOrNull
 import java.util.*
