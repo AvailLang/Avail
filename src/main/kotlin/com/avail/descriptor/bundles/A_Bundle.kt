@@ -141,7 +141,7 @@ interface A_Bundle : A_BasicObject {
 		 * @return
 		 *   An [A_Atom] naming this bundle.
 		 */
-		fun A_Bundle.message() = dispatch { o_Message(it) }
+		fun A_Bundle.message(): A_Atom = dispatch { o_Message(it) }
 
 		/**
 		 * Answer the message parts produced by the [MessageSplitter] when
@@ -152,7 +152,7 @@ interface A_Bundle : A_BasicObject {
 		 *   A tuple of strings extracted from the bundle's message.
 		 * @see [message]
 		 */
-		fun A_Bundle.messageParts() = dispatch { o_MessageParts(it) }
+		fun A_Bundle.messageParts() : A_Tuple = dispatch { o_MessageParts(it) }
 
 		/**
 		 * Answer the [MessageSplitter] holding parse planning information for

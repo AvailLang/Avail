@@ -1,5 +1,5 @@
 /*
- * DataCouplingMode.java
+ * DataCouplingMode.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -42,7 +42,7 @@ import java.util.*
  * Whether [L2SemanticValue]s or the underlying [L2Register]s should be
  * considered when following data flow to determine liveness.
  */
-internal enum class DataCouplingMode
+enum class DataCouplingMode
 {
 	/**
 	 * The liveness analyses should consider the flows through
