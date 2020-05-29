@@ -65,7 +65,7 @@ enum class ProblemType
 	/**
 	 * The corresponding [Problem] indicates a situation that is less than
 	 * ideal.  A [ProblemHandler] may choose to present this warning, and then
-	 * [continue compilation][Problem.continueCompilation].
+	 * [continue&#32;compilation][Problem.continueCompilation].
 	 */
 	WARNING
 	{

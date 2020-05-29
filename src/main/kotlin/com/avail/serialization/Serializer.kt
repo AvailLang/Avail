@@ -33,16 +33,18 @@
 package com.avail.serialization
 
 import com.avail.AvailRuntime
-import com.avail.descriptor.module.A_Module
-import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.atoms.A_Atom.Companion.atomName
 import com.avail.descriptor.atoms.A_Atom.Companion.issuingModule
 import com.avail.descriptor.atoms.AtomDescriptor
+import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.variables.A_Variable
-import com.avail.serialization.SerializerOperation.*
+import com.avail.serialization.SerializerOperation.ASSIGN_TO_VARIABLE
+import com.avail.serialization.SerializerOperation.CHECKPOINT
+import com.avail.serialization.SerializerOperation.SPECIAL_OBJECT
 import java.io.IOException
 import java.io.OutputStream
 import java.util.*
@@ -362,9 +364,9 @@ class Serializer
 	companion object
 	{
 		/**
-		 * The inverse of the [AvailRuntime]'s [special&#32;
-		 * objects][AvailRuntime.specialObjects] list.  Entries that are `null`
-		 * (i.e., unused entries} are not included.
+		 * The inverse of the [AvailRuntime]'s
+		 * [special&#32;objects][AvailRuntime.specialObjects] list.  Entries
+		 * that are `null` (i.e., unused entries} are not included.
 		 */
 		private val specialObjects = HashMap<A_BasicObject, Int>(1000)
 
@@ -383,9 +385,9 @@ class Serializer
 			HashMap(100)
 
 		/**
-		 * Look up the object.  If it is a [special&#32;
-		 * object][AvailRuntime.specialObjects], then answer which special
-		 * object it is, otherwise answer -1.
+		 * Look up the object.  If it is a
+		 * [special&#32;object][AvailRuntime.specialObjects], then answer which
+		 * special object it is, otherwise answer -1.
 		 *
 		 * @param obj
 		 *   The object to look up.
@@ -396,9 +398,9 @@ class Serializer
 			specialObjects[obj] ?: -1
 
 		/**
-		 * Look up the object.  If it is a [special&#32;
-		 * atom][AvailRuntime.specialAtoms], then answer which special atom it
-		 * is, otherwise answer -1.
+		 * Look up the object.  If it is a
+		 * [special&#32;atom][AvailRuntime.specialAtoms], then answer which
+		 * special atom it is, otherwise answer `-1`.
 		 *
 		 * @param
 		 *   object The object to look up.

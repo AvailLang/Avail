@@ -47,9 +47,9 @@ import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 
 /**
- * Store the [invalid message send
- * function][AvailRuntime.invalidMessageSendFunction] into the supplied [object
- * register][L2BoxedRegister].
+ * Store the
+ * [invalid&#32;message&#32;send&#32;function][AvailRuntime.invalidMessageSendFunction]
+ * into the supplied [object&#32;register][L2BoxedRegister].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @author Mark van Gulik &lt;todd@availlang.org&gt;

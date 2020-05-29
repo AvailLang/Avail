@@ -31,17 +31,17 @@
  */
 package com.avail.descriptor.variables
 
-import com.avail.descriptor.methods.A_ChunkDependable
-import com.avail.descriptor.module.A_Module
-import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.fiber.FiberDescriptor
-import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.atoms.AtomDescriptor
+import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor
+import com.avail.descriptor.methods.A_ChunkDependable
+import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.tuples.A_String
@@ -68,7 +68,7 @@ interface A_Variable : A_ChunkDependable
 {
 	/**
 	 * Extract the variable's kind.  This is always a
-	 * [variable type][VariableTypeDescriptor].
+	 * [variable&#32;type][VariableTypeDescriptor].
 	 *
 	 * @return
 	 *   The variable's kind.
@@ -182,15 +182,16 @@ interface A_Variable : A_ChunkDependable
 	 * the variable.  This sequence of operations is protected by a lock if the
 	 * variable is potentially [shared][Mutability.SHARED] among multiple Avail
 	 * [fibers][FiberDescriptor].  Fail if the variable had no value, if the
-	 * variable's content type is not a subtype of the [extended
-	 * integers][IntegerRangeTypeDescriptor.extendedIntegers], if the addend is
-	 * not an extended integer, if the sum of the old value and the addend is
-	 * undefined (e.g., ∞ plus -∞), or if the sum does not satisfy the
-	 * variable's [write type][VariableTypeDescriptor.o_WriteType].  Return the
-	 * previous value.
+	 * variable's content type is not a subtype of the
+	 * [extended&#32;integers][IntegerRangeTypeDescriptor.extendedIntegers], if
+	 * the addend is not an extended integer, if the sum of the old value and
+	 * the addend is undefined (e.g., ∞ plus -∞), or if the sum does not satisfy
+	 * the variable's [write&#32;type][VariableTypeDescriptor.o_WriteType].
+	 * Return the previous value.
 	 *
-	 * It is the client's responsibility to ensure the [read
-	 * type][A_Type.readType] of the variable is a subtype of extended integer.
+	 * It is the client's responsibility to ensure the
+	 * [read&#32;type][A_Type.readType] of the variable is a subtype of extended
+	 * integer.
 	 *
 	 * @param addend
 	 *   The value by which to adjust the variable.

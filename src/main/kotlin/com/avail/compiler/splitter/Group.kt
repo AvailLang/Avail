@@ -32,12 +32,22 @@
 
 package com.avail.compiler.splitter
 
-import com.avail.compiler.ParsingOperation.*
+import com.avail.compiler.ParsingOperation.APPEND_ARGUMENT
+import com.avail.compiler.ParsingOperation.CHECK_AT_LEAST
+import com.avail.compiler.ParsingOperation.CHECK_AT_MOST
+import com.avail.compiler.ParsingOperation.CONCATENATE
+import com.avail.compiler.ParsingOperation.DISCARD_SAVED_PARSE_POSITION
+import com.avail.compiler.ParsingOperation.EMPTY_LIST
+import com.avail.compiler.ParsingOperation.ENSURE_PARSE_PROGRESS
+import com.avail.compiler.ParsingOperation.PERMUTE_LIST
+import com.avail.compiler.ParsingOperation.SAVE_PARSE_POSITION
 import com.avail.compiler.splitter.InstructionGenerator.Label
 import com.avail.compiler.splitter.MessageSplitter.Companion.circledNumberCodePoint
 import com.avail.compiler.splitter.MessageSplitter.Companion.indexForPermutation
 import com.avail.compiler.splitter.MessageSplitter.Companion.throwSignatureException
-import com.avail.compiler.splitter.WrapState.*
+import com.avail.compiler.splitter.WrapState.PUSHED_LIST
+import com.avail.compiler.splitter.WrapState.SHOULD_NOT_HAVE_ARGUMENTS
+import com.avail.compiler.splitter.WrapState.SHOULD_NOT_PUSH_LIST
 import com.avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
@@ -53,7 +63,10 @@ import com.avail.descriptor.types.ListPhraseTypeDescriptor.emptyListPhraseType
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE
 import com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForTypes
-import com.avail.exceptions.AvailErrorCode.*
+import com.avail.exceptions.AvailErrorCode.E_CASE_INSENSITIVE_EXPRESSION_CANONIZATION
+import com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
+import com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_COMPLEX_GROUP
+import com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_GROUP
 import com.avail.exceptions.MalformedMessageException
 import com.avail.exceptions.SignatureException
 import java.util.*
@@ -61,11 +74,8 @@ import kotlin.math.max
 import kotlin.math.min
 
 /**
- * A [Group] is delimited by the [open
- * guillemet][MessageSplitter.Metacharacter.OPEN_GUILLEMET] («) and [close
- * guillemet][MessageSplitter.Metacharacter.CLOSE_GUILLEMET] (») characters, and
- * may contain subgroups and an occurrence of a [double
- * dagger][MessageSplitter.Metacharacter.DOUBLE_DAGGER] (‡). If no double dagger
+ * A [Group] is delimited by the [open&#32;guillemet][MessageSplitter.Metacharacter.OPEN_GUILLEMET] («) and [close&#32;guillemet][MessageSplitter.Metacharacter.CLOSE_GUILLEMET] (») characters, and
+ * may contain subgroups and an occurrence of a [double&#32;dagger][MessageSplitter.Metacharacter.DOUBLE_DAGGER] (‡). If no double dagger
  * or subgroup is present, the sequence of message parts between the guillemets
  * are allowed to occur zero or more times at a call site (i.e., a send of this
  * message). When the number of
@@ -101,16 +111,16 @@ internal class Group : Expression
 	val hasDagger: Boolean
 
 	/**
-	 * The [Sequence] of [Expression]s that appeared before the [double
-	 * dagger][MessageSplitter.Metacharacter.DOUBLE_DAGGER], or in the entire
-	 * subexpression if no double dagger is present.
+	 * The [Sequence] of [Expression]s that appeared before the
+	 * [double&#32;dagger][MessageSplitter.Metacharacter.DOUBLE_DAGGER], or in
+	 * the entire subexpression if no double dagger is present.
 	 */
 	val beforeDagger: Sequence
 
 	/**
-	 * The [Sequence] of [Expression]s that appear after the [double
-	 * dagger][MessageSplitter.Metacharacter.DOUBLE_DAGGER], or an empty
-	 * sequence if no double dagger is present.
+	 * The [Sequence] of [Expression]s that appear after the
+	 * [double&#32;dagger][MessageSplitter.Metacharacter.DOUBLE_DAGGER], or an
+	 * empty sequence if no double dagger is present.
 	 */
 	val afterDagger: Sequence
 

@@ -32,27 +32,32 @@
 
 package com.avail.interpreter.primitive.sockets
 
-import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
 import com.avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.SERVER_SOCKET_KEY
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.*
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.bytes
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.singleInt
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.unsignedShorts
 import com.avail.descriptor.types.PojoTypeDescriptor.intRange
 import com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType
 import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
-import com.avail.exceptions.AvailErrorCode.*
-import com.avail.interpreter.execution.Interpreter
+import com.avail.exceptions.AvailErrorCode.E_INVALID_HANDLE
+import com.avail.exceptions.AvailErrorCode.E_IO_ERROR
+import com.avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED
+import com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.execution.Interpreter
 import com.avail.utility.Casts.cast
 import java.io.IOException
 import java.net.Inet6Address
@@ -63,7 +68,7 @@ import java.nio.channels.AsynchronousServerSocketChannel
 
 /**
  * **Primitive:** Bind the [AsynchronousServerSocketChannel] referenced by the
- * specified [handle][AtomDescriptor] to an [IPv6&#32;address][Inet6Address] and
+ * specified [handle][AtomDescriptor] to an [IPv6 address][Inet6Address] and
  * port. The bytes of the address are specified in network byte order, i.e.,
  * big-endian.
  *

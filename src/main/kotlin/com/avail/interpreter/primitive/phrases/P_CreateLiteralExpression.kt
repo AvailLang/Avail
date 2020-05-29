@@ -40,13 +40,15 @@ import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.LiteralTokenTypeDescriptor.mostGeneralLiteralTokenType
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CanFold
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Create a [literal&#32;expression][LiteralPhraseDescriptor]
- * from the specified [literal&#32;token][LiteralTokenDescriptor].
+ * **Primitive:** Create a [literal expression][LiteralPhraseDescriptor]
+ * from the specified [literal token][LiteralTokenDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

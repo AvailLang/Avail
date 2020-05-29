@@ -31,58 +31,84 @@
  */
 package com.avail.descriptor.module
 
-import com.avail.annotations.AvailMethod
-import com.avail.descriptor.Descriptor
-import com.avail.descriptor.atoms.A_Atom
-import com.avail.descriptor.atoms.A_Atom.Companion.atomName
-import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrNil
-import com.avail.descriptor.atoms.AtomDescriptor
-import com.avail.descriptor.bundles.A_Bundle
-import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
-import com.avail.descriptor.bundles.A_Bundle.Companion.definitionParsingPlans
-import com.avail.descriptor.bundles.A_BundleTree
-import com.avail.descriptor.bundles.A_BundleTree.Companion.addPlanInProgress
-import com.avail.descriptor.bundles.MessageBundleDescriptor
-import com.avail.descriptor.bundles.MessageBundleTreeDescriptor
-import com.avail.descriptor.bundles.MessageBundleTreeDescriptor.Companion.newBundleTree
-import com.avail.descriptor.fiber.FiberDescriptor
-import com.avail.descriptor.functions.A_Function
-import com.avail.descriptor.functions.FunctionDescriptor
-import com.avail.descriptor.maps.A_Map
-import com.avail.descriptor.maps.MapDescriptor
-import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
-import com.avail.descriptor.methods.*
-import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.*
-import com.avail.descriptor.parsing.A_Lexer
-import com.avail.descriptor.parsing.A_Lexer.Companion.lexerMethod
-import com.avail.descriptor.parsing.ParsingPlanInProgressDescriptor.Companion.newPlanInProgress
-import com.avail.descriptor.phrases.DeclarationPhraseDescriptor
-import com.avail.descriptor.representation.*
-import com.avail.descriptor.representation.NilDescriptor.Companion.nil
-import com.avail.descriptor.sets.A_Set
-import com.avail.descriptor.sets.SetDescriptor
-import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
-import com.avail.descriptor.sets.SetDescriptor.Companion.set
-import com.avail.descriptor.tuples.A_String
-import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.StringDescriptor
-import com.avail.descriptor.tuples.TupleDescriptor
-import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
-import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.TypeDescriptor.Types
-import com.avail.descriptor.types.TypeTag
-import com.avail.descriptor.types.VariableTypeDescriptor.mostGeneralVariableType
-import com.avail.descriptor.variables.A_Variable
-import com.avail.descriptor.variables.VariableDescriptor
-import com.avail.exceptions.AvailRuntimeException
-import com.avail.exceptions.MalformedMessageException
-import com.avail.interpreter.execution.AvailLoader
-import com.avail.interpreter.execution.AvailLoader.LexicalScanner
-import com.avail.serialization.SerializerOperation
-import com.avail.utility.evaluation.Continuation0
-import com.avail.utility.json.JSONWriter
-import java.util.*
-import java.util.function.BiFunction
+ import com.avail.descriptor.atoms.A_Atom
+ import com.avail.descriptor.atoms.A_Atom.Companion.atomName
+ import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrNil
+ import com.avail.descriptor.atoms.AtomDescriptor
+ import com.avail.descriptor.bundles.A_Bundle
+ import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
+ import com.avail.descriptor.bundles.A_Bundle.Companion.definitionParsingPlans
+ import com.avail.descriptor.bundles.A_BundleTree
+ import com.avail.descriptor.bundles.A_BundleTree.Companion.addPlanInProgress
+ import com.avail.descriptor.bundles.MessageBundleDescriptor
+ import com.avail.descriptor.bundles.MessageBundleTreeDescriptor
+ import com.avail.descriptor.bundles.MessageBundleTreeDescriptor.Companion.newBundleTree
+ import com.avail.descriptor.fiber.FiberDescriptor
+ import com.avail.descriptor.functions.A_Function
+ import com.avail.descriptor.functions.FunctionDescriptor
+ import com.avail.descriptor.maps.A_Map
+ import com.avail.descriptor.maps.MapDescriptor
+ import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
+ import com.avail.descriptor.methods.A_Definition
+ import com.avail.descriptor.methods.A_GrammaticalRestriction
+ import com.avail.descriptor.methods.A_Method
+ import com.avail.descriptor.methods.A_SemanticRestriction
+ import com.avail.descriptor.methods.DefinitionDescriptor
+ import com.avail.descriptor.methods.ForwardDefinitionDescriptor
+ import com.avail.descriptor.methods.GrammaticalRestrictionDescriptor
+ import com.avail.descriptor.methods.MethodDescriptor
+ import com.avail.descriptor.methods.SemanticRestrictionDescriptor
+ import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.ALL_ANCESTORS
+ import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.CONSTANT_BINDINGS
+ import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.ENTRY_POINTS
+ import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.EXPORTED_NAMES
+ import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.GRAMMATICAL_RESTRICTIONS
+ import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.IMPORTED_NAMES
+ import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.LEXERS
+ import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.METHOD_DEFINITIONS_SET
+ import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.NAME
+ import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.NEW_NAMES
+ import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.PRIVATE_NAMES
+ import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.SEALS
+ import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.SEMANTIC_RESTRICTIONS
+ import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.UNLOAD_FUNCTIONS
+ import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.VARIABLE_BINDINGS
+ import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.VERSIONS
+ import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.VISIBLE_NAMES
+ import com.avail.descriptor.parsing.A_Lexer
+ import com.avail.descriptor.parsing.A_Lexer.Companion.lexerMethod
+ import com.avail.descriptor.parsing.ParsingPlanInProgressDescriptor.Companion.newPlanInProgress
+ import com.avail.descriptor.phrases.DeclarationPhraseDescriptor
+ import com.avail.descriptor.representation.A_BasicObject
+ import com.avail.descriptor.representation.AbstractSlotsEnum
+ import com.avail.descriptor.representation.AvailObject
+ import com.avail.descriptor.representation.Descriptor
+ import com.avail.descriptor.representation.Mutability
+ import com.avail.descriptor.representation.NilDescriptor
+ import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+ import com.avail.descriptor.representation.ObjectSlotsEnum
+ import com.avail.descriptor.sets.A_Set
+ import com.avail.descriptor.sets.SetDescriptor
+ import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
+ import com.avail.descriptor.sets.SetDescriptor.Companion.set
+ import com.avail.descriptor.tuples.A_String
+ import com.avail.descriptor.tuples.A_Tuple
+ import com.avail.descriptor.tuples.StringDescriptor
+ import com.avail.descriptor.tuples.TupleDescriptor
+ import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+ import com.avail.descriptor.types.A_Type
+ import com.avail.descriptor.types.TypeDescriptor.Types
+ import com.avail.descriptor.types.TypeTag
+ import com.avail.descriptor.types.VariableTypeDescriptor.mostGeneralVariableType
+ import com.avail.descriptor.variables.A_Variable
+ import com.avail.descriptor.variables.VariableDescriptor
+ import com.avail.exceptions.AvailRuntimeException
+ import com.avail.exceptions.MalformedMessageException
+ import com.avail.interpreter.execution.AvailLoader
+ import com.avail.interpreter.execution.AvailLoader.LexicalScanner
+ import com.avail.serialization.SerializerOperation
+ import com.avail.utility.json.JSONWriter
+ import java.util.*
 
 /**
  * A [module][ModuleDescriptor] is the mechanism by which Avail code is
@@ -183,15 +209,15 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 
 		/**
 		 * A [set][SetDescriptor] of
-		 * [grammatical restrictions][GrammaticalRestrictionDescriptor] defined
+		 * [grammatical&#32;restrictions][GrammaticalRestrictionDescriptor] defined
 		 * within this module.
 		 */
 		GRAMMATICAL_RESTRICTIONS,
 
 		/**
 		 * A [map][MapDescriptor] from [string][StringDescriptor] to a
-		 * [variable][VariableDescriptor]. Since [module
-		 * variables][DeclarationPhraseDescriptor.DeclarationKind.MODULE_VARIABLE]
+		 * [variable][VariableDescriptor]. Since
+		 * [module&#32;variables][DeclarationPhraseDescriptor.DeclarationKind.MODULE_VARIABLE]
 		 * are never accessible outside the module in which they are defined,
 		 * this slot is overwritten with [nil][NilDescriptor.nil] when module
 		 * compilation is complete.
@@ -201,7 +227,7 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 		/**
 		 * A [map][MapDescriptor] from [string][StringDescriptor] to an
 		 * [AvailObject]. Since a
-		 * [module constants][DeclarationPhraseDescriptor.DeclarationKind.MODULE_CONSTANT]
+		 * [module&#32;constants][DeclarationPhraseDescriptor.DeclarationKind.MODULE_CONSTANT]
 		 * are never accessible outside the module in which they are defined,
 		 * this slot is overwritten with [nil][NilDescriptor.nil] when module
 		 * compilation is complete.
@@ -210,7 +236,7 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 
 		/**
 		 * A [set][SetDescriptor] of
-		 * [semantic restrictions][SemanticRestrictionDescriptor] defined within
+		 * [semantic&#32;restrictions][SemanticRestrictionDescriptor] defined within
 		 * this module.
 		 */
 		SEMANTIC_RESTRICTIONS,
@@ -222,9 +248,9 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 		SEALS,
 
 		/**
-		 * A [map][MapDescriptor] from the [textual names][StringDescriptor] of
-		 * entry point [methods][MethodDescriptor] to their [true
-		 * names][AtomDescriptor].
+		 * A [map][MapDescriptor] from the [textual&#32;names][StringDescriptor]
+		 * of entry point [methods][MethodDescriptor] to their
+		 * [true&#32;names][AtomDescriptor].
 		 */
 		ENTRY_POINTS,
 
@@ -273,15 +299,12 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 		(super.o_NameForDebugger(self) + " = "
 			+ self.moduleName().asNativeString())
 
-	@AvailMethod
 	override fun o_ModuleName(self: AvailObject): A_String =
 		self.slot(NAME)
 
-	@AvailMethod
 	override fun o_Versions(self: AvailObject): A_Set =
 		synchronized(self) { return self.slot(VERSIONS) }
 
-	@AvailMethod
 	override fun o_Versions(self: AvailObject, versionStrings: A_Set)
 	{
 		synchronized(self) {
@@ -289,42 +312,31 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 		}
 	}
 
-	@AvailMethod
 	override fun o_NewNames(self: AvailObject): A_Map =
 		synchronized(self) { return self.slot(NEW_NAMES) }
 
-	@AvailMethod
 	override fun o_ImportedNames(self: AvailObject): A_Map =
 		synchronized(self) {
 			return self.slot(IMPORTED_NAMES)
 		}
 
-	@AvailMethod
 	override fun o_PrivateNames(self: AvailObject): A_Map =
 		synchronized(self) {
 			return self.slot(PRIVATE_NAMES)
 		}
 
-	@AvailMethod
 	override fun o_EntryPoints(self: AvailObject): A_Map =
 		synchronized(self) {
 			return self.slot(ENTRY_POINTS)
 		}
 
-	@AvailMethod
 	override fun o_VisibleNames(self: AvailObject): A_Set =
 		synchronized(self) {
 			return self.slot(VISIBLE_NAMES)
 		}
 
-	@AvailMethod
 	override fun o_ExportedNames(self: AvailObject): A_Set
 	{
-		//TODO MvG Cleanup.
-		if (false)
-		{
-			return self.slot(EXPORTED_NAMES)
-		}
 		var exportedNames = emptySet()
 		synchronized(self) {
 			for ((_, value) in
@@ -343,25 +355,21 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 		return exportedNames
 	}
 
-	@AvailMethod
 	override fun o_MethodDefinitions(self: AvailObject): A_Set =
 		synchronized(self) {
 			return self.slot(METHOD_DEFINITIONS_SET)
 		}
 
-	@AvailMethod
 	override fun o_VariableBindings(self: AvailObject): A_Map =
 		synchronized(self) {
 			return self.slot(VARIABLE_BINDINGS)
 		}
 
-	@AvailMethod
 	override fun o_ConstantBindings(self: AvailObject): A_Map =
 		synchronized(self) {
 			return self.slot(CONSTANT_BINDINGS)
 		}
 
-	@AvailMethod
 	override fun o_AddConstantBinding(
 		self: AvailObject,
 		name: A_String,
@@ -378,7 +386,6 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 		}
 	}
 
-	@AvailMethod
 	override fun o_ModuleAddDefinition(
 		self: AvailObject, definition: A_Definition)
 	{
@@ -389,7 +396,6 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 		}
 	}
 
-	@AvailMethod
 	override fun o_AddSeal(
 		self: AvailObject,
 		methodName: A_Atom,
@@ -408,7 +414,6 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 		}
 	}
 
-	@AvailMethod
 	override fun o_ModuleAddSemanticRestriction(
 		self: AvailObject,
 		semanticRestriction: A_SemanticRestriction)
@@ -422,7 +427,6 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 		}
 	}
 
-	@AvailMethod
 	override fun o_AddVariableBinding(
 		self: AvailObject,
 		name: A_String,
@@ -438,7 +442,6 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 		}
 	}
 
-	@AvailMethod
 	override fun o_AddImportedName( self: AvailObject, trueName: A_Atom)
 	{
 		// Add the atom to the current public scope.
@@ -448,7 +451,7 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 			importedNames = importedNames.mapAtReplacingCanDestroy(
 				string,
 				emptySet(),
-				BiFunction { _, set: A_Set ->
+				{ _, set: A_Set ->
 					set.setWithElementCanDestroy(trueName, true)
 				},
 				true)
@@ -484,7 +487,6 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 		}
 	}
 
-	@AvailMethod
 	override fun o_AddImportedNames(self: AvailObject, trueNames: A_Set)
 	{
 		// Add the set of atoms to the current public scope.
@@ -497,7 +499,7 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 				importedNames = importedNames.mapAtReplacingCanDestroy(
 					string,
 					emptySet(),
-					BiFunction { _, set: A_Set ->
+					{ _, set: A_Set ->
 						set.setWithElementCanDestroy(trueName, true)
 					},
 					true)
@@ -531,7 +533,6 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 		}
 	}
 
-	@AvailMethod
 	override fun o_IntroduceNewName(self: AvailObject, trueName: A_Atom)
 	{
 		// Set up this true name, which is local to the module.
@@ -549,7 +550,6 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 		}
 	}
 
-	@AvailMethod
 	override fun o_AddPrivateName(self: AvailObject, trueName: A_Atom)
 	{
 		// Add the atom to the current private scope.
@@ -559,7 +559,7 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 			privateNames = privateNames.mapAtReplacingCanDestroy(
 				string,
 				emptySet(),
-				BiFunction { _, set: A_Set ->
+				{ _, set: A_Set ->
 					set.setWithElementCanDestroy(trueName, true)
 				},
 				true)
@@ -593,7 +593,7 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 				privateNames = privateNames.mapAtReplacingCanDestroy(
 					string,
 					emptySet(),
-					BiFunction { _, set: A_Set ->
+					{ _, set: A_Set ->
 						set.setWithElementCanDestroy(trueName, true)
 					},
 					true)
@@ -612,7 +612,6 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 		}
 	}
 
-	@AvailMethod
 	override fun o_AddEntryPoint(
 		self: AvailObject,
 		stringName: A_String,
@@ -637,9 +636,9 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 		}
 	}
 
-	@AvailMethod
 	override fun o_AddUnloadFunction(
-		self: AvailObject, unloadFunction: A_Function)
+		self: AvailObject,
+		unloadFunction: A_Function)
 	{
 		synchronized(self) {
 			var unloadFunctions: A_Tuple = self.slot(UNLOAD_FUNCTIONS)
@@ -649,19 +648,15 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 		}
 	}
 
-	@AvailMethod
 	override fun o_Equals(
 		self: AvailObject, another: A_BasicObject): Boolean =
 			// Compare by address (identity).
 			another.traversed().sameAddressAs(self)
 
-	@AvailMethod
 	override fun o_Hash(self: AvailObject): Int =
 		self.slot(NAME).hash() * 173 xor -0x20c7c074
 
-	@AvailMethod
-	override fun o_Kind(self: AvailObject): A_Type =
-		Types.MODULE.o()
+	override fun o_Kind(self: AvailObject): A_Type = Types.MODULE.o()
 
 	// Modules are always shared, never immutable.
 	override fun o_MakeImmutable(self: AvailObject): AvailObject =
@@ -691,12 +686,10 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 	override fun o_ModuleSemanticRestrictions(self: AvailObject): A_Set =
 		self.slot(SEMANTIC_RESTRICTIONS)
 
-	@AvailMethod
 	override fun o_NameVisible(self: AvailObject, trueName: A_Atom): Boolean =
 		// Check if the given trueName is visible in this module.
 		self.visibleNames().hasElement(trueName)
 
-	@AvailMethod
 	override fun o_RemoveFrom(
 		self: AvailObject,
 		loader: AvailLoader,
@@ -707,12 +700,10 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 			self.setSlot(UNLOAD_FUNCTIONS, nil)
 			// Run unload functions, asynchronously but serially, in reverse
 			// order.
-			loader.runUnloadFunctions(
-				unloadFunctions,
-				Continuation0 {
-					finishUnloading(self, loader)
-					afterRemoval()
-				})
+			loader.runUnloadFunctions(unloadFunctions) {
+				finishUnloading(self, loader)
+				afterRemoval()
+			}
 		}
 	}
 
@@ -777,26 +768,25 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 	 *
 	 * @param self
 	 *   The module.
-	 * @param forwardDeclaration
+	 * @param forwardDefinition
 	 *   The [forward declaration][ForwardDefinitionDescriptor] to be removed.
 	 */
-	@AvailMethod
 	override fun o_ResolveForward(
-		self: AvailObject, forwardDeclaration: A_BasicObject)
+		self: AvailObject,
+		forwardDefinition: A_BasicObject)
 	{
 		synchronized(self) {
-			assert(forwardDeclaration.isInstanceOfKind(
+			assert(forwardDefinition.isInstanceOfKind(
 				Types.FORWARD_DEFINITION.o()))
 			var methods: A_Set = self.slot(METHOD_DEFINITIONS_SET)
-			assert(methods.hasElement(forwardDeclaration))
+			assert(methods.hasElement(forwardDefinition))
 			methods = methods.setWithoutElementCanDestroy(
-				forwardDeclaration, false)
+				forwardDefinition, false)
 			self.setSlot(METHOD_DEFINITIONS_SET, methods.makeShared())
 		}
 	}
 
-	override fun o_ShowValueInNameForDebugger(
-		self: AvailObject): Boolean = false
+	override fun o_ShowValueInNameForDebugger(self: AvailObject) = false
 
 	/**
 	 * Check what true names are visible in this module under the given string
@@ -811,7 +801,6 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 	 *   The [set][SetDescriptor] of [true names][AtomDescriptor] that have the
 	 *   given stringName and are visible in this module.
 	 */
-	@AvailMethod
 	override fun o_TrueNamesForStringName(
 		self: AvailObject, stringName: A_String): A_Set =
 		synchronized(self) {
@@ -848,13 +837,12 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 
 	/**
 	 * Create a [bundle&#32;tree][MessageBundleTreeDescriptor] to have the
-	 * [message&#32;bundles][MessageBundleDescriptor] that are visible in
-	 * the current module.
+	 * [message&#32;bundles][MessageBundleDescriptor] that are visible in the
+	 * current module.
 	 *
 	 * @param self
 	 *   The module.
 	 */
-	@AvailMethod
 	override fun o_BuildFilteredBundleTree(self: AvailObject): A_BundleTree
 	{
 		val filteredBundleTree = newBundleTree(nil)
@@ -891,7 +879,6 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 	 * @param self
 	 *   The module.
 	 */
-	@AvailMethod
 	override fun o_CreateLexicalScanner(self: AvailObject): LexicalScanner
 	{
 		val lexers: MutableSet<A_Lexer> = HashSet()
@@ -946,12 +933,12 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 		writer.endObject()
 	}
 
-	override fun mutable(): ModuleDescriptor = mutable
+	override fun mutable() = mutable
 
 	// There is no immutable descriptor. Use the shared one.
-	override fun immutable(): ModuleDescriptor = shared
+	override fun immutable() = shared
 
-	override fun shared(): ModuleDescriptor = shared
+	override fun shared() = shared
 
 	companion object
 	{
@@ -1003,7 +990,7 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 		/**
 		 * Answer the `ModuleDescriptor module` currently undergoing
 		 * [loading][AvailLoader] on the
-		 * [current fiber][FiberDescriptor.currentFiber].
+		 * [current&#32;fiber][FiberDescriptor.currentFiber].
 		 *
 		 * @return
 		 *   The module currently undergoing loading, or

@@ -44,13 +44,19 @@ import com.avail.descriptor.types.IntegerRangeTypeDescriptor.extendedIntegers
 import com.avail.descriptor.types.VariableTypeDescriptor.variableReadWriteType
 import com.avail.descriptor.variables.A_Variable
 import com.avail.exceptions.ArithmeticException
-import com.avail.exceptions.AvailErrorCode.*
+import com.avail.exceptions.AvailErrorCode.E_CANNOT_ADD_UNLIKE_INFINITIES
+import com.avail.exceptions.AvailErrorCode.E_CANNOT_MODIFY_FINAL_JAVA_FIELD
+import com.avail.exceptions.AvailErrorCode.E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE
+import com.avail.exceptions.AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE
+import com.avail.exceptions.AvailErrorCode.E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE
+import com.avail.exceptions.AvailErrorCode.E_JAVA_MARSHALING_FAILED
+import com.avail.exceptions.AvailErrorCode.E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED
 import com.avail.exceptions.VariableGetException
 import com.avail.exceptions.VariableSetException
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Atomically read and update the specified

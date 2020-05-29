@@ -32,8 +32,8 @@
 
 package com.avail.optimizer;
 
-import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.representation.A_BasicObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.types.A_Type;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
@@ -41,8 +41,17 @@ import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
 import com.avail.interpreter.levelTwo.register.L2Register;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Formatter;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.Set;
+import java.util.TreeMap;
 
 import static com.avail.descriptor.representation.NilDescriptor.nil;
 import static com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn;

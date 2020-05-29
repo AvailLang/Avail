@@ -50,7 +50,7 @@ import java.util.function.Supplier
  *
  * @constructor
  * Construct a new `MalformedMessageException` with the specified
- * [error code][AvailErrorCode] and the specified [Supplier] that describes the
+ * [error&#32;code][AvailErrorCode] and the specified [Supplier] that describes the
  * problem.
  *
  * @param errorCode

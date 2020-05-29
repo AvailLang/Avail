@@ -43,7 +43,12 @@ import com.avail.descriptor.tokens.CommentTokenDescriptor
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.StringDescriptor.stringFrom
-import com.avail.stacks.*
+import com.avail.stacks.CommentGroup
+import com.avail.stacks.LinkingFileMap
+import com.avail.stacks.StacksErrorLog
+import com.avail.stacks.StacksFilename
+import com.avail.stacks.StacksOutputFile
+import com.avail.stacks.StacksSynchronizer
 import com.avail.stacks.comment.AvailComment
 import com.avail.stacks.exceptions.StacksCommentBuilderException
 import com.avail.stacks.exceptions.StacksScannerException
@@ -151,8 +156,8 @@ class CommentsModule constructor(
 
 	/**
 	 * A map keyed by a method name with no path to a map keyed by the qualified
-	 * module path it is originally named from to the [ ].  These are all the methods exported from this
-	 * [module][CommentsModule]
+	 * module path it is originally named from to the [CommentGroup].  These are
+	 * all the methods exported from this [module][CommentsModule]
 	 */
 	val extendsMethodLeafNameToModuleName =
 		mutableMapOf<A_String, MutableMap<String, CommentGroup>>()
@@ -161,7 +166,8 @@ class CommentsModule constructor(
 	 * A map keyed by a method name with no path to a map keyed by the qualified
 	 * module path it is originally named from to the [CommentGroup].
 	 * These are all the methods defined in this [module][CommentsModule]
-	 * and are "public" because it uses a module where the name is exported from.
+	 * and are "public" because it uses a module where the name is exported
+	 * from.
 	 */
 	val usesMethodLeafNameToModuleName =
 		mutableMapOf<A_String, MutableMap<String, CommentGroup>>()
@@ -735,13 +741,14 @@ class CommentsModule constructor(
 	 * * Obtain implementations defined in this [module's][CommentsModule]
 	 * [usesNamesImplementations] ([uses modules][StacksUsesModule]) that are
 	 * defined in one of this module's [extendedNamesImplementations]
-	 * [extends modules][StacksExtendsModule]) and include them with the
+	 * [extends&#32;modules][StacksExtendsModule]) and include them with the
 	 * extended names from this module. Additionally, obtain implementations
 	 * defined in this [module's][CommentsModule]
-	 * [extendedNamesImplementations] [extends modules][StacksExtendsModule]})
-	 * that are defined in one of this module's other
-	 * `extendsNamesImplementation` ([extends modules][StacksExtendsModule]) and
-	 * include them with the extended names from this module.
+	 * [extendedNamesImplementations]
+	 * [extends&#32;modules][StacksExtendsModule]}) that are defined in one of
+	 * this module's other `extendsNamesImplementation` ([extends
+	 * modules][StacksExtendsModule]) and include them with the extended names
+	 * from this module.
 	 */
 	private fun populateExtendsFromUsesExtends()
 	{

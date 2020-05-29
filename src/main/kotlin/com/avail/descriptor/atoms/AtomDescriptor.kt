@@ -32,35 +32,51 @@
 package com.avail.descriptor.atoms
 
 import com.avail.AvailRuntimeSupport
-import com.avail.annotations.AvailMethod
 import com.avail.annotations.ThreadSafe
 import com.avail.compiler.ParserState
 import com.avail.compiler.splitter.MessageSplitter
-import com.avail.descriptor.*
-import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.atoms.A_Atom.Companion.atomName
 import com.avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
 import com.avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
 import com.avail.descriptor.atoms.A_Atom.Companion.setAtomProperty
+import com.avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
+import com.avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import com.avail.descriptor.atoms.AtomDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import com.avail.descriptor.atoms.AtomDescriptor.ObjectSlots.ISSUING_MODULE
 import com.avail.descriptor.atoms.AtomDescriptor.ObjectSlots.NAME
-import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.*
+import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY
+import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.FALSE
+import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.HERITABLE_KEY
+import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.MESSAGE_BUNDLE_KEY
+import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.TRUE
 import com.avail.descriptor.atoms.AtomWithPropertiesSharedDescriptor.Companion.sharedAndSpecial
 import com.avail.descriptor.atoms.AtomWithPropertiesSharedDescriptor.Companion.sharedAndSpecialForFalse
 import com.avail.descriptor.atoms.AtomWithPropertiesSharedDescriptor.Companion.sharedAndSpecialForTrue
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.bundles.MessageBundleDescriptor.Companion.newBundle
+import com.avail.descriptor.fiber.A_Fiber
 import com.avail.descriptor.methods.A_Method
 import com.avail.descriptor.methods.MethodDescriptor.Companion.newMethod
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.objects.ObjectTypeDescriptor
-import com.avail.descriptor.representation.*
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AbstractDescriptor
+import com.avail.descriptor.representation.AbstractSlotsEnum
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.BitField
+import com.avail.descriptor.representation.Descriptor
+import com.avail.descriptor.representation.IntegerSlotsEnum
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.StringDescriptor.stringFrom
-import com.avail.descriptor.types.*
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor
 import com.avail.descriptor.types.EnumerationTypeDescriptor.booleanType
+import com.avail.descriptor.types.TypeDescriptor
+import com.avail.descriptor.types.TypeTag
 import com.avail.exceptions.MalformedMessageException
 import com.avail.io.IOSystem.FileHandle
 import com.avail.serialization.Serializer
@@ -157,8 +173,8 @@ open class AtomDescriptor protected constructor(
 		NAME,
 
 		/**
-		 * The [module][ModuleDescriptor] that was active when this atom was
-		 * issued. This information is crucial to [serialization][Serializer].
+		 * The [module][A_Module] that was active when this atom was issued.
+		 * This information is crucial to [serialization][Serializer].
 		 */
 		ISSUING_MODULE
 	}
@@ -172,10 +188,10 @@ open class AtomDescriptor protected constructor(
 
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
-		aStream: StringBuilder,
+		builder: StringBuilder,
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int
-	) = with(aStream) {
+	) = with(builder) {
 		val nativeName = self.atomName().asNativeString()
 		// Some atoms print nicer than others.
 		when {
@@ -196,19 +212,15 @@ open class AtomDescriptor protected constructor(
 		}
 	}
 
-	@AvailMethod
 	override fun o_AtomName(self: AvailObject): A_String = self.slot(NAME)
 
-	@AvailMethod
-	override fun o_IssuingModule(self: AvailObject) = self.slot(ISSUING_MODULE)
+	override fun o_IssuingModule(self: AvailObject): A_Module = self.slot(ISSUING_MODULE)
 
-	@AvailMethod
 	override fun o_Equals(
 		self: AvailObject,
 		another: A_BasicObject
 	) = another.traversed().sameAddressAs(self)
 
-	@AvailMethod
 	override fun o_Hash(self: AvailObject): Int {
 		var hash = self.slot(HASH_OR_ZERO)
 		if (hash == 0) {
@@ -223,20 +235,17 @@ open class AtomDescriptor protected constructor(
 		return hash
 	}
 
-	@AvailMethod
-	override fun o_Kind(self: AvailObject) = TypeDescriptor.Types.ATOM.o()
+	override fun o_Kind(self: AvailObject): AvailObject =
+		TypeDescriptor.Types.ATOM.o()
 
-	@AvailMethod
 	override fun o_ExtractBoolean(self: AvailObject): Boolean = when(self) {
 		trueObject() -> true
 		falseObject() -> false
 		else -> error("Atom is not a boolean")
 	}
 
-	@AvailMethod
 	override fun o_IsAtom(self: AvailObject) = true
 
-	@AvailMethod
 	override fun o_IsInstanceOfKind(
 		self: AvailObject,
 		aType: A_Type
@@ -268,7 +277,6 @@ open class AtomDescriptor protected constructor(
 	 * [atom&#32;with&#32;properties][AtomWithPropertiesDescriptor], then add
 	 * the property to it.
 	 */
-	@AvailMethod
 	override fun o_SetAtomProperty(
 		self: AvailObject,
 		key: A_Atom,
@@ -287,10 +295,8 @@ open class AtomDescriptor protected constructor(
 	/**
 	 * This atom has no properties, so always answer [nil].
 	 */
-	@AvailMethod
 	override fun o_GetAtomProperty(self: AvailObject, key: A_Atom) = nil
 
-	@AvailMethod
 	@ThreadSafe
 	override fun o_SerializerOperation(self: AvailObject) = when {
 		self.isAtomSpecial() -> SerializerOperation.SPECIAL_ATOM
@@ -308,15 +314,16 @@ open class AtomDescriptor protected constructor(
 
 	override fun o_MarshalToJava(
 		self: AvailObject,
-		ignoredClassHint: Class<*>?
+		classHint: Class<*>?
 	): Any? = when {
 		self.equals(trueObject()) -> java.lang.Boolean.TRUE
 		self.equals(falseObject()) -> java.lang.Boolean.FALSE
-		else -> super.o_MarshalToJava(self, ignoredClassHint)
+		else -> super.o_MarshalToJava(self, classHint)
 	}
 
 	@Throws(MalformedMessageException::class)
-	override fun o_BundleOrCreate(self: AvailObject): A_Bundle {
+	override fun o_BundleOrCreate(self: AvailObject): A_Bundle
+	{
 		var bundle: A_Bundle = self.getAtomProperty(MESSAGE_BUNDLE_KEY.atom)
 		if (bundle.equalsNil()) {
 			val name: A_String = self.slot(NAME)
@@ -351,7 +358,7 @@ open class AtomDescriptor protected constructor(
 	@Deprecated(
 		"Shared atoms are implemented in subclasses",
 		level = DeprecationLevel.HIDDEN)
-	override fun shared() = throw unsupportedOperationException()
+	override fun shared(): AbstractDescriptor = unsupportedOperation()
 
 	/**
 	 * `SpecialAtom` enumerates [atoms][A_Atom] that are known to the virtual
@@ -421,7 +428,7 @@ open class AtomDescriptor protected constructor(
 		MACRO_BUNDLE_KEY("Macro bundle"),
 
 		/**
-		 * The atom used as a key in a [fiber's][FiberDescriptor] global map to
+		 * The atom used as a key in a [fiber's][A_Fiber] global map to
 		 * extract the current [ParserState]'s
 		 * [ParserState.clientDataMap].
 		 */
@@ -445,7 +452,7 @@ open class AtomDescriptor protected constructor(
 		SOCKET_KEY("socket key"),
 
 		/**
-		 * The property key that indicates that a [fiber][FiberDescriptor]
+		 * The property key that indicates that a [fiber][A_Fiber]
 		 * global is inheritable by its forked fibers.
 		 */
 		HERITABLE_KEY("heritability"),

@@ -147,9 +147,9 @@ internal class BuildTracer constructor(val availBuilder: AvailBuilder)
 
 	/**
 	 * Trace the imports of the [module][ModuleDescriptor] specified by the
-	 * given [module name][ModuleName].  If a [Problem] occurs, log it and set
-	 * [AvailBuilder.stopBuildReason]. Whether a success or failure happens, end
-	 * by invoking [indicateTraceCompleted].
+	 * given [module&#32;name][ModuleName].  If a [Problem] occurs, log it and
+	 * set [AvailBuilder.stopBuildReason]. Whether a success or failure happens,
+	 * end by invoking [indicateTraceCompleted].
 	 *
 	 * @param resolvedName
 	 *   A resolved [module name][ModuleName] to trace.

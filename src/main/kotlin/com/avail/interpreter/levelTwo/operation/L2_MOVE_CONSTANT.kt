@@ -38,7 +38,15 @@ import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2NamedOperandType
 import com.avail.interpreter.levelTwo.L2OperandType
 import com.avail.interpreter.levelTwo.L2Operation
-import com.avail.interpreter.levelTwo.operand.*
+import com.avail.interpreter.levelTwo.operand.L2ConstantOperand
+import com.avail.interpreter.levelTwo.operand.L2FloatImmediateOperand
+import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand
+import com.avail.interpreter.levelTwo.operand.L2Operand
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteFloatOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteOperand
 import com.avail.interpreter.levelTwo.register.L2BoxedRegister
 import com.avail.interpreter.levelTwo.register.L2FloatRegister
 import com.avail.interpreter.levelTwo.register.L2IntRegister
@@ -47,7 +55,6 @@ import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind
 import com.avail.optimizer.L2Generator
 import com.avail.optimizer.L2ValueManifest
 import com.avail.optimizer.jvm.JVMTranslator
-import com.avail.utility.evaluation.Continuation3NotNull
 import org.objectweb.asm.MethodVisitor
 
 /**
@@ -65,22 +72,22 @@ import org.objectweb.asm.MethodVisitor
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  *
  * @property pushConstant
- *   A [Continuation3NotNull] to invoke to push the constant value.
+ *   A function to invoke to push the constant value.
  *
  * @constructor
  * Construct an `L2_MOVE_CONSTANT` operation.
  *
  * @param pushConstant
- *   A [Continuation3NotNull] to invoke to generate JVM code to push the
- *   constant value.
+ *   A function to invoke to generate JVM code to push the constant value.
  * @param theNamedOperandTypes
  *   An array of [L2NamedOperandType]s that describe this particular L2Operation,
  *   allowing it to be specialized by register type.
  */
 class L2_MOVE_CONSTANT<C : L2Operand, R : L2Register, WR : L2WriteOperand<R>>
 private constructor(
-	private val pushConstant: Continuation3NotNull<JVMTranslator, MethodVisitor, C>,
-	vararg theNamedOperandTypes: L2NamedOperandType) : L2Operation(*theNamedOperandTypes)
+	private val pushConstant: (JVMTranslator, MethodVisitor, C) -> Unit,
+	vararg theNamedOperandTypes: L2NamedOperandType)
+: L2Operation(*theNamedOperandTypes)
 {
 	override fun instructionWasAdded(
 		instruction: L2Instruction, manifest: L2ValueManifest)
@@ -157,7 +164,7 @@ private constructor(
 		val destinationWriter: WR = instruction.operand(1)
 
 		// :: destination = constant;
-		pushConstant.value(translator, method, constantOperand)
+		pushConstant(translator, method, constantOperand)
 		translator.store(method, destinationWriter.register())
 	}
 
@@ -167,8 +174,11 @@ private constructor(
 		 * Initialize the move-constant operation for boxed values.
 		 */
 		@kotlin.jvm.JvmField
-		val boxed = L2_MOVE_CONSTANT<L2ConstantOperand, L2BoxedRegister, L2WriteBoxedOperand>(
-			Continuation3NotNull {
+		val boxed = L2_MOVE_CONSTANT<
+				L2ConstantOperand,
+				L2BoxedRegister,
+				L2WriteBoxedOperand>(
+			{
 				translator: JVMTranslator,
 				method: MethodVisitor,
 				operand: L2ConstantOperand ->
@@ -181,8 +191,11 @@ private constructor(
 		 * Initialize the move-constant operation for int values.
 		 */
 		@kotlin.jvm.JvmField
-		val unboxedInt = L2_MOVE_CONSTANT<L2IntImmediateOperand, L2IntRegister, L2WriteIntOperand>(
-			Continuation3NotNull {
+		val unboxedInt = L2_MOVE_CONSTANT<
+				L2IntImmediateOperand,
+				L2IntRegister,
+				L2WriteIntOperand>(
+			{
 				translator: JVMTranslator,
 				method: MethodVisitor,
 				operand: L2IntImmediateOperand ->
@@ -194,9 +207,12 @@ private constructor(
 		/**
 		 * Initialize the move-constant operation for float values.
 		 */
-		@kotlin.jvm.JvmField
-		val unboxedFloat = L2_MOVE_CONSTANT<L2FloatImmediateOperand, L2FloatRegister, L2WriteFloatOperand>(
-			Continuation3NotNull {
+		@JvmField
+		val unboxedFloat = L2_MOVE_CONSTANT<
+				L2FloatImmediateOperand,
+				L2FloatRegister,
+				L2WriteFloatOperand>(
+			{
 				translator: JVMTranslator,
 				method: MethodVisitor,
 				operand: L2FloatImmediateOperand ->
@@ -214,7 +230,7 @@ private constructor(
 		 * @return
 		 *   The constant [AvailObject] that is moved by the instruction.
 		 */
-		@kotlin.jvm.JvmStatic
+		@JvmStatic
 		fun constantOf(instruction: L2Instruction): AvailObject
 		{
 			assert(instruction.operation() === boxed)

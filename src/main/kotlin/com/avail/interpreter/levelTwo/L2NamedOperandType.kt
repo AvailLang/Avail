@@ -129,7 +129,8 @@ class L2NamedOperandType internal constructor(
 	}
 
 	/**
-	 * Answer the [Purpose] that best describes the [L2NamedOperandType], if any.
+	 * Answer the [Purpose] that best describes the [L2NamedOperandType], if
+	 * any.
 	 *
 	 * @return
 	 *   The receiver's purpose, or `null` if nothing additional is known about

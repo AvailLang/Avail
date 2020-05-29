@@ -31,19 +31,28 @@
  */
 package com.avail.compiler.splitter
 
-import com.avail.compiler.ParsingOperation.*
+import com.avail.compiler.ParsingOperation.APPEND_ARGUMENT
+import com.avail.compiler.ParsingOperation.CONCATENATE
+import com.avail.compiler.ParsingOperation.PERMUTE_LIST
+import com.avail.compiler.ParsingOperation.REVERSE_STACK
 import com.avail.compiler.splitter.MessageSplitter.Companion.circledNumberCodePoint
 import com.avail.compiler.splitter.MessageSplitter.Companion.indexForPermutation
 import com.avail.compiler.splitter.MessageSplitter.Companion.throwMalformedMessageException
 import com.avail.compiler.splitter.MessageSplitter.Companion.throwSignatureException
-import com.avail.compiler.splitter.WrapState.*
+import com.avail.compiler.splitter.WrapState.NEEDS_TO_PUSH_LIST
+import com.avail.compiler.splitter.WrapState.PUSHED_LIST
+import com.avail.compiler.splitter.WrapState.SHOULD_NOT_HAVE_ARGUMENTS
+import com.avail.compiler.splitter.WrapState.SHOULD_NOT_PUSH_LIST
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.tuples.TupleDescriptor.tupleFromIntegerList
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.ListPhraseTypeDescriptor.emptyListPhraseType
 import com.avail.descriptor.types.TupleTypeDescriptor
 import com.avail.exceptions.AvailErrorCode
-import com.avail.exceptions.AvailErrorCode.*
+import com.avail.exceptions.AvailErrorCode.E_INCONSISTENT_ARGUMENT_REORDERING
+import com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
+import com.avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
+import com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_GROUP
 import com.avail.exceptions.MalformedMessageException
 import com.avail.exceptions.SignatureException
 import com.avail.utility.Pair

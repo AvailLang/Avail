@@ -36,7 +36,23 @@ import com.avail.interpreter.levelTwo.L2Chunk
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2OperandDispatcher
 import com.avail.interpreter.levelTwo.L2Operation
-import com.avail.interpreter.levelTwo.operand.*
+import com.avail.interpreter.levelTwo.operand.L2CommentOperand
+import com.avail.interpreter.levelTwo.operand.L2ConstantOperand
+import com.avail.interpreter.levelTwo.operand.L2FloatImmediateOperand
+import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand
+import com.avail.interpreter.levelTwo.operand.L2Operand
+import com.avail.interpreter.levelTwo.operand.L2PcOperand
+import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadFloatOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadFloatVectorOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadIntVectorOperand
+import com.avail.interpreter.levelTwo.operand.L2SelectorOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteFloatOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L2BasicBlock
 import com.avail.optimizer.L2Generator
@@ -394,7 +410,7 @@ class L2Inliner internal constructor(
 	/**
 	 * Emit an [L2Instruction] into the [L1Translator]'s current block.  Use the
 	 * given [L2Operation] and [L2Operand]s to construct the instruction.  The
-	 * operands should have been transformed by  this inliner already.
+	 * operands should have been transformed by this inliner already.
 	 *
 	 * @param operation
 	 *   The [L2Operation] of the instruction.

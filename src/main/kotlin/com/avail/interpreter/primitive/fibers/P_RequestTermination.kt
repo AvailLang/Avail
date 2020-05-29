@@ -34,7 +34,9 @@ package com.avail.interpreter.primitive.fibers
 import com.avail.AvailRuntime.currentRuntime
 import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.descriptor.fiber.FiberDescriptor.ExecutionState
-import com.avail.descriptor.fiber.FiberDescriptor.ExecutionState.*
+import com.avail.descriptor.fiber.FiberDescriptor.ExecutionState.ASLEEP
+import com.avail.descriptor.fiber.FiberDescriptor.ExecutionState.PARKED
+import com.avail.descriptor.fiber.FiberDescriptor.ExecutionState.SUSPENDED
 import com.avail.descriptor.fiber.FiberDescriptor.InterruptRequestFlag.TERMINATION_REQUESTED
 import com.avail.descriptor.fiber.FiberDescriptor.SynchronizationFlag.PERMIT_UNAVAILABLE
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
@@ -43,11 +45,13 @@ import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FiberTypeDescriptor.mostGeneralFiberType
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
 import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.execution.Interpreter.Companion.resumeFromSuccessfulPrimitive
-import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
-import com.avail.utility.evaluation.Continuation0
 
 /**
  * **Primitive:** Request termination of the given [fiber][FiberDescriptor]. If
@@ -63,7 +67,7 @@ object P_RequestTermination : Primitive(
 		interpreter.checkArgumentCount(1)
 		val fiber = interpreter.argument(0)
 		with (fiber) {
-			lock(Continuation0 {
+			lock {
 				// Set the interrupt request flag.
 				setInterruptRequestFlag(TERMINATION_REQUESTED)
 				val oldState = executionState()
@@ -106,7 +110,7 @@ object P_RequestTermination : Primitive(
 					else -> {
 					}
 				}
-			})
+			}
 		}
 		return interpreter.primitiveSuccess(nil)
 	}

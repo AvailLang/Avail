@@ -31,154 +31,158 @@
  */
 package com.avail.descriptor.representation
 
-import com.avail.annotations.AvailMethod
-import com.avail.annotations.HideFieldInDebugger
-import com.avail.compiler.AvailCodeGenerator
-import com.avail.compiler.scanning.LexingState
-import com.avail.compiler.splitter.MessageSplitter
-import com.avail.descriptor.module.A_Module
-import com.avail.descriptor.AbstractDescriptor
-import com.avail.descriptor.fiber.FiberDescriptor.*
-import com.avail.descriptor.atoms.A_Atom
-import com.avail.descriptor.atoms.A_Atom.Companion.atomName
-import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
-import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrNil
-import com.avail.descriptor.atoms.A_Atom.Companion.extractBoolean
-import com.avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
-import com.avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
-import com.avail.descriptor.atoms.A_Atom.Companion.issuingModule
-import com.avail.descriptor.atoms.A_Atom.Companion.setAtomProperty
-import com.avail.descriptor.bundles.A_Bundle
-import com.avail.descriptor.bundles.A_Bundle.Companion.addDefinitionParsingPlan
-import com.avail.descriptor.bundles.A_Bundle.Companion.addGrammaticalRestriction
-import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
-import com.avail.descriptor.bundles.A_Bundle.Companion.definitionParsingPlans
-import com.avail.descriptor.bundles.A_Bundle.Companion.grammaticalRestrictions
-import com.avail.descriptor.bundles.A_Bundle.Companion.hasGrammaticalRestrictions
-import com.avail.descriptor.bundles.A_Bundle.Companion.message
-import com.avail.descriptor.bundles.A_Bundle.Companion.messageParts
-import com.avail.descriptor.bundles.A_Bundle.Companion.messageSplitter
-import com.avail.descriptor.bundles.A_Bundle.Companion.removeGrammaticalRestriction
-import com.avail.descriptor.bundles.A_Bundle.Companion.removePlanForDefinition
-import com.avail.descriptor.bundles.A_BundleTree
-import com.avail.descriptor.bundles.A_BundleTree.Companion.addPlanInProgress
-import com.avail.descriptor.bundles.A_BundleTree.Companion.allParsingPlansInProgress
-import com.avail.descriptor.bundles.A_BundleTree.Companion.expand
-import com.avail.descriptor.bundles.A_BundleTree.Companion.hasBackwardJump
-import com.avail.descriptor.bundles.A_BundleTree.Companion.isSourceOfCycle
-import com.avail.descriptor.bundles.A_BundleTree.Companion.latestBackwardJump
-import com.avail.descriptor.bundles.A_BundleTree.Companion.lazyActions
-import com.avail.descriptor.bundles.A_BundleTree.Companion.lazyComplete
-import com.avail.descriptor.bundles.A_BundleTree.Companion.lazyIncomplete
-import com.avail.descriptor.bundles.A_BundleTree.Companion.lazyIncompleteCaseInsensitive
-import com.avail.descriptor.bundles.A_BundleTree.Companion.lazyPrefilterMap
-import com.avail.descriptor.bundles.A_BundleTree.Companion.lazyTypeFilterTreePojo
-import com.avail.descriptor.bundles.A_BundleTree.Companion.removePlanInProgress
-import com.avail.descriptor.bundles.A_BundleTree.Companion.updateForNewGrammaticalRestriction
-import com.avail.descriptor.character.A_Character.Companion.codePoint
-import com.avail.descriptor.functions.A_Continuation
-import com.avail.descriptor.functions.A_Function
-import com.avail.descriptor.functions.A_RawFunction
-import com.avail.descriptor.representation.IndirectionDescriptor.ObjectSlots.INDIRECTION_TARGET
-import com.avail.descriptor.maps.A_Map
-import com.avail.descriptor.maps.A_MapBin
-import com.avail.descriptor.maps.MapDescriptor.MapIterable
-import com.avail.descriptor.methods.A_Definition
-import com.avail.descriptor.methods.A_GrammaticalRestriction
-import com.avail.descriptor.methods.A_Method
-import com.avail.descriptor.methods.A_SemanticRestriction
-import com.avail.descriptor.numbers.A_Number
-import com.avail.descriptor.numbers.AbstractNumberDescriptor
-import com.avail.descriptor.numbers.AbstractNumberDescriptor.Sign
-import com.avail.descriptor.parsing.A_DefinitionParsingPlan
-import com.avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.definition
-import com.avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.parsingInstructions
-import com.avail.descriptor.parsing.A_Lexer
-import com.avail.descriptor.parsing.A_Lexer.Companion.lexerBodyFunction
-import com.avail.descriptor.parsing.A_Lexer.Companion.lexerFilterFunction
-import com.avail.descriptor.parsing.A_Lexer.Companion.lexerMethod
-import com.avail.descriptor.parsing.A_ParsingPlanInProgress
-import com.avail.descriptor.parsing.A_ParsingPlanInProgress.Companion.isBackwardJump
-import com.avail.descriptor.parsing.A_ParsingPlanInProgress.Companion.nameHighlightingPc
-import com.avail.descriptor.parsing.A_ParsingPlanInProgress.Companion.parsingPc
-import com.avail.descriptor.parsing.A_ParsingPlanInProgress.Companion.parsingPlan
-import com.avail.descriptor.phrases.A_Phrase
-import com.avail.descriptor.phrases.A_Phrase.Companion.apparentSendName
-import com.avail.descriptor.phrases.A_Phrase.Companion.argumentsListNode
-import com.avail.descriptor.phrases.A_Phrase.Companion.argumentsTuple
-import com.avail.descriptor.phrases.A_Phrase.Companion.bundle
-import com.avail.descriptor.phrases.A_Phrase.Companion.childrenDo
-import com.avail.descriptor.phrases.A_Phrase.Companion.childrenMap
-import com.avail.descriptor.phrases.A_Phrase.Companion.copyConcatenating
-import com.avail.descriptor.phrases.A_Phrase.Companion.copyMutablePhrase
-import com.avail.descriptor.phrases.A_Phrase.Companion.copyWith
-import com.avail.descriptor.phrases.A_Phrase.Companion.declaration
-import com.avail.descriptor.phrases.A_Phrase.Companion.declaredType
-import com.avail.descriptor.phrases.A_Phrase.Companion.emitAllValuesOn
-import com.avail.descriptor.phrases.A_Phrase.Companion.emitEffectOn
-import com.avail.descriptor.phrases.A_Phrase.Companion.emitValueOn
-import com.avail.descriptor.phrases.A_Phrase.Companion.expression
-import com.avail.descriptor.phrases.A_Phrase.Companion.expressionAt
-import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsSize
-import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsTuple
-import com.avail.descriptor.phrases.A_Phrase.Companion.flattenStatementsInto
-import com.avail.descriptor.phrases.A_Phrase.Companion.generateInModule
-import com.avail.descriptor.phrases.A_Phrase.Companion.hasSuperCast
-import com.avail.descriptor.phrases.A_Phrase.Companion.initializationExpression
-import com.avail.descriptor.phrases.A_Phrase.Companion.isLastUse
-import com.avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
-import com.avail.descriptor.phrases.A_Phrase.Companion.lastExpression
-import com.avail.descriptor.phrases.A_Phrase.Companion.list
-import com.avail.descriptor.phrases.A_Phrase.Companion.literalObject
-import com.avail.descriptor.phrases.A_Phrase.Companion.macroOriginalSendNode
-import com.avail.descriptor.phrases.A_Phrase.Companion.markerValue
-import com.avail.descriptor.phrases.A_Phrase.Companion.neededVariables
-import com.avail.descriptor.phrases.A_Phrase.Companion.outputPhrase
-import com.avail.descriptor.phrases.A_Phrase.Companion.permutation
-import com.avail.descriptor.phrases.A_Phrase.Companion.statements
-import com.avail.descriptor.phrases.A_Phrase.Companion.statementsDo
-import com.avail.descriptor.phrases.A_Phrase.Companion.statementsTuple
-import com.avail.descriptor.phrases.A_Phrase.Companion.stripMacro
-import com.avail.descriptor.phrases.A_Phrase.Companion.superUnionType
-import com.avail.descriptor.phrases.A_Phrase.Companion.token
-import com.avail.descriptor.phrases.A_Phrase.Companion.tokens
-import com.avail.descriptor.phrases.A_Phrase.Companion.typeExpression
-import com.avail.descriptor.phrases.A_Phrase.Companion.validateLocally
-import com.avail.descriptor.phrases.A_Phrase.Companion.variable
-import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
-import com.avail.descriptor.sets.A_Set
-import com.avail.descriptor.sets.SetDescriptor.SetIterator
-import com.avail.descriptor.tokens.A_Token
-import com.avail.descriptor.tokens.TokenDescriptor
-import com.avail.descriptor.tuples.A_String
-import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
-import com.avail.descriptor.types.TypeDescriptor
-import com.avail.descriptor.types.TypeTag
-import com.avail.descriptor.variables.A_Variable
-import com.avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
-import com.avail.dispatch.LookupTree
-import com.avail.exceptions.*
-import com.avail.interpreter.execution.AvailLoader
-import com.avail.interpreter.execution.AvailLoader.LexicalScanner
-import com.avail.interpreter.Primitive
-import com.avail.interpreter.levelTwo.L2Chunk
-import com.avail.interpreter.levelTwo.operand.TypeRestriction
-import com.avail.io.TextInterface
-import com.avail.performance.Statistic
-import com.avail.serialization.SerializerOperation
-import com.avail.utility.IteratorNotNull
-import com.avail.utility.Pair
-import com.avail.utility.evaluation.Continuation0
-import com.avail.utility.evaluation.Continuation1NotNull
-import com.avail.utility.json.JSONWriter
-import com.avail.utility.visitor.AvailSubobjectVisitor
-import java.math.BigInteger
-import java.nio.ByteBuffer
-import java.util.*
-import java.util.function.*
-import java.util.stream.Stream
+ import com.avail.annotations.HideFieldInDebugger
+ import com.avail.compiler.AvailCodeGenerator
+ import com.avail.compiler.scanning.LexingState
+ import com.avail.compiler.splitter.MessageSplitter
+ import com.avail.descriptor.atoms.A_Atom
+ import com.avail.descriptor.atoms.A_Atom.Companion.atomName
+ import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
+ import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrNil
+ import com.avail.descriptor.atoms.A_Atom.Companion.extractBoolean
+ import com.avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
+ import com.avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
+ import com.avail.descriptor.atoms.A_Atom.Companion.issuingModule
+ import com.avail.descriptor.atoms.A_Atom.Companion.setAtomProperty
+ import com.avail.descriptor.bundles.A_Bundle
+ import com.avail.descriptor.bundles.A_Bundle.Companion.addDefinitionParsingPlan
+ import com.avail.descriptor.bundles.A_Bundle.Companion.addGrammaticalRestriction
+ import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
+ import com.avail.descriptor.bundles.A_Bundle.Companion.definitionParsingPlans
+ import com.avail.descriptor.bundles.A_Bundle.Companion.grammaticalRestrictions
+ import com.avail.descriptor.bundles.A_Bundle.Companion.hasGrammaticalRestrictions
+ import com.avail.descriptor.bundles.A_Bundle.Companion.message
+ import com.avail.descriptor.bundles.A_Bundle.Companion.messageParts
+ import com.avail.descriptor.bundles.A_Bundle.Companion.messageSplitter
+ import com.avail.descriptor.bundles.A_Bundle.Companion.removeGrammaticalRestriction
+ import com.avail.descriptor.bundles.A_Bundle.Companion.removePlanForDefinition
+ import com.avail.descriptor.bundles.A_BundleTree
+ import com.avail.descriptor.bundles.A_BundleTree.Companion.addPlanInProgress
+ import com.avail.descriptor.bundles.A_BundleTree.Companion.allParsingPlansInProgress
+ import com.avail.descriptor.bundles.A_BundleTree.Companion.expand
+ import com.avail.descriptor.bundles.A_BundleTree.Companion.hasBackwardJump
+ import com.avail.descriptor.bundles.A_BundleTree.Companion.isSourceOfCycle
+ import com.avail.descriptor.bundles.A_BundleTree.Companion.latestBackwardJump
+ import com.avail.descriptor.bundles.A_BundleTree.Companion.lazyActions
+ import com.avail.descriptor.bundles.A_BundleTree.Companion.lazyComplete
+ import com.avail.descriptor.bundles.A_BundleTree.Companion.lazyIncomplete
+ import com.avail.descriptor.bundles.A_BundleTree.Companion.lazyIncompleteCaseInsensitive
+ import com.avail.descriptor.bundles.A_BundleTree.Companion.lazyPrefilterMap
+ import com.avail.descriptor.bundles.A_BundleTree.Companion.lazyTypeFilterTreePojo
+ import com.avail.descriptor.bundles.A_BundleTree.Companion.removePlanInProgress
+ import com.avail.descriptor.bundles.A_BundleTree.Companion.updateForNewGrammaticalRestriction
+ import com.avail.descriptor.character.A_Character.Companion.codePoint
+ import com.avail.descriptor.fiber.FiberDescriptor.ExecutionState
+ import com.avail.descriptor.fiber.FiberDescriptor.GeneralFlag
+ import com.avail.descriptor.fiber.FiberDescriptor.InterruptRequestFlag
+ import com.avail.descriptor.fiber.FiberDescriptor.SynchronizationFlag
+ import com.avail.descriptor.fiber.FiberDescriptor.TraceFlag
+ import com.avail.descriptor.functions.A_Continuation
+ import com.avail.descriptor.functions.A_Function
+ import com.avail.descriptor.functions.A_RawFunction
+ import com.avail.descriptor.maps.A_Map
+ import com.avail.descriptor.maps.A_MapBin
+ import com.avail.descriptor.maps.MapDescriptor.MapIterable
+ import com.avail.descriptor.methods.A_Definition
+ import com.avail.descriptor.methods.A_GrammaticalRestriction
+ import com.avail.descriptor.methods.A_Method
+ import com.avail.descriptor.methods.A_SemanticRestriction
+ import com.avail.descriptor.module.A_Module
+ import com.avail.descriptor.numbers.A_Number
+ import com.avail.descriptor.numbers.AbstractNumberDescriptor
+ import com.avail.descriptor.numbers.AbstractNumberDescriptor.Sign
+ import com.avail.descriptor.parsing.A_DefinitionParsingPlan
+ import com.avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.definition
+ import com.avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.parsingInstructions
+ import com.avail.descriptor.parsing.A_Lexer
+ import com.avail.descriptor.parsing.A_Lexer.Companion.lexerBodyFunction
+ import com.avail.descriptor.parsing.A_Lexer.Companion.lexerFilterFunction
+ import com.avail.descriptor.parsing.A_Lexer.Companion.lexerMethod
+ import com.avail.descriptor.parsing.A_ParsingPlanInProgress
+ import com.avail.descriptor.parsing.A_ParsingPlanInProgress.Companion.isBackwardJump
+ import com.avail.descriptor.parsing.A_ParsingPlanInProgress.Companion.nameHighlightingPc
+ import com.avail.descriptor.parsing.A_ParsingPlanInProgress.Companion.parsingPc
+ import com.avail.descriptor.parsing.A_ParsingPlanInProgress.Companion.parsingPlan
+ import com.avail.descriptor.phrases.A_Phrase
+ import com.avail.descriptor.phrases.A_Phrase.Companion.apparentSendName
+ import com.avail.descriptor.phrases.A_Phrase.Companion.argumentsListNode
+ import com.avail.descriptor.phrases.A_Phrase.Companion.argumentsTuple
+ import com.avail.descriptor.phrases.A_Phrase.Companion.bundle
+ import com.avail.descriptor.phrases.A_Phrase.Companion.childrenDo
+ import com.avail.descriptor.phrases.A_Phrase.Companion.childrenMap
+ import com.avail.descriptor.phrases.A_Phrase.Companion.copyConcatenating
+ import com.avail.descriptor.phrases.A_Phrase.Companion.copyMutablePhrase
+ import com.avail.descriptor.phrases.A_Phrase.Companion.copyWith
+ import com.avail.descriptor.phrases.A_Phrase.Companion.declaration
+ import com.avail.descriptor.phrases.A_Phrase.Companion.declaredType
+ import com.avail.descriptor.phrases.A_Phrase.Companion.emitAllValuesOn
+ import com.avail.descriptor.phrases.A_Phrase.Companion.emitEffectOn
+ import com.avail.descriptor.phrases.A_Phrase.Companion.emitValueOn
+ import com.avail.descriptor.phrases.A_Phrase.Companion.expression
+ import com.avail.descriptor.phrases.A_Phrase.Companion.expressionAt
+ import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsSize
+ import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsTuple
+ import com.avail.descriptor.phrases.A_Phrase.Companion.flattenStatementsInto
+ import com.avail.descriptor.phrases.A_Phrase.Companion.generateInModule
+ import com.avail.descriptor.phrases.A_Phrase.Companion.hasSuperCast
+ import com.avail.descriptor.phrases.A_Phrase.Companion.initializationExpression
+ import com.avail.descriptor.phrases.A_Phrase.Companion.isLastUse
+ import com.avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
+ import com.avail.descriptor.phrases.A_Phrase.Companion.lastExpression
+ import com.avail.descriptor.phrases.A_Phrase.Companion.list
+ import com.avail.descriptor.phrases.A_Phrase.Companion.literalObject
+ import com.avail.descriptor.phrases.A_Phrase.Companion.macroOriginalSendNode
+ import com.avail.descriptor.phrases.A_Phrase.Companion.markerValue
+ import com.avail.descriptor.phrases.A_Phrase.Companion.neededVariables
+ import com.avail.descriptor.phrases.A_Phrase.Companion.outputPhrase
+ import com.avail.descriptor.phrases.A_Phrase.Companion.permutation
+ import com.avail.descriptor.phrases.A_Phrase.Companion.statements
+ import com.avail.descriptor.phrases.A_Phrase.Companion.statementsDo
+ import com.avail.descriptor.phrases.A_Phrase.Companion.statementsTuple
+ import com.avail.descriptor.phrases.A_Phrase.Companion.stripMacro
+ import com.avail.descriptor.phrases.A_Phrase.Companion.superUnionType
+ import com.avail.descriptor.phrases.A_Phrase.Companion.token
+ import com.avail.descriptor.phrases.A_Phrase.Companion.tokens
+ import com.avail.descriptor.phrases.A_Phrase.Companion.typeExpression
+ import com.avail.descriptor.phrases.A_Phrase.Companion.validateLocally
+ import com.avail.descriptor.phrases.A_Phrase.Companion.variable
+ import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
+ import com.avail.descriptor.representation.IndirectionDescriptor.ObjectSlots.INDIRECTION_TARGET
+ import com.avail.descriptor.sets.A_Set
+ import com.avail.descriptor.sets.SetDescriptor.SetIterator
+ import com.avail.descriptor.tokens.A_Token
+ import com.avail.descriptor.tokens.TokenDescriptor
+ import com.avail.descriptor.tuples.A_String
+ import com.avail.descriptor.tuples.A_Tuple
+ import com.avail.descriptor.types.A_Type
+ import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
+ import com.avail.descriptor.types.TypeDescriptor
+ import com.avail.descriptor.types.TypeTag
+ import com.avail.descriptor.variables.A_Variable
+ import com.avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
+ import com.avail.dispatch.LookupTree
+ import com.avail.exceptions.AvailException
+ import com.avail.exceptions.MalformedMessageException
+ import com.avail.exceptions.MethodDefinitionException
+ import com.avail.exceptions.SignatureException
+ import com.avail.exceptions.VariableGetException
+ import com.avail.exceptions.VariableSetException
+ import com.avail.interpreter.Primitive
+ import com.avail.interpreter.execution.AvailLoader
+ import com.avail.interpreter.execution.AvailLoader.LexicalScanner
+ import com.avail.interpreter.levelTwo.L2Chunk
+ import com.avail.interpreter.levelTwo.operand.TypeRestriction
+ import com.avail.io.TextInterface
+ import com.avail.performance.Statistic
+ import com.avail.serialization.SerializerOperation
+ import com.avail.utility.IteratorNotNull
+ import com.avail.utility.Pair
+ import com.avail.utility.json.JSONWriter
+ import com.avail.utility.visitor.AvailSubobjectVisitor
+ import java.math.BigInteger
+ import java.nio.ByteBuffer
+ import java.util.*
+ import java.util.stream.Stream
 
 /**
  * An [AvailObject] with an [IndirectionDescriptor] keeps track of its target,
@@ -247,6 +251,7 @@ class IndirectionDescriptor private constructor(
 		/**
 		 * All other object slots should be ignored.
 		 */
+		@Suppress("unused")
 		@HideFieldInDebugger
 		IGNORED_OBJECT_SLOT_
 	}
@@ -259,6 +264,7 @@ class IndirectionDescriptor private constructor(
 		/**
 		 * Ignore all integer slots.
 		 */
+		@Suppress("unused")
 		@HideFieldInDebugger
 		IGNORED_INTEGER_SLOT_
 	}
@@ -269,10 +275,10 @@ class IndirectionDescriptor private constructor(
 
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
-		aStream: StringBuilder,
+		builder: StringBuilder,
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int
-	) = self.traversed().printOnAvoidingIndent(aStream, recursionMap, indent)
+	) = self.traversed().printOnAvoidingIndent(builder, recursionMap, indent)
 
 	override fun o_ScanSubobjects(
 		self: AvailObject,
@@ -367,18 +373,18 @@ class IndirectionDescriptor private constructor(
 	@Deprecated(
 		"Not recommended",
 		ReplaceWith("IndirectionDescriptor.Companion.mutable(TypeTag)"))
-	override fun mutable(): IndirectionDescriptor = mutables[typeTag.ordinal]
+	override fun mutable(): AbstractDescriptor = mutables[typeTag.ordinal]
 
 	@Deprecated(
 		"Not recommended",
 		ReplaceWith("IndirectionDescriptor.Companion.mutable(TypeTag)"))
-	override fun immutable(): IndirectionDescriptor =
+	override fun immutable(): AbstractDescriptor =
 		immutables[typeTag.ordinal]
 
 	@Deprecated(
 		"Not recommended",
 		ReplaceWith("IndirectionDescriptor.Companion.mutable(TypeTag)"))
-	override fun shared(): IndirectionDescriptor = shareds[typeTag.ordinal]
+	override fun shared(): AbstractDescriptor = shareds[typeTag.ordinal]
 
 
 	override fun o_ComputeTypeTag(self: AvailObject): TypeTag {
@@ -716,8 +722,8 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_EqualsAnyTuple(
 		self: AvailObject,
-		anotherTuple: A_Tuple
-	): Boolean = self .. { equalsAnyTuple(anotherTuple) }
+		aTuple: A_Tuple
+	): Boolean = self .. { equalsAnyTuple(aTuple) }
 
 	override fun o_EqualsByteString(
 		self: AvailObject,
@@ -731,13 +737,13 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_EqualsCharacterWithCodePoint(
 		self: AvailObject,
-		otherCodePoint: Int
-	): Boolean = self .. { equalsCharacterWithCodePoint(otherCodePoint) }
+		aCodePoint: Int
+	): Boolean = self .. { equalsCharacterWithCodePoint(aCodePoint) }
 
 	override fun o_EqualsFiberType(
 		self: AvailObject,
-		aType: A_Type
-	): Boolean = self .. { equalsFiberType(aType) }
+		aFiberType: A_Type
+	): Boolean = self .. { equalsFiberType(aFiberType) }
 
 	override fun o_EqualsFunction(
 		self: AvailObject,
@@ -776,13 +782,13 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_EqualsVariable(
 		self: AvailObject,
-		aVariable: AvailObject
+		aVariable: A_Variable
 	): Boolean = self .. { equalsVariable(aVariable) }
 
 	override fun o_EqualsVariableType(
 		self: AvailObject,
-		aVariableType: A_Type
-	): Boolean = self .. { equalsVariableType(aVariableType) }
+		aType: A_Type
+	): Boolean = self .. { equalsVariableType(aType) }
 
 	override fun o_EqualsContinuation(
 		self: AvailObject,
@@ -821,8 +827,8 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_EqualsIntegerRangeType(
 		self: AvailObject,
-		anIntegerRangeType: A_Type
-	): Boolean = self .. { equalsIntegerRangeType(anIntegerRangeType) }
+		another: A_Type
+	): Boolean = self .. { equalsIntegerRangeType(another) }
 
 	override fun o_EqualsMap(
 		self: AvailObject,
@@ -836,8 +842,8 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_EqualsNybbleTuple(
 		self: AvailObject,
-		aNybbleTuple: A_Tuple
-	): Boolean = self .. { equalsNybbleTuple(aNybbleTuple) }
+		aTuple: A_Tuple
+	): Boolean = self .. { equalsNybbleTuple(aTuple) }
 
 	override fun o_EqualsObject(
 		self: AvailObject,
@@ -846,13 +852,13 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_EqualsObjectTuple(
 		self: AvailObject,
-		anObjectTuple: A_Tuple
-	): Boolean = self .. { equalsObjectTuple(anObjectTuple) }
+		aTuple: A_Tuple
+	): Boolean = self .. { equalsObjectTuple(aTuple) }
 
 	override fun o_EqualsPojo(
 		self: AvailObject,
-		aRawPojo: AvailObject
-	): Boolean = self .. { equalsPojo(aRawPojo) }
+		aPojo: AvailObject
+	): Boolean = self .. { equalsPojo(aPojo) }
 
 	override fun o_EqualsPojoType(
 		self: AvailObject,
@@ -892,8 +898,8 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_EqualsTwoByteString(
 		self: AvailObject,
-		aTwoByteString: A_String
-	): Boolean = self .. { equalsTwoByteString(aTwoByteString) }
+		aString: A_String
+	): Boolean = self .. { equalsTwoByteString(aString) }
 
 	override fun o_ExecutionState(
 		self: AvailObject,
@@ -1014,8 +1020,8 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_IsSupertypeOfFiberType(
 		self: AvailObject,
-		aFiberType: A_Type
-	): Boolean = self .. { isSupertypeOfFiberType(aFiberType) }
+		aType: A_Type
+	): Boolean = self .. { isSupertypeOfFiberType(aType) }
 
 	override fun o_IsSupertypeOfFunctionType(
 		self: AvailObject,
@@ -1063,12 +1069,12 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_IsSupertypeOfSetType(
 		self: AvailObject,
-		aSetType: AvailObject
+		aSetType: A_Type
 	): Boolean = self .. { isSupertypeOfSetType(aSetType) }
 
 	override fun o_IsSupertypeOfTupleType(
 		self: AvailObject,
-		aTupleType: AvailObject
+		aTupleType: A_Type
 	): Boolean = self .. { isSupertypeOfTupleType(aTupleType) }
 
 	override fun o_IsSupertypeOfEnumerationType(
@@ -1143,7 +1149,7 @@ class IndirectionDescriptor private constructor(
 		self: AvailObject,
 		key: A_BasicObject,
 		notFoundValue: A_BasicObject,
-		transformer: BiFunction<AvailObject, AvailObject, A_BasicObject>,
+		transformer: (AvailObject, AvailObject) -> A_BasicObject,
 		canDestroy: Boolean
 	): A_Map = self.. {
 		mapAtReplacingCanDestroy(key, notFoundValue, transformer, canDestroy)
@@ -1210,8 +1216,8 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_FiberGlobals(
 		self: AvailObject,
-		value: A_Map
-	) = self .. { fiberGlobals(value) }
+		globals: A_Map
+	) = self .. { fiberGlobals(globals) }
 
 	override fun o_RawByteForCharacterAt(
 		self: AvailObject,
@@ -1645,7 +1651,7 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_DecrementCountdownToReoptimize(
 		self: AvailObject,
-		continuation: Continuation1NotNull<Boolean>
+		continuation: (Boolean)->Unit
 	) = self .. { decrementCountdownToReoptimize(continuation) }
 
 	override fun o_IsAbstractDefinition(self: AvailObject): Boolean =
@@ -1750,7 +1756,7 @@ class IndirectionDescriptor private constructor(
 	override fun o_MakeSubobjectsImmutable(self: AvailObject): AvailObject =
 		self .. { makeSubobjectsImmutable() }
 
-	override fun o_MakeSubobjectsShared(self: AvailObject) =
+	override fun o_MakeSubobjectsShared(self: AvailObject): AvailObject =
 		self .. { makeSubobjectsShared() }
 
 	override fun o_MapSize(self: AvailObject): Int =
@@ -1962,12 +1968,12 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_ChildrenMap(
 		self: AvailObject,
-		transformer: UnaryOperator<A_Phrase>
+		transformer: (A_Phrase) -> A_Phrase
 	) = self .. { childrenMap(transformer) }
 
 	override fun o_ChildrenDo(
 		self: AvailObject,
-		action: Consumer<A_Phrase>
+		action: (A_Phrase) -> Unit
 	) = self .. { childrenDo(action) }
 
 	override fun o_ValidateLocally(
@@ -2018,7 +2024,7 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_FlattenStatementsInto(
 		self: AvailObject,
-		accumulatedStatements: List<A_Phrase>
+		accumulatedStatements: MutableList<A_Phrase>
 	) = self .. { flattenStatementsInto(accumulatedStatements) }
 
 	override fun o_LineNumber(self: AvailObject): Int =
@@ -2297,7 +2303,7 @@ class IndirectionDescriptor private constructor(
 		key: A_BasicObject,
 		keyHash: Int,
 		notFoundValue: A_BasicObject,
-		transformer: BiFunction<AvailObject, AvailObject, A_BasicObject>,
+		transformer: (AvailObject, AvailObject) -> A_BasicObject,
 		myLevel: Int,
 		canDestroy: Boolean
 	): A_MapBin = self.. {
@@ -2634,10 +2640,7 @@ class IndirectionDescriptor private constructor(
 		updateForNewGrammaticalRestriction(planInProgress, treesToVisit)
 	}
 
-	override fun o_Lock(self: AvailObject, critical: Continuation0) =
-		self .. { lock(critical) }
-
-	override fun <T : Any> o_Lock(self: AvailObject, supplier: Supplier<T>): T =
+	override fun <T> o_Lock(self: AvailObject, supplier: () -> T): T =
 		self .. { lock(supplier) }
 
 	override fun o_ModuleName(self: AvailObject): A_String =
@@ -2667,12 +2670,12 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_FailureContinuation(
 		self: AvailObject
-	): Continuation1NotNull<Throwable> =
+	): (Throwable)->Unit =
 		self .. { failureContinuation() }
 
 	override fun o_ResultContinuation(
 		self: AvailObject
-	): Continuation1NotNull<AvailObject> =
+	): (AvailObject)->Unit =
 		self .. { resultContinuation() }
 
 	override fun o_AvailLoader(self: AvailObject): AvailLoader? =
@@ -2762,7 +2765,7 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_FiberNameSupplier(
 		self: AvailObject,
-		supplier: Supplier<A_String>
+		supplier: () -> A_String
 	) = self .. { fiberNameSupplier(supplier) }
 
 	override fun o_Bundles(self: AvailObject): A_Set =
@@ -2887,7 +2890,7 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_WhenContinuationIsAvailableDo(
 		self: AvailObject,
-		whenReified: Continuation1NotNull<A_Continuation>
+		whenReified: (A_Continuation) -> Unit
 	) = self .. { whenContinuationIsAvailableDo(whenReified) }
 
 	override fun o_GetAndClearReificationWaiters(self: AvailObject): A_Set =
@@ -3016,7 +3019,7 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_StatementsDo(
 		self: AvailObject,
-		continuation: Continuation1NotNull<A_Phrase>
+		continuation: (A_Phrase) -> Unit
 	) = self .. { statementsDo(continuation) }
 
 	override fun o_MacroOriginalSendNode(self: AvailObject): A_Phrase =
@@ -3065,8 +3068,8 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_EqualsListNodeType(
 		self: AvailObject,
-		listNodeType: A_Type
-	): Boolean = self .. { equalsListNodeType(listNodeType) }
+		aListNodeType: A_Type
+	): Boolean = self .. { equalsListNodeType(aListNodeType) }
 
 	override fun o_SubexpressionsTupleType(self: AvailObject): A_Type =
 		self .. { subexpressionsTupleType() }
@@ -3176,7 +3179,6 @@ class IndirectionDescriptor private constructor(
 	override fun o_TupleCodePointAt(self: AvailObject, index: Int): Int =
 		self .. { tupleCodePointAt(index) }
 
-	@AvailMethod
 	override fun o_OriginatingPhrase(self: AvailObject): A_Phrase =
 		self .. { originatingPhrase() }
 
@@ -3254,18 +3256,18 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_ForEach(
 		self: AvailObject,
-		action: BiConsumer<in AvailObject, in AvailObject>
+		action: (AvailObject, AvailObject) -> Unit
 	) = self .. { forEach(action) }
 
 	override fun o_ForEachInMapBin(
 		self: AvailObject,
-		action: BiConsumer<in AvailObject, in AvailObject>
+		action: (AvailObject, AvailObject) -> Unit
 	) = self .. { forEachInMapBin(action) }
 
 	override fun o_SetSuccessAndFailureContinuations(
 		self: AvailObject,
-		onSuccess: Continuation1NotNull<AvailObject>,
-		onFailure: Continuation1NotNull<Throwable>
+		onSuccess: (AvailObject) -> Unit,
+		onFailure: (Throwable) -> Unit
 	) = self .. { setSuccessAndFailureContinuations(onSuccess, onFailure) }
 
 	override fun o_ClearLexingState(self: AvailObject) =

@@ -34,7 +34,13 @@ package com.avail.stacks
 
 import com.avail.AvailRuntime
 import com.avail.descriptor.tuples.A_String
-import com.avail.stacks.comment.*
+import com.avail.stacks.comment.AvailComment
+import com.avail.stacks.comment.ClassComment
+import com.avail.stacks.comment.GlobalComment
+import com.avail.stacks.comment.GrammaticalRestrictionComment
+import com.avail.stacks.comment.MacroComment
+import com.avail.stacks.comment.MethodComment
+import com.avail.stacks.comment.SemanticRestrictionComment
 import com.avail.utility.json.JSONWriter
 import java.io.IOException
 import java.nio.file.Path
@@ -112,7 +118,7 @@ class CommentGroup
 	val grammaticalRestrictions: MutableMap<String, GrammaticalRestrictionComment>
 
 	/**
-	 * A [class comment][ClassComment]
+	 * A [class&#32;comment][ClassComment]
 	 */
 	var classImplementation: ClassComment? = null
 		private set

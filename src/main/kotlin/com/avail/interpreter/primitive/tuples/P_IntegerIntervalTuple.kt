@@ -43,11 +43,13 @@ import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.integers
 import com.avail.descriptor.types.TupleTypeDescriptor.zeroOrMoreOf
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Fallibility.*
+import com.avail.interpreter.Primitive.Fallibility.CallSiteCanFail
+import com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail
+import com.avail.interpreter.Primitive.Fallibility.CallSiteMustFail
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Create an

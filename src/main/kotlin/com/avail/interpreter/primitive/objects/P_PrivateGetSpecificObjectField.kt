@@ -31,18 +31,20 @@
  */
 package com.avail.interpreter.primitive.objects
 
+import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.objects.ObjectDescriptor
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.BottomTypeDescriptor.bottom
-import com.avail.descriptor.objects.ObjectDescriptor
-import com.avail.descriptor.atoms.A_Atom
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Primitive.Flag.Private
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED
 import com.avail.interpreter.levelTwo.operation.L2_GET_OBJECT_FIELD
 import com.avail.optimizer.L1Translator
 

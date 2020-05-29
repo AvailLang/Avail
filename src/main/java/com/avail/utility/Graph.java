@@ -36,8 +36,19 @@ import kotlin.Unit;
 import kotlin.jvm.functions.Function0;
 import kotlin.jvm.functions.Function2;
 
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -558,7 +569,7 @@ public class Graph<Vertex>
 				{
 					if (solution.value != null)
 					{
-						return;
+						return Unit.INSTANCE;
 					}
 					if (stack.contains(vertex))
 					{
@@ -568,7 +579,7 @@ public class Graph<Vertex>
 						list.add(vertex);
 						solution.value = list.subList(
 							list.indexOf(vertex), list.size());
-						return;
+						return Unit.INSTANCE;
 					}
 					if (!reached.contains(vertex))
 					{
@@ -576,10 +587,11 @@ public class Graph<Vertex>
 						stack.add(vertex);
 						for (final Vertex successor : outEdges.get(vertex))
 						{
-							body.value(successor);
+							body.invoke(successor);
 						}
 						stack.remove(vertex);
 					};
+					return Unit.INSTANCE;
 				});
 			if (solution.value != null)
 			{
@@ -942,12 +954,12 @@ public class Graph<Vertex>
 									scanned.add(vertex);
 									stackSet.add(vertex);
 									stackList.add(vertex);
-									outEdges.get(vertex).forEach(body::value);
+									outEdges.get(vertex).forEach(body::invoke);
 									stackSet.remove(vertex);
 									stackList.remove(vertex);
 								}
 							}
-							;
+							return Unit.INSTANCE;
 						});
 				});
 		return spanningDag;

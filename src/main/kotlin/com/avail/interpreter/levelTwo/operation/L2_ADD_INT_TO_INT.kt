@@ -31,8 +31,7 @@
  */
 package com.avail.interpreter.levelTwo.operation
 
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.*
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.int32
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2NamedOperandType
 import com.avail.interpreter.levelTwo.L2OperandType

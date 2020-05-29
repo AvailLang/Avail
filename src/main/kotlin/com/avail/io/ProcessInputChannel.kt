@@ -33,7 +33,11 @@
 package com.avail.io
 
 import com.avail.AvailRuntime.currentRuntime
-import java.io.*
+import java.io.BufferedReader
+import java.io.IOException
+import java.io.InputStream
+import java.io.InputStreamReader
+import java.io.Reader
 import java.nio.CharBuffer
 import java.nio.channels.CompletionHandler
 import java.nio.charset.CodingErrorAction
@@ -41,8 +45,8 @@ import java.nio.charset.StandardCharsets
 
 /**
  * A `ProcessInputChannel` provides a faux
- * [asynchronous interface][TextInputChannel] to a synchronous
- * [process][Process] [input stream][InputStream]. The reader must supply
+ * [asynchronous&#32;interface][TextInputChannel] to a synchronous
+ * [process][Process] [input&#32;stream][InputStream]. The reader must supply
  * [UTF-8][StandardCharsets.UTF_8] encoded characters.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;

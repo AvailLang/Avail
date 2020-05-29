@@ -43,15 +43,20 @@ import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.EnumerationTypeDescriptor.booleanType
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.inclusive
-import com.avail.descriptor.types.ListPhraseTypeDescriptor.*
+import com.avail.descriptor.types.ListPhraseTypeDescriptor.list
+import com.avail.descriptor.types.ListPhraseTypeDescriptor.zeroOrMoreList
+import com.avail.descriptor.types.ListPhraseTypeDescriptor.zeroOrOneList
 import com.avail.descriptor.types.PhraseTypeDescriptor.Constants.stringLiteralType
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.STATEMENT_PHRASE
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.Bootstrap
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Primitive.Flag.Private
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * The `P_ModuleHeaderPseudoMacro` primitive is used to parse module headers.

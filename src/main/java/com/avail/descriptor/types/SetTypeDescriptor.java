@@ -32,10 +32,9 @@
 
 package com.avail.descriptor.types;
 
-import com.avail.annotations.AvailMethod;
-import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.representation.A_BasicObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.representation.Mutability;
 import com.avail.descriptor.sets.SetDescriptor;
 import com.avail.serialization.SerializerOperation;
@@ -119,25 +118,25 @@ extends TypeDescriptor
 		aStream.append('}');
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_ContentType (final AvailObject object)
 	{
 		return object.slot(CONTENT_TYPE);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_SizeRange (final AvailObject object)
 	{
 		return object.slot(SIZE_RANGE);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsSetType(object);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_EqualsSetType (
 		final AvailObject object,
 		final A_Type aSetType)
@@ -151,7 +150,7 @@ extends TypeDescriptor
 			&& object.slot(CONTENT_TYPE).equals(aSetType.contentType());
 	}
 
-	@Override @AvailMethod
+	@Override
 	public int o_Hash (final AvailObject object)
 	{
 		// Answer a 32-bit integer that is always the same for equal objects,
@@ -159,27 +158,26 @@ extends TypeDescriptor
 		return object.sizeRange().hash() * 11 + object.contentType().hash() * 5;
 	}
 
-	@Override @AvailMethod
-	public boolean o_IsSubtypeOf (
-		final AvailObject object,
-		final A_Type aType)
+	@Override
+	public boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
 	{
 		// Check if object (a type) is a subtype of aType (should also be a
 		// type).
 		return aType.isSupertypeOfSetType(object);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsSupertypeOfSetType (
 		final AvailObject object,
-		final AvailObject aSetType)
+		final A_Type aSetType)
 	{
 		// Set type A is a subtype of B if and only if their size ranges are
 		// covariant and their content types are covariant.
+		final AvailObject otherType = (AvailObject) aSetType;
 		return
-			aSetType.slot(SIZE_RANGE).isSubtypeOf(
+			otherType.slot(SIZE_RANGE).isSubtypeOf(
 				object.slot(SIZE_RANGE))
-			&& aSetType.slot(CONTENT_TYPE).isSubtypeOf(
+			&& otherType.slot(CONTENT_TYPE).isSubtypeOf(
 				object.slot(CONTENT_TYPE));
 	}
 
@@ -191,7 +189,7 @@ extends TypeDescriptor
 				&& object.slot(CONTENT_TYPE).isVacuousType();
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeIntersection (
 		final AvailObject object,
 		final A_Type another)
@@ -209,7 +207,7 @@ extends TypeDescriptor
 		return another.typeIntersectionOfSetType(object);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeIntersectionOfSetType (
 		final AvailObject object,
 		final A_Type aSetType)
@@ -219,10 +217,8 @@ extends TypeDescriptor
 			object.slot(CONTENT_TYPE).typeIntersection(aSetType.contentType()));
 	}
 
-	@Override @AvailMethod
-	public A_Type o_TypeUnion (
-		final AvailObject object,
-		final A_Type another)
+	@Override
+	public A_Type o_TypeUnion (final AvailObject object, final A_Type another)
 	{
 		if (object.equals(another))
 		{
@@ -239,7 +235,7 @@ extends TypeDescriptor
 		return another.typeUnionOfSetType(object);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeUnionOfSetType (
 		final AvailObject object,
 		final A_Type aSetType)
@@ -249,7 +245,7 @@ extends TypeDescriptor
 			object.slot(CONTENT_TYPE).typeUnion(aSetType.contentType()));
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsSetType (final AvailObject object)
 	{
 		return true;

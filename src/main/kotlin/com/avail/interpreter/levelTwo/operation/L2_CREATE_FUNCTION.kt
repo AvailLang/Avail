@@ -40,7 +40,11 @@ import com.avail.descriptor.types.A_Type
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2OperandType
 import com.avail.interpreter.levelTwo.L2Operation
-import com.avail.interpreter.levelTwo.operand.*
+import com.avail.interpreter.levelTwo.operand.L2ConstantOperand
+import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import com.avail.optimizer.L2Generator
 import com.avail.optimizer.RegisterSet
 import com.avail.optimizer.jvm.JVMTranslator

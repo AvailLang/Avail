@@ -40,14 +40,16 @@ import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.*
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.integerRangeType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.naturalNumbers
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.wholeNumbers
 import com.avail.descriptor.types.TupleTypeDescriptor.mostGeneralTupleType
 import com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType
 import com.avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.execution.Interpreter
 import kotlin.math.min
 
 /**

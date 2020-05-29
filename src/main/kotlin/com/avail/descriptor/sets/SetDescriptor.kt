@@ -31,12 +31,16 @@
  */
 package com.avail.descriptor.sets
 
-import com.avail.annotations.AvailMethod
 import com.avail.annotations.ThreadSafe
-import com.avail.descriptor.Descriptor
 import com.avail.descriptor.character.A_Character.Companion.codePoint
-import com.avail.descriptor.representation.*
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObjectFieldHelper
+import com.avail.descriptor.representation.Descriptor
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.sets.LinearSetBinDescriptor.Companion.createLinearSetBinPair
 import com.avail.descriptor.sets.LinearSetBinDescriptor.Companion.emptyLinearSetBin
 import com.avail.descriptor.sets.SetBinDescriptor.Companion.generateSetBinFrom
@@ -105,10 +109,10 @@ private constructor(
 
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
-		aStream: StringBuilder,
+		builder: StringBuilder,
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int
-	): Unit = with(aStream) {
+	): Unit = with(builder) {
 		when {
 			self.setSize() == 0 -> append('∅')
 			self.setElementsAreAllInstancesOfKind(Types.CHARACTER.o()) -> {
@@ -128,13 +132,13 @@ private constructor(
 						runEnd++
 						next = -1
 					}
-					writeRangeElement(aStream, runStart)
+					writeRangeElement(builder, runStart)
 					if (runEnd != runStart) {
 						// Skip the dash if the start and end are consecutive.
 						if (runEnd != runStart + 1) {
 							appendCodePoint('-'.toInt())
 						}
-						writeRangeElement(aStream, runEnd)
+						writeRangeElement(builder, runEnd)
 					}
 					runStart = next
 				} while (runStart != -1)
@@ -149,7 +153,7 @@ private constructor(
 						append(", ")
 					}
 					element.printOnAvoidingIndent(
-						aStream, recursionMap, indent + 1)
+						builder, recursionMap, indent + 1)
 					first = false
 				}
 				append('}')
@@ -181,11 +185,9 @@ private constructor(
 		AvailObjectFieldHelper(self, FakeSetSlots.ELEMENT_, i + 1, element)
 	}.toTypedArray()
 
-	@AvailMethod
 	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean =
 		another.equalsSet(self)
 
-	@AvailMethod
 	override fun o_EqualsSet(self: AvailObject, aSet: A_Set): Boolean = when {
 		self.sameAddressAs(aSet) -> true
 		rootBin(self).sameAddressAs(rootBin(aSet as AvailObject)) -> true
@@ -212,7 +214,6 @@ private constructor(
 		}
 	}
 
-	@AvailMethod
 	override fun o_HasElement(
 		self: AvailObject,
 		elementObject: A_BasicObject
@@ -223,21 +224,19 @@ private constructor(
 	 * A set's hash is a simple function of its rootBin's setBinHash, which is
 	 * always the sum of its elements' hashes.
 	 */
-	@AvailMethod
 	override fun o_Hash(self: AvailObject): Int =
 		rootBin(self).setBinHash() xor 0xCD9EFC6
 
-	@AvailMethod
 	override fun o_IsInstanceOfKind(
 		self: AvailObject,
-		aTypeObject: A_Type
+		aType: A_Type
 	): Boolean = when {
-		aTypeObject.isSupertypeOfPrimitiveTypeEnum(Types.NONTYPE) -> true
-		!aTypeObject.isSetType -> false
+		aType.isSupertypeOfPrimitiveTypeEnum(Types.NONTYPE) -> true
+		!aType.isSetType -> false
 		// See if it's an acceptable size...
-		!aTypeObject.sizeRange().rangeIncludesInt(self.setSize()) -> false
+		!aType.sizeRange().rangeIncludesInt(self.setSize()) -> false
 		else -> {
-			val expectedContentType = aTypeObject.contentType()
+			val expectedContentType = aType.contentType()
 			when {
 				expectedContentType.isEnumeration ->
 					// Check the complete membership.
@@ -250,15 +249,12 @@ private constructor(
 		}
 	}
 
-	@AvailMethod
 	override fun o_IsSet(self: AvailObject) = true
 
-	@AvailMethod
 	override fun o_IsSubsetOf(self: AvailObject, another: A_Set): Boolean =
 		(self.setSize() <= another.setSize()
 			&& rootBin(self).isBinSubsetOf(another))
 
-	@AvailMethod
 	override fun o_Kind(self: AvailObject): A_Type =
 		setTypeForSizesContentType(
 			singleInt(self.setSize()),
@@ -267,7 +263,6 @@ private constructor(
 	/**
 	 * Answer whether all my elements are instances of the specified kind.
 	 */
-	@AvailMethod
 	override fun o_SetElementsAreAllInstancesOfKind(
 		self: AvailObject,
 		kind: AvailObject
@@ -277,7 +272,6 @@ private constructor(
 	 * Compute the intersection of two sets (a ∩ b).  May destroy one of them if
 	 * it's mutable and canDestroy is true.
 	 */
-	@AvailMethod
 	override fun o_SetIntersectionCanDestroy(
 		self: AvailObject,
 		otherSet: A_Set,
@@ -314,7 +308,6 @@ private constructor(
 	 * Compute the asymmetric difference of two sets (a \ b).  May destroy one
 	 * of them if it's mutable and canDestroy is true.
 	 */
-	@AvailMethod
 	override fun o_SetMinusCanDestroy(
 		self: AvailObject,
 		otherSet: A_Set,
@@ -330,7 +323,6 @@ private constructor(
 	 * Compute the union of two sets (a ∪ b).  May destroy one of them if it's
 	 * mutable and canDestroy is true.
 	 */
-	@AvailMethod
 	override fun o_SetUnionCanDestroy(
 		self: AvailObject,
 		otherSet: A_Set,
@@ -353,7 +345,6 @@ private constructor(
 		}
 	}
 
-	@AvailMethod
 	override fun o_SetWithElementCanDestroy(
 		self: AvailObject,
 		newElementObject: A_BasicObject,
@@ -380,7 +371,6 @@ private constructor(
 		return result
 	}
 
-	@AvailMethod
 	override fun o_SetWithoutElementCanDestroy(
 		self: AvailObject,
 		elementObjectToExclude: A_BasicObject,
@@ -420,12 +410,11 @@ private constructor(
 		}
 	}
 
-	@AvailMethod
 	override fun o_Iterator(self: AvailObject): SetIterator =
 		rootBin(self).setBinIterator()
 
-	@AvailMethod
-	override fun o_AsTuple(self: AvailObject): A_Tuple {
+	override fun o_AsTuple(self: AvailObject): A_Tuple
+	{
 		val size = self.setSize()
 		if (size == 0) {
 			return emptyTuple()
@@ -436,10 +425,8 @@ private constructor(
 		}
 	}
 
-	@AvailMethod
 	override fun o_SetSize(self: AvailObject): Int = rootBin(self).setBinSize()
 
-	@AvailMethod
 	@ThreadSafe
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		SerializerOperation.SET
@@ -470,11 +457,11 @@ private constructor(
 		writer.endObject()
 	}
 
-	override fun mutable(): SetDescriptor = mutable
+	override fun mutable() = mutable
 
-	override fun immutable(): SetDescriptor = immutable
+	override fun immutable() = immutable
 
-	override fun shared(): SetDescriptor = shared
+	override fun shared() = shared
 
 	companion object {
 		/**

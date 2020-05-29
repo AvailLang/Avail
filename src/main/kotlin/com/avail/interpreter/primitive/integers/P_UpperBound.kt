@@ -37,13 +37,15 @@ import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.extendedIntegers
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.extendedIntegersMeta
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CanFold
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Answer the upper bound. The client can ask the
- * [integer range][IntegerRangeTypeDescriptor] if it includes the answer to
+ * [integer&#32;range][IntegerRangeTypeDescriptor] if it includes the answer to
  * determine whether it is inclusive or exclusive.
  */
 @Suppress("unused")

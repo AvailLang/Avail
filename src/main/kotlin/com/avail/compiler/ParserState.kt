@@ -36,14 +36,13 @@ import com.avail.AvailRuntime.currentRuntime
 import com.avail.compiler.problems.CompilerDiagnostics
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel
 import com.avail.compiler.scanning.LexingState
-import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.maps.A_Map
 import com.avail.descriptor.maps.MapDescriptor
 import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
 import com.avail.interpreter.execution.Interpreter
 import com.avail.utility.evaluation.Describer
 import com.avail.utility.evaluation.SimpleDescriber
-import com.avail.utility.evaluation.Transformer1
 import java.lang.String.format
 import kotlin.math.max
 import kotlin.math.min
@@ -204,8 +203,8 @@ class ParserState internal constructor(
 	 *   A list of arbitrary [Avail values][AvailObject] that should be
 	 *   stringified.
 	 * @param transformer
-	 *   A [transformer][Transformer1] that accepts the stringified values and
-	 *   answers an expectation message.
+	 *   A transformer that accepts the stringified values and answers an
+	 *   expectation message.
 	 */
 	internal fun expected(
 		level: ParseNotificationLevel,

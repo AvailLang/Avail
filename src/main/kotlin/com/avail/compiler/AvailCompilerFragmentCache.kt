@@ -55,8 +55,8 @@ class AvailCompilerFragmentCache
 		ConcurrentHashMap<ParserState, AvailCompilerBipartiteRendezvous>(100)
 
 	/**
-	 * Look up the [AvailCompilerBipartiteRendezvous] at the given [parser
-	 * state][ParserState], creating one if necessary.
+	 * Look up the [AvailCompilerBipartiteRendezvous] at the given
+	 * [parser&#32;state][ParserState], creating one if necessary.
 	 *
 	 * @param parserState
 	 *   The [ParserState] to look up.

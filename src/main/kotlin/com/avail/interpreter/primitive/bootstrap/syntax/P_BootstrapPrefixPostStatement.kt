@@ -34,9 +34,9 @@ package com.avail.interpreter.primitive.bootstrap.syntax
 
 import com.avail.compiler.AvailRejectedParseException
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.WEAK
-import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.phrases.A_Phrase.Companion.lastExpression
 import com.avail.descriptor.phrases.A_Phrase.Companion.token
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
@@ -44,14 +44,17 @@ import com.avail.descriptor.types.InstanceMetaDescriptor.anyMeta
 import com.avail.descriptor.types.InstanceMetaDescriptor.topMeta
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.STATEMENT_PHRASE
-import com.avail.descriptor.types.TupleTypeDescriptor.*
+import com.avail.descriptor.types.TupleTypeDescriptor.oneOrMoreOf
+import com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForTypes
+import com.avail.descriptor.types.TupleTypeDescriptor.zeroOrMoreOf
+import com.avail.descriptor.types.TupleTypeDescriptor.zeroOrOneOf
 import com.avail.descriptor.types.TypeDescriptor.Types.TOKEN
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.Bootstrap
 import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * The `P_BootstrapPrefixPostStatement` primitive is used for ensuring that

@@ -35,6 +35,8 @@ import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.atoms.A_Atom.Companion.atomName
 import com.avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom
+import com.avail.descriptor.objects.ObjectLayoutVariant.Companion.variantsCounter
+import com.avail.descriptor.objects.ObjectLayoutVariant.Companion.variantsLock
 import com.avail.descriptor.pojos.RawPojoDescriptor
 import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import com.avail.descriptor.representation.A_BasicObject

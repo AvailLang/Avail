@@ -40,9 +40,11 @@ import com.avail.descriptor.types.IntegerRangeTypeDescriptor.wholeNumbers
 import com.avail.descriptor.types.MapTypeDescriptor
 import com.avail.descriptor.types.MapTypeDescriptor.mapMeta
 import com.avail.descriptor.types.MapTypeDescriptor.mapTypeForSizesKeyTypeValueType
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CanFold
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Answer a [map][MapTypeDescriptor] with the given type

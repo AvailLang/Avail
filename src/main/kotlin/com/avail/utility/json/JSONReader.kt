@@ -52,7 +52,7 @@ import java.util.*
  *
  * @param reader
  *   The [source][Reader] of the raw JSON document. The reader must
- *   [support marking][Reader.markSupported].
+ *   [support&#32;marking][Reader.markSupported].
  * @throws IllegalArgumentException
  *   If the reader does not support marking.
  */

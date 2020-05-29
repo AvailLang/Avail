@@ -34,19 +34,25 @@ package com.avail.interpreter.levelTwo
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.variables.A_Variable
-import com.avail.interpreter.levelTwo.operand.*
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag
+import com.avail.interpreter.execution.Interpreter
+import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand
+import com.avail.interpreter.levelTwo.operand.L2Operand
+import com.avail.interpreter.levelTwo.operand.L2PcOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteOperand
+import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding
 import com.avail.interpreter.levelTwo.operation.L2ControlFlowOperation
 import com.avail.interpreter.levelTwo.operation.L2_MOVE_OUTER_VARIABLE
 import com.avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
-import com.avail.optimizer.L2ControlFlowGraph.Zone
 import com.avail.interpreter.levelTwo.operation.L2_VIRTUAL_CREATE_LABEL
-import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.register.L2Register
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind
 import com.avail.optimizer.L2BasicBlock
+import com.avail.optimizer.L2ControlFlowGraph.Zone
 import com.avail.optimizer.L2Generator
 import com.avail.optimizer.L2ValueManifest
 import com.avail.optimizer.RegisterSet
@@ -139,7 +145,7 @@ abstract class L2Operation
 	open fun isEntryPoint(instruction: L2Instruction): Boolean = false
 
 	/**
-	 * The [named operand types][L2NamedOperandType] that this
+	 * The [named&#32;operand&#32;types][L2NamedOperandType] that this
 	 * [operation][L2Operation] expects.
 	 */
 	@JvmField
@@ -155,7 +161,7 @@ abstract class L2Operation
 
 	/**
 	 * The name of this level two operation.  This is initialized to be the
-	 * [simple name][Class.getSimpleName] of the [Class].
+	 * [simple&#32;name][Class.getSimpleName] of the [Class].
 	 */
 	private val name: String
 

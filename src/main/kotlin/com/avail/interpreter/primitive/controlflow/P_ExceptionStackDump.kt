@@ -35,7 +35,6 @@ package com.avail.interpreter.primitive.controlflow
 import com.avail.descriptor.functions.A_Continuation
 import com.avail.descriptor.functions.ContinuationDescriptor.Companion.dumpStackThen
 import com.avail.descriptor.objects.ObjectTypeDescriptor
-
 import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.exceptionType
 import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.stackDumpAtom
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
@@ -50,10 +49,10 @@ import com.avail.descriptor.types.TupleTypeDescriptor.zeroOrMoreOf
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
 import com.avail.exceptions.AvailErrorCode.E_KEY_NOT_FOUND
 import com.avail.exceptions.MapException
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanSuspend
 import com.avail.interpreter.Primitive.Flag.Unknown
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Get the [ObjectTypeDescriptor.stackDumpAtom] associated with

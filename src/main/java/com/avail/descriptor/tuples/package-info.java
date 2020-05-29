@@ -30,6 +30,4 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-@NonnullByDefault
 package com.avail.descriptor.tuples;
-import com.avail.annotations.NonnullByDefault;

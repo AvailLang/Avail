@@ -39,13 +39,15 @@ import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.types.TypeDescriptor.Types.MESSAGE_BUNDLE
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CanFold
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Answer the [true name][AtomDescriptor] associated with the
- * given [message bundle][MessageBundleDescriptor]. This is generally only used
+ * given [message&#32;bundle][MessageBundleDescriptor]. This is generally only used
  * when Avail code is saving or loading Avail code in the object dumper
  * / loader.
  */

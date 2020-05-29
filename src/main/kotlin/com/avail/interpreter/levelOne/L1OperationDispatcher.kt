@@ -32,9 +32,9 @@
 
 package com.avail.interpreter.levelOne
 
+import com.avail.descriptor.methods.MethodDefinitionDescriptor
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.NilDescriptor
-import com.avail.descriptor.methods.MethodDefinitionDescriptor
 
 
 /**
@@ -137,7 +137,8 @@ interface L1OperationDispatcher
 	fun L1_doGetLocal()
 
 	/**
-	 * `n` - Make a tuple from `n` values popped from the stack.  Push the tuple.
+	 * `n` - Make a tuple from `n` values popped from the stack.  Push the
+	 * tuple.
 	 */
 	fun L1_doMakeTuple()
 
@@ -193,7 +194,8 @@ interface L1OperationDispatcher
 	 * The first operand is an index into the current code's
 	 * [literals][AvailObject.literalAt], which specifies a
 	 * [method][MethodDefinitionDescriptor] that contains a collection of
-	 * [method definition][MethodDefinitionDescriptor] that might be invoked.
+	 * [method&#32;definition][MethodDefinitionDescriptor] that might be
+	 * invoked.
 	 *
 	 * The second operand specifies a literal which is the expected return type
 	 * of the end.  When the invoked method eventually returns, the proposed

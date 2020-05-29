@@ -51,7 +51,6 @@ import com.avail.optimizer.jvm.JVMTranslator
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport
-import com.avail.utility.evaluation.Continuation0
 import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
@@ -200,18 +199,17 @@ object L2_PREPARE_NEW_FRAME_FOR_L1 : L2Operation()
 			interpreter.isReifying = true
 			return StackReifier(
 				true,
-				reificationForInterruptInL1Stat,
-				Continuation0 {
-
-					// Push the continuation from above onto the reified stack.
-					interpreter.returnNow = false
-					interpreter.setReifiedContinuation(
-						continuation.replacingCaller(
-							interpreter.getReifiedContinuation()!!))
-					interpreter.processInterrupt(
-						interpreter.getReifiedContinuation()!!)
-					interpreter.isReifying = false
-				})
+				reificationForInterruptInL1Stat
+			) {
+				// Push the continuation from above onto the reified stack.
+				interpreter.returnNow = false
+				interpreter.setReifiedContinuation(
+					continuation.replacingCaller(
+						interpreter.getReifiedContinuation()!!))
+				interpreter.processInterrupt(
+					interpreter.getReifiedContinuation()!!)
+				interpreter.isReifying = false
+			}
 		}
 		return null
 	}

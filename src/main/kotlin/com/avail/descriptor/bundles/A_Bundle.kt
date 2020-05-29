@@ -1,6 +1,6 @@
 /*
  * A_Bundle.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,11 @@ import com.avail.compiler.AvailCompiler
 import com.avail.compiler.splitter.MessageSplitter
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.maps.A_Map
-import com.avail.descriptor.methods.*
+import com.avail.descriptor.methods.A_Definition
+import com.avail.descriptor.methods.A_GrammaticalRestriction
+import com.avail.descriptor.methods.A_Method
+import com.avail.descriptor.methods.GrammaticalRestrictionDescriptor
+import com.avail.descriptor.methods.MethodDescriptor
 import com.avail.descriptor.parsing.A_DefinitionParsingPlan
 import com.avail.descriptor.parsing.DefinitionParsingPlanDescriptor
 import com.avail.descriptor.representation.A_BasicObject
@@ -114,9 +118,9 @@ interface A_Bundle : A_BasicObject {
 			dispatch { o_DefinitionParsingPlans(it) }
 
 		/**
-		 * Answer the set of [grammatical&#32;
-		 * restrictions][GrammaticalRestrictionDescriptor] that have been
-		 * attached to this bundle.
+		 * Answer the set of
+		 * [grammatical&#32;restrictions][GrammaticalRestrictionDescriptor] that
+		 * have been attached to this bundle.
 		 *
 		 * @return
 		 *   This bundle's grammatical restrictions.
@@ -125,8 +129,8 @@ interface A_Bundle : A_BasicObject {
 			dispatch { o_GrammaticalRestrictions(it) }
 
 		/**
-		 * Answer whether this bundle has any [grammatical&#32;
-		 * restrictions][GrammaticalRestrictionDescriptor].
+		 * Answer whether this bundle has any
+		 * [grammatical&#32;restrictions][GrammaticalRestrictionDescriptor].
 		 *
 		 * @return
 		 *   Whether this bundle has grammatical restrictions.

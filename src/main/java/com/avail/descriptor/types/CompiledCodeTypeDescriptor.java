@@ -32,11 +32,10 @@
 
 package com.avail.descriptor.types;
 
-import com.avail.annotations.AvailMethod;
-import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.functions.CompiledCodeDescriptor;
 import com.avail.descriptor.representation.A_BasicObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.representation.Mutability;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
@@ -88,7 +87,7 @@ extends TypeDescriptor
 			(indent + 1));
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_FunctionType (final AvailObject object)
 	{
 		return object.slot(FUNCTION_TYPE);
@@ -108,7 +107,7 @@ extends TypeDescriptor
 	 * types.
 	 * </p>
 	 */
-	@Override @AvailMethod
+	@Override
 	public boolean o_EqualsCompiledCodeType (
 		final AvailObject object,
 		final A_Type aType)
@@ -120,13 +119,13 @@ extends TypeDescriptor
 		return aType.functionType().equals(object.functionType());
 	}
 
-	@Override @AvailMethod
+	@Override
 	public int o_Hash (final AvailObject object)
 	{
 		return object.functionType().hash() * 71 ^ 0xA78B01C3;
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
 	{
 		return aType.isSupertypeOfCompiledCodeType(object);
@@ -139,7 +138,7 @@ extends TypeDescriptor
 	 * Compiled code types exactly covary with their function types.
 	 * </p>
 	 */
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsSupertypeOfCompiledCodeType (
 		final AvailObject object,
 		final A_Type aCompiledCodeType)
@@ -155,7 +154,7 @@ extends TypeDescriptor
 		return object.slot(FUNCTION_TYPE).isVacuousType();
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeIntersection (
 		final AvailObject object,
 		final A_Type another)
@@ -171,7 +170,7 @@ extends TypeDescriptor
 		return another.typeIntersectionOfCompiledCodeType(object);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeIntersectionOfCompiledCodeType (
 		final AvailObject object,
 		final A_Type aCompiledCodeType)
@@ -185,7 +184,7 @@ extends TypeDescriptor
 		return compiledCodeTypeForFunctionType(functionType1.typeIntersection(functionType2));
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeUnion (
 		final AvailObject object,
 		final A_Type another)
@@ -201,7 +200,7 @@ extends TypeDescriptor
 		return another.typeUnionOfCompiledCodeType(object);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeUnionOfCompiledCodeType (
 		final AvailObject object,
 		final A_Type aCompiledCodeType)
@@ -216,14 +215,14 @@ extends TypeDescriptor
 		return compiledCodeTypeForFunctionType(functionType1.typeUnion(functionType2));
 	}
 
-	@Override @AvailMethod
+	@Override
 	public SerializerOperation o_SerializerOperation (
 		final AvailObject object)
 	{
 		return SerializerOperation.COMPILED_CODE_TYPE;
 	}
 
-	@Override @AvailMethod
+	@Override
 	public AvailObject o_MakeImmutable (final AvailObject object)
 	{
 		if (isMutable())

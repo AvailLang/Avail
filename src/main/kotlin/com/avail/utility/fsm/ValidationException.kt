@@ -45,8 +45,7 @@ package com.avail.utility.fsm
  *
  * @param message
  *   A (hopefully) informative message explaining why the
- *   [factory][StateMachineFactory] could not validate the specified [state
- *   machine][StateMachine].
+ *   [factory][StateMachineFactory] could not validate the specified [state&#32;machine][StateMachine].
  */
 class ValidationException
 internal constructor(message: String) : RuntimeException(message)

@@ -1,0 +1,11 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Indexed File Analyzer" type="JarApplication">
+    <option name="JAR_PATH" value="$PROJECT_DIR$/indexed-file-analyzer/build/libs/indexed-file-analyzer-1.4-all.jar" />
+    <option name="VM_PARAMETERS" value="-ea" />
+    <option name="PROGRAM_PARAMETERS" value="-?" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+    <option name="ALTERNATIVE_JRE_PATH" />
+    <module name="avail.indexed-file-analyzer.main" />
+    <method v="2" />
+  </configuration>
+</component>

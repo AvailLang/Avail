@@ -32,10 +32,10 @@
 
 package com.avail.interpreter.primitive.atoms
 
-import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
 import com.avail.descriptor.atoms.A_Atom.Companion.issuingModule
 import com.avail.descriptor.atoms.AtomDescriptor
+import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.types.A_Type
@@ -44,10 +44,10 @@ import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.types.TypeDescriptor.Types.MODULE
 import com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Answer the [module][ModuleDescriptor] that issued the

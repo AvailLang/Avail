@@ -32,7 +32,10 @@
 package com.avail.compiler.splitter
 
 import com.avail.compiler.ParsingConversionRule.EVALUATE_EXPRESSION
-import com.avail.compiler.ParsingOperation.*
+import com.avail.compiler.ParsingOperation.CHECK_ARGUMENT
+import com.avail.compiler.ParsingOperation.CONVERT
+import com.avail.compiler.ParsingOperation.PARSE_ARGUMENT_IN_MODULE_SCOPE
+import com.avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT
 import com.avail.compiler.splitter.MessageSplitter.Companion.indexForConstant
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter
 import com.avail.descriptor.phrases.A_Phrase

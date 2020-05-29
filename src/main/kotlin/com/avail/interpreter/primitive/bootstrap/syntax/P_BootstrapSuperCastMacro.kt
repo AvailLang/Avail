@@ -41,15 +41,18 @@ import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.InstanceMetaDescriptor.anyMeta
-import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.*
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SUPER_CAST_PHRASE
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.Bootstrap
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.execution.Interpreter
 
 /**
- * The `P_BootstrapSuperCastMacro` primitive is used to create a [super-cast
- * phrase][SuperCastPhraseDescriptor].  This is used to control method lookup,
+ * The `P_BootstrapSuperCastMacro` primitive is used to create a [super-cast&#32;phrase][SuperCastPhraseDescriptor].  This is used to control method lookup,
  * and is a generalization of the concept of `super` found in some
  * object-oriented languages.
  *

@@ -34,7 +34,10 @@ package com.avail.interpreter.primitive.bootstrap.syntax
 
 import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
 import com.avail.descriptor.bundles.A_Bundle
-import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.*
+import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.CREATE_LITERAL_PHRASE
+import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.CREATE_LITERAL_TOKEN
+import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.MACRO_DEFINER
+import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.METHOD_DEFINER
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.phrases.A_Phrase.Companion.token
 import com.avail.descriptor.phrases.BlockPhraseDescriptor.Companion.newBlockNode
@@ -58,10 +61,10 @@ import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AmbiguousNameException
 import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import com.avail.exceptions.MalformedMessageException
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.Bootstrap
 import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive**: Construct a method and an accompanying literalizing macro that

@@ -32,10 +32,9 @@
 
 package com.avail.descriptor.types;
 
-import com.avail.annotations.AvailMethod;
-import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.representation.A_BasicObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.representation.Mutability;
 import com.avail.descriptor.tokens.LiteralTokenDescriptor;
 import com.avail.descriptor.tokens.TokenDescriptor;
@@ -102,7 +101,7 @@ extends TypeDescriptor
 		return object.literalType().equals(aLiteralTokenType.literalType());
 	}
 
-	@Override @AvailMethod
+	@Override
 	public int o_Hash (final AvailObject object)
 	{
 		return object.slot(LITERAL_TYPE).hash() ^ 0xF47FF1B1;
@@ -148,7 +147,7 @@ extends TypeDescriptor
 		return object.slot(LITERAL_TYPE).isVacuousType();
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_LiteralType (final AvailObject object)
 	{
 		return object.slot(LITERAL_TYPE);
@@ -161,7 +160,7 @@ extends TypeDescriptor
 		return SerializerOperation.LITERAL_TOKEN_TYPE;
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeIntersection (
 		final AvailObject object,
 		final A_Type another)
@@ -181,7 +180,7 @@ extends TypeDescriptor
 		return another.typeIntersectionOfLiteralTokenType(object);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeIntersectionOfLiteralTokenType (
 		final AvailObject object,
 		final A_Type aLiteralTokenType)
@@ -195,7 +194,7 @@ extends TypeDescriptor
 		return literalTokenType(instance);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeIntersectionOfPrimitiveTypeEnum (
 		final AvailObject object,
 		final Types primitiveTypeEnum)
@@ -221,7 +220,7 @@ extends TypeDescriptor
 		return another.typeUnionOfLiteralTokenType(object);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeUnionOfLiteralTokenType (
 		final AvailObject object,
 		final A_Type aLiteralTokenType)
@@ -235,7 +234,7 @@ extends TypeDescriptor
 		return literalTokenType(instance);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeUnionOfPrimitiveTypeEnum (
 		final AvailObject object,
 		final Types primitiveTypeEnum)

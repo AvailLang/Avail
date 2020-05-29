@@ -32,8 +32,8 @@
 
 package com.avail.exceptions
 
-import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.numbers.A_Number
+import com.avail.descriptor.representation.AvailObject
 import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
@@ -69,7 +69,7 @@ open class AvailException : Exception
 
 	/**
 	 * Construct a new `AvailException` with the specified
-	 * [error code][AvailErrorCode].
+	 * [error&#32;code][AvailErrorCode].
 	 *
 	 * @param errorCode
 	 *   The [error code][AvailErrorCode].
@@ -81,12 +81,12 @@ open class AvailException : Exception
 
 	/**
 	 * Construct a new `AvailException` with the specified
-	 * [error code][AvailErrorCode] and [cause][Throwable].
+	 * [error&#32;code][AvailErrorCode] and [cause][Throwable].
 	 *
 	 * @param errorCode
 	 *   The [error code][AvailErrorCode].
 	 * @param cause
-	 *   The proximal [cause][Throwable] of the [        ].
+	 *   The proximal [cause][Throwable] of the [Exception].
 	 */
 	constructor(errorCode: AvailErrorCode, cause: Throwable) : super(cause)
 	{

@@ -34,8 +34,7 @@ package com.avail.tools.options
 
 /**
  * Exception thrown by the [factory][OptionProcessorFactory]'s validation
- * process in the event that the client-specified [option
- * processor][OptionProcessor] fails validation.
+ * process in the event that the client-specified [option&#32;processor][OptionProcessor] fails validation.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -53,7 +52,7 @@ class ValidationException : RuntimeException
 	 * @param message
 	 *   A (hopefully) informative message explaining why the
 	 *   [factory][OptionProcessorFactory] could not validate the specified
-	 *   [option processor][OptionProcessor].
+	 *   [option&#32;processor][OptionProcessor].
 	 */
 	internal constructor(message: String) : super(message)
 
@@ -72,7 +71,7 @@ class ValidationException : RuntimeException
 	 * @param message
 	 *   A (hopefully) informative message explaining why the
 	 *   [factory][OptionProcessorFactory] could not validate the specified
-	 *   [option processor][OptionProcessor].
+	 *   [option&#32;processor][OptionProcessor].
 	 * @param cause
 	 *   The original [exception][Throwable] which caused the new instance to be
 	 *   raised.

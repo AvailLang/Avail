@@ -32,10 +32,9 @@
 
 package com.avail.descriptor.types;
 
-import com.avail.annotations.AvailMethod;
-import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.representation.A_BasicObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.representation.Mutability;
 import com.avail.descriptor.tokens.TokenDescriptor;
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType;
@@ -97,7 +96,7 @@ extends TypeDescriptor
 		return object.tokenType() == aTokenType.tokenType();
 	}
 
-	@Override @AvailMethod
+	@Override
 	public int o_Hash (final AvailObject object)
 	{
 		return Integer.hashCode((int) object.slot(TOKEN_TYPE_CODE)) ^ 0xCD9A63B7;
@@ -136,7 +135,7 @@ extends TypeDescriptor
 		return object.tokenType() == aTokenType.tokenType();
 	}
 
-	@Override @AvailMethod
+	@Override
 	public TokenType o_TokenType (final AvailObject object)
 	{
 		return lookupTokenType((int) object.slot(TOKEN_TYPE_CODE));
@@ -149,7 +148,7 @@ extends TypeDescriptor
 		return SerializerOperation.TOKEN_TYPE;
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeIntersection (
 		final AvailObject object,
 		final A_Type another)
@@ -169,7 +168,7 @@ extends TypeDescriptor
 		return another.typeIntersectionOfTokenType(object);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeIntersectionOfTokenType (
 		final AvailObject object,
 		final A_Type aTokenType)
@@ -179,7 +178,7 @@ extends TypeDescriptor
 			: bottom();
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeIntersectionOfPrimitiveTypeEnum (
 		final AvailObject object,
 		final Types primitiveTypeEnum)
@@ -205,7 +204,7 @@ extends TypeDescriptor
 		return another.typeUnionOfTokenType(object);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeUnionOfTokenType (
 		final AvailObject object,
 		final A_Type aTokenType)
@@ -215,7 +214,7 @@ extends TypeDescriptor
 			: TOKEN.o();
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeUnionOfPrimitiveTypeEnum (
 		final AvailObject object,
 		final Types primitiveTypeEnum)

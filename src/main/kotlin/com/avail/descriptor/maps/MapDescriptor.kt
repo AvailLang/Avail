@@ -31,26 +31,33 @@
  */
 package com.avail.descriptor.maps
 
-import com.avail.annotations.AvailMethod
 import com.avail.annotations.ThreadSafe
-import com.avail.descriptor.Descriptor
 import com.avail.descriptor.maps.LinearMapBinDescriptor.Companion.emptyLinearMapBin
 import com.avail.descriptor.maps.MapDescriptor.ObjectSlots.ROOT_BIN
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
-import com.avail.descriptor.representation.*
-import com.avail.descriptor.representation.Mutability.*
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObjectFieldHelper
+import com.avail.descriptor.representation.Descriptor
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.Mutability.IMMUTABLE
+import com.avail.descriptor.representation.Mutability.MUTABLE
+import com.avail.descriptor.representation.Mutability.SHARED
+import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.sets.SetDescriptor.Companion.generateSetFrom
 import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.*
-import com.avail.descriptor.tuples.StringDescriptor.*
-import com.avail.descriptor.types.*
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.generateObjectTupleFrom
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.StringDescriptor.stringFrom
+import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.InstanceTypeDescriptor.instanceType
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.wholeNumbers
 import com.avail.descriptor.types.MapTypeDescriptor.mapTypeForSizesKeyTypeValueType
 import com.avail.descriptor.types.TupleTypeDescriptor.stringType
 import com.avail.descriptor.types.TypeDescriptor.Types
+import com.avail.descriptor.types.TypeTag
 import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.MapException
 import com.avail.optimizer.jvm.CheckedMethod
@@ -61,8 +68,6 @@ import com.avail.utility.Casts.cast
 import com.avail.utility.Strings.newlineTab
 import com.avail.utility.json.JSONWriter
 import java.util.*
-import java.util.function.BiConsumer
-import java.util.function.BiFunction
 
 /**
  * An Avail [map][MapDescriptor] refers to the root of a Bagwell Ideal Hash
@@ -235,11 +240,9 @@ class MapDescriptor private constructor(
 	override fun o_NameForDebugger(self: AvailObject) =
 		(super.o_NameForDebugger(self) + ": mapSize=${self.mapSize()}")
 
-	@AvailMethod
 	override fun o_Equals(self: AvailObject, another: A_BasicObject) =
 		another.equalsMap(self)
 
-	@AvailMethod
 	override fun o_EqualsMap(self: AvailObject, aMap: A_Map): Boolean = when {
 		self.sameAddressAs(aMap) -> true
 		rootBin(self).sameAddressAs(rootBin(aMap)) -> true
@@ -268,23 +271,20 @@ class MapDescriptor private constructor(
 
 	override fun o_ForEach(
 		self: AvailObject,
-		action: BiConsumer<in AvailObject, in AvailObject>
+		action: (AvailObject, AvailObject) -> Unit
 	) = rootBin(self).forEachInMapBin(action)
 
-	@AvailMethod
 	override fun o_IsInstanceOfKind(
 		self: AvailObject,
-		aTypeObject: A_Type
+		aType: A_Type
 	): Boolean {
 		when {
-			aTypeObject.isSupertypeOfPrimitiveTypeEnum(Types.NONTYPE) ->
-				return true
-			!aTypeObject.isMapType -> return false
-			!aTypeObject.sizeRange().rangeIncludesInt(self.mapSize()) ->
-				return false
+			aType.isSupertypeOfPrimitiveTypeEnum(Types.NONTYPE) -> return true
+			!aType.isMapType -> return false
+			!aType.sizeRange().rangeIncludesInt(self.mapSize()) -> return false
 		}
-		val keyType = aTypeObject.keyType()
-		val valueType = aTypeObject.valueType()
+		val keyType = aType.keyType()
+		val valueType = aType.valueType()
 		val rootBin = rootBin(self)
 		val keyTypeIsEnumeration = keyType.isEnumeration
 		val valueTypeIsEnumeration = valueType.isEnumeration
@@ -336,7 +336,6 @@ class MapDescriptor private constructor(
 		}
 	}
 
-	@AvailMethod
 	override fun o_Hash(self: AvailObject): Int {
 		// A map's hash is a simple function of its rootBin's keysHash and
 		// valuesHash.
@@ -348,10 +347,8 @@ class MapDescriptor private constructor(
 		return h
 	}
 
-	@AvailMethod
 	override fun o_IsMap(self: AvailObject) = true
 
-	@AvailMethod
 	override fun o_Kind(self: AvailObject): A_Type {
 		val root = rootBin(self)
 		return mapTypeForSizesKeyTypeValueType(
@@ -364,7 +361,6 @@ class MapDescriptor private constructor(
 	 * Answer the value of the map at the specified key. Fail if the key is not
 	 * present.
 	 */
-	@AvailMethod
 	override fun o_MapAt(
 		self: AvailObject,
 		keyObject: A_BasicObject
@@ -388,7 +384,6 @@ class MapDescriptor private constructor(
 	 * @return
 	 *   The new map, possibly the given one if [canDestroy] is true.
 	 */
-	@AvailMethod
 	override fun o_MapAtPuttingCanDestroy(
 		self: AvailObject,
 		keyObject: A_BasicObject,
@@ -417,7 +412,7 @@ class MapDescriptor private constructor(
 		self: AvailObject,
 		key: A_BasicObject,
 		notFoundValue: A_BasicObject,
-		transformer: BiFunction<AvailObject, AvailObject, A_BasicObject>,
+		transformer: (AvailObject, AvailObject) -> A_BasicObject,
 		canDestroy: Boolean
 	): A_Map {
 		val oldRoot = rootBin(self)
@@ -443,8 +438,8 @@ class MapDescriptor private constructor(
 	 * Answer a set with all my keys.  Mark the keys as immutable because
 	 * they'll be shared with the new set.
 	 */
-	@AvailMethod
-	override fun o_KeysAsSet(self: AvailObject): A_Set {
+	override fun o_KeysAsSet(self: AvailObject): A_Set
+	{
 		return generateSetFrom(self.mapSize(), self.mapIterable()) {
 			(key) -> key.makeImmutable()
 		}
@@ -454,14 +449,13 @@ class MapDescriptor private constructor(
 	 * Answer a tuple with all my values.  Mark the values as immutable because
 	 * they'll be shared with the new tuple.
 	 */
-	@AvailMethod
-	override fun o_ValuesAsTuple(self: AvailObject): A_Tuple {
+	override fun o_ValuesAsTuple(self: AvailObject): A_Tuple
+	{
 		val mapIterable = self.mapIterable()
 		return generateObjectTupleFrom(self.mapSize()) {
 			mapIterable.next().value().makeImmutable() }
 	}
 
-	@AvailMethod
 	override fun o_MapWithoutKeyCanDestroy(
 		self: AvailObject,
 		keyObject: A_BasicObject,
@@ -485,18 +479,14 @@ class MapDescriptor private constructor(
 		return createFromBin(root)
 	}
 
-	@AvailMethod
-	override fun o_HasKey(self: AvailObject, key: A_BasicObject) =
-		rootBin(self).mapBinAtHash(key, key.hash()) !== null
+	override fun o_HasKey(self: AvailObject, keyObject: A_BasicObject) =
+		rootBin(self).mapBinAtHash(keyObject, keyObject.hash()) !== null
 
-	@AvailMethod
 	override fun o_MapSize(self: AvailObject) = rootBin(self).mapBinSize()
 
-	@AvailMethod
-	override fun o_MapIterable(self: AvailObject) =
+	override fun o_MapIterable(self: AvailObject): MapIterable =
 		rootBin(self).mapBinIterable()
 
-	@AvailMethod
 	@ThreadSafe
 	override fun o_SerializerOperation(self: AvailObject) =
 		SerializerOperation.MAP
@@ -604,14 +594,6 @@ class MapDescriptor private constructor(
 		fun key() = key!!
 
 		/**
-		 * Answer the [Entry]'s key's hash.
-		 *
-		 * @return
-		 *   The entry's key's precomputed hash.
-		 */
-		fun keyHash() = keyHash
-
-		/**
 		 * Answer the [Entry]'s value.
 		 *
 		 * @return
@@ -642,9 +624,7 @@ class MapDescriptor private constructor(
 		 *
 		 * @return The key's precomputed hash value.
 		 */
-		operator fun component3(): Int {
-			return keyHash()
-		}
+		operator fun component3(): Int = keyHash
 	}
 
 	/**
@@ -776,6 +756,7 @@ class MapDescriptor private constructor(
 		 * @return
 		 *   The resultant map.
 		 */
+		@Suppress("unused")
 		fun combineMapsCanDestroy(
 			destination: A_Map,
 			source: A_Map,

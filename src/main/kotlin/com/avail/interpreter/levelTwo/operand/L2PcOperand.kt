@@ -337,8 +337,9 @@ class L2PcOperand constructor (
 	 * Write JVM bytecodes to the JVMTranslator which will push:
 	 *
 	 *  1. An [Array] of [AvailObject] containing the value of each live boxed
-	 *    register, and
-	 *  1. A [LongArray] containing encoded data from each live unboxed register.
+	 *     register, and
+	 *  1. A [LongArray] containing encoded data from each live unboxed
+	 *     register.
 	 *
 	 * Also, associate within the [JVMTranslator] the information needed to
 	 * extract these live registers when the target [L2_ENTER_L2_CHUNK] is

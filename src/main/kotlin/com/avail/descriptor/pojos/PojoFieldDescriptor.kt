@@ -31,14 +31,13 @@
  */
 package com.avail.descriptor.pojos
 
-import com.avail.annotations.AvailMethod
-import com.avail.descriptor.Descriptor
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import com.avail.descriptor.pojos.PojoFieldDescriptor.ObjectSlots.*
 import com.avail.descriptor.pojos.PojoFinalFieldDescriptor.Companion.pojoFinalFieldForInnerType
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.AvailObject.Companion.multiplier
+import com.avail.descriptor.representation.Descriptor
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.types.*
@@ -125,11 +124,9 @@ class PojoFieldDescriptor private constructor(
 		}
 	}
 
-	@AvailMethod
 	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean =
 		another.equalsPojoField(self.slot(FIELD), self.slot(RECEIVER))
 
-	@AvailMethod
 	override fun o_EqualsPojoField(
 		self: AvailObject,
 		field: AvailObject,
@@ -137,7 +134,6 @@ class PojoFieldDescriptor private constructor(
 	): Boolean = (self.slot(FIELD).equals(field)
 		&& self.slot(RECEIVER).equals(receiver))
 
-	@AvailMethod
 	@Throws(VariableGetException::class)
 	override fun o_GetValue(self: AvailObject): AvailObject
 	{
@@ -156,7 +152,6 @@ class PojoFieldDescriptor private constructor(
 		}
 	}
 
-	@AvailMethod
 	override fun o_Hash(self: AvailObject): Int
 	{
 		var h = self.slot(FIELD).hash() xor 0x2199C0C3
@@ -172,7 +167,6 @@ class PojoFieldDescriptor private constructor(
 		return true
 	}
 
-	@AvailMethod
 	override fun o_Kind(self: AvailObject): A_Type = self.slot(KIND)
 
 	override fun o_SerializerOperation(
@@ -187,7 +181,6 @@ class PojoFieldDescriptor private constructor(
 		throw unsupportedOperationException()
 	}
 
-	@AvailMethod
 	override fun o_SetValue(
 		self: AvailObject,
 		newValue: A_BasicObject
@@ -229,7 +222,6 @@ class PojoFieldDescriptor private constructor(
 		}
 	}
 
-	@AvailMethod
 	override fun o_Value(self: AvailObject): AvailObject
 	{
 		val receiver = self.slot(RECEIVER).javaObjectNotNull<Any>()

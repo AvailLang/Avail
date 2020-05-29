@@ -39,11 +39,13 @@ import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.TupleTypeDescriptor.stringType
-import com.avail.exceptions.AvailErrorCode.*
-import com.avail.interpreter.execution.Interpreter
+import com.avail.exceptions.AvailErrorCode.E_INVALID_PATH
+import com.avail.exceptions.AvailErrorCode.E_IO_ERROR
+import com.avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.execution.Interpreter
 import com.avail.io.IOSystem
 import java.io.IOError
 import java.nio.file.InvalidPathException

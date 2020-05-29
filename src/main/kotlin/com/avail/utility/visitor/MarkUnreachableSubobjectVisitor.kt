@@ -32,8 +32,8 @@
 
 package com.avail.utility.visitor
 
-import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
 
 /**
  * Provide the ability to iterate over an object's fields, marking each child

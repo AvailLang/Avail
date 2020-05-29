@@ -32,7 +32,11 @@
 
 package com.avail.io
 
-import java.io.*
+import java.io.BufferedWriter
+import java.io.IOException
+import java.io.OutputStreamWriter
+import java.io.PrintStream
+import java.io.Writer
 import java.nio.CharBuffer
 import java.nio.channels.CompletionHandler
 import java.nio.charset.CodingErrorAction
@@ -45,7 +49,7 @@ import java.nio.charset.StandardCharsets
  *
  * @constructor
  * Construct a new [ConsoleOutputChannel] that wraps the specified
- * [output stream][PrintStream].
+ * [output&#32;stream][PrintStream].
  *
  * @param stream
  *   An output stream. This should generally be either [System.out] or

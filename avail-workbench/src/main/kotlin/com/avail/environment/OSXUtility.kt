@@ -32,7 +32,6 @@
 
 package com.avail.environment
 
-import com.avail.utility.evaluation.Transformer1
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 import java.lang.reflect.Proxy
@@ -222,8 +221,8 @@ object OSXUtility
 	}
 
 	/**
-	 * Create a [Proxy] object around the provided [Transformer1] to invoke
-	 * it when the method with the specified name is invoked in the proxy.
+	 * Create a [Proxy] object around the provided transformer to invoke it when
+	 * the method with the specified name is invoked in the proxy.
 	 *
 	 * @param handlerMessage
 	 * @param handler

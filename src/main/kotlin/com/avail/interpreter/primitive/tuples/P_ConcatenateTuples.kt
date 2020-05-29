@@ -43,10 +43,14 @@ import com.avail.descriptor.types.ConcatenatedTupleTypeDescriptor.concatenatingA
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.InstanceTypeDescriptor.instanceType
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.integerRangeType
-import com.avail.descriptor.types.TupleTypeDescriptor.*
-import com.avail.interpreter.execution.Interpreter
+import com.avail.descriptor.types.TupleTypeDescriptor.mostGeneralTupleType
+import com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType
+import com.avail.descriptor.types.TupleTypeDescriptor.zeroOrMoreOf
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CanFold
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand

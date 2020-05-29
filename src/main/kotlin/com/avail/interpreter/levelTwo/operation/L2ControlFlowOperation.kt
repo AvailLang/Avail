@@ -35,7 +35,6 @@ import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2NamedOperandType
 import com.avail.interpreter.levelTwo.L2OperandType
 import com.avail.interpreter.levelTwo.L2Operation
-import com.avail.interpreter.levelTwo.operand.L2Operand
 import com.avail.interpreter.levelTwo.operand.L2PcOperand
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.optimizer.L2BasicBlock
@@ -102,8 +101,8 @@ abstract class L2ControlFlowOperation protected constructor(
 	 *   The [L2Instruction] to examine.
 	 * @return
 	 *   The [List] of target [L2PcOperand]s that are operands of the given
-	 *   instruction.  These may be reachable directly via a control flow change,
-	 *   or reachable only from some other mechanism like continuation
+	 *   instruction.  These may be reachable directly via a control flow
+	 *   change, or reachable only from some other mechanism like continuation
 	 *   reification and later resumption of a continuation.
 	 */
 	override fun targetEdges(instruction: L2Instruction): List<L2PcOperand> =

@@ -34,7 +34,8 @@ package com.avail.interpreter.primitive.files
 
 import com.avail.descriptor.fiber.A_Fiber
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
-import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.functions.A_Function
+import com.avail.descriptor.numbers.IntegerDescriptor
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
@@ -49,14 +50,21 @@ import com.avail.descriptor.types.IntegerRangeTypeDescriptor.inclusive
 import com.avail.descriptor.types.SetTypeDescriptor.setTypeForSizesContentType
 import com.avail.descriptor.types.TupleTypeDescriptor.stringType
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
-import com.avail.exceptions.AvailErrorCode.*
-import com.avail.interpreter.execution.Interpreter
+import com.avail.exceptions.AvailErrorCode.E_FILE_EXISTS
+import com.avail.exceptions.AvailErrorCode.E_INVALID_PATH
+import com.avail.exceptions.AvailErrorCode.E_IO_ERROR
+import com.avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.execution.Interpreter
 import com.avail.io.IOSystem
 import java.io.IOException
-import java.nio.file.*
+import java.nio.file.AccessDeniedException
+import java.nio.file.FileAlreadyExistsException
+import java.nio.file.Files
+import java.nio.file.InvalidPathException
+import java.nio.file.Path
 import java.nio.file.attribute.PosixFilePermission
 import java.nio.file.attribute.PosixFilePermissions
 import java.util.*
@@ -168,7 +176,7 @@ object P_CreateDirectory : Primitive(5, CanInline, HasSideEffect)
                    runtime,
                    newFiber,
                    succeed,
-                   emptyList<A_BasicObject>())
+                   emptyList())
            })
 		return interpreter.primitiveSuccess(newFiber)
 	}
@@ -190,9 +198,9 @@ object P_CreateDirectory : Primitive(5, CanInline, HasSideEffect)
 		enumerationWith(set(E_INVALID_PATH))
 
 	/**
-	 * Convert the specified [set][SetDescriptor] of
-	 * [ordinals][IntegerDescriptor] into the corresponding [set][Set] of [POSIX
-	 * file permissions][PosixFilePermission].
+	 * Convert the specified [set][A_Set] of
+	 * [ordinals][IntegerDescriptor] into the corresponding [set][Set] of
+	 * [POSIX&#32;file permissions][PosixFilePermission].
 	 *
 	 * @param ordinals
 	 *   Some ordinals.

@@ -31,14 +31,14 @@
  */
 package com.avail.descriptor.functions
 
-import com.avail.descriptor.Descriptor
-import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.functions.ContinuationRegisterDumpDescriptor.IntegerSlots.INTEGER_SLOTS_
 import com.avail.descriptor.functions.ContinuationRegisterDumpDescriptor.ObjectSlots.OBJECT_SLOTS_
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.AvailObject.Companion.newObjectIndexedIntegerIndexedDescriptor
+import com.avail.descriptor.representation.Descriptor
 import com.avail.descriptor.representation.IntegerSlotsEnum
 import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.types.TypeTag
 import com.avail.interpreter.levelTwo.L2Chunk

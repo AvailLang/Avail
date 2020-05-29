@@ -48,15 +48,15 @@ import com.avail.descriptor.types.IntegerRangeTypeDescriptor.integerRangeType
 import com.avail.descriptor.types.TypeDescriptor.Types.NUMBER
 import com.avail.exceptions.ArithmeticException
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_SUBTRACT_LIKE_INFINITIES
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Fallibility.CallSiteCanFail
 import com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT
 import com.avail.interpreter.levelTwo.operation.L2_SUBTRACT_INT_MINUS_INT
 import com.avail.interpreter.levelTwo.operation.L2_SUBTRACT_INT_MINUS_INT_MOD_32_BITS
 import com.avail.optimizer.L1Translator

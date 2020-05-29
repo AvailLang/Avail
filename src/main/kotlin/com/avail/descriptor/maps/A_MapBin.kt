@@ -36,8 +36,6 @@ import com.avail.descriptor.maps.MapDescriptor.MapIterable
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.types.A_Type
-import java.util.function.BiConsumer
-import java.util.function.BiFunction
 
 /**
  * `A_MapBin` is a collection of keys and their associated values, which makes
@@ -187,14 +185,13 @@ interface A_MapBin : A_BasicObject {
 	fun mapBinValueUnionKind(): A_Type
 
 	/**
-	 * Execute the given [BiConsumer] with each key and associated value in this
+	 * Execute the given action with each key and associated value in this
 	 * map bin.
 	 *
 	 * @param action
-	 *   The [BiConsumer] to execute with each key/value pair.
+	 *   The action to execute with each key/value pair.
 	 */
-	fun forEachInMapBin(
-		action: BiConsumer<in AvailObject, in AvailObject>)
+	fun forEachInMapBin(action: (AvailObject, AvailObject) -> Unit)
 
 	/**
 	 * Transform an element of this map bin.  If there is an entry for the key,
@@ -210,8 +207,9 @@ interface A_MapBin : A_BasicObject {
 	 * @param notFoundValue
 	 *   What to pass the transformer if the key was not found.
 	 * @param transformer
-	 *   A [BiFunction] that takes the key and its value, or the notFoundValue,
-	 *   and produces a replacement value to associate with the key.
+	 *   A binary operator that takes the key and its value, or the
+	 *   `notFoundValue`, and produces a replacement value to associate with the
+	 *   key.
 	 * @param myLevel
 	 *   The level of the map bin.
 	 * @param canDestroy
@@ -223,7 +221,7 @@ interface A_MapBin : A_BasicObject {
 		key: A_BasicObject,
 		keyHash: Int,
 		notFoundValue: A_BasicObject,
-		transformer: BiFunction<AvailObject, AvailObject, A_BasicObject>,
+		transformer: (AvailObject, AvailObject) -> A_BasicObject,
 		myLevel: Int,
 		canDestroy: Boolean
 	): A_MapBin

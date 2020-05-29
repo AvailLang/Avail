@@ -31,7 +31,6 @@
  */
 package com.avail.descriptor.numbers
 
-import com.avail.annotations.AvailMethod
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.IntegerSlotsEnum
 import com.avail.descriptor.representation.Mutability
@@ -67,6 +66,5 @@ abstract class ExtendedIntegerDescriptor protected constructor(
 ) : AbstractNumberDescriptor(
 	mutability, typeTag, objectSlotsEnumClass, integerSlotsEnumClass)
 {
-	@AvailMethod
 	override fun o_IsExtendedInteger(self: AvailObject): Boolean = true
 }

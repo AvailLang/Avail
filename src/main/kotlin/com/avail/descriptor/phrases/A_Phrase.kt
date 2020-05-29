@@ -33,17 +33,17 @@ package com.avail.descriptor.phrases
 
 import com.avail.compiler.AvailCodeGenerator
 import com.avail.compiler.AvailCompiler
-import com.avail.descriptor.module.A_Module
-import com.avail.descriptor.representation.NilDescriptor
-import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.functions.CompiledCodeDescriptor
+import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.A_BasicObject.Companion.dispatch
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.NilDescriptor
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.tokens.A_Token
 import com.avail.descriptor.tuples.A_Tuple
@@ -53,9 +53,6 @@ import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import com.avail.descriptor.types.TypeDescriptor
 import com.avail.descriptor.variables.A_Variable
 import com.avail.interpreter.Primitive
-import com.avail.utility.evaluation.Continuation1NotNull
-import java.util.function.Consumer
-import java.util.function.UnaryOperator
 
 /**
  * An `A_Phrase` is generally produced when the [AvailCompiler] parses source
@@ -126,9 +123,9 @@ interface A_Phrase : A_BasicObject {
 		 * Perform the given action for each child phrase of this phrase.
 		 *
 		 * @param action
-		 *   The [Consumer] to perform with this phrase's direct subphrases.
+		 *   The action to perform with this phrase's direct subphrases.
 		 */
-		fun A_Phrase.childrenDo(action: Consumer<A_Phrase>) =
+		fun A_Phrase.childrenDo(action: (A_Phrase) -> Unit) =
 			dispatch { o_ChildrenDo(it, action) }
 
 		/**
@@ -139,7 +136,7 @@ interface A_Phrase : A_BasicObject {
 		 * @param transformer
 		 *   How to transform each child phrase.
 		 */
-		fun A_Phrase.childrenMap(transformer: UnaryOperator<A_Phrase>) =
+		fun A_Phrase.childrenMap(transformer: (A_Phrase) -> A_Phrase) =
 			dispatch { o_ChildrenMap(it, transformer) }
 
 		/**
@@ -316,7 +313,7 @@ interface A_Phrase : A_BasicObject {
 		 *   The flattened list of my statements.
 		 */
 		fun A_Phrase.flattenStatementsInto(
-			accumulatedStatements: List<A_Phrase>
+			accumulatedStatements: MutableList<A_Phrase>
 		) = dispatch { o_FlattenStatementsInto(it, accumulatedStatements) }
 
 		/**
@@ -350,7 +347,7 @@ interface A_Phrase : A_BasicObject {
 		 * Answer the [phrase][PhraseDescriptor] producing the value to be
 		 * assigned during initialization of a
 		 * [variable][PhraseKind.VARIABLE_USE_PHRASE]
-		 * [declaration][DeclarationPhraseDescriptor.  If there is no
+		 * [declaration][DeclarationPhraseDescriptor].  If there is no
 		 * initialization expression, answer [nil].
 		 *
 		 * @return
@@ -568,7 +565,7 @@ interface A_Phrase : A_BasicObject {
 		 *   What to do with each statement.
 		 */
 		fun A_Phrase.statementsDo(
-			continuation: Continuation1NotNull<A_Phrase>
+			continuation: (A_Phrase) -> Unit
 		) = dispatch { o_StatementsDo(it, continuation) }
 
 		/**

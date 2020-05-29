@@ -31,12 +31,11 @@
  */
 package com.avail.descriptor.pojos
 
-import com.avail.annotations.AvailMethod
-import com.avail.descriptor.Descriptor
 import com.avail.descriptor.pojos.PojoFinalFieldDescriptor.ObjectSlots.*
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.AvailObject.Companion.multiplier
+import com.avail.descriptor.representation.Descriptor
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.types.*
@@ -104,11 +103,9 @@ class PojoFinalFieldDescriptor(
 		E_CANNOT_MODIFY_FINAL_JAVA_FIELD
 	)
 
-	@AvailMethod
 	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean =
 		another.equalsPojoField(self.slot(FIELD), self.slot(RECEIVER))
 
-	@AvailMethod
 	override fun o_EqualsPojoField(
 		self: AvailObject,
 		field: AvailObject,
@@ -116,11 +113,9 @@ class PojoFinalFieldDescriptor(
 	): Boolean = (self.slot(FIELD).equals(field)
 		&& self.slot(RECEIVER).equals(receiver))
 
-	@AvailMethod
 	override fun o_GetValue(self: AvailObject): AvailObject =
 		self.slot(CACHED_VALUE)
 
-	@AvailMethod
 	override fun o_Hash(self: AvailObject): Int
 	{
 		var h = self.slot(FIELD).hash()
@@ -132,7 +127,6 @@ class PojoFinalFieldDescriptor(
 	// A pojo final field has a value by definition.
 	override fun o_HasValue(self: AvailObject): Boolean = true
 
-	@AvailMethod
 	override fun o_Kind(self: AvailObject): A_Type = self.slot(KIND)
 
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation
@@ -155,7 +149,6 @@ class PojoFinalFieldDescriptor(
 		throw VariableSetException(E_CANNOT_MODIFY_FINAL_JAVA_FIELD)
 	}
 
-	@AvailMethod
 	override fun o_Value(self: AvailObject): AvailObject =
 		self.slot(CACHED_VALUE)
 

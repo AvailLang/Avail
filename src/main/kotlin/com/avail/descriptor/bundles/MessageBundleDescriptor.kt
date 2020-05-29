@@ -31,15 +31,17 @@
  */
 package com.avail.descriptor.bundles
 
-import com.avail.annotations.AvailMethod
 import com.avail.compiler.splitter.MessageSplitter
-import com.avail.descriptor.Descriptor
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.atoms.A_Atom.Companion.atomName
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.bundles.A_Bundle.Companion.message
 import com.avail.descriptor.bundles.MessageBundleDescriptor.ObjectSlots
-import com.avail.descriptor.bundles.MessageBundleDescriptor.ObjectSlots.*
+import com.avail.descriptor.bundles.MessageBundleDescriptor.ObjectSlots.DEFINITION_PARSING_PLANS
+import com.avail.descriptor.bundles.MessageBundleDescriptor.ObjectSlots.GRAMMATICAL_RESTRICTIONS
+import com.avail.descriptor.bundles.MessageBundleDescriptor.ObjectSlots.MESSAGE
+import com.avail.descriptor.bundles.MessageBundleDescriptor.ObjectSlots.MESSAGE_SPLITTER_POJO
+import com.avail.descriptor.bundles.MessageBundleDescriptor.ObjectSlots.METHOD
 import com.avail.descriptor.maps.A_Map
 import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.methods.A_Definition
@@ -51,8 +53,13 @@ import com.avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.definition
 import com.avail.descriptor.parsing.DefinitionParsingPlanDescriptor
 import com.avail.descriptor.parsing.DefinitionParsingPlanDescriptor.Companion.newParsingPlan
 import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
-import com.avail.descriptor.representation.*
+import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
+import com.avail.descriptor.representation.AbstractSlotsEnum
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.Descriptor
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.descriptor.tokens.A_Token
@@ -73,13 +80,14 @@ import java.util.*
  * repeatedly parsing the same constructs (tokens and subexpressions) for
  * different purposes.
  *
- * Additionally, the message bundle's [grammatical&#32;
- * restrictions][ObjectSlots.GRAMMATICAL_RESTRICTIONS] are held here, rather
- * than with the [method][MethodDescriptor], since these rules are intended to
- * work with the actual [tokens][A_Token] that occur (i.e., how sends are
- * *written*), not their underlying semantics (what the methods *do*).
+ * Additionally, the message bundle's
+ * [grammatical&#32;restrictions][ObjectSlots.GRAMMATICAL_RESTRICTIONS] are held
+ * here, rather than with the [method][MethodDescriptor], since these rules are
+ * intended to work with the actual [tokens][A_Token] that occur (i.e., how
+ * sends are *written*), not their underlying semantics (what the methods *do*).
  *
  * @constructor
+ * Construct a new `MessageBundleDescriptor`.
  *
  * @param mutability
  *   The [mutability][Mutability] of the new descriptor.
@@ -116,9 +124,9 @@ class MessageBundleDescriptor private constructor(
 		MESSAGE_SPLITTER_POJO,
 
 		/**
-		 * A [set][A_Set] of [grammatical&#32;
-		 * restrictions][A_GrammaticalRestriction] that apply to this message
-		 * bundle.
+		 * A [set][A_Set] of
+		 * [grammatical&#32;restrictions][A_GrammaticalRestriction] that apply
+		 * to this message bundle.
 		 */
 		GRAMMATICAL_RESTRICTIONS,
 
@@ -136,7 +144,6 @@ class MessageBundleDescriptor private constructor(
 		|| e === GRAMMATICAL_RESTRICTIONS
 		|| e === DEFINITION_PARSING_PLANS
 
-	@AvailMethod
 	override fun o_AddGrammaticalRestriction(
 		self: AvailObject,
 		grammaticalRestriction: A_GrammaticalRestriction
@@ -144,55 +151,46 @@ class MessageBundleDescriptor private constructor(
 			addGrammaticalRestriction(self, grammaticalRestriction)
 		}
 
-	@AvailMethod
 	override fun o_AddDefinitionParsingPlan(
 		self: AvailObject,
 		plan: A_DefinitionParsingPlan
 	) = self.synchronizeIf(isShared) { addDefinitionParsingPlan(self, plan) }
 
-	@AvailMethod
 	override fun o_BundleMethod(self: AvailObject) =
 		self.mutableSlot(METHOD)
 
-	override fun o_DefinitionParsingPlans(self: AvailObject) =
+	override fun o_DefinitionParsingPlans(self: AvailObject): A_Map =
 		self.slot(DEFINITION_PARSING_PLANS)
 
-	@AvailMethod
 	override fun o_Equals(self: AvailObject, another: A_BasicObject) =
 		another.traversed().sameAddressAs(self)
 
-	@AvailMethod
-	override fun o_GrammaticalRestrictions(self: AvailObject) =
+	override fun o_GrammaticalRestrictions(self: AvailObject): A_Set =
 		self.mutableSlot(GRAMMATICAL_RESTRICTIONS)
 
-	@AvailMethod
 	override fun o_HasGrammaticalRestrictions(self: AvailObject) =
 		self.mutableSlot(GRAMMATICAL_RESTRICTIONS).setSize() > 0
 
-	@AvailMethod
 	override fun o_Hash(self: AvailObject) =
 		self.message().hash() xor 0x0312CAB9
 
-	@AvailMethod
 	override fun o_Kind(self: AvailObject) = MESSAGE_BUNDLE.o()
 
-	@AvailMethod
-	override fun o_Message(self: AvailObject) = self.slot(MESSAGE)
+	override fun o_Message(self: AvailObject): A_Atom = self.slot(MESSAGE)
 
-	@AvailMethod
-	override fun o_MessageParts(self: AvailObject): A_Tuple {
+	override fun o_MessageParts(self: AvailObject): A_Tuple
+	{
 		val splitterPojo = self.slot(MESSAGE_SPLITTER_POJO)
 		val messageSplitter = splitterPojo.javaObjectNotNull<MessageSplitter>()
 		return messageSplitter.messagePartsTuple
 	}
 
-	@AvailMethod
-	override fun o_MessageSplitter(self: AvailObject): MessageSplitter {
+	override fun o_MessageSplitter(self: AvailObject): MessageSplitter
+	{
 		val splitterPojo = self.slot(MESSAGE_SPLITTER_POJO)
 		return splitterPojo.javaObjectNotNull()
 	}
 
-	@AvailMethod
 	override fun o_RemovePlanForDefinition(
 		self: AvailObject,
 		definition: A_Definition
@@ -200,7 +198,6 @@ class MessageBundleDescriptor private constructor(
 		removePlanForDefinition(self, definition)
 	}
 
-	@AvailMethod
 	override fun o_RemoveGrammaticalRestriction(
 		self: AvailObject,
 		obsoleteRestriction: A_GrammaticalRestriction
@@ -208,7 +205,6 @@ class MessageBundleDescriptor private constructor(
 		removeGrammaticalRestriction(self, obsoleteRestriction)
 	}
 
-	@AvailMethod
 	override fun o_SerializerOperation(self: AvailObject) =
 		SerializerOperation.MESSAGE_BUNDLE
 
@@ -225,16 +221,16 @@ class MessageBundleDescriptor private constructor(
 
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
-		aStream: StringBuilder,
+		builder: StringBuilder,
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int
 	) {
 		// The existing definitions are also printed in parentheses to help
 		// distinguish polymorphism from occurrences of non-polymorphic
 		// homonyms.
-		aStream.append("bundle \"")
-		aStream.append(self.message().atomName().asNativeString())
-		aStream.append("\"")
+		builder.append("bundle \"")
+		builder.append(self.message().atomName().asNativeString())
+		builder.append("\"")
 	}
 
 	override fun mutable() = mutable
@@ -291,7 +287,7 @@ class MessageBundleDescriptor private constructor(
 		 * @param self
 		 *   The affected message bundle.
 		 * @param grammaticalRestriction
-		 *   A [grammatical&#32;restriction][A_GrammaticalRestriction].
+		 *   A [grammatical restriction][A_GrammaticalRestriction].
 		 */
 		private fun addGrammaticalRestriction(
 			self: AvailObject,
@@ -309,7 +305,7 @@ class MessageBundleDescriptor private constructor(
 		 * @param self
 		 *   A message bundle.
 		 * @param obsoleteRestriction
-		 *   The [grammatical&#32; restriction][A_GrammaticalRestriction] to
+		 *   The [grammatical&#32;restriction][A_GrammaticalRestriction] to
 		 *   remove.
 		 */
 		private fun removeGrammaticalRestriction(
@@ -324,9 +320,9 @@ class MessageBundleDescriptor private constructor(
 		}
 
 		/**
-		 * Create a new [message&#32; bundle][A_Bundle] for the given message.
-		 * Add the bundle to the method's collection of [owning&32;
-		 * bundles][MethodDescriptor.ObjectSlots.OWNING_BUNDLES].
+		 * Create a new [message&#32;bundle][A_Bundle] for the given message.
+		 * Add the bundle to the method's collection of
+		 * [owning&32;bundles][MethodDescriptor.ObjectSlots.OWNING_BUNDLES].
 		 *
 		 * @param methodName
 		 *   The message name, an [atom][AtomDescriptor].
@@ -335,7 +331,7 @@ class MessageBundleDescriptor private constructor(
 		 * @param splitter
 		 *   A MessageSplitter for this message name.
 		 * @return
-		 *   A new [message&#32; bundle][A_Bundle].
+		 *   A new [message bundle][A_Bundle].
 		 */
 		fun newBundle(
 			methodName: A_Atom,

@@ -37,12 +37,14 @@ import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.InstanceMetaDescriptor.instanceMeta
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.wholeNumbers
 import com.avail.descriptor.types.SetTypeDescriptor.setMeta
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CanFold
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Extract a [set&#32;type][SetTypeDescriptor]'s
+ * **Primitive:** Extract a [set type][SetTypeDescriptor]'s
  * [range][IntegerRangeTypeDescriptor] of sizes. This is the range of sizes that
  * a [set][SetDescriptor] must fall in to be considered a member of the set
  * type, assuming the elements all satisfy the set type's element

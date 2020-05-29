@@ -40,9 +40,11 @@ import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Primitive.Flag.Invokes
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper

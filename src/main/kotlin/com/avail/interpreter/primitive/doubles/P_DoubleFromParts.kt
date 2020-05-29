@@ -32,8 +32,8 @@
 
 package com.avail.interpreter.primitive.doubles
 
-import com.avail.descriptor.character.CharacterDescriptor.Companion.nonemptyStringOfDigitsType
 import com.avail.descriptor.atoms.A_Atom.Companion.extractBoolean
+import com.avail.descriptor.character.CharacterDescriptor.Companion.nonemptyStringOfDigitsType
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.numbers.DoubleDescriptor.Companion.fromDouble
 import com.avail.descriptor.tuples.A_String
@@ -42,9 +42,11 @@ import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.EnumerationTypeDescriptor.booleanType
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.TypeDescriptor.Types.DOUBLE
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CanFold
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Construct a non-negative [double][A_Number] from parts

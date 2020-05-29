@@ -31,11 +31,11 @@
  */
 package com.avail.interpreter.primitive.files
 
-import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
 import com.avail.descriptor.atoms.A_Atom.Companion.setAtomProperty
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.FILE_KEY
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
@@ -43,10 +43,10 @@ import com.avail.descriptor.types.InstanceTypeDescriptor.instanceType
 import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.E_INVALID_HANDLE
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.execution.Interpreter
 import com.avail.io.IOSystem.FileHandle
 import java.io.IOException
 import java.nio.channels.AsynchronousFileChannel

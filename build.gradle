@@ -30,15 +30,16 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import org.jetbrains.kotlin.gradle.tasks.*
 
 plugins {
 	id 'java'
-	id 'org.jetbrains.kotlin.jvm' version '1.3.61' // $kotlin_version
-	id 'com.github.johnrengelman.shadow' version '5.1.0' // $shadow_version
+	id 'org.jetbrains.kotlin.jvm' version '1.3.72' // $kotlin_version
+	id 'com.github.johnrengelman.shadow' version '5.2.0' // $shadow_version
 }
 
 group 'org.availlang'
@@ -64,36 +65,36 @@ tasks.withType(KotlinCompile) {
 dependencies {
 	// Kotlin.
 	implementation group: 'org.jetbrains.kotlin',
-			name: 'kotlin-stdlib-jdk8',
-			version: "$kotlin_version"
+		name: 'kotlin-stdlib-jdk8',
+		version: "$kotlin_version"
 
 	// JSR-305 null analysis framework.
 	implementation group: 'com.google.code.findbugs',
-			name: 'jsr305',
-			version: "$jsr_version"
+		name: 'jsr305',
+		version: "$jsr_version"
 
 	// ObjectWeb JVM code generation/analysis framework.
 	implementation group: 'org.ow2.asm', name: 'asm', version: "$asm_version"
 	implementation group: 'org.ow2.asm',
-			name: 'asm-analysis',
-			version: "$asm_version"
+		name: 'asm-analysis',
+		version: "$asm_version"
 	implementation group: 'org.ow2.asm',
-			name: 'asm-tree',
-			version: "$asm_version"
+		name: 'asm-tree',
+		version: "$asm_version"
 	implementation group: 'org.ow2.asm',
-			name: 'asm-util',
-			version: "$asm_version"
+		name: 'asm-util',
+		version: "$asm_version"
 
 	// JUnit 5.
 	testRuntimeOnly group: 'org.junit.jupiter',
-			name: 'junit-jupiter-engine',
-			version: "$junit_version"
+		name: 'junit-jupiter-engine',
+		version: "$junit_version"
 	testImplementation group: 'org.junit.jupiter',
-			name: 'junit-jupiter-api',
-			version: "$junit_version"
+		name: 'junit-jupiter-api',
+		version: "$junit_version"
 	testImplementation group: 'org.junit.jupiter',
-			name: 'junit-jupiter-params',
-			version: "$junit_version"
+		name: 'junit-jupiter-params',
+		version: "$junit_version"
 }
 
 // Compute the Avail roots. This is needed to properly configure "test".
@@ -111,6 +112,7 @@ test {
 	useJUnitPlatform()
 	minHeapSize = "4g"
 	maxHeapSize = "6g"
+	enableAssertions = true
 	systemProperty "availRoots", computeAvailRoots()
 }
 
@@ -122,9 +124,9 @@ task generateBuildTime {
 
 	doLast {
 		def formatter = DateTimeFormatter
-				.ofPattern("yyyyMMdd.HHmmss.SSS")
-				.withLocale(Locale.default)
-				.withZone(ZoneId.systemDefault())
+			.ofPattern("yyyyMMdd.HHmmss.SSS")
+			.withLocale(Locale.default)
+			.withZone(ZoneId.systemDefault())
 		def now = formatter.format(Instant.now())
 
 		file(pathToBuildTime).text = "$now\n"
@@ -136,10 +138,10 @@ task generateBuildTime {
 task generatePrimitivesList {
 	// Un-Windows the path, if necessary.
 	def pathAvailBuildMain =
-			"$buildDir/classes/kotlin/main".replaceAll('\\\\', '/')
+		"$buildDir/classes/kotlin/main".replaceAll('\\\\', '/')
 	def allPrimitives = fileTree("$pathAvailBuildMain/com/avail/interpreter")
 	def pathToPrimitivesList =
-			file("$pathAvailBuildMain/com/avail/interpreter/All_Primitives.txt")
+		file("$pathAvailBuildMain/com/avail/interpreter/All_Primitives.txt")
 	allPrimitives.include "**/P_*.class"
 	allPrimitives.exclude '**/*$*.class'
 	allPrimitives.builtBy "compileJava"
@@ -164,17 +166,18 @@ classes.dependsOn generateBuildTime
 classes.dependsOn generatePrimitivesList
 
 // Copy the JAR into the distribution directory.
-task releaseAvail (type: Copy) {
+task releaseAvail(type: Copy) {
 	group = 'release'
 	from shadowJar.outputs.files
 	into file("$projectDir/distro/lib")
+	duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
 
 // Update the dependencies of "assemble".
 assemble.dependsOn releaseAvail
 
 // Remove released libraries.
-task scrubReleases (type: Delete) {
+task scrubReleases(type: Delete) {
 	delete fileTree("$projectDir/distro/lib") {
 		include '**/*.jar'
 	}

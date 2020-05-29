@@ -35,9 +35,13 @@ import com.avail.descriptor.functions.ContinuationRegisterDumpDescriptor
 import com.avail.descriptor.representation.AvailObject
 import com.avail.interpreter.JavaLibrary.bitCastLongToDoubleMethod
 import com.avail.interpreter.execution.Interpreter
-import com.avail.interpreter.levelTwo.*
 import com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2Operation
 import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_CONTINUATION
+import com.avail.interpreter.levelTwo.ReadsHiddenVariable
+import com.avail.interpreter.levelTwo.WritesHiddenVariable
 import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind
 import com.avail.optimizer.jvm.JVMTranslator

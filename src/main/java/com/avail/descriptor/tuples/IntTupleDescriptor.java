@@ -32,12 +32,11 @@
 
 package com.avail.descriptor.tuples;
 
-import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
-import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.numbers.A_Number;
 import com.avail.descriptor.representation.A_BasicObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.representation.BitField;
 import com.avail.descriptor.representation.Mutability;
 import com.avail.descriptor.types.A_Type;
@@ -46,10 +45,14 @@ import com.avail.utility.json.JSONWriter;
 import java.nio.ByteBuffer;
 import java.util.function.IntUnaryOperator;
 
-import static com.avail.descriptor.representation.AvailObject.*;
 import static com.avail.descriptor.numbers.IntegerDescriptor.computeHashOfInt;
 import static com.avail.descriptor.numbers.IntegerDescriptor.fromInt;
-import static com.avail.descriptor.representation.Mutability.*;
+import static com.avail.descriptor.representation.AvailObject.multiplier;
+import static com.avail.descriptor.representation.AvailObject.newIndexedDescriptor;
+import static com.avail.descriptor.representation.AvailObject.newLike;
+import static com.avail.descriptor.representation.Mutability.IMMUTABLE;
+import static com.avail.descriptor.representation.Mutability.MUTABLE;
+import static com.avail.descriptor.representation.Mutability.SHARED;
 import static com.avail.descriptor.tuples.IntTupleDescriptor.IntegerSlots.HASH_OR_ZERO;
 import static com.avail.descriptor.tuples.IntTupleDescriptor.IntegerSlots.RAW_LONG_AT_;
 import static com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple;
@@ -120,7 +123,7 @@ extends NumericTupleDescriptor
 	 */
 	private static final int maximumCopySize = 32;
 
-	@Override @AvailMethod
+	@Override
 	public A_Tuple o_AppendCanDestroy (
 		final AvailObject object,
 		final A_BasicObject newElement,
@@ -161,16 +164,15 @@ extends NumericTupleDescriptor
 		return result;
 	}
 
-	@Override @AvailMethod
-	public int o_BitsPerEntry (
-		final AvailObject object)
+	@Override
+	public int o_BitsPerEntry (final AvailObject object)
 	{
 		// Answer approximately how many bits per entry are taken up by this
 		// object.
 		return 32;
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_CompareFromToWithByteTupleStartingAt (
 		final AvailObject object,
 		final int startIndex1,
@@ -192,7 +194,7 @@ extends NumericTupleDescriptor
 		return true;
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_CompareFromToWithIntTupleStartingAt (
 		final AvailObject object,
 		final int startIndex1,
@@ -218,7 +220,7 @@ extends NumericTupleDescriptor
 		return true;
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_CompareFromToWithStartingAt (
 		final AvailObject object,
 		final int startIndex1,
@@ -233,7 +235,7 @@ extends NumericTupleDescriptor
 			startIndex1);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public int o_ComputeHashFromTo (
 		final AvailObject object,
 		final int start,
@@ -349,7 +351,7 @@ extends NumericTupleDescriptor
 			object, start, end, canDestroy);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_Equals (
 		final AvailObject object,
 		final A_BasicObject another)
@@ -357,7 +359,7 @@ extends NumericTupleDescriptor
 		return another.equalsIntTuple(object);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_EqualsByteTuple (
 		final AvailObject object,
 		final A_Tuple aByteTuple)
@@ -395,7 +397,7 @@ extends NumericTupleDescriptor
 		return true;
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_EqualsIntTuple (
 		final AvailObject object,
 		final A_Tuple anIntTuple)
@@ -437,7 +439,7 @@ extends NumericTupleDescriptor
 		return true;
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsByteTuple (final AvailObject object)
 	{
 		// If it's cheap to check my elements, just do it.  This can help keep
@@ -460,13 +462,13 @@ extends NumericTupleDescriptor
 		return false;
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsIntTuple (final AvailObject object)
 	{
 		return true;
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsInstanceOfKind (
 		final AvailObject object,
 		final A_Type aType)
@@ -509,7 +511,7 @@ extends NumericTupleDescriptor
 		return true;
 	}
 
-	@Override @AvailMethod
+	@Override
 	public AvailObject o_MakeImmutable (final AvailObject object)
 	{
 		if (isMutable())
@@ -519,7 +521,7 @@ extends NumericTupleDescriptor
 		return object;
 	}
 
-	@Override @AvailMethod
+	@Override
 	public AvailObject o_MakeShared (final AvailObject object)
 	{
 		if (!isShared())
@@ -545,7 +547,7 @@ extends NumericTupleDescriptor
 		}
 	}
 
-	@Override @AvailMethod
+	@Override
 	public AvailObject o_TupleAt (
 		final AvailObject object,
 		final int index)
@@ -555,7 +557,7 @@ extends NumericTupleDescriptor
 		return fromInt(object.intSlot(RAW_LONG_AT_, index));
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Tuple o_TupleAtPuttingCanDestroy (
 		final AvailObject object,
 		final int index,
@@ -594,7 +596,7 @@ extends NumericTupleDescriptor
 				object, startIndex, endIndex, type);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public int o_TupleIntAt (
 		final AvailObject object,
 		final int index)
@@ -604,7 +606,7 @@ extends NumericTupleDescriptor
 		return object.intSlot(RAW_LONG_AT_, index);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Tuple o_TupleReverse(final AvailObject object)
 	{
 		final int tupleSize = object.tupleSize();
@@ -631,7 +633,7 @@ extends NumericTupleDescriptor
 		return super.o_TupleReverse(object);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public int o_TupleSize (final AvailObject object)
 	{
 		return (object.variableIntegerSlotsCount() << 1) - unusedIntsOfLastLong;
@@ -672,7 +674,7 @@ extends NumericTupleDescriptor
 		int i = 0;
 		for (final int excess : new int[] {0,1})
 		{
-			for (final Mutability mut : values())
+			for (final Mutability mut : Mutability.values())
 			{
 				descriptors[i++] = new IntTupleDescriptor(mut, excess);
 			}
@@ -733,7 +735,7 @@ extends NumericTupleDescriptor
 	/**
 	 * Answer a mutable copy of object that holds int objects.
 	 */
-	@Override @AvailMethod
+	@Override
 	public A_Tuple o_CopyAsMutableIntTuple (final AvailObject object)
 	{
 		return newLike(mutable(), object, 0, 0);

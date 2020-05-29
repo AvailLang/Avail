@@ -33,9 +33,9 @@
 package com.avail.interpreter.primitive.hooks
 
 import com.avail.AvailRuntime.HookType.RESULT_DISAGREED_WITH_EXPECTED_TYPE
-import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.methods.MethodDescriptor
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.BottomTypeDescriptor.bottom
@@ -45,9 +45,11 @@ import com.avail.descriptor.types.InstanceMetaDescriptor.topMeta
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.descriptor.types.VariableTypeDescriptor.variableTypeFor
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Set the [function][FunctionDescriptor] to invoke whenever the

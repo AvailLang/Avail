@@ -31,7 +31,9 @@
  */
 package com.avail.compiler.splitter
 
-import com.avail.compiler.ParsingOperation.*
+import com.avail.compiler.ParsingOperation.CHECK_ARGUMENT
+import com.avail.compiler.ParsingOperation.PARSE_ARGUMENT
+import com.avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT
 import com.avail.compiler.splitter.MessageSplitter.Companion.indexForConstant
 import com.avail.compiler.splitter.MessageSplitter.Companion.throwSignatureException
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter

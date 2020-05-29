@@ -34,8 +34,14 @@ package com.avail.interpreter.levelTwo.operation
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.representation.AvailObject
 import com.avail.interpreter.execution.Interpreter
-import com.avail.interpreter.levelTwo.*
-import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.*
+import com.avail.interpreter.levelTwo.L2Chunk
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2NamedOperandType
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_ARGUMENTS
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.LATEST_RETURN_VALUE
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.STACK_REIFIER
+import com.avail.interpreter.levelTwo.WritesHiddenVariable
 import com.avail.interpreter.levelTwo.operand.L2PcOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand

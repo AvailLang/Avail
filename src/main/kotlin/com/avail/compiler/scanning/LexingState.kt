@@ -59,7 +59,6 @@ import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.execution.Interpreter.Companion.stringifyThen
 import com.avail.utility.evaluation.Describer
 import com.avail.utility.evaluation.SimpleDescriber
-import com.avail.utility.evaluation.Transformer1
 import java.io.PrintWriter
 import java.io.StringWriter
 import java.lang.String.format
@@ -557,8 +556,8 @@ class LexingState constructor(
 	 *   A list of arbitrary [Avail values][AvailObject] that should be
 	 *   stringified.
 	 * @param transformer
-	 *   A [transformer][Transformer1] that accepts the stringified values and
-	 *   answers an expectation message.
+	 *   A transformer that accepts the stringified values and answers an
+	 *   expectation message.
 	 */
 	fun expected(
 		level: ParseNotificationLevel,

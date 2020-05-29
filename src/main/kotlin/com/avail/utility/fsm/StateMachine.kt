@@ -57,8 +57,7 @@ import java.util.*
  * is, states and transitions are not bound directly to actions, but rather
  * indirectly to keys. This allows optimal type-safety and automated validation.
  * An action accepts a single argument of client-specified type. This object is
- * treated as a memento by the FSM, an opaque argument supplied at [execution
- * context][ExecutionContext] creation-time and passed through to an action upon
+ * treated as a memento by the FSM, an opaque argument supplied at [execution&#32;context][ExecutionContext] creation-time and passed through to an action upon
  * its performance.
  *
  * Executable guards are keyed by members of a guard key enumeration for the
@@ -118,8 +117,8 @@ internal constructor(
 		StateSummary<State, Event, GuardKey, ActionKey, Memento>>)
 {
 	/**
-	 * The complete transition table, a [map][EnumMap] from states to [state
-	 * summaries][StateSummary].
+	 * The complete transition table, a [map][EnumMap] from states to
+	 * [state&#32;summaries][StateSummary].
 	 */
 	private val transitionTable: EnumMap<
 			State, StateSummary<State, Event, GuardKey, ActionKey, Memento>> =
@@ -201,9 +200,9 @@ internal constructor(
 
 	/**
 	 * Handle an event. In particular, run the *exit* action for the current
-	 * state, run the action on the appropriate [transition
-	 * arc][StateTransitionArc], and run the *entry* action for the target
-	 * state. Set the current state to the target state.
+	 * state, run the action on the appropriate
+	 * [transition&#32;arc][StateTransitionArc], and run the *entry* action for
+	 * the target state. Set the current state to the target state.
 	 *
 	 * @param event
 	 *   The event to process.

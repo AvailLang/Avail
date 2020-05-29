@@ -52,8 +52,7 @@ import com.avail.io.TextOutputChannel
 
 /**
  * **Primitive:** Print the specified [string][StringDescriptor] to the
- * [current][Interpreter.fiber]'s [standard error channel][TextOutputChannel], [
- * ][ExecutionState.SUSPENDED] the current fiber until the string can be queued
+ * [current][Interpreter.fiber]'s [standard&#32;error&#32;channel][TextOutputChannel], [&#32;][ExecutionState.SUSPENDED] the current fiber until the string can be queued
  * for writing.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;

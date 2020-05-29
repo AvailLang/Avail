@@ -34,17 +34,21 @@ package com.avail.exceptions
 
 import com.avail.AvailRuntime
 import com.avail.compiler.splitter.MessageSplitter
-import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.fiber.FiberDescriptor
-import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.bundles.A_Bundle
+import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.CompiledCodeDescriptor
 import com.avail.descriptor.functions.ContinuationDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.maps.MapDescriptor
-import com.avail.descriptor.methods.*
+import com.avail.descriptor.methods.AbstractDefinitionDescriptor
+import com.avail.descriptor.methods.DefinitionDescriptor
+import com.avail.descriptor.methods.ForwardDefinitionDescriptor
+import com.avail.descriptor.methods.MacroDefinitionDescriptor
+import com.avail.descriptor.methods.MethodDefinitionDescriptor
+import com.avail.descriptor.methods.MethodDescriptor
+import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.numbers.InfinityDescriptor
 import com.avail.descriptor.numbers.IntegerDescriptor
@@ -54,9 +58,15 @@ import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
 import com.avail.descriptor.phrases.PhraseDescriptor
 import com.avail.descriptor.phrases.ReferencePhraseDescriptor
 import com.avail.descriptor.phrases.SequencePhraseDescriptor
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.tuples.StringDescriptor
-import com.avail.descriptor.types.*
+import com.avail.descriptor.types.EnumerationTypeDescriptor
+import com.avail.descriptor.types.FiberTypeDescriptor
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
+import com.avail.descriptor.types.PojoTypeDescriptor
+import com.avail.descriptor.types.TupleTypeDescriptor
+import com.avail.descriptor.types.TypeDescriptor
 import com.avail.descriptor.variables.A_Variable
 import com.avail.descriptor.variables.VariableDescriptor
 import com.avail.descriptor.variables.VariableSharedGlobalDescriptor
@@ -76,7 +86,7 @@ import java.util.*
 
 /**
  * `AvailErrorCode` is an enumeration of all possible failures of operations on
- * [Avail objects][AvailObject].
+ * [Avail&#32;objects][AvailObject].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  *
@@ -152,8 +162,8 @@ enum class AvailErrorCode constructor(val code: Int)
 	E_INCORRECT_ARGUMENT_TYPE(12),
 
 	/**
-	 * A [method definition][MethodDescriptor] did not declare the same return
-	 * type as its [forward declaration][ForwardDefinitionDescriptor].
+	 * A [method&#32;definition][MethodDescriptor] did not declare the same
+	 * return type as its [forward declaration][ForwardDefinitionDescriptor].
 	 */
 	E_METHOD_RETURN_TYPE_NOT_AS_FORWARD_DECLARED(13),
 
@@ -186,7 +196,7 @@ enum class AvailErrorCode constructor(val code: Int)
 	/**
 	 * The wrong number or [types][TypeDescriptor] of outers were specified for
 	 * creation of a [function][FunctionDescriptor] from a
-	 * [raw function][CompiledCodeDescriptor].
+	 * [raw&#32;function][CompiledCodeDescriptor].
 	 */
 	E_WRONG_OUTERS(20),
 
@@ -204,7 +214,7 @@ enum class AvailErrorCode constructor(val code: Int)
 
 	/**
 	 * The operation was forbidden by the platform or the Java
-	 * [security manager][SecurityManager] because of insufficient user
+	 * [security&#32;manager][SecurityManager] because of insufficient user
 	 * privilege.
 	 */
 	E_PERMISSION_DENIED(24),
@@ -231,7 +241,7 @@ enum class AvailErrorCode constructor(val code: Int)
 
 	/**
 	 * A method's argument type was inconsistent with a
-	 * [special object][AvailRuntime.specialObject] specific requirements.
+	 * [special&#32;object][AvailRuntime.specialObject] specific requirements.
 	 */
 	E_INCORRECT_TYPE_FOR_GROUP(32),
 
@@ -256,7 +266,7 @@ enum class AvailErrorCode constructor(val code: Int)
 
 	/**
 	 * Cannot take a [reference][ReferencePhraseDescriptor] to this
-	 * [kind of declaration][DeclarationKind].
+	 * [kind&#32;of&#32;declaration][DeclarationKind].
 	 */
 	E_DECLARATION_KIND_DOES_NOT_SUPPORT_REFERENCE(37),
 
@@ -279,17 +289,18 @@ enum class AvailErrorCode constructor(val code: Int)
 	E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS(40),
 
 	/**
-	 * A [special atom][AvailRuntime.specialAtoms] was supplied where forbidden.
+	 * A [special&#32;atom][AvailRuntime.specialAtoms] was supplied where
+	 * forbidden.
 	 */
 	E_SPECIAL_ATOM(41),
 
 	/**
 	 * A method's argument type was inconsistent with a
-	 * [complex guillemet group's][MessageSplitter] specific requirements.  In
-	 * particular, the corresponding argument position must be a tuple of tuples
-	 * whose sizes range from the number of argument subexpressions left of the
-	 * double-dagger, up to the number of argument subexpressions on both sides
-	 * of the double-dagger.
+	 * [complex&#32;guillemet&#32;group's][MessageSplitter] specific
+	 * requirements.  In particular, the corresponding argument position must be
+	 * a tuple of tuples whose sizes range from the number of argument
+	 * subexpressions left of the double-dagger, up to the number of argument
+	 * subexpressions on both sides of the double-dagger.
 	 */
 	E_INCORRECT_TYPE_FOR_COMPLEX_GROUP(42),
 
@@ -376,7 +387,7 @@ enum class AvailErrorCode constructor(val code: Int)
 	E_CANNOT_CONVERT_NOT_A_NUMBER_TO_INTEGER(56),
 
 	/**
-	 * A [numbered choice expression][MessageSplitter] should have its
+	 * A [numbered&#32;choice&#32;expression][MessageSplitter] should have its
 	 * corresponding argument typed as a subtype of [1..N] where N is the number
 	 * of listed choices.
 	 */
@@ -409,36 +420,36 @@ enum class AvailErrorCode constructor(val code: Int)
 
 	/**
 	 * An attempt was made to add a prefix [function][A_Function] to a
-	 * [message bundle][A_Bundle], but its index was not between 1 and the
+	 * [message&#32;bundle][A_Bundle], but its index was not between 1 and the
 	 * number of section markers (§) in the bundle's name.
 	 */
 	E_MACRO_PREFIX_FUNCTION_INDEX_OUT_OF_BOUNDS(63),
 
 	/**
-	 * The [current fiber][FiberDescriptor.currentFiber] attempted to
-	 * [accept the current parse][P_AcceptParsing], but it isn't
+	 * The [current&#32;fiber][FiberDescriptor.currentFiber] attempted to
+	 * [accept&#32;the&#32;current&#32;parse][P_AcceptParsing], but it isn't
 	 * actually running a semantic restriction.
 	 */
 	E_UNTIMELY_PARSE_ACCEPTANCE(64),
 
 	/**
-	 * The [current fiber][FiberDescriptor.currentFiber] attempted to determine
-	 * the [current macro name][P_CurrentMacroName], the name (atom) of a send
-	 * phrase which was undergoing macro substitution, but this fiber is not
-	 * performing a macro substitution.
+	 * The [current&#32;fiber][FiberDescriptor.currentFiber] attempted to
+	 * determine the [current&#32;macro&#32;name][P_CurrentMacroName], the name
+	 * (atom) of a send phrase which was undergoing macro substitution, but this
+	 * fiber is not performing a macro substitution.
 	 */
 	E_NOT_EVALUATING_MACRO(65),
 
 	/**
 	 * The yield type specified for a [PhraseKind] was not a subtype of the
-	 * [most general yield][PhraseKind.mostGeneralYieldType].
+	 * [most&#32;general&#32;yield][PhraseKind.mostGeneralYieldType].
 	 */
 	E_BAD_YIELD_TYPE(66),
 
 	/**
 	 * A [macro][MacroDefinitionDescriptor]'s
-	 * [prefix function][FunctionDescriptor] must restrict each parameter to be
-	 * at least as specific as a [phrase][PhraseDescriptor].
+	 * [prefix&#32;function][FunctionDescriptor] must restrict each parameter to
+	 * be at least as specific as a [phrase][PhraseDescriptor].
 	 */
 	E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PARSE_NODE(67),
 
@@ -462,21 +473,21 @@ enum class AvailErrorCode constructor(val code: Int)
 	E_LOADING_IS_OVER(70),
 
 	/**
-	 * The [current fiber][FiberDescriptor.currentFiber] attempted to
-	 * [reject the current parse][P_RejectParsing], but it isn't actually
-	 * running a semantic restriction.
+	 * The [current&#32;fiber][FiberDescriptor.currentFiber] attempted to
+	 * [reject&#32;the&#32;current&#32;parse][P_RejectParsing], but it isn't
+	 * actually running a semantic restriction.
 	 */
 	E_UNTIMELY_PARSE_REJECTION(71),
 
 	/**
 	 * The method is sealed at the specified
-	 * [parameters type][TupleTypeDescriptor].
+	 * [parameters&#32;type][TupleTypeDescriptor].
 	 */
 	E_METHOD_IS_SEALED(72),
 
 	/**
 	 * Cannot overwrite or clear an initialized
-	 * [write-once variable][VariableSharedGlobalDescriptor].
+	 * [write-once&#32;variable][VariableSharedGlobalDescriptor].
 	 */
 	E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE(73),
 
@@ -546,8 +557,8 @@ enum class AvailErrorCode constructor(val code: Int)
 	E_UNWIND_SENTINEL(83),
 
 	/**
-	 * No [method definition][MethodDefinitionDescriptor] satisfies the supplied
-	 * criteria.
+	 * No [method&#32;definition][MethodDefinitionDescriptor] satisfies the
+	 * supplied criteria.
 	 */
 	@ReferencedInGeneratedCode
 	E_NO_METHOD_DEFINITION(84),
@@ -561,7 +572,7 @@ enum class AvailErrorCode constructor(val code: Int)
 
 	/**
 	 * The resolved [definition][DefinitionDescriptor] is a
-	 * [forward definition][ForwardDefinitionDescriptor].
+	 * [forward&#32;definition][ForwardDefinitionDescriptor].
 	 */
 	@ReferencedInGeneratedCode
 	E_FORWARD_METHOD_DEFINITION(86)
@@ -572,7 +583,7 @@ enum class AvailErrorCode constructor(val code: Int)
 
 	/**
 	 * The resolved [definition][DefinitionDescriptor] is an
-	 * [abstract definition][AbstractDefinitionDescriptor].
+	 * [abstract&#32;definition][AbstractDefinitionDescriptor].
 	 */
 	@ReferencedInGeneratedCode
 	E_ABSTRACT_METHOD_DEFINITION(87)
@@ -584,7 +595,7 @@ enum class AvailErrorCode constructor(val code: Int)
 	/**
 	 * A [variable][A_Variable] which has write reactors was written when write
 	 * tracing was not active for the
-	 * [current fiber][FiberDescriptor.currentFiber].
+	 * [current&#32;fiber][FiberDescriptor.currentFiber].
 	 */
 	E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED(88),
 
@@ -651,8 +662,8 @@ enum class AvailErrorCode constructor(val code: Int)
 	E_BLOCK_IS_INVALID(101),
 
 	/**
-	 * The [block expression][BlockPhraseDescriptor] references outers, but must
-	 * not.
+	 * The [block&#32;expression][BlockPhraseDescriptor] references outers, but
+	 * must not.
 	 */
 	E_BLOCK_MUST_NOT_CONTAIN_OUTERS(102),
 
@@ -718,7 +729,7 @@ enum class AvailErrorCode constructor(val code: Int)
 	E_JAVA_CLASS_NOT_AVAILABLE(500),
 
 	/**
-	 * A [pojo type][PojoTypeDescriptor] is abstract and therefore cannot be
+	 * A [pojo&#32;type][PojoTypeDescriptor] is abstract and therefore cannot be
 	 * instantiated or have a [constructor][Constructor] bound to a
 	 * [function][FunctionDescriptor].
 	 */
@@ -743,19 +754,19 @@ enum class AvailErrorCode constructor(val code: Int)
 
 	/**
 	 * A reference to a [Java field][Field] is not uniquely resolvable for the
-	 * given [pojo type][PojoTypeDescriptor].
+	 * given [pojo&#32;type][PojoTypeDescriptor].
 	 */
 	E_JAVA_FIELD_REFERENCE_IS_AMBIGUOUS(506),
 
 	/**
 	 * An attempt was made to modify a [final][Modifier.isFinal]
-	 * [Java field][Field].
+	 * [Java&#32;field][Field].
 	 */
 	E_CANNOT_MODIFY_FINAL_JAVA_FIELD(507),
 
 	/**
 	 * A reference to a [Java method][Method] is not uniquely resolvable for the
-	 * given [pojo type][PojoTypeDescriptor] and parameter
+	 * given [pojo&#32;type][PojoTypeDescriptor] and parameter
 	 * [types][TypeDescriptor].
 	 */
 	E_JAVA_METHOD_REFERENCE_IS_AMBIGUOUS(508);

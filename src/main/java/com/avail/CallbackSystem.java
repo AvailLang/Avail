@@ -33,11 +33,11 @@
 package com.avail;
 
 import com.avail.descriptor.fiber.A_Fiber;
-import com.avail.descriptor.representation.AvailObject;
-import com.avail.descriptor.representation.NilDescriptor;
 import com.avail.descriptor.functions.A_Function;
 import com.avail.descriptor.functions.A_RawFunction;
 import com.avail.descriptor.pojos.PojoDescriptor;
+import com.avail.descriptor.representation.AvailObject;
+import com.avail.descriptor.representation.NilDescriptor;
 import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.descriptor.types.A_Type;
 import com.avail.interpreter.primitive.pojos.P_InvokeCallback;

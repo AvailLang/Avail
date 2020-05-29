@@ -34,7 +34,17 @@ package com.avail.test;
 
 
 import com.avail.descriptor.representation.AvailObject;
-import com.avail.descriptor.tuples.*;
+import com.avail.descriptor.tuples.A_Tuple;
+import com.avail.descriptor.tuples.ByteArrayTupleDescriptor;
+import com.avail.descriptor.tuples.ByteBufferTupleDescriptor;
+import com.avail.descriptor.tuples.ByteTupleDescriptor;
+import com.avail.descriptor.tuples.IntegerIntervalTupleDescriptor;
+import com.avail.descriptor.tuples.NybbleTupleDescriptor;
+import com.avail.descriptor.tuples.ObjectTupleDescriptor;
+import com.avail.descriptor.tuples.ReverseTupleDescriptor;
+import com.avail.descriptor.tuples.SmallIntegerIntervalTupleDescriptor;
+import com.avail.descriptor.tuples.StringDescriptor;
+import com.avail.descriptor.tuples.TreeTupleDescriptor;
 import org.junit.jupiter.api.Test;
 
 import java.nio.ByteBuffer;

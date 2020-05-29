@@ -46,7 +46,7 @@ import java.lang.String.format
 class AvailEmergencyExitException : Exception
 {
 	/**
-	 * The [error message][StringDescriptor] describing the emergency exit
+	 * The [error&#32;message][StringDescriptor] describing the emergency exit
 	 * situation.
 	 */
 	val failureString: A_String

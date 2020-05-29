@@ -35,7 +35,16 @@ import com.avail.descriptor.types.A_Type;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.*;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadFloatOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadFloatVectorOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadIntVectorOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteOperand;
+import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding;
 import com.avail.interpreter.levelTwo.operation.L2_MAKE_IMMUTABLE;
 import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION;
@@ -48,20 +57,31 @@ import com.avail.utility.Casts;
 import com.avail.utility.Pair;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.bottomRestriction;
-import static com.avail.interpreter.levelTwo.register.L2Register.RegisterKind.*;
+import static com.avail.interpreter.levelTwo.register.L2Register.RegisterKind.BOXED;
+import static com.avail.interpreter.levelTwo.register.L2Register.RegisterKind.FLOAT;
+import static com.avail.interpreter.levelTwo.register.L2Register.RegisterKind.INTEGER;
 import static com.avail.utility.Casts.cast;
 import static com.avail.utility.Nulls.stripNull;
 import static java.util.Collections.singleton;
 import static java.util.EnumSet.complementOf;
 import static java.util.EnumSet.noneOf;
-import static java.util.stream.Collectors.*;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toCollection;
+import static java.util.stream.Collectors.toList;
 
 /**
  * The {@code L2ValueManifest} maintains information about which {@link

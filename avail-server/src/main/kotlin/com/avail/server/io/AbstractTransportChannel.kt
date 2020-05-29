@@ -76,7 +76,7 @@ abstract class AbstractTransportChannel<T> constructor(
 
 	/**
 	 * Should the [channel][AbstractTransportChannel] close after emptying the
-	 * [message queue][sendQueue]?
+	 * [message&#32;queue][sendQueue]?
 	 */
 	@Suppress("MemberVisibilityCanBePrivate")
 	protected var shouldCloseAfterEmptyingSendQueue = false

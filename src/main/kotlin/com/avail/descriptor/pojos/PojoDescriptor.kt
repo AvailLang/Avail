@@ -31,13 +31,12 @@
  */
 package com.avail.descriptor.pojos
 
-import com.avail.annotations.AvailMethod
-import com.avail.descriptor.Descriptor
 import com.avail.descriptor.pojos.PojoDescriptor.ObjectSlots.KIND
 import com.avail.descriptor.pojos.PojoDescriptor.ObjectSlots.RAW_POJO
 import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.rawNullPojo
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.Descriptor
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.types.A_Type
@@ -77,11 +76,9 @@ class PojoDescriptor private constructor(
 		KIND
 	}
 
-	@AvailMethod
 	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean =
 		another.equalsPojo(self)
 
-	@AvailMethod
 	override fun o_EqualsPojo(self: AvailObject, aPojo: AvailObject): Boolean =
 		when
 		{
@@ -100,7 +97,6 @@ class PojoDescriptor private constructor(
 			}
 		}
 
-	@AvailMethod
 	override fun o_Hash(self: AvailObject): Int
 	{
 		var hash = self.slot(RAW_POJO).hash() xor 0x749101DD
@@ -109,21 +105,17 @@ class PojoDescriptor private constructor(
 		return hash
 	}
 
-	@AvailMethod
 	override fun o_IsPojo(self: AvailObject): Boolean = true
 
-	@AvailMethod
 	override fun o_Kind(self: AvailObject): A_Type = self.slot(KIND)
 
 	override fun o_MarshalToJava(
 		self: AvailObject,
-		ignoredClassHint: Class<*>?
+		classHint: Class<*>?
 	): Any? = self.slot(RAW_POJO).javaObject<Any>()
 
-	@AvailMethod
 	override fun o_RawPojo(self: AvailObject): AvailObject = self.slot(RAW_POJO)
 
-	@AvailMethod
 	override fun <T> o_JavaObject(self: AvailObject): T? =
 		self.slot(RAW_POJO).javaObject()
 

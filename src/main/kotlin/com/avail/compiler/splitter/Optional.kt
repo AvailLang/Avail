@@ -32,7 +32,10 @@
 package com.avail.compiler.splitter
 
 import com.avail.compiler.ParsingOperation
-import com.avail.compiler.ParsingOperation.*
+import com.avail.compiler.ParsingOperation.DISCARD_SAVED_PARSE_POSITION
+import com.avail.compiler.ParsingOperation.ENSURE_PARSE_PROGRESS
+import com.avail.compiler.ParsingOperation.PUSH_LITERAL
+import com.avail.compiler.ParsingOperation.SAVE_PARSE_POSITION
 import com.avail.compiler.splitter.InstructionGenerator.Label
 import com.avail.compiler.splitter.MessageSplitter.Companion.indexForFalse
 import com.avail.compiler.splitter.MessageSplitter.Companion.indexForTrue
@@ -55,8 +58,7 @@ import java.util.*
 /**
  * An `Optional` is a [Sequence] wrapped in guillemets («»), and followed by a
  * question mark (?).  It may not contain [Argument]s or subgroups, and since it
- * is not a group it may not contain a [double
- * dagger][Metacharacter.DOUBLE_DAGGER] (‡).
+ * is not a group it may not contain a [double&#32;dagger][Metacharacter.DOUBLE_DAGGER] (‡).
  *
  * At a call site, an optional produces a
  * [boolean][EnumerationTypeDescriptor.booleanType] that indicates whether there

@@ -107,7 +107,8 @@ interface TextOutputChannel : AsynchronousChannel
 	 * @param data
 	 *   The string to be written.
 	 * @param attachment
-	 *   An arbitrary value that should be made available to the `CompletionHandler`, irrespective of success.
+	 *   An arbitrary value that should be made available to the
+	 *   `CompletionHandler`, irrespective of success.
 	 * @param handler
 	 *   What to do when the I/O operation
 	 *   [succeeds][CompletionHandler.completed] or

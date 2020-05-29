@@ -39,11 +39,15 @@ import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationW
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.descriptor.types.VariableTypeDescriptor.variableTypeFor
-import com.avail.exceptions.AvailErrorCode.*
-import com.avail.interpreter.execution.Interpreter
+import com.avail.exceptions.AvailErrorCode.E_CANNOT_MARK_HANDLER_FRAME
+import com.avail.exceptions.AvailErrorCode.E_HANDLER_SENTINEL
+import com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
+import com.avail.exceptions.AvailErrorCode.E_REQUIRED_FAILURE
+import com.avail.exceptions.AvailErrorCode.E_UNWIND_SENTINEL
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.Unknown
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Mark a primitive failure variable from a nearby invocation of

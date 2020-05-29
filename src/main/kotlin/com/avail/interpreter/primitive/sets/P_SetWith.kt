@@ -31,10 +31,10 @@
  */
 package com.avail.interpreter.primitive.sets
 
-import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.one
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.two
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.types.A_Type
@@ -44,9 +44,11 @@ import com.avail.descriptor.types.IntegerRangeTypeDescriptor.naturalNumbers
 import com.avail.descriptor.types.SetTypeDescriptor.mostGeneralSetType
 import com.avail.descriptor.types.SetTypeDescriptor.setTypeForSizesContentType
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CanFold
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Answer a new [set][SetDescriptor] like the argument but

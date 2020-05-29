@@ -38,9 +38,11 @@ import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.TupleTypeDescriptor.stringType
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CanFold
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.execution.Interpreter
 import java.io.IOException
 import java.nio.file.FileSystems
 import java.nio.file.Path
