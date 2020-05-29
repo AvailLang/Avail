@@ -40,7 +40,13 @@ import com.avail.stacks.StacksDescription
 import com.avail.stacks.StacksErrorLog
 import com.avail.stacks.comment.signature.MethodCommentSignature
 import com.avail.stacks.module.StacksImportModule
-import com.avail.stacks.tags.*
+import com.avail.stacks.tags.StacksAliasTag
+import com.avail.stacks.tags.StacksAuthorTag
+import com.avail.stacks.tags.StacksCategoryTag
+import com.avail.stacks.tags.StacksParameterTag
+import com.avail.stacks.tags.StacksRaisesTag
+import com.avail.stacks.tags.StacksReturnTag
+import com.avail.stacks.tags.StacksSeeTag
 import com.avail.utility.json.JSONWriter
 import java.util.*
 

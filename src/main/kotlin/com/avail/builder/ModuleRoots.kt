@@ -195,8 +195,8 @@ class ModuleRoots(modulePath: String) : Iterable<ModuleRoot>
 	val rootNames: Set<String> get() = unmodifiableSet(rootMap.keys)
 
 	/**
-	 * The [module roots][ModuleRoot] in the order that they are specified in
-	 * the Avail [module][ModuleDescriptor] path.
+	 * The [module&#32;roots][ModuleRoot] in the order that they are specified
+	 * in the Avail [module][ModuleDescriptor] path.
 	 */
 	val roots: Set<ModuleRoot>
 		get() = unmodifiableSet(LinkedHashSet(rootMap.values))
@@ -239,7 +239,7 @@ class ModuleRoots(modulePath: String) : Iterable<ModuleRoot>
 
 	/**
 	 * Write a JSON object whose fields are the module roots and whose values
-	 * are [JSON arrays][ModuleRoot.writePathsOn] containing path information.
+	 * are [JSON&#32;arrays][ModuleRoot.writePathsOn] containing path information.
 	 *
 	 * @param writer
 	 *   A [JSONWriter].

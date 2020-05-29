@@ -43,7 +43,7 @@ import java.nio.file.Paths
 
 /**
  * `CommandLineConfigurator` provides the command-line configuration for
- * the [Unicode catalog generator][CatalogGenerator].
+ * the [Unicode&#32;catalog&#32;generator][CatalogGenerator].
  *
  * @property configuration
  *   The [configuration][UnicodeConfiguration].

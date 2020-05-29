@@ -32,14 +32,13 @@
 
 package com.avail.descriptor.types;
 
-import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
-import com.avail.descriptor.AbstractDescriptor;
-import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.representation.A_BasicObject;
+import com.avail.descriptor.representation.AbstractDescriptor;
 import com.avail.descriptor.representation.AbstractSlotsEnum;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.representation.BitField;
 import com.avail.descriptor.representation.Mutability;
 import com.avail.serialization.SerializerOperation;
@@ -48,8 +47,8 @@ import com.avail.utility.json.JSONWriter;
 import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 
-import static com.avail.descriptor.representation.AvailObject.multiplier;
 import static com.avail.descriptor.numbers.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.representation.AvailObject.multiplier;
 import static com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromArray;
 import static com.avail.descriptor.types.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.types.ListPhraseTypeDescriptor.IntegerSlots.HASH_AND_MORE;
@@ -58,7 +57,11 @@ import static com.avail.descriptor.types.ListPhraseTypeDescriptor.ObjectSlots.EX
 import static com.avail.descriptor.types.ListPhraseTypeDescriptor.ObjectSlots.SUBEXPRESSIONS_TUPLE_TYPE;
 import static com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE;
 import static com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE;
-import static com.avail.descriptor.types.TupleTypeDescriptor.*;
+import static com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType;
+import static com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForTypes;
+import static com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeFromTupleOfTypes;
+import static com.avail.descriptor.types.TupleTypeDescriptor.zeroOrMoreOf;
+import static com.avail.descriptor.types.TupleTypeDescriptor.zeroOrOneOf;
 
 /**
  * Define the structure and behavior of {@link PhraseKind#LIST_PHRASE list
@@ -149,7 +152,7 @@ extends PhraseTypeDescriptor
 	 * <p>List phrase types are equal when they have the same expression type
 	 * and same tuple type of subexpressions.</p>
 	 */
-	@Override @AvailMethod
+	@Override
 	public boolean o_Equals (
 		final AvailObject object,
 		final A_BasicObject another)
@@ -166,7 +169,7 @@ extends PhraseTypeDescriptor
 	 * However, aPhraseType can't be a list phrase type like the receiver
 	 * is.</p>
 	 */
-	@Override @AvailMethod
+	@Override
 	public boolean o_EqualsPhraseType (
 		final AvailObject object,
 		final A_Type aPhraseType)
@@ -211,14 +214,13 @@ extends PhraseTypeDescriptor
 		return object.slot(SUBEXPRESSIONS_TUPLE_TYPE);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
 	{
 		return aType.isSupertypeOfListNodeType(object);
 	}
 
 	@Override
-	@AvailMethod
 	public boolean o_IsSupertypeOfListNodeType (
 		final AvailObject object,
 		final A_Type aListNodeType)
@@ -230,7 +232,7 @@ extends PhraseTypeDescriptor
 				object.slot(SUBEXPRESSIONS_TUPLE_TYPE));
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsSupertypeOfPhraseType (
 		final AvailObject object,
 		final A_Type aPhraseType)
@@ -246,7 +248,7 @@ extends PhraseTypeDescriptor
 		return SerializerOperation.LIST_NODE_TYPE;
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeIntersection (
 		final AvailObject object,
 		final A_Type another)
@@ -276,7 +278,7 @@ extends PhraseTypeDescriptor
 				aListNodeType.subexpressionsTupleType()));
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeIntersectionOfPhraseType (
 		final AvailObject object,
 		final A_Type aPhraseType)
@@ -322,7 +324,7 @@ extends PhraseTypeDescriptor
 				aListNodeType.subexpressionsTupleType()));
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeUnionOfPhraseType (
 		final AvailObject object,
 		final A_Type aPhraseType)

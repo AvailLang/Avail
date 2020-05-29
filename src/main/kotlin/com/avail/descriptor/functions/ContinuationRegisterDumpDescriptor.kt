@@ -31,19 +31,19 @@
  */
 package com.avail.descriptor.functions
 
-import com.avail.descriptor.Descriptor
-import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.functions.ContinuationRegisterDumpDescriptor.IntegerSlots.INTEGER_SLOTS_
 import com.avail.descriptor.functions.ContinuationRegisterDumpDescriptor.ObjectSlots.OBJECT_SLOTS_
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.AvailObject.Companion.newObjectIndexedIntegerIndexedDescriptor
+import com.avail.descriptor.representation.Descriptor
 import com.avail.descriptor.representation.IntegerSlotsEnum
 import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.types.TypeTag
 import com.avail.interpreter.levelTwo.L2Chunk
 import com.avail.optimizer.jvm.CheckedMethod
-import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
+import com.avail.optimizer.jvm.CheckedMethod.staticMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 
 /**
@@ -165,7 +165,7 @@ class ContinuationRegisterDumpDescriptor private constructor(
 			::extractObjectAt.name,
 			AvailObject::class.java,
 			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!)
+			Int::class.javaPrimitiveType)
 
 		/**
 		 * Given a continuation register dump, extract the [Long] at the given
@@ -195,7 +195,7 @@ class ContinuationRegisterDumpDescriptor private constructor(
 			::extractLongAt.name,
 			Long::class.javaPrimitiveType!!,
 			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!)
+			Int::class.javaPrimitiveType)
 
 		/** The mutable [ContinuationRegisterDumpDescriptor]. */
 		private val mutable =

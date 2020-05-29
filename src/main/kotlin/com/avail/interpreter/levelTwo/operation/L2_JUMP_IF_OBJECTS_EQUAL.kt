@@ -64,7 +64,9 @@ object L2_JUMP_IF_OBJECTS_EQUAL : L2ConditionalJump(
 		val first = instruction.operand<L2ReadBoxedOperand>(0)
 		val second = instruction.operand<L2ReadBoxedOperand>(1)
 		val ifEqual = instruction.operand<L2PcOperand>(2)
-		//val ifNotEqual = instruction.operand<L2PcOperand>(3)
+
+		// TODO MvG Should be removed?
+//		val ifNotEqual = instruction.operand<L2PcOperand>(3)
 
 		super.instructionWasAdded(instruction, manifest)
 
@@ -87,9 +89,9 @@ object L2_JUMP_IF_OBJECTS_EQUAL : L2ConditionalJump(
 		return when
 		{
 			constant1 !== null
-				&& constant2 !== null
-				&& constant1.equals(constant2) ->
-					BranchReduction.AlwaysTaken
+					&& constant2 !== null
+					&& constant1.equals(constant2) ->
+				BranchReduction.AlwaysTaken
 			constant1 !== null && constant2 !== null ->
 				BranchReduction.NeverTaken
 			// They can't be equal.

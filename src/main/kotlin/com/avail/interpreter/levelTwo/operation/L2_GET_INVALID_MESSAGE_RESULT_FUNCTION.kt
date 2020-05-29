@@ -33,12 +33,13 @@ package com.avail.interpreter.levelTwo.operation
 
 import com.avail.AvailRuntime
 import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.*
-import com.avail.descriptor.types.*
-import com.avail.descriptor.types.FunctionTypeDescriptor.*
-import com.avail.descriptor.types.InstanceMetaDescriptor.*
-import com.avail.descriptor.types.TypeDescriptor.*
-import com.avail.descriptor.types.VariableTypeDescriptor.*
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.types.BottomTypeDescriptor
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.FunctionTypeDescriptor.mostGeneralFunctionType
+import com.avail.descriptor.types.InstanceMetaDescriptor.topMeta
+import com.avail.descriptor.types.TypeDescriptor.Types
+import com.avail.descriptor.types.VariableTypeDescriptor.variableTypeFor
 import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2OperandType
@@ -55,10 +56,9 @@ import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
 
 /**
- * Store the [invalid result
- * function][AvailRuntime.resultDisagreedWithExpectedTypeFunction] into the
- * supplied [object register][L2BoxedRegister].
- *
+ * Store the
+ * [invalid&#32;result&#32;function][AvailRuntime.resultDisagreedWithExpectedTypeFunction]
+ * into the supplied [object&#32;register][L2BoxedRegister].
  *
  * The function is invoked by the VM whenever an attempt is made to return a
  * value that doesn't satisfy the call site's expected return type.  The

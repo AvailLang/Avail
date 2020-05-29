@@ -100,9 +100,7 @@ object L2_JUMP_IF_EQUALS_CONSTANT :
 		return when
 		{
 			valueOrNull !== null && valueOrNull.equals(constant.constant) ->
-			{
 				BranchReduction.AlwaysTaken
-			}
 			valueOrNull !== null -> BranchReduction.NeverTaken
 			// They can't be equal.
 			!constant.constant.isInstanceOf(value.type()) ->

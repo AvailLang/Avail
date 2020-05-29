@@ -31,19 +31,16 @@
  */
 package com.avail.descriptor.maps
 
-import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.maps.MapDescriptor.Entry
 import com.avail.descriptor.maps.MapDescriptor.MapIterable
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.optimizer.jvm.CheckedMethod
-import com.avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
+import com.avail.optimizer.jvm.CheckedMethod.instanceMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-import java.util.function.BiConsumer
-import java.util.function.BiFunction
-import java.util.function.BinaryOperator
 
 /**
  * `A_Map` is an interface that specifies the map-specific operations that an
@@ -113,7 +110,7 @@ interface A_Map : A_BasicObject {
 	 *   The value to use as the second argument to the transformer if the key
 	 *   was not found.
 	 * @param transformer
-	 *   The [BinaryOperator] that produces a replacement value to store into
+	 *   The binary operator that produces a replacement value to store into
 	 *   the map.
 	 * @param canDestroy
 	 *   Whether the map can be modified by this call, if it's also mutable.
@@ -124,7 +121,7 @@ interface A_Map : A_BasicObject {
 	fun mapAtReplacingCanDestroy(
 		key: A_BasicObject,
 		notFoundValue: A_BasicObject = nil,
-		transformer: BiFunction<AvailObject, AvailObject, A_BasicObject>,
+		transformer: (AvailObject, AvailObject) -> A_BasicObject,
 		canDestroy: Boolean
 	): A_Map
 
@@ -200,7 +197,7 @@ interface A_Map : A_BasicObject {
 	 * @param action
 	 *   The action to perform for each key and value pair.
 	 */
-	fun forEach(action: BiConsumer<in AvailObject, in AvailObject>)
+	fun forEach(action: (AvailObject, AvailObject) -> Unit)
 
 	companion object {
 		/** The [CheckedMethod] for [mapAtPuttingCanDestroy]. */
@@ -211,6 +208,6 @@ interface A_Map : A_BasicObject {
 			A_Map::class.java,
 			A_BasicObject::class.java,
 			A_BasicObject::class.java,
-			Boolean::class.javaPrimitiveType!!)
+			Boolean::class.javaPrimitiveType)
 	}
 }

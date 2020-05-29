@@ -33,9 +33,9 @@ package com.avail.interpreter.primitive.pojos
 
 import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.pojos.PojoFieldDescriptor
-import com.avail.descriptor.pojos.PojoFieldDescriptor.Companion.pojoFieldVariableForInnerType
-import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.equalityPojo
-import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.rawNullPojo
+import com.avail.descriptor.pojos.PojoFieldDescriptor.pojoFieldVariableForInnerType
+import com.avail.descriptor.pojos.RawPojoDescriptor.equalityPojo
+import com.avail.descriptor.pojos.RawPojoDescriptor.rawNullPojo
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple

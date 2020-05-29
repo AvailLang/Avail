@@ -32,8 +32,12 @@
 
 package com.avail.descriptor;
 
-import com.avail.descriptor.character.CharacterDescriptor;
-import com.avail.descriptor.representation.*;
+import com.avail.descriptor.representation.AbstractSlotsEnum;
+import com.avail.descriptor.representation.AvailObject;
+import com.avail.descriptor.representation.BitField;
+import com.avail.descriptor.representation.IntegerEnumSlotDescriptionEnum;
+import com.avail.descriptor.representation.IntegerSlotsEnum;
+import com.avail.descriptor.representation.ObjectSlotsEnum;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -41,11 +45,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * {@code A_Character} is an interface that specifies the {@linkplain
- * CharacterDescriptor character}-specific operations that an {@link
- * AvailObject} must implement.  It's a sub-interface of {@link A_BasicObject},
- * the interface that defines the behavior that all AvailObjects are required to
- * support.
+ * Compatibility elements required to bridge Java and Kotlin during the port of
+ * the system.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -82,6 +83,7 @@ public class JavaCompatibility
 			return ordinal();
 		}
 	}
+
 	/** Maintain temporary compatibility with Java descriptor slot classes. */
 	public interface IntegerSlotsEnumJava
 		extends IntegerSlotsEnum, AbstractSlotsEnumJava

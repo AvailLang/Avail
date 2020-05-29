@@ -90,7 +90,7 @@ class RenamesFileParser @ThreadSafe constructor(
 	private val roots: ModuleRoots)
 {
 	/**
-	 * A [module name resolver][ModuleNameResolver]. The goal of the
+	 * A [module&#32;name&#32;resolver][ModuleNameResolver]. The goal of the
 	 * [parser][RenamesFileParser] is to populate the resolver with renaming
 	 * rules.
 	 */

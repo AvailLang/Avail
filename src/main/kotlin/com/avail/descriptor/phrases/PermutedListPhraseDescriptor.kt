@@ -31,38 +31,40 @@
  */
 package com.avail.descriptor.phrases
 
-import com.avail.annotations.AvailMethod
-import com.avail.compiler.AvailCodeGenerator
-import com.avail.descriptor.representation.NilDescriptor.Companion.nil
-import com.avail.descriptor.phrases.A_Phrase.Companion.emitAllValuesOn
-import com.avail.descriptor.phrases.A_Phrase.Companion.expressionAt
-import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsSize
-import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsTuple
-import com.avail.descriptor.phrases.A_Phrase.Companion.hasSuperCast
-import com.avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
-import com.avail.descriptor.phrases.A_Phrase.Companion.lastExpression
-import com.avail.descriptor.phrases.A_Phrase.Companion.list
-import com.avail.descriptor.phrases.A_Phrase.Companion.permutation
-import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKind
-import com.avail.descriptor.phrases.A_Phrase.Companion.stripMacro
-import com.avail.descriptor.phrases.A_Phrase.Companion.superUnionType
-import com.avail.descriptor.phrases.A_Phrase.Companion.tokens
-import com.avail.descriptor.phrases.PermutedListPhraseDescriptor.ObjectSlots.*
-import com.avail.descriptor.representation.*
-import com.avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
-import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.TupleDescriptor
-import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
-import com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForTypes
-import com.avail.descriptor.types.TypeTag
-import com.avail.interpreter.levelOne.L1Operation
-import com.avail.serialization.SerializerOperation
-import com.avail.utility.evaluation.Continuation1NotNull
-import com.avail.utility.json.JSONWriter
-import java.util.*
-import java.util.function.Consumer
-import java.util.function.UnaryOperator
+ import com.avail.compiler.AvailCodeGenerator
+ import com.avail.descriptor.phrases.A_Phrase.Companion.emitAllValuesOn
+ import com.avail.descriptor.phrases.A_Phrase.Companion.expressionAt
+ import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsSize
+ import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsTuple
+ import com.avail.descriptor.phrases.A_Phrase.Companion.hasSuperCast
+ import com.avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
+ import com.avail.descriptor.phrases.A_Phrase.Companion.lastExpression
+ import com.avail.descriptor.phrases.A_Phrase.Companion.list
+ import com.avail.descriptor.phrases.A_Phrase.Companion.permutation
+ import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKind
+ import com.avail.descriptor.phrases.A_Phrase.Companion.stripMacro
+ import com.avail.descriptor.phrases.A_Phrase.Companion.superUnionType
+ import com.avail.descriptor.phrases.A_Phrase.Companion.tokens
+ import com.avail.descriptor.phrases.PermutedListPhraseDescriptor.ObjectSlots.EXPRESSION_TYPE
+ import com.avail.descriptor.phrases.PermutedListPhraseDescriptor.ObjectSlots.LIST
+ import com.avail.descriptor.phrases.PermutedListPhraseDescriptor.ObjectSlots.PERMUTATION
+ import com.avail.descriptor.representation.A_BasicObject
+ import com.avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
+ import com.avail.descriptor.representation.AbstractSlotsEnum
+ import com.avail.descriptor.representation.AvailObject
+ import com.avail.descriptor.representation.Mutability
+ import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+ import com.avail.descriptor.representation.ObjectSlotsEnum
+ import com.avail.descriptor.tuples.A_Tuple
+ import com.avail.descriptor.tuples.TupleDescriptor
+ import com.avail.descriptor.types.A_Type
+ import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
+ import com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForTypes
+ import com.avail.descriptor.types.TypeTag
+ import com.avail.interpreter.levelOne.L1Operation
+ import com.avail.serialization.SerializerOperation
+ import com.avail.utility.json.JSONWriter
+ import java.util.*
 
 /**
  * My instances represent [phrases][PhraseDescriptor] which will generate
@@ -91,8 +93,8 @@ class PermutedListPhraseDescriptor private constructor(
 	 */
 	enum class ObjectSlots : ObjectSlotsEnum {
 		/**
-		 * The [list phrase][ListPhraseDescriptor] to permute when generating
-		 * level one nybblecodes.
+		 * The [list&#32;phrase][ListPhraseDescriptor] to permute when
+		 * generating level one nybblecodes.
 		 */
 		LIST,
 
@@ -125,17 +127,15 @@ class PermutedListPhraseDescriptor private constructor(
 		builder.append(")")
 	}
 
-	@AvailMethod
 	override fun o_ChildrenDo(
 		self: AvailObject,
-		action: Consumer<A_Phrase>
-	) = action.accept(self.slot(LIST))
+		action: (A_Phrase) -> Unit
+	) = action(self.slot(LIST))
 
-	@AvailMethod
 	override fun o_ChildrenMap(
 		self: AvailObject,
-		transformer: UnaryOperator<A_Phrase>
-	) = self.setSlot(LIST, transformer.apply(self.slot(LIST)))
+		transformer: (A_Phrase) -> A_Phrase
+	) = self.setSlot(LIST, transformer(self.slot(LIST)))
 
 	override fun o_EmitAllValuesOn(
 		self: AvailObject,
@@ -145,7 +145,6 @@ class PermutedListPhraseDescriptor private constructor(
 		codeGenerator.emitPermute(self.tokens(), self.permutation())
 	}
 
-	@AvailMethod
 	override fun o_EmitValueOn(
 		self: AvailObject,
 		codeGenerator: AvailCodeGenerator
@@ -156,7 +155,6 @@ class PermutedListPhraseDescriptor private constructor(
 		codeGenerator.emitMakeTuple(self.tokens(), permutation.tupleSize())
 	}
 
-	@AvailMethod
 	override fun o_EqualsPhrase(
 		self: AvailObject,
 		aPhrase: A_Phrase
@@ -172,15 +170,12 @@ class PermutedListPhraseDescriptor private constructor(
 	override fun o_ExpressionsSize(self: AvailObject): Int =
 		self.slot(LIST).expressionsSize()
 
-	@AvailMethod
 	override fun o_ExpressionsTuple(self: AvailObject): A_Tuple =
 		self.slot(LIST).expressionsTuple()
 
-	@AvailMethod
 	override fun o_ExpressionType(self: AvailObject): A_Type =
 		self.synchronizeIf(isShared) { expressionType(self) }
 
-	@AvailMethod
 	override fun o_Hash(self: AvailObject): Int =
 		((self.slot(LIST).hash() xor -0x3703d84e)
 			+ self.slot(PERMUTATION).hash())
@@ -204,8 +199,8 @@ class PermutedListPhraseDescriptor private constructor(
 
 	override fun o_StatementsDo(
 		self: AvailObject,
-		continuation: Continuation1NotNull<A_Phrase>
-	): Unit = throw unsupportedOperationException()
+		continuation: (A_Phrase) -> Unit
+	): Unit = throw unsupportedOperation()
 
 	/**
 	 * Strip away macro substitution phrases inside my recursive list structure.
@@ -213,7 +208,8 @@ class PermutedListPhraseDescriptor private constructor(
 	 * "leaf" phrases are checked for grammatical restrictions, but the "root"
 	 * phrases are what get passed into functions.
 	 */
-	override fun o_StripMacro(self: AvailObject): A_Phrase {
+	override fun o_StripMacro(self: AvailObject): A_Phrase
+	{
 		val originalList: A_Phrase = self.slot(LIST)
 		val strippedList = originalList.stripMacro()
 		return when {
@@ -225,8 +221,8 @@ class PermutedListPhraseDescriptor private constructor(
 		}
 	}
 
-	@AvailMethod
-	override fun o_SuperUnionType(self: AvailObject): A_Type {
+	override fun o_SuperUnionType(self: AvailObject): A_Type
+	{
 		val list: A_Phrase = self.slot(LIST)
 		val listSuperUnionType = list.superUnionType()
 		if (listSuperUnionType.isBottom) {
@@ -246,7 +242,6 @@ class PermutedListPhraseDescriptor private constructor(
 
 	override fun o_Tokens(self: AvailObject): A_Tuple = self.slot(LIST).tokens()
 
-	@AvailMethod
 	override fun o_ValidateLocally(
 		self: AvailObject,
 		parent: A_Phrase?

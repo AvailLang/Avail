@@ -192,7 +192,8 @@ abstract class L2Operand : PublicCloneable<L2Operand>()
 		: L2Operand = this
 
 	/**
-	 * Capture all [L2ReadOperand]s within this operand into the provided [List].
+	 * Capture all [L2ReadOperand]s within this operand into the provided
+	 * [List].
 	 *
 	 * @param readOperands
 	 *   The mutable [List] of [L2ReadOperand]s being populated.

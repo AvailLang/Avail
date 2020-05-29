@@ -47,7 +47,13 @@ import java.nio.CharBuffer
 import java.nio.channels.FileChannel
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
-import java.nio.file.*
+import java.nio.file.FileVisitOption
+import java.nio.file.FileVisitResult
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
+import java.nio.file.SimpleFileVisitor
+import java.nio.file.StandardOpenOption
 import java.nio.file.attribute.BasicFileAttributes
 import java.util.*
 import java.util.regex.Pattern
@@ -109,8 +115,8 @@ internal class Catalog
 		}
 
 	/**
-	 * The [set][Set] of all non-ASCII, non-alphanumeric [code
-	 * points][CharacterInfo].
+	 * The [set][Set] of all non-ASCII, non-alphanumeric
+	 * [code&#32;points][CharacterInfo].
 	 */
 	private var allSymbolicCodePoints: MutableSet<CharacterInfo>? = null
 		@Synchronized
@@ -178,7 +184,7 @@ internal class Catalog
 
 	/**
 	 * Accumulate into [allPaths] every matching path that resides beneath a
-	 * [root path][rootPaths].
+	 * [root&#32;path][rootPaths].
 	 *
 	 * @throws IOException
 	 *   If an I/O exception occurs.
@@ -320,8 +326,8 @@ internal class Catalog
 	}
 
 	/**
-	 * A [JSON-friendly representative][JSONFriendly] of the [complete set of
-	 * code points][allCodePoints].
+	 * A [JSON-friendly&#32;representative][JSONFriendly] of the
+	 * [complete&#32;set&#32;of&#32;code&#32;points][allCodePoints].
 	 *
 	 * @throws IOException
 	 *   If an I/O exception occurs.
@@ -344,8 +350,8 @@ internal class Catalog
 
 
 	/**
-	 * A [JSON-friendly representative][JSONFriendly] of the [complete set of
-	 * non-ASCII code][allNonAsciiCodePoints].
+	 * A [JSON-friendly&#32;representative][JSONFriendly] of the
+	 * [complete&#32;set&#32;of&#32;non-ASCII&#32;code][allNonAsciiCodePoints].
 	 *
 	 * @throws IOException
 	 *   If an I/O exception occurs.
@@ -368,7 +374,7 @@ internal class Catalog
 
 	/**
 	 * Answer a [JSON-friendly representative][JSONFriendly] of the
-	 * [complete set of non-ASCII,][allSymbolicCodePoints].
+	 * [complete&#32;set&#32;of&#32;non-ASCII,][allSymbolicCodePoints].
 	 *
 	 * @return The representative.
 	 * @throws IOException

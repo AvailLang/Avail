@@ -33,10 +33,17 @@
 package com.avail.builder
 
 import com.avail.AvailRuntime
-import com.avail.compiler.*
+import com.avail.compiler.AvailCompiler
+import com.avail.compiler.CompilerProgressReporter
+import com.avail.compiler.FiberTerminationException
+import com.avail.compiler.GlobalProgressReporter
+import com.avail.compiler.ModuleHeader
+import com.avail.compiler.ModuleImport
 import com.avail.compiler.problems.Problem
 import com.avail.compiler.problems.ProblemHandler
-import com.avail.compiler.problems.ProblemType.*
+import com.avail.compiler.problems.ProblemType.EXECUTION
+import com.avail.compiler.problems.ProblemType.PARSE
+import com.avail.compiler.problems.ProblemType.TRACE
 import com.avail.descriptor.atoms.A_Atom.Companion.atomName
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.commandPriority
@@ -58,7 +65,9 @@ import com.avail.interpreter.execution.Interpreter.Companion.runOutermostFunctio
 import com.avail.io.SimpleCompletionHandler
 import com.avail.io.TextInterface
 import com.avail.persistence.Repository
-import com.avail.persistence.Repository.*
+import com.avail.persistence.Repository.ModuleArchive
+import com.avail.persistence.Repository.ModuleCompilation
+import com.avail.persistence.Repository.ModuleVersion
 import com.avail.serialization.MalformedSerialStreamException
 import com.avail.serialization.Serializer
 import com.avail.utility.Graph
@@ -72,7 +81,9 @@ import java.nio.ByteBuffer
 import java.nio.file.Path
 import java.nio.file.attribute.BasicFileAttributes
 import java.util.*
-import java.util.Collections.*
+import java.util.Collections.emptyList
+import java.util.Collections.synchronizedList
+import java.util.Collections.synchronizedMap
 import java.util.concurrent.Semaphore
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
@@ -88,8 +99,7 @@ import kotlin.collections.set
 import kotlin.concurrent.read
 
 /**
- * An `AvailBuilder` [compiles][AvailCompiler] and installs into an [Avail
- * runtime][AvailRuntime] a target [module][ModuleDescriptor] and each of its
+ * An `AvailBuilder` [compiles][AvailCompiler] and installs into an [Avail&#32;runtime][AvailRuntime] a target [module][ModuleDescriptor] and each of its
  * dependencies.
  *
  * @property runtime
@@ -113,8 +123,8 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	private val builderLock = ReentrantReadWriteLock()
 
 	/**
-	 * The [text interface][TextInterface] for the [builder][AvailBuilder] and
-	 * downstream components.
+	 * The [text&#32;interface][TextInterface] for the [builder][AvailBuilder]
+	 * and downstream components.
 	 */
 	var textInterface: TextInterface = runtime.textInterface()
 
@@ -315,8 +325,8 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	}
 
 	/**
-	 * Serialize the specified [module header][ModuleHeader] into the [module
-	 * version][ModuleVersion].
+	 * Serialize the specified [module header][ModuleHeader] into the
+	 * [module&#32;version][ModuleVersion].
 	 *
 	 * @param header
 	 *   A module header.
@@ -776,8 +786,8 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	 *   The command to attempt to parse and run.
 	 * @param onAmbiguity
 	 *   What to do if the entry point is ambiguous. Accepts a [List] of
-	 *   [compiled commands][CompiledCommand] and the function to invoke with
-	 *   the selected command (or `null` if no command should be run).
+	 *   [compiled&#32;commands][CompiledCommand] and the function to invoke
+	 *   with the selected command (or `null` if no command should be run).
 	 * @param onSuccess
 	 *   What to do if the command parsed and ran to completion.  It should be
 	 *   passed both the result of execution and a cleanup function to invoke
@@ -814,8 +824,8 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	 *   The command to attempt to parse and run.
 	 * @param onAmbiguity
 	 *   What to do if the entry point is ambiguous. Accepts a [List] of
-	 *   [compiled commands][CompiledCommand] and the function to invoke with
-	 *   the selected command (or `null` if no command should be run).
+	 *   [compiled&#32;commands][CompiledCommand] and the function to invoke
+	 *   with the selected command (or `null` if no command should be run).
 	 * @param onSuccess
 	 *   What to do if the command parsed and ran to completion.  It should be
 	 *   passed both the result of execution and a cleanup function to invoke
@@ -1002,7 +1012,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	 *   encountered.
 	 * @param onAmbiguity
 	 *   What to do if the entry point is ambiguous. Accepts a [List] of
-	 *   [compiled commands][CompiledCommand] and the continuation to invoke
+	 *   [compiled&#32;commands][CompiledCommand] and the continuation to invoke
 	 *   with the selected command (or `null` if no command should be run).
 	 * @param onSuccess
 	 *   What to do with the result of a successful unambiguous command.

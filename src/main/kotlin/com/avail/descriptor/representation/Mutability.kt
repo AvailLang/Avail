@@ -31,12 +31,13 @@
  */
 package com.avail.descriptor.representation
 
-import com.avail.descriptor.*
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.bundles.A_BundleTree
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.methods.MethodDescriptor
-import com.avail.descriptor.representation.Mutability.*
+import com.avail.descriptor.representation.Mutability.IMMUTABLE
+import com.avail.descriptor.representation.Mutability.MUTABLE
+import com.avail.descriptor.representation.Mutability.SHARED
 
 /**
  * A description of the mutability of an [AvailObject]. This information is not
@@ -80,7 +81,7 @@ enum class Mutability {
 	 * reference to the new child. The origin [function][A_Function] of a new
 	 * fiber becomes *shared* before its execution. All special objects and
 	 * other root objects begin existence *shared*. Other objects become
-	 * *shared* just before assignment to the [object&#32;slot][ObjectSlotsEnum]
+	 * *shared* just before assignment to the [object slot][ObjectSlotsEnum]
 	 * of a *shared* object.
 	 */
 	SHARED

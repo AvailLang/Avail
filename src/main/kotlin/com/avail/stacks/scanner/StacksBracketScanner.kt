@@ -89,7 +89,7 @@ class StacksBracketScanner private constructor(bracketToken: BracketedStacksToke
 	{
 		/**
 		 * Answer the [list][List] of [tokens][TokenDescriptor] that comprise a
-		 * [Avail comment][CommentTokenDescriptor].
+		 * [Avail&#32;comment][CommentTokenDescriptor].
 		 *
 		 * @param bracketToken
 		 *   A [comment bracket][BracketedStacksToken] to be tokenized.

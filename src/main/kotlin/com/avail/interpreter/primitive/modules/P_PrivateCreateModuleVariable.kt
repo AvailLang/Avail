@@ -42,13 +42,16 @@ import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.descriptor.types.VariableTypeDescriptor.variableMeta
 import com.avail.descriptor.variables.VariableSharedGlobalDescriptor
 import com.avail.descriptor.variables.VariableSharedGlobalDescriptor.Companion.createGlobal
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CanFold
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Primitive.Flag.Private
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Create a
- * [global variable or constant][VariableSharedGlobalDescriptor], registering it
+ * [global&#32;variable&#32;or&#32;constant][VariableSharedGlobalDescriptor], registering it
  * with the given module.
  */
 object P_PrivateCreateModuleVariable

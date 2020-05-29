@@ -31,44 +31,49 @@
  */
 package com.avail.descriptor.phrases
 
-import com.avail.annotations.AvailMethod
-import com.avail.compiler.AvailCodeGenerator
-import com.avail.descriptor.representation.NilDescriptor.Companion.nil
-import com.avail.descriptor.phrases.A_Phrase.Companion.declaredType
-import com.avail.descriptor.phrases.A_Phrase.Companion.emitEffectOn
-import com.avail.descriptor.phrases.A_Phrase.Companion.emitValueOn
-import com.avail.descriptor.phrases.A_Phrase.Companion.expressionType
-import com.avail.descriptor.phrases.A_Phrase.Companion.initializationExpression
-import com.avail.descriptor.phrases.A_Phrase.Companion.literalObject
-import com.avail.descriptor.phrases.A_Phrase.Companion.token
-import com.avail.descriptor.phrases.A_Phrase.Companion.tokens
-import com.avail.descriptor.phrases.A_Phrase.Companion.typeExpression
-import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
-import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.ObjectSlots.*
-import com.avail.descriptor.representation.*
-import com.avail.descriptor.representation.AvailObject.Companion.error
-import com.avail.descriptor.representation.AvailObject.Companion.multiplier
-import com.avail.descriptor.tokens.A_Token
-import com.avail.descriptor.tokens.TokenDescriptor
-import com.avail.descriptor.tuples.A_String
-import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.tuples.StringDescriptor
-import com.avail.descriptor.tuples.StringDescriptor.stringFrom
-import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
-import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.ContinuationTypeDescriptor
-import com.avail.descriptor.types.FunctionTypeDescriptor
-import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
-import com.avail.descriptor.types.TypeDescriptor
-import com.avail.descriptor.types.TypeDescriptor.Types
-import com.avail.descriptor.variables.VariableDescriptor
-import com.avail.serialization.SerializerOperation
-import com.avail.utility.evaluation.Continuation1NotNull
-import com.avail.utility.json.JSONWriter
-import java.util.*
-import java.util.function.Consumer
-import java.util.function.UnaryOperator
+ import com.avail.compiler.AvailCodeGenerator
+ import com.avail.descriptor.phrases.A_Phrase.Companion.declaredType
+ import com.avail.descriptor.phrases.A_Phrase.Companion.emitEffectOn
+ import com.avail.descriptor.phrases.A_Phrase.Companion.emitValueOn
+ import com.avail.descriptor.phrases.A_Phrase.Companion.expressionType
+ import com.avail.descriptor.phrases.A_Phrase.Companion.initializationExpression
+ import com.avail.descriptor.phrases.A_Phrase.Companion.literalObject
+ import com.avail.descriptor.phrases.A_Phrase.Companion.token
+ import com.avail.descriptor.phrases.A_Phrase.Companion.tokens
+ import com.avail.descriptor.phrases.A_Phrase.Companion.typeExpression
+ import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
+ import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.ObjectSlots.DECLARED_TYPE
+ import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.ObjectSlots.INITIALIZATION_EXPRESSION
+ import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.ObjectSlots.LITERAL_OBJECT
+ import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.ObjectSlots.TOKEN
+ import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.ObjectSlots.TYPE_EXPRESSION
+ import com.avail.descriptor.representation.A_BasicObject
+ import com.avail.descriptor.representation.AbstractDescriptor
+ import com.avail.descriptor.representation.AvailObject
+ import com.avail.descriptor.representation.AvailObject.Companion.error
+ import com.avail.descriptor.representation.AvailObject.Companion.multiplier
+ import com.avail.descriptor.representation.IntegerEnumSlotDescriptionEnum
+ import com.avail.descriptor.representation.Mutability
+ import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+ import com.avail.descriptor.representation.ObjectSlotsEnum
+ import com.avail.descriptor.tokens.A_Token
+ import com.avail.descriptor.tokens.TokenDescriptor
+ import com.avail.descriptor.tuples.A_String
+ import com.avail.descriptor.tuples.A_Tuple
+ import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+ import com.avail.descriptor.tuples.StringDescriptor
+ import com.avail.descriptor.tuples.StringDescriptor.stringFrom
+ import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+ import com.avail.descriptor.types.A_Type
+ import com.avail.descriptor.types.ContinuationTypeDescriptor
+ import com.avail.descriptor.types.FunctionTypeDescriptor
+ import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
+ import com.avail.descriptor.types.TypeDescriptor
+ import com.avail.descriptor.types.TypeDescriptor.Types
+ import com.avail.descriptor.variables.VariableDescriptor
+ import com.avail.serialization.SerializerOperation
+ import com.avail.utility.json.JSONWriter
+ import java.util.*
 
 /**
  * My instances represent variable and constant declaration statements.  There
@@ -550,30 +555,23 @@ class DeclarationPhraseDescriptor(
 		}
 	}
 
-	@AvailMethod
 	override fun o_Token(self: AvailObject): A_Token = self.slot(TOKEN)
 
-	@AvailMethod
 	override fun o_DeclaredType(self: AvailObject): A_Type =
 		self.slot(DECLARED_TYPE)
 
-	@AvailMethod
 	override fun o_TypeExpression(self: AvailObject): A_Phrase =
 		self.slot(TYPE_EXPRESSION)
 
-	@AvailMethod
 	override fun o_InitializationExpression(self: AvailObject): AvailObject =
 		self.slot(INITIALIZATION_EXPRESSION)
 
-	@AvailMethod
 	override fun o_LiteralObject(self: AvailObject): A_BasicObject =
 		self.slot(LITERAL_OBJECT)
 
-	@AvailMethod
 	override fun o_DeclarationKind(self: AvailObject): DeclarationKind =
 		declarationKind
 
-	@AvailMethod
 	override fun o_ExpressionType(self: AvailObject): A_Type = Types.TOP.o()
 
 	/**
@@ -582,7 +580,6 @@ class DeclarationPhraseDescriptor(
 	 * @param codeGenerator
 	 *   Where to emit the declaration.
 	 */
-	@AvailMethod
 	override fun o_EmitEffectOn(
 		self: AvailObject,
 		codeGenerator: AvailCodeGenerator
@@ -592,7 +589,6 @@ class DeclarationPhraseDescriptor(
 	/**
 	 * This is a declaration, so it shouldn't generally produce a value.
 	 */
-	@AvailMethod
 	override fun o_EmitValueOn(
 		self: AvailObject,
 		codeGenerator: AvailCodeGenerator
@@ -601,7 +597,6 @@ class DeclarationPhraseDescriptor(
 		codeGenerator.emitPushLiteral(emptyTuple(), nil)
 	}
 
-	@AvailMethod
 	override fun o_Hash(self: AvailObject): Int {
 		var h = self.token().hash()
 		h = h * multiplier + self.typeExpression().hash()
@@ -612,45 +607,40 @@ class DeclarationPhraseDescriptor(
 		return h xor 0x4C27EB37
 	}
 
-	@AvailMethod
 	override fun o_EqualsPhrase(
 		self: AvailObject,
 		aPhrase: A_Phrase
 	) = self.sameAddressAs(aPhrase.traversed())
 
-	@AvailMethod
 	override fun o_ChildrenMap(
 		self: AvailObject,
-		transformer: UnaryOperator<A_Phrase>
+		transformer: (A_Phrase) -> A_Phrase
 	) {
 		val typeExpression = self.typeExpression()
 		if (!typeExpression.equalsNil()) {
-			self.setSlot(TYPE_EXPRESSION, transformer.apply(typeExpression))
+			self.setSlot(TYPE_EXPRESSION, transformer(typeExpression))
 		}
 		val expression: A_Phrase = self.initializationExpression()
 		if (!expression.equalsNil()) {
-			self.setSlot(
-				INITIALIZATION_EXPRESSION, transformer.apply(expression))
+			self.setSlot(INITIALIZATION_EXPRESSION, transformer(expression))
 		}
 	}
 
-	@AvailMethod
 	override fun o_ChildrenDo(
 		self: AvailObject,
-		action: Consumer<A_Phrase>
+		action: (A_Phrase) -> Unit
 	) {
 		val expression = self.initializationExpression()
 		if (!expression.equalsNil()) {
-			action.accept(expression)
+			action(expression)
 		}
 	}
 
 	override fun o_StatementsDo(
 		self: AvailObject,
-		continuation: Continuation1NotNull<A_Phrase>
-	) = continuation.value(self)
+		continuation: (A_Phrase) -> Unit
+	) = continuation(self)
 
-	@AvailMethod
 	override fun o_ValidateLocally(
 		self: AvailObject,
 		parent: A_Phrase?
@@ -966,9 +956,9 @@ class DeclarationPhraseDescriptor(
 		}.toTypedArray()
 	}
 
-	override fun mutable(): DeclarationPhraseDescriptor =
+	override fun mutable(): AbstractDescriptor =
 		mutables[declarationKind.ordinal]
 
-	override fun shared(): DeclarationPhraseDescriptor =
+	override fun shared(): AbstractDescriptor =
 		shareds[declarationKind.ordinal]
 }

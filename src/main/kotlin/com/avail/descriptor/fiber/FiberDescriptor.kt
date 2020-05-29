@@ -34,9 +34,7 @@ package com.avail.descriptor.fiber
 import com.avail.AvailRuntime
 import com.avail.AvailRuntime.currentRuntime
 import com.avail.AvailRuntimeSupport
-import com.avail.annotations.AvailMethod
 import com.avail.annotations.HideFieldInDebugger
-import com.avail.descriptor.Descriptor
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom
 import com.avail.descriptor.fiber.FiberDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
@@ -52,7 +50,24 @@ import com.avail.descriptor.fiber.FiberDescriptor.IntegerSlots.Companion._TRACE_
 import com.avail.descriptor.fiber.FiberDescriptor.IntegerSlots.Companion._TRACE_VARIABLE_WRITES
 import com.avail.descriptor.fiber.FiberDescriptor.IntegerSlots.DEBUG_UNIQUE_ID
 import com.avail.descriptor.fiber.FiberDescriptor.IntegerSlots.EXECUTION_STATE
-import com.avail.descriptor.fiber.FiberDescriptor.ObjectSlots.*
+import com.avail.descriptor.fiber.FiberDescriptor.ObjectSlots.BREAKPOINT_BLOCK
+import com.avail.descriptor.fiber.FiberDescriptor.ObjectSlots.CONTINUATION
+import com.avail.descriptor.fiber.FiberDescriptor.ObjectSlots.DEBUG_LOG
+import com.avail.descriptor.fiber.FiberDescriptor.ObjectSlots.FAILURE_CONTINUATION
+import com.avail.descriptor.fiber.FiberDescriptor.ObjectSlots.FIBER_GLOBALS
+import com.avail.descriptor.fiber.FiberDescriptor.ObjectSlots.HERITABLE_FIBER_GLOBALS
+import com.avail.descriptor.fiber.FiberDescriptor.ObjectSlots.JOINING_FIBERS
+import com.avail.descriptor.fiber.FiberDescriptor.ObjectSlots.LOADER
+import com.avail.descriptor.fiber.FiberDescriptor.ObjectSlots.NAME_OR_NIL
+import com.avail.descriptor.fiber.FiberDescriptor.ObjectSlots.NAME_SUPPLIER
+import com.avail.descriptor.fiber.FiberDescriptor.ObjectSlots.REIFICATION_WAITERS
+import com.avail.descriptor.fiber.FiberDescriptor.ObjectSlots.RESULT
+import com.avail.descriptor.fiber.FiberDescriptor.ObjectSlots.RESULT_CONTINUATION
+import com.avail.descriptor.fiber.FiberDescriptor.ObjectSlots.RESULT_TYPE
+import com.avail.descriptor.fiber.FiberDescriptor.ObjectSlots.SUSPENDING_FUNCTION
+import com.avail.descriptor.fiber.FiberDescriptor.ObjectSlots.TEXT_INTERFACE
+import com.avail.descriptor.fiber.FiberDescriptor.ObjectSlots.TRACED_VARIABLES
+import com.avail.descriptor.fiber.FiberDescriptor.ObjectSlots.WAKEUP_TASK
 import com.avail.descriptor.functions.A_Continuation
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.ContinuationDescriptor
@@ -62,10 +77,19 @@ import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.A_Phrase.Companion.token
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor
 import com.avail.descriptor.pojos.RawPojoDescriptor
-import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
-import com.avail.descriptor.representation.*
+import com.avail.descriptor.pojos.RawPojoDescriptor.identityPojo
+import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
+import com.avail.descriptor.representation.AbstractDescriptor
+import com.avail.descriptor.representation.AbstractSlotsEnum
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.BitField
+import com.avail.descriptor.representation.Descriptor
+import com.avail.descriptor.representation.IntegerEnumSlotDescriptionEnum
+import com.avail.descriptor.representation.IntegerSlotsEnum
+import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
@@ -81,14 +105,11 @@ import com.avail.interpreter.execution.AvailLoader
 import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.L2Chunk
 import com.avail.io.TextInterface
-import com.avail.utility.evaluation.Continuation0
-import com.avail.utility.evaluation.Continuation1NotNull
 import com.avail.utility.json.JSONWriter
 import java.util.*
 import java.util.Collections.synchronizedMap
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.atomic.AtomicInteger
-import java.util.function.Supplier
 
 /**
  * An Avail `FiberDescriptor fiber` represents an independently schedulable flow
@@ -354,17 +375,16 @@ class FiberDescriptor private constructor(
 		LOADER,
 
 		/**
-		 * A [raw&#32;pojo][RawPojoDescriptor] wrapping the
-		 * [Continuation1NotNull] that should be called with the
-		 * [result][AvailObject] of executing the fiber to its natural
-		 * conclusion.
+		 * A [raw&#32;pojo][RawPojoDescriptor] wrapping the action that should
+		 * be called with the [result][AvailObject] of executing the fiber to
+		 * its natural conclusion.
 		 */
 		RESULT_CONTINUATION,
 
 		/**
-		 * A [raw&#32;pojo][RawPojoDescriptor] wrapping the
-		 * [Continuation1NotNull] that should be called with the [Throwable]
-		 * responsible for the untimely death of the fiber.
+		 * A [raw&#32;pojo][RawPojoDescriptor] wrapping the that should be
+		 * called with the [Throwable] responsible for the untimely death of the
+		 * fiber.
 		 */
 		FAILURE_CONTINUATION,
 
@@ -393,9 +413,8 @@ class FiberDescriptor private constructor(
 
 		/**
 		 * A [set][SetDescriptor] of raw [pojos][RawPojoDescriptor], each of
-		 * which wraps a [Continuation1NotNull] indicating what to do with the
-		 * fiber's reified [CONTINUATION] when the fiber next reaches a suitable
-		 * safe point.
+		 * which wraps an action indicating what to do with the fiber's reified
+		 * [CONTINUATION] when the fiber next reaches a suitable safe point.
 		 *
 		 * The non-emptiness of this set must agree with the value of the
 		 * [InterruptRequestFlag.REIFICATION_REQUESTED] flag.
@@ -408,9 +427,9 @@ class FiberDescriptor private constructor(
 		TEXT_INTERFACE,
 
 		/**
-		 * A [raw&#32;pojo][RawPojoDescriptor] holding a [Supplier] of
-		 * [A_String]. The supplier should avoid execution of Avail code, as
-		 * that could easily lead to deadlocks.
+		 * A [raw&#32;pojo][RawPojoDescriptor] holding a supplier of [A_String].
+		 * The supplier should avoid execution of Avail code, as that could
+		 * easily lead to deadlocks.
 		 */
 		NAME_SUPPLIER,
 
@@ -609,11 +628,9 @@ class FiberDescriptor private constructor(
 		return true
 	}
 
-	@AvailMethod
 	override fun o_ExecutionState(self: AvailObject): ExecutionState =
 		ExecutionState.lookup(self.mutableSlot(EXECUTION_STATE).toInt())
 
-	@AvailMethod
 	override fun o_ExecutionState(self: AvailObject, value: ExecutionState) =
 		synchronized(self) {
 			val index = self.mutableSlot(EXECUTION_STATE).toInt()
@@ -622,30 +639,24 @@ class FiberDescriptor private constructor(
 			self.setSlot(EXECUTION_STATE, value.ordinal.toLong())
 		}
 
-	@AvailMethod
 	override fun o_Priority(self: AvailObject): Int = self.mutableSlot(PRIORITY)
 
-	@AvailMethod
 	override fun o_Priority(self: AvailObject, value: Int) =
 		self.setMutableSlot(PRIORITY, value)
 
-	@AvailMethod
 	override fun o_UniqueId(self: AvailObject): Long =
 		self.slot(DEBUG_UNIQUE_ID)
 
-	@AvailMethod
 	override fun o_InterruptRequestFlag(
 		self: AvailObject,
 		flag: InterruptRequestFlag
 	): Boolean = synchronized(self) { self.slot(flag.bitField) == 1 }
 
-	@AvailMethod
 	override fun o_SetInterruptRequestFlag(
 		self: AvailObject,
 		flag: InterruptRequestFlag
 	) = synchronized(self) { self.setSlot(flag.bitField, 1) }
 
-	@AvailMethod
 	override fun o_GetAndClearInterruptRequestFlag(
 		self: AvailObject,
 		flag: InterruptRequestFlag
@@ -655,7 +666,6 @@ class FiberDescriptor private constructor(
 		value == 1
 	}
 
-	@AvailMethod
 	override fun o_GetAndSetSynchronizationFlag(
 		self: AvailObject,
 		flag: SynchronizationFlag,
@@ -670,41 +680,34 @@ class FiberDescriptor private constructor(
 		return oldValue == 1
 	}
 
-	@AvailMethod
 	override fun o_GeneralFlag(self: AvailObject, flag: GeneralFlag): Boolean {
 		val value: Int = synchronized(self) { self.slot(flag.bitField) }
 		return value == 1
 	}
 
-	@AvailMethod
 	override fun o_SetGeneralFlag(
 		self: AvailObject,
 		flag: GeneralFlag
 	) = synchronized(self) { self.setSlot(flag.bitField, 1) }
 
-	@AvailMethod
 	override fun o_ClearGeneralFlag(
 		self: AvailObject,
 		flag: GeneralFlag
 	) = synchronized(self) { self.setSlot(flag.bitField, 0) }
 
-	@AvailMethod
 	override fun o_TraceFlag(self: AvailObject, flag: TraceFlag): Boolean =
 		synchronized(self) { self.slot(flag.bitField) == 1 }
 
-	@AvailMethod
 	override fun o_SetTraceFlag(
 		self: AvailObject,
 		flag: TraceFlag
 	) = synchronized(self) { self.setSlot(flag.bitField, 1) }
 
-	@AvailMethod
 	override fun o_ClearTraceFlag(
 		self: AvailObject,
 		flag: TraceFlag
 	) = synchronized(self) { self.setSlot(flag.bitField, 0) }
 
-	@AvailMethod
 	override fun o_Continuation(self: AvailObject): A_Continuation =
 		self.mutableSlot(CONTINUATION)
 
@@ -712,69 +715,58 @@ class FiberDescriptor private constructor(
 	 * Use a special setter mechanism that allows the continuation to be
 	 * non-shared, even if the fiber it's to be plugged into is shared.
 	 */
-	@AvailMethod
 	override fun o_Continuation(self: AvailObject, value: A_Continuation) =
 		self.setContinuationSlotOfFiber(CONTINUATION, value)
 
-	@AvailMethod
-	override fun o_FiberName(self: AvailObject): A_String {
+	override fun o_FiberName(self: AvailObject): A_String
+	{
 		var name: A_String = self.slot(NAME_OR_NIL)
 		if (name.equalsNil()) {
 			// Compute it from the generator.
 			val pojo = self.mutableSlot(NAME_SUPPLIER)
-			val supplier = pojo.javaObjectNotNull<Supplier<A_String>>()
-			name = supplier.get()
+			val supplier = pojo.javaObjectNotNull<() -> A_String>()
+			name = supplier()
 			// Save it for next time.
 			self.setMutableSlot(NAME_OR_NIL, name)
 		}
 		return name
 	}
 
-	@AvailMethod
 	override fun o_FiberNameSupplier(
 		self: AvailObject,
-		supplier: Supplier<A_String>
+		supplier: () -> A_String
 	) {
 		self.setMutableSlot(NAME_SUPPLIER, identityPojo(supplier))
 		// And clear the cached name.
 		self.setMutableSlot(NAME_OR_NIL, nil)
 	}
 
-	@AvailMethod
-	override fun o_FiberGlobals(self: AvailObject): AvailObject =
+	override fun o_FiberGlobals(self: AvailObject): A_Map =
 		self.mutableSlot(FIBER_GLOBALS)
 
-	@AvailMethod
 	override fun o_FiberGlobals(self: AvailObject, globals: A_Map) =
 		self.setMutableSlot(FIBER_GLOBALS, globals)
 
-	@AvailMethod
 	override fun o_FiberResult(self: AvailObject): AvailObject =
 		self.mutableSlot(RESULT)
 
-	@AvailMethod
 	override fun o_FiberResult(self: AvailObject, result: A_BasicObject) =
 		self.setMutableSlot(RESULT, result)
 
-	@AvailMethod
 	override fun o_HeritableFiberGlobals(self: AvailObject): A_Map =
 		self.mutableSlot(HERITABLE_FIBER_GLOBALS)
 
-	@AvailMethod
 	override fun o_HeritableFiberGlobals(
 		self: AvailObject,
 		globals: A_Map
 	) = self.setMutableSlot(HERITABLE_FIBER_GLOBALS, globals)
 
-	@AvailMethod
-	override fun o_BreakpointBlock(self: AvailObject): AvailObject =
+	override fun o_BreakpointBlock(self: AvailObject): A_BasicObject =
 		self.mutableSlot(BREAKPOINT_BLOCK)
 
-	@AvailMethod
 	override fun o_BreakpointBlock(self: AvailObject, value: AvailObject) =
 		self.setMutableSlot(BREAKPOINT_BLOCK, value)
 
-	@AvailMethod
 	override fun o_AvailLoader(self: AvailObject): AvailLoader? {
 		val pojo = self.mutableSlot(LOADER)
 		return if (!pojo.equalsNil()) {
@@ -782,7 +774,6 @@ class FiberDescriptor private constructor(
 		} else null
 	}
 
-	@AvailMethod
 	override fun o_AvailLoader(
 		self: AvailObject,
 		loader: AvailLoader?
@@ -790,10 +781,10 @@ class FiberDescriptor private constructor(
 		LOADER,
 		if (loader !== null) identityPojo(loader) else nil)
 
-	@AvailMethod
 	override fun o_ResultContinuation(
 		self: AvailObject
-	): Continuation1NotNull<AvailObject> {
+	): (AvailObject)->Unit
+	{
 		var pojo: AvailObject
 		synchronized(self) {
 			pojo = self.slot(RESULT_CONTINUATION)
@@ -804,11 +795,10 @@ class FiberDescriptor private constructor(
 		return pojo.javaObjectNotNull()
 	}
 
-	@AvailMethod
 	override fun o_SetSuccessAndFailureContinuations(
 		self: AvailObject,
-		onSuccess: Continuation1NotNull<AvailObject>,
-		onFailure: Continuation1NotNull<Throwable>
+		onSuccess: (AvailObject) -> Unit,
+		onFailure: (Throwable) -> Unit
 	) = synchronized(self) {
 		val oldSuccess = self.slot(RESULT_CONTINUATION)
 		assert(oldSuccess === defaultResultContinuation)
@@ -818,10 +808,8 @@ class FiberDescriptor private constructor(
 		self.setSlot(FAILURE_CONTINUATION, identityPojo(onFailure))
 	}
 
-	@AvailMethod
-	override fun o_FailureContinuation(
-		self: AvailObject
-	): Continuation1NotNull<Throwable> {
+	override fun o_FailureContinuation(self: AvailObject): (Throwable) -> Unit
+	{
 		var pojo: AvailObject
 		synchronized(self) {
 			pojo = self.slot(FAILURE_CONTINUATION)
@@ -832,15 +820,12 @@ class FiberDescriptor private constructor(
 		return pojo.javaObjectNotNull()
 	}
 
-	@AvailMethod
 	override fun o_JoiningFibers(self: AvailObject): A_Set =
 		self.mutableSlot(JOINING_FIBERS)
 
-	@AvailMethod
 	override fun o_JoiningFibers(self: AvailObject, joiners: A_Set) =
 		self.setMutableSlot(JOINING_FIBERS, joiners)
 
-	@AvailMethod
 	override fun o_WakeupTask(self: AvailObject): TimerTask? {
 		val pojo = self.mutableSlot(WAKEUP_TASK)
 		return if (!pojo.equalsNil()) {
@@ -848,7 +833,6 @@ class FiberDescriptor private constructor(
 		} else null
 	}
 
-	@AvailMethod
 	override fun o_WakeupTask(
 		self: AvailObject,
 		task: TimerTask?
@@ -864,7 +848,6 @@ class FiberDescriptor private constructor(
 		textInterface: TextInterface
 	) = self.setMutableSlot(TEXT_INTERFACE, identityPojo(textInterface))
 
-	@AvailMethod
 	override fun o_RecordVariableAccess(
 		self: AvailObject,
 		variable: A_Variable,
@@ -879,8 +862,8 @@ class FiberDescriptor private constructor(
 		}
 	}
 
-	@AvailMethod
-	override fun o_VariablesReadBeforeWritten(self: AvailObject): A_Set {
+	override fun o_VariablesReadBeforeWritten(self: AvailObject): A_Set
+	{
 		assert(self.mutableSlot(_TRACE_VARIABLE_READS_BEFORE_WRITES) != 1)
 		val rawPojo = self.slot(TRACED_VARIABLES)
 		val map = rawPojo.javaObjectNotNull<MutableMap<A_Variable, Boolean>>()
@@ -894,8 +877,8 @@ class FiberDescriptor private constructor(
 		return set
 	}
 
-	@AvailMethod
-	override fun o_VariablesWritten(self: AvailObject): A_Set {
+	override fun o_VariablesWritten(self: AvailObject): A_Set
+	{
 		assert(self.mutableSlot(_TRACE_VARIABLE_WRITES) != 1)
 		val rawPojo = self.slot(TRACED_VARIABLES)
 		val map = rawPojo.javaObjectNotNull<MutableMap<A_Variable, Boolean>>()
@@ -904,7 +887,6 @@ class FiberDescriptor private constructor(
 		return set
 	}
 
-	@AvailMethod
 	override fun o_Equals(
 		self: AvailObject,
 		another: A_BasicObject
@@ -913,22 +895,19 @@ class FiberDescriptor private constructor(
 		return another.traversed().sameAddressAs(self)
 	}
 
-	@AvailMethod
 	override fun o_Hash(self: AvailObject): Int =
 		self.synchronizeIf(isShared) { hash(self) }
 
-	@AvailMethod
 	override fun o_Kind(self: AvailObject): A_Type =
 		FiberTypeDescriptor.fiberType(self.slot(RESULT_TYPE))
 
-	@AvailMethod
 	override fun o_FiberResultType(self: AvailObject): A_Type =
 		self.slot(RESULT_TYPE)
 
 	override fun o_WhenContinuationIsAvailableDo(
 		self: AvailObject,
-		whenReified: Continuation1NotNull<A_Continuation>
-	) = self.lock(Continuation0 {
+		whenReified: (A_Continuation) -> Unit
+	) = self.lock {
 		@Suppress("WHEN_ENUM_CAN_BE_NULL_IN_JAVA")
 		when (self.executionState()) {
 			ExecutionState.ABORTED,
@@ -939,7 +918,7 @@ class FiberDescriptor private constructor(
 			ExecutionState.SUSPENDED,
 			ExecutionState.TERMINATED,
 			ExecutionState.UNSTARTED -> {
-				whenReified.value(self.continuation().makeShared())
+				whenReified(self.continuation().makeShared())
 			}
 			ExecutionState.RUNNING -> {
 				val pojo: A_BasicObject = identityPojo(whenReified)
@@ -950,7 +929,7 @@ class FiberDescriptor private constructor(
 					InterruptRequestFlag.REIFICATION_REQUESTED)
 			}
 		}
-	})
+	}
 
 	override fun o_GetAndClearReificationWaiters(self: AvailObject): A_Set =
 		synchronized(self) {
@@ -1001,44 +980,26 @@ class FiberDescriptor private constructor(
 	override fun o_DebugLog(self: AvailObject): StringBuilder =
 		self.mutableSlot(DEBUG_LOG).javaObjectNotNull()
 
-	override fun o_Lock(self: AvailObject, critical: Continuation0) {
+	override fun <T> o_Lock(self: AvailObject, supplier: ()->T): T =
 		when (val interpreter = Interpreter.currentOrNull()) {
 			null -> {
 				// It's not running an AvailThread, so don't bother detecting
 				// multiple nested fiber locks (which would suggest a deadlock
 				// hazard)..
-				synchronized(self) { critical.value() }
+				synchronized(self) { supplier() }
 			}
 			else -> {
-				interpreter.lockFiberWhile(
-					self,
-					Supplier {
-						synchronized(self) { critical.value() }
-					})
-			}
-		}
-	}
-
-	override fun <T> o_Lock(self: AvailObject, supplier: Supplier<T>): T =
-		when (val interpreter = Interpreter.currentOrNull()) {
-			null -> {
-				// It's not running an AvailThread, so don't bother detecting
-				// multiple nested fiber locks (which would suggest a deadlock
-				// hazard)..
-				synchronized(self) { supplier.get() }
-			}
-			else -> {
-				interpreter.lockFiberWhile(
-					self,
-					Supplier<T> { synchronized(self) { supplier.get() } })
+				interpreter.lockFiberWhile(self) {
+					synchronized(self) { supplier() }
+				}
 			}
 		}
 
-	override fun mutable(): FiberDescriptor = mutable
+	override fun mutable(): AbstractDescriptor = mutable
 
-	override fun immutable(): FiberDescriptor = immutable
+	override fun immutable(): AbstractDescriptor = immutable
 
-	override fun shared(): FiberDescriptor = shared
+	override fun shared(): AbstractDescriptor = shared
 
 	companion object {
 		/** A simple counter for identifying fibers by creation order. */
@@ -1064,17 +1025,23 @@ class FiberDescriptor private constructor(
 
 		/**
 		 * The default result continuation, answered when a [fiber][A_Fiber]'s
-		 * result continuation is [nil].
+		 * result continuation is [nil]. Note that the suppression is required
+		 * here; the compiler is wrong, and simplifying will cause a
+		 * [ClassCastException] at runtime.
 		 */
+		@Suppress("RedundantLambdaArrow")
 		private val defaultResultContinuation: A_BasicObject = identityPojo(
-			Continuation1NotNull { _: AvailObject -> })
+			{ _: AvailObject -> })
 
 		/**
 		 * The default result continuation, answered when a
-		 * [fiber][FiberDescriptor]'s result continuation is [nil].
+		 * [fiber][FiberDescriptor]'s result continuation is [nil]. Note that
+		 * the suppression is required here; the compiler is wrong, and
+		 * simplifying will cause a [ClassCastException] at runtime.
 		 */
+		@Suppress("RedundantLambdaArrow")
 		private val defaultFailureContinuation: A_BasicObject =
-			identityPojo(Continuation1NotNull { _: Throwable -> })
+			identityPojo({ _: Throwable -> })
 
 		/**
 		 * Lazily compute and install the hash of the specified
@@ -1175,14 +1142,14 @@ class FiberDescriptor private constructor(
 
 		/**
 		 * Construct an [unstarted][ExecutionState.UNSTARTED] [fiber][A_Fiber]
-		 * with the specified [result&#32;type][A_Type] and initial priority.
+		 * with the specified [result type][A_Type] and initial priority.
 		 *
 		 * @param resultType
 		 *   The expected result type.
 		 * @param priority
 		 *   The initial priority.
 		 * @param nameSupplier
-		 *   A [Supplier] that produces an Avail [string][A_String] to name this
+		 *   A supplier that produces an Avail [string][A_String] to name this
 		 *   fiber on demand.  Please don't run Avail code to do so, since if
 		 *   this is evaluated during fiber execution it will cause the current
 		 *   [Thread]'s execution to block, potentially starving the execution
@@ -1199,7 +1166,7 @@ class FiberDescriptor private constructor(
 
 		/**
 		 * Construct an [unstarted][ExecutionState.UNSTARTED] [fiber][A_Fiber]
-		 * with the specified [result&#32;type][A_Type] and [AvailLoader]. The
+		 * with the specified [result type][A_Type] and [AvailLoader]. The
 		 * priority is initially set to [loaderPriority].
 		 *
 		 * @param resultType
@@ -1207,7 +1174,7 @@ class FiberDescriptor private constructor(
 		 * @param loader
 		 *   An Avail loader.
 		 * @param nameSupplier
-		 *   A [Supplier] that produces an Avail [string][A_String] to name this
+		 *   A supplier that produces an Avail [string][A_String] to name this
 		 *   fiber on demand.  Please don't run Avail code to do so, since if
 		 *   this is evaluated during fiber execution it will cause the current
 		 *   [Thread]'s execution to block, potentially starving the execution
@@ -1228,7 +1195,7 @@ class FiberDescriptor private constructor(
 
 		/**
 		 * Construct an [unstarted][ExecutionState.UNSTARTED] [fiber][A_Fiber]
-		 * with the specified result [type][A_Type], name [Supplier], and
+		 * with the specified result [type][A_Type], name supplier, and
 		 * [AvailLoader]. The priority is initially set to [loaderPriority].
 		 *
 		 * @param resultType
@@ -1239,7 +1206,7 @@ class FiberDescriptor private constructor(
 		 * @param loaderPojoOrNil
 		 *   Either a pojo holding an AvailLoader or [nil].
 		 * @param nameSupplier
-		 *   A [Supplier] that produces an Avail [string][A_String] to name this
+		 *   A supplier that produces an Avail [string][A_String] to name this
 		 *   fiber on demand.  Please don't run Avail code to do so, since if
 		 *   this is evaluated during fiber execution it will cause the current
 		 *   [Thread]'s execution to block, potentially starving the execution
@@ -1304,10 +1271,6 @@ class FiberDescriptor private constructor(
 		 * stashing it in the fiber.  The latter runs if the fiber fails,
 		 * passing the [Throwable] that caused the failure.
 		 *
-		 * TODO - Migrate setSuccessAndFailureContinuations to use Kotlin
-		 * functions.  This temporarily adapts each Kotlin function to a
-		 * Continuation1NotNull.
-		 *
 		 * @param onSuccess
 		 *   The action to invoke with the fiber's result value.
 		 * @param onFailure
@@ -1316,8 +1279,6 @@ class FiberDescriptor private constructor(
 		fun A_Fiber.setSuccessAndFailure(
 			onSuccess: (AvailObject)->Unit,
 			onFailure: (Throwable)->Unit
-		) = setSuccessAndFailureContinuations(
-			Continuation1NotNull(onSuccess),
-			Continuation1NotNull(onFailure))
+		) = setSuccessAndFailureContinuations(onSuccess, onFailure)
 	}
 }

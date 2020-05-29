@@ -31,9 +31,11 @@
  */
 package com.avail.descriptor.numbers
 
-import com.avail.annotations.AvailMethod
 import com.avail.annotations.ThreadSafe
-import com.avail.descriptor.numbers.AbstractNumberDescriptor.Order.*
+import com.avail.descriptor.numbers.AbstractNumberDescriptor.Order.EQUAL
+import com.avail.descriptor.numbers.AbstractNumberDescriptor.Order.INCOMPARABLE
+import com.avail.descriptor.numbers.AbstractNumberDescriptor.Order.LESS
+import com.avail.descriptor.numbers.AbstractNumberDescriptor.Order.MORE
 import com.avail.descriptor.numbers.DoubleDescriptor.IntegerSlots.LONG_BITS
 import com.avail.descriptor.numbers.InfinityDescriptor.Companion.negativeInfinity
 import com.avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
@@ -43,6 +45,7 @@ import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.truncatedFromDouble
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AbstractDescriptor
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.AvailObject.Companion.multiplier
 import com.avail.descriptor.representation.IntegerSlotsEnum
@@ -51,11 +54,14 @@ import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.descriptor.types.TypeTag
 import com.avail.optimizer.jvm.CheckedMethod
-import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
+import com.avail.optimizer.jvm.CheckedMethod.staticMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
-import java.lang.Double.*
+import java.lang.Double.doubleToRawLongBits
+import java.lang.Double.isInfinite
+import java.lang.Double.isNaN
+import java.lang.Double.longBitsToDouble
 import java.lang.Math.getExponent
 import java.lang.Math.scalb
 import java.util.*
@@ -89,11 +95,11 @@ class DoubleDescriptor private constructor(
 
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
-		aStream: StringBuilder,
+		builder: StringBuilder,
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int
 	) {
-		aStream.append(getDouble(self))
+		builder.append(getDouble(self))
 	}
 
 	override fun o_AddToInfinityCanDestroy(
@@ -159,7 +165,8 @@ class DoubleDescriptor private constructor(
 		self: AvailObject,
 		anInteger: AvailObject,
 		canDestroy: Boolean
-	): A_Number {
+	): A_Number
+	{
 		return fromDoubleRecycling(
 			anInteger.extractDouble() / getDouble(self),
 			self,
@@ -189,7 +196,6 @@ class DoubleDescriptor private constructor(
 			canDestroy)
 	}
 
-	@AvailMethod
 	override fun o_Equals(
 		self: AvailObject,
 		another: A_BasicObject
@@ -203,7 +209,6 @@ class DoubleDescriptor private constructor(
 		return true
 	}
 
-	@AvailMethod
 	override fun o_EqualsDouble(
 		self: AvailObject,
 		aDouble: Double
@@ -215,13 +220,10 @@ class DoubleDescriptor private constructor(
 			== doubleToRawLongBits(aDouble))
 	}
 
-	@AvailMethod
 	override fun o_ExtractDouble(self: AvailObject): Double = getDouble(self)
 
-	@AvailMethod
 	override fun o_ExtractFloat(self: AvailObject) = getDouble(self).toFloat()
 
-	@AvailMethod
 	override fun o_Hash(self: AvailObject): Int {
 		val bits = self.slot(LONG_BITS)
 		val low = (bits shr 32).toInt()
@@ -229,7 +231,6 @@ class DoubleDescriptor private constructor(
 		return (low xor 0x29F2EAB8) * multiplier - (high xor 0x47C453FD)
 	}
 
-	@AvailMethod
 	override fun o_IsDouble(self: AvailObject) = true
 
 	override fun o_IsInstanceOfKind(
@@ -242,12 +243,11 @@ class DoubleDescriptor private constructor(
 			!isInfinite(it) && !isNaN(it) && floor(it) == it
 		}
 
-	@AvailMethod
 	override fun o_Kind(self: AvailObject): A_Type = Types.DOUBLE.o()
 
 	override fun o_MarshalToJava(
 		self: AvailObject,
-		ignoredClassHint: Class<*>?
+		classHint: Class<*>?
 	) = getDouble(self)
 
 	override fun o_MinusCanDestroy(
@@ -315,8 +315,8 @@ class DoubleDescriptor private constructor(
 
 	override fun o_NumericCompareToDouble(
 		self: AvailObject,
-		double1: Double
-	): Order = compareDoubles(getDouble(self), double1)
+		aDouble: Double
+	): Order = compareDoubles(getDouble(self), aDouble)
 
 	override fun o_PlusCanDestroy(
 		self: AvailObject,
@@ -324,7 +324,6 @@ class DoubleDescriptor private constructor(
 		canDestroy: Boolean
 	): A_Number = aNumber.addToDoubleCanDestroy(self, canDestroy)
 
-	@AvailMethod
 	@ThreadSafe
 	override fun o_SerializerOperation(self: AvailObject) =
 		SerializerOperation.DOUBLE
@@ -371,11 +370,11 @@ class DoubleDescriptor private constructor(
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.write(getDouble(self))
 
-	override fun mutable() = mutable
+	override fun mutable(): AbstractDescriptor = mutable
 
-	override fun immutable() = immutable
+	override fun immutable(): AbstractDescriptor = immutable
 
-	override fun shared() = shared
+	override fun shared(): AbstractDescriptor = shared
 
 	companion object {
 		/**
@@ -533,7 +532,7 @@ class DoubleDescriptor private constructor(
 			DoubleDescriptor::class.java,
 			::fromDouble.name,
 			A_Number::class.java,
-			Double::class.javaPrimitiveType!!)
+			Double::class.javaPrimitiveType)
 
 		/**
 		 * Construct an Avail boxed [double][DoubleDescriptor]-precision
@@ -679,6 +678,8 @@ class DoubleDescriptor private constructor(
 		 * @return
 		 *   The Avail object for double-precision (positive) zero.
 		 */
+		@Suppress("unused")
+		@JvmStatic
 		fun doubleZero(): A_Number = Sign.ZERO.limitDoubleObject()
 
 		/** The mutable [DoubleDescriptor].  */

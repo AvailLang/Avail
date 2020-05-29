@@ -31,7 +31,6 @@
  */
 package com.avail.descriptor.representation
 
-import com.avail.descriptor.AbstractDescriptor
 import com.avail.utility.Casts.cast
 import com.avail.utility.StackPrinter
 

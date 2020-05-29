@@ -32,12 +32,12 @@
 package com.avail.interpreter.primitive.files
 
 import com.avail.AvailRuntime.currentRuntime
-import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.atoms.A_Atom.Companion.setAtomProperty
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.createAtom
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.FILE_KEY
-import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
+import com.avail.descriptor.pojos.RawPojoDescriptor.identityPojo
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
@@ -50,16 +50,26 @@ import com.avail.descriptor.types.IntegerRangeTypeDescriptor.wholeNumbers
 import com.avail.descriptor.types.SetTypeDescriptor.setTypeForSizesContentType
 import com.avail.descriptor.types.TupleTypeDescriptor.stringType
 import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
-import com.avail.exceptions.AvailErrorCode.*
-import com.avail.interpreter.execution.Interpreter
+import com.avail.exceptions.AvailErrorCode.E_EXCEEDS_VM_LIMIT
+import com.avail.exceptions.AvailErrorCode.E_ILLEGAL_OPTION
+import com.avail.exceptions.AvailErrorCode.E_INVALID_PATH
+import com.avail.exceptions.AvailErrorCode.E_IO_ERROR
+import com.avail.exceptions.AvailErrorCode.E_OPERATION_NOT_SUPPORTED
+import com.avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.execution.Interpreter
 import com.avail.io.IOSystem
 import com.avail.io.IOSystem.FileHandle
 import java.io.IOException
 import java.nio.channels.AsynchronousFileChannel
-import java.nio.file.*
+import java.nio.file.AccessDeniedException
+import java.nio.file.FileSystem
+import java.nio.file.InvalidPathException
+import java.nio.file.OpenOption
+import java.nio.file.Path
+import java.nio.file.StandardOpenOption
 import java.nio.file.StandardOpenOption.READ
 import java.nio.file.StandardOpenOption.WRITE
 import java.nio.file.attribute.FileAttribute
@@ -206,7 +216,7 @@ object P_FileOpen : Primitive(4, CanInline, HasSideEffect)
 	 *   Some integral option indicators.
 	 * @return An array whose lone element is a set containing an attribute that
 	 *   specifies the implied POSIX file permissions, or an empty array if the
-	 *   [file system][FileSystem] does not support POSIX file permissions.
+	 *   [file&#32;system][FileSystem] does not support POSIX file permissions.
 	 */
 	private fun permissionsFor(optionInts: A_Set): Array<FileAttribute<*>> =
 		if (IOSystem.fileSystem.supportedFileAttributeViews().contains("posix"))

@@ -79,11 +79,10 @@ object L2_JUMP_IF_SUBTYPE_OF_CONSTANT : L2ConditionalJump(
 			// It's a subtype, so it must always pass the type test.
 			typeToCheck.type().instance().isSubtypeOf(constantType.constant) ->
 				BranchReduction.AlwaysTaken
-
 			// The types don't intersect, so it can't ever pass the type test.
 			typeToCheck.type().instance()
-				.typeIntersection(constantType.constant).isBottom ->
-					BranchReduction.NeverTaken
+					.typeIntersection(constantType.constant).isBottom ->
+				BranchReduction.NeverTaken
 			else -> BranchReduction.SometimesTaken
 		}
 	}

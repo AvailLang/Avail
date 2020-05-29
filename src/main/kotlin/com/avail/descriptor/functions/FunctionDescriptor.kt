@@ -31,12 +31,7 @@
  */
 package com.avail.descriptor.functions
 
-import com.avail.annotations.AvailMethod
 import com.avail.annotations.ThreadSafe
-import com.avail.descriptor.module.A_Module
-import com.avail.descriptor.Descriptor
-import com.avail.descriptor.module.ModuleDescriptor
-import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrNil
 import com.avail.descriptor.bundles.A_Bundle
@@ -45,6 +40,8 @@ import com.avail.descriptor.functions.FunctionDescriptor.ObjectSlots.CODE
 import com.avail.descriptor.functions.FunctionDescriptor.ObjectSlots.OUTER_VAR_AT_
 import com.avail.descriptor.methods.A_Method
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
+import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.A_Phrase.Companion.generateInModule
 import com.avail.descriptor.phrases.A_Phrase.Companion.tokens
@@ -54,7 +51,9 @@ import com.avail.descriptor.phrases.PhraseDescriptor
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.AvailObject.Companion.multiplier
+import com.avail.descriptor.representation.Descriptor
 import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.descriptor.tuples.A_Tuple
@@ -70,8 +69,8 @@ import com.avail.interpreter.levelOne.L1Decompiler.Companion.decompile
 import com.avail.interpreter.levelOne.L1InstructionWriter
 import com.avail.interpreter.levelOne.L1Operation
 import com.avail.optimizer.jvm.CheckedMethod
-import com.avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
-import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
+import com.avail.optimizer.jvm.CheckedMethod.instanceMethod
+import com.avail.optimizer.jvm.CheckedMethod.staticMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
@@ -100,7 +99,7 @@ class FunctionDescriptor private constructor(
 	 * The layout of object slots for my instances.
 	 */
 	enum class ObjectSlots : ObjectSlotsEnum {
-		/** The [compiled&#32;code][CompiledCodeDescriptor]. */
+		/** The [compiled code][CompiledCodeDescriptor]. */
 		CODE,
 
 		/** The outer variables. */
@@ -109,7 +108,7 @@ class FunctionDescriptor private constructor(
 
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
-		aStream: StringBuilder,
+		builder: StringBuilder,
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int
 	) {
@@ -117,10 +116,10 @@ class FunctionDescriptor private constructor(
 		if (phrase.equalsNil()) {
 			phrase = decompile(self.code())
 		}
-		phrase.printOnAvoidingIndent(aStream, recursionMap, indent + 1)
+		phrase.printOnAvoidingIndent(builder, recursionMap, indent + 1)
 	}
 
-	override fun o_Code(self: AvailObject) = self.slot(CODE)
+	override fun o_Code(self: AvailObject): A_RawFunction = self.slot(CODE)
 
 	override fun o_Equals(self: AvailObject, another: A_BasicObject) =
 		another.equalsFunction(self)
@@ -194,18 +193,15 @@ class FunctionDescriptor private constructor(
 		return false
 	}
 
-	override fun o_OuterVarAt(
-		self: AvailObject,
-		subscript: Int
-	) = self.slot(OUTER_VAR_AT_, subscript)
+	override fun o_OuterVarAt(self: AvailObject, index: Int): AvailObject =
+		self.slot(OUTER_VAR_AT_, index)
 
 	override fun o_OuterVarAtPut(
 		self: AvailObject,
-		subscript: Int,
+		index: Int,
 		value: AvailObject
-	) = self.setSlot(OUTER_VAR_AT_, subscript, value)
+	) = self.setSlot(OUTER_VAR_AT_, index, value)
 
-	@AvailMethod
 	@ThreadSafe
 	override fun o_SerializerOperation(
 		self: AvailObject
@@ -415,7 +411,7 @@ class FunctionDescriptor private constructor(
 			::createExceptOuters.name,
 			AvailObject::class.java,
 			A_RawFunction::class.java,
-			Int::class.javaPrimitiveType!!)
+			Int::class.javaPrimitiveType)
 
 		/**
 		 * Construct a function with the given code and one outer variable.
@@ -528,7 +524,7 @@ class FunctionDescriptor private constructor(
 			A_Function::class.java,
 			A_Function::outerVarAt.name,
 			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!)
+			Int::class.javaPrimitiveType)
 
 		/** Access the [A_Function.outerVarAtPut] method. */
 		@JvmField
@@ -536,7 +532,7 @@ class FunctionDescriptor private constructor(
 			A_Function::class.java,
 			A_Function::outerVarAtPut.name,
 			Void.TYPE,
-			Int::class.javaPrimitiveType!!,
+			Int::class.javaPrimitiveType,
 			AvailObject::class.java)
 
 		/**

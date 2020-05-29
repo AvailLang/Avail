@@ -35,8 +35,8 @@ import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createWithOuters2
 import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
-import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.equalityPojo
-import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
+import com.avail.descriptor.pojos.RawPojoDescriptor.equalityPojo
+import com.avail.descriptor.pojos.RawPojoDescriptor.identityPojo
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
@@ -47,8 +47,12 @@ import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationW
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionTypeReturning
 import com.avail.descriptor.types.InstanceMetaDescriptor.anyMeta
-import com.avail.descriptor.types.PojoTypeDescriptor.*
-import com.avail.descriptor.types.TupleTypeDescriptor.*
+import com.avail.descriptor.types.PojoTypeDescriptor.marshalDefiningType
+import com.avail.descriptor.types.PojoTypeDescriptor.marshalTypes
+import com.avail.descriptor.types.PojoTypeDescriptor.resolvePojoType
+import com.avail.descriptor.types.TupleTypeDescriptor.oneOrMoreOf
+import com.avail.descriptor.types.TupleTypeDescriptor.stringType
+import com.avail.descriptor.types.TupleTypeDescriptor.zeroOrMoreOf
 import com.avail.descriptor.types.TypeDescriptor.Types.RAW_POJO
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode

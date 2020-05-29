@@ -32,14 +32,13 @@
 
 package com.avail.descriptor.types;
 
-import com.avail.annotations.AvailMethod;
 import com.avail.annotations.ThreadSafe;
-import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.maps.A_Map;
 import com.avail.descriptor.pojos.PojoDescriptor;
 import com.avail.descriptor.pojos.RawPojoDescriptor;
 import com.avail.descriptor.representation.A_BasicObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.representation.Mutability;
 import com.avail.descriptor.sets.A_Set;
 import com.avail.descriptor.sets.SetDescriptor;
@@ -55,9 +54,9 @@ import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.List;
 
-import static com.avail.descriptor.representation.NilDescriptor.nil;
 import static com.avail.descriptor.maps.MapDescriptor.emptyMap;
 import static com.avail.descriptor.pojos.RawPojoDescriptor.equalityPojo;
+import static com.avail.descriptor.representation.NilDescriptor.nil;
 import static com.avail.descriptor.sets.SetDescriptor.emptySet;
 import static com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.tuples.StringDescriptor.stringFrom;
@@ -102,19 +101,19 @@ extends PojoTypeDescriptor
 		JAVA_ANCESTORS
 	}
 
-	@Override @AvailMethod
+	@Override
 	public AvailObject o_JavaAncestors (final AvailObject object)
 	{
 		return object.slot(JAVA_ANCESTORS);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public AvailObject o_JavaClass (final AvailObject object)
 	{
 		return object.slot(JAVA_CLASS);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_EqualsPojoType (
 		final AvailObject object,
 		final AvailObject aPojoType)
@@ -126,7 +125,7 @@ extends PojoTypeDescriptor
 			&& object.slot(JAVA_ANCESTORS).equals(other.javaAncestors());
 	}
 
-	@Override @AvailMethod
+	@Override
 	public int o_Hash (final AvailObject object)
 	{
 		// Note that this definition produces a value compatible with an unfused
@@ -135,7 +134,7 @@ extends PojoTypeDescriptor
 		return object.slot(JAVA_ANCESTORS).hash() ^ 0xA015BC44;
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsAbstract (final AvailObject object)
 	{
 		final A_BasicObject javaClass = object.slot(JAVA_CLASS);
@@ -144,25 +143,25 @@ extends PojoTypeDescriptor
 				javaClass.<Class<?>>javaObjectNotNull().getModifiers());
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsPojoArrayType (final AvailObject object)
 	{
 		return object.slot(JAVA_CLASS).equals(equalityPojo(PojoArray.class));
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsPojoFusedType (final AvailObject object)
 	{
 		return object.slot(JAVA_CLASS).equalsNil();
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsPojoSelfType (final AvailObject object)
 	{
 		return true;
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsSupertypeOfPojoType (
 		final AvailObject object,
 		final A_Type aPojoType)
@@ -177,13 +176,13 @@ extends PojoTypeDescriptor
 		return ancestors.equals(intersection);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_PojoSelfType (final AvailObject object)
 	{
 		return object;
 	}
 
-	@Override @AvailMethod
+	@Override
 	public AvailObject o_MakeImmutable (final AvailObject object)
 	{
 		if (isMutable())
@@ -208,14 +207,13 @@ extends PojoTypeDescriptor
 		return javaClass.javaObject();
 	}
 
-	@Override @AvailMethod @ThreadSafe
-	public SerializerOperation o_SerializerOperation (
-		final AvailObject object)
+	@Override @ThreadSafe
+	public SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
 		return SerializerOperation.SELF_POJO_TYPE_REPRESENTATIVE;
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeIntersectionOfPojoType (
 		final AvailObject object,
 		final A_Type aPojoType)
@@ -246,7 +244,7 @@ extends PojoTypeDescriptor
 			ancestors.setUnionCanDestroy(otherAncestors, false));
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeIntersectionOfPojoFusedType (
 		final AvailObject object,
 		final A_Type aFusedPojoType)
@@ -254,7 +252,7 @@ extends PojoTypeDescriptor
 		throw unsupportedOperationException();
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeIntersectionOfPojoUnfusedType (
 		final AvailObject object,
 		final A_Type anUnfusedPojoType)
@@ -262,7 +260,7 @@ extends PojoTypeDescriptor
 		throw unsupportedOperationException();
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeUnionOfPojoType (
 		final AvailObject object,
 		final A_Type aPojoType)
@@ -273,7 +271,7 @@ extends PojoTypeDescriptor
 		return newSelfPojoType(mostSpecificOf(intersection), intersection);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeUnionOfPojoFusedType (
 		final AvailObject object,
 		final A_Type aFusedPojoType)
@@ -281,7 +279,7 @@ extends PojoTypeDescriptor
 		throw unsupportedOperationException();
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeUnionOfPojoUnfusedType (
 		final AvailObject object,
 		final A_Type anUnfusedPojoType)

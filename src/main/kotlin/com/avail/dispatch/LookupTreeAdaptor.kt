@@ -119,7 +119,7 @@ abstract class LookupTreeAdaptor<
 	abstract fun testsArgumentPositions(): Boolean
 
 	/**
-	 * `true` if [Element]s  with more specific signatures exclude those with
+	 * `true` if [Element]s with more specific signatures exclude those with
 	 * strictly more general signatures, `false` otherwise.
 	 */
 	abstract fun subtypesHideSupertypes(): Boolean

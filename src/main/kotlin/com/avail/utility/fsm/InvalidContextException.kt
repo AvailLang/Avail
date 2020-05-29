@@ -33,8 +33,7 @@
 package com.avail.utility.fsm
 
 /**
- * Exception thrown during a state transition when an invalid [execution
- * context][ExecutionContext] is detected
+ * Exception thrown during a state transition when an invalid [execution&#32;context][ExecutionContext] is detected
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  *

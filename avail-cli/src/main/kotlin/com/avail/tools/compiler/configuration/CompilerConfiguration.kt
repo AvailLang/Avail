@@ -32,14 +32,22 @@
 
 package com.avail.tools.compiler.configuration
 
-import com.avail.builder.*
+import com.avail.builder.ModuleName
+import com.avail.builder.ModuleNameResolver
+import com.avail.builder.ModuleRoots
+import com.avail.builder.RenamesFileParser
+import com.avail.builder.RenamesFileParserException
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.performance.StatisticReport
 import com.avail.stacks.StacksGenerator
 import com.avail.tools.compiler.Compiler
 import com.avail.tools.compiler.configuration.VerbosityLevel.GLOBAL_LOCAL_PROGRESS
 import com.avail.utility.configuration.Configuration
-import java.io.*
+import java.io.File
+import java.io.FileNotFoundException
+import java.io.IOException
+import java.io.Reader
+import java.io.StringReader
 import java.nio.charset.StandardCharsets.UTF_8
 import java.util.*
 
@@ -83,8 +91,8 @@ class CompilerConfiguration : Configuration
 		}
 
 	/**
-	 * The [module name resolver][ModuleNameResolver] correct for the current
-	 * `CompilerConfiguration configuration`.
+	 * The [module&#32;name&#32;resolver][ModuleNameResolver] correct for the
+	 * current `CompilerConfiguration configuration`.
 	 *
 	 * @throws FileNotFoundException
 	 *   If the [renames file path][RenamesFileParser] has been specified, but

@@ -32,23 +32,33 @@
 package com.avail.descriptor.functions
 
 import com.avail.AvailRuntime
-import com.avail.annotations.AvailMethod
 import com.avail.annotations.EnumField
 import com.avail.annotations.HideFieldInDebugger
 import com.avail.descriptor.fiber.A_Fiber
-import com.avail.descriptor.Descriptor
 import com.avail.descriptor.fiber.FiberDescriptor
-import com.avail.descriptor.representation.NilDescriptor
-import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
 import com.avail.descriptor.functions.ContinuationDescriptor.IntegerSlots.Companion.LEVEL_TWO_OFFSET
 import com.avail.descriptor.functions.ContinuationDescriptor.IntegerSlots.Companion.PROGRAM_COUNTER
 import com.avail.descriptor.functions.ContinuationDescriptor.IntegerSlots.Companion.STACK_POINTER
 import com.avail.descriptor.functions.ContinuationDescriptor.IntegerSlots.LEVEL_TWO_OFFSET_AND_HASH
-import com.avail.descriptor.functions.ContinuationDescriptor.ObjectSlots.*
+import com.avail.descriptor.functions.ContinuationDescriptor.ObjectSlots.CALLER
+import com.avail.descriptor.functions.ContinuationDescriptor.ObjectSlots.FRAME_AT_
+import com.avail.descriptor.functions.ContinuationDescriptor.ObjectSlots.FUNCTION
+import com.avail.descriptor.functions.ContinuationDescriptor.ObjectSlots.LEVEL_TWO_CHUNK
+import com.avail.descriptor.functions.ContinuationDescriptor.ObjectSlots.LEVEL_TWO_REGISTER_DUMP
 import com.avail.descriptor.functions.ContinuationRegisterDumpDescriptor.Companion.createRegisterDump
-import com.avail.descriptor.representation.*
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AbstractDescriptor
+import com.avail.descriptor.representation.AbstractSlotsEnum
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.AvailObjectRepresentation.Companion.newLike
+import com.avail.descriptor.representation.BitField
+import com.avail.descriptor.representation.Descriptor
+import com.avail.descriptor.representation.IntegerSlotsEnum
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.NilDescriptor
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.BottomTypeDescriptor.bottom
 import com.avail.descriptor.types.ContinuationTypeDescriptor.continuationTypeForFunctionType
@@ -66,8 +76,8 @@ import com.avail.interpreter.primitive.controlflow.P_RestartContinuation
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments
 import com.avail.io.TextInterface
 import com.avail.optimizer.jvm.CheckedMethod
-import com.avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
-import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
+import com.avail.optimizer.jvm.CheckedMethod.instanceMethod
+import com.avail.optimizer.jvm.CheckedMethod.staticMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.Casts.cast
@@ -216,7 +226,6 @@ class ContinuationDescriptor private constructor(
 	/**
 	 * Set both my level one program counter and level one stack pointer.
 	 */
-	@AvailMethod
 	override fun o_AdjustPcAndStackp(
 		self: AvailObject,
 		pc: Int,
@@ -227,22 +236,19 @@ class ContinuationDescriptor private constructor(
 		self.setSlot(STACK_POINTER, stackp)
 	}
 
-	@AvailMethod
-	override fun o_FrameAt(self: AvailObject, subscript: Int) =
-		self.slot(FRAME_AT_, subscript)
+	override fun o_FrameAt(self: AvailObject, index: Int): AvailObject =
+		self.slot(FRAME_AT_, index)
 
-	@AvailMethod
 	override fun o_FrameAtPut(
 		self: AvailObject,
-		subscript: Int,
+		index: Int,
 		value: AvailObject
 	): AvailObject {
-		self.setSlot(FRAME_AT_, subscript, value)
+		self.setSlot(FRAME_AT_, index, value)
 		return self
 	}
 
-	@AvailMethod
-	override fun o_Caller(self: AvailObject) = self.slot(CALLER)
+	override fun o_Caller(self: AvailObject): A_Continuation = self.slot(CALLER)
 
 	override fun o_CurrentLineNumber(
 		self: AvailObject
@@ -278,15 +284,12 @@ class ContinuationDescriptor private constructor(
 	 * always executing a mutable continuation and is therefore always able to
 	 * directly modify it.
 	 */
-	@AvailMethod
 	override fun o_EnsureMutable(self: AvailObject): A_Continuation =
 		if (isMutable) self else newLike(mutable, self, 0, 0)
 
-	@AvailMethod
 	override fun o_Equals(self: AvailObject, another: A_BasicObject) =
 		another.equalsContinuation(self)
 
-	@AvailMethod
 	override fun o_EqualsContinuation(
 		self: AvailObject,
 		aContinuation: A_Continuation
@@ -301,10 +304,8 @@ class ContinuationDescriptor private constructor(
 		}
 	}
 
-	@AvailMethod
-	override fun o_Function(self: AvailObject) = self.slot(FUNCTION)
+	override fun o_Function(self: AvailObject): A_Function = self.slot(FUNCTION)
 
-	@AvailMethod
 	override fun o_Hash(self: AvailObject): Int {
 		// Hashing a continuation isn't expected to be common, but it's
 		// sufficiently expensive that we need to cache the hash value in the
@@ -349,14 +350,12 @@ class ContinuationDescriptor private constructor(
 		return hash
 	}
 
-	@AvailMethod
 	override fun o_Kind(self: AvailObject): A_Type =
 		continuationTypeForFunctionType(self.function().kind())
 
 	/**
 	 * Set both my chunk index and the offset into it.
 	 */
-	@AvailMethod
 	override fun o_LevelTwoChunkOffset(
 		self: AvailObject,
 		chunk: L2Chunk,
@@ -373,8 +372,8 @@ class ContinuationDescriptor private constructor(
 		}
 	}
 
-	@AvailMethod
-	override fun o_LevelTwoChunk(self: AvailObject): L2Chunk {
+	override fun o_LevelTwoChunk(self: AvailObject): L2Chunk
+	{
 		val chunk: L2Chunk =
 			self.mutableSlot(LEVEL_TWO_CHUNK).javaObjectNotNull()
 		if (chunk != L2Chunk.unoptimizedChunk && chunk.isValid) {
@@ -383,7 +382,6 @@ class ContinuationDescriptor private constructor(
 		return chunk
 	}
 
-	@AvailMethod
 	override fun o_LevelTwoOffset(self: AvailObject) =
 		self.mutableSlot(LEVEL_TWO_OFFSET)
 
@@ -406,13 +404,11 @@ class ContinuationDescriptor private constructor(
 	 * Answer the number of slots allocated for arguments, locals, and stack
 	 * entries.
 	 */
-	@AvailMethod
 	override fun o_NumSlots(self: AvailObject) = self.variableObjectSlotsCount()
 
-	@AvailMethod
 	override fun o_Pc(self: AvailObject) = self.slot(PROGRAM_COUNTER)
 
-	override fun o_RegisterDump(self: AvailObject) =
+	override fun o_RegisterDump(self: AvailObject): AvailObject =
 		self.slot(LEVEL_TWO_REGISTER_DUMP)
 
 	override fun o_ReplacingCaller(
@@ -435,18 +431,16 @@ class ContinuationDescriptor private constructor(
 	 * Read from the stack at the given subscript, which is one-relative and
 	 * based on just the stack area.
 	 */
-	@AvailMethod
-	override fun o_StackAt(self: AvailObject, subscript: Int) =
-		self.slot(FRAME_AT_, subscript)
+	override fun o_StackAt(self: AvailObject, slotIndex: Int): AvailObject =
+		self.slot(FRAME_AT_, slotIndex)
 
-	@AvailMethod
 	override fun o_Stackp(self: AvailObject) = self.slot(STACK_POINTER)
 
-	override fun mutable() = mutable
+	override fun mutable(): AbstractDescriptor = mutable
 
-	override fun immutable() = immutable
+	override fun immutable(): AbstractDescriptor = immutable
 
-	override fun shared() = shared
+	override fun shared(): AbstractDescriptor = shared
 
 	companion object {
 		/** The [CheckedMethod] for [A_Continuation.function]. */
@@ -562,10 +556,10 @@ class ContinuationDescriptor private constructor(
 			A_Function::class.java,
 			A_Continuation::class.java,
 			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!,
-			Int::class.javaPrimitiveType!!,
+			Int::class.javaPrimitiveType,
+			Int::class.javaPrimitiveType,
 			L2Chunk::class.java,
-			Int::class.javaPrimitiveType!!)
+			Int::class.javaPrimitiveType)
 
 		/**
 		 * Create a mutable continuation with the specified fields.  Initialize
@@ -670,7 +664,7 @@ class ContinuationDescriptor private constructor(
 			Array<AvailObject>::class.java,
 			LongArray::class.java,
 			L2Chunk::class.java,
-			Int::class.javaPrimitiveType!!)
+			Int::class.javaPrimitiveType)
 
 		/** The mutable [ContinuationDescriptor]. */
 		private val mutable = ContinuationDescriptor(Mutability.MUTABLE)

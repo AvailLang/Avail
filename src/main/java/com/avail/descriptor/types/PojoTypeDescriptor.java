@@ -32,17 +32,16 @@
 
 package com.avail.descriptor.types;
 
-import com.avail.annotations.AvailMethod;
-import com.avail.descriptor.representation.AvailObject;
-import com.avail.descriptor.representation.NilDescriptor;
 import com.avail.descriptor.atoms.A_Atom;
 import com.avail.descriptor.atoms.AtomDescriptor;
 import com.avail.descriptor.maps.A_Map;
 import com.avail.descriptor.maps.MapDescriptor;
 import com.avail.descriptor.pojos.RawPojoDescriptor;
 import com.avail.descriptor.representation.A_BasicObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.representation.IntegerSlotsEnum;
 import com.avail.descriptor.representation.Mutability;
+import com.avail.descriptor.representation.NilDescriptor;
 import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.sets.A_Set;
 import com.avail.descriptor.sets.SetDescriptor;
@@ -55,20 +54,37 @@ import com.avail.utility.LRUCache;
 import com.avail.utility.Mutable;
 
 import javax.annotation.Nullable;
-import java.lang.reflect.*;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Executable;
+import java.lang.reflect.GenericDeclaration;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
 import java.math.BigInteger;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import static com.avail.descriptor.representation.NilDescriptor.nil;
 import static com.avail.descriptor.atoms.AtomDescriptor.createSpecialAtom;
 import static com.avail.descriptor.atoms.AtomDescriptor.objectFromBoolean;
 import static com.avail.descriptor.maps.MapDescriptor.emptyMap;
 import static com.avail.descriptor.numbers.DoubleDescriptor.fromDouble;
 import static com.avail.descriptor.numbers.FloatDescriptor.fromFloat;
-import static com.avail.descriptor.numbers.IntegerDescriptor.*;
+import static com.avail.descriptor.numbers.IntegerDescriptor.fromBigInteger;
+import static com.avail.descriptor.numbers.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.numbers.IntegerDescriptor.fromLong;
 import static com.avail.descriptor.pojos.PojoDescriptor.newPojo;
 import static com.avail.descriptor.pojos.PojoDescriptor.nullPojo;
 import static com.avail.descriptor.pojos.RawPojoDescriptor.equalityPojo;
+import static com.avail.descriptor.representation.NilDescriptor.nil;
 import static com.avail.descriptor.sets.SetDescriptor.setFromCollection;
 import static com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.tuples.StringDescriptor.stringFrom;
@@ -79,10 +95,18 @@ import static com.avail.descriptor.types.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.types.EnumerationTypeDescriptor.booleanType;
 import static com.avail.descriptor.types.FusedPojoTypeDescriptor.createFusedPojoType;
 import static com.avail.descriptor.types.InstanceTypeDescriptor.instanceType;
-import static com.avail.descriptor.types.IntegerRangeTypeDescriptor.*;
+import static com.avail.descriptor.types.IntegerRangeTypeDescriptor.inclusive;
+import static com.avail.descriptor.types.IntegerRangeTypeDescriptor.int32;
+import static com.avail.descriptor.types.IntegerRangeTypeDescriptor.int64;
+import static com.avail.descriptor.types.IntegerRangeTypeDescriptor.integers;
+import static com.avail.descriptor.types.IntegerRangeTypeDescriptor.wholeNumbers;
 import static com.avail.descriptor.types.SelfPojoTypeDescriptor.newSelfPojoType;
 import static com.avail.descriptor.types.TupleTypeDescriptor.stringType;
-import static com.avail.descriptor.types.TypeDescriptor.Types.*;
+import static com.avail.descriptor.types.TypeDescriptor.Types.ANY;
+import static com.avail.descriptor.types.TypeDescriptor.Types.DOUBLE;
+import static com.avail.descriptor.types.TypeDescriptor.Types.FLOAT;
+import static com.avail.descriptor.types.TypeDescriptor.Types.NONTYPE;
+import static com.avail.descriptor.types.TypeDescriptor.Types.TOP;
 import static com.avail.descriptor.types.UnfusedPojoTypeDescriptor.createUnfusedPojoType;
 import static com.avail.utility.Casts.nullableCast;
 import static com.avail.utility.Nulls.stripNull;
@@ -399,7 +423,7 @@ extends TypeDescriptor
 	private static final LRUCache<LRUCacheKey, AvailObject> cache =
 		new LRUCache<>(1000, 10, PojoTypeDescriptor::computeValue);
 
-	@Override @AvailMethod
+	@Override
 	public final boolean o_Equals (
 		final AvailObject object,
 		final A_BasicObject another)
@@ -418,36 +442,36 @@ extends TypeDescriptor
 			&& another.equalsPojoType(object);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public abstract boolean o_EqualsPojoType (
 		AvailObject object,
 		AvailObject aPojoType);
 
-	@Override @AvailMethod
+	@Override
 	public abstract int o_Hash (AvailObject object);
 
-	@Override @AvailMethod
+	@Override
 	public abstract boolean o_IsAbstract (AvailObject object);
 
-	@Override @AvailMethod
+	@Override
 	public abstract boolean o_IsPojoArrayType (AvailObject object);
 
-	@Override @AvailMethod
+	@Override
 	public abstract boolean o_IsPojoFusedType (AvailObject object);
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsPojoSelfType (final AvailObject object)
 	{
 		return false;
 	}
 
-	@Override @AvailMethod
+	@Override
 	public final boolean o_IsPojoType (final AvailObject object)
 	{
 		return true;
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsSubtypeOf (
 		final AvailObject object,
 		final A_Type aType)
@@ -455,7 +479,7 @@ extends TypeDescriptor
 		return aType.isSupertypeOfPojoType(object);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public final boolean o_IsSupertypeOfPojoBottomType (
 		final AvailObject object,
 		final A_Type aPojoType)
@@ -464,7 +488,7 @@ extends TypeDescriptor
 		return true;
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsSupertypeOfPojoType (
 		final AvailObject object,
 		final A_Type aPojoType)
@@ -516,22 +540,21 @@ extends TypeDescriptor
 		return true;
 	}
 
-	@Override @AvailMethod
+	@Override
 	public abstract AvailObject o_JavaAncestors (AvailObject object);
 
-	@Override @AvailMethod
+	@Override
 	public abstract AvailObject o_JavaClass (AvailObject object);
 
-	@Override @AvailMethod
+	@Override
 	public abstract @Nullable Object o_MarshalToJava (
 		final AvailObject object,
 		final @Nullable Class<?> ignoredClassHint);
 
-	@Override @AvailMethod
-	public abstract A_Type o_PojoSelfType (
-		AvailObject object);
+	@Override
+	public abstract A_Type o_PojoSelfType (AvailObject object);
 
-	@Override @AvailMethod
+	@Override
 	public final A_Type o_TypeIntersection (
 		final AvailObject object,
 		final A_Type another)
@@ -547,7 +570,7 @@ extends TypeDescriptor
 		return another.typeIntersectionOfPojoType(object);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public abstract A_Type o_TypeIntersectionOfPojoType (
 		AvailObject object,
 		A_Type aPojoType);
@@ -578,24 +601,23 @@ extends TypeDescriptor
 		return another.typeUnionOfPojoType(object);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public abstract A_Type o_TypeUnionOfPojoType (
 		AvailObject object,
 		A_Type aPojoType);
 
-	@Override @AvailMethod
+	@Override
 	public abstract A_Type o_TypeUnionOfPojoFusedType (
 		AvailObject object,
 		A_Type aFusedPojoType);
 
-	@Override @AvailMethod
+	@Override
 	public abstract A_Type o_TypeUnionOfPojoUnfusedType (
 		AvailObject object,
 		A_Type anUnfusedPojoType);
 
-	@Override @AvailMethod
-	public abstract A_Map o_TypeVariables (
-		AvailObject object);
+	@Override
+	public abstract A_Map o_TypeVariables (AvailObject object);
 
 	/**
 	 * Compute the intersection of two {@linkplain PojoTypeDescriptor

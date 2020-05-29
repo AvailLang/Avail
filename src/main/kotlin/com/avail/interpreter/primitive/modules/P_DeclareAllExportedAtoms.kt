@@ -32,11 +32,11 @@
 
 package com.avail.interpreter.primitive.modules
 
-import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots
-import com.avail.descriptor.module.ModuleDescriptor.Companion.currentModule
-import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.atoms.A_Atom.Companion.extractBoolean
 import com.avail.descriptor.atoms.AtomDescriptor
+import com.avail.descriptor.module.ModuleDescriptor.Companion.currentModule
+import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.EnumerationTypeDescriptor
@@ -46,15 +46,17 @@ import com.avail.descriptor.types.IntegerRangeTypeDescriptor.wholeNumbers
 import com.avail.descriptor.types.SetTypeDescriptor.setTypeForSizesContentType
 import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.Primitive.Flag.Private
+import com.avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** This private primitive is used to ensure that a module can
  * deserialize correctly. It forces the given set of atoms to be included in the
- * current module's [public names][ObjectSlots.IMPORTED_NAMES] or [private
- * names][ObjectSlots.PRIVATE_NAMES], depending on the value of the supplied
+ * current module's [public names][ObjectSlots.IMPORTED_NAMES] or [private&#32;names][ObjectSlots.PRIVATE_NAMES], depending on the value of the supplied
  * [boolean][EnumerationTypeDescriptor.booleanType]
  * ([true][AtomDescriptor.trueObject] for public,
  * [false][AtomDescriptor.falseObject] for private).

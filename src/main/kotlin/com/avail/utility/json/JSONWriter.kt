@@ -32,7 +32,9 @@
 
 package com.avail.utility.json
 
-import com.avail.utility.json.JSONWriter.JSONState.*
+import com.avail.utility.json.JSONWriter.JSONState.EXPECTING_FIRST_OBJECT_KEY_OR_OBJECT_END
+import com.avail.utility.json.JSONWriter.JSONState.EXPECTING_FIRST_VALUE_OR_ARRAY_END
+import com.avail.utility.json.JSONWriter.JSONState.EXPECTING_SINGLE_VALUE
 import java.io.IOException
 import java.io.StringWriter
 import java.io.Writer
@@ -799,29 +801,19 @@ class JSONWriter : AutoCloseable
 	/**
 	 * Write an object, using an action to supply the contents.
 	 *
-	 * @param R
-	 *   The type of value, if any, returned by the action.
 	 * @param action
 	 *   An action that writes the contents of an object.
-	 * @return
-	 *   The value, if any, returned by the action.
 	 * @throws JSONIOException
 	 *   If an I/O exception occurs.
 	 * @throws IllegalStateException
 	 *   If an object cannot be written.
 	 */
 	@Throws(JSONIOException::class, IllegalStateException::class)
-	inline fun <R> writeObject(action: JSONWriter.()->R): R
+	fun writeObject(action: ()->Unit)
 	{
 		startObject()
-		try
-		{
-			return this.action()
-		}
-		finally
-		{
-			endObject()
-		}
+		action()
+		endObject()
 	}
 
 	/**
@@ -1022,25 +1014,6 @@ class JSONWriter : AutoCloseable
 			write(value)
 		}
 		endArray()
-	}
-
-	/**
-	 * Write the given non-null [String] as the name of an entity, then
-	 * evaluate the action, generally to write the associated value.
-	 *
-	 * @param R
-	 *   The type of value, if any, returned by the action.
-	 * @param key
-	 *   The key [String] to write first.
-	 * @param action
-	 *   The action to invoke to do additional writing.
-	 * @return
-	 *   The value, if any, returned by the action.
-	 */
-	inline fun <reified R> at(key: String, action: JSONWriter.()->R): R
-	{
-		write(key)
-		return this.action()
 	}
 
 	/**

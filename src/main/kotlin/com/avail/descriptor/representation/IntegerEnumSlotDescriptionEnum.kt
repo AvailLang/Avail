@@ -34,7 +34,7 @@ package com.avail.descriptor.representation
 /**
  * The `IntegerEnumSlotDescriptionEnum` is an interface that constrains an
  * enumeration used to describe the values that can occur in a particular
- * [integer slot][IntegerSlotsEnum] or [BitField].
+ * [integer&#32;slot][IntegerSlotsEnum] or [BitField].
  *
  * It includes the [fieldName] and [fieldOrdinal] operations to ensure they are
  * statically available in the actual implementations, which are really intended

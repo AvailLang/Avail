@@ -32,7 +32,6 @@
 package com.avail.descriptor.representation
 
 import com.avail.annotations.EnumField
-import com.avail.descriptor.AbstractDescriptor
 
 /**
  * A `BitField` is constructed at class loading time and contains any cached
@@ -68,8 +67,9 @@ class BitField (
 	val integerSlotIndex = integerSlot.fieldOrdinal()
 
 	/**
-	 * A string of 1's of length [.bits], right aligned in the `long`.  Even though bit fields can't be more than 32 long, it's a long
-	 * to avoid sign extension problems.
+	 * A string of 1's of length [bits], right aligned in the `long`.  Even
+	 * though bit fields can't be more than 32 long, it's a long to avoid sign
+	 * extension problems.
 	 */
 	private val lowMask = (1L shl bits) - 1
 
@@ -95,8 +95,8 @@ class BitField (
 
 	/**
 	 * The [EnumField] with which this `BitField` is annotated, if any.  This is
-	 * populated by the default [
-	 * ][AbstractDescriptor.printObjectOnAvoidingIndent] mechanism.
+	 * populated by the default
+	 * [&#32;][AbstractDescriptor.printObjectOnAvoidingIndent] mechanism.
 	 */
 	@JvmField
 	var enumField: EnumField? = null

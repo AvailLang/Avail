@@ -44,10 +44,12 @@ import com.avail.descriptor.types.FiberTypeDescriptor.mostGeneralFiberType
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.E_FIBER_CANNOT_JOIN_ITSELF
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
-import java.util.function.Supplier
+import com.avail.interpreter.Primitive.Flag.CanSuspend
+import com.avail.interpreter.Primitive.Flag.ReadsFromHiddenGlobalState
+import com.avail.interpreter.Primitive.Flag.Unknown
+import com.avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** If the [fiber][FiberDescriptor] has
@@ -87,9 +89,9 @@ object P_AttemptJoinFiber : Primitive(
 		{
 			return interpreter.primitiveFailure(E_FIBER_CANNOT_JOIN_ITSELF)
 		}
-		val succeed = joinee.lock( Supplier<Boolean> {
+		val succeed = joinee.lock {
 			if (joinee.executionState().indicatesTermination()) {
-				return@Supplier true
+				return@lock true
 			}
 			// Add to the joinee's set of joining fibers.  To avoid deadlock,
 			// this step is done while holding only the joinee's lock, which
@@ -116,10 +118,10 @@ object P_AttemptJoinFiber : Primitive(
 				joinee.joiningFibers().setWithElementCanDestroy(
 					current, false))
 			false
-		})
+		}
 		return when {
 			succeed -> interpreter.primitiveSuccess(nil)
-			else -> current.lock( Supplier {
+			else -> current.lock {
 				// If permit is not available, then park this fiber.
 				when {
 					current.getAndSetSynchronizationFlag(
@@ -127,7 +129,7 @@ object P_AttemptJoinFiber : Primitive(
 						interpreter.primitivePark(interpreter.function!!)
 					else -> interpreter.primitiveSuccess(nil)
 				}
-			})
+			}
 		}
 	}
 

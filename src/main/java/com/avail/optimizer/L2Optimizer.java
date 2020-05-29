@@ -36,7 +36,13 @@ import com.avail.interpreter.execution.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable;
-import com.avail.interpreter.levelTwo.operand.*;
+import com.avail.interpreter.levelTwo.operand.L2Operand;
+import com.avail.interpreter.levelTwo.operand.L2PcOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteOperand;
+import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.interpreter.levelTwo.operation.L2_JUMP;
 import com.avail.interpreter.levelTwo.operation.L2_JUMP_BACK;
 import com.avail.interpreter.levelTwo.operation.L2_MAKE_IMMUTABLE;
@@ -51,10 +57,23 @@ import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
 import com.avail.utility.MutableInt;
 import com.avail.utility.Pair;
+import kotlin.Unit;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.Collection;
+import java.util.Deque;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.ToIntFunction;
 
@@ -358,10 +377,9 @@ public final class L2Optimizer
 	 * has a side-effect.
 	 *
 	 * @param dataCouplingMode
-	 *        How to trace data dependencies.
+	 *   How to trace data dependencies.
 	 */
-	void removeDeadCode (
-		final DataCouplingMode dataCouplingMode)
+	Unit removeDeadCode (final DataCouplingMode dataCouplingMode)
 	{
 		// Removing instructions won't cause blocks to be inaccessible, so just
 		// clean up unreachable blocks once at the start.
@@ -370,7 +388,7 @@ public final class L2Optimizer
 		{
 			// No instructions were removed, so don't bother cleaning up the
 			// manifests.
-			return;
+			return Unit.INSTANCE;
 		}
 		// Clean up all manifests so that they only mention registers that
 		// are guaranteed to have values at that point.
@@ -455,6 +473,7 @@ public final class L2Optimizer
 			edge.manifest().retainRegisters(regs));
 		visibleSemanticValues.forEach((edge, values) ->
 			edge.manifest().retainSemanticValues(values));
+		return Unit.INSTANCE;
 	}
 
 	/**
@@ -462,7 +481,7 @@ public final class L2Optimizer
 	 * split it by inserting a new block along it.  Note that we do this
 	 * regardless of whether the target block has any phi functions.
 	 */
-	void transformToEdgeSplitSSA ()
+	Unit transformToEdgeSplitSSA ()
 	{
 		// Copy the list of blocks, to safely visit existing blocks while new
 		// ones are added inside the loop.
@@ -484,6 +503,7 @@ public final class L2Optimizer
 				});
 			}
 		}
+		return Unit.INSTANCE;
 	}
 
 	/**
@@ -492,7 +512,7 @@ public final class L2Optimizer
 	 * lead to a use of the register, and sometimes-live-in, where at least one
 	 * future path from the start of the block leads to a use of the register.
 	 */
-	void computeLivenessAtEachEdge ()
+	Unit computeLivenessAtEachEdge ()
 	{
 		for (final L2BasicBlock block : blocks)
 		{
@@ -599,6 +619,7 @@ public final class L2Optimizer
 				edgeIndex.value++;
 			});
 		}
+		return Unit.INSTANCE;
 	}
 
 	/**
@@ -618,7 +639,7 @@ public final class L2Optimizer
 	 *
 	 * <p>This requires edge-split form.  It does not preserve SSA.</p>
 	 */
-	void postponeConditionallyUsedValues ()
+	Unit postponeConditionallyUsedValues ()
 	{
 		boolean changed;
 		do
@@ -769,6 +790,7 @@ public final class L2Optimizer
 			}
 		}
 		while (changed);
+		return Unit.INSTANCE;
 	}
 
 	/**
@@ -926,7 +948,7 @@ public final class L2Optimizer
 	 * <p>If any placeholder instructions were found and replaced, set
 	 * {@link #replacedAnyPlaceholders}.</p>
 	 */
-	void replacePlaceholderInstructions ()
+	Unit replacePlaceholderInstructions ()
 	{
 		replacedAnyPlaceholders = false;
 		// Since placeholder expansions can introduce new basic blocks, it's
@@ -950,6 +972,7 @@ public final class L2Optimizer
 			// There were no replacements this round, so we're done.
 			break;
 		}
+		return Unit.INSTANCE;
 	}
 
 	/**
@@ -960,7 +983,7 @@ public final class L2Optimizer
 	 *
 	 * <p>Also eliminate the phi functions.</p>
 	 */
-	void insertPhiMoves ()
+	Unit insertPhiMoves ()
 	{
 		for (final L2BasicBlock block : blocks)
 		{
@@ -1033,16 +1056,18 @@ public final class L2Optimizer
 				instruction.justRemoved();
 			}
 		}
+		return Unit.INSTANCE;
 	}
 
 	/**
 	 * Determine which pairs of registers have to be simultaneously live and
 	 * potentially holding distinct values.
 	 */
-	void computeInterferenceGraph ()
+	Unit computeInterferenceGraph ()
 	{
 		colorer = new L2RegisterColorer(controlFlowGraph);
 		colorer.computeInterferenceGraph();
+		return Unit.INSTANCE;
 	}
 
 	/**
@@ -1053,19 +1078,21 @@ public final class L2Optimizer
 	 * register's group or the destination register's group had interferences
 	 * with.
 	 */
-	void coalesceNoninterferingMoves ()
+	Unit coalesceNoninterferingMoves ()
 	{
 		stripNull(colorer).coalesceNoninterferingMoves();
+		return Unit.INSTANCE;
 	}
 
 	/**
 	 * Assign final coloring to each register based on the interference graph
 	 * and coalescing map.
 	 */
-	void computeColors ()
+	Unit computeColors ()
 	{
 		stripNull(colorer).computeColors();
 		colorer = null;
+		return Unit.INSTANCE;
 	}
 
 	/**
@@ -1075,7 +1102,7 @@ public final class L2Optimizer
 	 * {@link L2Register#getUniqueValue()} that's the same as its {@link
 	 * L2Register#finalIndex() finalIndex}.
 	 */
-	void replaceRegistersByColor ()
+	Unit replaceRegistersByColor ()
 	{
 		// Create new registers for each <kind, finalIndex> in the existing
 		// registers.
@@ -1113,6 +1140,7 @@ public final class L2Optimizer
 				assert r.uses().isEmpty() && r.definitions().isEmpty()
 					: "OBSOLETE register still refers to instructions";
 			});
+		return Unit.INSTANCE;
 	}
 
 	/**
@@ -1121,7 +1149,7 @@ public final class L2Optimizer
 	 * form, and is certainly not after this, since removed moves are the SSA
 	 * definition points for their target registers.
 	 */
-	void removeSameColorMoves ()
+	Unit removeSameColorMoves ()
 	{
 		for (final L2BasicBlock block : blocks)
 		{
@@ -1139,6 +1167,7 @@ public final class L2Optimizer
 				}
 			}
 		}
+		return Unit.INSTANCE;
 	}
 
 	/**
@@ -1147,7 +1176,7 @@ public final class L2Optimizer
 	 *
 	 * <p>Don't adjust jumps that land on a jump inside a loop head block.</p>
 	 */
-	void adjustEdgesLeadingToJumps ()
+	Unit adjustEdgesLeadingToJumps ()
 	{
 		boolean changed;
 		do
@@ -1195,6 +1224,7 @@ public final class L2Optimizer
 			}
 		}
 		while (changed);
+		return Unit.INSTANCE;
 	}
 
 	/**
@@ -1209,7 +1239,7 @@ public final class L2Optimizer
 	 * predecessors have been placed (or if there are only cycles unplaced, pick
 	 * one arbitrarily).</p>
 	 */
-	void orderBlocks ()
+	Unit orderBlocks ()
 	{
 		final Map<L2BasicBlock, MutableInt> countdowns = new HashMap<>();
 		for (final L2BasicBlock block : blocks)
@@ -1282,6 +1312,7 @@ public final class L2Optimizer
 		assert order.get(0) == blocks.get(0);
 		blocks.clear();
 		blocks.addAll(order);
+		return Unit.INSTANCE;
 	}
 
 	/**

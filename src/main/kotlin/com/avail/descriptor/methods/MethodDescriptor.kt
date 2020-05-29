@@ -32,12 +32,7 @@
 package com.avail.descriptor.methods
 
 import com.avail.AvailRuntimeSupport
-import com.avail.annotations.AvailMethod
 import com.avail.annotations.ThreadSafe
-import com.avail.descriptor.module.A_Module
-import com.avail.descriptor.Descriptor
-import com.avail.descriptor.representation.NilDescriptor
-import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.atoms.A_Atom.Companion.atomName
 import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
@@ -58,11 +53,26 @@ import com.avail.descriptor.methods.MethodDefinitionDescriptor.Companion.newMeth
 import com.avail.descriptor.methods.MethodDescriptor.Companion.initialMutableDescriptor
 import com.avail.descriptor.methods.MethodDescriptor.IntegerSlots.Companion.HASH
 import com.avail.descriptor.methods.MethodDescriptor.IntegerSlots.Companion.NUM_ARGS
-import com.avail.descriptor.methods.MethodDescriptor.ObjectSlots.*
+import com.avail.descriptor.methods.MethodDescriptor.ObjectSlots.DEFINITIONS_TUPLE
+import com.avail.descriptor.methods.MethodDescriptor.ObjectSlots.LEXER_OR_NIL
+import com.avail.descriptor.methods.MethodDescriptor.ObjectSlots.MACRO_DEFINITIONS_TUPLE
+import com.avail.descriptor.methods.MethodDescriptor.ObjectSlots.OWNING_BUNDLES
+import com.avail.descriptor.methods.MethodDescriptor.ObjectSlots.SEALED_ARGUMENTS_TYPES_TUPLE
+import com.avail.descriptor.methods.MethodDescriptor.ObjectSlots.SEMANTIC_RESTRICTIONS_SET
+import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.parsing.A_Lexer
 import com.avail.descriptor.parsing.DefinitionParsingPlanDescriptor.Companion.newParsingPlan
-import com.avail.descriptor.representation.*
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AbstractSlotsEnum
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.AvailObject.Companion.newIndexedDescriptor
+import com.avail.descriptor.representation.BitField
+import com.avail.descriptor.representation.Descriptor
+import com.avail.descriptor.representation.IntegerSlotsEnum
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.NilDescriptor
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
@@ -70,13 +80,19 @@ import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
 import com.avail.descriptor.tuples.TupleDescriptor
-import com.avail.descriptor.tuples.TupleDescriptor.*
-import com.avail.descriptor.types.*
+import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+import com.avail.descriptor.tuples.TupleDescriptor.toList
+import com.avail.descriptor.tuples.TupleDescriptor.tupleWithout
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.BottomTypeDescriptor
 import com.avail.descriptor.types.BottomTypeDescriptor.bottom
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.singleInt
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
+import com.avail.descriptor.types.TupleTypeDescriptor
 import com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType
+import com.avail.descriptor.types.TypeDescriptor
 import com.avail.descriptor.types.TypeDescriptor.Types
+import com.avail.descriptor.types.TypeTag
 import com.avail.dispatch.LookupTree
 import com.avail.dispatch.LookupTreeAdaptor
 import com.avail.dispatch.LookupTreeAdaptor.UnusedMemento
@@ -90,9 +106,9 @@ import com.avail.exceptions.SignatureException
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.levelTwo.L2Chunk
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
-import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.anyRestriction
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED
 import com.avail.interpreter.primitive.atoms.P_AtomRemoveProperty
 import com.avail.interpreter.primitive.atoms.P_AtomSetProperty
 import com.avail.interpreter.primitive.bootstrap.syntax.P_ModuleHeaderPrefixCheckImportVersion
@@ -105,8 +121,22 @@ import com.avail.interpreter.primitive.controlflow.P_ResumeContinuation
 import com.avail.interpreter.primitive.general.P_EmergencyExit
 import com.avail.interpreter.primitive.hooks.P_DeclareStringificationAtom
 import com.avail.interpreter.primitive.hooks.P_GetRaiseJavaExceptionInAvailFunction
-import com.avail.interpreter.primitive.methods.*
-import com.avail.interpreter.primitive.modules.*
+import com.avail.interpreter.primitive.methods.P_AbstractMethodDeclarationForAtom
+import com.avail.interpreter.primitive.methods.P_AddSemanticRestrictionForAtom
+import com.avail.interpreter.primitive.methods.P_Alias
+import com.avail.interpreter.primitive.methods.P_ForwardMethodDeclarationForAtom
+import com.avail.interpreter.primitive.methods.P_GrammaticalRestrictionFromAtoms
+import com.avail.interpreter.primitive.methods.P_MethodDeclarationFromAtom
+import com.avail.interpreter.primitive.methods.P_SealMethodByAtom
+import com.avail.interpreter.primitive.methods.P_SimpleLexerDefinitionForAtom
+import com.avail.interpreter.primitive.methods.P_SimpleMacroDeclaration
+import com.avail.interpreter.primitive.methods.P_SimpleMacroDefinitionForAtom
+import com.avail.interpreter.primitive.methods.P_SimpleMethodDeclaration
+import com.avail.interpreter.primitive.modules.P_AddUnloadFunction
+import com.avail.interpreter.primitive.modules.P_DeclareAllAtomsExportedFromAnotherModule
+import com.avail.interpreter.primitive.modules.P_DeclareAllExportedAtoms
+import com.avail.interpreter.primitive.modules.P_PrivateCreateModuleVariable
+import com.avail.interpreter.primitive.modules.P_PublishName
 import com.avail.interpreter.primitive.objects.P_RecordNewTypeName
 import com.avail.interpreter.primitive.phrases.P_CreateLiteralExpression
 import com.avail.interpreter.primitive.phrases.P_CreateLiteralToken
@@ -118,7 +148,10 @@ import com.avail.performance.StatisticReport
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
 import java.util.*
-import java.util.Collections.*
+import java.util.Collections.emptyList
+import java.util.Collections.nCopies
+import java.util.Collections.newSetFromMap
+import java.util.Collections.synchronizedSet
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater.newUpdater
 import kotlin.concurrent.withLock
 
@@ -162,9 +195,9 @@ class MethodDescriptor private constructor(
 	private var methodTestingTree: LookupTree<A_Definition, A_Tuple>? = null
 
 	/**
-	 * A [LookupTree] used to determine the most specific [macro
-	 * definition][MacroDefinitionDescriptor] that satisfies the supplied
-	 * argument types.  A `null` indicates the tree has not yet been
+	 * A [LookupTree] used to determine the most specific
+	 * [macro&#32;definition][MacroDefinitionDescriptor] that satisfies the
+	 * supplied argument types.  A `null` indicates the tree has not yet been
 	 * constructed.
 	 */
 	@Volatile
@@ -333,10 +366,10 @@ class MethodDescriptor private constructor(
 
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
-		aStream: StringBuilder,
+		builder: StringBuilder,
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int
-	) = with(aStream) {
+	) = with(builder) {
 		val size = (self.definitionsTuple().tupleSize()
 			+ self.macroDefinitionsTuple().tupleSize())
 		append(size)
@@ -355,7 +388,6 @@ class MethodDescriptor private constructor(
 		}
 	}
 
-	@AvailMethod
 	override fun o_AddDependentChunk(
 		self: AvailObject,
 		chunk: L2Chunk
@@ -371,7 +403,6 @@ class MethodDescriptor private constructor(
 		}
 	}
 
-	@AvailMethod
 	override fun o_AddSealedArgumentsType(
 		self: AvailObject,
 		typeTuple: A_Tuple
@@ -382,13 +413,12 @@ class MethodDescriptor private constructor(
 		self.setSlot(SEALED_ARGUMENTS_TYPES_TUPLE, newTuple.makeShared())
 	}
 
-	@AvailMethod
 	override fun o_AddSemanticRestriction(
 		self: AvailObject,
-		restriction: A_SemanticRestriction
+		restrictionSignature: A_SemanticRestriction
 	) = synchronized(self) {
 		var set: A_Set = self.slot(SEMANTIC_RESTRICTIONS_SET)
-		set = set.setWithElementCanDestroy(restriction, true)
+		set = set.setWithElementCanDestroy(restrictionSignature, true)
 		self.setSlot(SEMANTIC_RESTRICTIONS_SET, set.makeShared())
 	}
 
@@ -420,7 +450,6 @@ class MethodDescriptor private constructor(
 	 * always override a strictly more abstract method).  We can do that some
 	 * other day.
 	 */
-	@AvailMethod
 	override fun o_DefinitionsAtOrBelow(
 		self: AvailObject,
 		argRestrictions: List<TypeRestriction>
@@ -438,13 +467,12 @@ class MethodDescriptor private constructor(
 		return result
 	}
 
-	@AvailMethod
-	override fun o_DefinitionsTuple(self: AvailObject): A_Tuple {
+	override fun o_DefinitionsTuple(self: AvailObject): A_Tuple
+	{
 		assert(isShared)
 		synchronized(self) { return self.slot(DEFINITIONS_TUPLE) }
 	}
 
-	@AvailMethod
 	override fun o_Equals(
 		self: AvailObject,
 		another: A_BasicObject
@@ -458,7 +486,6 @@ class MethodDescriptor private constructor(
 	 * Uses the [A_Method.definitionsTuple] accessor instead of reading the slot
 	 * directly, to acquire the monitor first.
 	 */
-	@AvailMethod
 	override fun o_FilterByTypes(
 		self: AvailObject,
 		argTypes: List<A_Type>
@@ -467,7 +494,6 @@ class MethodDescriptor private constructor(
 			it.bodySignature().acceptsListOfArgTypes(argTypes)
 		}
 
-	@AvailMethod
 	override fun o_Hash(self: AvailObject) = self.slot(HASH)
 
 	/**
@@ -476,26 +502,20 @@ class MethodDescriptor private constructor(
 	 * Uses the [A_Method.definitionsTuple] accessor instead of reading the slot
 	 * directly, to acquire the monitor first.
 	 */
-	@AvailMethod
 	override fun o_IncludesDefinition(
 		self: AvailObject,
 		definition: A_Definition
 	) = self.definitionsTuple().contains(definition)
 
-	@AvailMethod
-	override fun o_IsMethodEmpty(
-		self: AvailObject
-	) = synchronized(self) {
+	override fun o_IsMethodEmpty(self: AvailObject) = synchronized(self) {
 		self.slot(DEFINITIONS_TUPLE).tupleSize() == 0
 			&& self.slot(MACRO_DEFINITIONS_TUPLE).tupleSize() == 0
 			&& self.slot(SEMANTIC_RESTRICTIONS_SET).setSize() == 0
 			&& self.slot(SEALED_ARGUMENTS_TYPES_TUPLE).tupleSize() == 0
 	}
 
-	@AvailMethod
 	override fun o_Kind(self: AvailObject): A_Type = Types.METHOD.o()
 
-	@AvailMethod
 	override fun o_Lexer(self: AvailObject): A_Lexer =
 		synchronized(self) { self.slot(LEXER_OR_NIL) }
 
@@ -503,7 +523,6 @@ class MethodDescriptor private constructor(
 	 * Look up the definition to invoke, given a tuple of argument types.
 	 * Use the [methodTestingTree] to find the definition to invoke.
 	 */
-	@AvailMethod
 	@Throws(MethodDefinitionException::class)
 	override fun o_LookupByTypesFromTuple(
 		self: AvailObject,
@@ -517,7 +536,6 @@ class MethodDescriptor private constructor(
 	 * the [methodTestingTree] to find the definition to invoke.  Answer
 	 * [nil][NilDescriptor.nil] if a lookup error occurs.
 	 */
-	@AvailMethod
 	@Throws(MethodDefinitionException::class)
 	override fun o_LookupByValuesFromList(
 		self: AvailObject,
@@ -537,27 +555,24 @@ class MethodDescriptor private constructor(
 	 * ancestor.  That should be the *vast* majority of the use of macros, but
 	 * when it isn't, other lookup approaches are necessary.
 	 */
-	@AvailMethod
 	override fun o_LookupMacroByPhraseTuple(
 		self: AvailObject,
 		argumentPhraseTuple: A_Tuple
 	): A_Tuple = runtimeDispatcher.lookupByValues(
 		macroTestingTree(self), argumentPhraseTuple, UNUSED)
 
-	@AvailMethod
-	override fun o_MacroDefinitionsTuple(self: AvailObject): A_Tuple {
+	override fun o_MacroDefinitionsTuple(self: AvailObject): A_Tuple
+	{
 		assert(isShared)
 		return synchronized(self) { self.slot(MACRO_DEFINITIONS_TUPLE) }
 	}
 
-	@AvailMethod
 	override fun o_MakeImmutable(self: AvailObject): AvailObject {
 		// A method is always shared, except during construction.
 		assert(isShared)
 		return self
 	}
 
-	@AvailMethod
 	override fun o_MethodAddBundle(
 		self: AvailObject,
 		bundle: A_Bundle
@@ -578,7 +593,6 @@ class MethodDescriptor private constructor(
 	 * that to the caller to deal with.  Other modules' parsing should be
 	 * unaffected, although runtime execution may change.
 	 */
-	@AvailMethod
 	@Throws(SignatureException::class)
 	override fun o_MethodAddDefinition(
 		self: AvailObject,
@@ -615,7 +629,6 @@ class MethodDescriptor private constructor(
 	override fun o_MethodName(self: AvailObject): A_String =
 		self.chooseBundle(self.module()).message().atomName()
 
-	@AvailMethod
 	override fun o_NumArgs(self: AvailObject) = self.slot(NUM_ARGS)
 
 	/**
@@ -626,7 +639,6 @@ class MethodDescriptor private constructor(
 	 * deadlocks.  Because no fiber is running, we don't have to protect
 	 * subsystems like the L2Generator from these changes.
 	 */
-	@AvailMethod
 	override fun o_RemoveDefinition(
 		self: AvailObject,
 		definition: A_Definition
@@ -649,7 +661,6 @@ class MethodDescriptor private constructor(
 	 * invalidated by a new definition in either me or another method on which
 	 * the chunk is contingent.
 	 */
-	@AvailMethod
 	override fun o_RemoveDependentChunk(
 		self: AvailObject,
 		chunk: L2Chunk
@@ -664,7 +675,6 @@ class MethodDescriptor private constructor(
 		}
 	}
 
-	@AvailMethod
 	override fun o_RemoveSealedArgumentsType(
 		self: AvailObject,
 		typeTuple: A_Tuple
@@ -675,7 +685,6 @@ class MethodDescriptor private constructor(
 		self.setSlot(SEALED_ARGUMENTS_TYPES_TUPLE, newTuple.makeShared())
 	}
 
-	@AvailMethod
 	override fun o_RemoveSemanticRestriction(
 		self: AvailObject,
 		restriction: A_SemanticRestriction
@@ -685,15 +694,12 @@ class MethodDescriptor private constructor(
 		self.setSlot(SEMANTIC_RESTRICTIONS_SET, set.makeShared())
 	}
 
-	@AvailMethod
 	override fun o_SealedArgumentsTypesTuple(self: AvailObject): A_Tuple =
 		self.slot(SEALED_ARGUMENTS_TYPES_TUPLE)
 
-	@AvailMethod
 	override fun o_SemanticRestrictions(self: AvailObject): A_Set =
 		synchronized(self) { self.slot(SEMANTIC_RESTRICTIONS_SET) }
 
-	@AvailMethod
 	@ThreadSafe
 	override fun o_SerializerOperation(self: AvailObject) =
 		SerializerOperation.METHOD
@@ -1021,13 +1027,13 @@ class MethodDescriptor private constructor(
 	}
 
 	@Deprecated("Not supported", ReplaceWith("newMethod()"))
-	override fun mutable() = throw unsupportedOperationException()
+	override fun mutable() = throw unsupportedOperation()
 
 	@Deprecated("Not supported", ReplaceWith("newMethod()"))
-	override fun immutable() = throw unsupportedOperationException()
+	override fun immutable() = throw unsupportedOperation()
 
 	@Deprecated("Not supported", ReplaceWith("newMethod()"))
-	override fun shared() = throw unsupportedOperationException()
+	override fun shared() = throw unsupportedOperation()
 
 	companion object {
 		/** Atomic access to [methodTestingTree]. */

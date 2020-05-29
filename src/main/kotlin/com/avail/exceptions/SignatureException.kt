@@ -49,7 +49,7 @@ import com.avail.descriptor.methods.DefinitionDescriptor
  *
  * @constructor
  * Construct a new `SignatureException` with the specified
- * [error code][AvailErrorCode].
+ * [error&#32;code][AvailErrorCode].
  *
  * @param errorCode
  *   The [error code][AvailErrorCode].

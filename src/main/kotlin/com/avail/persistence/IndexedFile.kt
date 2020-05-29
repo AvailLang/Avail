@@ -260,8 +260,8 @@ class IndexedFile internal constructor(
 	 *
 	 * @property serialNumber
 	 *   The serial number of the current master node. Viewed alternatively, the
-	 *   *next* serial number that should be committed to the [indexed
-	 *   file][IndexedFile].
+	 *   *next* serial number that should be committed to the
+	 *   [indexed&#32;file][IndexedFile].
 	 * @property fileLimit
 	 *   The virtual end of file.
 	 * @constructor
@@ -442,9 +442,9 @@ class IndexedFile internal constructor(
 
 	/**
 	 * Acquire an exclusive [file lock][FileLock] on the last byte of a logical
-	 * 64-bit file range. This prevents other conforming [indexed
-	 * file][IndexedFile] drivers (operating in other OS processes) from
-	 * deciding that they can also write to the file.
+	 * 64-bit file range. This prevents other conforming
+	 * [indexed&#32;file][IndexedFile] drivers (operating in other OS processes)
+	 * from deciding that they can also write to the file.
 	 *
 	 * @param wait
 	 *   `true` if the lock attempt should block until successful, `false` if

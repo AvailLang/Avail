@@ -32,7 +32,6 @@
 
 package com.avail.descriptor.types;
 
-import com.avail.annotations.AvailMethod;
 import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.numbers.A_Number;
@@ -44,21 +43,28 @@ import com.avail.descriptor.tuples.TupleDescriptor;
 import com.avail.optimizer.jvm.CheckedMethod;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.evaluation.Transformer1;
 import com.avail.utility.json.JSONWriter;
+import kotlin.jvm.functions.Function1;
 
 import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 import java.util.List;
-import java.util.function.UnaryOperator;
 
 import static com.avail.descriptor.numbers.IntegerDescriptor.fromInt;
-import static com.avail.descriptor.tuples.ObjectTupleDescriptor.*;
+import static com.avail.descriptor.tuples.ObjectTupleDescriptor.generateObjectTupleFrom;
+import static com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromArray;
+import static com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.tuples.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.types.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.types.InstanceMetaDescriptor.instanceMeta;
-import static com.avail.descriptor.types.IntegerRangeTypeDescriptor.*;
-import static com.avail.descriptor.types.TupleTypeDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.types.IntegerRangeTypeDescriptor.integerRangeType;
+import static com.avail.descriptor.types.IntegerRangeTypeDescriptor.naturalNumbers;
+import static com.avail.descriptor.types.IntegerRangeTypeDescriptor.singleInt;
+import static com.avail.descriptor.types.IntegerRangeTypeDescriptor.wholeNumbers;
+import static com.avail.descriptor.types.IntegerRangeTypeDescriptor.zeroOrOne;
+import static com.avail.descriptor.types.TupleTypeDescriptor.ObjectSlots.DEFAULT_TYPE;
+import static com.avail.descriptor.types.TupleTypeDescriptor.ObjectSlots.SIZE_RANGE;
+import static com.avail.descriptor.types.TupleTypeDescriptor.ObjectSlots.TYPE_TUPLE;
 import static com.avail.descriptor.types.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.types.TypeDescriptor.Types.CHARACTER;
 import static com.avail.optimizer.jvm.CheckedMethod.staticMethod;
@@ -175,13 +181,13 @@ extends TypeDescriptor
 		aStream.append('>');
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_DefaultType (final AvailObject object)
 	{
 		return object.slot(DEFAULT_TYPE);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsTupleType(object);
@@ -195,7 +201,7 @@ extends TypeDescriptor
 	 * defaultType match.
 	 * </p>
 	 */
-	@Override @AvailMethod
+	@Override
 	public boolean o_EqualsTupleType (
 		final AvailObject object,
 		final A_Type aTupleType)
@@ -206,7 +212,7 @@ extends TypeDescriptor
 				&& object.slot(TYPE_TUPLE).equals(aTupleType.typeTuple()));
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsBetterRepresentationThan (
 		final AvailObject object,
 		final A_BasicObject anotherObject)
@@ -215,14 +221,14 @@ extends TypeDescriptor
 			< anotherObject.representationCostOfTupleType();
 	}
 
-	@Override @AvailMethod
+	@Override
 	public int o_RepresentationCostOfTupleType (
 		final AvailObject object)
 	{
 		return 1;
 	}
 
-	@Override @AvailMethod
+	@Override
 	public int o_Hash (
 		final AvailObject object)
 	{
@@ -241,7 +247,7 @@ extends TypeDescriptor
 	 * which don't affect the union (unless all indices are out of range).
 	 * </p>
 	 */
-	@Override @AvailMethod
+	@Override
 	public A_Type o_UnionOfTypesAtThrough (
 		final AvailObject object,
 		final int startIndex,
@@ -272,7 +278,7 @@ extends TypeDescriptor
 		return typeUnion;
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsSubtypeOf (
 		final AvailObject object,
 		final A_Type aType)
@@ -289,10 +295,10 @@ extends TypeDescriptor
 	 * indistinguishable under this condition are considered the same type.
 	 * </p>
 	 */
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsSupertypeOfTupleType (
 		final AvailObject object,
-		final AvailObject aTupleType)
+		final A_Type aTupleType)
 	{
 		if (object.equals(aTupleType))
 		{
@@ -338,7 +344,7 @@ extends TypeDescriptor
 		return true;
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsTupleType (final AvailObject object)
 	{
 		// I am a tupleType, so answer true.
@@ -380,20 +386,20 @@ extends TypeDescriptor
 		return super.o_MarshalToJava(object, ignoredClassHint);
 	}
 
-	@Override @AvailMethod @ThreadSafe
+	@Override @ThreadSafe
 	public SerializerOperation o_SerializerOperation (
 		final AvailObject object)
 	{
 		return SerializerOperation.TUPLE_TYPE;
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_SizeRange (final AvailObject object)
 	{
 		return object.slot(SIZE_RANGE);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Tuple o_TupleOfTypesFromTo (
 		final AvailObject object,
 		final int startIndex,
@@ -411,10 +417,8 @@ extends TypeDescriptor
 				: bottom());
 	}
 
-	@Override @AvailMethod
-	public A_Type o_TypeAtIndex (
-		final AvailObject object,
-		final int index)
+	@Override
+	public A_Type o_TypeAtIndex (final AvailObject object, final int index)
 	{
 		// Answer what type the given index would have in an object instance of
 		// me.  Answer bottom if the index is out of bounds.
@@ -442,7 +446,7 @@ extends TypeDescriptor
 		return object.slot(DEFAULT_TYPE);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeIntersection (
 		final AvailObject object,
 		final A_Type another)
@@ -458,7 +462,7 @@ extends TypeDescriptor
 		return another.typeIntersectionOfTupleType(object);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeIntersectionOfTupleType (
 		final AvailObject object,
 		final A_Type aTupleType)
@@ -520,16 +524,14 @@ extends TypeDescriptor
 			newSizesObject, newLeading, newDefault.makeImmutable());
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Tuple o_TypeTuple (final AvailObject object)
 	{
 		return object.slot(TYPE_TUPLE);
 	}
 
-	@Override @AvailMethod
-	public A_Type o_TypeUnion (
-		final AvailObject object,
-		final A_Type another)
+	@Override
+	public A_Type o_TypeUnion (final AvailObject object, final A_Type another)
 	{
 		if (object.isSubtypeOf(another))
 		{
@@ -542,7 +544,7 @@ extends TypeDescriptor
 		return another.typeUnionOfTupleType(object);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeUnionOfTupleType (
 		final AvailObject object,
 		final A_Type aTupleType)
@@ -780,11 +782,11 @@ extends TypeDescriptor
 		List.class);
 
 	/**
-	 * Transform a tuple type into another tuple type by {@linkplain
-	 * Transformer1 transforming} each of the element types.  Assume the
-	 * transformation is stable.  The resulting tuple type should have the same
-	 * size range as the input tuple type, except if normalization produces
-	 * {@linkplain BottomTypeDescriptor#bottom() bottom}.
+	 * Transform a tuple type into another tuple type by transforming each of
+	 * the element types.  Assume the transformation is stable.  The resulting
+	 * tuple type should have the same size range as the input tuple type,
+	 * except if normalization produces {@linkplain
+	 * BottomTypeDescriptor#bottom() bottom}.
 	 *
 	 * @param aTupleType
 	 *        A tuple type whose element types should be transformed.
@@ -796,16 +798,16 @@ extends TypeDescriptor
 	 */
 	public static A_Type tupleTypeFromTupleOfTypes (
 		final A_Type aTupleType,
-		final UnaryOperator<A_Type> elementTransformer)
+		final Function1<A_Type, A_Type> elementTransformer)
 	{
 		final A_Type sizeRange = aTupleType.sizeRange();
 		final A_Tuple typeTuple = aTupleType.typeTuple();
 		final A_Type defaultType = aTupleType.defaultType();
 		final int limit = typeTuple.tupleSize();
 		final A_Tuple transformedTypeTuple = generateObjectTupleFrom(
-			limit, index -> elementTransformer.apply(typeTuple.tupleAt(index)));
+			limit, index -> elementTransformer.invoke(typeTuple.tupleAt(index)));
 		final A_Type transformedDefaultType =
-			elementTransformer.apply(defaultType);
+			elementTransformer.invoke(defaultType);
 		return tupleTypeForSizesTypesDefaultType(
 			sizeRange, transformedTypeTuple, transformedDefaultType);
 	}

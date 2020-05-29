@@ -35,10 +35,9 @@ JAR=$AVAIL_HOME/lib/avail-server-1.4-all.jar
 
 source avail-config
 
-# Launch the Avail server
+# Launch the Avail server.
 if [ "$FORCE_FOREGROUND" = true ]; then
-    $VM "${VMARGS[@]}" -jar $JAR $*
+  $VM "${VMARGS[@]}" -jar $JAR $*
 else
-	$VM "${VMARGS[@]}" -jar $JAR $* &
+  $VM "${VMARGS[@]}" -jar $JAR $* &
 fi
-

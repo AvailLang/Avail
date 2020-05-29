@@ -39,8 +39,7 @@ import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.types.A_Type
 
 /**
- * An `SectionCheckpoint` expression is an occurrence of the [section
- * sign][Metacharacter.SECTION_SIGN] (§) in a message name.  It indicates a
+ * An `SectionCheckpoint` expression is an occurrence of the [section&#32;sign][Metacharacter.SECTION_SIGN] (§) in a message name.  It indicates a
  * position at which to save the argument expressions for the message *up to
  * this point*.  This value is captured in the [ParserState] for subsequent use
  * by primitive macros that need to know an outer message send's initial

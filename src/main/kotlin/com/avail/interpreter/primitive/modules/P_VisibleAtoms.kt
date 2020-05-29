@@ -32,8 +32,8 @@
 
 package com.avail.interpreter.primitive.modules
 
-import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.atoms.A_Atom
+import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
 import com.avail.descriptor.types.A_Type
@@ -43,11 +43,11 @@ import com.avail.descriptor.types.IntegerRangeTypeDescriptor.wholeNumbers
 import com.avail.descriptor.types.SetTypeDescriptor.setTypeForSizesContentType
 import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
 import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
-import com.avail.interpreter.execution.AvailLoader
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.ReadsFromHiddenGlobalState
+import com.avail.interpreter.execution.AvailLoader
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive**: Answer every [true name][A_Atom] visible in the

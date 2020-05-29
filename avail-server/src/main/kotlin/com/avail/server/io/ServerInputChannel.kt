@@ -116,7 +116,7 @@ class ServerInputChannel constructor(
 		handler: CompletionHandler<Int, *>)
 	{
 		/**
-		 * The [completion handler][CompletionHandler] provided for notification
+		 * The [completion&#32;handler][CompletionHandler] provided for notification
 		 * of data availability.
 		 */
 		internal val handler: CompletionHandler<Int, Any> = cast(handler)

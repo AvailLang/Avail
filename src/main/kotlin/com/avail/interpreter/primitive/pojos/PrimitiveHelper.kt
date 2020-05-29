@@ -34,11 +34,11 @@ package com.avail.interpreter.primitive.pojos
 
 import com.avail.AvailRuntime.HookType
 import com.avail.AvailRuntime.HookType.RAISE_JAVA_EXCEPTION_IN_AVAIL
-import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.APPLY
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.types.A_Type
@@ -48,11 +48,17 @@ import com.avail.descriptor.types.PojoTypeDescriptor.marshalDefiningType
 import com.avail.descriptor.types.PojoTypeDescriptor.pojoTypeForClass
 import com.avail.descriptor.types.VariableTypeDescriptor.variableTypeFor
 import com.avail.exceptions.AvailErrorCode
-import com.avail.exceptions.AvailErrorCode.*
+import com.avail.exceptions.AvailErrorCode.E_JAVA_FIELD_NOT_AVAILABLE
+import com.avail.exceptions.AvailErrorCode.E_JAVA_FIELD_REFERENCE_IS_AMBIGUOUS
+import com.avail.exceptions.AvailErrorCode.E_JAVA_MARSHALING_FAILED
+import com.avail.exceptions.AvailErrorCode.E_JAVA_METHOD_NOT_AVAILABLE
+import com.avail.exceptions.AvailErrorCode.E_JAVA_METHOD_REFERENCE_IS_AMBIGUOUS
 import com.avail.exceptions.MarshalingException
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.levelOne.L1InstructionWriter
-import com.avail.interpreter.levelOne.L1Operation.*
+import com.avail.interpreter.levelOne.L1Operation.L1_doCall
+import com.avail.interpreter.levelOne.L1Operation.L1_doMakeTuple
+import com.avail.interpreter.levelOne.L1Operation.L1_doPushLocal
 import com.avail.utility.MutableOrNull
 import java.lang.reflect.Field
 import java.lang.reflect.Method
@@ -192,7 +198,7 @@ object PrimitiveHelper
 	}
 
 	/**
-	 * Synthesize a [raw&#32;function][A_RawFunction].  It should have the given
+	 * Synthesize a [raw function][A_RawFunction].  It should have the given
 	 * [function&#32;type][FunctionTypeDescriptor], and expect to be
 	 * instantiated as a [function][A_Function] with the given types of outers.
 	 * It should also be [Primitive], with failure code to invoke the
@@ -253,14 +259,14 @@ object PrimitiveHelper
 
 	/**
 	 * Marshal the specified values using the provided
-	 * [marshaling types][A_Type].
+	 * [marshaling&#32;types][A_Type].
 	 *
 	 * @param marshaledTypes
 	 *   The marshaled types.
 	 * @param args
 	 *   The values to marshal using the corresponding types.
 	 * @param errorOut
-	 *   A [MutableOrNull] into which an [AvailErrorCode] can  be written in the
+	 *   A [MutableOrNull] into which an [AvailErrorCode] can be written in the
 	 *   event that marshaling fails for some value.
 	 * @return
 	 *   The marshaled values.
@@ -276,7 +282,7 @@ object PrimitiveHelper
 		{
 			Array(args.tupleSize()) {
 				args.tupleAt(it + 1).marshalToJava(
-					marshaledTypes.tupleAt(it + 1).javaObjectNotNull())!!
+					marshaledTypes.tupleAt(it + 1).javaObjectNotNull())
 			}
 		}
 		catch (e: MarshalingException)

@@ -71,7 +71,7 @@ internal class DocumentationTracer constructor(
 	documentationPath: Path)
 {
 	/**
-	 * The [Stacks documentation generator][StacksGenerator].
+	 * The [Stacks&#32;documentation&#32;generator][StacksGenerator].
 	 */
 	private val generator: StacksGenerator = StacksGenerator(
 		documentationPath, availBuilder.runtime.moduleNameResolver())
@@ -96,8 +96,8 @@ internal class DocumentationTracer constructor(
 
 	/**
 	 * Load [comments][CommentTokenDescriptor] for the
-	 * [named][ResolvedModuleName] [module][ModuleDescriptor] into the [Stacks
-	 * documentation generator][StacksGenerator].
+	 * [named][ResolvedModuleName] [module][ModuleDescriptor] into the
+	 * [Stacks&#32;documentation generator][StacksGenerator].
 	 *
 	 * @param moduleName
 	 *   A module name.

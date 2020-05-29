@@ -32,7 +32,6 @@
 
 package com.avail.descriptor.tuples;
 
-import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.representation.IntegerSlotsEnum;
 import com.avail.descriptor.representation.Mutability;
@@ -70,6 +69,6 @@ extends TupleDescriptor
 		super(mutability, objectSlotsEnumClass, integerSlotsEnumClass);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public abstract int o_TupleIntAt (final AvailObject object, final int index);
 }

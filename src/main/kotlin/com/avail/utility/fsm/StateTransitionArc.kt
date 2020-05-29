@@ -95,8 +95,8 @@ internal class StateTransitionArc<
 		private set
 
     /**
-     * Set my guard and action based on the
-     * supplied mappings from guard keys and action keys, respectively.
+     * Set my guard and action based on the supplied mappings from guard keys
+     * and action keys, respectively.
      *
      * @param guardMap
      *   The mapping from GuardKey to guard.

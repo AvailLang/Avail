@@ -43,10 +43,10 @@ import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.FunctionTypeDescriptor.mostGeneralFunctionType
 import com.avail.descriptor.types.TupleTypeDescriptor.mostGeneralTupleType
 import com.avail.exceptions.AvailErrorCode.E_WRONG_OUTERS
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Answer a [function][FunctionDescriptor] built from the

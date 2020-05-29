@@ -32,15 +32,14 @@
 
 package com.avail.descriptor.types;
 
-import com.avail.annotations.AvailMethod;
 import com.avail.annotations.ThreadSafe;
-import com.avail.descriptor.representation.AvailObject;
+import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.fiber.FiberDescriptor;
 import com.avail.descriptor.fiber.FiberDescriptor.ExecutionState;
-import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.functions.ContinuationDescriptor;
 import com.avail.descriptor.functions.FunctionDescriptor;
 import com.avail.descriptor.representation.A_BasicObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.representation.Mutability;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
@@ -84,32 +83,32 @@ extends TypeDescriptor
 		return object.slot(RESULT_TYPE);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsFiberType(object);
 	}
 
-	@Override @AvailMethod
-	public boolean o_EqualsFiberType (final AvailObject object, final A_Type aType)
+	@Override
+	public boolean o_EqualsFiberType (final AvailObject object, final A_Type aFiberType)
 	{
-		return object.sameAddressAs(aType)
-			|| aType.resultType().equals(object.slot(RESULT_TYPE));
+		return object.sameAddressAs(aFiberType)
+			|| aFiberType.resultType().equals(object.slot(RESULT_TYPE));
 	}
 
-	@Override @AvailMethod
+	@Override
 	public int o_Hash (final AvailObject object)
 	{
 		return object.slot(RESULT_TYPE).hash() * 1307 ^ 0xBC084A71;
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
 	{
 		return aType.isSupertypeOfFiberType(object);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsSupertypeOfFiberType (
 		final AvailObject object,
 		final A_Type aType)
@@ -117,7 +116,7 @@ extends TypeDescriptor
 		return aType.resultType().isSubtypeOf(object.slot(RESULT_TYPE));
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeIntersection (final AvailObject object, final A_Type another)
 	{
 		if (object.isSubtypeOf(another))
@@ -131,7 +130,7 @@ extends TypeDescriptor
 		return another.typeIntersectionOfFiberType(object);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeIntersectionOfFiberType (
 		final AvailObject object,
 		final A_Type aType)
@@ -140,7 +139,7 @@ extends TypeDescriptor
 			object.slot(RESULT_TYPE).typeIntersection(aType.resultType()));
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeUnion (final AvailObject object, final A_Type another)
 	{
 		if (object.isSubtypeOf(another))
@@ -154,7 +153,7 @@ extends TypeDescriptor
 		return another.typeUnionOfFiberType(object);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeUnionOfFiberType (
 		final AvailObject object,
 		final A_Type aType)
@@ -163,14 +162,14 @@ extends TypeDescriptor
 			object.slot(RESULT_TYPE).typeUnion(aType.resultType()));
 	}
 
-	@Override @AvailMethod
+	@Override
 	public SerializerOperation o_SerializerOperation (
 		final AvailObject object)
 	{
 		return SerializerOperation.FIBER_TYPE;
 	}
 
-	@Override @AvailMethod
+	@Override
 	public AvailObject o_MakeImmutable (final AvailObject object)
 	{
 		if (isMutable())

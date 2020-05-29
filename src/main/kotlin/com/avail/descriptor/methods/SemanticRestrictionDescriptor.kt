@@ -31,14 +31,14 @@
  */
 package com.avail.descriptor.methods
 
-import com.avail.annotations.AvailMethod
-import com.avail.descriptor.module.A_Module
-import com.avail.descriptor.Descriptor
-import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.FunctionDescriptor
+import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AbstractDescriptor
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.Descriptor
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.types.TypeTag
@@ -103,33 +103,29 @@ private constructor(mutability: Mutability) : Descriptor(
 		DEFINITION_MODULE
 	}
 
-	@AvailMethod
 	override fun o_Hash(self: AvailObject) =
 		((self.slot(ObjectSlots.FUNCTION).hash() xor 0x0E0D9C10)
 			+ self.slot(ObjectSlots.DEFINITION_METHOD).hash())
 
-	@AvailMethod
 	override fun o_Function(self: AvailObject): A_Function =
 		self.slot(ObjectSlots.FUNCTION)
 
 	override fun o_DefinitionMethod(self: AvailObject): A_Method =
 		self.slot(ObjectSlots.DEFINITION_METHOD)
 
-	@AvailMethod
 	override fun o_DefinitionModule(self: AvailObject): A_Module =
 		self.slot(ObjectSlots.DEFINITION_MODULE)
 
 	/** Compare by identity. */
-	@AvailMethod
 	override fun o_Equals(self: AvailObject, another: A_BasicObject) =
 		self.sameAddressAs(another)
 
-	override fun mutable() = mutable
+	override fun mutable(): AbstractDescriptor = mutable
 
 	// There is no immutable variant; answer the shared descriptor.
-	override fun immutable() = shared
+	override fun immutable(): AbstractDescriptor = shared
 
-	override fun shared() = shared
+	override fun shared(): AbstractDescriptor = shared
 
 	companion object {
 		/** The mutable [SemanticRestrictionDescriptor].  */

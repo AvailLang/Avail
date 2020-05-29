@@ -57,7 +57,10 @@ import com.avail.interpreter.execution.AvailLoader.Phase
 import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.execution.Interpreter.Companion.runOutermostFunction
 import com.avail.persistence.Repository
-import com.avail.persistence.Repository.*
+import com.avail.persistence.Repository.ModuleCompilation
+import com.avail.persistence.Repository.ModuleCompilationKey
+import com.avail.persistence.Repository.ModuleVersion
+import com.avail.persistence.Repository.ModuleVersionKey
 import com.avail.serialization.Deserializer
 import com.avail.serialization.MalformedSerialStreamException
 import com.avail.serialization.Serializer
@@ -74,8 +77,7 @@ import java.util.logging.Level
 import kotlin.math.min
 
 /**
- * Used for parallel-loading modules in the [module
- * graph][AvailBuilder.moduleGraph].
+ * Used for parallel-loading modules in the [module&#32;graph][AvailBuilder.moduleGraph].
  *
  * @property availBuilder
  *   The [AvailBuilder] for which we're loading.
@@ -162,9 +164,9 @@ internal class BuildLoader constructor(
 	}
 
 	/**
-	 * Load the specified [module][ModuleDescriptor] into the [Avail
-	 * runtime][AvailRuntime]. If a current compiled module is available from
-	 * the [repository][Repository], then simply load it.
+	 * Load the specified [module][ModuleDescriptor] into the
+	 * [Avail&#32;runtime][AvailRuntime]. If a current compiled module is
+	 * available from the [repository][Repository], then simply load it.
 	 * Otherwise, [compile][AvailCompiler] the module, store it into the
 	 * repository, and then load it.
 	 *
@@ -438,8 +440,8 @@ internal class BuildLoader constructor(
 
 	/**
 	 * Compile the specified [module][ModuleDescriptor], store it into the
-	 * [repository][Repository], and then load it into the [Avail
-	 * runtime][AvailRuntime].
+	 * [repository][Repository], and then load it into the
+	 * [Avail&#32;runtime][AvailRuntime].
 	 *
 	 * Note that the predecessors of this module must have already been loaded.
 	 *

@@ -32,9 +32,6 @@
 package com.avail.descriptor.representation
 
 import com.avail.compiler.scanning.LexingState
-import com.avail.descriptor.*
-import com.avail.descriptor.fiber.FiberDescriptor.*
-import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.bundles.A_BundleTree
@@ -42,12 +39,29 @@ import com.avail.descriptor.character.A_Character
 import com.avail.descriptor.character.CharacterDescriptor
 import com.avail.descriptor.fiber.A_Fiber
 import com.avail.descriptor.fiber.FiberDescriptor
-import com.avail.descriptor.functions.*
+import com.avail.descriptor.fiber.FiberDescriptor.ExecutionState
+import com.avail.descriptor.fiber.FiberDescriptor.GeneralFlag
+import com.avail.descriptor.fiber.FiberDescriptor.InterruptRequestFlag
+import com.avail.descriptor.fiber.FiberDescriptor.SynchronizationFlag
+import com.avail.descriptor.fiber.FiberDescriptor.TraceFlag
+import com.avail.descriptor.functions.A_Continuation
+import com.avail.descriptor.functions.A_Function
+import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.functions.CompiledCodeDescriptor
 import com.avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
+import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.maps.A_Map
 import com.avail.descriptor.maps.A_MapBin
 import com.avail.descriptor.maps.MapBinDescriptor
-import com.avail.descriptor.methods.*
+import com.avail.descriptor.methods.A_Definition
+import com.avail.descriptor.methods.A_GrammaticalRestriction
+import com.avail.descriptor.methods.A_Method
+import com.avail.descriptor.methods.A_SemanticRestriction
+import com.avail.descriptor.methods.DefinitionDescriptor
+import com.avail.descriptor.methods.ForwardDefinitionDescriptor
+import com.avail.descriptor.methods.GrammaticalRestrictionDescriptor
+import com.avail.descriptor.methods.MethodDefinitionDescriptor
+import com.avail.descriptor.methods.MethodDescriptor
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.numbers.A_Number
@@ -59,11 +73,24 @@ import com.avail.descriptor.parsing.A_DefinitionParsingPlan
 import com.avail.descriptor.parsing.A_Lexer
 import com.avail.descriptor.parsing.A_ParsingPlanInProgress
 import com.avail.descriptor.phrases.A_Phrase
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.tokens.A_Token
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType
-import com.avail.descriptor.tuples.*
+import com.avail.descriptor.tuples.A_String
+import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.ByteStringDescriptor
+import com.avail.descriptor.tuples.ByteTupleDescriptor
+import com.avail.descriptor.tuples.IntTupleDescriptor
+import com.avail.descriptor.tuples.IntegerIntervalTupleDescriptor
+import com.avail.descriptor.tuples.NybbleTupleDescriptor
+import com.avail.descriptor.tuples.ObjectTupleDescriptor
+import com.avail.descriptor.tuples.RepeatedElementTupleDescriptor
+import com.avail.descriptor.tuples.SmallIntegerIntervalTupleDescriptor
+import com.avail.descriptor.tuples.StringDescriptor
+import com.avail.descriptor.tuples.TupleDescriptor
+import com.avail.descriptor.tuples.TwoByteStringDescriptor
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor
 import com.avail.descriptor.types.FunctionTypeDescriptor
@@ -74,26 +101,28 @@ import com.avail.descriptor.variables.A_Variable
 import com.avail.descriptor.variables.VariableDescriptor
 import com.avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
 import com.avail.dispatch.LookupTree
-import com.avail.exceptions.*
+import com.avail.exceptions.ArithmeticException
+import com.avail.exceptions.AvailException
+import com.avail.exceptions.MethodDefinitionException
+import com.avail.exceptions.SignatureException
+import com.avail.exceptions.VariableGetException
+import com.avail.exceptions.VariableSetException
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.execution.AvailLoader
 import com.avail.interpreter.levelTwo.L2Chunk
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.io.TextInterface
 import com.avail.optimizer.jvm.CheckedMethod
-import com.avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
+import com.avail.optimizer.jvm.CheckedMethod.instanceMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.utility.Casts
 import com.avail.utility.IteratorNotNull
 import com.avail.utility.StackPrinter
-import com.avail.utility.evaluation.Continuation0
-import com.avail.utility.evaluation.Continuation1NotNull
 import com.avail.utility.json.JSONWriter
 import com.avail.utility.visitor.AvailSubobjectVisitor
 import com.avail.utility.visitor.MarkUnreachableSubobjectVisitor
 import java.nio.ByteBuffer
 import java.util.*
-import java.util.function.*
 import java.util.stream.Stream
 
 /**
@@ -267,7 +296,7 @@ class AvailObject private constructor(
 	 * the argument.
 	 *
 	 * @param another
-	 *   A [numeric&#32;object][AbstractNumberDescriptor].
+	 *   A [numeric object][AbstractNumberDescriptor].
 	 * @return
 	 *   Whether the receiver is greater than or equivalent to the argument.
 	 */
@@ -350,8 +379,8 @@ class AvailObject private constructor(
 	override fun hash() = descriptor().o_Hash(this)
 
 	/**
-	 * Answer whether the [argument&#32;types][AvailObject#argsTupleType]
-	 * supported by the specified [function&#32;type][FunctionTypeDescriptor]
+	 * Answer whether the [argument types][AvailObject#argsTupleType]
+	 * supported by the specified [function type][FunctionTypeDescriptor]
 	 * are acceptable argument types for invoking a
 	 * [function][FunctionDescriptor] whose type is the receiver.
 	 *
@@ -365,7 +394,7 @@ class AvailObject private constructor(
 		descriptor().o_AcceptsArgTypesFromFunctionType(this, functionType)
 
 	/**
-	 * Answer whether these are acceptable [argument&#32;types][TypeDescriptor]
+	 * Answer whether these are acceptable [argument types][TypeDescriptor]
 	 * for invoking a [function][FunctionDescriptor] whose type is the receiver.
 	 *
 	 * @param argTypes
@@ -392,10 +421,10 @@ class AvailObject private constructor(
 		descriptor().o_AcceptsListOfArgValues(this, argValues)
 
 	/**
-	 * Answer whether these are acceptable [argument&#32;types][TypeDescriptor]
+	 * Answer whether these are acceptable [argument types][TypeDescriptor]
 	 * for invoking a [function][FunctionDescriptor] that is an instance of the
 	 * receiver. There may be more entries in the [tuple][TupleDescriptor] than
-	 * are required by the [function&#32;type][FunctionTypeDescriptor].
+	 * are required by the [function type][FunctionTypeDescriptor].
 	 *
 	 * @param argTypes
 	 *   A tuple containing the argument types to be checked.
@@ -964,7 +993,7 @@ class AvailObject private constructor(
 	 * @param aNumber
 	 *   An integral numeric.
 	 * @param canDestroy
-	 *   `true` if the operation may modify either [        ], `false`
+	 *   `true` if the operation may modify either [number][A_Number], `false`
 	 *   otherwise.
 	 * @return
 	 *   The `AvailObject result` of dividing the operands.
@@ -1126,7 +1155,7 @@ class AvailObject private constructor(
 
 	/**
 	 * Answer whether the receiver, an [AvailObject], and the argument, a
-	 * small integer [interval&#32;tuple][SmallIntegerIntervalTupleDescriptor],
+	 * small integer [interval tuple][SmallIntegerIntervalTupleDescriptor],
 	 * are equal in value.
 	 *
 	 * @param aSmallIntegerIntervalTuple
@@ -1176,15 +1205,15 @@ class AvailObject private constructor(
 
 	/**
 	 * Answer whether the receiver, an [AvailObject], and the
-	 * argument, a [function&#32;type][FunctionTypeDescriptor], are equal.
+	 * argument, a [function type][FunctionTypeDescriptor], are equal.
 	 *
 	 * @param aFunctionType
 	 *   The function type used in the comparison.
 	 * @return
 	 *   `true` IFF the receiver is also a function type and:
-	 *   * The [argument&#32;types][argsTupleType] correspond,
-	 *   * The [return&#32;types][returnType] correspond, and
-	 *   * The [declared&#32;exceptions][declaredExceptions] correspond.
+	 *   * The [argument types][argsTupleType] correspond,
+	 *   * The [return types][returnType] correspond, and
+	 *   * The [declared exceptions][declaredExceptions] correspond.
 	 */
 	override fun equalsFunctionType(aFunctionType: A_Type) =
 		descriptor().o_EqualsFunctionType(this, aFunctionType)
@@ -1216,7 +1245,7 @@ class AvailObject private constructor(
 	 *   `true` if the receiver is a variable with the same identity as the
 	 *   argument, `false` otherwise.
 	 */
-	override fun equalsVariable(aVariable: AvailObject) =
+	override fun equalsVariable(aVariable: A_Variable) =
 		descriptor().o_EqualsVariable(this, aVariable)
 
 	override fun equalsVariableType(aVariableType: A_Type) =
@@ -1280,7 +1309,8 @@ class AvailObject private constructor(
 		descriptor().o_EqualsPrimitiveType(this, aPrimitiveType)
 
 	override fun equalsRawPojoFor(
-		otherRawPojo: AvailObject, otherJavaObject: Any?
+		otherRawPojo: AvailObject,
+		otherJavaObject: Any
 	) = descriptor().o_EqualsRawPojoFor(this, otherRawPojo, otherJavaObject)
 
 	/**
@@ -1389,7 +1419,7 @@ class AvailObject private constructor(
 		descriptor().o_SetInterruptRequestFlag(this, flag)
 
 	override fun decrementCountdownToReoptimize(
-		continuation: Continuation1NotNull<Boolean>
+		continuation: (Boolean) -> Unit
 	) = descriptor().o_DecrementCountdownToReoptimize(this, continuation)
 
 	override fun countdownToReoptimize(value: Int) =
@@ -1469,7 +1499,7 @@ class AvailObject private constructor(
 	override val isFinite get() = descriptor().o_IsFinite(this)
 
 	/**
-	 * Is the receiver a [forward&#32;declaration][ForwardDefinitionDescriptor]?
+	 * Is the receiver a [forward declaration][ForwardDefinitionDescriptor]?
 	 *
 	 * @return
 	 *   `true` if the receiver is a forward declaration site.
@@ -1478,7 +1508,7 @@ class AvailObject private constructor(
 		descriptor().o_IsForwardDefinition(this)
 
 	/**
-	 * Is the receiver a [method&#32;definition][MethodDefinitionDescriptor]?
+	 * Is the receiver a [method definition][MethodDefinitionDescriptor]?
 	 *
 	 * @return `true` if the receiver is a method definition.
 	 */
@@ -1587,13 +1617,13 @@ class AvailObject private constructor(
 	override fun isSupertypeOfPrimitiveTypeEnum(primitiveTypeEnum: Types) =
 		descriptor().o_IsSupertypeOfPrimitiveTypeEnum(this, primitiveTypeEnum)
 
-	override fun isSupertypeOfSetType(aSetType: AvailObject) =
+	override fun isSupertypeOfSetType(aSetType: A_Type) =
 		descriptor().o_IsSupertypeOfSetType(this, aSetType)
 
 	override fun isSupertypeOfBottom() =
 		descriptor().o_IsSupertypeOfBottom(this)
 
-	override fun isSupertypeOfTupleType(aTupleType: AvailObject) =
+	override fun isSupertypeOfTupleType(aTupleType: A_Type) =
 		descriptor().o_IsSupertypeOfTupleType(this, aTupleType)
 
 	override fun isSupertypeOfEnumerationType(
@@ -1689,9 +1719,8 @@ class AvailObject private constructor(
 	override fun makeSubobjectsImmutable() =
 		descriptor().o_MakeSubobjectsImmutable(this)
 
-	override fun makeSubobjectsShared() {
+	override fun makeSubobjectsShared() =
 		descriptor().o_MakeSubobjectsShared(this)
-	}
 
 	override fun mapAt(keyObject: A_BasicObject) =
 		descriptor().o_MapAt(this, keyObject)
@@ -1706,7 +1735,7 @@ class AvailObject private constructor(
 	override fun mapAtReplacingCanDestroy(
 		key: A_BasicObject,
 		notFoundValue: A_BasicObject,
-		transformer: BiFunction<AvailObject, AvailObject, A_BasicObject>,
+		transformer: (AvailObject, AvailObject) -> A_BasicObject,
 		canDestroy: Boolean
 	): A_Map = descriptor().o_MapAtReplacingCanDestroy(
 		this, key, notFoundValue, transformer, canDestroy)
@@ -2424,7 +2453,7 @@ class AvailObject private constructor(
 		key: A_BasicObject,
 		keyHash: Int,
 		notFoundValue: A_BasicObject,
-		transformer: BiFunction<AvailObject, AvailObject, A_BasicObject>,
+		transformer: (AvailObject, AvailObject) -> A_BasicObject,
 		myLevel: Int,
 		canDestroy: Boolean
 	): A_MapBin = descriptor().o_MapBinAtHashReplacingLevelCanDestroy(
@@ -2438,7 +2467,7 @@ class AvailObject private constructor(
 	override fun isHashedMapBin() = descriptor().o_IsHashedMapBin(this)
 
 	/**
-	 * Look up the key in this [map&#32;bin][MapBinDescriptor].  If not found,
+	 * Look up the key in this [map bin][MapBinDescriptor].  If not found,
 	 * answer `null`.  Use the provided hash of the key.
 	 *
 	 * @param key
@@ -2498,7 +2527,7 @@ class AvailObject private constructor(
 
 	override fun equalsEqualityRawPojoFor(
 		otherEqualityRawPojo: AvailObject,
-		otherJavaObject: Any?
+		otherJavaObject: Any
 	) = descriptor().o_EqualsEqualityRawPojo(
 		this, otherEqualityRawPojo, otherJavaObject)
 
@@ -2636,10 +2665,7 @@ class AvailObject private constructor(
 
 	override val isByteArrayTuple get() = descriptor().o_IsByteArrayTuple(this)
 
-	override fun lock(critical: Continuation0) =
-		descriptor().o_Lock(this, critical)
-
-	override fun <T : Any> lock(supplier: Supplier<T>): T =
+	override fun <T> lock(supplier: () -> T): T =
 		descriptor().o_Lock(this, supplier)
 
 	/**
@@ -2659,35 +2685,34 @@ class AvailObject private constructor(
 	override fun moduleName() = descriptor().o_ModuleName(this)
 
 	/**
-	 * Answer the [continuation][Continuation1NotNull] that accepts the result
-	 * produced by the [receiver][FiberDescriptor]'s successful completion.
+	 * Answer the continuation that accepts the result produced by the
+	 * [receiver][FiberDescriptor]'s successful completion.
 	 *
 	 * @return
 	 *   A continuation.
 	 */
-	override fun resultContinuation(): Continuation1NotNull<AvailObject> =
+	override fun resultContinuation(): (AvailObject) -> Unit =
 		descriptor().o_ResultContinuation(this)
 
 	/**
-	 * Answer the [continuation][Continuation1NotNull] that accepts
-	 * the [throwable][Throwable] responsible for abnormal termination
-	 * of the [receiver][FiberDescriptor].
+	 * Answer the continuation that accepts the [throwable][Throwable]
+	 * responsible for abnormal termination of the [receiver][FiberDescriptor].
 	 *
 	 * @return
 	 *   A continuation.
 	 */
-	override fun failureContinuation(): Continuation1NotNull<Throwable> =
+	override fun failureContinuation(): (Throwable) -> Unit =
 		descriptor().o_FailureContinuation(this)
 
 
 	override fun setSuccessAndFailureContinuations(
-		onSuccess: Continuation1NotNull<AvailObject>,
-		onFailure: Continuation1NotNull<Throwable>
+		onSuccess: (AvailObject) -> Unit,
+		onFailure: (Throwable) -> Unit
 	) = descriptor().o_SetSuccessAndFailureContinuations(
 		this, onSuccess, onFailure)
 
 	/**
-	 * Is the specified [interrupt&#32;request&#32;flag][InterruptRequestFlag]
+	 * Is the specified [interrupt request flag][InterruptRequestFlag]
 	 * set for the [receiver][FiberDescriptor]?
 	 *
 	 * @param flag
@@ -2768,7 +2793,7 @@ class AvailObject private constructor(
 
 	override fun fiberName() = descriptor().o_FiberName(this)
 
-	override fun fiberNameSupplier(supplier: Supplier<A_String>) =
+	override fun fiberNameSupplier(supplier: () -> A_String) =
 		descriptor().o_FiberNameSupplier(this, supplier)
 
 	override fun bundles() = descriptor().o_Bundles(this)
@@ -2847,7 +2872,7 @@ class AvailObject private constructor(
 		descriptor().o_ReplacingCaller(this, newCaller)
 
 	override fun whenContinuationIsAvailableDo(
-		whenReified: Continuation1NotNull<A_Continuation>
+		whenReified: (A_Continuation) -> Unit
 	) = descriptor().o_WhenContinuationIsAvailableDo(this, whenReified)
 
 	override fun getAndClearReificationWaiters() =
@@ -3021,11 +3046,11 @@ class AvailObject private constructor(
 	override fun testingTree(): LookupTree<A_Definition, A_Tuple> =
 		descriptor().o_TestingTree(this)
 
-	override fun forEach(action: BiConsumer<in AvailObject, in AvailObject>) =
+	override fun forEach(action: (AvailObject, AvailObject) -> Unit) =
 		descriptor().o_ForEach(this, action)
 
 	override fun forEachInMapBin(
-		action: BiConsumer<in AvailObject, in AvailObject>
+		action: (AvailObject, AvailObject) -> Unit
 	) = descriptor().o_ForEachInMapBin(this, action)
 
 	override fun clearLexingState() = descriptor().o_ClearLexingState(this)
@@ -3131,6 +3156,8 @@ class AvailObject private constructor(
 		}
 
 		/** The [CheckedMethod] for [iterator]. */
+		@Suppress("unused")
+		@JvmField
 		val iteratorMethod: CheckedMethod = instanceMethod(
 			AvailObject::class.java,
 			AvailObject::iterator.name,
@@ -3142,7 +3169,7 @@ class AvailObject private constructor(
 			AvailObject::class.java,
 			AvailObject::frameAt.name,
 			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!)
+			Int::class.javaPrimitiveType)
 
 		/** Access the [frameAtPut] method.  */
 		@JvmField
@@ -3150,7 +3177,7 @@ class AvailObject private constructor(
 			AvailObject::class.java,
 			AvailObject::frameAtPut.name,
 			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!,
+			Int::class.javaPrimitiveType,
 			AvailObject::class.java)
 
 		/** Access the [registerDump] method.  */

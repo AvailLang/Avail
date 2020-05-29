@@ -32,8 +32,8 @@
 package com.avail.interpreter.primitive.pojos
 
 import com.avail.descriptor.numbers.IntegerDescriptor
-import com.avail.descriptor.pojos.PojoDescriptor.Companion.newPojo
-import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
+import com.avail.descriptor.pojos.PojoDescriptor.newPojo
+import com.avail.descriptor.pojos.RawPojoDescriptor.identityPojo
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
@@ -44,14 +44,14 @@ import com.avail.descriptor.types.PojoTypeDescriptor
 import com.avail.descriptor.types.PojoTypeDescriptor.mostGeneralPojoArrayType
 import com.avail.descriptor.types.PojoTypeDescriptor.pojoArrayType
 import com.avail.descriptor.types.TypeDescriptor
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.execution.Interpreter
 import java.lang.reflect.Array
 
 /**
- * **Primitive:** Create a [pojo&#32;array][PojoTypeDescriptor] that stores and
+ * **Primitive:** Create a [pojo array][PojoTypeDescriptor] that stores and
  * answers elements of the specified Avail [type][TypeDescriptor] and has the
  * specified [length][IntegerDescriptor].
  */

@@ -31,13 +31,16 @@
  */
 package com.avail.descriptor.atoms
 
-import com.avail.annotations.AvailMethod
-import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.atoms.AtomWithPropertiesSharedDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import com.avail.descriptor.bundles.A_Bundle
-import com.avail.descriptor.representation.*
+import com.avail.descriptor.module.ModuleDescriptor
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.BitField
+import com.avail.descriptor.representation.IntegerSlotsEnum
+import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.Mutability.SHARED
+import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.types.TypeTag
 import com.avail.exceptions.MalformedMessageException
 import com.avail.serialization.Serializer
@@ -143,10 +146,8 @@ internal class AtomWithPropertiesSharedDescriptor private constructor(
 
 	override fun o_MakeImmutable(self: AvailObject) = self
 
-	@AvailMethod
 	override fun o_MakeShared(self: AvailObject): AvailObject = self
 
-	@AvailMethod
 	override fun o_Hash(self: AvailObject): Int {
 		val hash = self.slot(HASH_OR_ZERO)
 		if (hash == 0) {
@@ -157,7 +158,6 @@ internal class AtomWithPropertiesSharedDescriptor private constructor(
 		return hash
 	}
 
-	@AvailMethod
 	override fun o_GetAtomProperty(
 		self: AvailObject,
 		key: A_Atom
@@ -165,7 +165,6 @@ internal class AtomWithPropertiesSharedDescriptor private constructor(
 		return super.o_GetAtomProperty(self, key)
 	}
 
-	@AvailMethod
 	override fun o_SetAtomProperty(
 		self: AvailObject,
 		key: A_Atom,
@@ -174,14 +173,12 @@ internal class AtomWithPropertiesSharedDescriptor private constructor(
 		super.o_SetAtomProperty(self, key.makeShared(), value.makeShared())
 	}
 
-	@AvailMethod
 	@Throws(MalformedMessageException::class)
 	override fun o_BundleOrCreate(self: AvailObject): A_Bundle =
 		synchronized(self) {
 			return super.o_BundleOrCreate(self)
 		}
 
-	@AvailMethod
 	override fun o_BundleOrNil(self: AvailObject): A_Bundle =
 		synchronized(self) {
 			return super.o_BundleOrNil(self)

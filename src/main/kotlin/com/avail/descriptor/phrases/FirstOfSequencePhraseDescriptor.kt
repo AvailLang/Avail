@@ -31,31 +31,28 @@
  */
 package com.avail.descriptor.phrases
 
-import com.avail.annotations.AvailMethod
-import com.avail.compiler.AvailCodeGenerator
-import com.avail.descriptor.representation.NilDescriptor.Companion.nil
-import com.avail.descriptor.phrases.A_Phrase.Companion.emitEffectOn
-import com.avail.descriptor.phrases.A_Phrase.Companion.emitValueOn
-import com.avail.descriptor.phrases.A_Phrase.Companion.flattenStatementsInto
-import com.avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
-import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKind
-import com.avail.descriptor.phrases.A_Phrase.Companion.statements
-import com.avail.descriptor.phrases.A_Phrase.Companion.statementsDo
-import com.avail.descriptor.phrases.FirstOfSequencePhraseDescriptor.ObjectSlots.STATEMENTS
-import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.representation.Mutability
-import com.avail.descriptor.representation.ObjectSlotsEnum
-import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
-import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
-import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
-import com.avail.descriptor.types.TypeTag
-import com.avail.serialization.SerializerOperation
-import com.avail.utility.evaluation.Continuation1NotNull
-import com.avail.utility.json.JSONWriter
-import java.util.function.Consumer
-import java.util.function.UnaryOperator
+ import com.avail.compiler.AvailCodeGenerator
+ import com.avail.descriptor.phrases.A_Phrase.Companion.emitEffectOn
+ import com.avail.descriptor.phrases.A_Phrase.Companion.emitValueOn
+ import com.avail.descriptor.phrases.A_Phrase.Companion.flattenStatementsInto
+ import com.avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
+ import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKind
+ import com.avail.descriptor.phrases.A_Phrase.Companion.statements
+ import com.avail.descriptor.phrases.A_Phrase.Companion.statementsDo
+ import com.avail.descriptor.phrases.FirstOfSequencePhraseDescriptor.ObjectSlots.STATEMENTS
+ import com.avail.descriptor.representation.AbstractDescriptor
+ import com.avail.descriptor.representation.AvailObject
+ import com.avail.descriptor.representation.Mutability
+ import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+ import com.avail.descriptor.representation.ObjectSlotsEnum
+ import com.avail.descriptor.tuples.A_Tuple
+ import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
+ import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+ import com.avail.descriptor.types.A_Type
+ import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
+ import com.avail.descriptor.types.TypeTag
+ import com.avail.serialization.SerializerOperation
+ import com.avail.utility.json.JSONWriter
 
 /**
  * My instances represent a sequence of [phrases][PhraseDescriptor] to be
@@ -96,24 +93,20 @@ class FirstOfSequencePhraseDescriptor private constructor(
 		STATEMENTS
 	}
 
-	@AvailMethod
 	override fun o_ChildrenDo(
 		self: AvailObject,
-		action: Consumer<A_Phrase>
-	) = self.slot(STATEMENTS).forEach(action::accept)
+		action: (A_Phrase) -> Unit
+	) = self.slot(STATEMENTS).forEach(action)
 
-	@AvailMethod
 	override fun o_ChildrenMap(
 		self: AvailObject,
-		transformer: UnaryOperator<A_Phrase>
+		transformer: (A_Phrase) -> A_Phrase
 	) {
 		self.setSlot(
 			STATEMENTS,
-			tupleFromList(
-				self.slot(STATEMENTS).map(transformer::apply)))
+			tupleFromList(self.slot(STATEMENTS).map(transformer)))
 	}
 
-	@AvailMethod
 	override fun o_EmitEffectOn(
 		self: AvailObject,
 		codeGenerator: AvailCodeGenerator
@@ -128,7 +121,6 @@ class FirstOfSequencePhraseDescriptor private constructor(
 		codeGenerator.emitPop()
 	}
 
-	@AvailMethod
 	override fun o_EmitValueOn(
 		self: AvailObject,
 		codeGenerator: AvailCodeGenerator
@@ -144,7 +136,6 @@ class FirstOfSequencePhraseDescriptor private constructor(
 		}
 	}
 
-	@AvailMethod
 	override fun o_EqualsPhrase(
 		self: AvailObject,
 		aPhrase: A_Phrase
@@ -152,14 +143,12 @@ class FirstOfSequencePhraseDescriptor private constructor(
 		&& self.phraseKind() == aPhrase.phraseKind()
 		&& self.slot(STATEMENTS).equals(aPhrase.statements()))
 
-	@AvailMethod
 	override fun o_ExpressionType(self: AvailObject): A_Type {
 		val statements: A_Tuple = self.slot(STATEMENTS)
 		assert(statements.tupleSize() > 0)
 		return statements.tupleAt(1).expressionType()
 	}
 
-	@AvailMethod
 	override fun o_FlattenStatementsInto(
 		self: AvailObject,
 		accumulatedStatements: MutableList<A_Phrase>
@@ -185,7 +174,6 @@ class FirstOfSequencePhraseDescriptor private constructor(
 		}
 	}
 
-	@AvailMethod
 	override fun o_Hash(self: AvailObject) =
 		self.slot(STATEMENTS).hash() xor 0x70EDD231
 
@@ -195,18 +183,16 @@ class FirstOfSequencePhraseDescriptor private constructor(
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		SerializerOperation.FIRST_OF_SEQUENCE_PHRASE
 
-	@AvailMethod
 	override fun o_Statements(self: AvailObject): A_Tuple =
 		self.slot(STATEMENTS)
 
 	override fun o_StatementsDo(
 		self: AvailObject,
-		continuation: Continuation1NotNull<A_Phrase>
+		continuation: (A_Phrase) -> Unit
 	) = self.slot(STATEMENTS).forEach { it.statementsDo(continuation) }
 
 	override fun o_Tokens(self: AvailObject): A_Tuple = emptyTuple()
 
-	@AvailMethod
 	override fun o_ValidateLocally(
 		self: AvailObject,
 		parent: A_Phrase?
@@ -232,9 +218,9 @@ class FirstOfSequencePhraseDescriptor private constructor(
 		writer.endObject()
 	}
 
-	override fun mutable(): FirstOfSequencePhraseDescriptor = mutable
+	override fun mutable(): AbstractDescriptor = mutable
 
-	override fun shared(): FirstOfSequencePhraseDescriptor = shared
+	override fun shared(): AbstractDescriptor = shared
 
 	companion object {
 		/**

@@ -40,7 +40,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import static com.avail.utility.PrefixSharingList.*;
+import static com.avail.utility.PrefixSharingList.append;
+import static com.avail.utility.PrefixSharingList.last;
+import static com.avail.utility.PrefixSharingList.withoutLast;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**

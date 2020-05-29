@@ -38,7 +38,9 @@ import com.avail.utility.CheckedConsumer
 import com.avail.utility.Pair
 import com.avail.utility.Strings.tabs
 import com.avail.utility.dot.DotWriter.AttributeWriter
-import com.avail.utility.dot.DotWriter.DefaultAttributeBlockType.*
+import com.avail.utility.dot.DotWriter.DefaultAttributeBlockType.EDGE
+import com.avail.utility.dot.DotWriter.DefaultAttributeBlockType.GRAPH
+import com.avail.utility.dot.DotWriter.DefaultAttributeBlockType.NODE
 import java.io.IOException
 import java.util.*
 import java.util.Collections.unmodifiableSet

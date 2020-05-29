@@ -61,8 +61,7 @@ import kotlin.experimental.and
 import kotlin.experimental.xor
 
 /**
- * A `WebSocketAdapter` provides a WebSocket interface to an [Avail
- * server][AvailServer].
+ * A `WebSocketAdapter` provides a WebSocket interface to an [Avail&#32;server][AvailServer].
  *
  * @property server
  *   The [Avail server][AvailServer].
@@ -148,8 +147,8 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 			})
 
 	/**
-	 * A `HttpHeaderState` represents a state of the [client
-	 * handshake][ClientHandshake]
+	 * A `HttpHeaderState` represents a state of the
+	 * [client&#32;handshake][ClientHandshake]
 	 * [recognizer][ClientHandshake.readClientHandshake].
 	 *
 	 * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -600,7 +599,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 			/**
 			 * Answer a [client handshake][ClientHandshake] based on the
 			 * specified [request][ClientRequest]. If the headers do not
-			 * describe a valid  WebSocket client handshake, then [fail the
+			 * describe a valid WebSocket client handshake, then [fail the
 			 * connection][ClientRequest.badRequest] and answer `null`.
 			 *
 			 * @param channel
@@ -1149,9 +1148,9 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 		internal var maskingKey: ByteBuffer? = null
 
 		/**
-		 * The payload. This must not be [allocated
-		 * directly][ByteBuffer.allocateDirect], as access to the [backing
-		 * array][ByteBuffer.array] is required.
+		 * The payload. This must not be
+		 * [allocated&#32;directly][ByteBuffer.allocateDirect], as access to the
+		 * [backing&#32;array][ByteBuffer.array] is required.
 		 */
 		internal var payloadData: ByteBuffer? = null
 

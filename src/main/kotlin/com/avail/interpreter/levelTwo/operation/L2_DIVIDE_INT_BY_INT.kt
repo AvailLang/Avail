@@ -39,7 +39,7 @@ import com.avail.interpreter.levelTwo.operand.L2PcOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
-import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.*
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT
 import com.avail.optimizer.L2ValueManifest
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.Label

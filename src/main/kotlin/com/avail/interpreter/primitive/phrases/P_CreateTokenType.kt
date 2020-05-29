@@ -37,7 +37,11 @@ import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tokens.TokenDescriptor
 import com.avail.descriptor.tokens.TokenDescriptor.StaticInit.tokenTypeOrdinalKey
-import com.avail.descriptor.tokens.TokenDescriptor.TokenType.*
+import com.avail.descriptor.tokens.TokenDescriptor.TokenType.COMMENT
+import com.avail.descriptor.tokens.TokenDescriptor.TokenType.END_OF_FILE
+import com.avail.descriptor.tokens.TokenDescriptor.TokenType.KEYWORD
+import com.avail.descriptor.tokens.TokenDescriptor.TokenType.OPERATOR
+import com.avail.descriptor.tokens.TokenDescriptor.TokenType.WHITESPACE
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
@@ -47,12 +51,14 @@ import com.avail.descriptor.types.InstanceTypeDescriptor.instanceType
 import com.avail.descriptor.types.LiteralTokenTypeDescriptor.mostGeneralLiteralTokenType
 import com.avail.descriptor.types.TokenTypeDescriptor
 import com.avail.descriptor.types.TokenTypeDescriptor.tokenType
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CanFold
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Construct a [token&#32;type][TokenTypeDescriptor] with the
+ * **Primitive:** Construct a [token type][TokenTypeDescriptor] with the
  * given parameterization.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;

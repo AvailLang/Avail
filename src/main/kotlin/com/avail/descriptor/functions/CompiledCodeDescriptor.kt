@@ -33,12 +33,11 @@ package com.avail.descriptor.functions
 
 import com.avail.AvailRuntime
 import com.avail.AvailRuntimeSupport
-import com.avail.annotations.*
-import com.avail.descriptor.module.A_Module
-import com.avail.descriptor.AbstractDescriptor
-import com.avail.descriptor.Descriptor
+import com.avail.annotations.EnumField
+import com.avail.annotations.HideFieldInDebugger
+import com.avail.annotations.HideFieldJustForPrinting
+import com.avail.annotations.ThreadSafe
 import com.avail.descriptor.fiber.FiberDescriptor
-import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.functions.CompiledCodeDescriptor.Companion.initialMutableDescriptor
 import com.avail.descriptor.functions.CompiledCodeDescriptor.IntegerSlots.Companion.FRAME_SLOTS
 import com.avail.descriptor.functions.CompiledCodeDescriptor.IntegerSlots.Companion.HASH
@@ -51,12 +50,22 @@ import com.avail.descriptor.functions.CompiledCodeDescriptor.IntegerSlots.NYBBLE
 import com.avail.descriptor.functions.CompiledCodeDescriptor.ObjectSlots.FUNCTION_TYPE
 import com.avail.descriptor.functions.CompiledCodeDescriptor.ObjectSlots.LITERAL_AT_
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
+import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.numbers.IntegerDescriptor
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.BlockPhraseDescriptor
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.ARGUMENT
-import com.avail.descriptor.representation.*
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AbstractDescriptor
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.AvailObject.Companion.newObjectIndexedIntegerIndexedDescriptor
+import com.avail.descriptor.representation.AvailObjectFieldHelper
+import com.avail.descriptor.representation.BitField
+import com.avail.descriptor.representation.Descriptor
+import com.avail.descriptor.representation.IntegerSlotsEnum
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.NybbleTupleDescriptor
@@ -69,8 +78,8 @@ import com.avail.descriptor.types.CompiledCodeTypeDescriptor.mostGeneralCompiled
 import com.avail.descriptor.types.FunctionTypeDescriptor
 import com.avail.descriptor.types.TypeDescriptor
 import com.avail.descriptor.types.TypeTag
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelOne.L1Disassembler
 import com.avail.interpreter.levelOne.L1InstructionWriter
 import com.avail.interpreter.levelOne.L1OperandType
@@ -78,14 +87,12 @@ import com.avail.interpreter.levelOne.L1Operation
 import com.avail.interpreter.levelOne.L1Operation.Companion.lookup
 import com.avail.interpreter.levelTwo.L2Chunk
 import com.avail.optimizer.jvm.CheckedMethod
-import com.avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
+import com.avail.optimizer.jvm.CheckedMethod.instanceMethod
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.Casts.cast
 import com.avail.utility.Strings.newlineTab
-import com.avail.utility.evaluation.Continuation0
-import com.avail.utility.evaluation.Continuation1NotNull
 import com.avail.utility.json.JSONWriter
 import java.util.*
 import java.util.Collections.newSetFromMap
@@ -298,7 +305,7 @@ class CompiledCodeDescriptor private constructor(
 	enum class ObjectSlots : ObjectSlotsEnum {
 		/**
 		 * The [type][FunctionTypeDescriptor] of any function based on this
-		 * [compiled code][CompiledCodeDescriptor].
+		 * [compiled&#32;code][CompiledCodeDescriptor].
 		 */
 		FUNCTION_TYPE,
 
@@ -624,32 +631,26 @@ class CompiledCodeDescriptor private constructor(
 			methodName)
 	}
 
-	@AvailMethod
-	override fun o_CountdownToReoptimize(
-		self: AvailObject,
-		value: Int) {
+	override fun o_CountdownToReoptimize( self: AvailObject, value: Int)
+	{
 		invocationStatistic.countdownToReoptimize.set(value.toLong())
 	}
 
-	@AvailMethod
 	override fun o_TotalInvocations(self: AvailObject) =
 		invocationStatistic.totalInvocations.get()
 
-	@AvailMethod
-	override fun o_LiteralAt(self: AvailObject, subscript: Int) =
-		self.slot(LITERAL_AT_, subscript)
+	override fun o_LiteralAt(self: AvailObject, index: Int) =
+		self.slot(LITERAL_AT_, index)
 
-	@AvailMethod
 	override fun o_FunctionType(self: AvailObject) =
 		self.slot(FUNCTION_TYPE)
 
-	@AvailMethod
 	override fun o_Hash(self: AvailObject) = self.slot(HASH)
 
-	@AvailMethod
 	override fun o_DecrementCountdownToReoptimize(
 		self: AvailObject,
-		continuation: Continuation1NotNull<Boolean>) {
+		continuation: (Boolean)->Unit)
+	{
 		val newCount =
 			invocationStatistic.countdownToReoptimize.decrementAndGet()
 		if (newCount <= 0) {
@@ -662,13 +663,12 @@ class CompiledCodeDescriptor private constructor(
 				// reoptimized, the counter was reset to something positive,
 				// but it has already been decremented back below zero.
 				// Either way, reoptimize now.
-				continuation.value(
+				continuation(
 					invocationStatistic.countdownToReoptimize.get() <= 0)
 			}
 		}
 	}
 
-	@AvailMethod
 	override fun o_NumNybbles(self: AvailObject): Int {
 		val longCount = self.variableIntegerSlotsCount()
 		if (longCount == 0) {
@@ -680,8 +680,8 @@ class CompiledCodeDescriptor private constructor(
 		return (longCount shl 4) - unusedNybbles - 1
 	}
 
-	@AvailMethod
-	override fun o_Nybbles(self: AvailObject): A_Tuple {
+	override fun o_Nybbles(self: AvailObject): A_Tuple
+	{
 		// Extract a tuple of nybbles.
 		val longCount = self.variableIntegerSlotsCount()
 		if (longCount == 0) {
@@ -696,29 +696,25 @@ class CompiledCodeDescriptor private constructor(
 		) { decoder.getNybble() }
 	}
 
-	@AvailMethod
 	override fun o_Equals(self: AvailObject, another: A_BasicObject) =
 		another.equalsCompiledCode(self)
 
-	@AvailMethod
 	override fun o_EqualsCompiledCode(
 		self: AvailObject,
 		aCompiledCode: A_RawFunction
 	) = self.sameAddressAs(aCompiledCode)
 
-	@AvailMethod
-	override fun o_Kind(self: AvailObject) =
+	override fun o_Kind(self: AvailObject): AvailObject =
 		compiledCodeTypeForFunctionType(self.functionType())
 
-	@AvailMethod
-	override fun o_ConstantTypeAt(self: AvailObject, index: Int): A_Type {
+	override fun o_ConstantTypeAt(self: AvailObject, index: Int): A_Type
+	{
 		assert(1 <= index && index <= self.numConstants())
 		return self.literalAt(self.numLiterals()
 			- self.numConstants()
 			+ index)
 	}
 
-	@AvailMethod
 	override fun o_LocalTypeAt(self: AvailObject, index: Int): A_Type {
 		assert(1 <= index && index <= self.numLocals())
 		return self.literalAt((self.numLiterals()
@@ -727,8 +723,8 @@ class CompiledCodeDescriptor private constructor(
 			+ index)
 	}
 
-	@AvailMethod
-	override fun o_OuterTypeAt(self: AvailObject, index: Int): A_Type {
+	override fun o_OuterTypeAt(self: AvailObject, index: Int): A_Type
+	{
 		assert(1 <= index && index <= self.numOuters())
 		return self.literalAt((self.numLiterals()
 			- self.numConstants()
@@ -737,7 +733,6 @@ class CompiledCodeDescriptor private constructor(
 			+ index)
 	}
 
-	@AvailMethod
 	override fun o_SetStartingChunkAndReoptimizationCountdown(
 		self: AvailObject,
 		chunk: L2Chunk,
@@ -749,42 +744,29 @@ class CompiledCodeDescriptor private constructor(
 		invocationStatistic.countdownToReoptimize.set(countdown)
 	}
 
-	@AvailMethod
 	override fun o_MaxStackDepth(self: AvailObject) =
 		(self.numSlots() - self.numArgs() - self.numLocals())
 
-	@AvailMethod
 	override fun o_NumArgs(self: AvailObject) = self.slot(NUM_ARGS)
 
-	@AvailMethod
-	override fun o_NumSlots(self: AvailObject) =
-		self.slot(FRAME_SLOTS)
+	override fun o_NumSlots(self: AvailObject) = self.slot(FRAME_SLOTS)
 
-	@AvailMethod
 	override fun o_NumLiterals(self: AvailObject) =
 		self.variableObjectSlotsCount()
 
-	@AvailMethod
-	override fun o_NumConstants(self: AvailObject) =
-		self.slot(NUM_CONSTANTS)
+	override fun o_NumConstants(self: AvailObject) = self.slot(NUM_CONSTANTS)
 
-	@AvailMethod
-	override fun o_NumLocals(self: AvailObject) =
-		self.slot(NUM_LOCALS)
+	override fun o_NumLocals(self: AvailObject) = self.slot(NUM_LOCALS)
 
-	@AvailMethod
-	override fun o_NumOuters(self: AvailObject) =
-		self.slot(NUM_OUTERS)
+	override fun o_NumOuters(self: AvailObject) = self.slot(NUM_OUTERS)
 
-	@AvailMethod
 	override fun o_Primitive(self: AvailObject): Primitive? = primitive
 
-	@AvailMethod
 	override fun o_PrimitiveNumber(self: AvailObject) =
 		primitive?.primitiveNumber ?: 0
 
-	@AvailMethod
-	override fun o_StartingChunk(self: AvailObject): L2Chunk {
+	override fun o_StartingChunk(self: AvailObject): L2Chunk
+	{
 		val chunk = startingChunk
 		if (chunk != L2Chunk.unoptimizedChunk) {
 			L2Chunk.Generation.usedChunk(chunk)
@@ -792,7 +774,6 @@ class CompiledCodeDescriptor private constructor(
 		return chunk
 	}
 
-	@AvailMethod
 	override fun o_TallyInvocation(self: AvailObject) {
 		invocationStatistic.totalInvocations.incrementAndGet()
 		invocationStatistic.hasRun = true
@@ -801,7 +782,6 @@ class CompiledCodeDescriptor private constructor(
 	/**
 	 * Answer the starting line number for this block of code.
 	 */
-	@AvailMethod
 	override fun o_StartingLineNumber(self: AvailObject) = lineNumber
 
 	/**
@@ -812,32 +792,28 @@ class CompiledCodeDescriptor private constructor(
 	 * @return
 	 *   The tuple of encoded line number deltas, or nil.
 	 */
-	override fun o_LineNumberEncodedDeltas(self: AvailObject) =
+	override fun o_LineNumberEncodedDeltas(self: AvailObject): A_Tuple =
 		lineNumberEncodedDeltas
 
-	@AvailMethod
-	override fun o_OriginatingPhrase(self: AvailObject) = originatingPhrase
+	override fun o_OriginatingPhrase(self: AvailObject): A_Phrase = originatingPhrase
 
 	/**
 	 * Answer the module in which this code occurs.
 	 */
-	@AvailMethod
-	override fun o_Module(self: AvailObject) = module
+	override fun o_Module(self: AvailObject): A_Module = module
 
-	@AvailMethod
 	@ThreadSafe
 	override fun o_SerializerOperation(self: AvailObject) =
 		SerializerOperation.COMPILED_CODE
 
-	@AvailMethod
 	override fun o_SetMethodName(
 		self: AvailObject,
-		newMethodName: A_String
+		methodName: A_String
 	) {
 		assert(mutability === Mutability.SHARED)
-		assert(newMethodName.isString)
-		newMethodName.makeShared()
-		methodName = newMethodName
+		assert(methodName.isString)
+		methodName.makeShared()
+		this.methodName = methodName
 		// Now scan all sub-blocks. Some literals will be functions and some
 		// will be compiled code objects.
 		var counter = 1
@@ -846,111 +822,100 @@ class CompiledCodeDescriptor private constructor(
 		while (i <= limit) {
 			val literal = self.literalAt(i)
 			val subCode: A_RawFunction?
-			subCode = if (literal.isFunction) {
-				literal.code()
-			} else if (literal.isInstanceOf(mostGeneralCompiledCodeType())) {
-				literal
-			} else {
-				null
+			subCode = when
+			{
+				literal.isFunction -> literal.code()
+				literal.isInstanceOf(mostGeneralCompiledCodeType()) -> literal
+				else -> null
 			}
 			if (subCode !== null) {
 				val suffix = "[$counter]"
 				counter++
 				val newName = A_Tuple.concatenate(
-					newMethodName, stringFrom(suffix), true)
+					methodName, stringFrom(suffix), true)
 				subCode.setMethodName(newName)
 			}
 			i++
 		}
 	}
 
-	@AvailMethod
-	override fun o_MethodName(self: AvailObject) = methodName
+	override fun o_MethodName(self: AvailObject): A_String = methodName
 
 	override fun o_NameForDebugger(self: AvailObject) =
 		super.o_NameForDebugger(self) + ": " + methodName
 
 	override fun o_ShowValueInNameForDebugger(self: AvailObject) = false
 
-	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) {
-		writer.startObject()
-		writer.write("kind")
-		writer.write("function implementation")
-		writer.write("outers")
-		writer.write(self.slot(NUM_OUTERS))
-		writer.write("arguments")
-		writer.write(self.slot(NUM_ARGS))
-		writer.write("locals")
-		writer.write(self.slot(NUM_LOCALS))
-		writer.write("constants")
-		writer.write(self.slot(NUM_CONSTANTS))
-		writer.write("maximum stack depth")
-		writer.write(self.slot(FRAME_SLOTS))
-		writer.write("nybbles")
-		self.nybbles().writeTo(writer)
-		writer.write("function type")
-		self.slot(FUNCTION_TYPE).writeTo(writer)
-		writer.write("method")
-		self.methodName().writeTo(writer)
-		if (!module.equalsNil()) {
-			writer.write("module")
-			self.module().moduleName().writeTo(writer)
-		}
-		writer.write("starting line number")
-		writer.write(self.startingLineNumber())
-		writer.write("literals")
-		writer.startArray()
-		val limit = self.variableObjectSlotsCount()
-		for (i in 1..limit) {
-			var literal: A_BasicObject = self.slot(LITERAL_AT_, i)
-			if (literal.equalsNil()) {
-				literal = IntegerDescriptor.zero()
+	/**
+	 * Render the [receiver][AvailObject] as JSON.
+	 *
+	 * @param self
+	 *   The receiver.
+	 * @param writer
+	 *   The [JSONWriter].
+	 * @param writeFunctionType
+	 *   How to write the [function type][FUNCTION_TYPE].
+	 */
+	private fun writeTo(
+			self: AvailObject,
+			writer: JSONWriter,
+			writeFunctionType: AvailObject.()->Unit) =
+		with(writer) {
+			startObject()
+			write("kind")
+			write("function implementation")
+			write("outers")
+			write(self.slot(NUM_OUTERS))
+			write("arguments")
+			write(self.slot(NUM_ARGS))
+			write("locals")
+			write(self.slot(NUM_LOCALS))
+			write("constants")
+			write(self.slot(NUM_CONSTANTS))
+			write("maximum stack depth")
+			write(self.slot(FRAME_SLOTS))
+			write("nybbles")
+			self.nybbles().writeTo(writer)
+			write("function type")
+			self.slot(FUNCTION_TYPE).writeFunctionType()
+			write("method")
+			self.methodName().writeTo(writer)
+			if (!module.equalsNil())
+			{
+				write("module")
+				self.module().moduleName().writeTo(writer)
 			}
-			literal.writeSummaryTo(writer)
+			write("starting line number")
+			write(self.startingLineNumber())
+			write("literals")
+			startArray()
+			val limit = self.variableObjectSlotsCount()
+			for (i in 1 .. limit)
+			{
+				var literal: A_BasicObject = self.slot(LITERAL_AT_, i)
+				if (literal.equalsNil())
+				{
+					literal = IntegerDescriptor.zero()
+				}
+				literal.writeSummaryTo(writer)
+			}
+			endArray()
+			endObject()
 		}
-		writer.endArray()
-		writer.endObject()
-	}
 
-	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) {
-		writer.startObject()
-		writer.write("kind")
-		writer.write("function implementation")
-		writer.write("outers")
-		writer.write(self.slot(NUM_OUTERS))
-		writer.write("arguments")
-		writer.write(self.slot(NUM_ARGS))
-		writer.write("locals")
-		writer.write(self.slot(NUM_LOCALS))
-		writer.write("constants")
-		writer.write(self.slot(NUM_CONSTANTS))
-		writer.write("maximum stack depth")
-		writer.write(self.slot(FRAME_SLOTS))
-		writer.write("nybbles")
-		self.nybbles().writeTo(writer)
-		writer.write("function type")
-		self.slot(FUNCTION_TYPE).writeSummaryTo(writer)
-		writer.write("method")
-		self.methodName().writeTo(writer)
-		if (!module.equalsNil()) {
-			writer.write("module")
-			self.module().moduleName().writeTo(writer)
+	override fun o_WriteTo(
+			self: AvailObject,
+			writer: JSONWriter) =
+		writeTo(self, writer) {
+			writeTo(writer)
 		}
-		writer.write("starting line number")
-		writer.write(self.startingLineNumber())
-		writer.write("literals")
-		writer.startArray()
-		val limit = self.variableObjectSlotsCount()
-		for (i in 1..limit) {
-			var literal: A_BasicObject = self.slot(LITERAL_AT_, i)
-			if (literal.equalsNil()) {
-				literal = IntegerDescriptor.zero()
-			}
-			literal.writeSummaryTo(writer)
+
+	override fun o_WriteSummaryTo(
+			self: AvailObject,
+			writer: JSONWriter) =
+		writeTo(self, writer) {
+			writeSummaryTo(writer)
 		}
-		writer.endArray()
-		writer.endObject()
-	}
 
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
@@ -978,7 +943,8 @@ class CompiledCodeDescriptor private constructor(
 	 * @return
 	 *   A [Statistic], creating one if necessary.
 	 */
-	override fun o_ReturnerCheckStat(self: AvailObject): Statistic {
+	override fun o_ReturnerCheckStat(self: AvailObject): Statistic
+	{
 		var returnerStat = invocationStatistic.returnerCheckStat
 		if (returnerStat == null) {
 			// Look it up by name, creating it if necessary.
@@ -1006,7 +972,8 @@ class CompiledCodeDescriptor private constructor(
 	 * @return
 	 *   A [Statistic], creating one if necessary.
 	 */
-	override fun o_ReturneeCheckStat(self: AvailObject): Statistic {
+	override fun o_ReturneeCheckStat(self: AvailObject): Statistic
+	{
 		var returneeStat = invocationStatistic.returneeCheckStat
 		if (returneeStat == null) {
 			// Look it up by name, creating it if necessary.
@@ -1023,29 +990,70 @@ class CompiledCodeDescriptor private constructor(
 		return returneeStat!!
 	}
 
-	@Deprecated("")
-	override fun mutable() = throw unsupportedOperationException()
+	@Deprecated(
+		"Not supported",
+		ReplaceWith("""newCompiledCode(
+			A_Tuple,
+			Int,
+			A_Type,
+			Primitive?,
+			A_Tuple,
+			A_Tuple,
+			A_Tuple,
+			A_Tuple,
+			A_Module,
+			Int,
+			A_Tuple,
+			A_Phrase"""))
+	override fun mutable(): AbstractDescriptor = throw unsupportedOperation()
 
-	@Deprecated("")
-	override fun immutable() = throw unsupportedOperationException()
+	@Deprecated(
+		"Not supported",
+		ReplaceWith("""newCompiledCode(
+			A_Tuple,
+			Int,
+			A_Type,
+			Primitive?,
+			A_Tuple,
+			A_Tuple,
+			A_Tuple,
+			A_Tuple,
+			A_Module,
+			Int,
+			A_Tuple,
+			A_Phrase"""))
+	override fun immutable(): AbstractDescriptor = throw unsupportedOperation()
 
-	@Deprecated("")
-	override fun shared() = throw unsupportedOperationException()
+	@Deprecated(
+		"Not supported",
+		ReplaceWith("""newCompiledCode(
+			A_Tuple,
+			Int,
+			A_Type,
+			Primitive?,
+			A_Tuple,
+			A_Tuple,
+			A_Tuple,
+			A_Tuple,
+			A_Module,
+			Int,
+			A_Tuple,
+			A_Phrase"""))
+	override fun shared(): AbstractDescriptor = throw unsupportedOperation()
 
 	companion object {
 		/** The set of all active [raw functions][CompiledCodeDescriptor]. */
-		val activeRawFunctions = synchronizedSet(
-			newSetFromMap(WeakHashMap<A_RawFunction, Boolean>()))
+		private val activeRawFunctions: MutableSet<A_RawFunction> =
+			synchronizedSet(newSetFromMap(WeakHashMap()))
 
 		/**
 		 * Reset the code coverage details of all [A_RawFunction]s by discarding
 		 * their L2 optimized chunks and clearing their flags.  When complete,
-		 * resume the supplied [Continuation0].
+		 * resume the supplied action.
 		 *
 		 * @param resume
-		 *   The [continuation to be executed upon][Continuation0].
+		 *   The continuation to be executed upon.
 		 */
-		@AvailMethod
 		fun resetCodeCoverageDetailsThen(resume: () -> Unit) =
 			AvailRuntime.currentRuntime().whenLevelOneSafeDo(
 				FiberDescriptor.commandPriority
@@ -1055,7 +1063,9 @@ class CompiledCodeDescriptor private constructor(
 					// false and discarding optimizations.
 					for (rawFunction in activeRawFunctions) {
 						val self = cast<A_RawFunction, AvailObject>(rawFunction)
-						val descriptor = cast<AbstractDescriptor, CompiledCodeDescriptor>(self.descriptor())
+						val descriptor =
+							cast<AbstractDescriptor, CompiledCodeDescriptor>(
+								self.descriptor())
 						descriptor.invocationStatistic.hasRun = false
 						if (!descriptor.module.equalsNil()) {
 							descriptor.startingChunk.invalidate(

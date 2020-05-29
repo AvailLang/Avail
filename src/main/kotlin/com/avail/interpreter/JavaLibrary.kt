@@ -36,8 +36,8 @@ package com.avail.interpreter
 
 import com.avail.optimizer.jvm.CheckedField
 import com.avail.optimizer.jvm.CheckedMethod
-import com.avail.optimizer.jvm.CheckedMethod.Companion.javaLibraryInstanceMethod
-import com.avail.optimizer.jvm.CheckedMethod.Companion.javaLibraryStaticMethod
+import com.avail.optimizer.jvm.CheckedMethod.javaLibraryInstanceMethod
+import com.avail.optimizer.jvm.CheckedMethod.javaLibraryStaticMethod
 import java.util.concurrent.atomic.LongAdder
 
 

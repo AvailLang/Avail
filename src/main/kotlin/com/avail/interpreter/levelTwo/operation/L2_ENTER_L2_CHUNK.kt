@@ -35,9 +35,13 @@ import com.avail.descriptor.functions.ContinuationRegisterDumpDescriptor
 import com.avail.descriptor.representation.AvailObject
 import com.avail.interpreter.JavaLibrary.bitCastLongToDoubleMethod
 import com.avail.interpreter.execution.Interpreter
-import com.avail.interpreter.levelTwo.*
 import com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2Operation
 import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_CONTINUATION
+import com.avail.interpreter.levelTwo.ReadsHiddenVariable
+import com.avail.interpreter.levelTwo.WritesHiddenVariable
 import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind
 import com.avail.optimizer.jvm.JVMTranslator
@@ -54,7 +58,7 @@ import org.objectweb.asm.Opcodes
  * re-entered, such as returning into it, restarting it, or continuing it after
  * an interrupt has been handled.
  */
-@ReadsHiddenVariable([CURRENT_CONTINUATION::class])
+@ReadsHiddenVariable(theValue = arrayOf(CURRENT_CONTINUATION::class))
 @WritesHiddenVariable(CURRENT_CONTINUATION::class)
 object L2_ENTER_L2_CHUNK : L2Operation(
 	L2OperandType.INT_IMMEDIATE.named("entry point offset in default chunk"),
@@ -111,9 +115,9 @@ object L2_ENTER_L2_CHUNK : L2Operation(
 			translator.liveLocalNumbersByKindPerEntryPoint[instruction]
 		if (localNumberLists != null)
 		{
-			val boxedList = localNumberLists[RegisterKind.BOXED]
-			val intsList = localNumberLists[RegisterKind.INTEGER]
-			val floatsList = localNumberLists[RegisterKind.FLOAT]
+			val boxedList = localNumberLists[RegisterKind.BOXED]!!
+			val intsList = localNumberLists[RegisterKind.INTEGER]!!
+			val floatsList = localNumberLists[RegisterKind.FLOAT]!!
 			val boxedCount = boxedList.size
 			val intsCount = intsList.size
 			val floatsCount = floatsList.size

@@ -32,13 +32,15 @@
 
 package com.avail.utility.evaluation;
 
+import kotlin.jvm.functions.Function0;
+
 import javax.annotation.Nullable;
 import java.util.function.Supplier;
 
 /**
- * Converts any {@link Supplier} into a supplier that caches its value upon
- * first evaluation, returning the same value thereafter.  The supplier must not
- * produce {@code null}.
+ * Converts any supplier into one that caches its value upon first evaluation,
+ * returning the same value thereafter.  The supplier must not produce {@code
+ * null}.
  *
  * @param <T> The type of value being supplied.  Must not be {@link Nullable}.
  */
@@ -51,17 +53,17 @@ public final class OnceSupplier<T> implements Supplier<T>
 	private volatile @Nullable T cachedValue;
 
 	/**
-	 * The {@link Supplier} that should be evaluated at most once.
+	 * The supplier that should be evaluated at most once.
 	 */
-	private final Supplier<T> innerSupplier;
+	private final Function0<T> innerSupplier;
 
 	/**
-	 * Create a {@code OnceSupplier} from the given {@link Supplier}.
+	 * Create a {@code OnceSupplier} from the given supplier.
 	 *
 	 * @param innerSupplier
-	 *        The {@link Supplier} to be evaluated at most once.
+	 *        The supplier to be evaluated at most once.
 	 */
-	public OnceSupplier (final Supplier<T> innerSupplier)
+	public OnceSupplier (final Function0<T> innerSupplier)
 	{
 		this.innerSupplier = innerSupplier;
 	}
@@ -78,7 +80,7 @@ public final class OnceSupplier<T> implements Supplier<T>
 				value = cachedValue;
 				if (value == null)
 				{
-					value = innerSupplier.get();
+					value = innerSupplier.invoke();
 					cachedValue = value;
 				}
 			}

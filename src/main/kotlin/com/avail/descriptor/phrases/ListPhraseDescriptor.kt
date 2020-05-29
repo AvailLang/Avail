@@ -31,37 +31,38 @@
  */
 package com.avail.descriptor.phrases
 
-import com.avail.annotations.AvailMethod
-import com.avail.compiler.AvailCodeGenerator
-import com.avail.descriptor.representation.NilDescriptor.Companion.nil
-import com.avail.descriptor.phrases.A_Phrase.Companion.emitValueOn
-import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsTuple
-import com.avail.descriptor.phrases.A_Phrase.Companion.hasSuperCast
-import com.avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
-import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKind
-import com.avail.descriptor.phrases.A_Phrase.Companion.stripMacro
-import com.avail.descriptor.phrases.A_Phrase.Companion.superUnionType
-import com.avail.descriptor.phrases.A_Phrase.Companion.tokens
-import com.avail.descriptor.phrases.ListPhraseDescriptor.ObjectSlots.EXPRESSIONS_TUPLE
-import com.avail.descriptor.phrases.ListPhraseDescriptor.ObjectSlots.TUPLE_TYPE
-import com.avail.descriptor.representation.*
-import com.avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
-import com.avail.descriptor.tokens.A_Token
-import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
-import com.avail.descriptor.tuples.TupleDescriptor
-import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
-import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.BottomTypeDescriptor.bottom
-import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
-import com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForTypes
-import com.avail.descriptor.types.TypeTag
-import com.avail.serialization.SerializerOperation
-import com.avail.utility.evaluation.Continuation1NotNull
-import com.avail.utility.json.JSONWriter
-import java.util.*
-import java.util.function.Consumer
-import java.util.function.UnaryOperator
+ import com.avail.compiler.AvailCodeGenerator
+ import com.avail.descriptor.phrases.A_Phrase.Companion.emitValueOn
+ import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsTuple
+ import com.avail.descriptor.phrases.A_Phrase.Companion.hasSuperCast
+ import com.avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
+ import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKind
+ import com.avail.descriptor.phrases.A_Phrase.Companion.stripMacro
+ import com.avail.descriptor.phrases.A_Phrase.Companion.superUnionType
+ import com.avail.descriptor.phrases.A_Phrase.Companion.tokens
+ import com.avail.descriptor.phrases.ListPhraseDescriptor.ObjectSlots.EXPRESSIONS_TUPLE
+ import com.avail.descriptor.phrases.ListPhraseDescriptor.ObjectSlots.TUPLE_TYPE
+ import com.avail.descriptor.representation.A_BasicObject
+ import com.avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
+ import com.avail.descriptor.representation.AbstractDescriptor
+ import com.avail.descriptor.representation.AbstractSlotsEnum
+ import com.avail.descriptor.representation.AvailObject
+ import com.avail.descriptor.representation.Mutability
+ import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+ import com.avail.descriptor.representation.ObjectSlotsEnum
+ import com.avail.descriptor.tokens.A_Token
+ import com.avail.descriptor.tuples.A_Tuple
+ import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
+ import com.avail.descriptor.tuples.TupleDescriptor
+ import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+ import com.avail.descriptor.types.A_Type
+ import com.avail.descriptor.types.BottomTypeDescriptor.bottom
+ import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
+ import com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForTypes
+ import com.avail.descriptor.types.TypeTag
+ import com.avail.serialization.SerializerOperation
+ import com.avail.utility.json.JSONWriter
+ import java.util.*
 
 /**
  * My instances represent [phrases][PhraseDescriptor] which will generate tuples
@@ -120,25 +121,22 @@ class ListPhraseDescriptor private constructor(
 		builder.append(")")
 	}
 
-	@AvailMethod
 	override fun o_ChildrenDo(
 		self: AvailObject,
-		action: Consumer<A_Phrase>
-	) = self.expressionsTuple().forEach(action::accept)
+		action: (A_Phrase) -> Unit
+	) = self.expressionsTuple().forEach(action)
 
-	@AvailMethod
 	override fun o_ChildrenMap(
 		self: AvailObject,
-		transformer: UnaryOperator<A_Phrase>
+		transformer: (A_Phrase) -> A_Phrase
 	) {
 		self.setSlot(
 			EXPRESSIONS_TUPLE,
-			tupleFromList(
-				self.expressionsTuple().map(transformer::apply)))
+			tupleFromList(self.expressionsTuple().map(transformer)))
 	}
 
 	/**
-	 * Create a new [list&#32;phrase]][ListPhraseDescriptor] with one more
+	 * Create a new [list phrase]][ListPhraseDescriptor] with one more
 	 * phrase added to the end of the list.
 	 *
 	 * @param self
@@ -148,7 +146,6 @@ class ListPhraseDescriptor private constructor(
 	 * @return
 	 *   A new list phrase with the phrase appended.
 	 */
-	@AvailMethod
 	override fun o_CopyWith(
 		self: AvailObject,
 		newPhrase: A_Phrase
@@ -166,7 +163,6 @@ class ListPhraseDescriptor private constructor(
 	 * @return
 	 *   A new list phrase with the given list phrase's subphrases appended.
 	 */
-	@AvailMethod
 	override fun o_CopyConcatenating(
 		self: AvailObject,
 		newListPhrase: A_Phrase
@@ -181,7 +177,6 @@ class ListPhraseDescriptor private constructor(
 		it.emitValueOn(codeGenerator)
 	}
 
-	@AvailMethod
 	override fun o_EmitValueOn(
 		self: AvailObject,
 		codeGenerator: AvailCodeGenerator
@@ -193,7 +188,6 @@ class ListPhraseDescriptor private constructor(
 		codeGenerator.emitMakeTuple(emptyTuple(), childNodes.tupleSize())
 	}
 
-	@AvailMethod
 	override fun o_EqualsPhrase(
 		self: AvailObject,
 		aPhrase: A_Phrase
@@ -207,22 +201,18 @@ class ListPhraseDescriptor private constructor(
 	override fun o_ExpressionsSize(self: AvailObject): Int =
 		self.slot(EXPRESSIONS_TUPLE).tupleSize()
 
-	@AvailMethod
 	override fun o_ExpressionsTuple(self: AvailObject): A_Tuple =
 		self.slot(EXPRESSIONS_TUPLE)
 
-	@AvailMethod
 	override fun o_ExpressionType(self: AvailObject): A_Type =
 		self.synchronizeIf(isShared) { expressionType(self) }
 
-	@AvailMethod
 	override fun o_Hash(self: AvailObject): Int =
 		self.expressionsTuple().hash() xor -0x3ebc1689
 
 	override fun o_HasSuperCast(self: AvailObject): Boolean =
 		self.slot(EXPRESSIONS_TUPLE).any { it.hasSuperCast() }
 
-	@AvailMethod
 	override fun o_IsInstanceOfKind(
 		self: AvailObject,
 		aType: A_Type
@@ -233,20 +223,22 @@ class ListPhraseDescriptor private constructor(
 			aType.subexpressionsTupleType())
 	}
 
-	override fun o_LastExpression(self: AvailObject): A_Phrase {
+	override fun o_LastExpression(self: AvailObject): A_Phrase
+	{
 		val tuple: A_Tuple = self.slot(EXPRESSIONS_TUPLE)
 		return tuple.tupleAt(tuple.tupleSize())
 	}
 
 	override fun o_StatementsDo(
 		self: AvailObject,
-		continuation: Continuation1NotNull<A_Phrase>
-	): Unit = throw unsupportedOperationException()
+		continuation: (A_Phrase) -> Unit
+	): Unit = throw unsupportedOperation()
 
 	override fun o_PhraseKind(self: AvailObject): PhraseKind =
 		PhraseKind.LIST_PHRASE
 
-	override fun o_StripMacro(self: AvailObject): A_Phrase {
+	override fun o_StripMacro(self: AvailObject): A_Phrase
+	{
 		// Strip away macro substitution phrases inside my recursive list
 		// structure.  This has to be done recursively over list phrases because
 		// of the way the "leaf" phrases are checked for grammatical
@@ -268,8 +260,8 @@ class ListPhraseDescriptor private constructor(
 		}
 	}
 
-	@AvailMethod
-	override fun o_SuperUnionType(self: AvailObject): A_Type {
+	override fun o_SuperUnionType(self: AvailObject): A_Type
+	{
 		val expressions: A_Tuple = self.slot(EXPRESSIONS_TUPLE)
 		var anyNotBottom = false
 		val types = Array(expressions.tupleSize()) { i ->
@@ -284,10 +276,7 @@ class ListPhraseDescriptor private constructor(
 		}
 	}
 
-	@AvailMethod
-	override fun o_ValidateLocally(
-		self: AvailObject,
-		parent: A_Phrase?
+	override fun o_ValidateLocally(self: AvailObject, parent: A_Phrase?
 	) {
 		// Do nothing.
 	}
@@ -295,7 +284,8 @@ class ListPhraseDescriptor private constructor(
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		SerializerOperation.LIST_PHRASE
 
-	override fun o_Tokens(self: AvailObject): A_Tuple {
+	override fun o_Tokens(self: AvailObject): A_Tuple
+	{
 		val tokens = mutableListOf<A_Token>()
 		self.slot(EXPRESSIONS_TUPLE).forEach { tokens.addAll(it.tokens()) }
 		return tupleFromList(tokens)
@@ -319,9 +309,9 @@ class ListPhraseDescriptor private constructor(
 		writer.endObject()
 	}
 
-	override fun mutable(): ListPhraseDescriptor = mutable
+	override fun mutable(): AbstractDescriptor = mutable
 
-	override fun shared(): ListPhraseDescriptor = shared
+	override fun shared(): AbstractDescriptor = shared
 
 	companion object {
 		/**

@@ -32,16 +32,19 @@
 package com.avail.descriptor.bundles
 
 import com.avail.AvailRuntimeSupport
-import com.avail.annotations.AvailMethod
 import com.avail.annotations.HideFieldInDebugger
 import com.avail.compiler.ParsingOperation
-import com.avail.compiler.ParsingOperation.*
+import com.avail.compiler.ParsingOperation.BRANCH_FORWARD
+import com.avail.compiler.ParsingOperation.CHECK_ARGUMENT
 import com.avail.compiler.ParsingOperation.Companion.decode
+import com.avail.compiler.ParsingOperation.JUMP_BACKWARD
+import com.avail.compiler.ParsingOperation.JUMP_FORWARD
+import com.avail.compiler.ParsingOperation.PARSE_PART
+import com.avail.compiler.ParsingOperation.PARSE_PART_CASE_INSENSITIVELY
+import com.avail.compiler.ParsingOperation.PREPARE_TO_RUN_PREFIX_FUNCTION
+import com.avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT
 import com.avail.compiler.splitter.MessageSplitter
 import com.avail.compiler.splitter.MessageSplitter.Companion.constantForIndex
-import com.avail.descriptor.module.A_Module
-import com.avail.descriptor.Descriptor
-import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.bundles.A_Bundle.Companion.grammaticalRestrictions
 import com.avail.descriptor.bundles.A_Bundle.Companion.messageParts
 import com.avail.descriptor.bundles.A_BundleTree.Companion.addPlanInProgress
@@ -50,12 +53,22 @@ import com.avail.descriptor.bundles.A_BundleTree.Companion.latestBackwardJump
 import com.avail.descriptor.bundles.MessageBundleTreeDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import com.avail.descriptor.bundles.MessageBundleTreeDescriptor.IntegerSlots.Companion.HAS_BACKWARD_JUMP_INSTRUCTION
 import com.avail.descriptor.bundles.MessageBundleTreeDescriptor.IntegerSlots.Companion.IS_SOURCE_OF_CYCLE
-import com.avail.descriptor.bundles.MessageBundleTreeDescriptor.ObjectSlots.*
+import com.avail.descriptor.bundles.MessageBundleTreeDescriptor.ObjectSlots.ALL_PLANS_IN_PROGRESS
+import com.avail.descriptor.bundles.MessageBundleTreeDescriptor.ObjectSlots.LATEST_BACKWARD_JUMP
+import com.avail.descriptor.bundles.MessageBundleTreeDescriptor.ObjectSlots.LAZY_ACTIONS
+import com.avail.descriptor.bundles.MessageBundleTreeDescriptor.ObjectSlots.LAZY_COMPLETE
+import com.avail.descriptor.bundles.MessageBundleTreeDescriptor.ObjectSlots.LAZY_INCOMPLETE
+import com.avail.descriptor.bundles.MessageBundleTreeDescriptor.ObjectSlots.LAZY_INCOMPLETE_CASE_INSENSITIVE
+import com.avail.descriptor.bundles.MessageBundleTreeDescriptor.ObjectSlots.LAZY_PREFILTER_MAP
+import com.avail.descriptor.bundles.MessageBundleTreeDescriptor.ObjectSlots.LAZY_TYPE_FILTER_PAIRS_TUPLE
+import com.avail.descriptor.bundles.MessageBundleTreeDescriptor.ObjectSlots.LAZY_TYPE_FILTER_TREE_POJO
+import com.avail.descriptor.bundles.MessageBundleTreeDescriptor.ObjectSlots.UNCLASSIFIED
 import com.avail.descriptor.maps.A_Map
 import com.avail.descriptor.maps.MapDescriptor
 import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.methods.A_GrammaticalRestriction
+import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.parsing.A_DefinitionParsingPlan
@@ -70,8 +83,16 @@ import com.avail.descriptor.parsing.A_ParsingPlanInProgress.Companion.parsingPla
 import com.avail.descriptor.parsing.ParsingPlanInProgressDescriptor.Companion.newPlanInProgress
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.pojos.RawPojoDescriptor
-import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
-import com.avail.descriptor.representation.*
+import com.avail.descriptor.pojos.RawPojoDescriptor.identityPojo
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AbstractSlotsEnum
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.BitField
+import com.avail.descriptor.representation.Descriptor
+import com.avail.descriptor.representation.IntegerSlotsEnum
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.descriptor.tuples.A_String
@@ -90,8 +111,8 @@ import com.avail.dispatch.LookupTreeAdaptor
 import com.avail.dispatch.TypeComparison.Companion.compareForParsing
 import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
-import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport
 import com.avail.utility.Mutable
@@ -99,13 +120,12 @@ import com.avail.utility.Pair
 import com.avail.utility.Strings.newlineTab
 import java.util.*
 import java.util.Collections.sort
-import java.util.function.BiConsumer
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.set
 
 /**
- * A [message&#32; bundle&#32; tree][MessageBundleTreeDescriptor] is used by the
+ * A [message&#32;bundle&#32;tree][MessageBundleTreeDescriptor] is used by the
  * Avail parser.  Since the Avail syntax is so flexible, we make up for that
  * simplicity with a complementary complexity in the parsing mechanism.  A
  * message bundle tree is used to keep track of how far along the parser has
@@ -220,7 +240,7 @@ class MessageBundleTreeDescriptor private constructor(
 		 * position in the source stream, in case this ends up being the
 		 * rightmost parse position to be reached.
 		 *
-		 * [Message&#32; bundles][MessageBundleDescriptor] only get added to
+		 * [Message&#32;bundles][MessageBundleDescriptor] only get added to
 		 * this map if their current instruction is the
 		 * [ParsingOperation.PARSE_PART] instruction. There may be other
 		 * instructions current for other message bundles, but they will be
@@ -231,15 +251,16 @@ class MessageBundleTreeDescriptor private constructor(
 
 		/**
 		 * A [map][MapDescriptor] from lower-case [strings][A_String] to
-		 * successor [message&#32; bundle&#32;
-		 * trees][MessageBundleTreeDescriptor]. During parsing, if the next
-		 * token, following conversion to lower case, is a key of this map then
-		 * consume that token, look it up in this map, and continue parsing with
-		 * the corresponding message bundle tree. Otherwise record a suitable
-		 * parsing failure message for this position in the source stream, in
-		 * case this ends up being the rightmost parse position to be reached.
+		 * successor
+		 * [message&#32;bundle&#32;trees][MessageBundleTreeDescriptor]. During
+		 * parsing, if the next token, following conversion to lower case, is a
+		 * key of this map then consume that token, look it up in this map, and
+		 * continue parsing with the corresponding message bundle tree.
+		 * Otherwise record a suitable parsing failure message for this position
+		 * in the source stream, in case this ends up being the rightmost parse
+		 * position to be reached.
 		 *
-		 * [Message&#32; bundles][MessageBundleDescriptor] only get added to
+		 * [Message&#32;bundles][MessageBundleDescriptor] only get added to
 		 * this map if their current instruction is the
 		 * [ParsingOperation.PARSE_PART_CASE_INSENSITIVELY] instruction. There
 		 * may be other instructions current for other message bundles, but they
@@ -258,7 +279,7 @@ class MessageBundleTreeDescriptor private constructor(
 		 * treated specially, as only one keyword can be next in the source
 		 * stream (so there's no value in checking whether it's an X, whether
 		 * it's a Y, whether it's a Z, etc. Instead, the [LAZY_INCOMPLETE] and
-		 * [LAZY_INCOMPLETE_CASE_INSENSITIVE]&#32;[map][A_Map] takes care of
+		 * [LAZY_INCOMPLETE_CASE_INSENSITIVE] [map][A_Map] takes care of
 		 * dealing with this efficiently with a single lookup.
 		 *
 		 * Similarly, the [ParsingOperation#CHECK_ARGUMENT] instruction is
@@ -287,7 +308,7 @@ class MessageBundleTreeDescriptor private constructor(
 		 * without this optimization).
 		 *
 		 * To accomplish this culling we have to filter out any inconsistent
-		 * [message&#32; bundles][MessageBundleDescriptor] as we parse. Since we
+		 * [message&#32;bundles][MessageBundleDescriptor] as we parse. Since we
 		 * already do this in general while parsing expressions, all that
 		 * remains is to check right after an argument has been parsed (or
 		 * replayed due to memoization). The check for now is simple and doesn't
@@ -296,15 +317,14 @@ class MessageBundleTreeDescriptor private constructor(
 		 *
 		 * When a message bundle's next instruction is
 		 * [ParsingOperation.CHECK_ARGUMENT] (which must be all or nothing
-		 * within a [message&#32; bundle&#32;
-		 * tree][MessageBundleTreeDescriptor]), this lazy prefilter map is
-		 * populated. It maps from interesting [message&#32;
-		 * bundles][MessageBundleDescriptor] that might occur as an argument to
-		 * an appropriately reduced message bundle tree (i.e., a message bundle
-		 * tree containing precisely those method bundles that allow that
-		 * argument. The only keys that occur are ones for which at least one
-		 * restriction exists in at least one of the still possible
-		 * [message&#32; bundles][MessageBundleDescriptor]. When [UNCLASSIFIED]
+		 * within a [message&#32;bundle&#32;tree][MessageBundleTreeDescriptor]),
+		 * this lazy prefilter map is populated. It maps from interesting
+		 * [message&#32;bundles][MessageBundleDescriptor] that might occur as an
+		 * argument to an appropriately reduced message bundle tree (i.e., a
+		 * message bundle tree containing precisely those method bundles that
+		 * allow that argument. The only keys that occur are ones for which at
+		 * least one restriction exists in at least one of the still possible
+		 * [message&#32;bundles][MessageBundleDescriptor]. When [UNCLASSIFIED]
 		 * is empty, *all* such restricted argument message bundles occur in
 		 * this map. Note that some of the resulting message bundle trees may be
 		 * completely empty. Also note that some of the trees may be shared, so
@@ -321,17 +341,17 @@ class MessageBundleTreeDescriptor private constructor(
 
 		/**
 		 * A [tuple][A_Tuple] of pairs (2-tuples) where the first element is a
-		 * [phrase&#32; type][PhraseTypeDescriptor] and the second element is an
+		 * [phrase&#32;type][PhraseTypeDescriptor] and the second element is an
 		 * [A_ParsingPlanInProgress]. These should stay synchronized with the
 		 * [LAZY_TYPE_FILTER_TREE_POJO] field.
 		 */
 		LAZY_TYPE_FILTER_PAIRS_TUPLE,
 
 		/**
-		 * A [raw&#32; pojo][RawPojoDescriptor] containing a [type-testing&#32;
-		 * tree][LookupTree] for handling the case that at least one
-		 * [A_ParsingPlanInProgress] in this message bundle tree is at a
-		 * [parsingPc][A_ParsingPlanInProgress.parsingPc] pointing to a
+		 * A [raw&#32;pojo][RawPojoDescriptor] containing a
+		 * [type-testing&#32;tree][LookupTree] for handling the case that at
+		 * least one [A_ParsingPlanInProgress] in this message bundle tree is at
+		 * a [parsingPc][A_ParsingPlanInProgress.parsingPc] pointing to a
 		 * [ParsingOperation.TYPE_CHECK_ARGUMENT] operation. This allows
 		 * relatively efficient elimination of inappropriately typed arguments.
 		 *
@@ -393,14 +413,14 @@ class MessageBundleTreeDescriptor private constructor(
 		val bundleCount = allPlansInProgress.mapSize()
 		if (bundleCount <= 15) {
 			val strings: MutableMap<String, Int> = HashMap(bundleCount)
-			allPlansInProgress.forEach(BiConsumer { _, value: A_Map ->
-				value.forEach(BiConsumer { _, plansInProgress: A_Set ->
+			allPlansInProgress.forEach { _, value: A_Map ->
+				value.forEach { _, plansInProgress: A_Set ->
 					plansInProgress.forEach { planInProgress ->
 						val string = planInProgress.nameHighlightingPc()
 						strings[string] = strings.getOrDefault(string, 0) + 1
 					}
-				})
-			})
+				}
+			}
 			val sorted: MutableList<String> = ArrayList()
 			for ((key, count) in strings) {
 				sorted.add(
@@ -442,17 +462,15 @@ class MessageBundleTreeDescriptor private constructor(
 		}
 	}
 
-	override fun o_AllParsingPlansInProgress(self: AvailObject) =
+	override fun o_AllParsingPlansInProgress(self: AvailObject): A_Map =
 		self.slot(ALL_PLANS_IN_PROGRESS)
 
-	@AvailMethod
 	override fun o_Equals(self: AvailObject, another: A_BasicObject) =
 		another.traversed().sameAddressAs(self)
 
 	/**
 	 * Expand the bundle tree if there's anything unclassified in it.
 	 */
-	@AvailMethod
 	override fun o_Expand(
 		self: AvailObject,
 		module: A_Module
@@ -653,7 +671,6 @@ class MessageBundleTreeDescriptor private constructor(
 		}
 	}
 
-	@AvailMethod
 	override fun o_Hash(self: AvailObject): Int {
 		assert(isShared)
 		var hash = self.slot(HASH_OR_ZERO)
@@ -669,50 +686,48 @@ class MessageBundleTreeDescriptor private constructor(
 		return hash
 	}
 
-	@AvailMethod
 	override fun o_Kind(self: AvailObject): A_Type =
 		TypeDescriptor.Types.MESSAGE_BUNDLE_TREE.o()
 
-	@AvailMethod
-	override fun o_LazyActions(self: AvailObject): A_Map {
+	override fun o_LazyActions(self: AvailObject): A_Map
+	{
 		assert(isShared)
 		synchronized(self) { return self.slot(LAZY_ACTIONS) }
 	}
 
-	@AvailMethod
-	override fun o_LazyComplete(self: AvailObject): A_Set {
+	override fun o_LazyComplete(self: AvailObject): A_Set
+	{
 		assert(isShared)
 		synchronized(self) { return self.slot(LAZY_COMPLETE) }
 	}
 
-	@AvailMethod
-	override fun o_LazyIncomplete(self: AvailObject): A_Map {
+	override fun o_LazyIncomplete(self: AvailObject): A_Map
+	{
 		assert(isShared)
 		synchronized(self) { return self.slot(LAZY_INCOMPLETE) }
 	}
 
-	@AvailMethod
-	override fun o_LazyIncompleteCaseInsensitive(self: AvailObject): A_Map {
+	override fun o_LazyIncompleteCaseInsensitive(self: AvailObject): A_Map
+	{
 		assert(isShared)
 		synchronized(self) {
 			return self.slot(LAZY_INCOMPLETE_CASE_INSENSITIVE)
 		}
 	}
 
-	@AvailMethod
-	override fun o_LazyPrefilterMap(self: AvailObject): A_Map {
+	override fun o_LazyPrefilterMap(self: AvailObject): A_Map
+	{
 		assert(isShared)
 		synchronized(self) { return self.slot(LAZY_PREFILTER_MAP) }
 	}
 
 	//	lazyTypeFilterPairs
-	@AvailMethod
-	override fun o_LazyTypeFilterTreePojo(self: AvailObject): A_BasicObject {
+	override fun o_LazyTypeFilterTreePojo(self: AvailObject): A_BasicObject
+	{
 		assert(isShared)
 		synchronized(self) { return self.slot(LAZY_TYPE_FILTER_TREE_POJO) }
 	}
 
-	@AvailMethod
 	override fun o_MakeImmutable(self: AvailObject): AvailObject {
 		return if (isMutable) {
 			// Never actually make a message bundle tree immutable. They are
@@ -764,12 +779,12 @@ class MessageBundleTreeDescriptor private constructor(
 		isSourceOfCycle: Boolean
 	) = self.setSlot(IS_SOURCE_OF_CYCLE, if (isSourceOfCycle) 1 else 0)
 
-	override fun mutable(): MessageBundleTreeDescriptor = mutable
+	override fun mutable() = mutable
 
 	// There is no immutable descriptor. Use the shared one.
-	override fun immutable(): MessageBundleTreeDescriptor = shared
+	override fun immutable() = shared
 
-	override fun shared(): MessageBundleTreeDescriptor = shared
+	override fun shared() = shared
 
 	companion object {
 		/**
@@ -927,29 +942,29 @@ class MessageBundleTreeDescriptor private constructor(
 		 *   The [A_DefinitionParsingPlan] to categorize.
 		 * @param pc
 		 *   The one-based program counter that indexes each applicable
-		 *   [plan][A_DefinitionParsingPlan]'s [instructions
-		 *   ][A_DefinitionParsingPlan.parsingInstructions].  Note that this
-		 *   value can be one past the end of the instructions, indicating
-		 *   parsing is complete.
+		 *   [plan][A_DefinitionParsingPlan]'s
+		 *   [instructions&#32;][A_DefinitionParsingPlan.parsingInstructions].
+		 *   Note that this value can be one past the end of the instructions,
+		 *   indicating parsing is complete.
 		 * @param allAncestorModules
 		 *   The [A_Set] of modules that are ancestors of (or equal to) the
 		 *   current module being parsed.  This is used to restrict the
 		 *   visibility of semantic and grammatical restrictions, as well as
 		 *   which method and macro [A_Definition]s can be parsed.
 		 * @param complete
-		 *   A [Mutable]&#32;[set][A_Set] of [A_Bundle]s which have had a send
+		 *   A [Mutable] [set][A_Set] of [A_Bundle]s which have had a send
 		 *   phrase completely parsed at this position.
 		 * @param incomplete
-		 *   A [Mutable]&#32;[map][A_Map] from [A_String] to successor
+		 *   A [Mutable] [map][A_Map] from [A_String] to successor
 		 *   [A_BundleTree]. If a token's string matches one of the keys, it
 		 *   will be consumed and the successor bundle tree will be visited.
 		 * @param caseInsensitive
-		 *   A [Mutable]&#32;[map][A_Map] from lower-case [A_String] to
+		 *   A [Mutable] [map][A_Map] from lower-case [A_String] to
 		 *   successor [A_BundleTree].  If the lower-case version of a token's
 		 *   string matches on of the keys, it will be consumed and the
 		 *   successor bundle tree will be visited.
 		 * @param actionMap
-		 *   A [Mutable]&#32;[map][A_Map] from an Avail integer encoding a
+		 *   A [Mutable] [map][A_Map] from an Avail integer encoding a
 		 *   [ParsingOperation] to a [A_Tuple] of successor [A_BundleTree]s.
 		 *   Typically there is only one successor bundle tree, but some parsing
 		 *   operations require that the tree diverge into multiple successors.
@@ -964,7 +979,7 @@ class MessageBundleTreeDescriptor private constructor(
 		 *   This accomplishes grammatical restriction, assuming this method
 		 *   populates the successor bundle trees correctly.
 		 * @param typeFilterTuples
-		 *   A [Mutable]&#32;[tuple][A_Tuple] of pairs (2-tuples) from
+		 *   A [Mutable] [tuple][A_Tuple] of pairs (2-tuples) from
 		 *   [phrase][A_Phrase] [type][A_Type] to [A_DefinitionParsingPlan].
 		 */
 		private fun updateForPlan(

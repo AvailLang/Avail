@@ -74,7 +74,6 @@ import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport
 import com.avail.utility.Casts
 import com.avail.utility.MutableInt
-import com.avail.utility.evaluation.Continuation0
 import java.util.*
 import java.util.logging.Level
 import java.util.regex.Pattern
@@ -508,49 +507,48 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 					interpreter.isReifying = true
 					return StackReifier(
 						true,
-						reificationBeforeLabelCreationStat,
-						Continuation0 {
+						reificationBeforeLabelCreationStat
+					) {
+						// The Java stack has been reified into Avail
+						// continuations.  Run this before continuing the L2
+						// interpreter.
+						interpreter.function = savedFunction
+						interpreter.chunk = L2Chunk.unoptimizedChunk
+						interpreter.setOffset(
+							ChunkEntryPoint.AFTER_REIFICATION
+								.offsetInDefaultChunk)
+						pointers = savedPointers
+						savedFunction.code().setUpInstructionDecoder(
+							instructionDecoder)
+						instructionDecoder.pc(savedPc)
+						stackp = savedStackp
 
-							// The Java stack has been reified into Avail
-							// continuations.  Run this before continuing the L2
-							// interpreter.
-							interpreter.function = savedFunction
-							interpreter.chunk = L2Chunk.unoptimizedChunk
-							interpreter.setOffset(
-								ChunkEntryPoint.AFTER_REIFICATION
-									.offsetInDefaultChunk)
-							pointers = savedPointers
-							savedFunction.code().setUpInstructionDecoder(
-								instructionDecoder)
-							instructionDecoder.pc(savedPc)
-							stackp = savedStackp
+						// Note that the locals are not present in the new
+						// continuation, just arguments.  The locals will be
+						// created by offsetToRestartUnoptimizedChunk()
+						// when the continuation is restarted.
+						val newContinuation =
+							createLabelContinuation(
+								savedFunction,
+								interpreter.getReifiedContinuation()!!,
+								L2Chunk.unoptimizedChunk,
+								ChunkEntryPoint.TO_RESTART.offsetInDefaultChunk,
+								args)
 
-							// Note that the locals are not present in the new
-							// continuation, just arguments.  The locals will be
-							// created by offsetToRestartUnoptimizedChunk()
-							// when the continuation is restarted.
-							val newContinuation =
-								createLabelContinuation(
-									savedFunction,
-									interpreter.getReifiedContinuation()!!,
-									L2Chunk.unoptimizedChunk,
-									ChunkEntryPoint.TO_RESTART.offsetInDefaultChunk,
-									args)
-
-							// Freeze all fields of the new object, including
-							// its caller, function, and args.
-							newContinuation.makeSubobjectsImmutable()
-							assert(newContinuation.caller().equalsNil()
-								   || !newContinuation.caller().descriptor()
-								.isMutable) {
-								("Caller should freeze because two "
-								 + "continuations can see it")
-							}
-							push(newContinuation)
-							interpreter.returnNow = false
-							// ...and continue running the chunk.
-							interpreter.isReifying = false
-						})
+						// Freeze all fields of the new object, including
+						// its caller, function, and args.
+						newContinuation.makeSubobjectsImmutable()
+						assert(newContinuation.caller().equalsNil()
+							   || !newContinuation.caller().descriptor()
+							.isMutable) {
+							("Caller should freeze because two "
+							 + "continuations can see it")
+						}
+						push(newContinuation)
+						interpreter.returnNow = false
+						// ...and continue running the chunk.
+						interpreter.isReifying = false
+					}
 				}
 				L1Operation.L1Ext_doGetLiteral ->
 				{
@@ -709,8 +707,8 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 	 *   The [ChunkEntryPoint] at which to resume L1 interpretation.
 	 * @param logMessage
 	 *   The log message. Expects two template parameters, one for the
-	 *   [debug string][Interpreter.debugModeString], one for the method name,
-	 *   respectively.
+	 *   [debug&#32;string][Interpreter.debugModeString], one for the method
+	 *   name, respectively.
 	 */
 	private fun reifyCurrentFrame(
 		reifier: StackReifier,
@@ -1013,20 +1011,20 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 		interpreter.isReifying = true
 		return StackReifier(
 			true,
-			reificationForFailedLookupStat,
-			Continuation0 {
-				interpreter.argsBuffer.clear()
-				interpreter.argsBuffer.add(Casts.cast(errorCode.numericCode()))
-				interpreter.argsBuffer.add(Casts.cast(method))
-				interpreter.argsBuffer.add(
-					Casts.cast(ObjectTupleDescriptor.tupleFromList(
-						interpreter.argsBuffer)))
-				interpreter.function = functionToCall
-				interpreter.chunk = functionToCall.code().startingChunk()
-				interpreter.setOffset(0)
-				interpreter.returnNow = false
-				interpreter.isReifying = false
-			})
+			reificationForFailedLookupStat
+		) {
+			interpreter.argsBuffer.clear()
+			interpreter.argsBuffer.add(Casts.cast(errorCode.numericCode()))
+			interpreter.argsBuffer.add(Casts.cast(method))
+			interpreter.argsBuffer.add(
+				Casts.cast(ObjectTupleDescriptor.tupleFromList(
+					interpreter.argsBuffer)))
+			interpreter.function = functionToCall
+			interpreter.chunk = functionToCall.code().startingChunk()
+			interpreter.setOffset(0)
+			interpreter.returnNow = false
+			interpreter.isReifying = false
+		}
 	}
 
 	companion object
@@ -1051,7 +1049,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 
 		/** The [CheckedMethod] for [run].  */
 		@JvmField
-		val runMethod = CheckedMethod.instanceMethod(
+		val runMethod: CheckedMethod = CheckedMethod.instanceMethod(
 			L1InstructionStepper::class.java,
 			"run",
 			StackReifier::class.java)

@@ -38,28 +38,34 @@ import com.avail.annotations.ThreadSafe;
 import com.avail.builder.ModuleNameResolver;
 import com.avail.builder.ModuleRoots;
 import com.avail.builder.ResolvedModuleName;
-import com.avail.descriptor.fiber.A_Fiber;
-import com.avail.descriptor.module.A_Module;
-import com.avail.descriptor.representation.AvailObject;
-import com.avail.descriptor.character.CharacterDescriptor;
-import com.avail.descriptor.fiber.FiberDescriptor;
-import com.avail.descriptor.fiber.FiberDescriptor.ExecutionState;
-import com.avail.descriptor.fiber.FiberDescriptor.TraceFlag;
-import com.avail.descriptor.module.ModuleDescriptor;
 import com.avail.descriptor.atoms.A_Atom;
 import com.avail.descriptor.atoms.AtomDescriptor;
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom;
 import com.avail.descriptor.bundles.A_Bundle;
+import com.avail.descriptor.character.CharacterDescriptor;
+import com.avail.descriptor.fiber.A_Fiber;
+import com.avail.descriptor.fiber.FiberDescriptor;
+import com.avail.descriptor.fiber.FiberDescriptor.ExecutionState;
+import com.avail.descriptor.fiber.FiberDescriptor.TraceFlag;
 import com.avail.descriptor.functions.A_Function;
 import com.avail.descriptor.functions.A_RawFunction;
 import com.avail.descriptor.functions.FunctionDescriptor;
 import com.avail.descriptor.maps.A_Map;
 import com.avail.descriptor.maps.MapDescriptor;
 import com.avail.descriptor.maps.MapDescriptor.Entry;
-import com.avail.descriptor.methods.*;
+import com.avail.descriptor.methods.A_Definition;
+import com.avail.descriptor.methods.A_GrammaticalRestriction;
+import com.avail.descriptor.methods.A_Method;
+import com.avail.descriptor.methods.A_SemanticRestriction;
+import com.avail.descriptor.methods.DefinitionDescriptor;
+import com.avail.descriptor.methods.MethodDescriptor;
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom;
+import com.avail.descriptor.methods.SemanticRestrictionDescriptor;
+import com.avail.descriptor.module.A_Module;
+import com.avail.descriptor.module.ModuleDescriptor;
 import com.avail.descriptor.pojos.RawPojoDescriptor;
 import com.avail.descriptor.representation.A_BasicObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.sets.A_Set;
 import com.avail.descriptor.sets.SetDescriptor;
 import com.avail.descriptor.tokens.TokenDescriptor.StaticInit;
@@ -75,9 +81,9 @@ import com.avail.descriptor.variables.VariableDescriptor;
 import com.avail.descriptor.variables.VariableDescriptor.VariableAccessReactor;
 import com.avail.exceptions.AvailRuntimeException;
 import com.avail.exceptions.MalformedMessageException;
+import com.avail.interpreter.Primitive;
 import com.avail.interpreter.execution.AvailLoader;
 import com.avail.interpreter.execution.Interpreter;
-import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.primitive.general.P_EmergencyExit;
 import com.avail.interpreter.primitive.general.P_ToString;
@@ -86,13 +92,24 @@ import com.avail.io.TextInterface;
 import com.avail.optimizer.jvm.CheckedMethod;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.performance.Statistic;
-import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.OnceSupplier;
+import kotlin.Unit;
 import kotlin.jvm.functions.Function0;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.TypeVariable;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Queue;
+import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.WeakHashMap;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor.AbortPolicy;
@@ -103,10 +120,12 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Supplier;
 
-import static com.avail.AvailRuntime.HookType.*;
+import static com.avail.AvailRuntime.HookType.IMPLICIT_OBSERVE;
+import static com.avail.AvailRuntime.HookType.INVALID_MESSAGE_SEND;
+import static com.avail.AvailRuntime.HookType.READ_UNASSIGNED_VARIABLE;
+import static com.avail.AvailRuntime.HookType.RESULT_DISAGREED_WITH_EXPECTED_TYPE;
 import static com.avail.AvailRuntimeConfiguration.availableProcessors;
 import static com.avail.AvailRuntimeConfiguration.maxInterpreters;
-import static com.avail.descriptor.representation.NilDescriptor.nil;
 import static com.avail.descriptor.atoms.AtomDescriptor.falseObject;
 import static com.avail.descriptor.atoms.AtomDescriptor.trueObject;
 import static com.avail.descriptor.functions.CompiledCodeDescriptor.newPrimitiveRawFunction;
@@ -116,44 +135,142 @@ import static com.avail.descriptor.maps.MapDescriptor.emptyMap;
 import static com.avail.descriptor.numbers.DoubleDescriptor.fromDouble;
 import static com.avail.descriptor.numbers.InfinityDescriptor.negativeInfinity;
 import static com.avail.descriptor.numbers.InfinityDescriptor.positiveInfinity;
-import static com.avail.descriptor.numbers.IntegerDescriptor.*;
-import static com.avail.descriptor.objects.ObjectTypeDescriptor.*;
+import static com.avail.descriptor.numbers.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.numbers.IntegerDescriptor.two;
+import static com.avail.descriptor.numbers.IntegerDescriptor.zero;
+import static com.avail.descriptor.objects.ObjectTypeDescriptor.exceptionAtom;
+import static com.avail.descriptor.objects.ObjectTypeDescriptor.exceptionType;
+import static com.avail.descriptor.objects.ObjectTypeDescriptor.mostGeneralObjectMeta;
+import static com.avail.descriptor.objects.ObjectTypeDescriptor.mostGeneralObjectType;
+import static com.avail.descriptor.objects.ObjectTypeDescriptor.stackDumpAtom;
 import static com.avail.descriptor.parsing.LexerDescriptor.lexerBodyFunctionType;
 import static com.avail.descriptor.parsing.LexerDescriptor.lexerFilterFunctionType;
 import static com.avail.descriptor.pojos.PojoDescriptor.nullPojo;
 import static com.avail.descriptor.pojos.RawPojoDescriptor.identityPojo;
+import static com.avail.descriptor.representation.NilDescriptor.nil;
 import static com.avail.descriptor.sets.SetDescriptor.emptySet;
 import static com.avail.descriptor.tuples.ObjectTupleDescriptor.generateObjectTupleFrom;
 import static com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.tuples.StringDescriptor.stringFrom;
-import static com.avail.descriptor.tuples.TupleDescriptor.*;
+import static com.avail.descriptor.tuples.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.tuples.TupleDescriptor.toList;
+import static com.avail.descriptor.tuples.TupleDescriptor.tupleFromIntegerList;
 import static com.avail.descriptor.types.BottomPojoTypeDescriptor.pojoBottom;
 import static com.avail.descriptor.types.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.types.BottomTypeDescriptor.bottomMeta;
 import static com.avail.descriptor.types.CompiledCodeTypeDescriptor.mostGeneralCompiledCodeType;
-import static com.avail.descriptor.types.ContinuationTypeDescriptor.*;
+import static com.avail.descriptor.types.ContinuationTypeDescriptor.continuationMeta;
+import static com.avail.descriptor.types.ContinuationTypeDescriptor.continuationTypeForFunctionType;
+import static com.avail.descriptor.types.ContinuationTypeDescriptor.mostGeneralContinuationType;
 import static com.avail.descriptor.types.EnumerationTypeDescriptor.booleanType;
 import static com.avail.descriptor.types.FiberTypeDescriptor.fiberMeta;
 import static com.avail.descriptor.types.FiberTypeDescriptor.mostGeneralFiberType;
-import static com.avail.descriptor.types.FunctionTypeDescriptor.*;
-import static com.avail.descriptor.types.InstanceMetaDescriptor.*;
+import static com.avail.descriptor.types.FunctionTypeDescriptor.functionMeta;
+import static com.avail.descriptor.types.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.types.FunctionTypeDescriptor.functionTypeReturning;
+import static com.avail.descriptor.types.FunctionTypeDescriptor.mostGeneralFunctionType;
+import static com.avail.descriptor.types.InstanceMetaDescriptor.anyMeta;
+import static com.avail.descriptor.types.InstanceMetaDescriptor.enumerationWith;
+import static com.avail.descriptor.types.InstanceMetaDescriptor.instanceMeta;
+import static com.avail.descriptor.types.InstanceMetaDescriptor.topMeta;
 import static com.avail.descriptor.types.InstanceTypeDescriptor.instanceType;
-import static com.avail.descriptor.types.IntegerRangeTypeDescriptor.*;
+import static com.avail.descriptor.types.IntegerRangeTypeDescriptor.bytes;
+import static com.avail.descriptor.types.IntegerRangeTypeDescriptor.characterCodePoints;
+import static com.avail.descriptor.types.IntegerRangeTypeDescriptor.extendedIntegers;
+import static com.avail.descriptor.types.IntegerRangeTypeDescriptor.extendedIntegersMeta;
+import static com.avail.descriptor.types.IntegerRangeTypeDescriptor.inclusive;
+import static com.avail.descriptor.types.IntegerRangeTypeDescriptor.int32;
+import static com.avail.descriptor.types.IntegerRangeTypeDescriptor.int64;
+import static com.avail.descriptor.types.IntegerRangeTypeDescriptor.integerRangeType;
+import static com.avail.descriptor.types.IntegerRangeTypeDescriptor.integers;
+import static com.avail.descriptor.types.IntegerRangeTypeDescriptor.naturalNumbers;
+import static com.avail.descriptor.types.IntegerRangeTypeDescriptor.nybbles;
+import static com.avail.descriptor.types.IntegerRangeTypeDescriptor.singleInt;
+import static com.avail.descriptor.types.IntegerRangeTypeDescriptor.unsignedShorts;
+import static com.avail.descriptor.types.IntegerRangeTypeDescriptor.wholeNumbers;
 import static com.avail.descriptor.types.LiteralTokenTypeDescriptor.mostGeneralLiteralTokenType;
-import static com.avail.descriptor.types.MapTypeDescriptor.*;
-import static com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.*;
-import static com.avail.descriptor.types.PojoTypeDescriptor.*;
-import static com.avail.descriptor.types.SetTypeDescriptor.*;
-import static com.avail.descriptor.types.TupleTypeDescriptor.*;
-import static com.avail.descriptor.types.TypeDescriptor.Types.*;
-import static com.avail.descriptor.types.VariableTypeDescriptor.*;
-import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.descriptor.types.MapTypeDescriptor.mapMeta;
+import static com.avail.descriptor.types.MapTypeDescriptor.mapTypeForSizesKeyTypeValueType;
+import static com.avail.descriptor.types.MapTypeDescriptor.mostGeneralMapType;
+import static com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.ARGUMENT_PHRASE;
+import static com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.ASSIGNMENT_PHRASE;
+import static com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.BLOCK_PHRASE;
+import static com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.DECLARATION_PHRASE;
+import static com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.EXPRESSION_AS_STATEMENT_PHRASE;
+import static com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE;
+import static com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.FIRST_OF_SEQUENCE_PHRASE;
+import static com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LABEL_PHRASE;
+import static com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE;
+import static com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE;
+import static com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LOCAL_CONSTANT_PHRASE;
+import static com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LOCAL_VARIABLE_PHRASE;
+import static com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.MODULE_CONSTANT_PHRASE;
+import static com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.MODULE_VARIABLE_PHRASE;
+import static com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE;
+import static com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PERMUTED_LIST_PHRASE;
+import static com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PRIMITIVE_FAILURE_REASON_PHRASE;
+import static com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.REFERENCE_PHRASE;
+import static com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE;
+import static com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEQUENCE_PHRASE;
+import static com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.STATEMENT_PHRASE;
+import static com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SUPER_CAST_PHRASE;
+import static com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE;
+import static com.avail.descriptor.types.PojoTypeDescriptor.mostGeneralPojoArrayType;
+import static com.avail.descriptor.types.PojoTypeDescriptor.mostGeneralPojoType;
+import static com.avail.descriptor.types.PojoTypeDescriptor.pojoSelfType;
+import static com.avail.descriptor.types.PojoTypeDescriptor.pojoSelfTypeAtom;
+import static com.avail.descriptor.types.PojoTypeDescriptor.pojoTypeForClass;
+import static com.avail.descriptor.types.PojoTypeDescriptor.pojoTypeForClassWithTypeArguments;
+import static com.avail.descriptor.types.PojoTypeDescriptor.selfTypeForClass;
+import static com.avail.descriptor.types.SetTypeDescriptor.mostGeneralSetType;
+import static com.avail.descriptor.types.SetTypeDescriptor.setMeta;
+import static com.avail.descriptor.types.SetTypeDescriptor.setTypeForSizesContentType;
+import static com.avail.descriptor.types.TupleTypeDescriptor.mostGeneralTupleType;
+import static com.avail.descriptor.types.TupleTypeDescriptor.nonemptyStringType;
+import static com.avail.descriptor.types.TupleTypeDescriptor.oneOrMoreOf;
+import static com.avail.descriptor.types.TupleTypeDescriptor.stringType;
+import static com.avail.descriptor.types.TupleTypeDescriptor.tupleMeta;
+import static com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType;
+import static com.avail.descriptor.types.TupleTypeDescriptor.zeroOrMoreOf;
+import static com.avail.descriptor.types.TypeDescriptor.Types.ABSTRACT_DEFINITION;
+import static com.avail.descriptor.types.TypeDescriptor.Types.ANY;
+import static com.avail.descriptor.types.TypeDescriptor.Types.ATOM;
+import static com.avail.descriptor.types.TypeDescriptor.Types.CHARACTER;
+import static com.avail.descriptor.types.TypeDescriptor.Types.DEFINITION;
+import static com.avail.descriptor.types.TypeDescriptor.Types.DOUBLE;
+import static com.avail.descriptor.types.TypeDescriptor.Types.FLOAT;
+import static com.avail.descriptor.types.TypeDescriptor.Types.FORWARD_DEFINITION;
+import static com.avail.descriptor.types.TypeDescriptor.Types.MACRO_DEFINITION;
+import static com.avail.descriptor.types.TypeDescriptor.Types.MESSAGE_BUNDLE;
+import static com.avail.descriptor.types.TypeDescriptor.Types.MESSAGE_BUNDLE_TREE;
+import static com.avail.descriptor.types.TypeDescriptor.Types.METHOD;
+import static com.avail.descriptor.types.TypeDescriptor.Types.METHOD_DEFINITION;
+import static com.avail.descriptor.types.TypeDescriptor.Types.MODULE;
+import static com.avail.descriptor.types.TypeDescriptor.Types.NONTYPE;
+import static com.avail.descriptor.types.TypeDescriptor.Types.NUMBER;
+import static com.avail.descriptor.types.TypeDescriptor.Types.TOKEN;
+import static com.avail.descriptor.types.TypeDescriptor.Types.TOP;
+import static com.avail.descriptor.types.VariableTypeDescriptor.mostGeneralVariableType;
+import static com.avail.descriptor.types.VariableTypeDescriptor.variableMeta;
+import static com.avail.descriptor.types.VariableTypeDescriptor.variableReadWriteType;
+import static com.avail.descriptor.types.VariableTypeDescriptor.variableTypeFor;
+import static com.avail.exceptions.AvailErrorCode.E_ABSTRACT_METHOD_DEFINITION;
+import static com.avail.exceptions.AvailErrorCode.E_AMBIGUOUS_METHOD_DEFINITION;
+import static com.avail.exceptions.AvailErrorCode.E_FORWARD_METHOD_DEFINITION;
+import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS;
+import static com.avail.exceptions.AvailErrorCode.E_JAVA_CLASS_NOT_AVAILABLE;
+import static com.avail.exceptions.AvailErrorCode.E_NO_METHOD;
+import static com.avail.exceptions.AvailErrorCode.E_NO_METHOD_DEFINITION;
+import static com.avail.exceptions.AvailErrorCode.allNumericCodes;
 import static com.avail.optimizer.jvm.CheckedMethod.instanceMethod;
 import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.StackPrinter.trace;
 import static java.lang.Math.min;
 import static java.util.Arrays.asList;
-import static java.util.Collections.*;
+import static java.util.Collections.newSetFromMap;
+import static java.util.Collections.synchronizedSet;
+import static java.util.Collections.unmodifiableList;
+import static java.util.Collections.unmodifiableSet;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
 
@@ -262,11 +379,11 @@ public final class AvailRuntime
 	 *        The desired priority, a long tied to milliseconds since the
 	 *        current epoch.
 	 * @param body
-	 *        The {@link Continuation0} to execute for this task.
+	 *        The action to execute for this task.
 	 */
 	public void execute (
 		final int priority,
-		final Continuation0 body)
+		final Function0<Unit> body)
 	{
 		executor.execute(new AvailTask(priority, body));
 	}
@@ -1608,13 +1725,13 @@ public final class AvailRuntime
 	private int incompleteLevelOneUnsafeTasks = 0;
 
 	/**
-	 * Has {@linkplain #whenLevelOneUnsafeDo(int, Continuation0)} Level One
+	 * Has {@linkplain #whenLevelOneUnsafeDo(int, Function0)} Level One
 	 * safety} been requested?
 	 */
 	private volatile boolean levelOneSafetyRequested = false;
 
 	/**
-	 * Has {@linkplain #whenLevelOneUnsafeDo(int, Continuation0)} Level One
+	 * Has {@linkplain #whenLevelOneUnsafeDo(int, Function0)} Level One
 	 * safety} been requested?
 	 *
 	 * @return {@code true} if Level One safety has been requested, {@code
@@ -1626,7 +1743,7 @@ public final class AvailRuntime
 	}
 
 	/**
-	 * Request that the specified {@linkplain Continuation0 continuation} be
+	 * Request that the specified {@linkplain Function0 continuation} be
 	 * executed as a Level One-unsafe task at such a time as there are no Level
 	 * One-safe tasks running.
 	 *
@@ -1634,12 +1751,11 @@ public final class AvailRuntime
 	 *        The priority of the {@link AvailTask} to queue.  It must be in the
 	 *        range [0..255].
 	 * @param unsafeAction
-	 *        The {@link Continuation0} to perform when Level One safety is not
-	 *        required.
+	 *        The action to perform when Level One safety is not required.
 	 */
 	public void whenLevelOneUnsafeDo (
 		final int priority,
-		final Continuation0 unsafeAction)
+		final Function0<Unit> unsafeAction)
 	{
 		final AvailTask wrapped = new AvailTask(
 			priority,
@@ -1647,7 +1763,7 @@ public final class AvailRuntime
 			{
 				try
 				{
-					unsafeAction.value();
+					unsafeAction.invoke();
 				}
 				catch (final Exception e)
 				{
@@ -1675,6 +1791,7 @@ public final class AvailRuntime
 						levelOneSafeLock.unlock();
 					}
 				}
+				return Unit.INSTANCE;
 			});
 		levelOneSafeLock.lock();
 		try
@@ -1701,20 +1818,18 @@ public final class AvailRuntime
 	}
 
 	/**
-	 * Request that the specified {@linkplain Continuation0 continuation} be
-	 * executed as a Level One-safe task at such a time as there are no Level
-	 * One-unsafe tasks running.
+	 * Request that the specified action be executed as a Level One-safe task at
+	 * such a time as there are no Level One-unsafe tasks running.
 	 *
 	 * @param priority
 	 *        The priority of the {@link AvailTask} to queue.  It must be in the
 	 *        range [0..255].
 	 * @param safeAction
-	 *        The {@link Continuation0} to execute when Level One safety is
-	 *        ensured.
+	 *        The action to execute when Level One safety is ensured.
 	 */
 	public void whenLevelOneSafeDo (
 		final int priority,
-		final Continuation0 safeAction)
+		final Function0<Unit> safeAction)
 	{
 		final AvailTask task = new AvailTask(
 			priority,
@@ -1722,7 +1837,7 @@ public final class AvailRuntime
 			{
 				try
 				{
-					safeAction.value();
+					safeAction.invoke();
 				}
 				catch (final Exception e)
 				{
@@ -1754,6 +1869,7 @@ public final class AvailRuntime
 						levelOneSafeLock.unlock();
 					}
 				}
+				return Unit.INSTANCE;
 			});
 		levelOneSafeLock.lock();
 		try

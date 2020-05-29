@@ -33,15 +33,15 @@
 package com.avail.interpreter.levelOne
 
 import com.avail.descriptor.functions.CompiledCodeDescriptor
-import com.avail.descriptor.module.A_Module
-import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.functions.CompiledCodeDescriptor.Companion.newCompiledCode
 import com.avail.descriptor.functions.ContinuationDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor
+import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.numbers.IntegerDescriptor
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.NybbleTupleDescriptor
 import com.avail.descriptor.tuples.NybbleTupleDescriptor.generateNybbleTupleFrom
@@ -107,7 +107,7 @@ class L1InstructionWriter constructor(
 
 	/**
 	 * The [List] of argument [types][TypeDescriptor] for this
-	 * [compiled code][CompiledCodeDescriptor].
+	 * [compiled&#32;code][CompiledCodeDescriptor].
 	 */
 	private var argumentTypes: MutableList<A_Type> = ArrayList()
 
@@ -129,7 +129,7 @@ class L1InstructionWriter constructor(
 
 	/**
 	 * The [primitive][Primitive] [number][Primitive.primitiveNumber] of the
-	 * [compile code object] being generated.
+	 * [compile&#32;code&#32;object] being generated.
 	 */
 	var primitive: Primitive? = null
 		set(newValue)

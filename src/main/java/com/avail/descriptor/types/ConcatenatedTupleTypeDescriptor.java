@@ -32,12 +32,11 @@
 
 package com.avail.descriptor.types;
 
-import com.avail.annotations.AvailMethod;
-import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.numbers.A_Number;
 import com.avail.descriptor.representation.A_BasicObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.representation.BitField;
 import com.avail.descriptor.representation.Mutability;
 import com.avail.descriptor.tuples.A_Tuple;
@@ -112,7 +111,7 @@ extends TypeDescriptor
 	/**
 	 * Answer the type that my last element must have, if any.
 	 */
-	@Override @AvailMethod
+	@Override
 	public A_Type o_DefaultType (final AvailObject object)
 	{
 		final A_Type a = object.slot(FIRST_TUPLE_TYPE);
@@ -120,13 +119,13 @@ extends TypeDescriptor
 		return defaultTypeOfConcatenation(a, b);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsTupleType(object);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_EqualsTupleType (
 		final AvailObject object,
 		final A_Type aTupleType)
@@ -175,7 +174,7 @@ extends TypeDescriptor
 	 * statistically different for different objects.  This requires an object
 	 * creation, so don't call it from the garbage collector.
 	 */
-	@Override @AvailMethod
+	@Override
 	public int o_Hash (final AvailObject object)
 	{
 		becomeRealTupleType(object);
@@ -188,7 +187,7 @@ extends TypeDescriptor
 	 * <p>A concatenated tuple type isn't a very fast representation to use,
 	 * even though it's easy to construct.</p>
 	 */
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsBetterRepresentationThan (
 		final AvailObject object,
 		final A_BasicObject anotherObject)
@@ -204,7 +203,7 @@ extends TypeDescriptor
 	 * I'm not a very time-efficient representation of a tuple type.
 	 * </p>
 	 */
-	@Override @AvailMethod
+	@Override
 	public int o_RepresentationCostOfTupleType (
 		final AvailObject object)
 	{
@@ -216,7 +215,7 @@ extends TypeDescriptor
 	 * can not be asked during a garbage collection because it allocates space
 	 * for its answer.
 	 */
-	@Override @AvailMethod
+	@Override
 	public A_Type o_SizeRange (final AvailObject object)
 	{
 		final A_Type sizeRange1 = object.slot(FIRST_TUPLE_TYPE).sizeRange();
@@ -227,7 +226,7 @@ extends TypeDescriptor
 	/**
 	 * Check if object is a subtype of aType.  They should both be types.
 	 */
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
 	{
 		return aType.isSupertypeOfTupleType(object);
@@ -238,10 +237,10 @@ extends TypeDescriptor
 	 * instances</em> of B would also be instances of A.  Types
 	 * indistinguishable under these conditions are considered the same type.
 	 */
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsSupertypeOfTupleType (
 		final AvailObject object,
-		final AvailObject aTupleType)
+		final A_Type aTupleType)
 	{
 		if (object.equals(aTupleType))
 		{
@@ -274,7 +273,7 @@ extends TypeDescriptor
 		return true;
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsTupleType (final AvailObject object)
 	{
 		return true;
@@ -321,7 +320,7 @@ extends TypeDescriptor
 	 * Answer what type the given index would have in an object instance of me.
 	 * Answer bottom if the index is definitely out of bounds.
 	 */
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeAtIndex (final AvailObject object, final int index)
 	{
 		final AvailObject firstTupleType = object.slot(FIRST_TUPLE_TYPE);
@@ -329,7 +328,7 @@ extends TypeDescriptor
 		return elementOfConcatenation(firstTupleType, secondTupleType, index);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeIntersection (
 		final AvailObject object,
 		final A_Type another)
@@ -345,7 +344,7 @@ extends TypeDescriptor
 		return another.typeIntersectionOfTupleType(object);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeIntersectionOfTupleType (
 		final AvailObject object,
 		final A_Type aTupleType)
@@ -396,14 +395,14 @@ extends TypeDescriptor
 	 * have the same type.  Don't run this from within a garbage collection, as
 	 * it allocates objects.
 	 */
-	@Override @AvailMethod
+	@Override
 	public A_Tuple o_TypeTuple (final AvailObject object)
 	{
 		becomeRealTupleType(object);
 		return object.typeTuple();
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeUnion (
 		final AvailObject object,
 		final A_Type another)
@@ -419,7 +418,7 @@ extends TypeDescriptor
 		return another.typeUnionOfTupleType(object);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeUnionOfTupleType (
 		final AvailObject object,
 		final A_Type aTupleType)
@@ -460,7 +459,7 @@ extends TypeDescriptor
 			newSizesObject, newLeading, newDefault);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_UnionOfTypesAtThrough (
 		final AvailObject object,
 		final int startIndex,

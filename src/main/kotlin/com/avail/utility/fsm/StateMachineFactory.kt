@@ -36,7 +36,7 @@ import java.util.*
 
 /**
  * A `StateMachineFactory` enables a client to dynamically specify and assemble
- * a [finite state machine][StateMachine]. In particular, the factory allows a
+ * a [finite&#32;state&#32;machine][StateMachine]. In particular, the factory allows a
  * client to flexibly define a particular FSM while ignoring specification and
  * evaluation order dependency. Validation is postponed until final assembly
  * time, at which time a [ValidationException] will be thrown in the event of
@@ -100,7 +100,7 @@ constructor(
 
 	/**
 	 * The complete transition table, a [map][EnumMap] from states to
-	 * [state summaries][StateSummary].
+	 * [state&#32;summaries][StateSummary].
 	 */
 	private val summaries: EnumMap<
 			State, StateSummary<State, Event, GuardKey, ActionKey, Memento>> =
@@ -112,8 +112,8 @@ constructor(
 	private var initialState: State? = null
 
 	/**
-	 * Record the canonical initial state of the target [state
-	 * machine][StateMachine].
+	 * Record the canonical initial state of the target
+	 * [state&#32;machine][StateMachine].
 	 *
 	 * @param initialState
 	 *   The initial state.

@@ -43,8 +43,9 @@ import com.avail.optimizer.annotations.RequiresNot;
 import com.avail.optimizer.annotations.Sets;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
-import com.avail.utility.evaluation.Continuation1;
-import com.avail.utility.evaluation.Continuation2;
+import kotlin.Unit;
+import kotlin.jvm.functions.Function1;
+import kotlin.jvm.functions.Function2;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Field;
@@ -202,7 +203,12 @@ enum OptimizationPhase
 	 * Having adjusted edges to avoid landing on L2_JUMPs, some blocks may
 	 * have become unreachable.
 	 */
-	REMOVE_UNREACHABLE_BLOCKS(L2Optimizer::removeUnreachableBlocks),
+	REMOVE_UNREACHABLE_BLOCKS(
+		optimizer ->
+		{
+			optimizer.removeUnreachableBlocks();
+			return Unit.INSTANCE;
+		}),
 
 	/**
 	 * Choose an order for the blocks.  This isn't important while we're
@@ -228,7 +234,7 @@ enum OptimizationPhase
 	//    -JVM target.
 
 	/** The optimization action to perform for this pass. */
-	private final Continuation1<L2Optimizer> action;
+	private final Function1<L2Optimizer, Unit> action;
 
 	/** The {@link Statistic} for tracking this pass's cost. */
 	final Statistic stat;
@@ -250,7 +256,7 @@ enum OptimizationPhase
 	 *
 	 * @param action The action to perform for this pass.
 	 */
-	OptimizationPhase (final Continuation1<L2Optimizer> action)
+	OptimizationPhase (final Function1<L2Optimizer, Unit> action)
 	{
 		this.action = action;
 		this.stat = new Statistic(
@@ -310,10 +316,10 @@ enum OptimizationPhase
 	 *        The actual value to pass to the action.
 	 */
 	<V> OptimizationPhase (
-		final Continuation2<L2Optimizer, V> action,
+		final Function2<L2Optimizer, V, Unit> action,
 		final V value)
 	{
-		this(optimizer -> action.value(optimizer, value));
+		this(optimizer -> action.invoke(optimizer, value));
 	}
 
 	/**
@@ -328,7 +334,7 @@ enum OptimizationPhase
 		optimizer.check(requiresFlags);
 		optimizer.checkNot(requiresNotFlags);
 
-		action.value(optimizer);
+		action.invoke(optimizer);
 
 		optimizer.set(setsFlags);
 		optimizer.clear(clearsFlags);

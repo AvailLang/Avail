@@ -50,14 +50,16 @@ import java.nio.file.attribute.BasicFileAttributes
 class StacksErrorLog
 /**
  * Construct a new [StacksErrorLog].
+ *
  * @param outputPath
- * The [path][Path] to the output [        ][BasicFileAttributes.isDirectory] for documentation and
- * data files.
+ *   The [path][Path] to the output [directory][BasicFileAttributes.isDirectory]
+ *   for documentation and data files.
  */
 	(
 	/**
-	 * The [path][Path] to the output [ ][BasicFileAttributes.isDirectory] for documentation and
-	 * data files.
+	 * The [path][Path] to the output
+	 * [directory][BasicFileAttributes.isDirectory] for documentation and data
+	 * files.
 	 */
 	internal val outputPath: Path)
 {

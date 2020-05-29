@@ -51,7 +51,7 @@ import com.avail.io.NybbleOutputStream
  * counter, stack pointer, and stack slots, and creating new local variables.
  *
  * The new continuation can subsequently be [restart][P_RestartContinuation],
- * [restarted with new arguments][P_RestartContinuationWithArguments], or
+ * [restarted&#32;with&#32;new&#32;arguments][P_RestartContinuationWithArguments], or
  * [exited][P_ExitContinuationWithResultIf].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;

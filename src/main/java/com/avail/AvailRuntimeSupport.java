@@ -32,8 +32,8 @@
 
 package com.avail;
 import com.avail.annotations.ThreadSafe;
-import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.fiber.FiberDescriptor;
+import com.avail.descriptor.representation.AvailObject;
 
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;

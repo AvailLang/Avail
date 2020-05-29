@@ -54,7 +54,7 @@ import java.util.*
  * A `NumberedChoice` is a special subgroup (i.e., not a root group) indicated
  * by an [exclamation mark][Metacharacter.EXCLAMATION_MARK] following a
  * [group][Group].  It must not contain [ ] or subgroups and it must not contain
- * a [double dagger][Metacharacter.DOUBLE_DAGGER].  The group contains an
+ * a [double&#32;dagger][Metacharacter.DOUBLE_DAGGER].  The group contains an
  * [Alternation], and parsing the group causes exactly one of the alternatives
  * to be parsed. The 1-based index of the alternative is produced as a literal
  * constant argument.

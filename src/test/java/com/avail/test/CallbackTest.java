@@ -36,21 +36,22 @@ import com.avail.AvailRuntime;
 import com.avail.CallbackSystem.Callback;
 import com.avail.builder.RenamesFileParserException;
 import com.avail.builder.UnresolvedDependencyException;
-import com.avail.descriptor.fiber.A_Fiber;
-import com.avail.descriptor.module.A_Module;
-import com.avail.descriptor.bundles.A_Bundle;
-import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.atoms.A_Atom;
+import com.avail.descriptor.bundles.A_Bundle;
+import com.avail.descriptor.fiber.A_Fiber;
 import com.avail.descriptor.functions.A_Function;
 import com.avail.descriptor.maps.A_Map;
 import com.avail.descriptor.methods.A_Definition;
 import com.avail.descriptor.methods.A_Method;
+import com.avail.descriptor.module.A_Module;
 import com.avail.descriptor.numbers.A_Number;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.tuples.A_String;
 import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.interpreter.execution.Interpreter;
 import com.avail.test.AvailRuntimeTestHelper.TestErrorChannel;
 import com.avail.utility.Nulls;
+import kotlin.Unit;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -66,16 +67,19 @@ import java.util.concurrent.SynchronousQueue;
 import static com.avail.CallbackSystem.createCallbackFunction;
 import static com.avail.descriptor.fiber.FiberDescriptor.commandPriority;
 import static com.avail.descriptor.fiber.FiberDescriptor.createFiber;
-import static com.avail.descriptor.representation.NilDescriptor.nil;
 import static com.avail.descriptor.numbers.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.numbers.IntegerDescriptor.one;
+import static com.avail.descriptor.representation.NilDescriptor.nil;
 import static com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.tuples.StringDescriptor.stringFrom;
 import static com.avail.descriptor.types.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.types.TypeDescriptor.Types.NUMBER;
 import static com.avail.utility.Casts.cast;
 import static java.util.Arrays.asList;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * Unit tests for calls into Avail from Java code.
@@ -145,6 +149,7 @@ public final class CallbackTest
 	 *
 	 * @return An {@link A_Function} that adds two numbers.
 	 */
+	@SuppressWarnings("unused")
 	public static A_Function plusOneCallback ()
 	{
 		final Callback callback = (arguments, completion, failure) ->
@@ -265,6 +270,7 @@ public final class CallbackTest
 				{
 					// Shouldn't happen.
 				}
+				return Unit.INSTANCE;
 			},
 			failure ->
 			{
@@ -276,6 +282,7 @@ public final class CallbackTest
 				{
 					// Shouldn't happen.
 				}
+				return Unit.INSTANCE;
 			});
 		Interpreter.runOutermostFunction(
 			helper().runtime,

@@ -35,10 +35,14 @@ package com.avail.interpreter.primitive.phrases
 import com.avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
+import com.avail.descriptor.tokens.TokenDescriptor.Companion.newToken
 import com.avail.descriptor.tokens.TokenDescriptor.StaticInit.tokenTypeOrdinalKey
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType
-import com.avail.descriptor.tokens.TokenDescriptor.TokenType.*
-import com.avail.descriptor.tokens.TokenDescriptor.Companion.newToken
+import com.avail.descriptor.tokens.TokenDescriptor.TokenType.COMMENT
+import com.avail.descriptor.tokens.TokenDescriptor.TokenType.END_OF_FILE
+import com.avail.descriptor.tokens.TokenDescriptor.TokenType.KEYWORD
+import com.avail.descriptor.tokens.TokenDescriptor.TokenType.OPERATOR
+import com.avail.descriptor.tokens.TokenDescriptor.TokenType.WHITESPACE
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
@@ -47,9 +51,11 @@ import com.avail.descriptor.types.IntegerRangeTypeDescriptor.inclusive
 import com.avail.descriptor.types.TokenTypeDescriptor.tokenType
 import com.avail.descriptor.types.TupleTypeDescriptor.stringType
 import com.avail.descriptor.types.TypeDescriptor.Types.TOKEN
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CanFold
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Create a [token][TokenDescriptor] with the specified

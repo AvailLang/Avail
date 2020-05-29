@@ -32,8 +32,8 @@
 package com.avail.interpreter.primitive.pojos
 
 import com.avail.AvailRuntime.HookType
-import com.avail.descriptor.pojos.PojoDescriptor.Companion.newPojo
-import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
+import com.avail.descriptor.pojos.PojoDescriptor.newPojo
+import com.avail.descriptor.pojos.RawPojoDescriptor.identityPojo
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
 import com.avail.descriptor.types.A_Type
@@ -42,9 +42,9 @@ import com.avail.descriptor.types.PojoTypeDescriptor.pojoTypeForClass
 import com.avail.descriptor.types.PojoTypeDescriptor.unmarshal
 import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.MarshalingException
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.Private
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.primitive.pojos.PrimitiveHelper.marshalValues
 import com.avail.utility.MutableOrNull
 import java.lang.reflect.Constructor

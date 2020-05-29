@@ -38,9 +38,13 @@ import com.avail.compiler.problems.Problem
 import com.avail.persistence.Repository.ModuleVersion
 import com.avail.persistence.Repository.ModuleVersionKey
 import java.io.IOException
-import java.nio.file.*
+import java.nio.file.FileVisitOption
+import java.nio.file.FileVisitResult
 import java.nio.file.FileVisitResult.CONTINUE
 import java.nio.file.FileVisitResult.SKIP_SUBTREE
+import java.nio.file.FileVisitor
+import java.nio.file.Files
+import java.nio.file.Path
 import java.nio.file.attribute.BasicFileAttributes
 import java.util.*
 import java.util.Collections.sort

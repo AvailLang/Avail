@@ -31,7 +31,9 @@
  */
 package com.avail.compiler.splitter
 
-import com.avail.compiler.ParsingOperation.*
+import com.avail.compiler.ParsingOperation.DISCARD_SAVED_PARSE_POSITION
+import com.avail.compiler.ParsingOperation.ENSURE_PARSE_PROGRESS
+import com.avail.compiler.ParsingOperation.SAVE_PARSE_POSITION
 import com.avail.compiler.splitter.InstructionGenerator.Label
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter
 import com.avail.descriptor.phrases.A_Phrase
@@ -43,7 +45,7 @@ import java.util.Collections.unmodifiableList
 
 /**
  * An `Alternation` is a special [expression][Expression] indicated by
- * interleaved [vertical bars][Metacharacter.VERTICAL_BAR] between
+ * interleaved [vertical&#32;bars][Metacharacter.VERTICAL_BAR] between
  * [simples][Simple] and [simple groups][Group]. It may not contain
  * [arguments][Argument].
  *

@@ -44,11 +44,11 @@ import com.avail.descriptor.types.SetTypeDescriptor.setTypeForSizesContentType
 import com.avail.descriptor.types.TupleTypeDescriptor.stringType
 import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
 import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
-import com.avail.interpreter.execution.AvailLoader
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.ReadsFromHiddenGlobalState
+import com.avail.interpreter.execution.AvailLoader
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Look up every [true name][A_Atom] bound to the specified

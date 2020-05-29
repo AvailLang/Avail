@@ -37,14 +37,14 @@ import com.avail.builder.ModuleNameResolver;
 import com.avail.builder.ModuleRoots;
 import com.avail.builder.RenamesFileParser;
 import com.avail.builder.RenamesFileParserException;
-import com.avail.descriptor.module.A_Module;
-import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.atoms.A_Atom;
 import com.avail.descriptor.atoms.AtomDescriptor;
 import com.avail.descriptor.functions.A_Function;
 import com.avail.descriptor.functions.A_RawFunction;
 import com.avail.descriptor.maps.A_Map;
+import com.avail.descriptor.module.A_Module;
 import com.avail.descriptor.representation.A_BasicObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.interpreter.levelOne.L1InstructionWriter;
 import com.avail.interpreter.primitive.floats.P_FloatFloor;
@@ -67,15 +67,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import static com.avail.descriptor.character.CharacterDescriptor.fromCodePoint;
-import static com.avail.descriptor.module.ModuleDescriptor.newModule;
-import static com.avail.descriptor.representation.NilDescriptor.nil;
 import static com.avail.descriptor.atoms.AtomDescriptor.falseObject;
 import static com.avail.descriptor.atoms.AtomDescriptor.trueObject;
+import static com.avail.descriptor.character.CharacterDescriptor.fromCodePoint;
 import static com.avail.descriptor.functions.FunctionDescriptor.createFunction;
 import static com.avail.descriptor.maps.MapDescriptor.emptyMap;
+import static com.avail.descriptor.module.ModuleDescriptor.newModule;
 import static com.avail.descriptor.numbers.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.numbers.IntegerDescriptor.fromLong;
+import static com.avail.descriptor.representation.NilDescriptor.nil;
 import static com.avail.descriptor.sets.SetDescriptor.setFromCollection;
 import static com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList;
@@ -87,7 +87,9 @@ import static com.avail.utility.Nulls.stripNull;
 import static java.lang.Math.min;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
  * Unit tests for object serialization.

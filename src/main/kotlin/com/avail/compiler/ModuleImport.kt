@@ -34,14 +34,14 @@ package com.avail.compiler
 
 import com.avail.builder.ModuleName
 import com.avail.compiler.ModuleImport.Companion.fromSerializedTuple
-import com.avail.descriptor.module.A_Module
-import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.atoms.A_Atom.Companion.extractBoolean
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
 import com.avail.descriptor.maps.A_Map
 import com.avail.descriptor.maps.MapDescriptor
 import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
+import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor
@@ -61,8 +61,7 @@ import com.avail.serialization.MalformedSerialStreamException
  *
  * @property isExtension
  *   Whether this [ModuleImport] is due to an Extends clause rather than a
- *   `Uses` clause, as indicated by [module
- *   header][SpecialMethodAtom.MODULE_HEADER].
+ *   `Uses` clause, as indicated by [module&#32;header][SpecialMethodAtom.MODULE_HEADER].
  * @property wildcard
  *   Whether to include all names exported by the predecessor module that are
  *   not otherwise excluded by this import.

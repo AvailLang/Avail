@@ -38,11 +38,16 @@ import com.avail.descriptor.fiber.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.representation.AvailObject;
 import com.avail.exceptions.PrimitiveThrownException;
 import com.avail.interpreter.execution.Interpreter;
-import com.avail.utility.evaluation.Continuation0;
+import kotlin.Unit;
+import kotlin.jvm.functions.Function0;
 
 import javax.annotation.Nullable;
 
-import static com.avail.descriptor.fiber.FiberDescriptor.ExecutionState.*;
+import static com.avail.descriptor.fiber.FiberDescriptor.ExecutionState.ABORTED;
+import static com.avail.descriptor.fiber.FiberDescriptor.ExecutionState.RETIRED;
+import static com.avail.descriptor.fiber.FiberDescriptor.ExecutionState.RUNNING;
+import static com.avail.descriptor.fiber.FiberDescriptor.ExecutionState.SUSPENDED;
+import static com.avail.descriptor.fiber.FiberDescriptor.ExecutionState.TERMINATED;
 import static com.avail.descriptor.fiber.FiberDescriptor.SynchronizationFlag.BOUND;
 import static com.avail.descriptor.fiber.FiberDescriptor.SynchronizationFlag.SCHEDULED;
 
@@ -56,7 +61,7 @@ public final class AvailTask
 implements Comparable<AvailTask>, Runnable
 {
 	/** The action to perform for this task. */
-	private final Continuation0 body;
+	private final Function0<Unit> body;
 
 	/**
 	 * The priority of the {@linkplain AvailTask task}.  It must be a value in
@@ -83,11 +88,11 @@ implements Comparable<AvailTask>, Runnable
 	 *        The desired priority, a long tied to milliseconds since the
 	 *        current epoch.
 	 * @param body
-	 *        The {@link Continuation0} to execute for this task.
+	 *        The action to execute for this task.
 	 */
 	public AvailTask (
 		final int priority,
-		final Continuation0 body)
+		final Function0<Unit> body)
 	{
 		assert priority >= 0 && priority <= 255;
 		this.priority = priority;
@@ -98,25 +103,24 @@ implements Comparable<AvailTask>, Runnable
 
 	/**
 	 * Answer an {@code AvailTask} suitable for resuming the specified
-	 * {@linkplain FiberDescriptor fiber} using the specified {@linkplain
-	 * Continuation0 Java continuation}. If the continuation fails for any
-	 * reason, then it {@linkplain Interpreter#abortFiber() aborts} the fiber
-	 * and invokes the {@linkplain AvailObject#failureContinuation() failure
-	 * continuation} with the terminal {@linkplain Throwable throwable}.
+	 * {@linkplain FiberDescriptor fiber} using the specified action. If the
+	 * continuation fails for any reason, then it {@linkplain
+	 * Interpreter#abortFiber() aborts} the fiber and invokes the {@linkplain
+	 * AvailObject#failureContinuation() failure continuation} with the terminal
+	 * {@linkplain Throwable throwable}.
 	 *
 	 * @param fiber
 	 *        A fiber.
 	 * @param body
 	 *        What to do to resume execution of the fiber.
-	 * @return A {@link Continuation0} that sets the execution state of the
-	 *         fiber to {@linkplain ExecutionState#RUNNING running}, binds it to
-	 *         the running {@linkplain AvailThread thread}'s {@linkplain
-	 *         Interpreter interpreter}, and then runs the specified
-	 *         continuation.
+	 * @return An action that sets the execution state of the fiber to
+	 *         {@linkplain ExecutionState#RUNNING running}, binds it to the
+	 *         running {@linkplain AvailThread thread}'s {@linkplain Interpreter
+	 *         interpreter}, and then runs the specified continuation.
 	 */
-	public static Continuation0 forFiberResumption (
+	public static Function0<Unit> forFiberResumption (
 		final A_Fiber fiber,
-		final Continuation0 body)
+		final Function0<Unit> body)
 	{
 		assert fiber.executionState().indicatesSuspension();
 		final boolean scheduled =
@@ -137,10 +141,11 @@ implements Comparable<AvailTask>, Runnable
 				assert wasScheduled;
 				fiber.executionState(RUNNING);
 				interpreter.fiber(fiber, "forFiberResumption");
+				return Unit.INSTANCE;
 			});
 			try
 			{
-				body.value();
+				body.invoke();
 			}
 			catch (final PrimitiveThrownException e)
 			{
@@ -157,7 +162,7 @@ implements Comparable<AvailTask>, Runnable
 				{
 					fiber.executionState(ABORTED);
 				}
-				fiber.failureContinuation().value(e);
+				fiber.failureContinuation().invoke(e);
 				fiber.executionState(RETIRED);
 				interpreter.runtime().unregisterFiber(fiber);
 			}
@@ -170,12 +175,12 @@ implements Comparable<AvailTask>, Runnable
 			{
 				// This is the first point at which *some other* Thread may have
 				// had a chance to resume the fiber and update its state.
-				final @Nullable Continuation0 postExit =
-					interpreter.getPostExitContinuationAsContinuation0();
+				final @Nullable Function0<Unit> postExit =
+					interpreter.getPostExitContinuation();
 				if (postExit != null)
 				{
 					interpreter.postExitContinuation(null);
-					postExit.value();
+					postExit.invoke();
 				}
 			}
 			// If the fiber has terminated, then report its result via its
@@ -184,34 +189,36 @@ implements Comparable<AvailTask>, Runnable
 			{
 				if (fiber.executionState() == TERMINATED)
 				{
-					fiber.resultContinuation().value(fiber.fiberResult());
+					fiber.resultContinuation().invoke(fiber.fiberResult());
 					fiber.executionState(RETIRED);
 					interpreter.runtime().unregisterFiber(fiber);
 				}
+				return Unit.INSTANCE;
 			});
 			assert interpreter.fiberOrNull() == null;
+			return Unit.INSTANCE;
 		};
 	}
 
 	/**
-	 * Answer an {@code AvailTask} suitable for performing {@linkplain
-	 * Continuation0 activities} on behalf of an unbound {@linkplain
-	 * ExecutionState#SUSPENDED} {@linkplain FiberDescriptor fiber}. If the
-	 * continuation fails for any reason, then it transitions the fiber to the
-	 * {@linkplain ExecutionState#ABORTED aborted} state and invokes the fiber's
-	 * {@linkplain AvailObject#failureContinuation() failure continuation} with
-	 * the terminal {@linkplain Throwable throwable}.
+	 * Answer an {@code AvailTask} suitable for performing activities on behalf
+	 * of an unbound {@linkplain ExecutionState#SUSPENDED} {@linkplain
+	 * FiberDescriptor fiber}. If the continuation fails for any reason, then it
+	 * transitions the fiber to the {@linkplain ExecutionState#ABORTED aborted}
+	 * state and invokes the fiber's {@linkplain
+	 * AvailObject#failureContinuation() failure continuation} with the terminal
+	 * {@linkplain Throwable throwable}.
 	 *
 	 * @param fiber
 	 *        A fiber.
 	 * @param continuation
 	 *        What to do to on behalf of the unbound fiber.
-	 * @return A {@link Continuation0} that runs the provided continuation and
-	 *         handles any errors appropriately.
+	 * @return An action that runs the provided continuation and handles any
+	 *         errors appropriately.
 	 */
-	public static Continuation0 forUnboundFiber (
+	public static Function0<Unit> forUnboundFiber (
 		final A_Fiber fiber,
-		final Continuation0 continuation)
+		final Function0<Unit> continuation)
 	{
 		assert fiber.executionState() == SUSPENDED;
 		final boolean scheduled =
@@ -224,7 +231,7 @@ implements Comparable<AvailTask>, Runnable
 			assert wasScheduled;
 			try
 			{
-				continuation.value();
+				continuation.invoke();
 			}
 			catch (final Throwable e)
 			{
@@ -232,9 +239,10 @@ implements Comparable<AvailTask>, Runnable
 				// fiber and invoke its failure continuation with the
 				// throwable.
 				fiber.executionState(ABORTED);
-				fiber.failureContinuation().value(e);
+				fiber.failureContinuation().invoke(e);
 			}
 			assert Interpreter.current().fiberOrNull() == null;
+			return Unit.INSTANCE;
 		};
 	}
 
@@ -246,8 +254,7 @@ implements Comparable<AvailTask>, Runnable
 		// in a way we don't want.  Instead, assume a task doesn't sit in the
 		// queue for a century or two(!), and use a technically non-transitive
 		// comparison operation, checking if the difference is negative.
-		//noinspection SubtractionInCompareTo
-
+		// noinspection SubtractionInCompareTo
 		return Long.compare(quasiDeadline - other.quasiDeadline, 0);
 	}
 
@@ -256,7 +263,7 @@ implements Comparable<AvailTask>, Runnable
 	{
 		try
 		{
-			body.value();
+			body.invoke();
 		}
 		catch (final Throwable e)
 		{

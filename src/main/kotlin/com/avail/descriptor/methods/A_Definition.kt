@@ -31,10 +31,10 @@
  */
 package com.avail.descriptor.methods
 
-import com.avail.descriptor.module.A_Module
-import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.FunctionDescriptor
+import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.parsing.A_DefinitionParsingPlan
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject

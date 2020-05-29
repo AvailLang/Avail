@@ -31,15 +31,21 @@
  */
 package com.avail.descriptor.atoms
 
-import com.avail.annotations.AvailMethod
+import com.avail.descriptor.atoms.AtomWithPropertiesDescriptor.ObjectSlots.ISSUING_MODULE
+import com.avail.descriptor.atoms.AtomWithPropertiesDescriptor.ObjectSlots.NAME
+import com.avail.descriptor.atoms.AtomWithPropertiesDescriptor.ObjectSlots.PROPERTY_MAP_POJO
 import com.avail.descriptor.module.A_Module
-import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.representation.IndirectionDescriptor
 import com.avail.descriptor.module.ModuleDescriptor
+import com.avail.descriptor.pojos.RawPojoDescriptor.identityPojo
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AbstractSlotsEnum
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.BitField
+import com.avail.descriptor.representation.IndirectionDescriptor
+import com.avail.descriptor.representation.IntegerSlotsEnum
+import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
-import com.avail.descriptor.atoms.AtomWithPropertiesDescriptor.ObjectSlots.*
-import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
-import com.avail.descriptor.representation.*
+import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.types.TypeTag
 import com.avail.serialization.Serializer
@@ -176,7 +182,6 @@ open class AtomWithPropertiesDescriptor protected constructor(
 	 * Add or replace a property of this
 	 * [atom&#32;with&#32;properties][AtomDescriptor].
 	 */
-	@AvailMethod
 	override fun o_SetAtomProperty(
 		self: AvailObject,
 		key: A_Atom,
@@ -196,7 +201,6 @@ open class AtomWithPropertiesDescriptor protected constructor(
 	 * Extract the property value of this atom at the specified key.  Return
 	 * [nil] if no such property exists.
 	 */
-	@AvailMethod
 	override fun o_GetAtomProperty(
 		self: AvailObject,
 		key: A_Atom

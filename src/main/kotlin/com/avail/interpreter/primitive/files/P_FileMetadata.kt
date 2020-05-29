@@ -35,8 +35,8 @@ package com.avail.interpreter.primitive.files
 import com.avail.descriptor.atoms.A_Atom.Companion.extractBoolean
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
-import com.avail.descriptor.pojos.PojoDescriptor.Companion.newPojo
-import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.equalityPojo
+import com.avail.descriptor.pojos.PojoDescriptor.newPojo
+import com.avail.descriptor.pojos.RawPojoDescriptor.equalityPojo
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromArray
@@ -50,7 +50,9 @@ import com.avail.descriptor.types.PojoTypeDescriptor.mostGeneralPojoType
 import com.avail.descriptor.types.PojoTypeDescriptor.pojoTypeForClass
 import com.avail.descriptor.types.TupleTypeDescriptor.stringType
 import com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType
-import com.avail.exceptions.AvailErrorCode.*
+import com.avail.exceptions.AvailErrorCode.E_INVALID_PATH
+import com.avail.exceptions.AvailErrorCode.E_IO_ERROR
+import com.avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect

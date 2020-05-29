@@ -41,7 +41,7 @@ import com.avail.io.NybbleOutputStream
 
 /**
  * This instruction build a [function][FunctionDescriptor] from
- * [compiled code][CompiledCodeDescriptor] and some pushed variables.
+ * [compiled&#32;code][CompiledCodeDescriptor] and some pushed variables.
  *
  * @property numCopiedVars
  *   The number of variables that have been pushed on the stack to be captured

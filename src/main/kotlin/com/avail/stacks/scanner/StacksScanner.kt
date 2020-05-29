@@ -906,7 +906,7 @@ class StacksScanner constructor (commentToken: A_Token, moduleName: String)
 		 * @param linkingFileMap
 		 *   A map for all the files for Stacks
 		 * @return A [List] of all tokenized words in the
-		 *   [Avail comment][CommentTokenDescriptor].
+		 *   [Avail&#32;comment][CommentTokenDescriptor].
 		 * @throws StacksScannerException If scanning fails.
 		 * @throws StacksCommentBuilderException
 		 */

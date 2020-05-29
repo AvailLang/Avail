@@ -58,8 +58,7 @@ import java.util.*
  * [group][Group]. It may not contain [arguments][Argument] or subgroups, though
  * it may contain a [double dagger][Metacharacter.DOUBLE_DAGGER].
  *
- * When a double dagger appears in a counter, the counter produces a [whole
- * number][IntegerRangeTypeDescriptor.wholeNumbers] that indicates the number of
+ * When a double dagger appears in a counter, the counter produces a [whole&#32;number][IntegerRangeTypeDescriptor.wholeNumbers] that indicates the number of
  * occurrences of the subexpression to the left of the double dagger. The
  * message "«very‡,»#good" accepts a single argument: the count of occurrences
  * of "very".

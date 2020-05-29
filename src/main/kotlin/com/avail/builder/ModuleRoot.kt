@@ -72,7 +72,7 @@ class ModuleRoot
 	val sourceDirectory: File?)
 {
 	/**
-	 * The [indexed repository][Repository] that contains compiled
+	 * The [indexed&#32;repository][Repository] that contains compiled
 	 * [modules][ModuleDescriptor] for this [root][ModuleRoot].
 	 */
 	val repository: Repository = Repository(name, repository)
@@ -83,8 +83,9 @@ class ModuleRoot
 	fun clearRepository() = repository.clear()
 
 	/**
-	 * Write the [binary][Repository.fileName] and the [source
-	 * module][sourceDirectory] (respectively) into a new JSON array.
+	 * Write the [binary][Repository.fileName] and the
+	 * [source&#32;module][sourceDirectory] (respectively) into a new JSON
+	 * array.
 	 *
 	 * @param writer
 	 *   A [JSONWriter].
