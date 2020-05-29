@@ -32,11 +32,11 @@
 package com.avail.interpreter.primitive.files
 
 import com.avail.AvailRuntime.currentRuntime
-import com.avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
 import com.avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
 import com.avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.FILE_KEY
+import com.avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.A_Tuple
@@ -55,7 +55,11 @@ import com.avail.descriptor.types.IntegerRangeTypeDescriptor.naturalNumbers
 import com.avail.descriptor.types.TupleTypeDescriptor.oneOrMoreOf
 import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
-import com.avail.exceptions.AvailErrorCode.*
+import com.avail.exceptions.AvailErrorCode.E_EXCEEDS_VM_LIMIT
+import com.avail.exceptions.AvailErrorCode.E_INVALID_HANDLE
+import com.avail.exceptions.AvailErrorCode.E_IO_ERROR
+import com.avail.exceptions.AvailErrorCode.E_NOT_OPEN_FOR_WRITE
+import com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect

@@ -57,8 +57,12 @@ import com.avail.interpreter.levelTwo.register.L2FloatRegister
 import com.avail.interpreter.levelTwo.register.L2IntRegister
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuation
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments
-import com.avail.optimizer.*
+import com.avail.optimizer.ExecutableChunk
+import com.avail.optimizer.L1Translator
+import com.avail.optimizer.L2BasicBlock
+import com.avail.optimizer.L2ControlFlowGraph
 import com.avail.optimizer.L2ControlFlowGraph.ZoneType
+import com.avail.optimizer.StackReifier
 import com.avail.optimizer.jvm.JVMChunk
 import com.avail.optimizer.jvm.JVMTranslator
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
@@ -635,9 +639,9 @@ class L2Chunk private constructor(
 			code?.methodName()?.asNativeString() ?: "«default»"
 
 		/**
-		 * Return the number of times to invoke a [compiled
-		 * code][CompiledCodeDescriptor] object, *after an invalidation*, before
-		 * attempting to optimize it again.
+		 * Return the number of times to invoke a
+		 * [compiled&#32;code][CompiledCodeDescriptor] object, *after an
+		 * invalidation*, before attempting to optimize it again.
 		 *
 		 * @return
 		 *   The number of invocations before post-invalidate reoptimization.
@@ -645,9 +649,9 @@ class L2Chunk private constructor(
 		private fun countdownForInvalidatedCode(): Int = 200
 
 		/**
-		 * Return the number of times to invoke a [compiled
-		 * code][CompiledCodeDescriptor] object, *after creation*, before
-		 * attempting to optimize it for the first time.
+		 * Return the number of times to invoke a
+		 * [compiled&#32;code][CompiledCodeDescriptor] object, *after creation*,
+		 * before attempting to optimize it for the first time.
 		 *
 		 * @return
 		 *   The number of invocations before initial optimization.
@@ -655,9 +659,10 @@ class L2Chunk private constructor(
 		fun countdownForNewCode(): Int = 1
 
 		/**
-		 * Return the number of times to invoke a [compiled
-		 * code][CompiledCodeDescriptor] object, *after optimization*, before
-		 * attempting to optimize it again with more effort.
+		 * Return the number of times to invoke a
+		 * [compiled&#32;code][CompiledCodeDescriptor] object, *after
+		 * optimization*, before attempting to optimize it again with more
+		 * effort.
 		 *
 		 * @return
 		 *   The number of invocations before attempting to improve the
@@ -771,9 +776,9 @@ class L2Chunk private constructor(
 
 		/**
 		 * The special [level two chunk][L2Chunk] that is used to interpret
-		 * level one nybblecodes until a piece of [compiled
-		 * code][CompiledCodeDescriptor] has been executed some number of times
-		 * (specified in [countdownForNewCode]).
+		 * level one nybblecodes until a piece of
+		 * [compiled&#32;code][CompiledCodeDescriptor] has been executed some
+		 * number of times (specified in [countdownForNewCode]).
 		 */
 		@JvmField
 		@ReferencedInGeneratedCode

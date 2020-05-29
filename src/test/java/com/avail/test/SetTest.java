@@ -39,7 +39,9 @@ import org.junit.jupiter.api.Test;
 import static com.avail.descriptor.numbers.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.sets.SetDescriptor.emptySet;
 import static com.avail.descriptor.tuples.SmallIntegerIntervalTupleDescriptor.createSmallInterval;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * A test of SetDescriptor.

@@ -40,7 +40,7 @@ import java.io.File
 /**
  * A `ResolvedModuleName` represents the canonical name of an Avail
  * [module][ModuleDescriptor] that has been resolved to an
- * [absolute][File.isAbsolute] [file reference][File].
+ * [absolute][File.isAbsolute] [file&#32;reference][File].
  *
  * @property moduleRoots
  *   The [ModuleRoots] in which to look up the root name.

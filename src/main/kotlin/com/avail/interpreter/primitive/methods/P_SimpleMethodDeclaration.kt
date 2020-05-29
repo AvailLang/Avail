@@ -32,10 +32,10 @@
 package com.avail.interpreter.primitive.methods
 
 import com.avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
-import com.avail.descriptor.module.ModuleDescriptor
-import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor
+import com.avail.descriptor.module.ModuleDescriptor
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.tuples.StringDescriptor.stringFrom
@@ -45,11 +45,19 @@ import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.FunctionTypeDescriptor.mostGeneralFunctionType
 import com.avail.descriptor.types.TupleTypeDescriptor.stringType
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
-import com.avail.exceptions.AvailErrorCode.*
+import com.avail.exceptions.AvailErrorCode.E_AMBIGUOUS_NAME
+import com.avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
+import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
+import com.avail.exceptions.AvailErrorCode.E_METHOD_IS_SEALED
+import com.avail.exceptions.AvailErrorCode.E_METHOD_RETURN_TYPE_NOT_AS_FORWARD_DECLARED
+import com.avail.exceptions.AvailErrorCode.E_REDEFINED_WITH_SAME_ARGUMENT_TYPES
+import com.avail.exceptions.AvailErrorCode.E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS
 import com.avail.exceptions.AvailException
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.Bootstrap
+import com.avail.interpreter.Primitive.Flag.CanSuspend
+import com.avail.interpreter.Primitive.Flag.Unknown
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Add a method definition, given a string for which to look up

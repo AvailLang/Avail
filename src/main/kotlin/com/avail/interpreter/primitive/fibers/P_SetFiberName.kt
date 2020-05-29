@@ -40,10 +40,12 @@ import com.avail.descriptor.types.FiberTypeDescriptor.mostGeneralFiberType
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.TupleTypeDescriptor.stringType
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
-import java.util.function.Supplier
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Set the name of the specified [fiber][FiberDescriptor].
@@ -59,7 +61,7 @@ object P_SetFiberName : Primitive(
 		interpreter.checkArgumentCount(2)
 		val fiber = interpreter.argument(0)
 		val name = interpreter.argument(1)
-		fiber.fiberNameSupplier(Supplier { name })
+		fiber.fiberNameSupplier { name }
 		return interpreter.primitiveSuccess(nil)
 	}
 

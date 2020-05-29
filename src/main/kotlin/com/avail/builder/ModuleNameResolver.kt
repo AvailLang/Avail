@@ -41,8 +41,8 @@ import java.util.*
 
 /**
  * A `ModuleNameResolver` resolves fully-qualified references to Avail
- * [modules][ModuleDescriptor] to [absolute][File.isAbsolute] [file
- * references][File].
+ * [modules][ModuleDescriptor] to [absolute][File.isAbsolute]
+ * [file references][File].
  *
  * Assuming that the Avail module path comprises four module roots listed in the
  * order _S_, _P_,_Q_, _R_, then the following algorithm is used for resolution
@@ -142,13 +142,13 @@ class ModuleNameResolver constructor(val moduleRoots: ModuleRoots)
 
 	/**
 	 * Answer the canonical name that should be used in place of the
-	 * fully-qualified [module name][ModuleName].
+	 * fully-qualified [module&#32;name][ModuleName].
 	 *
 	 * @param qualifiedName
 	 *   A fully-qualified [module name][ModuleName].
 	 * @return
 	 *   The canonical name that should be used in place of the fully-qualified
-	 *   [module name][ModuleName].
+	 *   [module&#32;name][ModuleName].
 	 */
 	private fun canonicalNameFor(qualifiedName: ModuleName): ModuleName
 	{
@@ -372,8 +372,8 @@ class ModuleNameResolver constructor(val moduleRoots: ModuleRoots)
 	}
 
 	/**
-	 * Resolve a fully-qualified module name (as a reference to the [local
-	 * name][ModuleName.localName] made from within the
+	 * Resolve a fully-qualified module name (as a reference to the
+	 * [local&#32;name][ModuleName.localName] made from within the
 	 * [package][ModuleName.packageName]).
 	 *
 	 * @param qualifiedName

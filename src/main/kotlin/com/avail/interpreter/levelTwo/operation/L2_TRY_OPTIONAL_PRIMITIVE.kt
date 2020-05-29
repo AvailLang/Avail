@@ -40,7 +40,9 @@ import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.L2Chunk
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2Operation
-import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.*
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_CONTINUATION
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_FUNCTION
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.LATEST_RETURN_VALUE
 import com.avail.interpreter.levelTwo.ReadsHiddenVariable
 import com.avail.optimizer.L2Generator
 import com.avail.optimizer.RegisterSet

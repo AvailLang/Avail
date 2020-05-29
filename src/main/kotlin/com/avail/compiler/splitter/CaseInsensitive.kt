@@ -39,8 +39,7 @@ import com.avail.exceptions.SignatureException
 
 /**
  * `CaseInsensitive` is a special decorator [expression][Expression] that causes
- * the decorated expression's keywords to generate [parse
- * instructions][ParsingOperation] that cause case insensitive parsing. It is
+ * the decorated expression's keywords to generate [parse&#32;instructions][ParsingOperation] that cause case insensitive parsing. It is
  * indicated by a trailing [tilde][Metacharacter.TILDE] ("~").
  *
  * @property expression

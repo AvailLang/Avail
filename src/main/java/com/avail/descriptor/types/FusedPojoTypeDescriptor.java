@@ -32,10 +32,8 @@
 
 package com.avail.descriptor.types;
 
-import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.ThreadSafe;
-import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.maps.A_Map;
@@ -45,6 +43,7 @@ import com.avail.descriptor.pojos.PojoDescriptor;
 import com.avail.descriptor.pojos.RawPojoDescriptor;
 import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.representation.AbstractSlotsEnum;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.representation.BitField;
 import com.avail.descriptor.representation.Mutability;
 import com.avail.descriptor.sets.SetDescriptor;
@@ -61,14 +60,16 @@ import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.List;
 
-import static com.avail.descriptor.representation.NilDescriptor.nil;
 import static com.avail.descriptor.maps.MapDescriptor.emptyMap;
+import static com.avail.descriptor.representation.NilDescriptor.nil;
 import static com.avail.descriptor.tuples.StringDescriptor.stringFrom;
 import static com.avail.descriptor.tuples.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.types.BottomPojoTypeDescriptor.pojoBottom;
 import static com.avail.descriptor.types.FusedPojoTypeDescriptor.IntegerSlots.HASH_AND_MORE;
 import static com.avail.descriptor.types.FusedPojoTypeDescriptor.IntegerSlots.HASH_OR_ZERO;
-import static com.avail.descriptor.types.FusedPojoTypeDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.types.FusedPojoTypeDescriptor.ObjectSlots.JAVA_ANCESTORS;
+import static com.avail.descriptor.types.FusedPojoTypeDescriptor.ObjectSlots.SELF_TYPE;
+import static com.avail.descriptor.types.FusedPojoTypeDescriptor.ObjectSlots.TYPE_VARIABLES;
 import static com.avail.descriptor.types.SelfPojoTypeDescriptor.newSelfPojoType;
 import static com.avail.descriptor.types.UnfusedPojoTypeDescriptor.createUnfusedPojoType;
 import static java.lang.reflect.Modifier.isFinal;
@@ -215,7 +216,7 @@ extends PojoTypeDescriptor
 		return hash;
 	}
 
-	@Override @AvailMethod
+	@Override
 	public int o_Hash (final AvailObject object)
 	{
 		if (isShared())
@@ -234,7 +235,7 @@ extends PojoTypeDescriptor
 		return true;
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsPojoArrayType (final AvailObject object)
 	{
 		return false;
@@ -303,7 +304,7 @@ extends PojoTypeDescriptor
 		return pojoSelfType(object);
 	}
 
-	@Override @AvailMethod @ThreadSafe
+	@Override @ThreadSafe
 	public SerializerOperation o_SerializerOperation (
 		final AvailObject object)
 	{

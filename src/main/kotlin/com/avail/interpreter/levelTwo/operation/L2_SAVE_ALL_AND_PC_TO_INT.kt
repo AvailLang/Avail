@@ -180,7 +180,7 @@ object L2_SAVE_ALL_AND_PC_TO_INT : L2Operation(
 	 * The conversion of the edge to an int occurs very late, in
 	 * [translateToJVM], as does the decision about which registers should be
 	 * captured in the register dump – and restored when the [L2_ENTER_L2_CHUNK]
-	 * at  the referenced edge's target is reached.
+	 * at the referenced edge's target is reached.
 	 *
 	 * @param instruction
 	 *   The instruction from which to extract the reference edge.

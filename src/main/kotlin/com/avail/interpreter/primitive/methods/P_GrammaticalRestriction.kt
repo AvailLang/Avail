@@ -49,13 +49,15 @@ import com.avail.descriptor.types.TupleTypeDescriptor.stringType
 import com.avail.descriptor.types.TupleTypeDescriptor.zeroOrMoreOf
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AmbiguousNameException
-import com.avail.exceptions.AvailErrorCode.*
+import com.avail.exceptions.AvailErrorCode.E_AMBIGUOUS_NAME
+import com.avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
+import com.avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
+import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import com.avail.exceptions.MalformedMessageException
 import com.avail.exceptions.SignatureException
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.Unknown
-import java.util.function.Function
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Message precedence declaration with [tuple][TupleDescriptor]

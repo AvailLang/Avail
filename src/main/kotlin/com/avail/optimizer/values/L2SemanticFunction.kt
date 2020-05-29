@@ -43,11 +43,12 @@ package com.avail.optimizer.values
  * @param frame
  *   The frame for which this represents the invoked function.
  */
+@Suppress("EqualsOrHashCode")
 internal class L2SemanticFunction constructor(frame: Frame)
 	: L2FrameSpecificSemanticValue(frame, -0xe519ffd)
 {
-	override fun equals(obj: Any?): Boolean =
-		obj is L2SemanticFunction && super.equals(obj)
+	override fun equals(other: Any?): Boolean =
+		other is L2SemanticFunction && super.equals(other)
 
 	override fun transform(
 		semanticValueTransformer: (L2SemanticValue) -> L2SemanticValue,

@@ -31,14 +31,16 @@
  */
 package com.avail.descriptor.methods
 
-import com.avail.annotations.AvailMethod
 import com.avail.annotations.HideFieldJustForPrinting
-import com.avail.descriptor.module.A_Module
-import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.FunctionDescriptor
-import com.avail.descriptor.methods.MacroDefinitionDescriptor.ObjectSlots.*
+import com.avail.descriptor.methods.MacroDefinitionDescriptor.ObjectSlots.BODY_BLOCK
+import com.avail.descriptor.methods.MacroDefinitionDescriptor.ObjectSlots.DEFINITION_METHOD
+import com.avail.descriptor.methods.MacroDefinitionDescriptor.ObjectSlots.MACRO_PREFIX_FUNCTIONS
+import com.avail.descriptor.methods.MacroDefinitionDescriptor.ObjectSlots.MODULE
+import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.phrases.ListPhraseDescriptor
 import com.avail.descriptor.phrases.PhraseDescriptor
 import com.avail.descriptor.representation.AvailObject
@@ -131,25 +133,21 @@ class MacroDefinitionDescriptor private constructor(
 		}
 	}
 
-	@AvailMethod
 	override fun o_BodyBlock(self: AvailObject): A_Function =
 		self.slot(BODY_BLOCK)
 
-	@AvailMethod
 	override fun o_BodySignature(self: AvailObject): A_Type =
 		self.slot(BODY_BLOCK).kind()
 
-	@AvailMethod
 	override fun o_Hash(self: AvailObject): Int =
 		self.bodyBlock().hash() xor 0x67f6ec56 + 0x0AFB0E62
 
-	@AvailMethod
 	override fun o_IsMacroDefinition(self: AvailObject) = true
 
-	@AvailMethod
 	override fun o_Kind(self: AvailObject): A_Type = Types.MACRO_DEFINITION.o()
 
-	override fun o_ParsingSignature(self: AvailObject): A_Type {
+	override fun o_ParsingSignature(self: AvailObject): A_Type
+	{
 		// A macro definition's parsing signature is a list phrase type whose
 		// covariant subexpressions type is the body block's kind's arguments
 		// type.

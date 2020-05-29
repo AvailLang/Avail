@@ -32,11 +32,11 @@
 
 package com.avail.interpreter.primitive.variables
 
+import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.descriptor.fiber.FiberDescriptor.TraceFlag
-import com.avail.descriptor.representation.NilDescriptor.Companion.nil
-import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.functions.FunctionDescriptor
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
@@ -48,15 +48,13 @@ import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.descriptor.variables.A_Variable
 import com.avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
 import com.avail.exceptions.AvailErrorCode.E_ILLEGAL_TRACE_MODE
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
 import com.avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
+import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Disable variable [read-before-write
- * tracing][TraceFlag.TRACE_VARIABLE_READS_BEFORE_WRITES] for the [current
- * fiber][FiberDescriptor.currentFiber]. To each [variable][A_Variable] that
+ * **Primitive:** Disable variable [read-before-write&#32;tracing][TraceFlag.TRACE_VARIABLE_READS_BEFORE_WRITES] for the [current&#32;fiber][FiberDescriptor.currentFiber]. To each [variable][A_Variable] that
  * survived tracing, add a [write reactor][VariableAccessReactor] that wraps the
  * specified [function][FunctionDescriptor], associating it with the specified
  * [atom][A_Atom] (for potential pre-activation removal).

@@ -35,10 +35,10 @@ package com.avail.io
 import com.avail.AvailRuntime
 import com.avail.AvailRuntimeConfiguration.availableProcessors
 import com.avail.AvailThread
-import com.avail.descriptor.representation.AvailObject.Companion.multiplier
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom
 import com.avail.descriptor.pojos.PojoDescriptor
+import com.avail.descriptor.representation.AvailObject.Companion.multiplier
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.utility.LRUCache
@@ -49,10 +49,22 @@ import java.nio.channels.AsynchronousChannelGroup
 import java.nio.channels.AsynchronousFileChannel
 import java.nio.channels.AsynchronousServerSocketChannel
 import java.nio.channels.AsynchronousSocketChannel
-import java.nio.file.*
+import java.nio.file.FileSystem
+import java.nio.file.FileSystems
+import java.nio.file.LinkOption
+import java.nio.file.OpenOption
+import java.nio.file.Path
 import java.nio.file.attribute.FileAttribute
 import java.nio.file.attribute.PosixFilePermission
-import java.nio.file.attribute.PosixFilePermission.*
+import java.nio.file.attribute.PosixFilePermission.GROUP_EXECUTE
+import java.nio.file.attribute.PosixFilePermission.GROUP_READ
+import java.nio.file.attribute.PosixFilePermission.GROUP_WRITE
+import java.nio.file.attribute.PosixFilePermission.OTHERS_EXECUTE
+import java.nio.file.attribute.PosixFilePermission.OTHERS_READ
+import java.nio.file.attribute.PosixFilePermission.OTHERS_WRITE
+import java.nio.file.attribute.PosixFilePermission.OWNER_EXECUTE
+import java.nio.file.attribute.PosixFilePermission.OWNER_READ
+import java.nio.file.attribute.PosixFilePermission.OWNER_WRITE
 import java.util.*
 import java.util.Collections.synchronizedMap
 import java.util.concurrent.LinkedBlockingQueue
@@ -76,8 +88,9 @@ import java.util.concurrent.TimeUnit
 class IOSystem constructor(val runtime: AvailRuntime)
 {
 	/**
-	 * The [thread pool executor][ThreadPoolExecutor] for asynchronous file
-	 * operations performed on behalf of this [Avail runtime][AvailRuntime].
+	 * The [thread&#32;pool&#32;executor][ThreadPoolExecutor] for asynchronous
+	 * file operations performed on behalf of this
+	 * [Avail&#32;runtime][AvailRuntime].
 	 */
 	private val fileExecutor = ThreadPoolExecutor(
 		availableProcessors,
@@ -89,8 +102,9 @@ class IOSystem constructor(val runtime: AvailRuntime)
 		CallerRunsPolicy())
 
 	/**
-	 * The [thread pool executor][ThreadPoolExecutor] for asynchronous socket
-	 * operations performed on behalf of this [Avail runtime][AvailRuntime].
+	 * The [thread&#32;pool&#32;executor][ThreadPoolExecutor] for asynchronous
+	 * socket operations performed on behalf of this
+	 * [Avail&#32;runtime][AvailRuntime].
 	 */
 	private val socketExecutor = ThreadPoolExecutor(
 		availableProcessors,
@@ -102,9 +116,9 @@ class IOSystem constructor(val runtime: AvailRuntime)
 		CallerRunsPolicy())
 
 	/**
-	 * The [asynchronous channel group][AsynchronousChannelGroup] that manages
-	 * [asynchronous socket][AsynchronousSocketChannel] on behalf of this
-	 * [Avail runtime][AvailRuntime].
+	 * The [asynchronous&#32;channel&#32;group][AsynchronousChannelGroup] that
+	 * manages [asynchronous&#32;socket][AsynchronousSocketChannel] on behalf of
+	 * this [Avail&#32;runtime][AvailRuntime].
 	 */
 	private val socketGroup: AsynchronousChannelGroup
 
@@ -160,10 +174,10 @@ class IOSystem constructor(val runtime: AvailRuntime)
 
 	/**
 	 * Schedule the specified [task][Runnable] for eventual execution by the
-	 * [thread pool executor][ThreadPoolExecutor] for asynchronous socket
-	 * operations. The implementation is free to run the task immediately or
-	 * delay its execution arbitrarily. The task will not execute on an
-	 * [Avail thread][AvailThread].
+	 * [thread&#32;pool&#32;executor][ThreadPoolExecutor] for asynchronous
+	 * socket operations. The implementation is free to run the task immediately
+	 * or delay its execution arbitrarily. The task will not execute on an
+	 * [Avail&#32;thread][AvailThread].
 	 *
 	 * @param task A task.
 	 */
@@ -275,7 +289,7 @@ class IOSystem constructor(val runtime: AvailRuntime)
 	 * @property alignment
 	 *   The buffer alignment for the file.  Reading is only ever attempted on
 	 *   this file at buffer boundaries.  There is a
-	 *   [global file buffer cache][getBuffer], which is an
+	 *   [global&#32;file&#32;buffer&#32;cache][getBuffer], which is an
 	 *   [LRUCache] of buffers across all open files.  Each buffer in the cache
 	 *   has a length exactly equal to that file handle's alignment. A file
 	 *   will often have a partial buffer at the end due to its size not being
@@ -411,12 +425,12 @@ class IOSystem constructor(val runtime: AvailRuntime)
 		val fileSystem: FileSystem = FileSystems.getDefault()
 
 		/**
-		 * The [link options][LinkOption] for following symbolic links.
+		 * The [link&#32;options][LinkOption] for following symbolic links.
 		 */
 		private val followSymlinks = arrayOf<LinkOption>()
 
 		/**
-		 * The [link options][LinkOption] for forbidding traversal of
+		 * The [link&#32;options][LinkOption] for forbidding traversal of
 		 * symbolic links.
 		 */
 		private val doNotFollowSymbolicLinks =
@@ -436,7 +450,7 @@ class IOSystem constructor(val runtime: AvailRuntime)
 			if (shouldFollow) followSymlinks else doNotFollowSymbolicLinks
 
 		/**
-		 * The [POSIX file permissions][PosixFilePermission]. *The order of
+		 * The [POSIX&#32;file&#32;permissions][PosixFilePermission]. *The order of
 		 * these elements should not be changed!*
 		 */
 		@JvmStatic

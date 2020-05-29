@@ -44,14 +44,19 @@ import com.avail.descriptor.types.TupleTypeDescriptor.zeroOrMoreOf
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.descriptor.types.VariableTypeDescriptor.variableTypeFor
 import com.avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithOuterType
-import com.avail.exceptions.AvailErrorCode.*
-import com.avail.interpreter.execution.Interpreter
+import com.avail.exceptions.AvailErrorCode.E_HANDLER_SENTINEL
+import com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
+import com.avail.exceptions.AvailErrorCode.E_REQUIRED_FAILURE
+import com.avail.exceptions.AvailErrorCode.E_UNWIND_SENTINEL
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CatchException
+import com.avail.interpreter.Primitive.Flag.PreserveArguments
+import com.avail.interpreter.Primitive.Flag.PreserveFailureVariable
+import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Always fail. The Avail failure code invokes the [body
- * block][FunctionDescriptor]. A handler block is only invoked when an exception
+ * **Primitive:** Always fail. The Avail failure code invokes the [body&#32;block][FunctionDescriptor]. A handler block is only invoked when an exception
  * is raised.
  */
 object P_CatchException : Primitive(

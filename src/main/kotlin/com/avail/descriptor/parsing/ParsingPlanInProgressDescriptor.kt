@@ -31,11 +31,9 @@
  */
 package com.avail.descriptor.parsing
 
-import com.avail.annotations.AvailMethod
 import com.avail.compiler.AvailCompilerFragmentCache
 import com.avail.compiler.ParsingOperation
 import com.avail.compiler.ParsingOperation.Companion.decode
-import com.avail.descriptor.Descriptor
 import com.avail.descriptor.bundles.A_Bundle.Companion.messageSplitter
 import com.avail.descriptor.bundles.MessageBundleTreeDescriptor
 import com.avail.descriptor.methods.A_Definition
@@ -48,8 +46,15 @@ import com.avail.descriptor.parsing.A_ParsingPlanInProgress.Companion.parsingPc
 import com.avail.descriptor.parsing.A_ParsingPlanInProgress.Companion.parsingPlan
 import com.avail.descriptor.parsing.ParsingPlanInProgressDescriptor.IntegerSlots.Companion.PARSING_PC
 import com.avail.descriptor.parsing.ParsingPlanInProgressDescriptor.ObjectSlots.PARSING_PLAN
-import com.avail.descriptor.representation.*
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AbstractDescriptor
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.AvailObject.Companion.multiplier
+import com.avail.descriptor.representation.BitField
+import com.avail.descriptor.representation.Descriptor
+import com.avail.descriptor.representation.IntegerSlotsEnum
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.descriptor.types.TypeTag
@@ -116,7 +121,6 @@ class ParsingPlanInProgressDescriptor private constructor(
 	override fun o_ParsingPlan(self: AvailObject): A_DefinitionParsingPlan =
 		self.slot(PARSING_PLAN)
 
-	@AvailMethod
 	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean {
 		if (!another.kind().equals(Types.PARSING_PLAN_IN_PROGRESS.o())) {
 			return false
@@ -126,12 +130,10 @@ class ParsingPlanInProgressDescriptor private constructor(
 			&& self.slot(PARSING_PC) == strongAnother.parsingPc())
 	}
 
-	@AvailMethod
 	override fun o_Hash(self: AvailObject): Int =
 		((self.slot(PARSING_PC) xor -0x6d5d9ebe) * multiplier
 			- self.slot(PARSING_PLAN).hash())
 
-	@AvailMethod
 	override fun o_Kind(self: AvailObject): A_Type =
 		Types.PARSING_PLAN_IN_PROGRESS.o()
 
@@ -156,8 +158,8 @@ class ParsingPlanInProgressDescriptor private constructor(
 	 * @return
 	 *   The annotated method name, a Java [String].
 	 */
-	@AvailMethod
-	override fun o_NameHighlightingPc(self: AvailObject): String {
+	override fun o_NameHighlightingPc(self: AvailObject): String
+	{
 		val plan: A_DefinitionParsingPlan = self.slot(PARSING_PLAN)
 		val pc = self.slot(PARSING_PC)
 		return when {
@@ -169,22 +171,23 @@ class ParsingPlanInProgressDescriptor private constructor(
 
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
-		aStream: StringBuilder,
+		builder: StringBuilder,
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int
-	) {
-		aStream.append("plan @")
-		aStream.append(self.parsingPc())
-		aStream.append(" of ")
-		aStream.append(self.nameHighlightingPc())
+	) = with(builder) {
+		append("plan @")
+		append(self.parsingPc())
+		append(" of ")
+		append(self.nameHighlightingPc())
+		return@with
 	}
 
-	override fun mutable(): ParsingPlanInProgressDescriptor = mutable
+	override fun mutable(): AbstractDescriptor = mutable
 
 	// There is no immutable variant.
-	override fun immutable(): ParsingPlanInProgressDescriptor = shared
+	override fun immutable(): AbstractDescriptor = shared
 
-	override fun shared(): ParsingPlanInProgressDescriptor = shared
+	override fun shared(): AbstractDescriptor = shared
 
 	companion object {
 		/**

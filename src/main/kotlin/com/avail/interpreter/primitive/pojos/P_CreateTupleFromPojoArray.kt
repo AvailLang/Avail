@@ -41,12 +41,11 @@ import com.avail.descriptor.types.PojoTypeDescriptor
 import com.avail.descriptor.types.PojoTypeDescriptor.mostGeneralPojoArrayType
 import com.avail.descriptor.types.PojoTypeDescriptor.unmarshal
 import com.avail.descriptor.types.TupleTypeDescriptor.mostGeneralTupleType
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.execution.Interpreter
 import java.lang.reflect.Array
-import java.util.function.Supplier
 
 /**
  * **Primitive:** Convert the specified
@@ -55,6 +54,7 @@ import java.util.function.Supplier
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_CreateTupleFromPojoArray : Primitive(1, CanInline, CannotFail)
 {
 	override fun attempt(interpreter: Interpreter): Result
@@ -62,14 +62,14 @@ object P_CreateTupleFromPojoArray : Primitive(1, CanInline, CannotFail)
 		interpreter.checkArgumentCount(1)
 		val array = interpreter.argument(0)
 		// Hold a lock on the array while accessing it.
-		val tuple = array.lock( Supplier {
+		val tuple = array.lock {
 			val rawArray = array.rawPojo().javaObjectNotNull<Any>()
 			generateObjectTupleFrom(Array.getLength(rawArray)) {
 				unmarshal(
 					Array.get(rawArray, it - 1),
 					array.kind().contentType())
 			}
-		})
+		}
 		return interpreter.primitiveSuccess(tuple)
 	}
 

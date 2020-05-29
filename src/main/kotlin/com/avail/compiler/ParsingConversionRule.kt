@@ -83,8 +83,8 @@ enum class ParsingConversionRule constructor(val number: Int)
 	},
 
 	/**
-	 * `1` - Convert a [list][ListPhraseDescriptor] into a [literal
-	 * phrase][LiteralPhraseDescriptor] that yields an
+	 * `1` - Convert a [list][ListPhraseDescriptor] into a
+	 * [literal&#32;phrase][LiteralPhraseDescriptor] that yields an
 	 * [integer][IntegerDescriptor] representing the
 	 * [size][AvailObject.tupleSize] of the original list.
 	 */

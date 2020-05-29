@@ -33,14 +33,29 @@
 package com.avail.test;
 
 import com.avail.AvailRuntime;
-import com.avail.builder.*;
+import com.avail.builder.AvailBuilder;
+import com.avail.builder.ModuleName;
+import com.avail.builder.ModuleNameResolver;
+import com.avail.builder.ModuleRoot;
+import com.avail.builder.ModuleRoots;
+import com.avail.builder.RenamesFileParser;
+import com.avail.builder.RenamesFileParserException;
+import com.avail.builder.ResolvedModuleName;
+import com.avail.builder.UnresolvedDependencyException;
 import com.avail.io.TextInterface;
 import com.avail.io.TextOutputChannel;
 import com.avail.utility.IO;
 import kotlin.Unit;
 
 import javax.annotation.Nullable;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.StringReader;
 import java.nio.CharBuffer;
 import java.nio.channels.CompletionHandler;
 import java.nio.charset.StandardCharsets;

@@ -50,7 +50,7 @@ import java.util.concurrent.TimeUnit
 interface TransportAdapter<T> : AutoCloseable
 {
 	/**
-	 * The [Avail server][AvailServer] attached to this
+	 * The [Avail&#32;server][AvailServer] attached to this
 	 * [adapter][TransportAdapter].
 	 */
 	val server: AvailServer
@@ -121,7 +121,7 @@ interface TransportAdapter<T> : AutoCloseable
 
 	/**
 	 * The [timer][ScheduledExecutorService] for
-	 * [scheduling activities][ScheduledFuture] related to managing
+	 * [scheduling&#32;activities][ScheduledFuture] related to managing
 	 * communication.
 	 */
 	val timer: ScheduledExecutorService

@@ -33,7 +33,12 @@ package com.avail.interpreter.levelTwo.operation
 
 import com.avail.descriptor.functions.A_Continuation
 import com.avail.interpreter.execution.Interpreter
-import com.avail.interpreter.levelTwo.*
+import com.avail.interpreter.levelTwo.L1InstructionStepper
+import com.avail.interpreter.levelTwo.L2Chunk
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2NamedOperandType
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2Operation
 import com.avail.optimizer.L2Generator
 import com.avail.optimizer.RegisterSet
 import com.avail.optimizer.StackReifier

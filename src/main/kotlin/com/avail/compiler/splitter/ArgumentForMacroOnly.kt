@@ -31,7 +31,9 @@
  */
 package com.avail.compiler.splitter
 
-import com.avail.compiler.ParsingOperation.*
+import com.avail.compiler.ParsingOperation.CHECK_ARGUMENT
+import com.avail.compiler.ParsingOperation.PARSE_TOP_VALUED_ARGUMENT
+import com.avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT
 import com.avail.compiler.splitter.MessageSplitter.Companion.indexForConstant
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter
 import com.avail.descriptor.phrases.A_Phrase
@@ -48,8 +50,7 @@ import com.avail.descriptor.types.A_Type
  * macros, where the phrases themselves (including phrases yielding ⊤ or ⊥) are
  * what get passed to the macro body.
  *
- * Because [list phrases][ListPhraseDescriptor] have an [expression
- * type][A_Phrase.expressionType] that depends on the types of the
+ * Because [list&#32;phrases][ListPhraseDescriptor] have an [expression&#32;type][A_Phrase.expressionType] that depends on the types of the
  * `expressionType` of each subexpression, and because ⊥ as an element in a
  * tuple type makes the entire resulting tuple type also be ⊥, we can't just
  * directly accept an expression that produces ⊤ or ⊥ (e.g., the resulting

@@ -51,11 +51,12 @@ import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArgu
  * @param frame
  *   The frame for which this represents a label.
  */
+@Suppress("EqualsOrHashCode")
 internal class L2SemanticLabel constructor(frame: Frame)
 	: L2FrameSpecificSemanticValue(frame, 0x36B34F3D)
 {
-	override fun equals(obj: Any?): Boolean =
-		obj is L2SemanticLabel && super.equals(obj)
+	override fun equals(other: Any?): Boolean =
+		other is L2SemanticLabel && super.equals(other)
 
 	override fun transform(
 		semanticValueTransformer: (L2SemanticValue) -> L2SemanticValue,

@@ -31,7 +31,6 @@
  */
 package com.avail.interpreter.levelTwo.operand
 
-import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.atoms.A_Atom.Companion.atomName
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.bundles.A_Bundle.Companion.message
@@ -53,7 +52,7 @@ import com.avail.interpreter.levelTwo.L2OperandType
  *
  * @constructor
  * Construct a new `L2SelectorOperand` with the specified
- * [message bundle][MessageBundleDescriptor].
+ * [message&#32;bundle][MessageBundleDescriptor].
  *
  * @param bundle
  *   The message bundle that holds the [method][MethodDescriptor] in which to

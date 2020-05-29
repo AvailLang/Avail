@@ -56,7 +56,7 @@ class VariableGetException : AvailRuntimeException
 	 * @param errorCode
 	 *   An [error code][AvailErrorCode].
 	 * @param cause
-	 *   The proximal [cause][Throwable] of the [        ].
+	 *   The proximal [cause][Throwable] of the [Exception].
 	 */
 	constructor(errorCode: AvailErrorCode, cause: Throwable)
 		: super(errorCode, cause)

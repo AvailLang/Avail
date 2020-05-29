@@ -48,7 +48,7 @@ import java.util.*
 
 /**
  * To direct the activities of an [Avail server][AvailServer], a client sends
- * [command messages][CommandMessage] that encode `Command`s. The `Command`
+ * [command&#32;messages][CommandMessage] that encode `Command`s. The `Command`
  * `enum` codifies the set of possible commands, and each member specifies the
  * decoding logic.
  *
@@ -259,8 +259,9 @@ enum class Command
 	internal open val requiresSpecialParsing get() = false
 
 	/**
-	 * Apply special parsing logic to produce a [command
-	 * message][CommandMessage] for this form of [command][Command].
+	 * Apply special parsing logic to produce a
+	 * [command&#32;message][CommandMessage] for this form of
+	 * [command][Command].
 	 *
 	 * @param source
 	 *   The source of the command.

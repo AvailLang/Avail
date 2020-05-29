@@ -44,15 +44,15 @@ import com.avail.descriptor.types.TupleTypeDescriptor.zeroOrMoreOf
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
 import com.avail.exceptions.AvailErrorCode.E_JAVA_CLASS_NOT_AVAILABLE
 import com.avail.exceptions.AvailRuntimeException
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Answer the [type][A_Type] that represents the Java [Class]
  * specified by the given fully-qualified name and type parameters. The result
- * is either an Avail [type][A_Type] or a [pojo&#32;type][PojoTypeDescriptor].
+ * is either an Avail [type][A_Type] or a [pojo type][PojoTypeDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

@@ -31,7 +31,9 @@
  */
 package com.avail.compiler.splitter
 
-import com.avail.compiler.ParsingOperation.*
+import com.avail.compiler.ParsingOperation.DISCARD_SAVED_PARSE_POSITION
+import com.avail.compiler.ParsingOperation.ENSURE_PARSE_PROGRESS
+import com.avail.compiler.ParsingOperation.SAVE_PARSE_POSITION
 import com.avail.compiler.splitter.InstructionGenerator.Label
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter
 import com.avail.descriptor.phrases.A_Phrase
@@ -41,10 +43,10 @@ import com.avail.descriptor.types.ListPhraseTypeDescriptor.emptyListPhraseType
 
 /**
  * A `CompletelyOptional` is a special [expression][Expression] indicated by a
- * [double question mark][Metacharacter.DOUBLE_QUESTION_MARK] (⁇) following a
+ * [double&#32;question&#32;mark][Metacharacter.DOUBLE_QUESTION_MARK] (⁇) following a
  * [simple][Simple] or [simple group][Group]. It may not contain
  * [arguments][Argument] or non-simple subgroups and it may not contain a
- * [double dagger][Metacharacter.DOUBLE_DAGGER]. The expression may appear zero
+ * [double&#32;dagger][Metacharacter.DOUBLE_DAGGER]. The expression may appear zero
  * or one times.
  *
  * A completely optional does not produce any information. No facility is

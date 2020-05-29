@@ -37,7 +37,7 @@ import com.avail.descriptor.module.ModuleDescriptor
 /**
  * A `ModuleName` represents the canonical name of an Avail
  * [module][ModuleDescriptor]. A canonical name is specified relative to an
- * Avail [module root][ModuleRoots] and has the form R/X/Y/Z**, where **R** is a
+ * Avail [module&#32;root][ModuleRoots] and has the form R/X/Y/Z**, where **R** is a
  * module root on the Avail module path, **X** is a package within **R**, **Y**
  * is a package within **X**, and **Z** is a module or package within **Y**.
  *
@@ -77,7 +77,8 @@ open class ModuleName
 
 	/**
 	 * The lazily-initialized root-relative `ModuleName`. This is the
-	 * [fully-qualified name][qualifiedName] minus the #rootName() module root}.
+	 * [fully-qualified&#32;name][qualifiedName] minus the #rootName() module
+	 * root}.
 	 */
 	val rootRelativeName: String by lazy {
 		val components = qualifiedName.split("/")

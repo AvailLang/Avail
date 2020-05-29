@@ -44,15 +44,16 @@ import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FiberTypeDescriptor.mostGeneralFiberType
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Primitive.Flag.HasSideEffect
 import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.execution.Interpreter.Companion.resumeFromSuccessfulPrimitive
-import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
-import com.avail.utility.evaluation.Continuation0
 
 /**
  * **Primitive:** Unpark the specified [fiber][FiberDescriptor]. If the
- * [permit ][SynchronizationFlag.PERMIT_UNAVAILABLE] associated with the fiber
+ * [permit&#32;][SynchronizationFlag.PERMIT_UNAVAILABLE] associated with the fiber
  * is available, then simply continue. If the permit is not available, then
  * restore the permit and schedule
  * [resumption][Interpreter.resumeFromSuccessfulPrimitive] of the fiber. A newly
@@ -70,7 +71,7 @@ object P_UnparkFiber : Primitive(1, CannotFail, CanInline, HasSideEffect)
 		interpreter.checkArgumentCount(1)
 		val fiber = interpreter.argument(0)
 		with(fiber) {
-			lock(Continuation0 {
+			lock {
 				// Restore the permit. If the fiber is parked, then unpark it.
 				getAndSetSynchronizationFlag(PERMIT_UNAVAILABLE, false)
 				when {
@@ -89,7 +90,7 @@ object P_UnparkFiber : Primitive(1, CannotFail, CanInline, HasSideEffect)
 						getAndSetSynchronizationFlag(PERMIT_UNAVAILABLE, false)
 					}
 				}
-			})
+			}
 		}
 		return interpreter.primitiveSuccess(nil)
 	}

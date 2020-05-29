@@ -32,15 +32,22 @@
 package com.avail.descriptor.methods
 
 import com.avail.AvailRuntimeSupport
-import com.avail.annotations.AvailMethod
-import com.avail.descriptor.module.A_Module
-import com.avail.descriptor.Descriptor
-import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.bundles.MessageBundleDescriptor
 import com.avail.descriptor.methods.GrammaticalRestrictionDescriptor.IntegerSlots.Companion.HASH
-import com.avail.descriptor.methods.GrammaticalRestrictionDescriptor.ObjectSlots.*
-import com.avail.descriptor.representation.*
+import com.avail.descriptor.methods.GrammaticalRestrictionDescriptor.ObjectSlots.ARGUMENT_RESTRICTION_SETS
+import com.avail.descriptor.methods.GrammaticalRestrictionDescriptor.ObjectSlots.DEFINITION_MODULE
+import com.avail.descriptor.methods.GrammaticalRestrictionDescriptor.ObjectSlots.RESTRICTED_BUNDLE
+import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.module.ModuleDescriptor
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AbstractDescriptor
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.BitField
+import com.avail.descriptor.representation.Descriptor
+import com.avail.descriptor.representation.IntegerSlotsEnum
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.TupleDescriptor
@@ -140,7 +147,6 @@ class GrammaticalRestrictionDescriptor private constructor(
 		DEFINITION_MODULE
 	}
 
-	@AvailMethod
 	override fun o_Hash(self: AvailObject): Int = self.slot(HASH)
 
 	override fun o_RestrictedBundle(self: AvailObject): A_Bundle =
@@ -150,20 +156,18 @@ class GrammaticalRestrictionDescriptor private constructor(
 		self.slot(ARGUMENT_RESTRICTION_SETS)
 
 	// Compare by identity.
-	@AvailMethod
 	override fun o_Equals(self: AvailObject, another: A_BasicObject) =
 		self.sameAddressAs(another)
 
-	@AvailMethod
 	override fun o_DefinitionModule(self: AvailObject): A_Module =
 		self.slot(DEFINITION_MODULE)
 
-	override fun mutable(): GrammaticalRestrictionDescriptor = mutable
+	override fun mutable(): AbstractDescriptor = mutable
 
 	// There is no immutable variant; answer the shared descriptor.
-	override fun immutable(): GrammaticalRestrictionDescriptor = shared
+	override fun immutable(): AbstractDescriptor = shared
 
-	override fun shared(): GrammaticalRestrictionDescriptor = shared
+	override fun shared(): AbstractDescriptor = shared
 
 	companion object {
 		/**

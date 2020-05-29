@@ -255,7 +255,7 @@ class JVMTranslator constructor(
 	 *
 	 * @param classLoaderIndex
 	 *   The index into the [JVMChunkClassLoader]'s
-	 *   \[parameters][JVMChunkClassLoader.parameters] array at which the
+	 *   [parameters][JVMChunkClassLoader.parameters] array at which the
 	 *   corresponding [literal][AvailObject] is located, or [invalidIndex] if
 	 *   no slot is required.
 	 * @param fieldName
@@ -1740,7 +1740,7 @@ class JVMTranslator constructor(
 			}
 
 		val originalFunctionName =
-			if (code == null) "DEFAULT" else code.methodName().asNativeString()
+			if (code === null) "DEFAULT" else code.methodName().asNativeString()
 		var cleanFunctionName =
 			subblockRewriter.matcher(originalFunctionName).replaceAll("#$1")
 		cleanFunctionName =

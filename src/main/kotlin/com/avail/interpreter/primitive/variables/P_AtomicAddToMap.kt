@@ -32,8 +32,8 @@
 
 package com.avail.interpreter.primitive.variables
 
-import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.types.A_Type
@@ -49,11 +49,11 @@ import com.avail.exceptions.AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE
 import com.avail.exceptions.VariableGetException
 import com.avail.exceptions.VariableSetException
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
 import com.avail.interpreter.effects.LoadingEffectToRunPrimitive
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Atomically read and update the map in the specified

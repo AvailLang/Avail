@@ -31,9 +31,14 @@
  */
 package com.avail.descriptor.sets
 
-import com.avail.annotations.AvailMethod
-import com.avail.descriptor.representation.*
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AbstractDescriptor
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.AvailObjectRepresentation.Companion.newLike
+import com.avail.descriptor.representation.BitField
+import com.avail.descriptor.representation.IntegerSlotsEnum
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.sets.HashedSetBinDescriptor.Companion.createInitializedHashSetBin
 import com.avail.descriptor.sets.LinearSetBinDescriptor.IntegerSlots.Companion.BIN_HASH
 import com.avail.descriptor.sets.LinearSetBinDescriptor.ObjectSlots.BIN_ELEMENT_AT_
@@ -105,13 +110,11 @@ class LinearSetBinDescriptor private constructor(
 		BIN_ELEMENT_AT_
 	}
 
-	@AvailMethod
 	override fun o_BinElementAt(
 		self: AvailObject,
-		subscript: Int
-	): AvailObject = self.slot(BIN_ELEMENT_AT_, subscript)
+		index: Int
+	): AvailObject = self.slot(BIN_ELEMENT_AT_, index)
 
-	@AvailMethod
 	override fun o_SetBinAddingElementHashLevelCanDestroy(
 		self: AvailObject,
 		elementObject: A_BasicObject,
@@ -186,7 +189,6 @@ class LinearSetBinDescriptor private constructor(
 		return result
 	}
 
-	@AvailMethod
 	override fun o_BinHasElementWithHash(
 		self: AvailObject,
 		elementObject: A_BasicObject,
@@ -199,7 +201,6 @@ class LinearSetBinDescriptor private constructor(
 	 * Remove elementObject from the bin object, if present. Answer the
 	 * resulting bin. The bin may be modified if it's mutable and canDestroy.
 	 */
-	@AvailMethod
 	override fun o_BinRemoveElementHashLevelCanDestroy(
 		self: AvailObject,
 		elementObject: A_BasicObject,
@@ -247,7 +248,6 @@ class LinearSetBinDescriptor private constructor(
 	/**
 	 * Check if object, a bin, holds a subset of aSet's elements.
 	 */
-	@AvailMethod
 	override fun o_IsBinSubsetOf(
 		self: AvailObject,
 		potentialSuperset: A_Set
@@ -260,11 +260,9 @@ class LinearSetBinDescriptor private constructor(
 	/**
 	 * Answer how many elements this bin contains.
 	 */
-	@AvailMethod
 	override fun o_SetBinSize(self: AvailObject): Int =
 		self.variableObjectSlotsCount()
 
-	@AvailMethod
 	override fun o_BinUnionKind(self: AvailObject): A_Type {
 		// Answer the nearest kind of the union of the types of this bin's
 		// elements. I'm supposed to be small, so recalculate it per request.
@@ -276,7 +274,6 @@ class LinearSetBinDescriptor private constructor(
 		return unionKind
 	}
 
-	@AvailMethod
 	override fun o_BinElementsAreAllInstancesOfKind(
 		self: AvailObject,
 		kind: A_Type
@@ -297,13 +294,13 @@ class LinearSetBinDescriptor private constructor(
 			override fun hasNext() = index >= 1
 		}
 
-	override fun mutable(): LinearSetBinDescriptor =
+	override fun mutable(): AbstractDescriptor =
 		descriptorFor(Mutability.MUTABLE, level)
 
-	override fun immutable(): LinearSetBinDescriptor =
+	override fun immutable(): AbstractDescriptor =
 		descriptorFor(Mutability.IMMUTABLE, level)
 
-	override fun shared(): LinearSetBinDescriptor =
+	override fun shared(): AbstractDescriptor =
 		descriptorFor(Mutability.SHARED, level)
 
 	companion object {
@@ -325,6 +322,7 @@ class LinearSetBinDescriptor private constructor(
 		 *   A linear set bin.
 		 */
 		private fun checkBinHash(self: AvailObject) {
+			@Suppress("ConstantConditionIf")
 			if (checkBinHashes) {
 				assert(self.descriptor() is LinearSetBinDescriptor)
 				val stored = self.setBinHash()

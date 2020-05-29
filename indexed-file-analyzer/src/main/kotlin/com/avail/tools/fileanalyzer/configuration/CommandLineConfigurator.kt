@@ -32,11 +32,19 @@
 
 package com.avail.tools.fileanalyzer.configuration
 
-import com.avail.tools.compiler.configuration.CommandLineConfigurator
 import com.avail.tools.fileanalyzer.IndexedFileAnalyzer
-import com.avail.tools.fileanalyzer.configuration.CommandLineConfigurator.OptionKey.*
+import com.avail.tools.fileanalyzer.configuration.CommandLineConfigurator.OptionKey.BINARY
+import com.avail.tools.fileanalyzer.configuration.CommandLineConfigurator.OptionKey.COUNTS
+import com.avail.tools.fileanalyzer.configuration.CommandLineConfigurator.OptionKey.EXPLODE
+import com.avail.tools.fileanalyzer.configuration.CommandLineConfigurator.OptionKey.HELP
+import com.avail.tools.fileanalyzer.configuration.CommandLineConfigurator.OptionKey.INDEXED_FILE
+import com.avail.tools.fileanalyzer.configuration.CommandLineConfigurator.OptionKey.LOWER
+import com.avail.tools.fileanalyzer.configuration.CommandLineConfigurator.OptionKey.METADATA
+import com.avail.tools.fileanalyzer.configuration.CommandLineConfigurator.OptionKey.PATCH_RECORDS_STRIPPING_UTF8
+import com.avail.tools.fileanalyzer.configuration.CommandLineConfigurator.OptionKey.SIZES
+import com.avail.tools.fileanalyzer.configuration.CommandLineConfigurator.OptionKey.TEXT
+import com.avail.tools.fileanalyzer.configuration.CommandLineConfigurator.OptionKey.UPPER
 import com.avail.tools.options.OptionProcessingException
-import com.avail.tools.options.OptionProcessor
 import com.avail.tools.options.OptionProcessorFactory
 import com.avail.tools.options.OptionProcessorFactory.Cardinality
 import com.avail.utility.configuration.ConfigurationException

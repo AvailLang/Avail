@@ -368,9 +368,9 @@ class CompilationContext(
 
 	/**
 	 * Construct and answer a function that wraps the specified continuation in
-	 * logic that will increment the [count of completed work
-	 * units][workUnitsCompleted] and potentially call the [unambiguous
-	 * statement][noMoreWorkUnits].
+	 * logic that will increment the
+	 * [count&#32;of&#32;completed&#32;work&#32;units][workUnitsCompleted] and
+	 * potentially call the [unambiguous&#32;statement][noMoreWorkUnits].
 	 *
 	 * @param ArgType
 	 *   The type of value that will be passed to the continuation.

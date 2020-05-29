@@ -31,9 +31,6 @@
  */
 package com.avail.descriptor.representation
 
-import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.Descriptor
-
 /**
  * The `IntegerSlotsEnum` is an interface that helps ensure that object
  * representations and access are consistent and correct.  In particular, some

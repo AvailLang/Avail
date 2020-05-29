@@ -32,9 +32,8 @@
 package com.avail.descriptor.bundles
 
 import com.avail.compiler.ParsingOperation
-import com.avail.descriptor.module.A_Module
-import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.maps.A_Map
+import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.numbers.IntegerDescriptor
 import com.avail.descriptor.parsing.A_DefinitionParsingPlan
 import com.avail.descriptor.parsing.A_ParsingPlanInProgress
@@ -42,6 +41,7 @@ import com.avail.descriptor.parsing.DefinitionParsingPlanDescriptor
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.A_BasicObject.Companion.dispatch
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
@@ -217,9 +217,9 @@ interface A_BundleTree : A_BasicObject {
 			dispatch { o_LazyTypeFilterTreePojo(it) }
 
 		/**
-		 * Add a [definition&#32;parsing&#32;
-		 * plan][DefinitionParsingPlanDescriptor] to this bundle tree.  The
-		 * corresponding bundle must already be present.
+		 * Add a
+		 * [definition&#32;parsing&#32;plan][DefinitionParsingPlanDescriptor] to
+		 * this bundle tree.  The corresponding bundle must already be present.
 		 *
 		 * @param planInProgress
 		 *   The [A_DefinitionParsingPlan] to add.

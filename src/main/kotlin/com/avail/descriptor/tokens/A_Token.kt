@@ -32,9 +32,9 @@
 package com.avail.descriptor.tokens
 
 import com.avail.compiler.scanning.LexingState
-import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.tuples.A_String
 
 /**

@@ -43,9 +43,9 @@ import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor
-import com.avail.descriptor.tuples.StringDescriptor
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.StringDescriptor
 import com.avail.descriptor.variables.A_Variable
 import com.avail.interpreter.execution.AvailLoader
 import com.avail.interpreter.execution.AvailLoader.LexicalScanner

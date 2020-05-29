@@ -35,7 +35,10 @@ package com.avail.interpreter.primitive.bootstrap.syntax
 import com.avail.compiler.AvailRejectedParseException
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.WEAK
-import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.*
+import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY
+import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_MAP_KEY
+import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_STACK_KEY
+import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.STATIC_TOKENS_KEY
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.maps.A_Map
 import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.exceptionType
@@ -62,13 +65,24 @@ import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationW
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.InstanceMetaDescriptor.anyMeta
 import com.avail.descriptor.types.InstanceMetaDescriptor.topMeta
-import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.*
-import com.avail.descriptor.types.TupleTypeDescriptor.*
-import com.avail.descriptor.types.TypeDescriptor.Types.*
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.BLOCK_PHRASE
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.STATEMENT_PHRASE
+import com.avail.descriptor.types.TupleTypeDescriptor.oneOrMoreOf
+import com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForTypes
+import com.avail.descriptor.types.TupleTypeDescriptor.zeroOrMoreOf
+import com.avail.descriptor.types.TupleTypeDescriptor.zeroOrOneOf
+import com.avail.descriptor.types.TypeDescriptor.Types.ANY
+import com.avail.descriptor.types.TypeDescriptor.Types.TOKEN
+import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.E_INCONSISTENT_PREFIX_FUNCTION
 import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.Bootstrap
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.execution.Interpreter
 
 /**

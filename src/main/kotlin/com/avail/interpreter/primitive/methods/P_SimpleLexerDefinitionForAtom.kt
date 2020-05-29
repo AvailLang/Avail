@@ -33,7 +33,6 @@
 package com.avail.interpreter.primitive.methods
 
 import com.avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
-import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.atoms.A_Atom.Companion.atomName
 import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
 import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
@@ -41,6 +40,7 @@ import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import com.avail.descriptor.parsing.LexerDescriptor.Companion.lexerBodyFunctionType
 import com.avail.descriptor.parsing.LexerDescriptor.Companion.lexerFilterFunctionType
 import com.avail.descriptor.parsing.LexerDescriptor.Companion.newLexer
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.tuples.StringDescriptor.stringFrom
@@ -52,12 +52,12 @@ import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
 import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import com.avail.exceptions.MalformedMessageException
-import com.avail.interpreter.execution.AvailLoader.Phase.EXECUTING_FOR_COMPILE
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanSuspend
 import com.avail.interpreter.Primitive.Flag.Unknown
 import com.avail.interpreter.effects.LoadingEffectToRunPrimitive
+import com.avail.interpreter.execution.AvailLoader.Phase.EXECUTING_FOR_COMPILE
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Simple lexer definition.  The first argument is the lexer name

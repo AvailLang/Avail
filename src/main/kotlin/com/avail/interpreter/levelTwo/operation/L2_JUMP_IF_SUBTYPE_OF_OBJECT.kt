@@ -64,8 +64,8 @@ object L2_JUMP_IF_SUBTYPE_OF_OBJECT : L2ConditionalJump(
 		// Eliminate tests due to type propagation.
 		val firstReg = instruction.operand<L2ReadBoxedOperand>(0)
 		val secondReg = instruction.operand<L2ReadBoxedOperand>(1)
-		// final L2PcOperand isSubtype = instruction.operand(2);
-		// final L2PcOperand notSubtype = instruction.operand(3);
+//		val isSubtype = instruction.operand(2);
+//		val notSubtype = instruction.operand(3);
 
 		val exactSecondType: A_Type? = secondReg.constantOrNull()
 		return when

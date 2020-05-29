@@ -60,7 +60,12 @@ import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
 import com.avail.descriptor.maps.MapDescriptor
 import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
-import com.avail.descriptor.methods.*
+import com.avail.descriptor.methods.A_Definition
+import com.avail.descriptor.methods.AbstractDefinitionDescriptor
+import com.avail.descriptor.methods.ForwardDefinitionDescriptor
+import com.avail.descriptor.methods.MacroDefinitionDescriptor
+import com.avail.descriptor.methods.MethodDefinitionDescriptor
+import com.avail.descriptor.methods.MethodDescriptor
 import com.avail.descriptor.numbers.DoubleDescriptor
 import com.avail.descriptor.numbers.DoubleDescriptor.Companion.fromDouble
 import com.avail.descriptor.numbers.FloatDescriptor
@@ -72,7 +77,6 @@ import com.avail.descriptor.numbers.IntegerDescriptor.Companion.two
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import com.avail.descriptor.objects.ObjectDescriptor.Companion.objectFromMap
 import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.objectTypeFromMap
-import com.avail.descriptor.phrases.*
 import com.avail.descriptor.phrases.A_Phrase.Companion.argumentsListNode
 import com.avail.descriptor.phrases.A_Phrase.Companion.argumentsTuple
 import com.avail.descriptor.phrases.A_Phrase.Companion.bundle
@@ -93,21 +97,34 @@ import com.avail.descriptor.phrases.A_Phrase.Companion.token
 import com.avail.descriptor.phrases.A_Phrase.Companion.tokens
 import com.avail.descriptor.phrases.A_Phrase.Companion.typeExpression
 import com.avail.descriptor.phrases.A_Phrase.Companion.variable
+import com.avail.descriptor.phrases.AssignmentPhraseDescriptor
 import com.avail.descriptor.phrases.AssignmentPhraseDescriptor.Companion.isInline
 import com.avail.descriptor.phrases.AssignmentPhraseDescriptor.Companion.newAssignment
+import com.avail.descriptor.phrases.BlockPhraseDescriptor
 import com.avail.descriptor.phrases.BlockPhraseDescriptor.Companion.newBlockNode
+import com.avail.descriptor.phrases.DeclarationPhraseDescriptor
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newDeclaration
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
+import com.avail.descriptor.phrases.ExpressionAsStatementPhraseDescriptor
 import com.avail.descriptor.phrases.ExpressionAsStatementPhraseDescriptor.Companion.newExpressionAsStatement
+import com.avail.descriptor.phrases.FirstOfSequencePhraseDescriptor
 import com.avail.descriptor.phrases.FirstOfSequencePhraseDescriptor.Companion.newFirstOfSequenceNode
+import com.avail.descriptor.phrases.ListPhraseDescriptor
 import com.avail.descriptor.phrases.ListPhraseDescriptor.Companion.newListNode
+import com.avail.descriptor.phrases.LiteralPhraseDescriptor
 import com.avail.descriptor.phrases.LiteralPhraseDescriptor.Companion.literalNodeFromToken
+import com.avail.descriptor.phrases.MacroSubstitutionPhraseDescriptor
 import com.avail.descriptor.phrases.MacroSubstitutionPhraseDescriptor.Companion.newMacroSubstitution
+import com.avail.descriptor.phrases.PermutedListPhraseDescriptor
 import com.avail.descriptor.phrases.PermutedListPhraseDescriptor.Companion.newPermutedListNode
 import com.avail.descriptor.phrases.ReferencePhraseDescriptor.Companion.referenceNodeFromUse
+import com.avail.descriptor.phrases.SendPhraseDescriptor
 import com.avail.descriptor.phrases.SendPhraseDescriptor.Companion.newSendNode
+import com.avail.descriptor.phrases.SequencePhraseDescriptor
 import com.avail.descriptor.phrases.SequencePhraseDescriptor.Companion.newSequence
+import com.avail.descriptor.phrases.SuperCastPhraseDescriptor
 import com.avail.descriptor.phrases.SuperCastPhraseDescriptor.Companion.newSuperCastNode
+import com.avail.descriptor.phrases.VariableUsePhraseDescriptor
 import com.avail.descriptor.phrases.VariableUsePhraseDescriptor.Companion.newUse
 import com.avail.descriptor.pojos.PojoFieldDescriptor.Companion.pojoFieldVariableForInnerType
 import com.avail.descriptor.pojos.PojoFinalFieldDescriptor
@@ -127,33 +144,56 @@ import com.avail.descriptor.tokens.TokenDescriptor.Companion.newToken
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType.Companion.lookupTokenType
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.*
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.generateObjectTupleFrom
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
 import com.avail.descriptor.tuples.StringDescriptor
 import com.avail.descriptor.tuples.StringDescriptor.stringFrom
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
 import com.avail.descriptor.tuples.TupleDescriptor.toList
-import com.avail.descriptor.types.*
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.types.BottomPojoTypeDescriptor.pojoBottom
+import com.avail.descriptor.types.BottomTypeDescriptor
 import com.avail.descriptor.types.CompiledCodeTypeDescriptor.compiledCodeTypeForFunctionType
 import com.avail.descriptor.types.ContinuationTypeDescriptor.continuationTypeForFunctionType
+import com.avail.descriptor.types.EnumerationTypeDescriptor
+import com.avail.descriptor.types.FiberTypeDescriptor
 import com.avail.descriptor.types.FiberTypeDescriptor.fiberType
+import com.avail.descriptor.types.FunctionTypeDescriptor
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionTypeFromArgumentTupleType
+import com.avail.descriptor.types.InstanceMetaDescriptor
 import com.avail.descriptor.types.InstanceMetaDescriptor.instanceMeta
+import com.avail.descriptor.types.InstanceTypeDescriptor
 import com.avail.descriptor.types.InstanceTypeDescriptor.instanceType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.integerRangeType
+import com.avail.descriptor.types.ListPhraseTypeDescriptor
 import com.avail.descriptor.types.ListPhraseTypeDescriptor.createListNodeType
+import com.avail.descriptor.types.LiteralTokenTypeDescriptor
 import com.avail.descriptor.types.LiteralTokenTypeDescriptor.literalTokenType
+import com.avail.descriptor.types.MapTypeDescriptor
 import com.avail.descriptor.types.MapTypeDescriptor.mapTypeForSizesKeyTypeValueType
+import com.avail.descriptor.types.PhraseTypeDescriptor
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
-import com.avail.descriptor.types.PojoTypeDescriptor.*
+import com.avail.descriptor.types.PojoTypeDescriptor
+import com.avail.descriptor.types.PojoTypeDescriptor.fusedTypeFromAncestorMap
+import com.avail.descriptor.types.PojoTypeDescriptor.marshalTypes
+import com.avail.descriptor.types.PojoTypeDescriptor.pojoArrayType
+import com.avail.descriptor.types.PojoTypeDescriptor.pojoTypeForClassWithTypeArguments
+import com.avail.descriptor.types.PojoTypeDescriptor.resolvePojoType
 import com.avail.descriptor.types.PrimitiveTypeDescriptor.extractOrdinal
+import com.avail.descriptor.types.ReadWriteVariableTypeDescriptor
 import com.avail.descriptor.types.SelfPojoTypeDescriptor.pojoFromSerializationProxy
 import com.avail.descriptor.types.SelfPojoTypeDescriptor.pojoSerializationProxy
+import com.avail.descriptor.types.SetTypeDescriptor
 import com.avail.descriptor.types.SetTypeDescriptor.setTypeForSizesContentType
+import com.avail.descriptor.types.TokenTypeDescriptor
 import com.avail.descriptor.types.TokenTypeDescriptor.tokenType
+import com.avail.descriptor.types.TupleTypeDescriptor
 import com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType
+import com.avail.descriptor.types.TypeDescriptor
+import com.avail.descriptor.types.VariableTypeDescriptor
 import com.avail.descriptor.types.VariableTypeDescriptor.variableReadWriteType
 import com.avail.descriptor.types.VariableTypeDescriptor.variableTypeFor
 import com.avail.descriptor.variables.A_Variable
@@ -170,7 +210,21 @@ import com.avail.interpreter.primitive.pojos.P_CreatePojoConstructorFunction
 import com.avail.interpreter.primitive.pojos.P_CreatePojoInstanceMethodFunction
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport
-import com.avail.serialization.SerializerOperandEncoding.*
+import com.avail.serialization.SerializerOperandEncoding.BIG_INTEGER_DATA
+import com.avail.serialization.SerializerOperandEncoding.BYTE
+import com.avail.serialization.SerializerOperandEncoding.BYTE_CHARACTER_TUPLE
+import com.avail.serialization.SerializerOperandEncoding.COMPRESSED_ARBITRARY_CHARACTER_TUPLE
+import com.avail.serialization.SerializerOperandEncoding.COMPRESSED_INT_TUPLE
+import com.avail.serialization.SerializerOperandEncoding.COMPRESSED_SHORT
+import com.avail.serialization.SerializerOperandEncoding.COMPRESSED_SHORT_CHARACTER_TUPLE
+import com.avail.serialization.SerializerOperandEncoding.GENERAL_MAP
+import com.avail.serialization.SerializerOperandEncoding.OBJECT_REFERENCE
+import com.avail.serialization.SerializerOperandEncoding.SIGNED_INT
+import com.avail.serialization.SerializerOperandEncoding.TUPLE_OF_OBJECTS
+import com.avail.serialization.SerializerOperandEncoding.UNCOMPRESSED_BYTE_TUPLE
+import com.avail.serialization.SerializerOperandEncoding.UNCOMPRESSED_NYBBLE_TUPLE
+import com.avail.serialization.SerializerOperandEncoding.UNCOMPRESSED_SHORT
+import com.avail.serialization.SerializerOperandEncoding.UNSIGNED_INT
 import java.lang.Double.doubleToRawLongBits
 import java.lang.Double.longBitsToDouble
 import java.lang.Float.floatToRawIntBits
@@ -833,8 +887,9 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * A [tuple of characters with code points in][StringDescriptor].  Write the
-	 * size of the tuple then the sequence of character bytes.
+	 * A [tuple&#32;of&#32;characters&#32;with code points
+	 * in][StringDescriptor].  Write the size of the tuple then the sequence of
+	 * character bytes.
 	 */
 	BYTE_STRING(25, BYTE_CHARACTER_TUPLE.named("Latin-1 string"))
 	{
@@ -854,9 +909,9 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * A [tuple of characters][StringDescriptor] whose code points all fall in
-	 * the range 0..65535.  Write the compressed number of characters then each
-	 * compressed character.
+	 * A [tuple&#32;of&#32;characters][StringDescriptor] whose code points all
+	 * fall in the range 0..65535.  Write the compressed number of characters
+	 * then each compressed character.
 	 */
 	SHORT_STRING(
 		26,
@@ -879,8 +934,9 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * A [tuple of characters][StringDescriptor] with arbitrary code points.
-	 * Write the compressed number of characters then each compressed character.
+	 * A [tuple&#32;of&#32;characters][StringDescriptor] with arbitrary code
+	 * points. Write the compressed number of characters then each compressed
+	 * character.
 	 */
 	ARBITRARY_STRING(
 		27,
@@ -902,8 +958,8 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * A [tuple of integers][TupleDescriptor] whose values all fall in the range
-	 * 0..2^31-1.
+	 * A [tuple&#32;of&#32;integers][TupleDescriptor] whose values all fall in
+	 * the range 0..2^31-1.
 	 */
 	INT_TUPLE(28, COMPRESSED_INT_TUPLE.named("tuple of ints"))
 	{
@@ -923,8 +979,8 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * A [tuple of integers][TupleDescriptor] whose values all fall in the range
-	 * 0..255.
+	 * A [tuple&#32;of&#32;integers][TupleDescriptor] whose values all fall in
+	 * the range 0..255.
 	 */
 	BYTE_TUPLE(29, UNCOMPRESSED_BYTE_TUPLE.named("tuple of bytes"))
 	{
@@ -944,8 +1000,8 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * A [tuple of integers][TupleDescriptor] whose values fall in the range
-	 * 0..15.
+	 * A [tuple&#32;of&#32;integers][TupleDescriptor] whose values fall in the
+	 * range 0..15.
 	 */
 	NYBBLE_TUPLE(30, UNCOMPRESSED_NYBBLE_TUPLE.named("tuple of nybbles"))
 	{
@@ -1104,8 +1160,8 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * A [compiled code object][CompiledCodeDescriptor].  Output any information
-	 * needed to reconstruct the compiled code object.
+	 * A [compiled&#32;code&#32;object][CompiledCodeDescriptor].  Output any
+	 * information needed to reconstruct the compiled code object.
 	 */
 	COMPILED_CODE(
 		36,
@@ -1426,7 +1482,7 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * A [literal token][LiteralTokenDescriptor].
+	 * A [literal&#32;token][LiteralTokenDescriptor].
 	 */
 	LITERAL_TOKEN(
 		43,
@@ -2071,7 +2127,7 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * An [assignment phrase][AssignmentPhraseDescriptor].
+	 * An [assignment&#32;phrase][AssignmentPhraseDescriptor].
 	 */
 	ASSIGNMENT_PHRASE(
 		60,
@@ -2103,7 +2159,7 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * A [block phrase][BlockPhraseDescriptor].
+	 * A [block&#32;phrase][BlockPhraseDescriptor].
 	 */
 	BLOCK_PHRASE(
 		61,
@@ -2162,7 +2218,7 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * A [declaration phrase][DeclarationPhraseDescriptor].
+	 * A [declaration&#32;phrase][DeclarationPhraseDescriptor].
 	 */
 	DECLARATION_PHRASE(
 		62,
@@ -2237,7 +2293,7 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * A [first-of-sequence phrase][FirstOfSequencePhraseDescriptor].
+	 * A [first-of-sequence&#32;phrase][FirstOfSequencePhraseDescriptor].
 	 */
 	FIRST_OF_SEQUENCE_PHRASE(64, TUPLE_OF_OBJECTS.named("statements"))
 	{
@@ -2258,7 +2314,7 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * A [list phrase][ListPhraseDescriptor].
+	 * A [list&#32;phrase][ListPhraseDescriptor].
 	 */
 	LIST_PHRASE(65, TUPLE_OF_OBJECTS.named("expressions"))
 	{
@@ -2279,7 +2335,7 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * A [literal phrase][LiteralPhraseDescriptor].
+	 * A [literal&#32;phrase][LiteralPhraseDescriptor].
 	 */
 	LITERAL_PHRASE(66, OBJECT_REFERENCE.named("literal token"))
 	{
@@ -2300,7 +2356,7 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * A [macro substitution phrase][MacroSubstitutionPhraseDescriptor].
+	 * A [macro&#32;substitution&#32;phrase][MacroSubstitutionPhraseDescriptor].
 	 */
 	MACRO_SUBSTITUTION_PHRASE(
 		67,
@@ -2326,7 +2382,7 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * A [permuted list phrase][PermutedListPhraseDescriptor].
+	 * A [permuted&#32;list&#32;phrase][PermutedListPhraseDescriptor].
 	 */
 	PERMUTED_LIST_PHRASE(
 		68,
@@ -2352,7 +2408,7 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * A [permuted list phrase][PermutedListPhraseDescriptor].
+	 * A [permuted&#32;list&#32;phrase][PermutedListPhraseDescriptor].
 	 */
 	REFERENCE_PHRASE(69, OBJECT_REFERENCE.named("variable use"))
 	{
@@ -2373,7 +2429,7 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * A [send phrase][SendPhraseDescriptor].
+	 * A [send&#32;phrase][SendPhraseDescriptor].
 	 */
 	SEND_PHRASE(
 		70,
@@ -2403,7 +2459,7 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * A [sequence phrase][SequencePhraseDescriptor].
+	 * A [sequence&#32;phrase][SequencePhraseDescriptor].
 	 */
 	SEQUENCE_PHRASE(71, TUPLE_OF_OBJECTS.named("statements"))
 	{
@@ -2424,7 +2480,7 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * A [super cast phrase][SuperCastPhraseDescriptor].
+	 * A [super&#32;cast&#32;phrase][SuperCastPhraseDescriptor].
 	 */
 	SUPER_CAST_PHRASE(
 		72,
@@ -2450,7 +2506,7 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * A [variable use phrase][VariableUsePhraseDescriptor].
+	 * A [variable&#32;use&#32;phrase][VariableUsePhraseDescriptor].
 	 */
 	VARIABLE_USE_PHRASE(
 		73,
@@ -2683,7 +2739,7 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * A [tuple type][TupleTypeDescriptor].
+	 * A [tuple&#32;type][TupleTypeDescriptor].
 	 */
 	TUPLE_TYPE(
 		82,
@@ -2712,7 +2768,7 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * An [integer range type][IntegerRangeTypeDescriptor].
+	 * An [integer&#32;range&#32;type][IntegerRangeTypeDescriptor].
 	 */
 	INTEGER_RANGE_TYPE(
 		83,
@@ -2747,10 +2803,10 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * A [pojo type][PojoTypeDescriptor] for which [AvailObject.isPojoFusedType]
-	 * is `false`.  This indicates a representation with a juicy class filling,
-	 * which allows a particularly compact representation involving the class
-	 * name and its parameter types.
+	 * A [pojo&#32;type][PojoTypeDescriptor] for which
+	 * [AvailObject.isPojoFusedType] is `false`.  This indicates a
+	 * representation with a juicy class filling, which allows a particularly
+	 * compact representation involving the class name and its parameter types.
 	 *
 	 * A self pojo type may appear in the parameterization of this class.
 	 * Convert such a self type into a 1-tuple containing the self type's class
@@ -2821,9 +2877,10 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * A [pojo type][PojoTypeDescriptor] for which [AvailObject.isPojoFusedType]
-	 * is `true`.  This indicates a representation without the juicy class
-	 * filling, so we have to say how each ancestor is parameterized.
+	 * A [pojo&#32;type][PojoTypeDescriptor] for which
+	 * [AvailObject.isPojoFusedType] is `true`.  This indicates a representation
+	 * without the juicy class filling, so we have to say how each ancestor is
+	 * parameterized.
 	 *
 	 * We have to pre-convert self pojo types in the parameterizations map,
 	 * otherwise one might be encountered during traversal.  This is bad because
@@ -2910,8 +2967,8 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * A [pojo type][PojoTypeDescriptor] representing a Java array type.  We can
-	 * reconstruct this array type from the content type and the range of
+	 * A [pojo&#32;type][PojoTypeDescriptor] representing a Java array type.  We
+	 * can reconstruct this array type from the content type and the range of
 	 * allowable sizes (a much stronger model than Java itself supports).
 	 */
 	ARRAY_POJO_TYPE(
@@ -2940,12 +2997,12 @@ enum class SerializerOperation constructor(
 
 	/**
 	 * A [set][SetDescriptor] of [class][StringDescriptor] standing in for a
-	 * [pojo type][PojoTypeDescriptor] representing a "self type".  A self type
-	 * is used for for parameterizing a Java class by itself.  For example, in
-	 * the parametric type `Enum<E extends Enum<E>>`, we parameterize the class
-	 * `Enum` with such a self type.  To reconstruct a self type all we need is
-	 * a way to get to the raw Java classes involved, so we serialize their
-	 * names.
+	 * [pojo&#32;type][PojoTypeDescriptor] representing a "self type".  A self
+	 * type is used for for parameterizing a Java class by itself.  For example,
+	 * in the parametric type `Enum<E extends Enum<E>>`, we parameterize the
+	 * class `Enum` with such a self type.  To reconstruct a self type all we
+	 * need is a way to get to the raw Java classes involved, so we serialize
+	 * their names.
 	 */
 	SELF_POJO_TYPE_REPRESENTATIVE(87, TUPLE_OF_OBJECTS.named("class names"))
 	{
@@ -3098,7 +3155,7 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * A [set type][SetTypeDescriptor].
+	 * A [set&#32;type][SetTypeDescriptor].
 	 */
 	SET_TYPE(
 		94,
@@ -3124,7 +3181,7 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * A [map type][MapTypeDescriptor].
+	 * A [map&#32;type][MapTypeDescriptor].
 	 */
 	MAP_TYPE(
 		95,
@@ -3153,7 +3210,7 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * A [token type][TokenTypeDescriptor].
+	 * A [token&#32;type][TokenTypeDescriptor].
 	 */
 	TOKEN_TYPE(96, OBJECT_REFERENCE.named("literal type"))
 	{
@@ -3173,7 +3230,7 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * A [literal token type][LiteralTokenTypeDescriptor].
+	 * A [literal&#32;token&#32;type][LiteralTokenTypeDescriptor].
 	 */
 	LITERAL_TOKEN_TYPE(97, OBJECT_REFERENCE.named("literal type"))
 	{
@@ -3193,7 +3250,7 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * A [parse phrase type][PhraseTypeDescriptor].
+	 * A [parse&#32;phrase&#32;type][PhraseTypeDescriptor].
 	 */
 	PARSE_NODE_TYPE(
 		98,
@@ -3220,7 +3277,7 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * A [list phrase type][ListPhraseTypeDescriptor].
+	 * A [list&#32;phrase&#32;type][ListPhraseTypeDescriptor].
 	 */
 	LIST_NODE_TYPE(
 		99,
@@ -3252,7 +3309,7 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * A [variable type][VariableTypeDescriptor] for which the read type and
+	 * A [variable&#32;type][VariableTypeDescriptor] for which the read type and
 	 * write type are equal.
 	 */
 	SIMPLE_VARIABLE_TYPE(100, OBJECT_REFERENCE.named("content type"))
@@ -3275,7 +3332,7 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * A [variable type][ReadWriteVariableTypeDescriptor] for which the read
+	 * A [variable&#32;type][ReadWriteVariableTypeDescriptor] for which the read
 	 * type and write type are (actually) unequal.
 	 */
 	READ_WRITE_VARIABLE_TYPE(
@@ -3303,7 +3360,7 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * The [bottom type][BottomTypeDescriptor], more specific than all other
+	 * The [bottom&#32;type][BottomTypeDescriptor], more specific than all other
 	 * types.
 	 */
 	BOTTOM_TYPE(102)

@@ -50,7 +50,7 @@ import java.util.*
 /**
  * An instance of `L1Disassembler` converts a [compiled code
  * object][CompiledCodeDescriptor] into a textual representation of its sequence
- * of [level one operations][L1Operation] and their [operands][L1OperandType].
+ * of [level&#32;one&#32;operations][L1Operation] and their [operands][L1OperandType].
  *
  * @property code
  *   The [compiled code object][CompiledCodeDescriptor] being disassembled.

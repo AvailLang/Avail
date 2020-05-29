@@ -36,10 +36,14 @@ import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.*
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromArrayMethod
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
 import com.avail.descriptor.tuples.TupleDescriptor
-import com.avail.descriptor.types.*
-import com.avail.descriptor.types.BottomTypeDescriptor.*
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.BottomTypeDescriptor.bottom
+import com.avail.descriptor.types.InstanceTypeDescriptor
+import com.avail.descriptor.types.TupleTypeDescriptor
+import com.avail.descriptor.types.TypeDescriptor
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2OperandType
 import com.avail.interpreter.levelTwo.L2Operation
@@ -204,7 +208,8 @@ object L2_CREATE_TUPLE : L2Operation(
 	 * @param instruction
 	 *   The tuple creation instruction to examine.
 	 * @return
-	 *   The instruction's [List] of [L2ReadBoxedOperand]s that supply the tuple elements.
+	 *   The instruction's [List] of [L2ReadBoxedOperand]s that supply the tuple
+	 *   elements.
 	 */
 	@kotlin.jvm.JvmStatic
 	fun tupleSourceRegistersOf(

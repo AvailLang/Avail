@@ -32,13 +32,12 @@
 
 package com.avail.descriptor.types;
 
-import com.avail.annotations.AvailMethod;
-import com.avail.descriptor.representation.AvailObject;
-import com.avail.descriptor.Descriptor;
 import com.avail.descriptor.atoms.A_Atom;
 import com.avail.descriptor.maps.A_Map;
 import com.avail.descriptor.numbers.A_Number;
 import com.avail.descriptor.representation.A_BasicObject;
+import com.avail.descriptor.representation.AvailObject;
+import com.avail.descriptor.representation.Descriptor;
 import com.avail.descriptor.representation.IntegerSlotsEnum;
 import com.avail.descriptor.representation.Mutability;
 import com.avail.descriptor.representation.ObjectSlotsEnum;
@@ -64,198 +63,197 @@ import java.util.List;
 public abstract class AbstractTypeDescriptor
 extends Descriptor
 {
-	@Override @AvailMethod
+	@Override
 	public abstract boolean o_AcceptsArgTypesFromFunctionType (
 		final AvailObject object,
 		final A_Type functionType);
 
-	@Override @AvailMethod
+	@Override
 	public abstract boolean o_AcceptsListOfArgTypes (
 		final AvailObject object,
 		final List<? extends A_Type> argTypes);
 
-	@Override @AvailMethod
+	@Override
 	public abstract boolean o_AcceptsListOfArgValues (
 		final AvailObject object,
 		final List<? extends A_BasicObject> argValues);
 
-	@Override @AvailMethod
+	@Override
 	public abstract boolean o_AcceptsTupleOfArgTypes (
 		final AvailObject object,
 		final A_Tuple argTypes);
 
-	@Override @AvailMethod
+	@Override
 	public abstract boolean o_AcceptsTupleOfArguments (
 		final AvailObject object,
 		final A_Tuple arguments);
 
-	@Override @AvailMethod
+	@Override
 	public abstract A_Type o_ArgsTupleType (
 		final AvailObject object);
 
-	@Override @AvailMethod
+	@Override
 	public abstract A_Set o_DeclaredExceptions (
 		final AvailObject object);
 
-	@Override @AvailMethod
+	@Override
 	public abstract A_Type o_FunctionType (
 		final AvailObject object);
 
-	@Override @AvailMethod
+	@Override
 	public abstract A_Type o_ContentType (
 		final AvailObject object);
 
-	@Override @AvailMethod
+	@Override
 	public abstract boolean o_CouldEverBeInvokedWith (
 		final AvailObject object,
 		final List<TypeRestriction> argRestrictions);
 
-	@Override @AvailMethod
+	@Override
 	public abstract A_Type o_DefaultType (
 		final AvailObject object);
 
-	@Override @AvailMethod
+	@Override
 	public abstract boolean o_Equals (
 		final AvailObject object,
 		final A_BasicObject another);
 
-	@Override @AvailMethod
+	@Override
 	public abstract A_Type o_FieldTypeAt (
 		final AvailObject object,
 		final A_Atom field);
 
-	@Override @AvailMethod
+	@Override
 	public abstract A_Map o_FieldTypeMap (
 		final AvailObject object);
 
-	@Override @AvailMethod
-
+	@Override
 	public abstract int o_Hash (final AvailObject object);
 
-	@Override @AvailMethod
+	@Override
 	public abstract boolean o_HasObjectInstance (
 		final AvailObject object,
 		final AvailObject potentialInstance);
 
-	@Override @AvailMethod
+	@Override
 	public abstract A_Number o_InstanceCount (
 		final AvailObject object);
 
-	@Override @AvailMethod
+	@Override
 	public abstract boolean o_IsBetterRepresentationThan (
 		final AvailObject object,
 		final A_BasicObject anotherObject);
 
-	@Override @AvailMethod
+	@Override
 	public abstract int o_RepresentationCostOfTupleType (
 		final AvailObject object);
 
-	@Override @AvailMethod
+	@Override
 	public abstract boolean o_IsInstanceOfKind (
 		final AvailObject object,
 		final A_Type aType);
 
-	@Override @AvailMethod
+	@Override
 	public abstract boolean o_IsIntegerRangeType (
 		final AvailObject object);
 
-	@Override @AvailMethod
+	@Override
 	public abstract boolean o_IsMapType (final AvailObject object);
 
-	@Override @AvailMethod
+	@Override
 	public abstract boolean o_IsSetType (final AvailObject object);
 
-	@Override @AvailMethod
+	@Override
 	public abstract boolean o_IsSubtypeOf (
 		final AvailObject object,
 		final A_Type aType);
 
-	@Override @AvailMethod
+	@Override
 	public abstract boolean o_IsSupertypeOfFiberType (
 		final AvailObject object,
 		final A_Type aFunctionType);
 
-	@Override @AvailMethod
+	@Override
 	public abstract boolean o_IsSupertypeOfFunctionType (
 		final AvailObject object,
 		final A_Type aFunctionType);
 
-	@Override @AvailMethod
+	@Override
 	public abstract boolean o_IsSupertypeOfVariableType (
 		final AvailObject object,
 		final A_Type aVariableType);
 
-	@Override @AvailMethod
+	@Override
 	public abstract boolean o_IsSupertypeOfContinuationType (
 		final AvailObject object,
 		final A_Type aContinuationType);
 
-	@Override @AvailMethod
+	@Override
 	public abstract boolean o_IsSupertypeOfCompiledCodeType (
 		final AvailObject object,
 		final A_Type aCompiledCode);
 
-	@Override @AvailMethod
+	@Override
 	public abstract boolean o_IsSupertypeOfIntegerRangeType (
 		final AvailObject object,
 		final A_Type anIntegerRangeType);
 
-	@Override @AvailMethod
+	@Override
 	public abstract boolean o_IsSupertypeOfListNodeType (
 		final AvailObject object,
 		final A_Type aListNodeType);
 
-	@Override @AvailMethod
+	@Override
 	public abstract boolean o_IsSupertypeOfTokenType (
 		final AvailObject object,
 		final A_Type aTokenType);
 
-	@Override @AvailMethod
+	@Override
 	public abstract boolean o_IsSupertypeOfLiteralTokenType (
 		final AvailObject object,
 		final A_Type aLiteralTokenType);
 
-	@Override @AvailMethod
+	@Override
 	public abstract boolean o_IsSupertypeOfMapType (
 		final AvailObject object,
 		final AvailObject aMapType);
 
-	@Override @AvailMethod
+	@Override
 	public abstract boolean o_IsSupertypeOfObjectType (
 		final AvailObject object,
 		final AvailObject anObjectType);
 
-	@Override @AvailMethod
+	@Override
 	public abstract boolean o_IsSupertypeOfPhraseType (
 		final AvailObject object,
 		final A_Type aPhraseType);
 
-	@Override @AvailMethod
+	@Override
 	public abstract boolean o_IsSupertypeOfPojoType (
 		final AvailObject object,
 		final A_Type aPojoType);
 
-	@Override @AvailMethod
+	@Override
 	public abstract boolean o_IsSupertypeOfPrimitiveTypeEnum (
 		final AvailObject object,
 		final Types primitiveTypeEnum);
 
-	@Override @AvailMethod
+	@Override
 	public abstract boolean o_IsSupertypeOfSetType (
 		final AvailObject object,
-		final AvailObject aSetType);
+		final A_Type aSetType);
 
-	@Override @AvailMethod
+	@Override
 	public abstract boolean o_IsSupertypeOfTupleType (
 		final AvailObject object,
-		final AvailObject aTupleType);
+		final A_Type aTupleType);
 
-	@Override @AvailMethod
+	@Override
 	public abstract boolean o_IsSupertypeOfPojoBottomType (
 		final AvailObject object,
 		final A_Type aPojoType);
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsSupertypeOfBottom (
 		final AvailObject object)
 	{
@@ -263,20 +261,20 @@ extends Descriptor
 		return true;
 	}
 
-	@Override @AvailMethod
+	@Override
 	public abstract boolean o_IsTupleType (final AvailObject object);
 
-	@Override @AvailMethod
+	@Override
 	public final boolean o_IsType (final AvailObject object)
 	{
 		return true;
 	}
 
-	@Override @AvailMethod
+	@Override
 	public abstract A_Type o_KeyType (
 		final AvailObject object);
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_Kind (
 		final AvailObject object)
 	{
@@ -285,92 +283,92 @@ extends Descriptor
 		return Types.ANY.o();
 	}
 
-	@Override @AvailMethod
+	@Override
 	public abstract A_Number o_LowerBound (
 		final AvailObject object);
 
-	@Override @AvailMethod
+	@Override
 	public abstract boolean o_LowerInclusive (
 		final AvailObject object);
 
-	@Override @AvailMethod
+	@Override
 	public abstract A_BasicObject o_Parent (
 		final AvailObject object);
 
-	@Override @AvailMethod
+	@Override
 	public abstract A_Type o_ReturnType (
 		final AvailObject object);
 
-	@Override @AvailMethod
+	@Override
 	public abstract A_Type o_SizeRange (
 		final AvailObject object);
 
-	@Override @AvailMethod
+	@Override
 	public abstract A_Type o_TypeAtIndex (
 		final AvailObject object,
 		final int index);
 
-	@Override @AvailMethod
+	@Override
 	public abstract A_Type o_TypeIntersection (
 		final AvailObject object,
 		final A_Type another);
 
-	@Override @AvailMethod
+	@Override
 	public abstract A_Type o_TypeIntersectionOfFiberType (
 		final AvailObject object,
 		final A_Type aFiberType);
 
-	@Override @AvailMethod
+	@Override
 	public abstract A_Type o_TypeIntersectionOfFunctionType (
 		final AvailObject object,
 		final A_Type aFunctionType);
 
-	@Override @AvailMethod
+	@Override
 	public abstract A_Type o_TypeIntersectionOfVariableType (
 		final AvailObject object,
 		final A_Type aVariableType);
 
-	@Override @AvailMethod
+	@Override
 	public abstract A_Type o_TypeIntersectionOfContinuationType (
 		final AvailObject object,
 		final A_Type aContinuationType);
 
-	@Override @AvailMethod
+	@Override
 	public abstract A_Type o_TypeIntersectionOfCompiledCodeType (
 		final AvailObject object,
 		final A_Type aCompiledCodeType);
 
-	@Override @AvailMethod
+	@Override
 	public abstract A_Type o_TypeIntersectionOfIntegerRangeType (
 		final AvailObject object,
 		final A_Type anIntegerRangeType);
 
-	@Override @AvailMethod
+	@Override
 	public abstract A_Type o_TypeIntersectionOfListNodeType (
 		final AvailObject object,
 		final A_Type aListNodeType);
 
-	@Override @AvailMethod
+	@Override
 	public abstract A_Type o_TypeIntersectionOfTokenType (
 		AvailObject object,
 		A_Type aTokenType);
 
-	@Override @AvailMethod
+	@Override
 	public abstract A_Type o_TypeIntersectionOfLiteralTokenType (
 		AvailObject object,
 		A_Type aLiteralTokenType);
 
-	@Override @AvailMethod
+	@Override
 	public abstract A_Type o_TypeIntersectionOfMapType (
 		final AvailObject object,
 		final A_Type aMapType);
 
-	@Override @AvailMethod
+	@Override
 	public abstract A_Type o_TypeIntersectionOfObjectType (
 		final AvailObject object,
 		final AvailObject anObjectType);
 
-	@Override @AvailMethod
+	@Override
 	public abstract A_Type o_TypeIntersectionOfPhraseType (
 		final AvailObject object,
 		final A_Type aPhraseType);
@@ -385,80 +383,80 @@ extends Descriptor
 		final AvailObject object,
 		final Types primitiveTypeEnum);
 
-	@Override @AvailMethod
+	@Override
 	public abstract A_Type o_TypeIntersectionOfSetType (
 		final AvailObject object,
 		final A_Type aSetType);
 
-	@Override @AvailMethod
+	@Override
 	public abstract A_Type o_TypeIntersectionOfTupleType (
 		final AvailObject object,
 		final A_Type aTupleType);
 
-	@Override @AvailMethod
+	@Override
 	public abstract A_Tuple o_TypeTuple (final AvailObject object);
 
-	@Override @AvailMethod
+	@Override
 	public abstract A_Type o_TypeUnion (
 		final AvailObject object,
 		final A_Type another);
 
-	@Override @AvailMethod
+	@Override
 	public abstract A_Type o_TypeUnionOfFiberType (
 		final AvailObject object,
 		final A_Type aFiberType);
 
-	@Override @AvailMethod
+	@Override
 	public abstract A_Type o_TypeUnionOfFunctionType (
 		final AvailObject object,
 		final A_Type aFunctionType);
 
-	@Override @AvailMethod
+	@Override
 	public abstract A_Type o_TypeUnionOfVariableType (
 		final AvailObject object,
 		final A_Type aVariableType);
 
-	@Override @AvailMethod
+	@Override
 	public abstract A_Type o_TypeUnionOfContinuationType (
 		final AvailObject object,
 		final A_Type aContinuationType);
 
-	@Override @AvailMethod
+	@Override
 	public abstract A_Type o_TypeUnionOfCompiledCodeType (
 		final AvailObject object,
 		final A_Type aCompiledCodeType);
 
-	@Override @AvailMethod
+	@Override
 	public abstract A_Type o_TypeUnionOfIntegerRangeType (
 		final AvailObject object,
 		final A_Type anIntegerRangeType);
 
-	@Override @AvailMethod
+	@Override
 	public abstract A_Type o_TypeUnionOfListNodeType (
 		final AvailObject object,
 		final A_Type aListNodeType);
 
-	@Override @AvailMethod
+	@Override
 	public abstract A_Type o_TypeUnionOfTokenType (
 		final AvailObject object,
 		final A_Type aTokenType);
 
-	@Override @AvailMethod
+	@Override
 	public abstract A_Type o_TypeUnionOfLiteralTokenType (
 		final AvailObject object,
 		final A_Type aLiteralTokenType);
 
-	@Override @AvailMethod
+	@Override
 	public abstract A_Type o_TypeUnionOfMapType (
 		final AvailObject object,
 		final A_Type aMapType);
 
-	@Override @AvailMethod
+	@Override
 	public abstract A_Type o_TypeUnionOfObjectType (
 		final AvailObject object,
 		final AvailObject anObjectType);
 
-	@Override @AvailMethod
+	@Override
 	public abstract A_Type o_TypeUnionOfPhraseType (
 		final AvailObject object,
 		final A_Type aPhraseType);
@@ -468,7 +466,7 @@ extends Descriptor
 		final AvailObject object,
 		final Types primitiveTypeEnum);
 
-	@Override @AvailMethod
+	@Override
 	public abstract A_Type o_TypeUnionOfSetType (
 		final AvailObject object,
 		final A_Type aSetType);
@@ -478,45 +476,45 @@ extends Descriptor
 		final AvailObject object,
 		final A_Type aPojoType);
 
-	@Override @AvailMethod
+	@Override
 	public abstract A_Type o_TypeUnionOfTupleType (
 		final AvailObject object,
 		final A_Type aTupleType);
 
-	@Override @AvailMethod
+	@Override
 	public abstract A_Type o_UnionOfTypesAtThrough (
 		final AvailObject object,
 		final int startIndex,
 		final int endIndex);
 
-	@Override @AvailMethod
+	@Override
 	public abstract A_Number o_UpperBound (
 		final AvailObject object);
 
-	@Override @AvailMethod
+	@Override
 	public abstract boolean o_UpperInclusive (
 		final AvailObject object);
 
-	@Override @AvailMethod
+	@Override
 	public abstract A_Type o_ValueType (
 		final AvailObject object);
 
-	@Override @AvailMethod
+	@Override
 	public abstract boolean o_RangeIncludesInt (
 		final AvailObject object,
 		final int anInt);
 
-	@Override @AvailMethod
+	@Override
 	public abstract SerializerOperation o_SerializerOperation (
 		final AvailObject object);
 
-	@Override @AvailMethod
+	@Override
 	public abstract boolean o_IsBottom (final AvailObject object);
 
-	@Override @AvailMethod
+	@Override
 	public abstract boolean o_IsVacuousType (final AvailObject object);
 
-	@Override @AvailMethod
+	@Override
 	public abstract boolean o_IsTop (final AvailObject object);
 
 	/**

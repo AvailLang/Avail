@@ -32,10 +32,9 @@
 
 package com.avail.descriptor.types;
 
-import com.avail.annotations.AvailMethod;
-import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.representation.A_BasicObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.representation.Mutability;
 import com.avail.descriptor.variables.VariableDescriptor;
 import com.avail.serialization.SerializerOperation;
@@ -88,25 +87,27 @@ extends TypeDescriptor
 			(indent + 1));
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_ReadType (final AvailObject object)
 	{
 		return object.slot(INNER_TYPE);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_WriteType (final AvailObject object)
 	{
 		return object.slot(INNER_TYPE);
 	}
 
-	@Override @AvailMethod
-	public boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	@Override
+	public boolean o_Equals (
+		final AvailObject object,
+		final A_BasicObject another)
 	{
 		return another.equalsVariableType(object);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_EqualsVariableType (
 		final AvailObject object,
 		final A_Type aType)
@@ -134,19 +135,19 @@ extends TypeDescriptor
 		return same;
 	}
 
-	@Override @AvailMethod
+	@Override
 	public int o_Hash (final AvailObject object)
 	{
 		return (object.slot(INNER_TYPE).hash() ^ 0x7613E420) + 0x024E3167;
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
 	{
 		return aType.isSupertypeOfVariableType(object);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsSupertypeOfVariableType (
 		final AvailObject object,
 		final A_Type aVariableType)
@@ -159,7 +160,7 @@ extends TypeDescriptor
 			&& innerType.isSubtypeOf(aVariableType.writeType());
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeIntersection (
 		final AvailObject object,
 		final A_Type another)
@@ -175,7 +176,7 @@ extends TypeDescriptor
 		return another.typeIntersectionOfVariableType(object);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeIntersectionOfVariableType (
 		final AvailObject object,
 		final A_Type aVariableType)
@@ -189,7 +190,7 @@ extends TypeDescriptor
 			innerType.typeUnion(aVariableType.writeType()));
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeUnion (
 		final AvailObject object,
 		final A_Type another)
@@ -205,7 +206,7 @@ extends TypeDescriptor
 		return another.typeUnionOfVariableType(object);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeUnionOfVariableType (
 		final AvailObject object,
 		final A_Type aVariableType)
@@ -220,14 +221,13 @@ extends TypeDescriptor
 			innerType.typeIntersection(aVariableType.writeType()));
 	}
 
-	@Override @AvailMethod
-	public SerializerOperation o_SerializerOperation (
-		final AvailObject object)
+	@Override
+	public SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
 		return SerializerOperation.SIMPLE_VARIABLE_TYPE;
 	}
 
-	@Override @AvailMethod
+	@Override
 	public AvailObject o_MakeImmutable (final AvailObject object)
 	{
 		if (isMutable())

@@ -31,8 +31,6 @@
  */
 package com.avail.descriptor.representation
 
-import com.avail.descriptor.Descriptor
-
 /**
  * The `AbstractSlotsEnum` is an interface that helps ensure that object
  * representations and access are consistent and correct.  In particular, some

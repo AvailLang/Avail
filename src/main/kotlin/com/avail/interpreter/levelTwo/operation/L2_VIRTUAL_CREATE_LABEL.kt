@@ -40,7 +40,13 @@ import com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2OperandType
 import com.avail.interpreter.levelTwo.L2Operation
-import com.avail.interpreter.levelTwo.operand.*
+import com.avail.interpreter.levelTwo.operand.L2CommentOperand
+import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand
+import com.avail.interpreter.levelTwo.operand.L2PcOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding
 import com.avail.interpreter.levelTwo.operation.L2_REIFY.StatisticCategory
 import com.avail.optimizer.L2ControlFlowGraph

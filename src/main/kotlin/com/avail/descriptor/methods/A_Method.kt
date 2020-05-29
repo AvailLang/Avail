@@ -31,15 +31,15 @@
  */
 package com.avail.descriptor.methods
 
+import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.fiber.A_Fiber
 import com.avail.descriptor.module.A_Module
-import com.avail.descriptor.representation.NilDescriptor
-import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.parsing.A_DefinitionParsingPlan
 import com.avail.descriptor.parsing.A_Lexer
 import com.avail.descriptor.parsing.LexerDescriptor
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.types.A_Type

@@ -43,9 +43,13 @@ import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.exceptions.AvailEmergencyExitException
 import com.avail.exceptions.AvailErrorCode
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.AlwaysSwitchesContinuation
+import com.avail.interpreter.Primitive.Flag.CanSuspend
+import com.avail.interpreter.Primitive.Flag.CanSwitchContinuations
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Primitive.Flag.Unknown
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
@@ -104,7 +108,7 @@ object P_EmergencyExit : Primitive(
 			val killer = AvailEmergencyExitException(builder.toString())
 			killer.fillInStackTrace()
 			fiber.executionState(ExecutionState.ABORTED)
-			fiber.failureContinuation().value(killer)
+			fiber.failureContinuation()(killer)
 			// If we're still here, the handler didn't do anything with the
 			// exception.  Output it and throw it as a runtime exception.
 			System.err.print(builder)

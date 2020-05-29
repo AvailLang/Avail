@@ -38,10 +38,14 @@ import com.avail.descriptor.types.EnumerationTypeDescriptor
 import com.avail.descriptor.types.EnumerationTypeDescriptor.booleanType
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.*
-import com.avail.interpreter.execution.Interpreter
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.extendedIntegers
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.extendedIntegersMeta
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.integerRangeType
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CanFold
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Answer the [integer range][IntegerRangeTypeDescriptor]

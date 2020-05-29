@@ -38,11 +38,14 @@ import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
-import com.avail.exceptions.AvailErrorCode.*
-import com.avail.interpreter.execution.Interpreter
+import com.avail.exceptions.AvailErrorCode.E_CANNOT_MARK_HANDLER_FRAME
+import com.avail.exceptions.AvailErrorCode.E_HANDLER_SENTINEL
+import com.avail.exceptions.AvailErrorCode.E_NO_HANDLER_FRAME
+import com.avail.exceptions.AvailErrorCode.E_UNWIND_SENTINEL
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanSuspend
 import com.avail.interpreter.Primitive.Flag.Unknown
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Mark the nearest frame corresponding to an invocation of

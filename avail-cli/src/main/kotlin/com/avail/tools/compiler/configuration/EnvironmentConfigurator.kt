@@ -38,7 +38,7 @@ import com.avail.utility.configuration.Configurator
 
 /**
  * An `EnvironmentConfigurator` [updates][Configurator.updateConfiguration] a
- * [compiler configuration][CompilerConfiguration] from the environment.
+ * [compiler&#32;configuration][CompilerConfiguration] from the environment.
  *
  * The following environment variables are used by the compiler:
  *

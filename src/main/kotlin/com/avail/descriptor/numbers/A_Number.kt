@@ -476,7 +476,7 @@ interface A_Number : A_BasicObject {
 	 * Answer whether the receiver is numerically less than the argument.
 	 *
 	 * @param another
-	 *   A [numeric object][AbstractNumberDescriptor].
+	 *   A [numeric&#32;object][AbstractNumberDescriptor].
 	 * @return
 	 *   Whether the receiver is strictly less than the argument.
 	 */
@@ -524,7 +524,7 @@ interface A_Number : A_BasicObject {
 
 	/**
 	 * Multiply the receiver by the given [float][FloatDescriptor], destroying
-	 * one or the other if it's mutable and canDestroy is true. Because of the
+	 * one or the other if it's mutable and `canDestroy` is true. Because of the
 	 * requirement that the argument be a float rather than an arbitrary
 	 * [A_Number], this is usually only used for double-dispatching.
 	 *

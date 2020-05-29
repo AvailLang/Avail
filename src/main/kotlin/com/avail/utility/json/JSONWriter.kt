@@ -32,7 +32,9 @@
 
 package com.avail.utility.json
 
-import com.avail.utility.json.JSONWriter.JSONState.*
+import com.avail.utility.json.JSONWriter.JSONState.EXPECTING_FIRST_OBJECT_KEY_OR_OBJECT_END
+import com.avail.utility.json.JSONWriter.JSONState.EXPECTING_FIRST_VALUE_OR_ARRAY_END
+import com.avail.utility.json.JSONWriter.JSONState.EXPECTING_SINGLE_VALUE
 import java.io.IOException
 import java.io.StringWriter
 import java.io.Writer

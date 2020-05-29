@@ -40,12 +40,12 @@ import com.avail.descriptor.types.InstanceMetaDescriptor
 import com.avail.descriptor.types.InstanceMetaDescriptor.topMeta
 import com.avail.descriptor.types.SetTypeDescriptor.mostGeneralSetType
 import com.avail.exceptions.AvailErrorCode.E_NOT_AN_ENUMERATION
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail
 import com.avail.interpreter.Primitive.Fallibility.CallSiteMustFail
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Obtain the instances of the specified

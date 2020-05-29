@@ -32,9 +32,8 @@
 
 package com.avail.descriptor.tuples;
 
-import com.avail.annotations.AvailMethod;
 import com.avail.annotations.ThreadSafe;
-import com.avail.descriptor.AbstractDescriptor;
+import com.avail.descriptor.representation.AbstractDescriptor;
 import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.representation.IntegerSlotsEnum;
 import com.avail.descriptor.representation.Mutability;
@@ -64,15 +63,14 @@ import static com.avail.descriptor.tuples.TwoByteStringDescriptor.mutableObjectF
 public abstract class StringDescriptor
 extends TupleDescriptor
 {
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsString (final AvailObject object)
 	{
 		return true;
 	}
 
-	@Override @AvailMethod @ThreadSafe
-	public SerializerOperation o_SerializerOperation (
-		final AvailObject object)
+	@Override @ThreadSafe
+	public SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
 		final int size = object.tupleSize();
 		for (int i = 1; i <= size; i++)
@@ -102,7 +100,7 @@ extends TupleDescriptor
 				object, startIndex, endIndex, type);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public final int o_TupleIntAt (final AvailObject object, final int index)
 	{
 		throw unsupportedOperationException();

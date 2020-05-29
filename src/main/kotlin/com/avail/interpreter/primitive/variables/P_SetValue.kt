@@ -31,9 +31,9 @@
  */
 package com.avail.interpreter.primitive.variables
 
+import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
-import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.types.A_Type
@@ -43,12 +43,16 @@ import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.descriptor.types.VariableTypeDescriptor.mostGeneralVariableType
 import com.avail.descriptor.variables.VariableDescriptor
-import com.avail.exceptions.AvailErrorCode.*
+import com.avail.exceptions.AvailErrorCode.E_CANNOT_MODIFY_FINAL_JAVA_FIELD
+import com.avail.exceptions.AvailErrorCode.E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE
+import com.avail.exceptions.AvailErrorCode.E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE
+import com.avail.exceptions.AvailErrorCode.E_JAVA_MARSHALING_FAILED
+import com.avail.exceptions.AvailErrorCode.E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED
 import com.avail.exceptions.VariableSetException
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operation.L2_SET_VARIABLE
 import com.avail.interpreter.levelTwo.operation.L2_SET_VARIABLE_NO_CHECK

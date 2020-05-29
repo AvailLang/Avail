@@ -32,12 +32,12 @@
 
 package com.avail.exceptions
 
-import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.numbers.A_Number
+import com.avail.descriptor.representation.AvailObject
 
 /**
  * `AvailRuntimeException` is the root of the hierarchy of
- * [runtime exception][RuntimeException] that are specific to the implementation
+ * [runtime&#32;exception][RuntimeException] that are specific to the implementation
  * of [AvailObject] and its numerous primitive operations.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
@@ -57,7 +57,7 @@ open class AvailRuntimeException : RuntimeException
 
 	/**
 	 * Construct a new `AvailRuntimeException` with the specified
-	 * [error code][AvailErrorCode].
+	 * [error&#32;code][AvailErrorCode].
 	 *
 	 * @param errorCode
 	 *   The [error code][AvailErrorCode].
@@ -69,7 +69,7 @@ open class AvailRuntimeException : RuntimeException
 
 	/**
 	 * Construct a new `AvailRuntimeException` with the specified
-	 * [error code][AvailErrorCode] and [cause][Throwable].
+	 * [error&#32;code][AvailErrorCode] and [cause][Throwable].
 	 *
 	 * @param errorCode
 	 *   The [error code][AvailErrorCode].

@@ -31,7 +31,11 @@
  */
 package com.avail.descriptor.fiber
 
-import com.avail.descriptor.fiber.FiberDescriptor.*
+import com.avail.descriptor.fiber.FiberDescriptor.ExecutionState
+import com.avail.descriptor.fiber.FiberDescriptor.GeneralFlag
+import com.avail.descriptor.fiber.FiberDescriptor.InterruptRequestFlag
+import com.avail.descriptor.fiber.FiberDescriptor.SynchronizationFlag
+import com.avail.descriptor.fiber.FiberDescriptor.TraceFlag
 import com.avail.descriptor.functions.A_Continuation
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.ContinuationDescriptor
@@ -47,9 +51,7 @@ import com.avail.descriptor.variables.A_Variable
 import com.avail.descriptor.variables.VariableDescriptor
 import com.avail.interpreter.execution.AvailLoader
 import com.avail.io.TextInterface
-import com.avail.utility.evaluation.Continuation1NotNull
 import java.util.*
-import java.util.function.Supplier
 
 /**
  * `A_Fiber` is an interface that specifies the fiber-specific operations that
@@ -120,7 +122,7 @@ interface A_Fiber : A_BasicObject {
 	/**
 	 * @return
 	 */
-	fun failureContinuation(): Continuation1NotNull<Throwable>
+	fun failureContinuation(): (Throwable) -> Unit
 
 	/**
 	 * Dispatch to the descriptor.
@@ -140,7 +142,7 @@ interface A_Fiber : A_BasicObject {
 	/**
 	 * @param supplier
 	 */
-	fun fiberNameSupplier(supplier: Supplier<A_String>)
+	fun fiberNameSupplier(supplier: () -> A_String)
 
 	/**
 	 * @return
@@ -170,8 +172,8 @@ interface A_Fiber : A_BasicObject {
 	fun getAndClearInterruptRequestFlag(flag: InterruptRequestFlag): Boolean
 
 	/**
-	 * @param scheduled
-	 * @param b
+	 * @param flag
+	 * @param value
 	 * @return
 	 */
 	fun getAndSetSynchronizationFlag(
@@ -216,7 +218,7 @@ interface A_Fiber : A_BasicObject {
 	fun joiningFibers(): A_Set
 
 	/**
-	 * @param empty
+	 * @param joiners
 	 */
 	fun joiningFibers(joiners: A_Set)
 
@@ -239,7 +241,7 @@ interface A_Fiber : A_BasicObject {
 	/**
 	 * @return
 	 */
-	fun resultContinuation(): Continuation1NotNull<AvailObject>
+	fun resultContinuation(): (AvailObject) -> Unit
 
 	/**
 	 * @param flag
@@ -258,8 +260,8 @@ interface A_Fiber : A_BasicObject {
 	 *   The action to invoke with the responsible throwable.
 	 */
 	fun setSuccessAndFailureContinuations(
-		onSuccess: Continuation1NotNull<AvailObject>,
-		onFailure: Continuation1NotNull<Throwable>)
+		onSuccess: (AvailObject) -> Unit,
+		onFailure: (Throwable) -> Unit)
 
 	/**
 	 * @param flag
@@ -312,21 +314,21 @@ interface A_Fiber : A_BasicObject {
 	fun variablesWritten(): A_Set
 
 	/**
-	 * Ensure the specified [action][Continuation1NotNull] is invoked with this
-	 * fiber's reified [continuation][ContinuationDescriptor] as soon as it's
-	 * available.  Note that this triggers an interrupt on the fiber to ensure a
-	 * timely capture of the stack.
+	 * Ensure the specified action is invoked with this fiber's reified
+	 * [continuation][ContinuationDescriptor] as soon as it's available.  Note
+	 * that this triggers an interrupt on the fiber to ensure a timely capture
+	 * of the stack.
 	 *
 	 * @param whenReified
 	 *   What to run with the Avail [continuation][ContinuationDescriptor].
 	 */
 	fun whenContinuationIsAvailableDo(
-		whenReified: Continuation1NotNull<A_Continuation>)
+		whenReified: (A_Continuation) -> Unit)
 
 	/**
 	 * Extract the current [A_Set] of [pojo][PojoDescriptor]-wrapped
-	 * [actions][Continuation1NotNull] to perform when this fiber is next
-	 * reified.  Replace it with the empty set.
+	 * actions to perform when this fiber is next reified.  Replace it with the
+	 * empty set.
 	 *
 	 * @return
 	 *   The set of outstanding actions, prior to clearing it.

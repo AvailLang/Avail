@@ -52,8 +52,9 @@ import java.util.*
 
 /**
  * `L2Instruction` is the foundation for all instructions understood by
- * the [level two Avail interpreter][Interpreter]. These instructions
- * are model objects generated and manipulated by the [L2Generator].
+ * the [level&#32;two&#32;Avail&#32;interpreter][Interpreter]. These
+ * instructions are model objects generated and manipulated by the
+ * [L2Generator].
  *
  *
  * It used to be the case that the instructions were flattened into a stream of
@@ -188,7 +189,8 @@ class L2Instruction constructor(
 	 * This is only applicable to an instruction which [altersControlFlow]
 	 *
 	 * @param purpose
-	 *   The [L2NamedOperandType.Purpose] with which to filter [L2WriteOperand]s.
+	 *   The [L2NamedOperandType.Purpose] with which to filter
+	 *   [L2WriteOperand]s.
 	 * @param consumer
 	 *   The lambda to evaluate with each [L2WriteOperand] having the given
 	 *   [L2NamedOperandType.Purpose].
@@ -499,7 +501,8 @@ class L2Instruction constructor(
 	 * if the transformation won't work because of a missing read operand.
 	 *
 	 * @param newBlock
-	 *   The [L2BasicBlock] in which the instruction will eventually be inserted.
+	 *   The [L2BasicBlock] in which the instruction will eventually be
+	 *   inserted.
 	 * @param manifest
 	 *   The [L2ValueManifest] that's active where the new instruction would be
 	 *   inserted.

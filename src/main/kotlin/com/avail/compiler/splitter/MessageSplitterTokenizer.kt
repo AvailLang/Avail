@@ -37,7 +37,9 @@ import com.avail.compiler.problems.CompilerDiagnostics.Companion.errorIndicatorS
 import com.avail.compiler.splitter.MessageSplitter.Companion.isUnderscoreOrSpaceOrOperator
 import com.avail.compiler.splitter.MessageSplitter.Companion.throwMalformedMessageException
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter
-import com.avail.compiler.splitter.MessageSplitter.Metacharacter.*
+import com.avail.compiler.splitter.MessageSplitter.Metacharacter.BACK_QUOTE
+import com.avail.compiler.splitter.MessageSplitter.Metacharacter.SPACE
+import com.avail.compiler.splitter.MessageSplitter.Metacharacter.UNDERSCORE
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.tuples.StringDescriptor

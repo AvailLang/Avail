@@ -58,9 +58,7 @@ import java.text.MessageFormat
  *   found, no read access, etc.), a line number of `0` can indicate this.
  * @property characterInFile
  *   The approximate location of the problem within the source file as a
- *   zero-based subscript of the full-Unicode [code
- *   points][CharacterDescriptor] of the file.  [Surrogate
- *   pairs][Character.isSurrogate] are treated as a single code point. It is
+ *   zero-based subscript of the full-Unicode [code&#32;points][CharacterDescriptor] of the file.  [Surrogate&#32;pairs][Character.isSurrogate] are treated as a single code point. It is
  *   *strongly* recommended that Avail source files are always encoded in the
  *   UTF-8 [character set][Charset].  The current compiler as of 2014.01.26
  *   *requires* source files to be in UTF-8 encoding.

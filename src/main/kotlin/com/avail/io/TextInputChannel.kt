@@ -57,10 +57,10 @@ interface TextInputChannel : AsynchronousChannel
 	 * channel has reached end-of-stream.
 	 *
 	 * The read operation may read up to `r` bytes from the channel, where r is
-	 * the [number of characters][CharBuffer.remaining] in the buffer at the
-	 * time that the read is attempted. If `r` is `0`, then the read operation
-	 * completes immediately with a result of `0` without initiating an I/O
-	 * operation.
+	 * the [number&#32;of&#32;characters][CharBuffer.remaining] in the buffer at
+	 * the time that the read is attempted. If `r` is `0`, then the read
+	 * operation completes immediately with a result of `0` without initiating
+	 * an I/O operation.
 	 *
 	 * Suppose that a character sequence of length `n` is read, where `0 < n ≤
 	 * r`. This character sequence will be transferred into the buffer so that

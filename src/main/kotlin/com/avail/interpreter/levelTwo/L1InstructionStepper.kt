@@ -505,9 +505,10 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 					// owned).
 					// ...and continue running the chunk.
 					interpreter.isReifying = true
-					return StackReifier(true, reificationBeforeLabelCreationStat)
-					{
-
+					return StackReifier(
+						true,
+						reificationBeforeLabelCreationStat
+					) {
 						// The Java stack has been reified into Avail
 						// continuations.  Run this before continuing the L2
 						// interpreter.
@@ -706,8 +707,8 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 	 *   The [ChunkEntryPoint] at which to resume L1 interpretation.
 	 * @param logMessage
 	 *   The log message. Expects two template parameters, one for the
-	 *   [debug string][Interpreter.debugModeString], one for the method name,
-	 *   respectively.
+	 *   [debug&#32;string][Interpreter.debugModeString], one for the method
+	 *   name, respectively.
 	 */
 	private fun reifyCurrentFrame(
 		reifier: StackReifier,
@@ -1046,7 +1047,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 
 		/** The [CheckedMethod] for [run].  */
 		@JvmField
-		val runMethod = CheckedMethod.instanceMethod(
+		val runMethod: CheckedMethod = CheckedMethod.instanceMethod(
 			L1InstructionStepper::class.java,
 			"run",
 			StackReifier::class.java)

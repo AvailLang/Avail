@@ -31,9 +31,9 @@
  */
 package com.avail.descriptor.functions
 
-import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.NilDescriptor
 import com.avail.interpreter.execution.Interpreter
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 

@@ -31,9 +31,12 @@
  */
 package com.avail.descriptor.representation
 
-import com.avail.descriptor.AbstractDescriptor
 import com.avail.descriptor.atoms.A_Atom
-import com.avail.descriptor.functions.*
+import com.avail.descriptor.functions.A_Continuation
+import com.avail.descriptor.functions.A_Function
+import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.functions.CompiledCodeDescriptor
+import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.maps.A_Map
 import com.avail.descriptor.numbers.AbstractNumberDescriptor.Sign
 import com.avail.descriptor.numbers.InfinityDescriptor
@@ -41,20 +44,26 @@ import com.avail.descriptor.objects.ObjectDescriptor
 import com.avail.descriptor.objects.ObjectTypeDescriptor
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor.SetIterator
 import com.avail.descriptor.tokens.A_Token
-import com.avail.descriptor.tuples.*
+import com.avail.descriptor.tuples.A_String
+import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.ByteStringDescriptor
+import com.avail.descriptor.tuples.ByteTupleDescriptor
+import com.avail.descriptor.tuples.IntTupleDescriptor
+import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FiberTypeDescriptor
 import com.avail.descriptor.types.FunctionTypeDescriptor
+import com.avail.descriptor.variables.A_Variable
 import com.avail.descriptor.variables.VariableDescriptor
 import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.Casts.cast
-import com.avail.utility.evaluation.Continuation0
 import com.avail.utility.json.JSONFriendly
 import com.avail.utility.json.JSONWriter
 import com.avail.utility.visitor.AvailSubobjectVisitor
@@ -182,11 +191,11 @@ interface A_BasicObject : JSONFriendly {
 		indent: Int)
 
 	/**
-	 * Utility method for decomposing this object in the debugger.  See [ ] for instructions to enable this functionality in
-	 * Eclipse.
+	 * Utility method for decomposing this object in the debugger.
 	 *
-	 * @return An array of [AvailObjectFieldHelper] objects that help
-	 * describe the logical structure of the receiver to the debugger.
+	 * @return
+	 *   An array of [AvailObjectFieldHelper] objects that help describe the
+	 *   logical structure of the receiver to the debugger.
 	 */
 	fun describeForDebugger(): Array<AvailObjectFieldHelper>
 
@@ -279,7 +288,8 @@ interface A_BasicObject : JSONFriendly {
 	override fun equals(other: Any?): Boolean
 
 	/**
-	 * Answer whether the receiver and the argument, both [ ], are equal in value.
+	 * Answer whether the receiver and the argument, both [A_BasicObject]s, are
+	 * equal in value.
 	 *
 	 * Note that the argument is of type [AvailObject] so that correctly
 	 * typed uses (where the argument is statically known to be an AvailObject)
@@ -372,7 +382,7 @@ interface A_BasicObject : JSONFriendly {
 
 	/**
 	 * Answer whether the arguments, an [object][AvailObject] and a
-	 * [compiled code][CompiledCodeDescriptor], are equal.
+	 * [compiled&#32;code][CompiledCodeDescriptor], are equal.
 	 *
 	 * @param aCompiledCode The compiled code used in the comparison.
 	 * @return `true` if the receiver is a compiled code and of value
@@ -392,7 +402,7 @@ interface A_BasicObject : JSONFriendly {
 	 * @return `true` if the receiver is a variable with the same identity
 	 * as the argument, `false` otherwise.
 	 */
-	fun equalsVariable(aVariable: AvailObject): Boolean
+	fun equalsVariable(aVariable: A_Variable): Boolean
 
 	/**
 	 * Answer whether the receiver equals the argument, a [ ].
@@ -664,9 +674,9 @@ interface A_BasicObject : JSONFriendly {
 	val isIntegerRangeType: Boolean
 
 	/**
-	 * Is the [receiver][AvailObject] an Avail [ ]?  This is conservative, in that some object
-	 * tuples *may* only contain ints but not be reported as being int
-	 * tuples.
+	 * Is the [receiver][AvailObject] an Avail [IntTupleDescriptor]?  This is
+	 * conservative, in that some object tuples *may* only contain ints but not
+	 * be reported as being int tuples.
 	 *
 	 * @return `true` if the receiver is easily determined to be an int
 	 * tuple, `false` otherwise.
@@ -759,7 +769,7 @@ interface A_BasicObject : JSONFriendly {
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	fun makeSubobjectsShared()
+	fun makeSubobjectsShared(): AvailObject
 
 	/**
 	 * Dispatch to the descriptor.
@@ -1094,22 +1104,17 @@ interface A_BasicObject : JSONFriendly {
 	fun equalsRepeatedElementTuple(aRepeatedElementTuple: A_Tuple): Boolean
 
 	/**
-	 * @param critical
-	 */
-	fun lock(critical: Continuation0)
-
-	/**
 	 * Lock the fiber during evaluation of the [Supplier], and return the
 	 * produced value.
 	 *
-	 * @param supplier
-	 *   The supplier to evaluate.
 	 * @param T
 	 *   The type of value to produce while holding the lock.
+	 * @param supplier
+	 *   The supplier to evaluate.
 	 * @return
 	 *   The produced value.
 	 */
-	fun <T : Any> lock(supplier: Supplier<T>): T
+	fun <T> lock(supplier: () -> T): T
 
 	/**
 	 * @return
@@ -1218,6 +1223,7 @@ interface A_BasicObject : JSONFriendly {
 			AvailObject::class.java)
 
 		/** The [CheckedMethod] for [.makeSubobjectsImmutable].  */
+		@Suppress("unused")
 		@JvmField
 		val makeSubobjectsImmutableMethod: CheckedMethod = instanceMethod(
 			A_BasicObject::class.java,

@@ -1,10 +1,11 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Unicode Catalog" type="Application" factoryName="Application">
-    <option name="MAIN_CLASS_NAME" value="com.avail.tools.unicode.CatalogGenerator" />
-    <module name="avail.unicode-catalog.main" />
+  <configuration default="false" name="Unicode Catalog" type="JarApplication">
+    <option name="JAR_PATH" value="$PROJECT_DIR$/unicode-catalog/build/libs/unicode-catalog-1.4-all.jar" />
     <option name="VM_PARAMETERS" value="-ea" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+    <option name="ALTERNATIVE_JRE_PATH" />
     <method v="2">
-      <option name="Make" enabled="true" />
+      <option name="Gradle.BeforeRunTask" enabled="true" tasks="build" externalProjectPath="$PROJECT_DIR$/unicode-catalog" vmOptions="" scriptParameters="" />
     </method>
   </configuration>
 </component>

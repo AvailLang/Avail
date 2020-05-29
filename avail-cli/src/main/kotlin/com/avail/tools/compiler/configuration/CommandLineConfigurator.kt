@@ -37,7 +37,17 @@ import com.avail.builder.ModuleRoots
 import com.avail.builder.RenamesFileParser
 import com.avail.builder.RenamesFileParserException
 import com.avail.performance.StatisticReport
-import com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.*
+import com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.AVAIL_RENAMES
+import com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.AVAIL_ROOTS
+import com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.CLEAR_REPOSITORIES
+import com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.COMPILE_MODULES
+import com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.DOCUMENTATION_PATH
+import com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.GENERATE_DOCUMENTATION
+import com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.HELP
+import com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.QUIET
+import com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.SHOW_STATISTICS
+import com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.TARGET_MODULE_NAME
+import com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.VERBOSE_MODE
 import com.avail.tools.options.OptionProcessingException
 import com.avail.tools.options.OptionProcessor
 import com.avail.tools.options.OptionProcessorFactory
@@ -92,8 +102,8 @@ class CommandLineConfigurator constructor(
 	internal enum class OptionKey
 	{
 		/**
-		 * Specification of the [path][File] to the [renames
-		 * file][RenamesFileParser].
+		 * Specification of the [path][File] to the
+		 * [renames&#32;file][RenamesFileParser].
 		 */
 		AVAIL_RENAMES,
 
@@ -135,8 +145,8 @@ class CommandLineConfigurator constructor(
 		SHOW_STATISTICS,
 
 		/**
-		 * The option to request standard verbosity or set the [verbosity
-		 * level][VerbosityLevel].
+		 * The option to request standard verbosity or set the
+		 * [verbosity&#32;level][VerbosityLevel].
 		 */
 		VERBOSE_MODE,
 
@@ -153,8 +163,8 @@ class CommandLineConfigurator constructor(
 
 	/**
 	 * Create an [option processor][OptionProcessor] suitable for
-	 * [updating][updateConfiguration] a [compiler
-	 * configuration][CompilerConfiguration].
+	 * [updating][updateConfiguration] a
+	 * [compiler&#32;configuration][CompilerConfiguration].
 	 *
 	 * @return
 	 *   An option processor.

@@ -31,7 +31,6 @@
  */
 package com.avail.descriptor.representation
 
-import com.avail.descriptor.Descriptor
 import com.avail.descriptor.types.TypeTag
 import java.util.*
 

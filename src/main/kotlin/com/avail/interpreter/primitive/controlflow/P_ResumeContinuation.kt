@@ -38,10 +38,14 @@ import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.BottomTypeDescriptor.bottom
 import com.avail.descriptor.types.ContinuationTypeDescriptor.mostGeneralContinuationType
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.AlwaysSwitchesContinuation
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CanSwitchContinuations
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Primitive.Flag.Private
 import com.avail.interpreter.Primitive.Result.CONTINUATION_CHANGED
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Resume the specified [continuation][A_Continuation].

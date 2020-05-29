@@ -31,27 +31,29 @@
  */
 package com.avail.descriptor.variables
 
-import com.avail.annotations.AvailMethod
 import com.avail.annotations.HideFieldInDebugger
 import com.avail.annotations.HideFieldJustForPrinting
-import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.representation.NilDescriptor
-import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.pojos.RawPojoDescriptor
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AbstractSlotsEnum
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.BitField
 import com.avail.descriptor.representation.IntegerSlotsEnum
 import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.NilDescriptor
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.TypeTag
 import com.avail.descriptor.types.VariableTypeDescriptor
 import com.avail.descriptor.variables.VariableSharedDescriptor.IntegerSlots.Companion.HASH_ALWAYS_SET
-import com.avail.descriptor.variables.VariableSharedDescriptor.ObjectSlots.*
+import com.avail.descriptor.variables.VariableSharedDescriptor.ObjectSlots.DEPENDENT_CHUNKS_WEAK_SET_POJO
+import com.avail.descriptor.variables.VariableSharedDescriptor.ObjectSlots.KIND
+import com.avail.descriptor.variables.VariableSharedDescriptor.ObjectSlots.VALUE
+import com.avail.descriptor.variables.VariableSharedDescriptor.ObjectSlots.WRITE_REACTORS
 import com.avail.exceptions.AvailException
 import com.avail.exceptions.VariableGetException
 import com.avail.exceptions.VariableSetException
@@ -63,7 +65,8 @@ import com.avail.utility.json.JSONWriter
 import java.util.*
 
 /**
- * My [object instances][AvailObject] are [shared][Mutability.SHARED] variables.
+ * My [object&#32;instances][AvailObject] are [shared][Mutability.SHARED]
+ * variables.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @see VariableDescriptor
@@ -139,17 +142,17 @@ open class VariableSharedDescriptor protected constructor(
 		KIND,
 
 		/**
-		 * A [raw pojo][RawPojoDescriptor] that wraps a [map][Map] from
-		 * arbitrary [Avail values][AvailObject] to
-		 * [write reactors][VariableDescriptor.VariableAccessReactor] that
+		 * A [raw&#32;pojo][RawPojoDescriptor] that wraps a [map][Map] from
+		 * arbitrary [Avail&#32;values][AvailObject] to
+		 * [write&#32;reactors][VariableDescriptor.VariableAccessReactor] that
 		 * respond to writes of the [variable][VariableDescriptor].
 		 */
 		@HideFieldJustForPrinting
 		WRITE_REACTORS,
 
 		/**
-		 * A [raw pojo][RawPojoDescriptor] holding a weak set (implemented as
-		 * the [key set][Map.keys] of a [WeakHashMap]) of [L2Chunk]s that depend
+		 * A [raw&#32;pojo][RawPojoDescriptor] holding a weak set (implemented as
+		 * the [key&#32;set][Map.keys] of a [WeakHashMap]) of [L2Chunk]s that depend
 		 * on the membership of this method.  A change to the membership will
 		 * invalidate all such chunks.  This field holds the
 		 * [nil][NilDescriptor.nil] object initially.
@@ -179,18 +182,15 @@ open class VariableSharedDescriptor protected constructor(
 		|| e === DEPENDENT_CHUNKS_WEAK_SET_POJO
 		|| e === IntegerSlots.HASH_AND_MORE) // only for flags.
 
-	@AvailMethod
 	override fun o_Hash(self: AvailObject): Int =
 		self.slot(HASH_ALWAYS_SET)
 
-	@AvailMethod
 	override fun o_Value(self: AvailObject): AvailObject
 	{
 		recordReadFromSharedVariable(self)
 		return synchronized(self) { super.o_Value(self) }
 	}
 
-	@AvailMethod
 	@Throws(VariableGetException::class)
 	override fun o_GetValue(self: AvailObject): AvailObject
 	{
@@ -198,14 +198,12 @@ open class VariableSharedDescriptor protected constructor(
 		return synchronized(self) { super.o_GetValue(self) }
 	}
 
-	@AvailMethod
 	override fun o_HasValue(self: AvailObject): Boolean
 	{
 		recordReadFromSharedVariable(self)
 		return synchronized(self) { super.o_HasValue(self) }
 	}
 
-	@AvailMethod
 	@Throws(VariableSetException::class)
 	override fun o_SetValue(self: AvailObject, newValue: A_BasicObject)
 	{
@@ -231,7 +229,6 @@ open class VariableSharedDescriptor protected constructor(
 		newValue: A_BasicObject
 	) = super.o_SetValue(self, newValue)
 
-	@AvailMethod
 	override fun o_SetValueNoCheck(
 		self: AvailObject,
 		newValue: A_BasicObject)
@@ -258,7 +255,6 @@ open class VariableSharedDescriptor protected constructor(
 		newValue: A_BasicObject
 	) = super.o_SetValueNoCheck(self, newValue)
 
-	@AvailMethod
 	@Throws(VariableGetException::class, VariableSetException::class)
 	override fun o_GetAndSetValue(
 		self: AvailObject, newValue: A_BasicObject): AvailObject
@@ -277,7 +273,6 @@ open class VariableSharedDescriptor protected constructor(
 		}
 	}
 
-	@AvailMethod
 	@Throws(VariableGetException::class, VariableSetException::class)
 	override fun o_CompareAndSwapValues(
 		self: AvailObject,
@@ -299,7 +294,6 @@ open class VariableSharedDescriptor protected constructor(
 		}
 	}
 
-	@AvailMethod
 	@Throws(VariableGetException::class, VariableSetException::class)
 	override fun o_FetchAndAddValue(
 		self: AvailObject,
@@ -319,7 +313,6 @@ open class VariableSharedDescriptor protected constructor(
 		}
 	}
 
-	@AvailMethod
 	@Throws(VariableGetException::class, VariableSetException::class)
 	override fun o_AtomicAddToMap(
 		self: AvailObject,
@@ -334,7 +327,6 @@ open class VariableSharedDescriptor protected constructor(
 		}
 	}
 
-	@AvailMethod
 	@Throws(VariableGetException::class)
 	override fun o_VariableMapHasKey(
 		self: AvailObject, key: A_BasicObject): Boolean
@@ -344,7 +336,6 @@ open class VariableSharedDescriptor protected constructor(
 		}
 	}
 
-	@AvailMethod
 	override fun o_ClearValue(self: AvailObject)
 	{
 		synchronized(self) { super.o_ClearValue(self) }
@@ -352,10 +343,8 @@ open class VariableSharedDescriptor protected constructor(
 	}
 
 	/**
-	 * Record the fact that the chunk indexed by aChunkIndex depends on this
-	 * object not changing.
+	 * Record the fact that the chunk depends on this object not changing.
 	 */
-	@AvailMethod
 	override fun o_AddDependentChunk(self: AvailObject, chunk: L2Chunk)
 	{
 		// Record the fact that the given chunk depends on this object not
@@ -382,7 +371,6 @@ open class VariableSharedDescriptor protected constructor(
 		}
 	}
 
-	@AvailMethod
 	override fun o_RemoveDependentChunk(self: AvailObject, chunk: L2Chunk)
 	{
 		assert(L2Chunk.invalidationLock.isHeldByCurrentThread)
@@ -396,7 +384,6 @@ open class VariableSharedDescriptor protected constructor(
 		}
 	}
 
-	@AvailMethod
 	override fun o_AddWriteReactor(
 		self: AvailObject,
 		key: A_Atom,
@@ -408,7 +395,6 @@ open class VariableSharedDescriptor protected constructor(
 		}
 	}
 
-	@AvailMethod
 	@Throws(AvailException::class)
 	override fun o_RemoveWriteReactor(self: AvailObject, key: A_Atom)
 	{
@@ -416,7 +402,6 @@ open class VariableSharedDescriptor protected constructor(
 		synchronized(self) { super.o_RemoveWriteReactor(self, key) }
 	}
 
-	@AvailMethod
 	override fun o_ValidWriteReactorFunctions(self: AvailObject): A_Set
 	{
 		synchronized(self) {
@@ -424,12 +409,10 @@ open class VariableSharedDescriptor protected constructor(
 		}
 	}
 
-	@AvailMethod
 	override fun o_MakeImmutable(self: AvailObject): AvailObject =
 		// Do nothing; just answer the (shared) receiver.
 		self
 
-	@AvailMethod
 	override fun o_MakeShared(self: AvailObject): AvailObject =
 		// Do nothing; just answer the (shared) receiver.
 		self

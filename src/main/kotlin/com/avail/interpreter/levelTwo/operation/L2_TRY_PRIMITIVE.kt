@@ -39,7 +39,9 @@ import com.avail.interpreter.execution.Interpreter.Companion.log
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2OperandType
 import com.avail.interpreter.levelTwo.L2Operation
-import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.*
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_CONTINUATION
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_FUNCTION
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.LATEST_RETURN_VALUE
 import com.avail.interpreter.levelTwo.ReadsHiddenVariable
 import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand
 import com.avail.optimizer.L2Generator
@@ -345,7 +347,7 @@ object L2_TRY_PRIMITIVE : L2Operation(
 	/**
 	 * The [CheckedMethod] for [attemptInlinePrimitive].
 	 */
-	val attemptTheInlinePrimitiveMethod =
+	private val attemptTheInlinePrimitiveMethod: CheckedMethod =
 		CheckedMethod.staticMethod(
 			L2_TRY_PRIMITIVE::class.java,
 			::attemptInlinePrimitive.name,
@@ -357,7 +359,7 @@ object L2_TRY_PRIMITIVE : L2Operation(
 	/**
 	 * The [CheckedMethod] for [attemptNonInlinePrimitive].
 	 */
-	val attemptTheNonInlinePrimitiveMethod =
+	private val attemptTheNonInlinePrimitiveMethod: CheckedMethod =
 		CheckedMethod.staticMethod(
 			L2_TRY_PRIMITIVE::class.java,
 			::attemptNonInlinePrimitive.name,

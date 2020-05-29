@@ -59,7 +59,9 @@ import static com.avail.descriptor.numbers.IntegerDescriptor.fromInt;
 import static java.lang.Double.isNaN;
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Unit tests for the Avail arithmetic types.

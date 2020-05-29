@@ -32,20 +32,25 @@
 package com.avail.descriptor.variables
 
 import com.avail.AvailRuntimeSupport
-import com.avail.annotations.AvailMethod
 import com.avail.annotations.HideFieldInDebugger
 import com.avail.annotations.HideFieldJustForPrinting
-import com.avail.descriptor.fiber.A_Fiber
-import com.avail.descriptor.Descriptor
-import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.atoms.A_Atom
+import com.avail.descriptor.fiber.A_Fiber
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.CompiledCodeDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.maps.A_Map
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.pojos.RawPojoDescriptor
-import com.avail.descriptor.representation.*
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AbstractSlotsEnum
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.BitField
+import com.avail.descriptor.representation.Descriptor
+import com.avail.descriptor.representation.IntegerSlotsEnum
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor
@@ -72,11 +77,11 @@ import java.util.*
 import java.util.concurrent.atomic.AtomicReference
 
 /**
- * My [object instances][AvailObject] are variables which can hold any object
- * that agrees with my [inner type][newVariableWithContentType]. A variable may
- * also hold no value at all.  Any attempt to read the [current
- * value][A_Variable.getValue] of a variable that holds no value will fail
- * immediately.
+ * My [object&#32;instances][AvailObject] are variables which can hold any
+ * object that agrees with my [inner type][newVariableWithContentType]. A
+ * variable may also hold no value at all.  Any attempt to read the
+ * [current&#32;value][A_Variable.getValue] of a variable that holds no value
+ * will fail immediately.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *
@@ -95,10 +100,10 @@ import java.util.concurrent.atomic.AtomicReference
  *   object's object slots layout, or null if there are no integer slots.
  */
 open class VariableDescriptor protected constructor(
-		mutability: Mutability,
-		typeTag: TypeTag,
-		objectSlotsEnumClass: Class<out ObjectSlotsEnum>?,
-		integerSlotsEnumClass: Class<out IntegerSlotsEnum>?
+	mutability: Mutability,
+	typeTag: TypeTag,
+	objectSlotsEnumClass: Class<out ObjectSlotsEnum>?,
+	integerSlotsEnumClass: Class<out IntegerSlotsEnum>?
 ) : Descriptor(mutability, typeTag, objectSlotsEnumClass, integerSlotsEnumClass)
 {
 	/**
@@ -167,10 +172,10 @@ open class VariableDescriptor protected constructor(
 		KIND,
 
 		/**
-		 * A [raw pojo][RawPojoDescriptor] that wraps a [map][Map] from
-		 * arbitrary [Avail values][AvailObject] to
-		 * [writer reactors][VariableAccessReactor] that respond to writes of
-		 * the [variable][VariableDescriptor].
+		 * A [raw&#32;pojo][RawPojoDescriptor] that wraps a [map][Map] from
+		 * arbitrary [Avail&#32;values][AvailObject] to
+		 * [writer&#32;reactors][VariableAccessReactor] that respond to writes
+		 * of the [variable][VariableDescriptor].
 		 */
 		@HideFieldJustForPrinting
 		WRITE_REACTORS
@@ -182,7 +187,6 @@ open class VariableDescriptor protected constructor(
 				|| e === IntegerSlots.HASH_AND_MORE
 				|| e === ObjectSlots.WRITE_REACTORS
 
-	@AvailMethod
 	override fun o_Hash(self: AvailObject): Int
 	{
 		var hash = self.slot(HASH_OR_ZERO)
@@ -198,11 +202,9 @@ open class VariableDescriptor protected constructor(
 		return hash
 	}
 
-	@AvailMethod
 	override fun o_Value(self: AvailObject): AvailObject =
 		self.slot(ObjectSlots.VALUE)
 
-	@AvailMethod
 	@Throws(VariableGetException::class)
 	override fun o_GetValue(self: AvailObject): AvailObject
 	{
@@ -234,7 +236,6 @@ open class VariableDescriptor protected constructor(
 		return value
 	}
 
-	@AvailMethod
 	override fun o_HasValue(self: AvailObject): Boolean
 	{
 		try
@@ -254,11 +255,9 @@ open class VariableDescriptor protected constructor(
 		return !value.equalsNil()
 	}
 
-	@AvailMethod
 	override fun o_SerializerOperation(self: AvailObject)
 		: SerializerOperation = SerializerOperation.LOCAL_VARIABLE
 
-	@AvailMethod
 	@Throws(VariableSetException::class)
 	override fun o_SetValue(self: AvailObject, newValue: A_BasicObject)
 	{
@@ -272,7 +271,6 @@ open class VariableDescriptor protected constructor(
 		self.setSlot(ObjectSlots.VALUE, newValue)
 	}
 
-	@AvailMethod
 	@Throws(VariableSetException::class)
 	override fun o_SetValueNoCheck(
 		self: AvailObject, newValue: A_BasicObject)
@@ -282,7 +280,6 @@ open class VariableDescriptor protected constructor(
 		self.setSlot(ObjectSlots.VALUE, newValue)
 	}
 
-	@AvailMethod
 	@Throws(VariableGetException::class, VariableSetException::class)
 	override fun o_GetAndSetValue(
 		self: AvailObject, newValue: A_BasicObject): AvailObject
@@ -311,7 +308,6 @@ open class VariableDescriptor protected constructor(
 		return value
 	}
 
-	@AvailMethod
 	@Throws(VariableGetException::class, VariableSetException::class)
 	override fun o_CompareAndSwapValues(
 		self: AvailObject,
@@ -346,7 +342,6 @@ open class VariableDescriptor protected constructor(
 		return swap
 	}
 
-	@AvailMethod
 	@Throws(VariableGetException::class, VariableSetException::class)
 	override fun o_FetchAndAddValue(
 		self: AvailObject, addend: A_Number): A_Number
@@ -378,7 +373,6 @@ open class VariableDescriptor protected constructor(
 		return value
 	}
 
-	@AvailMethod
 	@Throws(VariableGetException::class, VariableSetException::class)
 	override fun o_AtomicAddToMap(
 		self: AvailObject,
@@ -424,7 +418,6 @@ open class VariableDescriptor protected constructor(
 		self.setSlot(ObjectSlots.VALUE, newMap.makeShared())
 	}
 
-	@AvailMethod
 	@Throws(VariableGetException::class)
 	override fun o_VariableMapHasKey(
 		self: AvailObject, key: A_BasicObject): Boolean
@@ -442,14 +435,12 @@ open class VariableDescriptor protected constructor(
 		return oldMap.hasKey(key)
 	}
 
-	@AvailMethod
 	override fun o_ClearValue(self: AvailObject)
 	{
 		handleVariableWriteTracing(self)
 		self.setSlot(ObjectSlots.VALUE, nil)
 	}
 
-	@AvailMethod
 	override fun o_AddDependentChunk(self: AvailObject, chunk: L2Chunk)
 	{
 		assert(!isShared)
@@ -458,15 +449,13 @@ open class VariableDescriptor protected constructor(
 		self.becomeIndirectionTo(sharedVariable)
 	}
 
-	@AvailMethod
 	override fun o_RemoveDependentChunk(self: AvailObject, chunk: L2Chunk)
 	{
 		assert(!isShared)
 		assert(false) { "Chunk removed but not added!" }
-		throw unsupportedOperationException()
+		throw unsupportedOperation()
 	}
 
-	@AvailMethod
 	override fun o_AddWriteReactor(
 		self: AvailObject,
 		key: A_Atom,
@@ -485,7 +474,6 @@ open class VariableDescriptor protected constructor(
 		writeReactors[key] = reactor
 	}
 
-	@AvailMethod
 	@Throws(AvailException::class)
 	override fun o_RemoveWriteReactor(self: AvailObject, key: A_Atom)
 	{
@@ -503,7 +491,6 @@ open class VariableDescriptor protected constructor(
 		}
 	}
 
-	@AvailMethod
 	override fun o_ValidWriteReactorFunctions(self: AvailObject): A_Set
 	{
 		val rawPojo = self.slot(ObjectSlots.WRITE_REACTORS)
@@ -526,23 +513,19 @@ open class VariableDescriptor protected constructor(
 		return SetDescriptor.emptySet()
 	}
 
-	@AvailMethod
 	override fun o_Kind(self: AvailObject): A_Type =
 		self.slot(ObjectSlots.KIND)
 
-	@AvailMethod
 	override fun o_Equals(
 		self: AvailObject,
 		another: A_BasicObject): Boolean =
 			another.equalsVariable(self)
 
-	@AvailMethod
 	override fun o_EqualsVariable(
 		self: AvailObject,
-		aVariable: AvailObject): Boolean =
+		aVariable: A_Variable): Boolean =
 			self.sameAddressAs(aVariable)
 
-	@AvailMethod
 	override fun o_MakeImmutable(self: AvailObject): AvailObject
 	{
 		// If I am being frozen (a variable), I don't need to freeze my current
@@ -568,10 +551,8 @@ open class VariableDescriptor protected constructor(
 	override fun o_IsInitializedWriteOnceVariable(self: AvailObject)
 		: Boolean = false
 
-	@AvailMethod
 	override fun o_IsGlobal(self: AvailObject): Boolean = false
 
-	@AvailMethod
 	override fun o_ValueWasStablyComputed(
 		self: AvailObject): Boolean
 	{
@@ -606,18 +587,18 @@ open class VariableDescriptor protected constructor(
 		writer.endObject()
 	}
 
-	override fun mutable(): VariableDescriptor = mutable
+	override fun mutable() = mutable
 
-	override fun immutable(): VariableDescriptor = immutable
+	override fun immutable() = immutable
 
-	override fun shared(): VariableDescriptor =
-		VariableSharedDescriptor.shared
+	override fun shared() = VariableSharedDescriptor.shared
 
 	companion object
 	{
 		/**
-		 * Discard all [invalid][VariableAccessReactor.isInvalid] [write
-		 * reactors][VariableAccessReactor] from the specified [map][Map].
+		 * Discard all [invalid][VariableAccessReactor.isInvalid]
+		 * [write&#32;reactors][VariableAccessReactor] from the specified
+		 * [map][Map].
 		 *
 		 * @param writeReactors
 		 *   The map of write reactors.
@@ -631,10 +612,11 @@ open class VariableDescriptor protected constructor(
 		}
 
 		/**
-		 * If [variable write tracing][Interpreter.traceVariableWrites] is
-		 * enabled, then [record the write][A_Fiber.recordVariableAccess]. If
-		 * variable write tracing is disabled, but the variable has write
-		 * reactors, then raise an [exception][VariableSetException] with
+		 * If [variable&#32;write&#32;tracing][Interpreter.traceVariableWrites]
+		 * is enabled, then
+		 * [record&#32;the&#32;write][A_Fiber.recordVariableAccess]. If variable
+		 * write tracing is disabled, but the variable has write reactors, then
+		 * raise an [exception][VariableSetException] with
 		 * [AvailErrorCode.E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED] as the
 		 * error code.
 		 *
@@ -713,8 +695,8 @@ open class VariableDescriptor protected constructor(
 
 		/**
 		 * Create a `variable` of the specified
-		 * [variable type][VariableTypeDescriptor].  The new variable initially
-		 * holds no value.
+		 * [variable&#32;type][VariableTypeDescriptor].  The new variable
+		 * initially holds no value.
 		 *
 		 * @param variableType
 		 *   The [variable type][VariableTypeDescriptor].

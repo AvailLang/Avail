@@ -41,9 +41,9 @@ import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationW
 import com.avail.descriptor.types.BottomTypeDescriptor.bottom
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.exceptions.AvailErrorCode.E_UNTIMELY_PARSE_ACCEPTANCE
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.Unknown
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Either an expression is having an applicable

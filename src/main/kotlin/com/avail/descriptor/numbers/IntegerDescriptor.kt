@@ -31,8 +31,6 @@
  */
 package com.avail.descriptor.numbers
 
-import com.avail.annotations.AvailMethod
-import com.avail.descriptor.AbstractDescriptor
 import com.avail.descriptor.numbers.DoubleDescriptor.Companion.addDoubleAndIntegerCanDestroy
 import com.avail.descriptor.numbers.DoubleDescriptor.Companion.compareDoubleAndInteger
 import com.avail.descriptor.numbers.DoubleDescriptor.Companion.fromDoubleRecycling
@@ -40,7 +38,11 @@ import com.avail.descriptor.numbers.FloatDescriptor.Companion.fromFloatRecycling
 import com.avail.descriptor.numbers.InfinityDescriptor.Companion.negativeInfinity
 import com.avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
 import com.avail.descriptor.numbers.IntegerDescriptor.IntegerSlots.RAW_LONG_SLOTS_
-import com.avail.descriptor.representation.*
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObjectFieldHelper
+import com.avail.descriptor.representation.IntegerSlotsEnum
+import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.singleInteger
 import com.avail.descriptor.types.TypeDescriptor.Types
@@ -63,7 +65,6 @@ import java.util.*
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import javax.annotation.concurrent.GuardedBy
 import kotlin.concurrent.read
-import kotlin.concurrent.withLock
 import kotlin.concurrent.write
 import kotlin.experimental.and
 import kotlin.math.abs
@@ -131,20 +132,20 @@ class IntegerDescriptor private constructor(
 
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
-		aStream: StringBuilder,
+		builder: StringBuilder,
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int
 	) {
 		if (self.isLong) {
 			// The *vast* majority of uses, extends beyond 9 quintillion.
-			aStream.append(self.extractLong())
+			builder.append(self.extractLong())
 		} else {
 			var magnitude: A_Number = self
 			if (self.lessThan(zero())) {
-				aStream.append('-')
+				builder.append('-')
 				magnitude = zero().minusCanDestroy(self, false)
 			}
-			printBigInteger(magnitude, aStream, 0)
+			printBigInteger(magnitude, builder, 0)
 		}
 	}
 
@@ -157,7 +158,7 @@ class IntegerDescriptor private constructor(
 				}
 				append(") = ")
 				val longValue = self.extractLong()
-				AbstractDescriptor.describeLong(
+				describeLong(
 					longValue,
 					if (intCount(self) == 1) 32 else 64,
 					this)
@@ -176,25 +177,21 @@ class IntegerDescriptor private constructor(
 		else -> super.o_DescribeForDebugger(self)
 	}
 
-	@AvailMethod
-	override fun o_RawSignedIntegerAt(self: AvailObject, subscript: Int): Int =
-		self.intSlot(RAW_LONG_SLOTS_, subscript)
+	override fun o_RawSignedIntegerAt(self: AvailObject, index: Int): Int =
+		self.intSlot(RAW_LONG_SLOTS_, index)
 
-	@AvailMethod
 	override fun o_RawSignedIntegerAtPut(
 		self: AvailObject,
-		subscript: Int,
+		index: Int,
 		value: Int
-	) = self.setIntSlot(RAW_LONG_SLOTS_, subscript, value)
+	) = self.setIntSlot(RAW_LONG_SLOTS_, index, value)
 
-	@AvailMethod
 	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean =
 		another.equalsInteger(self)
 
 	/**
 	 * Compare two integers for equality.
 	 */
-	@AvailMethod
 	override fun o_EqualsInteger(
 		self: AvailObject,
 		anAvailInteger: AvailObject
@@ -213,13 +210,11 @@ class IntegerDescriptor private constructor(
 	 *
 	 * Assume it's normalized (trimmed).
 	 */
-	@AvailMethod
 	override fun o_EqualsInt(
 		self: AvailObject,
 		theInt: Int
 	) = intCount(self) == 1 && self.intSlot(RAW_LONG_SLOTS_, 1) == theInt
 
-	@AvailMethod
 	override fun o_IsInstanceOfKind(
 		self: AvailObject,
 		aType: A_Type
@@ -233,80 +228,64 @@ class IntegerDescriptor private constructor(
 		else -> true
 	}
 
-	@AvailMethod
 	override fun o_NumericCompare(
 		self: AvailObject,
 		another: A_Number
 	): Order = another.numericCompareToInteger(self).reverse()
 
-	@AvailMethod
 	override fun o_Hash(self: AvailObject): Int =
 		if (self.isUnsignedByte) {
 			hashOfUnsignedByte(self.extractUnsignedByte())
 		} else computeHashOfIntegerObject(self)
 
-	@AvailMethod
 	override fun o_IsFinite(self: AvailObject) = true
 
-	@AvailMethod
 	override fun o_Kind(self: AvailObject): A_Type =
 		singleInteger(self.makeImmutable())
 
-	@AvailMethod
 	override fun o_DivideCanDestroy(
 		self: AvailObject,
 		aNumber: A_Number,
 		canDestroy: Boolean
 	): A_Number = aNumber.divideIntoIntegerCanDestroy(self, canDestroy)
 
-	@AvailMethod
 	override fun o_MinusCanDestroy(
 		self: AvailObject,
 		aNumber: A_Number,
 		canDestroy: Boolean
 	): A_Number = aNumber.subtractFromIntegerCanDestroy(self, canDestroy)
 
-	@AvailMethod
 	override fun o_PlusCanDestroy(
 		self: AvailObject,
 		aNumber: A_Number,
 		canDestroy: Boolean
 	): A_Number = aNumber.addToIntegerCanDestroy(self, canDestroy)
 
-	@AvailMethod
 	override fun o_TimesCanDestroy(
 		self: AvailObject,
 		aNumber: A_Number,
 		canDestroy: Boolean
 	): A_Number = aNumber.multiplyByIntegerCanDestroy(self, canDestroy)
 
-	@AvailMethod
 	override fun o_IsNybble(self: AvailObject) =
 		intCount(self) == 1 && self.extractInt() in 0..15
 
-	@AvailMethod
 	override fun o_IsSignedByte(self: AvailObject) =
 		intCount(self) == 1 && self.extractInt() in -128..127
 
-	@AvailMethod
 	override fun o_IsUnsignedByte(self: AvailObject) =
 		intCount(self) == 1 && self.extractInt() in 0..255
 
-	@AvailMethod
 	override fun o_IsSignedShort(self: AvailObject) =
 		intCount(self) == 1 && self.extractInt() in -32768..32767
 
-	@AvailMethod
 	override fun o_IsUnsignedShort(self: AvailObject) =
 		intCount(self) == 1 && self.extractInt() in 0..65535
 
-	@AvailMethod
 	override fun o_IsInt(self: AvailObject) = intCount(self) == 1
 
-	@AvailMethod
 	override fun o_IsLong(self: AvailObject) = intCount(self) <= 2
 
-	@AvailMethod
 	override fun o_ExtractNybble(self: AvailObject): Byte {
 		assert(intCount(self) == 1)
 		val value = self.rawSignedIntegerAt(1)
@@ -314,7 +293,6 @@ class IntegerDescriptor private constructor(
 		return value.toByte()
 	}
 
-	@AvailMethod
 	override fun o_ExtractSignedByte(self: AvailObject): Byte {
 		assert(intCount(self) == 1)
 		val value = self.rawSignedIntegerAt(1)
@@ -324,7 +302,6 @@ class IntegerDescriptor private constructor(
 		return value.toByte()
 	}
 
-	@AvailMethod
 	override fun o_ExtractUnsignedByte(self: AvailObject): Short {
 		assert(intCount(self) == 1)
 		val value = self.rawSignedIntegerAt(1)
@@ -334,7 +311,6 @@ class IntegerDescriptor private constructor(
 		return value.toShort()
 	}
 
-	@AvailMethod
 	override fun o_ExtractSignedShort(self: AvailObject): Short {
 		assert(intCount(self) == 1)
 		val value = self.rawSignedIntegerAt(1)
@@ -344,7 +320,6 @@ class IntegerDescriptor private constructor(
 		return value.toShort()
 	}
 
-	@AvailMethod
 	override fun o_ExtractUnsignedShort(self: AvailObject): Int {
 		assert(intCount(self) == 1)
 		val value = self.rawSignedIntegerAt(1)
@@ -354,13 +329,11 @@ class IntegerDescriptor private constructor(
 		return value
 	}
 
-	@AvailMethod
 	override fun o_ExtractInt(self: AvailObject): Int {
 		assert(intCount(self) == 1) { "Integer value out of bounds" }
 		return self.rawSignedIntegerAt(1)
 	}
 
-	@AvailMethod
 	override fun o_ExtractLong(self: AvailObject): Long {
 		assert(intCount(self) <= 2) { "Integer value out of bounds" }
 		if (intCount(self) == 1) {
@@ -370,11 +343,9 @@ class IntegerDescriptor private constructor(
 		return low or (self.rawSignedIntegerAt(2).toLong() shl 32)
 	}
 
-	@AvailMethod
 	override fun o_ExtractFloat(self: AvailObject): Float =
 		extractDoubleScaled(self, 0).toFloat()
 
-	@AvailMethod
 	override fun o_ExtractDouble(self: AvailObject): Double =
 		extractDoubleScaled(self, 0)
 
@@ -383,12 +354,11 @@ class IntegerDescriptor private constructor(
 	 * native byte-ordering, but using little endian between quad-bytes (i.e.,
 	 * least significant quad comes first).
 	 */
-	@AvailMethod
 	override fun o_RawUnsignedIntegerAt(
 		self: AvailObject,
-		subscript: Int
+		index: Int
 	): Long {
-		val signedInt = self.intSlot(RAW_LONG_SLOTS_, subscript)
+		val signedInt = self.intSlot(RAW_LONG_SLOTS_, index)
 		return (signedInt.toLong() and 0xFFFFFFFFL)
 	}
 
@@ -397,14 +367,12 @@ class IntegerDescriptor private constructor(
 	 * native byte-ordering, but using little endian between quad-bytes (i.e.,
 	 * least significant quad comes first).
 	 */
-	@AvailMethod
 	override fun o_RawUnsignedIntegerAtPut(
 		self: AvailObject,
-		subscript: Int,
+		index: Int,
 		value: Int
-	) = self.setIntSlot(RAW_LONG_SLOTS_, subscript, value)
+	) = self.setIntSlot(RAW_LONG_SLOTS_, index, value)
 
-	@AvailMethod
 	override fun o_TrimExcessInts(self: AvailObject) {
 		// Remove any redundant ints from my end.  Since I'm stored in Little
 		// Endian representation, I can simply be truncated with no need to
@@ -445,7 +413,6 @@ class IntegerDescriptor private constructor(
 		}
 	}
 
-	@AvailMethod
 	override fun o_AddToInfinityCanDestroy(
 		self: AvailObject,
 		sign: Sign,
@@ -487,7 +454,6 @@ class IntegerDescriptor private constructor(
 		}
 	}
 
-	@AvailMethod
 	override fun o_AddToIntegerCanDestroy(
 		self: AvailObject,
 		anInteger: AvailObject,
@@ -586,7 +552,6 @@ class IntegerDescriptor private constructor(
 		return fromFloatRecycling(d.toFloat(), floatObject, canDestroy)
 	}
 
-	@AvailMethod
 	override fun o_DivideIntoInfinityCanDestroy(
 		self: AvailObject,
 		sign: Sign,
@@ -618,12 +583,12 @@ class IntegerDescriptor private constructor(
 		else -> null
 	}
 
-	@AvailMethod
 	override fun o_DivideIntoIntegerCanDestroy(
 		self: AvailObject,
 		anInteger: AvailObject,
 		canDestroy: Boolean
-	): A_Number {
+	): A_Number
+	{
 		// Compute anInteger / object. Round towards negative infinity.
 		if (self.equals(zero())) {
 			throw ArithmeticException(E_CANNOT_DIVIDE_BY_ZERO)
@@ -717,7 +682,6 @@ class IntegerDescriptor private constructor(
 		return fromFloatRecycling(quotient.toFloat(), floatObject, canDestroy)
 	}
 
-	@AvailMethod
 	override fun o_MultiplyByInfinityCanDestroy(
 		self: AvailObject,
 		sign: Sign,
@@ -730,7 +694,6 @@ class IntegerDescriptor private constructor(
 		else -> positiveInfinity()
 	}
 
-	@AvailMethod
 	override fun o_MultiplyByIntegerCanDestroy(
 		self: AvailObject,
 		anInteger: AvailObject,
@@ -857,7 +820,6 @@ class IntegerDescriptor private constructor(
 		return fromFloatRecycling(product.toFloat(), floatObject, canDestroy)
 	}
 
-	@AvailMethod
 	override fun o_SubtractFromInfinityCanDestroy(
 		self: AvailObject,
 		sign: Sign,
@@ -865,7 +827,6 @@ class IntegerDescriptor private constructor(
 	): A_Number =
 		if (sign == Sign.POSITIVE) positiveInfinity() else negativeInfinity()
 
-	@AvailMethod
 	override fun o_SubtractFromIntegerCanDestroy(
 		self: AvailObject,
 		anInteger: AvailObject,
@@ -969,7 +930,6 @@ class IntegerDescriptor private constructor(
 		return fromFloatRecycling((-d).toFloat(), floatObject, canDestroy)
 	}
 
-	@AvailMethod
 	override fun o_NumericCompareToInteger(
 		self: AvailObject,
 		anInteger: AvailObject
@@ -1002,7 +962,6 @@ class IntegerDescriptor private constructor(
 		return Order.EQUAL
 	}
 
-	@AvailMethod
 	override fun o_NumericCompareToInfinity(
 		self: AvailObject,
 		sign: Sign
@@ -1010,11 +969,10 @@ class IntegerDescriptor private constructor(
 		return if (sign == Sign.POSITIVE) Order.LESS else Order.MORE
 	}
 
-	@AvailMethod
 	override fun o_NumericCompareToDouble(
 		self: AvailObject,
-		double1: Double
-	): Order = compareDoubleAndInteger(double1, self).reverse()
+		aDouble: Double
+	): Order = compareDoubleAndInteger(aDouble, self).reverse()
 
 	/**
 	 * A helper function for bitwise operations.  Perform the given operation on
@@ -1070,21 +1028,18 @@ class IntegerDescriptor private constructor(
 		return output
 	}
 
-	@AvailMethod
 	override fun o_BitwiseAnd(
 		self: AvailObject,
 		anInteger: A_Number,
 		canDestroy: Boolean
 	): A_Number = bitwiseOperation(self, anInteger, canDestroy, Int::and)
 
-	@AvailMethod
 	override fun o_BitwiseOr(
 		self: AvailObject,
 		anInteger: A_Number,
 		canDestroy: Boolean
 	): A_Number = bitwiseOperation(self, anInteger, canDestroy, Int::or)
 
-	@AvailMethod
 	override fun o_BitwiseXor(
 		self: AvailObject,
 		anInteger: A_Number,
@@ -1117,7 +1072,6 @@ class IntegerDescriptor private constructor(
 	 * @return
 	 *   ⌊object &times; 2^shiftFactor⌋ mod 2^truncationBits
 	 */
-	@AvailMethod
 	override fun o_BitShiftLeftTruncatingToBits(
 		self: AvailObject,
 		shiftFactor: A_Number,
@@ -1238,7 +1192,6 @@ class IntegerDescriptor private constructor(
 	 * @return
 	 *   ⌊object &times; 2^shiftFactor⌋;
 	 */
-	@AvailMethod
 	override fun o_BitShift(
 		self: AvailObject,
 		shiftFactor: A_Number,
@@ -1327,7 +1280,6 @@ class IntegerDescriptor private constructor(
 		return result
 	}
 
-	@AvailMethod
 	override fun o_SerializerOperation(
 		self: AvailObject
 	): SerializerOperation {
@@ -1355,7 +1307,7 @@ class IntegerDescriptor private constructor(
 	override fun o_MarshalToJava(
 		self: AvailObject,
 		classHint: Class<*>?
-	): Any? = when (classHint) {
+	): Any = when (classHint) {
 		// Force marshaling to java.math.BigInteger.
 		java.math.BigInteger::class.java -> self.asBigInteger()
 		// Force marshaling to Java's primitive long type.
@@ -1399,8 +1351,8 @@ class IntegerDescriptor private constructor(
 	 * Answer a [BigInteger] that is the numerical equivalent of the given
 	 * object, which is an Avail integer.
 	 */
-	@AvailMethod
-	override fun o_AsBigInteger(self: AvailObject): BigInteger {
+	override fun o_AsBigInteger(self: AvailObject): BigInteger
+	{
 		val integerCount = intCount(self)
 		if (integerCount <= 2) {
 			return BigInteger.valueOf(self.extractLong())

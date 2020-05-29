@@ -46,7 +46,7 @@ class ArithmeticException : AvailRuntimeException
 {
 	/**
 	 * Construct a new `ArithmeticException` with the specified
-	 * [error code][AvailErrorCode].
+	 * [error&#32;code][AvailErrorCode].
 	 *
 	 * @param errorCode
 	 *   The [error code][AvailErrorCode].
@@ -60,7 +60,7 @@ class ArithmeticException : AvailRuntimeException
 	 * @param errorCode
 	 *   The [error code][AvailErrorCode].
 	 * @param cause
-	 *   The proximal [cause][Throwable] of the [        ].
+	 *   The proximal [cause][Throwable] of the [Exception].
 	 */
 	constructor(errorCode: AvailErrorCode, cause: Throwable)
 		: super(errorCode, cause)

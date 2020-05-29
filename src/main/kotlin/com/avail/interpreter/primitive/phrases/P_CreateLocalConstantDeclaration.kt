@@ -42,15 +42,15 @@ import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHR
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LOCAL_CONSTANT_PHRASE
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.descriptor.types.TypeDescriptor.Types.TOKEN
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Answer a
- * [local&#32;constant&#32;declaration][PhraseKind.LOCAL_CONSTANT_PHRASE] from
- * the specified [token][TokenDescriptor] and initializing
+ * [local&#32;constant&#32;declaration][PhraseKind.LOCAL_CONSTANT_PHRASE] from the
+ * specified [token][TokenDescriptor] and initializing
  * [expression][PhraseKind.EXPRESSION_PHRASE].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;

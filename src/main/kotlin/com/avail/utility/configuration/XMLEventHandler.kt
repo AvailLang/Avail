@@ -39,7 +39,7 @@ import javax.xml.parsers.SAXParser
 
 /**
  * An [XMLConfigurator] uses a `XMLEventHandler` to interface with the
- * [SAX parser][SAXParser].
+ * [SAX&#32;parser][SAXParser].
  *
  * @param ConfigurationType
  *   A concrete [Configuration] class.
@@ -59,9 +59,9 @@ import javax.xml.parsers.SAXParser
  * Construct a new `XMLEventHandler`.
  *
  * @param model
- * The [document model][XMLDocumentModel].
+ * The [document&#32;model][XMLDocumentModel].
  * @param state
- * The [configurator state][XMLConfiguratorState].
+ * The [configurator&#32;state][XMLConfiguratorState].
  */
 internal class XMLEventHandler<
 	ConfigurationType : Configuration,

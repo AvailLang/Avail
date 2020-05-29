@@ -40,16 +40,15 @@ import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationW
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.E_IO_ERROR
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.execution.Interpreter
 import com.avail.io.TextInputChannel
 import java.io.IOException
 
 /**
- * **Primitive:** Reset the [ current fiber][Interpreter.fiber]'s [standard
- * input channel][TextInputChannel] to the previously set
+ * **Primitive:** Reset the [ current fiber][Interpreter.fiber]'s [standard&#32;input channel][TextInputChannel] to the previously set
  * [mark][P_MarkStandardInputStream].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;

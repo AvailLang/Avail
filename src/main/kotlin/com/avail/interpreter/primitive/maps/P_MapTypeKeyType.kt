@@ -38,13 +38,14 @@ import com.avail.descriptor.types.InstanceMetaDescriptor.anyMeta
 import com.avail.descriptor.types.MapTypeDescriptor
 import com.avail.descriptor.types.MapTypeDescriptor.mapMeta
 import com.avail.descriptor.types.TypeDescriptor
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CanFold
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Answer the key [type][TypeDescriptor] of a [map
- * type][MapTypeDescriptor].
+ * **Primitive:** Answer the key [type][TypeDescriptor] of a [map&#32;type][MapTypeDescriptor].
  */
 @Suppress("unused")
 object P_MapTypeKeyType : Primitive(1, CannotFail, CanFold, CanInline)

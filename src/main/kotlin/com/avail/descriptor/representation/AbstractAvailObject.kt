@@ -31,7 +31,6 @@
  */
 package com.avail.descriptor.representation
 
-import com.avail.descriptor.AbstractDescriptor
 import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode

@@ -31,11 +31,11 @@
  */
 package com.avail.interpreter.primitive.phrases
 
-import com.avail.descriptor.fiber.FiberDescriptor.GeneralFlag.IS_EVALUATING_MACRO
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.MACRO_BUNDLE_KEY
 import com.avail.descriptor.bundles.A_Bundle.Companion.message
+import com.avail.descriptor.fiber.FiberDescriptor.GeneralFlag.IS_EVALUATING_MACRO
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
 import com.avail.descriptor.types.A_Type
@@ -43,9 +43,9 @@ import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationW
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
 import com.avail.exceptions.AvailErrorCode.E_NOT_EVALUATING_MACRO
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Answer the [atom][A_Atom] for which a send phrase is being

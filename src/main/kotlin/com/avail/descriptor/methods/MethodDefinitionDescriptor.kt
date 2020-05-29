@@ -31,13 +31,14 @@
  */
 package com.avail.descriptor.methods
 
-import com.avail.annotations.AvailMethod
 import com.avail.annotations.HideFieldJustForPrinting
-import com.avail.descriptor.module.A_Module
-import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.FunctionDescriptor
-import com.avail.descriptor.methods.MethodDefinitionDescriptor.ObjectSlots.*
+import com.avail.descriptor.methods.MethodDefinitionDescriptor.ObjectSlots.BODY_BLOCK
+import com.avail.descriptor.methods.MethodDefinitionDescriptor.ObjectSlots.DEFINITION_METHOD
+import com.avail.descriptor.methods.MethodDefinitionDescriptor.ObjectSlots.MODULE
+import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
@@ -92,24 +93,19 @@ class MethodDefinitionDescriptor private constructor(
 		}
 	}
 
-	@AvailMethod
 	override fun o_BodySignature(self: AvailObject): A_Type =
 		self.bodyBlock().kind()
 
-	@AvailMethod
 	override fun o_BodyBlock(self: AvailObject): A_Function =
 		self.slot(BODY_BLOCK)
 
-	@AvailMethod
 	override fun o_Hash(self: AvailObject) =
 		self.bodyBlock().hash() * 19 xor 0x70B2B1A9
 
-	@AvailMethod
 	override fun o_Kind(self: AvailObject): A_Type {
 		return Types.METHOD_DEFINITION.o()
 	}
 
-	@AvailMethod
 	override fun o_IsMethodDefinition(self: AvailObject) = true
 
 	override fun o_SerializerOperation(self: AvailObject) =

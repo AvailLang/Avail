@@ -44,21 +44,25 @@ import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.*
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.bytes
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.inclusive
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.unsignedShorts
 import com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType
 import com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForTypes
 import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
-import com.avail.exceptions.AvailErrorCode.*
-import com.avail.interpreter.execution.Interpreter
+import com.avail.exceptions.AvailErrorCode.E_INVALID_HANDLE
+import com.avail.exceptions.AvailErrorCode.E_IO_ERROR
+import com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.execution.Interpreter
 import java.io.IOException
 import java.net.InetSocketAddress
 import java.nio.channels.AsynchronousSocketChannel
 import java.nio.channels.ClosedChannelException
 
 /**
- * **Primitive:** Answer the [socket&#32;address][InetSocketAddress] of the
+ * **Primitive:** Answer the [socket address][InetSocketAddress] of the
  * local peer of the [AsynchronousSocketChannel] referenced by the specified
  * [handle][AtomDescriptor].
  *
