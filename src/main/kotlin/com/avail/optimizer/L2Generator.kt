@@ -247,7 +247,11 @@ class L2Generator internal constructor(
 			 // simple edges to it, then switch it to be a loop head so that
 			 // placeholder instructions can still connect to it with
 			 // back-edges when they get they generate their replacement code.
-			 createBasicBlock("UNREACHABLE")).let {
+			 {
+				 val unreachable = createBasicBlock("UNREACHABLE")
+				 unreachableBlock = unreachable
+				 unreachable
+			 }()).let {
 				if (it.isLoopHead) backEdgeTo(it) else edgeTo(it)
 			}
 
@@ -384,7 +388,8 @@ class L2Generator internal constructor(
 			// structure that implements it might not be immutable.  If not,
 			// fall through and let the L2_MOVE_CONSTANT ensure it.
 		}
-		val restriction = restrictionForConstant(value, RestrictionFlagEncoding.BOXED)
+		val restriction =
+			restrictionForConstant(value, RestrictionFlagEncoding.BOXED)
 		addInstruction(
 			L2_MOVE_CONSTANT.boxed,
 			L2ConstantOperand(value),
@@ -420,7 +425,8 @@ class L2Generator internal constructor(
 		else
 		{
 			val synonym = L2Synonym(setOf(semanticConstant))
-			restriction = restrictionForConstant(boxedValue, RestrictionFlagEncoding.UNBOXED_INT)
+			restriction = restrictionForConstant(
+				boxedValue, RestrictionFlagEncoding.UNBOXED_INT)
 			currentManifest.introduceSynonym(synonym, restriction)
 		}
 		addInstruction(
@@ -745,7 +751,7 @@ class L2Generator internal constructor(
 				}
 			}
 		}
-		if (!sourceWritesInBlock.isEmpty())
+		if (sourceWritesInBlock.isNotEmpty())
 		{
 			// Find the latest equivalent write in this block.
 			val latestWrite = sourceWritesInBlock.maxBy {
@@ -784,13 +790,15 @@ class L2Generator internal constructor(
 		// move can still be updated by subsequent moves from the same synonym.
 		val restriction =
 			currentManifest.restrictionFor(sourceSemanticValue)
+		val register: R = currentManifest.getDefinition(
+			sourceSemanticValue, moveOperation.kind)
+		val operand = moveOperation.kind.readOperand(
+			sourceSemanticValue,
+			restriction,
+			register)
 		addInstruction(
 			moveOperation,
-			moveOperation.kind.readOperand(
-				sourceSemanticValue,
-				restriction,
-				currentManifest.getDefinition(
-					sourceSemanticValue, moveOperation.kind)),
+			operand,
 			moveOperation.createWrite(this, targetSemanticValue, restriction))
 	}
 
@@ -849,7 +857,7 @@ class L2Generator internal constructor(
 	 */
 	fun extractTupleElement(
 		tupleReg: L2ReadBoxedOperand,
-		index: Int): L2ReadBoxedOperand?
+		index: Int): L2ReadBoxedOperand
 	{
 		val tupleType = tupleReg.type()
 
@@ -1173,10 +1181,10 @@ class L2Generator internal constructor(
 		// Stash the instructions before the doomed one, as well as the ones
 		// after the doomed one.
 		val startInstructions: List<L2Instruction> =
-			originalInstructions.subList(0, instructionIndex)
+			originalInstructions.subList(0, instructionIndex).toList()
 		val endInstructions: List<L2Instruction> =
 			originalInstructions.subList(
-				instructionIndex + 1, originalInstructions.size)
+				instructionIndex + 1, originalInstructions.size).toList()
 
 		// Remove all instructions from the block.  Each will get sent a
 		// justRemoved() just *after* a replacement has been generated.  This
@@ -1192,7 +1200,7 @@ class L2Generator internal constructor(
 		currentManifest.clear()
 		// Keep semantic values that are common to all incoming paths.
 		val manifests = mutableListOf<L2ValueManifest>()
-		startingBlock.predecessorEdgesDo {manifests.add(it.manifest()) }
+		startingBlock.predecessorEdgesDo { manifests.add(it.manifest()) }
 		currentManifest.populateFromIntersection(
 			manifests, this, false, true)
 		// Replay the effects on the manifest of the leading instructions.
@@ -1235,7 +1243,7 @@ class L2Generator internal constructor(
 	 * @param targetBlock
 	 *   The target [L2BasicBlock].
 	 */
-	fun jumpTo(targetBlock: L2BasicBlock?)
+	fun jumpTo(targetBlock: L2BasicBlock)
 	{
 		addInstruction(L2_JUMP, edgeTo(targetBlock))
 	}
@@ -1322,24 +1330,24 @@ class L2Generator internal constructor(
 
 		override fun doOperand(operand: L2ReadIntOperand)
 		{
-			intMax = Math.max(intMax, operand.finalIndex())
+			intMax = intMax.coerceAtLeast(operand.finalIndex())
 		}
 
 		override fun doOperand(operand: L2ReadFloatOperand)
 		{
-			floatMax = Math.max(floatMax, operand.finalIndex())
+			floatMax = floatMax.coerceAtLeast(operand.finalIndex())
 		}
 
 		override fun doOperand(operand: L2ReadBoxedOperand)
 		{
-			objectMax = Math.max(objectMax, operand.finalIndex())
+			objectMax = objectMax.coerceAtLeast(operand.finalIndex())
 		}
 
 		override fun doOperand(operand: L2ReadBoxedVectorOperand)
 		{
 			for (register in operand.elements())
 			{
-				objectMax = Math.max(objectMax, register.finalIndex())
+				objectMax = objectMax.coerceAtLeast(register.finalIndex())
 			}
 		}
 
@@ -1347,7 +1355,7 @@ class L2Generator internal constructor(
 		{
 			for (register in operand.elements())
 			{
-				intMax = Math.max(intMax, register.finalIndex())
+				intMax = intMax.coerceAtLeast(register.finalIndex())
 			}
 		}
 
@@ -1355,7 +1363,7 @@ class L2Generator internal constructor(
 		{
 			for (register in operand.elements())
 			{
-				floatMax = Math.max(floatMax, register.finalIndex())
+				floatMax = floatMax.coerceAtLeast(register.finalIndex())
 			}
 		}
 
@@ -1363,17 +1371,17 @@ class L2Generator internal constructor(
 
 		override fun doOperand(operand: L2WriteIntOperand)
 		{
-			intMax = Math.max(intMax, operand.finalIndex())
+			intMax = intMax.coerceAtLeast(operand.finalIndex())
 		}
 
 		override fun doOperand(operand: L2WriteFloatOperand)
 		{
-			floatMax = Math.max(floatMax, operand.finalIndex())
+			floatMax = floatMax.coerceAtLeast(operand.finalIndex())
 		}
 
 		override fun doOperand(operand: L2WriteBoxedOperand)
 		{
-			objectMax = Math.max(objectMax, operand.finalIndex())
+			objectMax = objectMax.coerceAtLeast(operand.finalIndex())
 		}
 	}
 
@@ -1402,11 +1410,10 @@ class L2Generator internal constructor(
 		 * @return
 		 *   The new [L2PcOperand].
 		 */
-		fun edgeTo(
-			targetBlock: L2BasicBlock?): L2PcOperand
+		fun edgeTo(targetBlock: L2BasicBlock): L2PcOperand
 		{
 			// Only back-edges may reach a block that has already been generated.
-			assert(targetBlock!!.instructions().isEmpty())
+			assert(targetBlock.instructions().isEmpty())
 			return L2PcOperand(targetBlock, false)
 		}
 

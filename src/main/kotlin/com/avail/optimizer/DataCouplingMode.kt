@@ -158,7 +158,7 @@ enum class DataCouplingMode
 	 * Answer whether [L2SemanticValue]s should be tracked by this policy.
 	 *
 	 * @return
-	 * `true` iff semantic values should be tracked.
+	 *   `true` iff semantic values should be tracked.
 	 */
 	abstract fun considersSemanticValues(): Boolean
 
@@ -184,11 +184,12 @@ enum class DataCouplingMode
 	 * @param writeOperand
 	 *   The [L2WriteOperand] to examine.
 	 * @return
-	 *   Each [L2Entity] written by the [L2WriteOperand], and which the policy deems relevant.
+	 *   Each [L2Entity] written by the [L2WriteOperand], and which the policy
+	 *   deems relevant.
 	 */
 	fun writeEntitiesOf(writeOperand: L2WriteOperand<*>): Set<L2Entity>
 	{
-		val entitiesWritten: MutableSet<L2Entity> = HashSet(3)
+		val entitiesWritten = mutableSetOf<L2Entity>()
 		addEntitiesFromWrite(writeOperand, entitiesWritten)
 		return entitiesWritten
 	}

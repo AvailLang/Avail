@@ -101,7 +101,8 @@ class L2RegisterColorer constructor(controlFlowGraph: L2ControlFlowGraph)
 	 * interference graph first.  We populate the registerSets with singleton
 	 * sets before this.
 	 */
-	private val registerGroups = mutableMapOf<L2Register, RegisterGroup>()
+	private val registerGroups =
+		mutableMapOf<L2Register, RegisterGroup>()
 
 	/**
 	 * The set of blocks that so far have been reached, but not necessarily
@@ -227,8 +228,8 @@ class L2RegisterColorer constructor(controlFlowGraph: L2ControlFlowGraph)
 				{
 					continue
 				}
-				val group1 = registerGroups[registerBeingTraced]
-				val group2 = registerGroups[written]
+				val group1 = registerGroups[registerBeingTraced]!!
+				val group2 = registerGroups[written]!!
 				interferences.includeEdge(group1, group2)
 				interferences.includeEdge(group2, group1)
 			}
@@ -270,14 +271,14 @@ class L2RegisterColorer constructor(controlFlowGraph: L2ControlFlowGraph)
 						registerGroups[instruction.sourceRegisters()[0]]
 					if (group1 !== group2)
 					{
-						if (!interferences.includesEdge(group1, group2))
+						if (!interferences.includesEdge(group1!!, group2!!))
 						{
 							// Merge the non-interfering move-related register
 							// sets.
 							val smallSet: RegisterGroup?
 							val largeSet: RegisterGroup?
-							if (group1!!.registers.size
-								< group2!!.registers.size)
+							if (group1.registers.size
+								< group2.registers.size)
 							{
 								smallSet = group1
 								largeSet = group2
@@ -316,23 +317,21 @@ class L2RegisterColorer constructor(controlFlowGraph: L2ControlFlowGraph)
 	 * virtual registers, and we're merely interested in keeping the color count
 	 * as reasonably close to minimal as we can.
 	 *
-	 *
 	 * The algorithm repeatedly chooses the registerSets having the least
 	 * number of interfering edges, pushing them on a stack and removing the
 	 * vertex (registerSet) and its edges.  We then repeatedly pop registers
 	 * from the stack, choosing the lowest available color (finalIndex) that
 	 * doesn't conflict with the coloring of a neighbor in the original graph.
-	 *
 	 */
 	fun computeColors()
 	{
-		val stack: Deque<RegisterGroup?> = ArrayDeque(allRegisters.size)
+		val stack: Deque<RegisterGroup> = ArrayDeque(allRegisters.size)
 		val graphCopy = Graph(interferences)
 		while (!graphCopy.isEmpty)
 		{
 			// Find the nodes having the fewest neighbors.
 			var fewestCount = Int.MAX_VALUE
-			val withFewest: MutableList<RegisterGroup?> = ArrayList()
+			val withFewest: MutableList<RegisterGroup> = ArrayList()
 			for (reg in graphCopy.vertices())
 			{
 				val neighborCount = graphCopy.successorsOf(reg).size
@@ -366,7 +365,7 @@ class L2RegisterColorer constructor(controlFlowGraph: L2ControlFlowGraph)
 		val neighbors = BitSet()
 		while (!stack.isEmpty())
 		{
-			val group = stack.removeLast()
+			val group = stack.removeLast()!!
 			neighbors.clear()
 			for (registerGroup in interferences.successorsOf(group))
 			{
@@ -377,7 +376,7 @@ class L2RegisterColorer constructor(controlFlowGraph: L2ControlFlowGraph)
 				}
 			}
 			val color = neighbors.nextClearBit(0)
-			group!!.finalIndex = color
+			group.finalIndex = color
 		}
 		for (register in registerGroups.keys)
 		{

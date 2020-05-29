@@ -507,7 +507,6 @@ class L2Chunk private constructor(
 		 * contain a caller, function, chunk, offset, and register dump.
 		 */
 		TRANSIENT(-1);
-
 	}
 
 	/**
@@ -653,7 +652,7 @@ class L2Chunk private constructor(
 		 * @return
 		 *   The number of invocations before initial optimization.
 		 */
-		fun countdownForNewCode(): Int = 100
+		fun countdownForNewCode(): Int = 1
 
 		/**
 		 * Return the number of times to invoke a [compiled
@@ -819,7 +818,7 @@ class L2Chunk private constructor(
 					reenterFromCallBlock,
 					reenterFromInterruptBlock,
 					unreachableBlock)
-			val instructions: List<L2Instruction> = ArrayList()
+			val instructions = mutableListOf<L2Instruction>()
 			controlFlowGraph.generateOn(instructions)
 			val defaultChunk =
 				allocate(

@@ -87,10 +87,7 @@ abstract class L2ReadOperand<R : L2Register> protected constructor(
 	 * @return
 	 *   The [L2SemanticValue].
 	 */
-	fun semanticValue(): L2SemanticValue
-	{
-		return semanticValue
-	}
+	fun semanticValue(): L2SemanticValue = semanticValue
 
 	/**
 	 * Answer this read's [L2Register].
@@ -188,7 +185,7 @@ abstract class L2ReadOperand<R : L2Register> protected constructor(
 		// rewrite this operation to use a semantic value that's still in the
 		// manifest, or even add a new one.
 		val synonyms = manifest.synonymsForRegister(register)
-		assert(!synonyms.isEmpty())
+		assert(synonyms.isNotEmpty())
 		val newSemanticValue = synonyms[0].pickSemanticValue()
 		return copyForSemanticValue(newSemanticValue)
 	}

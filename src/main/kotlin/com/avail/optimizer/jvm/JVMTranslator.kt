@@ -1341,10 +1341,10 @@ class JVMTranslator constructor(
 		{
 			// Note that we have to break the sources up if they are too large
 			// for the constant pool.
-			if (code != null)
+			if (code !== null)
 			{
 				val l1Path = dumpL1SourceToFile()
-				if (l1Path != null)
+				if (l1Path !== null)
 				{
 					val annotation = method.visitAnnotation(
 						Type.getDescriptor(JVMChunkL1Source::class.java),

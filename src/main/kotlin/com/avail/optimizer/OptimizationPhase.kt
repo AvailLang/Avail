@@ -39,29 +39,40 @@ import com.avail.optimizer.annotations.RequiresNot
 import com.avail.optimizer.annotations.Sets
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport
-import com.avail.utility.evaluation.Continuation1
-import com.avail.utility.evaluation.Continuation2
 import java.lang.reflect.Field
 import java.util.*
+import kotlin.reflect.KClass
 
 /**
  * The collection of phases of L2 optimization, in sequence.
+ *
+ * @property action
+ *   The optimization action to perform for this pass.
+ *
+ * @constructor
+ * Create the enumeration value.
+ *
+ * @param action
+ *   The action to perform for this pass.
  */
-internal enum class OptimizationPhase(
-	/** The optimization action to perform for this pass.  */
-	private val action: Continuation1<L2Optimizer>)
+internal enum class OptimizationPhase constructor(
+	internal val action: (L2Optimizer) -> Unit)
 {
 	/**
 	 * Start by eliminating debris created during the initial L1 → L2
 	 * translation.
 	 */
-	REMOVE_DEAD_CODE_1(Continuation2<L2Optimizer?, DataCouplingMode?> { obj: L2Optimizer?, dataCouplingMode: DataCouplingMode? -> obj!!.removeDeadCode(dataCouplingMode) }, DataCouplingMode.FOLLOW_SEMANTIC_VALUES_AND_REGISTERS),
+	REMOVE_DEAD_CODE_1(
+		{ obj, dataCouplingMode ->
+			obj.removeDeadCode(dataCouplingMode as DataCouplingMode)
+	    },
+		DataCouplingMode.FOLLOW_SEMANTIC_VALUES_AND_REGISTERS),
 
 	/**
 	 * Transform into SSA edge-split form, to avoid inserting redundant
 	 * phi-moves.
 	 */
-	BECOME_EDGE_SPLIT_SSA(Continuation1<L2Optimizer> { obj: L2Optimizer? -> obj!!.transformToEdgeSplitSSA() }),
+	BECOME_EDGE_SPLIT_SSA({ it.transformToEdgeSplitSSA() }),
 
 	/**
 	 * Determine which registers are sometimes-live-in and/or always-live-in
@@ -69,7 +80,7 @@ internal enum class OptimizationPhase(
 	 * have their outputs consumed in the same block, and aren't
 	 * always-live-in in every successor.
 	 */
-	COMPUTE_LIVENESS_AT_EDGES(Continuation1<L2Optimizer> { obj: L2Optimizer? -> obj!!.computeLivenessAtEachEdge() }),
+	COMPUTE_LIVENESS_AT_EDGES({ it.computeLivenessAtEachEdge() }),
 
 	/**
 	 * Try to move any side-effect-less instructions to later points in the
@@ -79,58 +90,74 @@ internal enum class OptimizationPhase(
 	 * since the point of moving it forward is to avoid inessential
 	 * computations.
 	 *
-	 *
 	 * Note that this breaks SSA by duplicating defining instructions.
 	 * It also always recomputes liveness after each change, so there's no
 	 * need to recompute it after this phase.
 	 */
-	POSTPONE_CONDITIONALLY_USED_VALUES_1(Continuation1<L2Optimizer> { obj: L2Optimizer? -> obj!!.postponeConditionallyUsedValues() }),
+	POSTPONE_CONDITIONALLY_USED_VALUES_1({ it.postponeConditionallyUsedValues() }),
 
 	/**
 	 * Postponing conditionally used values can introduce idempotent
 	 * redundancies, which are dead code.  Remove them for clarity before we
 	 * replace placeholder instructions.
 	 */
-	REMOVE_DEAD_CODE_AFTER_POSTPONEMENTS(Continuation2<L2Optimizer?, DataCouplingMode?> { obj: L2Optimizer?, dataCouplingMode: DataCouplingMode? -> obj!!.removeDeadCode(dataCouplingMode) }, DataCouplingMode.FOLLOW_SEMANTIC_VALUES_AND_REGISTERS),
+	REMOVE_DEAD_CODE_AFTER_POSTPONEMENTS(
+		{ obj, dataCouplingMode ->
+			obj.removeDeadCode(dataCouplingMode as DataCouplingMode)
+		},
+		DataCouplingMode.FOLLOW_SEMANTIC_VALUES_AND_REGISTERS),
 
 	/**
-	 * If there are any [L2_VIRTUAL_CREATE_LABEL] instructions still extant, replace them with the rather complex code that will reify the caller if necessary, and create a label continuation.
+	 * If there are any [L2_VIRTUAL_CREATE_LABEL] instructions still extant,
+	 * replace them with the rather complex code that will reify the caller if
+	 * necessary, and create a label continuation.
 	 */
-	REPLACE_PLACEHOLDER_INSTRUCTIONS(Continuation1<L2Optimizer> { obj: L2Optimizer? -> obj!!.replacePlaceholderInstructions() }),
+	REPLACE_PLACEHOLDER_INSTRUCTIONS({ it.replacePlaceholderInstructions() }),
 
 	/**
-	 * Placeholder instructions may have been replaced with new subgraphs of generated code.  Some of that might be dead, so clean it up, otherwise the [L2Optimizer.postponeConditionallyUsedValues] might get upset about an instruction being in a place with no downstream uses.
+	 * Placeholder instructions may have been replaced with new subgraphs of
+	 * generated code.  Some of that might be dead, so clean it up, otherwise
+	 * the [L2Optimizer.postponeConditionallyUsedValues] might get upset about
+	 * an instruction being in a place with no downstream uses.
 	 */
-	REMOVE_DEAD_CODE_AFTER_REPLACEMENTS(Continuation2<L2Optimizer?, DataCouplingMode?> { obj: L2Optimizer?, dataCouplingMode: DataCouplingMode? -> obj!!.removeDeadCode(dataCouplingMode) }, DataCouplingMode.FOLLOW_SEMANTIC_VALUES_AND_REGISTERS),
+	REMOVE_DEAD_CODE_AFTER_REPLACEMENTS(
+		{ obj, dataCouplingMode ->
+			obj.removeDeadCode(dataCouplingMode as DataCouplingMode)
+		}, DataCouplingMode.FOLLOW_SEMANTIC_VALUES_AND_REGISTERS),
 
 	/**
 	 * Recompute liveness information about all registers, now that dead code
 	 * has been eliminated after placeholder replacements.
 	 */
-	COMPUTE_LIVENESS_AT_EDGES_2(Continuation1<L2Optimizer> { obj: L2Optimizer? -> obj!!.computeLivenessAtEachEdge() }),
+	COMPUTE_LIVENESS_AT_EDGES_2({ it.computeLivenessAtEachEdge() }),
 
 	/**
-	 * If [REPLACE_PLACEHOLDER_INSTRUCTIONS] made any changes, give one more try at pushing conditionally used values.  Otherwise do nothing.
+	 * If [REPLACE_PLACEHOLDER_INSTRUCTIONS] made any changes, give one more try
+	 * at pushing conditionally used values.  Otherwise do nothing.
 	 */
-	POSTPONE_CONDITIONALLY_USED_VALUES_2(Continuation1<L2Optimizer> { obj: L2Optimizer? -> obj!!.postponeConditionallyUsedValues() }),
+	POSTPONE_CONDITIONALLY_USED_VALUES_2({ it.postponeConditionallyUsedValues() }),
 
 	/**
 	 * Insert phi moves along preceding edges.  This requires the CFG to be in
 	 * edge-split form, although strict SSA isn't required.
 	 */
-	INSERT_PHI_MOVES(Continuation1<L2Optimizer> { obj: L2Optimizer? -> obj!!.insertPhiMoves() }),
+	INSERT_PHI_MOVES({ it.insertPhiMoves() }),
 
 	/**
 	 * Remove constant moves made unnecessary by the introduction of new
 	 * constant moves after phis (the ones that are constant-valued).
 	 */
-	REMOVE_DEAD_CODE_AFTER_PHI_MOVES(Continuation2<L2Optimizer?, DataCouplingMode?> { obj: L2Optimizer?, dataCouplingMode: DataCouplingMode? -> obj!!.removeDeadCode(dataCouplingMode) }, DataCouplingMode.FOLLOW_REGISTERS),
+	REMOVE_DEAD_CODE_AFTER_PHI_MOVES(
+		{ obj, dataCouplingMode ->
+			obj.removeDeadCode(dataCouplingMode as DataCouplingMode)
+		},
+		DataCouplingMode.FOLLOW_REGISTERS),
 
 	/**
 	 * Compute the register-coloring interference graph while we're just out of
 	 * SSA form – phis have been replaced by moves on incoming edges.
 	 */
-	COMPUTE_INTERFERENCE_GRAPH(Continuation1<L2Optimizer> { obj: L2Optimizer? -> obj!!.computeInterferenceGraph() }),
+	COMPUTE_INTERFERENCE_GRAPH( { it.computeInterferenceGraph() }),
 
 	/**
 	 * Color all registers, using the previously computed interference graph.
@@ -138,22 +165,22 @@ internal enum class OptimizationPhase(
 	 * that no two registers that have to maintain distinct values at the same
 	 * time will have the same number.
 	 */
-	COALESCE_REGISTERS_IN_NONINTERFERING_MOVES(Continuation1<L2Optimizer> { obj: L2Optimizer? -> obj!!.coalesceNoninterferingMoves() }),
+	COALESCE_REGISTERS_IN_NONINTERFERING_MOVES({ it.coalesceNoninterferingMoves() }),
 
 	/** Compute and assign final register colors.  */
-	ASSIGN_REGISTER_COLORS(Continuation1<L2Optimizer> { obj: L2Optimizer? -> obj!!.computeColors() }),
+	ASSIGN_REGISTER_COLORS({ it.computeColors() }),
 
 	/**
 	 * Create a replacement register for each used color (of each kind).
 	 * Transform each reference to an old register into a reference to the
 	 * replacement, updating structures as needed.
 	 */
-	REPLACE_REGISTERS_BY_COLOR(Continuation1<L2Optimizer> { obj: L2Optimizer? -> obj!!.replaceRegistersByColor() }),
+	REPLACE_REGISTERS_BY_COLOR({ it.replaceRegistersByColor() }),
 
 	/**
 	 * Remove any remaining moves between two registers of the same color.
 	 */
-	REMOVE_SAME_COLOR_MOVES(Continuation1<L2Optimizer> { obj: L2Optimizer? -> obj!!.removeSameColorMoves() }),
+	REMOVE_SAME_COLOR_MOVES({ it.removeSameColorMoves() }),
 
 	/**
 	 * Every L2PcOperand that leads to an L2_JUMP should now be redirected
@@ -161,13 +188,13 @@ internal enum class OptimizationPhase(
 	 * jump).  We specifically do this after inserting phi moves to ensure
 	 * we don't jump past irremovable phi moves.
 	 */
-	ADJUST_EDGES_LEADING_TO_JUMPS(Continuation1<L2Optimizer> { obj: L2Optimizer? -> obj!!.adjustEdgesLeadingToJumps() }),
+	ADJUST_EDGES_LEADING_TO_JUMPS({ it.adjustEdgesLeadingToJumps() }),
 
 	/**
 	 * Having adjusted edges to avoid landing on L2_JUMPs, some blocks may
 	 * have become unreachable.
 	 */
-	REMOVE_UNREACHABLE_BLOCKS(Continuation1<L2Optimizer> { obj: L2Optimizer? -> obj!!.removeUnreachableBlocks() }),
+	REMOVE_UNREACHABLE_BLOCKS({ it.removeUnreachableBlocks() }),
 
 	/**
 	 * Choose an order for the blocks.  This isn't important while we're
@@ -175,7 +202,7 @@ internal enum class OptimizationPhase(
 	 * JVM translation.  Prefer to have the target block of an unconditional
 	 * jump to follow the jump, since final code generation elides the jump.
 	 */
-	ORDER_BLOCKS(Continuation1<L2Optimizer> { obj: L2Optimizer? -> obj!!.orderBlocks() });
+	ORDER_BLOCKS({ it.orderBlocks() });
 	// Additional optimization ideas:
 	//    -Strengthen the types of all registers and register uses.
 	//    -Ask instructions to regenerate if they want.
@@ -192,63 +219,55 @@ internal enum class OptimizationPhase(
 	//    -JVM target.
 
 	/** The [Statistic] for tracking this pass's cost.  */
-	val stat: Statistic
+	val stat: Statistic = Statistic(
+		name, StatisticReport.L2_OPTIMIZATION_TIME)
 
 	/** The [StateFlag]s to require to already be set as preconditions.  */
-	val requiresFlags: List<Class<out StateFlag?>?> = ArrayList()
+	val requiresFlags =
+		mutableListOf<KClass<out StateFlag>>()
 
 	/** The [StateFlag]s that should already be clear as preconditions.  */
-	val requiresNotFlags: List<Class<out StateFlag?>?> = ArrayList()
+	val requiresNotFlags=
+		mutableListOf<KClass<out StateFlag>>()
 
 	/** The [StateFlag]s to set after this phase.  */
-	val setsFlags: List<Class<out StateFlag?>?> = ArrayList()
+	val setsFlags =
+		mutableListOf<KClass<out StateFlag>>()
 
 	/** The [StateFlag]s to clear after this phase.  */
-	val clearsFlags: List<Class<out StateFlag?>?> = ArrayList()
+	val clearsFlags =
+		mutableListOf<KClass<out StateFlag>>()
 
 	/**
 	 * Create the enumeration value, capturing a parameter to pass to the
 	 * optimization lambda.
 	 *
-	 * @param <V>
-	 * The type of value to pass to the action.
 	 * @param action
-	 * The action to perform.
+	 *   The action to perform.
 	 * @param value
-	 * The actual value to pass to the action.
-	</V> */
+	 *   The actual value to pass to the action.
+	 */
 	constructor(
-		action: Continuation2<L2Optimizer?, V?>,
-		value: V?) : this(Continuation1<L2Optimizer> { optimizer: L2Optimizer? -> action.value(optimizer, value) })
-	{
-	}
+		action: (L2Optimizer, Any) -> Unit,
+		value: Any) : this( { action(it, value) })
 
 	/**
-	 * Perform this phase's action.  Also check precondition [StateFlag]s and set or clear them as indicated by this phase's annotations.
+	 * Perform this phase's action.  Also check precondition [StateFlag]s and
+	 * set or clear them as indicated by this phase's annotations.
 	 *
 	 * @param optimizer
-	 * The optimizer for which to run this phase.
+	 *   The optimizer for which to run this phase.
 	 */
 	fun run(optimizer: L2Optimizer)
 	{
 		optimizer.check(requiresFlags)
 		optimizer.checkNot(requiresNotFlags)
-		action.value(optimizer)
+		action(optimizer)
 		optimizer.set(setsFlags)
 		optimizer.clear(clearsFlags)
 	}
-
-	/**
-	 * Create the enumeration value.
-	 *
-	 * @param action
-	 * The action to perform for this pass.
-	 */
 	init
 	{
-		stat = Statistic(
-			name,
-			StatisticReport.L2_OPTIMIZATION_TIME)
 		val enumMirror: Field
 		enumMirror = try
 		{
@@ -260,12 +279,14 @@ internal enum class OptimizationPhase(
 				"Enum class didn't recognize its own instance",
 				e)
 		}
-		val requiresAnnotation = enumMirror.getAnnotation(Requires::class.java)
+		val requiresAnnotation =
+			enumMirror.getAnnotation(Requires::class.java)
 		if (requiresAnnotation != null)
 		{
 			Collections.addAll(requiresFlags, *requiresAnnotation.value)
 		}
-		val requiresNotAnnotation = enumMirror.getAnnotation(RequiresNot::class.java)
+		val requiresNotAnnotation =
+			enumMirror.getAnnotation(RequiresNot::class.java)
 		if (requiresNotAnnotation != null)
 		{
 			Collections.addAll(requiresNotFlags, *requiresNotAnnotation.value)

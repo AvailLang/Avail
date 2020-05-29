@@ -86,13 +86,15 @@ object L2_FUNCTION_PARAMETER_TYPE : L2Operation(
 			return
 		}
 		val sources =
-			registerSet.stateForReading(functionReg.register()).sourceInstructions()
+			registerSet.stateForReading(functionReg.register())
+				.sourceInstructions()
 		if (sources.size == 1)
 		{
 			val source = sources[0]
 			if (source.operation() === L2_CREATE_FUNCTION)
 			{
-				val code: A_RawFunction = L2_CREATE_FUNCTION.constantRawFunctionOf(source)
+				val code: A_RawFunction =
+					L2_CREATE_FUNCTION.constantRawFunctionOf(source)
 				val functionType = code.functionType()
 				registerSet.constantAtPut(
 					outputParamTypeReg.register(),

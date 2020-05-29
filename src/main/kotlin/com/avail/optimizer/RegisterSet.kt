@@ -40,12 +40,13 @@ import com.avail.interpreter.levelTwo.L2Chunk
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.register.L2Register
-import com.avail.utility.Nulls
 import com.avail.utility.PrefixSharingList
 import java.util.*
 
 /**
- * This class maintains register information during naive translation from Level One compiled code (nybblecodes) to Level Two wordcodes, known as [chunks][L2Chunk].
+ * This class maintains register information during naive translation from Level
+ * One compiled code (nybblecodes) to Level Two wordcodes, known as
+ * [chunks][L2Chunk].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -54,23 +55,21 @@ class RegisterSet
 	/**
 	 * The mapping from each register to its current state, if any.
 	 */
-	val registerStates: MutableMap<L2Register?, RegisterState> = HashMap()
+	val registerStates =
+		mutableMapOf<L2Register, RegisterState>()
 
 	/**
 	 * Output debug information about this RegisterSet to the specified
 	 * [StringBuilder].
 	 *
 	 * @param builder
-	 * Where to describe this RegisterSet.
+	 *   Where to describe this RegisterSet.
 	 */
-	fun debugOn(
-		builder: StringBuilder)
+	fun debugOn(builder: StringBuilder)
 	{
-		val sortedRegs: List<L2Register?> = ArrayList(registerStates.keys)
-		sortedRegs.sort(Comparator { r1: L2Register?, r2: L2Register? ->
-			assert(r1 != null)
-			assert(r2 != null)
-			java.lang.Long.compare(r1!!.uniqueValue.toLong(), r2!!.uniqueValue.toLong())
+		val sortedRegs = registerStates.keys.toMutableList()
+		sortedRegs.sortWith (Comparator { r1: L2Register, r2: L2Register ->
+			r1.uniqueValue.toLong().compareTo(r2.uniqueValue.toLong())
 		})
 		for (reg in sortedRegs)
 		{
@@ -78,16 +77,16 @@ class RegisterSet
 			builder.append(String.format(
 				"%n\t%s = %.100s : %s",
 				reg,
-				state!!.constant(),
+				state.constant(),
 				state.type()))
 			val aliases = state.origins()
-			if (!aliases.isEmpty())
+			if (aliases.isNotEmpty())
 			{
 				builder.append(",  ALIASES = ")
 				builder.append(aliases)
 			}
 			val sources = state.sourceInstructions()
-			if (!sources.isEmpty())
+			if (sources.isNotEmpty())
 			{
 				builder.append(",  SOURCES = ")
 				var first = true
@@ -98,7 +97,7 @@ class RegisterSet
 						builder.append(", ")
 					}
 					builder.append("#")
-					builder.append(source!!.offset())
+					builder.append(source.offset())
 					first = false
 				}
 			}
@@ -106,20 +105,22 @@ class RegisterSet
 	}
 
 	/**
-	 * Answer the [RegisterState] for the specified [L2Register], creating one and associating it with the register for subsequent lookups. Ensure the RegisterState is modifiable, copying it and writing it back if necessary.
+	 * Answer the [RegisterState] for the specified [L2Register], creating one
+	 * and associating it with the register for subsequent lookups. Ensure the
+	 * RegisterState is modifiable, copying it and writing it back if necessary.
 	 *
 	 * @param register
-	 * The L2Register to look up.
+	 *   The L2Register to look up.
 	 * @return
-	 * The mutable RegisterState that describes the state of the L2Register at a particular point in the generated code.
+	 *   The mutable RegisterState that describes the state of the L2Register at
+	 *   a particular point in the generated code.
 	 */
-	fun stateForModifying(
-		register: L2Register?): RegisterState?
+	fun stateForModifying(register: L2Register): RegisterState
 	{
 		var state = registerStates[register]
 		if (state == null)
 		{
-			state = RegisterState.Companion.blank()
+			state = RegisterState.blank()
 		}
 		if (state.isShared)
 		{
@@ -131,47 +132,47 @@ class RegisterSet
 	}
 
 	/**
-	 * Answer the [RegisterState] for the specified [L2Register], creating one and associating it with the register for subsequent lookups.
+	 * Answer the [RegisterState] for the specified [L2Register], creating one
+	 * and associating it with the register for subsequent lookups.
 	 *
 	 * @param register
-	 * The L2Register to look up.
+	 *   The L2Register to look up.
 	 * @return
-	 * The RegisterState that describes the state of the L2Register at a particular point in the generated code.
+	 *   The RegisterState that describes the state of the L2Register at a
+	 *   particular point in the generated code.
 	 */
-	fun stateForReading(
-		register: L2Register?): RegisterState?
+	fun stateForReading(register: L2Register): RegisterState
 	{
 		var state = registerStates[register]
 		if (state == null)
 		{
-			state = RegisterState.Companion.blank()
+			state = RegisterState.blank()
 		}
 		return state
 	}
 
 	/**
-	 * Answer whether this register contains a constant at the current code generation point.
+	 * Answer whether this register contains a constant at the current code
+	 * generation point.
 	 *
 	 * @param register
-	 * The register.
+	 *   The register.
 	 * @return
-	 * Whether the register has most recently been assigned a constant.
+	 *   Whether the register has most recently been assigned a constant.
 	 */
-	fun hasConstantAt(register: L2Register?): Boolean
-	{
-		return stateForReading(register)!!.hasConstant()
-	}
+	fun hasConstantAt(register: L2Register): Boolean =
+		stateForReading(register).hasConstant()
 
 	/**
 	 * Answer whether all of the supplied registers are constant here.
 	 *
 	 * @param registerReads
-	 * The [List] of [L2ReadBoxedOperand]s to examine for being constant in this register set.
+	 *   The [List] of [L2ReadBoxedOperand]s to examine for being constant in
+	 *   this register set.
 	 * @return
-	 * `true` if all of the registers are constants here, otherwise `false`.
+	 *   `true` if all of the registers are constants here, otherwise `false`.
 	 */
-	fun allRegistersAreConstant(
-		registerReads: List<L2ReadBoxedOperand>): Boolean
+	fun allRegistersAreConstant(registerReads: List<L2ReadBoxedOperand>): Boolean
 	{
 		for (element in registerReads)
 		{
@@ -188,20 +189,19 @@ class RegisterSet
 	 * point.
 	 *
 	 * @param register
-	 * The register.
+	 *   The register.
 	 * @param value
-	 * The constant [value][A_BasicObject] bound to the register.
+	 *   The constant [value][A_BasicObject] bound to the register.
 	 */
-	fun constantAtPut(
-		register: L2Register?,
-		value: A_BasicObject)
+	fun constantAtPut(register: L2Register, value: A_BasicObject)
 	{
 		val strongValue = value as AvailObject
 		val state = stateForModifying(register)
-		state!!.constant(strongValue)
+		state.constant(strongValue)
 		if (!strongValue.equalsNil())
 		{
-			val type = AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn(strongValue)
+			val type =
+				AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn(strongValue)
 			assert(!type.isTop)
 			assert(!type.isBottom)
 			state.type(type)
@@ -213,23 +213,24 @@ class RegisterSet
 	 * point.
 	 *
 	 * @param register
-	 * The register.
+	 *   The register.
 	 * @param value
-	 * The constant [value][AvailObject] bound to the register.
+	 *   The constant [value][AvailObject] bound to the register.
 	 * @param instruction
-	 * The instruction that puts the constant in the register.
+	 *   The instruction that puts the constant in the register.
 	 */
 	fun constantAtPut(
 		register: L2Register,
 		value: A_BasicObject,
-		instruction: L2Instruction?)
+		instruction: L2Instruction)
 	{
 		val strongValue = value as AvailObject
 		val state = stateForModifying(register)
-		state!!.constant(strongValue)
+		state.constant(strongValue)
 		if (!strongValue.equalsNil())
 		{
-			val type = AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn(strongValue)
+			val type =
+				AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn(strongValue)
 			assert(!type.isTop)
 			assert(!type.isBottom)
 			state.type(type)
@@ -242,26 +243,22 @@ class RegisterSet
 	 * the register is not bound to a constant at this point.
 	 *
 	 * @param register
-	 * The register.
+	 *   The register.
 	 * @return
-	 * The constant object.
+	 *   The constant object.
 	 */
-	fun constantAt(
-		register: L2Register?): AvailObject
-	{
-		return Nulls.stripNull(stateForReading(register)!!.constant())
-	}
+	fun constantAt(register: L2Register): AvailObject =
+		stateForReading(register).constant()!!
 
 	/**
 	 * Remove any current constant binding for the specified register.
 	 *
 	 * @param register
-	 * The register.
+	 *   The register.
 	 */
-	fun removeConstantAt(
-		register: L2Register?)
+	fun removeConstantAt(register: L2Register)
 	{
-		stateForModifying(register)!!.constant(null)
+		stateForModifying(register).constant(null)
 	}
 
 	/**
@@ -269,45 +266,37 @@ class RegisterSet
 	 * generation point.
 	 *
 	 * @param register
-	 * The register.
+	 *   The register.
 	 * @return
-	 * Whether the register has a known type at this point.
+	 *   Whether the register has a known type at this point.
 	 */
-	fun hasTypeAt(
-		register: L2Register?): Boolean
-	{
-		return stateForReading(register)!!.type() != null
-	}
+	fun hasTypeAt(register: L2Register): Boolean =
+		stateForReading(register).type() !== null
 
 	/**
 	 * Answer the type bound to the register at this point in the code.
 	 *
 	 * @param register
-	 * The register.
+	 *   The register.
 	 * @return
-	 * The type bound to the register, or null if not bound.
+	 *   The type bound to the register, or null if not bound.
 	 */
-	fun typeAt(
-		register: L2Register?): A_Type
-	{
-		return Nulls.stripNull(stateForReading(register)!!.type())
-	}
+	fun typeAt(register: L2Register): A_Type =
+		stateForReading(register).type()!!
 
 	/**
 	 * Associate this register with a type at the current code generation point.
 	 *
 	 * @param register
-	 * The register.
+	 *   The register.
 	 * @param type
-	 * The type of object that will be in the register at this point.
+	 *   The type of object that will be in the register at this point.
 	 */
-	private fun typeAtPut(
-		register: L2Register?,
-		type: A_Type)
+	private fun typeAtPut(register: L2Register, type: A_Type)
 	{
 		assert(!type.isBottom)
 		assert(!type.equalsInstanceTypeFor(NilDescriptor.nil))
-		stateForModifying(register)!!.type(type)
+		stateForModifying(register).type(type)
 	}
 
 	/**
@@ -316,23 +305,23 @@ class RegisterSet
 	 * instruction.
 	 *
 	 * @param register
-	 * The register.
+	 *   The register.
 	 * @param type
-	 * The type of object that will be in the register at this point.
+	 *   The type of object that will be in the register at this point.
 	 * @param instruction
-	 * The instruction that affected this register.
+	 *   The instruction that affected this register.
 	 */
 	fun typeAtPut(
 		register: L2Register,
 		type: A_Type,
-		instruction: L2Instruction?)
+		instruction: L2Instruction)
 	{
 		typeAtPut(register, type)
 		if (type.instanceCount().equalsInt(1) && !type.isInstanceMeta)
 		{
 			// There is only one value that it could be.
 			val onlyPossibleValue = type.instance()
-			stateForModifying(register)!!.constant(onlyPossibleValue)
+			stateForModifying(register).constant(onlyPossibleValue)
 		}
 		propagateWriteTo(register, instruction)
 	}
@@ -341,26 +330,26 @@ class RegisterSet
 	 * Produce the set of all registers known to contain the same value as the
 	 * given register.
 	 *
-	 *
-	 * Follow all transitive [RegisterState.origins] and [RegisterState.invertedOrigins] to get the complete set.
+	 * Follow all transitive [RegisterState.origins] and
+	 * [RegisterState.invertedOrigins] to get the complete set.
 	 *
 	 * @param register
-	 * An [L2Register]
+	 *   An [L2Register]
 	 * @return
-	 * The set of all [L2Register]s known to contain the same value as the given register.
+	 *   The set of all [L2Register]s known to contain the same value as the
+	 *   given register.
 	 */
-	private fun allEquivalentRegisters(
-		register: L2Register): Set<L2Register?>
+	private fun allEquivalentRegisters(register: L2Register): Set<L2Register>
 	{
-		var equivalents: MutableSet<L2Register?> = HashSet(3)
+		var equivalents = mutableSetOf<L2Register>()
 		equivalents.add(register)
 		while (true)
 		{
-			val newEquivalents: MutableSet<L2Register?> = HashSet(equivalents)
-			for (reg in ArrayList(equivalents))
+			val newEquivalents = equivalents.toMutableSet()
+			for (reg in equivalents)
 			{
 				val state = stateForReading(reg)
-				newEquivalents.addAll(state!!.origins())
+				newEquivalents.addAll(state.origins())
 				newEquivalents.addAll(state.invertedOrigins())
 			}
 			if (equivalents.size == newEquivalents.size)
@@ -378,18 +367,15 @@ class RegisterSet
 	 * type test has ascertained that the register contains a stronger type than
 	 * had been determined.
 	 *
-	 *
 	 * This is subtle, but we also update the type for each register which is
 	 * known to currently have the same value.
 	 *
 	 * @param register
-	 * The register that needs its type strengthened.
+	 *    The register that needs its type strengthened.
 	 * @param type
-	 * The type to strengthen it to.
+	 *   The type to strengthen it to.
 	 */
-	fun strengthenTestedTypeAtPut(
-		register: L2Register,
-		type: A_Type)
+	fun strengthenTestedTypeAtPut(register: L2Register, type: A_Type)
 	{
 		for (alias in allEquivalentRegisters(register))
 		{
@@ -406,13 +392,11 @@ class RegisterSet
 	 * which has been shown to have the same value.
 	 *
 	 * @param register
-	 * The register that needs its type strengthened.
+	 *   The register that needs its type strengthened.
 	 * @param value
-	 * The value in the register.
+	 *   The value in the register.
 	 */
-	fun strengthenTestedValueAtPut(
-		register: L2Register,
-		value: A_BasicObject)
+	fun strengthenTestedValueAtPut(register: L2Register, value: A_BasicObject)
 	{
 		for (alias in allEquivalentRegisters(register))
 		{
@@ -424,12 +408,11 @@ class RegisterSet
 	 * Unbind any type information from the register at this point in the code.
 	 *
 	 * @param register
-	 * The register from which to clear type information.
+	 *   The register from which to clear type information.
 	 */
-	fun removeTypeAt(
-		register: L2Register?)
+	fun removeTypeAt(register: L2Register)
 	{
-		stateForModifying(register)!!.type(null)
+		stateForModifying(register).type(null)
 	}
 
 	/**
@@ -438,20 +421,15 @@ class RegisterSet
 	 * remaining register with the same value to always be used during register
 	 * source normalization.  This is essential for eliminating redundant moves.
 	 *
-	 *
-	 *
 	 * Eventually primitive constructor/deconstructor pairs (e.g., tuple
 	 * creation and tuple subscripting) could be combined in a similar way to
 	 * perform a simple object escape analysis.  For example, consider this
 	 * sequence of level two instructions:
 	 *
-	 *
 	 *  * r1 := ...
 	 *  * r2 := ...
 	 *  * r3 := makeTuple(r1, r2)
 	 *  * r4 := tupleAt(r3, 1)
-	 *
-	 *
 	 *
 	 * It can be shown that r4 will always contain the value that was in r1.
 	 * In fact, if r3 is no longer needed then the tuple doesn't even have to be
@@ -459,16 +437,16 @@ class RegisterSet
 	 * inlining is expected to reveal a great deal of such combinations.
 	 *
 	 * @param sourceRegister
-	 * The [L2Register] which is the source of a move.
+	 *   The [L2Register] which is the source of a move.
 	 * @param destinationRegister
-	 * The [L2Register] which is the destination of a move.
+	 *   The [L2Register] which is the destination of a move.
 	 * @param instruction
-	 * The [L2Instruction] which is moving the value.
+	 *   The [L2Instruction] which is moving the value.
 	 */
 	fun propagateMove(
 		sourceRegister: L2Register,
 		destinationRegister: L2Register,
-		instruction: L2Instruction?)
+		instruction: L2Instruction)
 	{
 		if (sourceRegister === destinationRegister)
 		{
@@ -477,12 +455,13 @@ class RegisterSet
 		propagateWriteTo(destinationRegister, instruction)
 		val sourceState = stateForReading(sourceRegister)
 		val destinationState = stateForModifying(destinationRegister)
-		val sourceOrigins = sourceState!!.origins()
-		val destinationOrigins = PrefixSharingList.append(sourceOrigins, sourceRegister)
-		destinationState!!.origins(destinationOrigins)
+		val sourceOrigins = sourceState.origins()
+		val destinationOrigins =
+			PrefixSharingList.append(sourceOrigins, sourceRegister)
+		destinationState.origins(destinationOrigins)
 		for (origin in destinationOrigins)
 		{
-			stateForModifying(origin)!!.addInvertedOrigin(destinationRegister)
+			stateForModifying(origin).addInvertedOrigin(destinationRegister)
 		}
 	}
 
@@ -490,41 +469,38 @@ class RegisterSet
 	 * Some sort of write to the destinationRegister has taken place.  Moves
 	 * are handled differently.
 	 *
-	 *
-	 *
 	 * Update the the [registerStates] to reflect the fact that the
 	 * destination register is no longer related to any of its earlier sources.
 	 *
-	 *
 	 * @param destinationRegister
-	 * The [L2Register] being overwritten.
+	 *   The [L2Register] being overwritten.
 	 * @param instruction
-	 * The instruction doing the writing.
+	 *   The instruction doing the writing.
 	 */
 	fun propagateWriteTo(
-		destinationRegister: L2Register,
-		instruction: L2Instruction?)
+		destinationRegister: L2Register, instruction: L2Instruction)
 	{
 		// Firstly, the destinationRegister's value is no longer derived
 		// from any other register (until and unless the client says which).
-		val destinationState = stateForModifying(destinationRegister)
-		val origins = destinationState!!.origins()
+		val destinationState =
+			stateForModifying(destinationRegister)
+		val origins = destinationState.origins()
 		for (origin in origins)
 		{
-			stateForModifying(origin)!!.removeInvertedOrigin(
+			stateForModifying(origin).removeInvertedOrigin(
 				destinationRegister)
 		}
-		destinationState.origins(emptyList())
+		destinationState.origins(mutableListOf())
 
 		// Secondly, any registers that were derived from the old value of
 		// the destinationRegister are no longer equivalent to it.
 		for (descendant in destinationState.invertedOrigins())
 		{
 			val state = stateForModifying(descendant)
-			assert(state!!.origins().contains(destinationRegister))
+			assert(state.origins().contains(destinationRegister))
 			state.removeOrigin(destinationRegister)
 		}
-		destinationState.invertedOrigins(emptyList())
+		destinationState.invertedOrigins(mutableListOf())
 
 		// Finally, *this* is the instruction that produces a value for the
 		// destination.
@@ -541,9 +517,9 @@ class RegisterSet
 	 * information unless both sides say they should be the same constant.
 	 *
 	 * @param other
-	 * The RegisterSet with information to mix into the receiver.
+	 *   The RegisterSet with information to mix into the receiver.
 	 * @return
-	 * Whether the receiver changed due to the new information.
+	 *   Whether the receiver changed due to the new information.
 	 */
 	fun mergeFrom(other: RegisterSet): Boolean
 	{
@@ -558,11 +534,11 @@ class RegisterSet
 			// Merge in the type information, truncating type information about
 			// registers which are not known in both sources.
 			val type = state.type()
-			val otherType = otherState!!.type()
+			val otherType = otherState.type()
 			var entryChanged = false
-			if (type != null)
+			if (type !== null)
 			{
-				if (otherType != null)
+				if (otherType !== null)
 				{
 					val union = otherType.typeUnion(type)
 					if (!union.equals(type))
@@ -583,8 +559,8 @@ class RegisterSet
 			// Only keep constant information where it agrees.
 			val constant = state.constant()
 			val otherConstant = otherState.constant()
-			if (constant != null
-				&& otherConstant != constant)
+			if (constant !== null
+				&& otherConstant !== constant)
 			{
 				// They disagree, so it's not really a constant here.
 				entryChanged = true
@@ -596,7 +572,8 @@ class RegisterSet
 			// different order, but in that case any order will be good enough.
 			val oldList = state.origins()
 			val otherList = otherState.origins()
-			val newList: MutableList<L2Register?> = ArrayList(oldList)
+			val newList = mutableListOf<L2Register>()
+			newList.addAll(oldList)
 			val listChanged = newList.retainAll(otherList)
 			if (listChanged)
 			{
@@ -604,19 +581,22 @@ class RegisterSet
 				state.origins(newList)
 				for (oldOrigin in oldList)
 				{
-					assert(oldOrigin !== reg) { "Register should not have been its own origin" }
+					assert(oldOrigin !== reg) {
+						"Register should not have been its own origin"
+					}
 					if (!newList.contains(oldOrigin))
 					{
-						stateForModifying(oldOrigin)!!.removeInvertedOrigin(
-							reg)
+						stateForModifying(oldOrigin).removeInvertedOrigin(reg)
 					}
 				}
 				for (newOrigin in newList)
 				{
-					assert(newOrigin !== reg) { "Register should not be its own origin" }
+					assert(newOrigin !== reg) {
+						"Register should not be its own origin"
+					}
 					if (!oldList.contains(newOrigin))
 					{
-						stateForModifying(newOrigin)!!.addInvertedOrigin(reg)
+						stateForModifying(newOrigin).addInvertedOrigin(reg)
 					}
 				}
 			}
@@ -637,7 +617,8 @@ class RegisterSet
 			val reg = entry.key
 			var state = entry.value
 			val sources = state.sourceInstructions()
-			val otherSources = other.stateForReading(reg)!!.sourceInstructions()
+			val otherSources =
+				other.stateForReading(reg).sourceInstructions()
 			for (otherSource in otherSources)
 			{
 				if (!sources.contains(otherSource))
@@ -663,7 +644,7 @@ class RegisterSet
 		for ((key, value) in sorted)
 		{
 			val constant = value.constant()
-			if (constant != null)
+			if (constant !== null)
 			{
 				formatter.format(
 					"%n\t\t%s = %s",
@@ -675,7 +656,7 @@ class RegisterSet
 		for ((key, value) in sorted)
 		{
 			val type = value.type()
-			if (type != null)
+			if (type !== null)
 			{
 				formatter.format(
 					"%n\t\t%s = %s",
@@ -687,7 +668,7 @@ class RegisterSet
 		for ((key, value) in sorted)
 		{
 			val origins = value.origins()
-			if (!origins.isEmpty())
+			if (origins.isNotEmpty())
 			{
 				formatter.format(
 					"%n\t\t%s = %s",
@@ -699,7 +680,7 @@ class RegisterSet
 		for ((key, value) in sorted)
 		{
 			val sourceInstructions = value.sourceInstructions()
-			if (!sourceInstructions.isEmpty())
+			if (sourceInstructions.isNotEmpty())
 			{
 				formatter.format("%n\t\t%s = ", key)
 				var first = true
@@ -709,7 +690,7 @@ class RegisterSet
 					{
 						formatter.format(", ")
 					}
-					formatter.format("#%d", instruction!!.offset())
+					formatter.format("#%d", instruction.offset())
 					first = false
 				}
 			}

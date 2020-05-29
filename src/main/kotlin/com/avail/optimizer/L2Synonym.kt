@@ -84,7 +84,7 @@ class L2Synonym(
 	 *   The transformed synonym, or the original if there was no change.
 	 */
 	fun transform(
-		semanticValueTransformer: Function1<L2SemanticValue?, L2SemanticValue>)
+		semanticValueTransformer: Function1<L2SemanticValue, L2SemanticValue>)
 		: L2Synonym
 	{
 		val newSemanticValues: MutableSet<L2SemanticValue> = HashSet()

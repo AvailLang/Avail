@@ -42,6 +42,7 @@ import com.avail.interpreter.levelTwo.register.L2Register
 import com.avail.optimizer.L2ControlFlowGraph.StateFlag.IS_SSA
 import com.avail.utility.Strings.increaseIndentation
 import java.util.*
+import kotlin.reflect.KClass
 
 /**
  * This is a control graph. The vertices are [L2BasicBlock]s, which are
@@ -81,7 +82,8 @@ class L2ControlFlowGraph
 	}
 
 	/** The current state of the graph.  */
-	val state = mutableSetOf<Class<out StateFlag>>()
+	val state =
+		mutableSetOf<KClass<out StateFlag>>()
 
 	/**
 	 * Set each of the specified [StateFlag]s.
@@ -89,7 +91,7 @@ class L2ControlFlowGraph
 	 * @param flags
 	 *   The collection of [StateFlag]s to add.
 	 */
-	fun set(flags: Collection<Class<out StateFlag>>)
+	fun set(flags: Collection<KClass<out StateFlag>>)
 	{
 		state.addAll(flags)
 	}
@@ -100,7 +102,7 @@ class L2ControlFlowGraph
 	 * @param flags
 	 *   The collection of [StateFlag]s to remove.
 	 */
-	fun clear(flags: Collection<Class<out StateFlag>>)
+	fun clear(flags: Collection<KClass<out StateFlag>>)
 	{
 		state.removeAll(flags)
 	}
@@ -111,7 +113,7 @@ class L2ControlFlowGraph
 	 * @param flags
 	 *   The collection of [StateFlag]s to check.
 	 */
-	fun check(flags: Collection<Class<out StateFlag>>)
+	fun check(flags: Collection<KClass<out StateFlag>>)
 	{
 		assert(state.containsAll(flags))
 	}
@@ -122,7 +124,7 @@ class L2ControlFlowGraph
 	 * @param flags
 	 *   The collection of [StateFlag]s to check for absence.
 	 */
-	fun checkNot(flags: Collection<Class<out StateFlag>>)
+	fun checkNot(flags: Collection<KClass<out StateFlag>>)
 	{
 		assert(Collections.disjoint(state, flags))
 	}
@@ -244,7 +246,7 @@ class L2ControlFlowGraph
 		val builder = StringBuilder()
 		for (block in basicBlockOrder)
 		{
-			builder.append(block!!.name())
+			builder.append(block.name())
 			builder.append(":\n")
 			block.predecessorEdgesDo { edge: L2PcOperand? ->
 				builder
@@ -290,24 +292,21 @@ class L2ControlFlowGraph
 	 * @return
 	 *   The requested visualization.
 	 */
-	fun visualize(): String
-	{
-		val builder = StringBuilder()
+	fun visualize(): String = buildString {
 		val visualizer = L2ControlFlowGraphVisualizer(
 			"«control flow graph»",
 			"«chunk»",
 			80,
-			this,
+			this@L2ControlFlowGraph,
 			true,
 			true,
-			builder)
+			this)
 		visualizer.visualize()
-		return builder.toString()
 	}
 
 	init
 	{
 		// New control flow graphs are expected to be in SSA form.
-		state.add(IS_SSA::class.java)
+		state.add(IS_SSA::class)
 	}
 }

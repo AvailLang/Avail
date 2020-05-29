@@ -32,14 +32,11 @@
 package com.avail.optimizer
 
 import com.avail.interpreter.levelTwo.L2Instruction
-import com.avail.interpreter.levelTwo.L2Operation
 import com.avail.interpreter.levelTwo.operand.L2PcOperand
 import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION
 import com.avail.optimizer.values.L2SemanticValue
 import com.avail.utility.Casts
 import java.util.*
-import java.util.stream.Collectors
-import java.util.stream.IntStream
 
 /**
  * A mechanism for determining which instructions are dead versus live.
@@ -92,7 +89,7 @@ internal class DeadCodeAnalyzer constructor(
 				{
 					continue
 				}
-				val needs: MutableSet<L2Entity> = HashSet()
+				val needs = mutableSetOf<L2Entity>()
 				for (entity in edge.forcedClampedEntities!!)
 				{
 					if (entity is L2SemanticValue)
@@ -114,7 +111,7 @@ internal class DeadCodeAnalyzer constructor(
 		// Start with each block that has no successors, or which has only
 		// backward successor edges, collected above.
 		val toVisit: Deque<L2BasicBlock> =
-			java.util.ArrayDeque(controlFlowGraph.basicBlockOrder
+			ArrayDeque(controlFlowGraph.basicBlockOrder
 				.filter { block: L2BasicBlock ->
 					block.successorEdgesCopy().stream()
 						.allMatch { edgeNeeds.containsKey(it) }
@@ -132,13 +129,12 @@ internal class DeadCodeAnalyzer constructor(
 				.forEachRemaining { neededEntities.addAll(edgeNeeds[it]!!) }
 			val predecessorCount = block.predecessorEdgesCount()
 			val instructions = block.instructions()
-			var index: Int = instructions.size - 1
-			for (i in instructions.size - 1 downTo 1)
+			var index: Int = instructions.size
+			while (--index >= 0)
 			{
-				val instruction = instructions[i]
+				val instruction = instructions[index]
 				if (instruction.operation().isPhi)
 				{
-					index = i
 					break
 				}
 				// As a simplifying assumption, pretend an altersControlFlow
@@ -152,23 +148,19 @@ internal class DeadCodeAnalyzer constructor(
 					neededEntities.addAll(
 						dataCouplingMode.readEntitiesOf(instruction))
 				}
-				index = i
 			}
 			val entitiesByPredecessor: List<MutableSet<L2Entity>>
 			if (index >= 0)
 			{
 				// At least one phi is present in the block.  Compute a separate
 				// set of needs per predecessor.
-				entitiesByPredecessor = IntStream.range(0, predecessorCount)
-					.mapToObj { n: Int -> HashSet(neededEntities) }
-					.collect(Collectors.toList())
-				for (i in index downTo 1)
-				while (i >= 0)
+				entitiesByPredecessor = (0..predecessorCount)
+					.map { neededEntities.toMutableSet() }.toList()
+				while (index >= 0)
 				{
-					val phiInstruction = instructions[i]
-					val phiOperation =
-						Casts.cast<L2Operation, L2_PHI_PSEUDO_OPERATION<*, *, *>>(
-							phiInstruction.operation())
+					val phiInstruction = instructions[index]
+					val phiOperation: L2_PHI_PSEUDO_OPERATION<*, *, *> =
+						Casts.cast(phiInstruction.operation())
 					val readOperands =
 						phiOperation.sourceRegisterReads(phiInstruction)
 					for (predecessorIndex in 0 until predecessorCount)
@@ -188,6 +180,7 @@ internal class DeadCodeAnalyzer constructor(
 								dataCouplingMode.readEntitiesOf(readOperand))
 						}
 					}
+					index--
 				}
 			}
 			else
@@ -198,7 +191,7 @@ internal class DeadCodeAnalyzer constructor(
 					Collections.nCopies(predecessorCount, neededEntities)
 			}
 			assert(block.predecessorEdgesCount() != 0
-				   || neededEntities.isEmpty())
+			   || neededEntities.isEmpty())
 			{
 				("Instruction consumes $neededEntities but a preceding "
 					+ "definition was not found")
@@ -209,14 +202,14 @@ internal class DeadCodeAnalyzer constructor(
 				// No need to copy it, as it won't be modified again.
 				val entities = entitySetIterator.next()
 				assert(edgeNeeds.containsKey(predecessor)
-						   == predecessor.isBackward)
+				   == predecessor.isBackward)
 				if (!predecessor.isBackward)
 				{
 					edgeNeeds[predecessor] = entities
 					val predecessorBlock =
 						predecessor.instruction().basicBlock()
-					if (predecessorBlock.successorEdgesCopy().stream()
-							.allMatch { edgeNeeds.containsKey(it) })
+					if (predecessorBlock.successorEdgesCopy()
+						.all { edgeNeeds.containsKey(it) })
 					{
 						toVisit.add(predecessorBlock)
 					}
@@ -234,7 +227,7 @@ internal class DeadCodeAnalyzer constructor(
 	 */
 	fun liveInstructions(): Set<L2Instruction>
 	{
-		assert(!liveInstructions.isEmpty())
+		assert(liveInstructions.isNotEmpty())
 		return Collections.unmodifiableSet(liveInstructions)
 	}
 }

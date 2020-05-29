@@ -99,14 +99,13 @@ import com.avail.utility.MutableInt
 import com.avail.utility.Pair
 import java.util.*
 import java.util.logging.Level
-import java.util.stream.Collectors
 
 /**
- * The `L1Translator` transliterates a sequence of [level one
- * instructions][L1Operation] into one or more simple [level two
- * instructions][L2Instruction], under the assumption that further optimization
- * steps will be able to transform this code into something much more efficient
- * – without altering the level one semantics.
+ * The `L1Translator` transliterates a sequence of
+ * [level one instructions][L1Operation] into one or more simple
+ * [level two instructions][L2Instruction], under the assumption that further
+ * optimization steps will be able to transform this code into something much
+ * more efficient – without altering the level one semantics.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -410,9 +409,8 @@ class L1Translator private constructor(
 	 */
 	private fun getLatestReturnValue(guaranteedType: A_Type): L2ReadBoxedOperand
 	{
-		val writer =
-			generator.boxedWriteTemp(
-				restrictionForType(guaranteedType, RestrictionFlagEncoding.BOXED))
+		val writer = generator.boxedWriteTemp(
+			restrictionForType(guaranteedType, RestrictionFlagEncoding.BOXED))
 		addInstruction(L2_GET_LATEST_RETURN_VALUE, writer)
 		return readBoxed(writer)
 	}
@@ -502,6 +500,7 @@ class L1Translator private constructor(
 	 * @param typeOfEntryPoint
 	 *   The kind of [ChunkEntryPoint] to re-enter at.
 	 */
+	@Suppress("UNCHECKED_CAST")
 	fun reify(expectedValueOrNull: A_Type?, typeOfEntryPoint: ChunkEntryPoint)
 	{
 		// Use the current block's zone for subsequent nodes that are inside
@@ -949,9 +948,8 @@ class L1Translator private constructor(
 		// in L2/JVM to store the simple invocation than a full lookup.
 		if (method.definitionsTuple().tupleSize() <= 1)
 		{
-			val argTypes = argumentRestrictions.stream()
+			val argTypes = argumentRestrictions
 				.map { restriction: TypeRestriction -> restriction.type }
-				.collect(Collectors.toList())
 			try
 			{
 				val result =
@@ -965,7 +963,7 @@ class L1Translator private constructor(
 			}
 			// The tree is now warmed up for a monomorphic inline.
 		}
-		val applicableExpandedLeaves: MutableList<A_Definition> = ArrayList()
+		val applicableExpandedLeaves = mutableListOf<A_Definition>()
 		val definitionCollector =
 			object : LookupTreeTraverser<A_Definition, A_Tuple, UnusedMemento, Boolean>(
 				MethodDescriptor.runtimeDispatcher,
@@ -1000,22 +998,21 @@ class L1Translator private constructor(
 		if (applicableExpandedLeaves.size <=
 			L2Generator.maxPolymorphismToInlineDispatch)
 		{
-			val traverser = object
-				: LookupTreeTraverser<A_Definition, A_Tuple, UnusedMemento, InternalNodeMemento>(
-					MethodDescriptor.runtimeDispatcher,
-					UnusedMemento.UNUSED,
-					false)
+			val traverser = object :
+				LookupTreeTraverser
+					<A_Definition, A_Tuple, UnusedMemento, InternalNodeMemento>(
+						MethodDescriptor.runtimeDispatcher,
+						UnusedMemento.UNUSED,
+						false)
 			{
 				override fun visitPreInternalNode(
 					argumentIndex: Int,
-					argumentType: A_Type): InternalNodeMemento
-				{
-					return preInternalVisit(
-						callSiteHelper,
-						semanticArguments,
-						argumentIndex,
-						argumentType)
-				}
+					argumentType: A_Type): InternalNodeMemento =
+						preInternalVisit(
+							callSiteHelper,
+							semanticArguments,
+							argumentIndex,
+							argumentType)
 
 				override fun visitIntraInternalNode(memento: InternalNodeMemento)
 				{
@@ -1075,7 +1072,8 @@ class L1Translator private constructor(
 				{
 					val signatureTupleType =
 						rawFunction.functionType().argsTupleType()
-					val intersectedArgumentTypes = mutableListOf<A_Type>()
+					val intersectedArgumentTypes =
+						mutableListOf<A_Type>()
 					for (i in argumentRestrictions.indices)
 					{
 						val intersection =
@@ -1257,7 +1255,7 @@ class L1Translator private constructor(
 	{
 		val existingPair =
 			callSiteHelper.invocationSitesToCreate[function]
-		val block: L2BasicBlock?
+		val block: L2BasicBlock
 		if (existingPair == null)
 		{
 			block = generator.createBasicBlock("successful lookup")
@@ -1896,7 +1894,7 @@ class L1Translator private constructor(
 	 * Generate code to perform a type check of the top-of-stack register
 	 * against the given expectedType (an [A_Type] that has been strengthened by
 	 * semantic restrictions).  If the check fails, invoke the bottom-valued
-	 * function accessed via [getInvalidResultFunctionRegister], never to return
+	 * function accessed via [invalidResultFunctionRegister], never to return
 	 * – but synthesizing a proper continuation in the event of reification
 	 * while it's running.  If the check passes, the value will be strengthened
 	 * in the top-of-stack register.
@@ -1983,7 +1981,7 @@ class L1Translator private constructor(
 			L2_INVOKE,
 			invalidResultFunctionRegister,
 			L2ReadBoxedVectorOperand(
-				Arrays.asList(
+				listOf(
 					returningFunctionRegister,
 					generator.boxedConstant(expectedType),
 					readBoxed(variableToHoldValueWrite))),
@@ -2009,7 +2007,8 @@ class L1Translator private constructor(
 				instructionDecoder.pc(),
 				uncheckedValueRead.semanticValue(),
 				uncheckedValueRead.restriction().intersection(
-					restrictionForType(expectedType, RestrictionFlagEncoding.BOXED)))
+					restrictionForType(
+						expectedType, RestrictionFlagEncoding.BOXED)))
 		}
 	}
 
@@ -2164,7 +2163,8 @@ class L1Translator private constructor(
 		val signatureTupleType =
 			rawFunction.functionType().argsTupleType()
 		val narrowedArgTypes = mutableListOf<A_Type>()
-		val narrowedArguments = mutableListOf<L2ReadBoxedOperand>()
+		val narrowedArguments =
+			mutableListOf<L2ReadBoxedOperand>()
 		for (i in 0 until argumentCount)
 		{
 			val argument =
@@ -2212,7 +2212,8 @@ class L1Translator private constructor(
 			"lookup succeeded for " + callSiteHelper.quotedBundleName)
 		val lookupFailed = generator.createBasicBlock(
 			"lookup failed for " + callSiteHelper.quotedBundleName)
-		val argumentRestrictions: MutableList<TypeRestriction> = ArrayList(nArgs)
+		val argumentRestrictions =
+			mutableListOf<TypeRestriction>()
 		for (i in 1 .. nArgs)
 		{
 			val argumentRestriction =
@@ -2223,7 +2224,7 @@ class L1Translator private constructor(
 					RestrictionFlagEncoding.BOXED))
 			argumentRestrictions.add(unionRestriction)
 		}
-		val possibleFunctions: MutableList<A_Function> = ArrayList()
+		val possibleFunctions = mutableListOf<A_Function>()
 		for (definition in bundle.bundleMethod().
 			definitionsAtOrBelow(argumentRestrictions))
 		{
@@ -2281,12 +2282,14 @@ class L1Translator private constructor(
 			// Extract a tuple type from the runtime types of the arguments,
 			// take the type union with the superUnionType, then perform a
 			// lookup-by-types using that tuple type.
-			val argTypeRegs = mutableListOf<L2ReadBoxedOperand>()
+			val argTypeRegs =
+				mutableListOf<L2ReadBoxedOperand>()
 			for (i in 1 .. nArgs)
 			{
 				val argReg = argumentReads[i - 1]
 				val argStaticType = argReg.type()
-				val superUnionElementType = callSiteHelper.superUnionType.typeAtIndex(i)
+				val superUnionElementType =
+					callSiteHelper.superUnionType.typeAtIndex(i)
 				val argTypeReg: L2ReadBoxedOperand?
 				argTypeReg = if (argStaticType.isSubtypeOf(superUnionElementType))
 				{
@@ -2384,7 +2387,7 @@ class L1Translator private constructor(
 	 * Generate code to report a lookup failure.
 	 *
 	 * @param method
-	 *   The // TODO finish me
+	 *   The [A_Method] that could not be found at the call site.
 	 * @param callSiteHelper
 	 *   Information about the method call site.
 	 * @param errorCodeRead
@@ -2430,7 +2433,7 @@ class L1Translator private constructor(
 			L2_INVOKE,
 			readBoxed(invalidSendReg),
 			L2ReadBoxedVectorOperand(
-				Arrays.asList(
+				listOf(
 					errorCodeRead,
 					generator.boxedConstant(method),
 					readBoxed(argumentsTupleWrite))),
@@ -2638,7 +2641,7 @@ class L1Translator private constructor(
 				RestrictionFlagEncoding.BOXED))
 		addInstruction(
 			L2_CREATE_TUPLE,
-			L2ReadBoxedVectorOperand(Arrays.asList(variable, newValue)),
+			L2ReadBoxedVectorOperand(listOf(variable, newValue)),
 			variableAndValueTupleReg)
 		// Note: the handler block's value is discarded; also, since it's not a
 		// method definition, it can't have a semantic restriction.
@@ -2646,7 +2649,7 @@ class L1Translator private constructor(
 			L2_INVOKE,
 			readBoxed(observeFunction),
 			L2ReadBoxedVectorOperand(
-				Arrays.asList(
+				listOf(
 					generator
 						.boxedConstant(assignmentFunction()),
 					readBoxed(variableAndValueTupleReg))),
@@ -2746,7 +2749,7 @@ class L1Translator private constructor(
 		// semantic slots n@1.
 		generator.restartLoopHeadBlock = generator.createLoopHeadBlock(
 			"Loop head for " + code.methodName().asNativeString())
-		generator.jumpTo(generator.restartLoopHeadBlock)
+		generator.jumpTo(generator.restartLoopHeadBlock!!)
 		generator.startBlock(generator.restartLoopHeadBlock!!)
 
 		// Create the locals.
@@ -3206,7 +3209,7 @@ class L1Translator private constructor(
 			forceSlotRegister(
 				stackp + size - i,
 				instructionDecoder.pc(),
-				currentManifest().readBoxed(temps[i - 1]))
+				currentManifest().readBoxed(temps[i - 1]!!))
 		}
 	}
 
@@ -3245,7 +3248,7 @@ class L1Translator private constructor(
 			theCode: A_RawFunction): A_Function?
 		{
 			val numOuters = theCode.numOuters()
-			val outerConstants: MutableList<AvailObject> = ArrayList(numOuters)
+			val outerConstants = mutableListOf<AvailObject>()
 			for (i in 1 .. numOuters)
 			{
 				val outerType = theCode.outerTypeAt(i)
@@ -3271,10 +3274,10 @@ class L1Translator private constructor(
 		 *   Either `null` or the function's [A_RawFunction].
 		 */
 		private fun determineRawFunction(
-			functionToCallReg: L2ReadBoxedOperand?): A_RawFunction?
+			functionToCallReg: L2ReadBoxedOperand): A_RawFunction?
 		{
 			val functionIfKnown: A_Function? =
-				functionToCallReg!!.constantOrNull()
+				functionToCallReg.constantOrNull()
 			if (functionIfKnown !== null)
 			{
 				// The exact function is known.
@@ -3451,9 +3454,9 @@ class L1Translator private constructor(
 	{
 		stackp = numSlots + 1
 		exactFunctionOrNull = computeExactFunctionOrNullForCode(code)
-		semanticSlots = Array<L2SemanticValue>(numSlots)
+		semanticSlots = Array(numSlots)
 		{
-			topFrame().slot(it, 1)
+			topFrame().slot(it + 1, 1)
 		}
 		code.setUpInstructionDecoder(instructionDecoder)
 		instructionDecoder.pc(1)

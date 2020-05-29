@@ -1,21 +1,21 @@
 /*
- * StackReifier.java
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * StackReifier.kt
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * * Redistributions of source code must retain the above copyright notice, this
- *   list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice, this
+ *     list of conditions and the following disclaimer.
  *
- * * Redistributions in binary form must reproduce the above copyright notice,
- *   this list of conditions and the following disclaimer in the documentation
- *   and/or other materials provided with the distribution.
+ *  * Redistributions in binary form must reproduce the above copyright notice, this
+ *     list of conditions and the following disclaimer in the documentation
+ *     and/or other materials provided with the distribution.
  *
- * * Neither the name of the copyright holder nor the names of the contributors
- *   may be used to endorse or promote products derived from this software
- *   without specific prior written permission.
+ *  * Neither the name of the copyright holder nor the names of the contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -55,6 +55,8 @@ import java.util.*
  *   Whether to actually reify continuations during unwinding.  If false, the
  *   frames are simply dropped, on the assumption that the
  *   [postReificationAction] will replace the entire stack anyhow.
+ * @property reificationStatistic
+ *   The [Statistic] under which to record this reification.
  * @property postReificationAction
  *   A lambda that should be executed once the [Interpreter]'s stack has been
  *   fully reified.  For example, this might set up a function/chunk/offset in
@@ -75,7 +77,7 @@ import java.util.*
  */
 class StackReifier(
 	private val actuallyReify: Boolean,
-	reificationStatistic: Statistic,
+	val reificationStatistic: Statistic,
 	val postReificationAction: Function0<Unit>)
 {
 	/**
@@ -90,9 +92,6 @@ class StackReifier(
 
 	/** The [System.nanoTime] when this stack reifier was created.  */
 	val startNanos: Long = AvailRuntimeSupport.captureNanos()
-
-	/** The [Statistic] under which to record this reification.  */
-	val reificationStatistic: Statistic = reificationStatistic
 
 	/**
 	 * Answer whether this `StackReifier` should cause reification (rather

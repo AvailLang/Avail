@@ -55,7 +55,6 @@ import java.time.ZoneId
 import java.util.*
 import java.util.regex.Pattern
 import kotlin.Comparator
-import kotlin.collections.ArrayDeque
 
 /**
  * An `L2ControlFlowGraphVisualizer` generates a `dot` source file that
@@ -156,7 +155,8 @@ class L2ControlFlowGraphVisualizer constructor(
 	 * The node name of the [L2BasicBlock]s, as a [map][Map]
 	 * from `L2BasicBlock`s to their names.
 	 */
-	private val basicBlockNames = mutableMapOf<L2BasicBlock, String>()
+	private val basicBlockNames =
+		mutableMapOf<L2BasicBlock, String>()
 
 	/**
 	 * Compute a unique name for the specified [L2BasicBlock].
@@ -186,7 +186,6 @@ class L2ControlFlowGraphVisualizer constructor(
 	 * @param started
 	 *   `true` if the basic block is starting, `false` otherwise.
 	 */
-	@ExperimentalStdlibApi
 	private fun basicBlock(
 		basicBlock: L2BasicBlock,
 		writer: GraphWriter,
@@ -197,7 +196,7 @@ class L2ControlFlowGraphVisualizer constructor(
 				"<table border=\"0\" cellspacing=\"0\">")
 			val instructions = basicBlock.instructions()
 			val first =
-				if (!instructions.isEmpty()) basicBlock.instructions()[0]
+				if (instructions.isNotEmpty()) basicBlock.instructions()[0]
 				else null
 			val fillcolor: String
 			val fontcolor: String
@@ -247,10 +246,9 @@ class L2ControlFlowGraphVisualizer constructor(
 				writer.adjust(fillcolor),
 				writer.adjust(fontcolor),
 				escape(basicBlock.name())))
-			if (!instructions.isEmpty())
+			if (instructions.isNotEmpty())
 			{
-				var portId = 0
-				for (instruction in basicBlock.instructions())
+				for ((portId, instruction) in basicBlock.instructions().withIndex())
 				{
 					val top =
 						if (instruction.operation().isPlaceholder)
@@ -259,7 +257,7 @@ class L2ControlFlowGraphVisualizer constructor(
 						}
 						else ""
 					append("<tr><td align=\"left\" balign=\"left\" border=\"1\" ")
-					append("port=\"${++portId}\" valign=\"top\"$top>")
+					append("port=\"${portId + 1}\" valign=\"top\"$top>")
 					append(instruction(instruction, writer))
 					append("</td></tr>")
 				}
@@ -312,7 +310,7 @@ class L2ControlFlowGraphVisualizer constructor(
 		val types: Array<out L2NamedOperandType> =
 			sourceInstruction.operation().operandTypes()
 		val operands = sourceInstruction.operands()
-		val type = types[Arrays.asList(*operands).indexOf(edge)]
+		val type = types[listOf(*operands).indexOf(edge)]
 		// The selection of Helvetica as the font is important. Some
 		// renderers, like Viz.js, only seem to fully support a small number
 		// of standard, widely available fonts:
@@ -345,7 +343,7 @@ class L2ControlFlowGraphVisualizer constructor(
 		}
 		if (visualizeLiveness)
 		{
-			if (!edge.alwaysLiveInRegisters.isEmpty())
+			if (edge.alwaysLiveInRegisters.isNotEmpty())
 			{
 				builder
 					.append("<font face=\"Helvetica\">")
@@ -364,7 +362,7 @@ class L2ControlFlowGraphVisualizer constructor(
 			val notAlwaysLiveInRegisters =
 				edge.sometimesLiveInRegisters.toMutableSet()
 			notAlwaysLiveInRegisters.removeAll(edge.alwaysLiveInRegisters)
-			if (!notAlwaysLiveInRegisters.isEmpty())
+			if (notAlwaysLiveInRegisters.isNotEmpty())
 			{
 				builder
 					.append("<font face=\"Helvetica\">")
@@ -389,7 +387,7 @@ class L2ControlFlowGraphVisualizer constructor(
 			{
 				builder.append(
 					"<font face=\"Helvetica\"><i>manifest:</i></font>")
-				Arrays.sort(synonyms, Comparator.comparing { it.toString() })
+				synonyms.sortBy { it.toString() }
 				for (synonym in synonyms)
 				{
 					// If the restriction flags and the available register
@@ -447,11 +445,11 @@ class L2ControlFlowGraphVisualizer constructor(
 			writer.edge(
 				if (edge.isBackward) node(
 					basicBlockName(sourceBlock),
-					Integer.toString(sourceSubscript),
+					sourceSubscript.toString(),
 					CompassPoint.E)
 				else node(
 					basicBlockName(sourceBlock),
-					Integer.toString(sourceSubscript)),
+					sourceSubscript.toString()),
 				if (edge.isBackward)
 				{
 					node(basicBlockName(targetBlock), "1")
@@ -485,8 +483,7 @@ class L2ControlFlowGraphVisualizer constructor(
 					}
 					else
 					{
-						val purpose = type.purpose()!!
-						when (purpose)
+						when (type.purpose()!!)
 						{
 							// Nothing. The default styling will be fine.
 							L2NamedOperandType.Purpose.SUCCESS -> Unit
@@ -515,7 +512,10 @@ class L2ControlFlowGraphVisualizer constructor(
 		}
 	}
 
-	/** The subgraphs ([Zone]s) that have been discovered so far.  */
+	/**
+	 * The subgraphs ([L2ControlFlowGraph.Zone]s) that have been discovered so
+	 * far.
+	 */
 	var blocksByZone =
 		mutableMapOf<L2ControlFlowGraph.Zone, MutableSet<L2BasicBlock>>()
 
@@ -552,7 +552,6 @@ class L2ControlFlowGraphVisualizer constructor(
 	 * @throws IOException
 	 *   If it can't write.
 	 */
-	@ExperimentalStdlibApi
 	@Throws(IOException::class)
 	private fun cluster(
 		zone: L2ControlFlowGraph.Zone,
@@ -563,12 +562,9 @@ class L2ControlFlowGraphVisualizer constructor(
 			"cluster_" + subgraphNumber++,
 			CheckedConsumer { gw: GraphWriter ->
 				// TODO is zoneName nullable?
-				if (zone.zoneName != null)
-				{
-					gw.attribute("fontcolor", "#000000/ffffff")
-					gw.attribute("labeljust", "l") // Left-aligned.
-					gw.attribute("label", zone.zoneName)
-				}
+				gw.attribute("fontcolor", "#000000/ffffff")
+				gw.attribute("labeljust", "l") // Left-aligned.
+				gw.attribute("label", zone.zoneName)
 				gw.attribute("color", zone.zoneType.color)
 				gw.attribute("bgcolor", zone.zoneType.bgcolor)
 				gw.defaultAttributeBlock(
@@ -587,7 +583,6 @@ class L2ControlFlowGraphVisualizer constructor(
 	 * Visualize the [L2ControlFlowGraph] by [writing][DotWriter] an
 	 * appropriate `dot` source file to the [accumulator].
 	 */
-	@ExperimentalStdlibApi
 	fun visualize()
 	{
 		val writer = DotWriter(
@@ -745,7 +740,6 @@ class L2ControlFlowGraphVisualizer constructor(
 		 * @return
 		 *   The requested description.
 		 */
-		@ExperimentalStdlibApi
 		private fun instruction(
 			instruction: L2Instruction, writer: GraphWriter): String
 		{

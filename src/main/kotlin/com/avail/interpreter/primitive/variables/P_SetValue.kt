@@ -54,7 +54,7 @@ import com.avail.interpreter.levelTwo.operation.L2_SET_VARIABLE
 import com.avail.interpreter.levelTwo.operation.L2_SET_VARIABLE_NO_CHECK
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
-import com.avail.optimizer.L2Generator.edgeTo
+import com.avail.optimizer.L2Generator.Companion.edgeTo
 
 /**
  * **Primitive:** Assign the [value][AvailObject] to the
