@@ -52,7 +52,7 @@ import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Transform a [variable use][VariableUsePhraseDescriptor]
+* **Primitive:** Transform a [variable&#32;use][VariableUsePhraseDescriptor]
  * into a [reference][ReferencePhraseDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;

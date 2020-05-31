@@ -240,7 +240,7 @@ class SendPhraseDescriptor private constructor(
 
 	companion object {
 		/**
-		 * Create a new [send phrase][SendPhraseDescriptor] from the
+		 * Create a new [send#&32;phrase][SendPhraseDescriptor] from the
 		 * specified [A_Bundle], [list#&32;phrase][ListPhraseDescriptor] of
 		 * argument expressions, and return [type][TypeDescriptor].  Also take
 		 * a [tuple][A_Tuple] of [tokens][A_Token].

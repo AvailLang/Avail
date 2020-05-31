@@ -61,10 +61,10 @@ import com.avail.interpreter.levelOne.L1Operation
 import com.avail.utility.Casts.cast
 
 /**
- * **Primitive:** Set the [ function][FunctionDescriptor] to invoke whenever a
- * [variable][VariableDescriptor] with [write reactors][VariableAccessReactor]
- * is written when [write tracing][TraceFlag.TRACE_VARIABLE_WRITES] is not
- * enabled.
+ * **Primitive:** Set the [function][FunctionDescriptor] to invoke whenever a
+ * [variable][VariableDescriptor] with
+ * [write&#32;reactors][VariableAccessReactor] is written when [write
+ * tracing][TraceFlag.TRACE_VARIABLE_WRITES] is not enabled.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

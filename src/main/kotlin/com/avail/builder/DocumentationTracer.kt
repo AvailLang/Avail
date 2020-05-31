@@ -77,7 +77,7 @@ internal class DocumentationTracer constructor(
 		documentationPath, availBuilder.runtime.moduleNameResolver())
 
 	/**
-	 * Get the [module version][ModuleVersion] for the
+	 * Get the [module&#32;version][ModuleVersion] for the
 	 * [named][ResolvedModuleName] [module][ModuleDescriptor].
 	 *
 	 * @param moduleName
@@ -97,7 +97,7 @@ internal class DocumentationTracer constructor(
 	/**
 	 * Load [comments][CommentTokenDescriptor] for the
 	 * [named][ResolvedModuleName] [module][ModuleDescriptor] into the
-	 * [Stacks&#32;documentation generator][StacksGenerator].
+	 * [Stacks&#32;documentation&#32;generator][StacksGenerator].
 	 *
 	 * @param moduleName
 	 *   A module name.

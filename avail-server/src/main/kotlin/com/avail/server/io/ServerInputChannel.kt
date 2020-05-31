@@ -107,8 +107,8 @@ class ServerInputChannel constructor(
 	 * @param attachment
 	 *   The attachment, of `null` if none.
 	 * @param handler
-	 *   The [completion handler][CompletionHandler] provided for notification
-	 *   of data availability.
+	 *   The [completion&#32;handler][CompletionHandler] provided for
+	 *   notification of data availability.
 	 */
 	private class Waiter internal constructor(
 		internal val buffer: CharBuffer,

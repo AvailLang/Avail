@@ -53,7 +53,7 @@ import com.avail.descriptor.tuples.TupleDescriptor
 interface A_DefinitionParsingPlan : A_BasicObject {
 	companion object {
 		/**
-		 * Answer the [message bundle][A_Bundle] that this definition parsing
+		 * Answer the [message&#32;bundle][A_Bundle] that this definition parsing
 		 * plan names.
 		 *
 		 * @return

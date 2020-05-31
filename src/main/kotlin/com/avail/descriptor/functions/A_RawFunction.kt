@@ -98,7 +98,7 @@ interface A_RawFunction : A_BasicObject {
 		continuation: (Boolean) -> Unit)
 
 	/**
-	 * Answer the [function type][FunctionTypeDescriptor] associated with
+	 * Answer the [function&#32;type][FunctionTypeDescriptor] associated with
 	 * this raw function's closures.
 	 *
 	 * @return
@@ -242,7 +242,7 @@ interface A_RawFunction : A_BasicObject {
 	fun nybbles(): A_Tuple
 
 	/**
-	 * Answer the [block phrase][BlockPhraseDescriptor] from which this raw
+	 * Answer the [block&#32;phrase][BlockPhraseDescriptor] from which this raw
 	 * function was constructed.  Answer [nil] if this information is not
 	 * available.
 	 *

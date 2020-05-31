@@ -44,7 +44,8 @@ import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Extract the write type of a [variable type ][VariableTypeDescriptor].
+ * **Primitive:** Extract the write type of a
+ * [variable&#32;type&#32;][VariableTypeDescriptor].
  */
 @Suppress("unused")
 object P_VariableWriteType : Primitive(1, CannotFail, CanFold, CanInline)

@@ -46,7 +46,7 @@ import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Answer a [variable type][VariableTypeDescriptor] with the
+ * **Primitive:** Answer a [variable&#32;type][VariableTypeDescriptor] with the
  * specified read and write types.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;

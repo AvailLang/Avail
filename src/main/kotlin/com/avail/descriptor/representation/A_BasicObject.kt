@@ -44,7 +44,6 @@ import com.avail.descriptor.objects.ObjectDescriptor
 import com.avail.descriptor.objects.ObjectTypeDescriptor
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
-import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor.SetIterator
 import com.avail.descriptor.tokens.A_Token
@@ -317,7 +316,7 @@ interface A_BasicObject : JSONFriendly {
 
 	/**
 	 * Answer whether the receiver, an [object][AvailObject], and the
-	 * argument, a [byte string][ByteStringDescriptor], are equal in
+	 * argument, a [byte&#32;string][ByteStringDescriptor], are equal in
 	 * value.
 	 *
 	 * @param aByteString The byte string to be compared to the receiver.
@@ -328,7 +327,7 @@ interface A_BasicObject : JSONFriendly {
 
 	/**
 	 * Answer whether the receiver, an [object][AvailObject], and the
-	 * argument, a [byte tuple][ByteTupleDescriptor], are equal in
+	 * argument, a [byte&#32;tuple][ByteTupleDescriptor], are equal in
 	 * value.
 	 *
 	 * @param aByteTuple The byte tuple to be compared to the receiver.
@@ -359,7 +358,7 @@ interface A_BasicObject : JSONFriendly {
 
 	/**
 	 * Answer whether the receiver, an [object][AvailObject], and the
-	 * argument, a [fiber type][FiberTypeDescriptor], are equal in
+	 * argument, a [fiber&#32;type][FiberTypeDescriptor], are equal in
 	 * value.
 	 *
 	 * @param aFiberType A fiber type.
@@ -370,13 +369,13 @@ interface A_BasicObject : JSONFriendly {
 
 	/**
 	 * Answer whether the receiver, an [object][AvailObject], and the
-	 * argument, a [function type][FunctionTypeDescriptor], are equal.
+	 * argument, a [function&#32;type][FunctionTypeDescriptor], are equal.
 	 *
 	 * @param aFunctionType The function type used in the comparison.
 	 * @return `true` IFF the receiver is also a function type and:
-	 *  * The [argument types][AvailObject.argsTupleType] correspond,
-	 *  * The [return types][AvailObject.returnType] correspond, and
-	 *  * The [raise types][AvailObject.declaredExceptions] correspond.
+	 *  * The [argument&#32;types][AvailObject.argsTupleType] correspond,
+	 *  * The [return&#32;types][AvailObject.returnType] correspond, and
+	 *  * The [raise&#32;types][AvailObject.declaredExceptions] correspond.
 	 */
 	fun equalsFunctionType(aFunctionType: A_Type): Boolean
 
@@ -1109,12 +1108,12 @@ interface A_BasicObject : JSONFriendly {
 	 *
 	 * @param T
 	 *   The type of value to produce while holding the lock.
-	 * @param supplier
-	 *   The supplier to evaluate.
+	 * @param body
+	 *   The body to evaluate.
 	 * @return
 	 *   The produced value.
 	 */
-	fun <T> lock(supplier: () -> T): T
+	fun <T> lock(body: () -> T): T
 
 	/**
 	 * @return
@@ -1156,7 +1155,7 @@ interface A_BasicObject : JSONFriendly {
 		canDestroy: Boolean): A_BasicObject
 
 	/**
-	 * Extract a field type from an [object type][ObjectTypeDescriptor].
+	 * Extract a field type from an [object&#32;type][ObjectTypeDescriptor].
 	 *
 	 * @param field
 	 * @return

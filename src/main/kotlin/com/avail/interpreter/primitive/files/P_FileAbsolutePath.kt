@@ -52,7 +52,7 @@ import java.nio.file.InvalidPathException
 import java.nio.file.Path
 
 /**
- * **Primitive:** Answer the [absolute path][Path.toAbsolutePath] that
+ * **Primitive:** Answer the [absolute&#32;path][Path.toAbsolutePath] that
  * corresponds to the specified path.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;

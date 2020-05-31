@@ -152,7 +152,7 @@ enum class L1Operation constructor(
 
 	/**
 	 * Create a function from the specified number of pushed outer variables and
-	 * the specified literal [compiled code][CompiledCodeDescriptor].
+	 * the specified literal [compiled&#32;code][CompiledCodeDescriptor].
 	 */
 	L1_doClose(5, IMMEDIATE, LITERAL)
 	{

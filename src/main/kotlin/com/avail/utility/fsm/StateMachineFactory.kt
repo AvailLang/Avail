@@ -107,7 +107,7 @@ constructor(
 		EnumMap(stateType)
 
 	/**
-	 * The initial state of the target [state machine][StateMachine].
+	 * The initial state of the target [state&#32;machine][StateMachine].
 	 */
 	private var initialState: State? = null
 
@@ -170,7 +170,7 @@ constructor(
 	}
 
 	/**
-	 * Add a [transition arc][StateTransitionArc].
+	 * Add a [transition&#32;arc][StateTransitionArc].
 	 *
 	 * @param startState
 	 *   The starting state for the [arc][StateTransitionArc].
@@ -285,8 +285,8 @@ constructor(
 	}
 
 	/**
-	 * Check that the resulting [finite state machine][StateMachine] will have
-	 * no defects. In particular:
+	 * Check that the resulting [finite&#32;state&#32;machine][StateMachine]
+	 * will have no defects. In particular:
 	 *  * There must be an initial state
 	 *  * All states must be reachable by transitions from the initial state
 	 *  * All events must be handled
@@ -300,8 +300,8 @@ constructor(
 	 *    *entry* or *exit* of some state
 	 *
 	 * @throws ValidationException
-	 *   If the specified [finite state machine][StateMachine] fails validation
-	 *   for any reason.
+	 *   If the specified [finite&#32;state&#32;machine][StateMachine] fails
+	 *   validation for any reason.
 	 */
 	@Throws(ValidationException::class)
 	private fun validate()
@@ -423,11 +423,11 @@ constructor(
 	}
 
 	/**
-	 * Create an instance of the [finite state machine][StateMachine] described
-	 * by the `StateMachineFactory`.
+	 * Create an instance of the [finite&#32;state&#32;machine][StateMachine]
+	 * described by the `StateMachineFactory`.
 	 *
 	 * @return
-	 *   The new validated [state machine][StateMachine].
+	 *   The new validated [state&#32;machine][StateMachine].
 	 * @throws ValidationException
 	 *   If validation fails.
 	 */

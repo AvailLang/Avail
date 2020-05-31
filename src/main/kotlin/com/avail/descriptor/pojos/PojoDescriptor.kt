@@ -151,11 +151,11 @@ class PojoDescriptor private constructor(
 		self.slot(KIND).printOnAvoidingIndent(builder, recursionMap, indent)
 	}
 
-	override fun mutable(): PojoDescriptor = mutable
+	override fun mutable() = mutable
 
-	override fun immutable(): PojoDescriptor = immutable
+	override fun immutable() = immutable
 
-	override fun shared(): PojoDescriptor = shared
+	override fun shared() = shared
 
 	companion object
 	{

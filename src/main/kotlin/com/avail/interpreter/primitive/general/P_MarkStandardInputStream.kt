@@ -49,9 +49,9 @@ import com.avail.io.TextInputChannel
 import java.io.IOException
 
 /**
- * **Primitive:** Mark the [current fiber][Interpreter.fiber]'s [standard input
- * channel][TextInputChannel] to allow the specified number of characters to be
- * read ahead (and put back by a subsequent
+ * **Primitive:** Mark the [current&#32;fiber][Interpreter.fiber]'s [standard
+ * input channel][TextInputChannel] to allow the specified number of characters
+ * to be read ahead (and put back by a subsequent
  * [reset][P_ResetStandardInputStream]).
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;

@@ -46,7 +46,7 @@ import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Answer the [exported names][A_Module.exportedNames] of the
+ * **Primitive:** Answer the [exported&#32;names][A_Module.exportedNames] of the
  * [current&#32;module][ModuleDescriptor.currentModule].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;

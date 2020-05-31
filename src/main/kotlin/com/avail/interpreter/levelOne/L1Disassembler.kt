@@ -112,7 +112,7 @@ class L1Disassembler constructor(
 	 *   The [StringBuilder] onto which to describe the level one instructions.
 	 * @property recursionMap
 	 *   The (mutable) [IdentityHashMap] of [A_BasicObject]s to avoid recursing
-	 *   into while printing the [level one][L1Operation].
+	 *   into while printing the [level&#32;one][L1Operation].
 	 * @property indent
 	 *   The number of tabs to output after each line break.
 	 */

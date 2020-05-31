@@ -185,11 +185,11 @@ class PojoFinalFieldDescriptor(
 			builder, recursionMap, indent + 1)
 	}
 
-	override fun mutable(): PojoFinalFieldDescriptor = mutable
+	override fun mutable() = mutable
 
-	override fun immutable(): PojoFinalFieldDescriptor = immutable
+	override fun immutable() = immutable
 
-	override fun shared(): PojoFinalFieldDescriptor = shared
+	override fun shared() = shared
 
 	companion object
 	{
@@ -238,7 +238,7 @@ class PojoFinalFieldDescriptor(
 		 * [type][TypeDescriptor].
 		 *
 		 * @param field
-		 *   A [raw pojo][RawPojoDescriptor] that wraps a reflected Java field.
+		 *   A [raw&#32;pojo][RawPojoDescriptor] that wraps a reflected Java field.
 		 * @param receiver
 		 *   The [pojo][PojoDescriptor] to which the reflected Java [Field] is
 		 *   bound.

@@ -52,8 +52,8 @@ import com.avail.interpreter.Primitive.Flag.HasSideEffect
 import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Remove the [write reactor][VariableAccessReactor] associated
- * with the specified [key][AtomDescriptor].
+ * **Primitive:** Remove the [write&#32;reactor][VariableAccessReactor]
+ * associated with the specified [key][AtomDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

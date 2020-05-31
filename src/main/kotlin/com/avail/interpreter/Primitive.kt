@@ -210,7 +210,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	/**
 	 * This primitive's number.  The Avail source code refers to primitives by
 	 * name, but it has a number associated with it by its position in the list
-	 * within All_Primitives.txt.  [compiled code][CompiledCodeDescriptor]
+	 * within All_Primitives.txt.  [compiled&#32;code][CompiledCodeDescriptor]
 	 * stores the primitive number internally for speed.
 	 */
 	val primitiveNumber: Int

@@ -62,7 +62,7 @@ import java.nio.channels.AsynchronousSocketChannel
 import java.nio.channels.ClosedChannelException
 
 /**
- * **Primitive:** Answer the [socket address][InetSocketAddress] of the
+* **Primitive:** Answer the [socket&#32;address][InetSocketAddress] of the
  * remote peer of the [AsynchronousSocketChannel] referenced by the specified
  * [handle][AtomDescriptor].
  *

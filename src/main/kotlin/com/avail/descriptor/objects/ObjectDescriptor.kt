@@ -413,17 +413,17 @@ class ObjectDescriptor internal constructor(
 	@Deprecated(
 		"ObjectDescriptors are organized by ObjectLayoutVariant",
 		level = DeprecationLevel.HIDDEN)
-	override fun mutable(): AbstractDescriptor = variant.mutableObjectDescriptor
+	override fun mutable() = variant.mutableObjectDescriptor
 
 	@Deprecated(
 		"ObjectDescriptors are organized by ObjectLayoutVariant",
 		level = DeprecationLevel.HIDDEN)
-	override fun immutable(): AbstractDescriptor = variant.immutableObjectDescriptor
+	override fun immutable() = variant.immutableObjectDescriptor
 
 	@Deprecated(
 		"ObjectDescriptors are organized by ObjectLayoutVariant",
 		level = DeprecationLevel.HIDDEN)
-	override fun shared(): AbstractDescriptor = variant.sharedObjectDescriptor
+	override fun shared() = variant.sharedObjectDescriptor
 
 	companion object {
 		/**

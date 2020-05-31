@@ -370,11 +370,11 @@ class DoubleDescriptor private constructor(
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.write(getDouble(self))
 
-	override fun mutable(): AbstractDescriptor = mutable
+	override fun mutable() = mutable
 
-	override fun immutable(): AbstractDescriptor = immutable
+	override fun immutable() = immutable
 
-	override fun shared(): AbstractDescriptor = shared
+	override fun shared() = shared
 
 	companion object {
 		/**

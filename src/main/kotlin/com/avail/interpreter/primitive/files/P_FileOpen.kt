@@ -208,7 +208,7 @@ object P_FileOpen : Primitive(4, CanInline, HasSideEffect)
 	}
 
 	/**
-	 * Construct the [set][EnumSet] of [file attributes][FileAttribute] that
+	 * Construct the [set][EnumSet] of [file&#32;attributes][FileAttribute] that
 	 * specify the [POSIX][PosixFilePermission] that correspond to the supplied
 	 * [set][SetDescriptor] of integral option indicators.
 	 *

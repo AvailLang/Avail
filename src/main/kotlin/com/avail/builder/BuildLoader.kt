@@ -133,8 +133,8 @@ internal class BuildLoader constructor(
 	 * assumption that its predecessors have already been built.
 	 *
 	 * @param target
-	 *   The [resolved name][ResolvedModuleName] of the module that should be
-	 *   loaded.
+	 *   The [resolved&#32;name][ResolvedModuleName] of the module that should
+	 *   be loaded.
 	 * @param completionAction
 	 *   The action to perform after this module
 	 */
@@ -173,8 +173,8 @@ internal class BuildLoader constructor(
 	 * Note that the predecessors of this module must have already been loaded.
 	 *
 	 * @param moduleName
-	 *   The [resolved name][ResolvedModuleName] of the module that should be
-	 *   loaded.
+	 *   The [resolved&#32;name][ResolvedModuleName] of the module that should
+	 *   be loaded.
 	 * @param completionAction
 	 *   What to do after loading the module successfully.
 	 */
@@ -271,8 +271,8 @@ internal class BuildLoader constructor(
 	 * Note that the predecessors of this module must have already been loaded.
 	 *
 	 * @param moduleName
-	 *   The [resolved name][ResolvedModuleName] of the module that should be
-	 *   loaded.
+	 *   The [resolved&#32;name][ResolvedModuleName] of the module that should
+	 *   be loaded.
 	 * @param version
 	 *   The [ModuleVersion] containing information about this module.
 	 * @param compilation
@@ -446,8 +446,8 @@ internal class BuildLoader constructor(
 	 * Note that the predecessors of this module must have already been loaded.
 	 *
 	 * @param moduleName
-	 *   The [resolved name][ResolvedModuleName] of the module that should be
-	 *   loaded.
+	 *   The [resolved&#32;name][ResolvedModuleName] of the module that should
+	 *   be loaded.
 	 * @param compilationKey
 	 *   The circumstances of compilation of this module.  Currently this is
 	 *   just the compilation times (`long`s) of the module's currently loaded
@@ -540,7 +540,7 @@ internal class BuildLoader constructor(
 	 * the module.
 	 *
 	 * @param moduleName
-	 *   The [resolved name][ResolvedModuleName] of the module that just
+	 *   The [resolved&#32;name][ResolvedModuleName] of the module that just
 	 *   finished loading.
 	 * @param lastPosition
 	 *   The last local file position previously reported.

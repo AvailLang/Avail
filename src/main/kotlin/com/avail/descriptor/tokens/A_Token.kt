@@ -53,8 +53,8 @@ interface A_Token : A_BasicObject
 	fun clearLexingState()
 
 	/**
-	 * Answer whether this token is a [literal token][LiteralTokenDescriptor],
-	 * such as a string or number.
+	 * Answer whether this token is a
+	 * [literal&#32;token][LiteralTokenDescriptor], such as a string or number.
 	 *
 	 * @return
 	 *   Whether the token is a literal.

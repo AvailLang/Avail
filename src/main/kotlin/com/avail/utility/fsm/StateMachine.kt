@@ -128,11 +128,11 @@ internal constructor(
 			initialState.declaringClass)
 
 	/**
-	 * Add the specified [state summary][StateSummary] to the transition table.
-	 * Ensure that a summary for the same state is not already present.
+	 * Add the specified [state&#32;summary][StateSummary] to the transition
+	 * table. Ensure that a summary for the same state is not already present.
 	 *
 	 * @param summary
-	 *   A [state summary][StateSummary].
+	 *   A [state&#32;summary][StateSummary].
 	 */
 	private fun addStateSummary(
 		summary: StateSummary<State, Event, GuardKey, ActionKey, Memento>)
@@ -155,7 +155,7 @@ internal constructor(
 	 * @param memento
 	 *   The memento to pass to each action.
 	 * @return
-	 *   A new [execution context][ExecutionContext].
+	 *   A new [execution&#32;context][ExecutionContext].
 	 */
 	fun createExecutionContext(memento: Memento):
 		ExecutionContext<State, Event, GuardKey, ActionKey, Memento>
@@ -174,7 +174,7 @@ internal constructor(
 	 * more viable transitions.
 	 *
 	 * @param executionContext
-	 *   The [execution context][ExecutionContext] to advance.
+	 *   The [execution&#32;context][ExecutionContext] to advance.
 	 */
 	private fun followAutomaticTransitions(
 		executionContext: ExecutionContext<

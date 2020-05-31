@@ -53,9 +53,9 @@ import com.avail.interpreter.execution.Interpreter.Companion.resumeFromSuccessfu
 
 /**
  * **Primitive:** Unpark the specified [fiber][FiberDescriptor]. If the
- * [permit&#32;][SynchronizationFlag.PERMIT_UNAVAILABLE] associated with the fiber
- * is available, then simply continue. If the permit is not available, then
- * restore the permit and schedule
+ * [permit][SynchronizationFlag.PERMIT_UNAVAILABLE] associated with the fiber is
+ * available, then simply continue. If the permit is not available, then restore
+ * the permit and schedule
  * [resumption][Interpreter.resumeFromSuccessfulPrimitive] of the fiber. A newly
  * unparked fiber should always recheck the basis for its having parked, to see
  * if it should park again. Low-level synchronization mechanisms may require the

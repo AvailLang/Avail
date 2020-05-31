@@ -219,7 +219,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 	 * methods.
 	 *
 	 * @author Todd L Smith &lt;todd@availlang.org&gt;
-	 * @see [Method Definitions](https://tools.ietf.org/html/rfc7231.section-4.3)
+	 * @see [Method&#32;Definitions](https://tools.ietf.org/html/rfc7231.section-4.3)
 	 */
 	private enum class HttpRequestMethod
 	{
@@ -232,8 +232,8 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 		companion object
 		{
 			/**
-			 * A [map][Map] from HTTP request method names to [HTTP request
-			 * methods][HttpRequestMethod].
+			 * A [map][Map] from HTTP request method names to
+			 * [HTTP&#32;request&#32;methods][HttpRequestMethod].
 			 */
 			private val methodsByName = HashMap<String, HttpRequestMethod>()
 
@@ -246,7 +246,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 			}
 
 			/**
-			 * Answer the [request method][HttpRequestMethod] with the specified
+			 * Answer the [request&#32;method][HttpRequestMethod] with the specified
 			 * name.
 			 *
 			 * @param name
@@ -295,7 +295,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 	 * A `ClientRequest` represents an arbitrary client handshake.
 	 *
 	 * @property method
-	 *   The [request method][HttpRequestMethod].
+	 *   The [request&#32;method][HttpRequestMethod].
 	 * @property uri
 	 *   The request URI.
 	 * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -305,7 +305,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 	 * Construct a new [ClientRequest].
 	 *
 	 * @param method
-	 *   The [request method][HttpRequestMethod].
+	 *   The [request&#32;method][HttpRequestMethod].
 	 * @param uri
 	 *   The request URI.
 	 * @param headers
@@ -337,7 +337,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 			 *   The HTTP status code.
 			 * @param reason
 			 *   The reason message.
-			 * @see [Status Code Definitions](http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html)
+			 * @see [Status&#32;Code&#32;Definitions](http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html)
 			 */
 			internal fun badRequest(
 				channel: WebSocketChannel,
@@ -380,7 +380,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 
 			/**
 			 * Answer the parsed [request][ClientRequest]. If the headers do not
-			 * describe a valid request, then [fail the connection][badRequest]
+			 * describe a valid request, then [fail&#32;the&#32;connection][badRequest]
 			 * and answer `null`.
 			 *
 			 * @param channel
@@ -479,7 +479,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 			}
 
 			/**
-			 * Read a [client request][ClientRequest] from the specified
+			 * Read a [client&#32;request][ClientRequest] from the specified
 			 * [channel][WebSocketChannel].
 			 *
 			 * @param channel
@@ -597,10 +597,11 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 			private val paddedComma = Pattern.compile(" *, *")
 
 			/**
-			 * Answer a [client handshake][ClientHandshake] based on the
+			 * Answer a [client&#32;handshake][ClientHandshake] based on the
 			 * specified [request][ClientRequest]. If the headers do not
-			 * describe a valid WebSocket client handshake, then [fail the
-			 * connection][ClientRequest.badRequest] and answer `null`.
+			 * describe a valid WebSocket client handshake, then
+			 * [fail&#32;the&#32;connection][ClientRequest.badRequest] and
+			 * answer `null`.
 			 *
 			 * @param channel
 			 *   A [channel][WebSocketChannel].
@@ -804,7 +805,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 		}
 
 		/**
-		 * Send the [server handshake][ServerHandshake] across the specified
+		 * Send the [server&#32;handshake][ServerHandshake] across the specified
 		 * [channel][AsynchronousSocketChannel].
 		 *
 		 * @param channel
@@ -2040,7 +2041,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 		 * @param channel
 		 *   A channel.
 		 * @param statusCode
-		 *   The [status code][WebSocketStatusCode].
+		 *   The [status&#32;code][WebSocketStatusCode].
 		 * @param reasonMessage
 		 *   The reason message.
 		 */
@@ -2063,7 +2064,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 		 * @param channel
 		 *   A channel.
 		 * @param statusCode
-		 *   The [status code][WebSocketStatusCode].
+		 *   The [status&#32;code][WebSocketStatusCode].
 		 * @param reasonMessage
 		 *   The reason message.
 		 * @param reason

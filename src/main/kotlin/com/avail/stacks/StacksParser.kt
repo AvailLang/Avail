@@ -81,13 +81,12 @@ class StacksParser private constructor(
 {
 	/**
 	 * The [builder][CommentBuilder] responsible for
-	 * building the [comment implementation][AvailComment]
+	 * building the [comment&#32;implementation][AvailComment]
 	 */
 	internal val builder: CommentBuilder = CommentBuilder
 		.createBuilder(moduleName, commentStartLine, linkingFileMap)
 
 	/**
-	 *
 	 * The collection of section keywords that a comment can have.
 	 *
 	 * @author Richard Arriaga &lt;rich@availlang.org&gt;
@@ -512,10 +511,10 @@ class StacksParser private constructor(
 
 		/**
 		 * Answer the [list][List] of [tokens][TokenDescriptor]
-		 * that comprise a [Avail comment][CommentTokenDescriptor].
+		 * that comprise a [Avail&#32;comment][CommentTokenDescriptor].
 		 *
 		 * @param tokens
-		 *   The [Stacks tokens][AbstractStacksToken] to be parsed.
+		 *   The [Stacks&#32;tokens][AbstractStacksToken] to be parsed.
 		 * @param sectionStartLocations
 		 *   The index locations where a new `SectionKeywordStacksToken`
 		 *   begins in in the token list to be parsed.

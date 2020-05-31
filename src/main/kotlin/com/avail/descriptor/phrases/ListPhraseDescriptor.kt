@@ -136,7 +136,7 @@ class ListPhraseDescriptor private constructor(
 	}
 
 	/**
-	 * Create a new [list phrase]][ListPhraseDescriptor] with one more
+	 * Create a new [list&#32;phrase]][ListPhraseDescriptor] with one more
 	 * phrase added to the end of the list.
 	 *
 	 * @param self
@@ -309,9 +309,9 @@ class ListPhraseDescriptor private constructor(
 		writer.endObject()
 	}
 
-	override fun mutable(): AbstractDescriptor = mutable
+	override fun mutable() = mutable
 
-	override fun shared(): AbstractDescriptor = shared
+	override fun shared() = shared
 
 	companion object {
 		/**

@@ -67,7 +67,7 @@ where
 	 * Receive notification of the start of an element.
 	 *
 	 * @param state
-	 *   The current [parse state][XMLConfiguratorState].
+	 *   The current [parse&#32;state][XMLConfiguratorState].
 	 * @param attributes
 	 *   The attributes attached to the element.
 	 * @throws SAXException
@@ -80,7 +80,7 @@ where
 	 * Receive notification of the end of an element.
 	 *
 	 * @param state
-	 *   The current [parse state][XMLConfiguratorState].
+	 *   The current [parse&#32;state][XMLConfiguratorState].
 	 * @throws SAXException
 	 *   If something goes wrong.
 	 */

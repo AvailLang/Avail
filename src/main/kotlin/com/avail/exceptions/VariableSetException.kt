@@ -46,7 +46,7 @@ class VariableSetException : AvailRuntimeException
 	 * Construct a new `VariableSetException`.
 	 *
 	 * @param errorCode
-	 *   An [error code][AvailErrorCode].
+	 *   An [error&#32;code][AvailErrorCode].
 	 */
 	constructor(errorCode: AvailErrorCode) : super(errorCode)
 
@@ -54,7 +54,7 @@ class VariableSetException : AvailRuntimeException
 	 * Construct a new `VariableSetException`.
 	 *
 	 * @param errorCode
-	 *   An [error code][AvailErrorCode].
+	 *   An [error&#32;code][AvailErrorCode].
 	 * @param cause
 	 *   The proximal [cause][Throwable] of the
 	 *   [exception][VariableSetException].

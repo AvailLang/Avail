@@ -203,8 +203,8 @@ class L1InstructionWriter constructor(
 	}
 
 	/**
-	 * Specify the types of the arguments that the resulting [compiled code
-	 * object][CompiledCodeDescriptor] will accept.
+	 * Specify the types of the arguments that the resulting
+	 * [compiled&#32;code&#32;object][CompiledCodeDescriptor] will accept.
 	 *
 	 * @param argTypes
 	 *   A [tuple][TupleDescriptor] of [types][TypeDescriptor] corresponding
@@ -340,8 +340,8 @@ class L1InstructionWriter constructor(
 	}
 
 	/**
-	 * Extract the [tuple of nybbles][NybbleTupleDescriptor] encoding the
-	 * instructions of the [compiled code][CompiledCodeDescriptor] under
+	 * Extract the [tuple&#32;of&#32;nybbles][NybbleTupleDescriptor] encoding
+	 * the instructions of the [compiled&#32;code][CompiledCodeDescriptor] under
 	 * construction.
 	 *
 	 * @return
@@ -361,8 +361,8 @@ class L1InstructionWriter constructor(
 	}
 
 	/**
-	 * Produce the [compiled code object][CompiledCodeDescriptor] which we have
-	 * just incrementally specified.
+	 * Produce the [compiled&#32;code&#32;object][CompiledCodeDescriptor] which
+	 * we have just incrementally specified.
 	 *
 	 * @return
 	 *   A compiled code object (which can be lexically closed to a

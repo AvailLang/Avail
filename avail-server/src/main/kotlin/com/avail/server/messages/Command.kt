@@ -126,22 +126,23 @@ enum class Command
 	COMMANDS,
 
 	/**
-	 * List all [module roots][ModuleRoot].
+	 * List all [module&#32;roots][ModuleRoot].
 	 */
 	MODULE_ROOTS,
 
 	/**
-	 * List all [module root paths][ModuleRoots.writePathsOn].
+	 * List all [module&#32;root&#32;paths][ModuleRoots.writePathsOn].
 	 */
 	MODULE_ROOT_PATHS,
 
 	/**
-	 * Answer the [module roots path][ModuleRoots.modulePath].
+	 * Answer the [module&#32;roots&#32;path][ModuleRoots.modulePath].
 	 */
 	MODULE_ROOTS_PATH,
 
 	/**
-	 * List all source modules reachable from the [module roots][ModuleRoot].
+	 * List all source modules reachable from the
+	 * [module&#32;roots][ModuleRoot].
 	 */
 	SOURCE_MODULES,
 
@@ -151,7 +152,7 @@ enum class Command
 	ENTRY_POINTS,
 
 	/**
-	 * Clear all [binary module repositories][Repository].
+	 * Clear all [binary&#32;module&#32;repositories][Repository].
 	 */
 	CLEAR_REPOSITORIES,
 
@@ -253,7 +254,7 @@ enum class Command
 	private val syntax: Array<String>?
 
 	/**
-	 * `true` iff [command messages][CommandMessage] of this [form][Command]
+	 * `true` iff [command&#32;messages][CommandMessage] of this [form][Command]
 	 * require special parsing, `false` otherwise.
 	 */
 	internal open val requiresSpecialParsing get() = false
@@ -351,15 +352,15 @@ enum class Command
 			}
 
 			/**
-			 * The [commands][Command] that [require special
-			 * parsing][requiresSpecialParsing].
+			 * The [commands][Command] that
+			 * [require&#32;special&#32;parsing][requiresSpecialParsing].
 			 */
 			private val speciallyParsedCommands = ArrayList<Command>(10)
 
 			/**
 			 * Add the specified [command][Command] to the
-			 * [list][speciallyParsedCommands] of [specially parsed
-			 * commands][requiresSpecialParsing].
+			 * [list][speciallyParsedCommands] of
+			 * [specially&#32;parsed&#32;commands][requiresSpecialParsing].
 			 *
 			 * @param command
 			 *   A specially parsed command.
@@ -392,7 +393,7 @@ enum class Command
 			}
 
 			/**
-			 * Parse one or more [command messages][CommandMessage] from the
+			 * Parse one or more [command&#32;messages][CommandMessage] from the
 			 * specified [source][String].
 			 *
 			 * @param source
@@ -454,7 +455,7 @@ enum class Command
 		val all = values()
 
 		/**
-		 * Parse an unambiguous [command message][CommandMessage] from the
+		 * Parse an unambiguous [command&#32;message][CommandMessage] from the
 		 * supplied raw [message][Message].
 		 *
 		 * @param message

@@ -415,10 +415,10 @@ class MethodDescriptor private constructor(
 
 	override fun o_AddSemanticRestriction(
 		self: AvailObject,
-		restrictionSignature: A_SemanticRestriction
+		restriction: A_SemanticRestriction
 	) = synchronized(self) {
 		var set: A_Set = self.slot(SEMANTIC_RESTRICTIONS_SET)
-		set = set.setWithElementCanDestroy(restrictionSignature, true)
+		set = set.setWithElementCanDestroy(restriction, true)
 		self.setSlot(SEMANTIC_RESTRICTIONS_SET, set.makeShared())
 	}
 

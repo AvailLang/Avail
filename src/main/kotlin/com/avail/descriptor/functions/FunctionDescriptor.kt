@@ -99,7 +99,7 @@ class FunctionDescriptor private constructor(
 	 * The layout of object slots for my instances.
 	 */
 	enum class ObjectSlots : ObjectSlotsEnum {
-		/** The [compiled code][CompiledCodeDescriptor]. */
+		/** The [compiled&#32;code][CompiledCodeDescriptor]. */
 		CODE,
 
 		/** The outer variables. */

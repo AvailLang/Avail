@@ -63,7 +63,7 @@ class StacksForbidsTag constructor(
 	: StacksTag()
 {
 	/**
-	 * Merge two [forbids tags][StacksForbidsTag] of the same arity
+	 * Merge two [forbids&#32;tags][StacksForbidsTag] of the same arity
 	 * @param tag
 	 * The [StacksForbidsTag] to merge with
 	 */

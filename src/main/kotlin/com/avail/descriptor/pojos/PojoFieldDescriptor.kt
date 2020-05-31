@@ -271,11 +271,11 @@ class PojoFieldDescriptor private constructor(
 		self.value().printOnAvoidingIndent(builder, recursionMap, indent + 1)
 	}
 
-	override fun mutable(): PojoFieldDescriptor = mutable
+	override fun mutable() = mutable
 
-	override fun immutable(): PojoFieldDescriptor = immutable
+	override fun immutable() = immutable
 
-	override fun shared(): PojoFieldDescriptor = shared
+	override fun shared() = shared
 
 	companion object
 	{

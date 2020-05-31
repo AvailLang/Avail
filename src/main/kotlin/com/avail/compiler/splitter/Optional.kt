@@ -58,7 +58,8 @@ import java.util.*
 /**
  * An `Optional` is a [Sequence] wrapped in guillemets («»), and followed by a
  * question mark (?).  It may not contain [Argument]s or subgroups, and since it
- * is not a group it may not contain a [double&#32;dagger][Metacharacter.DOUBLE_DAGGER] (‡).
+ * is not a group it may not contain a
+ * [double&#32;dagger][Metacharacter.DOUBLE_DAGGER] (‡).
  *
  * At a call site, an optional produces a
  * [boolean][EnumerationTypeDescriptor.booleanType] that indicates whether there

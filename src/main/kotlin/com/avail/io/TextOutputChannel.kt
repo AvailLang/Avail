@@ -100,7 +100,7 @@ interface TextOutputChannel : AsynchronousChannel
 	 * a sequence of characters to this channel from the given string. The
 	 * supplied [CompletionHandler] is invoked when the entire string has been
 	 * written (or when any intermediate write fails). The result passed to the
-	 * completion handler is the [number of][String.length] written.
+	 * completion handler is the [number&#32;of][String.length] written.
 	 *
 	 * @param A
 	 *   The type of attachment accepted by the `CompletionHandler`.

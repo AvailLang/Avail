@@ -61,7 +61,7 @@ class BitField (
 	}
 
 	/**
-	 * The zero-based [integer slot][IntegerSlotsEnum] within which this
+	 * The zero-based [integer&#32;slot][IntegerSlotsEnum] within which this
 	 * bit field occurs.
 	 */
 	val integerSlotIndex = integerSlot.fieldOrdinal()
@@ -96,7 +96,7 @@ class BitField (
 	/**
 	 * The [EnumField] with which this `BitField` is annotated, if any.  This is
 	 * populated by the default
-	 * [&#32;][AbstractDescriptor.printObjectOnAvoidingIndent] mechanism.
+	 * [printing][AbstractDescriptor.printObjectOnAvoidingIndent] mechanism.
 	 */
 	@JvmField
 	var enumField: EnumField? = null

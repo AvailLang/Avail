@@ -46,10 +46,10 @@ import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Answer the [true name][AtomDescriptor] associated with the
- * given [message&#32;bundle][MessageBundleDescriptor]. This is generally only used
- * when Avail code is saving or loading Avail code in the object dumper
- * / loader.
+ * **Primitive:** Answer the [true&#32;name][AtomDescriptor] associated with the
+ * given [message&#32;bundle][MessageBundleDescriptor]. This is generally only
+ * used when Avail code is saving or loading Avail code in the object dumper /
+ * loader.
  */
 @Suppress("unused")
 object P_MessageBundleName : Primitive(1, CannotFail, CanFold, CanInline)

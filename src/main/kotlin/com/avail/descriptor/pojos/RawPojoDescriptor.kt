@@ -207,19 +207,19 @@ open class RawPojoDescriptor protected constructor(
 	@Deprecated(
 		"Not applicable to pojos",
 		replaceWith = ReplaceWith("Create a new pojo object instead"))
-	override fun mutable(): AbstractDescriptor =
+	override fun mutable() =
 		throw unsupportedOperationException()
 
 	@Deprecated(
 		"Not applicable to pojos",
 		replaceWith = ReplaceWith("Create a new pojo object instead"))
-	override fun immutable(): AbstractDescriptor =
+	override fun immutable() =
 		throw unsupportedOperationException()
 
 	@Deprecated(
 		"Not applicable to pojos",
 		replaceWith = ReplaceWith("Create a new pojo object instead"))
-	override fun shared(): AbstractDescriptor =
+	override fun shared() =
 		throw unsupportedOperationException()
 
 	companion object
@@ -270,7 +270,7 @@ open class RawPojoDescriptor protected constructor(
 		 * @param javaObject
 		 *   A Java Object, never `null`.
 		 * @return
-		 *   The new [Avail pojo][PojoDescriptor].
+		 *   The new [Avail&#32;pojo][PojoDescriptor].
 		 */
 		@JvmStatic
 		fun equalityPojo(javaObject: Any): AvailObject =

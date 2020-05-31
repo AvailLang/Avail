@@ -64,8 +64,8 @@ internal constructor(
 	isRename: Boolean) : ModuleName(qualifiedName.qualifiedName, isRename)
 {
 	/**
-	 * `true` iff the [resolved module name][ResolvedModuleName] represents
-	 * a package, `false` otherwise.
+	 * `true` iff the [resolved&#32;module&#32;name][ResolvedModuleName]
+	 * represents a package, `false` otherwise.
 	 */
 	val isPackage: Boolean
 
@@ -78,7 +78,8 @@ internal constructor(
 	val repository get() = moduleRoot.repository
 
 	/**
-	 * The [resolved][ModuleNameResolver.resolve] source [file reference][File].
+	 * The [resolved][ModuleNameResolver.resolve] source
+	 * [file&#32;reference][File].
 	 */
 	val sourceReference: File
 		get()
@@ -118,7 +119,7 @@ internal constructor(
 	 * @param theLocalName
 	 *   A local module name.
 	 * @return
-	 *   A [module name][ModuleName].
+	 *   A [module&#32;name][ModuleName].
 	 */
 	fun asSibling(theLocalName: String) =
 		ModuleName(

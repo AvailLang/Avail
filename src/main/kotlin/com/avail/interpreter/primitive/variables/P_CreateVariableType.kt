@@ -45,7 +45,7 @@ import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Create a [variable type][VariableTypeDescriptor] using the
+ * **Primitive:** Create a [variable&#32;type][VariableTypeDescriptor] using the
  * given inner [type][A_Type].
  */
 @Suppress("unused")

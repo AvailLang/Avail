@@ -143,7 +143,7 @@ class Deserializer constructor(
 	companion object
 	{
 		/**
-		 * Look up the [special atom][AvailRuntime.specialAtoms].
+		 * Look up the [special&#32;atom][AvailRuntime.specialAtoms].
 		 *
 		 * @param index
 		 *   The special atom's ordinal.

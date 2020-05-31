@@ -145,7 +145,7 @@ class L2PcOperand constructor (
 	/**
 	 * Create a remapped `L2PcOperand` from the original operand, the new target
 	 * [L2BasicBlock], and the transformed [L2ValueManifest]. Set [isBackward]
-	 * to true if this is a back-link to a [loop head][L2BasicBlock.isLoopHead].
+	 * to true if this is a back-link to a [loop&#32;head][L2BasicBlock.isLoopHead].
 	 *
 	 * @param newTargetBlock
 	 *   The transformed target [L2BasicBlock] of the new edge.

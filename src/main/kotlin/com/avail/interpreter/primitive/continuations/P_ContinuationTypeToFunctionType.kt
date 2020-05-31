@@ -45,7 +45,7 @@ import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Answer the [function type][FunctionTypeDescriptor]
+* **Primitive:** Answer the [function&#32;type][FunctionTypeDescriptor]
  * corresponding to the given [continuation type][ContinuationTypeDescriptor].
  */
 @Suppress("unused")

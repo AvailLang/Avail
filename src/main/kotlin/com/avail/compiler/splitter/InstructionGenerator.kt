@@ -227,7 +227,7 @@ internal class InstructionGenerator
 	}
 
 	/**
-	 * Emit a [jump-forward instruction][ParsingOperation.JUMP_FORWARD]. The
+	 * Emit a [jump-forward&#32;instruction][ParsingOperation.JUMP_FORWARD]. The
 	 * target label must not have been emitted yet.
 	 *
 	 * @param label
@@ -245,8 +245,8 @@ internal class InstructionGenerator
 	}
 
 	/**
-	 * Emit a [jump-backward instruction][ParsingOperation.JUMP_BACKWARD]. The
-	 * target label must have been emitted already.
+	 * Emit a [jump-backward&#32;instruction][ParsingOperation.JUMP_BACKWARD].
+	 * The target label must have been emitted already.
 	 *
 	 * @param label
 	 *   The label to jump backward to.

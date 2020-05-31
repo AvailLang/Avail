@@ -48,9 +48,9 @@ import com.avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
 import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Enable [variable write tracing
- * ][TraceFlag.TRACE_VARIABLE_WRITES] for the [current fiber
- * ][FiberDescriptor.currentFiber].
+ * **Primitive:** Enable
+ * [variable&#32;write&#32;tracing][TraceFlag.TRACE_VARIABLE_WRITES] for the
+ * [current&#32;fiber&#32;][FiberDescriptor.currentFiber].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

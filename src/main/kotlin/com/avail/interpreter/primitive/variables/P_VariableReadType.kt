@@ -46,8 +46,8 @@ import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Extract the read type of a [variable type
- * ][VariableTypeDescriptor].
+ * **Primitive:** Extract the read type of a
+ * [variable&#32;type][VariableTypeDescriptor].
  */
 @Suppress("unused")
 object P_VariableReadType : Primitive(1, CannotFail, CanFold, CanInline)

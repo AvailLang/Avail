@@ -152,7 +152,7 @@ class RenamesFileParser @ThreadSafe constructor(
 	 *   `true` if the scanner has read the entire [stream][Reader] of source
 	 *   text, `false` otherwise.
 	 * @throws IOException
-	 *   If an [I/O exception][IOException] occurs.
+	 *   If an [I/O&#32;exception][IOException] occurs.
 	 */
 	private val atEnd: Boolean
 		@Throws(IOException::class)
@@ -170,7 +170,7 @@ class RenamesFileParser @ThreadSafe constructor(
 	 * @return
 	 *   The next character from the reader.
 	 * @throws IOException
-	 *   If an [I/O exception][IOException] occurs.
+	 *   If an [I/O&#32;exception][IOException] occurs.
 	 */
 	@Throws(IOException::class)
 	private fun nextCodePoint(): Int
@@ -210,7 +210,7 @@ class RenamesFileParser @ThreadSafe constructor(
 	 *   `true` if the next character from the [reader] matches the specified
 	 *   character, `false` otherwise.
 	 * @throws IOException
-	 *   If an [I/O exception][IOException] occurs.
+	 *   If an [I/O&#32;exception][IOException] occurs.
 	 */
 	@Throws(IOException::class)
 	private fun peekFor(c: Int): Boolean
@@ -231,7 +231,8 @@ class RenamesFileParser @ThreadSafe constructor(
 	 * @return
 	 *   A [token][Token].
 	 * @throws IOException
-	 *   If an [I/O exception][IOException] or unexpected end-of-file occurs.
+	 *   If an [I/O&#32;exception][IOException] or unexpected end-of-file
+	 *   occurs.
 	 */
 	@Throws(IOException::class)
 	internal fun scanDoubleQuote(): Token
@@ -264,7 +265,8 @@ class RenamesFileParser @ThreadSafe constructor(
 	 * @return
 	 *   A [token][Token] or `null`.
 	 * @throws IOException
-	 *   If an [I/O exception][IOException] or unexpected end-of-file occurs.
+	 *   If an [I/O&#32;exception][IOException] or unexpected end-of-file
+	 *   occurs.
 	 */
 	@Throws(IOException::class)
 	internal fun scanSlash(): Token?
@@ -377,7 +379,7 @@ class RenamesFileParser @ThreadSafe constructor(
 	 * @return
 	 *   A [token][Token].
 	 * @throws IOException
-	 *   If an [I/O exception][IOException] occurs.
+	 *   If an [I/O&#32;exception][IOException] occurs.
 	 * @throws RenamesFileParserException
 	 *   If an [unknown][TokenType.UNKNOWN] [token][Token] is scanned.
 	 */
@@ -410,7 +412,7 @@ class RenamesFileParser @ThreadSafe constructor(
 	 * @param modulePath
 	 *   A [module][ModuleDescriptor] path.
 	 * @throws IOException
-	 *   If an [I/O exception][IOException].
+	 *   If an [I/O&#32;exception][IOException].
 	 * @throws RenamesFileParserException
 	 *   If a semantic rule is violated.
 	 */
@@ -449,7 +451,7 @@ class RenamesFileParser @ThreadSafe constructor(
 	 * Parse a renames file (*renamesFile*).
 	 *
 	 * @throws IOException
-	 *   If an [I/O exception][IOException].
+	 *   If an [I/O&#32;exception][IOException].
 	 * @throws RenamesFileParserException
 	 *   If a semantic rule is violated.
 	 */
@@ -479,7 +481,7 @@ class RenamesFileParser @ThreadSafe constructor(
 	 * appropriate renaming rules.
 	 *
 	 * @return
-	 *   A [module name resolver][ModuleNameResolver].
+	 *   A [module&#32;name&#32;resolver][ModuleNameResolver].
 	 * @throws RenamesFileParserException
 	 *   If the parse fails for any reason.
 	 */

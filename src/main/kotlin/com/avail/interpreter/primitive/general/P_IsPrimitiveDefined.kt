@@ -45,7 +45,7 @@ import com.avail.interpreter.Primitive.Flag.Private
 import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Is there a [ primitive][Primitive] with the specified name?
+ * **Primitive:** Is there a [primitive][Primitive] with the specified name?
  */
 @Suppress("unused")
 object P_IsPrimitiveDefined : Primitive(1, CannotFail, CanFold, CanInline)

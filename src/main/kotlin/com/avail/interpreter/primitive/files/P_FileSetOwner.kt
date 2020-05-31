@@ -60,9 +60,9 @@ import java.nio.file.attribute.FileOwnerAttributeView
 import java.nio.file.attribute.UserPrincipal
 
 /**
- * **Primitive:** [ ][FileOwnerAttributeView.setOwner] of the file denoted by
- * the specified [path][Path] to the [user][UserPrincipal] denoted by the
- * specified name.
+ * **Primitive:** [Set&#32;the&#32;owner][FileOwnerAttributeView.setOwner] of
+ * the file denoted by the specified [path][Path] to the [user][UserPrincipal]
+ * denoted by the specified name.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

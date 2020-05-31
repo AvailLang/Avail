@@ -125,7 +125,6 @@ import com.avail.serialization.SerializerOperation
 import com.avail.utility.Casts.cast
 import com.avail.utility.Casts.nullableCast
 import com.avail.utility.IteratorNotNull
-import com.avail.utility.Nulls
 import com.avail.utility.Pair
 import com.avail.utility.Strings.newlineTab
 import com.avail.utility.json.JSONWriter
@@ -137,6 +136,8 @@ import java.util.*
 import java.util.concurrent.locks.ReadWriteLock
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.stream.Stream
+import kotlin.concurrent.read
+import kotlin.concurrent.write
 import kotlin.math.max
 import kotlin.math.min
 
@@ -371,8 +372,9 @@ abstract class AbstractDescriptor protected constructor (
 	 *
 	 * @return
 	 *   `true` if it is permissible for an [object][AvailObject] using this
-	 *   descriptor to have more than the [minimum number of object
-	 *   slots][numberOfFixedObjectSlots], `false` otherwise.
+	 *   descriptor to have more than the
+	 *   [minimum&#32;number&#32;of&#32;object&#32;slots][numberOfFixedObjectSlots],
+	 *   `false` otherwise.
 	 */
 	fun hasVariableObjectSlots () = hasVariableObjectSlots
 
@@ -382,8 +384,9 @@ abstract class AbstractDescriptor protected constructor (
 	 *
 	 * @return
 	 *   `true` if it is permissible for an [object][AvailObject] using this
-	 *   descriptor to have more than the [minimum number of integer
-	 *   slots][numberOfFixedIntegerSlots], `false` otherwise.
+	 *   descriptor to have more than the
+	 *   [minimum&#32;number&#32;of&#32;integer&#32;slots][numberOfFixedIntegerSlots],
+	 *   `false` otherwise.
 	 */
 	fun hasVariableIntegerSlots () = hasVariableIntegerSlots
 
@@ -410,7 +413,7 @@ abstract class AbstractDescriptor protected constructor (
 			{
 				null
 			})
-		val fields: MutableList<AvailObjectFieldHelper> = ArrayList()
+		val fields = mutableListOf<AvailObjectFieldHelper>()
 		if (enumClass != null)
 		{
 			val slots = enumClass.enumConstants
@@ -629,7 +632,7 @@ abstract class AbstractDescriptor protected constructor (
 						HideFieldJustForPrinting::class.java) == null)
 				{
 					newlineTab(builder, indent)
-					val slotName = Nulls.stripNull(slot.fieldName())
+					val slotName = slot.fieldName()
 					val bitFields = bitFieldsFor(slot)
 					if (slotName[slotName.length - 1] == '_')
 					{
@@ -684,7 +687,7 @@ abstract class AbstractDescriptor protected constructor (
 					HideFieldJustForPrinting::class.java) == null)
 			{
 				newlineTab(builder, indent)
-				val slotName = Nulls.stripNull(slot.fieldName())
+				val slotName = slot.fieldName()
 				if (slotName[slotName.length - 1] == '_')
 				{
 					val subscript = i - objectSlots.size + 1
@@ -820,10 +823,10 @@ abstract class AbstractDescriptor protected constructor (
 	}
 
 	/**
-	 * Answer whether the [argument types][AvailObject.argsTupleType] supported
-	 * by the specified [function type][FunctionTypeDescriptor] are acceptable
-	 * argument types for invoking a [function][FunctionDescriptor] whose type
-	 * is the self.
+	 * Answer whether the [argument&#32;types][AvailObject.argsTupleType]
+	 * supported by the specified [function&#32;type][FunctionTypeDescriptor]
+	 * are acceptable argument types for invoking a
+	 * [function][FunctionDescriptor] whose type is `self`.
 	 *
 	 * @param self
 	 *   A function type.
@@ -839,8 +842,8 @@ abstract class AbstractDescriptor protected constructor (
 		functionType: A_Type): Boolean
 
 	/**
-	 * Answer whether these are acceptable [argument types][TypeDescriptor] for
-	 * invoking a [function][FunctionDescriptor] whose type is the self.
+	 * Answer whether these are acceptable [argument&#32;types][TypeDescriptor]
+	 * for invoking a [function][FunctionDescriptor] whose type is `self`.
 	 *
 	 * @param self
 	 *   The receiver.
@@ -857,7 +860,7 @@ abstract class AbstractDescriptor protected constructor (
 
 	/**
 	 * Answer whether these are acceptable arguments for invoking a
-	 * [function][FunctionDescriptor] whose type is the self.
+	 * [function][FunctionDescriptor] whose type is `self`.
 	 *
 	 * @param self
 	 *   The receiver.
@@ -874,10 +877,10 @@ abstract class AbstractDescriptor protected constructor (
 		argValues: List<A_BasicObject>): Boolean
 
 	/**
-	 * Answer whether these are acceptable [argument types][TypeDescriptor] for
-	 * invoking a [function][FunctionDescriptor] that is an instance of self.
-	 * There may be more entries in the [tuple][TupleDescriptor] than are
-	 * required by the [function type][FunctionTypeDescriptor].
+	 * Answer whether these are acceptable [argument&#32;types][TypeDescriptor]
+	 * for invoking a [function][FunctionDescriptor] that is an instance of
+	 * self. There may be more entries in the [tuple][TupleDescriptor] than are
+	 * required by the [function&#32;type][FunctionTypeDescriptor].
 	 *
 	 * @param self
 	 *   The receiver.
@@ -933,9 +936,6 @@ abstract class AbstractDescriptor protected constructor (
 	 * Add a [definition][DefinitionDescriptor] to the receiver. Causes
 	 * dependent chunks to be invalidated.
 	 *
-	 * Macro signatures and non-macro definitions should not be combined in the
-	 * same method.
-	 *
 	 * @param self
 	 *   The receiver.
 	 * @param definition
@@ -950,11 +950,11 @@ abstract class AbstractDescriptor protected constructor (
 		definition: A_Definition)
 
 	/**
-	 * Add a [grammatical restriction][GrammaticalRestrictionDescriptor] to the
-	 * receiver.
+	 * Add a [grammatical&#32;restriction][GrammaticalRestrictionDescriptor] to
+	 * the receiver.
 	 *
 	 * @param self
-	 *   The receiver, a [message bundle][MessageBundleDescriptor].
+	 *   The receiver, a [message&#32;bundle][MessageBundleDescriptor].
 	 * @param grammaticalRestriction
 	 *   The grammatical restriction to be added.
 	 * @see A_Bundle.addGrammaticalRestriction
@@ -1544,7 +1544,7 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_IsSupertypeOfEnumerationType (
 		self: AvailObject,
-		anEnumerationType: A_BasicObject): Boolean
+		anEnumerationType: A_Type): Boolean
 
 	abstract fun o_LevelTwoChunkOffset (
 		self: AvailObject,
@@ -2378,9 +2378,9 @@ abstract class AbstractDescriptor protected constructor (
 	 *   The function type used in the comparison.
 	 * @return
 	 *   `true` IFF the receiver is also a function type and:
-	 *   * The [argument types][AvailObject.argsTupleType] correspond,
-	 *   * The [return types][AvailObject.returnType] correspond, and
-	 *   * The [raise types][AvailObject.declaredExceptions] correspond.
+	 *   * The [argument&#32;types][AvailObject.argsTupleType] correspond,
+	 *   * The [return&#32;types][AvailObject.returnType] correspond, and
+	 *   * The [raise&#32;types][AvailObject.declaredExceptions] correspond.
 	 * @see AvailObject.equalsFunctionType
 	 */
 	abstract fun o_EqualsFunctionType (
@@ -2773,7 +2773,6 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_ParsingInstructions (self: AvailObject): A_Tuple
 
-	// TODO: [TLS] Continue here.
 	abstract fun o_Expression (self: AvailObject): A_Phrase
 
 	abstract fun o_Variable (self: AvailObject): A_Phrase
@@ -2948,7 +2947,7 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_AddSemanticRestriction (
 		self: AvailObject,
-		restrictionSignature: A_SemanticRestriction)
+		restriction: A_SemanticRestriction)
 
 	abstract fun o_RemoveSemanticRestriction (
 		self: AvailObject,
@@ -3272,11 +3271,6 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_StartingLineNumber (self: AvailObject): Int
 
-	/**
-	 *
-	 * @param self
-	 * @return
-	 */
 	abstract fun o_OriginatingPhrase (self: AvailObject): A_Phrase
 
 	abstract fun o_Module (self: AvailObject): A_Module
@@ -3340,7 +3334,7 @@ abstract class AbstractDescriptor protected constructor (
 		planInProgress: A_ParsingPlanInProgress,
 		treesToVisit: Deque<Pair<A_BundleTree, A_ParsingPlanInProgress>>)
 
-	abstract fun <T> o_Lock (self: AvailObject, supplier: () -> T): T
+	abstract fun <T> o_Lock (self: AvailObject, body: () -> T): T
 
 	abstract fun o_ModuleName (self: AvailObject): A_String
 
@@ -3599,11 +3593,6 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_MacroDefinitionsTuple (self: AvailObject): A_Tuple
 
-	/**
-	 * @param self
-	 * @param argumentPhraseTuple
-	 * @return A_Tuple
-	 */
 	abstract fun o_LookupMacroByPhraseTuple (
 		self: AvailObject,
 		argumentPhraseTuple: A_Tuple): A_Tuple
@@ -3703,32 +3692,12 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_LexerMethod (self: AvailObject): A_Method
 
-	/**
-	 *
-	 * @param self
-	 * @return
-	 */
 	abstract fun o_LexerFilterFunction (self: AvailObject): A_Function
 
-	/**
-	 *
-	 * @param self
-	 * @return
-	 */
 	abstract fun o_LexerBodyFunction (self: AvailObject): A_Function
 
-	/**
-	 *
-	 * @param self
-	 * @param lexer
-	 */
 	abstract fun o_SetLexer (self: AvailObject, lexer: A_Lexer)
 
-	/**
-	 *
-	 * @param self
-	 * @param lexer
-	 */
 	abstract fun o_AddLexer (self: AvailObject, lexer: A_Lexer)
 
 	abstract fun o_NextLexingState (self: AvailObject): LexingState
@@ -3739,12 +3708,6 @@ abstract class AbstractDescriptor protected constructor (
 		self: AvailObject,
 		priorLexingState: LexingState)
 
-	/**
-	 *
-	 * @param self
-	 * @param index
-	 * @return
-	 */
 	abstract fun o_TupleCodePointAt (self: AvailObject, index: Int): Int
 
 	abstract fun o_IsGlobal (self: AvailObject): Boolean
@@ -3923,18 +3886,16 @@ abstract class AbstractDescriptor protected constructor (
 			}
 
 		/**
-		 * A static cache of mappings from [integer slots][IntegerSlotsEnum] to
-		 * [List]s of [BitField]s.  Access to the map must be synchronized,
+		 * A static cache of mappings from [integer&#32;slots][IntegerSlotsEnum]
+		 * to [List]s of [BitField]s.  Access to the map must be synchronized,
 		 * which isn't much of a penalty since it only affects the default
 		 * object printing mechanism.
 		 */
-		private val bitFieldsCache: MutableMap<
-			IntegerSlotsEnum,
-			List<BitField>
-		> = HashMap(500)
+		private val bitFieldsCache =
+			mutableMapOf<IntegerSlotsEnum, List<BitField>>()
 
 		/** A [ReadWriteLock] that protects the [bitFieldsCache]. */
-		private val bitFieldsLock: ReadWriteLock = ReentrantReadWriteLock()
+		private val bitFieldsLock = ReentrantReadWriteLock()
 
 		/**
 		 * Describe the integer field onto the provided [StringBuilder]. The
@@ -3948,7 +3909,7 @@ abstract class AbstractDescriptor protected constructor (
 		 * @param value
 		 *   The `long` value of the slot.
 		 * @param slot
-		 *   The [integer slot][IntegerSlotsEnum] definition.
+		 *   The [integer&#32;slot][IntegerSlotsEnum] definition.
 		 * @param bitFields
 		 *   The slot's [BitField]s, if any.
 		 * @param builder
@@ -4018,7 +3979,7 @@ abstract class AbstractDescriptor protected constructor (
 		}
 
 		/**
-		 * Extract the [integer slot][IntegerSlotsEnum]'s [List] of [BitField]s,
+		 * Extract the [integer&#32;slot][IntegerSlotsEnum]'s [List] of [BitField]s,
 		 * excluding ones marked with the annotation @[HideFieldInDebugger].
 		 *
 		 * @param slot
@@ -4028,29 +3989,21 @@ abstract class AbstractDescriptor protected constructor (
 		 */
 		fun bitFieldsFor (slot: IntegerSlotsEnum): List<BitField>
 		{
-			bitFieldsLock.readLock().lock()
-			try
-			{
+			bitFieldsLock.read {
 				// Vast majority of cases.
 				val bitFields = bitFieldsCache[slot]
 				if (bitFields != null)
 				{
-					return bitFields
+					return@bitFieldsFor bitFields
 				}
 			}
-			finally
-			{
-				bitFieldsLock.readLock().unlock()
-			}
-			bitFieldsLock.writeLock().lock()
-			return try
-			{
+			bitFieldsLock.write {
 				// Try again, this time holding the write lock to avoid multiple
 				// threads trying to populate the cache.
 				var bitFields = bitFieldsCache[slot]
 				if (bitFields != null)
 				{
-					return bitFields
+					return@bitFieldsFor bitFields
 				}
 				val slotAsEnum = slot as Enum<*>
 				val slotClass = slotAsEnum::class.java.declaringClass
@@ -4086,11 +4039,7 @@ abstract class AbstractDescriptor protected constructor (
 					if (bitFields.isEmpty()) emptyList()
 					else bitFields.sorted()
 				bitFieldsCache[slot] = sorted
-				sorted
-			}
-			finally
-			{
-				bitFieldsLock.writeLock().unlock()
+				return@bitFieldsFor sorted
 			}
 		}
 
@@ -4143,16 +4092,13 @@ abstract class AbstractDescriptor protected constructor (
 					// this case, not necessarily an Enum.
 					val lookupMethod = describingClass.getMethod(
 						lookupName, Int::class.javaPrimitiveType)
-					val lookedUp = lookupMethod.invoke(
-						null,
-						value.toInt()) as? IntegerEnumSlotDescriptionEnum
-					if (lookedUp == null)
+					when (val lookedUp =
+						lookupMethod.invoke(null, value.toInt()))
 					{
-						builder.append("null")
-					}
-					else
-					{
-						builder.append(lookedUp.fieldName())
+						is IntegerEnumSlotDescriptionEnum ->
+							append(lookedUp.fieldName())
+						else ->
+							append("null")
 					}
 				}
 			}
@@ -4162,7 +4108,18 @@ abstract class AbstractDescriptor protected constructor (
 			}
 		}
 
-		// TODO MvG Comment me
+		/**
+		 * Write a description of this [Long] to the builder, taking note that
+		 * the value is constrained to contain only numBits of content.  Use
+		 * conventions such as grouping into groups of at most four hex digits.
+		 *
+		 * @param value
+		 *   The [Long] to output.
+		 * @param numBits
+		 *   The number of bits contained in value.
+		 * @param builder
+		 *   Where to describe the number.
+		 */
 		@JvmStatic
 		protected fun describeLong (
 			value: Long,

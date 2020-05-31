@@ -176,8 +176,8 @@ internal class Sequence constructor(positionInName: Int)
 	 * sequence. If not, throw a [SignatureException].
 	 *
 	 * @param argumentType
-	 *   A [tuple type][TupleTypeDescriptor] describing the types of arguments
-	 *   that a method being added will accept.
+	 *   A [tuple&#32;type][TupleTypeDescriptor] describing the types of
+	 *   arguments that a method being added will accept.
 	 * @param sectionNumber
 	 *   Which [SectionCheckpoint] section marker this list of argument types
 	 *   are being validated against.  To validate the final method or macro
@@ -201,8 +201,8 @@ internal class Sequence constructor(positionInName: Int)
 	 * sequence.
 	 *
 	 * @param argumentType
-	 *   The [tuple type][TupleTypeDescriptor] describing the types of arguments
-	 *   expected for this `Sequence`.
+	 *   The [tuple&#32;type][TupleTypeDescriptor] describing the types of
+	 *   arguments expected for this `Sequence`.
 	 * @param sectionNumber
 	 *   Which [SectionCheckpoint] section marker this list of argument types
 	 *   are being validated against.  To validate the final method or macro

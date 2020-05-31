@@ -96,7 +96,6 @@ class BracketedStacksToken @Throws(StacksScannerException::class) constructor(
 	}
 
 	/**
-	 *
 	 * The collection of keywords that a comment can have.
 	 *
 	 * @author Richard Arriaga &lt;rich@availlang.org&gt;
@@ -999,7 +998,7 @@ class BracketedStacksToken @Throws(StacksScannerException::class) constructor(
 		 *   The position on the line where the token starts.
 		 * @param moduleName
 		 *   The name of the module the token is in.
-		 * @return A new [stacks token][BracketedStacksToken]
+		 * @return A new [stacks&#32;token][BracketedStacksToken]
 		 * @throws StacksScannerException
 		 */
 		@Throws(StacksScannerException::class)

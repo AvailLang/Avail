@@ -74,6 +74,7 @@ import java.util.concurrent.locks.ReentrantLock
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.logging.Level
 import javax.annotation.concurrent.GuardedBy
+import kotlin.concurrent.write
 
 /**
  * A Level Two chunk represents an optimized implementation of a [compiled code
@@ -196,7 +197,7 @@ class L2Chunk private constructor(
 			private val generations: Deque<Generation> = ArrayDeque()
 
 			/** The lock for accessing the [Deque] of [Generation]s.  */
-			private val generationsLock: ReadWriteLock = ReentrantReadWriteLock()
+			private val generationsLock = ReentrantReadWriteLock()
 
 			/**
 			 * A [Generation] that has not yet been added to the [generations]
@@ -235,9 +236,7 @@ class L2Chunk private constructor(
 				newest.chunks.add(newChunk)
 				if (newest.chunks.size > maximumNewestGenerationSize)
 				{
-					generationsLock.writeLock().lock()
-					try
-					{
+					generationsLock.write {
 						var lastGenerationToKeep = newest
 						generations.addFirst(newest)
 						newest = Generation()
@@ -271,7 +270,8 @@ class L2Chunk private constructor(
 						generations.addAll(toKeep)
 						if (chunksToInvalidate.isNotEmpty())
 						{
-							// Queue a task to safely invalidate the evicted chunks.
+							// Queue a task to safely invalidate the evicted
+							// chunks.
 							AvailRuntime.currentRuntime().whenLevelOneSafeDo(
 								FiberDescriptor.bulkL2InvalidationPriority)
 							{
@@ -288,10 +288,6 @@ class L2Chunk private constructor(
 								}
 							}
 						}
-					}
-					finally
-					{
-						generationsLock.writeLock().unlock()
 					}
 				}
 			}
@@ -331,9 +327,7 @@ class L2Chunk private constructor(
 				chunk.generation = theNewest
 				if (theNewest.chunks.size > maximumNewestGenerationSize)
 				{
-					generationsLock.writeLock().lock()
-					try
-					{
+					generationsLock.write {
 						generations.add(newest)
 						newest = Generation()
 						// Even though simply using a chunk doesn't exert any cache
@@ -348,10 +342,6 @@ class L2Chunk private constructor(
 							generations.clear()
 							generations.addAll(nonemptyGenerations)
 						}
-					}
-					finally
-					{
-						generationsLock.writeLock().unlock()
 					}
 				}
 			}
@@ -387,7 +377,7 @@ class L2Chunk private constructor(
 		private set
 
 	/**
-	 * The set of [contingent values][A_ChunkDependable] on which this chunk
+	 * The set of [contingent&#32;values][A_ChunkDependable] on which this chunk
 	 * depends. If one of these changes significantly, this chunk must be
 	 * invalidated (at which time this set will be emptied).
 	 */
@@ -690,14 +680,14 @@ class L2Chunk private constructor(
 		 *   The [code][CompiledCodeDescriptor] for which to use the new level
 		 *   two chunk, or null for the initial unoptimized chunk.
 		 * @param numObjects
-		 *   The number of [object registers][L2BoxedRegister] that this chunk
+		 *   The number of [object&#32;registers][L2BoxedRegister] that this chunk
 		 *   will require.
 		 * @param numIntegers
-		 *   The number of [integer registers][L2IntRegister] that this chunk
+		 *   The number of [integer&#32;registers][L2IntRegister] that this chunk
 		 *   will require.
 		 * @param numFloats
-		 *   The number of [floating point registers][L2FloatRegister] that this
-		 *   chunk will require.
+		 *   The number of [floating&#32;point&#32;registers][L2FloatRegister]
+		 *   that this chunk will require.
 		 * @param offsetAfterInitialTryPrimitive
 		 *   The offset into my [instructions] at which to begin if this chunk's
 		 *   code was primitive and that primitive has already been attempted
@@ -776,7 +766,7 @@ class L2Chunk private constructor(
 		}
 
 		/**
-		 * The special [level two chunk][L2Chunk] that is used to interpret
+		 * The special [level&#32;two&#32;chunk][L2Chunk] that is used to interpret
 		 * level one nybblecodes until a piece of
 		 * [compiled&#32;code][CompiledCodeDescriptor] has been executed some
 		 * number of times (specified in [countdownForNewCode]).

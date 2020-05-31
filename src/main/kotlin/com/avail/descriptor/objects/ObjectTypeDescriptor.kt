@@ -818,7 +818,7 @@ class ObjectTypeDescriptor internal constructor(
 			namesAndBaseTypesForObjectType(anObjectType).tupleAt(2)
 
 		/**
-		 * The most general [object type][ObjectTypeDescriptor].
+		 * The most general [object&#32;type][ObjectTypeDescriptor].
 		 */
 		private val mostGeneralType: A_Type =
 			objectTypeFromMap(emptyMap()).makeShared()

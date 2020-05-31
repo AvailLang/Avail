@@ -553,7 +553,7 @@ class LexingState constructor(
 	 *   The [ParseNotificationLevel] that indicates the priority of the parse
 	 *   theory that failed.
 	 * @param values
-	 *   A list of arbitrary [Avail values][AvailObject] that should be
+	 *   A list of arbitrary [Avail&#32;values][AvailObject] that should be
 	 *   stringified.
 	 * @param transformer
 	 *   A transformer that accepts the stringified values and answers an

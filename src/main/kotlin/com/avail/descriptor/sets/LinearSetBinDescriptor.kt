@@ -294,13 +294,13 @@ class LinearSetBinDescriptor private constructor(
 			override fun hasNext() = index >= 1
 		}
 
-	override fun mutable(): AbstractDescriptor =
+	override fun mutable() =
 		descriptorFor(Mutability.MUTABLE, level)
 
-	override fun immutable(): AbstractDescriptor =
+	override fun immutable() =
 		descriptorFor(Mutability.IMMUTABLE, level)
 
-	override fun shared(): AbstractDescriptor =
+	override fun shared() =
 		descriptorFor(Mutability.SHARED, level)
 
 	companion object {

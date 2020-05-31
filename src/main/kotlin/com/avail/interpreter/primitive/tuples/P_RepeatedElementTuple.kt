@@ -53,8 +53,8 @@ import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Create a [repeated element tuple
- * ][RepeatedElementTupleDescriptor].
+ * **Primitive:** Create a
+ * [repeated&#32;element&#32;tuple][RepeatedElementTupleDescriptor].
  *
  * @author Leslie Schultz &lt;leslie@availlang.org&gt;
  */

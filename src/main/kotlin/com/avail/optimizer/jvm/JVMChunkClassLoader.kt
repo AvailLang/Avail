@@ -74,8 +74,8 @@ class JVMChunkClassLoader : ClassLoader(JVMChunk::class.java.classLoader)
 	 *   The foundational class bytes.
 	 * @param params
 	 *   The values that should be bundled into this class
-	 *   [loader][JVMChunkClassLoader] for static initialization of the generated
-	 *   `JVMChunk`. These are accessible via the [parameters] field.
+	 *   [loader][JVMChunkClassLoader] for static initialization of the
+	 *   generated `JVMChunk`. These are accessible via the [parameters] field.
 	 * @return
 	 *   The newly constructed `JVMChunk` instance, or `null` if no such
 	 *   instance could be constructed.

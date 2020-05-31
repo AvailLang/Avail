@@ -358,7 +358,7 @@ open class AtomDescriptor protected constructor(
 	@Deprecated(
 		"Shared atoms are implemented in subclasses",
 		level = DeprecationLevel.HIDDEN)
-	override fun shared(): AbstractDescriptor = unsupportedOperation()
+	override fun shared() = unsupportedOperation()
 
 	/**
 	 * `SpecialAtom` enumerates [atoms][A_Atom] that are known to the virtual

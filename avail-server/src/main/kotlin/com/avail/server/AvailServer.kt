@@ -182,7 +182,7 @@ class AvailServer constructor(
 	}
 
 	/**
-	 * List all [module roots][ModuleRoot].
+	 * List all [module&#32;roots][ModuleRoot].
 	 *
 	 * @param channel
 	 *   The [channel][AvailServerChannel] on which the
@@ -206,7 +206,7 @@ class AvailServer constructor(
 	}
 
 	/**
-	 * List all [module root paths][ModuleRoots.writePathsOn].
+	 * List all [module&#32;root&#32;paths][ModuleRoots.writePathsOn].
 	 *
 	 * @param channel
 	 *   The [channel][AvailServerChannel] on which the
@@ -230,7 +230,7 @@ class AvailServer constructor(
 	}
 
 	/**
-	 * Answer the [module roots path][ModuleRoots.modulePath].
+	 * Answer the [module&#32;roots&#32;path][ModuleRoots.modulePath].
 	 *
 	 * @param channel
 	 *   The [channel][AvailServerChannel] on which the
@@ -448,7 +448,7 @@ class AvailServer constructor(
 
 	/**
 	 * Answer a [visitor][FileVisitor] able to visit every source module
-	 * beneath the specified [module root][ModuleRoot].
+	 * beneath the specified [module&#32;root][ModuleRoot].
 	 *
 	 * @param root
 	 *   A module root.
@@ -585,7 +585,8 @@ class AvailServer constructor(
 	}
 
 	/**
-	 * List all source modules reachable from the [module roots][ModuleRoots].
+	 * List all source modules reachable from the
+	 * [module&#32;roots][ModuleRoots].
 	 *
 	 * @param channel
 	 *   The [channel][AvailServerChannel] on which the
@@ -633,7 +634,8 @@ class AvailServer constructor(
 	}
 
 	/**
-	 * List all source modules reachable from the [module roots][ModuleRoots].
+	 * List all source modules reachable from the
+	 * [module&#32;roots][ModuleRoots].
 	 *
 	 * @param channel
 	 *   The [channel][AvailServerChannel] on which the
@@ -679,7 +681,7 @@ class AvailServer constructor(
 	}
 
 	/**
-	 * Clear all [binary module repositories][Repository].
+	 * Clear all [binary&#32;module&#32;repositories][Repository].
 	 *
 	 * @param channel
 	 *   The [channel][AvailServerChannel] on which the

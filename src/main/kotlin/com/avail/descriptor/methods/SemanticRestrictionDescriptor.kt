@@ -120,12 +120,12 @@ private constructor(mutability: Mutability) : Descriptor(
 	override fun o_Equals(self: AvailObject, another: A_BasicObject) =
 		self.sameAddressAs(another)
 
-	override fun mutable(): AbstractDescriptor = mutable
+	override fun mutable() = mutable
 
 	// There is no immutable variant; answer the shared descriptor.
-	override fun immutable(): AbstractDescriptor = shared
+	override fun immutable() = shared
 
-	override fun shared(): AbstractDescriptor = shared
+	override fun shared() = shared
 
 	companion object {
 		/** The mutable [SemanticRestrictionDescriptor].  */

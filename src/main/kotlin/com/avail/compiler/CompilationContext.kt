@@ -836,14 +836,15 @@ class CompilationContext(
 	}
 
 	/**
-	 * Report an [assertion failure][ProblemType.EXECUTION] [problem][Problem].
+	 * Report an [assertion&#32;failure][ProblemType.EXECUTION]
+	 * [problem][Problem].
 	 *
 	 * @param lineNumber
 	 *   The one-based line number on which the problem occurs.
 	 * @param position
 	 *   The one-based position in the source at which the problem occurs.
 	 * @param e
-	 *   The [assertion failure][AvailAssertionFailedException].
+	 *   The [assertion&#32;failure][AvailAssertionFailedException].
 	 */
 	internal fun reportAssertionFailureProblem(
 		lineNumber: Int,
@@ -867,14 +868,14 @@ class CompilationContext(
 	}
 
 	/**
-	 * Report an [emergency exit][ProblemType.EXECUTION] [problem][Problem].
+	 * Report an [emergency&#32;exit][ProblemType.EXECUTION] [problem][Problem].
 	 *
 	 * @param lineNumber
 	 *   The one-based line number on which the problem occurs.
 	 * @param position
 	 *   The one-based position in the source at which the problem occurs.
 	 * @param e
-	 *   The [emergency exit][AvailEmergencyExitException].
+	 *   The [emergency&#32;exit][AvailEmergencyExitException].
 	 */
 	internal fun reportEmergencyExitProblem(
 		lineNumber: Int,

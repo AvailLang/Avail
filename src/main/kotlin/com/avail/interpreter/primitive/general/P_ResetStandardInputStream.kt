@@ -48,7 +48,8 @@ import com.avail.io.TextInputChannel
 import java.io.IOException
 
 /**
- * **Primitive:** Reset the [ current fiber][Interpreter.fiber]'s [standard&#32;input channel][TextInputChannel] to the previously set
+ * **Primitive:** Reset the [current&#32;fiber][Interpreter.fiber]'s
+ * [standard&#32;input&#32;channel][TextInputChannel] to the previously set
  * [mark][P_MarkStandardInputStream].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;

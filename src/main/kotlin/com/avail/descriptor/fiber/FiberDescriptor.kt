@@ -80,7 +80,6 @@ import com.avail.descriptor.pojos.RawPojoDescriptor
 import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
-import com.avail.descriptor.representation.AbstractDescriptor
 import com.avail.descriptor.representation.AbstractSlotsEnum
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.BitField
@@ -980,26 +979,26 @@ class FiberDescriptor private constructor(
 	override fun o_DebugLog(self: AvailObject): StringBuilder =
 		self.mutableSlot(DEBUG_LOG).javaObjectNotNull()
 
-	override fun <T> o_Lock(self: AvailObject, supplier: ()->T): T =
+	override fun <T> o_Lock(self: AvailObject, body: ()->T): T =
 		when (val interpreter = Interpreter.currentOrNull()) {
 			null -> {
 				// It's not running an AvailThread, so don't bother detecting
 				// multiple nested fiber locks (which would suggest a deadlock
 				// hazard)..
-				synchronized(self) { supplier() }
+				synchronized(self) { body() }
 			}
 			else -> {
 				interpreter.lockFiberWhile(self) {
-					synchronized(self) { supplier() }
+					synchronized(self) { body() }
 				}
 			}
 		}
 
-	override fun mutable(): AbstractDescriptor = mutable
+	override fun mutable() = mutable
 
-	override fun immutable(): AbstractDescriptor = immutable
+	override fun immutable() = immutable
 
-	override fun shared(): AbstractDescriptor = shared
+	override fun shared() = shared
 
 	companion object {
 		/** A simple counter for identifying fibers by creation order. */
@@ -1142,7 +1141,7 @@ class FiberDescriptor private constructor(
 
 		/**
 		 * Construct an [unstarted][ExecutionState.UNSTARTED] [fiber][A_Fiber]
-		 * with the specified [result type][A_Type] and initial priority.
+		 * with the specified [result&#32;type][A_Type] and initial priority.
 		 *
 		 * @param resultType
 		 *   The expected result type.
@@ -1166,7 +1165,7 @@ class FiberDescriptor private constructor(
 
 		/**
 		 * Construct an [unstarted][ExecutionState.UNSTARTED] [fiber][A_Fiber]
-		 * with the specified [result type][A_Type] and [AvailLoader]. The
+		 * with the specified [result&#32;type][A_Type] and [AvailLoader]. The
 		 * priority is initially set to [loaderPriority].
 		 *
 		 * @param resultType

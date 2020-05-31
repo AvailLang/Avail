@@ -267,9 +267,9 @@ class AssignmentPhraseDescriptor private constructor(
 		writer.endObject()
 	}
 
-	override fun mutable(): AbstractDescriptor = mutable
+	override fun mutable() = mutable
 
-	override fun shared(): AbstractDescriptor = shared
+	override fun shared() = shared
 
 	companion object {
 		/**

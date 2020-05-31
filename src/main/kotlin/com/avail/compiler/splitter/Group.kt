@@ -105,8 +105,9 @@ import kotlin.math.min
 internal class Group : Expression
 {
 	/**
-	 * Whether a [double dagger][MessageSplitter.Metacharacter.DOUBLE_DAGGER]
-	 * (‡) has been encountered in the tokens for this group.
+	 * Whether a
+	 * [double&#32;dagger][MessageSplitter.Metacharacter.DOUBLE_DAGGER] (‡) has
+	 * been encountered in the tokens for this group.
 	 */
 	val hasDagger: Boolean
 

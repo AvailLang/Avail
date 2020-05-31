@@ -285,7 +285,7 @@ class AvailObject private constructor(
 	 * Answer whether the receiver is numerically greater than the argument.
 	 *
 	 * @param another
-	 *   A [numeric object][AbstractNumberDescriptor].
+	 *   A [numeric&#32;object][AbstractNumberDescriptor].
 	 * @return
 	 *   Whether the receiver is strictly greater than the argument.
 	 */
@@ -296,7 +296,7 @@ class AvailObject private constructor(
 	 * the argument.
 	 *
 	 * @param another
-	 *   A [numeric object][AbstractNumberDescriptor].
+	 *   A [numeric&#32;object][AbstractNumberDescriptor].
 	 * @return
 	 *   Whether the receiver is greater than or equivalent to the argument.
 	 */
@@ -307,7 +307,7 @@ class AvailObject private constructor(
 	 * Answer whether the receiver is numerically less than the argument.
 	 *
 	 * @param another
-	 *   A [numeric object][AbstractNumberDescriptor].
+	 *   A [numeric&#32;object][AbstractNumberDescriptor].
 	 * @return
 	 *   Whether the receiver is strictly less than the argument.
 	 */
@@ -318,7 +318,7 @@ class AvailObject private constructor(
 	 * the argument.
 	 *
 	 * @param another
-	 *   A [numeric object][AbstractNumberDescriptor].
+	 *   A [numeric&#32;object][AbstractNumberDescriptor].
 	 * @return
 	 *   Whether the receiver is less than or equivalent to the argument.
 	 */
@@ -379,8 +379,8 @@ class AvailObject private constructor(
 	override fun hash() = descriptor().o_Hash(this)
 
 	/**
-	 * Answer whether the [argument types][AvailObject#argsTupleType]
-	 * supported by the specified [function type][FunctionTypeDescriptor]
+	 * Answer whether the [argument&#32;types][AvailObject#argsTupleType]
+	 * supported by the specified [function&#32;type][FunctionTypeDescriptor]
 	 * are acceptable argument types for invoking a
 	 * [function][FunctionDescriptor] whose type is the receiver.
 	 *
@@ -394,7 +394,7 @@ class AvailObject private constructor(
 		descriptor().o_AcceptsArgTypesFromFunctionType(this, functionType)
 
 	/**
-	 * Answer whether these are acceptable [argument types][TypeDescriptor]
+	 * Answer whether these are acceptable [argument&#32;types][TypeDescriptor]
 	 * for invoking a [function][FunctionDescriptor] whose type is the receiver.
 	 *
 	 * @param argTypes
@@ -421,10 +421,10 @@ class AvailObject private constructor(
 		descriptor().o_AcceptsListOfArgValues(this, argValues)
 
 	/**
-	 * Answer whether these are acceptable [argument types][TypeDescriptor]
+	 * Answer whether these are acceptable [argument&#32;types][TypeDescriptor]
 	 * for invoking a [function][FunctionDescriptor] that is an instance of the
 	 * receiver. There may be more entries in the [tuple][TupleDescriptor] than
-	 * are required by the [function type][FunctionTypeDescriptor].
+	 * are required by the [function&#32;type][FunctionTypeDescriptor].
 	 *
 	 * @param argTypes
 	 *   A tuple containing the argument types to be checked.
@@ -1155,7 +1155,7 @@ class AvailObject private constructor(
 
 	/**
 	 * Answer whether the receiver, an [AvailObject], and the argument, a
-	 * small integer [interval tuple][SmallIntegerIntervalTupleDescriptor],
+	 * small integer [interval&#32;tuple][SmallIntegerIntervalTupleDescriptor],
 	 * are equal in value.
 	 *
 	 * @param aSmallIntegerIntervalTuple
@@ -1205,15 +1205,15 @@ class AvailObject private constructor(
 
 	/**
 	 * Answer whether the receiver, an [AvailObject], and the
-	 * argument, a [function type][FunctionTypeDescriptor], are equal.
+	 * argument, a [function&#32;type][FunctionTypeDescriptor], are equal.
 	 *
 	 * @param aFunctionType
 	 *   The function type used in the comparison.
 	 * @return
 	 *   `true` IFF the receiver is also a function type and:
-	 *   * The [argument types][argsTupleType] correspond,
-	 *   * The [return types][returnType] correspond, and
-	 *   * The [declared exceptions][declaredExceptions] correspond.
+	 *   * The [argument&#32;types][argsTupleType] correspond,
+	 *   * The [return&#32;types][returnType] correspond, and
+	 *   * The [declared&#32;exceptions][declaredExceptions] correspond.
 	 */
 	override fun equalsFunctionType(aFunctionType: A_Type) =
 		descriptor().o_EqualsFunctionType(this, aFunctionType)
@@ -1499,7 +1499,7 @@ class AvailObject private constructor(
 	override val isFinite get() = descriptor().o_IsFinite(this)
 
 	/**
-	 * Is the receiver a [forward declaration][ForwardDefinitionDescriptor]?
+	 * Is the receiver a [forward&#32;declaration][ForwardDefinitionDescriptor]?
 	 *
 	 * @return
 	 *   `true` if the receiver is a forward declaration site.
@@ -1508,7 +1508,7 @@ class AvailObject private constructor(
 		descriptor().o_IsForwardDefinition(this)
 
 	/**
-	 * Is the receiver a [method definition][MethodDefinitionDescriptor]?
+	 * Is the receiver a [method&#32;definition][MethodDefinitionDescriptor]?
 	 *
 	 * @return `true` if the receiver is a method definition.
 	 */
@@ -1627,7 +1627,7 @@ class AvailObject private constructor(
 		descriptor().o_IsSupertypeOfTupleType(this, aTupleType)
 
 	override fun isSupertypeOfEnumerationType(
-		anEnumerationType: A_BasicObject
+		anEnumerationType: A_Type
 	) = descriptor().o_IsSupertypeOfEnumerationType(this, anEnumerationType)
 
 	/**
@@ -2467,7 +2467,7 @@ class AvailObject private constructor(
 	override fun isHashedMapBin() = descriptor().o_IsHashedMapBin(this)
 
 	/**
-	 * Look up the key in this [map bin][MapBinDescriptor].  If not found,
+	 * Look up the key in this [map&#32;bin][MapBinDescriptor].  If not found,
 	 * answer `null`.  Use the provided hash of the key.
 	 *
 	 * @param key
@@ -2665,8 +2665,8 @@ class AvailObject private constructor(
 
 	override val isByteArrayTuple get() = descriptor().o_IsByteArrayTuple(this)
 
-	override fun <T> lock(supplier: () -> T): T =
-		descriptor().o_Lock(this, supplier)
+	override fun <T> lock(body: () -> T): T =
+		descriptor().o_Lock(this, body)
 
 	/**
 	 * Answer the [loader][AvailLoader] bound to the
@@ -2712,7 +2712,7 @@ class AvailObject private constructor(
 		this, onSuccess, onFailure)
 
 	/**
-	 * Is the specified [interrupt request flag][InterruptRequestFlag]
+	 * Is the specified [interrupt&#32;request&#32;flag][InterruptRequestFlag]
 	 * set for the [receiver][FiberDescriptor]?
 	 *
 	 * @param flag

@@ -897,10 +897,10 @@ class StacksScanner constructor (commentToken: A_Token, moduleName: String)
 
 		/**
 		 * Answer the [AvailComment]
-		 * that comprise a [Avail comment][CommentTokenDescriptor].
+		 * that comprise a [Avail&#32;comment][CommentTokenDescriptor].
 		 *
 		 * @param commentToken
-		 *   An [Avail comment][CommentTokenDescriptor] to be tokenized.
+		 *   An [Avail&#32;comment][CommentTokenDescriptor] to be tokenized.
 		 * @param moduleName
 		 *   The name of the module this comment appears in.
 		 * @param linkingFileMap

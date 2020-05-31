@@ -271,9 +271,9 @@ class PermutedListPhraseDescriptor private constructor(
 		writer.endObject()
 	}
 
-	override fun mutable(): PermutedListPhraseDescriptor = mutable
+	override fun mutable() = mutable
 
-	override fun shared(): PermutedListPhraseDescriptor = shared
+	override fun shared() = shared
 
 	companion object {
 		/**

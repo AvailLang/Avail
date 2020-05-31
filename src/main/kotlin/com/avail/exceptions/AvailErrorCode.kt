@@ -163,7 +163,8 @@ enum class AvailErrorCode constructor(val code: Int)
 
 	/**
 	 * A [method&#32;definition][MethodDescriptor] did not declare the same
-	 * return type as its [forward declaration][ForwardDefinitionDescriptor].
+	 * return type as its
+	 * [forward&#32;declaration][ForwardDefinitionDescriptor].
 	 */
 	E_METHOD_RETURN_TYPE_NOT_AS_FORWARD_DECLARED(13),
 
@@ -256,7 +257,7 @@ enum class AvailErrorCode constructor(val code: Int)
 	E_MACRO_ARGUMENT_MUST_BE_A_PARSE_NODE(34),
 
 	/**
-	 * There are multiple [true names][AtomDescriptor] associated with the
+	 * There are multiple [true&#32;names][AtomDescriptor] associated with the
 	 * string.
 	 */
 	E_AMBIGUOUS_NAME(35),
@@ -564,8 +565,8 @@ enum class AvailErrorCode constructor(val code: Int)
 	E_NO_METHOD_DEFINITION(84),
 
 	/**
-	 * More than one [method definition][MethodDefinitionDescriptor] satisfies
-	 * the supplied criteria.
+	 * More than one [method&#32;definition][MethodDefinitionDescriptor]
+	 * satisfies the supplied criteria.
 	 */
 	@ReferencedInGeneratedCode
 	E_AMBIGUOUS_METHOD_DEFINITION(85),
@@ -615,7 +616,7 @@ enum class AvailErrorCode constructor(val code: Int)
 
 	/**
 	 * A [fiber][FiberDescriptor] produced a result of an incorrect type, in
-	 * violation of its [fiber type][FiberTypeDescriptor].
+	 * violation of its [fiber&#32;type][FiberTypeDescriptor].
 	 */
 	E_FIBER_PRODUCED_INCORRECTLY_TYPED_RESULT(92),
 
@@ -653,8 +654,8 @@ enum class AvailErrorCode constructor(val code: Int)
 	//	E_??? (99)
 
 	/**
-	 * A proposed [block expression][BlockPhraseDescriptor] contains one or more
-	 * invalid statements.
+	 * A proposed [block&#32;expression][BlockPhraseDescriptor] contains one or
+	 * more invalid statements.
 	 */
 	E_BLOCK_CONTAINS_INVALID_STATEMENTS(100),
 
@@ -744,7 +745,7 @@ enum class AvailErrorCode constructor(val code: Int)
 	//	E_??? (503),
 
 	/**
-	 * Marshaling an [Avail object][AvailObject] to/from a Java counterpart
+	 * Marshaling an [Avail&#32;object][AvailObject] to/from a Java counterpart
 	 * failed.
 	 */
 	E_JAVA_MARSHALING_FAILED(504),
@@ -753,8 +754,8 @@ enum class AvailErrorCode constructor(val code: Int)
 	E_JAVA_FIELD_NOT_AVAILABLE(505),
 
 	/**
-	 * A reference to a [Java field][Field] is not uniquely resolvable for the
-	 * given [pojo&#32;type][PojoTypeDescriptor].
+	 * A reference to a [Java&#32;field][Field] is not uniquely resolvable for
+	 * the given [pojo&#32;type][PojoTypeDescriptor].
 	 */
 	E_JAVA_FIELD_REFERENCE_IS_AMBIGUOUS(506),
 
@@ -765,8 +766,8 @@ enum class AvailErrorCode constructor(val code: Int)
 	E_CANNOT_MODIFY_FINAL_JAVA_FIELD(507),
 
 	/**
-	 * A reference to a [Java method][Method] is not uniquely resolvable for the
-	 * given [pojo&#32;type][PojoTypeDescriptor] and parameter
+	 * A reference to a [Java&#32;method][Method] is not uniquely resolvable for
+	 * the given [pojo&#32;type][PojoTypeDescriptor] and parameter
 	 * [types][TypeDescriptor].
 	 */
 	E_JAVA_METHOD_REFERENCE_IS_AMBIGUOUS(508);
@@ -793,7 +794,7 @@ enum class AvailErrorCode constructor(val code: Int)
 	 * Answer the numeric error code as an [Avail][AvailObject].
 	 *
 	 * @return
-	 *   The [numeric error code][AvailObject].
+	 *   The [numeric&#32;error&#32;code][AvailObject].
 	 */
 	@ReferencedInGeneratedCode
 	fun numericCode(): A_Number = fromInt(code)
@@ -802,7 +803,7 @@ enum class AvailErrorCode constructor(val code: Int)
 	{
 
 		/**
-		 * The mapping from [numeric codes][code] to [AvailErrorCode]s.
+		 * The mapping from [numeric&#32;codes][code] to [AvailErrorCode]s.
 		 */
 		private val byNumericCode = HashMap<Int, AvailErrorCode>()
 
@@ -817,7 +818,7 @@ enum class AvailErrorCode constructor(val code: Int)
 		}
 
 		/**
-		 * Look up the `AvailErrorCode` with the given [numeric code][code].
+		 * Look up the `AvailErrorCode` with the given [numeric&#32;code][code].
 		 *
 		 * @param numericCode
 		 *   The [Int] to look up as a numeric code.
@@ -829,7 +830,7 @@ enum class AvailErrorCode constructor(val code: Int)
 			byNumericCode[numericCode]
 
 		/**
-		 * Answer all valid [numeric error codes][code].
+		 * Answer all valid [numeric&#32;error&#32;codes][code].
 		 *
 		 * @return
 		 *   A [list][List] of all valid numeric error codes.

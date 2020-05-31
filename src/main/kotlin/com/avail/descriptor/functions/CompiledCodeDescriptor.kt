@@ -256,7 +256,7 @@ class CompiledCodeDescriptor private constructor(
 			val NUM_OUTERS = BitField(HASH_AND_PRIMITIVE_AND_OUTERS, 0, 16)
 
 			/**
-			 * The number of [frame slots][A_Continuation.frameAt] to allocate
+			 * The number of [frame&#32;slots][A_Continuation.frameAt] to allocate
 			 * for continuations running this code.
 			 */
 			@JvmField
@@ -311,7 +311,7 @@ class CompiledCodeDescriptor private constructor(
 
 		/**
 		 * The literal objects that are referred to numerically by some of the
-		 * operands of [level one instructions][L1Operation] encoded in the
+		 * operands of [level&#32;one&#32;instructions][L1Operation] encoded in the
 		 * [IntegerSlots.NYBBLECODES_].
 		 */
 		@HideFieldInDebugger
@@ -854,7 +854,7 @@ class CompiledCodeDescriptor private constructor(
 	 * @param writer
 	 *   The [JSONWriter].
 	 * @param writeFunctionType
-	 *   How to write the [function type][FUNCTION_TYPE].
+	 *   How to write the [function&#32;type][FUNCTION_TYPE].
 	 */
 	private fun writeTo(
 			self: AvailObject,
@@ -1005,7 +1005,7 @@ class CompiledCodeDescriptor private constructor(
 			Int,
 			A_Tuple,
 			A_Phrase"""))
-	override fun mutable(): AbstractDescriptor = throw unsupportedOperation()
+	override fun mutable() = throw unsupportedOperation()
 
 	@Deprecated(
 		"Not supported",
@@ -1022,7 +1022,7 @@ class CompiledCodeDescriptor private constructor(
 			Int,
 			A_Tuple,
 			A_Phrase"""))
-	override fun immutable(): AbstractDescriptor = throw unsupportedOperation()
+	override fun immutable() = throw unsupportedOperation()
 
 	@Deprecated(
 		"Not supported",
@@ -1039,7 +1039,7 @@ class CompiledCodeDescriptor private constructor(
 			Int,
 			A_Tuple,
 			A_Phrase"""))
-	override fun shared(): AbstractDescriptor = throw unsupportedOperation()
+	override fun shared() = throw unsupportedOperation()
 
 	companion object {
 		/** The set of all active [raw functions][CompiledCodeDescriptor]. */

@@ -188,7 +188,7 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 		PRIVATE_NAMES,
 
 		/**
-		 * A [set][SetDescriptor] of [true names][AtomDescriptor] that are
+		 * A [set][SetDescriptor] of [true&#32;names][AtomDescriptor] that are
 		 * visible within this module.
 		 */
 		VISIBLE_NAMES,
@@ -242,7 +242,7 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 		SEMANTIC_RESTRICTIONS,
 
 		/**
-		 * A [map][MapDescriptor] from [true names][AtomDescriptor] to
+		 * A [map][MapDescriptor] from [true&#32;names][AtomDescriptor] to
 		 * [tuples][TupleDescriptor] of seal points.
 		 */
 		SEALS,
@@ -769,7 +769,8 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 	 * @param self
 	 *   The module.
 	 * @param forwardDefinition
-	 *   The [forward declaration][ForwardDefinitionDescriptor] to be removed.
+	 *   The [forward&#32;declaration][ForwardDefinitionDescriptor] to be
+	 *   removed.
 	 */
 	override fun o_ResolveForward(
 		self: AvailObject,
@@ -795,11 +796,11 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 	 * @param self
 	 *   The module.
 	 * @param stringName
-	 *   A string whose corresponding [true names][AtomDescriptor] are to be
+	 *   A string whose corresponding [true&#32;names][AtomDescriptor] are to be
 	 *   looked up in this module.
 	 * @return
-	 *   The [set][SetDescriptor] of [true names][AtomDescriptor] that have the
-	 *   given stringName and are visible in this module.
+	 *   The [set][SetDescriptor] of [true&#32;names][AtomDescriptor] that have
+	 *   the given stringName and are visible in this module.
 	 */
 	override fun o_TrueNamesForStringName(
 		self: AvailObject, stringName: A_String): A_Set =

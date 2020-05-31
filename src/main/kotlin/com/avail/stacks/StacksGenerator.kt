@@ -117,7 +117,7 @@ class StacksGenerator @Throws(IllegalArgumentException::class) constructor(
 	private val linkingFileMap: LinkingFileMap
 
 	/**
-	 * A map of [module names][ModuleName] to a list of all the method
+	 * A map of [module&#32;names][ModuleName] to a list of all the method
 	 * names exported from said module
 	 */
 	private var moduleToComments: HashMap<String, CommentsModule>
@@ -179,7 +179,7 @@ class StacksGenerator @Throws(IllegalArgumentException::class) constructor(
 	 * @param outermostModule
 	 *   The outermost [module][ModuleDescriptor] for the generation request.
 	 * @throws IOException
-	 *   If an [I/O exception][IOException] occurs.
+	 *   If an [I/O&#32;exception][IOException] occurs.
 	 */
 	@Synchronized @Throws(IOException::class)
 	fun generate(runtime: AvailRuntime, outermostModule: ModuleName)

@@ -66,7 +66,7 @@ class ModuleOrPackageNode constructor(
 	val isPackage: Boolean) : AbstractBuilderFrameTreeNode(builder)
 {
 	/**
-	 * Is the [module or package][ModuleOrPackageNode] loaded?
+	 * Is the [module&#32;or&#32;package][ModuleOrPackageNode] loaded?
 	 *
 	 * @return
 	 *   `true` if the module or package is already loaded, `false` otherwise.

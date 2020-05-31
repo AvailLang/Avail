@@ -47,7 +47,7 @@ import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Answer the [literal token][LiteralTokenDescriptor] from
+* **Primitive:** Answer the [literal&#32;token][LiteralTokenDescriptor] from
  * which the specified [literal phrase][LiteralPhraseDescriptor] was built.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;

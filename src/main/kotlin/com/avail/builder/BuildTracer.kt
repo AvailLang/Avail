@@ -67,18 +67,18 @@ internal class BuildTracer constructor(val availBuilder: AvailBuilder)
 
 	/**
 	 * Schedule tracing of the imports of the [module][ModuleDescriptor]
-	 * specified by the given [module name][ModuleName].  The [traceRequests]
-	 * counter has been incremented already for this tracing, and the
-	 * [traceCompletions] will eventually be incremented by this method, but
-	 * only *after* increasing the [traceRequests] for each recursive trace that
-	 * is scheduled here.  That ensures the two counters won't accidentally be
-	 * equal at any time except after the last trace has completed.
+	 * specified by the given [module&#32;name][ModuleName].  The
+	 * [traceRequests] counter has been incremented already for this tracing,
+	 * and the [traceCompletions] will eventually be incremented by this method,
+	 * but only *after* increasing the [traceRequests] for each recursive trace
+	 * that is scheduled here.  That ensures the two counters won't accidentally
+	 * be equal at any time except after the last trace has completed.
 	 *
 	 * When traceCompletions finally does reach traceRequests, a notifyAll] will
 	 * be sent to the `BuildTracer`.
 	 *
 	 * @param qualifiedName
-	 *   A fully-qualified [module name][ModuleName].
+	 *   A fully-qualified [module&#32;name][ModuleName].
 	 * @param resolvedSuccessor
 	 *   The resolved name of the module using or extending this module, or
 	 *   `null` if this module is the start of the recursive resolution (i.e.,
@@ -152,7 +152,7 @@ internal class BuildTracer constructor(val availBuilder: AvailBuilder)
 	 * end by invoking [indicateTraceCompleted].
 	 *
 	 * @param resolvedName
-	 *   A resolved [module name][ModuleName] to trace.
+	 *   A resolved [module&#32;name][ModuleName] to trace.
 	 * @param resolvedSuccessor
 	 *   The resolved name of the module using or extending this module, or
 	 *   `null` if this module is the start of the recursive resolution (i.e.,

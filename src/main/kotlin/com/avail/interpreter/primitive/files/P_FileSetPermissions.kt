@@ -136,7 +136,7 @@ object P_FileSetPermissions : Primitive(3, CanInline, HasSideEffect)
 	/**
 	 * Convert the specified [set][SetDescriptor] of
 	 * [ordinals][IntegerDescriptor] into the corresponding [set][Set] of
-	 * [POSIX&#32;file permissions][PosixFilePermission].
+	 * [POSIX&#32;file&#32;permissions][PosixFilePermission].
 	 *
 	 * @param ordinals
 	 *   Some ordinals.

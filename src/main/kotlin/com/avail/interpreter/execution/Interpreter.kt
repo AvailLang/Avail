@@ -1369,7 +1369,7 @@ class Interpreter(
 	 * @param
 	 *   exceptionValue The exception object being raised.
 	 * @return
-	 *   The [success state][Result].
+	 *   The [success&#32;state][Result].
 	 */
 	fun searchForExceptionHandler(exceptionValue: AvailObject): Result {
 		// Replace the contents of the argument buffer with "exceptionValue",
@@ -2620,7 +2620,7 @@ class Interpreter(
 		 * [throwable][Throwable].
 		 *
 		 * @param runtime
-		 *   An [Avail runtime][AvailRuntime].
+		 *   An [Avail&#32;runtime][AvailRuntime].
 		 * @param aFiber
 		 *   The fiber to run.
 		 * @param continuation
@@ -2672,7 +2672,7 @@ class Interpreter(
 		 * [throwable][Throwable].
 		 *
 		 * @param runtime
-		 *   An [Avail runtime][AvailRuntime].
+		 *   An [Avail&#32;runtime][AvailRuntime].
 		 * @param aFiber
 		 *   The fiber to run.
 		 * @param function
@@ -2869,7 +2869,7 @@ class Interpreter(
 		 * @param runtime
 		 *   An Avail runtime.
 		 * @param textInterface
-		 *   The [text interface][TextInterface] for [fibers][A_Fiber] started
+		 *   The [text&#32;interface][TextInterface] for [fibers][A_Fiber] started
 		 *   due to stringification. This need not be the default
 		 *   [text&#32;interface][AvailRuntime.textInterface].
 		 * @param value
@@ -2977,7 +2977,7 @@ class Interpreter(
 			WeakHashMap<A_Module, Statistic>()
 
 		/**
-		 * Answer the bootstrapped [assignment function][P_SetValue] used to
+		 * Answer the bootstrapped [assignment&#32;function][P_SetValue] used to
 		 * restart implicitly observed assignments.
 		 *
 		 * @return

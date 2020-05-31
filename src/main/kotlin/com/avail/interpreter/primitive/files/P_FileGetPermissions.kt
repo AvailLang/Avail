@@ -78,7 +78,7 @@ import java.util.*
 object P_FileGetPermissions : Primitive(2, CanInline, HasSideEffect)
 {
 	/**
-	 * A [map][Map] from [POSIX file][PosixFilePermission] to
+	 * A [map][Map] from [POSIX&#32;file][PosixFilePermission] to
 	 * [ordinals][IntegerDescriptor].
 	 */
 	private val permissionMap =

@@ -92,7 +92,7 @@ class CommandLineConfigurator constructor(
 		AVAIL_RENAMES,
 
 		/**
-		 * Specification of the [Avail roots][ModuleRoots].
+		 * Specification of the [Avail&#32;roots][ModuleRoots].
 		 */
 		AVAIL_ROOTS,
 
@@ -118,7 +118,7 @@ class CommandLineConfigurator constructor(
 	}
 
 	/**
-	 * Create an [option processor][OptionProcessor] suitable for
+	 * Create an [option&#32;processor][OptionProcessor] suitable for
 	 * [updating][updateConfiguration] a
 	 * [server&#32;configuration][AvailServerConfiguration].
 	 *

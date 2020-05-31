@@ -49,7 +49,7 @@ class ArithmeticException : AvailRuntimeException
 	 * [error&#32;code][AvailErrorCode].
 	 *
 	 * @param errorCode
-	 *   The [error code][AvailErrorCode].
+	 *   The [error&#32;code][AvailErrorCode].
 	 */
 	constructor(errorCode: AvailErrorCode) : super(errorCode)
 
@@ -58,7 +58,7 @@ class ArithmeticException : AvailRuntimeException
 	 * [cause][Throwable].
 	 *
 	 * @param errorCode
-	 *   The [error code][AvailErrorCode].
+	 *   The [error&#32;code][AvailErrorCode].
 	 * @param cause
 	 *   The proximal [cause][Throwable] of the [Exception].
 	 */

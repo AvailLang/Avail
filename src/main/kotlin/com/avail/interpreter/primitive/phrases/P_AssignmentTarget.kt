@@ -47,7 +47,7 @@ import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Answer the [target variable][VariableUsePhraseDescriptor]
+* **Primitive:** Answer the [target&#32;variable][VariableUsePhraseDescriptor]
  * of the [assignment][AssignmentPhraseDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;

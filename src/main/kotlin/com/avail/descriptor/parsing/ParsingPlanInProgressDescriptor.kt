@@ -182,12 +182,12 @@ class ParsingPlanInProgressDescriptor private constructor(
 		return@with
 	}
 
-	override fun mutable(): AbstractDescriptor = mutable
+	override fun mutable() = mutable
 
 	// There is no immutable variant.
-	override fun immutable(): AbstractDescriptor = shared
+	override fun immutable() = shared
 
-	override fun shared(): AbstractDescriptor = shared
+	override fun shared() = shared
 
 	companion object {
 		/**

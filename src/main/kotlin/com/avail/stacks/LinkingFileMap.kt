@@ -398,8 +398,10 @@ class LinkingFileMap
 	}
 
 	/**
+	 * Add a [ModuleComment].
 	 *
-	 * @param comment the [ModuleComment] to add
+	 * @param comment
+	 *   The comment to add.
 	 */
 	fun addModuleComment(comment: ModuleComment)
 	{

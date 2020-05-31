@@ -81,7 +81,7 @@ enum class Mutability {
 	 * reference to the new child. The origin [function][A_Function] of a new
 	 * fiber becomes *shared* before its execution. All special objects and
 	 * other root objects begin existence *shared*. Other objects become
-	 * *shared* just before assignment to the [object slot][ObjectSlotsEnum]
+	 * *shared* just before assignment to the [object&#32;slot][ObjectSlotsEnum]
 	 * of a *shared* object.
 	 */
 	SHARED

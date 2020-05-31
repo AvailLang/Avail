@@ -356,13 +356,13 @@ class InfinityDescriptor private constructor(
 			if (sign == POSITIVE) Double.POSITIVE_INFINITY
 			else Double.NEGATIVE_INFINITY)
 
-	override fun mutable(): AbstractDescriptor =
+	override fun mutable() =
 		if (sign == POSITIVE) mutablePositive else mutableNegative
 
 	// There isn't an immutable variant; answer a shared one.
-	override fun immutable(): AbstractDescriptor = shared()
+	override fun immutable() = shared()
 
-	override fun shared(): AbstractDescriptor =
+	override fun shared() =
 		if (sign == POSITIVE) sharedPositive else sharedNegative
 
 	companion object {

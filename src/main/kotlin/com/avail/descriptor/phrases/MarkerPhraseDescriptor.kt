@@ -169,9 +169,9 @@ class MarkerPhraseDescriptor private constructor(
 		parent: A_Phrase?
 	): Unit = throw unsupportedOperation()
 
-	override fun mutable(): AbstractDescriptor = mutable
+	override fun mutable() = mutable
 
-	override fun shared(): AbstractDescriptor = shared
+	override fun shared() = shared
 
 	companion object {
 		/**

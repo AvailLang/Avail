@@ -137,7 +137,7 @@ open class VariableSharedDescriptor protected constructor(
 
 		/**
 		 * The [kind][AvailObject] of the [variable][VariableDescriptor].  Note
-		 * that this is always a [variable type][VariableTypeDescriptor].
+		 * that this is always a [variable&#32;type][VariableTypeDescriptor].
 		 */
 		KIND,
 
@@ -473,7 +473,7 @@ open class VariableSharedDescriptor protected constructor(
 		}
 
 		/**
-		 * Invalidate any dependent [Level Two chunks][L2Chunk].
+		 * Invalidate any dependent [Level&#32;Two&#32;chunks][L2Chunk].
 		 *
 		 * @param self
 		 *   The method that changed.
@@ -510,7 +510,7 @@ open class VariableSharedDescriptor protected constructor(
 		 * method should only be used to "upgrade" a variable's representation.
 		 *
 		 * @param kind
-		 *   The [variable type][VariableTypeDescriptor].
+		 *   The [variable&#32;type][VariableTypeDescriptor].
 		 * @param hash
 		 *   The hash of the variable.
 		 * @param value

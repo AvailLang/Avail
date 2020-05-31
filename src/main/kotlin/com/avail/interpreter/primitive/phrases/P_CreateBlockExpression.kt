@@ -61,7 +61,7 @@ import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Create a [block  expression][BlockPhraseDescriptor] from
+* **Primitive:** Create a [block&#32; expression][BlockPhraseDescriptor] from
  * the specified [argument declarations][PhraseKind.ARGUMENT_PHRASE],
  * primitive number, statements, result type, and exception set.
  *

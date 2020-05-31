@@ -152,7 +152,7 @@ abstract class L2Operation
 	val namedOperandTypes: Array<out L2NamedOperandType>
 
 	/**
-	 * Answer the [named operand types][L2NamedOperandType] that this
+	 * Answer the [named&#32;operand&#32;types][L2NamedOperandType] that this
 	 * `L2Operation operation` expects.
 	 *
 	 * @return The named operand types that this operation expects.

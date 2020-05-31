@@ -60,9 +60,10 @@ import java.nio.file.attribute.GroupPrincipal
 import java.nio.file.attribute.PosixFileAttributeView
 
 /**
- * **Primitive:** [ ][PosixFileAttributeView.setGroup] of the file denoted by
- * the specified [path][Path] to the [group][GroupPrincipal] denoted by the
- * specified name.
+ * **Primitive:**
+ * [Set&#32;the&#32;group&#32;owner][PosixFileAttributeView.setGroup] of the
+ * file denoted by the specified [path][Path] to the [group][GroupPrincipal]
+ * denoted by the specified name.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

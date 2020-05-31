@@ -146,7 +146,7 @@ class VariableSharedGlobalDescriptor private constructor(
 
 		/**
 		 * The [kind][AvailObject] of the [variable][VariableDescriptor].  Note
-		 * that this is always a [variable type][VariableTypeDescriptor].
+		 * that this is always a [variable&#32;type][VariableTypeDescriptor].
 		 */
 		KIND,
 
@@ -331,7 +331,7 @@ class VariableSharedGlobalDescriptor private constructor(
 		 * shared.
 		 *
 		 * @param variableType
-		 *   The [variable type][VariableTypeDescriptor].
+		 *   The [variable&#32;type][VariableTypeDescriptor].
 		 * @param module
 		 *  The [A_Module] that this global is being defined in.
 		 * @param name

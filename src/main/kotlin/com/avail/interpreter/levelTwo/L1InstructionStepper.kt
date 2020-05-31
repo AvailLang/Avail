@@ -105,7 +105,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 	var stackp = 0
 
 	/**
-	 * The registers that hold [Avail objects][AvailObject].
+	 * The registers that hold [Avail&#32;objects][AvailObject].
 	 */
 	@JvmField
 	var pointers : Array<AvailObject> = emptyPointersArray

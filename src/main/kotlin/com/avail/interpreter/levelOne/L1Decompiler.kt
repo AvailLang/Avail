@@ -199,7 +199,7 @@ class L1Decompiler constructor(
 	internal var endsWithPushNil = false
 
 	/**
-	 * The decompiled [block phrase][BlockPhraseDescriptor].
+	 * The decompiled [block&#32;phrase][BlockPhraseDescriptor].
 	 */
 	internal var block: A_Phrase
 		private set
@@ -891,7 +891,7 @@ class L1Decompiler constructor(
 		 * @param type
 		 *   The type of the outer.
 		 * @return
-		 *   A [variable reference phrase][ReferencePhraseDescriptor].
+		 *   A [variable&#32;reference&#32;phrase][ReferencePhraseDescriptor].
 		 */
 		private fun outerPhraseForDecompiler(
 			outerIndex: Int, type: A_Type): A_Phrase

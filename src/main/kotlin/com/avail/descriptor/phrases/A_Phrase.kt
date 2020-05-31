@@ -175,7 +175,7 @@ interface A_Phrase : A_BasicObject {
 			dispatch { o_CopyConcatenating(it, newListPhrase) }
 
 		/**
-		 * Answer the [declaration&#32;][DeclarationPhraseDescriptor] phrase
+		 * Answer the [declaration][DeclarationPhraseDescriptor] phrase
 		 * referenced by this [variable&#32;use][VariableUsePhraseDescriptor]
 		 * phrase.  If this phrase is a
 		 * [macro][MacroSubstitutionPhraseDescriptor] invocation, answer the

@@ -891,7 +891,7 @@ abstract class AbstractStacksScanner internal constructor(
 	{
 		/**
 		 * A table whose indices are Unicode code points (up to 65535) and whose
-		 * values are [scanner actions][StacksScanner.ScannerAction].
+		 * values are [scanner&#32;actions][StacksScanner.ScannerAction].
 		 */
 		internal val dispatchTable = ByteArray(65536)
 

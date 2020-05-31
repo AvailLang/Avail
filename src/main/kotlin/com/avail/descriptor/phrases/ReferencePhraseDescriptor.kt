@@ -200,13 +200,13 @@ class ReferencePhraseDescriptor(
 		writer.endObject()
 	}
 
-	override fun mutable(): AbstractDescriptor = mutable
+	override fun mutable() = mutable
 
-	override fun shared(): AbstractDescriptor = shared
+	override fun shared() = shared
 
 	companion object {
 		/**
-		 * Create a new [reference phrase][ReferencePhraseDescriptor] from the
+		 * Create a new [reference&#32;phrase][ReferencePhraseDescriptor] from the
 		 * given [variable&#32;use&#32;phrase][VariableUsePhraseDescriptor].
 		 *
 		 * @param variableUse

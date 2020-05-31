@@ -400,7 +400,7 @@ class OptionProcessor<OptionKeyType : Enum<OptionKeyType>> internal constructor(
 	 * @param appendable
 	 *   An [Appendable].
 	 * @throws IOException
-	 *   If an [I/O exception][IOException] occurs.
+	 *   If an [I/O&#32;exception][IOException] occurs.
 	 */
 	@Throws(IOException::class)
 	fun writeOptionDescriptions(appendable: Appendable)

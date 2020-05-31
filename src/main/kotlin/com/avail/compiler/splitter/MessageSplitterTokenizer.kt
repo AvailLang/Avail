@@ -128,7 +128,7 @@ class MessageSplitterTokenizer
 	}
 
 	/**
-	 * Answer a variant of the [message name][messageName] with backquotes
+	 * Answer a variant of the [message&#32;name][messageName] with backquotes
 	 * stripped.
 	 *
 	 * @param range

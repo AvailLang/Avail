@@ -507,13 +507,13 @@ class HashedSetBinDescriptor private constructor(
 	override fun o_SetBinIterator(self: AvailObject): SetIterator =
 		HashedSetBinIterator(self)
 
-	override fun mutable(): AbstractDescriptor =
+	override fun mutable() =
 		descriptorFor(Mutability.MUTABLE, level)
 
-	override fun immutable(): AbstractDescriptor =
+	override fun immutable() =
 		descriptorFor(Mutability.IMMUTABLE, level)
 
-	override fun shared(): AbstractDescriptor =
+	override fun shared() =
 		descriptorFor(Mutability.SHARED, level)
 
 	companion object {

@@ -187,8 +187,8 @@ internal abstract class Expression constructor(val positionInName: Int)
 	 * [tuple&#32;type][TupleTypeDescriptor] for the outermost check.
 	 *
 	 * @param argumentType
-	 *   A [tuple type][TupleTypeDescriptor] describing the types of arguments
-	 *   that a method being added will accept.
+	 *   A [tuple&#32;type][TupleTypeDescriptor] describing the types of
+	 *   arguments that a method being added will accept.
 	 * @param sectionNumber
 	 *   Which [SectionCheckpoint] section marker this list of argument types
 	 *   are being validated against.  To validate the final method or macro

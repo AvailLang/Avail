@@ -75,7 +75,7 @@ import java.util.*
  * Besides the message name, which is an [A_Atom], the bundle also contains
  * information useful for parsing its invocations.  This information includes
  * parsing instructions which, when aggregated with other bundles, forms a
- * [message&#32; bundle&#32; tree][MessageBundleTreeDescriptor].  This allows
+ * [message&#32;bundle&#32;tree][MessageBundleTreeDescriptor].  This allows
  * parsing of multiple similar methods *in aggregate*, avoiding the cost of
  * repeatedly parsing the same constructs (tokens and subexpressions) for
  * different purposes.
@@ -242,7 +242,8 @@ class MessageBundleDescriptor private constructor(
 
 	companion object {
 		/**
-		 * Add a [definition parsing plan][DefinitionParsingPlanDescriptor] to
+		 * Add a
+		 * [definition&#32;parsing&#32;plan][DefinitionParsingPlanDescriptor] to
 		 * this bundle.  This is performed to make the bundle agree with the
 		 * method's definitions and macro definitions.
 		 *
@@ -287,7 +288,7 @@ class MessageBundleDescriptor private constructor(
 		 * @param self
 		 *   The affected message bundle.
 		 * @param grammaticalRestriction
-		 *   A [grammatical restriction][A_GrammaticalRestriction].
+		 *   A [grammatical&#32;restriction][A_GrammaticalRestriction].
 		 */
 		private fun addGrammaticalRestriction(
 			self: AvailObject,
@@ -331,7 +332,7 @@ class MessageBundleDescriptor private constructor(
 		 * @param splitter
 		 *   A MessageSplitter for this message name.
 		 * @return
-		 *   A new [message bundle][A_Bundle].
+		 *   A new [message&#32;bundle][A_Bundle].
 		 */
 		fun newBundle(
 			methodName: A_Atom,

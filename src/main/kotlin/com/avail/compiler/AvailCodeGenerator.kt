@@ -281,7 +281,7 @@ class AvailCodeGenerator private constructor(
 	 * @param originatingBlockPhrase
 	 *   The block phrase from which the raw function is created.
 	 * @return
-	 *   A [raw function][A_RawFunction] object.
+	 *   A [raw&#32;function][A_RawFunction] object.
 	 */
 	private fun endBlock(originatingBlockPhrase: A_Phrase): A_RawFunction
 	{

@@ -162,12 +162,12 @@ class GrammaticalRestrictionDescriptor private constructor(
 	override fun o_DefinitionModule(self: AvailObject): A_Module =
 		self.slot(DEFINITION_MODULE)
 
-	override fun mutable(): AbstractDescriptor = mutable
+	override fun mutable() = mutable
 
 	// There is no immutable variant; answer the shared descriptor.
-	override fun immutable(): AbstractDescriptor = shared
+	override fun immutable() = shared
 
-	override fun shared(): AbstractDescriptor = shared
+	override fun shared() = shared
 
 	companion object {
 		/**

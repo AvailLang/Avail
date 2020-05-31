@@ -167,7 +167,7 @@ open class VariableDescriptor protected constructor(
 
 		/**
 		 * The [kind][AvailObject] of the [variable][VariableDescriptor].  Note
-		 * that this is always a [variable type][VariableTypeDescriptor].
+		 * that this is always a [variable&#32;type][VariableTypeDescriptor].
 		 */
 		KIND,
 
@@ -669,7 +669,7 @@ open class VariableDescriptor protected constructor(
 			Void.TYPE)
 
 		/**
-		 * The bootstrapped [assignment function][P_SetValue] used to restart
+		 * The bootstrapped [assignment&#32;function][P_SetValue] used to restart
 		 * implicitly observed assignments.
 		 */
 		@JvmField
@@ -699,7 +699,7 @@ open class VariableDescriptor protected constructor(
 		 * initially holds no value.
 		 *
 		 * @param variableType
-		 *   The [variable type][VariableTypeDescriptor].
+		 *   The [variable&#32;type][VariableTypeDescriptor].
 		 * @return
 		 *   A new variable of the given type.
 		 */

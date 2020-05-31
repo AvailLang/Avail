@@ -198,9 +198,9 @@ class SuperCastPhraseDescriptor private constructor(
 
 	companion object {
 		/**
-		 * Create a new [super cast phrase][SuperCastPhraseDescriptor] from the
-		 * given [phrase][PhraseDescriptor] and [type][A_Type] with which to
-		 * perform a method lookup.
+		 * Create a new [super&#32;cast&#32;phrase][SuperCastPhraseDescriptor]
+		 * from the given [phrase][PhraseDescriptor] and [type][A_Type] with
+		 * which to perform a method lookup.
 		 *
 		 * @param expression
 		 *   The base expression.

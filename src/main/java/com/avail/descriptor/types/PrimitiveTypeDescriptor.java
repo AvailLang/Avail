@@ -358,7 +358,7 @@ extends TypeDescriptor
 	@Override
 	public boolean o_IsSupertypeOfEnumerationType (
 		final AvailObject object,
-		final A_BasicObject anEnumerationType)
+		final A_Type anEnumerationType)
 	{
 		return topMeta().isSubtypeOf(object);
 	}

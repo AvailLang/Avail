@@ -696,7 +696,7 @@ extends AbstractTypeDescriptor
 	@Override
 	public final boolean o_IsSupertypeOfEnumerationType (
 		final AvailObject object,
-		final A_BasicObject aTupleType)
+		final A_Type aTupleType)
 	{
 		return false;
 	}

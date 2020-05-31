@@ -51,7 +51,7 @@ open class AvailRuntimeException : RuntimeException
 	 * Answer the numeric error code as an [Avail][AvailObject].
 	 *
 	 * @return
-	 *   The [numeric error code][AvailObject].
+	 *   The [numeric&#32;error&#32;code][AvailObject].
 	 */
 	fun numericCode(): A_Number = errorCode.numericCode()
 
@@ -60,7 +60,7 @@ open class AvailRuntimeException : RuntimeException
 	 * [error&#32;code][AvailErrorCode].
 	 *
 	 * @param errorCode
-	 *   The [error code][AvailErrorCode].
+	 *   The [error&#32;code][AvailErrorCode].
 	 */
 	constructor(errorCode: AvailErrorCode)
 	{
@@ -72,7 +72,7 @@ open class AvailRuntimeException : RuntimeException
 	 * [error&#32;code][AvailErrorCode] and [cause][Throwable].
 	 *
 	 * @param errorCode
-	 *   The [error code][AvailErrorCode].
+	 *   The [error&#32;code][AvailErrorCode].
 	 * @param cause
 	 *   The proximal [cause][Throwable] of the [exception][AvailException].
 	 */

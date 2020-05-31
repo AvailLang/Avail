@@ -956,9 +956,9 @@ class DeclarationPhraseDescriptor(
 		}.toTypedArray()
 	}
 
-	override fun mutable(): AbstractDescriptor =
+	override fun mutable() =
 		mutables[declarationKind.ordinal]
 
-	override fun shared(): AbstractDescriptor =
+	override fun shared() =
 		shareds[declarationKind.ordinal]
 }
