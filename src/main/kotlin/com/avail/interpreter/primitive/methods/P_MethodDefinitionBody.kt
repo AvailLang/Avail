@@ -45,7 +45,8 @@ import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Answer this [method signature's][MethodDefinitionDescriptor]
+ * **Primitive:** Answer this
+ * [method&#32;signature's][MethodDefinitionDescriptor]
  * [body][FunctionDescriptor].
  */
 @Suppress("unused")

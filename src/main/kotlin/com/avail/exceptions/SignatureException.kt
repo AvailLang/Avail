@@ -52,7 +52,7 @@ import com.avail.descriptor.methods.DefinitionDescriptor
  * [error&#32;code][AvailErrorCode].
  *
  * @param errorCode
- *   The [error code][AvailErrorCode].
+ *   The [error&#32;code][AvailErrorCode].
  */
 class SignatureException constructor(errorCode: AvailErrorCode)
 	: AvailException(errorCode)

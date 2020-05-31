@@ -52,7 +52,7 @@ import com.avail.interpreter.execution.Interpreter
 /**
  * **Primitive:** Answer the [type][A_Type] that represents the Java [Class]
  * specified by the given fully-qualified name and type parameters. The result
- * is either an Avail [type][A_Type] or a [pojo type][PojoTypeDescriptor].
+ * is either an Avail [type][A_Type] or a [pojo&#32;type][PojoTypeDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

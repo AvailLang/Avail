@@ -48,8 +48,8 @@ import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Construct a [tuple type][TupleTypeDescriptor] with the given
- * parameters. Canonize the data if necessary.
+ * **Primitive:** Construct a [tuple&#32;type][TupleTypeDescriptor] with the
+ * given parameters. Canonize the data if necessary.
  */
 @Suppress("unused")
 object P_CreateTupleType : Primitive(3, CannotFail, CanFold, CanInline)

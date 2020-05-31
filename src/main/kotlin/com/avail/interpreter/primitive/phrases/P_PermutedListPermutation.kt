@@ -48,7 +48,7 @@ import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive**: Answer the [permutation tuple][TupleDescriptor] of the
+ * **Primitive**: Answer the [permutation&#32;tuple][TupleDescriptor] of the
  * specified [permuted&#32;list&#32;phrase][PermutedListPhraseDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;

@@ -50,7 +50,7 @@ import com.avail.interpreter.execution.AvailLoader
 import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive**: Answer every [true name][A_Atom] visible in the
+ * **Primitive**: Answer every [true&#32;name][A_Atom] visible in the
  * [module][A_Module] currently being [loader][AvailLoader].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;

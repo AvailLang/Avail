@@ -32,6 +32,7 @@
 package com.avail.interpreter.primitive.maps
 
 import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.maps.A_Map
 import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
@@ -47,7 +48,8 @@ import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Look up the key in the [ ], answering the corresponding value.
+ * **Primitive:** Look up the key in the [map][A_Map], answering the
+ * corresponding value.
  */
 @Suppress("unused")
 object P_MapAtKey : Primitive(2, CanFold, CanInline)

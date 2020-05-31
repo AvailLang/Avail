@@ -47,8 +47,8 @@ import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Create a [literal expression][LiteralPhraseDescriptor]
- * from the specified [literal token][LiteralTokenDescriptor].
+* **Primitive:** Create a [literal&#32;expression][LiteralPhraseDescriptor]
+ * from the specified [literal&#32;token][LiteralTokenDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

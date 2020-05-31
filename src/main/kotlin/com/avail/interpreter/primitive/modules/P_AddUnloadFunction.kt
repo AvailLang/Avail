@@ -52,7 +52,7 @@ import com.avail.interpreter.effects.LoadingEffectToRunPrimitive
 import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Add the specified [unload function][A_Function] to the
+* **Primitive:** Add the specified [unload&#32;function][A_Function] to the
  * [current][ModuleDescriptor.currentModule].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;

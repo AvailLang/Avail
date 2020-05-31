@@ -65,9 +65,10 @@ import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.optimizer.L1Translator
 
 /**
- * **Primitive:** Given an [object type][ObjectTypeDescriptor] and an [A_Atom]
- * that is a field of that type (and not an explicit-subclass atom), create a
- * function that will extract that field from an object satisfying that type.
+ * **Primitive:** Given an [object&#32;type][ObjectTypeDescriptor] and an
+ * [A_Atom] that is a field of that type (and not an explicit-subclass atom),
+ * create a function that will extract that field from an object satisfying that
+ * type.
  *
  * The function should accept only objects of the type that was given to this
  * primitive, and should produce a result that is strongly typed to the field's

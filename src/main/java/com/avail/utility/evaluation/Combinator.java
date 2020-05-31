@@ -38,7 +38,8 @@ import kotlin.jvm.functions.Function1;
 import kotlin.jvm.functions.Function2;
 
 /**
- * Utility for applying a functions recursively.
+ * Utilities for applying functions recursively and enabling function
+ * self-reference.
  */
 @SuppressWarnings("UtilityClassWithoutPrivateConstructor")
 public final class Combinator

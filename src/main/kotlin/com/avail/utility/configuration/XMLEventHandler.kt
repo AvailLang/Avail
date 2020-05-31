@@ -50,7 +50,7 @@ import javax.xml.parsers.SAXParser
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  *
  * @property model
- *   The [document model][XMLDocumentModel].
+ *   The [document&#32;model][XMLDocumentModel].
  * @property state
  *   The current [state][XMLConfiguratorState] of the
  *   [configurator][Configurator].

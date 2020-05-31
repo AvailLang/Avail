@@ -54,9 +54,12 @@ import com.avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
 import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Disable variable [read-before-write&#32;tracing][TraceFlag.TRACE_VARIABLE_READS_BEFORE_WRITES] for the [current&#32;fiber][FiberDescriptor.currentFiber]. To each [variable][A_Variable] that
- * survived tracing, add a [write reactor][VariableAccessReactor] that wraps the
- * specified [function][FunctionDescriptor], associating it with the specified
+ * **Primitive:** Disable variable
+ * [read-before-write&#32;tracing][TraceFlag.TRACE_VARIABLE_READS_BEFORE_WRITES]
+ * for the [current&#32;fiber][FiberDescriptor.currentFiber]. To each
+ * [variable][A_Variable] that survived tracing, add a
+ * [write&#32;reactor][VariableAccessReactor] that wraps the specified
+ * [function][FunctionDescriptor], associating it with the specified
  * [atom][A_Atom] (for potential pre-activation removal).
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;

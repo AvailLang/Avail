@@ -47,7 +47,7 @@ import java.util.*
 /**
  * A `ArgumentInModuleScope` is an occurrence of an
  * [underscore][Metacharacter.UNDERSCORE] (_) in a message name, followed
- * immediately by a [single dagger][Metacharacter.SINGLE_DAGGER] (†). It
+ * immediately by a [single&#32;dagger][Metacharacter.SINGLE_DAGGER] (†). It
  * indicates where an argument is expected, but the argument must not make use
  * of any local declarations. The argument expression will be evaluated at
  * compile time and replaced by a [literal][LiteralPhraseDescriptor] based on
@@ -78,7 +78,7 @@ internal class ArgumentInModuleScope constructor(
 	 * that argument position).  Also ensure that no local declarations that
 	 * were in scope before parsing the argument are used by the argument.
 	 * Then evaluate the argument expression (at compile time) and replace
-	 * it with a [literal phrase][LiteralPhraseDescriptor] wrapping the
+	 * it with a [literal&#32;phrase][LiteralPhraseDescriptor] wrapping the
 	 * produced value.
 	 *
 	 * @param phraseType

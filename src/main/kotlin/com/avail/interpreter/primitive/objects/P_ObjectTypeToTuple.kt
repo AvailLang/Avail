@@ -50,9 +50,10 @@ import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Answer the field definitions of the specified
- * [object&#32;type][ObjectTypeDescriptor]. A field definition is a 2-tuple whose
- * first element is an [atom][AtomDescriptor] that represents the field and whose
- * second element is the value [user-defined object type][ObjectTypeDescriptor].
+ * [object&#32;type][ObjectTypeDescriptor]. A field definition is a 2-tuple
+ * whose first element is an [atom][AtomDescriptor] that represents the field
+ * and whose second element is the value [user-defined object
+ * type][ObjectTypeDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

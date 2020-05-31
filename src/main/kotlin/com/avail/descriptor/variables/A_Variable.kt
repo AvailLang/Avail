@@ -6,13 +6,13 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
- *
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+*
  *  * Neither the name of the copyright holder nor the names of the contributors
  *    may be used to endorse or promote products derived from this software
  *    without specific prior written permission.
@@ -208,8 +208,8 @@ interface A_Variable : A_ChunkDependable
 
 	/**
 	 * Clear the variable.  This causes the variable to have no value, and
-	 * subsequent attempts to [get the value][A_Variable.getValue] of this
-	 * variable will fail.
+	 * subsequent attempts to [get&#32;the&#32;value][A_Variable.getValue] of
+	 * this variable will fail.
 	 *
 	 * The variable is not required to have a value prior to this operation.
 	 */
@@ -217,7 +217,7 @@ interface A_Variable : A_ChunkDependable
 	fun clearValue()
 
 	/**
-	 * Add a [write reactor][VariableAccessReactor] to the
+	 * Add a [write&#32;reactor][VariableAccessReactor] to the
 	 * [variable][VariableDescriptor] and associate it with the specified key
 	 * (for subsequent removal).
 	 *
@@ -229,19 +229,20 @@ interface A_Variable : A_ChunkDependable
 	fun addWriteReactor(key: A_Atom, reactor: VariableAccessReactor)
 
 	/**
-	 * Remove the [write reactor][VariableAccessReactor] associated with the
+	 * Remove the [write&#32;reactor][VariableAccessReactor] associated with the
 	 * specified [key][AtomDescriptor] from the [variable][VariableDescriptor].
 	 *
 	 * @param key
 	 *   An atom.
 	 * @throws AvailException
-	 *   If the [key is not found][AvailErrorCode.E_KEY_NOT_FOUND].
+	 *   If the [key&#32;is&#32;not&#32;found][AvailErrorCode.E_KEY_NOT_FOUND].
 	 */
 	@Throws(AvailException::class)
 	fun removeWriteReactor(key: A_Atom)
 
 	/**
-	 * Answer the [set][SetDescriptor] of [write reactor][VariableAccessReactor]
+	 * Answer the [set][SetDescriptor] of
+	 * [write&#32;reactor][VariableAccessReactor]
 	 * [functions][FunctionDescriptor] that have not previously activated.
 	 *
 	 * @return
@@ -312,8 +313,9 @@ interface A_Variable : A_ChunkDependable
 	fun isGlobal(): Boolean
 
 	/**
-	 * Only applicable to [global variables][VariableSharedGlobalDescriptor].
-	 * Answer the [module][A_Module] in which it's defined.
+	 * Only applicable to
+	 * [global&#32;variables][VariableSharedGlobalDescriptor]. Answer the
+	 * [module][A_Module] in which it's defined.
 	 *
 	 * @return
 	 *   The module in which this global variable/constant is defined.
@@ -321,8 +323,9 @@ interface A_Variable : A_ChunkDependable
 	fun globalModule(): A_Module?
 
 	/**
-	 * Only applicable to [global variables][VariableSharedGlobalDescriptor].
-	 * Answer the name of this global variable or constant.
+	 * Only applicable to
+	 * [global&#32;variables][VariableSharedGlobalDescriptor]. Answer the name
+	 * of this global variable or constant.
 	 *
 	 * @return
 	 *   The name of this global variable/constant.

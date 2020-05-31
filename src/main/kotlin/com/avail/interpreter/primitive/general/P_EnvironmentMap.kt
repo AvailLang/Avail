@@ -65,7 +65,7 @@ object P_EnvironmentMap : Primitive(0, CannotFail, CanInline, HasSideEffect)
 	private var environmentMap = SoftReference<A_Map>(null)
 
 	/**
-	 * Get the [environment map][environmentMap], creating a new one as
+	 * Get the [environment&#32;map][environmentMap], creating a new one as
 	 * necessary (either because it has never been created or because the
 	 * garbage collector has discarded it).
 	 *

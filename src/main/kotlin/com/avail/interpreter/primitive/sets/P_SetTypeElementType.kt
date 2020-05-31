@@ -45,7 +45,7 @@ import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Extract a [set type][SetTypeDescriptor]'s element
+* **Primitive:** Extract a [set&#32;type][SetTypeDescriptor]'s element
  * [type][TypeDescriptor].
  */
 object P_SetTypeElementType : Primitive(1, CannotFail, CanFold, CanInline)

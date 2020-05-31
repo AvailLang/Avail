@@ -79,7 +79,7 @@ class InlineKeywordStacksToken private constructor(
 		 *   The position on the line where the token starts.
 		 * @param moduleName
 		 *   The module the token appears in
-		 * @return a new [stacks token][StacksToken]
+		 * @return a new [stacks&#32;token][StacksToken]
 		 */
 		fun create(
 			string: String,

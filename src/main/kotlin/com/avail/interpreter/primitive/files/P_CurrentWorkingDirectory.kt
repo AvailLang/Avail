@@ -48,8 +48,8 @@ import java.nio.file.FileSystems
 import java.nio.file.Path
 
 /**
- * **Primitive:** Answer the [real path][Path.toRealPath] of the current working
- * directory.
+ * **Primitive:** Answer the [real&#32;path][Path.toRealPath] of the current
+ * working directory.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

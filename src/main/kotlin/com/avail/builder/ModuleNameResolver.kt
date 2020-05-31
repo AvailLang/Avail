@@ -42,7 +42,7 @@ import java.util.*
 /**
  * A `ModuleNameResolver` resolves fully-qualified references to Avail
  * [modules][ModuleDescriptor] to [absolute][File.isAbsolute]
- * [file references][File].
+ * [file&#32;references][File].
  *
  * Assuming that the Avail module path comprises four module roots listed in the
  * order _S_, _P_,_Q_, _R_, then the following algorithm is used for resolution
@@ -72,7 +72,7 @@ import java.util.*
  * An instance is obtained via [RenamesFileParser.parse].
  *
  * @property moduleRoots
- *   The [Avail module roots][ModuleRoots].
+ *   The [Avail&#32;module roots][ModuleRoots].
  * @author Todd L Smith &lt;todd@availlang.org &gt;
  * @author Leslie Schultz &lt;leslie@availlang.org &gt;
  *
@@ -81,7 +81,7 @@ import java.util.*
  * Construct a new `ModuleNameResolver`.
  *
  * @param moduleRoots
- *   The Avail [module roots][ModuleRoots].
+ *   The Avail [module&#32;roots][ModuleRoots].
  */
 @ThreadSafe
 class ModuleNameResolver constructor(val moduleRoots: ModuleRoots)
@@ -145,7 +145,7 @@ class ModuleNameResolver constructor(val moduleRoots: ModuleRoots)
 	 * fully-qualified [module&#32;name][ModuleName].
 	 *
 	 * @param qualifiedName
-	 *   A fully-qualified [module name][ModuleName].
+	 *   A fully-qualified [module&#32;name][ModuleName].
 	 * @return
 	 *   The canonical name that should be used in place of the fully-qualified
 	 *   [module&#32;name][ModuleName].
@@ -344,7 +344,7 @@ class ModuleNameResolver constructor(val moduleRoots: ModuleRoots)
 
 		/**
 		 * Construct a new `ModuleNameResolutionResult`, upon successful
-		 * resolution, with the [resolved module][ResolvedModuleName].
+		 * resolution, with the [resolved&#32;module][ResolvedModuleName].
 		 *
 		 * @param resolvedModule
 		 *   The module that was successfully resolved.
@@ -377,12 +377,12 @@ class ModuleNameResolver constructor(val moduleRoots: ModuleRoots)
 	 * [package][ModuleName.packageName]).
 	 *
 	 * @param qualifiedName
-	 *   A fully-qualified [module name][ModuleName].
+	 *   A fully-qualified [module&#32;name][ModuleName].
 	 * @param dependent
 	 *   The name of the module that requires this resolution, if any.
 	 * @return
-	 *   A [resolved module name][ResolvedModuleName] if the resolution was
-	 *   successful.
+	 *   A [resolved&#32;module&#32;name][ResolvedModuleName] if the resolution
+	 *   was successful.
 	 * @throws UnresolvedDependencyException
 	 *   If resolution fails.
 	 */

@@ -6,13 +6,13 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
- *
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+*
  *  * Neither the name of the copyright holder nor the names of the contributors
  *    may be used to endorse or promote products derived from this software
  *    without specific prior written permission.
@@ -207,19 +207,19 @@ open class RawPojoDescriptor protected constructor(
 	@Deprecated(
 		"Not applicable to pojos",
 		replaceWith = ReplaceWith("Create a new pojo object instead"))
-	override fun mutable(): AbstractDescriptor =
+	override fun mutable() =
 		throw unsupportedOperationException()
 
 	@Deprecated(
 		"Not applicable to pojos",
 		replaceWith = ReplaceWith("Create a new pojo object instead"))
-	override fun immutable(): AbstractDescriptor =
+	override fun immutable() =
 		throw unsupportedOperationException()
 
 	@Deprecated(
 		"Not applicable to pojos",
 		replaceWith = ReplaceWith("Create a new pojo object instead"))
-	override fun shared(): AbstractDescriptor =
+	override fun shared() =
 		throw unsupportedOperationException()
 
 	companion object
@@ -270,7 +270,7 @@ open class RawPojoDescriptor protected constructor(
 		 * @param javaObject
 		 *   A Java Object, never `null`.
 		 * @return
-		 *   The new [Avail pojo][PojoDescriptor].
+		 *   The new [Avail&#32;pojo][PojoDescriptor].
 		 */
 		@JvmStatic
 		fun equalityPojo(javaObject: Any): AvailObject =

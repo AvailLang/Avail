@@ -55,8 +55,8 @@ import java.nio.file.InvalidPathException
 import java.nio.file.Path
 
 /**
- * **Primitive:** Answer the [real path][Path.toRealPath] that corresponds to
- * the specified path.
+ * **Primitive:** Answer the [real&#32;path][Path.toRealPath] that corresponds
+ * to the specified path.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

@@ -61,7 +61,8 @@ import com.avail.serialization.MalformedSerialStreamException
  *
  * @property isExtension
  *   Whether this [ModuleImport] is due to an Extends clause rather than a
- *   `Uses` clause, as indicated by [module&#32;header][SpecialMethodAtom.MODULE_HEADER].
+ *   `Uses` clause, as indicated by
+ *   [module&#32;header][SpecialMethodAtom.MODULE_HEADER].
  * @property wildcard
  *   Whether to include all names exported by the predecessor module that are
  *   not otherwise excluded by this import.

@@ -59,7 +59,7 @@ enum class L1OperandType
 
 	/**
 	 * The integer in the nybblecode stream is to be treated as an index into
-	 * the current [compiled code][CompiledCodeDescriptor] object's
+	 * the current [compiled&#32;code][CompiledCodeDescriptor] object's
 	 * [literals][AvailObject.literalAt]. This allows instructions to refer to
 	 * arbitrary [AvailObject]s.
 	 */

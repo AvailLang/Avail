@@ -6,11 +6,11 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *    list of conditions and the following disclaimer in the documentation
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
  *
  *  * Neither the name of the copyright holder nor the names of the contributors
@@ -98,7 +98,7 @@ interface A_RawFunction : A_BasicObject {
 		continuation: (Boolean) -> Unit)
 
 	/**
-	 * Answer the [function type][FunctionTypeDescriptor] associated with
+	 * Answer the [function&#32;type][FunctionTypeDescriptor] associated with
 	 * this raw function's closures.
 	 *
 	 * @return
@@ -242,7 +242,7 @@ interface A_RawFunction : A_BasicObject {
 	fun nybbles(): A_Tuple
 
 	/**
-	 * Answer the [block phrase][BlockPhraseDescriptor] from which this raw
+	 * Answer the [block&#32;phrase][BlockPhraseDescriptor] from which this raw
 	 * function was constructed.  Answer [nil] if this information is not
 	 * available.
 	 *

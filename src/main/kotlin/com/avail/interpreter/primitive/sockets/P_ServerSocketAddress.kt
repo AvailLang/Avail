@@ -62,12 +62,13 @@ import java.nio.channels.AsynchronousServerSocketChannel
 import java.nio.channels.ClosedChannelException
 
 /**
- * **Primitive:** Answer the [socket address][InetSocketAddress] of the
+ * **Primitive:** Answer the [socket&#32;address][InetSocketAddress] of the
  * [AsynchronousServerSocketChannel] referenced by the specified
  * [handle][AtomDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_ServerSocketAddress : Primitive(1, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

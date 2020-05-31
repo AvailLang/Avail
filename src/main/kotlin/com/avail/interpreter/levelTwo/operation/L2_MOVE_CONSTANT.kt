@@ -80,8 +80,8 @@ import org.objectweb.asm.MethodVisitor
  * @param pushConstant
  *   A function to invoke to generate JVM code to push the constant value.
  * @param theNamedOperandTypes
- *   An array of [L2NamedOperandType]s that describe this particular L2Operation,
- *   allowing it to be specialized by register type.
+ *   An array of [L2NamedOperandType]s that describe this particular
+ *   L2Operation, allowing it to be specialized by register type.
  */
 class L2_MOVE_CONSTANT<C : L2Operand, R : L2Register, WR : L2WriteOperand<R>>
 private constructor(

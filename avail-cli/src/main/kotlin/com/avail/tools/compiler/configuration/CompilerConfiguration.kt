@@ -95,8 +95,8 @@ class CompilerConfiguration : Configuration
 	 * current `CompilerConfiguration configuration`.
 	 *
 	 * @throws FileNotFoundException
-	 *   If the [renames file path][RenamesFileParser] has been specified, but
-	 *   is invalid.
+	 *   If the [renames&#32;file&#32;path][RenamesFileParser] has been
+	 *   specified, but is invalid.
 	 * @throws RenamesFileParserException
 	 *   If the renames file is invalid.
 	 */

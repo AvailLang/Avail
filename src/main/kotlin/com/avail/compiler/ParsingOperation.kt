@@ -446,7 +446,7 @@ enum class ParsingOperation constructor(
 	},
 
 	/**
-	 * `7` - Parse a [raw token][TokenDescriptor]. It should correspond to a
+	 * `7` - Parse a [raw&#32;token][TokenDescriptor]. It should correspond to a
 	 * [variable][VariableDescriptor] that is in scope. Push a
 	 * [variable&#32;reference][ReferencePhraseDescriptor] onto the parse stack.
 	 */
@@ -585,9 +585,9 @@ enum class ParsingOperation constructor(
 	},
 
 	/**
-	 * `9` - Parse *any* [raw token][TokenDescriptor], leaving it on the parse
-	 * stack.  In particular, push a literal phrase whose token is a synthetic
-	 * literal token whose value is the actual token that was parsed.
+	 * `9` - Parse *any* [raw&#32;token][TokenDescriptor], leaving it on the
+	 * parse stack.  In particular, push a literal phrase whose token is a
+	 * synthetic literal token whose value is the actual token that was parsed.
 	 */
 	PARSE_ANY_RAW_TOKEN(9, false, false)
 	{
@@ -1268,10 +1268,10 @@ enum class ParsingOperation constructor(
 	 * [list&#32;phrase][ListPhraseDescriptor] and push it onto the original
 	 * parse stack. It will be consumed by a subsequent [RUN_PREFIX_FUNCTION].
 	 *
-	 * This instruction is detected specially by the [message bundle
-	 * tree][A_BundleTree]'s [expand][A_BundleTree.expand] operation.  Its
-	 * successors are separated into distinct message bundle trees, one per
-	 * message bundle.
+	 * This instruction is detected specially by the
+	 * [message&#32;bundle&#32;tree][A_BundleTree]'s
+	 * [expand][A_BundleTree.expand] operation.  Its successors are separated
+	 * into distinct message bundle trees, one per message bundle.
 	 */
 	PREPARE_TO_RUN_PREFIX_FUNCTION(7, false, true)
 	{
@@ -1579,9 +1579,9 @@ enum class ParsingOperation constructor(
 	},
 
 	/**
-	 * `16*N+14` - Push a [literal phrase][LiteralPhraseDescriptor] containing
-	 * the constant found at the position in the type list indicated by the
-	 * operand.
+	 * `16*N+14` - Push a [literal&#32;phrase][LiteralPhraseDescriptor]
+	 * containing the constant found at the position in the type list indicated
+	 * by the operand.
 	 */
 	PUSH_LITERAL(14, true, true)
 	{
@@ -1776,8 +1776,9 @@ enum class ParsingOperation constructor(
 	 * @param instruction
 	 *   An [Int] encoding the `ParsingOperation` to execute.
 	 * @param successorTrees
-	 *   The [tuple][TupleDescriptor] of [message bundle trees][A_BundleTree] at
-	 *   which to continue parsing.
+	 *   The [tuple][TupleDescriptor] of
+	 *   [message&#32;bundle&#32;trees][A_BundleTree] at which to continue
+	 *   parsing.
 	 * @param start
 	 *   Where to start parsing.
 	 * @param firstArgOrNull
@@ -1807,7 +1808,7 @@ enum class ParsingOperation constructor(
 	 *   These are the tokens that correspond with tokens that occur verbatim
 	 *   inside the name of the method or macro.
 	 * @param continuation
-	 *   What to do with a complete [message send][SendPhraseDescriptor].
+	 *   What to do with a complete [message&#32;send][SendPhraseDescriptor].
 	 */
 	internal abstract fun execute(
 		compiler: AvailCompiler,

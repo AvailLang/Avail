@@ -49,8 +49,8 @@ import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Unbind a name from a
- * [user-defined&#32;object&#32;type][ObjectTypeDescriptor]. This can be useful for
- * removing the effect of [P_RecordNewTypeName] when unloading a module.
+ * [user-defined&#32;object&#32;type][ObjectTypeDescriptor]. This can be useful
+ * for removing the effect of [P_RecordNewTypeName] when unloading a module.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */

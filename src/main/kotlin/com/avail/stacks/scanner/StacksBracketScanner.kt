@@ -92,7 +92,7 @@ class StacksBracketScanner private constructor(bracketToken: BracketedStacksToke
 		 * [Avail&#32;comment][CommentTokenDescriptor].
 		 *
 		 * @param bracketToken
-		 *   A [comment bracket][BracketedStacksToken] to be tokenized.
+		 *   A [comment&#32;bracket][BracketedStacksToken] to be tokenized.
 		 * @return A [list][List] of all tokenized words in the
 		 *   [AvailComment][CommentTokenDescriptor].
 		 * @throws StacksScannerException If scanning fails.

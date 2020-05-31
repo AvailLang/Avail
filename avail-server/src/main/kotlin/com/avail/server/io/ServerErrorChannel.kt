@@ -43,7 +43,7 @@ package com.avail.server.io
  * Construct a new [ServerErrorChannel].
  *
  * @param channel
- *   The [server channel][AvailServerChannel] to adapt as a standard error
+ *   The [server&#32;channel][AvailServerChannel] to adapt as a standard error
  *   channel.
  */
 class ServerErrorChannel constructor(channel: AvailServerChannel)

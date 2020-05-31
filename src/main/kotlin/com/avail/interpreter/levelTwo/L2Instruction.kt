@@ -60,7 +60,7 @@ import java.util.*
  * It used to be the case that the instructions were flattened into a stream of
  * integers, operation followed by operands.  That is no longer the case, as of
  * 2013-05-01 `MvG`.  Instead, the L2Instructions themselves are kept around for
- * reoptimization and [JVM code generation][translateToJVM].
+ * reoptimization and [JVM&#32;code generation][translateToJVM].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;

@@ -51,8 +51,9 @@ import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Answer the [type][TypeDescriptor] that is the union of the
- * types within the given range of indices of the given [tuple&#32;type][TupleTypeDescriptor]. Answer [bottom][BottomTypeDescriptor] if all the
- * indices are out of range.
+ * types within the given range of indices of the given
+ * [tuple&#32;type][TupleTypeDescriptor]. Answer [bottom][BottomTypeDescriptor]
+ * if all the indices are out of range.
  */
 @Suppress("unused")
 object P_TupleTypeAtThrough : Primitive(3, CannotFail, CanFold, CanInline)

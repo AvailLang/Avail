@@ -200,7 +200,7 @@ class ParserState internal constructor(
 	 *   The [ParseNotificationLevel] that indicates the priority of the parse
 	 *   theory that failed.
 	 * @param values
-	 *   A list of arbitrary [Avail values][AvailObject] that should be
+	 *   A list of arbitrary [Avail&#32;values][AvailObject] that should be
 	 *   stringified.
 	 * @param transformer
 	 *   A transformer that accepts the stringified values and answers an
@@ -209,13 +209,16 @@ class ParserState internal constructor(
 	internal fun expected(
 		level: ParseNotificationLevel,
 		values: List<A_BasicObject>,
-		transformer: (List<String>)->String) =
+		transformer: (List<String>)->String
+	) =
 		expected(level) { continuation ->
 			Interpreter.stringifyThen(
 				currentRuntime(),
 				lexingState.compilationContext.textInterface,
 				values
-			) { continuation(transformer(it)) }
+			) {
+				continuation(transformer(it))
+			}
 		}
 
 	/**

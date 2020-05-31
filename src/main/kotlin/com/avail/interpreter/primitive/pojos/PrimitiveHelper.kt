@@ -198,7 +198,7 @@ object PrimitiveHelper
 	}
 
 	/**
-	 * Synthesize a [raw function][A_RawFunction].  It should have the given
+	 * Synthesize a [raw&#32;function][A_RawFunction].  It should have the given
 	 * [function&#32;type][FunctionTypeDescriptor], and expect to be
 	 * instantiated as a [function][A_Function] with the given types of outers.
 	 * It should also be [Primitive], with failure code to invoke the

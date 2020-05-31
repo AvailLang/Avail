@@ -108,12 +108,12 @@ class CommentGroup
 	val macros: MutableMap<String, MacroComment>
 
 	/**
-	 * A list of [semantic restrictions][SemanticRestrictionComment]
+	 * A list of [semantic&#32;restrictions][SemanticRestrictionComment]
 	 */
 	val semanticRestrictions: MutableMap<String, SemanticRestrictionComment>
 
 	/**
-	 * A list of [ grammatical restrictions][GrammaticalRestrictionComment]
+	 * A list of [grammatical restrictions][GrammaticalRestrictionComment]
 	 */
 	val grammaticalRestrictions: MutableMap<String, GrammaticalRestrictionComment>
 
@@ -340,7 +340,7 @@ class CommentGroup
 	 * @param errorLog
 	 *   The accumulating [StacksErrorLog]
 	 * @throws IOException
-	 *   If an [I/O exception][IOException] occurs.
+	 *   If an [I/O&#32;exception][IOException] occurs.
 	 */
 	@Throws(IOException::class)
 	fun toJSON(

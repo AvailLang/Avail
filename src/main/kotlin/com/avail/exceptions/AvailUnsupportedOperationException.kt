@@ -38,8 +38,8 @@ import com.avail.descriptor.representation.Descriptor
 
 /**
  * An `AvailUnsupportedOperationException` is thrown whenever an
- * [Avail&#32;object][AvailObject]'s [descriptor][Descriptor] is asked to perform an
- * unsupported operation.
+ * [Avail&#32;object][AvailObject]'s [descriptor][Descriptor] is asked to
+ * perform an unsupported operation.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  *

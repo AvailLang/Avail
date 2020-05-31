@@ -73,7 +73,7 @@ import java.util.*
 /**
  * **Primitive:** Rename the source [path][Path] to the destination path. Try
  * not to overwrite an existing destination. This operation is only likely to
- * work for two paths provided by the same [file store][FileStore].
+ * work for two paths provided by the same [file&#32;store][FileStore].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

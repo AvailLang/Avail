@@ -93,8 +93,8 @@ import java.util.*
  *   The [L2_MOVE] operation to substitute for this instruction on incoming
  *   split edges.
  * @param theNamedOperandTypes
- *   An array of [L2NamedOperandType]s that describe this particular L2Operation,
- *   allowing it to be specialized by register type.
+ *   An array of [L2NamedOperandType]s that describe this particular
+ *   L2Operation, allowing it to be specialized by register type.
  */
 class L2_PHI_PSEUDO_OPERATION<R : L2Register, RR : L2ReadOperand<R>, WR : L2WriteOperand<R>>
 private constructor(

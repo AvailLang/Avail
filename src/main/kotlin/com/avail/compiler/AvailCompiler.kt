@@ -275,15 +275,15 @@ import kotlin.streams.toList
  * Construct a new `AvailCompiler`.
  *
  * @param moduleHeader
- *   The [module header][ModuleHeader] of the module to compile. May be null for
- *   synthetic modules (for entry points), or when parsing the header.
+ *   The [module&#32;header][ModuleHeader] of the module to compile. May be null
+ *   for synthetic modules (for entry points), or when parsing the header.
  * @param module
  *   The current [module][ModuleDescriptor].`
  * @param source
  *   The source [A_String].
  * @param textInterface
- *   The [text interface][TextInterface] for any [fibers][A_Fiber] started by
- *   this compiler.
+ *   The [text&#32;interface][TextInterface] for any [fibers][A_Fiber] started
+ *   by this compiler.
  * @param pollForAbort
  *   How to quickly check if the client wants to abort compilation.
  * @param progressReporter
@@ -345,9 +345,9 @@ class AvailCompiler(
 		compilationContext.module.moduleName().asNativeString())
 
 	/**
-	 * A list of subexpressions being parsed, represented by [message bundle
-	 * trees][A_BundleTree] holding the positions within all outer send
-	 * expressions.
+	 * A list of subexpressions being parsed, represented by
+	 * [message&#32;bundle&#32;trees][A_BundleTree] holding the positions
+	 * within all outer send expressions.
 	 *
 	 * @property bundleTree
 	 *   The [A_BundleTree] being parsed at this moment.
@@ -370,8 +370,8 @@ class AvailCompiler(
 		val depth: Int = if (parent === null) 1 else parent.depth + 1
 
 		/**
-		 * Create a list like the receiver, but with a different [message bundle
-		 * tree][A_BundleTree].
+		 * Create a list like the receiver, but with a different
+		 * [message&#32;bundle&#32;tree][A_BundleTree].
 		 *
 		 * @param newBundleTree
 		 *   The new [A_BundleTree] to replace the one in the receiver within
@@ -671,7 +671,7 @@ class AvailCompiler(
 	 * scope, but module variables and constants are in scope.
 	 *
 	 * @param restriction
-	 *   A [semantic restriction][SemanticRestrictionDescriptor].
+	 *   A [semantic&#32;restriction][SemanticRestrictionDescriptor].
 	 * @param args
 	 *   The arguments to the function.
 	 * @param lexingState
@@ -718,7 +718,7 @@ class AvailCompiler(
 	 * scope, but module variables and constants are in scope.
 	 *
 	 * @param macro
-	 *   A [macro definition][MacroDefinitionDescriptor].
+	 *   A [macro&#32;definition][MacroDefinitionDescriptor].
 	 * @param args
 	 *   The argument phrases to supply the macro.
 	 * @param clientParseData
@@ -1820,10 +1820,12 @@ class AvailCompiler(
 	 *   These are the tokens that correspond with tokens that occur verbatim
 	 *   inside the name of the method or macro.
 	 * @param successorTrees
-	 *   The [tuple][TupleDescriptor] of [message bundle tree][A_BundleTree] at
-	 *   which to continue parsing.
+	 *   The [tuple][TupleDescriptor] of
+	 *   [message&#32;bundle&#32;tree][A_BundleTree] at which to continue
+	 *   parsing.
 	 * @param continuation
-	 *   What to do with a complete [message send phrase][SendPhraseDescriptor].
+	 *   What to do with a complete
+	 *   [message&#32;send&#32;phrase][SendPhraseDescriptor].
 	 */
 	private fun runParsingInstructionThen(
 		start: ParserState,
@@ -2027,15 +2029,15 @@ class AvailCompiler(
 	 * applicable method body return types.
 	 *
 	 * @param bundle
-	 *   A [message bundle][MessageBundleDescriptor].
+	 *   A [message&#32;bundle][MessageBundleDescriptor].
 	 * @param argTypes
 	 *   The argument types.
 	 * @param state
-	 *   The [parser state][ParserState] after the function evaluates
+	 *   The [parser&#32;state][ParserState] after the function evaluates
 	 *   successfully.
 	 * @param macroOrNil
-	 *   A [macro definition][MacroDefinitionDescriptor] if this is for a macro
-	 *   invocation, otherwise `nil`.
+	 *   A [macro&#32;definition][MacroDefinitionDescriptor] if this is for a
+	 *   macro invocation, otherwise `nil`.
 	 * @param onSuccess
 	 *   What to do with the strengthened return type.  This may be invoked at
 	 *   most once, and only if no semantic restriction rejected the parse.
@@ -2376,7 +2378,7 @@ class AvailCompiler(
 	}
 
 	/**
-	 * A complete [send phrase][SendPhraseDescriptor] has been parsed.
+	 * A complete [send&#32;phrase][SendPhraseDescriptor] has been parsed.
 	 * Create the send phrase and invoke the continuation.
 	 *
 	 * If this is a macro, invoke the body immediately with the argument
@@ -2387,10 +2389,10 @@ class AvailCompiler(
 	 * @param stateAfterCall
 	 *   The parsing state after the message.
 	 * @param argumentsListNode
-	 *   The [list phrase][ListPhraseDescriptor] that will hold all the
+	 *   The [list&#32;phrase][ListPhraseDescriptor] that will hold all the
 	 *   arguments of the new send phrase.
 	 * @param bundle
-	 *   The [message bundle][MessageBundleDescriptor] that identifies the
+	 *   The [message&#32;bundle][MessageBundleDescriptor] that identifies the
 	 *   message to be sent.
 	 * @param consumedTokens
 	 *   The list of all tokens collected for this send phrase.  This includes
@@ -2773,8 +2775,8 @@ class AvailCompiler(
 	 *   The stack of mark positions used to test if parsing certain
 	 *   subexpressions makes progress.
 	 * @param successorTrees
-	 *   A [tuple][TupleDescriptor] of [message bundle trees] along which to
-	 *   continue parsing if a local solution is found.
+	 *   A [tuple][TupleDescriptor] of [message&#32;bundle&#32;trees] along
+	 *   which to continue parsing if a local solution is found.
 	 * @param continuation
 	 *   What to do once we have a fully parsed send phrase (of which we are
 	 *   currently parsing an argument).
@@ -2872,17 +2874,17 @@ class AvailCompiler(
 	 * @param stateAfterCall
 	 *   The parsing state after the message.
 	 * @param argumentsListNode
-	 *   The [list phrase][ListPhraseDescriptor] that will hold all the
+	 *   The [list&#32;phrase][ListPhraseDescriptor] that will hold all the
 	 *   arguments of the new send phrase.
 	 * @param bundle
-	 *   The [message bundle][MessageBundleDescriptor] that identifies the
+	 *   The [message&#32;bundle][MessageBundleDescriptor] that identifies the
 	 *   message to be sent.
 	 * @param consumedTokens
 	 *   The list of all tokens collected for this send phrase.  This includes
 	 *   only those tokens that are operator or keyword tokens that correspond
 	 *   with parts of the method name itself, not the arguments.
 	 * @param macroDefinitionToInvoke
-	 *   The actual [macro definition][MacroDefinitionDescriptor] to invoke
+	 *   The actual [macro&#32;definition][MacroDefinitionDescriptor] to invoke
 	 *   (statically).
 	 * @param expectedYieldType
 	 *   What semantic type the expression returned from the macro invocation is
@@ -3339,7 +3341,8 @@ class AvailCompiler(
 	 * [module&#32;header][ModuleHeader].
 	 *
 	 * @param state
-	 *   The [parse state][ParserState] following a parse of the module header.
+	 *   The [parse&#32;state][ParserState] following a parse of the module
+	 *   header.
 	 * @param success
 	 *   What to do after the pragmas have been applied successfully.
 	 */
@@ -3438,7 +3441,7 @@ class AvailCompiler(
 	 * end of the module.
 	 *
 	 * @param start
-	 *   The [parse state][ParserState] after parsing a
+	 *   The [parse&#32;state][ParserState] after parsing a
 	 *   [module&#32;header][ModuleHeader].
 	 */
 	private fun parseAndExecuteOutermostStatements(start: ParserState)
@@ -4287,10 +4290,10 @@ class AvailCompiler(
 		 * specified [module&#32;name][ModuleName].
 		 *
 		 * @param resolvedName
-		 *   The [resolved name][ResolvedModuleName] of the
+		 *   The [resolved&#32;name][ResolvedModuleName] of the
 		 *   [module][ModuleDescriptor] to compile.
 		 * @param textInterface
-		 *   The [text interface][TextInterface] for any [fiber][A_Fiber]
+		 *   The [text&#32;interface][TextInterface] for any [fiber][A_Fiber]
 		 *   started by the new compiler.
 		 * @param pollForAbort
 		 *   A function that indicates whether to abort.
@@ -4331,10 +4334,10 @@ class AvailCompiler(
 
 		/**
 		 * Read the source string for the [module][ModuleDescriptor] specified
-		 * by the fully-qualified [module name][ModuleName].
+		 * by the fully-qualified [module&#32;name][ModuleName].
 		 *
 		 * @param resolvedName
-		 *   The [resolved name][ResolvedModuleName] of the module.
+		 *   The [resolved&#32;name][ResolvedModuleName] of the module.
 		 * @param fail
 		 *   What to do in the event of a failure that the
 		 *   [problem&#32;handler][ProblemHandler] does not wish to continue.
@@ -4856,7 +4859,7 @@ class AvailCompiler(
 		/**
 		 * Transform the argument, a [phrase][A_Phrase], into a
 		 * [literal&#32;phrase] whose value is the original phrase. If the given
-		 * phrase is a [macro&#32;substitution phrase] then extract its
+		 * phrase is a [macro&#32;substitution&#32;phrase] then extract its
 		 * [A_Phrase.apparentSendName], strip off the macro substitution, wrap
 		 * the resulting expression in a literal phrase, then re-apply the same
 		 * apparentSendName to the new literal phrase to produce another macro
@@ -4934,9 +4937,9 @@ class AvailCompiler(
 		}
 
 		/**
-		 * Answer the [set][SetDescriptor] of [declaration phrases] which are
-		 * used by this parse tree but are locally declared (i.e., not at global
-		 * module scope).
+		 * Answer the [set][SetDescriptor] of [declaration&#32;phrases] which
+		 * are used by this parse tree but are locally declared (i.e., not at
+		 * global module scope).
 		 *
 		 * @param phrase
 		 *   The phrase to recursively examine.

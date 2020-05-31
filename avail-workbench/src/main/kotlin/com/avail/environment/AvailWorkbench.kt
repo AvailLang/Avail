@@ -206,13 +206,13 @@ import kotlin.math.min
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  *
  * @property resolver
- *   The [module name resolver][ModuleNameResolver].
+ *   The [module&#32;name resolver][ModuleNameResolver].
  *
  * @constructor
  * Construct a new `AvailWorkbench`.
  *
  * @param resolver
- *   The [module name resolver][ModuleNameResolver].
+ *   The [module&#32;name resolver][ModuleNameResolver].
  */
 class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	: JFrame()
@@ -275,7 +275,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	val moduleTree: JTree
 
 	/**
-	 * The [tree][JTree] of module [entry points][A_Module.entryPoints].
+	 * The [tree][JTree] of module [entry&#32;points][A_Module.entryPoints].
 	 */
 	val entryPointsTree: JTree
 
@@ -1139,21 +1139,21 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	}
 
 	/**
-	 * Answer the [standard input stream][BuildInputStream].
+	 * Answer the [standard&#32;input&#32;stream][BuildInputStream].
 	 *
 	 * @return The input stream.
 	 */
 	fun inputStream(): BuildInputStream = inputStream!!
 
 	/**
-	 * Answer the [standard error stream][PrintStream].
+	 * Answer the [standard&#32;error&#32;stream][PrintStream].
 	 *
 	 * @return The error stream.
 	 */
 	fun errorStream(): PrintStream = errorStream!!
 
 	/**
-	 * Answer the [standard output stream][PrintStream].
+	 * Answer the [standard&#32;output&#32;stream][PrintStream].
 	 *
 	 * @return The output stream.
 	 */
@@ -1431,8 +1431,8 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	}
 
 	/**
-	 * Answer a [tree node][TreeNode] that represents the (invisible) root of
-	 * the Avail module tree.
+	 * Answer a [tree&#32;node][TreeNode] that represents the (invisible) root
+	 * of the Avail module tree.
 	 *
 	 * @return The (invisible) root of the module tree.
 	 */
@@ -1474,8 +1474,8 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	}
 
 	/**
-	 * Answer a [tree node][TreeNode] that represents the (invisible) root of
-	 * the Avail entry points tree.
+	 * Answer a [tree&#32;node][TreeNode] that represents the (invisible) root
+	 * of the Avail entry points tree.
 	 *
 	 * @return The (invisible) root of the entry points tree.
 	 */
@@ -1556,7 +1556,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	}
 
 	/**
-	 * Answer the currently selected [module root][ModuleRootNode], or null.
+	 * Answer the currently selected [module&#32;root][ModuleRootNode], or null.
 	 *
 	 * @return A [ModuleRootNode], or `null` if no module root is selected.
 	 */
@@ -1581,7 +1581,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		selectedModuleRootNode()?.moduleRoot
 
 	/**
-	 * Answer the currently selected [module node][ModuleOrPackageNode].
+	 * Answer the currently selected [module&#32;node][ModuleOrPackageNode].
 	 *
 	 * @return A module node, or `null` if no module is selected.
 	 */
@@ -1686,7 +1686,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	}
 
 	/**
-	 * Update the [build progress bar][buildProgress].
+	 * Update the [build&#32;progress&#32;bar][buildProgress].
 	 */
 	internal fun updateBuildProgress()
 	{
@@ -2846,7 +2846,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		}
 
 		/**
-		 * Launch the [Avail builder][AvailBuilder] [UI][AvailWorkbench].
+		 * Launch the [Avail&#32;builder][AvailBuilder] [UI][AvailWorkbench].
 		 *
 		 * @param args
 		 * The command line arguments.

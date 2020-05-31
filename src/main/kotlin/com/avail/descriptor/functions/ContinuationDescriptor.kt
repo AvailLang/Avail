@@ -6,11 +6,11 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *    list of conditions and the following disclaimer in the documentation
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
  *
  *  * Neither the name of the copyright holder nor the names of the contributors
@@ -436,11 +436,11 @@ class ContinuationDescriptor private constructor(
 
 	override fun o_Stackp(self: AvailObject) = self.slot(STACK_POINTER)
 
-	override fun mutable(): AbstractDescriptor = mutable
+	override fun mutable() = mutable
 
-	override fun immutable(): AbstractDescriptor = immutable
+	override fun immutable() = immutable
 
-	override fun shared(): AbstractDescriptor = shared
+	override fun shared() = shared
 
 	companion object {
 		/** The [CheckedMethod] for [A_Continuation.function]. */
@@ -517,7 +517,7 @@ class ContinuationDescriptor private constructor(
 		 * @param stackp
 		 *   The level one operand stack depth.
 		 * @param levelTwoChunk
-		 *   The [level two chunk][L2Chunk] to execute.
+		 *   The [level&#32;two&#32;chunk][L2Chunk] to execute.
 		 * @param levelTwoOffset
 		 *   The level two chunk offset at which to resume.
 		 * @return
@@ -577,7 +577,7 @@ class ContinuationDescriptor private constructor(
 		 * @param stackp
 		 *   The level one operand stack depth.
 		 * @param levelTwoChunk
-		 *   The [level two chunk][L2Chunk] to execute.
+		 *   The [level&#32;two&#32;chunk][L2Chunk] to execute.
 		 * @param levelTwoOffset
 		 *   The level two chunk offset at which to resume.
 		 * @param frameValues
@@ -627,7 +627,7 @@ class ContinuationDescriptor private constructor(
 		 * @param unboxedRegisters
 		 *   A `long[]` containing values to save in a register dump.
 		 * @param levelTwoChunk
-		 *   The [level two chunk][L2Chunk] to execute.
+		 *   The [level&#32;two&#32;chunk][L2Chunk] to execute.
 		 * @param levelTwoOffset
 		 *   The level two chunk offset at which to resume.
 		 * @return
@@ -698,10 +698,10 @@ class ContinuationDescriptor private constructor(
 		 * ends with the base frame.
 		 *
 		 * @param runtime
-		 *   The [Avail runtime][AvailRuntime] to use for stringification.
+		 *   The [Avail&#32;runtime][AvailRuntime] to use for stringification.
 		 * @param textInterface
-		 *   The [text interface][TextInterface] for [fibers][A_Fiber] started
-		 *   due to stringification. This need not be the default
+		 *   The [text&#32;interface][TextInterface] for [fibers][A_Fiber]
+		 *   started due to stringification. This need not be the default
 		 *   [AvailRuntime.textInterface].
 		 * @param availContinuation
 		 *   The [A_Continuation] to dump.

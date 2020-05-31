@@ -99,8 +99,9 @@ import kotlin.collections.set
 import kotlin.concurrent.read
 
 /**
- * An `AvailBuilder` [compiles][AvailCompiler] and installs into an [Avail&#32;runtime][AvailRuntime] a target [module][ModuleDescriptor] and each of its
- * dependencies.
+ * An `AvailBuilder` [compiles][AvailCompiler] and installs into an
+ * [Avail&#32;runtime][AvailRuntime] a target [module][ModuleDescriptor] and
+ * each of its dependencies.
  *
  * @property runtime
  *   The [runtime][AvailRuntime] into which the [builder][AvailBuilder] will
@@ -197,9 +198,9 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 		builderLock.read { ArrayList(allLoadedModules.values) }
 
 	/**
-	 * Look up the currently loaded module with the specified [resolved module
-	 * name][ResolvedModuleName].  Return `null` if the module is not currently
-	 * loaded.
+	 * Look up the currently loaded module with the specified
+	 * [resolved&#32;module&#32;name][ResolvedModuleName].  Return `null` if the
+	 * module is not currently loaded.
 	 *
 	 * @param resolvedModuleName
 	 *   The name of the module to locate.
@@ -325,7 +326,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	}
 
 	/**
-	 * Serialize the specified [module header][ModuleHeader] into the
+	 * Serialize the specified [module&#32;header][ModuleHeader] into the
 	 * [module&#32;version][ModuleVersion].
 	 *
 	 * @param header
@@ -415,7 +416,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	 * @property label
 	 *   The textual label of the corresponding node in the graph layout.
 	 * @property resolvedModuleName
-	 *   The represented module's [resolved name][ResolvedModuleName].
+	 *   The represented module's [resolved&#32;name][ResolvedModuleName].
 	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 *
 	 * @constructor
@@ -508,8 +509,8 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	 * Build the [target][ModuleDescriptor] and its dependencies.
 	 *
 	 * @param target
-	 *   The [canonical name][ModuleName] of the module that the builder must
-	 *   (recursively) load into the [AvailRuntime].
+	 *   The [canonical&#32;name][ModuleName] of the module that the builder
+	 *   must (recursively) load into the [AvailRuntime].
 	 * @param localTracker
 	 *   A [CompilerProgressReporter].
 	 * @param globalTracker
@@ -579,8 +580,8 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	 * current [Thread] until it's done.
 	 *
 	 * @param target
-	 *   The [canonical name][ModuleName] of the module that the builder must
-	 *   (recursively) load into the [AvailRuntime].
+	 *   The [canonical&#32;name][ModuleName] of the module that the builder
+	 *   must (recursively) load into the [AvailRuntime].
 	 * @param localTracker
 	 *   A [CompilerProgressReporter].
 	 * @param globalTracker
@@ -606,12 +607,12 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	}
 
 	/**
-	 * Unload the [target module][ModuleDescriptor] and its dependents.  If
+	 * Unload the [target&#32;module][ModuleDescriptor] and its dependents.  If
 	 * `null` is provided, unload all modules.
 	 *
 	 * @param target
-	 *   The [resolved name][ResolvedModuleName] of the module to be unloaded,
-	 *   or `null` to unload all modules.
+	 *   The [resolved&#32;name][ResolvedModuleName] of the module to be
+	 *   unloaded, or `null` to unload all modules.
 	 */
 	fun unloadTarget(target: ResolvedModuleName?)
 	{
@@ -742,7 +743,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	 * commands.
 	 *
 	 * @property moduleName
-	 *   The [module name][ResolvedModuleName] of the [module][LoadedModule]
+	 *   The [module&#32;name][ResolvedModuleName] of the [module][LoadedModule]
 	 *   that declares the entry point.
 	 * @property entryPointName
 	 *   The name of the entry point.
@@ -755,7 +756,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	 * Construct a new `CompiledCommand`.
 	 *
 	 * @param moduleName
-	 *   The [module name][ResolvedModuleName] of the [module][LoadedModule]
+	 *   The [module&#32;name][ResolvedModuleName] of the [module][LoadedModule]
 	 *   that declares the entry point.
 	 * @param entryPointName
 	 *   The name of the entry point.
@@ -1171,7 +1172,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 		 * Log the specified message if [debugging][debugBuilder] is enabled.
 		 *
 		 * @param level
-		 *   The [severity level][Level].
+		 *   The [severity&#32;level][Level].
 		 * @param format
 		 *   The format string.
 		 * @param args
@@ -1193,7 +1194,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 		 * Log the specified message if [debugging][debugBuilder] is enabled.
 		 *
 		 * @param level
-		 *   The [severity level][Level].
+		 *   The [severity&#32;level][Level].
 		 * @param exception
 		 *   The [exception][Throwable] that motivated this log entry.
 		 * @param format

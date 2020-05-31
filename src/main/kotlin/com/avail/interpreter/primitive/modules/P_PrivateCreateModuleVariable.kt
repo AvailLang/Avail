@@ -51,8 +51,8 @@ import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Create a
- * [global&#32;variable&#32;or&#32;constant][VariableSharedGlobalDescriptor], registering it
- * with the given module.
+ * [global&#32;variable&#32;or&#32;constant][VariableSharedGlobalDescriptor],
+ * registering it with the given module.
  */
 object P_PrivateCreateModuleVariable
 	: Primitive(5, CanFold, CanInline, Private, CannotFail)

@@ -51,7 +51,7 @@ import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Create a [literal token][LiteralTokenDescriptor] with the
+* **Primitive:** Create a [literal&#32;token][LiteralTokenDescriptor] with the
  * specified literal value, [lexeme][A_Token.string],
  * [starting&#32;character&#32;position][A_Token.start], and
  * [line&#32;number][A_Token.lineNumber].

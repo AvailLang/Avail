@@ -38,7 +38,8 @@ import com.avail.descriptor.phrases.PhraseDescriptor
 /**
  * An `CompilerSolution` is a record of having parsed some
  * [phrase][PhraseDescriptor] from a stream of tokens, combined with the
- * [position&#32;and&#32;state][ParserState] of the parser after the phrase was parsed.
+ * [position&#32;and&#32;state][ParserState] of the parser after the phrase was
+ * parsed.
  *
  * @property endState
  *   The parse position after this solution.

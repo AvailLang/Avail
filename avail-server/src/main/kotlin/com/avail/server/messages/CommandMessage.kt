@@ -52,8 +52,8 @@ abstract class CommandMessage
 	abstract val command: Command
 
 	/**
-	 * Process this [command message][CommandMessage] on behalf of the specified
-	 * [channel][AvailServerChannel].
+	 * Process this [command&#32;message][CommandMessage] on behalf of the
+	 * specified [channel][AvailServerChannel].
 	 *
 	 * @param channel
 	 *   The channel that received this command message.

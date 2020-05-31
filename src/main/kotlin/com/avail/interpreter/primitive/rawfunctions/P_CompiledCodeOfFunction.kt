@@ -45,7 +45,7 @@ import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Answer the [compiled code][CompiledCodeDescriptor] within
+* **Primitive:** Answer the [compiled&#32;code][CompiledCodeDescriptor] within
  * this [function][FunctionDescriptor].
  */
 object P_CompiledCodeOfFunction : Primitive(1, CannotFail, CanFold, CanInline)

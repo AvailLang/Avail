@@ -38,9 +38,9 @@ import java.util.*
 
 /**
  * An `OptionProcessorFactory` enables a client to dynamically specify and
- * assemble an [option processor][OptionProcessor]. In particular, the factory
- * allows a client to flexibly define a particular option processor while
- * ignoring specification and evaluation order dependency. Validation is
+ * assemble an [option&#32;processor][OptionProcessor]. In particular, the
+ * factory allows a client to flexibly define a particular option processor
+ * while ignoring specification and evaluation order dependency. Validation is
  * postponed until final assembly time, at which time a `[ValidationException]`
  * will be thrown in the event of incorrect or incomplete specification;
  * otherwise, the constructed option processor provably reflects the client
@@ -193,8 +193,8 @@ class OptionProcessorFactory<OptionKeyType : Enum<OptionKeyType>>
 	}
 
 	/**
-	 * Check that the resulting [option processor][OptionProcessor] will have no
-	 * defects. In particular:
+	 * Check that the resulting [option&#32;processor][OptionProcessor] will
+	 * have no defects. In particular:
 	 *
 	 * * Every option key uniquely specifies an option.
 	 * * Every keyword must uniquely indicate an option key.
@@ -203,8 +203,8 @@ class OptionProcessorFactory<OptionKeyType : Enum<OptionKeyType>>
 	 * * All option keys must be bound to options.
 	 *
 	 * @throws ValidationException
-	 *   If the specified [option processor][OptionProcessor] fails validation
-	 *   for any reason.
+	 *   If the specified [option&#32;processor][OptionProcessor] fails
+	 *   validation for any reason.
 	 */
 	@Throws(ValidationException::class)
 	private fun validateFactory()
@@ -252,11 +252,11 @@ class OptionProcessorFactory<OptionKeyType : Enum<OptionKeyType>>
 	}
 
 	/**
-	 * Create an instance of the [option processor][OptionProcessor]
+	 * Create an instance of the [option&#32;processor][OptionProcessor]
 	 * described by the receiver.
 	 *
 	 * @return
-	 *   The new validated [option processor][OptionProcessor].
+	 *   The new validated [option&#32;processor][OptionProcessor].
 	 * @throws ValidationException
 	 *   If validation fails.
 	 */

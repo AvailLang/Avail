@@ -37,9 +37,10 @@ import com.avail.descriptor.module.ModuleDescriptor
 /**
  * A `ModuleName` represents the canonical name of an Avail
  * [module][ModuleDescriptor]. A canonical name is specified relative to an
- * Avail [module&#32;root][ModuleRoots] and has the form R/X/Y/Z**, where **R** is a
- * module root on the Avail module path, **X** is a package within **R**, **Y**
- * is a package within **X**, and **Z** is a module or package within **Y**.
+ * Avail [module&#32;root][ModuleRoots] and has the form R/X/Y/Z**, where **R**
+ * is a module root on the Avail module path, **X** is a package within **R**,
+ * **Y** is a package within **X**, and **Z** is a module or package within
+ * **Y**.
  *
  * @property qualifiedName
  *   The fully-qualified module name.

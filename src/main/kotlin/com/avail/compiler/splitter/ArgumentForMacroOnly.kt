@@ -43,15 +43,16 @@ import com.avail.descriptor.types.A_Type
 /**
  * An `ArgumentForMacroOnly` is the translation of an
  * [underscore][Metacharacter.UNDERSCORE] (_) in a message name, followed
- * immediately by an [exclamation mark][Metacharacter.EXCLAMATION_MARK] (!).  It
- * indicates where an argument is expected – but the argument is allowed to be
- * ⊤-valued or ⊥-valued.  Functions (and therefore method definitions) may not
- * take arguments of type ⊤ or ⊥, so this mechanism is restricted to use by
+ * immediately by an [exclamation&#32;mark][Metacharacter.EXCLAMATION_MARK] (!).
+ * It indicates where an argument is expected – but the argument is allowed to
+ * be ⊤-valued or ⊥-valued.  Functions (and therefore method definitions) may
+ * not take arguments of type ⊤ or ⊥, so this mechanism is restricted to use by
  * macros, where the phrases themselves (including phrases yielding ⊤ or ⊥) are
  * what get passed to the macro body.
  *
- * Because [list&#32;phrases][ListPhraseDescriptor] have an [expression&#32;type][A_Phrase.expressionType] that depends on the types of the
- * `expressionType` of each subexpression, and because ⊥ as an element in a
+ * Because [list&#32;phrases][ListPhraseDescriptor] have an
+ * [expression&#32;type][A_Phrase.expressionType] that depends on the types of
+ * the `expressionType` of each subexpression, and because ⊥ as an element in a
  * tuple type makes the entire resulting tuple type also be ⊥, we can't just
  * directly accept an expression that produces ⊤ or ⊥ (e.g., the resulting
  * list's apparent cardinality would be lost, as ⊥ is a subtype of every tuple

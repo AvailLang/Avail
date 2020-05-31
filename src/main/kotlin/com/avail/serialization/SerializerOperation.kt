@@ -887,9 +887,9 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * A [tuple&#32;of&#32;characters&#32;with code points
-	 * in][StringDescriptor].  Write the size of the tuple then the sequence of
-	 * character bytes.
+	 * A [tuple&#32;of&#32;characters][StringDescriptortor] with code points in
+	 * Latin-1.  Write the size of the tuple then the sequence of character
+	 * bytes.
 	 */
 	BYTE_STRING(25, BYTE_CHARACTER_TUPLE.named("Latin-1 string"))
 	{
@@ -958,8 +958,8 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * A [tuple&#32;of&#32;integers][TupleDescriptor] whose values all fall in
-	 * the range 0..2^31-1.
+	 * A [tuple][TupleDescriptor] of integers whose values all fall in the range
+	 * 0..2^31-1.
 	 */
 	INT_TUPLE(28, COMPRESSED_INT_TUPLE.named("tuple of ints"))
 	{
@@ -979,8 +979,8 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * A [tuple&#32;of&#32;integers][TupleDescriptor] whose values all fall in
-	 * the range 0..255.
+	 * A [tuple][TupleDescriptor] of integers whose values all fall in the range
+	 * 0..255.
 	 */
 	BYTE_TUPLE(29, UNCOMPRESSED_BYTE_TUPLE.named("tuple of bytes"))
 	{
@@ -1000,8 +1000,7 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * A [tuple&#32;of&#32;integers][TupleDescriptor] whose values fall in the
-	 * range 0..15.
+	 * A [tuple][TupleDescriptor] whose values fall in the range 0..15.
 	 */
 	NYBBLE_TUPLE(30, UNCOMPRESSED_NYBBLE_TUPLE.named("tuple of nybbles"))
 	{
@@ -1021,7 +1020,7 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * A [map][MapDescriptor].  Convert it to a tuple (key1, value1, ...
+	 * A [map][MapDescriptor].  Convert it to a tuple (key1, value1, …
 	 * key```[N]```, value```[N]```) and work with that, converting it back to a
 	 * map when deserializing.
 	 */
@@ -1834,7 +1833,7 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * A reference to a [message bundle][MessageBundleDescriptor],
+	 * A reference to a [message&#32;bundle][MessageBundleDescriptor],
 	 * which should be reconstructed by looking it up.
 	 */
 	MESSAGE_BUNDLE(52, OBJECT_REFERENCE.named("message atom"))
@@ -3024,7 +3023,7 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * The bottom [pojo type][PojoTypeDescriptor], representing the most
+	 * The bottom [pojo&#32;type][PojoTypeDescriptor], representing the most
 	 * specific type of pojo.
 	 */
 	BOTTOM_POJO_TYPE(88)
@@ -3045,7 +3044,7 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * The bottom [pojo type][PojoTypeDescriptor], representing the most
+	 * The bottom [pojo&#32;type][PojoTypeDescriptor], representing the most
 	 * specific type of pojo.
 	 */
 	COMPILED_CODE_TYPE(
@@ -3068,7 +3067,7 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * The bottom [pojo type][PojoTypeDescriptor], representing the most
+	 * The bottom [pojo&#32;type][PojoTypeDescriptor], representing the most
 	 * specific type of pojo.
 	 */
 	CONTINUATION_TYPE(
@@ -3112,8 +3111,8 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * An Avail [singular enumeration][InstanceTypeDescriptor], a type that has
-	 * a single (non-type) instance.
+	 * An Avail [singular&#32;enumeration][InstanceTypeDescriptor], a type that
+	 * has a single (non-type) instance.
 	 */
 	INSTANCE_TYPE(92, OBJECT_REFERENCE.named("type's instance"))
 	{
@@ -3133,7 +3132,7 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * An Avail [instance meta][InstanceMetaDescriptor], a type that has an
+	 * An Avail [instance&#32;meta][InstanceMetaDescriptor], a type that has an
 	 * instance `i`, which is itself a type.  Subtypes of type `i` are also
 	 * considered instances of this instance meta.
 	 */

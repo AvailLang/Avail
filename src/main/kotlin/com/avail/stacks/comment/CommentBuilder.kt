@@ -1374,6 +1374,7 @@ class CommentBuilder private constructor(
 	{
 
 		/**
+		 * Create a [CommentBuilder].
 		 *
 		 * @param moduleName
 		 *   The name of the module the comment is in.
@@ -1381,7 +1382,7 @@ class CommentBuilder private constructor(
 		 *   The start line in the module of the comment being built
 		 * @param linkingFileMap
 		 * @return
-		 *   A [CommentBuilder]
+		 *   A `CommentBuilder`.
 		 * @throws StacksCommentBuilderException
 		 */
 		fun createBuilder(

@@ -74,11 +74,14 @@ import kotlin.math.max
 import kotlin.math.min
 
 /**
- * A [Group] is delimited by the [open&#32;guillemet][MessageSplitter.Metacharacter.OPEN_GUILLEMET] («) and [close&#32;guillemet][MessageSplitter.Metacharacter.CLOSE_GUILLEMET] (») characters, and
- * may contain subgroups and an occurrence of a [double&#32;dagger][MessageSplitter.Metacharacter.DOUBLE_DAGGER] (‡). If no double dagger
- * or subgroup is present, the sequence of message parts between the guillemets
- * are allowed to occur zero or more times at a call site (i.e., a send of this
- * message). When the number of
+ * A [Group] is delimited by the
+ * [open&#32;guillemet][MessageSplitter.Metacharacter.OPEN_GUILLEMET] («) and
+ * [close&#32;guillemet][MessageSplitter.Metacharacter.CLOSE_GUILLEMET] (»)
+ * characters, and may contain subgroups and an occurrence of a
+ * [double&#32;dagger][MessageSplitter.Metacharacter.DOUBLE_DAGGER] (‡). If no
+ * double dagger or subgroup is present, the sequence of message parts between
+ * the guillemets are allowed to occur zero or more times at a call site (i.e.,
+ * a send of this message). When the number of
  * [underscore][MessageSplitter.Metacharacter.UNDERSCORE] (_) and
  * [ellipsis][MessageSplitter.Metacharacter.ELLIPSIS] (…) plus the number of
  * subgroups is exactly one, the argument (or subgroup) values are assembled
@@ -105,8 +108,9 @@ import kotlin.math.min
 internal class Group : Expression
 {
 	/**
-	 * Whether a [double dagger][MessageSplitter.Metacharacter.DOUBLE_DAGGER]
-	 * (‡) has been encountered in the tokens for this group.
+	 * Whether a
+	 * [double&#32;dagger][MessageSplitter.Metacharacter.DOUBLE_DAGGER] (‡) has
+	 * been encountered in the tokens for this group.
 	 */
 	val hasDagger: Boolean
 

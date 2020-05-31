@@ -50,7 +50,7 @@ import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Construct a non-negative [double][A_Number] from parts
- * supplied as [literal tokens][A_Token].
+ * supplied as [literal&#32;tokens][A_Token].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

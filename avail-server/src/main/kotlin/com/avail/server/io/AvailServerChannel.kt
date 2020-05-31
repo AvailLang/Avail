@@ -296,7 +296,7 @@ abstract class AvailServerChannel constructor(
 	}
 
 	/**
-	 * The next [command identifier][CommandMessage] from the
+	 * The next [command&#32;identifier][CommandMessage] from the
 	 * [channel][AvailServerChannel]'s internal sequence.
 	 */
 	val nextCommandId get() = commandId.getAndIncrement()

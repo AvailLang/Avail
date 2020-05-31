@@ -80,7 +80,7 @@ import java.util.concurrent.atomic.AtomicInteger
 /**
  * **Primitive CreateRestrictedSendExpression**: Create a
  * [send&#32;phrase][SendPhraseDescriptor] from the specified
- * [message&#32;bundle][A_Bundle], [list phrase][ListPhraseDescriptor] of
+ * [message&#32;bundle][A_Bundle], [list&#32;phrase][ListPhraseDescriptor] of
  * argument [expressions][PhraseKind.EXPRESSION_PHRASE], and
  * [return&#32;type][TypeDescriptor]. In addition, run all semantic restrictions
  * in separate fibers.  The resulting send phrase's return type will be the

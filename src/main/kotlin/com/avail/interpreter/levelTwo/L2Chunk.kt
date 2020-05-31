@@ -6,13 +6,13 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
- *
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+*
  *  * Neither the name of the copyright holder nor the names of the contributors
  *    may be used to endorse or promote products derived from this software
  *    without specific prior written permission.
@@ -74,9 +74,10 @@ import java.util.concurrent.locks.ReentrantLock
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.logging.Level
 import javax.annotation.concurrent.GuardedBy
+import kotlin.concurrent.write
 
 /**
- * A Level Two chunk represents an optimized implementation of a [compiled code
+ * A Level Two chunk represents an optimized implementation of a [compiled&#32;code
  * object][CompiledCodeDescriptor].
  *
  *
@@ -104,20 +105,20 @@ import javax.annotation.concurrent.GuardedBy
  * @property code
  *   The code that was translated to L2.  Null for the default (L1) chunk.
  * @property numObjects
- *   The number of [object registers][L2BoxedRegister] that this chunk uses
+ *   The number of [object&#32;registers][L2BoxedRegister] that this chunk uses
  *   (including the fixed registers).  Having the number of needed object
  *   registers stored separately allows the register list to be dynamically
  *   expanded as needed only when starting or resuming a
  *   [continuation][ContinuationDescriptor].
  * @property numIntegers
- *   The number of [integer registers][L2IntRegister] that are used by this
+ *   The number of [integer&#32;registers][L2IntRegister] that are used by this
  *   chunk. Having this recorded separately allows the register list to be
  *   dynamically expanded as needed only when starting or resuming a
  *   continuation.
  * @property numDoubles
- *   The number of [floating point registers][L2FloatRegister] that are used by
- *   this chunk. Having this recorded separately allows the register list to be
- *   dynamically expanded as needed only when starting or resuming a
+ *   The number of [floating&#32;point registers][L2FloatRegister] that are used
+ *   by this chunk. Having this recorded separately allows the register list to
+ *   be dynamically expanded as needed only when starting or resuming a
  *   continuation.
  * @property offsetAfterInitialTryPrimitive
  *   The level two offset at which to start if the corresponding [A_RawFunction]
@@ -196,7 +197,7 @@ class L2Chunk private constructor(
 			private val generations: Deque<Generation> = ArrayDeque()
 
 			/** The lock for accessing the [Deque] of [Generation]s.  */
-			private val generationsLock: ReadWriteLock = ReentrantReadWriteLock()
+			private val generationsLock = ReentrantReadWriteLock()
 
 			/**
 			 * A [Generation] that has not yet been added to the [generations]
@@ -235,9 +236,7 @@ class L2Chunk private constructor(
 				newest.chunks.add(newChunk)
 				if (newest.chunks.size > maximumNewestGenerationSize)
 				{
-					generationsLock.writeLock().lock()
-					try
-					{
+					generationsLock.write {
 						var lastGenerationToKeep = newest
 						generations.addFirst(newest)
 						newest = Generation()
@@ -271,7 +270,8 @@ class L2Chunk private constructor(
 						generations.addAll(toKeep)
 						if (chunksToInvalidate.isNotEmpty())
 						{
-							// Queue a task to safely invalidate the evicted chunks.
+							// Queue a task to safely invalidate the evicted
+							// chunks.
 							AvailRuntime.currentRuntime().whenLevelOneSafeDo(
 								FiberDescriptor.bulkL2InvalidationPriority)
 							{
@@ -289,10 +289,6 @@ class L2Chunk private constructor(
 							}
 						}
 					}
-					finally
-					{
-						generationsLock.writeLock().unlock()
-					}
 				}
 			}
 
@@ -306,10 +302,10 @@ class L2Chunk private constructor(
 
 			/**
 			 * Deal with the fact that the given chunk has just been invoked,
-			 * resumed, restarted, or otherwise continued.  Optimize for the most
-			 * common case that the chunk is already in the newest generation, but
-			 * also make it reasonably quick to move it there from an older
-			 * generation.
+			 * resumed, restarted, or otherwise continued.  Optimize for the
+			 * most common case that the chunk is already in the newest
+			 * generation, but also make it reasonably quick to move it there
+			 * from an older generation.
 			 *
 			 * @param chunk
 			 *   The [L2Chunk] that has just been used.
@@ -331,9 +327,7 @@ class L2Chunk private constructor(
 				chunk.generation = theNewest
 				if (theNewest.chunks.size > maximumNewestGenerationSize)
 				{
-					generationsLock.writeLock().lock()
-					try
-					{
+					generationsLock.write {
 						generations.add(newest)
 						newest = Generation()
 						// Even though simply using a chunk doesn't exert any cache
@@ -348,10 +342,6 @@ class L2Chunk private constructor(
 							generations.clear()
 							generations.addAll(nonemptyGenerations)
 						}
-					}
-					finally
-					{
-						generationsLock.writeLock().unlock()
 					}
 				}
 			}
@@ -387,7 +377,7 @@ class L2Chunk private constructor(
 		private set
 
 	/**
-	 * The set of [contingent values][A_ChunkDependable] on which this chunk
+	 * The set of [contingent&#32;values][A_ChunkDependable] on which this chunk
 	 * depends. If one of these changes significantly, this chunk must be
 	 * invalidated (at which time this set will be emptied).
 	 */
@@ -689,14 +679,14 @@ class L2Chunk private constructor(
 		 *   The [code][CompiledCodeDescriptor] for which to use the new level
 		 *   two chunk, or null for the initial unoptimized chunk.
 		 * @param numObjects
-		 *   The number of [object registers][L2BoxedRegister] that this chunk
-		 *   will require.
-		 * @param numIntegers
-		 *   The number of [integer registers][L2IntRegister] that this chunk
-		 *   will require.
-		 * @param numFloats
-		 *   The number of [floating point registers][L2FloatRegister] that this
+		 *   The number of [object&#32;registers][L2BoxedRegister] that this
 		 *   chunk will require.
+		 * @param numIntegers
+		 *   The number of [integer&#32;registers][L2IntRegister] that this
+		 *   chunk will require.
+		 * @param numFloats
+		 *   The number of [floating&#32;point&#32;registers][L2FloatRegister]
+		 *   that this chunk will require.
 		 * @param offsetAfterInitialTryPrimitive
 		 *   The offset into my [instructions] at which to begin if this chunk's
 		 *   code was primitive and that primitive has already been attempted
@@ -775,8 +765,8 @@ class L2Chunk private constructor(
 		}
 
 		/**
-		 * The special [level two chunk][L2Chunk] that is used to interpret
-		 * level one nybblecodes until a piece of
+		 * The special [level&#32;two&#32;chunk][L2Chunk] that is used to
+		 * interpret level one nybblecodes until a piece of
 		 * [compiled&#32;code][CompiledCodeDescriptor] has been executed some
 		 * number of times (specified in [countdownForNewCode]).
 		 */

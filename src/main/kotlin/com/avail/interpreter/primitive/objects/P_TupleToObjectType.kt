@@ -57,9 +57,9 @@ import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Convert a [tuple][TupleDescriptor] of field definitions into
- * an [object&#32;type][ObjectTypeDescriptor]. A field definition is a 2-tuple whose
- * first element is an [atom][AtomDescriptor] that represents the field and
- * whose second element is the value [type][TypeDescriptor].
+ * an [object&#32;type][ObjectTypeDescriptor]. A field definition is a 2-tuple
+ * whose first element is an [atom][AtomDescriptor] that represents the field
+ * and whose second element is the value [type][TypeDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

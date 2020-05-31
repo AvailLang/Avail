@@ -688,7 +688,8 @@ class CompilerDiagnostics(
 	}
 
 	/**
-	 * Handle a [problem][Problem] via the [problem handler][problemHandler].
+	 * Handle a [problem][Problem] via the
+	 * [problem&#32;handler][problemHandler].
 	 *
 	 * @param problem
 	 *   The problem to handle.

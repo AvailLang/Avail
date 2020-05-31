@@ -6,13 +6,13 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
- *
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+*
  *  * Neither the name of the copyright holder nor the names of the contributors
  *    may be used to endorse or promote products derived from this software
  *    without specific prior written permission.
@@ -147,8 +147,6 @@ abstract class Descriptor protected constructor (
 	 * A special enumeration used to visit all object slots within an instance
 	 * of the receiver.
 	 */
-	// Qualified to bypass a Kotlin/Java compiler bug suddenly encountered
-	// by MvG on 2020.04.26.
 	internal enum class FakeObjectSlotsForScanning : ObjectSlotsEnum
 	{
 		/**
@@ -255,8 +253,8 @@ abstract class Descriptor protected constructor (
 		unsupportedOperation()
 
 	override fun o_AddSemanticRestriction (
-			self: AvailObject,
-			restrictionSignature: A_SemanticRestriction): Unit =
+		self: AvailObject,
+		restriction: A_SemanticRestriction): Unit =
 		unsupportedOperation()
 
 	override fun o_AddSealedArgumentsType (
@@ -580,7 +578,7 @@ abstract class Descriptor protected constructor (
 
 	override fun o_IsSupertypeOfEnumerationType (
 		self: AvailObject,
-		anEnumerationType: A_BasicObject): Boolean = unsupportedOperation()
+		anEnumerationType: A_Type): Boolean = unsupportedOperation()
 
 	override fun o_LevelTwoChunkOffset (
 		self: AvailObject,
@@ -1373,14 +1371,16 @@ abstract class Descriptor protected constructor (
 		return objectCost < anotherCost
 	}
 
+	/**
+	 * Given two objects that are known to be equal, the second of which is in
+	 * the form of a tuple type, is the first one in a better form than the
+	 * second one?
+	 *
+	 * Explanation: This must be called with a tuple type as the second
+	 * argument, but the two arguments must also be equal. All alternative
+	 * implementations of tuple types should re-implement this method.
+	 */
 	override fun o_RepresentationCostOfTupleType (self: AvailObject): Int =
-		// Given two objects that are known to be equal, the second of which is
-		// in the form of a tuple type, is the first one in a better form than
-		// the second one?
-
-		// Explanation: This must be called with a tuple type as the second
-		// argument, but the two arguments must also be equal. All alternative
-		// implementations of tuple types should re-implement this method.
 		unsupportedOperation()
 
 	override fun o_IsInstanceOfKind (self: AvailObject, aType: A_Type) =
@@ -1718,7 +1718,7 @@ abstract class Descriptor protected constructor (
 	override fun o_CopyMutablePhrase (self: AvailObject): A_Phrase =
 		unsupportedOperation()
 
-	// Ordinary (non-bin, non-void) objects act as set bins of size one.
+	// Ordinary (non-bin, non-nil) objects act as set bins of size one.
 	override fun o_BinUnionKind (self: AvailObject): A_Type = self.kind()
 
 	override fun o_OutputPhrase (self: AvailObject): A_Phrase =
@@ -2221,9 +2221,9 @@ abstract class Descriptor protected constructor (
 		unsupportedOperation()
 
 	// Only bother to acquire the monitor if it's shared.
-	override fun <T> o_Lock (self: AvailObject, supplier: () -> T): T =
-		if (isShared) synchronized(self) { supplier() }
-		else supplier()
+	override fun <T> o_Lock (self: AvailObject, body: () -> T): T =
+		if (isShared) synchronized(self) { body() }
+		else body()
 
 	override fun o_ModuleName (self: AvailObject): A_String =
 		unsupportedOperation()

@@ -45,7 +45,8 @@ import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Answer the result type of the specified [fiber type][FiberTypeDescriptor].
+ * **Primitive:** Answer the result type of the specified
+ * [fiber&#32;type][FiberTypeDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

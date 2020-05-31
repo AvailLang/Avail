@@ -51,7 +51,7 @@ import com.avail.interpreter.execution.Interpreter
 import java.lang.reflect.Array
 
 /**
- * **Primitive:** Create a [pojo array][PojoTypeDescriptor] that stores and
+* **Primitive:** Create a [pojo&#32;array][PojoTypeDescriptor] that stores and
  * answers elements of the specified Avail [type][TypeDescriptor] and has the
  * specified [length][IntegerDescriptor].
  */

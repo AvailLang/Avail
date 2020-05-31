@@ -48,12 +48,13 @@ import com.avail.utility.Strings
 import java.util.*
 
 /**
- * An instance of `L1Disassembler` converts a [compiled code
+ * An instance of `L1Disassembler` converts a [compiled&#32;code
  * object][CompiledCodeDescriptor] into a textual representation of its sequence
- * of [level&#32;one&#32;operations][L1Operation] and their [operands][L1OperandType].
+ * of [level&#32;one&#32;operations][L1Operation] and their
+ * [operands][L1OperandType].
  *
  * @property code
- *   The [compiled code object][CompiledCodeDescriptor] being disassembled.
+ *   The [compiled&#32;code object][CompiledCodeDescriptor] being disassembled.
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *
  * @constructor
@@ -112,7 +113,7 @@ class L1Disassembler constructor(
 	 *   The [StringBuilder] onto which to describe the level one instructions.
 	 * @property recursionMap
 	 *   The (mutable) [IdentityHashMap] of [A_BasicObject]s to avoid recursing
-	 *   into while printing the [level one][L1Operation].
+	 *   into while printing the [level&#32;one][L1Operation].
 	 * @property indent
 	 *   The number of tabs to output after each line break.
 	 */

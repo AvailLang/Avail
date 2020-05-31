@@ -49,7 +49,7 @@ import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Create a [label declaration][PhraseKind.LABEL_PHRASE] from
+* **Primitive:** Create a [label&#32;declaration][PhraseKind.LABEL_PHRASE] from
  * the specified [token][TokenDescriptor] and
  * [continuation&#32;type][ContinuationTypeDescriptor].
  *

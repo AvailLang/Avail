@@ -372,14 +372,14 @@ class Serializer
 
 		/**
 		 * Special system [atoms][AtomDescriptor] that aren't already in the
-		 * list of [special atoms][AvailRuntime.specialAtoms].
+		 * list of [special&#32;atoms][AvailRuntime.specialAtoms].
 		 */
 		private val specialAtoms = HashMap<A_Atom, Int>(100)
 
 		/**
 		 * Special system [atoms][AtomDescriptor] that aren't already in the
-		 * list of [special atoms][AvailRuntime.specialAtoms], keyed by their
-		 * [A_String], where the value is the [A_Atom] itself.
+		 * list of [special&#32;atoms][AvailRuntime.specialAtoms], keyed by
+		 * their [A_String], where the value is the [A_Atom] itself.
 		 */
 		internal val specialAtomsByName: MutableMap<A_String, A_Atom> =
 			HashMap(100)

@@ -273,7 +273,7 @@ abstract class KeywordStacksToken constructor(
 	{
 
 		/**
-		 * Create the appropriate [token type][AbstractStacksToken]
+		 * Create the appropriate [token&#32;type][AbstractStacksToken]
 		 *
 		 * @param string
 		 * String representation of the keyword being looked up for

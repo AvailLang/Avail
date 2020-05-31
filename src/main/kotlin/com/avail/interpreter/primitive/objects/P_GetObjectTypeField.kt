@@ -54,7 +54,7 @@ import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Extract the specified [field's][AtomDescriptor] type from the
- * [ object type][ObjectTypeDescriptor].
+ * [object&#32;type][ObjectTypeDescriptor].
  */
 @Suppress("unused")
 object P_GetObjectTypeField : Primitive(2, CanFold, CanInline)

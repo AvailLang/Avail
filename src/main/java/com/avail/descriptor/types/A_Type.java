@@ -349,7 +349,7 @@ extends A_BasicObject
 	 * @return
 	 */
 	boolean isSupertypeOfEnumerationType (
-		A_BasicObject anEnumerationType);
+		A_Type anEnumerationType);
 
 	/**
 	 * @param aCompiledCodeType

@@ -58,7 +58,7 @@ import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Construct a [token type][TokenTypeDescriptor] with the
+* **Primitive:** Construct a [token&#32;type][TokenTypeDescriptor] with the
  * given parameterization.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;

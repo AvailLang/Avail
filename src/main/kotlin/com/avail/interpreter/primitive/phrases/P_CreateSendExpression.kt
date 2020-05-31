@@ -62,7 +62,7 @@ import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Create a [send expression][SendPhraseDescriptor] from the
+* **Primitive:** Create a [send&#32;expression][SendPhraseDescriptor] from the
  * specified [message&#32;bundle][MessageBundleDescriptor],
  * [list&#32;phrase][ListPhraseDescriptor] of argument
  * [expressions][PhraseKind.EXPRESSION_PHRASE], and return

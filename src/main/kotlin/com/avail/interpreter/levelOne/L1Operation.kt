@@ -65,13 +65,13 @@ import com.avail.io.NybbleOutputStream
  *
  * Construct a new `L1Operation`.  The expected [ordinal][Enum.ordinal] is
  * passed as a cross-check so that each operation's definition shows the
- * ordinal.  The rest of the arguments are the [operand types][L1OperandType]
- * that this operation expects.
+ * ordinal.  The rest of the arguments are the
+ * [operand&#32;types][L1OperandType] that this operation expects.
  *
  * @param ordinalCheck
  *   This operation's ordinal.
  * @param operandTypes
- *   This operation's list of [operand types][L1OperandType].
+ *   This operation's list of [operand&#32;types][L1OperandType].
  */
 @Suppress("EnumEntryName")
 enum class L1Operation constructor(
@@ -152,7 +152,7 @@ enum class L1Operation constructor(
 
 	/**
 	 * Create a function from the specified number of pushed outer variables and
-	 * the specified literal [compiled code][CompiledCodeDescriptor].
+	 * the specified literal [compiled&#32;code][CompiledCodeDescriptor].
 	 */
 	L1_doClose(5, IMMEDIATE, LITERAL)
 	{

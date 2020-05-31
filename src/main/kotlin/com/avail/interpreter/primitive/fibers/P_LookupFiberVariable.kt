@@ -48,7 +48,8 @@ import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Lookup the given [name][AtomDescriptor] (key) in the variables of the current [fiber][FiberDescriptor].
+ * **Primitive:** Lookup the given [name][AtomDescriptor] (key) in the variables
+ * of the current [fiber][FiberDescriptor].
  */
 @Suppress("unused")
 object P_LookupFiberVariable : Primitive(1, CanInline)

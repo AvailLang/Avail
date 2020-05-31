@@ -120,8 +120,8 @@ class AvailRejectedParseException : PrimitiveThrownException
 	 *   The [ParseNotificationLevel] that indicates the priority of the parse
 	 *   theory that failed.
 	 * @param supplier
-	 *   The function that produces a diagnostic [Avail string][A_String] upon
-	 *   first request.
+	 *   The function that produces a diagnostic [Avail&#32;string][A_String]
+	 *   upon first request.
 	 */
 	constructor(level: ParseNotificationLevel, supplier: ()-> A_String)
 	{

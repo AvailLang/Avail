@@ -46,11 +46,12 @@ import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Answer the specified [send phrase][SendPhraseDescriptor]'s
- * expected return []type][TypeDescriptor].
+* **Primitive:** Answer the specified [send&#32;phrase][SendPhraseDescriptor]'s
+ * expected return [type][TypeDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_SendReturnType : Primitive(1, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

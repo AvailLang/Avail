@@ -6,13 +6,13 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
- *
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+*
  *  * Neither the name of the copyright holder nor the names of the contributors
  *    may be used to endorse or promote products derived from this software
  *    without specific prior written permission.
@@ -373,18 +373,18 @@ class IndirectionDescriptor private constructor(
 	@Deprecated(
 		"Not recommended",
 		ReplaceWith("IndirectionDescriptor.Companion.mutable(TypeTag)"))
-	override fun mutable(): AbstractDescriptor = mutables[typeTag.ordinal]
+	override fun mutable() = mutables[typeTag.ordinal]
 
 	@Deprecated(
 		"Not recommended",
 		ReplaceWith("IndirectionDescriptor.Companion.mutable(TypeTag)"))
-	override fun immutable(): AbstractDescriptor =
+	override fun immutable() =
 		immutables[typeTag.ordinal]
 
 	@Deprecated(
 		"Not recommended",
 		ReplaceWith("IndirectionDescriptor.Companion.mutable(TypeTag)"))
-	override fun shared(): AbstractDescriptor = shareds[typeTag.ordinal]
+	override fun shared() = shareds[typeTag.ordinal]
 
 
 	override fun o_ComputeTypeTag(self: AvailObject): TypeTag {
@@ -1079,7 +1079,7 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_IsSupertypeOfEnumerationType(
 		self: AvailObject,
-		anEnumerationType: A_BasicObject
+		anEnumerationType: A_Type
 	): Boolean = self .. { isSupertypeOfEnumerationType(anEnumerationType) }
 
 	override fun o_Iterator(self: AvailObject): IteratorNotNull<AvailObject> =
@@ -2130,8 +2130,8 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_AddSemanticRestriction(
 		self: AvailObject,
-		restrictionSignature: A_SemanticRestriction
-	) = self .. { addSemanticRestriction(restrictionSignature) }
+		restriction: A_SemanticRestriction
+	) = self .. { addSemanticRestriction(restriction) }
 
 	override fun o_RemoveSemanticRestriction(
 		self: AvailObject,
@@ -2640,8 +2640,8 @@ class IndirectionDescriptor private constructor(
 		updateForNewGrammaticalRestriction(planInProgress, treesToVisit)
 	}
 
-	override fun <T> o_Lock(self: AvailObject, supplier: () -> T): T =
-		self .. { lock(supplier) }
+	override fun <T> o_Lock(self: AvailObject, body: () -> T): T =
+		self .. { lock(body) }
 
 	override fun o_ModuleName(self: AvailObject): A_String =
 		self .. { moduleName() }

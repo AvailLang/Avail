@@ -33,8 +33,9 @@
 package com.avail.tools.options
 
 /**
- * Exception thrown during [option processing][OptionProcessor.processOptions]
- * upon discovery of an unrecognized option keyword.
+ * Exception thrown during
+ * [option&#32;processing][OptionProcessor.processOptions] upon discovery of an
+ * unrecognized option keyword.
  *
  * @property keyword
  *   The unrecognized keyword.

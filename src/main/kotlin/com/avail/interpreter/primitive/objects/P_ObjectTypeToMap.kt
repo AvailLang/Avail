@@ -33,6 +33,7 @@ package com.avail.interpreter.primitive.objects
 
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.maps.MapDescriptor
+import com.avail.descriptor.objects.ObjectTypeDescriptor
 import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectMeta
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
@@ -52,9 +53,9 @@ import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Convert an [ ] into a [map][MapDescriptor] from
- * [fields][AtomDescriptor]' [type][InstanceTypeDescriptor] to
- * [types][TypeDescriptor].
+ * **Primitive:** Convert an [object&#32;type][ObjectTypeDescriptor] into a
+ * [map][MapDescriptor] from [fields][AtomDescriptor]'
+ * [type][InstanceTypeDescriptor] to [types][TypeDescriptor].
  */
 @Suppress("unused")
 object P_ObjectTypeToMap : Primitive(1, CanFold, CanInline)

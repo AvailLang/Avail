@@ -421,7 +421,7 @@ class MessageBundleTreeDescriptor private constructor(
 					}
 				}
 			}
-			val sorted: MutableList<String> = ArrayList()
+			val sorted = mutableListOf<String>()
 			for ((key, count) in strings) {
 				sorted.add(
 					if (count == 1) key else "$key(×$count)")
@@ -790,7 +790,7 @@ class MessageBundleTreeDescriptor private constructor(
 		/**
 		 * This is the [LookupTreeAdaptor] for building and navigating the
 		 * [ObjectSlots.LAZY_TYPE_FILTER_TREE_POJO].  It gets built from
-		 * 2-tuples containing a [phrase type][PhraseTypeDescriptor] and a
+		 * 2-tuples containing a [phrase&#32;type][PhraseTypeDescriptor] and a
 		 * corresponding [A_ParsingPlanInProgress].  The type is used to perform
 		 * type filtering after parsing each leaf argument, and the phrase type
 		 * is the expected type of that latest argument.
@@ -943,8 +943,8 @@ class MessageBundleTreeDescriptor private constructor(
 		 * @param pc
 		 *   The one-based program counter that indexes each applicable
 		 *   [plan][A_DefinitionParsingPlan]'s
-		 *   [instructions&#32;][A_DefinitionParsingPlan.parsingInstructions].
-		 *   Note that this value can be one past the end of the instructions,
+		 *   [instructions][A_DefinitionParsingPlan.parsingInstructions]. Note
+		 *   that this value can be one past the end of the instructions,
 		 *   indicating parsing is complete.
 		 * @param allAncestorModules
 		 *   The [A_Set] of modules that are ancestors of (or equal to) the

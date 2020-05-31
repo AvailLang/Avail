@@ -42,7 +42,8 @@ import com.avail.utility.Casts
 import java.util.*
 
 /**
- * `L2WriteOperand` abstracts the capabilities of actual register write operands.
+ * `L2WriteOperand` abstracts the capabilities of actual register write
+ * operands.
  *
  * @param R
  * The subclass of [L2Register] that this writes to.

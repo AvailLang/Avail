@@ -73,8 +73,8 @@ internal class Catalog
 	internal val allPaths: MutableList<Path> = LinkedList()
 
 	/**
-	 * The [set][Set] of all [Unicode code points][CharacterInfo] used by the
-	 * Avail project.
+	 * The [set][Set] of all [Unicode&#32;code&#32;points][CharacterInfo] used
+	 * by the Avail project.
 	 */
 	private var allCodePoints: MutableSet<CharacterInfo>? = null
 		@Synchronized
@@ -93,7 +93,7 @@ internal class Catalog
 		}
 
 	/**
-	 * The [set][Set] of all non-ASCII [code points][CharacterInfo].
+	 * The [set][Set] of all non-ASCII [code&#32;points][CharacterInfo].
 	 */
 	private var allNonAsciiCodePoints: MutableSet<CharacterInfo>? = null
 		@Synchronized
@@ -272,7 +272,7 @@ internal class Catalog
 
 	/**
 	 * Accumulate into [allCodePoints] every Unicode code point encountered
-	 * within a [file of interest][allPaths].
+	 * within a [file&#32;of&#32;interest][allPaths].
 	 *
 	 * @throws IOException
 	 *   If an I/O exception occurs.
@@ -296,7 +296,7 @@ internal class Catalog
 	}
 
 	/**
-	 * Populate all [character info][CharacterInfo] using data obtained from
+	 * Populate all [character&#32;info][CharacterInfo] using data obtained from
 	 * [FileFormat.Info](http://www.fileformat.info). (Thanks, guys!)
 	 *
 	 * @throws IOException
@@ -351,7 +351,7 @@ internal class Catalog
 
 	/**
 	 * A [JSON-friendly&#32;representative][JSONFriendly] of the
-	 * [complete&#32;set&#32;of&#32;non-ASCII&#32;code][allNonAsciiCodePoints].
+	 * [complete&#32;set&#32;of&#32;non-ASCII&#32;code&#32;points][allNonAsciiCodePoints].
 	 *
 	 * @throws IOException
 	 *   If an I/O exception occurs.
@@ -373,8 +373,9 @@ internal class Catalog
 		}
 
 	/**
-	 * Answer a [JSON-friendly representative][JSONFriendly] of the
-	 * [complete&#32;set&#32;of&#32;non-ASCII,][allSymbolicCodePoints].
+	 * Answer a [JSON-friendly&#32;representative][JSONFriendly] of the
+	 * [set][allSymbolicCodePoints] of code points that are neither ASCII nor
+	 * alpha-numeric.
 	 *
 	 * @return The representative.
 	 * @throws IOException
@@ -464,7 +465,7 @@ internal class Catalog
 		 * page that describes the requested code point.
 		 *
 		 * @param info
-		 *   A [code point][CharacterInfo].
+		 *   A [code&#32;point][CharacterInfo].
 		 * @return
 		 *   The appropriate URL.
 		 * @throws MalformedURLException

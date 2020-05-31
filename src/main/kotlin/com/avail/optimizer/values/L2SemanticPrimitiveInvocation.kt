@@ -110,7 +110,8 @@ class L2SemanticPrimitiveInvocation internal constructor(
 		 * @param primitive
 		 *   The primitive that was invoked.
 		 * @param argumentSemanticValues
-		 *   The semantic values of arguments that were supplied to the  primitive.
+		 *   The semantic values of arguments that were supplied to the
+		 *   primitive.
 		 * @return
 		 *   A hash of the inputs.
 		 */

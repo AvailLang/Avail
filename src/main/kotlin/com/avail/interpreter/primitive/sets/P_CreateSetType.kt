@@ -47,7 +47,7 @@ import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Create a [set type][SetTypeDescriptor].
+* **Primitive:** Create a [set&#32;type][SetTypeDescriptor].
  */
 object P_CreateSetType : Primitive(2, CannotFail, CanFold, CanInline)
 {

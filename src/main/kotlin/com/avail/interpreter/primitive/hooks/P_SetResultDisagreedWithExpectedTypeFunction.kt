@@ -53,8 +53,8 @@ import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Set the [function][FunctionDescriptor] to invoke whenever the
- * result produced by a [method invocation][MethodDescriptor] disagrees with the
- * type decreed by the applicable semantic restrictions at the call site.
+ * result produced by a [method&#32;invocation][MethodDescriptor] disagrees with
+ * the type decreed by the applicable semantic restrictions at the call site.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

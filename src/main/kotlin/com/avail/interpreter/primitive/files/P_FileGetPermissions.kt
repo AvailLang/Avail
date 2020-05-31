@@ -68,7 +68,7 @@ import java.util.*
 
 /**
  * **Primitive:** Answer the [ordinals][IntegerDescriptor] (into
- * [IOSystem.posixPermissions]) of the [POSIX file
+ * [IOSystem.posixPermissions]) of the [POSIX&#32;file
  * permissions][PosixFilePermission] that describe the access rights granted by
  * the file named by specified [path][Path].
  *
@@ -78,7 +78,7 @@ import java.util.*
 object P_FileGetPermissions : Primitive(2, CanInline, HasSideEffect)
 {
 	/**
-	 * A [map][Map] from [POSIX file][PosixFilePermission] to
+	 * A [map][Map] from [POSIX&#32;file][PosixFilePermission] to
 	 * [ordinals][IntegerDescriptor].
 	 */
 	private val permissionMap =

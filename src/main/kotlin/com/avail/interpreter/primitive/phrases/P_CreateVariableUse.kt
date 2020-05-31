@@ -49,7 +49,7 @@ import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Create a [variable use][VariableUsePhraseDescriptor] from
+* **Primitive:** Create a [variable&#32;use][VariableUsePhraseDescriptor] from
  * the specified [token][TokenDescriptor] and
  * [declaration][DeclarationPhraseDescriptor].
  *

@@ -6,13 +6,13 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
- *
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+*
  *  * Neither the name of the copyright holder nor the names of the contributors
  *    may be used to endorse or promote products derived from this software
  *    without specific prior written permission.
@@ -166,7 +166,7 @@ import kotlin.concurrent.write
  * @property module
  *   The Avail [module][ModuleDescriptor] undergoing loading.
  * @property textInterface
- *   The [text interface][TextInterface] for any [fibers][A_Fiber] started by
+ *   The [text&#32;interface][TextInterface] for any [fibers][A_Fiber] started by
  *   this [AvailLoader].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;

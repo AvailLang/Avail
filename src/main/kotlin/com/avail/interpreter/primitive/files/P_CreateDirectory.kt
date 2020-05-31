@@ -200,7 +200,7 @@ object P_CreateDirectory : Primitive(5, CanInline, HasSideEffect)
 	/**
 	 * Convert the specified [set][A_Set] of
 	 * [ordinals][IntegerDescriptor] into the corresponding [set][Set] of
-	 * [POSIX&#32;file permissions][PosixFilePermission].
+	 * [POSIX&#32;file&#32;permissions][PosixFilePermission].
 	 *
 	 * @param ordinals
 	 *   Some ordinals.

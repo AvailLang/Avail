@@ -48,7 +48,7 @@ import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Answer the [integer range][IntegerRangeTypeDescriptor]
+ * **Primitive:** Answer the [integer&#32;range][IntegerRangeTypeDescriptor]
  * constrained by the specified upper and lower bounds. The provided
  * [booleans][EnumerationTypeDescriptor.booleanType] indicate whether their
  * corresponding bounds are inclusive (`true`) or exclusive (`false`).

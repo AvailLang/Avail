@@ -47,8 +47,8 @@ import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Answer a [message bundle's][MessageBundleDescriptor] message
- * parts (a [tuple][TupleDescriptor] of strings).
+ * **Primitive:** Answer a [message&#32;bundle's][MessageBundleDescriptor]
+ * message parts (a [tuple][TupleDescriptor] of strings).
  */
 @Suppress("unused")
 object P_BundleMessageParts : Primitive(1, CannotFail, CanFold, CanInline)

@@ -36,8 +36,8 @@ import com.avail.builder.ModuleName
 import com.avail.descriptor.module.ModuleDescriptor
 
 /**
- * An `AvailCompilerException` is thrown by the [Avail compiler][AvailCompiler]
- * when compilation fails for any reason.
+ * An `AvailCompilerException` is thrown by the
+ * [Avail&#32;compiler][AvailCompiler] when compilation fails for any reason.
  *
  * @property moduleName
  *   The [fully-qualified name][ModuleName] of the [module][ModuleDescriptor]

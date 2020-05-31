@@ -78,7 +78,8 @@ import java.nio.channels.AsynchronousFileChannel
 import kotlin.math.min
 
 /**
- * **Primitive:** Read the requested number of bytes from the [file&#32;channel][AsynchronousFileChannel] associated with the specified
+ * **Primitive:** Read the requested number of bytes from the
+ * [file&#32;channel][AsynchronousFileChannel] associated with the specified
  * [handle][AtomDescriptor], starting at the requested one-based position.
  * Produce them as a [tuple][ByteArrayTupleDescriptor] of bytes. If fewer bytes
  * are available, then simply produce a shorter tuple; an empty tuple
@@ -86,14 +87,11 @@ import kotlin.math.min
  * request amount is infinite or very large, fewer bytes may be returned, at the
  * discretion of the Avail VM.
  *
- *
- *
  * Answer a new fiber which, if the read is eventually successful, will be
- * started to apply the [success function][FunctionDescriptor] to the resulting
- * tuple of bytes.  If the read is unsuccessful, the fiber will be started to
- * apply the `failure function` to the error code.  The fiber runs at the
- * specified priority.
- *
+ * started to apply the [success&#32;function][FunctionDescriptor] to the
+ * resulting tuple of bytes.  If the read is unsuccessful, the fiber will be
+ * started to apply the `failure function` to the error code.  The fiber runs at
+ * the specified priority.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;

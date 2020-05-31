@@ -51,8 +51,9 @@ import java.io.File
 import java.io.FileNotFoundException
 
 /**
- * Provides the [configuration][AvailServerConfiguration] for the [Avail&#32;server][AvailServer]. Specifies the options that are available as arguments
- * to the server.
+ * Provides the [configuration][AvailServerConfiguration] for the
+ * [Avail&#32;server][AvailServer]. Specifies the options that are available as
+ * arguments to the server.
  *
  * @property helpStream
  *   The [appendable][Appendable] to which help text should be written.
@@ -92,7 +93,7 @@ class CommandLineConfigurator constructor(
 		AVAIL_RENAMES,
 
 		/**
-		 * Specification of the [Avail roots][ModuleRoots].
+		 * Specification of the [Avail&#32;roots][ModuleRoots].
 		 */
 		AVAIL_ROOTS,
 
@@ -118,7 +119,7 @@ class CommandLineConfigurator constructor(
 	}
 
 	/**
-	 * Create an [option processor][OptionProcessor] suitable for
+	 * Create an [option&#32;processor][OptionProcessor] suitable for
 	 * [updating][updateConfiguration] a
 	 * [server&#32;configuration][AvailServerConfiguration].
 	 *

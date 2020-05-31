@@ -56,8 +56,9 @@ import com.avail.interpreter.execution.Interpreter
 /**
  * **Primitive:** This private primitive is used to ensure that a module can
  * deserialize correctly. It forces the given set of atoms to be included in the
- * current module's [public names][ObjectSlots.IMPORTED_NAMES] or [private&#32;names][ObjectSlots.PRIVATE_NAMES], depending on the value of the supplied
- * [boolean][EnumerationTypeDescriptor.booleanType]
+ * current module's [public&#32;names][ObjectSlots.IMPORTED_NAMES] or
+ * [private&#32;names][ObjectSlots.PRIVATE_NAMES], depending on the value of the
+ * supplied [boolean][EnumerationTypeDescriptor.booleanType]
  * ([true][AtomDescriptor.trueObject] for public,
  * [false][AtomDescriptor.falseObject] for private).
  *

@@ -59,9 +59,10 @@ import kotlin.math.min
  * it is able to access every semantic feature afforded by `dot`. All APIs
  * automatically escape identifiers as necessary, always choosing to provide a
  * minimal text when several semantically equivalent texts are available.
- * Support is deliberately omitted for the `_` [CompassPoint][compass point],
- * since omitting the compass point of a node in an edge specification is
- * equivalent to specifying `_` as the compass point.
+ * Support is deliberately omitted for the `_`
+ * [CompassPoint][compass&#32;point], since omitting the compass point of a node
+ * in an edge specification is equivalent to specifying `_` as the compass
+ * point.
  *
  * `DotWriter` exposes the ability to generate `dot` source files through a
  * hierarchy of contextual emitters rooted at [AttributeWriter]. These emitters
@@ -82,10 +83,10 @@ import kotlin.math.min
  *   The accumulator for the generated source code.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
- * @see [The DOT Language](https://www.graphviz.org/doc/info/lang.html)
+ * @see [The&#32;DOT Language](https://www.graphviz.org/doc/info/lang.html)
  * @see [Node, Edge, and Graph Attributes](https://www.graphviz.org/doc/info/attrs.html)
- * @see [Node Shapes](https://www.graphviz.org/doc/info/shapes.html)
- * @see [Graphviz for a web browser](http://viz-js.com/)
+ * @see [Node&#32;Shapes](https://www.graphviz.org/doc/info/shapes.html)
+ * @see [Graphviz&#32;for a web browser](http://viz-js.com/)
  *
  * @constructor
  *

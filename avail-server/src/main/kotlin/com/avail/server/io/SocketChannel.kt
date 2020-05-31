@@ -44,7 +44,8 @@ import java.nio.channels.AsynchronousSocketChannel
  * @property adapter
  *   The [SocketAdapter] that created this [channel][SocketChannel].
  * @property transport
- *   The [channel][AsynchronousSocketChannel] used by the associated [SocketAdapter].
+ *   The [channel][AsynchronousSocketChannel] used by the associated
+ *   [SocketAdapter].
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  *
  * @constructor

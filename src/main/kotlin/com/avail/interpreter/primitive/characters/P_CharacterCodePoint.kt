@@ -47,7 +47,7 @@ import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Extract the [code point][IntegerDescriptor] from a
+* **Primitive:** Extract the [code&#32;point][IntegerDescriptor] from a
  * [character][CharacterDescriptor].
  */
 @Suppress("unused")

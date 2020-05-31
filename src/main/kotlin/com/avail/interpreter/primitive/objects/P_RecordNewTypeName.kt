@@ -51,8 +51,8 @@ import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Assign a name to a
- * [user-defined&#32;object&#32;type][ObjectTypeDescriptor]. This can be useful for
- * debugging.
+ * [user-defined&#32;object&#32;type][ObjectTypeDescriptor]. This can be useful
+ * for debugging.
  */
 object P_RecordNewTypeName : Primitive(2, CanInline, CannotFail, HasSideEffect)
 {

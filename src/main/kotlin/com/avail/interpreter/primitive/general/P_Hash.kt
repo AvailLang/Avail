@@ -46,7 +46,8 @@ import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Answer the [ hash value][A_BasicObject.hash] of the argument.
+ * **Primitive:** Answer the [hash&#32;value][A_BasicObject.hash] of the
+ * argument.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

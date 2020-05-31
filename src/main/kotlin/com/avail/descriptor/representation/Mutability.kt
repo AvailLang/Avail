@@ -6,13 +6,13 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
- *
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+*
  *  * Neither the name of the copyright holder nor the names of the contributors
  *    may be used to endorse or promote products derived from this software
  *    without specific prior written permission.
@@ -81,7 +81,7 @@ enum class Mutability {
 	 * reference to the new child. The origin [function][A_Function] of a new
 	 * fiber becomes *shared* before its execution. All special objects and
 	 * other root objects begin existence *shared*. Other objects become
-	 * *shared* just before assignment to the [object slot][ObjectSlotsEnum]
+	 * *shared* just before assignment to the [object&#32;slot][ObjectSlotsEnum]
 	 * of a *shared* object.
 	 */
 	SHARED

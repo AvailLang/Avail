@@ -119,7 +119,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock
  *
  * Message splitting occurs in two phases.  In the first setPhase, the message
  * is tokenized and parsed into an abstract [Expression] tree. In the second
- * setPhase, a [tuple type][TupleTypeDescriptor] of [phrase&#32;types][PhraseTypeDescriptor] is supplied, and produces a tuple of
+ * setPhase, a [tuple&#32;type][TupleTypeDescriptor] of
+ * [phrase&#32;types][PhraseTypeDescriptor] is supplied, and produces a tuple of
  * integer-encoded [ParsingOperation]s.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
@@ -152,45 +153,46 @@ class MessageSplitter
 	 *   alphanumerics by a single space.
 	 *  * Operator characters are never beside spaces, and are always parsed as
 	 *    individual tokens.
-	 *  * [Open guillemet][Metacharacter.OPEN_GUILLEMET] («),
-	 *    [double dagger][Metacharacter.DOUBLE_DAGGER] (‡), and
+	 *  * [Open&#32;guillemet][Metacharacter.OPEN_GUILLEMET] («),
+	 *    [double&#32;dagger][Metacharacter.DOUBLE_DAGGER] (‡), and
 	 *    [close&#32;guillemet][Metacharacter.CLOSE_GUILLEMET] (») are used to
 	 *    indicate repeated or optional substructures.
 	 *  * The characters [octothorp][Metacharacter.OCTOTHORP]
-	 *    (#) and [question mark][Metacharacter.QUESTION_MARK] (?) modify the
-	 *    output of repeated substructures to produce either a count of the
+	 *    (#) and [question&#32;mark][Metacharacter.QUESTION_MARK] (?) modify
+	 *    the output of repeated substructures to produce either a count of the
 	 *    repetitions or a boolean indicating whether an optional subexpression
 	 *    (expecting no arguments) was present.
-	 *  * Placing a [question mark][Metacharacter.QUESTION_MARK]
-	 *    (?) after a group containing arguments but no [double&#32;dagger][Metacharacter.DOUBLE_DAGGER] (‡) will limit the repetitions of
-	 *    the group to at most one.  Although limiting the method definitions to
-	 *    only accept 0..1 occurrences would accomplish the same grammatical
-	 *    narrowing, the parser might still attempt to parse more than one
-	 *    occurrence, leading to unnecessarily confusing diagnostics.
-	 *  * An [exclamation mark][Metacharacter.EXCLAMATION_MARK] (!) can follow a
-	 *    group of alternations to produce the 1-based index of the alternative
-	 *    that actually occurred.
+	 *  * Placing a [question&#32;mark][Metacharacter.QUESTION_MARK]
+	 *    (?) after a group containing arguments but no
+	 *    [double&#32;dagger][Metacharacter.DOUBLE_DAGGER] (‡) will limit the
+	 *    repetitions of the group to at most one.  Although limiting the method
+	 *    definitions to only accept 0..1 occurrences would accomplish the same
+	 *    grammatical narrowing, the parser might still attempt to parse more
+	 *    than one occurrence, leading to unnecessarily confusing diagnostics.
+	 *  * An [exclamation&#32;mark][Metacharacter.EXCLAMATION_MARK] (!) can
+	 *    follow a group of alternations to produce the 1-based index of the
+	 *    alternative that actually occurred.
 	 *  * An [underscore][Metacharacter.UNDERSCORE] (_) indicates where an
 	 *    argument occurs.
-	 *  * A [single dagger][Metacharacter.SINGLE_DAGGER] (†) may occur
+	 *  * A [single&#32;dagger][Metacharacter.SINGLE_DAGGER] (†) may occur
 	 *    immediately after an underscore to cause the argument expression to be
 	 *    evaluated in the static scope during compilation, wrapping the value
-	 *    in a [literal phrase][LiteralPhraseDescriptor].  This is applicable to
-	 *    both methods and macros.  The expression is subject to grammatical
-	 *    restrictions, and it must yield a value of suitable type.
+	 *    in a [literal&#32;phrase][LiteralPhraseDescriptor].  This is
+	 *    applicable to both methods and macros.  The expression is subject to
+	 *    grammatical restrictions, and it must yield a value of suitable type.
 	 *  * An [up-arrow][Metacharacter.UP_ARROW] (↑) after an underscore
 	 *    indicates an in-scope variable name is to be parsed.  The
 	 *    subexpression causes the variable itself to be provided, rather than
 	 *    its value.
-	 *  * An [exclamation mark][Metacharacter.EXCLAMATION_MARK] (!) may occur
-	 *    after the underscore instead, to indicate the argument expression may
-	 *    be ⊤-valued or ⊥-valued.  Since a function (and therefore a method
-	 *    definition) cannot accept a ⊤-valued argument, this mechanism only
-	 *    makes sense for macros, since macros bodies are passed phrases, which
-	 *    may be typed as *yielding* a top-valued result.
+	 *  * An [exclamation&#32;mark][Metacharacter.EXCLAMATION_MARK] (!) may
+	 *    occur after the underscore instead, to indicate the argument
+	 *    expression may be ⊤-valued or ⊥-valued.  Since a function (and
+	 *    therefore a method definition) cannot accept a ⊤-valued argument, this
+	 *    mechanism only makes sense for macros, since macros bodies are passed
+	 *    phrases, which may be typed as *yielding* a top-valued result.
 	 *  * An [ELLIPSIS][Metacharacter.ELLIPSIS] (…) matches a single
 	 *    [keyword&#32;token][A_Token].
-	 *  * An [exclamation mark][Metacharacter.EXCLAMATION_MARK] (!) after an
+	 *  * An [exclamation&#32;mark][Metacharacter.EXCLAMATION_MARK] (!) after an
 	 *    ELLIPSIS indicates *any* token will be accepted at that position.
 	 *  * An [OCTOTHORP][Metacharacter.OCTOTHORP] (#) after an ellipsis
 	 *    indicates only a *literal* token will be accepted.
@@ -448,9 +450,10 @@ class MessageSplitter
 		 *    attempt to use any variables in the current scope. The expression
 		 *    will be evaluated at compile time, and wrapped in a literal
 		 *    phrase.
-		 *  * If followed by a [UP_ARROW] (↑), a [variable use
-		 *    phrase][VariableUsePhraseDescriptor] must be supplied, which is
-		 *    converted into a [reference phrase][ReferencePhraseDescriptor].
+		 *  * If followed by a [UP_ARROW] (↑), a
+		 *    [variable&#32;use&#32;phrase][VariableUsePhraseDescriptor] must be
+		 *    supplied, which is converted into a
+		 *    [reference&#32;phrase][ReferencePhraseDescriptor].
 		 */
 		UNDERSCORE("_"),
 
@@ -626,7 +629,7 @@ class MessageSplitter
 	 * Pretty-print a send of this message with given argument phrases.
 	 *
 	 * @param sendPhrase
-	 *   The [send phrase][SendPhraseDescriptor] that is being printed.
+	 *   The [send&#32;phrase][SendPhraseDescriptor] that is being printed.
 	 * @param builder
 	 *   A [StringBuilder] on which to pretty-print the send of my message with
 	 *   the given arguments.
@@ -1329,9 +1332,9 @@ class MessageSplitter
 		/**
 		 * The tuple of all encountered permutations (tuples of integers) found
 		 * in all message names.  Keeping a statically accessible tuple shared
-		 * between message names allows [bundle trees][A_BundleTree] to easily
-		 * get to the permutations they need without having a separate per-tree
-		 * structure.
+		 * between message names allows [bundle&#32;trees][A_BundleTree] to
+		 * easily get to the permutations they need without having a separate
+		 * per-tree structure.
 		 *
 		 * The field is an [AtomicReference], and is accessed in a wait-free way
 		 * with compare-and-set and retry.  The tuple itself should always be

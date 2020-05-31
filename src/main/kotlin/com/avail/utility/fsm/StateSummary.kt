@@ -144,13 +144,13 @@ internal class StateSummary<
 	}
 
 	/**
-	 * Set the [state transition arc][StateTransitionArc] for the specified
-	 * event. If the event is null, define an automatic transition.
+	 * Set the [state&#32;transition&#32;arc][StateTransitionArc] for the
+	 * specified event. If the event is null, define an automatic transition.
 	 *
 	 * @param event
 	 *   An event, null to indicate an automatic transition.
 	 * @param arc
-	 *   A [state transition arc][StateTransitionArc].
+	 *   A [state&#32;transition&#32;arc][StateTransitionArc].
 	 */
 	fun addTransitionArc(
 		event: Event?,
@@ -182,12 +182,12 @@ internal class StateSummary<
 	}
 
 	/**
-	 * Obtain all [state transition arcs][StateTransitionArc] for the
+	 * Obtain all [state&#32;transition&#32;arcs][StateTransitionArc] for the
 	 * `StateSummary`'s state.
 	 *
 	 * @return
-	 *   A [collection][Collection] of [state transition
-	 *   arcs][StateTransitionArc].
+	 *   A [collection][Collection] of
+	 *   [state&#32;transition&#32;arcs][StateTransitionArc].
 	 */
 	fun allTransitionArcs(): Collection<StateTransitionArc<
 		State, Event, GuardKey, ActionKey, Memento>>
@@ -203,7 +203,7 @@ internal class StateSummary<
 	}
 
 	/**
-	 * Answer the appropriate [transition arc][StateTransitionArc] for the
+	 * Answer the appropriate [transition&#32;arc][StateTransitionArc] for the
 	 * starting state and the specified event. The event may be null, in which
 	 * case an automatic transition may be found. Guards are performed at this
 	 * time to determine which, if any, transition should be taken. The
@@ -213,10 +213,10 @@ internal class StateSummary<
 	 * @param event
 	 *   An event, or null if searching for automatic transitions.
 	 * @param executionContext
-	 *   The [execution context][ExecutionContext].
+	 *   The [execution&#32;context][ExecutionContext].
 	 * @return
-	 *   A [state transition arc][StateTransitionArc], or null if none are
-	 *   applicable.
+	 *   A [state&#32;transition&#32;arc][StateTransitionArc], or null if none
+	 *   are applicable.
 	 */
 	fun getTransitionArc(
 			event: Event?,

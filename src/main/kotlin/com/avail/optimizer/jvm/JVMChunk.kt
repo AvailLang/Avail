@@ -45,7 +45,8 @@ import java.nio.file.Paths
 /**
  * A `JVMChunk` is an [ExecutableChunk] for the Java Virtual Machine. It is
  * produced by a [JVMTranslator] on behalf of an [L2Generator] that has just
- * completed a [translation or optimization][L1Translator.translateToLevelTwo].
+ * completed a [translation&#32;or
+ * optimization][L1Translator.translateToLevelTwo].
  *
  * In the initial cheesy version of JVM translation, the generated subclasses of
  * `JVMChunk` simply embed the reified [L2Instruction]s directly and execute
