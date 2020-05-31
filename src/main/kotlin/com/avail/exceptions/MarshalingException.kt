@@ -38,7 +38,7 @@ import com.avail.exceptions.AvailErrorCode.E_JAVA_MARSHALING_FAILED
 
 /**
  * `MarshalingException` indicates that an error occurred during the
- * marshaling of an [Avail object][AvailObject] to Java.
+ * marshaling of an [Avail&#32;object][AvailObject] to Java.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

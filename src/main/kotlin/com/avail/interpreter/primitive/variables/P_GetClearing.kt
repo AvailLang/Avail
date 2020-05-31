@@ -53,10 +53,10 @@ import com.avail.interpreter.Primitive.Flag.HasSideEffect
 import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Get the value of the [variable][A_Variable], clear the variable, then answer the
- * previously extracted [value][AvailObject]. This operation
- * allows store-back patterns to be efficiently implemented in Level One
- * code while keeping the interpreter itself thread-safe and debugger-safe.
+ * **Primitive:** Get the value of the [variable][A_Variable], clear the
+ * variable, then answer the previously extracted [value][AvailObject]. This
+ * operation allows store-back patterns to be efficiently implemented in Level
+ * One code while keeping the interpreter itself thread-safe and debugger-safe.
  */
 @Suppress("unused")
 object P_GetClearing : Primitive(1, CanInline, HasSideEffect)

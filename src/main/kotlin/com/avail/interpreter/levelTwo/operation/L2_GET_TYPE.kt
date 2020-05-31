@@ -49,8 +49,8 @@ import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
 
 /**
- * Extract the [exact type][InstanceTypeDescriptor] of an object in a register,
- * writing the type to another register.
+ * Extract the [exact&#32;type][InstanceTypeDescriptor] of an object in a
+ * register, writing the type to another register.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;

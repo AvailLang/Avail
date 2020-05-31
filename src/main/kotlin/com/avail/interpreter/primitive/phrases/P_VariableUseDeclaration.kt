@@ -49,7 +49,7 @@ import com.avail.interpreter.execution.Interpreter
 /**
  * **Primitive:** Answer the [declaration][DeclarationPhraseDescriptor] that
  * created the entity referenced
- * by this [variable use][VariableUsePhraseDescriptor].
+ * by this [variable&#32;use][VariableUsePhraseDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

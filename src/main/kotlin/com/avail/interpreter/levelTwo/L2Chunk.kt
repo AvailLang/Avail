@@ -6,13 +6,13 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
- *
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+*
  *  * Neither the name of the copyright holder nor the names of the contributors
  *    may be used to endorse or promote products derived from this software
  *    without specific prior written permission.
@@ -77,7 +77,7 @@ import javax.annotation.concurrent.GuardedBy
 import kotlin.concurrent.write
 
 /**
- * A Level Two chunk represents an optimized implementation of a [compiled code
+ * A Level Two chunk represents an optimized implementation of a [compiled&#32;code
  * object][CompiledCodeDescriptor].
  *
  *
@@ -105,20 +105,20 @@ import kotlin.concurrent.write
  * @property code
  *   The code that was translated to L2.  Null for the default (L1) chunk.
  * @property numObjects
- *   The number of [object registers][L2BoxedRegister] that this chunk uses
+ *   The number of [object&#32;registers][L2BoxedRegister] that this chunk uses
  *   (including the fixed registers).  Having the number of needed object
  *   registers stored separately allows the register list to be dynamically
  *   expanded as needed only when starting or resuming a
  *   [continuation][ContinuationDescriptor].
  * @property numIntegers
- *   The number of [integer registers][L2IntRegister] that are used by this
+ *   The number of [integer&#32;registers][L2IntRegister] that are used by this
  *   chunk. Having this recorded separately allows the register list to be
  *   dynamically expanded as needed only when starting or resuming a
  *   continuation.
  * @property numDoubles
- *   The number of [floating point registers][L2FloatRegister] that are used by
- *   this chunk. Having this recorded separately allows the register list to be
- *   dynamically expanded as needed only when starting or resuming a
+ *   The number of [floating&#32;point registers][L2FloatRegister] that are used
+ *   by this chunk. Having this recorded separately allows the register list to
+ *   be dynamically expanded as needed only when starting or resuming a
  *   continuation.
  * @property offsetAfterInitialTryPrimitive
  *   The level two offset at which to start if the corresponding [A_RawFunction]
@@ -302,10 +302,10 @@ class L2Chunk private constructor(
 
 			/**
 			 * Deal with the fact that the given chunk has just been invoked,
-			 * resumed, restarted, or otherwise continued.  Optimize for the most
-			 * common case that the chunk is already in the newest generation, but
-			 * also make it reasonably quick to move it there from an older
-			 * generation.
+			 * resumed, restarted, or otherwise continued.  Optimize for the
+			 * most common case that the chunk is already in the newest
+			 * generation, but also make it reasonably quick to move it there
+			 * from an older generation.
 			 *
 			 * @param chunk
 			 *   The [L2Chunk] that has just been used.
@@ -680,11 +680,11 @@ class L2Chunk private constructor(
 		 *   The [code][CompiledCodeDescriptor] for which to use the new level
 		 *   two chunk, or null for the initial unoptimized chunk.
 		 * @param numObjects
-		 *   The number of [object&#32;registers][L2BoxedRegister] that this chunk
-		 *   will require.
+		 *   The number of [object&#32;registers][L2BoxedRegister] that this
+		 *   chunk will require.
 		 * @param numIntegers
-		 *   The number of [integer&#32;registers][L2IntRegister] that this chunk
-		 *   will require.
+		 *   The number of [integer&#32;registers][L2IntRegister] that this
+		 *   chunk will require.
 		 * @param numFloats
 		 *   The number of [floating&#32;point&#32;registers][L2FloatRegister]
 		 *   that this chunk will require.
@@ -766,8 +766,8 @@ class L2Chunk private constructor(
 		}
 
 		/**
-		 * The special [level&#32;two&#32;chunk][L2Chunk] that is used to interpret
-		 * level one nybblecodes until a piece of
+		 * The special [level&#32;two&#32;chunk][L2Chunk] that is used to
+		 * interpret level one nybblecodes until a piece of
 		 * [compiled&#32;code][CompiledCodeDescriptor] has been executed some
 		 * number of times (specified in [countdownForNewCode]).
 		 */

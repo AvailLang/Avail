@@ -206,13 +206,13 @@ import kotlin.math.min
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  *
  * @property resolver
- *   The [module name resolver][ModuleNameResolver].
+ *   The [module&#32;name resolver][ModuleNameResolver].
  *
  * @constructor
  * Construct a new `AvailWorkbench`.
  *
  * @param resolver
- *   The [module name resolver][ModuleNameResolver].
+ *   The [module&#32;name resolver][ModuleNameResolver].
  */
 class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	: JFrame()

@@ -41,8 +41,8 @@ import com.avail.descriptor.types.A_Type
 /**
  * A `RawStringLiteralTokenArgument` is an occurrence of
  * [ellipsis][Metacharacter.ELLIPSIS] (…) in a message name, followed by a
- * [dollar&#32;sign][Metacharacter.DOLLAR_SIGN] ($). It indicates where a raw string
- * literal token argument is expected. Like its superclass, the
+ * [dollar&#32;sign][Metacharacter.DOLLAR_SIGN] ($). It indicates where a raw
+ * string literal token argument is expected. Like its superclass, the
  * [RawTokenArgument], the token is captured after being placed in a literal
  * phrase, but in this case the token is restricted to be a
  * [literal][TokenType.LITERAL] whose value is a string.

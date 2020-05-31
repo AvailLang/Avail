@@ -47,7 +47,7 @@ import java.util.*
  * ECMA 404: "The JSON Data Interchange Format".
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
- * @see [ECMA 404: "The JSON Data Interchange Format"](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf)
+ * @see [ECMA&#32;404:&#32;"The&#32;JSON&#32;Data&#32;Interchange&#32;Format"](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf)
  */
 @Suppress("unused")
 class JSONWriter : AutoCloseable

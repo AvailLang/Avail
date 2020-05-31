@@ -108,19 +108,20 @@ import java.util.*
 
 /**
  * An [AvailCodeGenerator] is used to convert a [phrase][PhraseDescriptor] into
- * the corresponding [raw function][CompiledCodeDescriptor].
+ * the corresponding [raw&#32;function][CompiledCodeDescriptor].
  *
  * @property module
  *   The module in which this code occurs.
  * @property args
  *   The [List] of argument [declarations][A_Phrase] that correspond with actual
- *   arguments with which the resulting [raw function][A_RawFunction] will be
- *   invoked.
+ *   arguments with which the resulting [raw&#32;function][A_RawFunction] will
+ *   be invoked.
  * @property locals
- *   The [List] of declarations of local variables that this [raw&#32;function][A_RawFunction] will use.
+ *   The [List] of declarations of local variables that this
+ *   [raw&#32;function][A_RawFunction] will use.
  * @property constants
- *   The [List] of declarations of local constants that this [raw function] will
- *   use.
+ *   The [List] of declarations of local constants that this [raw&#32;function]
+ *   will use.
  * @property outers
  *   The [List] of the lexically captured declarations of arguments, variables,
  *   locals, and labels from enclosing scopes which are used by this block.

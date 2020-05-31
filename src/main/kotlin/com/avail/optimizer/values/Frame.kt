@@ -46,7 +46,7 @@ import com.avail.interpreter.levelTwo.L2Chunk
  *   The frame that was active at the site of the invocation that this frame
  *   represents.
  * @property code
- *   The actual [raw function][CompiledCodeDescriptor] that's associated
+ *   The actual [raw&#32;function][CompiledCodeDescriptor] that's associated
  *   with semantic values tied to this frame.
  * @property debugName
  *   The symbolic name to use to describe this frame.  Note that it does not

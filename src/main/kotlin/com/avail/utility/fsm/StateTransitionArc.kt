@@ -49,7 +49,8 @@ package com.avail.utility.fsm
  * @property event
  *   The event upon whose receipt the transition will occur.
  * @property guardKey
- *   The guard key whose bound guard will be performed to determine if a transition can be taken.
+ *   The guard key whose bound guard will be performed to determine if a
+ *   transition can be taken.
  * @property actionKey
  *   The action key whose bound action will be performed during transition.
  * @property newState

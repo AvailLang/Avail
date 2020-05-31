@@ -49,8 +49,8 @@ import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Answer a
- * [local&#32;constant&#32;declaration][PhraseKind.LOCAL_CONSTANT_PHRASE] from the
- * specified [token][TokenDescriptor] and initializing
+ * [local&#32;constant&#32;declaration][PhraseKind.LOCAL_CONSTANT_PHRASE] from
+ * the specified [token][TokenDescriptor] and initializing
  * [expression][PhraseKind.EXPRESSION_PHRASE].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;

@@ -451,8 +451,8 @@ class IOSystem constructor(val runtime: AvailRuntime)
 			if (shouldFollow) followSymlinks else doNotFollowSymbolicLinks
 
 		/**
-		 * The [POSIX&#32;file&#32;permissions][PosixFilePermission]. *The order of
-		 * these elements should not be changed!*
+		 * The [POSIX&#32;file&#32;permissions][PosixFilePermission]. *The order
+		 * of these elements should not be changed!*
 		 */
 		@JvmStatic
 		val posixPermissions = arrayOf(

@@ -43,10 +43,10 @@ import com.avail.descriptor.types.A_Type
 /**
  * An `ArgumentForMacroOnly` is the translation of an
  * [underscore][Metacharacter.UNDERSCORE] (_) in a message name, followed
- * immediately by an [exclamation mark][Metacharacter.EXCLAMATION_MARK] (!).  It
- * indicates where an argument is expected – but the argument is allowed to be
- * ⊤-valued or ⊥-valued.  Functions (and therefore method definitions) may not
- * take arguments of type ⊤ or ⊥, so this mechanism is restricted to use by
+ * immediately by an [exclamation&#32;mark][Metacharacter.EXCLAMATION_MARK] (!).
+ * It indicates where an argument is expected – but the argument is allowed to
+ * be ⊤-valued or ⊥-valued.  Functions (and therefore method definitions) may
+ * not take arguments of type ⊤ or ⊥, so this mechanism is restricted to use by
  * macros, where the phrases themselves (including phrases yielding ⊤ or ⊥) are
  * what get passed to the macro body.
  *

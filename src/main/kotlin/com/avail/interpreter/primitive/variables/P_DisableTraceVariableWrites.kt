@@ -55,8 +55,8 @@ import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Disable
- * [variable&#32;write&#32;tracing&#32;][TraceFlag.TRACE_VARIABLE_WRITES] for
- * the [current&#32;fiber&#32;][FiberDescriptor.currentFiber]. For each
+ * [variable&#32;write&#32;tracing][TraceFlag.TRACE_VARIABLE_WRITES] for
+ * the [current&#32;fiber][FiberDescriptor.currentFiber]. For each
  * [variable][A_Variable] that survived tracing, accumulate the variable's
  * [write&#32;reactor][VariableAccessReactor] [functions][A_Function] into a
  * [set][A_Set]. Clear the write reactors for each variable written. Answer the

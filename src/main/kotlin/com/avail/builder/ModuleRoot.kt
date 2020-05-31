@@ -43,7 +43,7 @@ import java.io.File
  * themselves.
  *
  * @property name
- *   The [module root][ModuleRoot] name.
+ *   The [module&#32;root][ModuleRoot] name.
  * @property sourceDirectory
  *   If provided, then the [path][File] to the directory that contains source
  *   [modules][ModuleDescriptor] for this [root][ModuleRoot].
@@ -56,7 +56,7 @@ import java.io.File
  * @param name
  *   The name of the module root.
  * @param repository
- *   The [path][File] to the [indexed repository][Repository] that
+ *   The [path][File] to the [indexed&#32;repository][Repository] that
  *   contains compiled [modules][ModuleDescriptor] for this root.
  * @param sourceDirectory
  *   The [path][File] to the directory that contains source

@@ -56,7 +56,9 @@ import com.avail.interpreter.execution.Interpreter
 
 /**
  * The `P_BootstrapInitializingVariableDeclarationMacro` primitive is used for
- * bootstrapping declaration of a [local&#32;variable][DeclarationKind.LOCAL_VARIABLE] with an initializing expression.
+ * bootstrapping declaration of a
+ * [local&#32;variable][DeclarationKind.LOCAL_VARIABLE] with an initializing
+ * expression.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */

@@ -43,11 +43,11 @@ import com.avail.descriptor.variables.VariableDescriptor
 import java.util.*
 
 /**
- * A `VariableQuote` is an occurrence of [up arrow][Metacharacter.UP_ARROW] (↑)
- * after an underscore in a message name. It indicates that the expression must
- * be the name of a [variable][VariableDescriptor] that is currently in-scope.
- * It produces a [reference][ReferencePhraseDescriptor] to the variable, rather
- * than extracting its value.
+ * A `VariableQuote` is an occurrence of [up&#32;arrow][Metacharacter.UP_ARROW]
+ * (↑) after an underscore in a message name. It indicates that the expression
+ * must be the name of a [variable][VariableDescriptor] that is currently
+ * in-scope. It produces a [reference][ReferencePhraseDescriptor] to the
+ * variable, rather than extracting its value.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *

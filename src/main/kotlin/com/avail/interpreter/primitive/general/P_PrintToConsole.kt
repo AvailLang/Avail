@@ -51,9 +51,10 @@ import com.avail.io.TextOutputChannel
 
 /**
  * **Primitive:** Print the specified [string][StringDescriptor] to the
- * [current][Interpreter.fiber]'s [standard&#32;output&#32;channel][TextOutputChannel],
- * [ ][ExecutionState.SUSPENDED] the current fiber until the string can be
- * queued for writing.
+ * [current][Interpreter.fiber]'s
+ * [standard&#32;output&#32;channel][TextOutputChannel],
+ * [suspended][ExecutionState.SUSPENDED] the current fiber until the string can
+ * be queued for writing.
  */
 @Suppress("unused")
 object P_PrintToConsole : Primitive(1, CanSuspend, Unknown)

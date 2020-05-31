@@ -111,7 +111,7 @@ import com.avail.interpreter.execution.Interpreter
  * to the macro body (i.e., this primitive).  The body function has to look up
  * any arguments, primitive failure variable, and/or label that may have entered
  * scope due to execution of a prefix function.  The body answers a suitable
- * replacement phrase, in this case a [block phrase][BlockPhraseDescriptor].
+ * replacement phrase, in this case a [block&#32;phrase][BlockPhraseDescriptor].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */

@@ -46,7 +46,7 @@ import java.util.Collections.unmodifiableList
 /**
  * An `Alternation` is a special [expression][Expression] indicated by
  * interleaved [vertical&#32;bars][Metacharacter.VERTICAL_BAR] between
- * [simples][Simple] and [simple groups][Group]. It may not contain
+ * [simples][Simple] and [simple&#32;groups][Group]. It may not contain
  * [arguments][Argument].
  *
  * An alternation specifies several alternative parses but does not produce any

@@ -275,15 +275,15 @@ import kotlin.streams.toList
  * Construct a new `AvailCompiler`.
  *
  * @param moduleHeader
- *   The [module header][ModuleHeader] of the module to compile. May be null for
- *   synthetic modules (for entry points), or when parsing the header.
+ *   The [module&#32;header][ModuleHeader] of the module to compile. May be null
+ *   for synthetic modules (for entry points), or when parsing the header.
  * @param module
  *   The current [module][ModuleDescriptor].`
  * @param source
  *   The source [A_String].
  * @param textInterface
- *   The [text interface][TextInterface] for any [fibers][A_Fiber] started by
- *   this compiler.
+ *   The [text&#32;interface][TextInterface] for any [fibers][A_Fiber] started
+ *   by this compiler.
  * @param pollForAbort
  *   How to quickly check if the client wants to abort compilation.
  * @param progressReporter
@@ -346,7 +346,7 @@ class AvailCompiler(
 
 	/**
 	 * A list of subexpressions being parsed, represented by
-	 * [message&#32;bundle&#32; trees][A_BundleTree] holding the positions
+	 * [message&#32;bundle&#32;trees][A_BundleTree] holding the positions
 	 * within all outer send expressions.
 	 *
 	 * @property bundleTree
@@ -4937,9 +4937,9 @@ class AvailCompiler(
 		}
 
 		/**
-		 * Answer the [set][SetDescriptor] of [declaration&#32;phrases] which are
-		 * used by this parse tree but are locally declared (i.e., not at global
-		 * module scope).
+		 * Answer the [set][SetDescriptor] of [declaration&#32;phrases] which
+		 * are used by this parse tree but are locally declared (i.e., not at
+		 * global module scope).
 		 *
 		 * @param phrase
 		 *   The phrase to recursively examine.

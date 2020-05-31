@@ -44,8 +44,8 @@ import kotlin.math.min
 
 /**
  * A `LookupTree` representing an incomplete search.  To further the search, the
- * indicated [type&#32;test][argumentTypeToTest] will be made.  If successful, the
- * [ifCheckHolds] child will be visited, otherwise the [ifCheckFails] child
+ * indicated [type&#32;test][argumentTypeToTest] will be made.  If successful,
+ * the [ifCheckHolds] child will be visited, otherwise the [ifCheckFails] child
  * will be visited.
  *
  * @param Element

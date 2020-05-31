@@ -887,7 +887,7 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * A [tuple&#32;of&#32;characters][StringDescritor] with code points in
+	 * A [tuple&#32;of&#32;characters][StringDescriptortor] with code points in
 	 * Latin-1.  Write the size of the tuple then the sequence of character
 	 * bytes.
 	 */
@@ -958,8 +958,8 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * A [tuple&#32;of&#32;integers][TupleDescriptor] whose values all fall in
-	 * the range 0..2^31-1.
+	 * A [tuple][TupleDescriptor] of integers whose values all fall in the range
+	 * 0..2^31-1.
 	 */
 	INT_TUPLE(28, COMPRESSED_INT_TUPLE.named("tuple of ints"))
 	{
@@ -979,8 +979,8 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * A [tuple&#32;of&#32;integers][TupleDescriptor] whose values all fall in
-	 * the range 0..255.
+	 * A [tuple][TupleDescriptor] of integers whose values all fall in the range
+	 * 0..255.
 	 */
 	BYTE_TUPLE(29, UNCOMPRESSED_BYTE_TUPLE.named("tuple of bytes"))
 	{
@@ -1000,8 +1000,7 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * A [tuple&#32;of&#32;integers][TupleDescriptor] whose values fall in the
-	 * range 0..15.
+	 * A [tuple][TupleDescriptor] whose values fall in the range 0..15.
 	 */
 	NYBBLE_TUPLE(30, UNCOMPRESSED_NYBBLE_TUPLE.named("tuple of nybbles"))
 	{
@@ -1021,7 +1020,7 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * A [map][MapDescriptor].  Convert it to a tuple (key1, value1, ...
+	 * A [map][MapDescriptor].  Convert it to a tuple (key1, value1, …
 	 * key```[N]```, value```[N]```) and work with that, converting it back to a
 	 * map when deserializing.
 	 */

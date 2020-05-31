@@ -62,8 +62,8 @@ import java.text.MessageFormat
  *   [code&#32;points][CharacterDescriptor] of the file.
  *   [Surrogate&#32;pairs][Character.isSurrogate] are treated as a single code
  *   point. It is *strongly* recommended that Avail source files are always
- *   encoded in the UTF-8 [character set][Charset].  The current compiler as of
- *   2014.01.26 *requires* source files to be in UTF-8 encoding.
+ *   encoded in the UTF-8 [character&#32;set][Charset].  The current compiler as
+ *   of 2014.01.26 *requires* source files to be in UTF-8 encoding.
  * @property type
  *   The [type][ProblemType] of problem that was encountered.
  * @property messagePattern

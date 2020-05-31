@@ -83,7 +83,7 @@ import java.util.*
  * @param resolver
  *   The [ModuleNameResolver] for resolving module paths.
  * @param moduleToComments
- *   A map of [module names][ModuleName] to a list of all the method names
+ *   A map of [module&#32;names][ModuleName] to a list of all the method names
  *   exported from said module
  * @param linkingFileMap
  *   A map for all output files in Stacks

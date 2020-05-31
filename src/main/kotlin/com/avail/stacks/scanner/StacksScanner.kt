@@ -54,7 +54,8 @@ import java.util.*
  * Construct a new [StacksScanner].
  *
  * @param commentToken
- *   The [comment token][CommentTokenDescriptor] to be scanned and tokenized.
+ *   The [comment&#32;token][CommentTokenDescriptor] to be scanned and
+ *   tokenized.
  * @param moduleName
  *   The name of the module the comment is in.
  */

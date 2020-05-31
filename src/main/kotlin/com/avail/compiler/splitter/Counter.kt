@@ -56,7 +56,7 @@ import java.util.*
  * A `Counter` is a special subgroup (i.e., not a root group)
  * indicated by an [octothorp][Metacharacter.OCTOTHORP] following a
  * [group][Group]. It may not contain [arguments][Argument] or subgroups, though
- * it may contain a [double dagger][Metacharacter.DOUBLE_DAGGER].
+ * it may contain a [double&#32;dagger][Metacharacter.DOUBLE_DAGGER].
  *
  * When a double dagger appears in a counter, the counter produces a
  * [whole&#32;number][IntegerRangeTypeDescriptor.wholeNumbers] that indicates

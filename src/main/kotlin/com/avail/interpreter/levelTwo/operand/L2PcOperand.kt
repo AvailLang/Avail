@@ -72,7 +72,7 @@ import java.util.concurrent.atomic.LongAdder
  * @constructor
  * Construct a new `L2PcOperand` that leads to the specified
  * [L2BasicBlock].  Set [isBackward] to true if this is a
- * back-link to a [loop head][L2BasicBlock.isLoopHead],
+ * back-link to a [loop&#32;head][L2BasicBlock.isLoopHead],
  *
  * @param targetBlock
  *   The [L2BasicBlock] The target basic block.

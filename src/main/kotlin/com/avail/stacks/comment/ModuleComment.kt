@@ -52,7 +52,8 @@ import com.avail.utility.json.JSONWriter
  * Construct a new [ModuleComment].
  *
  * @param signature
- *   The [signature][CommentSignature] of the class/method the comment describes.
+ *   The [signature][CommentSignature] of the class/method the comment
+ *   describes.
  * @param commentStartLine
  *   The start line in the module the comment being parsed appears.
  * @param author

@@ -6,13 +6,13 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
- *
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+*
  *  * Neither the name of the copyright holder nor the names of the contributors
  *    may be used to endorse or promote products derived from this software
  *    without specific prior written permission.
@@ -55,7 +55,7 @@ import java.util.*
 
 /**
  * A `PojoFieldDescriptor` is an Avail [variable][VariableDescriptor] that
- * facilitates access to the instance [Java field][Field] of a particular
+ * facilitates access to the instance [Java&#32;field][Field] of a particular
  * [pojo][PojoDescriptor] or the static field of a particular
  * [pojo&#32;type][PojoTypeDescriptor]. It supports the same protocol as any
  * other variable, but reads and writes are of the pojo's field.

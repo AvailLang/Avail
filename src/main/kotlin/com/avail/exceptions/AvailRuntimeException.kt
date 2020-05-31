@@ -37,8 +37,8 @@ import com.avail.descriptor.representation.AvailObject
 
 /**
  * `AvailRuntimeException` is the root of the hierarchy of
- * [runtime&#32;exception][RuntimeException] that are specific to the implementation
- * of [AvailObject] and its numerous primitive operations.
+ * [runtime&#32;exception][RuntimeException] that are specific to the
+ * implementation of [AvailObject] and its numerous primitive operations.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */

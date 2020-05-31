@@ -6,13 +6,13 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
- *
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+*
  *  * Neither the name of the copyright holder nor the names of the contributors
  *    may be used to endorse or promote products derived from this software
  *    without specific prior written permission.
@@ -141,7 +141,8 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 	enum class ObjectSlots : ObjectSlotsEnum
 	{
 		/**
-		 * A [string][StringDescriptor] that names the [module][ModuleDescriptor].
+		 * A [string][StringDescriptor] that names the
+		 * [module][ModuleDescriptor].
 		 */
 		NAME,
 
@@ -209,8 +210,8 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 
 		/**
 		 * A [set][SetDescriptor] of
-		 * [grammatical&#32;restrictions][GrammaticalRestrictionDescriptor] defined
-		 * within this module.
+		 * [grammatical&#32;restrictions][GrammaticalRestrictionDescriptor]
+		 * defined within this module.
 		 */
 		GRAMMATICAL_RESTRICTIONS,
 
@@ -236,8 +237,8 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 
 		/**
 		 * A [set][SetDescriptor] of
-		 * [semantic&#32;restrictions][SemanticRestrictionDescriptor] defined within
-		 * this module.
+		 * [semantic&#32;restrictions][SemanticRestrictionDescriptor] defined
+		 * within this module.
 		 */
 		SEMANTIC_RESTRICTIONS,
 
@@ -995,7 +996,8 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 		 *
 		 * @return
 		 *   The module currently undergoing loading, or
-		 *   [nil][NilDescriptor.nil] if the current fiber is not a loader fiber.
+		 *   [nil][NilDescriptor.nil] if the current fiber is not a loader
+		 *   fiber.
 		 */
 		fun currentModule(): A_Module
 		{

@@ -47,7 +47,8 @@ import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive**: Answer `true` if the specified [atom][A_Atom] [is&#32;special][A_Atom.isAtomSpecial].
+ * **Primitive**: Answer `true` if the specified [atom][A_Atom]
+ * [is&#32;special][A_Atom.isAtomSpecial].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

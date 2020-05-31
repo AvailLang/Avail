@@ -56,8 +56,9 @@ import com.avail.interpreter.Primitive.Flag.PreserveFailureVariable
 import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Always fail. The Avail failure code invokes the [body&#32;block][FunctionDescriptor]. A handler block is only invoked when an exception
- * is raised.
+ * **Primitive:** Always fail. The Avail failure code invokes the
+ * [body&#32;block][FunctionDescriptor]. A handler block is only invoked when an
+ * exception is raised.
  */
 object P_CatchException : Primitive(
 	3,

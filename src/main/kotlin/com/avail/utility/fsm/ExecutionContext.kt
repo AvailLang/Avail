@@ -33,7 +33,7 @@
 package com.avail.utility.fsm
 
 /**
- * An `ExecutionContext` represents a running [finite state
+ * An `ExecutionContext` represents a running [finite&#32;state
  * machine][StateMachine]. In order to execute a step, it maintains a reference
  * to the executor, the current state, and a client-provided memento which will
  * be passed as the sole argument of every action invocation.
@@ -55,7 +55,7 @@ package com.avail.utility.fsm
  * @param Memento
  *   The memento type.
  * @property machine
- *   The [state machine][StateMachine].
+ *   The [state&#32;machine][StateMachine].
  * @property memento
  *   The memento to pass to each action that runs.
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
@@ -66,7 +66,8 @@ package com.avail.utility.fsm
  * Construct a new `ExecutionContext`.
  *
  * @param machine
- *   The [state machine][StateMachine] to instantiate as an `ExecutionContext`.
+ *   The [state&#32;machine][StateMachine] to instantiate as an
+ *   `ExecutionContext`.
  * @param memento
  *   The object which should be passed to all actions.
  */

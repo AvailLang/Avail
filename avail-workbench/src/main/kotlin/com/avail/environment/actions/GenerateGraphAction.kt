@@ -41,7 +41,7 @@ import java.awt.event.ActionEvent
 import javax.swing.Action
 
 /**
- * A `GenerateGraphAction` instructs the [Avail builder][AvailBuilder] to
+ * A `GenerateGraphAction` instructs the [Avail&#32;builder][AvailBuilder] to
  * generate a graphical representation of the selected module's dependencies.
  *
  * @constructor

@@ -59,7 +59,7 @@ import java.util.*
  * Construct a new `PragmaKind`.
  *
  * @param lexeme
- *   The Java [lexeme string][String], i.e. the text of the token.
+ *   The Java [lexeme&#32;string][String], i.e. the text of the token.
  */
 enum class PragmaKind constructor(val lexeme: String)
 {

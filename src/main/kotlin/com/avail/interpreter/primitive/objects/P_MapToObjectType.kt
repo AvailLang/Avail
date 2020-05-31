@@ -52,8 +52,9 @@ import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Convert a [map][MapDescriptor] from fields ([instance&#32;types][InstanceTypeDescriptor] of [atoms][AtomDescriptor]) to
- * [types][TypeDescriptor] into an [object type][ObjectTypeDescriptor].
+ * **Primitive:** Convert a [map][MapDescriptor] from fields
+ * ([instance&#32;types][InstanceTypeDescriptor] of [atoms][AtomDescriptor]) to
+ * [types][TypeDescriptor] into an [object&#32;type][ObjectTypeDescriptor].
  */
 @Suppress("unused")
 object P_MapToObjectType : Primitive(1, CannotFail, CanFold, CanInline)

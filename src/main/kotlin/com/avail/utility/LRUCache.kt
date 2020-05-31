@@ -54,9 +54,9 @@ import kotlin.concurrent.withLock
  * @param V
  *   The type of the values.
  * @property softCapacity
- *   The cardinality of the set of [softly held][SoftReference] cached values.
- *   This is the total capacity of the [cache][LRUCache], i.e. the capacity of
- *   [softMap].
+ *   The cardinality of the set of [softly&#32;held][SoftReference] cached
+ *   values. This is the total capacity of the [cache][LRUCache], i.e. the
+ *   capacity of [softMap].
  * @property strongCapacity
  *   The cardinality of the set of strongly held cached values, i.e. the
  *   capacity of [strongMap].

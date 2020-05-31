@@ -33,7 +33,8 @@
 package com.avail.tools.options
 
 /**
- * Exception thrown during [option processing][OptionProcessor.processOptions].
+ * Exception thrown during
+ * [option&#32;processing][OptionProcessor.processOptions].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

@@ -57,8 +57,9 @@ import java.util.*
  * is, states and transitions are not bound directly to actions, but rather
  * indirectly to keys. This allows optimal type-safety and automated validation.
  * An action accepts a single argument of client-specified type. This object is
- * treated as a memento by the FSM, an opaque argument supplied at [execution&#32;context][ExecutionContext] creation-time and passed through to an action upon
- * its performance.
+ * treated as a memento by the FSM, an opaque argument supplied at
+ * [execution&#32;context][ExecutionContext] creation-time and passed through to
+ * an action upon its performance.
  *
  * Executable guards are keyed by members of a guard key enumeration for the
  * same reasons as actions. An executable guard accepts a single argument of
@@ -93,7 +94,7 @@ import java.util.*
  * @property initialState
  *   The state in which to start a new [state][ExecutionContext].
  * @author Todd L Smith &lt;todd@availlang.org&gt;
- * @see [Finite state
+ * @see [Finite&#32;state
  * machine](http://en.wikipedia.org/wiki/Finite-state_machine)
  *
  * @constructor
@@ -103,7 +104,7 @@ import java.util.*
  * @param initialState
  *   The state in which a new [context][ExecutionContext] will start.
  * @param summaries
- *   The collection of [state summaries][StateSummary].
+ *   The collection of [state&#32;summaries][StateSummary].
  */
 class StateMachine<
 	State : Enum<State>,

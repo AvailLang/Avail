@@ -61,12 +61,13 @@ import kotlin.experimental.and
 import kotlin.experimental.xor
 
 /**
- * A `WebSocketAdapter` provides a WebSocket interface to an [Avail&#32;server][AvailServer].
+ * A `WebSocketAdapter` provides a WebSocket interface to an
+ * [Avail&#32;server][AvailServer].
  *
  * @property server
- *   The [Avail server][AvailServer].
+ *   The [Avail&#32;server][AvailServer].
  * @property adapterAddress
- *   The [address][InetSocketAddress] of the [server socket
+ *   The [address][InetSocketAddress] of the [server&#32;socket
  *   channel][AsynchronousServerSocketChannel].
  * @property serverAuthority
  *   The [server][WebSocketAdapter]'s authority, e.g., the host name of this
@@ -86,12 +87,12 @@ import kotlin.experimental.xor
  *   a channel.
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
- * @see [RFC 6455: The WebSocket Protocol](http://tools.ietf.org/html/rfc6455)
+ * @see [RFC&#32;6455:&#32;The WebSocket&#32;Protocol](http://tools.ietf.org/html/rfc6455)
  *
  * @constructor
  *
  * Construct a new [WebSocketAdapter] for the specified [server][AvailServer]
- * that listens on the specified [socket address][InetSocketAddress].
+ * that listens on the specified [socket&#32;address][InetSocketAddress].
  *
  * @param server
  *   An Avail server.
@@ -113,7 +114,7 @@ import kotlin.experimental.xor
  *   order to support implementation-specific requirements for the closing of
  *   a channel. *Does nothing by default.*
  * @throws IOException
- *   If the [server socket][AsynchronousServerSocketChannel] could not be
+ *   If the [server&#32;socket][AsynchronousServerSocketChannel] could not be
  *   opened.
  */
 class WebSocketAdapter @Throws(IOException::class) constructor(
@@ -246,8 +247,8 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 			}
 
 			/**
-			 * Answer the [request&#32;method][HttpRequestMethod] with the specified
-			 * name.
+			 * Answer the [request&#32;method][HttpRequestMethod] with the
+			 * specified name.
 			 *
 			 * @param name
 			 *   The request method name.
@@ -380,8 +381,8 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 
 			/**
 			 * Answer the parsed [request][ClientRequest]. If the headers do not
-			 * describe a valid request, then [fail&#32;the&#32;connection][badRequest]
-			 * and answer `null`.
+			 * describe a valid request, then
+			 * [fail&#32;the&#32;connection][badRequest] and answer `null`.
 			 *
 			 * @param channel
 			 *   A [channel][WebSocketChannel].

@@ -77,7 +77,8 @@ import java.util.logging.Level
 import kotlin.math.min
 
 /**
- * Used for parallel-loading modules in the [module&#32;graph][AvailBuilder.moduleGraph].
+ * Used for parallel-loading modules in the
+ * [module&#32;graph][AvailBuilder.moduleGraph].
  *
  * @property availBuilder
  *   The [AvailBuilder] for which we're loading.

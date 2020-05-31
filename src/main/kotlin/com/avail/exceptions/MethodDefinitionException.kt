@@ -56,7 +56,7 @@ import com.avail.exceptions.AvailErrorCode.E_NO_METHOD_DEFINITION
  * Construct a new `MethodDefinitionException`.
  *
  * @param code
- *    An [error code][AvailErrorCode].
+ *    An [error&#32;code][AvailErrorCode].
  */
 class MethodDefinitionException private constructor(code: AvailErrorCode)
 	: AvailException(code)

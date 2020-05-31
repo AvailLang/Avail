@@ -34,7 +34,8 @@ package com.avail.tools.options
 
 /**
  * Exception thrown by the [factory][OptionProcessorFactory]'s validation
- * process in the event that the client-specified [option&#32;processor][OptionProcessor] fails validation.
+ * process in the event that the client-specified
+ * [option&#32;processor][OptionProcessor] fails validation.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

@@ -42,7 +42,7 @@ import com.avail.stacks.tokens.SectionKeywordStacksToken
 import java.util.*
 
 /**
- * Parses a List of [stacks tokens][AbstractStacksToken].
+ * Parses a List of [stacks&#32;tokens][AbstractStacksToken].
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *

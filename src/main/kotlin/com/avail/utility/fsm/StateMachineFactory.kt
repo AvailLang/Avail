@@ -36,12 +36,12 @@ import java.util.*
 
 /**
  * A `StateMachineFactory` enables a client to dynamically specify and assemble
- * a [finite&#32;state&#32;machine][StateMachine]. In particular, the factory allows a
- * client to flexibly define a particular FSM while ignoring specification and
- * evaluation order dependency. Validation is postponed until final assembly
- * time, at which time a [ValidationException] will be thrown in the event of
- * incorrect or incomplete specification; otherwise, the constructed FSM
- * provably reflects the client specification.
+ * a [finite&#32;state&#32;machine][StateMachine]. In particular, the factory
+ * allows a client to flexibly define a particular FSM while ignoring
+ * specification and evaluation order dependency. Validation is postponed until
+ * final assembly time, at which time a [ValidationException] will be thrown in
+ * the event of incorrect or incomplete specification; otherwise, the
+ * constructed FSM provably reflects the client specification.
  *
  * @param State
  *   The type of states (an [Enum]).
@@ -67,7 +67,7 @@ import java.util.*
  * @constructor
  *
  * Construct a new `StateMachineFactory` primed to create a new
- * instance of the specified kind of [state machine][StateMachine].
+ * instance of the specified kind of [state&#32;machine][StateMachine].
  *
  * @param stateType
  *   The kind of states.

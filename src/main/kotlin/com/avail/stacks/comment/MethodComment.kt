@@ -66,7 +66,8 @@ import java.util.*
  * Construct a new [MethodComment].
  *
  * @param signature
- * The [signature][MethodCommentSignature] of the class/method the comment describes.
+ *   The [signature][MethodCommentSignature] of the class/method the comment
+ *   describes.
  * @param commentStartLine
  *   The start line in the module the comment being parsed appears.
  * @param author

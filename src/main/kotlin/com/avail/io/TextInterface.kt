@@ -49,19 +49,19 @@ import java.nio.charset.StandardCharsets
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  *
  * @property inputChannel
- *   The [standard input channel][TextInputChannel].
+ *   The [standard&#32;input channel][TextInputChannel].
  * @property outputChannel
- *   The [standard output channel][TextOutputChannel].
+ *   The [standard&#32;output channel][TextOutputChannel].
  * @property errorChannel
- *   The [standard error channel][TextOutputChannel].
+ *   The [standard&#32;error channel][TextOutputChannel].
  *
  * @constructor
  * Construct a new `TextInterface`.
  *
  * @param inputChannel
- *   The [standard input channel][TextInputChannel].
+ *   The [standard&#32;input channel][TextInputChannel].
  * @param outputChannel
- *   The [standard output channel][TextOutputChannel].
+ *   The [standard&#32;output channel][TextOutputChannel].
  * @param errorChannel
  *   The standard error channel.
  */

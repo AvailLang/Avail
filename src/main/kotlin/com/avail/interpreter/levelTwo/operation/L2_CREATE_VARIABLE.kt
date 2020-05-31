@@ -44,7 +44,7 @@ import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 
 /**
- * Create a new [variable object][VariableDescriptor] of the
+ * Create a new [variable&#32;object][VariableDescriptor] of the
  * specified [variable&#32;type][VariableTypeDescriptor].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;

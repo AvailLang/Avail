@@ -47,19 +47,19 @@ import java.lang.String.format
 import java.util.*
 
 /**
- * To direct the activities of an [Avail server][AvailServer], a client sends
- * [command&#32;messages][CommandMessage] that encode `Command`s. The `Command`
- * `enum` codifies the set of possible commands, and each member specifies the
- * decoding logic.
+ * To direct the activities of an [Avail&#32;server][AvailServer], a client
+ * sends [command&#32;messages][CommandMessage] that encode `Command`s. The
+ * `Command` `enum` codifies the set of possible commands, and each member
+ * specifies the decoding logic.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  *
  * @constructor
  *
- * Construct a new `Command`. If it doesn't [require special
- * parsing][requiresSpecialParsing], then add it to the parsing [TrieNode.trie]
- * (treating the tokenization of its [name][name] on underscore boundaries as
- * its syntax).
+ * Construct a new `Command`. If it doesn't
+ * [require&#32;special&#32;parsing][requiresSpecialParsing], then add it to the
+ * parsing [TrieNode.trie] (treating the tokenization of its [name][name] on
+ * underscore boundaries as its syntax).
  */
 enum class Command
 {

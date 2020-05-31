@@ -51,7 +51,7 @@ import java.io.File
  * Construct a new [ResolvedModuleName].
  *
  * @param qualifiedName
- *   The just-resolved [module name][ModuleName].
+ *   The just-resolved [module&#32;name][ModuleName].
  * @param moduleRoots
  *   The [ModuleRoots] with which to look up the module.
  * @param isRename

@@ -122,7 +122,8 @@ import java.util.*
  * @param completionBlock
  *   Where to arrange to jump after the function invocation.
  * @param reificationBlock
- *   Where to arrange to jump on reification while executing the inlined function.
+ *   Where to arrange to jump on reification while executing the inlined
+ *   function.
  */
 class L2Inliner internal constructor(
 	val targetGenerator: L2Generator,

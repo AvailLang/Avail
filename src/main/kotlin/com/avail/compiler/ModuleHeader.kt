@@ -83,7 +83,7 @@ import java.util.*
  * Construct a new `ModuleHeader`.
  *
  * @param moduleName
- *   The [resolved name][ResolvedModuleName] of the module.
+ *   The [resolved&#32;name][ResolvedModuleName] of the module.
  */
 class ModuleHeader constructor(val moduleName: ResolvedModuleName)
 {

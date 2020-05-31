@@ -43,11 +43,11 @@ import com.avail.io.NybbleOutputStream
 /**
  * This is a multi-method super-call instruction.  The opcode is followed by:
  *
- *  1. The index of the [message bundle][A_Bundle] (which itself refers to a
+ *  1. The index of the [message&#32;bundle][A_Bundle] (which itself refers to a
  *     [method][MethodDescriptor]), then
  *  2. The index of the literal that holds the expected return type for this
  *     call site, then
- *  3. A [tuple type][TupleTypeDescriptor] used to direct the method lookup.
+ *  3. A [tuple&#32;type][TupleTypeDescriptor] used to direct the method lookup.
  *
  * @property superUnionIndex
  *   The index of the literal that holds a tuple type which is used to direct

@@ -71,9 +71,9 @@ import com.avail.interpreter.execution.Interpreter
  * **Primitive:** Simple macro definition.  The first argument is the macro
  * name, and the second argument is a [tuple][TupleDescriptor] of
  * [functions][FunctionDescriptor] returning ⊤, one for each occurrence of a
- * [section&#32;sign][Metacharacter.SECTION_SIGN] (§) in the macro name.  The third
- * argument is the function to invoke for the complete macro.  It is constrained
- * to answer a [method][MethodDescriptor].
+ * [section&#32;sign][Metacharacter.SECTION_SIGN] (§) in the macro name.  The
+ * third argument is the function to invoke for the complete macro.  It is
+ * constrained to answer a [method][MethodDescriptor].
  */
 object P_SimpleMacroDeclaration : Primitive(3, CanSuspend, Unknown)
 {

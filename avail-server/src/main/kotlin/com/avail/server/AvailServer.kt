@@ -108,13 +108,15 @@ import kotlin.collections.set
  * @property configuration
  *   The [configuration][AvailServerConfiguration].
  * @property runtime
- *   The [Avail runtime][AvailRuntime] managed by this [server][AvailServer].
+ *   The [Avail&#32;runtime][AvailRuntime] managed by this
+ *   [server][AvailServer].
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
  * @constructor
  *
- * Construct a new `AvailServer` that manages the given [Avail&#32;runtime][AvailRuntime].
+ * Construct a new `AvailServer` that manages the given
+ * [Avail&#32;runtime][AvailRuntime].
  *
  * @param configuration
  *   An [configuration][AvailServerConfiguration].

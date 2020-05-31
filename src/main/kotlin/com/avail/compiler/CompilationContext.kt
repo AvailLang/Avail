@@ -97,8 +97,8 @@ import java.util.logging.Logger
  *   The source text of the Avail [module][ModuleDescriptor] undergoing
  *   compilation.
  * @property textInterface
- *   The [text interface][TextInterface] for any [fibers][A_Fiber] started by
- *   this [compiler][AvailCompiler].
+ *   The [text&#32;interface][TextInterface] for any [fibers][A_Fiber] started
+ *   by this [compiler][AvailCompiler].
  * @property progressReporter
  *   The [CompilerProgressReporter] that reports compilation progress at various
  *   checkpoints. It accepts the [name][ResolvedModuleName] of the
@@ -112,15 +112,15 @@ import java.util.logging.Logger
  * Create a `CompilationContext` for compiling an [A_Module].
  *
  * @param moduleHeader
- *   The [module header][ModuleHeader] of the module to compile. May be null for
- *   synthetic modules (for entry points), or when parsing the header.
+ *   The [module&#32;header][ModuleHeader] of the module to compile. May be null
+ *   for synthetic modules (for entry points), or when parsing the header.
  * @param module
  *   The current [module][ModuleDescriptor].`
  * @param source
  *   The source [A_String].
  * @param textInterface
- *   The [text interface][TextInterface] for any [fibers][A_Fiber] started by
- *   this compiler.
+ *   The [text&#32;interface][TextInterface] for any [fibers][A_Fiber] started
+ *   by this compiler.
  * @param pollForAbort
  *   How to quickly check if the client wants to abort compilation.
  * @param progressReporter

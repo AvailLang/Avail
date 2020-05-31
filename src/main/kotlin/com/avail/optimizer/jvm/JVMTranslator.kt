@@ -84,13 +84,13 @@ import kotlin.collections.LinkedHashMap
  * A `JVMTranslator` converts a single [L2Chunk] into a [JVMChunk] in a naive
  * fashion. Instruction selection is optimized, but no other optimizations are
  * attempted; all significant optimizations should occur on the `L2Chunk`'s
- * [control flow graph][L2ControlFlowGraph] and be reflected in the `L2Chunk` to
- * be translated.
+ * [control&#32;flow&#32;graph][L2ControlFlowGraph] and be reflected in the
+ * `L2Chunk` to be translated.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  *
  * @property code
- *   The source [L1 code][A_RawFunction].
+ *   The source [L1&#32;code][A_RawFunction].
  * @property chunkName
  *   The descriptive (non-unique) name of this chunk.
  * @property sourceFileName
@@ -105,8 +105,8 @@ import kotlin.collections.LinkedHashMap
  * [L2Instruction]s to a [JVMChunk].
  *
  * @param code
- *   The source [L1 code][A_RawFunction], or `null` for the
- *   [unoptimized chunk][L2Chunk.unoptimizedChunk].
+ *   The source [L1&#32;code][A_RawFunction], or `null` for the
+ *   [unoptimized&#32;chunk][L2Chunk.unoptimizedChunk].
  * @param chunkName
  *   The descriptive (non-unique) name of the chunk being translated.
  * @param sourceFileName

@@ -6,13 +6,13 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
- *
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+*
  *  * Neither the name of the copyright holder nor the names of the contributors
  *    may be used to endorse or promote products derived from this software
  *    without specific prior written permission.
@@ -78,7 +78,7 @@ import java.util.concurrent.atomic.AtomicReference
 
 /**
  * My [object&#32;instances][AvailObject] are variables which can hold any
- * object that agrees with my [inner type][newVariableWithContentType]. A
+ * object that agrees with my [inner&#32;type][newVariableWithContentType]. A
  * variable may also hold no value at all.  Any attempt to read the
  * [current&#32;value][A_Variable.getValue] of a variable that holds no value
  * will fail immediately.
@@ -669,8 +669,8 @@ open class VariableDescriptor protected constructor(
 			Void.TYPE)
 
 		/**
-		 * The bootstrapped [assignment&#32;function][P_SetValue] used to restart
-		 * implicitly observed assignments.
+		 * The bootstrapped [assignment&#32;function][P_SetValue] used to
+		 * restart implicitly observed assignments.
 		 */
 		@JvmField
 		val bootstrapAssignmentFunction: A_Function =

@@ -66,7 +66,8 @@ import kotlin.streams.toList
  * [modules][ModuleDescriptor].
  *
  * @property rootName
- *   The name of the [Avail root][ModuleRoot] represented by this [IndexedFile].
+ *   The name of the [Avail&#32;root][ModuleRoot] represented by this
+ *   [IndexedFile].
  * @property fileName
  *   The [filename][File] of the [IndexedFile].
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -216,8 +217,8 @@ class Repository constructor(
 		 * performance.
 		 *
 		 * @param resolvedModuleName
-		 *   The [resolved&#32;name][ResolvedModuleName] of the module, in case the
-		 *   backing source file must be read to produce a digest.
+		 *   The [resolved&#32;name][ResolvedModuleName] of the module, in case
+		 *   the backing source file must be read to produce a digest.
 		 * @return
 		 *   The digest of the file, updating the [digestCache] if necessary.
 		 */
@@ -376,8 +377,9 @@ class Repository constructor(
 		/**
 		 * Record a new [compilation][ModuleCompilation] of a
 		 * [module&#32;version][ModuleVersion].  The version must already exist
-		 * in the repository.  The [compilation&#32;key][ModuleCompilationKey] must
-		 * not yet have a [compilation][ModuleCompilation] associated with it.
+		 * in the repository.  The [compilation&#32;key][ModuleCompilationKey]
+		 * must not yet have a [compilation][ModuleCompilation] associated with
+		 * it.
 		 *
 		 * @param versionKey
 		 *   The [ModuleVersionKey] identifying the version of a module's

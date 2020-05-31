@@ -38,9 +38,9 @@ import java.util.*
 
 /**
  * An `OptionProcessorFactory` enables a client to dynamically specify and
- * assemble an [option processor][OptionProcessor]. In particular, the factory
- * allows a client to flexibly define a particular option processor while
- * ignoring specification and evaluation order dependency. Validation is
+ * assemble an [option&#32;processor][OptionProcessor]. In particular, the
+ * factory allows a client to flexibly define a particular option processor
+ * while ignoring specification and evaluation order dependency. Validation is
  * postponed until final assembly time, at which time a `[ValidationException]`
  * will be thrown in the event of incorrect or incomplete specification;
  * otherwise, the constructed option processor provably reflects the client

@@ -48,7 +48,7 @@ import kotlin.math.min
  * input channel.
  *
  * @property channel
- *   The underlying [server channel][AvailServerChannel].
+ *   The underlying [server&#32;channel][AvailServerChannel].
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  *
  * @constructor
@@ -56,7 +56,7 @@ import kotlin.math.min
  * Construct a new [ServerInputChannel].
  *
  * @param channel
- *   The [server channel][ServerInputChannel] to adapt as a standard input
+ *   The [server&#32;channel][ServerInputChannel] to adapt as a standard input
  *   channel.
  */
 class ServerInputChannel constructor(
@@ -116,8 +116,8 @@ class ServerInputChannel constructor(
 		handler: CompletionHandler<Int, *>)
 	{
 		/**
-		 * The [completion&#32;handler][CompletionHandler] provided for notification
-		 * of data availability.
+		 * The [completion&#32;handler][CompletionHandler] provided for
+		 * notification of data availability.
 		 */
 		internal val handler: CompletionHandler<Int, Any> = cast(handler)
 

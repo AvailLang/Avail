@@ -46,8 +46,9 @@ import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Answer the [type][TypeDescriptor] that is the type of all
- * possible concatenations of instances of the given [tuple&#32;types][TupleTypeDescriptor]. This is basically the semantic restriction of
- * the two-argument concatenation operation.
+ * possible concatenations of instances of the given
+ * [tuple&#32;types][TupleTypeDescriptor]. This is basically the semantic
+ * restriction of the two-argument concatenation operation.
  */
 @Suppress("unused")
 object P_TupleTypeConcatenate : Primitive(2, CannotFail, CanFold, CanInline)

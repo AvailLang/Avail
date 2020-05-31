@@ -113,7 +113,7 @@ class CommentGroup
 	val semanticRestrictions: MutableMap<String, SemanticRestrictionComment>
 
 	/**
-	 * A list of [ grammatical restrictions][GrammaticalRestrictionComment]
+	 * A list of [grammatical restrictions][GrammaticalRestrictionComment]
 	 */
 	val grammaticalRestrictions: MutableMap<String, GrammaticalRestrictionComment>
 

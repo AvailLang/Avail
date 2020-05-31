@@ -47,7 +47,7 @@ import java.util.*
 /**
  * A `ArgumentInModuleScope` is an occurrence of an
  * [underscore][Metacharacter.UNDERSCORE] (_) in a message name, followed
- * immediately by a [single dagger][Metacharacter.SINGLE_DAGGER] (†). It
+ * immediately by a [single&#32;dagger][Metacharacter.SINGLE_DAGGER] (†). It
  * indicates where an argument is expected, but the argument must not make use
  * of any local declarations. The argument expression will be evaluated at
  * compile time and replaced by a [literal][LiteralPhraseDescriptor] based on

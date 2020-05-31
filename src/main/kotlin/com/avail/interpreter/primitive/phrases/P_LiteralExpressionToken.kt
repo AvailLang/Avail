@@ -48,7 +48,7 @@ import com.avail.interpreter.execution.Interpreter
 
 /**
 * **Primitive:** Answer the [literal&#32;token][LiteralTokenDescriptor] from
- * which the specified [literal phrase][LiteralPhraseDescriptor] was built.
+ * which the specified [literal&#32;phrase][LiteralPhraseDescriptor] was built.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

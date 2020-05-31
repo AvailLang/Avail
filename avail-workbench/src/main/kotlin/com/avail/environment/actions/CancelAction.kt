@@ -41,7 +41,7 @@ import javax.swing.Action
 import javax.swing.KeyStroke
 
 /**
- * A `CancelAction` cancels a background [build task][BuildTask].
+ * A `CancelAction` cancels a background [build&#32;task][BuildTask].
  *
  * @constructor
  * Construct a new [CancelAction].

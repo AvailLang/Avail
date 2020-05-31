@@ -110,11 +110,11 @@ import java.util.function.Function
 import java.util.function.UnaryOperator
 
 /**
- * The [L1Decompiler] converts a [compiled code][CompiledCodeDescriptor] object
- * into an equivalent [parse tree][PhraseDescriptor].
+ * The [L1Decompiler] converts a [compiled&#32;code][CompiledCodeDescriptor]
+ * object into an equivalent [parse&#32;tree][PhraseDescriptor].
  *
  * @property code
- *   The [compiled code][CompiledCodeDescriptor] which is being decompiled.
+ *   The [compiled&#32;code][CompiledCodeDescriptor] which is being decompiled.
  * @property tempGenerator
  *   Something to generate unique variable names from a prefix.
  * @author Mark van Gulik &lt;todd@availlang.org&gt;
@@ -734,9 +734,10 @@ class L1Decompiler constructor(
 		 * non-void valued [block][FunctionDescriptor].
 		 *
 		 * Pop the expression (that represents the right hand side of the
-		 * assignment), push a special [ marker phrase][MarkerPhraseDescriptor]
-		 * representing the dup, then push the right-hand side expression back
-		 * onto the expression stack.
+		 * assignment), push a special
+		 * [marker&#32;phrase][MarkerPhraseDescriptor] representing the dup,
+		 * then push the right-hand side expression back onto the expression
+		 * stack.
 		 */
 		override fun L1Ext_doDuplicate()
 		{

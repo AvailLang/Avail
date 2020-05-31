@@ -50,7 +50,7 @@ import com.avail.interpreter.execution.Interpreter
 /**
  * **Primitive:** Enable
  * [variable&#32;write&#32;tracing][TraceFlag.TRACE_VARIABLE_WRITES] for the
- * [current&#32;fiber&#32;][FiberDescriptor.currentFiber].
+ * [current&#32;fiber][FiberDescriptor.currentFiber].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

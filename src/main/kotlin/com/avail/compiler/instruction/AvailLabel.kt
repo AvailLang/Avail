@@ -39,7 +39,7 @@ import com.avail.descriptor.tuples.A_Tuple
 import com.avail.io.NybbleOutputStream
 
 /**
- * An `AvailLabel` is a pseudo-instruction in the [Level One
+ * An `AvailLabel` is a pseudo-instruction in the [Level&#32;One
  * instruction][AvailInstruction] set.  It represents a
  * [label][DeclarationKind.LABEL] in the parse tree of a
  * [block][BlockPhraseDescriptor].  If a label declaration occurs at all in a

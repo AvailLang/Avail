@@ -50,7 +50,7 @@ import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Answer a [set][SetDescriptor] of all currently defined
- * [definitions][DefinitionDescriptor] for the [true message
+ * [definitions][DefinitionDescriptor] for the [true&#32;message
  * name][AtomDescriptor] represented by [bundle][MessageBundleDescriptor]. This
  * includes abstract signatures and forward signatures.
  */

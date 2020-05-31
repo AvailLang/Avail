@@ -39,7 +39,7 @@ import java.awt.event.ActionEvent
 import javax.swing.Action
 
 /**
- * An `UnloadAllAction` launches an [unload task][UnloadTask] (with `null`
+ * An `UnloadAllAction` launches an [unload&#32;task][UnloadTask] (with `null`
  * specified as the module to unload) in a Swing worker thread.
  *
  * @constructor

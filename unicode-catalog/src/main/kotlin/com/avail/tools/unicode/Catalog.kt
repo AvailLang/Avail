@@ -351,7 +351,7 @@ internal class Catalog
 
 	/**
 	 * A [JSON-friendly&#32;representative][JSONFriendly] of the
-	 * [complete&#32;set&#32;of&#32;non-ASCII&#32;code][allNonAsciiCodePoints].
+	 * [complete&#32;set&#32;of&#32;non-ASCII&#32;code&#32;points][allNonAsciiCodePoints].
 	 *
 	 * @throws IOException
 	 *   If an I/O exception occurs.
@@ -374,7 +374,8 @@ internal class Catalog
 
 	/**
 	 * Answer a [JSON-friendly&#32;representative][JSONFriendly] of the
-	 * [complete&#32;set&#32;of&#32;non-ASCII,][allSymbolicCodePoints].
+	 * [set][allSymbolicCodePoints] of code points that are neither ASCII nor
+	 * alpha-numeric.
 	 *
 	 * @return The representative.
 	 * @throws IOException

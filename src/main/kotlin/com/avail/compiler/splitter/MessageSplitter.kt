@@ -119,7 +119,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock
  *
  * Message splitting occurs in two phases.  In the first setPhase, the message
  * is tokenized and parsed into an abstract [Expression] tree. In the second
- * setPhase, a [tuple type][TupleTypeDescriptor] of
+ * setPhase, a [tuple&#32;type][TupleTypeDescriptor] of
  * [phrase&#32;types][PhraseTypeDescriptor] is supplied, and produces a tuple of
  * integer-encoded [ParsingOperation]s.
  *
@@ -1332,9 +1332,9 @@ class MessageSplitter
 		/**
 		 * The tuple of all encountered permutations (tuples of integers) found
 		 * in all message names.  Keeping a statically accessible tuple shared
-		 * between message names allows [bundle&#32;trees][A_BundleTree] to easily
-		 * get to the permutations they need without having a separate per-tree
-		 * structure.
+		 * between message names allows [bundle&#32;trees][A_BundleTree] to
+		 * easily get to the permutations they need without having a separate
+		 * per-tree structure.
 		 *
 		 * The field is an [AtomicReference], and is accessed in a wait-free way
 		 * with compare-and-set and retry.  The tuple itself should always be

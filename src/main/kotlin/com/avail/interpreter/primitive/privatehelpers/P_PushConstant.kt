@@ -50,7 +50,7 @@ import com.avail.optimizer.L1Translator.CallSiteHelper
 
 /**
  * **Primitive:** The first literal is being returned. Extract the first literal
- * from the [compiled code][CompiledCodeDescriptor] that the interpreter has
+ * from the [compiled&#32;code][CompiledCodeDescriptor] that the interpreter has
  * squirreled away for this purpose.
  *
  * This mechanism relies on [tryToGenerateSpecialPrimitiveInvocation] always

@@ -72,7 +72,7 @@ import java.nio.charset.MalformedInputException
  * @property reader
  *   The [reader][Reader] responsible for fetching [tokens][Token].
  * @property roots
- *   The Avail [module roots][ModuleRoots].
+ *   The Avail [module&#32;roots][ModuleRoots].
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  *
  * @constructor
@@ -81,9 +81,9 @@ import java.nio.charset.MalformedInputException
  *
  * @param reader
  *   The [reader][Reader] responsible for fetching [tokens][Token]. The reader
- *   must [support marking][Reader.markSupported].
+ *   must [support&#32;marking][Reader.markSupported].
  * @param roots
- *   The Avail [module roots][ModuleRoots].
+ *   The Avail [module&#32;roots][ModuleRoots].
  */
 class RenamesFileParser @ThreadSafe constructor(
 	private val reader: Reader,

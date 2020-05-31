@@ -67,7 +67,7 @@ import java.nio.channels.AsynchronousSocketChannel
 
 /**
  * **Primitive:** Bind the [AsynchronousSocketChannel] referenced by the
- * specified [handle][AtomDescriptor] to an [IPv4 address][Inet4Address] and
+ * specified [handle][AtomDescriptor] to an [IPv4&#32;address][Inet4Address] and
  * port. The bytes of the address are specified in network byte order, i.e.,
  * big-endian.
  *

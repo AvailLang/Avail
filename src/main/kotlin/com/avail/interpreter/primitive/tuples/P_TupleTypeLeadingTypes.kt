@@ -48,7 +48,8 @@ import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Answer the [tuple][TupleDescriptor] of leading
- * [types][TypeDescriptor] that constrain this [tuple&#32;type][TupleTypeDescriptor].
+ * [types][TypeDescriptor] that constrain this
+ * [tuple&#32;type][TupleTypeDescriptor].
  */
 @Suppress("unused")
 object P_TupleTypeLeadingTypes : Primitive(1, CannotFail, CanFold, CanInline)

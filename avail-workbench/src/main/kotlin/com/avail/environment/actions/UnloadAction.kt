@@ -40,7 +40,8 @@ import java.awt.event.ActionEvent
 import javax.swing.Action
 
 /**
- * An `UnloadAction` launches an [unload task][UnloadTask] in a Swing worker thread.
+ * An `UnloadAction` launches an [unload&#32;task][UnloadTask] in a Swing worker
+ * thread.
  *
  * @constructor
  * Construct a new [UnloadAction].

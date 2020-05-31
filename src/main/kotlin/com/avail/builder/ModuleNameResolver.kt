@@ -72,7 +72,7 @@ import java.util.*
  * An instance is obtained via [RenamesFileParser.parse].
  *
  * @property moduleRoots
- *   The [Avail module roots][ModuleRoots].
+ *   The [Avail&#32;module roots][ModuleRoots].
  * @author Todd L Smith &lt;todd@availlang.org &gt;
  * @author Leslie Schultz &lt;leslie@availlang.org &gt;
  *
@@ -81,7 +81,7 @@ import java.util.*
  * Construct a new `ModuleNameResolver`.
  *
  * @param moduleRoots
- *   The Avail [module roots][ModuleRoots].
+ *   The Avail [module&#32;roots][ModuleRoots].
  */
 @ThreadSafe
 class ModuleNameResolver constructor(val moduleRoots: ModuleRoots)

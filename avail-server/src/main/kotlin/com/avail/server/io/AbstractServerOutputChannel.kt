@@ -44,7 +44,7 @@ import java.nio.channels.CompletionHandler
  * ordinary output.
  *
  * @property channel
- *   The underlying [server channel][AvailServerChannel].
+ *   The underlying [server&#32;channel][AvailServerChannel].
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  *
  * @constructor
@@ -52,7 +52,7 @@ import java.nio.channels.CompletionHandler
  * Construct a new [AbstractServerOutputChannel].
  *
  * @param channel
- *   The [server channel][AvailServerChannel] to adapt for general output.
+ *   The [server&#32;channel][AvailServerChannel] to adapt for general output.
  */
 abstract class AbstractServerOutputChannel constructor(
 	private val channel: AvailServerChannel) : TextOutputChannel

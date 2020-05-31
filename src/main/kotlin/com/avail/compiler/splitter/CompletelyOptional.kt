@@ -43,11 +43,11 @@ import com.avail.descriptor.types.ListPhraseTypeDescriptor.emptyListPhraseType
 
 /**
  * A `CompletelyOptional` is a special [expression][Expression] indicated by a
- * [double&#32;question&#32;mark][Metacharacter.DOUBLE_QUESTION_MARK] (⁇) following a
- * [simple][Simple] or [simple group][Group]. It may not contain
+ * [double&#32;question&#32;mark][Metacharacter.DOUBLE_QUESTION_MARK] (⁇)
+ * following a [simple][Simple] or [simple&#32;group][Group]. It may not contain
  * [arguments][Argument] or non-simple subgroups and it may not contain a
- * [double&#32;dagger][Metacharacter.DOUBLE_DAGGER]. The expression may appear zero
- * or one times.
+ * [double&#32;dagger][Metacharacter.DOUBLE_DAGGER]. The expression may appear
+ * zero or one times.
  *
  * A completely optional does not produce any information. No facility is
  * provided to determine whether there was an occurrence of the expression.

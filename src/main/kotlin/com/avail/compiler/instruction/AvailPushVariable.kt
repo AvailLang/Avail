@@ -53,7 +53,7 @@ import com.avail.descriptor.tuples.A_Tuple
  *   The index that the variable will occupy at runtime, either within a
  *   [continuation][ContinuationDescriptor] for arguments and locals, or in the
  *   outer variables of a [function][FunctionDescriptor], or as a literal stored
- *   directly in [compiled code][CompiledCodeDescriptor].
+ *   directly in [compiled&#32;code][CompiledCodeDescriptor].
  */
 abstract class AvailPushVariable constructor(
 	relevantTokens: A_Tuple,

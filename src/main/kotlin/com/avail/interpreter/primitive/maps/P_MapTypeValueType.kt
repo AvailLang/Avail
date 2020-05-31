@@ -45,7 +45,8 @@ import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Answer the value [type][TypeDescriptor] of a [map&#32;type][MapTypeDescriptor].
+ * **Primitive:** Answer the value [type][TypeDescriptor] of a
+ * [map&#32;type][MapTypeDescriptor].
  */
 @Suppress("unused")
 object P_MapTypeValueType : Primitive(1, CannotFail, CanFold, CanInline)

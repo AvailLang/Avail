@@ -51,8 +51,9 @@ import java.io.File
 import java.io.FileNotFoundException
 
 /**
- * Provides the [configuration][AvailServerConfiguration] for the [Avail&#32;server][AvailServer]. Specifies the options that are available as arguments
- * to the server.
+ * Provides the [configuration][AvailServerConfiguration] for the
+ * [Avail&#32;server][AvailServer]. Specifies the options that are available as
+ * arguments to the server.
  *
  * @property helpStream
  *   The [appendable][Appendable] to which help text should be written.

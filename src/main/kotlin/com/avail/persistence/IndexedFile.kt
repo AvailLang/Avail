@@ -54,7 +54,7 @@ import kotlin.math.min
 
 /**
  * `IndexedFile` is a record journal. Records may be [added][add], explicitly
- * [committed][commit], and [looked up by record number][get]. A single
+ * [committed][commit], and [looked&#32;up by record number][get]. A single
  * arbitrary [metadata] section can be attached to an indexed file (and will be
  * replaced by subsequent attachments). Concurrent read access is supported for
  * multiple [threads][Thread], drivers, and external

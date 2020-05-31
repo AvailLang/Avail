@@ -70,7 +70,6 @@ import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.execution.Interpreter.Companion.runOutermostFunction
 import com.avail.io.SimpleCompletionHandler
 import com.avail.io.SimpleCompletionHandler.Dummy.Companion.dummy
-import java.net.Inet4Address
 import java.net.Inet6Address
 import java.net.Inet6Address.getByAddress
 import java.net.InetSocketAddress
@@ -80,7 +79,7 @@ import java.util.Collections.emptyList
 
 /**
  * **Primitive:** Connect the [AsynchronousSocketChannel] referenced by the
- * specified [handle][A_Atom] to an [IPv4 address][Inet4Address] and
+ * specified [handle][A_Atom] to an [IPv6&#32;address][Inet6Address] and
  * port. Create a new [fiber][FiberDescriptor] to respond to the asynchronous
  * completion of the operation; the fiber will run at the specified
  * [priority][IntegerRangeTypeDescriptor.bytes]. If the operation succeeds, then
