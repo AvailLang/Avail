@@ -195,7 +195,8 @@ class CommentGroup
 	}
 
 	/**
-	 * @param newSemanticRestriction the new [ ] to add
+	 * @param newSemanticRestriction
+	 *   the new [SemanticRestrictionComment] to add
 	 */
 	fun addSemanticRestriction(
 		newSemanticRestriction: SemanticRestrictionComment)

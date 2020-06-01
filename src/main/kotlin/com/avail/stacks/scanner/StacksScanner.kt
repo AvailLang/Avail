@@ -217,7 +217,7 @@ class StacksScanner constructor (commentToken: A_Token, moduleName: String)
 	}
 
 	/**
-	 * Scan the already-specified [String] to produce [ ][outputTokens].
+	 * Scan the already-specified [String] to produce [tokens][outputTokens].
 	 *
 	 * @throws StacksScannerException
 	 */

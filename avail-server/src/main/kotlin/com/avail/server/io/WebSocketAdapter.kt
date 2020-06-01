@@ -67,8 +67,8 @@ import kotlin.experimental.xor
  * @property server
  *   The [Avail&#32;server][AvailServer].
  * @property adapterAddress
- *   The [address][InetSocketAddress] of the [server&#32;socket
- *   channel][AsynchronousServerSocketChannel].
+ *   The [address][InetSocketAddress] of the
+ *   [server&#32;socket&#32;channel][AsynchronousServerSocketChannel].
  * @property serverAuthority
  *   The [server][WebSocketAdapter]'s authority, e.g., the host name of this
  *   node.

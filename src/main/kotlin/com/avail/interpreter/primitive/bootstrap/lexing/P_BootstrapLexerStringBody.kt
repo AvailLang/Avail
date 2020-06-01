@@ -224,7 +224,7 @@ object P_BootstrapLexerStringBody
 		 * @return `true` if there are more codepoints available,
 		 * otherwise `false`
 		 */
-		operator fun hasNext(): Boolean =  position <= sourceSize
+		operator fun hasNext(): Boolean = position <= sourceSize
 
 		/**
 		 * Answer the next codepoint from the source, without consuming it.
@@ -232,7 +232,7 @@ object P_BootstrapLexerStringBody
 		 *
 		 * @return The next codepoint.
 		 */
-		fun peek(): Int =  source.tupleCodePointAt(position)
+		fun peek(): Int = source.tupleCodePointAt(position)
 
 		/**
 		 * Answer the next codepoint from the source, and consume it.  Should

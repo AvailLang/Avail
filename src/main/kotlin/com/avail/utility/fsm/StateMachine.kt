@@ -94,8 +94,7 @@ import java.util.*
  * @property initialState
  *   The state in which to start a new [state][ExecutionContext].
  * @author Todd L Smith &lt;todd@availlang.org&gt;
- * @see [Finite&#32;state
- * machine](http://en.wikipedia.org/wiki/Finite-state_machine)
+ * @see [Finite&#32;state&#32;machine](http://en.wikipedia.org/wiki/Finite-state_machine)
  *
  * @constructor
  *

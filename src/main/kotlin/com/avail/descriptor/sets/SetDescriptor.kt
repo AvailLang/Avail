@@ -12,7 +12,7 @@
  *  * Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
-*
+ *
  *  * Neither the name of the copyright holder nor the names of the contributors
  *    may be used to endorse or promote products derived from this software
  *    without specific prior written permission.
@@ -583,9 +583,9 @@ private constructor(
 			generateSetFrom(elements.size) { elements[it - 1] }
 
 		/**
-		 * Create an Avail set with the numeric values of the specified [ ]s.
-		 * The numeric codes (Avail integers) are not made immutable first, nor
-		 * is the new set.
+		 * Create an Avail set with the numeric values of the specified
+		 * [error&#32;codes][AvailErrorCode]. The numeric codes (Avail integers)
+		 * are not made immutable first, nor is the new set.
 		 *
 		 * @param errorCodeElements
 		 *   The array of AvailErrorCodes from which to construct a set.

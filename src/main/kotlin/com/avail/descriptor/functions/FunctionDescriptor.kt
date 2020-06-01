@@ -63,6 +63,7 @@ import com.avail.descriptor.tuples.StringDescriptor.stringFrom
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.BottomTypeDescriptor.bottom
+import com.avail.descriptor.types.FunctionTypeDescriptor
 import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.descriptor.types.TypeTag
 import com.avail.interpreter.levelOne.L1Decompiler.Companion.decompile
@@ -167,7 +168,9 @@ class FunctionDescriptor private constructor(
 	override fun o_IsFunction(self: AvailObject) = true
 
 	/**
-	 * Answer the object's type. Simply asks the [ ] for the [ ].
+	 * Answer the object's type. Simply asks the
+	 * [compiled&#32;code][CompiledCodeDescriptor] for the
+	 * [function&#32;type][FunctionTypeDescriptor].
 	 */
 	override fun o_Kind(self: AvailObject): A_Type =
 		self.slot(CODE).functionType()

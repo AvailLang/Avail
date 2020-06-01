@@ -68,7 +68,7 @@ import java.util.Collections.unmodifiableSet
  *
  * @constructor
  *
- * Construct a new `ModuleRoots` from the specified Avail [ ] path.
+ * Construct a new `ModuleRoots` from the specified Avail roots path.
  *
  * @param modulePath
  *   An Avail [module][ModuleDescriptor] path.

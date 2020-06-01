@@ -68,9 +68,9 @@ import java.util.*
 
 /**
  * **Primitive:** Answer the [ordinals][IntegerDescriptor] (into
- * [IOSystem.posixPermissions]) of the [POSIX&#32;file
- * permissions][PosixFilePermission] that describe the access rights granted by
- * the file named by specified [path][Path].
+ * [IOSystem.posixPermissions]) of the
+ * [POSIX&#32;file&#32;permissions][PosixFilePermission] that describe the
+ * access rights granted by the file named by specified [path][Path].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

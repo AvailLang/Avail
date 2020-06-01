@@ -85,7 +85,7 @@ class PreferencesAction constructor(workbench: AvailWorkbench)
 		private val columnNames: Array<String> = arrayOf(*columnNames)
 		val rows = mutableListOf<MutableList<String>>()
 
-		override fun getColumnName(column: Int): String =  columnNames[column]
+		override fun getColumnName(column: Int): String = columnNames[column]
 
 		override fun getRowCount(): Int = rows.size
 

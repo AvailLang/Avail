@@ -629,7 +629,7 @@ class MapDescriptor private constructor(
 
 	/**
 	 * [MapIterable] is returned by [A_Map.mapIterable] to
-	 * support use of Java's "foreach" control structure on [ ].
+	 * support use of Java's "foreach" control structure on [maps][A_Map].
 	 *
 	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */

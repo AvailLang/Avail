@@ -124,7 +124,7 @@ abstract class Problem constructor(
 	 * compile is inappropriate or impossible for the receiver, then as a
 	 * convenience, this method simply calls [abortCompilation].
 	 */
-	open fun continueCompilation() =  abortCompilation()
+	open fun continueCompilation() = abortCompilation()
 
 	/**
 	 * Give up compilation.  Note that either [continueCompilation] or this

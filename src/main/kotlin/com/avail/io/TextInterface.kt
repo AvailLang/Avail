@@ -40,11 +40,11 @@ import java.nio.charset.StandardCharsets
 /**
  * A `TextInterface` represents an interface between an external process,
  * device, or user and an Avail agent (e.g., an [AvailBuilder] or
- * [fiber][A_Fiber]). As such, it combines [ ], [output][TextOutputChannel], and
- * error channels, corresponding to the usual notions of standard input, output,
- * and error, respectively. These channels are each text-oriented, and
- * constrained to operate on [UTF-8][StandardCharsets.UTF_8] encoded
- * character data.
+ * [fiber][A_Fiber]). As such, it combines [input][TextInputChannel],
+ * [output][TextOutputChannel], and error channels, corresponding to the usual
+ * notions of standard input, output, and error, respectively. These channels
+ * are each text-oriented, and constrained to operate on
+ * [UTF-8][StandardCharsets.UTF_8] encoded character data.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  *
