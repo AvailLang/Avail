@@ -38,12 +38,14 @@ import com.avail.descriptor.types.InstanceMetaDescriptor.anyMeta
 import com.avail.descriptor.types.SetTypeDescriptor
 import com.avail.descriptor.types.SetTypeDescriptor.setMeta
 import com.avail.descriptor.types.TypeDescriptor
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CanFold
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Extract a [set&#32;type][SetTypeDescriptor]'s element
+* **Primitive:** Extract a [set&#32;type][SetTypeDescriptor]'s element
  * [type][TypeDescriptor].
  */
 object P_SetTypeElementType : Primitive(1, CannotFail, CanFold, CanInline)

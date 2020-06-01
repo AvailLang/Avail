@@ -33,10 +33,17 @@
 package com.avail.builder
 
 import com.avail.AvailRuntime
-import com.avail.compiler.*
+import com.avail.compiler.AvailCompiler
+import com.avail.compiler.CompilerProgressReporter
+import com.avail.compiler.FiberTerminationException
+import com.avail.compiler.GlobalProgressReporter
+import com.avail.compiler.ModuleHeader
+import com.avail.compiler.ModuleImport
 import com.avail.compiler.problems.Problem
 import com.avail.compiler.problems.ProblemHandler
-import com.avail.compiler.problems.ProblemType.*
+import com.avail.compiler.problems.ProblemType.EXECUTION
+import com.avail.compiler.problems.ProblemType.PARSE
+import com.avail.compiler.problems.ProblemType.TRACE
 import com.avail.descriptor.atoms.A_Atom.Companion.atomName
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.commandPriority
@@ -58,7 +65,9 @@ import com.avail.interpreter.execution.Interpreter.Companion.runOutermostFunctio
 import com.avail.io.SimpleCompletionHandler
 import com.avail.io.TextInterface
 import com.avail.persistence.Repository
-import com.avail.persistence.Repository.*
+import com.avail.persistence.Repository.ModuleArchive
+import com.avail.persistence.Repository.ModuleCompilation
+import com.avail.persistence.Repository.ModuleVersion
 import com.avail.serialization.MalformedSerialStreamException
 import com.avail.serialization.Serializer
 import com.avail.utility.Graph
@@ -72,7 +81,9 @@ import java.nio.ByteBuffer
 import java.nio.file.Path
 import java.nio.file.attribute.BasicFileAttributes
 import java.util.*
-import java.util.Collections.*
+import java.util.Collections.emptyList
+import java.util.Collections.synchronizedList
+import java.util.Collections.synchronizedMap
 import java.util.concurrent.Semaphore
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
@@ -88,9 +99,9 @@ import kotlin.collections.set
 import kotlin.concurrent.read
 
 /**
- * An `AvailBuilder` [compiles][AvailCompiler] and installs into an [Avail
- * runtime][AvailRuntime] a target [module][ModuleDescriptor] and each of its
- * dependencies.
+ * An `AvailBuilder` [compiles][AvailCompiler] and installs into an
+ * [Avail&#32;runtime][AvailRuntime] a target [module][ModuleDescriptor] and
+ * each of its dependencies.
  *
  * @property runtime
  *   The [runtime][AvailRuntime] into which the [builder][AvailBuilder] will
@@ -113,8 +124,8 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	private val builderLock = ReentrantReadWriteLock()
 
 	/**
-	 * The [text interface][TextInterface] for the [builder][AvailBuilder] and
-	 * downstream components.
+	 * The [text&#32;interface][TextInterface] for the [builder][AvailBuilder]
+	 * and downstream components.
 	 */
 	var textInterface: TextInterface = runtime.textInterface()
 
@@ -187,9 +198,9 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 		builderLock.read { ArrayList(allLoadedModules.values) }
 
 	/**
-	 * Look up the currently loaded module with the specified [resolved module
-	 * name][ResolvedModuleName].  Return `null` if the module is not currently
-	 * loaded.
+	 * Look up the currently loaded module with the specified
+	 * [resolved&#32;module&#32;name][ResolvedModuleName].  Return `null` if the
+	 * module is not currently loaded.
 	 *
 	 * @param resolvedModuleName
 	 *   The name of the module to locate.
@@ -315,8 +326,8 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	}
 
 	/**
-	 * Serialize the specified [module header][ModuleHeader] into the [module
-	 * version][ModuleVersion].
+	 * Serialize the specified [module&#32;header][ModuleHeader] into the
+	 * [module&#32;version][ModuleVersion].
 	 *
 	 * @param header
 	 *   A module header.
@@ -405,7 +416,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	 * @property label
 	 *   The textual label of the corresponding node in the graph layout.
 	 * @property resolvedModuleName
-	 *   The represented module's [resolved name][ResolvedModuleName].
+	 *   The represented module's [resolved&#32;name][ResolvedModuleName].
 	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 *
 	 * @constructor
@@ -498,8 +509,8 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	 * Build the [target][ModuleDescriptor] and its dependencies.
 	 *
 	 * @param target
-	 *   The [canonical name][ModuleName] of the module that the builder must
-	 *   (recursively) load into the [AvailRuntime].
+	 *   The [canonical&#32;name][ModuleName] of the module that the builder
+	 *   must (recursively) load into the [AvailRuntime].
 	 * @param localTracker
 	 *   A [CompilerProgressReporter].
 	 * @param globalTracker
@@ -569,8 +580,8 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	 * current [Thread] until it's done.
 	 *
 	 * @param target
-	 *   The [canonical name][ModuleName] of the module that the builder must
-	 *   (recursively) load into the [AvailRuntime].
+	 *   The [canonical&#32;name][ModuleName] of the module that the builder
+	 *   must (recursively) load into the [AvailRuntime].
 	 * @param localTracker
 	 *   A [CompilerProgressReporter].
 	 * @param globalTracker
@@ -596,12 +607,12 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	}
 
 	/**
-	 * Unload the [target module][ModuleDescriptor] and its dependents.  If
+	 * Unload the [target&#32;module][ModuleDescriptor] and its dependents.  If
 	 * `null` is provided, unload all modules.
 	 *
 	 * @param target
-	 *   The [resolved name][ResolvedModuleName] of the module to be unloaded,
-	 *   or `null` to unload all modules.
+	 *   The [resolved&#32;name][ResolvedModuleName] of the module to be
+	 *   unloaded, or `null` to unload all modules.
 	 */
 	fun unloadTarget(target: ResolvedModuleName?)
 	{
@@ -732,7 +743,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	 * commands.
 	 *
 	 * @property moduleName
-	 *   The [module name][ResolvedModuleName] of the [module][LoadedModule]
+	 *   The [module&#32;name][ResolvedModuleName] of the [module][LoadedModule]
 	 *   that declares the entry point.
 	 * @property entryPointName
 	 *   The name of the entry point.
@@ -745,7 +756,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	 * Construct a new `CompiledCommand`.
 	 *
 	 * @param moduleName
-	 *   The [module name][ResolvedModuleName] of the [module][LoadedModule]
+	 *   The [module&#32;name][ResolvedModuleName] of the [module][LoadedModule]
 	 *   that declares the entry point.
 	 * @param entryPointName
 	 *   The name of the entry point.
@@ -776,8 +787,8 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	 *   The command to attempt to parse and run.
 	 * @param onAmbiguity
 	 *   What to do if the entry point is ambiguous. Accepts a [List] of
-	 *   [compiled commands][CompiledCommand] and the function to invoke with
-	 *   the selected command (or `null` if no command should be run).
+	 *   [compiled&#32;commands][CompiledCommand] and the function to invoke
+	 *   with the selected command (or `null` if no command should be run).
 	 * @param onSuccess
 	 *   What to do if the command parsed and ran to completion.  It should be
 	 *   passed both the result of execution and a cleanup function to invoke
@@ -814,8 +825,8 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	 *   The command to attempt to parse and run.
 	 * @param onAmbiguity
 	 *   What to do if the entry point is ambiguous. Accepts a [List] of
-	 *   [compiled commands][CompiledCommand] and the function to invoke with
-	 *   the selected command (or `null` if no command should be run).
+	 *   [compiled&#32;commands][CompiledCommand] and the function to invoke
+	 *   with the selected command (or `null` if no command should be run).
 	 * @param onSuccess
 	 *   What to do if the command parsed and ran to completion.  It should be
 	 *   passed both the result of execution and a cleanup function to invoke
@@ -1002,7 +1013,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	 *   encountered.
 	 * @param onAmbiguity
 	 *   What to do if the entry point is ambiguous. Accepts a [List] of
-	 *   [compiled commands][CompiledCommand] and the continuation to invoke
+	 *   [compiled&#32;commands][CompiledCommand] and the continuation to invoke
 	 *   with the selected command (or `null` if no command should be run).
 	 * @param onSuccess
 	 *   What to do with the result of a successful unambiguous command.
@@ -1161,7 +1172,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 		 * Log the specified message if [debugging][debugBuilder] is enabled.
 		 *
 		 * @param level
-		 *   The [severity level][Level].
+		 *   The [severity&#32;level][Level].
 		 * @param format
 		 *   The format string.
 		 * @param args
@@ -1183,7 +1194,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 		 * Log the specified message if [debugging][debugBuilder] is enabled.
 		 *
 		 * @param level
-		 *   The [severity level][Level].
+		 *   The [severity&#32;level][Level].
 		 * @param exception
 		 *   The [exception][Throwable] that motivated this log entry.
 		 * @param format

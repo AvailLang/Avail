@@ -110,13 +110,15 @@ jar {
 	manifest {
 		attributes 'Main-Class': 'com.avail.environment.AvailWorkbench'
 	}
+	duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
 
 // Copy the JAR into the distribution directory.
-task releaseAvailWorkbench (type: Copy) {
+task releaseAvailWorkbench(type: Copy) {
 	group = 'release'
 	from shadowJar.outputs.files
 	into file("${rootProject.projectDir}/distro/lib")
+	duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
 
 // Update the dependencies of "assemble".
@@ -140,6 +142,7 @@ task osx {
 		copy {
 			from appSrc
 			into file(appDst)
+			duplicatesStrategy = DuplicatesStrategy.INCLUDE
 		}
 
 		def resDir = "$projectDir/src/main/resources/resources/workbench"
@@ -148,6 +151,7 @@ task osx {
 		copy {
 			from resSrc
 			into resDst
+			duplicatesStrategy = DuplicatesStrategy.INCLUDE
 		}
 
 		def jarSrc = shadowJar.outputs.files
@@ -156,6 +160,7 @@ task osx {
 		copy {
 			from jarSrc
 			into jarDst
+			duplicatesStrategy = DuplicatesStrategy.INCLUDE
 		}
 
 		exec {

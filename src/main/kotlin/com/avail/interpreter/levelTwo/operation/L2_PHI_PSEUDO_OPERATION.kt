@@ -35,13 +35,27 @@ import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2NamedOperandType
 import com.avail.interpreter.levelTwo.L2OperandType
 import com.avail.interpreter.levelTwo.L2Operation
-import com.avail.interpreter.levelTwo.operand.*
+import com.avail.interpreter.levelTwo.operand.L2Operand
 import com.avail.interpreter.levelTwo.operand.L2Operand.Companion.instructionWasAddedForPhi
+import com.avail.interpreter.levelTwo.operand.L2PcOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadFloatOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteFloatOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteOperand
 import com.avail.interpreter.levelTwo.register.L2BoxedRegister
 import com.avail.interpreter.levelTwo.register.L2FloatRegister
 import com.avail.interpreter.levelTwo.register.L2IntRegister
 import com.avail.interpreter.levelTwo.register.L2Register
-import com.avail.optimizer.*
+import com.avail.optimizer.L2BasicBlock
+import com.avail.optimizer.L2ControlFlowGraph
+import com.avail.optimizer.L2Generator
+import com.avail.optimizer.L2ValueManifest
+import com.avail.optimizer.RegisterSet
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 import java.util.*
@@ -79,8 +93,8 @@ import java.util.*
  *   The [L2_MOVE] operation to substitute for this instruction on incoming
  *   split edges.
  * @param theNamedOperandTypes
- *   An array of [L2NamedOperandType]s that describe this particular L2Operation,
- *   allowing it to be specialized by register type.
+ *   An array of [L2NamedOperandType]s that describe this particular
+ *   L2Operation, allowing it to be specialized by register type.
  */
 class L2_PHI_PSEUDO_OPERATION<R : L2Register, RR : L2ReadOperand<R>, WR : L2WriteOperand<R>>
 private constructor(
@@ -213,7 +227,8 @@ private constructor(
 	 * @param instruction
 	 *   The phi-instruction to examine.
 	 * @param usedRegister
-	 *   The [L2Register] whose use we're trying to trace back to its definition.
+	 *   The [L2Register] whose use we're trying to trace back to its
+	 *   definition.
 	 * @return
 	 *   A [List] of predecessor blocks that supplied the usedRegister as an
 	 *   input to this phi operation.
@@ -349,5 +364,4 @@ private constructor(
 			L2OperandType.READ_FLOAT_VECTOR.named("potential float sources"),
 			L2OperandType.WRITE_FLOAT.named("float destination"))
 	}
-
 }

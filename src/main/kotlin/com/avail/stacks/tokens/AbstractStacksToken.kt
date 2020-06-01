@@ -102,7 +102,7 @@ abstract class AbstractStacksToken constructor(
 		linkingFileMap: LinkingFileMap,
 		hashID: Int,
 		errorLog: StacksErrorLog,
-		jsonWriter: JSONWriter): String =  lexeme
+		jsonWriter: JSONWriter): String = lexeme
 
 	override fun toString(): String =
 		StringBuilder()

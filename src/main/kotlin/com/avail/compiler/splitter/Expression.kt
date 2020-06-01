@@ -91,8 +91,9 @@ internal abstract class Expression constructor(val positionInName: Int)
 
 	/**
 	 * `true` iff this [expression][Expression] is expected to produce a value
-	 * to be consumed by a [method][MethodDefinitionDescriptor] or [macro
-	 * definition][MacroDefinitionDescriptor]. Not applicable to [Sequence]s.
+	 * to be consumed by a [method][MethodDefinitionDescriptor] or
+	 * [macro&#32;definition][MacroDefinitionDescriptor]. Not applicable to
+	 * [Sequence]s.
 	 */
 	internal open val yieldsValue: Boolean
 		get() = false
@@ -169,25 +170,25 @@ internal abstract class Expression constructor(val positionInName: Int)
 	 * expression. If not, throw a [SignatureException].
 	 *
 	 * This is also called recursively on subcomponents, and it checks that
-	 * [group arguments][Argument] have the correct structure for what will be
-	 * parsed. The method may reject parses based on the number of repetitions
-	 * of a [group][Group] at a call site, but not the number of arguments
-	 * actually delivered by each repetition. For example, the message "«_:_‡,»"
-	 * can limit the number of _:_ pairs to at most 5 by declaring the tuple
-	 * type's size to be [5..5]. However, the message ```"«_:_‡[_]»"``` will
-	 * always produce a tuple of 3-tuples followed by a 2-tuple (if any elements
-	 * at all occur). Attempting to add a method implementation for this message
-	 * that only accepted a tuple of 7-tuples would be inappropriate (and
-	 * ineffective). Instead, it should be required to accept a tuple whose size
-	 * is in the range [2..3].
+	 * [group&#32;arguments][Argument] have the correct structure for what will
+	 * be parsed. The method may reject parses based on the number of
+	 * repetitions of a [group][Group] at a call site, but not the number of
+	 * arguments actually delivered by each repetition. For example, the message
+	 * "«_:_‡,»" can limit the number of _:_ pairs to at most 5 by declaring the
+	 * tuple type's size to be [5..5]. However, the message ```"«_:_‡[_]»"```
+	 * will always produce a tuple of 3-tuples followed by a 2-tuple (if any
+	 * elements at all occur). Attempting to add a method implementation for
+	 * this message that only accepted a tuple of 7-tuples would be
+	 * inappropriate (and ineffective). Instead, it should be required to accept
+	 * a tuple whose size is in the range [2..3].
 	 *
 	 * Note that the outermost (pseudo)group represents the entire message, so
-	 * the caller should synthesize a fixed-length [tuple
-	 * type][TupleTypeDescriptor] for the outermost check.
+	 * the caller should synthesize a fixed-length
+	 * [tuple&#32;type][TupleTypeDescriptor] for the outermost check.
 	 *
 	 * @param argumentType
-	 *   A [tuple type][TupleTypeDescriptor] describing the types of arguments
-	 *   that a method being added will accept.
+	 *   A [tuple&#32;type][TupleTypeDescriptor] describing the types of
+	 *   arguments that a method being added will accept.
 	 * @param sectionNumber
 	 *   Which [SectionCheckpoint] section marker this list of argument types
 	 *   are being validated against.  To validate the final method or macro

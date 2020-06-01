@@ -32,13 +32,12 @@
 
 package com.avail.descriptor.tuples;
 
-import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
-import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.functions.CompiledCodeDescriptor;
 import com.avail.descriptor.numbers.A_Number;
 import com.avail.descriptor.representation.A_BasicObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.representation.BitField;
 import com.avail.descriptor.representation.Mutability;
 import com.avail.descriptor.types.A_Type;
@@ -47,11 +46,13 @@ import com.avail.serialization.SerializerOperation;
 import java.nio.ByteBuffer;
 import java.util.function.IntUnaryOperator;
 
-import static com.avail.descriptor.representation.AvailObject.multiplier;
 import static com.avail.descriptor.numbers.IntegerDescriptor.fromUnsignedByte;
 import static com.avail.descriptor.numbers.IntegerDescriptor.hashOfUnsignedByte;
+import static com.avail.descriptor.representation.AvailObject.multiplier;
 import static com.avail.descriptor.representation.AvailObjectRepresentation.newLike;
-import static com.avail.descriptor.representation.Mutability.*;
+import static com.avail.descriptor.representation.Mutability.IMMUTABLE;
+import static com.avail.descriptor.representation.Mutability.MUTABLE;
+import static com.avail.descriptor.representation.Mutability.SHARED;
 import static com.avail.descriptor.tuples.ByteTupleDescriptor.generateByteTupleFrom;
 import static com.avail.descriptor.tuples.NybbleTupleDescriptor.IntegerSlots.HASH_OR_ZERO;
 import static com.avail.descriptor.tuples.NybbleTupleDescriptor.IntegerSlots.RAW_LONG_AT_;
@@ -128,7 +129,7 @@ extends NumericTupleDescriptor
 	 */
 	private final int unusedNybblesOfLastLong;
 
-	@Override @AvailMethod
+	@Override
 	public A_Tuple o_AppendCanDestroy (
 		final AvailObject object,
 		final A_BasicObject newElement,
@@ -169,7 +170,7 @@ extends NumericTupleDescriptor
 		return result;
 	}
 
-	@Override @AvailMethod
+	@Override
 	public int o_BitsPerEntry (final AvailObject object)
 	{
 		// Answer approximately how many bits per entry are taken up by this
@@ -177,7 +178,7 @@ extends NumericTupleDescriptor
 		return 4;
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_CompareFromToWithNybbleTupleStartingAt (
 		final AvailObject object,
 		final int startIndex1,
@@ -207,7 +208,7 @@ extends NumericTupleDescriptor
 		return true;
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_CompareFromToWithStartingAt (
 		final AvailObject object,
 		final int startIndex1,
@@ -222,7 +223,7 @@ extends NumericTupleDescriptor
 			startIndex1);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public int o_ComputeHashFromTo (
 		final AvailObject object,
 		final int start,
@@ -241,7 +242,7 @@ extends NumericTupleDescriptor
 		return hash;
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Tuple o_ConcatenateWith (
 		final AvailObject object,
 		final A_Tuple otherTuple,
@@ -338,13 +339,13 @@ extends NumericTupleDescriptor
 			object, start, end, canDestroy);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsNybbleTuple(object);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_EqualsNybbleTuple (
 		final AvailObject object,
 		final A_Tuple aNybbleTuple)
@@ -386,7 +387,7 @@ extends NumericTupleDescriptor
 		return true;
 	}
 
-	@Override @AvailMethod
+	@Override
 	public byte o_ExtractNybbleFromTupleAt (
 		final AvailObject object,
 		final int nybbleIndex)
@@ -394,7 +395,7 @@ extends NumericTupleDescriptor
 		return getNybble(object, nybbleIndex);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsBetterRepresentationThan (
 		final AvailObject object,
 		final A_BasicObject anotherObject)
@@ -407,7 +408,7 @@ extends NumericTupleDescriptor
 		return true;
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsInstanceOfKind (
 		final AvailObject object,
 		final A_Type aType)
@@ -450,7 +451,7 @@ extends NumericTupleDescriptor
 		return true;
 	}
 
-	@Override @AvailMethod
+	@Override
 	public AvailObject o_MakeImmutable (final AvailObject object)
 	{
 		if (isMutable())
@@ -460,7 +461,7 @@ extends NumericTupleDescriptor
 		return object;
 	}
 
-	@Override @AvailMethod
+	@Override
 	public AvailObject o_MakeShared (final AvailObject object)
 	{
 		if (!isShared())
@@ -469,7 +470,8 @@ extends NumericTupleDescriptor
 		}
 		return object;
 	}
-	@Override @AvailMethod
+
+	@Override
 	public SerializerOperation o_SerializerOperation (
 		final AvailObject object)
 	{
@@ -489,14 +491,14 @@ extends NumericTupleDescriptor
 		}
 	}
 
-	@Override @AvailMethod
+	@Override
 	public AvailObject o_TupleAt (final AvailObject object, final int index)
 	{
 		// Answer the element at the given index in the nybble tuple object.
 		return fromUnsignedByte(getNybble(object, index));
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Tuple o_TupleAtPuttingCanDestroy (
 		final AvailObject object,
 		final int index,
@@ -552,7 +554,7 @@ extends NumericTupleDescriptor
 				object, startIndex, endIndex, type);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public int o_TupleIntAt (final AvailObject object, final int index)
 	{
 		// Answer the integer element at the given index in the nybble tuple
@@ -560,7 +562,7 @@ extends NumericTupleDescriptor
 		return getNybble(object, index);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Tuple o_TupleReverse(final AvailObject object)
 	{
 		final int size = object.tupleSize();
@@ -577,7 +579,7 @@ extends NumericTupleDescriptor
 			size, i -> getNybble(object, size + 1 - i));
 	}
 
-	@Override @AvailMethod
+	@Override
 	public int o_TupleSize (final AvailObject object)
 	{
 		return (object.variableIntegerSlotsCount() << 4)

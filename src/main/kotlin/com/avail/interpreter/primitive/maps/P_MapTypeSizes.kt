@@ -40,13 +40,15 @@ import com.avail.descriptor.types.IntegerRangeTypeDescriptor
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.wholeNumbers
 import com.avail.descriptor.types.MapTypeDescriptor
 import com.avail.descriptor.types.MapTypeDescriptor.mapMeta
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CanFold
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Answer the [size range][IntegerRangeTypeDescriptor] of a [ map
- * type][MapTypeDescriptor]. This specifies the range of sizes a
+ * **Primitive:** Answer the [size&#32;range][IntegerRangeTypeDescriptor] of a
+ * [map&#32;type][MapTypeDescriptor]. This specifies the range of sizes a
  * [map][MapDescriptor] can have while being considered an instance of this map
  * type, assuming the keys' types and values' types also agree with those
  * specified in the map type.

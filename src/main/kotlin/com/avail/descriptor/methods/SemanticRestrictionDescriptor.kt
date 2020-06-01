@@ -6,11 +6,11 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *    list of conditions and the following disclaimer in the documentation
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
  *
  *  * Neither the name of the copyright holder nor the names of the contributors
@@ -31,14 +31,14 @@
  */
 package com.avail.descriptor.methods
 
-import com.avail.annotations.AvailMethod
-import com.avail.descriptor.module.A_Module
-import com.avail.descriptor.Descriptor
-import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.FunctionDescriptor
+import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AbstractDescriptor
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.Descriptor
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.types.TypeTag
@@ -103,24 +103,20 @@ private constructor(mutability: Mutability) : Descriptor(
 		DEFINITION_MODULE
 	}
 
-	@AvailMethod
 	override fun o_Hash(self: AvailObject) =
 		((self.slot(ObjectSlots.FUNCTION).hash() xor 0x0E0D9C10)
 			+ self.slot(ObjectSlots.DEFINITION_METHOD).hash())
 
-	@AvailMethod
 	override fun o_Function(self: AvailObject): A_Function =
 		self.slot(ObjectSlots.FUNCTION)
 
 	override fun o_DefinitionMethod(self: AvailObject): A_Method =
 		self.slot(ObjectSlots.DEFINITION_METHOD)
 
-	@AvailMethod
 	override fun o_DefinitionModule(self: AvailObject): A_Module =
 		self.slot(ObjectSlots.DEFINITION_MODULE)
 
 	/** Compare by identity. */
-	@AvailMethod
 	override fun o_Equals(self: AvailObject, another: A_BasicObject) =
 		self.sameAddressAs(another)
 

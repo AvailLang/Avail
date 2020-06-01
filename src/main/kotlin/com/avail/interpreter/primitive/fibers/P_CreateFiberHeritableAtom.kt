@@ -32,15 +32,15 @@
 
 package com.avail.interpreter.primitive.fibers
 
-import com.avail.descriptor.fiber.FiberDescriptor
-import com.avail.descriptor.module.ModuleDescriptor.Companion.currentModule
-import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.atoms.A_Atom.Companion.setAtomProperty
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.createAtom
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.HERITABLE_KEY
+import com.avail.descriptor.fiber.FiberDescriptor
+import com.avail.descriptor.module.ModuleDescriptor.Companion.currentModule
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.types.A_Type
@@ -51,11 +51,10 @@ import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
 import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.AvailErrorCode.E_AMBIGUOUS_NAME
 import com.avail.exceptions.AvailErrorCode.E_ATOM_ALREADY_EXISTS
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.execution.Interpreter
 import com.avail.utility.MutableOrNull
-import java.util.function.Supplier
 
 /**
  * **Primitive:** Create a new [atom][AtomDescriptor] with the given name that
@@ -76,7 +75,7 @@ object P_CreateFiberHeritableAtom : Primitive(1, CanInline)
 		val errorCode = MutableOrNull<AvailErrorCode>()
 		if (!module.equalsNil())
 		{
-			module.lock(Supplier {
+			module.lock {
 				val trueNames = module.trueNamesForStringName(name)
 				when (trueNames.setSize()) {
 					0 -> {
@@ -89,7 +88,7 @@ object P_CreateFiberHeritableAtom : Primitive(1, CanInline)
 					1 -> errorCode.value = E_ATOM_ALREADY_EXISTS
 					else -> errorCode.value = E_AMBIGUOUS_NAME
 				}
-			})
+			}
 		}
 		else
 		{

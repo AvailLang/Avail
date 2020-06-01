@@ -43,8 +43,8 @@ import com.avail.builder.ResolvedModuleName
 import com.avail.builder.UnresolvedDependencyException
 import com.avail.builder.UnresolvedModuleException
 import com.avail.descriptor.fiber.A_Fiber
-import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.fiber.FiberDescriptor.ExecutionState
+import com.avail.descriptor.module.A_Module
 import com.avail.interpreter.execution.Interpreter
 import com.avail.persistence.IndexedFileException
 import com.avail.persistence.Repository
@@ -80,8 +80,6 @@ import com.avail.server.messages.UpgradeCommandMessage
 import com.avail.server.messages.VersionCommandMessage
 import com.avail.utility.MutableOrNull
 import com.avail.utility.configuration.ConfigurationException
-import com.avail.utility.evaluation.Continuation0
-import com.avail.utility.evaluation.Continuation3NotNull
 import com.avail.utility.json.JSONWriter
 import java.io.FileNotFoundException
 import java.io.IOException
@@ -110,14 +108,15 @@ import kotlin.collections.set
  * @property configuration
  *   The [configuration][AvailServerConfiguration].
  * @property runtime
- *   The [Avail runtime][AvailRuntime] managed by this [server][AvailServer].
+ *   The [Avail&#32;runtime][AvailRuntime] managed by this
+ *   [server][AvailServer].
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
  * @constructor
  *
- * Construct a new `AvailServer` that manages the given [Avail
- * runtime][AvailRuntime].
+ * Construct a new `AvailServer` that manages the given
+ * [Avail&#32;runtime][AvailRuntime].
  *
  * @param configuration
  *   An [configuration][AvailServerConfiguration].
@@ -130,19 +129,18 @@ class AvailServer constructor(
 	val runtime: AvailRuntime)
 {
 	/**
-	 * The [Avail builder][AvailBuilder] responsible for managing build and
+	 * The [Avail&#32;builder][AvailBuilder] responsible for managing build and
 	 * execution tasks.
 	 */
 	private val builder: AvailBuilder = AvailBuilder(runtime)
 
 	/**
 	 * The catalog of pending upgrade requests, as a [map][Map] from [UUID]s to
-	 * the [continuations][Continuation3NotNull] that should be invoked to
-	 * proceed after the client has satisfied an upgrade request. The
-	 * continuation is invoked with the upgraded [channel][AvailServerChannel],
-	 * the `UUID`, and another [continuation][Continuation0] that permits the
-	 * `AvailServer` to continue processing [messages][Message] for the upgraded
-	 * channel.
+	 * the continuations that should be invoked to proceed after the client has
+	 * satisfied an upgrade request. The continuation is invoked with the
+	 * upgraded [channel][AvailServerChannel], the `UUID`, and another
+	 * continuation that permits the `AvailServer` to continue processing
+	 * [messages][Message] for the upgraded channel.
 	 */
 	private val pendingUpgrades =
 		HashMap<UUID, (AvailServerChannel, UUID, ()->Unit)->Unit>()
@@ -186,7 +184,7 @@ class AvailServer constructor(
 	}
 
 	/**
-	 * List all [module roots][ModuleRoot].
+	 * List all [module&#32;roots][ModuleRoot].
 	 *
 	 * @param channel
 	 *   The [channel][AvailServerChannel] on which the
@@ -210,7 +208,7 @@ class AvailServer constructor(
 	}
 
 	/**
-	 * List all [module root paths][ModuleRoots.writePathsOn].
+	 * List all [module&#32;root&#32;paths][ModuleRoots.writePathsOn].
 	 *
 	 * @param channel
 	 *   The [channel][AvailServerChannel] on which the
@@ -234,7 +232,7 @@ class AvailServer constructor(
 	}
 
 	/**
-	 * Answer the [module roots path][ModuleRoots.modulePath].
+	 * Answer the [module&#32;roots&#32;path][ModuleRoots.modulePath].
 	 *
 	 * @param channel
 	 *   The [channel][AvailServerChannel] on which the
@@ -392,8 +390,8 @@ class AvailServer constructor(
 		}
 
 		/**
-		 * Write information that requires [module
-		 * resolution][ModuleNameResolver].
+		 * Write information that requires
+		 * [module&#32;resolution][ModuleNameResolver].
 		 *
 		 * @param writer
 		 *   A `JSONWriter`.
@@ -452,7 +450,7 @@ class AvailServer constructor(
 
 	/**
 	 * Answer a [visitor][FileVisitor] able to visit every source module
-	 * beneath the specified [module root][ModuleRoot].
+	 * beneath the specified [module&#32;root][ModuleRoot].
 	 *
 	 * @param root
 	 *   A module root.
@@ -589,7 +587,8 @@ class AvailServer constructor(
 	}
 
 	/**
-	 * List all source modules reachable from the [module roots][ModuleRoots].
+	 * List all source modules reachable from the
+	 * [module&#32;roots][ModuleRoots].
 	 *
 	 * @param channel
 	 *   The [channel][AvailServerChannel] on which the
@@ -637,7 +636,8 @@ class AvailServer constructor(
 	}
 
 	/**
-	 * List all source modules reachable from the [module roots][ModuleRoots].
+	 * List all source modules reachable from the
+	 * [module&#32;roots][ModuleRoots].
 	 *
 	 * @param channel
 	 *   The [channel][AvailServerChannel] on which the
@@ -683,7 +683,7 @@ class AvailServer constructor(
 	}
 
 	/**
-	 * Clear all [binary module repositories][Repository].
+	 * Clear all [binary&#32;module&#32;repositories][Repository].
 	 *
 	 * @param channel
 	 *   The [channel][AvailServerChannel] on which the
@@ -967,7 +967,7 @@ class AvailServer constructor(
 
 	/**
 	 * Request new I/O-upgraded [channels][AvailServerChannel] to support
-	 * [module unloading][AvailBuilder.unloadTarget].
+	 * [module&#32;unloading][AvailBuilder.unloadTarget].
 	 *
 	 * @param channel
 	 *   The [channel][AvailServerChannel] on which the
@@ -1263,7 +1263,8 @@ class AvailServer constructor(
 		 *   The reason for the failure.
 		 * @param closeAfterSending
 		 *   `true` if the [channel][AvailServerChannel] should be
-		 *   [closed][AvailServerChannel.scheduleClose] after transmitting this message.
+		 *   [closed][AvailServerChannel.scheduleClose] after transmitting this
+		 *   message.
 		 * @return
 		 *   A message.
 		 */
@@ -1464,8 +1465,8 @@ class AvailServer constructor(
 		}
 
 		/**
-		 * Negotiate a version. If the [requested
-		 * version][VersionCommandMessage.version] is
+		 * Negotiate a version. If the
+		 * [requested&#32;version][VersionCommandMessage.version] is
 		 * [supported][supportedProtocolVersions], then echo this version back
 		 * to the client. Otherwise, send a list of the supported versions for
 		 * the client to examine. If the client cannot (or does not wish to)
@@ -1586,8 +1587,8 @@ class AvailServer constructor(
 		}
 
 		/**
-		 * The entry point for command-line invocation of the [Avail
-		 * server][AvailServer].
+		 * The entry point for command-line invocation of the
+		 * [Avail&#32;server][AvailServer].
 		 *
 		 * @param args
 		 *   The command-line arguments.

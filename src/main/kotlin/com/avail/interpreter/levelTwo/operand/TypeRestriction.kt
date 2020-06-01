@@ -40,9 +40,13 @@ import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
 import com.avail.descriptor.sets.SetDescriptor.Companion.toSet
-import com.avail.descriptor.types.*
-import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.*
-import com.avail.descriptor.types.TypeDescriptor.*
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn
+import com.avail.descriptor.types.BottomTypeDescriptor
+import com.avail.descriptor.types.InstanceMetaDescriptor
+import com.avail.descriptor.types.TypeDescriptor.Types
+import com.avail.descriptor.types.TypeDescriptor.isProperSubtype
 import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_EQUALS_CONSTANT
 import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_CONSTANT
 import com.avail.interpreter.levelTwo.register.L2BoxedRegister
@@ -155,7 +159,8 @@ class TypeRestriction private constructor(
 		companion object
 		{
 			/**
-			 * A pre-computed bit mask for just the [RegisterKind]-related flags.
+			 * A pre-computed bit mask for just the [RegisterKind]-related
+			 * flags.
 			 */
 			val allKindsMask =
 				BOXED.mask or UNBOXED_INT.mask or UNBOXED_FLOAT.mask
@@ -406,7 +411,8 @@ class TypeRestriction private constructor(
 	 * that satisfied the receiver, but failed a test against the given type.
 	 *
 	 * @param typeToExclude
-	 *   The type to exclude from the receiver to create a new `TypeRestriction`.
+	 *   The type to exclude from the receiver to create a new
+	 *   `TypeRestriction`.
 	 * @return
 	 *   The new type restriction.
 	 */
@@ -429,7 +435,8 @@ class TypeRestriction private constructor(
 	 * the given value.
 	 *
 	 * @param valueToExclude
-	 *   The value to exclude from the receiver to create a new `TypeRestriction`.
+	 *   The value to exclude from the receiver to create a new
+	 *   `TypeRestriction`.
 	 * @return
 	 *   The new type restriction.
 	 */
@@ -699,6 +706,7 @@ class TypeRestriction private constructor(
 	 * @return
 	 *   Whether the receiver is a specialization of the argument.
 	 */
+	@Suppress("unused")
 	fun isStrongerThan(other: TypeRestriction): Boolean
 	{
 		if (flags.inv() and other.flags != 0)
@@ -813,7 +821,7 @@ class TypeRestriction private constructor(
 		 * It's marked as immutable because there is no way to create another
 		 * [AvailObject] with a [NilDescriptor] as its descriptor.
 		 */
-		val nilRestriction = TypeRestriction(
+		private val nilRestriction = TypeRestriction(
 			Types.TOP.o(),
 			NilDescriptor.nil,
 			setOf(Types.ANY.o()),
@@ -827,7 +835,7 @@ class TypeRestriction private constructor(
 		 * The [TypeRestriction] for a register that has any value whatsoever,
 		 * including [NilDescriptor.nil], and is not known to be immutable.
 		 */
-		val topRestriction = TypeRestriction(
+		private val topRestriction = TypeRestriction(
 			Types.TOP.o(),
 			null,
 			Collections.emptySet(),
@@ -841,7 +849,7 @@ class TypeRestriction private constructor(
 		 * The [TypeRestriction] for a register that has any value whatsoever,
 		 * including [NilDescriptor.nil], but is known to be immutable.
 		 */
-		val topRestrictionImmutable = TypeRestriction(
+		private val topRestrictionImmutable = TypeRestriction(
 			Types.TOP.o(),
 			null,
 			Collections.emptySet(),
@@ -870,7 +878,7 @@ class TypeRestriction private constructor(
 		 * The [TypeRestriction] for a register that has any value whatsoever,
 		 * excluding [NilDescriptor.nil], but it's known to be immutable.
 		 */
-		val anyRestrictionImmutable = TypeRestriction(
+		private val anyRestrictionImmutable = TypeRestriction(
 			Types.ANY.o(),
 			null,
 			Collections.emptySet(),
@@ -900,15 +908,16 @@ class TypeRestriction private constructor(
 
 		/**
 		 * The [TypeRestriction] for a register that can only hold the value
-		 * bottom (i.e., the restriction type is bottom's type).  This is a sticky
-		 * point in the type system, in that multiple otherwise unrelated type
-		 * hierarchies share the (uninstantiable) type bottom as a descendant.
+		 * bottom (i.e., the restriction type is bottom's type).  This is a
+		 * sticky point in the type system, in that multiple otherwise unrelated
+		 * type hierarchies share the (uninstantiable) type bottom as a
+		 * descendant.
 		 *
 		 * Note that this restriction is marked as immutable because there is no
 		 * way to create another [AvailObject] whose descriptor is a
 		 * [BottomTypeDescriptor].
 		 */
-		val bottomTypeRestriction = TypeRestriction(
+		private val bottomTypeRestriction = TypeRestriction(
 			BottomTypeDescriptor.bottomMeta(),
 			BottomTypeDescriptor.bottom(),
 			Collections.emptySet(),
@@ -925,7 +934,8 @@ class TypeRestriction private constructor(
 		 * @param givenType
 		 *   The Avail type that constrains some value somewhere.
 		 * @param givenConstantOrNull
-		 *   Either `null` or the exact value that some value somewhere must equal.
+		 *   Either `null` or the exact value that some value somewhere must
+		 *   equal.
 		 * @param givenExcludedTypes
 		 *   A set of [A_Type]s to consider excluded.
 		 * @param givenExcludedValues
@@ -1098,17 +1108,18 @@ class TypeRestriction private constructor(
 		 * arguments.
 		 *
 		 * @param type
-		 * The Avail type that constrains some value somewhere.
+		 *   The Avail type that constrains some value somewhere.
 		 * @param constantOrNull
-		 * Either `null` or the exact value that some value somewhere must equal.
+		 *   Either `null` or the exact value that some value somewhere must
+		 *   equal.
 		 * @param givenExcludedTypes
-		 * A set of [A_Type]s to consider excluded.
+		 *   A set of [A_Type]s to consider excluded.
 		 * @param givenExcludedValues
-		 * A set of values to consider excluded.
+		 *   A set of values to consider excluded.
 		 * @param flags
-		 * The encoded [flags] [Int].
+		 *   The encoded [flags] [Int].
 		 * @return
-		 * The new or existing canonical TypeRestriction.
+		 *   The new or existing canonical `TypeRestriction`.
 		 */
 		fun restriction(
 			type: A_Type,
@@ -1265,7 +1276,8 @@ class TypeRestriction private constructor(
 		 */
 		@JvmStatic
 		fun restrictionForType(
-			type: A_Type, encoding: RestrictionFlagEncoding): TypeRestriction
+			type: A_Type,
+			encoding: RestrictionFlagEncoding): TypeRestriction
 		{
 			return restriction(
 				type,
@@ -1279,8 +1291,9 @@ class TypeRestriction private constructor(
 		 * Create or reuse a `TypeRestriction`, for which no constant
 		 * information is provided (but might be deduced from the type).
 		 *
-		 * If the requested register encoding is [RestrictionFlagEncoding.BOXED],
-		 * also flag the restriction as [RestrictionFlagEncoding.IMMUTABLE].
+		 * If the requested register encoding is
+		 * [RestrictionFlagEncoding.BOXED], also flag the restriction as
+		 * [RestrictionFlagEncoding.IMMUTABLE].
 		 *
 		 * @param constant
 		 *   The sole Avail value that this restriction permits.

@@ -58,8 +58,8 @@ class AvailRejectedParseException : PrimitiveThrownException
 	val level: ParseNotificationLevel
 
 	/**
-	 * The [error message][StringDescriptor] indicating why a particular parse
-	 * was rejected.
+	 * The [error&#32;message][StringDescriptor] indicating why a particular
+	 * parse was rejected.
 	 */
 	val rejectionString: A_String by lazy { rejectionSupplier() }
 
@@ -113,15 +113,15 @@ class AvailRejectedParseException : PrimitiveThrownException
 
 	/**
 	 * Construct a new instance the most general way, with a function to produce
-	 * an [Avail string][A_String] as needed.  If this diagnostic is deemed
+	 * an [Avail&#32;string][A_String] as needed.  If this diagnostic is deemed
 	 * relevant, the string will be presented after the word `"Expected..."`.
 	 *
 	 * @param level
 	 *   The [ParseNotificationLevel] that indicates the priority of the parse
 	 *   theory that failed.
 	 * @param supplier
-	 *   The function that produces a diagnostic [Avail string][A_String] upon
-	 *   first request.
+	 *   The function that produces a diagnostic [Avail&#32;string][A_String]
+	 *   upon first request.
 	 */
 	constructor(level: ParseNotificationLevel, supplier: ()-> A_String)
 	{

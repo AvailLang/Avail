@@ -33,15 +33,15 @@
 package com.avail.interpreter.levelOne
 
 import com.avail.descriptor.functions.CompiledCodeDescriptor
-import com.avail.descriptor.module.A_Module
-import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.functions.CompiledCodeDescriptor.Companion.newCompiledCode
 import com.avail.descriptor.functions.ContinuationDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor
+import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.numbers.IntegerDescriptor
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.NybbleTupleDescriptor
 import com.avail.descriptor.tuples.NybbleTupleDescriptor.generateNybbleTupleFrom
@@ -61,9 +61,9 @@ import java.util.*
 import java.util.Collections.addAll
 
 /**
- * An instance of this class can be used to construct a [compiled code
- * object][CompiledCodeDescriptor] without detailed knowledge of the level one
- * nybblecode instruction set.
+ * An instance of this class can be used to construct a
+ * [compiled&#32;code&#32;object][CompiledCodeDescriptor] without detailed
+ * knowledge of the level one nybblecode instruction set.
  *
  * @property module
  *   The module containing this code.
@@ -107,7 +107,7 @@ class L1InstructionWriter constructor(
 
 	/**
 	 * The [List] of argument [types][TypeDescriptor] for this
-	 * [compiled code][CompiledCodeDescriptor].
+	 * [compiled&#32;code][CompiledCodeDescriptor].
 	 */
 	private var argumentTypes: MutableList<A_Type> = ArrayList()
 
@@ -129,7 +129,7 @@ class L1InstructionWriter constructor(
 
 	/**
 	 * The [primitive][Primitive] [number][Primitive.primitiveNumber] of the
-	 * [compile code object] being generated.
+	 * [compile&#32;code&#32;object] being generated.
 	 */
 	var primitive: Primitive? = null
 		set(newValue)
@@ -203,8 +203,8 @@ class L1InstructionWriter constructor(
 	}
 
 	/**
-	 * Specify the types of the arguments that the resulting [compiled code
-	 * object][CompiledCodeDescriptor] will accept.
+	 * Specify the types of the arguments that the resulting
+	 * [compiled&#32;code&#32;object][CompiledCodeDescriptor] will accept.
 	 *
 	 * @param argTypes
 	 *   A [tuple][TupleDescriptor] of [types][TypeDescriptor] corresponding
@@ -340,8 +340,8 @@ class L1InstructionWriter constructor(
 	}
 
 	/**
-	 * Extract the [tuple of nybbles][NybbleTupleDescriptor] encoding the
-	 * instructions of the [compiled code][CompiledCodeDescriptor] under
+	 * Extract the [tuple&#32;of&#32;nybbles][NybbleTupleDescriptor] encoding
+	 * the instructions of the [compiled&#32;code][CompiledCodeDescriptor] under
 	 * construction.
 	 *
 	 * @return
@@ -361,8 +361,8 @@ class L1InstructionWriter constructor(
 	}
 
 	/**
-	 * Produce the [compiled code object][CompiledCodeDescriptor] which we have
-	 * just incrementally specified.
+	 * Produce the [compiled&#32;code&#32;object][CompiledCodeDescriptor] which
+	 * we have just incrementally specified.
 	 *
 	 * @return
 	 *   A compiled code object (which can be lexically closed to a

@@ -6,12 +6,12 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
  *
  *  * Neither the name of the copyright holder nor the names of the contributors
  *    may be used to endorse or promote products derived from this software
@@ -31,35 +31,38 @@
  */
 package com.avail.descriptor.phrases
 
-import com.avail.annotations.AvailMethod
-import com.avail.compiler.AvailCodeGenerator
-import com.avail.descriptor.phrases.A_Phrase.Companion.declaration
-import com.avail.descriptor.phrases.A_Phrase.Companion.expressionType
-import com.avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
-import com.avail.descriptor.phrases.A_Phrase.Companion.literalObject
-import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKind
-import com.avail.descriptor.phrases.A_Phrase.Companion.token
-import com.avail.descriptor.phrases.A_Phrase.Companion.tokens
-import com.avail.descriptor.phrases.A_Phrase.Companion.variable
-import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.*
-import com.avail.descriptor.phrases.ReferencePhraseDescriptor.ObjectSlots.VARIABLE
-import com.avail.descriptor.representation.A_BasicObject
-import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.representation.AvailObject.Companion.error
-import com.avail.descriptor.representation.Mutability
-import com.avail.descriptor.representation.ObjectSlotsEnum
-import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.InstanceTypeDescriptor.instanceType
-import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
-import com.avail.descriptor.types.TypeTag
-import com.avail.descriptor.types.VariableTypeDescriptor.variableTypeFor
-import com.avail.serialization.SerializerOperation
-import com.avail.utility.evaluation.Continuation1NotNull
-import com.avail.utility.json.JSONWriter
-import java.util.*
-import java.util.function.Consumer
-import java.util.function.UnaryOperator
+ import com.avail.compiler.AvailCodeGenerator
+ import com.avail.descriptor.phrases.A_Phrase.Companion.declaration
+ import com.avail.descriptor.phrases.A_Phrase.Companion.expressionType
+ import com.avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
+ import com.avail.descriptor.phrases.A_Phrase.Companion.literalObject
+ import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKind
+ import com.avail.descriptor.phrases.A_Phrase.Companion.token
+ import com.avail.descriptor.phrases.A_Phrase.Companion.tokens
+ import com.avail.descriptor.phrases.A_Phrase.Companion.variable
+ import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.ARGUMENT
+ import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.LABEL
+ import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.LOCAL_CONSTANT
+ import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.LOCAL_VARIABLE
+ import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.MODULE_CONSTANT
+ import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.MODULE_VARIABLE
+ import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.PRIMITIVE_FAILURE_REASON
+ import com.avail.descriptor.phrases.ReferencePhraseDescriptor.ObjectSlots.VARIABLE
+ import com.avail.descriptor.representation.A_BasicObject
+ import com.avail.descriptor.representation.AbstractDescriptor
+ import com.avail.descriptor.representation.AvailObject
+ import com.avail.descriptor.representation.AvailObject.Companion.error
+ import com.avail.descriptor.representation.Mutability
+ import com.avail.descriptor.representation.ObjectSlotsEnum
+ import com.avail.descriptor.tuples.A_Tuple
+ import com.avail.descriptor.types.A_Type
+ import com.avail.descriptor.types.InstanceTypeDescriptor.instanceType
+ import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
+ import com.avail.descriptor.types.TypeTag
+ import com.avail.descriptor.types.VariableTypeDescriptor.variableTypeFor
+ import com.avail.serialization.SerializerOperation
+ import com.avail.utility.json.JSONWriter
+ import java.util.*
 
 /**
  * My instances represent a reference-taking expression.  A variable itself is
@@ -102,14 +105,12 @@ class ReferencePhraseDescriptor(
 		builder.append(self.slot(VARIABLE).token().string().asNativeString())
 	}
 
-	@AvailMethod
 	override fun o_Variable(self: AvailObject): A_Phrase = self.slot(VARIABLE)
 
 	/**
 	 * The value I represent is a variable itself.  Answer an appropriate
 	 * variable type.
 	 */
-	@AvailMethod
 	override fun o_ExpressionType(self: AvailObject): A_Type {
 		val variable: A_Phrase = self.slot(VARIABLE)
 		val declaration = variable.declaration()
@@ -119,7 +120,6 @@ class ReferencePhraseDescriptor(
 		}
 	}
 
-	@AvailMethod
 	override fun o_EqualsPhrase(
 		self: AvailObject,
 		aPhrase: A_Phrase
@@ -129,11 +129,9 @@ class ReferencePhraseDescriptor(
 			&& self.slot(VARIABLE).equals(aPhrase.variable()))
 	}
 
-	@AvailMethod
 	override fun o_Hash(self: AvailObject): Int =
 		self.variable().hash() xor -0x180564c1
 
-	@AvailMethod
 	override fun o_EmitValueOn(
 		self: AvailObject,
 		codeGenerator: AvailCodeGenerator
@@ -143,24 +141,21 @@ class ReferencePhraseDescriptor(
 			self.tokens(), declaration, codeGenerator)
 	}
 
-	@AvailMethod
 	override fun o_ChildrenMap(
 		self: AvailObject,
-		transformer: UnaryOperator<A_Phrase>
-	) = self.setSlot(VARIABLE, transformer.apply(self.slot(VARIABLE)))
+		transformer: (A_Phrase) -> A_Phrase
+	) = self.setSlot(VARIABLE, transformer(self.slot(VARIABLE)))
 
-	@AvailMethod
 	override fun o_ChildrenDo(
 		self: AvailObject,
-		action: Consumer<A_Phrase>
-	) = action.accept(self.slot(VARIABLE))
+		action: (A_Phrase) -> Unit
+	) = action(self.slot(VARIABLE))
 
 	override fun o_StatementsDo(
 		self: AvailObject,
-		continuation: Continuation1NotNull<A_Phrase>
-	): Unit = throw unsupportedOperationException()
+		continuation: (A_Phrase) -> Unit
+	): Unit = unsupportedOperation()
 
-	@AvailMethod
 	override fun o_ValidateLocally(
 		self: AvailObject,
 		parent: A_Phrase?
@@ -178,7 +173,6 @@ class ReferencePhraseDescriptor(
 		}
 	}
 
-	@AvailMethod
 	override fun o_PhraseKind(self: AvailObject): PhraseKind =
 		PhraseKind.REFERENCE_PHRASE
 
@@ -206,14 +200,14 @@ class ReferencePhraseDescriptor(
 		writer.endObject()
 	}
 
-	override fun mutable(): ReferencePhraseDescriptor = mutable
+	override fun mutable() = mutable
 
-	override fun shared(): ReferencePhraseDescriptor = shared
+	override fun shared() = shared
 
 	companion object {
 		/**
-		 * Create a new [reference phrase][ReferencePhraseDescriptor] from the
-		 * given [variable&#32;use&#32;phrase][VariableUsePhraseDescriptor].
+		 * Create a new [reference&#32;phrase][ReferencePhraseDescriptor] from
+		 * the given [variable&#32;use&#32;phrase][VariableUsePhraseDescriptor].
 		 *
 		 * @param variableUse
 		 *   A variable use phrase for which to construct a reference phrase.

@@ -49,11 +49,14 @@ import com.avail.descriptor.types.IntegerRangeTypeDescriptor.inclusive
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.wholeNumbers
 import com.avail.descriptor.types.SetTypeDescriptor.setTypeForSizesContentType
 import com.avail.descriptor.types.TupleTypeDescriptor.stringType
-import com.avail.exceptions.AvailErrorCode.*
-import com.avail.interpreter.execution.Interpreter
+import com.avail.exceptions.AvailErrorCode.E_INVALID_PATH
+import com.avail.exceptions.AvailErrorCode.E_IO_ERROR
+import com.avail.exceptions.AvailErrorCode.E_OPERATION_NOT_SUPPORTED
+import com.avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.execution.Interpreter
 import com.avail.io.IOSystem
 import java.io.IOException
 import java.nio.file.AccessDeniedException
@@ -65,9 +68,9 @@ import java.util.*
 
 /**
  * **Primitive:** Answer the [ordinals][IntegerDescriptor] (into
- * [IOSystem.posixPermissions]) of the [POSIX file
- * permissions][PosixFilePermission] that describe the access rights granted by
- * the file named by specified [path][Path].
+ * [IOSystem.posixPermissions]) of the
+ * [POSIX&#32;file&#32;permissions][PosixFilePermission] that describe the
+ * access rights granted by the file named by specified [path][Path].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -75,7 +78,7 @@ import java.util.*
 object P_FileGetPermissions : Primitive(2, CanInline, HasSideEffect)
 {
 	/**
-	 * A [map][Map] from [POSIX file][PosixFilePermission] to
+	 * A [map][Map] from [POSIX&#32;file][PosixFilePermission] to
 	 * [ordinals][IntegerDescriptor].
 	 */
 	private val permissionMap =

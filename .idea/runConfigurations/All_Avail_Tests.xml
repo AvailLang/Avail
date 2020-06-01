@@ -14,6 +14,7 @@
     <dir value="$PROJECT_DIR$/test/com/avail/test" />
     <method v="2">
       <option name="MakeProject" enabled="true" />
+      <option name="BSP.BeforeRunTask" enabled="true" />
     </method>
   </configuration>
 </component>

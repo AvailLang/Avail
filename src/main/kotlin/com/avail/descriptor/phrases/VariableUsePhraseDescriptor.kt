@@ -6,12 +6,12 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
  *
  *  * Neither the name of the copyright holder nor the names of the contributors
  *    may be used to endorse or promote products derived from this software
@@ -31,36 +31,38 @@
  */
 package com.avail.descriptor.phrases
 
-import com.avail.annotations.AvailMethod
-import com.avail.compiler.AvailCodeGenerator
-import com.avail.descriptor.phrases.A_Phrase.Companion.declaration
-import com.avail.descriptor.phrases.A_Phrase.Companion.declaredType
-import com.avail.descriptor.phrases.A_Phrase.Companion.isLastUse
-import com.avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
-import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKind
-import com.avail.descriptor.phrases.A_Phrase.Companion.token
-import com.avail.descriptor.phrases.A_Phrase.Companion.tokens
-import com.avail.descriptor.phrases.VariableUsePhraseDescriptor.IntegerSlots.Companion.LAST_USE
-import com.avail.descriptor.phrases.VariableUsePhraseDescriptor.IntegerSlots.FLAGS
-import com.avail.descriptor.phrases.VariableUsePhraseDescriptor.ObjectSlots.DECLARATION
-import com.avail.descriptor.phrases.VariableUsePhraseDescriptor.ObjectSlots.USE_TOKEN
-import com.avail.descriptor.representation.*
-import com.avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
-import com.avail.descriptor.representation.AvailObject.Companion.multiplier
-import com.avail.descriptor.tokens.A_Token
-import com.avail.descriptor.tokens.TokenDescriptor
-import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
-import com.avail.descriptor.types.TypeDescriptor.Types
-import com.avail.descriptor.types.TypeTag
-import com.avail.serialization.SerializerOperation
-import com.avail.utility.evaluation.Continuation1NotNull
-import com.avail.utility.json.JSONWriter
-import java.util.*
-import java.util.function.Consumer
-import java.util.function.UnaryOperator
+ import com.avail.compiler.AvailCodeGenerator
+ import com.avail.descriptor.phrases.A_Phrase.Companion.declaration
+ import com.avail.descriptor.phrases.A_Phrase.Companion.declaredType
+ import com.avail.descriptor.phrases.A_Phrase.Companion.isLastUse
+ import com.avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
+ import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKind
+ import com.avail.descriptor.phrases.A_Phrase.Companion.token
+ import com.avail.descriptor.phrases.A_Phrase.Companion.tokens
+ import com.avail.descriptor.phrases.VariableUsePhraseDescriptor.IntegerSlots.Companion.LAST_USE
+ import com.avail.descriptor.phrases.VariableUsePhraseDescriptor.IntegerSlots.FLAGS
+ import com.avail.descriptor.phrases.VariableUsePhraseDescriptor.ObjectSlots.DECLARATION
+ import com.avail.descriptor.phrases.VariableUsePhraseDescriptor.ObjectSlots.USE_TOKEN
+ import com.avail.descriptor.representation.A_BasicObject
+ import com.avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
+ import com.avail.descriptor.representation.AbstractSlotsEnum
+ import com.avail.descriptor.representation.AvailObject
+ import com.avail.descriptor.representation.AvailObject.Companion.multiplier
+ import com.avail.descriptor.representation.BitField
+ import com.avail.descriptor.representation.IntegerSlotsEnum
+ import com.avail.descriptor.representation.Mutability
+ import com.avail.descriptor.representation.ObjectSlotsEnum
+ import com.avail.descriptor.tokens.A_Token
+ import com.avail.descriptor.tokens.TokenDescriptor
+ import com.avail.descriptor.tuples.A_Tuple
+ import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+ import com.avail.descriptor.types.A_Type
+ import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
+ import com.avail.descriptor.types.TypeDescriptor.Types
+ import com.avail.descriptor.types.TypeTag
+ import com.avail.serialization.SerializerOperation
+ import com.avail.utility.json.JSONWriter
+ import java.util.*
 
 /**
  * My instances represent the use of some
@@ -122,23 +124,19 @@ class VariableUsePhraseDescriptor private constructor(
 		e: AbstractSlotsEnum
 	) = e === FLAGS
 
-	@AvailMethod
 	override fun o_ChildrenDo(
 		self: AvailObject,
-		action: Consumer<A_Phrase>
-	) = action.accept(self.slot(DECLARATION))
+		action: (A_Phrase) -> Unit
+	) = action(self.slot(DECLARATION))
 
-	@AvailMethod
 	override fun o_ChildrenMap(
 		self: AvailObject,
-		transformer: UnaryOperator<A_Phrase>
-	) = self.setSlot(DECLARATION, transformer.apply(self.slot(DECLARATION)))
+		transformer: (A_Phrase) -> A_Phrase
+	) = self.setSlot(DECLARATION, transformer(self.slot(DECLARATION)))
 
-	@AvailMethod
 	override fun o_Declaration(self: AvailObject): A_Phrase =
 		self.slot(DECLARATION)
 
-	@AvailMethod
 	override fun o_EmitValueOn(
 		self: AvailObject,
 		codeGenerator: AvailCodeGenerator
@@ -148,7 +146,6 @@ class VariableUsePhraseDescriptor private constructor(
 			self.tokens(), declaration, codeGenerator)
 	}
 
-	@AvailMethod
 	override fun o_EqualsPhrase(
 		self: AvailObject,
 		aPhrase: A_Phrase
@@ -158,17 +155,14 @@ class VariableUsePhraseDescriptor private constructor(
 		&& self.slot(DECLARATION).equals(aPhrase.declaration())
 		&& self.isLastUse() == aPhrase.isLastUse())
 
-	@AvailMethod
 	override fun o_ExpressionType(self: AvailObject): A_Type =
 		self.slot(DECLARATION).declaredType()
 
-	@AvailMethod
 	override fun o_Hash(self: AvailObject): Int =
 		(self.slot(USE_TOKEN).hash() * multiplier
 			+ self.slot(DECLARATION).hash()
 			xor 0x62CE7BA2)
 
-	@AvailMethod
 	override fun o_IsLastUse(
 		self: AvailObject,
 		isLastUse: Boolean
@@ -176,7 +170,6 @@ class VariableUsePhraseDescriptor private constructor(
 		self.setSlot(LAST_USE, if (isLastUse) 1 else 0)
 	}
 
-	@AvailMethod
 	override fun o_IsLastUse(self: AvailObject): Boolean =
 		self.synchronizeIf(isShared) {
 			self.slot(LAST_USE) != 0
@@ -190,16 +183,14 @@ class VariableUsePhraseDescriptor private constructor(
 
 	override fun o_StatementsDo(
 		self: AvailObject,
-		continuation: Continuation1NotNull<A_Phrase>
-	): Unit = throw unsupportedOperationException()
+		continuation: (A_Phrase) -> Unit
+	): Unit = unsupportedOperation()
 
-	@AvailMethod
 	override fun o_Token(self: AvailObject): A_Token = self.slot(USE_TOKEN)
 
 	override fun o_Tokens(self: AvailObject): A_Tuple =
 		tuple(self.slot(USE_TOKEN))
 
-	@AvailMethod
 	override fun o_ValidateLocally(
 		self: AvailObject,
 		parent: A_Phrase?
@@ -238,9 +229,9 @@ class VariableUsePhraseDescriptor private constructor(
 		builder.append(self.slot(USE_TOKEN).string().asNativeString())
 	}
 
-	override fun mutable(): VariableUsePhraseDescriptor = mutable
+	override fun mutable() = mutable
 
-	override fun shared(): VariableUsePhraseDescriptor = shared
+	override fun shared() = shared
 
 	companion object {
 		/**

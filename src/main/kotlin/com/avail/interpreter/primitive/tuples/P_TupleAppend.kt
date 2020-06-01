@@ -32,8 +32,8 @@
 
 package com.avail.interpreter.primitive.tuples
 
-import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
@@ -44,9 +44,11 @@ import com.avail.descriptor.types.IntegerRangeTypeDescriptor.singleInt
 import com.avail.descriptor.types.TupleTypeDescriptor.mostGeneralTupleType
 import com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CanFold
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Answer a new [tuple][TupleDescriptor] like the argument but

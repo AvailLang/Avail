@@ -6,11 +6,11 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *    list of conditions and the following disclaimer in the documentation
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
  *
  *  * Neither the name of the copyright holder nor the names of the contributors
@@ -476,7 +476,7 @@ interface A_Number : A_BasicObject {
 	 * Answer whether the receiver is numerically less than the argument.
 	 *
 	 * @param another
-	 *   A [numeric object][AbstractNumberDescriptor].
+	 *   A [numeric&#32;object][AbstractNumberDescriptor].
 	 * @return
 	 *   Whether the receiver is strictly less than the argument.
 	 */
@@ -524,7 +524,7 @@ interface A_Number : A_BasicObject {
 
 	/**
 	 * Multiply the receiver by the given [float][FloatDescriptor], destroying
-	 * one or the other if it's mutable and canDestroy is true. Because of the
+	 * one or the other if it's mutable and `canDestroy` is true. Because of the
 	 * requirement that the argument be a float rather than an arbitrary
 	 * [A_Number], this is usually only used for double-dispatching.
 	 *

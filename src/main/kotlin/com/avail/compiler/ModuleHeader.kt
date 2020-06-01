@@ -37,9 +37,6 @@ import com.avail.builder.ModuleName
 import com.avail.builder.ResolvedModuleName
 import com.avail.builder.UnresolvedDependencyException
 import com.avail.compiler.splitter.MessageSplitter
-import com.avail.descriptor.module.A_Module
-import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
 import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrNil
@@ -50,7 +47,10 @@ import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import com.avail.descriptor.bundles.MessageBundleDescriptor.Companion.newBundle
 import com.avail.descriptor.methods.MethodDescriptor
+import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
@@ -83,7 +83,7 @@ import java.util.*
  * Construct a new `ModuleHeader`.
  *
  * @param moduleName
- *   The [resolved name][ResolvedModuleName] of the module.
+ *   The [resolved&#32;name][ResolvedModuleName] of the module.
  */
 class ModuleHeader constructor(val moduleName: ResolvedModuleName)
 {
@@ -94,7 +94,7 @@ class ModuleHeader constructor(val moduleName: ResolvedModuleName)
 	val versions: MutableList<A_String> = ArrayList()
 
 	/**
-	 * The [module imports][ModuleImport] imported by the module undergoing
+	 * The [module&#32;imports][ModuleImport] imported by the module undergoing
 	 * compilation.  This includes both modules being extended and modules being
 	 * simply used.
 	 */
@@ -113,7 +113,7 @@ class ModuleHeader constructor(val moduleName: ResolvedModuleName)
 	val entryPoints: MutableList<A_String> = ArrayList()
 
 	/**
-	 * The [pragma tokens][TokenDescriptor], which are always string
+	 * The [pragma&#32;tokens][TokenDescriptor], which are always string
 	 * [literals][LiteralTokenDescriptor].
 	 */
 	val pragmas: MutableList<A_Token> = ArrayList()

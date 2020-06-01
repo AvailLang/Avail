@@ -6,12 +6,12 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
  *
  *  * Neither the name of the copyright holder nor the names of the contributors
  *    may be used to endorse or promote products derived from this software
@@ -67,13 +67,22 @@ import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.CompiledCodeDescriptor.Companion.newPrimitiveRawFunction
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
-import com.avail.descriptor.methods.*
+import com.avail.descriptor.methods.A_Definition
+import com.avail.descriptor.methods.A_GrammaticalRestriction
+import com.avail.descriptor.methods.A_Method
+import com.avail.descriptor.methods.A_SemanticRestriction
+import com.avail.descriptor.methods.AbstractDefinitionDescriptor
 import com.avail.descriptor.methods.AbstractDefinitionDescriptor.Companion.newAbstractDefinition
+import com.avail.descriptor.methods.DefinitionDescriptor
+import com.avail.descriptor.methods.ForwardDefinitionDescriptor
 import com.avail.descriptor.methods.ForwardDefinitionDescriptor.Companion.newForwardDefinition
 import com.avail.descriptor.methods.GrammaticalRestrictionDescriptor.Companion.newGrammaticalRestriction
+import com.avail.descriptor.methods.MacroDefinitionDescriptor
 import com.avail.descriptor.methods.MacroDefinitionDescriptor.Companion.newMacroDefinition
+import com.avail.descriptor.methods.MethodDefinitionDescriptor
 import com.avail.descriptor.methods.MethodDefinitionDescriptor.Companion.newMethodDefinition
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
+import com.avail.descriptor.methods.SemanticRestrictionDescriptor
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.parsing.A_DefinitionParsingPlan
@@ -103,27 +112,42 @@ import com.avail.descriptor.types.FunctionTypeDescriptor
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
 import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.exceptions.AmbiguousNameException
-import com.avail.exceptions.AvailErrorCode.*
+import com.avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
+import com.avail.exceptions.AvailErrorCode.E_MACRO_MUST_RETURN_A_PARSE_NODE
+import com.avail.exceptions.AvailErrorCode.E_METHOD_RETURN_TYPE_NOT_AS_FORWARD_DECLARED
+import com.avail.exceptions.AvailErrorCode.E_REDEFINED_WITH_SAME_ARGUMENT_TYPES
+import com.avail.exceptions.AvailErrorCode.E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS
 import com.avail.exceptions.MalformedMessageException
 import com.avail.exceptions.SignatureException
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.effects.LoadingEffect
 import com.avail.interpreter.effects.LoadingEffectToAddDefinition
 import com.avail.interpreter.effects.LoadingEffectToRunPrimitive
-import com.avail.interpreter.execution.AvailLoader.Phase.*
+import com.avail.interpreter.execution.AvailLoader.Phase.COMPILING
+import com.avail.interpreter.execution.AvailLoader.Phase.EXECUTING_FOR_COMPILE
+import com.avail.interpreter.execution.AvailLoader.Phase.EXECUTING_FOR_LOAD
+import com.avail.interpreter.execution.AvailLoader.Phase.INITIALIZING
+import com.avail.interpreter.execution.AvailLoader.Phase.LOADING
+import com.avail.interpreter.execution.AvailLoader.Phase.UNLOADING
 import com.avail.interpreter.execution.Interpreter.Companion.runOutermostFunction
-import com.avail.interpreter.primitive.bootstrap.lexing.*
+import com.avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerKeywordBody
+import com.avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerKeywordFilter
+import com.avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerOperatorBody
+import com.avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerOperatorFilter
+import com.avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerSlashStarCommentBody
+import com.avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerSlashStarCommentFilter
+import com.avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerStringBody
+import com.avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerStringFilter
+import com.avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerWhitespaceBody
+import com.avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerWhitespaceFilter
 import com.avail.interpreter.primitive.methods.P_Alias
 import com.avail.io.TextInterface
 import com.avail.utility.Pair
 import com.avail.utility.StackPrinter
 import com.avail.utility.evaluation.Combinator
-import com.avail.utility.evaluation.Continuation0
-import com.avail.utility.evaluation.Continuation2NotNull
 import java.util.*
 import java.util.concurrent.locks.ReentrantLock
 import java.util.concurrent.locks.ReentrantReadWriteLock
-import java.util.function.Supplier
 import javax.annotation.concurrent.GuardedBy
 import kotlin.concurrent.read
 import kotlin.concurrent.withLock
@@ -142,7 +166,7 @@ import kotlin.concurrent.write
  * @property module
  *   The Avail [module][ModuleDescriptor] undergoing loading.
  * @property textInterface
- *   The [text interface][TextInterface] for any [fibers][A_Fiber] started by
+ *   The [text&#32;interface][TextInterface] for any [fibers][A_Fiber] started by
  *   this [AvailLoader].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -363,7 +387,7 @@ class AvailLoader(
 		/**
 		 * Collect the lexers that should run when we encounter a character with
 		 * the given (int) code point, then pass this set of lexers to the
-		 * supplied [Continuation2NotNull].
+		 * supplied function.
 		 *
 		 * We pass it forward rather than return it, since sometimes this
 		 * requires lexer filter functions to run, which we must not do
@@ -507,6 +531,8 @@ class AvailLoader(
 		 * anonymous module and uses it to compile an expression.  In both cases
 		 * the current loader will be tied to an anonymous module.
 		 */
+		// TODO: [MvG] Finish supporting eval.
+		@Suppress("unused")
 		COMPILING_FOR_EVAL(false);
 	}
 
@@ -792,14 +818,14 @@ class AvailLoader(
 			recordEffect(LoadingEffectToAddDefinition(bundle, newForward))
 			val theModule = module
 			val root = rootBundleTree()
-			theModule.lock(Continuation0 {
+			theModule.lock {
 				theModule.moduleAddDefinition(newForward)
 				pendingForwards = pendingForwards.setWithElementCanDestroy(
 					newForward, true).makeShared()
 				val plan = bundle.definitionParsingPlans().mapAt(newForward)
 				val planInProgress = newPlanInProgress(plan, 1)
 				root.addPlanInProgress(planInProgress)
-			})
+			}
 		}
 	}
 
@@ -933,7 +959,7 @@ class AvailLoader(
 		if (phase == EXECUTING_FOR_COMPILE) {
 			val finalForward = forward
 			val finalModule = module
-			finalModule.lock(Continuation0 {
+			finalModule.lock {
 				val ancestorModules = finalModule.allAncestors()
 				val root = rootBundleTree()
 				if (finalForward !== null) {
@@ -955,7 +981,7 @@ class AvailLoader(
 					method.methodAddDefinition(newDefinition)
 				} catch (e: SignatureException) {
 					assert(false) { "Signature was already vetted" }
-					return@Continuation0
+					return@lock
 				}
 				recordEffect(
 					LoadingEffectToAddDefinition(
@@ -970,7 +996,7 @@ class AvailLoader(
 					}
 				}
 				finalModule.moduleAddDefinition(newDefinition)
-			})
+			}
 		} else {
 			try {
 				method.methodAddDefinition(newDefinition)
@@ -1039,12 +1065,12 @@ class AvailLoader(
 		module.moduleAddDefinition(macroDefinition)
 		if (phase == EXECUTING_FOR_COMPILE) {
 			recordEffect(LoadingEffectToAddDefinition(bundle, macroDefinition))
-			module.lock(Continuation0 {
+			module.lock {
 				val plan: A_DefinitionParsingPlan =
 					bundle.definitionParsingPlans().mapAt(macroDefinition)
 				val planInProgress = newPlanInProgress(plan, 1)
 				rootBundleTree().addPlanInProgress(planInProgress)
-			})
+			}
 		}
 	}
 
@@ -1070,9 +1096,7 @@ class AvailLoader(
 				method.chooseBundle(module).message(),
 				restriction.function()))
 		val theModule = module
-		theModule.lock(Continuation0 {
-			theModule.moduleAddSemanticRestriction(restriction)
-		})
+		theModule.lock { theModule.moduleAddSemanticRestriction(restriction) }
 	}
 
 	/**
@@ -1160,11 +1184,11 @@ class AvailLoader(
 				newGrammaticalRestriction(bundleSetTuple, bundle, module)
 			val root = rootBundleTree()
 			val theModule = module
-			theModule.lock(Continuation0 {
+			theModule.lock {
 				bundle.addGrammaticalRestriction(grammaticalRestriction)
 				theModule.moduleAddGrammaticalRestriction(
 					grammaticalRestriction)
-				if (phase != EXECUTING_FOR_COMPILE) return@Continuation0
+				if (phase != EXECUTING_FOR_COMPILE) return@lock
 				// Update the message bundle tree to accommodate the new
 				// grammatical restriction.
 				val treesToVisit =
@@ -1178,7 +1202,7 @@ class AvailLoader(
 							planInProgress, treesToVisit)
 					}
 				}
-			})
+			}
 		}
 		recordEffect(
 			LoadingEffectToRunPrimitive(
@@ -1212,12 +1236,12 @@ class AvailLoader(
 	 */
 	fun runUnloadFunctions(
 		unloadFunctions: A_Tuple,
-		afterRunning: Continuation0
+		afterRunning: () -> Unit
 	) {
 		val size = unloadFunctions.tupleSize()
 		// The index into the tuple of unload functions.
 		var index = 1
-		Combinator.recurse { again: Continuation0 ->
+		Combinator.recurse { again: () -> Unit ->
 			if (index <= size) {
 				val currentIndex = index++
 				val unloadFunction: A_Function =
@@ -1231,12 +1255,12 @@ class AvailLoader(
 				}
 				fiber.textInterface(textInterface)
 				fiber.setSuccessAndFailure(
-					{ again.value() },
-					{ again.value() })
+					{ again() },
+					{ again() })
 				runOutermostFunction(
 					runtime(), fiber, unloadFunction, emptyList())
 			} else {
-				afterRunning.value()
+				afterRunning()
 			}
 		}
 	}
@@ -1264,27 +1288,25 @@ class AvailLoader(
 		isExplicitSubclassAtom: Boolean = false
 	): A_Atom {
 		//  Check if it's already defined somewhere...
-		var atom: A_Atom? = null
-		module.lock(
-			Supplier {
-				val who = module.trueNamesForStringName(stringName)
-				atom = when (who.setSize()) {
-					 0 -> {
-						val trueName = createAtom(stringName, module)
-						if (isExplicitSubclassAtom) {
-							trueName.setAtomProperty(
-								EXPLICIT_SUBCLASSING_KEY.atom,
-								EXPLICIT_SUBCLASSING_KEY.atom)
-						}
-						trueName.makeShared()
-						module.addPrivateName(trueName)
-						trueName
+		return module.lock {
+			val who = module.trueNamesForStringName(stringName)
+			return@lock when (who.setSize()) {
+				 0 ->
+				 {
+					val trueName = createAtom(stringName, module)
+					if (isExplicitSubclassAtom) {
+						trueName.setAtomProperty(
+							EXPLICIT_SUBCLASSING_KEY.atom,
+							EXPLICIT_SUBCLASSING_KEY.atom)
 					}
-					1 -> who.iterator().next()
-					else -> null
+					trueName.makeShared()
+					module.addPrivateName(trueName)
+					trueName
 				}
-			})
-		return atom ?: throw AmbiguousNameException()
+				1 -> who.iterator().next()
+				else -> null
+			}
+		} ?: throw AmbiguousNameException()
 	}
 
 	/**
@@ -1298,27 +1320,26 @@ class AvailLoader(
 	 * @return
 	 *   Every [atom][AtomDescriptor] associated with the name.
 	 */
-	fun lookupAtomsForName(stringName: A_String): A_Set = module.lock(
-		Supplier {
-			val newNames = when {
-				module.newNames().hasKey(stringName) ->
-					singletonSet(module.newNames().mapAt(stringName))
-				else -> emptySet()
-			}
-			val publicNames = when {
-				module.importedNames().hasKey(stringName) ->
-					module.importedNames().mapAt(stringName)
-				else -> emptySet()
-			}
-			val privateNames = when {
-				module.privateNames().hasKey(stringName) ->
-					module.privateNames().mapAt(stringName)
-				else -> emptySet()
-			}
-			newNames
-				.setUnionCanDestroy(publicNames, true)
-				.setUnionCanDestroy(privateNames, true)
-		})
+	fun lookupAtomsForName(stringName: A_String): A_Set = module.lock {
+		val newNames = when {
+			module.newNames().hasKey(stringName) ->
+				singletonSet(module.newNames().mapAt(stringName))
+			else -> emptySet()
+		}
+		val publicNames = when {
+			module.importedNames().hasKey(stringName) ->
+				module.importedNames().mapAt(stringName)
+			else -> emptySet()
+		}
+		val privateNames = when {
+			module.privateNames().hasKey(stringName) ->
+				module.privateNames().mapAt(stringName)
+			else -> emptySet()
+		}
+		newNames
+			.setUnionCanDestroy(publicNames, true)
+			.setUnionCanDestroy(privateNames, true)
+	}
 
 	companion object {
 		/**

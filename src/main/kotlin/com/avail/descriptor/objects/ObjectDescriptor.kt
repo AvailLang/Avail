@@ -6,12 +6,12 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
  *
  *  * Neither the name of the copyright holder nor the names of the contributors
  *    may be used to endorse or promote products derived from this software
@@ -31,10 +31,7 @@
  */
 package com.avail.descriptor.objects
 
-import com.avail.annotations.AvailMethod
 import com.avail.annotations.ThreadSafe
-import com.avail.descriptor.Descriptor
-import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.atoms.A_Atom.Companion.atomName
 import com.avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
@@ -48,12 +45,24 @@ import com.avail.descriptor.objects.ObjectDescriptor.ObjectSlots.FIELD_VALUES_
 import com.avail.descriptor.objects.ObjectDescriptor.ObjectSlots.KIND
 import com.avail.descriptor.objects.ObjectLayoutVariant.Companion.variantForFields
 import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.namesAndBaseTypesForObjectType
-import com.avail.descriptor.representation.*
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AbstractDescriptor
+import com.avail.descriptor.representation.AbstractSlotsEnum
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.AvailObject.Companion.multiplier
+import com.avail.descriptor.representation.AvailObjectFieldHelper
 import com.avail.descriptor.representation.AvailObjectRepresentation.Companion.newLike
+import com.avail.descriptor.representation.BitField
+import com.avail.descriptor.representation.Descriptor
+import com.avail.descriptor.representation.IntegerSlotsEnum
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.*
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.generateObjectTupleFrom
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.TypeDescriptor.Types
@@ -69,8 +78,8 @@ import com.avail.utility.json.JSONWriter
 import java.util.*
 
 /**
- * Avail [user-defined object types][ObjectTypeDescriptor] are novel. They
- * consist of a [map][MapDescriptor] of keys (field name
+ * Avail [user-defined&#32;object&#32;types][ObjectTypeDescriptor] are novel.
+ * They consist of a [map][MapDescriptor] of keys (field name
  * [atoms][AtomDescriptor]) and their associated field [types][A_Type].
  * Similarly, user-defined objects consist of a map from field names to field
  * values. An object instance conforms to an object type if and only the
@@ -179,11 +188,9 @@ class ObjectDescriptor internal constructor(
 		return fields.toTypedArray()
 	}
 
-	@AvailMethod
 	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean =
 		another.equalsObject(self)
 
-	@AvailMethod
 	override fun o_EqualsObject(
 		self: AvailObject,
 		anObject: AvailObject
@@ -218,7 +225,6 @@ class ObjectDescriptor internal constructor(
 		return true
 	}
 
-	@AvailMethod
 	override fun o_FieldAt(self: AvailObject, field: A_Atom): AvailObject =
 		// Fails with NullPointerException if key is not found.
 		when (val slotIndex = variant.fieldToSlotIndex[field]) {
@@ -226,7 +232,6 @@ class ObjectDescriptor internal constructor(
 			else -> self.slot(FIELD_VALUES_, slotIndex!!)
 		}
 
-	@AvailMethod
 	override fun o_FieldAtPuttingCanDestroy(
 		self: AvailObject,
 		field: A_Atom,
@@ -246,6 +251,7 @@ class ObjectDescriptor internal constructor(
 				val result = newVariant.mutableObjectDescriptor.create(
 					newVariant.realSlotCount)
 				variant.fieldToSlotIndex.forEach { (key, value1) ->
+					@Suppress("MapGetWithNotNullAssertionOperator")
 					result.setSlot(
 						FIELD_VALUES_,
 						newVariantSlotMap[key]!!,
@@ -277,7 +283,6 @@ class ObjectDescriptor internal constructor(
 		}
 	}
 
-	@AvailMethod
 	override fun o_FieldMap(self: AvailObject): A_Map =
 		// Warning: May be much slower than it was before ObjectLayoutVariant.
 		variant.fieldToSlotIndex.entries.fold(emptyMap()) {
@@ -289,8 +294,8 @@ class ObjectDescriptor internal constructor(
 				true)
 		}
 
-	@AvailMethod
-	override fun o_FieldTuple(self: AvailObject): A_Tuple {
+	override fun o_FieldTuple(self: AvailObject): A_Tuple
+	{
 		val fieldIterator = variant.fieldToSlotIndex.entries.iterator()
 		return generateObjectTupleFrom(variant.fieldToSlotIndex.size) {
 			val (field, slotIndex) = fieldIterator.next()
@@ -299,7 +304,6 @@ class ObjectDescriptor internal constructor(
 		}.also { assert(!fieldIterator.hasNext()) }
 	}
 
-	@AvailMethod
 	override fun o_Hash(self: AvailObject): Int {
 		val hash = self.slot(HASH_OR_ZERO)
 		if (hash != 0) return hash
@@ -310,15 +314,13 @@ class ObjectDescriptor internal constructor(
 		}.also { self.setSlot(HASH_OR_ZERO, it) }
 	}
 
-	@AvailMethod
 	override fun o_IsInstanceOfKind(
 		self: AvailObject,
-		aTypeObject: A_Type
+		aType: A_Type
 	): Boolean =
-		(aTypeObject.isSupertypeOfPrimitiveTypeEnum(Types.NONTYPE)
-			|| aTypeObject.hasObjectInstance(self))
+		(aType.isSupertypeOfPrimitiveTypeEnum(Types.NONTYPE)
+			|| aType.hasObjectInstance(self))
 
-	@AvailMethod
 	override fun o_Kind(self: AvailObject): A_Type {
 		val kind = self.slot(KIND)
 		if (!kind.equalsNil()) return kind
@@ -331,7 +333,6 @@ class ObjectDescriptor internal constructor(
 		}
 	}
 
-	@AvailMethod
 	@ThreadSafe
 	override fun o_SerializerOperation(self: AvailObject) =
 		SerializerOperation.OBJECT

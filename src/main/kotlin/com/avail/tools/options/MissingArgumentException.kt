@@ -33,8 +33,9 @@
 package com.avail.tools.options
 
 /**
- * Exception thrown during [option processing][OptionProcessor.processOptions]
- * upon discovery that a mandatory argument is missing.
+ * Exception thrown during
+ * [option&#32;processing][OptionProcessor.processOptions] upon discovery that a
+ * mandatory argument is missing.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  *

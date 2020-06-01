@@ -40,13 +40,15 @@ import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.TupleTypeDescriptor.stringType
 import com.avail.descriptor.types.TupleTypeDescriptor.zeroOrMoreOf
 import com.avail.descriptor.types.TypeDescriptor.Types.MESSAGE_BUNDLE
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CanFold
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Answer a [message bundle's][MessageBundleDescriptor] message
- * parts (a [tuple][TupleDescriptor] of strings).
+ * **Primitive:** Answer a [message&#32;bundle's][MessageBundleDescriptor]
+ * message parts (a [tuple][TupleDescriptor] of strings).
  */
 @Suppress("unused")
 object P_BundleMessageParts : Primitive(1, CannotFail, CanFold, CanInline)

@@ -32,8 +32,8 @@
 
 package com.avail.interpreter.primitive.phrases
 
-import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newLabel
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.tokens.TokenDescriptor
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.types.A_Type
@@ -43,13 +43,13 @@ import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LABEL_PHRASE
 import com.avail.descriptor.types.TypeDescriptor.Types.TOKEN
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Create a [label&#32;declaration][PhraseKind.LABEL_PHRASE] from
+* **Primitive:** Create a [label&#32;declaration][PhraseKind.LABEL_PHRASE] from
  * the specified [token][TokenDescriptor] and
  * [continuation&#32;type][ContinuationTypeDescriptor].
  *

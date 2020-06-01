@@ -6,12 +6,12 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
  *
  *  * Neither the name of the copyright holder nor the names of the contributors
  *    may be used to endorse or promote products derived from this software
@@ -31,16 +31,15 @@
  */
 package com.avail.descriptor.tokens
 
-import com.avail.annotations.AvailMethod
 import com.avail.annotations.HideFieldInDebugger
 import com.avail.compiler.scanning.LexingState
-import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.pojos.RawPojoDescriptor
 import com.avail.descriptor.representation.AbstractSlotsEnum
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.BitField
 import com.avail.descriptor.representation.IntegerSlotsEnum
 import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.StringDescriptor
@@ -121,8 +120,8 @@ class CommentTokenDescriptor private constructor(mutability: Mutability)
 		STRING,
 
 		/**
-		 * A [raw pojo][RawPojoDescriptor] holding the [LexingState] after this
-		 * token.
+		 * A [raw&#32;pojo][RawPojoDescriptor] holding the [LexingState] after
+		 * this token.
 		 */
 		NEXT_LEXING_STATE_POJO;
 
@@ -147,33 +146,31 @@ class CommentTokenDescriptor private constructor(mutability: Mutability)
 		self: AvailObject): SerializerOperation =
 			SerializerOperation.COMMENT_TOKEN
 
-	@AvailMethod
 	override fun o_TokenType(self: AvailObject): TokenType =
 		TokenType.COMMENT
 
-	override fun o_WriteTo(self: AvailObject, writer: JSONWriter)
-	{
-		writer.startObject()
-		writer.write("kind")
-		writer.write("token")
-		writer.write("token type")
-		writer.write(self.tokenType().name.toLowerCase().replace(
-			'_', ' '))
-		writer.write("start")
-		writer.write(self.slot(IntegerSlots.START))
-		writer.write("line number")
-		writer.write(self.slot(IntegerSlots.LINE_NUMBER))
-		writer.write("lexeme")
-		self.slot(ObjectSlots.STRING).writeTo(writer)
-		writer.endObject()
-	}
+	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
+		with(writer) {
+			startObject()
+			write("kind")
+			write("token")
+			write("token type")
+			write(self.tokenType().name.toLowerCase().replace('_', ' '))
+			write("start")
+			write(self.slot(IntegerSlots.START))
+			write("line number")
+			write(self.slot(IntegerSlots.LINE_NUMBER))
+			write("lexeme")
+			self.slot(ObjectSlots.STRING).writeTo(writer)
+			endObject()
+		}
 
-	override fun mutable(): CommentTokenDescriptor = mutable
+	override fun mutable() = mutable
 
 	// Answer the shared descriptor, since there isn't an immutable one.
-	override fun immutable(): CommentTokenDescriptor = shared
+	override fun immutable() = shared
 
-	override fun shared(): CommentTokenDescriptor = shared
+	override fun shared() = shared
 
 	companion object
 	{

@@ -40,10 +40,10 @@ import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArgu
  * TODO MvG - It's unclear how to deal with replacement arguments provided by
  *  [P_RestartContinuationWithArguments].  Perhaps the approach is to create a
  *  duplicate Label using a new Frame.  It would have to merge control flow into
- *  a loop, so maybe this just falls under the general case of phis within loops.
- *  Or maybe it should use the very same Arguments, since a semantic value
- *  doesn't have a notion of value or register *directly* associated with it,
- *  only through a manifest.
+ *  a loop, so maybe this just falls under the general case of phis within
+ *  loops. Or maybe it should use the very same Arguments, since a semantic
+ *  value doesn't have a notion of value or register *directly* associated with
+ *  it, only through a manifest.
  *
  * @constructor
  * Create a new `L2SemanticLabel` semantic value.

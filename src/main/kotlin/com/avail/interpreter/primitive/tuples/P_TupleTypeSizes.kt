@@ -37,13 +37,15 @@ import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.InstanceMetaDescriptor.instanceMeta
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.wholeNumbers
 import com.avail.descriptor.types.TupleTypeDescriptor.tupleMeta
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CanFold
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Answer the allowed size [ranges][IntegerRangeTypeDescriptor]
- * for this [tuple type][TupleTypeDescriptor]. These are the sizes that a
+ * for this [tuple&#32;type][TupleTypeDescriptor]. These are the sizes that a
  * [tuple][TupleDescriptor] may be and still be considered instances of the
  * tuple type, assuming the element [types][TypeDescriptor] are consistent with
  * those specified by the tuple type.

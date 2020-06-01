@@ -47,7 +47,7 @@ import org.objectweb.asm.MethodVisitor
 import java.util.*
 
 /**
- * Create a fixed sized [tuple type][TupleTypeDescriptor] from the
+ * Create a fixed sized [tuple&#32;type][TupleTypeDescriptor] from the
  * [types][A_Type] in the specified registers.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;

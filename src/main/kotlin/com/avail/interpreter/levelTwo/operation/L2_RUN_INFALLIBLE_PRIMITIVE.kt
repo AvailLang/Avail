@@ -33,9 +33,20 @@ package com.avail.interpreter.levelTwo.operation
 
 import com.avail.descriptor.types.A_Type
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.levelTwo.*
-import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.*
-import com.avail.interpreter.levelTwo.operand.*
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2Operation
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_CONTINUATION
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_FUNCTION
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.GLOBAL_STATE
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.LATEST_RETURN_VALUE
+import com.avail.interpreter.levelTwo.ReadsHiddenVariable
+import com.avail.interpreter.levelTwo.WritesHiddenVariable
+import com.avail.interpreter.levelTwo.operand.L2ConstantOperand
+import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import com.avail.optimizer.L2Generator
 import com.avail.optimizer.RegisterSet
 import com.avail.optimizer.jvm.JVMTranslator

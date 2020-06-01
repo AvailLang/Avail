@@ -42,7 +42,8 @@ import com.avail.utility.Casts
 import java.util.*
 
 /**
- * `L2WriteOperand` abstracts the capabilities of actual register write operands.
+ * `L2WriteOperand` abstracts the capabilities of actual register write
+ * operands.
  *
  * @param R
  * The subclass of [L2Register] that this writes to.
@@ -151,7 +152,7 @@ abstract class L2WriteOperand<R : L2Register> constructor(
 	 * @return
 	 *   A [String].
 	 */
-	fun registerString(): String =  register.toString() + semanticValues
+	fun registerString(): String = register.toString() + semanticValues
 
 	override fun instructionWasAdded(manifest: L2ValueManifest)
 	{

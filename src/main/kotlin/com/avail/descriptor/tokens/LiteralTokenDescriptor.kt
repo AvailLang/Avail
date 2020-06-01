@@ -6,12 +6,12 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
  *
  *  * Neither the name of the copyright holder nor the names of the contributors
  *    may be used to endorse or promote products derived from this software
@@ -31,15 +31,22 @@
  */
 package com.avail.descriptor.tokens
 
-import com.avail.annotations.AvailMethod
 import com.avail.annotations.HideFieldInDebugger
 import com.avail.compiler.scanning.LexingState
-import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.pojos.RawPojoDescriptor
-import com.avail.descriptor.representation.*
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AbstractSlotsEnum
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.BitField
+import com.avail.descriptor.representation.IntegerSlotsEnum
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.tokens.LiteralTokenDescriptor.IntegerSlots.Companion.LINE_NUMBER
 import com.avail.descriptor.tokens.LiteralTokenDescriptor.IntegerSlots.Companion.START
-import com.avail.descriptor.tokens.LiteralTokenDescriptor.ObjectSlots.*
+import com.avail.descriptor.tokens.LiteralTokenDescriptor.ObjectSlots.LITERAL
+import com.avail.descriptor.tokens.LiteralTokenDescriptor.ObjectSlots.NEXT_LEXING_STATE_POJO
+import com.avail.descriptor.tokens.LiteralTokenDescriptor.ObjectSlots.STRING
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.StringDescriptor
 import com.avail.descriptor.types.A_Type
@@ -127,8 +134,8 @@ class LiteralTokenDescriptor private constructor(
 		STRING,
 
 		/**
-		 * A [raw pojo][RawPojoDescriptor] holding the [LexingState] after this
-		 * token.
+		 * A [raw&#32;pojo][RawPojoDescriptor] holding the [LexingState] after
+		 * this token.
 		 */
 		NEXT_LEXING_STATE_POJO,
 
@@ -156,45 +163,41 @@ class LiteralTokenDescriptor private constructor(
 
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
-		aStream: StringBuilder,
+		builder: StringBuilder,
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int)
 	{
-		aStream.append(String.format(
+		builder.append(String.format(
 			"%s ",
 			self.tokenType().name.toLowerCase().replace('_', ' ')))
 		self.slot(LITERAL).printOnAvoidingIndent(
-			aStream,
+			builder,
 			recursionMap,
 			indent + 1)
-		aStream.append(String.format(
+		builder.append(String.format(
 			" (%s) @ %d:%d",
 			self.slot(STRING),
 			self.slot(START),
 			self.slot(LINE_NUMBER)))
 	}
 
-	@AvailMethod
 	override fun o_TokenType(self: AvailObject): TokenType =
 		TokenType.LITERAL
 
-	@AvailMethod
 	override fun o_Literal(self: AvailObject): AvailObject =
 		self.slot(LITERAL)
 
-	@AvailMethod
 	override fun o_Kind(self: AvailObject): A_Type =
 		LiteralTokenTypeDescriptor.literalTokenType(
 			InstanceTypeDescriptor.instanceType(self))
 
-	@AvailMethod
 	override fun o_IsInstanceOfKind(
-		self: AvailObject, aTypeObject: A_Type): Boolean =
-			(aTypeObject.isSupertypeOfPrimitiveTypeEnum(
+		self: AvailObject, aType: A_Type): Boolean =
+			(aType.isSupertypeOfPrimitiveTypeEnum(
 					Types.TOKEN)
-		        || aTypeObject.isLiteralTokenType
+		        || aType.isLiteralTokenType
 		        && self.slot(LITERAL)
-				    .isInstanceOf(aTypeObject.literalType()))
+				    .isInstanceOf(aType.literalType()))
 
 	override fun o_IsLiteralToken(self: AvailObject): Boolean = true
 
@@ -235,12 +238,12 @@ class LiteralTokenDescriptor private constructor(
 		writer.endObject()
 	}
 
-	override fun mutable(): LiteralTokenDescriptor = mutable
+	override fun mutable() = mutable
 
 	// Answer the shared descriptor, since there isn't an immutable one.
-	override fun immutable(): LiteralTokenDescriptor = shared
+	override fun immutable() = shared
 
-	override fun shared(): LiteralTokenDescriptor = shared
+	override fun shared() = shared
 
 	companion object
 	{

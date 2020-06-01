@@ -6,12 +6,12 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
  *
  *  * Neither the name of the copyright holder nor the names of the contributors
  *    may be used to endorse or promote products derived from this software
@@ -31,7 +31,6 @@
  */
 package com.avail.descriptor.objects
 
-import com.avail.annotations.AvailMethod
 import com.avail.annotations.ThreadSafe
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.atoms.A_Atom.Companion.atomName
@@ -48,20 +47,32 @@ import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.objects.ObjectLayoutVariant.Companion.variantForFields
 import com.avail.descriptor.objects.ObjectTypeDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import com.avail.descriptor.objects.ObjectTypeDescriptor.ObjectSlots.FIELD_TYPES_
-import com.avail.descriptor.representation.*
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AbstractSlotsEnum
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.AvailObject.Companion.multiplier
+import com.avail.descriptor.representation.AvailObjectFieldHelper
+import com.avail.descriptor.representation.BitField
+import com.avail.descriptor.representation.IntegerSlotsEnum
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.*
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.generateObjectTupleFrom
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
 import com.avail.descriptor.tuples.StringDescriptor
-import com.avail.descriptor.types.*
+import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn
 import com.avail.descriptor.types.BottomTypeDescriptor.bottom
+import com.avail.descriptor.types.InstanceMetaDescriptor
 import com.avail.descriptor.types.InstanceMetaDescriptor.instanceMeta
 import com.avail.descriptor.types.InstanceTypeDescriptor.instanceType
+import com.avail.descriptor.types.TypeDescriptor
+import com.avail.descriptor.types.TypeTag
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.Strings.newlineTab
 import com.avail.utility.json.JSONWriter
@@ -231,7 +242,6 @@ class ObjectTypeDescriptor internal constructor(
 		return true
 	}
 
-	@AvailMethod
 	override fun o_FieldTypeAt(self: AvailObject, field: A_Atom): AvailObject =
 		// Fails with NullPointerException if key is not found.
 		when (val slotIndex = variant.fieldToSlotIndex[field]) {
@@ -239,8 +249,8 @@ class ObjectTypeDescriptor internal constructor(
 			else -> self.slot(FIELD_TYPES_, slotIndex!!)
 		}
 
-	@AvailMethod
-	override fun o_FieldTypeMap(self: AvailObject): A_Map {
+	override fun o_FieldTypeMap(self: AvailObject): A_Map
+	{
 		// Warning: May be much slower than it was before ObjectLayoutVariant.
 		return variant.fieldToSlotIndex.entries.fold(emptyMap()) {
 			map, (field, slotIndex) ->
@@ -252,8 +262,8 @@ class ObjectTypeDescriptor internal constructor(
 		}
 	}
 
-	@AvailMethod
-	override fun o_FieldTypeTuple(self: AvailObject): A_Tuple {
+	override fun o_FieldTypeTuple(self: AvailObject): A_Tuple
+	{
 		val fieldIterator = variant.fieldToSlotIndex.entries.iterator()
 		return generateObjectTupleFrom(variant.fieldToSlotIndex.size) {
 			val (field, slotIndex) = fieldIterator.next()
@@ -262,7 +272,6 @@ class ObjectTypeDescriptor internal constructor(
 		}.also { assert(!fieldIterator.hasNext()) }
 	}
 
-	@AvailMethod
 	override fun o_Hash(self: AvailObject) =
 		when (val hash = self.slot(HASH_OR_ZERO)) {
 			0 -> {
@@ -276,7 +285,6 @@ class ObjectTypeDescriptor internal constructor(
 			else -> hash
 		}
 
-	@AvailMethod
 	override fun o_HasObjectInstance(
 		self: AvailObject,
 		potentialInstance: AvailObject
@@ -312,11 +320,9 @@ class ObjectTypeDescriptor internal constructor(
 		}
 	}
 
-	@AvailMethod
 	override fun o_IsSubtypeOf(self: AvailObject, aType: A_Type) =
 		aType.isSupertypeOfObjectType(self)
 
-	@AvailMethod
 	override fun o_IsSupertypeOfObjectType(
 		self: AvailObject,
 		anObjectType: AvailObject
@@ -369,7 +375,6 @@ class ObjectTypeDescriptor internal constructor(
 			self.slot(FIELD_TYPES_, it).isVacuousType
 		}
 
-	@AvailMethod
 	override fun o_TypeIntersection(
 		self: AvailObject,
 		another: A_Type
@@ -383,7 +388,6 @@ class ObjectTypeDescriptor internal constructor(
 	 * Answer the most general type that is still at least as specific as these.
 	 * Here we're finding the nearest common descendant of two object types.
 	 */
-	@AvailMethod
 	override fun o_TypeIntersectionOfObjectType(
 		self: AvailObject,
 		anObjectType: AvailObject
@@ -440,7 +444,6 @@ class ObjectTypeDescriptor internal constructor(
 		return result
 	}
 
-	@AvailMethod
 	override fun o_TypeUnion(
 		self: AvailObject,
 		another: A_Type
@@ -454,7 +457,6 @@ class ObjectTypeDescriptor internal constructor(
 	 * Answer the most specific type that is still at least as general as these.
 	 * Here we're finding the nearest common ancestor of two eager object types.
 	 */
-	@AvailMethod
 	override fun o_TypeUnionOfObjectType(
 		self: AvailObject,
 		anObjectType: AvailObject
@@ -495,7 +497,6 @@ class ObjectTypeDescriptor internal constructor(
 		return result
 	}
 
-	@AvailMethod
 	@ThreadSafe
 	override fun o_SerializerOperation(self: AvailObject) =
 		SerializerOperation.OBJECT_TYPE
@@ -567,6 +568,7 @@ class ObjectTypeDescriptor internal constructor(
 		 * @return
 		 *   The type of the field at the specified slot index.
 		 */
+		@Suppress("unused")
 		fun getFieldType(
 			self: AvailObject,
 			slotIndex: Int
@@ -622,6 +624,7 @@ class ObjectTypeDescriptor internal constructor(
 		 * The [ObjectLayoutVariant] to instantiate as an object type.
 		 * @return The new object type.
 		 */
+		@Suppress("unused")
 		fun createUninitializedObjectType(
 			variant: ObjectLayoutVariant
 		): AvailObject =
@@ -736,7 +739,7 @@ class ObjectTypeDescriptor internal constructor(
 		 * @param anObjectType
 		 *   A user-defined object type.
 		 * @return
-		 *   A tuple with two elements:  (1) A set of names of the user-defined
+		 *   A tuple with two elements: (1) A set of names of the user-defined
 		 *   object type, excluding names for which a strictly more specific
 		 *   named type is known, and (2) A set of object types corresponding to
 		 *   those names.
@@ -810,11 +813,12 @@ class ObjectTypeDescriptor internal constructor(
 		 *   specified `object type`, excluding named types for which a strictly
 		 *   more specific named type is known.
 		 */
+		@Suppress("unused")
 		fun namedBaseTypesForType(anObjectType: A_Type): A_BasicObject =
 			namesAndBaseTypesForObjectType(anObjectType).tupleAt(2)
 
 		/**
-		 * The most general [object type][ObjectTypeDescriptor].
+		 * The most general [object&#32;type][ObjectTypeDescriptor].
 		 */
 		private val mostGeneralType: A_Type =
 			objectTypeFromMap(emptyMap()).makeShared()
@@ -871,7 +875,7 @@ class ObjectTypeDescriptor internal constructor(
 
 		/**
 		 * Answer the [A_Atom] that identifies the stack dump field of an
-		 * [exception type][exceptionType].
+		 * [exception&#32;type][exceptionType].
 		 *
 		 * @return
 		 *   The special stack dump atom.

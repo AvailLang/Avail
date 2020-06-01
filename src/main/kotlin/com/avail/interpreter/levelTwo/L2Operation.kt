@@ -6,12 +6,12 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
  *
  *  * Neither the name of the copyright holder nor the names of the contributors
  *    may be used to endorse or promote products derived from this software
@@ -34,19 +34,25 @@ package com.avail.interpreter.levelTwo
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.variables.A_Variable
-import com.avail.interpreter.levelTwo.operand.*
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag
+import com.avail.interpreter.execution.Interpreter
+import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand
+import com.avail.interpreter.levelTwo.operand.L2Operand
+import com.avail.interpreter.levelTwo.operand.L2PcOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteOperand
+import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding
 import com.avail.interpreter.levelTwo.operation.L2ControlFlowOperation
 import com.avail.interpreter.levelTwo.operation.L2_MOVE_OUTER_VARIABLE
 import com.avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
-import com.avail.optimizer.L2ControlFlowGraph.Zone
 import com.avail.interpreter.levelTwo.operation.L2_VIRTUAL_CREATE_LABEL
-import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.register.L2Register
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind
 import com.avail.optimizer.L2BasicBlock
+import com.avail.optimizer.L2ControlFlowGraph.Zone
 import com.avail.optimizer.L2Generator
 import com.avail.optimizer.L2ValueManifest
 import com.avail.optimizer.RegisterSet
@@ -60,7 +66,8 @@ import org.objectweb.asm.MethodVisitor
 import java.util.*
 
 /**
- * The instruction set for the [level two Avail interpreter][Interpreter].
+ * The instruction set for the
+ * [Level&#32;Two&#32;Avail&#32;interpreter][Interpreter].
  * Avail programs can only see as far down as the level one nybblecode
  * representation.  Level two translations are invisibly created as necessary to
  * boost performance of frequently executed code.  Technically level two is an
@@ -139,14 +146,14 @@ abstract class L2Operation
 	open fun isEntryPoint(instruction: L2Instruction): Boolean = false
 
 	/**
-	 * The [named operand types][L2NamedOperandType] that this
+	 * The [named&#32;operand&#32;types][L2NamedOperandType] that this
 	 * [operation][L2Operation] expects.
 	 */
 	@JvmField
 	val namedOperandTypes: Array<out L2NamedOperandType>
 
 	/**
-	 * Answer the [named operand types][L2NamedOperandType] that this
+	 * Answer the [named&#32;operand&#32;types][L2NamedOperandType] that this
 	 * `L2Operation operation` expects.
 	 *
 	 * @return The named operand types that this operation expects.
@@ -155,7 +162,7 @@ abstract class L2Operation
 
 	/**
 	 * The name of this level two operation.  This is initialized to be the
-	 * [simple name][Class.getSimpleName] of the [Class].
+	 * [simple&#32;name][Class.getSimpleName] of the [Class].
 	 */
 	private val name: String
 

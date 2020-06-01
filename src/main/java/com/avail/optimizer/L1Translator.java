@@ -60,18 +60,77 @@ import com.avail.dispatch.LookupTreeAdaptor.UnusedMemento;
 import com.avail.dispatch.LookupTreeTraverser;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.MethodDefinitionException;
-import com.avail.interpreter.execution.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Result;
+import com.avail.interpreter.execution.Interpreter;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelOne.L1OperationDispatcher;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.*;
-import com.avail.interpreter.levelTwo.operation.*;
+import com.avail.interpreter.levelTwo.operand.L2CommentOperand;
+import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
+import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
+import com.avail.interpreter.levelTwo.operand.L2Operand;
+import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadOperand;
+import com.avail.interpreter.levelTwo.operand.L2SelectorOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
+import com.avail.interpreter.levelTwo.operand.TypeRestriction;
+import com.avail.interpreter.levelTwo.operation.L2_CREATE_CONTINUATION;
+import com.avail.interpreter.levelTwo.operation.L2_CREATE_FUNCTION;
+import com.avail.interpreter.levelTwo.operation.L2_CREATE_TUPLE;
+import com.avail.interpreter.levelTwo.operation.L2_CREATE_VARIABLE;
+import com.avail.interpreter.levelTwo.operation.L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO;
+import com.avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK;
+import com.avail.interpreter.levelTwo.operation.L2_GET_ARGUMENT;
+import com.avail.interpreter.levelTwo.operation.L2_GET_CURRENT_CONTINUATION;
+import com.avail.interpreter.levelTwo.operation.L2_GET_CURRENT_FUNCTION;
+import com.avail.interpreter.levelTwo.operation.L2_GET_IMPLICIT_OBSERVE_FUNCTION;
+import com.avail.interpreter.levelTwo.operation.L2_GET_INVALID_MESSAGE_RESULT_FUNCTION;
+import com.avail.interpreter.levelTwo.operation.L2_GET_INVALID_MESSAGE_SEND_FUNCTION;
+import com.avail.interpreter.levelTwo.operation.L2_GET_LATEST_RETURN_VALUE;
+import com.avail.interpreter.levelTwo.operation.L2_GET_RETURNING_FUNCTION;
+import com.avail.interpreter.levelTwo.operation.L2_GET_TYPE;
+import com.avail.interpreter.levelTwo.operation.L2_GET_UNASSIGNED_VARIABLE_READ_FUNCTION;
+import com.avail.interpreter.levelTwo.operation.L2_GET_VARIABLE;
+import com.avail.interpreter.levelTwo.operation.L2_GET_VARIABLE_CLEARING;
+import com.avail.interpreter.levelTwo.operation.L2_INTERPRET_LEVEL_ONE;
+import com.avail.interpreter.levelTwo.operation.L2_INVOKE;
+import com.avail.interpreter.levelTwo.operation.L2_INVOKE_CONSTANT_FUNCTION;
+import com.avail.interpreter.levelTwo.operation.L2_JUMP;
+import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_EQUALS_CONSTANT;
+import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_INTERRUPT;
+import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_CONSTANT;
+import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT;
+import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_OBJECTS_EQUAL;
+import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_SUBTYPE_OF_CONSTANT;
+import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_SUBTYPE_OF_OBJECT;
+import com.avail.interpreter.levelTwo.operation.L2_LOOKUP_BY_TYPES;
+import com.avail.interpreter.levelTwo.operation.L2_LOOKUP_BY_VALUES;
+import com.avail.interpreter.levelTwo.operation.L2_MOVE;
+import com.avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT;
+import com.avail.interpreter.levelTwo.operation.L2_MOVE_OUTER_VARIABLE;
+import com.avail.interpreter.levelTwo.operation.L2_PREPARE_NEW_FRAME_FOR_L1;
+import com.avail.interpreter.levelTwo.operation.L2_REENTER_L1_CHUNK_FROM_CALL;
+import com.avail.interpreter.levelTwo.operation.L2_REENTER_L1_CHUNK_FROM_INTERRUPT;
+import com.avail.interpreter.levelTwo.operation.L2_REIFY;
 import com.avail.interpreter.levelTwo.operation.L2_REIFY.StatisticCategory;
+import com.avail.interpreter.levelTwo.operation.L2_RETURN;
+import com.avail.interpreter.levelTwo.operation.L2_RETURN_FROM_REIFICATION_HANDLER;
+import com.avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE;
+import com.avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT;
+import com.avail.interpreter.levelTwo.operation.L2_SET_CONTINUATION;
+import com.avail.interpreter.levelTwo.operation.L2_SET_VARIABLE_NO_CHECK;
+import com.avail.interpreter.levelTwo.operation.L2_TRY_OPTIONAL_PRIMITIVE;
+import com.avail.interpreter.levelTwo.operation.L2_TRY_PRIMITIVE;
+import com.avail.interpreter.levelTwo.operation.L2_TYPE_UNION;
+import com.avail.interpreter.levelTwo.operation.L2_UNREACHABLE_CODE;
+import com.avail.interpreter.levelTwo.operation.L2_VIRTUAL_CREATE_LABEL;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuation;
 import com.avail.interpreter.primitive.general.P_Equality;
@@ -82,7 +141,8 @@ import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
 import com.avail.utility.MutableInt;
 import com.avail.utility.Pair;
-import com.avail.utility.evaluation.Continuation0;
+import kotlin.Unit;
+import kotlin.jvm.functions.Function0;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -93,10 +153,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
-import static com.avail.AvailRuntime.HookType.*;
+import static com.avail.AvailRuntime.HookType.IMPLICIT_OBSERVE;
+import static com.avail.AvailRuntime.HookType.INVALID_MESSAGE_SEND;
+import static com.avail.AvailRuntime.HookType.READ_UNASSIGNED_VARIABLE;
 import static com.avail.AvailRuntimeSupport.captureNanos;
-import static com.avail.descriptor.representation.NilDescriptor.nil;
 import static com.avail.descriptor.functions.FunctionDescriptor.createFunction;
+import static com.avail.descriptor.representation.NilDescriptor.nil;
 import static com.avail.descriptor.sets.SetDescriptor.setFromCollection;
 import static com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList;
@@ -120,13 +182,25 @@ import static com.avail.interpreter.Primitive.Flag.CanFold;
 import static com.avail.interpreter.Primitive.Flag.CannotFail;
 import static com.avail.interpreter.Primitive.Result.FAILURE;
 import static com.avail.interpreter.Primitive.Result.SUCCESS;
-import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.*;
-import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.*;
-import static com.avail.interpreter.levelTwo.operand.TypeRestriction.*;
+import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RESTART;
+import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RESUME;
+import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RETURN_INTO;
+import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TRANSIENT;
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED;
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_FLOAT;
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT;
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction.anyRestriction;
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction.bottomRestriction;
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForType;
 import static com.avail.optimizer.L2ControlFlowGraph.ZoneType.BEGIN_REIFICATION_FOR_INTERRUPT;
 import static com.avail.optimizer.L2ControlFlowGraph.ZoneType.PROPAGATE_REIFICATION_FOR_INVOKE;
-import static com.avail.optimizer.L2Generator.*;
+import static com.avail.optimizer.L2Generator.OptimizationLevel;
 import static com.avail.optimizer.L2Generator.OptimizationLevel.UNOPTIMIZED;
+import static com.avail.optimizer.L2Generator.backEdgeTo;
+import static com.avail.optimizer.L2Generator.edgeTo;
+import static com.avail.optimizer.L2Generator.finalGenerationStat;
+import static com.avail.optimizer.L2Generator.maxExpandedEqualityChecks;
+import static com.avail.optimizer.L2Generator.maxPolymorphismToInlineDispatch;
 import static com.avail.performance.StatisticReport.L2_OPTIMIZATION_TIME;
 import static com.avail.performance.StatisticReport.L2_TRANSLATION_VALUES;
 import static java.util.Arrays.asList;
@@ -801,7 +875,7 @@ public final class L1Translator
 					+ " (arg#"
 					+ argumentIndexToTest
 					+ " is "
-					+ typeToTest.traversed().descriptor().typeTag.name()
+					+ typeToTest.traversed().descriptor().getTypeTag().name()
 					.replace("_TAG", "")
 					+ ")";
 			this.passCheckBasicBlock = generator.createBasicBlock(
@@ -885,8 +959,8 @@ public final class L1Translator
 		/**
 		 * A map from each reachable looked-up {@link A_Function} to a {@link
 		 * Pair} containing an {@link L2BasicBlock} in which code generation for
-		 * invocation of this function should/did take place, and a {@link
-		 * Continuation0} which will cause that code generation to happen.
+		 * invocation of this function should/did take place, and an action
+		 * that will cause that code generation to happen.
 		 *
 		 * <p>This construct theoretically deals with method lookups that lead
 		 * to the same function multiple ways (it's unclear if the lookup tree
@@ -896,7 +970,7 @@ public final class L1Translator
 		 * only one particular definition that a successful slow lookup could
 		 * produce.</em>
 		 */
-		final Map<A_Function, Pair<L2BasicBlock, Continuation0>>
+		final Map<A_Function, Pair<L2BasicBlock, Function0<Unit>>>
 			invocationSitesToCreate;
 
 		/**
@@ -943,7 +1017,7 @@ public final class L1Translator
 		void generateAllInvocationSites ()
 		{
 			invocationSitesToCreate.forEach(
-				(function, pair) -> pair.second().value());
+				(function, pair) -> pair.second().invoke());
 		}
 
 		/**
@@ -1373,13 +1447,13 @@ public final class L1Translator
 	 *        These become strengthened by type tests in the current manifest.
 	 * @param callSiteHelper
 	 *        The {@link CallSiteHelper} object for this dispatch.
-	\	 */
+	 */
 	private void promiseToHandleCallForDefinitionBody (
 		final A_Function function,
 		final List<L2SemanticValue> semanticArguments,
 		final CallSiteHelper callSiteHelper)
 	{
-		final @Nullable Pair<L2BasicBlock, Continuation0> existingPair =
+		final @Nullable Pair<L2BasicBlock, Function0<Unit>> existingPair =
 			callSiteHelper.invocationSitesToCreate.get(function);
 		final L2BasicBlock block;
 		if (existingPair == null)
@@ -1387,7 +1461,7 @@ public final class L1Translator
 			block = generator.createBasicBlock("successful lookup");
 			// Safety check.
 			final MutableInt ran = new MutableInt(0);
-			final Continuation0 newAction = () ->
+			final Function0<Unit> newAction = () ->
 			{
 				assert ran.value == 0;
 				ran.value++;
@@ -1406,6 +1480,7 @@ public final class L1Translator
 						callSiteHelper);
 					assert !generator.currentlyReachable();
 				}
+				return Unit.INSTANCE;
 			};
 			callSiteHelper.invocationSitesToCreate.put(
 				function, new Pair<>(block, newAction));

@@ -34,13 +34,65 @@ package com.avail.environment
 
 import com.avail.AvailRuntime
 import com.avail.AvailRuntimeConfiguration.activeVersionSummary
-import com.avail.builder.*
+import com.avail.builder.AvailBuilder
+import com.avail.builder.ModuleName
+import com.avail.builder.ModuleNameResolver
 import com.avail.builder.ModuleNameResolver.Companion.availExtension
+import com.avail.builder.ModuleRoot
+import com.avail.builder.ModuleRoots
+import com.avail.builder.RenamesFileParser
+import com.avail.builder.ResolvedModuleName
+import com.avail.builder.UnresolvedDependencyException
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.module.ModuleDescriptor
-import com.avail.environment.AvailWorkbench.StreamStyle.*
-import com.avail.environment.actions.*
-import com.avail.environment.nodes.*
+import com.avail.environment.AvailWorkbench.StreamStyle.BUILD_PROGRESS
+import com.avail.environment.AvailWorkbench.StreamStyle.COMMAND
+import com.avail.environment.AvailWorkbench.StreamStyle.ERR
+import com.avail.environment.AvailWorkbench.StreamStyle.INFO
+import com.avail.environment.AvailWorkbench.StreamStyle.IN_ECHO
+import com.avail.environment.AvailWorkbench.StreamStyle.OUT
+import com.avail.environment.AvailWorkbench.StreamStyle.values
+import com.avail.environment.actions.AboutAction
+import com.avail.environment.actions.BuildAction
+import com.avail.environment.actions.CancelAction
+import com.avail.environment.actions.CleanAction
+import com.avail.environment.actions.CleanModuleAction
+import com.avail.environment.actions.ClearTranscriptAction
+import com.avail.environment.actions.CreateProgramAction
+import com.avail.environment.actions.ExamineCompilationAction
+import com.avail.environment.actions.ExamineRepositoryAction
+import com.avail.environment.actions.GenerateDocumentationAction
+import com.avail.environment.actions.GenerateGraphAction
+import com.avail.environment.actions.InsertEntryPointAction
+import com.avail.environment.actions.ParserIntegrityCheckAction
+import com.avail.environment.actions.PreferencesAction
+import com.avail.environment.actions.RefreshAction
+import com.avail.environment.actions.ResetCCReportDataAction
+import com.avail.environment.actions.ResetVMReportDataAction
+import com.avail.environment.actions.RetrieveNextCommand
+import com.avail.environment.actions.RetrievePreviousCommand
+import com.avail.environment.actions.SetDocumentationPathAction
+import com.avail.environment.actions.ShowCCReportAction
+import com.avail.environment.actions.ShowVMReportAction
+import com.avail.environment.actions.SubmitInputAction
+import com.avail.environment.actions.ToggleDebugInterpreterL1
+import com.avail.environment.actions.ToggleDebugInterpreterL2
+import com.avail.environment.actions.ToggleDebugInterpreterPrimitives
+import com.avail.environment.actions.ToggleDebugJVM
+import com.avail.environment.actions.ToggleDebugWorkUnits
+import com.avail.environment.actions.ToggleFastLoaderAction
+import com.avail.environment.actions.ToggleL2SanityCheck
+import com.avail.environment.actions.TraceCompilerAction
+import com.avail.environment.actions.TraceLoadedStatementsAction
+import com.avail.environment.actions.TraceMacrosAction
+import com.avail.environment.actions.TraceSummarizeStatementsAction
+import com.avail.environment.actions.UnloadAction
+import com.avail.environment.actions.UnloadAllAction
+import com.avail.environment.nodes.AbstractBuilderFrameTreeNode
+import com.avail.environment.nodes.EntryPointModuleNode
+import com.avail.environment.nodes.EntryPointNode
+import com.avail.environment.nodes.ModuleOrPackageNode
+import com.avail.environment.nodes.ModuleRootNode
 import com.avail.environment.tasks.BuildTask
 import com.avail.io.ConsoleInputChannel
 import com.avail.io.ConsoleOutputChannel
@@ -48,19 +100,54 @@ import com.avail.io.TextInterface
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport.WORKBENCH_TRANSCRIPT
 import com.avail.stacks.StacksGenerator
-import com.avail.utility.*
 import com.avail.utility.Casts.cast
+import com.avail.utility.IO
 import com.avail.utility.Locks.lockWhile
+import com.avail.utility.Mutable
+import com.avail.utility.MutableInt
+import com.avail.utility.MutableLong
+import com.avail.utility.Pair
+import com.avail.utility.javaNotifyAll
+import com.avail.utility.javaWait
 import com.bulenkov.darcula.DarculaLaf
-import java.awt.*
-import java.awt.event.*
-import java.io.*
+import java.awt.Color
+import java.awt.Component
+import java.awt.Dimension
+import java.awt.EventQueue
+import java.awt.Frame
+import java.awt.GraphicsEnvironment
+import java.awt.Rectangle
+import java.awt.Toolkit
+import java.awt.event.ActionEvent
+import java.awt.event.ComponentAdapter
+import java.awt.event.ComponentEvent
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
+import java.awt.event.WindowEvent
+import java.io.BufferedReader
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.FileInputStream
+import java.io.IOException
+import java.io.InputStreamReader
+import java.io.OutputStream
+import java.io.PrintStream
+import java.io.Reader
+import java.io.StringReader
+import java.io.UnsupportedEncodingException
 import java.lang.Integer.parseInt
 import java.lang.String.format
 import java.lang.System.arraycopy
 import java.lang.System.currentTimeMillis
 import java.nio.charset.StandardCharsets
-import java.nio.file.*
+import java.nio.file.FileSystems
+import java.nio.file.FileVisitOption
+import java.nio.file.FileVisitResult
+import java.nio.file.FileVisitor
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
 import java.nio.file.attribute.BasicFileAttributes
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -68,13 +155,45 @@ import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.prefs.BackingStoreException
 import java.util.prefs.Preferences
-import javax.swing.*
+import javax.swing.Action
+import javax.swing.BorderFactory
+import javax.swing.GroupLayout
+import javax.swing.JCheckBoxMenuItem
+import javax.swing.JComponent
+import javax.swing.JFrame
+import javax.swing.JLabel
+import javax.swing.JMenu
+import javax.swing.JMenuBar
+import javax.swing.JMenuItem
+import javax.swing.JPanel
+import javax.swing.JProgressBar
+import javax.swing.JScrollPane
+import javax.swing.JSplitPane
 import javax.swing.JSplitPane.DIVIDER_LOCATION_PROPERTY
+import javax.swing.JTextField
+import javax.swing.JTextPane
+import javax.swing.JTree
+import javax.swing.KeyStroke
 import javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
 import javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS
 import javax.swing.SwingUtilities.invokeLater
-import javax.swing.text.*
-import javax.swing.tree.*
+import javax.swing.SwingWorker
+import javax.swing.UIManager
+import javax.swing.WindowConstants
+import javax.swing.text.BadLocationException
+import javax.swing.text.SimpleAttributeSet
+import javax.swing.text.Style
+import javax.swing.text.StyleConstants
+import javax.swing.text.StyleContext
+import javax.swing.text.StyledDocument
+import javax.swing.text.TabSet
+import javax.swing.text.TabStop
+import javax.swing.tree.DefaultMutableTreeNode
+import javax.swing.tree.DefaultTreeCellRenderer
+import javax.swing.tree.DefaultTreeModel
+import javax.swing.tree.TreeNode
+import javax.swing.tree.TreePath
+import javax.swing.tree.TreeSelectionModel
 import kotlin.collections.Map.Entry
 import kotlin.concurrent.write
 import kotlin.math.max
@@ -82,18 +201,18 @@ import kotlin.math.min
 
 /**
  * `AvailWorkbench` is a simple user interface for the
- * [Avail builder][AvailBuilder].
+ * [Avail&#32;builder][AvailBuilder].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  *
  * @property resolver
- *   The [module name resolver][ModuleNameResolver].
+ *   The [module&#32;name resolver][ModuleNameResolver].
  *
  * @constructor
  * Construct a new `AvailWorkbench`.
  *
  * @param resolver
- *   The [module name resolver][ModuleNameResolver].
+ *   The [module&#32;name resolver][ModuleNameResolver].
  */
 class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	: JFrame()
@@ -137,7 +256,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 
 	/**
 	 * The documentation [path][Path] for the
-	 * [Stacks generator][StacksGenerator].
+	 * [Stacks&#32;generator][StacksGenerator].
 	 */
 	var documentationPath: Path = StacksGenerator.defaultDocumentationPath
 
@@ -156,7 +275,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	val moduleTree: JTree
 
 	/**
-	 * The [tree][JTree] of module [entry points][A_Module.entryPoints].
+	 * The [tree][JTree] of module [entry&#32;points][A_Module.entryPoints].
 	 */
 	val entryPointsTree: JTree
 
@@ -166,12 +285,13 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	val availBuilder: AvailBuilder
 
 	/**
-	 * The [progress bar][JProgressBar] that displays the overall build progress.
+	 * The [progress&#32;bar][JProgressBar] that displays the overall build
+	 * progress.
 	 */
 	val buildProgress: JProgressBar
 
 	/**
-	 * The [text area][JTextPane] that displays the [build][AvailBuilder]
+	 * The [text&#32;area][JTextPane] that displays the [build][AvailBuilder]
 	 * transcript.
 	 */
 	val transcript: JTextPane
@@ -181,7 +301,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 
 	/**
 	 * The [label][JLabel] that describes the current function of the
-	 * [input field][inputField].
+	 * [input&#32;field][inputField].
 	 */
 	private val inputLabel: JLabel
 
@@ -245,7 +365,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	private val createProgramAction = CreateProgramAction(this)
 
 	/**
-	 * The [generate documentation action][GenerateDocumentationAction].
+	 * The [generate&#32;documentation&#32;action][GenerateDocumentationAction].
 	 */
 	private val documentAction = GenerateDocumentationAction(this)
 
@@ -253,7 +373,8 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	private val graphAction = GenerateGraphAction(this)
 
 	/**
-	 * The [documentation path dialog action][SetDocumentationPathAction].
+	 * The
+	 * [documentation&#32;path&#32;dialog&#32;action][SetDocumentationPathAction].
 	 */
 	private val setDocumentationPathAction = SetDocumentationPathAction(this)
 
@@ -288,13 +409,14 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	private val toggleL2SanityCheck = ToggleL2SanityCheck(this)
 
 	/**
-	 * The [toggle primitive debug action][ToggleDebugInterpreterPrimitives].
+	 * The
+	 * [toggle&#32;primitive&#32;debug&#32;action][ToggleDebugInterpreterPrimitives].
 	 */
 	private val toggleDebugPrimitives =
 		ToggleDebugInterpreterPrimitives(this)
 
 	/**
-	 * The [toggle work-units debug action][ToggleDebugWorkUnits].
+	 * The [toggle&#32;work-units&#32;debug&#32;action][ToggleDebugWorkUnits].
 	 */
 	private val toggleDebugWorkUnits = ToggleDebugWorkUnits(this)
 
@@ -302,13 +424,14 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	private val toggleDebugJVM = ToggleDebugJVM(this)
 
 	/**
-	 * The [toggle fast-loader summarization action][TraceSummarizeStatementsAction].
+	 * The
+	 * [toggle&#32;fast-loader&#32;summarization&#32;action][TraceSummarizeStatementsAction].
 	 */
 	private val traceSummarizeStatementsAction =
 		TraceSummarizeStatementsAction(this)
 
 	/**
-	 * The [toggle load-tracing action][TraceLoadedStatementsAction].
+	 * The [toggle&#32;load-tracing&#32;action][TraceLoadedStatementsAction].
 	 */
 	private val traceLoadedStatementsAction =
 		TraceLoadedStatementsAction(this)
@@ -890,7 +1013,8 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 
 	/**
 	 * [BuildInputStream] satisfies reads from the UI's
-	 * [input field][inputField]. It blocks reads unless some data is available.
+	 * [input&#32;field][inputField]. It blocks reads unless some data is
+	 * available.
 	 *
 	 * @constructor
 	 * Construct a new `BuildInputStream`.
@@ -911,7 +1035,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 
 		/**
 		 * Update the content of the stream with data from the
-		 * [input field][inputField].
+		 * [input&#32;field][inputField].
 		 */
 		@Synchronized
 		fun update()
@@ -1015,21 +1139,21 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	}
 
 	/**
-	 * Answer the [standard input stream][BuildInputStream].
+	 * Answer the [standard&#32;input&#32;stream][BuildInputStream].
 	 *
 	 * @return The input stream.
 	 */
 	fun inputStream(): BuildInputStream = inputStream!!
 
 	/**
-	 * Answer the [standard error stream][PrintStream].
+	 * Answer the [standard&#32;error&#32;stream][PrintStream].
 	 *
 	 * @return The error stream.
 	 */
 	fun errorStream(): PrintStream = errorStream!!
 
 	/**
-	 * Answer the [standard output stream][PrintStream].
+	 * Answer the [standard&#32;output&#32;stream][PrintStream].
 	 *
 	 * @return The output stream.
 	 */
@@ -1307,8 +1431,8 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	}
 
 	/**
-	 * Answer a [tree node][TreeNode] that represents the (invisible) root of
-	 * the Avail module tree.
+	 * Answer a [tree&#32;node][TreeNode] that represents the (invisible) root
+	 * of the Avail module tree.
 	 *
 	 * @return The (invisible) root of the module tree.
 	 */
@@ -1350,8 +1474,8 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	}
 
 	/**
-	 * Answer a [tree node][TreeNode] that represents the (invisible) root of
-	 * the Avail entry points tree.
+	 * Answer a [tree&#32;node][TreeNode] that represents the (invisible) root
+	 * of the Avail entry points tree.
 	 *
 	 * @return The (invisible) root of the entry points tree.
 	 */
@@ -1395,7 +1519,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 
 	/**
 	 * Answer the [path][TreePath] to the specified module name in the
-	 * [module tree][moduleTree].
+	 * [module&#32;tree][moduleTree].
 	 *
 	 * @param moduleName
 	 *   A module name.
@@ -1432,7 +1556,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	}
 
 	/**
-	 * Answer the currently selected [module root][ModuleRootNode], or null.
+	 * Answer the currently selected [module&#32;root][ModuleRootNode], or null.
 	 *
 	 * @return A [ModuleRootNode], or `null` if no module root is selected.
 	 */
@@ -1457,7 +1581,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		selectedModuleRootNode()?.moduleRoot
 
 	/**
-	 * Answer the currently selected [module node][ModuleOrPackageNode].
+	 * Answer the currently selected [module&#32;node][ModuleOrPackageNode].
 	 *
 	 * @return A module node, or `null` if no module is selected.
 	 */
@@ -1562,7 +1686,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	}
 
 	/**
-	 * Update the [build progress bar][buildProgress].
+	 * Update the [build&#32;progress&#32;bar][buildProgress].
 	 */
 	internal fun updateBuildProgress()
 	{
@@ -2722,7 +2846,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		}
 
 		/**
-		 * Launch the [Avail builder][AvailBuilder] [UI][AvailWorkbench].
+		 * Launch the [Avail&#32;builder][AvailBuilder] [UI][AvailWorkbench].
 		 *
 		 * @param args
 		 * The command line arguments.

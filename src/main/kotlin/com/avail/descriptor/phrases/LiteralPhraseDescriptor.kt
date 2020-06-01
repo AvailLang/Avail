@@ -6,12 +6,12 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
  *
  *  * Neither the name of the copyright holder nor the names of the contributors
  *    may be used to endorse or promote products derived from this software
@@ -31,37 +31,33 @@
  */
 package com.avail.descriptor.phrases
 
-import com.avail.annotations.AvailMethod
-import com.avail.compiler.AvailCodeGenerator
-import com.avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
-import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKind
-import com.avail.descriptor.phrases.A_Phrase.Companion.token
-import com.avail.descriptor.phrases.LiteralPhraseDescriptor.ObjectSlots.TOKEN
-import com.avail.descriptor.representation.A_BasicObject
-import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.representation.Mutability
-import com.avail.descriptor.representation.ObjectSlotsEnum
-import com.avail.descriptor.tokens.A_Token
-import com.avail.descriptor.tokens.LiteralTokenDescriptor
-import com.avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken
-import com.avail.descriptor.tokens.TokenDescriptor.TokenType
-import com.avail.descriptor.tuples.A_String
-import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
-import com.avail.descriptor.tuples.StringDescriptor.stringFrom
-import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn
-import com.avail.descriptor.types.LiteralTokenTypeDescriptor.mostGeneralLiteralTokenType
-import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
-import com.avail.descriptor.types.TypeTag
-import com.avail.interpreter.levelOne.L1Decompiler
-import com.avail.serialization.SerializerOperation
-import com.avail.utility.evaluation.Continuation1NotNull
-import com.avail.utility.json.JSONWriter
-import java.util.*
-import java.util.function.Consumer
-import java.util.function.UnaryOperator
+ import com.avail.compiler.AvailCodeGenerator
+ import com.avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
+ import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKind
+ import com.avail.descriptor.phrases.A_Phrase.Companion.token
+ import com.avail.descriptor.phrases.LiteralPhraseDescriptor.ObjectSlots.TOKEN
+ import com.avail.descriptor.representation.A_BasicObject
+ import com.avail.descriptor.representation.AvailObject
+ import com.avail.descriptor.representation.Mutability
+ import com.avail.descriptor.representation.ObjectSlotsEnum
+ import com.avail.descriptor.tokens.A_Token
+ import com.avail.descriptor.tokens.LiteralTokenDescriptor
+ import com.avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken
+ import com.avail.descriptor.tokens.TokenDescriptor.TokenType
+ import com.avail.descriptor.tuples.A_String
+ import com.avail.descriptor.tuples.A_Tuple
+ import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+ import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
+ import com.avail.descriptor.tuples.StringDescriptor.stringFrom
+ import com.avail.descriptor.types.A_Type
+ import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn
+ import com.avail.descriptor.types.LiteralTokenTypeDescriptor.mostGeneralLiteralTokenType
+ import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
+ import com.avail.descriptor.types.TypeTag
+ import com.avail.interpreter.levelOne.L1Decompiler
+ import com.avail.serialization.SerializerOperation
+ import com.avail.utility.json.JSONWriter
+ import java.util.*
 
 /**
  * My instances are occurrences of literals parsed from Avail source code.  At
@@ -101,23 +97,17 @@ class LiteralPhraseDescriptor(
 		builder.append(self.token().string().asNativeString())
 	}
 
-	@AvailMethod
-	override fun o_ChildrenDo(
-		self: AvailObject,
-		action: Consumer<A_Phrase>
-	) {
+	override fun o_ChildrenDo(self: AvailObject, action: (A_Phrase) -> Unit) {
 		// Do nothing.
 	}
 
-	@AvailMethod
 	override fun o_ChildrenMap(
 		self: AvailObject,
-		transformer: UnaryOperator<A_Phrase>
+		transformer: (A_Phrase) -> A_Phrase
 	) {
 		// Do nothing.
 	}
 
-	@AvailMethod
 	override fun o_EmitEffectOn(
 		self: AvailObject,
 		codeGenerator: AvailCodeGenerator
@@ -125,14 +115,12 @@ class LiteralPhraseDescriptor(
 		// Do nothing.
 	}
 
-	@AvailMethod
 	override fun o_EmitValueOn(
 		self: AvailObject,
 		codeGenerator: AvailCodeGenerator
 	) = codeGenerator.emitPushLiteral(
 		tuple(self.token()), self.slot(TOKEN).literal())
 
-	@AvailMethod
 	override fun o_EqualsPhrase(
 		self: AvailObject,
 		aPhrase: A_Phrase
@@ -149,14 +137,12 @@ class LiteralPhraseDescriptor(
 	override fun o_ExpressionsTuple(self: AvailObject): A_Tuple =
 		tupleFromList(self.map { syntheticLiteralNodeFor(it) })
 
-	@AvailMethod
 	override fun o_ExpressionType(self: AvailObject): A_Type {
 		val token: A_Token = self.slot(TOKEN)
 		assert(token.tokenType() === TokenType.LITERAL)
 		return instanceTypeOrMetaOn(token.literal()).makeImmutable()
 	}
 
-	@AvailMethod
 	override fun o_Hash(self: AvailObject): Int =
 		self.token().hash() xor -0x6379f3f3
 
@@ -165,18 +151,16 @@ class LiteralPhraseDescriptor(
 
 	override fun o_StatementsDo(
 		self: AvailObject,
-		continuation: Continuation1NotNull<A_Phrase>
-	): Unit = throw unsupportedOperationException()
+		continuation: (A_Phrase) -> Unit
+	): Unit = unsupportedOperation()
 
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		SerializerOperation.LITERAL_PHRASE
 
-	@AvailMethod
 	override fun o_Token(self: AvailObject): A_Token = self.slot(TOKEN)
 
 	override fun o_Tokens(self: AvailObject): A_Tuple = tuple(self.slot(TOKEN))
 
-	@AvailMethod
 	override fun o_ValidateLocally(
 		self: AvailObject,
 		parent: A_Phrase?
@@ -200,9 +184,9 @@ class LiteralPhraseDescriptor(
 		writer.endObject()
 	}
 
-	override fun mutable(): LiteralPhraseDescriptor = mutable
+	override fun mutable() = mutable
 
-	override fun shared(): LiteralPhraseDescriptor = shared
+	override fun shared() = shared
 
 	companion object {
 		/**

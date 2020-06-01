@@ -6,12 +6,12 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
  *
  *  * Neither the name of the copyright holder nor the names of the contributors
  *    may be used to endorse or promote products derived from this software
@@ -31,9 +31,7 @@
  */
 package com.avail.descriptor.representation
 
-import com.avail.annotations.AvailMethod
 import com.avail.annotations.ThreadSafe
-import com.avail.descriptor.Descriptor
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.TypeDescriptor.Types
@@ -52,7 +50,6 @@ import java.util.*
 class NilDescriptor private constructor() : Descriptor(
 	Mutability.SHARED, TypeTag.NIL_TAG, null, null
 ) {
-	@AvailMethod
 	@ThreadSafe
 	override fun o_Equals(
 		self: AvailObject, another: A_BasicObject
@@ -60,7 +57,6 @@ class NilDescriptor private constructor() : Descriptor(
 		return another.equalsNil()
 	}
 
-	@AvailMethod
 	@ThreadSafe
 	override fun o_Hash(self: AvailObject): Int {
 		// Nil should hash to zero, because the only place it can appear in a
@@ -69,11 +65,9 @@ class NilDescriptor private constructor() : Descriptor(
 		return 0
 	}
 
-	@AvailMethod
 	@ThreadSafe
 	override fun o_Kind(self: AvailObject): A_Type = Types.TOP.o()
 
-	@AvailMethod
 	@ThreadSafe
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		SerializerOperation.NIL
@@ -88,11 +82,11 @@ class NilDescriptor private constructor() : Descriptor(
 		builder.append("nil")
 	}
 
-	override fun mutable(): NilDescriptor = shared
+	override fun mutable() = shared
 
-	override fun immutable(): NilDescriptor = shared
+	override fun immutable() = shared
 
-	override fun shared(): NilDescriptor = shared
+	override fun shared() = shared
 
 	companion object {
 		/** The shared [NilDescriptor].  */

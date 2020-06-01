@@ -34,14 +34,29 @@ package com.avail.interpreter.levelTwo
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.representation.AvailObject
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.levelTwo.operand.*
+import com.avail.interpreter.levelTwo.operand.L2CommentOperand
+import com.avail.interpreter.levelTwo.operand.L2ConstantOperand
+import com.avail.interpreter.levelTwo.operand.L2FloatImmediateOperand
+import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand
+import com.avail.interpreter.levelTwo.operand.L2PcOperand
+import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadFloatOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadFloatVectorOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadIntVectorOperand
+import com.avail.interpreter.levelTwo.operand.L2SelectorOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteFloatOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import com.avail.interpreter.levelTwo.register.L2BoxedRegister
 import com.avail.interpreter.levelTwo.register.L2FloatRegister
 import com.avail.interpreter.levelTwo.register.L2IntRegister
 
 /**
  * An `L2OperandDispatcher` acts as a visitor for the actual operands of
- * [level two instructions][L2Instruction].
+ * [level&#32;two&#32;instructions][L2Instruction].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -82,7 +97,7 @@ interface L2OperandDispatcher
 
 	/**
 	 * Process an operand which is a constant level two offset into a
-	 * [level two chunk][L2Chunk]'s [L2Instruction] sequence.
+	 * [level&#32;two&#32;chunk][L2Chunk]'s [L2Instruction] sequence.
 	 *
 	 * @param operand
 	 *   An [L2PcOperand].

@@ -32,22 +32,26 @@
 package com.avail.interpreter.primitive.tuples
 
 import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.BottomTypeDescriptor
 import com.avail.descriptor.types.BottomTypeDescriptor.bottom
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.InstanceMetaDescriptor.anyMeta
 import com.avail.descriptor.types.InstanceMetaDescriptor.instanceMeta
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.naturalNumbers
 import com.avail.descriptor.types.TupleTypeDescriptor.tupleMeta
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CanFold
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Answer the [type][TypeDescriptor] for the given element of
- * [instances][TupleDescriptor] of the given [tuple type][TupleTypeDescriptor].
- * Answer [bottom][BottomTypeDescriptor] if out of range.
+ * **Primitive:** Answer the [type][A_Type] for the given element of
+ * [instances][A_Tuple] of the given [tuple&#32;type][A_Type]. Answer
+ * [bottom][BottomTypeDescriptor] if out of range.
  */
 @Suppress("unused")
 object P_TupleTypeAt : Primitive(2, CannotFail, CanFold, CanInline)

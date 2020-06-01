@@ -50,7 +50,7 @@ import org.objectweb.asm.Type
 
 /**
  * Store the current [A_Function] from the [HookType.READ_UNASSIGNED_VARIABLE]
- * into the supplied [object register][L2BoxedRegister].
+ * into the supplied [object&#32;register][L2BoxedRegister].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

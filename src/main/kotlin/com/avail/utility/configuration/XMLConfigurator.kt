@@ -46,7 +46,7 @@ import javax.xml.parsers.SAXParserFactory
  *  * An [enumeration][Enum] that satisfies the [XMLElement] interface.
  *  This enumeration defines all valid elements for a particular document type.
  *  Members must be able to satisfy requests for their
- *  [qualified name][XMLElement.qName] and immediate
+ *  [qualified&#32;name][XMLElement.qName] and immediate
  *  [parentage][XMLElement.allowedParents]. Members are also responsible for
  *  their own processing (see [startElement][XMLElement.startElement] and
  *  [endElement][XMLElement.endElement].
@@ -62,9 +62,9 @@ import javax.xml.parsers.SAXParserFactory
  *   A concrete [XMLConfiguratorState] class.
  *
  * @property state
- *   The [configurator state][XMLConfiguratorState].
+ *   The [configurator&#32;state][XMLConfiguratorState].
  * @property documentStream
- *   The [input stream][InputStream] which contains the XML document that
+ *   The [input&#32;stream][InputStream] which contains the XML document that
  *   describes the [configuration][Configuration].
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  *
@@ -75,11 +75,11 @@ import javax.xml.parsers.SAXParserFactory
  * @param configuration
  *   A [configuration][Configuration].
  * @param state
- *   The initial [configurator state][XMLConfiguratorState].
+ *   The initial [configurator&#32;state][XMLConfiguratorState].
  * @param elementClass
  *   The [element][XMLElement] [class][Class].
  * @param documentStream
- *   The [input stream][InputStream] which contains the XML document that
+ *   The [input&#32;stream][InputStream] which contains the XML document that
  *   describes the [configuration][Configuration].
  */
 class XMLConfigurator<

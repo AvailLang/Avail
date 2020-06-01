@@ -6,12 +6,12 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
  *
  *  * Neither the name of the copyright holder nor the names of the contributors
  *    may be used to endorse or promote products derived from this software
@@ -31,27 +31,27 @@
  */
 package com.avail.descriptor.phrases
 
-import com.avail.annotations.AvailMethod
-import com.avail.compiler.AvailCodeGenerator
-import com.avail.descriptor.Descriptor
-import com.avail.descriptor.representation.NilDescriptor.Companion.nil
-import com.avail.descriptor.atoms.A_Atom
-import com.avail.descriptor.phrases.A_Phrase.Companion.childrenDo
-import com.avail.descriptor.phrases.A_Phrase.Companion.emitValueOn
-import com.avail.descriptor.representation.*
-import com.avail.descriptor.representation.AvailObjectRepresentation.Companion.newLike
-import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.BottomTypeDescriptor.bottom
-import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
-import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
-import com.avail.descriptor.types.TypeDescriptor
-import com.avail.descriptor.types.TypeTag
-import com.avail.serialization.SerializerOperation
-import com.avail.utility.evaluation.Continuation1NotNull
-import java.util.function.BiConsumer
-import java.util.function.Consumer
-import java.util.function.UnaryOperator
+ import com.avail.compiler.AvailCodeGenerator
+ import com.avail.descriptor.atoms.A_Atom
+ import com.avail.descriptor.phrases.A_Phrase.Companion.childrenDo
+ import com.avail.descriptor.phrases.A_Phrase.Companion.emitValueOn
+ import com.avail.descriptor.representation.A_BasicObject
+ import com.avail.descriptor.representation.AbstractDescriptor
+ import com.avail.descriptor.representation.AvailObject
+ import com.avail.descriptor.representation.AvailObjectRepresentation.Companion.newLike
+ import com.avail.descriptor.representation.Descriptor
+ import com.avail.descriptor.representation.IntegerSlotsEnum
+ import com.avail.descriptor.representation.Mutability
+ import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+ import com.avail.descriptor.representation.ObjectSlotsEnum
+ import com.avail.descriptor.tuples.A_Tuple
+ import com.avail.descriptor.types.A_Type
+ import com.avail.descriptor.types.BottomTypeDescriptor.bottom
+ import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
+ import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
+ import com.avail.descriptor.types.TypeDescriptor
+ import com.avail.descriptor.types.TypeTag
+ import com.avail.serialization.SerializerOperation
 
 /**
  * I'm used to implement the abstract notion of phrases.  All concrete phrase
@@ -87,22 +87,20 @@ abstract class PhraseDescriptor protected constructor(
 	 * [send][SendPhraseDescriptor] or
 	 * [macro][MacroSubstitutionPhraseDescriptor] is always [nil].
 	 */
-	@AvailMethod
 	override fun o_ApparentSendName(self: AvailObject): A_Atom = nil
 
 	/**
 	 * Visit every phrase constituting this parse tree, invoking the passed
-	 * [Consumer] with each.
+	 * consumer with each.
 	 *
 	 * @param self
 	 *   The [phrase][A_Phrase] to traverse.
 	 * @param action
-	 *   The [action][Consumer] to perform with each child phrase.
+	 *   The action to perform with each child phrase.
 	 */
-	@AvailMethod
 	abstract override fun o_ChildrenDo(
 		self: AvailObject,
-		action: Consumer<A_Phrase>)
+		action: (A_Phrase) -> Unit)
 
 	/**
 	 * Visit and transform the direct descendants of this phrase.  Map this
@@ -112,12 +110,11 @@ abstract class PhraseDescriptor protected constructor(
 	 * @param self
 	 *   The phrase to transform.
 	 * @param transformer
-	 *   The [UnaryOperator] through which to recursively map the phrase.
+	 *   The transformer through which to recursively map the phrase.
 	 */
-	@AvailMethod
 	abstract override fun o_ChildrenMap(
 		self: AvailObject,
-		transformer: UnaryOperator<A_Phrase>)
+		transformer: (A_Phrase) -> A_Phrase)
 
 	/**
 	 * If the receiver is immutable, make an equivalent mutable copy of that
@@ -129,8 +126,8 @@ abstract class PhraseDescriptor protected constructor(
 	 *   A mutable [A_Phrase] equivalent to the passed phrase, possibly the same
 	 *   object.
 	 */
-	@AvailMethod
-	override fun o_CopyMutablePhrase(self: AvailObject): A_Phrase {
+	override fun o_CopyMutablePhrase(self: AvailObject): A_Phrase
+	{
 		self.makeSubobjectsImmutable()
 		return when {
 			isMutable -> self
@@ -147,7 +144,6 @@ abstract class PhraseDescriptor protected constructor(
 	 * @param codeGenerator
 	 *   Where to emit the code.
 	 */
-	@AvailMethod
 	override fun o_EmitEffectOn(
 		self: AvailObject,
 		codeGenerator: AvailCodeGenerator
@@ -165,7 +161,6 @@ abstract class PhraseDescriptor protected constructor(
 	 * @param codeGenerator
 	 *   Where to emit the code.
 	 */
-	@AvailMethod
 	abstract override fun o_EmitValueOn(
 		self: AvailObject,
 		codeGenerator: AvailCodeGenerator)
@@ -180,13 +175,11 @@ abstract class PhraseDescriptor protected constructor(
 	 * @return
 	 *   Whether they are equal.
 	 */
-	@AvailMethod
 	override fun o_Equals(
 		self: AvailObject,
 		another: A_BasicObject
 	): Boolean = another.equalsPhrase(self)
 
-	@AvailMethod
 	abstract override fun o_EqualsPhrase(
 		self: AvailObject,
 		aPhrase: A_Phrase
@@ -200,10 +193,8 @@ abstract class PhraseDescriptor protected constructor(
 	 *   The [type][TypeDescriptor] of the [AvailObject] that will be produced
 	 *   by evaluating this phrase.
 	 */
-	@AvailMethod
 	abstract override fun o_ExpressionType(self: AvailObject): A_Type
 
-	@AvailMethod
 	override fun o_FlattenStatementsInto(
 		self: AvailObject,
 		accumulatedStatements: MutableList<A_Phrase>
@@ -219,7 +210,6 @@ abstract class PhraseDescriptor protected constructor(
 	 * @return
 	 *   The hash of the phrase.
 	 */
-	@AvailMethod
 	abstract override fun o_Hash(self: AvailObject): Int
 
 	/**
@@ -229,7 +219,6 @@ abstract class PhraseDescriptor protected constructor(
 	*/
 	override fun o_HasSuperCast(self: AvailObject): Boolean = false
 
-	@AvailMethod
 	override fun o_IsInstanceOfKind(
 		self: AvailObject,
 		aType: A_Type
@@ -242,7 +231,6 @@ abstract class PhraseDescriptor protected constructor(
 
 	override fun o_IsMacroSubstitutionNode(self: AvailObject): Boolean = false
 
-	@AvailMethod
 	override fun o_Kind(self: AvailObject): A_Type =
 		self.phraseKind().create(self.expressionType())
 
@@ -259,10 +247,8 @@ abstract class PhraseDescriptor protected constructor(
 	 * @return
 	 *   The [PhraseKind] of phrase that the object's type would be.
 	 */
-	@AvailMethod
 	abstract override fun o_PhraseKind(self: AvailObject): PhraseKind
 
-	@AvailMethod
 	override fun o_PhraseKindIsUnder(
 		self: AvailObject,
 		expectedPhraseKind: PhraseKind
@@ -274,15 +260,12 @@ abstract class PhraseDescriptor protected constructor(
 
 	override fun o_ShowValueInNameForDebugger(self: AvailObject) = false
 
-	@AvailMethod
 	abstract override fun o_StatementsDo(
 		self: AvailObject,
-		continuation: Continuation1NotNull<A_Phrase>)
+		continuation: (A_Phrase) -> Unit)
 
-	@AvailMethod
 	override fun o_StripMacro(self: AvailObject): A_Phrase = self
 
-	@AvailMethod
 	override fun o_SuperUnionType(self: AvailObject): A_Type = bottom()
 
 	abstract override fun o_Tokens(self: AvailObject): A_Tuple
@@ -296,7 +279,6 @@ abstract class PhraseDescriptor protected constructor(
 	 *   The optional [A_Phrase] which contains the phrase to validate as its
 	 *   sub-phrase.
 	 */
-	@AvailMethod
 	abstract override fun o_ValidateLocally(
 		self: AvailObject,
 		parent: A_Phrase?)
@@ -305,13 +287,13 @@ abstract class PhraseDescriptor protected constructor(
 	 * Subclasses do not have an immutable descriptor, so use the shared one
 	 * instead.
 	 */
-	override fun immutable(): PhraseDescriptor = shared()
+	override fun immutable() = shared()
 
-	abstract override fun shared(): PhraseDescriptor
+	abstract override fun shared(): AbstractDescriptor
 
 	companion object {
 		/**
-		 * Visit the entire tree with the given [BiConsumer], children before
+		 * Visit the entire tree with the given consumer, children before
 		 * parents.  The block takes two arguments: the phrase and its parent.
 		 *
 		 * @param self
@@ -323,13 +305,11 @@ abstract class PhraseDescriptor protected constructor(
 		 */
 		fun treeDoWithParent(
 			self: A_Phrase,
-			aBlock: BiConsumer<A_Phrase, A_Phrase?>,
+			aBlock: (A_Phrase, A_Phrase?) -> Unit,
 			parentNode: A_Phrase?
 		) {
-			self.childrenDo(
-				Consumer { child -> treeDoWithParent(child, aBlock, self) }
-			)
-			aBlock.accept(self, parentNode)
+			self.childrenDo { child -> treeDoWithParent(child, aBlock, self) }
+			aBlock(self, parentNode)
 		}
 	}
 }

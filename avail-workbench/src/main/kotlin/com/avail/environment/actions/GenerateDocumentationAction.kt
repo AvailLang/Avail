@@ -44,8 +44,9 @@ import javax.swing.Action
 import javax.swing.KeyStroke
 
 /**
- * A `GenerateDocumentationAction` instructs the [Avail builder][AvailBuilder]
- * to recursively [generate Stacks documentation][StacksGenerator].
+ * A `GenerateDocumentationAction` instructs the
+ * [Avail&#32;builder][AvailBuilder] to recursively
+ * [generate&#32;Stacks&#32;documentation][StacksGenerator].
  *
  * @constructor
  * Construct a new [GenerateDocumentationAction].

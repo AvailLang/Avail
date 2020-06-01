@@ -40,14 +40,13 @@ import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.WE
 import com.avail.compiler.splitter.MessageSplitter
 import com.avail.compiler.splitter.MessageSplitter.Companion.constantForIndex
 import com.avail.compiler.splitter.MessageSplitter.Companion.permutationAtIndex
-import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.descriptor.atoms.A_Atom.Companion.atomName
 import com.avail.descriptor.bundles.A_Bundle.Companion.message
 import com.avail.descriptor.bundles.A_BundleTree
 import com.avail.descriptor.bundles.A_BundleTree.Companion.allParsingPlansInProgress
+import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.descriptor.maps.MapDescriptor
-import com.avail.descriptor.phrases.*
+import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.A_Phrase.Companion.copyConcatenating
 import com.avail.descriptor.phrases.A_Phrase.Companion.copyWith
 import com.avail.descriptor.phrases.A_Phrase.Companion.declaration
@@ -57,17 +56,27 @@ import com.avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
 import com.avail.descriptor.phrases.A_Phrase.Companion.macroOriginalSendNode
 import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
 import com.avail.descriptor.phrases.A_Phrase.Companion.stripMacro
+import com.avail.descriptor.phrases.ListPhraseDescriptor
 import com.avail.descriptor.phrases.ListPhraseDescriptor.Companion.emptyListNode
 import com.avail.descriptor.phrases.ListPhraseDescriptor.Companion.newListNode
+import com.avail.descriptor.phrases.LiteralPhraseDescriptor
 import com.avail.descriptor.phrases.LiteralPhraseDescriptor.Companion.literalNodeFromToken
 import com.avail.descriptor.phrases.MacroSubstitutionPhraseDescriptor.Companion.newMacroSubstitution
 import com.avail.descriptor.phrases.PermutedListPhraseDescriptor.Companion.newPermutedListNode
+import com.avail.descriptor.phrases.PhraseDescriptor
+import com.avail.descriptor.phrases.ReferencePhraseDescriptor
 import com.avail.descriptor.phrases.ReferencePhraseDescriptor.Companion.referenceNodeFromUse
+import com.avail.descriptor.phrases.SendPhraseDescriptor
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.tokens.A_Token
 import com.avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken
 import com.avail.descriptor.tokens.TokenDescriptor
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType
-import com.avail.descriptor.tokens.TokenDescriptor.TokenType.*
+import com.avail.descriptor.tokens.TokenDescriptor.TokenType.COMMENT
+import com.avail.descriptor.tokens.TokenDescriptor.TokenType.END_OF_FILE
+import com.avail.descriptor.tokens.TokenDescriptor.TokenType.KEYWORD
+import com.avail.descriptor.tokens.TokenDescriptor.TokenType.LITERAL
+import com.avail.descriptor.tokens.TokenDescriptor.TokenType.WHITESPACE
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
 import com.avail.descriptor.tuples.StringDescriptor.stringFrom
@@ -81,7 +90,9 @@ import com.avail.descriptor.variables.VariableDescriptor
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport.EXPANDING_PARSING_INSTRUCTIONS
 import com.avail.performance.StatisticReport.RUNNING_PARSING_INSTRUCTIONS
-import com.avail.utility.PrefixSharingList.*
+import com.avail.utility.PrefixSharingList.append
+import com.avail.utility.PrefixSharingList.last
+import com.avail.utility.PrefixSharingList.withoutLast
 import com.avail.utility.StackPrinter.trace
 import com.avail.utility.evaluation.Describer
 import java.util.*
@@ -125,9 +136,9 @@ enum class ParsingOperation constructor(
 	 */
 
 	/**
-	 * `0` - Push a new [list][ListPhraseDescriptor] that contains an [empty
-	 * tuple][TupleDescriptor.emptyTuple] of [phrases][PhraseDescriptor] onto
-	 * the parse stack.
+	 * `0` - Push a new [list][ListPhraseDescriptor] that contains an
+	 * [empty&#32;tuple][TupleDescriptor.emptyTuple] of
+	 * [phrases][PhraseDescriptor] onto the parse stack.
 	 */
 	EMPTY_LIST(0, true, true)
 	{
@@ -435,9 +446,9 @@ enum class ParsingOperation constructor(
 	},
 
 	/**
-	 * `7` - Parse a [raw token][TokenDescriptor]. It should correspond to a
-	 * [variable][VariableDescriptor] that is in scope. Push a [variable
-	 * reference][ReferencePhraseDescriptor] onto the parse stack.
+	 * `7` - Parse a [raw&#32;token][TokenDescriptor]. It should correspond to a
+	 * [variable][VariableDescriptor] that is in scope. Push a
+	 * [variable&#32;reference][ReferencePhraseDescriptor] onto the parse stack.
 	 */
 	PARSE_VARIABLE_REFERENCE(7, false, true)
 	{
@@ -574,9 +585,9 @@ enum class ParsingOperation constructor(
 	},
 
 	/**
-	 * `9` - Parse *any* [raw token][TokenDescriptor], leaving it on the parse
-	 * stack.  In particular, push a literal phrase whose token is a synthetic
-	 * literal token whose value is the actual token that was parsed.
+	 * `9` - Parse *any* [raw&#32;token][TokenDescriptor], leaving it on the
+	 * parse stack.  In particular, push a literal phrase whose token is a
+	 * synthetic literal token whose value is the actual token that was parsed.
 	 */
 	PARSE_ANY_RAW_TOKEN(9, false, false)
 	{
@@ -1100,10 +1111,10 @@ enum class ParsingOperation constructor(
 	},
 
 	/**
-	 * `16*N+3` - Parse the `N`<sup>th</sup> [message
-	 * part][MessageSplitter.messagePartsTuple] of the current message. This
-	 * will be a specific [token][TokenDescriptor]. It should be matched case
-	 * sensitively against the source token.
+	 * `16*N+3` - Parse the `N`<sup>th</sup>
+	 * [message&#32;part][MessageSplitter.messagePartsTuple] of the current
+	 * message. This will be a specific [token][TokenDescriptor]. It should be
+	 * matched case sensitively against the source token.
 	 */
 	PARSE_PART(3, false, false)
 	{
@@ -1128,10 +1139,10 @@ enum class ParsingOperation constructor(
 	},
 
 	/**
-	 * `16*N+4` - Parse the `N`<sup>th</sup> [message
-	 * part][MessageSplitter.messagePartsTuple] of the current message. This
-	 * will be a specific [token][TokenDescriptor]. It should be matched case
-	 * insensitively against the source token.
+	 * `16*N+4` - Parse the `N`<sup>th</sup>
+	 * [message&#32;part][MessageSplitter.messagePartsTuple] of the current
+	 * message. This will be a specific [token][TokenDescriptor]. It should be
+	 * matched case insensitively against the source token.
 	 */
 	PARSE_PART_CASE_INSENSITIVELY(4, false, false)
 	{
@@ -1196,7 +1207,7 @@ enum class ParsingOperation constructor(
 
 	/**
 	 * `16*N+6` - Pop an argument from the parse stack and apply the
-	 * [conversion rule][ParsingConversionRule] specified by `N`.
+	 * [conversion&#32;rule][ParsingConversionRule] specified by `N`.
 	 */
 	CONVERT(6, true, true)
 	{
@@ -1253,14 +1264,14 @@ enum class ParsingOperation constructor(
 	 * `16*N+7` - A macro has been parsed up to a section checkpoint (§). Make a
 	 * copy of the parse stack, then perform the equivalent of an
 	 * [APPEND_ARGUMENT] on the copy, the specified number of times minus one
-	 * (because zero is not a legal operand).  Make it into a single [list
-	 * phrase][ListPhraseDescriptor] and push it onto the original parse stack.
-	 * It will be consumed by a subsequent [RUN_PREFIX_FUNCTION].
+	 * (because zero is not a legal operand).  Make it into a single
+	 * [list&#32;phrase][ListPhraseDescriptor] and push it onto the original
+	 * parse stack. It will be consumed by a subsequent [RUN_PREFIX_FUNCTION].
 	 *
-	 * This instruction is detected specially by the [message bundle
-	 * tree][A_BundleTree]'s [expand][A_BundleTree.expand] operation.  Its
-	 * successors are separated into distinct message bundle trees, one per
-	 * message bundle.
+	 * This instruction is detected specially by the
+	 * [message&#32;bundle&#32;tree][A_BundleTree]'s
+	 * [expand][A_BundleTree.expand] operation.  Its successors are separated
+	 * into distinct message bundle trees, one per message bundle.
 	 */
 	PREPARE_TO_RUN_PREFIX_FUNCTION(7, false, true)
 	{
@@ -1315,8 +1326,8 @@ enum class ParsingOperation constructor(
 	 * N<sup>th</sup> prefix function associated with the macro.  Consume the
 	 * previously pushed copy of the parse stack.  The current [ParserState]'s
 	 * [ParserState.clientDataMap] is stashed in the new
-	 * [fiber][FiberDescriptor]'s [globals map][AvailObject.fiberGlobals] and
-	 * retrieved afterward, so the prefix function and macros can alter the
+	 * [fiber][FiberDescriptor]'s [globals&#32;map][AvailObject.fiberGlobals]
+	 * and retrieved afterward, so the prefix function and macros can alter the
 	 * scope or communicate with each other by manipulating this
 	 * [map][MapDescriptor].  This technique prevents chatter between separate
 	 * fibers (i.e., parsing can still be done in parallel) and between separate
@@ -1568,9 +1579,9 @@ enum class ParsingOperation constructor(
 	},
 
 	/**
-	 * `16*N+14` - Push a [literal phrase][LiteralPhraseDescriptor] containing
-	 * the constant found at the position in the type list indicated by the
-	 * operand.
+	 * `16*N+14` - Push a [literal&#32;phrase][LiteralPhraseDescriptor]
+	 * containing the constant found at the position in the type list indicated
+	 * by the operand.
 	 */
 	PUSH_LITERAL(14, true, true)
 	{
@@ -1703,9 +1714,9 @@ enum class ParsingOperation constructor(
 	}
 
 	/**
-	 * Assume that the instruction encodes an operand that represents a [message
-	 * part][MessageSplitter.messagePartsTuple] index: answer the operand.
-	 * Answer 0 if the operand does not represent a message part.
+	 * Assume that the instruction encodes an operand that represents a
+	 * [message&#32;part][MessageSplitter.messagePartsTuple] index: answer the
+	 * operand. Answer 0 if the operand does not represent a message part.
 	 *
 	 * @param instruction
 	 *   A coded instruction.
@@ -1765,8 +1776,9 @@ enum class ParsingOperation constructor(
 	 * @param instruction
 	 *   An [Int] encoding the `ParsingOperation` to execute.
 	 * @param successorTrees
-	 *   The [tuple][TupleDescriptor] of [message bundle trees][A_BundleTree] at
-	 *   which to continue parsing.
+	 *   The [tuple][TupleDescriptor] of
+	 *   [message&#32;bundle&#32;trees][A_BundleTree] at which to continue
+	 *   parsing.
 	 * @param start
 	 *   Where to start parsing.
 	 * @param firstArgOrNull
@@ -1796,7 +1808,7 @@ enum class ParsingOperation constructor(
 	 *   These are the tokens that correspond with tokens that occur verbatim
 	 *   inside the name of the method or macro.
 	 * @param continuation
-	 *   What to do with a complete [message send][SendPhraseDescriptor].
+	 *   What to do with a complete [message&#32;send][SendPhraseDescriptor].
 	 */
 	internal abstract fun execute(
 		compiler: AvailCompiler,

@@ -6,12 +6,12 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
  *
  *  * Neither the name of the copyright holder nor the names of the contributors
  *    may be used to endorse or promote products derived from this software
@@ -31,10 +31,13 @@
  */
 package com.avail.descriptor.pojos
 
-import com.avail.annotations.AvailMethod
-import com.avail.descriptor.AbstractDescriptor
-import com.avail.descriptor.Descriptor
-import com.avail.descriptor.representation.*
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AbstractDescriptor
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObjectFieldHelper
+import com.avail.descriptor.representation.Descriptor
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.PojoTypeDescriptor
 import com.avail.descriptor.types.TypeDescriptor.Types
@@ -72,18 +75,15 @@ open class RawPojoDescriptor protected constructor(
 	val javaObject: Any?
 ) : Descriptor(mutability, TypeTag.POJO_TAG, null, null)
 {
-	@AvailMethod
 	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean =
 		another.equalsRawPojoFor(self, javaObject)
 
-	@AvailMethod
 	override fun o_EqualsEqualityRawPojo(
 		self: AvailObject,
 		otherEqualityRawPojo: AvailObject,
 		otherJavaObject: Any?
 	) = false
 
-	@AvailMethod
 	override fun o_EqualsRawPojoFor(
 		self: AvailObject,
 		otherRawPojo: AvailObject,
@@ -101,7 +101,6 @@ open class RawPojoDescriptor protected constructor(
 		return true
 	}
 
-	@AvailMethod
 	override fun o_Hash(self: AvailObject): Int
 	{
 		// This ensures that mutations of the wrapped pojo do not corrupt hashed
@@ -109,21 +108,17 @@ open class RawPojoDescriptor protected constructor(
 		return System.identityHashCode(javaObject) xor 0x277AB9C3
 	}
 
-	@AvailMethod
 	override fun o_IsRawPojo(self: AvailObject): Boolean = true
 
-	@AvailMethod
 	override fun <T> o_JavaObject(self: AvailObject): T? =
 		nullableCast<Any?, T?>(javaObject)
 
-	@AvailMethod
 	override fun o_Kind(self: AvailObject): A_Type = Types.RAW_POJO.o()
 
 	/**
 	 * Replace the descriptor with a newly synthesized one that has the same
 	 * [javaObject] but is [immutable][Mutability.IMMUTABLE].
 	 */
-	@AvailMethod
 	override fun o_MakeImmutable(self: AvailObject): AvailObject
 	{
 		if (isMutable)
@@ -138,7 +133,6 @@ open class RawPojoDescriptor protected constructor(
 	 * Replace the descriptor with a newly synthesized one that has the same
 	 * [javaObject] but is [shared][Mutability.SHARED].
 	 */
-	@AvailMethod
 	override fun o_MakeShared(self: AvailObject): AvailObject
 	{
 		if (!isShared)
@@ -151,7 +145,7 @@ open class RawPojoDescriptor protected constructor(
 
 	override fun o_MarshalToJava(
 		self: AvailObject,
-		ignoredClassHint: Class<*>?
+		classHint: Class<*>?
 	): Any? = javaObject
 
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
@@ -213,19 +207,19 @@ open class RawPojoDescriptor protected constructor(
 	@Deprecated(
 		"Not applicable to pojos",
 		replaceWith = ReplaceWith("Create a new pojo object instead"))
-	override fun mutable(): AbstractDescriptor =
+	override fun mutable() =
 		throw unsupportedOperationException()
 
 	@Deprecated(
 		"Not applicable to pojos",
 		replaceWith = ReplaceWith("Create a new pojo object instead"))
-	override fun immutable(): AbstractDescriptor =
+	override fun immutable() =
 		throw unsupportedOperationException()
 
 	@Deprecated(
 		"Not applicable to pojos",
 		replaceWith = ReplaceWith("Create a new pojo object instead"))
-	override fun shared(): AbstractDescriptor =
+	override fun shared() =
 		throw unsupportedOperationException()
 
 	companion object
@@ -276,7 +270,7 @@ open class RawPojoDescriptor protected constructor(
 		 * @param javaObject
 		 *   A Java Object, never `null`.
 		 * @return
-		 *   The new [Avail pojo][PojoDescriptor].
+		 *   The new [Avail&#32;pojo][PojoDescriptor].
 		 */
 		@JvmStatic
 		fun equalityPojo(javaObject: Any): AvailObject =

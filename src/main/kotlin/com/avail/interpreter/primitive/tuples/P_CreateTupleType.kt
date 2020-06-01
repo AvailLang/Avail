@@ -38,14 +38,18 @@ import com.avail.descriptor.types.InstanceMetaDescriptor.anyMeta
 import com.avail.descriptor.types.InstanceMetaDescriptor.instanceMeta
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.wholeNumbers
 import com.avail.descriptor.types.TupleTypeDescriptor
-import com.avail.descriptor.types.TupleTypeDescriptor.*
-import com.avail.interpreter.execution.Interpreter
+import com.avail.descriptor.types.TupleTypeDescriptor.tupleMeta
+import com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType
+import com.avail.descriptor.types.TupleTypeDescriptor.zeroOrMoreOf
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CanFold
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Construct a [tuple type][TupleTypeDescriptor] with the given
- * parameters. Canonize the data if necessary.
+ * **Primitive:** Construct a [tuple&#32;type][TupleTypeDescriptor] with the
+ * given parameters. Canonize the data if necessary.
  */
 @Suppress("unused")
 object P_CreateTupleType : Primitive(3, CannotFail, CanFold, CanInline)

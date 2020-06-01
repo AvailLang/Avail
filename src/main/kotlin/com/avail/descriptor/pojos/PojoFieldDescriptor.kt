@@ -6,12 +6,12 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
  *
  *  * Neither the name of the copyright holder nor the names of the contributors
  *    may be used to endorse or promote products derived from this software
@@ -31,14 +31,13 @@
  */
 package com.avail.descriptor.pojos
 
-import com.avail.annotations.AvailMethod
-import com.avail.descriptor.Descriptor
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import com.avail.descriptor.pojos.PojoFieldDescriptor.ObjectSlots.*
 import com.avail.descriptor.pojos.PojoFinalFieldDescriptor.Companion.pojoFinalFieldForInnerType
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.AvailObject.Companion.multiplier
+import com.avail.descriptor.representation.Descriptor
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.types.*
@@ -56,7 +55,7 @@ import java.util.*
 
 /**
  * A `PojoFieldDescriptor` is an Avail [variable][VariableDescriptor] that
- * facilitates access to the instance [Java field][Field] of a particular
+ * facilitates access to the instance [Java&#32;field][Field] of a particular
  * [pojo][PojoDescriptor] or the static field of a particular
  * [pojo&#32;type][PojoTypeDescriptor]. It supports the same protocol as any
  * other variable, but reads and writes are of the pojo's field.
@@ -125,11 +124,9 @@ class PojoFieldDescriptor private constructor(
 		}
 	}
 
-	@AvailMethod
 	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean =
 		another.equalsPojoField(self.slot(FIELD), self.slot(RECEIVER))
 
-	@AvailMethod
 	override fun o_EqualsPojoField(
 		self: AvailObject,
 		field: AvailObject,
@@ -137,7 +134,6 @@ class PojoFieldDescriptor private constructor(
 	): Boolean = (self.slot(FIELD).equals(field)
 		&& self.slot(RECEIVER).equals(receiver))
 
-	@AvailMethod
 	@Throws(VariableGetException::class)
 	override fun o_GetValue(self: AvailObject): AvailObject
 	{
@@ -156,7 +152,6 @@ class PojoFieldDescriptor private constructor(
 		}
 	}
 
-	@AvailMethod
 	override fun o_Hash(self: AvailObject): Int
 	{
 		var h = self.slot(FIELD).hash() xor 0x2199C0C3
@@ -172,7 +167,6 @@ class PojoFieldDescriptor private constructor(
 		return true
 	}
 
-	@AvailMethod
 	override fun o_Kind(self: AvailObject): A_Type = self.slot(KIND)
 
 	override fun o_SerializerOperation(
@@ -187,7 +181,6 @@ class PojoFieldDescriptor private constructor(
 		throw unsupportedOperationException()
 	}
 
-	@AvailMethod
 	override fun o_SetValue(
 		self: AvailObject,
 		newValue: A_BasicObject
@@ -229,7 +222,6 @@ class PojoFieldDescriptor private constructor(
 		}
 	}
 
-	@AvailMethod
 	override fun o_Value(self: AvailObject): AvailObject
 	{
 		val receiver = self.slot(RECEIVER).javaObjectNotNull<Any>()
@@ -279,11 +271,11 @@ class PojoFieldDescriptor private constructor(
 		self.value().printOnAvoidingIndent(builder, recursionMap, indent + 1)
 	}
 
-	override fun mutable(): PojoFieldDescriptor = mutable
+	override fun mutable() = mutable
 
-	override fun immutable(): PojoFieldDescriptor = immutable
+	override fun immutable() = immutable
 
-	override fun shared(): PojoFieldDescriptor = shared
+	override fun shared() = shared
 
 	companion object
 	{

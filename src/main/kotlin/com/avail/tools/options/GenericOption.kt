@@ -32,7 +32,9 @@
 
 package com.avail.tools.options
 
-import com.avail.tools.options.OptionProcessorFactory.*
+import com.avail.tools.options.OptionProcessorFactory.Cardinality
+import com.avail.tools.options.OptionProcessorFactory.OptionInvocation
+import com.avail.tools.options.OptionProcessorFactory.OptionInvocationWithArgument
 import java.util.*
 
 /**

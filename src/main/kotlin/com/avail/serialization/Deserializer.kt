@@ -33,9 +33,9 @@
 package com.avail.serialization
 
 import com.avail.AvailRuntime
+import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
-import com.avail.descriptor.atoms.A_Atom
 import java.io.InputStream
 import java.util.*
 
@@ -143,7 +143,7 @@ class Deserializer constructor(
 	companion object
 	{
 		/**
-		 * Look up the [special atom][AvailRuntime.specialAtoms].
+		 * Look up the [special&#32;atom][AvailRuntime.specialAtoms].
 		 *
 		 * @param index
 		 *   The special atom's ordinal.

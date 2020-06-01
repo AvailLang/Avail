@@ -6,12 +6,12 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
  *
  *  * Neither the name of the copyright holder nor the names of the contributors
  *    may be used to endorse or promote products derived from this software
@@ -31,7 +31,6 @@
  */
 package com.avail.descriptor.representation
 
-import com.avail.descriptor.*
 import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.descriptor.functions.A_Continuation
 import com.avail.descriptor.functions.CompiledCodeDescriptor
@@ -142,6 +141,7 @@ abstract class AvailObjectRepresentation protected constructor(
 	 *   The object slot to validate for the receiver.
 	 */
 	private fun checkSlot(field: ObjectSlotsEnum) {
+		@Suppress("ConstantConditionIf")
 		if (shouldCheckSlots) {
 			val debugSlots = currentDescriptor.debugObjectSlots
 			val permittedFields = debugSlots[field.fieldOrdinal()]
@@ -179,6 +179,7 @@ abstract class AvailObjectRepresentation protected constructor(
 	 *   The integer slot to validate for the receiver.
 	 */
 	private fun checkSlot(field: IntegerSlotsEnum) {
+		@Suppress("ConstantConditionIf")
 		if (shouldCheckSlots) {
 			val debugSlots = currentDescriptor.debugIntegerSlots
 			val permittedFields = debugSlots[field.fieldOrdinal()]
@@ -193,7 +194,7 @@ abstract class AvailObjectRepresentation protected constructor(
 			val definitionClass = field.javaClass.enclosingClass
 			assert(definitionClass.isInstance(currentDescriptor))
 			// Cache that field for next time.
-			val newPermittedFields: Array<IntegerSlotsEnum?>
+			val newPermittedFields: Array<IntegerSlotsEnum>
 			when (permittedFields) {
 				null -> newPermittedFields = arrayOf(field)
 				else -> {
@@ -477,6 +478,7 @@ abstract class AvailObjectRepresentation protected constructor(
 	 * @param anInteger
 	 *   A [Long] to store in the indicated slot.
 	 */
+	@Suppress("unused")
 	fun setMutableSlot(
 		field: IntegerSlotsEnum,
 		anInteger: Long
@@ -575,6 +577,7 @@ abstract class AvailObjectRepresentation protected constructor(
 	 * @param anInteger
 	 *   A [Long] to store in the indicated slot.
 	 */
+	@Suppress("unused")
 	fun setMutableSlot(
 		field: IntegerSlotsEnum,
 		subscript: Int,
@@ -831,6 +834,7 @@ abstract class AvailObjectRepresentation protected constructor(
 	 * @param count
 	 *   How many longs to transfer.
 	 */
+	@Suppress("unused")
 	fun slotsIntoArray(
 		sourceField: IntegerSlotsEnum,
 		startSourceSubscript: Int,
@@ -947,6 +951,7 @@ abstract class AvailObjectRepresentation protected constructor(
 	 * @param count
 	 *   How many longs to transfer.
 	 */
+	@Suppress("unused")
 	fun setSlotsFromLongSlots(
 		targetField: IntegerSlotsEnum,
 		startTargetSubscript: Int,
@@ -1179,6 +1184,7 @@ abstract class AvailObjectRepresentation protected constructor(
 	 * @return
 	 *   The object found at the specified slot in the receiver.
 	 */
+	@Suppress("MemberVisibilityCanBePrivate")
 	fun volatileSlot(
 		field: ObjectSlotsEnum,
 		subscript: Int
@@ -1222,6 +1228,7 @@ abstract class AvailObjectRepresentation protected constructor(
 	 * @param anAvailObject
 	 *   The object to store at the specified slot.
 	 */
+	@Suppress("unused")
 	fun setVolatileSlot(
 		field: ObjectSlotsEnum,
 		subscript: Int,

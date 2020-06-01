@@ -97,8 +97,8 @@ import java.util.logging.Logger
  *   The source text of the Avail [module][ModuleDescriptor] undergoing
  *   compilation.
  * @property textInterface
- *   The [text interface][TextInterface] for any [fibers][A_Fiber] started by
- *   this [compiler][AvailCompiler].
+ *   The [text&#32;interface][TextInterface] for any [fibers][A_Fiber] started
+ *   by this [compiler][AvailCompiler].
  * @property progressReporter
  *   The [CompilerProgressReporter] that reports compilation progress at various
  *   checkpoints. It accepts the [name][ResolvedModuleName] of the
@@ -112,15 +112,15 @@ import java.util.logging.Logger
  * Create a `CompilationContext` for compiling an [A_Module].
  *
  * @param moduleHeader
- *   The [module header][ModuleHeader] of the module to compile. May be null for
- *   synthetic modules (for entry points), or when parsing the header.
+ *   The [module&#32;header][ModuleHeader] of the module to compile. May be null
+ *   for synthetic modules (for entry points), or when parsing the header.
  * @param module
  *   The current [module][ModuleDescriptor].`
  * @param source
  *   The source [A_String].
  * @param textInterface
- *   The [text interface][TextInterface] for any [fibers][A_Fiber] started by
- *   this compiler.
+ *   The [text&#32;interface][TextInterface] for any [fibers][A_Fiber] started
+ *   by this compiler.
  * @param pollForAbort
  *   How to quickly check if the client wants to abort compilation.
  * @param progressReporter
@@ -368,9 +368,9 @@ class CompilationContext(
 
 	/**
 	 * Construct and answer a function that wraps the specified continuation in
-	 * logic that will increment the [count of completed work
-	 * units][workUnitsCompleted] and potentially call the [unambiguous
-	 * statement][noMoreWorkUnits].
+	 * logic that will increment the
+	 * [count&#32;of&#32;completed&#32;work&#32;units][workUnitsCompleted] and
+	 * potentially call the [unambiguous&#32;statement][noMoreWorkUnits].
 	 *
 	 * @param ArgType
 	 *   The type of value that will be passed to the continuation.
@@ -836,14 +836,15 @@ class CompilationContext(
 	}
 
 	/**
-	 * Report an [assertion failure][ProblemType.EXECUTION] [problem][Problem].
+	 * Report an [assertion&#32;failure][ProblemType.EXECUTION]
+	 * [problem][Problem].
 	 *
 	 * @param lineNumber
 	 *   The one-based line number on which the problem occurs.
 	 * @param position
 	 *   The one-based position in the source at which the problem occurs.
 	 * @param e
-	 *   The [assertion failure][AvailAssertionFailedException].
+	 *   The [assertion&#32;failure][AvailAssertionFailedException].
 	 */
 	internal fun reportAssertionFailureProblem(
 		lineNumber: Int,
@@ -867,14 +868,14 @@ class CompilationContext(
 	}
 
 	/**
-	 * Report an [emergency exit][ProblemType.EXECUTION] [problem][Problem].
+	 * Report an [emergency&#32;exit][ProblemType.EXECUTION] [problem][Problem].
 	 *
 	 * @param lineNumber
 	 *   The one-based line number on which the problem occurs.
 	 * @param position
 	 *   The one-based position in the source at which the problem occurs.
 	 * @param e
-	 *   The [emergency exit][AvailEmergencyExitException].
+	 *   The [emergency&#32;exit][AvailEmergencyExitException].
 	 */
 	internal fun reportEmergencyExitProblem(
 		lineNumber: Int,

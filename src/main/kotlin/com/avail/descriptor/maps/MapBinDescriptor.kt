@@ -6,11 +6,11 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *    list of conditions and the following disclaimer in the documentation
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
  *
  *  * Neither the name of the copyright holder nor the names of the contributors
@@ -31,12 +31,15 @@
  */
 package com.avail.descriptor.maps
 
-import com.avail.annotations.AvailMethod
-import com.avail.descriptor.Descriptor
 import com.avail.descriptor.maps.MapDescriptor.MapIterable
-import com.avail.descriptor.representation.*
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.BitField
+import com.avail.descriptor.representation.Descriptor
+import com.avail.descriptor.representation.IntegerSlotsEnum
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.types.TypeTag
-import java.util.function.BiConsumer
 
 /**
  * This abstract class organizes the idea of nodes in a Bagwell Ideal Hash Tree
@@ -46,8 +49,8 @@ import java.util.function.BiConsumer
  *   The level of my objects in their enclosing bin trees. The top node is level
  *   0 (using hash bits 0..5), and the bottom hashed node is level 5 (using hash
  *   bits 30..35, the top four of which are always zero). There can be a level 6
- *   [linear bin][LinearMapBinDescriptor], but it represents elements which all
- *   have the same hash value, so it should never be hashed.
+ *   [linear&#32;bin][LinearMapBinDescriptor], but it represents elements which
+ *   all have the same hash value, so it should never be hashed.
  *
  * @constructor
  *
@@ -102,16 +105,13 @@ abstract class MapBinDescriptor protected constructor(
 		}
 	}
 
-	@AvailMethod
 	override fun o_MapBinKeysHash(self: AvailObject) =
 		self.slot(IntegerSlots.KEYS_HASH)
 
-	@AvailMethod
 	abstract override fun o_ForEachInMapBin(
 		self: AvailObject,
-		action: BiConsumer<in AvailObject, in AvailObject>)
+		action: (AvailObject, AvailObject) -> Unit)
 
-	@AvailMethod
 	abstract override fun o_MapBinValuesHash(self: AvailObject): Int
 
 	override fun o_IsHashedMapBin(self: AvailObject) = false

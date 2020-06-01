@@ -41,10 +41,12 @@ import java.util.*
  * description of the class of XML documents supported by a particular
  * [XMLElement] implementation. It offers:
  *
- *  * Access to the [root element][rootElement].
+ *  * Access to the [root&#32;element][rootElement].
  *  * [Lookup][elementWithQName] of an element by its qualified name.
- *  * Access to the [allowed parent][allowedParentsOf] of a specified element.
- *  * Access to the [allowed child][allowedChildrenOf] of a specified element.
+ *  * Access to the [allowed&#32;parent][allowedParentsOf] of a specified
+ *    element.
+ *  * Access to the [allowed&#32;child][allowedChildrenOf] of a specified
+ *    element.
  *
  * @param ConfigurationType
  *   A concrete [Configuration] class.

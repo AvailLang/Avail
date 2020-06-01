@@ -31,7 +31,6 @@
  */
 package com.avail.interpreter.primitive.objects
 
-import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY
@@ -45,6 +44,7 @@ import com.avail.descriptor.objects.ObjectTypeDescriptor
 import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectMeta
 import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectType
 import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.emptyTuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
@@ -55,19 +55,20 @@ import com.avail.descriptor.types.InstanceTypeDescriptor.instanceType
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
 import com.avail.exceptions.AvailErrorCode
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelOne.L1InstructionWriter
 import com.avail.interpreter.levelOne.L1Operation
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.optimizer.L1Translator
 
 /**
- * **Primitive:** Given an [object type][ObjectTypeDescriptor] and an [A_Atom]
- * that is a field of that type (and not an explicit-subclass atom), create a
- * function that will extract that field from an object satisfying that type.
+ * **Primitive:** Given an [object&#32;type][ObjectTypeDescriptor] and an
+ * [A_Atom] that is a field of that type (and not an explicit-subclass atom),
+ * create a function that will extract that field from an object satisfying that
+ * type.
  *
  * The function should accept only objects of the type that was given to this
  * primitive, and should produce a result that is strongly typed to the field's

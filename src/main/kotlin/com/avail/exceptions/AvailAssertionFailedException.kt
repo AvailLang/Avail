@@ -46,7 +46,7 @@ import java.lang.String.format
 class AvailAssertionFailedException : Exception
 {
 	/**
-	 * The [error message][StringDescriptor] describing the assertion.
+	 * The [error&#32;message][StringDescriptor] describing the assertion.
 	 */
 	val assertionString: A_String
 
@@ -54,7 +54,7 @@ class AvailAssertionFailedException : Exception
 	 * Construct a new `AvailAssertionFailedException`.
 	 *
 	 * @param assertionString
-	 *   The [error message][StringDescriptor] describing the assertion.
+	 *   The [error&#32;message][StringDescriptor] describing the assertion.
 	 */
 	constructor(assertionString: A_String)
 	{
@@ -66,7 +66,7 @@ class AvailAssertionFailedException : Exception
 	 * Construct a new `AvailAssertionFailedException`.
 	 *
 	 * @param assertionString
-	 *   The [error message][StringDescriptor] describing the assertion.
+	 *   The [error&#32;message][StringDescriptor] describing the assertion.
 	 */
 	constructor(assertionString: String)
 	{

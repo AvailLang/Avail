@@ -32,8 +32,8 @@
 
 package com.avail.exceptions
 
-import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.numbers.A_Number
+import com.avail.descriptor.representation.AvailObject
 import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
@@ -51,7 +51,7 @@ open class AvailException : Exception
 	val errorCode: AvailErrorCode
 
 	/**
-	 * Answer the [error code][AvailErrorCode].
+	 * Answer the [error&#32;code][AvailErrorCode].
 	 *
 	 * @return
 	 *   The error code.
@@ -62,17 +62,17 @@ open class AvailException : Exception
 	 * Answer the numeric error code as an [Avail][AvailObject].
 	 *
 	 * @return
-	 *   The [numeric error code][AvailObject].
+	 *   The [numeric&#32;error&#32;code][AvailObject].
 	 */
 	@ReferencedInGeneratedCode
 	fun numericCode(): A_Number = errorCode.numericCode()
 
 	/**
 	 * Construct a new `AvailException` with the specified
-	 * [error code][AvailErrorCode].
+	 * [error&#32;code][AvailErrorCode].
 	 *
 	 * @param errorCode
-	 *   The [error code][AvailErrorCode].
+	 *   The [error&#32;code][AvailErrorCode].
 	 */
 	constructor(errorCode: AvailErrorCode)
 	{
@@ -81,12 +81,12 @@ open class AvailException : Exception
 
 	/**
 	 * Construct a new `AvailException` with the specified
-	 * [error code][AvailErrorCode] and [cause][Throwable].
+	 * [error&#32;code][AvailErrorCode] and [cause][Throwable].
 	 *
 	 * @param errorCode
-	 *   The [error code][AvailErrorCode].
+	 *   The [error&#32;code][AvailErrorCode].
 	 * @param cause
-	 *   The proximal [cause][Throwable] of the [        ].
+	 *   The proximal [cause][Throwable] of the [Exception].
 	 */
 	constructor(errorCode: AvailErrorCode, cause: Throwable) : super(cause)
 	{

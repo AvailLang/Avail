@@ -34,7 +34,6 @@ package com.avail.interpreter.primitive.methods
 
 import com.avail.compiler.splitter.MessageSplitter
 import com.avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
-import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
 import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrNil
@@ -48,6 +47,7 @@ import com.avail.descriptor.bundles.A_BundleTree.Companion.addPlanInProgress
 import com.avail.descriptor.bundles.MessageBundleDescriptor.Companion.newBundle
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import com.avail.descriptor.parsing.ParsingPlanInProgressDescriptor.Companion.newPlanInProgress
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
@@ -58,15 +58,18 @@ import com.avail.descriptor.types.TupleTypeDescriptor.stringType
 import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AmbiguousNameException
-import com.avail.exceptions.AvailErrorCode.*
+import com.avail.exceptions.AvailErrorCode.E_AMBIGUOUS_NAME
+import com.avail.exceptions.AvailErrorCode.E_ATOM_ALREADY_EXISTS
+import com.avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
+import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
+import com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
 import com.avail.exceptions.MalformedMessageException
-import com.avail.interpreter.execution.AvailLoader.Phase.EXECUTING_FOR_COMPILE
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
 import com.avail.interpreter.effects.LoadingEffectToRunPrimitive
-import com.avail.utility.evaluation.Continuation0
+import com.avail.interpreter.execution.AvailLoader.Phase.EXECUTING_FOR_COMPILE
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Alias a [name][A_String] to another [name][A_Atom].
@@ -125,12 +128,12 @@ object P_Alias : Primitive(2, CanInline, HasSideEffect)
 		if (loader.phase() == EXECUTING_FOR_COMPILE)
 		{
 			val root = loader.rootBundleTree()
-			loader.module().lock(Continuation0 {
+			loader.module().lock {
 				newBundle.definitionParsingPlans().mapIterable().forEach {
 					(_, value) ->
 					root.addPlanInProgress(newPlanInProgress(value, 1))
 				}
-			})
+			}
 		}
 		return interpreter.primitiveSuccess(nil)
 	}

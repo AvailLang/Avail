@@ -41,14 +41,16 @@ import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationW
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
-import com.avail.exceptions.AvailErrorCode.*
-import com.avail.interpreter.execution.Interpreter
+import com.avail.exceptions.AvailErrorCode.E_KEY_NOT_FOUND
+import com.avail.exceptions.AvailErrorCode.E_NO_SUCH_FIELD
+import com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.ReadsFromHiddenGlobalState
+import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** If the first [ atom][AtomDescriptor] has a property whose key
+ * **Primitive:** If the first [atom][AtomDescriptor] has a property whose key
  * is the second atom, then return the corresponding property value, otherwise
  * fail.
  */

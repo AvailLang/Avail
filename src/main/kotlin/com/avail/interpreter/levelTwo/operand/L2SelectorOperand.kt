@@ -31,7 +31,6 @@
  */
 package com.avail.interpreter.levelTwo.operand
 
-import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.atoms.A_Atom.Companion.atomName
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.bundles.A_Bundle.Companion.message
@@ -43,7 +42,7 @@ import com.avail.interpreter.levelTwo.L2OperandType
 
 /**
  * An `L2SelectorOperand` is an operand of type [L2OperandType.SELECTOR].  It
- * holds the [message bundle][MessageBundleDescriptor] that knows the
+ * holds the [message&#32;bundle][MessageBundleDescriptor] that knows the
  * [method][MethodDescriptor] to invoke.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
@@ -53,12 +52,12 @@ import com.avail.interpreter.levelTwo.L2OperandType
  *
  * @constructor
  * Construct a new `L2SelectorOperand` with the specified
- * [message bundle][MessageBundleDescriptor].
+ * [message&#32;bundle][MessageBundleDescriptor].
  *
  * @param bundle
  *   The message bundle that holds the [method][MethodDescriptor] in which to
- *   look up the [method definition][MethodDefinitionDescriptor] to ultimately
- *   invoke.
+ *   look up the [method&#32;definition][MethodDefinitionDescriptor] to
+ *   ultimately invoke.
  */
 class L2SelectorOperand constructor(val bundle: A_Bundle) : L2Operand()
 {

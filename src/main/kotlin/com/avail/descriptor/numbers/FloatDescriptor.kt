@@ -6,11 +6,11 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *    list of conditions and the following disclaimer in the documentation
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
  *
  *  * Neither the name of the copyright holder nor the names of the contributors
@@ -31,22 +31,31 @@
  */
 package com.avail.descriptor.numbers
 
-import com.avail.annotations.AvailMethod
 import com.avail.annotations.ThreadSafe
-import com.avail.descriptor.numbers.AbstractNumberDescriptor.Order.*
+import com.avail.descriptor.numbers.AbstractNumberDescriptor.Order.EQUAL
+import com.avail.descriptor.numbers.AbstractNumberDescriptor.Order.INCOMPARABLE
+import com.avail.descriptor.numbers.AbstractNumberDescriptor.Order.LESS
+import com.avail.descriptor.numbers.AbstractNumberDescriptor.Order.MORE
 import com.avail.descriptor.numbers.DoubleDescriptor.Companion.addDoubleAndIntegerCanDestroy
 import com.avail.descriptor.numbers.DoubleDescriptor.Companion.compareDoubleAndInteger
 import com.avail.descriptor.numbers.DoubleDescriptor.Companion.fromDoubleRecycling
 import com.avail.descriptor.numbers.FloatDescriptor.IntegerSlots.Companion.RAW_INT
-import com.avail.descriptor.representation.*
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.AvailObject.Companion.multiplier
+import com.avail.descriptor.representation.BitField
+import com.avail.descriptor.representation.IntegerSlotsEnum
+import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.descriptor.types.TypeTag
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
 import java.lang.Double.isNaN
-import java.lang.Float.*
+import java.lang.Float.floatToRawIntBits
+import java.lang.Float.intBitsToFloat
+import java.lang.Float.isInfinite
+import java.lang.Float.isNaN
 import java.util.*
 import kotlin.math.floor
 
@@ -79,17 +88,15 @@ class FloatDescriptor private constructor(
 		}
 	}
 
-	@AvailMethod
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
-		aStream: StringBuilder,
+		builder: StringBuilder,
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int
 	) {
-		aStream.append(self.extractFloat())
+		builder.append(self.extractFloat())
 	}
 
-	@AvailMethod
 	override fun o_AddToInfinityCanDestroy(
 		self: AvailObject,
 		sign: Sign,
@@ -97,7 +104,6 @@ class FloatDescriptor private constructor(
 	): A_Number = fromFloatRecycling(
 		sign.limitFloat() + getFloat(self), self, canDestroy)
 
-	@AvailMethod
 	override fun o_AddToIntegerCanDestroy(
 		self: AvailObject,
 		anInteger: AvailObject,
@@ -110,7 +116,6 @@ class FloatDescriptor private constructor(
 		return fromFloatRecycling(sum.toFloat(), self, canDestroy)
 	}
 
-	@AvailMethod
 	override fun o_AddToDoubleCanDestroy(
 		self: AvailObject,
 		doubleObject: A_Number,
@@ -120,7 +125,6 @@ class FloatDescriptor private constructor(
 		doubleObject,
 		canDestroy)
 
-	@AvailMethod
 	override fun o_AddToFloatCanDestroy(
 		self: AvailObject,
 		floatObject: A_Number,
@@ -131,14 +135,12 @@ class FloatDescriptor private constructor(
 		floatObject,
 		canDestroy)
 
-	@AvailMethod
 	override fun o_DivideCanDestroy(
 		self: AvailObject,
 		aNumber: A_Number,
 		canDestroy: Boolean
 	): A_Number = aNumber.divideIntoFloatCanDestroy(self, canDestroy)
 
-	@AvailMethod
 	override fun o_DivideIntoInfinityCanDestroy(
 		self: AvailObject,
 		sign: Sign,
@@ -153,7 +155,6 @@ class FloatDescriptor private constructor(
 	 * any integer that wouldn't cause the quotient to go out of finite float
 	 * range.
 	 */
-	@AvailMethod
 	override fun o_DivideIntoIntegerCanDestroy(
 		self: AvailObject,
 		anInteger: AvailObject,
@@ -163,7 +164,6 @@ class FloatDescriptor private constructor(
 		self,
 		canDestroy)
 
-	@AvailMethod
 	override fun o_DivideIntoDoubleCanDestroy(
 		self: AvailObject,
 		doubleObject: A_Number,
@@ -173,7 +173,6 @@ class FloatDescriptor private constructor(
 		doubleObject,
 		canDestroy)
 
-	@AvailMethod
 	override fun o_DivideIntoFloatCanDestroy(
 		self: AvailObject,
 		floatObject: A_Number,
@@ -184,13 +183,10 @@ class FloatDescriptor private constructor(
 		floatObject,
 		canDestroy)
 
-	@AvailMethod
 	override fun o_ExtractFloat(self: AvailObject): Float = getFloat(self)
 
-	@AvailMethod
 	override fun o_ExtractDouble(self: AvailObject): Double = getDouble(self)
 
-	@AvailMethod
 	override fun o_Equals(
 		self: AvailObject,
 		another: A_BasicObject
@@ -209,21 +205,17 @@ class FloatDescriptor private constructor(
 	 * Avail sets (at least) require reflexive equality.  Compare the exact bits
 	 * instead.
 	 */
-	@AvailMethod
 	override fun o_EqualsFloat(
 		self: AvailObject,
 		aFloat: Float
 	): Boolean =
 		floatToRawIntBits(getFloat(self)) == floatToRawIntBits(aFloat)
 
-	@AvailMethod
 	override fun o_Hash(self: AvailObject): Int =
 		(self.slot(RAW_INT) xor 0x16AE2BFD) * multiplier
 
-	@AvailMethod
 	override fun o_IsFloat(self: AvailObject) = true
 
-	@AvailMethod
 	override fun o_IsInstanceOfKind(
 		self: AvailObject,
 		aType: A_Type
@@ -236,22 +228,19 @@ class FloatDescriptor private constructor(
 				&& floor(it.toDouble()) == it.toDouble()
 		}
 
-	@AvailMethod
 	override fun o_Kind(self: AvailObject): A_Type = Types.FLOAT.o()
 
 	override fun o_MarshalToJava(
 		self: AvailObject,
-		ignoredClassHint: Class<*>?
-	): Any? = getFloat(self)
+		classHint: Class<*>?
+	): Any = getFloat(self)
 
-	@AvailMethod
 	override fun o_MinusCanDestroy(
 		self: AvailObject,
 		aNumber: A_Number,
 		canDestroy: Boolean
 	): A_Number = aNumber.subtractFromFloatCanDestroy(self, canDestroy)
 
-	@AvailMethod
 	override fun o_MultiplyByInfinityCanDestroy(
 		self: AvailObject,
 		sign: Sign,
@@ -263,7 +252,6 @@ class FloatDescriptor private constructor(
 	 * Do the math with doubles to avoid intermediate overflow of the integer in
 	 * the case that the product could still be represented as a float.
 	 */
-	@AvailMethod
 	override fun o_MultiplyByIntegerCanDestroy(
 		self: AvailObject,
 		anInteger: AvailObject,
@@ -273,7 +261,6 @@ class FloatDescriptor private constructor(
 		self,
 		canDestroy)
 
-	@AvailMethod
 	override fun o_MultiplyByDoubleCanDestroy(
 		self: AvailObject,
 		doubleObject: A_Number,
@@ -283,7 +270,6 @@ class FloatDescriptor private constructor(
 		doubleObject,
 		canDestroy)
 
-	@AvailMethod
 	override fun o_MultiplyByFloatCanDestroy(
 		self: AvailObject,
 		floatObject: A_Number,
@@ -294,26 +280,23 @@ class FloatDescriptor private constructor(
 		floatObject,
 		canDestroy)
 
-	@AvailMethod
 	override fun o_NumericCompare(
 		self: AvailObject,
 		another: A_Number
 	): Order = another.numericCompareToDouble(getDouble(self)).reverse()
 
-	@AvailMethod
 	override fun o_NumericCompareToDouble(
 		self: AvailObject,
-		double1: Double
+		aDouble: Double
 	): Order = getDouble(self).let {
 		when {
-			it == double1 -> EQUAL
-			it < double1 -> LESS
-			it > double1 -> MORE
+			it == aDouble -> EQUAL
+			it < aDouble -> LESS
+			it > aDouble -> MORE
 			else -> INCOMPARABLE
 		}
 	}
 
-	@AvailMethod
 	override fun o_NumericCompareToInfinity(
 		self: AvailObject,
 		sign: Sign
@@ -330,25 +313,21 @@ class FloatDescriptor private constructor(
 		}
 	}
 
-	@AvailMethod
 	override fun o_NumericCompareToInteger(
 		self: AvailObject,
 		anInteger: AvailObject
 	): Order = compareDoubleAndInteger(getDouble(self), anInteger)
 
-	@AvailMethod
 	override fun o_PlusCanDestroy(
 		self: AvailObject,
 		aNumber: A_Number,
 		canDestroy: Boolean
 	): A_Number = aNumber.addToFloatCanDestroy(self, canDestroy)
 
-	@AvailMethod
 	@ThreadSafe
 	override fun o_SerializerOperation(self: AvailObject) =
 		SerializerOperation.FLOAT
 
-	@AvailMethod
 	override fun o_SubtractFromInfinityCanDestroy(
 		self: AvailObject,
 		sign: Sign,
@@ -356,7 +335,6 @@ class FloatDescriptor private constructor(
 	): A_Number = fromFloatRecycling(
 		sign.limitDouble().toFloat() - getFloat(self), self, canDestroy)
 
-	@AvailMethod
 	override fun o_SubtractFromIntegerCanDestroy(
 		self: AvailObject,
 		anInteger: AvailObject,
@@ -367,7 +345,6 @@ class FloatDescriptor private constructor(
 		self,
 		canDestroy)
 
-	@AvailMethod
 	override fun o_SubtractFromDoubleCanDestroy(
 		self: AvailObject,
 		doubleObject: A_Number,
@@ -377,7 +354,6 @@ class FloatDescriptor private constructor(
 		doubleObject,
 		canDestroy)
 
-	@AvailMethod
 	override fun o_SubtractFromFloatCanDestroy(
 		self: AvailObject,
 		floatObject: A_Number,
@@ -388,7 +364,6 @@ class FloatDescriptor private constructor(
 		floatObject,
 		canDestroy)
 
-	@AvailMethod
 	override fun o_TimesCanDestroy(
 		self: AvailObject,
 		aNumber: A_Number,
@@ -538,6 +513,8 @@ class FloatDescriptor private constructor(
 		 * @return
 		 *   The Avail object for float (positive) zero.
 		 */
+		@Suppress("unused")
+		@JvmStatic
 		fun floatZero(): A_Number = Sign.ZERO.limitFloatObject()
 
 		/** The mutable [FloatDescriptor].  */

@@ -47,19 +47,19 @@ import java.lang.String.format
 import java.util.*
 
 /**
- * To direct the activities of an [Avail server][AvailServer], a client sends
- * [command messages][CommandMessage] that encode `Command`s. The `Command`
- * `enum` codifies the set of possible commands, and each member specifies the
- * decoding logic.
+ * To direct the activities of an [Avail&#32;server][AvailServer], a client
+ * sends [command&#32;messages][CommandMessage] that encode `Command`s. The
+ * `Command` `enum` codifies the set of possible commands, and each member
+ * specifies the decoding logic.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  *
  * @constructor
  *
- * Construct a new `Command`. If it doesn't [require special
- * parsing][requiresSpecialParsing], then add it to the parsing [TrieNode.trie]
- * (treating the tokenization of its [name][name] on underscore boundaries as
- * its syntax).
+ * Construct a new `Command`. If it doesn't
+ * [require&#32;special&#32;parsing][requiresSpecialParsing], then add it to the
+ * parsing [TrieNode.trie] (treating the tokenization of its [name][name] on
+ * underscore boundaries as its syntax).
  */
 enum class Command
 {
@@ -126,22 +126,23 @@ enum class Command
 	COMMANDS,
 
 	/**
-	 * List all [module roots][ModuleRoot].
+	 * List all [module&#32;roots][ModuleRoot].
 	 */
 	MODULE_ROOTS,
 
 	/**
-	 * List all [module root paths][ModuleRoots.writePathsOn].
+	 * List all [module&#32;root&#32;paths][ModuleRoots.writePathsOn].
 	 */
 	MODULE_ROOT_PATHS,
 
 	/**
-	 * Answer the [module roots path][ModuleRoots.modulePath].
+	 * Answer the [module&#32;roots&#32;path][ModuleRoots.modulePath].
 	 */
 	MODULE_ROOTS_PATH,
 
 	/**
-	 * List all source modules reachable from the [module roots][ModuleRoot].
+	 * List all source modules reachable from the
+	 * [module&#32;roots][ModuleRoot].
 	 */
 	SOURCE_MODULES,
 
@@ -151,7 +152,7 @@ enum class Command
 	ENTRY_POINTS,
 
 	/**
-	 * Clear all [binary module repositories][Repository].
+	 * Clear all [binary&#32;module&#32;repositories][Repository].
 	 */
 	CLEAR_REPOSITORIES,
 
@@ -253,14 +254,15 @@ enum class Command
 	private val syntax: Array<String>?
 
 	/**
-	 * `true` iff [command messages][CommandMessage] of this [form][Command]
+	 * `true` iff [command&#32;messages][CommandMessage] of this [form][Command]
 	 * require special parsing, `false` otherwise.
 	 */
 	internal open val requiresSpecialParsing get() = false
 
 	/**
-	 * Apply special parsing logic to produce a [command
-	 * message][CommandMessage] for this form of [command][Command].
+	 * Apply special parsing logic to produce a
+	 * [command&#32;message][CommandMessage] for this form of
+	 * [command][Command].
 	 *
 	 * @param source
 	 *   The source of the command.
@@ -350,15 +352,15 @@ enum class Command
 			}
 
 			/**
-			 * The [commands][Command] that [require special
-			 * parsing][requiresSpecialParsing].
+			 * The [commands][Command] that
+			 * [require&#32;special&#32;parsing][requiresSpecialParsing].
 			 */
 			private val speciallyParsedCommands = ArrayList<Command>(10)
 
 			/**
 			 * Add the specified [command][Command] to the
-			 * [list][speciallyParsedCommands] of [specially parsed
-			 * commands][requiresSpecialParsing].
+			 * [list][speciallyParsedCommands] of
+			 * [specially&#32;parsed&#32;commands][requiresSpecialParsing].
 			 *
 			 * @param command
 			 *   A specially parsed command.
@@ -391,7 +393,7 @@ enum class Command
 			}
 
 			/**
-			 * Parse one or more [command messages][CommandMessage] from the
+			 * Parse one or more [command&#32;messages][CommandMessage] from the
 			 * specified [source][String].
 			 *
 			 * @param source
@@ -453,7 +455,7 @@ enum class Command
 		val all = values()
 
 		/**
-		 * Parse an unambiguous [command message][CommandMessage] from the
+		 * Parse an unambiguous [command&#32;message][CommandMessage] from the
 		 * supplied raw [message][Message].
 		 *
 		 * @param message

@@ -32,13 +32,12 @@
 
 package com.avail.descriptor.tuples;
 
-import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
-import com.avail.descriptor.character.A_Character;
-import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
+import com.avail.descriptor.character.A_Character;
 import com.avail.descriptor.representation.A_BasicObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.representation.BitField;
 import com.avail.descriptor.representation.Mutability;
 import com.avail.descriptor.types.A_Type;
@@ -49,7 +48,9 @@ import java.util.IdentityHashMap;
 
 import static com.avail.descriptor.representation.AvailObjectRepresentation.newLike;
 import static com.avail.descriptor.tuples.ByteStringDescriptor.generateByteString;
-import static com.avail.descriptor.tuples.ObjectTupleDescriptor.*;
+import static com.avail.descriptor.tuples.ObjectTupleDescriptor.generateObjectTupleFrom;
+import static com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.tuples.RepeatedElementTupleDescriptor.IntegerSlots.HASH_OR_ZERO;
 import static com.avail.descriptor.tuples.RepeatedElementTupleDescriptor.IntegerSlots.SIZE;
 import static com.avail.descriptor.tuples.RepeatedElementTupleDescriptor.ObjectSlots.ELEMENT;
@@ -125,7 +126,7 @@ extends TupleDescriptor
 	 */
 	private static final int minimumRepeatSize = 2;
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsRepeatedElementTuple(final AvailObject object)
 	{
 		return true;
@@ -158,7 +159,7 @@ extends TupleDescriptor
 		}
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Tuple o_CopyTupleFromToCanDestroy (
 		final AvailObject object,
 		final int start,
@@ -190,7 +191,7 @@ extends TupleDescriptor
 		return object;
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_CompareFromToWithStartingAt (
 		final AvailObject object,
 		final int startIndex1,
@@ -205,7 +206,7 @@ extends TupleDescriptor
 			startIndex1);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_CompareFromToWithRepeatedElementTupleStartingAt (
 		final AvailObject object,
 		final int startIndex1,
@@ -305,13 +306,13 @@ extends TupleDescriptor
 		return concatenateAtLeastOneTree(object, otherTuple, true);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsRepeatedElementTuple(object);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_EqualsRepeatedElementTuple (
 		final AvailObject object,
 		final A_Tuple aRepeatedElementTuple)
@@ -366,7 +367,7 @@ extends TupleDescriptor
 		return 0;
 	}
 
-	@Override @AvailMethod
+	@Override
 	public AvailObject o_TupleAt (final AvailObject object, final int index)
 	{
 		// Answer the value at the given index in the tuple object.
@@ -375,7 +376,7 @@ extends TupleDescriptor
 		return object.slot(ELEMENT);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Tuple o_TupleAtPuttingCanDestroy (
 		final AvailObject object,
 		final int index,
@@ -439,7 +440,7 @@ extends TupleDescriptor
 			right, true);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Tuple o_AppendCanDestroy (
 		final AvailObject object,
 		final A_BasicObject newElement,
@@ -459,7 +460,7 @@ extends TupleDescriptor
 		return object.concatenateWith(singleton, canDestroy);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public int o_TupleIntAt (final AvailObject object, final int index)
 	{
 		// Answer the value at the given index in the tuple object.
@@ -467,13 +468,13 @@ extends TupleDescriptor
 		return object.slot(ELEMENT).extractInt();
 	}
 
-	@Override @AvailMethod
-	public A_Tuple o_TupleReverse(final AvailObject object)
+	@Override
+	public A_Tuple o_TupleReverse (final AvailObject object)
 	{
 		return object;
 	}
 
-	@Override @AvailMethod
+	@Override
 	public int o_TupleSize (final AvailObject object)
 	{
 		return object.slot(SIZE);

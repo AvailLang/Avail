@@ -6,12 +6,12 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
  *
  *  * Neither the name of the copyright holder nor the names of the contributors
  *    may be used to endorse or promote products derived from this software
@@ -31,36 +31,46 @@
  */
 package com.avail.descriptor.phrases
 
-import com.avail.annotations.AvailMethod
-import com.avail.compiler.AvailCodeGenerator
-import com.avail.descriptor.representation.NilDescriptor.Companion.nil
-import com.avail.descriptor.phrases.A_Phrase.Companion.declaration
-import com.avail.descriptor.phrases.A_Phrase.Companion.emitValueOn
-import com.avail.descriptor.phrases.A_Phrase.Companion.expression
-import com.avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
-import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKind
-import com.avail.descriptor.phrases.A_Phrase.Companion.token
-import com.avail.descriptor.phrases.A_Phrase.Companion.tokens
-import com.avail.descriptor.phrases.A_Phrase.Companion.variable
-import com.avail.descriptor.phrases.AssignmentPhraseDescriptor.IntegerSlots.Companion.IS_INLINE
-import com.avail.descriptor.phrases.AssignmentPhraseDescriptor.ObjectSlots.*
-import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.*
-import com.avail.descriptor.representation.*
-import com.avail.descriptor.representation.AvailObject.Companion.error
-import com.avail.descriptor.representation.AvailObject.Companion.multiplier
-import com.avail.descriptor.tokens.A_Token
-import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
-import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
-import com.avail.descriptor.types.TypeDescriptor.Types
-import com.avail.descriptor.types.TypeTag
-import com.avail.serialization.SerializerOperation
-import com.avail.utility.evaluation.Continuation1NotNull
-import com.avail.utility.json.JSONWriter
-import java.util.*
-import java.util.function.Consumer
-import java.util.function.UnaryOperator
+ import com.avail.compiler.AvailCodeGenerator
+ import com.avail.descriptor.phrases.A_Phrase.Companion.declaration
+ import com.avail.descriptor.phrases.A_Phrase.Companion.emitValueOn
+ import com.avail.descriptor.phrases.A_Phrase.Companion.expression
+ import com.avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
+ import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKind
+ import com.avail.descriptor.phrases.A_Phrase.Companion.token
+ import com.avail.descriptor.phrases.A_Phrase.Companion.tokens
+ import com.avail.descriptor.phrases.A_Phrase.Companion.variable
+ import com.avail.descriptor.phrases.AssignmentPhraseDescriptor.IntegerSlots.Companion.IS_INLINE
+ import com.avail.descriptor.phrases.AssignmentPhraseDescriptor.ObjectSlots.EXPRESSION
+ import com.avail.descriptor.phrases.AssignmentPhraseDescriptor.ObjectSlots.TOKENS
+ import com.avail.descriptor.phrases.AssignmentPhraseDescriptor.ObjectSlots.VARIABLE
+ import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.ARGUMENT
+ import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.LABEL
+ import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.LOCAL_CONSTANT
+ import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.LOCAL_VARIABLE
+ import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.MODULE_CONSTANT
+ import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.MODULE_VARIABLE
+ import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.PRIMITIVE_FAILURE_REASON
+ import com.avail.descriptor.representation.A_BasicObject
+ import com.avail.descriptor.representation.AbstractDescriptor
+ import com.avail.descriptor.representation.AvailObject
+ import com.avail.descriptor.representation.AvailObject.Companion.error
+ import com.avail.descriptor.representation.AvailObject.Companion.multiplier
+ import com.avail.descriptor.representation.BitField
+ import com.avail.descriptor.representation.IntegerSlotsEnum
+ import com.avail.descriptor.representation.Mutability
+ import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+ import com.avail.descriptor.representation.ObjectSlotsEnum
+ import com.avail.descriptor.tokens.A_Token
+ import com.avail.descriptor.tuples.A_Tuple
+ import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+ import com.avail.descriptor.types.A_Type
+ import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
+ import com.avail.descriptor.types.TypeDescriptor.Types
+ import com.avail.descriptor.types.TypeTag
+ import com.avail.serialization.SerializerOperation
+ import com.avail.utility.json.JSONWriter
+ import java.util.*
 
 /**
  * My instances represent assignment statements.
@@ -85,7 +95,7 @@ class AssignmentPhraseDescriptor private constructor(
 	 */
 	enum class IntegerSlots : IntegerSlotsEnum {
 		/**
-		 * The [assignment phrase][AssignmentPhraseDescriptor]'s flags.
+		 * The [assignment&#32;phrase][AssignmentPhraseDescriptor]'s flags.
 		 */
 		FLAGS;
 
@@ -131,27 +141,22 @@ class AssignmentPhraseDescriptor private constructor(
 			builder, recursionMap, indent + 1)
 	}
 
-	@AvailMethod
 	override fun o_Variable(self: AvailObject): A_Phrase = self.slot(VARIABLE)
 
-	@AvailMethod
 	override fun o_Expression(self: AvailObject): A_Phrase =
 		self.slot(EXPRESSION)
 
-	@AvailMethod
 	override fun o_ExpressionType(self: AvailObject): A_Type =
 		when {
 			isInline(self) -> self.slot(EXPRESSION).expressionType()
 			else -> Types.TOP.o()
 		}
 
-	@AvailMethod
 	override fun o_Hash(self: AvailObject) =
 		(self.variable().hash() * multiplier
 			+ self.expression().hash()
 			xor -0x58e157ac)
 
-	@AvailMethod
 	override fun o_EqualsPhrase(
 		self: AvailObject,
 		aPhrase: A_Phrase
@@ -161,7 +166,6 @@ class AssignmentPhraseDescriptor private constructor(
 		&& self.slot(EXPRESSION).equals(aPhrase.expression())
 		&& self.slot(TOKENS).equals(aPhrase.tokens()))
 
-	@AvailMethod
 	override fun o_EmitEffectOn(
 		self: AvailObject,
 		codeGenerator: AvailCodeGenerator
@@ -174,7 +178,6 @@ class AssignmentPhraseDescriptor private constructor(
 			self.tokens(), declaration, codeGenerator)
 	}
 
-	@AvailMethod
 	override fun o_EmitValueOn(
 		self: AvailObject,
 		codeGenerator: AvailCodeGenerator
@@ -200,30 +203,27 @@ class AssignmentPhraseDescriptor private constructor(
 		}
 	}
 
-	@AvailMethod
 	override fun o_ChildrenMap(
 		self: AvailObject,
-		transformer: UnaryOperator<A_Phrase>
+		transformer: (A_Phrase) -> A_Phrase
 	) {
-		self.setSlot(EXPRESSION, transformer.apply(self.slot(EXPRESSION)))
-		self.setSlot(VARIABLE, transformer.apply(self.slot(VARIABLE)))
+		self.setSlot(EXPRESSION, transformer(self.slot(EXPRESSION)))
+		self.setSlot(VARIABLE, transformer(self.slot(VARIABLE)))
 	}
 
-	@AvailMethod
 	override fun o_ChildrenDo(
 		self: AvailObject,
-		action: Consumer<A_Phrase>
+		action: (A_Phrase) -> Unit
 	) {
-		action.accept(self.slot(EXPRESSION))
-		action.accept(self.slot(VARIABLE))
+		action(self.slot(EXPRESSION))
+		action(self.slot(VARIABLE))
 	}
 
 	override fun o_StatementsDo(
 		self: AvailObject,
-		continuation: Continuation1NotNull<A_Phrase>
-	) = continuation.value(self)
+		continuation: (A_Phrase) -> Unit
+	) = continuation(self)
 
-	@AvailMethod
 	override fun o_ValidateLocally(
 		self: AvailObject,
 		parent: A_Phrase?
@@ -267,9 +267,9 @@ class AssignmentPhraseDescriptor private constructor(
 		writer.endObject()
 	}
 
-	override fun mutable(): AssignmentPhraseDescriptor = mutable
+	override fun mutable() = mutable
 
-	override fun shared(): AssignmentPhraseDescriptor = shared
+	override fun shared() = shared
 
 	companion object {
 		/**

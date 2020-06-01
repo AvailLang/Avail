@@ -52,12 +52,12 @@ import java.util.*
 
 /**
  * A `NumberedChoice` is a special subgroup (i.e., not a root group) indicated
- * by an [exclamation mark][Metacharacter.EXCLAMATION_MARK] following a
- * [group][Group].  It must not contain [ ] or subgroups and it must not contain
- * a [double dagger][Metacharacter.DOUBLE_DAGGER].  The group contains an
- * [Alternation], and parsing the group causes exactly one of the alternatives
- * to be parsed. The 1-based index of the alternative is produced as a literal
- * constant argument.
+ * by an [exclamation&#32;mark][Metacharacter.EXCLAMATION_MARK] following a
+ * [group][Group].  It must not contain [arguments][Argument] or subgroups and
+ * it must not contain a [double&#32;dagger][Metacharacter.DOUBLE_DAGGER].  The
+ * group contains an [Alternation], and parsing the group causes exactly one of
+ * the alternatives to be parsed. The 1-based index of the alternative is
+ * produced as a literal constant argument.
  *
  * For example, consider parsing a send of the message "my«cheese|bacon|Elvis»!"
  * from the string "my bacon cheese".  The bacon token will be parsed, causing

@@ -42,11 +42,10 @@ import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.exceptions.AvailErrorCode.E_FIBER_PRODUCED_INCORRECTLY_TYPED_RESULT
 import com.avail.exceptions.AvailErrorCode.E_FIBER_RESULT_UNAVAILABLE
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.ReadsFromHiddenGlobalState
-import java.util.function.Supplier
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Answer the result of the specified [fiber][FiberDescriptor].
@@ -61,8 +60,8 @@ object P_FiberResult : Primitive(
 	{
 		interpreter.checkArgumentCount(1)
 		val fiber = interpreter.argument(0)
-		return with (fiber) {
-			lock(Supplier {
+		return with(fiber) {
+			lock {
 				when {
 					!executionState().indicatesTermination()
 						|| fiberResult().equalsNil() ->
@@ -73,7 +72,7 @@ object P_FiberResult : Primitive(
 							E_FIBER_PRODUCED_INCORRECTLY_TYPED_RESULT)
 					else -> interpreter.primitiveSuccess(fiberResult())
 				}
-			})
+			}
 		}
 	}
 

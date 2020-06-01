@@ -6,12 +6,12 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
  *
  *  * Neither the name of the copyright holder nor the names of the contributors
  *    may be used to endorse or promote products derived from this software
@@ -31,7 +31,6 @@
  */
 package com.avail.descriptor.phrases
 
-import com.avail.annotations.AvailMethod
 import com.avail.compiler.AvailCodeGenerator
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
@@ -39,6 +38,7 @@ import com.avail.descriptor.phrases.A_Phrase.Companion.markerValue
 import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKind
 import com.avail.descriptor.phrases.MarkerPhraseDescriptor.ObjectSlots.MARKER_VALUE
 import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AbstractDescriptor
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
@@ -46,13 +46,10 @@ import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
-import com.avail.descriptor.types.TypeDescriptor.*
+import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.descriptor.types.TypeTag
 import com.avail.serialization.SerializerOperation
-import com.avail.utility.evaluation.Continuation1NotNull
 import java.util.*
-import java.util.function.Consumer
-import java.util.function.UnaryOperator
 
 /**
  * My instances represent a parsing marker that can be pushed onto the parse
@@ -119,25 +116,21 @@ class MarkerPhraseDescriptor private constructor(
 		builder.append(")")
 	}
 
-	@AvailMethod
 	override fun o_ChildrenDo(
 		self: AvailObject,
-		action: Consumer<A_Phrase>
-	): Unit = throw unsupportedOperationException()
+		action: (A_Phrase) -> Unit
+	): Unit = unsupportedOperation()
 
-	@AvailMethod
 	override fun o_ChildrenMap(
 		self: AvailObject,
-		transformer: UnaryOperator<A_Phrase>
-	): Unit = throw unsupportedOperationException()
+		transformer: (A_Phrase) -> A_Phrase
+	): Unit = unsupportedOperation()
 
-	@AvailMethod
 	override fun o_EmitValueOn(
 		self: AvailObject,
 		codeGenerator: AvailCodeGenerator
-	): Unit = throw unsupportedOperationException()
+	): Unit = unsupportedOperation()
 
-	@AvailMethod
 	override fun o_EqualsPhrase(
 		self: AvailObject,
 		aPhrase: A_Phrase
@@ -146,15 +139,11 @@ class MarkerPhraseDescriptor private constructor(
 		&& self.markerValue().equals(aPhrase.markerValue()))
 
 	/** This shouldn't make a difference. */
-	@AvailMethod
-	override fun o_ExpressionType(self: AvailObject): A_Type =
-		Types.TOP.o()
+	override fun o_ExpressionType(self: AvailObject): A_Type = Types.TOP.o()
 
-	@AvailMethod
 	override fun o_Hash(self: AvailObject): Int =
 		self.markerValue().hash() xor -0x34353534
 
-	@AvailMethod
 	override fun o_MarkerValue(self: AvailObject): A_BasicObject =
 		self.slot(MARKER_VALUE)
 
@@ -166,24 +155,23 @@ class MarkerPhraseDescriptor private constructor(
 	 * change at some point.
 	 */
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
-		throw unsupportedOperationException()
+		 unsupportedOperation()
 
 	override fun o_StatementsDo(
 		self: AvailObject,
-		continuation: Continuation1NotNull<A_Phrase>
-	): Unit = throw unsupportedOperationException()
+		continuation: (A_Phrase) -> Unit
+	): Unit = unsupportedOperation()
 
 	override fun o_Tokens(self: AvailObject): A_Tuple = emptyTuple()
 
-	@AvailMethod
 	override fun o_ValidateLocally(
 		self: AvailObject,
 		parent: A_Phrase?
-	): Unit = throw unsupportedOperationException()
+	): Unit = unsupportedOperation()
 
-	override fun mutable(): MarkerPhraseDescriptor = mutable
+	override fun mutable() = mutable
 
-	override fun shared(): MarkerPhraseDescriptor = shared
+	override fun shared() = shared
 
 	companion object {
 		/**

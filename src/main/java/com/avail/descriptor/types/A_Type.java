@@ -32,7 +32,6 @@
 
 package com.avail.descriptor.types;
 
-import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.functions.FunctionDescriptor;
 import com.avail.descriptor.maps.A_Map;
 import com.avail.descriptor.numbers.A_Number;
@@ -42,6 +41,7 @@ import com.avail.descriptor.phrases.BlockPhraseDescriptor;
 import com.avail.descriptor.phrases.PhraseDescriptor;
 import com.avail.descriptor.phrases.SendPhraseDescriptor;
 import com.avail.descriptor.representation.A_BasicObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.sets.A_Set;
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType;
 import com.avail.descriptor.tuples.A_Tuple;
@@ -329,7 +329,7 @@ extends A_BasicObject
 	 * @param aSetType
 	 * @return
 	 */
-	boolean isSupertypeOfSetType (AvailObject aSetType);
+	boolean isSupertypeOfSetType (A_Type aSetType);
 
 	/**
 	 * Dispatch to the descriptor.
@@ -341,7 +341,7 @@ extends A_BasicObject
 	 * @param aTupleType
 	 * @return
 	 */
-	boolean isSupertypeOfTupleType (AvailObject aTupleType);
+	boolean isSupertypeOfTupleType (A_Type aTupleType);
 
 	/**
 	 * Dispatch to the descriptor.
@@ -349,7 +349,7 @@ extends A_BasicObject
 	 * @return
 	 */
 	boolean isSupertypeOfEnumerationType (
-		A_BasicObject anEnumerationType);
+		A_Type anEnumerationType);
 
 	/**
 	 * @param aCompiledCodeType

@@ -6,11 +6,11 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *    list of conditions and the following disclaimer in the documentation
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
  *
  *  * Neither the name of the copyright holder nor the names of the contributors
@@ -31,39 +31,45 @@
  */
 package com.avail.descriptor.tokens
 
-import com.avail.annotations.AvailMethod
-import com.avail.annotations.EnumField
-import com.avail.annotations.EnumField.Converter
-import com.avail.annotations.HideFieldInDebugger
-import com.avail.compiler.scanning.LexingState
-import com.avail.descriptor.Descriptor
-import com.avail.descriptor.representation.NilDescriptor
-import com.avail.descriptor.representation.NilDescriptor.Companion.nil
-import com.avail.descriptor.atoms.A_Atom
-import com.avail.descriptor.atoms.A_Atom.Companion.setAtomProperty
-import com.avail.descriptor.atoms.AtomDescriptor.Companion.createSpecialAtom
-import com.avail.descriptor.numbers.IntegerDescriptor
-import com.avail.descriptor.pojos.RawPojoDescriptor
-import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
-import com.avail.descriptor.representation.*
-import com.avail.descriptor.tokens.CommentTokenDescriptor.Companion.newCommentToken
-import com.avail.descriptor.tokens.TokenDescriptor.IntegerSlots.Companion.LINE_NUMBER
-import com.avail.descriptor.tokens.TokenDescriptor.IntegerSlots.Companion.START
-import com.avail.descriptor.tokens.TokenDescriptor.IntegerSlots.Companion.TOKEN_TYPE_CODE
-import com.avail.descriptor.tokens.TokenDescriptor.ObjectSlots.NEXT_LEXING_STATE_POJO
-import com.avail.descriptor.tokens.TokenDescriptor.ObjectSlots.STRING
-import com.avail.descriptor.tokens.TokenDescriptor.TokenType.Companion.lookupTokenType
-import com.avail.descriptor.tuples.A_String
-import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.StringDescriptor
-import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.TokenTypeDescriptor.tokenType
-import com.avail.descriptor.types.TypeDescriptor.Types
-import com.avail.descriptor.types.TypeTag
-import com.avail.serialization.SerializerOperation
-import com.avail.utility.PrefixSharingList.append
-import com.avail.utility.json.JSONWriter
-import java.util.*
+ import com.avail.annotations.EnumField
+ import com.avail.annotations.EnumField.Converter
+ import com.avail.annotations.HideFieldInDebugger
+ import com.avail.compiler.scanning.LexingState
+ import com.avail.descriptor.atoms.A_Atom
+ import com.avail.descriptor.atoms.A_Atom.Companion.setAtomProperty
+ import com.avail.descriptor.atoms.AtomDescriptor.Companion.createSpecialAtom
+ import com.avail.descriptor.numbers.IntegerDescriptor
+ import com.avail.descriptor.pojos.RawPojoDescriptor
+ import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
+ import com.avail.descriptor.representation.A_BasicObject
+ import com.avail.descriptor.representation.AbstractSlotsEnum
+ import com.avail.descriptor.representation.AvailObject
+ import com.avail.descriptor.representation.BitField
+ import com.avail.descriptor.representation.Descriptor
+ import com.avail.descriptor.representation.IntegerEnumSlotDescriptionEnum
+ import com.avail.descriptor.representation.IntegerSlotsEnum
+ import com.avail.descriptor.representation.Mutability
+ import com.avail.descriptor.representation.NilDescriptor
+ import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+ import com.avail.descriptor.representation.ObjectSlotsEnum
+ import com.avail.descriptor.tokens.CommentTokenDescriptor.Companion.newCommentToken
+ import com.avail.descriptor.tokens.TokenDescriptor.IntegerSlots.Companion.LINE_NUMBER
+ import com.avail.descriptor.tokens.TokenDescriptor.IntegerSlots.Companion.START
+ import com.avail.descriptor.tokens.TokenDescriptor.IntegerSlots.Companion.TOKEN_TYPE_CODE
+ import com.avail.descriptor.tokens.TokenDescriptor.ObjectSlots.NEXT_LEXING_STATE_POJO
+ import com.avail.descriptor.tokens.TokenDescriptor.ObjectSlots.STRING
+ import com.avail.descriptor.tokens.TokenDescriptor.TokenType.Companion.lookupTokenType
+ import com.avail.descriptor.tuples.A_String
+ import com.avail.descriptor.tuples.A_Tuple
+ import com.avail.descriptor.tuples.StringDescriptor
+ import com.avail.descriptor.types.A_Type
+ import com.avail.descriptor.types.TokenTypeDescriptor.tokenType
+ import com.avail.descriptor.types.TypeDescriptor.Types
+ import com.avail.descriptor.types.TypeTag
+ import com.avail.serialization.SerializerOperation
+ import com.avail.utility.PrefixSharingList.append
+ import com.avail.utility.json.JSONWriter
+ import java.util.*
 
 /**
  * I represent a token scanned from Avail source code.
@@ -146,8 +152,8 @@ open class TokenDescriptor protected constructor(
 		STRING,
 
 		/**
-		 * A [raw pojo][RawPojoDescriptor] holding the [LexingState] after this
-		 * token.
+		 * A [raw&#32;pojo][RawPojoDescriptor] holding the [LexingState] after
+		 * this token.
 		 */
 		NEXT_LEXING_STATE_POJO
 	}
@@ -251,11 +257,11 @@ open class TokenDescriptor protected constructor(
 
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
-		aStream: StringBuilder,
+		builder: StringBuilder,
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int)
 	{
-		aStream.append(String.format(
+		builder.append(String.format(
 			"%s (%s) @ %d:%d",
 			self.tokenType().name.toLowerCase().replace('_', ' '),
 			self.slot(STRING),
@@ -268,11 +274,9 @@ open class TokenDescriptor protected constructor(
 		self.setSlot(NEXT_LEXING_STATE_POJO, nil)
 	}
 
-	@AvailMethod
 	override fun o_Equals(self: AvailObject, another: A_BasicObject)
 		: Boolean = another.equalsToken(self)
 
-	@AvailMethod
 	override fun o_EqualsToken(self: AvailObject, aToken: A_Token): Boolean =
 		(self.string().equals(aToken.string())
 			&& self.start() == aToken.start()
@@ -281,29 +285,23 @@ open class TokenDescriptor protected constructor(
 			&& (!self.isLiteralToken()
 				|| self.literal().equals(aToken.literal())))
 
-	@AvailMethod
 	override fun o_Hash(self: AvailObject): Int =
 		((self.string().hash() * AvailObject.multiplier
 		         + self.start()) * AvailObject.multiplier
 			+ self.tokenType().ordinal
 			xor 0x62CE7BA2)
 
-	@AvailMethod
 	override fun o_Kind(self: AvailObject): A_Type = tokenType(self.tokenType())
 
-	@AvailMethod
 	override fun o_IsInstanceOfKind(
 		self: AvailObject,
-		aTypeObject: A_Type
+		aType: A_Type
 	): Boolean =
-		(aTypeObject.isSupertypeOfPrimitiveTypeEnum(Types.TOKEN)
-			|| (aTypeObject.isTokenType
-			&& self.tokenType() == aTypeObject.tokenType()))
+		(aType.isSupertypeOfPrimitiveTypeEnum(Types.TOKEN)
+			|| (aType.isTokenType && self.tokenType() == aType.tokenType()))
 
-	@AvailMethod
 	override fun o_LineNumber(self: AvailObject): Int = self.slot(LINE_NUMBER)
 
-	@AvailMethod
 	override fun o_LowerCaseString(self: AvailObject): A_String =
 		lowerCaseStringFrom(self)
 
@@ -336,13 +334,10 @@ open class TokenDescriptor protected constructor(
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		SerializerOperation.TOKEN
 
-	@AvailMethod
 	override fun o_Start(self: AvailObject): Int = self.slot(START)
 
-	@AvailMethod
 	override fun o_String(self: AvailObject): A_String = self.slot(STRING)
 
-	@AvailMethod
 	override fun o_TokenType(self: AvailObject): TokenType =
 		lookupTokenType(self.slot(TOKEN_TYPE_CODE))
 
@@ -362,12 +357,12 @@ open class TokenDescriptor protected constructor(
 		writer.endObject()
 	}
 
-	override fun mutable(): TokenDescriptor = mutable
+	override fun mutable() = mutable
 
 	// Answer the shared descriptor, since there isn't an immutable one.
-	override fun immutable(): TokenDescriptor = shared
+	override fun immutable() = shared
 
-	override fun shared(): TokenDescriptor = shared
+	override fun shared() = shared
 
 	companion object
 	{

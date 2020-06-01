@@ -47,7 +47,11 @@ import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor
 import com.avail.descriptor.types.BottomTypeDescriptor
 import com.avail.descriptor.types.TypeDescriptor
-import com.avail.exceptions.AvailErrorCode.*
+import com.avail.exceptions.AvailErrorCode.E_ABSTRACT_METHOD_DEFINITION
+import com.avail.exceptions.AvailErrorCode.E_AMBIGUOUS_METHOD_DEFINITION
+import com.avail.exceptions.AvailErrorCode.E_FORWARD_METHOD_DEFINITION
+import com.avail.exceptions.AvailErrorCode.E_NO_METHOD
+import com.avail.exceptions.AvailErrorCode.E_NO_METHOD_DEFINITION
 import com.avail.exceptions.AvailException.Companion.numericCodeMethod
 import com.avail.exceptions.MethodDefinitionException
 import com.avail.exceptions.MethodDefinitionException.Companion.abstractMethod
@@ -57,7 +61,11 @@ import com.avail.interpreter.execution.Interpreter.Companion.log
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2NamedOperandType
 import com.avail.interpreter.levelTwo.L2OperandType
-import com.avail.interpreter.levelTwo.operand.*
+import com.avail.interpreter.levelTwo.operand.L2PcOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
+import com.avail.interpreter.levelTwo.operand.L2SelectorOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding
 import com.avail.optimizer.L2Generator
 import com.avail.optimizer.L2ValueManifest

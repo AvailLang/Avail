@@ -41,10 +41,11 @@ import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
-import java.util.function.Supplier
+import com.avail.interpreter.Primitive.Flag.CanSuspend
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Primitive.Flag.Unknown
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Attempt to acquire the
@@ -66,14 +67,14 @@ object P_ParkCurrentFiber : Primitive(0, CannotFail, CanSuspend, Unknown)
 	{
 		interpreter.checkArgumentCount(0)
 		val fiber = interpreter.fiber()
-		return fiber.lock(Supplier {
+		return fiber.lock {
 			// If permit is not available, then park this fiber.
 			when {
 				fiber.getAndSetSynchronizationFlag(PERMIT_UNAVAILABLE, true) ->
 					interpreter.primitivePark(interpreter.function!!)
 				else -> interpreter.primitiveSuccess(nil)
 			}
-		})
+		}
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

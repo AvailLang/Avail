@@ -38,7 +38,6 @@ import com.avail.server.messages.Command
 import com.avail.server.messages.CommandMessage
 import com.avail.server.messages.Message
 import com.avail.server.messages.UpgradeCommandMessage
-import com.avail.utility.evaluation.Continuation0
 import java.util.*
 import java.util.concurrent.atomic.AtomicLong
 
@@ -126,7 +125,7 @@ abstract class AvailServerChannel constructor(
 	abstract fun closeImmediately (reason: DisconnectReason)
 
 	/**
-	 * The [text interface][TextInterface], or `null` if the
+	 * The [text&#32;interface][TextInterface], or `null` if the
 	 * [receiver][AvailServerChannel] is not an upgraded I/O channel.
 	 */
 	var textInterface: TextInterface? = null
@@ -148,7 +147,7 @@ abstract class AvailServerChannel constructor(
 
 	/**
 	 * Enqueue the given [message][Message]. When the message has been enqueued,
-	 * then execute the [continuation][Continuation0].
+	 * then execute the action.
 	 *
 	 * @param message
 	 *   A message.
@@ -168,8 +167,8 @@ abstract class AvailServerChannel constructor(
 	abstract fun receiveMessage(message: Message)
 
 	/**
-	 * `ProtocolState` represents the communication state of a [server
-	 * channel][AvailServerChannel].
+	 * `ProtocolState` represents the communication state of a
+	 * [server&#32;channel][AvailServerChannel].
 	 *
 	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
@@ -297,7 +296,7 @@ abstract class AvailServerChannel constructor(
 	}
 
 	/**
-	 * The next [command identifier][CommandMessage] from the
+	 * The next [command&#32;identifier][CommandMessage] from the
 	 * [channel][AvailServerChannel]'s internal sequence.
 	 */
 	val nextCommandId get() = commandId.getAndIncrement()

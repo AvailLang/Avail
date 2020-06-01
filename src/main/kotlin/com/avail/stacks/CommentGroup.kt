@@ -34,7 +34,13 @@ package com.avail.stacks
 
 import com.avail.AvailRuntime
 import com.avail.descriptor.tuples.A_String
-import com.avail.stacks.comment.*
+import com.avail.stacks.comment.AvailComment
+import com.avail.stacks.comment.ClassComment
+import com.avail.stacks.comment.GlobalComment
+import com.avail.stacks.comment.GrammaticalRestrictionComment
+import com.avail.stacks.comment.MacroComment
+import com.avail.stacks.comment.MethodComment
+import com.avail.stacks.comment.SemanticRestrictionComment
 import com.avail.utility.json.JSONWriter
 import java.io.IOException
 import java.nio.file.Path
@@ -102,17 +108,17 @@ class CommentGroup
 	val macros: MutableMap<String, MacroComment>
 
 	/**
-	 * A list of [semantic restrictions][SemanticRestrictionComment]
+	 * A list of [semantic&#32;restrictions][SemanticRestrictionComment]
 	 */
 	val semanticRestrictions: MutableMap<String, SemanticRestrictionComment>
 
 	/**
-	 * A list of [ grammatical restrictions][GrammaticalRestrictionComment]
+	 * A list of [grammatical restrictions][GrammaticalRestrictionComment]
 	 */
 	val grammaticalRestrictions: MutableMap<String, GrammaticalRestrictionComment>
 
 	/**
-	 * A [class comment][ClassComment]
+	 * A [class&#32;comment][ClassComment]
 	 */
 	var classImplementation: ClassComment? = null
 		private set
@@ -189,7 +195,8 @@ class CommentGroup
 	}
 
 	/**
-	 * @param newSemanticRestriction the new [ ] to add
+	 * @param newSemanticRestriction
+	 *   the new [SemanticRestrictionComment] to add
 	 */
 	fun addSemanticRestriction(
 		newSemanticRestriction: SemanticRestrictionComment)
@@ -334,7 +341,7 @@ class CommentGroup
 	 * @param errorLog
 	 *   The accumulating [StacksErrorLog]
 	 * @throws IOException
-	 *   If an [I/O exception][IOException] occurs.
+	 *   If an [I/O&#32;exception][IOException] occurs.
 	 */
 	@Throws(IOException::class)
 	fun toJSON(

@@ -45,7 +45,10 @@ import com.avail.compiler.ParsingOperation.Companion.operand
 import com.avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT
 import com.avail.compiler.PragmaKind.Companion.pragmaKindByLexeme
 import com.avail.compiler.problems.CompilerDiagnostics
-import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.*
+import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.MEDIUM
+import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.SILENT
+import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
+import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.WEAK
 import com.avail.compiler.problems.Problem
 import com.avail.compiler.problems.ProblemHandler
 import com.avail.compiler.problems.ProblemType.EXTERNAL
@@ -53,10 +56,6 @@ import com.avail.compiler.problems.ProblemType.PARSE
 import com.avail.compiler.scanning.LexingState
 import com.avail.compiler.splitter.MessageSplitter.Companion.constantForIndex
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter
-import com.avail.descriptor.fiber.FiberDescriptor.GeneralFlag
-import com.avail.descriptor.fiber.FiberDescriptor.Companion.newLoaderFiber
-import com.avail.descriptor.module.ModuleDescriptor.Companion.newModule
-import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.atoms.A_Atom.Companion.atomName
 import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrNil
@@ -66,7 +65,11 @@ import com.avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom
-import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.*
+import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.ALL_TOKENS_KEY
+import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY
+import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_MAP_KEY
+import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.MACRO_BUNDLE_KEY
+import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.STATIC_TOKENS_KEY
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import com.avail.descriptor.bundles.A_Bundle.Companion.message
@@ -85,6 +88,8 @@ import com.avail.descriptor.bundles.MessageBundleDescriptor
 import com.avail.descriptor.bundles.MessageBundleTreeDescriptor
 import com.avail.descriptor.fiber.A_Fiber
 import com.avail.descriptor.fiber.FiberDescriptor
+import com.avail.descriptor.fiber.FiberDescriptor.Companion.newLoaderFiber
+import com.avail.descriptor.fiber.FiberDescriptor.GeneralFlag
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.CompiledCodeDescriptor.Companion.newPrimitiveRawFunction
 import com.avail.descriptor.functions.FunctionDescriptor
@@ -93,11 +98,24 @@ import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunctio
 import com.avail.descriptor.maps.A_Map
 import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.maps.MapDescriptor.Companion.mapFromPairs
-import com.avail.descriptor.methods.*
+import com.avail.descriptor.methods.A_Definition
+import com.avail.descriptor.methods.A_SemanticRestriction
+import com.avail.descriptor.methods.MacroDefinitionDescriptor
+import com.avail.descriptor.methods.MethodDefinitionDescriptor
+import com.avail.descriptor.methods.MethodDescriptor
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
-import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.*
+import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.CRASH
+import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.CREATE_MODULE_VARIABLE
+import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.LEXER_DEFINER
+import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.MACRO_DEFINER
+import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.METHOD_DEFINER
+import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.MODULE_HEADER
+import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.PUBLISH_ALL_ATOMS_FROM_OTHER_MODULE
+import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.PUBLISH_ATOMS
+import com.avail.descriptor.methods.SemanticRestrictionDescriptor
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.module.ModuleDescriptor
+import com.avail.descriptor.module.ModuleDescriptor.Companion.newModule
 import com.avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.parsingInstructions
 import com.avail.descriptor.parsing.A_Lexer
 import com.avail.descriptor.parsing.A_ParsingPlanInProgress.Companion.nameHighlightingPc
@@ -106,7 +124,7 @@ import com.avail.descriptor.parsing.A_ParsingPlanInProgress.Companion.parsingPla
 import com.avail.descriptor.parsing.LexerDescriptor.Companion.lexerBodyFunctionType
 import com.avail.descriptor.parsing.LexerDescriptor.Companion.lexerFilterFunctionType
 import com.avail.descriptor.parsing.ParsingPlanInProgressDescriptor.Companion.newPlanInProgress
-import com.avail.descriptor.phrases.*
+import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.A_Phrase.Companion.apparentSendName
 import com.avail.descriptor.phrases.A_Phrase.Companion.argumentsListNode
 import com.avail.descriptor.phrases.A_Phrase.Companion.bundle
@@ -133,21 +151,26 @@ import com.avail.descriptor.phrases.A_Phrase.Companion.token
 import com.avail.descriptor.phrases.A_Phrase.Companion.tokens
 import com.avail.descriptor.phrases.A_Phrase.Companion.typeExpression
 import com.avail.descriptor.phrases.AssignmentPhraseDescriptor.Companion.newAssignment
-import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.LOCAL_CONSTANT
-import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.LOCAL_VARIABLE
+import com.avail.descriptor.phrases.BlockPhraseDescriptor
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newModuleConstant
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newModuleVariable
+import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.LOCAL_CONSTANT
+import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.LOCAL_VARIABLE
+import com.avail.descriptor.phrases.ListPhraseDescriptor
 import com.avail.descriptor.phrases.ListPhraseDescriptor.Companion.emptyListNode
 import com.avail.descriptor.phrases.ListPhraseDescriptor.Companion.newListNode
 import com.avail.descriptor.phrases.LiteralPhraseDescriptor.Companion.literalNodeFromToken
 import com.avail.descriptor.phrases.LiteralPhraseDescriptor.Companion.syntheticLiteralNodeFor
 import com.avail.descriptor.phrases.MacroSubstitutionPhraseDescriptor.Companion.newMacroSubstitution
 import com.avail.descriptor.phrases.MarkerPhraseDescriptor.Companion.newMarkerNode
+import com.avail.descriptor.phrases.PhraseDescriptor
+import com.avail.descriptor.phrases.SendPhraseDescriptor
 import com.avail.descriptor.phrases.SendPhraseDescriptor.Companion.newSendNode
 import com.avail.descriptor.phrases.VariableUsePhraseDescriptor.Companion.newUse
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.NilDescriptor
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
@@ -155,17 +178,35 @@ import com.avail.descriptor.sets.SetDescriptor.Companion.generateSetFrom
 import com.avail.descriptor.tokens.A_Token
 import com.avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken
 import com.avail.descriptor.tokens.TokenDescriptor
-import com.avail.descriptor.tokens.TokenDescriptor.TokenType.*
+import com.avail.descriptor.tokens.TokenDescriptor.TokenType.COMMENT
+import com.avail.descriptor.tokens.TokenDescriptor.TokenType.END_OF_FILE
+import com.avail.descriptor.tokens.TokenDescriptor.TokenType.KEYWORD
+import com.avail.descriptor.tokens.TokenDescriptor.TokenType.OPERATOR
+import com.avail.descriptor.tokens.TokenDescriptor.TokenType.WHITESPACE
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.*
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.emptyTuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.generateObjectTupleFrom
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
 import com.avail.descriptor.tuples.StringDescriptor.formatString
 import com.avail.descriptor.tuples.StringDescriptor.stringFrom
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor.toList
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn
-import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.*
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.BLOCK_PHRASE
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.DECLARATION_PHRASE
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.EXPRESSION_AS_STATEMENT_PHRASE
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.MACRO_SUBSTITUTION_PHRASE
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.MARKER_PHRASE
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PERMUTED_LIST_PHRASE
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.STATEMENT_PHRASE
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE
 import com.avail.descriptor.types.TupleTypeDescriptor.stringType
 import com.avail.descriptor.types.TypeDescriptor.Types.TOKEN
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
@@ -177,30 +218,32 @@ import com.avail.exceptions.AvailEmergencyExitException
 import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.AvailErrorCode.E_AMBIGUOUS_METHOD_DEFINITION
 import com.avail.exceptions.AvailErrorCode.E_NO_METHOD_DEFINITION
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Companion.primitiveByName
 import com.avail.interpreter.execution.AvailLoader
 import com.avail.interpreter.execution.AvailLoader.Phase.COMPILING
 import com.avail.interpreter.execution.AvailLoader.Phase.EXECUTING_FOR_COMPILE
 import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.execution.Interpreter.Companion.runOutermostFunction
 import com.avail.interpreter.execution.Interpreter.Companion.stringifyThen
-import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Companion.primitiveByName
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
-import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED
 import com.avail.interpreter.primitive.phrases.P_RejectParsing
 import com.avail.io.SimpleCompletionHandler
 import com.avail.io.TextInterface
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport.RUNNING_PARSING_INSTRUCTIONS
 import com.avail.persistence.Repository
-import com.avail.utility.*
 import com.avail.utility.Locks.lockWhile
+import com.avail.utility.Mutable
+import com.avail.utility.MutableInt
+import com.avail.utility.MutableOrNull
+import com.avail.utility.PrefixSharingList
 import com.avail.utility.PrefixSharingList.append
 import com.avail.utility.PrefixSharingList.last
 import com.avail.utility.StackPrinter.trace
 import com.avail.utility.Strings.increaseIndentation
-import com.avail.utility.evaluation.Continuation1NotNull
 import com.avail.utility.evaluation.Describer
 import com.avail.utility.evaluation.FormattingDescriber
 import java.io.IOException
@@ -216,10 +259,6 @@ import java.util.Collections.emptyList
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantReadWriteLock
-import java.util.function.BiFunction
-import java.util.function.BinaryOperator
-import java.util.function.Consumer
-import java.util.function.UnaryOperator
 import java.util.stream.Collectors.toList
 import kotlin.math.max
 import kotlin.math.min
@@ -236,15 +275,15 @@ import kotlin.streams.toList
  * Construct a new `AvailCompiler`.
  *
  * @param moduleHeader
- *   The [module header][ModuleHeader] of the module to compile. May be null for
- *   synthetic modules (for entry points), or when parsing the header.
+ *   The [module&#32;header][ModuleHeader] of the module to compile. May be null
+ *   for synthetic modules (for entry points), or when parsing the header.
  * @param module
  *   The current [module][ModuleDescriptor].`
  * @param source
  *   The source [A_String].
  * @param textInterface
- *   The [text interface][TextInterface] for any [fibers][A_Fiber] started by
- *   this compiler.
+ *   The [text&#32;interface][TextInterface] for any [fibers][A_Fiber] started
+ *   by this compiler.
  * @param pollForAbort
  *   How to quickly check if the client wants to abort compilation.
  * @param progressReporter
@@ -290,7 +329,7 @@ class AvailCompiler(
 	val source: A_String get() = compilationContext.source
 
 	/**
-	 * The [module header][ModuleHeader] for the current
+	 * The [module&#32;header][ModuleHeader] for the current
 	 * [module][ModuleDescriptor] being parsed.
 	 */
 	private val moduleHeader get() = compilationContext.moduleHeader!!
@@ -306,9 +345,9 @@ class AvailCompiler(
 		compilationContext.module.moduleName().asNativeString())
 
 	/**
-	 * A list of subexpressions being parsed, represented by [message bundle
-	 * trees][A_BundleTree] holding the positions within all outer send
-	 * expressions.
+	 * A list of subexpressions being parsed, represented by
+	 * [message&#32;bundle&#32;trees][A_BundleTree] holding the positions
+	 * within all outer send expressions.
 	 *
 	 * @property bundleTree
 	 *   The [A_BundleTree] being parsed at this moment.
@@ -331,8 +370,8 @@ class AvailCompiler(
 		val depth: Int = if (parent === null) 1 else parent.depth + 1
 
 		/**
-		 * Create a list like the receiver, but with a different [message bundle
-		 * tree][A_BundleTree].
+		 * Create a list like the receiver, but with a different
+		 * [message&#32;bundle&#32;tree][A_BundleTree].
 		 *
 		 * @param newBundleTree
 		 *   The new [A_BundleTree] to replace the one in the receiver within
@@ -632,7 +671,7 @@ class AvailCompiler(
 	 * scope, but module variables and constants are in scope.
 	 *
 	 * @param restriction
-	 *   A [semantic restriction][SemanticRestrictionDescriptor].
+	 *   A [semantic&#32;restriction][SemanticRestrictionDescriptor].
 	 * @param args
 	 *   The arguments to the function.
 	 * @param lexingState
@@ -679,7 +718,7 @@ class AvailCompiler(
 	 * scope, but module variables and constants are in scope.
 	 *
 	 * @param macro
-	 *   A [macro definition][MacroDefinitionDescriptor].
+	 *   A [macro&#32;definition][MacroDefinitionDescriptor].
 	 * @param args
 	 *   The argument phrases to supply the macro.
 	 * @param clientParseData
@@ -1781,10 +1820,12 @@ class AvailCompiler(
 	 *   These are the tokens that correspond with tokens that occur verbatim
 	 *   inside the name of the method or macro.
 	 * @param successorTrees
-	 *   The [tuple][TupleDescriptor] of [message bundle tree][A_BundleTree] at
-	 *   which to continue parsing.
+	 *   The [tuple][TupleDescriptor] of
+	 *   [message&#32;bundle&#32;tree][A_BundleTree] at which to continue
+	 *   parsing.
 	 * @param continuation
-	 *   What to do with a complete [message send phrase][SendPhraseDescriptor].
+	 *   What to do with a complete
+	 *   [message&#32;send&#32;phrase][SendPhraseDescriptor].
 	 */
 	private fun runParsingInstructionThen(
 		start: ParserState,
@@ -1980,23 +2021,23 @@ class AvailCompiler(
 
 	/**
 	 * Check the proposed message send for validity. Use not only the applicable
-	 * [method definitions][MethodDefinitionDescriptor], but also any semantic
-	 * restrictions. The semantic restrictions may choose to [reject the
-	 * parse][P_RejectParsing], indicating that the argument types are mutually
-	 * incompatible.  If all semantic restrictions succeed, invoke onSuccess
-	 * with the intersection of the produced types and the applicable method
-	 * body return types.
+	 * [method&#32;definitions][MethodDefinitionDescriptor], but also any
+	 * semantic restrictions. The semantic restrictions may choose to
+	 * [reject&#32;the&#32;parse][P_RejectParsing], indicating that the argument
+	 * types are mutually incompatible.  If all semantic restrictions succeed,
+	 * invoke onSuccess with the intersection of the produced types and the
+	 * applicable method body return types.
 	 *
 	 * @param bundle
-	 *   A [message bundle][MessageBundleDescriptor].
+	 *   A [message&#32;bundle][MessageBundleDescriptor].
 	 * @param argTypes
 	 *   The argument types.
 	 * @param state
-	 *   The [parser state][ParserState] after the function evaluates
+	 *   The [parser&#32;state][ParserState] after the function evaluates
 	 *   successfully.
 	 * @param macroOrNil
-	 *   A [macro definition][MacroDefinitionDescriptor] if this is for a macro
-	 *   invocation, otherwise `nil`.
+	 *   A [macro&#32;definition][MacroDefinitionDescriptor] if this is for a
+	 *   macro invocation, otherwise `nil`.
 	 * @param onSuccess
 	 *   What to do with the strengthened return type.  This may be invoked at
 	 *   most once, and only if no semantic restriction rejected the parse.
@@ -2337,7 +2378,7 @@ class AvailCompiler(
 	}
 
 	/**
-	 * A complete [send phrase][SendPhraseDescriptor] has been parsed.
+	 * A complete [send&#32;phrase][SendPhraseDescriptor] has been parsed.
 	 * Create the send phrase and invoke the continuation.
 	 *
 	 * If this is a macro, invoke the body immediately with the argument
@@ -2348,10 +2389,10 @@ class AvailCompiler(
 	 * @param stateAfterCall
 	 *   The parsing state after the message.
 	 * @param argumentsListNode
-	 *   The [list phrase][ListPhraseDescriptor] that will hold all the
+	 *   The [list&#32;phrase][ListPhraseDescriptor] that will hold all the
 	 *   arguments of the new send phrase.
 	 * @param bundle
-	 *   The [message bundle][MessageBundleDescriptor] that identifies the
+	 *   The [message&#32;bundle][MessageBundleDescriptor] that identifies the
 	 *   message to be sent.
 	 * @param consumedTokens
 	 *   The list of all tokens collected for this send phrase.  This includes
@@ -2734,8 +2775,8 @@ class AvailCompiler(
 	 *   The stack of mark positions used to test if parsing certain
 	 *   subexpressions makes progress.
 	 * @param successorTrees
-	 *   A [tuple][TupleDescriptor] of [message bundle trees] along which to
-	 *   continue parsing if a local solution is found.
+	 *   A [tuple][TupleDescriptor] of [message&#32;bundle&#32;trees] along
+	 *   which to continue parsing if a local solution is found.
 	 * @param continuation
 	 *   What to do once we have a fully parsed send phrase (of which we are
 	 *   currently parsing an argument).
@@ -2833,17 +2874,17 @@ class AvailCompiler(
 	 * @param stateAfterCall
 	 *   The parsing state after the message.
 	 * @param argumentsListNode
-	 *   The [list phrase][ListPhraseDescriptor] that will hold all the
+	 *   The [list&#32;phrase][ListPhraseDescriptor] that will hold all the
 	 *   arguments of the new send phrase.
 	 * @param bundle
-	 *   The [message bundle][MessageBundleDescriptor] that identifies the
+	 *   The [message&#32;bundle][MessageBundleDescriptor] that identifies the
 	 *   message to be sent.
 	 * @param consumedTokens
 	 *   The list of all tokens collected for this send phrase.  This includes
 	 *   only those tokens that are operator or keyword tokens that correspond
 	 *   with parts of the method name itself, not the arguments.
 	 * @param macroDefinitionToInvoke
-	 *   The actual [macro definition][MacroDefinitionDescriptor] to invoke
+	 *   The actual [macro&#32;definition][MacroDefinitionDescriptor] to invoke
 	 *   (statically).
 	 * @param expectedYieldType
 	 *   What semantic type the expression returned from the macro invocation is
@@ -3064,8 +3105,8 @@ class AvailCompiler(
 	 * [method][MethodDescriptor]'s [bundle][A_BundleTree]).
 	 *
 	 * @param state
-	 *   The [state][ParserState] following a parse of the [module
-	 *   header][ModuleHeader].
+	 *   The [state][ParserState] following a parse of the
+	 *   [module&#32;header][ModuleHeader].
 	 * @param token
 	 *   A token with which to associate the definition of the function. Since
 	 *   this is a bootstrap method, it's appropriate to use the string token
@@ -3073,8 +3114,8 @@ class AvailCompiler(
 	 * @param methodName
 	 *   The name of the primitive method being defined.
 	 * @param primitiveName
-	 *   The [primitive name][Primitive.fieldName] of the [method][MethodDescriptor]
-	 *   being defined.
+	 *   The [primitive&#32;name][Primitive.fieldName] of the
+	 *   [method][MethodDescriptor] being defined.
 	 * @param success
 	 *   What to do after the method is bootstrapped successfully.
 	 */
@@ -3111,8 +3152,8 @@ class AvailCompiler(
 	 * [CRASH]'s [method's][MethodDescriptor] [bundle][A_BundleTree]).
 	 *
 	 * @param state
-	 *   The [state][ParserState] following a parse of the [module
-	 *   header][ModuleHeader].
+	 *   The [state][ParserState] following a parse of the
+	 *   [module&#32;header][ModuleHeader].
 	 * @param token
 	 *   A token with which to associate the definition of the function(s).
 	 *   Since this is a bootstrap macro (and possibly prefix functions), it's
@@ -3198,8 +3239,8 @@ class AvailCompiler(
 	 * give specific diagnostics about what went wrong.
 	 *
 	 * @param state
-	 *   The [state][ParserState] following a parse of the [module
-	 *   header][ModuleHeader].
+	 *   The [state][ParserState] following a parse of the
+	 *   [module&#32;header][ModuleHeader].
 	 * @param token
 	 *   A token with which to associate the definition of the lexer function.
 	 *   Since this is a bootstrap lexer, it's appropriate to use the string
@@ -3207,10 +3248,10 @@ class AvailCompiler(
 	 * @param lexerAtom
 	 *   The name (an [atom][A_Atom]) of the lexer being defined.
 	 * @param filterPrimitiveName
-	 *   The [primitive name][Primitive.fieldName] of the filter for the lexer being
-	 *   defined.
+	 *   The [primitive&#32;name][Primitive.fieldName] of the filter for the
+	 *   lexer being defined.
 	 * @param bodyPrimitiveName
-	 *   The [primitive name][Primitive.fieldName] of the body of the
+	 *   The [primitive&#32;name][Primitive.fieldName] of the body of the
 	 *   [lexer][A_Lexer] being defined.
 	 * @param success
 	 *   What to do after the method is bootstrapped successfully.
@@ -3296,11 +3337,12 @@ class AvailCompiler(
 	}
 
 	/**
-	 * Apply any pragmas detected during the parse of the [module
-	 * header][ModuleHeader].
+	 * Apply any pragmas detected during the parse of the
+	 * [module&#32;header][ModuleHeader].
 	 *
 	 * @param state
-	 *   The [parse state][ParserState] following a parse of the module header.
+	 *   The [parse&#32;state][ParserState] following a parse of the module
+	 *   header.
 	 * @param success
 	 *   What to do after the pragmas have been applied successfully.
 	 */
@@ -3359,11 +3401,11 @@ class AvailCompiler(
 	}
 
 	/**
-	 * Parse a [module header][ModuleHeader] from the [token
-	 * list][TokenDescriptor] and apply any side-effects. Then [parse the module
-	 * body][parseAndExecuteOutermostStatements] and apply any side-effects.
-	 * Finally, execute the [CompilerDiagnostics]'s [success
-	 * reporter][CompilerDiagnostics.successReporter].
+	 * Parse a [module&#32;header][ModuleHeader] from the
+	 * [token&#32;list][TokenDescriptor] and apply any side-effects. Then
+	 * [parse&#32;the&#32;module&#32;body][parseAndExecuteOutermostStatements]
+	 * and apply any side-effects. Finally, execute the [CompilerDiagnostics]'s
+	 * [success&#32;reporter][CompilerDiagnostics.successReporter].
 	 */
 	private fun parseModuleCompletely()
 	{
@@ -3399,8 +3441,8 @@ class AvailCompiler(
 	 * end of the module.
 	 *
 	 * @param start
-	 *   The [parse state][ParserState] after parsing a [module
-	 *   header][ModuleHeader].
+	 *   The [parse&#32;state][ParserState] after parsing a
+	 *   [module&#32;header][ModuleHeader].
 	 */
 	private fun parseAndExecuteOutermostStatements(start: ParserState)
 	{
@@ -3433,13 +3475,11 @@ class AvailCompiler(
 				val afterStatement = solution.endState
 				val unambiguousStatement = solution.phrase
 				val simpleStatements = ArrayList<A_Phrase>()
-				unambiguousStatement.statementsDo(
-					Continuation1NotNull {
-						simpleStatement ->
-						assert(
-							simpleStatement.phraseKindIsUnder(STATEMENT_PHRASE))
-						simpleStatements.add(simpleStatement)
-					})
+				unambiguousStatement.statementsDo { simpleStatement ->
+					assert(
+						simpleStatement.phraseKindIsUnder(STATEMENT_PHRASE))
+					simpleStatements.add(simpleStatement)
+				}
 
 				// For each top-level simple statement, (1) transform it to have
 				// referenced previously transformed top-level declarations
@@ -4096,7 +4136,7 @@ class AvailCompiler(
 
 	/**
 	 * A helper method to queue a parsing activity for continuing to parse a
-	 * [send phrase][SendPhraseDescriptor].
+	 * [send&#32;phrase][SendPhraseDescriptor].
 	 *
 	 * @param start
 	 *   The current [ParserState].
@@ -4174,9 +4214,7 @@ class AvailCompiler(
 				namesByModule = namesByModule.mapAtReplacingCanDestroy(
 					atom.issuingModule(),
 					emptySet(),
-					BiFunction { _, set ->
-						set.setWithElementCanDestroy(atom, true)
-					},
+					{ _, set -> set.setWithElementCanDestroy(atom, true) },
 					true)
 			}
 		}
@@ -4249,21 +4287,21 @@ class AvailCompiler(
 	{
 		/**
 		 * Asynchronously construct a suitable `AvailCompiler` to parse the
-		 * specified [module name][ModuleName].
+		 * specified [module&#32;name][ModuleName].
 		 *
 		 * @param resolvedName
-		 *   The [resolved name][ResolvedModuleName] of the
+		 *   The [resolved&#32;name][ResolvedModuleName] of the
 		 *   [module][ModuleDescriptor] to compile.
 		 * @param textInterface
-		 *   The [text interface][TextInterface] for any [fiber][A_Fiber]
+		 *   The [text&#32;interface][TextInterface] for any [fiber][A_Fiber]
 		 *   started by the new compiler.
 		 * @param pollForAbort
 		 *   A function that indicates whether to abort.
 		 * @param reporter
 		 *   The [CompilerProgressReporter] used to report progress.
 		 * @param afterFail
-		 *   What to do after a failure that the [problem
-		 *   handler][ProblemHandler] does not choose to continue.
+		 *   What to do after a failure that the
+		 *   [problem&#32;handler][ProblemHandler] does not choose to continue.
 		 * @param problemHandler
 		 *   A problem handler.
 		 * @param succeed
@@ -4296,13 +4334,13 @@ class AvailCompiler(
 
 		/**
 		 * Read the source string for the [module][ModuleDescriptor] specified
-		 * by the fully-qualified [module name][ModuleName].
+		 * by the fully-qualified [module&#32;name][ModuleName].
 		 *
 		 * @param resolvedName
-		 *   The [resolved name][ResolvedModuleName] of the module.
+		 *   The [resolved&#32;name][ResolvedModuleName] of the module.
 		 * @param fail
-		 *   What to do in the event of a failure that the [problem
-		 *   handler][ProblemHandler] does not wish to continue.
+		 *   What to do in the event of a failure that the
+		 *   [problem&#32;handler][ProblemHandler] does not wish to continue.
 		 * @param problemHandler
 		 *   A problem handler.
 		 * @param withSource
@@ -4485,13 +4523,11 @@ class AvailCompiler(
 				return phraseMap[obj]!!
 			}
 			val objectCopy = obj.copyMutablePhrase()
-			objectCopy.childrenMap(
-				UnaryOperator { child ->
-					assert(
-						child.isInstanceOfKind(PARSE_PHRASE.mostGeneralType()))
-					treeMapWithParent(
-						child, transformer, objectCopy, outerPhrases, phraseMap)
-			})
+			objectCopy.childrenMap { child ->
+				assert(child.isInstanceOfKind(PARSE_PHRASE.mostGeneralType()))
+				treeMapWithParent(
+					child, transformer, objectCopy, outerPhrases, phraseMap)
+			}
 			val transformed = transformer(
 				objectCopy, parentPhrase, outerPhrases)
 			transformed.makeShared()
@@ -4555,9 +4591,9 @@ class AvailCompiler(
 					return
 				}
 				val parts1 = ArrayList<A_Phrase>()
-				phrase1.value.childrenDo(Consumer { parts1.add(it) })
+				phrase1.value.childrenDo { parts1.add(it) }
 				val parts2 = ArrayList<A_Phrase>()
-				phrase2.value.childrenDo(Consumer { parts2.add(it) })
+				phrase2.value.childrenDo { parts2.add(it) }
 				val isBlock = phrase1.value.phraseKindIsUnder(BLOCK_PHRASE)
 				if (parts1.size != parts2.size && !isBlock)
 				{
@@ -4821,12 +4857,13 @@ class AvailCompiler(
 		}
 
 		/**
-		 * Transform the argument, a [phrase][A_Phrase], into a [literal phrase]
-		 * whose value is the original phrase. If the given phrase is a [macro
-		 * substitution phrase] then extract its [A_Phrase.apparentSendName],
-		 * strip off the macro substitution, wrap the resulting expression in a
-		 * literal phrase, then re-apply the same apparentSendName to the new
-		 * literal phrase to produce another macro substitution phrase.
+		 * Transform the argument, a [phrase][A_Phrase], into a
+		 * [literal&#32;phrase] whose value is the original phrase. If the given
+		 * phrase is a [macro&#32;substitution&#32;phrase] then extract its
+		 * [A_Phrase.apparentSendName], strip off the macro substitution, wrap
+		 * the resulting expression in a literal phrase, then re-apply the same
+		 * apparentSendName to the new literal phrase to produce another macro
+		 * substitution phrase.
 		 *
 		 * @param phrase
 		 *   A phrase.
@@ -4900,9 +4937,9 @@ class AvailCompiler(
 		}
 
 		/**
-		 * Answer the [set][SetDescriptor] of [declaration phrases] which are
-		 * used by this parse tree but are locally declared (i.e., not at global
-		 * module scope).
+		 * Answer the [set][SetDescriptor] of [declaration&#32;phrases] which
+		 * are used by this parse tree but are locally declared (i.e., not at
+		 * global module scope).
 		 *
 		 * @param phrase
 		 *   The phrase to recursively examine.
@@ -4912,7 +4949,7 @@ class AvailCompiler(
 		private fun usesWhichLocalVariables(phrase: A_Phrase): A_Set
 		{
 			var usedDeclarations = emptySet()
-			phrase.childrenDo(Consumer { childPhrase ->
+			phrase.childrenDo { childPhrase ->
 				if (childPhrase.isInstanceOfKind(
 						VARIABLE_USE_PHRASE.mostGeneralType()))
 				{
@@ -4924,7 +4961,7 @@ class AvailCompiler(
 								declaration, true)
 					}
 				}
-			})
+			}
 			return usedDeclarations
 		}
 	}

@@ -6,12 +6,12 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
  *
  *  * Neither the name of the copyright holder nor the names of the contributors
  *    may be used to endorse or promote products derived from this software
@@ -47,16 +47,31 @@ import com.avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.setSuccessAndFailure
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.stringificationPriority
 import com.avail.descriptor.fiber.FiberDescriptor.ExecutionState
-import com.avail.descriptor.fiber.FiberDescriptor.ExecutionState.*
+import com.avail.descriptor.fiber.FiberDescriptor.ExecutionState.ABORTED
+import com.avail.descriptor.fiber.FiberDescriptor.ExecutionState.INTERRUPTED
+import com.avail.descriptor.fiber.FiberDescriptor.ExecutionState.PARKED
+import com.avail.descriptor.fiber.FiberDescriptor.ExecutionState.RUNNING
+import com.avail.descriptor.fiber.FiberDescriptor.ExecutionState.SUSPENDED
+import com.avail.descriptor.fiber.FiberDescriptor.ExecutionState.TERMINATED
+import com.avail.descriptor.fiber.FiberDescriptor.ExecutionState.UNSTARTED
 import com.avail.descriptor.fiber.FiberDescriptor.InterruptRequestFlag.REIFICATION_REQUESTED
 import com.avail.descriptor.fiber.FiberDescriptor.SynchronizationFlag.BOUND
 import com.avail.descriptor.fiber.FiberDescriptor.SynchronizationFlag.PERMIT_UNAVAILABLE
 import com.avail.descriptor.fiber.FiberDescriptor.TraceFlag
-import com.avail.descriptor.functions.*
+import com.avail.descriptor.functions.A_Continuation
+import com.avail.descriptor.functions.A_Function
+import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.functions.ContinuationDescriptor
+import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.numbers.A_Number
-import com.avail.descriptor.representation.*
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailIntegerValueHelper
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObjectFieldHelper
+import com.avail.descriptor.representation.IntegerSlotsEnum
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
@@ -67,8 +82,11 @@ import com.avail.descriptor.types.TypeTag
 import com.avail.descriptor.variables.A_Variable
 import com.avail.descriptor.variables.VariableDescriptor
 import com.avail.exceptions.AvailErrorCode
-import com.avail.exceptions.AvailErrorCode.*
 import com.avail.exceptions.AvailErrorCode.Companion.byNumericCode
+import com.avail.exceptions.AvailErrorCode.E_CANNOT_MARK_HANDLER_FRAME
+import com.avail.exceptions.AvailErrorCode.E_HANDLER_SENTINEL
+import com.avail.exceptions.AvailErrorCode.E_NO_HANDLER_FRAME
+import com.avail.exceptions.AvailErrorCode.E_UNWIND_SENTINEL
 import com.avail.exceptions.AvailException
 import com.avail.exceptions.AvailRuntimeException
 import com.avail.interpreter.Primitive
@@ -101,7 +119,6 @@ import com.avail.performance.PerInterpreterStatistic
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport
 import com.avail.utility.Strings.tab
-import com.avail.utility.evaluation.Continuation0
 import java.text.MessageFormat
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
@@ -232,13 +249,13 @@ class Interpreter(
 	 */
 	fun <T> lockFiberWhile(
 		aFiber: A_Fiber,
-		supplier: Supplier<T>
+		supplier: () -> T
 	): T {
 		val previousFiber = currentlyLockedFiber
 		assert(previousFiber === null || previousFiber === aFiber)
 		currentlyLockedFiber = aFiber
 		return try {
-			supplier.get()
+			supplier()
 		} finally {
 			currentlyLockedFiber = previousFiber
 		}
@@ -328,6 +345,7 @@ class Interpreter(
 	 *   An array of [AvailObjectFieldHelper] objects that help describe the
 	 *   logical structure of the receiver to the debugger.
 	 */
+	@Suppress("unused")
 	fun describeForDebugger(): Array<AvailObjectFieldHelper?> {
 		val outerArray = arrayOfNulls<Any>(FakeStackTraceSlots.values().size)
 
@@ -824,21 +842,13 @@ class Interpreter(
 	var exitNow = true
 
 	/**
-	 * A [continuation][Continuation0] to run after a [fiber][A_Fiber] exits and
-	 * is unbound.
+	 * An action to run after a [fiber][A_Fiber] exits and is unbound.
 	 */
-	private var postExitContinuation: (()->Unit)? = null
+	var postExitContinuation: (()->Unit)? = null
 
 	/**
-	 * Temporary Java compatibility.  TODO - Remove, and make the field a Kotlin
-	 * function.
-	 */
-	fun getPostExitContinuationAsContinuation0(): Continuation0? =
-		postExitContinuation?.let { Continuation0 { it() } }
-
-	/**
-	 * Set the post-exit [continuation][Continuation0]. The affected
-	 * fiber will be locked around the evaluation of this continuation.
+	 * Set the post-exit continuation. The affected fiber will be locked around
+	 * the evaluation of this continuation.
 	 *
 	 * @param continuation
 	 *   What to do after a [fiber][FiberDescriptor] has exited and been
@@ -866,7 +876,7 @@ class Interpreter(
 		assert(state.indicatesSuspension())
 		assert(unreifiedCallDepth() == 0)
 		val aFiber = fiber()
-		aFiber.lock(Continuation0 {
+		aFiber.lock {
 			assert(aFiber.executionState() === RUNNING)
 			aFiber.executionState(state)
 			aFiber.continuation(getReifiedContinuation()!!)
@@ -875,7 +885,7 @@ class Interpreter(
 				BOUND, false)
 			assert(bound)
 			fiber(null, "primitiveSuspend")
-		})
+		}
 		startTick = -1L
 		if (debugL2) {
 			log(
@@ -942,7 +952,7 @@ class Interpreter(
 		assert(!exitNow)
 		assert(state.indicatesTermination())
 		val aFiber = fiber()
-		aFiber.lock(Continuation0 {
+		aFiber.lock {
 			assert(aFiber.executionState() === RUNNING)
 			aFiber.executionState(state)
 			aFiber.continuation(nil)
@@ -951,7 +961,7 @@ class Interpreter(
 				BOUND, false)
 			assert(bound)
 			fiber(null, "exitFiber")
-		})
+		}
 		startTick = -1L
 		exitNow = true
 		if (debugL2) {
@@ -963,14 +973,14 @@ class Interpreter(
 		setLatestResult(null)
 		levelOneStepper.wipeRegisters()
 		postExitContinuation {
-			val joining = aFiber.lock(Supplier {
+			val joining = aFiber.lock {
 				val temp: A_Set = aFiber.joiningFibers().makeShared()
 				aFiber.joiningFibers(nil)
 				temp
-			})
+			}
 			// Wake up all fibers trying to join this one.
 			joining.forEach { joiner ->
-				joiner.lock(Continuation0 {
+				joiner.lock {
 					// Restore the permit. Resume the fiber if it was parked.
 					joiner.getAndSetSynchronizationFlag(
 						PERMIT_UNAVAILABLE, false)
@@ -990,7 +1000,7 @@ class Interpreter(
 						resumeFromSuccessfulPrimitive(
 							runtime, joiner, suspended, nil)
 					}
-				})
+				}
 			}
 		}
 	}
@@ -1305,7 +1315,7 @@ class Interpreter(
 		assert(!returnNow)
 		val aFiber = fiber()
 		var waiters: A_Set? = null
-		aFiber.lock(Continuation0 {
+		aFiber.lock {
 			synchronized(aFiber) {
 				assert(aFiber.executionState() === RUNNING)
 				aFiber.executionState(INTERRUPTED)
@@ -1321,7 +1331,7 @@ class Interpreter(
 				assert(bound)
 				fiber(null, "processInterrupt")
 			}
-		})
+		}
 		assert(!exitNow)
 		returnNow = false
 		exitNow = true
@@ -1359,7 +1369,7 @@ class Interpreter(
 	 * @param
 	 *   exceptionValue The exception object being raised.
 	 * @return
-	 *   The [success state][Result].
+	 *   The [success&#32;state][Result].
 	 */
 	fun searchForExceptionHandler(exceptionValue: AvailObject): Result {
 		// Replace the contents of the argument buffer with "exceptionValue",
@@ -1551,22 +1561,22 @@ class Interpreter(
 		isReifying = true
 		return StackReifier(
 			false,
-			StatisticCategory.ABANDON_BEFORE_RESTART_IN_L2.statistic,
-			Continuation0 {
-				val whichFunction = continuation.function()
-				val numArgs = whichFunction.code().numArgs()
-				argsBuffer.clear()
-				(1..numArgs).forEach {
-					argsBuffer.add(continuation.frameAt(it))
-				}
-				setReifiedContinuation(continuation.caller())
-				function = whichFunction
-				chunk = continuation.levelTwoChunk()
-				offset = continuation.levelTwoOffset()
-				returnNow = false
-				setLatestResult(null)
-				isReifying = false
-			})
+			StatisticCategory.ABANDON_BEFORE_RESTART_IN_L2.statistic
+		) {
+			val whichFunction = continuation.function()
+			val numArgs = whichFunction.code().numArgs()
+			argsBuffer.clear()
+			(1..numArgs).forEach {
+				argsBuffer.add(continuation.frameAt(it))
+			}
+			setReifiedContinuation(continuation.caller())
+			function = whichFunction
+			chunk = continuation.levelTwoChunk()
+			offset = continuation.levelTwoOffset()
+			returnNow = false
+			setLatestResult(null)
+			isReifying = false
+		}
 	}
 
 	/**
@@ -1597,12 +1607,12 @@ class Interpreter(
 			isReifying = true
 			StackReifier(
 				actuallyReify,
-				StatisticCategory.lookup(categoryIndex).statistic,
-				Continuation0 {
-					returnNow = false
-					isReifying = false
-					processInterrupt(getReifiedContinuation()!!)
-				})
+				StatisticCategory.lookup(categoryIndex).statistic
+			) {
+				returnNow = false
+				isReifying = false
+				processInterrupt(getReifiedContinuation()!!)
+			}
 		}
 		else -> {
 			// Capture the interpreter's state, reify the frames, and as an
@@ -1615,17 +1625,17 @@ class Interpreter(
 			isReifying = true
 			StackReifier(
 				actuallyReify,
-				StatisticCategory.lookup(categoryIndex).statistic,
-				Continuation0 {
-					val continuation = getReifiedContinuation()!!
-					function = savedFunction
-					chunk = continuation.levelTwoChunk()
-					offset = continuation.levelTwoOffset()
-					returnNow = newReturnNow
-					setLatestResult(newReturnValue)
-					// Return into the Interpreter's run loop.
-					isReifying = false
-				})
+				StatisticCategory.lookup(categoryIndex).statistic
+			) {
+				val continuation = getReifiedContinuation()!!
+				function = savedFunction
+				chunk = continuation.levelTwoChunk()
+				offset = continuation.levelTwoOffset()
+				returnNow = newReturnNow
+				setLatestResult(newReturnValue)
+				// Return into the Interpreter's run loop.
+				isReifying = false
+			}
 		}
 	}
 
@@ -1648,21 +1658,21 @@ class Interpreter(
 		isReifying = true
 		return StackReifier(
 			false,
-			StatisticCategory.ABANDON_BEFORE_RESTART_IN_L2.statistic,
-			Continuation0 {
-				val whichFunction = continuation.function()
-				val numArgs = whichFunction.code().numArgs()
-				assert(arguments.size == numArgs)
-				argsBuffer.clear()
-				argsBuffer.addAll(arguments)
-				setReifiedContinuation(continuation.caller())
-				function = whichFunction
-				chunk = continuation.levelTwoChunk()
-				offset = continuation.levelTwoOffset()
-				returnNow = false
-				setLatestResult(null)
-				isReifying = false
-			})
+			StatisticCategory.ABANDON_BEFORE_RESTART_IN_L2.statistic
+		) {
+			val whichFunction = continuation.function()
+			val numArgs = whichFunction.code().numArgs()
+			assert(arguments.size == numArgs)
+			argsBuffer.clear()
+			argsBuffer.addAll(arguments)
+			setReifiedContinuation(continuation.caller())
+			function = whichFunction
+			chunk = continuation.levelTwoChunk()
+			offset = continuation.levelTwoOffset()
+			returnNow = false
+			setLatestResult(null)
+			isReifying = false
+		}
 	}
 
 	/**
@@ -1880,7 +1890,7 @@ class Interpreter(
 				}
 				reifier.recordCompletedReification(interpreterIndex)
 				chunk = null // The postReificationAction should set this up.
-				reifier.postReificationAction.value()
+				reifier.postReificationAction()
 				if (exitNow) {
 					// The fiber has been dealt with. Exit the interpreter loop.
 					assert(fiber === null)
@@ -2206,6 +2216,7 @@ class Interpreter(
 			if (logger.isLoggable(level)) {
 				val interpreter = currentOrNull()
 				val runningFiber = interpreter?.fiberOrNull()
+				@Suppress("ConstantConditionIf")
 				if (debugIntoFiberDebugLog) {
 					// Write into a StringBuilder in each fiber's debugLog().
 					if (runningFiber !== null) {
@@ -2434,7 +2445,8 @@ class Interpreter(
 			Interpreter::class.java, "popContinuation", Void.TYPE)
 
 		/**
-		 * The maximum depth of the Java call stack, measured in unreified chunks.
+		 * The maximum depth of the Java call stack, measured in unreified
+		 * chunks.
 		 */
 		private const val maxUnreifiedCallDepth = 50
 
@@ -2609,7 +2621,7 @@ class Interpreter(
 		 * [throwable][Throwable].
 		 *
 		 * @param runtime
-		 *   An [Avail runtime][AvailRuntime].
+		 *   An [Avail&#32;runtime][AvailRuntime].
 		 * @param aFiber
 		 *   The fiber to run.
 		 * @param continuation
@@ -2661,7 +2673,7 @@ class Interpreter(
 		 * [throwable][Throwable].
 		 *
 		 * @param runtime
-		 *   An [Avail runtime][AvailRuntime].
+		 *   An [Avail&#32;runtime][AvailRuntime].
 		 * @param aFiber
 		 *   The fiber to run.
 		 * @param function
@@ -2677,14 +2689,14 @@ class Interpreter(
 			arguments: List<A_BasicObject>)
 		{
 			assert(aFiber.executionState() === UNSTARTED)
-			aFiber.fiberNameSupplier(Supplier {
+			aFiber.fiberNameSupplier {
 				val code = function.code()
 				formatString("Outermost %s @ %s:%d",
 					code.methodName().asNativeString(),
 					if (code.module().equalsNil()) "«vm»"
 					else code.module().moduleName().asNativeString(),
 					code.startingLineNumber())
-			})
+			}
 			executeFiber(runtime, aFiber)
 			{ interpreter: Interpreter ->
 				assert(aFiber === interpreter.fiberOrNull())
@@ -2858,8 +2870,8 @@ class Interpreter(
 		 * @param runtime
 		 *   An Avail runtime.
 		 * @param textInterface
-		 *   The [text interface][TextInterface] for [fibers][A_Fiber] started
-		 *   due to stringification. This need not be the default
+		 *   The [text&#32;interface][TextInterface] for [fibers][A_Fiber]
+		 *   started due to stringification. This need not be the default
 		 *   [text&#32;interface][AvailRuntime.textInterface].
 		 * @param value
 		 *   An Avail value.
@@ -2966,7 +2978,7 @@ class Interpreter(
 			WeakHashMap<A_Module, Statistic>()
 
 		/**
-		 * Answer the bootstrapped [assignment function][P_SetValue] used to
+		 * Answer the bootstrapped [assignment&#32;function][P_SetValue] used to
 		 * restart implicitly observed assignments.
 		 *
 		 * @return

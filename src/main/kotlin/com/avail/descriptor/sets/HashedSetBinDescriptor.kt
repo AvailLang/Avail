@@ -6,12 +6,12 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
  *
  *  * Neither the name of the copyright holder nor the names of the contributors
  *    may be used to endorse or promote products derived from this software
@@ -31,13 +31,19 @@
  */
 package com.avail.descriptor.sets
 
-import com.avail.annotations.AvailMethod
 import com.avail.descriptor.maps.HashedMapBinDescriptor
 import com.avail.descriptor.maps.MapDescriptor
-import com.avail.descriptor.representation.*
+import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
+import com.avail.descriptor.representation.AbstractDescriptor
+import com.avail.descriptor.representation.AbstractSlotsEnum
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.AvailObjectRepresentation.Companion.newLike
+import com.avail.descriptor.representation.BitField
+import com.avail.descriptor.representation.IntegerSlotsEnum
+import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.sets.HashedSetBinDescriptor.IntegerSlots.BIT_VECTOR
 import com.avail.descriptor.sets.HashedSetBinDescriptor.IntegerSlots.Companion.BIN_HASH
 import com.avail.descriptor.sets.HashedSetBinDescriptor.IntegerSlots.Companion.BIN_SIZE
@@ -160,14 +166,12 @@ class HashedSetBinDescriptor private constructor(
 		e: AbstractSlotsEnum
 	): Boolean = e === BIN_UNION_TYPE_OR_NIL
 
-	@AvailMethod
 	override fun o_SetBinSize(self: AvailObject): Int = self.slot(BIN_SIZE)
 
-	@AvailMethod
 	override fun o_BinElementAt(
 		self: AvailObject,
-		subscript: Int
-	): AvailObject = self.slot(BIN_ELEMENT_AT_, subscript)
+		index: Int
+	): AvailObject = self.slot(BIN_ELEMENT_AT_, index)
 
 	/**
 	 * Lazily compute and install the union kind of this bin.
@@ -193,11 +197,9 @@ class HashedSetBinDescriptor private constructor(
 		return union
 	}
 
-	@AvailMethod
 	override fun o_BinUnionKind(self: AvailObject): A_Type =
 		self.synchronizeIf(isShared) { binUnionKind(self) }
 
-	@AvailMethod
 	override fun o_BinElementsAreAllInstancesOfKind(
 		self: AvailObject,
 		kind: A_Type
@@ -209,7 +211,6 @@ class HashedSetBinDescriptor private constructor(
 	 * responsible for marking elementObject as immutable if another reference
 	 * exists.
 	 */
-	@AvailMethod
 	override fun o_SetBinAddingElementHashLevelCanDestroy(
 		self: AvailObject,
 		elementObject: A_BasicObject,
@@ -300,7 +301,6 @@ class HashedSetBinDescriptor private constructor(
 		return objectToModify
 	}
 
-	@AvailMethod
 	override fun o_BinHasElementWithHash(
 		self: AvailObject,
 		elementObject: A_BasicObject,
@@ -325,7 +325,6 @@ class HashedSetBinDescriptor private constructor(
 	 * Remove elementObject from the bin object, if present. Answer the
 	 * resulting bin. The bin may be modified if it's mutable and canDestroy.
 	 */
-	@AvailMethod
 	override fun o_BinRemoveElementHashLevelCanDestroy(
 		self: AvailObject,
 		elementObject: A_BasicObject,
@@ -416,7 +415,6 @@ class HashedSetBinDescriptor private constructor(
 	 * bins are shared between the sets.  Even if not, we should be able to
 	 * avoid traversing some of the hashed layers for each element.
 	 */
-	@AvailMethod
 	override fun o_IsBinSubsetOf(
 		self: AvailObject,
 		potentialSuperset: A_Set
@@ -509,13 +507,13 @@ class HashedSetBinDescriptor private constructor(
 	override fun o_SetBinIterator(self: AvailObject): SetIterator =
 		HashedSetBinIterator(self)
 
-	override fun mutable(): HashedSetBinDescriptor =
+	override fun mutable() =
 		descriptorFor(Mutability.MUTABLE, level)
 
-	override fun immutable(): HashedSetBinDescriptor =
+	override fun immutable() =
 		descriptorFor(Mutability.IMMUTABLE, level)
 
-	override fun shared(): HashedSetBinDescriptor =
+	override fun shared() =
 		descriptorFor(Mutability.SHARED, level)
 
 	companion object {
@@ -529,6 +527,7 @@ class HashedSetBinDescriptor private constructor(
 		 *   A hashed set bin.
 		 */
 		fun checkHashedSetBin(self: AvailObject) {
+			@Suppress("ConstantConditionIf")
 			if (checkBinHashes) {
 				assert(self.descriptor() is HashedSetBinDescriptor)
 				val stored = self.setBinHash()

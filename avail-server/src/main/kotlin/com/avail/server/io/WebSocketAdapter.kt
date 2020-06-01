@@ -61,14 +61,14 @@ import kotlin.experimental.and
 import kotlin.experimental.xor
 
 /**
- * A `WebSocketAdapter` provides a WebSocket interface to an [Avail
- * server][AvailServer].
+ * A `WebSocketAdapter` provides a WebSocket interface to an
+ * [Avail&#32;server][AvailServer].
  *
  * @property server
- *   The [Avail server][AvailServer].
+ *   The [Avail&#32;server][AvailServer].
  * @property adapterAddress
- *   The [address][InetSocketAddress] of the [server socket
- *   channel][AsynchronousServerSocketChannel].
+ *   The [address][InetSocketAddress] of the
+ *   [server&#32;socket&#32;channel][AsynchronousServerSocketChannel].
  * @property serverAuthority
  *   The [server][WebSocketAdapter]'s authority, e.g., the host name of this
  *   node.
@@ -87,12 +87,12 @@ import kotlin.experimental.xor
  *   a channel.
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
- * @see [RFC 6455: The WebSocket Protocol](http://tools.ietf.org/html/rfc6455)
+ * @see [RFC&#32;6455:&#32;The WebSocket&#32;Protocol](http://tools.ietf.org/html/rfc6455)
  *
  * @constructor
  *
  * Construct a new [WebSocketAdapter] for the specified [server][AvailServer]
- * that listens on the specified [socket address][InetSocketAddress].
+ * that listens on the specified [socket&#32;address][InetSocketAddress].
  *
  * @param server
  *   An Avail server.
@@ -114,7 +114,7 @@ import kotlin.experimental.xor
  *   order to support implementation-specific requirements for the closing of
  *   a channel. *Does nothing by default.*
  * @throws IOException
- *   If the [server socket][AsynchronousServerSocketChannel] could not be
+ *   If the [server&#32;socket][AsynchronousServerSocketChannel] could not be
  *   opened.
  */
 class WebSocketAdapter @Throws(IOException::class) constructor(
@@ -148,8 +148,8 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 			})
 
 	/**
-	 * A `HttpHeaderState` represents a state of the [client
-	 * handshake][ClientHandshake]
+	 * A `HttpHeaderState` represents a state of the
+	 * [client&#32;handshake][ClientHandshake]
 	 * [recognizer][ClientHandshake.readClientHandshake].
 	 *
 	 * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -220,7 +220,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 	 * methods.
 	 *
 	 * @author Todd L Smith &lt;todd@availlang.org&gt;
-	 * @see [Method Definitions](https://tools.ietf.org/html/rfc7231.section-4.3)
+	 * @see [Method&#32;Definitions](https://tools.ietf.org/html/rfc7231.section-4.3)
 	 */
 	private enum class HttpRequestMethod
 	{
@@ -233,8 +233,8 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 		companion object
 		{
 			/**
-			 * A [map][Map] from HTTP request method names to [HTTP request
-			 * methods][HttpRequestMethod].
+			 * A [map][Map] from HTTP request method names to
+			 * [HTTP&#32;request&#32;methods][HttpRequestMethod].
 			 */
 			private val methodsByName = HashMap<String, HttpRequestMethod>()
 
@@ -247,8 +247,8 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 			}
 
 			/**
-			 * Answer the [request method][HttpRequestMethod] with the specified
-			 * name.
+			 * Answer the [request&#32;method][HttpRequestMethod] with the
+			 * specified name.
 			 *
 			 * @param name
 			 *   The request method name.
@@ -296,7 +296,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 	 * A `ClientRequest` represents an arbitrary client handshake.
 	 *
 	 * @property method
-	 *   The [request method][HttpRequestMethod].
+	 *   The [request&#32;method][HttpRequestMethod].
 	 * @property uri
 	 *   The request URI.
 	 * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -306,7 +306,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 	 * Construct a new [ClientRequest].
 	 *
 	 * @param method
-	 *   The [request method][HttpRequestMethod].
+	 *   The [request&#32;method][HttpRequestMethod].
 	 * @param uri
 	 *   The request URI.
 	 * @param headers
@@ -338,7 +338,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 			 *   The HTTP status code.
 			 * @param reason
 			 *   The reason message.
-			 * @see [Status Code Definitions](http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html)
+			 * @see [Status&#32;Code&#32;Definitions](http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html)
 			 */
 			internal fun badRequest(
 				channel: WebSocketChannel,
@@ -381,8 +381,8 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 
 			/**
 			 * Answer the parsed [request][ClientRequest]. If the headers do not
-			 * describe a valid request, then [fail the connection][badRequest]
-			 * and answer `null`.
+			 * describe a valid request, then
+			 * [fail&#32;the&#32;connection][badRequest] and answer `null`.
 			 *
 			 * @param channel
 			 *   A [channel][WebSocketChannel].
@@ -480,7 +480,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 			}
 
 			/**
-			 * Read a [client request][ClientRequest] from the specified
+			 * Read a [client&#32;request][ClientRequest] from the specified
 			 * [channel][WebSocketChannel].
 			 *
 			 * @param channel
@@ -598,10 +598,11 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 			private val paddedComma = Pattern.compile(" *, *")
 
 			/**
-			 * Answer a [client handshake][ClientHandshake] based on the
+			 * Answer a [client&#32;handshake][ClientHandshake] based on the
 			 * specified [request][ClientRequest]. If the headers do not
-			 * describe a valid  WebSocket client handshake, then [fail the
-			 * connection][ClientRequest.badRequest] and answer `null`.
+			 * describe a valid WebSocket client handshake, then
+			 * [fail&#32;the&#32;connection][ClientRequest.badRequest] and
+			 * answer `null`.
 			 *
 			 * @param channel
 			 *   A [channel][WebSocketChannel].
@@ -805,7 +806,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 		}
 
 		/**
-		 * Send the [server handshake][ServerHandshake] across the specified
+		 * Send the [server&#32;handshake][ServerHandshake] across the specified
 		 * [channel][AsynchronousSocketChannel].
 		 *
 		 * @param channel
@@ -1149,9 +1150,9 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 		internal var maskingKey: ByteBuffer? = null
 
 		/**
-		 * The payload. This must not be [allocated
-		 * directly][ByteBuffer.allocateDirect], as access to the [backing
-		 * array][ByteBuffer.array] is required.
+		 * The payload. This must not be
+		 * [allocated&#32;directly][ByteBuffer.allocateDirect], as access to the
+		 * [backing&#32;array][ByteBuffer.array] is required.
 		 */
 		internal var payloadData: ByteBuffer? = null
 
@@ -2041,7 +2042,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 		 * @param channel
 		 *   A channel.
 		 * @param statusCode
-		 *   The [status code][WebSocketStatusCode].
+		 *   The [status&#32;code][WebSocketStatusCode].
 		 * @param reasonMessage
 		 *   The reason message.
 		 */
@@ -2064,7 +2065,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 		 * @param channel
 		 *   A channel.
 		 * @param statusCode
-		 *   The [status code][WebSocketStatusCode].
+		 *   The [status&#32;code][WebSocketStatusCode].
 		 * @param reasonMessage
 		 *   The reason message.
 		 * @param reason

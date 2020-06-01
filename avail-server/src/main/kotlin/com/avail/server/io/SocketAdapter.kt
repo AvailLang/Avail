@@ -51,22 +51,22 @@ import java.util.logging.Level
 
 /**
  * A `SocketAdapter` provides a low-level [socket][AsynchronousSocketChannel]
- * interface to an [Avail server][AvailServer]. The transport protocol is
+ * interface to an [Avail&#32;server][AvailServer]. The transport protocol is
  * minimal; [messages][Message] are encoded as size-prefixed
  * [UTF-8][StandardCharsets.UTF_8] [strings][String].
  *
  * @property server
- *   The [Avail server][AvailServer].
+ *   The [Avail&#32;server][AvailServer].
  * @property adapterAddress
- *   The [address][InetSocketAddress] of the [server socket
- *   channel][AsynchronousServerSocketChannel].
+ *   The [address][InetSocketAddress] of the
+ *   [server&#32;socket&#32;channel][AsynchronousServerSocketChannel].
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
  * @constructor
  *
  * Construct a new `SocketAdapter` for the specified [server][AvailServer] that
- * listens on the specified [socket address][InetSocketAddress].
+ * listens on the specified [socket&#32;address][InetSocketAddress].
  *
  * @param server
  *   An Avail server.
@@ -77,7 +77,7 @@ import java.util.logging.Level
  *   order to support implementation-specific requirements for the closing of
  *   a channel. *Does nothing by default.*
  * @throws IOException
- *   If the [server socket][AsynchronousServerSocketChannel] could not be
+ *   If the [server&#32;socket][AsynchronousServerSocketChannel] could not be
  *   opened.
  */
 class SocketAdapter @Throws(IOException::class) constructor(

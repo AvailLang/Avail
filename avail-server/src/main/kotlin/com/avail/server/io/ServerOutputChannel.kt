@@ -43,7 +43,7 @@ package com.avail.server.io
  * Construct a new [ServerOutputChannel].
  *
  * @param channel
- *   The [server channel][AvailServerChannel] to adapt as a standard output
+ *   The [server&#32;channel][AvailServerChannel] to adapt as a standard output
  *   channel.
  */
 class ServerOutputChannel constructor(channel: AvailServerChannel)

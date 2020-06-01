@@ -45,9 +45,9 @@ class AvailCompilerFragmentCache
 {
 	/**
 	 * Keeps track of the [solutions][CompilerSolution] that have been found at
-	 * various positions.  Technically at various [parser states][ParserState],
-	 * since we must take into account which variable declarations are in scope
-	 * when looking for subexpressions.
+	 * various positions.  Technically at various
+	 * [parser&#32;states][ParserState], since we must take into account which
+	 * variable declarations are in scope when looking for subexpressions.
 	 *
 	 * This is implemented with a [ConcurrentHashMap] to minimize contention.
 	 */
@@ -55,8 +55,8 @@ class AvailCompilerFragmentCache
 		ConcurrentHashMap<ParserState, AvailCompilerBipartiteRendezvous>(100)
 
 	/**
-	 * Look up the [AvailCompilerBipartiteRendezvous] at the given [parser
-	 * state][ParserState], creating one if necessary.
+	 * Look up the [AvailCompilerBipartiteRendezvous] at the given
+	 * [parser&#32;state][ParserState], creating one if necessary.
 	 *
 	 * @param parserState
 	 *   The [ParserState] to look up.

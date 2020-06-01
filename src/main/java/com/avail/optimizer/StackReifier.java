@@ -33,14 +33,15 @@
 package com.avail.optimizer;
 
 import com.avail.AvailThread;
-import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.functions.A_Continuation;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.interpreter.execution.Interpreter;
 import com.avail.optimizer.jvm.CheckedMethod;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.performance.Statistic;
-import com.avail.utility.evaluation.Continuation0;
-import com.avail.utility.evaluation.Continuation1NotNull;
+import kotlin.Unit;
+import kotlin.jvm.functions.Function0;
+import kotlin.jvm.functions.Function1;
 
 import javax.annotation.Nullable;
 import java.util.ArrayDeque;
@@ -72,12 +73,12 @@ public final class StackReifier
 	private final boolean actuallyReify;
 
 	/**
-	 * A {@link Continuation0} that should be executed once the {@link
-	 * Interpreter}'s stack has been fully reified.  For example, this might set
-	 * up a function/chunk/offset in the interpreter.  The interpreter will then
+	 * An action that should be executed once the {@link Interpreter}'s stack
+	 * has been fully reified.  For example, this might set up a
+	 * function/chunk/offset in the interpreter.  The interpreter will then
 	 * determine if it should continue running.
 	 */
-	public final Continuation0 postReificationAction;
+	public final Function0<Unit> postReificationAction;
 
 	/**
 	 * The stack of lambdas that's accumulated as the call stack is popped.
@@ -87,7 +88,7 @@ public final class StackReifier
 	 * frames to be generated and pushed onto the {@link
 	 * Interpreter#setReifiedContinuation(A_Continuation)}.
 	 */
-	private final Deque<Continuation1NotNull<Interpreter>> actionStack =
+	private final Deque<Function1<Interpreter, Unit>> actionStack =
 		new ArrayDeque<>();
 
 	/** The {@link System#nanoTime()} when this stack reifier was created. */
@@ -111,7 +112,7 @@ public final class StackReifier
 	public StackReifier (
 		final boolean actuallyReify,
 		final Statistic reificationStatistic,
-		final Continuation0 postReificationAction)
+		final Function0<Unit> postReificationAction)
 	{
 		this.actuallyReify = actuallyReify;
 		this.postReificationAction = postReificationAction;
@@ -143,7 +144,7 @@ public final class StackReifier
 	{
 		while (!actionStack.isEmpty())
 		{
-			actionStack.removeLast().value(interpreter);
+			actionStack.removeLast().invoke(interpreter);
 		}
 	}
 
@@ -151,10 +152,9 @@ public final class StackReifier
 	 * Push an action on the {@link #actionStack}.  These will be executed in
 	 * reverse order, after the Java call stack has been emptied.
 	 *
-	 * @param action The {@link Continuation1NotNull} to push.
+	 * @param action The action to push.
 	 */
-	public void pushAction (
-		final Continuation1NotNull<Interpreter> action)
+	public void pushAction (final Function1<Interpreter, Unit> action)
 	{
 		actionStack.addLast(action);
 	}
@@ -221,6 +221,7 @@ public final class StackReifier
 							+ "that queued it)",
 						"");
 				}
+				return Unit.INSTANCE;
 			});
 		return this;
 	}

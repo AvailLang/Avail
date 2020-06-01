@@ -6,11 +6,11 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *    list of conditions and the following disclaimer in the documentation
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
  *
  *  * Neither the name of the copyright holder nor the names of the contributors
@@ -31,21 +31,21 @@
  */
 package com.avail.descriptor.functions
 
-import com.avail.descriptor.module.A_Module
-import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
 import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.methods.A_Method
+import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.BlockPhraseDescriptor
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelOne.L1Operation
 import com.avail.interpreter.levelTwo.L2Chunk
 import com.avail.optimizer.L2Generator
@@ -53,12 +53,10 @@ import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.performance.Statistic
-import com.avail.utility.evaluation.Continuation0
-import com.avail.utility.evaluation.Continuation1NotNull
 
 /**
  * `A_RawFunction` is an interface that specifies the operations specific to
- * [function implementations][CompiledCodeDescriptor] in Avail.
+ * [function&#32;implementations][CompiledCodeDescriptor] in Avail.
  *
  * An [A_Function] refers to its raw function, plus any outer values captured
  * during function [closure][L1Operation.L1_doClose].
@@ -93,11 +91,11 @@ interface A_RawFunction : A_BasicObject {
 	 * to effect reoptimization.
 	 *
 	 * @param continuation
-	 *   The [Continuation0] responsible for reoptimizing this function
-	 *   implementation in the event that the countdown reaches zero (`0`).
+	 *   The action responsible for reoptimizing this function implementation in
+	 *   the event that the countdown reaches zero (`0`).
 	 */
 	fun decrementCountdownToReoptimize(
-		continuation: Continuation1NotNull<Boolean>)
+		continuation: (Boolean) -> Unit)
 
 	/**
 	 * Answer the [function&#32;type][FunctionTypeDescriptor] associated with

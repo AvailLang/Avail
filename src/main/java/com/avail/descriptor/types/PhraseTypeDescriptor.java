@@ -32,14 +32,31 @@
 
 package com.avail.descriptor.types;
 
-import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.descriptor.JavaCompatibility.IntegerEnumSlotDescriptionEnumJava;
-import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
-import com.avail.descriptor.phrases.*;
-import com.avail.descriptor.representation.*;
+import com.avail.descriptor.phrases.A_Phrase;
+import com.avail.descriptor.phrases.AssignmentPhraseDescriptor;
+import com.avail.descriptor.phrases.BlockPhraseDescriptor;
+import com.avail.descriptor.phrases.DeclarationPhraseDescriptor;
+import com.avail.descriptor.phrases.FirstOfSequencePhraseDescriptor;
+import com.avail.descriptor.phrases.ListPhraseDescriptor;
+import com.avail.descriptor.phrases.LiteralPhraseDescriptor;
+import com.avail.descriptor.phrases.PermutedListPhraseDescriptor;
+import com.avail.descriptor.phrases.PhraseDescriptor;
+import com.avail.descriptor.phrases.ReferencePhraseDescriptor;
+import com.avail.descriptor.phrases.SendPhraseDescriptor;
+import com.avail.descriptor.phrases.SequencePhraseDescriptor;
+import com.avail.descriptor.phrases.SuperCastPhraseDescriptor;
+import com.avail.descriptor.phrases.VariableUsePhraseDescriptor;
+import com.avail.descriptor.representation.A_BasicObject;
+import com.avail.descriptor.representation.AbstractSlotsEnum;
+import com.avail.descriptor.representation.AvailObject;
+import com.avail.descriptor.representation.BitField;
+import com.avail.descriptor.representation.IntegerSlotsEnum;
+import com.avail.descriptor.representation.Mutability;
+import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
@@ -56,8 +73,16 @@ import static com.avail.descriptor.types.LiteralTokenTypeDescriptor.literalToken
 import static com.avail.descriptor.types.PhraseTypeDescriptor.IntegerSlots.HASH_AND_MORE;
 import static com.avail.descriptor.types.PhraseTypeDescriptor.IntegerSlots.HASH_OR_ZERO;
 import static com.avail.descriptor.types.PhraseTypeDescriptor.ObjectSlots.EXPRESSION_TYPE;
-import static com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.*;
-import static com.avail.descriptor.types.TupleTypeDescriptor.*;
+import static com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.ASSIGNMENT_PHRASE;
+import static com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE;
+import static com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE;
+import static com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE;
+import static com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE;
+import static com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEQUENCE_PHRASE;
+import static com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.STATEMENT_PHRASE;
+import static com.avail.descriptor.types.TupleTypeDescriptor.mostGeneralTupleType;
+import static com.avail.descriptor.types.TupleTypeDescriptor.stringType;
+import static com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeFromTupleOfTypes;
 import static com.avail.descriptor.types.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.types.TypeDescriptor.Types.TOP;
 import static com.avail.descriptor.types.VariableTypeDescriptor.mostGeneralVariableType;
@@ -676,7 +701,7 @@ extends TypeDescriptor
 	 * @return The {@linkplain TypeDescriptor type} of the {@link AvailObject}
 	 *         that will be produced by a phrase of this type.
 	 */
-	@Override @AvailMethod
+	@Override
 	public A_Type o_ExpressionType (final AvailObject object)
 	{
 		return object.slot(EXPRESSION_TYPE);
@@ -688,7 +713,7 @@ extends TypeDescriptor
 	 * <p>Phrase types are equal when they are of the same kind and have the
 	 * same expression type.</p>
 	 */
-	@Override @AvailMethod
+	@Override
 	public boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsPhraseType(object);
@@ -700,7 +725,7 @@ extends TypeDescriptor
 	 * <p>Phrase types are equal when they are of the same kind and have the
 	 * same expression type.</p>
 	 */
-	@Override @AvailMethod
+	@Override
 	public boolean o_EqualsPhraseType (
 		final AvailObject object,
 		final A_Type aPhraseType)
@@ -714,7 +739,7 @@ extends TypeDescriptor
 	 * Subclasses of {@code PhraseTypeDescriptor} must implement {@linkplain
 	 * A_Phrase phrases} must implement {@link A_BasicObject#hash()}.
 	 */
-	@Override @AvailMethod
+	@Override
 	public int o_Hash (final AvailObject object)
 	{
 		int hash = object.slot(HASH_OR_ZERO);
@@ -727,14 +752,13 @@ extends TypeDescriptor
 		return hash;
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
 	{
 		return aType.isSupertypeOfPhraseType(object);
 	}
 
 	@Override
-	@AvailMethod
 	public boolean o_IsSupertypeOfListNodeType (
 		final AvailObject object,
 		final A_Type aListNodeType)
@@ -745,7 +769,6 @@ extends TypeDescriptor
 	}
 
 	@Override
-	@AvailMethod
 	public boolean o_IsSupertypeOfPhraseType (
 		final AvailObject object,
 		final A_Type aPhraseType)
@@ -762,13 +785,13 @@ extends TypeDescriptor
 	 *
 	 * @return The {@linkplain PhraseKind kind} of phrase that the object is.
 	 */
-	@Override @AvailMethod
+	@Override
 	public PhraseKind o_PhraseKind (final AvailObject object)
 	{
 		return kind;
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_PhraseKindIsUnder (
 		final AvailObject object,
 		final PhraseKind expectedPhraseKind)
@@ -791,7 +814,7 @@ extends TypeDescriptor
 			object.slot(EXPRESSION_TYPE), PARSE_PHRASE::create);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeIntersection (
 		final AvailObject object,
 		final A_Type another)
@@ -820,7 +843,7 @@ extends TypeDescriptor
 			aListNodeType.subexpressionsTupleType());
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeIntersectionOfPhraseType (
 		final AvailObject object,
 		final A_Type aPhraseType)
@@ -839,7 +862,7 @@ extends TypeDescriptor
 				aPhraseType.expressionType()));
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeUnion (
 		final AvailObject object,
 		final A_Type another)
@@ -862,7 +885,7 @@ extends TypeDescriptor
 			object.expressionType().typeUnion(aListNodeType.expressionType()));
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeUnionOfPhraseType (
 		final AvailObject object,
 		final A_Type aPhraseType)

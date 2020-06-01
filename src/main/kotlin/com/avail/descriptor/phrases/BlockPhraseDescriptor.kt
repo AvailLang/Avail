@@ -6,12 +6,12 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
  *
  *  * Neither the name of the copyright holder nor the names of the contributors
  *    may be used to endorse or promote products derived from this software
@@ -32,15 +32,13 @@
 package com.avail.descriptor.phrases
 
 import com.avail.AvailRuntime
-import com.avail.annotations.AvailMethod
 import com.avail.annotations.EnumField
 import com.avail.compiler.AvailCodeGenerator
 import com.avail.compiler.AvailCodeGenerator.Companion.generateFunction
-import com.avail.descriptor.module.A_Module
-import com.avail.descriptor.module.ModuleDescriptor
-import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
+import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.phrases.A_Phrase.Companion.argumentsTuple
 import com.avail.descriptor.phrases.A_Phrase.Companion.childrenDo
 import com.avail.descriptor.phrases.A_Phrase.Companion.declaration
@@ -57,10 +55,22 @@ import com.avail.descriptor.phrases.A_Phrase.Companion.tokens
 import com.avail.descriptor.phrases.A_Phrase.Companion.validateLocally
 import com.avail.descriptor.phrases.BlockPhraseDescriptor.IntegerSlots.Companion.PRIMITIVE
 import com.avail.descriptor.phrases.BlockPhraseDescriptor.IntegerSlots.Companion.STARTING_LINE_NUMBER
-import com.avail.descriptor.phrases.BlockPhraseDescriptor.ObjectSlots.*
+import com.avail.descriptor.phrases.BlockPhraseDescriptor.ObjectSlots.ARGUMENTS_TUPLE
+import com.avail.descriptor.phrases.BlockPhraseDescriptor.ObjectSlots.DECLARED_EXCEPTIONS
+import com.avail.descriptor.phrases.BlockPhraseDescriptor.ObjectSlots.NEEDED_VARIABLES
+import com.avail.descriptor.phrases.BlockPhraseDescriptor.ObjectSlots.RESULT_TYPE
+import com.avail.descriptor.phrases.BlockPhraseDescriptor.ObjectSlots.STATEMENTS_TUPLE
+import com.avail.descriptor.phrases.BlockPhraseDescriptor.ObjectSlots.TOKENS
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
-import com.avail.descriptor.representation.*
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AbstractSlotsEnum
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.AvailObject.Companion.multiplier
+import com.avail.descriptor.representation.BitField
+import com.avail.descriptor.representation.IntegerSlotsEnum
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.tokens.A_Token
 import com.avail.descriptor.tuples.A_Tuple
@@ -71,7 +81,11 @@ import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
-import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.*
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.BLOCK_PHRASE
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.DECLARATION_PHRASE
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LABEL_PHRASE
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE
 import com.avail.descriptor.types.TypeTag
 import com.avail.exceptions.AvailErrorCode.E_BLOCK_MUST_NOT_CONTAIN_OUTERS
 import com.avail.exceptions.AvailRuntimeException
@@ -81,12 +95,8 @@ import com.avail.interpreter.Primitive.Flag
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.Strings.newlineTab
 import com.avail.utility.evaluation.Combinator.recurse
-import com.avail.utility.evaluation.Continuation1NotNull
 import com.avail.utility.json.JSONWriter
 import java.util.*
-import java.util.function.BiConsumer
-import java.util.function.Consumer
-import java.util.function.UnaryOperator
 
 /**
  * My instances represent occurrences of blocks (functions) encountered in code.
@@ -286,37 +296,33 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 		e: AbstractSlotsEnum
 	) = e === NEEDED_VARIABLES
 
-	@AvailMethod
 	override fun o_ArgumentsTuple(self: AvailObject): A_Tuple =
 		self.slot(ARGUMENTS_TUPLE)
 
-	@AvailMethod
 	override fun o_ChildrenDo(
 		self: AvailObject,
-		action: Consumer<A_Phrase>
+		action: (A_Phrase) -> Unit
 	) {
-		self.argumentsTuple().forEach(action::accept)
-		self.statementsTuple().forEach(action::accept)
+		self.argumentsTuple().forEach(action)
+		self.statementsTuple().forEach(action)
 	}
 
-	@AvailMethod
 	override fun o_ChildrenMap(
 		self: AvailObject,
-		transformer: UnaryOperator<A_Phrase>
+		transformer: (A_Phrase) -> A_Phrase
 	) {
 		var arguments: A_Tuple = self.slot(ARGUMENTS_TUPLE)
 		arguments = generateObjectTupleFrom(arguments.tupleSize()) {
-			transformer.apply(arguments.tupleAt(it))
+			transformer(arguments.tupleAt(it))
 		}
 		self.setSlot(ARGUMENTS_TUPLE, arguments)
 		var statements = self.slot(STATEMENTS_TUPLE)
 		statements = generateObjectTupleFrom(statements.tupleSize()) {
-			transformer.apply(statements.tupleAt(it))
+			transformer(statements.tupleAt(it))
 		}
 		self.setSlot(STATEMENTS_TUPLE, statements)
 	}
 
-	@AvailMethod
 	override fun o_DeclaredExceptions(self: AvailObject): A_Set =
 		self.slot(DECLARED_EXCEPTIONS)
 
@@ -324,7 +330,6 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 	 * The expression `[`someExpression`]` has no effect, only a value (the
 	 * function itself).
 	 */
-	@AvailMethod
 	override fun o_EmitEffectOn(
 		self: AvailObject,
 		codeGenerator: AvailCodeGenerator
@@ -332,7 +337,6 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 		// No effect.
 	}
 
-	@AvailMethod
 	override fun o_EmitValueOn(
 		self: AvailObject,
 		codeGenerator: AvailCodeGenerator
@@ -349,7 +353,6 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 		}
 	}
 
-	@AvailMethod
 	override fun o_EqualsPhrase(
 		self: AvailObject,
 		aPhrase: A_Phrase
@@ -362,7 +365,6 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 			&& self.primitive() === aPhrase.primitive())
 	}
 
-	@AvailMethod
 	override fun o_ExpressionType(self: AvailObject): A_Type =
 		functionType(
 			tupleFromList(self.argumentsTuple().map { it.declaredType() }),
@@ -380,13 +382,11 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 	 * @return
 	 *   An [A_RawFunction].
 	 */
-	@AvailMethod
 	override fun o_GenerateInModule(
 		self: AvailObject,
 		module: A_Module
 	): A_RawFunction = generateFunction(module, self)
 
-	@AvailMethod
 	override fun o_Hash(self: AvailObject): Int {
 		var h = self.argumentsTuple().hash()
 		h = h * multiplier + self.statementsTuple().hash()
@@ -396,11 +396,9 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 		return h
 	}
 
-	@AvailMethod
 	override fun o_NeededVariables(self: AvailObject): A_Tuple =
 		self.mutableSlot(NEEDED_VARIABLES)
 
-	@AvailMethod
 	override fun o_NeededVariables(
 		self: AvailObject,
 		neededVariables: A_Tuple
@@ -409,33 +407,28 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 	override fun o_PhraseKind(self: AvailObject): PhraseKind =
 		BLOCK_PHRASE
 
-	@AvailMethod
 	override fun o_Primitive(self: AvailObject): Primitive? =
 		byNumber(self.slot(PRIMITIVE))
 
-	@AvailMethod
 	override fun o_ResultType(self: AvailObject): A_Type =
 		self.slot(RESULT_TYPE)
 
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		SerializerOperation.BLOCK_PHRASE
 
-	@AvailMethod
 	override fun o_StartingLineNumber(self: AvailObject): Int =
 		self.slot(STARTING_LINE_NUMBER)
 
-	@AvailMethod
 	override fun o_StatementsTuple(self: AvailObject): A_Tuple =
 		self.slot(STATEMENTS_TUPLE)
 
 	override fun o_StatementsDo(
 		self: AvailObject,
-		continuation: Continuation1NotNull<A_Phrase>
-	) = throw unsupportedOperationException()
+		continuation: (A_Phrase) -> Unit
+	) = unsupportedOperation()
 
 	override fun o_Tokens(self: AvailObject): A_Tuple = self.slot(TOKENS)
 
-	@AvailMethod
 	override fun o_ValidateLocally(
 		self: AvailObject,
 		parent: A_Phrase?
@@ -490,9 +483,9 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 		writer.endObject()
 	}
 
-	override fun mutable(): BlockPhraseDescriptor = mutable
+	override fun mutable() = mutable
 
-	override fun shared(): BlockPhraseDescriptor = shared
+	override fun shared() = shared
 
 	companion object {
 		/**
@@ -656,8 +649,7 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 		fun recursivelyValidate(blockNode: A_Phrase) {
 			treeDoWithParent(
 				blockNode,
-				BiConsumer {
-					obj: A_Phrase, parent: A_Phrase? ->
+				{ obj: A_Phrase, parent: A_Phrase? ->
 					obj.validateLocally(parent)
 				},
 				null)
@@ -678,8 +670,8 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 			val neededDeclarationsSet = mutableSetOf<A_Phrase>()
 			val neededDeclarations = mutableListOf<A_Phrase>()
 			recurse(self) {
-				parent: A_Phrase, again: Continuation1NotNull<A_Phrase> ->
-				parent.childrenDo(Consumer {
+				parent: A_Phrase, again: (A_Phrase) -> Unit ->
+				parent.childrenDo {
 					child: A_Phrase ->
 					when {
 						child.phraseKindIsUnder(BLOCK_PHRASE) ->
@@ -710,9 +702,9 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 							// those initializations to accidentally be captured
 							// as well.
 						}
-						else -> again.value(child)
+						else -> again(child)
 					}
-				})
+				}
 			}
 			self.neededVariables(tupleFromList(neededDeclarations))
 		}

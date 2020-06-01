@@ -32,10 +32,8 @@
 
 package com.avail.descriptor.types;
 
-import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.ThreadSafe;
-import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.functions.FunctionDescriptor;
@@ -43,6 +41,7 @@ import com.avail.descriptor.numbers.A_Number;
 import com.avail.descriptor.objects.ObjectTypeDescriptor;
 import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.representation.AbstractSlotsEnum;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.representation.BitField;
 import com.avail.descriptor.representation.Mutability;
 import com.avail.descriptor.sets.A_Set;
@@ -63,7 +62,9 @@ import static com.avail.descriptor.sets.SetDescriptor.emptySet;
 import static com.avail.descriptor.types.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.types.FunctionTypeDescriptor.IntegerSlots.HASH_AND_MORE;
 import static com.avail.descriptor.types.FunctionTypeDescriptor.IntegerSlots.HASH_OR_ZERO;
-import static com.avail.descriptor.types.FunctionTypeDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.types.FunctionTypeDescriptor.ObjectSlots.ARGS_TUPLE_TYPE;
+import static com.avail.descriptor.types.FunctionTypeDescriptor.ObjectSlots.DECLARED_EXCEPTIONS;
+import static com.avail.descriptor.types.FunctionTypeDescriptor.ObjectSlots.RETURN_TYPE;
 import static com.avail.descriptor.types.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.descriptor.types.IntegerRangeTypeDescriptor.singleInt;
 import static com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType;
@@ -307,7 +308,7 @@ extends TypeDescriptor
 		return hash;
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_AcceptsArgTypesFromFunctionType (
 		final AvailObject object,
 		final A_Type functionType)
@@ -316,7 +317,7 @@ extends TypeDescriptor
 			object.slot(ARGS_TUPLE_TYPE));
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_AcceptsListOfArgTypes (
 		final AvailObject object,
 		final List<? extends A_Type> argTypes)
@@ -332,7 +333,7 @@ extends TypeDescriptor
 		return true;
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_AcceptsListOfArgValues (
 		final AvailObject object,
 		final List<? extends A_BasicObject> argValues)
@@ -349,7 +350,7 @@ extends TypeDescriptor
 		return true;
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_AcceptsTupleOfArgTypes (
 		final AvailObject object,
 		final A_Tuple argTypes)
@@ -365,7 +366,7 @@ extends TypeDescriptor
 		return true;
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_AcceptsTupleOfArguments (
 		final AvailObject object,
 		final A_Tuple arguments)
@@ -373,13 +374,13 @@ extends TypeDescriptor
 		return arguments.isInstanceOf(object.slot(ARGS_TUPLE_TYPE));
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_ArgsTupleType (final AvailObject object)
 	{
 		return object.slot(ARGS_TUPLE_TYPE);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_CouldEverBeInvokedWith (
 		final AvailObject object,
 		final List<TypeRestriction> argRestrictions)
@@ -396,19 +397,19 @@ extends TypeDescriptor
 		return true;
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Set o_DeclaredExceptions (final AvailObject object)
 	{
 		return object.slot(DECLARED_EXCEPTIONS);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsFunctionType(object);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_EqualsFunctionType (
 		final AvailObject object,
 		final A_Type aType)
@@ -447,7 +448,7 @@ extends TypeDescriptor
 		return true;
 	}
 
-	@Override @AvailMethod
+	@Override
 	public int o_Hash (final AvailObject object)
 	{
 		if (isShared())
@@ -460,13 +461,13 @@ extends TypeDescriptor
 		return hash(object);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
 	{
 		return aType.isSupertypeOfFunctionType(object);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsSupertypeOfFunctionType (
 		final AvailObject object,
 		final A_Type aFunctionType)
@@ -505,13 +506,13 @@ extends TypeDescriptor
 		return sizeRange.lowerBound().lessThan(sizeRange.upperBound());
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_ReturnType (final AvailObject object)
 	{
 		return object.slot(RETURN_TYPE);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeIntersection (
 		final AvailObject object,
 		final A_Type another)
@@ -527,7 +528,7 @@ extends TypeDescriptor
 		return another.typeIntersectionOfFunctionType(object);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeIntersectionOfFunctionType (
 		final AvailObject object,
 		final A_Type aFunctionType)
@@ -555,7 +556,7 @@ extends TypeDescriptor
 			exceptions);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeUnion (
 		final AvailObject object,
 		final A_Type another)
@@ -571,7 +572,7 @@ extends TypeDescriptor
 		return another.typeUnionOfFunctionType(object);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeUnionOfFunctionType (
 		final AvailObject object,
 		final A_Type aFunctionType)
@@ -592,7 +593,7 @@ extends TypeDescriptor
 			exceptions);
 	}
 
-	@Override @AvailMethod @ThreadSafe
+	@Override @ThreadSafe
 	public SerializerOperation o_SerializerOperation (
 		final AvailObject object)
 	{

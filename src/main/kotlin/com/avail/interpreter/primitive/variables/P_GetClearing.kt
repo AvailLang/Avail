@@ -31,8 +31,8 @@
  */
 package com.avail.interpreter.primitive.variables
 
-import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.types.A_Type
@@ -41,18 +41,22 @@ import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.descriptor.types.VariableTypeDescriptor.mostGeneralVariableType
 import com.avail.descriptor.variables.A_Variable
-import com.avail.exceptions.AvailErrorCode.*
+import com.avail.exceptions.AvailErrorCode.E_CANNOT_MODIFY_FINAL_JAVA_FIELD
+import com.avail.exceptions.AvailErrorCode.E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE
+import com.avail.exceptions.AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE
+import com.avail.exceptions.AvailErrorCode.E_JAVA_MARSHALING_FAILED
+import com.avail.exceptions.AvailErrorCode.E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED
 import com.avail.exceptions.VariableGetException
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Get the value of the [variable][A_Variable], clear the variable, then answer the
- * previously extracted [value][AvailObject]. This operation
- * allows store-back patterns to be efficiently implemented in Level One
- * code while keeping the interpreter itself thread-safe and debugger-safe.
+ * **Primitive:** Get the value of the [variable][A_Variable], clear the
+ * variable, then answer the previously extracted [value][AvailObject]. This
+ * operation allows store-back patterns to be efficiently implemented in Level
+ * One code while keeping the interpreter itself thread-safe and debugger-safe.
  */
 @Suppress("unused")
 object P_GetClearing : Primitive(1, CanInline, HasSideEffect)

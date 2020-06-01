@@ -38,7 +38,15 @@ import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2NamedOperandType
 import com.avail.interpreter.levelTwo.L2OperandType
 import com.avail.interpreter.levelTwo.L2Operation
-import com.avail.interpreter.levelTwo.operand.*
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadFloatOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteFloatOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteOperand
+import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.interpreter.levelTwo.register.L2BoxedRegister
 import com.avail.interpreter.levelTwo.register.L2FloatRegister
 import com.avail.interpreter.levelTwo.register.L2IntRegister
@@ -52,7 +60,6 @@ import com.avail.optimizer.values.L2SemanticValue
 import com.avail.utility.Casts
 import org.objectweb.asm.MethodVisitor
 import java.util.*
-import kotlin.collections.Set
 import kotlin.collections.set
 
 /**
@@ -92,7 +99,8 @@ private constructor(
 	: L2Operation("MOVE(" + kind.kindName + ")", *theNamedOperandTypes)
 {
 	/**
-	 * Synthesize an [L2WriteOperand] of the appropriately strengthened type [WR].
+	 * Synthesize an [L2WriteOperand] of the appropriately strengthened type
+	 * [WR].
 	 *
 	 * @param generator
 	 *   The [L2Generator] used for creating the write.

@@ -35,7 +35,11 @@ package com.avail.stacks.scanner
 import com.avail.descriptor.character.CharacterDescriptor
 import com.avail.descriptor.tokens.CommentTokenDescriptor
 import com.avail.stacks.exceptions.StacksScannerException
-import com.avail.stacks.tokens.*
+import com.avail.stacks.tokens.AbstractStacksToken
+import com.avail.stacks.tokens.BracketedStacksToken
+import com.avail.stacks.tokens.KeywordStacksToken
+import com.avail.stacks.tokens.QuotedStacksToken
+import com.avail.stacks.tokens.StacksToken
 
 /**
  * The basics of a Stacks scanner.
@@ -54,8 +58,8 @@ abstract class AbstractStacksScanner internal constructor(
 	internal var moduleName: String)
 {
 	/**
-	 * The [comment token][CommentTokenDescriptor] text that has been lexed as
-	 * one long token.
+	 * The [comment&#32;token][CommentTokenDescriptor] text that has been lexed
+	 * as one long token.
 	 */
 	var tokenString: String = ""
 		private set
@@ -887,7 +891,7 @@ abstract class AbstractStacksScanner internal constructor(
 	{
 		/**
 		 * A table whose indices are Unicode code points (up to 65535) and whose
-		 * values are [scanner actions][StacksScanner.ScannerAction].
+		 * values are [scanner&#32;actions][StacksScanner.ScannerAction].
 		 */
 		internal val dispatchTable = ByteArray(65536)
 

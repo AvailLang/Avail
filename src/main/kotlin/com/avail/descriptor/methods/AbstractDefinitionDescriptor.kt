@@ -6,11 +6,11 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *    list of conditions and the following disclaimer in the documentation
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
  *
  *  * Neither the name of the copyright holder nor the names of the contributors
@@ -31,12 +31,12 @@
  */
 package com.avail.descriptor.methods
 
-import com.avail.annotations.AvailMethod
 import com.avail.annotations.HideFieldJustForPrinting
+import com.avail.descriptor.methods.AbstractDefinitionDescriptor.ObjectSlots.BODY_SIGNATURE
+import com.avail.descriptor.methods.AbstractDefinitionDescriptor.ObjectSlots.DEFINITION_METHOD
+import com.avail.descriptor.methods.AbstractDefinitionDescriptor.ObjectSlots.MODULE
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.module.ModuleDescriptor
-import com.avail.descriptor.methods.AbstractDefinitionDescriptor.ObjectSlots.*
-import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
@@ -75,7 +75,7 @@ class AbstractDefinitionDescriptor private constructor(
 		MODULE,
 
 		/**
-		 * The [function type][FunctionTypeDescriptor] for which this
+		 * The [function&#32;type][FunctionTypeDescriptor] for which this
 		 * signature is being specified.
 		 */
 		BODY_SIGNATURE;
@@ -90,19 +90,15 @@ class AbstractDefinitionDescriptor private constructor(
 		}
 	}
 
-	@AvailMethod
-	override fun o_BodySignature(self: AvailObject) =
+	override fun o_BodySignature(self: AvailObject): A_Type =
 		self.slot(BODY_SIGNATURE)
 
-	@AvailMethod
 	override fun o_Hash(self: AvailObject) =
 		self.slot(BODY_SIGNATURE).hash() * 19 xor 0x201FE782
 
-	@AvailMethod
 	override fun o_Kind(self: AvailObject): AvailObject =
 		Types.ABSTRACT_DEFINITION.o()
 
-	@AvailMethod
 	override fun o_IsAbstractDefinition(self: AvailObject) = true
 
 	override fun o_SerializerOperation(self: AvailObject) =

@@ -32,16 +32,15 @@
 
 package com.avail.descriptor.types;
 
-import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
-import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
-import com.avail.descriptor.representation.NilDescriptor;
 import com.avail.descriptor.representation.A_BasicObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.representation.BitField;
 import com.avail.descriptor.representation.IntegerSlotsEnum;
 import com.avail.descriptor.representation.Mutability;
+import com.avail.descriptor.representation.NilDescriptor;
 import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.tuples.A_String;
 import com.avail.descriptor.tuples.StringDescriptor;
@@ -59,7 +58,10 @@ import static com.avail.descriptor.types.InstanceMetaDescriptor.topMeta;
 import static com.avail.descriptor.types.PrimitiveTypeDescriptor.IntegerSlots.HASH;
 import static com.avail.descriptor.types.PrimitiveTypeDescriptor.ObjectSlots.NAME;
 import static com.avail.descriptor.types.PrimitiveTypeDescriptor.ObjectSlots.PARENT;
-import static com.avail.descriptor.types.TypeDescriptor.Types.*;
+import static com.avail.descriptor.types.TypeDescriptor.Types.NONTYPE;
+import static com.avail.descriptor.types.TypeDescriptor.Types.NUMBER;
+import static com.avail.descriptor.types.TypeDescriptor.Types.TOKEN;
+import static com.avail.descriptor.types.TypeDescriptor.Types.all;
 import static com.avail.utility.Nulls.stripNull;
 
 /**
@@ -158,13 +160,13 @@ extends TypeDescriptor
 		return extractEnum(object).ordinal();
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsPrimitiveType(object);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_EqualsPrimitiveType (
 		final AvailObject object,
 		final A_Type aPrimitiveType)
@@ -173,19 +175,19 @@ extends TypeDescriptor
 		return object.sameAddressAs(aPrimitiveType);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public int o_Hash (final AvailObject object)
 	{
 		return object.slot(HASH);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_BasicObject o_Parent (final AvailObject object)
 	{
 		return object.slot(PARENT);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
 	{
 		// Check if object (a type) is a subtype of aType (should also be a
@@ -193,7 +195,7 @@ extends TypeDescriptor
 		return aType.isSupertypeOfPrimitiveTypeEnum(extractEnum(object));
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsSupertypeOfFiberType (
 		final AvailObject object,
 		final A_Type aFiberType)
@@ -203,7 +205,7 @@ extends TypeDescriptor
 		return object.isSupertypeOfPrimitiveTypeEnum(NONTYPE);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsSupertypeOfFunctionType (
 		final AvailObject object,
 		final A_Type aFunctionType)
@@ -213,7 +215,7 @@ extends TypeDescriptor
 		return object.isSupertypeOfPrimitiveTypeEnum(NONTYPE);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsSupertypeOfListNodeType (
 		final AvailObject object,
 		final A_Type aListNodeType)
@@ -221,7 +223,7 @@ extends TypeDescriptor
 		return object.isSupertypeOfPrimitiveTypeEnum(NONTYPE);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsSupertypeOfVariableType (
 		final AvailObject object,
 		final A_Type aVariableType)
@@ -231,7 +233,7 @@ extends TypeDescriptor
 		return object.isSupertypeOfPrimitiveTypeEnum(NONTYPE);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsSupertypeOfContinuationType (
 		final AvailObject object,
 		final A_Type aContinuationType)
@@ -241,7 +243,7 @@ extends TypeDescriptor
 		return object.isSupertypeOfPrimitiveTypeEnum(NONTYPE);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsSupertypeOfCompiledCodeType (
 		final AvailObject object,
 		final A_Type aCompiledCodeType)
@@ -251,7 +253,7 @@ extends TypeDescriptor
 		return object.isSupertypeOfPrimitiveTypeEnum(NONTYPE);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsSupertypeOfIntegerRangeType (
 		final AvailObject object,
 		final A_Type anIntegerRangeType)
@@ -261,7 +263,7 @@ extends TypeDescriptor
 		return object.isSupertypeOfPrimitiveTypeEnum(NUMBER);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsSupertypeOfTokenType (
 		final AvailObject object,
 		final A_Type aTokenType)
@@ -271,7 +273,7 @@ extends TypeDescriptor
 		return object.isSupertypeOfPrimitiveTypeEnum(TOKEN);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsSupertypeOfLiteralTokenType (
 		final AvailObject object,
 		final A_Type aLiteralTokenType)
@@ -281,7 +283,7 @@ extends TypeDescriptor
 		return object.isSupertypeOfPrimitiveTypeEnum(TOKEN);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsSupertypeOfMapType (
 		final AvailObject object,
 		final AvailObject aMapType)
@@ -291,7 +293,7 @@ extends TypeDescriptor
 		return object.isSupertypeOfPrimitiveTypeEnum(NONTYPE);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsSupertypeOfObjectType (
 		final AvailObject object,
 		final AvailObject anObjectType)
@@ -301,7 +303,7 @@ extends TypeDescriptor
 		return object.isSupertypeOfPrimitiveTypeEnum(NONTYPE);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsSupertypeOfPhraseType (
 		final AvailObject object,
 		final A_Type aPhraseType)
@@ -317,7 +319,7 @@ extends TypeDescriptor
 		return object.isSupertypeOfPrimitiveTypeEnum(NONTYPE);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsSupertypeOfPojoType (
 		final AvailObject object,
 		final A_Type aPojoType)
@@ -325,39 +327,38 @@ extends TypeDescriptor
 		return object.isSupertypeOfPrimitiveTypeEnum(NONTYPE);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsSupertypeOfPrimitiveTypeEnum (
 		final AvailObject object,
 		final Types primitiveTypeEnum)
 	{
-		return
-			primitiveTypeEnum.superTests[extractOrdinal(object)];
+		return primitiveTypeEnum.superTests[extractOrdinal(object)];
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsSupertypeOfSetType (
 		final AvailObject object,
-		final AvailObject aSetType)
+		final A_Type aSetType)
 	{
 		// This primitive type is a supertype of aSetType if and only if this
 		// primitive type is a supertype of NONTYPE.
 		return object.isSupertypeOfPrimitiveTypeEnum(NONTYPE);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsSupertypeOfTupleType (
 		final AvailObject object,
-		final AvailObject aTupleType)
+		final A_Type aTupleType)
 	{
 		// This primitive type is a supertype of aTupleType if and only if this
 		// primitive type is a supertype of NONTYPE.
 		return object.isSupertypeOfPrimitiveTypeEnum(NONTYPE);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsSupertypeOfEnumerationType (
 		final AvailObject object,
-		final A_BasicObject anEnumerationType)
+		final A_Type anEnumerationType)
 	{
 		return topMeta().isSubtypeOf(object);
 	}
@@ -373,7 +374,7 @@ extends TypeDescriptor
 		return object;
 	}
 
-	@Override @AvailMethod
+	@Override
 	public @Nullable Object o_MarshalToJava (
 		final AvailObject object,
 		final @Nullable Class<?> ignoredClassHint)
@@ -428,7 +429,7 @@ extends TypeDescriptor
 		return SerializerOperation.ARBITRARY_PRIMITIVE_TYPE;
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeIntersection (
 		final AvailObject object,
 		final A_Type another)
@@ -436,7 +437,7 @@ extends TypeDescriptor
 		return another.typeIntersectionOfPrimitiveTypeEnum(extractEnum(object));
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeIntersectionOfListNodeType (
 		final AvailObject object,
 		final A_Type aListNodeType)
@@ -448,7 +449,7 @@ extends TypeDescriptor
 		return bottom();
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeIntersectionOfPhraseType (
 		final AvailObject object,
 		final A_Type aPhraseType)
@@ -460,7 +461,7 @@ extends TypeDescriptor
 		return bottom();
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeIntersectionOfPrimitiveTypeEnum (
 		final AvailObject object,
 		final Types primitiveTypeEnum)
@@ -468,15 +469,13 @@ extends TypeDescriptor
 		return primitiveTypeEnum.intersectionTypes[extractOrdinal(object)];
 	}
 
-	@Override @AvailMethod
-	public A_Type o_TypeUnion (
-		final AvailObject object,
-		final A_Type another)
+	@Override
+	public A_Type o_TypeUnion (final AvailObject object, final A_Type another)
 	{
 		return another.typeUnionOfPrimitiveTypeEnum(extractEnum(object));
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeUnionOfPrimitiveTypeEnum (
 		final AvailObject object,
 		final Types primitiveTypeEnum)
@@ -527,7 +526,7 @@ extends TypeDescriptor
 		final AvailObject object,
 		final A_Type parentType)
 	{
-		assert mutability == Mutability.SHARED;
+		assert getMutability() == Mutability.SHARED;
 		object.setSlot(PARENT, parentType);
 		object.setDescriptor(this);
 	}
@@ -613,14 +612,14 @@ extends TypeDescriptor
 	public PrimitiveTypeDescriptor immutable ()
 	{
 		// There are no immutable versions.
-		assert mutability == Mutability.SHARED;
+		assert getMutability() == Mutability.SHARED;
 		return this;
 	}
 
 	@Override
 	public PrimitiveTypeDescriptor shared ()
 	{
-		assert mutability == Mutability.SHARED;
+		assert getMutability() == Mutability.SHARED;
 		return this;
 	}
 }

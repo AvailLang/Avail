@@ -36,14 +36,13 @@ import com.avail.AvailRuntime.currentRuntime
 import com.avail.compiler.problems.CompilerDiagnostics
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel
 import com.avail.compiler.scanning.LexingState
-import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.maps.A_Map
 import com.avail.descriptor.maps.MapDescriptor
 import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
 import com.avail.interpreter.execution.Interpreter
 import com.avail.utility.evaluation.Describer
 import com.avail.utility.evaluation.SimpleDescriber
-import com.avail.utility.evaluation.Transformer1
 import java.lang.String.format
 import kotlin.math.max
 import kotlin.math.min
@@ -201,22 +200,25 @@ class ParserState internal constructor(
 	 *   The [ParseNotificationLevel] that indicates the priority of the parse
 	 *   theory that failed.
 	 * @param values
-	 *   A list of arbitrary [Avail values][AvailObject] that should be
+	 *   A list of arbitrary [Avail&#32;values][AvailObject] that should be
 	 *   stringified.
 	 * @param transformer
-	 *   A [transformer][Transformer1] that accepts the stringified values and
-	 *   answers an expectation message.
+	 *   A transformer that accepts the stringified values and answers an
+	 *   expectation message.
 	 */
 	internal fun expected(
 		level: ParseNotificationLevel,
 		values: List<A_BasicObject>,
-		transformer: (List<String>)->String) =
+		transformer: (List<String>)->String
+	) =
 		expected(level) { continuation ->
 			Interpreter.stringifyThen(
 				currentRuntime(),
 				lexingState.compilationContext.textInterface,
 				values
-			) { continuation(transformer(it)) }
+			) {
+				continuation(transformer(it))
+			}
 		}
 
 	/**

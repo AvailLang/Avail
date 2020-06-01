@@ -84,13 +84,13 @@ import kotlin.collections.LinkedHashMap
  * A `JVMTranslator` converts a single [L2Chunk] into a [JVMChunk] in a naive
  * fashion. Instruction selection is optimized, but no other optimizations are
  * attempted; all significant optimizations should occur on the `L2Chunk`'s
- * [control flow graph][L2ControlFlowGraph] and be reflected in the `L2Chunk` to
- * be translated.
+ * [control&#32;flow&#32;graph][L2ControlFlowGraph] and be reflected in the
+ * `L2Chunk` to be translated.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  *
  * @property code
- *   The source [L1 code][A_RawFunction].
+ *   The source [L1&#32;code][A_RawFunction].
  * @property chunkName
  *   The descriptive (non-unique) name of this chunk.
  * @property sourceFileName
@@ -105,8 +105,8 @@ import kotlin.collections.LinkedHashMap
  * [L2Instruction]s to a [JVMChunk].
  *
  * @param code
- *   The source [L1 code][A_RawFunction], or `null` for the
- *   [unoptimized chunk][L2Chunk.unoptimizedChunk].
+ *   The source [L1&#32;code][A_RawFunction], or `null` for the
+ *   [unoptimized&#32;chunk][L2Chunk.unoptimizedChunk].
  * @param chunkName
  *   The descriptive (non-unique) name of the chunk being translated.
  * @param sourceFileName
@@ -151,8 +151,8 @@ class JVMTranslator constructor(
 	private var classBytes: ByteArray? = null
 
 	/**
-	 * The [entry points][L2Instruction.isEntryPoint] into the [L2Chunk], mapped
-	 * to their [Label]s.
+	 * The [entry&#32;points][L2Instruction.isEntryPoint] into the [L2Chunk],
+	 * mapped to their [Label]s.
 	 */
 	private val entryPoints: MutableMap<Int, Label> = LinkedHashMap()
 
@@ -443,7 +443,7 @@ class JVMTranslator constructor(
 	 * A `JVMTranslationPreparer` acts upon its enclosing [JVMTranslator] and an
 	 * [L2Operand] to map [L2Register]s to JVM [locals][nextLocal], map
 	 * [literals][AvailObject] to `private static final` fields, and map
-	 * [program counters][L2PcOperand] to [Label]s.
+	 * [program&#32;counters][L2PcOperand] to [Label]s.
 	 *
 	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
@@ -632,7 +632,8 @@ class JVMTranslator constructor(
 	}
 
 	/**
-	 * Prepare for JVM translation by [visiting][JVMTranslationPreparer] each of the [L2Instruction]s to be translated.
+	 * Prepare for JVM translation by [visiting][JVMTranslationPreparer] each of
+	 * the [L2Instruction]s to be translated.
 	 */
 	fun prepare()
 	{
@@ -1004,8 +1005,8 @@ class JVMTranslator constructor(
 	}
 
 	/**
-	 * Emit code to unconditionally branch to the specified [program
-	 * counter][L2PcOperand].
+	 * Emit code to unconditionally branch to the specified
+	 * [program&#32;counter][L2PcOperand].
 	 *
 	 * @param method
 	 *   The [method][MethodVisitor] into which the generated JVM instructions
@@ -1031,7 +1032,7 @@ class JVMTranslator constructor(
 
 	/**
 	 * Emit code to conditionally branch to one of the specified
-	 * [program counters][L2PcOperand].
+	 * [program&#32;counters][L2PcOperand].
 	 *
 	 * @param method
 	 *   The [method][MethodVisitor] into which the generated JVM instructions
@@ -1046,7 +1047,8 @@ class JVMTranslator constructor(
 	 *   the opcode succeeds, i.e., actually branches.
 	 * @param failure
 	 *   The `L2PcOperand` that specifies the branch target in the event that
-	 *   the opcode fails, i.e., does not actually branch and falls through to a branch.
+	 *   the opcode fails, i.e., does not actually branch and falls through to a
+	 *   branch.
 	 * @param successCounter
 	 *   An [LongAdder] to increment each time the branch is taken.
 	 * @param failureCounter
@@ -1132,7 +1134,7 @@ class JVMTranslator constructor(
 
 	/**
 	 * Emit code to conditionally branch to one of the specified
-	 * [program counters][L2PcOperand].
+	 * [program&#32;counters][L2PcOperand].
 	 *
 	 * @param method
 	 *   The [method][MethodVisitor] into which the generated JVM instructions
@@ -1222,7 +1224,7 @@ class JVMTranslator constructor(
 	}
 
 	/**
-	 * Dump the [L1 instructions][L1Operation] that comprise the
+	 * Dump the [L1&#32;instructions][L1Operation] that comprise the
 	 * [function][A_RawFunction] to an appropriately named file.
 	 *
 	 * @return

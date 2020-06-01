@@ -6,11 +6,11 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *    list of conditions and the following disclaimer in the documentation
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
  *
  *  * Neither the name of the copyright holder nor the names of the contributors
@@ -31,28 +31,34 @@
  */
 package com.avail.descriptor.maps
 
-import com.avail.annotations.AvailMethod
-import com.avail.descriptor.AbstractDescriptor
-import com.avail.descriptor.representation.NilDescriptor.Companion.nil
-import com.avail.descriptor.maps.HashedMapBinDescriptor.Companion.checkHashedMapBin
-import com.avail.descriptor.maps.LinearMapBinDescriptor.IntegerSlots.COMBINED_HASHES
-import com.avail.descriptor.maps.LinearMapBinDescriptor.IntegerSlots.Companion.KEYS_HASH
-import com.avail.descriptor.maps.LinearMapBinDescriptor.IntegerSlots.Companion.VALUES_HASH_OR_ZERO
-import com.avail.descriptor.maps.LinearMapBinDescriptor.IntegerSlots.KEY_HASHES_AREA_
-import com.avail.descriptor.maps.LinearMapBinDescriptor.ObjectSlots.*
-import com.avail.descriptor.maps.MapDescriptor.MapIterable
-import com.avail.descriptor.representation.*
-import com.avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
-import com.avail.descriptor.representation.AvailObject.Companion.newObjectIndexedIntegerIndexedDescriptor
-import com.avail.descriptor.representation.AvailObjectRepresentation.Companion.newLike
-import com.avail.descriptor.representation.Mutability.*
-import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.BottomTypeDescriptor.bottom
-import com.avail.descriptor.types.TypeTag
-import com.avail.utility.Casts.cast
-import java.util.*
-import java.util.function.BiConsumer
-import java.util.function.BiFunction
+ import com.avail.descriptor.maps.HashedMapBinDescriptor.Companion.checkHashedMapBin
+ import com.avail.descriptor.maps.LinearMapBinDescriptor.IntegerSlots.COMBINED_HASHES
+ import com.avail.descriptor.maps.LinearMapBinDescriptor.IntegerSlots.Companion.KEYS_HASH
+ import com.avail.descriptor.maps.LinearMapBinDescriptor.IntegerSlots.Companion.VALUES_HASH_OR_ZERO
+ import com.avail.descriptor.maps.LinearMapBinDescriptor.IntegerSlots.KEY_HASHES_AREA_
+ import com.avail.descriptor.maps.LinearMapBinDescriptor.ObjectSlots.BIN_KEY_UNION_KIND_OR_NIL
+ import com.avail.descriptor.maps.LinearMapBinDescriptor.ObjectSlots.BIN_SLOT_AT_
+ import com.avail.descriptor.maps.LinearMapBinDescriptor.ObjectSlots.BIN_VALUE_UNION_KIND_OR_NIL
+ import com.avail.descriptor.maps.MapDescriptor.MapIterable
+ import com.avail.descriptor.representation.A_BasicObject
+ import com.avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
+ import com.avail.descriptor.representation.AbstractSlotsEnum
+ import com.avail.descriptor.representation.AvailObject
+ import com.avail.descriptor.representation.AvailObject.Companion.newObjectIndexedIntegerIndexedDescriptor
+ import com.avail.descriptor.representation.AvailObjectRepresentation.Companion.newLike
+ import com.avail.descriptor.representation.BitField
+ import com.avail.descriptor.representation.IntegerSlotsEnum
+ import com.avail.descriptor.representation.Mutability
+ import com.avail.descriptor.representation.Mutability.IMMUTABLE
+ import com.avail.descriptor.representation.Mutability.MUTABLE
+ import com.avail.descriptor.representation.Mutability.SHARED
+ import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+ import com.avail.descriptor.representation.ObjectSlotsEnum
+ import com.avail.descriptor.types.A_Type
+ import com.avail.descriptor.types.BottomTypeDescriptor.bottom
+ import com.avail.descriptor.types.TypeTag
+ import com.avail.utility.Casts.cast
+ import java.util.*
 
 /**
  * A [LinearMapBinDescriptor] is a leaf bin in a [map][MapDescriptor]'s
@@ -151,24 +157,21 @@ internal class LinearMapBinDescriptor private constructor(
 		|| e === BIN_KEY_UNION_KIND_OR_NIL
 		|| e === BIN_VALUE_UNION_KIND_OR_NIL
 
-	@AvailMethod
-	override fun o_BinElementAt(self: AvailObject, subscript: Int) =
-		self.slot(BIN_SLOT_AT_, subscript)
+	override fun o_BinElementAt(self: AvailObject, index: Int) =
+		self.slot(BIN_SLOT_AT_, index)
 
-	@AvailMethod
 	override fun o_ForEachInMapBin(
 		self: AvailObject,
-		action: BiConsumer<in AvailObject, in AvailObject>
+		action: (AvailObject, AvailObject) -> Unit
 	) {
 		(1..(entryCount(self) shl 1) step 2).forEach {
-			action.accept(
+			action(
 				self.slot(BIN_SLOT_AT_, it),
 				self.slot(BIN_SLOT_AT_, it + 1))
 		}
 	}
 
 	/** Answer how many (key,value) pairs this bin contains. */
-	@AvailMethod
 	override fun o_MapBinSize(self: AvailObject) = entryCount(self)
 
 	override fun o_MapBinAtHash(
@@ -186,7 +189,6 @@ internal class LinearMapBinDescriptor private constructor(
 		return null
 	}
 
-	@AvailMethod
 	override fun o_MapBinAtHashPutLevelCanDestroy(
 		self: AvailObject,
 		key: A_BasicObject,
@@ -253,8 +255,8 @@ internal class LinearMapBinDescriptor private constructor(
 			var bitVector = 1L shl bitPosition
 			for (i in 1..oldSize) {
 				val anotherKeyHash = self.intSlot(KEY_HASHES_AREA_, i)
-				bitPosition = AbstractDescriptor
-					.bitShiftInt(anotherKeyHash, -6 * myLevel) and 63
+				bitPosition =
+					bitShiftInt(anotherKeyHash, -6 * myLevel) and 63
 				bitVector = bitVector or (1L shl bitPosition)
 			}
 			val result =
@@ -317,7 +319,6 @@ internal class LinearMapBinDescriptor private constructor(
 	 * Remove the key from the bin object, if present. Answer the resulting bin.
 	 * The bin may be modified if it's mutable and canDestroy.
 	 */
-	@AvailMethod
 	override fun o_MapBinRemoveKeyHashCanDestroy(
 		self: AvailObject,
 		key: A_BasicObject,
@@ -373,7 +374,7 @@ internal class LinearMapBinDescriptor private constructor(
 		key: A_BasicObject,
 		keyHash: Int,
 		notFoundValue: A_BasicObject,
-		transformer: BiFunction<AvailObject, AvailObject, A_BasicObject>,
+		transformer: (AvailObject, AvailObject) -> A_BasicObject,
 		myLevel: Int,
 		canDestroy: Boolean
 	): A_MapBin {
@@ -388,7 +389,7 @@ internal class LinearMapBinDescriptor private constructor(
 				&& self.slot(BIN_SLOT_AT_, (i shl 1) - 1).equals(key)) {
 				// The key is present.
 				val oldValue: AvailObject = self.slot(BIN_SLOT_AT_, i shl 1)
-				val newValue = transformer.apply(cast(key), oldValue)
+				val newValue = transformer(cast(key), oldValue)
 				val newBin: AvailObject =
 					if (canDestroy && isMutable) {
 						self
@@ -414,7 +415,7 @@ internal class LinearMapBinDescriptor private constructor(
 		return self.mapBinAtHashPutLevelCanDestroy(
 			key,
 			keyHash,
-			transformer.apply(cast(key), cast(notFoundValue)),
+			transformer(cast(key), cast(notFoundValue)),
 			myLevel,
 			canDestroy)
 	}
@@ -456,7 +457,6 @@ internal class LinearMapBinDescriptor private constructor(
 		return keyType
 	}
 
-	@AvailMethod
 	override fun o_MapBinKeyUnionKind(self: AvailObject): A_Type =
 		self.synchronizeIf(isShared) { mapBinKeyUnionKind(self) }
 
@@ -497,15 +497,14 @@ internal class LinearMapBinDescriptor private constructor(
 		return valueType
 	}
 
-	@AvailMethod
 	override fun o_MapBinValueUnionKind(self: AvailObject): A_Type =
 		self.synchronizeIf(isShared) { mapBinValueUnionKind(self) }
 
-	@AvailMethod
 	override fun o_MapBinValuesHash(self: AvailObject): Int =
 		self.synchronizeIf(isShared) { mapBinValuesHash(self) }
 
-	override fun o_MapBinIterable(self: AvailObject): MapIterable {
+	override fun o_MapBinIterable(self: AvailObject): MapIterable
+	{
 		return object : MapIterable() {
 			/** A countdown of entry indices.  */
 			var index = entryCount(self)
@@ -689,6 +688,7 @@ internal class LinearMapBinDescriptor private constructor(
 		 */
 		val descriptors = Array(numberOfLevels * 3) {
 			val level = it / 3
+			@Suppress("RemoveRedundantQualifierName")
 			val mut = Mutability.values()[it - level * 3]
 			LinearMapBinDescriptor(mut, level)
 		}
@@ -708,7 +708,7 @@ internal class LinearMapBinDescriptor private constructor(
 		 * @return
 		 *   An empty map bin.
 		 */
-		fun emptyLinearMapBin(level: Int) = emptyBins[level]!!
+		fun emptyLinearMapBin(level: Int) = emptyBins[level]
 	}
 
 	override fun mutable() = descriptorFor(MUTABLE, level)

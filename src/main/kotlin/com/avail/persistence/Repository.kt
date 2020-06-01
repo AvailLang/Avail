@@ -35,12 +35,19 @@ package com.avail.persistence
 import com.avail.builder.ModuleRoot
 import com.avail.builder.ResolvedModuleName
 import com.avail.compiler.ModuleHeader
-import com.avail.descriptor.representation.AvailObject.Companion.multiplier
 import com.avail.descriptor.module.ModuleDescriptor
+import com.avail.descriptor.representation.AvailObject.Companion.multiplier
 import com.avail.descriptor.tokens.CommentTokenDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.serialization.Serializer
-import java.io.*
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.io.Closeable
+import java.io.DataInputStream
+import java.io.DataOutputStream
+import java.io.File
+import java.io.IOException
+import java.io.RandomAccessFile
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
 import java.util.*
@@ -59,7 +66,8 @@ import kotlin.streams.toList
  * [modules][ModuleDescriptor].
  *
  * @property rootName
- *   The name of the [Avail root][ModuleRoot] represented by this [IndexedFile].
+ *   The name of the [Avail&#32;root][ModuleRoot] represented by this
+ *   [IndexedFile].
  * @property fileName
  *   The [filename][File] of the [IndexedFile].
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -107,9 +115,10 @@ class Repository constructor(
 	private var dirtySince = 0L
 
 	/**
-	 * A [Map] from the [root-relative
-	 * name][ResolvedModuleName.rootRelativeName] of each module that has ever
-	 * been compiled within this repository to the corresponding ModuleArchive.
+	 * A [Map] from the
+	 * [root-relative&#32;name][ResolvedModuleName.rootRelativeName] of each
+	 * module that has ever been compiled within this repository to the
+	 * corresponding ModuleArchive.
 	 */
 	private val moduleMap = HashMap<String, ModuleArchive>(100)
 
@@ -180,7 +189,7 @@ class Repository constructor(
 		/**
 		 * A [LimitedCache] used to avoid computing digests of files when the
 		 * file's timestamp has not changed.  Each key is a [Long] representing
-		 * the file's  [last][File.lastModified].  The value is a byte array
+		 * the file's [last][File.lastModified].  The value is a byte array
 		 * holding the SHA-256 digest of the file content.
 		 */
 		private val digestCache =
@@ -208,8 +217,8 @@ class Repository constructor(
 		 * performance.
 		 *
 		 * @param resolvedModuleName
-		 *   The [resolved name][ResolvedModuleName] of the module, in case the
-		 *   backing source file must be read to produce a digest.
+		 *   The [resolved&#32;name][ResolvedModuleName] of the module, in case
+		 *   the backing source file must be read to produce a digest.
 		 * @return
 		 *   The digest of the file, updating the [digestCache] if necessary.
 		 */
@@ -366,10 +375,11 @@ class Repository constructor(
 			}
 
 		/**
-		 * Record a new [compilation][ModuleCompilation] of a [module
-		 * version][ModuleVersion].  The version must already exist in the
-		 * repository.  The [compilation key][ModuleCompilationKey] must not yet
-		 * have a [compilation][ModuleCompilation] associated with it.
+		 * Record a new [compilation][ModuleCompilation] of a
+		 * [module&#32;version][ModuleVersion].  The version must already exist
+		 * in the repository.  The [compilation&#32;key][ModuleCompilationKey]
+		 * must not yet have a [compilation][ModuleCompilation] associated with
+		 * it.
 		 *
 		 * @param versionKey
 		 *   The [ModuleVersionKey] identifying the version of a module's
@@ -499,7 +509,7 @@ class Repository constructor(
 		 * Construct a new `ModuleVersionKey`.
 		 *
 		 * @param moduleName
-		 *   The [resolved name][ResolvedModuleName] of the module.
+		 *   The [resolved&#32;name][ResolvedModuleName] of the module.
 		 * @param sourceDigest
 		 *   The digest of the module, which (cryptographically) uniquely
 		 *   identifies which source code is present within this version.
@@ -704,7 +714,7 @@ class Repository constructor(
 		private var moduleHeaderRecordNumber: Long = -1L
 
 		/**
-		 * Answer the [serialized][Serializer] [module header][ModuleHeader]
+		 * Answer the [serialized][Serializer] [module&#32;header][ModuleHeader]
 		 * associated with this [version][ModuleVersion].
 		 *
 		 * @return
@@ -1250,7 +1260,7 @@ class Repository constructor(
 		 * enabled.
 		 *
 		 * @param level
-		 *   The [severity level][Level].
+		 *   The [severity&#32;level][Level].
 		 * @param format
 		 *   The format string.
 		 * @param args
@@ -1273,7 +1283,7 @@ class Repository constructor(
 		 * enabled.
 		 *
 		 * @param level
-		 *   The [severity level][Level].
+		 *   The [severity&#32;level][Level].
 		 * @param exception
 		 *   The [exception][Throwable] that motivated this log entry.
 		 * @param format
@@ -1382,7 +1392,7 @@ class Repository constructor(
 		 * @return
 		 *   `true` if the path refers to a repository file, `false` otherwise.
 		 * @throws IOException
-		 *   If an [I/O exception][IOException] occurs.
+		 *   If an [I/O&#32;exception][IOException] occurs.
 		 */
 		@Suppress("unused")
 		@JvmStatic

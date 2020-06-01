@@ -41,17 +41,17 @@ import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.wholeNumbers
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.E_IO_ERROR
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.execution.Interpreter
 import com.avail.io.TextInputChannel
 import java.io.IOException
 
 /**
- * **Primitive:** Mark the [current fiber][Interpreter.fiber]'s [standard input
- * channel][TextInputChannel] to allow the specified number of characters to be
- * read ahead (and put back by a subsequent
+ * **Primitive:** Mark the [current&#32;fiber][Interpreter.fiber]'s [standard
+ * input channel][TextInputChannel] to allow the specified number of characters
+ * to be read ahead (and put back by a subsequent
  * [reset][P_ResetStandardInputStream]).
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;

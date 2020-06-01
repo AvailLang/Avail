@@ -6,11 +6,11 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *    list of conditions and the following disclaimer in the documentation
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
  *
  *  * Neither the name of the copyright holder nor the names of the contributors
@@ -31,12 +31,7 @@
  */
 package com.avail.descriptor.functions
 
-import com.avail.annotations.AvailMethod
 import com.avail.annotations.ThreadSafe
-import com.avail.descriptor.module.A_Module
-import com.avail.descriptor.Descriptor
-import com.avail.descriptor.module.ModuleDescriptor
-import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrNil
 import com.avail.descriptor.bundles.A_Bundle
@@ -45,6 +40,8 @@ import com.avail.descriptor.functions.FunctionDescriptor.ObjectSlots.CODE
 import com.avail.descriptor.functions.FunctionDescriptor.ObjectSlots.OUTER_VAR_AT_
 import com.avail.descriptor.methods.A_Method
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
+import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.A_Phrase.Companion.generateInModule
 import com.avail.descriptor.phrases.A_Phrase.Companion.tokens
@@ -54,7 +51,9 @@ import com.avail.descriptor.phrases.PhraseDescriptor
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.AvailObject.Companion.multiplier
+import com.avail.descriptor.representation.Descriptor
 import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.descriptor.tuples.A_Tuple
@@ -64,6 +63,7 @@ import com.avail.descriptor.tuples.StringDescriptor.stringFrom
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.BottomTypeDescriptor.bottom
+import com.avail.descriptor.types.FunctionTypeDescriptor
 import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.descriptor.types.TypeTag
 import com.avail.interpreter.levelOne.L1Decompiler.Companion.decompile
@@ -109,7 +109,7 @@ class FunctionDescriptor private constructor(
 
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
-		aStream: StringBuilder,
+		builder: StringBuilder,
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int
 	) {
@@ -117,10 +117,10 @@ class FunctionDescriptor private constructor(
 		if (phrase.equalsNil()) {
 			phrase = decompile(self.code())
 		}
-		phrase.printOnAvoidingIndent(aStream, recursionMap, indent + 1)
+		phrase.printOnAvoidingIndent(builder, recursionMap, indent + 1)
 	}
 
-	override fun o_Code(self: AvailObject) = self.slot(CODE)
+	override fun o_Code(self: AvailObject): A_RawFunction = self.slot(CODE)
 
 	override fun o_Equals(self: AvailObject, another: A_BasicObject) =
 		another.equalsFunction(self)
@@ -168,7 +168,9 @@ class FunctionDescriptor private constructor(
 	override fun o_IsFunction(self: AvailObject) = true
 
 	/**
-	 * Answer the object's type. Simply asks the [ ] for the [ ].
+	 * Answer the object's type. Simply asks the
+	 * [compiled&#32;code][CompiledCodeDescriptor] for the
+	 * [function&#32;type][FunctionTypeDescriptor].
 	 */
 	override fun o_Kind(self: AvailObject): A_Type =
 		self.slot(CODE).functionType()
@@ -194,18 +196,15 @@ class FunctionDescriptor private constructor(
 		return false
 	}
 
-	override fun o_OuterVarAt(
-		self: AvailObject,
-		subscript: Int
-	) = self.slot(OUTER_VAR_AT_, subscript)
+	override fun o_OuterVarAt(self: AvailObject, index: Int): AvailObject =
+		self.slot(OUTER_VAR_AT_, index)
 
 	override fun o_OuterVarAtPut(
 		self: AvailObject,
-		subscript: Int,
+		index: Int,
 		value: AvailObject
-	) = self.setSlot(OUTER_VAR_AT_, subscript, value)
+	) = self.setSlot(OUTER_VAR_AT_, index, value)
 
-	@AvailMethod
 	@ThreadSafe
 	override fun o_SerializerOperation(
 		self: AvailObject

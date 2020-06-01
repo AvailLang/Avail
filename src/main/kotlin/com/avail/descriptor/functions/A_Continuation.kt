@@ -6,11 +6,11 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *    list of conditions and the following disclaimer in the documentation
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
  *
  *  * Neither the name of the copyright holder nor the names of the contributors
@@ -31,11 +31,10 @@
  */
 package com.avail.descriptor.functions
 
-import com.avail.descriptor.representation.NilDescriptor
-import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.methods.A_SemanticRestriction
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.interpreter.levelTwo.L2Chunk
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.optimizer.jvm.JVMChunk
@@ -49,7 +48,8 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-interface A_Continuation : A_BasicObject {
+interface A_Continuation : A_BasicObject
+{
 	/**
 	 * Answer the continuation frame slot at the given index.  The frame slots
 	 * are numbered starting at 1, and consist of the arguments, primitive
@@ -194,7 +194,7 @@ interface A_Continuation : A_BasicObject {
 	fun numSlots(): Int
 
 	/**
-	 * Set both the [pc] and the [stack&#32;pointer]][stackp] of this
+	 * Set both the [pc] and the [stack&#32;pointer][stackp] of this
 	 * continuation, which must be mutable.
 	 *
 	 * @param pc

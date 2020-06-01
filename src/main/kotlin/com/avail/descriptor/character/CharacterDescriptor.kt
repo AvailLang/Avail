@@ -6,12 +6,12 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
  *
  *  * Neither the name of the copyright holder nor the names of the contributors
  *    may be used to endorse or promote products derived from this software
@@ -31,13 +31,16 @@
  */
 package com.avail.descriptor.character
 
-import com.avail.annotations.AvailMethod
-import com.avail.descriptor.Descriptor
 import com.avail.descriptor.character.CharacterDescriptor.IntegerSlots.Companion.CODE_POINT
 import com.avail.descriptor.character.CharacterDescriptor.IntegerSlots.Companion.HASH
 import com.avail.descriptor.numbers.IntegerDescriptor
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.computeHashOfInt
-import com.avail.descriptor.representation.*
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.BitField
+import com.avail.descriptor.representation.Descriptor
+import com.avail.descriptor.representation.IntegerSlotsEnum
+import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.tuples.StringDescriptor.stringFrom
 import com.avail.descriptor.types.A_Type
@@ -100,65 +103,55 @@ class CharacterDescriptor private constructor(
 
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
-		aStream: StringBuilder,
+		builder: StringBuilder,
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int
-	) {
-		with(aStream) {
-			append("¢")
-			val codePoint = self.slot(CODE_POINT)
-			// Check for linefeed, carriage return, tab, double quote ("), and
-			// backslash (\).  These have pretty escape forms inside string
-			// literals.
-			val escapeIndex = "\n\r\t\\\"".indexOf(codePoint.toChar())
-			if (escapeIndex != -1) {
-				append("\"\\")
-				append("nrt\\\""[escapeIndex])
-				append('"')
-			}
-			else {
-				when (Character.getType(codePoint)) {
-					Character.COMBINING_SPACING_MARK.toInt(),
-					Character.CONTROL.toInt(),
-					Character.ENCLOSING_MARK.toInt(),
-					Character.FORMAT.toInt(),
-					Character.NON_SPACING_MARK.toInt(),
-					Character.PARAGRAPH_SEPARATOR.toInt(),
-					Character.PRIVATE_USE.toInt(),
-					Character.SPACE_SEPARATOR.toInt(),
-					Character.SURROGATE.toInt(),
-					Character.UNASSIGNED.toInt() ->
-						append(String.format("\"\\(%x)\"", codePoint))
-					else -> appendCodePoint(codePoint)
-				}
+	): Unit = with(builder) {
+		append("¢")
+		val codePoint = self.slot(CODE_POINT)
+		// Check for linefeed, carriage return, tab, double quote ("), and
+		// backslash (\).  These have pretty escape forms inside string
+		// literals.
+		val escapeIndex = "\n\r\t\\\"".indexOf(codePoint.toChar())
+		if (escapeIndex != -1) {
+			append("\"\\")
+			append("nrt\\\""[escapeIndex])
+			append('"')
+		}
+		else {
+			when (Character.getType(codePoint)) {
+				Character.COMBINING_SPACING_MARK.toInt(),
+				Character.CONTROL.toInt(),
+				Character.ENCLOSING_MARK.toInt(),
+				Character.FORMAT.toInt(),
+				Character.NON_SPACING_MARK.toInt(),
+				Character.PARAGRAPH_SEPARATOR.toInt(),
+				Character.PRIVATE_USE.toInt(),
+				Character.SPACE_SEPARATOR.toInt(),
+				Character.SURROGATE.toInt(),
+				Character.UNASSIGNED.toInt() ->
+					append(String.format("\"\\(%x)\"", codePoint))
+				else -> appendCodePoint(codePoint)
 			}
 		}
 	}
 
-	@AvailMethod
-	override fun o_CodePoint(self: AvailObject): Int {
-		return self.slot(CODE_POINT)
-	}
+	override fun o_CodePoint(self: AvailObject): Int = self.slot(CODE_POINT)
 
-	@AvailMethod
 	override fun o_Equals(
 		self: AvailObject,
 		another: A_BasicObject
 	): Boolean = another.equalsCharacterWithCodePoint(self.slot(CODE_POINT))
 
-	@AvailMethod
 	override fun o_EqualsCharacterWithCodePoint(
 		self: AvailObject,
-		otherCodePoint: Int
-	): Boolean = self.slot(CODE_POINT) == otherCodePoint
+		aCodePoint: Int
+	): Boolean = self.slot(CODE_POINT) == aCodePoint
 
-	@AvailMethod
 	override fun o_Hash(self: AvailObject): Int = self.slot(HASH)
 
-	@AvailMethod
 	override fun o_IsCharacter(self: AvailObject): Boolean = true
 
-	@AvailMethod
 	override fun o_MakeImmutable(self: AvailObject): AvailObject {
 		if (isMutable) {
 			// Make the object shared instead.
@@ -167,7 +160,6 @@ class CharacterDescriptor private constructor(
 		return self
 	}
 
-	@AvailMethod
 	override fun o_MakeShared(self: AvailObject): AvailObject {
 		if (!isShared) {
 			self.setDescriptor(shared)
@@ -175,13 +167,12 @@ class CharacterDescriptor private constructor(
 		return self
 	}
 
-	@AvailMethod
 	override fun o_Kind(self: AvailObject): A_Type = Types.CHARACTER.o()
 
 	override fun o_MarshalToJava(
 		self: AvailObject,
 		classHint: Class<*>?
-	): Any? {
+	): Any {
 		val codePoint = self.slot(CODE_POINT)
 		// Force marshaling to Java's primitive int type.
 		return when (classHint) {
@@ -204,15 +195,13 @@ class CharacterDescriptor private constructor(
 				assert(classHint == null)
 				// Only understand Unicode code points in the basic multilingual
 				// plane (BMP) as marshaling to Java's primitive char type.
-				if (codePoint < 65536) {
-					codePoint.toChar()
-				} else codePoint
+				if (codePoint < 65536) codePoint.toChar()
 				// Use Java's primitive int type for all others.
+				else codePoint
 			}
 		}
 	}
 
-	@AvailMethod
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		when (self.slot(CODE_POINT)) {
 			in 0..255 -> SerializerOperation.BYTE_CHARACTER
@@ -223,12 +212,12 @@ class CharacterDescriptor private constructor(
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.write(tuple(self))
 
-	override fun mutable(): CharacterDescriptor = mutable
+	override fun mutable() = mutable
 
 	/** There is no immutable variant; answer the shared descriptor. */
-	override fun immutable(): CharacterDescriptor = shared
+	override fun immutable() = shared
 
-	override fun shared(): CharacterDescriptor = shared
+	override fun shared() = shared
 
 	companion object {
 		/**

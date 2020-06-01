@@ -32,14 +32,13 @@
 
 package com.avail.interpreter.levelOne
 
-import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.functions.CompiledCodeDescriptor
 import com.avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
 import com.avail.descriptor.functions.FunctionDescriptor
-import com.avail.descriptor.phrases.*
+import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.A_Phrase.Companion.declaration
 import com.avail.descriptor.phrases.A_Phrase.Companion.declaredType
 import com.avail.descriptor.phrases.A_Phrase.Companion.expressionAt
@@ -54,7 +53,9 @@ import com.avail.descriptor.phrases.A_Phrase.Companion.statements
 import com.avail.descriptor.phrases.A_Phrase.Companion.token
 import com.avail.descriptor.phrases.A_Phrase.Companion.typeExpression
 import com.avail.descriptor.phrases.AssignmentPhraseDescriptor.Companion.newAssignment
+import com.avail.descriptor.phrases.BlockPhraseDescriptor
 import com.avail.descriptor.phrases.BlockPhraseDescriptor.Companion.newBlockNode
+import com.avail.descriptor.phrases.DeclarationPhraseDescriptor
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newArgument
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newConstant
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newLabel
@@ -62,28 +63,45 @@ import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newMod
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newVariable
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
 import com.avail.descriptor.phrases.FirstOfSequencePhraseDescriptor.Companion.newFirstOfSequenceNode
+import com.avail.descriptor.phrases.ListPhraseDescriptor
 import com.avail.descriptor.phrases.ListPhraseDescriptor.Companion.newListNode
+import com.avail.descriptor.phrases.LiteralPhraseDescriptor
 import com.avail.descriptor.phrases.LiteralPhraseDescriptor.Companion.fromTokenForDecompiler
 import com.avail.descriptor.phrases.LiteralPhraseDescriptor.Companion.literalNodeFromToken
 import com.avail.descriptor.phrases.LiteralPhraseDescriptor.Companion.syntheticLiteralNodeFor
+import com.avail.descriptor.phrases.MarkerPhraseDescriptor
 import com.avail.descriptor.phrases.MarkerPhraseDescriptor.MarkerTypes.DUP
 import com.avail.descriptor.phrases.MarkerPhraseDescriptor.MarkerTypes.PERMUTE
 import com.avail.descriptor.phrases.PermutedListPhraseDescriptor.Companion.newPermutedListNode
+import com.avail.descriptor.phrases.PhraseDescriptor
+import com.avail.descriptor.phrases.ReferencePhraseDescriptor
 import com.avail.descriptor.phrases.ReferencePhraseDescriptor.Companion.referenceNodeFromUse
 import com.avail.descriptor.phrases.SendPhraseDescriptor.Companion.newSendNode
+import com.avail.descriptor.phrases.SuperCastPhraseDescriptor
 import com.avail.descriptor.phrases.SuperCastPhraseDescriptor.Companion.newSuperCastNode
 import com.avail.descriptor.phrases.VariableUsePhraseDescriptor.Companion.newUse
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken
 import com.avail.descriptor.tokens.TokenDescriptor.Companion.newToken
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType.KEYWORD
 import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.*
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.generateObjectTupleFrom
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromArray
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
 import com.avail.descriptor.tuples.StringDescriptor.stringFrom
 import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.ContinuationTypeDescriptor.continuationTypeForFunctionType
 import com.avail.descriptor.types.FunctionTypeDescriptor.mostGeneralFunctionType
-import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.*
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.FIRST_OF_SEQUENCE_PHRASE
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LABEL_PHRASE
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.MARKER_PHRASE
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PERMUTED_LIST_PHRASE
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.REFERENCE_PHRASE
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE
 import com.avail.descriptor.types.VariableTypeDescriptor.variableTypeFor
 import com.avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithOuterType
 import com.avail.utility.PrefixSharingList.last
@@ -92,11 +110,11 @@ import java.util.function.Function
 import java.util.function.UnaryOperator
 
 /**
- * The [L1Decompiler] converts a [compiled code][CompiledCodeDescriptor] object
- * into an equivalent [parse tree][PhraseDescriptor].
+ * The [L1Decompiler] converts a [compiled&#32;code][CompiledCodeDescriptor]
+ * object into an equivalent [parse&#32;tree][PhraseDescriptor].
  *
  * @property code
- *   The [compiled code][CompiledCodeDescriptor] which is being decompiled.
+ *   The [compiled&#32;code][CompiledCodeDescriptor] which is being decompiled.
  * @property tempGenerator
  *   Something to generate unique variable names from a prefix.
  * @author Mark van Gulik &lt;todd@availlang.org&gt;
@@ -135,12 +153,12 @@ class L1Decompiler constructor(
 	internal val outers: Array<A_Phrase> = outerDeclarations.clone()
 
 	/**
-	 * The [arguments declarations][DeclarationKind.ARGUMENT] for this code.
+	 * The [arguments&#32;declarations][DeclarationKind.ARGUMENT] for this code.
 	 */
 	internal val args: Array<A_Phrase>
 
 	/**
-	 * The [local variables][DeclarationKind.LOCAL_VARIABLE] defined by this
+	 * The [local&#32;variables][DeclarationKind.LOCAL_VARIABLE] defined by this
 	 * code.
 	 */
 	internal val locals: Array<A_Phrase>
@@ -152,7 +170,7 @@ class L1Decompiler constructor(
 	private val mentionedLocals: BooleanArray
 
 	/**
-	 * The [local constants][DeclarationKind.LOCAL_CONSTANT] defined by this
+	 * The [local&#32;constants][DeclarationKind.LOCAL_CONSTANT] defined by this
 	 * code.
 	 */
 	internal val constants: Array<A_Phrase?> = arrayOfNulls(code.numConstants())
@@ -181,7 +199,7 @@ class L1Decompiler constructor(
 	internal var endsWithPushNil = false
 
 	/**
-	 * The decompiled [block phrase][BlockPhraseDescriptor].
+	 * The decompiled [block&#32;phrase][BlockPhraseDescriptor].
 	 */
 	internal var block: A_Phrase
 		private set
@@ -716,9 +734,10 @@ class L1Decompiler constructor(
 		 * non-void valued [block][FunctionDescriptor].
 		 *
 		 * Pop the expression (that represents the right hand side of the
-		 * assignment), push a special [ marker phrase][MarkerPhraseDescriptor]
-		 * representing the dup, then push the right-hand side expression back
-		 * onto the expression stack.
+		 * assignment), push a special
+		 * [marker&#32;phrase][MarkerPhraseDescriptor] representing the dup,
+		 * then push the right-hand side expression back onto the expression
+		 * stack.
 		 */
 		override fun L1Ext_doDuplicate()
 		{
@@ -818,8 +837,8 @@ class L1Decompiler constructor(
 	companion object
 	{
 		/**
-		 * Convert some of the descendants within a [list
-		 * phrase][ListPhraseDescriptor] into
+		 * Convert some of the descendants within a
+		 * [list&#32;phrase][ListPhraseDescriptor] into
 		 * [supercasts][SuperCastPhraseDescriptor], based on the given
 		 * superUnionType.  Because the phrase is processed recursively, some
 		 * invocations will pass a non-list phrase.
@@ -873,7 +892,7 @@ class L1Decompiler constructor(
 		 * @param type
 		 *   The type of the outer.
 		 * @return
-		 *   A [variable reference phrase][ReferencePhraseDescriptor].
+		 *   A [variable&#32;reference&#32;phrase][ReferencePhraseDescriptor].
 		 */
 		private fun outerPhraseForDecompiler(
 			outerIndex: Int, type: A_Type): A_Phrase

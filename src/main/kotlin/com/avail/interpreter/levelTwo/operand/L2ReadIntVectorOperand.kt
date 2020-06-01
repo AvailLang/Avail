@@ -60,8 +60,9 @@ class L2ReadIntVectorOperand constructor(elements: List<L2ReadIntOperand>)
 			})
 
 	override fun clone(
-		replacementElements: List<L2ReadIntOperand>): L2ReadIntVectorOperand =
-			L2ReadIntVectorOperand(replacementElements)
+		replacementElements: List<L2ReadIntOperand>
+	): L2ReadIntVectorOperand =
+		L2ReadIntVectorOperand(replacementElements)
 
 	override fun operandType(): L2OperandType = L2OperandType.READ_INT_VECTOR
 

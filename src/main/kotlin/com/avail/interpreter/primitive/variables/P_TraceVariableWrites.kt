@@ -42,15 +42,15 @@ import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationW
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.E_ILLEGAL_TRACE_MODE
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
 import com.avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
+import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Enable [variable write tracing
- * ][TraceFlag.TRACE_VARIABLE_WRITES] for the [current fiber
- * ][FiberDescriptor.currentFiber].
+ * **Primitive:** Enable
+ * [variable&#32;write&#32;tracing][TraceFlag.TRACE_VARIABLE_WRITES] for the
+ * [current&#32;fiber][FiberDescriptor.currentFiber].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

@@ -32,7 +32,9 @@
 
 package com.avail.utility.json
 
-import com.avail.utility.json.JSONWriter.JSONState.*
+import com.avail.utility.json.JSONWriter.JSONState.EXPECTING_FIRST_OBJECT_KEY_OR_OBJECT_END
+import com.avail.utility.json.JSONWriter.JSONState.EXPECTING_FIRST_VALUE_OR_ARRAY_END
+import com.avail.utility.json.JSONWriter.JSONState.EXPECTING_SINGLE_VALUE
 import java.io.IOException
 import java.io.StringWriter
 import java.io.Writer
@@ -45,7 +47,7 @@ import java.util.*
  * ECMA 404: "The JSON Data Interchange Format".
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
- * @see [ECMA 404: "The JSON Data Interchange Format"](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf)
+ * @see [ECMA&#32;404:&#32;"The&#32;JSON&#32;Data&#32;Interchange&#32;Format"](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf)
  */
 @Suppress("unused")
 class JSONWriter : AutoCloseable

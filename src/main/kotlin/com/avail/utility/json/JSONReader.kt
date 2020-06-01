@@ -40,7 +40,8 @@ import java.nio.charset.MalformedInputException
 import java.util.*
 
 /**
- * A `JSONReader` produces [JSON-friendly][JSONFriendly] [ ] given a valid JSON document.
+ * A `JSONReader` produces [JSON-friendly][JSONFriendly] value given a valid
+ * JSON document.
  *
  * @property reader
  *   The [source][Reader] of the raw JSON document.
@@ -52,7 +53,7 @@ import java.util.*
  *
  * @param reader
  *   The [source][Reader] of the raw JSON document. The reader must
- *   [support marking][Reader.markSupported].
+ *   [support&#32;marking][Reader.markSupported].
  * @throws IllegalArgumentException
  *   If the reader does not support marking.
  */

@@ -6,12 +6,12 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
  *
  *  * Neither the name of the copyright holder nor the names of the contributors
  *    may be used to endorse or promote products derived from this software
@@ -31,17 +31,17 @@
  */
 package com.avail.descriptor.variables
 
-import com.avail.descriptor.methods.A_ChunkDependable
-import com.avail.descriptor.module.A_Module
-import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.fiber.FiberDescriptor
-import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.atoms.AtomDescriptor
+import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor
+import com.avail.descriptor.methods.A_ChunkDependable
+import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.tuples.A_String
@@ -68,7 +68,7 @@ interface A_Variable : A_ChunkDependable
 {
 	/**
 	 * Extract the variable's kind.  This is always a
-	 * [variable type][VariableTypeDescriptor].
+	 * [variable&#32;type][VariableTypeDescriptor].
 	 *
 	 * @return
 	 *   The variable's kind.
@@ -182,15 +182,16 @@ interface A_Variable : A_ChunkDependable
 	 * the variable.  This sequence of operations is protected by a lock if the
 	 * variable is potentially [shared][Mutability.SHARED] among multiple Avail
 	 * [fibers][FiberDescriptor].  Fail if the variable had no value, if the
-	 * variable's content type is not a subtype of the [extended
-	 * integers][IntegerRangeTypeDescriptor.extendedIntegers], if the addend is
-	 * not an extended integer, if the sum of the old value and the addend is
-	 * undefined (e.g., ∞ plus -∞), or if the sum does not satisfy the
-	 * variable's [write type][VariableTypeDescriptor.o_WriteType].  Return the
-	 * previous value.
+	 * variable's content type is not a subtype of the
+	 * [extended&#32;integers][IntegerRangeTypeDescriptor.extendedIntegers], if
+	 * the addend is not an extended integer, if the sum of the old value and
+	 * the addend is undefined (e.g., ∞ plus -∞), or if the sum does not satisfy
+	 * the variable's [write&#32;type][VariableTypeDescriptor.o_WriteType].
+	 * Return the previous value.
 	 *
-	 * It is the client's responsibility to ensure the [read
-	 * type][A_Type.readType] of the variable is a subtype of extended integer.
+	 * It is the client's responsibility to ensure the
+	 * [read&#32;type][A_Type.readType] of the variable is a subtype of extended
+	 * integer.
 	 *
 	 * @param addend
 	 *   The value by which to adjust the variable.
@@ -207,8 +208,8 @@ interface A_Variable : A_ChunkDependable
 
 	/**
 	 * Clear the variable.  This causes the variable to have no value, and
-	 * subsequent attempts to [get the value][A_Variable.getValue] of this
-	 * variable will fail.
+	 * subsequent attempts to [get&#32;the&#32;value][A_Variable.getValue] of
+	 * this variable will fail.
 	 *
 	 * The variable is not required to have a value prior to this operation.
 	 */
@@ -216,7 +217,7 @@ interface A_Variable : A_ChunkDependable
 	fun clearValue()
 
 	/**
-	 * Add a [write reactor][VariableAccessReactor] to the
+	 * Add a [write&#32;reactor][VariableAccessReactor] to the
 	 * [variable][VariableDescriptor] and associate it with the specified key
 	 * (for subsequent removal).
 	 *
@@ -228,19 +229,20 @@ interface A_Variable : A_ChunkDependable
 	fun addWriteReactor(key: A_Atom, reactor: VariableAccessReactor)
 
 	/**
-	 * Remove the [write reactor][VariableAccessReactor] associated with the
+	 * Remove the [write&#32;reactor][VariableAccessReactor] associated with the
 	 * specified [key][AtomDescriptor] from the [variable][VariableDescriptor].
 	 *
 	 * @param key
 	 *   An atom.
 	 * @throws AvailException
-	 *   If the [key is not found][AvailErrorCode.E_KEY_NOT_FOUND].
+	 *   If the [key&#32;is&#32;not&#32;found][AvailErrorCode.E_KEY_NOT_FOUND].
 	 */
 	@Throws(AvailException::class)
 	fun removeWriteReactor(key: A_Atom)
 
 	/**
-	 * Answer the [set][SetDescriptor] of [write reactor][VariableAccessReactor]
+	 * Answer the [set][SetDescriptor] of
+	 * [write&#32;reactor][VariableAccessReactor]
 	 * [functions][FunctionDescriptor] that have not previously activated.
 	 *
 	 * @return
@@ -311,8 +313,9 @@ interface A_Variable : A_ChunkDependable
 	fun isGlobal(): Boolean
 
 	/**
-	 * Only applicable to [global variables][VariableSharedGlobalDescriptor].
-	 * Answer the [module][A_Module] in which it's defined.
+	 * Only applicable to
+	 * [global&#32;variables][VariableSharedGlobalDescriptor]. Answer the
+	 * [module][A_Module] in which it's defined.
 	 *
 	 * @return
 	 *   The module in which this global variable/constant is defined.
@@ -320,8 +323,9 @@ interface A_Variable : A_ChunkDependable
 	fun globalModule(): A_Module?
 
 	/**
-	 * Only applicable to [global variables][VariableSharedGlobalDescriptor].
-	 * Answer the name of this global variable or constant.
+	 * Only applicable to
+	 * [global&#32;variables][VariableSharedGlobalDescriptor]. Answer the name
+	 * of this global variable or constant.
 	 *
 	 * @return
 	 *   The name of this global variable/constant.

@@ -50,11 +50,11 @@ import java.util.function.Supplier
  *
  * @constructor
  * Construct a new `MalformedMessageException` with the specified
- * [error code][AvailErrorCode] and the specified [Supplier] that describes the
- * problem.
+ * [error&#32;code][AvailErrorCode] and the specified [Supplier] that describes
+ * the problem.
  *
  * @param errorCode
- *   The [error code][AvailErrorCode].
+ *   The [error&#32;code][AvailErrorCode].
  * @param descriptionSupplier
  *   A [Supplier] that produces a [String] describing what was malformed about
  *   the signature that failed to be parsed by a [MessageSplitter].

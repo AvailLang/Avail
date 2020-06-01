@@ -54,9 +54,9 @@ import kotlin.concurrent.withLock
  * @param V
  *   The type of the values.
  * @property softCapacity
- *   The cardinality of the set of [softly held][SoftReference] cached values.
- *   This is the total capacity of the [cache][LRUCache], i.e. the capacity of
- *   [softMap].
+ *   The cardinality of the set of [softly&#32;held][SoftReference] cached
+ *   values. This is the total capacity of the [cache][LRUCache], i.e. the
+ *   capacity of [softMap].
  * @property strongCapacity
  *   The cardinality of the set of strongly held cached values, i.e. the
  *   capacity of [strongMap].
@@ -100,22 +100,23 @@ class LRUCache<K, V> @JvmOverloads constructor(
 	private val lock = ReentrantLock()
 
 	/**
-	 * A [reference queue][ReferenceQueue] of defunct [soft
-	 * references][SoftReference] to previously garbage-collected cached values.
+	 * A [reference&#32;queue][ReferenceQueue] of defunct
+	 * [soft&#32;references][SoftReference] to previously garbage-collected
+	 * cached values.
 	 */
 	private val defunctReferences = ReferenceQueue<V>()
 
 	/**
-	 * The access-ordered [map][SoftCacheMap] which maps access keys to [softly
-	 * held][SoftReference] cached values. All cached values are ultimately
-	 * retrieved from this map.
+	 * The access-ordered [map][SoftCacheMap] which maps access keys to
+	 * [softly&#32;held][SoftReference] cached values. All cached values are
+	 * ultimately retrieved from this map.
 	 */
 	private val softMap: SoftCacheMap
 
 	/**
-	 * A mapping from [softly held][SoftReference] cached values to their
+	 * A mapping from [softly&#32;held][SoftReference] cached values to their
 	 * associated keys. This data structure is necessary to clean up the
-	 * [primary map][softMap] after the garbage collector has reclaimed the
+	 * [primary&#32;map][softMap] after the garbage collector has reclaimed the
 	 * cached values.
 	 */
 	private val keysBySoftReference = HashMap<SoftReference<out V>, K>()
@@ -135,7 +136,7 @@ class LRUCache<K, V> @JvmOverloads constructor(
 	/**
 	 * The [Condition] used to make a thread wait until all futures have been
 	 * completed. A thread waiting on it will be signaled every time a future is
-	 * removed from [the map of futures][futures].
+	 * removed from [the&#32;map&#32;of&#32;futures][futures].
 	 */
 	private val futuresCondition = lock.newCondition()
 
@@ -341,10 +342,10 @@ class LRUCache<K, V> @JvmOverloads constructor(
 	}
 
 	/**
-	 * Expunge any [references][SoftReference] from the [primary
-	 * cache][SoftCacheMap] whose referents have been reclaimed by the garbage
-	 * collector. This operation is cheap and may be called from most API
-	 * functions without negatively impacting performance.
+	 * Expunge any [references][SoftReference] from the
+	 * [primary&#32;cache][SoftCacheMap] whose referents have been reclaimed by
+	 * the garbage collector. This operation is cheap and may be called from
+	 * most API functions without negatively impacting performance.
 	 */
 	private fun expungeDefunctReferences()
 	{
@@ -581,8 +582,8 @@ class LRUCache<K, V> @JvmOverloads constructor(
 
 	/**
 	 * Remove the specified key and any value associated with it. If the key is
-	 * present, and the [softly held][SoftReference] corresponding value has not
-	 * been reclaimed by the garbage collector, then perform the retirement
+	 * present, and the [softly&#32;held][SoftReference] corresponding value has
+	 * not been reclaimed by the garbage collector, then perform the retirement
 	 * action, if any.
 	 *
 	 * @param key
@@ -612,7 +613,7 @@ class LRUCache<K, V> @JvmOverloads constructor(
 	companion object
 	{
 		/**
-		 * The [system property][System.getProperty] that enables detailed
+		 * The [system&#32;property][System.getProperty] that enables detailed
 		 * invariant checking. This causes significant slowdown and should not
 		 * be used in a production application.
 		 */

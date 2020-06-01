@@ -34,6 +34,8 @@ package com.avail.interpreter.primitive.variables
 
 import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.descriptor.fiber.FiberDescriptor.TraceFlag
+import com.avail.descriptor.functions.A_Function
+import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
@@ -43,21 +45,22 @@ import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.wholeNumbers
 import com.avail.descriptor.types.SetTypeDescriptor.setTypeForSizesContentType
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
+import com.avail.descriptor.variables.A_Variable
 import com.avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
 import com.avail.exceptions.AvailErrorCode.E_ILLEGAL_TRACE_MODE
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
 import com.avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
+import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Disable [variable write tracing
- * ][TraceFlag.TRACE_VARIABLE_WRITES] for the [current fiber
- * ][FiberDescriptor.currentFiber]. For each [variable][A_Variable] that
- * survived tracing, accumulate the variable's [write
- * reactor][VariableAccessReactor] [functions][A_Function] into a [set][A_Set].
- * Clear the write reactors for each variable written. Answer the set of
- * functions.
+ * **Primitive:** Disable
+ * [variable&#32;write&#32;tracing][TraceFlag.TRACE_VARIABLE_WRITES] for
+ * the [current&#32;fiber][FiberDescriptor.currentFiber]. For each
+ * [variable][A_Variable] that survived tracing, accumulate the variable's
+ * [write&#32;reactor][VariableAccessReactor] [functions][A_Function] into a
+ * [set][A_Set]. Clear the write reactors for each variable written. Answer the
+ * set of functions.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

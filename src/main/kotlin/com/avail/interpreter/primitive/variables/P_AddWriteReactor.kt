@@ -32,9 +32,9 @@
 
 package com.avail.interpreter.primitive.variables
 
-import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
 import com.avail.descriptor.atoms.AtomDescriptor
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
@@ -47,14 +47,14 @@ import com.avail.descriptor.types.VariableTypeDescriptor.mostGeneralVariableType
 import com.avail.descriptor.variables.VariableDescriptor
 import com.avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
 import com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Add a [write reactor][VariableAccessReactor] to the specified
- * [variable][VariableDescriptor]. The supplied [key][AtomDescriptor] may be
- * used subsequently to remove the write reactor.
+ * **Primitive:** Add a [write&#32;reactor][VariableAccessReactor] to the
+ * specified [variable][VariableDescriptor]. The supplied [key][AtomDescriptor]
+ * may be used subsequently to remove the write reactor.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

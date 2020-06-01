@@ -38,12 +38,12 @@ import com.avail.utility.configuration.Configurator
 
 /**
  * An `EnvironmentConfigurator` [updates][Configurator.updateConfiguration] a
- * [compiler configuration][CompilerConfiguration] from the environment.
+ * [compiler&#32;configuration][CompilerConfiguration] from the environment.
  *
  * The following environment variables are used by the compiler:
  *
- *  * **AVAIL_ROOTS**: The [Avail root][ModuleRoots], described by the following
- *    grammar:
+ *  * **AVAIL_ROOTS**: The [Avail&#32;root][ModuleRoots], described by the
+ *    following grammar:
  *    ```
  *    modulePath ::= binding ++ ";" ;
  *    binding ::= logicalRoot "=" objectRepository ("," sourceDirectory) ;
@@ -56,7 +56,8 @@ import com.avail.utility.configuration.Configurator
  *    `sourceDirectory` represents the absolute path of a package, i.e., a
  *    directory containing source modules, and may be sometimes be omitted
  *    (e.g., when compilation is not required).
- *  * **AVAIL_RENAMES**: The path to the [renames file][RenamesFileParser].
+ *
+ *  * **AVAIL_RENAMES**: The path to the [renames&#32;file][RenamesFileParser].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  *

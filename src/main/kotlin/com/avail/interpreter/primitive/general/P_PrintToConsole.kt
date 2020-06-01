@@ -42,18 +42,19 @@ import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.TupleTypeDescriptor.stringType
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.E_IO_ERROR
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanSuspend
 import com.avail.interpreter.Primitive.Flag.Unknown
+import com.avail.interpreter.execution.Interpreter
 import com.avail.io.SimpleCompletionHandler
 import com.avail.io.TextOutputChannel
 
 /**
  * **Primitive:** Print the specified [string][StringDescriptor] to the
- * [current][Interpreter.fiber]'s [standard output channel][TextOutputChannel],
- * [ ][ExecutionState.SUSPENDED] the current fiber until the string can be
- * queued for writing.
+ * [current][Interpreter.fiber]'s
+ * [standard&#32;output&#32;channel][TextOutputChannel],
+ * [suspended][ExecutionState.SUSPENDED] the current fiber until the string can
+ * be queued for writing.
  */
 @Suppress("unused")
 object P_PrintToConsole : Primitive(1, CanSuspend, Unknown)

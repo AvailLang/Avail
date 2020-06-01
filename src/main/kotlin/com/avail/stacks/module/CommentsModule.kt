@@ -43,7 +43,12 @@ import com.avail.descriptor.tokens.CommentTokenDescriptor
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.StringDescriptor.stringFrom
-import com.avail.stacks.*
+import com.avail.stacks.CommentGroup
+import com.avail.stacks.LinkingFileMap
+import com.avail.stacks.StacksErrorLog
+import com.avail.stacks.StacksFilename
+import com.avail.stacks.StacksOutputFile
+import com.avail.stacks.StacksSynchronizer
 import com.avail.stacks.comment.AvailComment
 import com.avail.stacks.exceptions.StacksCommentBuilderException
 import com.avail.stacks.exceptions.StacksScannerException
@@ -78,7 +83,7 @@ import java.util.*
  * @param resolver
  *   The [ModuleNameResolver] for resolving module paths.
  * @param moduleToComments
- *   A map of [module names][ModuleName] to a list of all the method names
+ *   A map of [module&#32;names][ModuleName] to a list of all the method names
  *   exported from said module
  * @param linkingFileMap
  *   A map for all output files in Stacks
@@ -107,7 +112,8 @@ class CommentsModule constructor(
 	private val fileExtensionName: String = "json"
 
 	/**
-	 * A map of the modules extended by this module to the [ ] content.
+	 * A map of the modules extended by this module to the
+	 * [comment&#32;group][CommentGroup] content.
 	 */
 	val stickyNamesImplementations =
 		mutableMapOf<A_String, MutableMap<String, CommentGroup>>()
@@ -142,7 +148,7 @@ class CommentsModule constructor(
 	val inScopeMethodsToFileNames: MutableMap<A_String, StacksFilename>
 
 	/**
-	 * All the [named implementations][CommentGroup] exported out of this
+	 * All the [named&#32;implementations][CommentGroup] exported out of this
 	 * module that will be documented if this is The outermost
 	 * [module][CommentsModule] for the generation request.
 	 */
@@ -151,8 +157,8 @@ class CommentsModule constructor(
 
 	/**
 	 * A map keyed by a method name with no path to a map keyed by the qualified
-	 * module path it is originally named from to the [ ].  These are all the methods exported from this
-	 * [module][CommentsModule]
+	 * module path it is originally named from to the [CommentGroup].  These are
+	 * all the methods exported from this [module][CommentsModule]
 	 */
 	val extendsMethodLeafNameToModuleName =
 		mutableMapOf<A_String, MutableMap<String, CommentGroup>>()
@@ -161,7 +167,8 @@ class CommentsModule constructor(
 	 * A map keyed by a method name with no path to a map keyed by the qualified
 	 * module path it is originally named from to the [CommentGroup].
 	 * These are all the methods defined in this [module][CommentsModule]
-	 * and are "public" because it uses a module where the name is exported from.
+	 * and are "public" because it uses a module where the name is exported
+	 * from.
 	 */
 	val usesMethodLeafNameToModuleName =
 		mutableMapOf<A_String, MutableMap<String, CommentGroup>>()
@@ -364,8 +371,8 @@ class CommentsModule constructor(
 	 * @param resolver
 	 *   The [ModuleNameResolver] for resolving module paths.
 	 * @param moduleToComments
-	 *   A map of [module names][ModuleName] to a list of all the method names
-	 *   exported from said module
+	 *   A map of [module&#32;names][ModuleName] to a list of all the method
+	 *   names exported from said module
 	 */
 	private fun buildModuleImportMaps(
 		header: ModuleHeader,
@@ -732,16 +739,16 @@ class CommentsModule constructor(
 	}
 
 	/**
-	 * * Obtain implementations defined in this [module's][CommentsModule]
-	 * [usesNamesImplementations] ([uses modules][StacksUsesModule]) that are
-	 * defined in one of this module's [extendedNamesImplementations]
-	 * [extends modules][StacksExtendsModule]) and include them with the
+	 * Obtain implementations defined in this [module's][CommentsModule]
+	 * [usesNamesImplementations] ([uses&#32;modules][StacksUsesModule]) that
+	 * are defined in one of this module's [extendedNamesImplementations]
+	 * [extends&#32;modules][StacksExtendsModule]) and include them with the
 	 * extended names from this module. Additionally, obtain implementations
-	 * defined in this [module's][CommentsModule]
-	 * [extendedNamesImplementations] [extends modules][StacksExtendsModule]})
-	 * that are defined in one of this module's other
-	 * `extendsNamesImplementation` ([extends modules][StacksExtendsModule]) and
-	 * include them with the extended names from this module.
+	 * defined in this [module's][CommentsModule] [extendedNamesImplementations]
+	 * [extends&#32;modules][StacksExtendsModule]}) that are defined in one of
+	 * this module's other `extendsNamesImplementation`
+	 * ([extends&#32;modules][StacksExtendsModule]) and include them with the
+	 * extended names from this module.
 	 */
 	private fun populateExtendsFromUsesExtends()
 	{
@@ -899,7 +906,7 @@ class CommentsModule constructor(
 	 *   The folder that the Avail documentation sits in above the
 	 *   providedDocumentPath.
 	 * @return The number of files to be created
-	 * @throws IOException If an [I/O exception][IOException] occurs.
+	 * @throws IOException If an [I/O&#32;exception][IOException] occurs.
 	 */
 	@Throws(IOException::class)
 	fun calculateFinalImplementationGroupsMap(
@@ -1065,7 +1072,8 @@ class CommentsModule constructor(
 	 *   A map for all files in stacks.
 	 * @param errorLog
 	 *   The file for outputting all errors.
-	 * @throws IOException If an [I/O exception][IOException] occurs.
+	 * @throws IOException
+	 *   If an [I/O&#32;exception][IOException] occurs.
 	 */
 	@Throws(IOException::class)
 	fun writeMethodsToJSONFiles(
@@ -1115,7 +1123,8 @@ class CommentsModule constructor(
 	 *   The map of ambiguous names requiring ambiguous files.
 	 * @param linkingFileMap
 	 *   A map for all files in Stacks
-	 * @throws IOException If an [I/O exception][IOException] occurs.
+	 * @throws IOException
+	 *   If an [I/O&#32;exception][IOException] occurs.
 	 */
 	@Throws(IOException::class)
 	private fun writeAmbiguousMethodsJSONFiles(
@@ -1252,7 +1261,7 @@ class CommentsModule constructor(
 	 * @param linkingFileMap
 	 *   A map for all files in Stacks
 	 * @throws IOException
-	 *   If an [I/O exception][IOException] occurs.
+	 *   If an [I/O&#32;exception][IOException] occurs.
 	 */
 	@Throws(IOException::class)
 	private fun writeAmbiguousAliasJSONFiles(

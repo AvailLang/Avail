@@ -6,11 +6,11 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *    list of conditions and the following disclaimer in the documentation
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
  *
  *  * Neither the name of the copyright holder nor the names of the contributors
@@ -31,16 +31,19 @@
  */
 package com.avail.descriptor.parsing
 
-import com.avail.annotations.AvailMethod
 import com.avail.compiler.AvailCompilerFragmentCache
 import com.avail.compiler.ParsingConversionRule.Companion.ruleNumber
-import com.avail.compiler.ParsingOperation.*
+import com.avail.compiler.ParsingOperation.CONVERT
 import com.avail.compiler.ParsingOperation.Companion.decode
 import com.avail.compiler.ParsingOperation.Companion.operand
+import com.avail.compiler.ParsingOperation.PARSE_PART
+import com.avail.compiler.ParsingOperation.PARSE_PART_CASE_INSENSITIVELY
+import com.avail.compiler.ParsingOperation.PERMUTE_LIST
+import com.avail.compiler.ParsingOperation.PUSH_LITERAL
+import com.avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT
 import com.avail.compiler.splitter.MessageSplitter
 import com.avail.compiler.splitter.MessageSplitter.Companion.constantForIndex
 import com.avail.compiler.splitter.MessageSplitter.Companion.permutationAtIndex
-import com.avail.descriptor.Descriptor
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.bundles.A_Bundle.Companion.message
 import com.avail.descriptor.bundles.A_Bundle.Companion.messageParts
@@ -52,8 +55,16 @@ import com.avail.descriptor.methods.MacroDefinitionDescriptor
 import com.avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.bundle
 import com.avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.definition
 import com.avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.parsingInstructions
-import com.avail.descriptor.parsing.DefinitionParsingPlanDescriptor.ObjectSlots.*
-import com.avail.descriptor.representation.*
+import com.avail.descriptor.parsing.DefinitionParsingPlanDescriptor.ObjectSlots.BUNDLE
+import com.avail.descriptor.parsing.DefinitionParsingPlanDescriptor.ObjectSlots.DEFINITION
+import com.avail.descriptor.parsing.DefinitionParsingPlanDescriptor.ObjectSlots.PARSING_INSTRUCTIONS
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AbstractDescriptor
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObjectFieldHelper
+import com.avail.descriptor.representation.Descriptor
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.TypeDescriptor.Types
@@ -196,7 +207,6 @@ class DefinitionParsingPlanDescriptor private constructor(
 	override fun o_Definition(self: AvailObject): A_Definition =
 		self.slot(DEFINITION)
 
-	@AvailMethod
 	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean {
 		if (!another.kind().equals(Types.DEFINITION_PARSING_PLAN.o())) {
 			return false
@@ -206,32 +216,29 @@ class DefinitionParsingPlanDescriptor private constructor(
 			&& self.slot(BUNDLE) === strongAnother.bundle())
 	}
 
-	@AvailMethod
 	override fun o_Hash(self: AvailObject) =
 		((self.slot(DEFINITION).hash() xor -0x6d5d9ebe)
 			- self.slot(BUNDLE).hash())
 
-	@AvailMethod
 	override fun o_Kind(self: AvailObject): A_Type =
 		Types.DEFINITION_PARSING_PLAN.o()
 
-	@AvailMethod
 	override fun o_ParsingInstructions(self: AvailObject): A_Tuple =
 		self.slot(PARSING_INSTRUCTIONS)
 
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
-		aStream: StringBuilder,
+		builder: StringBuilder,
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int
-	) {
+	): Unit = with(builder) {
 		// The existing definitions are also printed in parentheses to help
 		// distinguish polymorphism from occurrences of non-polymorphic
 		// homonyms.
-		aStream.append("plan for ")
-		aStream.append(self.bundle().message())
-		aStream.append(" at ")
-		aStream.append(self.definition().parsingSignature())
+		append("plan for ")
+		append(self.bundle().message())
+		append(" at ")
+		append(self.definition().parsingSignature())
 	}
 
 	override fun mutable() = mutable
@@ -243,7 +250,7 @@ class DefinitionParsingPlanDescriptor private constructor(
 
 	companion object {
 		/**
-		 * Create a new [A_DefinitionParsingPlan]  for the given parameters.  Do
+		 * Create a new [A_DefinitionParsingPlan] for the given parameters.  Do
 		 * not install it.
 		 *
 		 * @param bundle

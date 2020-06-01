@@ -31,11 +31,11 @@
  */
 package com.avail.interpreter.primitive.files
 
-import com.avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
 import com.avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
 import com.avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.FILE_KEY
+import com.avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.one
@@ -43,7 +43,9 @@ import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.ByteArrayTupleDescriptor
 import com.avail.descriptor.tuples.ByteBufferTupleDescriptor.tupleForByteBuffer
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.*
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromArray
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
 import com.avail.descriptor.tuples.StringDescriptor.formatString
 import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
 import com.avail.descriptor.types.A_Type
@@ -51,11 +53,17 @@ import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationW
 import com.avail.descriptor.types.FiberTypeDescriptor.fiberType
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.InstanceTypeDescriptor.instanceType
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.*
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.bytes
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.inclusive
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.naturalNumbers
 import com.avail.descriptor.types.TupleTypeDescriptor.zeroOrMoreOf
 import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
-import com.avail.exceptions.AvailErrorCode.*
+import com.avail.exceptions.AvailErrorCode.E_EXCEEDS_VM_LIMIT
+import com.avail.exceptions.AvailErrorCode.E_INVALID_HANDLE
+import com.avail.exceptions.AvailErrorCode.E_IO_ERROR
+import com.avail.exceptions.AvailErrorCode.E_NOT_OPEN_FOR_READ
+import com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
@@ -70,8 +78,8 @@ import java.nio.channels.AsynchronousFileChannel
 import kotlin.math.min
 
 /**
- * **Primitive:** Read the requested number of bytes from the [file
- * channel][AsynchronousFileChannel] associated with the specified
+ * **Primitive:** Read the requested number of bytes from the
+ * [file&#32;channel][AsynchronousFileChannel] associated with the specified
  * [handle][AtomDescriptor], starting at the requested one-based position.
  * Produce them as a [tuple][ByteArrayTupleDescriptor] of bytes. If fewer bytes
  * are available, then simply produce a shorter tuple; an empty tuple
@@ -79,14 +87,11 @@ import kotlin.math.min
  * request amount is infinite or very large, fewer bytes may be returned, at the
  * discretion of the Avail VM.
  *
- *
- *
  * Answer a new fiber which, if the read is eventually successful, will be
- * started to apply the [success function][FunctionDescriptor] to the resulting
- * tuple of bytes.  If the read is unsuccessful, the fiber will be started to
- * apply the `failure function` to the error code.  The fiber runs at the
- * specified priority.
- *
+ * started to apply the [success&#32;function][FunctionDescriptor] to the
+ * resulting tuple of bytes.  If the read is unsuccessful, the fiber will be
+ * started to apply the `failure function` to the error code.  The fiber runs at
+ * the specified priority.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;

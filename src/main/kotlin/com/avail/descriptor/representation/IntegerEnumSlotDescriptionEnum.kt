@@ -6,12 +6,12 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
  *
  *  * Neither the name of the copyright holder nor the names of the contributors
  *    may be used to endorse or promote products derived from this software
@@ -34,7 +34,7 @@ package com.avail.descriptor.representation
 /**
  * The `IntegerEnumSlotDescriptionEnum` is an interface that constrains an
  * enumeration used to describe the values that can occur in a particular
- * [integer slot][IntegerSlotsEnum] or [BitField].
+ * [integer&#32;slot][IntegerSlotsEnum] or [BitField].
  *
  * It includes the [fieldName] and [fieldOrdinal] operations to ensure they are
  * statically available in the actual implementations, which are really intended

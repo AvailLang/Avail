@@ -6,12 +6,12 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
  *
  *  * Neither the name of the copyright holder nor the names of the contributors
  *    may be used to endorse or promote products derived from this software
@@ -31,43 +31,42 @@
  */
 package com.avail.descriptor.phrases
 
-import com.avail.annotations.AvailMethod
-import com.avail.compiler.AvailCodeGenerator
-import com.avail.descriptor.atoms.A_Atom
-import com.avail.descriptor.bundles.A_Bundle
-import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
-import com.avail.descriptor.bundles.A_Bundle.Companion.message
-import com.avail.descriptor.bundles.A_Bundle.Companion.messageSplitter
-import com.avail.descriptor.bundles.MessageBundleDescriptor
-import com.avail.descriptor.methods.A_Method
-import com.avail.descriptor.phrases.A_Phrase.Companion.argumentsListNode
-import com.avail.descriptor.phrases.A_Phrase.Companion.bundle
-import com.avail.descriptor.phrases.A_Phrase.Companion.emitAllValuesOn
-import com.avail.descriptor.phrases.A_Phrase.Companion.expressionType
-import com.avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
-import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKind
-import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
-import com.avail.descriptor.phrases.A_Phrase.Companion.superUnionType
-import com.avail.descriptor.phrases.A_Phrase.Companion.tokens
-import com.avail.descriptor.phrases.SendPhraseDescriptor.ObjectSlots.*
-import com.avail.descriptor.representation.A_BasicObject
-import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.representation.AvailObject.Companion.multiplier
-import com.avail.descriptor.representation.Mutability
-import com.avail.descriptor.representation.ObjectSlotsEnum
-import com.avail.descriptor.tokens.A_Token
-import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
-import com.avail.descriptor.types.TypeDescriptor
-import com.avail.descriptor.types.TypeDescriptor.Types
-import com.avail.descriptor.types.TypeTag
-import com.avail.serialization.SerializerOperation
-import com.avail.utility.evaluation.Continuation1NotNull
-import com.avail.utility.json.JSONWriter
-import java.util.*
-import java.util.function.Consumer
-import java.util.function.UnaryOperator
+ import com.avail.compiler.AvailCodeGenerator
+ import com.avail.descriptor.atoms.A_Atom
+ import com.avail.descriptor.bundles.A_Bundle
+ import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
+ import com.avail.descriptor.bundles.A_Bundle.Companion.message
+ import com.avail.descriptor.bundles.A_Bundle.Companion.messageSplitter
+ import com.avail.descriptor.bundles.MessageBundleDescriptor
+ import com.avail.descriptor.methods.A_Method
+ import com.avail.descriptor.phrases.A_Phrase.Companion.argumentsListNode
+ import com.avail.descriptor.phrases.A_Phrase.Companion.bundle
+ import com.avail.descriptor.phrases.A_Phrase.Companion.emitAllValuesOn
+ import com.avail.descriptor.phrases.A_Phrase.Companion.expressionType
+ import com.avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
+ import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKind
+ import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
+ import com.avail.descriptor.phrases.A_Phrase.Companion.superUnionType
+ import com.avail.descriptor.phrases.A_Phrase.Companion.tokens
+ import com.avail.descriptor.phrases.SendPhraseDescriptor.ObjectSlots.ARGUMENTS_LIST_NODE
+ import com.avail.descriptor.phrases.SendPhraseDescriptor.ObjectSlots.BUNDLE
+ import com.avail.descriptor.phrases.SendPhraseDescriptor.ObjectSlots.RETURN_TYPE
+ import com.avail.descriptor.phrases.SendPhraseDescriptor.ObjectSlots.TOKENS
+ import com.avail.descriptor.representation.A_BasicObject
+ import com.avail.descriptor.representation.AvailObject
+ import com.avail.descriptor.representation.AvailObject.Companion.multiplier
+ import com.avail.descriptor.representation.Mutability
+ import com.avail.descriptor.representation.ObjectSlotsEnum
+ import com.avail.descriptor.tokens.A_Token
+ import com.avail.descriptor.tuples.A_Tuple
+ import com.avail.descriptor.types.A_Type
+ import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
+ import com.avail.descriptor.types.TypeDescriptor
+ import com.avail.descriptor.types.TypeDescriptor.Types
+ import com.avail.descriptor.types.TypeTag
+ import com.avail.serialization.SerializerOperation
+ import com.avail.utility.json.JSONWriter
+ import java.util.*
 
 /**
  * My instances represent invocations of multi-methods in Avail code.
@@ -98,8 +97,8 @@ class SendPhraseDescriptor private constructor(
 		TOKENS,
 
 		/**
-		 * A [list phrase][ListPhraseDescriptor] containing the expressions that
-		 * yield the arguments of the method invocation.
+		 * A [list&#32;phrase][ListPhraseDescriptor] containing the expressions
+		 * that yield the arguments of the method invocation.
 		 */
 		ARGUMENTS_LIST_NODE,
 
@@ -129,31 +128,25 @@ class SendPhraseDescriptor private constructor(
 			self, builder, indent)
 	}
 
-	@AvailMethod
 	override fun o_ApparentSendName(self: AvailObject): A_Atom =
 		self.slot(BUNDLE).message()
 
-	@AvailMethod
 	override fun o_ArgumentsListNode(self: AvailObject): A_Phrase =
 		self.slot(ARGUMENTS_LIST_NODE)
 
-	@AvailMethod
 	override fun o_Bundle(self: AvailObject): A_Bundle = self.slot(BUNDLE)
 
-	@AvailMethod
 	override fun o_ChildrenDo(
 		self: AvailObject,
-		action: Consumer<A_Phrase>
-	) = action.accept(self.slot(ARGUMENTS_LIST_NODE))
+		action: (A_Phrase) -> Unit
+	) = action(self.slot(ARGUMENTS_LIST_NODE))
 
-	@AvailMethod
 	override fun o_ChildrenMap(
 		self: AvailObject,
-		transformer: UnaryOperator<A_Phrase>
+		transformer: (A_Phrase) -> A_Phrase
 	) = self.setSlot(ARGUMENTS_LIST_NODE,
-		transformer.apply(self.slot(ARGUMENTS_LIST_NODE)))
+		transformer(self.slot(ARGUMENTS_LIST_NODE)))
 
-	@AvailMethod
 	override fun o_EmitValueOn(
 		self: AvailObject,
 		codeGenerator: AvailCodeGenerator
@@ -175,7 +168,6 @@ class SendPhraseDescriptor private constructor(
 		}
 	}
 
-	@AvailMethod
 	override fun o_EqualsPhrase(
 		self: AvailObject,
 		aPhrase: A_Phrase
@@ -185,11 +177,9 @@ class SendPhraseDescriptor private constructor(
 		&& self.slot(ARGUMENTS_LIST_NODE).equals(aPhrase.argumentsListNode())
 		&& self.slot(RETURN_TYPE).equals(aPhrase.expressionType()))
 
-	@AvailMethod
 	override fun o_ExpressionType(self: AvailObject): A_Type =
 		self.slot(RETURN_TYPE)
 
-	@AvailMethod
 	override fun o_Hash(self: AvailObject): Int =
 		((self.slot(ARGUMENTS_LIST_NODE).hash() * multiplier
 			xor self.slot(BUNDLE).hash()) * multiplier
@@ -204,12 +194,11 @@ class SendPhraseDescriptor private constructor(
 
 	override fun o_StatementsDo(
 		self: AvailObject,
-		continuation: Continuation1NotNull<A_Phrase>
-	): Unit = throw unsupportedOperationException()
+		continuation: (A_Phrase) -> Unit
+	): Unit = unsupportedOperation()
 
 	override fun o_Tokens(self: AvailObject): A_Tuple = self.slot(TOKENS)
 
-	@AvailMethod
 	override fun o_ValidateLocally(
 		self: AvailObject,
 		parent: A_Phrase?
@@ -245,13 +234,13 @@ class SendPhraseDescriptor private constructor(
 		writer.endObject()
 	}
 
-	override fun mutable(): SendPhraseDescriptor = mutable
+	override fun mutable() = mutable
 
-	override fun shared(): SendPhraseDescriptor = shared
+	override fun shared() = shared
 
 	companion object {
 		/**
-		 * Create a new [send&#32;phrase][SendPhraseDescriptor] from the
+		 * Create a new [send#&32;phrase][SendPhraseDescriptor] from the
 		 * specified [A_Bundle], [list#&32;phrase][ListPhraseDescriptor] of
 		 * argument expressions, and return [type][TypeDescriptor].  Also take
 		 * a [tuple][A_Tuple] of [tokens][A_Token].

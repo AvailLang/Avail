@@ -39,9 +39,10 @@ import com.avail.descriptor.types.A_Type
 
 /**
  * A `RawTokenArgument` is an occurrence of [ellipsis][Metacharacter.ELLIPSIS]
- * (…) in a message name, followed by an [exclamation
- * mark][Metacharacter.EXCLAMATION_MARK] (!). It indicates where *any* raw token
- * is expected, which gets captured as an argument, wrapped in a literal phrase.
+ * (…) in a message name, followed by an
+ * [exclamation&#32;mark][Metacharacter.EXCLAMATION_MARK] (!). It indicates
+ * where *any* raw token is expected, which gets captured as an argument,
+ * wrapped in a literal phrase.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *

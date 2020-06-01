@@ -32,7 +32,9 @@
 
 package com.avail.tools.options
 
-import com.avail.tools.options.OptionProcessorFactory.*
+import com.avail.tools.options.OptionProcessorFactory.Cardinality
+import com.avail.tools.options.OptionProcessorFactory.OptionInvocation
+import com.avail.tools.options.OptionProcessorFactory.OptionInvocationWithArgument
 import com.avail.utility.CollectionExtensions.populatedEnumMap
 import com.avail.utility.MutableInt
 import com.avail.utility.ParagraphFormatter
@@ -398,7 +400,7 @@ class OptionProcessor<OptionKeyType : Enum<OptionKeyType>> internal constructor(
 	 * @param appendable
 	 *   An [Appendable].
 	 * @throws IOException
-	 *   If an [I/O exception][IOException] occurs.
+	 *   If an [I/O&#32;exception][IOException] occurs.
 	 */
 	@Throws(IOException::class)
 	fun writeOptionDescriptions(appendable: Appendable)

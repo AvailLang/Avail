@@ -32,15 +32,14 @@
 
 package com.avail.descriptor.types;
 
-import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.ThreadSafe;
-import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
-import com.avail.descriptor.representation.NilDescriptor;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.representation.BitField;
 import com.avail.descriptor.representation.Mutability;
+import com.avail.descriptor.representation.NilDescriptor;
 import com.avail.descriptor.tuples.StringDescriptor;
 import com.avail.utility.json.JSONWriter;
 
@@ -102,8 +101,7 @@ extends PrimitiveTypeDescriptor
 		}
 	}
 
-	@Override
-	@AvailMethod @ThreadSafe
+	@Override @ThreadSafe
 	public boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
 	{
 		// Check if object (the type top) is a subtype of aType (may also be
@@ -112,9 +110,7 @@ extends PrimitiveTypeDescriptor
 		return aType.traversed().sameAddressAs(object);
 	}
 
-	@Override
-	@AvailMethod
-	@ThreadSafe
+	@Override @ThreadSafe
 	public boolean o_IsSupertypeOfPrimitiveTypeEnum (
 		final AvailObject object,
 		final Types primitiveTypeEnum)
@@ -124,8 +120,7 @@ extends PrimitiveTypeDescriptor
 		return true;
 	}
 
-	@Override
-	@AvailMethod @ThreadSafe
+	@Override @ThreadSafe
 	public boolean o_IsTop (final AvailObject object)
 	{
 		return true;

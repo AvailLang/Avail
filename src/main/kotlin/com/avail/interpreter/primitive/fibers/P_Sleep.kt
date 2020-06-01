@@ -37,19 +37,20 @@ import com.avail.descriptor.fiber.FiberDescriptor.ExecutionState
 import com.avail.descriptor.fiber.FiberDescriptor.ExecutionState.ASLEEP
 import com.avail.descriptor.fiber.FiberDescriptor.ExecutionState.SUSPENDED
 import com.avail.descriptor.fiber.FiberDescriptor.InterruptRequestFlag.TERMINATION_REQUESTED
-import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.inclusive
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.CanSuspend
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Primitive.Flag.Unknown
 import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.execution.Interpreter.Companion.resumeFromSuccessfulPrimitive
-import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
-import com.avail.utility.evaluation.Continuation0
 import java.util.*
 
 /**
@@ -88,7 +89,7 @@ object P_Sleep : Primitive(1, CannotFail, CanSuspend, Unknown)
 			{
 				override fun run()
 				{
-					fiber.lock(Continuation0 {
+					fiber.lock {
 						// Only resume the fiber if it's still asleep. A
 						// termination request may have already woken the
 						// fiber up, but so recently that it didn't manage
@@ -100,13 +101,13 @@ object P_Sleep : Primitive(1, CannotFail, CanSuspend, Unknown)
 							resumeFromSuccessfulPrimitive(
 								runtime, fiber, this@P_Sleep, nil)
 						}
-					})
+					}
 				}
 			}
 			// Once the fiber has been unbound, transition it to sleeping and
 			// start the timer task.
 			interpreter.postExitContinuation {
-				fiber.lock(Continuation0 {
+				fiber.lock {
 					// If termination has been requested, then schedule
 					// the resumption of this fiber.
 					when {
@@ -122,14 +123,14 @@ object P_Sleep : Primitive(1, CannotFail, CanSuspend, Unknown)
 								task, sleepMillis.extractLong())
 						}
 					}
-				})
+				}
 			}
 		}
 		else
 		{
 			// Once the fiber has been unbound, transition it to sleeping.
 			interpreter.postExitContinuation {
-				fiber.lock(Continuation0 {
+				fiber.lock {
 					// If termination has been requested, then schedule
 					// the resumption of this fiber.
 					when {
@@ -140,7 +141,7 @@ object P_Sleep : Primitive(1, CannotFail, CanSuspend, Unknown)
 						}
 						else -> fiber.executionState(ASLEEP)
 					}
-				})
+				}
 			}
 		}// The delay was too big, so put the fiber to sleep forever.
 		// Don't actually transition the fiber to the sleeping state, which

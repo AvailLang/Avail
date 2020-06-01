@@ -52,9 +52,6 @@ class StacksSynchronizer
 	 */
 	private val workUnits = AtomicInteger(0)
 
-	/**
-	 *
-	 */
 	private val semaphore = Semaphore(0)
 
 	init
@@ -62,17 +59,11 @@ class StacksSynchronizer
 		this.workUnits.set(workUnits)
 	}
 
-	/**
-	 *
-	 */
 	fun waitForWorkUnitsToComplete()
 	{
 		semaphore.acquireUninterruptibly()
 	}
 
-	/**
-	 *
-	 */
 	fun decrementWorkCounter()
 	{
 		if (workUnits.decrementAndGet() == 0)

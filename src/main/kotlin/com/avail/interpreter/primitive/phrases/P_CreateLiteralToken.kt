@@ -44,12 +44,14 @@ import com.avail.descriptor.types.LiteralTokenTypeDescriptor.literalTokenType
 import com.avail.descriptor.types.LiteralTokenTypeDescriptor.mostGeneralLiteralTokenType
 import com.avail.descriptor.types.TupleTypeDescriptor.stringType
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CanFold
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Create a [literal&#32;token][LiteralTokenDescriptor] with the
+* **Primitive:** Create a [literal&#32;token][LiteralTokenDescriptor] with the
  * specified literal value, [lexeme][A_Token.string],
  * [starting&#32;character&#32;position][A_Token.start], and
  * [line&#32;number][A_Token.lineNumber].

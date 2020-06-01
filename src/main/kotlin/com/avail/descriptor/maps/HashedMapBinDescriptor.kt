@@ -6,11 +6,11 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *    list of conditions and the following disclaimer in the documentation
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
  *
  *  * Neither the name of the copyright holder nor the names of the contributors
@@ -31,30 +31,37 @@
  */
 package com.avail.descriptor.maps
 
-import com.avail.annotations.AvailMethod
-import com.avail.descriptor.representation.NilDescriptor.Companion.nil
-import com.avail.descriptor.maps.HashedMapBinDescriptor.IntegerSlots.*
-import com.avail.descriptor.maps.HashedMapBinDescriptor.IntegerSlots.Companion.KEYS_HASH
-import com.avail.descriptor.maps.HashedMapBinDescriptor.IntegerSlots.Companion.VALUES_HASH_OR_ZERO
-import com.avail.descriptor.maps.HashedMapBinDescriptor.ObjectSlots.*
-import com.avail.descriptor.maps.LinearMapBinDescriptor.Companion.createSingleLinearMapBin
-import com.avail.descriptor.maps.LinearMapBinDescriptor.Companion.emptyLinearMapBin
-import com.avail.descriptor.maps.MapDescriptor.MapIterable
-import com.avail.descriptor.representation.*
-import com.avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
-import com.avail.descriptor.representation.AvailObject.Companion.newIndexedDescriptor
-import com.avail.descriptor.representation.AvailObjectRepresentation.Companion.newLike
-import com.avail.descriptor.representation.Mutability.MUTABLE
-import com.avail.descriptor.sets.A_Set
-import com.avail.descriptor.sets.HashedSetBinDescriptor
-import com.avail.descriptor.sets.SetDescriptor
-import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.BottomTypeDescriptor.bottom
-import com.avail.descriptor.types.TypeTag
-import com.avail.utility.Casts.cast
-import java.util.*
-import java.util.function.BiConsumer
-import java.util.function.BiFunction
+ import com.avail.descriptor.maps.HashedMapBinDescriptor.IntegerSlots.BIN_SIZE
+ import com.avail.descriptor.maps.HashedMapBinDescriptor.IntegerSlots.BIT_VECTOR
+ import com.avail.descriptor.maps.HashedMapBinDescriptor.IntegerSlots.COMBINED_HASHES
+ import com.avail.descriptor.maps.HashedMapBinDescriptor.IntegerSlots.Companion.KEYS_HASH
+ import com.avail.descriptor.maps.HashedMapBinDescriptor.IntegerSlots.Companion.VALUES_HASH_OR_ZERO
+ import com.avail.descriptor.maps.HashedMapBinDescriptor.ObjectSlots.BIN_KEY_UNION_KIND_OR_NIL
+ import com.avail.descriptor.maps.HashedMapBinDescriptor.ObjectSlots.BIN_VALUE_UNION_KIND_OR_NIL
+ import com.avail.descriptor.maps.HashedMapBinDescriptor.ObjectSlots.SUB_BINS_
+ import com.avail.descriptor.maps.LinearMapBinDescriptor.Companion.createSingleLinearMapBin
+ import com.avail.descriptor.maps.LinearMapBinDescriptor.Companion.emptyLinearMapBin
+ import com.avail.descriptor.maps.MapDescriptor.MapIterable
+ import com.avail.descriptor.representation.A_BasicObject
+ import com.avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
+ import com.avail.descriptor.representation.AbstractSlotsEnum
+ import com.avail.descriptor.representation.AvailObject
+ import com.avail.descriptor.representation.AvailObject.Companion.newIndexedDescriptor
+ import com.avail.descriptor.representation.AvailObjectRepresentation.Companion.newLike
+ import com.avail.descriptor.representation.BitField
+ import com.avail.descriptor.representation.IntegerSlotsEnum
+ import com.avail.descriptor.representation.Mutability
+ import com.avail.descriptor.representation.Mutability.MUTABLE
+ import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+ import com.avail.descriptor.representation.ObjectSlotsEnum
+ import com.avail.descriptor.sets.A_Set
+ import com.avail.descriptor.sets.HashedSetBinDescriptor
+ import com.avail.descriptor.sets.SetDescriptor
+ import com.avail.descriptor.types.A_Type
+ import com.avail.descriptor.types.BottomTypeDescriptor.bottom
+ import com.avail.descriptor.types.TypeTag
+ import com.avail.utility.Casts.cast
+ import java.util.*
 
 /**
  * This class implements the internal hashed nodes of a Bagwell Ideal Hash Tree.
@@ -183,29 +190,25 @@ class HashedMapBinDescriptor private constructor(
 		|| e === BIN_KEY_UNION_KIND_OR_NIL
 		|| e === BIN_VALUE_UNION_KIND_OR_NIL
 
-	@AvailMethod
 	override fun o_BinElementAt(
 		self: AvailObject,
-		subscript: Int
-	): AvailObject = self.slot(SUB_BINS_, subscript)
+		index: Int
+	): AvailObject = self.slot(SUB_BINS_, index)
 
-	@AvailMethod
 	override fun o_ForEachInMapBin(
 		self: AvailObject,
-		action: BiConsumer<in AvailObject, in AvailObject>
+		action: (AvailObject, AvailObject) -> Unit
 	) {
 		for (i in 1..self.variableObjectSlotsCount()) {
 			self.slot(SUB_BINS_, i).forEachInMapBin(action)
 		}
 	}
 
-	@AvailMethod
 	override fun o_MapBinSize(self: AvailObject) = self.slot(BIN_SIZE).toInt()
 
 	/**
 	 * Check if object, a bin, holds a subset of aSet's elements.
 	 */
-	@AvailMethod
 	override fun o_IsBinSubsetOf(
 		self: AvailObject,
 		potentialSuperset: A_Set
@@ -253,7 +256,6 @@ class HashedMapBinDescriptor private constructor(
 		return self.slot(BIN_KEY_UNION_KIND_OR_NIL)
 	}
 
-	@AvailMethod
 	override fun o_MapBinKeyUnionKind(self: AvailObject): A_Type =
 		self.synchronizeIf(isShared) { mapBinKeyUnionKind(self) }
 
@@ -273,7 +275,6 @@ class HashedMapBinDescriptor private constructor(
 		return self.slot(BIN_VALUE_UNION_KIND_OR_NIL)
 	}
 
-	@AvailMethod
 	override fun o_MapBinValueUnionKind(self: AvailObject): A_Type =
 		self.synchronizeIf(isShared) { mapBinValueUnionKind(self) }
 
@@ -283,7 +284,6 @@ class HashedMapBinDescriptor private constructor(
 	 * client is responsible for marking both the key and value as immutable if
 	 * other references exists.
 	 */
-	@AvailMethod
 	override fun o_MapBinAtHashPutLevelCanDestroy(
 		self: AvailObject,
 		key: A_BasicObject,
@@ -384,7 +384,6 @@ class HashedMapBinDescriptor private constructor(
 	 * Remove the key from the bin object, if present.  Answer the resulting
 	 * bin.  The bin may be modified if it's mutable and canDestroy.
 	 */
-	@AvailMethod
 	override fun o_MapBinRemoveKeyHashCanDestroy(
 		self: AvailObject,
 		key: A_BasicObject,
@@ -467,7 +466,7 @@ class HashedMapBinDescriptor private constructor(
 		key: A_BasicObject,
 		keyHash: Int,
 		notFoundValue: A_BasicObject,
-		transformer: BiFunction<AvailObject, AvailObject, A_BasicObject>,
+		transformer: (AvailObject, AvailObject) -> A_BasicObject,
 		myLevel: Int,
 		canDestroy: Boolean
 	): A_MapBin {
@@ -483,7 +482,7 @@ class HashedMapBinDescriptor private constructor(
 			return self.mapBinAtHashPutLevelCanDestroy(
 				key,
 				keyHash,
-				transformer.apply(cast(key), cast(notFoundValue)),
+				transformer(cast(key), cast(notFoundValue)),
 				level,
 				canDestroy)
 		}

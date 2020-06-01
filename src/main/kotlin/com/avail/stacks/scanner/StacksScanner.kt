@@ -54,7 +54,8 @@ import java.util.*
  * Construct a new [StacksScanner].
  *
  * @param commentToken
- *   The [comment token][CommentTokenDescriptor] to be scanned and tokenized.
+ *   The [comment&#32;token][CommentTokenDescriptor] to be scanned and
+ *   tokenized.
  * @param moduleName
  *   The name of the module the comment is in.
  */
@@ -216,7 +217,7 @@ class StacksScanner constructor (commentToken: A_Token, moduleName: String)
 	}
 
 	/**
-	 * Scan the already-specified [String] to produce [ ][outputTokens].
+	 * Scan the already-specified [String] to produce [tokens][outputTokens].
 	 *
 	 * @throws StacksScannerException
 	 */
@@ -897,16 +898,16 @@ class StacksScanner constructor (commentToken: A_Token, moduleName: String)
 
 		/**
 		 * Answer the [AvailComment]
-		 * that comprise a [Avail comment][CommentTokenDescriptor].
+		 * that comprise a [Avail&#32;comment][CommentTokenDescriptor].
 		 *
 		 * @param commentToken
-		 *   An [Avail comment][CommentTokenDescriptor] to be tokenized.
+		 *   An [Avail&#32;comment][CommentTokenDescriptor] to be tokenized.
 		 * @param moduleName
 		 *   The name of the module this comment appears in.
 		 * @param linkingFileMap
 		 *   A map for all the files for Stacks
 		 * @return A [List] of all tokenized words in the
-		 *   [Avail comment][CommentTokenDescriptor].
+		 *   [Avail&#32;comment][CommentTokenDescriptor].
 		 * @throws StacksScannerException If scanning fails.
 		 * @throws StacksCommentBuilderException
 		 */

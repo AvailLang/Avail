@@ -31,9 +31,9 @@
  */
 package com.avail.interpreter.levelTwo.operation
 
-import com.avail.descriptor.AbstractDescriptor
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AbstractAvailObject
+import com.avail.descriptor.representation.AbstractDescriptor
 import com.avail.descriptor.types.VariableTypeDescriptor
 import com.avail.descriptor.variables.A_Variable
 import com.avail.descriptor.variables.VariableDescriptor
@@ -93,8 +93,7 @@ object L2_GET_VARIABLE_CLEARING : L2ControlFlowOperation(
 	// Also it clears the variable.
 	override fun hasSideEffect(): Boolean = true
 
-	override val isVariableGet: Boolean
-		get() = true
+	override val isVariableGet: Boolean get() = true
 
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,

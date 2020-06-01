@@ -36,12 +36,12 @@ import java.util.*
 
 /**
  * A `StateMachineFactory` enables a client to dynamically specify and assemble
- * a [finite state machine][StateMachine]. In particular, the factory allows a
- * client to flexibly define a particular FSM while ignoring specification and
- * evaluation order dependency. Validation is postponed until final assembly
- * time, at which time a [ValidationException] will be thrown in the event of
- * incorrect or incomplete specification; otherwise, the constructed FSM
- * provably reflects the client specification.
+ * a [finite&#32;state&#32;machine][StateMachine]. In particular, the factory
+ * allows a client to flexibly define a particular FSM while ignoring
+ * specification and evaluation order dependency. Validation is postponed until
+ * final assembly time, at which time a [ValidationException] will be thrown in
+ * the event of incorrect or incomplete specification; otherwise, the
+ * constructed FSM provably reflects the client specification.
  *
  * @param State
  *   The type of states (an [Enum]).
@@ -67,7 +67,7 @@ import java.util.*
  * @constructor
  *
  * Construct a new `StateMachineFactory` primed to create a new
- * instance of the specified kind of [state machine][StateMachine].
+ * instance of the specified kind of [state&#32;machine][StateMachine].
  *
  * @param stateType
  *   The kind of states.
@@ -100,20 +100,20 @@ constructor(
 
 	/**
 	 * The complete transition table, a [map][EnumMap] from states to
-	 * [state summaries][StateSummary].
+	 * [state&#32;summaries][StateSummary].
 	 */
 	private val summaries: EnumMap<
 			State, StateSummary<State, Event, GuardKey, ActionKey, Memento>> =
 		EnumMap(stateType)
 
 	/**
-	 * The initial state of the target [state machine][StateMachine].
+	 * The initial state of the target [state&#32;machine][StateMachine].
 	 */
 	private var initialState: State? = null
 
 	/**
-	 * Record the canonical initial state of the target [state
-	 * machine][StateMachine].
+	 * Record the canonical initial state of the target
+	 * [state&#32;machine][StateMachine].
 	 *
 	 * @param initialState
 	 *   The initial state.
@@ -170,7 +170,7 @@ constructor(
 	}
 
 	/**
-	 * Add a [transition arc][StateTransitionArc].
+	 * Add a [transition&#32;arc][StateTransitionArc].
 	 *
 	 * @param startState
 	 *   The starting state for the [arc][StateTransitionArc].
@@ -285,8 +285,8 @@ constructor(
 	}
 
 	/**
-	 * Check that the resulting [finite state machine][StateMachine] will have
-	 * no defects. In particular:
+	 * Check that the resulting [finite&#32;state&#32;machine][StateMachine]
+	 * will have no defects. In particular:
 	 *  * There must be an initial state
 	 *  * All states must be reachable by transitions from the initial state
 	 *  * All events must be handled
@@ -300,8 +300,8 @@ constructor(
 	 *    *entry* or *exit* of some state
 	 *
 	 * @throws ValidationException
-	 *   If the specified [finite state machine][StateMachine] fails validation
-	 *   for any reason.
+	 *   If the specified [finite&#32;state&#32;machine][StateMachine] fails
+	 *   validation for any reason.
 	 */
 	@Throws(ValidationException::class)
 	private fun validate()
@@ -423,11 +423,11 @@ constructor(
 	}
 
 	/**
-	 * Create an instance of the [finite state machine][StateMachine] described
-	 * by the `StateMachineFactory`.
+	 * Create an instance of the [finite&#32;state&#32;machine][StateMachine]
+	 * described by the `StateMachineFactory`.
 	 *
 	 * @return
-	 *   The new validated [state machine][StateMachine].
+	 *   The new validated [state&#32;machine][StateMachine].
 	 * @throws ValidationException
 	 *   If validation fails.
 	 */

@@ -32,9 +32,17 @@
 
 package com.avail.exceptions
 
-import com.avail.descriptor.methods.*
+import com.avail.descriptor.methods.A_Definition
+import com.avail.descriptor.methods.AbstractDefinitionDescriptor
+import com.avail.descriptor.methods.ForwardDefinitionDescriptor
+import com.avail.descriptor.methods.MethodDefinitionDescriptor
+import com.avail.descriptor.methods.MethodDescriptor
 import com.avail.descriptor.tuples.A_Tuple
-import com.avail.exceptions.AvailErrorCode.*
+import com.avail.exceptions.AvailErrorCode.E_ABSTRACT_METHOD_DEFINITION
+import com.avail.exceptions.AvailErrorCode.E_AMBIGUOUS_METHOD_DEFINITION
+import com.avail.exceptions.AvailErrorCode.E_FORWARD_METHOD_DEFINITION
+import com.avail.exceptions.AvailErrorCode.E_NO_METHOD
+import com.avail.exceptions.AvailErrorCode.E_NO_METHOD_DEFINITION
 
 /**
  * A `MethodDefinitionException` is raised whenever an error condition is
@@ -48,7 +56,7 @@ import com.avail.exceptions.AvailErrorCode.*
  * Construct a new `MethodDefinitionException`.
  *
  * @param code
- *    An [error code][AvailErrorCode].
+ *    An [error&#32;code][AvailErrorCode].
  */
 class MethodDefinitionException private constructor(code: AvailErrorCode)
 	: AvailException(code)

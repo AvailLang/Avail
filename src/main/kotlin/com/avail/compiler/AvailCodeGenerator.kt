@@ -32,14 +32,34 @@
 
 package com.avail.compiler
 
-import com.avail.compiler.instruction.*
-import com.avail.descriptor.module.A_Module
-import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.compiler.instruction.AvailCall
+import com.avail.compiler.instruction.AvailCloseCode
+import com.avail.compiler.instruction.AvailDuplicate
+import com.avail.compiler.instruction.AvailGetLiteralVariable
+import com.avail.compiler.instruction.AvailGetLocalVariable
+import com.avail.compiler.instruction.AvailGetOuterVariable
+import com.avail.compiler.instruction.AvailInstruction
+import com.avail.compiler.instruction.AvailInstructionWithIndex
+import com.avail.compiler.instruction.AvailLabel
+import com.avail.compiler.instruction.AvailMakeTuple
+import com.avail.compiler.instruction.AvailPermute
+import com.avail.compiler.instruction.AvailPop
+import com.avail.compiler.instruction.AvailPushLabel
+import com.avail.compiler.instruction.AvailPushLiteral
+import com.avail.compiler.instruction.AvailPushLocalVariable
+import com.avail.compiler.instruction.AvailPushOuterVariable
+import com.avail.compiler.instruction.AvailSetLiteralVariable
+import com.avail.compiler.instruction.AvailSetLocalConstant
+import com.avail.compiler.instruction.AvailSetLocalVariable
+import com.avail.compiler.instruction.AvailSetOuterVariable
+import com.avail.compiler.instruction.AvailSuperCall
+import com.avail.compiler.instruction.AvailVariableAccessNote
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.functions.CompiledCodeDescriptor
 import com.avail.descriptor.functions.CompiledCodeDescriptor.Companion.newCompiledCode
 import com.avail.descriptor.functions.ContinuationDescriptor
+import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.objects.ObjectTypeDescriptor
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.A_Phrase.Companion.argumentsTuple
@@ -58,6 +78,7 @@ import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.LOCAL_CONSTANT
 import com.avail.descriptor.phrases.PhraseDescriptor
 import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.tokens.A_Token
@@ -65,7 +86,9 @@ import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.NybbleTupleDescriptor.generateNybbleTupleFrom
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.generateObjectTupleFrom
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
-import com.avail.descriptor.tuples.TupleDescriptor.*
+import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+import com.avail.descriptor.tuples.TupleDescriptor.toList
+import com.avail.descriptor.tuples.TupleDescriptor.tupleFromIntegerList
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.ASSIGNMENT_PHRASE
@@ -74,26 +97,31 @@ import com.avail.descriptor.types.VariableTypeDescriptor.variableTypeFor
 import com.avail.descriptor.variables.VariableDescriptor
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag
-import com.avail.interpreter.primitive.privatehelpers.*
+import com.avail.interpreter.primitive.privatehelpers.P_GetGlobalVariableValue
+import com.avail.interpreter.primitive.privatehelpers.P_PushArgument1
+import com.avail.interpreter.primitive.privatehelpers.P_PushArgument2
+import com.avail.interpreter.primitive.privatehelpers.P_PushArgument3
+import com.avail.interpreter.primitive.privatehelpers.P_PushConstant
+import com.avail.interpreter.primitive.privatehelpers.P_PushLastOuter
 import com.avail.io.NybbleOutputStream
 import java.util.*
 
 /**
  * An [AvailCodeGenerator] is used to convert a [phrase][PhraseDescriptor] into
- * the corresponding [raw function][CompiledCodeDescriptor].
+ * the corresponding [raw&#32;function][CompiledCodeDescriptor].
  *
  * @property module
  *   The module in which this code occurs.
  * @property args
  *   The [List] of argument [declarations][A_Phrase] that correspond with actual
- *   arguments with which the resulting [raw function][A_RawFunction] will be
- *   invoked.
+ *   arguments with which the resulting [raw&#32;function][A_RawFunction] will
+ *   be invoked.
  * @property locals
- *   The [List] of declarations of local variables that this [raw
- *   function][A_RawFunction] will use.
+ *   The [List] of declarations of local variables that this
+ *   [raw&#32;function][A_RawFunction] will use.
  * @property constants
- *   The [List] of declarations of local constants that this [raw function] will
- *   use.
+ *   The [List] of declarations of local constants that this [raw&#32;function]
+ *   will use.
  * @property outers
  *   The [List] of the lexically captured declarations of arguments, variables,
  *   locals, and labels from enclosing scopes which are used by this block.
@@ -144,8 +172,8 @@ class AvailCodeGenerator private constructor(
 	private val startingLineNumber: Int)
 {
 	/**
-	 * Which [primitive VM operation][Primitive] should be invoked, or `null` if
-	 * none.
+	 * Which [primitive&#32;VM&#32;operation][Primitive] should be invoked, or
+	 * `null` if none.
 	 */
 	private var primitive: Primitive? = primitive
 		set(thePrimitive)
@@ -254,7 +282,7 @@ class AvailCodeGenerator private constructor(
 	 * @param originatingBlockPhrase
 	 *   The block phrase from which the raw function is created.
 	 * @return
-	 *   A [raw function][A_RawFunction] object.
+	 *   A [raw&#32;function][A_RawFunction] object.
 	 */
 	private fun endBlock(originatingBlockPhrase: A_Phrase): A_RawFunction
 	{

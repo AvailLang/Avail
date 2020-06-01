@@ -36,7 +36,12 @@ import com.avail.builder.ModuleRoots
 import com.avail.builder.RenamesFileParser
 import com.avail.builder.RenamesFileParserException
 import com.avail.server.AvailServer
-import com.avail.server.configuration.CommandLineConfigurator.OptionKey.*
+import com.avail.server.configuration.CommandLineConfigurator.OptionKey.AVAIL_RENAMES
+import com.avail.server.configuration.CommandLineConfigurator.OptionKey.AVAIL_ROOTS
+import com.avail.server.configuration.CommandLineConfigurator.OptionKey.DOCUMENT_ROOT
+import com.avail.server.configuration.CommandLineConfigurator.OptionKey.HELP
+import com.avail.server.configuration.CommandLineConfigurator.OptionKey.SERVER_AUTHORITY
+import com.avail.server.configuration.CommandLineConfigurator.OptionKey.SERVER_PORT
 import com.avail.tools.options.OptionProcessingException
 import com.avail.tools.options.OptionProcessor
 import com.avail.tools.options.OptionProcessorFactory
@@ -46,9 +51,9 @@ import java.io.File
 import java.io.FileNotFoundException
 
 /**
- * Provides the [configuration][AvailServerConfiguration] for the [Avail
- * server][AvailServer]. Specifies the options that are available as arguments
- * to the server.
+ * Provides the [configuration][AvailServerConfiguration] for the
+ * [Avail&#32;server][AvailServer]. Specifies the options that are available as
+ * arguments to the server.
  *
  * @property helpStream
  *   The [appendable][Appendable] to which help text should be written.
@@ -82,13 +87,13 @@ class CommandLineConfigurator constructor(
 	internal enum class OptionKey
 	{
 		/**
-		 * Specification of the [path][File] to the [renames
-		 * file][RenamesFileParser].
+		 * Specification of the [path][File] to the
+		 * [renames&#32;file][RenamesFileParser].
 		 */
 		AVAIL_RENAMES,
 
 		/**
-		 * Specification of the [Avail roots][ModuleRoots].
+		 * Specification of the [Avail&#32;roots][ModuleRoots].
 		 */
 		AVAIL_ROOTS,
 
@@ -114,9 +119,9 @@ class CommandLineConfigurator constructor(
 	}
 
 	/**
-	 * Create an [option processor][OptionProcessor] suitable for
-	 * [updating][updateConfiguration] a [server
-	 * configuration][AvailServerConfiguration].
+	 * Create an [option&#32;processor][OptionProcessor] suitable for
+	 * [updating][updateConfiguration] a
+	 * [server&#32;configuration][AvailServerConfiguration].
 	 *
 	 * @return
 	 *   An option processor.

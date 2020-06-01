@@ -36,7 +36,6 @@ import com.avail.interpreter.levelTwo.L2NamedOperandType
 import com.avail.interpreter.levelTwo.L2OperandType
 import com.avail.interpreter.levelTwo.L2Operation
 import com.avail.interpreter.levelTwo.operand.L2PcOperand
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand
 import com.avail.interpreter.levelTwo.register.L2Register
@@ -58,10 +57,9 @@ object L2_JUMP_BACK : L2ControlFlowOperation(
 	L2OperandType.READ_BOXED_VECTOR.named("registers to keep"))
 {
 	// It jumps, which counts as a side effect.
-	override fun hasSideEffect(): Boolean =  true
+	override fun hasSideEffect() = true
 
-	override val isUnconditionalJump: Boolean
-		get() = true
+	override val isUnconditionalJump get() = true
 
 	override fun instructionWasAdded(
 		instruction: L2Instruction,

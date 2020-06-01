@@ -6,11 +6,11 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *    list of conditions and the following disclaimer in the documentation
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
  *
  *  * Neither the name of the copyright holder nor the names of the contributors
@@ -31,13 +31,19 @@
  */
 package com.avail.descriptor.numbers
 
-import com.avail.annotations.AvailMethod
-import com.avail.descriptor.Descriptor
-import com.avail.descriptor.numbers.AbstractNumberDescriptor.Order.*
+import com.avail.descriptor.numbers.AbstractNumberDescriptor.Order.EQUAL
+import com.avail.descriptor.numbers.AbstractNumberDescriptor.Order.INCOMPARABLE
+import com.avail.descriptor.numbers.AbstractNumberDescriptor.Order.LESS
+import com.avail.descriptor.numbers.AbstractNumberDescriptor.Order.MORE
 import com.avail.descriptor.numbers.DoubleDescriptor.Companion.fromDouble
 import com.avail.descriptor.numbers.InfinityDescriptor.Companion.negativeInfinity
 import com.avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
-import com.avail.descriptor.representation.*
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.Descriptor
+import com.avail.descriptor.representation.IntegerSlotsEnum
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.BottomTypeDescriptor.bottom
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.extendedIntegers
@@ -273,49 +279,41 @@ abstract class AbstractNumberDescriptor protected constructor(
 		fun isIncomparable(): Boolean = this == INCOMPARABLE
 	}
 
-	@AvailMethod
 	abstract override fun o_Equals(
 		self: AvailObject,
 		another: A_BasicObject
 	): Boolean
 
-	@AvailMethod
 	abstract override fun o_NumericCompare(
 		self: AvailObject,
 		another: A_Number
 	): Order
 
-	@AvailMethod
 	abstract override fun o_IsInstanceOfKind(
 		self: AvailObject,
 		aType: A_Type
 	): Boolean
 
-	@AvailMethod
 	abstract override fun o_Hash(self: AvailObject): Int
 
-	@AvailMethod
 	abstract override fun o_DivideCanDestroy(
 		self: AvailObject,
 		aNumber: A_Number,
 		canDestroy: Boolean
 	): A_Number
 
-	@AvailMethod
 	abstract override fun o_MinusCanDestroy(
 		self: AvailObject,
 		aNumber: A_Number,
 		canDestroy: Boolean
 	): A_Number
 
-	@AvailMethod
 	abstract override fun o_PlusCanDestroy(
 		self: AvailObject,
 		aNumber: A_Number,
 		canDestroy: Boolean
 	): A_Number
 
-	@AvailMethod
 	abstract override fun o_TimesCanDestroy(
 		self: AvailObject,
 		aNumber: A_Number,
@@ -323,143 +321,121 @@ abstract class AbstractNumberDescriptor protected constructor(
 	): A_Number
 
 	// Double-dispatched operations.
-	@AvailMethod
 	abstract override fun o_NumericCompareToInteger(
 		self: AvailObject,
 		anInteger: AvailObject
 	): Order
 
-	@AvailMethod
 	abstract override fun o_NumericCompareToInfinity(
 		self: AvailObject,
 		sign: Sign
 	): Order
 
-	@AvailMethod
 	abstract override fun o_NumericCompareToDouble(
 		self: AvailObject,
-		double1: Double
+		aDouble: Double
 	): Order
 
-	@AvailMethod
 	abstract override fun o_AddToInfinityCanDestroy(
 		self: AvailObject,
 		sign: Sign,
 		canDestroy: Boolean
 	): A_Number
 
-	@AvailMethod
 	abstract override fun o_AddToIntegerCanDestroy(
 		self: AvailObject,
 		anInteger: AvailObject,
 		canDestroy: Boolean
 	): A_Number
 
-	@AvailMethod
 	abstract override fun o_AddToDoubleCanDestroy(
 		self: AvailObject,
 		doubleObject: A_Number,
 		canDestroy: Boolean
 	): A_Number
 
-	@AvailMethod
 	abstract override fun o_AddToFloatCanDestroy(
 		self: AvailObject,
 		floatObject: A_Number,
 		canDestroy: Boolean
 	): A_Number
 
-	@AvailMethod
 	abstract override fun o_DivideIntoInfinityCanDestroy(
 		self: AvailObject,
 		sign: Sign,
 		canDestroy: Boolean
 	): A_Number
 
-	@AvailMethod
 	abstract override fun o_DivideIntoIntegerCanDestroy(
 		self: AvailObject,
 		anInteger: AvailObject,
 		canDestroy: Boolean
 	): A_Number
 
-	@AvailMethod
 	abstract override fun o_MultiplyByInfinityCanDestroy(
 		self: AvailObject,
 		sign: Sign,
 		canDestroy: Boolean
 	): A_Number
 
-	@AvailMethod
 	abstract override fun o_MultiplyByIntegerCanDestroy(
 		self: AvailObject,
 		anInteger: AvailObject,
 		canDestroy: Boolean
 	): A_Number
 
-	@AvailMethod
 	abstract override fun o_SubtractFromInfinityCanDestroy(
 		self: AvailObject,
 		sign: Sign,
 		canDestroy: Boolean
 	): A_Number
 
-	@AvailMethod
 	abstract override fun o_SubtractFromIntegerCanDestroy(
 		self: AvailObject,
 		anInteger: AvailObject,
 		canDestroy: Boolean
 	): A_Number
 
-	@AvailMethod
 	abstract override fun o_SubtractFromDoubleCanDestroy(
 		self: AvailObject,
 		doubleObject: A_Number,
 		canDestroy: Boolean
 	): A_Number
 
-	@AvailMethod
 	abstract override fun o_SubtractFromFloatCanDestroy(
 		self: AvailObject,
 		floatObject: A_Number,
 		canDestroy: Boolean
 	): A_Number
 
-	@AvailMethod
 	abstract override fun o_MultiplyByDoubleCanDestroy(
 		self: AvailObject,
 		doubleObject: A_Number,
 		canDestroy: Boolean
 	): A_Number
 
-	@AvailMethod
 	abstract override fun o_MultiplyByFloatCanDestroy(
 		self: AvailObject,
 		floatObject: A_Number,
 		canDestroy: Boolean
 	): A_Number
 
-	@AvailMethod
 	abstract override fun o_DivideIntoDoubleCanDestroy(
 		self: AvailObject,
 		doubleObject: A_Number,
 		canDestroy: Boolean
 	): A_Number
 
-	@AvailMethod
 	abstract override fun o_DivideIntoFloatCanDestroy(
 		self: AvailObject,
 		floatObject: A_Number,
 		canDestroy: Boolean
 	): A_Number
 
-	@AvailMethod
 	abstract override fun o_ExtractFloat(self: AvailObject): Float
 
-	@AvailMethod
 	abstract override fun o_ExtractDouble(self: AvailObject): Double
 
-	@AvailMethod
 	abstract override fun o_IsNumericallyIntegral(self: AvailObject): Boolean
 
 	companion object {

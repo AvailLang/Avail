@@ -134,7 +134,7 @@ abstract class L2ReadOperand<R : L2Register> protected constructor(
 
 	/**
 	 * Answer this read's type restriction's constant value (i.e., the exact
-	 * value that this read is guaranteed to produce), or `null` if such  a
+	 * value that this read is guaranteed to produce), or `null` if such a
 	 * constraint is not available.
 	 *
 	 * @return
@@ -188,7 +188,7 @@ abstract class L2ReadOperand<R : L2Register> protected constructor(
 		// rewrite this operation to use a semantic value that's still in the
 		// manifest, or even add a new one.
 		val synonyms = manifest.synonymsForRegister(register)
-		assert(!synonyms.isEmpty())
+		assert(synonyms.isNotEmpty())
 		val newSemanticValue = synonyms[0].pickSemanticValue()
 		return copyForSemanticValue(newSemanticValue)
 	}
@@ -349,7 +349,7 @@ abstract class L2ReadOperand<R : L2Register> protected constructor(
 		{
 			semanticValues.addAll(syn.semanticValues())
 			typeRestriction =
-				if (typeRestriction == null)
+				if (typeRestriction === null)
 				{
 					firstManifest.restrictionFor(syn.pickSemanticValue())
 				}

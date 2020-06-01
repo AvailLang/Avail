@@ -45,7 +45,8 @@ import com.avail.interpreter.levelTwo.L2OperandType
  *   The actual [Primitive].
  *
  * @constructor
- * Construct a new `L2PrimitiveOperand` for the specified [primitive][Primitive].
+ * Construct a new `L2PrimitiveOperand` for the specified
+ * [primitive][Primitive].
  *
  * @param primitive
  *   The primitive to invoke.

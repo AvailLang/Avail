@@ -42,7 +42,7 @@ import javax.swing.Action
 import javax.swing.KeyStroke
 
 /**
- * A `BuildAction` launches a [build task][BuildTask] in a
+ * A `BuildAction` launches a [build&#32;task][BuildTask] in a
  * Swing worker thread.
  *
  * @property forEntryPointModule

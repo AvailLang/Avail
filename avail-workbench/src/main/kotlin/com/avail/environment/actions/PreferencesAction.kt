@@ -43,9 +43,18 @@ import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
 import java.io.File
 import java.util.*
-import javax.swing.*
+import javax.swing.Action
+import javax.swing.GroupLayout
 import javax.swing.GroupLayout.Alignment
+import javax.swing.JButton
+import javax.swing.JDialog
+import javax.swing.JLabel
+import javax.swing.JPanel
+import javax.swing.JScrollPane
+import javax.swing.JTable
+import javax.swing.SwingConstants
 import javax.swing.SwingUtilities.invokeLater
+import javax.swing.UIManager
 import javax.swing.border.EmptyBorder
 import javax.swing.table.AbstractTableModel
 import kotlin.math.min
@@ -76,7 +85,7 @@ class PreferencesAction constructor(workbench: AvailWorkbench)
 		private val columnNames: Array<String> = arrayOf(*columnNames)
 		val rows = mutableListOf<MutableList<String>>()
 
-		override fun getColumnName(column: Int): String =  columnNames[column]
+		override fun getColumnName(column: Int): String = columnNames[column]
 
 		override fun getRowCount(): Int = rows.size
 

@@ -45,8 +45,9 @@ import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 
 /**
- * Store the [implicit observe function][AvailRuntime.implicitObserveFunction]
- * into the supplied [object register][L2BoxedRegister].
+ * Store the
+ * [implicit&#32;observe&#32;function][AvailRuntime.implicitObserveFunction]
+ * into the supplied [object&#32;register][L2BoxedRegister].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

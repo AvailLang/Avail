@@ -32,9 +32,9 @@
 
 package com.avail.interpreter.primitive.files
 
-import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.atoms.A_Atom.Companion.extractBoolean
 import com.avail.descriptor.numbers.IntegerDescriptor
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
@@ -47,11 +47,14 @@ import com.avail.descriptor.types.IntegerRangeTypeDescriptor.inclusive
 import com.avail.descriptor.types.SetTypeDescriptor.setTypeForSizesContentType
 import com.avail.descriptor.types.TupleTypeDescriptor.stringType
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
-import com.avail.exceptions.AvailErrorCode.*
-import com.avail.interpreter.execution.Interpreter
+import com.avail.exceptions.AvailErrorCode.E_INVALID_PATH
+import com.avail.exceptions.AvailErrorCode.E_IO_ERROR
+import com.avail.exceptions.AvailErrorCode.E_OPERATION_NOT_SUPPORTED
+import com.avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.execution.Interpreter
 import com.avail.io.IOSystem
 import java.io.IOException
 import java.nio.file.AccessDeniedException
@@ -132,8 +135,8 @@ object P_FileSetPermissions : Primitive(3, CanInline, HasSideEffect)
 
 	/**
 	 * Convert the specified [set][SetDescriptor] of
-	 * [ordinals][IntegerDescriptor] into the corresponding [set][Set] of [POSIX
-	 * file permissions][PosixFilePermission].
+	 * [ordinals][IntegerDescriptor] into the corresponding [set][Set] of
+	 * [POSIX&#32;file&#32;permissions][PosixFilePermission].
 	 *
 	 * @param ordinals
 	 *   Some ordinals.

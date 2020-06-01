@@ -33,7 +33,6 @@
 package com.avail.interpreter
 
 import com.avail.AvailRuntime.HookType.IMPLICIT_OBSERVE
-import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.functions.CompiledCodeDescriptor
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
@@ -42,6 +41,7 @@ import com.avail.descriptor.phrases.A_Phrase.Companion.declaredType
 import com.avail.descriptor.phrases.A_Phrase.Companion.token
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.IntegerEnumSlotDescriptionEnum
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.BottomTypeDescriptor.bottom
 import com.avail.descriptor.types.FunctionTypeDescriptor
@@ -53,7 +53,14 @@ import com.avail.interpreter.Primitive.Companion.holdersByClassName
 import com.avail.interpreter.Primitive.Fallibility.CallSiteCanFail
 import com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail
 import com.avail.interpreter.Primitive.Flag
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.AlwaysSwitchesContinuation
+import com.avail.interpreter.Primitive.Flag.CanFold
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CanSuspend
+import com.avail.interpreter.Primitive.Flag.CanSwitchContinuations
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Primitive.Flag.Invokes
+import com.avail.interpreter.Primitive.Flag.SpecialForm
 import com.avail.interpreter.Primitive.PrimitiveHolder
 import com.avail.interpreter.Primitive.Result.SUCCESS
 import com.avail.interpreter.execution.Interpreter
@@ -65,9 +72,13 @@ import com.avail.interpreter.levelOne.L1InstructionWriter
 import com.avail.interpreter.levelOne.L1Operation
 import com.avail.interpreter.levelTwo.L2Chunk
 import com.avail.interpreter.levelTwo.L2Instruction
-import com.avail.interpreter.levelTwo.operand.*
-import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED
+import com.avail.interpreter.levelTwo.operand.L2ConstantOperand
+import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED
 import com.avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
 import com.avail.interpreter.primitive.hooks.P_SetImplicitObserveFunction
 import com.avail.interpreter.primitive.privatehelpers.P_PushConstant
@@ -88,7 +99,16 @@ import com.avail.performance.StatisticReport
 import com.avail.serialization.Serializer
 import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
-import org.objectweb.asm.Opcodes.*
+import org.objectweb.asm.Opcodes.ACONST_NULL
+import org.objectweb.asm.Opcodes.ARETURN
+import org.objectweb.asm.Opcodes.DUP
+import org.objectweb.asm.Opcodes.DUP2
+import org.objectweb.asm.Opcodes.DUP2_X2
+import org.objectweb.asm.Opcodes.GOTO
+import org.objectweb.asm.Opcodes.IF_ACMPNE
+import org.objectweb.asm.Opcodes.POP
+import org.objectweb.asm.Opcodes.POP2
+import org.objectweb.asm.Opcodes.SWAP
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
@@ -171,7 +191,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	: IntegerEnumSlotDescriptionEnum
 {
 	/**
-	 * A [function type][FunctionTypeDescriptor] that restricts the
+	 * A [function&#32;type][FunctionTypeDescriptor] that restricts the
 	 * type of block that can use this primitive.  This is initialized lazily to
 	 * the value provided by [privateBlockTypeRestriction], to avoid
 	 * having to compute this function type multiple times.
@@ -190,7 +210,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	/**
 	 * This primitive's number.  The Avail source code refers to primitives by
 	 * name, but it has a number associated with it by its position in the list
-	 * within All_Primitives.txt.  [compiled code][CompiledCodeDescriptor]
+	 * within All_Primitives.txt.  [compiled&#32;code][CompiledCodeDescriptor]
 	 * stores the primitive number internally for speed.
 	 */
 	val primitiveNumber: Int
@@ -489,7 +509,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 
 	/**
 	 * Attempt this primitive with the given [Interpreter].  The interpreter's
-	 * [argument list][Interpreter.argsBuffer] must be set up prior to this
+	 * [argument&#32;list][Interpreter.argsBuffer] must be set up prior to this
 	 * call.  If the primitive fails, it should set the primitive failure code
 	 * by calling [Interpreter.primitiveFailure] and returning its result from
 	 * the primitive.  Otherwise it should set the interpreter's primitive
@@ -926,8 +946,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 			// Entry zero is reserved for not-a-primitive.
 			byNumbers.add(NullPrimitiveHolder)
 			var counter = 1
-			val byNames =
-				mutableMapOf<String, PrimitiveHolder>()
+			val byNames = mutableMapOf<String, PrimitiveHolder>()
 			val byClassNames = HashMap<String, PrimitiveHolder>()
 			try
 			{

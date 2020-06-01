@@ -64,7 +64,7 @@ interface ProblemHandler
 	/**
 	 * The corresponding [Problem] indicates a situation that is less than
 	 * ideal.  A `ProblemHandler` may choose to present this warning, and then
-	 * [continue compilation][Problem.continueCompilation].
+	 * [continue&#32;compilation][Problem.continueCompilation].
 	 *
 	 * @param problem
 	 *   The problem whose type is [ProblemType.WARNING].
@@ -180,7 +180,7 @@ interface ProblemHandler
 	 * Handle the specified [problem][Problem],
 	 * [continuing][Problem.continueCompilation] or
 	 * [aborting][Problem.abortCompilation] as indicated by the appropriate
-	 * [problem type][ProblemType] handler.
+	 * [problem&#32;type][ProblemType] handler.
 	 *
 	 * @param problem
 	 *   A problem.

@@ -38,7 +38,7 @@ import com.avail.descriptor.fiber.FiberDescriptor
 /**
  * A `PrimitiveThrownException` may be thrown from a primitive as a way to
  * terminate a [fiber][FiberDescriptor], causing its
- * [failure continuation][A_Fiber.failureContinuation] to be executed.
+ * [failure&#32;continuation][A_Fiber.failureContinuation] to be executed.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */

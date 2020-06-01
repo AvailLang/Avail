@@ -42,13 +42,13 @@ import com.avail.descriptor.functions.FunctionDescriptor
 interface L1OperandTypeDispatcher
 {
 	/**
-	 * The operand is an [immediate value][L1OperandType.IMMEDIATE], encoding an
-	 * integer as itself.
+	 * The operand is an [immediate&#32;value][L1OperandType.IMMEDIATE],
+	 * encoding an integer as itself.
 	 */
 	fun doImmediate(index: Int)
 
 	/**
-	 * The operand is a [literal value][L1OperandType.LITERAL], encoded by a
+	 * The operand is a [literal&#32;value][L1OperandType.LITERAL], encoded by a
 	 * subscript into some list of literals.
 	 */
 	fun doLiteral(index: Int)

@@ -41,8 +41,8 @@ import javax.swing.JOptionPane
 import javax.swing.filechooser.FileFilter
 
 /**
- * A `SetDocumentationPathAction` displays a [modal dialog][JOptionPane] that
- * prompts the user for the Stacks documentation path.
+ * A `SetDocumentationPathAction` displays a [modal&#32;dialog][JOptionPane]
+ * that prompts the user for the Stacks documentation path.
  *
  * @constructor
  * Construct a new [SetDocumentationPathAction].

@@ -32,11 +32,10 @@
 
 package com.avail.descriptor.types;
 
-import com.avail.annotations.AvailMethod;
-import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.functions.ContinuationDescriptor;
 import com.avail.descriptor.representation.A_BasicObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.representation.Mutability;
 import com.avail.interpreter.primitive.controlflow.P_ExitContinuationWithResultIf;
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments;
@@ -95,7 +94,7 @@ extends TypeDescriptor
 		FUNCTION_TYPE
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_FunctionType (final AvailObject object)
 	{
 		return object.slot(FUNCTION_TYPE);
@@ -115,7 +114,7 @@ extends TypeDescriptor
 			(indent + 1));
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsContinuationType(object);
@@ -129,7 +128,7 @@ extends TypeDescriptor
 	 * types.
 	 * </p>
 	 */
-	@Override @AvailMethod
+	@Override
 	public boolean o_EqualsContinuationType (
 		final AvailObject object,
 		final A_Type aContinuationType)
@@ -141,13 +140,13 @@ extends TypeDescriptor
 		return aContinuationType.functionType().equals(object.functionType());
 	}
 
-	@Override @AvailMethod
+	@Override
 	public int o_Hash (final AvailObject object)
 	{
 		return object.functionType().hash() * 11 ^ 0x3E20409;
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
 	{
 		return aType.isSupertypeOfContinuationType(object);
@@ -165,7 +164,7 @@ extends TypeDescriptor
 	 * to the contained functionType's result type.
 	 * </p>
 	 */
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsSupertypeOfContinuationType (
 		final AvailObject object,
 		final A_Type aContinuationType)
@@ -185,7 +184,7 @@ extends TypeDescriptor
 		return object.slot(FUNCTION_TYPE).isVacuousType();
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeIntersection (
 		final AvailObject object,
 		final A_Type another)
@@ -201,7 +200,7 @@ extends TypeDescriptor
 		return another.typeIntersectionOfContinuationType(object);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeIntersectionOfContinuationType (
 		final AvailObject object,
 		final A_Type aContinuationType)
@@ -222,7 +221,7 @@ extends TypeDescriptor
 		return continuationTypeForFunctionType(intersection);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeUnion (
 		final AvailObject object,
 		final A_Type another)
@@ -238,7 +237,7 @@ extends TypeDescriptor
 		return another.typeUnionOfContinuationType(object);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeUnionOfContinuationType (
 		final AvailObject object,
 		final A_Type aContinuationType)

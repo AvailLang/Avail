@@ -69,18 +69,20 @@ class SectionKeywordStacksToken private constructor(
 	{
 
 		/**
+		 * Create a [SectionKeywordStacksToken].
 		 *
 		 * @param string
-		 * The string to be tokenized.
+		 *   The string to be tokenized.
 		 * @param lineNumber
-		 * The line number where the token occurs/begins
+		 *   The line number where the token occurs/begins
 		 * @param position
-		 * The absolute start position of the token
+		 *   The absolute start position of the token
 		 * @param startOfTokenLinePosition
-		 * The position on the line where the token starts.
+		 *   The position on the line where the token starts.
 		 * @param moduleName
-		 * The module the token takes place in.
-		 * @return a new [stacks token][StacksToken]
+		 *   The module the token takes place in.
+		 * @return
+		 *   A new [stacks&#32;token][StacksToken]
 		 */
 		fun create(
 			string: String,

@@ -42,9 +42,9 @@ import com.avail.compiler.scanning.LexingState
 import com.avail.descriptor.character.CharacterDescriptor.Companion.fromCodePoint
 import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.descriptor.tokens.A_Token
+import com.avail.descriptor.tokens.TokenDescriptor.Companion.newToken
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType.END_OF_FILE
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType.WHITESPACE
-import com.avail.descriptor.tokens.TokenDescriptor.Companion.newToken
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
 import com.avail.descriptor.tuples.StringDescriptor.stringFrom
@@ -60,7 +60,10 @@ import com.avail.utility.evaluation.Describer
 import com.avail.utility.evaluation.SimpleDescriber
 import java.lang.String.format
 import java.util.*
-import java.util.Collections.*
+import java.util.Collections.emptyIterator
+import java.util.Collections.emptyList
+import java.util.Collections.reverseOrder
+import java.util.Collections.sort
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.locks.ReadWriteLock
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -685,7 +688,8 @@ class CompilerDiagnostics(
 	}
 
 	/**
-	 * Handle a [problem][Problem] via the [problem handler][problemHandler].
+	 * Handle a [problem][Problem] via the
+	 * [problem&#32;handler][problemHandler].
 	 *
 	 * @param problem
 	 *   The problem to handle.

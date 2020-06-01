@@ -42,12 +42,14 @@ import com.avail.descriptor.types.PojoTypeDescriptor
 import com.avail.descriptor.types.PojoTypeDescriptor.mostGeneralPojoArrayType
 import com.avail.descriptor.types.PojoTypeDescriptor.pojoArrayType
 import com.avail.descriptor.types.TypeDescriptor
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CanFold
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Create a [pojo&#32;array&#32;type][PojoTypeDescriptor] for the
+* **Primitive:** Create a [pojo&#32;array&#32;type][PojoTypeDescriptor] for the
  * specified [type][TypeDescriptor] and [range][IntegerRangeTypeDescriptor] of
  * sizes.
  */

@@ -34,7 +34,12 @@ package com.avail.tools.bootstrap;
 
 import com.avail.utility.UTF8ResourceBundleControl;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
 import java.util.Date;
@@ -44,7 +49,9 @@ import java.util.ResourceBundle;
 
 import static com.avail.tools.bootstrap.Resources.Key.generatedPropertiesNotice;
 import static com.avail.tools.bootstrap.Resources.Key.propertiesCopyright;
-import static com.avail.tools.bootstrap.Resources.*;
+import static com.avail.tools.bootstrap.Resources.localName;
+import static com.avail.tools.bootstrap.Resources.preambleBaseName;
+import static com.avail.tools.bootstrap.Resources.sourceBaseName;
 import static java.lang.String.format;
 /**
  * {@code PropertiesFileGenerator} defines state and operations common to the

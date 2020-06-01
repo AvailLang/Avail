@@ -39,7 +39,23 @@ import com.avail.stacks.comment.signature.GlobalCommentSignature
 import com.avail.stacks.comment.signature.MethodCommentSignature
 import com.avail.stacks.comment.signature.SemanticRestrictionCommentSignature
 import com.avail.stacks.exceptions.StacksCommentBuilderException
-import com.avail.stacks.tags.*
+import com.avail.stacks.tags.StacksAliasTag
+import com.avail.stacks.tags.StacksAuthorTag
+import com.avail.stacks.tags.StacksCategoryTag
+import com.avail.stacks.tags.StacksFieldTag
+import com.avail.stacks.tags.StacksForbidsTag
+import com.avail.stacks.tags.StacksGlobalTag
+import com.avail.stacks.tags.StacksMacroTag
+import com.avail.stacks.tags.StacksMethodTag
+import com.avail.stacks.tags.StacksModuleTag
+import com.avail.stacks.tags.StacksParameterTag
+import com.avail.stacks.tags.StacksRaisesTag
+import com.avail.stacks.tags.StacksRestrictsTag
+import com.avail.stacks.tags.StacksReturnTag
+import com.avail.stacks.tags.StacksSeeTag
+import com.avail.stacks.tags.StacksStickyTag
+import com.avail.stacks.tags.StacksSuperTypeTag
+import com.avail.stacks.tags.StacksTypeTag
 import com.avail.stacks.tokens.AbstractStacksToken
 import com.avail.stacks.tokens.QuotedStacksToken
 import com.avail.stacks.tokens.RegionStacksToken
@@ -1049,7 +1065,7 @@ class CommentBuilder private constructor(
 
 	/**
 	 * @return The appropriately built
-	 * [Comment Implementation][AvailComment]
+	 * [Comment&#32;Implementation][AvailComment]
 	 * @throws StacksCommentBuilderException
 	 */
 	@Throws(StacksCommentBuilderException::class)
@@ -1358,6 +1374,7 @@ class CommentBuilder private constructor(
 	{
 
 		/**
+		 * Create a [CommentBuilder].
 		 *
 		 * @param moduleName
 		 *   The name of the module the comment is in.
@@ -1365,7 +1382,7 @@ class CommentBuilder private constructor(
 		 *   The start line in the module of the comment being built
 		 * @param linkingFileMap
 		 * @return
-		 *   A [CommentBuilder]
+		 *   A `CommentBuilder`.
 		 * @throws StacksCommentBuilderException
 		 */
 		fun createBuilder(

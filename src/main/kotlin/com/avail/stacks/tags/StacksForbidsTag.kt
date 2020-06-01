@@ -54,7 +54,7 @@ import com.avail.utility.json.JSONWriter
  * @param arityIndex
  *   The forbids arity index.
  * @param forbidMethods
- *   The list of the methods for which the method is "forbidden" to used  in
+ *   The list of the methods for which the method is "forbidden" to used in
  *   conjunction with.
  */
 class StacksForbidsTag constructor(
@@ -63,7 +63,7 @@ class StacksForbidsTag constructor(
 	: StacksTag()
 {
 	/**
-	 * Merge two [forbids tags][StacksForbidsTag] of the same arity
+	 * Merge two [forbids&#32;tags][StacksForbidsTag] of the same arity
 	 * @param tag
 	 * The [StacksForbidsTag] to merge with
 	 */

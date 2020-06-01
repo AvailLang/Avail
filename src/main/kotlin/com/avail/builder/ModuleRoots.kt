@@ -68,7 +68,7 @@ import java.util.Collections.unmodifiableSet
  *
  * @constructor
  *
- * Construct a new `ModuleRoots` from the specified Avail [ ] path.
+ * Construct a new `ModuleRoots` from the specified Avail roots path.
  *
  * @param modulePath
  *   An Avail [module][ModuleDescriptor] path.
@@ -79,7 +79,7 @@ import java.util.Collections.unmodifiableSet
 class ModuleRoots(modulePath: String) : Iterable<ModuleRoot>
 {
 	/**
-	 * A [map][Map] from logical root names to [module root][ModuleRoot]s.
+	 * A [map][Map] from logical root names to [module&#32;root][ModuleRoot]s.
 	 */
 	private val rootMap = LinkedHashMap<String, ModuleRoot>()
 
@@ -111,7 +111,7 @@ class ModuleRoots(modulePath: String) : Iterable<ModuleRoot>
 
 	/**
 	 * Parse the Avail [module][ModuleDescriptor] path into a [map][Map] of
-	 * logical root names to [module root][ModuleRoot]s.
+	 * logical root names to [module&#32;root][ModuleRoot]s.
 	 *
 	 * @param modulePath
 	 *   The module roots path string.
@@ -173,12 +173,12 @@ class ModuleRoots(modulePath: String) : Iterable<ModuleRoot>
 	}
 
 	/**
-	 * Clear the [root map][rootMap].
+	 * Clear the [root&#32;map][rootMap].
 	 */
 	fun clearRoots() = rootMap.clear()
 
 	/**
-	 * Add a [root][ModuleRoot] to the [root map][rootMap].
+	 * Add a [root][ModuleRoot] to the [root&#32;map][rootMap].
 	 *
 	 * @param root
 	 *   The root.
@@ -195,8 +195,8 @@ class ModuleRoots(modulePath: String) : Iterable<ModuleRoot>
 	val rootNames: Set<String> get() = unmodifiableSet(rootMap.keys)
 
 	/**
-	 * The [module roots][ModuleRoot] in the order that they are specified in
-	 * the Avail [module][ModuleDescriptor] path.
+	 * The [module&#32;roots][ModuleRoot] in the order that they are specified
+	 * in the Avail [module][ModuleDescriptor] path.
 	 */
 	val roots: Set<ModuleRoot>
 		get() = unmodifiableSet(LinkedHashSet(rootMap.values))
@@ -205,8 +205,8 @@ class ModuleRoots(modulePath: String) : Iterable<ModuleRoot>
 		unmodifiableSet(roots).iterator()
 
 	/**
-	 * Answer the [module root][ModuleRoot] bound to the specified logical root
-	 * name.
+	 * Answer the [module&#32;root][ModuleRoot] bound to the specified logical
+	 * root name.
 	 *
 	 * @param rootName
 	 *   A logical root name, typically something owned by a vendor of Avail
@@ -239,7 +239,8 @@ class ModuleRoots(modulePath: String) : Iterable<ModuleRoot>
 
 	/**
 	 * Write a JSON object whose fields are the module roots and whose values
-	 * are [JSON arrays][ModuleRoot.writePathsOn] containing path information.
+	 * are [JSON&#32;arrays][ModuleRoot.writePathsOn] containing path
+	 * information.
 	 *
 	 * @param writer
 	 *   A [JSONWriter].

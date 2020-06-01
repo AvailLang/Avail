@@ -41,9 +41,11 @@ import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.wholeNumbers
 import com.avail.descriptor.types.MapTypeDescriptor.mapTypeForSizesKeyTypeValueType
 import com.avail.descriptor.types.TupleTypeDescriptor.stringType
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.execution.Interpreter
 import java.lang.ref.SoftReference
 
 /**
@@ -63,7 +65,7 @@ object P_EnvironmentMap : Primitive(0, CannotFail, CanInline, HasSideEffect)
 	private var environmentMap = SoftReference<A_Map>(null)
 
 	/**
-	 * Get the [environment map][environmentMap], creating a new one as
+	 * Get the [environment&#32;map][environmentMap], creating a new one as
 	 * necessary (either because it has never been created or because the
 	 * garbage collector has discarded it).
 	 *

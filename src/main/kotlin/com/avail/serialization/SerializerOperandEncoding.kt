@@ -78,9 +78,10 @@ internal enum class SerializerOperandEncoding
 	},
 
 	/**
-	 * This is an [AvailObject] that's always an [ ] in the range [0..65535].
-	 * Some system limits fall within this range (e.g., number of arguments to a
-	 * function), allowing this compact representation to be used.
+	 * This is an [AvailObject] that's always an [integer][IntegerDescriptor] in
+	 * the range [0..65535]. Some system limits fall within this range (e.g.,
+	 * number of arguments to a function), allowing this compact representation
+	 * to be used.
 	 *
 	 * This operand uses the compressed representation below, which may not be
 	 * effective for some uses, in which case [UNCOMPRESSED_SHORT] may be
@@ -627,8 +628,8 @@ internal enum class SerializerOperandEncoding
 	companion object
 	{
 		/**
-		 * Write an unsigned integer in the range 0..2<sup>31</sup>-1.  Use a form
-		 * that uses less than 32 bits for small values.
+		 * Write an unsigned integer in the range 0..2<sup>31</sup>-1.  Use a
+		 * form that uses less than 32 bits for small values.
 		 *
 		 * @param index The integer to write.
 		 * @param serializer Where to write it.

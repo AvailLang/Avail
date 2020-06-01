@@ -32,10 +32,9 @@
 
 package com.avail.descriptor.types;
 
-import com.avail.annotations.AvailMethod;
-import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.representation.A_BasicObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.representation.Mutability;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
@@ -48,7 +47,9 @@ import static com.avail.descriptor.types.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.types.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.descriptor.types.IntegerRangeTypeDescriptor.singleInteger;
 import static com.avail.descriptor.types.IntegerRangeTypeDescriptor.wholeNumbers;
-import static com.avail.descriptor.types.MapTypeDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.types.MapTypeDescriptor.ObjectSlots.KEY_TYPE;
+import static com.avail.descriptor.types.MapTypeDescriptor.ObjectSlots.SIZE_RANGE;
+import static com.avail.descriptor.types.MapTypeDescriptor.ObjectSlots.VALUE_TYPE;
 import static com.avail.descriptor.types.TypeDescriptor.Types.ANY;
 
 /**
@@ -88,19 +89,19 @@ extends TypeDescriptor
 		VALUE_TYPE
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_KeyType (final AvailObject object)
 	{
 		return object.slot(KEY_TYPE);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_SizeRange (final AvailObject object)
 	{
 		return object.slot(SIZE_RANGE);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_ValueType (final AvailObject object)
 	{
 		return object.slot(VALUE_TYPE);
@@ -144,13 +145,13 @@ extends TypeDescriptor
 		aStream.append('}');
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsMapType(object);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_EqualsMapType (
 		final AvailObject object,
 		final A_Type aMapType)
@@ -164,7 +165,7 @@ extends TypeDescriptor
 			&& object.slot(VALUE_TYPE).equals(aMapType.valueType());
 	}
 
-	@Override @AvailMethod
+	@Override
 	public int o_Hash (final AvailObject object)
 	{
 		// Answer a 32-bit integer that is always the same for equal objects,
@@ -175,13 +176,13 @@ extends TypeDescriptor
 			object.slot(VALUE_TYPE).hash());
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsMapType (final AvailObject object)
 	{
 		return true;
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
 	{
 		// Check if object (a type) is a subtype of aType (should also be a
@@ -189,7 +190,7 @@ extends TypeDescriptor
 		return aType.isSupertypeOfMapType(object);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public boolean o_IsSupertypeOfMapType (
 		final AvailObject object,
 		final AvailObject aMapType)
@@ -210,7 +211,7 @@ extends TypeDescriptor
 					|| object.slot(VALUE_TYPE).isVacuousType());
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeIntersection (
 		final AvailObject object,
 		final A_Type another)
@@ -228,7 +229,7 @@ extends TypeDescriptor
 		return another.typeIntersectionOfMapType(object);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeIntersectionOfMapType (
 		final AvailObject object,
 		final A_Type aMapType)
@@ -248,7 +249,7 @@ extends TypeDescriptor
 				aMapType.valueType()).makeImmutable());
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeUnion (
 		final AvailObject object,
 		final A_Type another)
@@ -270,7 +271,7 @@ extends TypeDescriptor
 		return another.typeUnionOfMapType(object);
 	}
 
-	@Override @AvailMethod
+	@Override
 	public A_Type o_TypeUnionOfMapType (
 		final AvailObject object,
 		final A_Type aMapType)
@@ -290,14 +291,14 @@ extends TypeDescriptor
 				aMapType.valueType()).makeImmutable());
 	}
 
-	@Override @AvailMethod
+	@Override
 	public SerializerOperation o_SerializerOperation (
 		final AvailObject object)
 	{
 		return SerializerOperation.MAP_TYPE;
 	}
 
-	@Override @AvailMethod
+	@Override
 	public AvailObject o_MakeImmutable (final AvailObject object)
 	{
 		if (isMutable())

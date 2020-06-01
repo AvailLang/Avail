@@ -105,14 +105,14 @@ class AvailServerConfiguration : Configuration
 	var serverPort = 40000
 
 	/**
-	 * Answer the [module name resolver][ModuleNameResolver] correct for the
-	 * current configuration.
+	 * Answer the [module&#32;name&#32;resolver][ModuleNameResolver] correct for
+	 * the current configuration.
 	 *
 	 * @return
 	 *   A module name resolver.
 	 * @throws FileNotFoundException
-	 *   If the [renames file path][RenamesFileParser] has been specified, but
-	 *   is invalid.
+	 *   If the [renames&#32;file&#32;path][RenamesFileParser] has been
+	 *   specified, but is invalid.
 	 * @throws RenamesFileParserException
 	 *   If the renames file is invalid.
 	 */

@@ -34,11 +34,11 @@ package com.avail.interpreter.primitive.hooks
 
 import com.avail.AvailRuntime.HookType.IMPLICIT_OBSERVE
 import com.avail.descriptor.fiber.FiberDescriptor.TraceFlag
-import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createWithOuters1
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.tuples.StringDescriptor.stringFrom
 import com.avail.descriptor.types.A_Type
@@ -51,18 +51,20 @@ import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.descriptor.types.VariableTypeDescriptor.variableTypeFor
 import com.avail.descriptor.variables.VariableDescriptor
 import com.avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelOne.L1InstructionWriter
 import com.avail.interpreter.levelOne.L1Operation
 import com.avail.utility.Casts.cast
 
 /**
- * **Primitive:** Set the [ function][FunctionDescriptor] to invoke whenever a
- * [variable][VariableDescriptor] with [write reactors][VariableAccessReactor]
- * is written when [write tracing][TraceFlag.TRACE_VARIABLE_WRITES] is not
- * enabled.
+ * **Primitive:** Set the [function][FunctionDescriptor] to invoke whenever a
+ * [variable][VariableDescriptor] with
+ * [write&#32;reactors][VariableAccessReactor] is written when [write
+ * tracing][TraceFlag.TRACE_VARIABLE_WRITES] is not enabled.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

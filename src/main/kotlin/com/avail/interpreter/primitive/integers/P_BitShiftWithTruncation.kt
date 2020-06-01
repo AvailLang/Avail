@@ -41,10 +41,10 @@ import com.avail.descriptor.types.IntegerRangeTypeDescriptor.integers
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.wholeNumbers
 import com.avail.exceptions.AvailErrorCode.E_SHIFT_AND_TRUNCATE_REQUIRES_NON_NEGATIVE
 import com.avail.exceptions.AvailErrorCode.E_TOO_LARGE_TO_REPRESENT
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Given a positive integer B, a shift factor S, and a truncation

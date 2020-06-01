@@ -34,7 +34,20 @@ package com.avail.server.messages
 
 import com.avail.server.AvailServer.Companion.commandsThen
 import com.avail.server.io.AvailServerChannel
-import com.avail.server.messages.Command.*
+import com.avail.server.messages.Command.ALL_FIBERS
+import com.avail.server.messages.Command.CLEAR_REPOSITORIES
+import com.avail.server.messages.Command.COMMANDS
+import com.avail.server.messages.Command.ENTRY_POINTS
+import com.avail.server.messages.Command.LOAD_MODULE
+import com.avail.server.messages.Command.MODULE_ROOTS
+import com.avail.server.messages.Command.MODULE_ROOTS_PATH
+import com.avail.server.messages.Command.MODULE_ROOT_PATHS
+import com.avail.server.messages.Command.RUN_ENTRY_POINT
+import com.avail.server.messages.Command.SOURCE_MODULES
+import com.avail.server.messages.Command.UNLOAD_ALL_MODULES
+import com.avail.server.messages.Command.UNLOAD_MODULE
+import com.avail.server.messages.Command.UPGRADE
+import com.avail.server.messages.Command.VERSION
 
 /**
  * A `SimpleCommandMessage` contains no state beyond the style of

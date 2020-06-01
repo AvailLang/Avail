@@ -6,12 +6,12 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
  *
  *  * Neither the name of the copyright holder nor the names of the contributors
  *    may be used to endorse or promote products derived from this software
@@ -32,16 +32,15 @@
 package com.avail.descriptor.representation
 
 import com.avail.annotations.EnumField
-import com.avail.descriptor.AbstractDescriptor
 
 /**
  * A `BitField` is constructed at class loading time and contains any cached
  * information needed to efficiently access a range of up to 32 contiguous bits
- * from an [integer slot][IntegerSlotsEnum].
+ * from an [integer&#32;slot][IntegerSlotsEnum].
  *
  * @constructor
  * @property integerSlot
- *   The [integer slot][IntegerSlotsEnum] within which this `BitField`` occurs.
+ *   The [integer&#32;slot][IntegerSlotsEnum] within which this `BitField`` occurs.
  * @property shift
  *   The lowest bit position that this BitField occupies.  Zero (`0`) is the
  *   rightmost or lowest order bit.
@@ -62,14 +61,15 @@ class BitField (
 	}
 
 	/**
-	 * The zero-based [integer slot][IntegerSlotsEnum] within which this
+	 * The zero-based [integer&#32;slot][IntegerSlotsEnum] within which this
 	 * bit field occurs.
 	 */
 	val integerSlotIndex = integerSlot.fieldOrdinal()
 
 	/**
-	 * A string of 1's of length [.bits], right aligned in the `long`.  Even though bit fields can't be more than 32 long, it's a long
-	 * to avoid sign extension problems.
+	 * A string of 1's of length [bits], right aligned in the `long`.  Even
+	 * though bit fields can't be more than 32 long, it's a long to avoid sign
+	 * extension problems.
 	 */
 	private val lowMask = (1L shl bits) - 1
 
@@ -95,8 +95,8 @@ class BitField (
 
 	/**
 	 * The [EnumField] with which this `BitField` is annotated, if any.  This is
-	 * populated by the default [
-	 * ][AbstractDescriptor.printObjectOnAvoidingIndent] mechanism.
+	 * populated by the default
+	 * [printing][AbstractDescriptor.printObjectOnAvoidingIndent] mechanism.
 	 */
 	@JvmField
 	var enumField: EnumField? = null

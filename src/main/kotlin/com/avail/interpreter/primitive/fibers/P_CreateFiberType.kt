@@ -39,13 +39,15 @@ import com.avail.descriptor.types.FiberTypeDescriptor.fiberMeta
 import com.avail.descriptor.types.FiberTypeDescriptor.fiberType
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.InstanceMetaDescriptor.topMeta
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CanFold
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Create a [fiber type][FiberTypeDescriptor] whose result type
- * is the specified [type][A_Type].
+ * **Primitive:** Create a [fiber&#32;type][FiberTypeDescriptor] whose result
+ * type is the specified [type][A_Type].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

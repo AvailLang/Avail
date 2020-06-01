@@ -6,11 +6,11 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *    list of conditions and the following disclaimer in the documentation
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
  *
  *  * Neither the name of the copyright holder nor the names of the contributors
@@ -32,21 +32,31 @@
 package com.avail.descriptor.variables
 
 import com.avail.AvailRuntimeSupport
-import com.avail.annotations.AvailMethod
 import com.avail.annotations.HideFieldInDebugger
 import com.avail.annotations.HideFieldJustForPrinting
 import com.avail.descriptor.module.A_Module
-import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.pojos.RawPojoDescriptor
-import com.avail.descriptor.representation.*
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AbstractSlotsEnum
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.BitField
+import com.avail.descriptor.representation.IntegerSlotsEnum
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.NilDescriptor
+import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.TypeTag
 import com.avail.descriptor.types.VariableTypeDescriptor
 import com.avail.descriptor.variables.VariableSharedGlobalDescriptor.IntegerSlots.Companion.HASH_ALWAYS_SET
 import com.avail.descriptor.variables.VariableSharedGlobalDescriptor.IntegerSlots.Companion.VALUE_IS_STABLE
-import com.avail.descriptor.variables.VariableSharedGlobalDescriptor.ObjectSlots.*
+import com.avail.descriptor.variables.VariableSharedGlobalDescriptor.ObjectSlots.DEPENDENT_CHUNKS_WEAK_SET_POJO
+import com.avail.descriptor.variables.VariableSharedGlobalDescriptor.ObjectSlots.GLOBAL_NAME
+import com.avail.descriptor.variables.VariableSharedGlobalDescriptor.ObjectSlots.KIND
+import com.avail.descriptor.variables.VariableSharedGlobalDescriptor.ObjectSlots.MODULE
+import com.avail.descriptor.variables.VariableSharedGlobalDescriptor.ObjectSlots.VALUE
+import com.avail.descriptor.variables.VariableSharedGlobalDescriptor.ObjectSlots.WRITE_REACTORS
 import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.VariableGetException
 import com.avail.exceptions.VariableSetException
@@ -56,7 +66,7 @@ import com.avail.serialization.SerializerOperation
 import java.util.*
 
 /**
- * My [object instances][AvailObject] are [shared][Mutability.SHARED] variables
+ * My [object&#32;instances][AvailObject] are [shared][Mutability.SHARED] variables
  * that are acting as module variables or module constants.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
@@ -136,13 +146,13 @@ class VariableSharedGlobalDescriptor private constructor(
 
 		/**
 		 * The [kind][AvailObject] of the [variable][VariableDescriptor].  Note
-		 * that this is always a [variable type][VariableTypeDescriptor].
+		 * that this is always a [variable&#32;type][VariableTypeDescriptor].
 		 */
 		KIND,
 
 		/**
-		 * A [raw pojo][RawPojoDescriptor] that wraps a [map][Map] set arbitrary
-		 * [Avail values][AvailObject] to
+		 * A [raw&#32;pojo][RawPojoDescriptor] that wraps a [map][Map] set
+		 * arbitrary [Avail&#32;values][AvailObject] to
 		 * [writer&#32;reactors][VariableDescriptor.VariableAccessReactor] that
 		 * respond to writes of the [variable][VariableDescriptor].
 		 */
@@ -150,8 +160,8 @@ class VariableSharedGlobalDescriptor private constructor(
 		WRITE_REACTORS,
 
 		/**
-		 * A [raw pojo][RawPojoDescriptor] holding a weak set (implemented as
-		 * the [key set][Map.keys] of a [WeakHashMap]) of [L2Chunk]s that
+		 * A [raw&#32;pojo][RawPojoDescriptor] holding a weak set (implemented
+		 * as the [key&#32;set][Map.keys] of a [WeakHashMap]) of [L2Chunk]s that
 		 * depend on the membership of this method.  A change to the membership
 		 * will invalidate all such chunks.  This field holds the
 		 * [nil][NilDescriptor.nil] object initially.
@@ -195,15 +205,12 @@ class VariableSharedGlobalDescriptor private constructor(
 		|| e === DEPENDENT_CHUNKS_WEAK_SET_POJO
 		|| e === IntegerSlots.HASH_AND_MORE) // only for flags.
 
-	@AvailMethod
 	override fun o_GlobalModule(self: AvailObject): A_Module =
 		self.slot(MODULE)
 
-	@AvailMethod
 	override fun o_GlobalName(self: AvailObject): A_String =
 		self.slot(GLOBAL_NAME)
 
-	@AvailMethod
 	@Throws(VariableSetException::class)
 	override fun o_SetValue(self: AvailObject, newValue: A_BasicObject)
 	{
@@ -218,7 +225,6 @@ class VariableSharedGlobalDescriptor private constructor(
 		recordWriteToSharedVariable()
 	}
 
-	@AvailMethod
 	override fun o_SetValueNoCheck(
 		self: AvailObject, newValue: A_BasicObject)
 	{
@@ -234,7 +240,6 @@ class VariableSharedGlobalDescriptor private constructor(
 		recordWriteToSharedVariable()
 	}
 
-	@AvailMethod
 	@Throws(VariableGetException::class, VariableSetException::class)
 	override fun o_GetAndSetValue(
 		self: AvailObject, newValue: A_BasicObject): AvailObject
@@ -247,7 +252,6 @@ class VariableSharedGlobalDescriptor private constructor(
 		return super.o_GetAndSetValue(self, newValue)
 	}
 
-	@AvailMethod
 	@Throws(VariableGetException::class, VariableSetException::class)
 	override fun o_CompareAndSwapValues(
 		self: AvailObject,
@@ -262,7 +266,6 @@ class VariableSharedGlobalDescriptor private constructor(
 		return super.o_CompareAndSwapValues(self, reference, newValue)
 	}
 
-	@AvailMethod
 	@Throws(VariableGetException::class, VariableSetException::class)
 	override fun o_FetchAndAddValue(
 		self: AvailObject, addend: A_Number): A_Number
@@ -275,7 +278,6 @@ class VariableSharedGlobalDescriptor private constructor(
 		return super.o_FetchAndAddValue(self, addend)
 	}
 
-	@AvailMethod
 	@Throws(VariableGetException::class, VariableSetException::class)
 	override fun o_AtomicAddToMap(
 		self: AvailObject,
@@ -290,7 +292,6 @@ class VariableSharedGlobalDescriptor private constructor(
 		super.o_AtomicAddToMap(self, key, value)
 	}
 
-	@AvailMethod
 	override fun o_ClearValue(self: AvailObject)
 	{
 		if (writeOnce)
@@ -301,13 +302,10 @@ class VariableSharedGlobalDescriptor private constructor(
 		super.o_ClearValue(self)
 	}
 
-	@AvailMethod
 	override fun o_IsGlobal(self: AvailObject): Boolean = true
 
-	@AvailMethod
 	override fun o_IsInitializedWriteOnceVariable(self: AvailObject) = writeOnce
 
-	@AvailMethod
 	override fun o_ValueWasStablyComputed(
 		self: AvailObject, wasStablyComputed: Boolean)
 	{
@@ -316,13 +314,11 @@ class VariableSharedGlobalDescriptor private constructor(
 		self.setSlot(VALUE_IS_STABLE, if (wasStablyComputed) 1 else 0)
 	}
 
-	@AvailMethod
 	override fun o_ValueWasStablyComputed(
 		self: AvailObject): Boolean =
 			// Can only be set for write-once variables.
 			self.slot(VALUE_IS_STABLE) != 0
 
-	@AvailMethod
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		SerializerOperation.GLOBAL_VARIABLE
 
@@ -335,7 +331,7 @@ class VariableSharedGlobalDescriptor private constructor(
 		 * shared.
 		 *
 		 * @param variableType
-		 *   The [variable type][VariableTypeDescriptor].
+		 *   The [variable&#32;type][VariableTypeDescriptor].
 		 * @param module
 		 *  The [A_Module] that this global is being defined in.
 		 * @param name

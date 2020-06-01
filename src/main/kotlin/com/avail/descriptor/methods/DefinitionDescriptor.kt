@@ -6,11 +6,11 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *    list of conditions and the following disclaimer in the documentation
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
  *
  *  * Neither the name of the copyright holder nor the names of the contributors
@@ -31,15 +31,18 @@
  */
 package com.avail.descriptor.methods
 
-import com.avail.annotations.AvailMethod
 import com.avail.annotations.HideFieldJustForPrinting
-import com.avail.descriptor.module.A_Module
-import com.avail.descriptor.Descriptor
-import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.maps.MapBinDescriptor
 import com.avail.descriptor.methods.DefinitionDescriptor.ObjectSlots.DEFINITION_METHOD
 import com.avail.descriptor.methods.DefinitionDescriptor.ObjectSlots.MODULE
-import com.avail.descriptor.representation.*
+import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.module.ModuleDescriptor
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.Descriptor
+import com.avail.descriptor.representation.IntegerSlotsEnum
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.StringDescriptor.stringFrom
 import com.avail.descriptor.types.A_Type
@@ -53,10 +56,10 @@ import com.avail.serialization.SerializerOperation
  * `DefinitionDescriptor` is an abstraction for things placed into a
  * [method][MethodDescriptor].  They can be:
  *
- *  * [abstract declarations][AbstractDefinitionDescriptor],
- *  * [forward declarations][ForwardDefinitionDescriptor],
- *  * [method definitions][MethodDefinitionDescriptor], or
- *  * [macro definitions][MacroDefinitionDescriptor].
+ *  * [abstract&#32;declarations][AbstractDefinitionDescriptor],
+ *  * [forward&#32;declarations][ForwardDefinitionDescriptor],
+ *  * [method&#32;definitions][MethodDefinitionDescriptor], or
+ *  * [macro&#32;definitions][MacroDefinitionDescriptor].
  *
  * @constructor
  * @param mutability
@@ -98,19 +101,16 @@ protected constructor(
 		MODULE
 	}
 
-	@AvailMethod
 	abstract override fun o_BodySignature(self: AvailObject): A_Type
 
-	@AvailMethod
-	override fun o_DefinitionMethod(self: AvailObject) =
+	override fun o_DefinitionMethod(self: AvailObject): A_Method =
 		self.slot(DEFINITION_METHOD)
 
-	@AvailMethod
-	override fun o_DefinitionModule(self: AvailObject) =
+	override fun o_DefinitionModule(self: AvailObject): A_Module =
 		self.slot(MODULE)
 
-	@AvailMethod
-	override fun o_DefinitionModuleName(self: AvailObject): A_String {
+	override fun o_DefinitionModuleName(self: AvailObject): A_String
+	{
 		val module: A_Module = self.slot(MODULE)
 		return if (module.equalsNil()) {
 			builtInNoModuleName
@@ -119,30 +119,23 @@ protected constructor(
 		}
 	}
 
-	@AvailMethod
 	override fun o_Equals(self: AvailObject, another: A_BasicObject) =
 		another.traversed().sameAddressAs(self)
 
-	@AvailMethod
 	abstract override fun o_Hash(self: AvailObject): Int
 
-	@AvailMethod
 	override fun o_IsAbstractDefinition(self: AvailObject) = false
 
-	@AvailMethod
 	override fun o_IsForwardDefinition(self: AvailObject) = false
 
-	@AvailMethod
 	override fun o_IsMethodDefinition(self: AvailObject) = false
 
-	@AvailMethod
 	override fun o_IsMacroDefinition(self: AvailObject) = false
 
-	@AvailMethod
 	abstract override fun o_Kind(self: AvailObject): A_Type
 
-	@AvailMethod
-	override fun o_ParsingSignature(self: AvailObject): A_Type {
+	override fun o_ParsingSignature(self: AvailObject): A_Type
+	{
 		// Non-macro definitions have a signature derived from the
 		// bodySignature.  We can safely make it a list phrase type.
 		val argsTupleType = self.bodySignature().argsTupleType()
@@ -159,7 +152,6 @@ protected constructor(
 			})
 	}
 
-	@AvailMethod
 	abstract override fun o_SerializerOperation(
 		self: AvailObject
 	): SerializerOperation
