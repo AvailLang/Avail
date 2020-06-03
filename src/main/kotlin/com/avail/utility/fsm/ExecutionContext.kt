@@ -33,10 +33,11 @@
 package com.avail.utility.fsm
 
 /**
- * An `ExecutionContext` represents a running [finite&#32;state
- * machine][StateMachine]. In order to execute a step, it maintains a reference
- * to the executor, the current state, and a client-provided memento which will
- * be passed as the sole argument of every action invocation.
+ * An `ExecutionContext` represents a running
+ * [finite&#32;state&#32;machine][StateMachine]. In order to execute a step, it
+ * maintains a reference to the executor, the current state, and a
+ * client-provided memento which will be passed as the sole argument of every
+ * action invocation.
  *
  * To obtain a new execution context, a client should call
  * [StateMachine.createExecutionContext] on an established FSM.

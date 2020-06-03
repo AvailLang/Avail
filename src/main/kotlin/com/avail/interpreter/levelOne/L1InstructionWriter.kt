@@ -61,9 +61,9 @@ import java.util.*
 import java.util.Collections.addAll
 
 /**
- * An instance of this class can be used to construct a [compiled&#32;code
- * object][CompiledCodeDescriptor] without detailed knowledge of the level one
- * nybblecode instruction set.
+ * An instance of this class can be used to construct a
+ * [compiled&#32;code&#32;object][CompiledCodeDescriptor] without detailed
+ * knowledge of the level one nybblecode instruction set.
  *
  * @property module
  *   The module containing this code.

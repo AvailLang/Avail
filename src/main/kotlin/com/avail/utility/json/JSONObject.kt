@@ -36,7 +36,7 @@ import kotlin.collections.Map.Entry
 
 /**
  * A `JSONObject` is produced by a [JSONReader] when an object is
- * read. Each key of the object is a [String] and each value is a [ ].
+ * read. Each key of the object is a [String] and each value is a [JSONData].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  *

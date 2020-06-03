@@ -34,7 +34,7 @@ package com.avail.utility.json
 
 /**
  * `JSONData` is the superclass of [JSONValue], [JSONNumber], [JSONArray], and
- * [JSONObject]. A [JSONReader] [ ][JSONReader.read] a single `JSONData`.
+ * [JSONObject]. A [JSONReader] [reads][JSONReader.read] a single `JSONData`.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

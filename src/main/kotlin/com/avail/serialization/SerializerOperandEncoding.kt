@@ -78,9 +78,10 @@ internal enum class SerializerOperandEncoding
 	},
 
 	/**
-	 * This is an [AvailObject] that's always an [ ] in the range [0..65535].
-	 * Some system limits fall within this range (e.g., number of arguments to a
-	 * function), allowing this compact representation to be used.
+	 * This is an [AvailObject] that's always an [integer][IntegerDescriptor] in
+	 * the range [0..65535]. Some system limits fall within this range (e.g.,
+	 * number of arguments to a function), allowing this compact representation
+	 * to be used.
 	 *
 	 * This operand uses the compressed representation below, which may not be
 	 * effective for some uses, in which case [UNCOMPRESSED_SHORT] may be

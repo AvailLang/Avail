@@ -12,7 +12,7 @@
  *  * Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
-*
+ *
  *  * Neither the name of the copyright holder nor the names of the contributors
  *    may be used to endorse or promote products derived from this software
  *    without specific prior written permission.
@@ -119,17 +119,17 @@ class MarkerPhraseDescriptor private constructor(
 	override fun o_ChildrenDo(
 		self: AvailObject,
 		action: (A_Phrase) -> Unit
-	): Unit = throw unsupportedOperation()
+	): Unit = unsupportedOperation()
 
 	override fun o_ChildrenMap(
 		self: AvailObject,
 		transformer: (A_Phrase) -> A_Phrase
-	): Unit = throw unsupportedOperation()
+	): Unit = unsupportedOperation()
 
 	override fun o_EmitValueOn(
 		self: AvailObject,
 		codeGenerator: AvailCodeGenerator
-	): Unit = throw unsupportedOperation()
+	): Unit = unsupportedOperation()
 
 	override fun o_EqualsPhrase(
 		self: AvailObject,
@@ -155,19 +155,19 @@ class MarkerPhraseDescriptor private constructor(
 	 * change at some point.
 	 */
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
-		throw unsupportedOperation()
+		 unsupportedOperation()
 
 	override fun o_StatementsDo(
 		self: AvailObject,
 		continuation: (A_Phrase) -> Unit
-	): Unit = throw unsupportedOperation()
+	): Unit = unsupportedOperation()
 
 	override fun o_Tokens(self: AvailObject): A_Tuple = emptyTuple()
 
 	override fun o_ValidateLocally(
 		self: AvailObject,
 		parent: A_Phrase?
-	): Unit = throw unsupportedOperation()
+	): Unit = unsupportedOperation()
 
 	override fun mutable() = mutable
 

@@ -152,7 +152,7 @@ abstract class L2WriteOperand<R : L2Register> constructor(
 	 * @return
 	 *   A [String].
 	 */
-	fun registerString(): String =  register.toString() + semanticValues
+	fun registerString(): String = register.toString() + semanticValues
 
 	override fun instructionWasAdded(manifest: L2ValueManifest)
 	{

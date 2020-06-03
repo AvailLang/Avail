@@ -56,6 +56,7 @@ import com.avail.utility.configuration.Configurator
  *    `sourceDirectory` represents the absolute path of a package, i.e., a
  *    directory containing source modules, and may be sometimes be omitted
  *    (e.g., when compilation is not required).
+ *
  *  * **AVAIL_RENAMES**: The path to the [renames&#32;file][RenamesFileParser].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;

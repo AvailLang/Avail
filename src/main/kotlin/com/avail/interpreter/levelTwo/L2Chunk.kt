@@ -12,7 +12,7 @@
  *  * Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
-*
+ *
  *  * Neither the name of the copyright holder nor the names of the contributors
  *    may be used to endorse or promote products derived from this software
  *    without specific prior written permission.
@@ -69,7 +69,6 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport
 import java.util.*
-import java.util.concurrent.locks.ReadWriteLock
 import java.util.concurrent.locks.ReentrantLock
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.logging.Level
@@ -77,9 +76,8 @@ import javax.annotation.concurrent.GuardedBy
 import kotlin.concurrent.write
 
 /**
- * A Level Two chunk represents an optimized implementation of a [compiled&#32;code
- * object][CompiledCodeDescriptor].
- *
+ * A Level Two chunk represents an optimized implementation of a
+ * [compiled&#32;code&#32;object][CompiledCodeDescriptor].
  *
  * An [A_RawFunction] refers to the L2Chunk that it should run in its place.  An
  * [A_Continuation] also refers to the L2Chunk that allows the continuation to
@@ -87,7 +85,6 @@ import kotlin.concurrent.write
  * mechanism maintains approximate age information of chunks, in particular how
  * long it has been since a chunk was last used, so that the least recently used
  * chunks can be evicted when there are too many chunks in memory.
- *
  *
  * A chunk also keeps track of the methods that it depends on, and the methods
  * keep track of which chunks depend on them.  New method definitions can be

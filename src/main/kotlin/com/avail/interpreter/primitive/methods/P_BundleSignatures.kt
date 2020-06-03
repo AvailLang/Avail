@@ -50,9 +50,10 @@ import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Answer a [set][SetDescriptor] of all currently defined
- * [definitions][DefinitionDescriptor] for the [true&#32;message
- * name][AtomDescriptor] represented by [bundle][MessageBundleDescriptor]. This
- * includes abstract signatures and forward signatures.
+ * [definitions][DefinitionDescriptor] for the
+ * [true&#32;message&#32;name][AtomDescriptor] represented by
+ * [bundle][MessageBundleDescriptor]. This includes abstract signatures and
+ * forward signatures.
  */
 @Suppress("unused")
 object P_BundleSignatures : Primitive(1, CannotFail, CanInline)

@@ -48,10 +48,10 @@ import com.avail.utility.Strings
 import java.util.*
 
 /**
- * An instance of `L1Disassembler` converts a [compiled&#32;code
- * object][CompiledCodeDescriptor] into a textual representation of its sequence
- * of [level&#32;one&#32;operations][L1Operation] and their
- * [operands][L1OperandType].
+ * An instance of `L1Disassembler` converts a
+ * [compiled&#32;code&#32;object][CompiledCodeDescriptor] into a textual
+ * representation of its sequence of [level&#32;one&#32;operations][L1Operation]
+ * and their [operands][L1OperandType].
  *
  * @property code
  *   The [compiled&#32;code object][CompiledCodeDescriptor] being disassembled.

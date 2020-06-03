@@ -12,7 +12,7 @@
  *  * Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
-*
+ *
  *  * Neither the name of the copyright holder nor the names of the contributors
  *    may be used to endorse or promote products derived from this software
  *    without specific prior written permission.
@@ -453,7 +453,7 @@ open class VariableDescriptor protected constructor(
 	{
 		assert(!isShared)
 		assert(false) { "Chunk removed but not added!" }
-		throw unsupportedOperation()
+		unsupportedOperation()
 	}
 
 	override fun o_AddWriteReactor(

@@ -12,7 +12,7 @@
  *  * Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
-*
+ *
  *  * Neither the name of the copyright holder nor the names of the contributors
  *    may be used to endorse or promote products derived from this software
  *    without specific prior written permission.
@@ -53,9 +53,12 @@ import com.avail.descriptor.tuples.ByteStringDescriptor
 import com.avail.descriptor.tuples.ByteTupleDescriptor
 import com.avail.descriptor.tuples.IntTupleDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor
+import com.avail.descriptor.tuples.TwoByteStringDescriptor
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor
 import com.avail.descriptor.types.FiberTypeDescriptor
 import com.avail.descriptor.types.FunctionTypeDescriptor
+import com.avail.descriptor.types.ListPhraseTypeDescriptor
 import com.avail.descriptor.variables.A_Variable
 import com.avail.descriptor.variables.VariableDescriptor
 import com.avail.optimizer.jvm.CheckedMethod
@@ -404,31 +407,37 @@ interface A_BasicObject : JSONFriendly {
 	fun equalsVariable(aVariable: A_Variable): Boolean
 
 	/**
-	 * Answer whether the receiver equals the argument, a [ ].
+	 * Answer whether the receiver equals the argument.
 	 *
-	 * @param aVariableType A variable type.
-	 * @return The result of comparing the receiver and aVariableType.
+	 * @param aVariableType
+	 *   A variable type.
+	 * @return
+	 *   The result of comparing the receiver and aVariableType.
 	 */
 	fun equalsVariableType(aVariableType: A_Type): Boolean
 
 	/**
-	 * Answer whether the receiver equals the argument, a [ ].
+	 * Answer whether the receiver equals the argument.
 	 *
-	 * @param aContinuation A continuation.
-	 * @return The result of comparing the receiver and aContinuation.
+	 * @param aContinuation
+	 *   A continuation.
+	 * @return
+	 *   The result of comparing the receiver and aContinuation.
 	 */
 	fun equalsContinuation(aContinuation: A_Continuation): Boolean
 
 	/**
-	 * Answer whether the receiver equals the argument, a [ ].
+	 * Answer whether the receiver equals the argument.
 	 *
-	 * @param aContinuationType A continuation type.
-	 * @return The result of comparing the receiver and aContinuationType.
+	 * @param aContinuationType
+	 *   A continuation type.
+	 * @return
+	 *   The result of comparing the receiver and aContinuationType.
 	 */
 	fun equalsContinuationType(aContinuationType: A_Type): Boolean
 
 	/**
-	 * Answer whether the receiver equals the argument, an [ ].
+	 * Answer whether the receiver equals the argument.
 	 *
 	 * @param anIntegerRangeType An integer range type.
 	 * @return The result of comparing the receiver and anIntegerRangeType.
@@ -437,18 +446,22 @@ interface A_BasicObject : JSONFriendly {
 		anIntegerRangeType: A_Type): Boolean
 
 	/**
-	 * Answer whether the receiver equals the argument, an Avail [ ].
+	 * Answer whether the receiver equals the argument.
 	 *
-	 * @param aMap An Avail map.
-	 * @return The result of comparing the receiver and aMap.
+	 * @param aMap
+	 *   An Avail map.
+	 * @return
+	 *   The result of comparing the receiver and aMap.
 	 */
 	fun equalsMap(aMap: A_Map): Boolean
 
 	/**
-	 * Answer whether the receiver equals the argument, a [ ].
+	 * Answer whether the receiver equals the argument.
 	 *
-	 * @param aMapType A map type.
-	 * @return The result of comparing the receiver and aMapType.
+	 * @param aMapType
+	 *   A map type.
+	 * @return
+	 *   The result of comparing the receiver and aMapType.
 	 */
 	fun equalsMapType(aMapType: A_Type): Boolean
 
@@ -605,18 +618,20 @@ interface A_BasicObject : JSONFriendly {
 	val isUnsignedByte: Boolean
 
 	/**
-	 * Is the [receiver][AvailObject] an Avail [ ]?
+	 * Is the [receiver][AvailObject] an Avail
+	 * [byte&#32;string][ByteStringDescriptor]?
 	 *
-	 * @return `true` if the receiver is a byte string, `false`
-	 * otherwise.
+	 * @return
+	 *   `true` if the receiver is a byte string, `false` otherwise.
 	 */
 	val isByteString: Boolean
 
 	/**
-	 * Is the [receiver][AvailObject] an Avail [ ]?
+	 * Is the [receiver][AvailObject] an Avail
+	 * [byte&#32;tuple][ByteTupleDescriptor]?
 	 *
-	 * @return `true` if the receiver is a byte tuple, `false`
-	 * otherwise.
+	 * @return
+	 *   `true` if the receiver is a byte tuple, `false` otherwise.
 	 */
 	val isByteTuple: Boolean
 
@@ -735,10 +750,11 @@ interface A_BasicObject : JSONFriendly {
 	val isTupleType: Boolean
 
 	/**
-	 * Is the [receiver][AvailObject] an Avail [ ]?
+	 * Is the [receiver][AvailObject] an Avail
+	 * [two-byte&#32;string][TwoByteStringDescriptor]?
 	 *
-	 * @return `true` if the receiver is a two-byte string, `false`
-	 * otherwise.
+	 * @return
+	 *   `true` if the receiver is a two-byte string, `false` otherwise.
 	 */
 	val isTwoByteString: Boolean
 
@@ -829,7 +845,9 @@ interface A_BasicObject : JSONFriendly {
 	fun equalsInstanceTypeFor(anInstanceType: AvailObject): Boolean
 
 	/**
-	 * Determine whether the receiver is an [ ] with the given [ ] of instances.
+	 * Determine whether the receiver is an
+	 * [enumeration][AbstractEnumerationTypeDescriptor] with the given
+	 * [set][A_Set] of instances.
 	 *
 	 * @param aSet A set of objects.
 	 * @return Whether the receiver is an enumeration with the given
@@ -1126,10 +1144,13 @@ interface A_BasicObject : JSONFriendly {
 	fun writeSummaryTo(writer: JSONWriter)
 
 	/**
-	 * Answer whether this value equals the given [ ].
+	 * Answer whether this value equals the given
+	 * [list&#32;phrase&#32;type][ListPhraseTypeDescriptor].
 	 *
-	 * @param listNodeType The list phrase type to compare against.
-	 * @return Whether the receiver equals the given list phrase type.
+	 * @param listNodeType
+	 *   The list phrase type to compare against.
+	 * @return
+	 *   Whether the receiver equals the given list phrase type.
 	 */
 	fun equalsListNodeType(listNodeType: A_Type): Boolean
 

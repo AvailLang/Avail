@@ -112,7 +112,8 @@ class CommentsModule constructor(
 	private val fileExtensionName: String = "json"
 
 	/**
-	 * A map of the modules extended by this module to the [ ] content.
+	 * A map of the modules extended by this module to the
+	 * [comment&#32;group][CommentGroup] content.
 	 */
 	val stickyNamesImplementations =
 		mutableMapOf<A_String, MutableMap<String, CommentGroup>>()

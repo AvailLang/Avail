@@ -58,8 +58,8 @@ import java.util.logging.Level
  * @property server
  *   The [Avail&#32;server][AvailServer].
  * @property adapterAddress
- *   The [address][InetSocketAddress] of the [server&#32;socket
- *   channel][AsynchronousServerSocketChannel].
+ *   The [address][InetSocketAddress] of the
+ *   [server&#32;socket&#32;channel][AsynchronousServerSocketChannel].
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
