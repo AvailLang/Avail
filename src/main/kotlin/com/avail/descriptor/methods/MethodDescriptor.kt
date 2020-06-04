@@ -1027,13 +1027,13 @@ class MethodDescriptor private constructor(
 	}
 
 	@Deprecated("Not supported", ReplaceWith("newMethod()"))
-	override fun mutable() = unsupportedOperation()
+	override fun mutable() = unsupported
 
 	@Deprecated("Not supported", ReplaceWith("newMethod()"))
-	override fun immutable() = unsupportedOperation()
+	override fun immutable() = unsupported
 
 	@Deprecated("Not supported", ReplaceWith("newMethod()"))
-	override fun shared() = unsupportedOperation()
+	override fun shared() = unsupported
 
 	companion object {
 		/** Atomic access to [methodTestingTree]. */

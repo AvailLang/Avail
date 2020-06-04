@@ -279,7 +279,7 @@ class ModuleHeader constructor(val moduleName: ResolvedModuleName)
 	fun applyToModule(module: A_Module, runtime: AvailRuntime): String?
 	{
 		val resolver = runtime.moduleNameResolver()
-		module.versions(setFromCollection(versions))
+		module.setVersions(setFromCollection(versions))
 
 		val newAtoms = exportedNames.fold(emptySet()) { set, name ->
 			val trueName = createAtomWithProperties(name, module)

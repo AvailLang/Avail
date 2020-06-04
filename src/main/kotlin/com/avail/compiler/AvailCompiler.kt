@@ -706,7 +706,7 @@ class AvailCompiler(
 				code.startingLineNumber())
 		}
 		fiber.setGeneralFlag(GeneralFlag.CAN_REJECT_PARSE)
-		fiber.textInterface(compilationContext.textInterface)
+		fiber.setTextInterface(compilationContext.textInterface)
 		lexingState.setFiberContinuationsTrackingWork(
 			fiber, onSuccess, onFailure)
 		runOutermostFunction(compilationContext.runtime, fiber, function, args)
@@ -767,8 +767,8 @@ class AvailCompiler(
 		var fiberGlobals = fiber.fiberGlobals()
 		fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
 			CLIENT_DATA_GLOBAL_KEY.atom, clientParseData, true)
-		fiber.fiberGlobals(fiberGlobals)
-		fiber.textInterface(compilationContext.textInterface)
+		fiber.setFiberGlobals(fiberGlobals)
+		fiber.setTextInterface(compilationContext.textInterface)
 		lexingState.setFiberContinuationsTrackingWork(
 			fiber,
 			{ outputPhrase ->
@@ -915,7 +915,7 @@ class AvailCompiler(
 						compilationContext.serializeWithoutSummary(
 							creationFunction)
 						val variable = createGlobal(varType, module, name, true)
-						variable.valueWasStablyComputed(canSummarize)
+						variable.setValueWasStablyComputed(canSummarize)
 						module.addConstantBinding(name, variable)
 						// Update the map so that the local constant goes to a
 						// module constant.  Then subsequent statements in this
@@ -1961,8 +1961,8 @@ class AvailCompiler(
 		var fiberGlobals = fiber.fiberGlobals()
 		fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
 			CLIENT_DATA_GLOBAL_KEY.atom, withTokens.makeImmutable(), true)
-		fiber.fiberGlobals(fiberGlobals)
-		fiber.textInterface(compilationContext.textInterface)
+		fiber.setFiberGlobals(fiberGlobals)
+		fiber.setTextInterface(compilationContext.textInterface)
 		start.lexingState.setFiberContinuationsTrackingWork(
 			fiber,
 			{

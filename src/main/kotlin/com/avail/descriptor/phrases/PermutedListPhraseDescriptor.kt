@@ -200,7 +200,7 @@ class PermutedListPhraseDescriptor private constructor(
 	override fun o_StatementsDo(
 		self: AvailObject,
 		continuation: (A_Phrase) -> Unit
-	): Unit = unsupportedOperation()
+	): Unit = unsupported
 
 	/**
 	 * Strip away macro substitution phrases inside my recursive list structure.

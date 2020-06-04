@@ -109,10 +109,10 @@ object P_CreateDirectory : Primitive(5, CanInline, HasSideEffect)
 				succeed.kind().returnType().typeUnion(fail.kind().returnType()),
 				priorityInt)
 			{ formatString("Asynchronous create directory, %s", path) }
-		newFiber.availLoader(current.availLoader())
-		newFiber.heritableFiberGlobals(
+		newFiber.setAvailLoader(current.availLoader())
+		newFiber.setHeritableFiberGlobals(
 			current.heritableFiberGlobals().makeShared())
-		newFiber.textInterface(current.textInterface())
+		newFiber.setTextInterface(current.textInterface())
 		newFiber.makeShared()
 		succeed.makeShared()
 		fail.makeShared()

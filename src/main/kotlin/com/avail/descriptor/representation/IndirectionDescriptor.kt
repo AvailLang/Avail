@@ -546,10 +546,10 @@ class IndirectionDescriptor private constructor(
 			elementObject, elementObjectHash, myLevel, canDestroy)
 	}
 
-	override fun o_BreakpointBlock(
+	override fun o_SetBreakpointBlock(
 		self: AvailObject,
 		value: AvailObject
-	) = self .. { breakpointBlock(value) }
+	) = self .. { setBreakpointBlock(value) }
 
 	override fun o_BuildFilteredBundleTree(
 		self: AvailObject
@@ -676,10 +676,10 @@ class IndirectionDescriptor private constructor(
 		canDestroy: Boolean
 	): A_Tuple = self .. { concatenateTuplesCanDestroy(canDestroy) }
 
-	override fun o_Continuation(
+	override fun o_SetContinuation(
 		self: AvailObject,
 		value: A_Continuation
-	) = self .. { continuation(value) }
+	) = self .. { setContinuation(value) }
 
 	override fun o_CopyTupleFromToCanDestroy(
 		self: AvailObject,
@@ -901,10 +901,10 @@ class IndirectionDescriptor private constructor(
 		aString: A_String
 	): Boolean = self .. { equalsTwoByteString(aString) }
 
-	override fun o_ExecutionState(
+	override fun o_SetExecutionState(
 		self: AvailObject,
 		value: ExecutionState
-	) = self .. { executionState(value) }
+	) = self .. { setExecutionState(value) }
 
 	override fun o_ExtractNybbleFromTupleAt(
 		self: AvailObject,
@@ -939,8 +939,8 @@ class IndirectionDescriptor private constructor(
 		endIndex: Int
 	): Int = self .. { hashFromTo(startIndex, endIndex) }
 
-	override fun o_HashOrZero(self: AvailObject, value: Int) =
-		self .. { hashOrZero(value) }
+	override fun o_SetHashOrZero(self: AvailObject, value: Int) =
+		self .. { setHashOrZero(value) }
 
 	override fun o_HasKey(
 		self: AvailObject,
@@ -1209,15 +1209,15 @@ class IndirectionDescriptor private constructor(
 		canDestroy: Boolean
 	): A_Number = self .. { plusCanDestroy(aNumber, canDestroy) }
 
-	override fun o_Priority(
+	override fun o_SetPriority(
 		self: AvailObject,
 		value: Int
-	) = self .. { priority(value) }
+	) = self .. { setPriority(value) }
 
-	override fun o_FiberGlobals(
+	override fun o_SetFiberGlobals(
 		self: AvailObject,
 		globals: A_Map
-	) = self .. { fiberGlobals(globals) }
+	) = self .. { setFiberGlobals(globals) }
 
 	override fun o_RawByteForCharacterAt(
 		self: AvailObject,
@@ -1528,11 +1528,6 @@ class IndirectionDescriptor private constructor(
 		startIndex: Int,
 		endIndex: Int
 	): A_Type = self .. { unionOfTypesAtThrough(startIndex, endIndex) }
-
-	override fun o_Value(
-		self: AvailObject,
-		value: A_BasicObject
-	) = self .. { value(value) }
 
 	override fun o_AsNativeString(self: AvailObject): String =
 		self .. { asNativeString() }
@@ -2103,10 +2098,10 @@ class IndirectionDescriptor private constructor(
 	override fun o_WriteType(self: AvailObject): A_Type =
 		self .. { writeType() }
 
-	override fun o_Versions(
+	override fun o_SetVersions(
 		self: AvailObject,
 		versionStrings: A_Set) {
-		self .. { versions(versionStrings) }
+		self .. { setVersions(versionStrings) }
 	}
 
 	override fun o_Versions(self: AvailObject): A_Set =
@@ -2681,8 +2676,8 @@ class IndirectionDescriptor private constructor(
 	override fun o_AvailLoader(self: AvailObject): AvailLoader? =
 		self .. { availLoader() }
 
-	override fun o_AvailLoader(self: AvailObject, loader: AvailLoader?) =
-		self .. { availLoader(loader) }
+	override fun o_SetAvailLoader(self: AvailObject, loader: AvailLoader?) =
+		self .. { setAvailLoader(loader) }
 
 	override fun o_InterruptRequestFlag(
 		self: AvailObject,
@@ -2703,8 +2698,8 @@ class IndirectionDescriptor private constructor(
 	override fun o_FiberResult(self: AvailObject): AvailObject =
 		self .. { fiberResult() }
 
-	override fun o_FiberResult(self: AvailObject, result: A_BasicObject) =
-		self .. { fiberResult(result) }
+	override fun o_SetFiberResult(self: AvailObject, result: A_BasicObject) =
+		self .. { setFiberResult(result) }
 
 	override fun o_JoiningFibers(self: AvailObject): A_Set =
 		self .. { joiningFibers() }
@@ -2712,19 +2707,19 @@ class IndirectionDescriptor private constructor(
 	override fun o_WakeupTask(self: AvailObject): TimerTask? =
 		self .. { wakeupTask() }
 
-	override fun o_WakeupTask(self: AvailObject, task: TimerTask?) =
-		self .. { wakeupTask(task) }
+	override fun o_SetWakeupTask(self: AvailObject, task: TimerTask?) =
+		self .. { setWakeupTask(task) }
 
-	override fun o_JoiningFibers(self: AvailObject, joiners: A_Set) =
-		self .. { joiningFibers(joiners) }
+	override fun o_SetJoiningFibers(self: AvailObject, joiners: A_Set) =
+		self .. { setJoiningFibers(joiners) }
 
 	override fun o_HeritableFiberGlobals(self: AvailObject): A_Map =
 		self .. { heritableFiberGlobals() }
 
-	override fun o_HeritableFiberGlobals(
+	override fun o_SetHeritableFiberGlobals(
 		self: AvailObject,
 		globals: A_Map
-	) = self .. { heritableFiberGlobals(globals) }
+	) = self .. { setHeritableFiberGlobals(globals) }
 
 	override fun o_GeneralFlag(self: AvailObject, flag: GeneralFlag): Boolean =
 		self .. { generalFlag(flag) }
@@ -2946,10 +2941,10 @@ class IndirectionDescriptor private constructor(
 	override fun o_TextInterface(self: AvailObject): TextInterface =
 		self .. { textInterface() }
 
-	override fun o_TextInterface(
+	override fun o_SetTextInterface(
 		self: AvailObject,
 		textInterface: TextInterface
-	) = self .. { textInterface(textInterface) }
+	) = self .. { setTextInterface(textInterface) }
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		self .. { writeTo(writer) }
@@ -3041,10 +3036,10 @@ class IndirectionDescriptor private constructor(
 	override fun o_ValueWasStablyComputed(self: AvailObject): Boolean =
 		self .. { valueWasStablyComputed() }
 
-	override fun o_ValueWasStablyComputed(
+	override fun o_SetValueWasStablyComputed(
 		self: AvailObject,
 		wasStablyComputed: Boolean
-	) = self .. { valueWasStablyComputed(wasStablyComputed) }
+	) = self .. { setValueWasStablyComputed(wasStablyComputed) }
 
 	override fun o_UniqueId(self: AvailObject): Long =
 		self .. { uniqueId() }
@@ -3197,10 +3192,10 @@ class IndirectionDescriptor private constructor(
 	override fun o_Lexer(self: AvailObject): A_Lexer =
 		self .. { lexer() }
 
-	override fun o_SuspendingFunction(
+	override fun o_SetSuspendingFunction(
 		self: AvailObject,
 		suspendingFunction: A_Function
-	) = self .. { suspendingFunction(suspendingFunction) }
+	) = self .. { setSuspendingFunction(suspendingFunction) }
 
 	override fun o_SuspendingFunction(self: AvailObject): A_Function =
 		self .. { suspendingFunction() }

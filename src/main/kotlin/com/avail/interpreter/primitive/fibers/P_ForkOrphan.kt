@@ -114,12 +114,12 @@ object P_ForkOrphan : Primitive(
 		}
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.
-		orphan.availLoader(current.availLoader())
+		orphan.setAvailLoader(current.availLoader())
 		// Share and inherit any heritable variables.
-		orphan.heritableFiberGlobals(
+		orphan.setHeritableFiberGlobals(
 			current.heritableFiberGlobals().makeShared())
 		// Inherit the fiber's text interface.
-		orphan.textInterface(current.textInterface())
+		orphan.setTextInterface(current.textInterface())
 		// Schedule the fiber to run the specified function.
 		runOutermostFunction(currentRuntime(), orphan, function, callArgs)
 		return interpreter.primitiveSuccess(nil)

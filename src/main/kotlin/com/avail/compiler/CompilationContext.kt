@@ -553,8 +553,8 @@ class CompilationContext(
 		var fiberGlobals = fiber.fiberGlobals()
 		fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
 			CLIENT_DATA_GLOBAL_KEY.atom, clientParseData, true)
-		fiber.fiberGlobals(fiberGlobals)
-		fiber.textInterface(textInterface)
+		fiber.setFiberGlobals(fiberGlobals)
+		fiber.setTextInterface(textInterface)
 		if (shouldSerialize)
 		{
 			loader.startRecordingEffects()

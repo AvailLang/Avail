@@ -311,7 +311,7 @@ class LexingState constructor(
 		//		fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
 		//			CLIENT_DATA_GLOBAL_KEY.atom, clientParseData, true);
 		//		fiber.fiberGlobals(fiberGlobals);
-		fiber.textInterface(compilationContext.textInterface)
+		fiber.setTextInterface(compilationContext.textInterface)
 		fiber.setGeneralFlag(GeneralFlag.CAN_REJECT_PARSE)
 		setFiberContinuationsTrackingWork(
 			fiber,

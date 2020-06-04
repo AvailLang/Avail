@@ -500,7 +500,7 @@ extends NumericTupleDescriptor
 			RAW_LONG_AT_,
 			index,
 			((A_Number)newValueObject).extractUnsignedByte());
-		result.hashOrZero(0);
+		result.setHashOrZero(0);
 		return result;
 	}
 

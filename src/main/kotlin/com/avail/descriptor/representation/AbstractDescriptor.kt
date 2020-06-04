@@ -790,6 +790,14 @@ abstract class AbstractDescriptor protected constructor (
 	}
 
 	/**
+	 * This read-only property can be used in place of [unsupportedOperation].
+	 * Using the getter produces almost the same diagnostic stack trace when
+	 * executed, but is a much shorter expression.
+	 */
+	val unsupported: Nothing
+		inline get() = unsupportedOperation()
+
+	/**
 	 * Throw an
 	 * [unsupported&#32;operation&#32;exception][AvailUnsupportedOperationException]
 	 * suitable to be thrown by the sender.
@@ -798,10 +806,10 @@ abstract class AbstractDescriptor protected constructor (
 	 * the method that immediately invoked this.  This is a strong indication
 	 * that the wrong kind of object is being used somewhere.
 	 *
-	 * This is a variant on [unsupportedOperation] to support Java
-	 * implementations of [AbstractDescriptor] until porting of the hierarchy is
-	 * finished. It should be thrown by Java callers, which cannot correctly
-	 * reason about flow around non-returning functions.
+	 * This is a variant on [unsupported] to support Java implementations of
+	 * [AbstractDescriptor] until porting of the hierarchy is finished. It
+	 * should be thrown by Java callers, which cannot correctly reason about
+	 * flow around non-returning functions.
 	 *
 	 * @return
 	 *   Never returns anything; always throws.
@@ -1041,7 +1049,7 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_BinElementAt (self: AvailObject, index: Int): AvailObject
 
-	abstract fun o_BreakpointBlock (self: AvailObject, value: AvailObject)
+	abstract fun o_SetBreakpointBlock (self: AvailObject, value: AvailObject)
 
 	abstract fun o_BuildFilteredBundleTree (self: AvailObject): A_BundleTree
 
@@ -1342,7 +1350,7 @@ abstract class AbstractDescriptor protected constructor (
 		self: AvailObject,
 		canDestroy: Boolean): A_Tuple
 
-	abstract fun o_Continuation (
+	abstract fun o_SetContinuation (
 		self: AvailObject,
 		value: A_Continuation)
 
@@ -1433,7 +1441,7 @@ abstract class AbstractDescriptor protected constructor (
 		anInteger: AvailObject,
 		canDestroy: Boolean): A_Number
 
-	abstract fun o_ExecutionState (self: AvailObject, value: ExecutionState)
+	abstract fun o_SetExecutionState (self: AvailObject, value: ExecutionState)
 
 	abstract fun o_ExtractNybbleFromTupleAt (
 		self: AvailObject,
@@ -1464,7 +1472,7 @@ abstract class AbstractDescriptor protected constructor (
 		startIndex: Int,
 		endIndex: Int): Int
 
-	abstract fun o_HashOrZero (
+	abstract fun o_SetHashOrZero (
 		self: AvailObject,
 		value: Int)
 
@@ -1707,9 +1715,9 @@ abstract class AbstractDescriptor protected constructor (
 		aNumber: A_Number,
 		canDestroy: Boolean): A_Number
 
-	abstract fun o_Priority (self: AvailObject, value: Int)
+	abstract fun o_SetPriority (self: AvailObject, value: Int)
 
-	abstract fun o_FiberGlobals (self: AvailObject, globals: A_Map)
+	abstract fun o_SetFiberGlobals (self: AvailObject, globals: A_Map)
 
 	abstract fun o_RawByteForCharacterAt (self: AvailObject, index: Int): Short
 
@@ -1997,8 +2005,6 @@ abstract class AbstractDescriptor protected constructor (
 		self: AvailObject,
 		startIndex: Int,
 		endIndex: Int): A_Type
-
-	abstract fun o_Value (self: AvailObject, value: A_BasicObject)
 
 	/**
 	 * Construct a Java [string][String] from the given Avail
@@ -2929,7 +2935,7 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_WriteType (self: AvailObject): A_Type
 
-	abstract fun o_Versions (self: AvailObject, versionStrings: A_Set)
+	abstract fun o_SetVersions (self: AvailObject, versionStrings: A_Set)
 
 	abstract fun o_Versions (self: AvailObject): A_Set
 
@@ -3364,7 +3370,7 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_AvailLoader (self: AvailObject): AvailLoader?
 
-	abstract fun o_AvailLoader (self: AvailObject, loader: AvailLoader?)
+	abstract fun o_SetAvailLoader (self: AvailObject, loader: AvailLoader?)
 
 	abstract fun o_InterruptRequestFlag (
 		self: AvailObject,
@@ -3381,19 +3387,19 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_FiberResult (self: AvailObject): AvailObject
 
-	abstract fun o_FiberResult (self: AvailObject, result: A_BasicObject)
+	abstract fun o_SetFiberResult (self: AvailObject, result: A_BasicObject)
 
 	abstract fun o_JoiningFibers (self: AvailObject): A_Set
 
 	abstract fun o_WakeupTask (self: AvailObject): TimerTask?
 
-	abstract fun o_WakeupTask (self: AvailObject, task: TimerTask?)
+	abstract fun o_SetWakeupTask (self: AvailObject, task: TimerTask?)
 
-	abstract fun o_JoiningFibers (self: AvailObject, joiners: A_Set)
+	abstract fun o_SetJoiningFibers (self: AvailObject, joiners: A_Set)
 
 	abstract fun o_HeritableFiberGlobals (self: AvailObject): A_Map
 
-	abstract fun o_HeritableFiberGlobals (self: AvailObject, globals: A_Map)
+	abstract fun o_SetHeritableFiberGlobals (self: AvailObject, globals: A_Map)
 
 	abstract fun o_GeneralFlag (self: AvailObject, flag: GeneralFlag): Boolean
 
@@ -3558,7 +3564,7 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_TextInterface (self: AvailObject): TextInterface
 
-	abstract fun o_TextInterface (
+	abstract fun o_SetTextInterface (
 		self: AvailObject,
 		textInterface: TextInterface)
 
@@ -3625,7 +3631,7 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_ValueWasStablyComputed (self: AvailObject): Boolean
 
-	abstract fun o_ValueWasStablyComputed (
+	abstract fun o_SetValueWasStablyComputed (
 		self: AvailObject,
 		wasStablyComputed: Boolean)
 
@@ -3720,7 +3726,7 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_Lexer (self: AvailObject): A_Lexer
 
-	abstract fun o_SuspendingFunction (
+	abstract fun o_SetSuspendingFunction (
 		self: AvailObject,
 		suspendingFunction: A_Function)
 

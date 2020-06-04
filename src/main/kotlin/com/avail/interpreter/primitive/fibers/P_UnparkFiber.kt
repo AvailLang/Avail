@@ -77,7 +77,7 @@ object P_UnparkFiber : Primitive(1, CannotFail, CanInline, HasSideEffect)
 				when {
 					executionState() === PARKED -> {
 						// Wake up the fiber.
-						executionState(SUSPENDED)
+						setExecutionState(SUSPENDED)
 						val suspendingPrimitive =
 							suspendingFunction().code().primitive()!!
 						assert(suspendingPrimitive === P_ParkCurrentFiber

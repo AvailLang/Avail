@@ -71,7 +71,7 @@ object P_PrivateCreateModuleVariable
 		val variable = createGlobal(varType, module, name, isConstant)
 		if (stablyComputed)
 		{
-			variable.valueWasStablyComputed(true)
+			variable.setValueWasStablyComputed(true)
 		}
 		// The compiler should ensure this will always succeed.
 		if (isConstant)

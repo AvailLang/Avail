@@ -115,8 +115,8 @@ object P_ExecuteAttachedExternalProcess : Primitive(6, CanInline, HasSideEffect)
 		val newFiber = newFiber(TOP.o(), priority.extractInt()) {
 			stringFrom("External process execution")
 		}
-		newFiber.availLoader(current.availLoader())
-		newFiber.heritableFiberGlobals(
+		newFiber.setAvailLoader(current.availLoader())
+		newFiber.setHeritableFiberGlobals(
 			current.heritableFiberGlobals().makeShared())
 		newFiber.makeShared()
 		succeed.makeShared()
@@ -128,7 +128,7 @@ object P_ExecuteAttachedExternalProcess : Primitive(6, CanInline, HasSideEffect)
 		try
 		{
 			val process = builder.start()
-			newFiber.textInterface(
+			newFiber.setTextInterface(
 				TextInterface(
 					ProcessInputChannel(process.inputStream),
 					ProcessOutputChannel(PrintStream(process.outputStream)),
@@ -146,7 +146,7 @@ object P_ExecuteAttachedExternalProcess : Primitive(6, CanInline, HasSideEffect)
 		}
 
 		// Run the failure function on the new fiber.
-		newFiber.textInterface(current.textInterface())
+		newFiber.setTextInterface(current.textInterface())
 		runOutermostFunction(
 			runtime, newFiber, fail, listOf(error.numericCode()))
 		return interpreter.primitiveSuccess(newFiber)

@@ -128,7 +128,7 @@ object P_BootstrapPrefixEndOfBlockBody : Primitive(5, CanInline, Bootstrap)
 		fiberGlobals =
 			fiberGlobals.mapAtPuttingCanDestroy(
 				clientDataKey, clientData, true)
-		fiber.fiberGlobals(fiberGlobals.makeShared())
+		fiber.setFiberGlobals(fiberGlobals.makeShared())
 		return interpreter.primitiveSuccess(nil)
 	}
 

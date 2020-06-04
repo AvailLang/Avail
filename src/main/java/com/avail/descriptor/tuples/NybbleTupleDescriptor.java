@@ -536,7 +536,7 @@ extends NumericTupleDescriptor
 		// All clear.  Clobber the object in place...
 		final byte newNybble = ((A_Number)newValueObject).extractNybble();
 		setNybble(result, index, newNybble);
-		result.hashOrZero(0);
+		result.setHashOrZero(0);
 		//  ...invalidate the hash value. Probably cheaper than computing the
 		// difference or even testing for an actual change.
 		return result;
@@ -737,7 +737,7 @@ extends NumericTupleDescriptor
 	{
 		final AvailObject result = generateByteTupleFrom(
 			object.tupleSize(), index -> (short) getNybble(object, index));
-		result.hashOrZero(object.hashOrZero());
+		result.setHashOrZero(object.hashOrZero());
 		return result;
 	}
 

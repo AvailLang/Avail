@@ -38,7 +38,6 @@ import com.avail.descriptor.phrases.A_Phrase.Companion.markerValue
 import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKind
 import com.avail.descriptor.phrases.MarkerPhraseDescriptor.ObjectSlots.MARKER_VALUE
 import com.avail.descriptor.representation.A_BasicObject
-import com.avail.descriptor.representation.AbstractDescriptor
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
@@ -119,17 +118,17 @@ class MarkerPhraseDescriptor private constructor(
 	override fun o_ChildrenDo(
 		self: AvailObject,
 		action: (A_Phrase) -> Unit
-	): Unit = unsupportedOperation()
+	): Unit = unsupported
 
 	override fun o_ChildrenMap(
 		self: AvailObject,
 		transformer: (A_Phrase) -> A_Phrase
-	): Unit = unsupportedOperation()
+	): Unit = unsupported
 
 	override fun o_EmitValueOn(
 		self: AvailObject,
 		codeGenerator: AvailCodeGenerator
-	): Unit = unsupportedOperation()
+	): Unit = unsupported
 
 	override fun o_EqualsPhrase(
 		self: AvailObject,
@@ -155,19 +154,19 @@ class MarkerPhraseDescriptor private constructor(
 	 * change at some point.
 	 */
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
-		 unsupportedOperation()
+		 unsupported
 
 	override fun o_StatementsDo(
 		self: AvailObject,
 		continuation: (A_Phrase) -> Unit
-	): Unit = unsupportedOperation()
+	): Unit = unsupported
 
 	override fun o_Tokens(self: AvailObject): A_Tuple = emptyTuple()
 
 	override fun o_ValidateLocally(
 		self: AvailObject,
 		parent: A_Phrase?
-	): Unit = unsupportedOperation()
+	): Unit = unsupported
 
 	override fun mutable() = mutable
 

@@ -580,7 +580,7 @@ extends NumericTupleDescriptor
 			: newLike(mutable(), object, 0, 0);
 		result.setIntSlot(
 			RAW_LONG_AT_, index, ((A_Number)newValueObject).extractInt());
-		result.hashOrZero(0);
+		result.setHashOrZero(0);
 		return result;
 	}
 

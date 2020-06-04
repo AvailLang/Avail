@@ -84,12 +84,12 @@ object P_RemoveFiberVariable : Primitive(
 		}
 		if (heritable)
 		{
-			fiber.heritableFiberGlobals(
+			fiber.setHeritableFiberGlobals(
 				globals.mapWithoutKeyCanDestroy(key, true))
 		}
 		else
 		{
-			fiber.fiberGlobals(
+			fiber.setFiberGlobals(
 				globals.mapWithoutKeyCanDestroy(key, true))
 		}
 		return interpreter.primitiveSuccess(nil)

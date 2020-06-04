@@ -66,13 +66,13 @@ object P_SetFiberVariable : Primitive(
 		val fiber = interpreter.fiber()
 		if (key.getAtomProperty(HERITABLE_KEY.atom).equalsNil())
 		{
-			fiber.fiberGlobals(
+			fiber.setFiberGlobals(
 				fiber.fiberGlobals().mapAtPuttingCanDestroy(
 					key.makeImmutable(), value.makeImmutable(), true))
 		}
 		else
 		{
-			fiber.heritableFiberGlobals(
+			fiber.setHeritableFiberGlobals(
 				fiber.heritableFiberGlobals().mapAtPuttingCanDestroy(
 					key.makeImmutable(), value.makeImmutable(), true))
 		}

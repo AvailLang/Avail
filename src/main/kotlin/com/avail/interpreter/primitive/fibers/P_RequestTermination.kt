@@ -80,9 +80,9 @@ object P_RequestTermination : Primitive(
 						val task = wakeupTask()
 						if (task !== null) {
 							task.cancel()
-							wakeupTask(null)
+							setWakeupTask(null)
 						}
-						executionState(SUSPENDED)
+						setExecutionState(SUSPENDED)
 						val fiberSuspendingPrimitive =
 							suspendingFunction().code().primitive()!!
 						resumeFromSuccessfulPrimitive(
@@ -96,7 +96,7 @@ object P_RequestTermination : Primitive(
 						assert(!hadPermit) {
 							"Should not have been parked with a permit"
 						}
-						executionState(SUSPENDED)
+						setExecutionState(SUSPENDED)
 						val suspendingPrimitive =
 							suspendingFunction().code().primitive()!!
 						assert(suspendingPrimitive === P_ParkCurrentFiber

@@ -323,7 +323,7 @@ extends StringDescriptor
 				if (canDestroy && isMutable())
 				{
 					object.rawShortForCharacterAtPut(index, codePoint);
-					object.hashOrZero(0);
+					object.setHashOrZero(0);
 					return object;
 				}
 				// Clone it then modify the copy in place.

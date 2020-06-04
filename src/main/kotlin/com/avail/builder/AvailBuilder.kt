@@ -1107,8 +1107,8 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 			var fiberGlobals = fiber.fiberGlobals()
 			fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
 				CLIENT_DATA_GLOBAL_KEY.atom, emptyMap(), true)
-			fiber.fiberGlobals(fiberGlobals)
-			fiber.textInterface(textInterface)
+			fiber.setFiberGlobals(fiberGlobals)
+			fiber.setTextInterface(textInterface)
 			fiber.setSuccessAndFailure(
 				{ result -> onSuccess(result, postSuccessCleanup) },
 				{ e ->

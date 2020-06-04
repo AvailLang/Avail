@@ -425,7 +425,7 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 	override fun o_StatementsDo(
 		self: AvailObject,
 		continuation: (A_Phrase) -> Unit
-	) = unsupportedOperation()
+	) = unsupported
 
 	override fun o_Tokens(self: AvailObject): A_Tuple = self.slot(TOKENS)
 

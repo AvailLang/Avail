@@ -878,8 +878,8 @@ class Interpreter(
 		val aFiber = fiber()
 		aFiber.lock {
 			assert(aFiber.executionState() === RUNNING)
-			aFiber.executionState(state)
-			aFiber.continuation(getReifiedContinuation()!!)
+			aFiber.setExecutionState(state)
+			aFiber.setContinuation(getReifiedContinuation()!!)
 			setReifiedContinuation(null)
 			val bound = aFiber.getAndSetSynchronizationFlag(
 				BOUND, false)
@@ -914,7 +914,7 @@ class Interpreter(
 	fun primitiveSuspend(suspendingFunction: A_Function): Result {
 		val prim = suspendingFunction.code().primitive()!!
 		assert(prim.hasFlag(CanSuspend))
-		fiber().suspendingFunction(suspendingFunction)
+		fiber().setSuspendingFunction(suspendingFunction)
 		function = null // Safety
 		return primitiveSuspend(SUSPENDED)
 	}
@@ -931,7 +931,7 @@ class Interpreter(
 	 *   [Result.FIBER_SUSPENDED], for convenience.
 	 */
 	fun primitivePark(suspendingFunction: A_Function): Result {
-		fiber().suspendingFunction(suspendingFunction)
+		fiber().setSuspendingFunction(suspendingFunction)
 		return primitiveSuspend(PARKED)
 	}
 
@@ -954,9 +954,9 @@ class Interpreter(
 		val aFiber = fiber()
 		aFiber.lock {
 			assert(aFiber.executionState() === RUNNING)
-			aFiber.executionState(state)
-			aFiber.continuation(nil)
-			aFiber.fiberResult(finalObject)
+			aFiber.setExecutionState(state)
+			aFiber.setContinuation(nil)
+			aFiber.setFiberResult(finalObject)
 			val bound = aFiber.getAndSetSynchronizationFlag(
 				BOUND, false)
 			assert(bound)
@@ -975,7 +975,7 @@ class Interpreter(
 		postExitContinuation {
 			val joining = aFiber.lock {
 				val temp: A_Set = aFiber.joiningFibers().makeShared()
-				aFiber.joiningFibers(nil)
+				aFiber.setJoiningFibers(nil)
 				temp
 			}
 			// Wake up all fibers trying to join this one.
@@ -992,7 +992,7 @@ class Interpreter(
 						// in the public joining methods should normally deal
 						// with spurious unparks, but there's no mechanism yet
 						// to eject the stale joiner from the set.
-						joiner.executionState(SUSPENDED)
+						joiner.setExecutionState(SUSPENDED)
 						val suspended =
 							joiner.suspendingFunction().code().primitive()!!
 						assert(suspended === P_AttemptJoinFiber
@@ -1318,8 +1318,8 @@ class Interpreter(
 		aFiber.lock {
 			synchronized(aFiber) {
 				assert(aFiber.executionState() === RUNNING)
-				aFiber.executionState(INTERRUPTED)
-				aFiber.continuation(continuation)
+				aFiber.setExecutionState(INTERRUPTED)
+				aFiber.setContinuation(continuation)
 				if (aFiber.getAndClearInterruptRequestFlag(
 					REIFICATION_REQUESTED))
 				{
@@ -2750,7 +2750,7 @@ class Interpreter(
 				interpreter.chunk = con.levelTwoChunk()
 				interpreter.offset = con.levelTwoOffset()
 				interpreter.levelOneStepper.wipeRegisters()
-				aFiber.continuation(nil)
+				aFiber.setContinuation(nil)
 			}
 		}
 
@@ -2766,7 +2766,7 @@ class Interpreter(
 		 *   The fiber to run.
 		 * @param resumingPrimitive
 		 *   The suspended primitive that is resuming.  This must agree with the
-		 *   fiber's [A_Fiber.suspendingFunction]'s raw function's primitive.
+		 *   fiber's [A_Fiber.setSuspendingFunction]'s raw function's primitive.
 		 * @param result
 		 *   The result of the primitive.
 		 */
@@ -2806,7 +2806,7 @@ class Interpreter(
 					interpreter.offset = continuation.levelTwoOffset()
 					// Clear the fiber's continuation slot while it's
 					// active.
-					aFiber.continuation(nil)
+					aFiber.setContinuation(nil)
 				}
 			}
 		}
@@ -2847,7 +2847,7 @@ class Interpreter(
 				assert(args.size == code.numArgs())
 				assert(interpreter.getReifiedContinuation() === null)
 				interpreter.setReifiedContinuation(aFiber.continuation())
-				aFiber.continuation(nil)
+				aFiber.setContinuation(nil)
 				interpreter.function = failureFunction
 				interpreter.argsBuffer.clear()
 				interpreter.argsBuffer.addAll(args)
@@ -2891,7 +2891,7 @@ class Interpreter(
 			val fiber =
 				newFiber(stringType(), stringificationPriority)
 				{ stringFrom("Stringification") }
-			fiber.textInterface(textInterface)
+			fiber.setTextInterface(textInterface)
 			fiber.setSuccessAndFailure(
 				{ string: AvailObject ->
 					continuation(string.asNativeString())

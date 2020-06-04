@@ -584,7 +584,7 @@ interface A_BasicObject : JSONFriendly {
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	fun hashOrZero(value: Int)
+	fun setHashOrZero(value: Int)
 
 	/**
 	 * Dispatch to the descriptor.
@@ -801,11 +801,6 @@ interface A_BasicObject : JSONFriendly {
 	 * Dispatch to the descriptor.
 	 */
 	fun kind(): A_Type
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	fun value(value: A_BasicObject)
 
 	/**
 	 * @return

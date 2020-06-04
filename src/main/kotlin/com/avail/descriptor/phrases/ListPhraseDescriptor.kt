@@ -44,7 +44,6 @@ package com.avail.descriptor.phrases
  import com.avail.descriptor.phrases.ListPhraseDescriptor.ObjectSlots.TUPLE_TYPE
  import com.avail.descriptor.representation.A_BasicObject
  import com.avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
- import com.avail.descriptor.representation.AbstractDescriptor
  import com.avail.descriptor.representation.AbstractSlotsEnum
  import com.avail.descriptor.representation.AvailObject
  import com.avail.descriptor.representation.Mutability
@@ -232,7 +231,7 @@ class ListPhraseDescriptor private constructor(
 	override fun o_StatementsDo(
 		self: AvailObject,
 		continuation: (A_Phrase) -> Unit
-	): Unit = unsupportedOperation()
+	): Unit = unsupported
 
 	override fun o_PhraseKind(self: AvailObject): PhraseKind =
 		PhraseKind.LIST_PHRASE

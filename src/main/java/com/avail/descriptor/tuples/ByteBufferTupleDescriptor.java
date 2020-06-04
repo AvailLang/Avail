@@ -361,7 +361,7 @@ extends NumericTupleDescriptor
 			(byte) ((A_Number)newValueObject).extractUnsignedByte();
 		final ByteBuffer buffer = object.slot(BYTE_BUFFER).javaObjectNotNull();
 		buffer.put(index - 1, theByte);
-		object.hashOrZero(0);
+		object.setHashOrZero(0);
 		//  ...invalidate the hash value.
 		return object;
 	}
@@ -391,7 +391,7 @@ extends NumericTupleDescriptor
 		final ByteBuffer originalBuffer = object.byteBuffer();
 		final AvailObject result = generateByteTupleFrom(
 			size,  i -> (short) (originalBuffer.get(size - i) & 255));
-		result.hashOrZero(0);
+		result.setHashOrZero(0);
 		return result;
 	}
 
@@ -486,7 +486,7 @@ extends NumericTupleDescriptor
 			{
 				object.assertObjectUnreachableIfMutable();
 			}
-			result.hashOrZero(0);
+			result.setHashOrZero(0);
 			return result;
 		}
 		return super.o_CopyTupleFromToCanDestroy(

@@ -94,7 +94,7 @@ object P_Assert : Primitive(2, Unknown, CanSuspend, CannotFail)
 					postfix = "\n\n"
 				) { "\n\t-- $it" })
 			killer.fillInStackTrace()
-			fiber.executionState(ExecutionState.ABORTED)
+			fiber.setExecutionState(ExecutionState.ABORTED)
 			fiber.failureContinuation()(killer)
 		}
 		return FIBER_SUSPENDED

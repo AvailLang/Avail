@@ -195,7 +195,7 @@ class SendPhraseDescriptor private constructor(
 	override fun o_StatementsDo(
 		self: AvailObject,
 		continuation: (A_Phrase) -> Unit
-	): Unit = unsupportedOperation()
+	): Unit = unsupported
 
 	override fun o_Tokens(self: AvailObject): A_Tuple = self.slot(TOKENS)
 

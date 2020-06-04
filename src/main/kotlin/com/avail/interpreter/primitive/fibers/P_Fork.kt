@@ -112,12 +112,12 @@ object P_Fork : Primitive(
 		}
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.
-		newFiber.availLoader(current.availLoader())
+		newFiber.setAvailLoader(current.availLoader())
 		// Share and inherit any heritable variables.
-		newFiber.heritableFiberGlobals(
+		newFiber.setHeritableFiberGlobals(
 			current.heritableFiberGlobals().makeShared())
 		// Inherit the fiber's text interface.
-		newFiber.textInterface(current.textInterface())
+		newFiber.setTextInterface(current.textInterface())
 		// Schedule the fiber to run the specified function. Share the fiber,
 		// since it will be visible to the caller.
 		newFiber.makeShared()

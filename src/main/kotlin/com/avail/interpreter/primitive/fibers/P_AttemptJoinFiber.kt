@@ -114,7 +114,7 @@ object P_AttemptJoinFiber : Primitive(
 			// no longer in the joinee's set – in fact, the set will have been
 			// replaced by nil.  The attempt to remove the joiner from the set
 			// is simply skipped in that case.
-			joinee.joiningFibers(
+			joinee.setJoiningFibers(
 				joinee.joiningFibers().setWithElementCanDestroy(
 					current, false))
 			false

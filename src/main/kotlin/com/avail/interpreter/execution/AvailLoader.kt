@@ -434,7 +434,7 @@ class AvailLoader(
 							.message().atomName(),
 						codePoint)
 				}.apply {
-					textInterface(loader.textInterface)
+					setTextInterface(loader.textInterface)
 					lexingState.setFiberContinuationsTrackingWork(
 						this@apply,
 						{ boolValue: AvailObject ->
@@ -1253,7 +1253,7 @@ class AvailLoader(
 						size,
 						module().moduleName())
 				}
-				fiber.textInterface(textInterface)
+				fiber.setTextInterface(textInterface)
 				fiber.setSuccessAndFailure(
 					{ again() },
 					{ again() })

@@ -60,7 +60,6 @@ import com.avail.descriptor.methods.MethodDescriptor.Companion.newMethod
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.objects.ObjectTypeDescriptor
 import com.avail.descriptor.representation.A_BasicObject
-import com.avail.descriptor.representation.AbstractDescriptor
 import com.avail.descriptor.representation.AbstractSlotsEnum
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.BitField
@@ -358,7 +357,7 @@ open class AtomDescriptor protected constructor(
 	@Deprecated(
 		"Shared atoms are implemented in subclasses",
 		level = DeprecationLevel.HIDDEN)
-	override fun shared() = unsupportedOperation()
+	override fun shared() = unsupported
 
 	/**
 	 * `SpecialAtom` enumerates [atoms][A_Atom] that are known to the virtual

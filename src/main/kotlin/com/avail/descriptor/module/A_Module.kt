@@ -307,7 +307,7 @@ interface A_Module : A_BasicObject
 	 *
 	 * @param versionStrings A set of version strings.
 	 */
-	fun versions(versionStrings: A_Set)
+	fun setVersions(versionStrings: A_Set)
 
 	/**
 	 * Dispatch to the descriptor.

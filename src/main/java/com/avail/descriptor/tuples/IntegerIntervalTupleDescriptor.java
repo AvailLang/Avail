@@ -339,7 +339,7 @@ extends NumericTupleDescriptor
 					{
 						object.setSlot(END, otherDirect.slot(END));
 						object.setSlot(SIZE, newSize);
-						object.hashOrZero(0);
+						object.setHashOrZero(0);
 						return object;
 					}
 					// Or the other one.
@@ -347,7 +347,7 @@ extends NumericTupleDescriptor
 					{
 						otherDirect.setSlot(START, object.slot(START));
 						otherDirect.setSlot(SIZE, newSize);
-						otherDirect.hashOrZero(0);
+						otherDirect.setHashOrZero(0);
 						return otherDirect;
 					}
 

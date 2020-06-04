@@ -309,7 +309,7 @@ extends StringDescriptor
 					? object
 					: newLike(mutable(), object, 0, 0);
 				result.setByteSlot(RAW_LONGS_, index, (short) codePoint);
-				result.hashOrZero(0);
+				result.setHashOrZero(0);
 				return result;
 			}
 			if ((codePoint & 0xFFFF) == codePoint)
@@ -551,7 +551,7 @@ extends StringDescriptor
 		final AvailObject object)
 	{
 		final A_String result = mutableTwoByteStringOfSize(object.tupleSize());
-		result.hashOrZero(object.hashOrZero());
+		result.setHashOrZero(object.hashOrZero());
 		for (int i = 1, end = object.tupleSize(); i <= end; i++)
 		{
 			result.rawShortForCharacterAtPut(

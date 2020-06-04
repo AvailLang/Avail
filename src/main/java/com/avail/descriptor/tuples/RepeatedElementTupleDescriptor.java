@@ -279,14 +279,14 @@ extends TupleDescriptor
 				if (isMutable())
 				{
 					object.setSlot(SIZE, newSize);
-					object.hashOrZero(0);
+					object.setHashOrZero(0);
 					return object;
 				}
 				// Or the other one.
 				if (otherTuple.descriptor().isMutable())
 				{
 					otherDirect.setSlot(SIZE, newSize);
-					otherDirect.hashOrZero(0);
+					otherDirect.setHashOrZero(0);
 					return otherDirect;
 				}
 

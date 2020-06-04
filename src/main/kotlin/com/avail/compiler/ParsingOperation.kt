@@ -1326,7 +1326,7 @@ enum class ParsingOperation constructor(
 	 * N<sup>th</sup> prefix function associated with the macro.  Consume the
 	 * previously pushed copy of the parse stack.  The current [ParserState]'s
 	 * [ParserState.clientDataMap] is stashed in the new
-	 * [fiber][FiberDescriptor]'s [globals&#32;map][AvailObject.fiberGlobals]
+	 * [fiber][FiberDescriptor]'s [globals&#32;map][AvailObject.setFiberGlobals]
 	 * and retrieved afterward, so the prefix function and macros can alter the
 	 * scope or communicate with each other by manipulating this
 	 * [map][MapDescriptor].  This technique prevents chatter between separate

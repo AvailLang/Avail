@@ -116,10 +116,10 @@ object P_FileSync : Primitive(4, CanInline, HasSideEffect)
 				StringDescriptor.stringFrom(
 					"Asynchronous file sync, ${handle.filename}")
 			}
-		newFiber.availLoader(current.availLoader())
-		newFiber.heritableFiberGlobals(
+		newFiber.setAvailLoader(current.availLoader())
+		newFiber.setHeritableFiberGlobals(
 			current.heritableFiberGlobals().makeShared())
-		newFiber.textInterface(current.textInterface())
+		newFiber.setTextInterface(current.textInterface())
 		newFiber.makeShared()
 		succeed.makeShared()
 		fail.makeShared()

@@ -36,15 +36,7 @@ import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.character.A_Character;
-import com.avail.descriptor.representation.A_BasicObject;
-import com.avail.descriptor.representation.AbstractSlotsEnum;
-import com.avail.descriptor.representation.AvailObject;
-import com.avail.descriptor.representation.BitField;
-import com.avail.descriptor.representation.Descriptor;
-import com.avail.descriptor.representation.IndirectionDescriptor;
-import com.avail.descriptor.representation.IntegerSlotsEnum;
-import com.avail.descriptor.representation.Mutability;
-import com.avail.descriptor.representation.ObjectSlotsEnum;
+import com.avail.descriptor.representation.*;
 import com.avail.descriptor.sets.A_Set;
 import com.avail.descriptor.types.A_Type;
 import com.avail.descriptor.types.BottomTypeDescriptor;
@@ -140,7 +132,7 @@ extends Descriptor
 	}
 
 	@Override
-	public final void o_HashOrZero (final AvailObject object, final int value)
+	public final void o_SetHashOrZero (final AvailObject object, final int value)
 	{
 		if (isShared())
 		{
@@ -487,7 +479,7 @@ extends Descriptor
 		if (hash == 0 && object.tupleSize() > 0)
 		{
 			hash = computeHashForObject(object);
-			object.hashOrZero(hash);
+			object.setHashOrZero(hash);
 		}
 		return hash;
 	}
@@ -1091,7 +1083,7 @@ extends Descriptor
 		final int size = object.tupleSize();
 		final AvailObject result = generateIntTupleFrom(
 			size, object::tupleIntAt);
-		result.hashOrZero(object.hashOrZero());
+		result.setHashOrZero(object.hashOrZero());
 		return result;
 	}
 
@@ -1104,7 +1096,7 @@ extends Descriptor
 		final int size = object.tupleSize();
 		final AvailObject result = generateObjectTupleFrom(
 			size, object::tupleAt);
-		result.hashOrZero(object.hashOrZero());
+		result.setHashOrZero(object.hashOrZero());
 		return result;
 	}
 

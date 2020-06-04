@@ -396,7 +396,7 @@ internal class BuildLoader constructor(
 							code.module().moduleName(),
 							code.startingLineNumber())
 					}
-					fiber.textInterface(availBuilder.textInterface)
+					fiber.setTextInterface(availBuilder.textInterface)
 					val before = captureNanos()
 					fiber.setSuccessAndFailure(
 						{

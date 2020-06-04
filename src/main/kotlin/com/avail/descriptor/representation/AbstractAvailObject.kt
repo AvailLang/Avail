@@ -64,6 +64,7 @@ abstract class AbstractAvailObject protected constructor(
 	 * including how its fields are laid out.
 	 */
 	@field:Volatile
+	@JvmField
 	protected var currentDescriptor = initialDescriptor
 
 	/** Retrieve this object's current [descriptor][AbstractDescriptor]. */

@@ -155,7 +155,7 @@ class SuperCastPhraseDescriptor private constructor(
 	override fun o_StatementsDo(
 		self: AvailObject,
 		continuation: (A_Phrase) -> Unit
-	): Unit = unsupportedOperation()
+	): Unit = unsupported
 
 	override fun o_SuperUnionType(self: AvailObject): A_Type =
 		self.slot(TYPE_FOR_LOOKUP)

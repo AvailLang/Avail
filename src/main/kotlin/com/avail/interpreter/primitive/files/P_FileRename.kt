@@ -113,10 +113,10 @@ object P_FileRename : Primitive(6, CanInline, HasSideEffect)
 			StringDescriptor.stringFrom(
 				"Asynchronous file rename, $sourcePath → $destinationPath")
 		}
-		newFiber.availLoader(current.availLoader())
-		newFiber.heritableFiberGlobals(
+		newFiber.setAvailLoader(current.availLoader())
+		newFiber.setHeritableFiberGlobals(
 			current.heritableFiberGlobals().makeShared())
-		newFiber.textInterface(current.textInterface())
+		newFiber.setTextInterface(current.textInterface())
 		newFiber.makeShared()
 		succeed.makeShared()
 		fail.makeShared()

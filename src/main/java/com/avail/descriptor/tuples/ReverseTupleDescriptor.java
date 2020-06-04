@@ -151,7 +151,7 @@ extends TupleDescriptor
 		{
 			final AvailObject treeTuple =
 				internalTreeReverse(object.slot(ORIGIN_TUPLE));
-			treeTuple.hashOrZero(object.slot(HASH_OR_ZERO));
+			treeTuple.setHashOrZero(object.slot(HASH_OR_ZERO));
 			object.becomeIndirectionTo(treeTuple);
 			return treeTuple.childAt(childIndex);
 		}
@@ -396,7 +396,7 @@ extends TupleDescriptor
 			return createReverseTuple(innerTuple);
 		}
 		object.setSlot(ORIGIN_TUPLE, innerTuple);
-		object.hashOrZero(0);
+		object.setHashOrZero(0);
 		return object;
 	}
 

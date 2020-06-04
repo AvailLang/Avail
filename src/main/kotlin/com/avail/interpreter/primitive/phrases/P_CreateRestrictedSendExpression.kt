@@ -247,10 +247,10 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 						"Semantic restriction checker (#$finalCount) " +
 							"for primitive ${this.javaClass.simpleName}")
 				}
-				forkedFiber.availLoader(loader)
-				forkedFiber.heritableFiberGlobals(
+				forkedFiber.setAvailLoader(loader)
+				forkedFiber.setHeritableFiberGlobals(
 					originalFiber.heritableFiberGlobals())
-				forkedFiber.textInterface(originalFiber.textInterface())
+				forkedFiber.setTextInterface(originalFiber.textInterface())
 				forkedFiber.setSuccessAndFailure(
 					success,
 					{ throwable ->

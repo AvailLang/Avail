@@ -630,7 +630,7 @@ class FiberDescriptor private constructor(
 	override fun o_ExecutionState(self: AvailObject): ExecutionState =
 		ExecutionState.lookup(self.mutableSlot(EXECUTION_STATE).toInt())
 
-	override fun o_ExecutionState(self: AvailObject, value: ExecutionState) =
+	override fun o_SetExecutionState(self: AvailObject, value: ExecutionState) =
 		synchronized(self) {
 			val index = self.mutableSlot(EXECUTION_STATE).toInt()
 			val current = ExecutionState.lookup(index)
@@ -640,7 +640,7 @@ class FiberDescriptor private constructor(
 
 	override fun o_Priority(self: AvailObject): Int = self.mutableSlot(PRIORITY)
 
-	override fun o_Priority(self: AvailObject, value: Int) =
+	override fun o_SetPriority(self: AvailObject, value: Int) =
 		self.setMutableSlot(PRIORITY, value)
 
 	override fun o_UniqueId(self: AvailObject): Long =
@@ -714,7 +714,7 @@ class FiberDescriptor private constructor(
 	 * Use a special setter mechanism that allows the continuation to be
 	 * non-shared, even if the fiber it's to be plugged into is shared.
 	 */
-	override fun o_Continuation(self: AvailObject, value: A_Continuation) =
+	override fun o_SetContinuation(self: AvailObject, value: A_Continuation) =
 		self.setContinuationSlotOfFiber(CONTINUATION, value)
 
 	override fun o_FiberName(self: AvailObject): A_String
@@ -743,19 +743,19 @@ class FiberDescriptor private constructor(
 	override fun o_FiberGlobals(self: AvailObject): A_Map =
 		self.mutableSlot(FIBER_GLOBALS)
 
-	override fun o_FiberGlobals(self: AvailObject, globals: A_Map) =
+	override fun o_SetFiberGlobals(self: AvailObject, globals: A_Map) =
 		self.setMutableSlot(FIBER_GLOBALS, globals)
 
 	override fun o_FiberResult(self: AvailObject): AvailObject =
 		self.mutableSlot(RESULT)
 
-	override fun o_FiberResult(self: AvailObject, result: A_BasicObject) =
+	override fun o_SetFiberResult(self: AvailObject, result: A_BasicObject) =
 		self.setMutableSlot(RESULT, result)
 
 	override fun o_HeritableFiberGlobals(self: AvailObject): A_Map =
 		self.mutableSlot(HERITABLE_FIBER_GLOBALS)
 
-	override fun o_HeritableFiberGlobals(
+	override fun o_SetHeritableFiberGlobals(
 		self: AvailObject,
 		globals: A_Map
 	) = self.setMutableSlot(HERITABLE_FIBER_GLOBALS, globals)
@@ -763,7 +763,7 @@ class FiberDescriptor private constructor(
 	override fun o_BreakpointBlock(self: AvailObject): A_BasicObject =
 		self.mutableSlot(BREAKPOINT_BLOCK)
 
-	override fun o_BreakpointBlock(self: AvailObject, value: AvailObject) =
+	override fun o_SetBreakpointBlock(self: AvailObject, value: AvailObject) =
 		self.setMutableSlot(BREAKPOINT_BLOCK, value)
 
 	override fun o_AvailLoader(self: AvailObject): AvailLoader? {
@@ -773,7 +773,7 @@ class FiberDescriptor private constructor(
 		} else null
 	}
 
-	override fun o_AvailLoader(
+	override fun o_SetAvailLoader(
 		self: AvailObject,
 		loader: AvailLoader?
 	) = self.setMutableSlot(
@@ -822,7 +822,7 @@ class FiberDescriptor private constructor(
 	override fun o_JoiningFibers(self: AvailObject): A_Set =
 		self.mutableSlot(JOINING_FIBERS)
 
-	override fun o_JoiningFibers(self: AvailObject, joiners: A_Set) =
+	override fun o_SetJoiningFibers(self: AvailObject, joiners: A_Set) =
 		self.setMutableSlot(JOINING_FIBERS, joiners)
 
 	override fun o_WakeupTask(self: AvailObject): TimerTask? {
@@ -832,7 +832,7 @@ class FiberDescriptor private constructor(
 		} else null
 	}
 
-	override fun o_WakeupTask(
+	override fun o_SetWakeupTask(
 		self: AvailObject,
 		task: TimerTask?
 	) = self.setMutableSlot(
@@ -842,7 +842,7 @@ class FiberDescriptor private constructor(
 	override fun o_TextInterface(self: AvailObject): TextInterface =
 		self.mutableSlot(TEXT_INTERFACE).javaObjectNotNull()
 
-	override fun o_TextInterface(
+	override fun o_SetTextInterface(
 		self: AvailObject,
 		textInterface: TextInterface
 	) = self.setMutableSlot(TEXT_INTERFACE, identityPojo(textInterface))
@@ -964,7 +964,7 @@ class FiberDescriptor private constructor(
 		writer.endObject()
 	}
 
-	override fun o_SuspendingFunction(
+	override fun o_SetSuspendingFunction(
 		self: AvailObject,
 		suspendingFunction: A_Function
 	) {
@@ -1126,7 +1126,7 @@ class FiberDescriptor private constructor(
 				compilerScopeMapKey, bindings, true)
 			fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
 				clientDataGlobalKey, clientData, true)
-			fiber.fiberGlobals(fiberGlobals.makeShared())
+			fiber.setFiberGlobals(fiberGlobals.makeShared())
 			return null
 		}
 

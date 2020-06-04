@@ -129,12 +129,12 @@ object P_DelayedForkOrphan : Primitive(
 		}
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.
-		orphan.availLoader(current.availLoader())
+		orphan.setAvailLoader(current.availLoader())
 		// Share and inherit any heritable variables.
-		orphan.heritableFiberGlobals(
+		orphan.setHeritableFiberGlobals(
 			current.heritableFiberGlobals().makeShared())
 		// Inherit the fiber's text interface.
-		orphan.textInterface(current.textInterface())
+		orphan.setTextInterface(current.textInterface())
 		// If the requested sleep time is 0 milliseconds, then fork immediately.
 		val runtime = currentRuntime()
 		if (sleepMillis.equalsInt(0))

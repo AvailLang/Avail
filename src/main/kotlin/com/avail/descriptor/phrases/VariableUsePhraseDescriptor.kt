@@ -184,7 +184,7 @@ class VariableUsePhraseDescriptor private constructor(
 	override fun o_StatementsDo(
 		self: AvailObject,
 		continuation: (A_Phrase) -> Unit
-	): Unit = unsupportedOperation()
+	): Unit = unsupported
 
 	override fun o_Token(self: AvailObject): A_Token = self.slot(USE_TOKEN)
 

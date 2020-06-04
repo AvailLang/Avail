@@ -1005,7 +1005,7 @@ class CompiledCodeDescriptor private constructor(
 			Int,
 			A_Tuple,
 			A_Phrase"""))
-	override fun mutable() = unsupportedOperation()
+	override fun mutable() = unsupported
 
 	@Deprecated(
 		"Not supported",
@@ -1022,7 +1022,7 @@ class CompiledCodeDescriptor private constructor(
 			Int,
 			A_Tuple,
 			A_Phrase"""))
-	override fun immutable() = unsupportedOperation()
+	override fun immutable() = unsupported
 
 	@Deprecated(
 		"Not supported",
@@ -1039,7 +1039,7 @@ class CompiledCodeDescriptor private constructor(
 			Int,
 			A_Tuple,
 			A_Phrase"""))
-	override fun shared() = unsupportedOperation()
+	override fun shared() = unsupported
 
 	companion object {
 		/** The set of all active [raw functions][CompiledCodeDescriptor]. */

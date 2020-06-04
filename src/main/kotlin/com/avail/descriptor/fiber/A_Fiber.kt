@@ -77,7 +77,7 @@ interface A_Fiber : A_BasicObject {
 	/**
 	 * @param loader
 	 */
-	fun availLoader(loader: AvailLoader?)
+	fun setAvailLoader(loader: AvailLoader?)
 
 	/**
 	 * Dispatch to the descriptor.
@@ -87,7 +87,7 @@ interface A_Fiber : A_BasicObject {
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	fun breakpointBlock(value: AvailObject)
+	fun setBreakpointBlock(value: AvailObject)
 
 	/**
 	 * @param flag
@@ -102,7 +102,7 @@ interface A_Fiber : A_BasicObject {
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	fun continuation(value: A_Continuation)
+	fun setContinuation(value: A_Continuation)
 
 	/**
 	 * Dispatch to the descriptor.
@@ -117,7 +117,7 @@ interface A_Fiber : A_BasicObject {
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	fun executionState(value: ExecutionState)
+	fun setExecutionState(value: ExecutionState)
 
 	/**
 	 * @return
@@ -132,7 +132,7 @@ interface A_Fiber : A_BasicObject {
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	fun fiberGlobals(value: A_Map)
+	fun setFiberGlobals(value: A_Map)
 
 	/**
 	 * @return
@@ -152,7 +152,7 @@ interface A_Fiber : A_BasicObject {
 	/**
 	 * @param result
 	 */
-	fun fiberResult(result: A_BasicObject)
+	fun setFiberResult(result: A_BasicObject)
 
 	/**
 	 * @return
@@ -204,7 +204,7 @@ interface A_Fiber : A_BasicObject {
 	/**
 	 * @param globals
 	 */
-	fun heritableFiberGlobals(globals: A_Map)
+	fun setHeritableFiberGlobals(globals: A_Map)
 
 	/**
 	 * @param flag
@@ -220,7 +220,7 @@ interface A_Fiber : A_BasicObject {
 	/**
 	 * @param joiners
 	 */
-	fun joiningFibers(joiners: A_Set)
+	fun setJoiningFibers(joiners: A_Set)
 
 	/**
 	 * Answer this fiber's current priority.
@@ -236,7 +236,7 @@ interface A_Fiber : A_BasicObject {
 	 * @param value
 	 *   The new priority.
 	 */
-	fun priority(value: Int)
+	fun setPriority(value: Int)
 
 	/**
 	 * @return
@@ -276,7 +276,7 @@ interface A_Fiber : A_BasicObject {
 	/**
 	 * @param task
 	 */
-	fun wakeupTask(task: TimerTask?)
+	fun setWakeupTask(task: TimerTask?)
 
 	/**
 	 * Record access of the specified [variable][VariableDescriptor] by this
@@ -349,7 +349,7 @@ interface A_Fiber : A_BasicObject {
 	 * @param textInterface
 	 *   A text interface.
 	 */
-	fun textInterface(textInterface: TextInterface)
+	fun setTextInterface(textInterface: TextInterface)
 
 	/**
 	 * Answer the unique identifier of this `A_Fiber fiber`.
@@ -365,7 +365,7 @@ interface A_Fiber : A_BasicObject {
 	 * @param suspendingFunction
 	 *   The function that's suspending the fiber.
 	 */
-	fun suspendingFunction(suspendingFunction: A_Function)
+	fun setSuspendingFunction(suspendingFunction: A_Function)
 
 	/**
 	 * Answer the [A_Function] that was saved in the fiber when it was

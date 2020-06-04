@@ -139,7 +139,7 @@ implements Comparable<AvailTask>, Runnable
 				final boolean wasScheduled =
 					fiber.getAndSetSynchronizationFlag(SCHEDULED, false);
 				assert wasScheduled;
-				fiber.executionState(RUNNING);
+				fiber.setExecutionState(RUNNING);
 				interpreter.fiber(fiber, "forFiberResumption");
 				return Unit.INSTANCE;
 			});
@@ -160,10 +160,10 @@ implements Comparable<AvailTask>, Runnable
 				}
 				else
 				{
-					fiber.executionState(ABORTED);
+					fiber.setExecutionState(ABORTED);
 				}
 				fiber.failureContinuation().invoke(e);
-				fiber.executionState(RETIRED);
+				fiber.setExecutionState(RETIRED);
 				interpreter.runtime().unregisterFiber(fiber);
 			}
 			catch (final Throwable e)
@@ -190,7 +190,7 @@ implements Comparable<AvailTask>, Runnable
 				if (fiber.executionState() == TERMINATED)
 				{
 					fiber.resultContinuation().invoke(fiber.fiberResult());
-					fiber.executionState(RETIRED);
+					fiber.setExecutionState(RETIRED);
 					interpreter.runtime().unregisterFiber(fiber);
 				}
 				return Unit.INSTANCE;
@@ -238,7 +238,7 @@ implements Comparable<AvailTask>, Runnable
 				// If execution failed for any reason, then terminate the
 				// fiber and invoke its failure continuation with the
 				// throwable.
-				fiber.executionState(ABORTED);
+				fiber.setExecutionState(ABORTED);
 				fiber.failureContinuation().invoke(e);
 			}
 			assert Interpreter.current().fiberOrNull() == null;

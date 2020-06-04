@@ -453,7 +453,7 @@ open class VariableDescriptor protected constructor(
 	{
 		assert(!isShared)
 		assert(false) { "Chunk removed but not added!" }
-		unsupportedOperation()
+		unsupported
 	}
 
 	override fun o_AddWriteReactor(

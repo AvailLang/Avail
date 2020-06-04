@@ -306,7 +306,7 @@ class VariableSharedGlobalDescriptor private constructor(
 
 	override fun o_IsInitializedWriteOnceVariable(self: AvailObject) = writeOnce
 
-	override fun o_ValueWasStablyComputed(
+	override fun o_SetValueWasStablyComputed(
 		self: AvailObject, wasStablyComputed: Boolean)
 	{
 		// Only meaningful for write-once variables.

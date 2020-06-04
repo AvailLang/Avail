@@ -107,7 +107,7 @@ object P_EmergencyExit : Primitive(
 			builder.append("\n\n")
 			val killer = AvailEmergencyExitException(builder.toString())
 			killer.fillInStackTrace()
-			fiber.executionState(ExecutionState.ABORTED)
+			fiber.setExecutionState(ExecutionState.ABORTED)
 			fiber.failureContinuation()(killer)
 			// If we're still here, the handler didn't do anything with the
 			// exception.  Output it and throw it as a runtime exception.

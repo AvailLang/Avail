@@ -306,7 +306,7 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 	override fun o_Versions(self: AvailObject): A_Set =
 		synchronized(self) { return self.slot(VERSIONS) }
 
-	override fun o_Versions(self: AvailObject, versionStrings: A_Set)
+	override fun o_SetVersions(self: AvailObject, versionStrings: A_Set)
 	{
 		synchronized(self) {
 			self.setSlot(VERSIONS, versionStrings.traversed().makeShared())

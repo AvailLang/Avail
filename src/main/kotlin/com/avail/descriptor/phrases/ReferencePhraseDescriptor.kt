@@ -49,7 +49,6 @@ package com.avail.descriptor.phrases
  import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.PRIMITIVE_FAILURE_REASON
  import com.avail.descriptor.phrases.ReferencePhraseDescriptor.ObjectSlots.VARIABLE
  import com.avail.descriptor.representation.A_BasicObject
- import com.avail.descriptor.representation.AbstractDescriptor
  import com.avail.descriptor.representation.AvailObject
  import com.avail.descriptor.representation.AvailObject.Companion.error
  import com.avail.descriptor.representation.Mutability
@@ -154,7 +153,7 @@ class ReferencePhraseDescriptor(
 	override fun o_StatementsDo(
 		self: AvailObject,
 		continuation: (A_Phrase) -> Unit
-	): Unit = unsupportedOperation()
+	): Unit = unsupported
 
 	override fun o_ValidateLocally(
 		self: AvailObject,

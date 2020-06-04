@@ -421,7 +421,7 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 			scopeStackKey, scopeStack, true)
 		fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
 			clientDataKey, clientData, true)
-		fiber.fiberGlobals(fiberGlobals.makeShared())
+		fiber.setFiberGlobals(fiberGlobals.makeShared())
 		return interpreter.primitiveSuccess(block)
 	}
 

@@ -312,10 +312,23 @@ private constructor(
 		self: AvailObject,
 		otherSet: A_Set,
 		canDestroy: Boolean
-	): A_Set = self.makeImmutable().fold(self as A_Set) { result, element ->
-		when {
-			!otherSet.hasElement(element) -> result
-			else -> result.setWithoutElementCanDestroy(element, true)
+	): A_Set = when
+	{
+		self.setSize() <= otherSet.setSize() ->
+		{
+			// Iterate self, keeping only those elements present in otherSet.
+			self.makeImmutable().fold(self as A_Set) { result, element ->
+				if (!otherSet.hasElement(element)) result
+				else result.setWithoutElementCanDestroy(element, true)
+			}
+		}
+		else ->
+		{
+			// Iterate otherSet, removing each from a copy of self.
+			otherSet.fold(self.makeImmutable() as A_Set) {
+				result, exclusion ->
+				result.setWithoutElementCanDestroy(exclusion, true)
+			}
 		}
 	}
 

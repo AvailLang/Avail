@@ -96,8 +96,8 @@ object P_Sleep : Primitive(1, CannotFail, CanSuspend, Unknown)
 						// to cancel this timer task.
 						if (fiber.executionState() === ASLEEP)
 						{
-							fiber.wakeupTask(null)
-							fiber.executionState(SUSPENDED)
+							fiber.setWakeupTask(null)
+							fiber.setExecutionState(SUSPENDED)
 							resumeFromSuccessfulPrimitive(
 								runtime, fiber, this@P_Sleep, nil)
 						}
@@ -117,8 +117,8 @@ object P_Sleep : Primitive(1, CannotFail, CanSuspend, Unknown)
 								runtime, fiber, this, nil)
 						}
 						else -> {
-							fiber.wakeupTask(task)
-							fiber.executionState(ASLEEP)
+							fiber.setWakeupTask(task)
+							fiber.setExecutionState(ASLEEP)
 							runtime.timer.schedule(
 								task, sleepMillis.extractLong())
 						}
@@ -139,7 +139,7 @@ object P_Sleep : Primitive(1, CannotFail, CanSuspend, Unknown)
 							resumeFromSuccessfulPrimitive(
 								runtime, fiber, this, nil)
 						}
-						else -> fiber.executionState(ASLEEP)
+						else -> fiber.setExecutionState(ASLEEP)
 					}
 				}
 			}

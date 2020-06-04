@@ -117,12 +117,12 @@ object P_ServerSocketAccept : Primitive(5, CanInline, HasSideEffect)
 		) { formatString("Server socket accept, name=%s", name) }
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.
-		newFiber.availLoader(current.availLoader())
+		newFiber.setAvailLoader(current.availLoader())
 		// Share and inherit any heritable variables.
-		newFiber.heritableFiberGlobals(
+		newFiber.setHeritableFiberGlobals(
 			current.heritableFiberGlobals().makeShared())
 		// Inherit the fiber's text interface.
-		newFiber.textInterface(current.textInterface())
+		newFiber.setTextInterface(current.textInterface())
 		// Share everything that will potentially be visible to the fiber.
 		newFiber.makeShared()
 		succeed.makeShared()

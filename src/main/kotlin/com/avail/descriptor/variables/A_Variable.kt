@@ -268,7 +268,7 @@ interface A_Variable : A_ChunkDependable
 	 * @param wasStablyComputed
 	 *   Whether the variable was initialized from a stable computation.
 	 */
-	fun valueWasStablyComputed(wasStablyComputed: Boolean)
+	fun setValueWasStablyComputed(wasStablyComputed: Boolean)
 
 	/**
 	 * Extract the map from this variable, add the key → value binding to it,
