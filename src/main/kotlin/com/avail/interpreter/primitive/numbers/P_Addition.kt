@@ -61,7 +61,7 @@ import com.avail.interpreter.levelTwo.operation.L2_ADD_INT_TO_INT
 import com.avail.interpreter.levelTwo.operation.L2_ADD_INT_TO_INT_MOD_32_BITS
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
-import com.avail.optimizer.L2Generator.edgeTo
+import com.avail.optimizer.L2Generator.Companion.edgeTo
 
 /**
  * **Primitive:** Add two [numbers][AbstractNumberDescriptor].

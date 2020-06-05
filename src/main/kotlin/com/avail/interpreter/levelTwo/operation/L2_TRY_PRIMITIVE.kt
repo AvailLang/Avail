@@ -189,10 +189,8 @@ object L2_TRY_PRIMITIVE : L2Operation(
 						null
 					}
 				interpreter.isReifying = true
-				StackReifier(
-					false,
-					primitive.reificationAbandonmentStat!!
-				) {
+				StackReifier(false, primitive.reificationAbandonmentStat!!)
+				{
 					interpreter.setReifiedContinuation(newContinuation)
 					interpreter.function = newFunction
 					interpreter.chunk = newChunk
@@ -287,10 +285,8 @@ object L2_TRY_PRIMITIVE : L2Operation(
 		// where all frames have been reified, so returnNow
 		// would be unnecessary.
 		interpreter.isReifying = true
-		return StackReifier(
-			true,
-			primitive.reificationForNoninlineStat!!
-		) {
+		return StackReifier(true, primitive.reificationForNoninlineStat!!)
+		{
 			assert(interpreter.unreifiedCallDepth() == 0)
 				{ "Should have reified stack for non-inlineable primitive" }
 			interpreter.chunk = savedChunk
