@@ -56,8 +56,8 @@ import com.avail.interpreter.levelTwo.register.L2Register
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
 import com.avail.optimizer.L2Entity
-import com.avail.optimizer.L2Generator.backEdgeTo
-import com.avail.optimizer.L2Generator.edgeTo
+import com.avail.optimizer.L2Generator.Companion.backEdgeTo
+import com.avail.optimizer.L2Generator.Companion.edgeTo
 import com.avail.optimizer.values.L2SemanticValue
 
 /**

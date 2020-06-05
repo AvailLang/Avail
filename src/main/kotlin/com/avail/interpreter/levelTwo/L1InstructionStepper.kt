@@ -1009,10 +1009,8 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 		val functionToCall =
 			interpreter.runtime().invalidMessageSendFunction()
 		interpreter.isReifying = true
-		return StackReifier(
-			true,
-			reificationForFailedLookupStat
-		) {
+		return StackReifier(true, reificationForFailedLookupStat)
+		{
 			interpreter.argsBuffer.clear()
 			interpreter.argsBuffer.add(Casts.cast(errorCode.numericCode()))
 			interpreter.argsBuffer.add(Casts.cast(method))

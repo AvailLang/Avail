@@ -60,7 +60,7 @@ import com.avail.interpreter.levelTwo.operation.L2_TUPLE_AT_NO_FAIL
 import com.avail.interpreter.levelTwo.operation.L2_TUPLE_SIZE
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
-import com.avail.optimizer.L2Generator.edgeTo
+import com.avail.optimizer.L2Generator.Companion.edgeTo
 import java.lang.Integer.MAX_VALUE
 
 /**

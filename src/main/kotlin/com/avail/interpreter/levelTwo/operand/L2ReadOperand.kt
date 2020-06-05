@@ -87,10 +87,7 @@ abstract class L2ReadOperand<R : L2Register> protected constructor(
 	 * @return
 	 *   The [L2SemanticValue].
 	 */
-	fun semanticValue(): L2SemanticValue
-	{
-		return semanticValue
-	}
+	fun semanticValue(): L2SemanticValue = semanticValue
 
 	/**
 	 * Answer this read's [L2Register].

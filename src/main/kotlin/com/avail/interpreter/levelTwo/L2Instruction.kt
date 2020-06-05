@@ -65,28 +65,29 @@ import java.util.*
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  *
+ * @property basicBlock
+ *   The [L2BasicBlock] to which the instruction belongs.
+ * @property operation
+ *   The [L2Operation] whose execution this instruction represents.
+ *
  * @constructor
  * Construct a new `L2Instruction`.
  *
+ * @param basicBlock
+ *        The [L2BasicBlock] which will contain this instruction  or `null` if
+ *        none.
  * @param operation
  *        The [L2Operation] that this instruction performs.
  * @param theOperands
  *        The array of [L2Operand]s on which this instruction
  *        operates.  These must agree with the operation's array of
  *        [L2NamedOperandType]s.
- * @param basicBlock
- *        The [L2BasicBlock] which will contain this instruction.
  */
 class L2Instruction constructor(
-	basicBlock: L2BasicBlock,
-	operation: L2Operation,
+	private var basicBlock: L2BasicBlock?,
+	private val operation: L2Operation,
 	vararg theOperands: L2Operand)
 {
-	/**
-	 * The [L2Operation] whose execution this instruction represents.
-	 */
-	private val operation: L2Operation
-
 	/**
 	 * The [L2Operand]s to supply to the operation.
 	 */
@@ -97,11 +98,6 @@ class L2Instruction constructor(
 	 * Only valid near the end of translation.
 	 */
 	private var offset = -1
-
-	/**
-	 * The [L2BasicBlock] to which the instruction belongs.
-	 */
-	private var basicBlock: L2BasicBlock?
 
 	/**
 	 * The source [L2Register]s.
@@ -658,8 +654,6 @@ class L2Instruction constructor(
 			assert(theOperands[i].operandType()
 					   === operandTypes.operandType())
 		}
-		this.operation = operation
-		this.basicBlock = basicBlock
 		operands =
 			Array(theOperands.size)
 			{

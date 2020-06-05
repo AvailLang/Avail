@@ -34,7 +34,7 @@
 
 package com.avail.utility.dot
 
-import com.avail.utility.CheckedConsumer
+import com.avail.utility.Casts.*
 import com.avail.utility.Pair
 import com.avail.utility.Strings.tabs
 import com.avail.utility.dot.DotWriter.AttributeWriter
@@ -66,10 +66,10 @@ import kotlin.math.min
  *
  * `DotWriter` exposes the ability to generate `dot` source files through a
  * hierarchy of contextual emitters rooted at [AttributeWriter]. These emitters
- * are provided to [CheckedConsumer] through dependency injection, and care
- * should be taken in the implementation of a [CheckedConsumer] only to use the
- * injected emitter (and not some other lexically available emitter created in
- * an outer dynamic scope).
+ * are provided to a lambda through dependency injection, and care should be
+ * taken in the implementation of a lambda only to use the injected emitter (and
+ * not some other lexically available emitter created in an outer dynamic
+ * scope).
  *
  * @property name
  *   The name of the graph.
@@ -146,23 +146,22 @@ class DotWriter constructor(
 	open inner class AttributeWriter
 	{
 		/**
-		 * Increase the indentation during application of the supplied
-		 * [CheckedConsumer].
+		 * Increase the indentation during application of the supplied lambda.
 		 *
 		 * @param block
-		 *   The [CheckedConsumer] to apply while indentation is increased.
+		 *   The lambda to apply while indentation is increased.
 		 * @throws IOException
 		 *   If emission fails.
 		 */
 		@Throws(IOException::class)
 		internal fun <T : AttributeWriter> increaseIndent(
 			writer: T,
-			block: CheckedConsumer<in T>)
+			block: (T) -> Unit)
 		{
 			indentationLevel++
 			try
 			{
-				block.accept(writer)
+				block(writer)
 			}
 			finally
 			{
@@ -585,12 +584,12 @@ class DotWriter constructor(
 		 * Emit an appropriately indented attribute block.
 		 *
 		 * @param block
-		 *   The [CheckedConsumer] to apply to emit the content of the block.
+		 *   The lambda to apply to emit the content of the block.
 		 * @throws IOException
 		 *   If emission fails.
 		 */
 		@Throws(IOException::class)
-		private fun attributeBlock(block: CheckedConsumer<AttributeWriter>)
+		private fun attributeBlock(block: (AttributeWriter) -> Unit)
 		{
 			indent()
 			emit("[\n")
@@ -605,14 +604,14 @@ class DotWriter constructor(
 		 * @param type
 		 *   The [DefaultAttributeBlockType] of the default attribute block.
 		 * @param block
-		 *   The [CheckedConsumer] to apply to emit the content of the block.
+		 *   The lambda to apply to emit the content of the block.
 		 * @throws IOException
 		 *   If emission fails.
 		 */
 		@Throws(IOException::class)
 		fun defaultAttributeBlock(
 			type: DefaultAttributeBlockType,
-			block: CheckedConsumer<AttributeWriter>)
+			block: (AttributeWriter) -> Unit)
 		{
 			indent()
 			emit(type.name.toLowerCase())
@@ -624,12 +623,12 @@ class DotWriter constructor(
 		 * Write an appropriately indented anonymous subgraph block.
 		 *
 		 * @param block
-		 *   The [CheckedConsumer] to apply to emit the content of the subgraph.
+		 *   The lambda to apply to emit the content of the subgraph.
 		 * @throws IOException
 		 *   If emission fails.
 		 */
 		@Throws(IOException::class)
-		fun subgraph(block: CheckedConsumer<GraphWriter>)
+		fun subgraph(block: (GraphWriter) -> Unit)
 		{
 			indent()
 			emit("{\n")
@@ -644,12 +643,12 @@ class DotWriter constructor(
 		 * @param subgraphName
 		 *   The name of the subgraph.
 		 * @param block
-		 *   The [CheckedConsumer] to apply to emit the content of the subgraph.
+		 *   The lambda to apply to emit the content of the subgraph.
 		 * @throws IOException
 		 *   If emission fails.
 		 */
 		@Throws(IOException::class)
-		fun subgraph(subgraphName: String, block: CheckedConsumer<GraphWriter>)
+		fun subgraph(subgraphName: String, block: (GraphWriter) -> Unit)
 		{
 			indent()
 			emit("subgraph ")
@@ -664,14 +663,14 @@ class DotWriter constructor(
 		 * @param nodeName
 		 *   The identifier of the node.
 		 * @param block
-		 *   The [CheckedConsumer] to apply to generate the node's attributes.
+		 *   The lambda to apply to generate the node's attributes.
 		 * @throws IOException
 		 *   If emission fails.
 		 */
 		@Throws(IOException::class)
 		fun node(
 			nodeName: String,
-			block: CheckedConsumer<AttributeWriter>?)
+			block: ((AttributeWriter) -> Unit)?)
 		{
 			indent()
 			identifier(nodeName)
@@ -699,7 +698,7 @@ class DotWriter constructor(
 		 * @param target
 		 *   The identifier of the target node.
 		 * @param block
-		 *   The [CheckedConsumer] to apply to generate the edge's attributes.
+		 *   The lambda to apply to generate the edge's attributes.
 		 * @throws IOException
 		 *   If emission fails.
 		 */
@@ -707,7 +706,7 @@ class DotWriter constructor(
 		fun edge(
 			source: String,
 			target: String,
-			block: CheckedConsumer<AttributeWriter>?)
+			block: ((AttributeWriter) -> Unit)?)
 		{
 			indent()
 			identifier(source)
@@ -750,7 +749,7 @@ class DotWriter constructor(
 		 * @param target
 		 *   The target [node][DecoratedNode].
 		 * @param block
-		 *   The [CheckedConsumer] to apply to generate the edge's attributes.
+		 *   The lambda to apply to generate the edge's attributes.
 		 * @throws IOException
 		 *   If emission fails.
 		 */
@@ -758,7 +757,7 @@ class DotWriter constructor(
 		fun edge(
 			source: DecoratedNode,
 			target: DecoratedNode,
-			block: CheckedConsumer<AttributeWriter>?)
+			block: ((AttributeWriter) -> Unit)?)
 		{
 			indent()
 			nodeReference(source)
@@ -775,19 +774,19 @@ class DotWriter constructor(
 		 * Emit an edge.
 		 *
 		 * @param source
-		 *   The [CheckedConsumer] to apply to generate the source subgraph.
+		 *   The lamda to apply to generate the source subgraph.
 		 * @param target
 		 *   The identifier of the target node.
 		 * @param block
-		 *   The [CheckedConsumer] to apply to generate the edge's attributes.
+		 *   The lambda to apply to generate the edge's attributes.
 		 * @throws IOException
 		 *   If emission fails.
 		 */
 		@Throws(IOException::class)
 		fun edge(
-			source: CheckedConsumer<GraphWriter>,
+			source: (GraphWriter) -> Unit,
 			target: String,
-			block: CheckedConsumer<AttributeWriter>?)
+			block: ((AttributeWriter) -> Unit)?)
 		{
 			subgraph(source)
 			edgeOperator()
@@ -803,19 +802,19 @@ class DotWriter constructor(
 		 * Emit an edge.
 		 *
 		 * @param source
-		 *   The [CheckedConsumer] to apply to generate the source subgraph.
+		 *   The lambda to apply to generate the source subgraph.
 		 * @param target
 		 *   The target [node][DecoratedNode].
 		 * @param block
-		 *   The [CheckedConsumer] to apply to generate the edge's attributes.
+		 *   The lambda to apply to generate the edge's attributes.
 		 * @throws IOException
 		 *   If emission fails.
 		 */
 		@Throws(IOException::class)
 		fun edge(
-			source: CheckedConsumer<GraphWriter>,
+			source: (GraphWriter) -> Unit,
 			target: DecoratedNode,
-			block: CheckedConsumer<AttributeWriter>?)
+			block: ((AttributeWriter) -> Unit)?)
 		{
 			subgraph(source)
 			edgeOperator()
@@ -833,17 +832,17 @@ class DotWriter constructor(
 		 * @param source
 		 *   The identifier of the source node.
 		 * @param target
-		 *   The [CheckedConsumer] to apply to generate the target subgraph.
+		 *   The lambda to apply to generate the target subgraph.
 		 * @param block
-		 *   The [CheckedConsumer] to apply to generate the edge's attributes.
+		 *   The lambda to apply to generate the edge's attributes.
 		 * @throws IOException
 		 *   If emission fails.
 		 */
 		@Throws(IOException::class)
 		fun edge(
 			source: String,
-			target: CheckedConsumer<GraphWriter>,
-			block: CheckedConsumer<AttributeWriter>?)
+			target: (GraphWriter) -> Unit,
+			block: ((AttributeWriter) -> Unit)?)
 		{
 			identifier(source)
 			edgeOperator()
@@ -862,17 +861,17 @@ class DotWriter constructor(
 		 * @param source
 		 *   The source [node][DecoratedNode].
 		 * @param target
-		 *   The [CheckedConsumer] to apply to generate the target subgraph.
+		 *   The lambda to apply to generate the target subgraph.
 		 * @param block
-		 *   The [CheckedConsumer] to apply to generate the edge's attributes.
+		 *   The lambda to apply to generate the edge's attributes.
 		 * @throws IOException
 		 *   If emission fails.
 		 */
 		@Throws(IOException::class)
 		fun edge(
 			source: DecoratedNode,
-			target: CheckedConsumer<GraphWriter>,
-			block: CheckedConsumer<AttributeWriter>?)
+			target: (GraphWriter) -> Unit,
+			block: ((AttributeWriter) -> Unit)?)
 		{
 			nodeReference(source)
 			edgeOperator()
@@ -889,19 +888,19 @@ class DotWriter constructor(
 		 * Emit an edge.
 		 *
 		 * @param source
-		 *   The [CheckedConsumer] to apply to generate the source subgraph.
+		 *   The lambda to apply to generate the source subgraph.
 		 * @param target
-		 *   The [CheckedConsumer] to apply to generate the target subgraph.
+		 *   The lambda to apply to generate the target subgraph.
 		 * @param block
-		 *   The [CheckedConsumer] to apply to generate the edge's attributes.
+		 *   The lambda to apply to generate the edge's attributes.
 		 * @throws IOException
 		 *   If emission fails.
 		 */
 		@Throws(IOException::class)
 		fun edge(
-			source: CheckedConsumer<GraphWriter>,
-			target: CheckedConsumer<GraphWriter>,
-			block: CheckedConsumer<AttributeWriter>?)
+			source: (GraphWriter) -> Unit,
+			target: (GraphWriter) -> Unit,
+			block: ((AttributeWriter) -> Unit)?)
 		{
 			subgraph(source)
 			edgeOperator()
@@ -921,14 +920,14 @@ class DotWriter constructor(
 		 * @param nodes
 		 *   The nodes.
 		 * @param block
-		 *   The [CheckedConsumer] to apply to generate the edges' attributes.
+		 *   The lambda to apply to generate the edges' attributes.
 		 * @throws IOException
 		 *   If emission fails.
 		 */
 		@Throws(IOException::class)
 		fun interleaved(
 			nodes: List<Any>,
-			block: CheckedConsumer<AttributeWriter>?)
+			block: ((AttributeWriter) -> Unit)?)
 		{
 			if (nodes.isNotEmpty())
 			{
@@ -955,14 +954,13 @@ class DotWriter constructor(
 							identifier(o.compassPoint.name.toLowerCase())
 						}
 					}
-					else if (o is CheckedConsumer<*>)
+					else if (o is Function1<*, *>)
 					{
 						if (i != 0)
 						{
 							linefeed()
 						}
-						@Suppress("UNCHECKED_CAST")
-						subgraph(o as CheckedConsumer<GraphWriter>)
+						subgraph(cast(o))
 					}
 					else
 					{
@@ -1004,12 +1002,12 @@ class DotWriter constructor(
 	 * Emit an entire graph.
 	 *
 	 * @param block
-	 *   The [CheckedConsumer] to apply to emit the content of the graph.
+	 *   The lambda to apply to emit the content of the graph.
 	 * @throws IOException
 	 *   If emission fails.
 	 */
 	@Throws(IOException::class)
-	fun graph(block: CheckedConsumer<GraphWriter>)
+	fun graph(block: (GraphWriter) -> Unit)
 	{
 		val writer = graphWriter
 		writer.indent()

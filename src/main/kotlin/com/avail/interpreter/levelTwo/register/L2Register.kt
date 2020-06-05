@@ -51,7 +51,6 @@ import com.avail.optimizer.values.L2SemanticValue
 import com.avail.utility.Casts
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
-import java.util.*
 
 /**
  * `L2Register` models the conceptual use of a register by a [level&#32;two Avail
@@ -283,7 +282,7 @@ abstract class L2Register constructor (val uniqueValue: Int) : L2Entity
 	 * The [L2WriteOperand]s that assign to this register.  While the
 	 * [L2ControlFlowGraph] is in SSA form, there should be exactly one.
 	 */
-	private val definitions: MutableSet<L2WriteOperand<*>> = HashSet()
+	private val definitions = mutableSetOf<L2WriteOperand<*>>()
 
 	/**
 	 * Record this [L2WriteOperand] in my set of defining write operands.
@@ -336,7 +335,7 @@ abstract class L2Register constructor (val uniqueValue: Int) : L2Entity
 	 * The [L2ReadOperand]s of emitted [L2Instruction]s that read from this
 	 * register.
 	 */
-	private val uses: MutableSet<L2ReadOperand<*>> = HashSet()
+	private val uses = mutableSetOf<L2ReadOperand<*>>()
 
 	/**
 	 * Capture another [L2ReadOperand] of an emitted [L2Instruction] that uses

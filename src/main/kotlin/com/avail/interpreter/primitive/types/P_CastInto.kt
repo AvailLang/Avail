@@ -58,7 +58,7 @@ import com.avail.interpreter.levelTwo.operation.L2_FUNCTION_PARAMETER_TYPE
 import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
-import com.avail.optimizer.L2Generator.edgeTo
+import com.avail.optimizer.L2Generator.Companion.edgeTo
 
 /**
  * **Primitive:** If the second argument, a [function][A_Function], accepts the
