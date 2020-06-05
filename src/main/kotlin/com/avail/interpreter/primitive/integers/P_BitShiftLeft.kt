@@ -32,12 +32,14 @@
 
 package com.avail.interpreter.primitive.integers
 
+import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.integers
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.*
 import com.avail.exceptions.AvailErrorCode.E_TOO_LARGE_TO_REPRESENT
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
@@ -46,7 +48,7 @@ import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Given any integer B, and a shift factor S, compute
- * ⎣B×2<sup>S</sup>⎦.  This is the left-shift operation, but when S is negative
+ * ⌊B×2<sup>S</sup>⌋.  This is the left-shift operation, but when S is negative
  * it acts as a right-shift.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
@@ -63,6 +65,51 @@ object P_BitShiftLeft : Primitive(2, CanFold, CanInline)
 			baseInteger.bitShift(
 				shiftFactor,
 				true))
+	}
+
+	override fun fallibilityForArgumentTypes(
+		argumentTypes: List<A_Type>
+	): Fallibility
+	{
+		val (_, shiftFactors) = argumentTypes
+		return when
+		{
+			shiftFactors.upperBound().lessOrEqual(zero()) ->
+			{
+				// A left shift by a non-positive amount is a right shift by a
+				// non-negative amount, so it can't exceed the limit if the base
+				// wasn't already in violation.
+				Fallibility.CallSiteCannotFail
+			}
+			else -> super.fallibilityForArgumentTypes(argumentTypes)
+		}
+	}
+
+	override fun returnTypeGuaranteedByVM(
+		rawFunction: A_RawFunction,
+		argumentTypes: List<A_Type>
+	): A_Type
+	{
+		val (baseIntegers: A_Type, shiftFactors: A_Type) = argumentTypes
+		val leastShift = shiftFactors.lowerBound()
+		return when
+		{
+			shiftFactors.upperBound().equals(leastShift) ->
+			{
+				// Shifting by a constant amount is a common case.
+				integerRangeType(
+					baseIntegers.lowerBound().bitShift(leastShift, false),
+					baseIntegers.lowerInclusive(),
+					baseIntegers.upperBound().bitShift(leastShift, false),
+					baseIntegers.upperInclusive())
+			}
+			baseIntegers.lowerBound().greaterOrEqual(zero()) ->
+			{
+				// Be conservative for simplicity.
+				wholeNumbers()
+			}
+			else -> super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
+		}
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

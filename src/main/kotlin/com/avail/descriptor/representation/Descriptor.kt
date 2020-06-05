@@ -2124,9 +2124,9 @@ abstract class Descriptor protected constructor (
 		}
 		return (
 			if (self.showValueInNameForDebugger())
-				String.format("(%s) = %s", typeName, self)
+				"($typeName) = $self"
 			else
-				String.format("(%s)", typeName))
+				"($typeName)")
 	}
 
 	// Actual bins (instances of SetBinDescriptor's subclasses) and nil will

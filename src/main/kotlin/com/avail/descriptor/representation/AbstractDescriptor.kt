@@ -4081,7 +4081,7 @@ abstract class AbstractDescriptor protected constructor (
 					// Look it up by ordinal (must be an actual Enum).
 					val allValues: Array<AbstractSlotsEnum> =
 						cast(describingClass.enumConstants)
-					if (0 <= value && value < allValues.size)
+					if (value in allValues.indices)
 					{
 						append(allValues[value.toInt()].fieldName())
 					}

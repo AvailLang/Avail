@@ -1310,7 +1310,7 @@ Private method "recase restriction for elements∈_using_" is
 		stringType : string's type
 	|
 		$body : type;
-		Exit body with ""'s type if ⎡stringType⎤ = 0;
+		Exit body with ""'s type if ⌈stringType⌉ = 0;
 		types : <character's type…|> := <>;
 		For each index from 1 to |stringType's leading types| + 1 do
 		[

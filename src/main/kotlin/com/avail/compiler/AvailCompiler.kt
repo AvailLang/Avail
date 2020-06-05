@@ -3656,6 +3656,12 @@ class AvailCompiler(
 			onSuccess(solutions) { this.rollbackModuleTransaction(it) }
 		}
 		recordExpectationsRelativeTo(start)
+		if (loader.lexicalScanner().allVisibleLexers.isEmpty())
+		{
+			start.expected(
+				STRONG,
+				"module to export at least 1 lexer in order to handle command")
+		}
 		parseExpressionThen(
 			start,
 			Con1(null) { solution ->

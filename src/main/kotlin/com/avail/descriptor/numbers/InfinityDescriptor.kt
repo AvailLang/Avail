@@ -46,12 +46,14 @@ import com.avail.descriptor.types.IntegerRangeTypeDescriptor.singleInteger
 import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.descriptor.types.TypeTag
 import com.avail.exceptions.ArithmeticException
+import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_ADD_UNLIKE_INFINITIES
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_DIVIDE_INFINITIES
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_MULTIPLY_ZERO_AND_INFINITY
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_SUBTRACT_LIKE_INFINITIES
 import com.avail.utility.json.JSONWriter
 import java.util.*
+import kotlin.math.max
 
 /**
  * I represent the [extended&#32;integers][ExtendedIntegerDescriptor] positive
@@ -350,6 +352,27 @@ class InfinityDescriptor private constructor(
 	 * Not finite, so not numerically equal to an integer.
 	 */
 	override fun o_IsNumericallyIntegral(self: AvailObject): Boolean = false
+
+	/**
+	 * Shift the given infinity to the left by the specified shift factor
+	 * (number of bits).  The shift factor is a finite integer, and shifting
+	 * left or right never changes the sign of a number, so we answer self.
+	 *
+	 * @param self
+	 *   The infinity to shift.
+	 * @param shiftFactor
+	 *   How much to shift left (may be negative to indicate a right shift).
+	 * @param canDestroy
+	 *   Whether it is permitted to alter the original object if it happens to
+	 *   be mutable.
+	 * @return
+	 *   ⌊self &times; 2^shiftFactor⌋
+	 */
+	override fun o_BitShift(
+		self: AvailObject,
+		shiftFactor: A_Number,
+		canDestroy: Boolean
+	): A_Number = self
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.write(

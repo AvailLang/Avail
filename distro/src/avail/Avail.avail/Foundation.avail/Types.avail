@@ -171,8 +171,8 @@ Semantic restriction "<_,_`…`|_>" is
 		];
 
 	cardinalityTypeTypeInstance :: = cardinalityTypeType's instance;
-	lower ::= ⎣cardinalityTypeTypeInstance⎦;
-	upper ::= ⎡cardinalityTypeTypeInstance⎤;
+	lower ::= ⌊cardinalityTypeTypeInstance⌋;
+	upper ::= ⌈cardinalityTypeTypeInstance⌉;
 	allTypesToUse ::= cast typesTypesInstanceTuple into
 		[t: <<>,any's type…|[0..∞)> | t];
 
@@ -263,8 +263,8 @@ Semantic restriction "<«_‡,»`…`|_.._>" is
 			defaultTypeType's instance
 		];
 
-	lower ::= ⎣minimumSizeType⎦;
-	upper ::= ⎡maximumSizeType⎤;
+	lower ::= ⌊minimumSizeType⌋;
+	upper ::= ⌈maximumSizeType⌉;
 	allTypesToUse ::= cast typesTypesInstanceTuple into
 		[t: any's type* | t];
 
@@ -349,7 +349,7 @@ Semantic restriction "<«_‡,»`…`|_..>" is
 			defaultTypeType's instance
 		];
 
-	lower ::= ⎣minimumSizeType⎦;
+	lower ::= ⌊minimumSizeType⌋;
 	allTypesToUse ::= cast typesTypesInstanceTuple into
 		[t: any's type* | t];
 
@@ -435,7 +435,7 @@ Semantic restriction "<«_‡,»`…`|.._>" is
 			defaultTypeType's instance
 		];
 
-	upper ::= ⎡maximumSizeType⎤;
+	upper ::= ⌈maximumSizeType⌉;
 	allTypesToUse ::= cast typesTypesInstanceTuple into
 		[t: any's type* | t];
 
@@ -521,8 +521,8 @@ Semantic restriction "<«_‡,»`…`|_>" is
 			defaultTypeType's instance
 		];
 
-	lower ::= ⎣exactSizeType⎦;
-	upper ::= ⎡exactSizeType⎤;
+	lower ::= ⌊exactSizeType⌋;
+	upper ::= ⌈exactSizeType⌉;
 	allTypesToUse ::= cast typesTypesInstanceTuple into
 		[t: any's type* | t];
 
@@ -620,8 +620,8 @@ Semantic restriction "{_`|_}" is
 	cardinalityTypeType : whole number meta's type
 |
 	cardinalityTypeTypeInstance :: = cardinalityTypeType's instance;
-	lower ::= ⎣cardinalityTypeTypeInstance⎦;
-	upper ::= ⎡cardinalityTypeTypeInstance⎤;
+	lower ::= ⌊cardinalityTypeTypeInstance⌋;
+	upper ::= ⌈cardinalityTypeTypeInstance⌉;
 	{elementTypeType's instance|[lower..upper + 1)}'s type
 ];
 
@@ -676,17 +676,17 @@ Semantic restriction "{_`|_.._}" is
 	maximumSize : [0..∞]'s type
 |
 	elementType ::= elementMeta's instance;
-	if |elementType| = ⎣minimumSize⎦
-		∧ ⎣minimumSize⎦ = ⎡minimumSize⎤
-		∧ ⎣maximumSize⎦ = ⎡maximumSize⎤
-		∧ ⎣minimumSize⎦ = ⎣maximumSize⎦
+	if |elementType| = ⌊minimumSize⌋
+		∧ ⌊minimumSize⌋ = ⌈minimumSize⌉
+		∧ ⌊maximumSize⌋ = ⌈maximumSize⌉
+		∧ ⌊minimumSize⌋ = ⌊maximumSize⌋
 	then
 	[
 		elementType's instances' type's type
 	]
 	else
 	[
-		{elementType|[⎣minimumSize⎦..⎡maximumSize⎤ + 1)}'s type
+		{elementType|[⌊minimumSize⌋..⌈maximumSize⌉ + 1)}'s type
 	]
 ];
 
@@ -725,7 +725,7 @@ Semantic restriction "{_`|_..}" is
 	elementTypeType : any's type's type,
 	minimumSizeType : whole number's type
 |
-	lower ::= ⎣minimumSizeType⎦;
+	lower ::= ⌊minimumSizeType⌋;
 	{elementTypeType's instance|[lower..∞)}'s type
 ];
 
@@ -764,7 +764,7 @@ Semantic restriction "{_`|.._}" is
 	elementTypeType : any's type's type,
 	maximumSizeType : [0..∞]'s type
 |
-	{elementTypeType's instance|[0..⎡maximumSizeType⎤ + 1)}'s type
+	{elementTypeType's instance|[0..⌈maximumSizeType⌉ + 1)}'s type
 ];
 
 /**
@@ -807,13 +807,13 @@ Semantic restriction "{_`|_}" is
 	exactSize : whole number's type
 |
 	elementType ::= elementMeta's instance;
-	if |elementType| = ⎣exactSize⎦ ∧ ⎣exactSize⎦ = ⎡exactSize⎤ then
+	if |elementType| = ⌊exactSize⌋ ∧ ⌊exactSize⌋ = ⌈exactSize⌉ then
 	[
 		elementType's instances' type's type
 	]
 	else
 	[
-		{elementType|[⎣exactSize⎦ .. ⎡exactSize⎤ + 1)}'s type
+		{elementType|[⌊exactSize⌋ .. ⌈exactSize⌉ + 1)}'s type
 	]
 ];
 
@@ -863,8 +863,8 @@ Semantic restriction "{_→_`|_}" is
 	cardinalityTypeType : whole number meta's type
 |
 	cardinalityTypeTypeInstance :: = cardinalityTypeType's instance;
-	lower ::= ⎣cardinalityTypeTypeInstance⎦;
-	upper ::= ⎡cardinalityTypeTypeInstance⎤;
+	lower ::= ⌊cardinalityTypeTypeInstance⌋;
+	upper ::= ⌈cardinalityTypeTypeInstance⌉;
 	{keyTypeType's instance→valueTypeType's instance|[lower..upper + 1)}'s type
 ];
 
@@ -910,8 +910,8 @@ Semantic restriction "{_→_`|_.._}" is
 	minimumSizeType : whole number's type,
 	maximumSizeType : [0..∞]'s type
 |
-	lower ::= ⎣minimumSizeType⎦;
-	upper ::= ⎡maximumSizeType⎤;
+	lower ::= ⌊minimumSizeType⌋;
+	upper ::= ⌈maximumSizeType⌉;
 	{keyTypeType's instance→valueTypeType's instance|[lower..upper + 1)}'s type
 ];
 
@@ -953,7 +953,7 @@ Semantic restriction "{_→_`|_..}" is
 	valueTypeType : any's type's type,
 	minimumSizeType : whole number's type
 |
-	lower ::= ⎣minimumSizeType⎦;
+	lower ::= ⌊minimumSizeType⌋;
 	{keyTypeType's instance→valueTypeType's instance|[lower..∞)}'s type
 ];
 
@@ -995,7 +995,7 @@ Semantic restriction "{_→_`|.._}" is
 	valueTypeType : any's type's type,
 	maximumSizeType : [0..∞]'s type
 |
-	bound ::= ⎡maximumSizeType⎤;
+	bound ::= ⌈maximumSizeType⌉;
 	{keyTypeType's instance→valueTypeType's instance|[0..bound + 1)}'s type
 ];
 
@@ -1182,7 +1182,7 @@ Private method "function type construction semantic restriction" is
 		argTypes : tuple of any meta's type,
 		returnType : type's type
 	|
-		bottoms ::= cast ⎣argTypes⎦ occurrences of ⊥
+		bottoms ::= cast ⌊argTypes⌋ occurrences of ⊥
 			into [t : <any's type…|> | t];
 		return ::= if |returnType| = 1
 			then [returnType's instance]
@@ -1218,8 +1218,8 @@ Public method "“_”(cardinality restriction)" is
 [
 	range : extended integer meta
 |
-	lower ::= ⎣range⎦;
-	upper ::= ⎡range⎤;
+	lower ::= ⌊range⌋;
+	upper ::= ⌈range⌉;
 	if upper = ∞ then
 	[
 		if lower = 0 then [""]

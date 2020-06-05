@@ -1190,7 +1190,7 @@ class IntegerDescriptor private constructor(
 	 *   Whether it is permitted to alter the original object if it happens to
 	 *   be mutable.
 	 * @return
-	 *   ⌊object &times; 2^shiftFactor⌋;
+	 *   ⌊self &times; 2^shiftFactor⌋
 	 */
 	override fun o_BitShift(
 		self: AvailObject,

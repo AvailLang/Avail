@@ -35,7 +35,6 @@ Versions
 	"1.4.0"
 Uses
 	"Common"
-
 Names
 	"streams test suite"
 Body
@@ -68,45 +67,72 @@ Test "stream (take from_while_)" in streams test suite is
 [
 	ref ::= 1 to 5;
 	index : natural number := 1;
-	iter ::= a counting reader from 1 to 100 limited to 10 elements;
-	result ::= take from iter while [n : [1..100] | n ≤ 5];
+	str ::= a counting stream from 1 to 100;
+	result ::= take from str while [n : [1..100] | n ≤ 5];
 	For each result do
 	[
 		element : [1..100]
 	|
 		Require: element = ref[(index++)];
 	];
-	Require: iter's current element = 6;
+	Require: str's head = 1;
 ];
 
 Test "stream (take…from_§while_)" in streams test suite is
 [
 	ref ::= 1 to 5;
 	index : natural number := 1;
-	iter ::= a counting reader from 1 to 100 limited to 10 elements;
-	result ::= take n from iter while [n ≤ 5];
+	str ::= a counting stream from 1 to 100;
+	result ::= take n from str while [n ≤ 5];
 	For each element of result do [Require: element = ref[(index++)];];
-	Require: iter's current element = 6;
+	Require: str's head = 1;
 ];
 
 Test "stream (take from_until_)" in streams test suite is
 [
 	ref ::= 1 to 5;
 	index : natural number := 1;
-	iter ::= a counting reader from 1 to 100 limited to 10 elements;
-	result ::= take from iter until [n : [1..100] | n ≥ 6];
+	str ::= a counting stream from 1 to 100;
+	result ::= take from str until [n : [1..100] | n ≥ 6];
 	For each element of result do [Require: element = ref[(index++)];];
-	Require: iter's current element = 6;
+	Require: str's head = 1;
 ];
 
 Test "stream (take…from_§until_)" in streams test suite is
 [
 	ref ::= 1 to 5;
 	index : natural number := 1;
-	iter ::= a counting reader from 1 to 100 limited to 10 elements;
-	result ::= take n from iter until [n ≥ 6];
+	str ::= a counting stream from 1 to 100;
+	result ::= take n from str until [n ≥ 6];
 	For each element of result do [Require: element = ref[(index++)];];
-	Require: iter's current element = 6;
+	Require: str's head = 1;
+];
+
+Test "stream (drop from_while_)" in streams test suite is
+[
+	str ::= a counting stream from 1 to 100;
+	postDrop ::= drop from str while [n : [1..100] | n ≤ 5];
+	Require: postDrop's head = 6;
+];
+
+Test "stream (drop from_until_)" in streams test suite is
+[
+	str ::= a counting stream from 1 to 100;
+	postDrop ::= drop from str until [n : [1..100] | n > 5];
+	Require: postDrop's head = 6;
+];
+
+Test "starts with" in streams test suite is
+[
+	str ::= a counting stream from 1 to 100;
+	Require: str starts with 1 to 5;
+];
+
+Test "drain stream" in streams test suite is
+[
+	Require: drain a counting stream from 5 to 15 = 5 to 15;
+	Require: drain an empty stream = <>;
+	Require: drain a stream over "dogfood" = "dogfood";
 ];
 
 Test "filter by" in streams test suite is

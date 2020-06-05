@@ -922,7 +922,7 @@ Semantic restriction "private_'s⁇unit of_-unit era" is
 	vType : integer's type,
 	eraType : whole number's type
 |
-	[0..⎡eraType⎤)
+	[0..⌈eraType⌉)
 ];
 
 /**

@@ -84,7 +84,7 @@ Semantic restriction "_queens" is
 [
 	n : natural number's type
 |
-	<<>, [1..⎡n⎤]…|n>
+	<<>, [1..⌈n⌉]…|n>
 ];
 
 Test "eight queens" in backtracking test suite is

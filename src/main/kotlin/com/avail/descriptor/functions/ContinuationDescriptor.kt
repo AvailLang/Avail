@@ -48,7 +48,6 @@ import com.avail.descriptor.functions.ContinuationDescriptor.ObjectSlots.LEVEL_T
 import com.avail.descriptor.functions.ContinuationDescriptor.ObjectSlots.LEVEL_TWO_REGISTER_DUMP
 import com.avail.descriptor.functions.ContinuationRegisterDumpDescriptor.Companion.createRegisterDump
 import com.avail.descriptor.representation.A_BasicObject
-import com.avail.descriptor.representation.AbstractDescriptor
 import com.avail.descriptor.representation.AbstractSlotsEnum
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.AvailObjectRepresentation.Companion.newLike
@@ -137,7 +136,7 @@ class ContinuationDescriptor private constructor(
 			@EnumField(
 				describedBy = EnumField.Converter::class,
 				lookupMethodName = "decimal")
-			val PROGRAM_COUNTER =
+			public val PROGRAM_COUNTER =
 				BitField(PROGRAM_COUNTER_AND_STACK_POINTER, 32, 32)
 
 			/**
@@ -149,7 +148,7 @@ class ContinuationDescriptor private constructor(
 			@EnumField(
 				describedBy = EnumField.Converter::class,
 				lookupMethodName = "decimal")
-			val STACK_POINTER =
+			public val STACK_POINTER =
 				BitField(PROGRAM_COUNTER_AND_STACK_POINTER, 0, 32)
 
 			/**

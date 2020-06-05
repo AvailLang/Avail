@@ -388,11 +388,11 @@ Semantic restriction "(++_↑)" is
 	if readType ⊆ extended integer then
 	[
 		readRange ::= cast readType into [t : extended integer meta | t];
-		lower ::= ⎣readRange⎦ + 1;
-		upper ::= ⎡readRange⎤ + 1;
+		lower ::= ⌊readRange⌋ + 1;
+		upper ::= ⌈readRange⌉ + 1;
 		integer range
-			from lower (inclusive = ⎣readRange⎦ is inclusive)
-			to upper (inclusive = ⎡readRange⎤ is inclusive)
+			from lower (inclusive = ⌊readRange⌋ is inclusive)
+			to upper (inclusive = ⌈readRange⌉ is inclusive)
 	]
 	else
 	[
@@ -537,11 +537,11 @@ Semantic restriction "(--_↑)" is
 	if readType ⊆ extended integer then
 	[
 		readRange ::= cast readType into [t : extended integer meta | t];
-		lower ::= ⎣readRange⎦ - 1;
-		upper ::= ⎡readRange⎤ - 1;
+		lower ::= ⌊readRange⌋ - 1;
+		upper ::= ⌈readRange⌉ - 1;
 		integer range
-			from lower (inclusive = ⎣readRange⎦ is inclusive)
-			to upper (inclusive = ⎡readRange⎤ is inclusive)
+			from lower (inclusive = ⌊readRange⌋ is inclusive)
+			to upper (inclusive = ⌈readRange⌉ is inclusive)
 	]
 	else
 	[
@@ -647,7 +647,7 @@ Public macro "«…‡,»::=_;" is
 			\|have distinct names"
 	];
 	tupleType ::= tuplePhrase's semantic type;
-	If |nameTokens| > ⎣tupleType⎦ then
+	If |nameTokens| > ⌊tupleType⌋ then
 	[
 		Reject parse, expected:
 			"local constants in destructuring tuple binding not to exceed the
@@ -732,7 +732,7 @@ Public macro "«…‡,»::=_;" is
 			\|have distinct names"
 	];
 	tupleType ::= tupleTypePhrase's semantic type's instance;
-	If |nameTokens| > ⎣tupleType⎦ then
+	If |nameTokens| > ⌊tupleType⌋ then
 	[
 		Reject parse, expected:
 			"local constants in destructuring tuple type binding not to exceed \"

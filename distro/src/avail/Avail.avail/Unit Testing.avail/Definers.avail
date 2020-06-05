@@ -520,7 +520,7 @@ Semantic restriction "Test_in_is_«must raise_»" is
 	test : []→⊤'s type,
 	optionalException : exception's type?'s type
 |
-	If ⎡optionalException⎤ = 1 then
+	If ⌈optionalException⌉ = 1 then
 	[
 		If ¬test's return type ∈ {⊤, ⊥} then
 		[

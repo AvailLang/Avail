@@ -74,8 +74,8 @@ Semantic restriction "_∪_" is
 	typeA : set meta,
 	typeB : set meta
 |
-	lower ::= ⎣typeA⎦ max ⎣typeB⎦;
-	upper ::= ⎡typeA⎤ + ⎡typeB⎤;
+	lower ::= ⌊typeA⌋ max ⌊typeB⌋;
+	upper ::= ⌈typeA⌉ + ⌈typeB⌉;
 	{typeA's element type ∪ typeB's element type | [lower..upper + 1)}
 ];
 
@@ -100,7 +100,7 @@ Semantic restriction "_∩_" is
 	typeB : set meta
 |
 	innerType ::= typeA's element type ∩ (typeB's element type);
-	upper : [0..∞] := ⎡typeA⎤ min ⎡typeB⎤;
+	upper : [0..∞] := ⌈typeA⌉ min ⌈typeB⌉;
 	If |innerType| ≠ ∞ ∧ innerType ∩ (type's type) ≠ ⊥ then
 	[
 		/* There are a limited number of possible values. */
@@ -143,7 +143,7 @@ Semantic restriction "_⊆_" is
 	 * must be subsets of typeB's instance if typeA's element type is a
 	 * subtype of typeB's element type.
 	 */
-	if |elementB| ≠ ∞ ∧ ⎣sizesB⎦ = ⎡sizesB⎤ ∧ |elementB| = ⎣sizesB⎦ then
+	if |elementB| ≠ ∞ ∧ ⌊sizesB⌋ = ⌈sizesB⌉ ∧ |elementB| = ⌊sizesB⌋ then
 	[
 		if elementA ⊆ elementB then [true's type]
 		else basicRule
@@ -168,8 +168,8 @@ Semantic restriction "_∈_" is
 	else
 	[
 		if (¬elementType ∈ type)
-			∧ |elementType| = ⎣setType⎦
-			∧ |elementType| = ⎡setType⎤
+			∧ |elementType| = ⌊setType⌋
+			∧ |elementType| = ⌈setType⌉
 			∧ valueType ⊆ elementType
 		then [true's type]
 		else [⊤]
@@ -195,10 +195,10 @@ Semantic restriction "_\\_" is
 	subtrahendUpper ::=
 		if minuendType's element type ∩ (subtrahendType's element type) = ⊥
 		then [ 0 ]
-		else [ ⎡subtrahendType⎤ ];
-	lower ::= cast (⎣minuendType⎦ - subtrahendUpper) max 0
+		else [ ⌈subtrahendType⌉ ];
+	lower ::= cast (⌊minuendType⌋ - subtrahendUpper) max 0
 		into [ t : whole number | t ];
-	{minuendType's element type | lower..⎡minuendType⎤}
+	{minuendType's element type | lower..⌈minuendType⌉}
 ];
 
 /**

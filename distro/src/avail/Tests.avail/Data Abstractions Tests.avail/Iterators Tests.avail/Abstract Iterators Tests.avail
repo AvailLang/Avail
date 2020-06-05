@@ -104,3 +104,10 @@ Test "reject each (macro)" in iterators test suite is
 	Require: b = <3,3>;
 	Require: c = <3,2,3,6>;
 ];
+
+Test "drain reader" in iterators test suite is
+[
+	Require: drain a counting reader from 5 to 15 = 5 to 15;
+	Require: drain an exhausted reader  = <>;
+	Require: drain a reader over "dogfood" = "dogfood";
+];

@@ -313,7 +313,7 @@ Semantic restriction "Repeat__times" is
 	action : []→⊤'s type,
 	count : [0..∞]'s type
 |
-	if ⎣count⎦ = ∞ then
+	if ⌊count⌋ = ∞ then
 	[
 		⊥
 	]
@@ -432,13 +432,13 @@ Semantic restriction "From_to_by_do_" is
 	subscripts ::=
 		if step ⊆ [0..∞) then
 		[
-			(⎣start⎦ - 1 .. ⎡end⎤ + 1)
+			(⌊start⌋ - 1 .. ⌈end⌉ + 1)
 		]
 		else
 		[
 			if step ⊆ (-∞..-1] then
 			[
-				(⎣end⎦ - 1 .. ⎡start⎤ + 1)
+				(⌊end⌋ - 1 .. ⌈start⌉ + 1)
 			]
 			else
 			[
@@ -454,17 +454,17 @@ Semantic restriction "From_to_by_do_" is
 			++ “action[1]”
 	];
 	return ::= action's return type;
-	endSet ::= {⎣end⎦, ⎡end⎤};
+	endSet ::= {⌊end⌋, ⌈end⌉};
 	definitelyRuns ::=
 		if step ⊆ [0..∞) then
 		[
-			⎡start⎤ ≤ ⎣end⎦
+			⌈start⌉ ≤ ⌊end⌋
 		]
 		else
 		[
 			if step ⊆ (-∞..-1] then
 			[
-				⎣start⎦ ≥ ⎡end⎤
+				⌊start⌋ ≥ ⌈end⌉
 			]
 			else
 			[
@@ -585,18 +585,18 @@ Public method "Require:_accepts subscripts from_to_by_" is
 	subscripts ::=
 		if step ⊆ [0..∞) then
 		[
-			(⎣start⎦ - 1 .. ⎡end⎤ + 1)
+			(⌊start⌋ - 1 .. ⌈end⌉ + 1)
 		]
 		else
 		[
 			if step ⊆ (-∞..-1] then
 			[
-				(⎣end⎦ - 1 .. ⎡start⎤ + 1)
+				(⌊end⌋ - 1 .. ⌈start⌉ + 1)
 			]
 			else
 			[
 				union ::= (start ∪ end) ∩ integer;
-				(⎣union⎦ - 1 .. ⎡union⎤ + 1)
+				(⌊union⌋ - 1 .. ⌈union⌉ + 1)
 			]
 		];
 	If action[1] ≠ ⊥ ∧ ¬subscripts ⊆ action[1] then
@@ -628,17 +628,17 @@ Semantic restriction "From_to_by_do_" is
 |
 	Require: action accepts subscripts from start to end by step;
 	return ::= action's return type;
-	endSet ::= {⎣end⎦, ⎡end⎤};
+	endSet ::= {⌊end⌋, ⌈end⌉};
 	definitelyRuns ::=
 		if step ⊆ [0..∞) then
 		[
-			⎡start⎤ ≤ ⎣end⎦
+			⌈start⌉ ≤ ⌊end⌋
 		]
 		else
 		[
 			if step ⊆ (-∞..-1] then
 			[
-				⎣start⎦ ≥ ⎡end⎤
+				⌊start⌋ ≥ ⌈end⌉
 			]
 			else
 			[
@@ -696,10 +696,10 @@ Public macro "For each…from_to_by_§do_" is
 		endType ::= end's semantic type;
 		stepType ::= step's semantic type;
 		counterType ::=
-			if stepType ⊆ [0..∞) then [(⎣startType⎦ - 1 .. ⎡endType⎤ + 1)]
+			if stepType ⊆ [0..∞) then [(⌊startType⌋ - 1 .. ⌈endType⌉ + 1)]
 			else
 			[
-				if stepType ⊆ (-∞..-1] then [(⎣endType⎦-1 .. ⎡startType⎤+1)]
+				if stepType ⊆ (-∞..-1] then [(⌊endType⌋-1 .. ⌈startType⌉+1)]
 				else [(startType ∪ endType) ∩ integer]
 			];
 		counterType
@@ -779,8 +779,8 @@ Semantic restriction "From_to_do_" is
 |
 	Require: action accepts subscripts from start to end by 1's type;
 	return ::= action's return type;
-	endSet ::= {⎣end⎦, ⎡end⎤};
-	definitelyRuns ::= ⎡start⎤ ≤ ⎣end⎦;
+	endSet ::= {⌊end⌋, ⌈end⌉};
+	definitelyRuns ::= ⌈start⌉ ≤ ⌊end⌋;
 	if (endSet = {∞} ∧ return = true's type) ∨ (definitelyRuns ∧ return = ⊥)
 	then [⊥]
 	else [⊤]
@@ -830,8 +830,8 @@ Semantic restriction "From_to_do_" is
 |
 	Require: action accepts subscripts from start to end by 1's type;
 	return ::= action's return type;
-	endSet ::= {⎣end⎦, ⎡end⎤};
-	definitelyRuns ::= ⎡start⎤ ≤ ⎣end⎦;
+	endSet ::= {⌊end⌋, ⌈end⌉};
+	definitelyRuns ::= ⌈start⌉ ≤ ⌊end⌋;
 	if endSet = {∞} ∨ (definitelyRuns ∧ return = ⊥) then [⊥] else [⊤]
 ];
 
@@ -863,7 +863,7 @@ Public macro "For each…from_to_§do_" is
 	end : expression phrase ⇒ extended integer
 |
 	Declare loop variable counterPhrase as
-		[(⎣start's semantic type⎦-1 .. ⎡end's semantic type⎤+1)];
+		[(⌊start's semantic type⌋-1 .. ⌈end's semantic type⌉+1)];
 ],
 [
 	counterPhrase : literal phrase ⇒ token,
@@ -953,7 +953,7 @@ Semantic restriction "_(«_‡,»)" is
 			Reject parse, expected: sizesIncompatibleMessage
 		];
 		/* Verify each of the arguments. */
-		From 1 to ⎣argumentsSizes⎦ do
+		From 1 to ⌊argumentsSizes⌋ do
 		[
 			index : natural number
 		|
@@ -992,9 +992,9 @@ Public method "Require:_'s⁇keeper is valid" is
 |
 	parametersType ::= action's parameters' type;
 	parametersSizes ::= ||parametersType||;
-	Assert: ⎣parametersSizes⎦ = ⎡parametersSizes⎤
+	Assert: ⌊parametersSizes⌋ = ⌈parametersSizes⌉
 		("number of parameters cannot be determined");
-	parametersSize ::= cast ⎣parametersSizes⎦
+	parametersSize ::= cast ⌊parametersSizes⌋
 		into [ t : natural number | t ];
 	expectedType ::= [⊥]→⊤;
 	If ¬action[parametersSize] ⊆ expectedType then
@@ -1183,7 +1183,7 @@ Semantic restriction "If|if_then_«else if_then_»«else_»?" is
 		 */
 		If keepLooping then
 		[
-			If ⎣else⎦ = 1 then
+			If ⌊else⌋ = 1 then
 			[
 				elseReturnType ::= else[1]'s return type;
 				If ¬ambiguous then
@@ -1497,7 +1497,7 @@ Semantic restriction "Unless|unless_then_«else unless_then_»«else_»?" is
 		 */
 		If keepLooping then
 		[
-			If ⎣else⎦ = 1 then
+			If ⌊else⌋ = 1 then
 			[
 				elseReturnType ::= else[1]'s return type;
 				If ¬ambiguous then
@@ -2283,7 +2283,7 @@ Semantic restriction "Cast|cast_into«_‡,»«else_»" is
 		];
 		union := eject union ∪ functionType's return type;
 	];
-	If ⎣else⎦ = 1 then
+	If ⌊else⌋ = 1 then
 	[
 		union := eject union ∪ else[1]'s return type;
 	];
@@ -2419,7 +2419,7 @@ Semantic restriction "Choose|choose_from_where«_is_‡,»«,else_»" is
 			union := eject union ∪ case[2]'s return type;
 		];
 	];
-	If caseEnum ≠ enum ∧ ⎣else⎦ ≠ 1 then
+	If caseEnum ≠ enum ∧ ⌊else⌋ ≠ 1 then
 	[
 		allCases ::= enum's instances;
 		handledCases ::= caseEnum's instances;

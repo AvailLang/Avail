@@ -209,33 +209,33 @@ Semantic restriction "_(base_)" is
 	n : integer's type,
 	base : [2..36]'s type
 |
-	alphabet ::= (baseAlphabetTuple[1..⎡base⎤] → set)'s type's element type;
-	if (⎣n⎦ ≠ -∞ ∧ ⎡n⎤ ≠ ∞) then
+	alphabet ::= (baseAlphabetTuple[1..⌈base⌉] → set)'s type's element type;
+	if (⌊n⌋ ≠ -∞ ∧ ⌈n⌉ ≠ ∞) then
 	[
 		/* The magnitudes have known bounds.  Bound the string length. */
 		values : {extended integer|} := ∅;
-		hasNeg ::= ⎣n⎦ < 0;
+		hasNeg ::= ⌊n⌋ < 0;
 		If hasNeg then
 		[
-			values := values ∪ {⎣n ∩ (-∞..-1]⎦, ⎡n ∩ (-∞..-1]⎤};
+			values := values ∪ {⌊n ∩ (-∞..-1]⌋, ⌈n ∩ (-∞..-1]⌉};
 		];
-		hasPos ::= ⎡n⎤ ≥ 0;
+		hasPos ::= ⌈n⌉ ≥ 0;
 		If hasPos then
 		[
-			values := values ∪ {⎣n ∩ [0..∞)⎦, ⎡n ∩ [0..∞)⎤};
+			values := values ∪ {⌊n ∩ [0..∞)⌋, ⌈n ∩ [0..∞)⌉};
 		];
 		strings : {string|} := ∅;
 		For each value in values do
 		[
 			cast value into [v : integer |
-				strings := strings ∪ {v(base ⎣base⎦), v(base ⎡base⎤)};];
+				strings := strings ∪ {v(base ⌊base⌋), v(base ⌈base⌉)};];
 		];
 		stringType ::= strings' type's element type;
 		sizeRange ::= ||stringType||;
 		firstChar : character's type := ⊥;
 		If hasNeg then [firstChar := firstChar ∪ {¢-}ᵀ;];
 		If hasPos then [firstChar := firstChar ∪ alphabet;];
-		<firstChar, alphabet…|⎣sizeRange⎦..⎡sizeRange⎤>
+		<firstChar, alphabet…|⌊sizeRange⌋..⌈sizeRange⌉>
 	]
 	else if n ⊆ [0..∞) then
 	[
@@ -1238,7 +1238,7 @@ Semantic restriction "“_”(hex)" is
 [
 	bytes : byte*'s type
 |
-	<<>, character… | [⎣bytes⎦ × 2 .. ⎡bytes⎤ × 2 + 1)>
+	<<>, character… | [⌊bytes⌋ × 2 .. ⌈bytes⌉ × 2 + 1)>
 ];
 
 hexChar ::= enumeration of ¢0 to ¢9 ++ ¢A to ¢F → set;

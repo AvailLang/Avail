@@ -136,7 +136,7 @@ Private method "Require:_are valid subelements" is
 [
 	subelements : any*'s type
 |
-	From 1 to ⎣subelements⎦ do
+	From 1 to ⌊subelements⌋ do
 	[
 		i : natural number
 	|
@@ -174,7 +174,7 @@ Private method "Require:every hypertext element of_is one of_" is
 	allowed : {nonempty string|}
 |
 	pairs : <natural number, hypertext element's type…|2>* := <>;
-	From 1 to ⎣subelements⎦ do
+	From 1 to ⌊subelements⌋ do
 	[
 		i : natural number
 	|
@@ -216,7 +216,7 @@ Private method "Require:every attribute of_is one of_" is
 	allowed : {nonempty string|}
 |
 	names : nonempty string* := <>;
-	From 1 to ⎣attributes⎦ do
+	From 1 to ⌊attributes⌋ do
 	[
 		i : natural number
 	|
@@ -248,7 +248,7 @@ Private method "Require:_includes each attribute of_" is
 	required : {nonempty string|}
 |
 	names : {nonempty string|} := ∅;
-	From 1 to ⎣attributes⎦ do
+	From 1 to ⌊attributes⌋ do
 	[
 		i : natural number
 	|

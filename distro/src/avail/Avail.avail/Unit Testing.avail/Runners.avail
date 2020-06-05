@@ -683,7 +683,7 @@ Semantic restriction "bad results of_" is
 [
 	results : <unit test result…|>'s type
 |
-	<<>, unit test failure… | [0..⎡results⎤+1)>
+	<<>, unit test failure… | [0..⌈results⌉+1)>
 ];
 
 /* The banner character. */

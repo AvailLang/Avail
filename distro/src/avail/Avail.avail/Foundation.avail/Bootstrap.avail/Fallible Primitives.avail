@@ -1009,7 +1009,7 @@ Primitive "Reset to mark" is
  * @param "shiftFactor" "integer"
  *        How many bits to shift left (or right if negative).
  * @returns "(-∞..∞)"
- *    ⎣_<<_ × 2<sup>baseInteger</sup>⎦
+ *    ⌊_<<_ × 2<sup>baseInteger</sup>⌋
  * @raises "too-large-to-represent exception"
  */
 Primitive "_<<_" is
@@ -1034,7 +1034,7 @@ Primitive "_<<_" is
  * @param "shiftFactor" "integer"
  *        How many bits to shift right (or left if negative).
  * @returns "(-∞..∞)"
- *    ⎣_>>_ ÷ 2<sup>baseInteger</sup>⎦
+ *    ⌊_>>_ ÷ 2<sup>baseInteger</sup>⌋
  * @raises "too-large-to-represent exception"
  */
 Primitive "_>>_" is
@@ -1062,7 +1062,7 @@ Primitive "_>>_" is
  *        The number of low-order bits to preserve after the shift (must
  *        be ≥ 0).
  * @returns "[0..∞)"
- *    ⎣_<<_keeping_bits × 2<sup>baseInteger</sup>⎦ mod 2<sup>shiftFactor</sup>
+ *    ⌊_<<_keeping_bits × 2<sup>baseInteger</sup>⌋ mod 2<sup>shiftFactor</sup>
  * @raises "shift-and-truncate-requires-non-negative exception"
  * @raises "too-large-to-represent exception"
  */

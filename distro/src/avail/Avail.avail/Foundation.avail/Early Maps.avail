@@ -128,7 +128,7 @@ Semantic restriction "_∈_" is
 	if keyType ∩ mapKeyType = ⊥ then [false's type]
 	else
 	[
-		if |mapKeyType| = ⎣mapType⎦ ∧ keyType ⊆ mapKeyType then [true's type]
+		if |mapKeyType| = ⌊mapType⌋ ∧ keyType ⊆ mapKeyType then [true's type]
 		else [boolean]
 	]
 ];
@@ -208,8 +208,8 @@ Semantic restriction "_+_→_" is
 	oldKeyType ::= mapType's key type;
 	newKeyType ::= oldKeyType ∪ keyType;
 	newValueType ::= mapType's value type ∪ valueType;
-	lower : [0..∞) := ⎣mapType⎦;
-	bound : [0..∞] := ⎡mapType⎤;
+	lower : [0..∞) := ⌊mapType⌋;
+	bound : [0..∞] := ⌈mapType⌉;
 	/* If the type intersection of the key type and the new key type is
 	 * ⊥, then the new key cannot be present in the map. Adjust the
 	 * cardinality accordingly.
@@ -242,8 +242,8 @@ Semantic restriction "_-_" is
 	mapType : map meta,
 	keyType : any meta
 |
-	lower : [0..∞) := ⎣mapType⎦;
-	upper : [0..∞] := ⎡mapType⎤ + 1;
+	lower : [0..∞) := ⌊mapType⌋;
+	upper : [0..∞] := ⌈mapType⌉ + 1;
 	/* If the type intersection of the key type and the new key type is
 	 * ⊥, then the new key cannot be present in the map. Adjust the
 	 * cardinality accordingly.
