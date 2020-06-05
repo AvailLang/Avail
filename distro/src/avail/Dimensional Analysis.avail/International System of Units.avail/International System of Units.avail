@@ -50,7 +50,8 @@ Extends
 	"Types" =
 	(
 		"SI dimensioned quantity",
-		"SI unit"
+		"SI unit",
+		"_'s⁇scale factor"
 	),
 	"Unsanctioned Common Units"
 Body
