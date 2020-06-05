@@ -62,9 +62,7 @@ import static com.avail.descriptor.types.TypeDescriptor.Types.NONTYPE;
 import static java.lang.Math.min;
 
 /**
- * {@code ByteArrayTupleDescriptor} represents a tuple of integers that happen
- * to fall in the range {@code [0..255]}. Unlike {@link ByteTupleDescriptor}, it
- * is backed by a {@linkplain RawPojoDescriptor thinly wrapped} byte array.
+ * {@code ByteArrayTupleDescriptor} represents a tuple of integers that happen to fall in the range {@code [0..255]}. Unlike {@link ByteTupleDescriptor}, it is backed by a {@linkplain RawPojoDescriptor thinly wrapped} byte array.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -77,9 +75,7 @@ extends NumericTupleDescriptor
 	public enum IntegerSlots implements IntegerSlotsEnumJava
 	{
 		/**
-		 * The low 32 bits are used for the {@link #HASH_OR_ZERO}, but the upper
-		 * 32 can be used by other {@link BitField}s in subclasses of {@link
-		 * TupleDescriptor}.
+		 * The low 32 bits are used for the {@link #HASH_OR_ZERO}, but the upper 32 can be used by other {@link BitField}s in subclasses of {@link TupleDescriptor}.
 		 */
 		@HideFieldInDebugger
 		HASH_AND_MORE;
@@ -108,16 +104,13 @@ extends NumericTupleDescriptor
 	public enum ObjectSlots implements ObjectSlotsEnumJava
 	{
 		/**
-		 * A {@linkplain RawPojoDescriptor raw pojo} wrapping the byte array
-		 * that backs this {@linkplain ByteArrayTupleDescriptor tuple}.
+		 * A {@linkplain RawPojoDescriptor raw pojo} wrapping the byte array that backs this {@linkplain ByteArrayTupleDescriptor tuple}.
 		 */
 		BYTE_ARRAY_POJO
 	}
 
 	/**
-	 * Defined threshold for making copies versus using {@linkplain
-	 * TreeTupleDescriptor}/using other forms of reference instead of creating
-	 * a new tuple.
+	 * Defined threshold for making copies versus using {@linkplain TreeTupleDescriptor}/using other forms of reference instead of creating a new tuple.
 	 */
 	private static final int maximumCopySize = 64;
 
@@ -589,8 +582,10 @@ extends NumericTupleDescriptor
 	/**
 	 * Answer a mutable copy of object that also only holds bytes.
 	 *
-	 * @param object The byte tuple to copy.
-	 * @return The new mutable byte tuple.
+	 * @param object
+	 * The byte tuple to copy.
+	 * @return
+	 * The new mutable byte tuple.
 	 */
 	private static A_Tuple copyAsMutableByteArrayTuple (
 		final AvailObject object)
@@ -606,8 +601,10 @@ extends NumericTupleDescriptor
 	 * Create a new {@code ByteArrayTupleDescriptor} instance for the specified
 	 * byte array.
 	 *
-	 * @param array A Java byte array.
-	 * @return The requested tuple.
+	 * @param array
+	 * A Java byte array.
+	 * @return
+	 * The requested tuple.
 	 */
 	public static AvailObject tupleForByteArray (final byte[] array)
 	{

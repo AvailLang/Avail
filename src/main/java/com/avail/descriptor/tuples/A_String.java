@@ -36,9 +36,7 @@ import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.representation.AvailObject;
 
 /**
- * {@code A_String} is an interface that specifies the string-specific
- * operations that an {@link AvailObject} must implement.  It's a sub-interface
- * of {@link A_Tuple} (which is itself a sub-interface of {@link A_BasicObject}.
+ * {@code A_String} is an interface that specifies the string-specific operations that an {@link AvailObject} must implement.  It's a sub-interface of {@link A_Tuple} (which is itself a sub-interface of {@link A_BasicObject}.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -49,15 +47,13 @@ extends A_Tuple
 	 * Construct a Java {@linkplain String string} from the receiver, an Avail
 	 * {@linkplain StringDescriptor string}.
 	 *
-	 * @return The corresponding Java string.
+	 * @return
+	 * The corresponding Java string.
 	 */
 	String asNativeString ();
 
 	/**
-	 * Even though {@link #copyTupleFromToCanDestroy(int, int, boolean)} would
-	 * perform the same activity, this method returns the stronger {@code
-	 * A_String} type as a convenience, when the code knows it's working on
-	 * strings.
+	 * Even though {@link #copyTupleFromToCanDestroy(int, int, boolean)} would perform the same activity, this method returns the stronger {@code A_String} type as a convenience, when the code knows it's working on strings.
 	 *
 	 * @param start
 	 *        The start of the range to extract.
@@ -65,7 +61,8 @@ extends A_Tuple
 	 *        The end of the range to extract.
 	 * @param canDestroy
 	 *        Whether the original object may be destroyed if mutable.
-	 * @return The substring.
+	 * @return
+	 * The substring.
 	 */
 	A_String copyStringFromToCanDestroy (
 		final int start,

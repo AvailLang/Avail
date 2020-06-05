@@ -59,9 +59,7 @@ import static com.avail.descriptor.tuples.TreeTupleDescriptor.createTwoPartTreeT
 import static com.avail.descriptor.tuples.TwoByteStringDescriptor.generateTwoByteString;
 
 /**
- * {@code RepeatedElementTupleDescriptor} represents a tuple with a single
- * ELEMENT repeated SIZE times. Note that SIZE is the number of tuple slots
- * containing the element and is therefore the size of the tuple.
+ * {@code RepeatedElementTupleDescriptor} represents a tuple with a single ELEMENT repeated SIZE times. Note that SIZE is the number of tuple slots containing the element and is therefore the size of the tuple.
  *
  * @author Leslie Schultz &lt;leslie@availlang.org&gt;
  */
@@ -75,9 +73,7 @@ extends TupleDescriptor
 	{
 
 		/**
-		 * The low 32 bits are used for the {@link #HASH_OR_ZERO}, but the upper
-		 * 32 can be used by other {@link BitField}s in subclasses of {@link
-		 * TupleDescriptor}.
+		 * The low 32 bits are used for the {@link #HASH_OR_ZERO}, but the upper 32 can be used by other {@link BitField}s in subclasses of {@link TupleDescriptor}.
 		 */
 		@HideFieldInDebugger
 		HASH_AND_MORE;
@@ -85,10 +81,7 @@ extends TupleDescriptor
 		/**
 		 * The number of elements in the tuple.
 		 *
-		 * The API's {@link AvailObject#tupleSize() tuple size accessor}
-		 * currently returns a Java {@code int}, because there wasn't much of a
-		 * problem limiting manually-constructed tuples to two billion elements.
-		 * This restriction will eventually be removed.
+		 * The API's {@link AvailObject#tupleSize() tuple size accessor} currently returns a Java {@code int}, because there wasn't much of a problem limiting manually-constructed tuples to two billion elements. This restriction will eventually be removed.
 		 */
 		public static final BitField SIZE = new BitField(HASH_AND_MORE, 32, 32);
 
@@ -523,7 +516,8 @@ extends TupleDescriptor
 	/**
 	 * Construct a new {@code RepeatedElementTupleDescriptor}.
 	 *
-	 * @param mutability How its instances can be shared or modified.
+	 * @param mutability
+	 * How its instances can be shared or modified.
 	 */
 	private RepeatedElementTupleDescriptor (final Mutability mutability)
 	{
@@ -533,9 +527,12 @@ extends TupleDescriptor
 	/**
 	 * Create a new repeated element tuple according to the parameters.
 	 *
-	 * @param size The number of repetitions of the element.
-	 * @param element The value to be repeated.
-	 * @return The new repeated element tuple.
+	 * @param size
+	 * The number of repetitions of the element.
+	 * @param element
+	 * The value to be repeated.
+	 * @return
+	 * The new repeated element tuple.
 	 */
 	public static A_Tuple createRepeatedElementTuple (
 		final int size,
@@ -562,9 +559,12 @@ extends TupleDescriptor
 	 * Create a new RepeatedElement using the supplied arguments,
 	 * regardless of the suitability of other representations.
 	 *
-	 * @param size The number of repetitions of the element.
-	 * @param element The value to be repeated.
-	 * @return The new repeated element tuple.
+	 * @param size
+	 * The number of repetitions of the element.
+	 * @param element
+	 * The value to be repeated.
+	 * @return
+	 * The new repeated element tuple.
 	 */
 	static A_Tuple forceCreate (
 		final int size,

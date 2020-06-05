@@ -40,8 +40,7 @@ import com.avail.descriptor.representation.ObjectSlotsEnum;
 import javax.annotation.Nullable;
 
 /**
- * {@code NumericTupleDescriptor} has Avail tuples of integers as its instances.
- * The actual representation of these tuples is determined by subclasses.
+ * {@code NumericTupleDescriptor} has Avail tuples of integers as its instances. The actual representation of these tuples is determined by subclasses.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -54,12 +53,9 @@ extends TupleDescriptor
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 * @param objectSlotsEnumClass
-	 *        The Java {@link Class} which is a subclass of {@link
-	 *        ObjectSlotsEnum} and defines this object's object slots
-	 *        layout, or null if there are no object slots.
+	 *        The Java {@link Class} which is a subclass of {@link ObjectSlotsEnum} and defines this object's object slots layout, or null if there are no object slots.
 	 * @param integerSlotsEnumClass
-	 *        The Java {@link Class} which is a subclass of {@link
-	 *        IntegerSlotsEnum} and defines this object's object slots
+	 *        The Java {@link Class} which is a subclass of {@link IntegerSlotsEnum} and defines this object's object slots
 	 */
 	protected NumericTupleDescriptor (
 		final Mutability mutability,

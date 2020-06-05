@@ -74,17 +74,13 @@ extends StringDescriptor
 	public enum IntegerSlots implements IntegerSlotsEnumJava
 	{
 		/**
-		 * The low 32 bits are used for the {@link #HASH_OR_ZERO}, but the upper
-		 * 32 can be used by other {@link BitField}s in subclasses of {@link
-		 * TupleDescriptor}.
+		 * The low 32 bits are used for the {@link #HASH_OR_ZERO}, but the upper 32 can be used by other {@link BitField}s in subclasses of {@link TupleDescriptor}.
 		 */
 		@HideFieldInDebugger
 		HASH_AND_MORE,
 
 		/**
-		 * The raw 64-bit ({@code long}s) that constitute the representation of
-		 * the {@linkplain ByteStringDescriptor byte string}.  The bytes occur
-		 * in Little Endian order within each long.
+		 * The raw 64-bit ({@code long}s) that constitute the representation of the {@linkplain ByteStringDescriptor byte string}.  The bytes occur in Little Endian order within each long.
 		 */
 		RAW_LONGS_;
 
@@ -106,15 +102,12 @@ extends StringDescriptor
 
 	/**
 	 * The number of bytes of the last {@code long} that do not participate in
-	 * the representation of the {@linkplain ByteStringDescriptor byte string}.
-	 * Must be between 0 and 7.
+	 * the representation of the {@linkplain ByteStringDescriptor byte string}. Must be between 0 and 7.
 	 */
 	private final int unusedBytesOfLastLong;
 
 	/**
-	 * Defined threshold for making copies versus using {@linkplain
-	 * TreeTupleDescriptor}/using other forms of reference instead of creating
-	 * a new tuple.
+	 * Defined threshold for making copies versus using {@linkplain TreeTupleDescriptor}/using other forms of reference instead of creating a new tuple.
 	 */
 	private static final int maximumCopySize = 64;
 
@@ -504,9 +497,12 @@ extends StringDescriptor
 	 * generator for each position in ascending order to produce the code
 	 * points with which to populate the string.
 	 *
-	 * @param size The size of byte string to create.
-	 * @param generator A generator to provide code points to store.
-	 * @return The new Avail {@link A_String}.
+	 * @param size
+	 * The size of byte string to create.
+	 * @param generator
+	 * A generator to provide code points to store.
+	 * @return
+	 * The new Avail {@link A_String}.
 	 */
 	public static AvailObject generateByteString(
 		final int size,
@@ -544,8 +540,10 @@ extends StringDescriptor
 	 * Answer a mutable copy of the {@linkplain AvailObject receiver} that holds
 	 * 16-bit characters.
 	 *
-	 * @param object The {@linkplain AvailObject receiver}.
-	 * @return A mutable copy of the {@linkplain AvailObject receiver}.
+	 * @param object
+	 * The {@linkplain AvailObject receiver}.
+	 * @return
+	 * A mutable copy of the {@linkplain AvailObject receiver}.
 	 */
 	private static A_String copyAsMutableTwoByteString (
 		final AvailObject object)
@@ -564,8 +562,10 @@ extends StringDescriptor
 	 * Answer a new byte string capacious enough to hold the specified number of
 	 * elements.
 	 *
-	 * @param size The desired number of elements.
-	 * @return A new mutable byte string.
+	 * @param size
+	 * The desired number of elements.
+	 * @return
+	 * A new mutable byte string.
 	 */
 	private AvailObject mutableObjectOfSize (final int size)
 	{
@@ -649,9 +649,8 @@ extends StringDescriptor
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 * @param size
 	 *        The desired number of elements.
-	 * @return A {@code ByteStringDescriptor} suitable for representing a
-	 *         byte string of the given mutability and {@linkplain
-	 *         AvailObject#tupleSize() size}.
+	 * @return
+	 * A {@code ByteStringDescriptor} suitable for representing a byte string of the given mutability and {@linkplain         AvailObject#tupleSize() size}.
 	 */
 	private static ByteStringDescriptor descriptorFor (
 		final Mutability flag,

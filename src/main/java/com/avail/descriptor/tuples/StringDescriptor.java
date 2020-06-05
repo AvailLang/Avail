@@ -113,24 +113,14 @@ extends TupleDescriptor
 	}
 
 	/**
-	 * Convert the specified Java {@link String} to an Avail {@link A_String},
-	 * but keeping any Java surrogate pairs as two distinct values in the Avail
-	 * string.  Note that such a string is semantically different from what
-	 * would be produced by {@link #stringFrom(String)}, and isn't even
-	 * necessarily the same length.  This operation is intended for
-	 * compatibility with Java (and JavaScript) strings.
+	 * Convert the specified Java {@link String} to an Avail {@link A_String}, but keeping any Java surrogate pairs as two distinct values in the Avail string.  Note that such a string is semantically different from what would be produced by {@link #stringFrom(String)}, and isn't even necessarily the same length.  This operation is intended for compatibility with Java (and JavaScript) strings.
 	 *
-	 * <p>NB: The {@linkplain AbstractDescriptor descriptor} type of the actual
-	 * instance returned varies with the contents of the Java {@code String}. If
-	 * the Java {@code String} contains only Latin-1 characters, then the
-	 * descriptor will be {@link ByteStringDescriptor}; otherwise it will be
-	 * {@link TwoByteStringDescriptor}.</p>
+	 * <p>NB: The {@linkplain AbstractDescriptor descriptor} type of the actual instance returned varies with the contents of the Java {@code String}. If the Java {@code String} contains only Latin-1 characters, then the descriptor will be {@link ByteStringDescriptor}; otherwise it will be {@link TwoByteStringDescriptor}.</p>
 	 *
 	 * @param aNativeString
 	 *        A Java {@link String}.
-	 * @return An Avail {@code StringDescriptor string} having the same length,
-	 *         but with surrogate pairs (D800-DBFF and DC00-DFFF) preserved in
-	 *         the Avail string.
+	 * @return
+	 * An Avail {@code StringDescriptor string} having the same length, but with surrogate pairs (D800-DBFF and DC00-DFFF) preserved in the Avail string.
 	 */
 	public static A_String stringWithSurrogatesFrom (final String aNativeString)
 	{
@@ -160,14 +150,12 @@ extends TupleDescriptor
 	/**
 	 * Convert the specified Java {@link String} to an Avail {@link A_String}.
 	 *
-	 * <p>NB: The {@linkplain AbstractDescriptor descriptor} type of the actual
-	 * instance returned varies with the contents of the Java {@code String}. If
-	 * the Java {@code String} contains only Latin-1 characters, then the
-	 * descriptor will be {@link ByteStringDescriptor}; otherwise it will be
-	 * {@link TwoByteStringDescriptor}.</p>
+	 * <p>NB: The {@linkplain AbstractDescriptor descriptor} type of the actual instance returned varies with the contents of the Java {@code String}. If the Java {@code String} contains only Latin-1 characters, then the descriptor will be {@link ByteStringDescriptor}; otherwise it will be {@link TwoByteStringDescriptor}.</p>
 	 *
-	 * @param aNativeString A Java {@link String}.
-	 * @return A corresponding Avail {@code StringDescriptor string}.
+	 * @param aNativeString
+	 * A Java {@link String}.
+	 * @return
+	 * A corresponding Avail {@code StringDescriptor string}.
 	 */
 	public static A_String stringFrom (final String aNativeString)
 	{
@@ -208,14 +196,14 @@ extends TupleDescriptor
 	}
 
 	/**
-	 * Given a Java {@link String} containing a {@linkplain String#format(
-	 * String, Object...) substitution format} and its arguments, perform
-	 * pattern substitution and produce the corresponding Avail {@link A_String
-	 * string}.
+	 * Given a Java {@link String} containing a {@linkplain String#format(String, Object...) substitution format} and its arguments, perform pattern substitution and produce the corresponding Avail {@link A_String string}.
 	 *
-	 * @param pattern A substitution pattern.
-	 * @param args The arguments to substitute into the pattern.
-	 * @return An Avail string.
+	 * @param pattern
+	 * A substitution pattern.
+	 * @param args
+	 * The arguments to substitute into the pattern.
+	 * @return
+	 * An Avail string.
 	 */
 	public static A_String formatString (
 		final String pattern,
@@ -230,13 +218,9 @@ extends TupleDescriptor
 	 * @param mutability
 	 *            The {@linkplain Mutability mutability} of the new descriptor.
 	 * @param objectSlotsEnumClass
-	 *            The Java {@link Class} which is a subclass of {@link
-	 *            ObjectSlotsEnum} and defines this object's object slots
-	 *            layout, or null if there are no object slots.
+	 *            The Java {@link Class} which is a subclass of {@link ObjectSlotsEnum} and defines this object's object slots layout, or null if there are no object slots.
 	 * @param integerSlotsEnumClass
-	 *            The Java {@link Class} which is a subclass of {@link
-	 *            IntegerSlotsEnum} and defines this object's object slots
-	 *            layout, or null if there are no integer slots.
+	 *            The Java {@link Class} which is a subclass of {@link IntegerSlotsEnum} and defines this object's object slots layout, or null if there are no integer slots.
 	 */
 	protected StringDescriptor (
 		final Mutability mutability,

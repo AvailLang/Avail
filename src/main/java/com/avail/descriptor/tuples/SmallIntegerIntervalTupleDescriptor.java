@@ -58,9 +58,7 @@ import static com.avail.descriptor.tuples.TreeTupleDescriptor.createTwoPartTreeT
 import static com.avail.descriptor.types.IntegerRangeTypeDescriptor.inclusive;
 
 /**
- * {@code SmallIntegerIntervalTupleDescriptor} represents an {@linkplain
- * IntegerIntervalTupleDescriptor integer interval tuple} whose slots are all
- * Java {@code long}s.
+ * {@code SmallIntegerIntervalTupleDescriptor} represents an {@linkplain IntegerIntervalTupleDescriptor integer interval tuple} whose slots are all Java {@code long}s.
  *
  * @author Leslie Schultz &lt;leslie@availlang.org&gt;
  */
@@ -142,9 +140,7 @@ extends NumericTupleDescriptor
 	}
 
 	/**
-	 * Defined threshold for making copies versus using {@linkplain
-	 * TreeTupleDescriptor}/using other forms of reference instead of creating
-	 * a new tuple.
+	 * Defined threshold for making copies versus using {@linkplain TreeTupleDescriptor}/using other forms of reference instead of creating a new tuple.
 	 */
 	private static final int maximumCopySize = 32;
 
@@ -601,7 +597,8 @@ extends NumericTupleDescriptor
 	/**
 	 * Construct a new {@code SmallIntegerIntervalTupleDescriptor}.
 	 *
-	 * @param mutability The mutability of the descriptor.
+	 * @param mutability
+	 * The mutability of the descriptor.
 	 */
 	public SmallIntegerIntervalTupleDescriptor (final Mutability mutability)
 	{
@@ -613,11 +610,14 @@ extends NumericTupleDescriptor
 	 * are small enough that the small integer interval tuple representation
 	 * can be used.
 	 *
-	 * @param newStart The start value for the candidate interval tuple.
-	 * @param newEnd The end value for the candidate interval tuple.
-	 * @param delta The delta for the candidate interval tuple.
-	 * @return True if all values would fit in the small representation, false
-	 *         otherwise.
+	 * @param newStart
+	 * The start value for the candidate interval tuple.
+	 * @param newEnd
+	 * The end value for the candidate interval tuple.
+	 * @param delta
+	 * The delta for the candidate interval tuple.
+	 * @return
+	 * True if all values would fit in the small representation, false otherwise.
 	 */
 	static boolean isSmallIntervalCandidate (
 		final A_Number newStart,
@@ -642,11 +642,14 @@ extends NumericTupleDescriptor
 	/**
 	 * Create a new interval according to the parameters.
 	 *
-	 * @param newStart The first integer in the interval.
-	 * @param newEnd The last integer in the interval.
-	 * @param delta The difference between an integer and its subsequent
-	 *              neighbor in the interval. Delta is nonzero.
-	 * @return The new interval.
+	 * @param newStart
+	 * The first integer in the interval.
+	 * @param newEnd
+	 * The last integer in the interval.
+	 * @param delta
+	 * The difference between an integer and its subsequent neighbor in the interval. Delta is nonzero.
+	 * @return
+	 * The new interval.
 	 */
 	public static A_Tuple createSmallInterval (
 		final int newStart,

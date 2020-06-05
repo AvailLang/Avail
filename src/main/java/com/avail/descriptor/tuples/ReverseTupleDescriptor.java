@@ -69,9 +69,7 @@ extends TupleDescriptor
 	public enum IntegerSlots implements IntegerSlotsEnumJava
 	{
 		/**
-		 * The low 32 bits are used for the {@link #HASH_OR_ZERO}, but the upper
-		 * 32 can be used by other {@link BitField}s in subclasses of {@link
-		 * TupleDescriptor}.
+		 * The low 32 bits are used for the {@link #HASH_OR_ZERO}, but the upper 32 can be used by other {@link BitField}s in subclasses of {@link TupleDescriptor}.
 		 */
 		@HideFieldInDebugger
 		HASH_AND_MORE;
@@ -111,9 +109,7 @@ extends TupleDescriptor
 	}
 
 	/**
-	 * Defined threshold for making copies versus using {@linkplain
-	 * TreeTupleDescriptor}/using other forms of reference instead of creating
-	 * a new tuple.
+	 * Defined threshold for making copies versus using {@linkplain TreeTupleDescriptor}/using other forms of reference instead of creating a new tuple.
 	 */
 	private static final int maximumCopySize = 32;
 
@@ -465,7 +461,8 @@ extends TupleDescriptor
 	/**
 	 * Construct a new {@code ReverseTupleDescriptor}.
 	 *
-	 * @param mutability The mutability of the descriptor.
+	 * @param mutability
+	 * The mutability of the descriptor.
 	 */
 	private ReverseTupleDescriptor (final Mutability mutability)
 	{
@@ -473,16 +470,14 @@ extends TupleDescriptor
 	}
 
 	/**
-	 * Create a new {@link AvailObject} that wraps the specified {@linkplain
-	 * AvailObject} tuple and provides it with a {@code ReverseTupleDescriptor}
-	 * descriptor.
+	 * Create a new {@link AvailObject} that wraps the specified {@linkplain AvailObject} tuple and provides it with a {@code ReverseTupleDescriptor} descriptor.
 	 *
-	 * <p>The original tuple may be destroyed by this operation.  If you need
-	 * the original after this call, use {@link A_BasicObject#makeImmutable()}
-	 * on it prior to the call.</p>
+	 * <p>The original tuple may be destroyed by this operation.  If you need the original after this call, use {@link A_BasicObject#makeImmutable()}  on it prior to the call.</p>
 	 *
-	 * @param originTuple The tuple to be reversed.
-	 * @return A new reverse tuple.
+	 * @param originTuple
+	 * The tuple to be reversed.
+	 * @return
+	 * A new reverse tuple.
 	 */
 	public static AvailObject createReverseTuple (
 		final A_Tuple originTuple)

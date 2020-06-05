@@ -63,8 +63,7 @@ import static com.avail.descriptor.tuples.TreeTupleDescriptor.createTwoPartTreeT
 import static com.avail.descriptor.types.IntegerRangeTypeDescriptor.inclusive;
 
 /**
- * {@code IntegerIntervalTupleDescriptor} represents an ordered tuple of
- * integers that each differ from their predecessor by DELTA, an integer value.
+ * {@code IntegerIntervalTupleDescriptor} represents an ordered tuple of integers that each differ from their predecessor by DELTA, an integer value.
  *
  * @author Leslie Schultz &lt;leslie@availlang.org&gt;
  */
@@ -88,10 +87,7 @@ extends NumericTupleDescriptor
 		/**
 		 * The number of elements in the tuple.
 		 *
-		 * The API's {@link AvailObject#tupleSize() tuple size accessor}
-		 * currently returns a Java integer, because there wasn't much of a
-		 * problem limiting manually-constructed tuples to two billion elements.
-		 * This restriction will eventually be removed.
+		 * The API's {@link AvailObject#tupleSize() tuple size accessor} currently returns a Java integer, because there wasn't much of a problem limiting manually-constructed tuples to two billion elements. This restriction will eventually be removed.
 		 */
 		public static final BitField SIZE = new BitField(HASH_AND_MORE, 32, 32);
 
@@ -543,11 +539,15 @@ extends NumericTupleDescriptor
 	/**
 	 * Create a new interval according to the parameters.
 	 *
-	 * @param start The first integer in the interval.
-	 * @param end The last allowable integer in the interval.
-	 * @param delta The difference between an integer and its subsequent
-	 *              neighbor in the interval. Delta is nonzero.
-	 * @return The new interval.
+	 * @param start
+	 * The first integer in the interval.
+	 * @param end
+	 * The last allowable integer in the interval.
+	 * @param delta
+	 *   The difference between an integer and its subsequent neighbor in the
+	 *   interval. Delta is nonzero.
+	 * @return
+	 * The new interval.
 	 */
 	public static A_Tuple createInterval (
 		final AvailObject start,
@@ -607,12 +607,16 @@ extends NumericTupleDescriptor
 	 * Create a new IntegerIntervalTuple using the supplied arguments,
 	 * regardless of the suitability of other representations.
 	 *
-	 * @param start The first integer in the interval.
-	 * @param normalizedEnd The last integer in the interval.
-	 * @param delta The difference between an integer and its subsequent
-	 *              neighbor in the interval. Delta is nonzero.
-	 * @param size The size of the interval, in number of elements.
-	 * @return The new interval.
+	 * @param start
+	 * The first integer in the interval.
+	 * @param normalizedEnd
+	 * The last integer in the interval.
+	 * @param delta
+	 * The difference between an integer and its subsequent neighbor in the interval. Delta is nonzero.
+	 * @param size
+	 * The size of the interval, in number of elements.
+	 * @return
+	 * The new interval.
 	 */
 	private static A_Tuple forceCreate (
 		final A_Number start,
@@ -662,7 +666,8 @@ extends NumericTupleDescriptor
 	/**
 	 * Construct a new {@code IntegerIntervalTupleDescriptor}.
 	 *
-	 * @param mutability The mutability of the new descriptor.
+	 * @param mutability
+	 * The mutability of the new descriptor.
 	 */
 	private IntegerIntervalTupleDescriptor (final Mutability mutability)
 	{

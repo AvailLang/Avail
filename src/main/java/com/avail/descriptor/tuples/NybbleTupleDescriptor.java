@@ -64,12 +64,10 @@ import static com.avail.descriptor.types.TypeDescriptor.Types.NONTYPE;
 import static java.lang.Math.min;
 
 /**
- * {@code NybbleTupleDescriptor} represents a tuple of integers that happen to
- * fall in the range 0..15. They are packed eight per {@code int}.
+ * {@code NybbleTupleDescriptor} represents a tuple of integers that happen to fall in the range 0..15. They are packed eight per {@code int}.
  *
  * <p>
- * This representation is particularly useful for {@linkplain
- * CompiledCodeDescriptor compiled code}, which uses nybblecodes.
+ * This representation is particularly useful for {@linkplain CompiledCodeDescriptor compiled code}, which uses nybblecodes.
  * </p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
@@ -84,16 +82,13 @@ extends NumericTupleDescriptor
 	public enum IntegerSlots implements IntegerSlotsEnumJava
 	{
 		/**
-		 * The low 32 bits are used for the {@link #HASH_OR_ZERO}, but the upper
-		 * 32 can be used by other {@link BitField}s in subclasses of {@link
-		 * TupleDescriptor}.
+		 * The low 32 bits are used for the {@link #HASH_OR_ZERO}, but the upper 32 can be used by other {@link BitField}s in subclasses of {@link TupleDescriptor}.
 		 */
 		@HideFieldInDebugger
 		HASH_AND_MORE,
 
 		/**
-		 * The raw 64-bit machine words that constitute the representation of
-		 * the {@linkplain NybbleTupleDescriptor nybble tuple}.
+		 * The raw 64-bit machine words that constitute the representation of the {@linkplain NybbleTupleDescriptor nybble tuple}.
 		 */
 		RAW_LONG_AT_;
 
@@ -116,16 +111,12 @@ extends NumericTupleDescriptor
 	}
 
 	/**
-	 * Defined threshold for making copies versus using {@linkplain
-	 * TreeTupleDescriptor}/using other forms of reference instead of creating
-	 * a new tuple.
+	 * Defined threshold for making copies versus using {@linkplain TreeTupleDescriptor}/using other forms of reference instead of creating a new tuple.
 	 */
 	private static final int maximumCopySize = 128;
 
 	/**
-	 * The number of nybbles of the last {@code long} {@linkplain
-	 * IntegerSlots#RAW_LONG_AT_ integer slot} that are not considered part of
-	 * the tuple.
+	 * The number of nybbles of the last {@code long} {@linkplain IntegerSlots#RAW_LONG_AT_ integer slot} that are not considered part of the tuple.
 	 */
 	private final int unusedNybblesOfLastLong;
 
@@ -589,9 +580,12 @@ extends NumericTupleDescriptor
 	/**
 	 * Extract the nybble from the specified position of the nybble tuple.
 	 *
-	 * @param object A nybble tuple.
-	 * @param nybbleIndex The index.
-	 * @return The nybble at that index.
+	 * @param object
+	 * A nybble tuple.
+	 * @param nybbleIndex
+	 * The index.
+	 * @return
+	 * The nybble at that index.
 	 */
 	static byte getNybble (
 		final AvailObject object,
@@ -608,9 +602,12 @@ extends NumericTupleDescriptor
 	 * Overwrite the specified position of the nybble tuple with a replacement
 	 * nybble.
 	 *
-	 * @param object The nybble tuple.
-	 * @param nybbleIndex The index.
-	 * @param aNybble The replacement value, a nybble.
+	 * @param object
+	 * The nybble tuple.
+	 * @param nybbleIndex
+	 * The index.
+	 * @param aNybble
+	 * The replacement value, a nybble.
 	 */
 	private static void setNybble (
 		final AvailObject object,
@@ -632,7 +629,8 @@ extends NumericTupleDescriptor
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
-	 * @param unusedNybbles The number of unused nybbles of the last word.
+	 * @param unusedNybbles
+	 * The number of unused nybbles of the last word.
 	 */
 	private NybbleTupleDescriptor (
 		final Mutability mutability,
@@ -644,8 +642,7 @@ extends NumericTupleDescriptor
 
 	/**
 	 * The static array of descriptors of this kind, organized in such a way
-	 * that {@link #descriptorFor(Mutability, int)} can find them by mutability
-	 * and number of unused nybbles in the last word.
+	 * that {@link #descriptorFor(Mutability, int)} can find them by mutability and number of unused nybbles in the last word.
 	 */
 	private static final NybbleTupleDescriptor[] descriptors =
 		new NybbleTupleDescriptor[16 * 3];
@@ -687,9 +684,12 @@ extends NumericTupleDescriptor
 	 * of {@code NybbleTupleDescriptor}.  Run the generator for each position in
 	 * ascending order to produce the nybbles with which to populate the tuple.
 	 *
-	 * @param size The size of nybble tuple to create.
-	 * @param generator A generator to provide nybbles to store.
-	 * @return The new tuple of nybbles.
+	 * @param size
+	 * The size of nybble tuple to create.
+	 * @param generator
+	 * A generator to provide nybbles to store.
+	 * @return
+	 * The new tuple of nybbles.
 	 */
 	public static AvailObject generateNybbleTupleFrom (
 		final int size,
@@ -728,10 +728,9 @@ extends NumericTupleDescriptor
 	 * nybbles.
 	 *
 	 * @param object
-	 *        A nybble tuple to copy as a {@linkplain ByteTupleDescriptor byte
-	 *        tuple}.
-	 * @return A new {@linkplain ByteTupleDescriptor byte tuple} with the same
-	 *         sequence of integers as the argument.
+	 *        A nybble tuple to copy as a {@linkplain ByteTupleDescriptor byte tuple}.
+	 * @return
+	 * A new {@linkplain ByteTupleDescriptor byte tuple} with the same sequence of integers as the argument.
 	 */
 	private static A_Tuple copyAsMutableByteTuple (final AvailObject object)
 	{
@@ -744,8 +743,10 @@ extends NumericTupleDescriptor
 	/**
 	 * Build a new object instance with room for size elements.
 	 *
-	 * @param size The number of elements for which to leave room.
-	 * @return A mutable nybble tuple.
+	 * @param size
+	 * The number of elements for which to leave room.
+	 * @return
+	 * A mutable nybble tuple.
 	 */
 	public static AvailObject mutableObjectOfSize (final int size)
 	{
@@ -764,9 +765,7 @@ extends NumericTupleDescriptor
 	 *        How many elements are in a tuple to be represented by the
 	 *        descriptor.
 	 * @return
-	 *        A {@code NybbleTupleDescriptor} suitable for representing a nybble
-	 *        tuple of the given mutability and {@linkplain
-	 *        AvailObject#tupleSize() size}.
+	 *        A {@code NybbleTupleDescriptor} suitable for representing a nybble tuple of the given mutability and {@linkplain AvailObject#tupleSize() size}.
 	 */
 	private static NybbleTupleDescriptor descriptorFor (
 		final Mutability flag,

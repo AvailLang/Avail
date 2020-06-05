@@ -56,10 +56,7 @@ import static com.avail.descriptor.tuples.TreeTupleDescriptor.createTwoPartTreeT
  * starting index within that tuple, and the size of the subrange.  The subrange
  * is itself a tuple.
  *
- * <p>To avoid arbitrarily deep constructs, the basis tuple must not itself be a
- * subrange tuple, nor may it be a {@linkplain TreeTupleDescriptor tree tuple}.
- * In general, tree tuples contain as leaves either subrange tuples or flat
- * tuples, and subrange tuples may only contain flat tuples.</p>
+ * <p>To avoid arbitrarily deep constructs, the basis tuple must not itself be a subrange tuple, nor may it be a {@linkplain TreeTupleDescriptor tree tuple}. In general, tree tuples contain as leaves either subrange tuples or flat tuples, and subrange tuples may only contain flat tuples.</p>
  *
  * <p>A subrange must not be empty.  Additionally, it should be at least some
  * threshold minimum size, otherwise a flat tuple would do the job more
@@ -76,9 +73,7 @@ extends TupleDescriptor
 	public enum IntegerSlots implements IntegerSlotsEnumJava
 	{
 		/**
-		 * The low 32 bits are used for the {@link #HASH_OR_ZERO}, but the upper
-		 * 32 can be used by other {@link BitField}s in subclasses of {@link
-		 * TupleDescriptor}.
+		 * The low 32 bits are used for the {@link #HASH_OR_ZERO}, but the upper 32 can be used by other {@link BitField}s in subclasses of {@link TupleDescriptor}.
 		 */
 		@HideFieldInDebugger
 		HASH_AND_MORE,
@@ -105,8 +100,7 @@ extends TupleDescriptor
 
 		/**
 		 * The number of elements in this subrange tuple, starting at the
-		 * {@link #START_INDEX}.  Must not be zero, and should probably be at
-		 * least some reasonable size to avoid time and space overhead.
+		 * {@link #START_INDEX}.  Must not be zero, and should probably be at least some reasonable size to avoid time and space overhead.
 		 */
 		public static final BitField SIZE =
 			new BitField(START_AND_SIZE, 32, 32);
@@ -542,14 +536,16 @@ extends TupleDescriptor
 	public static final int minSize = 10;
 
 	/**
-	 * Create a {@linkplain SubrangeTupleDescriptor subrange tuple} with the
-	 * given basis tuple, start index, and size.  Make the basis tuple immutable
-	 * for safety.
+	 * Create a {@linkplain SubrangeTupleDescriptor subrange tuple} with the given basis tuple, start index, and size.  Make the basis tuple immutable for safety.
 	 *
-	 * @param basisTuple The basis tuple of this subrange tuple.
-	 * @param startIndex The starting index within the basis tuple
-	 * @param size The size of this subrange tuple.
-	 * @return A fresh subrange tuple.
+	 * @param basisTuple
+	 * The basis tuple of this subrange tuple.
+	 * @param startIndex
+	 * The starting index within the basis tuple
+	 * @param size
+	 * The size of this subrange tuple.
+	 * @return
+	 * A fresh subrange tuple.
 	 */
 	public static AvailObject createSubrange (
 		final A_Tuple basisTuple,

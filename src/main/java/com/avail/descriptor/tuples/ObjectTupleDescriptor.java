@@ -58,8 +58,7 @@ import static com.avail.descriptor.tuples.TreeTupleDescriptor.createTwoPartTreeT
 import static com.avail.optimizer.jvm.CheckedMethod.staticMethod;
 
 /**
- * This is a representation for {@linkplain TupleDescriptor tuples} that can
- * consist of arbitrary {@link AvailObject}s.
+ * This is a representation for {@linkplain TupleDescriptor tuples} that can consist of arbitrary {@link AvailObject}s.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -72,9 +71,7 @@ extends TupleDescriptor
 	public enum IntegerSlots implements IntegerSlotsEnumJava
 	{
 		/**
-		 * The low 32 bits are used for the {@link #HASH_OR_ZERO}, but the upper
-		 * 32 can be used by other {@link BitField}s in subclasses of {@link
-		 * TupleDescriptor}.
+		 * The low 32 bits are used for the {@link #HASH_OR_ZERO}, but the upper 32 can be used by other {@link BitField}s in subclasses of {@link TupleDescriptor}.
 		 */
 		@HideFieldInDebugger
 		HASH_AND_MORE;
@@ -109,9 +106,7 @@ extends TupleDescriptor
 	}
 
 	/**
-	 * Defined threshold for making copies versus using {@linkplain
-	 * TreeTupleDescriptor}/using other forms of reference instead of creating
-	 * a new tuple.
+	 * Defined threshold for making copies versus using {@linkplain TreeTupleDescriptor}/using other forms of reference instead of creating  a new tuple.
 	 */
 	public static final int maximumCopySize = 32;
 
@@ -425,11 +420,10 @@ extends TupleDescriptor
 		int index = 1;
 
 		/**
-		 * Construct a new {@code ObjectTupleIterator} on the given {@linkplain
-		 * TupleDescriptor tuple}, which must be have an {@linkplain
-		 * ObjectTupleDescriptor} as its descriptor.
+		 * Construct a new {@code ObjectTupleIterator} on the given {@linkplain TupleDescriptor tuple}, which must be have an {@linkplain ObjectTupleDescriptor} as its descriptor.
 		 *
-		 * @param tuple The tuple to iterate over.
+		 * @param tuple
+		 * The tuple to iterate over.
 		 */
 		ObjectTupleIterator (final AvailObject tuple)
 		{
@@ -531,8 +525,10 @@ extends TupleDescriptor
 	 * Create an {@code ObjectTupleDescriptor object tuple} whose slots
 	 * have not been initialized.
 	 *
-	 * @param size The number of elements in the resulting tuple.
-	 * @return An uninitialized object tuple of the requested size.
+	 * @param size
+	 * The number of elements in the resulting tuple.
+	 * @return
+	 * An uninitialized object tuple of the requested size.
 	 */
 	private static AvailObject createUninitialized (final int size)
 	{
@@ -540,14 +536,14 @@ extends TupleDescriptor
 	}
 
 	/**
-	 * Create an object of the appropriate size, whose descriptor is an instance
-	 * of {@code ObjectTupleDescriptor}.  Run the generator for each position in
-	 * ascending order to produce the {@link AvailObject}s with which to
-	 * populate the tuple.
+	 * Create an object of the appropriate size, whose descriptor is an instance of {@code ObjectTupleDescriptor}.  Run the generator for each position in ascending order to produce the {@link AvailObject}s with which to populate the tuple.
 	 *
-	 * @param size The size of the object tuple to create.
-	 * @param generator A generator to provide {@link AvailObject}s to store.
-	 * @return The new object tuple.
+	 * @param size
+	 * The size of the object tuple to create.
+	 * @param generator
+	 * A generator to provide {@link AvailObject}s to store.
+	 * @return
+	 * The new object tuple.
 	 */
 	public static AvailObject generateObjectTupleFrom (
 		final int size,
@@ -565,14 +561,14 @@ extends TupleDescriptor
 	}
 
 	/**
-	 * Create an object of the appropriate size, whose descriptor is an instance
-	 * of {@code ObjectTupleDescriptor}.  Run the generator for each position in
-	 * descending order (passing a descending index) to produce the {@link
-	 * AvailObject}s with which to populate the tuple.
+	 * Create an object of the appropriate size, whose descriptor is an instance of {@code ObjectTupleDescriptor}.  Run the generator for each position in descending order (passing a descending index) to produce the {@link AvailObject}s with which to populate the tuple.
 	 *
-	 * @param size The size of the object tuple to create.
-	 * @param generator A generator to provide {@link AvailObject}s to store.
-	 * @return The new object tuple.
+	 * @param size
+	 * The size of the object tuple to create.
+	 * @param generator
+	 * A generator to provide {@link AvailObject}s to store.
+	 * @return
+	 * The new object tuple.
 	 */
 	public static AvailObject generateReversedFrom (
 		final int size,
@@ -595,7 +591,8 @@ extends TupleDescriptor
 	 *
 	 * @param elements
 	 *        The array of Avail values from which to construct a tuple.
-	 * @return The new mutable tuple.
+	 * @return
+	 * The new mutable tuple.
 	 */
 	@ReferencedInGeneratedCode
 	public static A_Tuple tupleFromArray (
@@ -624,7 +621,8 @@ extends TupleDescriptor
 	 *
 	 * @param element1
 	 *        The value for the first element of the tuple.
-	 * @return The new mutable tuple.
+	 * @return
+	 * The new mutable tuple.
 	 */
 	@ReferencedInGeneratedCode
 	public static A_Tuple tuple (
@@ -652,7 +650,8 @@ extends TupleDescriptor
 	 *        The value for the first element of the tuple.
 	 * @param element2
 	 *        The value for the second element of the tuple.
-	 * @return The new mutable tuple.
+	 * @return
+	 * The new mutable tuple.
 	 */
 	@ReferencedInGeneratedCode
 	public static A_Tuple tuple (
@@ -666,8 +665,7 @@ extends TupleDescriptor
 	}
 
 	/**
-	 * The {@link CheckedMethod} for {@link #tuple(A_BasicObject,
-	 * A_BasicObject)}.
+	 * The {@link CheckedMethod} for {@link #tuple(A_BasicObject, A_BasicObject)}.
 	 */
 	public static final CheckedMethod tuple2Method = staticMethod(
 		ObjectTupleDescriptor.class,
@@ -686,7 +684,8 @@ extends TupleDescriptor
 	 *        The value for the second element of the tuple.
 	 * @param element3
 	 *        The value for the third element of the tuple.
-	 * @return The new mutable tuple.
+	 * @return
+	 * The new mutable tuple.
 	 */
 	@ReferencedInGeneratedCode
 	public static A_Tuple tuple (
@@ -702,8 +701,7 @@ extends TupleDescriptor
 	}
 
 	/**
-	 * The {@link CheckedMethod} for {@link #tuple(A_BasicObject,
-	 * A_BasicObject, A_BasicObject)}.
+	 * The {@link CheckedMethod} for {@link #tuple(A_BasicObject, A_BasicObject, A_BasicObject)}.
 	 */
 	public static final CheckedMethod tuple3Method = staticMethod(
 		ObjectTupleDescriptor.class,
@@ -725,7 +723,8 @@ extends TupleDescriptor
 	 *        The value for the third element of the tuple.
 	 * @param element4
 	 *        The value for the fourth element of the tuple.
-	 * @return The new mutable tuple.
+	 * @return
+	 * The new mutable tuple.
 	 */
 	@ReferencedInGeneratedCode
 	public static A_Tuple tuple (
@@ -743,8 +742,7 @@ extends TupleDescriptor
 	}
 
 	/**
-	 * The {@link CheckedMethod} for {@link #tuple(A_BasicObject,
-	 * A_BasicObject, A_BasicObject, A_BasicObject)}.
+	 * The {@link CheckedMethod} for {@link #tuple(A_BasicObject, A_BasicObject, A_BasicObject, A_BasicObject)}.
 	 */
 	public static final CheckedMethod tuple4Method = staticMethod(
 		ObjectTupleDescriptor.class,
@@ -789,8 +787,7 @@ extends TupleDescriptor
 	}
 
 	/**
-	 * The {@link CheckedMethod} for {@link #tuple(A_BasicObject,
-	 * A_BasicObject, A_BasicObject, A_BasicObject, A_BasicObject)}.
+	 * The {@link CheckedMethod} for {@link #tuple(A_BasicObject, A_BasicObject, A_BasicObject, A_BasicObject, A_BasicObject)}.
 	 */
 	public static final CheckedMethod tuple5Method = staticMethod(
 		ObjectTupleDescriptor.class,
@@ -803,15 +800,14 @@ extends TupleDescriptor
 		A_BasicObject.class);
 
 	/**
-	 * Construct a new tuple of arbitrary {@linkplain AvailObject Avail objects}
-	 * passed in a list.  The elements are not made immutable first, nor is the
-	 * new tuple necessarily made immutable.
+	 * Construct a new tuple of arbitrary {@linkplain AvailObject Avail objects} passed in a list.  The elements are not made immutable first, nor is the new tuple necessarily made immutable.
 	 *
 	 * @param list
-	 *        The list of {@linkplain AvailObject Avail objects} from which
-	 *        to construct a tuple.
-	 * @return The corresponding tuple of objects.
-	 * @param <E> The specialization of the input {@link List}'s elements.
+	 *        The list of {@linkplain AvailObject Avail objects} from which to construct a tuple.
+	 * @return
+	 * The corresponding tuple of objects.
+	 * @param <E>
+	 *     The specialization of the input {@link List}'s elements.
 	 */
 	public static <E extends A_BasicObject> A_Tuple tupleFromList (
 		final List<E> list)

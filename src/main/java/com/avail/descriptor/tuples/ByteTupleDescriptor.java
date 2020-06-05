@@ -63,8 +63,7 @@ import static com.avail.descriptor.types.TypeDescriptor.Types.NONTYPE;
 import static java.lang.Math.min;
 
 /**
- * {@code ByteTupleDescriptor} represents a tuple of integers that happen to
- * fall in the range 0..255.
+ * {@code ByteTupleDescriptor} represents a tuple of integers that happen to fall in the range 0..255.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -78,16 +77,13 @@ extends NumericTupleDescriptor
 	public enum IntegerSlots implements IntegerSlotsEnumJava
 	{
 		/**
-		 * The low 32 bits are used for the {@link #HASH_OR_ZERO}, but the upper
-		 * 32 can be used by other {@link BitField}s in subclasses of {@link
-		 * TupleDescriptor}.
+		 * The low 32 bits are used for the {@link #HASH_OR_ZERO}, but the upper 32 can be used by other {@link BitField}s in subclasses of {@link TupleDescriptor}.
 		 */
 		@HideFieldInDebugger
 		HASH_AND_MORE,
 
 		/**
-		 * The raw 64-bit machine words that constitute the representation of
-		 * the {@linkplain ByteTupleDescriptor byte tuple}.
+		 * The raw 64-bit machine words that constitute the representation of the {@linkplain ByteTupleDescriptor byte tuple}.
 		 */
 		RAW_LONG_AT_;
 
@@ -110,16 +106,13 @@ extends NumericTupleDescriptor
 	}
 
 	/**
-	 * Defined threshold for making copies versus using {@linkplain
-	 * TreeTupleDescriptor}/using other forms of reference instead of creating
-	 * a new tuple.
+	 * Defined threshold for making copies versus using {@linkplain TreeTupleDescriptor}/using other forms of reference instead of creating a new tuple.
 	 */
 	private static final int maximumCopySize = 64;
 
 	/**
 	 * The number of bytes of the last {@code long} that do not participate in
-	 * the representation of the {@linkplain ByteTupleDescriptor byte tuple}.
-	 * Must be between 0 and 7.
+	 * the representation of the {@linkplain ByteTupleDescriptor byte tuple}. Must be between 0 and 7.
 	 */
 	private final int unusedBytesOfLastLong;
 
@@ -611,15 +604,14 @@ extends NumericTupleDescriptor
 	}
 
 	/**
-	 * Answer the appropriate {@code ByteTupleDescriptor descriptor} to
-	 * represent an {@linkplain AvailObject object} of the specified mutability
-	 * and size.
+	 * Answer the appropriate {@code ByteTupleDescriptor descriptor} to represent an {@linkplain AvailObject object} of the specified mutability and size.
 	 *
 	 * @param flag
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 * @param size
 	 *        The desired number of elements.
-	 * @return A {@code ByteTupleDescriptor descriptor}.
+	 * @return
+	 * A {@code ByteTupleDescriptor descriptor}.
 	 */
 	private static ByteTupleDescriptor descriptorFor (
 		final Mutability flag,
@@ -632,8 +624,10 @@ extends NumericTupleDescriptor
 	/**
 	 * Build a mutable byte tuple with the specified number of zeroed elements.
 	 *
-	 * @param size The number of bytes in the resulting tuple.
-	 * @return A byte tuple with the specified number of bytes (initially zero).
+	 * @param size
+	 * The number of bytes in the resulting tuple.
+	 * @return
+	 * A byte tuple with the specified number of bytes (initially zero).
 	 */
 	public static AvailObject mutableObjectOfSize (final int size)
 	{
@@ -648,9 +642,12 @@ extends NumericTupleDescriptor
 	 * ascending order to produce the unsigned bytes (as shorts in the range
 	 * [0..15]) with which to populate the tuple.
 	 *
-	 * @param size The size of byte tuple to create.
-	 * @param generator A generator to provide unsigned bytes to store.
-	 * @return The new tuple.
+	 * @param size
+	 * The size of byte tuple to create.
+	 * @param generator
+	 * A generator to provide unsigned bytes to store.
+	 * @return
+	 * The new tuple.
 	 */
 	public static AvailObject generateByteTupleFrom (
 		final int size,

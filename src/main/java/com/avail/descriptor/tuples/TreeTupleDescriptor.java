@@ -60,8 +60,7 @@ import static java.lang.Math.min;
  * well known B-Tree family, but without the requirement to fit the nodes onto
  * a small number of disk pages.  Instead of the hundreds or thousands of
  * children that B-Tree nodes have, the tree tuple nodes have between
- * {@linkplain #minWidthOfNonRoot 16} and {@linkplain #maxWidth 64} children,
- * except the root which may have as few as 2.
+ * {@linkplain #minWidthOfNonRoot 16} and {@linkplain #maxWidth 64} children, except the root which may have as few as 2.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -74,9 +73,7 @@ extends TupleDescriptor
 	public enum IntegerSlots implements IntegerSlotsEnumJava
 	{
 		/**
-		 * The low 32 bits are used for the {@link #HASH_OR_ZERO}, but the upper
-		 * 32 can be used by other {@link BitField}s in subclasses of {@link
-		 * TupleDescriptor}.
+		 * The low 32 bits are used for the {@link #HASH_OR_ZERO}, but the upper 32 can be used by other {@link BitField}s in subclasses of {@link TupleDescriptor}.
 		 */
 		@HideFieldInDebugger
 		HASH_AND_MORE,
@@ -690,10 +687,12 @@ extends TupleDescriptor
 	 * Concatenate two tree tuples that are at the same level.  Destroy or reuse
 	 * both tuples if they're mutable.
 	 *
-	 * @param tuple1 The left tuple.
-	 * @param tuple2 The right tuple.
-	 * @return A tuple containing the left tuple's elements followed by the
-	 *         right tuple's elements.
+	 * @param tuple1
+	 * The left tuple.
+	 * @param tuple2
+	 * The right tuple.
+	 * @return
+	 * A tuple containing the left tuple's elements followed by the right tuple's elements.
 	 */
 	static AvailObject concatenateSameLevel (
 		final A_Tuple tuple1,
@@ -783,10 +782,9 @@ extends TupleDescriptor
 	 * @param tuple2
 	 *        The second tuple.
 	 * @param canDestroy
-	 *        Whether one of the tuples is allowed to be destroyed if it's also
-	 *        mutable.
-	 * @return The concatenated tuple, perhaps having destroyed or recycled one
-	 *         of the input tuples if permitted.
+	 *        Whether one of the tuples is allowed to be destroyed if it's also mutable.
+	 * @return
+	 * The concatenated tuple, perhaps having destroyed or recycled one of the input tuples if permitted.
 	 */
 	static A_Tuple concatenateAtLeastOneTree (
 		final AvailObject tuple1,
@@ -889,13 +887,14 @@ extends TupleDescriptor
 	}
 
 	/**
-	 * Answer the one-based subscript into the 32-bit int fields of {@link
-	 * IntegerSlots#CUMULATIVE_SIZES_AREA_}, in which the specified tuple index
-	 * occurs.
+	 * Answer the one-based subscript into the 32-bit int fields of {@link IntegerSlots#CUMULATIVE_SIZES_AREA_}, in which the specified tuple index occurs.
 	 *
-	 * @param object The tree tuple node to search.
-	 * @param index The 1-based tuple index to search for.
-	 * @return The 1-based subscript of the subtuple containing the tuple index.
+	 * @param object
+	 * The tree tuple node to search.
+	 * @param index
+	 * The 1-based tuple index to search for.
+	 * @return
+	 * The 1-based subscript of the subtuple containing the tuple index.
 	 */
 	private static int childSubscriptForIndex (
 		final AvailObject object,
@@ -916,10 +915,12 @@ extends TupleDescriptor
 	 * difference between the coordinate system of the tuple and the coordinate
 	 * system of the subtuple.
 	 *
-	 * @param object The tuple.
-	 * @param childSubscript Which subtuple to transform an index into.
-	 * @return How much to subtract to go from an index into the tuple to an
-	 *         index into the subtuple.
+	 * @param object
+	 * The tuple.
+	 * @param childSubscript
+	 * Which subtuple to transform an index into.
+	 * @return
+	 * How much to subtract to go from an index into the tuple to an index into the subtuple.
 	 */
 	private static int offsetForChildSubscript (
 		final AvailObject object,
@@ -933,7 +934,8 @@ extends TupleDescriptor
 	/**
 	 * Perform a sanity check on the passed tree tuple.  Fail if it's invalid.
 	 *
-	 * @param object The tree tuple to check.
+	 * @param object
+	 * The tree tuple to check.
 	 */
 	private static void check (final AvailObject object)
 	{
@@ -961,11 +963,12 @@ extends TupleDescriptor
 	 * Create a new tree tuple with the given level.  The client is responsible
 	 * for setting the bin elements and updating the hash and tuple size.
 	 *
-	 * @param level The tree level at which this hashed bin occurs.
-	 * @param size The number of children this tree tuple should have.
-	 * @return A new tree tuple with uninitialized {@linkplain
-	 *         ObjectSlots#SUBTUPLE_AT_ subtuple} slots and {@linkplain
-	 *         IntegerSlots#CUMULATIVE_SIZES_AREA_ cumulative size} slots.
+	 * @param level
+	 * The tree level at which this hashed bin occurs.
+	 * @param size
+	 * The number of children this tree tuple should have.
+	 * @return
+	 * A new tree tuple with uninitialized {@linkplain ObjectSlots#SUBTUPLE_AT_ subtuple} slots and {@linkplain IntegerSlots#CUMULATIVE_SIZES_AREA_ cumulative size} slots.
 	 */
 	private static AvailObject createUninitializedTree (
 		final int level,
@@ -984,11 +987,16 @@ extends TupleDescriptor
 	 * Create a 2-child tree tuple at the specified level.  The children must
 	 * both be at newLevel - 1.  Neither may be empty.
 	 *
-	 * @param left The left child.
-	 * @param right The right child.
-	 * @param newLevel The level at which to create a new node.
-	 * @param newHashOrZero The new hash, or zero if inconvenient to produce.
-	 * @return A new tree tuple at newLevel.
+	 * @param left
+	 * The left child.
+	 * @param right
+	 * The right child.
+	 * @param newLevel
+	 * The level at which to create a new node.
+	 * @param newHashOrZero
+	 * The new hash, or zero if inconvenient to produce.
+	 * @return
+	 * A new tree tuple at newLevel.
 	 */
 	public static AvailObject createTwoPartTreeTuple (
 		final A_Tuple left,
@@ -1016,8 +1024,10 @@ extends TupleDescriptor
 	 * a new tree.  Not that reversing each child may also have to recursively
 	 * navigate more levels of tree.
 	 *
-	 * @param object The tree tuple to reverse.
-	 * @return A tree tuple that is the reverse of the given tree tuple.
+	 * @param object
+	 * The tree tuple to reverse.
+	 * @return
+	 * A tree tuple that is the reverse of the given tree tuple.
 	 */
 	public static AvailObject internalTreeReverse (final AvailObject object)
 	{
@@ -1063,9 +1073,12 @@ extends TupleDescriptor
 	 * Answer the appropriate {@code TreeTupleDescriptor} to use for the
 	 * given mutability and level.
 	 *
-	 * @param flag Whether the descriptor is to be used for a mutable object.
-	 * @param level The tree tuple level that its objects should occupy.
-	 * @return A suitable {@code TreeTupleDescriptor}.
+	 * @param flag
+	 * Whether the descriptor is to be used for a mutable object.
+	 * @param level
+	 * The tree tuple level that its objects should occupy.
+	 * @return
+	 * A suitable {@code TreeTupleDescriptor}.
 	 */
 	static TreeTupleDescriptor descriptorFor (
 		final Mutability flag,

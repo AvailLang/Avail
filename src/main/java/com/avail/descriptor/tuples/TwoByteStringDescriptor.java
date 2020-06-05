@@ -57,8 +57,7 @@ import static com.avail.descriptor.tuples.TwoByteStringDescriptor.IntegerSlots.H
 import static com.avail.descriptor.tuples.TwoByteStringDescriptor.IntegerSlots.RAW_LONGS_;
 
 /**
- * A {@linkplain TupleDescriptor tuple} implementation that consists entirely of
- * two-byte characters.
+ * A {@linkplain TupleDescriptor tuple} implementation that consists entirely of two-byte characters.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -71,21 +70,13 @@ extends StringDescriptor
 	public enum IntegerSlots implements IntegerSlotsEnumJava
 	{
 		/**
-		 * The low 32 bits are used for the {@link #HASH_OR_ZERO}, but the upper
-		 * 32 can be used by other {@link BitField}s in subclasses of {@link
-		 * TupleDescriptor}.
+		 * The low 32 bits are used for the {@link #HASH_OR_ZERO}, but the upper 32 can be used by other {@link BitField}s in subclasses of {@link TupleDescriptor}.
 		 */
 		@HideFieldInDebugger
 		HASH_AND_MORE,
 
 		/**
-		 * The raw 64-bit ({@code long}s) that constitute the representation of
-		 * the string of two-byte characters.  Each long contains up to four
-		 * characters occupying 16 bits each, in little-endian order.  Only the
-		 * last long can be incomplete, and is required to have zeros for the
-		 * unused elements.  The descriptor instances include the field
-		 * {@link #unusedShortsOfLastLong}, which indicates how many (0-3) of
-		 * the 16-bit subfields of the last long are unused.
+		 * The raw 64-bit ({@code long}s) that constitute the representation of the string of two-byte characters.  Each long contains up to four characters occupying 16 bits each, in little-endian order.  Only the last long can be incomplete, and is required to have zeros for the unused elements.  The descriptor instances include the field {@link #unusedShortsOfLastLong}, which indicates how many (0-3) of the 16-bit subfields of the last long are unused.
 		 */
 		RAW_LONGS_;
 
@@ -106,15 +97,12 @@ extends StringDescriptor
 	}
 
 	/**
-	 * Defined threshold for making copies versus using {@linkplain
-	 * TreeTupleDescriptor}/using other forms of reference instead of creating
-	 * a new tuple.
+	 * Defined threshold for making copies versus using {@linkplain TreeTupleDescriptor}/using other forms of reference instead of creating a new tuple.
 	 */
 	private static final int maximumCopySize = 32;
 
 	/**
-	 * The number of shorts that are unused in the last {@linkplain
-	 * IntegerSlots#RAW_LONGS_ long slot}. Must be between 0 and 3.
+	 * The number of shorts that are unused in the last {@linkplain IntegerSlots#RAW_LONGS_ long slot}. Must be between 0 and 3.
 	 */
 	int unusedShortsOfLastLong;
 
@@ -510,8 +498,7 @@ extends StringDescriptor
 
 	/**
 	 * The static list of descriptors of this kind, organized in such a way that
-	 * {@link #descriptorFor(Mutability, int)} can find them by mutability and
-	 * number of unused shorts in the last long.
+	 * {@link #descriptorFor(Mutability, int)} can find them by mutability and number of unused shorts in the last long.
 	 */
 	private static final TwoByteStringDescriptor[] descriptors =
 		new TwoByteStringDescriptor[4 * 3];
@@ -551,8 +538,10 @@ extends StringDescriptor
 	 * Create a new mutable two-byte string with the specified number of
 	 * elements.
 	 *
-	 * @param size The number of elements in the new tuple.
-	 * @return The new tuple, initialized to null characters (code point 0).
+	 * @param size
+	 * The number of elements in the new tuple.
+	 * @return
+	 * The new tuple, initialized to null characters (code point 0).
 	 */
 	static AvailObject mutableTwoByteStringOfSize (final int size)
 	{
@@ -562,8 +551,10 @@ extends StringDescriptor
 	/**
 	 * Answer a mutable copy of object that also only holds 16-bit characters.
 	 *
-	 * @param object The two-byte string to copy.
-	 * @return A new two-byte string with the same content as the argument.
+	 * @param object
+	 * The two-byte string to copy.
+	 * @return
+	 * A new two-byte string with the same content as the argument.
 	 */
 	private A_String copyAsMutableTwoByteString (final AvailObject object)
 	{
@@ -577,11 +568,9 @@ extends StringDescriptor
 	 * @param flag
 	 *        Whether the requested descriptor should be mutable.
 	 * @param size
-	 *        How many elements are in a tuple to be represented by the
-	 *        descriptor.
-	 * @return A {@code TwoByteStringDescriptor} suitable for representing a
-	 *            two-byte string of the given mutability and {@link
-	 *            AvailObject#tupleSize() size}.
+	 *        How many elements are in a tuple to be represented by the descriptor.
+	 * @return
+	 * A {@code TwoByteStringDescriptor} suitable for representing a two-byte string of the given mutability and {@link AvailObject#tupleSize() size}.
 	 */
 	private static TwoByteStringDescriptor descriptorFor (
 		final Mutability flag,
@@ -591,13 +580,12 @@ extends StringDescriptor
 	}
 
 	/**
-	 * Create a mutable instance of {@code TwoByteStringDescriptor} with the
-	 * specified Java {@linkplain String}'s characters.
+	 * Create a mutable instance of {@code TwoByteStringDescriptor} with the specified Java {@linkplain String}'s characters.
 	 *
 	 * @param aNativeTwoByteString
-	 *        A Java String that may contain characters outside the Latin-1
-	 *        range (0-255), but not beyond 65535.
-	 * @return A two-byte string with the given content.
+	 *        A Java String that may contain characters outside the Latin-1 range (0-255), but not beyond 65535.
+	 * @return
+	 * A two-byte string with the given content.
 	 */
 	static AvailObject mutableObjectFromNativeTwoByteString (
 		final String aNativeTwoByteString)
@@ -614,9 +602,12 @@ extends StringDescriptor
 	 * code points 0..65535). Run the generator for each position in ascending
 	 * order to produce the code points with which to populate the string.
 	 *
-	 * @param size The size of two-byte string to create.
-	 * @param generator A generator to provide code points to store.
-	 * @return The new Avail string.
+	 * @param size
+	 * The size of two-byte string to create.
+	 * @param generator
+	 * A generator to provide code points to store.
+	 * @return
+	 * The new Avail string.
 	 */
 	public static AvailObject generateTwoByteString (
 		final int size,

@@ -63,9 +63,7 @@ import static com.avail.descriptor.types.TypeDescriptor.Types.NONTYPE;
 import static java.lang.Math.min;
 
 /**
- * {@code IntTupleDescriptor} efficiently represents a tuple of integers that
- * happen to fall in the range of a Java {@code int}, which is
- * [-2<sup>31</sup>..2<sup>31</sup>-1].
+ * {@code IntTupleDescriptor} efficiently represents a tuple of integers that happen to fall in the range of a Java {@code int}, which is [-2<sup>31</sup>..2<sup>31</sup>-1].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -78,16 +76,13 @@ extends NumericTupleDescriptor
 	public enum IntegerSlots implements IntegerSlotsEnumJava
 	{
 		/**
-		 * The low 32 bits are used for the {@link #HASH_OR_ZERO}, but the upper
-		 * 32 can be used by other {@link BitField}s in subclasses of {@link
-		 * TupleDescriptor}.
+		 * The low 32 bits are used for the {@link #HASH_OR_ZERO}, but the upper 32 can be used by other {@link BitField}s in subclasses of {@link TupleDescriptor}.
 		 */
 		@HideFieldInDebugger
 		HASH_AND_MORE,
 
 		/**
-		 * The raw 64-bit machine words that constitute the representation of
-		 * the {@linkplain IntTupleDescriptor byte tuple}.
+		 * The raw 64-bit machine words that constitute the representation of the {@linkplain IntTupleDescriptor byte tuple}.
 		 */
 		RAW_LONG_AT_;
 
@@ -110,16 +105,12 @@ extends NumericTupleDescriptor
 	}
 
 	/**
-	 * The number of ints of the last {@code long} that do not participate in
-	 * the representation of the {@linkplain IntTupleDescriptor tuple}.
-	 * Must be 0 or 1.
+	 * The number of ints of the last {@code long} that do not participate in the representation of the {@linkplain IntTupleDescriptor tuple}. Must be 0 or 1.
 	 */
 	private final int unusedIntsOfLastLong;
 
 	/**
-	 * Defined threshold for making copies versus using {@linkplain
-	 * TreeTupleDescriptor}/using other forms of reference instead of creating
-	 * a new tuple.
+	 * Defined threshold for making copies versus using {@linkplain TreeTupleDescriptor}/using other forms of reference instead of creating a new tuple.
 	 */
 	private static final int maximumCopySize = 32;
 
@@ -703,14 +694,14 @@ extends NumericTupleDescriptor
 	}
 
 	/**
-	 * Answer the appropriate {@code IntTupleDescriptor descriptor} to represent
-	 * an {@linkplain AvailObject object} of the specified mutability and size.
+	 * Answer the appropriate {@code IntTupleDescriptor descriptor} to represent an {@linkplain AvailObject object} of the specified mutability and size.
 	 *
 	 * @param flag
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 * @param size
 	 *        The desired number of elements.
-	 * @return An {@code IntTupleDescriptor}.
+	 * @return
+	 * An {@code IntTupleDescriptor}.
 	 */
 	private static IntTupleDescriptor descriptorFor (
 		final Mutability flag,
@@ -722,8 +713,10 @@ extends NumericTupleDescriptor
 	/**
 	 * Build a mutable int tuple with room for the specified number of elements.
 	 *
-	 * @param size The number of ints in the resulting tuple.
-	 * @return An int tuple with the specified number of ints (initially zero).
+	 * @param size
+	 * The number of ints in the resulting tuple.
+	 * @return
+	 * An int tuple with the specified number of ints (initially zero).
 	 */
 	public static AvailObject mutableObjectOfSize (final int size)
 	{
@@ -743,13 +736,14 @@ extends NumericTupleDescriptor
 
 	/**
 	 * Create an object of the appropriate size, whose descriptor is an instance
-	 * of {@code IntTupleDescriptor}.  Run the generator for each position in
-	 * ascending order to produce the {@code int}s with which to populate the
-	 * tuple.
+	 * of {@code IntTupleDescriptor}.  Run the generator for each position in ascending order to produce the {@code int}s with which to populate the tuple.
 	 *
-	 * @param size The size of int-tuple to create.
-	 * @param generator A generator to provide ints to store.
-	 * @return The new tuple.
+	 * @param size
+	 * The size of int-tuple to create.
+	 * @param generator
+	 * A generator to provide ints to store.
+	 * @return
+	 * The new tuple.
 	 */
 	public static AvailObject generateIntTupleFrom (
 		final int size,

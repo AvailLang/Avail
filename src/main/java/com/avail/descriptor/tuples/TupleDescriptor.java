@@ -82,11 +82,7 @@ import static java.util.Collections.max;
 import static java.util.Collections.min;
 
 /**
- * {@code TupleDescriptor} is an abstract descriptor class under which all tuple
- * representations are defined (not counting {@linkplain BottomTypeDescriptor
- * bottom} and {@linkplain IndirectionDescriptor transparent indirections}).  It
- * defines a {@link IntegerSlots#HASH_OR_ZERO HASH_OR_ZERO} integer slot which
- * must be defined in all subclasses.
+ * {@code TupleDescriptor} is an abstract descriptor class under which all tuple representations are defined (not counting {@linkplain BottomTypeDescriptor bottom} and {@linkplain IndirectionDescriptor transparent indirections}).  It defines a {@link IntegerSlots#HASH_OR_ZERO HASH_OR_ZERO} integer slot which must be defined in all subclasses.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -100,9 +96,7 @@ extends Descriptor
 	public enum IntegerSlots implements IntegerSlotsEnumJava
 	{
 		/**
-		 * The low 32 bits are used for the {@link #HASH_OR_ZERO}, but the upper
-		 * 32 can be used by other {@link BitField}s in subclasses of {@link
-		 * TupleDescriptor}.
+		 * The low 32 bits are used for the {@link #HASH_OR_ZERO}, but the upper 32 can be used by other {@link BitField}s in subclasses of {@link TupleDescriptor}.
 		 */
 		@HideFieldInDebugger
 		HASH_AND_MORE;
@@ -470,8 +464,10 @@ extends Descriptor
 	 * hash can (extremely rarely) be zero, in which case the hash has to be
 	 * computed each time.
 	 *
-	 * @param object An object.
-	 * @return The hash.
+	 * @param object
+	 * An object.
+	 * @return
+	 * The hash.
 	 */
 	private static int hash (final A_Tuple object)
 	{
@@ -753,9 +749,7 @@ extends Descriptor
 	}
 
 	/**
-	 * Subclasses should override to deal with short subranges and efficient
-	 * copying techniques.  Here we pretty much just create a {@linkplain
-	 * SubrangeTupleDescriptor subrange tuple}.
+	 * Subclasses should override to deal with short subranges and efficient copying techniques.  Here we pretty much just create a {@linkplain SubrangeTupleDescriptor subrange tuple}.
 	 */
 	@Override
 	public A_Tuple o_CopyTupleFromToCanDestroy (
@@ -939,8 +933,10 @@ extends Descriptor
 	/**
 	 * Compute the object's hash value.
 	 *
-	 * @param object The object to hash.
-	 * @return The hash value.
+	 * @param object
+	 * The object to hash.
+	 * @return
+	 * The hash value.
 	 */
 	private static int computeHashForObject (final A_Tuple object)
 	{
@@ -1139,10 +1135,10 @@ extends Descriptor
 		int index = 1;
 
 		/**
-		 * Construct a new {@code TupleIterator} on the given {@linkplain
-		 * TupleDescriptor tuple}.
+		 * Construct a new {@code TupleIterator} on the given {@linkplain TupleDescriptor tuple}.
 		 *
-		 * @param tuple The tuple to iterate over.
+		 * @param tuple
+		 * The tuple to iterate over.
 		 */
 		TupleIterator (final AvailObject tuple)
 		{
@@ -1192,9 +1188,12 @@ extends Descriptor
 		 * origin and stopping just before the fence.  Both indices are
 		 * one-based.
 		 *
-		 * @param tuple The tuple to spliterate.
-		 * @param origin The starting one-based index.
-		 * @param fence One past the last index to visit.
+		 * @param tuple
+		 * The tuple to spliterate.
+		 * @param origin
+		 * The starting one-based index.
+		 * @param fence
+		 * One past the last index to visit.
 		 */
 		TupleSpliterator(
 			final A_Tuple tuple,
@@ -1329,9 +1328,7 @@ extends Descriptor
 		final boolean canDestroy);
 
 	/**
-	 * Transfer the specified range of bytes into the provided {@link
-	 * ByteBuffer}.  The {@code ByteBuffer} should have enough room to store
-	 * the required number of bytes.
+	 * Transfer the specified range of bytes into the provided {@link ByteBuffer}.  The {@code ByteBuffer} should have enough room to store the required number of bytes.
 	 */
 	@Override
 	public void o_TransferIntoByteBuffer (
@@ -1414,7 +1411,8 @@ extends Descriptor
 	 * can be created, but if you know the tuple is empty you can save time and
 	 * space by returning this one.
 	 *
-	 * @return The tuple of size zero.
+	 * @return
+	 * The tuple of size zero.
 	 */
 	@ReferencedInGeneratedCode
 	public static AvailObject emptyTuple ()
@@ -1423,13 +1421,13 @@ extends Descriptor
 	}
 
 	/**
-	 * Construct a Java {@link List} from the specified {@linkplain
-	 * TupleDescriptor tuple}. The elements are not made immutable.
+	 * Construct a Java {@link List} from the specified {@linkplain TupleDescriptor tuple}. The elements are not made immutable.
 	 *
 	 * @param tuple
 	 *        A tuple.
-	 * @return The corresponding list of objects.
-	 * @param <X> The Java type of the elements.
+	 * @return he corresponding list of objects.
+	 * @param X
+	 * The Java type of the elements.
 	 */
 	@SuppressWarnings("unchecked")
 	public static <X extends A_BasicObject> List<X> toList (
@@ -1444,12 +1442,12 @@ extends Descriptor
 	}
 
 	/**
-	 * Construct an {@linkplain AvailObject AvailObject[]} from the specified
-	 * {@link A_Tuple}. The elements are not made immutable.
+	 * Construct an {@linkplain AvailObject AvailObject[]} from the specified {@link A_Tuple}. The elements are not made immutable.
 	 *
 	 * @param tuple
 	 *        A tuple.
-	 * @return The corresponding Java array of AvailObjects.
+	 * @return
+	 * The corresponding Java array of AvailObjects.
 	 */
 	public static AvailObject[] toArray (final A_Tuple tuple)
 	{
@@ -1463,20 +1461,14 @@ extends Descriptor
 	}
 
 	/**
-	 * Construct a new tuple of arbitrary {@linkplain AvailObject Avail objects}
-	 * based on the given tuple, but with an occurrence of the specified element
-	 * missing, if it was present at all.  The elements may end up being shared
-	 * between the original and the copy, so the client must ensure that either
-	 * the elements are marked immutable, or one of the copies is not kept after
-	 * the call.  If the element is not found, then answer the original tuple.
+	 * Construct a new tuple of arbitrary {@linkplain AvailObject Avail objects} based on the given tuple, but with an occurrence of the specified element missing, if it was present at all.  The elements may end up being shared between the original and the copy, so the client must ensure that either the elements are marked immutable, or one of the copies is not kept after the call.  If the element is not found, then answer the original tuple.
 	 *
 	 * @param originalTuple
-	 *        The original tuple of {@linkplain AvailObject Avail objects} on
-	 *        which to base the new tuple.
+	 *        The original tuple of {@linkplain AvailObject Avail objects} on which to base the new tuple.
 	 * @param elementToExclude
-	 *        The element that should should have an occurrence excluded from
-	 *        the new tuple, if it was present.
-	 * @return The new tuple.
+	 *        The element that should should have an occurrence excluded from the new tuple, if it was present.
+	 * @return
+	 * The new tuple.
 	 */
 	public static A_Tuple tupleWithout (
 		final A_Tuple originalTuple,
@@ -1510,7 +1502,8 @@ extends Descriptor
 	 *
 	 * @param list
 	 *        The list of Java {@linkplain Integer}s to assemble in a tuple.
-	 * @return A new mutable tuple of integers.
+	 * @return
+	 * A new mutable tuple of integers.
 	 */
 	public static A_Tuple tupleFromIntegerList (final List<Integer> list)
 	{
@@ -1537,9 +1530,7 @@ extends Descriptor
 	}
 
 	/**
-	 * Four tables, each containing powers of {@link AvailObject#multiplier}.
-	 * The 0th table contains M^i for i=0..255, the 1st table contains M^(256*i)
-	 * for i=0..255,... and the 3rd table contains M^((256^3)*i) for i=0..255.
+	 * Four tables, each containing powers of {@link AvailObject#multiplier}. The 0th table contains M^i for i=0..255, the 1st table contains M^(256*i) for i=0..255,... and the 3rd table contains M^((256^3)*i) for i=0..255.
 	 */
 	private static final int[][] powersOfMultiplier = new int[4][256];
 
@@ -1563,9 +1554,9 @@ extends Descriptor
 	 * truncated to an int.
 	 *
 	 * @param anInteger
-	 *        The exponent by which to raise the base {@link
-	 *        AvailObject#multiplier}.
-	 * @return {@link AvailObject#multiplier} raised to the specified power.
+	 *        The exponent by which to raise the base {@link AvailObject#multiplier}.
+	 * @return
+	 * {@link AvailObject#multiplier} raised to the specified power.
 	 */
 	static int multiplierRaisedTo (final int anInteger)
 	{
@@ -1588,13 +1579,9 @@ extends Descriptor
 	 * @param mutability
 	 *            The {@linkplain Mutability mutability} of the new descriptor.
 	 * @param objectSlotsEnumClass
-	 *            The Java {@link Class} which is a subclass of {@link
-	 *            ObjectSlotsEnum} and defines this object's object slots
-	 *            layout, or null if there are no object slots.
+	 *            The Java {@link Class} which is a subclass of {@link ObjectSlotsEnum} and defines this object's object slots layout, or null if there are no object slots.
 	 * @param integerSlotsEnumClass
-	 *            The Java {@link Class} which is a subclass of {@link
-	 *            IntegerSlotsEnum} and defines this object's object slots
-	 *            layout, or null if there are no integer slots.
+	 *            The Java {@link Class} which is a subclass of {@link IntegerSlotsEnum} and defines this object's object slots layout, or null if there are no integer slots.
 	 */
 	protected TupleDescriptor (
 		final Mutability mutability,
