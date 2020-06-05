@@ -38,7 +38,7 @@ import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.SOCKET_KEY
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
-import com.avail.descriptor.tuples.ByteArrayTupleDescriptor.tupleForByteArray
+import com.avail.descriptor.tuples.ByteArrayTupleDescriptor.Companion.tupleForByteArray
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
 import com.avail.descriptor.types.A_Type

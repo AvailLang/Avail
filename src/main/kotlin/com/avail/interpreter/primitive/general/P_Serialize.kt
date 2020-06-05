@@ -34,7 +34,7 @@ package com.avail.interpreter.primitive.general
 
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
-import com.avail.descriptor.tuples.ByteArrayTupleDescriptor.tupleForByteArray
+import com.avail.descriptor.tuples.ByteArrayTupleDescriptor.Companion.tupleForByteArray
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith

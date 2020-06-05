@@ -1,21 +1,21 @@
 /*
- * ByteArrayTupleDescriptor.java
+ * ByteArrayTupleDescriptor.kt
  * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ * * Redistributions in binary form must reproduce the above copyright notice, 
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
  *
- *  * Neither the name of the copyright holder nor the names of the contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -29,589 +29,549 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.descriptor.tuples
 
-package com.avail.descriptor.tuples;
-
-import com.avail.annotations.HideFieldInDebugger;
-import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
-import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
-import com.avail.descriptor.numbers.A_Number;
-import com.avail.descriptor.pojos.RawPojoDescriptor;
-import com.avail.descriptor.representation.A_BasicObject;
-import com.avail.descriptor.representation.AvailObject;
-import com.avail.descriptor.representation.BitField;
-import com.avail.descriptor.representation.Mutability;
-import com.avail.descriptor.types.A_Type;
-import com.avail.utility.json.JSONWriter;
-
-import java.nio.ByteBuffer;
-import java.util.Arrays;
-
-import static com.avail.descriptor.numbers.IntegerDescriptor.fromUnsignedByte;
-import static com.avail.descriptor.numbers.IntegerDescriptor.hashOfUnsignedByte;
-import static com.avail.descriptor.pojos.RawPojoDescriptor.identityPojo;
-import static com.avail.descriptor.representation.AvailObject.multiplier;
-import static com.avail.descriptor.tuples.ByteArrayTupleDescriptor.IntegerSlots.HASH_OR_ZERO;
-import static com.avail.descriptor.tuples.ByteArrayTupleDescriptor.ObjectSlots.BYTE_ARRAY_POJO;
-import static com.avail.descriptor.tuples.ByteTupleDescriptor.generateByteTupleFrom;
-import static com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.tuples.TreeTupleDescriptor.concatenateAtLeastOneTree;
-import static com.avail.descriptor.tuples.TreeTupleDescriptor.createTwoPartTreeTuple;
-import static com.avail.descriptor.types.IntegerRangeTypeDescriptor.bytes;
-import static com.avail.descriptor.types.TypeDescriptor.Types.NONTYPE;
-import static java.lang.Math.min;
+import com.avail.descriptor.numbers.A_Number
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromUnsignedByte
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.hashOfUnsignedByte
+import com.avail.descriptor.pojos.RawPojoDescriptor
+import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
+import com.avail.descriptor.representation.*
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor
+import com.avail.descriptor.types.TypeDescriptor
+import com.avail.utility.json.JSONWriter
+import java.nio.ByteBuffer
+import kotlin.experimental.and
 
 /**
- * {@code ByteArrayTupleDescriptor} represents a tuple of integers that happen to fall in the range {@code [0..255]}. Unlike {@link ByteTupleDescriptor}, it is backed by a {@linkplain RawPojoDescriptor thinly wrapped} byte array.
+ * `ByteArrayTupleDescriptor` represents a tuple of integers that happen to fall
+ * in the range `[0..255]`. Unlike [ByteTupleDescriptor], it is backed by a
+ * [thinly wrapped][RawPojoDescriptor] byte array.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * 
+ * @constructor
+ * Construct a new `ByteArrayTupleDescriptor`.
+ *
+ * @param mutability
+ *   The [mutability][Mutability] of the new descriptor.
  */
-public final class ByteArrayTupleDescriptor
-extends NumericTupleDescriptor
+class ByteArrayTupleDescriptor private constructor(mutability: Mutability) 
+	: NumericTupleDescriptor(
+		mutability, ObjectSlots::class.java, IntegerSlots::class.java)
 {
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots implements IntegerSlotsEnumJava
+	enum class IntegerSlots : IntegerSlotsEnum
 	{
 		/**
-		 * The low 32 bits are used for the {@link #HASH_OR_ZERO}, but the upper 32 can be used by other {@link BitField}s in subclasses of {@link TupleDescriptor}.
+		 * The low 32 bits are used for the [HASH_OR_ZERO], but the upper 32 can
+		 * be used by other [BitField]s in subclasses of [TupleDescriptor].
 		 */
-		@HideFieldInDebugger
 		HASH_AND_MORE;
 
-		/**
-		 * A slot to hold the cached hash value of a tuple.  If zero, then the
-		 * hash value must be computed upon request.  Note that in the very rare
-		 * case that the hash value actually equals zero, the hash value has to
-		 * be computed every time it is requested.
-		 */
-		public static final BitField HASH_OR_ZERO =
-			new BitField(HASH_AND_MORE, 0, 32);
-
-		static
+		companion object
 		{
-			assert TupleDescriptor.IntegerSlots.HASH_AND_MORE.ordinal()
-				== HASH_AND_MORE.ordinal();
-			assert TupleDescriptor.IntegerSlots.HASH_OR_ZERO.isSamePlaceAs(
-				HASH_OR_ZERO);
+			/**
+			 * A slot to hold the cached hash value of a tuple.  If zero, then
+			 * the hash value must be computed upon request.  Note that in the
+			 * very rare * case that the hash value actually equals zero, the
+			 * hash value has to  be computed every time it is requested.
+			 */
+			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
+
+			init
+			{
+				assert(TupleDescriptor.IntegerSlots.HASH_AND_MORE.ordinal
+						   == HASH_AND_MORE.ordinal)
+				assert(TupleDescriptor.IntegerSlots.HASH_OR_ZERO.isSamePlaceAs(
+					HASH_OR_ZERO))
+			}
 		}
 	}
 
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnumJava
+	enum class ObjectSlots : ObjectSlotsEnum
 	{
 		/**
-		 * A {@linkplain RawPojoDescriptor raw pojo} wrapping the byte array that backs this {@linkplain ByteArrayTupleDescriptor tuple}.
+		 * A [raw pojo][RawPojoDescriptor] wrapping the byte array that backs
+		 * this [tuple][ByteArrayTupleDescriptor].
 		 */
 		BYTE_ARRAY_POJO
 	}
 
-	/**
-	 * Defined threshold for making copies versus using {@linkplain TreeTupleDescriptor}/using other forms of reference instead of creating a new tuple.
-	 */
-	private static final int maximumCopySize = 64;
-
-	@Override
-	public A_Tuple o_AppendCanDestroy (
-		final AvailObject object,
-		final A_BasicObject newElement,
-		final boolean canDestroy)
+	override fun o_AppendCanDestroy(
+		self: AvailObject,
+		newElement: A_BasicObject,
+		canDestroy: Boolean): A_Tuple
 	{
-		final int originalSize = object.tupleSize();
-		if (originalSize < maximumCopySize && newElement.isInt())
+		val originalSize = self.tupleSize()
+		if (originalSize < maximumCopySize && newElement.isInt)
 		{
-			final int intValue = ((A_Number) newElement).extractInt();
-			if ((intValue & ~255) == 0)
+			val intValue = (newElement as A_Number).extractInt()
+			if (intValue and 255.inv() == 0)
 			{
 				// Convert to a ByteTupleDescriptor.
-				final byte[] array =
-					object.slot(BYTE_ARRAY_POJO).javaObjectNotNull();
-				return generateByteTupleFrom(
-					originalSize + 1,
-					index -> index <= originalSize
-						? (short) (array[index - 1] & 255)
-						: (short) intValue);
+				val array =
+					self.slot(ObjectSlots.BYTE_ARRAY_POJO)
+						.javaObjectNotNull<ByteArray>()
+				return ByteTupleDescriptor
+					.generateByteTupleFrom(originalSize + 1)
+					{ index: Int ->
+						if (index <= originalSize)
+						{
+							((array[index - 1] and 255.toByte())).toInt()
+						}
+						else
+						{
+							intValue
+						}
+					}
 			}
 		}
 		// Transition to a tree tuple.
-		return object.concatenateWith(tuple(newElement), canDestroy);
+		return self.concatenateWith(
+			ObjectTupleDescriptor.tuple(newElement), canDestroy)
 	}
 
-	@Override
-	public int o_BitsPerEntry (final AvailObject object)
-	{
-		// Answer approximately how many bits per entry are taken up by this
-		// object.
-		return 8;
-	}
+	// Answer approximately how many bits per entry are taken up by this
+	// object.
+	override fun o_BitsPerEntry(self: AvailObject): Int = 8
 
-	@Override
-	public byte[] o_ByteArray (final AvailObject object)
-	{
-		return object.slot(BYTE_ARRAY_POJO).javaObjectNotNull();
-	}
+	override fun o_ByteArray(self: AvailObject): ByteArray =
+		self.slot(ObjectSlots.BYTE_ARRAY_POJO).javaObjectNotNull()
 
-	@Override
-	public boolean o_CompareFromToWithByteArrayTupleStartingAt (
-		final AvailObject object,
-		final int startIndex1,
-		final int endIndex1,
-		final A_Tuple aByteArrayTuple,
-		final int startIndex2)
+	override fun o_CompareFromToWithByteArrayTupleStartingAt(
+		self: AvailObject,
+		startIndex1: Int,
+		endIndex1: Int,
+		aByteArrayTuple: A_Tuple,
+		startIndex2: Int): Boolean
 	{
-		if (object.sameAddressAs(aByteArrayTuple) && startIndex1 == startIndex2)
+		if (self.sameAddressAs(aByteArrayTuple) && startIndex1 == startIndex2)
 		{
-			return true;
+			return true
 		}
-		final byte[] array1 = object.byteArray();
-		final byte[] array2 = aByteArrayTuple.byteArray();
-		for (
-			int index1 = startIndex1 - 1,
-				index2 = startIndex2 - 1,
-				lastIndex = endIndex1 - 1;
-			index1 <= lastIndex;
-			index1++, index2++)
+		val array1 = self.byteArray()
+		val array2 = aByteArrayTuple.byteArray()
+		var index1 = startIndex1 - 1
+		var index2 = startIndex2 - 1
+		val lastIndex = endIndex1 - 1
+		while (index1 <= lastIndex)
 		{
 			if (array1[index1] != array2[index2])
 			{
-				return false;
+				return false
 			}
+			index1++
+			index2++
 		}
-		return true;
+		return true
 	}
 
-	@Override
-	public boolean o_CompareFromToWithStartingAt (
-		final AvailObject object,
-		final int startIndex1,
-		final int endIndex1,
-		final A_Tuple anotherObject,
-		final int startIndex2)
-	{
-		return anotherObject.compareFromToWithByteArrayTupleStartingAt(
-			startIndex2,
-			startIndex2 + endIndex1 - startIndex1,
-			object,
-			startIndex1);
-	}
+	override fun o_CompareFromToWithStartingAt(
+		self: AvailObject,
+		startIndex1: Int,
+		endIndex1: Int,
+		anotherObject: A_Tuple,
+		startIndex2: Int): Boolean =
+			anotherObject.compareFromToWithByteArrayTupleStartingAt(
+				startIndex2,
+				startIndex2 + endIndex1 - startIndex1,
+				self,
+				startIndex1)
 
-	@Override
-	public int o_ComputeHashFromTo (
-		final AvailObject object,
-		final int start,
-		final int end)
+	override fun o_ComputeHashFromTo(
+		self: AvailObject,
+		start: Int,
+		end: Int): Int
 	{
 		// See comment in superclass. This method must produce the same value.
-		final byte[] array = object.slot(BYTE_ARRAY_POJO).javaObjectNotNull();
-		int hash = 0;
-		for (int index = end - 1, first = start - 1; index >= first; index--)
+		val array =
+			self.slot(ObjectSlots.BYTE_ARRAY_POJO).javaObjectNotNull<ByteArray>()
+		var hash = 0
+		var index = end - 1
+		val first = start - 1
+		while (index >= first)
 		{
-			final int itemHash = hashOfUnsignedByte(
-				(short) (array[index] & 0xFF)) ^ preToggle;
-			hash = (hash + itemHash) * multiplier;
+			val itemHash = hashOfUnsignedByte(
+				(array[index] and 0xFF.toByte()).toShort()) xor
+					TupleDescriptor.preToggle
+			hash = (hash + itemHash) * AvailObject.multiplier
+			index--
 		}
-		return hash;
+		return hash
 	}
 
-	@Override
-	public A_Tuple o_ConcatenateWith (
-		final AvailObject object,
-		final A_Tuple otherTuple,
-		final boolean canDestroy)
+	override fun o_ConcatenateWith(
+		self: AvailObject,
+		otherTuple: A_Tuple,
+		canDestroy: Boolean): A_Tuple
 	{
-		final int size1 = object.tupleSize();
+		val size1 = self.tupleSize()
 		if (size1 == 0)
 		{
 			if (!canDestroy)
 			{
-				otherTuple.makeImmutable();
+				otherTuple.makeImmutable()
 			}
-			return otherTuple;
+			return otherTuple
 		}
-		final int size2 = otherTuple.tupleSize();
+		val size2 = otherTuple.tupleSize()
 		if (size2 == 0)
 		{
 			if (!canDestroy)
 			{
-				object.makeImmutable();
+				self.makeImmutable()
 			}
-			return object;
+			return self
 		}
-		if (otherTuple.isByteArrayTuple() && size1 + size2 <= 128)
+		if (otherTuple.isByteArrayTuple && size1 + size2 <= 128)
 		{
-			final byte[] bytes = new byte[size1 + size2];
-			System.arraycopy(object.byteArray(), 0, bytes, 0, size1);
+			val bytes = ByteArray(size1 + size2)
+			System.arraycopy(self.byteArray(), 0, bytes, 0, size1)
 			System.arraycopy(
-				otherTuple.byteArray(), 0, bytes, size1, size2);
-			return tupleForByteArray(bytes);
+				otherTuple.byteArray(), 0, bytes, size1, size2)
+			return tupleForByteArray(bytes)
 		}
 		if (!canDestroy)
 		{
-			object.makeImmutable();
-			otherTuple.makeImmutable();
+			self.makeImmutable()
+			otherTuple.makeImmutable()
 		}
-		if (otherTuple.treeTupleLevel() == 0)
+		return if (otherTuple.treeTupleLevel() == 0)
 		{
-			return createTwoPartTreeTuple(object, otherTuple, 1, 0);
+			TreeTupleDescriptor.createTwoPartTreeTuple(self, otherTuple, 1, 0)
 		}
-		return concatenateAtLeastOneTree(object, otherTuple, true);
+		else
+		{
+			TreeTupleDescriptor.concatenateAtLeastOneTree(self, otherTuple, true)
+		}
 	}
 
-	@Override
-	public A_Tuple o_CopyTupleFromToCanDestroy (
-		final AvailObject object,
-		final int start,
-		final int end,
-		final boolean canDestroy)
+	override fun o_CopyTupleFromToCanDestroy(
+		self: AvailObject,
+		start: Int,
+		end: Int,
+		canDestroy: Boolean): A_Tuple
 	{
-		final int tupleSize = object.tupleSize();
-		assert 1 <= start && start <= end + 1 && end <= tupleSize;
-		final int size = end - start + 1;
-		if (size > 0 && size < tupleSize && size < maximumCopySize)
+		val tupleSize = self.tupleSize()
+		assert(1 <= start && start <= end + 1 && end <= tupleSize)
+		val size = end - start + 1
+		if (size in 1 until tupleSize && size < maximumCopySize)
 		{
 			// It's not empty, it's not a total copy, and it's reasonably small.
 			// Just copy the applicable bytes out.  In theory we could use
 			// newLike() if start is 1.  Make sure to mask the last word in that
 			// case.
-			final byte[] originalBytes = object.byteArray();
-			final AvailObject result = generateByteTupleFrom(
-				size, i -> (short) (originalBytes[i + start - 2] & 255));
+			val originalBytes = self.byteArray()
+			val result = ByteTupleDescriptor
+				.generateByteTupleFrom(size) { i: Int ->
+					((originalBytes[i + start - 2] and
+						255.toByte()).toShort()).toInt()
+				}
 			if (canDestroy)
 			{
-				object.assertObjectUnreachableIfMutable();
+				self.assertObjectUnreachableIfMutable()
 			}
-			result.setHashOrZero(0);
-			return result;
+			result.setHashOrZero(0)
+			return result
 		}
-		return super.o_CopyTupleFromToCanDestroy(
-			object, start, end, canDestroy);
+		return super.o_CopyTupleFromToCanDestroy(self, start, end, canDestroy)
 	}
 
-	@Override
-	public boolean o_Equals (final AvailObject object, final A_BasicObject another)
-	{
-		return another.equalsByteArrayTuple(object);
-	}
+	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean =
+		another.equalsByteArrayTuple(self)
 
-	@Override
-	public boolean o_EqualsByteArrayTuple (
-		final AvailObject object,
-		final A_Tuple aByteArrayTuple)
+	override fun o_EqualsByteArrayTuple(
+		self: AvailObject,
+		aByteArrayTuple: A_Tuple): Boolean
 	{
 		// First, check for object-structure (address) identity.
-		if (object.sameAddressAs(aByteArrayTuple))
+		if (self.sameAddressAs(aByteArrayTuple))
 		{
-			return true;
+			return true
 		}
-		if (object.byteArray() == aByteArrayTuple.byteArray())
+		if (self.byteArray().contentEquals(aByteArrayTuple.byteArray()))
 		{
-			return true;
+			return true
 		}
-		if (object.tupleSize() != aByteArrayTuple.tupleSize())
+		if (self.tupleSize() != aByteArrayTuple.tupleSize())
 		{
-			return false;
+			return false
 		}
-		if (object.hash() != aByteArrayTuple.hash())
+		if (self.hash() != aByteArrayTuple.hash())
 		{
-			return false;
+			return false
 		}
-		if (!object.compareFromToWithByteArrayTupleStartingAt(
-			1,
-			object.tupleSize(),
-			aByteArrayTuple,
-			1))
+		if (!self.compareFromToWithByteArrayTupleStartingAt(
+				1,
+				self.tupleSize(),
+				aByteArrayTuple,
+				1))
 		{
-			return false;
+			return false
 		}
 		// They're equal, but occupy disjoint storage. If possible, then
 		// replace one with an indirection to the other to keep down the
 		// frequency of byte-wise comparisons.
-		if (!isShared())
+		if (!isShared)
 		{
-			aByteArrayTuple.makeImmutable();
-			object.becomeIndirectionTo(aByteArrayTuple);
+			aByteArrayTuple.makeImmutable()
+			self.becomeIndirectionTo(aByteArrayTuple)
 		}
-		else if (!aByteArrayTuple.descriptor().isShared())
+		else if (!aByteArrayTuple.descriptor().isShared)
 		{
-			object.makeImmutable();
-			aByteArrayTuple.becomeIndirectionTo(object);
+			self.makeImmutable()
+			aByteArrayTuple.becomeIndirectionTo(self)
 		}
-		return true;
+		return true
 	}
 
-	@Override
-	public boolean o_IsByteArrayTuple (final AvailObject object)
-	{
-		return true;
-	}
+	override fun o_IsByteArrayTuple(self: AvailObject): Boolean = true
 
-	@Override
-	public boolean o_IsByteTuple (final AvailObject object)
-	{
-		return true;
-	}
+	override fun o_IsByteTuple(self: AvailObject): Boolean = true
 
-	@Override
-	public boolean o_IsInstanceOfKind (
-		final AvailObject object,
-		final A_Type aType)
+	override fun o_IsInstanceOfKind(
+		self: AvailObject,
+		aType: A_Type): Boolean
 	{
-		if (aType.isSupertypeOfPrimitiveTypeEnum(NONTYPE))
+		if (aType.isSupertypeOfPrimitiveTypeEnum(TypeDescriptor.Types.NONTYPE))
 		{
-			return true;
+			return true
 		}
-		if (!aType.isTupleType())
+		if (!aType.isTupleType)
 		{
-			return false;
+			return false
 		}
 		// See if it's an acceptable size...
-		if (!aType.sizeRange().rangeIncludesInt(object.tupleSize()))
+		if (!aType.sizeRange().rangeIncludesInt(self.tupleSize()))
 		{
-			return false;
+			return false
 		}
 		// tuple's size is in range.
-		final A_Tuple typeTuple = aType.typeTuple();
-		final int breakIndex = min(object.tupleSize(), typeTuple.tupleSize());
-		for (int i = 1; i <= breakIndex; i++)
+		val typeTuple = aType.typeTuple()
+		val breakIndex = Math.min(self.tupleSize(), typeTuple.tupleSize())
+		for (i in 1 .. breakIndex)
 		{
-			if (!object.tupleAt(i).isInstanceOf(aType.typeAtIndex(i)))
+			if (!self.tupleAt(i).isInstanceOf(aType.typeAtIndex(i)))
 			{
-				return false;
+				return false
 			}
 		}
-		final A_Type defaultTypeObject = aType.defaultType();
-		if (bytes().isSubtypeOf(defaultTypeObject))
+		val defaultTypeObject = aType.defaultType()
+		if (IntegerRangeTypeDescriptor.bytes().isSubtypeOf(defaultTypeObject))
 		{
-			return true;
+			return true
 		}
-		for (int i = breakIndex + 1, end = object.tupleSize(); i <= end; i++)
+		var i = breakIndex + 1
+		val end = self.tupleSize()
+		while (i <= end)
 		{
-			if (!object.tupleAt(i).isInstanceOf(defaultTypeObject))
+			if (!self.tupleAt(i).isInstanceOf(defaultTypeObject))
 			{
-				return false;
+				return false
 			}
+			i++
 		}
-		return true;
+		return true
 	}
 
-	@Override
-	public AvailObject o_MakeImmutable (final AvailObject object)
+	override fun o_MakeImmutable(self: AvailObject): AvailObject
 	{
-		if (isMutable())
+		if (isMutable)
 		{
-			object.setDescriptor(immutable);
-			object.slot(BYTE_ARRAY_POJO).makeImmutable();
+			self.setDescriptor(immutable)
+			self.slot(ObjectSlots.BYTE_ARRAY_POJO).makeImmutable()
 		}
-		return object;
+		return self
 	}
 
-	@Override
-	public AvailObject o_MakeShared (final AvailObject object)
+	override fun o_MakeShared(self: AvailObject): AvailObject
 	{
-		if (!isShared())
+		if (!isShared)
 		{
-			object.setDescriptor(shared);
-			object.slot(BYTE_ARRAY_POJO).makeShared();
+			self.setDescriptor(shared)
+			self.slot(ObjectSlots.BYTE_ARRAY_POJO).makeShared()
 		}
-		return object;
+		return self
 	}
 
-	@Override
-	public void o_TransferIntoByteBuffer (
-		final AvailObject object,
-		final int startIndex,
-		final int endIndex,
-		final ByteBuffer outputByteBuffer)
+	override fun o_TransferIntoByteBuffer(
+		self: AvailObject,
+		startIndex: Int,
+		endIndex: Int,
+		outputByteBuffer: ByteBuffer)
 	{
-		final byte [] byteArray = object.byteArray();
+		val byteArray = self.byteArray()
 		outputByteBuffer.put(
 			byteArray,
 			startIndex - 1,
-			endIndex - startIndex + 1);
+			endIndex - startIndex + 1)
 	}
 
-	@Override
-	public AvailObject o_TupleAt (final AvailObject object, final int index)
+	override fun o_TupleAt(self: AvailObject, index: Int): AvailObject
 	{
 		// Answer the element at the given index in the tuple object.
-		final byte[] array = object.slot(BYTE_ARRAY_POJO).javaObjectNotNull();
-		return fromUnsignedByte((short) (array[index - 1] & 0xFF));
+		val array =
+			self.slot(ObjectSlots.BYTE_ARRAY_POJO).javaObjectNotNull<ByteArray>()
+		return fromUnsignedByte((array[index - 1] and 0xFF.toByte()).toShort())
 	}
 
-	@Override
-	public A_Tuple o_TupleAtPuttingCanDestroy (
-		final AvailObject object,
-		final int index,
-		final A_BasicObject newValueObject,
-		final boolean canDestroy)
+	override fun o_TupleAtPuttingCanDestroy(
+		self: AvailObject,
+		index: Int,
+		newValueObject: A_BasicObject,
+		canDestroy: Boolean): A_Tuple
 	{
 		// Answer a tuple with all the elements of object except at the given
 		// index we should have newValueObject. This may destroy the original
 		// tuple if canDestroy is true.
-		assert index >= 1 && index <= object.tupleSize();
-		if (!newValueObject.isUnsignedByte())
+		assert(index >= 1 && index <= self.tupleSize())
+		if (!newValueObject.isUnsignedByte)
 		{
-			if (newValueObject.isInt())
+			return if (newValueObject.isInt)
 			{
-				return object.copyAsMutableIntTuple().tupleAtPuttingCanDestroy(
-					index, newValueObject, true);
+				self.copyAsMutableIntTuple().tupleAtPuttingCanDestroy(
+					index, newValueObject, true)
 			}
-			return object.copyAsMutableObjectTuple().tupleAtPuttingCanDestroy(
-				index, newValueObject, true);
+			else self.copyAsMutableObjectTuple().tupleAtPuttingCanDestroy(
+				index, newValueObject, true)
 		}
-		if (!canDestroy || !isMutable())
+		if (!canDestroy || !isMutable)
 		{
-			return copyAsMutableByteArrayTuple(object).tupleAtPuttingCanDestroy(
-				index, newValueObject, true);
+			return copyAsMutableByteArrayTuple(self).tupleAtPuttingCanDestroy(
+				index, newValueObject, true)
 		}
 		// Clobber the object in place...
-		final byte theByte =
-			(byte) ((AvailObject) newValueObject).extractUnsignedByte();
-		final byte[] array = object.slot(BYTE_ARRAY_POJO).javaObjectNotNull();
-		array[index - 1] = theByte;
-		object.setHashOrZero(0);
+		val theByte =
+			(newValueObject as AvailObject).extractUnsignedByte().toByte()
+		val array =
+			self.slot(ObjectSlots.BYTE_ARRAY_POJO).javaObjectNotNull<ByteArray>()
+		array[index - 1] = theByte
+		self.setHashOrZero(0)
 		//  ...invalidate the hash value.
-		return object;
+		return self
 	}
 
-	@Override
-	public boolean o_TupleElementsInRangeAreInstancesOf (
-		final AvailObject object,
-		final int startIndex,
-		final int endIndex,
-		final A_Type type)
-	{
-		return bytes().isSubtypeOf(type)
-			|| super.o_TupleElementsInRangeAreInstancesOf(
-				object, startIndex, endIndex, type);
-	}
+	override fun o_TupleElementsInRangeAreInstancesOf(
+		self: AvailObject,
+		startIndex: Int,
+		endIndex: Int,
+		type: A_Type): Boolean =
+			(IntegerRangeTypeDescriptor.bytes().isSubtypeOf(type)
+					|| super.o_TupleElementsInRangeAreInstancesOf(
+						self, startIndex, endIndex, type))
 
-	@Override
-	public int o_TupleIntAt (final AvailObject object, final int index)
+	override fun o_TupleIntAt(self: AvailObject, index: Int): Int
 	{
 		// Answer the integer element at the given index in the tuple object.
-		assert index >= 1 && index <= object.tupleSize();
-		final byte[] array = object.slot(BYTE_ARRAY_POJO).javaObjectNotNull();
-		return array[index - 1] & 0xFF;
+		assert(index >= 1 && index <= self.tupleSize())
+		val array =
+			self.slot(ObjectSlots.BYTE_ARRAY_POJO).javaObjectNotNull<ByteArray>()
+		return (array[index - 1] and 0xFF.toByte()).toInt()
 	}
 
-	@Override
-	public A_Tuple o_TupleReverse (final AvailObject object)
+	override fun o_TupleReverse(self: AvailObject): A_Tuple
 	{
-		final int size = object.tupleSize();
+		val size = self.tupleSize()
 		if (size >= maximumCopySize)
 		{
-			return super.o_TupleReverse(object);
+			return super.o_TupleReverse(self)
 		}
 
 		// It's not empty, it's not a total copy, and it's reasonably small.
 		// Just copy the applicable bytes out.  In theory we could use
 		// newLike() if start is 1.  Make sure to mask the last word in that
 		// case.
-		final byte[] originalBytes = object.byteArray();
-		final AvailObject result = generateByteTupleFrom(
-			size, i -> (short) (originalBytes[size - i] & 255));
-		result.setHashOrZero(0);
-		return result;
-
+		val originalBytes = self.byteArray()
+		val result = ByteTupleDescriptor
+			.generateByteTupleFrom(size) { i: Int ->
+				((originalBytes[size - i] and 255.toByte())).toInt()
+			}
+		result.setHashOrZero(0)
+		return result
 	}
 
-	@Override
-	public int o_TupleSize (final AvailObject object)
-	{
-		final byte[] array = object.slot(BYTE_ARRAY_POJO).javaObjectNotNull();
-		return array.length;
-	}
+	override fun o_TupleSize(self: AvailObject): Int =
+		self.slot(ObjectSlots.BYTE_ARRAY_POJO).javaObjectNotNull<ByteArray>().size
 
-	@Override
-	public void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	override fun o_WriteTo(self: AvailObject, writer: JSONWriter)
 	{
-		final byte[] bytes = object.slot(BYTE_ARRAY_POJO).javaObjectNotNull();
-		writer.startArray();
-		for (final byte aByte : bytes)
+		val bytes =
+			self.slot(ObjectSlots.BYTE_ARRAY_POJO).javaObjectNotNull<ByteArray>()
+		writer.startArray()
+		for (aByte in bytes)
 		{
-			writer.write(aByte);
+			writer.write(aByte.toInt())
 		}
-		writer.endArray();
+		writer.endArray()
 	}
 
-	/**
-	 * Construct a new {@code ByteArrayTupleDescriptor}.
-	 *
-	 * @param mutability
-	 *        The {@linkplain Mutability mutability} of the new descriptor.
-	 */
-	private ByteArrayTupleDescriptor (final Mutability mutability)
+	override fun mutable(): ByteArrayTupleDescriptor = mutable
+
+	override fun immutable(): ByteArrayTupleDescriptor = immutable
+
+	override fun shared(): ByteArrayTupleDescriptor = shared
+
+	companion object
 	{
-		super(mutability, ObjectSlots.class, IntegerSlots.class);
-	}
+		/**
+		 * Defined threshold for making copies versus using
+		 * [TreeTupleDescriptor]/using other forms of reference instead of
+		 * creating a new tuple.
+		 */
+		private const val maximumCopySize = 64
 
-	/** The mutable {@link ByteArrayTupleDescriptor}. */
-	private static final ByteArrayTupleDescriptor mutable =
-		new ByteArrayTupleDescriptor(Mutability.MUTABLE);
+		/** The mutable [ByteArrayTupleDescriptor].  */
+		private val mutable = ByteArrayTupleDescriptor(Mutability.MUTABLE)
 
-	@Override
-	public ByteArrayTupleDescriptor mutable ()
-	{
-		return mutable;
-	}
+		/** The immutable [ByteArrayTupleDescriptor].  */
+		private val immutable = ByteArrayTupleDescriptor(Mutability.IMMUTABLE)
 
-	/** The immutable {@link ByteArrayTupleDescriptor}. */
-	private static final ByteArrayTupleDescriptor immutable =
-		new ByteArrayTupleDescriptor(Mutability.IMMUTABLE);
+		/** The shared [ByteArrayTupleDescriptor].  */
+		private val shared = ByteArrayTupleDescriptor(Mutability.SHARED)
 
-	@Override
-	public ByteArrayTupleDescriptor immutable ()
-	{
-		return immutable;
-	}
+		/**
+		 * Answer a mutable copy of object that also only holds bytes.
+		 *
+		 * @param `object`
+		 *   The byte tuple to copy.
+		 * @return
+		 *   The new mutable byte tuple.
+		 */
+		private fun copyAsMutableByteArrayTuple(self: AvailObject): A_Tuple
+		{
+			val array =
+				self.slot(ObjectSlots.BYTE_ARRAY_POJO)
+					.javaObjectNotNull<ByteArray>()
+			val copy = array.copyOf(array.size)
+			val result = tupleForByteArray(copy)
+			result.setSlot(IntegerSlots.HASH_OR_ZERO, self.hashOrZero())
+			return result
+		}
 
-	/** The shared {@link ByteArrayTupleDescriptor}. */
-	private static final ByteArrayTupleDescriptor shared =
-		new ByteArrayTupleDescriptor(Mutability.SHARED);
-
-	@Override
-	public ByteArrayTupleDescriptor shared ()
-	{
-		return shared;
-	}
-
-	/**
-	 * Answer a mutable copy of object that also only holds bytes.
-	 *
-	 * @param object
-	 * The byte tuple to copy.
-	 * @return
-	 * The new mutable byte tuple.
-	 */
-	private static A_Tuple copyAsMutableByteArrayTuple (
-		final AvailObject object)
-	{
-		final byte[] array = object.slot(BYTE_ARRAY_POJO).javaObjectNotNull();
-		final byte[] copy = Arrays.copyOf(array, array.length);
-		final AvailObject result = tupleForByteArray(copy);
-		result.setSlot(HASH_OR_ZERO, object.hashOrZero());
-		return result;
-	}
-
-	/**
-	 * Create a new {@code ByteArrayTupleDescriptor} instance for the specified
-	 * byte array.
-	 *
-	 * @param array
-	 * A Java byte array.
-	 * @return
-	 * The requested tuple.
-	 */
-	public static AvailObject tupleForByteArray (final byte[] array)
-	{
-		final AvailObject wrapped = identityPojo(array);
-		final AvailObject newObject = mutable.create();
-		newObject.setSlot(HASH_OR_ZERO, 0);
-		newObject.setSlot(BYTE_ARRAY_POJO, wrapped);
-		return newObject;
+		/**
+		 * Create a new `ByteArrayTupleDescriptor` instance for the specified
+		 * byte array.
+		 *
+		 * @param array
+		 *   A Java byte array.
+		 * @return
+		 *   The requested tuple.
+		 */
+		@JvmStatic
+		fun tupleForByteArray(array: ByteArray): AvailObject
+		{
+			val wrapped = identityPojo(array)
+			val newObject = mutable.create()
+			newObject.setSlot(IntegerSlots.HASH_OR_ZERO, 0)
+			newObject.setSlot(ObjectSlots.BYTE_ARRAY_POJO, wrapped)
+			return newObject
+		}
 	}
 }

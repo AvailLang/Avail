@@ -571,14 +571,14 @@ extends Descriptor
 
 	@Override
 	public boolean o_CompareFromToWithByteArrayTupleStartingAt (
-		final AvailObject object,
+		final AvailObject self,
 		final int startIndex1,
 		final int endIndex1,
 		final A_Tuple aByteTuple,
 		final int startIndex2)
 	{
 		return o_CompareFromToWithAnyTupleStartingAt(
-			object,
+			self,
 			startIndex1,
 			endIndex1,
 			aByteTuple,
