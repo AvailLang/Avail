@@ -102,10 +102,10 @@ import java.util.logging.Level
 
 /**
  * The `L1Translator` transliterates a sequence of
- * [level one instructions][L1Operation] into one or more simple
- * [level two instructions][L2Instruction], under the assumption that further
- * optimization steps will be able to transform this code into something much
- * more efficient – without altering the level one semantics.
+ * [level&#32;one&#32;instructions][L1Operation] into one or more simple
+ * [level&#32;two&#32;instructions][L2Instruction], under the assumption that
+ * further optimization steps will be able to transform this code into something
+ * much more efficient – without altering the level one semantics.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -115,7 +115,7 @@ import java.util.logging.Level
  * @property interpreter
  *   The [Interpreter] that tripped the translation request.
  * @property code
- *   The [raw function][CompiledCodeDescriptor] to transliterate into level two
+ *   The [raw&#32;function][CompiledCodeDescriptor] to transliterate into level two
  *   code.
  * @constructor
  * Create a new L1 naive translator for the given [L2Generator].
@@ -233,8 +233,7 @@ class L1Translator private constructor(
 	{
 		// Create a new semantic slot at the current pc, representing this
 		// newly written value.
-		val semanticValue =
-			topFrame().slot(slotIndex, effectivePc)
+		val semanticValue = topFrame().slot(slotIndex, effectivePc)
 		semanticSlots[slotIndex - 1] = semanticValue
 		return generator.boxedWrite(semanticValue, restriction)
 	}
@@ -287,8 +286,7 @@ class L1Translator private constructor(
 	{
 		// Create a new L2SemanticSlot at the effective pc, representing this
 		// newly written value.
-		val slotSemanticValue =
-			topFrame().slot(slotIndex, effectivePc)
+		val slotSemanticValue = topFrame().slot(slotIndex, effectivePc)
 		semanticSlots[slotIndex - 1] = slotSemanticValue
 		generator.moveRegister(
 			L2_MOVE.boxed,
@@ -321,11 +319,6 @@ class L1Translator private constructor(
 	 */
 	fun readBoxed(write: L2WriteBoxedOperand): L2ReadBoxedOperand =
 		generator.readBoxed(write)
-	// The exact function is known.
-	// The exact function isn't known, but we know the raw function, so we
-	// statically know the function type.
-    // Note the current function can't ever be an int or float.
-	// We have to get it into a register.
 
 	/**
 	 * Write instructions to extract the current function, and answer an
@@ -388,8 +381,7 @@ class L1Translator private constructor(
 		val functionRead = currentFunction
 		val restriction =
 			restrictionForType(outerType, RestrictionFlagEncoding.BOXED)
-		val outerWrite =
-			generator.boxedWrite(semanticOuter, restriction)
+		val outerWrite = generator.boxedWrite(semanticOuter, restriction)
 		addInstruction(
 			L2_MOVE_OUTER_VARIABLE,
 			L2IntImmediateOperand(outerIndex),
@@ -516,12 +508,9 @@ class L1Translator private constructor(
 		// Create readSlots for constructing the continuation.  Also create
 		// writeSemanticValues and writeRestrictions for restoring the state
 		// from the continuation when it's resumed.
-		val readSlotsBefore =
-			arrayOfNulls<L2ReadBoxedOperand>(numSlots)
-		val writeSemanticValues =
-			arrayOfNulls<L2SemanticValue>(numSlots)
-		val writeRestrictions =
-			arrayOfNulls<TypeRestriction>(numSlots)
+		val readSlotsBefore = arrayOfNulls<L2ReadBoxedOperand>(numSlots)
+		val writeSemanticValues = arrayOfNulls<L2SemanticValue>(numSlots)
+		val writeRestrictions = arrayOfNulls<TypeRestriction>(numSlots)
 		for (i in 0 until numSlots)
 		{
 			val semanticValue = semanticSlot(i + 1)
@@ -628,9 +617,8 @@ class L1Translator private constructor(
 			L2_ENTER_L2_CHUNK,
 			L2IntImmediateOperand(typeOfEntryPoint.offsetInDefaultChunk),
 			L2CommentOperand(
-				"If invalid, reenter «default» at "
-				+ typeOfEntryPoint.name + "."))
-		if (expectedValueOrNull != null && expectedValueOrNull.isVacuousType)
+				"If invalid, reenter «default» at ${typeOfEntryPoint.name}."))
+		if (expectedValueOrNull !== null && expectedValueOrNull.isVacuousType)
 		{
 			generator.addUnreachableCode()
 		}
@@ -671,6 +659,7 @@ class L1Translator private constructor(
 	 * @property typeToTest
 	 *   The [A_Type] that should be subtracted from argument's possible type
 	 *   along the path where the type test fails.
+	 *
 	 * @constructor
 	 * Construct a new memento.  Make the label something meaningful to
 	 * make it easier to decipher.
@@ -688,7 +677,6 @@ class L1Translator private constructor(
 		val typeToTest: A_Type,
 		branchLabelCounter: Int)
 	{
-
 		/**
 		 * Where to jump if the [InternalLookupTree]'s type test is true.
 		 */
@@ -1333,8 +1321,7 @@ class L1Translator private constructor(
 		// be replaced with a fail-strengthened reader during the
 		// intraInternalNode, then replaced with whatever it was upon entry to
 		// this subtree during the postInternalNode.
-		val semanticArgument =
-			semanticArguments[argumentIndexToTest - 1]
+		val semanticArgument = semanticArguments[argumentIndexToTest - 1]
 		val argumentRestriction =
 			currentManifest().restrictionFor(semanticArgument)
 		if (!argumentRestriction.intersectsType(typeToTest))
@@ -1401,8 +1388,7 @@ class L1Translator private constructor(
 		{
 			// It's not a super call, or at least this test isn't related to any
 			// parts that are supercast upward.
-			val intersection =
-				argRestriction.intersectionWithType(typeToTest)
+			val intersection = argRestriction.intersectionWithType(typeToTest)
 			if (intersection === TypeRestriction.bottomRestriction)
 			{
 				// It will always fail the test.
@@ -1732,8 +1718,7 @@ class L1Translator private constructor(
 			if (primitive != null)
 			{
 				val generated: Boolean
-				val argsTupleType =
-					rawFunction.functionType().argsTupleType()
+				val argsTupleType = rawFunction.functionType().argsTupleType()
 				generated = if (tryToGenerateSpecialPrimitiveInvocation)
 				{
 					// We are not recursing here from a primitive override of
@@ -1742,8 +1727,7 @@ class L1Translator private constructor(
 					// lookup was monomorphic *in the event of success*, so we
 					// can safely tighten the argument types here to conform to
 					// the only possible found function.
-					val strongArguments =
-						mutableListOf<L2ReadBoxedOperand>()
+					val strongArguments = mutableListOf<L2ReadBoxedOperand>()
 					val manifest = currentManifest()
 					for (i in 0 until argumentCount)
 					{
@@ -1902,8 +1886,6 @@ class L1Translator private constructor(
 	 * It's incorrect to call this if the register's type is already strong
 	 * enough to satisfy the expectedType.
 	 *
-	 * //TODO MvG review this comment, no such thing as: getInvalidResultFunctionRegister
-	 *
 	 * @param expectedType
 	 *   The [A_Type] to check the value against.
 	 */
@@ -1940,7 +1922,7 @@ class L1Translator private constructor(
 		else
 		{
 			assert(!uncheckedValueRead.type().isSubtypeOf(expectedType))
-			{ "Attempting to create unnecessary type check" }
+				{ "Attempting to create unnecessary type check" }
 			jumpIfKindOfConstant(
 				uncheckedValueRead, expectedType, passedCheck, failedCheck)
 		}
@@ -2160,15 +2142,13 @@ class L1Translator private constructor(
 
 		// The primitive can't be folded, so let it generate its own code
 		// equivalent to invocation.
-		val signatureTupleType =
-			rawFunction.functionType().argsTupleType()
+		val signatureTupleType = rawFunction.functionType().argsTupleType()
 		val narrowedArgTypes = mutableListOf<A_Type>()
 		val narrowedArguments =
 			mutableListOf<L2ReadBoxedOperand>()
 		for (i in 0 until argumentCount)
 		{
-			val argument =
-				generator.readBoxed(arguments[i].semanticValue())
+			val argument = generator.readBoxed(arguments[i].semanticValue())
 			assert(argument.restriction().type.isSubtypeOf(
 				signatureTupleType.typeAtIndex(i + 1)))
 			narrowedArgTypes.add(argument.restriction().type)
@@ -2282,8 +2262,7 @@ class L1Translator private constructor(
 			// Extract a tuple type from the runtime types of the arguments,
 			// take the type union with the superUnionType, then perform a
 			// lookup-by-types using that tuple type.
-			val argTypeRegs =
-				mutableListOf<L2ReadBoxedOperand>()
+			val argTypeRegs = mutableListOf<L2ReadBoxedOperand>()
 			for (i in 1 .. nArgs)
 			{
 				val argReg = argumentReads[i - 1]
@@ -2291,47 +2270,47 @@ class L1Translator private constructor(
 				val superUnionElementType =
 					callSiteHelper.superUnionType.typeAtIndex(i)
 				val argTypeReg: L2ReadBoxedOperand?
-				argTypeReg = if (argStaticType.isSubtypeOf(superUnionElementType))
-				{
-					// The lookup is entirely determined by the super-union.
-					generator.boxedConstant(superUnionElementType)
-				}
-				else
-				{
-					val typeBound =
-						argStaticType.typeUnion(superUnionElementType)
-					val argTypeWrite = generator.boxedWriteTemp(
-						restrictionForType(
-							InstanceMetaDescriptor.instanceMeta(typeBound),
-							RestrictionFlagEncoding.BOXED))
-					if (superUnionElementType.isBottom)
+				argTypeReg =
+					if (argStaticType.isSubtypeOf(superUnionElementType))
 					{
-						// Only this argument's actual type matters.
-						addInstruction(
-							L2_GET_TYPE, argReg, argTypeWrite)
+						// The lookup is entirely determined by the super-union.
+						generator.boxedConstant(superUnionElementType)
 					}
 					else
 					{
-						// The lookup is constrained by the actual argument's
-						// type *and* the super-union.  This is possible because
-						// this is a top-level argument, but it's the leaf
-						// arguments that individually specify supercasts.
-						val originalArgTypeWrite =
-							generator.boxedWriteTemp(
-								restrictionForType(
-									InstanceMetaDescriptor.instanceMeta(
-										typeBound),
-									RestrictionFlagEncoding.BOXED))
-						addInstruction(
-							L2_GET_TYPE, argReg, originalArgTypeWrite)
-						addInstruction(
-							L2_TYPE_UNION,
-							readBoxed(originalArgTypeWrite),
-							generator.boxedConstant(superUnionElementType),
-							argTypeWrite)
+						val typeBound =
+							argStaticType.typeUnion(superUnionElementType)
+						val argTypeWrite = generator.boxedWriteTemp(
+							restrictionForType(
+								InstanceMetaDescriptor.instanceMeta(typeBound),
+								RestrictionFlagEncoding.BOXED))
+						if (superUnionElementType.isBottom)
+						{
+							// Only this argument's actual type matters.
+							addInstruction(L2_GET_TYPE, argReg, argTypeWrite)
+						}
+						else
+						{
+							// The lookup is constrained by the actual argument's
+							// type *and* the super-union.  This is possible because
+							// this is a top-level argument, but it's the leaf
+							// arguments that individually specify supercasts.
+							val originalArgTypeWrite =
+								generator.boxedWriteTemp(
+									restrictionForType(
+										InstanceMetaDescriptor.instanceMeta(
+											typeBound),
+										RestrictionFlagEncoding.BOXED))
+							addInstruction(
+								L2_GET_TYPE, argReg, originalArgTypeWrite)
+							addInstruction(
+								L2_TYPE_UNION,
+								readBoxed(originalArgTypeWrite),
+								generator.boxedConstant(superUnionElementType),
+								argTypeWrite)
+						}
+						readBoxed(argTypeWrite)
 					}
-					readBoxed(argTypeWrite)
-				}
 				argTypeRegs.add(argTypeReg)
 			}
 			addInstruction(
@@ -2839,9 +2818,9 @@ class L1Translator private constructor(
 	 * optimize this method.  It is roughly equivalent to the level of inlining
 	 * to attempt, or the ratio of code expansion that is permitted. An
 	 * optimization level of zero is the bare minimum, which produces a naïve
-	 * translation to [Level Two code][L2Chunk].  The translation may include
-	 * code to decrement a counter and reoptimize with greater effort when the
-	 * counter reaches zero.
+	 * translation to [Level&#32;Two&#32;code][L2Chunk].  The translation may
+	 * include code to decrement a counter and reoptimize with greater effort
+	 * when the counter reaches zero.
 	 */
 	private fun translate()
 	{

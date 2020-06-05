@@ -203,7 +203,7 @@ class L2ControlFlowGraph
 	 * The basic blocks of the graph.  They're either in the order they were
 	 * generated, or in a suitable order for final L2 instruction emission.
 	 */
-	val basicBlockOrder =mutableListOf<L2BasicBlock>()
+	val basicBlockOrder = mutableListOf<L2BasicBlock>()
 
 	/**
 	 * Begin code generation in the given block.

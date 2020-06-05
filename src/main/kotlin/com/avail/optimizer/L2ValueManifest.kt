@@ -1,5 +1,5 @@
 /*
- * L2ValueManifest.java
+ * L2ValueManifest.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -89,7 +89,6 @@ class L2ValueManifest
 		mutableMapOf<L2Synonym, MutableList<L2Register>>()
 
 	/** Create a new, empty manifest.  */
-	// Nothing else to initialize.
 	constructor()
 
 	/**
@@ -211,8 +210,7 @@ class L2ValueManifest
 				continue
 			}
 			// The actual primitives match here.
-			val existingArgs =
-				existingPrimitive.argumentSemanticValues
+			val existingArgs = existingPrimitive.argumentSemanticValues
 			assert(existingArgs.size == numArgs)
 			for (i in 0 until numArgs)
 			{
@@ -230,8 +228,7 @@ class L2ValueManifest
 					// and also wasn't equal to its counterpart.
 					continue@nextEntry
 				}
-				val existingSynonym =
-					semanticValueToSynonym(existingArg)
+				val existingSynonym = semanticValueToSynonym(existingArg)
 				if (semanticValueToSynonym(newArg) == existingSynonym)
 				{
 					// They're known to be synonymous.
@@ -316,11 +313,6 @@ class L2ValueManifest
 		// equivalent due to their arguments being merged into the same
 		// synonyms.  Repeat as necessary, alternating collection of newly
 		// matched pairs of synonyms with merging them.
-
-		// Figure out which L2SemanticPrimitiveInvocations have become
-		// equivalent due to their arguments being merged into the same
-		// synonyms.  Repeat as necessary, alternating collection of newly
-		// matched pairs of synonyms with merging them.
 		val allSemanticPrimitives =
 			semanticValueToSynonym.keys
 				.filter {
@@ -358,10 +350,10 @@ class L2ValueManifest
 					// register it in the manifest.
 					val argumentSynonyms: List<L2Synonym?> =
 						invocation.argumentSemanticValues
-						.map {
-							semanticValueToSynonymOrElse(it)
-							{ L2Synonym(setOf(it)) }
-						}
+							.map {
+								semanticValueToSynonymOrElse(it)
+								{ L2Synonym(setOf(it)) }
+							}
 					val primitiveSynonyms =
 						map.computeIfAbsent(argumentSynonyms) { mutableSetOf() }
 					val invocationSynonym =

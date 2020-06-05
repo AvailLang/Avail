@@ -643,7 +643,7 @@ class L2Chunk private constructor(
 		 * @return
 		 *   The number of invocations before initial optimization.
 		 */
-		fun countdownForNewCode(): Int = 1
+		fun countdownForNewCode(): Int = 100
 
 		/**
 		 * Return the number of times to invoke a

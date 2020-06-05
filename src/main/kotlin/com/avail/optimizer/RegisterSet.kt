@@ -1,5 +1,5 @@
 /*
- * RegisterSet.java
+ * RegisterSet.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -55,8 +55,7 @@ class RegisterSet
 	/**
 	 * The mapping from each register to its current state, if any.
 	 */
-	val registerStates =
-		mutableMapOf<L2Register, RegisterState>()
+	val registerStates = mutableMapOf<L2Register, RegisterState>()
 
 	/**
 	 * Output debug information about this RegisterSet to the specified
@@ -110,7 +109,7 @@ class RegisterSet
 	 * RegisterState is modifiable, copying it and writing it back if necessary.
 	 *
 	 * @param register
-	 *   The L2Register to look up.
+	 *   The `L2Register` to look up.
 	 * @return
 	 *   The mutable RegisterState that describes the state of the L2Register at
 	 *   a particular point in the generated code.
@@ -118,7 +117,7 @@ class RegisterSet
 	fun stateForModifying(register: L2Register): RegisterState
 	{
 		var state = registerStates[register]
-		if (state == null)
+		if (state === null)
 		{
 			state = RegisterState.blank()
 		}
@@ -136,15 +135,15 @@ class RegisterSet
 	 * and associating it with the register for subsequent lookups.
 	 *
 	 * @param register
-	 *   The L2Register to look up.
+	 *   The `L2Register` to look up.
 	 * @return
-	 *   The RegisterState that describes the state of the L2Register at a
+	 *   The `RegisterState` that describes the state of the `L2Register` at a
 	 *   particular point in the generated code.
 	 */
 	fun stateForReading(register: L2Register): RegisterState
 	{
 		var state = registerStates[register]
-		if (state == null)
+		if (state === null)
 		{
 			state = RegisterState.blank()
 		}
@@ -387,7 +386,6 @@ class RegisterSet
 	 * No new instruction has written to the register, but the path taken from a
 	 * value test has ascertained that the register contains a specific value.
 	 *
-	 *
 	 * This is subtle, but we also update the known value for each register
 	 * which has been shown to have the same value.
 	 *
@@ -478,12 +476,12 @@ class RegisterSet
 	 *   The instruction doing the writing.
 	 */
 	fun propagateWriteTo(
-		destinationRegister: L2Register, instruction: L2Instruction)
+		destinationRegister: L2Register,
+		instruction: L2Instruction)
 	{
 		// Firstly, the destinationRegister's value is no longer derived
 		// from any other register (until and unless the client says which).
-		val destinationState =
-			stateForModifying(destinationRegister)
+		val destinationState = stateForModifying(destinationRegister)
 		val origins = destinationState.origins()
 		for (origin in origins)
 		{

@@ -41,7 +41,6 @@ import com.avail.interpreter.levelTwo.operation.L2_JUMP
 import com.avail.interpreter.levelTwo.operation.L2_UNREACHABLE_CODE
 import com.avail.interpreter.levelTwo.register.L2Register
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind
-import com.avail.utility.CheckedConsumer
 import com.avail.utility.MutableInt
 import com.avail.utility.Strings.repeated
 import com.avail.utility.dot.DotWriter
@@ -114,7 +113,6 @@ class L2ControlFlowGraphVisualizer constructor(
 	private val visualizeManifest: Boolean,
 	private val accumulator: Appendable)
 {
-
 	/**
 	 * Emit a banner.
 	 *
@@ -155,8 +153,7 @@ class L2ControlFlowGraphVisualizer constructor(
 	 * The node name of the [L2BasicBlock]s, as a [map][Map]
 	 * from `L2BasicBlock`s to their names.
 	 */
-	private val basicBlockNames =
-		mutableMapOf<L2BasicBlock, String>()
+	private val basicBlockNames = mutableMapOf<L2BasicBlock, String>()
 
 	/**
 	 * Compute a unique name for the specified [L2BasicBlock].
@@ -274,9 +271,8 @@ class L2ControlFlowGraphVisualizer constructor(
 		}
 		try
 		{
-			writer.node(
-				basicBlockName(basicBlock),
-				CheckedConsumer { it.attribute("label", rhs) })
+			writer.node(basicBlockName(basicBlock))
+				{ it.attribute("label", rhs) }
 		}
 		catch (e: IOException)
 		{
@@ -457,8 +453,8 @@ class L2ControlFlowGraphVisualizer constructor(
 				else
 				{
 					node(basicBlockName(targetBlock))
-				},
-				CheckedConsumer { attr: AttributeWriter ->
+				})
+				{ attr: AttributeWriter ->
 					// Number each edge uniquely, to allow a multigraph.
 					attr.attribute(
 						"id", (edgeCounter.value++).toString())
@@ -504,7 +500,7 @@ class L2ControlFlowGraphVisualizer constructor(
 						}
 					}
 					attr.attribute("label", builder.toString())
-				})
+				}
 		}
 		catch (e: IOException)
 		{
@@ -558,25 +554,22 @@ class L2ControlFlowGraphVisualizer constructor(
 		graph: GraphWriter,
 		isStarted: (L2BasicBlock) -> Boolean)
 	{
-		graph.subgraph(
-			"cluster_" + subgraphNumber++,
-			CheckedConsumer { gw: GraphWriter ->
-				// TODO is zoneName nullable?
-				gw.attribute("fontcolor", "#000000/ffffff")
-				gw.attribute("labeljust", "l") // Left-aligned.
-				gw.attribute("label", zone.zoneName)
-				gw.attribute("color", zone.zoneType.color)
-				gw.attribute("bgcolor", zone.zoneType.bgcolor)
-				gw.defaultAttributeBlock(
-					DefaultAttributeBlockType.GRAPH,
-					CheckedConsumer { attr: AttributeWriter ->
-						attr.attribute("style", "rounded")
-						attr.attribute("penwidth", "5")
-					})
-				blocksByZone[zone]!!.forEach { block ->
-						basicBlock(block, gw, isStarted(block))
-					}
-			})
+		graph.subgraph("cluster_" + subgraphNumber++)
+		{ gw: GraphWriter ->
+			gw.attribute("fontcolor", "#000000/ffffff")
+			gw.attribute("labeljust", "l") // Left-aligned.
+			gw.attribute("label", zone.zoneName)
+			gw.attribute("color", zone.zoneType.color)
+			gw.attribute("bgcolor", zone.zoneType.bgcolor)
+			gw.defaultAttributeBlock(DefaultAttributeBlockType.GRAPH)
+			{ attr: AttributeWriter ->
+				attr.attribute("style", "rounded")
+				attr.attribute("penwidth", "5")
+			}
+			blocksByZone[zone]!!.forEach { block ->
+				basicBlock(block, gw, isStarted(block))
+			}
+		}
 	}
 
 	/**
@@ -595,7 +588,7 @@ class L2ControlFlowGraphVisualizer constructor(
 		try
 		{
 			banner(writer)
-			// The selection of Courier as the font is important. Some
+			// The selection of Helvetica as the font is important. Some
 			// renderers, like Viz.js, only seem to fully support a small number
 			// of standard, widely available fonts:
 			//
@@ -603,32 +596,30 @@ class L2ControlFlowGraphVisualizer constructor(
 			//
 			// In particular, Courier, Arial, Helvetica, and Times are
 			// supported.
-			writer.graph(CheckedConsumer { graph: GraphWriter ->
+			writer.graph { graph: GraphWriter ->
 				graph.attribute("bgcolor", "#00ffff/000000")
 				graph.attribute("rankdir", "TB")
 				graph.attribute("newrank", "true")
 				graph.attribute("overlap", "false")
 				graph.attribute("splines", "true")
-				graph.defaultAttributeBlock(
-					DefaultAttributeBlockType.NODE,
-					CheckedConsumer { attr: AttributeWriter ->
-						attr.attribute("bgcolor", "#ffffff/a0a0a0")
-						attr.attribute("color", "#000000/b0b0b0")
-						attr.attribute("fixedsize", "false")
-						attr.attribute("fontname", "Helvetica")
-						attr.attribute("fontsize", "11")
-						attr.attribute("fontcolor", "#000000/d0d0d0")
-						attr.attribute("shape", "none")
-					})
-				graph.defaultAttributeBlock(
-					DefaultAttributeBlockType.EDGE,
-					CheckedConsumer { attr: AttributeWriter ->
+				graph.defaultAttributeBlock(DefaultAttributeBlockType.NODE)
+				{ attr: AttributeWriter ->
+					attr.attribute("bgcolor", "#ffffff/a0a0a0")
+					attr.attribute("color", "#000000/b0b0b0")
+					attr.attribute("fixedsize", "false")
+					attr.attribute("fontname", "Helvetica")
+					attr.attribute("fontsize", "11")
+					attr.attribute("fontcolor", "#000000/d0d0d0")
+					attr.attribute("shape", "none")
+				}
+				graph.defaultAttributeBlock(DefaultAttributeBlockType.EDGE)
+				{ attr: AttributeWriter ->
 						attr.attribute("fontname", "Helvetica")
 						attr.attribute("fontsize", "8")
 						attr.attribute("fontcolor", "#000000/dddddd")
 						attr.attribute("style", "solid")
 						attr.attribute("color", "#000000/e0e0e0")
-					})
+				}
 				val startedBlocks: Set<L2BasicBlock> =
 					controlFlowGraph.basicBlockOrder.toSet()
 				val unstartedBlocks = mutableSetOf<L2BasicBlock>()
@@ -665,7 +656,7 @@ class L2ControlFlowGraphVisualizer constructor(
 						edge(edge, graph, false, edgeCounter)
 					}
 				}
-			})
+			}
 		}
 		catch (e: IOException)
 		{
@@ -836,5 +827,4 @@ class L2ControlFlowGraphVisualizer constructor(
 			return builder.toString()
 		}
 	}
-
 }

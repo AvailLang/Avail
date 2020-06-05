@@ -320,8 +320,7 @@ object L2_TRY_PRIMITIVE : L2Operation(
 					assert(interpreter.latestResultOrNull() !== null)
 					interpreter.function = function
 					interpreter.setOffset(
-						interpreter.chunk!!
-							.offsetAfterInitialTryPrimitive())
+						interpreter.chunk!!.offsetAfterInitialTryPrimitive())
 					assert(!interpreter.returnNow)
 				}
 				Primitive.Result.READY_TO_INVOKE ->

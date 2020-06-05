@@ -6,16 +6,16 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
  *
- *  * Neither the name of the copyright holder nor the names of the contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -47,6 +47,7 @@ import java.util.*
  *   The [L2ControlFlowGraph] to analyze.
  *
  * @constructor
+ * Construct a `DeadCodeAnalyzer`.
  *
  * @param dataCouplingMode
  *   The policy about what kinds of [L2Entity] should be traced.
@@ -61,12 +62,10 @@ internal class DeadCodeAnalyzer constructor(
 	 * A [Map] from each [L2PcOperand] to the [Set] of
 	 * [entities][L2Entity] that might be consumed after this edge.
 	 */
-	private val edgeNeeds =
-		mutableMapOf<L2PcOperand, MutableSet<L2Entity>>()
+	private val edgeNeeds = mutableMapOf<L2PcOperand, MutableSet<L2Entity>>()
 
 	/** The [L2Instruction]s that have been marked as live so far.  */
-	private val liveInstructions =
-		mutableSetOf<L2Instruction>()
+	private val liveInstructions = mutableSetOf<L2Instruction>()
 
 	/**
 	 * Calculate which operations are live, either because they have a side
@@ -165,8 +164,7 @@ internal class DeadCodeAnalyzer constructor(
 						phiOperation.sourceRegisterReads(phiInstruction)
 					for (predecessorIndex in 0 until predecessorCount)
 					{
-						val entities =
-							entitiesByPredecessor[predecessorIndex]
+						val entities = entitiesByPredecessor[predecessorIndex]
 						if (entities.removeAll(
 								dataCouplingMode.writeEntitiesOf(phiInstruction))
 							|| phiInstruction.hasSideEffect())

@@ -1,5 +1,5 @@
 /*
- * L2Synonym.java
+ * L2Synonym.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -49,8 +49,7 @@ import java.util.*
  * @param semanticValues
  *   The non-empty collection of [L2SemanticValue]s bound to this synonym.
  */
-class L2Synonym(
-	semanticValues: Collection<L2SemanticValue>)
+class L2Synonym constructor(semanticValues: Collection<L2SemanticValue>)
 {
 	/**
 	 * The [L2SemanticValue]s for which this synonym's registers hold the (same)
@@ -75,7 +74,7 @@ class L2Synonym(
 	fun pickSemanticValue(): L2SemanticValue = semanticValues.iterator().next()
 
 	/**
-	 * Transform the [Frame]s and [L2SemanticValue]s within this  synonym to
+	 * Transform the [Frame]s and [L2SemanticValue]s within this synonym to
 	 * produce a new synonym.
 	 *
 	 * @param semanticValueTransformer

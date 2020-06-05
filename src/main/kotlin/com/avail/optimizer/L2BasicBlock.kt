@@ -72,24 +72,21 @@ class L2BasicBlock @JvmOverloads constructor(
 	var zone: L2ControlFlowGraph.Zone? = null)
 {
 	/** The sequence of instructions within this basic block.  */
-	private val instructions =
-		mutableListOf<L2Instruction>()
+	private val instructions = mutableListOf<L2Instruction>()
 
 	/**
 	 * The [L2PcOperand]s that point to basic blocks that follow this one, taken
 	 * in order from the last instruction.  This is kept synchronized with the
 	 * predecessor lists of the successor blocks.
 	 */
-	private val successorEdges =
-		mutableListOf<L2PcOperand>()
+	private val successorEdges = mutableListOf<L2PcOperand>()
 
 	/**
 	 * The [L2PcOperand]s that point to this basic block.  They capture their
 	 * containing [L2Instruction], which knows its own basic block, so we can
 	 * easily get to the originating basic block.
 	 */
-	private val predecessorEdges =
-		mutableListOf<L2PcOperand>()
+	private val predecessorEdges = mutableListOf<L2PcOperand>()
 
 	/**
 	 * The L2 offset at which the block starts.  Only populated after code
@@ -98,11 +95,10 @@ class L2BasicBlock @JvmOverloads constructor(
 	private var offset = -1
 
 	/**
-	 * Answer whether this block must be tracked until final code generation.
-	 */
-	/**
-	 * Set for blocks that must not be removed.  These blocks may be referenced
-	 * for tracking entry points, and must exist through final code generation.
+	 * Whether this block must be tracked until final code generation. Set for
+	 * blocks that must not be removed. Such a block may be referenced for
+	 * tracking entry points, and must therefore exist through final code
+	 * generation.
 	 */
 	var isIrremovable = false
 		private set
@@ -187,8 +183,7 @@ class L2BasicBlock @JvmOverloads constructor(
 	 * @param consumer
 	 *   What to do with each edge.
 	 */
-	fun predecessorEdgesDo(
-		consumer: Function1<L2PcOperand, Unit>)
+	fun predecessorEdgesDo(consumer: (L2PcOperand) -> Unit)
 	{
 		predecessorEdges.forEach { consumer.invoke(it) }
 	}
@@ -307,9 +302,9 @@ class L2BasicBlock @JvmOverloads constructor(
 	 * @param consumer
 	 *   What to do with each edge.
 	 */
-	fun successorEdgesDo(consumer: Function1<L2PcOperand, Unit>)
+	fun successorEdgesDo(consumer: (L2PcOperand) -> Unit)
 	{
-		successorEdges.forEach {consumer.invoke(it) }
+		successorEdges.forEach { consumer.invoke(it) }
 	}
 
 	/**

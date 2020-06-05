@@ -1,5 +1,5 @@
 /*
- * L2Optimizer.java
+ * L2Optimizer.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -296,10 +296,10 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 						for (write in read.register().definitions())
 						{
 							intersection?.retainAll(write.semanticValues())
-							?: {
-								intersection =
-									write.semanticValues().toMutableSet()
-							}()
+								?: {
+									intersection =
+										write.semanticValues().toMutableSet()
+								}()
 						}
 						assert(intersection != null)
 						assert(intersection!!.isNotEmpty())
@@ -579,8 +579,7 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 			changed = false
 			for (block in blocks)
 			{
-				val registersConsumedLaterInBlock =
-					mutableSetOf<L2Register>()
+				val registersConsumedLaterInBlock = mutableSetOf<L2Register>()
 				val semanticValuesConsumedLaterInBlock =
 					mutableSetOf<L2SemanticValue>()
 				var dependentReadsLaterInBlock = 0
@@ -589,8 +588,7 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 				// This set is populated right away by the last instruction of
 				// the block, which is the only place control flow can be
 				// altered.
-				val reachableTargetEdges =
-					mutableSetOf<L2PcOperand>()
+				val reachableTargetEdges = mutableSetOf<L2PcOperand>()
 				for (i in instructions.indices.reversed())
 				{
 					val instruction = instructions[i]
@@ -779,8 +777,7 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 	{
 		for (block in blocks)
 		{
-			val instructionIterator =
-				block.instructions().iterator()
+			val instructionIterator = block.instructions().iterator()
 			while (instructionIterator.hasNext())
 			{
 				val instruction = instructionIterator.next()
@@ -792,8 +789,7 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 				}
 				val phiOperation: L2_PHI_PSEUDO_OPERATION<R, *, *> =
 					Casts.cast(instruction.operation())
-				val phiSources =
-					phiOperation.sourceRegisterReads(instruction)
+				val phiSources = phiOperation.sourceRegisterReads(instruction)
 				val fanIn = block.predecessorEdgesCount()
 				assert(fanIn == phiSources.size)
 				val targetWriter: L2WriteOperand<*> =
@@ -903,7 +899,6 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 				.computeIfAbsent(
 					reg.finalIndex()) { reg.copyAfterColoring() }
 			oldRegisters.add(reg)
-
 		}
 		blocks.forEach { block->
 			block.instructions().forEach { instruction ->
@@ -1017,8 +1012,7 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 	 */
 	fun orderBlocks()
 	{
-		val countdowns =
-			mutableMapOf<L2BasicBlock, MutableInt>()
+		val countdowns = mutableMapOf<L2BasicBlock, MutableInt>()
 		for (block in blocks)
 		{
 			countdowns[block] = MutableInt(block.predecessorEdgesCount())
@@ -1270,8 +1264,7 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 	{
 		for (block in blocks)
 		{
-			val allEdgesFromBlock =
-				mutableListOf<L2PcOperand>()
+			val allEdgesFromBlock = mutableListOf<L2PcOperand>()
 			for (instruction in block.instructions())
 			{
 				assert(!instruction.operation().isPhi

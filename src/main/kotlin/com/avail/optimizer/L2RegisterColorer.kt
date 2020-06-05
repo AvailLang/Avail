@@ -1,5 +1,5 @@
 /*
- * L2RegisterColorer.java
+ * L2RegisterColorer.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -96,13 +96,11 @@ class L2RegisterColorer constructor(controlFlowGraph: L2ControlFlowGraph)
 	 * set is a key in this map that points to that set.  Note that we can only
 	 * bring together register sets that have no interference edge between them.
 	 *
-	 *
 	 * Since interference edges prevent merging, we have to calculate the
 	 * interference graph first.  We populate the registerSets with singleton
 	 * sets before this.
 	 */
-	private val registerGroups =
-		mutableMapOf<L2Register, RegisterGroup>()
+	private val registerGroups = mutableMapOf<L2Register, RegisterGroup>()
 
 	/**
 	 * The set of blocks that so far have been reached, but not necessarily
@@ -277,8 +275,7 @@ class L2RegisterColorer constructor(controlFlowGraph: L2ControlFlowGraph)
 							// sets.
 							val smallSet: RegisterGroup?
 							val largeSet: RegisterGroup?
-							if (group1.registers.size
-								< group2.registers.size)
+							if (group1.registers.size < group2.registers.size)
 							{
 								smallSet = group1
 								largeSet = group2

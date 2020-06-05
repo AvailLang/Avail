@@ -37,7 +37,7 @@ import com.avail.interpreter.levelTwo.L2Chunk
 
 /**
  * An [ExecutableChunk] represents an optimized implementation of a
- * [compiled code object][CompiledCodeDescriptor].
+ * [compiled&#32;code&#32;object][CompiledCodeDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
