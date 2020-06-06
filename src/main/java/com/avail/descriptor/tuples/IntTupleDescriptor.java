@@ -589,12 +589,12 @@ extends NumericTupleDescriptor
 
 	@Override
 	public int o_TupleIntAt (
-		final AvailObject object,
+		final AvailObject self,
 		final int index)
 	{
 		// Answer the integer element at the given index in the tuple object.
-		assert index >= 1 && index <= object.tupleSize();
-		return object.intSlot(RAW_LONG_AT_, index);
+		assert index >= 1 && index <= self.tupleSize();
+		return self.intSlot(RAW_LONG_AT_, index);
 	}
 
 	@Override

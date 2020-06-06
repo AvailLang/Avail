@@ -524,14 +524,14 @@ extends NumericTupleDescriptor
 	}
 
 	@Override
-	public int o_TupleIntAt (final AvailObject object, final int index)
+	public int o_TupleIntAt (final AvailObject self, final int index)
 	{
 		// Answer the value at the given index in the tuple object.
 		// START + (index-1) × DELTA
-		assert index >= 1 && index <= object.tupleSize();
+		assert index >= 1 && index <= self.tupleSize();
 		long temp = index - 1;
-		temp *= object.slot(DELTA);
-		temp += object.slot(START);
+		temp *= self.slot(DELTA);
+		temp += self.slot(START);
 		assert temp == (int) temp;
 		return (int) temp;
 	}

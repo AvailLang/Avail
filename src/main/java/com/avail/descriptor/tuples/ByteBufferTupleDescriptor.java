@@ -358,11 +358,11 @@ extends NumericTupleDescriptor
 	}
 
 	@Override
-	public int o_TupleIntAt (final AvailObject object, final int index)
+	public int o_TupleIntAt (final AvailObject self, final int index)
 	{
 		// Answer the integer element at the given index in the tuple object.
-		assert index >= 1 && index <= object.tupleSize();
-		final ByteBuffer buffer = object.slot(BYTE_BUFFER).javaObjectNotNull();
+		assert index >= 1 && index <= self.tupleSize();
+		final ByteBuffer buffer = self.slot(BYTE_BUFFER).javaObjectNotNull();
 		return buffer.get(index - 1) & 0xFF;
 	}
 

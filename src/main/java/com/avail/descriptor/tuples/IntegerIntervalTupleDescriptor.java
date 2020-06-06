@@ -497,10 +497,10 @@ extends NumericTupleDescriptor
 	}
 
 	@Override
-	public int o_TupleIntAt (final AvailObject object, final int index)
+	public int o_TupleIntAt (final AvailObject self, final int index)
 	{
 		// Answer the value at the given index in the tuple object.
-		return object.tupleAt(index).extractInt();
+		return self.tupleAt(index).extractInt();
 	}
 
 	@Override
