@@ -29,204 +29,200 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.descriptor.tuples
 
-package com.avail.descriptor.tuples;
-
-import com.avail.annotations.ThreadSafe;
-import com.avail.descriptor.representation.AbstractDescriptor;
-import com.avail.descriptor.representation.AvailObject;
-import com.avail.descriptor.representation.IntegerSlotsEnum;
-import com.avail.descriptor.representation.Mutability;
-import com.avail.descriptor.representation.ObjectSlotsEnum;
-import com.avail.descriptor.types.A_Type;
-import com.avail.descriptor.types.TypeDescriptor.Types;
-import com.avail.serialization.SerializerOperation;
-import com.avail.utility.MutableInt;
-import com.avail.utility.json.JSONWriter;
-
-import javax.annotation.Nullable;
-
-import static com.avail.descriptor.character.CharacterDescriptor.fromCodePoint;
-import static com.avail.descriptor.tuples.ByteStringDescriptor.mutableObjectFromNativeByteString;
-import static com.avail.descriptor.tuples.ObjectTupleDescriptor.generateObjectTupleFrom;
-import static com.avail.descriptor.tuples.TwoByteStringDescriptor.generateTwoByteString;
-import static com.avail.descriptor.tuples.TwoByteStringDescriptor.mutableObjectFromNativeTwoByteString;
+import com.avail.annotations.ThreadSafe
+import com.avail.descriptor.character.CharacterDescriptor.Companion.fromCodePoint
+import com.avail.descriptor.representation.*
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.TypeDescriptor
+import com.avail.serialization.SerializerOperation
+import com.avail.utility.MutableInt
+import com.avail.utility.json.JSONWriter
 
 /**
- * {@code StringDescriptor} has Avail strings as its instances. The actual
+ * `StringDescriptor` has Avail strings as its instances. The actual
  * representation of Avail strings is determined by subclasses.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @see ByteStringDescriptor
+ *
  * @see TwoByteStringDescriptor
+ *
+ * @constructor
+ * Construct a new `StringDescriptor`.
+ *
+ * @param mutability
+ *   The [mutability][Mutability] of the new descriptor.
+ * @param objectSlotsEnumClass
+ *   The Java [Class] which is a subclass of [ObjectSlotsEnum] and defines this
+ *   object's object slots layout, or null if there are no object slots.
+ * @param integerSlotsEnumClass
+ *   The Java [Class] which is a subclass of [IntegerSlotsEnum] and defines this
+ *   object's object slots layout, or null if there are no integer slots.
  */
-public abstract class StringDescriptor
-extends TupleDescriptor
+abstract class StringDescriptor protected constructor(
+		mutability: Mutability,
+		objectSlotsEnumClass: Class<out ObjectSlotsEnum>?,
+		integerSlotsEnumClass: Class<out IntegerSlotsEnum>?)
+	: TupleDescriptor(mutability, objectSlotsEnumClass, integerSlotsEnumClass)
 {
-	@Override
-	public boolean o_IsString (final AvailObject object)
-	{
-		return true;
-	}
+	override fun o_IsString(self: AvailObject): Boolean = true
 
-	@Override @ThreadSafe
-	public SerializerOperation o_SerializerOperation (final AvailObject object)
+	@ThreadSafe
+	override fun o_SerializerOperation(self: AvailObject): SerializerOperation
 	{
-		final int size = object.tupleSize();
-		for (int i = 1; i <= size; i++)
+		val size = self.tupleSize()
+		for (i in 1 .. size)
 		{
-			final int codePoint = object.rawShortForCharacterAt(i);
+			val codePoint = self.rawShortForCharacterAt(i)
 			if (codePoint >= 256)
 			{
-				return SerializerOperation.SHORT_STRING;
+				return SerializerOperation.SHORT_STRING
 			}
 		}
-		return SerializerOperation.BYTE_STRING;
+		return SerializerOperation.BYTE_STRING
 	}
 
-	@Override
-	public abstract int o_TupleCodePointAt (
-		final AvailObject object, final int index);
+	abstract override fun o_TupleCodePointAt(self: AvailObject, index: Int): Int
 
-	@Override
-	public boolean o_TupleElementsInRangeAreInstancesOf (
-		final AvailObject object,
-		final int startIndex,
-		final int endIndex,
-		final A_Type type)
+	override fun o_TupleElementsInRangeAreInstancesOf(
+		self: AvailObject,
+		startIndex: Int,
+		endIndex: Int,
+		type: A_Type): Boolean =
+			(TypeDescriptor.Types.CHARACTER.o().isSubtypeOf(type)
+				|| super.o_TupleElementsInRangeAreInstancesOf(
+					self, startIndex, endIndex, type))
+
+	override fun o_TupleIntAt(self: AvailObject, index: Int): Int
 	{
-		return Types.CHARACTER.o().isSubtypeOf(type)
-			|| super.o_TupleElementsInRangeAreInstancesOf(
-				object, startIndex, endIndex, type);
+		throw unsupportedOperationException()
 	}
 
-	@Override
-	public final int o_TupleIntAt (final AvailObject object, final int index)
+	override fun o_WriteTo(self: AvailObject, writer: JSONWriter)
 	{
-		throw unsupportedOperationException();
+		writer.write(self.asNativeString())
 	}
 
-	@Override
-	public final void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	companion object
 	{
-		writer.write(object.asNativeString());
-	}
+		/**
+		 * Convert the specified Java [String] to an Avail [A_String], but
+		 * keeping any Java surrogate pairs as two distinct values in the Avail
+		 * string.  Note that such a string is semantically different from what
+		 * would be produced by [stringFrom], and isn't even necessarily the
+		 * same length.  This operation is intended for compatibility with Java
+		 * (and JavaScript) strings.
+		 *
+		 * NB: The [descriptor][AbstractDescriptor] type of the actual instance
+		 * returned varies with the contents of the Java `String`. If the Java
+		 * `String` contains only Latin-1 characters, then the descriptor will
+		 * be [ByteStringDescriptor]; otherwise it will be
+		 * [TwoByteStringDescriptor].
+		 *
+		 * @param aNativeString
+		 *   A Java [String].
+		 * @return
+		 *   An Avail `StringDescriptor string` having the same length, but with
+		 *   surrogate pairs (D800-DBFF and DC00-DFFF) preserved in the Avail
+		 *   string.
+		 */
+		fun stringWithSurrogatesFrom(aNativeString: String): A_String
+		{
+			val charCount = aNativeString.length
+			if (charCount == 0)
+			{
+				return emptyTuple()
+			}
+			var maxChar = 0
+			var index = 0
+			while (index < charCount)
+			{
+				val aChar = aNativeString[index]
+				maxChar = maxChar.coerceAtLeast(aChar.toInt())
+				index++
+			}
+			return if (maxChar <= 255)
+			{
+				ByteStringDescriptor
+					.mutableObjectFromNativeByteString(aNativeString)
+			}
+			else
+			{
+				TwoByteStringDescriptor
+					.generateTwoByteString(aNativeString.length)
+						{ aNativeString[it - 1].toInt() }
+			}
+			// Pack it into a TwoByteString, preserving surrogates.
+		}
 
-	/**
-	 * Convert the specified Java {@link String} to an Avail {@link A_String}, but keeping any Java surrogate pairs as two distinct values in the Avail string.  Note that such a string is semantically different from what would be produced by {@link #stringFrom(String)}, and isn't even necessarily the same length.  This operation is intended for compatibility with Java (and JavaScript) strings.
-	 *
-	 * <p>NB: The {@linkplain AbstractDescriptor descriptor} type of the actual instance returned varies with the contents of the Java {@code String}. If the Java {@code String} contains only Latin-1 characters, then the descriptor will be {@link ByteStringDescriptor}; otherwise it will be {@link TwoByteStringDescriptor}.</p>
-	 *
-	 * @param aNativeString
-	 *        A Java {@link String}.
-	 * @return
-	 * An Avail {@code StringDescriptor string} having the same length, but with surrogate pairs (D800-DBFF and DC00-DFFF) preserved in the Avail string.
-	 */
-	public static A_String stringWithSurrogatesFrom (final String aNativeString)
-	{
-		final int charCount = aNativeString.length();
-		if (charCount == 0)
+		/**
+		 * Convert the specified Java [String] to an Avail [A_String].
+		 *
+		 * NB: The [descriptor][AbstractDescriptor] type of the actual instance
+		 * returned varies with the contents of the Java `String`. If the Java
+		 * `String` contains only Latin-1 characters, then the descriptor will
+		 * be [ByteStringDescriptor]; otherwise it will be
+		 * [TwoByteStringDescriptor].
+		 *
+		 * @param aNativeString
+		 *   A Java [String].
+		 * @return
+		 *   A corresponding Avail `StringDescriptor string`.
+		 */
+		@JvmStatic
+		fun stringFrom(aNativeString: String): A_String
 		{
-			return emptyTuple();
+			val charCount = aNativeString.length
+			if (charCount == 0)
+			{
+				return emptyTuple()
+			}
+			var maxCodePoint = 0
+			var count = 0
+			var index = 0
+			while (index < charCount)
+			{
+				val codePoint = aNativeString.codePointAt(index)
+				maxCodePoint = Math.max(maxCodePoint, codePoint)
+				count++
+				index += Character.charCount(codePoint)
+			}
+			if (maxCodePoint <= 255)
+			{
+				return ByteStringDescriptor
+					.mutableObjectFromNativeByteString(aNativeString)
+			}
+			if (maxCodePoint <= 65535)
+			{
+				return TwoByteStringDescriptor
+					.mutableObjectFromNativeTwoByteString(aNativeString)
+			}
+			// Fall back to building a general object tuple containing Avail
+			// character objects.
+			val charIndex = MutableInt(0)
+			return ObjectTupleDescriptor.generateObjectTupleFrom(count)
+			{
+				val codePoint = aNativeString.codePointAt(charIndex.value)
+				charIndex.value += Character.charCount(codePoint)
+				fromCodePoint(codePoint)
+			}
 		}
-		int maxChar = 0;
-		int index = 0;
-		while (index < charCount)
-		{
-			final char aChar = aNativeString.charAt(index);
-			maxChar = Math.max(maxChar, aChar);
-			index ++;
-		}
-		if (maxChar <= 255)
-		{
-			return mutableObjectFromNativeByteString(aNativeString);
-		}
-		// Pack it into a TwoByteString, preserving surrogates.
-		return generateTwoByteString(
-			aNativeString.length(),
-			i -> aNativeString.charAt(i - 1));
-	}
 
-	/**
-	 * Convert the specified Java {@link String} to an Avail {@link A_String}.
-	 *
-	 * <p>NB: The {@linkplain AbstractDescriptor descriptor} type of the actual instance returned varies with the contents of the Java {@code String}. If the Java {@code String} contains only Latin-1 characters, then the descriptor will be {@link ByteStringDescriptor}; otherwise it will be {@link TwoByteStringDescriptor}.</p>
-	 *
-	 * @param aNativeString
-	 * A Java {@link String}.
-	 * @return
-	 * A corresponding Avail {@code StringDescriptor string}.
-	 */
-	public static A_String stringFrom (final String aNativeString)
-	{
-		final int charCount = aNativeString.length();
-		if (charCount == 0)
-		{
-			return emptyTuple();
-		}
-		int maxCodePoint = 0;
-		int count = 0;
-		int index = 0;
-		while (index < charCount)
-		{
-			final int codePoint = aNativeString.codePointAt(index);
-			maxCodePoint = Math.max(maxCodePoint, codePoint);
-			count++;
-			index += Character.charCount(codePoint);
-		}
-		if (maxCodePoint <= 255)
-		{
-			return mutableObjectFromNativeByteString(aNativeString);
-		}
-		if (maxCodePoint <= 65535)
-		{
-			return mutableObjectFromNativeTwoByteString(aNativeString);
-		}
-		// Fall back to building a general object tuple containing Avail
-		// character objects.
-		final MutableInt charIndex = new MutableInt(0);
-		return generateObjectTupleFrom(
-			count,
-			ignored -> {
-				final int codePoint =
-					aNativeString.codePointAt(charIndex.value);
-				charIndex.value += Character.charCount(codePoint);
-				return fromCodePoint(codePoint);
-			});
-	}
-
-	/**
-	 * Given a Java {@link String} containing a {@linkplain String#format(String, Object...) substitution format} and its arguments, perform pattern substitution and produce the corresponding Avail {@link A_String string}.
-	 *
-	 * @param pattern
-	 * A substitution pattern.
-	 * @param args
-	 * The arguments to substitute into the pattern.
-	 * @return
-	 * An Avail string.
-	 */
-	public static A_String formatString (
-		final String pattern,
-		final Object... args)
-	{
-		return stringFrom(String.format(pattern, args));
-	}
-
-	/**
-	 * Construct a new {@code StringDescriptor}.
-	 *
-	 * @param mutability
-	 *            The {@linkplain Mutability mutability} of the new descriptor.
-	 * @param objectSlotsEnumClass
-	 *            The Java {@link Class} which is a subclass of {@link ObjectSlotsEnum} and defines this object's object slots layout, or null if there are no object slots.
-	 * @param integerSlotsEnumClass
-	 *            The Java {@link Class} which is a subclass of {@link IntegerSlotsEnum} and defines this object's object slots layout, or null if there are no integer slots.
-	 */
-	protected StringDescriptor (
-		final Mutability mutability,
-		final @Nullable Class<? extends ObjectSlotsEnum> objectSlotsEnumClass,
-		final @Nullable Class<? extends IntegerSlotsEnum> integerSlotsEnumClass)
-	{
-		super(mutability, objectSlotsEnumClass, integerSlotsEnumClass);
+		/**
+		 * Given a Java [String] containing a [substitution
+		 * format][String.format] and its arguments, perform pattern
+		 * substitution and produce the corresponding Avail [string][A_String].
+		 *
+		 * @param pattern
+		 *   A substitution pattern.
+		 * @param args
+		 *   The arguments to substitute into the pattern.
+		 * @return
+		 *   An Avail string.
+		 */
+		fun formatString(pattern: String, vararg args: Any): A_String =
+			stringFrom(String.format(pattern, *args))
 	}
 }

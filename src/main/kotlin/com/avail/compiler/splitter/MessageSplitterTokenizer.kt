@@ -43,7 +43,7 @@ import com.avail.compiler.splitter.MessageSplitter.Metacharacter.UNDERSCORE
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.tuples.StringDescriptor
-import com.avail.descriptor.tuples.StringDescriptor.stringFrom
+import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.exceptions.AvailErrorCode.E_EXPECTED_OPERATOR_AFTER_BACKQUOTE
 import com.avail.exceptions.AvailErrorCode.E_METHOD_NAME_IS_NOT_CANONICAL
 import com.avail.exceptions.MalformedMessageException

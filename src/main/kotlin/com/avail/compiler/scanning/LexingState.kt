@@ -53,8 +53,8 @@ import com.avail.descriptor.tokens.A_Token
 import com.avail.descriptor.tokens.TokenDescriptor.Companion.newToken
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType.END_OF_FILE
 import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.StringDescriptor.formatString
-import com.avail.descriptor.tuples.StringDescriptor.stringFrom
+import com.avail.descriptor.tuples.StringDescriptor.Companion.formatString
+import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.execution.Interpreter.Companion.stringifyThen
 import com.avail.utility.evaluation.Describer

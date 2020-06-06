@@ -79,7 +79,7 @@ import com.avail.descriptor.tokens.TokenDescriptor.TokenType.LITERAL
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType.WHITESPACE
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
-import com.avail.descriptor.tuples.StringDescriptor.stringFrom
+import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor.toList
 import com.avail.descriptor.types.A_Type

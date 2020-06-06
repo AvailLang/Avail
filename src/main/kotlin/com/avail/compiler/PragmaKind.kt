@@ -39,7 +39,7 @@ import com.avail.descriptor.phrases.LiteralPhraseDescriptor.Companion.syntheticL
 import com.avail.descriptor.phrases.SendPhraseDescriptor.Companion.newSendNode
 import com.avail.descriptor.tokens.A_Token
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.tuples.StringDescriptor.stringFrom
+import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.interpreter.Primitive.Companion.primitiveByName

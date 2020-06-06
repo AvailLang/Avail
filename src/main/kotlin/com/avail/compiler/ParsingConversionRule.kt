@@ -45,7 +45,7 @@ import com.avail.descriptor.phrases.MacroSubstitutionPhraseDescriptor.Companion.
 import com.avail.descriptor.phrases.PhraseDescriptor
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken
-import com.avail.descriptor.tuples.StringDescriptor.stringFrom
+import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 
 /**
  * A `ParsingConversionRule` describes how to convert the argument at the

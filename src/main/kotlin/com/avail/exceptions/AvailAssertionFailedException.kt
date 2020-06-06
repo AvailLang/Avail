@@ -34,7 +34,7 @@ package com.avail.exceptions
 
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.StringDescriptor
-import com.avail.descriptor.tuples.StringDescriptor.stringFrom
+import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import java.lang.String.format
 
 /**

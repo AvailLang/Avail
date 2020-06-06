@@ -41,6 +41,7 @@ import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.representation.BitField;
 import com.avail.descriptor.representation.Mutability;
 import com.avail.serialization.SerializerOperation;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.util.function.IntUnaryOperator;
@@ -321,10 +322,10 @@ extends StringDescriptor
 	}
 
 	@Override
-	public int o_TupleCodePointAt (final AvailObject object, final int index)
+	public int o_TupleCodePointAt (@NotNull final AvailObject self, final int index)
 	{
-		assert index >= 1 && index <= object.tupleSize();
-		return object.byteSlot(RAW_LONGS_, index);
+		assert index >= 1 && index <= self.tupleSize();
+		return self.byteSlot(RAW_LONGS_, index);
 	}
 
 	@Override

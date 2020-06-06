@@ -189,8 +189,8 @@ import com.avail.descriptor.tuples.ObjectTupleDescriptor.emptyTuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.generateObjectTupleFrom
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
-import com.avail.descriptor.tuples.StringDescriptor.formatString
-import com.avail.descriptor.tuples.StringDescriptor.stringFrom
+import com.avail.descriptor.tuples.StringDescriptor.Companion.formatString
+import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor.toList
 import com.avail.descriptor.types.A_Type

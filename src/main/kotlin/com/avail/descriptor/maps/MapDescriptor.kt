@@ -50,7 +50,7 @@ import com.avail.descriptor.sets.SetDescriptor.Companion.generateSetFrom
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.generateObjectTupleFrom
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.tuples.StringDescriptor.stringFrom
+import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.InstanceTypeDescriptor.instanceType
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.wholeNumbers

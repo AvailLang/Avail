@@ -44,7 +44,7 @@ import com.avail.descriptor.representation.IntegerSlotsEnum
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.tuples.A_String
-import com.avail.descriptor.tuples.StringDescriptor.stringFrom
+import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.ListPhraseTypeDescriptor
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind

@@ -34,7 +34,7 @@ package com.avail.interpreter.primitive.methods
 import com.avail.compiler.splitter.MessageSplitter
 import com.avail.descriptor.bundles.MessageBundleDescriptor
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.tuples.StringDescriptor.stringFrom
+import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType

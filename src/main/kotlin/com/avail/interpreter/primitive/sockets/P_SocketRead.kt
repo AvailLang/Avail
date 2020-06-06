@@ -46,7 +46,7 @@ import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.ByteBufferTupleDescriptor
 import com.avail.descriptor.tuples.ByteBufferTupleDescriptor.tupleForByteBuffer
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.tuples.StringDescriptor.formatString
+import com.avail.descriptor.tuples.StringDescriptor.Companion.formatString
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.types.EnumerationTypeDescriptor

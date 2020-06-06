@@ -58,7 +58,7 @@ import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.A_Phrase.Companion.apparentSendName
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
-import com.avail.descriptor.tuples.StringDescriptor.stringFrom
+import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE
 import com.avail.interpreter.execution.Interpreter.Companion.debugWorkUnits
 import com.avail.interpreter.execution.Interpreter.Companion.runOutermostFunction

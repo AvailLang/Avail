@@ -42,7 +42,7 @@ import com.avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
 import com.avail.descriptor.tokens.CommentTokenDescriptor
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.StringDescriptor.stringFrom
+import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.stacks.CommentGroup
 import com.avail.stacks.LinkingFileMap
 import com.avail.stacks.StacksErrorLog

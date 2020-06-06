@@ -89,7 +89,7 @@ import com.avail.descriptor.tuples.ObjectTupleDescriptor.generateObjectTupleFrom
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromArray
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
-import com.avail.descriptor.tuples.StringDescriptor.stringFrom
+import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.ContinuationTypeDescriptor.continuationTypeForFunctionType

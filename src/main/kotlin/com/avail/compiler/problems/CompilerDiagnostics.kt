@@ -47,7 +47,7 @@ import com.avail.descriptor.tokens.TokenDescriptor.TokenType.END_OF_FILE
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType.WHITESPACE
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
-import com.avail.descriptor.tuples.StringDescriptor.stringFrom
+import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
 import com.avail.persistence.Repository
 import com.avail.utility.Locks.auto

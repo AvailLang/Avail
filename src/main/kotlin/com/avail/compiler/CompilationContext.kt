@@ -64,7 +64,7 @@ import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.tokens.A_Token
 import com.avail.descriptor.tuples.A_String
-import com.avail.descriptor.tuples.StringDescriptor.formatString
+import com.avail.descriptor.tuples.StringDescriptor.Companion.formatString
 import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
 import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.exceptions.AvailAssertionFailedException
