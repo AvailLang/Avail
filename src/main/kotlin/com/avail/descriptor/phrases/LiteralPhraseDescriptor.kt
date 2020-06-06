@@ -168,21 +168,17 @@ class LiteralPhraseDescriptor(
 		// Do nothing.
 	}
 
-	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) {
-		writer.startObject()
-		writer.write("kind")
-		writer.write("literal phrase")
-		self.slot(TOKEN).writeTo(writer)
-		writer.endObject()
-	}
+	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("literal phrase") }
+			at("token") { self.slot(TOKEN).writeTo(writer) }
+		}
 
-	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) {
-		writer.startObject()
-		writer.write("kind")
-		writer.write("literal phrase")
-		self.slot(TOKEN).writeSummaryTo(writer)
-		writer.endObject()
-	}
+	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("literal phrase") }
+			at("token") { self.slot(TOKEN).writeSummaryTo(writer) }
+		}
 
 	override fun mutable() = mutable
 

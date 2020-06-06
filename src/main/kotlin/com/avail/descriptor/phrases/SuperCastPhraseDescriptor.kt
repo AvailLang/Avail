@@ -170,27 +170,21 @@ class SuperCastPhraseDescriptor private constructor(
 		// Do nothing.
 	}
 
-	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) {
-		writer.startObject()
-		writer.write("kind")
-		writer.write("super cast phrase")
-		writer.write("expression")
-		self.slot(EXPRESSION).writeTo(writer)
-		writer.write("type to lookup")
-		self.slot(TYPE_FOR_LOOKUP).writeTo(writer)
-		writer.endObject()
-	}
+	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("super cast phrase") }
+			at("expression") { self.slot(EXPRESSION).writeTo(writer) }
+			at("type to lookup") { self.slot(TYPE_FOR_LOOKUP).writeTo(writer) }
+		}
 
-	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) {
-		writer.startObject()
-		writer.write("kind")
-		writer.write("list phrase")
-		writer.write("expression")
-		self.slot(EXPRESSION).writeSummaryTo(writer)
-		writer.write("type to lookup")
-		self.slot(TYPE_FOR_LOOKUP).writeSummaryTo(writer)
-		writer.endObject()
-	}
+	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("list phrase") }
+			at("expression") { self.slot(EXPRESSION).writeSummaryTo(writer) }
+			at("type to lookup") {
+				self.slot(TYPE_FOR_LOOKUP).writeSummaryTo(writer)
+			}
+		}
 
 	override fun mutable() = mutable
 

@@ -198,27 +198,19 @@ class VariableUsePhraseDescriptor private constructor(
 		// Do nothing.
 	}
 
-	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) {
-		writer.startObject()
-		writer.write("kind")
-		writer.write("variable use phrase")
-		writer.write("token")
-		self.slot(USE_TOKEN).writeTo(writer)
-		writer.write("declaration")
-		self.slot(DECLARATION).writeTo(writer)
-		writer.endObject()
-	}
+	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("variable use phrase") }
+			at("token") { self.slot(USE_TOKEN).writeTo(writer) }
+			at("declaration") { self.slot(DECLARATION).writeTo(writer) }
+		}
 
-	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) {
-		writer.startObject()
-		writer.write("kind")
-		writer.write("variable use phrase")
-		writer.write("token")
-		self.slot(USE_TOKEN).writeSummaryTo(writer)
-		writer.write("declaration")
-		self.slot(DECLARATION).writeSummaryTo(writer)
-		writer.endObject()
-	}
+	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("variable use phrase") }
+			at("token") { self.slot(USE_TOKEN).writeSummaryTo(writer) }
+			at("declaration") { self.slot(DECLARATION).writeSummaryTo(writer) }
+		}
 
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,

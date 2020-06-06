@@ -341,21 +341,16 @@ open class TokenDescriptor protected constructor(
 	override fun o_TokenType(self: AvailObject): TokenType =
 		lookupTokenType(self.slot(TOKEN_TYPE_CODE))
 
-	override fun o_WriteTo(self: AvailObject, writer: JSONWriter)
-	{
-		writer.startObject()
-		writer.write("kind")
-		writer.write("token")
-		writer.write("token type")
-		writer.write(self.tokenType().name.toLowerCase().replace('_', ' '))
-		writer.write("start")
-		writer.write(self.slot(START))
-		writer.write("line number")
-		writer.write(self.slot(LINE_NUMBER))
-		writer.write("lexeme")
-		self.slot(STRING).writeTo(writer)
-		writer.endObject()
-	}
+	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("token") }
+			at("token type") {
+				write(self.tokenType().name.toLowerCase().replace('_', ' '))
+			}
+			at("start") { write(self.slot(START)) }
+			at("line number") { write(self.slot(LINE_NUMBER)) }
+			at("lexeme") { self.slot(STRING).writeTo(writer) }
+		}
 
 	override fun mutable() = mutable
 

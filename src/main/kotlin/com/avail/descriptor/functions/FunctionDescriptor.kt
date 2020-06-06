@@ -213,41 +213,35 @@ class FunctionDescriptor private constructor(
 		else -> SerializerOperation.GENERAL_FUNCTION
 	}
 
-	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) {
-		writer.startObject()
-		writer.write("kind")
-		writer.write("function")
-		writer.write("function implementation")
-		self.slot(CODE).writeSummaryTo(writer)
-		writer.write("outers")
-		writer.startArray()
-		var i = 1
-		val limit = self.variableObjectSlotsCount()
-		while (i <= limit) {
-			self.slot(OUTER_VAR_AT_, i).writeSummaryTo(writer)
-			i++
+	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("function") }
+			at("function implementation") { self.slot(CODE).writeTo(writer) }
+			at("outers") {
+				writeArray {
+					for (i in 1..self.variableObjectSlotsCount())
+					{
+						self.slot(OUTER_VAR_AT_, i).writeSummaryTo(writer)
+					}
+				}
+			}
 		}
-		writer.endArray()
-		writer.endObject()
-	}
 
-	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) {
-		writer.startObject()
-		writer.write("kind")
-		writer.write("function")
-		writer.write("function implementation")
-		self.slot(CODE).writeTo(writer)
-		writer.write("outers")
-		writer.startArray()
-		var i = 1
-		val limit = self.variableObjectSlotsCount()
-		while (i <= limit) {
-			self.slot(OUTER_VAR_AT_, i).writeSummaryTo(writer)
-			i++
+	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("function") }
+			at("function implementation") {
+				self.slot(CODE).writeSummaryTo(writer)
+			}
+			at("outers") {
+				writeArray {
+					for (i in 1..self.variableObjectSlotsCount())
+					{
+						self.slot(OUTER_VAR_AT_, i).writeSummaryTo(writer)
+					}
+				}
+			}
 		}
-		writer.endArray()
-		writer.endObject()
-	}
 
 	override fun mutable() = mutable
 

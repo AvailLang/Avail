@@ -170,35 +170,35 @@ class MacroDefinitionDescriptor private constructor(
 	override fun o_SerializerOperation(self: AvailObject) =
 		SerializerOperation.MACRO_DEFINITION
 
-	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) {
-		writer.startObject()
-		writer.write("kind")
-		writer.write("macro definition")
-		writer.write("definition method")
-		self.slot(DEFINITION_METHOD).methodName().writeTo(writer)
-		writer.write("definition module")
-		self.definitionModuleName().writeTo(writer)
-		writer.write("body block")
-		self.slot(BODY_BLOCK).writeTo(writer)
-		writer.write("macro prefix functions")
-		self.slot(MACRO_PREFIX_FUNCTIONS).writeTo(writer)
-		writer.endObject()
-	}
+	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("macro definition") }
+			at("definition method") {
+				self.slot(DEFINITION_METHOD).methodName().writeTo(writer)
+			}
+			at("definition module") {
+				self.definitionModuleName().writeTo(writer)
+			}
+			at("body block") { self.slot(BODY_BLOCK).writeTo(writer) }
+			at("macro prefix functions") {
+				self.slot(MACRO_PREFIX_FUNCTIONS).writeTo(writer)
+			}
+		}
 
-	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) {
-		writer.startObject()
-		writer.write("kind")
-		writer.write("macro definition")
-		writer.write("definition method")
-		self.slot(DEFINITION_METHOD).methodName().writeTo(writer)
-		writer.write("definition module")
-		self.definitionModuleName().writeTo(writer)
-		writer.write("body block")
-		self.slot(BODY_BLOCK).writeSummaryTo(writer)
-		writer.write("macro prefix functions")
-		self.slot(MACRO_PREFIX_FUNCTIONS).writeSummaryTo(writer)
-		writer.endObject()
-	}
+	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("macro definition") }
+			at("definition method") {
+				self.slot(DEFINITION_METHOD).methodName().writeTo(writer)
+			}
+			at("definition module") {
+				self.definitionModuleName().writeTo(writer)
+			}
+			at("body block") { self.slot(BODY_BLOCK).writeSummaryTo(writer) }
+			at("macro prefix functions") {
+				self.slot(MACRO_PREFIX_FUNCTIONS).writeSummaryTo(writer)
+			}
+		}
 
 	override fun mutable() = mutable
 

@@ -337,18 +337,15 @@ open class AtomDescriptor protected constructor(
 	override fun o_BundleOrNil(self: AvailObject): A_Bundle =
 		self.getAtomProperty(MESSAGE_BUNDLE_KEY.atom)
 
-	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) {
-		writer.startObject()
-		writer.write("kind")
-		writer.write("atom")
-		writer.write("atom name")
-		self.slot(NAME).writeTo(writer)
-		if (!self.slot(ISSUING_MODULE).equalsNil()) {
-			writer.write("issuing module")
-			self.slot(ISSUING_MODULE).writeSummaryTo(writer)
+	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("atom") }
+			at("atom name") { self.slot(NAME).writeTo(writer) }
+			val module = self.slot(ISSUING_MODULE)
+			if (!module.equalsNil()) {
+				at("issuing module") { module.writeSummaryTo(writer) }
+			}
 		}
-		writer.endObject()
-	}
 
 	override fun mutable() = mutable
 

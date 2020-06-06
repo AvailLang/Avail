@@ -208,16 +208,11 @@ class MessageBundleDescriptor private constructor(
 	override fun o_SerializerOperation(self: AvailObject) =
 		SerializerOperation.MESSAGE_BUNDLE
 
-	override fun o_WriteTo(
-		self: AvailObject, writer: JSONWriter
-	) {
-		writer.startObject()
-		writer.write("kind")
-		writer.write("message bundle")
-		writer.write("method")
-		self.slot(MESSAGE).atomName().writeTo(writer)
-		writer.endObject()
-	}
+	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("message bundle") }
+			at("method") { self.slot(MESSAGE).atomName().writeTo(writer) }
+		}
 
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,

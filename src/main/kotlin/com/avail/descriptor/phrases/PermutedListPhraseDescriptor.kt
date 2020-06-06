@@ -249,27 +249,19 @@ class PermutedListPhraseDescriptor private constructor(
 		// Do nothing.
 	}
 
-	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) {
-		writer.startObject()
-		writer.write("kind")
-		writer.write("permuted list phrase")
-		writer.write("list")
-		self.slot(LIST).writeTo(writer)
-		writer.write("permutation")
-		self.slot(PERMUTATION).writeTo(writer)
-		writer.endObject()
-	}
+	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("permuted list phrase") }
+			at("list") { self.slot(LIST).writeTo(writer) }
+			at("permutation") { self.slot(PERMUTATION).writeTo(writer) }
+		}
 
-	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) {
-		writer.startObject()
-		writer.write("kind")
-		writer.write("permuted list phrase")
-		writer.write("list")
-		self.slot(LIST).writeSummaryTo(writer)
-		writer.write("permutation")
-		self.slot(PERMUTATION).writeSummaryTo(writer)
-		writer.endObject()
-	}
+	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("permuted list phrase") }
+			at("list") { self.slot(LIST).writeSummaryTo(writer) }
+			at("permutation") { self.slot(PERMUTATION).writeSummaryTo(writer) }
+		}
 
 	override fun mutable() = mutable
 

@@ -501,27 +501,23 @@ class ObjectTypeDescriptor internal constructor(
 	override fun o_SerializerOperation(self: AvailObject) =
 		SerializerOperation.OBJECT_TYPE
 
-	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) {
-		writer.startObject()
-		writer.write("kind")
-		writer.write("object type")
-		self.fieldTypeMap().mapIterable().forEach { (key, value) ->
-			key.atomName().writeTo(writer)
-			value.writeTo(writer)
+	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("object type") }
+			self.fieldTypeMap().mapIterable().forEach { (key, value) ->
+				key.atomName().writeTo(writer)
+				value.writeTo(writer)
+			}
 		}
-		writer.endObject()
-	}
 
-	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) {
-		writer.startObject()
-		writer.write("kind")
-		writer.write("object type")
-		self.fieldTypeMap().mapIterable().forEach { (key, value) ->
-			key.atomName().writeTo(writer)
-			value.writeSummaryTo(writer)
+	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("object type") }
+			self.fieldTypeMap().mapIterable().forEach { (key, value) ->
+				key.atomName().writeTo(writer)
+				value.writeSummaryTo(writer)
+			}
 		}
-		writer.endObject()
-	}
 
 	/**
 	 * Given an [object][ObjectDescriptor] whose variant is this mutable object

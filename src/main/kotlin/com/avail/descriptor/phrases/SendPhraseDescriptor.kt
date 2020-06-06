@@ -206,33 +206,24 @@ class SendPhraseDescriptor private constructor(
 		// Do nothing.
 	}
 
-	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) {
-		writer.startObject()
-		writer.write("kind")
-		writer.write("send phrase")
-		writer.write("arguments")
-		self.slot(ARGUMENTS_LIST_NODE).writeSummaryTo(writer)
-		writer.write("bundle")
-		self.slot(BUNDLE).writeSummaryTo(writer)
-		writer.write("return type")
-		self.slot(RETURN_TYPE).writeSummaryTo(writer)
-		writer.endObject()
-	}
+	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("send phrase") }
+			at("tokens") { self.slot(TOKENS).writeTo(writer) }
+			at("arguments") { self.slot(ARGUMENTS_LIST_NODE).writeTo(writer) }
+			at("bundle") { self.slot(BUNDLE).writeTo(writer) }
+			at("return type") { self.slot(RETURN_TYPE).writeTo(writer) }
+		}
 
-	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) {
-		writer.startObject()
-		writer.write("kind")
-		writer.write("send phrase")
-		writer.write("tokens")
-		self.slot(TOKENS).writeTo(writer)
-		writer.write("arguments")
-		self.slot(ARGUMENTS_LIST_NODE).writeTo(writer)
-		writer.write("bundle")
-		self.slot(BUNDLE).writeTo(writer)
-		writer.write("return type")
-		self.slot(RETURN_TYPE).writeTo(writer)
-		writer.endObject()
-	}
+	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("send phrase") }
+			at("arguments") {
+				self.slot(ARGUMENTS_LIST_NODE).writeSummaryTo(writer)
+			}
+			at("bundle") { self.slot(BUNDLE).writeSummaryTo(writer) }
+			at("return type") { self.slot(RETURN_TYPE).writeSummaryTo(writer) }
+		}
 
 	override fun mutable() = mutable
 

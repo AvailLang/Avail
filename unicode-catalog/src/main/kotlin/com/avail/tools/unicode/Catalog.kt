@@ -341,9 +341,9 @@ internal class Catalog
 			{
 				override fun writeTo(writer: JSONWriter)
 				{
-					writer.startArray()
-					codePoints.forEach { writer.write(it) }
-					writer.endArray()
+					writer.writeArray {
+						codePoints.forEach(this::write)
+					}
 				}
 			}
 		}
@@ -365,9 +365,9 @@ internal class Catalog
 			{
 				override fun writeTo(writer: JSONWriter)
 				{
-					writer.startArray()
-					codePoints.forEach { writer.write(it) }
-					writer.endArray()
+					writer.writeArray {
+						codePoints.forEach(this::write)
+					}
 				}
 			}
 		}
@@ -390,9 +390,9 @@ internal class Catalog
 			{
 				override fun writeTo(writer: JSONWriter)
 				{
-					writer.startArray()
-					codePoints.forEach { writer.write(it) }
-					writer.endArray()
+					writer.writeArray {
+						codePoints.forEach(this::write)
+					}
 				}
 			}
 		}

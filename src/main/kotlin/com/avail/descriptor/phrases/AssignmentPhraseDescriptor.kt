@@ -245,27 +245,19 @@ class AssignmentPhraseDescriptor private constructor(
 
 	override fun o_Tokens(self: AvailObject): A_Tuple = self.slot(TOKENS)
 
-	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) {
-		writer.startObject()
-		writer.write("kind")
-		writer.write("assignment phrase")
-		writer.write("target")
-		self.slot(VARIABLE).writeTo(writer)
-		writer.write("expression")
-		self.slot(EXPRESSION).writeTo(writer)
-		writer.endObject()
-	}
+	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("assignment phrase") }
+			at("target") { self.slot(VARIABLE).writeTo(writer) }
+			at("expression") { self.slot(EXPRESSION).writeTo(writer) }
+		}
 
-	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) {
-		writer.startObject()
-		writer.write("kind")
-		writer.write("assignment phrase")
-		writer.write("target")
-		self.slot(VARIABLE).writeSummaryTo(writer)
-		writer.write("expression")
-		self.slot(EXPRESSION).writeSummaryTo(writer)
-		writer.endObject()
-	}
+	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("assignment phrase") }
+			at("target") { self.slot(VARIABLE).writeSummaryTo(writer) }
+			at("expression") { self.slot(EXPRESSION).writeSummaryTo(writer) }
+		}
 
 	override fun mutable() = mutable
 

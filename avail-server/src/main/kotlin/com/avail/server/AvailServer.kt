@@ -201,8 +201,8 @@ class AvailServer constructor(
 		continuation: ()->Unit)
 	{
 		assert(command.command === Command.MODULE_ROOTS)
-		val message = newSuccessMessage(channel, command) { writer ->
-			runtime.moduleRoots().writeOn(writer)
+		val message = newSuccessMessage(channel, command) {
+			runtime.moduleRoots().writeOn(this)
 		}
 		channel.enqueueMessageThen(message, continuation)
 	}
@@ -225,8 +225,8 @@ class AvailServer constructor(
 		continuation: ()->Unit)
 	{
 		assert(command.command === Command.MODULE_ROOT_PATHS)
-		val message = newSuccessMessage(channel, command) { writer ->
-			runtime.moduleRoots().writePathsOn(writer)
+		val message = newSuccessMessage(channel, command) {
+			runtime.moduleRoots().writePathsOn(this)
 		}
 		channel.enqueueMessageThen(message, continuation)
 	}
@@ -249,8 +249,8 @@ class AvailServer constructor(
 		continuation: ()->Unit)
 	{
 		assert(command.command === Command.MODULE_ROOTS_PATH)
-		val message = newSuccessMessage(channel, command) { writer ->
-			writer.write(runtime.moduleRoots().modulePath)
+		val message = newSuccessMessage(channel, command) {
+			write(runtime.moduleRoots().modulePath)
 		}
 		channel.enqueueMessageThen(message, continuation)
 	}
@@ -312,14 +312,10 @@ class AvailServer constructor(
 		val type: ModuleNodeType = MODULE)
 	{
 		/** The children of the [node][ModuleNode]. */
-		val modules: MutableList<ModuleNode> by lazy {
-			ArrayList<ModuleNode>()
-		}
+		val modules = mutableListOf<ModuleNode>()
 
 		/** The resources of the [node][ModuleNode]. */
-		val resources: MutableList<ModuleNode> by lazy {
-			ArrayList<ModuleNode>()
-		}
+		val resources = mutableListOf<ModuleNode>()
 
 		/**
 		 * The [exception][Throwable] that prevented evaluation of this
@@ -333,61 +329,56 @@ class AvailServer constructor(
 		 * @param writer
 		 *   A `JSONWriter`.
 		 */
-		private fun recursivelyWriteOn(writer: JSONWriter)
-		{
-			// Representatives should not have a visible footprint in the tree;
-			// we want their enclosing packages to represent them.
-			if (type !== REPRESENTATIVE)
-			{
-				writer.writeObject {
-					writer.write("localName")
-					writer.write(localName)
-					writer.write("qualifiedName")
-					writer.write(qualifiedName)
-					writer.write("type")
-					writer.write(type.label)
-					exception?.let {
-						writer.write("error")
-						writer.write(it.localizedMessage)
-					}
-					when (type)
-					{
-						PACKAGE ->
-						{
-							// Handle a missing representative as a special
-							// kind of error, but only if another error hasn't
-							// already been reported.
-							if (exception === null
-								&& modules.none { it.localName == localName })
-							{
-								writer.write("error")
-								writer.write("Missing representative")
-							}
-							writeResolutionInformationOn(writer)
+		private fun recursivelyWriteOn(writer: JSONWriter): Unit =
+			writer.writeObject {
+				// Representatives should not have a visible footprint in the
+				// tree; we want their enclosing packages to represent them.
+				if (type !== REPRESENTATIVE)
+				{
+					writeObject {
+						at("localName") { write(localName) }
+						at("qualifiedName") { write(qualifiedName) }
+						at("type") { write(type.label) }
+						exception?.let {
+							at("error") { write(it.localizedMessage) }
 						}
-						MODULE ->
+						when (type)
 						{
-							writeResolutionInformationOn(writer)
-						}
-						else -> {}
-					}
-					if (modules.isNotEmpty() || resources.isNotEmpty())
-					{
-						writer.write("childNodes")
-						writer.writeArray {
-							for (module in modules)
+							PACKAGE ->
 							{
-								module.recursivelyWriteOn(writer)
+								// Handle a missing representative as a special
+								// kind of error, but only if another error
+								// hasn't already been reported.
+								if (exception === null
+									&& modules.none {
+										it.localName == localName
+									})
+								{
+									at("error") {
+										write("Missing representative")
+									}
+								}
+								writeResolutionInformationOn(writer)
 							}
-							for (resource in resources)
-							{
-								resource.recursivelyWriteOn(writer)
+							MODULE -> writeResolutionInformationOn(writer)
+							else -> { }
+						}
+						if (modules.isNotEmpty() || resources.isNotEmpty())
+						{
+							at("childNodes") {
+								writeArray {
+									modules.forEach { module ->
+										module.recursivelyWriteOn(writer)
+									}
+									resources.forEach { resource ->
+										resource.recursivelyWriteOn(writer)
+									}
+								}
 							}
 						}
 					}
 				}
 			}
-		}
 
 		/**
 		 * Write information that requires
@@ -396,45 +387,37 @@ class AvailServer constructor(
 		 * @param writer
 		 *   A `JSONWriter`.
 		 */
-		private fun writeResolutionInformationOn(writer: JSONWriter)
-		{
-			writer.write("status")
-			val resolver = runtime.moduleNameResolver()
-			var resolved: ResolvedModuleName? = null
-			var resolutionException: Throwable? = null
-			val loaded =
-				try
-				{
-					resolved = resolver.resolve(ModuleName(qualifiedName))
-					builder.getLoadedModule(resolved) !== null
-				}
-				catch (e: UnresolvedModuleException)
-				{
-					resolutionException = e
-					false
-				}
-			writer.write(if (loaded) "loaded" else "not loaded")
-			if (resolved?.isRename == true)
-			{
-				writer.write("resolvedName")
-				writer.write(resolved.qualifiedName)
-			}
-			else if (exception === null && resolutionException !== null)
-			{
-				writer.write("error")
-				writer.write(
-					resolutionException.localizedMessage)
-			}
-			resolver.renameRulesInverted[qualifiedName]?.let {
-				writer.write("redirectedNames")
-				writer.writeArray {
-					for (name in it)
+		private fun writeResolutionInformationOn(writer: JSONWriter) =
+			writer.writeObject {
+				val resolver = runtime.moduleNameResolver()
+				var resolved: ResolvedModuleName? = null
+				var resolutionException: Throwable? = null
+				val loaded =
+					try
 					{
-						writer.write(name)
+						resolved = resolver.resolve(ModuleName(qualifiedName))
+						builder.getLoadedModule(resolved) !== null
+					}
+					catch (e: UnresolvedModuleException)
+					{
+						resolutionException = e
+						false
+					}
+				at("status") { write(if (loaded) "loaded" else "not loaded") }
+				if (resolved?.isRename == true)
+				{
+					at("resolvedName") { write(resolved.qualifiedName) }
+				}
+				else if (exception === null && resolutionException !== null)
+				{
+					at("error") { write(resolutionException.localizedMessage) }
+				}
+				resolver.renameRulesInverted[qualifiedName]?.let {
+					at("redirectedNames") {
+						writeArray { it.forEach(this::write) }
 					}
 				}
 			}
-		}
 
 		/**
 		 * Write the `ModuleNode` to the supplied [JSONWriter].
@@ -605,9 +588,9 @@ class AvailServer constructor(
 		continuation: ()->Unit)
 	{
 		assert(command.command === Command.SOURCE_MODULES)
-		val message = newSuccessMessage(channel, command) { writer ->
+		val message = newSuccessMessage(channel, command) {
 			val roots = runtime.moduleRoots()
-			writer.writeArray {
+			writeArray {
 				for (root in roots)
 				{
 					val tree = MutableOrNull<ModuleNode>()
@@ -628,7 +611,7 @@ class AvailServer constructor(
 							// exceptions in the visitor.
 						}
 					}
-					tree.value().writeOn(writer)
+					tree.value().writeOn(this)
 				}
 			}
 		}
@@ -654,7 +637,7 @@ class AvailServer constructor(
 		continuation: ()->Unit)
 	{
 		assert(command.command === Command.ENTRY_POINTS)
-		val message = newSuccessMessage(channel, command) { writer ->
+		val message = newSuccessMessage(channel, command) {
 			val map = synchronizedMap(HashMap<String, List<String>>())
 			builder.traceDirectories { name, version, after ->
 				val entryPoints = version.getEntryPoints()
@@ -664,15 +647,12 @@ class AvailServer constructor(
 				}
 				after()
 			}
-			writer.writeArray {
-				for ((key, value) in map)
-				{
-					writer.writeObject {
-						writer.write(key)
-						writer.writeArray {
-							for (entryPoint in value)
-							{
-								writer.write(entryPoint)
+			writeArray {
+				map.forEach { (key, value) ->
+					writeObject {
+						at(key) {
+							writeArray {
+								value.forEach(this::write)
 							}
 						}
 					}
@@ -878,41 +858,33 @@ class AvailServer constructor(
 		assert(ioChannel.state.generalTextIO)
 		val nothing = {}
 		channel.enqueueMessageThen(
-			newSuccessMessage(channel, command) { writer -> writer.write("begin")},
+			newSuccessMessage(channel, command) { write("begin")},
 			nothing)
-		val localUpdates = ArrayList<JSONWriter>()
-		val globalUpdates = ArrayList<JSONWriter>()
+		val localUpdates = mutableListOf<JSONWriter>()
+		val globalUpdates = mutableListOf<JSONWriter>()
 		val updater = object : TimerTask()
 		{
 			override fun run()
 			{
 				val locals: List<JSONWriter>
 				synchronized(localUpdates) {
-					locals = ArrayList(localUpdates)
+					locals = localUpdates.toList()
 					localUpdates.clear()
 				}
 				val globals: List<JSONWriter>
 				synchronized(globalUpdates) {
-					globals = ArrayList(globalUpdates)
+					globals = globalUpdates.toList()
 					globalUpdates.clear()
 				}
 				if (locals.isNotEmpty() && globals.isNotEmpty())
 				{
-					val message = newSuccessMessage(channel, command) { writer ->
-						writer.writeObject {
-							writer.write("local")
-							writer.writeArray {
-								for (local in locals)
-								{
-									writer.write(local)
-								}
+					val message = newSuccessMessage(channel, command) {
+						writeObject {
+							at("local") {
+								writeArray { locals.forEach(this::write) }
 							}
-							writer.write("global")
-							writer.writeArray {
-								for (global in globals)
-								{
-									writer.write(global)
-								}
+							at("global") {
+								writeArray { globals.forEach(this::write) }
 							}
 						}
 					}
@@ -930,12 +902,9 @@ class AvailServer constructor(
 			{ name, size, position ->
 				val writer = JSONWriter()
 				writer.writeObject {
-					writer.write("module")
-					writer.write(name.qualifiedName)
-					writer.write("size")
-					writer.write(size)
-					writer.write("position")
-					writer.write(position)
+					at("module") { write(name.qualifiedName) }
+					at("size") { write(size) }
+					at("position") { write(position) }
 				}
 				synchronized(localUpdates) {
 					localUpdates.add(writer)
@@ -944,10 +913,8 @@ class AvailServer constructor(
 			{ bytesSoFar, totalBytes ->
 				val writer = JSONWriter()
 				writer.writeObject {
-					writer.write("bytesSoFar")
-					writer.write(bytesSoFar)
-					writer.write("totalBytes")
-					writer.write(totalBytes)
+					at("bytesSoFar") { write(bytesSoFar) }
+					at("totalBytes") { write(totalBytes) }
 				}
 				synchronized(globalUpdates) {
 					globalUpdates.add(writer)
@@ -959,7 +926,7 @@ class AvailServer constructor(
 		assert(localUpdates.isEmpty())
 		assert(globalUpdates.isEmpty())
 		channel.enqueueMessageThen(
-			newSuccessMessage(channel, command) { writer -> writer.write("end") }
+			newSuccessMessage(channel, command) { write("end") }
 		) {
 			ioChannel.scheduleClose(ServerMessageDisconnect)
 		}
@@ -1053,14 +1020,14 @@ class AvailServer constructor(
 		assert(!channel.state.generalTextIO)
 		assert(ioChannel.state.generalTextIO)
 		channel.enqueueMessageThen(
-			newSuccessMessage(channel, command) { writer -> writer.write("begin") }
+			newSuccessMessage(channel, command) { write("begin") }
 		) {
 			// Do nothing.
 		}
 		builder.textInterface = ioChannel.textInterface!!
 		builder.unloadTarget(target)
 		channel.enqueueMessageThen(
-			newSuccessMessage(channel, command) { writer -> writer.write("end") }
+			newSuccessMessage(channel, command) { write("end") }
 		) {
 			ioChannel.scheduleClose(ServerMessageDisconnect)
 		}
@@ -1118,12 +1085,10 @@ class AvailServer constructor(
 			{ value, cleanup ->
 				if (value.equalsNil())
 				{
-					val message = newSuccessMessage(channel, command) { writer ->
-						writer.writeObject {
-							writer.write("expression")
-							writer.write(command.expression)
-							writer.write("result")
-							writer.writeNull()
+					val message = newSuccessMessage(channel, command) {
+						writeObject {
+							at("expression") { write(command.expression) }
+							at("result") { writeNull() }
 						}
 					}
 					channel.enqueueMessageThen(message) {
@@ -1138,12 +1103,10 @@ class AvailServer constructor(
 					ioChannel.textInterface!!,
 					value
 				) { string ->
-					val message = newSuccessMessage(channel, command) { writer ->
-						writer.writeObject {
-							writer.write("expression")
-							writer.write(command.expression)
-							writer.write("result")
-							writer.write(string)
+					val message = newSuccessMessage(channel, command) {
+						writeObject {
+							at("expression") { write(command.expression) }
+							at("result") { write(string) }
 						}
 					}
 					channel.enqueueMessageThen(message) {
@@ -1179,15 +1142,13 @@ class AvailServer constructor(
 	{
 		assert(command.command === Command.ALL_FIBERS)
 		val allFibers = runtime.allFibers()
-		val message = newSuccessMessage(channel, command) { writer ->
-			writer.writeArray {
+		val message = newSuccessMessage(channel, command) {
+			writeArray {
 				for (fiber in allFibers)
 				{
-					writer.writeObject {
-						writer.write("id")
-						writer.write(fiber.uniqueId())
-						writer.write("name")
-						writer.write(fiber.fiberName())
+					writeObject {
+						at("id") { write(fiber.uniqueId()) }
+						at("name") { write(fiber.fiberName()) }
 					}
 				}
 			}
@@ -1215,11 +1176,8 @@ class AvailServer constructor(
 		 * @param writer
 		 *   A [JSONWriter].
 		 */
-		private fun writeStatusOn(ok: Boolean, writer: JSONWriter)
-		{
-			writer.write("ok")
-			writer.write(ok)
-		}
+		private fun writeStatusOn(ok: Boolean, writer: JSONWriter) =
+			writer.at("ok") { write(ok) }
 
 		/**
 		 * Write a `"command"` field into the JSON object being written.
@@ -1229,11 +1187,10 @@ class AvailServer constructor(
 		 * @param writer
 		 *   A [JSONWriter].
 		 */
-		private fun writeCommandOn(command: Command, writer: JSONWriter)
-		{
-			writer.write("command")
-			writer.write(command.name.toLowerCase().replace('_', ' '))
-		}
+		private fun writeCommandOn(command: Command, writer: JSONWriter) =
+			writer.at("command") {
+				write(command.name.toLowerCase().replace('_', ' '))
+			}
 
 		/**
 		 * Write an `"id"` field into the JSON object being written.
@@ -1244,11 +1201,9 @@ class AvailServer constructor(
 		 *   A [JSONWriter].
 		 */
 		private fun writeCommandIdentifierOn(
-			commandId: Long, writer: JSONWriter)
-		{
-			writer.write("id")
-			writer.write(commandId)
-		}
+			commandId: Long,
+			writer: JSONWriter
+		) = writer.at("id") { write(commandId) }
 
 		/**
 		 * Answer an error [message][Message] that incorporates the specified
@@ -1283,8 +1238,7 @@ class AvailServer constructor(
 					writeCommandOn(command.command, writer)
 					writeCommandIdentifierOn(command.commandId, writer)
 				}
-				writer.write("reason")
-				writer.write(reason)
+				at("reason") { write(reason) }
 			}
 			return Message(
 				writer.toString().toByteArray(),
@@ -1328,15 +1282,15 @@ class AvailServer constructor(
 		internal fun newSuccessMessage(
 			channel: AvailServerChannel,
 			command: CommandMessage,
-			content: (JSONWriter) -> Unit): Message
+			content: JSONWriter.() -> Unit): Message
 		{
 			val writer = JSONWriter()
 			writer.writeObject {
 				writeStatusOn(true, writer)
 				writeCommandOn(command.command, writer)
 				writeCommandIdentifierOn(command.commandId, writer)
-				writer.write("content")
-				content(writer)
+				write("content")
+				content()
 			}
 			return Message(writer.toString().toByteArray(), channel.state)
 		}
@@ -1365,8 +1319,7 @@ class AvailServer constructor(
 				writeStatusOn(true, writer)
 				writeCommandOn(command.command, writer)
 				writeCommandIdentifierOn(command.commandId, writer)
-				writer.write("upgrade")
-				writer.write(uuid.toString())
+				at("upgrade") { write(uuid.toString()) }
 			}
 			return Message(
 				writer.toString().toByteArray(), channel.state)
@@ -1497,19 +1450,15 @@ class AvailServer constructor(
 			val message: Message
 			if (supportedProtocolVersions.contains(version))
 			{
-				message = newSuccessMessage(channel, command) { writer ->
-					writer.write(version)
-				}
+				message = newSuccessMessage(channel, command) { write(version) }
 			}
 			else
 			{
-				message = newSuccessMessage(channel, command) { writer ->
-					writer.writeObject {
-						writer.write("supported")
-						writer.writeArray {
-							for (supported in supportedProtocolVersions)
-							{
-								writer.write(supported)
+				message = newSuccessMessage(channel, command) {
+					writeObject {
+						at("supported") {
+							writeArray {
+								supportedProtocolVersions.forEach(this::write)
 							}
 						}
 					}
@@ -1540,20 +1489,11 @@ class AvailServer constructor(
 			continuation: ()->Unit)
 		{
 			assert(command.command === Command.COMMANDS)
-			val message = newSuccessMessage(channel, command) { writer ->
+			val message = newSuccessMessage(channel, command) {
 				val commands = Command.all
-				val help = ArrayList<String>(commands.size)
-				for (c in commands)
-				{
-					help.add(c.syntaxHelp)
-				}
+				val help = commands.mapTo(mutableListOf()) { it.syntaxHelp }
 				sort(help)
-				writer.writeArray {
-					for (h in help)
-					{
-						writer.write(h)
-					}
-				}
+				writeArray { help.forEach(this::write) }
 			}
 			channel.enqueueMessageThen(message, continuation)
 		}

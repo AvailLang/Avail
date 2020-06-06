@@ -921,19 +921,13 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		SerializerOperation.MODULE
 
-	override fun o_WriteTo(self: AvailObject, writer: JSONWriter)
-	{
-		writer.startObject()
-		writer.write("kind")
-		writer.write("module")
-		writer.write("name")
-		self.slot(NAME).writeTo(writer)
-		writer.write("versions")
-		self.slot(VERSIONS).writeTo(writer)
-		writer.write("entry points")
-		self.entryPoints().writeTo(writer)
-		writer.endObject()
-	}
+	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("module") }
+			at("name") { self.slot(NAME).writeTo(writer) }
+			at("versions") { self.slot(VERSIONS).writeTo(writer) }
+			at("entry points") { self.entryPoints().writeTo(writer) }
+		}
 
 	override fun mutable() = mutable
 

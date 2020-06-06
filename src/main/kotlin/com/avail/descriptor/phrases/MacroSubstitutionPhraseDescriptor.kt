@@ -357,16 +357,12 @@ class MacroSubstitutionPhraseDescriptor(
 	override fun o_Variable(self: AvailObject): A_Phrase =
 		self.slot(OUTPUT_PARSE_NODE).variable()
 
-	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) {
-		writer.startObject()
-		writer.write("kind")
-		writer.write("macro substitution phrase")
-		writer.write("macro send")
-		self.slot(MACRO_ORIGINAL_SEND).writeTo(writer)
-		writer.write("output phrase")
-		self.slot(OUTPUT_PARSE_NODE).writeTo(writer)
-		writer.endObject()
-	}
+	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("macro substitution phrase") }
+			at("macro send") { self.slot(MACRO_ORIGINAL_SEND).writeTo(writer) }
+			at("output phrase") { self.slot(OUTPUT_PARSE_NODE).writeTo(writer) }
+		}
 
 	override fun mutable() = mutable
 

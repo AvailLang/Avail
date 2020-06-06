@@ -887,7 +887,7 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * A [tuple&#32;of&#32;characters][StringDescriptortor] with code points in
+	 * A [tuple&#32;of&#32;characters][StringDescriptor] with code points in
 	 * Latin-1.  Write the size of the tuple then the sequence of character
 	 * bytes.
 	 */

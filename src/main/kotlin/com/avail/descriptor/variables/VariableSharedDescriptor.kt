@@ -417,27 +417,18 @@ open class VariableSharedDescriptor protected constructor(
 		// Do nothing; just answer the (shared) receiver.
 		self
 
-	override fun o_WriteTo(self: AvailObject, writer: JSONWriter)
-	{
-		writer.startObject()
-		writer.write("kind")
-		writer.write("variable")
-		writer.write("variable type")
-		self.slot(KIND).writeTo(writer)
-		writer.write("value")
-		self.value().writeSummaryTo(writer)
-		writer.endObject()
-	}
+	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("variable") }
+			at("variable type") { self.slot(KIND).writeTo(writer) }
+			at("value") { self.value().writeSummaryTo(writer) }
+		}
 
-	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter)
-	{
-		writer.startObject()
-		writer.write("kind")
-		writer.write("variable")
-		writer.write("variable type")
-		self.kind().writeSummaryTo(writer)
-		writer.endObject()
-	}
+	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("variable") }
+			at("variable type") { self.kind().writeSummaryTo(writer) }
+		}
 
 	companion object
 	{

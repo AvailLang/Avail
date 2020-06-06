@@ -657,34 +657,31 @@ class DeclarationPhraseDescriptor(
 	override fun o_Tokens(self: AvailObject): A_Tuple =
 		tuple(self.slot(TOKEN))
 
-	override fun o_WriteTo(
-		self: AvailObject,
-		writer: JSONWriter
-	) {
-		writer.startObject()
-		writer.write("kind")
-		writer.write(self.declarationKind().kindName().toString() + " phrase")
-		writer.write("token")
-		self.slot(TOKEN).writeTo(writer)
-		writer.write("declared type")
-		self.slot(DECLARED_TYPE).writeTo(writer)
-		val typeExpression = self.slot(TYPE_EXPRESSION)
-		if (!typeExpression.equalsNil()) {
-			writer.write("type expression")
-			typeExpression.writeTo(writer)
+	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") {
+				write(self.declarationKind().kindName().toString() + " phrase")
+			}
+			at("token") { self.slot(TOKEN).writeTo(writer) }
+			at("declared type") { self.slot(DECLARED_TYPE).writeTo(writer) }
+			val typeExpression = self.slot(TYPE_EXPRESSION)
+			if (!typeExpression.equalsNil())
+			{
+				at("type expression") { typeExpression.writeTo(writer) }
+			}
+			val initializationExpression = self.slot(INITIALIZATION_EXPRESSION)
+			if (!initializationExpression.equalsNil())
+			{
+				at("initialization expression") {
+					initializationExpression.writeTo(writer)
+				}
+			}
+			val literal = self.slot(LITERAL_OBJECT)
+			if (!literal.equalsNil())
+			{
+				at("literal") { literal.writeTo(writer) }
+			}
 		}
-		val initializationExpression = self.slot(INITIALIZATION_EXPRESSION)
-		if (!initializationExpression.equalsNil()) {
-			writer.write("initialization expression")
-			initializationExpression.writeTo(writer)
-		}
-		val literal = self.slot(LITERAL_OBJECT)
-		if (!literal.equalsNil()) {
-			writer.write("literal")
-			literal.writeTo(writer)
-		}
-		writer.endObject()
-	}
 
 	override fun o_NameForDebugger(self: AvailObject): String =
 		super.o_NameForDebugger(self) + ": " + self.phraseKind()

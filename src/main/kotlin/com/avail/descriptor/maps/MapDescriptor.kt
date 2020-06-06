@@ -493,57 +493,67 @@ class MapDescriptor private constructor(
 
 	override fun o_ShowValueInNameForDebugger(self: AvailObject) = false
 
-	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) {
-		writer.startObject()
-		writer.write("kind")
-		writer.write("map")
-		if (self.kind().keyType().isSubtypeOf(stringType())) {
-			writer.write("map")
-			writer.startObject()
-			for ((key, value) in self.mapIterable()) {
-				key.writeTo(writer)
-				value.writeTo(writer)
+	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("map") }
+			if (self.kind().keyType().isSubtypeOf(stringType()))
+			{
+				at("map") {
+					writeObject {
+						for ((key, value) in self.mapIterable())
+						{
+							key.writeTo(writer)
+							value.writeTo(writer)
+						}
+					}
+				}
 			}
-			writer.endObject()
-		} else {
-			writer.write("bindings")
-			writer.startArray()
-			for ((key, value) in self.mapIterable()) {
-				writer.startArray()
-				key.writeTo(writer)
-				value.writeTo(writer)
-				writer.endArray()
+			else
+			{
+				at("bindings") {
+					writeArray {
+						for ((key, value) in self.mapIterable())
+						{
+							writeArray {
+								key.writeTo(writer)
+								value.writeTo(writer)
+							}
+						}
+					}
+				}
 			}
-			writer.endArray()
 		}
-		writer.endObject()
-	}
 
-	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) {
-		writer.startObject()
-		writer.write("kind")
-		writer.write("map")
-		if (self.kind().keyType().isSubtypeOf(stringType())) {
-			writer.write("map")
-			writer.startObject()
-			for ((key, value) in self.mapIterable()) {
-				key.writeTo(writer)
-				value.writeSummaryTo(writer)
+	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("map") }
+			if (self.kind().keyType().isSubtypeOf(stringType()))
+			{
+				at("map") {
+					writeObject {
+						for ((key, value) in self.mapIterable())
+						{
+							key.writeTo(writer)
+							value.writeSummaryTo(writer)
+						}
+					}
+				}
 			}
-			writer.endObject()
-		} else {
-			writer.write("bindings")
-			writer.startArray()
-			for ((key, value) in self.mapIterable()) {
-				writer.startArray()
-				key.writeSummaryTo(writer)
-				value.writeSummaryTo(writer)
-				writer.endArray()
+			else
+			{
+				at("bindings") {
+					writeArray {
+						for ((key, value) in self.mapIterable())
+						{
+							writeArray {
+								key.writeSummaryTo(writer)
+								value.writeSummaryTo(writer)
+							}
+						}
+					}
+				}
 			}
-			writer.endArray()
 		}
-		writer.endObject()
-	}
 
 	/**
 	 * [Entry] exists solely to allow the "foreach" control structure to be used

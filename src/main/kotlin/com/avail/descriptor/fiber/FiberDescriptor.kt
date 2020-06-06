@@ -937,32 +937,28 @@ class FiberDescriptor private constructor(
 			previousSet
 		}
 
-	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) {
-		writer.startObject()
-		writer.write("kind")
-		writer.write("fiber")
-		writer.write("fiber name")
-		self.fiberName().writeTo(writer)
-		writer.write("execution state")
-		writer.write(self.executionState().name.toLowerCase())
-		val result = self.mutableSlot(RESULT)
-		if (!result.equalsNil()) {
-			writer.write("result")
-			result.writeSummaryTo(writer)
+	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("fiber") }
+			at("fiber name") { self.fiberName().writeTo(writer) }
+			at("execution state") {
+				write(self.executionState().name.toLowerCase())
+			}
+			val result = self.mutableSlot(RESULT)
+			if (!result.equalsNil())
+			{
+				at("result") { result.writeSummaryTo(writer) }
+			}
 		}
-		writer.endObject()
-	}
 
-	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) {
-		writer.startObject()
-		writer.write("kind")
-		writer.write("fiber")
-		writer.write("fiber name")
-		self.fiberName().writeTo(writer)
-		writer.write("execution state")
-		writer.write(self.executionState().name.toLowerCase())
-		writer.endObject()
-	}
+	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("fiber") }
+			at("fiber name") { self.fiberName().writeTo(writer) }
+			at("execution state") {
+				write(self.executionState().name.toLowerCase())
+			}
+		}
 
 	override fun o_SetSuspendingFunction(
 		self: AvailObject,

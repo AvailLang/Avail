@@ -74,8 +74,7 @@ enum class TestJSONKeyValue constructor(val key: String)
 
 		override fun addValueToWriter(writer: JSONWriter)
 		{
-			writer.write(key)
-			writer.write(value)
+			writer.at(key) { write(value) }
 		}
 	},
 
@@ -97,8 +96,7 @@ enum class TestJSONKeyValue constructor(val key: String)
 
 		override fun addValueToWriter(writer: JSONWriter)
 		{
-			writer.write(key)
-			writer.write(value)
+			writer.at(key) { write(value) }
 		}
 	},
 
@@ -120,8 +118,7 @@ enum class TestJSONKeyValue constructor(val key: String)
 
 		override fun addValueToWriter(writer: JSONWriter)
 		{
-			writer.write(key)
-			writer.write(value)
+			writer.at(key) { write(value) }
 		}
 	},
 
@@ -143,8 +140,7 @@ enum class TestJSONKeyValue constructor(val key: String)
 
 		override fun addValueToWriter(writer: JSONWriter)
 		{
-			writer.write(key)
-			writer.write(value)
+			writer.at(key) { write(value) }
 		}
 	},
 
@@ -166,8 +162,7 @@ enum class TestJSONKeyValue constructor(val key: String)
 
 		override fun addValueToWriter(writer: JSONWriter)
 		{
-			writer.write(key)
-			writer.write(value)
+			writer.at(key) { write(value) }
 		}
 	},
 
@@ -189,8 +184,7 @@ enum class TestJSONKeyValue constructor(val key: String)
 
 		override fun addValueToWriter(writer: JSONWriter)
 		{
-			writer.write(key)
-			writer.write(value)
+			writer.at(key) { write(value) }
 		}
 	},
 
@@ -212,8 +206,7 @@ enum class TestJSONKeyValue constructor(val key: String)
 
 		override fun addValueToWriter(writer: JSONWriter)
 		{
-			writer.write(key)
-			writer.write(value)
+			writer.at(key) { write(value) }
 		}
 	},
 
@@ -235,8 +228,7 @@ enum class TestJSONKeyValue constructor(val key: String)
 
 		override fun addValueToWriter(writer: JSONWriter)
 		{
-			writer.write(key)
-			writer.writeNull()
+			writer.at(key) { writeNull() }
 		}
 	},
 
@@ -269,13 +261,11 @@ enum class TestJSONKeyValue constructor(val key: String)
 
 		override fun addValueToWriter(writer: JSONWriter)
 		{
-			writer.write(key)
-			writer.startArray()
-			for (v in value)
-			{
-				writer.write(v)
+			writer.at(key) {
+				writeArray {
+					value.forEach(this::write)
+				}
 			}
-			writer.endArray()
 		}
 	},
 
@@ -308,13 +298,11 @@ enum class TestJSONKeyValue constructor(val key: String)
 
 		override fun addValueToWriter(writer: JSONWriter)
 		{
-			writer.write(key)
-			writer.startArray()
-			for (v in value)
-			{
-				writer.write(v)
+			writer.at(key) {
+				writeArray {
+					value.forEach(this::write)
+				}
 			}
-			writer.endArray()
 		}
 	},
 
@@ -336,8 +324,7 @@ enum class TestJSONKeyValue constructor(val key: String)
 
 		override fun addValueToWriter(writer: JSONWriter)
 		{
-			writer.write(key)
-			writer.write(value)
+			writer.at(key) { write(value) }
 		}
 	},
 
@@ -359,8 +346,7 @@ enum class TestJSONKeyValue constructor(val key: String)
 
 		override fun addValueToWriter(writer: JSONWriter)
 		{
-			writer.write(key)
-			writer.write(value)
+			writer.at(key) { write(value) }
 		}
 	},
 
@@ -528,10 +514,9 @@ enum class TestJSONKeyValue constructor(val key: String)
 			writer: JSONWriter,
 			vararg keyValues: TestJSONKeyValue)
 		{
-			writer.write(keyName)
-			writer.startObject()
-			addToWriter(writer, *keyValues)
-			writer.endObject()
+			writer.at(keyName) {
+				writeObject { addToWriter(writer, *keyValues) }
+			}
 		}
 
 		/**

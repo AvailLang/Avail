@@ -114,7 +114,8 @@ class JSONWriterTest
 	 *   otherwise.
 	 */
 	private fun displayTestPayload(
-		writer: JSONWriter, printTestPayload: Boolean)
+		writer: JSONWriter,
+		printTestPayload: Boolean)
 	{
 		//noinspection ConstantConditions,ConstantIfStatement
 		if (printTestPayload)
