@@ -29,534 +29,430 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.descriptor.tuples
 
-package com.avail.descriptor.tuples;
-
-import com.avail.annotations.HideFieldInDebugger;
-import com.avail.annotations.ThreadSafe;
-import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
-import com.avail.descriptor.character.A_Character;
-import com.avail.descriptor.representation.A_BasicObject;
-import com.avail.descriptor.representation.AvailObject;
-import com.avail.descriptor.representation.BitField;
-import com.avail.descriptor.representation.Mutability;
-import com.avail.serialization.SerializerOperation;
-import org.jetbrains.annotations.NotNull;
-
-import javax.annotation.Nullable;
-import java.util.function.IntUnaryOperator;
-
-import static com.avail.descriptor.character.CharacterDescriptor.fromByteCodePoint;
-import static com.avail.descriptor.character.CharacterDescriptor.hashOfByteCharacterWithCodePoint;
-import static com.avail.descriptor.representation.AvailObject.multiplier;
-import static com.avail.descriptor.representation.AvailObject.newLike;
-import static com.avail.descriptor.representation.Mutability.IMMUTABLE;
-import static com.avail.descriptor.representation.Mutability.MUTABLE;
-import static com.avail.descriptor.representation.Mutability.SHARED;
-import static com.avail.descriptor.tuples.ByteStringDescriptor.IntegerSlots.HASH_OR_ZERO;
-import static com.avail.descriptor.tuples.ByteStringDescriptor.IntegerSlots.RAW_LONGS_;
-import static com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.tuples.TreeTupleDescriptor.concatenateAtLeastOneTree;
-import static com.avail.descriptor.tuples.TreeTupleDescriptor.createTwoPartTreeTuple;
-import static com.avail.descriptor.tuples.TwoByteStringDescriptor.mutableTwoByteStringOfSize;
+import com.avail.annotations.ThreadSafe
+import com.avail.descriptor.character.A_Character
+import com.avail.descriptor.character.A_Character.Companion.codePoint
+import com.avail.descriptor.character.CharacterDescriptor.Companion.fromByteCodePoint
+import com.avail.descriptor.character.CharacterDescriptor.Companion.hashOfByteCharacterWithCodePoint
+import com.avail.descriptor.representation.*
+import com.avail.descriptor.representation.AvailObjectRepresentation.Companion.newLike
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import com.avail.descriptor.tuples.TwoByteStringDescriptor.Companion.mutableTwoByteStringOfSize
+import com.avail.serialization.SerializerOperation
 
 /**
- * {@code ByteStringDescriptor} represents a string of Latin-1 characters.
+ * `ByteStringDescriptor` represents a string of Latin-1 characters.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @property unusedBytesOfLastLong
+ *   The number of bytes of the last `long` that do not participate in the
+ *   representation of the [byte string][ByteStringDescriptor]. Must be between
+ *   0 and 7.
+ *
+ * @constructor
+ * Construct a new `ByteStringDescriptor`.
+ *
+ * @param mutability
+ *   The [mutability][Mutability] of the new descriptor.
+ * @param unusedBytesOfLastLong
+ *   The number of bytes of the last `long` that do not participate in the
+ *   representation of the [byte string][ByteStringDescriptor]. Must be between
+ *   0 and 7.
  */
-public final class ByteStringDescriptor
-extends StringDescriptor
+class ByteStringDescriptor private constructor(
+	mutability: Mutability,
+	private val unusedBytesOfLastLong: Int) : StringDescriptor(
+		mutability, null, IntegerSlots::class.java)
 {
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots implements IntegerSlotsEnumJava
+	enum class IntegerSlots : IntegerSlotsEnum
 	{
 		/**
-		 * The low 32 bits are used for the {@link #HASH_OR_ZERO}, but the upper 32 can be used by other {@link BitField}s in subclasses of {@link TupleDescriptor}.
+		 * The low 32 bits are used for the [HASH_OR_ZERO], but the upper 32 can
+		 * be used by other [BitField]s in subclasses of [TupleDescriptor].
 		 */
-		@HideFieldInDebugger
 		HASH_AND_MORE,
 
 		/**
-		 * The raw 64-bit ({@code long}s) that constitute the representation of the {@linkplain ByteStringDescriptor byte string}.  The bytes occur in Little Endian order within each long.
+		 * The raw 64-bit (`long`s) that constitute the representation of the
+		 * [byte string][ByteStringDescriptor].  The bytes occur in Little
+		 * Endian order within each long.
 		 */
 		RAW_LONGS_;
 
-		/**
-		 * A slot to hold the cached hash value of a tuple.  If zero, then the
-		 * hash value must be computed upon request.  Note that in the very rare
-		 * case that the hash value actually equals zero, the hash value has to
-		 * be computed every time it is requested.
-		 */
-		public static final BitField HASH_OR_ZERO =
-			new BitField(HASH_AND_MORE, 0, 32);
-
-		static
+		companion object
 		{
-			assert TupleDescriptor.IntegerSlots.HASH_AND_MORE.ordinal()
-				== HASH_AND_MORE.ordinal();
+			/**
+			 * A slot to hold the cached hash value of a tuple.  If zero, then
+			 * the hash value must be computed upon request.  Note that in the
+			 * very rare case that the hash value actually equals zero, the hash
+			 * value has to be computed every time it is requested.
+			 */
+			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
+
+			init
+			{
+				assert(TupleDescriptor.IntegerSlots.HASH_AND_MORE.ordinal
+						   == HASH_AND_MORE.ordinal)
+			}
 		}
 	}
 
-	/**
-	 * The number of bytes of the last {@code long} that do not participate in
-	 * the representation of the {@linkplain ByteStringDescriptor byte string}. Must be between 0 and 7.
-	 */
-	private final int unusedBytesOfLastLong;
-
-	/**
-	 * Defined threshold for making copies versus using {@linkplain TreeTupleDescriptor}/using other forms of reference instead of creating a new tuple.
-	 */
-	private static final int maximumCopySize = 64;
-
-	@Override
-	public A_Tuple o_AppendCanDestroy (
-		final AvailObject object,
-		final A_BasicObject newElement,
-		final boolean canDestroy)
+	override fun o_AppendCanDestroy(
+		self: AvailObject,
+		newElement: A_BasicObject,
+		canDestroy: Boolean): A_Tuple
 	{
-		final int originalSize = object.tupleSize();
-		if (originalSize >= maximumCopySize || !newElement.isCharacter())
+		val originalSize = self.tupleSize()
+		if (originalSize >= maximumCopySize || !newElement.isCharacter)
 		{
 			// Transition to a tree tuple.
-			final A_Tuple singleton = tuple(newElement);
-			return object.concatenateWith(singleton, canDestroy);
+			val singleton = tuple(newElement)
+			return self.concatenateWith(singleton, canDestroy)
 		}
-		final int intValue = A_Character.Companion.codePoint((A_Character) newElement);
-		if ((intValue & ~255) != 0)
+		val intValue: Int = (newElement as A_Character).codePoint()
+		if (intValue and 255.inv() != 0)
 		{
 			// Transition to a tree tuple.
-			final A_Tuple singleton = tuple(newElement);
-			return object.concatenateWith(singleton, canDestroy);
+			val singleton = tuple(newElement)
+			return self.concatenateWith(singleton, canDestroy)
 		}
-		final int newSize = originalSize + 1;
-		if (isMutable() && canDestroy && (originalSize & 7) != 0)
+		val newSize = originalSize + 1
+		if (isMutable && canDestroy && originalSize and 7 != 0)
 		{
 			// Enlarge it in place, using more of the final partial long field.
-			object.setDescriptor(descriptorFor(MUTABLE, newSize));
-			object.setByteSlot(RAW_LONGS_, newSize, (short) intValue);
-			object.setSlot(HASH_OR_ZERO, 0);
-			return object;
+			self.setDescriptor(descriptorFor(Mutability.MUTABLE, newSize))
+			self.setByteSlot(IntegerSlots.RAW_LONGS_, newSize, intValue.toShort())
+			self.setSlot(IntegerSlots.HASH_OR_ZERO, 0)
+			return self
 		}
 		// Copy to a potentially larger ByteTupleDescriptor.
-		final AvailObject result = newLike(
-			descriptorFor(MUTABLE, newSize),
-			object,
+		val result = newLike(
+			descriptorFor(Mutability.MUTABLE, newSize),
+			self,
 			0,
-			(originalSize & 7) == 0 ? 1 : 0);
-		result.setByteSlot(RAW_LONGS_, newSize, (short) intValue);
-		result.setSlot(HASH_OR_ZERO, 0);
-		return result;
+			if (originalSize and 7 == 0) 1 else 0)
+		result.setByteSlot(IntegerSlots.RAW_LONGS_, newSize, intValue.toShort())
+		result.setSlot(IntegerSlots.HASH_OR_ZERO, 0)
+		return result
 	}
 
-	@Override
-	public boolean o_CompareFromToWithStartingAt (
-		final AvailObject object,
-		final int startIndex1,
-		final int endIndex1,
-		final A_Tuple anotherObject,
-		final int startIndex2)
-	{
-		return anotherObject.compareFromToWithByteStringStartingAt(
-			startIndex2,
-			startIndex2 + endIndex1 - startIndex1,
-			object,
-			startIndex1);
-	}
+	override fun o_CompareFromToWithStartingAt(
+		self: AvailObject,
+		startIndex1: Int,
+		endIndex1: Int,
+		anotherObject: A_Tuple,
+		startIndex2: Int): Boolean =
+			anotherObject.compareFromToWithByteStringStartingAt(
+				startIndex2,
+				startIndex2 + endIndex1 - startIndex1,
+				self,
+				startIndex1)
 
-	@Override
-	public boolean o_CompareFromToWithByteStringStartingAt (
-		final AvailObject object,
-		final int startIndex1,
-		final int endIndex1,
-		final A_String aByteString,
-		final int startIndex2)
+	override fun o_CompareFromToWithByteStringStartingAt(
+		self: AvailObject,
+		startIndex1: Int,
+		endIndex1: Int,
+		aByteString: A_String,
+		startIndex2: Int): Boolean
 	{
 		// Compare sections of two byte strings.
-		if (object.sameAddressAs(aByteString) && startIndex1 == startIndex2)
+		if (self.sameAddressAs(aByteString) && startIndex1 == startIndex2)
 		{
-			return true;
+			return true
 		}
 		// Compare actual bytes.
-		for (
-			int index1 = startIndex1, index2 = startIndex2;
-			index1 <= endIndex1;
-			index1++, index2++)
+		var index1 = startIndex1
+		var index2 = startIndex2
+		while (index1 <= endIndex1)
 		{
-			if (object.rawByteForCharacterAt(index1)
+			if (self.rawByteForCharacterAt(index1)
 				!= aByteString.rawByteForCharacterAt(index2))
 			{
-				return false;
+				return false
 			}
+			index1++
+			index2++
 		}
 		if (startIndex1 == 1
 			&& startIndex2 == 1
-			&& endIndex1 == object.tupleSize()
+			&& endIndex1 == self.tupleSize()
 			&& endIndex1 == aByteString.tupleSize())
 		{
 			// They're *completely* equal (but occupy disjoint storage). If
 			// possible, replace one with an indirection to the other to keep
 			// down the frequency of byte-wise comparisons.
-			if (!isShared())
+			if (!isShared)
 			{
-				aByteString.makeImmutable();
-				object.becomeIndirectionTo(aByteString);
+				aByteString.makeImmutable()
+				self.becomeIndirectionTo(aByteString)
 			}
-			else if (!aByteString.descriptor().isShared())
+			else if (!aByteString.descriptor().isShared)
 			{
-				object.makeImmutable();
-				aByteString.becomeIndirectionTo(object);
+				self.makeImmutable()
+				aByteString.becomeIndirectionTo(self)
 			}
 		}
-		return true;
+		return true
 	}
 
-	@Override
-	public boolean o_Equals (final AvailObject object, final A_BasicObject another)
-	{
-		return another.equalsByteString(object);
-	}
+	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean =
+		another.equalsByteString(self)
 
-	@Override
-	public boolean o_EqualsByteString (
-		final AvailObject object,
-		final A_String aByteString)
+	override fun o_EqualsByteString(
+		self: AvailObject,
+		aByteString: A_String): Boolean
 	{
 		// First, check for object-structure (address) identity.
-		if (object.sameAddressAs(aByteString))
+		if (self.sameAddressAs(aByteString))
 		{
-			return true;
+			return true
 		}
-		final int tupleSize = object.tupleSize();
+		val tupleSize = self.tupleSize()
 		return tupleSize == aByteString.tupleSize()
-			&& object.hash() == aByteString.hash()
-			&& object.compareFromToWithByteStringStartingAt(
-				1, tupleSize, aByteString, 1);
+			   && self.hash() == aByteString.hash()
+			   && self.compareFromToWithByteStringStartingAt(
+				1, tupleSize, aByteString, 1)
 	}
 
-	@Override
-	public boolean o_IsByteString (final AvailObject object)
-	{
-		return true;
-	}
+	override fun o_IsByteString(self: AvailObject): Boolean = true
 
-	@Override
-	public AvailObject o_MakeImmutable (final AvailObject object)
+	override fun o_MakeImmutable(self: AvailObject): AvailObject
 	{
-		if (isMutable())
+		if (isMutable)
 		{
-			object.setDescriptor(descriptorFor(IMMUTABLE, object.tupleSize()));
+			self.setDescriptor(
+				descriptorFor(Mutability.IMMUTABLE, self.tupleSize()))
 		}
-		return object;
+		return self
 	}
 
-	@Override
-	public AvailObject o_MakeShared (final AvailObject object)
+	override fun o_MakeShared(self: AvailObject): AvailObject
 	{
-		if (!isShared())
+		if (!isShared)
 		{
-			object.setDescriptor(descriptorFor(SHARED, object.tupleSize()));
+			self.setDescriptor(
+				descriptorFor(Mutability.SHARED, self.tupleSize()))
 		}
-		return object;
+		return self
 	}
 
-	@Override
-	public short o_RawByteForCharacterAt (
-		final AvailObject object,
-		final int index)
+	override fun o_RawByteForCharacterAt(self: AvailObject, index: Int): Short
 	{
 		//  Answer the byte that encodes the character at the given index.
-		assert index >= 1 && index <= object.tupleSize();
-		return object.byteSlot(RAW_LONGS_, index);
+		assert(index >= 1 && index <= self.tupleSize())
+		return self.byteSlot(IntegerSlots.RAW_LONGS_, index)
 	}
 
-	@Override
-	public AvailObject o_TupleAt (final AvailObject object, final int index)
+	override fun o_TupleAt(self: AvailObject, index: Int): AvailObject
 	{
 		// Answer the element at the given index in the tuple object.  It's a
 		// one-byte character.
-		assert index >= 1 && index <= object.tupleSize();
-		final short codePoint = object.byteSlot(RAW_LONGS_, index);
-		return (AvailObject) fromByteCodePoint(codePoint);
+		assert(index >= 1 && index <= self.tupleSize())
+		val codePoint = self.byteSlot(IntegerSlots.RAW_LONGS_, index)
+		return fromByteCodePoint(codePoint) as AvailObject
 	}
 
-	@Override
-	public A_Tuple o_TupleAtPuttingCanDestroy (
-		final AvailObject object,
-		final int index,
-		final A_BasicObject newValueObject,
-		final boolean canDestroy)
+	override fun o_TupleAtPuttingCanDestroy(
+		self: AvailObject,
+		index: Int,
+		newValueObject: A_BasicObject,
+		canDestroy: Boolean): A_Tuple
 	{
 		// Answer a tuple with all the elements of object except at the given
 		// index we should have newValueObject.  This may destroy the original
 		// tuple if canDestroy is true.
-		assert index >= 1 && index <= object.tupleSize();
-		if (newValueObject.isCharacter())
+		assert(index >= 1 && index <= self.tupleSize())
+		if (newValueObject.isCharacter)
 		{
-			final int codePoint = A_Character.Companion.codePoint((A_Character)newValueObject);
-			if ((codePoint & 0xFF) == codePoint)
+			val codePoint: Int = (newValueObject as A_Character).codePoint()
+			if (codePoint and 0xFF == codePoint)
 			{
-				final AvailObject result = canDestroy && isMutable()
-					? object
-					: newLike(mutable(), object, 0, 0);
-				result.setByteSlot(RAW_LONGS_, index, (short) codePoint);
-				result.setHashOrZero(0);
-				return result;
+				val result =
+					if (canDestroy && isMutable) self
+					else newLike(mutable(), self, 0, 0)
+				result.setByteSlot(IntegerSlots.RAW_LONGS_, index, codePoint.toShort())
+				result.setHashOrZero(0)
+				return result
 			}
-			if ((codePoint & 0xFFFF) == codePoint)
+			if (codePoint and 0xFFFF == codePoint)
 			{
-				return copyAsMutableTwoByteString(object)
-					.tupleAtPuttingCanDestroy(
-						index,
-						newValueObject,
-						true);
+				return copyAsMutableTwoByteString(self)
+					.tupleAtPuttingCanDestroy(index, newValueObject, true)
 			}
 			// Fall through for SMP Unicode characters.
 		}
 		//  Convert to an arbitrary Tuple instead.
-		return object.copyAsMutableObjectTuple().tupleAtPuttingCanDestroy(
-			index, newValueObject, true);
+		return self.copyAsMutableObjectTuple().tupleAtPuttingCanDestroy(
+			index, newValueObject, true)
 	}
 
-	@Override
-	public int o_TupleCodePointAt (@NotNull final AvailObject self, final int index)
+	override fun o_TupleCodePointAt(self: AvailObject, index: Int): Int
 	{
-		assert index >= 1 && index <= self.tupleSize();
-		return self.byteSlot(RAW_LONGS_, index);
+		assert(index >= 1 && index <= self.tupleSize())
+		return self.byteSlot(IntegerSlots.RAW_LONGS_, index).toInt()
 	}
 
-	@Override
-	public A_Tuple o_TupleReverse(final AvailObject object)
+	override fun o_TupleReverse(self: AvailObject): A_Tuple
 	{
-		final int size = object.tupleSize();
-		if (size > maximumCopySize)
+		val size = self.tupleSize()
+		return if (size > maximumCopySize)
 		{
-			return super.o_TupleReverse(object);
+			super.o_TupleReverse(self)
+		}
+		else generateByteString(size) {
+			self.byteSlot(
+				IntegerSlots.RAW_LONGS_, size + 1 - it).toInt()
 		}
 
 		// It's not empty, it's not a total copy, and it's reasonably small.
 		// Just copy the applicable bytes out.  In theory we could use
 		// newLike() if start is 1.  Make sure to mask the last word in that
 		// case.
-		return generateByteString(
-			size, i -> (char) object.byteSlot(RAW_LONGS_, size + 1 - i));
 	}
 
-	@Override
-	public int o_TupleSize (final AvailObject object)
-	{
-		// Answer the number of elements in the object.
-		return (object.variableIntegerSlotsCount() << 3)
-			- unusedBytesOfLastLong;
-	}
+	// Answer the number of elements in the object.
+	override fun o_TupleSize(self: AvailObject): Int =
+		((self.variableIntegerSlotsCount() shl 3) - unusedBytesOfLastLong)
 
-	@Override
-	public int o_BitsPerEntry (final AvailObject object)
-	{
-		// Answer approximately how many bits per entry are taken up by this
-		// object.
-		return 8;
-	}
+	// Answer approximately how many bits per entry are taken up by this
+	// object.
+	override fun o_BitsPerEntry(self: AvailObject): Int = 8
 
 	/**
 	 * {@inheritDoc}
 	 *
-	 * <p>
 	 * See comment in superclass. This overridden method must produce the same
 	 * value.
-	 * </p>
 	 */
-	@Override
-	public int o_ComputeHashFromTo (
-		final AvailObject object,
-		final int start,
-		final int end)
+	override fun o_ComputeHashFromTo(
+		self: AvailObject,
+		start: Int,
+		end: Int): Int
 	{
-		int hash = 0;
-		for (int index = end; index >= start; index--)
+		var hash = 0
+		for (index in end downTo start)
 		{
-			final int itemHash =
-				hashOfByteCharacterWithCodePoint(
-					object.byteSlot(RAW_LONGS_, index))
-				^ preToggle;
-			hash = (hash + itemHash) * multiplier;
+			val itemHash = (hashOfByteCharacterWithCodePoint(
+				self.byteSlot(IntegerSlots.RAW_LONGS_, index))
+				xor preToggle)
+			hash = (hash + itemHash) * AvailObject.multiplier
 		}
-		return hash;
+		return hash
 	}
 
-	@Override @ThreadSafe
-	public SerializerOperation o_SerializerOperation (
-		final AvailObject object)
-	{
-		return SerializerOperation.BYTE_STRING;
-	}
+	@ThreadSafe
+	override fun o_SerializerOperation(
+		self: AvailObject): SerializerOperation =
+			SerializerOperation.BYTE_STRING
 
-	@Override
-	public Object o_MarshalToJava (
-		final AvailObject object,
-		final @Nullable Class<?> ignoredClassHint)
-	{
-		return object.asNativeString();
-	}
+	override fun o_MarshalToJava(
+		self: AvailObject,
+		classHint: Class<*>?): Any? = self.asNativeString()
 
-	@Override
-	public A_Tuple o_CopyTupleFromToCanDestroy (
-		final AvailObject object,
-		final int start,
-		final int end,
-		final boolean canDestroy)
+	override fun o_CopyTupleFromToCanDestroy(
+		self: AvailObject,
+		start: Int,
+		end: Int,
+		canDestroy: Boolean): A_Tuple
 	{
-		final int tupleSize = object.tupleSize();
-		assert 1 <= start && start <= end + 1 && end <= tupleSize;
-		final int size = end - start + 1;
-		if (size > 0 && size < tupleSize && size < maximumCopySize)
+		val tupleSize = self.tupleSize()
+		assert(1 <= start && start <= end + 1 && end <= tupleSize)
+		val size = end - start + 1
+		return if (size in 1 until tupleSize && size < maximumCopySize)
 		{
 			// It's not empty, it's not a total copy, and it's reasonably small.
 			// Just copy the applicable bytes out.  In theory we could use
 			// newLike() if start is 1.  Make sure to mask the last word in that
 			// case.
-			return generateByteString(
-				size, i -> object.byteSlot(RAW_LONGS_, i + start - 1));
+			generateByteString(size) {
+				self.byteSlot(
+					IntegerSlots.RAW_LONGS_, it + start - 1).toInt()
+			}
 		}
-		return super.o_CopyTupleFromToCanDestroy(
-			object, start, end, canDestroy);
+		else
+		{
+			super.o_CopyTupleFromToCanDestroy(self, start, end, canDestroy)
+		}
 	}
 
-	@Override
-	public A_Tuple o_ConcatenateWith (
-		final AvailObject object,
-		final A_Tuple otherTuple,
-		final boolean canDestroy)
+	override fun o_ConcatenateWith(
+		self: AvailObject,
+		otherTuple: A_Tuple,
+		canDestroy: Boolean): A_Tuple
 	{
-		final int size1 = object.tupleSize();
+		val size1 = self.tupleSize()
 		if (size1 == 0)
 		{
 			if (!canDestroy)
 			{
-				otherTuple.makeImmutable();
+				otherTuple.makeImmutable()
 			}
-			return otherTuple;
+			return otherTuple
 		}
-		final int size2 = otherTuple.tupleSize();
+		val size2 = otherTuple.tupleSize()
 		if (size2 == 0)
 		{
 			if (!canDestroy)
 			{
-				object.makeImmutable();
+				self.makeImmutable()
 			}
-			return object;
+			return self
 		}
-		final int newSize = size1 + size2;
-		if (otherTuple.isByteString() && newSize <= maximumCopySize)
+		val newSize = size1 + size2
+		if (otherTuple.isByteString && newSize <= maximumCopySize)
 		{
 			// Copy the characters.
-			final int newLongCount = (newSize + 7) >>> 3;
-			final int deltaSlots =
-				newLongCount - object.variableIntegerSlotsCount();
-			final AvailObject result;
-			if (canDestroy && isMutable() && deltaSlots == 0)
+			val newLongCount = newSize + 7 ushr 3
+			val deltaSlots = newLongCount - self.variableIntegerSlotsCount()
+			val result: AvailObject
+			if (canDestroy && isMutable && deltaSlots == 0)
 			{
 				// We can reuse the receiver; it has enough int slots.
-				result = object;
-				result.setDescriptor(descriptorFor(MUTABLE, newSize));
+				result = self
+				result.setDescriptor(descriptorFor(Mutability.MUTABLE, newSize))
 			}
 			else
 			{
 				result = newLike(
-					descriptorFor(MUTABLE, newSize), object, 0, deltaSlots);
+					descriptorFor(Mutability.MUTABLE, newSize),
+					self,
+					0,
+					deltaSlots)
 			}
-			int dest = size1 + 1;
-			for (int src = 1; src <= size2; src++, dest++)
+			var dest = size1 + 1
+			var src = 1
+			while (src <= size2)
 			{
 				result.setByteSlot(
-					RAW_LONGS_,
-					dest,
-					otherTuple.rawByteForCharacterAt(src));
+					IntegerSlots.RAW_LONGS_,
+				   	dest,
+					otherTuple.rawByteForCharacterAt(src))
+				src++
+				dest++
 			}
-			result.setSlot(HASH_OR_ZERO, 0);
-			return result;
+			result.setSlot(IntegerSlots.HASH_OR_ZERO, 0)
+			return result
 		}
 		if (!canDestroy)
 		{
-			object.makeImmutable();
-			otherTuple.makeImmutable();
+			self.makeImmutable()
+			otherTuple.makeImmutable()
 		}
-		if (otherTuple.treeTupleLevel() == 0)
+		return if (otherTuple.treeTupleLevel() == 0)
 		{
-			return createTwoPartTreeTuple(object, otherTuple, 1, 0);
+			TreeTupleDescriptor.createTwoPartTreeTuple(self, otherTuple, 1, 0)
 		}
-		return concatenateAtLeastOneTree(object, otherTuple, true);
-	}
-
-	/**
-	 * Create an object of the appropriate size, whose descriptor is an instance
-	 * of {@code ByteStringDescriptor}.  Note that it can only store Latin-1
-	 * characters (i.e., those having Unicode code points 0..255).  Run the
-	 * generator for each position in ascending order to produce the code
-	 * points with which to populate the string.
-	 *
-	 * @param size
-	 * The size of byte string to create.
-	 * @param generator
-	 * A generator to provide code points to store.
-	 * @return
-	 * The new Avail {@link A_String}.
-	 */
-	public static AvailObject generateByteString(
-		final int size,
-		final IntUnaryOperator generator)
-	{
-		final ByteStringDescriptor descriptor = descriptorFor(MUTABLE, size);
-		final AvailObject result = descriptor.mutableObjectOfSize(size);
-		int counter = 1;
-		// Aggregate eight writes at a time for the bulk of the string.
-		for (
-			int slotIndex = 1, limit = size >>> 3;
-			slotIndex <= limit;
-			slotIndex++)
+		else
 		{
-			long combined = 0;
-			for (int shift = 0; shift < 64; shift += 8)
-			{
-				final long c = generator.applyAsInt(counter++);
-				assert (c & 255) == c;
-				combined += c << shift;
-			}
-			result.setSlot(RAW_LONGS_, slotIndex, combined);
+			TreeTupleDescriptor.concatenateAtLeastOneTree(self, otherTuple, true)
 		}
-		// Do the last 0-7 writes the slow way.
-		for (int index = (size & ~7) + 1; index <= size; index++)
-		{
-			final long c = generator.applyAsInt(counter++);
-			assert (c & 255) == c;
-			result.setByteSlot(RAW_LONGS_, index, (short) c);
-		}
-		return result;
-	}
-
-	/**
-	 * Answer a mutable copy of the {@linkplain AvailObject receiver} that holds
-	 * 16-bit characters.
-	 *
-	 * @param object
-	 * The {@linkplain AvailObject receiver}.
-	 * @return
-	 * A mutable copy of the {@linkplain AvailObject receiver}.
-	 */
-	private static A_String copyAsMutableTwoByteString (
-		final AvailObject object)
-	{
-		final A_String result = mutableTwoByteStringOfSize(object.tupleSize());
-		result.setHashOrZero(object.hashOrZero());
-		for (int i = 1, end = object.tupleSize(); i <= end; i++)
-		{
-			result.rawShortForCharacterAtPut(
-				i, object.byteSlot(RAW_LONGS_, i));
-		}
-		return result;
 	}
 
 	/**
@@ -564,99 +460,159 @@ extends StringDescriptor
 	 * elements.
 	 *
 	 * @param size
-	 * The desired number of elements.
+	 *   The desired number of elements.
 	 * @return
-	 * A new mutable byte string.
+	 *   A new mutable byte string.
 	 */
-	private AvailObject mutableObjectOfSize (final int size)
+	private fun mutableObjectOfSize(size: Int): AvailObject
 	{
-		assert isMutable();
-		assert ((size + unusedBytesOfLastLong) & 7) == 0;
-		return create((size + 7) >> 3);
+		assert(isMutable)
+		assert(size + unusedBytesOfLastLong and 7 == 0)
+		return create(size + 7 shr 3)
 	}
 
-	/**
-	 * Convert the specified Java {@link String} of purely Latin-1 characters
-	 * into an Avail {@link A_String}.
-	 *
-	 * @param aNativeByteString
-	 *        A Java {@link String} whose code points are all 0..255.
-	 * @return
-	 *        A corresponding Avail {@link A_String}.
-	 */
-	static AvailObject mutableObjectFromNativeByteString(
-		final String aNativeByteString)
+	companion object
 	{
-		return generateByteString(
-			aNativeByteString.length(), i -> aNativeByteString.charAt(i - 1));
-	}
+		/**
+		 * Defined threshold for making copies versus using
+		 * [TreeTupleDescriptor]/using other forms of reference instead of
+		 * creating a new tuple.
+		 */
+		private const val maximumCopySize = 64
 
-	/**
-	 * Construct a new {@code ByteStringDescriptor}.
-	 *
-	 * @param mutability
-	 *        The {@linkplain Mutability mutability} of the new descriptor.
-	 * @param unusedBytes
-	 *        The number of unused bytes of the last long.
-	 */
-	private ByteStringDescriptor (
-		final Mutability mutability,
-		final int unusedBytes)
-	{
-		super(mutability, null, IntegerSlots.class);
-		unusedBytesOfLastLong = unusedBytes;
-	}
-
-	/** The {@link ByteStringDescriptor} instances. */
-	private static final ByteStringDescriptor[] descriptors =
-		new ByteStringDescriptor[8 * 3];
-
-	static {
-		int i = 0;
-		for (final int excess : new int[] {0,7,6,5,4,3,2,1})
+		/**
+		 * Create an object of the appropriate size, whose descriptor is an
+		 * instance of `ByteStringDescriptor`.  Note that it can only store
+		 * Latin-1 characters (i.e., those having Unicode code points 0..255). 
+		 * Run the generator for each position in ascending order to produce the
+		 * code points with which to populate the string.
+		 *
+		 * @param size
+		 *   The size of byte string to create.
+		 * @param generator
+		 *   A generator to provide code points to store.
+		 * @return
+		 *   The new Avail [A_String].
+		 */
+		@JvmStatic
+		fun generateByteString(
+			size: Int,
+			generator: (Int) -> Int): AvailObject
 		{
-			descriptors[i++] = new ByteStringDescriptor(MUTABLE, excess);
-			descriptors[i++] = new ByteStringDescriptor(IMMUTABLE, excess);
-			descriptors[i++] = new ByteStringDescriptor(SHARED, excess);
+			val descriptor = descriptorFor(Mutability.MUTABLE, size)
+			val result = descriptor.mutableObjectOfSize(size)
+			var counter = 1
+			// Aggregate eight writes at a time for the bulk of the string.
+			var slotIndex = 1
+			val limit = size ushr 3
+			while (slotIndex <= limit)
+			{
+				var combined: Long = 0
+				var shift = 0
+				while (shift < 64)
+				{
+					val c = generator(counter++).toLong()
+					assert(c and 255 == c)
+					combined += c shl shift
+					shift += 8
+				}
+				result.setSlot(IntegerSlots.RAW_LONGS_, slotIndex, combined)
+				slotIndex++
+			}
+			// Do the last 0-7 writes the slow way.
+			for (index in (size and 7.inv()) + 1 .. size)
+			{
+				val c = generator(counter++).toLong()
+				assert(c and 255 == c)
+				result.setByteSlot(IntegerSlots.RAW_LONGS_, index, c.toShort())
+			}
+			return result
+		}
+
+		/**
+		 * Answer a mutable copy of the [receiver][AvailObject] that holds
+		 * 16-bit characters.
+		 *
+		 * @param self
+		 *   The [receiver][AvailObject].
+		 * @return
+		 *   A mutable copy of the [receiver][AvailObject].
+		 */
+		private fun copyAsMutableTwoByteString(
+			self: AvailObject): A_String
+		{
+			val result: A_String = mutableTwoByteStringOfSize(self.tupleSize())
+			result.setHashOrZero(self.hashOrZero())
+			var i = 1
+			val end = self.tupleSize()
+			while (i <= end)
+			{
+				result.rawShortForCharacterAtPut(
+					i, self.byteSlot(IntegerSlots.RAW_LONGS_, i).toInt())
+				i++
+			}
+			return result
+		}
+
+		/**
+		 * Convert the specified Java [String] of purely Latin-1 characters
+		 * into an Avail [A_String].
+		 *
+		 * @param aNativeByteString
+		 *   A Java [String] whose code points are all 0..255.
+		 * @return
+		 *   A corresponding Avail [A_String].
+		 */
+		fun mutableObjectFromNativeByteString(
+			aNativeByteString: String): AvailObject = 
+				generateByteString(aNativeByteString.length) 
+					{ aNativeByteString[it - 1].toInt() }
+
+		/** The [ByteStringDescriptor] instances.  */
+		private val descriptors = arrayOfNulls<ByteStringDescriptor>(8 * 3)
+
+		/**
+		 * Answer the appropriate `ByteStringDescriptor` to represent an
+		 * [object][AvailObject] of the specified mutability and size.
+		 *
+		 * @param flag
+		 *   The [mutability][Mutability] of the new descriptor.
+		 * @param size
+		 *   The desired number of elements.
+		 * @return
+		 *   A `ByteStringDescriptor` suitable for representing a byte string of
+		 *   the given mutability and [size][AvailObject.tupleSize].
+		 */
+		private fun descriptorFor(
+			flag: Mutability,
+			size: Int): ByteStringDescriptor = 
+				descriptors[(size and 7) * 3 + flag.ordinal]!!
+
+		init
+		{
+			var i = 0
+			for (excess in intArrayOf(0, 7, 6, 5, 4, 3, 2, 1))
+			{
+				descriptors[i++] = 
+					ByteStringDescriptor(Mutability.MUTABLE, excess)
+				descriptors[i++] = 
+					ByteStringDescriptor(Mutability.IMMUTABLE, excess)
+				descriptors[i++] = 
+					ByteStringDescriptor(Mutability.SHARED, excess)
+			}
 		}
 	}
 
-	@Override
-	public ByteStringDescriptor mutable ()
-	{
-		return descriptors[
-			((8 - unusedBytesOfLastLong) & 7) * 3 + MUTABLE.ordinal()];
-	}
+	override fun mutable(): ByteStringDescriptor = 
+		descriptors[(8 - unusedBytesOfLastLong and 7) * 3 
+			+ Mutability.MUTABLE.ordinal]!!
 
-	@Override
-	public ByteStringDescriptor immutable ()
-	{
-		return descriptors[
-			((8 - unusedBytesOfLastLong) & 7) * 3 + IMMUTABLE.ordinal()];
-	}
+	override fun immutable(): ByteStringDescriptor = 
+		descriptors[(8 - unusedBytesOfLastLong and 7) * 3 
+		   + Mutability.IMMUTABLE.ordinal]!!
 
-	@Override
-	public ByteStringDescriptor shared ()
-	{
-		return descriptors[
-			((8 - unusedBytesOfLastLong) & 7) * 3 + SHARED.ordinal()];
-	}
-
-	/**
-	 * Answer the appropriate {@code ByteStringDescriptor} to represent an
-	 * {@linkplain AvailObject object} of the specified mutability and size.
-	 *
-	 * @param flag
-	 *        The {@linkplain Mutability mutability} of the new descriptor.
-	 * @param size
-	 *        The desired number of elements.
-	 * @return
-	 * A {@code ByteStringDescriptor} suitable for representing a byte string of the given mutability and {@linkplain         AvailObject#tupleSize() size}.
-	 */
-	private static ByteStringDescriptor descriptorFor (
-		final Mutability flag,
-		final int size)
-	{
-		return descriptors[(size & 7) * 3 + flag.ordinal()];
-	}
+	override fun shared(): ByteStringDescriptor = 
+		descriptors[(8 - unusedBytesOfLastLong and 7) * 3 
+					+ Mutability.SHARED.ordinal]!!
 }
+	
