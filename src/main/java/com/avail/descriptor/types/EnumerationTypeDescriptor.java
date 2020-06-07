@@ -79,31 +79,9 @@ import static com.avail.descriptor.types.TypeDescriptor.Types.ANY;
  * instance, see {@link InstanceTypeDescriptor}, and for the case of zero
  * instances, see {@link BottomTypeDescriptor}.
  *
- * <p>
- * An enumeration is created from a set of objects that are considered instances
- * of the resulting type.  For example, Avail's {@linkplain #booleanType()
- * boolean type} is simply an enumeration whose instances are {@linkplain
- * AtomDescriptor atoms} representing {@linkplain AtomDescriptor#trueObject()
- * true} and {@linkplain AtomDescriptor#falseObject() false}.  This flexibility
- * allows an enumeration mechanism simply not available in other programming
- * languages. In particular, it allows one to define enumerations whose
- * memberships overlap.  The subtype relationship mimics the subset relationship
- * of the enumerations' membership sets.
- * </p>
+ * An enumeration is created from a set of objects that are considered instances of the resulting type.  For example, Avail's {@linkplain #booleanType() boolean&#32;type} is simply an enumeration whose instances are {@linkplain AtomDescriptor atoms} representing {@linkplain AtomDescriptor#trueObject() true} and {@linkplain AtomDescriptor#falseObject() false}.  This flexibility allows an enumeration mechanism simply not available in other programming languages. In particular, it allows one to define enumerations whose memberships overlap.  The subtype relationship mimics the subset relationship of the enumerations' membership sets.
  *
- * <p>
- * Because of metacovariance and the useful properties it bestows, enumerations
- * that contain a type as a member (i.e., that type is an instance of the union)
- * also automatically include all subtypes as members.  Thus, an enumeration
- * whose instances are {5, "cheese", {@linkplain
- * TupleTypeDescriptor#mostGeneralTupleType() tuple}} also has the type {@linkplain
- * TupleTypeDescriptor#stringType() string} as a member (string being one
- * of the many subtypes of tuple).  This condition ensures that enumerations
- * satisfy metacovariance, which states that types' types vary the same way as
- * the types: <span style="border-width:thin; border-style:solid; white-space:
- * nowrap">&forall;<sub>x,y&isin;T</sub>&thinsp;(x&sube;y
- * &rarr; T(x)&sube;T(y))</span>.
- * </p>
+ * Because of metacovariance and the useful properties it bestows, enumerations that contain a type as a member (i.e., that type is an instance of the union) also automatically include all subtypes as members.  Thus, an enumeration whose instances are {5, "cheese", {@linkplain TupleTypeDescriptor#mostGeneralTupleType() tuple}} also has the type {@linkplain TupleTypeDescriptor#stringType() string} as a member (string being one of the many subtypes of tuple).  This condition ensures that enumerations satisfy metacovariance, which states that types' types vary the same way as the types: <span style="border-width:thin; border-style:solid; white-space: nowrap">&forall;<sub>x,y&isin;T</sub>&thinsp;(x&sube;y &rarr; T(x)&sube;T(y))</span>.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -137,7 +115,8 @@ extends AbstractEnumerationTypeDescriptor
 	 *
 	 * @param object
 	 *            The enumeration for which to extract the instances.
-	 * @return The instances of this enumeration.
+	 * @return
+	 * The instances of this enumeration.
 	 */
 	static A_Set getInstances (final AvailObject object)
 	{
@@ -145,13 +124,12 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	/**
-	 * Answer my nearest superkind (the most specific supertype of me that isn't
-	 * also an {@linkplain AbstractEnumerationTypeDescriptor enumeration}). Do
-	 * not acquire the argument's monitor.
+	 * Answer my nearest superkind (the most specific supertype of me that isn't also an {@linkplain AbstractEnumerationTypeDescriptor enumeration}). Do not acquire the argument's monitor.
 	 *
 	 * @param object
 	 *        An enumeration.
-	 * @return The kind closest to the given enumeration.
+	 * @return
+	 * The kind closest to the given enumeration.
 	 */
 	private A_Type rawGetSuperkind (final AvailObject object)
 	{
@@ -182,7 +160,8 @@ extends AbstractEnumerationTypeDescriptor
 	 *
 	 * @param object
 	 *        An enumeration.
-	 * @return The kind closest to the given enumeration.
+	 * @return
+	 * The kind closest to the given enumeration.
 	 */
 	private A_Type getSuperkind (final AvailObject object)
 	{
@@ -245,10 +224,8 @@ extends AbstractEnumerationTypeDescriptor
 	/**
 	 * {@inheritDoc}
 	 *
-	 * <p>
 	 * An instance type is only equal to another instance type, and only when
 	 * they refer to equal instances.
-	 * </p>
 	 */
 	@Override
 	public boolean o_Equals (final AvailObject object, final A_BasicObject another)
@@ -280,11 +257,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	/**
-	 * The potentialInstance is a {@linkplain ObjectDescriptor user-defined
-	 * object}. See if it is an instance of the object. It is an instance
-	 * precisely when it is in object's set of {@linkplain ObjectSlots#INSTANCES
-	 * instances}, or if it is a subtype of any type that occurs in the set of
-	 * instances.
+	 * The potentialInstance is a {@linkplain ObjectDescriptor user-defined&#32;object}. See if it is an instance of the object. It is an instance precisely when it is in object's set of {@linkplain ObjectSlots#INSTANCES instances}, or if it is a subtype of any type that occurs in the set of instances.
 	 */
 	@Override
 	public boolean o_HasObjectInstance (
@@ -331,17 +304,14 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	/**
-	 * Compute the type intersection of the object, which is an {@linkplain
-	 * EnumerationTypeDescriptor enumeration}, and the argument, which may or
-	 * may not be an enumeration (but must be a {@linkplain TypeDescriptor
-	 * type}).
+	 * Compute the type intersection of the object, which is an {@linkplain EnumerationTypeDescriptor enumeration}, and the argument, which may or may not be an enumeration (but must be a {@linkplain TypeDescriptor ype}).
 	 *
 	 * @param object
 	 *        An enumeration.
 	 * @param another
 	 *        Another type.
-	 * @return The most general type that is a subtype of both {@code object}
-	 *         and {@code another}.
+	 * @return
+	 * The most general type that is a subtype of both {@code object} and {@code another}.
 	 */
 	@Override
 	protected A_Type computeIntersectionWith (
@@ -419,17 +389,14 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	/**
-	 * Compute the type union of the object, which is an {@linkplain
-	 * EnumerationTypeDescriptor enumeration}, and the argument, which may or
-	 * may not be an enumeration (but must be a {@linkplain TypeDescriptor
-	 * type}).
+	 * Compute the type union of the object, which is an {@linkplain EnumerationTypeDescriptor enumeration}, and the argument, which may or may not be an enumeration (but must be a {@linkplain TypeDescriptor type}).
 	 *
 	 * @param object
 	 *            An enumeration.
 	 * @param another
 	 *            Another type.
-	 * @return The most general type that is a subtype of both {@code object}
-	 *         and {@code another}.
+	 * @return
+	 * The most general type that is a subtype of both {@code object} and {@code another}.
 	 */
 	@Override
 	protected A_Type computeUnionWith (
@@ -836,13 +803,12 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	/**
-	 * Construct an enumeration type from a {@linkplain SetDescriptor set} with
-	 * at least two instances. The set must have already been normalized, such
-	 * that at most one of the elements is itself a {@linkplain TypeDescriptor
-	 * type}.
+	 * Construct an enumeration type from a {@linkplain SetDescriptor set} with at least two instances. The set must have already been normalized, such that at most one of the elements is itself a {@linkplain TypeDescriptor type}.
 	 *
-	 * @param normalizedSet The set of instances.
-	 * @return The resulting enumeration.
+	 * @param normalizedSet
+	 * The set of instances.
+	 * @return
+	 * The resulting enumeration.
 	 */
 	static A_Type fromNormalizedSet (final A_Set normalizedSet)
 	{
@@ -895,20 +861,17 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	/**
-	 * Avail's boolean type, the equivalent of Java's primitive {@code boolean}
-	 * pseudo-type, similar to Java's boxed {@link Boolean} class.
+	 * Avail's boolean type, the equivalent of Java's primitive {@code boolean} pseudo-type, similar to Java's boxed {@link Boolean} class.
 	 */
 	private static final A_Type booleanObject;
 
 	/**
-	 * The type whose only instance is the value {@link
-	 * AtomDescriptor#trueObject() true}.
+	 * The type whose only instance is the value {@link AtomDescriptor#trueObject() true}.
 	 */
 	private static final A_Type trueType;
 
 	/**
-	 * The type whose only instance is the value {@link
-	 * AtomDescriptor#falseObject() false}.
+	 * The type whose only instance is the value {@link AtomDescriptor#falseObject() false}.
 	 */
 	private static final A_Type falseType;
 
@@ -923,7 +886,8 @@ extends AbstractEnumerationTypeDescriptor
 	/**
 	 * Return Avail's boolean type.
 	 *
-	 * @return The enumeration {@link A_Type} that acts as Avail's boolean type.
+	 * @return
+	 * The enumeration {@link A_Type} that acts as Avail's boolean type.
 	 */
 	public static A_Type booleanType ()
 	{
@@ -931,10 +895,10 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	/**
-	 * Return the type for which {@link AtomDescriptor#trueObject() true} is the
-	 * only instance.
+	 * Return the type for which {@link AtomDescriptor#trueObject() true} is the only instance.
 	 *
-	 * @return true's type.
+	 * @return
+	 * `true`'s type.
 	 */
 	public static A_Type trueType ()
 	{
@@ -942,10 +906,10 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	/**
-	 * Return the type for which {@link AtomDescriptor#falseObject() false} is
-	 * the only instance.
+	 * Return the type for which {@link AtomDescriptor#falseObject() false} is the only instance.
 	 *
-	 * @return false's type.
+	 * @return
+	 * `false`'s type.
 	 */
 	public static A_Type falseType ()
 	{

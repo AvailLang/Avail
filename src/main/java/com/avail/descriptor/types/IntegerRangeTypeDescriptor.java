@@ -83,16 +83,12 @@ extends TypeDescriptor
 	public enum ObjectSlots implements ObjectSlotsEnumJava
 	{
 		/**
-		 * The extended integer which is the lower bound of this range. It is
-		 * either inclusive or exclusive depending on the {@linkplain
-		* A_Type#lowerInclusive()} flag.
+		 * The extended integer which is the lower bound of this range. It is either inclusive or exclusive depending on the {@linkplain A_Type#lowerInclusive()} flag.
 		 */
 		LOWER_BOUND,
 
 		/**
-		 * The extended integer which is the upper bound of this range. It is
-		 * either inclusive or exclusive depending on the {@linkplain
-		* A_Type#upperInclusive()} flag.
+		 * The extended integer which is the upper bound of this range. It is either inclusive or exclusive depending on the {@linkplain A_Type#upperInclusive()} flag.
 		 */
 		UPPER_BOUND
 	}
@@ -137,7 +133,6 @@ extends TypeDescriptor
 	/**
 	 * {@inheritDoc}
 	 *
-	 * <p>
 	 * Answer the object's hash value.  Be careful, as the range (10..20) is the
 	 * same type as the range [11..19], so they should hash the same.  Actually,
 	 * this is taken care of during instance creation - if an exclusive bound is
@@ -145,7 +140,6 @@ extends TypeDescriptor
 	 * for one of the bounds would yield a value which is either inside or
 	 * outside depending on something that should not be observable (because it
 	 * serves to distinguish two representations of equal objects).
-	 * </p>
 	 */
 	@Override
 	public int o_Hash (final AvailObject object)
@@ -462,11 +456,16 @@ extends TypeDescriptor
 	 * Compute the hash of the {@link IntegerRangeTypeDescriptor} that has the
 	 * specified information.
 	 *
-	 * @param lowerBoundHash The hash of the lower bound.
-	 * @param upperBoundHash The hash of the upper bound.
-	 * @param lowerInclusive Whether the lower bound is inclusive.
-	 * @param upperInclusive Whether the upper bound is inclusive.
-	 * @return The hash value.
+	 * @param lowerBoundHash
+	 * The hash of the lower bound.
+	 * @param upperBoundHash
+	 * The hash of the upper bound.
+	 * @param lowerInclusive
+	 * Whether the lower bound is inclusive.
+	 * @param upperInclusive
+	 * Whether the upper bound is inclusive.
+	 * @return
+	 * The hash value.
 	 */
 	private static int computeHash (
 		final int lowerBoundHash,
@@ -482,14 +481,12 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Return a range consisting of a single {@linkplain IntegerDescriptor
-	 * integer} or {@linkplain InfinityDescriptor infinity}.
+	 * Return a range consisting of a single {@linkplain IntegerDescriptor integer} or {@linkplain InfinityDescriptor infinity}.
 	 *
 	 * @param integerObject
 	 *            An Avail integer or infinity.
 	 * @return
-	 *            A {@linkplain IntegerRangeTypeDescriptor range} containing a
-	 *            single value.
+	 *            A {@linkplain IntegerRangeTypeDescriptor range} containing a single value.
 	 */
 	public static A_Type singleInteger (final A_Number integerObject)
 	{
@@ -500,8 +497,10 @@ extends TypeDescriptor
 	/**
 	 * Return a range consisting of a single integer or infinity.
 	 *
-	 * @param anInt A Java {@code int}.
-	 * @return A range containing a single value.
+	 * @param anInt
+	 * A Java {@code int}.
+	 * @return
+	 * A range containing a single value.
 	 */
 	public static A_Type singleInt (final int anInt)
 	{
@@ -594,9 +593,12 @@ extends TypeDescriptor
 	/**
 	 * Create an inclusive-inclusive range with the given endpoints.
 	 *
-	 * @param lowerBound The low end, inclusive, of the range.
-	 * @param upperBound The high end, inclusive, of the range.
-	 * @return The integral type containing the bounds and all integers between.
+	 * @param lowerBound
+	 * The low end, inclusive, of the range.
+	 * @param upperBound
+	 * The high end, inclusive, of the range.
+	 * @return
+	 * The integral type containing the bounds and all integers between.
 	 */
 	public static A_Type inclusive (
 		final A_Number lowerBound,
@@ -608,9 +610,12 @@ extends TypeDescriptor
 	/**
 	 * Create an inclusive-inclusive range with the given endpoints.
 	 *
-	 * @param lowerBound The low end, inclusive, of the range.
-	 * @param upperBound The high end, inclusive, of the range.
-	 * @return The integral type containing the bounds and all integers between.
+	 * @param lowerBound
+	 * The low end, inclusive, of the range.
+	 * @param upperBound
+	 * The high end, inclusive, of the range.
+	 * @return
+	 * The integral type containing the bounds and all integers between.
 	 */
 	public static A_Type inclusive (
 		final long lowerBound,
@@ -624,9 +629,7 @@ extends TypeDescriptor
 	 * Construct a new {@link IntegerRangeTypeDescriptor}.
 	 *
 	 * @param isMutable
-	 *        {@code true} if the descriptor is {@linkplain Mutability#MUTABLE
-	 *        mutable}, {@code false} if it is {@linkplain Mutability#SHARED
-	 *        shared}.
+	 *        {@code true} if the descriptor is {@linkplain Mutability#MUTABLE mutable}, {@code false} if it is {@linkplain Mutability#SHARED shared}.
 	 * @param lowerInclusive
 	 *        Do my object instances include their lower bound?
 	 * @param upperInclusive
@@ -647,14 +650,12 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * When true, my object instances (i.e., instances of {@link AvailObject})
-	 * are considered to include their lower bound.
+	 * When true, my object instances (i.e., instances of {@link AvailObject}) are considered to include their lower bound.
 	 */
 	private final boolean lowerInclusive;
 
 	/**
-	 * When true, my object instances (i.e., instances of {@link AvailObject})
-	 * are considered to include their upper bound.
+	 * When true, my object instances (i.e., instances of {@link AvailObject}) are considered to include their upper bound.
 	 */
 	private final boolean upperInclusive;
 
@@ -689,14 +690,13 @@ extends TypeDescriptor
 	 * Answer the descriptor with the three specified boolean properties.
 	 *
 	 * @param isMutable
-	 *        {@code true} if the descriptor's objects are {@linkplain
-	 *        Mutability#MUTABLE mutable}, {@code false} if they are {@linkplain
-	 *        Mutability#SHARED shared}.
+	 *        {@code true} if the descriptor's objects are {@linkplain Mutability#MUTABLE mutable}, {@code false} if they are {@linkplain Mutability#SHARED shared}.
 	 * @param lowerInclusive
 	 *        Whether the descriptor's objects include the lower bound.
 	 * @param upperInclusive
 	 *        Whether the descriptor's objects include the upper bound.
-	 * @return The requested {@link IntegerRangeTypeDescriptor}.
+	 * @return
+	 * The requested {@link IntegerRangeTypeDescriptor}.
 	 */
 	private static IntegerRangeTypeDescriptor lookupDescriptor (
 		final boolean isMutable,
@@ -739,9 +739,9 @@ extends TypeDescriptor
 	 * This scheme allows both indices to start at zero and not include any
 	 * degenerate elements.
 	 *
-	 * <p>Use of these pre-built ranges is not mandatory, but is generally
+	 * Use of these pre-built ranges is not mandatory, but is generally
 	 * recommended for performance.  The {@link #create()} operation uses them
-	 * whenever possible.</p>
+	 * whenever possible.
 	 */
 	private static final A_Type[][] smallRanges = new A_Type[smallRangeLimit][];
 
@@ -769,7 +769,8 @@ extends TypeDescriptor
 	/**
 	 * Return the range [0..1].
 	 *
-	 * @return The integer range that includes just zero and one.
+	 * @return
+	 * The integer range that includes just zero and one.
 	 */
 	public static A_Type zeroOrOne ()
 	{
@@ -782,7 +783,8 @@ extends TypeDescriptor
 	/**
 	 * Return the range [0..255].
 	 *
-	 * @return The unsigned byte range.
+	 * @return
+	 * The unsigned byte range.
 	 */
 	public static A_Type bytes ()
 	{
@@ -796,7 +798,8 @@ extends TypeDescriptor
 	/**
 	 * Return the range of Unicode code points, [0..1114111].
 	 *
-	 * @return The range of Unicode code points.
+	 * @return
+	 * The range of Unicode code points.
 	 */
 	public static A_Type characterCodePoints ()
 	{
@@ -810,7 +813,8 @@ extends TypeDescriptor
 	/**
 	 * Return the range of integers including infinities, [-∞..∞].
 	 *
-	 * @return The range of integers including infinities.
+	 * @return
+	 * The range of integers including infinities.
 	 */
 	public static A_Type extendedIntegers ()
 	{
@@ -826,7 +830,8 @@ extends TypeDescriptor
 	/**
 	 * Return the range of integers not including infinities, (∞..∞).
 	 *
-	 * @return The range of finite integers.
+	 * @return
+	 * The range of finite integers.
 	 */
 	public static A_Type integers ()
 	{
@@ -840,7 +845,8 @@ extends TypeDescriptor
 	/**
 	 * Return the range of natural numbers, [1..∞).
 	 *
-	 * @return The range of positive finite integers.
+	 * @return
+	 * The range of positive finite integers.
 	 */
 	public static A_Type naturalNumbers ()
 	{
@@ -853,7 +859,8 @@ extends TypeDescriptor
 	/**
 	 * Return the range [0..15].
 	 *
-	 * @return The non-negative integers that can be represented in 4 bits.
+	 * @return
+	 * The non-negative integers that can be represented in 4 bits.
 	 */
 	public static A_Type nybbles ()
 	{
@@ -867,7 +874,8 @@ extends TypeDescriptor
 	/**
 	 * Return the range [0..65535].
 	 *
-	 * @return The non-negative integers that can be represented in 16 bits.
+	 * @return
+	 * The non-negative integers that can be represented in 16 bits.
 	 */
 	public static A_Type unsignedShorts ()
 	{
@@ -881,7 +889,8 @@ extends TypeDescriptor
 	/**
 	 * Return the range of whole numbers, [0..∞).
 	 *
-	 * @return The non-negative finite integers.
+	 * @return
+	 * The non-negative finite integers.
 	 */
 	public static A_Type wholeNumbers ()
 	{
@@ -895,7 +904,8 @@ extends TypeDescriptor
 	/**
 	 * Return the range of 32-bit signed ints.
 	 *
-	 * @return [-0x80000000..0x7FFFFFFF].
+	 * @return
+	 * [-0x80000000..0x7FFFFFFF].
 	 */
 	public static A_Type int32 ()
 	{
@@ -909,7 +919,8 @@ extends TypeDescriptor
 	/**
 	 * Return the range of 64-bit signed longs.
 	 *
-	 * @return [-0x8000_0000_0000_0000..0x7FFF_FFFF_FFFF_FFFF].
+	 * @return
+	 * [-0x8000_0000_0000_0000..0x7FFF_FFFF_FFFF_FFFF].
 	 */
 	public static A_Type int64 ()
 	{
@@ -917,10 +928,7 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * The metatype for integers. This is an {@linkplain InstanceTypeDescriptor
-	 * instance type} whose base instance is {@linkplain #extendedIntegers
-	 * extended integer}, and therefore has all integer range types as
-	 * instances.
+	 * The metatype for integers. This is an {@linkplain InstanceTypeDescriptor instance&#32;type} whose base instance is {@linkplain #extendedIntegers extended&#32;integer}, and therefore has all integer range types as instances.
 	 */
 	private static final A_Type extendedIntegersMeta =
 		instanceMeta(extendedIntegers).makeShared();
@@ -928,7 +936,8 @@ extends TypeDescriptor
 	/**
 	 * Return the metatype for all integer range types.
 	 *
-	 * @return The integer metatype.
+	 * @return
+	 * The integer metatype.
 	 */
 	public static A_Type extendedIntegersMeta ()
 	{

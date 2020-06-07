@@ -57,10 +57,7 @@ import java.util.List;
 import static com.avail.optimizer.jvm.CheckedMethod.instanceMethod;
 
 /**
- * {@code A_Type} is an interface that specifies the operations specific to all
- * of Avail's types.  It's a sub-interface of {@link A_BasicObject}, the
- * interface that defines the behavior that all AvailObjects are required to
- * support.
+ * {@code A_Type} is an interface that specifies the operations specific to all of Avail's types.  It's a sub-interface of {@link A_BasicObject}, the interface that defines the behavior that all AvailObjects are required to support.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -68,74 +65,60 @@ public interface A_Type
 extends A_BasicObject
 {
 	/**
-	 * Answer whether the {@linkplain AvailObject#argsTupleType() argument
-	 * types} supported by the specified {@linkplain FunctionTypeDescriptor
-	 * function type} are acceptable argument types for invoking a {@linkplain
-	 * FunctionDescriptor function} whose type is the receiver.
+	 * Answer whether the {@linkplain AvailObject#argsTupleType() argument&#32;types} supported by the specified {@linkplain FunctionTypeDescriptor function type} are acceptable argument types for invoking a {@linkplain FunctionDescriptor function} whose type is the receiver.
 	 *
-	 * @param functionType A function type.
-	 * @return {@code true} if the arguments of the receiver are, pairwise, more
-	 *         general than those of {@code functionType}, {@code false}
-	 *         otherwise.
+	 * @param functionType
+	 * A function type.
+	 * @return
+	 * {@code true} if the arguments of the receiver are, pairwise, more general than those of {@code functionType}, {@code false} otherwise.
 	 */
-	boolean acceptsArgTypesFromFunctionType (
-		A_Type functionType);
+	boolean acceptsArgTypesFromFunctionType (A_Type functionType);
 
 	/**
-	 * Answer whether these are acceptable {@linkplain TypeDescriptor argument
-	 * types} for invoking a {@linkplain FunctionDescriptor function} whose type
-	 * is the receiver.
+	 * Answer whether these are acceptable {@linkplain TypeDescriptor argument&#32;types} for invoking a {@linkplain FunctionDescriptor function} whose type is the receiver.
 	 *
-	 * @param argTypes A list containing the argument types to be checked.
-	 * @return {@code true} if the arguments of the receiver are, pairwise, more
-	 *         general than those within the {@code argTypes} list, {@code
-	 *         false} otherwise.
+	 * @param argTypes
+	 * A list containing the argument types to be checked.
+	 * @return
+	 * {@code true} if the arguments of the receiver are, pairwise, more general than those within the {@code argTypes} list, {@code false} otherwise.
 	 */
 	boolean acceptsListOfArgTypes (List<? extends A_Type> argTypes);
 
 	/**
-	 * Answer whether these are acceptable arguments for invoking a {@linkplain
-	 * FunctionDescriptor function} whose type is the receiver.
+	 * Answer whether these are acceptable arguments for invoking a {@linkplain FunctionDescriptor function} whose type is the receiver.
 	 *
-	 * @param argValues A list containing the argument values to be checked.
-	 * @return {@code true} if the arguments of the receiver are, pairwise, more
-	 *         general than the types of the values within the {@code argValues}
-	 *         list, {@code false} otherwise.
+	 * @param argValues
+	 * A list containing the argument values to be checked.
+	 * @return
+	 * {@code true} if the arguments of the receiver are, pairwise, more general than the types of the values within the {@code argValues} list, {@code false} otherwise.
 	 */
-	boolean acceptsListOfArgValues (
-		List<? extends A_BasicObject> argValues);
+	boolean acceptsListOfArgValues (List<? extends A_BasicObject> argValues);
 
 	/**
-	 * Answer whether these are acceptable {@linkplain TypeDescriptor argument
-	 * types} for invoking a {@linkplain FunctionDescriptor function} that is an
-	 * instance of the receiver. There may be more entries in the {@linkplain
-	 * TupleDescriptor tuple} than are required by the {@linkplain
-	 * FunctionTypeDescriptor function type}.
+	 * Answer whether these are acceptable {@linkplain TypeDescriptor argument&#32;types} for invoking a {@linkplain FunctionDescriptor function} that is an instance of the receiver. There may be more entries in the {@linkplain TupleDescriptor tuple} than are required by the {@linkplain FunctionTypeDescriptor function type}.
 	 *
-	 * @param argTypes A tuple containing the argument types to be checked.
-	 * @return {@code true} if the arguments of the receiver are, pairwise, more
-	 *         general than the corresponding elements of the {@code argTypes}
-	 *         tuple, {@code false} otherwise.
+	 * @param argTypes
+	 * A tuple containing the argument types to be checked.
+	 * @return
+	 * {@code true} if the arguments of the receiver are, pairwise, more general than the corresponding elements of the {@code argTypes} tuple, {@code false} otherwise.
 	 */
 	boolean acceptsTupleOfArgTypes (A_Tuple argTypes);
 
 	/**
-	 * Answer whether these are acceptable arguments for invoking a {@linkplain
-	 * FunctionDescriptor function} that is an instance of the receiver. There
-	 * may be more entries in the {@linkplain TupleDescriptor tuple} than are
-	 * required by the {@linkplain FunctionTypeDescriptor function type}.
+	 * Answer whether these are acceptable arguments for invoking a {@linkplain FunctionDescriptor function} that is an instance of the receiver. There may be more entries in the {@linkplain TupleDescriptor tuple} than are required by the {@linkplain FunctionTypeDescriptor function type}.
 	 *
-	 * @param arguments A tuple containing the argument values to be checked.
-	 * @return {@code true} if the arguments of the receiver are, pairwise, more
-	 *         general than the types of the corresponding elements of the
-	 *         {@code arguments} tuple, {@code false} otherwise.
+	 * @param arguments
+	 * A tuple containing the argument values to be checked.
+	 * @return
+	 * {@code true} if the arguments of the receiver are, pairwise, more general than the types of the corresponding elements of the {@code arguments} tuple, {@code false} otherwise.
 	 */
 	boolean acceptsTupleOfArguments (A_Tuple arguments);
 
 	/**
 	 * Answer the tuple type describing this function type's argument types.
 	 *
-	 * @return The tuple type for a function type's arguments.
+	 * @return
+	 * The tuple type for a function type's arguments.
 	 */
 	@ReferencedInGeneratedCode
 	A_Type argsTupleType ();
@@ -149,7 +132,8 @@ extends A_BasicObject
 	/**
 	 * Answer the type of elements that this set type's sets may hold.
 	 *
-	 * @return The set type's content type.
+	 * @return
+	 * The set type's content type.
 	 */
 	A_Type contentType ();
 
@@ -162,10 +146,10 @@ extends A_BasicObject
 	boolean couldEverBeInvokedWith (List<TypeRestriction> argRestrictions);
 
 	/**
-	 * Also declared in {@link A_Phrase} for {@linkplain BlockPhraseDescriptor
-	 * block phrases} and {@linkplain SendPhraseDescriptor send phrases}.
+	 * Also declared in {@link A_Phrase} for {@linkplain BlockPhraseDescriptor block&#32;phrases} and {@linkplain SendPhraseDescriptor send phrases}.
 	 *
-	 * @return The set of declared exception types.
+	 * @return
+	 * The set of declared exception types.
 	 */
 	A_Set declaredExceptions ();
 
@@ -182,16 +166,16 @@ extends A_BasicObject
 	 *
 	 * <p>Also implemented in {@link A_Phrase} (for phrase instances).</p>
 	 *
-	 * @return The {@linkplain TypeDescriptor type} of the {@link AvailObject}
-	 *         that will be produced by this type of phrase.
+	 * @return
+	 * The {@linkplain TypeDescriptor type} of the {@link AvailObject} that will be produced by this type of phrase.
 	 */
 	A_Type expressionType ();
 
 	/**
-	 * Given an {@linkplain ObjectTypeDescriptor object type}, answer its map
-	 * from fields to types.
+	 * Given an {@linkplain ObjectTypeDescriptor object type}, answer its map from fields to types.
 	 *
-	 * @return The map of field types.
+	 * @return
+	 * The map of field types.
 	 */
 	A_Map fieldTypeMap ();
 
@@ -201,18 +185,18 @@ extends A_BasicObject
 	A_Type functionType ();
 
 	/**
-	 * Answer whether this type is ⊥ ({@link BottomTypeDescriptor bottom}), the
-	 * most specific type.
+	 * Answer whether this type is ⊥ ({@link BottomTypeDescriptor bottom}), the most specific type.
 	 *
-	 * @return Whether the type is bottom.
+	 * @return
+	 * Whether the type is bottom.
 	 */
 	boolean isBottom ();
 
 	/**
-	 * Answer whether this type is known to have no instances.  For example, the
-	 * {@link BottomTypeDescriptor bottom type} (denoted ⊥) has no instances.
+	 * Answer whether this type is known to have no instances.  For example, the {@link BottomTypeDescriptor bottom type} (denoted ⊥) has no instances.
 	 *
-	 * @return Whether the type is known to have no instances.
+	 * @return
+	 * Whether the type is known to have no instances.
 	 */
 	boolean isVacuousType ();
 
@@ -365,10 +349,10 @@ extends A_BasicObject
 	boolean isSupertypeOfPojoBottomType (A_Type aPojoType);
 
 	/**
-	 * Answer whether this type is ⊤ ({@link Types#TOP top}), the
-	 * most general type.
+	 * Answer whether this type is ⊤ ({@link Types#TOP top}), the most general type.
 	 *
-	 * @return Whether the type is type.
+	 * @return
+	 * Whether the type is type.
 	 */
 	boolean isTop ();
 
@@ -397,10 +381,10 @@ extends A_BasicObject
 	A_BasicObject parent ();
 
 	/**
-	 * Also declared in {@link A_Phrase} for {@linkplain PhraseDescriptor
-	 * phrases}, not just phrase types.
+	 * Also declared in {@link A_Phrase} for {@linkplain PhraseDescriptor phrases}, not just phrase types.
 	 *
-	 * @return Answer the phrase's PhraseKind.
+	 * @return
+	 * Answer the phrase's PhraseKind.
 	 */
 	PhraseKind phraseKind ();
 
@@ -410,8 +394,7 @@ extends A_BasicObject
 	A_Type readType ();
 
 	/**
-	 * Also declared in {@link A_Phrase} for {@linkplain BlockPhraseDescriptor
-	 * block phrases} and {@linkplain SendPhraseDescriptor send phrases}.
+	 * Also declared in {@link A_Phrase} for {@linkplain BlockPhraseDescriptor block&#32;phrases} and {@linkplain SendPhraseDescriptor send phrases}.
 	 * @return
 	 */
 	A_Type returnType ();
@@ -433,6 +416,7 @@ extends A_BasicObject
 
 	/**
 	 * Dispatch to the descriptor.
+	 *
 	 * @param index
 	 * @return
 	 */
@@ -518,6 +502,7 @@ extends A_BasicObject
 
 	/**
 	 * Dispatch to the descriptor.
+	 *
 	 * @param another
 	 * @return
 	 */
@@ -532,6 +517,7 @@ extends A_BasicObject
 
 	/**
 	 * Dispatch to the descriptor.
+	 *
 	 * @param aFiberType
 	 * @return
 	 */
@@ -540,6 +526,7 @@ extends A_BasicObject
 
 	/**
 	 * Dispatch to the descriptor.
+	 *
 	 * @param aFunctionType
 	 * @return
 	 */
@@ -548,6 +535,7 @@ extends A_BasicObject
 
 	/**
 	 * Dispatch to the descriptor.
+	 *
 	 * @param aListNodeType
 	 * @return
 	 */
@@ -556,6 +544,7 @@ extends A_BasicObject
 
 	/**
 	 * Dispatch to the descriptor.
+	 *
 	 * @param aVariableType
 	 * @return
 	 */
@@ -564,6 +553,7 @@ extends A_BasicObject
 
 	/**
 	 * Dispatch to the descriptor.
+	 *
 	 * @param aContinuationType
 	 * @return
 	 */
@@ -572,6 +562,7 @@ extends A_BasicObject
 
 	/**
 	 * Dispatch to the descriptor.
+	 *
 	 * @param anIntegerRangeType
 	 * @return
 	 */
@@ -580,6 +571,7 @@ extends A_BasicObject
 
 	/**
 	 * Dispatch to the descriptor.
+	 *
 	 * @param aMapType
 	 * @return
 	 */
@@ -587,6 +579,7 @@ extends A_BasicObject
 
 	/**
 	 * Dispatch to the descriptor.
+	 *
 	 * @param anObjectType
 	 * @return
 	 */
@@ -615,6 +608,7 @@ extends A_BasicObject
 
 	/**
 	 * Dispatch to the descriptor.
+	 *
 	 * @param aSetType
 	 * @return
 	 */
@@ -622,6 +616,7 @@ extends A_BasicObject
 
 	/**
 	 * Dispatch to the descriptor.
+	 *
 	 * @param aTupleType
 	 * @return
 	 */
@@ -630,6 +625,7 @@ extends A_BasicObject
 
 	/**
 	 * Dispatch to the descriptor.
+	 *
 	 * @param another
 	 * @return
 	 */
@@ -645,6 +641,7 @@ extends A_BasicObject
 
 	/**
 	 * Dispatch to the descriptor.
+	 *
 	 * @param aFiberType
 	 * @return
 	 */
@@ -653,6 +650,7 @@ extends A_BasicObject
 
 	/**
 	 * Dispatch to the descriptor.
+	 *
 	 * @param aFunctionType
 	 * @return
 	 */
@@ -661,6 +659,7 @@ extends A_BasicObject
 
 	/**
 	 * Dispatch to the descriptor.
+	 *
 	 * @param aVariableType
 	 * @return
 	 */
@@ -669,6 +668,7 @@ extends A_BasicObject
 
 	/**
 	 * Dispatch to the descriptor.
+	 *
 	 * @param aContinuationType
 	 * @return
 	 */
@@ -677,6 +677,7 @@ extends A_BasicObject
 
 	/**
 	 * Dispatch to the descriptor.
+	 *
 	 * @param anIntegerRangeType
 	 * @return
 	 */
@@ -685,6 +686,7 @@ extends A_BasicObject
 
 	/**
 	 * Dispatch to the descriptor.
+	 *
 	 * @param aListNodeType
 	 * @return
 	 */
@@ -693,6 +695,7 @@ extends A_BasicObject
 
 	/**
 	 * Dispatch to the descriptor.
+	 *
 	 * @param aMapType
 	 * @return
 	 */
@@ -700,6 +703,7 @@ extends A_BasicObject
 
 	/**
 	 * Dispatch to the descriptor.
+	 *
 	 * @param anObjectType
 	 * @return
 	 */
@@ -725,6 +729,7 @@ extends A_BasicObject
 
 	/**
 	 * Dispatch to the descriptor.
+	 *
 	 * @param aSetType
 	 * @return
 	 */
@@ -732,6 +737,7 @@ extends A_BasicObject
 
 	/**
 	 * Dispatch to the descriptor.
+	 *
 	 * @param aTupleType
 	 * @return
 	 */
@@ -744,6 +750,7 @@ extends A_BasicObject
 
 	/**
 	 * Dispatch to the descriptor.
+	 *
 	 * @param startIndex
 	 * @param endIndex
 	 * @return
@@ -754,12 +761,14 @@ extends A_BasicObject
 
 	/**
 	 * Dispatch to the descriptor.
+	 *
 	 * @return
 	 */
 	A_Number upperBound ();
 
 	/**
 	 * Dispatch to the descriptor.
+	 *
 	 * @return
 	 */
 	boolean upperInclusive ();
@@ -770,13 +779,10 @@ extends A_BasicObject
 	A_Type writeType ();
 
 	/**
-	 * Compute a {@linkplain TypeDescriptor type} that is an ancestor of the
-	 * receiver, but is not an {@linkplain AbstractEnumerationTypeDescriptor
-	 * enumeration}.  Choose the most specific such type.  Fail if the
-	 * receiver is not itself an enumeration.  Also fail if the receiver is
-	 * {@linkplain BottomTypeDescriptor bottom}.
+	 * Compute a {@linkplain TypeDescriptor type} that is an ancestor of the receiver, but is not an {@linkplain AbstractEnumerationTypeDescriptor enumeration}.  Choose the most specific such type.  Fail if the receiver is not itself an enumeration.  Also fail if the receiver is {@linkplain BottomTypeDescriptor bottom}.
 	 *
-	 * @return The must specific non-union supertype.
+	 * @return
+	 * The must specific non-union supertype.
 	 */
 	A_Type computeSuperkind ();
 
@@ -797,6 +803,7 @@ extends A_BasicObject
 
 	/**
 	 * Dispatch to the descriptor.
+	 *
 	 * @param potentialInstance
 	 * @return
 	 */
@@ -839,9 +846,8 @@ extends A_BasicObject
 	 *
 	 * @param expectedPhraseKind
 	 *        The {@link PhraseKind} to test this phrase type against.
-	 * @return Whether the receiver, a phrase type, has a {@link
-	 *         #phraseKind()} at or below the specified {@link
-	 *         PhraseKind}.
+	 * @return
+	 * Whether the receiver, a phrase type, has a {@link #phraseKind()} at or below the specified {@link PhraseKind}.
 	 */
 	boolean phraseKindIsUnder (
 		PhraseKind expectedPhraseKind);
@@ -850,16 +856,18 @@ extends A_BasicObject
 	 * Answer the type of the subexpressions tuple that instances (list phrases)
 	 * of me (a list phrase type) must have.
 	 *
-	 * @return A tuple type of phrases.
+	 * @return
+	 * A tuple type of phrases.
 	 */
 	A_Type subexpressionsTupleType ();
 
 	/**
-	 * Answer whether the receiver, a type, is a supertype of the given {@link
-	 * ListPhraseTypeDescriptor list phrase type}.
+	 * Answer whether the receiver, a type, is a supertype of the given {@link ListPhraseTypeDescriptor list&#32;phrase&#32;type}.
 	 *
-	 * @param aListNodeType The list phrase type.
-	 * @return Whether the receiver is a supertype of the given type.
+	 * @param aListNodeType
+	 * The list phrase type.
+	 * @return
+	 * Whether the receiver is a supertype of the given type.
 	 */
 	boolean isSupertypeOfListNodeType (A_Type aListNodeType);
 }

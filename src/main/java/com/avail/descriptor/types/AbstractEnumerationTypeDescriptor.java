@@ -59,15 +59,7 @@ import static com.avail.descriptor.types.TypeDescriptor.Types.ANY;
 import static com.avail.optimizer.jvm.CheckedMethod.staticMethod;
 
 /**
- * I represent the abstract concept of enumerations. In particular, every object
- * has a type which is effectively a singular enumeration, which has as
- * instances that object plus any subtypes if that object is a {@linkplain
- * TypeDescriptor type}). Such a singular enumeration is always represented via
- * the subclass {@link InstanceTypeDescriptor}. Enumerations with multiple
- * elements are always represented with an {@link EnumerationTypeDescriptor}.
- * Any object present in this element set (or a subtype of an element that's a
- * type) is considered an instance of this enumeration. The enumeration with no
- * elements (there's only one) uses {@link BottomTypeDescriptor}.
+ * I represent the abstract concept of enumerations. In particular, every object has a type which is effectively a singular enumeration, which has as instances that object plus any subtypes if that object is a {@linkplain TypeDescriptor type}). Such a singular enumeration is always represented via the subclass {@link InstanceTypeDescriptor}. Enumerations with multiple elements are always represented with an {@link EnumerationTypeDescriptor}. Any object present in this element set (or a subtype of an element that's a type) is considered an instance of this enumeration. The enumeration with no elements (there's only one) uses {@link BottomTypeDescriptor}.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -92,48 +84,40 @@ extends AbstractTypeDescriptor
 	}
 
 	/**
-	 * Compute the type intersection of the {@linkplain AvailObject object}
-	 * which is an {@code AbstractEnumerationTypeDescriptor enumeration},
-	 * and the argument, which may or may not be an enumeration (but must be a
-	 * {@linkplain TypeDescriptor type}).
+	 * Compute the type intersection of the {@linkplain AvailObject object} which is an {@code AbstractEnumerationTypeDescriptor enumeration}, and the argument, which may or may not be an enumeration (but must be a {@linkplain TypeDescriptor type}).
 	 *
 	 * @param object
 	 *        An enumeration.
 	 * @param another
 	 *        Another type.
-	 * @return The most general type that is a subtype of both {@code object}
-	 *         and {@code another}.
+	 * @return
+	 * The most general type that is a subtype of both {@code object} and {@code another}.
 	 */
 	abstract A_Type computeIntersectionWith (
 		final AvailObject object,
 		final A_Type another);
 
 	/**
-	 * Compute the type union of the {@linkplain AvailObject object} which is an
-	 * {@code AbstractEnumerationTypeDescriptor enumeration}, and the
-	 * argument, which may or may not be an enumeration (but must be a
-	 * {@linkplain TypeDescriptor type}).
+	 * Compute the type union of the {@linkplain AvailObject object} which is an {@code AbstractEnumerationTypeDescriptor enumeration}, and the argument, which may or may not be an enumeration (but must be a {@linkplain TypeDescriptor type}).
 	 *
 	 * @param object
 	 *        An enumeration.
 	 * @param another
 	 *        Another type.
-	 * @return The most general type that is a subtype of both {@code object}
-	 *         and {@code another}.
+	 * @return
+	 * The most general type that is a subtype of both {@code object} and {@code another}.
 	 */
 	abstract A_Type computeUnionWith (
 		final AvailObject object,
 		final A_Type another);
 
 	/**
-	 * Answer the kind (i.e., a type that's not an {@linkplain
-	 * AbstractEnumerationTypeDescriptor enumeration}) that is closest to this
-	 * type.  Fail if the object is {@linkplain BottomTypeDescriptor bottom}.
+	 * Answer the kind (i.e., a type that's not an {@linkplain AbstractEnumerationTypeDescriptor enumeration}) that is closest to this type. Fail if the object is {@linkplain BottomTypeDescriptor bottom}.
 	 *
 	 * @param object
 	 *        The enumeration.
-	 * @return The closest supertype of the argument that isn't an
-	 *         enumeration.
+	 * @return
+	 * The closest supertype of the argument that isn't an enumeration.
 	 */
 	@Override
 	public abstract A_Type o_ComputeSuperkind (final AvailObject object);
@@ -767,10 +751,7 @@ extends AbstractTypeDescriptor
 	public abstract TypeTag o_ComputeTypeTag (final AvailObject object);
 
 	/**
-	 * Answer a new object instance of this descriptor based on the set of
-	 * objects that will be considered instances of that type. Normalize the
-	 * cases where the set has zero or one elements to use {@link
-	 * BottomTypeDescriptor} and {@link InstanceTypeDescriptor}, respectively.
+	 * Answer a new object instance of this descriptor based on the set of objects that will be considered instances of that type. Normalize the cases where the set has zero or one elements to use {@link BottomTypeDescriptor} and {@link InstanceTypeDescriptor}, respectively.
 	 *
 	 * <p>
 	 * Note that we also have to assure type union metainvariance, namely:
@@ -780,10 +761,9 @@ extends AbstractTypeDescriptor
 	 * </p>
 	 *
 	 * @param instancesSet
-	 *            The {@linkplain SetDescriptor set} of objects which are to be
-	 *            instances of the new type.
-	 * @return An {@link AvailObject} representing the type whose instances are
-	 *         those objects specified in the argument.
+	 *            The {@linkplain SetDescriptor set} of objects which are to be instances of the new type.
+	 * @return
+	 * An {@link AvailObject} representing the type whose instances are those objects specified in the argument.
 	 */
 	public static A_Type enumerationWith (final A_Set instancesSet)
 	{
@@ -829,10 +809,9 @@ extends AbstractTypeDescriptor
 	 * specified, all subtypes will also be considered instances of that type.
 	 *
 	 * @param instance
-	 *            The {@linkplain AvailObject object} which is to be an instance
-	 *            of the new type.
-	 * @return An {@link AvailObject} representing the type whose instance is
-	 *         the object specified in the argument.
+	 *            The {@linkplain AvailObject object} which is to be an instance of the new type.
+	 * @return
+	 * An {@link AvailObject} representing the type whose instance is the object specified in the argument.
 	 */
 	@ReferencedInGeneratedCode
 	public static A_Type instanceTypeOrMetaOn (final A_BasicObject instance)
@@ -845,8 +824,7 @@ extends AbstractTypeDescriptor
 	}
 
 	/**
-	 * The {@link CheckedMethod} for {@link
-	 * #instanceTypeOrMetaOn(A_BasicObject)}.
+	 * The {@link CheckedMethod} for {@link #instanceTypeOrMetaOn(A_BasicObject)}.
 	 */
 	public static final CheckedMethod instanceTypeOrMetaOnMethod = staticMethod(
 		AbstractEnumerationTypeDescriptor.class,
@@ -862,13 +840,9 @@ extends AbstractTypeDescriptor
 	 * @param typeTag
 	 *        The TypeTag associated with objects having this descriptor.
 	 * @param objectSlotsEnumClass
-	 *        The Java {@link Class} which is a subclass of {@link
-	 *        ObjectSlotsEnum} and defines this object's object slots layout, or
-	 *        null if there are no object slots.
+	 *        The Java {@link Class} which is a subclass of {@link ObjectSlotsEnum} and defines this object's object slots layout, or `null` if there are no object slots.
 	 * @param integerSlotsEnumClass
-	 *        The Java {@link Class} which is a subclass of {@link
-	 *        IntegerSlotsEnum} and defines this object's object slots layout,
-	 *        or null if there are no integer slots.
+	 *        The Java {@link Class} which is a subclass of {@link IntegerSlotsEnum} and defines this object's object slots layout, or null if there are no integer slots.
 	 */
 	protected AbstractEnumerationTypeDescriptor (
 		final Mutability mutability,

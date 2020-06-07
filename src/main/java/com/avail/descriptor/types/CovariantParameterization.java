@@ -33,8 +33,7 @@
 package com.avail.descriptor.types;
 
 /**
- * A dimension along which a {@link PhraseTypeDescriptor phrase type} can
- * be covariantly specialized.
+ * A dimension along which a {@link PhraseTypeDescriptor phrase type} can be covariantly specialized.
  */
 public final class CovariantParameterization
 {
@@ -47,7 +46,7 @@ public final class CovariantParameterization
 	/**
 	 * The most general type this parameterization can have.
 	 *
-	 * <p>If a phrase type has this type for this parameterization, the
+	 * If a phrase type has this type for this parameterization, the
 	 * parameterization won't be shown at all in the print representation
 	 * of the type.
 	 */
@@ -59,14 +58,12 @@ public final class CovariantParameterization
 	int index = -1;
 
 	/**
-	 * Construct a new {@link CovariantParameterization}, but don't set its
-	 * index yet.
+	 * Construct a new {@link CovariantParameterization}, but don't set its index yet.
 	 *
 	 * @param name
 	 *        The name of the covariant specialization.
 	 * @param mostGeneralType
-	 *        The the type that any specific phrase type's covariant
-	 *        specialization type is constrained to.
+	 *        The the type that any specific phrase type's covariant specialization type is constrained to.
 	 */
 	CovariantParameterization (
 		final String name,
@@ -83,9 +80,9 @@ public final class CovariantParameterization
 	 * @param name
 	 *        The name of the covariant specialization.
 	 * @param mostGeneralType
-	 *        The the type that any specific phrase type's covariant
-	 *        specialization type is constrained to.
-	 * @return The new covariant specialization.
+	 *        The the type that any specific phrase type's covariant specialization type is constrained to.
+	 * @return
+	 * The new covariant specialization.
 	 */
 	static CovariantParameterization co(
 		final String name,
@@ -95,11 +92,12 @@ public final class CovariantParameterization
 	}
 
 	/**
-	 * Assemble an array of {@link CovariantParameterization}s.  This is a
-	 * convenience method for assembling an array using varargs.
+	 * Assemble an array of {@link CovariantParameterization}s.  This is a convenience method for assembling an array using varargs.
 	 *
-	 * @param array An array of covariant specializations.
-	 * @return The same array.
+	 * @param array
+	 * An array of covariant specializations.
+	 * @return
+	 * The same array.
 	 */
 	static CovariantParameterization[] array(
 		final CovariantParameterization... array)

@@ -61,10 +61,7 @@ import static com.avail.descriptor.types.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.types.TypeDescriptor.Types.TOP;
 
 /**
- * {@code BottomTypeDescriptor} represents Avail's most specific type, ⊥
- * (pronounced bottom). ⊥ is an abstract type; it cannot have any instances,
- * since its instances must be able to meaningfully perform all operations, and
- * this is clearly logically inconsistent.
+ * {@code BottomTypeDescriptor} represents Avail's most specific type, ⊥ (pronounced bottom). ⊥ is an abstract type; it cannot have any instances, since its instances must be able to meaningfully perform all operations, and this is clearly logically inconsistent.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -91,8 +88,7 @@ extends AbstractEnumerationTypeDescriptor
 	 * @param another
 	 *            Another type.
 	 * @return
-	 *            The most general type that is a subtype of both object and
-	 *            another.
+	 *            The most general type that is a subtype of both object and another.
 	 */
 	@Override
 	public A_Type computeIntersectionWith (
@@ -112,8 +108,7 @@ extends AbstractEnumerationTypeDescriptor
 	 * @param another
 	 *            Another type.
 	 * @return
-	 *            The most specific type that is a supertype of both object and
-	 *            another.
+	 *            The most specific type that is a supertype of both object and another.
 	 */
 	@Override
 	public A_Type computeUnionWith (
@@ -178,13 +173,11 @@ extends AbstractEnumerationTypeDescriptor
 	/**
 	 * {@inheritDoc}
 	 *
-	 * <p>
 	 * Even though bottom is a union-y type (and the most specific one), it
 	 * technically "is" also a kind (a non-union-y type).  Thus, it's still
 	 * technically correct to return bottom as the nearest kind.  Code that
 	 * relies on this operation <em>not</em> returning a union-y type should
 	 * deal with this one special case with correspondingly special logic.
-	 * </p>
 	 */
 	@Override
 	public A_Type o_ComputeSuperkind (final AvailObject object)
@@ -220,8 +213,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	/**
-	 * Bottom is an empty {@linkplain AbstractEnumerationTypeDescriptor
-	 * enumeration}, so the answer is {@code false}.
+	 * Bottom is an empty {@linkplain AbstractEnumerationTypeDescriptor enumeration}, so the answer is {@code false}.
 	 */
 	@Override
 	public boolean o_EnumerationIncludesInstance (
@@ -234,10 +226,8 @@ extends AbstractEnumerationTypeDescriptor
 	/**
 	 * {@inheritDoc}
 	 *
-	 * <p>
 	 * An instance type is only equal to another instance type, and only when
 	 * they refer to equal instances.
-	 * </p>
 	 */
 	@Override
 	public boolean o_Equals (
@@ -250,13 +240,7 @@ extends AbstractEnumerationTypeDescriptor
 	/**
 	 * {@inheritDoc}
 	 *
-	 * <p>
-	 * Determine if the object is an {@linkplain
-	 * AbstractEnumerationTypeDescriptor enumeration} over the given {@linkplain
-	 * SetDescriptor set} of instances.  Since the object is the {@linkplain
-	 * BottomTypeDescriptor bottom type}, just check if the set of instances is
-	 * empty.
-	 * </p>
+	 * Determine if the object is an {@linkplain AbstractEnumerationTypeDescriptor enumeration} over the given {@linkplain SetDescriptor set} of instances.  Since the object is the {@linkplain BottomTypeDescriptor bottom&#32;type}, just check if the set of instances is empty.
 	 */
 	@Override
 	public boolean o_EqualsEnumerationWithSet (
@@ -641,7 +625,8 @@ extends AbstractEnumerationTypeDescriptor
 	/**
 	 * Answer the unique type that has no instances.
 	 *
-	 * @return The type {@code bottom}.
+	 * @return
+	 * The type {@code bottom}.
 	 */
 	public static A_Type bottom ()
 	{
@@ -654,7 +639,8 @@ extends AbstractEnumerationTypeDescriptor
 	/**
 	 * Answer the meta-type whose sole instance is the type {@link #bottom()}.
 	 *
-	 * @return The meta-type which is {@code bottom}'s type.
+	 * @return
+	 * The meta-type which is {@code bottom}'s type.
 	 */
 	public static A_Type bottomMeta ()
 	{

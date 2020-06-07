@@ -55,10 +55,7 @@ import static com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForSizesTy
 import static java.lang.Math.max;
 
 /**
- * An object instance of {@code ConcatenatedTupleTypeDescriptor} is an
- * optimization that postpones (or ideally avoids) the creation of a {@linkplain
- * TupleTypeDescriptor tuple type} when computing the static type of the
- * concatenation of two tuples.
+ * An object instance of {@code ConcatenatedTupleTypeDescriptor} is an optimization that postpones (or ideally avoids) the creation of a {@linkplain TupleTypeDescriptor tuple&#32;type} when computing the static type of the concatenation of two tuples.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -71,15 +68,12 @@ extends TypeDescriptor
 	public enum IntegerSlots implements IntegerSlotsEnumJava
 	{
 		/**
-		 * {@link BitField}s holding the tuple type complexity and other fields
-		 * if needed.
+		 * {@link BitField}s holding the tuple type complexity and other fields if needed.
 		 */
 		TUPLE_TYPE_COMPLEXITY_AND_MORE;
 
 		/**
-		 * The number of layers of virtualized concatenation in this tuple type.
-		 * This may become a conservatively large estimate due to my subobjects
-		 * being coalesced with more direct representations.
+		 * The number of layers of virtualized concatenation in this tuple type. This may become a conservatively large estimate due to my subobjects being coalesced with more direct representations.
 		 */
 		public static final BitField TUPLE_TYPE_COMPLEXITY =
 			new BitField(TUPLE_TYPE_COMPLEXITY_AND_MORE, 0, 32);
@@ -102,9 +96,7 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * The maximum depth of {@link ConcatenatedTupleTypeDescriptor concatenated
-	 * tuple types} that may exist before converting to a fully reified {@link
-	 * TupleTypeDescriptor tuple type}.
+	 * The maximum depth of {@link ConcatenatedTupleTypeDescriptor concatenated&#32;tuple&#32;types} that may exist before converting to a fully reified {@link TupleTypeDescriptor tuple&#32;type}.
 	 */
 	private static final int maximumConcatenationDepth = 10;
 
@@ -184,8 +176,8 @@ extends TypeDescriptor
 	/**
 	 * {@inheritDoc}
 	 *
-	 * <p>A concatenated tuple type isn't a very fast representation to use,
-	 * even though it's easy to construct.</p>
+	 * A concatenated tuple type isn't a very fast representation to use even
+	 * though it's easy to construct.
 	 */
 	@Override
 	public boolean o_IsBetterRepresentationThan (
@@ -199,13 +191,10 @@ extends TypeDescriptor
 	/**
 	 * {@inheritDoc}
 	 *
-	 * <p>
 	 * I'm not a very time-efficient representation of a tuple type.
-	 * </p>
 	 */
 	@Override
-	public int o_RepresentationCostOfTupleType (
-		final AvailObject object)
+	public int o_RepresentationCostOfTupleType (final AvailObject object)
 	{
 		return object.slot(TUPLE_TYPE_COMPLEXITY);
 	}
@@ -537,8 +526,7 @@ extends TypeDescriptor
 	 * an indirection object to the actual tupleType.
 	 *
 	 * @param object
-	 *        The object instance of {@code ConcatenatedTupleTypeDescriptor} to
-	 *        transform.
+	 *        The object instance of {@code ConcatenatedTupleTypeDescriptor} to transform.
 	 */
 	private void becomeRealTupleType (final AvailObject object)
 	{
@@ -556,11 +544,14 @@ extends TypeDescriptor
 	 * complies with the concatenation of the two tuple types.  Answer bottom if
 	 * the index is definitely out of bounds.
 	 *
-	 * @param firstTupleType The first {@link TupleTypeDescriptor tuple type}.
-	 * @param secondTupleType The second tuple type.
-	 * @param index The element index.
-	 * @return The type of the specified index within the concatenated tuple
-	 *         type.
+	 * @param firstTupleType
+	 * The first {@link TupleTypeDescriptor tuple&#32;type}.
+	 * @param secondTupleType
+	 * The second tuple type.
+	 * @param index
+	 * The element index.
+	 * @return
+	 * The type of the specified index within the concatenated tuple type.
 	 */
 	private static A_Type elementOfConcatenation (
 		final A_Type firstTupleType,
@@ -610,12 +601,14 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Answer the {@linkplain A_Type#sizeRange() size range} of the
-	 * concatenation of tuples having the given size ranges.
+	 * Answer the {@linkplain A_Type#sizeRange() size&#32;range} of the concatenation of tuples having the given size ranges.
 	 *
-	 * @param sizeRange1 The first tuple's sizeRange.
-	 * @param sizeRange2 The second tuple's sizeRange.
-	 * @return The range of sizes of the concatenated tuple.
+	 * @param sizeRange1
+	 * The first tuple's sizeRange.
+	 * @param sizeRange2
+	 * The second tuple's sizeRange.
+	 * @return
+	 * The range of sizes of the concatenated tuple.
 	 */
 	private static A_Type sizeRangeOfConcatenation (
 		final A_Type sizeRange1,
@@ -632,10 +625,12 @@ extends TypeDescriptor
 	 * Given two tuple types, the second of which must not be always empty,
 	 * determine what a complying tuple's last element's type must be.
 	 *
-	 * @param tupleType1 The first tuple type.
-	 * @param tupleType2 The second tuple type.
-	 * @return The type of the last element of the concatenation of the tuple
-	 *         types.
+	 * @param tupleType1
+	 * The first tuple type.
+	 * @param tupleType2
+	 * The second tuple type.
+	 * @return
+	 * The type of the last element of the concatenation of the tuple types.
 	 */
 	private static A_Type defaultTypeOfConcatenation (
 		final A_Type tupleType1,
@@ -661,13 +656,14 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Produce a fully reified concatenation (i.e., not a {@link
-	 * ConcatenatedTupleTypeDescriptor instance} of the given pair of tuple
-	 * types.
+	 * Produce a fully reified concatenation (i.e., not a {@link ConcatenatedTupleTypeDescriptor instance} of the given pair of tuple types.
 	 *
-	 * @param part1 The left tuple type.
-	 * @param part2 The right tuple type.
-	 * @return The concatenated tuple type.
+	 * @param part1
+	 * The left tuple type.
+	 * @param part2
+	 * The right tuple type.
+	 * @return
+	 * The concatenated tuple type.
 	 */
 	private static A_Type reallyConcatenate (
 		final A_Type part1,
@@ -709,8 +705,7 @@ extends TypeDescriptor
 	 * @param secondTupleType
 	 *        The second tuple type to concatenate.
 	 * @return
-	 *        A simple representation of the tuple type whose instances are all
-	 *        the concatenations of instances of the two given tuple types.
+	 *        A simple representation of the tuple type whose instances are all the concatenations of instances of the two given tuple types.
 	 */
 	public static A_Type concatenatingAnd (
 		final A_Type firstTupleType,

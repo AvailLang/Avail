@@ -49,13 +49,7 @@ import static com.avail.descriptor.types.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.types.TypeDescriptor.Types.TOKEN;
 
 /**
- * I represent the type of some {@link LiteralTokenDescriptor literal tokens}.
- * Like any object, a particular literal token has an exact {@link
- * InstanceTypeDescriptor instance type}, and {@link TokenDescriptor tokens} in
- * general have a simple {@link PrimitiveTypeDescriptor primitive type} of
- * {@link Types#TOKEN}, but {@code LiteralTokenTypeDescriptor}
- * covariantly constrains a literal token's type with the type of the value it
- * contains.
+ * I represent the type of some {@link LiteralTokenDescriptor literal&#32;tokens}. Like any object, a particular literal token has an exact {@link InstanceTypeDescriptor instance&#32;type}, and {@link TokenDescriptor tokens} in general have a simple {@link PrimitiveTypeDescriptor primitive&#32;type} of {@link Types#TOKEN}, but {@code LiteralTokenTypeDescriptor} covariantly constrains a literal token's type with the type of the value it contains.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -257,8 +251,10 @@ extends TypeDescriptor
 	 * Create a new literal token type whose literal values comply with the
 	 * given type.
 	 *
-	 * @param literalType The type with which to constrain literal values.
-	 * @return A {@link LiteralTokenTypeDescriptor literal token type}.
+	 * @param literalType
+	 * The type with which to constrain literal values.
+	 * @return
+	 * A {@link LiteralTokenTypeDescriptor literal&#32;token&#32;type}.
 	 */
 	public static AvailObject literalTokenType (final A_Type literalType)
 	{
@@ -313,7 +309,8 @@ extends TypeDescriptor
 	 * token type whose literal tokens' literal values are constrained by
 	 * {@link Types#ANY any}.
 	 *
-	 * @return The most general literal token type.
+	 * @return
+	 * The most general literal token type.
 	 */
 	public static A_Type mostGeneralLiteralTokenType ()
 	{

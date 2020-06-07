@@ -66,24 +66,15 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 
 /**
- * My instances are called <em>instance types</em>, the types of individual
- * objects.  In particular, whenever an object is asked for its {@linkplain
- * A_BasicObject#kind() type}, it creates an {@linkplain
- * InstanceTypeDescriptor instance type} that wraps that object.  Only that
- * object is a member of that instance type, except in the case that the object
- * is itself a type, in which case subtypes of that object are also considered
- * instances of the instance type.
+ * My instances are called <em>instance types</em>, the types of individual objects.  In particular, whenever an object is asked for its {@linkplain A_BasicObject#kind() type}, it creates an {@linkplain InstanceTypeDescriptor instance&#32;type} that wraps that object.  Only that object is a member of that instance type, except in the case that the object is itself a type, in which case subtypes of that object are also considered instances of the instance type.
  *
- * <p>
  * This last provision is to support the property called
  * <em>metacovariance</em>, which states that types' types vary the same way as
  * the types:
  * <span style="border-width:thin; border-style:solid; white-space:nowrap">
  * &forall;<sub>x,y&isin;T</sub>&thinsp;(x&sube;y &rarr;
  * T(x)&sube;T(y))</span>.
- * </p>
  *
- * <p>
  * The uniform use of instance types trivially ensures the additional property
  * we call <em>metavariance</em>, which states that every type has a unique
  * type of its own:
@@ -92,7 +83,6 @@ import static java.lang.Math.min;
  * T(x)&ne;T(y))</span>.
  * Note that metavariance requires this to hold for all types, but instance
  * types ensure this condition holds for all objects.
- * </p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -105,8 +95,7 @@ extends AbstractEnumerationTypeDescriptor
 	public enum ObjectSlots implements ObjectSlotsEnumJava
 	{
 		/**
-		 * The {@linkplain AvailObject object} for which I am the {@linkplain
-		 * InstanceTypeDescriptor instance type}.
+		 * The {@linkplain AvailObject object} for which I am the {@linkplain InstanceTypeDescriptor instance&#32;type}.
 		 */
 		INSTANCE
 	}
@@ -114,8 +103,10 @@ extends AbstractEnumerationTypeDescriptor
 	/**
 	 * Answer the instance that the provided instance type contains.
 	 *
-	 * @param object An instance type.
-	 * @return The instance represented by the given instance type.
+	 * @param object
+	 * An instance type.
+	 * @return
+	 * The instance represented by the given instance type.
 	 */
 	private static AvailObject getInstance (final AvailObject object)
 	{
@@ -123,15 +114,12 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	/**
-	 * Answer the kind that is nearest to the given object, an {@linkplain
-	 * InstanceTypeDescriptor instance type}.
+	 * Answer the kind that is nearest to the given object, an {@linkplain InstanceTypeDescriptor instance&#32;type}.
 	 *
 	 * @param object
 	 *        An instance type.
 	 * @return
-	 *        The kind (a {@linkplain TypeDescriptor type} but not an
-	 *        {@linkplain AbstractEnumerationTypeDescriptor enumeration}) that
-	 *        is nearest the specified instance type.
+	 *        The kind (a {@linkplain TypeDescriptor type} but not an {@linkplain AbstractEnumerationTypeDescriptor enumeration}) that is nearest the specified instance type.
 	 */
 	private static A_Type getSuperkind (final AvailObject object)
 	{
@@ -163,8 +151,7 @@ extends AbstractEnumerationTypeDescriptor
 	 * @param another
 	 *        Another type.
 	 * @return
-	 *        The most general type that is a subtype of both object and
-	 *        another.
+	 *        The most general type that is a subtype of both object and another.
 	 */
 	@Override A_Type computeIntersectionWith (
 		final AvailObject object,
@@ -196,18 +183,14 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	/**
-	 * Compute the type union of the object, which is an {@linkplain
-	 * InstanceTypeDescriptor instance type}, and the argument, which may or may
-	 * not be an {@linkplain AbstractEnumerationTypeDescriptor enumeration} (but
-	 * must be a {@linkplain TypeDescriptor type}).
+	 * Compute the type union of the object, which is an {@linkplain InstanceTypeDescriptor instance&#32;type}, and the argument, which may or may not be an {@linkplain AbstractEnumerationTypeDescriptor enumeration} (but must be a {@linkplain TypeDescriptor type}).
 	 *
 	 * @param object
 	 *        An instance type.
 	 * @param another
 	 *        Another type.
 	 * @return
-	 *        The most specific type that is a supertype of both {@code object}
-	 *        and {@code another}.
+	 *        The most specific type that is a supertype of both {@code object} and {@code another}.
 	 */
 	@Override A_Type computeUnionWith (
 		final AvailObject object,
@@ -250,10 +233,8 @@ extends AbstractEnumerationTypeDescriptor
 	/**
 	 * {@inheritDoc}
 	 *
-	 * <p>
 	 * An instance type is only equal to another instance type, and only when
 	 * they refer to equal instances.
-	 * </p>
 	 */
 	@Override
 	public boolean o_Equals (final AvailObject object, final A_BasicObject another)
@@ -279,10 +260,8 @@ extends AbstractEnumerationTypeDescriptor
 	/**
 	 * {@inheritDoc}
 	 *
-	 * <p>
 	 * An instance type is only equal to another instance type, and only when
 	 * they refer to equal instances.
-	 * </p>
 	 */
 	@Override
 	public boolean o_EqualsInstanceTypeFor (
@@ -293,8 +272,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	/**
-	 * The potentialInstance is a {@linkplain ObjectDescriptor user-defined
-	 * object}.  See if it is an instance of the object.
+	 * The potentialInstance is a {@linkplain ObjectDescriptor user-defined&#32;object}.  See if it is an instance of the object.
 	 */
 	@Override
 	public boolean o_HasObjectInstance (
@@ -745,8 +723,10 @@ extends AbstractEnumerationTypeDescriptor
 	 * Answer a new instance of this descriptor based on some object whose type
 	 * it will represent.
 	 *
-	 * @param instance The object whose type to represent.
-	 * @return An {@link AvailObject} representing the type of the argument.
+	 * @param instance
+	 * The object whose type to represent.
+	 * @return
+	 * An {@link AvailObject} representing the type of the argument.
 	 */
 	@ReferencedInGeneratedCode
 	public static AvailObject instanceType (final A_BasicObject instance)

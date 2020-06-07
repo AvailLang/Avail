@@ -76,13 +76,7 @@ import static java.lang.reflect.Modifier.isFinal;
 import static java.lang.reflect.Modifier.isInterface;
 
 /**
- * {@code FusedPojoTypeDescriptor} describes synthetic points in Avail's pojo
- * type hierarchy. This is a superset of Java's own reference type hierarchy. In
- * particular, the pojo type hierarchy includes type unions and type
- * intersections that may still conform to actual (but unspecified) Java classes
- * and interfaces. For instance, the type intersection of {@link Cloneable} and
- * {@link Serializable} describes <strong>1)</strong> any interface that extends
- * both and <strong>2)</strong> any class that implements both.
+ * {@code FusedPojoTypeDescriptor} describes synthetic points in Avail's pojo type hierarchy. This is a superset of Java's own reference type hierarchy. In particular, the pojo type hierarchy includes type unions and type intersections that may still conform to actual (but unspecified) Java classes and interfaces. For instance, the type intersection of {@link Cloneable} and {@link Serializable} describes <strong>1)</strong> any interface that extends both and <strong>2)</strong> any class that implements both.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -111,25 +105,17 @@ extends PojoTypeDescriptor
 	enum ObjectSlots implements ObjectSlotsEnumJava
 	{
 		/**
-		 * A {@linkplain MapDescriptor map} from {@linkplain PojoDescriptor
-		 * pojos} that wrap {@linkplain Class Java classes and interfaces} to
-		 * their {@linkplain TupleDescriptor type parameterizations}. The
-		 * {@linkplain AvailObject#keysAsSet() keys} constitute this type's
-		 * complete {@linkplain SetDescriptor ancestry} of Java types.
+		 * A {@linkplain MapDescriptor map} from {@linkplain PojoDescriptor pojos} that wrap {@linkplain Class Java&#32;classes&#32;and&#32;interfaces} to their {@linkplain TupleDescriptor type&#32;parameterizations}. The {@linkplain AvailObject#keysAsSet() keys} constitute this type's complete {@linkplain SetDescriptor ancestry} of Java types.
 		 */
 		JAVA_ANCESTORS,
 
 		/**
-		 * A {@linkplain MapDescriptor map} from fully-qualified {@linkplain
-		 * TypeVariable type variable} {@linkplain StringDescriptor names} to
-		 * their {@linkplain TypeDescriptor values} in this {@linkplain
-		 * UnfusedPojoTypeDescriptor type}.
+		 * A {@linkplain MapDescriptor map} from fully-qualified {@linkplain TypeVariable type&#32;variable} {@linkplain StringDescriptor names} to their {@linkplain TypeDescriptor values} in this {@linkplain UnfusedPojoTypeDescriptor type}.
 		 */
 		TYPE_VARIABLES,
 
 		/**
-		 * The cached {@linkplain SelfPojoTypeDescriptor self type} of this
-		 * {@linkplain UnfusedPojoTypeDescriptor pojo type}.
+		 * The cached {@linkplain SelfPojoTypeDescriptor self&#32;type} of this {@linkplain UnfusedPojoTypeDescriptor pojo&#32;type}.
 		 */
 		SELF_TYPE
 	}
@@ -196,11 +182,12 @@ extends PojoTypeDescriptor
 	}
 
 	/**
-	 * Lazily compute the hash of the specified {@linkplain
-	 * FusedPojoTypeDescriptor object}.
+	 * Lazily compute the hash of the specified {@linkplain FusedPojoTypeDescriptor object}.
 	 *
-	 * @param object An object.
-	 * @return The hash.
+	 * @param object
+	 * An object.
+	 * @return
+	 * The hash.
 	 */
 	private static int hash (final AvailObject object)
 	{
@@ -269,11 +256,12 @@ extends PojoTypeDescriptor
 	}
 
 	/**
-	 * Lazily compute the self type of the specified {@linkplain
-	 * FusedPojoTypeDescriptor object}.
+	 * Lazily compute the self type of the specified {@linkplain FusedPojoTypeDescriptor object}.
 	 *
-	 * @param object An object.
-	 * @return The self type.
+	 * @param object
+	 * An object.
+	 * @return
+	 * The self type.
 	 */
 	private AvailObject pojoSelfType (final AvailObject object)
 	{
@@ -440,11 +428,12 @@ extends PojoTypeDescriptor
 	}
 
 	/**
-	 * Lazily compute the type variables of the specified {@linkplain
-	 * FusedPojoTypeDescriptor object}.
+	 * Lazily compute the type variables of the specified {@linkplain FusedPojoTypeDescriptor object}.
 	 *
-	 * @param object An object.
-	 * @return The type variables.
+	 * @param object
+	 * An object.
+	 * @return
+	 * The type variables.
 	 */
 	private A_Map typeVariables (final AvailObject object)
 	{
@@ -590,15 +579,10 @@ extends PojoTypeDescriptor
 	}
 
 	/**
-	 * Create a new {@link AvailObject} that represents an {@linkplain
-	 * FusedPojoTypeDescriptor unparameterized pojo type}.
+	 * Create a new {@link AvailObject} that represents an {@linkplain FusedPojoTypeDescriptor unparameterized pojo type}.
 	 *
 	 * @param javaAncestors
-	 *        A {@linkplain MapDescriptor map} from {@linkplain PojoDescriptor
-	 *        pojos} that wrap {@linkplain Class Java classes and interfaces} to
-	 *        their {@linkplain TupleDescriptor type parameterizations}. The
-	 *        {@linkplain AvailObject#keysAsSet() keys} constitute this type's
-	 *        complete {@linkplain SetDescriptor ancestry} of Java types.
+	 *        A {@linkplain MapDescriptor map} from {@linkplain PojoDescriptor pojos} that wrap {@linkplain Class Java&#32;classes&#32;and&#32;interfaces} to their {@linkplain TupleDescriptor type parameterizations}. The {@linkplain AvailObject#keysAsSet() keys} constitute this type's complete {@linkplain SetDescriptor ancestry} of Java types.
 	 * @return The requested pojo type.
 	 */
 	static AvailObject createFusedPojoType (final A_Map javaAncestors)

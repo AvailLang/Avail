@@ -62,25 +62,15 @@ import static com.avail.descriptor.types.TypeDescriptor.Types.TOP;
 import static com.avail.optimizer.jvm.CheckedMethod.staticMethod;
 
 /**
- * My instances are called <em>instance metas</em>, the types of types.  These
- * are the only representation (modulo {@link IndirectionDescriptor indirection
- * objects}) of metatypes in Avail, as attempting to carry enumeration types up
- * the instance-of hierarchy leads to an unsound type theory.
+ * My instances are called <em>instance metas</em>, the types of types.  These are the only representation (modulo {@link IndirectionDescriptor indirection&#32;objects}) of metatypes in Avail, as attempting to carry enumeration types up the instance-of hierarchy leads to an unsound type theory.
  *
- * <p>
- * An {@code instance meta} behaves much like an {@link InstanceTypeDescriptor
- * instance type} but always has a type as its instance (which normal instance
- * types are forbidden to have).
- * </p>
+ * An {@code instance meta} behaves much like an {@link InstanceTypeDescriptor instance&#32;type} but always has a type as its instance (which normal instance types are forbidden to have).
  *
- * <p>
  * Instance metas preserve metacovariance:
  * <span style="border-width:thin; border-style:solid; white-space:nowrap">
  * &forall;<sub>x,y&isin;T</sub>&thinsp;(x&sube;y &rarr;
  * T(x)&sube;T(y))</span>.
- * </p>
  *
- * <p>
  * The uniform use of instance types trivially ensures the additional, stronger
  * property we call <em>metavariance</em>, which states that every type has a
  * unique type of its own:
@@ -89,7 +79,6 @@ import static com.avail.optimizer.jvm.CheckedMethod.staticMethod;
  * T(x)&ne;T(y))</span>.
  * Note that metavariance requires this to hold for all types, but instance
  * types ensure this condition holds for all objects.
- * </p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -102,8 +91,7 @@ extends AbstractEnumerationTypeDescriptor
 	public enum ObjectSlots implements ObjectSlotsEnumJava
 	{
 		/**
-		 * The {@linkplain TypeDescriptor type} for which I am the {@linkplain
-		 * InstanceTypeDescriptor instance meta}.
+		 * The {@linkplain TypeDescriptor type} for which I am the {@linkplain InstanceTypeDescriptor instance&#32;meta}.
 		 */
 		INSTANCE
 	}
@@ -111,8 +99,10 @@ extends AbstractEnumerationTypeDescriptor
 	/**
 	 * Answer the instance (a type) that the provided instance meta contains.
 	 *
-	 * @param object An instance type.
-	 * @return The instance represented by the given instance type.
+	 * @param object
+	 * An instance type.
+	 * @return
+	 * The instance represented by the given instance type.
 	 */
 	private static AvailObject getInstance (final AvailObject object)
 	{
@@ -120,16 +110,12 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	/**
-	 * Answer the kind that is nearest to the given object, an {@linkplain
-	 * InstanceMetaDescriptor instance meta}.  Since all metatypes are
-	 * instance metas, we must answer {@linkplain Types#ANY any}.
+	 * Answer the kind that is nearest to the given object, an {@linkplain InstanceMetaDescriptor instance&#32;meta}.  Since all metatypes are instance metas, we must answer {@linkplain Types#ANY any}.
 	 *
 	 * @param object
 	 *        An instance meta.
 	 * @return
-	 *        The kind (a {@linkplain TypeDescriptor type} but <em>not</em>
-	 *        an {@linkplain AbstractEnumerationTypeDescriptor enumeration})
-	 *        that is nearest the specified instance meta.
+	 *        The kind (a {@linkplain TypeDescriptor type} but <em>not</em> an {@linkplain AbstractEnumerationTypeDescriptor enumeration}) that is nearest the specified instance meta.
 	 */
 	private static AvailObject getSuperkind (final A_BasicObject object)
 	{
@@ -152,17 +138,14 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	/**
-	 * Compute the type intersection of the object which is an instance meta,
-	 * and the argument, which is some type (it may be an {@linkplain
-	 * AbstractEnumerationTypeDescriptor enumeration}).
+	 * Compute the type intersection of the object which is an instance meta, and the argument, which is some type (it may be an {@linkplain AbstractEnumerationTypeDescriptor enumeration}).
 	 *
 	 * @param object
 	 *        An instance meta.
 	 * @param another
 	 *        Another type.
 	 * @return
-	 *        The most general type that is a subtype of both object and
-	 *        another.
+	 *        The most general type that is a subtype of both object and another.
 	 */
 	@Override
 	protected A_Type computeIntersectionWith (
@@ -188,18 +171,14 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	/**
-	 * Compute the type union of the object, which is an {@linkplain
-	 * InstanceMetaDescriptor instance meta}, and the argument, which may or may
-	 * not be an {@linkplain AbstractEnumerationTypeDescriptor enumeration} (but
-	 * must be a {@linkplain TypeDescriptor type}).
+	 * Compute the type union of the object, which is an {@linkplain InstanceMetaDescriptor instance meta}, and the argument, which may or may not be an {@linkplain AbstractEnumerationTypeDescriptor enumeration} (but must be a {@linkplain TypeDescriptor type}).
 	 *
 	 * @param object
 	 *        An instance meta.
 	 * @param another
 	 *        Another type.
 	 * @return
-	 *        The most specific type that is a supertype of both {@code object}
-	 *        and {@code another}.
+	 *        The most specific type that is a supertype of both {@code object} and {@code another}.
 	 */
 	@Override
 	protected A_Type computeUnionWith (
@@ -240,10 +219,8 @@ extends AbstractEnumerationTypeDescriptor
 	/**
 	 * {@inheritDoc}
 	 *
-	 * <p>
 	 * An instance meta is only equal to another instance meta, and only when
 	 * they refer to equal instances.
-	 * </p>
 	 */
 	@Override
 	public boolean o_Equals (final AvailObject object, final A_BasicObject another)
@@ -269,9 +246,7 @@ extends AbstractEnumerationTypeDescriptor
 	/**
 	 * {@inheritDoc}
 	 *
-	 * <p>
 	 * An instance meta is never equal to an instance type.
-	 * </p>
 	 */
 	@Override
 	public boolean o_EqualsInstanceTypeFor (
@@ -653,14 +628,15 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	/**
-	 * ⊤'s type, cached statically for convenience.
+	 * `⊤`'s type, cached statically for convenience.
 	 */
 	private static final A_Type topMeta = instanceMeta(TOP.o()).makeShared();
 
 	/**
 	 * Answer ⊤'s type, the most general metatype.
 	 *
-	 * @return ⊤'s type.
+	 * @return
+	 * `⊤`'s type.
 	 */
 	public static A_Type topMeta ()
 	{
@@ -675,7 +651,8 @@ extends AbstractEnumerationTypeDescriptor
 	/**
 	 * Answer any's type, a metatype.
 	 *
-	 * @return any's type.
+	 * @return
+	 * `any`'s type.
 	 */
 	public static A_Type anyMeta ()
 	{
@@ -686,8 +663,10 @@ extends AbstractEnumerationTypeDescriptor
 	 * Answer a new instance of this descriptor based on some object whose type
 	 * it will represent.
 	 *
-	 * @param instance The object whose type to represent.
-	 * @return An {@link AvailObject} representing the type of the argument.
+	 * @param instance
+	 * The object whose type to represent.
+	 * @return
+	 * An {@link AvailObject} representing the type of the argument.
 	 */
 	@ReferencedInGeneratedCode
 	public static A_Type instanceMeta (final A_Type instance)

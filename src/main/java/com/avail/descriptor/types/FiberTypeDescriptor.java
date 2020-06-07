@@ -51,15 +51,7 @@ import static com.avail.descriptor.types.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.descriptor.types.TypeDescriptor.Types.TOP;
 
 /**
- * {@code FiberTypeDescriptor} represents the type of a {@linkplain
- * FiberDescriptor fiber}. A fiber is typed by the return type of the base
- * {@linkplain FunctionDescriptor function} used to create it. Fiber types
- * provide first-order type safety, but are not perfectly sincerely. Switching
- * a fiber's {@linkplain ContinuationDescriptor continuation} to one whose base
- * function's return type is incompatible with the fiber's type is a runtime
- * error, and will be detected and reported when such a ({@linkplain
- * ExecutionState#TERMINATED terminated}) fiber's result is
- * requested.
+ * {@code FiberTypeDescriptor} represents the type of a {@linkplain FiberDescriptor fiber}. A fiber is typed by the return type of the base {@linkplain FunctionDescriptor function} used to create it. Fiber types provide first-order type safety, but are not perfectly sincerely. Switching a fiber's {@linkplain ContinuationDescriptor continuation} to one whose base function's return type is incompatible with the fiber's type is a runtime error, and will be detected and reported when such a ({@linkplain ExecutionState#TERMINATED terminated}) fiber's result is requested.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -254,12 +246,12 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Create a {@linkplain FiberTypeDescriptor fiber type} with the specified
-	 * {@linkplain AvailObject#resultType() result type}.
+	 * Create a {@linkplain FiberTypeDescriptor fiber&#32;type} with the specified {@linkplain AvailObject#resultType() result type}.
 	 *
 	 * @param resultType
 	 *        The result type.
-	 * @return A new fiber type.
+	 * @return
+	 * A new fiber type.
 	 */
 	public static AvailObject fiberType (final A_Type resultType)
 	{
@@ -276,9 +268,10 @@ extends TypeDescriptor
 		fiberType(TOP.o()).makeShared();
 
 	/**
-	 * Answer the most general {@linkplain FiberDescriptor fiber type}.
+	 * Answer the most general {@linkplain FiberDescriptor fiber&#32;type}.
 	 *
-	 * @return The most general fiber type.
+	 * @return
+	 * The most general fiber type.
 	 */
 	public static A_Type mostGeneralFiberType ()
 	{
@@ -286,15 +279,16 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * The metatype for all {@linkplain FiberTypeDescriptor fiber types}.
+	 * The metatype for all {@linkplain FiberTypeDescriptor fiber&#32;types}.
 	 */
 	private static final A_Type meta =
 		instanceMeta(mostGeneralFiberType).makeShared();
 
 	/**
-	 * Answer the metatype for all {@linkplain FiberTypeDescriptor fiber types}.
+	 * Answer the metatype for all {@linkplain FiberTypeDescriptor fiber&#32;types}.
 	 *
-	 * @return The metatype for all fiber types.
+	 * @return
+	 * The metatype for all fiber types.
 	 */
 	public static A_Type fiberMeta ()
 	{

@@ -72,18 +72,9 @@ import static com.avail.descriptor.types.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.types.UnfusedPojoTypeDescriptor.createUnfusedPojoType;
 
 /**
- * {@code ArrayPojoTypeDescriptor} describes Java array types. A Java array
- * type extends {@link Object java.lang.Object} and implements {@link
- * Cloneable java.lang.Cloneable} and {@link Serializable java.io.Serializable}.
- * It has an element type and a fixed size.
+ * {@code ArrayPojoTypeDescriptor} describes Java array types. A Java array type extends {@link Object java.lang.Object} and implements {@link Cloneable java.lang.Cloneable} and {@link Serializable java.io.Serializable}. It has an element type and a fixed size.
  *
- * <p>Avail expands upon these features in two ways. First, a pojo array type
- * may have any {@linkplain TypeDescriptor Avail type} as its element type; this
- * is, of course, a superset of pojo types. Second, it may express a range of
- * sizes, not just a single fixed size; this is analogous to the size ranges
- * supported by {@linkplain TupleTypeDescriptor tuple types}, {@linkplain
- * SetTypeDescriptor set types}, and {@linkplain MapTypeDescriptor map
- * types}.</p>
+ * Avail expands upon these features in two ways. First, a pojo array type may have any {@linkplain TypeDescriptor Avail type} as its element type; this is, of course, a superset of pojo types. Second, it may express a range of sizes, not just a single fixed size; this is analogous to the size ranges supported by {@linkplain TupleTypeDescriptor tuple types}, {@linkplain SetTypeDescriptor set types}, and {@linkplain MapTypeDescriptor map&#32;types}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -91,14 +82,11 @@ final class ArrayPojoTypeDescriptor
 extends PojoTypeDescriptor
 {
 	/**
-	 * {@code PojoArray} mimics the type properties of Java array types. It
-	 * extends {@link Object java.lang.Object} and implements {@link
-	 * Cloneable java.lang.Cloneable} and {@link Serializable
-	 * java.io.Serializable}, as required by the Java language specification.
-	 * The type parameter is used to specify the element type.
+	 * {@code PojoArray} mimics the type properties of Java array types. It extends {@link Object java.lang.Object} and implements {@link Cloneable java.lang.Cloneable} and {@link Serializable java.io.Serializable}, as required by the Java language specification. The type parameter is used to specify the element type.
 	 *
 	 * @author Todd L Smith &lt;todd@availlang.org&gt;
-	 * @param <T> The element type.
+	 * @param T
+	 *   The element type.
 	 */
 	@SuppressWarnings({
 		"AbstractClassNeverImplemented",
@@ -106,23 +94,19 @@ extends PojoTypeDescriptor
 		"unused"
 	})
 	abstract static class PojoArray<T>
-	implements Cloneable, Serializable
-	{
-	}
+	implements Cloneable, Serializable { }
 
 	/** The layout of the integer slots. */
 	enum IntegerSlots implements IntegerSlotsEnumJava
 	{
 		/**
-		 * The low 32 bits are used for the {@link #HASH_OR_ZERO}, but the upper
-		 * 32 can be used by other {@link BitField}s in subclasses.
+		 * The low 32 bits are used for the {@link #HASH_OR_ZERO}, but the upper 32 can be used by other {@link BitField}s in subclasses.
 		 */
 		@HideFieldInDebugger
 		HASH_AND_MORE;
 
 		/**
-		 * A slot to hold the hash value, or zero if it has not been computed.
-		 * The hash of an atom is a random number, computed once.
+		 * A slot to hold the hash value, or zero if it has not been computed. The hash of an atom is a random number, computed once.
 		 */
 		public static final BitField HASH_OR_ZERO =
 			new BitField(HASH_AND_MORE, 0, 32);
@@ -132,24 +116,17 @@ extends PojoTypeDescriptor
 	enum ObjectSlots implements ObjectSlotsEnumJava
 	{
 		/**
-		 * A lazy {@linkplain MapDescriptor map} from {@linkplain PojoDescriptor
-		 * pojos} that wrap {@linkplain Class Java classes and interfaces} to
-		 * their {@linkplain TupleDescriptor type parameterizations}. The
-		 * {@linkplain AvailObject#keysAsSet() keys} constitute this type's
-		 * complete {@linkplain SetDescriptor ancestry} of Java types.
+		 * A lazy {@linkplain MapDescriptor map} from {@linkplain PojoDescriptor pojos} that wrap {@linkplain Class Java&#32;classes&#32;and&#32;interfaces} to their {@linkplain TupleDescriptor type parameterizations}. The {@linkplain AvailObject#keysAsSet() keys} constitute this type's complete {@linkplain SetDescriptor ancestry} of Java types.
 		 */
 		JAVA_ANCESTORS,
 
 		/**
-		 * The {@linkplain TypeDescriptor type} of elements that may be read
-		 * from instances of this type. (We say "read" because Java incorrectly
-		 * treats arrays as though they are covariant data types.)
+		 * The {@linkplain TypeDescriptor type} of elements that may be read from instances of this type. (We say "read" because Java incorrectly treats arrays as though they are covariant data types.)
 		 */
 		CONTENT_TYPE,
 
 		/**
-		 * An {@linkplain IntegerRangeTypeDescriptor integer range} that
-		 * specifies all allowed array sizes for instances of this type.
+		 * An {@linkplain IntegerRangeTypeDescriptor integer range} that specifies all allowed array sizes for instances of this type.
 		 */
 		SIZE_RANGE
 	}
@@ -201,11 +178,12 @@ extends PojoTypeDescriptor
 	}
 
 	/**
-	 * Lazily compute and install the hash of the {@linkplain
-	 * ArrayPojoTypeDescriptor object}.
+	 * Lazily compute and install the hash of the {@linkplain ArrayPojoTypeDescriptor object}.
 	 *
-	 * @param object An object.
-	 * @return The hash.
+	 * @param object
+	 * An object.
+	 * @return
+	 * The hash.
 	 */
 	private static int hash (final AvailObject object)
 	{
@@ -478,10 +456,7 @@ extends PojoTypeDescriptor
 	}
 
 	/**
-	 * The {@linkplain MapDescriptor map} used by {@linkplain
-	 * ArrayPojoTypeDescriptor array pojo types}.  Note that this map does not
-	 * contain the entry for {@link PojoArray}, as this has to be specialized
-	 * per pojo array type.
+	 * The {@linkplain MapDescriptor map} used by {@linkplain ArrayPojoTypeDescriptor array pojo types}.  Note that this map does not contain the entry for {@link PojoArray}, as this has to be specialized per pojo array type.
 	 */
 	private static final A_Map arrayBaseAncestorMap;
 
@@ -508,20 +483,14 @@ extends PojoTypeDescriptor
 		ANY.o(), wholeNumbers()).makeShared();
 
 	/**
-	 * Create a new {@link AvailObject} that represents a {@linkplain
-	 * ArrayPojoTypeDescriptor pojo array type}.
+	 * Create a new {@link AvailObject} that represents a {@linkplain ArrayPojoTypeDescriptor pojo array type}.
 	 *
 	 * @param elementType
-	 *        The {@linkplain TypeDescriptor type} of elements that may be read
-	 *        from instances of this type. (We say "read" because Java
-	 *        incorrectly treats arrays as though they are covariant data
-	 *        types.)
+	 *        The {@linkplain TypeDescriptor type} of elements that may be read from instances of this type. (We say "read" because Java incorrectly treats arrays as though they are covariant data types.)
 	 * @param sizeRange
-	 *        An {@linkplain IntegerRangeTypeDescriptor integer range} that
-	 *        specifies all allowed array sizes for instances of this type. This
-	 *        must be a subtype of {@linkplain
-	 *        IntegerRangeTypeDescriptor#wholeNumbers() whole number}.
-	 * @return The requested pojo array type.
+	 *        An {@linkplain IntegerRangeTypeDescriptor integer range} that specifies all allowed array sizes for instances of this type. This must be a subtype of {@linkplain IntegerRangeTypeDescriptor#wholeNumbers() whole number}.
+	 * @return
+	 * The requested pojo array type.
 	 */
 	static AvailObject arrayPojoType (
 		final A_Type elementType,

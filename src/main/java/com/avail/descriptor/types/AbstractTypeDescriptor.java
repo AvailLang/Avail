@@ -51,11 +51,7 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 /**
- * {@code AbstractTypeDescriptor} explicitly defines the responsibilities of all
- * {@linkplain TypeDescriptor Avail types}. Many of these operations are
- * actually undefined in subclasses, in clear violation of the Liskov
- * substitution principle, yet this organization is still useful to see the
- * aggregate capabilities of Avail types.
+ * {@code AbstractTypeDescriptor} explicitly defines the responsibilities of all {@linkplain TypeDescriptor Avail&#32;types}. Many of these operations are actually undefined in subclasses, in clear violation of the Liskov substitution principle, yet this organization is still useful to see the aggregate capabilities of Avail types.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -525,13 +521,9 @@ extends Descriptor
 	 * @param typeTag
 	 *            The {@link TypeTag} to embed in the new descriptor.
 	 * @param objectSlotsEnumClass
-	 *            The Java {@link Class} which is a subclass of {@link
-	 *            ObjectSlotsEnum} and defines this object's object slots
-	 *            layout, or null if there are no object slots.
+	 *            The Java {@link Class} which is a subclass of {@link ObjectSlotsEnum} and defines this object's object slots layout, or null if there are no object slots.
 	 * @param integerSlotsEnumClass
-	 *            The Java {@link Class} which is a subclass of {@link
-	 *            IntegerSlotsEnum} and defines this object's object slots
-	 *            layout, or null if there are no integer slots.
+	 *            The Java {@link Class} which is a subclass of {@link IntegerSlotsEnum} and defines this object's object slots layout, or null if there are no integer slots.
 	 */
 	protected AbstractTypeDescriptor (
 		final Mutability mutability,

@@ -47,11 +47,7 @@ import static com.avail.descriptor.types.FunctionTypeDescriptor.mostGeneralFunct
 import static com.avail.descriptor.types.InstanceMetaDescriptor.instanceMeta;
 
 /**
- * A {@linkplain CompiledCodeTypeDescriptor compiled code type} is the type for
- * a {@linkplain CompiledCodeDescriptor compiled code object}.  It contains a
- * {@linkplain FunctionTypeDescriptor function type} with which it covaries.
- * That is, a compiled code type is a subtype of another if and only if the
- * first's related function type is a subtype of another's function type.
+ * A {@linkplain CompiledCodeTypeDescriptor compiled&#32;code&#32;type} is the type for a {@linkplain CompiledCodeDescriptor compiled&#32;code&#32;object}.  It contains a {@linkplain FunctionTypeDescriptor function&#32;type} with which it covaries. That is, a compiled code type is a subtype of another if and only if the first's related function type is a subtype of another's function type.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -65,10 +61,7 @@ extends TypeDescriptor
 	public enum ObjectSlots implements ObjectSlotsEnumJava
 	{
 		/**
-		 * The type of function that this {@linkplain CompiledCodeTypeDescriptor
-		 * compiled code type} supports.  Compiled code types are contravariant
-		 * with respect to the function type's argument types and covariant with
-		 * respect to the function type's return type.
+		 * The type of function that this {@linkplain CompiledCodeTypeDescriptor compiled&#32;code&#32;type} supports.  Compiled code types are contravariant with respect to the function type's argument types and covariant with respect to the function type's return type.
 		 */
 		FUNCTION_TYPE
 	}
@@ -102,10 +95,8 @@ extends TypeDescriptor
 	/**
 	 * {@inheritDoc}
 	 *
-	 * <p>
 	 * Compiled code types compare for equality by comparing their function
 	 * types.
-	 * </p>
 	 */
 	@Override
 	public boolean o_EqualsCompiledCodeType (
@@ -134,9 +125,7 @@ extends TypeDescriptor
 	/**
 	 * {@inheritDoc}
 	 *
-	 * <p>
 	 * Compiled code types exactly covary with their function types.
-	 * </p>
 	 */
 	@Override
 	public boolean o_IsSupertypeOfCompiledCodeType (
@@ -245,14 +234,12 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Create a compiled code type based on the passed {@linkplain
-	 * FunctionTypeDescriptor function type}. Ignore the function type's
-	 * exception set.
+	 * Create a compiled code type based on the passed {@linkplain FunctionTypeDescriptor function&#32;type}. Ignore the function type's exception set.
 	 *
 	 * @param functionType
-	 *        A {@linkplain FunctionTypeDescriptor function type} on which to
-	 *        base the new compiled code type.
-	 * @return A new compiled code type.
+	 *        A {@linkplain FunctionTypeDescriptor function type} on which to base the new compiled code type.
+	 * @return
+	 * A new compiled code type.
 	 */
 	public static AvailObject compiledCodeTypeForFunctionType (final A_BasicObject functionType)
 	{
@@ -314,8 +301,8 @@ extends TypeDescriptor
 	/**
 	 * Answer the most general compiled code type.
 	 *
-	 * @return A compiled code type which has no supertypes that are themselves
-	 *         compiled code types.
+	 * @return
+	 * A compiled code type which has no supertypes that are themselves compiled code types.
 	 */
 	public static A_Type mostGeneralCompiledCodeType ()
 	{
@@ -323,9 +310,7 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * The metatype for all compiled code types. In particular, it's just the
-	 * {@linkplain InstanceTypeDescriptor instance type} for the {@linkplain
-	 * #mostGeneralType most general compiled code type}.
+	 * The metatype for all compiled code types. In particular, it's just the {@linkplain InstanceTypeDescriptor instance type} for the {@linkplain #mostGeneralType most&#32;general&#32;compiled&#32;code&#32;type}.
 	 */
 	private static final A_Type meta =
 		instanceMeta(mostGeneralType).makeShared();
@@ -333,7 +318,8 @@ extends TypeDescriptor
 	/**
 	 * Answer the metatype for all compiled code types.
 	 *
-	 * @return The statically referenced metatype.
+	 * @return
+	 * The statically referenced metatype.
 	 */
 	public static A_Type meta ()
 	{

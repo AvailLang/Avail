@@ -72,24 +72,11 @@ import static com.avail.descriptor.types.TypeDescriptor.Types.TOP;
 import static com.avail.utility.Strings.newlineTab;
 
 /**
- * Function types are the types of {@linkplain FunctionDescriptor functions}.
- * They contain information about the {@linkplain TypeDescriptor types} of
- * arguments that may be accepted, the types of {@linkplain AvailObject values}
- * that may be produced upon successful execution, and the types of exceptions
- * that may be raised to signal unsuccessful execution.
+ * Function types are the types of {@linkplain FunctionDescriptor functions}. They contain information about the {@linkplain TypeDescriptor types} of arguments that may be accepted, the types of {@linkplain AvailObject values} that may be produced upon successful execution, and the types of exceptions that may be raised to signal unsuccessful execution.
  *
- * <p>Function types are contravariant by {@linkplain A_Type#argsTupleType()
- * argument types}, covariant by {@linkplain A_Type#returnType() return type},
- * and covariant by the coverage of types that are members of the {@linkplain
- * A_Type#declaredExceptions() exception set}.  I.e., if there is a type in the
- * exception set of A that isn't equal to or a subtype of an element of the
- * exception set of B, then A can't be a subtype of B.</p>
+ * Function types are contravariant by {@linkplain A_Type#argsTupleType() argument&#32;types}, covariant by {@linkplain A_Type#returnType() return&#32;type}, and covariant by the coverage of types that are members of the {@linkplain A_Type#declaredExceptions() exception&#32;set}.  I.e., if there is a type in the exception set of A that isn't equal to or a subtype of an element of the exception set of B, then A can't be a subtype of B.
  *
- * <p>Note that the {@link A_Type#argsTupleType()} can be {@linkplain
- * BottomTypeDescriptor#bottom() bottom} (⊥) instead of a tuple type.  Because
- * bottom is more specific than any tuple type, the resulting function type is
- * considered more general than one with a tuple type (if the other variances
- * also hold).</p>
+ * Note that the {@link A_Type#argsTupleType()} can be {@linkplain BottomTypeDescriptor#bottom() bottom} (⊥) instead of a tuple type.  Because bottom is more specific than any tuple type, the resulting function type is considered more general than one with a tuple type (if the other variances also hold).
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -122,18 +109,12 @@ extends TypeDescriptor
 	public enum ObjectSlots implements ObjectSlotsEnumJava
 	{
 		/**
-		 * The normalized {@linkplain SetDescriptor set} of checked exceptions
-		 * that may be raised by message sends performed from within a
-		 * {@linkplain FunctionDescriptor function} described by this
-		 * function type.
+		 * The normalized {@linkplain SetDescriptor set} of checked exceptions that may be raised by message sends performed from within a {@linkplain FunctionDescriptor function} described by this function type.
 		 */
 		DECLARED_EXCEPTIONS,
 
 		/**
-		 * The most general {@linkplain TypeDescriptor type} of {@linkplain
-		 * AvailObject value} that may be produced by a successful completion of
-		 * a {@linkplain FunctionDescriptor function} described by this
-		 * function type.
+		 * The most general {@linkplain TypeDescriptor type} of {@linkplain AvailObject value} that may be produced by a successful completion of a {@linkplain FunctionDescriptor function} described by this function type.
 		 */
 		RETURN_TYPE,
 
@@ -152,13 +133,16 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Prettily print the specified {@linkplain List list} of {@linkplain
-	 * AvailObject objects} to the specified {@linkplain StringBuilder stream}.
+	 * Prettily print the specified {@linkplain List list} of {@linkplain AvailObject objects} to the specified {@linkplain StringBuilder stream}.
 	 *
-	 * @param objects The objects to print.
-	 * @param aStream Where to print the objects.
-	 * @param recursionMap Which ancestor objects are currently being printed.
-	 * @param indent What level to indent subsequent lines.
+	 * @param objects
+	 * The objects to print.
+	 * @param aStream
+	 * Where to print the objects.
+	 * @param recursionMap
+	 * Which ancestor objects are currently being printed.
+	 * @param indent
+	 * What level to indent subsequent lines.
 	 */
 	private static void printListOnAvoidingIndent (
 		final List<A_BasicObject> objects,
@@ -281,15 +265,12 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * The hash value is stored raw in the object's {@linkplain
-	 * IntegerSlots#HASH_OR_ZERO hashOrZero} slot if it has been computed,
-	 * otherwise that slot is zero. If a zero is detected, compute the hash and
-	 * store it in hashOrZero. Note that the hash can (extremely rarely) be
-	 * zero, in which case the hash must be computed on demand every time it is
-	 * requested. Answer the raw hash value.
+	 * The hash value is stored raw in the object's {@linkplain IntegerSlots#HASH_OR_ZERO hashOrZero} slot if it has been computed, otherwise that slot is zero. If a zero is detected, compute the hash and store it in hashOrZero. Note that the hash can (extremely rarely) be zero, in which case the hash must be computed on demand every time it is requested. Answer the raw hash value.
 	 *
-	 * @param object The object.
-	 * @return The hash.
+	 * @param object
+	 * The object.
+	 * @return
+	 * The hash.
 	 */
 	private static int hash (final AvailObject object)
 	{
@@ -684,7 +665,8 @@ extends TypeDescriptor
 	/**
 	 * Answer the top (i.e., most general) function type.
 	 *
-	 * @return The function type "[…]→⊤".
+	 * @return
+	 * The function type "[…]→⊤".
 	 */
 	public static A_Type mostGeneralFunctionType ()
 	{
@@ -698,11 +680,10 @@ extends TypeDescriptor
 		instanceMeta(mostGeneralType).makeShared();
 
 	/**
-	 * Answer the metatype for all function types.  This is just an {@linkplain
-	 * InstanceTypeDescriptor instance type} on the {@linkplain
-	 * #mostGeneralFunctionType() most general type}.
+	 * Answer the metatype for all function types.  This is just an {@linkplain InstanceTypeDescriptor instance&#32;type} on the {@linkplain #mostGeneralFunctionType() most&#32;general&#32;type}.
 	 *
-	 * @return The (meta-)type of the function type "[…]→⊤".
+	 * @return
+	 * The (meta-)type of the function type "[…]→⊤".
 	 */
 	public static A_Type functionMeta ()
 	{
@@ -710,13 +691,12 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Normalize the specified exception {@linkplain SetDescriptor set} by
-	 * eliminating bottom and types for which a supertype is also present.
+	 * Normalize the specified exception {@linkplain SetDescriptor set} by eliminating bottom and types for which a supertype is also present.
 	 *
 	 * @param exceptionSet
-	 *        An exception {@linkplain SetDescriptor set}. Must include only
-	 *        {@linkplain TypeDescriptor types}.
-	 * @return A normalized exception {@linkplain SetDescriptor set}.
+	 *        An exception {@linkplain SetDescriptor set}. Must include only {@linkplain TypeDescriptor types}.
+	 * @return
+	 * A normalized exception {@linkplain SetDescriptor set}.
 	 * @see AvailObject#declaredExceptions()
 	 */
 	private static A_Set normalizeExceptionSet (
@@ -764,24 +744,16 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Answer a new function type whose instances accept arguments which, if
-	 * collected in a tuple, match the specified {@linkplain TupleTypeDescriptor
-	 * tuple type}.  The instances of this function type should also produce
-	 * values that conform to the return type, and may only raise checked
-	 * exceptions whose instances are subtypes of one or more members of the
-	 * supplied exception set.
+	 * Answer a new function type whose instances accept arguments which, if collected in a tuple, match the specified {@linkplain TupleTypeDescriptor tuple&#32;type}.  The instances of this function type should also produce values that conform to the return type, and may only raise checked exceptions whose instances are subtypes of one or more members of the supplied exception set.
 	 *
 	 * @param argsTupleType
-	 *        A {@linkplain TupleTypeDescriptor tuple type} describing the
-	 *        {@linkplain TypeDescriptor types} of the arguments that instances
-	 *        should accept.
+	 *        A {@linkplain TupleTypeDescriptor tuple&#32;type} describing the {@linkplain TypeDescriptor types} of the arguments that instances should accept.
 	 * @param returnType
-	 *        The {@linkplain TypeDescriptor type} of value that an instance
-	 *        should produce.
+	 *        The {@linkplain TypeDescriptor type} of value that an instance should produce.
 	 * @param exceptionSet
-	 *        The {@linkplain SetDescriptor set} of checked {@linkplain
-	 *        ObjectTypeDescriptor exception types} that an instance may raise.
-	 * @return A function type.
+	 *        The {@linkplain SetDescriptor set} of checked {@linkplain ObjectTypeDescriptor exception&#32;types} that an instance may raise.
+	 * @return
+	 * A function type.
 	 */
 	public static A_Type functionTypeFromArgumentTupleType (
 		final A_Type argsTupleType,
@@ -807,14 +779,11 @@ extends TypeDescriptor
 	 * the supplied exception set.
 	 *
 	 * @param argTypes
-	 *        A {@linkplain TupleDescriptor tuple} of {@linkplain TypeDescriptor
-	 *        types} of the arguments that instances should accept.
+	 *        A {@linkplain TupleDescriptor tuple} of {@linkplain TypeDescriptor types} of the arguments that instances should accept.
 	 * @param returnType
-	 *        The {@linkplain TypeDescriptor type} of value that an instance
-	 *        should produce.
+	 *        The {@linkplain TypeDescriptor type} of value that an instance should produce.
 	 * @param exceptionSet
-	 *        The {@linkplain SetDescriptor set} of checked {@linkplain
-	 *        ObjectTypeDescriptor exception types} that an instance may raise.
+	 *        The {@linkplain SetDescriptor set} of checked {@linkplain ObjectTypeDescriptor exception&#32;types} that an instance may raise.
 	 * @return A function type.
 	 */
 	public static A_Type functionType (
@@ -835,12 +804,11 @@ extends TypeDescriptor
 	 * exceptions.
 	 *
 	 * @param argTypes
-	 *        A {@linkplain TupleDescriptor tuple} of {@linkplain TypeDescriptor
-	 *        types} of the arguments that instances should accept.
+	 *        A {@linkplain TupleDescriptor tuple} of {@linkplain TypeDescriptor types} of the arguments that instances should accept.
 	 * @param returnType
-	 *        The {@linkplain TypeDescriptor type} of value that an instance
-	 *        should produce.
-	 * @return A function type.
+	 *        The {@linkplain TypeDescriptor type} of value that an instance should produce.
+	 * @return
+	 * A function type.
 	 */
 	public static A_Type functionType (
 		final A_Tuple argTypes,
@@ -855,8 +823,7 @@ extends TypeDescriptor
 	 * discussing things like a general function invocation operation.
 	 *
 	 * @param returnType
-	 *        The type of object returned by a function that conforms to the
-	 *        function type being defined.
+	 *        The type of object returned by a function that conforms to the function type being defined.
 	 * @return A function type.
 	 */
 	public static A_Type functionTypeReturning (

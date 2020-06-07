@@ -47,10 +47,7 @@ import static com.avail.descriptor.pojos.RawPojoDescriptor.rawNullPojo;
 import static com.avail.descriptor.representation.NilDescriptor.nil;
 
 /**
- * {@code BottomPojoTypeDescriptor} describes the type of Java {@code null},
- * which is implicitly an instance of every Java reference type. It therefore
- * describes the most specific Java reference type. Its only proper subtype is
- * Avail's own {@linkplain BottomTypeDescriptor bottom type}.
+ * {@code BottomPojoTypeDescriptor} describes the type of Java {@code null}, which is implicitly an instance of every Java reference type. It therefore describes the most specific Java reference type. Its only proper subtype is Avail's own {@linkplain BottomTypeDescriptor bottom type}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -283,17 +280,16 @@ extends PojoTypeDescriptor
 	}
 
 	/**
-	 * The most specific {@linkplain PojoTypeDescriptor pojo type},
-	 * other than {@linkplain BottomTypeDescriptor#bottom() bottom}.
+	 * The most specific {@linkplain PojoTypeDescriptor pojo type}, other than {@linkplain BottomTypeDescriptor#bottom() bottom}.
 	 */
 	private static final A_Type pojoBottom =
 		BottomPojoTypeDescriptor.mutable.create().makeShared();
 
 	/**
-	 * Answer the most specific {@linkplain PojoTypeDescriptor pojo
-	 * type}, other than {@linkplain BottomTypeDescriptor#bottom() bottom}.
+	 * Answer the most specific {@linkplain PojoTypeDescriptor pojo&#32;type}, other than {@linkplain BottomTypeDescriptor#bottom() bottom}.
 	 *
-	 * @return The most specific pojo type.
+	 * @return
+	 * The most specific pojo type.
 	 */
 	public static A_Type pojoBottom ()
 	{

@@ -52,27 +52,11 @@ import static com.avail.descriptor.types.FunctionTypeDescriptor.functionTypeRetu
 import static com.avail.descriptor.types.InstanceMetaDescriptor.instanceMeta;
 
 /**
- * Continuation types are the types of {@linkplain ContinuationDescriptor
- * continuations}.  They contain information about the {@linkplain
- * FunctionTypeDescriptor types of function} that can appear on the top stack
- * frame for a continuation of this type.
+ * Continuation types are the types of {@linkplain ContinuationDescriptor continuations}.  They contain information about the {@linkplain FunctionTypeDescriptor types&#32;of&#32;function} that can appear on the top stack frame for a continuation of this type.
  *
- * <p>
- * Continuations can be {@linkplain
- * P_RestartContinuationWithArguments restarted with a new tuple of
- * arguments}, so continuation types are contravariant with respect to their
- * function types' argument types.  Surprisingly, continuation types are also
- * contravariant with respect to their function types' return types.  This is
- * due to the capability to {@linkplain P_ExitContinuationWithResultIf exit} a
- * continuation with a specific value.
- * </p>
+ * Continuations can be {@linkplain P_RestartContinuationWithArguments restarted&#32;with&#32;a&#32;new&#32;tuple&#32;of&#32;arguments}, so continuation types are contravariant with respect to their function types' argument types.  Surprisingly, continuation types are also contravariant with respect to their function types' return types.  This is due to the capability to {@linkplain P_ExitContinuationWithResultIf exit} a continuation with a specific value.
  *
- * <p>
- * TODO: [MvG] If/when function types support checked exceptions we won't need
- * to mention them in continuation types, since invoking a continuation in any
- * way (restart, exit, resume) causes exception obligations/permissions to be
- * instantly voided.
- * </p>
+ * TODO: [MvG] If/when function types support checked exceptions we won't need to mention them in continuation types, since invoking a continuation in any way (restart, exit, resume) causes exception obligations/permissions to be instantly voided.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -85,11 +69,7 @@ extends TypeDescriptor
 	public enum ObjectSlots implements ObjectSlotsEnumJava
 	{
 		/**
-		 * The type of function that this {@linkplain ContinuationTypeDescriptor
-		 * continuation type} supports.  Continuation types are contravariant
-		 * with respect to the function type's argument types, and,
-		 * surprisingly, they are also contravariant with respect to the
-		 * function type's return type.
+		 * The type of function that this {@linkplain ContinuationTypeDescriptor continuation&#32;type} supports.  Continuation types are contravariant with respect to the function type's argument types, and, surprisingly, they are also contravariant with respect to the function type's return type.
 		 */
 		FUNCTION_TYPE
 	}
@@ -123,10 +103,8 @@ extends TypeDescriptor
 	/**
 	 * {@inheritDoc}
 	 *
-	 * <p>
 	 * Continuation types compare for equality by comparing their function
 	 * types.
-	 * </p>
 	 */
 	@Override
 	public boolean o_EqualsContinuationType (
@@ -155,14 +133,12 @@ extends TypeDescriptor
 	/**
 	 * {@inheritDoc}
 	 *
-	 * <p>
 	 * Since the only things that can be done with continuations are to restart
 	 * them or to exit them, continuation subtypes must accept any values that
 	 * could be passed as arguments or as the return value to the supertype.
 	 * Therefore, continuation types must be contravariant with respect to the
 	 * contained functionType's arguments, and also contravariant with respect
 	 * to the contained functionType's result type.
-	 * </p>
 	 */
 	@Override
 	public boolean o_IsSupertypeOfContinuationType (
@@ -277,14 +253,12 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Create a continuation type based on the passed
-	 * {@linkplain FunctionTypeDescriptor function type}. Ignore the function
-	 * type's exception set.
+	 * Create a continuation type based on the passed {@linkplain FunctionTypeDescriptor function&#32;type}. Ignore the function type's exception set.
 	 *
 	 * @param functionType
-	 *        A {@linkplain FunctionTypeDescriptor function type} on which to
-	 *        base the new continuation type.
-	 * @return A new continuation type.
+	 *        A {@linkplain FunctionTypeDescriptor function&#32;type} on which to base the new continuation type.
+	 * @return
+	 * A new continuation type.
 	 */
 	public static A_Type continuationTypeForFunctionType (
 		final A_Type functionType)
@@ -351,8 +325,8 @@ extends TypeDescriptor
 	/**
 	 * Answer the most general continuation type}.
 	 *
-	 * @return A continuation type which has no supertypes that are themselves
-	 *         continuation types.
+	 * @return
+	 * A continuation type which has no supertypes that are themselves continuation types.
 	 */
 	public static A_Type mostGeneralContinuationType ()
 	{
@@ -360,9 +334,7 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * The metatype for all continuation types.  In particular, it's just the
-	 * {@linkplain InstanceTypeDescriptor instance type} for the
-	 * {@link #mostGeneralContinuationType()}.
+	 * The metatype for all continuation types.  In particular, it's just the {@linkplain InstanceTypeDescriptor instance&#32;type} for the {@link #mostGeneralContinuationType()}.
 	 */
 	private static final A_Type meta =
 		instanceMeta(mostGeneralType).makeShared();
@@ -370,7 +342,8 @@ extends TypeDescriptor
 	/**
 	 * Answer the metatype for all continuation types.
 	 *
-	 * @return The statically referenced metatype.
+	 * @return
+	 * The statically referenced metatype.
 	 */
 	public static A_Type continuationMeta ()
 	{

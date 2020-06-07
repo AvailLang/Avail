@@ -53,12 +53,7 @@ import static com.avail.descriptor.types.MapTypeDescriptor.ObjectSlots.VALUE_TYP
 import static com.avail.descriptor.types.TypeDescriptor.Types.ANY;
 
 /**
- * An object instance of {@code MapTypeDescriptor} is a type which maps may
- * conform to. The map type has a {@linkplain ObjectSlots#SIZE_RANGE size
- * range}, and {@linkplain ObjectSlots#KEY_TYPE key} and {@linkplain
- * ObjectSlots#VALUE_TYPE value} types. For a map to conform to a map type, it
- * must be within the indicates size range and have keys and values of the
- * specified {@linkplain TypeDescriptor types}.
+ * An object instance of {@code MapTypeDescriptor} is a type which maps may conform to. The map type has a {@linkplain ObjectSlots#SIZE_RANGE size&#32;range}, and {@linkplain ObjectSlots#KEY_TYPE key} and {@linkplain ObjectSlots#VALUE_TYPE value} types. For a map to conform to a map type, it must be within the indicates size range and have keys and values of the specified {@linkplain TypeDescriptor types}.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -345,13 +340,14 @@ extends TypeDescriptor
 	 * constituent parts.
 	 *
 	 * @param sizesHash
-	 *        The hash of the {@linkplain IntegerRangeTypeDescriptor integer
-	 *        range type} that constrains the map size.
+	 *        The hash of the {@linkplain IntegerRangeTypeDescriptor integer&#32;range&#32;type} that constrains the map size.
 	 * @param keyTypeHash
 	 *        The hash of the key type.
 	 * @param valueTypeHash
 	 *        The hash of the value type.
-	 * @return The hash of the resulting map type.
+	 * @return
+	 *
+	 * The hash of the resulting map type.
 	 */
 	private static int computeHashForSizeRangeHashKeyTypeHashValueTypeHash (
 		final int sizesHash,
@@ -382,13 +378,13 @@ extends TypeDescriptor
 	 * </ul>
 	 *
 	 * @param sizeRange
-	 *        An {@linkplain IntegerRangeTypeDescriptor integer range type}
-	 *        specifying the permitted sizes of a map of the proposed type.
+	 *        An {@linkplain IntegerRangeTypeDescriptor integer&#32;range&#32;type} specifying the permitted sizes of a map of the proposed type.
 	 * @param keyType
 	 *        The type of all keys of maps of the proposed type.
 	 * @param valueType
 	 *        The type of all values of maps of the proposed type.
-	 * @return The requested map type.
+	 * @return
+	 * The requested map type.
 	 */
 	public static A_Type mapTypeForSizesKeyTypeValueType (
 		final A_Type sizeRange,
@@ -513,7 +509,8 @@ extends TypeDescriptor
 	/**
 	 * Answer the most general {@linkplain MapTypeDescriptor map type}.
 	 *
-	 * @return The most general map type.
+	 * @return
+	 * The most general map type.
 	 */
 	public static A_Type mostGeneralMapType ()
 	{
@@ -529,7 +526,8 @@ extends TypeDescriptor
 	/**
 	 * Answer the metatype for all map types.
 	 *
-	 * @return The statically referenced metatype.
+	 * @return
+	 * The statically referenced metatype.
 	 */
 	public static A_Type mapMeta ()
 	{

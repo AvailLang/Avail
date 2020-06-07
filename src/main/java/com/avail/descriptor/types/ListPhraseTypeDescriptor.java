@@ -64,18 +64,9 @@ import static com.avail.descriptor.types.TupleTypeDescriptor.zeroOrMoreOf;
 import static com.avail.descriptor.types.TupleTypeDescriptor.zeroOrOneOf;
 
 /**
- * Define the structure and behavior of {@link PhraseKind#LIST_PHRASE list
- * phrase types}.  List phrases are phrases that produce a tuple from a
- * particular tuple of any-yielding phrases.  Correspondingly, list phrase types
- * organize the part of the phrase type lattice related to list phrases.
+ * Define the structure and behavior of {@link PhraseKind#LIST_PHRASE list&#32;phrase&#32;types}.  List phrases are phrases that produce a tuple from a particular tuple of any-yielding phrases.  Correspondingly, list phrase types organize the part of the phrase type lattice related to list phrases.
  *
- * <p>A list phrase type preserves more than the {@link A_Type#expressionType()
- * yield type} of list phrases that comply with it.  It also preserves the types
- * of the phrases in the tuple of subexpressions (i.e., not just the types that
- * those phrases yield).  For example, a valid list phrase type might indicate
- * that a complying list phrase has a tuple of subexpressions with between 2 and
- * 5 elements, where the first subexpression must be a declaration and the other
- * subexpressions are all assignment phrases.</p>
+ * A list phrase type preserves more than the {@link A_Type#expressionType() yield&#32;type} of list phrases that comply with it.  It also preserves the types of the phrases in the tuple of subexpressions (i.e., not just the types that those phrases yield).  For example, a valid list phrase type might indicate that a complying list phrase has a tuple of subexpressions with between 2 and 5 elements, where the first subexpression must be a declaration and the other subexpressions are all assignment phrases.
  *
  * <p>This descriptor is also used for {@link PhraseKind#PERMUTED_LIST_PHRASE
  * permuted list phrase types}.  In that case, the subexpressions tuple type
@@ -149,8 +140,8 @@ extends PhraseTypeDescriptor
 	/**
 	 * {@inheritDoc}
 	 *
-	 * <p>List phrase types are equal when they have the same expression type
-	 * and same tuple type of subexpressions.</p>
+	 * List phrase types are equal when they have the same expression type
+	 * and same tuple type of subexpressions.
 	 */
 	@Override
 	public boolean o_Equals (
@@ -164,10 +155,10 @@ extends PhraseTypeDescriptor
 	/**
 	 * {@inheritDoc}
 	 *
-	 * <p>List phrase types are equal when they are of the same kind and have
+	 * List phrase types are equal when they are of the same kind and have
 	 * the same expression type and the same subexpressions tuple type.
 	 * However, aPhraseType can't be a list phrase type like the receiver
-	 * is.</p>
+	 * is.
 	 */
 	@Override
 	public boolean o_EqualsPhraseType (
@@ -372,8 +363,10 @@ extends PhraseTypeDescriptor
 	 * Create a list phrase type matching zero or more occurrences of arbitrary
 	 * phrases that yield the given type.
 	 *
-	 * @param type The type yielded by each element of the list phrase type.
-	 * @return A list phrase type.
+	 * @param type
+	 * The type yielded by each element of the list phrase type.
+	 * @return
+	 * A list phrase type.
 	 */
 	public static A_Type zeroOrMoreList (final A_Type type)
 	{
@@ -384,8 +377,10 @@ extends PhraseTypeDescriptor
 	 * Create a list phrase type matching zero or one occurrences of arbitrary
 	 * phrases that yield the given type.
 	 *
-	 * @param type The type yielded by each element of the list phrase type.
-	 * @return A list phrase type.
+	 * @param type
+	 * The type yielded by each element of the list phrase type.
+	 * @return
+	 * A list phrase type.
 	 */
 	public static A_Type zeroOrOneList (final A_Type type)
 	{
@@ -396,9 +391,10 @@ extends PhraseTypeDescriptor
 	 * Given an array of types, create the most general list phrase type which
 	 * has a yield type matching those types as a tuple.
 	 *
-	 * @param types The array of types yielded by corresponding elements of the
-	 *              list phrase type.
-	 * @return A list phrase type.
+	 * @param types
+	 * The array of types yielded by corresponding elements of the list phrase type.
+	 * @return
+	 * A list phrase type.
 	 */
 	public static A_Type list (final A_Type... types)
 	{
@@ -413,9 +409,9 @@ extends PhraseTypeDescriptor
 	 * @param minimumSize
 	 *        How small the list is permitted to be.
 	 * @param types
-	 *        The array of types yielded by corresponding elements of the list
-	 *        phrase type.
-	 * @return A list phrase type.
+	 *        The array of types yielded by corresponding elements of the list phrase type.
+	 * @return
+	 * A list phrase type.
 	 */
 	public static A_Type listPrefix (
 		final int minimumSize,
@@ -435,14 +431,13 @@ extends PhraseTypeDescriptor
 	 * mutual element constraints.
 	 *
 	 * @param kind
-	 *        The {@link PhraseKind} to instantiate.  This must be {@link
-	 *        PhraseKind#LIST_PHRASE} or a subkind.
+	 *        The {@link PhraseKind} to instantiate.  This must be {@link PhraseKind#LIST_PHRASE} or a subkind.
 	 * @param yieldType
 	 *        The tuple type that the list phrase will yield.
 	 * @param subexpressionsTupleType
-	 *        The tuple type of types of expression phrases that are the
-	 *        sub-phrases of the list phrase type.
-	 * @return A canonized list phrase type.
+	 *        The tuple type of types of expression phrases that are the sub-phrases of the list phrase type.
+	 * @return
+	 * A canonized list phrase type.
 	 */
 	public static A_Type createListNodeType (
 		final PhraseKind kind,
@@ -486,9 +481,9 @@ extends PhraseTypeDescriptor
 	 * Create a list phrase type with the given tuple type of expression types.
 	 *
 	 * @param subexpressionsTupleType
-	 *        The tuple type of types of expression phrases that are the
-	 *        sub-phrases of the list phrase type.
-	 * @return A canonized list phrase type.
+	 *        The tuple type of types of expression phrases that are the sub-phrases of the list phrase type.
+	 * @return
+	 * A canonized list phrase type.
 	 */
 	public static A_Type createListNodeType (
 		final A_Type subexpressionsTupleType)
@@ -523,12 +518,9 @@ extends PhraseTypeDescriptor
 	 * @param yieldType
 	 *        The tuple type that the list phrase will yield.
 	 * @param subexpressionsTupleType
-	 *        The tuple type of types of expression phrases that are the
-	 *        sub-phrases of the list phrase type.  For a permuted list phrase,
-	 *        this field relates to the permuted subexpressions, <em>not</em>
-	 *        the lexical order of subexpressions.  Thus, it is always in the
-	 *        same order as the yieldType.
-	 * @return A list phrase type.
+	 *        The tuple type of types of expression phrases that are the sub-phrases of the list phrase type.  For a permuted list phrase, this field relates to the permuted subexpressions, <em>not</em> the lexical order of subexpressions.  Thus, it is always in the same order as the yieldType.
+	 * @return
+	 * A list phrase type.
 	 */
 	static A_Type createListNodeTypeNoCheck (
 		final PhraseKind listNodeEnumKind,
@@ -564,8 +556,8 @@ extends PhraseTypeDescriptor
 	/**
 	 * Answer the empty list phrase's type.
 	 *
-	 * @return The {@code ListPhraseTypeDescriptor list phrase type} for the
-	 *         empty list phrase.
+	 * @return
+	 * The {@linkplain ListPhraseTypeDescriptor list&#32;phrase&#32;type} for the empty list phrase.
 	 */
 	public static A_Type emptyListPhraseType ()
 	{
