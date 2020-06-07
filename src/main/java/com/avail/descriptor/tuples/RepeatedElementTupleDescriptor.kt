@@ -29,551 +29,508 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.descriptor.tuples
 
-package com.avail.descriptor.tuples;
-
-import com.avail.annotations.HideFieldInDebugger;
-import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
-import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
-import com.avail.descriptor.character.A_Character;
-import com.avail.descriptor.representation.A_BasicObject;
-import com.avail.descriptor.representation.AvailObject;
-import com.avail.descriptor.representation.BitField;
-import com.avail.descriptor.representation.Mutability;
-import com.avail.descriptor.types.A_Type;
-
-import javax.annotation.Nullable;
-import java.util.Collections;
-import java.util.IdentityHashMap;
-
-import static com.avail.descriptor.representation.AvailObjectRepresentation.newLike;
-import static com.avail.descriptor.tuples.ByteStringDescriptor.generateByteString;
-import static com.avail.descriptor.tuples.ObjectTupleDescriptor.generateObjectTupleFrom;
-import static com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList;
-import static com.avail.descriptor.tuples.RepeatedElementTupleDescriptor.IntegerSlots.HASH_OR_ZERO;
-import static com.avail.descriptor.tuples.RepeatedElementTupleDescriptor.IntegerSlots.SIZE;
-import static com.avail.descriptor.tuples.RepeatedElementTupleDescriptor.ObjectSlots.ELEMENT;
-import static com.avail.descriptor.tuples.TreeTupleDescriptor.concatenateAtLeastOneTree;
-import static com.avail.descriptor.tuples.TreeTupleDescriptor.createTwoPartTreeTuple;
-import static com.avail.descriptor.tuples.TwoByteStringDescriptor.generateTwoByteString;
+import com.avail.descriptor.character.A_Character.Companion.codePoint
+import com.avail.descriptor.representation.*
+import com.avail.descriptor.representation.AvailObjectRepresentation.Companion.newLike
+import com.avail.descriptor.tuples.ByteStringDescriptor.Companion.generateByteString
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
+import com.avail.descriptor.tuples.TreeTupleDescriptor.Companion.concatenateAtLeastOneTree
+import com.avail.descriptor.tuples.TreeTupleDescriptor.Companion.createTwoPartTreeTuple
+import com.avail.descriptor.tuples.TwoByteStringDescriptor.Companion.generateTwoByteString
+import com.avail.descriptor.types.A_Type
+import java.util.*
 
 /**
- * {@code RepeatedElementTupleDescriptor} represents a tuple with a single ELEMENT repeated SIZE times. Note that SIZE is the number of tuple slots containing the element and is therefore the size of the tuple.
+ * `RepeatedElementTupleDescriptor` represents a tuple with a single ELEMENT
+ * repeated SIZE times. Note that SIZE is the number of tuple slots containing
+ * the element and is therefore the size of the tuple.
  *
  * @author Leslie Schultz &lt;leslie@availlang.org&gt;
+ *
+ * @constructor
+ * Construct a new `RepeatedElementTupleDescriptor`.
+ *
+ * @param mutability
+ *   How its instances can be shared or modified.
  */
-public final class RepeatedElementTupleDescriptor
-extends TupleDescriptor
+class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
+	: TupleDescriptor(
+		mutability, ObjectSlots::class.java, IntegerSlots::class.java)
 {
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots implements IntegerSlotsEnumJava
+	enum class IntegerSlots : IntegerSlotsEnum
 	{
-
 		/**
-		 * The low 32 bits are used for the {@link #HASH_OR_ZERO}, but the upper 32 can be used by other {@link BitField}s in subclasses of {@link TupleDescriptor}.
+		 * The low 32 bits are used for the [HASH_OR_ZERO], but the upper 32 can
+		 * be used by other [BitField]s in subclasses of [TupleDescriptor].
 		 */
-		@HideFieldInDebugger
 		HASH_AND_MORE;
 
-		/**
-		 * The number of elements in the tuple.
-		 *
-		 * The API's {@link AvailObject#tupleSize() tuple size accessor} currently returns a Java {@code int}, because there wasn't much of a problem limiting manually-constructed tuples to two billion elements. This restriction will eventually be removed.
-		 */
-		public static final BitField SIZE = new BitField(HASH_AND_MORE, 32, 32);
-
-		/**
-		 * A slot to hold the cached hash value of a tuple.  If zero, then the
-		 * hash value must be computed upon request.  Note that in the very rare
-		 * case that the hash value actually equals zero, the hash value has to
-		 * be computed every time it is requested.
-		 */
-		public static final BitField HASH_OR_ZERO =
-			new BitField(HASH_AND_MORE, 0, 32);
-
-		static
+		companion object
 		{
-			assert TupleDescriptor.IntegerSlots.HASH_AND_MORE.ordinal()
-				== HASH_AND_MORE.ordinal();
-			assert TupleDescriptor.IntegerSlots.HASH_OR_ZERO.isSamePlaceAs(
-				HASH_OR_ZERO);
+			/**
+			 * The number of elements in the tuple.
+			 *
+			 * The API's [tuple size accessor][AvailObject.tupleSize] currently
+			 * returns a Java `int`, because there wasn't much of a problem
+			 * limiting manually-constructed tuples to two billion elements.
+			 * This restriction will eventually be removed.
+			 */
+			val SIZE = BitField(HASH_AND_MORE, 32, 32)
+
+			/**
+			 * A slot to hold the cached hash value of a tuple.  If zero, then
+			 * the hash value must be computed upon request.  Note that in the
+			 * very rare case that the hash value actually equals zero, the hash
+			 * value has to be computed every time it is requested.
+			 */
+			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
+
+			init
+			{
+				assert(TupleDescriptor.IntegerSlots.HASH_AND_MORE.ordinal
+						   == HASH_AND_MORE.ordinal)
+				assert(TupleDescriptor.IntegerSlots.HASH_OR_ZERO.isSamePlaceAs(
+					HASH_OR_ZERO))
+			}
 		}
 	}
 
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnumJava
+	enum class ObjectSlots : ObjectSlotsEnum
 	{
-		/** The element to be repeated. */
+		/** The element to be repeated.  */
 		ELEMENT
 	}
 
-	/**
-	 * The minimum size for repeated element tuple creation. All tuples
-	 * requested below this size will be created as standard tuples or the empty
-	 * tuple.
-	 */
-	private static final int minimumRepeatSize = 2;
+	override fun o_IsRepeatedElementTuple(self: AvailObject): Boolean = true
 
-	@Override
-	public boolean o_IsRepeatedElementTuple(final AvailObject object)
+	override fun printObjectOnAvoidingIndent(
+		self: AvailObject,
+		builder: StringBuilder,
+		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		indent: Int)
 	{
-		return true;
-	}
-
-	@Override
-	public void printObjectOnAvoidingIndent (
-		final AvailObject object,
-		final StringBuilder aStream,
-		final IdentityHashMap<A_BasicObject, Void> recursionMap,
-		final int indent)
-	{
-		final int size = object.slot(SIZE);
+		val size = self.slot(IntegerSlots.SIZE)
 		if (size < minimumRepeatSize)
 		{
 			super.printObjectOnAvoidingIndent(
-				object,
-				aStream,
+				self,
+				builder,
 				recursionMap,
-				indent);
+				indent)
 		}
 		else
 		{
-			aStream.append(size);
-			aStream.append(" of ");
-			object.slot(ELEMENT).printOnAvoidingIndent(
-				aStream,
+			builder.append(size)
+			builder.append(" of ")
+			self.slot(ObjectSlots.ELEMENT).printOnAvoidingIndent(
+				builder,
 				recursionMap,
-				indent + 1);
+				indent + 1)
 		}
 	}
 
-	@Override
-	public A_Tuple o_CopyTupleFromToCanDestroy (
-		final AvailObject object,
-		final int start,
-		final int end,
-		final boolean canDestroy)
+	override fun o_CopyTupleFromToCanDestroy(
+		self: AvailObject,
+		start: Int,
+		end: Int,
+		canDestroy: Boolean): A_Tuple
 	{
 		// Ensure parameters are in bounds
-		final int oldSize = object.slot(SIZE);
-		assert 1 <= start && start <= end + 1 && end <= oldSize;
-		final int newSize = end - start + 1;
+		val oldSize = self.slot(IntegerSlots.SIZE)
+		assert(1 <= start && start <= end + 1 && end <= oldSize)
+		val newSize = end - start + 1
 
 		// If the requested copy is a proper subrange, create it.
 		if (newSize != oldSize)
 		{
-			if (isMutable() && canDestroy)
+			if (isMutable && canDestroy)
 			{
 				// Recycle the object.
-				object.setSlot(SIZE, newSize);
-				return object;
+				self.setSlot(IntegerSlots.SIZE, newSize)
+				return self
 			}
-			return createRepeatedElementTuple(newSize, object.slot(ELEMENT));
+			return createRepeatedElementTuple(
+				newSize, self.slot(ObjectSlots.ELEMENT))
 		}
 
 		// Otherwise, this method is requesting a full copy of the original.
-		if (isMutable() && !canDestroy)
+		if (isMutable && !canDestroy)
 		{
-			object.makeImmutable();
+			self.makeImmutable()
 		}
-		return object;
+		return self
 	}
 
-	@Override
-	public boolean o_CompareFromToWithStartingAt (
-		final AvailObject object,
-		final int startIndex1,
-		final int endIndex1,
-		final A_Tuple anotherObject,
-		final int startIndex2)
+	override fun o_CompareFromToWithStartingAt(
+		self: AvailObject,
+		startIndex1: Int,
+		endIndex1: Int,
+		anotherObject: A_Tuple,
+		startIndex2: Int): Boolean
 	{
 		return anotherObject.compareFromToWithRepeatedElementTupleStartingAt(
 			startIndex2,
 			startIndex2 + endIndex1 - startIndex1,
-			object,
-			startIndex1);
+			self,
+			startIndex1)
 	}
 
-	@Override
-	public boolean o_CompareFromToWithRepeatedElementTupleStartingAt (
-		final AvailObject object,
-		final int startIndex1,
-		final int endIndex1,
-		final A_Tuple aRepeatedElementTuple,
-		final int startIndex2)
+	override fun o_CompareFromToWithRepeatedElementTupleStartingAt(
+		self: AvailObject,
+		startIndex1: Int,
+		endIndex1: Int,
+		aRepeatedElementTuple: A_Tuple,
+		startIndex2: Int): Boolean
 	{
-		if (object.sameAddressAs(aRepeatedElementTuple))
+		if (self.sameAddressAs(aRepeatedElementTuple))
 		{
 			// The objects refer to the same memory, and the lengths being
 			// compared are the same, and we don't care about the offsets, so
 			// they're equal.
-			return true;
+			return true
 		}
-
-		if (object.slot(ELEMENT).equals(aRepeatedElementTuple.tupleAt(1)))
+		if (self.slot(ObjectSlots.ELEMENT).equals(
+				aRepeatedElementTuple.tupleAt(1)))
 		{
 			// The elements are the same, so the subranges must be as well.
 			// Coalesce equal tuples as a nicety.
-			if (object.slot(SIZE) == aRepeatedElementTuple.tupleSize())
+			if (self.slot(IntegerSlots.SIZE) == aRepeatedElementTuple.tupleSize())
 			{
 				// Indirect one to the other if it is not shared.
-				if (!isShared())
+				if (!isShared)
 				{
-					aRepeatedElementTuple.makeImmutable();
-					object.becomeIndirectionTo(aRepeatedElementTuple);
+					aRepeatedElementTuple.makeImmutable()
+					self.becomeIndirectionTo(aRepeatedElementTuple)
 				}
-				else if (!aRepeatedElementTuple.descriptor().isShared())
+				else if (!aRepeatedElementTuple.descriptor().isShared)
 				{
-					object.makeImmutable();
-					aRepeatedElementTuple.becomeIndirectionTo(object);
+					self.makeImmutable()
+					aRepeatedElementTuple.becomeIndirectionTo(self)
 				}
 			}
 			// Regardless of the starting positions, the subranges are the same.
-			return true;
+			return true
 		}
 
 		// The elements differ, so the subranges must differ.
-		return false;
+		return false
 	}
 
-	@Override
-	public A_Tuple o_ConcatenateWith (
-		final AvailObject object,
-		final A_Tuple otherTuple,
-		final boolean canDestroy)
+	override fun o_ConcatenateWith(
+		self: AvailObject,
+		otherTuple: A_Tuple,
+		canDestroy: Boolean): A_Tuple
 	{
 		if (!canDestroy)
 		{
-			object.makeImmutable();
-			otherTuple.makeImmutable();
+			self.makeImmutable()
+			otherTuple.makeImmutable()
 		}
 
 		// Assess the possibility that the concatenation will still be a
 		// repeated element tuple.
-		if (otherTuple.isRepeatedElementTuple())
+		if (otherTuple.isRepeatedElementTuple)
 		{
-			final AvailObject otherDirect = otherTuple.traversed();
-			final AvailObject element = object.slot(ELEMENT);
+			val otherDirect = otherTuple.traversed()
+			val element = self.slot(ObjectSlots.ELEMENT)
 
 			// If the other's element is the same as mine,
-			if (element.equals(otherDirect.slot(ELEMENT)))
+			if (element.equals(otherDirect.slot(ObjectSlots.ELEMENT)))
 			{
 				// then we can be concatenated.
-				final int newSize = object.slot(SIZE) +
-					otherDirect.slot(SIZE);
+				val newSize = self.slot(IntegerSlots.SIZE) +
+							  otherDirect.slot(IntegerSlots.SIZE)
 
 				// If we can do replacement in place,
 				// use me for the return value.
-				if (isMutable())
+				if (isMutable)
 				{
-					object.setSlot(SIZE, newSize);
-					object.setHashOrZero(0);
-					return object;
+					self.setSlot(IntegerSlots.SIZE, newSize)
+					self.setHashOrZero(0)
+					return self
 				}
 				// Or the other one.
-				if (otherTuple.descriptor().isMutable())
+				if (otherTuple.descriptor().isMutable)
 				{
-					otherDirect.setSlot(SIZE, newSize);
-					otherDirect.setHashOrZero(0);
-					return otherDirect;
+					otherDirect.setSlot(IntegerSlots.SIZE, newSize)
+					otherDirect.setHashOrZero(0)
+					return otherDirect
 				}
 
 				// Otherwise, create a new repeated element tuple.
-				return createRepeatedElementTuple(newSize, element);
+				return createRepeatedElementTuple(newSize, element)
 			}
 		}
-		if (otherTuple.treeTupleLevel() == 0)
+		return if (otherTuple.treeTupleLevel() == 0)
 		{
 			if (otherTuple.tupleSize() == 0)
 			{
 				// Trees aren't allowed to have empty subtuples.
-				return object;
+				self
 			}
-			return createTwoPartTreeTuple(object, otherTuple, 1, 0);
+			else
+			{
+				createTwoPartTreeTuple(self, otherTuple, 1, 0)
+			}
 		}
-		return concatenateAtLeastOneTree(object, otherTuple, true);
+		else
+		{
+			concatenateAtLeastOneTree(self, otherTuple, true)
+		}
 	}
 
-	@Override
-	public boolean o_Equals (final AvailObject object, final A_BasicObject another)
-	{
-		return another.equalsRepeatedElementTuple(object);
-	}
+	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean =
+		another.equalsRepeatedElementTuple(self)
 
-	@Override
-	public boolean o_EqualsRepeatedElementTuple (
-		final AvailObject object,
-		final A_Tuple aRepeatedElementTuple)
+	override fun o_EqualsRepeatedElementTuple(
+		self: AvailObject,
+		aRepeatedElementTuple: A_Tuple): Boolean
 	{
 		// First, check for object-structure (address) identity.
-		if (object.sameAddressAs(aRepeatedElementTuple))
+		if (self.sameAddressAs(aRepeatedElementTuple))
 		{
-			return true;
+			return true
 		}
 
 		// If the objects do not refer to the same memory, check if the tuples
 		// are identical.
-		final AvailObject secondTraversed = aRepeatedElementTuple.traversed();
+		val secondTraversed = aRepeatedElementTuple.traversed()
 
 		// Check that the slots match.
-		final int firstHash = object.slot(HASH_OR_ZERO);
-		final int secondHash = secondTraversed.slot(HASH_OR_ZERO);
+		val firstHash = self.slot(IntegerSlots.HASH_OR_ZERO)
+		val secondHash = secondTraversed.slot(IntegerSlots.HASH_OR_ZERO)
 		if (firstHash != 0 && secondHash != 0 && firstHash != secondHash)
 		{
-			return false;
+			return false
 		}
-		if (object.slot(SIZE) != secondTraversed.slot(SIZE))
+		if (self.slot(IntegerSlots.SIZE) != secondTraversed.slot(
+				IntegerSlots.SIZE))
 		{
-			return false;
+			return false
 		}
-		if (!object.slot(ELEMENT).equals(secondTraversed.slot(ELEMENT)))
+		if (!self.slot(ObjectSlots.ELEMENT).equals(
+				secondTraversed.slot(ObjectSlots.ELEMENT)))
 		{
-			return false;
+			return false
 		}
 
 		// All the slots match. Indirect one to the other if it is not shared.
-		if (!isShared())
+		if (!isShared)
 		{
-			aRepeatedElementTuple.makeImmutable();
-			object.becomeIndirectionTo(aRepeatedElementTuple);
+			aRepeatedElementTuple.makeImmutable()
+			self.becomeIndirectionTo(aRepeatedElementTuple)
 		}
-		else if (!aRepeatedElementTuple.descriptor().isShared())
+		else if (!aRepeatedElementTuple.descriptor().isShared)
 		{
-			object.makeImmutable();
-			aRepeatedElementTuple.becomeIndirectionTo(object);
+			self.makeImmutable()
+			aRepeatedElementTuple.becomeIndirectionTo(self)
 		}
-		return true;
-
+		return true
 	}
 
-	@Override
-	public int o_BitsPerEntry (final AvailObject object)
-	{
-		// Consider a billion-element tuple. Since a repeated element tuple
-		// requires only O(1) storage, irrespective of its size, the average
-		// bits per entry is 0.
-		return 0;
-	}
+	// Consider a billion-element tuple. Since a repeated element tuple
+	// requires only O(1) storage, irrespective of its size, the average
+	// bits per entry is 0.
+	override fun o_BitsPerEntry(self: AvailObject): Int = 0
 
-	@Override
-	public AvailObject o_TupleAt (final AvailObject object, final int index)
+	override fun o_TupleAt(self: AvailObject, index: Int): AvailObject
 	{
 		// Answer the value at the given index in the tuple object.
 		// Every element in this tuple is identical.
-		assert index >= 1 && index <= object.slot(SIZE);
-		return object.slot(ELEMENT);
+		assert(index >= 1 && index <= self.slot(IntegerSlots.SIZE))
+		return self.slot(ObjectSlots.ELEMENT)
 	}
 
-	@Override
-	public A_Tuple o_TupleAtPuttingCanDestroy (
-		final AvailObject object,
-		final int index,
-		final A_BasicObject newValueObject,
-		final boolean canDestroy)
+	override fun o_TupleAtPuttingCanDestroy(
+		self: AvailObject,
+		index: Int,
+		newValueObject: A_BasicObject,
+		canDestroy: Boolean): A_Tuple
 	{
 		// Answer a tuple with all the elements of object except at the given
 		// index we should have newValueObject. This may destroy the original
 		// tuple if canDestroy is true.
-		final int size = object.slot(SIZE);
-		assert index >= 1 && index <= size;
-		final AvailObject element = object.slot(ELEMENT);
+		val size = self.slot(IntegerSlots.SIZE)
+		assert(index in 1 .. size)
+		val element = self.slot(ObjectSlots.ELEMENT)
 		if (element.equals(newValueObject))
 		{
 			// Replacement is the same as the repeating element.
 			if (!canDestroy)
 			{
-				object.makeImmutable();
+				self.makeImmutable()
 			}
-			return object;
+			return self
 		}
 		if (size < 64)
 		{
 			// The result will be reasonably small, so make it flat.
-			element.makeImmutable();
-			@Nullable A_Tuple result = null;
-			if (element.isInt())
+			element.makeImmutable()
+			var result: A_Tuple? = null
+			if (element.isInt)
 			{
 				// Make it a numeric tuple.
 				result = tupleFromIntegerList(
-					Collections.nCopies(size, element.extractInt()));
+					Collections.nCopies(size, element.extractInt()))
 			}
-			else if (element.isCharacter())
+			else if (element.isCharacter)
 			{
 				// Make it a string.
-				final int codePoint = A_Character.Companion.codePoint(element);
+				val codePoint: Int = element.codePoint()
 				if (codePoint <= 255)
 				{
-					result = generateByteString(size, ignored -> codePoint);
+					result = generateByteString(size) { codePoint }
 				}
 				else if (codePoint <= 65535)
 				{
-					result = generateTwoByteString(size, ignored -> codePoint);
+					result = generateTwoByteString(size) { codePoint }
 				}
 			}
-			if (result == null)
+			if (result === null)
 			{
-				result = generateObjectTupleFrom(size, i -> element);
+				result = generateObjectTupleFrom(size) { element }
 			}
 			// Replace the element, which might need to switch representation in
 			// some cases which we assume are infrequent.
-			return result.tupleAtPuttingCanDestroy(index, newValueObject, true);
+			return result.tupleAtPuttingCanDestroy(index, newValueObject, true)
 		}
 		// Otherwise, a flat tuple would be unacceptably large, so use append
 		// and concatenate to construct what will probably be a tree tuple.
-		final A_Tuple left = object.copyTupleFromToCanDestroy(
-			1, index - 1, false);
-		final A_Tuple right = object.copyTupleFromToCanDestroy(
-			index + 1, size, false);
+		val left = self.copyTupleFromToCanDestroy(
+			1, index - 1, false)
+		val right = self.copyTupleFromToCanDestroy(
+			index + 1, size, false)
 		return left.appendCanDestroy(newValueObject, true).concatenateWith(
-			right, true);
+			right, true)
 	}
 
-	@Override
-	public A_Tuple o_AppendCanDestroy (
-		final AvailObject object,
-		final A_BasicObject newElement,
-		final boolean canDestroy)
+	override fun o_AppendCanDestroy(
+		self: AvailObject,
+		newElement: A_BasicObject,
+		canDestroy: Boolean): A_Tuple
 	{
-		if (object.slot(ELEMENT).equals(newElement))
+		if (self.slot(ObjectSlots.ELEMENT).equals(newElement))
 		{
-			final AvailObject result = canDestroy && isMutable()
-				?  object
-				: newLike(mutable, object, 0, 0);
-			result.setSlot(SIZE, object.slot(SIZE) + 1);
-			result.setSlot(HASH_OR_ZERO, 0);
-			return result;
+			val result =
+				if (canDestroy && isMutable) self
+				else newLike(mutable, self, 0, 0)
+			result.setSlot(IntegerSlots.SIZE, self.slot(IntegerSlots.SIZE) + 1)
+			result.setSlot(IntegerSlots.HASH_OR_ZERO, 0)
+			return result
 		}
 		// Transition to a tree tuple.
-		final A_Tuple singleton = tuple(newElement);
-		return object.concatenateWith(singleton, canDestroy);
+		val singleton = tuple(newElement)
+		return self.concatenateWith(singleton, canDestroy)
 	}
 
-	@Override
-	public int o_TupleIntAt (final AvailObject object, final int index)
+	override fun o_TupleIntAt(self: AvailObject, index: Int): Int
 	{
 		// Answer the value at the given index in the tuple object.
-		assert 1 <= index && index <= object.slot(SIZE);
-		return object.slot(ELEMENT).extractInt();
+		assert(1 <= index && index <= self.slot(IntegerSlots.SIZE))
+		return self.slot(ObjectSlots.ELEMENT).extractInt()
 	}
 
-	@Override
-	public A_Tuple o_TupleReverse (final AvailObject object)
+	override fun o_TupleReverse(self: AvailObject): A_Tuple = self
+
+	override fun o_TupleSize(self: AvailObject): Int =
+		self.slot(IntegerSlots.SIZE)
+
+	override fun o_TupleElementsInRangeAreInstancesOf(
+		self: AvailObject,
+		startIndex: Int,
+		endIndex: Int,
+		type: A_Type): Boolean
 	{
-		return object;
+		return self.slot(ObjectSlots.ELEMENT).isInstanceOf(type)
 	}
 
-	@Override
-	public int o_TupleSize (final AvailObject object)
+	override fun mutable(): RepeatedElementTupleDescriptor = mutable
+
+	override fun immutable(): RepeatedElementTupleDescriptor = immutable
+
+	override fun shared(): RepeatedElementTupleDescriptor = shared
+
+	companion object
 	{
-		return object.slot(SIZE);
-	}
+		/**
+		 * The minimum size for repeated element tuple creation. All tuples
+		 * requested below this size will be created as standard tuples or the
+		 * empty tuple.
+		 */
+		private const val minimumRepeatSize = 2
 
-	@Override
-	public boolean o_TupleElementsInRangeAreInstancesOf (
-		final AvailObject object,
-		final int startIndex,
-		final int endIndex,
-		final A_Type type)
-	{
-		return object.slot(ELEMENT).isInstanceOf(type);
-	}
+		/** The mutable [RepeatedElementTupleDescriptor].  */
+		val mutable = RepeatedElementTupleDescriptor(Mutability.MUTABLE)
 
-	/** The mutable {@link RepeatedElementTupleDescriptor}. */
-	public static final RepeatedElementTupleDescriptor mutable =
-		new RepeatedElementTupleDescriptor(Mutability.MUTABLE);
+		/** The immutable [RepeatedElementTupleDescriptor].  */
+		private val immutable =
+			RepeatedElementTupleDescriptor(Mutability.IMMUTABLE)
 
-	@Override
-	public RepeatedElementTupleDescriptor mutable ()
-	{
-		return mutable;
-	}
+		/** The shared [RepeatedElementTupleDescriptor].  */
+		private val shared = RepeatedElementTupleDescriptor(Mutability.SHARED)
 
-	/** The immutable {@link RepeatedElementTupleDescriptor}. */
-	private static final RepeatedElementTupleDescriptor immutable =
-		new RepeatedElementTupleDescriptor(Mutability.IMMUTABLE);
-
-	@Override
-	public RepeatedElementTupleDescriptor immutable ()
-	{
-		return immutable;
-	}
-
-	/** The shared {@link RepeatedElementTupleDescriptor}. */
-	private static final RepeatedElementTupleDescriptor shared =
-		new RepeatedElementTupleDescriptor(Mutability.SHARED);
-
-	@Override
-	public RepeatedElementTupleDescriptor shared ()
-	{
-		return shared;
-	}
-
-	/**
-	 * Construct a new {@code RepeatedElementTupleDescriptor}.
-	 *
-	 * @param mutability
-	 * How its instances can be shared or modified.
-	 */
-	private RepeatedElementTupleDescriptor (final Mutability mutability)
-	{
-		super(mutability, ObjectSlots.class, IntegerSlots.class);
-	}
-
-	/**
-	 * Create a new repeated element tuple according to the parameters.
-	 *
-	 * @param size
-	 * The number of repetitions of the element.
-	 * @param element
-	 * The value to be repeated.
-	 * @return
-	 * The new repeated element tuple.
-	 */
-	public static A_Tuple createRepeatedElementTuple (
-		final int size,
-		final A_BasicObject element)
-	{
-		// If there are no members in the range, return the empty tuple.
-		if (size == 0)
+		/**
+		 * Create a new repeated element tuple according to the parameters.
+		 *
+		 * @param size
+		 *   The number of repetitions of the element.
+		 * @param element
+		 *   The value to be repeated.
+		 * @return
+		 *   The new repeated element tuple.
+		 */
+		@JvmStatic
+		fun createRepeatedElementTuple(
+			size: Int,
+			element: A_BasicObject): A_Tuple
 		{
-			return emptyTuple();
+			// If there are no members in the range, return the empty tuple.
+			if (size == 0)
+			{
+				return emptyTuple()
+			}
+
+			// If there are fewer than minimumRepeatSize members in this tuple,
+			// create a normal tuple with them in it instead.
+			return if (size < minimumRepeatSize)
+			{
+				tupleFromList<A_BasicObject>(Collections.nCopies(size, element))
+			}
+			else forceCreate(size, element)
+
+			// No other efficiency shortcuts. Create a repeated element tuple.
 		}
 
-		// If there are fewer than minimumRepeatSize members in this tuple,
-		// create a normal tuple with them in it instead.
-		if (size < minimumRepeatSize)
+		/**
+		 * Create a new RepeatedElement using the supplied arguments,
+		 * regardless of the suitability of other representations.
+		 *
+		 * @param size
+		 *   The number of repetitions of the element.
+		 * @param element
+		 *   The value to be repeated.
+		 * @return
+		 *   The new repeated element tuple.
+		 */
+		fun forceCreate(
+			size: Int,
+			element: A_BasicObject?): A_Tuple
 		{
-			return tupleFromList(Collections.nCopies(size, element));
+			val repeatedElementTuple = mutable.create()
+			repeatedElementTuple.setSlot(IntegerSlots.HASH_OR_ZERO, 0)
+			repeatedElementTuple.setSlot(IntegerSlots.SIZE, size)
+			repeatedElementTuple.setSlot(ObjectSlots.ELEMENT, element!!)
+			return repeatedElementTuple
 		}
-
-		// No other efficiency shortcuts. Create a repeated element tuple.
-		return forceCreate(size, element);
-	}
-
-	/**
-	 * Create a new RepeatedElement using the supplied arguments,
-	 * regardless of the suitability of other representations.
-	 *
-	 * @param size
-	 * The number of repetitions of the element.
-	 * @param element
-	 * The value to be repeated.
-	 * @return
-	 * The new repeated element tuple.
-	 */
-	static A_Tuple forceCreate (
-		final int size,
-		final A_BasicObject element)
-	{
-		final AvailObject repeatedElementTuple = mutable.create();
-		repeatedElementTuple.setSlot(HASH_OR_ZERO, 0);
-		repeatedElementTuple.setSlot(SIZE, size);
-		repeatedElementTuple.setSlot(ELEMENT, element);
-		return repeatedElementTuple;
 	}
 }
