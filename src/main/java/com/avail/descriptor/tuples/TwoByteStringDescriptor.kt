@@ -29,615 +29,565 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.descriptor.tuples
 
-package com.avail.descriptor.tuples;
-
-import com.avail.annotations.HideFieldInDebugger;
-import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
-import com.avail.descriptor.character.A_Character;
-import com.avail.descriptor.representation.A_BasicObject;
-import com.avail.descriptor.representation.AvailObject;
-import com.avail.descriptor.representation.BitField;
-import com.avail.descriptor.representation.Mutability;
-import org.jetbrains.annotations.NotNull;
-
-import javax.annotation.Nullable;
-import java.util.function.IntUnaryOperator;
-
-import static com.avail.descriptor.character.CharacterDescriptor.computeHashOfCharacterWithCodePoint;
-import static com.avail.descriptor.character.CharacterDescriptor.fromCodePoint;
-import static com.avail.descriptor.representation.AvailObject.multiplier;
-import static com.avail.descriptor.representation.AvailObject.newLike;
-import static com.avail.descriptor.representation.Mutability.IMMUTABLE;
-import static com.avail.descriptor.representation.Mutability.MUTABLE;
-import static com.avail.descriptor.representation.Mutability.SHARED;
-import static com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.tuples.TreeTupleDescriptor.concatenateAtLeastOneTree;
-import static com.avail.descriptor.tuples.TreeTupleDescriptor.createTwoPartTreeTuple;
-import static com.avail.descriptor.tuples.TwoByteStringDescriptor.IntegerSlots.HASH_OR_ZERO;
-import static com.avail.descriptor.tuples.TwoByteStringDescriptor.IntegerSlots.RAW_LONGS_;
+import com.avail.descriptor.character.A_Character
+import com.avail.descriptor.character.A_Character.Companion.codePoint
+import com.avail.descriptor.character.CharacterDescriptor.Companion.computeHashOfCharacterWithCodePoint
+import com.avail.descriptor.character.CharacterDescriptor.Companion.fromCodePoint
+import com.avail.descriptor.representation.*
+import com.avail.descriptor.representation.AvailObjectRepresentation.Companion.newLike
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import com.avail.descriptor.tuples.TwoByteStringDescriptor.IntegerSlots
 
 /**
- * A {@linkplain TupleDescriptor tuple} implementation that consists entirely of two-byte characters.
+ * A [tuple][TupleDescriptor] implementation that consists entirely of two-byte characters.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * 
+ * @property unusedShortsOfLastLong
+ *   The number of shorts that are unused in the last [long
+ *   slot][IntegerSlots.RAW_LONGS_]. Must be between 0 and 3.
+ * @constructor
+ * Construct a new `TwoByteStringDescriptor`.
+ *
+ * @param mutability
+ * The [mutability][Mutability] of the new descriptor.
+ * @param unusedShortsOfLastLong
+ *   The number of shorts that are unused in the last [long
+ *   slot][IntegerSlots.RAW_LONGS_]. Must be between 0 and 3.
  */
-public final class TwoByteStringDescriptor
-extends StringDescriptor
+class TwoByteStringDescriptor private constructor(
+	mutability: Mutability,
+	var unusedShortsOfLastLong: Int) : StringDescriptor(
+		mutability, null, IntegerSlots::class.java)
 {
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots implements IntegerSlotsEnumJava
+	enum class IntegerSlots : IntegerSlotsEnum
 	{
 		/**
-		 * The low 32 bits are used for the {@link #HASH_OR_ZERO}, but the upper 32 can be used by other {@link BitField}s in subclasses of {@link TupleDescriptor}.
+		 * The low 32 bits are used for the [HASH_OR_ZERO], but the upper 32 can
+		 * be used by other [BitField]s in subclasses of [TupleDescriptor].
 		 */
-		@HideFieldInDebugger
 		HASH_AND_MORE,
 
 		/**
-		 * The raw 64-bit ({@code long}s) that constitute the representation of the string of two-byte characters.  Each long contains up to four characters occupying 16 bits each, in little-endian order.  Only the last long can be incomplete, and is required to have zeros for the unused elements.  The descriptor instances include the field {@link #unusedShortsOfLastLong}, which indicates how many (0-3) of the 16-bit subfields of the last long are unused.
+		 * The raw 64-bit (`long`s) that constitute the representation of the
+		 * string of two-byte characters.  Each long contains up to four
+		 * characters occupying 16 bits each, in little-endian order.  Only the
+		 * last long can be incomplete, and is required to have zeros for the
+		 * unused elements.  The descriptor instances include the field
+		 * [unusedShortsOfLastLong], which indicates how many (0-3) of the
+		 * 16-bit subfields of the last long are unused.
 		 */
 		RAW_LONGS_;
 
-		/**
-		 * A slot to hold the cached hash value of a tuple.  If zero, then the
-		 * hash value must be computed upon request.  Note that in the very rare
-		 * case that the hash value actually equals zero, the hash value has to
-		 * be computed every time it is requested.
-		 */
-		public static final BitField HASH_OR_ZERO =
-			new BitField(HASH_AND_MORE, 0, 32);
-
-		static
+		companion object
 		{
-			assert TupleDescriptor.IntegerSlots.HASH_AND_MORE.ordinal()
-				== HASH_AND_MORE.ordinal();
-		}
-	}
+			/**
+			 * A slot to hold the cached hash value of a tuple.  If zero, then
+			 * the hash value must be computed upon request.  Note that in the
+			 * very rare case that the hash value actually equals zero, the hash
+			 * value has to be computed every time it is requested.
+			 */
+			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
 
-	/**
-	 * Defined threshold for making copies versus using {@linkplain TreeTupleDescriptor}/using other forms of reference instead of creating a new tuple.
-	 */
-	private static final int maximumCopySize = 32;
-
-	/**
-	 * The number of shorts that are unused in the last {@linkplain IntegerSlots#RAW_LONGS_ long slot}. Must be between 0 and 3.
-	 */
-	int unusedShortsOfLastLong;
-
-	@Override
-	public A_Tuple o_AppendCanDestroy (
-		final AvailObject object,
-		final A_BasicObject newElement,
-		final boolean canDestroy)
-	{
-		final int originalSize = object.tupleSize();
-		if (originalSize >= maximumCopySize || !newElement.isCharacter())
-		{
-			// Transition to a tree tuple.
-			final A_Tuple singleton = tuple(newElement);
-			return object.concatenateWith(singleton, canDestroy);
-		}
-		final int intValue = A_Character.Companion.codePoint((A_Character) newElement);
-		if ((intValue & ~0xFFFF) != 0)
-		{
-			// Transition to a tree tuple.
-			final A_Tuple singleton = tuple(newElement);
-			return object.concatenateWith(singleton, canDestroy);
-		}
-		final int newSize = originalSize + 1;
-		if (isMutable() && canDestroy && (originalSize & 3) != 0)
-		{
-			// Enlarge it in place, using more of the final partial int field.
-			object.setDescriptor(descriptorFor(MUTABLE, newSize));
-			object.rawShortForCharacterAtPut(newSize, intValue);
-			object.setSlot(HASH_OR_ZERO, 0);
-			return object;
-		}
-		// Copy to a potentially larger ByteTupleDescriptor.
-		final AvailObject result = newLike(
-			descriptorFor(MUTABLE, newSize),
-			object,
-			0,
-			(originalSize & 3) == 0 ? 1 : 0);
-		result.rawShortForCharacterAtPut(newSize, intValue);
-		result.setSlot(HASH_OR_ZERO, 0);
-		return result;
-	}
-
-	@Override
-	public boolean o_CompareFromToWithStartingAt (
-		final AvailObject object,
-		final int startIndex1,
-		final int endIndex1,
-		final A_Tuple anotherObject,
-		final int startIndex2)
-	{
-		return anotherObject.compareFromToWithTwoByteStringStartingAt(
-			startIndex2,
-			startIndex2 + endIndex1 - startIndex1,
-			object,
-			startIndex1);
-	}
-
-	@Override
-	public boolean o_CompareFromToWithTwoByteStringStartingAt (
-		final AvailObject object,
-		final int startIndex1,
-		final int endIndex1,
-		final A_String aTwoByteString,
-		final int startIndex2)
-	{
-		if (object.sameAddressAs(aTwoByteString) && startIndex1 == startIndex2)
-		{
-			return true;
-		}
-		for (
-			int index1 = startIndex1, index2 = startIndex2;
-			index1 <= endIndex1;
-			index1++, index2++)
-		{
-			if (object.rawShortForCharacterAt(index1)
-					!= aTwoByteString.rawShortForCharacterAt(index2))
+			init
 			{
-				return false;
+				assert(TupleDescriptor.IntegerSlots.HASH_AND_MORE.ordinal
+						   == HASH_AND_MORE.ordinal)
 			}
 		}
-		return true;
 	}
 
-	@Override
-	public boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	override fun o_AppendCanDestroy(
+		self: AvailObject,
+		newElement: A_BasicObject,
+		canDestroy: Boolean): A_Tuple
 	{
-		return another.equalsTwoByteString(object);
+		val originalSize = self.tupleSize()
+		if (originalSize >= maximumCopySize || !newElement.isCharacter)
+		{
+			// Transition to a tree tuple.
+			val singleton = tuple(newElement)
+			return self.concatenateWith(singleton, canDestroy)
+		}
+		val intValue: Int = (newElement as A_Character).codePoint ()
+		if (intValue and 0xFFFF.inv() != 0)
+		{
+			// Transition to a tree tuple.
+			val singleton = tuple(newElement)
+			return self.concatenateWith(singleton, canDestroy)
+		}
+		val newSize = originalSize + 1
+		if (isMutable && canDestroy && originalSize and 3 != 0)
+		{
+			// Enlarge it in place, using more of the final partial int field.
+			self.setDescriptor(descriptorFor(Mutability.MUTABLE, newSize))
+			self.rawShortForCharacterAtPut(newSize, intValue)
+			self.setSlot(IntegerSlots.HASH_OR_ZERO, 0)
+			return self
+		}
+		// Copy to a potentially larger ByteTupleDescriptor.
+		val result = newLike(
+			descriptorFor(Mutability.MUTABLE, newSize),
+			self,
+			0,
+			if (originalSize and 3 == 0) 1 else 0)
+		result.rawShortForCharacterAtPut(newSize, intValue)
+		result.setSlot(IntegerSlots.HASH_OR_ZERO, 0)
+		return result
 	}
 
-	@Override
-	public boolean o_EqualsTwoByteString (
-		final AvailObject object,
-		final A_String aTwoByteString)
+	override fun o_CompareFromToWithStartingAt(
+		self: AvailObject,
+		startIndex1: Int,
+		endIndex1: Int,
+		anotherObject: A_Tuple,
+		startIndex2: Int): Boolean =
+			anotherObject.compareFromToWithTwoByteStringStartingAt(
+				startIndex2,
+				startIndex2 + endIndex1 - startIndex1,
+				self,
+				startIndex1)
+
+	override fun o_CompareFromToWithTwoByteStringStartingAt(
+		self: AvailObject,
+		startIndex1: Int,
+		endIndex1: Int,
+		aTwoByteString: A_String,
+		startIndex2: Int): Boolean
+	{
+		if (self.sameAddressAs(aTwoByteString) && startIndex1 == startIndex2)
+		{
+			return true
+		}
+		var index1 = startIndex1
+		var index2 = startIndex2
+		while (index1 <= endIndex1)
+		{
+			if (self.rawShortForCharacterAt(index1)
+				!= aTwoByteString.rawShortForCharacterAt(index2))
+			{
+				return false
+			}
+			index1++
+			index2++
+		}
+		return true
+	}
+
+	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean =
+		another.equalsTwoByteString(self)
+
+	override fun o_EqualsTwoByteString(
+		self: AvailObject,
+		aString: A_String): Boolean
 	{
 		// First, check for object-structure (address) identity.
-		if (object.sameAddressAs(aTwoByteString))
+		when
 		{
-			return true;
+			self.sameAddressAs(aString) -> return true
+			self.tupleSize() != aString.tupleSize() -> return false
+			self.hash() != aString.hash() -> return false
+			!self.compareFromToWithTwoByteStringStartingAt(
+				1,
+				self.tupleSize(),
+				aString,
+				1) -> return false
+			// They're equal, but occupy disjoint storage. If possible, replace one
+			// with an indirection to the other to keep down the frequency of
+			// character comparisons.
+			!isShared ->
+			{
+				aString.makeImmutable()
+				self.becomeIndirectionTo(aString)
+			}
+			!aString.descriptor().isShared ->
+			{
+				self.makeImmutable()
+				aString.becomeIndirectionTo(self)
+			}
 		}
-		if (object.tupleSize() != aTwoByteString.tupleSize())
-		{
-			return false;
-		}
-		if (object.hash() != aTwoByteString.hash())
-		{
-			return false;
-		}
-		if (!object.compareFromToWithTwoByteStringStartingAt(
-			1,
-			object.tupleSize(),
-			aTwoByteString,
-			1))
-		{
-			return false;
-		}
-		// They're equal, but occupy disjoint storage. If possible, replace one
-		// with an indirection to the other to keep down the frequency of
-		// character comparisons.
-		if (!isShared())
-		{
-			aTwoByteString.makeImmutable();
-			object.becomeIndirectionTo(aTwoByteString);
-		}
-		else if (!aTwoByteString.descriptor().isShared())
-		{
-			object.makeImmutable();
-			aTwoByteString.becomeIndirectionTo(object);
-		}
-		return true;
+		return true
 	}
 
-	@Override
-	public boolean o_IsTwoByteString (final AvailObject object)
+	override fun o_IsTwoByteString(self: AvailObject): Boolean = true
+
+	override fun o_MakeImmutable(self: AvailObject): AvailObject
 	{
-		return true;
+		if (isMutable)
+		{
+			self.setDescriptor(descriptorFor(
+				Mutability.IMMUTABLE, self.tupleSize()))
+		}
+		return self
 	}
 
-	@Override
-	public AvailObject o_MakeImmutable (final AvailObject object)
+	override fun o_MakeShared(self: AvailObject): AvailObject
 	{
-		if (isMutable())
+		if (!isShared)
 		{
-			object.setDescriptor(descriptorFor(IMMUTABLE, object.tupleSize()));
+			self.setDescriptor(
+				descriptorFor(Mutability.SHARED, self.tupleSize()))
 		}
-		return object;
-	}
-
-	@Override
-	public AvailObject o_MakeShared (final AvailObject object)
-	{
-		if (!isShared())
-		{
-			object.setDescriptor(descriptorFor(SHARED, object.tupleSize()));
-		}
-		return object;
+		return self
 	}
 
 	/**
 	 * Answer the int that encodes the character at the given index.
 	 */
-	@Override
-	public int o_RawShortForCharacterAt (
-		final AvailObject object,
-		final int index)
-	{
-		return object.shortSlot(RAW_LONGS_, index);
-	}
+	override fun o_RawShortForCharacterAt(self: AvailObject, index: Int): Int =
+		self.shortSlot(IntegerSlots.RAW_LONGS_, index)
 
-	@Override
-	public void o_RawShortForCharacterAtPut (
-		final AvailObject object,
-		final int index,
-		final int anInteger)
+	override fun o_RawShortForCharacterAtPut(
+		self: AvailObject,
+		index: Int,
+		anInteger: Int)
 	{
 		// Set the character at the given index based on the given byte.
-		assert isMutable();
-		object.setShortSlot(RAW_LONGS_, index, anInteger);
+		assert(isMutable)
+		self.setShortSlot(IntegerSlots.RAW_LONGS_, index, anInteger)
 	}
 
-	@Override
-	public AvailObject o_TupleAt (final AvailObject object, final int index)
+	override fun o_TupleAt(self: AvailObject, index: Int): AvailObject
 	{
 		// Answer the element at the given index in the tuple object. It's a
 		// two-byte character.
-		assert index >= 1 && index <= object.tupleSize();
-		return (AvailObject) fromCodePoint(object.shortSlot(RAW_LONGS_, index));
+		assert(index >= 1 && index <= self.tupleSize())
+		return fromCodePoint(
+			self.shortSlot(IntegerSlots.RAW_LONGS_, index)) as AvailObject
 	}
 
-	@Override
-	public A_Tuple o_TupleAtPuttingCanDestroy (
-		final AvailObject object,
-		final int index,
-		final A_BasicObject newValueObject,
-		final boolean canDestroy)
+	override fun o_TupleAtPuttingCanDestroy(
+		self: AvailObject,
+		index: Int,
+		newValueObject: A_BasicObject,
+		canDestroy: Boolean): A_Tuple
 	{
 		// Answer a tuple with all the elements of object except at the given
 		// index we should have newValueObject. This may destroy the original
 		// tuple if canDestroy is true.
-		assert index >= 1 && index <= object.tupleSize();
-		if (newValueObject.isCharacter())
+		assert(index >= 1 && index <= self.tupleSize())
+		if (newValueObject.isCharacter)
 		{
-			final int codePoint = A_Character.Companion.codePoint((A_Character)newValueObject);
-			if ((codePoint & 0xFFFF) == codePoint)
+			val codePoint: Int = (newValueObject as A_Character).codePoint()
+			if (codePoint and 0xFFFF == codePoint)
 			{
-				if (canDestroy && isMutable())
+				if (canDestroy && isMutable)
 				{
-					object.rawShortForCharacterAtPut(index, codePoint);
-					object.setHashOrZero(0);
-					return object;
+					self.rawShortForCharacterAtPut(index, codePoint)
+					self.setHashOrZero(0)
+					return self
 				}
 				// Clone it then modify the copy in place.
-				return
-					copyAsMutableTwoByteString(object).tupleAtPuttingCanDestroy(
-						index,
-						newValueObject,
-						true);
+				return copyAsMutableTwoByteString(self).tupleAtPuttingCanDestroy(
+					index,
+					newValueObject,
+					true)
 			}
 		}
 		// Convert to a general object tuple instead.
-		return object.copyAsMutableObjectTuple().tupleAtPuttingCanDestroy(
-			index, newValueObject, true);
+		return self.copyAsMutableObjectTuple().tupleAtPuttingCanDestroy(
+			index, newValueObject, true)
 	}
 
-	@Override
-	public int o_TupleCodePointAt (@NotNull final AvailObject self, final int index)
+	override fun o_TupleCodePointAt(self: AvailObject, index: Int): Int
 	{
-		assert index >= 1 && index <= self.tupleSize();
-		return self.shortSlot(RAW_LONGS_, index);
+		assert(index >= 1 && index <= self.tupleSize())
+		return self.shortSlot(IntegerSlots.RAW_LONGS_, index)
 	}
 
-	@Override
-	public A_Tuple o_TupleReverse(final AvailObject object)
+	override fun o_TupleReverse(self: AvailObject): A_Tuple
 	{
-		final int size = object.tupleSize();
-		if (size > maximumCopySize)
+		val size = self.tupleSize()
+		return if (size > maximumCopySize)
 		{
-			return super.o_TupleReverse(object);
+			super.o_TupleReverse(self)
+		}
+		else
+		{
+			generateTwoByteString(size) {
+				self.shortSlot(IntegerSlots.RAW_LONGS_, size + 1 - it)
+			}
 		}
 
 		// It's reasonably small, so just copy the characters.
 		// Just copy the applicable two-byte characters in reverse.
-		return generateTwoByteString(
-			size, i -> object.shortSlot(RAW_LONGS_, size + 1 - i));
 	}
 
-	@Override
-	public int o_TupleSize (final AvailObject object)
-	{
-		return (object.variableIntegerSlotsCount() << 2)
-			- unusedShortsOfLastLong;
-	}
+	override fun o_TupleSize(self: AvailObject): Int =
+		((self.variableIntegerSlotsCount() shl 2) - unusedShortsOfLastLong)
 
-	@Override
-	public int o_BitsPerEntry (final AvailObject object)
-	{
-		// Answer approximately how many bits per entry are taken up by this
-		// object.
-		return 16;
-	}
+	// Answer approximately how many bits per entry are taken up by this
+	// object.
+	override fun o_BitsPerEntry(self: AvailObject): Int = 16
 
-	@Override
-	public int o_ComputeHashFromTo (
-		final AvailObject object,
-		final int start,
-		final int end)
+	override fun o_ComputeHashFromTo(
+		self: AvailObject,
+		start: Int,
+		end: Int): Int
 	{
 		// See comment in superclass. This method must produce the same value.
-		int hash = 0;
-		for (int index = end; index >= start; index--)
+		var hash = 0
+		for (index in end downTo start)
 		{
-			final int itemHash =
-				computeHashOfCharacterWithCodePoint(
-					object.shortSlot(RAW_LONGS_, index))
-				^ preToggle;
-			hash = (hash + itemHash) * multiplier;
+			val itemHash = (computeHashOfCharacterWithCodePoint(
+				self.shortSlot(IntegerSlots.RAW_LONGS_, index))
+				xor preToggle)
+			hash = (hash + itemHash) * AvailObject.multiplier
 		}
-		return hash;
+		return hash
 	}
 
-	@Override
-	public Object o_MarshalToJava (
-		final AvailObject object,
-		final @Nullable Class<?> ignoredClassHint)
-	{
-		return object.asNativeString();
-	}
+	override fun o_MarshalToJava(
+		self: AvailObject,
+		classHint: Class<*>?): Any? = self.asNativeString()
 
-	@Override
-	public A_Tuple o_ConcatenateWith (
-		final AvailObject object,
-		final A_Tuple otherTuple,
-		final boolean canDestroy)
+	override fun o_ConcatenateWith(
+		self: AvailObject,
+		otherTuple: A_Tuple,
+		canDestroy: Boolean): A_Tuple
 	{
-		final int size1 = object.tupleSize();
+		val size1 = self.tupleSize()
 		if (size1 == 0)
 		{
 			if (!canDestroy)
 			{
-				otherTuple.makeImmutable();
+				otherTuple.makeImmutable()
 			}
-			return otherTuple;
+			return otherTuple
 		}
-		final int size2 = otherTuple.tupleSize();
+		val size2 = otherTuple.tupleSize()
 		if (size2 == 0)
 		{
 			if (!canDestroy)
 			{
-				object.makeImmutable();
+				self.makeImmutable()
 			}
-			return object;
+			return self
 		}
-		final int newSize = size1 + size2;
-		if (otherTuple.isTwoByteString() && newSize <= maximumCopySize)
+		val newSize = size1 + size2
+		if (otherTuple.isTwoByteString && newSize <= maximumCopySize)
 		{
 			// Copy the characters.
-			final int newLongCount = (newSize + 3) >> 2;
-			final int deltaSlots =
-				newLongCount - object.variableIntegerSlotsCount();
-			final AvailObject result;
-			if (canDestroy && isMutable() && deltaSlots == 0)
+			val newLongCount = newSize + 3 shr 2
+			val deltaSlots = newLongCount - self.variableIntegerSlotsCount()
+			val result: AvailObject
+			if (canDestroy && isMutable && deltaSlots == 0)
 			{
 				// We can reuse the receiver; it has enough int slots.
-				result = object;
-				result.setDescriptor(descriptorFor(MUTABLE, newSize));
+				result = self
+				result.setDescriptor(descriptorFor(Mutability.MUTABLE, newSize))
 			}
 			else
 			{
 				result = newLike(
-					descriptorFor(MUTABLE, newSize), object, 0, deltaSlots);
+					descriptorFor(Mutability.MUTABLE, newSize), self, 0, deltaSlots)
 			}
-			int dest = size1 + 1;
-			for (int src = 1; src <= size2; src++, dest++)
+			var dest = size1 + 1
+			var src = 1
+			while (src <= size2)
 			{
 				result.setShortSlot(
-					RAW_LONGS_,
+					IntegerSlots.RAW_LONGS_,
 					dest,
-					otherTuple.rawShortForCharacterAt(src));
+					otherTuple.rawShortForCharacterAt(src))
+				src++
+				dest++
 			}
-			result.setSlot(HASH_OR_ZERO, 0);
-			return result;
+			result.setSlot(IntegerSlots.HASH_OR_ZERO, 0)
+			return result
 		}
 		if (!canDestroy)
 		{
-			object.makeImmutable();
-			otherTuple.makeImmutable();
+			self.makeImmutable()
+			otherTuple.makeImmutable()
 		}
-		if (otherTuple.treeTupleLevel() == 0)
+		return if (otherTuple.treeTupleLevel() == 0)
 		{
-			return createTwoPartTreeTuple(object, otherTuple, 1, 0);
+			TreeTupleDescriptor.createTwoPartTreeTuple(self, otherTuple, 1, 0)
 		}
-		return concatenateAtLeastOneTree(object, otherTuple, true);
+		else
+		{
+			TreeTupleDescriptor.concatenateAtLeastOneTree(self, otherTuple, true)
+		}
 	}
 
-	@Override
-	public A_Tuple o_CopyTupleFromToCanDestroy (
-		final AvailObject object,
-		final int start,
-		final int end,
-		final boolean canDestroy)
+	override fun o_CopyTupleFromToCanDestroy(
+		self: AvailObject,
+		start: Int,
+		end: Int,
+		canDestroy: Boolean): A_Tuple
 	{
-		final int tupleSize = object.tupleSize();
-		assert 1 <= start && start <= end + 1 && end <= tupleSize;
-		final int size = end - start + 1;
-		if (size > 0 && size < tupleSize && size <= maximumCopySize)
+		val tupleSize = self.tupleSize()
+		assert(1 <= start && start <= end + 1 && end <= tupleSize)
+		val size = end - start + 1
+		return if (size in 1 until tupleSize && size <= maximumCopySize)
 		{
 			// It's not empty, it's not a total copy, and it's reasonably small.
 			// Just copy the applicable shorts out.  In theory we could use
 			// newLike() if start is 1.  Make sure to mask the last word in that
 			// case.
-			return generateTwoByteString(
-				size, i -> object.shortSlot(RAW_LONGS_, i + start - 1));
+			generateTwoByteString(size) {
+				self.shortSlot(IntegerSlots.RAW_LONGS_, it + start - 1)
+			}
 		}
-		return super.o_CopyTupleFromToCanDestroy(
-			object, start, end, canDestroy);
-	}
-
-	/**
-	 * Construct a new {@code TwoByteStringDescriptor}.
-	 *
-	 * @param mutability
-	 *        The {@linkplain Mutability mutability} of the new descriptor.
-	 * @param unusedShortsOfLastWord
-	 *        The number of unused shorts of the last word.
-	 */
-	private TwoByteStringDescriptor (
-		final Mutability mutability,
-		final int unusedShortsOfLastWord)
-	{
-		super(mutability, null, IntegerSlots.class);
-		this.unusedShortsOfLastLong = unusedShortsOfLastWord;
-	}
-
-	/**
-	 * The static list of descriptors of this kind, organized in such a way that
-	 * {@link #descriptorFor(Mutability, int)} can find them by mutability and number of unused shorts in the last long.
-	 */
-	private static final TwoByteStringDescriptor[] descriptors =
-		new TwoByteStringDescriptor[4 * 3];
-
-	static {
-		int i = 0;
-		for (final int excess : new int[] {0,3,2,1})
+		else
 		{
-			descriptors[i++] = new TwoByteStringDescriptor(MUTABLE, excess);
-			descriptors[i++] = new TwoByteStringDescriptor(IMMUTABLE, excess);
-			descriptors[i++] = new TwoByteStringDescriptor(SHARED, excess);
+			super.o_CopyTupleFromToCanDestroy(
+				self, start, end, canDestroy)
 		}
 	}
 
-	@Override
-	public TwoByteStringDescriptor mutable ()
+	companion object
 	{
-		return descriptors[
-			((4 - unusedShortsOfLastLong) & 3) * 3 + MUTABLE.ordinal()];
+		/**
+		 * Defined threshold for making copies versus using
+		 * [TreeTupleDescriptor]/using other forms of reference instead of
+		 * creating a new tuple.
+		 */
+		private const val maximumCopySize = 32
+
+		/**
+		 * The static list of descriptors of this kind, organized in such a way
+		 * that [descriptorFor] can find them by mutability and number of unused
+		 * shorts in the last long.
+		 */
+		private val descriptors = arrayOfNulls<TwoByteStringDescriptor>(4 * 3)
+
+		/**
+		 * Create a new mutable two-byte string with the specified number of
+		 * elements.
+		 *
+		 * @param size
+		 *   The number of elements in the new tuple.
+		 * @return
+		 *   The new tuple, initialized to null characters (code point 0).
+		 */
+		@JvmStatic
+		fun mutableTwoByteStringOfSize(size: Int): AvailObject =
+			descriptorFor(Mutability.MUTABLE, size).create(size + 3 shr 2)
+
+		/**
+		 * Answer the descriptor that has the specified mutability flag and is
+		 * suitable to describe a tuple with the given number of elements.
+		 *
+		 * @param flag
+		 *   Whether the requested descriptor should be mutable.
+		 * @param size
+		 *   How many elements are in a tuple to be represented by the
+		 *   descriptor.
+		 * @return
+		 *   A `TwoByteStringDescriptor` suitable for representing a two-byte
+		 *   string of the given mutability and [size][AvailObject.tupleSize].
+		 */
+		private fun descriptorFor(
+			flag: Mutability,
+			size: Int): TwoByteStringDescriptor =
+				descriptors[(size and 3) * 3 + flag.ordinal]!!
+
+		/**
+		 * Create a mutable instance of `TwoByteStringDescriptor` with the
+		 * specified Java [String]'s characters.
+		 *
+		 * @param aNativeTwoByteString
+		 *   A Java String that may contain characters outside the Latin-1 range
+		 *   (0-255), but not beyond 65535.
+		 * @return
+		 *   A two-byte string with the given content.
+		 */
+		fun mutableObjectFromNativeTwoByteString(
+			aNativeTwoByteString: String): AvailObject =
+				generateTwoByteString(aNativeTwoByteString.length)
+					{ aNativeTwoByteString.codePointAt(it - 1) }
+
+		/**
+		 * Create an object of the appropriate size, whose descriptor is an
+		 * instance of `TwoByteStringDescriptor`. Note that it can only store
+		 * Unicode characters from the Basic Multilingual Plane (i.e., those
+		 * having Unicode code points 0..65535). Run the generator for each
+		 * position in ascending order to produce the code points with which to
+		 * populate the string.
+		 *
+		 * @param size
+		 *   The size of two-byte string to create.
+		 * @param generator
+		 *   A generator to provide code points to store.
+		 * @return
+		 *   The new Avail string.
+		 */
+		@JvmStatic
+		fun generateTwoByteString(
+			size: Int,
+			generator: (Int)->Int): AvailObject
+		{
+			val result = mutableTwoByteStringOfSize(size)
+			var counter = 1
+			// Aggregate four writes at a time for the bulk of the string.
+			var slotIndex = 1
+			val limit = size ushr 2
+			while (slotIndex <= limit)
+			{
+				var combined: Long = 0
+				var shift = 0
+				while (shift < 64)
+				{
+					val c = generator(counter++).toLong()
+					assert(c and 0xFFFF == c)
+					combined += c shl shift
+					shift += 16
+				}
+				result.setSlot(IntegerSlots.RAW_LONGS_, slotIndex, combined)
+				slotIndex++
+			}
+			// Do the last 0-3 writes the slow way.
+			for (index in (size and 3.inv()) + 1 .. size)
+			{
+				val c = generator(counter++).toLong()
+				assert(c and 0xFFFF == c)
+				result.setShortSlot(IntegerSlots.RAW_LONGS_, index, c.toInt())
+			}
+			return result
+		}
+
+		init
+		{
+			var i = 0
+			for (excess in intArrayOf(0, 3, 2, 1))
+			{
+				descriptors[i++] =
+					TwoByteStringDescriptor(Mutability.MUTABLE, excess)
+				descriptors[i++] =
+					TwoByteStringDescriptor(Mutability.IMMUTABLE, excess)
+				descriptors[i++] =
+					TwoByteStringDescriptor(Mutability.SHARED, excess)
+			}
+		}
 	}
 
-	@Override
-	public TwoByteStringDescriptor immutable ()
-	{
-		return descriptors[
-			((4 - unusedShortsOfLastLong) & 3) * 3 + IMMUTABLE.ordinal()];
-	}
+	override fun mutable(): TwoByteStringDescriptor =
+		descriptors[(4 - unusedShortsOfLastLong and 3) * 3
+		   + Mutability.MUTABLE.ordinal]!!
 
-	@Override
-	public TwoByteStringDescriptor shared ()
-	{
-		return descriptors[
-			((4 - unusedShortsOfLastLong) & 3) * 3 + SHARED.ordinal()];
-	}
+	override fun immutable(): TwoByteStringDescriptor =
+		descriptors[(4 - unusedShortsOfLastLong and 3) * 3
+		   + Mutability.IMMUTABLE.ordinal]!!
 
-	/**
-	 * Create a new mutable two-byte string with the specified number of
-	 * elements.
-	 *
-	 * @param size
-	 * The number of elements in the new tuple.
-	 * @return
-	 * The new tuple, initialized to null characters (code point 0).
-	 */
-	static AvailObject mutableTwoByteStringOfSize (final int size)
-	{
-		return descriptorFor(MUTABLE, size).create(size + 3 >> 2);
-	}
+	override fun shared(): TwoByteStringDescriptor =
+		descriptors[(4 - unusedShortsOfLastLong and 3) * 3
+			+ Mutability.SHARED.ordinal]!!
 
 	/**
 	 * Answer a mutable copy of object that also only holds 16-bit characters.
 	 *
-	 * @param object
-	 * The two-byte string to copy.
+	 * @param self
+	 *   The two-byte string to copy.
 	 * @return
-	 * A new two-byte string with the same content as the argument.
+	 *   A new two-byte string with the same content as the argument.
 	 */
-	private A_String copyAsMutableTwoByteString (final AvailObject object)
-	{
-		return newLike(mutable(), object, 0, 0);
-	}
-
-	/**
-	 * Answer the descriptor that has the specified mutability flag and is
-	 * suitable to describe a tuple with the given number of elements.
-	 *
-	 * @param flag
-	 *        Whether the requested descriptor should be mutable.
-	 * @param size
-	 *        How many elements are in a tuple to be represented by the descriptor.
-	 * @return
-	 * A {@code TwoByteStringDescriptor} suitable for representing a two-byte string of the given mutability and {@link AvailObject#tupleSize() size}.
-	 */
-	private static TwoByteStringDescriptor descriptorFor (
-		final Mutability flag,
-		final int size)
-	{
-		return descriptors[(size & 3) * 3 + flag.ordinal()];
-	}
-
-	/**
-	 * Create a mutable instance of {@code TwoByteStringDescriptor} with the specified Java {@linkplain String}'s characters.
-	 *
-	 * @param aNativeTwoByteString
-	 *        A Java String that may contain characters outside the Latin-1 range (0-255), but not beyond 65535.
-	 * @return
-	 * A two-byte string with the given content.
-	 */
-	static AvailObject mutableObjectFromNativeTwoByteString (
-		final String aNativeTwoByteString)
-	{
-		return generateTwoByteString(
-			aNativeTwoByteString.length(),
-			i -> aNativeTwoByteString.codePointAt(i - 1));
-	}
-
-	/**
-	 * Create an object of the appropriate size, whose descriptor is an instance
-	 * of {@code TwoByteStringDescriptor}. Note that it can only store Unicode
-	 * characters from the Basic Multilingual Plane (i.e., those having Unicode
-	 * code points 0..65535). Run the generator for each position in ascending
-	 * order to produce the code points with which to populate the string.
-	 *
-	 * @param size
-	 * The size of two-byte string to create.
-	 * @param generator
-	 * A generator to provide code points to store.
-	 * @return
-	 * The new Avail string.
-	 */
-	public static AvailObject generateTwoByteString (
-		final int size,
-		final IntUnaryOperator generator)
-	{
-		final AvailObject result = mutableTwoByteStringOfSize(size);
-		int counter = 1;
-		// Aggregate four writes at a time for the bulk of the string.
-		for (
-			int slotIndex = 1, limit = size >>> 2;
-			slotIndex <= limit;
-			slotIndex++)
-		{
-			long combined = 0;
-			for (int shift = 0; shift < 64; shift += 16)
-			{
-				final long c = generator.applyAsInt(counter++);
-				assert (c & 0xFFFF) == c;
-				combined += c << shift;
-			}
-			result.setSlot(RAW_LONGS_, slotIndex, combined);
-		}
-		// Do the last 0-3 writes the slow way.
-		for (int index = (size & ~3) + 1; index <= size; index++)
-		{
-			final long c = generator.applyAsInt(counter++);
-			assert (c & 0xFFFF) == c;
-			result.setShortSlot(RAW_LONGS_, index, (int) c);
-		}
-		return result;
-	}
+	private fun copyAsMutableTwoByteString(self: AvailObject): A_String =
+		newLike(mutable(), self, 0, 0)
 }

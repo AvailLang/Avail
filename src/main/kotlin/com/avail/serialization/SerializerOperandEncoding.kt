@@ -49,7 +49,7 @@ import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjec
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.tupleFromIntegerList
-import com.avail.descriptor.tuples.TwoByteStringDescriptor.generateTwoByteString
+import com.avail.descriptor.tuples.TwoByteStringDescriptor.Companion.generateTwoByteString
 import com.avail.utility.Strings.increaseIndentation
 import java.io.OutputStream
 import java.util.*
