@@ -40,9 +40,9 @@ import com.avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinit
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.StringDescriptor.Companion.formatString
-import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.types.FiberTypeDescriptor.mostGeneralFiberType

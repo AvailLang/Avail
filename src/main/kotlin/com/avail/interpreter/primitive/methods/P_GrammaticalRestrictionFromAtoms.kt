@@ -36,7 +36,7 @@ import com.avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
@@ -102,7 +102,7 @@ object P_GrammaticalRestrictionFromAtoms : Primitive(2, Unknown)
 				setTypeForSizesContentType(naturalNumbers(), ATOM.o()),
 				zeroOrMoreOf(
 					setTypeForSizesContentType(wholeNumbers(), ATOM.o()))),
-             TOP.o())
+			TOP.o())
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(

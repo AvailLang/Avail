@@ -33,8 +33,8 @@
 package com.avail.interpreter.primitive.pojos
 
 import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.generateObjectTupleFrom
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.PojoTypeDescriptor

@@ -84,11 +84,11 @@ import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.tokens.A_Token
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.NybbleTupleDescriptor.generateNybbleTupleFrom
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.generateObjectTupleFrom
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
-import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
-import com.avail.descriptor.tuples.TupleDescriptor.toList
-import com.avail.descriptor.tuples.TupleDescriptor.tupleFromIntegerList
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.toList
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.tupleFromIntegerList
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.ASSIGNMENT_PHRASE

@@ -47,7 +47,8 @@ import com.avail.descriptor.module.ModuleDescriptor.Companion.currentModule
 import com.avail.descriptor.numbers.IntegerDescriptor
 import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.StringDescriptor
 import com.avail.descriptor.tuples.StringDescriptor.Companion.formatString
 import com.avail.descriptor.types.A_Type
@@ -162,7 +163,7 @@ object P_ServerSocketAccept : Primitive(5, CanInline, HasSideEffect)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(
+			ObjectTupleDescriptor.tuple(
 				ATOM.o(),
 				nonemptyStringType(),
 				functionType(

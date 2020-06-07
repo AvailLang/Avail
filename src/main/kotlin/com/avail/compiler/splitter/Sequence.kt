@@ -44,7 +44,7 @@ import com.avail.compiler.splitter.WrapState.PUSHED_LIST
 import com.avail.compiler.splitter.WrapState.SHOULD_NOT_HAVE_ARGUMENTS
 import com.avail.compiler.splitter.WrapState.SHOULD_NOT_PUSH_LIST
 import com.avail.descriptor.phrases.A_Phrase
-import com.avail.descriptor.tuples.TupleDescriptor.tupleFromIntegerList
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.tupleFromIntegerList
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.ListPhraseTypeDescriptor.emptyListPhraseType
 import com.avail.descriptor.types.TupleTypeDescriptor

@@ -34,7 +34,7 @@ package com.avail.interpreter.primitive.phrases
 
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newConstant
 import com.avail.descriptor.tokens.TokenDescriptor
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind

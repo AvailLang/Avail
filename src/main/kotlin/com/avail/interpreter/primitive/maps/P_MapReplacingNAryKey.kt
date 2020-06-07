@@ -37,7 +37,7 @@ import com.avail.descriptor.maps.MapDescriptor
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
@@ -191,7 +191,7 @@ object P_MapReplacingNAryKey : Primitive(3, CanInline, CanFold)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(mostGeneralMapType(), oneOrMoreOf(ANY.o()), ANY.o()),
-            mostGeneralMapType())
+			mostGeneralMapType())
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

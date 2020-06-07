@@ -185,14 +185,14 @@ import com.avail.descriptor.tokens.TokenDescriptor.TokenType.OPERATOR
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType.WHITESPACE
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.emptyTuple
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.generateObjectTupleFrom
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
+import com.avail.descriptor.tuples.ObjectTupleDescriptor
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import com.avail.descriptor.tuples.StringDescriptor.Companion.formatString
 import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.tuples.TupleDescriptor
-import com.avail.descriptor.tuples.TupleDescriptor.toList
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.toList
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.BLOCK_PHRASE
@@ -899,7 +899,7 @@ class AvailCompiler(
 							emptyTuple(),
 							CREATE_MODULE_VARIABLE.bundle,
 							newListNode(
-								tuple(
+								ObjectTupleDescriptor.tuple(
 									syntheticLiteralNodeFor(module),
 									syntheticLiteralNodeFor(name),
 									syntheticLiteralNodeFor(varType),
@@ -967,7 +967,7 @@ class AvailCompiler(
 					emptyTuple(),
 					CREATE_MODULE_VARIABLE.bundle,
 					newListNode(
-						tuple(
+						ObjectTupleDescriptor.tuple(
 							syntheticLiteralNodeFor(module),
 							syntheticLiteralNodeFor(name),
 							syntheticLiteralNodeFor(varType),
@@ -994,7 +994,7 @@ class AvailCompiler(
 					val assign = newAssignment(
 						newUse(replacement.token(), newDeclaration),
 						replacement.initializationExpression(),
-						tuple(expression.token()),
+						ObjectTupleDescriptor.tuple(expression.token()),
 						false)
 					val assignFunction = createFunctionForPhrase(
 						assign, module, replacement.token().lineNumber())
@@ -2088,7 +2088,7 @@ class AvailCompiler(
 					bundle,
 					argTypes,
 					if (macroOrNil.equalsNil()) methodDefinitions
-					else tuple(macroOrNil),
+					else ObjectTupleDescriptor.tuple(macroOrNil),
 					allAncestors))
 			return
 		}
@@ -3139,7 +3139,7 @@ class AvailCompiler(
 		val send = newSendNode(
 			emptyTuple(),
 			METHOD_DEFINER.bundle,
-			newListNode(tuple(nameLiteral, syntheticLiteralNodeFor(function))),
+			newListNode(ObjectTupleDescriptor.tuple(nameLiteral, syntheticLiteralNodeFor(function))),
 			TOP.o())
 		evaluateModuleStatementThen(
 			state, state, send, HashMap(), success)
@@ -3213,7 +3213,7 @@ class AvailCompiler(
 			emptyTuple(),
 			MACRO_DEFINER.bundle,
 			newListNode(
-				tuple(
+				ObjectTupleDescriptor.tuple(
 					nameLiteral,
 					newListNode(tupleFromList(functionLiterals)),
 					bodyLiteral)),
@@ -3323,7 +3323,7 @@ class AvailCompiler(
 			emptyTuple(),
 			LEXER_DEFINER.bundle,
 			newListNode(
-				tuple(
+				ObjectTupleDescriptor.tuple(
 					nameLiteral,
 					syntheticLiteralNodeFor(filterFunction),
 					syntheticLiteralNodeFor(bodyFunction))),
@@ -4247,7 +4247,7 @@ class AvailCompiler(
 				emptyTuple(),
 				PUBLISH_ALL_ATOMS_FROM_OTHER_MODULE.bundle,
 				newListNode(
-					tuple(
+					ObjectTupleDescriptor.tuple(
 						syntheticLiteralNodeFor(
 							completeModuleNames,
 							stringFrom("(complete module imports)")),
@@ -4266,7 +4266,7 @@ class AvailCompiler(
 				emptyTuple(),
 				PUBLISH_ATOMS.bundle,
 				newListNode(
-					tuple(
+					ObjectTupleDescriptor.tuple(
 						syntheticLiteralNodeFor(
 							leftovers,
 							stringFrom("(${leftovers.setSize()} atoms)")),

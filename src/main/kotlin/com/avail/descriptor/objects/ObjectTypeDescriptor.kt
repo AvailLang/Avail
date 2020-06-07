@@ -61,9 +61,10 @@ import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.generateObjectTupleFrom
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
+import com.avail.descriptor.tuples.ObjectTupleDescriptor
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import com.avail.descriptor.tuples.StringDescriptor
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn
@@ -267,8 +268,8 @@ class ObjectTypeDescriptor internal constructor(
 		val fieldIterator = variant.fieldToSlotIndex.entries.iterator()
 		return generateObjectTupleFrom(variant.fieldToSlotIndex.size) {
 			val (field, slotIndex) = fieldIterator.next()
-			if (slotIndex == 0) tuple(field, instanceType(field))
-			else tuple(field, self.slot(FIELD_TYPES_, slotIndex))
+			if (slotIndex == 0) ObjectTupleDescriptor.tuple(field, instanceType(field))
+			else ObjectTupleDescriptor.tuple(field, self.slot(FIELD_TYPES_, slotIndex))
 		}.also { assert(!fieldIterator.hasNext()) }
 	}
 
@@ -785,7 +786,7 @@ class ObjectTypeDescriptor internal constructor(
 				names = names.setUnionCanDestroy(type, true)
 				baseTypes = baseTypes.setWithElementCanDestroy(name, true)
 			}
-			return tuple(names, baseTypes)
+			return ObjectTupleDescriptor.tuple(names, baseTypes)
 		}
 
 		/**
@@ -888,7 +889,8 @@ class ObjectTypeDescriptor internal constructor(
 		 */
 		private var exceptionType: A_Type = run {
 			val type: A_Type = objectTypeFromTuple(
-				tuple(tuple(exceptionAtom, instanceType(exceptionAtom))))
+				ObjectTupleDescriptor.tuple(
+					tuple(exceptionAtom, instanceType(exceptionAtom))))
 			setNameForType(type, StringDescriptor.stringFrom("exception"), true)
 			type.makeShared()
 		}

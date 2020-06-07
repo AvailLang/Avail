@@ -34,7 +34,7 @@ package com.avail.interpreter.primitive.fibers
 
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
 import com.avail.descriptor.fiber.FiberDescriptor
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.EnumerationTypeDescriptor.booleanType
 import com.avail.descriptor.types.FiberTypeDescriptor.mostGeneralFiberType

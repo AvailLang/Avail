@@ -32,7 +32,7 @@
 package com.avail.interpreter.primitive.fibers
 
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FiberTypeDescriptor.mostGeneralFiberType
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType

@@ -34,7 +34,7 @@ package com.avail.interpreter.primitive.sets
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.sets.SetDescriptor
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.int32

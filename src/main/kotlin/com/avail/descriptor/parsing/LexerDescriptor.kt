@@ -53,7 +53,7 @@ package com.avail.descriptor.parsing
  import com.avail.descriptor.representation.Mutability
  import com.avail.descriptor.representation.ObjectSlotsEnum
  import com.avail.descriptor.tokens.A_Token
- import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+ import com.avail.descriptor.tuples.ObjectTupleDescriptor
  import com.avail.descriptor.types.A_Type
  import com.avail.descriptor.types.EnumerationTypeDescriptor.booleanType
  import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
@@ -245,7 +245,7 @@ class LexerDescriptor private constructor(
 
 	companion object {
 		private val lexerFilterFunctionType: A_Type = functionType(
-			tuple(Types.CHARACTER.o()),
+			ObjectTupleDescriptor.tuple(Types.CHARACTER.o()),
 			booleanType()
 		).makeShared()
 
@@ -253,7 +253,7 @@ class LexerDescriptor private constructor(
 		fun lexerFilterFunctionType(): A_Type = lexerFilterFunctionType
 
 		private val lexerBodyFunctionType: A_Type = functionType(
-			tuple(
+			ObjectTupleDescriptor.tuple(
 				stringType(),
 				inclusive(1, (1L shl 32) - 1),
 				inclusive(1, (1L shl 28) - 1)),

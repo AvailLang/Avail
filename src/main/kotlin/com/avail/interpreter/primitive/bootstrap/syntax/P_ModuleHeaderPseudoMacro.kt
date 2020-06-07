@@ -37,8 +37,8 @@ import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.MODULE_HE
 import com.avail.descriptor.phrases.ExpressionAsStatementPhraseDescriptor.Companion.newExpressionAsStatement
 import com.avail.descriptor.phrases.ListPhraseDescriptor.Companion.newListNode
 import com.avail.descriptor.phrases.SendPhraseDescriptor.Companion.newSendNode
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromArray
-import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromArray
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.EnumerationTypeDescriptor.booleanType
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType

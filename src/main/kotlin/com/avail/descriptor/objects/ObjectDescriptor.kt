@@ -46,7 +46,6 @@ import com.avail.descriptor.objects.ObjectDescriptor.ObjectSlots.KIND
 import com.avail.descriptor.objects.ObjectLayoutVariant.Companion.variantForFields
 import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.namesAndBaseTypesForObjectType
 import com.avail.descriptor.representation.A_BasicObject
-import com.avail.descriptor.representation.AbstractDescriptor
 import com.avail.descriptor.representation.AbstractSlotsEnum
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.AvailObject.Companion.multiplier
@@ -60,9 +59,9 @@ import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.generateObjectTupleFrom
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.TypeDescriptor.Types

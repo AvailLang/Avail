@@ -35,7 +35,7 @@ package com.avail.interpreter.primitive.bootstrap.lexing
 import com.avail.compiler.splitter.MessageSplitter.Companion.isOperator
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
 import com.avail.descriptor.character.A_Character.Companion.codePoint
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.EnumerationTypeDescriptor.booleanType
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType

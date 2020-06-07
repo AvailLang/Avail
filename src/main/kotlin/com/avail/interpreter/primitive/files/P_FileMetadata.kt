@@ -38,8 +38,8 @@ import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
 import com.avail.descriptor.pojos.PojoDescriptor.Companion.newPojo
 import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.equalityPojo
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromArray
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromArray
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.types.EnumerationTypeDescriptor.booleanType
@@ -155,10 +155,10 @@ object P_FileMetadata : Primitive(2, CanInline, HasSideEffect)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(stringType(),
-			booleanType()),
+				  booleanType()),
 			tupleTypeForSizesTypesDefaultType(
 				singleInt(6),
-			    tuple(mostGeneralPojoType(), inclusive(1, 4)),
+				tuple(mostGeneralPojoType(), inclusive(1, 4)),
 				inclusive(0, MAX_VALUE)))
 
 	override fun privateFailureVariableType(): A_Type =

@@ -38,9 +38,9 @@ import com.avail.descriptor.phrases.ListPhraseDescriptor.Companion.newListNode
 import com.avail.descriptor.phrases.LiteralPhraseDescriptor.Companion.syntheticLiteralNodeFor
 import com.avail.descriptor.phrases.SendPhraseDescriptor.Companion.newSendNode
 import com.avail.descriptor.tokens.A_Token
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
-import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.interpreter.Primitive.Companion.primitiveByName
 import java.lang.String.format

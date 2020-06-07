@@ -36,7 +36,7 @@ import com.avail.AvailRuntime.HookType.RESULT_DISAGREED_WITH_EXPECTED_TYPE
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.methods.MethodDescriptor
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.BottomTypeDescriptor.bottom
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
@@ -73,9 +73,9 @@ object P_SetResultDisagreedWithExpectedTypeFunction : Primitive(
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(
+			ObjectTupleDescriptor.tuple(
 				functionType(
-					tuple(
+					ObjectTupleDescriptor.tuple(
 						mostGeneralFunctionType(),
 						topMeta(),
 						variableTypeFor(ANY.o())),

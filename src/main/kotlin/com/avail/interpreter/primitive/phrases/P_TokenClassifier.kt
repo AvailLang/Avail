@@ -42,7 +42,7 @@ import com.avail.descriptor.tokens.TokenDescriptor.TokenType.KEYWORD
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType.LITERAL
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType.OPERATOR
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType.WHITESPACE
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType

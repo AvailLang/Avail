@@ -29,1569 +29,1333 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.descriptor.tuples
 
-package com.avail.descriptor.tuples;
-
-import com.avail.annotations.HideFieldInDebugger;
-import com.avail.annotations.ThreadSafe;
-import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
-import com.avail.descriptor.character.A_Character;
-import com.avail.descriptor.representation.*;
-import com.avail.descriptor.sets.A_Set;
-import com.avail.descriptor.types.A_Type;
-import com.avail.descriptor.types.BottomTypeDescriptor;
-import com.avail.descriptor.types.TypeTag;
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-import com.avail.serialization.SerializerOperation;
-import com.avail.utility.IteratorNotNull;
-import com.avail.utility.MutableInt;
-import com.avail.utility.json.JSONWriter;
-
-import javax.annotation.Nullable;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.IdentityHashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Spliterator;
-import java.util.function.Consumer;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
-
-import static com.avail.descriptor.numbers.IntegerDescriptor.fromInt;
-import static com.avail.descriptor.representation.AvailObject.multiplier;
-import static com.avail.descriptor.sets.SetDescriptor.generateSetFrom;
-import static com.avail.descriptor.tuples.ByteTupleDescriptor.generateByteTupleFrom;
-import static com.avail.descriptor.tuples.IntTupleDescriptor.generateIntTupleFrom;
-import static com.avail.descriptor.tuples.NybbleTupleDescriptor.generateNybbleTupleFrom;
-import static com.avail.descriptor.tuples.ObjectTupleDescriptor.generateObjectTupleFrom;
-import static com.avail.descriptor.tuples.ReverseTupleDescriptor.createReverseTuple;
-import static com.avail.descriptor.tuples.SubrangeTupleDescriptor.createSubrange;
-import static com.avail.descriptor.tuples.TupleDescriptor.IntegerSlots.HASH_AND_MORE;
-import static com.avail.descriptor.tuples.TupleDescriptor.IntegerSlots.HASH_OR_ZERO;
-import static com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn;
-import static com.avail.descriptor.types.BottomTypeDescriptor.bottom;
-import static com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType;
-import static com.avail.descriptor.types.TypeDescriptor.Types.ANY;
-import static com.avail.descriptor.types.TypeDescriptor.Types.NONTYPE;
-import static java.lang.Math.max;
-import static java.lang.Math.min;
-import static java.lang.String.format;
-import static java.util.Collections.max;
-import static java.util.Collections.min;
+import com.avail.annotations.ThreadSafe
+import com.avail.descriptor.character.A_Character.Companion.codePoint
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
+import com.avail.descriptor.representation.*
+import com.avail.descriptor.sets.A_Set
+import com.avail.descriptor.sets.SetDescriptor.Companion.generateSetFrom
+import com.avail.descriptor.tuples.TupleDescriptor.IntegerSlots
+import com.avail.descriptor.types.*
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode
+import com.avail.serialization.SerializerOperation
+import com.avail.utility.IteratorNotNull
+import com.avail.utility.MutableInt
+import com.avail.utility.json.JSONWriter
+import java.nio.ByteBuffer
+import java.util.*
+import java.util.function.Consumer
+import java.util.stream.Stream
+import java.util.stream.StreamSupport
 
 /**
- * {@code TupleDescriptor} is an abstract descriptor class under which all tuple representations are defined (not counting {@linkplain BottomTypeDescriptor bottom} and {@linkplain IndirectionDescriptor transparent indirections}).  It defines a {@link IntegerSlots#HASH_OR_ZERO HASH_OR_ZERO} integer slot which must be defined in all subclasses.
+ * `TupleDescriptor` is an abstract descriptor class under which all tuple
+ * representations are defined (not counting [bottom][BottomTypeDescriptor] and
+ * [transparent indirections][IndirectionDescriptor]).  It defines a
+ * [HASH_OR_ZERO][IntegerSlots.HASH_OR_ZERO] integer slot which must be defined
+ * in all subclasses.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @constructor
+ * Construct a new `TupleDescriptor`.
+ *
+ * @param mutability
+ *   The [mutability][Mutability] of the new descriptor.
+ * @param objectSlotsEnumClass
+ *   The Java [Class] which is a subclass of [ObjectSlotsEnum] and defines this
+ *   object's object slots layout, or null if there are no object slots.
+ * @param integerSlotsEnumClass
+ *   The Java [Class] which is a subclass of [IntegerSlotsEnum] and defines this
+ *   object's object slots layout, or null if there are no integer slots.
  */
-public abstract class TupleDescriptor
-extends Descriptor
+@Suppress("UNCHECKED_CAST")
+abstract class TupleDescriptor protected constructor(
+	mutability: Mutability?,
+	objectSlotsEnumClass: Class<out ObjectSlotsEnum?>?,
+	integerSlotsEnumClass: Class<out IntegerSlotsEnum?>?) : Descriptor(
+	mutability!!,
+	TypeTag.TUPLE_TAG,
+	objectSlotsEnumClass,
+	integerSlotsEnumClass)
 {
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots implements IntegerSlotsEnumJava
+	enum class IntegerSlots : IntegerSlotsEnum
 	{
 		/**
-		 * The low 32 bits are used for the {@link #HASH_OR_ZERO}, but the upper 32 can be used by other {@link BitField}s in subclasses of {@link TupleDescriptor}.
+		 * The low 32 bits are used for the [HASH_OR_ZERO], but the upper 32 can
+		 * be used by other [BitField]s in subclasses of [TupleDescriptor].
 		 */
-		@HideFieldInDebugger
 		HASH_AND_MORE;
 
-		/**
-		 * A slot to hold the cached hash value of a tuple.  If zero, then the
-		 * hash value must be computed upon request.  Note that in the very rare
-		 * case that the hash value actually equals zero, the hash value has to
-		 * be computed every time it is requested.
-		 */
-		public static final BitField HASH_OR_ZERO =
-			new BitField(HASH_AND_MORE, 0, 32);
-	}
-
-	@Override
-	protected final boolean allowsImmutableToMutableReferenceInField (
-		final AbstractSlotsEnum e)
-	{
-		return e == HASH_AND_MORE;
-	}
-
-	@Override
-	public String o_NameForDebugger (final AvailObject object)
-	{
-		return super.o_NameForDebugger(object) + ": tupleSize="
-			+ object.tupleSize();
-	}
-
-	@Override
-	public final void o_SetHashOrZero (final AvailObject object, final int value)
-	{
-		if (isShared())
+		companion object
 		{
-			synchronized (object)
-			{
+			/**
+			 * A slot to hold the cached hash value of a tuple.  If zero, then
+			 * the hash value must be computed upon request.  Note that in the
+			 * very rare case that the hash value actually equals zero, the hash
+			 * value has to be computed every time it is requested.
+			 */
+			@JvmField
+			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
+		}
+	}
+
+	override fun allowsImmutableToMutableReferenceInField(
+		e: AbstractSlotsEnum): Boolean =
+			e === IntegerSlots.HASH_AND_MORE
+
+	override fun o_NameForDebugger(self: AvailObject): String =
+		"${super.o_NameForDebugger(self)}: tupleSize=${self.tupleSize()}"
+
+	override fun o_SetHashOrZero(self: AvailObject, value: Int)
+	{
+		if (isShared)
+		{
+			synchronized(self) {
 				// The synchronized section is only to ensure other BitFields
 				// in the same long slot don't get clobbered.
-				object.setSlot(HASH_OR_ZERO, value);
+				self.setSlot(IntegerSlots.HASH_OR_ZERO, value)
 			}
 		}
 		else
 		{
-			object.setSlot(HASH_OR_ZERO, value);
+			self.setSlot(IntegerSlots.HASH_OR_ZERO, value)
 		}
 	}
 
-	@Override
-	public final int o_HashOrZero (final AvailObject object)
-	{
-		// If the tuple is shared, its elements can't be in flux, so its hash is
-		// stably computed by any interested thread.  And seeing a zero when the
-		// hash has been computed by another thread is safe, since it forces the
-		// reading thread to recompute the hash.  On the other hand, if the
-		// tuple isn't shared then only one thread can be reading or writing the
-		// hash field.  So either way we don't need synchronization.
-		return object.slot(HASH_OR_ZERO);
-	}
+	// If the tuple is shared, its elements can't be in flux, so its hash is
+	// stably computed by any interested thread.  And seeing a zero when the
+	// hash has been computed by another thread is safe, since it forces the
+	// reading thread to recompute the hash.  On the other hand, if the
+	// tuple isn't shared then only one thread can be reading or writing the
+	// hash field.  So either way we don't need synchronization.
+	override fun o_HashOrZero(self: AvailObject): Int =
+		self.slot(IntegerSlots.HASH_OR_ZERO)
 
-	@Override
-	public void printObjectOnAvoidingIndent (
-		final AvailObject object,
-		final StringBuilder aStream,
-		final IdentityHashMap<A_BasicObject, Void> recursionMap,
-		final int indent)
+	override fun printObjectOnAvoidingIndent(
+		self: AvailObject,
+		builder: StringBuilder,
+		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		indent: Int)
 	{
-		final int size = object.tupleSize();
+		val size = self.tupleSize()
 		if (size == 0)
 		{
-			aStream.append("<>");
-			return;
+			builder.append("<>")
+			return
 		}
-		if (object.isString())
+		if (self.isString)
 		{
-			aStream.append('"');
-			for (int i = 1; i <= size; i++)
+			builder.append('"')
+			for (i in 1 .. size)
 			{
-				final int c = object.tupleCodePointAt(i);
-				if (c == '\"' || c == '\\')
+				when (val c = self.tupleCodePointAt(i))
 				{
-					aStream.appendCodePoint('\\');
-					aStream.appendCodePoint(c);
-				}
-				else if (c == '\n')
-				{
-					aStream.append("\\n");
-				}
-				else if (c == '\r')
-				{
-					aStream.append("\\r");
-				}
-				else if (c == '\t')
-				{
-					aStream.append("\\t");
-				}
-				else if ((c >= 0 && c < 32) || c == 127)
-				{
-					aStream.append(format("\\(%x)", c));
-				}
-				else
-				{
-					aStream.appendCodePoint(c);
+					'\"'.toInt(), '\\'.toInt() ->
+					{
+						builder.appendCodePoint('\\'.toInt())
+						builder.appendCodePoint(c)
+					}
+					'\n'.toInt() -> builder.append("\\n")
+					'\r'.toInt() -> builder.append("\\r")
+					'\t'.toInt() -> builder.append("\\t")
+					in 0 .. 31, 127 -> builder.append(String.format("\\(%x)", c))
+					else -> builder.appendCodePoint(c)
 				}
 			}
-			aStream.appendCodePoint('"');
-			return;
+			builder.appendCodePoint('"'.toInt())
+			return
 		}
-		final List<String> strings = new ArrayList<>(size);
-		int totalChars = 0;
-		boolean anyBreaks = false;
-		for (int i = 1; i <= size; i++)
+		val strings = mutableListOf<String>()
+		var totalChars = 0
+		var anyBreaks = false
+		for (i in 1 .. size)
 		{
-			final A_BasicObject element = object.tupleAt(i);
-			final StringBuilder localBuilder = new StringBuilder();
+			val element: A_BasicObject = self.tupleAt(i)
+			val localBuilder = StringBuilder()
 			element.printOnAvoidingIndent(
 				localBuilder,
 				recursionMap,
-				indent + 1);
-			totalChars += localBuilder.length();
+				indent + 1)
+			totalChars += localBuilder.length
 			if (!anyBreaks)
 			{
-				anyBreaks = localBuilder.indexOf("\n") >= 0;
+				anyBreaks = localBuilder.indexOf("\n") >= 0
 			}
-			strings.add(localBuilder.toString());
+			strings.add(localBuilder.toString())
 		}
-		aStream.append('<');
-		final boolean breakElements = strings.size() > 1
-				&& (anyBreaks || totalChars > 60);
-		for (int i = 0; i < strings.size(); i++)
+		builder.append('<')
+		val breakElements = (strings.size > 1
+							 && (anyBreaks || totalChars > 60))
+		for (i in strings.indices)
 		{
 			if (i > 0)
 			{
-				aStream.append(",");
+				builder.append(",")
 				if (!breakElements)
 				{
-					aStream.append(" ");
+					builder.append(" ")
 				}
 			}
 			if (breakElements)
 			{
-				aStream.append("\n");
-				for (int j = indent; j > 0; j--)
+				builder.append("\n")
+				for (j in indent downTo 1)
 				{
-					aStream.append("\t");
+					builder.append("\t")
 				}
 			}
-			aStream.append(strings.get(i));
+			builder.append(strings[i])
 		}
-		aStream.append('>');
+		builder.append('>')
 	}
 
-	@Override
-	public abstract boolean o_Equals (
-		AvailObject object,
-		A_BasicObject another);
+	abstract override fun o_Equals(
+		self: AvailObject,
+		another: A_BasicObject): Boolean
 
-	@Override
-	public boolean o_EqualsAnyTuple (
-		final AvailObject object,
-		final A_Tuple aTuple)
+	override fun o_EqualsAnyTuple(
+		self: AvailObject,
+		aTuple: A_Tuple): Boolean
 	{
 		// Compare this arbitrary Tuple and the given arbitrary tuple.
-		if (object.sameAddressAs(aTuple))
+		if (self.sameAddressAs(aTuple))
 		{
-			return true;
+			return true
 		}
 		// Compare sizes...
-		final int size = object.tupleSize();
+		val size = self.tupleSize()
 		if (size != aTuple.tupleSize())
 		{
-			return false;
+			return false
 		}
-		if (o_Hash(object) != aTuple.hash())
+		if (o_Hash(self) != aTuple.hash())
 		{
-			return false;
+			return false
 		}
-		for (int i = 1; i <= size; i++)
+		for (i in 1 .. size)
 		{
-			if (!o_TupleAt(object, i).equals(aTuple.tupleAt(i)))
+			if (!o_TupleAt(self, i).equals(aTuple.tupleAt(i)))
 			{
-				return false;
+				return false
 			}
 		}
-		if (object.isBetterRepresentationThan(aTuple))
+		if (self.isBetterRepresentationThan(aTuple))
 		{
-			if (!aTuple.descriptor().isShared())
+			if (!aTuple.descriptor().isShared)
 			{
-				object.makeImmutable();
-				aTuple.becomeIndirectionTo(object);
+				self.makeImmutable()
+				aTuple.becomeIndirectionTo(self)
 			}
 		}
 		else
 		{
-			if (!isShared())
+			if (!isShared)
 			{
-				aTuple.makeImmutable();
-				object.becomeIndirectionTo(aTuple);
+				aTuple.makeImmutable()
+				self.becomeIndirectionTo(aTuple)
 			}
 		}
-		return true;
+		return true
 	}
 
-	@Override
-	public boolean o_EqualsByteString (
-		final AvailObject object,
-		final A_String aByteString)
-	{
-		// Default to generic tuple comparison.
-		return o_EqualsAnyTuple(object, aByteString);
-	}
+	// Default to generic tuple comparison.
+	override fun o_EqualsByteString(
+		self: AvailObject,
+		aByteString: A_String): Boolean = o_EqualsAnyTuple(self, aByteString)
 
-	@Override
-	public boolean o_EqualsByteTuple (
-		final AvailObject object,
-		final A_Tuple aTuple)
-	{
-		// Default to generic tuple comparison.
-		return o_EqualsAnyTuple(object, aTuple);
-	}
+	// Default to generic tuple comparison.
+	override fun o_EqualsByteTuple(
+		self: AvailObject,
+		aByteTuple: A_Tuple): Boolean = o_EqualsAnyTuple(self, aByteTuple)
 
-	@Override
-	public boolean o_EqualsByteArrayTuple (
-		final AvailObject object,
-		final A_Tuple aTuple)
-	{
-		// Default to generic tuple comparison.
-		return o_EqualsAnyTuple(object, aTuple);
-	}
+	// Default to generic tuple comparison.
+	override fun o_EqualsByteArrayTuple(
+		self: AvailObject,
+		aByteArrayTuple: A_Tuple): Boolean =
+			o_EqualsAnyTuple(self, aByteArrayTuple)
 
-	@Override
-	public boolean o_EqualsByteBufferTuple (
-		final AvailObject object,
-		final A_Tuple aTuple)
-	{
-		// Default to generic tuple comparison.
-		return o_EqualsAnyTuple(object, aTuple);
-	}
+	// Default to generic tuple comparison.
+	override fun o_EqualsByteBufferTuple(
+		self: AvailObject,
+		aByteBufferTuple: A_Tuple): Boolean =
+			o_EqualsAnyTuple(self, aByteBufferTuple)
 
-	@Override
-	public boolean o_EqualsIntegerIntervalTuple (
-		final AvailObject object,
-		final A_Tuple aTuple)
-	{
-		// Default to generic tuple comparison.
-		return o_EqualsAnyTuple(object, aTuple);
-	}
+	// Default to generic tuple comparison.
+	override fun o_EqualsIntegerIntervalTuple(
+		self: AvailObject,
+		anIntegerIntervalTuple: A_Tuple): Boolean =
+			o_EqualsAnyTuple(self, anIntegerIntervalTuple)
 
-	@Override
-	public boolean o_EqualsIntTuple (
-		final AvailObject object,
-		final A_Tuple anIntTuple)
-	{
-		// Default to generic tuple comparison.
-		return o_EqualsAnyTuple(object, anIntTuple);
-	}
+	// Default to generic tuple comparison.
+	override fun o_EqualsIntTuple(
+		self: AvailObject,
+		anIntTuple: A_Tuple): Boolean = o_EqualsAnyTuple(self, anIntTuple)
 
-	@Override
-	public boolean o_EqualsReverseTuple (
-		final AvailObject object,
-		final A_Tuple aTuple)
-	{
-		// Default to generic tuple comparison.
-		return o_EqualsAnyTuple(object, aTuple);
-	}
+	// Default to generic tuple comparison.
+	override fun o_EqualsReverseTuple(
+		self: AvailObject,
+		aTuple: A_Tuple): Boolean = o_EqualsAnyTuple(self, aTuple)
 
-	@Override
-	public boolean o_EqualsSmallIntegerIntervalTuple (
-		final AvailObject object,
-		final A_Tuple aTuple)
-	{
-		// Default to generic tuple comparison.
-		return o_EqualsAnyTuple(object, aTuple);
-	}
+	// Default to generic tuple comparison.
+	override fun o_EqualsSmallIntegerIntervalTuple(
+		self: AvailObject,
+		aSmallIntegerIntervalTuple: A_Tuple): Boolean =
+			o_EqualsAnyTuple(self, aSmallIntegerIntervalTuple)
 
-	@Override
-	public boolean o_EqualsRepeatedElementTuple (
-		final AvailObject object,
-		final A_Tuple aTuple)
-	{
-		// Default to generic tuple comparison.
-		return o_EqualsAnyTuple(object, aTuple);
-	}
+	// Default to generic tuple comparison.
+	override fun o_EqualsRepeatedElementTuple(
+		self: AvailObject,
+		aRepeatedElementTuple: A_Tuple): Boolean =
+			o_EqualsAnyTuple(self, aRepeatedElementTuple)
 
-	@Override
-	public boolean o_EqualsNybbleTuple (
-		final AvailObject object,
-		final A_Tuple aTuple)
-	{
-		// Default to generic comparison.
-		return o_EqualsAnyTuple(object, aTuple);
-	}
+	// Default to generic comparison.
+	override fun o_EqualsNybbleTuple(
+		self: AvailObject,
+		aTuple: A_Tuple): Boolean = o_EqualsAnyTuple(self, aTuple)
 
-	@Override
-	public boolean o_EqualsObjectTuple (
-		final AvailObject object,
-		final A_Tuple aTuple)
-	{
-		// Default to generic comparison.
-		return o_EqualsAnyTuple(object, aTuple);
-	}
+	// Default to generic comparison.
+	override fun o_EqualsObjectTuple(
+		self: AvailObject,
+		aTuple: A_Tuple): Boolean = o_EqualsAnyTuple(self, aTuple)
 
-	@Override
-	public boolean o_EqualsTwoByteString (
-		final AvailObject object,
-		final A_String aTwoByteString)
-	{
-		// Default to generic tuple comparison.
-		return o_EqualsAnyTuple(object, aTwoByteString);
-	}
+	// Default to generic tuple comparison.
+	override fun o_EqualsTwoByteString(
+		self: AvailObject,
+		aString: A_String): Boolean = o_EqualsAnyTuple(self, aString)
 
-	@Override
-	public boolean o_IsBetterRepresentationThan (
-		final AvailObject object,
-		final A_BasicObject anotherObject)
-	{
-		// Given two objects that are known to be equal, is the first one in a
-		// better form (more compact, more efficient, older generation) than
-		// the second one?
-		final A_Tuple anotherTuple = (A_Tuple) anotherObject;
-		return object.bitsPerEntry() < anotherTuple.bitsPerEntry();
-	}
+	// Given two objects that are known to be equal, is the first one in a
+	// better form (more compact, more efficient, older generation) than
+	// the second one?
+	override fun o_IsBetterRepresentationThan(
+		self: AvailObject,
+		anotherObject: A_BasicObject): Boolean =
+			self.bitsPerEntry() < (anotherObject as A_Tuple).bitsPerEntry()
 
-	@Override
-	public boolean o_IsInstanceOfKind (
-		final AvailObject object,
-		final A_Type aTypeObject)
+	override fun o_IsInstanceOfKind(self: AvailObject, aType: A_Type): Boolean
 	{
-		if (aTypeObject.isSupertypeOfPrimitiveTypeEnum(NONTYPE))
+		if (aType.isSupertypeOfPrimitiveTypeEnum(
+				TypeDescriptor.Types.NONTYPE))
 		{
-			return true;
+			return true
 		}
-		if (!aTypeObject.isTupleType())
+		if (!aType.isTupleType)
 		{
-			return false;
+			return false
 		}
 		// See if it's an acceptable size...
-		final int tupleSize = object.tupleSize();
-		if (!aTypeObject.sizeRange().rangeIncludesInt(tupleSize))
+		val tupleSize = self.tupleSize()
+		if (!aType.sizeRange().rangeIncludesInt(tupleSize))
 		{
-			return false;
+			return false
 		}
 		// The tuple's size is in range.
-		final A_Tuple typeTuple = aTypeObject.typeTuple();
-		final int breakIndex = min(tupleSize, typeTuple.tupleSize());
-		for (int i = 1; i <= breakIndex; i++)
+		val typeTuple = aType.typeTuple()
+		val breakIndex = tupleSize.coerceAtMost(typeTuple.tupleSize())
+		for (i in 1 .. breakIndex)
 		{
-			if (!object.tupleAt(i).isInstanceOf(typeTuple.tupleAt(i)))
+			if (!self.tupleAt(i).isInstanceOf(typeTuple.tupleAt(i)))
 			{
-				return false;
+				return false
 			}
 		}
 		if (breakIndex + 1 > tupleSize)
 		{
-			return true;
+			return true
 		}
-		final A_Type defaultTypeObject = aTypeObject.defaultType();
-		return defaultTypeObject.isSupertypeOfPrimitiveTypeEnum(ANY)
-			|| object.tupleElementsInRangeAreInstancesOf(
-				breakIndex + 1, tupleSize, defaultTypeObject);
+		val defaultTypeObject = aType.defaultType()
+		return (defaultTypeObject.isSupertypeOfPrimitiveTypeEnum(
+				TypeDescriptor.Types.ANY)
+			|| self.tupleElementsInRangeAreInstancesOf(
+		breakIndex + 1, tupleSize, defaultTypeObject))
 	}
 
-	/**
-	 * The hash value is stored raw in the object's hashOrZero slot if it
-	 * has been computed, otherwise that slot is zero. If a zero is
-	 * detected, compute the hash and store it in hashOrZero. Note that the
-	 * hash can (extremely rarely) be zero, in which case the hash has to be
-	 * computed each time.
-	 *
-	 * @param object
-	 * An object.
-	 * @return
-	 * The hash.
-	 */
-	private static int hash (final A_Tuple object)
-	{
-		int hash = object.hashOrZero();
-		if (hash == 0 && object.tupleSize() > 0)
-		{
-			hash = computeHashForObject(object);
-			object.setHashOrZero(hash);
-		}
-		return hash;
-	}
+	// We could synchronize if the object isShared(), but why bother?  The
+	// hash computation is stable, so we'll only compute and write what
+	// other threads might already be writing.  Even reading a zero after
+	// reading the true hash isn't a big deal.
+	override fun o_Hash(self: AvailObject): Int = hash(self)
 
-	@Override
-	public int o_Hash (final AvailObject object)
+	override fun o_Kind(self: AvailObject): A_Type
 	{
-		// We could synchronize if the object isShared(), but why bother?  The
-		// hash computation is stable, so we'll only compute and write what
-		// other threads might already be writing.  Even reading a zero after
-		// reading the true hash isn't a big deal.
-		return hash(object);
-	}
-
-	@Override
-	public A_Type o_Kind (final AvailObject object)
-	{
-		final A_Tuple tupleOfTypes = object.copyAsMutableObjectTuple();
-		final int tupleSize = object.tupleSize();
-		for (int i = 1; i <= tupleSize; i++)
+		val tupleOfTypes = self.copyAsMutableObjectTuple()
+		val tupleSize = self.tupleSize()
+		for (i in 1 .. tupleSize)
 		{
 			tupleOfTypes.tupleAtPuttingCanDestroy(
 				i,
-				instanceTypeOrMetaOn(object.tupleAt(i)),
-				true);
+				AbstractEnumerationTypeDescriptor
+					.instanceTypeOrMetaOn(self.tupleAt(i)),
+				true)
 		}
-		return tupleTypeForSizesTypesDefaultType(
-			fromInt(object.tupleSize()).kind(),
+		return TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+			fromInt(self.tupleSize()).kind(),
 			tupleOfTypes,
-			bottom());
+			BottomTypeDescriptor.bottom())
 	}
 
-	@Override
-	public abstract boolean o_CompareFromToWithStartingAt (
-		final AvailObject object,
-		final int startIndex1,
-		final int endIndex1,
-		final A_Tuple anotherObject,
-		final int startIndex2);
+	abstract override fun o_CompareFromToWithStartingAt(
+		self: AvailObject,
+		startIndex1: Int,
+		endIndex1: Int,
+		anotherObject: A_Tuple,
+		startIndex2: Int): Boolean
 
-	@Override
-	public boolean o_CompareFromToWithAnyTupleStartingAt (
-		final AvailObject object,
-		final int startIndex1,
-		final int endIndex1,
-		final A_Tuple aTuple,
-		final int startIndex2)
+	override fun o_CompareFromToWithAnyTupleStartingAt(
+		self: AvailObject,
+		startIndex1: Int,
+		endIndex1: Int,
+		aTuple: A_Tuple,
+		startIndex2: Int): Boolean
 	{
-		for (
-			int index1 = startIndex1, index2 = startIndex2;
-			index1 <= endIndex1;
-			index1++, index2++)
+		var index1 = startIndex1
+		var index2 = startIndex2
+		while (index1 <= endIndex1)
 		{
-			if (!object.tupleAt(index1).equals(aTuple.tupleAt(index2)))
+			if (!self.tupleAt(index1).equals(aTuple.tupleAt(index2)))
 			{
-				return false;
+				return false
 			}
+			index1++
+			index2++
 		}
-		return true;
+		return true
 	}
 
-	@Override
-	public boolean o_CompareFromToWithByteStringStartingAt (
-		final AvailObject object,
-		final int startIndex1,
-		final int endIndex1,
-		final A_String aByteString,
-		final int startIndex2)
-	{
-		return o_CompareFromToWithAnyTupleStartingAt(
-			object,
-			startIndex1,
-			endIndex1,
-			aByteString,
-			startIndex2);
-	}
+	override fun o_CompareFromToWithByteStringStartingAt(
+		self: AvailObject,
+		startIndex1: Int,
+		endIndex1: Int,
+		aByteString: A_String,
+		startIndex2: Int): Boolean =
+			o_CompareFromToWithAnyTupleStartingAt(
+				self,
+				startIndex1,
+				endIndex1,
+				aByteString,
+				startIndex2)
 
-	@Override
-	public boolean o_CompareFromToWithByteTupleStartingAt (
-		final AvailObject object,
-		final int startIndex1,
-		final int endIndex1,
-		final A_Tuple aByteTuple,
-		final int startIndex2)
-	{
-		return o_CompareFromToWithAnyTupleStartingAt(
-			object,
-			startIndex1,
-			endIndex1,
-			aByteTuple,
-			startIndex2);
-	}
+	override fun o_CompareFromToWithByteTupleStartingAt(
+		self: AvailObject,
+		startIndex1: Int,
+		endIndex1: Int,
+		aByteTuple: A_Tuple,
+		startIndex2: Int): Boolean =
+			o_CompareFromToWithAnyTupleStartingAt(
+				self,
+				startIndex1,
+				endIndex1,
+				aByteTuple,
+				startIndex2)
 
-	@Override
-	public boolean o_CompareFromToWithByteArrayTupleStartingAt (
-		final AvailObject self,
-		final int startIndex1,
-		final int endIndex1,
-		final A_Tuple aByteTuple,
-		final int startIndex2)
-	{
-		return o_CompareFromToWithAnyTupleStartingAt(
-			self,
-			startIndex1,
-			endIndex1,
-			aByteTuple,
-			startIndex2);
-	}
+	override fun o_CompareFromToWithByteArrayTupleStartingAt(
+		self: AvailObject,
+		startIndex1: Int,
+		endIndex1: Int,
+		aByteArrayTuple: A_Tuple,
+		startIndex2: Int): Boolean =
+			o_CompareFromToWithAnyTupleStartingAt(
+				self,
+				startIndex1,
+				endIndex1,
+				aByteArrayTuple,
+				startIndex2)
 
-	@Override
-	public boolean o_CompareFromToWithByteBufferTupleStartingAt (
-		final AvailObject object,
-		final int startIndex1,
-		final int endIndex1,
-		final A_Tuple aByteBufferTuple,
-		final int startIndex2)
-	{
-		// Compare sections of two tuples. Default to generic comparison.
-		return o_CompareFromToWithAnyTupleStartingAt(
-			object,
-			startIndex1,
-			endIndex1,
-			aByteBufferTuple,
-			startIndex2);
-	}
+	// Compare sections of two tuples. Default to generic comparison.
+	override fun o_CompareFromToWithByteBufferTupleStartingAt(
+		self: AvailObject,
+		startIndex1: Int,
+		endIndex1: Int,
+		aByteBufferTuple: A_Tuple,
+		startIndex2: Int): Boolean =
+			o_CompareFromToWithAnyTupleStartingAt(
+				self,
+				startIndex1,
+				endIndex1,
+				aByteBufferTuple,
+				startIndex2)
 
-	@Override
-	public boolean o_CompareFromToWithIntegerIntervalTupleStartingAt (
-		final AvailObject object,
-		final int startIndex1,
-		final int endIndex1,
-		final A_Tuple anIntegerIntervalTuple,
-		final int startIndex2)
-	{
-		// Compare sections of two tuples. Default to generic comparison.
-		return o_CompareFromToWithAnyTupleStartingAt(
-			object,
-			startIndex1,
-			endIndex1,
-			anIntegerIntervalTuple,
-			startIndex2);
-	}
+	// Compare sections of two tuples. Default to generic comparison.
+	override fun o_CompareFromToWithIntegerIntervalTupleStartingAt(
+		self: AvailObject,
+		startIndex1: Int,
+		endIndex1: Int,
+		anIntegerIntervalTuple: A_Tuple,
+		startIndex2: Int): Boolean =
+			o_CompareFromToWithAnyTupleStartingAt(
+				self,
+				startIndex1,
+				endIndex1,
+				anIntegerIntervalTuple,
+				startIndex2)
 
-	@Override
-	public boolean o_CompareFromToWithIntTupleStartingAt (
-		final AvailObject object,
-		final int startIndex1,
-		final int endIndex1,
-		final A_Tuple anIntTuple,
-		final int startIndex2)
-	{
-		// Compare sections of two tuples. Default to generic comparison.
-		return o_CompareFromToWithAnyTupleStartingAt(
-			object, startIndex1, endIndex1, anIntTuple, startIndex2);
-	}
+	// Compare sections of two tuples. Default to generic comparison.
+	override fun o_CompareFromToWithIntTupleStartingAt(
+		self: AvailObject,
+		startIndex1: Int,
+		endIndex1: Int,
+		anIntTuple: A_Tuple,
+		startIndex2: Int): Boolean =
+			o_CompareFromToWithAnyTupleStartingAt(
+				self, startIndex1, endIndex1, anIntTuple, startIndex2)
 
-	@Override
-	public boolean o_CompareFromToWithSmallIntegerIntervalTupleStartingAt (
-		final AvailObject object,
-		final int startIndex1,
-		final int endIndex1,
-		final A_Tuple aSmallIntegerIntervalTuple,
-		final int startIndex2)
-	{
-		// Compare sections of two tuples. Default to generic comparison.
-		return o_CompareFromToWithAnyTupleStartingAt(
-			object,
-			startIndex1,
-			endIndex1,
-			aSmallIntegerIntervalTuple,
-			startIndex2);
-	}
+	// Compare sections of two tuples. Default to generic comparison.
+	override fun o_CompareFromToWithSmallIntegerIntervalTupleStartingAt(
+		self: AvailObject,
+		startIndex1: Int,
+		endIndex1: Int,
+		aSmallIntegerIntervalTuple: A_Tuple,
+		startIndex2: Int): Boolean =
+			o_CompareFromToWithAnyTupleStartingAt(
+				self,
+				startIndex1,
+				endIndex1,
+				aSmallIntegerIntervalTuple,
+				startIndex2)
 
-	@Override
-	public boolean o_CompareFromToWithRepeatedElementTupleStartingAt (
-		final AvailObject object,
-		final int startIndex1,
-		final int endIndex1,
-		final A_Tuple aRepeatedElementTuple,
-		final int startIndex2)
-	{
-		// Compare sections of two tuples. Default to generic comparison.
-		return o_CompareFromToWithAnyTupleStartingAt(
-			object,
-			startIndex1,
-			endIndex1,
-			aRepeatedElementTuple,
-			startIndex2);
-	}
+	// Compare sections of two tuples. Default to generic comparison.
+	override fun o_CompareFromToWithRepeatedElementTupleStartingAt(
+		self: AvailObject,
+		startIndex1: Int,
+		endIndex1: Int,
+		aRepeatedElementTuple: A_Tuple,
+		startIndex2: Int): Boolean =
+			o_CompareFromToWithAnyTupleStartingAt(
+				self,
+				startIndex1,
+				endIndex1,
+				aRepeatedElementTuple,
+				startIndex2)
 
-	@Override
-	public boolean o_CompareFromToWithNybbleTupleStartingAt (
-		final AvailObject object,
-		final int startIndex1,
-		final int endIndex1,
-		final A_Tuple aNybbleTuple,
-		final int startIndex2)
-	{
-		return o_CompareFromToWithAnyTupleStartingAt(
-			object,
-			startIndex1,
-			endIndex1,
-			aNybbleTuple,
-			startIndex2);
-	}
+	override fun o_CompareFromToWithNybbleTupleStartingAt(
+		self: AvailObject,
+		startIndex1: Int,
+		endIndex1: Int,
+		aNybbleTuple: A_Tuple,
+		startIndex2: Int): Boolean =
+			o_CompareFromToWithAnyTupleStartingAt(
+				self,
+				startIndex1,
+				endIndex1,
+				aNybbleTuple,
+				startIndex2)
 
-	@Override
-	public boolean o_CompareFromToWithObjectTupleStartingAt (
-		final AvailObject object,
-		final int startIndex1,
-		final int endIndex1,
-		final A_Tuple anObjectTuple,
-		final int startIndex2)
-	{
-		// Compare sections of two tuples. Default to generic comparison.
-		return o_CompareFromToWithAnyTupleStartingAt(
-			object,
-			startIndex1,
-			endIndex1,
-			anObjectTuple,
-			startIndex2);
-	}
+	// Compare sections of two tuples. Default to generic comparison.
+	override fun o_CompareFromToWithObjectTupleStartingAt(
+		self: AvailObject,
+		startIndex1: Int,
+		endIndex1: Int,
+		anObjectTuple: A_Tuple,
+		startIndex2: Int): Boolean =
+			o_CompareFromToWithAnyTupleStartingAt(
+				self,
+				startIndex1,
+				endIndex1,
+				anObjectTuple,
+				startIndex2)
 
-	@Override
-	public boolean o_CompareFromToWithTwoByteStringStartingAt (
-		final AvailObject object,
-		final int startIndex1,
-		final int endIndex1,
-		final A_String aTwoByteString,
-		final int startIndex2)
-	{
-		return o_CompareFromToWithAnyTupleStartingAt(
-			object,
-			startIndex1,
-			endIndex1,
-			aTwoByteString,
-			startIndex2);
-	}
+	override fun o_CompareFromToWithTwoByteStringStartingAt(
+		self: AvailObject,
+		startIndex1: Int,
+		endIndex1: Int,
+		aTwoByteString: A_String,
+		startIndex2: Int): Boolean =
+			o_CompareFromToWithAnyTupleStartingAt(
+				self,
+				startIndex1,
+				endIndex1,
+				aTwoByteString,
+				startIndex2)
 
-	@Override
-	public A_Tuple o_ConcatenateTuplesCanDestroy (
-		final AvailObject object,
-		final boolean canDestroy)
+	override fun o_ConcatenateTuplesCanDestroy(
+		self: AvailObject,
+		canDestroy: Boolean): A_Tuple
 	{
 		// Take a tuple of tuples and answer one big tuple constructed by
 		// concatenating the subtuples together.
-		final int tupleSize = object.tupleSize();
+		val tupleSize = self.tupleSize()
 		if (tupleSize == 0)
 		{
-			return emptyTuple();
+			return emptyTuple()
 		}
-		A_Tuple accumulator = object.tupleAt(1);
+		var accumulator: A_Tuple = self.tupleAt(1)
 		if (canDestroy)
 		{
-			for (int i = 2; i <= tupleSize; i++)
+			for (i in 2 .. tupleSize)
 			{
 				accumulator = accumulator.concatenateWith(
-					object.tupleAt(i), true);
+					self.tupleAt(i), true)
 			}
 		}
 		else
 		{
-			object.makeImmutable();
-			for (int i = 2; i <= tupleSize; i++)
+			self.makeImmutable()
+			for (i in 2 .. tupleSize)
 			{
 				accumulator = accumulator.concatenateWith(
-					object.tupleAt(i).makeImmutable(), true);
+					self.tupleAt(i).makeImmutable(), true)
 			}
 		}
-		return accumulator;
+		return accumulator
 	}
 
 	/**
-	 * Subclasses should override to deal with short subranges and efficient copying techniques.  Here we pretty much just create a {@linkplain SubrangeTupleDescriptor subrange tuple}.
+	 * Subclasses should override to deal with short subranges and efficient
+	 * copying techniques.  Here we pretty much just create a [subrange
+	 * tuple][SubrangeTupleDescriptor].
 	 */
-	@Override
-	public A_Tuple o_CopyTupleFromToCanDestroy (
-		final AvailObject object,
-		final int start,
-		final int end,
-		final boolean canDestroy)
+	override fun o_CopyTupleFromToCanDestroy(
+		self: AvailObject,
+		start: Int,
+		end: Int,
+		canDestroy: Boolean): A_Tuple
 	{
-		final int tupleSize = object.tupleSize();
-		assert 1 <= start && start <= end + 1 && end <= tupleSize;
-		final int size = end - start + 1;
+		val tupleSize = self.tupleSize()
+		assert(1 <= start && start <= end + 1 && end <= tupleSize)
+		val size = end - start + 1
 		if (size == 0)
 		{
-			if (isMutable() && canDestroy)
+			if (isMutable && canDestroy)
 			{
-				object.assertObjectUnreachableIfMutable();
+				self.assertObjectUnreachableIfMutable()
 			}
-			return emptyTuple();
+			return emptyTuple()
 		}
 		if (size == tupleSize)
 		{
-			if (isMutable() && !canDestroy)
+			if (isMutable && !canDestroy)
 			{
-				object.makeImmutable();
+				self.makeImmutable()
 			}
-			return object;
+			return self
 		}
-		return createSubrange(object, start, size);
+		return SubrangeTupleDescriptor.createSubrange(self, start, size)
 	}
 
-	@Override
-	public byte o_ExtractNybbleFromTupleAt (
-		final AvailObject object, final int index)
+	override fun o_ExtractNybbleFromTupleAt(
+		self: AvailObject, index: Int): Byte
 	{
 		// Get the element at the given index in the tuple object, and extract a
 		// nybble from it. Fail if it's not a nybble. Obviously overridden for
 		// speed in NybbleTupleDescriptor.
-		final int nyb = object.tupleIntAt(index);
-		assert (nyb & ~15) == 0;
-		return (byte) nyb;
+		val nyb = self.tupleIntAt(index)
+		assert(nyb and 15.inv() == 0)
+		return nyb.toByte()
 	}
 
-	@Override
-	public int o_HashFromTo (
-		final AvailObject object,
-		final int startIndex,
-		final int endIndex)
+	// Compute object's hash value over the given range.
+	override fun o_HashFromTo(
+		self: AvailObject,
+		startIndex: Int,
+		endIndex: Int): Int =
+			if (startIndex == 1 && endIndex == self.tupleSize()) self.hash()
+			else self.computeHashFromTo(startIndex, endIndex)
+
+	abstract override fun o_TupleAt(self: AvailObject, index: Int): AvailObject
+
+	abstract override fun o_TupleAtPuttingCanDestroy(
+		self: AvailObject,
+		index: Int,
+		newValueObject: A_BasicObject,
+		canDestroy: Boolean): A_Tuple
+
+	override fun o_TupleCodePointAt(self: AvailObject, index: Int): Int =
+		self.tupleAt(index).codePoint()
+
+	override fun o_TupleIntAt(self: AvailObject, index: Int): Int =
+		self.tupleAt(index).extractInt()
+
+	override fun o_AsSet(self: AvailObject): A_Set =
+		generateSetFrom(self.tupleSize(), self.iterator())
+
+	override fun o_IsTuple(self: AvailObject): Boolean = true
+
+	override fun o_IsString(self: AvailObject): Boolean
 	{
-		// Compute object's hash value over the given range.
-		if (startIndex == 1 && endIndex == object.tupleSize())
+		val limit = self.tupleSize()
+		for (i in 1 .. limit)
 		{
-			return object.hash();
-		}
-		return object.computeHashFromTo(startIndex, endIndex);
-	}
-
-	@Override
-	public abstract AvailObject o_TupleAt (
-		final AvailObject object,
-		final int index);
-
-	@Override
-	public abstract A_Tuple o_TupleAtPuttingCanDestroy (
-		final AvailObject object,
-		final int index,
-		final A_BasicObject newValueObject,
-		final boolean canDestroy);
-
-	@Override
-	public int o_TupleCodePointAt (final AvailObject object, final int index)
-	{
-		return A_Character.Companion.codePoint(object.tupleAt(index));
-	}
-
-	@Override
-	public int o_TupleIntAt (final AvailObject object, final int index)
-	{
-		return object.tupleAt(index).extractInt();
-	}
-
-	@Override
-	public A_Set o_AsSet (final AvailObject object)
-	{
-		return generateSetFrom(object.tupleSize(), object.iterator());
-	}
-
-	@Override
-	public boolean o_IsTuple (final AvailObject object)
-	{
-		return true;
-	}
-
-	@Override
-	public boolean o_IsString (final AvailObject object)
-	{
-		final int limit = object.tupleSize();
-		for (int i = 1; i <= limit; i++)
-		{
-			if (!object.tupleAt(i).isCharacter())
+			if (!self.tupleAt(i).isCharacter)
 			{
-				return false;
+				return false
 			}
 		}
-		return true;
+		return true
 	}
 
-	@Override
-	public A_Tuple o_TupleReverse(final AvailObject object)
-	{
-		return createReverseTuple(object);
-	}
+	override fun o_TupleReverse(self: AvailObject): A_Tuple =
+		ReverseTupleDescriptor.createReverseTuple(self)
 
-	@Override
-	public abstract int o_TupleSize (final AvailObject object);
+	abstract override fun o_TupleSize(self: AvailObject): Int
 
-	@Override @ThreadSafe
-	public SerializerOperation o_SerializerOperation (
-		final AvailObject object)
+	@ThreadSafe
+	override fun o_SerializerOperation(
+		self: AvailObject): SerializerOperation
 	{
-		final int size = object.tupleSize();
+		val size = self.tupleSize()
 		if (size == 0)
 		{
-			return SerializerOperation.NYBBLE_TUPLE;
+			return SerializerOperation.NYBBLE_TUPLE
 		}
 
 		// Examine the first element to detect homogenous cases like numeric
 		// tuples or strings.
-		final AvailObject firstElement = object.tupleAt(1);
-		if (firstElement.isCharacter())
+		val firstElement = self.tupleAt(1)
+		if (firstElement.isCharacter)
 		{
 			// See if we can use a string-like representation.
-			int maxCodePoint = A_Character.Companion.codePoint(firstElement);
-			for (int i = 2; i <= size; i++)
+			var maxCodePoint: Int = firstElement.codePoint()
+			for (i in 2 .. size)
 			{
-				final AvailObject element = object.tupleAt(i);
-				if (!element.isCharacter())
+				val element = self.tupleAt(i)
+				if (!element.isCharacter)
 				{
-					return SerializerOperation.GENERAL_TUPLE;
+					return SerializerOperation.GENERAL_TUPLE
 				}
-				maxCodePoint = max(maxCodePoint, A_Character.Companion.codePoint(element));
+				maxCodePoint = maxCodePoint.coerceAtLeast(element.codePoint())
 			}
-			return maxCodePoint <= 255
-				? SerializerOperation.BYTE_STRING
-				: maxCodePoint <= 65535
-					? SerializerOperation.SHORT_STRING
-					: SerializerOperation.ARBITRARY_STRING;
+			return when
+			{
+				maxCodePoint <= 255 -> SerializerOperation.BYTE_STRING
+				maxCodePoint <= 65535 -> SerializerOperation.SHORT_STRING
+				else -> SerializerOperation.ARBITRARY_STRING
+			}
 		}
-
-		if (firstElement.isInt())
+		if (firstElement.isInt)
 		{
 			// See if we can use a numeric-tuple representation.
-			int maxInteger = firstElement.extractInt();
+			var maxInteger = firstElement.extractInt()
 			if (maxInteger < 0)
 			{
-				return SerializerOperation.GENERAL_TUPLE;
+				return SerializerOperation.GENERAL_TUPLE
 			}
-			for (int i = 2; i <= size; i++)
+			for (i in 2 .. size)
 			{
-				final AvailObject element = object.tupleAt(i);
-				if (!element.isInt())
+				val element = self.tupleAt(i)
+				if (!element.isInt)
 				{
-					return SerializerOperation.GENERAL_TUPLE;
+					return SerializerOperation.GENERAL_TUPLE
 				}
-				final int intValue = element.extractInt();
+				val intValue = element.extractInt()
 				if (intValue < 0)
 				{
-					return SerializerOperation.GENERAL_TUPLE;
+					return SerializerOperation.GENERAL_TUPLE
 				}
-				maxInteger = max(maxInteger, intValue);
+				maxInteger = maxInteger.coerceAtLeast(intValue)
 			}
-			return maxInteger <= 15
-				? SerializerOperation.NYBBLE_TUPLE
-				: maxInteger <= 255
-					? SerializerOperation.BYTE_TUPLE
-					: SerializerOperation.INT_TUPLE;
+			return when
+			{
+				maxInteger <= 15 -> SerializerOperation.NYBBLE_TUPLE
+				maxInteger <= 255 -> SerializerOperation.BYTE_TUPLE
+				else -> SerializerOperation.INT_TUPLE
+			}
 		}
-
-		return SerializerOperation.GENERAL_TUPLE;
-	}
-
-	/**
-	 * Compute the object's hash value.
-	 *
-	 * @param object
-	 * The object to hash.
-	 * @return
-	 * The hash value.
-	 */
-	private static int computeHashForObject (final A_Tuple object)
-	{
-		return object.computeHashFromTo(1, object.tupleSize());
+		return SerializerOperation.GENERAL_TUPLE
 	}
 
 	/**
 	 * Compute the hash value from the object's data. The result should be an
-	 * {@code int}.  To keep the rehashing cost down for concatenated tuples, we
+	 * `int`.  To keep the rehashing cost down for concatenated tuples, we
 	 * use a non-commutative hash function. If the tuple has elements with hash
 	 * values
 	 * <math xmlns="http://www.w3.org/1998/Math/MathML">
-	 *   <mrow>
-	 *   <msub><mi>h</mi><mn>1</mn></msub>
-	 *   <mi>&hellip;</mi>
-	 *   <msub><mi>h</mi><mi>n</mi></msub>
-	 * </mrow></math>,
+	 * <mrow>
+	 * <msub><mi>h</mi><mn>1</mn></msub>
+	 * <mi></mi>
+	 * <msub><mi>h</mi><mi>n</mi></msub></mrow></math> ,
 	 * we use the formula
 	 * <math xmlns="http://www.w3.org/1998/Math/MathML">
 	 * <mrow>
-	 *   <mrow>
-	 *     <msub><mi>h</mi><mn>1</mn></msub>
-	 *     <mo>&InvisibleTimes;</mo>
-	 *     <msup><mi>a</mi><mn>1</mn></msup>
-	 *   </mrow>
-	 *   <mo>+</mo>
-	 *   <mrow>
-	 *     <msub><mi>h</mi><mn>2</mn></msub>
-	 *     <mo>&InvisibleTimes;</mo>
-	 *     <msup><mi>a</mi><mn>2</mn></msup>
-	 *   </mrow>
-	 *   <mo>+</mo>
-	 *   <mi>&hellip;</mi>
-	 *   <mo>+</mo>
-	 *   <mrow>
-	 *     <msub><mi>h</mi><mi>n</mi></msub>
-	 *     <mo>&InvisibleTimes;</mo>
-	 *     <msup><mi>a</mi><mi>n</mi></msup>
-	 *   </mrow>
-	 * </mrow>/</math>.
+	 * <mrow>
+	 * <msub><mi>h</mi><mn>1</mn></msub>
+	 * <mo></mo>
+	 * <msup><mi>a</mi><mn>1</mn></msup></mrow>
+	 * <mo>+</mo>
+	 * <mrow>
+	 * <msub><mi>h</mi><mn>2</mn></msub>
+	 * <mo></mo>
+	 * <msup><mi>a</mi><mn>2</mn></msup></mrow>
+	 * <mo>+</mo>
+	 * <mi></mi>
+	 * <mo>+</mo>
+	 * <mrow>
+	 * <msub><mi>h</mi><mi>n</mi></msub>
+	 * <mo></mo>
+	 * <msup><mi>a</mi><mi>n</mi></msup></mrow></mrow> /</math>.
 	 * This can be rewritten as
 	 * <math xmlns="http://www.w3.org/1998/Math/MathML">
 	 * <mrow>
-	 *   <munderover>
-	 *     <mo>&sum;</mo>
-	 *     <mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow>
-	 *     <mi>n</mi>
-	 *   </munderover>
-	 *   <mrow>
-	 *     <msub><mi>h</mi><mi>i</mi></msub>
-	 *     <mo>&InvisibleTimes;</mo>
-	 *     <msup><mi>a</mi><mi>i</mi></msup>
-	 *   </mrow>
-	 * </mrow></math>
-	 * ). The constant {@code a} is chosen as a primitive element of the group
+	 * <munderover>
+	 * <mo></mo>
+	 * <mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow>
+	 * <mi>n</mi></munderover>
+	 * <mrow>
+	 * <msub><mi>h</mi><mi>i</mi></msub>
+	 * <mo></mo>
+	 * <msup><mi>a</mi><mi>i</mi></msup></mrow></mrow></math>
+	 * ). The constant `a` is chosen as a primitive element of the group
 	 * <math xmlns="http://www.w3.org/1998/Math/MathML">
 	 * <mrow>
-	 *   <mfenced>
-	 *     <msub>
-	 *       <mo>&integers;</mo>
-	 *       <msup><mn>2</mn><mn>32</mn></msup>
-	 *     </msub>
-	 *     <mo>&times;</mo>
-	 *   </mfenced>
-	 * </mrow></math>,
+	 * <mfenced>
+	 * <msub>
+	 * <mo></mo>
+	 * <msup><mn>2</mn><mn>32</mn></msup></msub>
+	 * <mo></mo></mfenced> </mrow></math>,
 	 * specifically 1,664,525, as taken from <cite>Knuth, The Art of Computer
 	 * Programming, Vol. 2, 2<sup>nd</sup> ed., page 102, row 26</cite>. See
 	 * also pages 19, 20, theorems B and C. The period of this cycle is
 	 * 2<sup>30</sup>.
 	 *
-	 * <p>To append an (n+1)<sup>st</sup> element to a tuple, one can compute
+	 * To append an (n+1)<sup>st</sup> element to a tuple, one can compute
 	 * the new hash by adding
 	 * <math xmlns="http://www.w3.org/1998/Math/MathML">
 	 * <mrow>
-	 *   <msub>
-	 *     <mi>h</mi>
-	 *     <mrow><mi>n</mi><mo>&plus;</mo><mn>1</mn></mrow>
-	 *   </msub>
-	 *   <mo>&InvisibleTimes;</mo>
-	 *   <msup>
-	 *     <mi>a</mi>
-	 *     <mrow><mi>n</mi><mo>&plus;</mo><mn>1</mn></mrow>
-	 *   </msup>
-	 * </mrow></math>
+	 * <msub>
+	 * <mi>h</mi>
+	 * <mrow><mi>n</mi><mo></mo><mn>1</mn></mrow></msub>
+	 * <mo></mo>
+	 * <msup>
+	 * <mi>a</mi>
+	 * <mrow><mi>n</mi><mo></mo><mn>1</mn></mrow></msup></mrow></math>
 	 * to the previous hash.  Similarly, concatenating two tuples of length x
 	 * and y is a simple matter of multiplying the right tuple's hash by
 	 * <math xmlns="http://www.w3.org/1998/Math/MathML">
 	 * <mrow>
-	 *   <msup><mi>a</mi><mi>x</mi></msup>
-	 * </mrow></math>
+	 * <msup><mi>a</mi><mi>x</mi></msup></mrow></math>
 	 * and adding it to the left tuple's hash.
-	 * </p>
 	 *
-	 * <p>
 	 * The element hash values are exclusive-ored with
-	 * {@linkplain #preToggle a randomly chosen constant} before being used, to
+	 * [a randomly chosen constant][preToggle] before being used, to
 	 * help prevent similar nested tuples from producing equal hashes.
-	 * </p>
 	 *
-	 * @param object
-	 *        The object containing elements to hash.
+	 * @param self
+	 *   The object containing elements to hash.
 	 * @param start
-	 *        The first index of elements to hash.
+	 *   The first index of elements to hash.
 	 * @param end
-	 *        The last index of elements to hash.
+	 *   The last index of elements to hash.
 	 */
-	@Override
-	public int o_ComputeHashFromTo (
-		final AvailObject object,
-		final int start,
-		final int end)
+	override fun o_ComputeHashFromTo(
+		self: AvailObject,
+		start: Int,
+		end: Int): Int
 	{
-		int hash = 0;
-		for (int index = end; index >= start; index--)
+		var hash = 0
+		for (index in end downTo start)
 		{
-			final int itemHash = object.tupleAt(index).hash() ^ preToggle;
-			hash = (hash + itemHash) * multiplier;
+			val itemHash = self.tupleAt(index).hash() xor preToggle
+			hash = (hash + itemHash) * AvailObject.multiplier
 		}
-		return hash;
+		return hash
 	}
 
-	@Override
-	public String o_AsNativeString (final AvailObject object)
+	override fun o_AsNativeString(self: AvailObject): String
 	{
-		final int size = object.tupleSize();
-		final StringBuilder builder = new StringBuilder(size);
-		for (int i = 1; i <= size; i++)
+		val size = self.tupleSize()
+		val builder = StringBuilder(size)
+		for (i in 1 .. size)
 		{
-			builder.appendCodePoint(object.tupleCodePointAt(i));
+			builder.appendCodePoint(self.tupleCodePointAt(i))
 		}
-		return builder.toString();
+		return builder.toString()
 	}
 
 	/**
 	 * Answer a mutable copy of object that holds ints.
 	 */
-	@Override
-	public A_Tuple o_CopyAsMutableIntTuple (final AvailObject object)
+	override fun o_CopyAsMutableIntTuple(self: AvailObject): A_Tuple
 	{
-		final int size = object.tupleSize();
-		final AvailObject result = generateIntTupleFrom(
-			size, object::tupleIntAt);
-		result.setHashOrZero(object.hashOrZero());
-		return result;
+		val size = self.tupleSize()
+		val result = IntTupleDescriptor.generateIntTupleFrom(
+			size) { index: Int -> self.tupleIntAt(index) }
+		result.setHashOrZero(self.hashOrZero())
+		return result
 	}
 
 	/**
 	 * Answer a mutable copy of object that holds arbitrary objects.
 	 */
-	@Override
-	public A_Tuple o_CopyAsMutableObjectTuple (final AvailObject object)
+	override fun o_CopyAsMutableObjectTuple(self: AvailObject): A_Tuple
 	{
-		final int size = object.tupleSize();
-		final AvailObject result = generateObjectTupleFrom(
-			size, object::tupleAt);
-		result.setHashOrZero(object.hashOrZero());
-		return result;
+		val size = self.tupleSize()
+		val result = ObjectTupleDescriptor.generateObjectTupleFrom(size)
+		{ index: Int -> self.tupleAt(index) }
+		result.setHashOrZero(self.hashOrZero())
+		return result
 	}
 
-	@Override
-	public boolean o_TupleElementsInRangeAreInstancesOf (
-		final AvailObject object,
-		final int startIndex,
-		final int endIndex,
-		final A_Type type)
+	override fun o_TupleElementsInRangeAreInstancesOf(
+		self: AvailObject,
+		startIndex: Int,
+		endIndex: Int,
+		type: A_Type): Boolean
 	{
-		for (int index = startIndex; index <= endIndex; index++)
+		for (index in startIndex .. endIndex)
 		{
-			if (!object.tupleAt(index).isInstanceOf(type))
+			if (!self.tupleAt(index).isInstanceOf(type))
 			{
-				return false;
+				return false
 			}
 		}
-		return true;
+		return true
 	}
 
 	/**
-	 * A simple {@link Iterator} over a tuple's elements.
+	 * A simple [Iterator] over a tuple's elements.
+	 *
+	 * @property tuple
+	 *   The tuple over which to iterate.
+	 *
+	 * @constructor
+	 * Construct a [TupleIterator].
+	 *
+	 * @param tuple
+	 *   The tuple over which to iterate.
 	 */
-	private static final class TupleIterator
-		implements IteratorNotNull<AvailObject>
+	private class TupleIterator internal constructor(
+		private val tuple: AvailObject) : IteratorNotNull<AvailObject>
 	{
-		/**
-		 * The tuple over which to iterate.
-		 */
-		private final AvailObject tuple;
-
 		/**
 		 * The size of the tuple.
 		 */
-		private final int size;
+		private val size: Int = tuple.tupleSize()
 
 		/**
-		 * The index of the next {@linkplain AvailObject element}.
+		 * The index of the next [element][AvailObject].
 		 */
-		int index = 1;
+		var index = 1
 
-		/**
-		 * Construct a new {@code TupleIterator} on the given {@linkplain TupleDescriptor tuple}.
-		 *
-		 * @param tuple
-		 * The tuple to iterate over.
-		 */
-		TupleIterator (final AvailObject tuple)
-		{
-			this.tuple = tuple;
-			this.size = tuple.tupleSize();
-		}
+		override fun hasNext(): Boolean = index <= size
 
-		@Override
-		public boolean hasNext ()
-		{
-			return index <= size;
-		}
-
-		@Override
-		public AvailObject next ()
+		override fun next(): AvailObject
 		{
 			if (index > size)
 			{
-				throw new NoSuchElementException();
+				throw NoSuchElementException()
 			}
-
-			return tuple.tupleAt(index++);
+			return tuple.tupleAt(index++)
 		}
 
-		@Override
-		public void remove ()
+		override fun remove()
 		{
-			throw new UnsupportedOperationException();
+			throw UnsupportedOperationException()
 		}
+
 	}
 
-	/** Index-based split-by-two, lazily initialized Spliterator */
-	private static final class TupleSpliterator
-		implements Spliterator<AvailObject>
+	/**
+	 * Index-based split-by-two, lazily initialized Spliterator
+	 *
+	 * @property tuple
+	 *   The tuple being spliterated.
+	 * @property index
+	 *   The current one-based index into the tuple.
+	 * @property fence
+	 *   One past the last one-based index to visit.
+	 *
+	 * @constructor
+	 * Create an instance for spliterating over the tuple starting at the
+	 * origin and stopping just before the fence.  Both indices are
+	 * one-based.
+	 *
+	 * @param tuple
+	 *   The tuple to spliterate.
+	 * @param index
+	 *   The starting one-based index.
+	 * @param fence
+	 *   One past the last index to visit.
+	 */
+	private class TupleSpliterator internal constructor(
+		private val tuple: A_Tuple,
+		private var index: Int,
+		private val fence: Int) : Spliterator<AvailObject>
 	{
-		/** The tuple being spliterated. */
-		private final A_Tuple tuple;
 
-		/** The current one-based index into the tuple. */
-		private int index;
-
-		/** One past the last one-based index to visit. */
-		private final int fence;
-
-		/**
-		 * Create an instance for spliterating over the tuple starting at the
-		 * origin and stopping just before the fence.  Both indices are
-		 * one-based.
-		 *
-		 * @param tuple
-		 * The tuple to spliterate.
-		 * @param origin
-		 * The starting one-based index.
-		 * @param fence
-		 * One past the last index to visit.
-		 */
-		TupleSpliterator(
-			final A_Tuple tuple,
-			final int origin,
-			final int fence)
+		override fun trySplit(): TupleSpliterator?
 		{
-			this.tuple = tuple;
-			this.index = origin;
-			this.fence = fence;
-		}
-
-		@Override
-		public @Nullable TupleSpliterator trySplit()
-		{
-			final int remaining = fence - index;
+			val remaining = fence - index
 			if (remaining < 2)
 			{
-				return null;
+				return null
 			}
-			final int oldIndex = index;
-			index += remaining >>> 1;
-			return new TupleSpliterator(tuple, oldIndex, index);
+			val oldIndex = index
+			index += remaining ushr 1
+			return TupleSpliterator(tuple, oldIndex, index)
 		}
 
-		@Override
-		public boolean tryAdvance(
-			final Consumer<? super AvailObject> action)
+		override fun tryAdvance(action: Consumer<in AvailObject>): Boolean
 		{
-			if (index < fence) {
-				action.accept(tuple.tupleAt(index++));
-				return true;
-			}
-			return false;
-		}
-
-		@Override
-		public void forEachRemaining(
-			final Consumer<? super AvailObject> action)
-		{
-			for (int i = index; i < fence; i++)
+			if (index < fence)
 			{
-				action.accept(tuple.tupleAt(i));
+				action.accept(tuple.tupleAt(index++))
+				return true
 			}
-			index = fence;
+			return false
 		}
 
-		@Override
-		public long estimateSize() {
-			return fence - index;
-		}
-
-		@Override
-		public int characteristics() {
-			return Spliterator.ORDERED
-				| Spliterator.SIZED
-				| Spliterator.SUBSIZED
-				| Spliterator.NONNULL
-				| Spliterator.IMMUTABLE;
-		}
-	}
-
-	@Override
-	public IteratorNotNull<AvailObject> o_Iterator (final AvailObject object)
-	{
-		object.makeImmutable();
-		return new TupleIterator(object);
-	}
-
-	@Override
-	public Spliterator<AvailObject> o_Spliterator (final AvailObject object)
-	{
-		object.makeImmutable();
-		return new TupleSpliterator(object, 1, object.tupleSize() + 1);
-	}
-
-	@Override
-	public Stream<AvailObject> o_Stream (final AvailObject object)
-	{
-		object.makeImmutable();
-		return StreamSupport.stream(object.spliterator(), false);
-	}
-
-	@Override
-	public Stream<AvailObject> o_ParallelStream (final AvailObject object)
-	{
-		object.makeImmutable();
-		return StreamSupport.stream(object.spliterator(), true);
-	}
-
-	@Override
-	public @Nullable Object o_MarshalToJava (
-		final AvailObject object,
-		final @Nullable Class<?> ignoredClassHint)
-	{
-		if (object.isString())
+		override fun forEachRemaining(action: Consumer<in AvailObject>)
 		{
-			return object.asNativeString();
+			for (i in index until fence)
+			{
+				action.accept(tuple.tupleAt(i))
+			}
+			index = fence
 		}
-		return super.o_MarshalToJava(object, ignoredClassHint);
+
+		override fun estimateSize(): Long = (fence - index).toLong()
+
+		override fun characteristics(): Int =
+			(Spliterator.ORDERED
+				or Spliterator.SIZED
+				or Spliterator.SUBSIZED
+				or Spliterator.NONNULL
+				or Spliterator.IMMUTABLE)
 	}
 
-	@Override
-	public boolean o_ShowValueInNameForDebugger (final AvailObject object)
+	override fun o_Iterator(self: AvailObject): IteratorNotNull<AvailObject>
 	{
-		return object.isString();
+		self.makeImmutable()
+		return TupleIterator(self)
 	}
+
+	override fun o_Spliterator(self: AvailObject): Spliterator<AvailObject>
+	{
+		self.makeImmutable()
+		return TupleSpliterator(self, 1, self.tupleSize() + 1)
+	}
+
+	override fun o_Stream(self: AvailObject): Stream<AvailObject>
+	{
+		self.makeImmutable()
+		return StreamSupport.stream(self.spliterator(), false)
+	}
+
+	override fun o_ParallelStream(self: AvailObject): Stream<AvailObject>
+	{
+		self.makeImmutable()
+		return StreamSupport.stream(self.spliterator(), true)
+	}
+
+	override fun o_MarshalToJava(
+		self: AvailObject, classHint: Class<*>?): Any? =
+			if (self.isString)
+			{
+				self.asNativeString()
+			}
+			else super.o_MarshalToJava(self, classHint)
+
+	override fun o_ShowValueInNameForDebugger(self: AvailObject): Boolean =
+		self.isString
 
 	/**
-	 * Construct a new tuple of arbitrary {@linkplain AvailObject Avail objects}
-	 * based on the given tuple, but with an additional element appended.  The
-	 * elements may end up being shared between the original and the copy, so
-	 * the client must ensure that either the elements are marked immutable, or
-	 * one of the copies is not kept after the call.
+	 * Construct a new tuple of arbitrary [Avail objects][AvailObject] based on
+	 * the given tuple, but with an additional element appended.  The elements
+	 * may end up being shared between the original and the copy, so the client
+	 * must ensure that either the elements are marked immutable, or one of the
+	 * copies is not kept after the call.
 	 */
-	@Override
-	public abstract A_Tuple o_AppendCanDestroy (
-		final AvailObject object,
-		final A_BasicObject newElement,
-		final boolean canDestroy);
+	abstract override fun o_AppendCanDestroy(
+		self: AvailObject,
+		newElement: A_BasicObject,
+		canDestroy: Boolean): A_Tuple
 
-	@Override
-	public int o_TreeTupleLevel (final AvailObject object)
-	{
-		// TreeTupleDescriptor overrides this.
-		return 0;
-	}
+	// TreeTupleDescriptor overrides this.
+	override fun o_TreeTupleLevel(self: AvailObject): Int = 0
 
-	@Override
-	public abstract A_Tuple o_ConcatenateWith (
-		final AvailObject object,
-		final A_Tuple otherTuple,
-		final boolean canDestroy);
+	abstract override fun o_ConcatenateWith(
+		self: AvailObject,
+		otherTuple: A_Tuple,
+		canDestroy: Boolean): A_Tuple
 
 	/**
-	 * Transfer the specified range of bytes into the provided {@link ByteBuffer}.  The {@code ByteBuffer} should have enough room to store the required number of bytes.
+	 * Transfer the specified range of bytes into the provided [ByteBuffer].
+	 * The `ByteBuffer` should have enough room to store the required number of
+	 * bytes.
 	 */
-	@Override
-	public void o_TransferIntoByteBuffer (
-		final AvailObject object,
-		final int startIndex,
-		final int endIndex,
-		final ByteBuffer outputByteBuffer)
+	override fun o_TransferIntoByteBuffer(
+		self: AvailObject,
+		startIndex: Int,
+		endIndex: Int,
+		outputByteBuffer: ByteBuffer)
 	{
-		for (int index = startIndex; index <= endIndex; index++)
+		for (index in startIndex .. endIndex)
 		{
-			outputByteBuffer.put((byte) object.tupleIntAt(index));
+			outputByteBuffer.put(self.tupleIntAt(index).toByte())
 		}
 	}
 
-	@Override
-	public void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	override fun o_WriteTo(self: AvailObject, writer: JSONWriter)
 	{
-		if (object.isString())
+		if (self.isString)
 		{
-			writer.write(object.asNativeString());
+			writer.write(self.asNativeString())
 		}
 		else
 		{
-			writer.startArray();
-			for (final AvailObject o : object)
+			writer.startArray()
+			for (o in self)
 			{
-				o.writeTo(writer);
+				o.writeTo(writer)
 			}
-			writer.endArray();
+			writer.endArray()
 		}
 	}
 
-	@Override
-	public void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter)
 	{
-		if (object.isString())
+		if (self.isString)
 		{
-			writer.write(object.asNativeString());
+			writer.write(self.asNativeString())
 		}
 		else
 		{
-			writer.startArray();
-			for (final AvailObject o : object)
+			writer.startArray()
+			for (o in self)
 			{
-				o.writeSummaryTo(writer);
+				o.writeSummaryTo(writer)
 			}
-			writer.endArray();
+			writer.endArray()
 		}
 	}
 
-	/** A static inner type that delays initialization until first use. */
-	private static final class Empty
+	/** A static inner type that delays initialization until first use.  */
+	private object Empty
 	{
-		/** The empty tuple. */
-		public static final AvailObject emptyTuple;
+		/** The empty tuple.  */
+		var emptyTuple: AvailObject
 
-		static
+		init
 		{
 			// Create the empty tuple.
-			final A_Tuple t = generateNybbleTupleFrom(
-				0,
-				ignored ->
-				{
-					assert false : "This should be an empty nybble tuple";
-					return 0;
-				});
-			t.hash();
-			emptyTuple = t.makeShared();
-		}
-
-		/** Prevent unintentional instantiation. */
-		private Empty ()
-		{
-			// Avoid unintentional instantiation.
-		}
-	}
-
-	/**
-	 * Return the empty {@code TupleDescriptor tuple}.  Other empty tuples
-	 * can be created, but if you know the tuple is empty you can save time and
-	 * space by returning this one.
-	 *
-	 * @return
-	 * The tuple of size zero.
-	 */
-	@ReferencedInGeneratedCode
-	public static AvailObject emptyTuple ()
-	{
-		return Empty.emptyTuple;
-	}
-
-	/**
-	 * Construct a Java {@link List} from the specified {@linkplain TupleDescriptor tuple}. The elements are not made immutable.
-	 *
-	 * @param tuple
-	 *        A tuple.
-	 * @return he corresponding list of objects.
-	 * @param X
-	 * The Java type of the elements.
-	 */
-	@SuppressWarnings("unchecked")
-	public static <X extends A_BasicObject> List<X> toList (
-		final A_Tuple tuple)
-	{
-		final List<X> list = new ArrayList<>(tuple.tupleSize());
-		for (final AvailObject element : tuple)
-		{
-			list.add((X) element);
-		}
-		return list;
-	}
-
-	/**
-	 * Construct an {@linkplain AvailObject AvailObject[]} from the specified {@link A_Tuple}. The elements are not made immutable.
-	 *
-	 * @param tuple
-	 *        A tuple.
-	 * @return
-	 * The corresponding Java array of AvailObjects.
-	 */
-	public static AvailObject[] toArray (final A_Tuple tuple)
-	{
-		final int size = tuple.tupleSize();
-		final AvailObject[] array = new AvailObject[size];
-		for (int i = 0; i < size; i++)
-		{
-			array[i] = tuple.tupleAt(i + 1);
-		}
-		return array;
-	}
-
-	/**
-	 * Construct a new tuple of arbitrary {@linkplain AvailObject Avail objects} based on the given tuple, but with an occurrence of the specified element missing, if it was present at all.  The elements may end up being shared between the original and the copy, so the client must ensure that either the elements are marked immutable, or one of the copies is not kept after the call.  If the element is not found, then answer the original tuple.
-	 *
-	 * @param originalTuple
-	 *        The original tuple of {@linkplain AvailObject Avail objects} on which to base the new tuple.
-	 * @param elementToExclude
-	 *        The element that should should have an occurrence excluded from the new tuple, if it was present.
-	 * @return
-	 * The new tuple.
-	 */
-	public static A_Tuple tupleWithout (
-		final A_Tuple originalTuple,
-		final A_BasicObject elementToExclude)
-	{
-		final int originalSize = originalTuple.tupleSize();
-		for (int seekIndex = 1; seekIndex <= originalSize; seekIndex++)
-		{
-			if (originalTuple.tupleAt(seekIndex).equals(elementToExclude))
+			val t: A_Tuple = NybbleTupleDescriptor.generateNybbleTupleFrom(0)
 			{
-				final int finalSeekIndex = seekIndex;
-				final MutableInt index = new MutableInt(1);
-				return generateObjectTupleFrom(
-					originalSize - 1,
-					ignored -> {
-						if (index.value == finalSeekIndex)
+				assert(false) { "This should be an empty nybble tuple" }
+				0
+			}
+			t.hash()
+			emptyTuple = t.makeShared()
+		}
+	}
+
+	companion object
+	{
+		/**
+		 * The hash value is stored raw in the object's hashOrZero slot if it
+		 * has been computed, otherwise that slot is zero. If a zero is
+		 * detected, compute the hash and store it in hashOrZero. Note that the
+		 * hash can (extremely rarely) be zero, in which case the hash has to be
+		 * computed each time.
+		 *
+		 * @param self
+		 *   An object.
+		 * @return
+		 *   The hash.
+		 */
+		private fun hash(self: A_Tuple): Int
+		{
+			var hash = self.hashOrZero()
+			if (hash == 0 && self.tupleSize() > 0)
+			{
+				hash = computeHashForObject(self)
+				self.setHashOrZero(hash)
+			}
+			return hash
+		}
+
+		/**
+		 * Compute the object's hash value.
+		 *
+		 * @param self
+		 *   The object to hash.
+		 * @return
+		 *   The hash value.
+		 */
+		private fun computeHashForObject(self: A_Tuple): Int =
+			self.computeHashFromTo(1, self.tupleSize())
+
+		/**
+		 * Return the empty `TupleDescriptor tuple`.  Other empty tuples can be
+		 * created, but if you know the tuple is empty you can save time and
+		 * space by returning this one.
+		 *
+		 * @return
+		 *   The tuple of size zero.
+		 */
+		@JvmStatic
+		@ReferencedInGeneratedCode
+		fun emptyTuple(): AvailObject = Empty.emptyTuple
+
+		/**
+		 * Construct a Java [List] from the specified [tuple][TupleDescriptor].
+		 * The elements are not made immutable.
+		 *
+		 * @param tuple
+		 *   A tuple.
+		 * @return
+		 *   The corresponding list of objects.
+		 * @param X
+		 *   The Java type of the elements.
+		 */
+		@JvmStatic
+		fun <X : A_BasicObject?> toList(tuple: A_Tuple): MutableList<X>
+		{
+			val list: MutableList<X> = ArrayList(tuple.tupleSize())
+			for (element in tuple)
+			{
+				list.add(element as X)
+			}
+			return list
+		}
+
+		/**
+		 * Construct an [AvailObject[]][AvailObject] from the specified
+		 * [A_Tuple]. The elements are not made immutable.
+		 *
+		 * @param tuple
+		 *   A tuple.
+		 * @return
+		 *   The corresponding Java array of AvailObjects.
+		 */
+		fun toArray(tuple: A_Tuple): Array<AvailObject?>
+		{
+			val size = tuple.tupleSize()
+			val array = arrayOfNulls<AvailObject>(size)
+			for (i in 0 until size)
+			{
+				array[i] = tuple.tupleAt(i + 1)
+			}
+			return array
+		}
+
+		/**
+		 * Construct a new tuple of arbitrary [Avail objects][AvailObject] based
+		 * on the given tuple, but with an occurrence of the specified element
+		 * missing, if it was present at all.  The elements may end up being
+		 * shared between the original and the copy, so the client must ensure
+		 * that either the elements are marked immutable, or one of the copies
+		 * is not kept after the call.  If the element is not found, then answer
+		 * the original tuple.
+		 *
+		 * @param originalTuple
+		 *   The original tuple of [Avail objects][AvailObject] on which to base
+		 *   the new tuple.
+		 * @param elementToExclude
+		 *   The element that should should have an occurrence excluded from the
+		 *   new tuple, if it was present.
+		 * @return
+		 *   The new tuple.
+		 */
+		fun tupleWithout(
+			originalTuple: A_Tuple,
+			elementToExclude: A_BasicObject?): A_Tuple
+		{
+			val originalSize = originalTuple.tupleSize()
+			for (seekIndex in 1 .. originalSize)
+			{
+				if (originalTuple.tupleAt(seekIndex).equals(elementToExclude))
+				{
+					val index = MutableInt(1)
+					return ObjectTupleDescriptor.generateObjectTupleFrom(
+						originalSize - 1
+					) { ignored: Int ->
+						if (index.value == seekIndex)
 						{
 							// Skip that element.
-							index.value++;
+							index.value++
 						}
-						return originalTuple.tupleAt(index.value++);
-					});
+						originalTuple.tupleAt(index.value++)
+					}
+				}
 			}
+			return originalTuple
 		}
-		return originalTuple;
-	}
 
-	/**
-	 * Construct a new tuple of ints. Use the most compact representation that
-	 * can still represent each supplied {@link Integer}.
-	 *
-	 * @param list
-	 *        The list of Java {@linkplain Integer}s to assemble in a tuple.
-	 * @return
-	 * A new mutable tuple of integers.
-	 */
-	public static A_Tuple tupleFromIntegerList (final List<Integer> list)
-	{
-		if (list.size() == 0)
+		/**
+		 * Construct a new tuple of ints. Use the most compact representation
+		 * that can still represent each supplied [Integer].
+		 *
+		 * @param list
+		 *   The list of Java [Integer]s to assemble in a tuple.
+		 * @return
+		 *   A new mutable tuple of integers.
+		 */
+		@JvmStatic
+		fun tupleFromIntegerList(list: List<Int>): A_Tuple
 		{
-			return emptyTuple();
+			if (list.isEmpty())
+			{
+				return emptyTuple()
+			}
+
+			val minValue = list.min()!!
+			if (minValue >= 0)
+			{
+				val maxValue = list.max()!!
+				if (maxValue <= 15)
+				{
+					return NybbleTupleDescriptor
+						.generateNybbleTupleFrom(list.size) { list[it - 1] }
+				}
+				if (maxValue <= 255)
+				{
+					return ByteTupleDescriptor.generateByteTupleFrom(list.size)
+						{ list[it - 1] }
+				}
+			}
+			return IntTupleDescriptor
+				.generateIntTupleFrom(list.size) { list[it - 1] }
 		}
-		final int minValue = min(list);
-		if (minValue >= 0)
+
+		/**
+		 * Four tables, each containing powers of [AvailObject.multiplier]. The
+		 * 0th table contains M^i for i=0..255, the 1st table contains M^(256*i)
+		 * for i=0..255,... and the 3rd table contains M^((256^3)*i) for
+		 * i=0..255.
+		 */
+		private val powersOfMultiplier = Array(4) { IntArray(256) }
+
+		/**
+		 * Compute [AvailObject.multiplier] raised to the specified power,
+		 * truncated to an int.
+		 *
+		 * @param anInteger
+		 *   The exponent by which to raise the base [AvailObject.multiplier].
+		 * @return
+		 *   [AvailObject.multiplier] raised to the specified power.
+		 */
+		@JvmStatic
+		fun multiplierRaisedTo(anInteger: Int): Int =
+			(powersOfMultiplier[0][anInteger and 0xFF]
+				* powersOfMultiplier[1][anInteger shr 8 and 0xFF]
+				* powersOfMultiplier[2][anInteger shr 16 and 0xFF]
+				* powersOfMultiplier[3][anInteger shr 24 and 0xFF])
+
+		/**
+		 * The constant by which each element's hash should be XORed prior to
+		 * combining them.  This reduces the chance of systematic collisions due
+		 * to using the same elements in different patterns of nested tuples.
+		 */
+		const val preToggle = 0x71E570A6
+
+		init
 		{
-			final int maxValue = max(list);
-			if (maxValue <= 15)
+			var scaledMultiplier = AvailObject.multiplier
+			for (subtable in powersOfMultiplier)
 			{
-				return generateNybbleTupleFrom(
-					list.size(), i -> list.get(i - 1).byteValue());
-			}
-			if (maxValue <= 255)
-			{
-				return generateByteTupleFrom(
-					list.size(), index -> list.get(index - 1).shortValue());
+				var power = 1
+				for (i in 0 .. 255)
+				{
+					subtable[i] = power
+					power *= scaledMultiplier
+				}
+				scaledMultiplier = power
 			}
 		}
-		return generateIntTupleFrom(list.size(), i -> list.get(i - 1));
-	}
-
-	/**
-	 * Four tables, each containing powers of {@link AvailObject#multiplier}. The 0th table contains M^i for i=0..255, the 1st table contains M^(256*i) for i=0..255,... and the 3rd table contains M^((256^3)*i) for i=0..255.
-	 */
-	private static final int[][] powersOfMultiplier = new int[4][256];
-
-	static
-	{
-		int scaledMultiplier = multiplier;
-		for (final int[] subtable : powersOfMultiplier)
-		{
-			int power = 1;
-			for  (int i = 0; i < 256; i++)
-			{
-				subtable[i] = power;
-				power *= scaledMultiplier;
-			}
-			scaledMultiplier = power;
-		}
-	}
-
-	/**
-	 * Compute {@link AvailObject#multiplier} raised to the specified power,
-	 * truncated to an int.
-	 *
-	 * @param anInteger
-	 *        The exponent by which to raise the base {@link AvailObject#multiplier}.
-	 * @return
-	 * {@link AvailObject#multiplier} raised to the specified power.
-	 */
-	static int multiplierRaisedTo (final int anInteger)
-	{
-		return powersOfMultiplier[0][anInteger & 0xFF]
-			* powersOfMultiplier[1][(anInteger >> 8) & 0xFF]
-			* powersOfMultiplier[2][(anInteger >> 16) & 0xFF]
-			* powersOfMultiplier[3][(anInteger >> 24) & 0xFF];
-	}
-
-	/**
-	 * The constant by which each element's hash should be XORed prior to
-	 * combining them.  This reduces the chance of systematic collisions due to
-	 * using the same elements in different patterns of nested tuples.
-	 */
-	static final int preToggle = 0x71E570A6;
-
-	/**
-	 * Construct a new {@code TupleDescriptor}.
-	 *
-	 * @param mutability
-	 *            The {@linkplain Mutability mutability} of the new descriptor.
-	 * @param objectSlotsEnumClass
-	 *            The Java {@link Class} which is a subclass of {@link ObjectSlotsEnum} and defines this object's object slots layout, or null if there are no object slots.
-	 * @param integerSlotsEnumClass
-	 *            The Java {@link Class} which is a subclass of {@link IntegerSlotsEnum} and defines this object's object slots layout, or null if there are no integer slots.
-	 */
-	protected TupleDescriptor (
-		final Mutability mutability,
-		final @Nullable Class<? extends ObjectSlotsEnum> objectSlotsEnumClass,
-		final @Nullable Class<? extends IntegerSlotsEnum> integerSlotsEnumClass)
-	{
-		super(
-			mutability,
-			TypeTag.TUPLE_TAG,
-			objectSlotsEnumClass,
-			integerSlotsEnumClass);
 	}
 }

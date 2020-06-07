@@ -78,10 +78,10 @@ import com.avail.descriptor.tokens.TokenDescriptor.TokenType.KEYWORD
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType.LITERAL
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType.WHITESPACE
 import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.tuples.TupleDescriptor
-import com.avail.descriptor.tuples.TupleDescriptor.toList
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.toList
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE
 import com.avail.descriptor.types.TupleTypeDescriptor.stringType

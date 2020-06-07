@@ -60,10 +60,10 @@ import com.avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken
 import com.avail.descriptor.tokens.TokenDescriptor
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import com.avail.descriptor.tuples.StringDescriptor
 import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
-import com.avail.descriptor.tuples.TupleDescriptor.toList
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.toList
 import com.avail.exceptions.MalformedMessageException
 import com.avail.serialization.Deserializer
 import com.avail.serialization.MalformedSerialStreamException

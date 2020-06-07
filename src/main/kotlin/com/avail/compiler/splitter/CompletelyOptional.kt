@@ -37,7 +37,7 @@ import com.avail.compiler.ParsingOperation.SAVE_PARSE_POSITION
 import com.avail.compiler.splitter.InstructionGenerator.Label
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter
 import com.avail.descriptor.phrases.A_Phrase
-import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.ListPhraseTypeDescriptor.emptyListPhraseType
 

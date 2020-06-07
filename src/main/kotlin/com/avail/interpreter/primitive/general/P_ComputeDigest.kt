@@ -34,8 +34,8 @@ package com.avail.interpreter.primitive.general
 
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.ByteArrayTupleDescriptor.Companion.tupleForByteArray
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.tuples.TupleDescriptor.tupleFromIntegerList
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.tupleFromIntegerList
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType

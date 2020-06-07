@@ -34,7 +34,7 @@ package com.avail.interpreter.primitive.functions
 
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.tuples.A_String
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.FunctionTypeDescriptor.mostGeneralFunctionType

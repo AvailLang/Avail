@@ -36,7 +36,7 @@ import com.avail.descriptor.pojos.PojoFieldDescriptor.Companion.pojoFieldVariabl
 import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.equalityPojo
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.A_String
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType

@@ -95,7 +95,7 @@ package com.avail.descriptor.module
  import com.avail.descriptor.tuples.A_Tuple
  import com.avail.descriptor.tuples.StringDescriptor
  import com.avail.descriptor.tuples.TupleDescriptor
- import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+ import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
  import com.avail.descriptor.types.A_Type
  import com.avail.descriptor.types.TypeDescriptor.Types
  import com.avail.descriptor.types.TypeTag

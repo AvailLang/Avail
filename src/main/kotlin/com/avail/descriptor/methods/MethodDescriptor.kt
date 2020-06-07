@@ -78,11 +78,11 @@ import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import com.avail.descriptor.tuples.TupleDescriptor
-import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
-import com.avail.descriptor.tuples.TupleDescriptor.toList
-import com.avail.descriptor.tuples.TupleDescriptor.tupleWithout
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.toList
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.tupleWithout
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.BottomTypeDescriptor
 import com.avail.descriptor.types.BottomTypeDescriptor.bottom

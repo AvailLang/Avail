@@ -37,7 +37,7 @@ import com.avail.descriptor.atoms.A_Atom.Companion.issuingModule
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType

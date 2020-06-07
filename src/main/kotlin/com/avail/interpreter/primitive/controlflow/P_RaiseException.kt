@@ -37,7 +37,7 @@ import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.objects.ObjectDescriptor.Companion.objectFromMap
 import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.exceptionType
 import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.stackDumpAtom
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.BottomTypeDescriptor.bottom
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType

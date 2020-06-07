@@ -46,8 +46,8 @@ import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralOb
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.emptyTuple
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
@@ -107,12 +107,12 @@ object P_CreateObjectFieldGetter : Primitive(2, CanFold, CanInline)
 		val rawFunction = newCompiledCode(
 			emptyTuple(),
 			0,
-			functionType(tuple(objectType), returnType),
+			functionType(ObjectTupleDescriptor.tuple(objectType), returnType),
 			P_PrivateGetSpecificObjectField,
 			emptyTuple(),
 			emptyTuple(),
 			emptyTuple(),
-			tuple(instanceType(fieldAtom)),
+			ObjectTupleDescriptor.tuple(instanceType(fieldAtom)),
 			module,
 			0,
 			emptyTuple(),
@@ -144,11 +144,11 @@ object P_CreateObjectFieldGetter : Primitive(2, CanFold, CanInline)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(
+			ObjectTupleDescriptor.tuple(
 				mostGeneralObjectMeta(),
 				ATOM.o()),
 			functionType(
-				tuple(
+				ObjectTupleDescriptor.tuple(
 					mostGeneralObjectType()),
 				ANY.o()))
 

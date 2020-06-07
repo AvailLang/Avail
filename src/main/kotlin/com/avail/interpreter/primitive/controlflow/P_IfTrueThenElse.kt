@@ -33,8 +33,8 @@ package com.avail.interpreter.primitive.controlflow
 
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.functions.FunctionDescriptor
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
@@ -80,11 +80,11 @@ object P_IfTrueThenElse : Primitive(3, Invokes, CanInline, CannotFail)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		 functionType(
-			tuple(
+			 tuple(
 				ANY.o(),
 				functionType(emptyTuple(), TOP.o()),
 				functionType(emptyTuple(), TOP.o())),
-			TOP.o())
+			 TOP.o())
 
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,

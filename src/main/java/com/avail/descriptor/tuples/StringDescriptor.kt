@@ -202,8 +202,7 @@ abstract class StringDescriptor protected constructor(
 			// Fall back to building a general object tuple containing Avail
 			// character objects.
 			val charIndex = MutableInt(0)
-			return ObjectTupleDescriptor.generateObjectTupleFrom(count)
-			{
+			return ObjectTupleDescriptor.generateObjectTupleFrom(count) {
 				val codePoint = aNativeString.codePointAt(charIndex.value)
 				charIndex.value += Character.charCount(codePoint)
 				fromCodePoint(codePoint)

@@ -38,9 +38,10 @@ import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.FILE_KEY
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.StringDescriptor
-import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.types.FiberTypeDescriptor.fiberType
@@ -152,7 +153,7 @@ object P_FileSync : Primitive(4, CanInline, HasSideEffect)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(
+			ObjectTupleDescriptor.tuple(
 				ATOM.o(),
 				functionType(emptyTuple(), TOP.o()),
 				functionType(

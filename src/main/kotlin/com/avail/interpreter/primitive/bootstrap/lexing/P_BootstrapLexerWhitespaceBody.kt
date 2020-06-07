@@ -36,7 +36,7 @@ import com.avail.descriptor.parsing.LexerDescriptor.Companion.lexerBodyFunctionT
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tokens.TokenDescriptor.Companion.newToken
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType.WHITESPACE
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.Bootstrap

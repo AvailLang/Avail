@@ -40,8 +40,8 @@ import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.generateObjectTupleFrom
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
@@ -135,7 +135,7 @@ object P_CreatePojoInstanceMethodFunction : Primitive(3, CanInline, CanFold)
 			method.genericReturnType,
 			if (pojoType.isPojoType) pojoType.typeVariables() else emptyMap())
 		val paramTypesWithReceiver =
-			tuple(pojoType).concatenateWith(paramTypes, false)
+			ObjectTupleDescriptor.tuple(pojoType).concatenateWith(paramTypes, false)
 		val functionType = functionType(paramTypesWithReceiver, returnType)
 		val rawFunction = rawFunctionCache.computeIfAbsent(functionType) {
 			rawPojoInvokerFunctionFromFunctionType(
@@ -157,7 +157,7 @@ object P_CreatePojoInstanceMethodFunction : Primitive(3, CanInline, CanFold)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(
+			ObjectTupleDescriptor.tuple(
 				anyMeta(),
 				stringType(),
 				zeroOrMoreOf(anyMeta())),

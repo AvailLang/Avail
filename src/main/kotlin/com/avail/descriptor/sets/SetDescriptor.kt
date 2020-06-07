@@ -46,8 +46,8 @@ import com.avail.descriptor.sets.LinearSetBinDescriptor.Companion.emptyLinearSet
 import com.avail.descriptor.sets.SetBinDescriptor.Companion.generateSetBinFrom
 import com.avail.descriptor.sets.SetDescriptor.ObjectSlots.ROOT_BIN
 import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.generateObjectTupleFrom
-import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.singleInt

@@ -41,7 +41,7 @@ import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.AvailObjectFieldHelper
 import com.avail.descriptor.representation.ObjectSlotsEnum
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import com.avail.descriptor.types.PrimitiveTypeDescriptor
 import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.utility.Strings

@@ -32,9 +32,9 @@
 package com.avail.interpreter.primitive.rawfunctions
 
 import com.avail.descriptor.functions.CompiledCodeDescriptor
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
-import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.CompiledCodeTypeDescriptor.mostGeneralCompiledCodeType
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType

@@ -32,7 +32,7 @@
 package com.avail.interpreter.primitive.integers
 
 import com.avail.descriptor.atoms.A_Atom.Companion.extractBoolean
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.EnumerationTypeDescriptor
 import com.avail.descriptor.types.EnumerationTypeDescriptor.booleanType

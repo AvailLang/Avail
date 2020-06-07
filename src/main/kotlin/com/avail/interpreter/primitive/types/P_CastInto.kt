@@ -34,7 +34,8 @@ package com.avail.interpreter.primitive.types
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.types.BottomTypeDescriptor.bottom
@@ -90,7 +91,7 @@ object P_CastInto : Primitive(2, Invokes, CanInline)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(
+			ObjectTupleDescriptor.tuple(
 				ANY.o(),
 				functionType(
 					tuple(

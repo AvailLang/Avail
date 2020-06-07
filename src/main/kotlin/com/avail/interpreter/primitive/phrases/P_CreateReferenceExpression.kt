@@ -37,7 +37,7 @@ import com.avail.descriptor.phrases.ReferencePhraseDescriptor
 import com.avail.descriptor.phrases.ReferencePhraseDescriptor.Companion.referenceNodeFromUse
 import com.avail.descriptor.phrases.VariableUsePhraseDescriptor
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType

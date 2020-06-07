@@ -46,7 +46,7 @@ import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newPri
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.InstanceMetaDescriptor.anyMeta

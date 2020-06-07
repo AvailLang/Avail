@@ -35,7 +35,7 @@ import com.avail.descriptor.numbers.DoubleDescriptor.Companion.doubleTruncatedTo
 import com.avail.descriptor.numbers.FloatDescriptor
 import com.avail.descriptor.numbers.IntegerDescriptor
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType

@@ -39,8 +39,8 @@ import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.SERVER_SOCKET_KEY
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.ByteArrayTupleDescriptor.Companion.tupleForByteArray
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
@@ -99,12 +99,12 @@ object P_ServerSocketAddress : Primitive(1, CanInline)
 		}
 
 		return interpreter.primitiveSuccess(
-			tuple(tupleForByteArray(peer.address.address), fromInt(peer.port)))
+			ObjectTupleDescriptor.tuple(tupleForByteArray(peer.address.address), fromInt(peer.port)))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(ATOM.o()),
+			ObjectTupleDescriptor.tuple(ATOM.o()),
 			tupleTypeForTypes(
 				tupleTypeForSizesTypesDefaultType(
 					inclusive(4, 16),

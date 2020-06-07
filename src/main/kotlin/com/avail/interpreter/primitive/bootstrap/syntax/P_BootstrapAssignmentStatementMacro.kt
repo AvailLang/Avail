@@ -47,7 +47,7 @@ import com.avail.descriptor.phrases.ExpressionAsStatementPhraseDescriptor.Compan
 import com.avail.descriptor.phrases.VariableUsePhraseDescriptor.Companion.newUse
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.StringDescriptor.Companion.formatString
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType

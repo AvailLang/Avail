@@ -45,9 +45,9 @@ import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.NybbleTupleDescriptor
 import com.avail.descriptor.tuples.NybbleTupleDescriptor.generateNybbleTupleFrom
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import com.avail.descriptor.tuples.TupleDescriptor
-import com.avail.descriptor.tuples.TupleDescriptor.tupleFromIntegerList
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.tupleFromIntegerList
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.BottomTypeDescriptor.bottom
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType

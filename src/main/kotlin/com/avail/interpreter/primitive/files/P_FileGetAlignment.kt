@@ -34,7 +34,7 @@ package com.avail.interpreter.primitive.files
 import com.avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.FILE_KEY
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.InstanceTypeDescriptor.instanceType

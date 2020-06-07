@@ -35,8 +35,8 @@ import com.avail.descriptor.functions.A_Continuation
 import com.avail.descriptor.functions.ContinuationDescriptor.Companion.nilSubstitute
 import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.generateObjectTupleFrom
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.BottomTypeDescriptor
 import com.avail.descriptor.types.ContinuationTypeDescriptor.mostGeneralContinuationType

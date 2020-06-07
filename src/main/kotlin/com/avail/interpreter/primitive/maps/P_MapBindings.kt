@@ -32,9 +32,8 @@
 package com.avail.interpreter.primitive.maps
 
 import com.avail.descriptor.maps.MapDescriptor
-import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromArray
+import com.avail.descriptor.tuples.ObjectTupleDescriptor
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromArray
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
@@ -60,17 +59,13 @@ object P_MapBindings : Primitive(1, CannotFail, CanFold, CanInline)
 		interpreter.checkArgumentCount(1)
 		val map = interpreter.argument(0)
 
-		val bindings = arrayOfNulls<A_Tuple>(map.mapSize())
-		var index = 0
-		for (entry in map.mapIterable())
-		{
-			bindings[index++] = tuple(entry.key(), entry.value())
-		}
+		val bindings =
+			map.mapIterable().map { ObjectTupleDescriptor.tuple(it.key(), it.value()) }.toTypedArray()
 		return interpreter.primitiveSuccess(tupleFromArray(*bindings))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(mostGeneralMapType()),
+			ObjectTupleDescriptor.tuple(mostGeneralMapType()),
 			zeroOrMoreOf(tupleTypeForTypes(ANY.o(), ANY.o())))
 }

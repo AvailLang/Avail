@@ -34,7 +34,7 @@ package com.avail.dispatch
 
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.TupleDescriptor.toList
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.toList
 import com.avail.descriptor.types.A_Type
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import java.lang.String.format
@@ -180,7 +180,7 @@ internal constructor(
 			{
 				val signature = adaptor.restrictedSignature(element, bound)
 				val argTypes =
-					toList<A_Type>(signature.tupleOfTypesFromTo(1, numArgs))
+					toList<A_Type?>(signature.tupleOfTypesFromTo(1, numArgs))
 				if (commonArgTypes === null)
 				{
 					commonArgTypes = argTypes

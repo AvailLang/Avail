@@ -124,7 +124,7 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 					{ index: Int ->
 						if (index <= originalSize)
 						{
-							((array[index - 1] and 255.toByte())).toInt()
+							array[index - 1].toInt() and 255
 						}
 						else
 						{
@@ -198,9 +198,9 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 		val first = start - 1
 		while (index >= first)
 		{
-			val itemHash = hashOfUnsignedByte(
-				(array[index] and 0xFF.toByte()).toShort()) xor
-					TupleDescriptor.preToggle
+			val itemHash =
+				hashOfUnsignedByte((array[index].toShort() and 0xFF)) xor
+					preToggle
 			hash = (hash + itemHash) * AvailObject.multiplier
 			index--
 		}
@@ -270,9 +270,8 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 			// case.
 			val originalBytes = self.byteArray()
 			val result = ByteTupleDescriptor
-				.generateByteTupleFrom(size) { i: Int ->
-					((originalBytes[i + start - 2] and
-						255.toByte()).toShort()).toInt()
+				.generateByteTupleFrom(size) {
+					originalBytes[it + start - 2].toInt() and 255
 				}
 			if (canDestroy)
 			{
@@ -419,7 +418,7 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 		// Answer the element at the given index in the tuple object.
 		val array =
 			self.slot(ObjectSlots.BYTE_ARRAY_POJO).javaObjectNotNull<ByteArray>()
-		return fromUnsignedByte((array[index - 1] and 0xFF.toByte()).toShort())
+		return fromUnsignedByte((array[index - 1].toShort() and 0xFF))
 	}
 
 	override fun o_TupleAtPuttingCanDestroy(
@@ -473,7 +472,7 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 		assert(index >= 1 && index <= self.tupleSize())
 		val array =
 			self.slot(ObjectSlots.BYTE_ARRAY_POJO).javaObjectNotNull<ByteArray>()
-		return (array[index - 1] and 0xFF.toByte()).toInt()
+		return array[index - 1].toInt() and 0xFF
 	}
 
 	override fun o_TupleReverse(self: AvailObject): A_Tuple
@@ -490,8 +489,8 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 		// case.
 		val originalBytes = self.byteArray()
 		val result = ByteTupleDescriptor
-			.generateByteTupleFrom(size) { i: Int ->
-				((originalBytes[size - i] and 255.toByte())).toInt()
+			.generateByteTupleFrom(size) {
+				originalBytes[size - it].toInt() and 255
 			}
 		result.setHashOrZero(0)
 		return result

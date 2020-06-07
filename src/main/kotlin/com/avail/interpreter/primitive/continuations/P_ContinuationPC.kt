@@ -35,7 +35,7 @@ import com.avail.descriptor.functions.CompiledCodeDescriptor
 import com.avail.descriptor.functions.ContinuationDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.ContinuationTypeDescriptor.mostGeneralContinuationType

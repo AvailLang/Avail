@@ -38,7 +38,7 @@ import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.types.EnumerationTypeDescriptor.booleanType
@@ -119,10 +119,10 @@ object P_FileSetPermissions : Primitive(3, CanInline, HasSideEffect)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(stringType(),
-			      setTypeForSizesContentType(
+				  setTypeForSizesContentType(
 				      inclusive(0, 9),
 				inclusive(1, 9)),
-			      booleanType()),
+				  booleanType()),
 			TOP.o())
 
 	override fun privateFailureVariableType(): A_Type =

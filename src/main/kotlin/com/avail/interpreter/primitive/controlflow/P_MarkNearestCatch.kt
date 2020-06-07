@@ -33,7 +33,7 @@
 package com.avail.interpreter.primitive.controlflow
 
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
@@ -65,7 +65,7 @@ object P_MarkNearestCatch : Primitive(1, CanSuspend, Unknown)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(enumerationWith(
+			ObjectTupleDescriptor.tuple(enumerationWith(
 				set(E_HANDLER_SENTINEL, E_UNWIND_SENTINEL))),
 			TOP.o())
 

@@ -48,7 +48,6 @@ package com.avail.descriptor.phrases
  import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.ObjectSlots.TOKEN
  import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.ObjectSlots.TYPE_EXPRESSION
  import com.avail.descriptor.representation.A_BasicObject
- import com.avail.descriptor.representation.AbstractDescriptor
  import com.avail.descriptor.representation.AvailObject
  import com.avail.descriptor.representation.AvailObject.Companion.error
  import com.avail.descriptor.representation.AvailObject.Companion.multiplier
@@ -60,10 +59,10 @@ package com.avail.descriptor.phrases
  import com.avail.descriptor.tokens.TokenDescriptor
  import com.avail.descriptor.tuples.A_String
  import com.avail.descriptor.tuples.A_Tuple
- import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+ import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
  import com.avail.descriptor.tuples.StringDescriptor
  import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
- import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+ import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
  import com.avail.descriptor.types.A_Type
  import com.avail.descriptor.types.ContinuationTypeDescriptor
  import com.avail.descriptor.types.FunctionTypeDescriptor

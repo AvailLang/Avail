@@ -38,7 +38,7 @@ import com.avail.descriptor.numbers.AbstractNumberDescriptor.Order.EQUAL
 import com.avail.descriptor.numbers.AbstractNumberDescriptor.Order.INCOMPARABLE
 import com.avail.descriptor.numbers.AbstractNumberDescriptor.Order.LESS
 import com.avail.descriptor.numbers.AbstractNumberDescriptor.Order.MORE
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.EnumerationTypeDescriptor
 import com.avail.descriptor.types.EnumerationTypeDescriptor.booleanType

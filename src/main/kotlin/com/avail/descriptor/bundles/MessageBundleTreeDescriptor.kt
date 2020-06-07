@@ -97,10 +97,10 @@ import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor
 import com.avail.descriptor.tuples.StringDescriptor
-import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
-import com.avail.descriptor.tuples.TupleDescriptor.toList
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.toList
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.PhraseTypeDescriptor
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
@@ -1085,7 +1085,7 @@ class MessageBundleTreeDescriptor private constructor(
 					val typeIndex = op.typeCheckArgumentIndex(instruction)
 					val phraseType: A_Type = constantForIndex(typeIndex)
 					val planInProgress = newPlanInProgress(plan, pc + 1)
-					val pair = tuple(phraseType, planInProgress)
+					val pair = ObjectTupleDescriptor.tuple(phraseType, planInProgress)
 					typeFilterTuples.value =
 						typeFilterTuples.value.appendCanDestroy(pair, true)
 					return
@@ -1105,7 +1105,7 @@ class MessageBundleTreeDescriptor private constructor(
 						successor = newBundleTree(latestBackwardJump)
 						actionMap.value =
 							actionMap.value.mapAtPuttingCanDestroy(
-								instructionObject, tuple(successor), true)
+								instructionObject, ObjectTupleDescriptor.tuple(successor), true)
 					}
 					var forbiddenBundles = emptySet()
 					plan.bundle().grammaticalRestrictions().forEach {
@@ -1190,7 +1190,7 @@ class MessageBundleTreeDescriptor private constructor(
 				successor = successors.tupleAt(1)
 			} else {
 				successor = newBundleTree(latestBackwardJump)
-				val successors = tuple(successor)
+				val successors = ObjectTupleDescriptor.tuple(successor)
 				actionMap.value = actionMap.value.mapAtPuttingCanDestroy(
 					instructionObject, successors, true)
 			}

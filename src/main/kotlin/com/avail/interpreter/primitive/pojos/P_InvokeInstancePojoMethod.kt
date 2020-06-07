@@ -36,7 +36,7 @@ import com.avail.descriptor.pojos.PojoDescriptor.Companion.newPojo
 import com.avail.descriptor.pojos.PojoDescriptor.Companion.nullPojo
 import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.BottomTypeDescriptor.bottom
 import com.avail.descriptor.types.PojoTypeDescriptor.pojoTypeForClass

@@ -41,7 +41,7 @@ import com.avail.compiler.splitter.MessageSplitter.Metacharacter.BACK_QUOTE
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter.SPACE
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter.UNDERSCORE
 import com.avail.descriptor.tuples.A_String
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.StringDescriptor
 import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.exceptions.AvailErrorCode.E_EXPECTED_OPERATOR_AFTER_BACKQUOTE

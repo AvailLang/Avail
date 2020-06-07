@@ -35,7 +35,7 @@ package com.avail.interpreter.primitive.phrases
 import com.avail.descriptor.phrases.A_Phrase.Companion.statements
 import com.avail.descriptor.phrases.FirstOfSequencePhraseDescriptor
 import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.FIRST_OF_SEQUENCE_PHRASE

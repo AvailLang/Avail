@@ -33,7 +33,7 @@ package com.avail.interpreter.primitive.types
 
 import com.avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.InstanceMetaDescriptor

@@ -45,10 +45,10 @@ import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.tuples.ByteStringDescriptor.generateByteString
 import com.avail.descriptor.tuples.ByteTupleDescriptor.generateByteTupleFrom
 import com.avail.descriptor.tuples.NybbleTupleDescriptor.generateNybbleTupleFrom
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.generateObjectTupleFrom
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import com.avail.descriptor.tuples.TupleDescriptor
-import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
-import com.avail.descriptor.tuples.TupleDescriptor.tupleFromIntegerList
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.tupleFromIntegerList
 import com.avail.descriptor.tuples.TwoByteStringDescriptor.generateTwoByteString
 import com.avail.utility.Strings.increaseIndentation
 import java.io.OutputStream

@@ -37,7 +37,7 @@ import com.avail.descriptor.character.CharacterDescriptor.Companion.nonemptyStri
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.numbers.DoubleDescriptor.Companion.fromDouble
 import com.avail.descriptor.tuples.A_String
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.EnumerationTypeDescriptor.booleanType
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType

@@ -51,7 +51,7 @@ import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.module.ModuleDescriptor.Companion.newModule
 import com.avail.descriptor.tuples.StringDescriptor.Companion.formatString
 import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
-import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.interpreter.execution.AvailLoader
 import com.avail.interpreter.execution.AvailLoader.Phase
 import com.avail.interpreter.execution.Interpreter

@@ -34,7 +34,7 @@ package com.avail.interpreter.primitive.characters
 import com.avail.descriptor.character.CharacterDescriptor
 import com.avail.descriptor.character.CharacterDescriptor.Companion.fromCodePoint
 import com.avail.descriptor.numbers.IntegerDescriptor
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.characterCodePoints

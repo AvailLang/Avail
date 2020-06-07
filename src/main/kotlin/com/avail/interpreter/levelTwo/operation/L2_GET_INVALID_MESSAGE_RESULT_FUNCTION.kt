@@ -33,7 +33,7 @@ package com.avail.interpreter.levelTwo.operation
 
 import com.avail.AvailRuntime
 import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.BottomTypeDescriptor
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.FunctionTypeDescriptor.mostGeneralFunctionType

@@ -46,8 +46,8 @@ import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newLab
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.BottomTypeDescriptor.bottom
 import com.avail.descriptor.types.ContinuationTypeDescriptor.continuationTypeForFunctionType

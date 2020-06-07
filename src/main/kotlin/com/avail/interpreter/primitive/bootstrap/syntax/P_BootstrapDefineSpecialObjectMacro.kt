@@ -48,8 +48,9 @@ import com.avail.descriptor.phrases.LiteralPhraseDescriptor.Companion.syntheticL
 import com.avail.descriptor.phrases.SendPhraseDescriptor.Companion.newSendNode
 import com.avail.descriptor.phrases.SequencePhraseDescriptor.Companion.newSequence
 import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.LiteralTokenTypeDescriptor.literalTokenType
@@ -108,12 +109,12 @@ object P_BootstrapDefineSpecialObjectMacro
 			emptyTuple(),
 			METHOD_DEFINER.bundle,
 			newListNode(
-				tuple(
+				ObjectTupleDescriptor.tuple(
 					nameLiteral,
 					newBlockNode(
 						emptyTuple(),
 						0,
-						tuple(specialObjectLiteral),
+						ObjectTupleDescriptor.tuple(specialObjectLiteral),
 						specialObjectLiteral.expressionType(),
 						emptySet(),
 						0,
@@ -145,20 +146,20 @@ object P_BootstrapDefineSpecialObjectMacro
 			newSendNode(
 				emptyTuple(),
 				CREATE_LITERAL_PHRASE.bundle,
-				newListNode(tuple(createLiteralToken)),
+				newListNode(ObjectTupleDescriptor.tuple(createLiteralToken)),
 				LITERAL_PHRASE.create(specialObjectLiteral.expressionType()))
 		val defineMacro =
 			newSendNode(
 				emptyTuple(),
 				MACRO_DEFINER.bundle,
 				newListNode(
-					tuple(
+					ObjectTupleDescriptor.tuple(
 						nameLiteral,
 						emptyListNode(),
 						newBlockNode(
 							emptyTuple(),
 							0,
-							tuple(createLiteralNode),
+							ObjectTupleDescriptor.tuple(createLiteralNode),
 							LITERAL_PHRASE.create(
 								specialObjectLiteral.expressionType()),
 							emptySet(),
@@ -167,14 +168,14 @@ object P_BootstrapDefineSpecialObjectMacro
 				TOP.o())
 		return interpreter.primitiveSuccess(
 			newSequence(
-				tuple(
+				ObjectTupleDescriptor.tuple(
 					newExpressionAsStatement(defineMethod),
 					newExpressionAsStatement(defineMacro))))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(
+			ObjectTupleDescriptor.tuple(
 				LITERAL_PHRASE.create(nonemptyStringType()),
 				LITERAL_PHRASE.create(ANY.o())),
 			SEQUENCE_PHRASE.mostGeneralType())

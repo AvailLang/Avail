@@ -29,462 +29,416 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.descriptor.tuples
 
-package com.avail.descriptor.tuples;
-
-import com.avail.annotations.HideFieldInDebugger;
-import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
-import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
-import com.avail.descriptor.representation.A_BasicObject;
-import com.avail.descriptor.representation.AvailObject;
-import com.avail.descriptor.representation.BitField;
-import com.avail.descriptor.representation.Mutability;
-import com.avail.descriptor.types.A_Type;
-
-import static com.avail.descriptor.tuples.ObjectTupleDescriptor.generateObjectTupleFrom;
-import static com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.tuples.ReverseTupleDescriptor.IntegerSlots.HASH_OR_ZERO;
-import static com.avail.descriptor.tuples.ReverseTupleDescriptor.IntegerSlots.SIZE;
-import static com.avail.descriptor.tuples.ReverseTupleDescriptor.ObjectSlots.ORIGIN_TUPLE;
-import static com.avail.descriptor.tuples.TreeTupleDescriptor.concatenateAtLeastOneTree;
-import static com.avail.descriptor.tuples.TreeTupleDescriptor.createTwoPartTreeTuple;
-import static com.avail.descriptor.tuples.TreeTupleDescriptor.internalTreeReverse;
+import com.avail.descriptor.representation.*
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import com.avail.descriptor.types.A_Type
 
 /**
  * A reverse tuple holds a reference to an "origin" tuple and the origin
  * tuple's size.
  *
- * <p>To avoid arbitrarily deep constructs, the origin tuple must not itself be
+ *
+ * To avoid arbitrarily deep constructs, the origin tuple must not itself be
  * a reverse tuple.  Any attempt to create a reverse tuple from a reverse
- * tuple will return the origin tuple.</p>
+ * tuple will return the origin tuple.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ * 
+ * @constructor
+ * Construct a new `ReverseTupleDescriptor`.
+ *
+ * @param mutability
+ *   The mutability of the descriptor.
  */
-public final class ReverseTupleDescriptor
-extends TupleDescriptor
+class ReverseTupleDescriptor private constructor(mutability: Mutability)
+	: TupleDescriptor(
+		mutability, ObjectSlots::class.java, IntegerSlots::class.java)
 {
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots implements IntegerSlotsEnumJava
+	enum class IntegerSlots : IntegerSlotsEnum
 	{
 		/**
-		 * The low 32 bits are used for the {@link #HASH_OR_ZERO}, but the upper 32 can be used by other {@link BitField}s in subclasses of {@link TupleDescriptor}.
+		 * The low 32 bits are used for the [HASH_OR_ZERO], but the upper 32 can
+		 * be used by other [BitField]s in subclasses of [TupleDescriptor].
 		 */
-		@HideFieldInDebugger
 		HASH_AND_MORE;
 
-		/**
-		 * A slot to hold the cached hash value of a tuple.  If zero, then the
-		 * hash value must be computed upon request.  Note that in the very rare
-		 * case that the hash value actually equals zero, the hash value has to
-		 * be computed every time it is requested.
-		 */
-		public static final BitField HASH_OR_ZERO =
-			new BitField(HASH_AND_MORE, 0, 32);
-
-		/** The number of elements in this tuple. */
-		public static final BitField SIZE = new BitField(HASH_AND_MORE, 32, 32);
-
-		static
+		companion object
 		{
-			assert TupleDescriptor.IntegerSlots.HASH_AND_MORE.ordinal()
-				== HASH_AND_MORE.ordinal();
-			assert TupleDescriptor.IntegerSlots.HASH_OR_ZERO.isSamePlaceAs(
-				HASH_OR_ZERO);
+			/**
+			 * A slot to hold the cached hash value of a tuple.  If zero, then
+			 * the hash value must be computed upon request.  Note that in the
+			 * very rare case that the hash value actually equals zero, the hash
+			 * value has to be computed every time it is requested.
+			 */
+			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
+
+			/** The number of elements in this tuple.  */
+			val SIZE = BitField(HASH_AND_MORE, 32, 32)
+
+			init
+			{
+				assert(TupleDescriptor.IntegerSlots.HASH_AND_MORE.ordinal
+						   == HASH_AND_MORE.ordinal)
+				assert(TupleDescriptor.IntegerSlots.HASH_OR_ZERO.isSamePlaceAs(
+					HASH_OR_ZERO))
+			}
 		}
 	}
 
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnumJava
+	enum class ObjectSlots : ObjectSlotsEnum
 	{
 		/**
 		 * The basis tuple of which this is a subrange.  The basis tuple must be
 		 * flat -- it may not be another subrange tuple, nor may it be a tree
 		 * tuple.
 		 */
-		ORIGIN_TUPLE;
+		ORIGIN_TUPLE
 	}
 
-	/**
-	 * Defined threshold for making copies versus using {@linkplain TreeTupleDescriptor}/using other forms of reference instead of creating a new tuple.
-	 */
-	private static final int maximumCopySize = 32;
-
-	/** The mutable {@link ReverseTupleDescriptor}. */
-	public static final ReverseTupleDescriptor mutable =
-		new ReverseTupleDescriptor(Mutability.MUTABLE);
-
-	@Override
-	public A_Tuple o_AppendCanDestroy (
-		final AvailObject object,
-		final A_BasicObject newElement,
-		final boolean canDestroy)
+	override fun o_AppendCanDestroy(
+		self: AvailObject,
+		newElement: A_BasicObject,
+		canDestroy: Boolean): A_Tuple
 	{
 		// Fall back to concatenating a singleton.
 		if (!canDestroy)
 		{
-			object.makeImmutable();
+			self.makeImmutable()
 		}
-		final A_Tuple singleton = tuple(newElement);
-		return object.concatenateWith(singleton, canDestroy);
+		val singleton = tuple(newElement)
+		return self.concatenateWith(singleton, canDestroy)
 	}
 
-	@Override
-	public int o_BitsPerEntry (final AvailObject object)
-	{
-		// Answer maximum integer value so that any other representation
-		// for comparison is used in favor of a Reverse Tuple representation.
-		return Integer.MAX_VALUE;
-	}
+	// Answer maximum integer value so that any other representation
+	// for comparison is used in favor of a Reverse Tuple representation.
+	override fun o_BitsPerEntry(self: AvailObject): Int = Int.MAX_VALUE
 
-	@Override
-	public A_Tuple o_ChildAt (final AvailObject object, final int childIndex)
+	override fun o_ChildAt(self: AvailObject, childIndex: Int): A_Tuple
 	{
-		if (!object.descriptor().isShared())
+		if (!self.descriptor().isShared)
 		{
-			final AvailObject treeTuple =
-				internalTreeReverse(object.slot(ORIGIN_TUPLE));
-			treeTuple.setHashOrZero(object.slot(HASH_OR_ZERO));
-			object.becomeIndirectionTo(treeTuple);
-			return treeTuple.childAt(childIndex);
+			val treeTuple =
+				TreeTupleDescriptor.internalTreeReverse(
+					self.slot(ObjectSlots.ORIGIN_TUPLE))
+			treeTuple.setHashOrZero(self.slot(IntegerSlots.HASH_OR_ZERO))
+			self.becomeIndirectionTo(treeTuple)
+			return treeTuple.childAt(childIndex)
 		}
 		// Object is shared so it cannot change to an indirection.  Instead, we
 		// need to return the reverse of the child one level down at the
 		// opposite end of the tree from the childIndex.
-		final int adjustedSubscript = object.childCount() + 1 - childIndex;
-		return object.slot(ORIGIN_TUPLE)
+		val adjustedSubscript = self.childCount() + 1 - childIndex
+		return self.slot(ObjectSlots.ORIGIN_TUPLE)
 			.childAt(adjustedSubscript)
-			.tupleReverse();
+			.tupleReverse()
 	}
 
-	@Override
-	public int o_ChildCount (final AvailObject object)
-	{
-		return object.slot(ORIGIN_TUPLE).childCount();
-	}
+	override fun o_ChildCount(self: AvailObject): Int =
+		self.slot(ObjectSlots.ORIGIN_TUPLE).childCount()
 
-	@Override
-	public boolean o_CompareFromToWithStartingAt (
-		final AvailObject object,
-		final int startIndex1,
-		final int endIndex1,
-		final A_Tuple aTuple,
-		final int startIndex2)
+	override fun o_CompareFromToWithStartingAt(
+		self: AvailObject,
+		startIndex1: Int,
+		endIndex1: Int,
+		anotherObject: A_Tuple,
+		startIndex2: Int): Boolean
 	{
-		for (int index = startIndex1,
-			index2 = startIndex2;
-			index <= endIndex1; index++, index2++)
+		var index = startIndex1
+		var index2 = startIndex2
+		while (index <= endIndex1)
 		{
-			if (!object.tupleAt(index).equals(aTuple.tupleAt(index2)))
+			if (!self.tupleAt(index).equals(anotherObject.tupleAt(index2)))
 			{
-				return false;
+				return false
 			}
+			index++
+			index2++
 		}
-		return true;
+		return true
 	}
 
-	@Override
-	public A_Tuple o_ConcatenateWith (
-		final AvailObject object,
-		final A_Tuple otherTuple,
-		final boolean canDestroy)
+	override fun o_ConcatenateWith(
+		self: AvailObject,
+		otherTuple: A_Tuple,
+		canDestroy: Boolean): A_Tuple
 	{
 		// If the receiver tuple is empty return the otherTuple.
-		final int size1 = object.tupleSize();
+		val size1 = self.tupleSize()
 		if (size1 == 0)
 		{
 			if (!canDestroy)
 			{
-				otherTuple.makeImmutable();
+				otherTuple.makeImmutable()
 			}
-			return otherTuple;
+			return otherTuple
 		}
 		// If otherTuple is empty return the receiver tuple, object.
-		final int size2 = otherTuple.tupleSize();
+		val size2 = otherTuple.tupleSize()
 		if (size2 == 0)
 		{
 			if (!canDestroy)
 			{
-				object.makeImmutable();
+				self.makeImmutable()
 			}
-			return object;
+			return self
 		}
-		final int newSize = size1 + size2;
+		val newSize = size1 + size2
 		if (newSize <= maximumCopySize)
 		{
 			// Copy the objects.
-			final A_Tuple dereversedFirstTuple = object.slot(ORIGIN_TUPLE);
-			return generateObjectTupleFrom(
-				newSize,
-				i -> i <= size1
-					? dereversedFirstTuple.tupleAt(size1 + 1 - i)
-					: otherTuple.tupleAt(i - size1));
+			val dereversedFirstTuple: A_Tuple =
+				self.slot(ObjectSlots.ORIGIN_TUPLE)
+			return generateObjectTupleFrom(newSize)
+			{
+				if (it <= size1)
+				{
+					dereversedFirstTuple.tupleAt(size1 + 1 - it)
+				}
+				else
+				{
+					otherTuple.tupleAt(it - size1)
+				}
+			}
 		}
 		if (!canDestroy)
 		{
-			object.makeImmutable();
-			otherTuple.makeImmutable();
+			self.makeImmutable()
+			otherTuple.makeImmutable()
 		}
-		if (object.slot(ORIGIN_TUPLE).treeTupleLevel() == 0)
+		if (self.slot(ObjectSlots.ORIGIN_TUPLE).treeTupleLevel() == 0)
 		{
-			if (otherTuple.treeTupleLevel() == 0)
+			return if (otherTuple.treeTupleLevel() == 0)
 			{
-				return createTwoPartTreeTuple(object, otherTuple, 1, 0);
+				TreeTupleDescriptor.createTwoPartTreeTuple(
+					self, otherTuple, 1, 0)
 			}
-			return concatenateAtLeastOneTree(object, otherTuple, true);
+			else TreeTupleDescriptor.concatenateAtLeastOneTree(
+				self, otherTuple, true)
 		}
-
-		final AvailObject newTree =
-			internalTreeReverse(object.slot(ORIGIN_TUPLE));
-		return concatenateAtLeastOneTree(newTree, otherTuple, true);
+		val newTree = TreeTupleDescriptor.internalTreeReverse(
+			self.slot(ObjectSlots.ORIGIN_TUPLE))
+		return TreeTupleDescriptor
+			.concatenateAtLeastOneTree(newTree, otherTuple, true)
 	}
 
-	@Override
-	public A_Tuple o_CopyTupleFromToCanDestroy (
-		final AvailObject object,
-		final int start,
-		final int end,
-		final boolean canDestroy)
+	override fun o_CopyTupleFromToCanDestroy(
+		self: AvailObject,
+		start: Int,
+		end: Int,
+		canDestroy: Boolean): A_Tuple
 	{
-		final int tupleSize = object.tupleSize();
-		assert 1 <= start && start <= end + 1 && end <= tupleSize;
-		final int subrangeSize = end - start + 1;
+		val tupleSize = self.tupleSize()
+		assert(1 <= start && start <= end + 1 && end <= tupleSize)
+		val subrangeSize = end - start + 1
 		if (subrangeSize == 0)
 		{
-			if (isMutable() && canDestroy)
+			if (isMutable && canDestroy)
 			{
-				object.assertObjectUnreachableIfMutable();
+				self.assertObjectUnreachableIfMutable()
 			}
-			return emptyTuple();
+			return emptyTuple()
 		}
 		if (subrangeSize == tupleSize)
 		{
-			if (isMutable() && !canDestroy)
+			if (isMutable && !canDestroy)
 			{
-				object.makeImmutable();
+				self.makeImmutable()
 			}
-			return object;
+			return self
 		}
 		if (subrangeSize < maximumCopySize)
 		{
 			// It's not empty, it's not a total copy, and it's reasonably small.
 			// Just copy the applicable entries out.
-			final AvailObject result = generateObjectTupleFrom(
-				subrangeSize, index -> object.tupleAt(index + start - 1));
+			val result = generateObjectTupleFrom(
+				subrangeSize) { self.tupleAt(it + start - 1) }
 			if (canDestroy)
 			{
-				object.assertObjectUnreachableIfMutable();
+				self.assertObjectUnreachableIfMutable()
 			}
 			else
 			{
-				result.makeSubobjectsImmutable();
+				result.makeSubobjectsImmutable()
 			}
-			result.setSlot(HASH_OR_ZERO, 0);
-			return result;
+			result.setSlot(IntegerSlots.HASH_OR_ZERO, 0)
+			return result
 		}
-		final A_Tuple subrangeOnOrigin =
-			object.slot(ORIGIN_TUPLE).copyTupleFromToCanDestroy(
-				object.tupleSize() + 1 - end,
-				object.tupleSize() + 1 - start,
-				canDestroy);
-
-		return subrangeOnOrigin.tupleReverse();
+		val subrangeOnOrigin =
+			self.slot(ObjectSlots.ORIGIN_TUPLE).copyTupleFromToCanDestroy(
+				self.tupleSize() + 1 - end,
+				self.tupleSize() + 1 - start,
+				canDestroy)
+		return subrangeOnOrigin.tupleReverse()
 	}
 
-	@Override
-	public boolean o_Equals (final AvailObject object, final A_BasicObject another)
-	{
-		return another.equalsReverseTuple(object);
-	}
+	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean =
+		another.equalsReverseTuple(self)
 
-	@Override
-	public boolean o_EqualsAnyTuple (
-		final AvailObject object,
-		final A_Tuple aTuple)
+	override fun o_EqualsAnyTuple(
+		self: AvailObject,
+		aTuple: A_Tuple): Boolean
 	{
 		// Compare this arbitrary Tuple and the given arbitrary tuple.
-		if (object.sameAddressAs(aTuple))
+		if (self.sameAddressAs(aTuple))
 		{
-			return true;
+			return true
 		}
 		// Compare sizes...
-		final int size = object.tupleSize();
+		val size = self.tupleSize()
 		if (size != aTuple.tupleSize())
 		{
-			return false;
+			return false
 		}
-		if (o_Hash(object) != aTuple.hash())
+		if (o_Hash(self) != aTuple.hash())
 		{
-			return false;
+			return false
 		}
-		for (int i = 1; i <= size; i++)
+		for (i in 1 .. size)
 		{
-			if (!o_TupleAt(object, i).equals(aTuple.tupleAt(i)))
+			if (!o_TupleAt(self, i).equals(aTuple.tupleAt(i)))
 			{
-				return false;
+				return false
 			}
 		}
-		if (object.isBetterRepresentationThan(aTuple))
+		if (self.isBetterRepresentationThan(aTuple))
 		{
-			if (!aTuple.descriptor().isShared())
+			if (!aTuple.descriptor().isShared)
 			{
-				object.makeImmutable();
-				aTuple.becomeIndirectionTo(object);
+				self.makeImmutable()
+				aTuple.becomeIndirectionTo(self)
 			}
 		}
 		else
 		{
-			if (!isShared())
+			if (!isShared)
 			{
-				aTuple.makeImmutable();
-				object.becomeIndirectionTo(aTuple);
+				aTuple.makeImmutable()
+				self.becomeIndirectionTo(aTuple)
 			}
 		}
-		return true;
+		return true
 	}
 
-	@Override
-	public boolean o_EqualsReverseTuple (
-		final AvailObject object,
-		final A_Tuple aTuple)
+	override fun o_EqualsReverseTuple(
+		self: AvailObject,
+		aTuple: A_Tuple): Boolean =
+			self.slot(ObjectSlots.ORIGIN_TUPLE).equals(
+				(aTuple as AvailObject).slot(ObjectSlots.ORIGIN_TUPLE))
+
+	override fun o_TreeTupleLevel(self: AvailObject): Int =
+		self.slot(ObjectSlots.ORIGIN_TUPLE).treeTupleLevel()
+
+	override fun o_TupleAt(self: AvailObject, index: Int): AvailObject
 	{
-		return object.slot(ORIGIN_TUPLE).
-			equals(((AvailObject) aTuple).slot(ORIGIN_TUPLE));
+		val size = self.slot(ObjectSlots.ORIGIN_TUPLE).tupleSize()
+		assert(index in 1 .. size)
+		val reverseIndex = size + 1 - index
+		return self.slot(ObjectSlots.ORIGIN_TUPLE).tupleAt(reverseIndex)
 	}
 
-	@Override
-	public int o_TreeTupleLevel (final AvailObject object)
-	{
-		return object.slot(ORIGIN_TUPLE).treeTupleLevel();
-	}
-
-	@Override
-	public AvailObject o_TupleAt (final AvailObject object, final int index)
-	{
-		final int size = object.slot(ORIGIN_TUPLE).tupleSize();
-
-		assert 1 <= index && index <= size;
-		final int reverseIndex = size + 1 - index;
-		return object.slot(ORIGIN_TUPLE).tupleAt(reverseIndex);
-	}
-
-	@Override
-	public A_Tuple o_TupleAtPuttingCanDestroy (
-		final AvailObject object,
-		final int index,
-		final A_BasicObject newValueObject,
-		final boolean canDestroy)
+	override fun o_TupleAtPuttingCanDestroy(
+		self: AvailObject,
+		index: Int,
+		newValueObject: A_BasicObject,
+		canDestroy: Boolean): A_Tuple
 	{
 		// Answer a tuple with all the elements of object except at the given
 		// index we should have newValueObject.  This may destroy the original
 		// tuple if canDestroy is true.
-		assert index >= 1 && index <= object.tupleSize();
-		final A_Tuple innerTuple = object.slot(ORIGIN_TUPLE)
+		assert(index >= 1 && index <= self.tupleSize())
+		val innerTuple = self.slot(ObjectSlots.ORIGIN_TUPLE)
 			.tupleAtPuttingCanDestroy(
-				object.slot(SIZE) + 1 - index,
+				self.slot(IntegerSlots.SIZE) + 1 - index,
 				newValueObject,
-				canDestroy);
-		if (!canDestroy || !isMutable())
+				canDestroy)
+		if (!canDestroy || !isMutable)
 		{
-			return createReverseTuple(innerTuple);
+			return createReverseTuple(innerTuple)
 		}
-		object.setSlot(ORIGIN_TUPLE, innerTuple);
-		object.setHashOrZero(0);
-		return object;
+		self.setSlot(ObjectSlots.ORIGIN_TUPLE, innerTuple)
+		self.setHashOrZero(0)
+		return self
 	}
 
-	@Override
-	public boolean o_TupleElementsInRangeAreInstancesOf (
-		final AvailObject object,
-		final int startIndex,
-		final int endIndex,
-		final A_Type type)
+	override fun o_TupleElementsInRangeAreInstancesOf(
+		self: AvailObject,
+		startIndex: Int,
+		endIndex: Int,
+		type: A_Type): Boolean
 	{
-		final int size = object.slot(ORIGIN_TUPLE).tupleSize();
-		final int originStart = size + 1 - endIndex;
-		final int originEnd = size + 1 - startIndex;
-		return object.slot(ORIGIN_TUPLE).tupleElementsInRangeAreInstancesOf(
-			originStart, originEnd, type);
+		val size = self.slot(ObjectSlots.ORIGIN_TUPLE).tupleSize()
+		val originStart = size + 1 - endIndex
+		val originEnd = size + 1 - startIndex
+		return self.slot(ObjectSlots.ORIGIN_TUPLE)
+			.tupleElementsInRangeAreInstancesOf(originStart, originEnd, type)
 	}
 
-	@Override
-	public int o_TupleIntAt (final AvailObject object, final int index)
+	override fun o_TupleIntAt(self: AvailObject, index: Int): Int
 	{
-		final int size = object.slot(ORIGIN_TUPLE).tupleSize();
-
-		assert 1 <= index && index <= size;
-		final int reverseIndex = size + 1 - index;
-		return object.slot(ORIGIN_TUPLE).tupleIntAt(reverseIndex);
+		val size = self.slot(ObjectSlots.ORIGIN_TUPLE).tupleSize()
+		assert(index in 1 .. size)
+		val reverseIndex = size + 1 - index
+		return self.slot(ObjectSlots.ORIGIN_TUPLE).tupleIntAt(reverseIndex)
 	}
 
-	@Override
-	public A_Tuple o_TupleReverse (final AvailObject object)
+	override fun o_TupleReverse(self: AvailObject): A_Tuple =
+		self.slot(ObjectSlots.ORIGIN_TUPLE)
+
+	override fun o_TupleSize(self: AvailObject): Int =
+		self.slot(IntegerSlots.SIZE)
+
+	override fun mutable(): ReverseTupleDescriptor = mutable
+
+	override fun immutable(): ReverseTupleDescriptor = immutable
+
+	override fun shared(): ReverseTupleDescriptor = shared
+
+	companion object
 	{
-		return object.slot(ORIGIN_TUPLE);
-	}
+		/**
+		 * Defined threshold for making copies versus using
+		 * [TreeTupleDescriptor]/using other forms of reference instead of
+		 * creating a new tuple.
+		 */
+		private const val maximumCopySize = 32
 
-	@Override
-	public int o_TupleSize (final AvailObject object)
-	{
-		return object.slot(SIZE);
-	}
+		/** The mutable [ReverseTupleDescriptor].  */
+		val mutable = ReverseTupleDescriptor(Mutability.MUTABLE)
 
-	@Override
-	public ReverseTupleDescriptor mutable ()
-	{
-		return mutable;
-	}
+		/** The immutable [ReverseTupleDescriptor].  */
+		private val immutable = ReverseTupleDescriptor(Mutability.IMMUTABLE)
 
-	/** The immutable {@link ReverseTupleDescriptor}. */
-	private static final ReverseTupleDescriptor immutable =
-		new ReverseTupleDescriptor(Mutability.IMMUTABLE);
+		/** The shared [ReverseTupleDescriptor].  */
+		private val shared = ReverseTupleDescriptor(Mutability.SHARED)
 
-	@Override
-	public ReverseTupleDescriptor immutable ()
-	{
-		return immutable;
-	}
-
-	/** The shared {@link ReverseTupleDescriptor}. */
-	private static final ReverseTupleDescriptor shared =
-		new ReverseTupleDescriptor(Mutability.SHARED);
-
-	@Override
-	public ReverseTupleDescriptor shared ()
-	{
-		return shared;
-	}
-
-	/**
-	 * Construct a new {@code ReverseTupleDescriptor}.
-	 *
-	 * @param mutability
-	 * The mutability of the descriptor.
-	 */
-	private ReverseTupleDescriptor (final Mutability mutability)
-	{
-		super(mutability, ObjectSlots.class, IntegerSlots.class);
-	}
-
-	/**
-	 * Create a new {@link AvailObject} that wraps the specified {@linkplain AvailObject} tuple and provides it with a {@code ReverseTupleDescriptor} descriptor.
-	 *
-	 * <p>The original tuple may be destroyed by this operation.  If you need the original after this call, use {@link A_BasicObject#makeImmutable()}  on it prior to the call.</p>
-	 *
-	 * @param originTuple
-	 * The tuple to be reversed.
-	 * @return
-	 * A new reverse tuple.
-	 */
-	public static AvailObject createReverseTuple (
-		final A_Tuple originTuple)
-	{
-		final AvailObject instance = mutable.create();
-		instance.setSlot(ORIGIN_TUPLE, originTuple);
-		instance.setSlot(SIZE, originTuple.tupleSize());
-		return instance;
+		/**
+		 * Create a new [AvailObject] that wraps the specified [AvailObject]
+		 * tuple and provides it with a `ReverseTupleDescriptor` descriptor.
+		 *
+		 * The original tuple may be destroyed by this operation.  If you need
+		 * the original after this call, use [A_BasicObject.makeImmutable]  on
+		 * it prior to the call.
+		 *
+		 * @param originTuple
+		 *   The tuple to be reversed.
+		 * @return
+		 *   A new reverse tuple.
+		 */
+		fun createReverseTuple(originTuple: A_Tuple): AvailObject
+		{
+			val instance = mutable.create()
+			instance.setSlot(ObjectSlots.ORIGIN_TUPLE, originTuple)
+			instance.setSlot(IntegerSlots.SIZE, originTuple.tupleSize())
+			return instance
+		}
 	}
 }

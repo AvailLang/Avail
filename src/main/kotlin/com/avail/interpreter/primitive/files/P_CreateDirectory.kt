@@ -38,9 +38,10 @@ import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.numbers.IntegerDescriptor
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.StringDescriptor.Companion.formatString
-import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.types.FiberTypeDescriptor.fiberType
@@ -183,15 +184,15 @@ object P_CreateDirectory : Primitive(5, CanInline, HasSideEffect)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(stringType(),
-				setTypeForSizesContentType(
-				  inclusive(0, 9),
-				  inclusive(1, 9)),
-				functionType(emptyTuple(), TOP.o()),
-				functionType(tuple(
-					enumerationWith(
-						set(E_FILE_EXISTS, E_PERMISSION_DENIED, E_IO_ERROR))),
-				TOP.o()), bytes()),
+			ObjectTupleDescriptor.tuple(stringType(),
+										setTypeForSizesContentType(
+																				  inclusive(0, 9),
+																				  inclusive(1, 9)),
+										functionType(emptyTuple(), TOP.o()),
+										functionType(tuple(
+																				  enumerationWith(
+																					  set(E_FILE_EXISTS, E_PERMISSION_DENIED, E_IO_ERROR))),
+																						   TOP.o()), bytes()),
 			fiberType(TOP.o()))
 
 	override fun privateFailureVariableType(): A_Type =
