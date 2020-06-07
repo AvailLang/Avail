@@ -44,7 +44,7 @@ import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.NybbleTupleDescriptor
-import com.avail.descriptor.tuples.NybbleTupleDescriptor.generateNybbleTupleFrom
+import com.avail.descriptor.tuples.NybbleTupleDescriptor.Companion.generateNybbleTupleFrom
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.tupleFromIntegerList

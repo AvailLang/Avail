@@ -43,8 +43,8 @@ import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.intCount
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.tuples.ByteStringDescriptor.Companion.generateByteString
-import com.avail.descriptor.tuples.ByteTupleDescriptor.generateByteTupleFrom
-import com.avail.descriptor.tuples.NybbleTupleDescriptor.generateNybbleTupleFrom
+import com.avail.descriptor.tuples.ByteTupleDescriptor.Companion.generateByteTupleFrom
+import com.avail.descriptor.tuples.NybbleTupleDescriptor.Companion.generateNybbleTupleFrom
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple

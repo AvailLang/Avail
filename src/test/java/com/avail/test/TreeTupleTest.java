@@ -246,7 +246,7 @@ public class TreeTupleTest
 		// Small size where copies are made
 
 		final AvailObject myByteTupleSmall = generateByteTupleFrom(
-			3, index -> (short) index);
+			3, index -> index);
 		final AvailObject myByteTupleSmallReversed =
 			generateByteTupleFrom(3, i -> 4 - i);
 		assertEquals(
