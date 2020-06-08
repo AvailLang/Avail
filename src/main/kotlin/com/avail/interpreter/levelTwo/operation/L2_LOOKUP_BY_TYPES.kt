@@ -46,7 +46,7 @@ import com.avail.descriptor.sets.SetDescriptor.Companion.toSet
 import com.avail.descriptor.tuples.ObjectTupleDescriptor
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor
-import com.avail.descriptor.types.BottomTypeDescriptor.bottom
+import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.TypeDescriptor
 import com.avail.exceptions.AvailErrorCode.E_ABSTRACT_METHOD_DEFINITION
 import com.avail.exceptions.AvailErrorCode.E_AMBIGUOUS_METHOD_DEFINITION

@@ -1,21 +1,21 @@
 /*
- * BottomTypeDescriptor.java
+ * BottomTypeDescriptor.kt
  * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
  *
- *  * Neither the name of the copyright holder nor the names of the contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -29,146 +29,114 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.descriptor.types
 
-package com.avail.descriptor.types;
-
-import com.avail.descriptor.atoms.A_Atom;
-import com.avail.descriptor.maps.A_Map;
-import com.avail.descriptor.numbers.A_Number;
-import com.avail.descriptor.representation.A_BasicObject;
-import com.avail.descriptor.representation.AvailObject;
-import com.avail.descriptor.representation.Mutability;
-import com.avail.descriptor.sets.A_Set;
-import com.avail.descriptor.sets.SetDescriptor;
-import com.avail.descriptor.tuples.A_Tuple;
-import com.avail.descriptor.tuples.RepeatedElementTupleDescriptor;
-import com.avail.interpreter.levelTwo.operand.TypeRestriction;
-import com.avail.serialization.SerializerOperation;
-import com.avail.utility.json.JSONWriter;
-
-import java.util.IdentityHashMap;
-import java.util.List;
-
-import static com.avail.descriptor.numbers.InfinityDescriptor.negativeInfinity;
-import static com.avail.descriptor.numbers.InfinityDescriptor.positiveInfinity;
-import static com.avail.descriptor.numbers.IntegerDescriptor.zero;
-import static com.avail.descriptor.sets.SetDescriptor.emptySet;
-import static com.avail.descriptor.tuples.TupleDescriptor.emptyTuple;
-import static com.avail.descriptor.types.InstanceMetaDescriptor.instanceMeta;
-import static com.avail.descriptor.types.InstanceMetaDescriptor.topMeta;
-import static com.avail.descriptor.types.TupleTypeDescriptor.mostGeneralTupleType;
-import static com.avail.descriptor.types.TypeDescriptor.Types.ANY;
-import static com.avail.descriptor.types.TypeDescriptor.Types.TOP;
+import com.avail.descriptor.atoms.A_Atom
+import com.avail.descriptor.maps.A_Map
+import com.avail.descriptor.numbers.A_Number
+import com.avail.descriptor.numbers.InfinityDescriptor.Companion.negativeInfinity
+import com.avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.sets.A_Set
+import com.avail.descriptor.sets.SetDescriptor
+import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
+import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.RepeatedElementTupleDescriptor.Companion.createRepeatedElementTuple
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
+import com.avail.interpreter.levelTwo.operand.TypeRestriction
+import com.avail.serialization.SerializerOperation
+import com.avail.utility.json.JSONWriter
+import java.util.*
 
 /**
- * {@code BottomTypeDescriptor} represents Avail's most specific type, ⊥ (pronounced bottom). ⊥ is an abstract type; it cannot have any instances, since its instances must be able to meaningfully perform all operations, and this is clearly logically inconsistent.
+ * `BottomTypeDescriptor` represents Avail's most specific type, ⊥ (pronounced
+ * bottom). ⊥ is an abstract type; it cannot have any instances, since its
+ * instances must be able to meaningfully perform all operations, and this is
+ * clearly logically inconsistent.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @constructor
+ *  Construct a new `BottomTypeDescriptor`.
  */
-public final class BottomTypeDescriptor
-extends AbstractEnumerationTypeDescriptor
+class BottomTypeDescriptor private constructor()
+	: AbstractEnumerationTypeDescriptor(
+		Mutability.SHARED, TypeTag.BOTTOM_TYPE_TAG, null, null)
 {
-	@Override
-	public void printObjectOnAvoidingIndent (
-		final AvailObject object,
-		final StringBuilder builder,
-		final IdentityHashMap<A_BasicObject, Void> recursionMap,
-		final int indent)
+	override fun printObjectOnAvoidingIndent(
+		self: AvailObject,
+		builder: StringBuilder,
+		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		indent: Int)
 	{
-		builder.append("⊥");
+		builder.append("⊥")
 	}
 
 	/**
 	 * Compute the type intersection of the object which is the bottom type,
 	 * and the argument, which may be any type.
 	 *
-	 * @param object
-	 *            The bottom type.
+	 * @param self
+	 *   The bottom type.
 	 * @param another
-	 *            Another type.
+	 *   Another type.
 	 * @return
-	 *            The most general type that is a subtype of both object and another.
+	 *   The most general type that is a subtype of both object and another.
 	 */
-	@Override
-	public A_Type computeIntersectionWith (
-		final AvailObject object,
-		final A_Type another)
-	{
-		// Easy -- it's always the type bottom.
-		return object;
-	}
+	public override fun computeIntersectionWith(
+		self: AvailObject,
+		another: A_Type): A_Type = self // Easy -- it's always the type bottom.
 
 	/**
 	 * Compute the type union of the object which is the bottom type, and
 	 * the argument, which may be any type.
 	 *
-	 * @param object
-	 *            The bottom type.
+	 * @param self
+	 *   The bottom type.
 	 * @param another
-	 *            Another type.
+	 *   Another type.
 	 * @return
-	 *            The most specific type that is a supertype of both object and another.
+	 *   The most specific type that is a supertype of both object and another.
 	 */
-	@Override
-	public A_Type computeUnionWith (
-		final AvailObject object,
-		final A_Type another)
+	public override fun computeUnionWith(
+		self: AvailObject,
+		another: A_Type): A_Type
 	{
 		// Easy -- it's always the other type.
-		assert another.isType();
-		return another;
+		assert(another.isType)
+		return another
 	}
 
-	@Override
-	public boolean o_AcceptsArgTypesFromFunctionType (
-		final AvailObject object,
-		final A_Type functionType)
-	{
-		return true;
-	}
+	override fun o_AcceptsArgTypesFromFunctionType(
+		self: AvailObject,
+		functionType: A_Type): Boolean = true
 
-	@Override
-	public boolean o_AcceptsListOfArgTypes (
-		final AvailObject object,
-		final List<? extends A_Type> argTypes)
-	{
-		return true;
-	}
+	override fun o_AcceptsListOfArgTypes(
+		self: AvailObject,
+		argTypes: List<A_Type>): Boolean = true
 
-	@Override
-	public boolean o_AcceptsListOfArgValues (
-		final AvailObject object,
-		final List<? extends A_BasicObject> argValues)
-	{
-		return true;
-	}
+	override fun o_AcceptsListOfArgValues(
+		self: AvailObject,
+		argValues: List<A_BasicObject>): Boolean = true
 
-	@Override
-	public boolean o_AcceptsTupleOfArgTypes (
-		final AvailObject object,
-		final A_Tuple argTypes)
-	{
-		return true;
-	}
+	override fun o_AcceptsTupleOfArgTypes(
+		self: AvailObject,
+		argTypes: A_Tuple): Boolean = true
 
-	@Override
-	public boolean o_AcceptsTupleOfArguments (
-		final AvailObject object,
-		final A_Tuple arguments)
-	{
-		return true;
-	}
+	override fun o_AcceptsTupleOfArguments(
+		self: AvailObject,
+		arguments: A_Tuple): Boolean = true
 
-	@Override
-	public A_Type o_ArgsTupleType (final AvailObject object)
-	{
-		// Because ⊥ is a subtype of all other types, it is considered a
-		// function type. In particular, if ⊥ is viewed as a function type, it
-		// can take any number of arguments of any type (since there are no
-		// complying function instances).
-		return mostGeneralTupleType();
-	}
+	// Because ⊥ is a subtype of all other types, it is considered a
+	// function type. In particular, if ⊥ is viewed as a function type, it
+	// can take any number of arguments of any type (since there are no
+	// complying function instances).
+	override fun o_ArgsTupleType(self: AvailObject): A_Type =
+		TupleTypeDescriptor.mostGeneralTupleType()
 
 	/**
 	 * {@inheritDoc}
@@ -176,52 +144,29 @@ extends AbstractEnumerationTypeDescriptor
 	 * Even though bottom is a union-y type (and the most specific one), it
 	 * technically "is" also a kind (a non-union-y type).  Thus, it's still
 	 * technically correct to return bottom as the nearest kind.  Code that
-	 * relies on this operation <em>not</em> returning a union-y type should
+	 * relies on this operation *not* returning a union-y type should
 	 * deal with this one special case with correspondingly special logic.
 	 */
-	@Override
-	public A_Type o_ComputeSuperkind (final AvailObject object)
-	{
-		return object;
-	}
+	override fun o_ComputeSuperkind(self: AvailObject): A_Type = self
 
-	@Override
-	public A_Type o_ContentType (final AvailObject object)
-	{
-		return object;
-	}
+	override fun o_ContentType(self: AvailObject): A_Type = self
 
-	@Override
-	public boolean o_CouldEverBeInvokedWith (
-		final AvailObject object,
-		final List<TypeRestriction> argRestrictions)
-	{
-		return true;
-	}
+	override fun o_CouldEverBeInvokedWith(
+		self: AvailObject,
+		argRestrictions: List<TypeRestriction>): Boolean = true
 
-	@Override
-	public A_Set o_DeclaredExceptions (final AvailObject object)
-	{
-		return emptySet();
-	}
+	override fun o_DeclaredExceptions(self: AvailObject): A_Set = emptySet()
 
-	@Override
-	public A_Type o_DefaultType (final AvailObject object)
-	{
-		// Since I'm a degenerate tuple type, I must answer ⊥.
-		return object;
-	}
+	// Since I'm a degenerate tuple type, I must answer ⊥.
+	override fun o_DefaultType(self: AvailObject): A_Type = self
 
 	/**
-	 * Bottom is an empty {@linkplain AbstractEnumerationTypeDescriptor enumeration}, so the answer is {@code false}.
+	 * Bottom is an empty [enumeration][AbstractEnumerationTypeDescriptor], so
+	 * the answer is `false`.
 	 */
-	@Override
-	public boolean o_EnumerationIncludesInstance (
-		final AvailObject object,
-		final AvailObject potentialInstance)
-	{
-		return false;
-	}
+	override fun o_EnumerationIncludesInstance(
+		self: AvailObject,
+		potentialInstance: AvailObject): Boolean = false
 
 	/**
 	 * {@inheritDoc}
@@ -229,421 +174,250 @@ extends AbstractEnumerationTypeDescriptor
 	 * An instance type is only equal to another instance type, and only when
 	 * they refer to equal instances.
 	 */
-	@Override
-	public boolean o_Equals (
-		final AvailObject object,
-		final A_BasicObject another)
-	{
-		return another.traversed().sameAddressAs(object);
-	}
+	override fun o_Equals(
+		self: AvailObject,
+		another: A_BasicObject): Boolean =
+			another.traversed().sameAddressAs(self)
 
 	/**
 	 * {@inheritDoc}
 	 *
-	 * Determine if the object is an {@linkplain AbstractEnumerationTypeDescriptor enumeration} over the given {@linkplain SetDescriptor set} of instances.  Since the object is the {@linkplain BottomTypeDescriptor bottom&#32;type}, just check if the set of instances is empty.
+	 * Determine if the object is an
+	 * [enumeration][AbstractEnumerationTypeDescriptor] over the given
+	 * [set][SetDescriptor] of instances.  Since the object is the
+	 * [bottom&amp;#32;type][BottomTypeDescriptor], just check if the set of
+	 * instances is empty.
 	 */
-	@Override
-	public boolean o_EqualsEnumerationWithSet (
-		final AvailObject object,
-		final A_Set aSet)
-	{
-		return aSet.setSize() == 0;
-	}
+	override fun o_EqualsEnumerationWithSet(
+		self: AvailObject,
+		aSet: A_Set): Boolean = aSet.setSize() == 0
 
-	@Override
-	public A_Type o_ExpressionType (
-		final AvailObject object)
-	{
-		return object;
-	}
+	override fun o_ExpressionType(self: AvailObject): A_Type = self
 
-	@Override
-	public A_Type o_FieldTypeAt (final AvailObject object, final A_Atom field)
-	{
-		// All fields would be present for this type, but they would have type
-		// bottom.
-		return object;
-	}
+	// All fields would be present for this type, but they would have type
+	// bottom.
+	override fun o_FieldTypeAt(self: AvailObject, field: A_Atom): A_Type = self
 
-	@Override
-	public A_Map o_FieldTypeMap (final AvailObject object)
+	override fun o_FieldTypeMap(self: AvailObject): A_Map
 	{
 		// TODO: [MvG] It's unclear what to return here. Maybe raise an
 		// unchecked exception. Or if we ever implement more precise map types
 		// containing key type -> value type pairs we might be able to change
 		// the object type interface to use one of those instead of a map.
-		throw unsupportedOperationException();
+		throw unsupportedOperationException()
 	}
 
-	@Override
-	public A_Type o_FunctionType (final AvailObject object)
-	{
-		return object;
-	}
+	override fun o_FunctionType(self: AvailObject): A_Type = self
 
-	@Override
-	public int o_Hash (final AvailObject object)
-	{
-		return 0x4a22a80a;
-	}
+	override fun o_Hash(self: AvailObject): Int = 0x4a22a80a
 
-	@Override
-	public boolean o_HasObjectInstance (
-		final AvailObject object,
-		final AvailObject potentialInstance)
-	{
-		return false;
-	}
+	override fun o_HasObjectInstance(
+		self: AvailObject,
+		potentialInstance: AvailObject): Boolean = false
 
-	@Override
-	public A_Number o_InstanceCount (final AvailObject object)
-	{
-		// ⊥ is the empty enumeration.
-		return zero();
-	}
+	// ⊥ is the empty enumeration.
+	override fun o_InstanceCount(self: AvailObject): A_Number = zero()
 
-	@Override
-	public A_Set o_Instances (final AvailObject object)
-	{
-		// ⊥ is the empty enumeration.
-		return emptySet();
-	}
+	// ⊥ is the empty enumeration.
+	override fun o_Instances(self: AvailObject): A_Set = emptySet()
 
-	@Override
-	public boolean o_IsBottom (final AvailObject object)
-	{
-		return true;
-	}
+	override fun o_IsBottom(self: AvailObject): Boolean = true
 
-	@Override
-	public boolean o_IsVacuousType (final AvailObject object)
-	{
-		return true;
-	}
+	override fun o_IsVacuousType(self: AvailObject): Boolean = true
 
-	@Override
-	public boolean o_IsInstanceOf (
-		final AvailObject object,
-		final A_Type aType)
+	override fun o_IsInstanceOf(
+		self: AvailObject,
+		aType: A_Type): Boolean
 	{
 		// Bottom is an instance of every metatype except for itself.
-		assert aType.isType();
-		if (object.equals(aType))
+		assert(aType.isType)
+		if (self.equals(aType))
 		{
 			// Bottom is not an instance of itself.
-			return false;
+			return false
 		}
-		if (aType.isEnumeration())
+		if (aType.isEnumeration)
 		{
-			return aType.enumerationIncludesInstance(object);
+			return aType.enumerationIncludesInstance(self)
 		}
 		// Bottom is an instance of top and any.
-		if (aType.isTop() || aType.equals(ANY.o()))
+		return if (aType.isTop || aType.equals(TypeDescriptor.Types.ANY.o()))
 		{
-			return true;
+			true
 		}
+		else aType.isSubtypeOf(InstanceMetaDescriptor.topMeta())
 		// Bottom is an instance of every meta (everything that inherits
 		// from TYPE).
-		return aType.isSubtypeOf(topMeta());
 	}
 
-	@Override
-	public boolean o_IsInstanceOfKind (
-		final AvailObject object,
-		final A_Type aType)
+	override fun o_IsInstanceOfKind(
+		self: AvailObject,
+		aType: A_Type): Boolean
 	{
-		assert !aType.isBottom();
-		return aType.isSupertypeOfPrimitiveTypeEnum(ANY)
-			|| aType.isSubtypeOf(topMeta());
+		assert(!aType.isBottom)
+		return (aType.isSupertypeOfPrimitiveTypeEnum(TypeDescriptor.Types.ANY)
+				|| aType.isSubtypeOf(InstanceMetaDescriptor.topMeta()))
 	}
 
-	@Override
-	public boolean o_IsIntegerRangeType (final AvailObject object)
+	// Because ⊥ is a subtype of all other types, it is considered an
+	// integer range type - in particular, the degenerate integer type
+	// (∞..-∞).
+	override fun o_IsIntegerRangeType(self: AvailObject): Boolean = true
+
+	override fun o_IsLiteralTokenType(self: AvailObject): Boolean = true
+
+	// Because ⊥ is a subtype of all other types, it is considered a map
+	// type - in particular, a degenerate map type. Its size range is ⊥, its
+	// key type is ⊥, and its value type is ⊥.
+	override fun o_IsMapType(self: AvailObject): Boolean = true
+
+	override fun o_IsPojoArrayType(self: AvailObject): Boolean = true
+
+	override fun o_IsPojoFusedType(self: AvailObject): Boolean = true
+
+	override fun o_IsPojoSelfType(self: AvailObject): Boolean = false
+
+	override fun o_IsPojoType(self: AvailObject): Boolean = true
+
+	override fun o_IsSetType(self: AvailObject): Boolean = true
+
+	override fun o_IsSubtypeOf(self: AvailObject, aType: A_Type): Boolean = true
+
+	// Because ⊥ is a subtype of all other types, it is considered a tuple
+	// type - in particular, a degenerate tuple type. Its size range is ⊥,
+	// its leading type tuple is <>, and its default type is ⊥.
+	override fun o_IsTupleType(self: AvailObject): Boolean = true
+
+	// Answer what type my keys are. Since I'm a degenerate map type,
+	// answer ⊥.
+	override fun o_KeyType(self: AvailObject): A_Type = self
+
+	// Pretend we go from +∞ to -∞ exclusive. That should be a nice empty
+	// range.
+	override fun o_LowerBound(self: AvailObject): A_Number = positiveInfinity()
+
+	// Pretend we go from +∞ to -∞ exclusive. That should be a nice empty
+	// range.
+	override fun o_LowerInclusive(self: AvailObject): Boolean = false
+
+	override fun o_Parent(self: AvailObject): A_BasicObject
 	{
-		// Because ⊥ is a subtype of all other types, it is considered an
-		// integer range type - in particular, the degenerate integer type
-		// (∞..-∞).
-		return true;
+		throw unsupportedOperationException()
 	}
 
-	@Override
-	public boolean o_IsLiteralTokenType (
-		final AvailObject object)
-	{
-		return true;
-	}
+	override fun o_RangeIncludesInt(self: AvailObject, anInt: Int): Boolean =
+		false
 
-	@Override
-	public boolean o_IsMapType (final AvailObject object)
-	{
-		// Because ⊥ is a subtype of all other types, it is considered a map
-		// type - in particular, a degenerate map type. Its size range is ⊥, its
-		// key type is ⊥, and its value type is ⊥.
-		return true;
-	}
+	override fun o_ReturnType(self: AvailObject): A_Type = self
 
-	@Override
-	public boolean o_IsPojoArrayType (final AvailObject object)
-	{
-		return true;
-	}
+	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
+		SerializerOperation.BOTTOM_TYPE
 
-	@Override
-	public boolean o_IsPojoFusedType (final AvailObject object)
-	{
-		return true;
-	}
+	// Answer what sizes my instances can be. Since I'm a degenerate
+	// map type, answer ⊥, a degenerate integer type.
+	override fun o_SizeRange(self: AvailObject): A_Type = self
 
-	@Override
-	public boolean o_IsPojoSelfType (final AvailObject object)
-	{
-		return false;
-	}
+	// See ListPhraseDescriptor.
+	override fun o_SubexpressionsTupleType(self: AvailObject): A_Type = self
 
-	@Override
-	public boolean o_IsPojoType (final AvailObject object)
-	{
-		return true;
-	}
+	// Answer what type the given index would have in an object instance of
+	// me. Answer ⊥ if the index is out of bounds, which is always because
+	// I'm a degenerate tuple type.
+	override fun o_TypeAtIndex(self: AvailObject, index: Int): A_Type = self
 
-	@Override
-	public boolean o_IsSetType (final AvailObject object)
-	{
-		return true;
-	}
+	// Since I'm a degenerate tuple type, I have no leading types.
+	override fun o_TypeTuple(self: AvailObject): A_Tuple = emptyTuple()
 
-	@Override
-	public boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
-	{
-		return true;
-	}
+	// Answer the union of the types the given indices would have in an
+	// object instance of me. Answer ⊥ if the index is out of bounds, which
+	// is always because I'm a degenerate tuple type.
+	override fun o_UnionOfTypesAtThrough(
+		self: AvailObject,
+		startIndex: Int,
+		endIndex: Int): A_Type = self
 
-	@Override
-	public boolean o_IsTupleType (final AvailObject object)
-	{
-		// Because ⊥ is a subtype of all other types, it is considered a tuple
-		// type - in particular, a degenerate tuple type. Its size range is ⊥,
-		// its leading type tuple is <>, and its default type is ⊥.
-		return true;
-	}
+	// Pretend we go from +∞ to -∞ exclusive. That should be a nice empty
+	// range.
+	override fun o_UpperBound(self: AvailObject): A_Number = negativeInfinity()
 
-	@Override
-	public A_Type o_KeyType (final AvailObject object)
-	{
-		// Answer what type my keys are. Since I'm a degenerate map type,
-		// answer ⊥.
-		return object;
-	}
+	// Pretend we go from +∞ to -∞ exclusive. That should be a nice empty
+	// range.
+	override fun o_UpperInclusive(self: AvailObject): Boolean = false
 
-	@Override
-	public A_Number o_LowerBound (final AvailObject object)
-	{
-		// Pretend we go from +∞ to -∞ exclusive. That should be a nice empty
-		// range.
-		return positiveInfinity();
-	}
+	// Answer what type my values are. Since I'm a degenerate map type,
+	// answer ⊥.
+	override fun o_ValueType(self: AvailObject): A_Type = self
 
-	@Override
-	public boolean o_LowerInclusive (final AvailObject object)
-	{
-		// Pretend we go from +∞ to -∞ exclusive. That should be a nice empty
-		// range.
-		return false;
-	}
+	override fun o_ReadType(self: AvailObject): A_Type =
+		TypeDescriptor.Types.TOP.o()
 
-	@Override
-	public A_BasicObject o_Parent (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	public boolean o_RangeIncludesInt (
-		final AvailObject object,
-		final int anInt)
-	{
-		return false;
-	}
-
-	@Override
-	public A_Type o_ReturnType (final AvailObject object)
-	{
-		return object;
-	}
-
-	@Override
-	public SerializerOperation o_SerializerOperation (
-		final AvailObject object)
-	{
-		return SerializerOperation.BOTTOM_TYPE;
-	}
-
-	@Override
-	public A_Type o_SizeRange (final AvailObject object)
-	{
-		// Answer what sizes my instances can be. Since I'm a degenerate
-		// map type, answer ⊥, a degenerate integer type.
-		return object;
-	}
-
-	@Override
-	public A_Type o_SubexpressionsTupleType (final AvailObject object)
-	{
-		// See ListPhraseDescriptor.
-		return object;
-	}
-
-	@Override
-	public A_Type o_TypeAtIndex (final AvailObject object, final int index)
-	{
-		// Answer what type the given index would have in an object instance of
-		// me. Answer ⊥ if the index is out of bounds, which is always because
-		// I'm a degenerate tuple type.
-		return object;
-	}
-
-	@Override
-	public A_Tuple o_TypeTuple (final AvailObject object)
-	{
-		// Since I'm a degenerate tuple type, I have no leading types.
-		return emptyTuple();
-	}
-
-	@Override
-	public A_Type o_UnionOfTypesAtThrough (
-		final AvailObject object,
-		final int startIndex,
-		final int endIndex)
-	{
-		// Answer the union of the types the given indices would have in an
-		// object instance of me. Answer ⊥ if the index is out of bounds, which
-		// is always because I'm a degenerate tuple type.
-		return object;
-	}
-
-	@Override
-	public A_Number o_UpperBound (final AvailObject object)
-	{
-		// Pretend we go from +∞ to -∞ exclusive. That should be a nice empty
-		// range.
-		return negativeInfinity();
-	}
-
-	@Override
-	public boolean o_UpperInclusive (final AvailObject object)
-	{
-		// Pretend we go from +∞ to -∞ exclusive. That should be a nice empty
-		// range.
-		return false;
-	}
-
-	@Override
-	public A_Type o_ValueType (
-		final AvailObject object)
-	{
-		// Answer what type my values are. Since I'm a degenerate map type,
-		// answer ⊥.
-		return object;
-	}
-
-	@Override
-	public A_Type o_ReadType (
-		final AvailObject object)
-	{
-		return TOP.o();
-	}
-
-	@Override
-	public A_Tuple o_TupleOfTypesFromTo (
-		final AvailObject object,
-		final int startIndex,
-		final int endIndex)
-	{
-		// Answer the tuple of types over the given range of indices.  Any
-		// indices out of range for this tuple type will be ⊥.
-		return RepeatedElementTupleDescriptor.createRepeatedElementTuple(
+	// Answer the tuple of types over the given range of indices.  Any
+	// indices out of range for this tuple type will be ⊥.
+	override fun o_TupleOfTypesFromTo(
+		self: AvailObject,
+		startIndex: Int,
+		endIndex: Int): A_Tuple = createRepeatedElementTuple(
 			endIndex - startIndex + 1,
-			object);
+			self)
+
+	override fun o_WriteTo(self: AvailObject, writer: JSONWriter)
+	{
+		writer.startObject()
+		writer.write("kind")
+		writer.write("bottom")
+		writer.endObject()
 	}
 
-	@Override
-	public void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	override fun o_WriteType(self: AvailObject): A_Type =  bottom()
+
+	override fun o_ComputeTypeTag(self: AvailObject): TypeTag =
+		TypeTag.BOTTOM_TYPE_TAG
+
+	override fun mutable(): BottomTypeDescriptor
 	{
-		writer.startObject();
-		writer.write("kind");
-		writer.write("bottom");
-		writer.endObject();
+		throw unsupportedOperationException()
 	}
 
-	@Override
-	public A_Type o_WriteType (final AvailObject object)
+	override fun immutable(): BottomTypeDescriptor
 	{
-		return bottom();
+		throw unsupportedOperationException()
 	}
 
-	@Override
-	public TypeTag o_ComputeTypeTag (final AvailObject object)
+	override fun shared(): BottomTypeDescriptor = shared
+
+	companion object
 	{
-		return TypeTag.BOTTOM_TYPE_TAG;
-	}
+		/** The shared [BottomTypeDescriptor].  */
+		private val shared = BottomTypeDescriptor()
 
-	/**
-	 * Construct a new {@code BottomTypeDescriptor}.
-	 */
-	private BottomTypeDescriptor ()
-	{
-		super(Mutability.SHARED, TypeTag.BOTTOM_TYPE_TAG, null, null);
-	}
+		/**
+		 * The unique object that represents the type with no instances.
+		 */
+		private val bottom: A_Type = shared.create()
 
-	@Override
-	public BottomTypeDescriptor mutable ()
-	{
-		throw unsupportedOperationException();
-	}
+		/**
+		 * Answer the unique type that has no instances.
+		 *
+		 * @return
+		 *   The type `bottom`.
+		 */
+		@JvmStatic
+		fun bottom(): A_Type
+		{
+			return bottom
+		}
 
-	@Override
-	public BottomTypeDescriptor immutable ()
-	{
-		throw unsupportedOperationException();
-	}
+		/** The meta-type with exactly one instance, [bottom].  */
+		private val bottomMeta: A_Type =
+			InstanceMetaDescriptor.instanceMeta(bottom).makeShared()
 
-	/** The shared {@link BottomTypeDescriptor}. */
-	private static final BottomTypeDescriptor shared =
-		new BottomTypeDescriptor();
-
-	@Override
-	public BottomTypeDescriptor shared ()
-	{
-		return shared;
-	}
-
-	/**
-	 * The unique object that represents the type with no instances.
-	 */
-	private static final A_Type bottom = shared.create();
-
-	/**
-	 * Answer the unique type that has no instances.
-	 *
-	 * @return
-	 * The type {@code bottom}.
-	 */
-	public static A_Type bottom ()
-	{
-		return bottom;
-	}
-
-	/** The meta-type with exactly one instance, {@link #bottom()}. */
-	private static final A_Type bottomMeta = instanceMeta(bottom).makeShared();
-
-	/**
-	 * Answer the meta-type whose sole instance is the type {@link #bottom()}.
-	 *
-	 * @return
-	 * The meta-type which is {@code bottom}'s type.
-	 */
-	public static A_Type bottomMeta ()
-	{
-		return bottomMeta;
+		/**
+		 * Answer the meta-type whose sole instance is the type [bottom].
+		 *
+		 * @return
+		 *   The meta-type which is `bottom`'s type.
+		 */
+		@JvmStatic
+		fun bottomMeta(): A_Type =  bottomMeta
 	}
 }

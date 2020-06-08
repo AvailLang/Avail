@@ -33,7 +33,7 @@ package com.avail.interpreter.primitive.tuples
 
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.BottomTypeDescriptor.bottom
+import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.InstanceMetaDescriptor.topMeta
 import com.avail.descriptor.types.TupleTypeDescriptor.zeroOrMoreOf

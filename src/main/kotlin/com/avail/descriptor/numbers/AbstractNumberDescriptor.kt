@@ -45,7 +45,7 @@ import com.avail.descriptor.representation.IntegerSlotsEnum
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.BottomTypeDescriptor.bottom
+import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.extendedIntegers
 import com.avail.descriptor.types.TypeDescriptor.Types.DOUBLE
 import com.avail.descriptor.types.TypeDescriptor.Types.FLOAT

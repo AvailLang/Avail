@@ -59,7 +59,7 @@ import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.BottomTypeDescriptor.bottom
+import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.ContinuationTypeDescriptor.continuationTypeForFunctionType
 import com.avail.descriptor.types.TypeTag
 import com.avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithContentType

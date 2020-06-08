@@ -58,7 +58,7 @@ package com.avail.descriptor.maps
  import com.avail.descriptor.sets.HashedSetBinDescriptor
  import com.avail.descriptor.sets.SetDescriptor
  import com.avail.descriptor.types.A_Type
- import com.avail.descriptor.types.BottomTypeDescriptor.bottom
+ import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
  import com.avail.descriptor.types.TypeTag
  import com.avail.utility.Casts.cast
  import java.util.*

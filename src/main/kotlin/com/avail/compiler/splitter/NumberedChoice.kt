@@ -42,7 +42,7 @@ import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.A_Phrase.Companion.token
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.BottomTypeDescriptor.bottom
+import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.inclusive
 import com.avail.descriptor.types.ListPhraseTypeDescriptor.emptyListPhraseType
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind

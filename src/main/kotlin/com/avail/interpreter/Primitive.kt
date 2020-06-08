@@ -43,7 +43,7 @@ import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.IntegerEnumSlotDescriptionEnum
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.BottomTypeDescriptor.bottom
+import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.FunctionTypeDescriptor
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.naturalNumbers
 import com.avail.descriptor.types.TypeDescriptor

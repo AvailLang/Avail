@@ -35,7 +35,7 @@ import com.avail.descriptor.functions.A_Continuation
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.BottomTypeDescriptor.bottom
+import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.ContinuationTypeDescriptor.mostGeneralContinuationType
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.interpreter.Primitive

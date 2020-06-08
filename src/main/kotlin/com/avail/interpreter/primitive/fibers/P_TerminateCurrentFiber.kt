@@ -36,7 +36,7 @@ import com.avail.compiler.FiberTerminationException
 import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.BottomTypeDescriptor.bottom
+import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CannotFail
