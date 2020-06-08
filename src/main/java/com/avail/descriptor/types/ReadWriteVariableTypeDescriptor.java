@@ -48,12 +48,7 @@ import static com.avail.descriptor.types.VariableTypeDescriptor.variableReadWrit
 import static com.avail.descriptor.types.VariableTypeDescriptor.variableTypeFor;
 
 /**
- * A {@code ReadWriteVariableTypeDescriptor read-write variable type} is
- * parametric on the types of values that may be {@linkplain
- * ObjectSlots#READ_TYPE read} from and {@linkplain ObjectSlots#WRITE_TYPE
- * written} to object instance {@linkplain VariableDescriptor variables}.
- * Reading a variable is a covariant capability, while writing a variable is
- * a contravariant capability.
+ * A {@code ReadWriteVariableTypeDescriptor read-write variable type} is parametric on the types of values that may be {@linkplain ObjectSlots#READ_TYPE read} from and {@linkplain ObjectSlots#WRITE_TYPE written} to object instance {@linkplain VariableDescriptor variables}. Reading a variable is a covariant capability, while writing a variable is a contravariant capability.
  *
  * <p>When the read and write capabilities are equivalent, the static factory
  * methods normalize the representation to an invariant {@linkplain
@@ -310,14 +305,14 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Create a {@linkplain VariableTypeDescriptor variable type} based on the
-	 * given read and write {@linkplain TypeDescriptor types}.
+	 * Create a {@linkplain VariableTypeDescriptor variable&#32;type} based on the given read and write {@linkplain TypeDescriptor types}.
 	 *
 	 * @param readType
 	 *        The read type.
 	 * @param writeType
 	 *        The write type.
-	 * @return The new variable type.
+	 * @return
+	 * The new variable type.
 	 */
 	static A_Type fromReadAndWriteTypes (
 		final A_Type readType,

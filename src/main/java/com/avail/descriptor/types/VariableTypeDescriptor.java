@@ -49,11 +49,7 @@ import static com.avail.descriptor.types.TypeDescriptor.Types.TOP;
 import static com.avail.descriptor.types.VariableTypeDescriptor.ObjectSlots.INNER_TYPE;
 
 /**
- * A {@code VariableTypeDescriptor variable type} is the {@linkplain
- * TypeDescriptor type} of any {@linkplain VariableDescriptor variable} that can
- * only hold objects having the specified {@linkplain ObjectSlots#INNER_TYPE
- * inner type}. The read and write capabilities of the object instances are
- * equivalent, therefore the inner type is invariant.
+ * A {@code VariableTypeDescriptor variable type} is the {@linkplain TypeDescriptor type} of any {@linkplain VariableDescriptor variable} that can only hold objects having the specified {@linkplain ObjectSlots#INNER_TYPE inner&#32;type}. The read and write capabilities of the object instances are equivalent, therefore the inner type is invariant.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -267,8 +263,7 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Create a variable type based on the given content {@linkplain
-	 * TypeDescriptor type}.
+	 * Create a variable type based on the given content {@linkplain TypeDescriptor type}.
 	 *
 	 * @param innerType
 	 *        The content type on which to base the variable type.
@@ -283,8 +278,7 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Create a variable type based on the given read and write {@linkplain
-	 * TypeDescriptor types}.
+	 * Create a variable type based on the given read and write {@linkplain TypeDescriptor types}.
 	 *
 	 * @param readType
 	 *        The read type.
@@ -349,11 +343,10 @@ extends TypeDescriptor
 		variableReadWriteType(TOP.o(), bottom()).makeShared();
 
 	/**
-	 * Answer the most general {@linkplain ReadWriteVariableTypeDescriptor
-	 * variable type}.
+	 * Answer the most general {@linkplain ReadWriteVariableTypeDescriptor variable&#32;type}.
 	 *
-	 * @return The most general {@linkplain ReadWriteVariableTypeDescriptor
-	 *         variable type}.
+	 * @return
+	 * The most general {@linkplain ReadWriteVariableTypeDescriptor variable&#32;type}.
 	 */
 	public static A_Type mostGeneralVariableType ()
 	{
@@ -368,12 +361,10 @@ extends TypeDescriptor
 		instanceMeta(mostGeneralType).makeShared();
 
 	/**
-	 * Answer the (instance) type of the most general {@linkplain
-	 * ReadWriteVariableTypeDescriptor variable} metatype.
+	 * Answer the (instance) type of the most general {@linkplain ReadWriteVariableTypeDescriptor variable} metatype.
 	 *
 	 * @return
-	 *         The instance type containing the most general {@linkplain
-	 *         ReadWriteVariableTypeDescriptor variable} metatype.
+	 *         The instance type containing the most general {@linkplain ReadWriteVariableTypeDescriptor variable} metatype.
 	 */
 	public static A_Type variableMeta ()
 	{

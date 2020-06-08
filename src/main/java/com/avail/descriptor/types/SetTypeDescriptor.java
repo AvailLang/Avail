@@ -53,11 +53,7 @@ import static com.avail.descriptor.types.SetTypeDescriptor.ObjectSlots.SIZE_RANG
 import static com.avail.descriptor.types.TypeDescriptor.Types.ANY;
 
 /**
- * A {@code SetTypeDescriptor} object instance is a type that some {@linkplain
- * SetDescriptor sets} may conform to. It is built up from a {@linkplain
- * ObjectSlots#SIZE_RANGE range of sizes} that the sets may be, and the
- * {@linkplain ObjectSlots#CONTENT_TYPE content type} that the set's elements
- * would have to conform to.
+ * A {@code SetTypeDescriptor} object instance is a type that some {@linkplain SetDescriptor sets} may conform to. It is built up from a {@linkplain ObjectSlots#SIZE_RANGE range of sizes} that the sets may be, and the {@linkplain ObjectSlots#CONTENT_TYPE content type} that the set's elements would have to conform to.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -70,16 +66,12 @@ extends TypeDescriptor
 	public enum ObjectSlots implements ObjectSlotsEnumJava
 	{
 		/**
-		 * An {@linkplain IntegerRangeTypeDescriptor integer range type} which
-		 * limits the sizes of {@linkplain SetDescriptor set}s that may be
-		 * instances of this type.
+		 * An {@linkplain IntegerRangeTypeDescriptor integer&#32;range&#32;type} which limits the sizes of {@linkplain SetDescriptor set}s that may be instances of this type.
 		 */
 		SIZE_RANGE,
 
 		/**
-		 * A {@linkplain TypeDescriptor type} which limits the objects which may
-		 * be members of {@linkplain SetDescriptor set}s if they purport to be
-		 * of this set type.
+		 * A {@linkplain TypeDescriptor type} which limits the objects which may be members of {@linkplain SetDescriptor set}s if they purport to be of this set type.
 		 */
 		CONTENT_TYPE
 	}
@@ -314,7 +306,8 @@ extends TypeDescriptor
 	 *        The allowed sizes of my instances.
 	 * @param contentType
 	 *        The type that constrains my instances' elements.
-	 * @return An immutable set type as specified.
+	 * @return
+	 * An immutable set type as specified.
 	 */
 	public static A_Type setTypeForSizesContentType (
 		final A_Type sizeRange,
@@ -442,7 +435,8 @@ extends TypeDescriptor
 	/**
 	 * Answer the most general set type.
 	 *
-	 * @return The most general set type.
+	 * @return T
+	 * he most general set type.
 	 */
 	public static A_Type mostGeneralSetType ()
 	{
@@ -457,7 +451,8 @@ extends TypeDescriptor
 	/**
 	 * Answer the metatype for all set types.
 	 *
-	 * @return The statically referenced metatype.
+	 * @return
+	 * The statically referenced metatype.
 	 */
 	public static A_Type setMeta ()
 	{

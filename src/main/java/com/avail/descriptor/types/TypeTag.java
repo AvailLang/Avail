@@ -45,14 +45,14 @@ import static com.avail.utility.Nulls.stripNull;
  * an infinite number of direct ancestors and direct descendants, we're still
  * able to extract a pragmatic tree of types from the lattice.
  *
- * <p>Since this restricted set of types form a tree, they're defined in such an
+ * Since this restricted set of types form a tree, they're defined in such an
  * order that all of a type's descendants follow it.  Since this is recursively
  * true, the types are effectively listed in depth-last order.  The ordinals are
  * assigned in the order of definition, but each type keeps track of the maximum
  * ordinal of all of its descendants (which occupy a contiguous span of ordinals
  * just after the type's ordinal).  We can test if type A is a subtype of B by
  * checking if a.ordinal ≥ b.ordinal and a.highOrdinal ≤ b.highOrdinal.  For a
- * proper subtype test, we turn the first condition into an inequality.</p>
+ * proper subtype test, we turn the first condition into an inequality.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */

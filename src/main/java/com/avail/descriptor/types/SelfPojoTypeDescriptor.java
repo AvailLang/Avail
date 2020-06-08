@@ -65,13 +65,7 @@ import static com.avail.descriptor.types.SelfPojoTypeDescriptor.ObjectSlots.JAVA
 import static com.avail.descriptor.types.SelfPojoTypeDescriptor.ObjectSlots.JAVA_CLASS;
 
 /**
- * {@code SelfPojoTypeDescriptor} describes the self type of a Java class or
- * interface. In the pojo implementation, any Java class or interface that
- * depends recursively on itself through type parameterization of self,
- * superclass, or superinterface uses a pojo self type. {@link Enum
- * java.lang.Enum} is a famous example from the Java library: its type
- * parameter, {@code E}, extends {@code Enum}'s self type. A pojo self type is
- * used to break the recursive dependency.
+ * {@code SelfPojoTypeDescriptor} describes the self type of a Java class or interface. In the pojo implementation, any Java class or interface that depends recursively on itself through type parameterization of self, superclass, or superinterface uses a pojo self type. {@link Enum java.lang.Enum} is a famous example from the Java library: its type parameter, {@code E}, extends {@code Enum}'s self type. A pojo self type is used to break the recursive dependency.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -82,21 +76,12 @@ extends PojoTypeDescriptor
 	enum ObjectSlots implements ObjectSlotsEnumJava
 	{
 		/**
-		 * A {@linkplain RawPojoDescriptor raw pojo} that wraps the {@linkplain
-		 * Class Java class or interface} represented by this {@linkplain
-		 * UnfusedPojoTypeDescriptor pojo type}.
+		 * A {@linkplain RawPojoDescriptor raw pojo} that wraps the {@linkplain Class Java&#32;class&#32;or&#32;interface} represented by this {@linkplain UnfusedPojoTypeDescriptor pojo&#32;type}.
 		 */
 		JAVA_CLASS,
 
 		/**
-		 * A {@linkplain SetDescriptor set} of {@linkplain PojoDescriptor
-		 * pojos} that wrap {@linkplain Class Java classes and interfaces}. This
-		 * constitutes this type's complete ancestry of Java types. There are no
-		 * {@linkplain TypeDescriptor type parameterization} {@linkplain
-		 * TupleDescriptor tuples} because no Java type may appear multiply in
-		 * the ancestry of any other Java type with different type
-		 * parameterizations, thereby permitting pojo self types to omit type
-		 * parameterization information.
+		 * A {@linkplain SetDescriptor set} of {@linkplain PojoDescriptor pojos} that wrap {@linkplain Class Java classes and interfaces}. This constitutes this type's complete ancestry of Java types. There are no {@linkplain TypeDescriptor type parameterization} {@linkplain TupleDescriptor tuples} because no Java type may appear multiply in the ancestry of any other Java type with different type parameterizations, thereby permitting pojo self types to omit type parameterization information.
 		 */
 		JAVA_ANCESTORS
 	}
@@ -377,19 +362,11 @@ extends PojoTypeDescriptor
 	 * SelfPojoTypeDescriptor pojo self type}.
 	 *
 	 * @param javaClass
-	 *        A {@linkplain RawPojoDescriptor raw pojo} that wraps the
-	 *        {@linkplain Class Java class or interface} represented by this
-	 *        pojo self type.
+	 *        A {@linkplain RawPojoDescriptor raw&#32;pojo} that wraps the {@linkplain Class Java&#32;class&#32;or&#32;interface} represented by this pojo self type.
 	 * @param javaAncestors
-	 *        A {@linkplain SetDescriptor set} of {@linkplain PojoDescriptor
-	 *        pojos} that wrap {@linkplain Class Java classes and interfaces}.
-	 *        This constitutes this type's complete ancestry of Java types.
-	 *        There are no {@linkplain TypeDescriptor type parameterization}
-	 *        {@linkplain TupleDescriptor tuples} because no Java type may
-	 *        appear multiply in the ancestry of any other Java type with
-	 *        different type parameterizations, thereby permitting pojo self
-	 *        types to omit type parameterization information.
-	 * @return The requested pojo type.
+	 *        A {@linkplain SetDescriptor set} of {@linkplain PojoDescriptor pojos} that wrap {@linkplain Class Java&#32;classes&#32;and&#32;interfaces}. This constitutes this type's complete ancestry of Java types. There are no {@linkplain TypeDescriptor type&#32;parameterization} {@linkplain TupleDescriptor tuples} because no Java type may appear multiply in the ancestry of any other Java type with different type parameterizations, thereby permitting pojo self types to omit type parameterization information.
+	 * @return
+	 * The requested pojo type.
 	 */
 	static AvailObject newSelfPojoType (
 		final AvailObject javaClass,
@@ -403,10 +380,12 @@ extends PojoTypeDescriptor
 
 	/**
 	 * Convert a self pojo type to a 2-tuple holding the main class name (or
-	 * null) and a set of ancestor class names.
+	 * `null`) and a set of ancestor class names.
 	 *
-	 * @param selfPojo The self pojo to convert.
-	 * @return A 2-tuple suitable for serialization.
+	 * @param selfPojo
+	 * The self pojo to convert.
+	 * @return
+	 * A 2-tuple suitable for serialization.
 	 */
 	public static A_Tuple pojoSerializationProxy (
 		final A_BasicObject selfPojo)
@@ -434,16 +413,16 @@ extends PojoTypeDescriptor
 	}
 
 	/**
-	 * Convert a proxy previously created by {@link
-	 * #pojoSerializationProxy(A_BasicObject)} back into a self pojo type.
+	 * Convert a proxy previously created by {@link #pojoSerializationProxy(A_BasicObject)} back into a self pojo type.
 	 *
 	 * @param selfPojoProxy
-	 *            A 2-tuple with the class name (or null) and a set of ancestor
-	 *            class names.
+	 *            A 2-tuple with the class name (or null) and a set of ancestor class names.
 	 * @param classLoader
 	 *            The {@link ClassLoader} used to load any mentioned classes.
-	 * @return A self pojo type.
-	 * @throws ClassNotFoundException If a class can't be loaded.
+	 * @return
+	 * A self pojo type.
+	 * @throws ClassNotFoundException
+	 * If a class can't be loaded.
 	 */
 	public static AvailObject pojoFromSerializationProxy (
 		final A_Tuple selfPojoProxy,

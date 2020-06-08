@@ -147,15 +147,14 @@ extends TypeDescriptor
 			TypeTag.EXPRESSION_PHRASE_TAG),
 
 		/**
-		 * The kind of an {@linkplain AssignmentPhraseDescriptor assignment
-		 * phrase}.
+		 * The kind of an {@linkplain AssignmentPhraseDescriptor assignment&#32;phrase}.
 		 */
 		ASSIGNMENT_PHRASE(
 			"assignment phrase type",
 			EXPRESSION_PHRASE,
 			TypeTag.ASSIGNMENT_PHRASE_TAG),
 
-		/** The kind of a {@linkplain BlockPhraseDescriptor block phrase}. */
+		/** The kind of a {@linkplain BlockPhraseDescriptor block&#32;phrase}. */
 		BLOCK_PHRASE(
 			"block phrase type",
 			EXPRESSION_PHRASE,
@@ -169,7 +168,7 @@ extends TypeDescriptor
 		},
 
 		/**
-		 * The kind of a {@linkplain LiteralPhraseDescriptor literal phrase}.
+		 * The kind of a {@linkplain LiteralPhraseDescriptor literal&#32;phrase}.
 		 */
 		LITERAL_PHRASE(
 			"literal phrase type",
@@ -184,8 +183,7 @@ extends TypeDescriptor
 		},
 
 		/**
-		 * The kind of a {@linkplain ReferencePhraseDescriptor reference
-		 * phrase}.
+		 * The kind of a {@linkplain ReferencePhraseDescriptor reference&#32;phrase}.
 		 */
 		REFERENCE_PHRASE(
 			"variable reference phrase type",
@@ -200,8 +198,7 @@ extends TypeDescriptor
 		},
 
 		/**
-		 * The kind of a {@linkplain SuperCastPhraseDescriptor super cast
-		 * phrase}.
+		 * The kind of a {@linkplain SuperCastPhraseDescriptor super&#32;cast&#32;phrase}.
 		 */
 		SUPER_CAST_PHRASE(
 			"super cast phrase",
@@ -215,11 +212,11 @@ extends TypeDescriptor
 			}
 		},
 
-		/** The kind of a {@linkplain SendPhraseDescriptor send phrase}. */
+		/** The kind of a {@linkplain SendPhraseDescriptor send&#32;phrase}. */
 		SEND_PHRASE(
 			"send phrase type", EXPRESSION_PHRASE, TypeTag.SEND_PHRASE_TAG),
 
-		/** The kind of a {@linkplain ListPhraseDescriptor list phrase}. */
+		/** The kind of a {@linkplain ListPhraseDescriptor list&#32;phrase}. */
 		LIST_PHRASE(
 			"list phrase type", EXPRESSION_PHRASE, TypeTag.LIST_PHRASE_TAG)
 		{
@@ -250,8 +247,7 @@ extends TypeDescriptor
 		},
 
 		/**
-		 * The kind of a {@linkplain PermutedListPhraseDescriptor permuted list
-		 * phrase}.
+		 * The kind of a {@linkplain PermutedListPhraseDescriptor permuted&#32;list&#32;phrase}.
 		 */
 		PERMUTED_LIST_PHRASE(
 			"permuted list phrase type",
@@ -285,8 +281,7 @@ extends TypeDescriptor
 		},
 
 		/**
-		 * The kind of a {@linkplain VariableUsePhraseDescriptor variable use
-		 * phrase}.
+		 * The kind of a {@linkplain VariableUsePhraseDescriptor variable&#32;use&#32;phrase}.
 		 */
 		VARIABLE_USE_PHRASE(
 			"variable use phrase type", EXPRESSION_PHRASE, TypeTag.VARIABLE_TAG)
@@ -305,7 +300,7 @@ extends TypeDescriptor
 			TypeTag.STATEMENT_PHRASE_TAG),
 
 		/**
-		 * The kind of a {@linkplain SequencePhraseDescriptor sequence phrase}.
+		 * The kind of a {@linkplain SequencePhraseDescriptor sequence&#32;phrase}.
 		 */
 		SEQUENCE_PHRASE(
 			"sequence phrase type",
@@ -313,8 +308,7 @@ extends TypeDescriptor
 			TypeTag.SEQUENCE_PHRASE_TAG),
 
 		/**
-		 * The kind of a {@linkplain FirstOfSequencePhraseDescriptor
-		 * first-of-sequence phrase}.
+		 * The kind of a {@linkplain FirstOfSequencePhraseDescriptor first-of-sequence&#32;phrase}.
 		 */
 		FIRST_OF_SEQUENCE_PHRASE(
 			"first-of-sequence phrase type",
@@ -322,8 +316,7 @@ extends TypeDescriptor
 			TypeTag.FIRST_OF_SEQUENCE_PHRASE_TAG),
 
 		/**
-		 * The kind of a {@linkplain DeclarationPhraseDescriptor declaration
-		 * phrase}.
+		 * The kind of a {@linkplain DeclarationPhraseDescriptor declaration&#32;phrase}.
 		 */
 		DECLARATION_PHRASE(
 			"declaration phrase type",
@@ -396,7 +389,8 @@ extends TypeDescriptor
 		/**
 		 * Answer the kind of phrase of which this object is the type.
 		 *
-		 * @return My parent phrase kind.
+		 * @return
+		 * My parent phrase kind.
 		 */
 		public final @Nullable
 		PhraseKind parentKind ()
@@ -407,7 +401,8 @@ extends TypeDescriptor
 		/**
 		 * The most general inner type for this kind of phrase.
 		 *
-		 * @return The most general inner type for this kind of phrase.
+		 * @return
+		 * The most general inner type for this kind of phrase.
 		 */
 		public A_Type mostGeneralYieldType ()
 		{
@@ -463,8 +458,10 @@ extends TypeDescriptor
 		/**
 		 * Create a descriptor for this kind.
 		 *
-		 * @param mutability The {@link Mutability} of the descriptor.
-		 * @return The new descriptor.
+		 * @param mutability
+		 * The {@link Mutability} of the descriptor.
+		 * @return
+		 * The new descriptor.
 		 */
 		PhraseTypeDescriptor createDescriptor (final Mutability mutability)
 		{
@@ -473,13 +470,12 @@ extends TypeDescriptor
 		}
 
 		/**
-		 * Create a {@linkplain PhraseTypeDescriptor phrase type} given
-		 * the yield type (the type of object produced by the expression).
+		 * Create a {@linkplain PhraseTypeDescriptor phrase&#32;type} given the yield type (the type of object produced by the expression).
 		 *
 		 * @param yieldType
-		 *        The type of object that will be produced by an expression
-		 *        which is of the type being constructed.
-		 * @return The new phrase type, whose kind is the receiver.
+		 *        The type of object that will be produced by an expression which is of the type being constructed.
+		 * @return
+		 * The new phrase type, whose kind is the receiver.
 		 */
 		public A_Type create (
 			final A_Type yieldType)
@@ -489,16 +485,14 @@ extends TypeDescriptor
 		}
 
 		/**
-		 * Create a {@linkplain PhraseTypeDescriptor phrase type} given
-		 * the yield type (the type of object produced by the expression).
+		 * Create a {@linkplain PhraseTypeDescriptor phrase&#32;type} given the yield type (the type of object produced by the expression).
 		 *
 		 * @param yieldType
-		 *        The type of object that will be produced by an expression
-		 *        which is of the type being constructed.
-		 * @return The new phrase type, whose kind is the receiver.
+		 *        The type of object that will be produced by an expression which is of the type being constructed.
+		 * @return
+		 * The new phrase type, whose kind is the receiver.
 		 */
-		public A_Type createNoCheck (
-			final A_Type yieldType)
+		public A_Type createNoCheck (final A_Type yieldType)
 		{
 			final AvailObject type = mutableDescriptor.create();
 			type.setSlot(EXPRESSION_TYPE, yieldType.makeImmutable());
@@ -517,13 +511,10 @@ extends TypeDescriptor
 		private final A_Type mostGeneralType;
 
 		/**
-		 * Answer a {@linkplain PhraseTypeDescriptor phrase type} whose
-		 * kind is the receiver and whose expression type is {@linkplain
-		 * Types#TOP top}. This is the most general phrase type of that
-		 * kind.
+		 * Answer a {@linkplain PhraseTypeDescriptor phrase&#32;type} whose kind is the receiver and whose expression type is {@linkplain Types#TOP top}. This is the most general phrase type of that kind.
 		 *
-		 * @return The new phrase type, whose kind is the receiver and whose
-		 *         expression type is {@linkplain Types#TOP top}.
+		 * @return
+		 * The new phrase type, whose kind is the receiver and whose expression type is {@linkplain Types#TOP top}.
 		 */
 		public final A_Type mostGeneralType ()
 		{
@@ -535,8 +526,10 @@ extends TypeDescriptor
 		 * to both the receiver and the argument.  Compute it rather than look
 		 * it up, since this is used to populate the lookup table.
 		 *
-		 * @param other The other {@code PhraseKind}.
-		 * @return The nearest common ancestor (a {@code PhraseKind}).
+		 * @param other
+		 * The other {@code PhraseKind}.
+		 * @return
+		 * The nearest common ancestor (a {@code PhraseKind}).
 		 */
 		private PhraseKind computeCommonAncestorWith (
 			final PhraseKind other)
@@ -563,8 +556,10 @@ extends TypeDescriptor
 		 * to both the receiver and the argument.  Only use this after static
 		 * initialization has completed.
 		 *
-		 * @param other The other {@code PhraseKind}.
-		 * @return The nearest common ancestor (a {@code PhraseKind}).
+		 * @param other
+		 * The other {@code PhraseKind}.
+		 * @return
+		 * The nearest common ancestor (a {@code PhraseKind}).
 		 */
 		public final PhraseKind commonAncestorWith (
 			final PhraseKind other)
@@ -579,8 +574,8 @@ extends TypeDescriptor
 		 *
 		 * @param other
 		 *        The other {@code PhraseKind}.
-		 * @return The nearest common descendant (a {@code PhraseKind}), or
-		 *         {@code null} if there are no common descendants.
+		 * @return
+		 * The nearest common descendant (a {@code PhraseKind}), or {@code null} if there are no common descendants.
 		 */
 		public final @Nullable PhraseKind commonDescendantWith (
 			final PhraseKind other)
@@ -594,8 +589,8 @@ extends TypeDescriptor
 		/**
 		 * Answer an array of all {@code PhraseKind} enumeration values.
 		 *
-		 * @return An array of all {@code PhraseKind} enum values.  Do not
-		 *         modify the array.
+		 * @return
+		 * An array of all {@code PhraseKind} enum values.  Do not modify the array.
 		 */
 		public static PhraseKind[] all ()
 		{
@@ -603,11 +598,12 @@ extends TypeDescriptor
 		}
 
 		/**
-		 * Answer the {@code PhraseKind} enumeration value having the given
-		 * ordinal {@code int}.  The supplied ordinal must be valid.
+		 * Answer the {@code PhraseKind} enumeration value having the given ordinal {@code int}.  The supplied ordinal must be valid.
 		 *
-		 * @param ordinal The ordinal to look up.
-		 * @return The indicated {@code PhraseKind}.
+		 * @param ordinal
+		 * The ordinal to look up.
+		 * @return
+		 * The indicated {@code PhraseKind}.
 		 */
 		public static PhraseKind lookup (final int ordinal)
 		{
@@ -675,8 +671,10 @@ extends TypeDescriptor
 		 * Answer whether this is a subkind of (or equal to) the specified
 		 * {@code PhraseKind}.
 		 *
-		 * @param purportedParent The kind that may be the ancestor.
-		 * @return Whether the receiver descends from the argument.
+		 * @param purportedParent
+		 * The kind that may be the ancestor.
+		 * @return
+		 * Whether the receiver descends from the argument.
 		 */
 		public final boolean isSubkindOf (final PhraseKind purportedParent)
 		{
@@ -698,8 +696,8 @@ extends TypeDescriptor
 	 * Return the type of object that would be produced by a phrase of this
 	 * type.
 	 *
-	 * @return The {@linkplain TypeDescriptor type} of the {@link AvailObject}
-	 *         that will be produced by a phrase of this type.
+	 * @return
+	 * The {@linkplain TypeDescriptor type} of the {@link AvailObject} that will be produced by a phrase of this type.
 	 */
 	@Override
 	public A_Type o_ExpressionType (final AvailObject object)
@@ -710,8 +708,8 @@ extends TypeDescriptor
 	/**
 	 * {@inheritDoc}
 	 *
-	 * <p>Phrase types are equal when they are of the same kind and have the
-	 * same expression type.</p>
+	 * Phrase types are equal when they are of the same kind and have the
+	 * same expression type.
 	 */
 	@Override
 	public boolean o_Equals (final AvailObject object, final A_BasicObject another)
@@ -722,8 +720,8 @@ extends TypeDescriptor
 	/**
 	 * {@inheritDoc}
 	 *
-	 * <p>Phrase types are equal when they are of the same kind and have the
-	 * same expression type.</p>
+	 * Phrase types are equal when they are of the same kind and have the
+	 * same expression type.
 	 */
 	@Override
 	public boolean o_EqualsPhraseType (
@@ -736,8 +734,7 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Subclasses of {@code PhraseTypeDescriptor} must implement {@linkplain
-	 * A_Phrase phrases} must implement {@link A_BasicObject#hash()}.
+	 * Subclasses of {@code PhraseTypeDescriptor} must implement {@linkplain A_Phrase phrases} must implement {@link A_BasicObject#hash()}.
 	 */
 	@Override
 	public int o_Hash (final AvailObject object)
@@ -780,10 +777,10 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Return the {@linkplain PhraseKind phrase kind} that this phrase type
-	 * implements.
+	 * Return the {@linkplain PhraseKind phrase&#32;kind} that this phrase type implements.
 	 *
-	 * @return The {@linkplain PhraseKind kind} of phrase that the object is.
+	 * @return
+	 * The {@linkplain PhraseKind kind} of phrase that the object is.
 	 */
 	@Override
 	public PhraseKind o_PhraseKind (final AvailObject object)
@@ -931,9 +928,7 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Does the specified {@linkplain A_Phrase.Companion#flattenStatementsInto(A_Phrase, List)
-	 * flat} {@linkplain List list} of {@linkplain PhraseDescriptor phrases}
-	 * contain only statements?
+	 * Does the specified {@linkplain A_Phrase.Companion#flattenStatementsInto(A_Phrase, List) flat} {@linkplain List list} of {@linkplain PhraseDescriptor phrases} contain only statements?
 	 *
 	 * TODO MvG - REVISIT to make this work sensibly.  Probably only allow
 	 *      statements in a sequence/first-of-sequence, and have blocks hold an
@@ -942,10 +937,9 @@ extends TypeDescriptor
 	 * @param flat
 	 *        A flattened list of statements.
 	 * @param resultType
-	 *        The result type of the sequence. Use {@linkplain Types#TOP top}
-	 *        if unconcerned about result type.
-	 * @return {@code true} if the list contains only statements, {@code false}
-	 *         otherwise.
+	 *        The result type of the sequence. Use {@linkplain Types#TOP top} if unconcerned about result type.
+	 * @return
+	 * {@code true} if the list contains only statements, {@code false} otherwise.
 	 */
 	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
 	public static boolean containsOnlyStatements (
@@ -1011,13 +1005,9 @@ extends TypeDescriptor
 	 * @param kind
 	 *        The {@code PhraseKind} of the new descriptor.
 	 * @param objectSlotsEnumClass
-	 *        The Java {@link Class} which is a subclass of {@link
-	 *        ObjectSlotsEnum} and defines this object's object slots layout, or
-	 *        null if there are no object slots.
+	 *        The Java {@link Class} which is a subclass of {@link ObjectSlotsEnum} and defines this object's object slots layout, or `null` if there are no object slots.
 	 * @param integerSlotsEnumClass
-	 *        The Java {@link Class} which is a subclass of {@link
-	 *        IntegerSlotsEnum} and defines this object's object slots layout,
-	 *        or null if there are no integer slots.
+	 *        The Java {@link Class} which is a subclass of {@link IntegerSlotsEnum} and defines this object's object slots layout, or `null` if there are no integer slots.
 	 */
 	protected PhraseTypeDescriptor (
 		final Mutability mutability,

@@ -72,18 +72,7 @@ import static com.avail.utility.Nulls.stripNull;
  * sense provided by the Avail system, it has no special primitive types that
  * fill that role – they're <em>all</em> special.
  *
- * <p>
- * Instead, the term "primitive type" in Avail refers to the top section of the
- * type lattice which partitions the rest of the lattice into broad categories
- * of essential disjoint subgraphs. This includes the ultimate type {@linkplain
- * Types#TOP top (⊤)}, the penultimate type {@linkplain
- * Types#ANY any}, and various specialties such as {@linkplain
- * Types#ATOM atom} and {@linkplain Types#NUMBER
- * number}. Type hierarchies that have a natural root don't bother with a
- * primitive type to delimit the hierarchy, using the natural root itself. For
- * example, the tuple type whose instances include all tuples is a natural root
- * of the tuple types.
- * </p>
+ * I Types#ANY any}, and various specialties such as {@linkplain Types#ATOM atom} and {@linkplain Types#NUMBER number}. Type hierarchies that have a natural root don't bother with a primitive type to delimit the hierarchy, using the natural root itself. For of the tuple types.
  *
  * @see Types all primitive types
  *
@@ -139,8 +128,10 @@ extends TypeDescriptor
 	/**
 	 * Extract the {@link Types} enum value from this primitive type.
 	 *
-	 * @param object The primitive type.
-	 * @return The {@link Types} enum value.
+	 * @param object
+	 * The primitive type.
+	 * @return
+	 * The {@link Types} enum value.
 	 */
 	private static Types extractEnum (final AvailObject object)
 	{
@@ -149,11 +140,12 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Extract the {@link Types} enum value's {@link Enum#ordinal()}
-	 * from this primitive type.
+	 * Extract the {@link Types} enum value's {@link Enum#ordinal()} from this primitive type.
 	 *
-	 * @param object The primitive type.
-	 * @return The {@link Types} enum value's ordinal.
+	 * @param object
+	 * The primitive type.
+	 * @return
+	 * The {@link Types} enum value's ordinal.
 	 */
 	public static int extractOrdinal (final AvailObject object)
 	{
@@ -494,14 +486,12 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Create a partially-initialized primitive type with the given name.  The
-	 * type's parent will be set later, to facilitate arbitrary construction
-	 * order.  Set these fields to {@linkplain NilDescriptor nil} to ensure
-	 * pointer safety.
+	 * Create a partially-initialized primitive type with the given name.  The type's parent will be set later, to facilitate arbitrary construction order.  Set these fields to {@linkplain NilDescriptor nil} to ensure pointer safety.
 	 *
 	 * @param typeNameString
 	 *        The name to give the object being initialized.
-	 * @return The partially initialized type.
+	 * @return
+	 * The partially initialized type.
 	 */
 	static AvailObject createMutablePrimitiveObjectNamed (
 		final String typeNameString)
@@ -531,25 +521,20 @@ extends TypeDescriptor
 		object.setDescriptor(this);
 	}
 
-	/** The {@link Types primitive type} represented by this descriptor. */
+	/** The {@link Types primitive&#32;type} represented by this descriptor. */
 	final @Nullable Types primitiveType;
 
 	/**
-	 * Construct a new {@link Mutability#SHARED shared} {@link
-	 * PrimitiveTypeDescriptor}.
+	 * Construct a new {@link Mutability#SHARED shared} {@link PrimitiveTypeDescriptor}.
 	 *
 	 * @param typeTag
 	 *        The {@link TypeTag} to embed in the new descriptor.
 	 * @param primitiveType
-	 *        The {@link Types primitive type} represented by this descriptor.
+	 *        The {@link Types primitive&#32;type} represented by this descriptor.
 	 * @param objectSlotsEnumClass
-	 *        The Java {@link Class} which is a subclass of {@link
-	 *        ObjectSlotsEnum} and defines this object's object slots layout, or
-	 *        null if there are no object slots.
+	 *        The Java {@link Class} which is a subclass of {@link ObjectSlotsEnum} and defines this object's object slots layout, or null if there are no object slots.
 	 * @param integerSlotsEnumClass
-	 *        The Java {@link Class} which is a subclass of {@link
-	 *        IntegerSlotsEnum} and defines this object's integer slots layout,
-	 *        or null if there are no integer slots.
+	 *        The Java {@link Class} which is a subclass of {@link IntegerSlotsEnum} and defines this object's integer slots layout, or `null` if there are no integer slots.
 	 */
 	protected PrimitiveTypeDescriptor (
 		final TypeTag typeTag,
@@ -566,13 +551,12 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Construct a new {@link Mutability#SHARED shared} {@link
-	 * PrimitiveTypeDescriptor}.
+	 * Construct a new {@link Mutability#SHARED shared} {@link PrimitiveTypeDescriptor}.
 	 *
 	 * @param typeTag
 	 *            The {@link TypeTag} to embed in the new descriptor.
 	 * @param primitiveType
-	 *        The {@link Types primitive type} represented by this descriptor.
+	 *        The {@link Types primitive&#32;type} represented by this descriptor.
 	 */
 	PrimitiveTypeDescriptor (
 		final TypeTag typeTag,
@@ -582,8 +566,7 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Construct the sole mutable {@link PrimitiveTypeDescriptor}, used only
-	 * during early instantiation of the primitive types.
+	 * Construct the sole mutable {@link PrimitiveTypeDescriptor}, used only during early instantiation of the primitive types.
 	 */
 	private PrimitiveTypeDescriptor ()
 	{
@@ -596,8 +579,7 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * The sole mutable {@link PrimitiveTypeDescriptor}, only used during early
-	 * instantiation.
+	 * The sole mutable {@link PrimitiveTypeDescriptor}, only used during early instantiation.
 	 */
 	static final PrimitiveTypeDescriptor transientMutable =
 		new PrimitiveTypeDescriptor();

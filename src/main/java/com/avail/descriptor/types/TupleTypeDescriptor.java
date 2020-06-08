@@ -72,18 +72,12 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 
 /**
- * A tuple type can be the {@linkplain AvailObject#kind() type} of a {@linkplain
- * TupleDescriptor tuple}, or something more general. It has a canonical form
- * consisting of three pieces of information:
+ * A tuple type can be the {@linkplain AvailObject#kind() type} of a {@linkplain TupleDescriptor tuple}, or something more general. It has a canonical form consisting of three pieces of information:
  *
  * <ul>
- * <li>the {@linkplain ObjectSlots#SIZE_RANGE size range}, an {@linkplain
- * IntegerRangeTypeDescriptor integer range type} that a conforming tuple's
- * size must be an instance of,</li>
- * <li>a {@linkplain TupleDescriptor tuple} of {@linkplain TypeDescriptor types}
- * corresponding with the initial elements of the tuple, and</li>
- * <li>a {@linkplain ObjectSlots#DEFAULT_TYPE default type} for all elements
- * beyond the tuple of types to conform to.</li>
+ * <li>the {@linkplain ObjectSlots#SIZE_RANGE size range}, an {@linkplain IntegerRangeTypeDescriptor integer range type} that a conforming tuple's size must be an instance of,</li>
+ * <li>a {@linkplain TupleDescriptor tuple} of {@linkplain TypeDescriptor types} corresponding with the initial elements of the tuple, and</li>
+ * <li>a {@linkplain ObjectSlots#DEFAULT_TYPE default type} for all elements beyond the tuple of types to conform to.</li>
  * </ul>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
@@ -97,18 +91,12 @@ extends TypeDescriptor
 	public enum ObjectSlots implements ObjectSlotsEnumJava
 	{
 		/**
-		 * An {@linkplain IntegerRangeTypeDescriptor integer range type} that
-		 * contains all allowed {@linkplain A_Tuple#tupleSize() tuple sizes} for
-		 * instances of this type.
+		 * An {@linkplain IntegerRangeTypeDescriptor integer&#32;range&#32;type} that contains all allowed {@linkplain A_Tuple#tupleSize() tuple&#32;sizes} for instances of this type.
 		 */
 		SIZE_RANGE,
 
 		/**
-		 * The types of the leading elements of tuples that conform to this
-		 * type. This is reduced at construction time to the minimum size of
-		 * tuple that covers the same range. For example, if the last element
-		 * of this tuple equals the {@link #DEFAULT_TYPE} then this tuple will
-		 * be shortened by one.
+		 * The types of the leading elements of tuples that conform to this type. This is reduced at construction time to the minimum size of tuple that covers the same range. For example, if the last element of this tuple equals the {@link #DEFAULT_TYPE} then this tuple will be shortened by one.
 		 */
 		TYPE_TUPLE,
 
@@ -196,10 +184,8 @@ extends TypeDescriptor
 	/**
 	 * {@inheritDoc}
 	 *
-	 * <p>
 	 * Tuple types are equal if and only if their sizeRange, typeTuple, and
 	 * defaultType match.
-	 * </p>
 	 */
 	@Override
 	public boolean o_EqualsTupleType (
@@ -241,11 +227,9 @@ extends TypeDescriptor
 	/**
 	 * {@inheritDoc}
 	 *
-	 * <p>
 	 * Answer the union of the types that object's instances could have in the
 	 * given range of indices.  Out-of-range indices are treated as bottom,
 	 * which don't affect the union (unless all indices are out of range).
-	 * </p>
 	 */
 	@Override
 	public A_Type o_UnionOfTypesAtThrough (
@@ -289,11 +273,9 @@ extends TypeDescriptor
 	/**
 	 * {@inheritDoc}
 	 *
-	 * <p>
 	 * Tuple type A is a supertype of tuple type B iff all the <em>possible
 	 * instances</em> of B would also be instances of A.  Types that are
 	 * indistinguishable under this condition are considered the same type.
-	 * </p>
 	 */
 	@Override
 	public boolean o_IsSupertypeOfTupleType (
@@ -626,10 +608,14 @@ extends TypeDescriptor
 	 * occurrences of the default from the end of the type tuple, trimming it to
 	 * no more than the maximum size in the range.
 	 *
-	 * @param sizeRange The allowed sizes of conforming tuples.
-	 * @param typeTuple The types of the initial elements of conforming tuples.
-	 * @param defaultType The type of remaining elements of conforming tuples.
-	 * @return A canonized tuple type with the specified properties.
+	 * @param sizeRange
+	 * The allowed sizes of conforming tuples.
+	 * @param typeTuple
+	 * The types of the initial elements of conforming tuples.
+	 * @param defaultType
+	 * The type of remaining elements of conforming tuples.
+	 * @return
+	 * A canonized tuple type with the specified properties.
 	 */
 	@SuppressWarnings("TailRecursion")
 	public static A_Type tupleTypeForSizesTypesDefaultType (
@@ -689,8 +675,10 @@ extends TypeDescriptor
 	 * Answer a tuple type consisting of either zero or one occurrences of the
 	 * given element type.
 	 *
-	 * @param aType A {@linkplain TypeDescriptor type}.
-	 * @return A size [0..1] tuple type whose element has the given type.
+	 * @param aType
+	 * A {@linkplain TypeDescriptor type}.
+	 * @return
+	 * A size [0..1] tuple type whose element has the given type.
 	 *
 	 */
 	public static A_Type zeroOrOneOf (final A_Type aType)
@@ -719,9 +707,10 @@ extends TypeDescriptor
 	/**
 	 * Answer a tuple type consisting of one or more of the given element type.
 	 *
-	 * @param aType A {@linkplain TypeDescriptor type}.
-	 * @return A size [1..∞) tuple type whose elements have the given type.
-	 *
+	 * @param aType
+	 * A {@linkplain TypeDescriptor type}.
+	 * @return
+	 * A size [1..∞) tuple type whose elements have the given type.
 	 */
 	public static A_Type oneOrMoreOf (final A_Type aType)
 	{
@@ -735,9 +724,9 @@ extends TypeDescriptor
 	 * Answer a fixed size tuple type consisting of the given element types.
 	 *
 	 * @param types
-	 *        A variable number of types corresponding to the elements of the
-	 *        resulting tuple type.
-	 * @return A fixed-size tuple type.
+	 *        A variable number of types corresponding to the elements of the resulting tuple type.
+	 * @return
+	 * A fixed-size tuple type.
 	 *
 	 */
 	@ReferencedInGeneratedCode
@@ -760,9 +749,9 @@ extends TypeDescriptor
 	 * Answer a fixed size tuple type consisting of the given element types.
 	 *
 	 * @param types
-	 *        A {@link List} of {@link A_Type}s corresponding to the elements of
-	 *        the resulting fixed-size tuple type.
-	 * @return A fixed-size tuple type.
+	 *        A {@link List} of {@link A_Type}s corresponding to the elements of the resulting fixed-size tuple type.
+	 * @return
+	 * A fixed-size tuple type.
 	 *
 	 */
 	@ReferencedInGeneratedCode
@@ -785,16 +774,14 @@ extends TypeDescriptor
 	 * Transform a tuple type into another tuple type by transforming each of
 	 * the element types.  Assume the transformation is stable.  The resulting
 	 * tuple type should have the same size range as the input tuple type,
-	 * except if normalization produces {@linkplain
-	 * BottomTypeDescriptor#bottom() bottom}.
+	 * except if normalization produces {@linkplain BottomTypeDescriptor#bottom() bottom}.
 	 *
 	 * @param aTupleType
 	 *        A tuple type whose element types should be transformed.
 	 * @param elementTransformer
-	 *        A transformation to perform on each element type, to produce the
-	 *        corresponding element types of the resulting tuple type.
-	 * @return A tuple type resulting from applying the transformation to each
-	 *         element type of the supplied tuple type.
+	 *        A transformation to perform on each element type, to produce the corresponding element types of the resulting tuple type.
+	 * @return
+	 * A tuple type resulting from applying the transformation to each element type of the supplied tuple type.
 	 */
 	public static A_Type tupleTypeFromTupleOfTypes (
 		final A_Type aTupleType,
@@ -816,10 +803,14 @@ extends TypeDescriptor
 	 * Create a tuple type with the specified parameters.  These must already
 	 * have been canonized by the caller.
 	 *
-	 * @param sizeRange The allowed sizes of conforming tuples.
-	 * @param typeTuple The types of the initial elements of conforming tuples.
-	 * @param defaultType The types of remaining elements of conforming tuples.
-	 * @return A tuple type with the specified properties.
+	 * @param sizeRange
+	 * The allowed sizes of conforming tuples.
+	 * @param typeTuple
+	 * The types of the initial elements of conforming tuples.
+	 * @param defaultType
+	 * The types of remaining elements of conforming tuples.
+	 * @return
+	 * A tuple type with the specified properties.
 	 */
 	private static A_Type privateTupleTypeForSizesTypesDefaultType (
 		final A_Type sizeRange,
@@ -852,19 +843,13 @@ extends TypeDescriptor
 	 * specified hash values.
 	 *
 	 * @param sizesHash
-	 *            The hash of the {@linkplain IntegerRangeTypeDescriptor integer
-	 *            range type} that is the size range for some {@linkplain
-	 *            TupleTypeDescriptor tuple type} being hashed.
+	 *            The hash of the {@linkplain IntegerRangeTypeDescriptor integer&#32;range&#32;type} that is the size range for some {@linkplain TupleTypeDescriptor tuple&#32;type} being hashed.
 	 * @param typeTupleHash
-	 *            The hash of the tuple of types of the leading arguments of
-	 *            tuples that conform to some {@code TupleTypeDescriptor
-	 *            tuple type} being hashed.
+	 *            The hash of the tuple of types of the leading arguments of tuples that conform to some {@code TupleTypeDescriptor tuple&#32;type} being hashed.
 	 * @param defaultTypeHash
-	 *            The hash of the type that remaining elements of conforming
-	 *            types must have.
+	 *            The hash of the type that remaining elements of conforming types must have.
 	 * @return
-	 *            The hash of the {@code TupleTypeDescriptor tuple type}
-	 *            whose component hash values were provided.
+	 *            The hash of the {@code TupleTypeDescriptor tuple&#32;type} whose component hash values were provided.
 	 */
 	private static int hashOfTupleTypeWithSizesHashTypesHashDefaultTypeHash (
 		final int sizesHash,
@@ -923,7 +908,8 @@ extends TypeDescriptor
 	 * Answer the most general tuple type.  This is the supertype of all other
 	 * tuple types.
 	 *
-	 * @return The most general tuple type.
+	 * @return
+	 * The most general tuple type.
 	 */
 	public static A_Type mostGeneralTupleType ()
 	{
@@ -938,7 +924,8 @@ extends TypeDescriptor
 	 * Answer the most general string type.  This type subsumes strings of any
 	 * size.
 	 *
-	 * @return The string type.
+	 * @return
+	 * The string type.
 	 */
 	public static A_Type stringType ()
 	{
@@ -953,7 +940,8 @@ extends TypeDescriptor
 	 * Answer the non-empty string type.  This type subsumes strings of any
 	 * size ≥ 1.
 	 *
-	 * @return The non-empty string type.
+	 * @return
+	 * The non-empty string type.
 	 */
 	public static A_Type nonemptyStringType ()
 	{
@@ -967,7 +955,8 @@ extends TypeDescriptor
 	/**
 	 * Answer the metatype for all tuple types.
 	 *
-	 * @return The statically referenced metatype.
+	 * @return
+	 * The statically referenced metatype.
 	 */
 	public static A_Type tupleMeta ()
 	{

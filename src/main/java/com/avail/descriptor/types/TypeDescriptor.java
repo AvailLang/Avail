@@ -84,20 +84,10 @@ import static com.avail.utility.Nulls.stripNull;
 import static java.util.Collections.unmodifiableList;
 
 /**
- * Every object in Avail has a type.  Types are also Avail objects.  The types
- * are related to each other by the {@linkplain
- * AvailObject#isSubtypeOf(A_Type) subtype} relation in such a way that
- * they form a lattice.  The top of the lattice is {@linkplain Types#TOP ⊤
- * (pronounced "top")}, which is the most general type.  Every object conforms
- * with this type, and every subtype is a subtype of it.  The bottom of the
- * lattice is {@linkplain BottomTypeDescriptor ⊥ (pronounced "bottom")}, which
- * is the most specific type.  It has no instances, and it is a subtype of all
- * other types.
+ * Every object in Avail has a type.  Types are also Avail objects.  The types are related to each other by the {@linkplain AvailObject#isSubtypeOf(A_Type) subtype} relation in such a way that they form a lattice.  The top of the lattice is {@linkplain Types#TOP ⊤&#32;(pronounced&#32;"top")}, which is the most general type.  Every object conforms with this type, and every subtype is a subtype of it.  The bottom of the lattice is {@linkplain BottomTypeDescriptor ⊥&#32;(pronounced&#32;"bottom")}, which is the most specific type.  It has no instances, and it is a subtype of all other types.
  *
- * <p>
  * The type lattice has a number of useful properties, such as closure under
  * type union.
- * </p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -107,36 +97,19 @@ extends AbstractTypeDescriptor
 	/**
 	 * The {@code TypeDescriptor.Types} enumeration provides a place and a way
 	 * to statically declare the upper stratum of Avail's type lattice,
-	 * specifically all {@linkplain PrimitiveTypeDescriptor primitive types}.
+	 * specifically all {@linkplain PrimitiveTypeDescriptor primitive&#32;types}.
 	 *
 	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
 	public enum Types
 	{
 		/**
-		 * The {@linkplain TopTypeDescriptor most general type} of the type
-		 * lattice, also written ⊤ and pronounced "top".  All types are
-		 * subtypes of this, and all objects are instances of it.  However, this
-		 * top type has an additional role:  No variable or argument may be of
-		 * this type, so the only thing that can be done with the result
-		 * of a function call of type ⊤ is to implicitly discard it.  This is a
-		 * precise way of making the traditional distinction between functions
-		 * and procedures.  In fact, Avail requires all statements except the
-		 * last one in a block to be of type ⊤, to ensure that functions are
-		 * not accidentally used as procedures – and to ensure that the reader
-		 * of the code knows it.
+		 * The {@linkplain TopTypeDescriptor most&#32;general&#32;type} of the type lattice, also written ⊤ and pronounced "top".  All types are subtypes of this, and all objects are instances of it.  However, this top type has an additional role:  No variable or argument may be of this type, so the only thing that can be done with the result of a function call of type ⊤ is to implicitly discard it.  This is a precise way of making the traditional distinction between functions and procedures.  In fact, Avail requires all statements except the last one in a block to be of type ⊤, to ensure that functions are not accidentally used as procedures – and to ensure that the reader of the code knows it.
 		 */
 		TOP(TypeTag.TOP_TYPE_TAG),
 
 		/**
-		 * This is the second-most general type in Avail's type lattice.  It is
-		 * the only direct descendant of {@linkplain #TOP top (⊤)}, and all
-		 * types except ⊤ are subtypes of it.  Like ⊤, all Avail objects are
-		 * instances of {@code ANY}. Technically there is also a {@linkplain
-		 * NilDescriptor#nil nil}, but that is only used internally by the
-		 * Avail machinery (e.g., the value of an unassigned {@linkplain
-		 * VariableDescriptor variable}) and can never be manipulated by an
-		 * Avail program.
+		 * This is the second-most general type in Avail's type lattice.  It is the only direct descendant of {@linkplain #TOP top&#32;(⊤)}, and all types except ⊤ are subtypes of it.  Like ⊤, all Avail objects are instances of {@code ANY}. Technically there is also a {@linkplain NilDescriptor#nil nil}, but that is only used internally by the Avail machinery (e.g., the value of an unassigned {@linkplain VariableDescriptor variable}) and can never be manipulated by an Avail program.
 		 */
 		ANY(TOP, TypeTag.ANY_TYPE_TAG),
 
@@ -146,43 +119,27 @@ extends AbstractTypeDescriptor
 		NONTYPE(ANY, TypeTag.NONTYPE_TYPE_TAG),
 
 		/**
-		 * This is the kind of all {@linkplain AtomDescriptor atoms}.  Atoms
-		 * have fiat identity and their corresponding type structure is trivial.
+		 * This is the kind of all {@linkplain AtomDescriptor atoms}.  Atoms have fiat identity and their corresponding type structure is trivial.
 		 */
 		ATOM(NONTYPE, TypeTag.NONTYPE_TYPE_TAG),
 
 		/**
-		 * This is the kind of all {@linkplain CharacterDescriptor characters},
-		 * as defined by the <a href="http://www.unicode.org">Unicode</a>
-		 * standard.  Note that all characters in the supplementary multilingual
-		 * planes are explicitly supported.
+		 * This is the kind of all {@linkplain CharacterDescriptor characters}, as defined by the <a href="http://www.unicode.org">Unicode</a> standard.  Note that all characters in the supplementary multilingual planes are explicitly supported.
 		 */
 		CHARACTER(NONTYPE, TypeTag.NONTYPE_TYPE_TAG),
 
 		/**
-		 * {@code Number} is the generalization of all numeric types, which
-		 * includes {@linkplain #FLOAT float}, {@linkplain #DOUBLE double}, and
-		 * the {@linkplain IntegerRangeTypeDescriptor integer types} (which can
-		 * contain both {@linkplain IntegerDescriptor integers} and the signed
-		 * {@linkplain InfinityDescriptor integral infinities}),
+		 * {@code Number} is the generalization of all numeric types, which includes {@linkplain #FLOAT float}, {@linkplain #DOUBLE double}, and the {@linkplain IntegerRangeTypeDescriptor integer&#32;types} (which can contain both {@linkplain IntegerDescriptor integers} and the signed {@linkplain InfinityDescriptor integral&#32;infinities}),
 		 */
 		NUMBER(NONTYPE, TypeTag.NUMBER_TYPE_TAG),
 
 		/**
-		 * The type of all double-precision floating point numbers.  This
-		 * includes the double precision {@linkplain
-		 * DoubleDescriptor#doublePositiveInfinity() positive} and {@linkplain
-		 * DoubleDescriptor#doubleNegativeInfinity() negative} infinities and
-		 * {@linkplain DoubleDescriptor#doubleNotANumber() Not-a-Number}.
+		 * The type of all double-precision floating point numbers.  This includes the double precision {@linkplain DoubleDescriptor#doublePositiveInfinity() positive} and {@linkplain DoubleDescriptor#doubleNegativeInfinity() negative} infinities and {@linkplain DoubleDescriptor#doubleNotANumber() Not-a-Number}.
 		 */
 		DOUBLE(NUMBER, TypeTag.NUMBER_TYPE_TAG),
 
 		/**
-		 * The type of all single-precision floating point numbers.  This
-		 * includes the single precision {@linkplain
-		 * FloatDescriptor#floatPositiveInfinity() positive} and {@linkplain
-		 * FloatDescriptor#floatNegativeInfinity() negative} infinities and
-		 * {@linkplain FloatDescriptor#floatNotANumber() Not-a-Number}.
+		 * The type of all single-precision floating point numbers.  This includes the single precision {@linkplain FloatDescriptor#floatPositiveInfinity() positive} and {@linkplain FloatDescriptor#floatNegativeInfinity() negative} infinities and {@linkplain FloatDescriptor#floatNotANumber() Not-a-Number}.
 		 */
 		FLOAT(NUMBER, TypeTag.NUMBER_TYPE_TAG),
 
@@ -197,96 +154,62 @@ extends AbstractTypeDescriptor
 		METHOD(NONTYPE, TypeTag.NONTYPE_TYPE_TAG),
 
 		/**
-		 * This is the kind of all {@linkplain MessageBundleDescriptor message
-		 * bundles}, which are used during parsing of Avail code.
+		 * This is the kind of all {@linkplain MessageBundleDescriptor message&#32;bundles}, which are used during parsing of Avail code.
 		 */
 		MESSAGE_BUNDLE(NONTYPE, TypeTag.NONTYPE_TYPE_TAG),
 
 		/**
-		 * This is the kind of all {@linkplain DefinitionParsingPlanDescriptor
-		 * definition parsing plans}, which are used during parsing of Avail
-		 * code.
+		 * This is the kind of all {@linkplain DefinitionParsingPlanDescriptor definition&#32;parsing&#32;plans}, which are used during parsing of Avail code.
 		 */
 		DEFINITION_PARSING_PLAN(NONTYPE, TypeTag.NONTYPE_TYPE_TAG),
 
 		/**
-		 * This is the kind of all {@linkplain ParsingPlanInProgressDescriptor
-		 * parsing-plans-in-progress}, which are used during parsing of Avail
-		 * code.
+		 * This is the kind of all {@linkplain ParsingPlanInProgressDescriptor parsing-plans-in-progress}, which are used during parsing of Avail code.
 		 */
 		PARSING_PLAN_IN_PROGRESS(NONTYPE, TypeTag.NONTYPE_TYPE_TAG),
 
 		/**
-		 * This is the kind of all {@linkplain MessageBundleTreeDescriptor
-		 * message bundle trees}, which are lazily expanded during parallel
-		 * parsing of Avail expressions.  They collapse together the cost of
-		 * parsing method or macro invocations that start with the same tokens
-		 * and arguments.
+		 * This is the kind of all {@linkplain MessageBundleTreeDescriptor message&#32;bundle&#32;trees}, which are lazily expanded during parallel parsing of Avail expressions.  They collapse together the cost of parsing method or macro invocations that start with the same tokens and arguments.
 		 */
 		MESSAGE_BUNDLE_TREE(NONTYPE, TypeTag.NONTYPE_TYPE_TAG),
 
 		/**
-		 * {@linkplain TokenDescriptor Tokens} all have the same kind, except
-		 * for {@linkplain LiteralTokenDescriptor literal tokens}, which are
-		 * parametrically typed by the type of value they contain.  They are
-		 * produced by a {@linkplain LexicalScanner lexical scanner} and are
-		 * consumed by the {@linkplain AvailCompiler parser}.
+		 * {@linkplain TokenDescriptor Tokens} all have the same kind, except for {@linkplain LiteralTokenDescriptor literal&#32;tokens}, which are parametrically typed by the type of value they contain.  They are produced by a {@linkplain LexicalScanner lexical&#32;scanner} and are consumed by the {@linkplain AvailCompiler parser}.
 		 */
 		TOKEN(NONTYPE, TypeTag.NONTYPE_TYPE_TAG),
 
 		/**
-		 * The general kind of {@linkplain DefinitionDescriptor method
-		 * signatures}.
+		 * The general kind of {@linkplain DefinitionDescriptor method signatures}.
 		 */
 		DEFINITION(NONTYPE, TypeTag.NONTYPE_TYPE_TAG),
 
 		/**
-		 * The specific kind of a definition which is an {@linkplain
-		 * AbstractDefinitionDescriptor abstract declaration} of a method.
+		 * The specific kind of a definition which is an {@linkplain AbstractDefinitionDescriptor abstract&#32;declaration} of a method.
 		 */
 		ABSTRACT_DEFINITION(DEFINITION, TypeTag.NONTYPE_TYPE_TAG),
 
 		/**
-		 * The specific kind of definition which is a {@linkplain
-		 * ForwardDefinitionDescriptor forward declaration}.  Such declarations
-		 * must be resolved by the end of the module in which they occur.
+		 * The specific kind of definition which is a {@linkplain ForwardDefinitionDescriptor forward&#32;declaration}.  Such declarations must be resolved by the end of the module in which they occur.
 		 */
 		FORWARD_DEFINITION(DEFINITION, TypeTag.NONTYPE_TYPE_TAG),
 
 		/**
-		 * The specific kind of signature which is an actual {@linkplain
-		 * MethodDefinitionDescriptor method function}, by far the most
-		 * common case.
+		 * The specific kind of signature which is an actual {@linkplain MethodDefinitionDescriptor method&#32;function}, by far the most common case.
 		 */
 		METHOD_DEFINITION(DEFINITION, TypeTag.NONTYPE_TYPE_TAG),
 
 		/**
-		 * The specific kind of signature which is an actual {@linkplain
-		 * MacroDefinitionDescriptor macro definition}.  A {@linkplain
-		 * MethodDescriptor method} may not contain multiple macro
-		 * definition sites, nor may it mix macro definition sites and
-		 * any other type of sites.
+		 * The specific kind of signature which is an actual {@linkplain MacroDefinitionDescriptor macro&#32;definition}.  A {@linkplain MethodDescriptor method} may not contain multiple macro definition sites, nor may it mix macro definition sites and any other type of sites.
 		 */
 		MACRO_DEFINITION(DEFINITION, TypeTag.NONTYPE_TYPE_TAG),
 
 		/**
-		 * {@linkplain ModuleDescriptor Modules} are maintained mostly
-		 * automatically by Avail's runtime environment.  Modules are not
-		 * currently visible to the Avail programmer, but there may still be a
-		 * need for modules to be placed in sets and maps maintained by the
-		 * runtime, so the type story has to at least be consistent.
+		 * {@linkplain ModuleDescriptor Modules} are maintained mostly automatically by Avail's runtime environment.  Modules are not currently visible to the Avail programmer, but there may still be a need for modules to be placed in sets and maps maintained by the runtime, so the type story has to at least be consistent.
 		 */
 		MODULE(NONTYPE, TypeTag.NONTYPE_TYPE_TAG),
 
 		/**
-		 * A {@linkplain PojoDescriptor POJO} is a Plain Old Java {@linkplain
-		 * Object}.  Avail is able to interface to arbitrary Java code via its
-		 * implementation of POJOs.  POJOs contain (and conform to) their own
-		 * POJO types, but that requires a separate concept of <em>raw</em>
-		 * POJOs.  Avail code only works with the typed POJOs, but the Avail
-		 * machinery has to be able to use the raw POJOs, placing them in sets
-		 * and doing other things that occasionally require their kind to be
-		 * extracted.
+		 * A {@linkplain PojoDescriptor POJO} is a Plain Old Java {@linkplain Object}.  Avail is able to interface to arbitrary Java code via its implementation of POJOs.  POJOs contain (and conform to) their own POJO types, but that requires a separate concept of <em>raw</em> POJOs.  Avail code only works with the typed POJOs, but the Avail machinery has to be able to use the raw POJOs, placing them in sets and doing other things that occasionally require their kind to be extracted.
 		 */
 		RAW_POJO(NONTYPE, TypeTag.NONTYPE_TYPE_TAG);
 
@@ -310,7 +233,8 @@ extends AbstractTypeDescriptor
 		 * Answer the parent {@code Types} object.  Fail if this is the top
 		 * type.
 		 *
-		 * @return The parent of this Types object.
+		 * @return
+		 * The parent of this Types object.
 		 */
 		public final Types parent ()
 		{
@@ -358,15 +282,12 @@ extends AbstractTypeDescriptor
 
 		/**
 		 * Construct a new {@code Types} instance with the specified
-		 * parent.  Use {@link PrimitiveTypeDescriptor} for the new type's
-		 * descriptor.
+		 * parent.  Use {@link PrimitiveTypeDescriptor} for the new type's descriptor.
 		 *
 		 * @param parent
-		 *        The new type's parent, or {@code null} if the type has no
-		 *        parent.
+		 *        The new type's parent, or {@code null} if the type has no parent.
 		 * @param typeTag
-		 *        The {@link TypeTag} that labels the kind of value that
-		 *        {@code o} is.
+		 *        The {@link TypeTag} that labels the kind of value that {@code o} is.
 		 */
 		Types (
 			final @Nullable Types parent,
@@ -381,7 +302,8 @@ extends AbstractTypeDescriptor
 		/**
 		 * Answer the {@link AvailObject} representing this Avail type.
 		 *
-		 * @return The actual {@linkplain TypeDescriptor type}, an AvailObject.
+		 * @return
+		 * The actual {@linkplain TypeDescriptor type}, an AvailObject.
 		 */
 		public AvailObject o ()
 		{
@@ -397,7 +319,8 @@ extends AbstractTypeDescriptor
 		/**
 		 * Answer the previously stashed {@link List} of all {@code Types}.
 		 *
-		 * @return The immutable {@link List} of all {@code Types}.
+		 * @return
+		 * The immutable {@link List} of all {@code Types}.
 		 */
 		public static List<Types> all ()
 		{
@@ -1206,9 +1129,12 @@ extends AbstractTypeDescriptor
 	 * Answer whether the first type is a proper subtype of the second type,
 	 * meaning that it's a subtype but not equal.
 	 *
-	 * @param type1 The purported subtype.
-	 * @param type2 The purported supertype.
-	 * @return If type1 is a subtype of but not equal to type2.
+	 * @param type1
+	 * The purported subtype.
+	 * @param type2
+	 * The purported supertype.
+	 * @return
+	 * If type1 is a subtype of but not equal to type2.
 	 */
 	public static boolean isProperSubtype (
 		final A_Type type1,
@@ -1225,13 +1151,9 @@ extends AbstractTypeDescriptor
 	 * @param typeTag
 	 *            The {@link TypeTag} to embed in the new descriptor.
 	 * @param objectSlotsEnumClass
-	 *            The Java {@link Class} which is a subclass of {@link
-	 *            ObjectSlotsEnum} and defines this object's object slots
-	 *            layout, or null if there are no object slots.
+	 *            The Java {@link Class} which is a subclass of {@link ObjectSlotsEnum} and defines this object's object slots layout, or null if there are no object slots.
 	 * @param integerSlotsEnumClass
-	 *            The Java {@link Class} which is a subclass of {@link
-	 *            IntegerSlotsEnum} and defines this object's object slots
-	 *            layout, or null if there are no integer slots.
+	 *            The Java {@link Class} which is a subclass of {@link IntegerSlotsEnum} and defines this object's object slots layout, or null if there are no integer slots.
 	 */
 	protected TypeDescriptor (
 		final Mutability mutability,

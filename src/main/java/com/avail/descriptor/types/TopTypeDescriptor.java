@@ -44,8 +44,7 @@ import com.avail.descriptor.tuples.StringDescriptor;
 import com.avail.utility.json.JSONWriter;
 
 /**
- * {@code TopTypeDescriptor} implements the type of {@linkplain
- * NilDescriptor#nil nil}.
+ * {@code TopTypeDescriptor} implements the type of {@linkplain NilDescriptor#nil nil}.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -136,8 +135,7 @@ extends PrimitiveTypeDescriptor
 	}
 
 	/**
-	 * Construct a new {@link Mutability#SHARED shared} {@link
-	 * PrimitiveTypeDescriptor}.
+	 * Construct a new {@link Mutability#SHARED shared} {@link PrimitiveTypeDescriptor}.
 	 *
 	 * @param typeTag
 	 *            The {@link TypeTag} to embed in the new descriptor.

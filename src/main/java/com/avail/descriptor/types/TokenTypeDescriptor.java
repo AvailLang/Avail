@@ -49,10 +49,7 @@ import static com.avail.descriptor.types.TokenTypeDescriptor.IntegerSlots.TOKEN_
 import static com.avail.descriptor.types.TypeDescriptor.Types.TOKEN;
 
 /**
- * I represent the type of some {@link TokenDescriptor tokens}. Like any object,
- * a particular token has an exact {@link InstanceTypeDescriptor instance type},
- * but {@code TokenTypeDescriptor} covariantly constrains a token's type by its
- * {@link TokenType}.
+ * I represent the type of some {@link TokenDescriptor tokens}. Like any object, a particular token has an exact {@link InstanceTypeDescriptor instance type}, but {@code TokenTypeDescriptor} covariantly constrains a token's type by its {@link TokenType}.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -235,12 +232,12 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Create a new token type whose values comply with the given
-	 * {@link TokenType}.
+	 * Create a new token type whose values comply with the given {@link TokenType}.
 	 *
 	 * @param tokenType
 	 *        The type with which to constrain values.
-	 * @return A {@link TokenTypeDescriptor token type}.
+	 * @return
+	 * A {@link TokenTypeDescriptor token type}.
 	 */
 	public static AvailObject tokenType (final TokenType tokenType)
 	{

@@ -74,9 +74,7 @@ import static java.lang.reflect.Modifier.isFinal;
 import static java.lang.reflect.Modifier.isInterface;
 
 /**
- * {@code UnfusedPojoTypeDescriptor} describes a fully-parameterized Java
- * reference type. This is any real Java class or interface that can be loaded
- * via Avail's {@linkplain ClassLoader class loader}.
+ * {@code UnfusedPojoTypeDescriptor} describes a fully-parameterized Java reference type. This is any real Java class or interface that can be loaded via Avail's {@linkplain ClassLoader class&#32;loader}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -87,8 +85,7 @@ extends PojoTypeDescriptor
 	enum IntegerSlots implements IntegerSlotsEnumJava
 	{
 		/**
-		 * The low 32 bits are used for the {@link #HASH_OR_ZERO}, but the upper
-		 * 32 can be used by other {@link BitField}s in subclasses.
+		 * The low 32 bits are used for the {@link #HASH_OR_ZERO}, but the upper 32 can be used by other {@link BitField}s in subclasses.
 		 */
 		@HideFieldInDebugger
 		HASH_AND_MORE;
@@ -105,32 +102,22 @@ extends PojoTypeDescriptor
 	enum ObjectSlots implements ObjectSlotsEnumJava
 	{
 		/**
-		 * A {@linkplain RawPojoDescriptor raw pojo} that wraps the {@linkplain
-		 * Class Java class or interface} represented by this {@linkplain
-		 * UnfusedPojoTypeDescriptor pojo type}.
+		 * A {@linkplain RawPojoDescriptor raw pojo} that wraps the {@linkplain Class Java&#32;class&#32;or&#32;interface} represented by this {@linkplain UnfusedPojoTypeDescriptor pojo&#32;type}.
 		 */
 		JAVA_CLASS,
 
 		/**
-		 * A {@linkplain MapDescriptor map} from {@linkplain PojoDescriptor
-		 * pojos} that wrap {@linkplain Class Java classes and interfaces} to
-		 * their {@linkplain TupleDescriptor type parameterizations}. The
-		 * {@linkplain AvailObject#keysAsSet() keys} constitute this type's
-		 * complete {@linkplain SetDescriptor ancestry} of Java types.
+		 * A {@linkplain MapDescriptor map} from {@linkplain PojoDescriptor pojos} that wrap {@linkplain Class Java&#32;classes&#32;and&#32;interfaces} to their {@linkplain TupleDescriptor type&#32;parameterizations}. The {@linkplain AvailObject#keysAsSet() keys} constitute this type's complete {@linkplain SetDescriptor ancestry} of Java types.
 		 */
 		JAVA_ANCESTORS,
 
 		/**
-		 * A {@linkplain MapDescriptor map} from fully-qualified {@linkplain
-		 * TypeVariable type variable} {@linkplain StringDescriptor names} to
-		 * their {@linkplain TypeDescriptor values} in this {@linkplain
-		 * UnfusedPojoTypeDescriptor type}.
+		 * A {@linkplain MapDescriptor map} from fully-qualified {@linkplain TypeVariable type variable} {@linkplain StringDescriptor names} to their {@linkplain TypeDescriptor values} in this {@linkplain UnfusedPojoTypeDescriptor type}.
 		 */
 		TYPE_VARIABLES,
 
 		/**
-		 * The cached {@linkplain SelfPojoTypeDescriptor self type} of this
-		 * {@linkplain UnfusedPojoTypeDescriptor pojo type}.
+		 * The cached {@linkplain SelfPojoTypeDescriptor self&#32;type} of this {@linkplain UnfusedPojoTypeDescriptor pojo&#32;type}.
 		 */
 		SELF_TYPE
 	}
@@ -197,11 +184,12 @@ extends PojoTypeDescriptor
 	}
 
 	/**
-	 * Lazily compute the hash of the specified {@linkplain
-	 * UnfusedPojoTypeDescriptor object}.
+	 * Lazily compute the hash of the specified {@linkplain UnfusedPojoTypeDescriptor object}.
 	 *
-	 * @param object An object.
-	 * @return The hash.
+	 * @param object
+	 * An object.
+	 * @return
+	 * The hash.
 	 */
 	private static int hash (final AvailObject object)
 	{
@@ -270,11 +258,12 @@ extends PojoTypeDescriptor
 	}
 
 	/**
-	 * Lazily compute the self type of the specified {@linkplain
-	 * UnfusedPojoTypeDescriptor object}.
+	 * Lazily compute the self type of the specified {@linkplain UnfusedPojoTypeDescriptor object}.
 	 *
-	 * @param object An object.
-	 * @return The self type.
+	 * @param object
+	 * An object.
+	 * @return
+	 * The self type.
 	 */
 	private A_Type pojoSelfType (final AvailObject object)
 	{
@@ -459,11 +448,12 @@ extends PojoTypeDescriptor
 	}
 
 	/**
-	 * Lazily compute the type variables of the specified {@linkplain
-	 * UnfusedPojoTypeDescriptor object}.
+	 * Lazily compute the type variables of the specified {@linkplain UnfusedPojoTypeDescriptor object}.
 	 *
-	 * @param object An unfused pojo type.
-	 * @return The type variables.
+	 * @param object
+	 * An unfused pojo type.
+	 * @return
+	 * The type variables.
 	 */
 	private A_Map typeVariables (final AvailObject object)
 	{
@@ -589,25 +579,19 @@ extends PojoTypeDescriptor
 		return shared;
 	}
 
-	/** The most general {@linkplain PojoTypeDescriptor pojo type}. */
+	/** The most general {@linkplain PojoTypeDescriptor pojo&#32;type}. */
 	static final A_Type mostGeneralType =
 		pojoTypeForClass(Object.class).makeShared();
 
 	/**
-	 * Create a new {@link AvailObject} that represents an {@linkplain
-	 * UnfusedPojoTypeDescriptor unparameterized pojo type}.
+	 * Create a new {@link AvailObject} that represents an {@linkplain UnfusedPojoTypeDescriptor unparameterized&#32;pojo&#32;type}.
 	 *
 	 * @param javaClass
-	 *        A {@linkplain RawPojoDescriptor raw pojo} that wraps the
-	 *        {@linkplain Class Java class or interface} represented by this
-	 *        {@code pojo type}.
+	 *        A {@linkplain RawPojoDescriptor raw&#32;pojo} that wraps the {@linkplain Class Java&#32;class&#32;or&#32;interface} represented by this {@code pojo type}.
 	 * @param javaAncestors
-	 *        A {@linkplain MapDescriptor map} from {@linkplain PojoDescriptor
-	 *        pojos} that wrap {@linkplain Class Java classes and interfaces} to
-	 *        their {@linkplain TupleDescriptor type parameterizations}. The
-	 *        {@linkplain AvailObject#keysAsSet() keys} constitute this type's
-	 *        complete {@linkplain SetDescriptor ancestry} of Java types.
-	 * @return The requested pojo type.
+	 *        A {@linkplain MapDescriptor map} from {@linkplain PojoDescriptor pojos} that wrap {@linkplain Class Java&#32;classes&#32;and&#32;interfaces} to their {@linkplain TupleDescriptor type&#32;parameterizations}. The {@linkplain AvailObject#keysAsSet() keys} constitute this type's complete {@linkplain SetDescriptor ancestry} of Java types.
+	 * @return
+	 * The requested pojo type.
 	 */
 	static AvailObject createUnfusedPojoType (
 		final AvailObject javaClass,

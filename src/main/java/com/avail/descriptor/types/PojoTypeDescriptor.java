@@ -113,23 +113,20 @@ import static com.avail.utility.Nulls.stripNull;
 import static java.lang.Short.MAX_VALUE;
 
 /**
- * An {@code PojoTypeDescriptor} describes the type of a plain-old Java
- * object (pojo) that is accessible to an Avail programmer as an {@linkplain
- * AvailObject Avail object}.
+ * An {@code PojoTypeDescriptor} describes the type of a plain-old Java object (pojo) that is accessible to an Avail programmer as an {@linkplain AvailObject Avail&#32;object}.
  *
- * <p>Even though Java uses type erasure for its generic types, Java class files
+ * Even though Java uses type erasure for its generic types, Java class files
  * contain enough reflectively available information about genericity for Avail
  * to expose Java types as if they were fully polymorphic (like Avail's own
  * types). Avail does not need to create new Java types by extending the Java
  * class hierarchy, so there is no need to model Java generic types directly.
  * Polymorphic types are therefore sufficient for construction and employment,
- * which runs the gamut of purposes from an Avail programmer's perspective.</p>
+ * which runs the gamut of purposes from an Avail programmer's perspective.
  *
- * <p>Java interfaces are presented to Avail as though they were Java classes.
+ * Java interfaces are presented to Avail as though they were Java classes.
  * Avail sees interface inheritance as though it were class inheritance, with
  * root interfaces implicitly inheriting from {@link Object}. So an Avail
  * programmer sees Java as though it supported multiple inheritance of classes.
- * </p>
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -155,14 +152,12 @@ extends TypeDescriptor
 		}
 
 		/**
-		 * Answer the locally canonical {@linkplain RawPojoDescriptor raw pojo}
-		 * that represents the specified {@linkplain Class Java class}. (If the
-		 * canon already contains a raw pojo for the class, then answer it. If
-		 * not, then install a new one and answer that one.)
+		 * Answer the locally canonical {@linkplain RawPojoDescriptor raw&#32;pojo} that represents the specified {@linkplain Class Java&#32;class}. (If the canon already contains a raw pojo for the class, then answer it. If not, then install a new one and answer that one.)
 		 *
 		 * @param javaClass
 		 *        A Java class or interface.
-		 * @return A locally canonical raw pojo corresponding to the argument.
+		 * @return
+		 * A locally canonical raw pojo corresponding to the argument.
 		 */
 		AvailObject canonize (final Class<?> javaClass)
 		{
@@ -177,15 +172,13 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * {@code TypeVariableMap} is a {@linkplain Map map} from {@linkplain String
-	 * local type variable names} to their type parameterization indices.
+	 * {@code TypeVariableMap} is a {@linkplain Map map} from {@linkplain String local&#32;type&#32;variable&#32;names} to their type parameterization indices.
 	 */
 	private static final class TypeVariableMap
 	extends HashMap<String, Integer>
 	{
 		/**
-		 * Construct a new {@code TypeVariableMap} for the specified {@linkplain
-		 * Class Java class or interface}.
+		 * Construct a new {@code TypeVariableMap} for the specified {@linkplain Class Java&#32;class&#32;or&#32;interface}.
 		 *
 		 * @param javaClass
 		 *        A Java class or interface.
@@ -202,13 +195,11 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * {@code LRUCacheKey} combines a {@linkplain Class Java class or interface}
-	 * with its complete type parameterization. It serves as the key to the
-	 * {@linkplain PojoTypeDescriptor pojo type} {@linkplain #cache}.
+	 * {@code LRUCacheKey} combines a {@linkplain Class Java&#32;class&#32;or&#32;interface} with its complete type parameterization. It serves as the key to the {@linkplain PojoTypeDescriptor pojo type} {@linkplain #cache}.
 	 */
 	private static final class LRUCacheKey
 	{
-		/** The {@linkplain Class Java class or interface}. */
+		/** The {@linkplain Class Java&#32;class&#32;or&#32;interface}. */
 		public final Class<?> javaClass;
 
 		/** The type arguments. */
@@ -236,7 +227,7 @@ extends TypeDescriptor
 		 * Construct a new {@code LRUCacheKey}.
 		 *
 		 * @param javaClass
-		 *        The {@linkplain Class Java class or interface}.
+		 *        The {@linkplain Class Java&#32;class&#32;or&#32;interface}.
 		 * @param typeArgs
 		 *        The type arguments.
 		 */
@@ -252,7 +243,8 @@ extends TypeDescriptor
 	/**
 	 * Answer the most general pojo type.
 	 *
-	 * @return The most general pojo type.
+	 * @return 
+	 * The most general pojo type.
 	 */
 	public static A_Type mostGeneralPojoType ()
 	{
@@ -262,7 +254,8 @@ extends TypeDescriptor
 	/**
 	 * Answer the most general pojo array type.
 	 *
-	 * @return The most general pojo array type.
+	 * @return
+	 * The most general pojo array type.
 	 */
 	public static A_Type mostGeneralPojoArrayType ()
 	{
@@ -270,19 +263,16 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * A special {@linkplain AtomDescriptor atom} whose {@linkplain
-	 * InstanceTypeDescriptor instance type} represents the self type of a
-	 * {@linkplain Class Java class or interface}.
+	 * A special {@linkplain AtomDescriptor atom} whose {@linkplain InstanceTypeDescriptor instance&#32;type} represents the self type of a {@linkplain Class Java&#32;class&#32;or&#32;interface}.
 	 */
 	private static final A_Atom selfTypeAtom =
 		createSpecialAtom("pojo self");
 
 	/**
-	 * Answer a special {@linkplain AtomDescriptor atom} whose {@linkplain
-	 * InstanceTypeDescriptor instance type} represents the self type of a
-	 * {@linkplain Class Java class or interface}.
+	 * Answer a special {@linkplain AtomDescriptor atom} whose {@linkplain InstanceTypeDescriptor instance&#32;type} represents the self type of a {@linkplain Class Java&#32;class&#32;or&#32;interface}.
 	 *
-	 * @return The pojo self type atom.
+	 * @return
+	 * The pojo self type atom.
 	 */
 	public static A_Atom pojoSelfTypeAtom ()
 	{
@@ -290,17 +280,16 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * A special {@linkplain InstanceTypeDescriptor instance type} that
-	 * represents the self type of a {@linkplain Class Java class or interface}.
+	 * A special {@linkplain InstanceTypeDescriptor instance&#32;type} that represents the self type of a {@linkplain Class Java&#32;class&#32;or&#32;interface}.
 	 */
 	private static final A_Type selfType =
 		instanceType(selfTypeAtom).makeShared();
 
 	/**
-	 * Answer a special {@linkplain InstanceTypeDescriptor instance type} that
-	 * represents the self type of a {@linkplain Class Java class or interface}.
+	 * Answer a special {@linkplain InstanceTypeDescriptor instance&#32;type} that represents the self type of a {@linkplain Class Java&#32;class&#32;or&#32;interface}.
 	 *
-	 * @return The pojo self type atom.
+	 * @return
+	 * The pojo self type atom.
 	 */
 	public static A_Type pojoSelfType ()
 	{
@@ -308,17 +297,17 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * The {@linkplain IntegerRangeTypeDescriptor integer range type} that
-	 * corresponds to Java {@code byte}.
+	 * The {@linkplain IntegerRangeTypeDescriptor integer&#32;range&#32;type} that corresponds to Java {@code byte}.
 	 */
 	private static final A_Type byteRange =
 		inclusive(Byte.MIN_VALUE, Byte.MAX_VALUE).makeShared();
 
 	/**
-	 * Answer the {@linkplain IntegerRangeTypeDescriptor integer range type}
+	 * Answer the {@linkplain IntegerRangeTypeDescriptor integer&#32;range&#32;type}
 	 * that corresponds to Java {@code byte}.
 	 *
-	 * @return {@code [-128..127]}.
+	 * @return
+	 * {@code [-128..127]}.
 	 */
 	public static A_Type byteRange ()
 	{
@@ -326,17 +315,16 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * The {@linkplain IntegerRangeTypeDescriptor integer range type} that
-	 * corresponds to Java {@code short}.
+	 * The {@linkplain IntegerRangeTypeDescriptor integer&#32;range&#32;type} that corresponds to Java {@code short}.
 	 */
 	private static final A_Type shortRange =
 		inclusive(Short.MIN_VALUE, MAX_VALUE).makeShared();
 
 	/**
-	 * Answer the {@linkplain IntegerRangeTypeDescriptor integer range type}
-	 * that corresponds to Java {@code short}.
+	 * Answer the {@linkplain IntegerRangeTypeDescriptor integer&#32;range&#32;type} that corresponds to Java {@code short}.
 	 *
-	 * @return {@code [-32768..32767]}.
+	 * @return
+	 * {@code [-32768..32767]}.
 	 */
 	public static A_Type shortRange ()
 	{
@@ -344,16 +332,15 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * The {@linkplain IntegerRangeTypeDescriptor integer range type} that
-	 * corresponds to Java {@code int}.
+	 * The {@linkplain IntegerRangeTypeDescriptor integer&#32;range&#32;type} that corresponds to Java {@code int}.
 	 */
 	private static final A_Type intRange = int32();
 
 	/**
-	 * Answer the {@linkplain IntegerRangeTypeDescriptor integer range type}
-	 * that corresponds to Java {@code int}.
+	 * Answer the {@linkplain IntegerRangeTypeDescriptor integer&#32;range&#32;type} that corresponds to Java {@code int}.
 	 *
-	 * @return {@code [-2147483648..2147483647]}.
+	 * @return
+	 * {@code [-2147483648..2147483647]}.
 	 */
 	public static A_Type intRange ()
 	{
@@ -361,16 +348,15 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * The {@linkplain IntegerRangeTypeDescriptor integer range type} that
-	 * corresponds to Java {@code long}.
+	 * The {@linkplain IntegerRangeTypeDescriptor integer&#32;range&#32;type} that corresponds to Java {@code long}.
 	 */
 	private static final A_Type longRange = int64();
 
 	/**
-	 * Answer the {@linkplain IntegerRangeTypeDescriptor integer range type}
-	 * that corresponds to Java {@code long}.
+	 * Answer the {@linkplain IntegerRangeTypeDescriptor integer&#32;range&#32;type} that corresponds to Java {@code long}.
 	 *
-	 * @return {@code [-9223372036854775808..9223372036854775807]}.
+	 * @return
+	 * {@code [-9223372036854775808..9223372036854775807]}.
 	 */
 	public static A_Type longRange ()
 	{
@@ -378,17 +364,16 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * The {@linkplain IntegerRangeTypeDescriptor integer range type} that
-	 * corresponds to Java {@code char}.
+	 * The {@linkplain IntegerRangeTypeDescriptor integer&#32;range&#32;type} that corresponds to Java {@code char}.
 	 */
 	private static final A_Type charRange =
 		inclusive(Character.MIN_VALUE, Character.MAX_VALUE).makeShared();
 
 	/**
-	 * Answer the {@linkplain IntegerRangeTypeDescriptor integer range type}
-	 * that corresponds to Java {@code char}.
+	 * Answer the {@linkplain IntegerRangeTypeDescriptor integer&#32;range&#32;type} that corresponds to Java {@code char}.
 	 *
-	 * @return {@code [-9223372036854775808..9223372036854775807]}.
+	 * @return
+	 * {@code [-9223372036854775808..9223372036854775807]}.
 	 */
 	public static A_Type charRange ()
 	{
@@ -396,11 +381,12 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Given an {@link LRUCacheKey}, compute the corresponding {@linkplain
-	 * PojoTypeDescriptor pojo type}.
+	 * Given an {@link LRUCacheKey}, compute the corresponding {@linkplain PojoTypeDescriptor pojo&#32;type}.
 	 *
-	 * @param key An {@code LRUCacheKey}.
-	 * @return A pojo type.
+	 * @param
+	 * key An {@code LRUCacheKey}.
+	 * @return
+	 * A pojo type.
 	 */
 	static AvailObject computeValue (final LRUCacheKey key)
 	{
@@ -417,8 +403,7 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * {@linkplain PojoTypeDescriptor Pojo types} are somewhat expensive
-	 * to build, so cache them for efficiency.
+	 * {@linkplain PojoTypeDescriptor Pojo&#32;types} are somewhat expensive to build, so cache them for efficiency.
 	 */
 	private static final LRUCache<LRUCacheKey, AvailObject> cache =
 		new LRUCache<>(1000, 10, PojoTypeDescriptor::computeValue);
@@ -620,17 +605,14 @@ extends TypeDescriptor
 	public abstract A_Map o_TypeVariables (AvailObject object);
 
 	/**
-	 * Compute the intersection of two {@linkplain PojoTypeDescriptor
-	 * pojo types}. This is utility method that only examines the {@linkplain
-	 * AvailObject#javaAncestors() ancestry} of the pojo types. It computes and
-	 * answers the union of the key sets and the intersections of their
-	 * parameterizations.
+	 * Compute the intersection of two {@linkplain PojoTypeDescriptor pojo&#32;types}. This is utility method that only examines the {@linkplain AvailObject#javaAncestors() ancestry} of the pojo types. It computes and answers the union of the key sets and the intersections of their parameterizations.
 	 *
 	 * @param object
 	 *        A pojo type.
 	 * @param aPojoType
 	 *        Another pojo type.
-	 * @return A new ancestry map OR the bottom pojo type.
+	 * @return
+	 * A new ancestry map OR the bottom pojo type.
 	 */
 	protected static A_BasicObject computeIntersection (
 		final A_BasicObject object,
@@ -675,17 +657,14 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Compute the union of two {@linkplain PojoTypeDescriptor pojo
-	 * types}. This is utility method that only examines the {@linkplain
-	 * AvailObject#javaAncestors() ancestry} of the pojo types. It computes and
-	 * answers the intersection of the key sets and the union of their
-	 * parameterizations.
+	 * Compute the union of two {@linkplain PojoTypeDescriptor pojo&#32;types}. This is utility method that only examines the {@linkplain AvailObject#javaAncestors() ancestry} of the pojo types. It computes and answers the intersection of the key sets and the union of their parameterizations.
 	 *
 	 * @param object
 	 *        A pojo type.
 	 * @param aPojoType
 	 *        Another pojo type.
-	 * @return A new ancestry map.
+	 * @return
+	 * A new ancestry map.
 	 */
 	protected static A_Map computeUnion (
 		final A_BasicObject object,
@@ -724,15 +703,12 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Answer the locally childless {@linkplain Class Java types} from among
-	 * the types present in the specified ancestry.
+	 * Answer the locally childless {@linkplain Class Java&#32;types} from among the types present in the specified ancestry.
 	 *
 	 * @param ancestry
-	 *        A {@linkplain SetDescriptor set} of {@linkplain RawPojoDescriptor
-	 *        raw pojos} that wrap related Java types.
-	 * @return Those subset of the ancestry that is locally childless, i.e.,
-	 *         those elements that do not have any subtypes also present in the
-	 *         ancestry.
+	 *        A {@linkplain SetDescriptor set} of {@linkplain RawPojoDescriptor raw&#32;pojos} that wrap related Java types.
+	 * @return
+	 * Those subset of the ancestry that is locally childless, i.e., those elements that do not have any subtypes also present in the ancestry.
 	 */
 	protected static Set<AvailObject> childlessAmong (
 		final A_Set ancestry)
@@ -759,17 +735,12 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Answer the most specific {@linkplain Class Java type} present in the
-	 * specified ancestry.
+	 * Answer the most specific {@linkplain Class Java&#32;type} present in the specified ancestry.
 	 *
 	 * @param ancestry
-	 *        A {@linkplain SetDescriptor set} of {@linkplain RawPojoDescriptor
-	 *        raw pojos} that wrap Java types. The set contains related types
-	 *        that were computed during a type union of two {@linkplain
-	 *        PojoTypeDescriptor pojo types}.
-	 * @return The most specific Java type in the set. Answer {@linkplain
-	 *         NilDescriptor nil} if there is not a single most specific type
-	 *         (this can only happen for interfaces).
+	 *        A {@linkplain SetDescriptor set} of {@linkplain RawPojoDescriptor raw&#32;pojos} that wrap Java types. The set contains related types that were computed during a type union of two {@linkplain PojoTypeDescriptor pojo&#32;types}.
+	 * @return
+	 * The most specific Java type in the set. Answer {@linkplain NilDescriptor nil} if there is not a single most specific type (this can only happen for interfaces).
 	 */
 	protected static AvailObject mostSpecificOf (
 		final A_Set ancestry)
@@ -815,13 +786,9 @@ extends TypeDescriptor
 	 * @param mutability
 	 *            The {@linkplain Mutability mutability} of the new descriptor.
 	 * @param objectSlotsEnumClass
-	 *            The Java {@link Class} which is a subclass of {@link
-	 *            ObjectSlotsEnum} and defines this object's object slots
-	 *            layout, or null if there are no object slots.
+	 *            The Java {@link Class} which is a subclass of {@link ObjectSlotsEnum} and defines this object's object slots layout, or null if there are no object slots.
 	 * @param integerSlotsEnumClass
-	 *            The Java {@link Class} which is a subclass of {@link
-	 *            IntegerSlotsEnum} and defines this object's object slots
-	 *            layout, or null if there are no integer slots.
+	 *            The Java {@link Class} which is a subclass of {@link IntegerSlotsEnum} and defines this object's object slots layout, or null if there are no integer slots.
 	 */
 	protected PojoTypeDescriptor (
 		final Mutability mutability,
@@ -840,8 +807,8 @@ extends TypeDescriptor
 	 *
 	 * @param types
 	 *        A {@linkplain TupleDescriptor tuple} of types.
-	 * @return The Java {@linkplain Class classes} that represent the supplied
-	 *         types.
+	 * @return
+	 * The Java {@linkplain Class classes} that represent the supplied types.
 	 * @throws MarshalingException
 	 *         If marshaling fails for any of the supplied types.
 	 */
@@ -859,13 +826,12 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Marshal the supplied {@link A_Type}, as though it will be used for
-	 * {@link Executable} lookup, using a boxed Java class to represent a
-	 * primitive Java type.
+	 * Marshal the supplied {@link A_Type}, as though it will be used for {@link Executable} lookup, using a boxed Java class to represent a primitive Java type.
 	 *
 	 * @param type
 	 *        A type.
-	 * @return The Java class that represents the supplied type.
+	 * @return
+	 * The Java class that represents the supplied type.
 	 * @throws MarshalingException
 	 *         If marshaling fails for any reason.
 	 */
@@ -913,15 +879,14 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Marshal the arbitrary {@linkplain Object Java object} to its counterpart
-	 * {@linkplain AvailObject Avail object}.
+	 * Marshal the arbitrary {@linkplain Object Java object} to its counterpart {@linkplain AvailObject Avail&#32;object}.
 	 *
 	 * @param object
 	 *        A Java object, or {@code null}.
 	 * @param type
-	 *        A {@linkplain TypeDescriptor type} to which the resultant Avail
-	 *        object must conform.
-	 * @return An Avail Object.
+	 *        A {@linkplain TypeDescriptor type} to which the resultant Avail object must conform.
+	 * @return
+	 * An Avail Object.
 	 */
 	public static AvailObject unmarshal (
 		final @Nullable Object object,
@@ -990,16 +955,14 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Resolve the specified {@linkplain Type type} using the given {@linkplain
-	 * AvailObject#typeVariables() type variables}.
+	 * Resolve the specified {@linkplain Type type} using the given {@linkplain AvailObject#typeVariables() type&#32;variables}.
 	 *
 	 * @param type
 	 *        A type.
 	 * @param typeVars
-	 *        A {@linkplain MapDescriptor map} from fully-qualified {@linkplain
-	 *        TypeVariable type variable} {@linkplain StringDescriptor names} to
-	 *        their {@linkplain TypeDescriptor types}.
-	 * @return An Avail type.
+	 *        A {@linkplain MapDescriptor map} from fully-qualified {@linkplain TypeVariable type&#32;variable} {@linkplain StringDescriptor names} to their {@linkplain TypeDescriptor types}.
+	 * @return
+	 * An Avail type.
 	 */
 	public static A_Type resolvePojoType (
 		final Type type,
@@ -1179,10 +1142,9 @@ extends TypeDescriptor
 	 * @param probablePojoType
 	 *        An arbitrary Avail type, but one that might be a pojo type.
 	 * @param allowMetas
-	 *        {@code true} if metatypes are contextually possible outcomes,
-	 *        {@code false} if only nontype values are contextually possible
-	 *        outcomes.
-	 * @return The canonical Avail type for the given pojo type.
+	 *        {@code true} if metatypes are contextually possible outcomes, {@code false} if only nontype values are contextually possible outcomes.
+	 * @return
+	 * The canonical Avail type for the given pojo type.
 	 */
 	public static A_Type canonicalPojoType (
 		final A_Type probablePojoType,
@@ -1211,23 +1173,18 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * In the context of a reference {@linkplain Class Java class or interface}
-	 * implicitly specified by the {@linkplain TypeVariableMap type variable
-	 * map} and {@linkplain TupleDescriptor tuple of type arguments}, compute
-	 * the type arguments of the specified target Java class or interface.
+	 * In the context of a reference {@linkplain Class Java&#32;class&#32;or&#32;interface} implicitly specified by the {@linkplain TypeVariableMap type&#32;variable&#32;map} and {@linkplain TupleDescriptor tuple&#32;of&#32;type&#32;arguments}, compute the type arguments of the specified target Java class or interface.
 	 *
 	 * @param target
-	 *        A Java class or interface (encountered during processing of the
-	 *        reference type's ancestry).
+	 *        A Java class or interface (encountered during processing of the reference type's ancestry).
 	 * @param vars
-	 *        The reference type's type variable map. Indices are specified
-	 *        relative to ...
+	 *        The reference type's type variable map. Indices are specified relative to ...
 	 * @param typeArgs
 	 *        The reference type's type arguments.
 	 * @param canon
-	 *        The current {@linkplain Canon canon}, used to identify recursive
-	 *        type dependency.
-	 * @return The type arguments of the target.
+	 *        The current {@linkplain Canon canon}, used to identify recursive type dependency.
+	 * @return
+	 * The type arguments of the target.
 	 */
 	private static
 	A_Tuple computeTypeArgumentsOf (
@@ -1306,12 +1263,11 @@ extends TypeDescriptor
 	 * @param supertype
 	 *        A parameterized direct supertype of the target.
 	 * @param typeArgs
-	 *        The type parameters of the target. These may be any {@linkplain
-	 *        TypeDescriptor Avail types}, not just pojo types.
+	 *        The type parameters of the target. These may be any {@linkplain TypeDescriptor Avail&#32;types}, not just pojo types.
 	 * @param canon
-	 *        The current {@linkplain Canon canon}, used to identify recursive
-	 *        type dependency.
-	 * @return The type parameters of the specified supertype.
+	 *        The current {@linkplain Canon canon}, used to identify recursive type dependency.
+	 * @return
+	 * The type parameters of the specified supertype.
 	 */
 	private static A_Tuple computeSupertypeParameters (
 		final Class<?> target,
@@ -1351,18 +1307,16 @@ extends TypeDescriptor
 
 	/**
 	 * Recursively compute the complete ancestry (of Java types) of the
-	 * specified {@linkplain Class Java class or interface}.
+	 * specified {@linkplain Class Java&#32;class&#32;or&#32;interface}.
 	 *
 	 * @param target
 	 *        A Java class or interface.
 	 * @param typeArgs
-	 *        The type arguments. These may be any {@linkplain TypeDescriptor
-	 *        Avail types}, not just pojo types.
+	 *        The type arguments. These may be any {@linkplain TypeDescriptor Avail&#32;types}, not just pojo types.
 	 * @param ancestry
 	 *        The working partial {@linkplain MapDescriptor ancestry}.
 	 * @param canon
-	 *        The current {@linkplain Canon canon}, used to deduplicate the
-	 *        collection of ancestors.
+	 *        The current {@linkplain Canon canon}, used to deduplicate the collection of ancestors.
 	 */
 	private static void computeAncestry (
 		final Class<?> target,
@@ -1413,15 +1367,14 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Create a {@linkplain PojoTypeDescriptor pojo type} from the
-	 * specified {@linkplain Class Java class} and type arguments.
+	 * Create a {@linkplain PojoTypeDescriptor pojo type} from the specified {@linkplain Class Java&#32;class} and type arguments.
 	 *
 	 * @param target
 	 *        A Java class or interface.
 	 * @param typeArgs
-	 *        The type arguments. These may be any {@linkplain TypeDescriptor
-	 *        Avail types}, not just pojo types.
-	 * @return The requested pojo type.
+	 *        The type arguments. These may be any {@linkplain TypeDescriptor Avail&#32;types}, not just pojo types.
+	 * @return
+	 * The requested pojo type.
 	 */
 	public static AvailObject pojoTypeForClassWithTypeArguments (
 		final Class<?> target,
@@ -1431,12 +1384,12 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Create a {@linkplain PojoTypeDescriptor pojo type} for the
-	 * specified {@linkplain Class Java class}.
+	 * Create a {@linkplain PojoTypeDescriptor pojo&#32;type} for the specified {@linkplain Class Java&#32;class}.
 	 *
 	 * @param target
 	 *        A Java class or interface.
-	 * @return The requested pojo type.
+	 * @return
+	 * The requested pojo type.
 	 */
 	public static AvailObject pojoTypeForClass (final Class<?> target)
 	{
@@ -1456,19 +1409,14 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Create a {@linkplain PojoTypeDescriptor pojo type} that
-	 * represents an array of the specified {@linkplain TypeDescriptor element
-	 * type}.
+	 * Create a {@linkplain PojoTypeDescriptor pojo&#32;type} that represents an array of the specified {@linkplain TypeDescriptor element&#32;type}.
 	 *
 	 * @param elementType
-	 *        The element type. This may be any Avail type, not just a pojo
-	 *        type.
+	 *        The element type. This may be any Avail type, not just a pojo type.
 	 * @param sizeRange
-	 *        An {@linkplain IntegerRangeTypeDescriptor integer range} that
-	 *        specifies all allowed array sizes for instances of this type. This
-	 *        must be a subtype of {@linkplain
-	 *        IntegerRangeTypeDescriptor#wholeNumbers() whole number}.
-	 * @return The requested pojo type.
+	 *        An {@linkplain IntegerRangeTypeDescriptor integer range} that specifies all allowed array sizes for instances of this type. This must be a subtype of {@linkplain IntegerRangeTypeDescriptor#wholeNumbers() whole&#32;number}.
+	 * @return
+	 * The requested pojo type.
 	 */
 	public static AvailObject pojoArrayType (
 		final A_Type elementType,
@@ -1479,15 +1427,10 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Create a {@link FusedPojoTypeDescriptor fused pojo type} based on the
-	 * given complete parameterization map.  Each ancestor class and interface
-	 * occurs as a key, with that class or interface's parameter tuple as the
-	 * value.
+	 * Create a {@link FusedPojoTypeDescriptor fused&#32;pojo&#32;type} based on the given complete parameterization map.  Each ancestor class and interface occurs as a key, with that class or interface's parameter tuple as the value.
 	 *
 	 * @param ancestorMap
-	 *            A map from {@link RawPojoDescriptor#equalityPojo(Object)
-	 *            equality-wrapped} {@link RawPojoDescriptor raw pojos} to their
-	 *            tuples of type parameters.
+	 *            A map from {@link RawPojoDescriptor#equalityPojo(Object) equality-wrapped} {@link RawPojoDescriptor raw&#32;pojos} to their tuples of type parameters.
 	 * @return
 	 *            A fused pojo type.
 	 */
@@ -1499,17 +1442,14 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Recursively compute the complete ancestry (of Java types) of the
-	 * specified {@linkplain Class Java class or interface}. Ignore type
-	 * parameters.
+	 * Recursively compute the complete ancestry (of Java types) of the specified {@linkplain Class Java&#32;class&#32;or&#32;interface}. Ignore type parameters.
 	 *
 	 * @param target
 	 *        A Java class or interface.
 	 * @param ancestors
 	 *        The {@linkplain Set set} of ancestors.
 	 * @param canon
-	 *        The current {@linkplain Canon canon}, used to deduplicate the
-	 *        collection of ancestors.
+	 *        The current {@linkplain Canon canon}, used to deduplicate the collection of ancestors.
 	 */
 	private static void computeUnparameterizedAncestry (
 		final Class<?> target,
@@ -1529,13 +1469,12 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Create a {@linkplain PojoTypeDescriptor pojo self type} for the
-	 * specified {@linkplain Class Java class}.
+	 * Create a {@linkplain PojoTypeDescriptor pojo&#32;self&#32;type} for the specified {@linkplain Class Java&#32;class}.
 	 *
 	 * @param target
-	 *        A Java class or interface. This element should define no type
-	 *        parameters.
-	 * @return The requested pojo type.
+	 *        A Java class or interface. This element should define no type parameters.
+	 * @return
+	 * The requested pojo type.
 	 */
 	public static AvailObject selfTypeForClass (
 		final Class<?> target)
