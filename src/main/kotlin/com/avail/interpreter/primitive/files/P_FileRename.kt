@@ -43,7 +43,7 @@ import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
-import com.avail.descriptor.types.FiberTypeDescriptor.fiberType
+import com.avail.descriptor.types.FiberTypeDescriptor.Companion.fiberType
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.bytes
 import com.avail.descriptor.types.TupleTypeDescriptor.stringType

@@ -45,7 +45,7 @@ import com.avail.descriptor.tuples.StringDescriptor.Companion.formatString
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
-import com.avail.descriptor.types.FiberTypeDescriptor.mostGeneralFiberType
+import com.avail.descriptor.types.FiberTypeDescriptor.Companion.mostGeneralFiberType
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionTypeReturning
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.bytes

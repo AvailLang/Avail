@@ -1,21 +1,21 @@
 /*
- * FiberTypeDescriptor.java
+ * FiberTypeDescriptor.kt
  * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
  *
- *  * Neither the name of the copyright holder nor the names of the contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -29,269 +29,223 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.descriptor.types
 
-package com.avail.descriptor.types;
-
-import com.avail.annotations.ThreadSafe;
-import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
-import com.avail.descriptor.fiber.FiberDescriptor;
-import com.avail.descriptor.fiber.FiberDescriptor.ExecutionState;
-import com.avail.descriptor.functions.ContinuationDescriptor;
-import com.avail.descriptor.functions.FunctionDescriptor;
-import com.avail.descriptor.representation.A_BasicObject;
-import com.avail.descriptor.representation.AvailObject;
-import com.avail.descriptor.representation.Mutability;
-import com.avail.serialization.SerializerOperation;
-import com.avail.utility.json.JSONWriter;
-
-import java.util.IdentityHashMap;
-
-import static com.avail.descriptor.types.FiberTypeDescriptor.ObjectSlots.RESULT_TYPE;
-import static com.avail.descriptor.types.InstanceMetaDescriptor.instanceMeta;
-import static com.avail.descriptor.types.TypeDescriptor.Types.TOP;
+import com.avail.annotations.ThreadSafe
+import com.avail.descriptor.fiber.FiberDescriptor
+import com.avail.descriptor.functions.ContinuationDescriptor
+import com.avail.descriptor.functions.FunctionDescriptor
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.ObjectSlotsEnum
+import com.avail.serialization.SerializerOperation
+import com.avail.utility.json.JSONWriter
+import java.util.*
 
 /**
- * {@code FiberTypeDescriptor} represents the type of a {@linkplain FiberDescriptor fiber}. A fiber is typed by the return type of the base {@linkplain FunctionDescriptor function} used to create it. Fiber types provide first-order type safety, but are not perfectly sincerely. Switching a fiber's {@linkplain ContinuationDescriptor continuation} to one whose base function's return type is incompatible with the fiber's type is a runtime error, and will be detected and reported when such a ({@linkplain ExecutionState#TERMINATED terminated}) fiber's result is requested.
+ * `FiberTypeDescriptor` represents the type of a [fiber][FiberDescriptor]. A
+ * fiber is typed by the return type of the base [function][FunctionDescriptor]
+ * used to create it. Fiber types provide first-order type safety, but are not
+ * perfectly sincerely. Switching a fiber's
+ * [continuation][ContinuationDescriptor] to one whose base function's return
+ * type is incompatible with the fiber's type is a runtime error, and will be
+ * detected and reported when such a
+ * ([terminated][FiberDescriptor.ExecutionState.TERMINATED]) fiber's result is
+ * requested.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @constructor
+ * Construct a new [FiberTypeDescriptor].
+ *
+ * @param mutability
+   * The [mutability][Mutability] of the new descriptor.
  */
-public final class FiberTypeDescriptor
-extends TypeDescriptor
+class FiberTypeDescriptor constructor (mutability: Mutability)
+	: TypeDescriptor(
+		mutability, TypeTag.FIBER_TYPE_TAG, ObjectSlots::class.java, null)
 {
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnumJava
+	enum class ObjectSlots : ObjectSlotsEnum
 	{
 		/**
-		 * The {@linkplain FiberTypeDescriptor fiber type}'s result type.
+		 * The [fiber type][FiberTypeDescriptor]'s result type.
 		 */
 		RESULT_TYPE
 	}
 
-	@Override
-	public A_Type o_ResultType (final AvailObject object)
-	{
-		return object.slot(RESULT_TYPE);
-	}
+	override fun o_ResultType(self: AvailObject): A_Type =
+		self.slot(ObjectSlots.RESULT_TYPE)
 
-	@Override
-	public boolean o_Equals (final AvailObject object, final A_BasicObject another)
-	{
-		return another.equalsFiberType(object);
-	}
+	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean =
+		another.equalsFiberType(self)
 
-	@Override
-	public boolean o_EqualsFiberType (final AvailObject object, final A_Type aFiberType)
-	{
-		return object.sameAddressAs(aFiberType)
-			|| aFiberType.resultType().equals(object.slot(RESULT_TYPE));
-	}
+	override fun o_EqualsFiberType(
+		self: AvailObject,
+		aFiberType: A_Type): Boolean =
+			(self.sameAddressAs(aFiberType)
+				|| aFiberType.resultType().equals(
+					self.slot(ObjectSlots.RESULT_TYPE)))
 
-	@Override
-	public int o_Hash (final AvailObject object)
-	{
-		return object.slot(RESULT_TYPE).hash() * 1307 ^ 0xBC084A71;
-	}
+	override fun o_Hash(self: AvailObject): Int =
+		self.slot(ObjectSlots.RESULT_TYPE).hash() * 1307 xor -0x43f7b58f
 
-	@Override
-	public boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
-	{
-		return aType.isSupertypeOfFiberType(object);
-	}
+	override fun o_IsSubtypeOf(self: AvailObject, aType: A_Type): Boolean =
+		aType.isSupertypeOfFiberType(self)
 
-	@Override
-	public boolean o_IsSupertypeOfFiberType (
-		final AvailObject object,
-		final A_Type aType)
-	{
-		return aType.resultType().isSubtypeOf(object.slot(RESULT_TYPE));
-	}
+	override fun o_IsSupertypeOfFiberType(
+		self: AvailObject,
+		aType: A_Type): Boolean =
+			aType.resultType().isSubtypeOf(self.slot(ObjectSlots.RESULT_TYPE))
 
-	@Override
-	public A_Type o_TypeIntersection (final AvailObject object, final A_Type another)
-	{
-		if (object.isSubtypeOf(another))
+	override fun o_TypeIntersection(self: AvailObject, another: A_Type): A_Type =
+		when
 		{
-			return object;
+			self.isSubtypeOf(another) -> self
+			else ->
+			{
+				if (another.isSubtypeOf(self)) another
+				else another.typeIntersectionOfFiberType(self)
+			}
 		}
-		if (another.isSubtypeOf(object))
+
+	override fun o_TypeIntersectionOfFiberType(
+		self: AvailObject,
+		aFiberType: A_Type): A_Type =
+			fiberType(
+				self.slot(ObjectSlots.RESULT_TYPE)
+					.typeIntersection(aFiberType.resultType()))
+
+	override fun o_TypeUnion(self: AvailObject, another: A_Type): A_Type =
+		when
 		{
-			return another;
+			self.isSubtypeOf(another) ->
+			{
+				another
+			}
+			else ->
+			{
+				if (another.isSubtypeOf(self)) self
+				else another.typeUnionOfFiberType(self)
+			}
 		}
-		return another.typeIntersectionOfFiberType(object);
-	}
 
-	@Override
-	public A_Type o_TypeIntersectionOfFiberType (
-		final AvailObject object,
-		final A_Type aType)
-	{
-		return fiberType(
-			object.slot(RESULT_TYPE).typeIntersection(aType.resultType()));
-	}
+	override fun o_TypeUnionOfFiberType(
+		self: AvailObject,
+		aFiberType: A_Type): A_Type =
+			fiberType(
+				self.slot(ObjectSlots.RESULT_TYPE)
+					.typeUnion(aFiberType.resultType()))
 
-	@Override
-	public A_Type o_TypeUnion (final AvailObject object, final A_Type another)
-	{
-		if (object.isSubtypeOf(another))
-		{
-			return another;
-		}
-		if (another.isSubtypeOf(object))
-		{
-			return object;
-		}
-		return another.typeUnionOfFiberType(object);
-	}
+	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
+		SerializerOperation.FIBER_TYPE
 
-	@Override
-	public A_Type o_TypeUnionOfFiberType (
-		final AvailObject object,
-		final A_Type aType)
+	override fun o_MakeImmutable(self: AvailObject): AvailObject
 	{
-		return fiberType(
-			object.slot(RESULT_TYPE).typeUnion(aType.resultType()));
-	}
-
-	@Override
-	public SerializerOperation o_SerializerOperation (
-		final AvailObject object)
-	{
-		return SerializerOperation.FIBER_TYPE;
-	}
-
-	@Override
-	public AvailObject o_MakeImmutable (final AvailObject object)
-	{
-		if (isMutable())
+		return if (isMutable)
 		{
 			// Make the object shared.
-			return object.makeShared();
+			self.makeShared()
 		}
-		return object;
+		else self
 	}
 
-	@Override
-	public void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	override fun o_WriteTo(self: AvailObject, writer: JSONWriter)
 	{
-		writer.startObject();
-		writer.write("kind");
-		writer.write("fiber type");
-		writer.write("result type");
-		object.slot(RESULT_TYPE).writeTo(writer);
-		writer.endObject();
+		writer.startObject()
+		writer.write("kind")
+		writer.write("fiber type")
+		writer.write("result type")
+		self.slot(ObjectSlots.RESULT_TYPE).writeTo(writer)
+		writer.endObject()
 	}
 
-	@Override
-	public void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter)
 	{
-		writer.startObject();
-		writer.write("kind");
-		writer.write("fiber type");
-		writer.write("result type");
-		object.slot(RESULT_TYPE).writeSummaryTo(writer);
-		writer.endObject();
+		writer.startObject()
+		writer.write("kind")
+		writer.write("fiber type")
+		writer.write("result type")
+		self.slot(ObjectSlots.RESULT_TYPE).writeSummaryTo(writer)
+		writer.endObject()
 	}
 
-	@Override
 	@ThreadSafe
-	public void printObjectOnAvoidingIndent (
-		final AvailObject object,
-		final StringBuilder builder,
-		final IdentityHashMap<A_BasicObject, Void> recursionMap,
-		final int indent)
+	override fun printObjectOnAvoidingIndent(
+		self: AvailObject,
+		builder: StringBuilder,
+		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		indent: Int)
 	{
-		builder.append("fiber→");
-		object.slot(RESULT_TYPE).printOnAvoidingIndent(
-			builder, recursionMap, indent);
+		builder.append("fiber→")
+		self.slot(ObjectSlots.RESULT_TYPE).printOnAvoidingIndent(
+			builder, recursionMap, indent)
 	}
 
-	/**
-	 * Construct a new {@link FiberTypeDescriptor}.
-	 *
-	 * @param mutability
-	 *        The {@linkplain Mutability mutability} of the new descriptor.
-	 */
-	public FiberTypeDescriptor (final Mutability mutability)
+	override fun mutable(): FiberTypeDescriptor = mutable
+
+	// There is no immutable variation.
+	override fun immutable(): FiberTypeDescriptor = shared
+
+	override fun shared(): FiberTypeDescriptor = shared
+
+	companion object
 	{
-		super(mutability, TypeTag.FIBER_TYPE_TAG, ObjectSlots.class, null);
-	}
+		/** The mutable [FiberTypeDescriptor].  */
+		val mutable = FiberTypeDescriptor(Mutability.MUTABLE)
 
-	/** The mutable {@link FiberTypeDescriptor}. */
-	static final FiberTypeDescriptor mutable =
-		new FiberTypeDescriptor(Mutability.MUTABLE);
+		/** The shared [FiberTypeDescriptor].  */
+		private val shared = FiberTypeDescriptor(Mutability.SHARED)
 
-	@Override
-	public FiberTypeDescriptor mutable ()
-	{
-		return mutable;
-	}
+		/**
+		 * Create a [fiber&#32;type][FiberTypeDescriptor] with the specified
+		 * [result type][AvailObject.resultType].
+		 *
+		 * @param resultType
+		 *   The result type.
+		 * @return
+		 *   A new fiber type.
+		 */
+		@JvmStatic
+		fun fiberType(resultType: A_Type): AvailObject
+		{
+			val result = mutable.create()
+			result.setSlot(ObjectSlots.RESULT_TYPE, resultType.makeImmutable())
+			result.makeShared()
+			return result
+		}
 
-	/** The shared {@link FiberTypeDescriptor}. */
-	private static final FiberTypeDescriptor shared =
-		new FiberTypeDescriptor(Mutability.SHARED);
+		/**
+		 * The most general [fiber type][FiberTypeDescriptor].
+		 */
+		private val mostGeneralFiberType: A_Type =
+			fiberType(Types.TOP.o()).makeShared()
 
-	@Override
-	public FiberTypeDescriptor immutable ()
-	{
-		// There is no immutable variation.
-		return shared;
-	}
+		/**
+		 * Answer the most general [fiber&#32;type][FiberDescriptor].
+		 *
+		 * @return
+		 *   The most general fiber type.
+		 */
+		@JvmStatic
+		fun mostGeneralFiberType(): A_Type = mostGeneralFiberType
 
-	@Override
-	public FiberTypeDescriptor shared ()
-	{
-		return shared;
-	}
+		/**
+		 * The metatype for all [fiber&#32;types][FiberTypeDescriptor].
+		 */
+		private val meta: A_Type =
+			InstanceMetaDescriptor.instanceMeta(mostGeneralFiberType).makeShared()
 
-	/**
-	 * Create a {@linkplain FiberTypeDescriptor fiber&#32;type} with the specified {@linkplain AvailObject#resultType() result type}.
-	 *
-	 * @param resultType
-	 *        The result type.
-	 * @return
-	 * A new fiber type.
-	 */
-	public static AvailObject fiberType (final A_Type resultType)
-	{
-		final AvailObject result = mutable.create();
-		result.setSlot(RESULT_TYPE, resultType.makeImmutable());
-		result.makeShared();
-		return result;
-	}
-
-	/**
-	 * The most general {@linkplain FiberTypeDescriptor fiber type}.
-	 */
-	private static final A_Type mostGeneralFiberType =
-		fiberType(TOP.o()).makeShared();
-
-	/**
-	 * Answer the most general {@linkplain FiberDescriptor fiber&#32;type}.
-	 *
-	 * @return
-	 * The most general fiber type.
-	 */
-	public static A_Type mostGeneralFiberType ()
-	{
-		return mostGeneralFiberType;
-	}
-
-	/**
-	 * The metatype for all {@linkplain FiberTypeDescriptor fiber&#32;types}.
-	 */
-	private static final A_Type meta =
-		instanceMeta(mostGeneralFiberType).makeShared();
-
-	/**
-	 * Answer the metatype for all {@linkplain FiberTypeDescriptor fiber&#32;types}.
-	 *
-	 * @return
-	 * The metatype for all fiber types.
-	 */
-	public static A_Type fiberMeta ()
-	{
-		return meta;
+		/**
+		 * Answer the metatype for all [fiber&#32;types][FiberTypeDescriptor].
+		 *
+		 * @return
+		 *   The metatype for all fiber types.
+		 */
+		@JvmStatic
+		fun fiberMeta(): A_Type = meta
 	}
 }

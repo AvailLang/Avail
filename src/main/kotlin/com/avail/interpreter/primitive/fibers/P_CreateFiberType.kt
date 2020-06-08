@@ -35,8 +35,8 @@ package com.avail.interpreter.primitive.fibers
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FiberTypeDescriptor
-import com.avail.descriptor.types.FiberTypeDescriptor.fiberMeta
-import com.avail.descriptor.types.FiberTypeDescriptor.fiberType
+import com.avail.descriptor.types.FiberTypeDescriptor.Companion.fiberMeta
+import com.avail.descriptor.types.FiberTypeDescriptor.Companion.fiberType
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.InstanceMetaDescriptor.topMeta
 import com.avail.interpreter.Primitive

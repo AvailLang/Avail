@@ -159,7 +159,7 @@ import com.avail.descriptor.types.CompiledCodeTypeDescriptor.Companion.compiledC
 import com.avail.descriptor.types.ContinuationTypeDescriptor.Companion.continuationTypeForFunctionType
 import com.avail.descriptor.types.EnumerationTypeDescriptor
 import com.avail.descriptor.types.FiberTypeDescriptor
-import com.avail.descriptor.types.FiberTypeDescriptor.fiberType
+import com.avail.descriptor.types.FiberTypeDescriptor.Companion.fiberType
 import com.avail.descriptor.types.FunctionTypeDescriptor
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionTypeFromArgumentTupleType
 import com.avail.descriptor.types.InstanceMetaDescriptor
