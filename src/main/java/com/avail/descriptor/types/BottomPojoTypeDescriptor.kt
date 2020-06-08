@@ -29,270 +29,186 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.descriptor.types
 
-package com.avail.descriptor.types;
-
-import com.avail.annotations.ThreadSafe;
-import com.avail.descriptor.maps.A_Map;
-import com.avail.descriptor.representation.A_BasicObject;
-import com.avail.descriptor.representation.AvailObject;
-import com.avail.descriptor.representation.Mutability;
-import com.avail.serialization.SerializerOperation;
-import com.avail.utility.json.JSONWriter;
-
-import javax.annotation.Nullable;
-import java.util.IdentityHashMap;
-
-import static com.avail.descriptor.pojos.RawPojoDescriptor.rawNullPojo;
-import static com.avail.descriptor.representation.NilDescriptor.nil;
+import com.avail.annotations.ThreadSafe
+import com.avail.descriptor.maps.A_Map
+import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.rawNullPojo
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.NilDescriptor
+import com.avail.serialization.SerializerOperation
+import com.avail.utility.json.JSONWriter
+import java.util.*
 
 /**
- * {@code BottomPojoTypeDescriptor} describes the type of Java {@code null}, which is implicitly an instance of every Java reference type. It therefore describes the most specific Java reference type. Its only proper subtype is Avail's own {@linkplain BottomTypeDescriptor bottom type}.
+ * `BottomPojoTypeDescriptor` describes the type of Java `null`, which is
+ * implicitly an instance of every Java reference type. It therefore describes
+ * the most specific Java reference type. Its only proper subtype is Avail's own
+ * [bottom type][BottomTypeDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @constructor
+ * Construct a new [BottomPojoTypeDescriptor].
+ *
+ * @param mutability
+ *   The [mutability][Mutability] of the new descriptor.
  */
-public final class BottomPojoTypeDescriptor
-extends PojoTypeDescriptor
+class BottomPojoTypeDescriptor constructor(mutability: Mutability)
+	: PojoTypeDescriptor(mutability, null, null)
 {
-	@Override
-	public boolean o_EqualsPojoBottomType (final AvailObject object)
-	{
-		return true;
-	}
+	override fun o_EqualsPojoBottomType(self: AvailObject): Boolean = true
 
-	@Override
-	public boolean o_EqualsPojoType (
-		final AvailObject object,
-		final AvailObject aPojoType)
-	{
-		return aPojoType.equalsPojoBottomType();
-	}
+	override fun o_EqualsPojoType(
+		self: AvailObject,
+		aPojoType: AvailObject): Boolean = aPojoType.equalsPojoBottomType()
 
-	@Override
-	public int o_Hash (final AvailObject object)
-	{
-		return 0x496FFE01;
-	}
+	override fun o_Hash(self: AvailObject): Int =  0x496FFE01
 
-	@Override
-	public boolean o_IsAbstract (final AvailObject object)
-	{
-		// Pojo bottom has an instance: null.
-		return false;
-	}
+	// Pojo bottom has an instance: null.
+	override fun o_IsAbstract(self: AvailObject): Boolean = false
 
-	@Override
-	public boolean o_IsPojoArrayType (final AvailObject object)
-	{
-		// Pojo bottom is the most specific pojo type, so it is also a pojo
-		// array type.
-		return true;
-	}
+	// Pojo bottom is the most specific pojo type, so it is also a pojo
+	// array type.
+	override fun o_IsPojoArrayType(self: AvailObject): Boolean = true
 
-	@Override
-	public boolean o_IsPojoFusedType (final AvailObject object)
-	{
-		// Pojo bottom is the intersection of any two unrelated pojo types, so
-		// it is a pojo fusion type.
-		return true;
-	}
+	// Pojo bottom is the intersection of any two unrelated pojo types, so
+	// it is a pojo fusion type.
+	override fun o_IsPojoFusedType(self: AvailObject): Boolean = true
 
-	@Override
-	public boolean o_IsSubtypeOf (
-		final AvailObject object,
-		final A_Type aPojoType)
-	{
-		return aPojoType.isSupertypeOfPojoBottomType(object);
-	}
+	override fun o_IsSubtypeOf(
+		self: AvailObject,
+		aType: A_Type): Boolean = aType.isSupertypeOfPojoBottomType(self)
 
-	@Override
-	public boolean o_IsSupertypeOfPojoType (
-		final AvailObject object,
-		final A_Type aPojoType)
-	{
-		return aPojoType.equalsPojoBottomType();
-	}
+	override fun o_IsSupertypeOfPojoType(
+		self: AvailObject,
+		aPojoType: A_Type): Boolean = aPojoType.equalsPojoBottomType()
 
-	@Override
-	public AvailObject o_JavaAncestors (final AvailObject object)
-	{
-		return nil;
-	}
+	override fun o_JavaAncestors(self: AvailObject): AvailObject =
+		NilDescriptor.nil
 
-	@Override
-	public AvailObject o_JavaClass (final AvailObject object)
-	{
-		return rawNullPojo();
-	}
+	override fun o_JavaClass(self: AvailObject): AvailObject = rawNullPojo()
 
-	@Override
-	public AvailObject o_MakeImmutable (final AvailObject object)
+	override fun o_MakeImmutable(self: AvailObject): AvailObject
 	{
-		if (isMutable())
+		if (isMutable)
 		{
 			// There is no immutable descriptor.
-			object.setDescriptor(shared);
+			self.setDescriptor(shared)
 		}
-		return object;
+		return self
 	}
 
-	@Override
-	public AvailObject o_MakeShared (final AvailObject object)
+	override fun o_MakeShared(self: AvailObject): AvailObject
 	{
-		if (!isShared())
+		if (!isShared)
 		{
-			object.setDescriptor(shared);
+			self.setDescriptor(shared)
 		}
-		return object;
+		return self
 	}
 
-	@Override
-	public A_Type o_PojoSelfType (final AvailObject object)
+	// The pojo bottom type is its own self type.
+	override fun o_PojoSelfType(self: AvailObject): A_Type = self
+
+	override fun o_MarshalToJava(
+		self: AvailObject,
+		classHint: Class<*>?): Any? = Any::class.java
+
+	override fun o_TypeIntersectionOfPojoType(
+		self: AvailObject,
+		aPojoType: A_Type): A_Type = self
+
+	override fun o_TypeIntersectionOfPojoFusedType(
+		self: AvailObject,
+		aFusedPojoType: A_Type): A_Type
 	{
-		// The pojo bottom type is its own self type.
-		return object;
+		throw unsupportedOperationException()
 	}
 
-	@Override
-	public Object o_MarshalToJava (
-		final AvailObject object,
-		final @Nullable Class<?> ignoredClassHint)
+	override fun o_TypeIntersectionOfPojoUnfusedType(
+		self: AvailObject,
+		anUnfusedPojoType: A_Type): A_Type
 	{
-		return Object.class;
+		throw unsupportedOperationException()
 	}
 
-	@Override
-	public A_Type o_TypeIntersectionOfPojoType (
-		final AvailObject object,
-		final A_Type aPojoType)
+	override fun o_TypeUnionOfPojoType(
+		self: AvailObject,
+		aPojoType: A_Type): A_Type = aPojoType
+
+	override fun o_TypeUnionOfPojoFusedType(
+		self: AvailObject,
+		aFusedPojoType: A_Type): A_Type
 	{
-		return object;
+		throw unsupportedOperationException()
 	}
 
-	@Override
-	public A_Type o_TypeIntersectionOfPojoFusedType (
-		final AvailObject object,
-		final A_Type aFusedPojoType)
+	override fun o_TypeUnionOfPojoUnfusedType(
+		self: AvailObject,
+		anUnfusedPojoType: A_Type): A_Type
 	{
-		throw unsupportedOperationException();
+		throw unsupportedOperationException()
 	}
 
-	@Override
-	public A_Type o_TypeIntersectionOfPojoUnfusedType (
-		final AvailObject object,
-		final A_Type anUnfusedPojoType)
+	override fun o_TypeVariables(self: AvailObject): A_Map
 	{
-		throw unsupportedOperationException();
+		throw unsupportedOperationException()
 	}
 
-	@Override
-	public A_Type o_TypeUnionOfPojoType (
-		final AvailObject object,
-		final A_Type aPojoType)
+	@ThreadSafe
+	override fun o_SerializerOperation(
+		self: AvailObject): SerializerOperation =
+			SerializerOperation.BOTTOM_POJO_TYPE
+
+	override fun printObjectOnAvoidingIndent(
+		self: AvailObject,
+		builder: StringBuilder,
+		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		indent: Int)
 	{
-		return aPojoType;
+		builder.append("pojo ⊥")
 	}
 
-	@Override
-	public A_Type o_TypeUnionOfPojoFusedType (
-		final AvailObject object,
-		final A_Type aFusedPojoType)
+	override fun o_WriteTo(self: AvailObject, writer: JSONWriter)
 	{
-		throw unsupportedOperationException();
+		writer.startObject()
+		writer.write("kind")
+		writer.write("pojo bottom type")
+		writer.endObject()
 	}
 
-	@Override
-	public A_Type o_TypeUnionOfPojoUnfusedType (
-		final AvailObject object,
-		final A_Type anUnfusedPojoType)
+	override fun mutable(): BottomPojoTypeDescriptor = mutable
+
+	// There is no immutable descriptor, just a shared one.
+	override fun immutable(): BottomPojoTypeDescriptor = shared
+
+	override fun shared(): BottomPojoTypeDescriptor =  shared
+
+	companion object
 	{
-		throw unsupportedOperationException();
-	}
+		/** The mutable [BottomPojoTypeDescriptor].  */
+		val mutable = BottomPojoTypeDescriptor(Mutability.MUTABLE)
 
-	@Override
-	public A_Map o_TypeVariables (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
+		/** The shared [BottomPojoTypeDescriptor].  */
+		private val shared = BottomPojoTypeDescriptor(Mutability.SHARED)
 
-	@Override @ThreadSafe
-	public SerializerOperation o_SerializerOperation (
-		final AvailObject object)
-	{
-		return SerializerOperation.BOTTOM_POJO_TYPE;
-	}
+		/**
+		 * The most specific [pojo type][PojoTypeDescriptor], other than
+		 * [bottom][BottomTypeDescriptor.bottom].
+		 */
+		private val pojoBottom: A_Type = mutable.create().makeShared()
 
-	@Override
-	public void printObjectOnAvoidingIndent (
-		final AvailObject object,
-		final StringBuilder builder,
-		final IdentityHashMap<A_BasicObject, Void> recursionMap,
-		final int indent)
-	{
-		builder.append("pojo ⊥");
-	}
-
-	@Override
-	public void o_WriteTo (final AvailObject object, final JSONWriter writer)
-	{
-		writer.startObject();
-		writer.write("kind");
-		writer.write("pojo bottom type");
-		writer.endObject();
-	}
-
-	/**
-	 * Construct a new {@link BottomPojoTypeDescriptor}.
-	 *
-	 * @param mutability
-	 *        The {@linkplain Mutability mutability} of the new descriptor.
-	 */
-	public BottomPojoTypeDescriptor (final Mutability mutability)
-	{
-		super(mutability, null, null);
-	}
-
-	/** The mutable {@link BottomPojoTypeDescriptor}. */
-	static final BottomPojoTypeDescriptor mutable =
-		new BottomPojoTypeDescriptor(Mutability.MUTABLE);
-
-	@Override
-	public BottomPojoTypeDescriptor mutable ()
-	{
-		return mutable;
-	}
-
-	/** The shared {@link BottomPojoTypeDescriptor}. */
-	private static final BottomPojoTypeDescriptor shared =
-		new BottomPojoTypeDescriptor(Mutability.SHARED);
-
-	@Override
-	public BottomPojoTypeDescriptor immutable ()
-	{
-		// There is no immutable descriptor, just a shared one.
-		return shared;
-	}
-
-	@Override
-	public BottomPojoTypeDescriptor shared ()
-	{
-		return shared;
-	}
-
-	/**
-	 * The most specific {@linkplain PojoTypeDescriptor pojo type}, other than {@linkplain BottomTypeDescriptor#bottom() bottom}.
-	 */
-	private static final A_Type pojoBottom =
-		BottomPojoTypeDescriptor.mutable.create().makeShared();
-
-	/**
-	 * Answer the most specific {@linkplain PojoTypeDescriptor pojo&#32;type}, other than {@linkplain BottomTypeDescriptor#bottom() bottom}.
-	 *
-	 * @return
-	 * The most specific pojo type.
-	 */
-	public static A_Type pojoBottom ()
-	{
-		return pojoBottom;
+		/**
+		 * Answer the most specific [pojo&amp;#32;type][PojoTypeDescriptor],
+		 * other than [bottom][BottomTypeDescriptor.bottom].
+		 *
+		 * @return
+		 *   The most specific pojo type.
+		 */
+		@JvmStatic
+		fun pojoBottom(): A_Type = pojoBottom
 	}
 }

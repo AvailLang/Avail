@@ -40,7 +40,7 @@ import com.avail.descriptor.representation.Descriptor
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.BottomPojoTypeDescriptor.pojoBottom
+import com.avail.descriptor.types.BottomPojoTypeDescriptor.Companion.pojoBottom
 import com.avail.descriptor.types.PojoTypeDescriptor
 import com.avail.descriptor.types.TypeTag
 import com.avail.utility.json.JSONWriter
