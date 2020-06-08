@@ -1,21 +1,21 @@
 /*
- * AbstractEnumerationTypeDescriptor.java
+ * AbstractEnumerationTypeDescriptor.kt
  * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
  *
- *  * Neither the name of the copyright holder nor the names of the contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -29,831 +29,549 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.descriptor.types
 
-package com.avail.descriptor.types;
-
-import com.avail.descriptor.atoms.A_Atom;
-import com.avail.descriptor.maps.A_Map;
-import com.avail.descriptor.numbers.A_Number;
-import com.avail.descriptor.representation.A_BasicObject;
-import com.avail.descriptor.representation.AvailObject;
-import com.avail.descriptor.representation.IntegerSlotsEnum;
-import com.avail.descriptor.representation.Mutability;
-import com.avail.descriptor.representation.ObjectSlotsEnum;
-import com.avail.descriptor.sets.A_Set;
-import com.avail.descriptor.sets.SetDescriptor;
-import com.avail.descriptor.tuples.A_Tuple;
-import com.avail.descriptor.types.TypeDescriptor.Types;
-import com.avail.interpreter.levelTwo.operand.TypeRestriction;
-import com.avail.optimizer.jvm.CheckedMethod;
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-
-import javax.annotation.Nullable;
-import java.util.Iterator;
-import java.util.List;
-
-import static com.avail.descriptor.types.BottomTypeDescriptor.bottom;
-import static com.avail.descriptor.types.InstanceMetaDescriptor.instanceMeta;
-import static com.avail.descriptor.types.InstanceTypeDescriptor.instanceType;
-import static com.avail.descriptor.types.TypeDescriptor.Types.ANY;
-import static com.avail.optimizer.jvm.CheckedMethod.staticMethod;
+import com.avail.descriptor.atoms.A_Atom
+import com.avail.descriptor.maps.A_Map
+import com.avail.descriptor.numbers.A_Number
+import com.avail.descriptor.representation.*
+import com.avail.descriptor.sets.A_Set
+import com.avail.descriptor.sets.SetDescriptor
+import com.avail.descriptor.tuples.A_Tuple
+import com.avail.interpreter.levelTwo.operand.TypeRestriction
+import com.avail.optimizer.jvm.CheckedMethod
+import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 
 /**
- * I represent the abstract concept of enumerations. In particular, every object has a type which is effectively a singular enumeration, which has as instances that object plus any subtypes if that object is a {@linkplain TypeDescriptor type}). Such a singular enumeration is always represented via the subclass {@link InstanceTypeDescriptor}. Enumerations with multiple elements are always represented with an {@link EnumerationTypeDescriptor}. Any object present in this element set (or a subtype of an element that's a type) is considered an instance of this enumeration. The enumeration with no elements (there's only one) uses {@link BottomTypeDescriptor}.
+ * I represent the abstract concept of enumerations. In particular, every object
+ * has a type which is effectively a singular enumeration, which has as
+ * instances that object plus any subtypes if that object is a
+ * [type][TypeDescriptor]). Such a singular enumeration is always represented
+ * via the subclass [InstanceTypeDescriptor]. Enumerations with multiple
+ * elements are always represented with an [EnumerationTypeDescriptor]. Any
+ * object present in this element set (or a subtype of an element that's a type)
+ * is considered an instance of this enumeration. The enumeration with no
+ * elements (there's only one) uses [BottomTypeDescriptor].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * 
+ * @constructor
+ * Construct a new `AbstractEnumerationTypeDescriptor`.
+ *
+ * @param mutability
+ *   The [mutability][Mutability] of the new descriptor.
+ * @param typeTag
+ *   The TypeTag associated with objects having this descriptor.
+ * @param objectSlotsEnumClass
+ *   The Java [Class] which is a subclass of [ObjectSlotsEnum] and defines this
+ *   object's object slots layout, or `null` if there are no object slots.
+ * @param integerSlotsEnumClass
+ *   The Java [Class] which is a subclass of [IntegerSlotsEnum] and defines this
+ *   object's object slots layout, or null if there are no integer slots.
  */
-public abstract class AbstractEnumerationTypeDescriptor
-extends AbstractTypeDescriptor
+abstract class AbstractEnumerationTypeDescriptor protected constructor(
+	mutability: Mutability,
+	typeTag: TypeTag,
+	objectSlotsEnumClass: Class<out ObjectSlotsEnum>?,
+	integerSlotsEnumClass: Class<out IntegerSlotsEnum>?) : AbstractTypeDescriptor(
+		mutability,
+		typeTag,
+		objectSlotsEnumClass,
+		integerSlotsEnumClass)
 {
-	@Override
-	public abstract A_Number o_InstanceCount (final AvailObject object);
+	abstract override fun o_InstanceCount(self: AvailObject): A_Number
+	abstract override fun o_Instances(self: AvailObject): A_Set
+	abstract override fun o_Equals(
+		self: AvailObject,
+		another: A_BasicObject): Boolean
 
-	@Override
-	public abstract A_Set o_Instances (final AvailObject object);
-
-	@Override
-	public abstract boolean o_Equals (
-		final AvailObject object,
-		final A_BasicObject another);
-
-	@Override
-	public final boolean o_IsEnumeration (final AvailObject object)
-	{
-		return true;
-	}
+	override fun o_IsEnumeration(self: AvailObject): Boolean = true
 
 	/**
-	 * Compute the type intersection of the {@linkplain AvailObject object} which is an {@code AbstractEnumerationTypeDescriptor enumeration}, and the argument, which may or may not be an enumeration (but must be a {@linkplain TypeDescriptor type}).
+	 * Compute the type intersection of the [object][AvailObject] which is an
+	 * `AbstractEnumerationTypeDescriptor enumeration`, and the argument, which
+	 * may or may not be an enumeration (but must be a [type][TypeDescriptor]).
 	 *
-	 * @param object
-	 *        An enumeration.
+	 * @param self
+	 *   An enumeration.
 	 * @param another
-	 *        Another type.
+	 *   Another type.
 	 * @return
-	 * The most general type that is a subtype of both {@code object} and {@code another}.
+	 *   The most general type that is a subtype of both self and `another`.
 	 */
-	abstract A_Type computeIntersectionWith (
-		final AvailObject object,
-		final A_Type another);
+	protected abstract fun computeIntersectionWith(
+		self: AvailObject,
+		another: A_Type): A_Type
 
 	/**
-	 * Compute the type union of the {@linkplain AvailObject object} which is an {@code AbstractEnumerationTypeDescriptor enumeration}, and the argument, which may or may not be an enumeration (but must be a {@linkplain TypeDescriptor type}).
+	 * Compute the type union of the [object][AvailObject] which is an
+	 * `AbstractEnumerationTypeDescriptor enumeration`, and the argument, which
+	 * may or may not be an enumeration (but must be a [type][TypeDescriptor]).
 	 *
-	 * @param object
-	 *        An enumeration.
+	 * @param self
+	 *   An enumeration.
 	 * @param another
-	 *        Another type.
+	 *   Another type.
 	 * @return
-	 * The most general type that is a subtype of both {@code object} and {@code another}.
+	 *   The most general type that is a subtype of both self and `another`.
 	 */
-	abstract A_Type computeUnionWith (
-		final AvailObject object,
-		final A_Type another);
+	protected abstract fun computeUnionWith(
+		self: AvailObject, another: A_Type): A_Type
 
 	/**
-	 * Answer the kind (i.e., a type that's not an {@linkplain AbstractEnumerationTypeDescriptor enumeration}) that is closest to this type. Fail if the object is {@linkplain BottomTypeDescriptor bottom}.
+	 * Answer the kind (i.e., a type that's not an
+	 * [enumeration][AbstractEnumerationTypeDescriptor]) that is closest to this
+	 * type. Fail if the object is [bottom][BottomTypeDescriptor].
 	 *
-	 * @param object
-	 *        The enumeration.
+	 * @param self
+	 *   The enumeration.
 	 * @return
-	 * The closest supertype of the argument that isn't an enumeration.
+	 *   The closest supertype of the argument that isn't an enumeration.
 	 */
-	@Override
-	public abstract A_Type o_ComputeSuperkind (final AvailObject object);
+	abstract override fun o_ComputeSuperkind(self: AvailObject): A_Type
 
+	override fun o_TypeIntersection(self: AvailObject, another: A_Type): A_Type =
+		computeIntersectionWith(self, another)
 
-	@Override
-	public final A_Type o_TypeIntersection (
-		final AvailObject object,
-		final A_Type another)
+	override fun o_TypeIntersectionOfContinuationType(
+		self: AvailObject,
+		aContinuationType: A_Type): A_Type =
+			computeIntersectionWith(self, aContinuationType)
+
+	override fun o_TypeIntersectionOfCompiledCodeType(
+		self: AvailObject,
+		aCompiledCodeType: A_Type): A_Type =
+			computeIntersectionWith(self, aCompiledCodeType)
+
+	override fun o_TypeIntersectionOfFiberType(
+		self: AvailObject,
+		aFiberType: A_Type): A_Type = computeIntersectionWith(self, aFiberType)
+
+	override fun o_TypeIntersectionOfFunctionType(
+		self: AvailObject,
+		aFunctionType: A_Type): A_Type =
+			computeIntersectionWith(self, aFunctionType)
+
+	override fun o_TypeIntersectionOfIntegerRangeType(
+		self: AvailObject,
+		anIntegerRangeType: A_Type): A_Type =
+			computeIntersectionWith(self, anIntegerRangeType)
+
+	override fun o_TypeIntersectionOfTokenType(
+		self: AvailObject,
+		aTokenType: A_Type): A_Type =
+			computeIntersectionWith(self, aTokenType)
+
+	override fun o_TypeIntersectionOfLiteralTokenType(
+		self: AvailObject,
+		aLiteralTokenType: A_Type): A_Type =
+			computeIntersectionWith(self, aLiteralTokenType)
+
+	override fun o_TypeIntersectionOfListNodeType(
+		self: AvailObject,
+		aListNodeType: A_Type): A_Type =
+			computeIntersectionWith(self, aListNodeType)
+
+	override fun o_TypeIntersectionOfMapType(
+		self: AvailObject,
+		aMapType: A_Type): A_Type = computeIntersectionWith(self, aMapType)
+
+	override fun o_TypeIntersectionOfPhraseType(
+		self: AvailObject,
+		aPhraseType: A_Type): A_Type =
+			computeIntersectionWith(self, aPhraseType)
+
+	override fun o_TypeIntersectionOfPrimitiveTypeEnum(
+		self: AvailObject,
+		primitiveTypeEnum: TypeDescriptor.Types): A_Type =
+			computeIntersectionWith(self, primitiveTypeEnum.o())
+
+	override fun o_TypeIntersectionOfVariableType(
+		self: AvailObject,
+		aVariableType: A_Type): A_Type =
+			computeIntersectionWith(self, aVariableType)
+
+	override fun o_TypeIntersectionOfObjectType(
+		self: AvailObject,
+		anObjectType: AvailObject): A_Type =
+			computeIntersectionWith(self, anObjectType)
+
+	override fun o_TypeIntersectionOfPojoType(
+		self: AvailObject,
+		aPojoType: A_Type): A_Type =
+		computeIntersectionWith(self, aPojoType)
+
+	override fun o_TypeIntersectionOfSetType(
+		self: AvailObject,
+		aSetType: A_Type): A_Type =
+			computeIntersectionWith(self, aSetType)
+
+	override fun o_TypeIntersectionOfTupleType(
+		self: AvailObject,
+		aTupleType: A_Type): A_Type = computeIntersectionWith(self, aTupleType)
+
+	override fun o_TypeUnion(
+		self: AvailObject,
+		another: A_Type): A_Type = computeUnionWith(self, another)
+
+	override fun o_TypeUnionOfContinuationType(
+		self: AvailObject,
+		aContinuationType: A_Type): A_Type =
+			computeUnionWith(self, aContinuationType)
+
+	override fun o_TypeUnionOfCompiledCodeType(
+		self: AvailObject,
+		aCompiledCodeType: A_Type): A_Type =
+			computeUnionWith(self, aCompiledCodeType)
+
+	override fun o_TypeUnionOfTokenType(
+		self: AvailObject,
+		aTokenType: A_Type): A_Type = computeUnionWith(self, aTokenType)
+
+	override fun o_TypeUnionOfLiteralTokenType(
+		self: AvailObject,
+		aLiteralTokenType: A_Type): A_Type =
+			computeUnionWith(self, aLiteralTokenType)
+
+	override fun o_TypeUnionOfFiberType(
+		self: AvailObject,
+		aFiberType: A_Type): A_Type = computeUnionWith(self, aFiberType)
+
+	override fun o_TypeUnionOfFunctionType(
+		self: AvailObject,
+		aFunctionType: A_Type): A_Type = computeUnionWith(self, aFunctionType)
+
+	override fun o_TypeUnionOfVariableType(
+		self: AvailObject,
+		aVariableType: A_Type): A_Type = computeUnionWith(self, aVariableType)
+
+	override fun o_TypeUnionOfIntegerRangeType(
+		self: AvailObject,
+		anIntegerRangeType: A_Type): A_Type =
+			computeUnionWith(self, anIntegerRangeType)
+
+	override fun o_TypeUnionOfListNodeType(
+		self: AvailObject,
+		aListNodeType: A_Type): A_Type = computeUnionWith(self, aListNodeType)
+
+	override fun o_TypeUnionOfMapType(
+		self: AvailObject,
+		aMapType: A_Type): A_Type = computeUnionWith(self, aMapType)
+
+	override fun o_TypeUnionOfObjectType(
+		self: AvailObject,
+		anObjectType: AvailObject): A_Type =
+			computeUnionWith(self, anObjectType)
+
+	override fun o_TypeUnionOfPhraseType(
+		self: AvailObject,
+		aPhraseType: A_Type): A_Type = computeUnionWith(self, aPhraseType)
+
+	override fun o_TypeUnionOfPojoType(
+		self: AvailObject,
+		aPojoType: A_Type): A_Type = computeUnionWith(self, aPojoType)
+
+	override fun o_TypeUnionOfPrimitiveTypeEnum(
+		self: AvailObject,
+		primitiveTypeEnum: TypeDescriptor.Types): A_Type =
+			computeUnionWith(self, primitiveTypeEnum.o())
+
+	override fun o_TypeUnionOfSetType(
+		self: AvailObject,
+		aSetType: A_Type): A_Type = computeUnionWith(self, aSetType)
+
+	override fun o_TypeUnionOfTupleType(
+		self: AvailObject,
+		aTupleType: A_Type): A_Type = computeUnionWith(self, aTupleType)
+
+	abstract override fun o_IsInstanceOf(
+		self: AvailObject,
+		aType: A_Type): Boolean
+
+	override fun o_IsInstanceOfKind(
+		self: AvailObject,
+		aType: A_Type): Boolean = self.kind().isSubtypeOf(aType)
+
+	abstract override fun o_FieldTypeAt(
+		self: AvailObject,
+		field: A_Atom): A_Type
+
+	abstract override fun o_FieldTypeMap(self: AvailObject): A_Map
+
+	abstract override fun o_LowerBound(self: AvailObject): A_Number
+
+	abstract override fun o_LowerInclusive(self: AvailObject): Boolean
+
+	abstract override fun o_UpperBound(self: AvailObject): A_Number
+
+	abstract override fun o_UpperInclusive(self: AvailObject): Boolean
+
+	abstract override fun o_TypeAtIndex(
+		self: AvailObject,
+		index: Int): A_Type
+
+	abstract override fun o_UnionOfTypesAtThrough(
+		self: AvailObject,
+		startIndex: Int,
+		endIndex: Int): A_Type
+
+	abstract override fun o_DefaultType(self: AvailObject): A_Type
+
+	abstract override fun o_SizeRange(self: AvailObject): A_Type
+
+	abstract override fun o_TypeTuple(self: AvailObject): A_Tuple
+
+	abstract override fun o_TupleOfTypesFromTo(
+		self: AvailObject,
+		startIndex: Int,
+		endIndex: Int): A_Tuple
+
+	abstract override fun o_IsSubtypeOf(
+		self: AvailObject,
+		aType: A_Type): Boolean
+
+	abstract override fun o_IsIntegerRangeType(self: AvailObject): Boolean
+
+	abstract override fun o_IsLiteralTokenType(self: AvailObject): Boolean
+
+	abstract override fun o_IsMapType(self: AvailObject): Boolean
+
+	abstract override fun o_IsSetType(self: AvailObject): Boolean
+
+	abstract override fun o_IsTupleType(self: AvailObject): Boolean
+
+	abstract override fun o_AcceptsArgTypesFromFunctionType(
+		self: AvailObject,
+		functionType: A_Type): Boolean
+
+	abstract override fun o_AcceptsListOfArgTypes(
+		self: AvailObject,
+		argTypes: List<A_Type>): Boolean
+
+	abstract override fun o_AcceptsListOfArgValues(
+		self: AvailObject,
+		argValues: List<A_BasicObject>): Boolean
+
+	abstract override fun o_AcceptsTupleOfArgTypes(
+		self: AvailObject,
+		argTypes: A_Tuple): Boolean
+
+	abstract override fun o_AcceptsTupleOfArguments(
+		self: AvailObject,
+		arguments: A_Tuple): Boolean
+
+	abstract override fun o_ArgsTupleType(self: AvailObject): A_Type
+
+	abstract override fun o_DeclaredExceptions(self: AvailObject): A_Set
+
+	abstract override fun o_FunctionType(self: AvailObject): A_Type
+
+	abstract override fun o_ContentType(self: AvailObject): A_Type
+
+	abstract override fun o_CouldEverBeInvokedWith(
+		self: AvailObject,
+		argRestrictions: List<TypeRestriction>): Boolean
+
+	override fun o_IsBetterRepresentationThan(
+		self: AvailObject,
+		anotherObject: A_BasicObject): Boolean = true
+
+	override fun o_RepresentationCostOfTupleType(self: AvailObject): Int = 0
+
+	override fun o_IsSupertypeOfFiberType(
+		self: AvailObject,
+		aType: A_Type): Boolean = false
+
+	override fun o_IsSupertypeOfFunctionType(
+		self: AvailObject,
+		aFunctionType: A_Type): Boolean = false
+
+	override fun o_IsSupertypeOfVariableType(
+		self: AvailObject,
+		aVariableType: A_Type): Boolean = false
+
+	override fun o_IsSupertypeOfContinuationType(
+		self: AvailObject,
+		aContinuationType: A_Type): Boolean = false
+
+	override fun o_IsSupertypeOfCompiledCodeType(
+		self: AvailObject,
+		aCompiledCodeType: A_Type): Boolean = false
+
+	override fun o_IsSupertypeOfListNodeType(
+		self: AvailObject,
+		aListNodeType: A_Type): Boolean = false
+
+	override fun o_IsSupertypeOfTokenType(
+		self: AvailObject,
+		aTokenType: A_Type): Boolean = false
+
+	override fun o_IsSupertypeOfLiteralTokenType(
+		self: AvailObject,
+		aLiteralTokenType: A_Type): Boolean = false
+
+	override fun o_IsSupertypeOfIntegerRangeType(
+		self: AvailObject,
+		anIntegerRangeType: A_Type): Boolean = false
+
+	override fun o_IsSupertypeOfMapType(
+		self: AvailObject,
+		aMapType: AvailObject): Boolean = false
+
+	override fun o_IsSupertypeOfObjectType(
+		self: AvailObject,
+		anObjectType: AvailObject): Boolean = false
+
+	override fun o_IsSupertypeOfPhraseType(
+		self: AvailObject,
+		aPhraseType: A_Type): Boolean = false
+
+	override fun o_IsSupertypeOfPojoType(
+		self: AvailObject,
+		aPojoType: A_Type): Boolean = false
+
+	override fun o_IsSupertypeOfPrimitiveTypeEnum(
+		self: AvailObject,
+		primitiveTypeEnum: TypeDescriptor.Types): Boolean = false
+
+	override fun o_IsSupertypeOfSetType(
+		self: AvailObject,
+		aSetType: A_Type): Boolean = false
+
+	override fun o_IsSupertypeOfTupleType(
+		self: AvailObject,
+		aTupleType: A_Type): Boolean = false
+
+	override fun o_IsSupertypeOfEnumerationType(
+		self: AvailObject,
+		anEnumerationType: A_Type): Boolean = false
+
+	override fun o_IsSupertypeOfPojoBottomType(
+		self: AvailObject,
+		aPojoType: A_Type): Boolean = false
+
+	abstract override fun o_KeyType(self: AvailObject): A_Type
+
+	abstract override fun o_Parent(self: AvailObject): A_BasicObject
+
+	abstract override fun o_ReturnType(self: AvailObject): A_Type
+
+	abstract override fun o_ValueType(self: AvailObject): A_Type
+
+	abstract override fun o_EnumerationIncludesInstance(
+		self: AvailObject,
+		potentialInstance: AvailObject): Boolean
+
+	abstract override fun o_ReadType(self: AvailObject): A_Type
+
+	abstract override fun o_WriteType(self: AvailObject): A_Type
+
+	abstract override fun o_ExpressionType(self: AvailObject): A_Type
+
+	override fun o_IsBottom(self: AvailObject): Boolean = false
+
+	// This type is literally composed of counterexamples.  Overridden in
+	// BottomTypeDescriptor.
+	override fun o_IsVacuousType(self: AvailObject): Boolean = false
+
+	override fun o_IsTop(self: AvailObject): Boolean = false
+
+	abstract override fun o_ComputeTypeTag(self: AvailObject): TypeTag
+
+	companion object
 	{
-		return computeIntersectionWith(object, another);
-	}
-
-	@Override
-	public final A_Type o_TypeIntersectionOfContinuationType (
-		final AvailObject object,
-		final A_Type aContinuationType)
-	{
-		return computeIntersectionWith(object, aContinuationType);
-	}
-
-	@Override
-	public final A_Type o_TypeIntersectionOfCompiledCodeType (
-		final AvailObject object,
-		final A_Type aCompiledCodeType)
-	{
-		return computeIntersectionWith(object, aCompiledCodeType);
-	}
-
-	@Override
-	public final A_Type o_TypeIntersectionOfFiberType (
-		final AvailObject object,
-		final A_Type aFiberType)
-	{
-		return computeIntersectionWith(object, aFiberType);
-	}
-
-	@Override
-	public final A_Type o_TypeIntersectionOfFunctionType (
-		final AvailObject object,
-		final A_Type aFunctionType)
-	{
-		return computeIntersectionWith(object, aFunctionType);
-	}
-
-	@Override
-	public final A_Type o_TypeIntersectionOfIntegerRangeType (
-		final AvailObject object,
-		final A_Type anIntegerRangeType)
-	{
-		return computeIntersectionWith(object, anIntegerRangeType);
-	}
-
-	@Override
-	public final A_Type o_TypeIntersectionOfTokenType (
-		final AvailObject object,
-		final A_Type aTokenType)
-	{
-		return computeIntersectionWith(object, aTokenType);
-	}
-
-	@Override
-	public final A_Type o_TypeIntersectionOfLiteralTokenType (
-		final AvailObject object,
-		final A_Type aLiteralTokenType)
-	{
-		return computeIntersectionWith(object, aLiteralTokenType);
-	}
-
-	@Override
-	public A_Type o_TypeIntersectionOfListNodeType (
-		final AvailObject object,
-		final A_Type aListNodeType)
-	{
-		return computeIntersectionWith(object, aListNodeType);
-	}
-
-	@Override
-	public final A_Type o_TypeIntersectionOfMapType (
-		final AvailObject object,
-		final A_Type aMapType)
-	{
-		return computeIntersectionWith(object, aMapType);
-	}
-
-	@Override
-	public final A_Type o_TypeIntersectionOfPhraseType (
-		final AvailObject object,
-		final A_Type aPhraseType)
-	{
-		return computeIntersectionWith(object, aPhraseType);
-	}
-
-	@Override
-	public final A_Type o_TypeIntersectionOfPrimitiveTypeEnum (
-		final AvailObject object,
-		final Types primitiveTypeEnum)
-	{
-		return computeIntersectionWith(object, primitiveTypeEnum.o());
-	}
-
-	@Override
-	public final A_Type o_TypeIntersectionOfVariableType (
-		final AvailObject object,
-		final A_Type aVariableType)
-	{
-		return computeIntersectionWith(object, aVariableType);
-	}
-
-	@Override
-	public final A_Type o_TypeIntersectionOfObjectType (
-		final AvailObject object,
-		final AvailObject anObjectType)
-	{
-		return computeIntersectionWith(object, anObjectType);
-	}
-
-	@Override
-	public final A_Type o_TypeIntersectionOfPojoType (
-		final AvailObject object,
-		final A_Type aPojoType)
-	{
-		return computeIntersectionWith(object, aPojoType);
-	}
-
-	@Override
-	public final A_Type o_TypeIntersectionOfSetType (
-		final AvailObject object,
-		final A_Type aSetType)
-	{
-		return computeIntersectionWith(object, aSetType);
-	}
-
-	@Override
-	public final A_Type o_TypeIntersectionOfTupleType (
-		final AvailObject object,
-		final A_Type aTupleType)
-	{
-		return computeIntersectionWith(object, aTupleType);
-	}
-
-	@Override
-	public final A_Type o_TypeUnion (
-		final AvailObject object,
-		final A_Type another)
-	{
-		return computeUnionWith(object, another);
-	}
-
-	@Override
-	public final A_Type o_TypeUnionOfContinuationType (
-		final AvailObject object,
-		final A_Type aContinuationType)
-	{
-		return computeUnionWith(object, aContinuationType);
-	}
-
-	@Override
-	public final A_Type o_TypeUnionOfCompiledCodeType (
-		final AvailObject object,
-		final A_Type aCompiledCodeType)
-	{
-		return computeUnionWith(object, aCompiledCodeType);
-	}
-
-	@Override
-	public final A_Type o_TypeUnionOfTokenType (
-		final AvailObject object,
-		final A_Type aTokenType)
-	{
-		return computeUnionWith(object, aTokenType);
-	}
-
-	@Override
-	public final A_Type o_TypeUnionOfLiteralTokenType (
-		final AvailObject object,
-		final A_Type aLiteralTokenType)
-	{
-		return computeUnionWith(object, aLiteralTokenType);
-	}
-
-	@Override
-	public final A_Type o_TypeUnionOfFiberType (
-		final AvailObject object,
-		final A_Type aFiberType)
-	{
-		return computeUnionWith(object, aFiberType);
-	}
-
-	@Override
-	public final A_Type o_TypeUnionOfFunctionType (
-		final AvailObject object,
-		final A_Type aFunctionType)
-	{
-		return computeUnionWith(object, aFunctionType);
-	}
-
-	@Override
-	public final A_Type o_TypeUnionOfVariableType (
-		final AvailObject object,
-		final A_Type aVariableType)
-	{
-		return computeUnionWith(object, aVariableType);
-	}
-
-	@Override
-	public final A_Type o_TypeUnionOfIntegerRangeType (
-		final AvailObject object,
-		final A_Type anIntegerRangeType)
-	{
-		return computeUnionWith(object, anIntegerRangeType);
-	}
-
-	@Override
-	public final A_Type o_TypeUnionOfListNodeType (
-		final AvailObject object,
-		final A_Type aListNodeType)
-	{
-		return computeUnionWith(object, aListNodeType);
-	}
-
-	@Override
-	public final A_Type o_TypeUnionOfMapType (
-		final AvailObject object,
-		final A_Type aMapType)
-	{
-		return computeUnionWith(object, aMapType);
-	}
-
-	@Override
-	public final A_Type o_TypeUnionOfObjectType (
-		final AvailObject object,
-		final AvailObject anObjectType)
-	{
-		return computeUnionWith(object, anObjectType);
-	}
-
-	@Override
-	public final A_Type o_TypeUnionOfPhraseType (
-		final AvailObject object,
-		final A_Type aPhraseType)
-	{
-		return computeUnionWith(object, aPhraseType);
-	}
-
-	@Override
-	public final A_Type o_TypeUnionOfPojoType (
-		final AvailObject object,
-		final A_Type aPojoType)
-	{
-		return computeUnionWith(object, aPojoType);
-	}
-
-	@Override
-	public final A_Type o_TypeUnionOfPrimitiveTypeEnum (
-		final AvailObject object,
-		final Types primitiveTypeEnum)
-	{
-		return computeUnionWith(object, primitiveTypeEnum.o());
-	}
-
-	@Override
-	public final A_Type o_TypeUnionOfSetType (
-		final AvailObject object,
-		final A_Type aSetType)
-	{
-		return computeUnionWith(object, aSetType);
-	}
-
-	@Override
-	public final A_Type o_TypeUnionOfTupleType (
-		final AvailObject object,
-		final A_Type aTupleType)
-	{
-		return computeUnionWith(object, aTupleType);
-	}
-
-	@Override
-	public abstract boolean o_IsInstanceOf (
-		final AvailObject object,
-		final A_Type aType);
-
-	@Override
-	public boolean o_IsInstanceOfKind (
-		final AvailObject object,
-		final A_Type aType)
-	{
-		return object.kind().isSubtypeOf(aType);
-	}
-
-	@Override
-	public abstract A_Type o_FieldTypeAt (
-		final AvailObject object,
-		final A_Atom field);
-
-	@Override
-	public abstract A_Map o_FieldTypeMap (
-		final AvailObject object);
-
-	@Override
-	public abstract A_Number o_LowerBound (
-		final AvailObject object);
-
-	@Override
-	public abstract boolean o_LowerInclusive (
-		final AvailObject object);
-
-	@Override
-	public abstract A_Number o_UpperBound (
-		final AvailObject object);
-
-	@Override
-	public abstract boolean o_UpperInclusive (
-		final AvailObject object);
-
-
-	@Override
-	public abstract A_Type o_TypeAtIndex (
-		final AvailObject object,
-		final int index);
-
-	@Override
-	public abstract A_Type o_UnionOfTypesAtThrough (
-		final AvailObject object,
-		final int startIndex,
-		final int endIndex);
-
-	@Override
-	public abstract A_Type o_DefaultType (
-		final AvailObject object);
-
-	@Override
-	public abstract A_Type o_SizeRange (
-		final AvailObject object);
-
-	@Override
-	public abstract A_Tuple o_TypeTuple (
-		final AvailObject object);
-
-	@Override
-	public abstract A_Tuple o_TupleOfTypesFromTo (
-		final AvailObject object,
-		final int startIndex,
-		final int endIndex);
-
-	@Override
-	public abstract boolean o_IsSubtypeOf (
-		final AvailObject object,
-		final A_Type aType);
-
-	@Override
-	public abstract boolean o_IsIntegerRangeType (
-		final AvailObject object);
-
-	@Override
-	public abstract boolean o_IsLiteralTokenType (
-		final AvailObject object);
-
-	@Override
-	public abstract boolean o_IsMapType (
-		final AvailObject object);
-
-	@Override
-	public abstract boolean o_IsSetType (
-		final AvailObject object);
-
-	@Override
-	public abstract boolean o_IsTupleType (
-		final AvailObject object);
-
-	@Override
-	public abstract boolean o_AcceptsArgTypesFromFunctionType (
-		final AvailObject object,
-		final A_Type functionType);
-
-	@Override
-	public abstract boolean o_AcceptsListOfArgTypes (
-		final AvailObject object,
-		final List<? extends A_Type> argTypes);
-
-	@Override
-	public abstract boolean o_AcceptsListOfArgValues (
-		final AvailObject object,
-		final List<? extends A_BasicObject> argValues);
-
-	@Override
-	public abstract boolean o_AcceptsTupleOfArgTypes (
-		final AvailObject object,
-		final A_Tuple argTypes);
-
-	@Override
-	public abstract boolean o_AcceptsTupleOfArguments (
-		final AvailObject object,
-		final A_Tuple arguments);
-
-	@Override
-	public abstract A_Type o_ArgsTupleType (
-		final AvailObject object);
-
-	@Override
-	public abstract A_Set o_DeclaredExceptions (
-		final AvailObject object);
-
-	@Override
-	public abstract A_Type o_FunctionType (
-		final AvailObject object);
-
-	@Override
-	public abstract A_Type o_ContentType (
-		final AvailObject object);
-
-	@Override
-	public abstract boolean o_CouldEverBeInvokedWith (
-		final AvailObject object,
-		final List<TypeRestriction> argRestrictions);
-
-	@Override
-	public boolean o_IsBetterRepresentationThan (
-		final AvailObject object,
-		final A_BasicObject anotherObject)
-	{
-		return true;
-	}
-
-	@Override
-	public final int o_RepresentationCostOfTupleType (
-		final AvailObject object)
-	{
-		return 0;
-	}
-
-	@Override
-	public final boolean o_IsSupertypeOfFiberType (
-		final AvailObject object,
-		final A_Type aFiberType)
-	{
-		return false;
-	}
-
-	@Override
-	public final boolean o_IsSupertypeOfFunctionType (
-		final AvailObject object,
-		final A_Type aFunctionType)
-	{
-		return false;
-	}
-
-	@Override
-	public final boolean o_IsSupertypeOfVariableType (
-		final AvailObject object,
-		final A_Type aVariableType)
-	{
-		return false;
-	}
-
-	@Override
-	public final boolean o_IsSupertypeOfContinuationType (
-		final AvailObject object,
-		final A_Type aContinuationType)
-	{
-		return false;
-	}
-
-	@Override
-	public final boolean o_IsSupertypeOfCompiledCodeType (
-		final AvailObject object,
-		final A_Type aCompiledCodeType)
-	{
-		return false;
-	}
-
-	@Override
-	public boolean o_IsSupertypeOfListNodeType (
-		final AvailObject object,
-		final A_Type aListNodeType)
-	{
-		return false;
-	}
-
-	@Override
-	public boolean o_IsSupertypeOfTokenType (
-		final AvailObject object,
-		final A_Type aTokenType)
-	{
-		return false;
-	}
-
-	@Override
-	public boolean o_IsSupertypeOfLiteralTokenType (
-		final AvailObject object,
-		final A_Type aLiteralTokenType)
-	{
-		return false;
-	}
-
-	@Override
-	public final boolean o_IsSupertypeOfIntegerRangeType (
-		final AvailObject object,
-		final A_Type anIntegerRangeType)
-	{
-		return false;
-	}
-
-	@Override
-	public final boolean o_IsSupertypeOfMapType (
-		final AvailObject object,
-		final AvailObject aMapType)
-	{
-		return false;
-	}
-
-	@Override
-	public final boolean o_IsSupertypeOfObjectType (
-		final AvailObject object,
-		final AvailObject anObjectType)
-	{
-		return false;
-	}
-
-	@Override
-	public boolean o_IsSupertypeOfPhraseType (
-		final AvailObject object,
-		final A_Type aPhraseType)
-	{
-		return false;
-	}
-
-	@Override
-	public boolean o_IsSupertypeOfPojoType (
-		final AvailObject object,
-		final A_Type aPojoType)
-	{
-		return false;
-	}
-
-	@Override
-	public final boolean o_IsSupertypeOfPrimitiveTypeEnum (
-		final AvailObject object,
-		final Types primitiveTypeEnum)
-	{
-		return false;
-	}
-
-	@Override
-	public final boolean o_IsSupertypeOfSetType (
-		final AvailObject object,
-		final A_Type aSetType)
-	{
-		return false;
-	}
-
-	@Override
-	public final boolean o_IsSupertypeOfTupleType (
-		final AvailObject object,
-		final A_Type aTupleType)
-	{
-		return false;
-	}
-
-	@Override
-	public final boolean o_IsSupertypeOfEnumerationType (
-		final AvailObject object,
-		final A_Type aTupleType)
-	{
-		return false;
-	}
-
-	@Override
-	public boolean o_IsSupertypeOfPojoBottomType (
-		final AvailObject object,
-		final A_Type aPojoType)
-	{
-		return false;
-	}
-
-	@Override
-	public abstract A_Type o_KeyType (
-		final AvailObject object);
-
-	@Override
-	public abstract A_BasicObject o_Parent (
-		final AvailObject object);
-
-	@Override
-	public abstract A_Type o_ReturnType (
-		final AvailObject object);
-
-	@Override
-	public abstract A_Type o_ValueType (
-		final AvailObject object);
-
-	@Override
-	public abstract boolean o_EnumerationIncludesInstance (
-		final AvailObject object,
-		final AvailObject potentialInstance);
-
-
-	@Override
-	public abstract A_Type o_ReadType (
-		final AvailObject object);
-
-	@Override
-	public abstract A_Type o_WriteType (
-		final AvailObject object);
-
-	@Override
-	public abstract A_Type o_ExpressionType (
-		final AvailObject object);
-
-	@Override
-	public boolean o_IsBottom (final AvailObject object)
-	{
-		return false;
-	}
-
-	@Override
-	public boolean o_IsVacuousType (final AvailObject object)
-	{
-		// This type is literally composed of counterexamples.  Overridden in
-		// BottomTypeDescriptor.
-		return false;
-	}
-
-	@Override
-	public boolean o_IsTop (final AvailObject object)
-	{
-		return false;
-	}
-
-	@Override
-	public abstract TypeTag o_ComputeTypeTag (final AvailObject object);
-
-	/**
-	 * Answer a new object instance of this descriptor based on the set of objects that will be considered instances of that type. Normalize the cases where the set has zero or one elements to use {@link BottomTypeDescriptor} and {@link InstanceTypeDescriptor}, respectively.
-	 *
-	 * <p>
-	 * Note that we also have to assure type union metainvariance, namely:
-	 * &forall;<sub>x,y&isin;T</sub>&thinsp;(T(x)&cup;T(y) = T(x&cup;y)).
-	 * Thus, if there are multiple instances which are types, use their type
-	 * union as a single member in place of them.
-	 * </p>
-	 *
-	 * @param instancesSet
-	 *            The {@linkplain SetDescriptor set} of objects which are to be instances of the new type.
-	 * @return
-	 * An {@link AvailObject} representing the type whose instances are those objects specified in the argument.
-	 */
-	public static A_Type enumerationWith (final A_Set instancesSet)
-	{
-		final int setSize = instancesSet.setSize();
-		if (setSize == 0)
+		/**
+		 * Answer a new object instance of this descriptor based on the set of
+		 * objects that will be considered instances of that type. Normalize the
+		 * cases where the set has zero or one elements to use
+		 * [BottomTypeDescriptor] and [InstanceTypeDescriptor], respectively.
+		 *
+		 * Note that we also have to assure type union metainvariance, namely:
+		 * <sub>x,yT</sub>(T(x)T(y) = T(xy)).
+		 * Thus, if there are multiple instances which are types, use their type
+		 * union as a single member in place of them.
+		 *
+		 *
+		 * @param instancesSet
+		 *   The [set][SetDescriptor] of objects which are to be instances of
+		 *   the new type.
+		 * @return
+		 *   An [AvailObject] representing the type whose instances are those
+		 *   objects specified in the argument.
+		 */
+		@JvmStatic
+		fun enumerationWith(instancesSet: A_Set): A_Type
 		{
-			return bottom();
-		}
-		int typeCount = 0;
-		for (final A_BasicObject element : instancesSet)
-		{
-			if (element.isType())
+			val setSize = instancesSet.setSize()
+			if (setSize == 0)
 			{
-				typeCount++;
+				return BottomTypeDescriptor.bottom()
 			}
-		}
-		if (typeCount == 0)
-		{
-			if (setSize == 1)
+			var typeCount = 0
+			for (element in instancesSet)
 			{
-				return instanceType(instancesSet.iterator().next());
+				if (element.isType)
+				{
+					typeCount++
+				}
 			}
-			return EnumerationTypeDescriptor.fromNormalizedSet(instancesSet);
-		}
-		if (typeCount == setSize)
-		{
-			// They're all types.
-			final Iterator<AvailObject> iterator = instancesSet.iterator();
-			A_Type typesUnion = iterator.next();
-			while (iterator.hasNext())
+			if (typeCount == 0)
 			{
-				typesUnion = typesUnion.typeUnion(iterator.next());
+				return if (setSize == 1)
+				{
+					InstanceTypeDescriptor.instanceType(
+						instancesSet.iterator().next())
+				}
+				else EnumerationTypeDescriptor.fromNormalizedSet(instancesSet)
 			}
-			return instanceMeta(typesUnion);
+			if (typeCount == setSize)
+			{
+				// They're all types.
+				val iterator: Iterator<AvailObject> = instancesSet.iterator()
+				var typesUnion: A_Type = iterator.next()
+				while (iterator.hasNext())
+				{
+					typesUnion = typesUnion.typeUnion(iterator.next())
+				}
+				return InstanceMetaDescriptor.instanceMeta(typesUnion)
+			}
+			// It's a mix of types and non-types.
+			return TypeDescriptor.Types.ANY.o()
 		}
-		// It's a mix of types and non-types.
-		return ANY.o();
-	}
 
-	/**
-	 * Answer a new object instance of this descriptor based on the single
-	 * object that will be considered an instance of that type. If a type is
-	 * specified, all subtypes will also be considered instances of that type.
-	 *
-	 * @param instance
-	 *            The {@linkplain AvailObject object} which is to be an instance of the new type.
-	 * @return
-	 * An {@link AvailObject} representing the type whose instance is the object specified in the argument.
-	 */
-	@ReferencedInGeneratedCode
-	public static A_Type instanceTypeOrMetaOn (final A_BasicObject instance)
-	{
-		if (instance.isType())
-		{
-			return instanceMeta((A_Type)instance);
-		}
-		return instanceType(instance);
-	}
+		/**
+		 * Answer a new object instance of this descriptor based on the single
+		 * object that will be considered an instance of that type. If a type is
+		 * specified, all subtypes will also be considered instances of that
+		 * type.
+		 *
+		 * @param instance
+		 *   The [object][AvailObject] which is to be an instance of the new
+		 *   type.
+		 * @return
+		 *   An [AvailObject] representing the type whose instance is the object
+		 *   specified in the argument.
+		 */
+		@JvmStatic
+		@ReferencedInGeneratedCode
+		fun instanceTypeOrMetaOn(instance: A_BasicObject): A_Type =
+			if (instance.isType)
+			{
+				InstanceMetaDescriptor.instanceMeta(instance as A_Type)
+			}
+			else
+			{
+				InstanceTypeDescriptor.instanceType(instance)
+			}
 
-	/**
-	 * The {@link CheckedMethod} for {@link #instanceTypeOrMetaOn(A_BasicObject)}.
-	 */
-	public static final CheckedMethod instanceTypeOrMetaOnMethod = staticMethod(
-		AbstractEnumerationTypeDescriptor.class,
-		"instanceTypeOrMetaOn",
-		A_Type.class,
-		A_BasicObject.class);
-
-	/**
-	 * Construct a new {@code AbstractEnumerationTypeDescriptor}.
-	 *
-	 * @param mutability
-	 *        The {@linkplain Mutability mutability} of the new descriptor.
-	 * @param typeTag
-	 *        The TypeTag associated with objects having this descriptor.
-	 * @param objectSlotsEnumClass
-	 *        The Java {@link Class} which is a subclass of {@link ObjectSlotsEnum} and defines this object's object slots layout, or `null` if there are no object slots.
-	 * @param integerSlotsEnumClass
-	 *        The Java {@link Class} which is a subclass of {@link IntegerSlotsEnum} and defines this object's object slots layout, or null if there are no integer slots.
-	 */
-	protected AbstractEnumerationTypeDescriptor (
-		final Mutability mutability,
-		final TypeTag typeTag,
-		final @Nullable Class<? extends ObjectSlotsEnum> objectSlotsEnumClass,
-		final @Nullable Class<? extends IntegerSlotsEnum> integerSlotsEnumClass)
-	{
-		super(
-			mutability,
-			typeTag,
-			objectSlotsEnumClass,
-			integerSlotsEnumClass);
+		/**
+		 * The [CheckedMethod] for [instanceTypeOrMetaOn].
+		 */
+		val instanceTypeOrMetaOnMethod = staticMethod(
+			AbstractEnumerationTypeDescriptor::class.java,
+			"instanceTypeOrMetaOn",
+			A_Type::class.java,
+			A_BasicObject::class.java)
 	}
 }

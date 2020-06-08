@@ -38,7 +38,7 @@ import com.avail.descriptor.tuples.IntegerIntervalTupleDescriptor
 import com.avail.descriptor.tuples.IntegerIntervalTupleDescriptor.Companion.createInterval
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.integers
 import com.avail.descriptor.types.TupleTypeDescriptor.zeroOrMoreOf

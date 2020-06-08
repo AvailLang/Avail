@@ -153,7 +153,7 @@ extends AbstractEnumerationTypeDescriptor
 	 * @return
 	 *        The most general type that is a subtype of both object and another.
 	 */
-	@Override A_Type computeIntersectionWith (
+	@Override protected A_Type computeIntersectionWith (
 		final AvailObject object,
 		final A_Type another)
 	{
@@ -192,7 +192,7 @@ extends AbstractEnumerationTypeDescriptor
 	 * @return
 	 *        The most specific type that is a supertype of both {@code object} and {@code another}.
 	 */
-	@Override A_Type computeUnionWith (
+	@Override protected A_Type computeUnionWith (
 		final AvailObject object,
 		final A_Type another)
 	{

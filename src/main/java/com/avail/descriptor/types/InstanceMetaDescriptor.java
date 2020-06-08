@@ -181,7 +181,7 @@ extends AbstractEnumerationTypeDescriptor
 	 *        The most specific type that is a supertype of both {@code object} and {@code another}.
 	 */
 	@Override
-	protected A_Type computeUnionWith (
+	public A_Type computeUnionWith (
 		final AvailObject object,
 		final A_Type another)
 	{
