@@ -41,9 +41,9 @@ import com.avail.utility.json.JSONWriter
 import java.util.*
 
 /**
- * A [compiled&amp;#32;code&amp;#32;type][CompiledCodeTypeDescriptor] is the
- * type for a [compiled&amp;#32;code&amp;#32;object][CompiledCodeDescriptor].
- * It contains a [function&amp;#32;type][FunctionTypeDescriptor] with which it
+ * A [compiled&#32;code&#32;type][CompiledCodeTypeDescriptor] is the
+ * type for a [compiled&#32;code&#32;object][CompiledCodeDescriptor].
+ * It contains a [function&#32;type][FunctionTypeDescriptor] with which it
  * covaries. That is, a compiled code type is a subtype of another if and only
  * if the first's related function type is a subtype of another's function type.
  *
@@ -70,7 +70,7 @@ class CompiledCodeTypeDescriptor private constructor(mutability: Mutability)
 	{
 		/**
 		 * The type of function that this
-		 * [compiled&amp;#32;code&amp;#32;type][CompiledCodeTypeDescriptor]
+		 * [compiled&#32;code&#32;type][CompiledCodeTypeDescriptor]
 		 * supports.  Compiled code types are contravariant with respect to the
 		 * function type's argument types and covariant with respect to the
 		 * function type's return type.
@@ -235,7 +235,7 @@ class CompiledCodeTypeDescriptor private constructor(mutability: Mutability)
 	{
 		/**
 		 * Create a compiled code type based on the passed
-		 * [function&amp;#32;type][FunctionTypeDescriptor]. Ignore the function
+		 * [function&#32;type][FunctionTypeDescriptor]. Ignore the function
 		 * type's exception set.
 		 *
 		 * @param functionType
@@ -286,7 +286,7 @@ class CompiledCodeTypeDescriptor private constructor(mutability: Mutability)
 		/**
 		 * The metatype for all compiled code types. In particular, it's just
 		 * the [instance type][InstanceTypeDescriptor] for the
-		 * [most&amp;#32;general&amp;#32;compiled&amp;#32;code&amp;#32;type][mostGeneralType].
+		 * [most&#32;general&#32;compiled&#32;code&#32;type][mostGeneralType].
 		 */
 		private val meta: A_Type = 
 			InstanceMetaDescriptor.instanceMeta(mostGeneralType).makeShared()

@@ -61,7 +61,7 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 interface A_Type : A_BasicObject
 {
 	/**
-	 * Answer whether the [argument&amp;#32;types][AvailObject.argsTupleType]
+	 * Answer whether the [argument&#32;types][AvailObject.argsTupleType]
 	 * supported by the specified [function type][FunctionTypeDescriptor] are
 	 * acceptable argument types for invoking a [function][FunctionDescriptor]
 	 * whose type is the receiver.
@@ -76,7 +76,7 @@ interface A_Type : A_BasicObject
 
 	/**
 	 * Answer whether these are acceptable
-	 * [argument&amp;#32;types][TypeDescriptor] for invoking a
+	 * [argument&#32;types][TypeDescriptor] for invoking a
 	 * [function][FunctionDescriptor] whose type is the receiver.
 	 *
 	 * @param argTypes
@@ -102,7 +102,7 @@ interface A_Type : A_BasicObject
 
 	/**
 	 * Answer whether these are acceptable
-	 * [argument&amp;#32;types][TypeDescriptor] for invoking a
+	 * [argument&#32;types][TypeDescriptor] for invoking a
 	 * [function][FunctionDescriptor] that is an instance of the receiver. There
 	 * may be more entries in the [tuple][TupleDescriptor] than are required by
 	 * the [function type][FunctionTypeDescriptor].
@@ -158,7 +158,7 @@ interface A_Type : A_BasicObject
 
 	/**
 	 * Also declared in [A_Phrase] for
-	 * [block&amp;#32;phrases][BlockPhraseDescriptor] and
+	 * [block&#32;phrases][BlockPhraseDescriptor] and
 	 * [send&#32;phrases][SendPhraseDescriptor].
 	 *
 	 * @return
@@ -408,7 +408,7 @@ interface A_Type : A_BasicObject
 
 	/**
 	 * Also declared in [A_Phrase] for
-	 * [block&amp;#32;phrases][BlockPhraseDescriptor] and [send
+	 * [block&#32;phrases][BlockPhraseDescriptor] and [send
 	 * phrases][SendPhraseDescriptor].
 	 * @return
 	 */
@@ -842,7 +842,7 @@ interface A_Type : A_BasicObject
 
 	/**
 	 * Answer whether the receiver, a type, is a supertype of the given
-	 * [list&amp;#32;phrase&amp;#32;type][ListPhraseTypeDescriptor].
+	 * [list&#32;phrase&#32;type][ListPhraseTypeDescriptor].
 	 *
 	 * @param aListNodeType
 	 *   The list phrase type.

@@ -1,21 +1,21 @@
 /*
- * EnumerationTypeDescriptor.java
+ * EnumerationTypeDescriptor.kt
  * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ * * Redistributions of source code must retain the above copyright notice, this
+ *    list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
  *
- *  * Neither the name of the copyright holder nor the names of the contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -29,78 +29,82 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.descriptor.types
 
-package com.avail.descriptor.types;
-
-import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
-import com.avail.descriptor.atoms.A_Atom;
-import com.avail.descriptor.atoms.AtomDescriptor;
-import com.avail.descriptor.maps.A_Map;
-import com.avail.descriptor.numbers.A_Number;
-import com.avail.descriptor.objects.ObjectDescriptor;
-import com.avail.descriptor.phrases.A_Phrase;
-import com.avail.descriptor.representation.A_BasicObject;
-import com.avail.descriptor.representation.AbstractSlotsEnum;
-import com.avail.descriptor.representation.AvailObject;
-import com.avail.descriptor.representation.Mutability;
-import com.avail.descriptor.representation.NilDescriptor;
-import com.avail.descriptor.sets.A_Set;
-import com.avail.descriptor.sets.SetDescriptor;
-import com.avail.descriptor.tuples.A_Tuple;
-import com.avail.interpreter.levelTwo.operand.TypeRestriction;
-import com.avail.serialization.SerializerOperation;
-import com.avail.utility.json.JSONWriter;
-
-import javax.annotation.Nullable;
-import java.util.EnumSet;
-import java.util.IdentityHashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
-import static com.avail.descriptor.atoms.AtomDescriptor.falseObject;
-import static com.avail.descriptor.atoms.AtomDescriptor.trueObject;
-import static com.avail.descriptor.numbers.IntegerDescriptor.fromInt;
-import static com.avail.descriptor.representation.AvailObject.multiplier;
-import static com.avail.descriptor.representation.NilDescriptor.nil;
-import static com.avail.descriptor.sets.SetDescriptor.emptySet;
-import static com.avail.descriptor.sets.SetDescriptor.set;
-import static com.avail.descriptor.types.BottomTypeDescriptor.bottom;
-import static com.avail.descriptor.types.BottomTypeDescriptor.bottomMeta;
-import static com.avail.descriptor.types.EnumerationTypeDescriptor.ObjectSlots.CACHED_SUPERKIND;
-import static com.avail.descriptor.types.EnumerationTypeDescriptor.ObjectSlots.INSTANCES;
-import static com.avail.descriptor.types.InstanceMetaDescriptor.topMeta;
-import static com.avail.descriptor.types.TypeDescriptor.Types.ANY;
+import com.avail.descriptor.atoms.A_Atom
+import com.avail.descriptor.atoms.AtomDescriptor
+import com.avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
+import com.avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
+import com.avail.descriptor.maps.A_Map
+import com.avail.descriptor.numbers.A_Number
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
+import com.avail.descriptor.objects.ObjectDescriptor
+import com.avail.descriptor.representation.*
+import com.avail.descriptor.sets.A_Set
+import com.avail.descriptor.sets.SetDescriptor
+import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
+import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
+import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottomMeta
+import com.avail.interpreter.levelTwo.operand.TypeRestriction
+import com.avail.serialization.SerializerOperation
+import com.avail.utility.json.JSONWriter
+import java.util.*
 
 /**
- * My instances are called <em>enumerations</em>. This descriptor family is
+ * My instances are called *enumerations*. This descriptor family is
  * used for enumerations with two or more instances (i.e., enumerations for
  * which two or more elements survive canonicalization). For the case of one
- * instance, see {@link InstanceTypeDescriptor}, and for the case of zero
- * instances, see {@link BottomTypeDescriptor}.
+ * instance, see [InstanceTypeDescriptor], and for the case of zero
+ * instances, see [BottomTypeDescriptor].
  *
- * An enumeration is created from a set of objects that are considered instances of the resulting type.  For example, Avail's {@linkplain #booleanType() boolean&#32;type} is simply an enumeration whose instances are {@linkplain AtomDescriptor atoms} representing {@linkplain AtomDescriptor#trueObject() true} and {@linkplain AtomDescriptor#falseObject() false}.  This flexibility allows an enumeration mechanism simply not available in other programming languages. In particular, it allows one to define enumerations whose memberships overlap.  The subtype relationship mimics the subset relationship of the enumerations' membership sets.
+ * An enumeration is created from a set of objects that are considered instances
+ * of the resulting type.  For example, Avail's
+ * [boolean&#32;type][booleanType] is simply an enumeration whose instances
+ * are [atoms][AtomDescriptor] representing [true][AtomDescriptor.trueObject]
+ * and [false][AtomDescriptor.falseObject].  This flexibility allows an
+ * enumeration mechanism simply not available in other programming languages. In
+ * particular, it allows one to define enumerations whose memberships overlap. 
+ * The subtype relationship mimics the subset relationship of the enumerations'
+ * membership sets.
  *
- * Because of metacovariance and the useful properties it bestows, enumerations that contain a type as a member (i.e., that type is an instance of the union) also automatically include all subtypes as members.  Thus, an enumeration whose instances are {5, "cheese", {@linkplain TupleTypeDescriptor#mostGeneralTupleType() tuple}} also has the type {@linkplain TupleTypeDescriptor#stringType() string} as a member (string being one of the many subtypes of tuple).  This condition ensures that enumerations satisfy metacovariance, which states that types' types vary the same way as the types: <span style="border-width:thin; border-style:solid; white-space: nowrap">&forall;<sub>x,y&isin;T</sub>&thinsp;(x&sube;y &rarr; T(x)&sube;T(y))</span>.
+ * Because of metacovariance and the useful properties it bestows, enumerations
+ * that contain a type as a member (i.e., that type is an instance of the union)
+ * also automatically include all subtypes as members.  Thus, an enumeration
+ * whose instances are {5, "cheese",
+ * [tuple][TupleTypeDescriptor.mostGeneralTupleType]} also has the type
+ * [string][TupleTypeDescriptor.stringType] as a member (string being one of the
+ * many subtypes of tuple).  This condition ensures that enumerations satisfy
+ * metacovariance, which states that types' types vary the same way as the
+ * types: <span style="border-width:thin; border-style:solid; white-space:
+ * nowrap"><sub>x,yT</sub>(xy  T(x)T(y))</span>.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @constructor
+ * Construct a new `EnumerationTypeDescriptor`.
+ *
+ * @param mutability
+ *   The [mutability][Mutability] of the new descriptor.
  */
-public final class EnumerationTypeDescriptor
-extends AbstractEnumerationTypeDescriptor
+class EnumerationTypeDescriptor private constructor(mutability: Mutability)
+	: AbstractEnumerationTypeDescriptor(
+		mutability, TypeTag.UNKNOWN_TAG, ObjectSlots::class.java, null)
 {
-	/** The layout of object slots for my instances. */
-	public enum ObjectSlots implements ObjectSlotsEnumJava
+	/** The layout of object slots for my instances.  */
+	enum class ObjectSlots : ObjectSlotsEnum
 	{
 		/**
-		 * The set of {@linkplain AvailObject objects} for which I am the
-		 * {@linkplain EnumerationTypeDescriptor enumeration}. If any of the
-		 * objects are {@linkplain TypeDescriptor types}, then their subtypes
+		 * The set of [objects][AvailObject] for which I am the
+		 * [enumeration][EnumerationTypeDescriptor]. If any of the
+		 * objects are [types][TypeDescriptor], then their subtypes
 		 * are also automatically members of this enumeration.
 		 */
 		INSTANCES,
 
 		/**
-		 * Either {@linkplain NilDescriptor#nil nil} or
+		 * Either [nil][NilDescriptor.nil] or
 		 * this enumeration's nearest superkind (i.e., the nearest type that
 		 * isn't a union}.
 		 */
@@ -108,117 +112,85 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	/**
-	 * Extract my set of instances. If any object is itself a type then all of
-	 * its subtypes are automatically instances, but they're not returned by
-	 * this method. Also, any object that's a type and has a supertype in this
-	 * set will have been removed during creation of this enumeration.
+	 * Answer my nearest superkind (the most specific supertype of me that isn't
+	 * also an [enumeration][AbstractEnumerationTypeDescriptor]). Do not acquire
+	 * the argument's monitor.
 	 *
-	 * @param object
-	 *            The enumeration for which to extract the instances.
+	 * @param self
+	 *   An enumeration.
 	 * @return
-	 * The instances of this enumeration.
+	 *   The kind closest to the given enumeration.
 	 */
-	static A_Set getInstances (final AvailObject object)
+	private fun rawGetSuperkind(self: AvailObject): A_Type
 	{
-		return object.slot(INSTANCES);
-	}
-
-	/**
-	 * Answer my nearest superkind (the most specific supertype of me that isn't also an {@linkplain AbstractEnumerationTypeDescriptor enumeration}). Do not acquire the argument's monitor.
-	 *
-	 * @param object
-	 *        An enumeration.
-	 * @return
-	 * The kind closest to the given enumeration.
-	 */
-	private A_Type rawGetSuperkind (final AvailObject object)
-	{
-		A_Type cached = object.slot(CACHED_SUPERKIND);
+		var cached: A_Type = self.slot(ObjectSlots.CACHED_SUPERKIND)
 		if (cached.equalsNil())
 		{
-			cached = bottom();
-			for (final A_BasicObject instance : getInstances(object))
+			cached = bottom()
+			for (instance in getInstances(self))
 			{
-				cached = cached.typeUnion(instance.kind());
-				if (cached.equals(ANY.o()))
+				cached = cached.typeUnion(instance.kind())
+				if (cached.equals(TypeDescriptor.Types.ANY.o()))
 				{
-					break;
+					break
 				}
 			}
-			if (isShared())
+			if (isShared)
 			{
-				cached = cached.traversed().makeShared();
+				cached = cached.traversed().makeShared()
 			}
-			object.setSlot(CACHED_SUPERKIND, cached);
+			self.setSlot(ObjectSlots.CACHED_SUPERKIND, cached)
 		}
-		return cached;
+		return cached
 	}
 
 	/**
 	 * Answer my nearest superkind (the most specific supertype of me that isn't
-	 * also an {@linkplain AbstractEnumerationTypeDescriptor enumeration}).
+	 * also an [enumeration][AbstractEnumerationTypeDescriptor]).
 	 *
-	 * @param object
-	 *        An enumeration.
+	 * @param self
+	 *   An enumeration.
 	 * @return
-	 * The kind closest to the given enumeration.
+	 *   The kind closest to the given enumeration.
 	 */
-	private A_Type getSuperkind (final AvailObject object)
+	private fun getSuperkind(self: AvailObject): A_Type
 	{
-		if (isShared())
+		if (isShared)
 		{
-			synchronized (object)
-			{
-				return rawGetSuperkind(object);
-			}
+			synchronized(self) { return rawGetSuperkind(self) }
 		}
-		return rawGetSuperkind(object);
+		return rawGetSuperkind(self)
 	}
 
-	@Override
-	protected boolean allowsImmutableToMutableReferenceInField (
-		final AbstractSlotsEnum e)
-	{
-		return e == CACHED_SUPERKIND;
-	}
+	override fun allowsImmutableToMutableReferenceInField(
+		e: AbstractSlotsEnum): Boolean = e === ObjectSlots.CACHED_SUPERKIND
 
-	@Override
-	public A_Type o_ComputeSuperkind (final AvailObject object)
-	{
-		return getSuperkind(object);
-	}
+	override fun o_ComputeSuperkind(self: AvailObject): A_Type =
+		getSuperkind(self)
 
-	@Override
-	public A_Number o_InstanceCount (final AvailObject object)
-	{
-		return fromInt(getInstances(object).setSize());
-	}
+	override fun o_InstanceCount(self: AvailObject): A_Number =
+		fromInt(getInstances(self).setSize())
 
-	@Override
-	public A_Set o_Instances (final AvailObject object)
-	{
-		return getInstances(object);
-	}
+	override fun o_Instances(self: AvailObject): A_Set = getInstances(self)
 
-	@Override
-	public void printObjectOnAvoidingIndent (
-		final AvailObject object,
-		final StringBuilder aStream,
-		final IdentityHashMap<A_BasicObject, Void> recursionMap,
-		final int indent)
+	override fun printObjectOnAvoidingIndent(
+		self: AvailObject,
+		builder: StringBuilder,
+		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		indent: Int)
 	{
 		// Print boolean specially.
-		if (object.equals(booleanType()))
+		if (self.equals(booleanType()))
 		{
-			aStream.append("boolean");
-			return;
+			builder.append("boolean")
+			return
 		}
 		// Default printing.
-		getInstances(object).printOnAvoidingIndent(
-			aStream,
+		getInstances(self).printOnAvoidingIndent(
+			builder,
 			recursionMap,
-			indent + 1);
-		aStream.append("ᵀ");
+			indent + 1)
+		builder.append("ᵀ")
 	}
 
 	/**
@@ -227,132 +199,124 @@ extends AbstractEnumerationTypeDescriptor
 	 * An instance type is only equal to another instance type, and only when
 	 * they refer to equal instances.
 	 */
-	@Override
-	public boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean
 	{
-		final boolean equal =
-			another.equalsEnumerationWithSet(getInstances(object));
+		val equal = another.equalsEnumerationWithSet(getInstances(self))
 		if (equal)
 		{
-			if (!isShared())
+			if (!isShared)
 			{
-				another.makeImmutable();
-				object.becomeIndirectionTo(another);
+				another.makeImmutable()
+				self.becomeIndirectionTo(another)
 			}
-			else if (!another.descriptor().isShared())
+			else if (!another.descriptor().isShared)
 			{
-				object.makeImmutable();
-				another.becomeIndirectionTo(object);
+				self.makeImmutable()
+				another.becomeIndirectionTo(self)
 			}
 		}
-		return equal;
+		return equal
 	}
 
-	@Override
-	public boolean o_EqualsEnumerationWithSet (
-		final AvailObject object,
-		final A_Set aSet)
-	{
-		return getInstances(object).equals(aSet);
-	}
+	override fun o_EqualsEnumerationWithSet(
+		self: AvailObject,
+		aSet: A_Set): Boolean =
+			getInstances(self).equals(aSet)
 
 	/**
-	 * The potentialInstance is a {@linkplain ObjectDescriptor user-defined&#32;object}. See if it is an instance of the object. It is an instance precisely when it is in object's set of {@linkplain ObjectSlots#INSTANCES instances}, or if it is a subtype of any type that occurs in the set of instances.
+	 * The potentialInstance is a [user-defined&#32;object][ObjectDescriptor].
+	 * See if it is an instance of the object. It is an instance precisely when
+	 * it is in object's set of [instances][ObjectSlots.INSTANCES], or if it is
+	 * a subtype of any type that occurs in the set of instances.
 	 */
-	@Override
-	public boolean o_HasObjectInstance (
-		final AvailObject object,
-		final AvailObject potentialInstance)
-	{
-		return getInstances(object).hasElement(potentialInstance);
-	}
+	override fun o_HasObjectInstance(
+		self: AvailObject,
+		potentialInstance: AvailObject): Boolean =
+			getInstances(self).hasElement(potentialInstance)
 
-	@Override
-	public int o_Hash (final AvailObject object)
-	{
-		return (getInstances(object).hash() ^ 0x15b5b059) * multiplier;
-	}
+	override fun o_Hash(self: AvailObject): Int =
+		(getInstances(self).hash() xor 0x15b5b059) * AvailObject.multiplier
 
-	@Override
-	public boolean o_IsInstanceOf (final AvailObject object, final A_Type aType)
+	override fun o_IsInstanceOf(self: AvailObject, aType: A_Type): Boolean
 	{
-		if (aType.isInstanceMeta())
+		if (aType.isInstanceMeta)
 		{
 			// I'm an enumeration of non-types, and aType is an instance meta
 			// (the only sort of metas that exist these days -- 2012.07.17).
 			// See if my instances comply with aType's instance (a type).
-			final AvailObject aTypeInstance = aType.instance();
-			final A_Set instanceSet = getInstances(object);
-			assert instanceSet.isSet();
-			if (aTypeInstance.isEnumeration())
+			val aTypeInstance = aType.instance()
+			val instanceSet = getInstances(self)
+			assert(instanceSet.isSet)
+			if (aTypeInstance.isEnumeration)
 			{
 				// Check the complete membership.
-				for (final AvailObject member : instanceSet)
+				for (member in instanceSet)
 				{
 					if (!aTypeInstance.enumerationIncludesInstance(member))
 					{
-						return false;
+						return false
 					}
 				}
-				return true;
+				return true
 			}
-			return instanceSet.setElementsAreAllInstancesOfKind(aTypeInstance);
+			return instanceSet.setElementsAreAllInstancesOfKind(aTypeInstance)
 		}
 		// I'm an enumeration of non-types, so I could only be an instance of a
 		// meta (already excluded), or of ANY or TOP.
-		return aType.isSupertypeOfPrimitiveTypeEnum(ANY);
+		return aType.isSupertypeOfPrimitiveTypeEnum(TypeDescriptor.Types.ANY)
 	}
 
 	/**
-	 * Compute the type intersection of the object, which is an {@linkplain EnumerationTypeDescriptor enumeration}, and the argument, which may or may not be an enumeration (but must be a {@linkplain TypeDescriptor ype}).
+	 * Compute the type intersection of the object, which is an
+	 * [enumeration][EnumerationTypeDescriptor], and the argument, which may or
+	 * may not be an enumeration (but must be a [ype][TypeDescriptor]).
 	 *
-	 * @param object
-	 *        An enumeration.
+	 * @param self
+	 *   An enumeration.
 	 * @param another
-	 *        Another type.
+	 *   Another type.
 	 * @return
-	 * The most general type that is a subtype of both {@code object} and {@code another}.
+	 *   The most general type that is a subtype of both self and `another`.
 	 */
-	@Override
-	protected A_Type computeIntersectionWith (
-		final AvailObject object,
-		final A_Type another)
+	override fun computeIntersectionWith(
+		self: AvailObject,
+		another: A_Type): A_Type
 	{
-		assert another.isType();
-		A_Set set = emptySet();
-		final A_Set elements = getInstances(object);
-		if (another.isEnumeration())
+		assert(another.isType)
+		var set = emptySet()
+		val elements = getInstances(self)
+		if (another.isEnumeration)
 		{
 			// Create a new enumeration containing all non-type elements that
 			// are simultaneously present in object and another, plus the type
 			// intersections of all pairs of types in the product of the sets.
 			// This should even correctly deal with bottom as an element.
-			final A_Set otherElements = another.instances();
-			A_Set myTypes = emptySet();
-			for (final AvailObject element : elements)
+			val otherElements = another.instances()
+			var myTypes = emptySet()
+			for (element in elements)
 			{
-				if (element.isType())
+				if (element.isType)
 				{
-					myTypes = myTypes.setWithElementCanDestroy(element, true);
+					myTypes = myTypes.setWithElementCanDestroy(element, true)
 				}
 				else if (otherElements.hasElement(element))
 				{
-					set = set.setWithElementCanDestroy(element, true);
+					set = set.setWithElementCanDestroy(element, true)
 				}
 			}
 			// We have the non-types now, so add the pair-wise intersection of
 			// the types.
 			if (myTypes.setSize() > 0)
 			{
-				for (final AvailObject anotherElement : otherElements)
+				for (anotherElement in otherElements)
 				{
-					if (anotherElement.isType())
+					if (anotherElement.isType)
 					{
-						for (final A_Type myType : myTypes)
+						for (myType in myTypes)
 						{
 							set = set.setWithElementCanDestroy(
 								anotherElement.typeIntersection(myType),
-								true);
+								true)
 						}
 					}
 				}
@@ -362,11 +326,11 @@ extends AbstractEnumerationTypeDescriptor
 		{
 			// Keep the instances that comply with another, which is not a union
 			// type.
-			for (final AvailObject element : getInstances(object))
+			for (element in getInstances(self))
 			{
 				if (element.isInstanceOfKind(another))
 				{
-					set = set.setWithElementCanDestroy(element, true);
+					set = set.setWithElementCanDestroy(element, true)
 				}
 			}
 		}
@@ -378,541 +342,427 @@ extends AbstractEnumerationTypeDescriptor
 			// One more thing:  The special case of another being bottom should
 			// not be treated as being a meta for our purposes, even though
 			// bottom technically is a meta.
-			if (object.isSubtypeOf(topMeta())
-				&& another.isSubtypeOf(topMeta())
-				&& !another.isBottom())
+			if (self.isSubtypeOf(InstanceMetaDescriptor.topMeta())
+				&& another.isSubtypeOf(InstanceMetaDescriptor.topMeta())
+				&& !another.isBottom)
 			{
-				return bottomMeta();
+				return bottomMeta()
 			}
 		}
-		return enumerationWith(set);
+		return enumerationWith(set)
 	}
 
 	/**
-	 * Compute the type union of the object, which is an {@linkplain EnumerationTypeDescriptor enumeration}, and the argument, which may or may not be an enumeration (but must be a {@linkplain TypeDescriptor type}).
+	 * Compute the type union of the object, which is an
+	 * [enumeration][EnumerationTypeDescriptor], and the argument, which may or
+	 * may not be an enumeration (but must be a [type][TypeDescriptor]).
 	 *
-	 * @param object
-	 *            An enumeration.
+	 * @param self
+	 *   An enumeration.
 	 * @param another
-	 *            Another type.
+	 *   Another type.
 	 * @return
-	 * The most general type that is a subtype of both {@code object} and {@code another}.
+	 *   The most general type that is a subtype of both self and `another`.
 	 */
-	@Override
-	protected A_Type computeUnionWith (
-		final AvailObject object,
-		final A_Type another)
+	override fun computeUnionWith(
+		self: AvailObject,
+		another: A_Type): A_Type
 	{
-		if (another.isEnumeration())
+		if (another.isEnumeration)
 		{
 			// Create a new enumeration containing all elements from both
 			// enumerations.
-			return
-				enumerationWith(getInstances(object).setUnionCanDestroy(
-					another.instances(),
-					false));
+			return enumerationWith(getInstances(self).setUnionCanDestroy(
+				another.instances(),
+				false))
 		}
 		// Go up to my nearest kind, then compute the union with the given kind.
-		A_Type union = another;
-		for (final A_BasicObject instance : getInstances(object))
+		var union = another
+		for (instance in getInstances(self))
 		{
-			union = union.typeUnion(instance.kind());
+			union = union.typeUnion(instance.kind())
 		}
-		return union;
+		return union
 	}
 
-	@Override
-	public A_Type o_FieldTypeAt (final AvailObject object, final A_Atom field)
-	{
-		return getSuperkind(object).fieldTypeAt(field);
-	}
+	override fun o_FieldTypeAt(self: AvailObject, field: A_Atom): A_Type =
+		getSuperkind(self).fieldTypeAt(field)
 
-	@Override
-	public A_Tuple o_FieldTypeTuple (final AvailObject object)
-	{
-		return getSuperkind(object).fieldTypeTuple();
-	}
+	override fun o_FieldTypeTuple(self: AvailObject): A_Tuple =
+		getSuperkind(self).fieldTypeTuple()
 
-	@Override
-	public A_Map o_FieldTypeMap (final AvailObject object)
-	{
-		return getSuperkind(object).fieldTypeMap();
-	}
+	override fun o_FieldTypeMap(self: AvailObject): A_Map =
+		getSuperkind(self).fieldTypeMap()
 
-	@Override
-	public A_Number o_LowerBound (final AvailObject object)
-	{
-		return getSuperkind(object).lowerBound();
-	}
+	override fun o_LowerBound(self: AvailObject): A_Number =
+		getSuperkind(self).lowerBound()
 
-	@Override
-	public boolean o_LowerInclusive (final AvailObject object)
-	{
-		return getSuperkind(object).lowerInclusive();
-	}
+	override fun o_LowerInclusive(self: AvailObject): Boolean =
+		getSuperkind(self).lowerInclusive()
 
-	@Override
-	public A_Number o_UpperBound (final AvailObject object)
-	{
-		return getSuperkind(object).upperBound();
-	}
+	override fun o_UpperBound(self: AvailObject): A_Number =
+		getSuperkind(self).upperBound()
 
-	@Override
-	public boolean o_UpperInclusive (final AvailObject object)
-	{
-		return getSuperkind(object).upperInclusive();
-	}
+	override fun o_UpperInclusive(self: AvailObject): Boolean =
+		getSuperkind(self).upperInclusive()
 
-	@Override
-	public boolean o_EnumerationIncludesInstance (
-		final AvailObject object,
-		final AvailObject potentialInstance)
-	{
-		return getInstances(object).hasElement(potentialInstance);
-	}
+	override fun o_EnumerationIncludesInstance(
+		self: AvailObject,
+		potentialInstance: AvailObject): Boolean =
+			getInstances(self).hasElement(potentialInstance)
 
-	@Override
-	public A_Type o_TypeAtIndex (
-		final AvailObject object,
-		final int index)
+
+	override fun o_TypeAtIndex(
+		self: AvailObject,
+		index: Int): A_Type
 	{
 		// This is only intended for a TupleType stand-in. Answer what type the
 		// given index would have in an object instance of me. Answer
 		// bottom if the index is out of bounds.
-		assert object.isTupleType();
-		return getSuperkind(object).typeAtIndex(index);
+		assert(self.isTupleType)
+		return getSuperkind(self).typeAtIndex(index)
 	}
 
-	@Override
-	public A_Type o_UnionOfTypesAtThrough (
-		final AvailObject object,
-		final int startIndex,
-		final int endIndex)
+	override fun o_UnionOfTypesAtThrough(
+		self: AvailObject,
+		startIndex: Int,
+		endIndex: Int): A_Type
 	{
 		// Answer the union of the types that object's instances could have in
 		// the given range of indices. Out-of-range indices are treated as
 		// bottom, which don't affect the union (unless all indices are out
 		// of range).
-		assert object.isTupleType();
-		return getSuperkind(object).unionOfTypesAtThrough(startIndex, endIndex);
+		assert(self.isTupleType)
+		return getSuperkind(self).unionOfTypesAtThrough(startIndex, endIndex)
 	}
 
-	@Override
-	public A_Type o_DefaultType (final AvailObject object)
+	override fun o_DefaultType(self: AvailObject): A_Type
 	{
-		assert object.isTupleType();
-		return getSuperkind(object).defaultType();
+		assert(self.isTupleType)
+		return getSuperkind(self).defaultType()
 	}
 
-	@Override
-	public A_Type o_SizeRange (final AvailObject object)
-	{
-		return getSuperkind(object).sizeRange();
-	}
+	override fun o_SizeRange(self: AvailObject): A_Type =
+		getSuperkind(self).sizeRange()
 
-	@Override
-	public A_Tuple o_TypeTuple (final AvailObject object)
-	{
-		return getSuperkind(object).typeTuple();
-	}
+	override fun o_TypeTuple(self: AvailObject): A_Tuple =
+		getSuperkind(self).typeTuple()
 
-	@Override
-	public boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
+	override fun o_IsSubtypeOf(self: AvailObject, aType: A_Type): Boolean
 	{
 		// Check if object (an enumeration) is a subtype of aType (should also
 		// be a type).  All members of me must also be instances of aType.
-		for (final A_BasicObject instance : getInstances(object))
+		for (instance in getInstances(self))
 		{
 			if (!instance.isInstanceOf(aType))
 			{
-				return false;
+				return false
 			}
 		}
-		return true;
+		return true
 	}
 
-	@Override
-	public boolean o_IsIntegerRangeType (final AvailObject object)
+	override fun o_IsIntegerRangeType(self: AvailObject): Boolean
 	{
-		for (final A_BasicObject instance : getInstances(object))
+		for (instance in getInstances(self))
 		{
-			if (!instance.isExtendedInteger())
+			if (!instance.isExtendedInteger)
 			{
-				return false;
+				return false
 			}
 		}
-		return true;
+		return true
 	}
 
-	@Override
-	public boolean o_IsLiteralTokenType (final AvailObject object)
+	override fun o_IsLiteralTokenType(self: AvailObject): Boolean
 	{
-		for (final AvailObject instance : getInstances(object))
+		for (instance in getInstances(self))
 		{
 			if (!instance.isLiteralToken())
 			{
-				return false;
+				return false
 			}
 		}
-		return true;
+		return true
 	}
 
-	@Override
-	public boolean o_IsMapType (final AvailObject object)
+	override fun o_IsMapType(self: AvailObject): Boolean
 	{
-		for (final A_BasicObject instance : getInstances(object))
+		for (instance in getInstances(self))
 		{
-			if (!instance.isMap())
+			if (!instance.isMap)
 			{
-				return false;
+				return false
 			}
 		}
-		return true;
+		return true
 	}
 
-	@Override
-	public boolean o_IsSetType (final AvailObject object)
+	override fun o_IsSetType(self: AvailObject): Boolean
 	{
-		for (final A_BasicObject instance : getInstances(object))
+		for (instance in getInstances(self))
 		{
-			if (!instance.isSet())
+			if (!instance.isSet)
 			{
-				return false;
+				return false
 			}
 		}
-		return true;
+		return true
 	}
 
-	@Override
-	public boolean o_IsTupleType (final AvailObject object)
+	override fun o_IsTupleType(self: AvailObject): Boolean
 	{
-		for (final A_BasicObject instance : getInstances(object))
+		for (instance in getInstances(self))
 		{
-			if (!instance.isTuple())
+			if (!instance.isTuple)
 			{
-				return false;
+				return false
 			}
 		}
-		return true;
+		return true
 	}
 
-	@Override
-	public boolean o_AcceptsArgTypesFromFunctionType (
-		final AvailObject object,
-		final A_Type functionType)
-	{
-		return getSuperkind(object).acceptsArgTypesFromFunctionType(
-			functionType);
-	}
+	override fun o_AcceptsArgTypesFromFunctionType(
+		self: AvailObject,
+		functionType: A_Type): Boolean =
+			getSuperkind(self).acceptsArgTypesFromFunctionType(functionType)
 
-	@Override
-	public boolean o_AcceptsListOfArgTypes (
-		final AvailObject object,
-		final List<? extends A_Type> argTypes)
-	{
-		return getSuperkind(object).acceptsListOfArgTypes(argTypes);
-	}
+	override fun o_AcceptsListOfArgTypes(
+		self: AvailObject,
+		argTypes: List<A_Type>): Boolean =
+			getSuperkind(self).acceptsListOfArgTypes(argTypes)
 
-	@Override
-	public boolean o_AcceptsListOfArgValues (
-		final AvailObject object,
-		final List<? extends A_BasicObject> argValues)
-	{
-		return getSuperkind(object).acceptsListOfArgValues(argValues);
-	}
 
-	@Override
-	public boolean o_AcceptsTupleOfArgTypes (
-		final AvailObject object,
-		final A_Tuple argTypes)
-	{
-		return getSuperkind(object).acceptsTupleOfArgTypes(argTypes);
-	}
+	override fun o_AcceptsListOfArgValues(
+		self: AvailObject,
+		argValues: List<A_BasicObject>): Boolean =
+			getSuperkind(self).acceptsListOfArgValues(argValues)
 
-	@Override
-	public boolean o_AcceptsTupleOfArguments (
-		final AvailObject object,
-		final A_Tuple arguments)
-	{
-		return getSuperkind(object).acceptsTupleOfArguments(arguments);
-	}
+	override fun o_AcceptsTupleOfArgTypes(
+		self: AvailObject,
+		argTypes: A_Tuple): Boolean =
+			getSuperkind(self).acceptsTupleOfArgTypes(argTypes)
 
-	@Override
-	public A_Type o_ArgsTupleType (final AvailObject object)
-	{
-		return getSuperkind(object).argsTupleType();
-	}
+	override fun o_AcceptsTupleOfArguments(
+		self: AvailObject,
+		arguments: A_Tuple): Boolean =
+			getSuperkind(self).acceptsTupleOfArguments(arguments)
 
-	@Override
-	public A_Set o_DeclaredExceptions (final AvailObject object)
-	{
-		return getSuperkind(object).declaredExceptions();
-	}
+	override fun o_ArgsTupleType(self: AvailObject): A_Type =
+		getSuperkind(self).argsTupleType()
 
-	@Override
-	public A_Type o_FunctionType (final AvailObject object)
-	{
-		return getSuperkind(object).functionType();
-	}
+	override fun o_DeclaredExceptions(self: AvailObject): A_Set =
+		getSuperkind(self).declaredExceptions()
 
-	@Override
-	public A_Type o_ContentType (final AvailObject object)
-	{
-		return getSuperkind(object).contentType();
-	}
+	override fun o_FunctionType(self: AvailObject): A_Type =
+		getSuperkind(self).functionType()
 
-	@Override
-	public boolean o_CouldEverBeInvokedWith (
-		final AvailObject object,
-		final List<TypeRestriction> argRestrictions)
-	{
-		return getSuperkind(object).couldEverBeInvokedWith(argRestrictions);
-	}
+	override fun o_ContentType(self: AvailObject): A_Type =
+		getSuperkind(self).contentType()
 
-	@Override
-	public boolean o_IsBetterRepresentationThan (
-		final AvailObject object,
-		final A_BasicObject anotherObject)
-	{
-		// An enumeration with a cached superkind is pretty good.
-		return !object.mutableSlot(CACHED_SUPERKIND).equalsNil();
-	}
+	override fun o_CouldEverBeInvokedWith(
+		self: AvailObject,
+		argRestrictions: List<TypeRestriction>): Boolean =
+			getSuperkind(self).couldEverBeInvokedWith(argRestrictions)
 
-	@Override
-	public A_Type o_KeyType (final AvailObject object)
-	{
-		return getSuperkind(object).keyType();
-	}
+	// An enumeration with a cached superkind is pretty good.
+	override fun o_IsBetterRepresentationThan(
+		self: AvailObject,
+		anotherObject: A_BasicObject): Boolean =
+			!self.mutableSlot(ObjectSlots.CACHED_SUPERKIND).equalsNil()
 
-	@Override
-	public A_BasicObject o_Parent (final AvailObject object)
-	{
-		return getSuperkind(object).parent();
-	}
+	override fun o_KeyType(self: AvailObject): A_Type =
+		getSuperkind(self).keyType()
 
-	@Override
-	public A_Type o_ReturnType (final AvailObject object)
-	{
-		return getSuperkind(object).returnType();
-	}
+	override fun o_Parent(self: AvailObject): A_BasicObject =
+		getSuperkind(self).parent()
 
-	@Override
-	public A_Type o_ValueType (final AvailObject object)
-	{
-		return getSuperkind(object).valueType();
-	}
+	override fun o_ReturnType(self: AvailObject): A_Type =
+		getSuperkind(self).returnType()
 
-	@Override
-	public @Nullable Object o_MarshalToJava (
-		final AvailObject object,
-		final @Nullable Class<?> ignoredClassHint)
+	override fun o_ValueType(self: AvailObject): A_Type =
+		getSuperkind(self).valueType()
+
+	override fun o_MarshalToJava(self: AvailObject, classHint: Class<*>?): Any?
 	{
-		if (object.isSubtypeOf(booleanType()))
+		return if (self.isSubtypeOf(booleanType()))
 		{
-			return boolean.class;
+			Boolean::class.javaPrimitiveType
 		}
-		return super.o_MarshalToJava(object, ignoredClassHint);
+		else super.o_MarshalToJava(self, classHint)
 	}
 
-	@Override
-	public A_Type o_ReadType (final AvailObject object)
-	{
-		return getSuperkind(object).readType();
-	}
+	override fun o_ReadType(self: AvailObject): A_Type =
+		getSuperkind(self).readType()
 
-	@Override
-	public A_Type o_WriteType (final AvailObject object)
-	{
-		return getSuperkind(object).writeType();
-	}
+	override fun o_WriteType(self: AvailObject): A_Type =
+		getSuperkind(self).writeType()
 
-	@Override
-	public A_Type o_ExpressionType (final AvailObject object)
+	override fun o_ExpressionType(self: AvailObject): A_Type
 	{
-		A_Type unionType = bottom();
-		for (final A_Phrase instance : getInstances(object))
+		var unionType = bottom()
+		for (instance in getInstances(self))
 		{
-			unionType = unionType.typeUnion(A_Phrase.Companion.expressionType(instance));
+			unionType = unionType.typeUnion(instance.expressionType())
 		}
-		return unionType;
+		return unionType
 	}
 
-	@Override
-	public boolean o_RangeIncludesInt (final AvailObject object, final int anInt)
+	override fun o_RangeIncludesInt(self: AvailObject, anInt: Int): Boolean =
+		getInstances(self).hasElement(fromInt(anInt))
+
+	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
+		SerializerOperation.ENUMERATION_TYPE
+
+	override fun o_TupleOfTypesFromTo(
+		self: AvailObject,
+		startIndex: Int,
+		endIndex: Int): A_Tuple =
+			getSuperkind(self).tupleOfTypesFromTo(startIndex, endIndex)
+
+	override fun o_WriteTo(self: AvailObject, writer: JSONWriter)
 	{
-		return getInstances(object).hasElement(fromInt(anInt));
+		writer.startObject()
+		writer.write("kind")
+		getSuperkind(self).writeTo(writer)
+		writer.write("instances")
+		self.slot(ObjectSlots.INSTANCES).writeTo(writer)
+		writer.endObject()
 	}
 
-	@Override
-	public SerializerOperation o_SerializerOperation (
-		final AvailObject object)
+	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter)
 	{
-		return SerializerOperation.ENUMERATION_TYPE;
+		writer.startObject()
+		writer.write("kind")
+		getSuperkind(self).writeSummaryTo(writer)
+		writer.write("instances")
+		self.slot(ObjectSlots.INSTANCES).writeSummaryTo(writer)
+		writer.endObject()
 	}
 
-	@Override
-	public A_Tuple o_TupleOfTypesFromTo (
-		final AvailObject object,
-		final int startIndex,
-		final int endIndex)
+	override fun o_ComputeTypeTag(self: AvailObject): TypeTag
 	{
-		return getSuperkind(object).tupleOfTypesFromTo(startIndex, endIndex);
-	}
-
-	@Override
-	public void o_WriteTo (final AvailObject object, final JSONWriter writer)
-	{
-		writer.startObject();
-		writer.write("kind");
-		getSuperkind(object).writeTo(writer);
-		writer.write("instances");
-		object.slot(INSTANCES).writeTo(writer);
-		writer.endObject();
-	}
-
-	@Override
-	public void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
-	{
-		writer.startObject();
-		writer.write("kind");
-		getSuperkind(object).writeSummaryTo(writer);
-		writer.write("instances");
-		object.slot(INSTANCES).writeSummaryTo(writer);
-		writer.endObject();
-	}
-
-	@Override
-	public TypeTag o_ComputeTypeTag (final AvailObject object)
-	{
-		final Set<TypeTag> tags = EnumSet.noneOf(TypeTag.class);
-		for (final AvailObject instance : getInstances(object))
+		val tags: MutableSet<TypeTag> = EnumSet.noneOf(TypeTag::class.java)
+		for (instance in getInstances(self))
 		{
-			tags.add(instance.typeTag());
+			tags.add(instance.typeTag())
 		}
-		if (tags.size() == 1)
+		if (tags.size == 1)
 		{
-			return tags.iterator().next();
+			return tags.iterator().next()
 		}
-		final Iterator<TypeTag> iterator = tags.iterator();
-		TypeTag ancestor = iterator.next();
+		val iterator: Iterator<TypeTag> = tags.iterator()
+		var ancestor = iterator.next()
 		while (iterator.hasNext())
 		{
-			ancestor = ancestor.commonAncestorWith(iterator.next());
+			ancestor = ancestor.commonAncestorWith(iterator.next())
 		}
-		return ancestor;
+		return ancestor
 	}
 
-	/**
-	 * Construct an enumeration type from a {@linkplain SetDescriptor set} with at least two instances. The set must have already been normalized, such that at most one of the elements is itself a {@linkplain TypeDescriptor type}.
-	 *
-	 * @param normalizedSet
-	 * The set of instances.
-	 * @return
-	 * The resulting enumeration.
-	 */
-	static A_Type fromNormalizedSet (final A_Set normalizedSet)
+	override fun mutable(): AbstractEnumerationTypeDescriptor = mutable
+
+	override fun immutable(): AbstractEnumerationTypeDescriptor = immutable
+
+	override fun shared(): AbstractEnumerationTypeDescriptor = shared
+
+	companion object
 	{
-		assert normalizedSet.setSize() > 1;
-		final AvailObject result = mutable.create();
-		result.setSlot(INSTANCES, normalizedSet.makeImmutable());
-		result.setSlot(CACHED_SUPERKIND, nil);
-		return result;
-	}
+		/**
+		 * Extract my set of instances. If any object is itself a type then all
+		 * of its subtypes are automatically instances, but they're not returned
+		 * by this method. Also, any object that's a type and has a supertype in
+		 * this set will have been removed during creation of this enumeration.
+		 *
+		 * @param self
+		 *   The enumeration for which to extract the instances.
+		 * @return
+		 *   The instances of this enumeration.
+		 */
+		fun getInstances(self: AvailObject): A_Set = self.slot(ObjectSlots.INSTANCES)
 
-	/**
-	 * Construct a new {@code EnumerationTypeDescriptor}.
-	 *
-	 * @param mutability
-	 *            The {@linkplain Mutability mutability} of the new descriptor.
-	 */
-	private EnumerationTypeDescriptor (final Mutability mutability)
-	{
-		super(mutability, TypeTag.UNKNOWN_TAG, ObjectSlots.class, null);
-	}
+		/**
+		 * Construct an enumeration type from a [set][SetDescriptor] with at
+		 * least two instances. The set must have already been normalized, such
+		 * that at most one of the elements is itself a [type][TypeDescriptor].
+		 *
+		 * @param normalizedSet
+		 *   The set of instances.
+		 * @return
+		 *   The resulting enumeration.
+		 */
+		fun fromNormalizedSet(normalizedSet: A_Set): A_Type
+		{
+			assert(normalizedSet.setSize() > 1)
+			val result = mutable.create()
+			result.setSlot(ObjectSlots.INSTANCES, normalizedSet.makeImmutable())
+			result.setSlot(ObjectSlots.CACHED_SUPERKIND, NilDescriptor.nil)
+			return result
+		}
 
-	/** The mutable {@link EnumerationTypeDescriptor}. */
-	private static final AbstractEnumerationTypeDescriptor mutable =
-		new EnumerationTypeDescriptor(Mutability.MUTABLE);
+		/** The mutable [EnumerationTypeDescriptor].  */
+		private val mutable: AbstractEnumerationTypeDescriptor =
+			EnumerationTypeDescriptor(Mutability.MUTABLE)
 
-	@Override
-	public AbstractEnumerationTypeDescriptor mutable ()
-	{
-		return mutable;
-	}
+		/** The immutable [EnumerationTypeDescriptor].  */
+		private val immutable: AbstractEnumerationTypeDescriptor =
+			EnumerationTypeDescriptor(Mutability.IMMUTABLE)
 
-	/** The immutable {@link EnumerationTypeDescriptor}. */
-	private static final AbstractEnumerationTypeDescriptor immutable =
-		new EnumerationTypeDescriptor(Mutability.IMMUTABLE);
+		/** The shared [EnumerationTypeDescriptor].  */
+		private val shared: AbstractEnumerationTypeDescriptor =
+			EnumerationTypeDescriptor(Mutability.SHARED)
 
-	@Override
-	public AbstractEnumerationTypeDescriptor immutable ()
-	{
-		return immutable;
-	}
+		/**
+		 * Avail's boolean type, the equivalent of Java's primitive `boolean`
+		 * pseudo-type, similar to Java's boxed [Boolean] class.
+		 */
+		private val booleanObject: A_Type
 
-	/** The shared {@link EnumerationTypeDescriptor}. */
-	private static final AbstractEnumerationTypeDescriptor shared =
-		new EnumerationTypeDescriptor(Mutability.SHARED);
+		/**
+		 * The type whose only instance is the value
+		 * [true][AtomDescriptor.trueObject].
+		 */
+		private val trueType: A_Type
 
-	@Override
-	public AbstractEnumerationTypeDescriptor shared ()
-	{
-		return shared;
-	}
+		/**
+		 * The type whose only instance is the value
+		 * [false][AtomDescriptor.falseObject].
+		 */
+		private var falseType: A_Type
 
-	/**
-	 * Avail's boolean type, the equivalent of Java's primitive {@code boolean} pseudo-type, similar to Java's boxed {@link Boolean} class.
-	 */
-	private static final A_Type booleanObject;
+		init
+		{
+			booleanObject =
+				enumerationWith(set(trueObject(), falseObject())).makeShared()
+			trueType = instanceTypeOrMetaOn(trueObject()).makeShared()
+			falseType = instanceTypeOrMetaOn(falseObject()).makeShared()
+		}
 
-	/**
-	 * The type whose only instance is the value {@link AtomDescriptor#trueObject() true}.
-	 */
-	private static final A_Type trueType;
+		/**
+		 * Return Avail's boolean type.
+		 *
+		 * @return
+		 *   The enumeration [A_Type] that acts as Avail's boolean type.
+		 */
+		@JvmStatic
+		fun booleanType(): A_Type = booleanObject
 
-	/**
-	 * The type whose only instance is the value {@link AtomDescriptor#falseObject() false}.
-	 */
-	private static final A_Type falseType;
+		/**
+		 * Return the type for which [true][AtomDescriptor.trueObject] is the
+		 * only instance.
+		 *
+		 * @return
+		 *   `true`'s type.
+		 */
+		fun trueType(): A_Type = trueType
 
-	static
-	{
-		final A_Set set = set(trueObject(), falseObject());
-		booleanObject = enumerationWith(set).makeShared();
-		trueType = instanceTypeOrMetaOn(trueObject()).makeShared();
-		falseType = instanceTypeOrMetaOn(falseObject()).makeShared();
-	}
-
-	/**
-	 * Return Avail's boolean type.
-	 *
-	 * @return
-	 * The enumeration {@link A_Type} that acts as Avail's boolean type.
-	 */
-	public static A_Type booleanType ()
-	{
-		return booleanObject;
-	}
-
-	/**
-	 * Return the type for which {@link AtomDescriptor#trueObject() true} is the only instance.
-	 *
-	 * @return
-	 * `true`'s type.
-	 */
-	public static A_Type trueType ()
-	{
-		return trueType;
-	}
-
-	/**
-	 * Return the type for which {@link AtomDescriptor#falseObject() false} is the only instance.
-	 *
-	 * @return
-	 * `false`'s type.
-	 */
-	public static A_Type falseType ()
-	{
-		return falseType;
+		/**
+		 * Return the type for which [false][AtomDescriptor.falseObject] is the
+		 * only instance.
+		 *
+		 * @return
+		 *   `false`'s type.
+		 */
+		fun falseType(): A_Type = falseType
 	}
 }

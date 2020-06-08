@@ -42,7 +42,7 @@ import com.avail.serialization.SerializerOperation
 
 /**
  * `AbstractTypeDescriptor` explicitly defines the responsibilities of all
- * [Avail&amp;#32;types][TypeDescriptor]. Many of these operations are actually
+ * [Avail&#32;types][TypeDescriptor]. Many of these operations are actually
  * undefined in subclasses, in clear violation of the Liskov substitution
  * principle, yet this organization is still useful to see the aggregate
  * capabilities of Avail types.

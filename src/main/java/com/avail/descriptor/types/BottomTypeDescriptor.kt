@@ -185,7 +185,7 @@ class BottomTypeDescriptor private constructor()
 	 * Determine if the object is an
 	 * [enumeration][AbstractEnumerationTypeDescriptor] over the given
 	 * [set][SetDescriptor] of instances.  Since the object is the
-	 * [bottom&amp;#32;type][BottomTypeDescriptor], just check if the set of
+	 * [bottom&#32;type][BottomTypeDescriptor], just check if the set of
 	 * instances is empty.
 	 */
 	override fun o_EqualsEnumerationWithSet(

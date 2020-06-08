@@ -1,21 +1,21 @@
 /*
- * ConcatenatedTupleTypeDescriptor.java
+ * ConcatenatedTupleTypeDescriptor.kt
  * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
  *
- *  * Neither the name of the copyright holder nor the names of the contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -29,60 +29,68 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.descriptor.types
 
-package com.avail.descriptor.types;
-
-import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
-import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
-import com.avail.descriptor.numbers.A_Number;
-import com.avail.descriptor.representation.A_BasicObject;
-import com.avail.descriptor.representation.AvailObject;
-import com.avail.descriptor.representation.BitField;
-import com.avail.descriptor.representation.Mutability;
-import com.avail.descriptor.tuples.A_Tuple;
-import com.avail.serialization.SerializerOperation;
-import com.avail.utility.json.JSONWriter;
-
-import static com.avail.descriptor.numbers.IntegerDescriptor.fromInt;
-import static com.avail.descriptor.numbers.IntegerDescriptor.one;
-import static com.avail.descriptor.tuples.ObjectTupleDescriptor.generateObjectTupleFrom;
-import static com.avail.descriptor.types.BottomTypeDescriptor.bottom;
-import static com.avail.descriptor.types.ConcatenatedTupleTypeDescriptor.IntegerSlots.TUPLE_TYPE_COMPLEXITY;
-import static com.avail.descriptor.types.ConcatenatedTupleTypeDescriptor.ObjectSlots.FIRST_TUPLE_TYPE;
-import static com.avail.descriptor.types.ConcatenatedTupleTypeDescriptor.ObjectSlots.SECOND_TUPLE_TYPE;
-import static com.avail.descriptor.types.IntegerRangeTypeDescriptor.integerRangeType;
-import static com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType;
-import static java.lang.Math.max;
+import com.avail.descriptor.numbers.A_Number
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.one
+import com.avail.descriptor.representation.*
+import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
+import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
+import com.avail.serialization.SerializerOperation
+import com.avail.utility.json.JSONWriter
+import kotlin.math.max
+import kotlin.math.min
 
 /**
- * An object instance of {@code ConcatenatedTupleTypeDescriptor} is an optimization that postpones (or ideally avoids) the creation of a {@linkplain TupleTypeDescriptor tuple&#32;type} when computing the static type of the concatenation of two tuples.
+ * An object instance of `ConcatenatedTupleTypeDescriptor` is an optimization
+ * that postpones (or ideally avoids) the creation of a
+ * [tuple&#32;type][TupleTypeDescriptor] when computing the static type of
+ * the concatenation of two tuples.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @constructor
+ * Construct a new `ConcatenatedTupleTypeDescriptor`.
+ *
+ * @param mutability
+ *   The [mutability][Mutability] of the new descriptor.
  */
-public final class ConcatenatedTupleTypeDescriptor
-extends TypeDescriptor
+class ConcatenatedTupleTypeDescriptor private constructor(
+	mutability: Mutability) : TypeDescriptor(
+		mutability,
+		TypeTag.TUPLE_TYPE_TAG,
+		ObjectSlots::class.java,
+		IntegerSlots::class.java)
 {
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots implements IntegerSlotsEnumJava
+	enum class IntegerSlots : IntegerSlotsEnum
 	{
 		/**
-		 * {@link BitField}s holding the tuple type complexity and other fields if needed.
+		 * [BitField]s holding the tuple type complexity and other fields if
+		 * needed.
 		 */
 		TUPLE_TYPE_COMPLEXITY_AND_MORE;
 
-		/**
-		 * The number of layers of virtualized concatenation in this tuple type. This may become a conservatively large estimate due to my subobjects being coalesced with more direct representations.
-		 */
-		public static final BitField TUPLE_TYPE_COMPLEXITY =
-			new BitField(TUPLE_TYPE_COMPLEXITY_AND_MORE, 0, 32);
+		companion object
+		{
+			/**
+			 * The number of layers of virtualized concatenation in this tuple
+			 * type. This may become a conservatively large estimate due to my
+			 * subobjects being coalesced with more direct representations.
+			 */
+			val TUPLE_TYPE_COMPLEXITY =
+				BitField(TUPLE_TYPE_COMPLEXITY_AND_MORE, 0, 32)
+		}
 	}
 
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnumJava
+	enum class ObjectSlots : ObjectSlotsEnum
 	{
 		/**
 		 * The type of the left tuple being concatenated.
@@ -96,68 +104,47 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * The maximum depth of {@link ConcatenatedTupleTypeDescriptor concatenated&#32;tuple&#32;types} that may exist before converting to a fully reified {@link TupleTypeDescriptor tuple&#32;type}.
-	 */
-	private static final int maximumConcatenationDepth = 10;
-
-	/**
 	 * Answer the type that my last element must have, if any.
 	 */
-	@Override
-	public A_Type o_DefaultType (final AvailObject object)
+	override fun o_DefaultType(self: AvailObject): A_Type
 	{
-		final A_Type a = object.slot(FIRST_TUPLE_TYPE);
-		final A_Type b = object.slot(SECOND_TUPLE_TYPE);
-		return defaultTypeOfConcatenation(a, b);
+		val a: A_Type = self.slot(ObjectSlots.FIRST_TUPLE_TYPE)
+		val b: A_Type = self.slot(ObjectSlots.SECOND_TUPLE_TYPE)
+		return defaultTypeOfConcatenation(a, b)
 	}
 
-	@Override
-	public boolean o_Equals (final AvailObject object, final A_BasicObject another)
-	{
-		return another.equalsTupleType(object);
-	}
+	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean =
+		another.equalsTupleType(self)
 
-	@Override
-	public boolean o_EqualsTupleType (
-		final AvailObject object,
-		final A_Type aTupleType)
+	override fun o_EqualsTupleType(
+		self: AvailObject,
+		aTupleType: A_Type): Boolean
 	{
 		// Tuple types are equal iff their size range, leading type tuple, and
 		// default type match.
-		if (object.sameAddressAs(aTupleType))
+		when
 		{
-			return true;
-		}
-		if (!object.sizeRange().equals(aTupleType.sizeRange()))
-		{
-			return false;
-		}
-		if (!object.defaultType().equals(aTupleType.defaultType()))
-		{
-			return false;
-		}
-		if (!object.typeTuple().equals(aTupleType.typeTuple()))
-		{
-			return false;
-		}
-		// They're equal, but occupy disjoint storage. If possible, replace one
-		// with an indirection to the other.
-		if (object.representationCostOfTupleType()
-			< aTupleType.representationCostOfTupleType())
-		{
-			if (!aTupleType.descriptor().isShared())
+			self.sameAddressAs(aTupleType) -> return true
+			!self.sizeRange().equals(aTupleType.sizeRange()) -> return false
+			!self.defaultType().equals(aTupleType.defaultType()) -> return false
+			!self.typeTuple().equals(aTupleType.typeTuple()) -> return false
+			self.representationCostOfTupleType()
+				< aTupleType.representationCostOfTupleType() ->
 			{
-				aTupleType.becomeIndirectionTo(object.makeImmutable());
+				if (!aTupleType.descriptor().isShared)
+				{
+					aTupleType.becomeIndirectionTo(self.makeImmutable())
+				}
+			}
+			else ->
+			{
+				if (!isShared)
+				{
+					self.becomeIndirectionTo(aTupleType.makeImmutable())
+				}
 			}
 		}
-		else
-		{
-			if (!isShared())
-			{
-				object.becomeIndirectionTo(aTupleType.makeImmutable());
-			}
-		}
-		return true;
+		return true
 	}
 
 	/**
@@ -166,11 +153,10 @@ extends TypeDescriptor
 	 * statistically different for different objects.  This requires an object
 	 * creation, so don't call it from the garbage collector.
 	 */
-	@Override
-	public int o_Hash (final AvailObject object)
+	override fun o_Hash(self: AvailObject): Int
 	{
-		becomeRealTupleType(object);
-		return object.hash();
+		becomeRealTupleType(self)
+		return self.hash()
 	}
 
 	/**
@@ -179,202 +165,177 @@ extends TypeDescriptor
 	 * A concatenated tuple type isn't a very fast representation to use even
 	 * though it's easy to construct.
 	 */
-	@Override
-	public boolean o_IsBetterRepresentationThan (
-		final AvailObject object,
-		final A_BasicObject anotherObject)
-	{
-		return object.representationCostOfTupleType()
-			< anotherObject.representationCostOfTupleType();
-	}
+	override fun o_IsBetterRepresentationThan(
+		self: AvailObject,
+		anotherObject: A_BasicObject): Boolean =
+			(self.representationCostOfTupleType()
+				< anotherObject.representationCostOfTupleType())
 
 	/**
 	 * {@inheritDoc}
 	 *
 	 * I'm not a very time-efficient representation of a tuple type.
 	 */
-	@Override
-	public int o_RepresentationCostOfTupleType (final AvailObject object)
-	{
-		return object.slot(TUPLE_TYPE_COMPLEXITY);
-	}
+	override fun o_RepresentationCostOfTupleType(self: AvailObject): Int =
+		self.slot(IntegerSlots.TUPLE_TYPE_COMPLEXITY)
 
 	/**
 	 * Answer what range of tuple sizes my instances could be. Note that this
 	 * can not be asked during a garbage collection because it allocates space
 	 * for its answer.
 	 */
-	@Override
-	public A_Type o_SizeRange (final AvailObject object)
+	override fun o_SizeRange(self: AvailObject): A_Type
 	{
-		final A_Type sizeRange1 = object.slot(FIRST_TUPLE_TYPE).sizeRange();
-		final A_Type sizeRange2 = object.slot(SECOND_TUPLE_TYPE).sizeRange();
-		return sizeRangeOfConcatenation(sizeRange1, sizeRange2);
+		val sizeRange1 = self.slot(ObjectSlots.FIRST_TUPLE_TYPE).sizeRange()
+		val sizeRange2 = self.slot(ObjectSlots.SECOND_TUPLE_TYPE).sizeRange()
+		return sizeRangeOfConcatenation(sizeRange1, sizeRange2)
 	}
 
 	/**
 	 * Check if object is a subtype of aType.  They should both be types.
 	 */
-	@Override
-	public boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
-	{
-		return aType.isSupertypeOfTupleType(object);
-	}
+	override fun o_IsSubtypeOf(self: AvailObject, aType: A_Type): Boolean =
+		aType.isSupertypeOfTupleType(self)
 
 	/**
-	 * Tuple type A is a supertype of tuple type B iff all the <em>possible
-	 * instances</em> of B would also be instances of A.  Types
+	 * Tuple type A is a supertype of tuple type B iff all the *possible
+	 * instances* of B would also be instances of A.  Types
 	 * indistinguishable under these conditions are considered the same type.
 	 */
-	@Override
-	public boolean o_IsSupertypeOfTupleType (
-		final AvailObject object,
-		final A_Type aTupleType)
+	override fun o_IsSupertypeOfTupleType(
+		self: AvailObject,
+		aTupleType: A_Type): Boolean
 	{
-		if (object.equals(aTupleType))
+		when
 		{
-			return true;
-		}
-		if (!aTupleType.sizeRange().isSubtypeOf(object.sizeRange()))
-		{
-			return false;
-		}
-		if (!aTupleType.defaultType().isSubtypeOf(object.defaultType()))
-		{
-			return false;
-		}
-		final A_Tuple subTuple = aTupleType.typeTuple();
-		final A_Tuple superTuple = object.typeTuple();
-		final int limit = max(subTuple.tupleSize(), superTuple.tupleSize());
-		for (int i = 1; i <= limit; i++)
-		{
-			final A_Type subType = i <= subTuple.tupleSize()
-				? subTuple.tupleAt(i)
-				: aTupleType.defaultType();
-			final A_Type superType = i <= superTuple.tupleSize()
-				? superTuple.tupleAt(i)
-				: object.defaultType();
-			if (!subType.isSubtypeOf(superType))
+			self.equals(aTupleType) -> return true
+			!aTupleType.sizeRange().isSubtypeOf(self.sizeRange()) ->
+				return false
+			!aTupleType.defaultType().isSubtypeOf(self.defaultType()) ->
+				return false
+			else ->
 			{
-				return false;
+				val subTuple = aTupleType.typeTuple()
+				val superTuple = self.typeTuple()
+				val limit = max(subTuple.tupleSize(), superTuple.tupleSize())
+				for (i in 1 .. limit)
+				{
+					val subType =
+						if (i <= subTuple.tupleSize()) subTuple.tupleAt(i)
+						else aTupleType.defaultType()
+					val superType =
+						if (i <= superTuple.tupleSize()) superTuple.tupleAt(i)
+						else self.defaultType()
+					if (!subType.isSubtypeOf(superType))
+					{
+						return false
+					}
+				}
+				return true
 			}
 		}
-		return true;
 	}
 
-	@Override
-	public boolean o_IsTupleType (final AvailObject object)
-	{
-		return true;
-	}
+	override fun o_IsTupleType(self: AvailObject): Boolean = true
 
-	@Override
-	public boolean o_IsVacuousType (final AvailObject object)
-	{
-		return object.slot(FIRST_TUPLE_TYPE).isVacuousType()
-			|| object.slot(SECOND_TUPLE_TYPE).isVacuousType();
-	}
+	override fun o_IsVacuousType(self: AvailObject): Boolean =
+		(self.slot(ObjectSlots.FIRST_TUPLE_TYPE).isVacuousType
+			|| self.slot(ObjectSlots.SECOND_TUPLE_TYPE).isVacuousType)
 
-	@Override
-	public AvailObject o_MakeShared (final AvailObject object)
+	override fun o_MakeShared(self: AvailObject): AvailObject
 	{
 		// Before an object using this descriptor can be shared, it must first
 		// become (an indirection to) a proper tuple type.
-		assert !isShared();
-		becomeRealTupleType(object);
-		object.makeShared();
-		return object.traversed();
+		assert(!isShared)
+		becomeRealTupleType(self)
+		self.makeShared()
+		return self.traversed()
 	}
 
-	@Override
-	public SerializerOperation o_SerializerOperation (
-		final AvailObject object)
+	override fun o_SerializerOperation(
+		self: AvailObject): SerializerOperation
 	{
-		becomeRealTupleType(object);
-		return object.serializerOperation();
+		becomeRealTupleType(self)
+		return self.serializerOperation()
 	}
 
-	@Override
-	public A_Tuple o_TupleOfTypesFromTo (
-		final AvailObject object,
-		final int startIndex,
-		final int endIndex)
+	override fun o_TupleOfTypesFromTo(
+		self: AvailObject,
+		startIndex: Int,
+		endIndex: Int): A_Tuple
 	{
-		becomeRealTupleType(object);
-		assert object.descriptor() != this;
-		return object.tupleOfTypesFromTo(startIndex, endIndex);
+		becomeRealTupleType(self)
+		assert(self.descriptor() !== this)
+		return self.tupleOfTypesFromTo(startIndex, endIndex)
 	}
 
 	/**
 	 * Answer what type the given index would have in an object instance of me.
 	 * Answer bottom if the index is definitely out of bounds.
 	 */
-	@Override
-	public A_Type o_TypeAtIndex (final AvailObject object, final int index)
+	override fun o_TypeAtIndex(self: AvailObject, index: Int): A_Type
 	{
-		final AvailObject firstTupleType = object.slot(FIRST_TUPLE_TYPE);
-		final AvailObject secondTupleType = object.slot(SECOND_TUPLE_TYPE);
-		return elementOfConcatenation(firstTupleType, secondTupleType, index);
+		val firstTupleType = self.slot(ObjectSlots.FIRST_TUPLE_TYPE)
+		val secondTupleType = self.slot(ObjectSlots.SECOND_TUPLE_TYPE)
+		return elementOfConcatenation(firstTupleType, secondTupleType, index)
 	}
 
-	@Override
-	public A_Type o_TypeIntersection (
-		final AvailObject object,
-		final A_Type another)
-	{
-		if (object.isSubtypeOf(another))
-		{
-			return object;
-		}
-		if (another.isSubtypeOf(object))
-		{
-			return another;
-		}
-		return another.typeIntersectionOfTupleType(object);
-	}
+	override fun o_TypeIntersection(
+		self: AvailObject,
+		another: A_Type): A_Type =
+			when
+			{
+				self.isSubtypeOf(another) ->
+				{
+					self
+				}
+				else ->
+				{
+					if (another.isSubtypeOf(self)) another
+					else another.typeIntersectionOfTupleType(self)
+				}
+			}
 
-	@Override
-	public A_Type o_TypeIntersectionOfTupleType (
-		final AvailObject object,
-		final A_Type aTupleType)
+	override fun o_TypeIntersectionOfTupleType(
+		self: AvailObject,
+		aTupleType: A_Type): A_Type
 	{
-		final A_Type newSizesObject =
-			object.sizeRange().typeIntersection(aTupleType.sizeRange());
-		final A_Tuple lead1 = object.typeTuple();
-		final A_Tuple lead2 = aTupleType.typeTuple();
-		A_Tuple newLeading;
-		if (lead1.tupleSize() > lead2.tupleSize())
+		val newSizesObject =
+			self.sizeRange().typeIntersection(aTupleType.sizeRange())
+		val lead1 = self.typeTuple()
+		val lead2 = aTupleType.typeTuple()
+		var newLeading: A_Tuple
+		newLeading = if (lead1.tupleSize() > lead2.tupleSize())
 		{
-			newLeading = lead1;
+			lead1
 		}
 		else
 		{
-			newLeading = lead2;
+			lead2
 		}
-		newLeading.makeImmutable();
+		newLeading.makeImmutable()
 		//  Ensure first write attempt will force copying.
-		final int newLeadingSize = newLeading.tupleSize();
-		for (int i = 1; i <= newLeadingSize; i++)
+		val newLeadingSize = newLeading.tupleSize()
+		for (i in 1 .. newLeadingSize)
 		{
-			final A_Type intersectionObject =
-				object.typeAtIndex(i).typeIntersection(
-					aTupleType.typeAtIndex(i));
-			if (intersectionObject.isBottom())
+			val intersectionObject = self.typeAtIndex(i).typeIntersection(
+				aTupleType.typeAtIndex(i))
+			if (intersectionObject.isBottom)
 			{
-				return bottom();
+				return bottom()
 			}
 			newLeading = newLeading.tupleAtPuttingCanDestroy(
-				i, intersectionObject, true);
+				i, intersectionObject, true)
 		}
 		// Make sure entries in newLeading are immutable, as typeIntersection
 		// can answer one of its arguments.
-		newLeading.makeSubobjectsImmutable();
-		final A_Type newDefault =
-			object.typeAtIndex(newLeadingSize + 1).typeIntersection(
-				aTupleType.typeAtIndex(newLeadingSize + 1));
-		newDefault.makeImmutable();
-		return tupleTypeForSizesTypesDefaultType(
-			newSizesObject, newLeading, newDefault);
+		newLeading.makeSubobjectsImmutable()
+		val newDefault =
+			self.typeAtIndex(newLeadingSize + 1).typeIntersection(
+				aTupleType.typeAtIndex(newLeadingSize + 1))
+		newDefault.makeImmutable()
+		return TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+			newSizesObject, newLeading, newDefault)
 	}
 
 	/**
@@ -384,397 +345,374 @@ extends TypeDescriptor
 	 * have the same type.  Don't run this from within a garbage collection, as
 	 * it allocates objects.
 	 */
-	@Override
-	public A_Tuple o_TypeTuple (final AvailObject object)
+	override fun o_TypeTuple(self: AvailObject): A_Tuple
 	{
-		becomeRealTupleType(object);
-		return object.typeTuple();
+		becomeRealTupleType(self)
+		return self.typeTuple()
 	}
 
-	@Override
-	public A_Type o_TypeUnion (
-		final AvailObject object,
-		final A_Type another)
-	{
-		if (object.isSubtypeOf(another))
-		{
-			return another;
-		}
-		if (another.isSubtypeOf(object))
-		{
-			return object;
-		}
-		return another.typeUnionOfTupleType(object);
-	}
+	override fun o_TypeUnion(
+		self: AvailObject,
+		another: A_Type): A_Type =
+			when
+			{
+				self.isSubtypeOf(another) -> another
+				else ->
+				{
+					if (another.isSubtypeOf(self)) self
+					else another.typeUnionOfTupleType(self)
+				}
+			}
 
-	@Override
-	public A_Type o_TypeUnionOfTupleType (
-		final AvailObject object,
-		final A_Type aTupleType)
+	override fun o_TypeUnionOfTupleType(
+		self: AvailObject,
+		aTupleType: A_Type): A_Type
 	{
-		final A_Type newSizesObject = object.sizeRange().typeUnion(
-			aTupleType.sizeRange());
-		final A_Tuple lead1 = object.typeTuple();
-		final A_Tuple lead2 = aTupleType.typeTuple();
-		A_Tuple newLeading;
-		if (lead1.tupleSize() > lead2.tupleSize())
-		{
-			newLeading = lead1;
-		}
-		else
-		{
-			newLeading = lead2;
-		}
-		newLeading.makeImmutable();
+		val newSizesObject = self.sizeRange().typeUnion(
+			aTupleType.sizeRange())
+		val lead1 = self.typeTuple()
+		val lead2 = aTupleType.typeTuple()
+		var newLeading: A_Tuple
+		newLeading =
+			if (lead1.tupleSize() > lead2.tupleSize()) lead1
+			else lead2
+		newLeading.makeImmutable()
 		// Ensure first write attempt will force copying.
-		final int newLeadingSize = newLeading.tupleSize();
-		for (int i = 1; i <= newLeadingSize; i++)
+		val newLeadingSize = newLeading.tupleSize()
+		for (i in 1 .. newLeadingSize)
 		{
-			final A_Type unionObject = object.typeAtIndex(i).typeUnion(
-				aTupleType.typeAtIndex(i));
+			val unionObject = self.typeAtIndex(i).typeUnion(
+				aTupleType.typeAtIndex(i))
 			newLeading = newLeading.tupleAtPuttingCanDestroy(
 				i,
 				unionObject,
-				true);
+				true)
 		}
 		// Make sure entries in newLeading are immutable, as typeUnion can
 		// answer one of its arguments.
-		newLeading.makeSubobjectsImmutable();
-		final A_Type newDefault =
-			object.typeAtIndex(newLeadingSize + 1).typeUnion(
-				aTupleType.typeAtIndex(newLeadingSize + 1));
-		newDefault.makeImmutable();
-		return tupleTypeForSizesTypesDefaultType(
-			newSizesObject, newLeading, newDefault);
+		newLeading.makeSubobjectsImmutable()
+		val newDefault = self.typeAtIndex(newLeadingSize + 1).typeUnion(
+			aTupleType.typeAtIndex(newLeadingSize + 1))
+		newDefault.makeImmutable()
+		return TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+			newSizesObject, newLeading, newDefault)
 	}
 
-	@Override
-	public A_Type o_UnionOfTypesAtThrough (
-		final AvailObject object,
-		final int startIndex,
-		final int endIndex)
+	override fun o_UnionOfTypesAtThrough(
+		self: AvailObject,
+		startIndex: Int,
+		endIndex: Int): A_Type
 	{
 		// Answer the union of the types that object's instances could have in
 		// the given range of indices. Out-of-range indices are treated as
 		// bottom, which don't affect the union (unless all indices are out
 		// of range).
-
-		assert startIndex <= endIndex;
+		assert(startIndex <= endIndex)
 		if (startIndex == endIndex)
 		{
-			return object.typeAtIndex(startIndex);
+			return self.typeAtIndex(startIndex)
 		}
 		if (endIndex <= 0)
 		{
-			return bottom();
+			return bottom()
 		}
-		final A_Type firstTupleType = object.slot(FIRST_TUPLE_TYPE);
-		final A_Type secondTupleType = object.slot(SECOND_TUPLE_TYPE);
-		final A_Number firstUpper = firstTupleType.sizeRange().upperBound();
-		final A_Number secondUpper = secondTupleType.sizeRange().upperBound();
-		final A_Number totalUpper =
-			firstUpper.noFailPlusCanDestroy(secondUpper, false);
-		final A_Number startIndexObject = fromInt(startIndex);
-		if (totalUpper.isFinite())
+		val firstTupleType: A_Type = self.slot(ObjectSlots.FIRST_TUPLE_TYPE)
+		val secondTupleType: A_Type = self.slot(ObjectSlots.SECOND_TUPLE_TYPE)
+		val firstUpper = firstTupleType.sizeRange().upperBound()
+		val secondUpper = secondTupleType.sizeRange().upperBound()
+		val totalUpper = firstUpper.noFailPlusCanDestroy(secondUpper, false)
+		val startIndexObject: A_Number = fromInt(startIndex)
+		if (totalUpper.isFinite)
 		{
 			if (startIndexObject.greaterThan(totalUpper))
 			{
-				return bottom();
+				return bottom()
 			}
 		}
-		A_Type typeUnion =
-			firstTupleType.unionOfTypesAtThrough(startIndex, endIndex);
-		final A_Number startInSecondObject =
-			startIndexObject.minusCanDestroy(firstUpper, false);
-		final int startInSecond =
-			startInSecondObject.lessThan(one())
-				? 1
-				: startInSecondObject.extractInt();
-		final A_Number endInSecondObject =
-			fromInt(endIndex).minusCanDestroy(
-				firstTupleType.sizeRange().lowerBound(),
-				false);
-		final int endInSecond =
-			endInSecondObject.lessThan(one())
-				? 1
-				: endInSecondObject.isInt()
-					? endInSecondObject.extractInt()
-					: Integer.MAX_VALUE;
+		var typeUnion =
+			firstTupleType.unionOfTypesAtThrough(startIndex, endIndex)
+		val startInSecondObject =
+			startIndexObject.minusCanDestroy(firstUpper, false)
+		val startInSecond =
+			if (startInSecondObject.lessThan(one())) 1
+			else startInSecondObject.extractInt()
+		val endInSecondObject = fromInt(endIndex).minusCanDestroy(
+			firstTupleType.sizeRange().lowerBound(),
+			false)
+		val endInSecond =
+			when
+			{
+				endInSecondObject.lessThan(one()) -> 1
+				endInSecondObject.isInt -> endInSecondObject.extractInt()
+				else -> Int.MAX_VALUE
+			}
 		typeUnion = typeUnion.typeUnion(
-			secondTupleType.unionOfTypesAtThrough(startInSecond, endInSecond));
-		return typeUnion;
+			secondTupleType.unionOfTypesAtThrough(startInSecond, endInSecond))
+		return typeUnion
 	}
 
-	@Override
-	public void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	override fun o_WriteTo(self: AvailObject, writer: JSONWriter)
 	{
-		becomeRealTupleType(object);
-		writer.startObject();
-		writer.write("kind");
-		writer.write("tuple type");
-		writer.write("leading types");
-		object.typeTuple().writeTo(writer);
-		writer.write("default type");
-		object.defaultType().writeTo(writer);
-		writer.write("cardinality");
-		object.sizeRange().writeTo(writer);
-		writer.endObject();
+		becomeRealTupleType(self)
+		writer.startObject()
+		writer.write("kind")
+		writer.write("tuple type")
+		writer.write("leading types")
+		self.typeTuple().writeTo(writer)
+		writer.write("default type")
+		self.defaultType().writeTo(writer)
+		writer.write("cardinality")
+		self.sizeRange().writeTo(writer)
+		writer.endObject()
 	}
 
 	/**
 	 * Expand me into an actual TupleTypeDescriptor, converting my storage into
 	 * an indirection object to the actual tupleType.
 	 *
-	 * @param object
-	 *        The object instance of {@code ConcatenatedTupleTypeDescriptor} to transform.
+	 * @param self
+	 *   The object instance of `ConcatenatedTupleTypeDescriptor` to transform.
 	 */
-	private void becomeRealTupleType (final AvailObject object)
+	private fun becomeRealTupleType(self: AvailObject)
 	{
 		// There isn't even a shared descriptor -- we reify the tuple type upon
 		// sharing.
-		assert !isShared();
-		final A_Type newObject = reallyConcatenate(
-			object.slot(FIRST_TUPLE_TYPE),
-			object.slot(SECOND_TUPLE_TYPE));
-		object.becomeIndirectionTo(newObject);
+		assert(!isShared)
+		val newObject = reallyConcatenate(
+			self.slot(ObjectSlots.FIRST_TUPLE_TYPE),
+			self.slot(ObjectSlots.SECOND_TUPLE_TYPE))
+		self.becomeIndirectionTo(newObject)
 	}
 
-	/**
-	 * Answer what type the given index would have in a tuple whose type
-	 * complies with the concatenation of the two tuple types.  Answer bottom if
-	 * the index is definitely out of bounds.
-	 *
-	 * @param firstTupleType
-	 * The first {@link TupleTypeDescriptor tuple&#32;type}.
-	 * @param secondTupleType
-	 * The second tuple type.
-	 * @param index
-	 * The element index.
-	 * @return
-	 * The type of the specified index within the concatenated tuple type.
-	 */
-	private static A_Type elementOfConcatenation (
-		final A_Type firstTupleType,
-		final A_Type secondTupleType,
-		final int index)
+	override fun mutable(): ConcatenatedTupleTypeDescriptor = mutable
+
+	override fun immutable(): ConcatenatedTupleTypeDescriptor = immutable
+
+	override fun shared(): ConcatenatedTupleTypeDescriptor
 	{
-		if (index <= 0)
+		throw unsupportedOperationException()
+	}
+
+	companion object
+	{
+		/**
+		 * The maximum depth of
+		 * [concatenated&#32;tuple&#32;types][ConcatenatedTupleTypeDescriptor]
+		 * that may exist before converting to a fully reified
+		 * [tuple&#32;type][TupleTypeDescriptor].
+		 */
+		private const val maximumConcatenationDepth = 10
+
+		/**
+		 * Answer what type the given index would have in a tuple whose type
+		 * complies with the concatenation of the two tuple types. Answer bottom 
+		 * if the index is definitely out of bounds.
+		 *
+		 * @param firstTupleType
+		 *   The first [tuple&#32;type][TupleTypeDescriptor].
+		 * @param secondTupleType
+		 *   The second tuple type.
+		 * @param index
+		 *   The element index.
+		 * @return
+		 *   The type of the specified index within the concatenated tuple type.
+		 */
+		private fun elementOfConcatenation(
+			firstTupleType: A_Type,
+			secondTupleType: A_Type,
+			index: Int): A_Type
 		{
-			return bottom();
-		}
-		final A_Type firstSizeRange = firstTupleType.sizeRange();
-		final A_Number firstUpper = firstSizeRange.upperBound();
-		final A_Number secondUpper = secondTupleType.sizeRange().upperBound();
-		final A_Number totalUpper =
-			firstUpper.noFailPlusCanDestroy(secondUpper, false);
-		if (totalUpper.isFinite())
-		{
-			final A_Number indexObject = fromInt(index);
-			if (indexObject.greaterThan(totalUpper))
+			if (index <= 0)
 			{
-				return bottom();
+				return bottom()
 			}
+			val firstSizeRange = firstTupleType.sizeRange()
+			val firstUpper = firstSizeRange.upperBound()
+			val secondUpper = secondTupleType.sizeRange().upperBound()
+			val totalUpper = firstUpper.noFailPlusCanDestroy(secondUpper, false)
+			if (totalUpper.isFinite)
+			{
+				val indexObject: A_Number = fromInt(index)
+				if (indexObject.greaterThan(totalUpper))
+				{
+					return bottom()
+				}
+			}
+			val firstLower = firstSizeRange.lowerBound()
+			if (index <= firstLower.extractInt())
+			{
+				return firstTupleType.typeAtIndex(index)
+			}
+			// Besides possibly being at a fixed offset within the firstTupleType,
+			// the index might represent a range of possible indices of the
+			// secondTupleType, depending on the spread between the first tuple
+			// type's lower and upper bounds. Compute the union of these types.
+			val typeFromFirstTuple = firstTupleType.typeAtIndex(index)
+			val startIndex: Int
+			startIndex = if (firstUpper.isFinite)
+			{
+				max(index - firstUpper.extractInt(), 1)
+			}
+			else
+			{
+				1
+			}
+			val endIndex = index - firstLower.extractInt()
+			assert(endIndex >= startIndex)
+			return typeFromFirstTuple.typeUnion(
+				secondTupleType.unionOfTypesAtThrough(startIndex, endIndex))
 		}
-		final A_Number firstLower = firstSizeRange.lowerBound();
-		if (index <= firstLower.extractInt())
-		{
-			return firstTupleType.typeAtIndex(index);
-		}
-		// Besides possibly being at a fixed offset within the firstTupleType,
-		// the index might represent a range of possible indices of the
-		// secondTupleType, depending on the spread between the first tuple
-		// type's lower and upper bounds. Compute the union of these types.
-		final A_Type typeFromFirstTuple = firstTupleType.typeAtIndex(index);
-		final int startIndex;
-		if (firstUpper.isFinite())
-		{
-			startIndex = max(index - firstUpper.extractInt(), 1);
-		}
-		else
-		{
-			startIndex = 1;
-		}
-		final int endIndex = index - firstLower.extractInt();
-		assert endIndex >= startIndex;
-		return typeFromFirstTuple.typeUnion(
-			secondTupleType.unionOfTypesAtThrough(startIndex, endIndex));
-	}
 
-	/**
-	 * Answer the {@linkplain A_Type#sizeRange() size&#32;range} of the concatenation of tuples having the given size ranges.
-	 *
-	 * @param sizeRange1
-	 * The first tuple's sizeRange.
-	 * @param sizeRange2
-	 * The second tuple's sizeRange.
-	 * @return
-	 * The range of sizes of the concatenated tuple.
-	 */
-	private static A_Type sizeRangeOfConcatenation (
-		final A_Type sizeRange1,
-		final A_Type sizeRange2)
-	{
-		final A_Number lower = sizeRange1.lowerBound().noFailPlusCanDestroy(
-			sizeRange2.lowerBound(), false);
-		final A_Number upper = sizeRange1.upperBound().noFailPlusCanDestroy(
-			sizeRange2.upperBound(), false);
-		return integerRangeType(lower, true, upper, upper.isFinite());
-	}
+		/**
+		 * Answer the [size&#32;range][A_Type.sizeRange] of the
+		 * concatenation of tuples having the given size ranges.
+		 *
+		 * @param sizeRange1
+		 *   The first tuple's sizeRange.
+		 * @param sizeRange2
+		 *   The second tuple's sizeRange.
+		 * @return
+		 *   The range of sizes of the concatenated tuple.
+		 */
+		private fun sizeRangeOfConcatenation(
+			sizeRange1: A_Type,
+			sizeRange2: A_Type): A_Type
+		{
+			val lower = sizeRange1.lowerBound().noFailPlusCanDestroy(
+				sizeRange2.lowerBound(), false)
+			val upper = sizeRange1.upperBound().noFailPlusCanDestroy(
+				sizeRange2.upperBound(), false)
+			return IntegerRangeTypeDescriptor.integerRangeType(
+				lower, true, upper, upper.isFinite)
+		}
 
-	/**
-	 * Given two tuple types, the second of which must not be always empty,
-	 * determine what a complying tuple's last element's type must be.
-	 *
-	 * @param tupleType1
-	 * The first tuple type.
-	 * @param tupleType2
-	 * The second tuple type.
-	 * @return
-	 * The type of the last element of the concatenation of the tuple types.
-	 */
-	private static A_Type defaultTypeOfConcatenation (
-		final A_Type tupleType1,
-		final A_Type tupleType2)
-	{
-		final A_Type bRange = tupleType2.sizeRange();
-		assert !bRange.upperBound().equalsInt(0);
-		if (tupleType1.sizeRange().upperBound().isFinite())
+		/**
+		 * Given two tuple types, the second of which must not be always empty,
+		 * determine what a complying tuple's last element's type must be.
+		 *
+		 * @param tupleType1
+		 *   The first tuple type.
+		 * @param tupleType2
+		 *   The second tuple type.
+		 * @return
+		 *   The type of the last element of the concatenation of the tuple
+		 *   types.
+		 */
+		private fun defaultTypeOfConcatenation(
+			tupleType1: A_Type,
+			tupleType2: A_Type): A_Type
 		{
-			return tupleType2.defaultType();
+			val bRange = tupleType2.sizeRange()
+			assert(!bRange.upperBound().equalsInt(0))
+			if (tupleType1.sizeRange().upperBound().isFinite)
+			{
+				return tupleType2.defaultType()
+			}
+			val highIndexInB: Int
+			highIndexInB = 
+				if (bRange.upperBound().isFinite)
+				{
+					bRange.upperBound().extractInt()
+				}
+				else
+				{
+					tupleType2.typeTuple().tupleSize() + 1
+				}
+			return tupleType1.defaultType().typeUnion(
+				tupleType2.unionOfTypesAtThrough(1, highIndexInB))
 		}
-		final int highIndexInB;
-		if (bRange.upperBound().isFinite())
-		{
-			highIndexInB = bRange.upperBound().extractInt();
-		}
-		else
-		{
-			highIndexInB = tupleType2.typeTuple().tupleSize() + 1;
-		}
-		return tupleType1.defaultType().typeUnion(
-			tupleType2.unionOfTypesAtThrough(1, highIndexInB));
-	}
 
-	/**
-	 * Produce a fully reified concatenation (i.e., not a {@link ConcatenatedTupleTypeDescriptor instance} of the given pair of tuple types.
-	 *
-	 * @param part1
-	 * The left tuple type.
-	 * @param part2
-	 * The right tuple type.
-	 * @return
-	 * The concatenated tuple type.
-	 */
-	private static A_Type reallyConcatenate (
-		final A_Type part1,
-		final A_Type part2)
-	{
-		final A_Type sizes1 = part1.sizeRange();
-		final A_Number upper1 = sizes1.upperBound();
-		final int limit1 = upper1.isFinite()
-			? upper1.extractInt()
-			: max(
+		/**
+		 * Produce a fully reified concatenation (i.e., not a
+		 * [instance][ConcatenatedTupleTypeDescriptor] of the given pair of
+		 * tuple types.
+		 *
+		 * @param part1
+		 *   The left tuple type.
+		 * @param part2
+		 *   The right tuple type.
+		 * @return
+		 *   The concatenated tuple type.
+		 */
+		private fun reallyConcatenate(
+			part1: A_Type,
+			part2: A_Type): A_Type
+		{
+			val sizes1 = part1.sizeRange()
+			val upper1 = sizes1.upperBound()
+			val limit1 = if (upper1.isFinite) upper1.extractInt()
+			else max(
 				part1.typeTuple().tupleSize() + 1,
-				sizes1.lowerBound().extractInt());
-		final A_Type sizes2 = part2.sizeRange();
-		final A_Number upper2 = sizes2.upperBound();
-		final int limit2 = upper2.isFinite()
-			? upper2.extractInt()
-			: part2.typeTuple().tupleSize() + 1;
-		final int total = limit1 + limit2;
-		final int section1 = Math.min(sizes1.lowerBound().extractInt(), limit1);
-		final A_Tuple typeTuple = generateObjectTupleFrom(
-			total,
-			index -> index <= section1
-				? part1.typeAtIndex(index)
-				: elementOfConcatenation(part1, part2, index));
-		return tupleTypeForSizesTypesDefaultType(
-			sizeRangeOfConcatenation(sizes1, sizes2),
-			typeTuple,
-			defaultTypeOfConcatenation(part1, part2));
-	}
-
-	/**
-	 * Construct a lazy concatenated tuple type object to represent the type
-	 * that is the concatenation of the two tuple types.  Make the objects be
-	 * immutable, because the new type represents the concatenation of the
-	 * objects <em>at the time it was built</em>.
-	 *
-	 * @param firstTupleType
-	 *        The first tuple type to concatenate.
-	 * @param secondTupleType
-	 *        The second tuple type to concatenate.
-	 * @return
-	 *        A simple representation of the tuple type whose instances are all the concatenations of instances of the two given tuple types.
-	 */
-	public static A_Type concatenatingAnd (
-		final A_Type firstTupleType,
-		final A_Type secondTupleType)
-	{
-		assert firstTupleType.isTupleType() && !firstTupleType.isBottom();
-		assert secondTupleType.isTupleType() && !secondTupleType.isBottom();
-		if (secondTupleType.sizeRange().upperBound().equalsInt(0))
-		{
-			return firstTupleType.makeImmutable();
+				sizes1.lowerBound().extractInt())
+			val sizes2 = part2.sizeRange()
+			val upper2 = sizes2.upperBound()
+			val limit2 = 
+				if (upper2.isFinite) upper2.extractInt() 
+				else part2.typeTuple().tupleSize() + 1
+			val total = limit1 + limit2
+			val section1 = min(sizes1.lowerBound().extractInt(), limit1)
+			val typeTuple: A_Tuple = generateObjectTupleFrom(total) { 
+				if (it <= section1) part1.typeAtIndex(it) 
+				else elementOfConcatenation(part1, part2, it) 
+			}
+			return TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+				sizeRangeOfConcatenation(sizes1, sizes2),
+				typeTuple,
+				defaultTypeOfConcatenation(part1, part2))
 		}
-		if (firstTupleType.sizeRange().upperBound().equalsInt(0))
+
+		/**
+		 * Construct a lazy concatenated tuple type object to represent the type
+		 * that is the concatenation of the two tuple types.  Make the objects 
+		 * be immutable, because the new type represents the concatenation of 
+		 * the objects *at the time it was built*.
+		 *
+		 * @param firstTupleType
+		 *   The first tuple type to concatenate.
+		 * @param secondTupleType
+		 *   The second tuple type to concatenate.
+		 * @return
+		 *   A simple representation of the tuple type whose instances are all
+		 *   the concatenations of instances of the two given tuple types.
+		 */
+		fun concatenatingAnd(
+			firstTupleType: A_Type,
+			secondTupleType: A_Type): A_Type
 		{
-			return secondTupleType.makeImmutable();
+			assert(firstTupleType.isTupleType && !firstTupleType.isBottom)
+			assert(secondTupleType.isTupleType && !secondTupleType.isBottom)
+			if (secondTupleType.sizeRange().upperBound().equalsInt(0))
+			{
+				return firstTupleType.makeImmutable()
+			}
+			if (firstTupleType.sizeRange().upperBound().equalsInt(0))
+			{
+				return secondTupleType.makeImmutable()
+			}
+			val maxCost = max(
+				firstTupleType.representationCostOfTupleType(),
+				secondTupleType.representationCostOfTupleType())
+			if (maxCost > maximumConcatenationDepth)
+			{
+				return reallyConcatenate(
+					firstTupleType.makeImmutable(),
+					secondTupleType.makeImmutable())
+			}
+			val result = mutable.create()
+			result.setSlot(IntegerSlots.TUPLE_TYPE_COMPLEXITY, maxCost + 1)
+			result.setSlot(
+				ObjectSlots.FIRST_TUPLE_TYPE, firstTupleType.makeImmutable())
+			result.setSlot(
+				ObjectSlots.SECOND_TUPLE_TYPE, secondTupleType.makeImmutable())
+			return result
 		}
-		final int maxCost = max(
-			firstTupleType.representationCostOfTupleType(),
-			secondTupleType.representationCostOfTupleType());
-		if (maxCost > maximumConcatenationDepth)
-		{
-			return reallyConcatenate(
-				firstTupleType.makeImmutable(),
-				secondTupleType.makeImmutable());
-		}
-		final AvailObject result = mutable.create();
-		result.setSlot(TUPLE_TYPE_COMPLEXITY, maxCost + 1);
-		result.setSlot(FIRST_TUPLE_TYPE, firstTupleType.makeImmutable());
-		result.setSlot(SECOND_TUPLE_TYPE, secondTupleType.makeImmutable());
-		return result;
-	}
 
-	/**
-	 * Construct a new {@code ConcatenatedTupleTypeDescriptor}.
-	 *
-	 * @param mutability
-	 *        The {@linkplain Mutability mutability} of the new descriptor.
-	 */
-	private ConcatenatedTupleTypeDescriptor (final Mutability mutability)
-	{
-		super(
-			mutability,
-			TypeTag.TUPLE_TYPE_TAG,
-			ObjectSlots.class,
-			IntegerSlots.class);
-	}
+		/** The mutable [ConcatenatedTupleTypeDescriptor].  */
+		private val mutable = 
+			ConcatenatedTupleTypeDescriptor(Mutability.MUTABLE)
 
-	/** The mutable {@link ConcatenatedTupleTypeDescriptor}. */
-	private static final ConcatenatedTupleTypeDescriptor mutable =
-		new ConcatenatedTupleTypeDescriptor(Mutability.MUTABLE);
-
-	@Override
-	public ConcatenatedTupleTypeDescriptor mutable ()
-	{
-		return mutable;
-	}
-
-	/** The immutable {@link ConcatenatedTupleTypeDescriptor}. */
-	private static final ConcatenatedTupleTypeDescriptor immutable =
-		new ConcatenatedTupleTypeDescriptor(Mutability.IMMUTABLE);
-
-	@Override
-	public ConcatenatedTupleTypeDescriptor immutable ()
-	{
-		return immutable;
-	}
-
-	@Override
-	public ConcatenatedTupleTypeDescriptor shared ()
-	{
-		throw unsupportedOperationException();
+		/** The immutable [ConcatenatedTupleTypeDescriptor].  */
+		private val immutable = 
+			ConcatenatedTupleTypeDescriptor(Mutability.IMMUTABLE)
 	}
 }

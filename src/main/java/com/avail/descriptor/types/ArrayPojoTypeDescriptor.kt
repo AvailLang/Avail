@@ -60,7 +60,7 @@ import java.util.*
  * course, a superset of pojo types. Second, it may express a range of sizes,
  * not just a single fixed size; this is analogous to the size ranges supported
  * by [tuple types][TupleTypeDescriptor], [set types][SetTypeDescriptor], and
- * [map&amp;#32;types][MapTypeDescriptor].
+ * [map&#32;types][MapTypeDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  *
@@ -111,7 +111,7 @@ internal class ArrayPojoTypeDescriptor private constructor(
 	{
 		/**
 		 * A lazy [map][MapDescriptor] from [pojos][PojoDescriptor] that wrap
-		 * [Java&amp;#32;classes&amp;#32;and&amp;#32;interfaces][Class] to their
+		 * [Java&#32;classes&#32;and&#32;interfaces][Class] to their
 		 * [type parameterizations][TupleDescriptor]. The
 		 * [keys][AvailObject.keysAsSet] constitute this type's complete
 		 * [ancestry][SetDescriptor] of Java types.
