@@ -29,79 +29,67 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-
-package com.avail.descriptor.types;
+package com.avail.descriptor.types
 
 /**
- * A dimension along which a {@link PhraseTypeDescriptor phrase type} can be covariantly specialized.
+ * A dimension along which a [phrase type][PhraseTypeDescriptor] can be
+ * covariantly specialized.
+ *
+ * @property name
+ *   The name to print when describing this parameterization of some phrase
+ *   type.
+ * @property mostGeneralType
+ *   The most general type this parameterization can have. If a phrase type has
+ *   this type for this parameterization, the parameterization won't be shown at
+ *   all in the print representation of the type.
+ *
+ * @constructor
+ * Construct a new [CovariantParameterization], but don't set its index yet.
+ *
+ * @param name
+ *   The name of the covariant specialization.
+ * @param mostGeneralType
+ *   The the type that any specific phrase type's covariant specialization type
+ *   is constrained to.
  */
-public final class CovariantParameterization
+class CovariantParameterization internal constructor(
+	val name: String,
+	val mostGeneralType: A_Type)
 {
-	/**
-	 * The name to print when describing this parameterization of some
-	 * phrase type.
-	 */
-	final String name;
-
-	/**
-	 * The most general type this parameterization can have.
-	 *
-	 * If a phrase type has this type for this parameterization, the
-	 * parameterization won't be shown at all in the print representation
-	 * of the type.
-	 */
-	final A_Type mostGeneralType;
-
 	/**
 	 * The one-based index of this parameterization within
 	 */
-	int index = -1;
+	var index = -1
 
-	/**
-	 * Construct a new {@link CovariantParameterization}, but don't set its index yet.
-	 *
-	 * @param name
-	 *        The name of the covariant specialization.
-	 * @param mostGeneralType
-	 *        The the type that any specific phrase type's covariant specialization type is constrained to.
-	 */
-	CovariantParameterization (
-		final String name,
-		final A_Type mostGeneralType)
+	companion object
 	{
-		this.name = name;
-		this.mostGeneralType = mostGeneralType;
-	}
+		/**
+		 * Static factory method – Create a covariant parameterization.  Don't
+		 * set its index yet.
+		 *
+		 * @param name
+		 *   The name of the covariant specialization.
+		 * @param mostGeneralType
+		 *   The the type that any specific phrase type's covariant
+		 *   specialization type is constrained to.
+		 * @return
+		 *   The new covariant specialization.
+		 */
+		fun co(
+			name: String,
+			mostGeneralType: A_Type): CovariantParameterization =
+				CovariantParameterization(name, mostGeneralType)
 
-	/**
-	 * Static factory method – Create a covariant parameterization.  Don't
-	 * set its index yet.
-	 *
-	 * @param name
-	 *        The name of the covariant specialization.
-	 * @param mostGeneralType
-	 *        The the type that any specific phrase type's covariant specialization type is constrained to.
-	 * @return
-	 * The new covariant specialization.
-	 */
-	static CovariantParameterization co(
-		final String name,
-		final A_Type mostGeneralType)
-	{
-		return new CovariantParameterization(name, mostGeneralType);
-	}
-
-	/**
-	 * Assemble an array of {@link CovariantParameterization}s.  This is a convenience method for assembling an array using varargs.
-	 *
-	 * @param array
-	 * An array of covariant specializations.
-	 * @return
-	 * The same array.
-	 */
-	static CovariantParameterization[] array(
-		final CovariantParameterization... array)
-	{
-		return array;
+		/**
+		 * Assemble an array of [CovariantParameterization]s.  This is a
+		 * convenience method for assembling an array using varargs.
+		 *
+		 * @param array
+		 *   An array of covariant specializations.
+		 * @return
+		 *   The same array.
+		 */
+		fun array(vararg array: CovariantParameterization)
+			: Array<CovariantParameterization> = arrayOf(*array)
 	}
 }

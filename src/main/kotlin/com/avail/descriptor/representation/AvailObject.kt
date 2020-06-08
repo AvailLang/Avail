@@ -1632,8 +1632,8 @@ class AvailObject private constructor(
 	override fun isSupertypeOfSetType(aSetType: A_Type) =
 		dispatch(aSetType) { it::o_IsSupertypeOfSetType }
 
-	override fun isSupertypeOfBottom() =
-		dispatch { it::o_IsSupertypeOfBottom }
+	override val isSupertypeOfBottom
+		get() = dispatch { it::o_IsSupertypeOfBottom }
 
 	override fun isSupertypeOfTupleType(aTupleType: A_Type) =
 		dispatch(aTupleType) { it::o_IsSupertypeOfTupleType }
@@ -2304,7 +2304,7 @@ class AvailObject private constructor(
 	override fun equalsEnumerationWithSet(aSet: A_Set) =
 		dispatch(aSet) { it::o_EqualsEnumerationWithSet }
 
-	override fun isEnumeration() = dispatch { it::o_IsEnumeration }
+	override val isEnumeration = dispatch { it::o_IsEnumeration }
 
 	override fun enumerationIncludesInstance(potentialInstance: AvailObject) =
 		dispatch(potentialInstance) { it::o_EnumerationIncludesInstance }
@@ -2907,11 +2907,11 @@ class AvailObject private constructor(
 	override fun getAndClearReificationWaiters() =
 		dispatch { it::o_GetAndClearReificationWaiters }
 
-	override fun isBottom() = dispatch { it::o_IsBottom }
+	override val isBottom get() = dispatch { it::o_IsBottom }
 
-	override fun isVacuousType() = dispatch { it::o_IsVacuousType }
+	override val isVacuousType get() = dispatch { it::o_IsVacuousType }
 
-	override fun isTop() = dispatch { it::o_IsTop }
+	override val isTop get() = dispatch { it::o_IsTop }
 
 	override fun addPrivateNames(trueNames: A_Set) =
 		dispatch(trueNames) { it::o_AddPrivateNames }
