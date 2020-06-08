@@ -42,8 +42,8 @@ import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import com.avail.descriptor.types.ContinuationTypeDescriptor.Companion.continuationTypeForFunctionType
 import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionTypeReturning
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionTypeReturning
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.E_CONTINUATION_EXPECTED_STRONGER_TYPE
 import com.avail.interpreter.Primitive

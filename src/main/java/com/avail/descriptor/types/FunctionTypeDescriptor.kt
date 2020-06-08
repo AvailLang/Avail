@@ -1,21 +1,21 @@
 /*
- * FunctionTypeDescriptor.java
+ * FunctionTypeDescriptor.kt
  * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
  *
- *  * Neither the name of the copyright holder nor the names of the contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -29,92 +29,97 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.descriptor.types
 
-package com.avail.descriptor.types;
-
-import com.avail.annotations.HideFieldInDebugger;
-import com.avail.annotations.ThreadSafe;
-import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
-import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
-import com.avail.descriptor.functions.FunctionDescriptor;
-import com.avail.descriptor.numbers.A_Number;
-import com.avail.descriptor.objects.ObjectTypeDescriptor;
-import com.avail.descriptor.representation.A_BasicObject;
-import com.avail.descriptor.representation.AbstractSlotsEnum;
-import com.avail.descriptor.representation.AvailObject;
-import com.avail.descriptor.representation.BitField;
-import com.avail.descriptor.representation.Mutability;
-import com.avail.descriptor.sets.A_Set;
-import com.avail.descriptor.sets.SetDescriptor;
-import com.avail.descriptor.tuples.A_Tuple;
-import com.avail.descriptor.tuples.TupleDescriptor;
-import com.avail.interpreter.levelTwo.operand.TypeRestriction;
-import com.avail.serialization.SerializerOperation;
-import com.avail.utility.json.JSONWriter;
-
-import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.IdentityHashMap;
-import java.util.List;
-
-import static com.avail.descriptor.representation.AvailObject.multiplier;
-import static com.avail.descriptor.sets.SetDescriptor.emptySet;
-import static com.avail.descriptor.types.BottomTypeDescriptor.bottom;
-import static com.avail.descriptor.types.FunctionTypeDescriptor.IntegerSlots.HASH_AND_MORE;
-import static com.avail.descriptor.types.FunctionTypeDescriptor.IntegerSlots.HASH_OR_ZERO;
-import static com.avail.descriptor.types.FunctionTypeDescriptor.ObjectSlots.ARGS_TUPLE_TYPE;
-import static com.avail.descriptor.types.FunctionTypeDescriptor.ObjectSlots.DECLARED_EXCEPTIONS;
-import static com.avail.descriptor.types.FunctionTypeDescriptor.ObjectSlots.RETURN_TYPE;
-import static com.avail.descriptor.types.InstanceMetaDescriptor.instanceMeta;
-import static com.avail.descriptor.types.IntegerRangeTypeDescriptor.singleInt;
-import static com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType;
-import static com.avail.descriptor.types.TypeDescriptor.Types.TOP;
-import static com.avail.utility.Strings.newlineTab;
+import com.avail.annotations.ThreadSafe
+import com.avail.descriptor.functions.FunctionDescriptor
+import com.avail.descriptor.objects.ObjectTypeDescriptor
+import com.avail.descriptor.representation.*
+import com.avail.descriptor.sets.A_Set
+import com.avail.descriptor.sets.SetDescriptor
+import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
+import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.TupleDescriptor
+import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
+import com.avail.interpreter.levelTwo.operand.TypeRestriction
+import com.avail.serialization.SerializerOperation
+import com.avail.utility.Strings.newlineTab
+import com.avail.utility.json.JSONWriter
+import java.util.*
 
 /**
- * Function types are the types of {@linkplain FunctionDescriptor functions}. They contain information about the {@linkplain TypeDescriptor types} of arguments that may be accepted, the types of {@linkplain AvailObject values} that may be produced upon successful execution, and the types of exceptions that may be raised to signal unsuccessful execution.
+ * Function types are the types of [functions][FunctionDescriptor]. They contain
+ * information about the [types][TypeDescriptor] of arguments that may be
+ * accepted, the types of [values][AvailObject] that may be produced upon
+ * successful execution, and the types of exceptions that may be raised to
+ * signal unsuccessful execution.
  *
- * Function types are contravariant by {@linkplain A_Type#argsTupleType() argument&#32;types}, covariant by {@linkplain A_Type#returnType() return&#32;type}, and covariant by the coverage of types that are members of the {@linkplain A_Type#declaredExceptions() exception&#32;set}.  I.e., if there is a type in the exception set of A that isn't equal to or a subtype of an element of the exception set of B, then A can't be a subtype of B.
+ * Function types are contravariant by
+ * [argument&#32;types][A_Type.argsTupleType], covariant by
+ * [return&#32;type][A_Type.returnType], and covariant by the coverage of types
+ * that are members of the [exception&#32;set][A_Type.declaredExceptions].
+ * I.e., if there is a type in the exception set of A that isn't equal to or a
+ * subtype of an element of the exception set of B, then A can't be a subtype of
+ * B.
  *
- * Note that the {@link A_Type#argsTupleType()} can be {@linkplain BottomTypeDescriptor#bottom() bottom} (⊥) instead of a tuple type.  Because bottom is more specific than any tuple type, the resulting function type is considered more general than one with a tuple type (if the other variances also hold).
+ * Note that the [A_Type.argsTupleType] can be
+ * [bottom][BottomTypeDescriptor.bottom] (⊥) instead of a tuple type.  Because
+ * bottom is more specific than any tuple type, the resulting function type is
+ * considered more general than one with a tuple type (if the other variances
+ * also hold).
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @constructor
+ * Construct a new function type.
+ *
+ * @param mutability
+ *   The [mutability][Mutability] of the new descriptor.
  */
-public final class FunctionTypeDescriptor
-extends TypeDescriptor
+class FunctionTypeDescriptor private constructor(mutability: Mutability)
+	: TypeDescriptor(
+		mutability,
+		TypeTag.FUNCTION_TYPE_TAG,
+		ObjectSlots::class.java,
+		IntegerSlots::class.java)
 {
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots implements IntegerSlotsEnumJava
+	enum class IntegerSlots : IntegerSlotsEnum
 	{
 		/**
 		 * The low 32 bits are used for caching the hash, but the upper 32 can
-		 * be used by other {@link BitField}s in subclasses.
+		 * be used by other [BitField]s in subclasses.
 		 */
-		@HideFieldInDebugger
 		HASH_AND_MORE;
 
-		/**
-		 * The hash, or zero ({@code 0}) if the hash has not yet been computed.
-		 */
-		public static final BitField HASH_OR_ZERO =
-			new BitField(HASH_AND_MORE, 0, 32);
+		companion object
+		{
+			/**
+			 * The hash, or zero (`0`) if the hash has not yet been computed.
+			 */
+			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
+		}
 	}
 
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnumJava
+	enum class ObjectSlots : ObjectSlotsEnum
 	{
 		/**
-		 * The normalized {@linkplain SetDescriptor set} of checked exceptions that may be raised by message sends performed from within a {@linkplain FunctionDescriptor function} described by this function type.
+		 * The normalized [set][SetDescriptor] of checked exceptions that may be
+		 * raised by message sends performed from within a
+		 * [function][FunctionDescriptor] described by this function type.
 		 */
 		DECLARED_EXCEPTIONS,
 
 		/**
-		 * The most general {@linkplain TypeDescriptor type} of {@linkplain AvailObject value} that may be produced by a successful completion of a {@linkplain FunctionDescriptor function} described by this function type.
+		 * The most general [type][TypeDescriptor] of [value][AvailObject] that
+		 * may be produced by a successful completion of a
+		 * [function][FunctionDescriptor] described by this function type.
 		 */
 		RETURN_TYPE,
 
@@ -125,714 +130,627 @@ extends TypeDescriptor
 		ARGS_TUPLE_TYPE
 	}
 
-	@Override
-	public boolean allowsImmutableToMutableReferenceInField (
-		final AbstractSlotsEnum e)
-	{
-		return e == HASH_AND_MORE;
-	}
+	public override fun allowsImmutableToMutableReferenceInField(
+		e: AbstractSlotsEnum): Boolean = e === IntegerSlots.HASH_AND_MORE
 
-	/**
-	 * Prettily print the specified {@linkplain List list} of {@linkplain AvailObject objects} to the specified {@linkplain StringBuilder stream}.
-	 *
-	 * @param objects
-	 * The objects to print.
-	 * @param aStream
-	 * Where to print the objects.
-	 * @param recursionMap
-	 * Which ancestor objects are currently being printed.
-	 * @param indent
-	 * What level to indent subsequent lines.
-	 */
-	private static void printListOnAvoidingIndent (
-		final List<A_BasicObject> objects,
-		final StringBuilder aStream,
-		final IdentityHashMap<A_BasicObject, Void> recursionMap,
-		final int indent)
+	override fun printObjectOnAvoidingIndent(
+		self: AvailObject,
+		builder: StringBuilder,
+		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		indent: Int)
 	{
-		final int objectCount = objects.size();
-		boolean anyBreaks = false;
-		final List<String> tempStrings = new ArrayList<>(objectCount);
-		for (final @Nullable A_BasicObject elem : objects)
+		builder.append('[')
+		val list: MutableList<A_BasicObject?> = ArrayList()
+		val tupleType = self.argsTupleType()
+		if (tupleType.isBottom)
 		{
-			final String str = elem != null ? elem.toString() : "…";
-			tempStrings.add(str);
-			if (str.indexOf('\n') > -1)
-			{
-				anyBreaks = true;
-			}
-		}
-		if (anyBreaks)
-		{
-			for (int i = 0; i < objectCount; i++)
-			{
-				if (i > 0)
-				{
-					aStream.append(',');
-				}
-				newlineTab(aStream, indent);
-				final A_BasicObject item = objects.get(i);
-				if (item != null)
-				{
-					item.printOnAvoidingIndent(
-						aStream,
-						recursionMap,
-						indent + 1);
-				}
-				else
-				{
-					aStream.append("…");
-				}
-			}
+			builder.append("…")
 		}
 		else
 		{
-			for (int i = 0; i < objectCount; i++)
+			val minObject = tupleType.sizeRange().lowerBound()
+			val maxObject = tupleType.sizeRange().upperBound()
+			if (minObject.isInt)
 			{
-				if (i > 0)
+				val min = minObject.extractInt()
+				for (i in 1 .. min)
 				{
-					aStream.append(", ");
-				}
-				aStream.append(tempStrings.get(i));
-			}
-		}
-	}
-
-	@Override
-	public void printObjectOnAvoidingIndent (
-		final AvailObject object,
-		final StringBuilder aStream,
-		final IdentityHashMap<A_BasicObject, Void> recursionMap,
-		final int indent)
-	{
-		aStream.append('[');
-		final List<A_BasicObject> list = new ArrayList<>();
-		final A_Type tupleType = object.argsTupleType();
-		if (tupleType.isBottom())
-		{
-			aStream.append("…");
-		}
-		else
-		{
-			final A_Number minObject = tupleType.sizeRange().lowerBound();
-			final A_Number maxObject = tupleType.sizeRange().upperBound();
-			if (minObject.isInt())
-			{
-				final int min = minObject.extractInt();
-				for (int i = 1; i <= min; i++)
-				{
-					list.add(tupleType.typeAtIndex(i));
+					list.add(tupleType.typeAtIndex(i))
 				}
 				if (!minObject.equals(maxObject))
 				{
 					// Add "..., opt1, opt2" etc. to show the optional
 					// arguments.
-					list.add(null);
-					int max = tupleType.typeTuple().tupleSize() + 1;
-					max = Math.max(max, min + 1);
-					for (int i = min + 1; i <= max; i++)
+					list.add(null)
+					var max = tupleType.typeTuple().tupleSize() + 1
+					max = Math.max(max, min + 1)
+					for (i in min + 1 .. max)
 					{
-						list.add(tupleType.typeAtIndex(i));
+						list.add(tupleType.typeAtIndex(i))
 					}
 					if (!maxObject.equalsInt(max))
 					{
 						// Add "..., 5" or whatever the max size is (or
 						// infinity).
-						list.add(null);
-						list.add(maxObject);
+						list.add(null)
+						list.add(maxObject)
 					}
 				}
-				printListOnAvoidingIndent(list, aStream, recursionMap, indent);
+				printListOnAvoidingIndent(list, builder, recursionMap, indent)
 			}
 			else
 			{
-				aStream.append("?");
+				builder.append("?")
 			}
 		}
-		aStream.append("]→");
-		object.returnType().printOnAvoidingIndent(
-			aStream, recursionMap, indent + 1);
-		if (object.declaredExceptions().setSize() > 0)
+		builder.append("]→")
+		self.returnType().printOnAvoidingIndent(
+			builder, recursionMap, indent + 1)
+		if (self.declaredExceptions().setSize() > 0)
 		{
-			aStream.append("^");
-			list.clear();
-			for (final AvailObject elem : object.declaredExceptions())
+			builder.append("^")
+			list.clear()
+			for (elem in self.declaredExceptions())
 			{
-				list.add(elem);
+				list.add(elem)
 			}
-			printListOnAvoidingIndent(list, aStream, recursionMap, indent);
+			printListOnAvoidingIndent(list, builder, recursionMap, indent)
 		}
 	}
 
-	/**
-	 * The hash value is stored raw in the object's {@linkplain IntegerSlots#HASH_OR_ZERO hashOrZero} slot if it has been computed, otherwise that slot is zero. If a zero is detected, compute the hash and store it in hashOrZero. Note that the hash can (extremely rarely) be zero, in which case the hash must be computed on demand every time it is requested. Answer the raw hash value.
-	 *
-	 * @param object
-	 * The object.
-	 * @return
-	 * The hash.
-	 */
-	private static int hash (final AvailObject object)
-	{
-		int hash = object.slot(HASH_OR_ZERO);
-		if (hash == 0)
-		{
-			hash = 0x163FC934;
-			hash += object.slot(RETURN_TYPE).hash();
-			hash *= multiplier;
-			hash ^= object.slot(DECLARED_EXCEPTIONS).hash();
-			hash *= multiplier;
-			hash ^= object.slot(ARGS_TUPLE_TYPE).hash();
-			hash += 0x10447107;
-			object.setSlot(HASH_OR_ZERO, hash);
-		}
-		return hash;
-	}
+	override fun o_AcceptsArgTypesFromFunctionType(
+		self: AvailObject,
+		functionType: A_Type): Boolean =
+			functionType.argsTupleType().isSubtypeOf(
+				self.slot(ObjectSlots.ARGS_TUPLE_TYPE))
 
-	@Override
-	public boolean o_AcceptsArgTypesFromFunctionType (
-		final AvailObject object,
-		final A_Type functionType)
+	override fun o_AcceptsListOfArgTypes(
+		self: AvailObject,
+		argTypes: List<A_Type>): Boolean
 	{
-		return functionType.argsTupleType().isSubtypeOf(
-			object.slot(ARGS_TUPLE_TYPE));
-	}
-
-	@Override
-	public boolean o_AcceptsListOfArgTypes (
-		final AvailObject object,
-		final List<? extends A_Type> argTypes)
-	{
-		final A_Type tupleType = object.slot(ARGS_TUPLE_TYPE);
-		for (int i = 1, end = argTypes.size(); i <= end; i++)
+		val tupleType: A_Type = self.slot(ObjectSlots.ARGS_TUPLE_TYPE)
+		var i = 1
+		val end = argTypes.size
+		while (i <= end)
 		{
-			if (!argTypes.get(i - 1).isSubtypeOf(tupleType.typeAtIndex(i)))
+			if (!argTypes[i - 1].isSubtypeOf(tupleType.typeAtIndex(i)))
 			{
-				return false;
+				return false
 			}
+			i++
 		}
-		return true;
+		return true
 	}
 
-	@Override
-	public boolean o_AcceptsListOfArgValues (
-		final AvailObject object,
-		final List<? extends A_BasicObject> argValues)
+	override fun o_AcceptsListOfArgValues(
+		self: AvailObject,
+		argValues: List<A_BasicObject>): Boolean
 	{
-		final A_Type tupleType = object.slot(ARGS_TUPLE_TYPE);
-		for (int i = 1, end = argValues.size(); i <= end; i++)
+		val tupleType: A_Type = self.slot(ObjectSlots.ARGS_TUPLE_TYPE)
+		var i = 1
+		val end = argValues.size
+		while (i <= end)
 		{
-			final A_BasicObject arg = argValues.get(i - 1);
+			val arg = argValues[i - 1]
 			if (!arg.isInstanceOf(tupleType.typeAtIndex(i)))
 			{
-				return false;
+				return false
 			}
+			i++
 		}
-		return true;
+		return true
 	}
 
-	@Override
-	public boolean o_AcceptsTupleOfArgTypes (
-		final AvailObject object,
-		final A_Tuple argTypes)
+	override fun o_AcceptsTupleOfArgTypes(
+		self: AvailObject,
+		argTypes: A_Tuple): Boolean
 	{
-		final A_Type tupleType = object.slot(ARGS_TUPLE_TYPE);
-		for (int i = 1, end = argTypes.tupleSize(); i <= end; i++)
+		val tupleType: A_Type = self.slot(ObjectSlots.ARGS_TUPLE_TYPE)
+		var i = 1
+		val end = argTypes.tupleSize()
+		while (i <= end)
 		{
 			if (!argTypes.tupleAt(i).isSubtypeOf(tupleType.typeAtIndex(i)))
 			{
-				return false;
+				return false
 			}
+			i++
 		}
-		return true;
+		return true
 	}
 
-	@Override
-	public boolean o_AcceptsTupleOfArguments (
-		final AvailObject object,
-		final A_Tuple arguments)
-	{
-		return arguments.isInstanceOf(object.slot(ARGS_TUPLE_TYPE));
-	}
+	override fun o_AcceptsTupleOfArguments(
+		self: AvailObject,
+		arguments: A_Tuple): Boolean =
+			arguments.isInstanceOf(self.slot(ObjectSlots.ARGS_TUPLE_TYPE))
 
-	@Override
-	public A_Type o_ArgsTupleType (final AvailObject object)
-	{
-		return object.slot(ARGS_TUPLE_TYPE);
-	}
+	override fun o_ArgsTupleType(self: AvailObject): A_Type =
+		self.slot(ObjectSlots.ARGS_TUPLE_TYPE)
 
-	@Override
-	public boolean o_CouldEverBeInvokedWith (
-		final AvailObject object,
-		final List<TypeRestriction> argRestrictions)
+	override fun o_CouldEverBeInvokedWith(
+		self: AvailObject,
+		argRestrictions: List<TypeRestriction>): Boolean
 	{
-		final A_Type tupleType = object.slot(ARGS_TUPLE_TYPE);
-		for (int i = 1, end = argRestrictions.size(); i <= end; i++)
+		val tupleType: A_Type = self.slot(ObjectSlots.ARGS_TUPLE_TYPE)
+		var i = 1
+		val end = argRestrictions.size
+		while (i <= end)
 		{
-			if (!argRestrictions.get(i - 1).intersectsType(
-				tupleType.typeAtIndex(i)))
+			if (!argRestrictions[i - 1].intersectsType(
+					tupleType.typeAtIndex(i)))
 			{
-				return false;
+				return false
 			}
+			i++
 		}
-		return true;
+		return true
 	}
 
-	@Override
-	public A_Set o_DeclaredExceptions (final AvailObject object)
-	{
-		return object.slot(DECLARED_EXCEPTIONS);
-	}
+	override fun o_DeclaredExceptions(self: AvailObject): A_Set =
+		self.slot(ObjectSlots.DECLARED_EXCEPTIONS)
 
-	@Override
-	public boolean o_Equals (final AvailObject object, final A_BasicObject another)
-	{
-		return another.equalsFunctionType(object);
-	}
+	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean =
+		another.equalsFunctionType(self)
 
-	@Override
-	public boolean o_EqualsFunctionType (
-		final AvailObject object,
-		final A_Type aType)
+	override fun o_EqualsFunctionType(
+		self: AvailObject,
+		aFunctionType: A_Type): Boolean
 	{
-		if (object.sameAddressAs(aType))
+		when
 		{
-			return true;
-		}
-		if (object.hash() != aType.hash())
-		{
-			return false;
-		}
-		if (!object.slot(ARGS_TUPLE_TYPE).equals(aType.argsTupleType()))
-		{
-			return false;
-		}
-		if (!object.slot(RETURN_TYPE).equals(aType.returnType()))
-		{
-			return false;
-		}
-		if (!object.slot(DECLARED_EXCEPTIONS).equals(
-			aType.declaredExceptions()))
-		{
-			return false;
-		}
-		if (!isShared())
-		{
-			aType.makeImmutable();
-			object.becomeIndirectionTo(aType);
-		}
-		else if (!aType.descriptor().isShared())
-		{
-			object.makeImmutable();
-			aType.becomeIndirectionTo(object);
-		}
-		return true;
-	}
-
-	@Override
-	public int o_Hash (final AvailObject object)
-	{
-		if (isShared())
-		{
-			synchronized (object)
+			self.sameAddressAs(aFunctionType) -> return true
+			self.hash() != aFunctionType.hash() -> return false
+			!self.slot(ObjectSlots.ARGS_TUPLE_TYPE)
+				.equals(aFunctionType.argsTupleType()) -> return false
+			!self.slot(ObjectSlots.RETURN_TYPE)
+				.equals(aFunctionType.returnType()) -> return false
+			!self.slot(ObjectSlots.DECLARED_EXCEPTIONS).equals(
+				aFunctionType.declaredExceptions()) -> return false
+			!isShared ->
 			{
-				return hash(object);
+				aFunctionType.makeImmutable()
+				self.becomeIndirectionTo(aFunctionType)
+			}
+			!aFunctionType.descriptor().isShared ->
+			{
+				self.makeImmutable()
+				aFunctionType.becomeIndirectionTo(self)
 			}
 		}
-		return hash(object);
+		return true
 	}
 
-	@Override
-	public boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
+	override fun o_Hash(self: AvailObject): Int
 	{
-		return aType.isSupertypeOfFunctionType(object);
+		if (isShared)
+		{
+			synchronized(self) { return hash(self) }
+		}
+		return hash(self)
 	}
 
-	@Override
-	public boolean o_IsSupertypeOfFunctionType (
-		final AvailObject object,
-		final A_Type aFunctionType)
+	override fun o_IsSubtypeOf(self: AvailObject, aType: A_Type): Boolean =
+		aType.isSupertypeOfFunctionType(self)
+
+	override fun o_IsSupertypeOfFunctionType(
+		self: AvailObject,
+		aFunctionType: A_Type): Boolean
 	{
-		if (object.equals(aFunctionType))
+		if (self.equals(aFunctionType))
 		{
-			return true;
+			return true
 		}
-		if (!aFunctionType.returnType().isSubtypeOf(object.slot(RETURN_TYPE)))
+		if (!aFunctionType.returnType()
+				.isSubtypeOf(self.slot(ObjectSlots.RETURN_TYPE)))
 		{
-			return false;
+			return false
 		}
-		final A_Set inners = object.slot(DECLARED_EXCEPTIONS);
+		val inners: A_Set = self.slot(ObjectSlots.DECLARED_EXCEPTIONS)
 		// A ⊆ B if everything A can throw was declared by B
-		each_outer:
-		for (final A_Type outer : aFunctionType.declaredExceptions())
+		each_outer@ for (outer in aFunctionType.declaredExceptions())
 		{
-			for (final A_Type inner : inners)
+			for (inner in inners)
 			{
 				if (outer.isSubtypeOf(inner))
 				{
-					continue each_outer;
+					continue@each_outer
 				}
 			}
-			return false;
+			return false
 		}
-		return object.slot(ARGS_TUPLE_TYPE).isSubtypeOf(
-			aFunctionType.argsTupleType());
+		return self.slot(ObjectSlots.ARGS_TUPLE_TYPE).isSubtypeOf(
+			aFunctionType.argsTupleType())
 	}
 
-	@Override
-	public boolean o_IsVacuousType (final AvailObject object)
+	override fun o_IsVacuousType(self: AvailObject): Boolean
 	{
-		final A_Type argsTupleType = object.slot(ARGS_TUPLE_TYPE);
-		final A_Type sizeRange = argsTupleType.sizeRange();
-		return sizeRange.lowerBound().lessThan(sizeRange.upperBound());
+		val argsTupleType: A_Type = self.slot(ObjectSlots.ARGS_TUPLE_TYPE)
+		val sizeRange = argsTupleType.sizeRange()
+		return sizeRange.lowerBound().lessThan(sizeRange.upperBound())
 	}
 
-	@Override
-	public A_Type o_ReturnType (final AvailObject object)
-	{
-		return object.slot(RETURN_TYPE);
-	}
+	override fun o_ReturnType(self: AvailObject): A_Type =
+		self.slot(ObjectSlots.RETURN_TYPE)
 
-	@Override
-	public A_Type o_TypeIntersection (
-		final AvailObject object,
-		final A_Type another)
-	{
-		if (object.isSubtypeOf(another))
+	override fun o_TypeIntersection(self: AvailObject, another: A_Type): A_Type =
+		when
 		{
-			return object;
+			self.isSubtypeOf(another) -> self
+			else ->
+			{
+				if (another.isSubtypeOf(self)) another
+				else another.typeIntersectionOfFunctionType(self)
+			}
 		}
-		if (another.isSubtypeOf(object))
-		{
-			return another;
-		}
-		return another.typeIntersectionOfFunctionType(object);
-	}
 
-	@Override
-	public A_Type o_TypeIntersectionOfFunctionType (
-		final AvailObject object,
-		final A_Type aFunctionType)
+	override fun o_TypeIntersectionOfFunctionType(
+		self: AvailObject,
+		aFunctionType: A_Type): A_Type
 	{
-		final A_Type tupleTypeUnion =
-			object.slot(ARGS_TUPLE_TYPE).typeUnion(
-				aFunctionType.argsTupleType());
-		final A_Type returnType =
-			object.slot(RETURN_TYPE).typeIntersection(
-				aFunctionType.returnType());
-		A_Set exceptions = emptySet();
-		for (final A_Type outer : object.slot(DECLARED_EXCEPTIONS))
+		val tupleTypeUnion =
+			self.slot(ObjectSlots.ARGS_TUPLE_TYPE).typeUnion(
+				aFunctionType.argsTupleType())
+		val returnType =
+			self.slot(ObjectSlots.RETURN_TYPE).typeIntersection(
+				aFunctionType.returnType())
+		var exceptions = emptySet()
+		for (outer in self.slot(ObjectSlots.DECLARED_EXCEPTIONS))
 		{
-			for (final A_Type inner : aFunctionType.declaredExceptions())
+			for (inner in aFunctionType.declaredExceptions())
 			{
 				exceptions = exceptions.setWithElementCanDestroy(
 					outer.typeIntersection(inner),
-					true);
+					true)
 			}
 		}
-		exceptions = normalizeExceptionSet(exceptions);
+		exceptions = normalizeExceptionSet(exceptions)
 		return functionTypeFromArgumentTupleType(
 			tupleTypeUnion,
 			returnType,
-			exceptions);
+			exceptions)
 	}
 
-	@Override
-	public A_Type o_TypeUnion (
-		final AvailObject object,
-		final A_Type another)
-	{
-		if (object.isSubtypeOf(another))
+	override fun o_TypeUnion(self: AvailObject, another: A_Type): A_Type =
+		when
 		{
-			return another;
+			self.isSubtypeOf(another) -> another
+			else ->
+			{
+				if (another.isSubtypeOf(self)) self
+				else another.typeUnionOfFunctionType(self)
+			}
 		}
-		if (another.isSubtypeOf(object))
-		{
-			return object;
-		}
-		return another.typeUnionOfFunctionType(object);
-	}
 
-	@Override
-	public A_Type o_TypeUnionOfFunctionType (
-		final AvailObject object,
-		final A_Type aFunctionType)
+	override fun o_TypeUnionOfFunctionType(
+		self: AvailObject,
+		aFunctionType: A_Type): A_Type
 	{
 		// Subobjects may be shared with result.
-		object.makeSubobjectsImmutable();
-		final A_Type tupleTypeIntersection =
-			object.slot(ARGS_TUPLE_TYPE).typeIntersection(
-				aFunctionType.argsTupleType());
-		final A_Type returnType =
-			object.slot(RETURN_TYPE).typeUnion(aFunctionType.returnType());
-		final A_Set exceptions = normalizeExceptionSet(
-			object.slot(DECLARED_EXCEPTIONS).setUnionCanDestroy(
-				aFunctionType.declaredExceptions(), true));
+		self.makeSubobjectsImmutable()
+		val tupleTypeIntersection =
+			self.slot(ObjectSlots.ARGS_TUPLE_TYPE).typeIntersection(
+				aFunctionType.argsTupleType())
+		val returnType =
+			self.slot(ObjectSlots.RETURN_TYPE)
+				.typeUnion(aFunctionType.returnType())
+		val exceptions = normalizeExceptionSet(
+			self.slot(ObjectSlots.DECLARED_EXCEPTIONS).setUnionCanDestroy(
+				aFunctionType.declaredExceptions(), true))
 		return functionTypeFromArgumentTupleType(
 			tupleTypeIntersection,
 			returnType,
-			exceptions);
+			exceptions)
 	}
 
-	@Override @ThreadSafe
-	public SerializerOperation o_SerializerOperation (
-		final AvailObject object)
+	@ThreadSafe
+	override fun o_SerializerOperation(
+		self: AvailObject): SerializerOperation =
+			SerializerOperation.FUNCTION_TYPE
+
+	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter)
 	{
-		return SerializerOperation.FUNCTION_TYPE;
+		writer.startObject()
+		writer.write("kind")
+		writer.write("function type")
+		writer.write("arguments type")
+		self.slot(ObjectSlots.ARGS_TUPLE_TYPE).writeSummaryTo(writer)
+		writer.write("return type")
+		self.slot(ObjectSlots.RETURN_TYPE).writeSummaryTo(writer)
+		writer.write("declared exceptions")
+		self.slot(ObjectSlots.DECLARED_EXCEPTIONS).writeSummaryTo(writer)
+		writer.endObject()
 	}
 
-	@Override
-	public void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	override fun o_WriteTo(self: AvailObject, writer: JSONWriter)
 	{
-		writer.startObject();
-		writer.write("kind");
-		writer.write("function type");
-		writer.write("arguments type");
-		object.slot(ARGS_TUPLE_TYPE).writeSummaryTo(writer);
-		writer.write("return type");
-		object.slot(RETURN_TYPE).writeSummaryTo(writer);
-		writer.write("declared exceptions");
-		object.slot(DECLARED_EXCEPTIONS).writeSummaryTo(writer);
-		writer.endObject();
+		writer.startObject()
+		writer.write("kind")
+		writer.write("function type")
+		writer.write("arguments type")
+		self.slot(ObjectSlots.ARGS_TUPLE_TYPE).writeTo(writer)
+		writer.write("return type")
+		self.slot(ObjectSlots.RETURN_TYPE).writeTo(writer)
+		writer.write("declared exceptions")
+		self.slot(ObjectSlots.DECLARED_EXCEPTIONS).writeTo(writer)
+		writer.endObject()
 	}
 
-	@Override
-	public void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	override fun mutable(): FunctionTypeDescriptor = mutable
+
+	override fun immutable(): FunctionTypeDescriptor = immutable
+
+	override fun shared(): FunctionTypeDescriptor = shared
+
+	companion object
 	{
-		writer.startObject();
-		writer.write("kind");
-		writer.write("function type");
-		writer.write("arguments type");
-		object.slot(ARGS_TUPLE_TYPE).writeTo(writer);
-		writer.write("return type");
-		object.slot(RETURN_TYPE).writeTo(writer);
-		writer.write("declared exceptions");
-		object.slot(DECLARED_EXCEPTIONS).writeTo(writer);
-		writer.endObject();
-	}
-
-	/**
-	 * Construct a new function type.
-	 *
-	 * @param mutability
-	 *        The {@linkplain Mutability mutability} of the new descriptor.
-	 */
-	private FunctionTypeDescriptor (final Mutability mutability)
-	{
-		super(
-			mutability,
-			TypeTag.FUNCTION_TYPE_TAG,
-			ObjectSlots.class,
-			IntegerSlots.class);
-	}
-
-	/** The mutable {@link FunctionTypeDescriptor}. */
-	private static final FunctionTypeDescriptor mutable =
-		new FunctionTypeDescriptor(Mutability.MUTABLE);
-
-	@Override
-	public FunctionTypeDescriptor mutable ()
-	{
-		return mutable;
-	}
-
-	/** The immutable {@link FunctionTypeDescriptor}. */
-	private static final FunctionTypeDescriptor immutable =
-		new FunctionTypeDescriptor(Mutability.IMMUTABLE);
-
-	@Override
-	public FunctionTypeDescriptor immutable ()
-	{
-		return immutable;
-	}
-
-	/** The shared {@link FunctionTypeDescriptor}. */
-	private static final FunctionTypeDescriptor shared =
-		new FunctionTypeDescriptor(Mutability.SHARED);
-
-	@Override
-	public FunctionTypeDescriptor shared ()
-	{
-		return shared;
-	}
-
-	/**
-	 * The most general function type.
-	 */
-	private static final A_Type mostGeneralType =
-		functionTypeReturning(TOP.o()).makeShared();
-
-	/**
-	 * Answer the top (i.e., most general) function type.
-	 *
-	 * @return
-	 * The function type "[…]→⊤".
-	 */
-	public static A_Type mostGeneralFunctionType ()
-	{
-		return mostGeneralType;
-	}
-
-	/**
-	 * The metatype of any function types.
-	 */
-	private static final A_Type meta =
-		instanceMeta(mostGeneralType).makeShared();
-
-	/**
-	 * Answer the metatype for all function types.  This is just an {@linkplain InstanceTypeDescriptor instance&#32;type} on the {@linkplain #mostGeneralFunctionType() most&#32;general&#32;type}.
-	 *
-	 * @return
-	 * The (meta-)type of the function type "[…]→⊤".
-	 */
-	public static A_Type functionMeta ()
-	{
-		return meta;
-	}
-
-	/**
-	 * Normalize the specified exception {@linkplain SetDescriptor set} by eliminating bottom and types for which a supertype is also present.
-	 *
-	 * @param exceptionSet
-	 *        An exception {@linkplain SetDescriptor set}. Must include only {@linkplain TypeDescriptor types}.
-	 * @return
-	 * A normalized exception {@linkplain SetDescriptor set}.
-	 * @see AvailObject#declaredExceptions()
-	 */
-	private static A_Set normalizeExceptionSet (
-		final A_Set exceptionSet)
-	{
-		// This is probably the most common case -- no checked exceptions.
-		// Return the argument.
-		if (exceptionSet.setSize() == 0)
+		/**
+		 * Prettily print the specified [list][List] of [objects][AvailObject]
+		 * to the specified [stream][StringBuilder].
+		 *
+		 * @param objects
+		 *   The objects to print.
+		 * @param aStream
+		 *   Where to print the objects.
+		 * @param recursionMap
+		 *   Which ancestor objects are currently being printed.
+		 * @param indent
+		 *   What level to indent subsequent lines.
+		 */
+		private fun printListOnAvoidingIndent(
+			objects: List<A_BasicObject?>,
+			aStream: StringBuilder,
+			recursionMap: IdentityHashMap<A_BasicObject, Void>,
+			indent: Int)
 		{
-			return exceptionSet;
-		}
-
-		// This is probably the next most common case -- just one checked
-		// exception. If the element is bottom, then exclude it.
-		if (exceptionSet.setSize() == 1)
-		{
-			if (exceptionSet.iterator().next().isBottom())
+			val objectCount = objects.size
+			var anyBreaks = false
+			val tempStrings: MutableList<String> = ArrayList(objectCount)
+			for (elem in objects)
 			{
-				return emptySet();
-			}
-			return exceptionSet;
-		}
-
-		// Actually normalize the set. That is, eliminate types for which a
-		// supertype is already present. Also, eliminate bottom.
-		A_Set normalizedSet = emptySet();
-		each_outer:
-		for (final AvailObject outer : exceptionSet)
-		{
-			if (!outer.isBottom())
-			{
-				for (final AvailObject inner : exceptionSet)
+				val str = elem?.toString() ?: "…"
+				tempStrings.add(str)
+				if (str.indexOf('\n') > -1)
 				{
-					if (outer.isSubtypeOf(inner))
-					{
-						continue each_outer;
-					}
+					anyBreaks = true
 				}
-				normalizedSet = normalizedSet.setWithElementCanDestroy(
-					outer, true);
+			}
+			if (anyBreaks)
+			{
+				for (i in 0 until objectCount)
+				{
+					if (i > 0)
+					{
+						aStream.append(',')
+					}
+					newlineTab(aStream, indent)
+					val item = objects[i]
+					item?.printOnAvoidingIndent(
+						aStream,
+						recursionMap,
+						indent + 1)
+					?: aStream.append("…")
+				}
+			}
+			else
+			{
+				for (i in 0 until objectCount)
+				{
+					if (i > 0)
+					{
+						aStream.append(", ")
+					}
+					aStream.append(tempStrings[i])
+				}
 			}
 		}
 
-		return normalizedSet;
-	}
+		/**
+		 * The hash value is stored raw in the object's
+		 * [hashOrZero][IntegerSlots.HASH_OR_ZERO] slot if it has been computed,
+		 * otherwise that slot is zero. If a zero is detected, compute the hash
+		 * and store it in hashOrZero. Note that the hash can (extremely rarely)
+		 * be zero, in which case the hash must be computed on demand every time
+		 * it is requested. Answer the raw hash value.
+		 *
+		 * @param self
+		 *   The object.
+		 * @return
+		 *   The hash.
+		 */
+		private fun hash(self: AvailObject): Int
+		{
+			var hash = self.slot(IntegerSlots.HASH_OR_ZERO)
+			if (hash == 0)
+			{
+				hash = 0x163FC934
+				hash += self.slot(ObjectSlots.RETURN_TYPE).hash()
+				hash *= AvailObject.multiplier
+				hash = hash xor self.slot(ObjectSlots.DECLARED_EXCEPTIONS).hash()
+				hash *= AvailObject.multiplier
+				hash = hash xor self.slot(ObjectSlots.ARGS_TUPLE_TYPE).hash()
+				hash += 0x10447107
+				self.setSlot(IntegerSlots.HASH_OR_ZERO, hash)
+			}
+			return hash
+		}
 
-	/**
-	 * Answer a new function type whose instances accept arguments which, if collected in a tuple, match the specified {@linkplain TupleTypeDescriptor tuple&#32;type}.  The instances of this function type should also produce values that conform to the return type, and may only raise checked exceptions whose instances are subtypes of one or more members of the supplied exception set.
-	 *
-	 * @param argsTupleType
-	 *        A {@linkplain TupleTypeDescriptor tuple&#32;type} describing the {@linkplain TypeDescriptor types} of the arguments that instances should accept.
-	 * @param returnType
-	 *        The {@linkplain TypeDescriptor type} of value that an instance should produce.
-	 * @param exceptionSet
-	 *        The {@linkplain SetDescriptor set} of checked {@linkplain ObjectTypeDescriptor exception&#32;types} that an instance may raise.
-	 * @return
-	 * A function type.
-	 */
-	public static A_Type functionTypeFromArgumentTupleType (
-		final A_Type argsTupleType,
-		final A_Type returnType,
-		final A_Set exceptionSet)
-	{
-		assert argsTupleType.isTupleType();
-		final A_Set exceptionsReduced = normalizeExceptionSet(exceptionSet);
-		final AvailObject type = mutable.create();
-		type.setSlot(ARGS_TUPLE_TYPE, argsTupleType);
-		type.setSlot(DECLARED_EXCEPTIONS, exceptionsReduced);
-		type.setSlot(RETURN_TYPE, returnType);
-		type.setSlot(HASH_OR_ZERO, 0);
-		type.makeImmutable();
-		return type;
-	}
+		/** The mutable [FunctionTypeDescriptor].  */
+		private val mutable = FunctionTypeDescriptor(Mutability.MUTABLE)
 
-	/**
-	 * Answer a new function type whose instances accept arguments whose types
-	 * conform to the corresponding entries in the provided tuple of types,
-	 * produce values that conform to the return type, and may only raise
-	 * checked exceptions whose instances are subtypes of one or more members of
-	 * the supplied exception set.
-	 *
-	 * @param argTypes
-	 *        A {@linkplain TupleDescriptor tuple} of {@linkplain TypeDescriptor types} of the arguments that instances should accept.
-	 * @param returnType
-	 *        The {@linkplain TypeDescriptor type} of value that an instance should produce.
-	 * @param exceptionSet
-	 *        The {@linkplain SetDescriptor set} of checked {@linkplain ObjectTypeDescriptor exception&#32;types} that an instance may raise.
-	 * @return A function type.
-	 */
-	public static A_Type functionType (
-		final A_Tuple argTypes,
-		final A_Type returnType,
-		final A_Set exceptionSet)
-	{
-		final A_Type tupleType = tupleTypeForSizesTypesDefaultType(
-			singleInt(argTypes.tupleSize()), argTypes, bottom());
-		return functionTypeFromArgumentTupleType(
-			tupleType, returnType, exceptionSet);
-	}
+		/** The immutable [FunctionTypeDescriptor].  */
+		private val immutable = FunctionTypeDescriptor(Mutability.IMMUTABLE)
 
-	/**
-	 * Answer a new function type whose instances accept arguments whose types
-	 * conform to the corresponding entries in the provided tuple of types,
-	 * produce values that conform to the return type, and raise no checked
-	 * exceptions.
-	 *
-	 * @param argTypes
-	 *        A {@linkplain TupleDescriptor tuple} of {@linkplain TypeDescriptor types} of the arguments that instances should accept.
-	 * @param returnType
-	 *        The {@linkplain TypeDescriptor type} of value that an instance should produce.
-	 * @return
-	 * A function type.
-	 */
-	public static A_Type functionType (
-		final A_Tuple argTypes,
-		final A_Type returnType)
-	{
-		return functionType(argTypes, returnType, emptySet());
-	}
+		/** The shared [FunctionTypeDescriptor].  */
+		private val shared = FunctionTypeDescriptor(Mutability.SHARED)
 
-	/**
-	 * Answer a new function type that doesn't specify how many arguments its
-	 * conforming functions have.  This is a useful kind of function type for
-	 * discussing things like a general function invocation operation.
-	 *
-	 * @param returnType
-	 *        The type of object returned by a function that conforms to the function type being defined.
-	 * @return A function type.
-	 */
-	public static A_Type functionTypeReturning (
-		final A_Type returnType)
-	{
-		return functionTypeFromArgumentTupleType(
-			bottom(),
-			returnType,
-			// TODO: [MvG] Probably should allow any exception.
-			emptySet());
+		/**
+		 * The most general function type.
+		 */
+		private val mostGeneralType: A_Type =
+			functionTypeReturning(Types.TOP.o()).makeShared()
+
+		/**
+		 * Answer the top (i.e., most general) function type.
+		 *
+		 * @return
+		 *   The function type "[…]→⊤".
+		 */
+		@JvmStatic
+		fun mostGeneralFunctionType(): A_Type = mostGeneralType
+
+		/**
+		 * The metatype of any function types.
+		 */
+		private val meta: A_Type =
+			InstanceMetaDescriptor.instanceMeta(mostGeneralType).makeShared()
+
+		/**
+		 * Answer the metatype for all function types.  This is just an
+		 * [instance&#32;type][InstanceTypeDescriptor] on the
+		 * [most&#32;general&#32;type][mostGeneralFunctionType].
+		 *
+		 * @return
+		 *   The (meta-)type of the function type "[…]→⊤".
+		 */
+		@JvmStatic
+		fun functionMeta(): A_Type = meta
+
+		/**
+		 * Normalize the specified exception [set][SetDescriptor] by eliminating
+		 * bottom and types for which a supertype is also present.
+		 *
+		 * @param exceptionSet
+		 *   An exception [set][SetDescriptor]. Must include only
+		 *   [types][TypeDescriptor].
+		 * @return
+		 *   A normalized exception [set][SetDescriptor].
+		 * @see AvailObject.declaredExceptions
+		 */
+		private fun normalizeExceptionSet(exceptionSet: A_Set): A_Set
+		{
+			// This is probably the most common case -- no checked exceptions.
+			// Return the argument.
+			if (exceptionSet.setSize() == 0)
+			{
+				return exceptionSet
+			}
+
+			// This is probably the next most common case -- just one checked
+			// exception. If the element is bottom, then exclude it.
+			if (exceptionSet.setSize() == 1)
+			{
+				return if (exceptionSet.iterator().next().isBottom)
+				{
+					emptySet()
+				}
+				else exceptionSet
+			}
+
+			// Actually normalize the set. That is, eliminate types for which a
+			// supertype is already present. Also, eliminate bottom.
+			var normalizedSet = emptySet()
+			each_outer@ for (outer in exceptionSet)
+			{
+				if (!outer.isBottom)
+				{
+					for (inner in exceptionSet)
+					{
+						if (outer.isSubtypeOf(inner))
+						{
+							continue@each_outer
+						}
+					}
+					normalizedSet = normalizedSet.setWithElementCanDestroy(
+						outer, true)
+				}
+			}
+			return normalizedSet
+		}
+
+		/**
+		 * Answer a new function type whose instances accept arguments which, if
+		 * collected in a tuple, match the specified
+		 * [tuple&#32;type][TupleTypeDescriptor].  The instances of this
+		 * function type should also produce values that conform to the return
+		 * type, and may only raise checked exceptions whose instances are
+		 * subtypes of one or more members of the supplied exception set.
+		 *
+		 * @param argsTupleType
+		 *  A [tuple&#32;type][TupleTypeDescriptor] describing the
+		 *  [types][TypeDescriptor] of the arguments that instances should
+		 *  accept.
+		 * @param returnType
+		 *   The [type][TypeDescriptor] of value that an instance should produce.
+		 * @param exceptionSet
+		 *   The [set][SetDescriptor] of checked
+		 *   [exception&#32;types][ObjectTypeDescriptor] that an instance may
+		 *   raise.
+		 * @return
+		 *  A function type.
+		 */
+		@JvmStatic
+		fun functionTypeFromArgumentTupleType(
+			argsTupleType: A_Type,
+			returnType: A_Type?,
+			exceptionSet: A_Set): A_Type
+		{
+			assert(argsTupleType.isTupleType)
+			val exceptionsReduced = normalizeExceptionSet(exceptionSet)
+			val type = mutable.create()
+			type.setSlot(ObjectSlots.ARGS_TUPLE_TYPE, argsTupleType)
+			type.setSlot(ObjectSlots.DECLARED_EXCEPTIONS, exceptionsReduced)
+			type.setSlot(ObjectSlots.RETURN_TYPE, returnType!!)
+			type.setSlot(IntegerSlots.HASH_OR_ZERO, 0)
+			type.makeImmutable()
+			return type
+		}
+
+		/**
+		 * Answer a new function type whose instances accept arguments whose
+		 * types conform to the corresponding entries in the provided tuple of
+		 * types, produce values that conform to the return type, and raise no
+		 * checked exceptions.
+		 *
+		 * @param argTypes
+		 *   A [tuple][TupleDescriptor] of [types][TypeDescriptor] of the
+		 *   arguments that instances should accept.
+		 * @param returnType
+		 *  The [type][TypeDescriptor] of value that an instance should produce.
+		 * @return
+		 *   A function type.
+		 */
+		@JvmStatic
+		@JvmOverloads
+		fun functionType(
+			argTypes: A_Tuple,
+			returnType: A_Type,
+			exceptionSet: A_Set = emptySet()): A_Type
+		{
+			val tupleType =
+				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+					IntegerRangeTypeDescriptor
+						.singleInt(argTypes.tupleSize()), argTypes, bottom())
+			return functionTypeFromArgumentTupleType(
+				tupleType, returnType, exceptionSet)
+		}
+
+		/**
+		 * Answer a new function type that doesn't specify how many arguments
+		 * its conforming functions have.  This is a useful kind of function
+		 * type for discussing things like a general function invocation
+		 * operation.
+		 *
+		 * @param returnType
+		 *   The type of object returned by a function that conforms to the
+		 *   function type being defined.
+		 * @return
+		 *   A function type.
+		 */
+		@JvmStatic
+		fun functionTypeReturning(returnType: A_Type): A_Type =
+			functionTypeFromArgumentTupleType(
+				bottom(),
+				returnType,  // TODO: [MvG] Probably should allow any exception.
+				emptySet())
 	}
 }

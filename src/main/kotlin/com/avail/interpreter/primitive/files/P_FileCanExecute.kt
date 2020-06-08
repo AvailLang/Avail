@@ -37,7 +37,7 @@ import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.TupleTypeDescriptor.stringType
 import com.avail.exceptions.AvailErrorCode.E_INVALID_PATH
 import com.avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED

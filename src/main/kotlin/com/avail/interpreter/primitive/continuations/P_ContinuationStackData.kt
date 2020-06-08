@@ -40,7 +40,7 @@ import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.BottomTypeDescriptor
 import com.avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralContinuationType
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.TupleTypeDescriptor.mostGeneralTupleType
 import com.avail.descriptor.variables.A_Variable
 import com.avail.interpreter.Primitive

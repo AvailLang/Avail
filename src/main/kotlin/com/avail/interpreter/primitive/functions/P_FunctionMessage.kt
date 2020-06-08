@@ -36,8 +36,8 @@ import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.FunctionTypeDescriptor.mostGeneralFunctionType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
 import com.avail.descriptor.types.TupleTypeDescriptor.stringType
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold

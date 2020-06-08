@@ -44,8 +44,8 @@ import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.FunctionTypeDescriptor.mostGeneralFunctionType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.BLOCK_PHRASE
 import com.avail.exceptions.AvailErrorCode.E_BLOCK_COMPILATION_FAILED
 import com.avail.exceptions.AvailErrorCode.E_BLOCK_IS_INVALID

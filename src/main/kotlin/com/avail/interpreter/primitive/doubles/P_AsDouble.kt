@@ -35,7 +35,7 @@ import com.avail.descriptor.numbers.DoubleDescriptor
 import com.avail.descriptor.numbers.DoubleDescriptor.Companion.fromDouble
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.TypeDescriptor.Types.DOUBLE
 import com.avail.descriptor.types.TypeDescriptor.Types.NUMBER
 import com.avail.interpreter.Primitive

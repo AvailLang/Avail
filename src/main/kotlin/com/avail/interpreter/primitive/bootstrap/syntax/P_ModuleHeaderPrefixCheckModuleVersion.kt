@@ -42,7 +42,7 @@ import com.avail.descriptor.phrases.A_Phrase.Companion.token
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromArray
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.ListPhraseTypeDescriptor.zeroOrMoreList
 import com.avail.descriptor.types.ListPhraseTypeDescriptor.zeroOrOneList
 import com.avail.descriptor.types.PhraseTypeDescriptor.Constants.stringLiteralType

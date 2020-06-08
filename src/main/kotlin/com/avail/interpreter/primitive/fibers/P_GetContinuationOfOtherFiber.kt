@@ -38,7 +38,7 @@ import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import com.avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralContinuationType
 import com.avail.descriptor.types.FiberTypeDescriptor.Companion.mostGeneralFiberType
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.exceptions.AvailErrorCode.E_FIBER_IS_TERMINATED
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanSuspend

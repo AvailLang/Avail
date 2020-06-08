@@ -34,7 +34,7 @@ package com.avail.interpreter.primitive.sets
 import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.SetTypeDescriptor.mostGeneralSetType
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold

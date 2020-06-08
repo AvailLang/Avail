@@ -44,7 +44,7 @@ import com.avail.descriptor.types.EnumerationTypeDescriptor
 import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.falseType
 import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.trueType
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.TypeDescriptor.Types.NUMBER
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold

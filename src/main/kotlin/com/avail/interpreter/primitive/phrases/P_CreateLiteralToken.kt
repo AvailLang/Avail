@@ -38,7 +38,7 @@ import com.avail.descriptor.tokens.LiteralTokenDescriptor
 import com.avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.inclusive
 import com.avail.descriptor.types.LiteralTokenTypeDescriptor.literalTokenType
 import com.avail.descriptor.types.LiteralTokenTypeDescriptor.mostGeneralLiteralTokenType

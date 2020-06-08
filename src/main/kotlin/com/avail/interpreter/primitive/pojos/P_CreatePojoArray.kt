@@ -36,7 +36,7 @@ import com.avail.descriptor.pojos.PojoDescriptor.Companion.newPojo
 import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.InstanceMetaDescriptor.anyMeta
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.singleInteger
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.wholeNumbers

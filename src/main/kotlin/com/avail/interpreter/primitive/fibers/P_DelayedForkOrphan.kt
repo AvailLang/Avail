@@ -47,8 +47,8 @@ import com.avail.descriptor.tuples.StringDescriptor.Companion.formatString
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionTypeReturning
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionTypeReturning
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.bytes
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.inclusive
 import com.avail.descriptor.types.TupleTypeDescriptor.mostGeneralTupleType

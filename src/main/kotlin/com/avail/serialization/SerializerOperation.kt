@@ -161,7 +161,7 @@ import com.avail.descriptor.types.EnumerationTypeDescriptor
 import com.avail.descriptor.types.FiberTypeDescriptor
 import com.avail.descriptor.types.FiberTypeDescriptor.Companion.fiberType
 import com.avail.descriptor.types.FunctionTypeDescriptor
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionTypeFromArgumentTupleType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionTypeFromArgumentTupleType
 import com.avail.descriptor.types.InstanceMetaDescriptor
 import com.avail.descriptor.types.InstanceMetaDescriptor.instanceMeta
 import com.avail.descriptor.types.InstanceTypeDescriptor

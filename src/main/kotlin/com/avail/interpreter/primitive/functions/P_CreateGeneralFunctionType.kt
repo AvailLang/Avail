@@ -35,9 +35,9 @@ import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionMeta
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionTypeFromArgumentTupleType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionMeta
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionTypeFromArgumentTupleType
 import com.avail.descriptor.types.InstanceMetaDescriptor.topMeta
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
