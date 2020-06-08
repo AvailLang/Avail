@@ -1,21 +1,21 @@
 /*
- * CompiledCodeTypeDescriptor.java
+ * CompiledCodeTypeDescriptor.kt
  * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ * * Redistributions of source code must retain the above copyright notice, this
+ *    list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
  *
- *  * Neither the name of the copyright holder nor the names of the contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -29,68 +29,73 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.descriptor.types
 
-package com.avail.descriptor.types;
-
-import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
-import com.avail.descriptor.functions.CompiledCodeDescriptor;
-import com.avail.descriptor.representation.A_BasicObject;
-import com.avail.descriptor.representation.AvailObject;
-import com.avail.descriptor.representation.Mutability;
-import com.avail.serialization.SerializerOperation;
-import com.avail.utility.json.JSONWriter;
-
-import java.util.IdentityHashMap;
-
-import static com.avail.descriptor.types.CompiledCodeTypeDescriptor.ObjectSlots.FUNCTION_TYPE;
-import static com.avail.descriptor.types.FunctionTypeDescriptor.mostGeneralFunctionType;
-import static com.avail.descriptor.types.InstanceMetaDescriptor.instanceMeta;
+import com.avail.descriptor.functions.CompiledCodeDescriptor
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.ObjectSlotsEnum
+import com.avail.serialization.SerializerOperation
+import com.avail.utility.json.JSONWriter
+import java.util.*
 
 /**
- * A {@linkplain CompiledCodeTypeDescriptor compiled&#32;code&#32;type} is the type for a {@linkplain CompiledCodeDescriptor compiled&#32;code&#32;object}.  It contains a {@linkplain FunctionTypeDescriptor function&#32;type} with which it covaries. That is, a compiled code type is a subtype of another if and only if the first's related function type is a subtype of another's function type.
+ * A [compiled&amp;#32;code&amp;#32;type][CompiledCodeTypeDescriptor] is the
+ * type for a [compiled&amp;#32;code&amp;#32;object][CompiledCodeDescriptor].
+ * It contains a [function&amp;#32;type][FunctionTypeDescriptor] with which it
+ * covaries. That is, a compiled code type is a subtype of another if and only
+ * if the first's related function type is a subtype of another's function type.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @constructor
+ * Construct a new `CompiledCodeTypeDescriptor`.
+ *
+ * @param mutability
+ * 		The [mutability][Mutability] of the new descriptor.
  */
-public final class CompiledCodeTypeDescriptor
-extends TypeDescriptor
+class CompiledCodeTypeDescriptor private constructor(mutability: Mutability)
+	: TypeDescriptor(
+		mutability,
+		TypeTag.RAW_FUNCTION_TYPE_TAG,
+		ObjectSlots::class.java,
+		null)
 {
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnumJava
+	enum class ObjectSlots : ObjectSlotsEnum
 	{
 		/**
-		 * The type of function that this {@linkplain CompiledCodeTypeDescriptor compiled&#32;code&#32;type} supports.  Compiled code types are contravariant with respect to the function type's argument types and covariant with respect to the function type's return type.
+		 * The type of function that this
+		 * [compiled&amp;#32;code&amp;#32;type][CompiledCodeTypeDescriptor]
+		 * supports.  Compiled code types are contravariant with respect to the
+		 * function type's argument types and covariant with respect to the
+		 * function type's return type.
 		 */
 		FUNCTION_TYPE
 	}
 
-	@Override
-	public void printObjectOnAvoidingIndent (
-		final AvailObject object,
-		final StringBuilder aStream,
-		final IdentityHashMap<A_BasicObject, Void> recursionMap,
-		final int indent)
+	override fun printObjectOnAvoidingIndent(
+		self: AvailObject,
+		builder: StringBuilder,
+		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		indent: Int)
 	{
-		aStream.append('¢');
-		object.functionType().printOnAvoidingIndent(
-			aStream,
+		builder.append('¢')
+		self.functionType().printOnAvoidingIndent(
+			builder,
 			recursionMap,
-			(indent + 1));
+			indent + 1)
 	}
 
-	@Override
-	public A_Type o_FunctionType (final AvailObject object)
-	{
-		return object.slot(FUNCTION_TYPE);
-	}
+	override fun o_FunctionType(self: AvailObject): A_Type =
+		self.slot(ObjectSlots.FUNCTION_TYPE)
 
-	@Override
-	public boolean o_Equals (final AvailObject object, final A_BasicObject another)
-	{
-		return another.equalsCompiledCodeType(object);
-	}
+	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean =
+		another.equalsCompiledCodeType(self)
 
 	/**
 	 * {@inheritDoc}
@@ -98,231 +103,200 @@ extends TypeDescriptor
 	 * Compiled code types compare for equality by comparing their function
 	 * types.
 	 */
-	@Override
-	public boolean o_EqualsCompiledCodeType (
-		final AvailObject object,
-		final A_Type aType)
-	{
-		if (object.sameAddressAs(aType))
-		{
-			return true;
-		}
-		return aType.functionType().equals(object.functionType());
-	}
+	override fun o_EqualsCompiledCodeType(
+		self: AvailObject,
+		aCompiledCodeType: A_Type): Boolean =
+			if (self.sameAddressAs(aCompiledCodeType))
+			{
+				true
+			}
+			else
+			{
+				aCompiledCodeType.functionType().equals(self.functionType())
+			}
 
-	@Override
-	public int o_Hash (final AvailObject object)
-	{
-		return object.functionType().hash() * 71 ^ 0xA78B01C3;
-	}
+	override fun o_Hash(self: AvailObject): Int =
+		self.functionType().hash() * 71 xor -0x5874fe3d
 
-	@Override
-	public boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
-	{
-		return aType.isSupertypeOfCompiledCodeType(object);
-	}
+	override fun o_IsSubtypeOf(self: AvailObject, aType: A_Type): Boolean =
+		aType.isSupertypeOfCompiledCodeType(self)
 
 	/**
 	 * {@inheritDoc}
 	 *
 	 * Compiled code types exactly covary with their function types.
 	 */
-	@Override
-	public boolean o_IsSupertypeOfCompiledCodeType (
-		final AvailObject object,
-		final A_Type aCompiledCodeType)
+	override fun o_IsSupertypeOfCompiledCodeType(
+		self: AvailObject,
+		aCompiledCodeType: A_Type): Boolean
 	{
-		final A_Type subFunctionType = aCompiledCodeType.functionType();
-		final A_Type superFunctionType = object.functionType();
-		return subFunctionType.isSubtypeOf(superFunctionType);
+		val subFunctionType = aCompiledCodeType.functionType()
+		val superFunctionType = self.functionType()
+		return subFunctionType.isSubtypeOf(superFunctionType)
 	}
 
-	@Override
-	public boolean o_IsVacuousType (final AvailObject object)
+	override fun o_IsVacuousType(self: AvailObject): Boolean =
+		self.slot(ObjectSlots.FUNCTION_TYPE).isVacuousType
+
+	override fun o_TypeIntersection(self: AvailObject, another: A_Type): A_Type =
+		when
+		{
+			self.isSubtypeOf(another) ->
+			{
+				self
+			}
+			else -> if (another.isSubtypeOf(self))
+			{
+				another
+			}
+			else another.typeIntersectionOfCompiledCodeType(self)
+		}
+
+	override fun o_TypeIntersectionOfCompiledCodeType(
+		self: AvailObject,
+		aCompiledCodeType: A_Type): A_Type
 	{
-		return object.slot(FUNCTION_TYPE).isVacuousType();
+		val functionType1 = self.functionType()
+		val functionType2 = aCompiledCodeType.functionType()
+		return if (functionType1.equals(functionType2))
+		{
+			self
+		}
+		else
+		{
+			compiledCodeTypeForFunctionType(
+				functionType1.typeIntersection(functionType2))
+		}
 	}
 
-	@Override
-	public A_Type o_TypeIntersection (
-		final AvailObject object,
-		final A_Type another)
-	{
-		if (object.isSubtypeOf(another))
+	override fun o_TypeUnion(
+		self: AvailObject,
+		another: A_Type): A_Type =
+		when
 		{
-			return object;
+			self.isSubtypeOf(another) ->
+			{
+				another
+			}
+			else -> if (another.isSubtypeOf(self))
+			{
+				self
+			}
+			else another.typeUnionOfCompiledCodeType(self)
 		}
-		if (another.isSubtypeOf(object))
-		{
-			return another;
-		}
-		return another.typeIntersectionOfCompiledCodeType(object);
-	}
 
-	@Override
-	public A_Type o_TypeIntersectionOfCompiledCodeType (
-		final AvailObject object,
-		final A_Type aCompiledCodeType)
+	override fun o_TypeUnionOfCompiledCodeType(
+		self: AvailObject,
+		aCompiledCodeType: A_Type): A_Type
 	{
-		final A_Type functionType1 = object.functionType();
-		final A_Type functionType2 = aCompiledCodeType.functionType();
-		if (functionType1.equals(functionType2))
-		{
-			return object;
-		}
-		return compiledCodeTypeForFunctionType(functionType1.typeIntersection(functionType2));
-	}
-
-	@Override
-	public A_Type o_TypeUnion (
-		final AvailObject object,
-		final A_Type another)
-	{
-		if (object.isSubtypeOf(another))
-		{
-			return another;
-		}
-		if (another.isSubtypeOf(object))
-		{
-			return object;
-		}
-		return another.typeUnionOfCompiledCodeType(object);
-	}
-
-	@Override
-	public A_Type o_TypeUnionOfCompiledCodeType (
-		final AvailObject object,
-		final A_Type aCompiledCodeType)
-	{
-		final A_Type functionType1 = object.functionType();
-		final A_Type functionType2 = aCompiledCodeType.functionType();
-		if (functionType1.equals(functionType2))
+		val functionType1 = self.functionType()
+		val functionType2 = aCompiledCodeType.functionType()
+		return if (functionType1.equals(functionType2))
 		{
 			// Optimization only
-			return object;
+			self
 		}
-		return compiledCodeTypeForFunctionType(functionType1.typeUnion(functionType2));
+		else
+		{
+			compiledCodeTypeForFunctionType(
+				functionType1.typeUnion(functionType2))
+		}
 	}
 
-	@Override
-	public SerializerOperation o_SerializerOperation (
-		final AvailObject object)
-	{
-		return SerializerOperation.COMPILED_CODE_TYPE;
-	}
+	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
+		SerializerOperation.COMPILED_CODE_TYPE
 
-	@Override
-	public AvailObject o_MakeImmutable (final AvailObject object)
-	{
-		if (isMutable())
+	override fun o_MakeImmutable(self: AvailObject): AvailObject =
+		if (isMutable)
 		{
 			// Make the object shared.
-			return object.makeShared();
+			self.makeShared()
 		}
-		return object;
+		else self
+
+	override fun o_WriteTo(self: AvailObject, writer: JSONWriter)
+	{
+		writer.startObject()
+		writer.write("kind")
+		writer.write("function implementation type")
+		writer.write("function type")
+		self.slot(ObjectSlots.FUNCTION_TYPE).writeTo(writer)
+		writer.endObject()
 	}
 
-	@Override
-	public void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	override fun mutable(): TypeDescriptor = mutable
+
+	// There is only a shared descriptor, not an immutable one.
+	override fun immutable(): TypeDescriptor = shared
+
+	override fun shared(): TypeDescriptor = shared
+
+	companion object
 	{
-		writer.startObject();
-		writer.write("kind");
-		writer.write("function implementation type");
-		writer.write("function type");
-		object.slot(FUNCTION_TYPE).writeTo(writer);
-		writer.endObject();
-	}
+		/**
+		 * Create a compiled code type based on the passed
+		 * [function&amp;#32;type][FunctionTypeDescriptor]. Ignore the function
+		 * type's exception set.
+		 *
+		 * @param functionType
+		 *   A [function type][FunctionTypeDescriptor] on which to base the new
+		 *   compiled code type.
+		 * @return
+		 *   A new compiled code type.
+		 */
+		fun compiledCodeTypeForFunctionType(
+			functionType: A_BasicObject): AvailObject
+		{
+			val result = mutable.create()
+			result.setSlot(
+				ObjectSlots.FUNCTION_TYPE, functionType.makeImmutable())
+			result.makeImmutable()
+			return result
+		}
 
-	/**
-	 * Create a compiled code type based on the passed {@linkplain FunctionTypeDescriptor function&#32;type}. Ignore the function type's exception set.
-	 *
-	 * @param functionType
-	 *        A {@linkplain FunctionTypeDescriptor function type} on which to base the new compiled code type.
-	 * @return
-	 * A new compiled code type.
-	 */
-	public static AvailObject compiledCodeTypeForFunctionType (final A_BasicObject functionType)
-	{
-		final AvailObject result = mutable.create();
-		result.setSlot(FUNCTION_TYPE, functionType.makeImmutable());
-		result.makeImmutable();
-		return result;
-	}
+		/** The mutable [CompiledCodeTypeDescriptor].  */
+		private val mutable: TypeDescriptor = 
+			CompiledCodeTypeDescriptor(Mutability.MUTABLE)
 
-	/**
-	 * Construct a new {@code CompiledCodeTypeDescriptor}.
-	 *
-	 * @param mutability
-	 *        The {@linkplain Mutability mutability} of the new descriptor.
-	 */
-	private CompiledCodeTypeDescriptor (final Mutability mutability)
-	{
-		super(
-			mutability, TypeTag.RAW_FUNCTION_TYPE_TAG, ObjectSlots.class, null);
-	}
+		/** The shared [CompiledCodeTypeDescriptor].  */
+		private val shared: TypeDescriptor = 
+			CompiledCodeTypeDescriptor(Mutability.SHARED)
 
-	/** The mutable {@link CompiledCodeTypeDescriptor}. */
-	private static final TypeDescriptor mutable =
-		new CompiledCodeTypeDescriptor(Mutability.MUTABLE);
+		/**
+		 * The most general compiled code type. Since compiled code types are
+		 * contravariant by argument types and contravariant by return type, the
+		 * most general type is the one taking bottom as the arguments list
+		 * (i.e., not specific enough to be able to call it), and having the 
+		 * return type bottom.
+		 */
+		private val mostGeneralType: A_Type = 
+			compiledCodeTypeForFunctionType(
+				FunctionTypeDescriptor.mostGeneralFunctionType()).makeShared()
 
-	@Override
-	public TypeDescriptor mutable ()
-	{
-		return mutable;
-	}
+		/**
+		 * Answer the most general compiled code type.
+		 *
+		 * @return
+		 *   A compiled code type which has no supertypes that are themselves
+		 *   compiled code types.
+		 */
+		@JvmStatic
+		fun mostGeneralCompiledCodeType(): A_Type =  mostGeneralType
 
-	/** The shared {@link CompiledCodeTypeDescriptor}. */
-	private static final TypeDescriptor shared =
-		new CompiledCodeTypeDescriptor(Mutability.SHARED);
+		/**
+		 * The metatype for all compiled code types. In particular, it's just
+		 * the [instance type][InstanceTypeDescriptor] for the
+		 * [most&amp;#32;general&amp;#32;compiled&amp;#32;code&amp;#32;type][mostGeneralType].
+		 */
+		private val meta: A_Type = 
+			InstanceMetaDescriptor.instanceMeta(mostGeneralType).makeShared()
 
-	@Override
-	public TypeDescriptor immutable ()
-	{
-		// There is only a shared descriptor, not an immutable one.
-		return shared;
-	}
-
-	@Override
-	public TypeDescriptor shared ()
-	{
-		return shared;
-	}
-
-	/**
-	 * The most general compiled code type. Since compiled code types are
-	 * contravariant by argument types and contravariant by return type, the
-	 * most general type is the one taking bottom as the arguments list
-	 * (i.e., not specific enough to be able to call it), and having the return
-	 * type bottom.
-	 */
-	private static final A_Type mostGeneralType =
-		compiledCodeTypeForFunctionType(mostGeneralFunctionType()).makeShared();
-
-	/**
-	 * Answer the most general compiled code type.
-	 *
-	 * @return
-	 * A compiled code type which has no supertypes that are themselves compiled code types.
-	 */
-	public static A_Type mostGeneralCompiledCodeType ()
-	{
-		return mostGeneralType;
-	}
-
-	/**
-	 * The metatype for all compiled code types. In particular, it's just the {@linkplain InstanceTypeDescriptor instance type} for the {@linkplain #mostGeneralType most&#32;general&#32;compiled&#32;code&#32;type}.
-	 */
-	private static final A_Type meta =
-		instanceMeta(mostGeneralType).makeShared();
-
-	/**
-	 * Answer the metatype for all compiled code types.
-	 *
-	 * @return
-	 * The statically referenced metatype.
-	 */
-	public static A_Type meta ()
-	{
-		return meta;
+		/**
+		 * Answer the metatype for all compiled code types.
+		 *
+		 * @return
+		 *   The statically referenced metatype.
+		 */
+		fun meta(): A_Type = meta
 	}
 }

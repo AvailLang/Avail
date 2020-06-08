@@ -155,7 +155,7 @@ import com.avail.descriptor.tuples.TupleDescriptor.Companion.toList
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import com.avail.descriptor.types.BottomPojoTypeDescriptor.Companion.pojoBottom
 import com.avail.descriptor.types.BottomTypeDescriptor
-import com.avail.descriptor.types.CompiledCodeTypeDescriptor.compiledCodeTypeForFunctionType
+import com.avail.descriptor.types.CompiledCodeTypeDescriptor.Companion.compiledCodeTypeForFunctionType
 import com.avail.descriptor.types.ContinuationTypeDescriptor.continuationTypeForFunctionType
 import com.avail.descriptor.types.EnumerationTypeDescriptor
 import com.avail.descriptor.types.FiberTypeDescriptor
