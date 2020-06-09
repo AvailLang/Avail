@@ -182,7 +182,7 @@ import com.avail.descriptor.types.PojoTypeDescriptor.Companion.marshalTypes
 import com.avail.descriptor.types.PojoTypeDescriptor.Companion.pojoArrayType
 import com.avail.descriptor.types.PojoTypeDescriptor.Companion.pojoTypeForClassWithTypeArguments
 import com.avail.descriptor.types.PojoTypeDescriptor.Companion.resolvePojoType
-import com.avail.descriptor.types.PrimitiveTypeDescriptor.extractOrdinal
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Companion.extractOrdinal
 import com.avail.descriptor.types.ReadWriteVariableTypeDescriptor
 import com.avail.descriptor.types.SelfPojoTypeDescriptor.pojoFromSerializationProxy
 import com.avail.descriptor.types.SelfPojoTypeDescriptor.pojoSerializationProxy

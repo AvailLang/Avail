@@ -1,21 +1,21 @@
 /*
- * PrimitiveTypeDescriptor.java
+ * PrimitiveTypeDescriptor.kt
  * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
  *
- *  * Neither the name of the copyright holder nor the names of the contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -29,83 +29,73 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.descriptor.types
 
-package com.avail.descriptor.types;
-
-import com.avail.annotations.HideFieldInDebugger;
-import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
-import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
-import com.avail.descriptor.representation.A_BasicObject;
-import com.avail.descriptor.representation.AvailObject;
-import com.avail.descriptor.representation.BitField;
-import com.avail.descriptor.representation.IntegerSlotsEnum;
-import com.avail.descriptor.representation.Mutability;
-import com.avail.descriptor.representation.NilDescriptor;
-import com.avail.descriptor.representation.ObjectSlotsEnum;
-import com.avail.descriptor.tuples.A_String;
-import com.avail.descriptor.tuples.StringDescriptor;
-import com.avail.serialization.SerializerOperation;
-import com.avail.utility.json.JSONWriter;
-
-import javax.annotation.Nullable;
-import java.util.IdentityHashMap;
-
-import static com.avail.descriptor.representation.AvailObject.multiplier;
-import static com.avail.descriptor.representation.NilDescriptor.nil;
-import static com.avail.descriptor.tuples.StringDescriptor.stringFrom;
-import static com.avail.descriptor.types.BottomTypeDescriptor.bottom;
-import static com.avail.descriptor.types.InstanceMetaDescriptor.topMeta;
-import static com.avail.descriptor.types.PrimitiveTypeDescriptor.IntegerSlots.HASH;
-import static com.avail.descriptor.types.PrimitiveTypeDescriptor.ObjectSlots.NAME;
-import static com.avail.descriptor.types.PrimitiveTypeDescriptor.ObjectSlots.PARENT;
-import static com.avail.descriptor.types.TypeDescriptor.Types.NONTYPE;
-import static com.avail.descriptor.types.TypeDescriptor.Types.NUMBER;
-import static com.avail.descriptor.types.TypeDescriptor.Types.TOKEN;
-import static com.avail.descriptor.types.TypeDescriptor.Types.all;
-import static com.avail.utility.Nulls.stripNull;
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.BitField
+import com.avail.descriptor.representation.IntegerSlotsEnum
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.NilDescriptor
+import com.avail.descriptor.representation.ObjectSlotsEnum
+import com.avail.descriptor.tuples.StringDescriptor
+import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
+import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
+import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
+import com.avail.descriptor.types.TypeDescriptor.Types.Companion.all
+import com.avail.serialization.SerializerOperation
+import com.avail.utility.Nulls
+import com.avail.utility.json.JSONWriter
+import java.util.*
 
 /**
  * The primitive types of Avail are different from the notion of primitive types
  * in other object-oriented languages. Traditionally, a compiler or virtual
  * machine encodes representation knowledge about and makes other special
- * provisions about its primitive types. Since <em>all</em> types are in a
+ * provisions about its primitive types. Since *all* types are in a
  * sense provided by the Avail system, it has no special primitive types that
- * fill that role – they're <em>all</em> special.
+ * fill that role – they're *all* special.
  *
- * I Types#ANY any}, and various specialties such as {@linkplain Types#ATOM atom} and {@linkplain Types#NUMBER number}. Type hierarchies that have a natural root don't bother with a primitive type to delimit the hierarchy, using the natural root itself. For of the tuple types.
+ * [any][TypeDescriptor.Types.ANY], and various specialties such as
+ * [atom][TypeDescriptor.Types.ATOM] and [number][TypeDescriptor.Types.NUMBER].
+ * Type hierarchies that have a natural root don't bother with a primitive type
+ * to delimit the hierarchy, using the natural root itself. For of the tuple
+ * types.
  *
- * @see Types all primitive types
+ * @see TypeDescriptor.Types all primitive types
+ *
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class PrimitiveTypeDescriptor
-extends TypeDescriptor
+open class PrimitiveTypeDescriptor : TypeDescriptor
 {
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots implements IntegerSlotsEnumJava
+	enum class IntegerSlots : IntegerSlotsEnum
 	{
 		/**
 		 * The low 32 bits are used for caching the hash, and the upper 32 are
 		 * for the ordinal of the primitive type.
 		 */
-		@HideFieldInDebugger
 		HASH_AND_MORE;
 
-		/**
-		 * The hash, populated during construction.
-		 */
-		public static final BitField HASH = new BitField(HASH_AND_MORE, 0, 32);
+		companion object
+		{
+			/**
+			 * The hash, populated during construction.
+			 */
+			val HASH = BitField(HASH_AND_MORE, 0, 32)
+		}
 	}
 
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnumJava
+	enum class ObjectSlots : ObjectSlotsEnum
 	{
 		/**
-		 * The {@linkplain StringDescriptor name} of this primitive type.
+		 * The [name][StringDescriptor] of this primitive type.
 		 */
 		NAME,
 
@@ -115,393 +105,226 @@ extends TypeDescriptor
 		PARENT
 	}
 
-	@Override
-	public void printObjectOnAvoidingIndent (
-		final AvailObject object,
-		final StringBuilder aStream,
-		final IdentityHashMap<A_BasicObject, Void> recursionMap,
-		final int indent)
+	override fun printObjectOnAvoidingIndent(
+		self: AvailObject,
+		builder: StringBuilder,
+		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		indent: Int)
 	{
-		aStream.append(object.slot(NAME).asNativeString());
+		builder.append(self.slot(ObjectSlots.NAME).asNativeString())
 	}
 
-	/**
-	 * Extract the {@link Types} enum value from this primitive type.
-	 *
-	 * @param object
-	 * The primitive type.
-	 * @return
-	 * The {@link Types} enum value.
-	 */
-	private static Types extractEnum (final AvailObject object)
-	{
-		return stripNull(
-			((PrimitiveTypeDescriptor) object.descriptor()).primitiveType);
-	}
+	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean =
+		another.equalsPrimitiveType(self)
 
-	/**
-	 * Extract the {@link Types} enum value's {@link Enum#ordinal()} from this primitive type.
-	 *
-	 * @param object
-	 * The primitive type.
-	 * @return
-	 * The {@link Types} enum value's ordinal.
-	 */
-	public static int extractOrdinal (final AvailObject object)
-	{
-		return extractEnum(object).ordinal();
-	}
+	// Primitive types compare by identity.
+	override fun o_EqualsPrimitiveType(
+		self: AvailObject,
+		aPrimitiveType: A_Type): Boolean = self.sameAddressAs(aPrimitiveType)
 
-	@Override
-	public boolean o_Equals (final AvailObject object, final A_BasicObject another)
-	{
-		return another.equalsPrimitiveType(object);
-	}
+	override fun o_Hash(self: AvailObject): Int = self.slot(IntegerSlots.HASH)
 
-	@Override
-	public boolean o_EqualsPrimitiveType (
-		final AvailObject object,
-		final A_Type aPrimitiveType)
-	{
-		// Primitive types compare by identity.
-		return object.sameAddressAs(aPrimitiveType);
-	}
+	override fun o_Parent(self: AvailObject): A_BasicObject =
+		self.slot(ObjectSlots.PARENT)
 
-	@Override
-	public int o_Hash (final AvailObject object)
-	{
-		return object.slot(HASH);
-	}
+	// Check if object (a type) is a subtype of aType (should also be a
+	// type).
+	override fun o_IsSubtypeOf(self: AvailObject, aType: A_Type): Boolean =
+		aType.isSupertypeOfPrimitiveTypeEnum(extractEnum(self))
 
-	@Override
-	public A_BasicObject o_Parent (final AvailObject object)
-	{
-		return object.slot(PARENT);
-	}
+	// This primitive type is a supertype of aFiberType if and only if
+	// this primitive type is a supertype of NONTYPE.
+	override fun o_IsSupertypeOfFiberType(
+		self: AvailObject,
+		aType: A_Type): Boolean =
+			self.isSupertypeOfPrimitiveTypeEnum(Types.NONTYPE)
 
-	@Override
-	public boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
-	{
-		// Check if object (a type) is a subtype of aType (should also be a
-		// type).
-		return aType.isSupertypeOfPrimitiveTypeEnum(extractEnum(object));
-	}
+	// This primitive type is a supertype of aFunctionType if and only if
+	// this primitive type is a supertype of NONTYPE.
+	override fun o_IsSupertypeOfFunctionType(
+		self: AvailObject,
+		aFunctionType: A_Type): Boolean =
+			self.isSupertypeOfPrimitiveTypeEnum(Types.NONTYPE)
 
-	@Override
-	public boolean o_IsSupertypeOfFiberType (
-		final AvailObject object,
-		final A_Type aFiberType)
-	{
-		// This primitive type is a supertype of aFiberType if and only if
-		// this primitive type is a supertype of NONTYPE.
-		return object.isSupertypeOfPrimitiveTypeEnum(NONTYPE);
-	}
+	override fun o_IsSupertypeOfListNodeType(
+		self: AvailObject,
+		aListNodeType: A_Type): Boolean =
+			self.isSupertypeOfPrimitiveTypeEnum(Types.NONTYPE)
 
-	@Override
-	public boolean o_IsSupertypeOfFunctionType (
-		final AvailObject object,
-		final A_Type aFunctionType)
-	{
-		// This primitive type is a supertype of aFunctionType if and only if
-		// this primitive type is a supertype of NONTYPE.
-		return object.isSupertypeOfPrimitiveTypeEnum(NONTYPE);
-	}
+	// A primitive type is a supertype of a variable type if it is a
+	// supertype of NONTYPE.
+	override fun o_IsSupertypeOfVariableType(
+		self: AvailObject,
+		aVariableType: A_Type): Boolean =
+			self.isSupertypeOfPrimitiveTypeEnum(Types.NONTYPE)
 
-	@Override
-	public boolean o_IsSupertypeOfListNodeType (
-		final AvailObject object,
-		final A_Type aListNodeType)
-	{
-		return object.isSupertypeOfPrimitiveTypeEnum(NONTYPE);
-	}
+	// A primitive type is a supertype of a continuation type if it is a
+	// supertype of NONTYPE.
+	override fun o_IsSupertypeOfContinuationType(
+		self: AvailObject,
+		aContinuationType: A_Type): Boolean =
+			self.isSupertypeOfPrimitiveTypeEnum(Types.NONTYPE)
 
-	@Override
-	public boolean o_IsSupertypeOfVariableType (
-		final AvailObject object,
-		final A_Type aVariableType)
-	{
-		// A primitive type is a supertype of a variable type if it is a
-		// supertype of NONTYPE.
-		return object.isSupertypeOfPrimitiveTypeEnum(NONTYPE);
-	}
+	// A primitive type is a supertype of a compiled code type if it is a
+	// supertype of NONTYPE.
+	override fun o_IsSupertypeOfCompiledCodeType(
+		self: AvailObject,
+		aCompiledCodeType: A_Type): Boolean =
+			self.isSupertypeOfPrimitiveTypeEnum(Types.NONTYPE)
 
-	@Override
-	public boolean o_IsSupertypeOfContinuationType (
-		final AvailObject object,
-		final A_Type aContinuationType)
-	{
-		// A primitive type is a supertype of a continuation type if it is a
-		// supertype of NONTYPE.
-		return object.isSupertypeOfPrimitiveTypeEnum(NONTYPE);
-	}
+	// Parent of the top integer range type is number, so continue
+	// searching there.
+	override fun o_IsSupertypeOfIntegerRangeType(
+		self: AvailObject,
+		anIntegerRangeType: A_Type): Boolean =
+			self.isSupertypeOfPrimitiveTypeEnum(Types.NUMBER)
 
-	@Override
-	public boolean o_IsSupertypeOfCompiledCodeType (
-		final AvailObject object,
-		final A_Type aCompiledCodeType)
-	{
-		// A primitive type is a supertype of a compiled code type if it is a
-		// supertype of NONTYPE.
-		return object.isSupertypeOfPrimitiveTypeEnum(NONTYPE);
-	}
+	// This primitive type is a supertype of aTokenType if and only if this
+	// primitive type is a supertype of TOKEN.
+	override fun o_IsSupertypeOfTokenType(
+		self: AvailObject,
+		aTokenType: A_Type): Boolean =
+			self.isSupertypeOfPrimitiveTypeEnum(Types.TOKEN)
 
-	@Override
-	public boolean o_IsSupertypeOfIntegerRangeType (
-		final AvailObject object,
-		final A_Type anIntegerRangeType)
-	{
-		// Parent of the top integer range type is number, so continue
-		// searching there.
-		return object.isSupertypeOfPrimitiveTypeEnum(NUMBER);
-	}
+	// This primitive type is a supertype of aLiteralTokenType if and only
+	// if this primitive type is a supertype of TOKEN.
+	override fun o_IsSupertypeOfLiteralTokenType(
+		self: AvailObject,
+		aLiteralTokenType: A_Type): Boolean =
+			self.isSupertypeOfPrimitiveTypeEnum(Types.TOKEN)
 
-	@Override
-	public boolean o_IsSupertypeOfTokenType (
-		final AvailObject object,
-		final A_Type aTokenType)
-	{
-		// This primitive type is a supertype of aTokenType if and only if this
-		// primitive type is a supertype of TOKEN.
-		return object.isSupertypeOfPrimitiveTypeEnum(TOKEN);
-	}
+	// This primitive type is a supertype of aMapType if and only if this
+	// primitive type is a supertype of NONTYPE.
+	override fun o_IsSupertypeOfMapType(
+		self: AvailObject,
+		aMapType: AvailObject): Boolean =
+			self.isSupertypeOfPrimitiveTypeEnum(Types.NONTYPE)
 
-	@Override
-	public boolean o_IsSupertypeOfLiteralTokenType (
-		final AvailObject object,
-		final A_Type aLiteralTokenType)
-	{
-		// This primitive type is a supertype of aLiteralTokenType if and only
-		// if this primitive type is a supertype of TOKEN.
-		return object.isSupertypeOfPrimitiveTypeEnum(TOKEN);
-	}
+	// Check if I'm a supertype of the given eager object type. Only NONTYPE
+	// and its ancestors are supertypes of an object type.
+	override fun o_IsSupertypeOfObjectType(
+		self: AvailObject,
+		anObjectType: AvailObject): Boolean =
+			self.isSupertypeOfPrimitiveTypeEnum(Types.NONTYPE)
 
-	@Override
-	public boolean o_IsSupertypeOfMapType (
-		final AvailObject object,
-		final AvailObject aMapType)
-	{
-		// This primitive type is a supertype of aMapType if and only if this
-		// primitive type is a supertype of NONTYPE.
-		return object.isSupertypeOfPrimitiveTypeEnum(NONTYPE);
-	}
+	override fun o_IsSupertypeOfPhraseType(
+		self: AvailObject,
+		aPhraseType: A_Type): Boolean =
+			self.isSupertypeOfPrimitiveTypeEnum(Types.NONTYPE)
 
-	@Override
-	public boolean o_IsSupertypeOfObjectType (
-		final AvailObject object,
-		final AvailObject anObjectType)
-	{
-		// Check if I'm a supertype of the given eager object type. Only NONTYPE
-		// and its ancestors are supertypes of an object type.
-		return object.isSupertypeOfPrimitiveTypeEnum(NONTYPE);
-	}
+	override fun o_IsSupertypeOfPojoBottomType(
+		self: AvailObject,
+		aPojoType: A_Type): Boolean =
+			self.isSupertypeOfPrimitiveTypeEnum(Types.NONTYPE)
 
-	@Override
-	public boolean o_IsSupertypeOfPhraseType (
-		final AvailObject object,
-		final A_Type aPhraseType)
-	{
-		return object.isSupertypeOfPrimitiveTypeEnum(NONTYPE);
-	}
+	override fun o_IsSupertypeOfPojoType(
+		self: AvailObject,
+		aPojoType: A_Type): Boolean =
+			self.isSupertypeOfPrimitiveTypeEnum(Types.NONTYPE)
 
-	@Override
-	public boolean o_IsSupertypeOfPojoBottomType (
-		final AvailObject object,
-		final A_Type aPojoType)
-	{
-		return object.isSupertypeOfPrimitiveTypeEnum(NONTYPE);
-	}
+	override fun o_IsSupertypeOfPrimitiveTypeEnum(
+		self: AvailObject,
+		primitiveTypeEnum: Types): Boolean =
+			primitiveTypeEnum.superTests[extractOrdinal(self)]
 
-	@Override
-	public boolean o_IsSupertypeOfPojoType (
-		final AvailObject object,
-		final A_Type aPojoType)
-	{
-		return object.isSupertypeOfPrimitiveTypeEnum(NONTYPE);
-	}
+	// This primitive type is a supertype of aSetType if and only if this
+	// primitive type is a supertype of NONTYPE.
+	override fun o_IsSupertypeOfSetType(
+		self: AvailObject,
+		aSetType: A_Type): Boolean =
+			self.isSupertypeOfPrimitiveTypeEnum(Types.NONTYPE)
 
-	@Override
-	public boolean o_IsSupertypeOfPrimitiveTypeEnum (
-		final AvailObject object,
-		final Types primitiveTypeEnum)
-	{
-		return primitiveTypeEnum.superTests[extractOrdinal(object)];
-	}
+	// This primitive type is a supertype of aTupleType if and only if this
+	// primitive type is a supertype of NONTYPE.
+	override fun o_IsSupertypeOfTupleType(
+		self: AvailObject,
+		aTupleType: A_Type): Boolean =
+			self.isSupertypeOfPrimitiveTypeEnum(Types.NONTYPE)
 
-	@Override
-	public boolean o_IsSupertypeOfSetType (
-		final AvailObject object,
-		final A_Type aSetType)
-	{
-		// This primitive type is a supertype of aSetType if and only if this
-		// primitive type is a supertype of NONTYPE.
-		return object.isSupertypeOfPrimitiveTypeEnum(NONTYPE);
-	}
+	override fun o_IsSupertypeOfEnumerationType(
+		self: AvailObject,
+		anEnumerationType: A_Type): Boolean =
+			topMeta().isSubtypeOf(self)
 
-	@Override
-	public boolean o_IsSupertypeOfTupleType (
-		final AvailObject object,
-		final A_Type aTupleType)
+	override fun o_MakeImmutable(self: AvailObject): AvailObject
 	{
-		// This primitive type is a supertype of aTupleType if and only if this
-		// primitive type is a supertype of NONTYPE.
-		return object.isSupertypeOfPrimitiveTypeEnum(NONTYPE);
-	}
-
-	@Override
-	public boolean o_IsSupertypeOfEnumerationType (
-		final AvailObject object,
-		final A_Type anEnumerationType)
-	{
-		return topMeta().isSubtypeOf(object);
-	}
-
-	@Override
-	public final AvailObject o_MakeImmutable (final AvailObject object)
-	{
-		if (isMutable())
+		if (isMutable)
 		{
 			// There is no immutable descriptor; use the shared one.
-			object.makeShared();
+			self.makeShared()
 		}
-		return object;
+		return self
 	}
 
-	@Override
-	public @Nullable Object o_MarshalToJava (
-		final AvailObject object,
-		final @Nullable Class<?> ignoredClassHint)
+	override fun o_MarshalToJava(self: AvailObject, classHint: Class<*>?): Any?
 	{
-		for (final Types type : all())
+		for (type in all())
 		{
-			if (object.equals(type.o()))
+			if (self.equals(type.o()))
 			{
-				switch (type)
+				return when (type)
 				{
-					case TOP:
-						return Void.class;
-					case ANY:
-						return Object.class;
-					case DOUBLE:
-						return double.class;
-					case FLOAT:
-						return float.class;
-					case ABSTRACT_DEFINITION:
-					case ATOM:
-					case CHARACTER:
-					case DEFINITION_PARSING_PLAN:
-					case FORWARD_DEFINITION:
-					case LEXER:
-					case MACRO_DEFINITION:
-					case MESSAGE_BUNDLE:
-					case MESSAGE_BUNDLE_TREE:
-					case METHOD:
-					case METHOD_DEFINITION:
-					case MODULE:
-					case NONTYPE:
-					case NUMBER:
-					case PARSING_PLAN_IN_PROGRESS:
-					case RAW_POJO:
-					case DEFINITION:
-					case TOKEN:
-						return super.o_MarshalToJava(object, ignoredClassHint);
+					Types.TOP -> Void::class.java
+					Types.ANY -> Any::class.java
+					Types.DOUBLE -> Double::class.javaPrimitiveType
+					Types.FLOAT -> Float::class.javaPrimitiveType
+					Types.ABSTRACT_DEFINITION, Types.ATOM, Types.CHARACTER,
+					Types.DEFINITION_PARSING_PLAN, Types.FORWARD_DEFINITION,
+					Types.LEXER, Types.MACRO_DEFINITION, Types.MESSAGE_BUNDLE,
+					Types.MESSAGE_BUNDLE_TREE, Types.METHOD,
+					Types.METHOD_DEFINITION, Types.MODULE, Types.NONTYPE,
+					Types.NUMBER, Types.PARSING_PLAN_IN_PROGRESS,
+					Types.RAW_POJO, Types.DEFINITION, Types.TOKEN ->
+						super.o_MarshalToJava(self, classHint)
 				}
 			}
 		}
-		assert false
-			: "All cases have been dealt with, and each forces a return";
-		throw new RuntimeException();
-	}
-
-	@Override
-	public SerializerOperation o_SerializerOperation (
-		final AvailObject object)
-	{
-		// Most of the primitive types are already handled as special objects,
-		// so this only kicks in as a backup.
-		return SerializerOperation.ARBITRARY_PRIMITIVE_TYPE;
-	}
-
-	@Override
-	public A_Type o_TypeIntersection (
-		final AvailObject object,
-		final A_Type another)
-	{
-		return another.typeIntersectionOfPrimitiveTypeEnum(extractEnum(object));
-	}
-
-	@Override
-	public A_Type o_TypeIntersectionOfListNodeType (
-		final AvailObject object,
-		final A_Type aListNodeType)
-	{
-		if (NONTYPE.superTests[extractOrdinal(object)])
-		{
-			return aListNodeType;
+		assert(false) {
+			"All cases have been dealt with, and each forces a return"
 		}
-		return bottom();
+		throw RuntimeException()
 	}
 
-	@Override
-	public A_Type o_TypeIntersectionOfPhraseType (
-		final AvailObject object,
-		final A_Type aPhraseType)
-	{
-		if (NONTYPE.superTests[extractOrdinal(object)])
-		{
-			return aPhraseType;
-		}
-		return bottom();
-	}
+	// Most of the primitive types are already handled as special objects,
+	// so this only kicks in as a backup.
+	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
+		SerializerOperation.ARBITRARY_PRIMITIVE_TYPE
 
-	@Override
-	public A_Type o_TypeIntersectionOfPrimitiveTypeEnum (
-		final AvailObject object,
-		final Types primitiveTypeEnum)
-	{
-		return primitiveTypeEnum.intersectionTypes[extractOrdinal(object)];
-	}
+	override fun o_TypeIntersection(self: AvailObject, another: A_Type): A_Type =
+		another.typeIntersectionOfPrimitiveTypeEnum(extractEnum(self))
 
-	@Override
-	public A_Type o_TypeUnion (final AvailObject object, final A_Type another)
-	{
-		return another.typeUnionOfPrimitiveTypeEnum(extractEnum(object));
-	}
+	override fun o_TypeIntersectionOfListNodeType(
+		self: AvailObject,
+		aListNodeType: A_Type): A_Type =
+			if (Types.NONTYPE.superTests[extractOrdinal(self)]) aListNodeType
+			else bottom()
 
-	@Override
-	public A_Type o_TypeUnionOfPrimitiveTypeEnum (
-		final AvailObject object,
-		final Types primitiveTypeEnum)
-	{
-		return primitiveTypeEnum.unionTypes[extractOrdinal(object)];
-	}
+	override fun o_TypeIntersectionOfPhraseType(
+		self: AvailObject,
+		aPhraseType: A_Type): A_Type =
+			if (Types.NONTYPE.superTests[extractOrdinal(self)]) aPhraseType
+			else bottom()
 
-	@Override
-	public void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	override fun o_TypeIntersectionOfPrimitiveTypeEnum(
+		self: AvailObject,
+		primitiveTypeEnum: Types): A_Type =
+			primitiveTypeEnum.intersectionTypes[extractOrdinal(self)]!!
+
+	override fun o_TypeUnion(self: AvailObject, another: A_Type): A_Type =
+		another.typeUnionOfPrimitiveTypeEnum(extractEnum(self))
+
+	override fun o_TypeUnionOfPrimitiveTypeEnum(
+		self: AvailObject,
+		primitiveTypeEnum: Types): A_Type =
+			primitiveTypeEnum.unionTypes[extractOrdinal(self)]!!
+
+	override fun o_WriteTo(self: AvailObject, writer: JSONWriter)
 	{
-		writer.startObject();
-		writer.write("kind");
+		writer.startObject()
+		writer.write("kind")
 		writer.write(
-			object.slot(NAME).asNativeString().toLowerCase() + " type");
-		writer.endObject();
-	}
-
-	/**
-	 * Create a partially-initialized primitive type with the given name.  The type's parent will be set later, to facilitate arbitrary construction order.  Set these fields to {@linkplain NilDescriptor nil} to ensure pointer safety.
-	 *
-	 * @param typeNameString
-	 *        The name to give the object being initialized.
-	 * @return
-	 * The partially initialized type.
-	 */
-	static AvailObject createMutablePrimitiveObjectNamed (
-		final String typeNameString)
-	{
-		final A_String name = stringFrom(typeNameString);
-		final AvailObject object = transientMutable.create();
-		object.setSlot(NAME, name.makeShared());
-		object.setSlot(PARENT, nil);
-		object.setSlot(HASH, typeNameString.hashCode() * multiplier);
-		return object;
+			"${self.slot(ObjectSlots.NAME).asNativeString().toLowerCase()} type")
+		writer.endObject()
 	}
 
 	/**
@@ -510,98 +333,151 @@ extends TypeDescriptor
 	 * if it isn't.
 	 *
 	 * @param parentType
-	 *        The parent of this object, not necessarily shared.
+	 *   The parent of this object, not necessarily shared.
 	 */
-	final void finishInitializingPrimitiveTypeWithParent (
-		final AvailObject object,
-		final A_Type parentType)
+	fun finishInitializingPrimitiveTypeWithParent(
+		self: AvailObject,
+		parentType: A_Type)
 	{
-		assert getMutability() == Mutability.SHARED;
-		object.setSlot(PARENT, parentType);
-		object.setDescriptor(this);
+		assert(mutability === Mutability.SHARED)
+		self.setSlot(ObjectSlots.PARENT, parentType)
+		self.setDescriptor(this)
 	}
 
-	/** The {@link Types primitive&#32;type} represented by this descriptor. */
-	final @Nullable Types primitiveType;
+	/**
+	 * The [primitive&#32;type][TypeDescriptor.Types] represented by this
+	 * descriptor.
+	 */
+	val primitiveType: Types?
 
 	/**
-	 * Construct a new {@link Mutability#SHARED shared} {@link PrimitiveTypeDescriptor}.
+	 * Construct a new [shared][Mutability.SHARED] [PrimitiveTypeDescriptor].
 	 *
 	 * @param typeTag
-	 *        The {@link TypeTag} to embed in the new descriptor.
+	 *   The [TypeTag] to embed in the new descriptor.
 	 * @param primitiveType
-	 *        The {@link Types primitive&#32;type} represented by this descriptor.
+	 *   The [primitive&#32;type][TypeDescriptor.Types] represented by this
+	 *   descriptor.
 	 * @param objectSlotsEnumClass
-	 *        The Java {@link Class} which is a subclass of {@link ObjectSlotsEnum} and defines this object's object slots layout, or null if there are no object slots.
+	 *   The Java [Class] which is a subclass of [ObjectSlotsEnum] and defines
+	 *   this object's object slots layout, or `null` if there are no object
+	 *   slots.
 	 * @param integerSlotsEnumClass
-	 *        The Java {@link Class} which is a subclass of {@link IntegerSlotsEnum} and defines this object's integer slots layout, or `null` if there are no integer slots.
+	 *   The Java [Class] which is a subclass of [IntegerSlotsEnum] and defines
+	 *   this object's integer slots layout, or `null` if there are no integer
+	 *   slots.
 	 */
-	protected PrimitiveTypeDescriptor (
-		final TypeTag typeTag,
-		final Types primitiveType,
-		final @Nullable Class<? extends ObjectSlotsEnum> objectSlotsEnumClass,
-		final @Nullable Class<? extends IntegerSlotsEnum> integerSlotsEnumClass)
-	{
-		super(
+	protected constructor(
+		typeTag: TypeTag,
+		primitiveType: Types,
+		objectSlotsEnumClass: Class<out ObjectSlotsEnum>?,
+		integerSlotsEnumClass: Class<out IntegerSlotsEnum>?) : super(
 			Mutability.SHARED,
 			typeTag,
 			objectSlotsEnumClass,
-			integerSlotsEnumClass);
-		this.primitiveType = primitiveType;
+			integerSlotsEnumClass)
+	{
+		this.primitiveType = primitiveType
 	}
 
 	/**
-	 * Construct a new {@link Mutability#SHARED shared} {@link PrimitiveTypeDescriptor}.
+	 * Construct a new [shared][Mutability.SHARED] [PrimitiveTypeDescriptor].
 	 *
 	 * @param typeTag
-	 *            The {@link TypeTag} to embed in the new descriptor.
+	 *   The [TypeTag] to embed in the new descriptor.
 	 * @param primitiveType
-	 *        The {@link Types primitive&#32;type} represented by this descriptor.
+	 * The [primitive&#32;type][TypeDescriptor.Types] represented by this
+	 * descriptor.
 	 */
-	PrimitiveTypeDescriptor (
-		final TypeTag typeTag,
-		final Types primitiveType)
-	{
-		this(typeTag, primitiveType, ObjectSlots.class, IntegerSlots.class);
-	}
+	internal constructor(typeTag: TypeTag, primitiveType: Types)
+		: this(
+			typeTag,
+			primitiveType,
+			ObjectSlots::class.java,
+			IntegerSlots::class.java)
 
 	/**
-	 * Construct the sole mutable {@link PrimitiveTypeDescriptor}, used only during early instantiation of the primitive types.
+	 * Construct the sole mutable [PrimitiveTypeDescriptor], used only during
+	 * early instantiation of the primitive types.
 	 */
-	private PrimitiveTypeDescriptor ()
+	private constructor() : super(
+		Mutability.MUTABLE,
+		TypeTag.UNKNOWN_TAG,
+		ObjectSlots::class.java,
+		IntegerSlots::class.java)
 	{
-		super(
-			Mutability.MUTABLE,
-			TypeTag.UNKNOWN_TAG,
-			ObjectSlots.class,
-			IntegerSlots.class);
-		primitiveType = null;
+		primitiveType = null
 	}
 
-	/**
-	 * The sole mutable {@link PrimitiveTypeDescriptor}, only used during early instantiation.
-	 */
-	static final PrimitiveTypeDescriptor transientMutable =
-		new PrimitiveTypeDescriptor();
+	override fun mutable(): PrimitiveTypeDescriptor = transientMutable
 
-	@Override
-	public PrimitiveTypeDescriptor mutable ()
-	{
-		return transientMutable;
-	}
-
-	@Override
-	public PrimitiveTypeDescriptor immutable ()
+	override fun immutable(): PrimitiveTypeDescriptor
 	{
 		// There are no immutable versions.
-		assert getMutability() == Mutability.SHARED;
-		return this;
+		assert(mutability === Mutability.SHARED)
+		return this
 	}
 
-	@Override
-	public PrimitiveTypeDescriptor shared ()
+	override fun shared(): PrimitiveTypeDescriptor
 	{
-		assert getMutability() == Mutability.SHARED;
-		return this;
+		assert(mutability === Mutability.SHARED)
+		return this
+	}
+
+	companion object
+	{
+		/**
+		 * Extract the [TypeDescriptor.Types] enum value from this primitive
+		 * type.
+		 *
+		 * @param self
+		 *   The primitive type.
+		 * @return
+		 *   The [TypeDescriptor.Types] enum value.
+		 */
+		private fun extractEnum(self: AvailObject): Types =
+			Nulls.stripNull(
+				(self.descriptor() as PrimitiveTypeDescriptor).primitiveType)
+
+		/**
+		 * Extract the [TypeDescriptor.Types] enum value's [Enum.ordinal] from
+		 * this primitive type.
+		 *
+		 * @param self
+		 *   The primitive type.
+		 * @return
+		 *   The [TypeDescriptor.Types] enum value's ordinal.
+		 */
+		fun extractOrdinal(self: AvailObject): Int = extractEnum(self).ordinal
+
+		/**
+		 * Create a partially-initialized primitive type with the given name.
+		 * The type's parent will be set later, to facilitate arbitrary
+		 * construction order.  Set these fields to [nil][NilDescriptor] to
+		 * ensure pointer safety.
+		 *
+		 * @param typeNameString
+		 *   The name to give the object being initialized.
+		 * @return
+		 *   The partially initialized type.
+		 */
+		fun createMutablePrimitiveObjectNamed(
+			typeNameString: String): AvailObject
+		{
+			val name = stringFrom(typeNameString)
+			val self = transientMutable.create()
+			self.setSlot(ObjectSlots.NAME, name.makeShared())
+			self.setSlot(ObjectSlots.PARENT, NilDescriptor.nil)
+			self.setSlot(
+				IntegerSlots.HASH,
+				typeNameString.hashCode() * AvailObject.multiplier)
+			return self
+		}
+
+		/**
+		 * The sole mutable [PrimitiveTypeDescriptor], only used during early
+		 * instantiation.
+		 */
+		val transientMutable = PrimitiveTypeDescriptor()
 	}
 }
