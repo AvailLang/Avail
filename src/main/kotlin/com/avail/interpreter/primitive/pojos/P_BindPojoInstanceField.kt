@@ -40,8 +40,8 @@ import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import com.avail.descriptor.types.PojoTypeDescriptor.mostGeneralPojoType
-import com.avail.descriptor.types.PojoTypeDescriptor.resolvePojoType
+import com.avail.descriptor.types.PojoTypeDescriptor.Companion.mostGeneralPojoType
+import com.avail.descriptor.types.PojoTypeDescriptor.Companion.resolvePojoType
 import com.avail.descriptor.types.TupleTypeDescriptor.stringType
 import com.avail.descriptor.types.VariableTypeDescriptor.mostGeneralVariableType
 import com.avail.exceptions.AvailErrorCode.E_JAVA_FIELD_NOT_AVAILABLE

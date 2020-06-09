@@ -46,8 +46,8 @@ import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanTyp
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.inclusive
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.singleInt
-import com.avail.descriptor.types.PojoTypeDescriptor.mostGeneralPojoType
-import com.avail.descriptor.types.PojoTypeDescriptor.pojoTypeForClass
+import com.avail.descriptor.types.PojoTypeDescriptor.Companion.mostGeneralPojoType
+import com.avail.descriptor.types.PojoTypeDescriptor.Companion.pojoTypeForClass
 import com.avail.descriptor.types.TupleTypeDescriptor.stringType
 import com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType
 import com.avail.exceptions.AvailErrorCode.E_INVALID_PATH

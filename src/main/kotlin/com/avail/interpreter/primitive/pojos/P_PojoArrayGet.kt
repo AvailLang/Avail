@@ -40,8 +40,8 @@ import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.en
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.naturalNumbers
 import com.avail.descriptor.types.PojoTypeDescriptor
-import com.avail.descriptor.types.PojoTypeDescriptor.mostGeneralPojoArrayType
-import com.avail.descriptor.types.PojoTypeDescriptor.unmarshal
+import com.avail.descriptor.types.PojoTypeDescriptor.Companion.mostGeneralPojoArrayType
+import com.avail.descriptor.types.PojoTypeDescriptor.Companion.unmarshal
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.exceptions.AvailErrorCode.E_JAVA_MARSHALING_FAILED
 import com.avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS

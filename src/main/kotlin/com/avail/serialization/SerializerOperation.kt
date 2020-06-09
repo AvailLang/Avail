@@ -177,11 +177,11 @@ import com.avail.descriptor.types.MapTypeDescriptor.mapTypeForSizesKeyTypeValueT
 import com.avail.descriptor.types.PhraseTypeDescriptor
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import com.avail.descriptor.types.PojoTypeDescriptor
-import com.avail.descriptor.types.PojoTypeDescriptor.fusedTypeFromAncestorMap
-import com.avail.descriptor.types.PojoTypeDescriptor.marshalTypes
-import com.avail.descriptor.types.PojoTypeDescriptor.pojoArrayType
-import com.avail.descriptor.types.PojoTypeDescriptor.pojoTypeForClassWithTypeArguments
-import com.avail.descriptor.types.PojoTypeDescriptor.resolvePojoType
+import com.avail.descriptor.types.PojoTypeDescriptor.Companion.fusedTypeFromAncestorMap
+import com.avail.descriptor.types.PojoTypeDescriptor.Companion.marshalTypes
+import com.avail.descriptor.types.PojoTypeDescriptor.Companion.pojoArrayType
+import com.avail.descriptor.types.PojoTypeDescriptor.Companion.pojoTypeForClassWithTypeArguments
+import com.avail.descriptor.types.PojoTypeDescriptor.Companion.resolvePojoType
 import com.avail.descriptor.types.PrimitiveTypeDescriptor.extractOrdinal
 import com.avail.descriptor.types.ReadWriteVariableTypeDescriptor
 import com.avail.descriptor.types.SelfPojoTypeDescriptor.pojoFromSerializationProxy

@@ -41,8 +41,8 @@ import com.avail.descriptor.types.InstanceMetaDescriptor.anyMeta
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.singleInteger
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.wholeNumbers
 import com.avail.descriptor.types.PojoTypeDescriptor
-import com.avail.descriptor.types.PojoTypeDescriptor.mostGeneralPojoArrayType
-import com.avail.descriptor.types.PojoTypeDescriptor.pojoArrayType
+import com.avail.descriptor.types.PojoTypeDescriptor.Companion.mostGeneralPojoArrayType
+import com.avail.descriptor.types.PojoTypeDescriptor.Companion.pojoArrayType
 import com.avail.descriptor.types.TypeDescriptor
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline

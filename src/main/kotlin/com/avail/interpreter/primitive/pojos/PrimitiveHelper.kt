@@ -44,8 +44,8 @@ import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.FunctionTypeDescriptor
-import com.avail.descriptor.types.PojoTypeDescriptor.marshalDefiningType
-import com.avail.descriptor.types.PojoTypeDescriptor.pojoTypeForClass
+import com.avail.descriptor.types.PojoTypeDescriptor.Companion.marshalDefiningType
+import com.avail.descriptor.types.PojoTypeDescriptor.Companion.pojoTypeForClass
 import com.avail.descriptor.types.VariableTypeDescriptor.variableTypeFor
 import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.AvailErrorCode.E_JAVA_FIELD_NOT_AVAILABLE
@@ -101,10 +101,13 @@ object PrimitiveHelper
 		{
 			// It's not a fused type, so it has an immediate class that should
 			// be used to recursively look up the method.
-			return try {
+			return try
+			{
 				marshalDefiningType(pojoType).getMethod(
 					methodName.asNativeString(), *marshaledTypes)
-			} catch (e: NoSuchMethodException) {
+			}
+			catch (e: NoSuchMethodException)
+			{
 				errorOut.value = E_JAVA_METHOD_NOT_AVAILABLE
 				null
 			}

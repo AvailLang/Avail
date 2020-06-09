@@ -47,9 +47,9 @@ import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.en
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionTypeReturning
 import com.avail.descriptor.types.InstanceMetaDescriptor.anyMeta
-import com.avail.descriptor.types.PojoTypeDescriptor.marshalDefiningType
-import com.avail.descriptor.types.PojoTypeDescriptor.marshalTypes
-import com.avail.descriptor.types.PojoTypeDescriptor.resolvePojoType
+import com.avail.descriptor.types.PojoTypeDescriptor.Companion.marshalDefiningType
+import com.avail.descriptor.types.PojoTypeDescriptor.Companion.marshalTypes
+import com.avail.descriptor.types.PojoTypeDescriptor.Companion.resolvePojoType
 import com.avail.descriptor.types.TupleTypeDescriptor.oneOrMoreOf
 import com.avail.descriptor.types.TupleTypeDescriptor.stringType
 import com.avail.descriptor.types.TupleTypeDescriptor.zeroOrMoreOf
