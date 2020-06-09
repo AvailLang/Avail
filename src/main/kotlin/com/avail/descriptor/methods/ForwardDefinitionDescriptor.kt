@@ -72,11 +72,13 @@ class ForwardDefinitionDescriptor private constructor(
 	mutability: Mutability
 ) : DefinitionDescriptor(
 	mutability, ObjectSlots::class.java, null
-) {
+)
+{
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	enum class ObjectSlots : ObjectSlotsEnum {
+	enum class ObjectSlots : ObjectSlotsEnum
+	{
 		/**
 		 * Duplicated from parent.  The method in which this definition occurs.
 		 */
@@ -93,12 +95,16 @@ class ForwardDefinitionDescriptor private constructor(
 		 */
 		BODY_SIGNATURE;
 
-		companion object {
-			init {
-				assert(DefinitionDescriptor.ObjectSlots.DEFINITION_METHOD.ordinal
-					== DEFINITION_METHOD.ordinal)
-				assert(DefinitionDescriptor.ObjectSlots.MODULE.ordinal
-					== MODULE.ordinal)
+		companion object
+		{
+			init
+			{
+				assert(
+					DefinitionDescriptor.ObjectSlots.DEFINITION_METHOD.ordinal
+						== DEFINITION_METHOD.ordinal)
+				assert(
+					DefinitionDescriptor.ObjectSlots.MODULE.ordinal
+						== MODULE.ordinal)
 			}
 		}
 	}
@@ -108,7 +114,8 @@ class ForwardDefinitionDescriptor private constructor(
 		builder: StringBuilder,
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int
-	) {
+	)
+	{
 		self.slot(DEFINITION_METHOD)
 			.chooseBundle(self.slot(MODULE))
 			.message()
@@ -133,31 +140,31 @@ class ForwardDefinitionDescriptor private constructor(
 	override fun o_SerializerOperation(self: AvailObject) =
 		SerializerOperation.FORWARD_DEFINITION
 
-	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) {
-		writer.startObject()
-		writer.write("kind")
-		writer.write("forward definition")
-		writer.write("definition method")
-		self.slot(DEFINITION_METHOD).methodName().writeTo(writer)
-		writer.write("definition module")
-		self.definitionModuleName().writeTo(writer)
-		writer.write("body signature")
-		self.slot(BODY_SIGNATURE).writeTo(writer)
-		writer.endObject()
-	}
+	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("forward definition") }
+			at("definition method") {
+				self.slot(DEFINITION_METHOD).methodName().writeTo(writer)
+			}
+			at("definition module") {
+				self.definitionModuleName().writeTo(writer)
+			}
+			at("body signature") { self.slot(BODY_SIGNATURE).writeTo(writer) }
+		}
 
-	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) {
-		writer.startObject()
-		writer.write("kind")
-		writer.write("forward definition")
-		writer.write("definition method")
-		self.slot(DEFINITION_METHOD).methodName().writeTo(writer)
-		writer.write("definition module")
-		self.definitionModuleName().writeTo(writer)
-		writer.write("body signature")
-		self.slot(BODY_SIGNATURE).writeSummaryTo(writer)
-		writer.endObject()
-	}
+	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("forward definition") }
+			at("definition method") {
+				self.slot(DEFINITION_METHOD).methodName().writeTo(writer)
+			}
+			at("definition module") {
+				self.definitionModuleName().writeTo(writer)
+			}
+			at("body signature") {
+				self.slot(BODY_SIGNATURE).writeSummaryTo(writer)
+			}
+		}
 
 	override fun mutable() = mutable
 

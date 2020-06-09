@@ -200,23 +200,17 @@ class FirstOfSequencePhraseDescriptor private constructor(
 		// Do nothing.
 	}
 
-	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) {
-		writer.startObject()
-		writer.write("kind")
-		writer.write("first-of-sequence phrase")
-		writer.write("statements")
-		self.slot(STATEMENTS).writeTo(writer)
-		writer.endObject()
-	}
+	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("first-of-sequence phrase") }
+			at("statements") { self.slot(STATEMENTS).writeTo(writer) }
+		}
 
-	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) {
-		writer.startObject()
-		writer.write("kind")
-		writer.write("first-of-sequence phrase")
-		writer.write("statements")
-		self.slot(STATEMENTS).writeSummaryTo(writer)
-		writer.endObject()
-	}
+	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("first-of-sequence phrase") }
+			at("statements") { self.slot(STATEMENTS).writeSummaryTo(writer) }
+		}
 
 	override fun mutable() = mutable
 

@@ -711,31 +711,27 @@ class MethodDescriptor private constructor(
 		self: AvailObject
 	): LookupTree<A_Definition, A_Tuple> = methodTestingTree(self)
 
-	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) {
-		writer.startObject()
-		writer.write("kind")
-		writer.write("method")
-		writer.write("aliases")
-		self.slot(OWNING_BUNDLES).writeTo(writer)
-		writer.write("definitions")
-		self.slot(DEFINITIONS_TUPLE).writeTo(writer)
-		writer.write("macro definitions")
-		self.slot(MACRO_DEFINITIONS_TUPLE).writeTo(writer)
-		writer.endObject()
-	}
+	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("method") }
+			at("aliases") { self.slot(OWNING_BUNDLES).writeTo(writer) }
+			at("definitions") { self.slot(DEFINITIONS_TUPLE).writeTo(writer) }
+			at("macro definitions") {
+				self.slot(MACRO_DEFINITIONS_TUPLE).writeTo(writer)
+			}
+		}
 
-	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) {
-		writer.startObject()
-		writer.write("kind")
-		writer.write("method")
-		writer.write("aliases")
-		self.slot(OWNING_BUNDLES).writeSummaryTo(writer)
-		writer.write("definitions")
-		self.slot(DEFINITIONS_TUPLE).writeSummaryTo(writer)
-		writer.write("macro definitions")
-		self.slot(MACRO_DEFINITIONS_TUPLE).writeSummaryTo(writer)
-		writer.endObject()
-	}
+	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("method") }
+			at("aliases") { self.slot(OWNING_BUNDLES).writeSummaryTo(writer) }
+			at("definitions") {
+				self.slot(DEFINITIONS_TUPLE).writeSummaryTo(writer)
+			}
+			at("macro definitions") {
+				self.slot(MACRO_DEFINITIONS_TUPLE).writeSummaryTo(writer)
+			}
+		}
 
 	/**
 	 * The membership of this [method][MethodDescriptor] has changed. Invalidate

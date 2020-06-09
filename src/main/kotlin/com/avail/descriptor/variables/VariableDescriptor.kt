@@ -562,30 +562,25 @@ open class VariableDescriptor protected constructor(
 		return false
 	}
 
-	override fun o_WriteTo(self: AvailObject, writer: JSONWriter)
-	{
-		writer.startObject()
-		writer.write("kind")
-		writer.write("variable")
-		writer.write("variable type")
-		self.slot(ObjectSlots.KIND).writeTo(writer)
-		if (!self.slot(ObjectSlots.VALUE).equalsNil())
-		{
-			writer.write("value")
-			self.slot(ObjectSlots.VALUE).writeSummaryTo(writer)
+	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("variable") }
+			at("variable type") { self.slot(ObjectSlots.KIND).writeTo(writer) }
+			if (!self.slot(ObjectSlots.VALUE).equalsNil())
+			{
+				at("value") {
+					self.slot(ObjectSlots.VALUE).writeSummaryTo(writer)
+				}
+			}
 		}
-		writer.endObject()
-	}
 
-	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter)
-	{
-		writer.startObject()
-		writer.write("kind")
-		writer.write("variable")
-		writer.write("variable type")
-		self.slot(ObjectSlots.KIND).writeSummaryTo(writer)
-		writer.endObject()
-	}
+	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("variable") }
+			at("variable type") {
+				self.slot(ObjectSlots.KIND).writeSummaryTo(writer)
+			}
+		}
 
 	override fun mutable() = mutable
 

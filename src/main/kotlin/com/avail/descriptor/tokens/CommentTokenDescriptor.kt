@@ -150,19 +150,14 @@ class CommentTokenDescriptor private constructor(mutability: Mutability)
 		TokenType.COMMENT
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
-		with(writer) {
-			startObject()
-			write("kind")
-			write("token")
-			write("token type")
-			write(self.tokenType().name.toLowerCase().replace('_', ' '))
-			write("start")
-			write(self.slot(IntegerSlots.START))
-			write("line number")
-			write(self.slot(IntegerSlots.LINE_NUMBER))
-			write("lexeme")
-			self.slot(ObjectSlots.STRING).writeTo(writer)
-			endObject()
+		writer.writeObject {
+			at("kind") { write("token") }
+			at("token type") {
+				write(self.tokenType().name.toLowerCase().replace('_', ' '))
+			}
+			at("start") { write(self.slot(IntegerSlots.START)) }
+			at("line number") { write(self.slot(IntegerSlots.LINE_NUMBER)) }
+			at("lexeme") { self.slot(ObjectSlots.STRING).writeTo(writer) }
 		}
 
 	override fun mutable() = mutable

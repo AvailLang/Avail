@@ -290,23 +290,19 @@ class ListPhraseDescriptor private constructor(
 		return tupleFromList(tokens)
 	}
 
-	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) {
-		writer.startObject()
-		writer.write("kind")
-		writer.write("list phrase")
-		writer.write("expressions")
-		self.slot(EXPRESSIONS_TUPLE).writeTo(writer)
-		writer.endObject()
-	}
+	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("list phrase") }
+			at("expressions") { self.slot(EXPRESSIONS_TUPLE).writeTo(writer) }
+		}
 
-	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) {
-		writer.startObject()
-		writer.write("kind")
-		writer.write("list phrase")
-		writer.write("expressions")
-		self.slot(EXPRESSIONS_TUPLE).writeSummaryTo(writer)
-		writer.endObject()
-	}
+	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("list phrase") }
+			at("expressions") {
+				self.slot(EXPRESSIONS_TUPLE).writeSummaryTo(writer)
+			}
+		}
 
 	override fun mutable() = mutable
 

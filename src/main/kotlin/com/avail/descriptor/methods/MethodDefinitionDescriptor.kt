@@ -111,31 +111,29 @@ class MethodDefinitionDescriptor private constructor(
 	override fun o_SerializerOperation(self: AvailObject) =
 		SerializerOperation.METHOD_DEFINITION
 
-	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) {
-		writer.startObject()
-		writer.write("kind")
-		writer.write("method definition")
-		writer.write("definition method")
-		self.slot(DEFINITION_METHOD).methodName().writeTo(writer)
-		writer.write("definition module")
-		self.definitionModuleName().writeTo(writer)
-		writer.write("body block")
-		self.slot(BODY_BLOCK).writeTo(writer)
-		writer.endObject()
-	}
+	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("method definition") }
+			at("definition method") {
+				self.slot(DEFINITION_METHOD).methodName().writeTo(writer)
+			}
+			at("definition module") {
+				self.definitionModuleName().writeTo(writer)
+			}
+			at("body block") { self.slot(BODY_BLOCK).writeTo(writer) }
+		}
 
-	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) {
-		writer.startObject()
-		writer.write("kind")
-		writer.write("method definition")
-		writer.write("definition method")
-		self.slot(DEFINITION_METHOD).methodName().writeTo(writer)
-		writer.write("definition module")
-		self.definitionModuleName().writeTo(writer)
-		writer.write("body block")
-		self.slot(BODY_BLOCK).writeSummaryTo(writer)
-		writer.endObject()
-	}
+	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("method definition") }
+			at("definition method") {
+				self.slot(DEFINITION_METHOD).methodName().writeTo(writer)
+			}
+			at("definition module") {
+				self.definitionModuleName().writeTo(writer)
+			}
+			at("body block") { self.slot(BODY_BLOCK).writeSummaryTo(writer) }
+		}
 
 	override fun mutable() = mutable
 

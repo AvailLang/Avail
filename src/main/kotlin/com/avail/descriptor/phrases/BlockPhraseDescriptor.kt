@@ -439,49 +439,42 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 		collectNeededVariablesOfOuterBlocks(self)
 	}
 
-	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) {
-		writer.startObject()
-		writer.write("kind")
-		writer.write("block phrase")
-		writer.write("primitive")
-		writer.write(self.primitive()?.fieldName() ?: "")
-		writer.write("starting line")
-		writer.write(self.slot(STARTING_LINE_NUMBER))
-		writer.write("arguments")
-		self.slot(ARGUMENTS_TUPLE).writeSummaryTo(writer)
-		writer.write("statements")
-		self.slot(STATEMENTS_TUPLE).writeSummaryTo(writer)
-		writer.write("result type")
-		self.slot(RESULT_TYPE).writeSummaryTo(writer)
-		writer.write("needed variables")
-		self.slot(NEEDED_VARIABLES).writeSummaryTo(writer)
-		writer.write("declared exceptions")
-		self.slot(DECLARED_EXCEPTIONS).writeSummaryTo(writer)
-		writer.endObject()
-	}
+	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("block phrase") }
+			at("primitive") { write(self.primitive()?.fieldName() ?: "") }
+			at("starting line") { write(self.slot(STARTING_LINE_NUMBER)) }
+			at("arguments") { self.slot(ARGUMENTS_TUPLE).writeTo(writer) }
+			at("statements") { self.slot(STATEMENTS_TUPLE).writeTo(writer) }
+			at("result type") { self.slot(RESULT_TYPE).writeTo(writer) }
+			at("needed variables") {
+				self.slot(NEEDED_VARIABLES).writeTo(writer)
+			}
+			at("declared exceptions") {
+				self.slot(DECLARED_EXCEPTIONS).writeTo(writer)
+			}
+			at("tokens") { self.slot(TOKENS).writeTo(writer) }
+		}
 
-	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) {
-		writer.startObject()
-		writer.write("kind")
-		writer.write("block phrase")
-		writer.write("primitive")
-		writer.write(self.primitive()?.fieldName() ?: "")
-		writer.write("starting line")
-		writer.write(self.slot(STARTING_LINE_NUMBER))
-		writer.write("arguments")
-		self.slot(ARGUMENTS_TUPLE).writeTo(writer)
-		writer.write("statements")
-		self.slot(STATEMENTS_TUPLE).writeTo(writer)
-		writer.write("result type")
-		self.slot(RESULT_TYPE).writeTo(writer)
-		writer.write("needed variables")
-		self.slot(NEEDED_VARIABLES).writeTo(writer)
-		writer.write("declared exceptions")
-		self.slot(DECLARED_EXCEPTIONS).writeTo(writer)
-		writer.write("tokens")
-		self.slot(TOKENS).writeTo(writer)
-		writer.endObject()
-	}
+	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("block phrase") }
+			at("primitive") { write(self.primitive()?.fieldName() ?: "") }
+			at("starting line") { write(self.slot(STARTING_LINE_NUMBER)) }
+			at("arguments") {
+				self.slot(ARGUMENTS_TUPLE).writeSummaryTo(writer)
+			}
+			at("statements") {
+				self.slot(STATEMENTS_TUPLE).writeSummaryTo(writer)
+			}
+			at("result type") { self.slot(RESULT_TYPE).writeSummaryTo(writer) }
+			at("needed variables") {
+				self.slot(NEEDED_VARIABLES).writeSummaryTo(writer)
+			}
+			at("declared exceptions") {
+				self.slot(DECLARED_EXCEPTIONS).writeSummaryTo(writer)
+			}
+		}
 
 	override fun mutable() = mutable
 

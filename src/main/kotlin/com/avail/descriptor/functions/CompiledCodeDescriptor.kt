@@ -52,6 +52,7 @@ import com.avail.descriptor.functions.CompiledCodeDescriptor.ObjectSlots.LITERAL
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.numbers.IntegerDescriptor
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.BlockPhraseDescriptor
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.ARGUMENT
@@ -859,60 +860,45 @@ class CompiledCodeDescriptor private constructor(
 	private fun writeTo(
 			self: AvailObject,
 			writer: JSONWriter,
-			writeFunctionType: AvailObject.()->Unit) =
-		with(writer) {
-			startObject()
-			write("kind")
-			write("function implementation")
-			write("outers")
-			write(self.slot(NUM_OUTERS))
-			write("arguments")
-			write(self.slot(NUM_ARGS))
-			write("locals")
-			write(self.slot(NUM_LOCALS))
-			write("constants")
-			write(self.slot(NUM_CONSTANTS))
-			write("maximum stack depth")
-			write(self.slot(FRAME_SLOTS))
-			write("nybbles")
-			self.nybbles().writeTo(writer)
-			write("function type")
-			self.slot(FUNCTION_TYPE).writeFunctionType()
-			write("method")
-			self.methodName().writeTo(writer)
-			if (!module.equalsNil())
-			{
-				write("module")
-				self.module().moduleName().writeTo(writer)
-			}
-			write("starting line number")
-			write(self.startingLineNumber())
-			write("literals")
-			startArray()
-			val limit = self.variableObjectSlotsCount()
-			for (i in 1 .. limit)
-			{
-				var literal: A_BasicObject = self.slot(LITERAL_AT_, i)
-				if (literal.equalsNil())
-				{
-					literal = IntegerDescriptor.zero()
-				}
-				literal.writeSummaryTo(writer)
-			}
-			endArray()
-			endObject()
+			writeFunctionType: A_Type.()->Unit
+	) = writer.writeObject {
+		at("kind") { write("function implementation") }
+		at("outers") { write(self.slot(NUM_OUTERS)) }
+		at("arguments") { write(self.slot(NUM_ARGS)) }
+		at("locals") { write(self.slot(NUM_LOCALS)) }
+		at("constants") { write(self.slot(NUM_CONSTANTS)) }
+		at("maximum stack depth") { write(self.slot(FRAME_SLOTS)) }
+		at("nybbles") { self.nybbles().writeTo(writer) }
+		at("function type") { self.slot(FUNCTION_TYPE).writeFunctionType() }
+		at("method") { self.methodName().writeTo(writer) }
+		if (!module.equalsNil())
+		{
+			at("module") { self.module().moduleName().writeTo(writer) }
 		}
+		at("starting line number") { write(self.startingLineNumber()) }
+		at("literals") {
+			writeArray {
+				val limit = self.variableObjectSlotsCount()
+				for (i in 1..limit)
+				{
+					var literal: A_BasicObject = self.slot(LITERAL_AT_, i)
+					if (literal.equalsNil())
+					{
+						// Value doesn't matter, but it can't be nil.  Use zero.
+						literal = zero()
+					}
+					literal.writeSummaryTo(writer)
+				}
+			}
+		}
+	}
 
-	override fun o_WriteTo(
-			self: AvailObject,
-			writer: JSONWriter) =
+	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writeTo(self, writer) {
 			writeTo(writer)
 		}
 
-	override fun o_WriteSummaryTo(
-			self: AvailObject,
-			writer: JSONWriter) =
+	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
 		writeTo(self, writer) {
 			writeSummaryTo(writer)
 		}

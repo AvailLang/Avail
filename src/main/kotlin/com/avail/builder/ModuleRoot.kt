@@ -93,15 +93,11 @@ class ModuleRoot
 	fun writePathsOn(writer: JSONWriter)
 	{
 		writer.writeArray {
-			writer.write(repository.fileName.absolutePath)
-			val dir = sourceDirectory
-			if (dir == null)
+			write(repository.fileName.absolutePath)
+			when (val dir = sourceDirectory)
 			{
-				writer.writeNull()
-			}
-			else
-			{
-				writer.write(dir.absolutePath)
+				null -> writeNull()
+				else -> write(dir.absolutePath)
 			}
 		}
 	}

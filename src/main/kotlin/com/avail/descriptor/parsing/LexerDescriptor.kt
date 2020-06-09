@@ -206,35 +206,25 @@ class LexerDescriptor private constructor(
 			else -> self
 		}
 
-	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) {
-		writer.startObject()
-		writer.write("kind")
-		writer.write("lexer")
-		writer.write("filter")
-		self.slot(LEXER_FILTER_FUNCTION).writeTo(writer)
-		writer.write("body")
-		self.slot(LEXER_BODY_FUNCTION).writeTo(writer)
-		writer.write("method")
-		self.slot(LEXER_METHOD).writeTo(writer)
-		writer.write("module")
-		self.slot(DEFINITION_MODULE).writeTo(writer)
-		writer.endObject()
-	}
+	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("lexer") }
+			at("filter") { self.slot(LEXER_FILTER_FUNCTION).writeTo(writer) }
+			at("body") { self.slot(LEXER_BODY_FUNCTION).writeTo(writer) }
+			at("method") { self.slot(LEXER_METHOD).writeTo(writer) }
+			at("module") { self.slot(DEFINITION_MODULE).writeTo(writer) }
+		}
 
-	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) {
-		writer.startObject()
-		writer.write("kind")
-		writer.write("lexer")
-		writer.write("filter")
-		self.slot(LEXER_FILTER_FUNCTION).writeSummaryTo(writer)
-		writer.write("body")
-		self.slot(LEXER_BODY_FUNCTION).writeSummaryTo(writer)
-		writer.write("method")
-		self.slot(LEXER_METHOD).writeSummaryTo(writer)
-		writer.write("module")
-		self.slot(DEFINITION_MODULE).writeSummaryTo(writer)
-		writer.endObject()
-	}
+	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("lexer") }
+			at("filter") {
+				self.slot(LEXER_FILTER_FUNCTION).writeSummaryTo(writer)
+			}
+			at("body") { self.slot(LEXER_BODY_FUNCTION).writeSummaryTo(writer) }
+			at("method") { self.slot(LEXER_METHOD).writeSummaryTo(writer) }
+			at("module") { self.slot(DEFINITION_MODULE).writeSummaryTo(writer) }
+		}
 
 	override fun mutable() = mutable
 

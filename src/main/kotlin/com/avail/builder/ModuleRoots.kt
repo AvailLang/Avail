@@ -230,10 +230,7 @@ class ModuleRoots(modulePath: String) : Iterable<ModuleRoot>
 	fun writeOn(writer: JSONWriter)
 	{
 		writer.writeArray {
-			for (root in roots)
-			{
-				writer.write(root.name)
-			}
+			roots.forEach { root -> write(root.name) }
 		}
 	}
 
@@ -248,10 +245,8 @@ class ModuleRoots(modulePath: String) : Iterable<ModuleRoot>
 	fun writePathsOn(writer: JSONWriter)
 	{
 		writer.writeArray {
-			for (root in roots)
-			{
-				writer.write(root.name)
-				root.writePathsOn(writer)
+			roots.forEach { root ->
+				at(root.name) { root.writePathsOn(writer) }
 			}
 		}
 	}

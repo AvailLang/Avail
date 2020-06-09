@@ -136,7 +136,7 @@ class ContinuationDescriptor private constructor(
 			@EnumField(
 				describedBy = EnumField.Converter::class,
 				lookupMethodName = "decimal")
-			public val PROGRAM_COUNTER =
+			val PROGRAM_COUNTER =
 				BitField(PROGRAM_COUNTER_AND_STACK_POINTER, 32, 32)
 
 			/**
@@ -148,7 +148,7 @@ class ContinuationDescriptor private constructor(
 			@EnumField(
 				describedBy = EnumField.Converter::class,
 				lookupMethodName = "decimal")
-			public val STACK_POINTER =
+			val STACK_POINTER =
 				BitField(PROGRAM_COUNTER_AND_STACK_POINTER, 0, 32)
 
 			/**

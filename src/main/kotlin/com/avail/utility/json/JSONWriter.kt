@@ -872,11 +872,17 @@ class JSONWriter : AutoCloseable
 	 *   If an array cannot be written.
 	 */
 	@Throws(JSONIOException::class, IllegalStateException::class)
-	fun writeArray(action: ()->Unit)
+	inline fun <R> writeArray(action: JSONWriter.()->R): R
 	{
 		startArray()
-		action()
-		endArray()
+		try
+		{
+			return this.action()
+		}
+		finally
+		{
+			endArray()
+		}
 	}
 
 	/**

@@ -144,23 +144,17 @@ class ExpressionAsStatementPhraseDescriptor(
 		// Do nothing.
 	}
 
-	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) {
-		writer.startObject()
-		writer.write("kind")
-		writer.write("expression as statement phrase")
-		writer.write("expression")
-		self.slot(EXPRESSION).writeSummaryTo(writer)
-		writer.endObject()
-	}
+	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("expression as statement phrase") }
+			at("expression") { self.slot(EXPRESSION).writeTo(writer) }
+		}
 
-	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) {
-		writer.startObject()
-		writer.write("kind")
-		writer.write("expression as statement phrase")
-		writer.write("expression")
-		self.slot(EXPRESSION).writeTo(writer)
-		writer.endObject()
-	}
+	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("expression as statement phrase") }
+			at("expression") { self.slot(EXPRESSION).writeSummaryTo(writer) }
+		}
 
 	override fun mutable() = mutable
 

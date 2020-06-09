@@ -164,23 +164,17 @@ class SequencePhraseDescriptor private constructor(
 		// Do nothing.
 	}
 
-	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) {
-		writer.startObject()
-		writer.write("kind")
-		writer.write("sequence phrase")
-		writer.write("statements")
-		self.slot(STATEMENTS).writeTo(writer)
-		writer.endObject()
-	}
+	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("sequence phrase") }
+			at("statements") { self.slot(STATEMENTS).writeTo(writer) }
+		}
 
-	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) {
-		writer.startObject()
-		writer.write("kind")
-		writer.write("sequence phrase")
-		writer.write("statements")
-		self.slot(STATEMENTS).writeSummaryTo(writer)
-		writer.endObject()
-	}
+	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("sequence phrase") }
+			at("statements") { self.slot(STATEMENTS).writeSummaryTo(writer) }
+		}
 
 	override fun mutable() = mutable
 

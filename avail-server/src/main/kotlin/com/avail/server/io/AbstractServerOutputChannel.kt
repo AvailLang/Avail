@@ -81,10 +81,8 @@ abstract class AbstractServerOutputChannel constructor(
 	{
 		val writer = JSONWriter()
 		writer.writeObject {
-			writer.write("tag")
-			writer.write(channelTag)
-			writer.write("content")
-			writer.write(data)
+			at("tag") { write(channelTag) }
+			at("content") { write(data) }
 		}
 		return Message(writer.toString().toByteArray(), channel.state)
 	}

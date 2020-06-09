@@ -181,23 +181,17 @@ class ReferencePhraseDescriptor(
 	override fun o_Tokens(self: AvailObject): A_Tuple =
 		self.slot(VARIABLE).tokens()
 
-	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) {
-		writer.startObject()
-		writer.write("kind")
-		writer.write("variable reference phrase")
-		writer.write("referent")
-		self.slot(VARIABLE).writeTo(writer)
-		writer.endObject()
-	}
+	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("variable reference phrase") }
+			at("referent") { self.slot(VARIABLE).writeTo(writer) }
+		}
 
-	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) {
-		writer.startObject()
-		writer.write("kind")
-		writer.write("variable reference phrase")
-		writer.write("referent")
-		self.slot(VARIABLE).writeSummaryTo(writer)
-		writer.endObject()
-	}
+	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("variable reference phrase") }
+			at("referent") { self.slot(VARIABLE).writeSummaryTo(writer) }
+		}
 
 	override fun mutable() = mutable
 

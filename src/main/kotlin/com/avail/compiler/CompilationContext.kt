@@ -652,7 +652,12 @@ class CompilationContext(
 		onFailure: (Throwable)->Unit)
 	{
 		evaluatePhraseThen(
-			expression, lexingState, false, true, continuation, onFailure)
+			expressionNode = expression,
+			lexingState = lexingState,
+			shouldSerialize = false,
+			trackTasks = true,
+			onSuccess = continuation,
+			onFailure = onFailure)
 	}
 
 	/**

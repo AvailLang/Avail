@@ -444,31 +444,25 @@ private constructor(
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		SerializerOperation.SET
 
-	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) {
-		writer.startObject()
-		writer.write("kind")
-		writer.write("set")
-		writer.write("elements")
-		writer.startArray()
-		for (o in self) {
-			o.writeTo(writer)
+	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("set") }
+			at("elements") {
+				writeArray {
+					self.forEach { it.writeTo(writer) }
+				}
+			}
 		}
-		writer.endArray()
-		writer.endObject()
-	}
 
-	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) {
-		writer.startObject()
-		writer.write("kind")
-		writer.write("set")
-		writer.write("elements")
-		writer.startArray()
-		for (o in self) {
-			o.writeSummaryTo(writer)
+	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("set") }
+			at("elements") {
+				writeArray {
+					self.forEach { it.writeSummaryTo(writer) }
+				}
+			}
 		}
-		writer.endArray()
-		writer.endObject()
-	}
 
 	override fun mutable() = mutable
 

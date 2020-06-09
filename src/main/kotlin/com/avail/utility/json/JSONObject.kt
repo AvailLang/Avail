@@ -162,16 +162,12 @@ class JSONObject internal constructor(
 	override fun iterator(): Iterator<Entry<String, JSONData>> =
 		map.entries.iterator()
 
-	override fun writeTo(writer: JSONWriter)
-	{
-		writer.startObject()
-		for ((key, value) in map)
-		{
-			writer.write(key)
-			value.writeTo(writer)
+	override fun writeTo(writer: JSONWriter) =
+		writer.writeObject {
+			map.forEach { (key, value) ->
+				at(key) { value.writeTo(writer) }
+			}
 		}
-		writer.endObject()
-	}
 
 	companion object
 	{

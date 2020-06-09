@@ -338,41 +338,41 @@ class ObjectDescriptor internal constructor(
 
 	override fun o_ShowValueInNameForDebugger(self: AvailObject) = false
 
-	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) {
-		writer.startObject()
-		writer.write("kind")
-		writer.write("object")
-		writer.write("map")
-		writer.startObject()
-		variant.fieldToSlotIndex.forEach { (field, slotIndex) ->
-			val value = when (slotIndex) {
-				0 -> field
-				else -> self.slot(FIELD_VALUES_, slotIndex)
+	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("object") }
+			at("map") {
+				writeObject {
+					variant.fieldToSlotIndex.forEach { (field, slotIndex) ->
+						val value = when (slotIndex)
+						{
+							0 -> field
+							else -> self.slot(FIELD_VALUES_, slotIndex)
+						}
+						field.atomName().writeTo(writer)
+						value.writeTo(writer)
+					}
+				}
 			}
-			field.atomName().writeTo(writer)
-			value.writeTo(writer)
 		}
-		writer.endObject()
-		writer.endObject()
-	}
 
-	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) {
-		writer.startObject()
-		writer.write("kind")
-		writer.write("object")
-		writer.write("map")
-		writer.startObject()
-		variant.fieldToSlotIndex.forEach { (field, slotIndex) ->
-			val value = when (slotIndex) {
-				0 -> field
-				else -> self.slot(FIELD_VALUES_, slotIndex)
+	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("object") }
+			at("map") {
+				writeObject {
+					variant.fieldToSlotIndex.forEach { (field, slotIndex) ->
+						val value = when (slotIndex)
+						{
+							0 -> field
+							else -> self.slot(FIELD_VALUES_, slotIndex)
+						}
+						field.atomName().writeTo(writer)
+						value.writeSummaryTo(writer)
+					}
+				}
 			}
-			field.atomName().writeTo(writer)
-			value.writeSummaryTo(writer)
 		}
-		writer.endObject()
-		writer.endObject()
-	}
 
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
