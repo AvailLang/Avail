@@ -793,12 +793,14 @@ abstract class PojoTypeDescriptor protected constructor(
 				{
 					java.lang.Boolean::class.javaPrimitiveType ->
 						java.lang.Boolean::class.java
-					java.lang.Byte::class.javaPrimitiveType -> java.lang.Byte::class.java
+					java.lang.Byte::class.javaPrimitiveType ->
+						java.lang.Byte::class.java
 					java.lang.Short::class.javaPrimitiveType ->
 						java.lang.Short::class.java
 					java.lang.Integer::class.javaPrimitiveType ->
 						java.lang.Integer::class.java
-					java.lang.Long::class.javaPrimitiveType -> java.lang.Long::class.java
+					java.lang.Long::class.javaPrimitiveType ->
+						java.lang.Long::class.java
 					java.lang.Float::class.javaPrimitiveType ->
 						java.lang.Float::class.java
 					java.lang.Double::class.javaPrimitiveType ->
@@ -825,7 +827,7 @@ abstract class PojoTypeDescriptor protected constructor(
 		 */
 		fun unmarshal(self: Any?, type: A_Type): AvailObject
 		{
-			if (self == null)
+			if (self === null)
 			{
 				return nullPojo()
 			}
@@ -835,25 +837,27 @@ abstract class PojoTypeDescriptor protected constructor(
 				when (javaClass)
 				{
 					AvailObject::class.java -> self as AvailObject
-					Boolean::class.java ->
+					java.lang.Boolean::class.java ->
 						objectFromBoolean((self as Boolean?)!!)
-					Byte::class.java ->
+					java.lang.Byte::class.java ->
 					{
 						fromInt((self as Byte).toInt())
 					}
-					Short::class.java ->
+					java.lang.Short::class.java ->
 					{
 						fromInt((self as Short).toInt())
 					}
-					Int::class.java -> fromInt((self as Int?)!!)
-					Long::class.java -> fromLong((self as Long?)!!)
-					Float::class.java -> fromFloat((self as Float?)!!)
-					Double::class.java -> fromDouble((self as Double?)!!)
-					Char::class.java ->
+					java.lang.Integer::class.java -> fromInt((self as Int?)!!)
+					java.lang.Long::class.java -> fromLong((self as Long?)!!)
+					java.lang.Float::class.java -> fromFloat((self as Float?)!!)
+					java.lang.Double::class.java ->
+						fromDouble((self as Double?)!!)
+					java.lang.Character::class.java ->
 					{
 						fromInt((self as Char).toInt())
 					}
-					String::class.java -> stringFrom((self as String?)!!)
+					java.lang.String::class.java ->
+						stringFrom((self as String?)!!)
 					BigInteger::class.java ->
 						fromBigInteger((self as BigInteger?)!!)
 					else -> newPojo(equalityPojo(self), type)
@@ -896,14 +900,20 @@ abstract class PojoTypeDescriptor protected constructor(
 					return when (type)
 					{
 						Void.TYPE -> Types.TOP.o()
-						Boolean::class.javaPrimitiveType -> booleanType()
-						Byte::class.javaPrimitiveType -> byteRange()
-						Short::class.javaPrimitiveType -> shortRange()
-						Int::class.javaPrimitiveType -> intRange()
-						Long::class.javaPrimitiveType -> longRange()
-						Float::class.javaPrimitiveType -> Types.FLOAT.o()
-						Double::class.javaPrimitiveType -> Types.DOUBLE.o()
-						Char::class.javaPrimitiveType -> charRange()
+						java.lang.Boolean::class.javaPrimitiveType ->
+							booleanType()
+						java.lang.Byte::class.javaPrimitiveType ->
+							byteRange()
+						java.lang.Short::class.javaPrimitiveType ->
+							shortRange()
+						java.lang.Integer::class.javaPrimitiveType -> intRange()
+						java.lang.Long::class.javaPrimitiveType -> longRange()
+						java.lang.Float::class.javaPrimitiveType ->
+							Types.FLOAT.o()
+						java.lang.Double::class.javaPrimitiveType ->
+							Types.DOUBLE.o()
+						java.lang.Character::class.javaPrimitiveType ->
+							charRange()
 						else ->
 						{
 							assert(false) {
@@ -916,14 +926,14 @@ abstract class PojoTypeDescriptor protected constructor(
 				when (type)
 				{
 					Void::class.java -> return Types.TOP.o()
-					Boolean::class.java -> return booleanType()
-					Byte::class.java -> return byteRange()
-					Short::class.java -> return shortRange()
-					Int::class.java -> return intRange()
-					Long::class.java -> return longRange()
-					Float::class.java -> return Types.FLOAT.o()
-					Double::class.java -> return Types.DOUBLE.o()
-					Char::class.java -> return charRange()
+					java.lang.Boolean::class.java -> return booleanType()
+					java.lang.Byte::class.java -> return byteRange()
+					java.lang.Short::class.java -> return shortRange()
+					java.lang.Integer::class.java -> return intRange()
+					java.lang.Long::class.java -> return longRange()
+					java.lang.Float::class.java -> return Types.FLOAT.o()
+					java.lang.Double::class.java -> return Types.DOUBLE.o()
+					java.lang.Character::class.java -> return charRange()
 					String::class.java ->
 						return TupleTypeDescriptor.stringType()
 					else ->
