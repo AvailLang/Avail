@@ -47,7 +47,7 @@ import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.en
 import com.avail.descriptor.types.FiberTypeDescriptor.Companion.fiberType
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.bytes
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.bytes
 import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.E_INVALID_HANDLE

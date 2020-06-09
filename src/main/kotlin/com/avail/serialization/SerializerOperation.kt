@@ -167,13 +167,13 @@ import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import com.avail.descriptor.types.InstanceTypeDescriptor
 import com.avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.integerRangeType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeType
 import com.avail.descriptor.types.ListPhraseTypeDescriptor
-import com.avail.descriptor.types.ListPhraseTypeDescriptor.createListNodeType
+import com.avail.descriptor.types.ListPhraseTypeDescriptor.Companion.createListNodeType
 import com.avail.descriptor.types.LiteralTokenTypeDescriptor
 import com.avail.descriptor.types.LiteralTokenTypeDescriptor.Companion.literalTokenType
 import com.avail.descriptor.types.MapTypeDescriptor
-import com.avail.descriptor.types.MapTypeDescriptor.mapTypeForSizesKeyTypeValueType
+import com.avail.descriptor.types.MapTypeDescriptor.Companion.mapTypeForSizesKeyTypeValueType
 import com.avail.descriptor.types.PhraseTypeDescriptor
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import com.avail.descriptor.types.PojoTypeDescriptor
@@ -187,7 +187,7 @@ import com.avail.descriptor.types.ReadWriteVariableTypeDescriptor
 import com.avail.descriptor.types.SelfPojoTypeDescriptor.pojoFromSerializationProxy
 import com.avail.descriptor.types.SelfPojoTypeDescriptor.pojoSerializationProxy
 import com.avail.descriptor.types.SetTypeDescriptor
-import com.avail.descriptor.types.SetTypeDescriptor.setTypeForSizesContentType
+import com.avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
 import com.avail.descriptor.types.TokenTypeDescriptor
 import com.avail.descriptor.types.TokenTypeDescriptor.tokenType
 import com.avail.descriptor.types.TupleTypeDescriptor

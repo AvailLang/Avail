@@ -38,8 +38,8 @@ import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.wholeNumbers
-import com.avail.descriptor.types.MapTypeDescriptor.mapTypeForSizesKeyTypeValueType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
+import com.avail.descriptor.types.MapTypeDescriptor.Companion.mapTypeForSizesKeyTypeValueType
 import com.avail.descriptor.types.TupleTypeDescriptor.stringType
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline

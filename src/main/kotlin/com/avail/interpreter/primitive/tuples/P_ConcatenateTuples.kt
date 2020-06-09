@@ -42,7 +42,7 @@ import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.ConcatenatedTupleTypeDescriptor.Companion.concatenatingAnd
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.integerRangeType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeType
 import com.avail.descriptor.types.TupleTypeDescriptor.mostGeneralTupleType
 import com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType
 import com.avail.descriptor.types.TupleTypeDescriptor.zeroOrMoreOf

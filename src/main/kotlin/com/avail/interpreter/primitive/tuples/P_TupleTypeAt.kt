@@ -40,7 +40,7 @@ import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.naturalNumbers
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
 import com.avail.descriptor.types.TupleTypeDescriptor.tupleMeta
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold

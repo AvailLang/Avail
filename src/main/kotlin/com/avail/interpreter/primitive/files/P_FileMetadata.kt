@@ -44,8 +44,8 @@ import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.inclusive
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.singleInt
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
 import com.avail.descriptor.types.PojoTypeDescriptor.Companion.mostGeneralPojoType
 import com.avail.descriptor.types.PojoTypeDescriptor.Companion.pojoTypeForClass
 import com.avail.descriptor.types.TupleTypeDescriptor.stringType

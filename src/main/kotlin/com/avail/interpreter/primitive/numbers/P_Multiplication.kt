@@ -46,9 +46,9 @@ import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.inclusive
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.int32
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.integers
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int32
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
 import com.avail.descriptor.types.TypeDescriptor.Types.NUMBER
 import com.avail.exceptions.ArithmeticException
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_MULTIPLY_ZERO_AND_INFINITY

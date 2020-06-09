@@ -38,7 +38,7 @@ import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.en
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.InstanceMetaDescriptor
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
-import com.avail.descriptor.types.SetTypeDescriptor.mostGeneralSetType
+import com.avail.descriptor.types.SetTypeDescriptor.Companion.mostGeneralSetType
 import com.avail.exceptions.AvailErrorCode.E_NOT_AN_ENUMERATION
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail

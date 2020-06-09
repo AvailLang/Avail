@@ -507,9 +507,8 @@ interface A_Phrase : A_BasicObject {
 		 *   Whether the receiver, a phrase, has a type whose [phraseKind] is at
 		 *   or below the specified [PhraseKind].
 		 */
-		fun A_Phrase.phraseKindIsUnder(
-			expectedPhraseKind: PhraseKind
-		): Boolean = dispatch { o_PhraseKindIsUnder(it, expectedPhraseKind) }
+		fun A_Phrase.phraseKindIsUnder(expectedPhraseKind: PhraseKind)
+			: Boolean = dispatch { o_PhraseKindIsUnder(it, expectedPhraseKind) }
 
 		/**
 		 * Answer the permutation from a
@@ -521,8 +520,7 @@ interface A_Phrase : A_BasicObject {
 		 * @return
 		 *   The permutation list phrase's permutation.
 		 */
-		fun A_Phrase.permutation(): A_Tuple =
-			dispatch { o_Permutation(it) }
+		fun A_Phrase.permutation(): A_Tuple = dispatch { o_Permutation(it) }
 
 		/**
 		 * Answer either `null` or the [Primitive] from a block phrase.
@@ -530,8 +528,7 @@ interface A_Phrase : A_BasicObject {
 		 * @return
 		 *   The block phrase's primitive or `null`.
 		 */
-		fun A_Phrase.primitive(): Primitive? =
-			dispatch { o_Primitive(it) }
+		fun A_Phrase.primitive(): Primitive? = dispatch { o_Primitive(it) }
 
 		/**
 		 * Answer this [block][BlockPhraseDescriptor] phrase's starting line
@@ -553,8 +550,7 @@ interface A_Phrase : A_BasicObject {
 		 * @return
 		 *   A tuple of phrases.
 		 */
-		fun A_Phrase.statements(): A_Tuple =
-			dispatch { o_Statements(it) }
+		fun A_Phrase.statements(): A_Tuple = dispatch { o_Statements(it) }
 
 		/**
 		 * Iterate through each [sequence][PhraseKind.SEQUENCE_PHRASE]

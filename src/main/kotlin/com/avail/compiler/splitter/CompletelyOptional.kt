@@ -39,7 +39,7 @@ import com.avail.compiler.splitter.MessageSplitter.Metacharacter
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.ListPhraseTypeDescriptor.emptyListPhraseType
+import com.avail.descriptor.types.ListPhraseTypeDescriptor.Companion.emptyListPhraseType
 
 /**
  * A `CompletelyOptional` is a special [expression][Expression] indicated by a

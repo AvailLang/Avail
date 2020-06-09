@@ -44,7 +44,7 @@ import com.avail.descriptor.representation.AvailObjectFieldHelper
 import com.avail.descriptor.representation.IntegerSlotsEnum
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.singleInteger
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInteger
 import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.descriptor.types.TypeTag
 import com.avail.exceptions.ArithmeticException
@@ -1798,7 +1798,7 @@ class IntegerDescriptor private constructor(
 		 *   The Avail integer zero.
 		 */
 		@JvmStatic
-		fun zero() = zero
+		fun zero(): A_Number = zero
 
 		/**
 		 * Answer an [AvailObject] representing the integer one (`1`).

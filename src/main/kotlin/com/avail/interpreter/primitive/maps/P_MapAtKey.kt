@@ -39,7 +39,7 @@ import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import com.avail.descriptor.types.MapTypeDescriptor.mostGeneralMapType
+import com.avail.descriptor.types.MapTypeDescriptor.Companion.mostGeneralMapType
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.exceptions.AvailErrorCode.E_KEY_NOT_FOUND
 import com.avail.interpreter.Primitive

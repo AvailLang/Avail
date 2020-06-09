@@ -46,7 +46,7 @@ import com.avail.compiler.splitter.WrapState.SHOULD_NOT_PUSH_LIST
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.tupleFromIntegerList
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.ListPhraseTypeDescriptor.emptyListPhraseType
+import com.avail.descriptor.types.ListPhraseTypeDescriptor.Companion.emptyListPhraseType
 import com.avail.descriptor.types.TupleTypeDescriptor
 import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.AvailErrorCode.E_INCONSISTENT_ARGUMENT_REORDERING

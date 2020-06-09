@@ -3198,8 +3198,8 @@ class AvailObject private constructor(
 		 *   receiver cast to an [AvailObject].
 		 */
 		inline fun <R> AvailObject.dispatch(
-			f: (AbstractDescriptor) -> (AvailObject) -> R
-		): R = f(descriptor())(this)
+			f: (AbstractDescriptor) -> (AvailObject) -> R): R =
+				f(descriptor())(this)
 
 		/**
 		 * Dispatcher helper function for routing 1-argument messages to the
@@ -3218,8 +3218,8 @@ class AvailObject private constructor(
 		 */
 		inline fun <R, A1> AvailObject.dispatch(
 			arg1: A1,
-			f: (AbstractDescriptor) -> (AvailObject, A1) -> R
-		): R = f(descriptor())(this, arg1)
+			f: (AbstractDescriptor) -> (AvailObject, A1) -> R): R =
+				f(descriptor())(this, arg1)
 
 		/**
 		 * Dispatcher helper function for routing 2-argument messages to the
@@ -3243,8 +3243,8 @@ class AvailObject private constructor(
 		inline fun <R, A1, A2> AvailObject.dispatch(
 			arg1: A1,
 			arg2: A2,
-			f: (AbstractDescriptor) -> (AvailObject, A1, A2) -> R
-		): R = f(descriptor())(this, arg1, arg2)
+			f: (AbstractDescriptor) -> (AvailObject, A1, A2) -> R): R =
+				f(descriptor())(this, arg1, arg2)
 
 		/**
 		 * Dispatcher helper function for routing 3-argument messages to the
@@ -3273,8 +3273,8 @@ class AvailObject private constructor(
 			arg1: A1,
 			arg2: A2,
 			arg3: A3,
-			f: (AbstractDescriptor) -> (AvailObject, A1, A2, A3) -> R
-		): R = f(descriptor())(this, arg1, arg2, arg3)
+			f: (AbstractDescriptor) -> (AvailObject, A1, A2, A3) -> R): R =
+				f(descriptor())(this, arg1, arg2, arg3)
 
 		/**
 		 * Dispatcher helper function for routing 4-argument messages to the
@@ -3308,8 +3308,8 @@ class AvailObject private constructor(
 			arg2: A2,
 			arg3: A3,
 			arg4: A4,
-			f: (AbstractDescriptor) -> (AvailObject, A1, A2, A3, A4) -> R
-		): R = f(descriptor())(this, arg1, arg2, arg3, arg4)
+			f: (AbstractDescriptor) -> (AvailObject, A1, A2, A3, A4) -> R): R =
+				f(descriptor())(this, arg1, arg2, arg3, arg4)
 
 		/**
 		 * Dispatcher helper function for routing 5-argument messages to the

@@ -57,9 +57,9 @@ import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.tupleFromIntegerList
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.integerRangeType
-import com.avail.descriptor.types.ListPhraseTypeDescriptor.createListNodeType
-import com.avail.descriptor.types.ListPhraseTypeDescriptor.emptyListPhraseType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeType
+import com.avail.descriptor.types.ListPhraseTypeDescriptor.Companion.createListNodeType
+import com.avail.descriptor.types.ListPhraseTypeDescriptor.Companion.emptyListPhraseType
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE
 import com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForTypes

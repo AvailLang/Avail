@@ -42,10 +42,10 @@ import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.inclusive
-import com.avail.descriptor.types.ListPhraseTypeDescriptor.list
-import com.avail.descriptor.types.ListPhraseTypeDescriptor.zeroOrMoreList
-import com.avail.descriptor.types.ListPhraseTypeDescriptor.zeroOrOneList
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
+import com.avail.descriptor.types.ListPhraseTypeDescriptor.Companion.list
+import com.avail.descriptor.types.ListPhraseTypeDescriptor.Companion.zeroOrMoreList
+import com.avail.descriptor.types.ListPhraseTypeDescriptor.Companion.zeroOrOneList
 import com.avail.descriptor.types.PhraseTypeDescriptor.Constants.stringLiteralType
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE

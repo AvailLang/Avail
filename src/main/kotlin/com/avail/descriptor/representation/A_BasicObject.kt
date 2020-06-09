@@ -1189,8 +1189,8 @@ interface A_BasicObject : JSONFriendly {
 		 *   to [AvailObject] as an additional first argument.
 		 */
 		inline fun <R> A_BasicObject.dispatch(
-			f: AbstractDescriptor.(AvailObject) -> R
-		): R = descriptor().f(cast(this))
+			f: AbstractDescriptor.(AvailObject) -> R): R =
+				descriptor().f(cast(this))
 
 		/**
 		 * If the provided condition is true, synchronize with the receiver's

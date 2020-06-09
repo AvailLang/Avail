@@ -50,8 +50,8 @@ import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjec
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.singleInt
-import com.avail.descriptor.types.SetTypeDescriptor.setTypeForSizesContentType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
+import com.avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
 import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.descriptor.types.TypeTag
 import com.avail.exceptions.AvailErrorCode

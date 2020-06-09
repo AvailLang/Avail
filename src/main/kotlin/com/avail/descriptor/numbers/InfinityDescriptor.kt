@@ -37,23 +37,20 @@ import com.avail.descriptor.numbers.DoubleDescriptor.Companion.fromDoubleRecycli
 import com.avail.descriptor.numbers.FloatDescriptor.Companion.fromFloatRecycling
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import com.avail.descriptor.representation.A_BasicObject
-import com.avail.descriptor.representation.AbstractDescriptor
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.singleInteger
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInteger
 import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.descriptor.types.TypeTag
 import com.avail.exceptions.ArithmeticException
-import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_ADD_UNLIKE_INFINITIES
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_DIVIDE_INFINITIES
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_MULTIPLY_ZERO_AND_INFINITY
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_SUBTRACT_LIKE_INFINITIES
 import com.avail.utility.json.JSONWriter
 import java.util.*
-import kotlin.math.max
 
 /**
  * I represent the [extended&#32;integers][ExtendedIntegerDescriptor] positive
@@ -419,7 +416,8 @@ class InfinityDescriptor private constructor(
 		 *   Positive infinity.
 		 */
 		@JvmStatic
-		fun positiveInfinity(): A_Number = positiveInfinity
+		fun
+			positiveInfinity(): A_Number = positiveInfinity
 
 		/**
 		 * The Avail [extended&#32;integer][ExtendedIntegerDescriptor]

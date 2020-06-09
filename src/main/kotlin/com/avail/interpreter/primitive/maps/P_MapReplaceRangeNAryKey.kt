@@ -44,10 +44,10 @@ import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.integerRangeType
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.naturalNumbers
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.wholeNumbers
-import com.avail.descriptor.types.MapTypeDescriptor.mostGeneralMapType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
+import com.avail.descriptor.types.MapTypeDescriptor.Companion.mostGeneralMapType
 import com.avail.descriptor.types.TupleTypeDescriptor.oneOrMoreOf
 import com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY

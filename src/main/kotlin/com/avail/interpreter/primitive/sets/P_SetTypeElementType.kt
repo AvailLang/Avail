@@ -36,7 +36,7 @@ import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
 import com.avail.descriptor.types.SetTypeDescriptor
-import com.avail.descriptor.types.SetTypeDescriptor.setMeta
+import com.avail.descriptor.types.SetTypeDescriptor.Companion.setMeta
 import com.avail.descriptor.types.TypeDescriptor
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
