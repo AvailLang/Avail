@@ -45,7 +45,7 @@ import com.avail.descriptor.types.EnumerationTypeDescriptor
 import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.TupleTypeDescriptor
-import com.avail.descriptor.types.TupleTypeDescriptor.stringType
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailAssertionFailedException
 import com.avail.interpreter.Primitive

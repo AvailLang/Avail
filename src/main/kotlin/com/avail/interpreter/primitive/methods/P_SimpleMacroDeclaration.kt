@@ -47,8 +47,8 @@ import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionTypeReturning
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
-import com.avail.descriptor.types.TupleTypeDescriptor.stringType
-import com.avail.descriptor.types.TupleTypeDescriptor.zeroOrMoreOf
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.E_AMBIGUOUS_NAME
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION

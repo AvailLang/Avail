@@ -38,8 +38,8 @@ import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.MapTypeDescriptor.Companion.mostGeneralMapType
-import com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForTypes
-import com.avail.descriptor.types.TupleTypeDescriptor.zeroOrMoreOf
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold

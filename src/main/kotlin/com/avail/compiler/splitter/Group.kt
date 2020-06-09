@@ -62,7 +62,7 @@ import com.avail.descriptor.types.ListPhraseTypeDescriptor.Companion.createListN
 import com.avail.descriptor.types.ListPhraseTypeDescriptor.Companion.emptyListPhraseType
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE
-import com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForTypes
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
 import com.avail.exceptions.AvailErrorCode.E_CASE_INSENSITIVE_EXPRESSION_CANONIZATION
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_COMPLEX_GROUP

@@ -37,8 +37,8 @@ import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
 import com.avail.descriptor.types.TupleTypeDescriptor
-import com.avail.descriptor.types.TupleTypeDescriptor.tupleMeta
-import com.avail.descriptor.types.TupleTypeDescriptor.zeroOrMoreOf
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleMeta
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import com.avail.descriptor.types.TypeDescriptor
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold

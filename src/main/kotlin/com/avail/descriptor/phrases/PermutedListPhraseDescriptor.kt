@@ -59,7 +59,7 @@ package com.avail.descriptor.phrases
  import com.avail.descriptor.tuples.TupleDescriptor
  import com.avail.descriptor.types.A_Type
  import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
- import com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForTypes
+ import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
  import com.avail.descriptor.types.TypeTag
  import com.avail.interpreter.levelOne.L1Operation
  import com.avail.serialization.SerializerOperation
@@ -237,6 +237,7 @@ class PermutedListPhraseDescriptor private constructor(
 			val index = permutation.tupleIntAt(i)
 			types[index - 1] = t
 		}
+		types as Array<A_Type>
 		return tupleTypeForTypes(*types)
 	}
 
@@ -298,6 +299,7 @@ class PermutedListPhraseDescriptor private constructor(
 				adjustedTypes[permutation.tupleIntAt(i) - 1] =
 					originalTupleType.typeAtIndex(i)
 			}
+			adjustedTypes as Array<A_Type>
 			expressionType = tupleTypeForTypes(*adjustedTypes)
 			self.setMutableSlot(EXPRESSION_TYPE, expressionType.makeShared())
 			return expressionType

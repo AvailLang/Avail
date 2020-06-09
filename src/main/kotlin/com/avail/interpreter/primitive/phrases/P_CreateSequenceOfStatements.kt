@@ -45,7 +45,7 @@ import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEQUENCE_PHRASE
 import com.avail.descriptor.types.PhraseTypeDescriptor.Companion.containsOnlyStatements
-import com.avail.descriptor.types.TupleTypeDescriptor.zeroOrMoreOf
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.E_SEQUENCE_CONTAINS_INVALID_STATEMENTS
 import com.avail.interpreter.Primitive

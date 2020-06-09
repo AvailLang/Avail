@@ -44,10 +44,10 @@ import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.STATEMENT_PHRASE
-import com.avail.descriptor.types.TupleTypeDescriptor.oneOrMoreOf
-import com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForTypes
-import com.avail.descriptor.types.TupleTypeDescriptor.zeroOrMoreOf
-import com.avail.descriptor.types.TupleTypeDescriptor.zeroOrOneOf
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrOneOf
 import com.avail.descriptor.types.TypeDescriptor.Types.TOKEN
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER

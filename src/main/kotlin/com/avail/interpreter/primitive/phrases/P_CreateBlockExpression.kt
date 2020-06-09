@@ -51,8 +51,8 @@ import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.BLOCK_PHRASE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
 import com.avail.descriptor.types.PhraseTypeDescriptor.Companion.containsOnlyStatements
 import com.avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
-import com.avail.descriptor.types.TupleTypeDescriptor.stringType
-import com.avail.descriptor.types.TupleTypeDescriptor.zeroOrMoreOf
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import com.avail.exceptions.AvailErrorCode.E_BLOCK_CONTAINS_INVALID_STATEMENTS
 import com.avail.exceptions.AvailErrorCode.E_INVALID_PRIMITIVE_NUMBER
 import com.avail.interpreter.Primitive

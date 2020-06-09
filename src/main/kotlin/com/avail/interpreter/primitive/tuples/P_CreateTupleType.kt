@@ -38,9 +38,9 @@ import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import com.avail.descriptor.types.TupleTypeDescriptor
-import com.avail.descriptor.types.TupleTypeDescriptor.tupleMeta
-import com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType
-import com.avail.descriptor.types.TupleTypeDescriptor.zeroOrMoreOf
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleMeta
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline

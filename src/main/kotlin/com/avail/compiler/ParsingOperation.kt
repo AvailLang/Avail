@@ -84,7 +84,7 @@ import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.toList
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE
-import com.avail.descriptor.types.TupleTypeDescriptor.stringType
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import com.avail.descriptor.types.TypeDescriptor.Types.NUMBER
 import com.avail.descriptor.variables.VariableDescriptor
 import com.avail.performance.Statistic

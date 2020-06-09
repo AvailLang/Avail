@@ -43,7 +43,7 @@ import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromArra
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
-import com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeFromTupleOfTypes
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeFromTupleOfTypes
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
 import java.util.*
@@ -427,12 +427,10 @@ class ListPhraseTypeDescriptor internal constructor(
 			subexpressionsTupleType.makeImmutable()
 			val yieldTypesAsPhrases =
 				tupleTypeFromTupleOfTypes(yieldType) {
-				assert(it !== null)
 				PhraseKind.PARSE_PHRASE.create(it)
 			}
 			val phraseTypesAsYields =
 				tupleTypeFromTupleOfTypes(subexpressionsTupleType) {
-//					assert subexpressionType !== null;
 				val descriptorTraversed = it.traversed().descriptor()
 				assert(descriptorTraversed is PhraseTypeDescriptor
 				       || descriptorTraversed is BottomTypeDescriptor)
@@ -460,7 +458,6 @@ class ListPhraseTypeDescriptor internal constructor(
 			assert(subexpressionsTupleType.isTupleType)
 			val phraseTypesAsYields =
 				tupleTypeFromTupleOfTypes(subexpressionsTupleType) {
-				assert(it !== null)
 				val descriptorTraversed = it.traversed().descriptor()
 				assert(descriptorTraversed is PhraseTypeDescriptor
 				       || descriptorTraversed is BottomTypeDescriptor)

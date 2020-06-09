@@ -41,7 +41,7 @@ import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.en
 import com.avail.descriptor.types.CompiledCodeTypeDescriptor.Companion.mostGeneralCompiledCodeType
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
-import com.avail.descriptor.types.TupleTypeDescriptor.mostGeneralTupleType
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import com.avail.exceptions.AvailErrorCode.E_WRONG_OUTERS
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold

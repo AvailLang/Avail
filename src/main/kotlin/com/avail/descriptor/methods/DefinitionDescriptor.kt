@@ -48,7 +48,7 @@ import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.ListPhraseTypeDescriptor
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
-import com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeFromTupleOfTypes
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeFromTupleOfTypes
 import com.avail.descriptor.types.TypeTag
 import com.avail.serialization.SerializerOperation
 

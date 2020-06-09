@@ -39,8 +39,8 @@ import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
 import com.avail.descriptor.types.PojoTypeDescriptor
 import com.avail.descriptor.types.PojoTypeDescriptor.Companion.canonicalPojoType
-import com.avail.descriptor.types.TupleTypeDescriptor.stringType
-import com.avail.descriptor.types.TupleTypeDescriptor.zeroOrMoreOf
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
 import com.avail.exceptions.AvailErrorCode.E_JAVA_CLASS_NOT_AVAILABLE
 import com.avail.exceptions.AvailRuntimeException

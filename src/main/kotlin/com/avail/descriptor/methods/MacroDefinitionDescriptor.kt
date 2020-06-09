@@ -50,7 +50,7 @@ import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.ListPhraseTypeDescriptor
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
-import com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeFromTupleOfTypes
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeFromTupleOfTypes
 import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter

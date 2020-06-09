@@ -46,7 +46,7 @@ import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionTypeR
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
 import com.avail.descriptor.types.PojoTypeDescriptor.Companion.marshalDefiningType
 import com.avail.descriptor.types.PojoTypeDescriptor.Companion.marshalTypes
-import com.avail.descriptor.types.TupleTypeDescriptor.zeroOrMoreOf
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.descriptor.types.TypeDescriptor.Types.RAW_POJO
 import com.avail.exceptions.AvailErrorCode.E_JAVA_MARSHALING_FAILED

@@ -41,9 +41,9 @@ import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.en
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import com.avail.descriptor.types.MapTypeDescriptor.Companion.mapTypeForSizesKeyTypeValueType
-import com.avail.descriptor.types.TupleTypeDescriptor.oneOrMoreOf
-import com.avail.descriptor.types.TupleTypeDescriptor.stringType
-import com.avail.descriptor.types.TupleTypeDescriptor.zeroOrOneOf
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrOneOf
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.E_NO_EXTERNAL_PROCESS
 import com.avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED

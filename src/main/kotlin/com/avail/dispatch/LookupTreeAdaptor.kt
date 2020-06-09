@@ -35,7 +35,7 @@ package com.avail.dispatch
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForTypes
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import java.util.*
 import java.util.Collections.emptyList

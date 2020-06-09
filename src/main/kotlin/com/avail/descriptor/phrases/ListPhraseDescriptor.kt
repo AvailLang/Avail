@@ -57,7 +57,7 @@ package com.avail.descriptor.phrases
  import com.avail.descriptor.types.A_Type
  import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
  import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
- import com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForTypes
+ import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
  import com.avail.descriptor.types.TypeTag
  import com.avail.serialization.SerializerOperation
  import com.avail.utility.json.JSONWriter

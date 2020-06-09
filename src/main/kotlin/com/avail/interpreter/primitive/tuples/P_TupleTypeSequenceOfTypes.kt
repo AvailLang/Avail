@@ -40,8 +40,8 @@ import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
-import com.avail.descriptor.types.TupleTypeDescriptor.tupleMeta
-import com.avail.descriptor.types.TupleTypeDescriptor.zeroOrMoreOf
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleMeta
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import com.avail.exceptions.AvailErrorCode.E_NEGATIVE_SIZE
 import com.avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS
 import com.avail.interpreter.Primitive

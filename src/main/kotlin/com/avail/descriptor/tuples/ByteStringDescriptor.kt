@@ -340,8 +340,7 @@ class ByteStringDescriptor private constructor(
 		for (index in end downTo start)
 		{
 			val itemHash = (hashOfByteCharacterWithCodePoint(
-				self.byteSlot(IntegerSlots.RAW_LONGS_, index))
-				xor preToggle)
+				self.byteSlot(IntegerSlots.RAW_LONGS_, index)) xor preToggle)
 			hash = (hash + itemHash) * AvailObject.multiplier
 		}
 		return hash

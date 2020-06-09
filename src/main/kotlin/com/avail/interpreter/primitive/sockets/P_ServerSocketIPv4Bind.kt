@@ -47,7 +47,7 @@ import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.bytes
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.unsignedShorts
 import com.avail.descriptor.types.PojoTypeDescriptor.Companion.intRange
-import com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
 import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.E_INVALID_HANDLE

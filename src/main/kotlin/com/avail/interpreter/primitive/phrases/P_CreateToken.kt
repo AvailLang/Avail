@@ -49,7 +49,7 @@ import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.en
 import com.avail.descriptor.types.FunctionTypeDescriptor
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import com.avail.descriptor.types.TokenTypeDescriptor.Companion.tokenType
-import com.avail.descriptor.types.TupleTypeDescriptor.stringType
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import com.avail.descriptor.types.TypeDescriptor.Types.TOKEN
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold

@@ -191,7 +191,7 @@ import com.avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesCon
 import com.avail.descriptor.types.TokenTypeDescriptor
 import com.avail.descriptor.types.TokenTypeDescriptor.Companion.tokenType
 import com.avail.descriptor.types.TupleTypeDescriptor
-import com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
 import com.avail.descriptor.types.TypeDescriptor
 import com.avail.descriptor.types.VariableTypeDescriptor
 import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableReadWriteType

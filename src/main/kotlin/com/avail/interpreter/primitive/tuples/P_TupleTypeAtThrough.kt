@@ -41,7 +41,7 @@ import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
 import com.avail.descriptor.types.TupleTypeDescriptor
-import com.avail.descriptor.types.TupleTypeDescriptor.tupleMeta
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleMeta
 import com.avail.descriptor.types.TypeDescriptor
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold

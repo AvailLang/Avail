@@ -60,8 +60,8 @@ package com.avail.descriptor.parsing
  import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
  import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
  import com.avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
- import com.avail.descriptor.types.TupleTypeDescriptor.oneOrMoreOf
- import com.avail.descriptor.types.TupleTypeDescriptor.stringType
+ import com.avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
+ import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
  import com.avail.descriptor.types.TypeDescriptor.Types
  import com.avail.descriptor.types.TypeTag
  import com.avail.utility.json.JSONWriter

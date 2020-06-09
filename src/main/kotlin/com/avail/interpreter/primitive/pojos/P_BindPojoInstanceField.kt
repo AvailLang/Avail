@@ -42,7 +42,7 @@ import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.en
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.PojoTypeDescriptor.Companion.mostGeneralPojoType
 import com.avail.descriptor.types.PojoTypeDescriptor.Companion.resolvePojoType
-import com.avail.descriptor.types.TupleTypeDescriptor.stringType
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import com.avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 import com.avail.exceptions.AvailErrorCode.E_JAVA_FIELD_NOT_AVAILABLE
 import com.avail.interpreter.Primitive

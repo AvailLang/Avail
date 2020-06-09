@@ -48,8 +48,8 @@ import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionTypeR
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
 import com.avail.descriptor.types.PojoTypeDescriptor.Companion.marshalTypes
 import com.avail.descriptor.types.PojoTypeDescriptor.Companion.resolvePojoType
-import com.avail.descriptor.types.TupleTypeDescriptor.stringType
-import com.avail.descriptor.types.TupleTypeDescriptor.zeroOrMoreOf
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import com.avail.descriptor.types.TypeDescriptor.Types.RAW_POJO
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode

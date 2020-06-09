@@ -44,7 +44,7 @@ import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanTyp
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
 import com.avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
-import com.avail.descriptor.types.TupleTypeDescriptor.stringType
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CannotFail

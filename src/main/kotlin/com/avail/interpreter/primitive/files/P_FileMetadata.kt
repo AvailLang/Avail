@@ -48,8 +48,8 @@ import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
 import com.avail.descriptor.types.PojoTypeDescriptor.Companion.mostGeneralPojoType
 import com.avail.descriptor.types.PojoTypeDescriptor.Companion.pojoTypeForClass
-import com.avail.descriptor.types.TupleTypeDescriptor.stringType
-import com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
 import com.avail.exceptions.AvailErrorCode.E_INVALID_PATH
 import com.avail.exceptions.AvailErrorCode.E_IO_ERROR
 import com.avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED

@@ -36,7 +36,7 @@ import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.ConcatenatedTupleTypeDescriptor.Companion.concatenatingAnd
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.TupleTypeDescriptor
-import com.avail.descriptor.types.TupleTypeDescriptor.tupleMeta
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleMeta
 import com.avail.descriptor.types.TypeDescriptor
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold

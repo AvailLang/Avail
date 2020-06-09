@@ -48,8 +48,8 @@ import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRa
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import com.avail.descriptor.types.MapTypeDescriptor.Companion.mostGeneralMapType
-import com.avail.descriptor.types.TupleTypeDescriptor.oneOrMoreOf
-import com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
 import com.avail.exceptions.AvailErrorCode.E_KEY_NOT_FOUND

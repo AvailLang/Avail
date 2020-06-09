@@ -42,7 +42,7 @@ import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeType
 import com.avail.descriptor.types.SetTypeDescriptor.Companion.mostGeneralSetType
 import com.avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
-import com.avail.descriptor.types.TupleTypeDescriptor.mostGeneralTupleType
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
