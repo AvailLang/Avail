@@ -48,7 +48,7 @@ import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.en
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import com.avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
-import com.avail.descriptor.types.LiteralTokenTypeDescriptor.mostGeneralLiteralTokenType
+import com.avail.descriptor.types.LiteralTokenTypeDescriptor.Companion.mostGeneralLiteralTokenType
 import com.avail.descriptor.types.TokenTypeDescriptor
 import com.avail.descriptor.types.TokenTypeDescriptor.tokenType
 import com.avail.interpreter.Primitive

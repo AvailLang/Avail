@@ -171,7 +171,7 @@ import com.avail.descriptor.types.IntegerRangeTypeDescriptor.integerRangeType
 import com.avail.descriptor.types.ListPhraseTypeDescriptor
 import com.avail.descriptor.types.ListPhraseTypeDescriptor.createListNodeType
 import com.avail.descriptor.types.LiteralTokenTypeDescriptor
-import com.avail.descriptor.types.LiteralTokenTypeDescriptor.literalTokenType
+import com.avail.descriptor.types.LiteralTokenTypeDescriptor.Companion.literalTokenType
 import com.avail.descriptor.types.MapTypeDescriptor
 import com.avail.descriptor.types.MapTypeDescriptor.mapTypeForSizesKeyTypeValueType
 import com.avail.descriptor.types.PhraseTypeDescriptor

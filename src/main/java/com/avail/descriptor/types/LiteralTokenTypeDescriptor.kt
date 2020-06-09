@@ -1,21 +1,21 @@
 /*
- * LiteralTokenTypeDescriptor.java
+ * LiteralTokenTypeDescriptor.kt
  * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
  *
- *  * Neither the name of the copyright holder nor the names of the contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -29,37 +29,43 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.descriptor.types
 
-package com.avail.descriptor.types;
-
-import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
-import com.avail.descriptor.representation.A_BasicObject;
-import com.avail.descriptor.representation.AvailObject;
-import com.avail.descriptor.representation.Mutability;
-import com.avail.descriptor.tokens.LiteralTokenDescriptor;
-import com.avail.descriptor.tokens.TokenDescriptor;
-import com.avail.serialization.SerializerOperation;
-import com.avail.utility.json.JSONWriter;
-
-import java.util.IdentityHashMap;
-
-import static com.avail.descriptor.types.BottomTypeDescriptor.bottom;
-import static com.avail.descriptor.types.LiteralTokenTypeDescriptor.ObjectSlots.LITERAL_TYPE;
-import static com.avail.descriptor.types.TypeDescriptor.Types.ANY;
-import static com.avail.descriptor.types.TypeDescriptor.Types.TOKEN;
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.ObjectSlotsEnum
+import com.avail.descriptor.tokens.LiteralTokenDescriptor
+import com.avail.descriptor.tokens.TokenDescriptor
+import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
+import com.avail.serialization.SerializerOperation
+import com.avail.utility.json.JSONWriter
+import java.util.*
 
 /**
- * I represent the type of some {@link LiteralTokenDescriptor literal&#32;tokens}. Like any object, a particular literal token has an exact {@link InstanceTypeDescriptor instance&#32;type}, and {@link TokenDescriptor tokens} in general have a simple {@link PrimitiveTypeDescriptor primitive&#32;type} of {@link Types#TOKEN}, but {@code LiteralTokenTypeDescriptor} covariantly constrains a literal token's type with the type of the value it contains.
+ * I represent the type of some [literal&#32;tokens][LiteralTokenDescriptor].
+ * Like any object, a particular literal token has an exact
+ * [instance&#32;type][InstanceTypeDescriptor], and [tokens][TokenDescriptor] in
+ * general have a simple [primitive&#32;type][PrimitiveTypeDescriptor] of
+ * [TypeDescriptor.Types.TOKEN], but `LiteralTokenTypeDescriptor` covariantly
+ * constrains a literal token's type with the type of the value it contains.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @constructor
+ * Construct a new [LiteralTokenTypeDescriptor].
+ *
+ * @param mutability
+ *   The [mutability][Mutability] of the new descriptor.
  */
-public final class LiteralTokenTypeDescriptor
-extends TypeDescriptor
+class LiteralTokenTypeDescriptor private constructor(mutability: Mutability)
+	: TypeDescriptor(
+		mutability, TypeTag.NONTYPE_TYPE_TAG, ObjectSlots::class.java, null)
 {
 	/**
-	 * My slots of type {@link AvailObject}.
+	 * My slots of type [AvailObject].
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnumJava
+	enum class ObjectSlots : ObjectSlotsEnum
 	{
 		/**
 		 * The type constraint on a literal token's value.
@@ -67,253 +73,170 @@ extends TypeDescriptor
 		LITERAL_TYPE
 	}
 
-	@Override
-	public void printObjectOnAvoidingIndent (
-		final AvailObject object,
-		final StringBuilder aStream,
-		final IdentityHashMap<A_BasicObject, Void> recursionMap,
-		final int indent)
+	override fun printObjectOnAvoidingIndent(
+		self: AvailObject,
+		builder: StringBuilder,
+		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		indent: Int)
 	{
-		aStream.append("literal token⇒");
-		object.literalType().printOnAvoidingIndent(
-			aStream,
+		builder.append("literal token⇒")
+		self.literalType().printOnAvoidingIndent(
+			builder,
 			recursionMap,
-			indent + 1);
+			indent + 1)
 	}
 
-	@Override
-	public boolean o_Equals (final AvailObject object, final A_BasicObject another)
-	{
-		return another.equalsLiteralTokenType(object);
-	}
+	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean =
+		another.equalsLiteralTokenType(self)
 
-	@Override
-	public boolean o_EqualsLiteralTokenType (
-		final AvailObject object,
-		final A_Type aLiteralTokenType)
-	{
-		return object.literalType().equals(aLiteralTokenType.literalType());
-	}
+	override fun o_EqualsLiteralTokenType(
+		self: AvailObject,
+		aLiteralTokenType: A_Type): Boolean =
+			self.literalType().equals(aLiteralTokenType.literalType())
 
-	@Override
-	public int o_Hash (final AvailObject object)
-	{
-		return object.slot(LITERAL_TYPE).hash() ^ 0xF47FF1B1;
-	}
+	override fun o_Hash(self: AvailObject): Int =
+		self.slot(ObjectSlots.LITERAL_TYPE).hash() xor -0xb800e4f
 
-	@Override
-	public boolean o_IsLiteralTokenType (final AvailObject object)
-	{
-		return true;
-	}
+	override fun o_IsLiteralTokenType(self: AvailObject): Boolean = true
 
-	@Override
-	public AvailObject o_MakeImmutable (final AvailObject object)
-	{
-		if (isMutable())
+	override fun o_MakeImmutable(self: AvailObject): AvailObject =
+		if (isMutable)
 		{
 			// There is no immutable descriptor, so share the object.
-			return object.makeShared();
+			self.makeShared()
 		}
-		return object;
-	}
+		else self
 
-	@Override
-	public boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
-	{
-		// Check if object (a type) is a subtype of aType (should also be a
-		// type).
-		return aType.isSupertypeOfLiteralTokenType(object);
-	}
+	// Check if object (a type) is a subtype of aType (should also be a
+	// type).
+	override fun o_IsSubtypeOf(self: AvailObject, aType: A_Type): Boolean =
+		aType.isSupertypeOfLiteralTokenType(self)
 
-	@Override
-	public boolean o_IsSupertypeOfLiteralTokenType (
-		final AvailObject object,
-		final A_Type aLiteralTokenType)
-	{
-		return aLiteralTokenType.literalType().isSubtypeOf(
-			object.literalType());
-	}
+	override fun o_IsSupertypeOfLiteralTokenType(
+		self: AvailObject,
+		aLiteralTokenType: A_Type): Boolean =
+			aLiteralTokenType.literalType().isSubtypeOf(
+				self.literalType())
 
-	@Override
-	public boolean o_IsVacuousType (final AvailObject object)
-	{
-		return object.slot(LITERAL_TYPE).isVacuousType();
-	}
+	override fun o_IsVacuousType(self: AvailObject): Boolean =
+		self.slot(ObjectSlots.LITERAL_TYPE).isVacuousType
 
-	@Override
-	public A_Type o_LiteralType (final AvailObject object)
-	{
-		return object.slot(LITERAL_TYPE);
-	}
+	override fun o_LiteralType(self: AvailObject): A_Type =
+		self.slot(ObjectSlots.LITERAL_TYPE)
 
-	@Override
-	public SerializerOperation o_SerializerOperation (
-		final AvailObject object)
-	{
-		return SerializerOperation.LITERAL_TOKEN_TYPE;
-	}
+	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
+		SerializerOperation.LITERAL_TOKEN_TYPE
 
-	@Override
-	public A_Type o_TypeIntersection (
-		final AvailObject object,
-		final A_Type another)
-	{
-		if (object.equals(another))
+	override fun o_TypeIntersection(self: AvailObject, another: A_Type): A_Type =
+		when
 		{
-			return object;
+			self.equals(another) -> self
+			self.isSubtypeOf(another) -> self
+			another.isSubtypeOf(self) -> another
+			else -> another.typeIntersectionOfLiteralTokenType(self)
 		}
-		if (object.isSubtypeOf(another))
-		{
-			return object;
-		}
-		if (another.isSubtypeOf(object))
-		{
-			return another;
-		}
-		return another.typeIntersectionOfLiteralTokenType(object);
-	}
 
-	@Override
-	public A_Type o_TypeIntersectionOfLiteralTokenType (
-		final AvailObject object,
-		final A_Type aLiteralTokenType)
+	override fun o_TypeIntersectionOfLiteralTokenType(
+		self: AvailObject,
+		aLiteralTokenType: A_Type): A_Type
 	{
 		// Note that the 'inner' type must be made immutable in case one of the
 		// input literal token types is mutable (and may be destroyed
 		// *recursively* by post-primitive code).
-		final A_Type instance = object.literalType().typeIntersection(
-			aLiteralTokenType.literalType());
-		instance.makeImmutable();
-		return literalTokenType(instance);
+		val instance = self.literalType().typeIntersection(
+			aLiteralTokenType.literalType())
+		instance.makeImmutable()
+		return literalTokenType(instance)
 	}
 
-	@Override
-	public A_Type o_TypeIntersectionOfPrimitiveTypeEnum (
-		final AvailObject object,
-		final Types primitiveTypeEnum)
-	{
-		return TOKEN.superTests[primitiveTypeEnum.ordinal()]
-			? object
-			: bottom();
-	}
+	override fun o_TypeIntersectionOfPrimitiveTypeEnum(
+		self: AvailObject,
+		primitiveTypeEnum: Types): A_Type = 
+			if (Types.TOKEN.superTests[primitiveTypeEnum.ordinal]) self 
+			else bottom()
 
-	@Override
-	public A_Type o_TypeUnion (
-		final AvailObject object,
-		final A_Type another)
-	{
-		if (object.isSubtypeOf(another))
+	override fun o_TypeUnion(self: AvailObject, another: A_Type): A_Type = 
+		when
 		{
-			return another;
+			self.isSubtypeOf(another) -> another
+			another.isSubtypeOf(self) -> self
+			else -> another.typeUnionOfLiteralTokenType(self)
 		}
-		if (another.isSubtypeOf(object))
-		{
-			return object;
-		}
-		return another.typeUnionOfLiteralTokenType(object);
-	}
 
-	@Override
-	public A_Type o_TypeUnionOfLiteralTokenType (
-		final AvailObject object,
-		final A_Type aLiteralTokenType)
+	override fun o_TypeUnionOfLiteralTokenType(
+		self: AvailObject,
+		aLiteralTokenType: A_Type): A_Type
 	{
 		// Note that the 'inner' type must be made immutable in case one of the
 		// input literal token types is mutable (and may be destroyed
 		// *recursively* by post-primitive code).
-		final A_Type instance = object.literalType().typeUnion(
-			aLiteralTokenType.literalType());
-		instance.makeImmutable();
-		return literalTokenType(instance);
+		val instance = self.literalType().typeUnion(
+			aLiteralTokenType.literalType())
+		instance.makeImmutable()
+		return literalTokenType(instance)
 	}
 
-	@Override
-	public A_Type o_TypeUnionOfPrimitiveTypeEnum (
-		final AvailObject object,
-		final Types primitiveTypeEnum)
+	override fun o_TypeUnionOfPrimitiveTypeEnum(
+		self: AvailObject,
+		primitiveTypeEnum: Types): A_Type = 
+			Types.TOKEN.unionTypes[primitiveTypeEnum.ordinal]!!
+
+	override fun o_WriteTo(self: AvailObject, writer: JSONWriter)
 	{
-		return TOKEN.unionTypes[primitiveTypeEnum.ordinal()];
+		writer.startObject()
+		writer.write("kind")
+		writer.write("literal token type")
+		writer.write("literal type")
+		self.slot(ObjectSlots.LITERAL_TYPE).writeTo(writer)
+		writer.endObject()
 	}
 
-	@Override
-	public void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	override fun mutable(): LiteralTokenTypeDescriptor = mutable
+
+	// There is no immutable variant.
+	override fun immutable(): LiteralTokenTypeDescriptor = shared
+
+	override fun shared(): LiteralTokenTypeDescriptor = shared
+
+	companion object
 	{
-		writer.startObject();
-		writer.write("kind");
-		writer.write("literal token type");
-		writer.write("literal type");
-		object.slot(LITERAL_TYPE).writeTo(writer);
-		writer.endObject();
-	}
+		/**
+		 * Create a new literal token type whose literal values comply with the
+		 * given type.
+		 *
+		 * @param literalType
+		 *   The type with which to constrain literal values.
+		 * @return
+		 *   A [literal&#32;token&#32;type][LiteralTokenTypeDescriptor].
+		 */
+		@JvmStatic
+		fun literalTokenType(literalType: A_Type): AvailObject
+		{
+			val instance = mutable.create()
+			instance.setSlot(
+				ObjectSlots.LITERAL_TYPE, literalType.makeImmutable())
+			return instance
+		}
 
-	/**
-	 * Create a new literal token type whose literal values comply with the
-	 * given type.
-	 *
-	 * @param literalType
-	 * The type with which to constrain literal values.
-	 * @return
-	 * A {@link LiteralTokenTypeDescriptor literal&#32;token&#32;type}.
-	 */
-	public static AvailObject literalTokenType (final A_Type literalType)
-	{
-		final AvailObject instance = mutable.create();
-		instance.setSlot(LITERAL_TYPE, literalType.makeImmutable());
-		return instance;
-	}
+		/** The mutable [LiteralTokenTypeDescriptor].  */
+		private val mutable = LiteralTokenTypeDescriptor(Mutability.MUTABLE)
 
-	/**
-	 * Construct a new {@link LiteralTokenTypeDescriptor}.
-	 *
-	 * @param mutability
-	 *        The {@linkplain Mutability mutability} of the new descriptor.
-	 */
-	private LiteralTokenTypeDescriptor (final Mutability mutability)
-	{
-		super(mutability, TypeTag.NONTYPE_TYPE_TAG, ObjectSlots.class, null);
-	}
+		/** The shared [LiteralTokenTypeDescriptor].  */
+		private val shared = LiteralTokenTypeDescriptor(Mutability.SHARED)
 
-	/** The mutable {@link LiteralTokenTypeDescriptor}. */
-	private static final LiteralTokenTypeDescriptor mutable =
-		new LiteralTokenTypeDescriptor(Mutability.MUTABLE);
+		/** The most general literal token type  */
+		private val mostGeneralType: A_Type = 
+			literalTokenType(Types.ANY.o()).makeShared()
 
-	@Override
-	public LiteralTokenTypeDescriptor mutable ()
-	{
-		return mutable;
-	}
-
-	/** The shared {@link LiteralTokenTypeDescriptor}. */
-	private static final LiteralTokenTypeDescriptor shared =
-		new LiteralTokenTypeDescriptor(Mutability.SHARED);
-
-	@Override
-	public LiteralTokenTypeDescriptor immutable ()
-	{
-		// There is no immutable variant.
-		return shared;
-	}
-
-	@Override
-	public LiteralTokenTypeDescriptor shared ()
-	{
-		return shared;
-	}
-
-	/** The most general literal token type */
-	private static final A_Type mostGeneralType = literalTokenType(ANY.o()).makeShared();
-
-	/**
-	 * Answer the most general literal token type, specifically the literal
-	 * token type whose literal tokens' literal values are constrained by
-	 * {@link Types#ANY any}.
-	 *
-	 * @return
-	 * The most general literal token type.
-	 */
-	public static A_Type mostGeneralLiteralTokenType ()
-	{
-		return mostGeneralType;
+		/**
+		 * Answer the most general literal token type, specifically the literal
+		 * token type whose literal tokens' literal values are constrained by
+		 * [any][TypeDescriptor.Types.ANY].
+		 *
+		 * @return
+		 * The most general literal token type.
+		 */
+		@JvmStatic
+		fun mostGeneralLiteralTokenType(): A_Type = mostGeneralType
 	}
 }
