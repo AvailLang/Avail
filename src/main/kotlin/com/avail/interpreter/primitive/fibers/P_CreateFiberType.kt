@@ -38,7 +38,7 @@ import com.avail.descriptor.types.FiberTypeDescriptor
 import com.avail.descriptor.types.FiberTypeDescriptor.Companion.fiberMeta
 import com.avail.descriptor.types.FiberTypeDescriptor.Companion.fiberType
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import com.avail.descriptor.types.InstanceMetaDescriptor.topMeta
+import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline

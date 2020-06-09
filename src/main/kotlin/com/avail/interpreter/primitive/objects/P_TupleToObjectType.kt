@@ -43,8 +43,8 @@ import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import com.avail.descriptor.types.InstanceMetaDescriptor.anyMeta
-import com.avail.descriptor.types.InstanceMetaDescriptor.instanceMeta
+import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
+import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForTypes
 import com.avail.descriptor.types.TupleTypeDescriptor.zeroOrMoreOf
 import com.avail.descriptor.types.TypeDescriptor

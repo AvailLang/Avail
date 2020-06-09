@@ -1,21 +1,21 @@
 /*
- * InstanceMetaDescriptor.java
+ * InstanceMetaDescriptor.kt
  * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
  *
- *  * Neither the name of the copyright holder nor the names of the contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -29,192 +29,158 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.descriptor.types
 
-package com.avail.descriptor.types;
-
-import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
-import com.avail.descriptor.atoms.A_Atom;
-import com.avail.descriptor.maps.A_Map;
-import com.avail.descriptor.numbers.A_Number;
-import com.avail.descriptor.representation.A_BasicObject;
-import com.avail.descriptor.representation.AvailObject;
-import com.avail.descriptor.representation.IndirectionDescriptor;
-import com.avail.descriptor.representation.Mutability;
-import com.avail.descriptor.sets.A_Set;
-import com.avail.descriptor.tuples.A_Tuple;
-import com.avail.descriptor.types.TypeDescriptor.Types;
-import com.avail.interpreter.levelTwo.operand.TypeRestriction;
-import com.avail.optimizer.jvm.CheckedMethod;
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-import com.avail.serialization.SerializerOperation;
-import com.avail.utility.json.JSONWriter;
-
-import java.util.IdentityHashMap;
-import java.util.List;
-
-import static com.avail.descriptor.numbers.IntegerDescriptor.one;
-import static com.avail.descriptor.representation.AvailObject.multiplier;
-import static com.avail.descriptor.sets.SetDescriptor.singletonSet;
-import static com.avail.descriptor.types.BottomTypeDescriptor.bottom;
-import static com.avail.descriptor.types.InstanceMetaDescriptor.ObjectSlots.INSTANCE;
-import static com.avail.descriptor.types.TypeDescriptor.Types.ANY;
-import static com.avail.descriptor.types.TypeDescriptor.Types.TOP;
-import static com.avail.optimizer.jvm.CheckedMethod.staticMethod;
+import com.avail.descriptor.atoms.A_Atom
+import com.avail.descriptor.maps.A_Map
+import com.avail.descriptor.numbers.A_Number
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.one
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.IndirectionDescriptor
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.ObjectSlotsEnum
+import com.avail.descriptor.sets.A_Set
+import com.avail.descriptor.sets.SetDescriptor.Companion.singletonSet
+import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
+import com.avail.interpreter.levelTwo.operand.TypeRestriction
+import com.avail.optimizer.jvm.CheckedMethod
+import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode
+import com.avail.serialization.SerializerOperation
+import com.avail.utility.json.JSONWriter
+import java.util.*
 
 /**
- * My instances are called <em>instance metas</em>, the types of types.  These are the only representation (modulo {@link IndirectionDescriptor indirection&#32;objects}) of metatypes in Avail, as attempting to carry enumeration types up the instance-of hierarchy leads to an unsound type theory.
+ * My instances are called *instance metas*, the types of types.  These are the
+ * only representation (modulo [indirection&#32;objects][IndirectionDescriptor])
+ * of metatypes in Avail, as attempting to carry enumeration types up the
+ * instance-of hierarchy leads to an unsound type theory.
  *
- * An {@code instance meta} behaves much like an {@link InstanceTypeDescriptor instance&#32;type} but always has a type as its instance (which normal instance types are forbidden to have).
+ * An `instance meta` behaves much like an
+ * [instance&#32;type][InstanceTypeDescriptor] but always has a type as its
+ * instance (which normal instance types are forbidden to have).
  *
  * Instance metas preserve metacovariance:
  * <span style="border-width:thin; border-style:solid; white-space:nowrap">
- * &forall;<sub>x,y&isin;T</sub>&thinsp;(x&sube;y &rarr;
- * T(x)&sube;T(y))</span>.
+ * <sub>x,yT</sub>(xy
+ * T(x)T(y))</span>.
  *
  * The uniform use of instance types trivially ensures the additional, stronger
- * property we call <em>metavariance</em>, which states that every type has a
+ * property we call *metavariance*, which states that every type has a
  * unique type of its own:
  * <span style="border-width:thin; border-style:solid; white-space: nowrap">
- * &forall;<sub>x,y&isin;T</sub>&thinsp;(x&ne;y &equiv;
- * T(x)&ne;T(y))</span>.
+ * <sub>x,yT</sub>(xy
+ * T(x)T(y))</span>.
  * Note that metavariance requires this to hold for all types, but instance
  * types ensure this condition holds for all objects.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @constructor
+ * Construct a new `InstanceMetaDescriptor`.
+ *
+ * @param mutability
+ *   The [mutability][Mutability] of the new descriptor.
  */
-public final class InstanceMetaDescriptor
-extends AbstractEnumerationTypeDescriptor
+class InstanceMetaDescriptor private constructor(mutability: Mutability)
+	: AbstractEnumerationTypeDescriptor(
+		mutability, TypeTag.UNKNOWN_TAG, ObjectSlots::class.java, null)
 {
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnumJava
+	enum class ObjectSlots : ObjectSlotsEnum
 	{
 		/**
-		 * The {@linkplain TypeDescriptor type} for which I am the {@linkplain InstanceTypeDescriptor instance&#32;meta}.
+		 * The [type][TypeDescriptor] for which I am the
+		 * [instance&#32;meta][InstanceTypeDescriptor].
 		 */
 		INSTANCE
 	}
 
-	/**
-	 * Answer the instance (a type) that the provided instance meta contains.
-	 *
-	 * @param object
-	 * An instance type.
-	 * @return
-	 * The instance represented by the given instance type.
-	 */
-	private static AvailObject getInstance (final AvailObject object)
+	override fun printObjectOnAvoidingIndent(
+		self: AvailObject,
+		builder: StringBuilder,
+		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		indent: Int)
 	{
-		return object.slot(INSTANCE);
-	}
-
-	/**
-	 * Answer the kind that is nearest to the given object, an {@linkplain InstanceMetaDescriptor instance&#32;meta}.  Since all metatypes are instance metas, we must answer {@linkplain Types#ANY any}.
-	 *
-	 * @param object
-	 *        An instance meta.
-	 * @return
-	 *        The kind (a {@linkplain TypeDescriptor type} but <em>not</em> an {@linkplain AbstractEnumerationTypeDescriptor enumeration}) that is nearest the specified instance meta.
-	 */
-	private static AvailObject getSuperkind (final A_BasicObject object)
-	{
-		return ANY.o();
-	}
-
-	@Override
-	public void printObjectOnAvoidingIndent (
-		final AvailObject object,
-		final StringBuilder aStream,
-		final IdentityHashMap<A_BasicObject, Void> recursionMap,
-		final int indent)
-	{
-		aStream.append("(");
-		getInstance(object).printOnAvoidingIndent(
-			aStream,
+		builder.append("(")
+		getInstance(self).printOnAvoidingIndent(
+			builder,
 			recursionMap,
-			indent);
-		aStream.append(")'s type");
+			indent)
+		builder.append(")'s type")
 	}
 
 	/**
-	 * Compute the type intersection of the object which is an instance meta, and the argument, which is some type (it may be an {@linkplain AbstractEnumerationTypeDescriptor enumeration}).
+	 * Compute the type intersection of the object which is an instance meta,
+	 * and the argument, which is some type (it may be an
+	 * [enumeration][AbstractEnumerationTypeDescriptor]).
 	 *
-	 * @param object
-	 *        An instance meta.
+	 * @param self
+	 *   An instance meta.
 	 * @param another
-	 *        Another type.
+	 *   Another type.
 	 * @return
-	 *        The most general type that is a subtype of both object and another.
+	 *   The most general type that is a subtype of both object and another.
 	 */
-	@Override
-	protected A_Type computeIntersectionWith (
-		final AvailObject object,
-		final A_Type another)
+	override fun computeIntersectionWith(
+		self: AvailObject,
+		another: A_Type): A_Type
 	{
-		if (another.isBottom())
+		if (another.isBottom)
 		{
-			return another;
+			return another
 		}
-		if (another.isInstanceMeta())
+		if (another.isInstanceMeta)
 		{
 			return instanceMeta(
-				getInstance(object).typeIntersection(another.instance()));
+				getInstance(self).typeIntersection(another.instance()))
 		}
 		// Another is not an enumeration, and definitely not a meta, and the
 		// only possible superkinds of object (a meta) are ANY and TOP.
-		if (another.isSupertypeOfPrimitiveTypeEnum(ANY))
+		return if (another.isSupertypeOfPrimitiveTypeEnum(
+			TypeDescriptor.Types.ANY))
 		{
-			return object;
+			self
 		}
-		return bottom();
+		else bottom()
 	}
 
 	/**
-	 * Compute the type union of the object, which is an {@linkplain InstanceMetaDescriptor instance meta}, and the argument, which may or may not be an {@linkplain AbstractEnumerationTypeDescriptor enumeration} (but must be a {@linkplain TypeDescriptor type}).
+	 * Compute the type union of the object, which is an [instance
+	 * meta][InstanceMetaDescriptor], and the argument, which may or may not be
+	 * an [enumeration][AbstractEnumerationTypeDescriptor] (but must be a
+	 * [type][TypeDescriptor]).
 	 *
-	 * @param object
-	 *        An instance meta.
+	 * @param self
+	 *   An instance meta.
 	 * @param another
-	 *        Another type.
+	 *   Another type.
 	 * @return
-	 *        The most specific type that is a supertype of both {@code object} and {@code another}.
+	 *   The most specific type that is a supertype of both self and `another`.
 	 */
-	@Override
-	public A_Type computeUnionWith (
-		final AvailObject object,
-		final A_Type another)
-	{
-		if (another.isBottom())
+	public override fun computeUnionWith(
+		self: AvailObject,
+		another: A_Type): A_Type =
+		when
 		{
-			return object;
+			another.isBottom -> self
+			another.isInstanceMeta ->
+				instanceMeta(
+					getInstance(self).typeUnion(another.instance()))
+			// Unless another is top, then the answer will be any.
+			else -> TypeDescriptor.Types.ANY.o().typeUnion(another)
 		}
-		if (another.isInstanceMeta())
-		{
-			return instanceMeta(
-				getInstance(object).typeUnion(another.instance()));
-		}
-		// Unless another is top, then the answer will be any.
-		return ANY.o().typeUnion(another);
-	}
 
-	@Override
-	public AvailObject o_Instance (final AvailObject object)
-	{
-		return getInstance(object);
-	}
+	override fun o_Instance(self: AvailObject): AvailObject = getInstance(self)
 
-	@Override
-	public boolean o_IsInstanceMeta (final AvailObject object)
-	{
-		return true;
-	}
+	override fun o_IsInstanceMeta(self: AvailObject): Boolean = true
 
-	@Override
-	public A_Type o_ComputeSuperkind (final AvailObject object)
-	{
-		return getSuperkind(object);
-	}
+	override fun o_ComputeSuperkind(self: AvailObject): A_Type =
+		getSuperkind(self)
 
 	/**
 	 * {@inheritDoc}
@@ -222,25 +188,24 @@ extends AbstractEnumerationTypeDescriptor
 	 * An instance meta is only equal to another instance meta, and only when
 	 * they refer to equal instances.
 	 */
-	@Override
-	public boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean
 	{
-		final boolean equal = another.isInstanceMeta()
-			&& getInstance(object).equals(((A_Type)another).instance());
+		val equal = (another.isInstanceMeta
+             && getInstance(self).equals((another as A_Type).instance()))
 		if (equal)
 		{
-			if (!isShared())
+			if (!isShared)
 			{
-				another.makeImmutable();
-				object.becomeIndirectionTo(another);
+				another.makeImmutable()
+				self.becomeIndirectionTo(another)
 			}
-			else if (!another.descriptor().isShared())
+			else if (!another.descriptor().isShared)
 			{
-				object.makeImmutable();
-				another.becomeIndirectionTo(object);
+				self.makeImmutable()
+				another.becomeIndirectionTo(self)
 			}
 		}
-		return equal;
+		return equal
 	}
 
 	/**
@@ -248,442 +213,371 @@ extends AbstractEnumerationTypeDescriptor
 	 *
 	 * An instance meta is never equal to an instance type.
 	 */
-	@Override
-	public boolean o_EqualsInstanceTypeFor (
-		final AvailObject object,
-		final AvailObject anObject)
-	{
-		return false;
-	}
+	override fun o_EqualsInstanceTypeFor(
+		self: AvailObject,
+		anObject: AvailObject): Boolean = false
 
-	@Override
-	public int o_Hash (final AvailObject object)
-	{
-		return (getInstance(object).hash() - 0x361b5d51) * multiplier;
-	}
+	override fun o_Hash(self: AvailObject): Int =
+		(getInstance(self).hash() - 0x361b5d51) * AvailObject.multiplier
 
-	@Override
-	public boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
-	{
-		return getInstance(object).isInstanceOf(aType);
-	}
+	override fun o_IsSubtypeOf(self: AvailObject, aType: A_Type): Boolean =
+		getInstance(self).isInstanceOf(aType)
 
-	@Override
-	public A_Number o_InstanceCount (final AvailObject object)
-	{
-		// Technically my instance is the instance I specify, which is a type,
-		// *plus* all subtypes of it.  However, to distinguish metas from kinds
-		// we need it to answer one here.
-		return one();
-	}
+	// Technically my instance is the instance I specify, which is a type,
+	// *plus* all subtypes of it.  However, to distinguish metas from kinds
+	// we need it to answer one here.
+	override fun o_InstanceCount(self: AvailObject): A_Number = one()
 
-	@Override
-	public A_Set o_Instances (final AvailObject object)
-	{
-		return singletonSet(getInstance(object));
-	}
+	override fun o_Instances(self: AvailObject): A_Set =
+		singletonSet(getInstance(self))
 
-	@Override
-	public boolean o_EnumerationIncludesInstance (
-		final AvailObject object,
-		final AvailObject potentialInstance)
-	{
-		return potentialInstance.isType()
-			&& potentialInstance.isSubtypeOf(getInstance(object));
-	}
+	override fun o_EnumerationIncludesInstance(
+		self: AvailObject,
+		potentialInstance: AvailObject): Boolean =
+			(potentialInstance.isType
+		        && potentialInstance.isSubtypeOf(getInstance(self)))
 
-	@Override
-	public boolean o_IsInstanceOf (final AvailObject object, final A_Type aType)
-	{
-		if (aType.isInstanceMeta())
+	override fun o_IsInstanceOf(self: AvailObject, aType: A_Type): Boolean =
+		if (aType.isInstanceMeta)
 		{
 			// I'm an instance meta on some type, and aType is (also) an
 			// instance meta (the only sort of meta that exists these
 			// days -- 2012.07.17).  See if my instance (a type) is an
 			// instance of aType's instance (also a type, but maybe a meta).
-			return getInstance(object).isInstanceOf(aType.instance());
+			getInstance(self).isInstanceOf(aType.instance())
 		}
-		// I'm a meta, a singular enumeration of a type, so I could only be an
-		// instance of a meta meta (already excluded), or of ANY or TOP.
-		return aType.isSupertypeOfPrimitiveTypeEnum(ANY);
-	}
+		else
+		{
+			// I'm a meta, a singular enumeration of a type, so I could only be
+			// an instance of a meta meta (already excluded), or of ANY or TOP.
+			aType.isSupertypeOfPrimitiveTypeEnum(TypeDescriptor.Types.ANY)
+		}
 
-	@Override
-	public boolean o_RangeIncludesInt (final AvailObject object, final int anInt)
+	// A metatype can't have an integer as an instance.
+	override fun o_RangeIncludesInt(self: AvailObject, anInt: Int): Boolean =
+		false
+
+	override fun o_FieldTypeAt(self: AvailObject, field: A_Atom): A_Type
 	{
-		// A metatype can't have an integer as an instance.
-		return false;
+		throw unsupportedOperationException()
 	}
 
-	@Override
-	public A_Type o_FieldTypeAt (final AvailObject object, final A_Atom field)
+	override fun o_FieldTypeMap(self: AvailObject): A_Map
 	{
-		throw unsupportedOperationException();
+		throw unsupportedOperationException()
 	}
 
-	@Override
-	public A_Map o_FieldTypeMap (final AvailObject object)
+	override fun o_LowerBound(self: AvailObject): A_Number
 	{
-		throw unsupportedOperationException();
+		throw unsupportedOperationException()
 	}
 
-	@Override
-	public A_Number o_LowerBound (final AvailObject object)
+	override fun o_LowerInclusive(self: AvailObject): Boolean
 	{
-		throw unsupportedOperationException();
+		throw unsupportedOperationException()
 	}
 
-	@Override
-	public boolean o_LowerInclusive (final AvailObject object)
+	override fun o_UpperBound(self: AvailObject): A_Number
 	{
-		throw unsupportedOperationException();
+		throw unsupportedOperationException()
 	}
 
-	@Override
-	public A_Number o_UpperBound (final AvailObject object)
+	override fun o_UpperInclusive(self: AvailObject): Boolean
 	{
-		throw unsupportedOperationException();
+		throw unsupportedOperationException()
 	}
 
-	@Override
-	public boolean o_UpperInclusive (final AvailObject object)
+	override fun o_TypeAtIndex(self: AvailObject, index: Int): A_Type
 	{
-		throw unsupportedOperationException();
+		throw unsupportedOperationException()
 	}
 
-	@Override
-	public A_Type o_TypeAtIndex (final AvailObject object, final int index)
+	override fun o_UnionOfTypesAtThrough(
+		self: AvailObject,
+		startIndex: Int,
+		endIndex: Int): A_Type
 	{
-		throw unsupportedOperationException();
+		throw unsupportedOperationException()
 	}
 
-	@Override
-	public A_Type o_UnionOfTypesAtThrough (
-		final AvailObject object,
-		final int startIndex,
-		final int endIndex)
+	override fun o_DefaultType(self: AvailObject): A_Type
 	{
-		throw unsupportedOperationException();
+		throw unsupportedOperationException()
 	}
 
-	@Override
-	public A_Type o_DefaultType (final AvailObject object)
+	override fun o_SizeRange(self: AvailObject): A_Type
 	{
-		throw unsupportedOperationException();
+		throw unsupportedOperationException()
 	}
 
-	@Override
-	public A_Type o_SizeRange (final AvailObject object)
+	override fun o_TupleOfTypesFromTo(
+		self: AvailObject,
+		startIndex: Int,
+		endIndex: Int): A_Tuple
 	{
-		throw unsupportedOperationException();
+		throw unsupportedOperationException()
 	}
 
-	@Override
-	public A_Tuple o_TupleOfTypesFromTo (
-		final AvailObject object,
-		final int startIndex,
-		final int endIndex)
+	override fun o_TypeTuple(self: AvailObject): A_Tuple
 	{
-		throw unsupportedOperationException();
+		throw unsupportedOperationException()
 	}
 
-	@Override
-	public A_Tuple o_TypeTuple (final AvailObject object)
+	// A metatype can't be an integer range type.
+	override fun o_IsIntegerRangeType(self: AvailObject): Boolean = false
+
+	// A metatype can't be a literal token type.
+	override fun o_IsLiteralTokenType(self: AvailObject): Boolean = false
+
+	// A metatype can't be a map type.
+	override fun o_IsMapType(self: AvailObject): Boolean = false
+
+	// A metatype can't be a set type.
+	override fun o_IsSetType(self: AvailObject): Boolean = false
+
+	// A metatype can't be a tuple type.
+	override fun o_IsTupleType(self: AvailObject): Boolean = false
+
+	override fun o_AcceptsArgTypesFromFunctionType(
+		self: AvailObject,
+		functionType: A_Type): Boolean
 	{
-		throw unsupportedOperationException();
+		throw unsupportedOperationException()
 	}
 
-	@Override
-	public boolean o_IsIntegerRangeType (final AvailObject object)
+	override fun o_AcceptsListOfArgTypes(
+		self: AvailObject,
+		argTypes: List<A_Type>): Boolean
 	{
-		// A metatype can't be an integer range type.
-		return false;
+		throw unsupportedOperationException()
 	}
 
-	@Override
-	public boolean o_IsLiteralTokenType (final AvailObject object)
+	override fun o_AcceptsListOfArgValues(
+		self: AvailObject,
+		argValues: List<A_BasicObject>): Boolean
 	{
-		// A metatype can't be a literal token type.
-		return false;
+		throw unsupportedOperationException()
 	}
 
-	@Override
-	public boolean o_IsMapType (final AvailObject object)
+	override fun o_AcceptsTupleOfArgTypes(
+		self: AvailObject,
+		argTypes: A_Tuple): Boolean
 	{
-		// A metatype can't be a map type.
-		return false;
+		throw unsupportedOperationException()
 	}
 
-	@Override
-	public boolean o_IsSetType (final AvailObject object)
+	override fun o_AcceptsTupleOfArguments(
+		self: AvailObject,
+		arguments: A_Tuple): Boolean
 	{
-		// A metatype can't be a set type.
-		return false;
+		throw unsupportedOperationException()
 	}
 
-	@Override
-	public boolean o_IsTupleType (final AvailObject object)
+	override fun o_ArgsTupleType(self: AvailObject): A_Type
 	{
-		// A metatype can't be a tuple type.
-		return false;
+		throw unsupportedOperationException()
 	}
 
-	@Override
-	public boolean o_AcceptsArgTypesFromFunctionType (
-		final AvailObject object,
-		final A_Type functionType)
+	override fun o_DeclaredExceptions(self: AvailObject): A_Set
 	{
-		throw unsupportedOperationException();
+		throw unsupportedOperationException()
 	}
 
-	@Override
-	public boolean o_AcceptsListOfArgTypes (
-		final AvailObject object,
-		final List<? extends A_Type> argTypes)
+	override fun o_FunctionType(self: AvailObject): A_Type
 	{
-		throw unsupportedOperationException();
+		throw unsupportedOperationException()
 	}
 
-	@Override
-	public boolean o_AcceptsListOfArgValues (
-		final AvailObject object,
-		final List<? extends A_BasicObject> argValues)
+	override fun o_ContentType(self: AvailObject): A_Type
 	{
-		throw unsupportedOperationException();
+		throw unsupportedOperationException()
 	}
 
-	@Override
-	public boolean o_AcceptsTupleOfArgTypes (
-		final AvailObject object,
-		final A_Tuple argTypes)
+	override fun o_CouldEverBeInvokedWith(
+		self: AvailObject,
+		argRestrictions: List<TypeRestriction>): Boolean
 	{
-		throw unsupportedOperationException();
+		throw unsupportedOperationException()
 	}
 
-	@Override
-	public boolean o_AcceptsTupleOfArguments (
-		final AvailObject object,
-		final A_Tuple arguments)
+	override fun o_KeyType(self: AvailObject): A_Type
 	{
-		throw unsupportedOperationException();
+		throw unsupportedOperationException()
 	}
 
-	@Override
-	public A_Type o_ArgsTupleType (final AvailObject object)
+	override fun o_Parent(self: AvailObject): A_BasicObject
 	{
-		throw unsupportedOperationException();
+		throw unsupportedOperationException()
 	}
 
-	@Override
-	public A_Set o_DeclaredExceptions (final AvailObject object)
+	override fun o_ReturnType(self: AvailObject): A_Type
 	{
-		throw unsupportedOperationException();
+		throw unsupportedOperationException()
 	}
 
-	@Override
-	public A_Type o_FunctionType (final AvailObject object)
+	override fun o_ValueType(self: AvailObject): A_Type
 	{
-		throw unsupportedOperationException();
+		throw unsupportedOperationException()
 	}
 
-	@Override
-	public A_Type o_ContentType (final AvailObject object)
+	override fun o_ReadType(self: AvailObject): A_Type
 	{
-		throw unsupportedOperationException();
+		throw unsupportedOperationException()
 	}
 
-	@Override
-	public boolean o_CouldEverBeInvokedWith (
-		final AvailObject object,
-		final List<TypeRestriction> argRestrictions)
+	override fun o_WriteType(self: AvailObject): A_Type
 	{
-		throw unsupportedOperationException();
+		throw unsupportedOperationException()
 	}
 
-	@Override
-	public A_Type o_KeyType (final AvailObject object)
+	override fun o_ExpressionType(self: AvailObject): A_Type
 	{
-		throw unsupportedOperationException();
+		throw unsupportedOperationException()
 	}
 
-	@Override
-	public A_BasicObject o_Parent (final AvailObject object)
+	override fun o_HasObjectInstance(
+		self: AvailObject,
+		potentialInstance: AvailObject): Boolean
 	{
-		throw unsupportedOperationException();
+		throw unsupportedOperationException()
 	}
 
-	@Override
-	public A_Type o_ReturnType (final AvailObject object)
+	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
+		SerializerOperation.INSTANCE_META
+
+	override fun o_WriteTo(self: AvailObject, writer: JSONWriter)
 	{
-		throw unsupportedOperationException();
+		writer.startObject()
+		writer.write("kind")
+		getSuperkind(self).writeTo(writer)
+		writer.write("instances")
+		self.instances().writeTo(writer)
+		writer.endObject()
 	}
 
-	@Override
-	public A_Type o_ValueType (final AvailObject object)
+	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter)
 	{
-		throw unsupportedOperationException();
+		writer.startObject()
+		writer.write("kind")
+		getSuperkind(self).writeSummaryTo(writer)
+		writer.write("instances")
+		self.instances().writeSummaryTo(writer)
+		writer.endObject()
 	}
 
-	@Override
-	public A_Type o_ReadType (final AvailObject object)
+	override fun o_ComputeTypeTag(self: AvailObject): TypeTag
 	{
-		throw unsupportedOperationException();
+		val instance = getInstance(self)
+		val instanceTag = instance.typeTag()
+		return instanceTag.metaTag()
 	}
 
-	@Override
-	public A_Type o_WriteType (final AvailObject object)
+	override fun mutable(): AbstractEnumerationTypeDescriptor = mutable
+
+	override fun immutable(): AbstractEnumerationTypeDescriptor = immutable
+
+	override fun shared(): AbstractEnumerationTypeDescriptor = shared
+
+	companion object
 	{
-		throw unsupportedOperationException();
+		/**
+		 * Answer the instance (a type) that the provided instance meta contains.
+		 *
+		 * @param self
+		 *   An instance type.
+		 * @return
+		 *   The instance represented by the given instance type.
+		 */
+		private fun getInstance(self: AvailObject): AvailObject =
+			self.slot(ObjectSlots.INSTANCE)
+
+		/**
+		 * Answer the kind that is nearest to the given object, an
+		 * [instance&#32;meta][InstanceMetaDescriptor].  Since all metatypes are
+		 * instance metas, we must answer [any][TypeDescriptor.Types.ANY].
+		 *
+		 * @param self
+		 *   An instance meta.
+		 * @return
+		 *   The kind (a [type][TypeDescriptor] but *not* an
+		 *   [enumeration][AbstractEnumerationTypeDescriptor]) that is nearest
+		 *   the specified instance meta.
+		 */
+		private fun getSuperkind(self: A_BasicObject): AvailObject =
+			TypeDescriptor.Types.ANY.o()
+
+		/** The mutable [InstanceMetaDescriptor].  */
+		private val mutable: AbstractEnumerationTypeDescriptor =
+			InstanceMetaDescriptor(Mutability.MUTABLE)
+
+		/** The immutable [InstanceMetaDescriptor].  */
+		private val immutable: AbstractEnumerationTypeDescriptor =
+			InstanceMetaDescriptor(Mutability.IMMUTABLE)
+
+		/** The shared [InstanceMetaDescriptor].  */
+		private val shared: AbstractEnumerationTypeDescriptor =
+			InstanceMetaDescriptor(Mutability.SHARED)
+
+		/**
+		 * `⊤`'s type, cached statically for convenience.
+		 */
+		private val topMeta: A_Type =
+			instanceMeta(TypeDescriptor.Types.TOP.o()).makeShared()
+
+		/**
+		 * Answer ⊤'s type, the most general metatype.
+		 *
+		 * @return
+		 *   `⊤`'s type.
+		 */
+		@JvmStatic
+		fun topMeta(): A_Type = topMeta
+
+		/**
+		 * Any's type, cached statically for convenience.
+		 */
+		private val anyMeta: A_Type =
+			instanceMeta(TypeDescriptor.Types.ANY.o()).makeShared()
+
+		/**
+		 * Answer any's type, a metatype.
+		 *
+		 * @return
+		 *   `any`'s type.
+		 */
+		@JvmStatic
+		fun anyMeta(): A_Type
+		{
+			return anyMeta
+		}
+
+		/**
+		 * Answer a new instance of this descriptor based on some object whose
+		 * type it will represent.
+		 *
+		 * @param instance
+		 *   The object whose type to represent.
+		 * @return
+		 *   An [AvailObject] representing the type of the argument.
+		 */
+		@JvmStatic
+		@ReferencedInGeneratedCode
+		fun instanceMeta(instance: A_Type): A_Type
+		{
+			assert(instance.isType)
+			val result = mutable.create()
+			instance.makeImmutable()
+			result.setSlot(ObjectSlots.INSTANCE, instance)
+			return result
+		}
+
+		/**
+		 * The [CheckedMethod] for [instanceMeta].
+		 */
+		val instanceMetaMethod = staticMethod(
+			InstanceMetaDescriptor::class.java,
+			"instanceMeta",
+			A_Type::class.java,
+			A_Type::class.java)
 	}
-
-	@Override
-	public A_Type o_ExpressionType (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	public boolean o_HasObjectInstance (
-		final AvailObject object,
-		final AvailObject potentialInstance)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	public SerializerOperation o_SerializerOperation (final AvailObject object)
-	{
-		return SerializerOperation.INSTANCE_META;
-	}
-
-	@Override
-	public void o_WriteTo (final AvailObject object, final JSONWriter writer)
-	{
-		writer.startObject();
-		writer.write("kind");
-		getSuperkind(object).writeTo(writer);
-		writer.write("instances");
-		object.instances().writeTo(writer);
-		writer.endObject();
-	}
-
-	@Override
-	public void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
-	{
-		writer.startObject();
-		writer.write("kind");
-		getSuperkind(object).writeSummaryTo(writer);
-		writer.write("instances");
-		object.instances().writeSummaryTo(writer);
-		writer.endObject();
-	}
-
-	@Override
-	public TypeTag o_ComputeTypeTag (final AvailObject object)
-	{
-		final AvailObject instance = getInstance(object);
-		final TypeTag instanceTag = instance.typeTag();
-		return instanceTag.metaTag();
-	}
-
-	/**
-	 * Construct a new {@code InstanceMetaDescriptor}.
-	 *
-	 * @param mutability
-	 *        The {@linkplain Mutability mutability} of the new descriptor.
-	 */
-	private InstanceMetaDescriptor (final Mutability mutability)
-	{
-		super(mutability, TypeTag.UNKNOWN_TAG, ObjectSlots.class, null);
-	}
-
-	/** The mutable {@link InstanceMetaDescriptor}. */
-	private static final AbstractEnumerationTypeDescriptor mutable =
-		new InstanceMetaDescriptor(Mutability.MUTABLE);
-
-	@Override
-	public AbstractEnumerationTypeDescriptor mutable ()
-	{
-		return mutable;
-	}
-
-	/** The immutable {@link InstanceMetaDescriptor}. */
-	private static final AbstractEnumerationTypeDescriptor immutable =
-		new InstanceMetaDescriptor(Mutability.IMMUTABLE);
-
-	@Override
-	public AbstractEnumerationTypeDescriptor immutable ()
-	{
-		return immutable;
-	}
-
-	/** The shared {@link InstanceMetaDescriptor}. */
-	private static final AbstractEnumerationTypeDescriptor shared =
-		new InstanceMetaDescriptor(Mutability.SHARED);
-
-	@Override
-	public AbstractEnumerationTypeDescriptor shared ()
-	{
-		return shared;
-	}
-
-	/**
-	 * `⊤`'s type, cached statically for convenience.
-	 */
-	private static final A_Type topMeta = instanceMeta(TOP.o()).makeShared();
-
-	/**
-	 * Answer ⊤'s type, the most general metatype.
-	 *
-	 * @return
-	 * `⊤`'s type.
-	 */
-	public static A_Type topMeta ()
-	{
-		return topMeta;
-	}
-
-	/**
-	 * Any's type, cached statically for convenience.
-	 */
-	private static final A_Type anyMeta = instanceMeta(ANY.o()).makeShared();
-
-	/**
-	 * Answer any's type, a metatype.
-	 *
-	 * @return
-	 * `any`'s type.
-	 */
-	public static A_Type anyMeta ()
-	{
-		return anyMeta;
-	}
-
-	/**
-	 * Answer a new instance of this descriptor based on some object whose type
-	 * it will represent.
-	 *
-	 * @param instance
-	 * The object whose type to represent.
-	 * @return
-	 * An {@link AvailObject} representing the type of the argument.
-	 */
-	@ReferencedInGeneratedCode
-	public static A_Type instanceMeta (final A_Type instance)
-	{
-		assert instance.isType();
-		final AvailObject result = mutable.create();
-		instance.makeImmutable();
-		result.setSlot(INSTANCE, instance);
-		return result;
-	}
-
-	/**
-	 * The {@link CheckedMethod} for {@link #instanceMeta(A_Type)}.
-	 */
-	public static final CheckedMethod instanceMetaMethod = staticMethod(
-		InstanceMetaDescriptor.class,
-		"instanceMeta",
-		A_Type.class,
-		A_Type.class);
 }
