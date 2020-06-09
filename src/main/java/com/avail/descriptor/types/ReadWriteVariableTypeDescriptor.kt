@@ -1,21 +1,21 @@
 /*
- * ReadWriteVariableTypeDescriptor.java
+ * ReadWriteVariableTypeDescriptor.kt
  * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
  *
- *  * Neither the name of the copyright holder nor the names of the contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -29,302 +29,246 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.descriptor.types
 
-package com.avail.descriptor.types;
-
-import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
-import com.avail.descriptor.representation.A_BasicObject;
-import com.avail.descriptor.representation.AvailObject;
-import com.avail.descriptor.representation.Mutability;
-import com.avail.descriptor.variables.VariableDescriptor;
-import com.avail.serialization.SerializerOperation;
-import com.avail.utility.json.JSONWriter;
-
-import java.util.IdentityHashMap;
-
-import static com.avail.descriptor.types.ReadWriteVariableTypeDescriptor.ObjectSlots.READ_TYPE;
-import static com.avail.descriptor.types.ReadWriteVariableTypeDescriptor.ObjectSlots.WRITE_TYPE;
-import static com.avail.descriptor.types.VariableTypeDescriptor.variableReadWriteType;
-import static com.avail.descriptor.types.VariableTypeDescriptor.variableTypeFor;
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.ObjectSlotsEnum
+import com.avail.descriptor.types.ReadWriteVariableTypeDescriptor.ObjectSlots
+import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableReadWriteType
+import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
+import com.avail.descriptor.variables.VariableDescriptor
+import com.avail.serialization.SerializerOperation
+import com.avail.utility.json.JSONWriter
+import java.util.*
 
 /**
- * A {@code ReadWriteVariableTypeDescriptor read-write variable type} is parametric on the types of values that may be {@linkplain ObjectSlots#READ_TYPE read} from and {@linkplain ObjectSlots#WRITE_TYPE written} to object instance {@linkplain VariableDescriptor variables}. Reading a variable is a covariant capability, while writing a variable is a contravariant capability.
+ * A `ReadWriteVariableTypeDescriptor read-write variable type` is parametric on
+ * the types of values that may be [read][ObjectSlots.READ_TYPE] from and
+ * [written][ObjectSlots.WRITE_TYPE] to object instance
+ * [variables][VariableDescriptor]. Reading a variable is a covariant
+ * capability, while writing a variable is a contravariant capability.
  *
- * <p>When the read and write capabilities are equivalent, the static factory
- * methods normalize the representation to an invariant {@linkplain
- * VariableTypeDescriptor variable type descriptor}.</p>
+ * When the read and write capabilities are equivalent, the static factory
+ * methods normalize the representation to an invariant
+ * [variable&#32;type&#32;descriptor][VariableTypeDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @see VariableTypeDescriptor
+ *
+ * @constructor
+ * Construct a new [ReadWriteVariableTypeDescriptor].
+ *
+ * @param mutability
+ *   The [mutability][Mutability] of the new descriptor.
  */
-public final class ReadWriteVariableTypeDescriptor
-extends TypeDescriptor
+class ReadWriteVariableTypeDescriptor private constructor(
+	mutability: Mutability) : TypeDescriptor(
+		mutability, TypeTag.VARIABLE_TYPE_TAG, ObjectSlots::class.java, null)
 {
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnumJava
+	enum class ObjectSlots : ObjectSlotsEnum
 	{
-		/** The type of values that can be read from my object instances. */
+		/** The type of values that can be read from my object instances.  */
 		READ_TYPE,
 
-		/** The type of values that can be written to my object instances. */
+		/** The type of values that can be written to my object instances.  */
 		WRITE_TYPE
 	}
 
-	@Override
-	public void printObjectOnAvoidingIndent (
-		final AvailObject object,
-		final StringBuilder aStream,
-		final IdentityHashMap<A_BasicObject, Void> recursionMap,
-		final int indent)
+	override fun printObjectOnAvoidingIndent(
+		self: AvailObject,
+		builder: StringBuilder,
+		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		indent: Int)
 	{
-		aStream.append("read ");
-		object.slot(READ_TYPE).printOnAvoidingIndent(
-			aStream,
+		builder.append("read ")
+		self.slot(ObjectSlots.READ_TYPE).printOnAvoidingIndent(
+			builder,
 			recursionMap,
-			(indent + 1));
-		aStream.append("/write ");
-		object.slot(WRITE_TYPE).printOnAvoidingIndent(
-			aStream,
+			indent + 1)
+		builder.append("/write ")
+		self.slot(ObjectSlots.WRITE_TYPE).printOnAvoidingIndent(
+			builder,
 			recursionMap,
-			(indent + 1));
+			indent + 1)
 	}
 
-	@Override
-	public A_Type o_ReadType (final AvailObject object)
-	{
-		return object.slot(READ_TYPE);
-	}
+	override fun o_ReadType(self: AvailObject): A_Type =
+		self.slot(ObjectSlots.READ_TYPE)
 
-	@Override
-	public A_Type o_WriteType (final AvailObject object)
-	{
-		return object.slot(WRITE_TYPE);
-	}
+	override fun o_WriteType(self: AvailObject): A_Type =
+		self.slot(ObjectSlots.WRITE_TYPE)
 
-	@Override
-	public boolean o_Equals (final AvailObject object, final A_BasicObject another)
-	{
-		return another.equalsVariableType(object);
-	}
+	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean =
+		another.equalsVariableType(self)
 
-	@Override
-	public boolean o_EqualsVariableType (
-		final AvailObject object,
-		final A_Type aType)
-	{
-		if (object.sameAddressAs(aType))
+	override fun o_EqualsVariableType(self: AvailObject, aType: A_Type): Boolean =
+		when
 		{
-			return true;
-		}
-		if (aType.readType().equals(object.slot(READ_TYPE))
-			&& aType.writeType().equals(object.slot(WRITE_TYPE)))
-		{
-			if (!isShared())
+			self.sameAddressAs(aType) -> true
+			aType.readType().equals(self.slot(ObjectSlots.READ_TYPE))
+				&& aType.writeType().equals(self.slot(ObjectSlots.WRITE_TYPE)) ->
 			{
-				aType.makeImmutable();
-				object.becomeIndirectionTo(aType);
+				if (!isShared)
+				{
+					aType.makeImmutable()
+					self.becomeIndirectionTo(aType)
+				}
+				else if (!aType.descriptor().isShared)
+				{
+					self.makeImmutable()
+					aType.becomeIndirectionTo(self)
+				}
+				true
 			}
-			else if (!aType.descriptor().isShared())
-			{
-				object.makeImmutable();
-				aType.becomeIndirectionTo(object);
-			}
-			return true;
+			else -> false
 		}
-		return false;
-	}
 
-	@Override
-	public int o_Hash (final AvailObject object)
-	{
-		return
-			(object.slot(READ_TYPE).hash() ^ 0x0F40149E
-			+ object.slot(WRITE_TYPE).hash() ^ 0x05469E1A);
-	}
+	override fun o_Hash(self: AvailObject): Int =
+		self.slot(ObjectSlots.READ_TYPE).hash() xor
+			(0x0F40149E + self.slot(ObjectSlots.WRITE_TYPE).hash()) xor
+				0x05469E1A
 
-	@Override
-	public boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
-	{
-		return aType.isSupertypeOfVariableType(object);
-	}
+	override fun o_IsSubtypeOf(self: AvailObject, aType: A_Type): Boolean =
+		aType.isSupertypeOfVariableType(self)
 
-	@Override
-	public boolean o_IsSupertypeOfVariableType (
-		final AvailObject object,
-		final A_Type aVariableType)
-	{
-		// Variable types are covariant by read capability and contravariant by
-		// write capability.
-		return aVariableType.readType().isSubtypeOf(object.slot(READ_TYPE))
-			&& object.slot(WRITE_TYPE).isSubtypeOf(aVariableType.writeType());
-	}
+	// Variable types are covariant by read capability and contravariant by
+	// write capability.
+	override fun o_IsSupertypeOfVariableType(
+		self: AvailObject,
+		aVariableType: A_Type): Boolean =
+			(aVariableType.readType().isSubtypeOf(
+					self.slot(ObjectSlots.READ_TYPE))
+		        && self.slot(ObjectSlots.WRITE_TYPE)
+				    .isSubtypeOf(aVariableType.writeType()))
 
-	@Override
-	public A_Type o_TypeIntersection (
-		final AvailObject object,
-		final A_Type another)
-	{
-		if (object.isSubtypeOf(another))
+	override fun o_TypeIntersection(self: AvailObject, another: A_Type): A_Type =
+		when
 		{
-			return object;
+			self.isSubtypeOf(another) -> self
+			another.isSubtypeOf(self) -> another
+			else -> another.typeIntersectionOfVariableType(self)
 		}
-		if (another.isSubtypeOf(object))
+
+	// The intersection of two variable types is variable type whose
+	// read type is the type intersection of the two incoming read types and
+	// whose write type is the type union of the two incoming write types.
+	override fun o_TypeIntersectionOfVariableType(
+		self: AvailObject,
+		aVariableType: A_Type): A_Type =
+			variableReadWriteType(
+				self.slot(ObjectSlots.READ_TYPE)
+					.typeIntersection(aVariableType.readType()),
+				self.slot(ObjectSlots.WRITE_TYPE)
+					.typeUnion(aVariableType.writeType()))
+
+	override fun o_TypeUnion(self: AvailObject, another: A_Type): A_Type =
+		when
 		{
-			return another;
+			self.isSubtypeOf(another) -> another
+			another.isSubtypeOf(self) -> self
+			else -> another.typeUnionOfVariableType(self)
 		}
-		return another.typeIntersectionOfVariableType(object);
-	}
 
-	@Override
-	public A_Type o_TypeIntersectionOfVariableType (
-		final AvailObject object,
-		final A_Type aVariableType)
-	{
-		// The intersection of two variable types is variable type whose
-		// read type is the type intersection of the two incoming read types and
-		// whose write type is the type union of the two incoming write types.
-		return variableReadWriteType(
-			object.slot(READ_TYPE).typeIntersection(aVariableType.readType()),
-			object.slot(WRITE_TYPE).typeUnion(aVariableType.writeType()));
-	}
+	// The union of two variable types is a variable type whose
+	// read type is the type union of the two incoming read types and whose
+	// write type is the type intersection of the two incoming write types.
+	override fun o_TypeUnionOfVariableType(
+		self: AvailObject,
+		aVariableType: A_Type): A_Type =
+			variableReadWriteType(
+				self.slot(ObjectSlots.READ_TYPE)
+					.typeUnion(aVariableType.readType()),
+				self.slot(ObjectSlots.WRITE_TYPE)
+					.typeIntersection(aVariableType.writeType()))
 
-	@Override
-	public A_Type o_TypeUnion (final AvailObject object, final A_Type another)
-	{
-		if (object.isSubtypeOf(another))
+	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
+		if (self.readType().equals(self.writeType()))
 		{
-			return another;
+			SerializerOperation.SIMPLE_VARIABLE_TYPE
 		}
-		if (another.isSubtypeOf(object))
+		else
 		{
-			return object;
+			SerializerOperation.READ_WRITE_VARIABLE_TYPE
 		}
-		return another.typeUnionOfVariableType(object);
-	}
 
-	@Override
-	public A_Type o_TypeUnionOfVariableType (
-		final AvailObject object,
-		final A_Type aVariableType)
-	{
-		// The union of two variable types is a variable type whose
-		// read type is the type union of the two incoming read types and whose
-		// write type is the type intersection of the two incoming write types.
-		return variableReadWriteType(
-			object.slot(READ_TYPE).typeUnion(aVariableType.readType()),
-			object.slot(WRITE_TYPE).typeIntersection(
-				aVariableType.writeType()));
-	}
-
-	@Override
-	public SerializerOperation o_SerializerOperation (final AvailObject object)
-	{
-		if (object.readType().equals(object.writeType()))
-		{
-			return SerializerOperation.SIMPLE_VARIABLE_TYPE;
-		}
-		return SerializerOperation.READ_WRITE_VARIABLE_TYPE;
-	}
-
-	@Override
-	public AvailObject o_MakeImmutable (final AvailObject object)
-	{
-		if (isMutable())
+	override fun o_MakeImmutable(self: AvailObject): AvailObject =
+		if (isMutable)
 		{
 			// Make the object shared rather than immutable (since there isn't
 			// actually an immutable descriptor).
-			return object.makeShared();
+			self.makeShared()
 		}
-		return object;
+		else self
+
+	override fun o_WriteTo(self: AvailObject, writer: JSONWriter)
+	{
+		writer.startObject()
+		writer.write("kind")
+		writer.write("variable type")
+		writer.write("write type")
+		self.slot(ObjectSlots.WRITE_TYPE).writeTo(writer)
+		writer.write("read type")
+		self.slot(ObjectSlots.READ_TYPE).writeTo(writer)
+		writer.endObject()
 	}
 
-	@Override
-	public void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter)
 	{
-		writer.startObject();
-		writer.write("kind");
-		writer.write("variable type");
-		writer.write("write type");
-		object.slot(WRITE_TYPE).writeTo(writer);
-		writer.write("read type");
-		object.slot(READ_TYPE).writeTo(writer);
-		writer.endObject();
+		writer.startObject()
+		writer.write("kind")
+		writer.write("variable type")
+		writer.write("write type")
+		self.slot(ObjectSlots.WRITE_TYPE).writeSummaryTo(writer)
+		writer.write("read type")
+		self.slot(ObjectSlots.READ_TYPE).writeSummaryTo(writer)
+		writer.endObject()
 	}
 
-	@Override
-	public void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	override fun mutable(): ReadWriteVariableTypeDescriptor = mutable
+
+	// There isn't an immutable variant.
+	override fun immutable(): ReadWriteVariableTypeDescriptor = shared
+
+	override fun shared(): ReadWriteVariableTypeDescriptor = shared
+
+	companion object
 	{
-		writer.startObject();
-		writer.write("kind");
-		writer.write("variable type");
-		writer.write("write type");
-		object.slot(WRITE_TYPE).writeSummaryTo(writer);
-		writer.write("read type");
-		object.slot(READ_TYPE).writeSummaryTo(writer);
-		writer.endObject();
-	}
+		/** The mutable [ReadWriteVariableTypeDescriptor].  */
+		private val mutable =
+			ReadWriteVariableTypeDescriptor(Mutability.MUTABLE)
 
-	/**
-	 * Construct a new {@link ReadWriteVariableTypeDescriptor}.
-	 *
-	 * @param mutability
-	 *        The {@linkplain Mutability mutability} of the new descriptor.
-	 */
-	private ReadWriteVariableTypeDescriptor (final Mutability mutability)
-	{
-		super(mutability, TypeTag.VARIABLE_TYPE_TAG, ObjectSlots.class, null);
-	}
+		/** The shared [ReadWriteVariableTypeDescriptor].  */
+		private val shared = 
+			ReadWriteVariableTypeDescriptor(Mutability.SHARED)
 
-	/** The mutable {@link ReadWriteVariableTypeDescriptor}. */
-	private static final ReadWriteVariableTypeDescriptor mutable =
-		new ReadWriteVariableTypeDescriptor(Mutability.MUTABLE);
-
-	@Override
-	public ReadWriteVariableTypeDescriptor mutable ()
-	{
-		return mutable;
-	}
-
-	/** The shared {@link ReadWriteVariableTypeDescriptor}. */
-	private static final ReadWriteVariableTypeDescriptor shared =
-		new ReadWriteVariableTypeDescriptor(Mutability.SHARED);
-
-	@Override
-	public ReadWriteVariableTypeDescriptor immutable ()
-	{
-		// There isn't an immutable variant.
-		return shared;
-	}
-
-	@Override
-	public ReadWriteVariableTypeDescriptor shared ()
-	{
-		return shared;
-	}
-
-	/**
-	 * Create a {@linkplain VariableTypeDescriptor variable&#32;type} based on the given read and write {@linkplain TypeDescriptor types}.
-	 *
-	 * @param readType
-	 *        The read type.
-	 * @param writeType
-	 *        The write type.
-	 * @return
-	 * The new variable type.
-	 */
-	static A_Type fromReadAndWriteTypes (
-		final A_Type readType,
-		final A_Type writeType)
-	{
-		if (readType.equals(writeType))
+		/**
+		 * Create a [variable&#32;type][VariableTypeDescriptor] based on the
+		 * given read and write [types][TypeDescriptor].
+		 *
+		 * @param readType
+		 *   The read type.
+		 * @param writeType
+		 *   The write type.
+		 * @return
+		 *   The new variable type.
+		 */
+		fun fromReadAndWriteTypes(
+			readType: A_Type,
+			writeType: A_Type?): A_Type
 		{
-			return variableTypeFor(readType);
+			if (readType.equals(writeType))
+			{
+				return variableTypeFor(readType)
+			}
+			val result = mutable.create()
+			result.setSlot(ObjectSlots.READ_TYPE, readType)
+			result.setSlot(ObjectSlots.WRITE_TYPE, writeType!!)
+			return result
 		}
-		final AvailObject result = mutable.create();
-		result.setSlot(READ_TYPE, readType);
-		result.setSlot(WRITE_TYPE, writeType);
-		return result;
 	}
 }
