@@ -189,7 +189,7 @@ import com.avail.descriptor.types.SelfPojoTypeDescriptor.Companion.pojoSerializa
 import com.avail.descriptor.types.SetTypeDescriptor
 import com.avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
 import com.avail.descriptor.types.TokenTypeDescriptor
-import com.avail.descriptor.types.TokenTypeDescriptor.tokenType
+import com.avail.descriptor.types.TokenTypeDescriptor.Companion.tokenType
 import com.avail.descriptor.types.TupleTypeDescriptor
 import com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType
 import com.avail.descriptor.types.TypeDescriptor

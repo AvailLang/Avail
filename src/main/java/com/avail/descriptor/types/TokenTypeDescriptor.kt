@@ -1,5 +1,5 @@
 /*
- * TokenTypeDescriptor.java
+ * TokenTypeDescriptor.kt
  * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,258 +29,182 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.descriptor.types
 
-package com.avail.descriptor.types;
-
-import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
-import com.avail.descriptor.representation.A_BasicObject;
-import com.avail.descriptor.representation.AvailObject;
-import com.avail.descriptor.representation.Mutability;
-import com.avail.descriptor.tokens.TokenDescriptor;
-import com.avail.descriptor.tokens.TokenDescriptor.TokenType;
-import com.avail.serialization.SerializerOperation;
-import com.avail.utility.json.JSONWriter;
-
-import java.util.IdentityHashMap;
-
-import static com.avail.descriptor.tokens.TokenDescriptor.TokenType.lookupTokenType;
-import static com.avail.descriptor.types.BottomTypeDescriptor.bottom;
-import static com.avail.descriptor.types.TokenTypeDescriptor.IntegerSlots.TOKEN_TYPE_CODE;
-import static com.avail.descriptor.types.TypeDescriptor.Types.TOKEN;
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.IntegerSlotsEnum
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.tokens.TokenDescriptor
+import com.avail.descriptor.tokens.TokenDescriptor.TokenType.Companion.lookupTokenType
+import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
+import com.avail.serialization.SerializerOperation
+import com.avail.utility.json.JSONWriter
+import jdk.nashorn.internal.parser.TokenType
+import java.util.*
 
 /**
- * I represent the type of some {@link TokenDescriptor tokens}. Like any object, a particular token has an exact {@link InstanceTypeDescriptor instance type}, but {@code TokenTypeDescriptor} covariantly constrains a token's type by its {@link TokenType}.
+ * I represent the type of some [tokens][TokenDescriptor]. Like any object, a
+ * particular token has an exact [instance type][InstanceTypeDescriptor], but
+ * `TokenTypeDescriptor` covariantly constrains a token's type by its
+ * [TokenType].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @constructor
+ * Construct a new [TokenTypeDescriptor].
+ *
+ * @param mutability
+ *   The [mutability][Mutability] of the new descriptor.
  */
-public final class TokenTypeDescriptor
-extends TypeDescriptor
+class TokenTypeDescriptor private constructor(mutability: Mutability)
+	: TypeDescriptor(
+		mutability,
+		TypeTag.NONTYPE_TYPE_TAG,
+		null,
+		IntegerSlots::class.java)
 {
 	/**
-	 * My slots of type {@link AvailObject}.
+	 * My slots of type [AvailObject].
 	 */
-	public enum IntegerSlots implements IntegerSlotsEnumJava
+	enum class IntegerSlots : IntegerSlotsEnum
 	{
 		/**
-		 * The {@linkplain TokenType type} constraint on a token's value.
+		 * The [type][TokenType] constraint on a token's value.
 		 */
 		TOKEN_TYPE_CODE
 	}
 
-	@Override
-	public void printObjectOnAvoidingIndent (
-		final AvailObject object,
-		final StringBuilder aStream,
-		final IdentityHashMap<A_BasicObject, Void> recursionMap,
-		final int indent)
+	override fun printObjectOnAvoidingIndent(
+		self: AvailObject,
+		builder: StringBuilder,
+		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		indent: Int)
 	{
-		aStream.append(String.format(
+		builder.append(String.format(
 			"%s token",
-			object.tokenType().name().toLowerCase().replace('_', ' ')));
+			self.tokenType().name.toLowerCase().replace('_', ' ')))
 	}
 
-	@Override
-	public boolean o_Equals (final AvailObject object, final A_BasicObject another)
-	{
-		return another.equalsTokenType(object);
-	}
+	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean =
+		another.equalsTokenType(self)
 
-	@Override
-	public boolean o_EqualsTokenType (
-		final AvailObject object,
-		final A_Type aTokenType)
-	{
-		return object.tokenType() == aTokenType.tokenType();
-	}
+	override fun o_EqualsTokenType(
+		self: AvailObject,
+		aTokenType: A_Type): Boolean =
+			self.tokenType() === aTokenType.tokenType()
 
-	@Override
-	public int o_Hash (final AvailObject object)
-	{
-		return Integer.hashCode((int) object.slot(TOKEN_TYPE_CODE)) ^ 0xCD9A63B7;
-	}
+	override fun o_Hash(self: AvailObject): Int =
+		Integer.hashCode(self.slot(IntegerSlots.TOKEN_TYPE_CODE).toInt()) xor
+			-0x32659c49
 
-	@Override
-	public boolean o_IsTokenType (final AvailObject object)
-	{
-		return true;
-	}
+	override fun o_IsTokenType(self: AvailObject): Boolean = true
 
-	@Override
-	public AvailObject o_MakeImmutable (final AvailObject object)
-	{
-		if (isMutable())
+	override fun o_MakeImmutable(self: AvailObject): AvailObject =
+		if (isMutable)
 		{
 			// There is no immutable descriptor, so share the object.
-			return object.makeShared();
+			self.makeShared()
 		}
-		return object;
-	}
+		else self
 
-	@Override
-	public boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
-	{
-		// Check if object (a type) is a subtype of aType (should also be a
-		// type).
-		return aType.isSupertypeOfTokenType(object);
-	}
+	// Check if object (a type) is a subtype of aType (should also be a type).
+	override fun o_IsSubtypeOf(self: AvailObject, aType: A_Type): Boolean =
+		aType.isSupertypeOfTokenType(self)
 
-	@Override
-	public boolean o_IsSupertypeOfTokenType (
-		final AvailObject object,
-		final A_Type aTokenType)
-	{
-		return object.tokenType() == aTokenType.tokenType();
-	}
+	override fun o_IsSupertypeOfTokenType(
+		self: AvailObject,
+		aTokenType: A_Type): Boolean =
+			self.tokenType() === aTokenType.tokenType()
 
-	@Override
-	public TokenType o_TokenType (final AvailObject object)
-	{
-		return lookupTokenType((int) object.slot(TOKEN_TYPE_CODE));
-	}
+	override fun o_TokenType(self: AvailObject): TokenDescriptor.TokenType =
+		lookupTokenType(self.slot(IntegerSlots.TOKEN_TYPE_CODE).toInt())
 
-	@Override
-	public SerializerOperation o_SerializerOperation (
-		final AvailObject object)
-	{
-		return SerializerOperation.TOKEN_TYPE;
-	}
+	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
+		SerializerOperation.TOKEN_TYPE
 
-	@Override
-	public A_Type o_TypeIntersection (
-		final AvailObject object,
-		final A_Type another)
-	{
-		if (object.equals(another))
+	override fun o_TypeIntersection(self: AvailObject, another: A_Type): A_Type =
+		when
 		{
-			return object;
+			self.equals(another) -> self
+			self.isSubtypeOf(another) -> self
+			another.isSubtypeOf(self) -> another
+			else -> another.typeIntersectionOfTokenType(self)
 		}
-		if (object.isSubtypeOf(another))
+
+	override fun o_TypeIntersectionOfTokenType(
+		self: AvailObject,
+		aTokenType: A_Type): A_Type =
+			if (self.tokenType() === aTokenType.tokenType()) self
+			else bottom()
+
+	override fun o_TypeIntersectionOfPrimitiveTypeEnum(
+		self: AvailObject,
+		primitiveTypeEnum: Types): A_Type =
+			if (Types.TOKEN.superTests[primitiveTypeEnum.ordinal]) self
+			else bottom()
+
+	override fun o_TypeUnion(self: AvailObject, another: A_Type): A_Type =
+		when
 		{
-			return object;
+			self.isSubtypeOf(another) -> another
+			another.isSubtypeOf(self) -> self
+			else -> another.typeUnionOfTokenType(self)
 		}
-		if (another.isSubtypeOf(object))
+
+	override fun o_TypeUnionOfTokenType(
+		self: AvailObject,
+		aTokenType: A_Type): A_Type =
+			if (self.tokenType() === aTokenType.tokenType()) self
+			else Types.TOKEN.o()
+
+	override fun o_TypeUnionOfPrimitiveTypeEnum(
+		self: AvailObject,
+		primitiveTypeEnum: Types): A_Type =
+			Types.TOKEN.unionTypes[primitiveTypeEnum.ordinal]!!
+
+	override fun o_WriteTo(self: AvailObject, writer: JSONWriter)
+	{
+		writer.startObject()
+		writer.write("kind")
+		writer.write("token type")
+		writer.write("token type")
+		writer.write(self.tokenType().name.toLowerCase().replace(
+			'_', ' '))
+		writer.endObject()
+	}
+
+	override fun mutable(): TokenTypeDescriptor = mutable
+
+	// There is no immutable variant.
+	override fun immutable(): TokenTypeDescriptor = shared
+
+	override fun shared(): TokenTypeDescriptor = shared
+
+	companion object
+	{
+		/**
+		 * Create a new token type whose values comply with the given
+		 * [TokenType].
+		 *
+		 * @param tokenType
+		 *   The type with which to constrain values.
+		 * @return
+		 *   A [token type][TokenTypeDescriptor].
+		 */
+		@JvmStatic
+		fun tokenType(tokenType: TokenDescriptor.TokenType): AvailObject
 		{
-			return another;
+			val instance = mutable.create()
+			instance.setSlot(
+				IntegerSlots.TOKEN_TYPE_CODE, tokenType.ordinal.toLong())
+			return instance
 		}
-		return another.typeIntersectionOfTokenType(object);
-	}
 
-	@Override
-	public A_Type o_TypeIntersectionOfTokenType (
-		final AvailObject object,
-		final A_Type aTokenType)
-	{
-		return object.tokenType() == aTokenType.tokenType()
-			? object
-			: bottom();
-	}
+		/** The mutable [TokenTypeDescriptor].  */
+		private val mutable = TokenTypeDescriptor(Mutability.MUTABLE)
 
-	@Override
-	public A_Type o_TypeIntersectionOfPrimitiveTypeEnum (
-		final AvailObject object,
-		final Types primitiveTypeEnum)
-	{
-		return TOKEN.superTests[primitiveTypeEnum.ordinal()]
-			? object
-			: bottom();
-	}
-
-	@Override
-	public A_Type o_TypeUnion (
-		final AvailObject object,
-		final A_Type another)
-	{
-		if (object.isSubtypeOf(another))
-		{
-			return another;
-		}
-		if (another.isSubtypeOf(object))
-		{
-			return object;
-		}
-		return another.typeUnionOfTokenType(object);
-	}
-
-	@Override
-	public A_Type o_TypeUnionOfTokenType (
-		final AvailObject object,
-		final A_Type aTokenType)
-	{
-		return object.tokenType() == aTokenType.tokenType()
-			? object
-			: TOKEN.o();
-	}
-
-	@Override
-	public A_Type o_TypeUnionOfPrimitiveTypeEnum (
-		final AvailObject object,
-		final Types primitiveTypeEnum)
-	{
-		return TOKEN.unionTypes[primitiveTypeEnum.ordinal()];
-	}
-
-	@Override
-	public void o_WriteTo (final AvailObject object, final JSONWriter writer)
-	{
-		writer.startObject();
-		writer.write("kind");
-		writer.write("token type");
-		writer.write("token type");
-		writer.write(object.tokenType().name().toLowerCase().replace(
-			'_', ' '));
-		writer.endObject();
-	}
-
-	/**
-	 * Create a new token type whose values comply with the given {@link TokenType}.
-	 *
-	 * @param tokenType
-	 *        The type with which to constrain values.
-	 * @return
-	 * A {@link TokenTypeDescriptor token type}.
-	 */
-	public static AvailObject tokenType (final TokenType tokenType)
-	{
-		final AvailObject instance = mutable.create();
-		instance.setSlot(TOKEN_TYPE_CODE, tokenType.ordinal());
-		return instance;
-	}
-
-	/**
-	 * Construct a new {@link TokenTypeDescriptor}.
-	 *
-	 * @param mutability
-	 *        The {@linkplain Mutability mutability} of the new descriptor.
-	 */
-	private TokenTypeDescriptor (final Mutability mutability)
-	{
-		super(mutability, TypeTag.NONTYPE_TYPE_TAG, null, IntegerSlots.class);
-	}
-
-	/** The mutable {@link TokenTypeDescriptor}. */
-	private static final TokenTypeDescriptor mutable =
-		new TokenTypeDescriptor(Mutability.MUTABLE);
-
-	@Override
-	public TokenTypeDescriptor mutable ()
-	{
-		return mutable;
-	}
-
-	/** The shared {@link TokenTypeDescriptor}. */
-	private static final TokenTypeDescriptor shared =
-		new TokenTypeDescriptor(Mutability.SHARED);
-
-	@Override
-	public TokenTypeDescriptor immutable ()
-	{
-		// There is no immutable variant.
-		return shared;
-	}
-
-	@Override
-	public TokenTypeDescriptor shared ()
-	{
-		return shared;
+		/** The shared [TokenTypeDescriptor].  */
+		private val shared = TokenTypeDescriptor(Mutability.SHARED)
 	}
 }

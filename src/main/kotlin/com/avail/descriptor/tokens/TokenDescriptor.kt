@@ -63,7 +63,7 @@ package com.avail.descriptor.tokens
  import com.avail.descriptor.tuples.A_Tuple
  import com.avail.descriptor.tuples.StringDescriptor
  import com.avail.descriptor.types.A_Type
- import com.avail.descriptor.types.TokenTypeDescriptor.tokenType
+ import com.avail.descriptor.types.TokenTypeDescriptor.Companion.tokenType
  import com.avail.descriptor.types.TypeDescriptor.Types
  import com.avail.descriptor.types.TypeTag
  import com.avail.serialization.SerializerOperation

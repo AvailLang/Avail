@@ -50,7 +50,7 @@ import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import com.avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import com.avail.descriptor.types.LiteralTokenTypeDescriptor.Companion.mostGeneralLiteralTokenType
 import com.avail.descriptor.types.TokenTypeDescriptor
-import com.avail.descriptor.types.TokenTypeDescriptor.tokenType
+import com.avail.descriptor.types.TokenTypeDescriptor.Companion.tokenType
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
