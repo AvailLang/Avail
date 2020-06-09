@@ -231,7 +231,7 @@ public class TypeConsistencyTest
 			{
 				if (!primitiveTypes.containsKey(type))
 				{
-					final @Nullable Types typeParent = type.parent;
+					final @Nullable Types typeParent = type.getParent();
 					final Node [] parents;
 					if (typeParent != null)
 					{

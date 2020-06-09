@@ -46,7 +46,7 @@ import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.in
 import com.avail.descriptor.types.BottomTypeDescriptor
 import com.avail.descriptor.types.InstanceMetaDescriptor
 import com.avail.descriptor.types.TypeDescriptor.Types
-import com.avail.descriptor.types.TypeDescriptor.isProperSubtype
+import com.avail.descriptor.types.TypeDescriptor.Companion.isProperSubtype
 import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_EQUALS_CONSTANT
 import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_CONSTANT
 import com.avail.interpreter.levelTwo.register.L2BoxedRegister
