@@ -184,8 +184,8 @@ import com.avail.descriptor.types.PojoTypeDescriptor.Companion.pojoTypeForClassW
 import com.avail.descriptor.types.PojoTypeDescriptor.Companion.resolvePojoType
 import com.avail.descriptor.types.PrimitiveTypeDescriptor.Companion.extractOrdinal
 import com.avail.descriptor.types.ReadWriteVariableTypeDescriptor
-import com.avail.descriptor.types.SelfPojoTypeDescriptor.pojoFromSerializationProxy
-import com.avail.descriptor.types.SelfPojoTypeDescriptor.pojoSerializationProxy
+import com.avail.descriptor.types.SelfPojoTypeDescriptor.Companion.pojoFromSerializationProxy
+import com.avail.descriptor.types.SelfPojoTypeDescriptor.Companion.pojoSerializationProxy
 import com.avail.descriptor.types.SetTypeDescriptor
 import com.avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
 import com.avail.descriptor.types.TokenTypeDescriptor

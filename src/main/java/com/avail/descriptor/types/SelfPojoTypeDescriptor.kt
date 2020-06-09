@@ -1,21 +1,21 @@
 /*
- * SelfPojoTypeDescriptor.java
+ * SelfPojoTypeDescriptor.kt
  * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
  *
- *  * Neither the name of the copyright holder nor the names of the contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -29,426 +29,380 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.descriptor.types
 
-package com.avail.descriptor.types;
-
-import com.avail.annotations.ThreadSafe;
-import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
-import com.avail.descriptor.maps.A_Map;
-import com.avail.descriptor.pojos.PojoDescriptor;
-import com.avail.descriptor.pojos.RawPojoDescriptor;
-import com.avail.descriptor.representation.A_BasicObject;
-import com.avail.descriptor.representation.AvailObject;
-import com.avail.descriptor.representation.Mutability;
-import com.avail.descriptor.sets.A_Set;
-import com.avail.descriptor.sets.SetDescriptor;
-import com.avail.descriptor.tuples.A_String;
-import com.avail.descriptor.tuples.A_Tuple;
-import com.avail.descriptor.tuples.TupleDescriptor;
-import com.avail.descriptor.types.ArrayPojoTypeDescriptor.PojoArray;
-import com.avail.serialization.SerializerOperation;
-
-import javax.annotation.Nullable;
-import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.IdentityHashMap;
-import java.util.List;
-
-import static com.avail.descriptor.maps.MapDescriptor.emptyMap;
-import static com.avail.descriptor.pojos.RawPojoDescriptor.equalityPojo;
-import static com.avail.descriptor.representation.NilDescriptor.nil;
-import static com.avail.descriptor.sets.SetDescriptor.emptySet;
-import static com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.tuples.StringDescriptor.stringFrom;
-import static com.avail.descriptor.types.BottomPojoTypeDescriptor.pojoBottom;
-import static com.avail.descriptor.types.SelfPojoTypeDescriptor.ObjectSlots.JAVA_ANCESTORS;
-import static com.avail.descriptor.types.SelfPojoTypeDescriptor.ObjectSlots.JAVA_CLASS;
+import com.avail.annotations.ThreadSafe
+import com.avail.descriptor.maps.A_Map
+import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
+import com.avail.descriptor.pojos.PojoDescriptor
+import com.avail.descriptor.pojos.RawPojoDescriptor
+import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.equalityPojo
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.NilDescriptor
+import com.avail.descriptor.representation.ObjectSlotsEnum
+import com.avail.descriptor.sets.A_Set
+import com.avail.descriptor.sets.SetDescriptor
+import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
+import com.avail.descriptor.tuples.A_String
+import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
+import com.avail.descriptor.tuples.TupleDescriptor
+import com.avail.descriptor.types.ArrayPojoTypeDescriptor.PojoArray
+import com.avail.descriptor.types.BottomPojoTypeDescriptor.Companion.pojoBottom
+import com.avail.serialization.SerializerOperation
+import java.lang.reflect.Modifier
+import java.util.*
 
 /**
- * {@code SelfPojoTypeDescriptor} describes the self type of a Java class or interface. In the pojo implementation, any Java class or interface that depends recursively on itself through type parameterization of self, superclass, or superinterface uses a pojo self type. {@link Enum java.lang.Enum} is a famous example from the Java library: its type parameter, {@code E}, extends {@code Enum}'s self type. A pojo self type is used to break the recursive dependency.
+ * `SelfPojoTypeDescriptor` describes the self type of a Java class or
+ * interface. In the pojo implementation, any Java class or interface that
+ * depends recursively on itself through type parameterization of self,
+ * superclass, or superinterface uses a pojo self type. [java.lang.Enum][Enum]
+ * is a famous example from the Java library: its type parameter, `E`, extends
+ * `Enum`'s self type. A pojo self type is used to break the recursive
+ * dependency.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @constructor
+ * Construct a new `SelfPojoTypeDescriptor`.
+ *
+ * @param mutability
+ *   The [mutability][Mutability] of the new descriptor.
  */
-public final class SelfPojoTypeDescriptor
-extends PojoTypeDescriptor
+class SelfPojoTypeDescriptor constructor(mutability: Mutability)
+	: PojoTypeDescriptor(mutability, ObjectSlots::class.java, null)
 {
-	/** The layout of the object slots. */
-	enum ObjectSlots implements ObjectSlotsEnumJava
+	/** The layout of the object slots.  */
+	internal enum class ObjectSlots : ObjectSlotsEnum
 	{
 		/**
-		 * A {@linkplain RawPojoDescriptor raw pojo} that wraps the {@linkplain Class Java&#32;class&#32;or&#32;interface} represented by this {@linkplain UnfusedPojoTypeDescriptor pojo&#32;type}.
+		 * A [raw pojo][RawPojoDescriptor] that wraps the
+		 * [Java&#32;class&#32;or&#32;interface][Class] represented by this
+		 * [pojo&#32;type][UnfusedPojoTypeDescriptor].
 		 */
 		JAVA_CLASS,
 
 		/**
-		 * A {@linkplain SetDescriptor set} of {@linkplain PojoDescriptor pojos} that wrap {@linkplain Class Java classes and interfaces}. This constitutes this type's complete ancestry of Java types. There are no {@linkplain TypeDescriptor type parameterization} {@linkplain TupleDescriptor tuples} because no Java type may appear multiply in the ancestry of any other Java type with different type parameterizations, thereby permitting pojo self types to omit type parameterization information.
+		 * A [set][SetDescriptor] of [pojos][PojoDescriptor] that wrap [Java
+		 * classes and interfaces][Class]. This constitutes this type's complete
+		 * ancestry of Java types. There are no [type
+		 * parameterization][TypeDescriptor] [tuples][TupleDescriptor] because
+		 * no Java type may appear multiply in the ancestry of any other Java
+		 * type with different type parameterizations, thereby permitting pojo
+		 * self types to omit type parameterization information.
 		 */
 		JAVA_ANCESTORS
 	}
 
-	@Override
-	public AvailObject o_JavaAncestors (final AvailObject object)
-	{
-		return object.slot(JAVA_ANCESTORS);
-	}
+	override fun o_JavaAncestors(self: AvailObject): AvailObject =
+		self.slot(ObjectSlots.JAVA_ANCESTORS)
 
-	@Override
-	public AvailObject o_JavaClass (final AvailObject object)
-	{
-		return object.slot(JAVA_CLASS);
-	}
+	override fun o_JavaClass(self: AvailObject): AvailObject =
+		self.slot(ObjectSlots.JAVA_CLASS)
 
-	@Override
-	public boolean o_EqualsPojoType (
-		final AvailObject object,
-		final AvailObject aPojoType)
+	override fun o_EqualsPojoType(
+		self: AvailObject,
+		aPojoType: AvailObject): Boolean
 	{
 		// Callers have ensured that aPojoType is either an unfused pojo type
 		// or a self type.
-		final A_BasicObject other = aPojoType.pojoSelfType();
-		return object.slot(JAVA_CLASS).equals(other.javaClass())
-			&& object.slot(JAVA_ANCESTORS).equals(other.javaAncestors());
+		val other: A_BasicObject = aPojoType.pojoSelfType()
+		return (self.slot(ObjectSlots.JAVA_CLASS).equals(other.javaClass())
+		        && self.slot(ObjectSlots.JAVA_ANCESTORS).equals(other.javaAncestors()))
 	}
 
-	@Override
-	public int o_Hash (final AvailObject object)
+	// Note that this definition produces a value compatible with an unfused
+	// pojo type; this is necessary to permit comparison between an unfused
+	// pojo type and its self type.
+	override fun o_Hash(self: AvailObject): Int =
+		self.slot(ObjectSlots.JAVA_ANCESTORS).hash() xor -0x5fea43bc
+
+	override fun o_IsAbstract(self: AvailObject): Boolean
 	{
-		// Note that this definition produces a value compatible with an unfused
-		// pojo type; this is necessary to permit comparison between an unfused
-		// pojo type and its self type.
-		return object.slot(JAVA_ANCESTORS).hash() ^ 0xA015BC44;
+		val javaClass: A_BasicObject = self.slot(ObjectSlots.JAVA_CLASS)
+		return (javaClass.equalsNil()
+		        || Modifier.isAbstract(
+			javaClass.javaObjectNotNull<Class<*>>().modifiers))
 	}
 
-	@Override
-	public boolean o_IsAbstract (final AvailObject object)
-	{
-		final A_BasicObject javaClass = object.slot(JAVA_CLASS);
-		return javaClass.equalsNil()
-			|| Modifier.isAbstract(
-				javaClass.<Class<?>>javaObjectNotNull().getModifiers());
-	}
+	override fun o_IsPojoArrayType(self: AvailObject): Boolean =
+		self.slot(ObjectSlots.JAVA_CLASS)
+			.equals(equalityPojo(PojoArray::class.java))
 
-	@Override
-	public boolean o_IsPojoArrayType (final AvailObject object)
-	{
-		return object.slot(JAVA_CLASS).equals(equalityPojo(PojoArray.class));
-	}
+	override fun o_IsPojoFusedType(self: AvailObject): Boolean =
+		self.slot(ObjectSlots.JAVA_CLASS).equalsNil()
 
-	@Override
-	public boolean o_IsPojoFusedType (final AvailObject object)
-	{
-		return object.slot(JAVA_CLASS).equalsNil();
-	}
+	override fun o_IsPojoSelfType(self: AvailObject): Boolean = true
 
-	@Override
-	public boolean o_IsPojoSelfType (final AvailObject object)
-	{
-		return true;
-	}
-
-	@Override
-	public boolean o_IsSupertypeOfPojoType (
-		final AvailObject object,
-		final A_Type aPojoType)
+	override fun o_IsSupertypeOfPojoType(
+		self: AvailObject,
+		aPojoType: A_Type): Boolean
 	{
 		// Check type compatibility by computing the set intersection of the
 		// ancestry of the arguments. If the result is not equal to the
 		// ancestry of object, then object is not a supertype of aPojoType.
-		final A_Set ancestors = object.slot(JAVA_ANCESTORS);
-		final A_Set otherAncestors = aPojoType.pojoSelfType().javaAncestors();
-		final A_Set intersection =
-			ancestors.setIntersectionCanDestroy(otherAncestors, false);
-		return ancestors.equals(intersection);
+		val ancestors: A_Set = self.slot(ObjectSlots.JAVA_ANCESTORS)
+		val otherAncestors: A_Set = aPojoType.pojoSelfType().javaAncestors()
+		val intersection =
+			ancestors.setIntersectionCanDestroy(otherAncestors, false)
+		return ancestors.equals(intersection)
 	}
 
-	@Override
-	public A_Type o_PojoSelfType (final AvailObject object)
-	{
-		return object;
-	}
+	override fun o_PojoSelfType(self: AvailObject): A_Type = self
 
-	@Override
-	public AvailObject o_MakeImmutable (final AvailObject object)
-	{
-		if (isMutable())
+	override fun o_MakeImmutable(self: AvailObject): AvailObject =
+		if (isMutable)
 		{
 			// Make the object shared, since there's not an immutable variant.
-			return object.makeShared();
+			self.makeShared()
 		}
-		return object;
-	}
+		else self
 
-	@Override
-	public @Nullable Object o_MarshalToJava (
-		final AvailObject object,
-		final @Nullable Class<?> ignoredClassHint)
+	override fun o_MarshalToJava(self: AvailObject, classHint: Class<*>?): Any?
 	{
-		final A_BasicObject javaClass = object.slot(JAVA_CLASS);
-		if (javaClass.equalsNil())
+		val javaClass: A_BasicObject = self.slot(ObjectSlots.JAVA_CLASS)
+		return if (javaClass.equalsNil())
 		{
 			// TODO: [TLS] Answer the nearest mutual parent of the leaf types.
-			return Object.class;
+			Any::class.java
 		}
-		return javaClass.javaObject();
+		else javaClass.javaObject<Any>()
 	}
 
-	@Override @ThreadSafe
-	public SerializerOperation o_SerializerOperation (final AvailObject object)
-	{
-		return SerializerOperation.SELF_POJO_TYPE_REPRESENTATIVE;
-	}
+	@ThreadSafe
+	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
+		SerializerOperation.SELF_POJO_TYPE_REPRESENTATIVE
 
-	@Override
-	public A_Type o_TypeIntersectionOfPojoType (
-		final AvailObject object,
-		final A_Type aPojoType)
+	override fun o_TypeIntersectionOfPojoType(
+		self: AvailObject,
+		aPojoType: A_Type): A_Type
 	{
-		final A_Type other = aPojoType.pojoSelfType();
-		final A_Set ancestors = object.slot(JAVA_ANCESTORS);
-		final A_Set otherAncestors = other.javaAncestors();
-		for (final AvailObject ancestor : ancestors)
+		val other = aPojoType.pojoSelfType()
+		val ancestors: A_Set = self.slot(ObjectSlots.JAVA_ANCESTORS)
+		val otherAncestors: A_Set = other.javaAncestors()
+		for (ancestor in ancestors)
 		{
-			final Class<?> javaClass = ancestor.javaObjectNotNull();
-			final int modifiers = javaClass.getModifiers();
+			val javaClass = ancestor.javaObjectNotNull<Class<*>>()
+			val modifiers = javaClass.modifiers
 			if (Modifier.isFinal(modifiers))
 			{
-				return pojoBottom();
+				return pojoBottom()
 			}
 		}
-		for (final A_BasicObject ancestor : otherAncestors)
+		for (ancestor in otherAncestors)
 		{
-			final Class<?> javaClass = ancestor.javaObjectNotNull();
-			final int modifiers = javaClass.getModifiers();
+			val javaClass = ancestor.javaObjectNotNull<Class<*>>()
+			val modifiers = javaClass.modifiers
 			if (Modifier.isFinal(modifiers))
 			{
-				return pojoBottom();
+				return pojoBottom()
 			}
 		}
 		return newSelfPojoType(
-			nil,
-			ancestors.setUnionCanDestroy(otherAncestors, false));
+			NilDescriptor.nil,
+			ancestors.setUnionCanDestroy(otherAncestors, false))
 	}
 
-	@Override
-	public A_Type o_TypeIntersectionOfPojoFusedType (
-		final AvailObject object,
-		final A_Type aFusedPojoType)
+	override fun o_TypeIntersectionOfPojoFusedType(
+		self: AvailObject,
+		aFusedPojoType: A_Type): A_Type
 	{
-		throw unsupportedOperationException();
+		throw unsupportedOperationException()
 	}
 
-	@Override
-	public A_Type o_TypeIntersectionOfPojoUnfusedType (
-		final AvailObject object,
-		final A_Type anUnfusedPojoType)
+	override fun o_TypeIntersectionOfPojoUnfusedType(
+		self: AvailObject,
+		anUnfusedPojoType: A_Type): A_Type
 	{
-		throw unsupportedOperationException();
+		throw unsupportedOperationException()
 	}
 
-	@Override
-	public A_Type o_TypeUnionOfPojoType (
-		final AvailObject object,
-		final A_Type aPojoType)
+	override fun o_TypeUnionOfPojoType(
+		self: AvailObject,
+		aPojoType: A_Type): A_Type
 	{
-		final A_Set intersection =
-			object.slot(JAVA_ANCESTORS).setIntersectionCanDestroy(
-				aPojoType.pojoSelfType().javaAncestors(), false);
-		return newSelfPojoType(mostSpecificOf(intersection), intersection);
+		val intersection =
+			self.slot(ObjectSlots.JAVA_ANCESTORS).setIntersectionCanDestroy(
+				aPojoType.pojoSelfType().javaAncestors(), false)
+		return newSelfPojoType(mostSpecificOf(intersection), intersection)
 	}
 
-	@Override
-	public A_Type o_TypeUnionOfPojoFusedType (
-		final AvailObject object,
-		final A_Type aFusedPojoType)
+	override fun o_TypeUnionOfPojoFusedType(
+		self: AvailObject,
+		aFusedPojoType: A_Type): A_Type
 	{
-		throw unsupportedOperationException();
+		throw unsupportedOperationException()
 	}
 
-	@Override
-	public A_Type o_TypeUnionOfPojoUnfusedType (
-		final AvailObject object,
-		final A_Type anUnfusedPojoType)
+	override fun o_TypeUnionOfPojoUnfusedType(
+		self: AvailObject,
+		anUnfusedPojoType: A_Type): A_Type
 	{
-		throw unsupportedOperationException();
+		throw unsupportedOperationException()
 	}
 
-	@Override
-	public A_Map o_TypeVariables (final AvailObject object)
-	{
-		return emptyMap();
-	}
+	override fun o_TypeVariables(self: AvailObject): A_Map = emptyMap()
 
-	@Override
-	public void printObjectOnAvoidingIndent (
-		final AvailObject object,
-		final StringBuilder builder,
-		final IdentityHashMap<A_BasicObject, Void> recursionMap,
-		final int indent)
+	override fun printObjectOnAvoidingIndent(
+		self: AvailObject,
+		builder: StringBuilder,
+		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		indent: Int)
 	{
-		final A_BasicObject javaClass = object.slot(JAVA_CLASS);
+		val javaClass: A_BasicObject = self.slot(ObjectSlots.JAVA_CLASS)
 		if (!javaClass.equalsNil())
 		{
-			builder.append(javaClass.<Class<?>>javaObjectNotNull().getName());
+			builder.append(javaClass.javaObjectNotNull<Class<*>>().name)
 		}
 		else
 		{
-			final A_Set ancestors = object.slot(JAVA_ANCESTORS);
-			final List<AvailObject> childless = new ArrayList<>(
-				childlessAmong(ancestors));
-			childless.sort((o1, o2) ->
-			{
-				assert o1 != null;
-				assert o2 != null;
-				final Class<?> c1 = o1.javaObjectNotNull();
-				final Class<?> c2 = o2.javaObjectNotNull();
-				return c1.getName().compareTo(c2.getName());
-			});
-			builder.append('(');
-			boolean first = true;
-			for (final A_BasicObject aClass : childless)
+			val ancestors: A_Set = self.slot(ObjectSlots.JAVA_ANCESTORS)
+			val childless: List<AvailObject> = ArrayList(
+				childlessAmong(ancestors))
+			childless.sortedWith(Comparator{ o1: AvailObject, o2: AvailObject ->
+				val c1 = o1.javaObjectNotNull<Class<*>>()
+				val c2 = o2.javaObjectNotNull<Class<*>>()
+				c1.name.compareTo(c2.name)
+			})
+			builder.append('(')
+			var first = true
+			for (aClass in childless)
 			{
 				if (!first)
 				{
-					builder.append(" ∩ ");
+					builder.append(" ∩ ")
 				}
-				first = false;
-				builder.append(aClass.<Class<?>>javaObjectNotNull().getName());
+				first = false
+				builder.append(aClass.javaObjectNotNull<Class<*>>().name)
 			}
-			builder.append(')');
+			builder.append(')')
 		}
-		builder.append("'s self type");
+		builder.append("'s self type")
 	}
 
-	/**
-	 * Construct a new {@code SelfPojoTypeDescriptor}.
-	 *
-	 * @param mutability
-	 *        The {@linkplain Mutability mutability} of the new descriptor.
-	 */
-	public SelfPojoTypeDescriptor (final Mutability mutability)
+	override fun mutable(): SelfPojoTypeDescriptor = mutable
+
+	// There is no immutable descriptor.
+	override fun immutable(): SelfPojoTypeDescriptor = shared
+
+	override fun shared(): SelfPojoTypeDescriptor = shared
+
+	companion object
 	{
-		super(mutability, ObjectSlots.class, null);
-	}
+		/** The mutable [SelfPojoTypeDescriptor].  */
+		private val mutable = SelfPojoTypeDescriptor(Mutability.MUTABLE)
 
-	/** The mutable {@link SelfPojoTypeDescriptor}. */
-	private static final SelfPojoTypeDescriptor mutable =
-		new SelfPojoTypeDescriptor(Mutability.MUTABLE);
+		/** The shared [SelfPojoTypeDescriptor].  */
+		private val shared = SelfPojoTypeDescriptor(Mutability.SHARED)
 
-	@Override
-	public SelfPojoTypeDescriptor mutable ()
-	{
-		return mutable;
-	}
-
-	/** The shared {@link SelfPojoTypeDescriptor}. */
-	private static final SelfPojoTypeDescriptor shared =
-		new SelfPojoTypeDescriptor(Mutability.SHARED);
-
-	@Override
-	public SelfPojoTypeDescriptor immutable ()
-	{
-		// There is no immutable descriptor.
-		return shared;
-	}
-
-	@Override
-	public SelfPojoTypeDescriptor shared ()
-	{
-		return shared;
-	}
-
-	/**
-	 * Create a new {@link AvailObject} that represents a {@linkplain
-	 * SelfPojoTypeDescriptor pojo self type}.
-	 *
-	 * @param javaClass
-	 *        A {@linkplain RawPojoDescriptor raw&#32;pojo} that wraps the {@linkplain Class Java&#32;class&#32;or&#32;interface} represented by this pojo self type.
-	 * @param javaAncestors
-	 *        A {@linkplain SetDescriptor set} of {@linkplain PojoDescriptor pojos} that wrap {@linkplain Class Java&#32;classes&#32;and&#32;interfaces}. This constitutes this type's complete ancestry of Java types. There are no {@linkplain TypeDescriptor type&#32;parameterization} {@linkplain TupleDescriptor tuples} because no Java type may appear multiply in the ancestry of any other Java type with different type parameterizations, thereby permitting pojo self types to omit type parameterization information.
-	 * @return
-	 * The requested pojo type.
-	 */
-	static AvailObject newSelfPojoType (
-		final AvailObject javaClass,
-		final A_Set javaAncestors)
-	{
-		final AvailObject newObject = mutable.create();
-		newObject.setSlot(JAVA_CLASS, javaClass);
-		newObject.setSlot(JAVA_ANCESTORS, javaAncestors);
-		return newObject.makeImmutable();
-	}
-
-	/**
-	 * Convert a self pojo type to a 2-tuple holding the main class name (or
-	 * `null`) and a set of ancestor class names.
-	 *
-	 * @param selfPojo
-	 * The self pojo to convert.
-	 * @return
-	 * A 2-tuple suitable for serialization.
-	 */
-	public static A_Tuple pojoSerializationProxy (
-		final A_BasicObject selfPojo)
-	{
-		assert selfPojo.isPojoSelfType();
-		final A_BasicObject pojoClass = selfPojo.javaClass();
-		final A_String mainClassName;
-		if (pojoClass.equalsNil())
+		/**
+		 * Create a new [AvailObject] that represents a
+		 * [pojo&#32;self&#32;type][SelfPojoTypeDescriptor].
+		 *
+		 * @param javaClass
+		 *   A [raw&#32;pojo][RawPojoDescriptor] that wraps the
+		 *   [Java&#32;class&#32;or&#32;interface][Class] represented by this
+		 *   pojo self type.
+		 * @param javaAncestors
+		 *   A [set][SetDescriptor] of [pojos][PojoDescriptor] that wrap
+		 *   [Java&#32;classes&#32;and&#32;interfaces][Class]. This constitutes
+		 *   this type's complete ancestry of Java types. There are no
+		 *   [type&#32;parameterization][TypeDescriptor]
+		 *   [tuples][TupleDescriptor] because no Java type may appear multiply
+		 *   in the ancestry of any other Java type with different type
+		 *   parameterizations, thereby permitting pojo self types to omit type
+		 *   parameterization information.
+		 * @return
+		 *   The requested pojo type.
+		 */
+		fun newSelfPojoType(
+			javaClass: AvailObject?,
+			javaAncestors: A_Set?): AvailObject
 		{
-			mainClassName = nil;
+			val newObject = mutable.create()
+			newObject.setSlot(ObjectSlots.JAVA_CLASS, javaClass!!)
+			newObject.setSlot(ObjectSlots.JAVA_ANCESTORS, javaAncestors!!)
+			return newObject.makeImmutable()
 		}
-		else
-		{
-			final Class<?> javaClass = pojoClass.javaObjectNotNull();
-			mainClassName = stringFrom(javaClass.getName());
-		}
-		A_Set ancestorNames = emptySet();
-		for (final A_BasicObject ancestor : selfPojo.javaAncestors())
-		{
-			final Class<?> javaClass = ancestor.javaObjectNotNull();
-			ancestorNames = ancestorNames.setWithElementCanDestroy(
-				stringFrom(javaClass.getName()), true);
-		}
-		return tuple(mainClassName, ancestorNames);
-	}
 
-	/**
-	 * Convert a proxy previously created by {@link #pojoSerializationProxy(A_BasicObject)} back into a self pojo type.
-	 *
-	 * @param selfPojoProxy
-	 *            A 2-tuple with the class name (or null) and a set of ancestor class names.
-	 * @param classLoader
-	 *            The {@link ClassLoader} used to load any mentioned classes.
-	 * @return
-	 * A self pojo type.
-	 * @throws ClassNotFoundException
-	 * If a class can't be loaded.
-	 */
-	public static AvailObject pojoFromSerializationProxy (
-		final A_Tuple selfPojoProxy,
-		final ClassLoader classLoader)
-	throws ClassNotFoundException
-	{
-		final A_String className = selfPojoProxy.tupleAt(1);
-		final AvailObject mainRawType;
-		if (className.equalsNil())
+		/**
+		 * Convert a self pojo type to a 2-tuple holding the main class name (or
+		 * `null`) and a set of ancestor class names.
+		 *
+		 * @param selfPojo
+		 *   The self pojo to convert.
+		 * @return
+		 *   A 2-tuple suitable for serialization.
+		 */
+		fun pojoSerializationProxy(
+			selfPojo: A_BasicObject): A_Tuple
 		{
-			mainRawType = nil;
+			assert(selfPojo.isPojoSelfType)
+			val pojoClass = selfPojo.javaClass()
+			val mainClassName: A_String
+			mainClassName = if (pojoClass.equalsNil())
+			{
+				NilDescriptor.nil
+			}
+			else
+			{
+				val javaClass = pojoClass.javaObjectNotNull<Class<*>>()
+				stringFrom(javaClass.name)
+			}
+			var ancestorNames = emptySet()
+			for (ancestor in selfPojo.javaAncestors())
+			{
+				val javaClass = ancestor.javaObjectNotNull<Class<*>>()
+				ancestorNames = ancestorNames.setWithElementCanDestroy(
+					stringFrom(javaClass.name), true)
+			}
+			return tuple(mainClassName, ancestorNames)
 		}
-		else
+
+		/**
+		 * Convert a proxy previously created by [pojoSerializationProxy] back
+		 * into a self pojo type.
+		 *
+		 * @param selfPojoProxy
+		 *   A 2-tuple with the class name (or null) and a set of ancestor class
+		 *   names.
+		 * @param classLoader
+		 *   The [ClassLoader] used to load any mentioned classes.
+		 * @return
+		 *   A self pojo type.
+		 * @throws ClassNotFoundException
+		 *   If a class can't be loaded.
+		 */
+		@Throws(ClassNotFoundException::class)
+		fun pojoFromSerializationProxy(
+			selfPojoProxy: A_Tuple,
+			classLoader: ClassLoader): AvailObject
 		{
-			final Class<?> mainClass = Class.forName(
-				className.asNativeString(), true, classLoader);
-			mainRawType = equalityPojo(mainClass);
+			val className: A_String = selfPojoProxy.tupleAt(1)
+			val mainRawType: AvailObject
+			mainRawType = if (className.equalsNil())
+			{
+				NilDescriptor.nil
+			}
+			else
+			{
+				val mainClass = Class.forName(
+					className.asNativeString(), true, classLoader)
+				equalityPojo(mainClass)
+			}
+			var ancestorTypes = emptySet()
+			for (ancestorClassName in selfPojoProxy.tupleAt(2))
+			{
+				val ancestorClass = Class.forName(
+					ancestorClassName.asNativeString(), true, classLoader)
+				ancestorTypes = ancestorTypes.setWithElementCanDestroy(
+					equalityPojo(ancestorClass), true)
+			}
+			return newSelfPojoType(mainRawType, ancestorTypes)
 		}
-		A_Set ancestorTypes = emptySet();
-		for (final A_String ancestorClassName : selfPojoProxy.tupleAt(2))
-		{
-			final Class<?> ancestorClass = Class.forName(
-				ancestorClassName.asNativeString(), true, classLoader);
-			ancestorTypes = ancestorTypes.setWithElementCanDestroy(
-				equalityPojo(ancestorClass), true);
-		}
-		return newSelfPojoType(mainRawType, ancestorTypes);
 	}
 }
