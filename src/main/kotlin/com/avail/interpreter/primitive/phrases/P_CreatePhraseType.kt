@@ -36,7 +36,7 @@ import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
-import com.avail.descriptor.types.InstanceTypeDescriptor.instanceType
+import com.avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import com.avail.descriptor.types.PhraseTypeDescriptor
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE

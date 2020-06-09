@@ -165,7 +165,7 @@ import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionTypeF
 import com.avail.descriptor.types.InstanceMetaDescriptor
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import com.avail.descriptor.types.InstanceTypeDescriptor
-import com.avail.descriptor.types.InstanceTypeDescriptor.instanceType
+import com.avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.integerRangeType
 import com.avail.descriptor.types.ListPhraseTypeDescriptor

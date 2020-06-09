@@ -71,7 +71,7 @@ import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.in
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.InstanceMetaDescriptor
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
-import com.avail.descriptor.types.InstanceTypeDescriptor.instanceType
+import com.avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import com.avail.descriptor.types.TypeDescriptor
 import com.avail.descriptor.types.TypeTag
 import com.avail.serialization.SerializerOperation

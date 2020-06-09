@@ -47,7 +47,7 @@ import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
-import com.avail.descriptor.types.InstanceTypeDescriptor.instanceType
+import com.avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import com.avail.descriptor.types.LiteralTokenTypeDescriptor.mostGeneralLiteralTokenType
 import com.avail.descriptor.types.TokenTypeDescriptor
 import com.avail.descriptor.types.TokenTypeDescriptor.tokenType
