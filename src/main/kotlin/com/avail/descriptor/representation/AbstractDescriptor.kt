@@ -38,7 +38,6 @@ import com.avail.annotations.ThreadSafe
 import com.avail.compiler.AvailCodeGenerator
 import com.avail.compiler.scanning.LexingState
 import com.avail.compiler.splitter.MessageSplitter
-import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.bundles.A_BundleTree
@@ -295,11 +294,7 @@ abstract class AbstractDescriptor protected constructor (
 	 * @param name
 	 *   The name of the slot.
 	 */
-	class DebuggerObjectSlots (val name: String) : ObjectSlotsEnumJava
-	{
-		override fun name() = name
-		override fun ordinal() = -1
-	}
+	class DebuggerObjectSlots (val name: String) : ObjectSlotsEnum
 
 	/**
 	 * Are [objects][AvailObject] using this [descriptor][AbstractDescriptor]
