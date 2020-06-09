@@ -1,21 +1,21 @@
 /*
- * UnfusedPojoTypeDescriptor.java
+ * UnfusedPojoTypeDescriptor.kt
  * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ * * Redistributions in binary form must reproduce the above copyright notice, 
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
  *
- *  * Neither the name of the copyright holder nor the names of the contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -29,580 +29,540 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.descriptor.types
 
-package com.avail.descriptor.types;
-
-import com.avail.annotations.HideFieldInDebugger;
-import com.avail.annotations.ThreadSafe;
-import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
-import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
-import com.avail.descriptor.maps.A_Map;
-import com.avail.descriptor.maps.MapDescriptor;
-import com.avail.descriptor.maps.MapDescriptor.Entry;
-import com.avail.descriptor.pojos.PojoDescriptor;
-import com.avail.descriptor.pojos.RawPojoDescriptor;
-import com.avail.descriptor.representation.A_BasicObject;
-import com.avail.descriptor.representation.AbstractSlotsEnum;
-import com.avail.descriptor.representation.AvailObject;
-import com.avail.descriptor.representation.BitField;
-import com.avail.descriptor.representation.Mutability;
-import com.avail.descriptor.sets.SetDescriptor;
-import com.avail.descriptor.tuples.A_Tuple;
-import com.avail.descriptor.tuples.StringDescriptor;
-import com.avail.descriptor.tuples.TupleDescriptor;
-import com.avail.serialization.SerializerOperation;
-import com.avail.utility.json.JSONWriter;
-
-import javax.annotation.Nullable;
-import java.lang.reflect.TypeVariable;
-import java.util.IdentityHashMap;
-
-import static com.avail.descriptor.maps.MapDescriptor.emptyMap;
-import static com.avail.descriptor.representation.NilDescriptor.nil;
-import static com.avail.descriptor.tuples.StringDescriptor.stringFrom;
-import static com.avail.descriptor.types.BottomPojoTypeDescriptor.pojoBottom;
-import static com.avail.descriptor.types.FusedPojoTypeDescriptor.createFusedPojoType;
-import static com.avail.descriptor.types.SelfPojoTypeDescriptor.newSelfPojoType;
-import static com.avail.descriptor.types.UnfusedPojoTypeDescriptor.IntegerSlots.HASH_AND_MORE;
-import static com.avail.descriptor.types.UnfusedPojoTypeDescriptor.IntegerSlots.HASH_OR_ZERO;
-import static com.avail.descriptor.types.UnfusedPojoTypeDescriptor.ObjectSlots.JAVA_ANCESTORS;
-import static com.avail.descriptor.types.UnfusedPojoTypeDescriptor.ObjectSlots.JAVA_CLASS;
-import static com.avail.descriptor.types.UnfusedPojoTypeDescriptor.ObjectSlots.SELF_TYPE;
-import static com.avail.descriptor.types.UnfusedPojoTypeDescriptor.ObjectSlots.TYPE_VARIABLES;
-import static java.lang.reflect.Modifier.isAbstract;
-import static java.lang.reflect.Modifier.isFinal;
-import static java.lang.reflect.Modifier.isInterface;
+import com.avail.annotations.ThreadSafe
+import com.avail.descriptor.maps.A_Map
+import com.avail.descriptor.maps.MapDescriptor
+import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
+import com.avail.descriptor.pojos.PojoDescriptor
+import com.avail.descriptor.pojos.RawPojoDescriptor
+import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.rawObjectClass
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AbstractSlotsEnum
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.BitField
+import com.avail.descriptor.representation.IntegerSlotsEnum
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.NilDescriptor
+import com.avail.descriptor.representation.ObjectSlotsEnum
+import com.avail.descriptor.sets.SetDescriptor
+import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.StringDescriptor
+import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
+import com.avail.descriptor.tuples.TupleDescriptor
+import com.avail.descriptor.types.BottomPojoTypeDescriptor.Companion.pojoBottom
+import com.avail.descriptor.types.FusedPojoTypeDescriptor.Companion.createFusedPojoType
+import com.avail.serialization.SerializerOperation
+import com.avail.utility.json.JSONWriter
+import java.lang.reflect.Modifier
+import java.lang.reflect.TypeVariable
+import java.util.*
 
 /**
- * {@code UnfusedPojoTypeDescriptor} describes a fully-parameterized Java reference type. This is any real Java class or interface that can be loaded via Avail's {@linkplain ClassLoader class&#32;loader}.
+ * `UnfusedPojoTypeDescriptor` describes a fully-parameterized Java reference
+ * type. This is any real Java class or interface that can be loaded via Avail's
+ * [class&#32;loader][ClassLoader].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @constructor
+ * Construct a new `UnfusedPojoTypeDescriptor`.
+ *
+ * @param mutability
+ *   The [mutability][Mutability] of the new descriptor.
  */
-final class UnfusedPojoTypeDescriptor
-extends PojoTypeDescriptor
+internal class UnfusedPojoTypeDescriptor constructor(mutability: Mutability)
+	: PojoTypeDescriptor(
+		mutability, ObjectSlots::class.java, IntegerSlots::class.java)
 {
-	/** The layout of the integer slots. */
-	enum IntegerSlots implements IntegerSlotsEnumJava
+	/** The layout of the integer slots.  */
+	internal enum class IntegerSlots : IntegerSlotsEnum
 	{
 		/**
-		 * The low 32 bits are used for the {@link #HASH_OR_ZERO}, but the upper 32 can be used by other {@link BitField}s in subclasses.
+		 * The low 32 bits are used for the [HASH_OR_ZERO], but the upper 32 can
+		 * be used by other [BitField]s in subclasses.
 		 */
-		@HideFieldInDebugger
 		HASH_AND_MORE;
 
-		/**
-		 * A slot to hold the hash value, or zero if it has not been computed.
-		 * The hash of an atom is a random number, computed once.
-		 */
-		public static final BitField HASH_OR_ZERO =
-			new BitField(HASH_AND_MORE, 0, 32);
+		companion object
+		{
+			/**
+			 * A slot to hold the hash value, or zero if it has not been
+			 * computed. The hash of an atom is a random number, computed once.
+			 */
+			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
+		}
 	}
 
-	/** The layout of the object slots. */
-	enum ObjectSlots implements ObjectSlotsEnumJava
+	/** The layout of the object slots.  */
+	internal enum class ObjectSlots : ObjectSlotsEnum
 	{
 		/**
-		 * A {@linkplain RawPojoDescriptor raw pojo} that wraps the {@linkplain Class Java&#32;class&#32;or&#32;interface} represented by this {@linkplain UnfusedPojoTypeDescriptor pojo&#32;type}.
+		 * A [raw pojo][RawPojoDescriptor] that wraps the
+		 * [Java&#32;class&#32;or&#32;interface][Class] represented by this
+		 * [pojo&#32;type][UnfusedPojoTypeDescriptor].
 		 */
 		JAVA_CLASS,
 
 		/**
-		 * A {@linkplain MapDescriptor map} from {@linkplain PojoDescriptor pojos} that wrap {@linkplain Class Java&#32;classes&#32;and&#32;interfaces} to their {@linkplain TupleDescriptor type&#32;parameterizations}. The {@linkplain AvailObject#keysAsSet() keys} constitute this type's complete {@linkplain SetDescriptor ancestry} of Java types.
+		 * A [map][MapDescriptor] from [pojos][PojoDescriptor] that wrap
+		 * [Java&#32;classes&#32;and&#32;interfaces][Class] to their
+		 * [type&#32;parameterizations][TupleDescriptor]. The
+		 * [keys][AvailObject.keysAsSet] constitute this type's complete
+		 * [ancestry][SetDescriptor] of Java types.
 		 */
 		JAVA_ANCESTORS,
 
 		/**
-		 * A {@linkplain MapDescriptor map} from fully-qualified {@linkplain TypeVariable type variable} {@linkplain StringDescriptor names} to their {@linkplain TypeDescriptor values} in this {@linkplain UnfusedPojoTypeDescriptor type}.
+		 * A [map][MapDescriptor] from fully-qualified [type
+		 * variable][TypeVariable] [names][StringDescriptor] to their
+		 * [values][TypeDescriptor] in this [type][UnfusedPojoTypeDescriptor].
 		 */
 		TYPE_VARIABLES,
 
 		/**
-		 * The cached {@linkplain SelfPojoTypeDescriptor self&#32;type} of this {@linkplain UnfusedPojoTypeDescriptor pojo&#32;type}.
+		 * The cached [self&#32;type][SelfPojoTypeDescriptor] of this
+		 * [pojo&#32;type][UnfusedPojoTypeDescriptor].
 		 */
 		SELF_TYPE
 	}
 
-	@Override
-	protected boolean allowsImmutableToMutableReferenceInField (
-		final AbstractSlotsEnum e)
-	{
-		return e == HASH_AND_MORE
-			|| e == TYPE_VARIABLES
-			|| e == SELF_TYPE;
-	}
+	override fun allowsImmutableToMutableReferenceInField(
+		e: AbstractSlotsEnum): Boolean =
+			e === IntegerSlots.HASH_AND_MORE
+				|| e === ObjectSlots.TYPE_VARIABLES
+				|| e === ObjectSlots.SELF_TYPE
 
-	@Override
-	public boolean o_EqualsPojoType (
-		final AvailObject object,
-		final AvailObject aPojoType)
+	override fun o_EqualsPojoType(
+		self: AvailObject,
+		aPojoType: AvailObject): Boolean
 	{
-		if (aPojoType.isPojoSelfType())
+		if (aPojoType.isPojoSelfType)
 		{
-			return object.pojoSelfType().equalsPojoType(aPojoType);
+			return self.pojoSelfType().equalsPojoType(aPojoType)
 		}
-		if (!object.slot(JAVA_CLASS).equals(aPojoType.javaClass()))
+		if (!self.slot(ObjectSlots.JAVA_CLASS).equals(aPojoType.javaClass()))
 		{
-			return false;
+			return false
 		}
-		final A_Map ancestors = object.slot(JAVA_ANCESTORS);
-		final A_Map otherAncestors = aPojoType.javaAncestors();
+		val ancestors: A_Map = self.slot(ObjectSlots.JAVA_ANCESTORS)
+		val otherAncestors: A_Map = aPojoType.javaAncestors()
 		if (ancestors.mapSize() != otherAncestors.mapSize())
 		{
-			return false;
+			return false
 		}
-		for (final AvailObject ancestor : ancestors.keysAsSet())
+		for (ancestor in ancestors.keysAsSet())
 		{
 			if (!otherAncestors.hasKey(ancestor))
 			{
-				return false;
+				return false
 			}
-			final A_Tuple params = ancestors.mapAt(ancestor);
-			final A_Tuple otherParams = otherAncestors.mapAt(ancestor);
-			final int limit = params.tupleSize();
-			assert limit == otherParams.tupleSize();
-			for (int i = 1; i <= limit; i++)
+			val params: A_Tuple = ancestors.mapAt(ancestor)
+			val otherParams: A_Tuple = otherAncestors.mapAt(ancestor)
+			val limit = params.tupleSize()
+			assert(limit == otherParams.tupleSize())
+			for (i in 1 .. limit)
 			{
 				if (!params.tupleAt(i).equals(otherParams.tupleAt(i)))
 				{
-					return false;
+					return false
 				}
 			}
 		}
 		// The objects are known to be equal and not reference identical
 		// (checked by a caller), so coalesce them if possible.
-		if (!isShared())
+		if (!isShared)
 		{
-			aPojoType.makeImmutable();
-			object.becomeIndirectionTo(aPojoType);
+			aPojoType.makeImmutable()
+			self.becomeIndirectionTo(aPojoType)
 		}
-		else if (!aPojoType.descriptor().isShared())
+		else if (!aPojoType.descriptor().isShared)
 		{
-			object.makeImmutable();
-			aPojoType.becomeIndirectionTo(object);
+			self.makeImmutable()
+			aPojoType.becomeIndirectionTo(self)
 		}
-		return true;
+		return true
 	}
+
+	override fun o_Hash(self: AvailObject): Int
+	{
+		if (isShared)
+		{
+			synchronized(self) { return hash(self) }
+		}
+		return hash(self)
+	}
+
+	override fun o_IsAbstract(self: AvailObject): Boolean
+	{
+		val javaClass =
+			self.slot(ObjectSlots.JAVA_CLASS).javaObjectNotNull<Class<*>>()
+		return Modifier.isAbstract(javaClass.modifiers)
+	}
+
+	override fun o_IsPojoArrayType(self: AvailObject): Boolean = false
+
+	override fun o_IsPojoFusedType(self: AvailObject): Boolean =  false
+
+	override fun o_JavaAncestors(self: AvailObject): AvailObject =
+		self.slot(ObjectSlots.JAVA_ANCESTORS)
+
+	override fun o_JavaClass(self: AvailObject): AvailObject =
+		self.slot(ObjectSlots.JAVA_CLASS)
+
+	override fun o_MarshalToJava(
+		self: AvailObject,
+		classHint: Class<*>?): Any? =
+			self.slot(ObjectSlots.JAVA_CLASS).javaObject<Any>()
 
 	/**
-	 * Lazily compute the hash of the specified {@linkplain UnfusedPojoTypeDescriptor object}.
+	 * Lazily compute the self type of the specified
+	 * [object][UnfusedPojoTypeDescriptor].
 	 *
-	 * @param object
-	 * An object.
+	 * @param self
+	 *   An object.
 	 * @return
-	 * The hash.
+	 *   The self type.
 	 */
-	private static int hash (final AvailObject object)
+	private fun pojoSelfType(self: AvailObject): A_Type
 	{
-		int hash = object.slot(HASH_OR_ZERO);
-		if (hash == 0)
-		{
-			// Note that this definition produces a value compatible with a pojo
-			// self type; this is necessary to permit comparison between an
-			// unfused pojo type and its self type.
-			hash = object.slot(JAVA_ANCESTORS).keysAsSet().hash() ^ 0xA015BC44;
-			object.setSlot(HASH_OR_ZERO, hash);
-		}
-		return hash;
-	}
-
-	@Override
-	public int o_Hash (final AvailObject object)
-	{
-		if (isShared())
-		{
-			synchronized (object)
-			{
-				return hash(object);
-			}
-		}
-		return hash(object);
-	}
-
-	@Override
-	public boolean o_IsAbstract (final AvailObject object)
-	{
-		final Class<?> javaClass = object.slot(JAVA_CLASS).javaObjectNotNull();
-		return isAbstract(javaClass.getModifiers());
-	}
-
-	@Override
-	public boolean o_IsPojoArrayType (final AvailObject object)
-	{
-		return false;
-	}
-
-	@Override
-	public boolean o_IsPojoFusedType (final AvailObject object)
-	{
-		return false;
-	}
-
-	@Override
-	public AvailObject o_JavaAncestors (final AvailObject object)
-	{
-		return object.slot(JAVA_ANCESTORS);
-	}
-
-	@Override
-	public AvailObject o_JavaClass (final AvailObject object)
-	{
-		return object.slot(JAVA_CLASS);
-	}
-
-	@Override
-	public @Nullable Object o_MarshalToJava (
-		final AvailObject object,
-		final @Nullable Class<?> ignoredClassHint)
-	{
-		return object.slot(JAVA_CLASS).javaObject();
-	}
-
-	/**
-	 * Lazily compute the self type of the specified {@linkplain UnfusedPojoTypeDescriptor object}.
-	 *
-	 * @param object
-	 * An object.
-	 * @return
-	 * The self type.
-	 */
-	private A_Type pojoSelfType (final AvailObject object)
-	{
-		AvailObject selfType = object.slot(SELF_TYPE);
+		var selfType = self.slot(ObjectSlots.SELF_TYPE)
 		if (selfType.equalsNil())
 		{
-			selfType = newSelfPojoType(
-				object.slot(JAVA_CLASS),
-				object.slot(JAVA_ANCESTORS).keysAsSet());
-			if (isShared())
+			selfType = SelfPojoTypeDescriptor.newSelfPojoType(
+				self.slot(ObjectSlots.JAVA_CLASS),
+				self.slot(ObjectSlots.JAVA_ANCESTORS).keysAsSet())
+			if (isShared)
 			{
-				selfType = selfType.traversed().makeShared();
+				selfType = selfType.traversed().makeShared()
 			}
-			object.setSlot(SELF_TYPE, selfType);
+			self.setSlot(ObjectSlots.SELF_TYPE, selfType)
 		}
-		return selfType;
+		return selfType
 	}
 
-	@Override
-	public A_Type o_PojoSelfType (final AvailObject object)
+	override fun o_PojoSelfType(self: AvailObject): A_Type
 	{
-		if (isShared())
+		if (isShared)
 		{
-			synchronized (object)
-			{
-				return pojoSelfType(object);
-			}
+			synchronized(self) { return pojoSelfType(self) }
 		}
-		return pojoSelfType(object);
+		return pojoSelfType(self)
 	}
 
-	@Override @ThreadSafe
-	public SerializerOperation o_SerializerOperation (final AvailObject object)
-	{
-		return SerializerOperation.UNFUSED_POJO_TYPE;
-	}
+	@ThreadSafe
+	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
+		SerializerOperation.UNFUSED_POJO_TYPE
 
-	@Override
-	public A_Type o_TypeIntersectionOfPojoType (
-		final AvailObject object,
-		final A_Type aPojoType)
+	override fun o_TypeIntersectionOfPojoType(
+		self: AvailObject,
+		aPojoType: A_Type): A_Type
 	{
-		if (aPojoType.isPojoSelfType())
+		if (aPojoType.isPojoSelfType)
 		{
-			return object.pojoSelfType().typeIntersectionOfPojoType(aPojoType);
+			return self.pojoSelfType().typeIntersectionOfPojoType(aPojoType)
 		}
 		// A Java array type is effectively final, so the type intersection with
 		// of a pojo array type and a singleton pojo type is pojo bottom.
-		if (aPojoType.isPojoArrayType())
+		return if (aPojoType.isPojoArrayType)
 		{
-			return pojoBottom();
+			pojoBottom()
 		}
-		return canonicalPojoType(
-			aPojoType.typeIntersectionOfPojoUnfusedType(object),
-			false);
+		else canonicalPojoType(
+			aPojoType.typeIntersectionOfPojoUnfusedType(self),
+			false)
 	}
 
-	@Override
-	public A_Type o_TypeIntersectionOfPojoFusedType (
-		final AvailObject object,
-		final A_Type aFusedPojoType)
+	override fun o_TypeIntersectionOfPojoFusedType(
+		self: AvailObject,
+		aFusedPojoType: A_Type): A_Type
 	{
-		final Class<?> javaClass = object.slot(JAVA_CLASS).javaObjectNotNull();
-		final int modifiers = javaClass.getModifiers();
+		val javaClass =
+			self.slot(ObjectSlots.JAVA_CLASS).javaObjectNotNull<Class<*>>()
+		val modifiers = javaClass.modifiers
 		// If the unfused pojo type's class is final, then the intersection is
 		// pojo bottom.
-		if (isFinal(modifiers))
+		if (Modifier.isFinal(modifiers))
 		{
-			return pojoBottom();
+			return pojoBottom()
 		}
 		// If the unfused pojo type is a class, then check that none of the
 		// fused pojo type's ancestors are classes.
-		if (!isInterface(modifiers))
+		if (!Modifier.isInterface(modifiers))
 		{
 			// If any of the fused pojo type's ancestors are Java classes, then
 			// the intersection is pojo bottom.
-			for (final A_BasicObject ancestor :
-				aFusedPojoType.javaAncestors().keysAsSet())
+			for (ancestor in aFusedPojoType.javaAncestors().keysAsSet())
 			{
 				// Ignore java.lang.Object.
-				if (!ancestor.equals(RawPojoDescriptor.rawObjectClass()))
+				if (!ancestor.equals(rawObjectClass()))
 				{
-					final Class<?> otherJavaClass =
-						ancestor.javaObjectNotNull();
-					final int otherModifiers = otherJavaClass.getModifiers();
-					if (isFinal(otherModifiers) || !isInterface(otherModifiers))
+					val otherJavaClass = ancestor.javaObjectNotNull<Class<*>>()
+					val otherModifiers = otherJavaClass.modifiers
+					if (Modifier.isFinal(otherModifiers)
+					    || !Modifier.isInterface(otherModifiers))
 					{
-						return pojoBottom();
+						return pojoBottom()
 					}
 				}
 			}
 		}
-		final A_BasicObject intersection =
-			computeIntersection(object, aFusedPojoType);
-		if (intersection.equalsPojoBottomType())
+		val intersection = computeIntersection(self, aFusedPojoType)
+		return if (intersection.equalsPojoBottomType())
 		{
-			return pojoBottom();
+			pojoBottom()
 		}
+		else createFusedPojoType(intersection as A_Map)
 		// The result will be a pojo fused type. Find the union of the key sets
 		// and the intersection of their parameterizations.
-		return createFusedPojoType((A_Map)intersection);
 	}
 
-	@Override
-	public A_Type o_TypeIntersectionOfPojoUnfusedType (
-		final AvailObject object,
-		final A_Type anUnfusedPojoType)
+	override fun o_TypeIntersectionOfPojoUnfusedType(
+		self: AvailObject,
+		anUnfusedPojoType: A_Type): A_Type
 	{
-		final Class<?> javaClass = object.slot(JAVA_CLASS).javaObjectNotNull();
-		final Class<?> otherJavaClass =
-			anUnfusedPojoType.javaClass().javaObjectNotNull();
-		final int modifiers = javaClass.getModifiers();
-		final int otherModifiers = otherJavaClass.getModifiers();
+		val javaClass =
+			self.slot(ObjectSlots.JAVA_CLASS).javaObjectNotNull<Class<*>>()
+		val otherJavaClass =
+			anUnfusedPojoType.javaClass().javaObjectNotNull<Class<*>>()
+		val modifiers = javaClass.modifiers
+		val otherModifiers = otherJavaClass.modifiers
 		// If either class is declared final, then the intersection is pojo
 		// bottom.
-		if (isFinal(modifiers) || isFinal(otherModifiers))
+		if (Modifier.isFinal(modifiers) || Modifier.isFinal(otherModifiers))
 		{
-			return pojoBottom();
+			return pojoBottom()
 		}
 		// If neither class is an interface, then the intersection is pojo
 		// bottom (because Java doesn't support multiple inheritance of
 		// classes).
-		if (!isInterface(modifiers) && !isInterface(otherModifiers))
+		if (!Modifier.isInterface(modifiers)
+		    && !Modifier.isInterface(otherModifiers))
 		{
-			return pojoBottom();
+			return pojoBottom()
 		}
-		final A_BasicObject intersection =
-			computeIntersection(object, anUnfusedPojoType);
-		if (intersection.equalsPojoBottomType())
+		val intersection = computeIntersection(self, anUnfusedPojoType)
+		return if (intersection.equalsPojoBottomType())
 		{
-			return pojoBottom();
+			pojoBottom()
 		}
+		else createFusedPojoType(intersection as A_Map)
 		// The result will be a pojo fused type. Find the union of the key sets
 		// and the intersection of their parameterizations.
-		return createFusedPojoType((A_Map)intersection);
 	}
 
-	@Override
-	public A_Type o_TypeUnionOfPojoType (
-		final AvailObject object,
-		final A_Type aPojoType)
+	override fun o_TypeUnionOfPojoType(
+		self: AvailObject,
+		aPojoType: A_Type): A_Type
 	{
-		if (aPojoType.isPojoSelfType())
+		return if (aPojoType.isPojoSelfType)
 		{
-			return object.pojoSelfType().typeUnionOfPojoType(aPojoType);
+			self.pojoSelfType().typeUnionOfPojoType(aPojoType)
 		}
-		return canonicalPojoType(
-			aPojoType.typeUnionOfPojoUnfusedType(object),
-			false);
+		else canonicalPojoType(
+			aPojoType.typeUnionOfPojoUnfusedType(self),
+			false)
 	}
 
-	@Override
-	public A_Type o_TypeUnionOfPojoFusedType (
-		final AvailObject object,
-		final A_Type aFusedPojoType)
+	override fun o_TypeUnionOfPojoFusedType(
+		self: AvailObject,
+		aFusedPojoType: A_Type): A_Type
 	{
-		final A_Map intersectionAncestors = computeUnion(
-			object, aFusedPojoType);
-		final AvailObject javaClass = mostSpecificOf(
-			intersectionAncestors.keysAsSet());
+		val intersectionAncestors = computeUnion(self, aFusedPojoType)
+		val javaClass = mostSpecificOf(
+			intersectionAncestors.keysAsSet())
 		// If the intersection contains a most specific type, then the answer is
 		// not a fused pojo type; otherwise it is.
-		return !javaClass.equalsNil()
-			? createUnfusedPojoType(javaClass, intersectionAncestors)
-			: createFusedPojoType(intersectionAncestors);
+		return if (!javaClass.equalsNil())
+		{
+			createUnfusedPojoType(javaClass, intersectionAncestors)
+		}
+		else
+		{
+			createFusedPojoType(intersectionAncestors)
+		}
 	}
 
-	@Override
-	public A_Type o_TypeUnionOfPojoUnfusedType (
-		final AvailObject object,
-		final A_Type anUnfusedPojoType)
+	override fun o_TypeUnionOfPojoUnfusedType(
+		self: AvailObject,
+		anUnfusedPojoType: A_Type): A_Type
 	{
-		final A_Map intersectionAncestors = computeUnion(
-			object, anUnfusedPojoType);
-		final AvailObject javaClass = mostSpecificOf(
-			intersectionAncestors.keysAsSet());
+		val intersectionAncestors = computeUnion(
+			self, anUnfusedPojoType)
+		val javaClass = mostSpecificOf(
+			intersectionAncestors.keysAsSet())
 		// If the intersection contains a most specific type, then the answer is
 		// not a fused pojo type; otherwise it is.
-		return !javaClass.equalsNil()
-			? createUnfusedPojoType(javaClass, intersectionAncestors)
-			: createFusedPojoType(intersectionAncestors);
+		return if (!javaClass.equalsNil())
+		{
+			createUnfusedPojoType(javaClass, intersectionAncestors)
+		}
+		else
+		{
+			createFusedPojoType(intersectionAncestors)
+		}
 	}
 
 	/**
-	 * Lazily compute the type variables of the specified {@linkplain UnfusedPojoTypeDescriptor object}.
+	 * Lazily compute the type variables of the specified
+	 * [object][UnfusedPojoTypeDescriptor].
 	 *
-	 * @param object
-	 * An unfused pojo type.
+	 * @param self
+	 *   An unfused pojo type.
 	 * @return
-	 * The type variables.
+	 *   The type variables.
 	 */
-	private A_Map typeVariables (final AvailObject object)
+	private fun typeVariables(self: AvailObject): A_Map
 	{
-		A_Map typeVars = object.slot(TYPE_VARIABLES);
+		var typeVars: A_Map = self.slot(ObjectSlots.TYPE_VARIABLES)
 		if (typeVars.equalsNil())
 		{
-			typeVars = emptyMap();
-			for (final Entry entry
-				: object.slot(JAVA_ANCESTORS).mapIterable())
+			typeVars = emptyMap()
+			for (entry in self.slot(ObjectSlots.JAVA_ANCESTORS).mapIterable())
 			{
-				final Class<?> ancestor = entry.key().javaObjectNotNull();
-				final TypeVariable<?>[] vars = ancestor.getTypeParameters();
-				final A_Tuple typeArgs = entry.value();
-				assert vars.length == typeArgs.tupleSize();
-				for (int i = 0; i < vars.length; i++)
+				val ancestor = entry.key().javaObjectNotNull<Class<*>>()
+				val vars = ancestor.typeParameters
+				val typeArgs: A_Tuple = entry.value()
+				assert(vars.size == typeArgs.tupleSize())
+				for (i in vars.indices)
 				{
 					typeVars = typeVars.mapAtPuttingCanDestroy(
 						stringFrom(
-							ancestor.getName() + "." + vars[i].getName()),
+							ancestor.name + "." + vars[i].name),
 						typeArgs.tupleAt(i + 1),
-						true);
+						true)
 				}
 			}
-			if (isShared())
+			if (isShared)
 			{
-				typeVars = typeVars.traversed().makeShared();
+				typeVars = typeVars.traversed().makeShared()
 			}
-			object.setSlot(TYPE_VARIABLES, typeVars);
+			self.setSlot(ObjectSlots.TYPE_VARIABLES, typeVars)
 		}
-		return typeVars;
+		return typeVars
 	}
 
-	@Override
-	public A_Map o_TypeVariables (final AvailObject object)
+	override fun o_TypeVariables(self: AvailObject): A_Map
 	{
-		if (isShared())
+		if (isShared)
 		{
-			synchronized (object)
-			{
-				return typeVariables(object);
-			}
+			synchronized(self) { return typeVariables(self) }
 		}
-		return typeVariables(object);
+		return typeVariables(self)
 	}
 
-	@Override
-	public void printObjectOnAvoidingIndent (
-		final AvailObject object,
-		final StringBuilder builder,
-		final IdentityHashMap<A_BasicObject, Void> recursionMap,
-		final int indent)
+	override fun printObjectOnAvoidingIndent(
+		self: AvailObject,
+		builder: StringBuilder,
+		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		indent: Int)
 	{
-		final AvailObject javaClass = object.slot(JAVA_CLASS);
-		builder.append(javaClass.<Class<?>>javaObjectNotNull().getName());
-		final A_Map ancestors = object.slot(JAVA_ANCESTORS);
-		final A_Tuple params = ancestors.mapAt(javaClass);
+		val javaClass = self.slot(ObjectSlots.JAVA_CLASS)
+		builder.append(javaClass.javaObjectNotNull<Class<*>>().name)
+		val ancestors: A_Map = self.slot(ObjectSlots.JAVA_ANCESTORS)
+		val params: A_Tuple = ancestors.mapAt(javaClass)
 		if (params.tupleSize() != 0)
 		{
-			builder.append('<');
-			boolean first = true;
-			for (final A_BasicObject param : params)
+			builder.append('<')
+			var first = true
+			for (param in params)
 			{
 				if (!first)
 				{
-					builder.append(", ");
+					builder.append(", ")
 				}
-				first = false;
-				param.printOnAvoidingIndent(builder, recursionMap, indent);
+				first = false
+				param.printOnAvoidingIndent(builder, recursionMap, indent)
 			}
-			builder.append('>');
+			builder.append('>')
 		}
 	}
 
-	@Override
-	public void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	override fun o_WriteTo(self: AvailObject, writer: JSONWriter)
 	{
-		writer.startObject();
-		writer.write("kind");
-		writer.write("pojo type");
-		writer.write("class");
-		writer.write(object.toString());
-		writer.endObject();
+		writer.startObject()
+		writer.write("kind")
+		writer.write("pojo type")
+		writer.write("class")
+		writer.write(self.toString())
+		writer.endObject()
 	}
 
-	/**
-	 * Construct a new {@code UnfusedPojoTypeDescriptor}.
-	 *
-	 * @param mutability
-	 *        The {@linkplain Mutability mutability} of the new descriptor.
-	 */
-	UnfusedPojoTypeDescriptor (final Mutability mutability)
+	override fun mutable(): UnfusedPojoTypeDescriptor =  mutable
+
+	override fun immutable(): UnfusedPojoTypeDescriptor = immutable
+
+	override fun shared(): UnfusedPojoTypeDescriptor = shared
+
+	companion object
 	{
-		super(mutability, ObjectSlots.class, IntegerSlots.class);
-	}
+		/**
+		 * Lazily compute the hash of the specified
+		 * [object][UnfusedPojoTypeDescriptor].
+		 *
+		 * @param self
+		 *   An object.
+		 * @return
+		 *   The hash.
+		 */
+		private fun hash(self: AvailObject): Int
+		{
+			var hash = self.slot(IntegerSlots.HASH_OR_ZERO)
+			if (hash == 0)
+			{
+				// Note that this definition produces a value compatible with a pojo
+				// self type; this is necessary to permit comparison between an
+				// unfused pojo type and its self type.
+				hash =
+					self.slot(ObjectSlots.JAVA_ANCESTORS).keysAsSet().hash() xor
+						-0x5fea43bc
+				self.setSlot(IntegerSlots.HASH_OR_ZERO, hash)
+			}
+			return hash
+		}
 
-	/** The mutable {@link UnfusedPojoTypeDescriptor}. */
-	private static final UnfusedPojoTypeDescriptor mutable =
-		new UnfusedPojoTypeDescriptor(Mutability.MUTABLE);
+		/** The mutable [UnfusedPojoTypeDescriptor].  */
+		private val mutable = UnfusedPojoTypeDescriptor(Mutability.MUTABLE)
 
-	@Override
-	public UnfusedPojoTypeDescriptor mutable ()
-	{
-		return mutable;
-	}
+		/** The immutable [UnfusedPojoTypeDescriptor].  */
+		private val immutable = UnfusedPojoTypeDescriptor(Mutability.IMMUTABLE)
 
-	/** The immutable {@link UnfusedPojoTypeDescriptor}. */
-	private static final UnfusedPojoTypeDescriptor immutable =
-		new UnfusedPojoTypeDescriptor(Mutability.IMMUTABLE);
+		/** The shared [UnfusedPojoTypeDescriptor].  */
+		private val shared = UnfusedPojoTypeDescriptor(Mutability.SHARED)
 
-	@Override
-	public UnfusedPojoTypeDescriptor immutable ()
-	{
-		return immutable;
-	}
+		/** The most general [pojo&#32;type][PojoTypeDescriptor].  */
+		val mostGeneralType: A_Type =
+			pojoTypeForClass(Any::class.java).makeShared()
 
-	/** The shared {@link UnfusedPojoTypeDescriptor}. */
-	private static final UnfusedPojoTypeDescriptor shared =
-		new UnfusedPojoTypeDescriptor(Mutability.SHARED);
-
-	@Override
-	public UnfusedPojoTypeDescriptor shared ()
-	{
-		return shared;
-	}
-
-	/** The most general {@linkplain PojoTypeDescriptor pojo&#32;type}. */
-	static final A_Type mostGeneralType =
-		pojoTypeForClass(Object.class).makeShared();
-
-	/**
-	 * Create a new {@link AvailObject} that represents an {@linkplain UnfusedPojoTypeDescriptor unparameterized&#32;pojo&#32;type}.
-	 *
-	 * @param javaClass
-	 *        A {@linkplain RawPojoDescriptor raw&#32;pojo} that wraps the {@linkplain Class Java&#32;class&#32;or&#32;interface} represented by this {@code pojo type}.
-	 * @param javaAncestors
-	 *        A {@linkplain MapDescriptor map} from {@linkplain PojoDescriptor pojos} that wrap {@linkplain Class Java&#32;classes&#32;and&#32;interfaces} to their {@linkplain TupleDescriptor type&#32;parameterizations}. The {@linkplain AvailObject#keysAsSet() keys} constitute this type's complete {@linkplain SetDescriptor ancestry} of Java types.
-	 * @return
-	 * The requested pojo type.
-	 */
-	static AvailObject createUnfusedPojoType (
-		final AvailObject javaClass,
-		final A_BasicObject javaAncestors)
-	{
-		final AvailObject newObject = mutable.create();
-		newObject.setSlot(HASH_OR_ZERO, 0);
-		newObject.setSlot(JAVA_CLASS, javaClass);
-		newObject.setSlot(JAVA_ANCESTORS, javaAncestors);
-		newObject.setSlot(TYPE_VARIABLES, nil);
-		newObject.setSlot(SELF_TYPE, nil);
-		return newObject.makeImmutable();
+		/**
+		 * Create a new [AvailObject] that represents an
+		 * [unparameterized&#32;pojo&#32;type][UnfusedPojoTypeDescriptor].
+		 *
+		 * @param javaClass
+		 *   A [raw&#32;pojo][RawPojoDescriptor] that wraps the
+		 *   [Java&#32;class&#32;or&#32;interface][Class] represented by this
+		 *   `pojo type`.
+		 * @param javaAncestors
+		 *   A [map][MapDescriptor] from [pojos][PojoDescriptor] that wrap
+		 *   [Java&#32;classes&#32;and&#32;interfaces][Class] to their
+		 *   [type&#32;parameterizations][TupleDescriptor]. The
+		 *   [keys][AvailObject.keysAsSet] constitute this type's complete
+		 *   [ancestry][SetDescriptor] of Java types.
+		 * @return
+		 *   The requested pojo type.
+		 */
+		fun createUnfusedPojoType(
+			javaClass: AvailObject,
+			javaAncestors: A_BasicObject): AvailObject
+		{
+			val newObject = mutable.create()
+			newObject.setSlot(IntegerSlots.HASH_OR_ZERO, 0)
+			newObject.setSlot(ObjectSlots.JAVA_CLASS, javaClass)
+			newObject.setSlot(ObjectSlots.JAVA_ANCESTORS, javaAncestors)
+			newObject.setSlot(ObjectSlots.TYPE_VARIABLES, NilDescriptor.nil)
+			newObject.setSlot(ObjectSlots.SELF_TYPE, NilDescriptor.nil)
+			return newObject.makeImmutable()
+		}
 	}
 }
