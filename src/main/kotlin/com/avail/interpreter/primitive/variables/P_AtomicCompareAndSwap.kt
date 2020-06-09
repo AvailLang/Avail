@@ -40,7 +40,7 @@ import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.en
 import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
-import com.avail.descriptor.types.VariableTypeDescriptor.mostGeneralVariableType
+import com.avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 import com.avail.descriptor.variables.A_Variable
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_MODIFY_FINAL_JAVA_FIELD
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE

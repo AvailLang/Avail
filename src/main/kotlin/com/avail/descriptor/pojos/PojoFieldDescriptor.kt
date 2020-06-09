@@ -41,7 +41,7 @@ import com.avail.descriptor.representation.Descriptor
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.types.*
-import com.avail.descriptor.types.VariableTypeDescriptor.variableTypeFor
+import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import com.avail.descriptor.variables.VariableDescriptor
 import com.avail.exceptions.AvailErrorCode.E_JAVA_MARSHALING_FAILED
 import com.avail.exceptions.AvailRuntimeException

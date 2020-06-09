@@ -48,7 +48,7 @@ import com.avail.descriptor.types.FunctionTypeDescriptor
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.naturalNumbers
 import com.avail.descriptor.types.TypeDescriptor
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
-import com.avail.descriptor.types.VariableTypeDescriptor.variableTypeFor
+import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import com.avail.interpreter.Primitive.Companion.holdersByClassName
 import com.avail.interpreter.Primitive.Fallibility.CallSiteCanFail
 import com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail

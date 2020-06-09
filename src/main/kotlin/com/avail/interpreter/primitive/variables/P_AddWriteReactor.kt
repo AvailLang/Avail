@@ -43,7 +43,7 @@ import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.en
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
-import com.avail.descriptor.types.VariableTypeDescriptor.mostGeneralVariableType
+import com.avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 import com.avail.descriptor.variables.VariableDescriptor
 import com.avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
 import com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM

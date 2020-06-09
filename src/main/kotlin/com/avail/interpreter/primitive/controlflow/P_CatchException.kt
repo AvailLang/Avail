@@ -43,7 +43,7 @@ import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.TupleTypeDescriptor.zeroOrMoreOf
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
-import com.avail.descriptor.types.VariableTypeDescriptor.variableTypeFor
+import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import com.avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithOuterType
 import com.avail.exceptions.AvailErrorCode.E_HANDLER_SENTINEL
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE

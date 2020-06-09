@@ -45,7 +45,7 @@ import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFu
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.naturalNumbers
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.wholeNumbers
 import com.avail.descriptor.types.TupleTypeDescriptor.mostGeneralTupleType
-import com.avail.descriptor.types.VariableTypeDescriptor.variableTypeFor
+import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_CREATE_CONTINUATION_FOR_INFALLIBLE_PRIMITIVE_FUNCTION
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_CONTINUATION_STACK_SIZE
 import com.avail.interpreter.Primitive

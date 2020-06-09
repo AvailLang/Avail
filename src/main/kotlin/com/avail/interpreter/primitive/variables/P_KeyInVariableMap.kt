@@ -43,7 +43,7 @@ import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanTyp
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.MapTypeDescriptor.mostGeneralMapType
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
-import com.avail.descriptor.types.VariableTypeDescriptor.variableReadWriteType
+import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableReadWriteType
 import com.avail.descriptor.variables.VariableDescriptor
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE
 import com.avail.exceptions.VariableGetException

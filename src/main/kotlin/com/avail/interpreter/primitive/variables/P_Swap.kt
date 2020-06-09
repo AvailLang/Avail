@@ -38,7 +38,7 @@ import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
-import com.avail.descriptor.types.VariableTypeDescriptor.mostGeneralVariableType
+import com.avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 import com.avail.descriptor.variables.A_Variable
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_SWAP_CONTENTS_OF_DIFFERENTLY_TYPED_VARIABLES
 import com.avail.exceptions.AvailErrorCode.E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED

@@ -102,7 +102,7 @@ import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.MARKER_PHRASE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PERMUTED_LIST_PHRASE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.REFERENCE_PHRASE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE
-import com.avail.descriptor.types.VariableTypeDescriptor.variableTypeFor
+import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import com.avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithOuterType
 import com.avail.utility.PrefixSharingList.last
 import java.util.*

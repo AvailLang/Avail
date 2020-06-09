@@ -194,8 +194,8 @@ import com.avail.descriptor.types.TupleTypeDescriptor
 import com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType
 import com.avail.descriptor.types.TypeDescriptor
 import com.avail.descriptor.types.VariableTypeDescriptor
-import com.avail.descriptor.types.VariableTypeDescriptor.variableReadWriteType
-import com.avail.descriptor.types.VariableTypeDescriptor.variableTypeFor
+import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableReadWriteType
+import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import com.avail.descriptor.variables.A_Variable
 import com.avail.descriptor.variables.VariableDescriptor
 import com.avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithOuterType

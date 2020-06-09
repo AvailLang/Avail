@@ -39,7 +39,7 @@ import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import com.avail.descriptor.types.TypeDescriptor.Types
-import com.avail.descriptor.types.VariableTypeDescriptor.variableTypeFor
+import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2OperandType

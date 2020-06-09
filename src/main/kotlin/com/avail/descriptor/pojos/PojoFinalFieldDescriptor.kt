@@ -40,7 +40,7 @@ import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.types.*
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
-import com.avail.descriptor.types.VariableTypeDescriptor.variableReadWriteType
+import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableReadWriteType
 import com.avail.descriptor.variables.VariableDescriptor
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_MODIFY_FINAL_JAVA_FIELD
 import com.avail.exceptions.AvailErrorCode.E_JAVA_MARSHALING_FAILED

@@ -48,7 +48,7 @@ import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.DECLARATION_PHRASE
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.descriptor.types.VariableTypeDescriptor
-import com.avail.descriptor.types.VariableTypeDescriptor.variableReadWriteType
+import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableReadWriteType
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE
 import com.avail.exceptions.AvailErrorCode.E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED
 import com.avail.exceptions.VariableSetException

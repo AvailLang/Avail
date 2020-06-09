@@ -58,7 +58,7 @@ package com.avail.descriptor.phrases
  import com.avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
  import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
  import com.avail.descriptor.types.TypeTag
- import com.avail.descriptor.types.VariableTypeDescriptor.variableTypeFor
+ import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
  import com.avail.serialization.SerializerOperation
  import com.avail.utility.json.JSONWriter
  import java.util.*

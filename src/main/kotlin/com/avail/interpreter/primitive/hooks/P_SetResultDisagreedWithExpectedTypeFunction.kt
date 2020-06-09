@@ -44,7 +44,7 @@ import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFu
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
-import com.avail.descriptor.types.VariableTypeDescriptor.variableTypeFor
+import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.Primitive.Flag.HasSideEffect

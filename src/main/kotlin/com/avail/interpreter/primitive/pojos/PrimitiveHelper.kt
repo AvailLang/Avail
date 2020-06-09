@@ -46,7 +46,7 @@ import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.FunctionTypeDescriptor
 import com.avail.descriptor.types.PojoTypeDescriptor.Companion.marshalDefiningType
 import com.avail.descriptor.types.PojoTypeDescriptor.Companion.pojoTypeForClass
-import com.avail.descriptor.types.VariableTypeDescriptor.variableTypeFor
+import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.AvailErrorCode.E_JAVA_FIELD_NOT_AVAILABLE
 import com.avail.exceptions.AvailErrorCode.E_JAVA_FIELD_REFERENCE_IS_AMBIGUOUS

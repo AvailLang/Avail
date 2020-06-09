@@ -36,7 +36,7 @@ import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import com.avail.descriptor.types.VariableTypeDescriptor
-import com.avail.descriptor.types.VariableTypeDescriptor.variableMeta
+import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableMeta
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline

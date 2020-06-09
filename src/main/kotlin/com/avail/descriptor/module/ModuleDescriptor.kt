@@ -99,7 +99,7 @@ package com.avail.descriptor.module
  import com.avail.descriptor.types.A_Type
  import com.avail.descriptor.types.TypeDescriptor.Types
  import com.avail.descriptor.types.TypeTag
- import com.avail.descriptor.types.VariableTypeDescriptor.mostGeneralVariableType
+ import com.avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
  import com.avail.descriptor.variables.A_Variable
  import com.avail.descriptor.variables.VariableDescriptor
  import com.avail.exceptions.AvailRuntimeException

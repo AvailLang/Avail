@@ -38,7 +38,7 @@ import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
-import com.avail.descriptor.types.VariableTypeDescriptor.variableTypeFor
+import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_MARK_HANDLER_FRAME
 import com.avail.exceptions.AvailErrorCode.E_HANDLER_SENTINEL
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE

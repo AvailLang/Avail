@@ -39,7 +39,7 @@ import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.TupleTypeDescriptor.stringType
 import com.avail.descriptor.types.TypeDescriptor.Types.MODULE
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
-import com.avail.descriptor.types.VariableTypeDescriptor.variableMeta
+import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableMeta
 import com.avail.descriptor.variables.VariableSharedGlobalDescriptor
 import com.avail.descriptor.variables.VariableSharedGlobalDescriptor.Companion.createGlobal
 import com.avail.interpreter.Primitive

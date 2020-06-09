@@ -210,7 +210,7 @@ import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_P
 import com.avail.descriptor.types.TupleTypeDescriptor.stringType
 import com.avail.descriptor.types.TypeDescriptor.Types.TOKEN
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
-import com.avail.descriptor.types.VariableTypeDescriptor.variableTypeFor
+import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import com.avail.descriptor.variables.VariableSharedGlobalDescriptor.Companion.createGlobal
 import com.avail.dispatch.LookupTree
 import com.avail.exceptions.AvailAssertionFailedException

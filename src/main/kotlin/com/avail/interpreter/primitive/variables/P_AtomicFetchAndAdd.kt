@@ -41,7 +41,7 @@ import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.en
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.extendedIntegers
-import com.avail.descriptor.types.VariableTypeDescriptor.variableReadWriteType
+import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableReadWriteType
 import com.avail.descriptor.variables.A_Variable
 import com.avail.exceptions.ArithmeticException
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_ADD_UNLIKE_INFINITIES
