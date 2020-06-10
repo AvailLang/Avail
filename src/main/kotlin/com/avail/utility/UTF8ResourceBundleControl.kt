@@ -1,5 +1,5 @@
 /*
- * UTF8ResourceBundleControl.java
+ * UTF8ResourceBundleControl.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,136 +29,110 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.utility
 
-package com.avail.utility;
-
-import javax.annotation.Nullable;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.net.URL;
-import java.net.URLConnection;
-import java.nio.charset.StandardCharsets;
-import java.security.AccessController;
-import java.security.PrivilegedActionException;
-import java.security.PrivilegedExceptionAction;
-import java.util.Locale;
-import java.util.PropertyResourceBundle;
-import java.util.ResourceBundle;
-import java.util.ResourceBundle.Control;
+import java.io.IOException
+import java.io.InputStream
+import java.io.InputStreamReader
+import java.io.Reader
+import java.nio.charset.StandardCharsets
+import java.security.AccessController
+import java.security.PrivilegedActionException
+import java.security.PrivilegedExceptionAction
+import java.util.*
 
 /**
- * {@code UTF8ResourceBundleControl} permits the reading of UTF-8-encoded
- * Java properties files.
+ * `UTF8ResourceBundleControl` permits the reading of UTF-8-encoded Java
+ * properties files.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class UTF8ResourceBundleControl
-extends Control
+class UTF8ResourceBundleControl : ResourceBundle.Control()
 {
-	@Override
-	public @Nullable ResourceBundle newBundle (
-			final @Nullable String baseName,
-			final @Nullable Locale locale,
-			final @Nullable String format,
-			final @Nullable ClassLoader loader,
-			final boolean reload)
-		throws IOException
+	@Throws(IOException::class)
+	override fun newBundle(
+		baseName: String,
+		locale: Locale,
+		format: String,
+		loader: ClassLoader,
+		reload: Boolean): ResourceBundle?
 	{
-		assert format != null;
-		assert loader != null;
-		final String bundleName = toBundleName(baseName, locale);
-		@Nullable ResourceBundle bundle = null;
-		if (format.equals("java.class"))
+		val bundleName = toBundleName(baseName, locale)
+		var bundle: ResourceBundle? = null
+		if (format == "java.class")
 		{
 			try
 			{
-				@SuppressWarnings("unchecked")
-				final Class<? extends ResourceBundle> bundleClass =
-					(Class<? extends ResourceBundle>) loader.loadClass(
-						bundleName);
+				val bundleClass = loader.loadClass(
+					bundleName) as Class<out ResourceBundle>
 
 				// If the class isn't a ResourceBundle subclass, throw a
 				// ClassCastException.
-				if (ResourceBundle.class.isAssignableFrom(bundleClass))
-				{
-					bundle = bundleClass.newInstance();
-				}
-				else
-				{
-					throw new ClassCastException(
-						bundleClass.getName()
-						+ " cannot be cast to ResourceBundle");
-				}
+				bundle =
+					if (ResourceBundle::class.java.isAssignableFrom(bundleClass))
+					{
+						bundleClass.newInstance()
+					}
+					else
+					{
+						throw ClassCastException(
+							"${bundleClass.name} cannot be cast to ResourceBundle")
+					}
 			}
-			catch (final ClassNotFoundException
-				| InstantiationException
-				| IllegalAccessException e)
+			catch (e: ClassNotFoundException)
 			{
 				// Do nothing.
 			}
+			catch (e: InstantiationException) { }
+			catch (e: IllegalAccessException) { }
 		}
-		else if (format.equals("java.properties"))
+		else if (format == "java.properties")
 		{
-			final Reader stream;
+			val stream: Reader?
 			try
 			{
-				final String resourceName = toResourceName(
-					bundleName, "properties");
+				val resourceName = toResourceName(
+					bundleName, "properties")
 				stream = AccessController.doPrivileged(
-					(PrivilegedExceptionAction<Reader>) () ->
-					{
-						final InputStream is;
+					PrivilegedExceptionAction {
+						val inputStream: InputStream
 						if (reload)
 						{
-							final @Nullable URL url =
-								loader.getResource(resourceName);
-							if (url == null)
-							{
-								throw new IOException(
-									"Invalid URL for resource");
-							}
-							final URLConnection connection =
-								url.openConnection();
-							if (connection == null)
-							{
-								throw new IOException(
-									"Invalid URL for resource");
-							}
+							val url = loader.getResource(resourceName)
+							          ?: throw IOException(
+								          "Invalid URL for resource")
+							val connection = url.openConnection()
+							                 ?: throw IOException(
+								                 "Invalid URL for resource")
 							// Disable caches to get fresh data for
 							// reloading.
-							connection.setUseCaches(false);
-							is = connection.getInputStream();
+							connection.useCaches = false
+							inputStream = connection.getInputStream()
 						}
 						else
 						{
-							is = loader.getResourceAsStream(resourceName);
+							inputStream =
+								loader.getResourceAsStream(resourceName)!!
 						}
-						return (Reader) new InputStreamReader(
-							is, StandardCharsets.UTF_8);
-					});
+						InputStreamReader(
+							inputStream, StandardCharsets.UTF_8) as Reader
+					} as PrivilegedExceptionAction<Reader?>)
 			}
-			catch (final PrivilegedActionException e)
+			catch (e: PrivilegedActionException)
 			{
-				throw (IOException) e.getException();
+				throw (e.exception as IOException)
 			}
 			if (stream != null)
 			{
-				try
-				{
-					bundle = new PropertyResourceBundle(stream);
-				}
-				finally
-				{
-					stream.close();
+				bundle = stream.use { stream ->
+					PropertyResourceBundle(stream)
 				}
 			}
 		}
 		else
 		{
-			throw new IllegalArgumentException("unknown format: " + format);
+			throw IllegalArgumentException("unknown format: $format")
 		}
-		return bundle;
+		return bundle
 	}
 }

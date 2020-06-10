@@ -1,5 +1,5 @@
 /*
- * NullOutputStream.java
+ * NullOutputStream.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,21 +29,18 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.utility
 
-package com.avail.utility;
-
-import java.io.OutputStream;
+import java.io.OutputStream
 
 /**
- * A {@code NullOutputStream} discards everything written to it.
+ * A `NullOutputStream` discards everything written to it.
  *
  * @author Leslie Schultz &lt;leslie@availlang.org&gt;
  */
-public class NullOutputStream
-extends OutputStream
+class NullOutputStream : OutputStream()
 {
-	@Override
-	public void write (final int b)
+	override fun write(b: Int)
 	{
 		// Do nothing.
 	}
