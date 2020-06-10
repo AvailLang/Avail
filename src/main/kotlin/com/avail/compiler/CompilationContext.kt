@@ -76,7 +76,7 @@ import com.avail.interpreter.levelOne.L1InstructionWriter
 import com.avail.interpreter.levelOne.L1Operation
 import com.avail.io.TextInterface
 import com.avail.serialization.Serializer
-import com.avail.utility.StackPrinter.trace
+import com.avail.utility.StackPrinter.Companion.trace
 import java.io.ByteArrayOutputStream
 import java.lang.String.format
 import java.util.Collections.emptyList

@@ -1,5 +1,5 @@
 /*
- * IO.java
+ * IO.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,74 +29,62 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-
-package com.avail.utility;
-
-import javax.annotation.Nullable;
+package com.avail.utility
 
 /**
- * {@code IO} is a utility class for I/O operations.
+ * `IO` is a utility class for I/O operations.
  *
- * Prominent among the operations provided are {@link #close(AutoCloseable)
- * close} operations that suppress the annoying checked {@link Exception}s that
- * Java's {@linkplain AutoCloseable#close()} operation throws <em>for no earthly
- * reason</em>. The {@code #close(AutoCloseable) close} methods defined here
- * silence exceptions, the way God intended. If you should encounter a bizarre
- * case where a {@code close} operation should really throw an exception, then
- * <em>do not use the {@code close} methods defined herein</em>.
+ * Prominent among the operations provided are [close][.close] operations that
+ * suppress the annoying checked [Exception]s that Java's [AutoCloseable.close]
+ * operation throws *for no earthly reason*. The `#close(AutoCloseable) close`
+ * methods defined here silence exceptions, the way God intended. If you should
+ * encounter a bizarre case where a `close` operation should really throw an
+ * exception, then  *do not use the `close` methods defined herein*.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class IO
+object IO
 {
 	/**
-	 * Forbid instantiation.
-	 */
-	private IO ()
-	{
-		// No implementation required.
-	}
-
-	/**
-	 * Attempt to {@linkplain AutoCloseable#close() close} the specified {@link
-	 * AutoCloseable resource}. Suppress any {@linkplain Exception exception}
-	 * thrown by the underlying {@code close} operation.
+	 * Attempt to [close][AutoCloseable.close] the specified
+	 * [resource][AutoCloseable]. Suppress any [exception][Exception] thrown by
+	 * the underlying `close` operation.
 	 *
 	 * @param closeable
-	 *        A closeable resource. <strong>Must not be {@code null}</strong>;
-	 *        see {@link #closeIfNotNull(AutoCloseable) closeIfNotNull} to
-	 *        handle that case.
+	 *   A closeable resource. **Must not be `null`**; see
+	 *   [closeIfNotNull][.closeIfNotNull] to handle that case.
 	 */
-	public static void close (final AutoCloseable closeable)
+	fun close(closeable: AutoCloseable)
 	{
 		try
 		{
-			closeable.close();
+			closeable.close()
 		}
-		catch (final Exception e)
+		catch (e: Exception)
 		{
 			// Do nothing; suppress this exception.
 		}
 	}
 
 	/**
-	 * Attempt to {@linkplain AutoCloseable#close() close} the specified {@link
-	 * AutoCloseable resource}, which is generously permitted to be {@code
-	 * null}. Suppress any {@linkplain Exception exception} thrown by the
-	 * underlying {@code close} operation.
+	 * Attempt to [close][AutoCloseable.close] the specified
+	 * [resource][AutoCloseable], which is generously permitted to be `null`.
+	 * Suppress any [exception][Exception] thrown by the underlying `close`
+	 * operation.
 	 *
 	 * @param closeable
-	 *        A closeable resource, or {@code null}.
+	 *   A closeable resource, or `null`.
 	 */
-	public static void closeIfNotNull (final @Nullable AutoCloseable closeable)
+	@JvmStatic
+	fun closeIfNotNull(closeable: AutoCloseable?)
 	{
 		if (closeable != null)
 		{
 			try
 			{
-				closeable.close();
+				closeable.close()
 			}
-			catch (final Exception e)
+			catch (e: Exception)
 			{
 				// Do nothing; suppress this exception.
 			}

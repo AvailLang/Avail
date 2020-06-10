@@ -93,7 +93,7 @@ import com.avail.performance.StatisticReport.RUNNING_PARSING_INSTRUCTIONS
 import com.avail.utility.PrefixSharingList.append
 import com.avail.utility.PrefixSharingList.last
 import com.avail.utility.PrefixSharingList.withoutLast
-import com.avail.utility.StackPrinter.trace
+import com.avail.utility.StackPrinter.Companion.trace
 import com.avail.utility.evaluation.Describer
 import java.util.*
 import java.util.Collections.reverse

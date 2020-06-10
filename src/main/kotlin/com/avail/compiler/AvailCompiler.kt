@@ -242,7 +242,7 @@ import com.avail.utility.MutableOrNull
 import com.avail.utility.PrefixSharingList
 import com.avail.utility.PrefixSharingList.append
 import com.avail.utility.PrefixSharingList.last
-import com.avail.utility.StackPrinter.trace
+import com.avail.utility.StackPrinter.Companion.trace
 import com.avail.utility.Strings.increaseIndentation
 import com.avail.utility.evaluation.Describer
 import com.avail.utility.evaluation.FormattingDescriber

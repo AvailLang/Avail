@@ -1,21 +1,21 @@
 /*
- * ParagraphFormatterStream.java
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * ParagraphFormatterStream.kt
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * * Redistributions of source code must retain the above copyright notice, this
- *   list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice, this
+ *     list of conditions and the following disclaimer.
  *
- * * Redistributions in binary form must reproduce the above copyright notice,
- *   this list of conditions and the following disclaimer in the documentation
- *   and/or other materials provided with the distribution.
+ *  * Redistributions in binary form must reproduce the above copyright notice, this
+ *     list of conditions and the following disclaimer in the documentation
+ *     and/or other materials provided with the distribution.
  *
- * * Neither the name of the copyright holder nor the names of the contributors
- *   may be used to endorse or promote products derived from this software
- *   without specific prior written permission.
+ *  * Neither the name of the copyright holder nor the names of the contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -29,11 +29,9 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.utility
 
-package com.avail.utility;
-
-import javax.annotation.Nullable;
-import java.io.IOException;
+import java.io.IOException
 
 /**
  * ParagraphFormatterStream wraps an Appendable with a ParagraphFormatter, so
@@ -41,57 +39,49 @@ import java.io.IOException;
  * being appended to the output stream.
  *
  * @author Leslie Schultz &lt;leslie@availlang.org&gt;
+ *
+ * @property formatter
+ *   The text formatter that formats text prior to its appendage.
+ * @property appendable
+ *   The appender
+ * @constructor
+ * Construct a new [ParagraphFormatterStream].
+ *
+ * @param formatter
+ *   The text formatter.
+ * @param appendable
+ *   The Appendable that receives output text.
  */
-public class ParagraphFormatterStream
-implements Appendable
+class ParagraphFormatterStream constructor(
+	private val formatter: ParagraphFormatter,
+	private val appendable: Appendable) : Appendable
 {
-	/** The text formatter that formats text prior to its appendage. */
-	private final ParagraphFormatter formatter;
 
-	/** The appender */
-	private final Appendable appendable;
-
-	/**
-	 * Construct a new {@link ParagraphFormatterStream}.
-	 *
-	 * @param formatter The text formatter.
-	 * @param appendable The Appendable that receives output text.
-	 */
-	public ParagraphFormatterStream (final ParagraphFormatter formatter,
-		final Appendable appendable)
+	@Throws(IOException::class)
+	override fun append(c: Char): Appendable
 	{
-		this.formatter = formatter;
-		this.appendable = appendable;
+		var str: String = c.toString()
+		str = formatter.format(str)
+		return appendable.append(str)
 	}
 
-	@Override
-	public Appendable append (final char c)
-		throws IOException
+	@Throws(IOException::class)
+	override fun append(csq: CharSequence?): Appendable
 	{
-		String str = String.valueOf(c);
-		str = formatter.format(str);
-		return appendable.append(str);
+		var str: String = csq.toString()
+		str = formatter.format(str)
+		return appendable.append(str)
 	}
 
-	@Override
-	public Appendable append (final @Nullable CharSequence csq)
-		throws IOException
+	@Throws(IOException::class)
+	override fun append(
+		csq: CharSequence,
+		start: Int,
+		end: Int): Appendable
 	{
-		String str = String.valueOf(csq);
-		str = formatter.format(str);
-		return appendable.append(str);
-	}
-
-	@Override
-	public Appendable append (
-			final @Nullable CharSequence csq,
-			final int start,
-			final int end)
-		throws IOException
-	{
-		String str = String.valueOf(csq);
-		str = str.substring(start, end);
-		str = formatter.format(str);
-		return appendable.append(str);
+		var str = csq.toString()
+		str = str.substring(start, end)
+		str = formatter.format(str)
+		return appendable.append(str)
 	}
 }

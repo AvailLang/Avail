@@ -1,21 +1,21 @@
 /*
- * StackPrinter.java
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * StackPrinter.kt
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * * Redistributions of source code must retain the above copyright notice, this
- *   list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice, this
+ *     list of conditions and the following disclaimer.
  *
- * * Redistributions in binary form must reproduce the above copyright notice,
- *   this list of conditions and the following disclaimer in the documentation
- *   and/or other materials provided with the distribution.
+ *  * Redistributions in binary form must reproduce the above copyright notice, this
+ *     list of conditions and the following disclaimer in the documentation
+ *     and/or other materials provided with the distribution.
  *
- * * Neither the name of the copyright holder nor the names of the contributors
- *   may be used to endorse or promote products derived from this software
- *   without specific prior written permission.
+ *  * Neither the name of the copyright holder nor the names of the contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -29,35 +29,40 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.utility
 
-package com.avail.utility;
-
-import java.io.CharArrayWriter;
-import java.io.PrintWriter;
+import java.io.CharArrayWriter
+import java.io.PrintWriter
 
 /**
  * I provide a static method for extracting a stack trace from an exception,
- * something <em>REALLY OBVIOUSLY</em> omitted by the Java library writers.
+ * something *REALLY OBVIOUSLY* omitted by the Java library writers.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public enum StackPrinter
+enum class StackPrinter
 {
-	// No instances of this enum, just using it to store static methods.
 	;
 
-	/**
-	 * Produce a {@link String} representation of the stack trace captured in
-	 * the given {@link Throwable}.
-	 *
-	 * @param t The {@link Throwable} containing a stack trace.
-	 * @return The {@link String} form of the stack trace.
-	 */
-	public static String trace (final Throwable t)
+	companion object
 	{
-		final CharArrayWriter inner = new CharArrayWriter();
-		final PrintWriter outer = new PrintWriter(inner);
-		t.printStackTrace(outer);
-		return inner.toString();
+		// No instances of this enum, just using it to store static methods.
+		/**
+		 * Produce a [String] representation of the stack trace captured in
+		 * the given [Throwable].
+		 *
+		 * @param t
+		 *   The [Throwable] containing a stack trace.
+		 * @return
+		 *   The [String] form of the stack trace.
+		 */
+		@JvmStatic
+		fun trace(t: Throwable): String
+		{
+			val inner = CharArrayWriter()
+			val outer = PrintWriter(inner)
+			t.printStackTrace(outer)
+			return inner.toString()
+		}
 	}
 }

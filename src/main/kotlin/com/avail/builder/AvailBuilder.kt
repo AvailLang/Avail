@@ -72,7 +72,7 @@ import com.avail.serialization.MalformedSerialStreamException
 import com.avail.serialization.Serializer
 import com.avail.utility.Graph
 import com.avail.utility.Locks.auto
-import com.avail.utility.StackPrinter.trace
+import com.avail.utility.StackPrinter.Companion.trace
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
