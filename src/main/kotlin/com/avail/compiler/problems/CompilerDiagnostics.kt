@@ -32,7 +32,7 @@
 
 package com.avail.compiler.problems
 
-import com.avail.AvailRuntime.currentRuntime
+import com.avail.AvailRuntime.Companion.currentRuntime
 import com.avail.builder.ModuleName
 import com.avail.compiler.ParserState
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.SILENT

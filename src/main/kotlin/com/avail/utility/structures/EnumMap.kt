@@ -108,6 +108,19 @@ class EnumMap<K: Enum<K>, V : Any> constructor(
 	}
 
 	/**
+	 * Update the map with a new value.
+	 *
+	 * @param key
+	 *   The location to set the value.
+	 * @param value
+	 *   The value to set.
+	 */
+	fun set(key: K, value: V)
+	{
+		sourceValues[key.ordinal] = value
+	}
+
+	/**
 	 * Removes the specified key and its corresponding value from this
 	 * [EnumMap].
 	 *

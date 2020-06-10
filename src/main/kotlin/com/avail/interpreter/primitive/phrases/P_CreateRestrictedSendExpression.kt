@@ -32,7 +32,7 @@
 
 package com.avail.interpreter.primitive.phrases
 
-import com.avail.AvailRuntime.currentRuntime
+import com.avail.AvailRuntime.Companion.currentRuntime
 import com.avail.compiler.AvailAcceptedParseException
 import com.avail.compiler.AvailRejectedParseException
 import com.avail.compiler.splitter.MessageSplitter.Companion.possibleErrors

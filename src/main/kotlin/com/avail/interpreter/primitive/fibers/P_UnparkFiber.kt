@@ -32,7 +32,7 @@
 
 package com.avail.interpreter.primitive.fibers
 
-import com.avail.AvailRuntime.currentRuntime
+import com.avail.AvailRuntime.Companion.currentRuntime
 import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.descriptor.fiber.FiberDescriptor.ExecutionState.PARKED
 import com.avail.descriptor.fiber.FiberDescriptor.ExecutionState.SUSPENDED

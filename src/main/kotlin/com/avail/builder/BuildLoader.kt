@@ -209,7 +209,7 @@ internal class BuildLoader constructor(
 			val version = archive.getVersion(versionKey) ?: error(
 				"Version should have been populated during tracing")
 			val imports = version.imports
-			val resolver = availBuilder.runtime.moduleNameResolver()
+			val resolver = availBuilder.runtime.moduleNameResolver
 			val loadedModulesByName = HashMap<String, LoadedModule>()
 			for (localName in imports)
 			{
@@ -575,7 +575,7 @@ internal class BuildLoader constructor(
 						availBuilder.moduleGraph.vertexCount()
 							== vertexCountBefore)
 					availBuilder.runtime
-						.moduleNameResolver()
+						.moduleNameResolver
 						.commitRepositories()
 					// Parallel load has now completed or failed. Clean up any
 					// modules that didn't load.  There can be no loaded

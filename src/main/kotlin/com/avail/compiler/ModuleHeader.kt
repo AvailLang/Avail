@@ -278,7 +278,7 @@ class ModuleHeader constructor(val moduleName: ResolvedModuleName)
 	 */
 	fun applyToModule(module: A_Module, runtime: AvailRuntime): String?
 	{
-		val resolver = runtime.moduleNameResolver()
+		val resolver = runtime.moduleNameResolver
 		module.setVersions(setFromCollection(versions))
 
 		val newAtoms = exportedNames.fold(emptySet()) { set, name ->

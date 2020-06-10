@@ -33,7 +33,7 @@
 package com.avail.serialization
 
 import com.avail.AvailRuntime
-import com.avail.AvailRuntime.specialObject
+import com.avail.AvailRuntime.Companion.specialObject
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.atoms.A_Atom.Companion.atomName
 import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
@@ -2584,7 +2584,7 @@ enum class SerializerOperation constructor(
 			val (className, fieldName) = subobjects
 			try
 			{
-				val classLoader = deserializer.runtime.classLoader()
+				val classLoader = deserializer.runtime.classLoader
 				val definingClass = Class.forName(
 					className.asNativeString(), true, classLoader)
 				val field = definingClass.getField(
@@ -2855,7 +2855,7 @@ enum class SerializerOperation constructor(
 			deserializer: Deserializer): A_BasicObject
 		{
 			val (className, parameters) = subobjects
-			val classLoader = deserializer.runtime.classLoader()
+			val classLoader = deserializer.runtime.classLoader
 			try
 			{
 				val processedParameters = parameters.map {
@@ -2928,7 +2928,7 @@ enum class SerializerOperation constructor(
 			subobjects: Array<AvailObject>,
 			deserializer: Deserializer): A_BasicObject
 		{
-			val classLoader = deserializer.runtime.classLoader()
+			val classLoader = deserializer.runtime.classLoader
 			var ancestorMap = emptyMap()
 			try
 			{

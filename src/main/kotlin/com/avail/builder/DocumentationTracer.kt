@@ -74,7 +74,7 @@ internal class DocumentationTracer constructor(
 	 * The [Stacks&#32;documentation&#32;generator][StacksGenerator].
 	 */
 	private val generator: StacksGenerator = StacksGenerator(
-		documentationPath, availBuilder.runtime.moduleNameResolver())
+		documentationPath, availBuilder.runtime.moduleNameResolver)
 
 	/**
 	 * Get the [module&#32;version][ModuleVersion] for the

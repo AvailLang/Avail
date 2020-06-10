@@ -108,7 +108,7 @@ internal class BuildTracer constructor(val availBuilder: AvailBuilder)
 			{
 				AvailBuilder.log(
 					Level.FINEST, "Resolve: %s", qualifiedName)
-				resolvedName = availBuilder.runtime.moduleNameResolver().resolve(
+				resolvedName = availBuilder.runtime.moduleNameResolver.resolve(
 					qualifiedName, resolvedSuccessor)
 			}
 			catch (e: Throwable)
@@ -362,7 +362,7 @@ internal class BuildTracer constructor(val availBuilder: AvailBuilder)
 				}
 
 			}
-			availBuilder.runtime.moduleNameResolver().commitRepositories()
+			availBuilder.runtime.moduleNameResolver.commitRepositories()
 		}
 		if (availBuilder.shouldStopBuild)
 		{

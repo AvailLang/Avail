@@ -32,7 +32,7 @@
 package com.avail.descriptor.fiber
 
 import com.avail.AvailRuntime
-import com.avail.AvailRuntime.currentRuntime
+import com.avail.AvailRuntime.Companion.currentRuntime
 import com.avail.AvailRuntimeSupport
 import com.avail.annotations.HideFieldInDebugger
 import com.avail.descriptor.atoms.AtomDescriptor

@@ -389,7 +389,7 @@ class AvailServer constructor(
 		 */
 		private fun writeResolutionInformationOn(writer: JSONWriter) =
 			writer.writeObject {
-				val resolver = runtime.moduleNameResolver()
+				val resolver = runtime.moduleNameResolver
 				var resolved: ResolvedModuleName? = null
 				var resolutionException: Throwable? = null
 				val loaded =
@@ -682,7 +682,7 @@ class AvailServer constructor(
 		assert(command.command === Command.CLEAR_REPOSITORIES)
 		val message = try
 		{
-			for (root in runtime.moduleNameResolver().moduleRoots.roots)
+			for (root in runtime.moduleNameResolver.moduleRoots.roots)
 			{
 				root.clearRepository()
 			}
@@ -953,7 +953,7 @@ class AvailServer constructor(
 		val moduleName: ResolvedModuleName
 		try
 		{
-			moduleName = runtime.moduleNameResolver().resolve(
+			moduleName = runtime.moduleNameResolver.resolve(
 				command.target, null)
 		}
 		catch (e: UnresolvedDependencyException)

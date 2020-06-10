@@ -721,7 +721,7 @@ class L2Chunk private constructor(
 					try
 					{
 						val resolved =
-							AvailRuntime.currentRuntime().moduleNameResolver()
+							AvailRuntime.currentRuntime().moduleNameResolver
 								.resolve(
 									ModuleName(
 										module.moduleName().asNativeString()),
