@@ -1,5 +1,5 @@
 /*
- * CallbackSystem.java
+ * CallbackSystem.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,265 +29,255 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail
 
-package com.avail;
-
-import com.avail.descriptor.fiber.A_Fiber;
-import com.avail.descriptor.functions.A_Function;
-import com.avail.descriptor.functions.A_RawFunction;
-import com.avail.descriptor.pojos.PojoDescriptor;
-import com.avail.descriptor.representation.AvailObject;
-import com.avail.descriptor.representation.NilDescriptor;
-import com.avail.descriptor.tuples.A_Tuple;
-import com.avail.descriptor.types.A_Type;
-import com.avail.interpreter.primitive.pojos.P_InvokeCallback;
-import com.avail.interpreter.primitive.pojos.PrimitiveHelper;
-import com.avail.utility.SimpleThreadFactory;
-
-import java.util.Map;
-import java.util.WeakHashMap;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
-
-import static com.avail.AvailRuntimeConfiguration.availableProcessors;
-import static com.avail.descriptor.functions.FunctionDescriptor.createWithOuters1;
-import static com.avail.descriptor.maps.MapDescriptor.emptyMap;
-import static com.avail.descriptor.pojos.PojoDescriptor.newPojo;
-import static com.avail.descriptor.pojos.RawPojoDescriptor.identityPojo;
-import static com.avail.descriptor.types.PojoTypeDescriptor.resolvePojoType;
-import static java.util.Collections.synchronizedMap;
+import com.avail.AvailRuntimeConfiguration.availableProcessors
+import com.avail.descriptor.fiber.A_Fiber
+import com.avail.descriptor.functions.A_Function
+import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.functions.FunctionDescriptor.Companion.createWithOuters1
+import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
+import com.avail.descriptor.pojos.PojoDescriptor
+import com.avail.descriptor.pojos.PojoDescriptor.Companion.newPojo
+import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.NilDescriptor
+import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.PojoTypeDescriptor.Companion.resolvePojoType
+import com.avail.interpreter.primitive.pojos.P_InvokeCallback
+import com.avail.interpreter.primitive.pojos.PrimitiveHelper.rawPojoInvokerFunctionFromFunctionType
+import com.avail.utility.SimpleThreadFactory
+import java.util.*
+import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.ThreadPoolExecutor
+import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy
+import java.util.concurrent.TimeUnit
+import java.util.function.Function
 
 /**
- * A mechanism for adapting a Java {@link Function} into an Avail {@link
- * A_Function}.  The Java function must take an {@link A_Tuple} and return an
- * {@link AvailObject}.  The Avail function's signature is provided, and will
- * pack its arguments into a tuple for the Java function.  The Java function's
- * returned value will be checked at runtime before being returned into Avail.
+ * A mechanism for adapting a Java [Function] into an Avail [A_Function].  The
+ * Java function must take an [A_Tuple] and return an [AvailObject].  The Avail
+ * function's signature is provided, and will pack its arguments into a tuple
+ * for the Java function.  The Java function's returned value will be checked at
+ * runtime before being returned into Avail.
  *
- * <p>If a {@link Throwable} is thrown by the Java code, it will be caught,
- * wrapped as a {@linkplain PojoDescriptor pojo} inside an Avail exception, and
- * rethrown within Avail.</p>
+ * If a [Throwable] is thrown by the Java code, it will be caught, wrapped as a
+ * [pojo][PojoDescriptor] inside an Avail exception, and rethrown within Avail.
  *
- * <p>Note that the {@link AvailRuntime} that's responsible for the {@link
- * A_Fiber} doing the callback contains a {@code CallbackSystem} whose {@link
- * #callbackExecutor}'s worker threads are responsible for performing the
- * callback to the Java lambda.  Performing a long computation, significant
- * wait, or unbounded blocking may negatively affect execution of other
- * callbacks, so it's recommended that exceptionally long or blocking
- * computations be performed in some other way.</p>
+ * Note that the [AvailRuntime] that's responsible for the [A_Fiber] doing the
+ * callback contains a `CallbackSystem` whose [.callbackExecutor]'s worker
+ * threads are responsible for performing the callback to the Java lambda.
+ * Performing a long computation, significant wait, or unbounded blocking may
+ * negatively affect execution of other callbacks, so it's recommended that
+ * exceptionally long or blocking computations be performed in some other way.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class CallbackSystem
+class CallbackSystem
 {
-	/** A mechanism for invoking Java lambdas from Avail. */
+	/** A mechanism for invoking Java lambdas from Avail.  */
 	@FunctionalInterface
-	public interface Callback
+	interface Callback
 	{
 		/**
 		 * Invoke this Java callback, whose actual behavior is specified by
 		 * (anonymous) subclasses / lambda expressions.  This should be invoked
-		 * via {@link CallbackSystem#executeCallbackTask(Callback, A_Tuple,
-		 * CallbackCompletion, CallbackFailure)}.
+		 * via [CallbackSystem.executeCallbackTask].
 		 *
 		 * @param argumentsTuple
-		 *        The {@link A_Tuple} of arguments that Avail code has provided.
+		 *   The [A_Tuple] of arguments that Avail code has provided.
 		 * @param completion
-		 *        What to invoke when this callback is considered complete, if
-		 *        ever, passing the callback's output value to it.  This must be
-		 *        invoked at most once by the callback.
+		 *   What to invoke when this callback is considered complete, if ever,
+		 *   passing the callback's output value to it.  This must be invoked at
+		 *   most once by the callback.
 		 * @param failure
-		 *        What to invoke when this callback is considered to have
-		 *        completed unsuccessfully, passing the {@link Throwable} that
-		 *        was caught.  This must be invoked at most once by the
-		 *        callback.
+		 *   What to invoke when this callback is considered to have completed
+		 *   unsuccessfully, passing the [Throwable] that was caught.  This must
+		 *   be invoked at most once by the callback.
 		 */
-		void call (
-			final A_Tuple argumentsTuple,
-			final CallbackCompletion completion,
-			final CallbackFailure failure);
+		fun call(
+			argumentsTuple: A_Tuple?,
+			completion: CallbackCompletion?,
+			failure: CallbackFailure?)
 	}
 
 	/**
 	 * A mechanism for indicating when a callback Java lambda has completed
-	 * successfully.  By having a {@link Callback} invoke this when it's deemed
+	 * successfully.  By having a [Callback] invoke this when it's deemed
 	 * complete instead of coupling it to the time that the lambda function
 	 * invocation returns, the Java client is free to delegate the
-	 * responsibility for completing the callback to other Java {@link Thread}s,
-	 * such as thread pools, completion mechanisms, coroutines, etc.  Each
-	 * {@code CallbackCompletion} must be invoked at most once, and mutually
-	 * exclusively of the associated {@link CallbackFailure}.
+	 * responsibility for completing the callback to other Java [Thread]s, such
+	 * as thread pools, completion mechanisms, coroutines, etc.  Each
+	 * `CallbackCompletion` must be invoked at most once, and mutually
+	 * exclusively of the associated [CallbackFailure].
 	 *
-	 * <p>It's safe to invoke neither the completion nor failure handler for a
+	 * It's safe to invoke neither the completion nor failure handler for a
 	 * callback, and the corresponding fiber will eventually be subject to
-	 * garbage collection.</p>
+	 * garbage collection.
 	 *
-	 * <p>Invoking both the completion and failure, or either of them more than
-	 * once, currently causes all but the first invocation to be ignored.</p>
+	 * Invoking both the completion and failure, or either of them more than
+	 * once, currently causes all but the first invocation to be ignored.
 	 */
 	@FunctionalInterface
-	public interface CallbackCompletion
+	interface CallbackCompletion
 	{
 		/**
 		 * Invoke this callback success handler.
 		 *
 		 * @param result
-		 *        The {@link AvailObject} that was produced by the callback.
-		 *        This should be {@link NilDescriptor#nil} if Avail is not
-		 *        expecting a value to be produced.
+		 *   The [AvailObject] that was produced by the callback. This should be
+		 *   [NilDescriptor.nil] if Avail is not expecting a value to be
+		 *   produced.
 		 */
-		void complete (final AvailObject result);
+		fun complete(result: AvailObject)
 	}
 
 	/**
 	 * A mechanism for indicating when a Java lambda has completed
-	 * <em>unsuccessfully</em>.  By having a {@link Callback} invoke this when
-	 * it's deemed to have failed instead of coupling it to the time that the
-	 * lambda function invocation returns or throws, the Java client is free to
-	 * pass the responsibility for completing the callback to other Java {@link
-	 * Thread}s, such as thread pools, completion mechanisms, coroutines, etc.
-	 * Each {@code CallbackCompletion} must be invoked at most once, and
-	 * mutually exclusively of the associated {@link CallbackFailure}.
+	 * *unsuccessfully*.  By having a [Callback] invoke this when it's deemed to
+	 * have failed instead of coupling it to the time that the lambda function
+	 * invocation returns or throws, the Java client is free to pass the
+	 * responsibility for completing the callback to other Java [Thread]s, such
+	 * as thread pools, completion mechanisms, coroutines, etc. Each
+	 * `CallbackCompletion` must be invoked at most once, and mutually
+	 * exclusively of the associated [CallbackFailure].
 	 *
-	 * <p>It's safe to invoke neither the completion nor failure handler for a
+	 * It's safe to invoke neither the completion nor failure handler for a
 	 * callback, and the corresponding fiber will eventually be subject to
-	 * garbage collection.</p>
+	 * garbage collection.
 	 *
-	 * <p>Invoking both the completion and failure, or either of them more than
-	 * once, currently causes all but the first invocation to be ignored.</p>
+	 * Invoking both the completion and failure, or either of them more than
+	 * once, currently causes all but the first invocation to be ignored.
 	 */
 	@FunctionalInterface
-	public interface CallbackFailure
+	interface CallbackFailure
 	{
 		/**
 		 * Invoke this callback failure handler.
 		 *
 		 * @param throwable
-		 *        The {@link Throwable} that was caught during execution of the
-		 *        {@link Callback}.
+		 *   The [Throwable] that was caught during execution of the [Callback].
 		 */
-		void failed (final Throwable throwable);
+		fun failed(throwable: Throwable)
 	}
 
 	/**
-	 * Cache generated {@link A_RawFunction}s, keyed by signature {@link
-	 * A_Type}s.
+	 * The [thread pool executor][ThreadPoolExecutor] for performing
+	 * asynchronous callbacks on behalf of this [AvailRuntime].
 	 */
-	private static final Map<A_Type, A_RawFunction> rawFunctionCache =
-		synchronizedMap(new WeakHashMap<>());
+	private val callbackExecutor = ThreadPoolExecutor(
+		availableProcessors,
+		availableProcessors shl 2,
+		10L,
+		TimeUnit.SECONDS,
+		LinkedBlockingQueue(),
+		SimpleThreadFactory("AvailCallback"),
+		CallerRunsPolicy())
 
 	/**
-	 * The Pojo type for a Java {@link Callback} object.
-	 */
-	private static final A_Type callbackTypePojo =
-		resolvePojoType(Callback.class, emptyMap()).makeShared();
-
-	/**
-	 * The {@linkplain ThreadPoolExecutor thread pool executor} for performing
-	 * asynchronous callbacks on behalf of this {@link AvailRuntime}.
-	 */
-	private final ThreadPoolExecutor callbackExecutor =
-		new ThreadPoolExecutor(
-			availableProcessors,
-			availableProcessors << 2,
-			10L,
-			TimeUnit.SECONDS,
-			new LinkedBlockingQueue<>(),
-			new SimpleThreadFactory("AvailCallback"),
-			new CallerRunsPolicy());
-
-	/**
-	 * Schedule a {@link Runnable} task for eventual execution by the
-	 * {@linkplain ThreadPoolExecutor thread pool executor} for callback
+	 * Schedule a [Runnable] task for eventual execution by the
+	 * [thread&#32;pool&#32;executor][ThreadPoolExecutor] for callback
 	 * operations. The implementation is free to run the task immediately or
-	 * delay its execution arbitrarily. The task will not execute on an {@link
-	 * AvailThread}.
+	 * delay its execution arbitrarily. The task will not execute on an
+	 * [AvailThread].
 	 *
 	 * @param callback
-	 *        The {@link Callback} to invoke.
+	 *   The [Callback] to invoke.
 	 * @param argumentsTuple
-	 *        The arguments {@link A_Tuple} to supply the callback.
+	 *   The arguments [A_Tuple] to supply the callback.
 	 * @param completion
-	 *        What to invoke when the callback semantically succeeds, whether in
-	 *        the same thread that the callback started in or not.  It's passed
-	 *        an {@link AvailObject} which should be consistent with the
-	 *        expected result type of the {@link Callback}.
+	 *   What to invoke when the callback semantically succeeds, whether in the
+	 *   same thread that the callback started in or not.  It's passed an
+	 *   [AvailObject] which should be consistent with the expected result type
+	 *   of the [Callback].
 	 * @param failure
-	 *        What to invoke when it's determined that the callback has failed,
-	 *        whether in the same thread that the callback started in or not.
-	 *        It's passed a Throwable.
-	 *
+	 *   What to invoke when it's determined that the callback has failed,
+	 *   whether in the same thread that the callback started in or not. It's
+	 *   passed a Throwable.
 	 */
-	public void executeCallbackTask (
-		final Callback callback,
-		final A_Tuple argumentsTuple,
-		final CallbackCompletion completion,
-		final CallbackFailure failure)
+	fun executeCallbackTask(
+		callback: Callback,
+		argumentsTuple: A_Tuple?,
+		completion: CallbackCompletion?,
+		failure: CallbackFailure)
 	{
-		callbackExecutor.execute(
-			() ->
+		callbackExecutor.execute {
+			// As a nicety, catch throwables that happen directly in the
+			// execution of the task within the callback thread.  It's
+			// the specific callback's responsibility to catch other
+			// throwables in other Threads that effect the callback, and
+			// invoke 'failure' itself.
+			try
 			{
-				// As a nicety, catch throwables that happen directly in the
-				// execution of the task within the callback thread.  It's
-				// the specific callback's responsibility to catch other
-				// throwables in other Threads that effect the callback, and
-				// invoke 'failure' itself.
-				try
-				{
-					callback.call(argumentsTuple, completion, failure);
-				}
-				catch (final Throwable t)
-				{
-					failure.failed(t);
-				}
-			});
+				callback.call(argumentsTuple, completion, failure)
+			}
+			catch (t: Throwable)
+			{
+				failure.failed(t)
+			}
+		}
 	}
 
 	/**
-	 * Destroy all data structures used by this {@code AvailRuntime}.  Also
-	 * disassociate it from the current {@link Thread}'s local storage.
+	 * Destroy all data structures used by this `AvailRuntime`.  Also
+	 * disassociate it from the current [Thread]'s local storage.
 	 */
-	public void destroy ()
+	fun destroy()
 	{
-		callbackExecutor.shutdownNow();
+		callbackExecutor.shutdownNow()
 		try
 		{
-			callbackExecutor.awaitTermination(10, TimeUnit.SECONDS);
+			callbackExecutor.awaitTermination(10, TimeUnit.SECONDS)
 		}
-		catch (final InterruptedException e)
+		catch (e: InterruptedException)
 		{
 			// Ignore.
 		}
 	}
 
-	/**
-	 * Create an {@link A_Function} from the given {@link Callback} and function
-	 * {@link A_Type}.
-	 *
-	 * @param functionType
-	 *        The signature of the {@link A_Function} to create.
-	 * @param callback
-	 *        The {@link Callback} to invoke when the corresponding Avail
-	 *        function is invoked.
-	 * @return The Avail {@link A_Function}.
-	 */
-	public static A_Function createCallbackFunction (
-		final A_Type functionType,
-		final Callback callback)
+	companion object
 	{
-		final AvailObject callbackPojo =
-			newPojo(identityPojo(callback), callbackTypePojo);
-		final A_RawFunction rawFunction =
-			rawFunctionCache.computeIfAbsent(
-				functionType,
-				fType -> PrimitiveHelper.INSTANCE
-					.rawPojoInvokerFunctionFromFunctionType(
-						P_InvokeCallback.INSTANCE,
-						fType,
-						callbackTypePojo));
-		return createWithOuters1(rawFunction, callbackPojo);
+		/**
+		 * Cache generated [A_RawFunction]s, keyed by signature [A_Type]s.
+		 */
+		private val rawFunctionCache =
+			Collections.synchronizedMap(WeakHashMap<A_Type, A_RawFunction>())
+
+		/**
+		 * The Pojo type for a Java [Callback] object.
+		 */
+		private val callbackTypePojo: A_Type =
+			resolvePojoType(Callback::class.java, emptyMap()).makeShared()
+
+		/**
+		 * Create an [A_Function] from the given [Callback] and function
+		 * [A_Type].
+		 *
+		 * @param functionType
+		 *   The signature of the [A_Function] to create.
+		 * @param callback
+		 *   The [Callback] to invoke when the corresponding Avail function is
+		 *   invoked.
+		 * @return
+		 *   The Avail [A_Function].
+		 */
+		@JvmStatic
+		fun createCallbackFunction(
+			functionType: A_Type,
+			callback: Callback?): A_Function
+		{
+			val callbackPojo =
+				newPojo(identityPojo(callback), callbackTypePojo)
+			val rawFunction = rawFunctionCache.computeIfAbsent(
+				functionType
+			) { fType: A_Type? ->
+				rawPojoInvokerFunctionFromFunctionType(
+					P_InvokeCallback,
+					fType!!,
+					callbackTypePojo)
+			}
+			return createWithOuters1(rawFunction, callbackPojo)
+		}
 	}
 }

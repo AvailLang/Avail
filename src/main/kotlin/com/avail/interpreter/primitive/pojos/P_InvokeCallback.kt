@@ -38,6 +38,7 @@ import com.avail.CallbackSystem.CallbackFailure
 import com.avail.descriptor.pojos.PojoDescriptor
 import com.avail.descriptor.pojos.PojoDescriptor.Companion.newPojo
 import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
@@ -74,13 +75,22 @@ object P_InvokeCallback : Primitive(-1, Private, CanSuspend)
 			runtime.callbackSystem().executeCallbackTask(
 				callbackPojo.javaObjectNotNull(),
 				argumentsTuple,
-				CallbackCompletion { succeed(it.makeShared()) },
-				CallbackFailure { throwable ->
-					fail(
-						newPojo(
-							identityPojo(throwable),
-							pojoTypeForClass(throwable.javaClass)
-						).makeShared())
+				object: CallbackCompletion {
+					override fun complete(result: AvailObject)
+					{
+						succeed(result.makeShared())
+					}
+				},
+				object: CallbackFailure
+				{
+					override fun failed(throwable: Throwable)
+					{
+						fail(
+							newPojo(
+								identityPojo(throwable),
+								pojoTypeForClass(throwable.javaClass)
+							).makeShared())
+					}
 				})
 		}
 	}
