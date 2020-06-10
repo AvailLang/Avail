@@ -1,5 +1,5 @@
 /*
- * AvailThread.java
+ * AvailThread.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,89 +29,77 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail
 
-package com.avail;
-
-import com.avail.interpreter.execution.Interpreter;
-
-import javax.annotation.Nullable;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-
-import static com.avail.utility.Casts.cast;
+import com.avail.interpreter.execution.Interpreter
+import com.avail.utility.Casts
+import java.util.concurrent.ScheduledThreadPoolExecutor
 
 /**
- * An {@code AvailThread} is a {@linkplain Thread thread} managed by a
- * particular {@linkplain AvailRuntime Avail runtime}. Instances may obtain the
- * managing runtime through the static accessor {@link AvailRuntime#currentRuntime()}.
- * New instances will be created as necessary by an Avail runtime's {@linkplain
- * ScheduledThreadPoolExecutor executor}.
+ * An `AvailThread` is a [thread][Thread] managed by a particular [Avail
+ * runtime][AvailRuntime]. Instances may obtain the managing runtime through the
+ * static accessor [AvailRuntime.currentRuntime]. New instances will be created
+ * as necessary by an Avail runtime's [executor][ScheduledThreadPoolExecutor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @property interpreter
+ *   The [interpreter][Interpreter] permanently bound to this
+ *   [thread][AvailThread].
+ * @constructor
+ * Construct a new `AvailThread`.
+ *
+ * @param runnable
+ *   The `Runnable runnable` that the new thread should execute.
+ * @param interpreter
+ *   The [Interpreter] that this thread will temporarily bind to fibers while
+ *   they are running in this thread.
  */
-public final class AvailThread
-extends Thread
+class AvailThread internal constructor(
+	runnable: Runnable,
+	val interpreter: Interpreter)
+		: Thread(runnable, "AvailThread-" + interpreter.interpreterIndex)
 {
-	/**
-	 * The {@linkplain AvailRuntime Avail runtime} that owns this {@linkplain
-	 * AvailThread thread}.
-	 */
-	public final AvailRuntime runtime;
 
 	/**
-	 * The {@linkplain Interpreter interpreter} permanently bound to this
-	 * {@linkplain AvailThread thread}.
+	 * The [Avail runtime][AvailRuntime] that owns this [thread][AvailThread].
 	 */
-	public final Interpreter interpreter;
+	@JvmField
+	val runtime: AvailRuntime = interpreter.runtime()
 
-	/**
-	 * Construct a new {@code AvailThread}.
-	 *
-	 * @param runnable
-	 *        The {@code Runnable runnable} that the new thread should execute.
-	 * @param interpreter
-	 *        The {@link Interpreter} that this thread will temporarily bind to
-	 *        fibers while they are running in this thread.
-	 */
-	AvailThread (
-		final Runnable runnable,
-		final Interpreter interpreter)
+	companion object
 	{
-		super(runnable, "AvailThread-" + interpreter.interpreterIndex);
-		this.runtime = interpreter.runtime();
-		this.interpreter = interpreter;
-	}
-
-	/**
-	 * Answer the current {@link Thread} strengthened to an {@code AvailThread},
-	 * or {@code null} if it isn't actually an {@code AvailThread}.
-	 *
-	 * @return The current {@code AvailThread}.
-	 */
-	public static @Nullable AvailThread currentOrNull ()
-	{
-		final Thread current = Thread.currentThread();
-		if (current instanceof AvailThread)
+		/**
+		 * Answer the current [Thread] strengthened to an `AvailThread`, or
+		 * `null` if it isn't actually an `AvailThread`.
+		 *
+		 * @return
+		 *   The current `AvailThread`.
+		 */
+		fun currentOrNull(): AvailThread?
 		{
-			return (AvailThread) current;
+			val current = currentThread()
+			return if (current is AvailThread)
+			{
+				current
+			}
+			else
+			{
+				null
+			}
 		}
-		else
-		{
-			return null;
-		}
-	}
 
-	/**
-	 * Answer the current {@link Thread} strengthened to an {@code AvailThread},
-	 * or throw {@link ClassCastException} if it isn't actually an {@code
-	 * AvailThread}.
-	 *
-	 * @return The current {@code AvailThread}.
-	 * @throws ClassCastException
-	 *         If the current thread isn't an {@code AvailThread}.
-	 */
-	public static AvailThread current ()
-	throws ClassCastException
-	{
-		return cast(Thread.currentThread());
+		/**
+		 * Answer the current [Thread] strengthened to an `AvailThread`, or
+		 * throw [ClassCastException] if it isn't actually an `AvailThread`.
+		 *
+		 * @return
+		 *   The current `AvailThread`.
+		 * @throws ClassCastException
+		 *   If the current thread isn't an `AvailThread`.
+		 */
+		@JvmStatic
+		@Throws(ClassCastException::class)
+		fun current(): AvailThread = Casts.cast(currentThread())
 	}
 }

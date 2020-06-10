@@ -275,20 +275,17 @@ import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
 
 /**
- * An {@code AvailRuntime} comprises the {@linkplain ModuleDescriptor
- * modules}, {@linkplain MethodDescriptor methods}, and {@linkplain
- * #specialObject(int) special objects} that define an Avail system. It also
- * manages global resources, such as file connections.
+ * An {@code AvailRuntime} comprises the {@linkplain ModuleDescriptor modules}, {@linkplain MethodDescriptor methods}, and {@linkplain #specialObject(int) special objects} that define an Avail system. It also manages global resources, such as file connections.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class AvailRuntime
 {
 	/**
-	 * Answer the Avail runtime associated with the current {@linkplain Thread
-	 * thread}.
+	 * Answer the Avail runtime associated with the current {@linkplain Thread thread}.
 	 *
-	 * @return The Avail runtime of the current thread.
+	 * @return
+	 * The Avail runtime of the current thread.
 	 */
 	public static AvailRuntime currentRuntime ()
 	{
@@ -302,7 +299,8 @@ public final class AvailRuntime
 	/**
 	 * Answer this runtime's {@link IOSystem}.
 	 *
-	 * @return An {@link IOSystem}.
+	 * @return
+	 * An {@link IOSystem}.
 	 */
 	public IOSystem ioSystem ()
 	{
@@ -315,7 +313,8 @@ public final class AvailRuntime
 	/**
 	 * Answer this runtime's {@link CallbackSystem}.
 	 *
-	 * @return An {@link CallbackSystem}.
+	 * @return
+	 * An {@link CallbackSystem}.
 	 */
 	public CallbackSystem callbackSystem ()
 	{
@@ -332,7 +331,8 @@ public final class AvailRuntime
 	 * Allocate the next interpreter index in [0..maxInterpreters)
 	 * thread-safely.
 	 *
-	 * @return A new unique interpreter index.
+	 * @return
+	 * A new unique interpreter index.
 	 */
 	public synchronized int allocateInterpreterIndex ()
 	{
@@ -342,8 +342,7 @@ public final class AvailRuntime
 	}
 
 	/**
-	 * The {@linkplain ThreadPoolExecutor thread pool executor} for
-	 * this {@linkplain AvailRuntime Avail runtime}.
+	 * The {@linkplain ThreadPoolExecutor thread pool executor} for this {@linkplain AvailRuntime Avail runtime}.
 	 */
 	@SuppressWarnings("ThisEscapedInObjectConstruction")
 	private final ThreadPoolExecutor executor =
@@ -357,12 +356,10 @@ public final class AvailRuntime
 			new AbortPolicy());
 
 	/**
-	 * Schedule the specified {@linkplain AvailTask task} for eventual
-	 * execution. The implementation is free to run the task immediately or
-	 * delay its execution arbitrarily. The task is guaranteed to execute on an
-	 * {@linkplain AvailThread Avail thread}.
+	 * Schedule the specified {@linkplain AvailTask task} for eventual execution. The implementation is free to run the task immediately or delay its execution arbitrarily. The task is guaranteed to execute on an {@linkplain AvailThread Avail thread}.
 	 *
-	 * @param task A task.
+	 * @param task
+	 * A task.
 	 */
 	public void execute (final AvailTask task)
 	{
@@ -370,14 +367,10 @@ public final class AvailRuntime
 	}
 
 	/**
-	 * Schedule the specified {@linkplain AvailTask task} for eventual
-	 * execution. The implementation is free to run the task immediately or
-	 * delay its execution arbitrarily. The task is guaranteed to execute on an
-	 * {@linkplain AvailThread Avail thread}.
+	 * Schedule the specified {@linkplain AvailTask task} for eventual execution. The implementation is free to run the task immediately or delay its execution arbitrarily. The task is guaranteed to execute on an {@linkplain AvailThread Avail thread}.
 	 *
 	 * @param priority
-	 *        The desired priority, a long tied to milliseconds since the
-	 *        current epoch.
+	 *        The desired priority, a long tied to milliseconds since the current epoch.
 	 * @param body
 	 *        The action to execute for this task.
 	 */
@@ -389,19 +382,14 @@ public final class AvailRuntime
 	}
 
 	/**
-	 * The {@linkplain Timer timer} that managed scheduled {@linkplain
-	 * TimerTask tasks} for this {@linkplain AvailRuntime runtime}. The timer
-	 * thread is not an {@linkplain AvailThread Avail thread}, and therefore
-	 * cannot directly execute {@linkplain FiberDescriptor fibers}. It may,
-	 * however, schedule fiber-related tasks.
+	 * The {@linkplain Timer timer} that managed scheduled {@linkplain TimerTask tasks} for this {@linkplain AvailRuntime runtime}. The timer thread is not an {@linkplain AvailThread Avail thread}, and therefore cannot directly execute {@linkplain FiberDescriptor fibers}. It may, however, schedule fiber-related tasks.
 	 */
 	public final Timer timer = new Timer(
 		"timer for Avail runtime",
 		true);
 
 	/**
-	 * The number of clock ticks since this {@linkplain AvailRuntime runtime}
-	 * was created.
+	 * The number of clock ticks since this {@linkplain AvailRuntime runtime} was created.
 	 */
 	public final Clock clock = new Clock();
 
@@ -497,16 +485,12 @@ public final class AvailRuntime
 	}
 
 	/**
-	 * The {@linkplain ModuleNameResolver module name resolver} that this
-	 * {@linkplain AvailRuntime runtime} should use to resolve unqualified
-	 * {@linkplain ModuleDescriptor module} names.
+	 * The {@linkplain ModuleNameResolver module name resolver} that this {@linkplain AvailRuntime runtime} should use to resolve unqualified {@linkplain ModuleDescriptor module} names.
 	 */
 	private final ModuleNameResolver moduleNameResolver;
 
 	/**
-	 * Answer the {@linkplain ModuleNameResolver module name resolver} that this
-	 * runtime should use to resolve unqualified {@linkplain ModuleDescriptor
-	 * module} names.
+	 * Answer the {@linkplain ModuleNameResolver module name resolver} that this runtime should use to resolve unqualified {@linkplain ModuleDescriptor module} names.
 	 *
 	 * @return A {@linkplain ModuleNameResolver module name resolver}.
 	 */
@@ -518,7 +502,8 @@ public final class AvailRuntime
 	/**
 	 * Answer the Avail {@linkplain ModuleRoots module roots}.
 	 *
-	 * @return The Avail {@linkplain ModuleRoots module roots}.
+	 * @return
+	 * The Avail {@linkplain ModuleRoots module roots}.
 	 */
 	@ThreadSafe
 	public ModuleRoots moduleRoots ()
@@ -527,16 +512,15 @@ public final class AvailRuntime
 	}
 
 	/**
-	 * The {@linkplain ClassLoader class loader} that should be used to locate
-	 * and load Java {@linkplain Class classes}.
+	 * The {@linkplain ClassLoader class loader} that should be used to locate and load Java {@linkplain Class classes}.
 	 */
 	private final ClassLoader classLoader;
 
 	/**
-	 * Answer the {@linkplain ClassLoader class loader} that should be used to
-	 * locate and load Java {@linkplain Class classes}.
+	 * Answer the {@linkplain ClassLoader class loader} that should be used to locate and load Java {@linkplain Class classes}.
 	 *
-	 * @return A class loader.
+	 * @return
+	 * A class loader.
 	 */
 	public ClassLoader classLoader ()
 	{
@@ -544,18 +528,16 @@ public final class AvailRuntime
 	}
 
 	/**
-	 * Look up the given Java class name, and create a suitable Java POJO {@link
-	 * A_Type}.  Capture the classParameters, since the Avail POJO mechanism
-	 * doesn't erase generics.
+	 * Look up the given Java class name, and create a suitable Java POJO {@link A_Type}.  Capture the classParameters, since the Avail POJO mechanism doesn't erase generics.
 	 *
 	 * @param className
 	 *        The full name of the Java class.
 	 * @param classParameters
 	 *        The type parameters for specializing the Java class.
-	 * @return An {@link A_Type} representing the specialized Java class.
+	 * @return
+	 * An {@link A_Type} representing the specialized Java class.
 	 * @throws AvailRuntimeException
-	 *         If the class can't be found or can't be parameterized as
-	 *         requested, or if it's within the forbidden com.avail namespace.
+	 *         If the class can't be found or can't be parameterized as requested, or if it's within the forbidden com.avail namespace.
 	 */
 	@SuppressWarnings("ThrowsRuntimeException")
 	public A_Type lookupJavaType (
@@ -595,10 +577,10 @@ public final class AvailRuntime
 	 *
 	 * @param className
 	 *        The full name of the Java class.
-	 * @return The raw Java {@link Class} (i.e., without type parameters bound).
+	 * @return
+	 * The raw Java {@link Class} (i.e., without type parameters bound).
 	 * @throws AvailRuntimeException
-	 *         If the class can't be found, or if it's within the forbidden
-	 *         com.avail namespace.
+	 *         If the class can't be found, or if it's within the forbidden com.avail namespace.
 	 */
 	public Class<?> lookupRawJavaClass (final A_String className)
 	{
@@ -624,21 +606,20 @@ public final class AvailRuntime
 	}
 
 	/**
-	 * The {@linkplain AvailRuntime runtime}'s default {@linkplain
-	 * TextInterface text interface}.
+	 * The {@linkplain AvailRuntime runtime}'s default {@linkplain TextInterface text interface}.
 	 */
 	private TextInterface textInterface = TextInterface.system();
 
 	/**
-	 * A {@linkplain RawPojoDescriptor raw pojo} wrapping the {@linkplain
-	 * #textInterface default} {@linkplain TextInterface text interface}.
+	 * A {@linkplain RawPojoDescriptor raw pojo} wrapping the {@linkplain #textInterface default} {@linkplain TextInterface text interface}.
 	 */
 	private AvailObject textInterfacePojo = identityPojo(textInterface);
 
 	/**
 	 * Answer the runtime's default {@linkplain TextInterface text interface}.
 	 *
-	 * @return The default text interface.
+	 * @return
+	 * The default text interface.
 	 */
 	@ThreadSafe
 	public TextInterface textInterface ()
@@ -655,11 +636,10 @@ public final class AvailRuntime
 	}
 
 	/**
-	 * Answer the {@linkplain RawPojoDescriptor raw pojo} that wraps the
-	 * {@linkplain #textInterface default} {@linkplain TextInterface text
-	 * interface}.
+	 * Answer the {@linkplain RawPojoDescriptor raw pojo} that wraps the {@linkplain #textInterface default} {@linkplain TextInterface text interface}.
 	 *
-	 * @return The raw pojo holding the default text interface.
+	 * @return
+	 * The raw pojo holding the default text interface.
 	 */
 	@ThreadSafe
 	public AvailObject textInterfacePojo ()
@@ -697,15 +677,12 @@ public final class AvailRuntime
 	}
 
 	/**
-	 * A {@code HookType} describes an abstract missing behavior in the virtual
-	 * machine, where an actual hook will have to be constructed to hold an
-	 * {@link A_Function} within each separate {@code AvailRuntime}.
+	 * A {@code HookType} describes an abstract missing behavior in the virtual machine, where an actual hook will have to be constructed to hold an {@link A_Function} within each separate {@code AvailRuntime}.
 	 */
 	public enum HookType
 	{
 		/**
-		 * The {@code HookType} for a hook that holds the stringification
-		 * function.
+		 * The {@code HookType} for a hook that holds the stringification function.
 		 */
 		STRINGIFICATION(
 			"«stringification»",
@@ -713,8 +690,7 @@ public final class AvailRuntime
 			P_ToString.INSTANCE),
 
 		/**
-		 * The {@code HookType} for a hook that holds the function to invoke
-		 * whenever an unassigned variable is read.
+		 * The {@code HookType} for a hook that holds the function to invoke whenever an unassigned variable is read.
 		 */
 		READ_UNASSIGNED_VARIABLE(
 			"«cannot read unassigned variable»",
@@ -722,8 +698,7 @@ public final class AvailRuntime
 			null),
 
 		/**
-		 * The {@code HookType} for a hook that holds the function to invoke
-		 * whenever a returned value disagrees with the expected type.
+		 * The {@code HookType} for a hook that holds the function to invoke whenever a returned value disagrees with the expected type.
 		 */
 		RESULT_DISAGREED_WITH_EXPECTED_TYPE(
 			"«return result disagreed with expected type»",
@@ -736,8 +711,7 @@ public final class AvailRuntime
 			null),
 
 		/**
-		 * The {@code HookType} for a hook that holds the function to invoke
-		 * whenever an {@link A_Method} send fails for a definitional reason.
+		 * The {@code HookType} for a hook that holds the function to invoke whenever an {@link A_Method} send fails for a definitional reason.
 		 */
 		INVALID_MESSAGE_SEND(
 			"«failed method lookup»",
@@ -756,10 +730,7 @@ public final class AvailRuntime
 			null),
 
 		/**
-		 * The {@code HookType} for a hook that holds the {@link A_Function} to
-		 * invoke whenever an {@link A_Variable} with {@linkplain
-		 * VariableAccessReactor write reactors} is written to when {@linkplain
-		 * TraceFlag#TRACE_VARIABLE_WRITES write tracing} is not enabled.
+		 * The {@code HookType} for a hook that holds the {@link A_Function} to invoke whenever an {@link A_Variable} with {@linkplain VariableAccessReactor write reactors} is written to when {@linkplain TraceFlag#TRACE_VARIABLE_WRITES write tracing} is not enabled.
 		 */
 		IMPLICIT_OBSERVE(
 			"«variable with a write reactor was written without write-tracing»",
@@ -771,9 +742,7 @@ public final class AvailRuntime
 			null),
 
 		/**
-		 * The {@code HookType} for a hook that holds the {@link A_Function} to
-		 * invoke when an exception is caught in a Pojo invocation of a Java
-		 * method or {@link Callback}.
+		 * The {@code HookType} for a hook that holds the {@link A_Function} to invoke when an exception is caught in a Pojo invocation of a Java method or {@link Callback}.
 		 */
 		RAISE_JAVA_EXCEPTION_IN_AVAIL(
 			"«raise Java exception in Avail»",
@@ -792,8 +761,7 @@ public final class AvailRuntime
 		public final A_Type functionType;
 
 		/**
-		 * A {@link Supplier} of a default {@link A_Function} to use for this
-		 * hook type.
+		 * A {@link Supplier} of a default {@link A_Function} to use for this hook type.
 		 */
 		final Supplier<A_Function> defaultFunctionSupplier;
 
@@ -801,16 +769,11 @@ public final class AvailRuntime
 		 * Create a hook type.
 		 *
 		 * @param hookName
-		 *        The name to attach to the {@link A_Function}s that are plugged
-		 *        into hooks of this type.
+		 *        The name to attach to the {@link A_Function}s that are plugged into hooks of this type.
 		 * @param functionType
-		 *        The signature of functions that may be plugged into hook of
-		 *        this type.
+		 *        The signature of functions that may be plugged into hook of this type.
 		 * @param primitive
-		 *        The {@link Primitive} around which to synthesize a default
-		 *        {@link A_Function} for hooks of this type.  If this is {@code
-		 *        null}, a function that invokes {@link P_EmergencyExit} will be
-		 *        synthesized instead.
+		 *        The {@link Primitive} around which to synthesize a default {@link A_Function} for hooks of this type.  If this is {@code null}, a function that invokes {@link P_EmergencyExit} will be synthesized instead.
 		 */
 		HookType (
 			final String hookName,
@@ -847,8 +810,10 @@ public final class AvailRuntime
 		 * Extract the current {@link A_Function} for this hook from the given
 		 * runtime.
 		 *
-		 * @param runtime The {@link AvailRuntime} to examine.
-		 * @return The {@link A_Function} currently in that hook.
+		 * @param runtime
+		 * The {@link AvailRuntime} to examine.
+		 * @return
+		 * The {@link A_Function} currently in that hook.
 		 */
 		public A_Function get (final AvailRuntime runtime)
 		{
@@ -882,15 +847,14 @@ public final class AvailRuntime
 							hookType.defaultFunctionSupplier.get()))));
 
 	/**
-	 * Answer the {@linkplain FunctionDescriptor function} to invoke whenever
-	 * the value produced by a {@linkplain MethodDescriptor method} send
-	 * disagrees with the {@linkplain TypeDescriptor type} expected.
+	 * Answer the {@linkplain FunctionDescriptor function} to invoke whenever the value produced by a {@linkplain MethodDescriptor method} send disagrees with the {@linkplain TypeDescriptor type} expected.
 	 *
-	 * <p>The function takes the function that's attempting to return, the
+	 * The function takes the function that's attempting to return, the
 	 * expected return type, and a new variable holding the actual result being
-	 * returned (or unassigned if it was {@code nil}).</p>
+	 * returned (or unassigned if it was {@code nil}).
 	 *
-	 * @return The requested function.
+	 * @return
+	 * The requested function.
 	 */
 	@ThreadSafe
 	@ReferencedInGeneratedCode
@@ -910,12 +874,10 @@ public final class AvailRuntime
 			A_Function.class);
 
 	/**
-	 * Answer the {@linkplain FunctionDescriptor function} to invoke whenever
-	 * a {@linkplain VariableDescriptor variable} with {@linkplain
-	 * VariableAccessReactor write reactors} is written when {@linkplain
-	 * TraceFlag#TRACE_VARIABLE_WRITES write tracing} is not enabled.
+	 * Answer the {@linkplain FunctionDescriptor function} to invoke whenever a {@linkplain VariableDescriptor variable} with {@linkplain VariableAccessReactor write reactors} is written when {@linkplain TraceFlag#TRACE_VARIABLE_WRITES write tracing} is not enabled.
 	 *
-	 * @return The requested function.
+	 * @return
+	 * The requested function.
 	 */
 	@ThreadSafe
 	@ReferencedInGeneratedCode
@@ -935,11 +897,10 @@ public final class AvailRuntime
 
 	/**
 	 * Answer the {@linkplain FunctionDescriptor function} to invoke whenever a
-	 * {@linkplain MethodDescriptor method} send fails for a definitional
-	 * reason.
+	 * {@linkplain MethodDescriptor method} send fails for a definitional reason.
 	 *
-	 * @return The function to invoke whenever a message send fails dynamically
-	 *         because of an ambiguous, invalid, or incomplete lookup.
+	 * @return
+	 * The function to invoke whenever a message send fails dynamically because of an ambiguous, invalid, or incomplete lookup.
 	 */
 	@ThreadSafe
 	@ReferencedInGeneratedCode
@@ -961,8 +922,8 @@ public final class AvailRuntime
 	 * Answer the {@link FunctionDescriptor function} to invoke whenever an
 	 * unassigned variable is read.
 	 *
-	 * @return The function to invoke whenever an attempt is made to read an
-	 *         unassigned variable.
+	 * @return
+	 * The function to invoke whenever an attempt is made to read an unassigned variable.
 	 */
 	@ThreadSafe
 	@ReferencedInGeneratedCode
@@ -981,16 +942,13 @@ public final class AvailRuntime
 			A_Function.class);
 
 	/**
-	 * All {@linkplain A_Fiber fibers} that have not yet {@link
-	 * ExecutionState#RETIRED retired} <em>or</em> been reclaimed by garbage
-	 * collection.
+	 * All {@linkplain A_Fiber fibers} that have not yet {@link ExecutionState#RETIRED retired} <em>or</em> been reclaimed by garbage collection.
 	 */
 	private final Set<A_Fiber> allFibers =
 		synchronizedSet(newSetFromMap(new WeakHashMap<>()));
 
 	/**
-	 * Add the specified {@linkplain A_Fiber fiber} to this {@linkplain
-	 * AvailRuntime runtime}.
+	 * Add the specified {@linkplain A_Fiber fiber} to this {@linkplain AvailRuntime runtime}.
 	 *
 	 * @param fiber
 	 *        A fiber.
@@ -1001,11 +959,7 @@ public final class AvailRuntime
 	}
 
 	/**
-	 * Remove the specified {@linkplain A_Fiber fiber} from this {@linkplain
-	 * AvailRuntime runtime}.  This should be done explicitly when a fiber
-	 * retires, although the fact that {@link #allFibers} wraps a {@link
-	 * WeakHashMap} ensures that fibers that are no longer referenced will still
-	 * be cleaned up at some point.
+	 * Remove the specified {@linkplain A_Fiber fiber} from this {@linkplain AvailRuntime runtime}.  This should be done explicitly when a fiber retires, although the fact that {@link #allFibers} wraps a {@link WeakHashMap} ensures that fibers that are no longer referenced will still be cleaned up at some point.
 	 *
 	 * @param fiber
 	 *        A fiber to unregister.
@@ -1016,15 +970,14 @@ public final class AvailRuntime
 	}
 
 	/**
-	 * Answer a {@link Set} of all {@link A_Fiber}s that have not yet
-	 * {@linkplain ExecutionState#RETIRED retired}.  Retired fibers will be
-	 * garbage collected when there are no remaining references.
+	 * Answer a {@link Set} of all {@link A_Fiber}s that have not yet {@linkplain ExecutionState#RETIRED retired}.  Retired fibers will be garbage collected when there are no remaining references.
 	 *
-	 * <p>Note that the result is a set which strongly holds all extant fibers,
+	 * Note that the result is a set which strongly holds all extant fibers,
 	 * so holding this set indefinitely would keep the contained fibers from
-	 * being garbage collected.</p>
+	 * being garbage collected.
 	 *
-	 * @return All fibers belonging to this {@code AvailRuntime}.
+	 * @return
+	 * All fibers belonging to this {@code AvailRuntime}.
 	 */
 	public Set<A_Fiber> allFibers ()
 	{
@@ -1035,9 +988,7 @@ public final class AvailRuntime
 	 * Construct a new {@code AvailRuntime}.
 	 *
 	 * @param moduleNameResolver
-	 *        The {@linkplain ModuleNameResolver module name resolver} that this
-	 *        {@code AvailRuntime} should use to resolve unqualified {@linkplain
-	 *        ModuleDescriptor module} names.
+	 *        The {@linkplain ModuleNameResolver module name resolver} that this {@code AvailRuntime} should use to resolve unqualified {@linkplain ModuleDescriptor module} names.
 	 */
 	public AvailRuntime (final ModuleNameResolver moduleNameResolver)
 	{
@@ -1046,34 +997,28 @@ public final class AvailRuntime
 	}
 
 	/**
-	 * The {@linkplain ReentrantReadWriteLock lock} that protects the
-	 * {@linkplain AvailRuntime runtime} data structures against dangerous
-	 * concurrent access.
+	 * The {@linkplain ReentrantReadWriteLock lock} that protects the {@linkplain AvailRuntime runtime} data structures against dangerous concurrent access.
 	 */
 	private final ReentrantReadWriteLock runtimeLock =
 		new ReentrantReadWriteLock();
 
 	/**
-	 * The {@linkplain AvailObject special objects} of the {@linkplain
-	 * AvailRuntime runtime}.
+	 * The {@linkplain AvailObject special objects} of the {@linkplain AvailRuntime runtime}.
 	 */
 	private static final AvailObject[] specialObjects =
 		new AvailObject[190];
 
 	/**
-	 * An unmodifiable {@link List} of the {@linkplain AvailRuntime runtime}'s
-	 * special objects.
+	 * An unmodifiable {@link List} of the {@linkplain AvailRuntime runtime}'s special objects.
 	 */
 	private static final List<AvailObject> specialObjectsList =
 		unmodifiableList(asList(specialObjects));
 
 	/**
-	 * Answer the {@linkplain AvailObject special objects} of the {@linkplain
-	 * AvailRuntime runtime} as an {@linkplain
-	 * Collections#unmodifiableList(List) immutable} {@linkplain List list}.
-	 * Some elements may be {@code null}.
+	 * Answer the {@linkplain AvailObject special objects} of the {@linkplain AvailRuntime runtime} as an {@linkplain Collections#unmodifiableList(List) immutable} {@linkplain List list}. Some elements may be {@code null}.
 	 *
-	 * @return The special objects.
+	 * @return
+	 * The special objects.
 	 */
 	@ThreadSafe
 	public static List<AvailObject> specialObjects ()
@@ -1082,13 +1027,12 @@ public final class AvailRuntime
 	}
 
 	/**
-	 * Answer the {@linkplain AvailObject special object} with the specified
-	 * ordinal.
+	 * Answer the {@linkplain AvailObject special object} with the specified ordinal.
 	 *
 	 * @param ordinal
-	 *        The {@linkplain AvailObject special object} with the specified
-	 *        ordinal.
-	 * @return An {@link AvailObject}.
+	 *        The {@linkplain AvailObject special object} with the specified ordinal.
+	 * @return
+	 * An {@link AvailObject}.
 	 */
 	@ThreadSafe
 	public static AvailObject specialObject (final int ordinal)
@@ -1097,15 +1041,12 @@ public final class AvailRuntime
 	}
 
 	/**
-	 * The {@linkplain AtomDescriptor special atoms} known to the {@linkplain
-	 * AvailRuntime runtime}.  Populated by the anonymous static section below.
+	 * The {@linkplain AtomDescriptor special atoms} known to the {@linkplain AvailRuntime runtime}.  Populated by the anonymous static section below.
 	 */
 	private static final List<A_Atom> specialAtomsList = new ArrayList<>();
 
 	/**
-	 * Answer the {@linkplain AtomDescriptor special atoms} known to the
-	 * runtime as an {@linkplain Collections#unmodifiableList(List) immutable}
-	 * {@linkplain List list}.
+	 * Answer the {@linkplain AtomDescriptor special atoms} known to the runtime as an {@linkplain Collections#unmodifiableList(List) immutable} {@linkplain List list}.
 	 *
 	 * @return The special atoms list.
 	 */
@@ -1391,16 +1332,15 @@ public final class AvailRuntime
 	}
 
 	/**
-	 * The loaded Avail modules: a {@link A_Map} from {@link A_String} to {@link
-	 * A_Module}.
+	 * The loaded Avail modules: a {@link A_Map} from {@link A_String} to {@link A_Module}.
 	 */
 	private A_Map modules = emptyMap();
 
 	/**
-	 * Add the specified {@linkplain ModuleDescriptor module} to the
-	 * runtime.
+	 * Add the specified {@linkplain ModuleDescriptor module} to the runtime.
 	 *
-	 * @param module A {@linkplain ModuleDescriptor module}.
+	 * @param module
+	 * A {@linkplain ModuleDescriptor module}.
 	 */
 	@ThreadSafe
 	public void addModule (final A_Module module)
@@ -1419,9 +1359,7 @@ public final class AvailRuntime
 	}
 
 	/**
-	 * Remove the specified {@linkplain ModuleDescriptor module} from this
-	 * runtime.  The module's code should already have been removed via {@link
-	 * A_Module#removeFrom(AvailLoader, Function0)}.
+	 * Remove the specified {@linkplain ModuleDescriptor module} from this runtime.  The module's code should already have been removed via {@link A_Module#removeFrom(AvailLoader, Function0)}.
 	 *
 	 * @param module The module to remove.
 	 */
@@ -1441,13 +1379,12 @@ public final class AvailRuntime
 	}
 
 	/**
-	 * Does the runtime define a {@linkplain ModuleDescriptor module} with the
-	 * specified {@linkplain TupleDescriptor name}?
+	 * Does the runtime define a {@linkplain ModuleDescriptor module} with the specified {@linkplain TupleDescriptor name}?
 	 *
-	 * @param moduleName A {@linkplain TupleDescriptor name}.
-	 * @return {@code true} if the runtime defines a {@linkplain
-	 *         ModuleDescriptor module} with the specified {@linkplain
-	 *         TupleDescriptor name}, {@code false} otherwise.
+	 * @param moduleName
+	 * A {@linkplain TupleDescriptor name}.
+	 * @return
+	 * {@code true} if the runtime defines a {@linkplain ModuleDescriptor module} with the specified {@linkplain TupleDescriptor name}, {@code false} otherwise.
 	 */
 	@ThreadSafe
 	public boolean includesModuleNamed (final A_String moduleName)
@@ -1466,12 +1403,10 @@ public final class AvailRuntime
 	}
 
 	/**
-	 * Answer my current map of modules.  Mark it {@linkplain
-	 * A_BasicObject#makeShared() shared} first for safety.
+	 * Answer my current map of modules.  Mark it {@linkplain A_BasicObject#makeShared() shared} first for safety.
 	 *
-	 * @return A {@link MapDescriptor map} from resolved module {@linkplain
-	 *         ResolvedModuleName names} ({@linkplain StringDescriptor strings})
-	 *         to {@link ModuleDescriptor modules}.
+	 * @return
+	 * A {@link MapDescriptor map} from resolved module {@linkplain ResolvedModuleName names} ({@linkplain StringDescriptor strings}) to {@link ModuleDescriptor modules}.
 	 */
 	public A_Map loadedModules ()
 	{
@@ -1487,11 +1422,12 @@ public final class AvailRuntime
 	}
 
 	/**
-	 * Answer the {@linkplain ModuleDescriptor module} with the specified
-	 * {@linkplain TupleDescriptor name}.
+	 * Answer the {@linkplain ModuleDescriptor module} with the specified {@linkplain TupleDescriptor name}.
 	 *
-	 * @param moduleName A {@linkplain TupleDescriptor name}.
-	 * @return A {@linkplain ModuleDescriptor module}.
+	 * @param moduleName
+	 * A {@linkplain TupleDescriptor name}.
+	 * @return
+	 * A {@linkplain ModuleDescriptor module}.
 	 */
 	@ThreadSafe
 	public AvailObject moduleAt (final A_String moduleName)
@@ -1511,10 +1447,7 @@ public final class AvailRuntime
 	}
 
 	/**
-	 * Unbind the specified {@linkplain DefinitionDescriptor definition} from
-	 * the runtime system.  If no definitions or grammatical restrictions remain
-	 * in its {@linkplain MethodDescriptor method}, then remove all of its
-	 * bundles.
+	 * Unbind the specified {@linkplain DefinitionDescriptor definition} from the runtime system.  If no definitions or grammatical restrictions remain in its {@linkplain MethodDescriptor method}, then remove all of its bundles.
 	 *
 	 * @param definition A definition.
 	 */
@@ -1547,13 +1480,10 @@ public final class AvailRuntime
 	}
 
 	/**
-	 * Add a semantic restriction to the method associated with the
-	 * given method name.
+	 * Add a semantic restriction to the method associated with the given method name.
 	 *
 	 * @param restriction
-	 *            A {@linkplain SemanticRestrictionDescriptor semantic
-	 *            restriction} that validates the static types of arguments at
-	 *            call sites.
+	 *            A {@linkplain SemanticRestrictionDescriptor semantic restriction} that validates the static types of arguments at call sites.
 	 */
 	public void addSemanticRestriction (
 		final A_SemanticRestriction restriction)
@@ -1575,9 +1505,7 @@ public final class AvailRuntime
 	 * given method name.
 	 *
 	 * @param restriction
-	 *            A {@linkplain SemanticRestrictionDescriptor semantic
-	 *            restriction} that validates the static types of arguments at
-	 *            call sites.
+	 *            A {@linkplain SemanticRestrictionDescriptor semantic restriction} that validates the static types of arguments at call sites.
 	 */
 	public void removeTypeRestriction (
 		final A_SemanticRestriction restriction)
@@ -1599,9 +1527,7 @@ public final class AvailRuntime
 	 * given method name.
 	 *
 	 * @param restriction
-	 *            A {@linkplain A_GrammaticalRestriction grammatical
-	 *            restriction} that validates syntactic restrictions at call
-	 *            sites.
+	 *            A {@linkplain A_GrammaticalRestriction grammatical restriction} that validates syntactic restrictions at call sites.
 	 */
 	public void removeGrammaticalRestriction (
 		final A_GrammaticalRestriction restriction)
@@ -1655,8 +1581,7 @@ public final class AvailRuntime
 	 * @param methodName
 	 *        The method name, an {@linkplain AtomDescriptor atom}.
 	 * @param sealSignature
-	 *        The signature at which to unseal the method. There may be other
-	 *        seals remaining, even at this very signature.
+	 *        The signature at which to unseal the method. There may be other seals remaining, even at this very signature.
 	 * @throws MalformedMessageException
 	 *         If anything is wrong with the method name.
 	 */
@@ -1679,48 +1604,31 @@ public final class AvailRuntime
 	}
 
 	/**
-	 * The {@linkplain ReentrantLock lock} that guards access to the Level One
-	 * {@linkplain #levelOneSafeTasks -safe} and {@linkplain
-	 * #levelOneUnsafeTasks -unsafe} queues and counters.
+	 * The {@linkplain ReentrantLock lock} that guards access to the Level One {@linkplain #levelOneSafeTasks -safe} and {@linkplain #levelOneUnsafeTasks -unsafe} queues and counters.
 	 *
-	 * <p>For example, an {@link L2Chunk} may not be {@linkplain
-	 * L2Chunk#invalidate(Statistic) invalidated} while any {@linkplain
-	 * FiberDescriptor fiber} is {@linkplain ExecutionState#RUNNING running} a
-	 * Level Two chunk.  These two activities are mutually exclusive.</p>
+	 * For example, an {@link L2Chunk} may not be {@linkplain L2Chunk#invalidate(Statistic) invalidated} while any {@linkplain FiberDescriptor fiber} is {@linkplain ExecutionState#RUNNING running} a Level Two chunk.  These two activities are mutually exclusive.
 	 */
 	private final ReentrantLock levelOneSafeLock = new ReentrantLock();
 
 	/**
-	 * The {@linkplain Queue queue} of Level One-safe {@linkplain Runnable
-	 * tasks}. A Level One-safe task requires that no {@linkplain
-	 * #levelOneUnsafeTasks Level One-unsafe tasks} are running.
+	 * The {@linkplain Queue queue} of Level One-safe {@linkplain Runnable tasks}. A Level One-safe task requires that no {@linkplain #levelOneUnsafeTasks Level One-unsafe tasks} are running.
 	 *
-	 * <p>For example, a {@linkplain L2Chunk Level Two chunk} may not be
-	 * {@linkplain L2Chunk#invalidate(Statistic) invalidated} while any
-	 * {@linkplain FiberDescriptor fiber} is {@linkplain ExecutionState#RUNNING
-	 * running} a Level Two chunk. These two activities are mutually exclusive.
-	 * </p>
+	 * For example, a {@linkplain L2Chunk Level Two chunk} may not be {@linkplain L2Chunk#invalidate(Statistic) invalidated} while any {@linkplain FiberDescriptor fiber} is {@linkplain ExecutionState#RUNNING running} a Level Two chunk. These two activities are mutually exclusive.
 	 */
 	private final Queue<AvailTask> levelOneSafeTasks = new ArrayDeque<>();
 
 	/**
-	 * The {@linkplain Queue queue} of Level One-unsafe {@linkplain
-	 * Runnable tasks}. A Level One-unsafe task requires that no
-	 * {@linkplain #levelOneSafeTasks Level One-safe tasks} are running.
+	 * The {@linkplain Queue queue} of Level One-unsafe {@linkplain Runnable tasks}. A Level One-unsafe task requires that no {@linkplain #levelOneSafeTasks Level One-safe tasks} are running.
 	 */
 	private final Queue<AvailTask> levelOneUnsafeTasks = new ArrayDeque<>();
 
 	/**
-	 * The number of {@linkplain #levelOneSafeTasks Level One-safe tasks} that
-	 * have been {@linkplain #executor scheduled for execution} but have not
-	 * yet reached completion.
+	 * The number of {@linkplain #levelOneSafeTasks Level One-safe tasks} that have been {@linkplain #executor scheduled for execution} but have not yet reached completion.
 	 */
 	private int incompleteLevelOneSafeTasks = 0;
 
 	/**
-	 * The number of {@linkplain #levelOneUnsafeTasks Level One-unsafe tasks}
-	 * that have been {@linkplain #executor scheduled for execution} but have
-	 * not yet reached completion.
+	 * The number of {@linkplain #levelOneUnsafeTasks Level One-unsafe tasks} that have been {@linkplain #executor scheduled for execution} but have not yet reached completion.
 	 */
 	private int incompleteLevelOneUnsafeTasks = 0;
 
@@ -1731,11 +1639,10 @@ public final class AvailRuntime
 	private volatile boolean levelOneSafetyRequested = false;
 
 	/**
-	 * Has {@linkplain #whenLevelOneUnsafeDo(int, Function0)} Level One
-	 * safety} been requested?
+	 * Has {@linkplain #whenLevelOneUnsafeDo(int, Function0)} Level One safety} been requested?
 	 *
-	 * @return {@code true} if Level One safety has been requested, {@code
-	 *         false} otherwise.
+	 * @return
+	 * {@code true} if Level One safety has been requested, {@code false} otherwise.
 	 */
 	public boolean levelOneSafetyRequested ()
 	{
@@ -1743,13 +1650,10 @@ public final class AvailRuntime
 	}
 
 	/**
-	 * Request that the specified {@linkplain Function0 continuation} be
-	 * executed as a Level One-unsafe task at such a time as there are no Level
-	 * One-safe tasks running.
+	 * Request that the specified {@linkplain Function0 continuation} be executed as a Level One-unsafe task at such a time as there are no Level One-safe tasks running.
 	 *
 	 * @param priority
-	 *        The priority of the {@link AvailTask} to queue.  It must be in the
-	 *        range [0..255].
+	 *        The priority of the {@link AvailTask} to queue.  It must be in the range [0..255].
 	 * @param unsafeAction
 	 *        The action to perform when Level One safety is not required.
 	 */
@@ -1822,8 +1726,7 @@ public final class AvailRuntime
 	 * such a time as there are no Level One-unsafe tasks running.
 	 *
 	 * @param priority
-	 *        The priority of the {@link AvailTask} to queue.  It must be in the
-	 *        range [0..255].
+	 *        The priority of the {@link AvailTask} to queue.  It must be in the range [0..255].
 	 * @param safeAction
 	 *        The action to execute when Level One safety is ensured.
 	 */

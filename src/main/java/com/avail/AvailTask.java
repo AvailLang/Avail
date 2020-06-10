@@ -52,8 +52,7 @@ import static com.avail.descriptor.fiber.FiberDescriptor.SynchronizationFlag.BOU
 import static com.avail.descriptor.fiber.FiberDescriptor.SynchronizationFlag.SCHEDULED;
 
 /**
- * An {@code AvailTask} extends {@link Runnable} with a priority. Instances are
- * intended to be executed only by {@linkplain AvailThread Avail threads}.
+ * An {@code AvailTask} extends {@link Runnable} with a priority. Instances are intended to be executed only by {@linkplain AvailThread Avail threads}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -64,8 +63,7 @@ implements Comparable<AvailTask>, Runnable
 	private final Function0<Unit> body;
 
 	/**
-	 * The priority of the {@linkplain AvailTask task}.  It must be a value in
-	 * the range 0..255.
+	 * The priority of the {@linkplain AvailTask task}.  It must be a value in the range 0..255.
 	 *
 	 * @see #quasiDeadline
 	 */
@@ -85,8 +83,7 @@ implements Comparable<AvailTask>, Runnable
 	 * Construct a new {@code AvailTask}.
 	 *
 	 * @param priority
-	 *        The desired priority, a long tied to milliseconds since the
-	 *        current epoch.
+	 *        The desired priority, a long tied to milliseconds since the current epoch.
 	 * @param body
 	 *        The action to execute for this task.
 	 */
@@ -102,21 +99,14 @@ implements Comparable<AvailTask>, Runnable
 	}
 
 	/**
-	 * Answer an {@code AvailTask} suitable for resuming the specified
-	 * {@linkplain FiberDescriptor fiber} using the specified action. If the
-	 * continuation fails for any reason, then it {@linkplain
-	 * Interpreter#abortFiber() aborts} the fiber and invokes the {@linkplain
-	 * AvailObject#failureContinuation() failure continuation} with the terminal
-	 * {@linkplain Throwable throwable}.
+	 * Answer an {@code AvailTask} suitable for resuming the specified {@linkplain FiberDescriptor fiber} using the specified action. If the continuation fails for any reason, then it {@linkplain Interpreter#abortFiber() aborts} the fiber and invokes the {@linkplain AvailObject#failureContinuation() failure continuation} with the terminal {@linkplain Throwable throwable}.
 	 *
 	 * @param fiber
 	 *        A fiber.
 	 * @param body
 	 *        What to do to resume execution of the fiber.
-	 * @return An action that sets the execution state of the fiber to
-	 *         {@linkplain ExecutionState#RUNNING running}, binds it to the
-	 *         running {@linkplain AvailThread thread}'s {@linkplain Interpreter
-	 *         interpreter}, and then runs the specified continuation.
+	 * @return
+	 * An action that sets the execution state of the fiber to {@linkplain ExecutionState#RUNNING running}, binds it to the running {@linkplain AvailThread thread}'s {@linkplain Interpreter interpreter}, and then runs the specified continuation.
 	 */
 	public static Function0<Unit> forFiberResumption (
 		final A_Fiber fiber,
@@ -201,20 +191,14 @@ implements Comparable<AvailTask>, Runnable
 	}
 
 	/**
-	 * Answer an {@code AvailTask} suitable for performing activities on behalf
-	 * of an unbound {@linkplain ExecutionState#SUSPENDED} {@linkplain
-	 * FiberDescriptor fiber}. If the continuation fails for any reason, then it
-	 * transitions the fiber to the {@linkplain ExecutionState#ABORTED aborted}
-	 * state and invokes the fiber's {@linkplain
-	 * AvailObject#failureContinuation() failure continuation} with the terminal
-	 * {@linkplain Throwable throwable}.
+	 * Answer an {@code AvailTask} suitable for performing activities on behalf of an unbound {@linkplain ExecutionState#SUSPENDED} {@linkplain FiberDescriptor fiber}. If the continuation fails for any reason, then it transitions the fiber to the {@linkplain ExecutionState#ABORTED aborted} state and invokes the fiber's {@linkplain AvailObject#failureContinuation() failure continuation} with the terminal {@linkplain Throwable throwable}.
 	 *
 	 * @param fiber
 	 *        A fiber.
 	 * @param continuation
 	 *        What to do to on behalf of the unbound fiber.
-	 * @return An action that runs the provided continuation and handles any
-	 *         errors appropriately.
+	 * @return
+	 * An action that runs the provided continuation and handles any errors appropriately.
 	 */
 	public static Function0<Unit> forUnboundFiber (
 		final A_Fiber fiber,

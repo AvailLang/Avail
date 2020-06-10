@@ -1,5 +1,5 @@
 /*
- * AvailRuntimeConfiguration.java
+ * AvailRuntimeConfiguration.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,121 +29,107 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail
 
-package com.avail;
-import com.avail.descriptor.methods.MacroDefinitionDescriptor;
-import com.avail.descriptor.sets.A_Set;
-import com.avail.descriptor.tuples.StringDescriptor;
-import com.avail.interpreter.execution.Interpreter;
-
-import javax.annotation.Nullable;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Scanner;
-
-import static com.avail.descriptor.sets.SetDescriptor.generateSetFrom;
+import com.avail.descriptor.methods.MacroDefinitionDescriptor
+import com.avail.descriptor.sets.A_Set
+import com.avail.descriptor.sets.SetDescriptor.Companion.generateSetFrom
+import com.avail.descriptor.tuples.StringDescriptor
+import com.avail.interpreter.execution.Interpreter
+import java.io.IOException
+import java.util.*
 
 /**
  * This class contains static state and methods related to the current running
  * configuration.
  */
-public final class AvailRuntimeConfiguration
+object AvailRuntimeConfiguration
 {
-	/** Prevent instantiation. */
-	private AvailRuntimeConfiguration ()
-	{
-		//Do not instantiate.
-	}
-
-	/** The build version, set by the build process. */
-	private static final String buildVersion;
-
-	/*
-	 * Initialize the build version from a resource bundled with the
-	 * distribution JAR.
-	 */
-	static
-	{
-		String version = "dev";
-		try (
-			final @Nullable InputStream resourceStream =
-				ClassLoader.getSystemResourceAsStream(
-					"resources/build-time.txt"))
-		{
-			if (resourceStream != null)
-			{
-				try (final Scanner scanner = new Scanner(resourceStream))
-				{
-					version = scanner.nextLine();
-				}
-			}
-		}
-		catch (final IOException e)
-		{
-			version = "UNKNOWN";
-		}
-		buildVersion = version;
-	}
+	/** The build version, set by the build process.  */
+	private var buildVersion: String = "dev"
 
 	/**
 	 * Answer the build version, as set by the build process.
 	 *
-	 * @return The build version, or {@code "dev"} if Avail is not running from
-	 *         a distribution JAR.
+	 * @return
+	 *   The build version, or `"dev"` if Avail is not running from a
+	 *   distribution JAR.
 	 */
-	@SuppressWarnings("unused")
-	public static String buildVersion ()
+	fun buildVersion(): String
 	{
-		return buildVersion;
+		return buildVersion
 	}
 
 	/**
 	 * The active versions of the Avail virtual machine. These are the versions
 	 * for which the virtual machine guarantees compatibility.
 	 */
-	private static final String[] activeVersions = {"1.4.0"};
+	private val activeVersions = arrayOf("1.4.0")
 
 	/**
 	 * Answer the active versions of the Avail virtual machine. These are the
 	 * versions for which the virtual machine guarantees compatibility.
 	 *
-	 * @return The active versions.
+	 * @return
+	 * The active versions.
 	 */
-	public static A_Set activeVersions ()
-	{
-		return generateSetFrom(activeVersions, StringDescriptor::stringFrom);
-	}
+	@JvmStatic
+	fun activeVersions(): A_Set =
+		generateSetFrom(activeVersions) { StringDescriptor.stringFrom(it) }
 
 	/**
 	 * Answer a short string indicating the most recent version of Avail
 	 * supported by the current virtual machine.
 	 *
-	 * @return A short {@link String}.
+	 * @return
+	 *   A short [String].
 	 */
-	public static String activeVersionSummary ()
-	{
-		final String lastVersion = activeVersions[activeVersions.length - 1];
-		return lastVersion.split(" ", 2)[0];
-	}
+	fun activeVersionSummary(): String =
+		activeVersions[activeVersions.size - 1].split(" ".toRegex(), 2)
+			.toTypedArray()[0]
 
-	/** The number of available processors. */
-	public static final int availableProcessors =
-		Runtime.getRuntime().availableProcessors();
+	/** The number of available processors.  */
+	@JvmField
+	val availableProcessors = Runtime.getRuntime().availableProcessors()
 
 	/**
-	 * The maximum number of {@link Interpreter}s that can be constructed for
+	 * The maximum number of [Interpreter]s that can be constructed for
 	 * this runtime.
 	 */
-	public static final int maxInterpreters = availableProcessors;
-
+	@JvmField
+	val maxInterpreters = availableProcessors
 	/**
-	 * Whether to show all {@link MacroDefinitionDescriptor macro} expansions as
+	 * Whether to show all [macro][MacroDefinitionDescriptor] expansions as
 	 * they happen.
 	 */
-	public static boolean debugMacroExpansions = false;
+	var debugMacroExpansions = false
 
 	/**
 	 * Whether to show detailed compiler trace information.
 	 */
-	public static boolean debugCompilerSteps = false;
+	var debugCompilerSteps = false
+
+	/*
+	 * Initialize the build version from a resource bundled with the
+	 * distribution JAR.
+	 */
+	init
+	{
+		var version = "dev"
+		try
+		{
+			ClassLoader.getSystemResourceAsStream(
+				"resources/build-time.txt").use { resourceStream ->
+				if (resourceStream != null)
+				{
+					Scanner(resourceStream).use { version = it.nextLine() }
+				}
+			}
+		}
+		catch (e: IOException)
+		{
+			version = "UNKNOWN"
+		}
+		buildVersion = version
+	}
 }
