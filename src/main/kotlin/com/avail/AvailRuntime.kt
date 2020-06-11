@@ -198,6 +198,10 @@ import java.util.concurrent.locks.ReentrantLock
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.function.Consumer
 import java.util.function.Supplier
+import kotlin.concurrent.fixedRateTimer
+import kotlin.concurrent.read
+import kotlin.concurrent.withLock
+import kotlin.concurrent.write
 import kotlin.math.min
 
 /**
@@ -303,7 +307,7 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 	 * @param body
 	 *   The action to execute for this task.
 	 */
-	fun execute(priority: Int,body: Function0<Unit>)
+	fun execute(priority: Int,body: () -> Unit)
 	{
 		executor.execute(AvailTask(priority, body))
 	}
@@ -314,7 +318,9 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 	 * [Avail&#32;thread][AvailThread], and therefore cannot directly execute
 	 * [fibers][FiberDescriptor]. It may, however, schedule fiber-related tasks.
 	 */
-	val timer = Timer("timer for Avail runtime", true)
+	val timer =  fixedRateTimer("timer for Avail runtime", true, period = 10) {
+		clock.increment()
+	}
 
 	/**
 	 * The number of clock ticks since this [runtime][AvailRuntime] was created.
@@ -509,18 +515,7 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 	 *   The default text interface.
 	 */
 	@ThreadSafe
-	fun textInterface(): TextInterface
-	{
-		runtimeLock.readLock().lock()
-		return try
-		{
-			textInterface
-		}
-		finally
-		{
-			runtimeLock.readLock().unlock()
-		}
-	}
+	fun textInterface(): TextInterface = runtimeLock.read { textInterface }
 
 	/**
 	 * Answer the [raw&#32;pojo][RawPojoDescriptor] that wraps the
@@ -530,18 +525,8 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 	 *   The raw pojo holding the default text interface.
 	 */
 	@ThreadSafe
-	fun textInterfacePojo(): AvailObject
-	{
-		runtimeLock.readLock().lock()
-		return try
-		{
-			textInterfacePojo
-		}
-		finally
-		{
-			runtimeLock.readLock().unlock()
-		}
-	}
+	fun textInterfacePojo(): AvailObject =
+		runtimeLock.read { textInterfacePojo }
 
 	/**
 	 * Set the runtime's default [text interface][TextInterface].
@@ -550,19 +535,11 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 	 *   The new default text interface.
 	 */
 	@ThreadSafe
-	fun setTextInterface(textInterface: TextInterface)
-	{
-		runtimeLock.writeLock().lock()
-		try
-		{
+	fun setTextInterface(textInterface: TextInterface) =
+		runtimeLock.write {
 			this.textInterface = textInterface
 			textInterfacePojo = identityPojo(textInterface)
 		}
-		finally
-		{
-			runtimeLock.writeLock().unlock()
-		}
-	}
 
 	/**
 	 * A `HookType` describes an abstract missing behavior in the virtual
@@ -1271,7 +1248,6 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 				val obj = specials[i]
 				if (obj !== NilDescriptor.nil)
 				{
-					obj as AvailObject
 					specials[i] = obj.makeShared()
 					assert(!obj.isAtom || obj.isAtomSpecial())
 				}
@@ -1314,16 +1290,10 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 	@ThreadSafe
 	fun addModule(module: A_Module)
 	{
-		runtimeLock.writeLock().lock()
-		modules = try
-		{
+		modules = runtimeLock.write {
 			assert(!includesModuleNamed(module.moduleName()))
 			modules.mapAtPuttingCanDestroy(
 				module.moduleName(), module, true)
-		}
-		finally
-		{
-			runtimeLock.writeLock().unlock()
 		}
 	}
 
@@ -1336,16 +1306,10 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 	 */
 	fun unlinkModule(module: A_Module)
 	{
-		runtimeLock.writeLock().lock()
-		modules = try
-		{
+		modules = runtimeLock.write {
 			assert(includesModuleNamed(module.moduleName()))
 			modules.mapWithoutKeyCanDestroy(
 				module.moduleName(), true)
-		}
-		finally
-		{
-			runtimeLock.writeLock().unlock()
 		}
 	}
 
@@ -1363,15 +1327,7 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 	fun includesModuleNamed(moduleName: A_String): Boolean
 	{
 		assert(moduleName.isString)
-		runtimeLock.readLock().lock()
-		return try
-		{
-			modules.hasKey(moduleName)
-		}
-		finally
-		{
-			runtimeLock.readLock().unlock()
-		}
+		return runtimeLock.read { modules.hasKey(moduleName) }
 	}
 
 	/**
@@ -1382,18 +1338,7 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 	 *   A [map][MapDescriptor] from resolved module [names][ResolvedModuleName]
 	 *   ([strings][StringDescriptor]) to [modules][ModuleDescriptor].
 	 */
-	fun loadedModules(): A_Map
-	{
-		runtimeLock.readLock().lock()
-		return try
-		{
-			modules.makeShared()
-		}
-		finally
-		{
-			runtimeLock.readLock().unlock()
-		}
-	}
+	fun loadedModules(): A_Map = runtimeLock.read { modules.makeShared() }
 
 	/**
 	 * Answer the [module][ModuleDescriptor] with the specified
@@ -1408,15 +1353,9 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 	fun moduleAt(moduleName: A_String): AvailObject
 	{
 		assert(moduleName.isString)
-		runtimeLock.readLock().lock()
-		return try
-		{
+		return runtimeLock.read {
 			assert(modules.hasKey(moduleName))
 			modules.mapAt(moduleName)
-		}
-		finally
-		{
-			runtimeLock.readLock().unlock()
 		}
 	}
 
@@ -1431,9 +1370,7 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 	@ThreadSafe
 	fun removeDefinition(definition: A_Definition)
 	{
-		runtimeLock.writeLock().lock()
-		try
-		{
+		runtimeLock.write{
 			val method = definition.definitionMethod()
 			method.removeDefinition(definition)
 			if (method.isMethodEmpty())
@@ -1448,10 +1385,6 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 				}
 			}
 		}
-		finally
-		{
-			runtimeLock.writeLock().unlock()
-		}
 	}
 
 	/**
@@ -1464,15 +1397,9 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 	 */
 	fun addSemanticRestriction(restriction: A_SemanticRestriction)
 	{
-		runtimeLock.writeLock().lock()
-		try
-		{
+		runtimeLock.write {
 			val method = restriction.definitionMethod()
 			method.addSemanticRestriction(restriction)
-		}
-		finally
-		{
-			runtimeLock.writeLock().unlock()
 		}
 	}
 
@@ -1486,15 +1413,9 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 	 */
 	fun removeTypeRestriction(restriction: A_SemanticRestriction)
 	{
-		runtimeLock.writeLock().lock()
-		try
-		{
+		runtimeLock.write {
 			val method = restriction.definitionMethod()
 			method.removeSemanticRestriction(restriction)
-		}
-		finally
-		{
-			runtimeLock.writeLock().unlock()
 		}
 	}
 
@@ -1508,15 +1429,9 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 	 */
 	fun removeGrammaticalRestriction(restriction: A_GrammaticalRestriction)
 	{
-		runtimeLock.writeLock().lock()
-		try
-		{
+		runtimeLock.write {
 			val bundle = restriction.restrictedBundle()
 			bundle.removeGrammaticalRestriction(restriction)
-		}
-		finally
-		{
-			runtimeLock.writeLock().unlock()
 		}
 	}
 
@@ -1531,23 +1446,15 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 	 *   If anything is wrong with the method name.
 	 */
 	@Throws(MalformedMessageException::class)
-	fun addSeal(
-		methodName: A_Atom,
-		sealSignature: A_Tuple)
+	fun addSeal(methodName: A_Atom, sealSignature: A_Tuple)
 	{
 		assert(methodName.isAtom)
 		assert(sealSignature.isTuple)
-		runtimeLock.writeLock().lock()
-		try
-		{
+		runtimeLock.write {
 			val bundle: A_Bundle = methodName.bundleOrCreate()
 			val method: A_Method = bundle.bundleMethod()
 			assert(method.numArgs() == sealSignature.tupleSize())
 			method.addSealedArgumentsType(sealSignature)
-		}
-		finally
-		{
-			runtimeLock.writeLock().unlock()
 		}
 	}
 
@@ -1565,16 +1472,10 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 	@Throws(MalformedMessageException::class)
 	fun removeSeal(methodName: A_Atom, sealSignature: A_Tuple)
 	{
-		runtimeLock.writeLock().lock()
-		try
-		{
+		runtimeLock.write {
 			val bundle: A_Bundle = methodName.bundleOrCreate()
 			val method: A_Method = bundle.bundleMethod()
 			method.removeSealedArgumentsType(sealSignature)
-		}
-		finally
-		{
-			runtimeLock.writeLock().unlock()
 		}
 	}
 
@@ -1663,9 +1564,7 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 			}
 			finally
 			{
-				levelOneSafeLock.lock()
-				try
-				{
+				levelOneSafeLock.withLock {
 					incompleteLevelOneUnsafeTasks--
 					if (incompleteLevelOneUnsafeTasks == 0)
 					{
@@ -1675,15 +1574,9 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 						levelOneSafeTasks.clear()
 					}
 				}
-				finally
-				{
-					levelOneSafeLock.unlock()
-				}
 			}
 		}
-		levelOneSafeLock.lock()
-		try
-		{
+		levelOneSafeLock.withLock {
 			// Hasten the execution of pending Level One-safe tasks by
 			// postponing this task if there are any Level One-safe tasks
 			// waiting to run.
@@ -1698,10 +1591,6 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 			{
 				levelOneUnsafeTasks.add(wrapped)
 			}
-		}
-		finally
-		{
-			levelOneSafeLock.unlock()
 		}
 	}
 
@@ -1721,7 +1610,7 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 		{
 			try
 			{
-				safeAction.invoke()
+				safeAction()
 			}
 			catch (e: Exception)
 			{
@@ -1731,9 +1620,7 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 			}
 			finally
 			{
-				levelOneSafeLock.lock()
-				try
-				{
+				levelOneSafeLock.withLock {
 					incompleteLevelOneSafeTasks--
 					if (incompleteLevelOneSafeTasks == 0)
 					{
@@ -1747,15 +1634,9 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 						levelOneUnsafeTasks.clear()
 					}
 				}
-				finally
-				{
-					levelOneSafeLock.unlock()
-				}
 			}
 		}
-		levelOneSafeLock.lock()
-		try
-		{
+		levelOneSafeLock.withLock {
 			levelOneSafetyRequested = true
 			if (incompleteLevelOneUnsafeTasks == 0)
 			{
@@ -1766,10 +1647,6 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 			{
 				levelOneSafeTasks.add(task)
 			}
-		}
-		finally
-		{
-			levelOneSafeLock.unlock()
 		}
 	}
 
@@ -1795,20 +1672,4 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 		moduleNameResolver.destroy()
 		modules = NilDescriptor.nil
 	}
-
-	// Schedule a fixed-rate timer task to increment the runtime clock.
-	init
-	{
-		timer.schedule(
-			object : TimerTask()
-			{
-				override fun run()
-				{
-					clock.increment()
-				}
-			},
-			10,
-			10)
-	}
-
 }

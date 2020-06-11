@@ -798,7 +798,7 @@ class L1Translator private constructor(
 		 * produce.*
 		 */
 		val invocationSitesToCreate =
-			mutableMapOf<A_Function, Pair<L2BasicBlock, Function0<Unit>>>()
+			mutableMapOf<A_Function, Pair<L2BasicBlock, () -> Unit>>()
 
 		/**
 		 * Record the fact that this call has produced a value in a particular
@@ -1249,7 +1249,7 @@ class L1Translator private constructor(
 			block = generator.createBasicBlock("successful lookup")
 			// Safety check.
 			val ran = MutableInt(0)
-			val newAction: Function0<Unit> = {
+			val newAction: () -> Unit = {
 				assert(ran.value == 0)
 				ran.value++
 				assert(!generator.currentlyReachable())

@@ -726,7 +726,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		@JvmStatic
 		fun tupleTypeFromTupleOfTypes(
 			aTupleType: A_Type,
-			elementTransformer: Function1<A_Type, A_Type>): A_Type
+			elementTransformer: (A_Type) -> A_Type): A_Type
 		{
 			val sizeRange = aTupleType.sizeRange()
 			val typeTuple = aTupleType.typeTuple()
