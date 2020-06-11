@@ -31,6 +31,7 @@
  */
 package com.avail.descriptor.tuples
 
+import com.avail.annotations.HideFieldInDebugger
 import com.avail.descriptor.functions.CompiledCodeDescriptor
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromUnsignedByte
@@ -82,6 +83,7 @@ class NybbleTupleDescriptor private constructor(
 		 * The low 32 bits are used for the [HASH_OR_ZERO], but the upper 32 can
 		 * be used by other [BitField]s in subclasses of [TupleDescriptor].
 		 */
+		@HideFieldInDebugger
 		HASH_AND_MORE,
 
 		/**
@@ -642,8 +644,8 @@ class NybbleTupleDescriptor private constructor(
 		 */
 		private fun copyAsMutableByteTuple(self: AvailObject): A_Tuple
 		{
-			val result = 
-				generateByteTupleFrom(self.tupleSize()) 
+			val result =
+				generateByteTupleFrom(self.tupleSize())
 					{ getNybble(self, it).toInt() }
 			result.setHashOrZero(self.hashOrZero())
 			return result

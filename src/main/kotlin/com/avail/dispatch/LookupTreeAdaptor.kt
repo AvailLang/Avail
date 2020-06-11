@@ -60,19 +60,6 @@ abstract class LookupTreeAdaptor<
 	Memento>
 {
 	/**
-	 * A convenience type for when a [LookupTreeAdaptor] doesn't need a
-	 * [Memento].
-	 */
-	enum class UnusedMemento {
-		/**
-		 * The singleton instance.  Note that we can't use the Kotlin self
-		 * notation for this, since we need an actual named type for the
-		 * parameterization.
-		 */
-		UNUSED;
-	}
-
-	/**
 	 * Convert from an [Element] to a suitable [A_Type] for
 	 * organizing the tree.
 	 *

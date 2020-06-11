@@ -186,12 +186,12 @@ import com.avail.descriptor.tokens.TokenDescriptor.TokenType.WHITESPACE
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor
-import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import com.avail.descriptor.tuples.StringDescriptor.Companion.formatString
 import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.tuples.TupleDescriptor
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.toList
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.instanceTypeOrMetaOn
@@ -237,7 +237,6 @@ import com.avail.performance.StatisticReport.RUNNING_PARSING_INSTRUCTIONS
 import com.avail.persistence.Repository
 import com.avail.utility.Locks.lockWhile
 import com.avail.utility.Mutable
-import com.avail.utility.MutableInt
 import com.avail.utility.MutableOrNull
 import com.avail.utility.PrefixSharingList
 import com.avail.utility.PrefixSharingList.append
@@ -3397,7 +3396,7 @@ class AvailCompiler(
 					state.lexingState, recurse!!)
 			}
 		}
-		recurse.invoke()
+		recurse()
 	}
 
 	/**
@@ -3528,7 +3527,7 @@ class AvailCompiler(
 						declarationRemap,
 						recurse!!)
 				}
-				recurse.invoke()
+				recurse()
 			})
 	}
 
@@ -3556,7 +3555,7 @@ class AvailCompiler(
 		// Clear the section of the fragment cache associated with the
 		// (outermost) statement just parsed and executed...
 		synchronized(fragmentCache) { fragmentCache.clear() }
-		compilationContext.diagnostics.successReporter!!.invoke()
+		compilationContext.diagnostics.successReporter!!()
 	}
 
 	/**
@@ -4838,7 +4837,7 @@ class AvailCompiler(
 					// start.
 					result.add(start)
 				}
-				val countdown = MutableInt(toSkip.size)
+				var countdown = toSkip.size
 				for (tokenToSkip in toSkip)
 				{
 					// Common case of an unambiguous whitespace/comment token.
@@ -4849,9 +4848,9 @@ class AvailCompiler(
 						{ partialList ->
 							synchronized(countdown) {
 								result.addAll(partialList)
-								countdown.value--
-								assert(countdown.value >= 0)
-								if (countdown.value == 0)
+								countdown--
+								assert(countdown >= 0)
+								if (countdown == 0)
 								{
 									continuation(result)
 								}

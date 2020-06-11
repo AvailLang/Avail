@@ -49,10 +49,10 @@ package com.avail.optimizer.values
 internal class L2SemanticOuter constructor(frame: Frame, val outerIndex: Int)
 	: L2FrameSpecificSemanticValue(frame, outerIndex xor -0x22fc3786)
 {
-	override fun equals(other: Any?): Boolean =
-		other is L2SemanticOuter
-			&& super.equals(other)
-			&& outerIndex == other.outerIndex
+	override fun equalsSemanticValue(other: L2SemanticValue): Boolean =
+		(other is L2SemanticOuter
+			&& super.equalsSemanticValue(other)
+			&& outerIndex == other.outerIndex)
 
 	override fun transform(
 		semanticValueTransformer: (L2SemanticValue) -> L2SemanticValue,
@@ -62,6 +62,6 @@ internal class L2SemanticOuter constructor(frame: Frame, val outerIndex: Int)
 			}
 
 	override fun toString(): String =
-		"Outer#$outerIndex + ${if (frame.depth() == 1) "" else "[$frame]"}"
+		"Outer#$outerIndex${if (frame.depth() == 1) "" else " [$frame]"}"
 
 }

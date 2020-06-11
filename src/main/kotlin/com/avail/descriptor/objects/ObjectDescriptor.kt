@@ -231,6 +231,16 @@ class ObjectDescriptor internal constructor(
 			else -> self.slot(FIELD_VALUES_, slotIndex!!)
 		}
 
+	override fun o_FieldAtOrNull(
+		self: AvailObject,
+		field: A_Atom
+	): AvailObject? =
+		when (val slotIndex = variant.fieldToSlotIndex[field]) {
+			null -> null
+			0 -> field as AvailObject
+			else -> self.slot(FIELD_VALUES_, slotIndex)
+		}
+
 	override fun o_FieldAtPuttingCanDestroy(
 		self: AvailObject,
 		field: A_Atom,

@@ -78,8 +78,7 @@ object P_AtomRemoveProperty : Primitive(
 			return interpreter.primitiveFailure(E_KEY_NOT_FOUND)
 		}
 		atom.setAtomProperty(propertyKey, nil)
-		val loader = interpreter.availLoaderOrNull()
-		loader?.recordEffect(
+		interpreter.availLoaderOrNull()?.recordEffect(
 			LoadingEffectToRunPrimitive(
 				SpecialMethodAtom.ATOM_REMOVE_PROPERTY.bundle,
 				atom,

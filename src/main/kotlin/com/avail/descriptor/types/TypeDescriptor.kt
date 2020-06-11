@@ -87,7 +87,7 @@ import java.beans.MethodDescriptor
  * type union.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
- * 
+ *
  * @constructor
  * Construct a new `TypeDescriptor`.
  *
@@ -106,7 +106,7 @@ abstract class TypeDescriptor protected constructor(
 	mutability: Mutability,
 	typeTag: TypeTag,
 	objectSlotsEnumClass: Class<out ObjectSlotsEnum>?,
-	integerSlotsEnumClass: Class<out IntegerSlotsEnum>?) 
+	integerSlotsEnumClass: Class<out IntegerSlotsEnum>?)
 		: AbstractTypeDescriptor(
 			mutability, typeTag, objectSlotsEnumClass, integerSlotsEnumClass)
 {
@@ -126,7 +126,7 @@ abstract class TypeDescriptor protected constructor(
 		 * has an additional role:  No variable or argument may be of this type,
 		 * so the only thing that can be done with the result of a function call
 		 * of type ⊤ is to implicitly discard it.  This is a precise way of
-		 * making the traditional distinction between functions and procedures. 
+		 * making the traditional distinction between functions and procedures.
 		 * In fact, Avail requires all statements except the last one in a block
 		 * to be of type ⊤, to ensure that functions are not accidentally used
 		 * as procedures – and to ensure that the reader of the code knows it.
@@ -224,7 +224,7 @@ abstract class TypeDescriptor protected constructor(
 		/**
 		 * This is the kind of all
 		 * [message&#32;bundle&#32;trees][MessageBundleTreeDescriptor], which
-		 * are lazily expanded during parallel parsing of Avail expressions. 
+		 * are lazily expanded during parallel parsing of Avail expressions.
 		 * They collapse together the cost of parsing method or macro
 		 * invocations that start with the same tokens and arguments.
 		 */
@@ -285,7 +285,7 @@ abstract class TypeDescriptor protected constructor(
 
 		/**
 		 * A [POJO][PojoDescriptor] is a Plain Old Java [Object].  Avail is able
-		 * to interface to arbitrary Java code via its implementation of POJOs. 
+		 * to interface to arbitrary Java code via its implementation of POJOs.
 		 * POJOs contain (and conform to) their own POJO types, but that
 		 * requires a separate concept of *raw* POJOs.  Avail code only works
 		 * with the typed POJOs, but the Avail machinery has to be able to use
@@ -322,7 +322,7 @@ abstract class TypeDescriptor protected constructor(
 				for (spec in all)
 				{
 					val o: AvailObject = spec.o()
-					val descriptor = 
+					val descriptor =
 						if (spec == TOP)
 						{
 							TopTypeDescriptor(spec.typeTag, spec)
@@ -502,84 +502,51 @@ abstract class TypeDescriptor protected constructor(
 
 	override fun o_AcceptsArgTypesFromFunctionType(
 		self: AvailObject,
-		functionType: A_Type): Boolean
-	{
-		throw unsupportedOperationException()
-	}
+		functionType: A_Type): Boolean = unsupported
 
 	override fun o_AcceptsListOfArgTypes(
 		self: AvailObject,
-		argTypes: List<A_Type>): Boolean
-	{
-		throw unsupportedOperationException()
-	}
+		argTypes: List<A_Type>): Boolean = unsupported
 
 	override fun o_AcceptsListOfArgValues(
 		self: AvailObject,
-		argValues: List<A_BasicObject>): Boolean
-	{
-		throw unsupportedOperationException()
-	}
+		argValues: List<A_BasicObject>): Boolean = unsupported
 
 	override fun o_AcceptsTupleOfArgTypes(
 		self: AvailObject,
-		argTypes: A_Tuple): Boolean
-	{
-		throw unsupportedOperationException()
-	}
+		argTypes: A_Tuple): Boolean = unsupported
 
 	override fun o_AcceptsTupleOfArguments(
 		self: AvailObject,
-		arguments: A_Tuple): Boolean
-	{
-		throw unsupportedOperationException()
-	}
+		arguments: A_Tuple): Boolean = unsupported
 
-	override fun o_ArgsTupleType(self: AvailObject): A_Type
-	{
-		throw unsupportedOperationException()
-	}
+	override fun o_ArgsTupleType(self: AvailObject): A_Type = unsupported
 
-	override fun o_ContentType(self: AvailObject): A_Type
-	{
-		throw unsupportedOperationException()
-	}
+	override fun o_ContentType(self: AvailObject): A_Type = unsupported
 
 	override fun o_CouldEverBeInvokedWith(
 		self: AvailObject,
-		argRestrictions: List<TypeRestriction>): Boolean
-	{
-		throw unsupportedOperationException()
-	}
+		argRestrictions: List<TypeRestriction>): Boolean = unsupported
 
-	override fun o_DeclaredExceptions(self: AvailObject): A_Set
-	{
-		throw unsupportedOperationException()
-	}
+	override fun o_DeclaredExceptions(self: AvailObject): A_Set = unsupported
 
-	override fun o_DefaultType(self: AvailObject): A_Type
-	{
-		throw unsupportedOperationException()
-	}
+	override fun o_DefaultType(self: AvailObject): A_Type = unsupported
 
 	abstract override fun o_Equals(
 		self: AvailObject,
 		another: A_BasicObject): Boolean
 
-	override fun o_FunctionType(self: AvailObject): A_Type
-	{
-		throw unsupportedOperationException()
-	}
+	override fun o_FunctionType(self: AvailObject): A_Type = unsupported
 
-	override fun o_FieldTypeAt(self: AvailObject, field: A_Atom): A_Type
-	{
-		throw unsupportedOperationException()
-	}
+	override fun o_FieldTypeAt(self: AvailObject, field: A_Atom): A_Type =
+		unsupported
 
-	override fun o_FieldTypeMap(self: AvailObject): A_Map
-	{
-		throw unsupportedOperationException()
-	}
+	override fun o_FieldTypeAtOrNull(
+		self: AvailObject,
+		field: A_Atom
+	): A_Type? = unsupported
+
+	override fun o_FieldTypeMap(self: AvailObject): A_Map = unsupported
 
 	override fun o_HasObjectInstance(
 		self: AvailObject,
@@ -593,17 +560,16 @@ abstract class TypeDescriptor protected constructor(
 		anotherObject: A_BasicObject): Boolean = true
 
 	override fun o_RepresentationCostOfTupleType(
-		self: AvailObject): Int
-	{
-		throw unsupportedOperationException()
-	}
+		self: AvailObject): Int = unsupported
 
 	override fun o_IsBottom(self: AvailObject): Boolean = false
 
 	override fun o_IsVacuousType(self: AvailObject): Boolean = false
 
-	override fun o_IsInstanceOfKind(self: AvailObject, aType: A_Type): Boolean =
-		self.kind().isSubtypeOf(aType)
+	override fun o_IsInstanceOfKind(
+		self: AvailObject,
+		aType: A_Type
+	): Boolean = self.kind().isSubtypeOf(aType)
 
 	override fun o_IsIntegerRangeType(self: AvailObject): Boolean = false
 
@@ -705,20 +671,11 @@ abstract class TypeDescriptor protected constructor(
 
 	override fun o_IsTupleType(self: AvailObject): Boolean = false
 
-	override fun o_KeyType(self: AvailObject): A_Type
-	{
-		throw unsupportedOperationException()
-	}
+	override fun o_KeyType(self: AvailObject): A_Type = unsupported
 
-	override fun o_LowerBound(self: AvailObject): A_Number
-	{
-		throw unsupportedOperationException()
-	}
+	override fun o_LowerBound(self: AvailObject): A_Number = unsupported
 
-	override fun o_LowerInclusive(self: AvailObject): Boolean
-	{
-		throw unsupportedOperationException()
-	}
+	override fun o_LowerInclusive(self: AvailObject): Boolean = unsupported
 
 	// Most Avail types are opaque to Java, and can be characterized by the
 	// class of AvailObject.
@@ -726,28 +683,16 @@ abstract class TypeDescriptor protected constructor(
 		self: AvailObject,
 		classHint: Class<*>?): Any? =  AvailObject::class.java
 
-	override fun o_Parent(self: AvailObject): A_BasicObject
-	{
-		throw unsupportedOperationException()
-	}
+	override fun o_Parent(self: AvailObject): A_BasicObject = unsupported
 
-	override fun o_RangeIncludesInt(self: AvailObject, anInt: Int): Boolean =
-		false
+	override fun o_RangeIncludesInt(self: AvailObject, anInt: Int) = false
 
-	override fun o_ReturnType(self: AvailObject): A_Type
-	{
-		throw unsupportedOperationException()
-	}
+	override fun o_ReturnType(self: AvailObject): A_Type = unsupported
 
-	override fun o_SizeRange(self: AvailObject): A_Type
-	{
-		throw unsupportedOperationException()
-	}
+	override fun o_SizeRange(self: AvailObject): A_Type = unsupported
 
-	override fun o_TypeAtIndex(self: AvailObject, index: Int): A_Type
-	{
-		throw unsupportedOperationException()
-	}
+	override fun o_TypeAtIndex(self: AvailObject, index: Int): A_Type =
+		unsupported
 
 	override fun o_TypeIntersectionOfFiberType(
 		self: AvailObject,
@@ -816,10 +761,7 @@ abstract class TypeDescriptor protected constructor(
 		self: AvailObject,
 		aTupleType: A_Type): A_Type = bottom()
 
-	override fun o_TypeTuple(self: AvailObject): A_Tuple
-	{
-		throw unsupportedOperationException()
-	}
+	override fun o_TypeTuple(self: AvailObject): A_Tuple = unsupported
 
 	override fun o_TypeUnionOfFiberType(
 		self: AvailObject,
@@ -899,26 +841,14 @@ abstract class TypeDescriptor protected constructor(
 	override fun o_UnionOfTypesAtThrough(
 		self: AvailObject,
 		startIndex: Int,
-		endIndex: Int): A_Type
-	{
-		throw unsupportedOperationException()
-	}
+		endIndex: Int): A_Type = unsupported
 
 	override fun o_UpperBound(
-		self: AvailObject): A_Number
-	{
-		throw unsupportedOperationException()
-	}
+		self: AvailObject): A_Number = unsupported
 
-	override fun o_UpperInclusive(self: AvailObject): Boolean
-	{
-		throw unsupportedOperationException()
-	}
+	override fun o_UpperInclusive(self: AvailObject): Boolean = unsupported
 
-	override fun o_ValueType(self: AvailObject): A_Type
-	{
-		throw unsupportedOperationException()
-	}
+	override fun o_ValueType(self: AvailObject): A_Type = unsupported
 
 	companion object
 	{
@@ -935,9 +865,9 @@ abstract class TypeDescriptor protected constructor(
 		 */
 		fun isProperSubtype(
 			type1: A_Type,
-			type2: A_Type?): Boolean
+			type2: A_Type): Boolean
 		{
-			return !type1.equals(type2) && type1.isSubtypeOf(type2!!)
+			return !type1.equals(type2) && type1.isSubtypeOf(type2)
 		}
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * P_SetInvalidMessageSendFunction.kt
+ * P_SetCompiledCodeName.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,42 +29,54 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.primitive.rawfunctions
 
-package com.avail.interpreter.primitive.hooks
-
-import com.avail.AvailRuntime.HookType.INVALID_MESSAGE_SEND
-import com.avail.descriptor.functions.FunctionDescriptor
-import com.avail.descriptor.methods.MethodDescriptor
+import com.avail.descriptor.functions.CompiledCodeDescriptor
+import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.CompiledCodeTypeDescriptor.Companion.mostGeneralCompiledCodeType
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import com.avail.descriptor.types.TypeDescriptor.Types.TOP
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.nonemptyStringType
+import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.CannotFail
-import com.avail.interpreter.Primitive.Flag.HasSideEffect
 import com.avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
+import com.avail.interpreter.effects.LoadingEffectToRunPrimitive
 import com.avail.interpreter.execution.Interpreter
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.GLOBAL_STATE
+import com.avail.interpreter.levelTwo.WritesHiddenVariable
 
 /**
- * **Primitive:** Set the [function][FunctionDescriptor] to invoke whenever a
- * whenever a [method][MethodDescriptor] send fails for a definitional reason.
- *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * **Primitive:** Set a [compiled&#32;code][CompiledCodeDescriptor]'s symbolic
+ * name to the given [A_String].  Also name its sub-functions in a systematic
+ * way.
  */
-@Suppress("unused")
-object P_SetInvalidMessageSendFunction
-	: Primitive(1, CannotFail, HasSideEffect, WritesToHiddenGlobalState)
+@WritesHiddenVariable(GLOBAL_STATE::class)
+object P_SetCompiledCodeName : Primitive(
+	2, CannotFail, CanInline, WritesToHiddenGlobalState)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
-		interpreter.checkArgumentCount(1)
-		val function = interpreter.argument(0)
-		INVALID_MESSAGE_SEND.set(interpreter.runtime(), function)
-		interpreter.availLoaderOrNull()?.statementCanBeSummarized(false)
+		interpreter.checkArgumentCount(2)
+		val code = interpreter.argument(0)
+		val name = interpreter.argument(1)
+		code.setMethodName(name)
+		interpreter.availLoaderOrNull()?.recordEffect(
+			LoadingEffectToRunPrimitive(
+				SpecialMethodAtom.SET_COMPILED_CODE_NAME.bundle,
+				code,
+				name))
 		return interpreter.primitiveSuccess(nil)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(INVALID_MESSAGE_SEND.functionType), TOP.o())
+		functionType(
+			tuple(
+				mostGeneralCompiledCodeType(),
+				nonemptyStringType()),
+			Types.TOP.o())
 }

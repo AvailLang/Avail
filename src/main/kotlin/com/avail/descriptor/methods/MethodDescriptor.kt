@@ -95,8 +95,6 @@ import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.descriptor.types.TypeTag
 import com.avail.dispatch.LookupTree
 import com.avail.dispatch.LookupTreeAdaptor
-import com.avail.dispatch.LookupTreeAdaptor.UnusedMemento
-import com.avail.dispatch.LookupTreeAdaptor.UnusedMemento.UNUSED
 import com.avail.dispatch.TypeComparison.Companion.compareForDispatch
 import com.avail.exceptions.AvailErrorCode.E_METHOD_IS_SEALED
 import com.avail.exceptions.MalformedMessageException
@@ -121,6 +119,10 @@ import com.avail.interpreter.primitive.controlflow.P_ResumeContinuation
 import com.avail.interpreter.primitive.general.P_EmergencyExit
 import com.avail.interpreter.primitive.hooks.P_DeclareStringificationAtom
 import com.avail.interpreter.primitive.hooks.P_GetRaiseJavaExceptionInAvailFunction
+import com.avail.interpreter.primitive.hooks.P_SetInvalidMessageSendFunction
+import com.avail.interpreter.primitive.hooks.P_SetRaiseJavaExceptionInAvailFunction
+import com.avail.interpreter.primitive.hooks.P_SetResultDisagreedWithExpectedTypeFunction
+import com.avail.interpreter.primitive.hooks.P_SetUnassignedVariableAccessFunction
 import com.avail.interpreter.primitive.methods.P_AbstractMethodDeclarationForAtom
 import com.avail.interpreter.primitive.methods.P_AddSemanticRestrictionForAtom
 import com.avail.interpreter.primitive.methods.P_Alias
@@ -140,6 +142,7 @@ import com.avail.interpreter.primitive.modules.P_PublishName
 import com.avail.interpreter.primitive.objects.P_RecordNewTypeName
 import com.avail.interpreter.primitive.phrases.P_CreateLiteralExpression
 import com.avail.interpreter.primitive.phrases.P_CreateLiteralToken
+import com.avail.interpreter.primitive.rawfunctions.P_SetCompiledCodeName
 import com.avail.interpreter.primitive.variables.P_AtomicAddToMap
 import com.avail.interpreter.primitive.variables.P_GetValue
 import com.avail.optimizer.L2Generator
@@ -311,7 +314,7 @@ class MethodDescriptor private constructor(
 			val newTree = runtimeDispatcher.createRoot(
 				toList(self.slot(DEFINITIONS_TUPLE)),
 				nCopiesOfAnyRestriction(numArgs),
-				UNUSED)
+				Unit)
 			do {
 				// Try to replace null with the new tree.  If the replacement
 				// fails, it means someone else already succeeded, so use that
@@ -343,7 +346,7 @@ class MethodDescriptor private constructor(
 				nCopies(
 					numArgs,
 					restrictionForType(PARSE_PHRASE.mostGeneralType(), BOXED)),
-				UNUSED)
+				Unit)
 			do {
 				// Try to replace null with the new tree.  If the replacement
 				// fails, it means someone else already succeeded, so use that
@@ -529,7 +532,7 @@ class MethodDescriptor private constructor(
 		argumentTypeTuple: A_Tuple
 	) = extractUniqueMethod(
 		runtimeDispatcher.lookupByTypes(
-			methodTestingTree(self), argumentTypeTuple, UNUSED))
+			methodTestingTree(self), argumentTypeTuple, Unit))
 
 	/**
 	 * Look up the definition to invoke, given an array of argument values. Use
@@ -542,7 +545,7 @@ class MethodDescriptor private constructor(
 		argumentList: List<A_BasicObject>
 	) = extractUniqueMethod(
 		runtimeDispatcher.lookupByValues(
-			methodTestingTree(self), argumentList, UNUSED))
+			methodTestingTree(self), argumentList, Unit))
 
 	/**
 	 * Look up the macro definition to invoke, given an array of argument
@@ -559,7 +562,7 @@ class MethodDescriptor private constructor(
 		self: AvailObject,
 		argumentPhraseTuple: A_Tuple
 	): A_Tuple = runtimeDispatcher.lookupByValues(
-		macroTestingTree(self), argumentPhraseTuple, UNUSED)
+		macroTestingTree(self), argumentPhraseTuple, Unit)
 
 	override fun o_MacroDefinitionsTuple(self: AvailObject): A_Tuple
 	{
@@ -885,6 +888,14 @@ class MethodDescriptor private constructor(
 			P_SimpleMethodDeclaration,
 			P_MethodDeclarationFromAtom),
 
+		/**
+		 * The special atom for explicitly attaching a name to compiled code.
+		 * Note that some defining methods also have this effect implicitly.
+		 */
+		SET_COMPILED_CODE_NAME(
+			"vm set name of raw function_to_",
+			P_SetCompiledCodeName),
+
 		/** The special atom for publishing atoms. */
 		PUBLISH_ATOMS(
 			"vm publish atom set_(public=_)",
@@ -1054,14 +1065,14 @@ class MethodDescriptor private constructor(
 		 */
 		@JvmField
 		val runtimeDispatcher =
-			object : LookupTreeAdaptor<A_Definition, A_Tuple, UnusedMemento>()
+			object : LookupTreeAdaptor<A_Definition, A_Tuple, Unit>()
 			{
 				override fun extractSignature(element: A_Definition) =
 					element.bodySignature().argsTupleType()
 
 				override fun constructResult(
 					elements: List<A_Definition>,
-					memento: UnusedMemento
+					memento: Unit
 				) = tupleFromList(elements)
 
 				override fun compareTypes(

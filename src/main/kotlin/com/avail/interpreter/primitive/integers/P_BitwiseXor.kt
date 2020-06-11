@@ -32,6 +32,7 @@
 
 package com.avail.interpreter.primitive.integers
 
+import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.numbers.IntegerDescriptor
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
@@ -42,6 +43,9 @@ import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.execution.Interpreter
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import com.avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP
+import com.avail.optimizer.L1Translator
 
 /**
  * **Primitive:** Compute the bitwise EXCLUSIVE OR of the
@@ -62,4 +66,25 @@ object P_BitwiseXor : Primitive(2, CannotFail, CanFold, CanInline)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(tuple(integers(), integers()), integers())
+
+
+	override fun tryToGenerateSpecialPrimitiveInvocation(
+		functionToCallReg: L2ReadBoxedOperand,
+		rawFunction: A_RawFunction,
+		arguments: List<L2ReadBoxedOperand>,
+		argumentTypes: List<A_Type>,
+		translator: L1Translator,
+		callSiteHelper: L1Translator.CallSiteHelper
+	): Boolean = L2_BIT_LOGIC_OP.bitwiseXor.generateBinaryIntOperation(
+		arguments,
+		argumentTypes,
+		callSiteHelper,
+		typeGuaranteeFunction = {
+			restrictedArgTypes ->
+			returnTypeGuaranteedByVM(rawFunction, restrictedArgTypes)
+		},
+		fallbackBody = {
+			generateGeneralFunctionInvocation(
+				functionToCallReg, arguments, false, callSiteHelper)
+		})
 }

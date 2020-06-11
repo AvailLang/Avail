@@ -53,27 +53,25 @@ object Strings {
 	 * @return
 	 *   An escaped string that is suitable for use as a literal in Java source.
 	 */
-	fun escape(s: String): String {
-		val builder = StringBuilder(s.length shl 1)
-		builder.append('"')
-		var codePoint: Int
+	fun escape(s: String): String = buildString {
+		append('"')
 		var i = 0
-		while (i < s.length) {
-			codePoint = s.codePointAt(i)
-			when (codePoint) {
-				'\\'.toInt() -> builder.append("\\\\")
-				'"'.toInt() -> builder.append("\\\"")
-				'\b'.toInt() -> builder.append("\\b")
-				'\u000C'.toInt() -> builder.append("\\f") // Remove when we're fully in Kotlin.
-				'\n'.toInt() -> builder.append("\\n")
-				'\r'.toInt() -> builder.append("\\r")
-				'\t'.toInt() -> builder.append("\\t")
-				else -> builder.appendCodePoint(codePoint)
+		while (i < s.length)
+		{
+			val codePoint = s.codePointAt(i)
+			when (codePoint)
+			{
+				'\\'.toInt() -> append("\\\\")
+				'"'.toInt() -> append("\\\"")
+				'\b'.toInt() -> append("\\b")
+				'\n'.toInt() -> append("\\n")
+				'\r'.toInt() -> append("\\r")
+				'\t'.toInt() -> append("\\t")
+				else -> appendCodePoint(codePoint)
 			}
 			i += Character.charCount(codePoint)
 		}
-		builder.append('"')
-		return builder.toString()
+		append('"')
 	}
 
 	/**

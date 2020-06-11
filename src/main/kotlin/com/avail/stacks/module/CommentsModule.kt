@@ -953,7 +953,7 @@ class CommentsModule constructor(
 							mutableMapOf<String, CommentGroup>()
 						modToImplement[modName] = implementation
 						filteredMap[key] = modToImplement
-					}.invoke()
+					}()
 
 					for (category in implementation.categories())
 					{
@@ -1005,7 +1005,7 @@ class CommentsModule constructor(
 							HashMap<String, CommentGroup>()
 						modToImplement[tempEntry.key] = implementation
 						filteredMap[key] = modToImplement
-					}.invoke()
+					}()
 
 					for (category in implementation.categories())
 					{

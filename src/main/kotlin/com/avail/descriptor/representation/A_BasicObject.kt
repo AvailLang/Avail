@@ -1153,9 +1153,22 @@ interface A_BasicObject : JSONFriendly {
 	 * Extract a field from an [object][ObjectDescriptor].
 	 *
 	 * @param field
+	 *   The field to look up.
 	 * @return
+	 *   The field's value.
 	 */
 	fun fieldAt(field: A_Atom): AvailObject
+
+	/**
+	 * Extract a field from an [object][ObjectDescriptor], or answer null if
+	 * it's not present.
+	 *
+	 * @param field
+	 *   The field to look up.
+	 * @return
+	 *   The field's value or null.
+	 */
+	fun fieldAtOrNull(field: A_Atom): AvailObject?
 
 	/**
 	 * Add or replace a field of an [object][ObjectDescriptor].
@@ -1174,9 +1187,22 @@ interface A_BasicObject : JSONFriendly {
 	 * Extract a field type from an [object&#32;type][ObjectTypeDescriptor].
 	 *
 	 * @param field
+	 *   The field to look up.
 	 * @return
+	 *   The field's type.
 	 */
 	fun fieldTypeAt(field: A_Atom): A_Type
+
+	/**
+	 * Extract a field type from an [object&#32;type][ObjectTypeDescriptor],
+	 * or `null` if it's not present.
+	 *
+	 * @param field
+	 *   The field to look up.
+	 * @return
+	 *   The field's type or null.
+	 */
+	fun fieldTypeAtOrNull(field: A_Atom): A_Type?
 
 	companion object {
 		/**

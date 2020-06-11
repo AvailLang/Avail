@@ -103,9 +103,6 @@ import com.avail.stacks.StacksGenerator
 import com.avail.utility.Casts.cast
 import com.avail.utility.IO
 import com.avail.utility.Locks.lockWhile
-import com.avail.utility.Mutable
-import com.avail.utility.MutableInt
-import com.avail.utility.MutableLong
 import com.avail.utility.javaNotifyAll
 import com.avail.utility.javaWait
 import com.bulenkov.darcula.DarculaLaf
@@ -718,7 +715,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		assert(EventQueue.isDispatchThread())
 		// Hold the dequeLock just long enough to extract all entries, only
 		// decreasing totalQueuedTextSize just before unlocking.
-		val lengthToInsert = MutableInt(0)
+		var lengthToInsert = 0
 		val aggregatedEntries = ArrayList<BuildOutputStreamEntry>()
 		val wentToZero = lockWhile<Boolean>(
 			dequeLock
@@ -741,7 +738,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 						aggregatedEntries.add(
 							BuildOutputStreamEntry(
 								currentStyle, string))
-						lengthToInsert.value += string.length
+						lengthToInsert += string.length
 						builder.setLength(0)
 					}
 					if (entry == null)
@@ -764,13 +761,13 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		}
 
 		assert(aggregatedEntries.isNotEmpty())
-		assert(lengthToInsert.value > 0)
+		assert(lengthToInsert > 0)
 		try
 		{
 			val statusSize = perModuleStatusTextSize
 			val length = document.length
 			val amountToRemove =
-				length - statusSize + lengthToInsert.value - maxDocumentSize
+				length - statusSize + lengthToInsert - maxDocumentSize
 			if (amountToRemove > 0)
 			{
 				// We need to trim off some of the document, right after the
@@ -1287,7 +1284,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		stack: Deque<DefaultMutableTreeNode>,
 		moduleRoot: ModuleRoot): FileVisitor<Path>
 	{
-		val isRoot = Mutable(true)
+		var isRoot = true
 		return object : FileVisitor<Path>
 		{
 			/**
@@ -1336,10 +1333,10 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 			{
 				assert(dir != null)
 				val parentNode = stack.peekFirst()
-				if (isRoot.value)
+				if (isRoot)
 				{
 					// Add a ModuleRoot.
-					isRoot.value = false
+					isRoot = false
 					assert(stack.size == 1)
 					val node = ModuleRootNode(availBuilder, moduleRoot)
 					parentNode.add(node)
@@ -1393,7 +1390,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 			{
 				assert(file != null)
 				val parentNode = stack.peekFirst()
-				if (isRoot.value)
+				if (isRoot)
 				{
 					throw IOException("Avail root should be a directory")
 				}
@@ -1498,7 +1495,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 					moduleNodes.put(resolvedName.qualifiedName, moduleNode)
 				}
 			}
-			after.invoke()
+			after()
 		}
 		val mapKeys = moduleNodes.keys.toTypedArray()
 		Arrays.sort(mapKeys)
@@ -1689,22 +1686,22 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	 */
 	internal fun updateBuildProgress()
 	{
-		val position = MutableLong(0L)
-		val max = MutableLong(0L)
+		var position = 0L
+		var max = 0L
 		lockWhile(buildGlobalUpdateLock.writeLock())
 		{
 			assert(hasQueuedGlobalBuildUpdate)
-			position.value = latestGlobalBuildPosition
-			max.value = globalBuildLimit
+			position = latestGlobalBuildPosition
+			max = globalBuildLimit
 			hasQueuedGlobalBuildUpdate = false
 		}
-		val perThousand = (position.value * 1000 / max.value).toInt()
+		val perThousand = (position * 1000 / max).toInt()
 		buildProgress.value = perThousand
 		val percent = perThousand / 10.0f
 		buildProgress.string = format(
 			"Build Progress: %,d / %,d bytes (%3.1f%%)",
-			position.value,
-			max.value,
+			position,
+			max,
 			percent)
 	}
 

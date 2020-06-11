@@ -193,7 +193,9 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 	 * @return
 	 *   Whether any dead instructions were removed or changed.
 	 */
-	fun removeDeadInstructions(dataCouplingMode: DataCouplingMode): Boolean
+	private fun removeDeadInstructions(
+		dataCouplingMode: DataCouplingMode
+	): Boolean
 	{
 		val analyzer = DeadCodeAnalyzer(dataCouplingMode, controlFlowGraph)
 		analyzer.analyzeReads()
@@ -507,7 +509,7 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 			// Add in the predecessor-specific live-in information for each edge
 			// based on the corresponding positions inside phi instructions.
 			val finalLastPhiIndex = lastPhiIndex
-			val edgeIndex = MutableInt(0)
+			var edgeIndex = 0
 			block.predecessorEdgesDo { edge ->
 				val edgeAlwaysLiveIn =
 					alwaysLive.toMutableSet()
@@ -525,12 +527,12 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 						phiInstruction.destinationRegisters())
 					val sources =
 						phiOperation.sourceRegisterReads(phiInstruction)
-					val source = sources[edgeIndex.value].register()
+					val source = sources[edgeIndex].register()
 					edgeSometimesLiveIn.add(source)
 					edgeAlwaysLiveIn.add(source)
 				}
 				val predecessorEdge =
-					block.predecessorEdgeAt(edgeIndex.value)
+					block.predecessorEdgeAt(edgeIndex)
 				var changed =
 					predecessorEdge.sometimesLiveInRegisters.addAll(
 						edgeSometimesLiveIn)
@@ -548,7 +550,7 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 						workSet.add(predecessor)
 					}
 				}
-				edgeIndex.value++
+				edgeIndex++
 			}
 		}
 	}

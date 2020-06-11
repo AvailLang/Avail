@@ -31,6 +31,7 @@
  */
 package com.avail
 
+import com.avail.AvailRuntime.Companion.specialObject
 import com.avail.AvailRuntimeConfiguration.availableProcessors
 import com.avail.AvailRuntimeConfiguration.maxInterpreters
 import com.avail.AvailThread.Companion.current
@@ -50,8 +51,8 @@ import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import com.avail.descriptor.bundles.A_Bundle.Companion.definitionParsingPlans
-import com.avail.descriptor.bundles.A_Bundle.Companion.removeGrammaticalRestriction
 import com.avail.descriptor.bundles.A_Bundle.Companion.message
+import com.avail.descriptor.bundles.A_Bundle.Companion.removeGrammaticalRestriction
 import com.avail.descriptor.character.CharacterDescriptor
 import com.avail.descriptor.fiber.A_Fiber
 import com.avail.descriptor.fiber.FiberDescriptor
@@ -91,11 +92,11 @@ import com.avail.descriptor.pojos.RawPojoDescriptor
 import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.representation.NilDescriptor
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
-import com.avail.descriptor.tokens.TokenDescriptor
 import com.avail.descriptor.tokens.TokenDescriptor.StaticInit
+import com.avail.descriptor.tokens.TokenDescriptor.TokenType
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
@@ -163,6 +164,7 @@ import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleMeta
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import com.avail.descriptor.types.TypeDescriptor
+import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableMeta
 import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableReadWriteType
@@ -571,7 +573,7 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 		 */
 		STRINGIFICATION(
 			"«stringification»",
-			functionType(tuple(TypeDescriptor.Types.ANY.o()), stringType()),
+			functionType(tuple(Types.ANY.o()), stringType()),
 			P_ToString),
 
 		/**
@@ -593,7 +595,7 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 				tuple(
 					mostGeneralFunctionType(),
 					topMeta(),
-					variableTypeFor(TypeDescriptor.Types.ANY.o())),
+					variableTypeFor(Types.ANY.o())),
 				bottom()),
 			null),
 
@@ -611,7 +613,7 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 						    AvailErrorCode.E_AMBIGUOUS_METHOD_DEFINITION,
 						    AvailErrorCode.E_FORWARD_METHOD_DEFINITION,
 						    AvailErrorCode.E_ABSTRACT_METHOD_DEFINITION)),
-					TypeDescriptor.Types.METHOD.o(),
+					Types.METHOD.o(),
 					mostGeneralTupleType()),
 				bottom()),
 			null),
@@ -630,7 +632,7 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 				tuple(
 					mostGeneralFunctionType(),
 					mostGeneralTupleType()),
-				TypeDescriptor.Types.TOP.o()),
+				Types.TOP.o()),
 			null),
 
 		/**
@@ -647,7 +649,7 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 			null);
 
 		/** The name to attach to functions plugged into this hook.  */
-		val hookName: A_String = stringFrom(hookName)
+		private val hookName: A_String = stringFrom(hookName)
 
 		/**
 		 * A [Supplier] of a default [A_Function] to use for this hook type.
@@ -698,7 +700,7 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 			else
 			{
 				val code =
-					newPrimitiveRawFunction(primitive, NilDescriptor.nil, 0)
+					newPrimitiveRawFunction(primitive, nil, 0)
 				code.setMethodName(this.hookName)
 				defaultFunctionSupplier =
 					OnceSupplier { createFunction(code, emptyTuple()) }
@@ -899,289 +901,229 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 		init
 		{
 			// Set up the special objects.
-			val specials: Array<AvailObject> =
-				Array(172) { NilDescriptor.nil }
-			specials[1] = TypeDescriptor.Types.ANY.o()
-			specials[2] = booleanType() as AvailObject
-			specials[3] = TypeDescriptor.Types.CHARACTER.o()
-			specials[4] = mostGeneralFunctionType() as AvailObject
-			specials[5] = functionMeta() as AvailObject
-			specials[6] = mostGeneralCompiledCodeType() as AvailObject
-			specials[7] = mostGeneralVariableType() as AvailObject
-			specials[8] = variableMeta() as AvailObject
-			specials[9] = mostGeneralContinuationType() as AvailObject
-			specials[10] = continuationMeta() as AvailObject
-			specials[11] = TypeDescriptor.Types.ATOM.o()
-			specials[12] = TypeDescriptor.Types.DOUBLE.o()
-			specials[13] = extendedIntegers() as AvailObject
-			specials[14] = instanceMeta(zeroOrMoreOf(anyMeta())) as AvailObject
-			specials[15] = TypeDescriptor.Types.FLOAT.o()
-			specials[16] = TypeDescriptor.Types.NUMBER.o()
-			specials[17] = integers() as AvailObject
-			specials[18] = extendedIntegersMeta() as AvailObject
-			specials[19] = mapMeta() as AvailObject
-			specials[20] = TypeDescriptor.Types.MODULE.o()
-			specials[21] =
-				tupleFromIntegerList(allNumericCodes()) as AvailObject
-			specials[22] = mostGeneralObjectType() as AvailObject
-			specials[23] = mostGeneralObjectMeta() as AvailObject
-			specials[24] = exceptionType() as AvailObject
-			specials[25] = mostGeneralFiberType() as AvailObject
-			specials[26] = mostGeneralSetType() as AvailObject
-			specials[27] = setMeta() as AvailObject
-			specials[28] = stringType() as AvailObject
-			specials[29] = bottom() as AvailObject
-			specials[30] = bottomMeta() as AvailObject
-			specials[31] = TypeDescriptor.Types.NONTYPE.o()
-			specials[32] = mostGeneralTupleType() as AvailObject
-			specials[33] = tupleMeta() as AvailObject
-			specials[34] = topMeta() as AvailObject
-			specials[35] = TypeDescriptor.Types.TOP.o()
-			specials[36] = wholeNumbers() as AvailObject
-			specials[37] = naturalNumbers() as AvailObject
-			specials[38] = characterCodePoints() as AvailObject
-			specials[39] = mostGeneralMapType() as AvailObject
-			specials[40] = TypeDescriptor.Types.MESSAGE_BUNDLE.o()
-			specials[41] = TypeDescriptor.Types.MESSAGE_BUNDLE_TREE.o()
-			specials[42] = TypeDescriptor.Types.METHOD.o()
-			specials[43] = TypeDescriptor.Types.DEFINITION.o()
-			specials[44] = TypeDescriptor.Types.ABSTRACT_DEFINITION.o()
-			specials[45] = TypeDescriptor.Types.FORWARD_DEFINITION.o()
-			specials[46] = TypeDescriptor.Types.METHOD_DEFINITION.o()
-			specials[47] = TypeDescriptor.Types.MACRO_DEFINITION.o()
-			specials[48] =
-				zeroOrMoreOf(mostGeneralFunctionType()) as AvailObject
-			specials[50] =
-				PhraseKind.PARSE_PHRASE.mostGeneralType() as AvailObject
-			specials[51] =
-				PhraseKind.SEQUENCE_PHRASE.mostGeneralType() as AvailObject
-			specials[52] =
-				PhraseKind.EXPRESSION_PHRASE.mostGeneralType() as AvailObject
-			specials[53] =
-				PhraseKind.ASSIGNMENT_PHRASE.mostGeneralType() as AvailObject
-			specials[54] =
-				PhraseKind.BLOCK_PHRASE.mostGeneralType() as AvailObject
-			specials[55] =
-				PhraseKind.LITERAL_PHRASE.mostGeneralType() as AvailObject
-			specials[56] =
-				PhraseKind.REFERENCE_PHRASE.mostGeneralType() as AvailObject
-			specials[57] =
-				PhraseKind.SEND_PHRASE.mostGeneralType() as AvailObject
-			specials[58] =
-				instanceMeta(mostGeneralLiteralTokenType()) as AvailObject
-			specials[59] =
-				PhraseKind.LIST_PHRASE.mostGeneralType() as AvailObject
-			specials[60] =
-				PhraseKind.VARIABLE_USE_PHRASE.mostGeneralType() as AvailObject
-			specials[61] =
-				PhraseKind.DECLARATION_PHRASE.mostGeneralType() as AvailObject
-			specials[62] =
-				PhraseKind.ARGUMENT_PHRASE.mostGeneralType() as AvailObject
-			specials[63] =
-				PhraseKind.LABEL_PHRASE.mostGeneralType() as AvailObject
-			specials[64] =
-				PhraseKind.LOCAL_VARIABLE_PHRASE.mostGeneralType() as AvailObject
-			specials[65] =
-				PhraseKind.LOCAL_CONSTANT_PHRASE.mostGeneralType() as AvailObject
-			specials[66] =
-				PhraseKind.MODULE_VARIABLE_PHRASE.mostGeneralType() as AvailObject
-			specials[67] =
-				PhraseKind.MODULE_CONSTANT_PHRASE.mostGeneralType() as AvailObject
+			val specials: Array<A_BasicObject> = Array(173) { nil }
+			specials[1] = Types.ANY.o()
+			specials[2] = booleanType()
+			specials[3] = Types.CHARACTER.o()
+			specials[4] = mostGeneralFunctionType()
+			specials[5] = functionMeta()
+			specials[6] = mostGeneralCompiledCodeType()
+			specials[7] = mostGeneralVariableType()
+			specials[8] = variableMeta()
+			specials[9] = mostGeneralContinuationType()
+			specials[10] = continuationMeta()
+			specials[11] = Types.ATOM.o()
+			specials[12] = Types.DOUBLE.o()
+			specials[13] = extendedIntegers()
+			specials[14] = instanceMeta(zeroOrMoreOf(anyMeta()))
+			specials[15] = Types.FLOAT.o()
+			specials[16] = Types.NUMBER.o()
+			specials[17] = integers()
+			specials[18] = extendedIntegersMeta()
+			specials[19] = mapMeta()
+			specials[20] = Types.MODULE.o()
+			specials[21] = tupleFromIntegerList(allNumericCodes())
+			specials[22] = mostGeneralObjectType()
+			specials[23] = mostGeneralObjectMeta()
+			specials[24] = exceptionType()
+			specials[25] = mostGeneralFiberType()
+			specials[26] = mostGeneralSetType()
+			specials[27] = setMeta()
+			specials[28] = stringType()
+			specials[29] = bottom()
+			specials[30] = bottomMeta()
+			specials[31] = Types.NONTYPE.o()
+			specials[32] = mostGeneralTupleType()
+			specials[33] = tupleMeta()
+			specials[34] = topMeta()
+			specials[35] = Types.TOP.o()
+			specials[36] = wholeNumbers()
+			specials[37] = naturalNumbers()
+			specials[38] = characterCodePoints()
+			specials[39] = mostGeneralMapType()
+			specials[40] = Types.MESSAGE_BUNDLE.o()
+			specials[41] = Types.MESSAGE_BUNDLE_TREE.o()
+			specials[42] = Types.METHOD.o()
+			specials[43] = Types.DEFINITION.o()
+			specials[44] = Types.ABSTRACT_DEFINITION.o()
+			specials[45] = Types.FORWARD_DEFINITION.o()
+			specials[46] = Types.METHOD_DEFINITION.o()
+			specials[47] = Types.MACRO_DEFINITION.o()
+			specials[48] = zeroOrMoreOf(mostGeneralFunctionType())
+			specials[50] = PhraseKind.PARSE_PHRASE.mostGeneralType()
+			specials[51] = PhraseKind.SEQUENCE_PHRASE.mostGeneralType()
+			specials[52] = PhraseKind.EXPRESSION_PHRASE.mostGeneralType()
+			specials[53] = PhraseKind.ASSIGNMENT_PHRASE.mostGeneralType()
+			specials[54] = PhraseKind.BLOCK_PHRASE.mostGeneralType()
+			specials[55] = PhraseKind.LITERAL_PHRASE.mostGeneralType()
+			specials[56] = PhraseKind.REFERENCE_PHRASE.mostGeneralType()
+			specials[57] = PhraseKind.SEND_PHRASE.mostGeneralType()
+			specials[58] = instanceMeta(mostGeneralLiteralTokenType())
+			specials[59] = PhraseKind.LIST_PHRASE.mostGeneralType()
+			specials[60] = PhraseKind.VARIABLE_USE_PHRASE.mostGeneralType()
+			specials[61] = PhraseKind.DECLARATION_PHRASE.mostGeneralType()
+			specials[62] = PhraseKind.ARGUMENT_PHRASE.mostGeneralType()
+			specials[63] = PhraseKind.LABEL_PHRASE.mostGeneralType()
+			specials[64] = PhraseKind.LOCAL_VARIABLE_PHRASE.mostGeneralType()
+			specials[65] = PhraseKind.LOCAL_CONSTANT_PHRASE.mostGeneralType()
+			specials[66] = PhraseKind.MODULE_VARIABLE_PHRASE.mostGeneralType()
+			specials[67] = PhraseKind.MODULE_CONSTANT_PHRASE.mostGeneralType()
 			specials[68] =
 				PhraseKind.PRIMITIVE_FAILURE_REASON_PHRASE.mostGeneralType()
-					as AvailObject
-			specials[69] = anyMeta() as AvailObject
-			specials[70] = trueObject() as AvailObject
-			specials[71] = falseObject() as AvailObject
-			specials[72] = zeroOrMoreOf(stringType()) as AvailObject
-			specials[73] = zeroOrMoreOf(topMeta()) as AvailObject
+			specials[69] = anyMeta()
+			specials[70] = trueObject()
+			specials[71] = falseObject()
+			specials[72] = zeroOrMoreOf(stringType())
+			specials[73] = zeroOrMoreOf(topMeta())
 			specials[74] = zeroOrMoreOf(
 				setTypeForSizesContentType(wholeNumbers(), stringType()))
-					as AvailObject
 			specials[75] =
 				setTypeForSizesContentType(wholeNumbers(), stringType())
-					as AvailObject
-			specials[76] =
-				functionType(tuple(naturalNumbers()), bottom()) as AvailObject
-			specials[77] = emptySet() as AvailObject
-			specials[78] = negativeInfinity() as AvailObject
-			specials[79] = positiveInfinity() as AvailObject
-			specials[80] = mostGeneralPojoType() as AvailObject
-			specials[81] = pojoBottom() as AvailObject
+			specials[76] = functionType(tuple(naturalNumbers()), bottom())
+			specials[77] = emptySet()
+			specials[78] = negativeInfinity()
+			specials[79] = positiveInfinity()
+			specials[80] = mostGeneralPojoType()
+			specials[81] = pojoBottom()
 			specials[82] = nullPojo()
-			specials[83] = pojoSelfType() as AvailObject
-			specials[84] = instanceMeta(mostGeneralPojoType()) as AvailObject
-			specials[85] = instanceMeta(mostGeneralPojoArrayType()) as AvailObject
-			specials[86] =
-				functionTypeReturning(TypeDescriptor.Types.ANY.o()) as AvailObject
-			specials[87] = mostGeneralPojoArrayType() as AvailObject
-			specials[88] = pojoSelfTypeAtom() as AvailObject
+			specials[83] = pojoSelfType()
+			specials[84] = instanceMeta(mostGeneralPojoType())
+			specials[85] = instanceMeta(mostGeneralPojoArrayType())
+			specials[86] = functionTypeReturning(Types.ANY.o())
+			specials[87] = mostGeneralPojoArrayType()
+			specials[88] = pojoSelfTypeAtom()
 			specials[89] = pojoTypeForClass(Throwable::class.java)
-			specials[90] =
-				functionType(emptyTuple(), TypeDescriptor.Types.TOP.o()) as AvailObject
-			specials[91] =
-				functionType(emptyTuple(), booleanType()) as AvailObject
-			specials[92] =
-				variableTypeFor(mostGeneralContinuationType()) as AvailObject
+			specials[90] = functionType(emptyTuple(), Types.TOP.o())
+			specials[91] = functionType(emptyTuple(), booleanType())
+			specials[92] = variableTypeFor(mostGeneralContinuationType())
 			specials[93] = mapTypeForSizesKeyTypeValueType(
 				wholeNumbers(),
-				TypeDescriptor.Types.ATOM.o(),
-				TypeDescriptor.Types.ANY.o()) as AvailObject
+				Types.ATOM.o(),
+				Types.ANY.o())
 			specials[94] = mapTypeForSizesKeyTypeValueType(
 				wholeNumbers(),
-				TypeDescriptor.Types.ATOM.o(),
-				anyMeta()) as AvailObject
+				Types.ATOM.o(),
+				anyMeta())
 			specials[95] = tupleTypeForSizesTypesDefaultType(
 				wholeNumbers(),
 				emptyTuple(),
 				tupleTypeForSizesTypesDefaultType(
 					singleInt(2),
 					emptyTuple(),
-					TypeDescriptor.Types.ANY.o())) as AvailObject
-			specials[96] = emptyMap() as AvailObject
+					Types.ANY.o()))
+			specials[96] = emptyMap()
 			specials[97] = mapTypeForSizesKeyTypeValueType(
 				naturalNumbers(),
-				TypeDescriptor.Types.ANY.o(),
-				TypeDescriptor.Types.ANY.o()) as AvailObject
-			specials[98] = instanceMeta(wholeNumbers()) as AvailObject
+				Types.ANY.o(),
+				Types.ANY.o())
+			specials[98] = instanceMeta(wholeNumbers())
 			specials[99] = setTypeForSizesContentType(
-				naturalNumbers(), TypeDescriptor.Types.ANY.o()) as AvailObject
+				naturalNumbers(), Types.ANY.o())
 			specials[100] = tupleTypeForSizesTypesDefaultType(
 				wholeNumbers(), emptyTuple(), mostGeneralTupleType())
-					as AvailObject
-			specials[101] = nybbles() as AvailObject
-			specials[102] = zeroOrMoreOf(nybbles()) as AvailObject
-			specials[103] = unsignedShorts() as AvailObject
+			specials[101] = nybbles()
+			specials[102] = zeroOrMoreOf(nybbles())
+			specials[103] = unsignedShorts()
 			specials[104] = emptyTuple()
-			specials[105] = functionType(
-				tuple(bottom()), TypeDescriptor.Types.TOP.o()) as AvailObject
+			specials[105] = functionType(tuple(bottom()), Types.TOP.o())
 			specials[106] = instanceType(zero())
-			specials[107] = functionTypeReturning(topMeta()) as AvailObject
+			specials[107] = functionTypeReturning(topMeta())
 			specials[108] = tupleTypeForSizesTypesDefaultType(
 				wholeNumbers(), emptyTuple(), functionTypeReturning(topMeta()))
-					as AvailObject
 			specials[109] = functionTypeReturning(
-				PhraseKind.PARSE_PHRASE.mostGeneralType()) as AvailObject
+				PhraseKind.PARSE_PHRASE.mostGeneralType())
 			specials[110] = instanceType(two())
-			specials[111] = fromDouble(Math.E) as AvailObject
+			specials[111] = fromDouble(Math.E)
 			specials[112] = instanceType(fromDouble(Math.E))
 			specials[113] = instanceMeta(
-				PhraseKind.PARSE_PHRASE.mostGeneralType()) as AvailObject
+				PhraseKind.PARSE_PHRASE.mostGeneralType())
 			specials[114] = setTypeForSizesContentType(
-				wholeNumbers(), TypeDescriptor.Types.ATOM.o()) as AvailObject
-			specials[115] = TypeDescriptor.Types.TOKEN.o()
-			specials[116] = mostGeneralLiteralTokenType() as AvailObject
-			specials[117] = zeroOrMoreOf(anyMeta()) as AvailObject
-			specials[118] = inclusive(zero(), positiveInfinity()) as AvailObject
+				wholeNumbers(), Types.ATOM.o())
+			specials[115] = Types.TOKEN.o()
+			specials[116] = mostGeneralLiteralTokenType()
+			specials[117] = zeroOrMoreOf(anyMeta())
+			specials[118] = inclusive(zero(), positiveInfinity())
 			specials[119] = zeroOrMoreOf(
 				tupleTypeForSizesTypesDefaultType(
 					singleInt(2),
-					tuple(TypeDescriptor.Types.ATOM.o()), anyMeta()))
-					as AvailObject
+					tuple(Types.ATOM.o()), anyMeta()))
 			specials[120] = zeroOrMoreOf(
 				tupleTypeForSizesTypesDefaultType(
 					singleInt(2),
-					tuple(TypeDescriptor.Types.ATOM.o()),
-					TypeDescriptor.Types.ANY.o())) as AvailObject
+					tuple(Types.ATOM.o()),
+					Types.ANY.o()))
 			specials[121] = zeroOrMoreOf(
-				PhraseKind.PARSE_PHRASE.mostGeneralType()) as AvailObject
+				PhraseKind.PARSE_PHRASE.mostGeneralType())
 			specials[122] = zeroOrMoreOf(
-				PhraseKind.ARGUMENT_PHRASE.mostGeneralType()) as AvailObject
+				PhraseKind.ARGUMENT_PHRASE.mostGeneralType())
 			specials[123] = zeroOrMoreOf(
-				PhraseKind.DECLARATION_PHRASE.mostGeneralType()) as AvailObject
-			specials[124] = variableReadWriteType(
-				TypeDescriptor.Types.TOP.o(), bottom()) as AvailObject
+				PhraseKind.DECLARATION_PHRASE.mostGeneralType())
+			specials[124] = variableReadWriteType(Types.TOP.o(), bottom())
 			specials[125] = zeroOrMoreOf(
-				PhraseKind.EXPRESSION_PHRASE.create(
-					TypeDescriptor.Types.ANY.o())) as AvailObject
-			specials[126] = PhraseKind.EXPRESSION_PHRASE.create(
-				TypeDescriptor.Types.ANY.o()) as AvailObject
+				PhraseKind.EXPRESSION_PHRASE.create(Types.ANY.o()))
+			specials[126] = PhraseKind.EXPRESSION_PHRASE.create(Types.ANY.o())
 			specials[127] = functionType(
-				tuple(pojoTypeForClass(Throwable::class.java)),
-				bottom()) as AvailObject
+				tuple(pojoTypeForClass(Throwable::class.java)), bottom())
 			specials[128] = zeroOrMoreOf(
-				setTypeForSizesContentType(
-					wholeNumbers(), TypeDescriptor.Types.ATOM.o()))
-				as AvailObject
-			specials[129] = bytes() as AvailObject
-			specials[130] = zeroOrMoreOf(zeroOrMoreOf(anyMeta())) as AvailObject
-			specials[131] = variableReadWriteType(
-				extendedIntegers(), bottom()) as AvailObject
-			specials[132] = fiberMeta() as AvailObject
-			specials[133] = nonemptyStringType() as AvailObject
+				setTypeForSizesContentType(wholeNumbers(), Types.ATOM.o()))
+			specials[129] = bytes()
+			specials[130] = zeroOrMoreOf(zeroOrMoreOf(anyMeta()))
+			specials[131] = variableReadWriteType(extendedIntegers(), bottom())
+			specials[132] = fiberMeta()
+			specials[133] = nonemptyStringType()
 			specials[134] = setTypeForSizesContentType(
-				wholeNumbers(), exceptionType()) as AvailObject
+				wholeNumbers(), exceptionType())
 			specials[135] = setTypeForSizesContentType(
-				naturalNumbers(), stringType()) as AvailObject
+				naturalNumbers(), stringType())
 			specials[136] = setTypeForSizesContentType(
-				naturalNumbers(), TypeDescriptor.Types.ATOM.o()) as AvailObject
-			specials[137] = oneOrMoreOf(
-				TypeDescriptor.Types.ANY.o()) as AvailObject
-			specials[138] = zeroOrMoreOf(integers()) as AvailObject
+				naturalNumbers(), Types.ATOM.o())
+			specials[137] = oneOrMoreOf(Types.ANY.o())
+			specials[138] = zeroOrMoreOf(integers())
 			specials[139] = tupleTypeForSizesTypesDefaultType(
-				integerRangeType(
-					fromInt(2), true, positiveInfinity(), false),
+				integerRangeType(fromInt(2), true, positiveInfinity(), false),
 				emptyTuple(),
-				TypeDescriptor.Types.ANY.o()) as AvailObject
+				Types.ANY.o())
 			// Some of these entries may need to be shuffled into earlier slots to
 			// maintain reasonable topical consistency.
 			specials[140] =
-				PhraseKind.FIRST_OF_SEQUENCE_PHRASE.mostGeneralType() as AvailObject
-			specials[141] =
-				PhraseKind.PERMUTED_LIST_PHRASE.mostGeneralType() as AvailObject
-			specials[142] =
-				PhraseKind.SUPER_CAST_PHRASE.mostGeneralType() as AvailObject
-			specials[143] =
-				SpecialAtom.CLIENT_DATA_GLOBAL_KEY.atom as AvailObject
-			specials[144] =
-				SpecialAtom.COMPILER_SCOPE_MAP_KEY.atom as AvailObject
-			specials[145] = SpecialAtom.ALL_TOKENS_KEY.atom as AvailObject
-			specials[146] = int32() as AvailObject
-			specials[147] = int64() as AvailObject
-			specials[148] =
-				PhraseKind.STATEMENT_PHRASE.mostGeneralType() as AvailObject
-			specials[149] =
-				SpecialAtom.COMPILER_SCOPE_STACK_KEY.atom as AvailObject
+				PhraseKind.FIRST_OF_SEQUENCE_PHRASE.mostGeneralType()
+			specials[141] = PhraseKind.PERMUTED_LIST_PHRASE.mostGeneralType()
+			specials[142] = PhraseKind.SUPER_CAST_PHRASE.mostGeneralType()
+			specials[143] = SpecialAtom.CLIENT_DATA_GLOBAL_KEY.atom
+			specials[144] = SpecialAtom.COMPILER_SCOPE_MAP_KEY.atom
+			specials[145] = SpecialAtom.ALL_TOKENS_KEY.atom
+			specials[146] = int32()
+			specials[147] = int64()
+			specials[148] = PhraseKind.STATEMENT_PHRASE.mostGeneralType()
+			specials[149] = SpecialAtom.COMPILER_SCOPE_STACK_KEY.atom
 			specials[150] =
 				PhraseKind.EXPRESSION_AS_STATEMENT_PHRASE.mostGeneralType()
-					as AvailObject
-			specials[151] = oneOrMoreOf(naturalNumbers()) as AvailObject
-			specials[152] =
-				zeroOrMoreOf(TypeDescriptor.Types.DEFINITION.o()) as AvailObject
+			specials[151] = oneOrMoreOf(naturalNumbers())
+			specials[152] = zeroOrMoreOf(Types.DEFINITION.o())
 			specials[153] = mapTypeForSizesKeyTypeValueType(
-				wholeNumbers(), stringType(), TypeDescriptor.Types.ATOM.o())
-					as AvailObject
-			specials[154] = SpecialAtom.MACRO_BUNDLE_KEY.atom as AvailObject
-			specials[155] =
-				SpecialAtom.EXPLICIT_SUBCLASSING_KEY.atom as AvailObject
+				wholeNumbers(), stringType(), Types.ATOM.o())
+			specials[154] = SpecialAtom.MACRO_BUNDLE_KEY.atom
+			specials[155] = SpecialAtom.EXPLICIT_SUBCLASSING_KEY.atom
 			specials[156] =
-				variableReadWriteType(mostGeneralMapType(), bottom()) as AvailObject
-			specials[157] = lexerFilterFunctionType() as AvailObject
-			specials[158] = lexerBodyFunctionType() as AvailObject
-			specials[159] = SpecialAtom.STATIC_TOKENS_KEY.atom as AvailObject
-			specials[160] =
-				TokenDescriptor.TokenType.END_OF_FILE.atom as AvailObject
-			specials[161] =
-				TokenDescriptor.TokenType.KEYWORD.atom as AvailObject
-			specials[162] =
-				TokenDescriptor.TokenType.LITERAL.atom as AvailObject
-			specials[163] =
-				TokenDescriptor.TokenType.OPERATOR.atom as AvailObject
-			specials[164] =
-				TokenDescriptor.TokenType.COMMENT.atom as AvailObject
-			specials[165] =
-				TokenDescriptor.TokenType.WHITESPACE.atom as AvailObject
-			specials[166] =
-				inclusive(0, (1L shl 32) - 1) as AvailObject
-			specials[167] =
-				inclusive(0, (1L shl 28) - 1) as AvailObject
-			specials[168] = inclusive(1L, 4L) as AvailObject
-			specials[169] = inclusive(0L, 31L) as AvailObject
+				variableReadWriteType(mostGeneralMapType(), bottom())
+			specials[157] = lexerFilterFunctionType()
+			specials[158] = lexerBodyFunctionType()
+			specials[159] = SpecialAtom.STATIC_TOKENS_KEY.atom
+			specials[160] = TokenType.END_OF_FILE.atom
+			specials[161] = TokenType.KEYWORD.atom
+			specials[162] = TokenType.LITERAL.atom
+			specials[163] = TokenType.OPERATOR.atom
+			specials[164] = TokenType.COMMENT.atom
+			specials[165] = TokenType.WHITESPACE.atom
+			specials[166] = inclusive(0, (1L shl 32) - 1)
+			specials[167] = inclusive(0, (1L shl 28) - 1)
+			specials[168] = inclusive(1L, 4L)
+			specials[169] = inclusive(0L, 31L)
 			specials[170] = continuationTypeForFunctionType(
-				functionTypeReturning(TypeDescriptor.Types.TOP.o()))
-					as AvailObject
-			specials[171] =
-				CharacterDescriptor.nonemptyStringOfDigitsType as AvailObject
+				functionTypeReturning(Types.TOP.o()))
+			specials[171] = CharacterDescriptor.nonemptyStringOfDigitsType
+			specials[172] = stackDumpAtom()
+
 			assert(specialAtomsList.isEmpty())
 			specialAtomsList.addAll(listOf(
 				SpecialAtom.ALL_TOKENS_KEY.atom,
@@ -1228,12 +1170,12 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 				exceptionAtom(),
 				stackDumpAtom(),
 				pojoSelfTypeAtom(),
-				TokenDescriptor.TokenType.END_OF_FILE.atom,
-				TokenDescriptor.TokenType.KEYWORD.atom,
-				TokenDescriptor.TokenType.LITERAL.atom,
-				TokenDescriptor.TokenType.OPERATOR.atom,
-				TokenDescriptor.TokenType.COMMENT.atom,
-				TokenDescriptor.TokenType.WHITESPACE.atom,
+				TokenType.END_OF_FILE.atom,
+				TokenType.KEYWORD.atom,
+				TokenType.LITERAL.atom,
+				TokenType.OPERATOR.atom,
+				TokenType.COMMENT.atom,
+				TokenType.WHITESPACE.atom,
 				StaticInit.tokenTypeOrdinalKey))
 			for (atom in specialAtomsList)
 			{
@@ -1243,16 +1185,11 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 			// Make sure all special objects are shared, and also make sure all
 			// special objects that are atoms are also special.
 
-			for (i in specials.indices)
+			specialObjects = Array(specials.size) { specials[it].makeShared() }
+			for (obj in specialObjects)
 			{
-				val obj = specials[i]
-				if (obj !== NilDescriptor.nil)
-				{
-					specials[i] = obj.makeShared()
-					assert(!obj.isAtom || obj.isAtomSpecial())
-				}
+				assert(!obj.isAtom || obj.isAtomSpecial())
 			}
-			specialObjects = specials
 		}
 
 		/**
@@ -1381,7 +1318,7 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 					val atom: A_Atom = bundle.message()
 					atom.setAtomProperty(
 						SpecialAtom.MESSAGE_BUNDLE_KEY.atom,
-						NilDescriptor.nil)
+						nil)
 				}
 			}
 		}
@@ -1554,7 +1491,7 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 		{
 			try
 			{
-				unsafeAction.invoke()
+				unsafeAction()
 			}
 			catch (e: Exception)
 			{
@@ -1670,6 +1607,6 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 		}
 		moduleNameResolver.clearCache()
 		moduleNameResolver.destroy()
-		modules = NilDescriptor.nil
+		modules = nil
 	}
 }

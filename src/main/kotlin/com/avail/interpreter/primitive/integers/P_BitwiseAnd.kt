@@ -47,6 +47,9 @@ import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.execution.Interpreter
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import com.avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP
+import com.avail.optimizer.L1Translator
 import kotlin.math.min
 
 /**
@@ -99,7 +102,8 @@ object P_BitwiseAnd : Primitive(2, CannotFail, CanFold, CanInline)
 			else
 			{
 				// Give up, as the result may be negative or exceed a long.
-				return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
+				return super.returnTypeGuaranteedByVM(
+					rawFunction, argumentTypes)
 			}
 		// At least one value is positive, so the result is positive.
 		// At least one is a long, so the result must be a long.
@@ -112,6 +116,26 @@ object P_BitwiseAnd : Primitive(2, CannotFail, CanFold, CanInline)
 		val maxValue = highOneBit - 1 or highOneBit
 		return integerRangeType(zero(), true, fromLong(maxValue), true)
 	}
+
+	override fun tryToGenerateSpecialPrimitiveInvocation(
+		functionToCallReg: L2ReadBoxedOperand,
+		rawFunction: A_RawFunction,
+		arguments: List<L2ReadBoxedOperand>,
+		argumentTypes: List<A_Type>,
+		translator: L1Translator,
+		callSiteHelper: L1Translator.CallSiteHelper
+	): Boolean = L2_BIT_LOGIC_OP.bitwiseAnd.generateBinaryIntOperation(
+		arguments,
+		argumentTypes,
+		callSiteHelper,
+		typeGuaranteeFunction = {
+			restrictedArgTypes ->
+			returnTypeGuaranteedByVM(rawFunction, restrictedArgTypes)
+		},
+		fallbackBody = {
+			generateGeneralFunctionInvocation(
+				functionToCallReg, arguments, false, callSiteHelper)
+		})
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(tuple(integers(), integers()), integers())

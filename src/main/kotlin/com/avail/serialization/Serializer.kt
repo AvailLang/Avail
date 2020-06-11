@@ -368,21 +368,27 @@ class Serializer
 		 * [special&#32;objects][AvailRuntime.specialObjects] list.  Entries
 		 * that are `null` (i.e., unused entries} are not included.
 		 */
-		private val specialObjects = HashMap<A_BasicObject, Int>(1000)
+		private val specialObjects =
+			AvailRuntime.specialObjects().withIndex().associate {
+				it.value to it.index
+			}
 
 		/**
 		 * Special system [atoms][AtomDescriptor] that aren't already in the
 		 * list of [special&#32;atoms][AvailRuntime.specialAtoms].
 		 */
-		private val specialAtoms = HashMap<A_Atom, Int>(100)
+		private val specialAtoms =
+			AvailRuntime.specialAtoms().withIndex().associate {
+				it.value to it.index
+			}
 
 		/**
 		 * Special system [atoms][AtomDescriptor] that aren't already in the
 		 * list of [special&#32;atoms][AvailRuntime.specialAtoms], keyed by
 		 * their [A_String], where the value is the [A_Atom] itself.
 		 */
-		internal val specialAtomsByName: MutableMap<A_String, A_Atom> =
-			HashMap(100)
+		internal val specialAtomsByName =
+			specialAtoms.keys.associateBy { it.atomName() }
 
 		/**
 		 * Look up the object.  If it is a
@@ -408,23 +414,5 @@ class Serializer
 		 *   The object's zero-based index in `encounteredObjects`.
 		 */
 		internal fun indexOfSpecialAtom(obj: A_Atom) = specialAtoms[obj] ?: -1
-
-		init
-		{
-			// Build the inverse of AvailRuntime#specialObjects().
-			AvailRuntime.specialObjects().forEachIndexed { i, specialObject ->
-				if (specialObject !== null)
-				{
-					specialObjects[specialObject] = i
-				}
-			}
-			// And build the inverse of AvailRuntime#specialAtoms().
-			AvailRuntime.specialAtoms().forEachIndexed { i, specialAtom ->
-				if (specialAtom !== null) {
-					specialAtoms[specialAtom] = i
-					specialAtomsByName[specialAtom.atomName()] = specialAtom
-				}
-			}
-		}
 	}
 }

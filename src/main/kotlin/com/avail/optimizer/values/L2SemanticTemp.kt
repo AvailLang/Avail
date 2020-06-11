@@ -51,13 +51,13 @@ package com.avail.optimizer.values
  *   An integer which should be unique across all other instances of this class
  *   created for this [Frame].
  */
-@Suppress("EqualsOrHashCode")
 internal class L2SemanticTemp constructor(frame: Frame, val uniqueId: Int)
 	: L2FrameSpecificSemanticValue(frame, uniqueId xor -0x5d6360e4)
 {
-	override fun equals(other: Any?): Boolean =
-		if (other !is L2SemanticTemp) false
-		else super.equals(other) && uniqueId == other.uniqueId
+	override fun equalsSemanticValue(other: L2SemanticValue): Boolean =
+		(other is L2SemanticTemp
+			&& super.equalsSemanticValue(other)
+			&& uniqueId == other.uniqueId)
 
 	override fun transform(
 		semanticValueTransformer: (L2SemanticValue) -> L2SemanticValue,

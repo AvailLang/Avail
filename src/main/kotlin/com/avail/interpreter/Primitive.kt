@@ -252,7 +252,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	 * the level two optimizer to skip more checks.
 	 */
 	private val resultTypeCheckingNanos = Statistic(
-		javaClass.simpleName + " (checking result)",
+		this@Primitive.javaClass.simpleName + " (checking result)",
 		StatisticReport.PRIMITIVE_RETURNER_TYPE_CHECKS)
 
 	init
@@ -265,7 +265,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		{
 			assert(!primitiveFlags.contains(flag))
 			{
-				"Duplicate flag in " + javaClass.simpleName
+				"Duplicate flag in " + this@Primitive.javaClass.simpleName
 			}
 			primitiveFlags.add(flag)
 		}
@@ -273,18 +273,18 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		assert(!primitiveFlags.contains(CanFold)
 		       || primitiveFlags.contains(CanInline))
 		{
-			("Primitive " + javaClass.simpleName
+			("Primitive " + this@Primitive.javaClass.simpleName
 			 + " has CanFold without CanInline")
 		}
 		assert(!primitiveFlags.contains(Invokes)
 		       || primitiveFlags.contains(CanInline))
 		{
-			("Primitive " + javaClass.simpleName
+			("Primitive " + this@Primitive.javaClass.simpleName
 			 + " has Invokes without CanInline")
 		}
 		runningNanos = Statistic(
 			(if (hasFlag(CanInline)) "" else "[NOT INLINE]")
-			+ javaClass.simpleName
+			+ this@Primitive.javaClass.simpleName
 			+ " (running)",
 			StatisticReport.PRIMITIVES)
 		if (hasFlag(CanSwitchContinuations))

@@ -1,5 +1,5 @@
 /*
- * FiberDescriptor.java
+ * FiberDescriptor.kt
  * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -35,6 +35,7 @@ import com.avail.AvailRuntime
 import com.avail.AvailRuntime.Companion.currentRuntime
 import com.avail.AvailRuntimeSupport
 import com.avail.annotations.HideFieldInDebugger
+import com.avail.annotations.HideFieldJustForPrinting
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom
 import com.avail.descriptor.fiber.FiberDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
@@ -324,18 +325,21 @@ class FiberDescriptor private constructor(
 		 * The current [state][ContinuationDescriptor] of execution of the
 		 * fiber.  This is a [continuation][A_Continuation].
 		 */
+		@HideFieldJustForPrinting
 		CONTINUATION,
 
 		/**
 		 * The [A_Function] that suspended this fiber, or [nil] if it's not
 		 * suspended.
 		 */
+		@HideFieldJustForPrinting
 		SUSPENDING_FUNCTION,
 
 		/**
 		 * The result type of this [fiber][FiberDescriptor]'s
 		 * [type][FiberTypeDescriptor].
 		 */
+		@HideFieldJustForPrinting
 		RESULT_TYPE,
 
 		/**
@@ -344,6 +348,7 @@ class FiberDescriptor private constructor(
 		 * values. The atom identities ensure modularity and non-interference of
 		 * these keys.
 		 */
+		@HideFieldJustForPrinting
 		FIBER_GLOBALS,
 
 		/**
@@ -351,11 +356,13 @@ class FiberDescriptor private constructor(
 		 * forks a new fiber, the new fiber inherits this map. The atom
 		 * identities ensure modularity and non-interference of these keys.
 		 */
+		@HideFieldJustForPrinting
 		HERITABLE_FIBER_GLOBALS,
 
 		/**
 		 * The result of running this [fiber][FiberDescriptor] to completion.
 		 */
+		@HideFieldJustForPrinting
 		RESULT,
 
 		/**
@@ -364,6 +371,7 @@ class FiberDescriptor private constructor(
 		 * [nil] here means run without this special single-stepping mode
 		 * enabled.
 		 */
+		@HideFieldJustForPrinting
 		BREAKPOINT_BLOCK,
 
 		/**
@@ -371,6 +379,7 @@ class FiberDescriptor private constructor(
 		 * pertains only to load-time fibers, and indicates which loader If
 		 * loading is not currently taking place, this should be [nil].
 		 */
+		@HideFieldJustForPrinting
 		LOADER,
 
 		/**
@@ -378,6 +387,7 @@ class FiberDescriptor private constructor(
 		 * be called with the [result][AvailObject] of executing the fiber to
 		 * its natural conclusion.
 		 */
+		@HideFieldJustForPrinting
 		RESULT_CONTINUATION,
 
 		/**
@@ -385,6 +395,7 @@ class FiberDescriptor private constructor(
 		 * called with the [Throwable] responsible for the untimely death of the
 		 * fiber.
 		 */
+		@HideFieldJustForPrinting
 		FAILURE_CONTINUATION,
 
 		/**
@@ -392,6 +403,7 @@ class FiberDescriptor private constructor(
 		 * the current fiber.  That is, these are fibers that are waiting for
 		 * this fiber to end its execution, in either success or failure.
 		 */
+		@HideFieldJustForPrinting
 		JOINING_FIBERS,
 
 		/**
@@ -399,6 +411,7 @@ class FiberDescriptor private constructor(
 		 * responsible for waking up the [sleeping][ExecutionState.ASLEEP]
 		 * [fiber][FiberDescriptor].
 		 */
+		@HideFieldJustForPrinting
 		WAKEUP_TASK,
 
 		/**
@@ -408,6 +421,7 @@ class FiberDescriptor private constructor(
 		 * [boolean][Boolean] that is `true` iff the variable was read before it
 		 * was written.
 		 */
+		@HideFieldJustForPrinting
 		TRACED_VARIABLES,
 
 		/**
@@ -418,11 +432,13 @@ class FiberDescriptor private constructor(
 		 * The non-emptiness of this set must agree with the value of the
 		 * [InterruptRequestFlag.REIFICATION_REQUESTED] flag.
 		 */
+		@HideFieldJustForPrinting
 		REIFICATION_WAITERS,
 
 		/**
 		 * A [raw&#32;pojo][RawPojoDescriptor] wrapping a [TextInterface].
 		 */
+		@HideFieldJustForPrinting
 		TEXT_INTERFACE,
 
 		/**
@@ -430,6 +446,7 @@ class FiberDescriptor private constructor(
 		 * The supplier should avoid execution of Avail code, as that could
 		 * easily lead to deadlocks.
 		 */
+		@HideFieldJustForPrinting
 		NAME_SUPPLIER,
 
 		/**
@@ -446,6 +463,7 @@ class FiberDescriptor private constructor(
 		 * update a user interface component, and garbage collection of a fiber
 		 * which has terminated typically also collects that fiber's log.
 		 */
+		@HideFieldJustForPrinting
 		DEBUG_LOG
 	}
 

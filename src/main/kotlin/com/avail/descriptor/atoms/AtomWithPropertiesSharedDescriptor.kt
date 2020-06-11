@@ -31,6 +31,7 @@
  */
 package com.avail.descriptor.atoms
 
+import com.avail.annotations.HideFieldInDebugger
 import com.avail.descriptor.atoms.AtomWithPropertiesSharedDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.module.ModuleDescriptor
@@ -89,6 +90,7 @@ internal class AtomWithPropertiesSharedDescriptor private constructor(
 		 * The low 32 bits are used for the [HASH_OR_ZERO], but the upper 32 can
 		 * be used by other [BitField]s in subclasses.
 		 */
+		@HideFieldInDebugger
 		HASH_AND_MORE;
 
 		companion object {

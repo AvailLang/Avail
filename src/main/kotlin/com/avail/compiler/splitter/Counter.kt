@@ -162,7 +162,7 @@ internal class Counter(
 	}
 
 	override fun toString(): String =
-		"${javaClass.simpleName}($group)"
+		"${this@Counter.javaClass.simpleName}($group)"
 
 	override fun printWithArguments(
 		arguments: Iterator<A_Phrase>?,

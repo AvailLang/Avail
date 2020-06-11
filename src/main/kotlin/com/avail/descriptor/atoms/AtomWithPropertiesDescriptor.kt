@@ -31,6 +31,7 @@
  */
 package com.avail.descriptor.atoms
 
+import com.avail.annotations.HideFieldInDebugger
 import com.avail.descriptor.atoms.AtomWithPropertiesDescriptor.ObjectSlots.ISSUING_MODULE
 import com.avail.descriptor.atoms.AtomWithPropertiesDescriptor.ObjectSlots.NAME
 import com.avail.descriptor.atoms.AtomWithPropertiesDescriptor.ObjectSlots.PROPERTY_MAP_POJO
@@ -103,6 +104,7 @@ open class AtomWithPropertiesDescriptor protected constructor(
 		 * The low 32 bits are used for the [HASH_OR_ZERO], but the upper 32 can
 		 * be used by other [BitField]s in subclasses.
 		 */
+		@HideFieldInDebugger
 		HASH_AND_MORE;
 
 		companion object {

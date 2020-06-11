@@ -198,6 +198,13 @@ class BottomTypeDescriptor private constructor()
 	// bottom.
 	override fun o_FieldTypeAt(self: AvailObject, field: A_Atom): A_Type = self
 
+	// All fields would be present for this type, but they would have type
+	// bottom.
+	override fun o_FieldTypeAtOrNull(
+		self: AvailObject,
+		field: A_Atom
+	): A_Type? = self
+
 	override fun o_FieldTypeMap(self: AvailObject): A_Map
 	{
 		// TODO: [MvG] It's unclear what to return here. Maybe raise an

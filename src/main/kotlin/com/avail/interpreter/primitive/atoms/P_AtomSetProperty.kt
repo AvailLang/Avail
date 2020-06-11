@@ -73,8 +73,7 @@ object P_AtomSetProperty : Primitive(
 			return interpreter.primitiveFailure(E_SPECIAL_ATOM)
 		}
 		atom.setAtomProperty(propertyKey, propertyValue)
-		val loader = interpreter.availLoaderOrNull()
-		loader?.recordEffect(
+		interpreter.availLoaderOrNull()?.recordEffect(
 			LoadingEffectToRunPrimitive(
 				SpecialMethodAtom.ATOM_PROPERTY.bundle,
 				atom,

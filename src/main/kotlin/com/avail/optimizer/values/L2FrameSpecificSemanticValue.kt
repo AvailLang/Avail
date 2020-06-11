@@ -48,11 +48,10 @@ import com.avail.descriptor.representation.AvailObject
  *   A hash value of this semantic value, which this constructor will combine
  *   with the frame's hash.
  */
-@Suppress("EqualsOrHashCode")
 internal abstract class L2FrameSpecificSemanticValue constructor(
-		val frame: Frame,
-		hash: Int)
-	: L2SemanticValue(hash + frame.hashCode() * AvailObject.multiplier)
+	val frame: Frame,
+	hash: Int
+) : L2SemanticValue(hash + frame.hashCode() * AvailObject.multiplier)
 {
 	/**
 	 * Answer the [Frame] in which this invocation takes place.
@@ -62,7 +61,7 @@ internal abstract class L2FrameSpecificSemanticValue constructor(
 	 */
 	fun frame(): Frame = frame
 
-	override fun equals(other: Any?): Boolean =
+	override fun equalsSemanticValue(other: L2SemanticValue): Boolean =
 		(other is L2FrameSpecificSemanticValue && frame() == other.frame())
 
 	abstract override fun toString(): String

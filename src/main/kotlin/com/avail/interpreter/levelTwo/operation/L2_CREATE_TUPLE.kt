@@ -189,7 +189,9 @@ object L2_CREATE_TUPLE : L2Operation(
 				A_Tuple::class.java,
 				*callSignature)
 			tupleMethod.generateCall(method)
-			method.visitTypeInsn(Opcodes.CHECKCAST, Type.getInternalName(AvailObject::class.java))
+			method.visitTypeInsn(
+				Opcodes.CHECKCAST,
+				Type.getInternalName(AvailObject::class.java))
 			translator.store(method, tuple.register())
 			return
 		}

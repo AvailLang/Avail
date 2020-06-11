@@ -61,12 +61,11 @@ internal class LoadingEffectToRunPrimitive constructor(
 	vararg arguments: A_BasicObject) : LoadingEffect()
 {
 	/** The array of arguments to pass to the primitive.  */
-	internal val arguments: Array<out A_BasicObject>
+	internal val arguments: Array<out A_BasicObject> = arguments.clone()
 
 	init
 	{
 		assert(primitiveBundle.bundleMethod().numArgs() == arguments.size)
-		this.arguments = arguments.clone()
 	}
 
 	override fun writeEffectTo(writer: L1InstructionWriter)

@@ -173,6 +173,7 @@ Names
 	/*  75 */ "set of string",
 	/* 167 */ "source line number",
 	/* 166 */ "source position",
+	/* 172 */ "stack dump key",
 	/* 148 */ "statement phrase",
 	/* 159 */ "static tokens key",
 	/*  28 */ "string",
@@ -2246,4 +2247,13 @@ Special object "continuation returning top" is special object 170;
  * @alias "non-empty string of digits"
  */
 Special object "non-empty string of digits" is special object 171;
+
+/**
+ * The {@code atom} under which the stack is captured within an * {@code exception} when it is raised.
+ *
+ * @category "Primitives" "Constants"
+ * @type "stack dump key"
+ * @returns "stack dump key's type"
+ */
+Special object "stack dump key" is special object 172;
 

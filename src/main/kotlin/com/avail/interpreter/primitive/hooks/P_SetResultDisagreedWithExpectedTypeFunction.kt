@@ -68,6 +68,7 @@ object P_SetResultDisagreedWithExpectedTypeFunction : Primitive(
 		val function = interpreter.argument(0)
 		RESULT_DISAGREED_WITH_EXPECTED_TYPE.set(
 			interpreter.runtime(), function)
+		interpreter.availLoaderOrNull()?.statementCanBeSummarized(false)
 		return interpreter.primitiveSuccess(nil)
 	}
 

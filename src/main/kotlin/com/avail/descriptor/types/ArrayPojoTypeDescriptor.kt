@@ -38,11 +38,23 @@ import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.pojos.PojoDescriptor
 import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.equalityPojo
 import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.rawObjectClass
-import com.avail.descriptor.representation.*
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
+import com.avail.descriptor.representation.AbstractSlotsEnum
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.BitField
+import com.avail.descriptor.representation.IntegerSlotsEnum
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
+import com.avail.descriptor.types.ArrayPojoTypeDescriptor.IntegerSlots.HASH_AND_MORE
+import com.avail.descriptor.types.ArrayPojoTypeDescriptor.ObjectSlots.CONTENT_TYPE
+import com.avail.descriptor.types.ArrayPojoTypeDescriptor.ObjectSlots.JAVA_ANCESTORS
+import com.avail.descriptor.types.ArrayPojoTypeDescriptor.ObjectSlots.SIZE_RANGE
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
 import java.io.Serializable
@@ -52,8 +64,8 @@ import java.util.*
 /**
  * `ArrayPojoTypeDescriptor` describes Java array types. A Java array type
  * extends [java.lang.Object][Object] and implements
- * [java.lang.Cloneable][Cloneable] and [java.io.Serializable][Serializable]. It
- * has an element type and a fixed size.
+ * [Cloneable][java.lang.Cloneable] and [Serializable]. It has an element type
+ * and a fixed size.
  *
  * Avail expands upon these features in two ways. First, a pojo array type may
  * have any [Avail type][TypeDescriptor] as its element type; this is, of
@@ -76,10 +88,9 @@ internal class ArrayPojoTypeDescriptor private constructor(
 {
 	/**
 	 * `PojoArray` mimics the type properties of Java array types. It extends
-	 * [java.lang.Object][Object] and implements
-	 * [java.lang.Cloneable][Cloneable] and
-	 * [java.io.Serializable][Serializable], as required by the Java language
-	 * specification. The type parameter is used to specify the element type.
+	 * [Object] and implements [Cloneable][java.lang.Cloneable] and
+	 * [[Serializable], as required by the Java language specification. The type
+	 * parameter is used to specify the element type.
 	 *
 	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 * @param T
@@ -133,10 +144,11 @@ internal class ArrayPojoTypeDescriptor private constructor(
 	}
 
 	override fun allowsImmutableToMutableReferenceInField(
-		e: AbstractSlotsEnum): Boolean = e === IntegerSlots.HASH_AND_MORE
+		e: AbstractSlotsEnum
+	): Boolean = e === HASH_AND_MORE
 
 	override fun o_ContentType(self: AvailObject): A_Type =
-		self.slot(ObjectSlots.CONTENT_TYPE)
+		self.slot(CONTENT_TYPE)
 
 	override fun o_EqualsPojoType(
 		self: AvailObject,
@@ -147,8 +159,8 @@ internal class ArrayPojoTypeDescriptor private constructor(
 			aPojoType.equalsPojoBottomType() -> return false
 			aPojoType.isPojoSelfType ->
 				return self.pojoSelfType().equalsPojoType(aPojoType)
-			!self.slot(ObjectSlots.SIZE_RANGE).equals(aPojoType.sizeRange())
-				|| !self.slot(ObjectSlots.CONTENT_TYPE)
+			!self.slot(SIZE_RANGE).equals(aPojoType.sizeRange())
+				|| !self.slot(CONTENT_TYPE)
 					.equals(aPojoType.contentType()) -> return false
 			// The objects are known to be equal and not reference identical
 			// (checked by a caller), so coalesce them if possible.
@@ -166,14 +178,8 @@ internal class ArrayPojoTypeDescriptor private constructor(
 		return true
 	}
 
-	override fun o_Hash(self: AvailObject): Int
-	{
-		if (isShared)
-		{
-			synchronized(self) { return hash(self) }
-		}
-		return hash(self)
-	}
+	override fun o_Hash(self: AvailObject): Int =
+		self.synchronizeIf(isShared) { hash(self) }
 
 	override fun o_IsAbstract(self: AvailObject): Boolean = false
 
@@ -182,7 +188,7 @@ internal class ArrayPojoTypeDescriptor private constructor(
 	override fun o_IsPojoFusedType(self: AvailObject): Boolean = false
 
 	override fun o_JavaAncestors(self: AvailObject): AvailObject =
-		self.slot(ObjectSlots.JAVA_ANCESTORS)
+		self.slot(JAVA_ANCESTORS)
 
 	override fun o_JavaClass(self: AvailObject): AvailObject =
 		equalityPojo(PojoArray::class.java)
@@ -191,7 +197,7 @@ internal class ArrayPojoTypeDescriptor private constructor(
 		self: AvailObject,
 		classHint: Class<*>?): Any?
 	{
-		val elementType: A_BasicObject = self.slot(ObjectSlots.CONTENT_TYPE)
+		val elementType: A_BasicObject = self.slot(CONTENT_TYPE)
 		return Array.newInstance(
 			elementType.marshalToJava(classHint) as Class<*>?, 0)
 				.javaClass
@@ -200,10 +206,10 @@ internal class ArrayPojoTypeDescriptor private constructor(
 	override fun o_PojoSelfType(self: AvailObject): A_Type =
 		SelfPojoTypeDescriptor.newSelfPojoType(
 			equalityPojo(PojoArray::class.java),
-			self.slot(ObjectSlots.JAVA_ANCESTORS))
+			self.slot(JAVA_ANCESTORS))
 
 	override fun o_SizeRange(self: AvailObject): A_Type =
-		self.slot(ObjectSlots.SIZE_RANGE)
+		self.slot(SIZE_RANGE)
 
 	@ThreadSafe
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
@@ -224,10 +230,10 @@ internal class ArrayPojoTypeDescriptor private constructor(
 			BottomPojoTypeDescriptor.pojoBottom()
 		}
 		else arrayPojoType(
-			self.slot(ObjectSlots.CONTENT_TYPE).typeIntersection(
-				aPojoType.traversed().slot(ObjectSlots.CONTENT_TYPE)),
-			self.slot(ObjectSlots.SIZE_RANGE).typeIntersection(
-				aPojoType.traversed().slot(ObjectSlots.SIZE_RANGE)))
+			self.slot(CONTENT_TYPE).typeIntersection(
+				aPojoType.traversed().slot(CONTENT_TYPE)),
+			self.slot(SIZE_RANGE).typeIntersection(
+				aPojoType.traversed().slot(SIZE_RANGE)))
 		// Compute the type intersection of the two pojo array types.
 	}
 
@@ -313,27 +319,30 @@ internal class ArrayPojoTypeDescriptor private constructor(
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int)
 	{
-		self.slot(ObjectSlots.CONTENT_TYPE).printOnAvoidingIndent(
+		self.slot(CONTENT_TYPE).printOnAvoidingIndent(
 			builder, recursionMap, indent)
 		builder.append('[')
-		val range = self.slot(ObjectSlots.SIZE_RANGE)
-		if (range.lowerBound().equals(range.upperBound()))
+		val range = self.slot(SIZE_RANGE)
+		when
 		{
-			range.lowerBound().printOnAvoidingIndent(
-				builder, recursionMap, indent)
-		}
-		else if (IntegerRangeTypeDescriptor.wholeNumbers().isSubtypeOf(range))
-		{
-			// This is the most common range, as it corresponds with all real
-			// Java array types.
-		}
-		else
-		{
-			range.lowerBound().printOnAvoidingIndent(
-				builder, recursionMap, indent)
-			builder.append("..")
-			range.upperBound().printOnAvoidingIndent(
-				builder, recursionMap, indent)
+			range.lowerBound().equals(range.upperBound()) ->
+			{
+				range.lowerBound().printOnAvoidingIndent(
+					builder, recursionMap, indent)
+			}
+			wholeNumbers().isSubtypeOf(range) ->
+			{
+				// This is the most common range, as it corresponds with all real
+				// Java array types.
+			}
+			else ->
+			{
+				range.lowerBound().printOnAvoidingIndent(
+					builder, recursionMap, indent)
+				builder.append("..")
+				range.upperBound().printOnAvoidingIndent(
+					builder, recursionMap, indent)
+			}
 		}
 		builder.append(']')
 	}
@@ -344,9 +353,9 @@ internal class ArrayPojoTypeDescriptor private constructor(
 		writer.write("kind")
 		writer.write("array pojo type")
 		writer.write("content type")
-		self.slot(ObjectSlots.CONTENT_TYPE).writeTo(writer)
+		self.slot(CONTENT_TYPE).writeTo(writer)
 		writer.write("size range")
-		self.slot(ObjectSlots.SIZE_RANGE).writeTo(writer)
+		self.slot(SIZE_RANGE).writeTo(writer)
 		writer.endObject()
 	}
 
@@ -376,7 +385,7 @@ internal class ArrayPojoTypeDescriptor private constructor(
 				// pojo self type; this is necessary to permit comparison
 				// between an unfused pojo type and its self type.
 				hash =
-					self.slot(ObjectSlots.JAVA_ANCESTORS).keysAsSet().hash() xor
+					self.slot(JAVA_ANCESTORS).keysAsSet().hash() xor
 						-0x5fea43bc
 				self.setSlot(IntegerSlots.HASH_OR_ZERO, hash)
 			}
@@ -426,9 +435,9 @@ internal class ArrayPojoTypeDescriptor private constructor(
 				tuple(elementType),
 				false)
 			val newObject = mutable.create()
-			newObject.setSlot(ObjectSlots.JAVA_ANCESTORS, javaAncestors)
-			newObject.setSlot(ObjectSlots.CONTENT_TYPE, elementType)
-			newObject.setSlot(ObjectSlots.SIZE_RANGE, sizeRange)
+			newObject.setSlot(JAVA_ANCESTORS, javaAncestors)
+			newObject.setSlot(CONTENT_TYPE, elementType)
+			newObject.setSlot(SIZE_RANGE, sizeRange)
 			return newObject.makeImmutable()
 		}
 
@@ -453,7 +462,7 @@ internal class ArrayPojoTypeDescriptor private constructor(
 		/** The most general [pojo&#32;array&#32;type][PojoTypeDescriptor].  */
 		@JvmField
 		val mostGeneralType: A_Type = pojoArrayType(
-			Types.ANY.o(), IntegerRangeTypeDescriptor.wholeNumbers())
+			Types.ANY.o(), wholeNumbers())
 			.makeShared()
 	}
 }

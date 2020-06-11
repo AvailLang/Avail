@@ -117,7 +117,7 @@ abstract class PojoTypeDescriptor protected constructor(
 	 * `Canon` specifies a [map][Map] from [Java&#32;classes][Class] to
 	 * [type&#32;parameterization][TupleDescriptor].
 	 */
-	private class Canon internal constructor() 
+	private class Canon internal constructor()
 		: HashMap<Class<*>, AvailObject>(5)
 	{
 		/**
@@ -156,7 +156,7 @@ abstract class PojoTypeDescriptor protected constructor(
 	 * `TypeVariableMap` is a [map][Map] from
 	 * [local&#32;type&#32;variable&#32;names][String] to their type
 	 * parameterization indices.
-	 * 
+	 *
 	 * @constructor
 	 * Construct a new `TypeVariableMap` for the specified
 	 * [Java&#32;class&#32;or&#32;interface][Class].
@@ -164,7 +164,7 @@ abstract class PojoTypeDescriptor protected constructor(
 	 * @param javaClass
 	 *   A Java class or interface.
 	 */
-	private class TypeVariableMap internal constructor(javaClass: Class<*>) 
+	private class TypeVariableMap internal constructor(javaClass: Class<*>)
 		: HashMap<String, Int>(2)
 	{
 		init
@@ -182,7 +182,7 @@ abstract class PojoTypeDescriptor protected constructor(
 	 * `LRUCacheKey` combines a [Java&#32;class&#32;or&#32;interface][Class]
 	 * with its complete type parameterization. It serves as the key to the
 	 * [pojo type][PojoTypeDescriptor] [cache].
-	 * 
+	 *
 	 * @property javaClass
 	 *   The [Java&#32;class&#32;or&#32;interface][Class].
 	 * @property typeArgs
@@ -200,12 +200,12 @@ abstract class PojoTypeDescriptor protected constructor(
 		val typeArgs: A_Tuple)
 	{
 
-		override fun equals(obj: Any?): Boolean
+		override fun equals(other: Any?): Boolean
 		{
-			if (obj is LRUCacheKey)
+			if (other is LRUCacheKey)
 			{
-				val other = obj
-				return javaClass == other.javaClass 
+				val other = other
+				return javaClass == other.javaClass
 				   && typeArgs.equals(other.typeArgs)
 			}
 			return false

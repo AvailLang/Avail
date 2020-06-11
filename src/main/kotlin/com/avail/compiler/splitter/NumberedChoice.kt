@@ -182,7 +182,8 @@ internal class NumberedChoice constructor(private val alternation: Alternation)
 		return wrapState.processAfterPushedArgument(this, generator)
 	}
 
-	override fun toString(): String = "${javaClass.simpleName}($alternation)"
+	override fun toString(): String =
+		"${this@NumberedChoice.javaClass.simpleName}($alternation)"
 
 	override fun printWithArguments(
 		arguments: Iterator<A_Phrase>?,

@@ -236,16 +236,21 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 									+ "a type, and instead produced: $it"))
 					}
 				}
-				decrement.invoke()
+				decrement()
 			}
 			// Now launch the fibers.
 			var fiberCount = 1
 			for (restriction in applicableRestrictions) {
 				val finalCount = fiberCount++
-				val forkedFiber = newFiber(topMeta(), originalFiber.priority()) {
+				val forkedFiber = newFiber(
+					topMeta(), originalFiber.priority()
+				) {
 					stringFrom(
-						"Semantic restriction checker (#$finalCount) " +
-							"for primitive ${this.javaClass.simpleName}")
+						"Semantic restriction checker (#"
+							+ finalCount
+							+ ") for primitive "
+							+ this@P_CreateRestrictedSendExpression.javaClass
+								.simpleName)
 				}
 				forkedFiber.setAvailLoader(loader)
 				forkedFiber.setHeritableFiberGlobals(

@@ -81,6 +81,6 @@ class StacksCodeTag
 
 	override fun toString(): String
 	{
-		return this.javaClass.simpleName
+		return this@StacksCodeTag.javaClass.simpleName
 	}
 }

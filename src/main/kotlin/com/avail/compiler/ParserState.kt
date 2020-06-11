@@ -102,7 +102,7 @@ class ParserState internal constructor(
 		val source = lexingState.compilationContext.source
 		return format(
 			"%s%n\tPOSITION = %d%n\tTOKENS = %s %s %s%n\tCLIENT_DATA = %s",
-			javaClass.simpleName,
+			this@ParserState.javaClass.simpleName,
 			lexingState.position,
 			source.copyStringFromToCanDestroy(
 				max(lexingState.position - 20, 1),
