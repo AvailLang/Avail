@@ -32,7 +32,7 @@
 
 package com.avail.io
 
-import com.avail.AvailRuntime.currentRuntime
+import com.avail.AvailRuntime.Companion.currentRuntime
 import java.io.BufferedWriter
 import java.io.IOException
 import java.io.OutputStreamWriter

@@ -32,7 +32,7 @@
 
 package com.avail.compiler
 
-import com.avail.AvailRuntime.currentRuntime
+import com.avail.AvailRuntime.Companion.currentRuntime
 import com.avail.compiler.problems.CompilerDiagnostics
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel
 import com.avail.compiler.scanning.LexingState

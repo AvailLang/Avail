@@ -1128,7 +1128,7 @@ class L2ValueManifest
 	 *   The transformed manifest.
 	 */
 	fun transform(
-		semanticValueTransformer: Function1<L2SemanticValue, L2SemanticValue>,
+		semanticValueTransformer: (L2SemanticValue) -> L2SemanticValue,
 		frameTransformer: (Frame)->Frame): L2ValueManifest
 	{
 		val newManifest = L2ValueManifest()

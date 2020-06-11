@@ -1263,7 +1263,7 @@ class IndirectionDescriptor private constructor(
 	override fun o_RemoveFrom(
 		self: AvailObject,
 		loader: AvailLoader,
-		afterRemoval: Function0<Unit>) =
+		afterRemoval: () -> Unit) =
 			self .. { removeFrom(loader, afterRemoval) }
 
 	override fun o_RemoveDefinition(

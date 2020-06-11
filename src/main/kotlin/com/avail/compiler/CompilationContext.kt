@@ -33,7 +33,7 @@
 package com.avail.compiler
 
 import com.avail.AvailRuntime
-import com.avail.AvailRuntime.currentRuntime
+import com.avail.AvailRuntime.Companion.currentRuntime
 import com.avail.AvailRuntimeSupport
 import com.avail.builder.ModuleName
 import com.avail.builder.ResolvedModuleName

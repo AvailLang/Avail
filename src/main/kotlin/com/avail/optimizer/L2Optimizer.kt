@@ -893,7 +893,7 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 		val remap: MutableMap<L2Register, L2Register> = HashMap()
 		// Also collect all the old registers.
 		val oldRegisters = HashSet<L2Register>()
-		val action: Function1<L2Register, Unit> = { reg: L2Register ->
+		val action: (L2Register) -> Unit = { reg: L2Register ->
 			remap[reg] = byKindAndIndex
 				.getOrPut(reg.registerKind()) { mutableMapOf() }
 				.computeIfAbsent(
@@ -1121,7 +1121,7 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 		 */
 		fun readRegister(
 			register: L2Register,
-			registerIdFunction: Function1<L2Register, Int>)
+			registerIdFunction: (L2Register) -> Int)
 		{
 			assert(liveRegistersByKind[register.registerKind().ordinal]
 			   .get(registerIdFunction.invoke(register)))
@@ -1137,7 +1137,7 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 		 */
 		fun writeRegister(
 			register: L2Register,
-			registerIdFunction: Function1<L2Register, Int>)
+			registerIdFunction: (L2Register) -> Int)
 		{
 			liveRegistersByKind[register.registerKind().ordinal]
 				.set(registerIdFunction.invoke(register))
@@ -1304,7 +1304,7 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 	 *   uses to be treated differently.
 	 */
 	private fun checkRegistersAreInitialized(
-		registerIdFunction: Function1<L2Register, Int>)
+		registerIdFunction: (L2Register) -> Int)
 	{
 		val blocksToCheck: Deque<Pair<L2BasicBlock, UsedRegisters>> =
 			ArrayDeque()

@@ -1,5 +1,5 @@
 /*
- * AvailRuntimeSupport.java
+ * AvailRuntimeSupport.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,120 +29,104 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail
 
-package com.avail;
-import com.avail.annotations.ThreadSafe;
-import com.avail.descriptor.fiber.FiberDescriptor;
-import com.avail.descriptor.representation.AvailObject;
-
-import java.util.Random;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
+import com.avail.annotations.ThreadSafe
+import com.avail.descriptor.fiber.FiberDescriptor
+import com.avail.descriptor.representation.AvailObject
+import java.util.*
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicLong
 
 /**
  * A static class for common Avail utility operations.
  */
-public final class AvailRuntimeSupport
+object AvailRuntimeSupport
 {
-	/** Disallow instantiation. */
-	private AvailRuntimeSupport ()
-	{
-		//Don't instantiate.
-	}
-
 	/**
-	 * A general purpose {@linkplain Random pseudo-random number generator}.
+	 * A general purpose [pseudo-random number generator][Random].
 	 */
-	private static final Random rng = new Random();
+	private val rng = Random()
 
 	/**
-	 * Answer a new value suitable for use as the {@linkplain AvailObject#hash()
-	 * hash code} for an immutable {@linkplain AvailObject value}.
+	 * Answer a new value suitable for use as the [hash code][AvailObject.hash]
+	 * for an immutable [value][AvailObject].
 	 *
-	 * <p>Note that the implementation uses opportunistic locking internally, so
+	 * Note that the implementation uses opportunistic locking internally, so
 	 * explicit synchronization here is not required. However, synchronization
 	 * is included anyhow since that behavior is not part of Random's
-	 * specification.</p>
+	 * specification.
 	 *
-	 * @return A 32-bit pseudo-random number.
+	 * @return
+	 *   A 32-bit pseudo-random number.
 	 */
 	@ThreadSafe
-	public static synchronized int nextHash ()
+	@Synchronized
+	fun nextHash(): Int = rng.nextInt()
+
+	/**
+	 * Answer a new *non-zero* value suitable for use as the [hash
+	 * code][AvailObject.hash] for an immutable [value][AvailObject].
+	 *
+	 * @return
+	 *   A 32-bit pseudo-random number that isn't zero (0).
+	 */
+	@ThreadSafe
+	fun nextNonzeroHash(): Int
 	{
-		return rng.nextInt();
+		val hash = nextHash()
+		return if (hash != 0) hash else 123456789
 	}
 
 	/**
-	 * Answer a new <em>non-zero</em> value suitable for use as the {@linkplain
-	 * AvailObject#hash() hash code} for an immutable {@linkplain AvailObject
-	 * value}.
-	 *
-	 * @return A 32-bit pseudo-random number that isn't zero (0).
+	 * The source of [fiber][FiberDescriptor] identifiers.
 	 */
-	@ThreadSafe
-	public static int nextNonzeroHash ()
-	{
-		final int hash = nextHash();
-		return hash != 0 ? hash : 123456789;
-	}
+	private val fiberIdGenerator = AtomicInteger(1)
 
 	/**
-	 * The source of {@linkplain FiberDescriptor fiber} identifiers.
-	 */
-	private static final AtomicInteger fiberIdGenerator =
-		new AtomicInteger(1);
-
-	/**
-	 * Answer the next unused {@linkplain FiberDescriptor fiber} identifier.
-	 * Fiber identifiers will not repeat for 2^32 invocations.
+	 * Answer the next unused [fiber][FiberDescriptor] identifier. Fiber
+	 * identifiers will not repeat for 2^32 invocations.
 	 *
-	 * @return The next fiber identifier.
+	 * @return
+	 *   The next fiber identifier.
 	 */
 	@ThreadSafe
-	public static int nextFiberId ()
-	{
-		return fiberIdGenerator.getAndIncrement();
-	}
+	fun nextFiberId(): Int = fiberIdGenerator.getAndIncrement()
 
 	/**
 	 * Capture the current time with nanosecond precision (but not necessarily
 	 * accuracy).  If per-thread accounting is available, use it.
 	 *
-	 * @return The current value of the nanosecond counter, or if supported, the
-	 *         number of nanoseconds of CPU time that the current thread has
-	 *         consumed.
+	 * @return
+	 *   The current value of the nanosecond counter, or if supported, the
+	 *   number of nanoseconds of CPU time that the current thread has consumed.
 	 */
-	public static long captureNanos ()
-	{
-		return System.nanoTime();
-	}
+	fun captureNanos(): Long = System.nanoTime()
 
 	/**
 	 * Utility class for wrapping a volatile counter that can be polled.
 	 */
-	public static class Clock
+	class Clock
 	{
 		/**
 		 * The current value of the monotonic counter.
 		 */
-		private final AtomicLong counter = new AtomicLong(0);
+		private val counter = AtomicLong(0)
 
 		/**
 		 * Advance the clock.
 		 */
-		public void increment ()
+		fun increment()
 		{
-			counter.incrementAndGet();
+			counter.incrementAndGet()
 		}
 
 		/**
 		 * Poll the monotonic counter of the clock.
 		 *
-		 * @return The current clock value.
+		 * @return
+		 *   The current clock value.
 		 */
-		public long get ()
-		{
-			return counter.get();
-		}
+		fun get(): Long = counter.get()
 	}
 }
