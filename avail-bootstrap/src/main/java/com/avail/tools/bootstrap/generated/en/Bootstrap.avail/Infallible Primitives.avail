@@ -56,7 +56,7 @@ Uses
 		"Park current fiber",
 		"Request termination of_",
 		"Restart_",
-		"Set name of raw function_to_",
+		"Set name of function implementation_to_",
 		"Sleep for_millisecond|milliseconds",
 		"Terminate current fiber",
 		"Unname_from_",
@@ -2040,8 +2040,8 @@ Primitive "_'s⁇entry points" is
  * @param "aModule" "module"
  *        The module to examine.
  * @param "aString" "string"
- *        The name to look for in the modules new names.
- * @returns "{5}"
+ *        The name to look for in the module's new names.
+ * @returns "boolean"
  *    Whether the name was defined in the module.
  */
 Primitive "_has public name_" is
@@ -3405,19 +3405,19 @@ Primitive "_'s⁇primitive name" is
 ] : string;
 
 /**
- * Set the descriptive name of the given raw function.  This value is presented 
- * in stack traces and other symbolic circumstances.  This automatically sets 
- * the names of the sub-functions in a systematic way.
+ * Set the descriptive name of the given function implementation.  This value is
+ * presented in stack traces and other symbolic circumstances.  This
+ * automatically sets the names of the sub-functions in a systematic way.
  *
  * @category "Primitives"
- * @method "Set name of raw function_to_"
+ * @method "Set name of function implementation_to_"
  * @param "rawFunction" "function implementation"
  *        The function implementation to name.
  * @param "name" "nonempty string"
  *        A string used to name the function implementation.
  * @returns "⊤"
  */
-Primitive "Set name of raw function_to_" is
+Primitive "Set name of function implementation_to_" is
 [
 	rawFunction : function implementation,
 	name : nonempty string

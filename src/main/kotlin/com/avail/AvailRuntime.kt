@@ -950,6 +950,7 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 			specials[46] = Types.METHOD_DEFINITION.o()
 			specials[47] = Types.MACRO_DEFINITION.o()
 			specials[48] = zeroOrMoreOf(mostGeneralFunctionType())
+			specials[49] = stackDumpAtom()
 			specials[50] = PhraseKind.PARSE_PHRASE.mostGeneralType()
 			specials[51] = PhraseKind.SEQUENCE_PHRASE.mostGeneralType()
 			specials[52] = PhraseKind.EXPRESSION_PHRASE.mostGeneralType()
@@ -1122,7 +1123,6 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 			specials[170] = continuationTypeForFunctionType(
 				functionTypeReturning(Types.TOP.o()))
 			specials[171] = CharacterDescriptor.nonemptyStringOfDigitsType
-			specials[172] = stackDumpAtom()
 
 			assert(specialAtomsList.isEmpty())
 			specialAtomsList.addAll(listOf(

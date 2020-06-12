@@ -705,7 +705,8 @@ class IntegerDescriptor private constructor(
 			// case by far.
 			val prod = (self.extractInt().toLong()
 				* anInteger.extractInt().toLong())
-			if (prod == prod.toInt().toLong()){
+			if (prod == prod.toInt().toLong())
+			{
 				// Yes, it fits.  Clobber one of the inputs, or create a new
 				// int-sized object if they were both immutable...
 				output = if (canDestroy) mutableOf(self, anInteger) else null

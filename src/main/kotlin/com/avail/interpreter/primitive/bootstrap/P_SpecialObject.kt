@@ -72,8 +72,12 @@ object P_SpecialObject : Primitive(1, CanInline, Bootstrap)
 		}
 		catch (e: ArrayIndexOutOfBoundsException)
 		{
-			return interpreter.primitiveFailure(
-				E_NO_SPECIAL_OBJECT)
+			return interpreter.primitiveFailure(E_NO_SPECIAL_OBJECT)
+		}
+
+		if (result.equalsNil())
+		{
+			return interpreter.primitiveFailure(E_NO_SPECIAL_OBJECT)
 		}
 
 		return interpreter.primitiveSuccess(syntheticLiteralNodeFor(result))

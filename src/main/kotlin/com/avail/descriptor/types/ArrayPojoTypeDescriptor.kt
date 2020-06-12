@@ -77,7 +77,7 @@ import java.util.*
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  *
  * @constructor
- * Construct a new `ArrayPojoTypeDescriptor`.
+ *   Construct a new `ArrayPojoTypeDescriptor`.
  *
  * @param mutability
  *   The [mutability][Mutability] of the new descriptor.
@@ -89,7 +89,7 @@ internal class ArrayPojoTypeDescriptor private constructor(
 	/**
 	 * `PojoArray` mimics the type properties of Java array types. It extends
 	 * [Object] and implements [Cloneable][java.lang.Cloneable] and
-	 * [[Serializable], as required by the Java language specification. The type
+	 * [Serializable], as required by the Java language specification. The type
 	 * parameter is used to specify the element type.
 	 *
 	 * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -461,8 +461,7 @@ internal class ArrayPojoTypeDescriptor private constructor(
 
 		/** The most general [pojo&#32;array&#32;type][PojoTypeDescriptor].  */
 		@JvmField
-		val mostGeneralType: A_Type = pojoArrayType(
-			Types.ANY.o(), wholeNumbers())
-			.makeShared()
+		val mostGeneralType: A_Type =
+			pojoArrayType(Types.ANY.o(), wholeNumbers()).makeShared()
 	}
 }

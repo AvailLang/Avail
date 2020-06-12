@@ -46,6 +46,7 @@ import java.util.PropertyResourceBundle;
 import java.util.ResourceBundle;
 import java.util.Set;
 
+import static com.avail.descriptor.representation.NilDescriptor.nil;
 import static com.avail.tools.bootstrap.Resources.Key.specialObjectCommentTemplate;
 import static com.avail.tools.bootstrap.Resources.Key.specialObjectCommentTypeTemplate;
 import static com.avail.tools.bootstrap.Resources.Key.specialObjectCommentValueTemplate;
@@ -85,7 +86,7 @@ extends PropertiesFileGenerator
 		for (int i = 0; i < specialObjects.size(); i++)
 		{
 			final A_BasicObject specialObject = specialObjects.get(i);
-			if (specialObject != null)
+			if (!specialObject.equalsNil())
 			{
 				// Write a primitive descriptive of the special object as a
 				// comment, to assist a human translator.

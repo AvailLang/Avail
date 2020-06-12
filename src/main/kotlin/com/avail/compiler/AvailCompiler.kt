@@ -698,7 +698,7 @@ class AvailCompiler(
 				"Semantic restriction %s, in %s:%d",
 				restriction.definitionMethod().bundles()
 					.iterator().next().message(),
-				if (mod.equals(nil))
+				if (mod.equalsNil())
 					"no module"
 				else
 					mod.moduleName(),
@@ -755,7 +755,7 @@ class AvailCompiler(
 				"Macro evaluation %s, in %s:%d",
 				macro.definitionMethod().bundles()
 					.iterator().next().message(),
-				if (mod.equals(nil))
+				if (mod.equalsNil())
 					"no module"
 				else
 					mod.moduleName(),

@@ -807,7 +807,7 @@ class CommentsModule constructor(
 	 * Create the String file names for the methods defined in this module.
 	 *
 	 * @param names
-	 *   A pair of [[A_String] and [CommentGroup] that are to have file names
+	 *   A pair of [A_String] and [CommentGroup] that are to have file names
 	 *   constructed for them.
 	 * @param fileExtension
 	 *   The string extension the stacks output files should have (e.g. "json")

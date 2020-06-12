@@ -156,31 +156,31 @@ class L2_BIT_LOGIC_OP(
 
 	companion object {
 		/**
-		 * The [L2Operation] for computed the bit-wise [Int.and] of two [Int]s.
-		 * */
+		 * The [L2Operation] for computing the bit-wise [Int.and] of two [Int]s.
+		 **/
 		val bitwiseAnd = L2_BIT_LOGIC_OP("and", Opcodes.IAND)
 
 		/**
-		 * The [L2Operation] for computed the bit-wise [Int.or] of two [Int]s.
-		 * */
+		 * The [L2Operation] for computing the bit-wise [Int.or] of two [Int]s.
+		 **/
 		val bitwiseOr = L2_BIT_LOGIC_OP("or", Opcodes.IOR)
 
 		/**
-		 * The [L2Operation] for computed the bit-wise [Int.xor] of two [Int]s.
-		 * */
+		 * The [L2Operation] for computing the bit-wise [Int.xor] of two [Int]s.
+		 **/
 		val bitwiseXor = L2_BIT_LOGIC_OP("xor", Opcodes.IXOR)
 
 		/**
-		 * The [L2Operation] for computed the bit-wise [Int.plus] of two [Int]s,
-		 * wrapping around with 2's complement semantics as needed.
-		 * */
+		 * The [L2Operation] for computing the bit-wise [Int.plus] of two
+		 * [Int]s, wrapping around with 2's complement semantics as needed.
+		 **/
 		val wrappedAdd = L2_BIT_LOGIC_OP("wrappedAdd", Opcodes.IADD)
 
 		/**
-		 * The [L2Operation] for computed the bit-wise [Int.minus] of two [Int]s
-		 * (the first minus the second), wrapping around with 2's complement
-		 * semantics as needed.
-		 * */
+		 * The [L2Operation] for computing the bit-wise [Int.minus] of two
+		 * [Int]s (the first minus the second), wrapping around with 2's
+		 * complement semantics as needed.
+		 **/
 		val wrappedSubtract = L2_BIT_LOGIC_OP("wrappedSubtract", Opcodes.ISUB)
 	}
 }

@@ -252,7 +252,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	 * the level two optimizer to skip more checks.
 	 */
 	private val resultTypeCheckingNanos = Statistic(
-		this@Primitive.javaClass.simpleName + " (checking result)",
+		"${this@Primitive.javaClass.simpleName} (checking result)",
 		StatisticReport.PRIMITIVE_RETURNER_TYPE_CHECKS)
 
 	init
@@ -265,7 +265,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		{
 			assert(!primitiveFlags.contains(flag))
 			{
-				"Duplicate flag in " + this@Primitive.javaClass.simpleName
+				"Duplicate flag in ${this@Primitive.javaClass.simpleName}"
 			}
 			primitiveFlags.add(flag)
 		}
@@ -273,19 +273,18 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		assert(!primitiveFlags.contains(CanFold)
 		       || primitiveFlags.contains(CanInline))
 		{
-			("Primitive " + this@Primitive.javaClass.simpleName
-			 + " has CanFold without CanInline")
+			("Primitive ${this@Primitive.javaClass.simpleName} has CanFold " +
+				"without CanInline")
 		}
 		assert(!primitiveFlags.contains(Invokes)
 		       || primitiveFlags.contains(CanInline))
 		{
-			("Primitive " + this@Primitive.javaClass.simpleName
-			 + " has Invokes without CanInline")
+			("Primitive ${this@Primitive.javaClass.simpleName} has Invokes " +
+				"without CanInline")
 		}
 		runningNanos = Statistic(
-			(if (hasFlag(CanInline)) "" else "[NOT INLINE]")
-			+ this@Primitive.javaClass.simpleName
-			+ " (running)",
+			(if (hasFlag(CanInline)) "" else "[NOT INLINE] ")
+				+ "${this@Primitive.javaClass.simpleName} (running)",
 			StatisticReport.PRIMITIVES)
 		if (hasFlag(CanSwitchContinuations))
 		{
@@ -1056,13 +1055,9 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 			primitiveNumber: Int,
 			arguments: List<A_Phrase>): String?
 		{
-			val primitive =
-				byPrimitiveNumberOrNull(primitiveNumber)!!
+			val primitive = byPrimitiveNumberOrNull(primitiveNumber)!!
 			val expected = primitive.argCount
-			if (expected == -1)
-			{
-				return null
-			}
+			if (expected == -1) return null
 			if (arguments.size != expected)
 			{
 				return format(
@@ -1071,40 +1066,29 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 					arguments.size,
 					expected)
 			}
-			val expectedTypes =
-				primitive.blockTypeRestriction().argsTupleType()
+			val expectedTypes = primitive.blockTypeRestriction().argsTupleType()
 			assert(expectedTypes.sizeRange().upperBound().extractInt()
 				== expected)
-			val builder = StringBuilder()
-			for (i in 1 .. expected)
-			{
-				val declaredType = arguments[i - 1].declaredType()
-				val expectedType = expectedTypes.typeAtIndex(i)
-				if (!declaredType.isSubtypeOf(expectedType))
-				{
-					if (builder.isNotEmpty())
+			val string = buildString {
+				for (i in 1..expected) {
+					val declaredType = arguments[i - 1].declaredType()
+					val expectedType = expectedTypes.typeAtIndex(i)
+					if (!declaredType.isSubtypeOf(expectedType))
 					{
-						builder.append("\n")
+						if (isNotEmpty()) append("\n")
+						append(
+							format(
+								"argument #%d (%s) of primitive %s to be a " +
+									"subtype of %s, not %s.",
+								i,
+								arguments[i - 1].token().string(),
+								primitive.fieldName(),
+								expectedType,
+								declaredType))
 					}
-					builder.append(
-						format(
-							"argument #%d (%s) of primitive %s to be a subtype"
-								+ " of %s, not %s.",
-							i,
-							arguments[i - 1].token().string(),
-							primitive.fieldName(),
-							expectedType,
-							declaredType))
 				}
 			}
-			return if (builder.isEmpty())
-			{
-				null
-			}
-			else
-			{
-				builder.toString()
-			}
+			return if (string.isNotEmpty()) string else null
 		}
 
 		/** The method [attempt].  */
@@ -1228,5 +1212,4 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 			method.visitLabel(success)
 		}
 	}
-
 }
