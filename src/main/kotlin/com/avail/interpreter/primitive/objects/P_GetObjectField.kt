@@ -61,17 +61,13 @@ object P_GetObjectField : Primitive(2, CanFold, CanInline)
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
-		val obj = interpreter.argument(0)
-		val field = interpreter.argument(1)
+		val (obj, field) = interpreter.argsBuffer
 
-		val traversed = obj.traversed()
-		val descriptor = traversed.descriptor() as ObjectDescriptor
-		val slotIndex =
-			descriptor.variant.fieldToSlotIndex[field]
-                ?: return interpreter.primitiveFailure(E_NO_SUCH_FIELD)
-		return interpreter.primitiveSuccess(
-			if (slotIndex == 0) { field }
-			else { ObjectDescriptor.getField(traversed, slotIndex) })
+		return when (val fieldValue = obj.fieldAtOrNull(field))
+		{
+			null -> interpreter.primitiveFailure(E_NO_SUCH_FIELD)
+			else -> interpreter.primitiveSuccess(fieldValue)
+		}
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

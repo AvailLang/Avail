@@ -3099,6 +3099,10 @@ class IndirectionDescriptor private constructor(
 		self: AvailObject, field: A_Atom
 	): AvailObject = self .. { fieldAt(field) }
 
+	override fun o_FieldAtOrNull(
+		self: AvailObject, field: A_Atom
+	): AvailObject? = self .. { fieldAtOrNull(field) }
+
 	override fun o_FieldAtPuttingCanDestroy(
 		self: AvailObject,
 		field: A_Atom,
@@ -3110,6 +3114,10 @@ class IndirectionDescriptor private constructor(
 	override fun o_FieldTypeAt(
 		self: AvailObject, field: A_Atom
 	): A_Type = self .. { fieldTypeAt(field) }
+
+	override fun o_FieldTypeAtOrNull(
+		self: AvailObject, field: A_Atom
+	): A_Type? = self .. { fieldTypeAtOrNull(field) }
 
 	override fun o_ParsingPlan(self: AvailObject): A_DefinitionParsingPlan =
 		self .. { parsingPlan() }

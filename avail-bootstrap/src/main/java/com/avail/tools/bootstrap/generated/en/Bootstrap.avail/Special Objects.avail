@@ -173,6 +173,7 @@ Names
 	/*  75 */ "set of string",
 	/* 167 */ "source line number",
 	/* 166 */ "source position",
+	/*  49 */ "stack dump key",
 	/* 148 */ "statement phrase",
 	/* 159 */ "static tokens key",
 	/*  28 */ "string",
@@ -1088,6 +1089,16 @@ Special object "macro definition" is special object 47;
  * @alias "<[…]→⊤…|>"
  */
 Special object "tuple of function" is special object 48;
+
+/**
+ * The {@code atom} under which the stack is captured within an 
+ * {@code exception} when it is raised.
+ *
+ * @category "Primitives" "Constants"
+ * @type "stack dump key"
+ * @returns "stack dump key's type"
+ */
+Special object "stack dump key" is special object 49;
 
 /**
  * TODO: Special object description goes here.

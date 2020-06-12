@@ -31,6 +31,7 @@
  */
 package com.avail.utility
 
+import com.avail.utility.Casts.cast
 import java.io.IOException
 import java.io.InputStream
 import java.io.InputStreamReader
@@ -63,8 +64,8 @@ class UTF8ResourceBundleControl : ResourceBundle.Control()
 		{
 			try
 			{
-				val bundleClass = loader.loadClass(
-					bundleName) as Class<out ResourceBundle>
+				val bundleClass: Class<out ResourceBundle> =
+					cast(loader.loadClass(bundleName))
 
 				// If the class isn't a ResourceBundle subclass, throw a
 				// ClassCastException.
@@ -99,11 +100,9 @@ class UTF8ResourceBundleControl : ResourceBundle.Control()
 						if (reload)
 						{
 							val url = loader.getResource(resourceName)
-							          ?: throw IOException(
-								          "Invalid URL for resource")
+								?: throw IOException("Invalid URL for resource")
 							val connection = url.openConnection()
-							                 ?: throw IOException(
-								                 "Invalid URL for resource")
+								?: throw IOException("Invalid URL for resource")
 							// Disable caches to get fresh data for
 							// reloading.
 							connection.useCaches = false
@@ -114,9 +113,8 @@ class UTF8ResourceBundleControl : ResourceBundle.Control()
 							inputStream =
 								loader.getResourceAsStream(resourceName)!!
 						}
-						InputStreamReader(
-							inputStream, StandardCharsets.UTF_8) as Reader
-					} as PrivilegedExceptionAction<Reader?>)
+						InputStreamReader(inputStream, StandardCharsets.UTF_8)
+					})
 			}
 			catch (e: PrivilegedActionException)
 			{
@@ -124,9 +122,7 @@ class UTF8ResourceBundleControl : ResourceBundle.Control()
 			}
 			if (stream != null)
 			{
-				bundle = stream.use { stream ->
-					PropertyResourceBundle(stream)
-				}
+				bundle = stream.use { PropertyResourceBundle(it) }
 			}
 		}
 		else

@@ -231,13 +231,12 @@ class PermutedListPhraseDescriptor private constructor(
 		}
 		val permutation: A_Tuple = self.slot(PERMUTATION)
 		val size = list.expressionsSize()
-		val types = arrayOfNulls<A_Type>(size)
+		val types = Array<A_Type>(size) { nil }
 		(1..size).forEach { i ->
 			val t = listSuperUnionType.typeAtIndex(i)
 			val index = permutation.tupleIntAt(i)
 			types[index - 1] = t
 		}
-		types as Array<A_Type>
 		return tupleTypeForTypes(*types)
 	}
 
@@ -286,12 +285,11 @@ class PermutedListPhraseDescriptor private constructor(
 			val size = permutation.tupleSize()
 			assert(originalTupleType.sizeRange().lowerBound().extractInt()
 				== size)
-			val adjustedTypes = arrayOfNulls<A_Type>(size)
+			val adjustedTypes = Array<A_Type>(size) { nil }
 			for (i in 1..size) {
 				adjustedTypes[permutation.tupleIntAt(i) - 1] =
 					originalTupleType.typeAtIndex(i)
 			}
-			adjustedTypes as Array<A_Type>
 			expressionType = tupleTypeForTypes(*adjustedTypes)
 			self.setMutableSlot(EXPRESSION_TYPE, expressionType.makeShared())
 			return expressionType

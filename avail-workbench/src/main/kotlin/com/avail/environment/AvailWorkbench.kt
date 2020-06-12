@@ -103,9 +103,6 @@ import com.avail.stacks.StacksGenerator
 import com.avail.utility.Casts.cast
 import com.avail.utility.IO
 import com.avail.utility.Locks.lockWhile
-import com.avail.utility.Mutable
-import com.avail.utility.MutableInt
-import com.avail.utility.MutableLong
 import com.avail.utility.javaNotifyAll
 import com.avail.utility.javaWait
 import com.bulenkov.darcula.DarculaLaf
@@ -194,6 +191,9 @@ import javax.swing.tree.TreeNode
 import javax.swing.tree.TreePath
 import javax.swing.tree.TreeSelectionModel
 import kotlin.collections.Map.Entry
+import kotlin.concurrent.schedule
+import kotlin.concurrent.timerTask
+import kotlin.concurrent.withLock
 import kotlin.concurrent.write
 import kotlin.math.max
 import kotlin.math.min
@@ -718,11 +718,9 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		assert(EventQueue.isDispatchThread())
 		// Hold the dequeLock just long enough to extract all entries, only
 		// decreasing totalQueuedTextSize just before unlocking.
-		val lengthToInsert = MutableInt(0)
+		var lengthToInsert = 0
 		val aggregatedEntries = ArrayList<BuildOutputStreamEntry>()
-		val wentToZero = lockWhile<Boolean>(
-			dequeLock
-		) {
+		val wentToZero = dequeLock.withLock {
 			var removedSize = privateDiscardExcessLeadingQueuedUpdates()
 			var currentStyle: StreamStyle? = null
 			val builder = StringBuilder()
@@ -739,9 +737,8 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 					{
 						val string = builder.toString()
 						aggregatedEntries.add(
-							BuildOutputStreamEntry(
-								currentStyle, string))
-						lengthToInsert.value += string.length
+							BuildOutputStreamEntry(currentStyle, string))
+						lengthToInsert += string.length
 						builder.setLength(0)
 					}
 					if (entry == null)
@@ -764,13 +761,13 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		}
 
 		assert(aggregatedEntries.isNotEmpty())
-		assert(lengthToInsert.value > 0)
+		assert(lengthToInsert > 0)
 		try
 		{
 			val statusSize = perModuleStatusTextSize
 			val length = document.length
 			val amountToRemove =
-				length - statusSize + lengthToInsert.value - maxDocumentSize
+				length - statusSize + lengthToInsert - maxDocumentSize
 			if (amountToRemove > 0)
 			{
 				// We need to trim off some of the document, right after the
@@ -1287,7 +1284,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		stack: Deque<DefaultMutableTreeNode>,
 		moduleRoot: ModuleRoot): FileVisitor<Path>
 	{
-		val isRoot = Mutable(true)
+		var isRoot = true
 		return object : FileVisitor<Path>
 		{
 			/**
@@ -1336,10 +1333,10 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 			{
 				assert(dir != null)
 				val parentNode = stack.peekFirst()
-				if (isRoot.value)
+				if (isRoot)
 				{
 					// Add a ModuleRoot.
-					isRoot.value = false
+					isRoot = false
 					assert(stack.size == 1)
 					val node = ModuleRootNode(availBuilder, moduleRoot)
 					parentNode.add(node)
@@ -1393,7 +1390,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 			{
 				assert(file != null)
 				val parentNode = stack.peekFirst()
-				if (isRoot.value)
+				if (isRoot)
 				{
 					throw IOException("Avail root should be a directory")
 				}
@@ -1498,7 +1495,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 					moduleNodes.put(resolvedName.qualifiedName, moduleNode)
 				}
 			}
-			after.invoke()
+			after()
 		}
 		val mapKeys = moduleNodes.keys.toTypedArray()
 		Arrays.sort(mapKeys)
@@ -1562,13 +1559,11 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	private fun selectedModuleRootNode(): ModuleRootNode?
 	{
 		val path = moduleTree.selectionPath ?: return null
-		val selection =
-			path.lastPathComponent as DefaultMutableTreeNode
-		return if (selection is ModuleRootNode)
+		return when (val selection = path.lastPathComponent)
 		{
-			selection
+			is ModuleRootNode -> selection
+			else -> null
 		}
-		else null
 	}
 
 	/**
@@ -1587,10 +1582,11 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	private fun selectedModuleNode(): ModuleOrPackageNode?
 	{
 		val path = moduleTree.selectionPath ?: return null
-		val selection =
-			path.lastPathComponent as DefaultMutableTreeNode
-		return if (selection is ModuleOrPackageNode) { selection }
-		else { null }
+		return when (val selection = path.lastPathComponent)
+		{
+			is ModuleOrPackageNode -> selection
+			else -> null
+		}
 	}
 
 	/**
@@ -1623,10 +1619,11 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	fun selectedEntryPoint(): String?
 	{
 		val path = entryPointsTree.selectionPath ?: return null
-		val selection =
-			path.lastPathComponent as DefaultMutableTreeNode
-		return if (selection !is EntryPointNode) { null }
-		else { selection.entryPointString }
+		return when (val selection = path.lastPathComponent)
+		{
+			is EntryPointNode -> selection.entryPointString
+			else -> null
+		}
 	}
 
 	/**
@@ -1639,17 +1636,12 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	fun selectedEntryPointModule(): ResolvedModuleName?
 	{
 		val path = entryPointsTree.selectionPath ?: return null
-		val selection =
-			path.lastPathComponent as DefaultMutableTreeNode
-		if (selection is EntryPointNode)
+		return when (val selection = path.lastPathComponent)
 		{
-			return selection.resolvedModuleName
+			is EntryPointNode -> selection.resolvedModuleName
+			is EntryPointModuleNode -> selection.resolvedModuleName
+			else -> null
 		}
-		return if (selection is EntryPointModuleNode)
-		{
-			selection.resolvedModuleName
-		}
-		else { null }
 	}
 
 	/**
@@ -1663,9 +1655,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	 */
 	fun eventuallyUpdateBuildProgress(position: Long, globalCodeSize: Long)
 	{
-		lockWhile(
-			buildGlobalUpdateLock.writeLock()
-		) {
+		buildGlobalUpdateLock.write {
 			latestGlobalBuildPosition = position
 			globalBuildLimit = globalCodeSize
 			if (!hasQueuedGlobalBuildUpdate)
@@ -1689,22 +1679,21 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	 */
 	internal fun updateBuildProgress()
 	{
-		val position = MutableLong(0L)
-		val max = MutableLong(0L)
-		lockWhile(buildGlobalUpdateLock.writeLock())
-		{
+		var position = 0L
+		var max = 0L
+		buildGlobalUpdateLock.write {
 			assert(hasQueuedGlobalBuildUpdate)
-			position.value = latestGlobalBuildPosition
-			max.value = globalBuildLimit
+			position = latestGlobalBuildPosition
+			max = globalBuildLimit
 			hasQueuedGlobalBuildUpdate = false
 		}
-		val perThousand = (position.value * 1000 / max.value).toInt()
+		val perThousand = (position * 1000 / max).toInt()
 		buildProgress.value = perThousand
 		val percent = perThousand / 10.0f
 		buildProgress.string = format(
 			"Build Progress: %,d / %,d bytes (%3.1f%%)",
-			position.value,
-			max.value,
+			position,
+			max,
 			percent)
 	}
 
@@ -1734,15 +1723,9 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 			if (!hasQueuedPerModuleBuildUpdate)
 			{
 				hasQueuedPerModuleBuildUpdate = true
-				availBuilder.runtime.timer.schedule(
-					object : TimerTask()
-					{
-						override fun run()
-						{
-							invokeLater { updatePerModuleProgressInUIThread() }
-						}
-					},
-					100)
+				availBuilder.runtime.timer.schedule(100) {
+					invokeLater { updatePerModuleProgressInUIThread() }
+				}
 			}
 		}
 	}
@@ -1754,22 +1737,14 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	internal fun updatePerModuleProgressInUIThread()
 	{
 		assert(EventQueue.isDispatchThread())
-		val progress = ArrayList<Entry<ModuleName, Pair<Long, Long>>>()
-		perModuleProgressLock.write {
+		val progress = perModuleProgressLock.write {
 			assert(hasQueuedPerModuleBuildUpdate)
-			progress.addAll(perModuleProgress.entries)
 			hasQueuedPerModuleBuildUpdate = false
+			perModuleProgress.entries.toMutableList()
 		}
 		progress.sortBy { it.key.qualifiedName }
-		val string = buildString {
-			for ((key, pair) in progress) {
-				append(
-					format(
-						"%,6d / %,6d - %s%n",
-						pair.first,
-						pair.second,
-						key))
-			}
+		val string = progress.joinToString { (key, pair) ->
+			format("%,6d / %,6d - %s%n", pair.first, pair.second, key)
 		}
 		val doc = transcript.styledDocument
 		try
@@ -2008,19 +1983,19 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 			// to happen within the dequeLock, it nicely blocks this writer
 			// while whoever owns the lock does its own cleanup.
 			val beforeLock = System.nanoTime()
-			dequeLock.lock()
-			try
-			{
+			dequeLock.withLock {
 				waitForDequeLockStat.record(System.nanoTime() - beforeLock)
-				totalQueuedTextSize.getAndAdd(
-					(-privateDiscardExcessLeadingQueuedUpdates()).toLong())
-			}
-			finally
-			{
-				// Record the stat just before unlocking, to avoid the need for
-				// a lock for the statistic itself.
-				writeTextStat.record(System.nanoTime() - before)
-				dequeLock.unlock()
+				try
+				{
+					totalQueuedTextSize.getAndAdd(
+						(-privateDiscardExcessLeadingQueuedUpdates()).toLong())
+				}
+				finally
+				{
+					// Record the stat just before unlocking, to avoid the need for
+					// a lock for the statistic itself.
+					writeTextStat.record(System.nanoTime() - before)
+				}
 			}
 		}
 	}

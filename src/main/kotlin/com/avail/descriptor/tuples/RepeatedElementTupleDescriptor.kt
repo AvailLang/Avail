@@ -31,6 +31,7 @@
  */
 package com.avail.descriptor.tuples
 
+import com.avail.annotations.HideFieldInDebugger
 import com.avail.descriptor.character.A_Character.Companion.codePoint
 import com.avail.descriptor.representation.*
 import com.avail.descriptor.representation.AvailObjectRepresentation.Companion.newLike
@@ -70,6 +71,7 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 		 * The low 32 bits are used for the [HASH_OR_ZERO], but the upper 32 can
 		 * be used by other [BitField]s in subclasses of [TupleDescriptor].
 		 */
+		@HideFieldInDebugger
 		HASH_AND_MORE;
 
 		companion object

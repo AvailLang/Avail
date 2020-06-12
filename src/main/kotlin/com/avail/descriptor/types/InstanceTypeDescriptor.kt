@@ -58,7 +58,7 @@ import kotlin.math.max
 import kotlin.math.min
 
 /**
- * My instances are called *instance types*, the types of individual objects. 
+ * My instances are called *instance types*, the types of individual objects.
  * In particular, whenever an object is asked for its
  * [type][A_BasicObject.kind], it creates an
  * [instance&#32;type][InstanceTypeDescriptor] that wraps that object.  Only
@@ -262,6 +262,12 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 
 	override fun o_FieldTypeAt(self: AvailObject, field: A_Atom): A_Type =
 		getSuperkind(self).fieldTypeAt(field)
+
+	override fun o_FieldTypeAtOrNull(
+		self: AvailObject,
+		field: A_Atom
+	): A_Type? =
+		getSuperkind(self).fieldTypeAtOrNull(field)
 
 	override fun o_FieldTypeMap(self: AvailObject): A_Map =
 		getSuperkind(self).fieldTypeMap()

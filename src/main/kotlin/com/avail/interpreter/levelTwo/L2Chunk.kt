@@ -129,7 +129,7 @@ import kotlin.concurrent.write
  * Create a new `L2Chunk` with the given information.
  *
  * @param code
- *   The [[A_RawFunction] that this is for, or `null` for the default chunk.
+ *   The [A_RawFunction] that this is for, or `null` for the default chunk.
  * @param numObjects
  *   The number of object registers needed.
  * @param numIntegers

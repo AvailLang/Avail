@@ -627,7 +627,10 @@ Test "modular exponent tests" in math test suite is
 	Require: 110 ^ 45 mod 87 = 74;
 	Require: 1001 ^ 1001 mod 123 = 17;
 	Require: 30301829 ^ 1 mod (2^63) = 30301829;
-	Require: 12807421972 ^ 12345 mod 3201855493 = 0;
+	/* Super-cast it to whole number to avoid attempting to fold the leading
+	 * part as an invocation of "_^_".
+	 */
+	Require: (12807421972::whole number) ^ 12345 mod 3201855493 = 0;
 ];
 
 Test "primality tests" in math test suite is

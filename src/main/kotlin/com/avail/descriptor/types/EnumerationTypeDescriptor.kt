@@ -65,7 +65,7 @@ import java.util.*
  * are [atoms][AtomDescriptor] representing [true][AtomDescriptor.trueObject]
  * and [false][AtomDescriptor.falseObject].  This flexibility allows an
  * enumeration mechanism simply not available in other programming languages. In
- * particular, it allows one to define enumerations whose memberships overlap. 
+ * particular, it allows one to define enumerations whose memberships overlap.
  * The subtype relationship mimics the subset relationship of the enumerations'
  * membership sets.
  *
@@ -387,6 +387,11 @@ class EnumerationTypeDescriptor private constructor(mutability: Mutability)
 
 	override fun o_FieldTypeAt(self: AvailObject, field: A_Atom): A_Type =
 		getSuperkind(self).fieldTypeAt(field)
+
+	override fun o_FieldTypeAtOrNull(
+		self: AvailObject,
+		field: A_Atom
+	): A_Type? = getSuperkind(self).fieldTypeAtOrNull(field)
 
 	override fun o_FieldTypeTuple(self: AvailObject): A_Tuple =
 		getSuperkind(self).fieldTypeTuple()

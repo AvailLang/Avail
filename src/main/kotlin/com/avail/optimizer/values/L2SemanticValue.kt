@@ -51,10 +51,15 @@ import com.avail.optimizer.L2Entity
  * @param hash
  *   The pre-computed hash value to use for this semantic value.
  */
-@Suppress("EqualsOrHashCode")
 abstract class L2SemanticValue protected constructor(val hash: Int) : L2Entity
 {
 	override fun hashCode(): Int = hash
+
+	override fun equals(other: Any?): Boolean =
+		(other is L2SemanticValue
+			&& equalsSemanticValue(other))
+
+	open fun equalsSemanticValue(other: L2SemanticValue) = this === other
 
 	/**
 	 * Answer whether this semantic value corresponds with the notion of a

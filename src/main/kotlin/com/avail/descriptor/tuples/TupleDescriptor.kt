@@ -31,18 +31,32 @@
  */
 package com.avail.descriptor.tuples
 
+import com.avail.annotations.HideFieldInDebugger
 import com.avail.annotations.ThreadSafe
 import com.avail.descriptor.character.A_Character.Companion.codePoint
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
-import com.avail.descriptor.representation.*
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AbstractSlotsEnum
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.BitField
+import com.avail.descriptor.representation.Descriptor
+import com.avail.descriptor.representation.IndirectionDescriptor
+import com.avail.descriptor.representation.IntegerSlotsEnum
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor.Companion.generateSetFrom
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import com.avail.descriptor.tuples.TupleDescriptor.IntegerSlots
-import com.avail.descriptor.types.*
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor
+import com.avail.descriptor.types.BottomTypeDescriptor
+import com.avail.descriptor.types.TupleTypeDescriptor
+import com.avail.descriptor.types.TypeDescriptor
+import com.avail.descriptor.types.TypeTag
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.IteratorNotNull
-import com.avail.utility.MutableInt
 import com.avail.utility.json.JSONWriter
 import java.nio.ByteBuffer
 import java.util.*
@@ -91,6 +105,7 @@ abstract class TupleDescriptor protected constructor(
 		 * The low 32 bits are used for the [HASH_OR_ZERO], but the upper 32 can
 		 * be used by other [BitField]s in subclasses of [TupleDescriptor].
 		 */
+		@HideFieldInDebugger
 		HASH_AND_MORE;
 
 		companion object
@@ -841,6 +856,7 @@ abstract class TupleDescriptor protected constructor(
 	 * @param end
 	 *   The last index of elements to hash.
 	 */
+	@Suppress("SpellCheckingInspection")
 	override fun o_ComputeHashFromTo(
 		self: AvailObject,
 		start: Int,
@@ -884,7 +900,7 @@ abstract class TupleDescriptor protected constructor(
 	override fun o_CopyAsMutableObjectTuple(self: AvailObject): A_Tuple
 	{
 		val size = self.tupleSize()
-		val result = ObjectTupleDescriptor.generateObjectTupleFrom(size)
+		val result = generateObjectTupleFrom(size)
 		{ index: Int -> self.tupleAt(index) }
 		result.setHashOrZero(self.hashOrZero())
 		return result
@@ -1222,16 +1238,8 @@ abstract class TupleDescriptor protected constructor(
 		 * @return
 		 *   The corresponding Java array of AvailObjects.
 		 */
-		fun toArray(tuple: A_Tuple): Array<AvailObject?>
-		{
-			val size = tuple.tupleSize()
-			val array = arrayOfNulls<AvailObject>(size)
-			for (i in 0 until size)
-			{
-				array[i] = tuple.tupleAt(i + 1)
-			}
-			return array
-		}
+		fun toArray(tuple: A_Tuple): Array<AvailObject> =
+			Array(tuple.tupleSize()) { tuple.tupleAt(it + 1) }
 
 		/**
 		 * Construct a new tuple of arbitrary [Avail objects][AvailObject] based
@@ -1253,23 +1261,21 @@ abstract class TupleDescriptor protected constructor(
 		 */
 		fun tupleWithout(
 			originalTuple: A_Tuple,
-			elementToExclude: A_BasicObject?): A_Tuple
+			elementToExclude: A_BasicObject): A_Tuple
 		{
 			val originalSize = originalTuple.tupleSize()
 			for (seekIndex in 1 .. originalSize)
 			{
 				if (originalTuple.tupleAt(seekIndex).equals(elementToExclude))
 				{
-					val index = MutableInt(1)
-					return ObjectTupleDescriptor.generateObjectTupleFrom(
-						originalSize - 1
-					) { ignored: Int ->
-						if (index.value == seekIndex)
+					var index = 1
+					return generateObjectTupleFrom(originalSize - 1) {
+						if (index == seekIndex)
 						{
 							// Skip that element.
-							index.value++
+							index++
 						}
-						originalTuple.tupleAt(index.value++)
+						originalTuple.tupleAt(index++)
 					}
 				}
 			}

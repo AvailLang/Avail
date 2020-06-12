@@ -58,7 +58,7 @@ import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT
 import com.avail.interpreter.levelTwo.operation.L2_ADD_INT_TO_INT
-import com.avail.interpreter.levelTwo.operation.L2_ADD_INT_TO_INT_MOD_32_BITS
+import com.avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
 import com.avail.optimizer.L2Generator.Companion.edgeTo
@@ -177,7 +177,8 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
 		translator: L1Translator,
-		callSiteHelper: CallSiteHelper): Boolean
+		callSiteHelper: CallSiteHelper
+	): Boolean
 	{
 		val a = arguments[0]
 		val b = arguments[1]
@@ -194,12 +195,9 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 
 		// Attempt to unbox the arguments.
 		val generator = translator.generator
-		val fallback = generator.createBasicBlock(
-			"fall back to boxed addition")
-		val intA =
-			generator.readInt(a.semanticValue(), fallback)
-		val intB =
-			generator.readInt(b.semanticValue(), fallback)
+		val fallback = generator.createBasicBlock("fall back to boxed addition")
+		val intA = generator.readInt(a.semanticValue(), fallback)
+		val intB = generator.readInt(b.semanticValue(), fallback)
 		if (generator.currentlyReachable())
 		{
 			// The happy path is reachable.  Generate the most efficient
@@ -208,8 +206,7 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 				returnTypeGuaranteedByVM(
 					rawFunction,
 					argumentTypes.map { it.typeIntersection(int32()) })
-			val semanticTemp =
-				generator.topFrame.temp(generator.nextUnique())
+			val semanticTemp = generator.topFrame.temp(generator.nextUnique())
 			val tempWriter =
 				generator.intWrite(
 					semanticTemp,
@@ -222,7 +219,7 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 				// synonym, so subsequent uses of the result might use either
 				// register, depending whether an unboxed value is desired.
 				translator.addInstruction(
-					L2_ADD_INT_TO_INT_MOD_32_BITS,
+					L2_BIT_LOGIC_OP.wrappedAdd,
 					intA,
 					intB,
 					tempWriter)

@@ -31,6 +31,7 @@
  */
 package com.avail.descriptor.tuples
 
+import com.avail.annotations.HideFieldInDebugger
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.computeHashOfInt
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
@@ -57,7 +58,7 @@ import kotlin.math.min
  * @property unusedIntsOfLastLong
  *   The number of ints of the last `long` that do not participate in the
  *   representation of the [tuple][IntTupleDescriptor]. Must be 0 or 1.
- * 
+ *
  * @constructor
  * Construct a new `IntTupleDescriptor`.
  *
@@ -81,6 +82,7 @@ class IntTupleDescriptor private constructor(
 		 * The low 32 bits are used for the [HASH_OR_ZERO], but the upper 32 can
 		 * be used by other [BitField]s in subclasses of [TupleDescriptor].
 		 */
+		@HideFieldInDebugger
 		HASH_AND_MORE,
 
 		/**

@@ -243,7 +243,7 @@ class ReadWriteVariableTypeDescriptor private constructor(
 			ReadWriteVariableTypeDescriptor(Mutability.MUTABLE)
 
 		/** The shared [ReadWriteVariableTypeDescriptor].  */
-		private val shared = 
+		private val shared =
 			ReadWriteVariableTypeDescriptor(Mutability.SHARED)
 
 		/**
@@ -259,7 +259,7 @@ class ReadWriteVariableTypeDescriptor private constructor(
 		 */
 		fun fromReadAndWriteTypes(
 			readType: A_Type,
-			writeType: A_Type?): A_Type
+			writeType: A_Type): A_Type
 		{
 			if (readType.equals(writeType))
 			{
@@ -267,7 +267,7 @@ class ReadWriteVariableTypeDescriptor private constructor(
 			}
 			val result = mutable.create()
 			result.setSlot(ObjectSlots.READ_TYPE, readType)
-			result.setSlot(ObjectSlots.WRITE_TYPE, writeType!!)
+			result.setSlot(ObjectSlots.WRITE_TYPE, writeType)
 			return result
 		}
 	}

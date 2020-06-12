@@ -33,11 +33,15 @@ package com.avail.descriptor.tuples
 
 import com.avail.annotations.ThreadSafe
 import com.avail.descriptor.character.CharacterDescriptor.Companion.fromCodePoint
-import com.avail.descriptor.representation.*
+import com.avail.descriptor.representation.AbstractDescriptor
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.IntegerSlotsEnum
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.ObjectSlotsEnum
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.TypeDescriptor
 import com.avail.serialization.SerializerOperation
-import com.avail.utility.MutableInt
 import com.avail.utility.json.JSONWriter
 
 /**
@@ -201,10 +205,10 @@ abstract class StringDescriptor protected constructor(
 			}
 			// Fall back to building a general object tuple containing Avail
 			// character objects.
-			val charIndex = MutableInt(0)
-			return ObjectTupleDescriptor.generateObjectTupleFrom(count) {
-				val codePoint = aNativeString.codePointAt(charIndex.value)
-				charIndex.value += Character.charCount(codePoint)
+			var charIndex = 0
+			return generateObjectTupleFrom(count) {
+				val codePoint = aNativeString.codePointAt(charIndex)
+				charIndex += Character.charCount(codePoint)
 				fromCodePoint(codePoint)
 			}
 		}

@@ -62,10 +62,13 @@ object P_GetObjectTypeField : Primitive(2, CanFold, CanInline)
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
-		val objectType = interpreter.argument(0)
-		val field = interpreter.argument(1)
+		val (objectType, field) = interpreter.argsBuffer
 
-		return interpreter.primitiveSuccess(objectType.fieldTypeAt(field))
+		return when (val fieldType = objectType.fieldTypeAtOrNull(field))
+		{
+			null -> interpreter.primitiveFailure(E_NO_SUCH_FIELD)
+			else -> interpreter.primitiveSuccess(fieldType)
+		}
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

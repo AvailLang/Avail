@@ -62,7 +62,7 @@ class Statistic constructor(
 	 * @return
 	 *   The statistic's current name.
 	 */
-	fun name(): String = nameSupplier.invoke()
+	fun name(): String = nameSupplier()
 
 	init
 	{

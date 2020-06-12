@@ -1968,7 +1968,7 @@ class Interpreter(
 
 	override fun toString(): String {
 		return buildString {
-			append(javaClass.simpleName)
+			append(this@Interpreter.javaClass.simpleName)
 			append(" #$interpreterIndex")
 			if (fiber === null) {
 				append(" [«unbound»]")
@@ -2940,8 +2940,7 @@ class Interpreter(
 				return
 			}
 			// Deduplicate the list of values for performance…
-			val map =
-				values.indices.groupBy(values::get)
+			val map = values.indices.groupBy(values::get)
 			val outstanding = AtomicInteger(map.size)
 			val strings = arrayOfNulls<String>(valuesCount)
 			map.forEach { (key, indicesToWrite) ->

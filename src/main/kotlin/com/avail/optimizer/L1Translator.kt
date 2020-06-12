@@ -56,11 +56,21 @@ import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor
-import com.avail.descriptor.types.*
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor
+import com.avail.descriptor.types.BottomTypeDescriptor
+import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
+import com.avail.descriptor.types.ContinuationTypeDescriptor
+import com.avail.descriptor.types.FunctionTypeDescriptor
+import com.avail.descriptor.types.InstanceMetaDescriptor
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor
+import com.avail.descriptor.types.TupleTypeDescriptor
+import com.avail.descriptor.types.TypeDescriptor
+import com.avail.descriptor.types.VariableTypeDescriptor
 import com.avail.descriptor.variables.A_Variable
 import com.avail.descriptor.variables.VariableDescriptor
 import com.avail.dispatch.InternalLookupTree
-import com.avail.dispatch.LookupTreeAdaptor.UnusedMemento
 import com.avail.dispatch.LookupTreeTraverser
 import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.MethodDefinitionException
@@ -76,16 +86,73 @@ import com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint
 import com.avail.interpreter.levelTwo.L2Chunk.Companion.countdownForNewlyOptimizedCode
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2Operation
-import com.avail.interpreter.levelTwo.operand.*
+import com.avail.interpreter.levelTwo.operand.L2CommentOperand
+import com.avail.interpreter.levelTwo.operand.L2ConstantOperand
+import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand
+import com.avail.interpreter.levelTwo.operand.L2Operand
+import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
+import com.avail.interpreter.levelTwo.operand.L2SelectorOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restriction
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding
-import com.avail.interpreter.levelTwo.operation.*
+import com.avail.interpreter.levelTwo.operation.L2_CREATE_CONTINUATION
+import com.avail.interpreter.levelTwo.operation.L2_CREATE_FUNCTION
+import com.avail.interpreter.levelTwo.operation.L2_CREATE_TUPLE
+import com.avail.interpreter.levelTwo.operation.L2_CREATE_VARIABLE
+import com.avail.interpreter.levelTwo.operation.L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO
+import com.avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK
+import com.avail.interpreter.levelTwo.operation.L2_GET_ARGUMENT
+import com.avail.interpreter.levelTwo.operation.L2_GET_CURRENT_CONTINUATION
+import com.avail.interpreter.levelTwo.operation.L2_GET_CURRENT_FUNCTION
+import com.avail.interpreter.levelTwo.operation.L2_GET_IMPLICIT_OBSERVE_FUNCTION
+import com.avail.interpreter.levelTwo.operation.L2_GET_INVALID_MESSAGE_RESULT_FUNCTION
+import com.avail.interpreter.levelTwo.operation.L2_GET_INVALID_MESSAGE_SEND_FUNCTION
+import com.avail.interpreter.levelTwo.operation.L2_GET_LATEST_RETURN_VALUE
+import com.avail.interpreter.levelTwo.operation.L2_GET_RETURNING_FUNCTION
+import com.avail.interpreter.levelTwo.operation.L2_GET_TYPE
 import com.avail.interpreter.levelTwo.operation.L2_GET_TYPE.sourceValueOf
+import com.avail.interpreter.levelTwo.operation.L2_GET_UNASSIGNED_VARIABLE_READ_FUNCTION
+import com.avail.interpreter.levelTwo.operation.L2_GET_VARIABLE
+import com.avail.interpreter.levelTwo.operation.L2_GET_VARIABLE_CLEARING
+import com.avail.interpreter.levelTwo.operation.L2_INTERPRET_LEVEL_ONE
+import com.avail.interpreter.levelTwo.operation.L2_INVOKE
+import com.avail.interpreter.levelTwo.operation.L2_INVOKE_CONSTANT_FUNCTION
+import com.avail.interpreter.levelTwo.operation.L2_JUMP
+import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_EQUALS_CONSTANT
+import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_INTERRUPT
+import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_CONSTANT
+import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT
+import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_OBJECTS_EQUAL
+import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_SUBTYPE_OF_CONSTANT
+import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_SUBTYPE_OF_OBJECT
+import com.avail.interpreter.levelTwo.operation.L2_LOOKUP_BY_TYPES
+import com.avail.interpreter.levelTwo.operation.L2_LOOKUP_BY_VALUES
+import com.avail.interpreter.levelTwo.operation.L2_MOVE
+import com.avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT
+import com.avail.interpreter.levelTwo.operation.L2_MOVE_OUTER_VARIABLE
+import com.avail.interpreter.levelTwo.operation.L2_PREPARE_NEW_FRAME_FOR_L1
+import com.avail.interpreter.levelTwo.operation.L2_REENTER_L1_CHUNK_FROM_CALL
+import com.avail.interpreter.levelTwo.operation.L2_REENTER_L1_CHUNK_FROM_INTERRUPT
+import com.avail.interpreter.levelTwo.operation.L2_REIFY
 import com.avail.interpreter.levelTwo.operation.L2_REIFY.StatisticCategory
+import com.avail.interpreter.levelTwo.operation.L2_RETURN
+import com.avail.interpreter.levelTwo.operation.L2_RETURN_FROM_REIFICATION_HANDLER
+import com.avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
 import com.avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE.Companion.argsOf
 import com.avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE.Companion.forPrimitive
 import com.avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE.Companion.primitiveOf
+import com.avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
+import com.avail.interpreter.levelTwo.operation.L2_SET_CONTINUATION
+import com.avail.interpreter.levelTwo.operation.L2_SET_VARIABLE_NO_CHECK
+import com.avail.interpreter.levelTwo.operation.L2_TRY_OPTIONAL_PRIMITIVE
+import com.avail.interpreter.levelTwo.operation.L2_TRY_PRIMITIVE
+import com.avail.interpreter.levelTwo.operation.L2_TYPE_UNION
+import com.avail.interpreter.levelTwo.operation.L2_UNREACHABLE_CODE
+import com.avail.interpreter.levelTwo.operation.L2_VIRTUAL_CREATE_LABEL
 import com.avail.interpreter.levelTwo.register.L2Register
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuation
 import com.avail.interpreter.primitive.general.P_Equality
@@ -95,7 +162,6 @@ import com.avail.optimizer.values.Frame
 import com.avail.optimizer.values.L2SemanticValue
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport
-import com.avail.utility.MutableInt
 import java.util.*
 import java.util.logging.Level
 
@@ -642,7 +708,7 @@ class L1Translator private constructor(
 							InstanceMetaDescriptor.topMeta(),
 							VariableTypeDescriptor.variableTypeFor(
 								TypeDescriptor.Types.ANY.o())),
-						BottomTypeDescriptor.bottom()),
+						bottom()),
 					RestrictionFlagEncoding.BOXED))
 			addInstruction(
 				L2_GET_INVALID_MESSAGE_RESULT_FUNCTION, invalidResultFunction)
@@ -672,31 +738,26 @@ class L1Translator private constructor(
 	 *   branch.
 	 */
 	inner class InternalNodeMemento constructor(
-		val argumentIndexToTest: Int,
-		val typeToTest: A_Type,
+		private val argumentIndexToTest: Int,
+		private val typeToTest: A_Type,
 		branchLabelCounter: Int)
 	{
+		private val shortTypeName =
+			"$branchLabelCounter (arg#$argumentIndexToTest is " +
+				typeToTest.traversed().descriptor().typeTag.name
+					.replace("_TAG", "") + ")"
+
 		/**
 		 * Where to jump if the [InternalLookupTree]'s type test is true.
 		 */
-		val passCheckBasicBlock: L2BasicBlock
+		val passCheckBasicBlock = generator.createBasicBlock(
+			"pass lookup test #$shortTypeName")
 
 		/**
 		 * Where to jump if the [InternalLookupTree]'s type test is false.
 		 */
-		val failCheckBasicBlock: L2BasicBlock
-
-		init
-		{
-			val shortTypeName =
-				"$branchLabelCounter (arg#$ argumentIndexToTest is " +
-				  typeToTest.traversed().descriptor().typeTag.name
-						.replace("_TAG", "") + ")"
-			passCheckBasicBlock = generator.createBasicBlock(
-				"pass lookup test #$shortTypeName")
-			failCheckBasicBlock = generator.createBasicBlock(
-				"fail lookup test #$shortTypeName")
-		}
+		val failCheckBasicBlock = generator.createBasicBlock(
+			"fail lookup test #$shortTypeName")
 	}
 
 	/**
@@ -736,51 +797,67 @@ class L1Translator private constructor(
 		val expectedType: A_Type)
 	{
 		/** A Java [String] naming the [A_Bundle].  */
-		val quotedBundleName: String
+		val quotedBundleName = bundle.message().atomName().asNativeString()
 
 		/** A counter for generating unique branch names for this dispatch.  */
-		val branchLabelCounter = MutableInt(1)
+		var branchLabelCounter = 1
 
 		/** Whether this call site is a super lookup.  */
-		val isSuper: Boolean
+		val isSuper = !superUnionType.isBottom
 
 		/** Where to jump to perform the slow lookup.  */
-		val onFallBackToSlowLookup: L2BasicBlock
+		val onFallBackToSlowLookup = generator.createBasicBlock(
+			"fall back to slow lookup during $quotedBundleName")
 
 		/**
 		 * Where to jump to perform reification, eventually leading to a return
 		 * type check after completion.
 		 */
-		val onReificationWithCheck: L2BasicBlock
+		val onReificationWithCheck = generator.createBasicBlock(
+			"reify with check during $quotedBundleName",
+			ZoneType.PROPAGATE_REIFICATION_FOR_INVOKE.createZone(
+				"Continue reification leading to return check"))
 
 		/**
 		 * Where to jump to perform reification without the need for an eventual
 		 * return type check.
 		 */
-		val onReificationNoCheck: L2BasicBlock
+		val onReificationNoCheck = generator.createBasicBlock(
+			"reify no check during $quotedBundleName",
+			ZoneType.PROPAGATE_REIFICATION_FOR_INVOKE.createZone(
+				"Continue reification without return check"))
 
 		/**
 		 * Where to jump to perform reification during a call that cannot ever
 		 * return.
 		 */
-		val onReificationUnreturnable: L2BasicBlock
+		val onReificationUnreturnable = generator.createBasicBlock(
+			"reify unreturnable $quotedBundleName",
+			ZoneType.PROPAGATE_REIFICATION_FOR_INVOKE.createZone(
+				"Continue reification for unreturnable"))
 
 		/**
 		 * Where to jump after a completed call to perform a return type check.
 		 */
-		val afterCallWithCheck: L2BasicBlock
+		val afterCallWithCheck = generator.createBasicBlock(
+			if (isSuper) "after super call with check of $quotedBundleName"
+			else "after call with check of $quotedBundleName")
 
 		/**
 		 * Where to jump after a completed call if a return type check isn't
 		 * needed.
 		 */
-		val afterCallNoCheck: L2BasicBlock
+		val afterCallNoCheck = generator.createBasicBlock(
+			if (isSuper) "after super no-check call of $quotedBundleName"
+			else "after call no-check of $quotedBundleName")
 
 		/**
 		 * Where it ends up after the entire call, regardless of whether the
 		 * returned value had to be checked or not.
 		 */
-		val afterEverything: L2BasicBlock
+		val afterEverything = generator.createBasicBlock(
+			if (isSuper) "after entire super call of $quotedBundleName"
+			else "after entire call of $quotedBundleName")
 
 		/**
 		 * A map from each reachable looked-up [A_Function] to a [Pair]
@@ -797,7 +874,17 @@ class L1Translator private constructor(
 		 * produce.*
 		 */
 		val invocationSitesToCreate =
-			mutableMapOf<A_Function, Pair<L2BasicBlock, () -> Unit>>()
+			mutableMapOf<A_Function, Pair<L2BasicBlock, ()->Unit>>()
+
+		/**
+		 * Answer the [L1Translator] that this [CallSiteHelper] is within.
+		 */
+		fun translator(): L1Translator = this@L1Translator
+
+		/**
+		 * Answer the [L2Generator] that this [CallSiteHelper] is within.
+		 */
+		fun generator(): L2Generator = this@L1Translator.generator
 
 		/**
 		 * Record the fact that this call has produced a value in a particular
@@ -812,26 +899,30 @@ class L1Translator private constructor(
 		fun useAnswer(answerReg: L2ReadBoxedOperand)
 		{
 			val answerType = answerReg.type()
-			if (answerType.isBottom)
+			when
 			{
-				// The VM says we can't actually get here.  Don't bother
-				// associating the return value with either the checked or
-				// unchecked return result L2SemanticSlot.
-				generator.addUnreachableCode()
-			}
-			else if (answerType.isSubtypeOf(expectedType))
-			{
-				// Capture it as the checked value L2SemanticSlot.
-				forceSlotRegister(stackp, instructionDecoder.pc(), answerReg)
-				generator.jumpTo(afterCallNoCheck)
-			}
-			else
-			{
-				// Capture it as the unchecked return value SemanticSlot by
-				// using pc - 1.
-				forceSlotRegister(
-					stackp, instructionDecoder.pc() - 1, answerReg)
-				generator.jumpTo(afterCallWithCheck)
+				answerType.isBottom ->
+				{
+					// The VM says we can't actually get here.  Don't bother
+					// associating the return value with either the checked or
+					// unchecked return result L2SemanticSlot.
+					generator.addUnreachableCode()
+				}
+				answerType.isSubtypeOf(expectedType) ->
+				{
+					// Capture it as the checked value L2SemanticSlot.
+					forceSlotRegister(
+						stackp, instructionDecoder.pc(), answerReg)
+					generator.jumpTo(afterCallNoCheck)
+				}
+				else ->
+				{
+					// Capture it as the unchecked return value SemanticSlot by
+					// using pc - 1.
+					forceSlotRegister(
+						stackp, instructionDecoder.pc() - 1, answerReg)
+					generator.jumpTo(afterCallWithCheck)
+				}
 			}
 		}
 
@@ -843,40 +934,8 @@ class L1Translator private constructor(
 		fun generateAllInvocationSites()
 		{
 			invocationSitesToCreate.forEach {
-				(_, pair) -> pair.second.invoke()
+				(_, pair) -> pair.second()
 			}
-		}
-
-		init
-		{
-			isSuper = !superUnionType.isBottom
-			quotedBundleName = bundle.message().atomName().asNativeString()
-			onFallBackToSlowLookup = generator.createBasicBlock(
-				"fall back to slow lookup during $quotedBundleName")
-			onReificationWithCheck = generator.createBasicBlock(
-				"reify with check during $quotedBundleName",
-				ZoneType.PROPAGATE_REIFICATION_FOR_INVOKE.createZone(
-					"Continue reification leading to return check"))
-			onReificationNoCheck = generator.createBasicBlock(
-				"reify no check during $quotedBundleName",
-				ZoneType.PROPAGATE_REIFICATION_FOR_INVOKE.createZone(
-					"Continue reification without return check"))
-			onReificationUnreturnable = generator.createBasicBlock(
-				"reify unreturnable $quotedBundleName",
-				ZoneType.PROPAGATE_REIFICATION_FOR_INVOKE.createZone(
-					"Continue reification for unreturnable"))
-			val string2 =
-				if (isSuper) "after super no-check call of $quotedBundleName"
-				else "after call no-check of $quotedBundleName"
-			afterCallNoCheck = generator.createBasicBlock(string2)
-			val string1 =
-				if (isSuper) "after super call with check of $quotedBundleName"
-				else "after call with check of $quotedBundleName"
-			afterCallWithCheck = generator.createBasicBlock(string1)
-			val string =
-				if (isSuper) "after entire super call of $quotedBundleName"
-				else "after entire call of $quotedBundleName"
-			afterEverything = generator.createBasicBlock(string)
 		}
 	}
 
@@ -904,8 +963,7 @@ class L1Translator private constructor(
 		val method: A_Method = bundle.bundleMethod()
 		generator.addContingentValue(method)
 		val nArgs = method.numArgs()
-		val semanticArguments =
-			mutableListOf<L2SemanticValue>()
+		val semanticArguments = mutableListOf<L2SemanticValue>()
 		for (i in nArgs - 1 downTo 0)
 		{
 			semanticArguments.add(semanticSlot(stackp + i))
@@ -940,8 +998,7 @@ class L1Translator private constructor(
 			try
 			{
 				val result =
-					method.lookupByTypesFromTuple(
-						ObjectTupleDescriptor.tupleFromList(argTypes))
+					method.lookupByTypesFromTuple(tupleFromList(argTypes))
 				assert(result.equals(method.definitionsTuple().tupleAt(1)))
 			}
 			catch (e: MethodDefinitionException)
@@ -952,10 +1009,8 @@ class L1Translator private constructor(
 		}
 		val applicableExpandedLeaves = mutableListOf<A_Definition>()
 		val definitionCollector =
-			object : LookupTreeTraverser<A_Definition, A_Tuple, UnusedMemento, Boolean>(
-				MethodDescriptor.runtimeDispatcher,
-				UnusedMemento.UNUSED,
-				false)
+			object : LookupTreeTraverser<A_Definition, A_Tuple, Unit, Boolean>(
+				MethodDescriptor.runtimeDispatcher, Unit, false)
 		{
 			override fun visitPreInternalNode(
 				argumentIndex: Int, argumentType: A_Type): Boolean = true
@@ -987,14 +1042,13 @@ class L1Translator private constructor(
 		{
 			val traverser = object :
 				LookupTreeTraverser
-					<A_Definition, A_Tuple, UnusedMemento, InternalNodeMemento>(
-						MethodDescriptor.runtimeDispatcher,
-						UnusedMemento.UNUSED,
-						false)
+					<A_Definition, A_Tuple, Unit, InternalNodeMemento>(
+						MethodDescriptor.runtimeDispatcher, Unit, false)
 			{
 				override fun visitPreInternalNode(
 					argumentIndex: Int,
-					argumentType: A_Type): InternalNodeMemento =
+					argumentType: A_Type
+				): InternalNodeMemento =
 						preInternalVisit(
 							callSiteHelper,
 							semanticArguments,
@@ -1046,7 +1100,7 @@ class L1Translator private constructor(
 		// Calculate the union of the types guaranteed to be produced by the
 		// possible definitions, including analysis of primitives.  The phi
 		// combining final results will produce something at least this strict.
-		var tempUnion = BottomTypeDescriptor.bottom()
+		var tempUnion = bottom()
 		for (definition in method.definitionsAtOrBelow(argumentRestrictions))
 		{
 			if (definition.isMethodDefinition())
@@ -1059,8 +1113,7 @@ class L1Translator private constructor(
 				{
 					val signatureTupleType =
 						rawFunction.functionType().argsTupleType()
-					val intersectedArgumentTypes =
-						mutableListOf<A_Type>()
+					val intersectedArgumentTypes = mutableListOf<A_Type>()
 					for (i in argumentRestrictions.indices)
 					{
 						val intersection =
@@ -1247,10 +1300,10 @@ class L1Translator private constructor(
 		{
 			block = generator.createBasicBlock("successful lookup")
 			// Safety check.
-			val ran = MutableInt(0)
-			val newAction: () -> Unit = {
-				assert(ran.value == 0)
-				ran.value++
+			var ran = 0
+			val newAction = {
+				assert(ran == 0)
+				ran++
 				assert(!generator.currentlyReachable())
 				if (block.predecessorEdgesCount() > 0)
 				{
@@ -1364,7 +1417,7 @@ class L1Translator private constructor(
 		val memento = InternalNodeMemento(
 			argumentIndexToTest,
 			typeToTest,
-			callSiteHelper.branchLabelCounter.value++)
+			callSiteHelper.branchLabelCounter++)
 		if (!generator.currentlyReachable())
 		{
 			// If no paths lead here, don't generate code.  This can happen when
@@ -1519,26 +1572,25 @@ class L1Translator private constructor(
 		if (constantValue.isBoolean)
 		{
 			val constantBool = constantValue.equals(trueObject())
-			val boolSource =
-				registerToTest.definitionSkippingMoves(true)
-			if (boolSource.operation() is L2_RUN_INFALLIBLE_PRIMITIVE)
+			val boolSource = registerToTest.definitionSkippingMoves(true)
+			when
 			{
-				val primitive = primitiveOf(boolSource)
-				if (primitive === P_Equality)
+				boolSource.operation() !is L2_RUN_INFALLIBLE_PRIMITIVE -> { }
+				primitiveOf(boolSource) === P_Equality ->
 				{
-					val args = argsOf(boolSource)
+					val (read1, read2) = argsOf(boolSource)
 					// If either operand of P_Equality is a constant, recurse to
 					// allow deeper replacement.
-					var previousConstant = args[0].constantOrNull()
+					var previousConstant = read1.constantOrNull()
 					val previousRegister: L2ReadBoxedOperand
 					if (previousConstant !== null)
 					{
-						previousRegister = args[1]
+						previousRegister = read2
 					}
 					else
 					{
-						previousConstant = args[1].constantOrNull()
-						previousRegister = args[0]
+						previousConstant = read2.constantOrNull()
+						previousRegister = read1
 					}
 					if (previousConstant !== null)
 					{
@@ -1556,16 +1608,15 @@ class L1Translator private constructor(
 					// compare-and-branch without involving Avail booleans.
 					addInstruction(
 						L2_JUMP_IF_OBJECTS_EQUAL,
-						args[0],
-						args[1],
+						read1,
+						read2,
 						L2Generator.edgeTo(
 							if (constantBool) passBlock else failBlock),
 						L2Generator.edgeTo(
 							if (constantBool) failBlock else passBlock))
 					return
 				}
-				else if (boolSource.operation()
-					=== L2_JUMP_IF_SUBTYPE_OF_CONSTANT)
+				boolSource.operation() === L2_JUMP_IF_SUBTYPE_OF_CONSTANT ->
 				{
 					// Instance-of testing is done by extracting the type and
 					// testing if it's a subtype.  See if the operand to the
@@ -1603,8 +1654,7 @@ class L1Translator private constructor(
 							if (constantBool) failBlock else passBlock))
 					return
 				}
-				else if (boolSource.operation()
-					=== L2_JUMP_IF_SUBTYPE_OF_OBJECT)
+				boolSource.operation() === L2_JUMP_IF_SUBTYPE_OF_OBJECT ->
 				{
 					// Instance-of testing is done by extracting the type and
 					// testing if it's a subtype.  See if the operand to the
@@ -1977,7 +2027,7 @@ class L1Translator private constructor(
 			L2IntImmediateOperand(ChunkEntryPoint.TRANSIENT.offsetInDefaultChunk),
 			L2CommentOperand(
 				"Transient - cannot be invalid."))
-		reify(BottomTypeDescriptor.bottom(), ChunkEntryPoint.TO_RETURN_INTO)
+		reify(bottom(), ChunkEntryPoint.TO_RETURN_INTO)
 
 		// Generate the much more likely passed-check flow.
 		generator.startBlock(passedCheck)
@@ -2427,7 +2477,7 @@ class L1Translator private constructor(
 			L2IntImmediateOperand(ChunkEntryPoint.TRANSIENT.offsetInDefaultChunk),
 			L2CommentOperand(
 				"Transient - cannot be invalid."))
-		reify(BottomTypeDescriptor.bottom(), ChunkEntryPoint.TO_RETURN_INTO)
+		reify(bottom(), ChunkEntryPoint.TO_RETURN_INTO)
 	}
 
 	/**
@@ -2553,7 +2603,7 @@ class L1Translator private constructor(
 			L2IntImmediateOperand(ChunkEntryPoint.TRANSIENT.offsetInDefaultChunk),
 			L2CommentOperand(
 				"Transient - cannot be invalid."))
-		reify(BottomTypeDescriptor.bottom(), ChunkEntryPoint.TO_RETURN_INTO)
+		reify(bottom(), ChunkEntryPoint.TO_RETURN_INTO)
 
 		// End with the success path.
 		generator.startBlock(success)
@@ -2581,7 +2631,7 @@ class L1Translator private constructor(
 	 * @param newValue
 	 *   The location of the new value.
 	 */
-	fun emitSetVariableOffRamp(
+	private fun emitSetVariableOffRamp(
 		setOperation: L2Operation,
 		variable: L2ReadBoxedOperand,
 		newValue: L2ReadBoxedOperand)
@@ -2844,7 +2894,7 @@ class L1Translator private constructor(
 			code.literalAt(instructionDecoder.getOperand())
 		val expectedType: A_Type =
 			code.literalAt(instructionDecoder.getOperand())
-		generateCall(bundle, expectedType, BottomTypeDescriptor.bottom())
+		generateCall(bundle, expectedType, bottom())
 	}
 
 	override fun L1_doPushLiteral()
@@ -3035,7 +3085,7 @@ class L1Translator private constructor(
 		{
 			// The tuple elements are all constants.  Fold it.
 			moveConstantToSlot(
-				ObjectTupleDescriptor.tupleFromList(constants), stackp)
+				tupleFromList(constants), stackp)
 		}
 		else
 		{
@@ -3239,7 +3289,7 @@ class L1Translator private constructor(
 			}
 			// This includes the case of there being no outers.
 			return createFunction(
-				theCode, ObjectTupleDescriptor.tupleFromList(outerConstants))
+				theCode, tupleFromList(outerConstants))
 		}
 
 		/**

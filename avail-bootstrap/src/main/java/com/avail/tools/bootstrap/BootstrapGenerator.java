@@ -68,6 +68,7 @@ import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.StringTokenizer;
 
+import static com.avail.descriptor.representation.NilDescriptor.nil;
 import static com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.tuples.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.types.BottomTypeDescriptor.bottom;
@@ -152,7 +153,7 @@ public final class BootstrapGenerator
 		for (int i = 0; i < specialObjects.size(); i++)
 		{
 			final AvailObject specialObject = specialObjects.get(i);
-			if (specialObject != null)
+			if (!specialObject.equalsNil())
 			{
 				specialObjectIndexMap.put(specialObject, i);
 			}
@@ -408,7 +409,7 @@ public final class BootstrapGenerator
 		// Emit the special object methods.
 		for (int i = 0; i < specialObjects.size(); i++)
 		{
-			if (specialObjects.get(i) != null)
+			if (!specialObjects.get(i).equalsNil())
 			{
 				final String notAlphaKey = specialObjectKey(i);
 				if (!specialObjectBundle.containsKey(notAlphaKey)
@@ -1655,7 +1656,7 @@ public final class BootstrapGenerator
 		for (int i = 0; i < specialObjects.size(); i++)
 		{
 			final AvailObject specialObject = specialObjects.get(i);
-			if (specialObject != null)
+			if (!specialObject.equalsNil())
 			{
 				final String key = specialObjectKey(i);
 				final String value = specialObjectBundle.getString(key);

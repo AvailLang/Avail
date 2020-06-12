@@ -2112,7 +2112,7 @@ abstract class Descriptor protected constructor (
 
 	override fun o_NameForDebugger (self: AvailObject): String
 	{
-		var typeName = javaClass.simpleName
+		var typeName = this@Descriptor.javaClass.simpleName
 		if (typeName.endsWith("Descriptor"))
 		{
 			typeName = typeName.substring(0, typeName.length - 10)
@@ -2599,6 +2599,10 @@ abstract class Descriptor protected constructor (
 		self: AvailObject,
 		field: A_Atom): AvailObject = unsupported
 
+	override fun o_FieldAtOrNull (
+		self: AvailObject,
+		field: A_Atom): AvailObject? = unsupported
+
 	override fun o_FieldAtPuttingCanDestroy (
 		self: AvailObject,
 		field: A_Atom,
@@ -2608,6 +2612,10 @@ abstract class Descriptor protected constructor (
 	override fun o_FieldTypeAt (
 		self: AvailObject,
 		field: A_Atom): A_Type = unsupported
+
+	override fun o_FieldTypeAtOrNull (
+		self: AvailObject,
+		field: A_Atom): A_Type? = unsupported
 
 	override fun o_ParsingPlan (self: AvailObject): A_DefinitionParsingPlan =
 		unsupported

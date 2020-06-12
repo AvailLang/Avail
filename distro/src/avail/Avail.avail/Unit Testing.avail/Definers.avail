@@ -477,6 +477,7 @@ is
 |
 	Lock suite lock for
 	[
+		Set name of function implementation test's implementation to "TEST: " ++ name;
 		trueName ::= atom for name;
 		If trueName ∈ tests by atom then
 		[

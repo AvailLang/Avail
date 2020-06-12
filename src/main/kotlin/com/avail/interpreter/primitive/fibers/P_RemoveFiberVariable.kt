@@ -73,10 +73,9 @@ object P_RemoveFiberVariable : Primitive(
 		}
 		val fiber = interpreter.fiber()
 		// Choose the correct map based on the heritability of the key.
-		val heritable =
-			!key.getAtomProperty(HERITABLE_KEY.atom).equalsNil()
+		val heritable = !key.getAtomProperty(HERITABLE_KEY.atom).equalsNil()
 		val globals =
-			if (heritable) {fiber.heritableFiberGlobals() }
+			if (heritable) { fiber.heritableFiberGlobals() }
 			else { fiber.fiberGlobals() }
 		if (!globals.hasKey(key))
 		{

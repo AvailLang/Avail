@@ -118,6 +118,10 @@ abstract class AbstractTypeDescriptor protected constructor(
 		self: AvailObject,
 		field: A_Atom): A_Type
 
+	abstract override fun o_FieldTypeAtOrNull(
+		self: AvailObject,
+		field: A_Atom): A_Type?
+
 	abstract override fun o_FieldTypeMap(
 		self: AvailObject): A_Map
 

@@ -1227,5 +1227,5 @@ class IndexedFile internal constructor(
 		}
 
 	override fun toString(): String =
-		"${javaClass.simpleName}[$size] (for $fileReference)"
+		"${this@IndexedFile.javaClass.simpleName}[$size] (for $fileReference)"
 }

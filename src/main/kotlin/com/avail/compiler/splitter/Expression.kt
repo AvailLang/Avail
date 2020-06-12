@@ -221,7 +221,7 @@ internal abstract class Expression constructor(val positionInName: Int)
 		generator: InstructionGenerator,
 		wrapState: WrapState): WrapState
 
-	override fun toString(): String = javaClass.simpleName
+	override fun toString(): String = this@Expression.javaClass.simpleName
 
 	/**
 	 * Pretty-print this part of the message, using the provided argument

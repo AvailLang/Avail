@@ -70,5 +70,5 @@ class MalformedMessageException constructor(
 	 * @return
 	 *   A description of what is wrong with the signature being analyzed.
 	 */
-	fun describeProblem(): String = descriptionSupplier.invoke()
+	fun describeProblem(): String = descriptionSupplier()
 }

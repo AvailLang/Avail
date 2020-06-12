@@ -48,6 +48,13 @@ import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.execution.Interpreter
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding
+import com.avail.interpreter.levelTwo.operation.L2_CREATE_SET
+import com.avail.interpreter.levelTwo.operation.L2_CREATE_TUPLE
+import com.avail.optimizer.L1Translator
 
 /**
  * **Primitive:** Convert a [tuple][TupleDescriptor] into a
@@ -98,5 +105,44 @@ object P_TupleToSet : Primitive(1, CannotFail, CanFold, CanInline)
 			tupleSizes.upperBound(),
 			tupleSizes.upperInclusive())
 		return setTypeForSizesContentType(setSizes, unionType)
+	}
+
+	override fun tryToGenerateSpecialPrimitiveInvocation(
+		functionToCallReg: L2ReadBoxedOperand,
+		rawFunction: A_RawFunction,
+		arguments: List<L2ReadBoxedOperand>,
+		argumentTypes: List<A_Type>,
+		translator: L1Translator,
+		callSiteHelper: L1Translator.CallSiteHelper): Boolean
+	{
+		val tupleReg = arguments[0]
+		val generator = translator.generator
+
+		if (!generator.currentlyReachable())
+		{
+			// Generator is not at a live position, so pretend we generated the
+			// code for this primitive invocation.
+			return true
+		}
+
+		val def = tupleReg.definitionSkippingMoves(false)
+		if (def.operation() != L2_CREATE_TUPLE)
+		{
+			return false
+		}
+		// Create the set directly from the values.  This may turn the tuple
+		// creation instruction into dead code.
+		val sources = L2_CREATE_TUPLE.tupleSourceRegistersOf(def)
+		val restriction = returnTypeGuaranteedByVM(rawFunction, argumentTypes)
+		val semanticResult = generator.primitiveInvocation(this, arguments)
+		val write = generator.boxedWrite(
+			semanticResult,
+			restrictionForType(restriction, RestrictionFlagEncoding.BOXED))
+		generator.addInstruction(
+			L2_CREATE_SET,
+			L2ReadBoxedVectorOperand(sources),
+			write)
+		callSiteHelper.useAnswer(translator.readBoxed(write))
+		return true
 	}
 }

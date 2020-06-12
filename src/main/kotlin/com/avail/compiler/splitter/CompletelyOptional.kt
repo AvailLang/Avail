@@ -134,7 +134,8 @@ internal class CompletelyOptional constructor(
 	}
 
 	override fun toString(): String =
-		"${javaClass.simpleName}(${sequence.expressions})"
+		"${this@CompletelyOptional.javaClass.simpleName}" +
+			"(${sequence.expressions})"
 
 	override fun printWithArguments(
 		arguments: Iterator<A_Phrase>?,

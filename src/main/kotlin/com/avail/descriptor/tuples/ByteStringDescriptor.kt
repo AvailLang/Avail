@@ -31,6 +31,7 @@
  */
 package com.avail.descriptor.tuples
 
+import com.avail.annotations.HideFieldInDebugger
 import com.avail.annotations.ThreadSafe
 import com.avail.descriptor.character.A_Character
 import com.avail.descriptor.character.A_Character.Companion.codePoint
@@ -77,6 +78,7 @@ class ByteStringDescriptor private constructor(
 		 * The low 32 bits are used for the [HASH_OR_ZERO], but the upper 32 can
 		 * be used by other [BitField]s in subclasses of [TupleDescriptor].
 		 */
+		@HideFieldInDebugger
 		HASH_AND_MORE,
 
 		/**
@@ -482,7 +484,7 @@ class ByteStringDescriptor private constructor(
 		/**
 		 * Create an object of the appropriate size, whose descriptor is an
 		 * instance of `ByteStringDescriptor`.  Note that it can only store
-		 * Latin-1 characters (i.e., those having Unicode code points 0..255). 
+		 * Latin-1 characters (i.e., those having Unicode code points 0..255).
 		 * Run the generator for each position in ascending order to produce the
 		 * code points with which to populate the string.
 		 *
@@ -563,8 +565,8 @@ class ByteStringDescriptor private constructor(
 		 *   A corresponding Avail [A_String].
 		 */
 		fun mutableObjectFromNativeByteString(
-			aNativeByteString: String): AvailObject = 
-				generateByteString(aNativeByteString.length) 
+			aNativeByteString: String): AvailObject =
+				generateByteString(aNativeByteString.length)
 					{ aNativeByteString[it - 1].toInt() }
 
 		/** The [ByteStringDescriptor] instances.  */
@@ -584,7 +586,7 @@ class ByteStringDescriptor private constructor(
 		 */
 		private fun descriptorFor(
 			flag: Mutability,
-			size: Int): ByteStringDescriptor = 
+			size: Int): ByteStringDescriptor =
 				descriptors[(size and 7) * 3 + flag.ordinal]!!
 
 		init
@@ -592,26 +594,25 @@ class ByteStringDescriptor private constructor(
 			var i = 0
 			for (excess in intArrayOf(0, 7, 6, 5, 4, 3, 2, 1))
 			{
-				descriptors[i++] = 
+				descriptors[i++] =
 					ByteStringDescriptor(Mutability.MUTABLE, excess)
-				descriptors[i++] = 
+				descriptors[i++] =
 					ByteStringDescriptor(Mutability.IMMUTABLE, excess)
-				descriptors[i++] = 
+				descriptors[i++] =
 					ByteStringDescriptor(Mutability.SHARED, excess)
 			}
 		}
 	}
 
-	override fun mutable(): ByteStringDescriptor = 
-		descriptors[(8 - unusedBytesOfLastLong and 7) * 3 
+	override fun mutable(): ByteStringDescriptor =
+		descriptors[(8 - unusedBytesOfLastLong and 7) * 3
 			+ Mutability.MUTABLE.ordinal]!!
 
-	override fun immutable(): ByteStringDescriptor = 
-		descriptors[(8 - unusedBytesOfLastLong and 7) * 3 
+	override fun immutable(): ByteStringDescriptor =
+		descriptors[(8 - unusedBytesOfLastLong and 7) * 3
 		   + Mutability.IMMUTABLE.ordinal]!!
 
-	override fun shared(): ByteStringDescriptor = 
-		descriptors[(8 - unusedBytesOfLastLong and 7) * 3 
+	override fun shared(): ByteStringDescriptor =
+		descriptors[(8 - unusedBytesOfLastLong and 7) * 3
 					+ Mutability.SHARED.ordinal]!!
 }
-	

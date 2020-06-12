@@ -44,6 +44,8 @@ import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor.Companion.singletonSet
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
+import com.avail.descriptor.types.InstanceMetaDescriptor.ObjectSlots.*
+import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
@@ -128,25 +130,15 @@ class InstanceMetaDescriptor private constructor(mutability: Mutability)
 	 */
 	override fun computeIntersectionWith(
 		self: AvailObject,
-		another: A_Type): A_Type
+		another: A_Type
+	): A_Type = when
 	{
-		if (another.isBottom)
-		{
-			return another
-		}
-		if (another.isInstanceMeta)
-		{
-			return instanceMeta(
+		another.isBottom -> another
+		another.isInstanceMeta ->
+			instanceMeta(
 				getInstance(self).typeIntersection(another.instance()))
-		}
-		// Another is not an enumeration, and definitely not a meta, and the
-		// only possible superkinds of object (a meta) are ANY and TOP.
-		return if (another.isSupertypeOfPrimitiveTypeEnum(
-			TypeDescriptor.Types.ANY))
-		{
-			self
-		}
-		else bottom()
+		another.isSupertypeOfPrimitiveTypeEnum(Types.ANY) -> self
+		else -> bottom()
 	}
 
 	/**
@@ -164,23 +156,22 @@ class InstanceMetaDescriptor private constructor(mutability: Mutability)
 	 */
 	public override fun computeUnionWith(
 		self: AvailObject,
-		another: A_Type): A_Type =
-		when
-		{
-			another.isBottom -> self
-			another.isInstanceMeta ->
-				instanceMeta(
-					getInstance(self).typeUnion(another.instance()))
-			// Unless another is top, then the answer will be any.
-			else -> TypeDescriptor.Types.ANY.o().typeUnion(another)
-		}
+		another: A_Type
+	): A_Type = when
+	{
+		another.isBottom -> self
+		another.isInstanceMeta ->
+			instanceMeta(getInstance(self).typeUnion(another.instance()))
+		// Unless another is top, then the answer will be any.
+		else -> Types.ANY.o().typeUnion(another)
+	}
 
 	override fun o_Instance(self: AvailObject): AvailObject = getInstance(self)
 
 	override fun o_IsInstanceMeta(self: AvailObject): Boolean = true
 
 	override fun o_ComputeSuperkind(self: AvailObject): A_Type =
-		getSuperkind(self)
+		Types.ANY.o()
 
 	/**
 	 * {@inheritDoc}
@@ -192,14 +183,15 @@ class InstanceMetaDescriptor private constructor(mutability: Mutability)
 	{
 		val equal = (another.isInstanceMeta
              && getInstance(self).equals((another as A_Type).instance()))
-		if (equal)
+		when
 		{
-			if (!isShared)
+			!equal -> return false
+			!isShared ->
 			{
 				another.makeImmutable()
 				self.becomeIndirectionTo(another)
 			}
-			else if (!another.descriptor().isShared)
+			!another.descriptor().isShared ->
 			{
 				self.makeImmutable()
 				another.becomeIndirectionTo(self)
@@ -250,78 +242,49 @@ class InstanceMetaDescriptor private constructor(mutability: Mutability)
 		{
 			// I'm a meta, a singular enumeration of a type, so I could only be
 			// an instance of a meta meta (already excluded), or of ANY or TOP.
-			aType.isSupertypeOfPrimitiveTypeEnum(TypeDescriptor.Types.ANY)
+			aType.isSupertypeOfPrimitiveTypeEnum(Types.ANY)
 		}
 
 	// A metatype can't have an integer as an instance.
 	override fun o_RangeIncludesInt(self: AvailObject, anInt: Int): Boolean =
 		false
 
-	override fun o_FieldTypeAt(self: AvailObject, field: A_Atom): A_Type
-	{
-		throw unsupportedOperationException()
-	}
+	override fun o_FieldTypeAt(self: AvailObject, field: A_Atom): A_Type =
+		unsupported
 
-	override fun o_FieldTypeMap(self: AvailObject): A_Map
-	{
-		throw unsupportedOperationException()
-	}
+	override fun o_FieldTypeAtOrNull(
+		self: AvailObject,
+		field: A_Atom
+	): A_Type? = unsupported
 
-	override fun o_LowerBound(self: AvailObject): A_Number
-	{
-		throw unsupportedOperationException()
-	}
+	override fun o_FieldTypeMap(self: AvailObject): A_Map = unsupported
 
-	override fun o_LowerInclusive(self: AvailObject): Boolean
-	{
-		throw unsupportedOperationException()
-	}
+	override fun o_LowerBound(self: AvailObject): A_Number = unsupported
 
-	override fun o_UpperBound(self: AvailObject): A_Number
-	{
-		throw unsupportedOperationException()
-	}
+	override fun o_LowerInclusive(self: AvailObject): Boolean = unsupported
 
-	override fun o_UpperInclusive(self: AvailObject): Boolean
-	{
-		throw unsupportedOperationException()
-	}
+	override fun o_UpperBound(self: AvailObject): A_Number = unsupported
 
-	override fun o_TypeAtIndex(self: AvailObject, index: Int): A_Type
-	{
-		throw unsupportedOperationException()
-	}
+	override fun o_UpperInclusive(self: AvailObject): Boolean = unsupported
+
+	override fun o_TypeAtIndex(self: AvailObject, index: Int): A_Type =
+		unsupported
 
 	override fun o_UnionOfTypesAtThrough(
 		self: AvailObject,
 		startIndex: Int,
-		endIndex: Int): A_Type
-	{
-		throw unsupportedOperationException()
-	}
+		endIndex: Int): A_Type = unsupported
 
-	override fun o_DefaultType(self: AvailObject): A_Type
-	{
-		throw unsupportedOperationException()
-	}
+	override fun o_DefaultType(self: AvailObject): A_Type = unsupported
 
-	override fun o_SizeRange(self: AvailObject): A_Type
-	{
-		throw unsupportedOperationException()
-	}
+	override fun o_SizeRange(self: AvailObject): A_Type = unsupported
 
 	override fun o_TupleOfTypesFromTo(
 		self: AvailObject,
 		startIndex: Int,
-		endIndex: Int): A_Tuple
-	{
-		throw unsupportedOperationException()
-	}
+		endIndex: Int): A_Tuple = unsupported
 
-	override fun o_TypeTuple(self: AvailObject): A_Tuple
-	{
-		throw unsupportedOperationException()
-	}
+	override fun o_TypeTuple(self: AvailObject): A_Tuple = unsupported
 
 	// A metatype can't be an integer range type.
 	override fun o_IsIntegerRangeType(self: AvailObject): Boolean = false
@@ -340,137 +303,71 @@ class InstanceMetaDescriptor private constructor(mutability: Mutability)
 
 	override fun o_AcceptsArgTypesFromFunctionType(
 		self: AvailObject,
-		functionType: A_Type): Boolean
-	{
-		throw unsupportedOperationException()
-	}
+		functionType: A_Type): Boolean = unsupported
 
 	override fun o_AcceptsListOfArgTypes(
 		self: AvailObject,
-		argTypes: List<A_Type>): Boolean
-	{
-		throw unsupportedOperationException()
-	}
+		argTypes: List<A_Type>): Boolean = unsupported
 
 	override fun o_AcceptsListOfArgValues(
 		self: AvailObject,
-		argValues: List<A_BasicObject>): Boolean
-	{
-		throw unsupportedOperationException()
-	}
+		argValues: List<A_BasicObject>): Boolean = unsupported
 
 	override fun o_AcceptsTupleOfArgTypes(
 		self: AvailObject,
-		argTypes: A_Tuple): Boolean
-	{
-		throw unsupportedOperationException()
-	}
+		argTypes: A_Tuple): Boolean = unsupported
 
 	override fun o_AcceptsTupleOfArguments(
 		self: AvailObject,
-		arguments: A_Tuple): Boolean
-	{
-		throw unsupportedOperationException()
-	}
+		arguments: A_Tuple): Boolean = unsupported
 
-	override fun o_ArgsTupleType(self: AvailObject): A_Type
-	{
-		throw unsupportedOperationException()
-	}
+	override fun o_ArgsTupleType(self: AvailObject): A_Type = unsupported
 
-	override fun o_DeclaredExceptions(self: AvailObject): A_Set
-	{
-		throw unsupportedOperationException()
-	}
+	override fun o_DeclaredExceptions(self: AvailObject): A_Set = unsupported
 
-	override fun o_FunctionType(self: AvailObject): A_Type
-	{
-		throw unsupportedOperationException()
-	}
+	override fun o_FunctionType(self: AvailObject): A_Type = unsupported
 
-	override fun o_ContentType(self: AvailObject): A_Type
-	{
-		throw unsupportedOperationException()
-	}
+	override fun o_ContentType(self: AvailObject): A_Type = unsupported
 
 	override fun o_CouldEverBeInvokedWith(
 		self: AvailObject,
-		argRestrictions: List<TypeRestriction>): Boolean
-	{
-		throw unsupportedOperationException()
-	}
+		argRestrictions: List<TypeRestriction>): Boolean = unsupported
 
-	override fun o_KeyType(self: AvailObject): A_Type
-	{
-		throw unsupportedOperationException()
-	}
+	override fun o_KeyType(self: AvailObject): A_Type = unsupported
 
-	override fun o_Parent(self: AvailObject): A_BasicObject
-	{
-		throw unsupportedOperationException()
-	}
+	override fun o_Parent(self: AvailObject): A_BasicObject = unsupported
 
-	override fun o_ReturnType(self: AvailObject): A_Type
-	{
-		throw unsupportedOperationException()
-	}
+	override fun o_ReturnType(self: AvailObject): A_Type = unsupported
 
-	override fun o_ValueType(self: AvailObject): A_Type
-	{
-		throw unsupportedOperationException()
-	}
+	override fun o_ValueType(self: AvailObject): A_Type = unsupported
 
-	override fun o_ReadType(self: AvailObject): A_Type
-	{
-		throw unsupportedOperationException()
-	}
+	override fun o_ReadType(self: AvailObject): A_Type = unsupported
 
-	override fun o_WriteType(self: AvailObject): A_Type
-	{
-		throw unsupportedOperationException()
-	}
+	override fun o_WriteType(self: AvailObject): A_Type = unsupported
 
-	override fun o_ExpressionType(self: AvailObject): A_Type
-	{
-		throw unsupportedOperationException()
-	}
+	override fun o_ExpressionType(self: AvailObject): A_Type = unsupported
 
 	override fun o_HasObjectInstance(
 		self: AvailObject,
-		potentialInstance: AvailObject): Boolean
-	{
-		throw unsupportedOperationException()
-	}
+		potentialInstance: AvailObject): Boolean = unsupported
 
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		SerializerOperation.INSTANCE_META
 
-	override fun o_WriteTo(self: AvailObject, writer: JSONWriter)
-	{
-		writer.startObject()
-		writer.write("kind")
-		getSuperkind(self).writeTo(writer)
-		writer.write("instances")
-		self.instances().writeTo(writer)
-		writer.endObject()
-	}
+	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { Types.ANY.o().writeTo(writer) }
+			at("instances") { self.instances().writeTo(writer) }
+		}
 
-	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter)
-	{
-		writer.startObject()
-		writer.write("kind")
-		getSuperkind(self).writeSummaryTo(writer)
-		writer.write("instances")
-		self.instances().writeSummaryTo(writer)
-		writer.endObject()
-	}
+	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { Types.ANY.o().writeSummaryTo(writer) }
+			at("instances") { self.instances().writeSummaryTo(writer) }
+		}
 
-	override fun o_ComputeTypeTag(self: AvailObject): TypeTag
-	{
-		val instance = getInstance(self)
-		val instanceTag = instance.typeTag()
-		return instanceTag.metaTag()
-	}
+	override fun o_ComputeTypeTag(self: AvailObject): TypeTag =
+		getInstance(self).typeTag().metaTag()
 
 	override fun mutable(): AbstractEnumerationTypeDescriptor = mutable
 
@@ -481,7 +378,8 @@ class InstanceMetaDescriptor private constructor(mutability: Mutability)
 	companion object
 	{
 		/**
-		 * Answer the instance (a type) that the provided instance meta contains.
+		 * Answer the instance (a type) that the provided instance meta
+		 * contains.
 		 *
 		 * @param self
 		 *   An instance type.
@@ -489,22 +387,7 @@ class InstanceMetaDescriptor private constructor(mutability: Mutability)
 		 *   The instance represented by the given instance type.
 		 */
 		private fun getInstance(self: AvailObject): AvailObject =
-			self.slot(ObjectSlots.INSTANCE)
-
-		/**
-		 * Answer the kind that is nearest to the given object, an
-		 * [instance&#32;meta][InstanceMetaDescriptor].  Since all metatypes are
-		 * instance metas, we must answer [any][TypeDescriptor.Types.ANY].
-		 *
-		 * @param self
-		 *   An instance meta.
-		 * @return
-		 *   The kind (a [type][TypeDescriptor] but *not* an
-		 *   [enumeration][AbstractEnumerationTypeDescriptor]) that is nearest
-		 *   the specified instance meta.
-		 */
-		private fun getSuperkind(self: A_BasicObject): AvailObject =
-			TypeDescriptor.Types.ANY.o()
+			self.slot(INSTANCE)
 
 		/** The mutable [InstanceMetaDescriptor].  */
 		private val mutable: AbstractEnumerationTypeDescriptor =
@@ -521,8 +404,7 @@ class InstanceMetaDescriptor private constructor(mutability: Mutability)
 		/**
 		 * `⊤`'s type, cached statically for convenience.
 		 */
-		private val topMeta: A_Type =
-			instanceMeta(TypeDescriptor.Types.TOP.o()).makeShared()
+		private val topMeta: A_Type = instanceMeta(Types.TOP.o()).makeShared()
 
 		/**
 		 * Answer ⊤'s type, the most general metatype.
@@ -536,8 +418,7 @@ class InstanceMetaDescriptor private constructor(mutability: Mutability)
 		/**
 		 * Any's type, cached statically for convenience.
 		 */
-		private val anyMeta: A_Type =
-			instanceMeta(TypeDescriptor.Types.ANY.o()).makeShared()
+		private val anyMeta: A_Type = instanceMeta(Types.ANY.o()).makeShared()
 
 		/**
 		 * Answer any's type, a metatype.
@@ -546,10 +427,7 @@ class InstanceMetaDescriptor private constructor(mutability: Mutability)
 		 *   `any`'s type.
 		 */
 		@JvmStatic
-		fun anyMeta(): A_Type
-		{
-			return anyMeta
-		}
+		fun anyMeta(): A_Type = anyMeta
 
 		/**
 		 * Answer a new instance of this descriptor based on some object whose
@@ -567,7 +445,7 @@ class InstanceMetaDescriptor private constructor(mutability: Mutability)
 			assert(instance.isType)
 			val result = mutable.create()
 			instance.makeImmutable()
-			result.setSlot(ObjectSlots.INSTANCE, instance)
+			result.setSlot(INSTANCE, instance)
 			return result
 		}
 

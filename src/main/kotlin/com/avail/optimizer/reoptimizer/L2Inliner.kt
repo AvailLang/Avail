@@ -363,9 +363,7 @@ class L2Inliner internal constructor(
 	 *   The new [L2ValueManifest].
 	 */
 	fun mapManifest(oldManifest: L2ValueManifest): L2ValueManifest =
-		oldManifest.transform({ oldSemanticValue: L2SemanticValue ->
-			mapSemanticValue(oldSemanticValue) })
-				{ frame: Frame -> mapFrame(frame) }
+		oldManifest.transform(this::mapSemanticValue)
 
 	/**
 	 * Transform an [L2SemanticValue] into another one by substituting
@@ -378,12 +376,10 @@ class L2Inliner internal constructor(
 	 *   The replacement [L2SemanticValue].
 	 */
 	fun mapSemanticValue(oldSemanticValue: L2SemanticValue): L2SemanticValue =
-		semanticValueMap.computeIfAbsent(oldSemanticValue)
-		{ old: L2SemanticValue ->
-			old.transform(
-				{ oldSemanticValue: L2SemanticValue ->
-					mapSemanticValue(oldSemanticValue) })
-			{ frame: Frame -> mapFrame(frame) } }
+		semanticValueMap.computeIfAbsent(oldSemanticValue) {
+			old: L2SemanticValue ->
+			old.transform(this::mapSemanticValue, this::mapFrame)
+		}
 
 	/**
 	 * Transform a [Frame] by replacing the top frame with [inlineFrame].

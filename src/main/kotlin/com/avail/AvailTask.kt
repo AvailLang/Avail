@@ -88,7 +88,7 @@ class AvailTask constructor(
 	{
 		try
 		{
-			body.invoke()
+			body()
 		}
 		catch (e: Throwable)
 		{
@@ -132,7 +132,7 @@ class AvailTask constructor(
 			assert(!scheduled)
 			return {
 				val interpreter = current()
-				assert(interpreter.fiberOrNull() == null)
+				assert(interpreter.fiberOrNull() === null)
 				fiber.lock {
 					assert(fiber.executionState().indicatesSuspension())
 					val bound =
@@ -148,7 +148,7 @@ class AvailTask constructor(
 				}
 				try
 				{
-					body.invoke()
+					body()
 				}
 				catch (e: PrimitiveThrownException)
 				{
@@ -171,7 +171,8 @@ class AvailTask constructor(
 				}
 				catch (e: Throwable)
 				{
-					System.err.println("An unrecoverable VM error has occurred.")
+					System.err.println(
+						"An unrecoverable VM error has occurred.")
 					throw e
 				}
 				finally
@@ -183,7 +184,7 @@ class AvailTask constructor(
 					if (postExit != null)
 					{
 						interpreter.postExitContinuation(null)
-						postExit.invoke()
+						postExit()
 					}
 				}
 				// If the fiber has terminated, then report its result via its
@@ -196,7 +197,7 @@ class AvailTask constructor(
 						interpreter.runtime().unregisterFiber(fiber)
 					}
 				}
-				assert(interpreter.fiberOrNull() == null)
+				assert(interpreter.fiberOrNull() === null)
 			}
 		}
 
@@ -232,7 +233,7 @@ class AvailTask constructor(
 				assert(wasScheduled)
 				try
 				{
-					continuation.invoke()
+					continuation()
 				}
 				catch (e: Throwable)
 				{
@@ -242,7 +243,7 @@ class AvailTask constructor(
 					fiber.setExecutionState(ExecutionState.ABORTED)
 					fiber.failureContinuation().invoke(e)
 				}
-				assert(current().fiberOrNull() == null)
+				assert(current().fiberOrNull() === null)
 			}
 		}
 	}
