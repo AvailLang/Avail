@@ -1,5 +1,5 @@
 /*
- * Resources.java
+ * Resources.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,234 +29,209 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.tools.bootstrap
 
-package com.avail.tools.bootstrap;
-
-import com.avail.exceptions.AvailErrorCode;
-import com.avail.interpreter.Primitive;
-
-import java.text.MessageFormat;
-import java.util.ResourceBundle;
-import java.util.regex.Matcher;
+import com.avail.exceptions.AvailErrorCode
+import com.avail.interpreter.Primitive
+import java.text.MessageFormat
+import java.util.*
+import java.util.regex.Matcher
 
 /**
- * {@code Resources} centralizes {@linkplain ResourceBundle resource bundle}
- * paths and keys.
+ * `Resources` centralizes [resource bundle][ResourceBundle] paths and keys.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-final class Resources
+internal object Resources
 {
-	/**
-	 * Forbid instantiation.
-	 */
-	private Resources ()
-	{
-		// No implementation required.
-	}
-
 	/**
 	 * The path to the source directory, relative to the current working
 	 * directory, which should be the parent directory of the source directory.
 	 */
-	public static final String sourceBaseName = "src/main/java";
+	const val sourceBaseName = "src/main/java"
 
 	/**
-	 * The base name of the {@linkplain ResourceBundle resource bundle} that
-	 * contains the preamble.
+	 * The base name of the [resource bundle][ResourceBundle] that contains the
+	 * preamble.
 	 */
-	public static final String preambleBaseName =
-		Resources.class.getPackage().getName() + ".Preamble";
+	@JvmField
+	val preambleBaseName = "${Resources::class.java.getPackage().name}.Preamble"
 
 	/**
 	 * The name of the package that should contain the generated output.
 	 */
-	public static final String generatedPackageName =
-		Resources.class.getPackage().getName() + ".generated";
+	@JvmField
+	val generatedPackageName = 
+		"${Resources::class.java.getPackage().name}.generated"
 
 	/**
-	 * The base name of the {@linkplain ResourceBundle resource bundle} that
-	 * contains the Avail names of the special objects.
+	 * The base name of the [resource bundle][ResourceBundle] that contains the
+	 * Avail names of the special objects.
 	 */
-	public static final String specialObjectsBaseName =
-		generatedPackageName + ".SpecialObjectNames";
+	@JvmField
+	val specialObjectsBaseName = "$generatedPackageName.SpecialObjectNames"
 
 	/**
-	 * The base name of the target {@linkplain ResourceBundle resource bundle}
-	 * that contains the Avail names of the primitives.
+	 * The base name of the target [resource bundle][ResourceBundle] that
+	 * contains the Avail names of the primitives.
 	 */
-	public static final String primitivesBaseName =
-		generatedPackageName + ".PrimitiveNames";
+	@JvmField
+	val primitivesBaseName = "$generatedPackageName.PrimitiveNames"
 
 	/**
-	 * The base name of the target {@linkplain ResourceBundle resource bundle}
-	 * that contains the Avail names of the {@linkplain AvailErrorCode primitive
-	 * error codes}.
+	 * The base name of the target [resource bundle][ResourceBundle] that
+	 * contains the Avail names of the [primitive error codes][AvailErrorCode].
 	 */
-	public static final String errorCodesBaseName =
-		generatedPackageName + ".ErrorCodeNames";
+	@JvmField
+	val errorCodesBaseName = "$generatedPackageName.ErrorCodeNames"
 
 	/**
-	 * Answer the local name of the specified {@linkplain ResourceBundle
-	 * resource bundle} base name.
+	 * Answer the local name of the specified [resource bundle][ResourceBundle]
+	 * base name.
 	 *
-	 * @param bundleName A resource bundle base name.
-	 * @return The local name, e.g. the name following the last period (.).
+	 * @param bundleName
+	 *   A resource bundle base name.
+	 * @return
+	 *   The local name, e.g. the name following the last period (.).
 	 */
-	public static String localName (final String bundleName)
-	{
-		return bundleName.substring(bundleName.lastIndexOf('.') + 1);
-	}
+	@JvmStatic
+	fun localName(bundleName: String) = 
+		bundleName.substring(bundleName.lastIndexOf('.') + 1)
 
 	/**
 	 * Answer the argument, but embedded in double quotes (").
 	 *
 	 * @param string
-	 *        A {@linkplain String string}.
-	 * @return The argument embedded in double quotes (").
+	 *   A [string][String].
+	 * @return
+	 *   The argument embedded in double quotes (").
 	 */
-	public static String stringify (final String string)
-	{
-		return "\"" + string + "\"";
-	}
+	@JvmStatic
+	fun stringify(string: String) = """"$string""""
 
 	/**
-	 * Answer the key for the special object name given by {@code index}.
+	 * Answer the key for the special object name given by `index`.
 	 *
 	 * @param index
-	 *        The special object index.
-	 * @return A key that may be used to access the Avail name of the special
-	 *         object in the appropriate {@linkplain ResourceBundle resource
-	 *         bundle}.
+	 *   The special object index.
+	 * @return
+	 *   A key that may be used to access the Avail name of the special object
+	 *   in the appropriate [resource bundle][ResourceBundle].
 	 */
-	public static String specialObjectKey (final int index)
-	{
-		//noinspection StringConcatenationMissingWhitespace
-		return "specialObject" + index;
-	}
+	@JvmStatic
+	fun specialObjectKey(index: Int) = "specialObject$index"
 
 	/**
 	 * Answer the key for the specified special object's comment.
 	 *
 	 * @param index
-	 *        The special object index.
-	 * @return A key that may be used to access the special object's comment in
-	 *         the appropriate {@linkplain ResourceBundle resource bundle}.
+	 *   The special object index.
+	 * @return
+	 *   A key that may be used to access the special object's comment in the
+	 *   appropriate [resource bundle][ResourceBundle].
 	 */
-	public static String specialObjectCommentKey (final int index)
-	{
-		return specialObjectKey(index) + "_comment";
-	}
+	@JvmStatic
+	fun specialObjectCommentKey(index: Int) = 
+		"${specialObjectKey(index)}_comment"
 
 	/**
 	 * Answer the key for the specified special object's preferred Stacks
 	 * type name.
 	 *
 	 * @param index
-	 *        The special object index.
-	 * @return A key that may be used to access the special object's preferred
-	 *         Stacks @type name in the appropriate {@linkplain
-	 *         ResourceBundle resource bundle}.
+	 *   The special object index.
+	 * @return
+	 *   A key that may be used to access the special object's preferred Stacks
+	 *   `@type` name in the appropriate [resource bundle][ResourceBundle].
 	 */
-	public static String specialObjectTypeKey (final int index)
-	{
-		return specialObjectKey(index) + "_type";
-	}
+	@JvmStatic
+	fun specialObjectTypeKey(index: Int) = "${specialObjectKey(index)}_type"
 
 	/**
-	 * Answer the key for the {@code index}-th parameter name of the specified
-	 * {@linkplain Primitive primitive}.
+	 * Answer the key for the `index`-th parameter name of the specified
+	 * [primitive][Primitive].
 	 *
 	 * @param primitive
-	 *        A primitive.
+	 *   A primitive.
 	 * @param index
-	 *        The parameter ordinal.
-	 * @return A key that may be used to access the name of the primitive's
-	 *         {@code index}-th parameter in the appropriate {@linkplain
-	 *         ResourceBundle resource bundle}.
+	 *   The parameter ordinal.
+	 * @return
+	 *   A key that may be used to access the name of the primitive's `index`-th
+	 *   parameter in the appropriate [resource bundle][ResourceBundle].
 	 */
-	public static String primitiveParameterNameKey (
-		final Primitive primitive,
-		final int index)
-	{
-		return primitive.getClass().getSimpleName() + "_" + index;
-	}
+	@JvmStatic
+	fun primitiveParameterNameKey(primitive: Primitive, index: Int) = 
+		"${primitive.javaClass.simpleName}_$index"
 
 	/**
-	 * Answer the key for the specified {@linkplain Primitive primitive}'s
+	 * Answer the key for the specified [primitive][Primitive]'s comment.
+	 *
+	 * @param primitive
+	 *   A primitive.
+	 * @return
+	 *   A key that may be used to access the primitive method's comment in the
+	 *   appropriate [resource bundle][ResourceBundle].
+	 */
+	@JvmStatic
+	fun primitiveCommentKey(primitive: Primitive) = 
+		"${primitive.javaClass.simpleName}_comment"
+
+	/**
+	 * Answer the key for the specified [primitive error code][AvailErrorCode].
+	 *
+	 * @param code
+	 *   A primitive error code.
+	 * @return
+	 *   A key that may be used to access the Avail name of the primitive error
+	 *   code in the appropriate [resource bundle][ResourceBundle].
+	 */
+	@JvmStatic
+	fun errorCodeKey(code: AvailErrorCode) = "errorCode${code.nativeCode()}"
+
+	/**
+	 * Answer the key for the specified [primitive error code][AvailErrorCode]'s
 	 * comment.
 	 *
-	 * @param primitive
-	 *        A primitive.
-	 * @return A key that may be used to access the primitive method's comment
-	 *         in the appropriate {@linkplain ResourceBundle resource bundle}.
-	 */
-	public static String primitiveCommentKey (
-		final Primitive primitive)
-	{
-		return primitive.getClass().getSimpleName() + "_comment";
-	}
-
-	/**
-	 * Answer the key for the specified {@linkplain AvailErrorCode primitive
-	 * error code}.
-	 *
 	 * @param code
-	 *        A primitive error code.
-	 * @return A key that may be used to access the Avail name of the primitive
-	 *         error code in the appropriate {@linkplain ResourceBundle resource
-	 *         bundle}.
+	 *   A primitive error code.
+	 * @return
+	 *   A key that may be used to access the primitive error code's comment in
+	 *   the appropriate [resource bundle][ResourceBundle].
 	 */
-	public static String errorCodeKey (
-		final AvailErrorCode code)
-	{
-		//noinspection StringConcatenationMissingWhitespace
-		return "errorCode" + code.nativeCode();
-	}
+	@JvmStatic
+	fun errorCodeCommentKey(code: AvailErrorCode) = "${errorCodeKey(code)}_comment"
 
 	/**
-	 * Answer the key for the specified {@linkplain AvailErrorCode primitive
-	 * error code}'s comment.
-	 *
-	 * @param code
-	 *        A primitive error code.
-	 * @return A key that may be used to access the primitive error code's
-	 *         comment in the appropriate {@linkplain ResourceBundle resource
-	 *         bundle}.
-	 */
-	public static String errorCodeCommentKey (
-		final AvailErrorCode code)
-	{
-		return errorCodeKey(code) + "_comment";
-	}
-
-	/**
-	 * Escape the string to survive multiple passes through a {@link
-	 * MessageFormat}.
+	 * Escape the string to survive multiple passes through a [MessageFormat].
 	 *
 	 * @param propertyValue
-	 *        A property value that will be written to a properties file.
-	 * @return An appropriately escaped property value.
+	 *   A property value that will be written to a properties file.
+	 * @return
+	 *   An appropriately escaped property value.
 	 */
-	public static String escape (final String propertyValue)
+	@JvmStatic
+	fun escape(propertyValue: String): String
 	{
-		String newValue = propertyValue.replace("\n", "\\n\\\n");
+		var newValue = propertyValue.replace("\n", "\\n\\\n")
 		if (newValue.indexOf('\n') != newValue.lastIndexOf('\n'))
 		{
-			newValue = "\\\n" + newValue;
+			newValue = """
+				\
+				$newValue
+				""".trimIndent()
 		}
 		if (newValue.endsWith("\\n\\\n"))
 		{
-			newValue = newValue.substring(0, newValue.length() - 2);
+			newValue = newValue.substring(0, newValue.length - 2)
 		}
-		newValue = newValue.replace("\n ", "\n\\ ");
-		newValue = newValue.replaceAll(
-			"\\\\(?![n\\n ])", Matcher.quoteReplacement("\\\\"));
-		return newValue;
+		newValue = newValue.replace("\n ", "\n\\ ")
+		newValue = newValue.replace(
+			"\\\\(?![n\\n ])".toRegex(), Matcher.quoteReplacement("\\\\"))
+		return newValue
 	}
 
-	@SuppressWarnings("all")
-	public enum Key
+	@Suppress("EnumEntryName")
+	enum class Key
 	{
 		propertiesCopyright,
 		generatedPropertiesNotice,
