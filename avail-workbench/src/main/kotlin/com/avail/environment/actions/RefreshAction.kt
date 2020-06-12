@@ -58,8 +58,8 @@ class RefreshAction constructor(workbench: AvailWorkbench)
 			workbench.calculateRefreshedTrees()
 		invokeLater {
 			workbench.refreshFor(
-				modulesAndEntryPoints.first(),
-				modulesAndEntryPoints.second())
+				modulesAndEntryPoints.first,
+				modulesAndEntryPoints.second)
 		}
 	}
 

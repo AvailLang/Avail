@@ -329,7 +329,7 @@ class PreferencesAction constructor(workbench: AvailWorkbench)
 				savePreferences()
 				val trees = workbench.calculateRefreshedTrees()
 				invokeLater {
-					workbench.refreshFor(trees.first(), trees.second())
+					workbench.refreshFor(trees.first, trees.second)
 					preferencesDialog!!.isVisible = false
 				}
 			}

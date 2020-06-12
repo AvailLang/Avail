@@ -142,7 +142,6 @@ import com.avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerWhitespa
 import com.avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerWhitespaceFilter
 import com.avail.interpreter.primitive.methods.P_Alias
 import com.avail.io.TextInterface
-import com.avail.utility.Pair
 import com.avail.utility.StackPrinter
 import com.avail.utility.evaluation.Combinator
 import java.util.*

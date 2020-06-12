@@ -36,7 +36,6 @@ import com.avail.descriptor.bundles.A_BundleTree
 import com.avail.optimizer.StackReifier
 import com.avail.performance.ReportingUnit.DIMENSIONLESS_INTEGRAL
 import com.avail.performance.ReportingUnit.NANOSECONDS
-import com.avail.utility.Pair
 import com.avail.utility.ifZero
 import java.text.Collator
 import java.util.ArrayList

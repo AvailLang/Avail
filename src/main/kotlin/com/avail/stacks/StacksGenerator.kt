@@ -43,7 +43,6 @@ import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.stacks.module.CommentsModule
 import com.avail.utility.IO
-import com.avail.utility.Pair
 import java.io.FileInputStream
 import java.io.IOException
 import java.nio.ByteBuffer
@@ -287,7 +286,7 @@ class StacksGenerator @Throws(IllegalArgumentException::class) constructor(
 					for (pair in replacementPairs)
 					{
 						newFileContent =
-							newFileContent.replace(pair.first(), pair.second())
+							newFileContent.replace(pair.first, pair.second)
 					}
 					newFile.write(
 						ByteBuffer.wrap(newFileContent.toByteArray(UTF_8)))

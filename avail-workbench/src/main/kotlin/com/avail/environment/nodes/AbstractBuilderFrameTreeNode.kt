@@ -43,7 +43,6 @@ import com.avail.environment.nodes.AbstractBuilderFrameTreeNode.Companion.Select
 import com.avail.environment.nodes.AbstractBuilderFrameTreeNode.Companion.SelectedState.Unselected
 import com.avail.utility.Casts.cast
 import com.avail.utility.LRUCache
-import com.avail.utility.Pair
 import com.avail.utility.ifZero
 import java.awt.Color
 import java.awt.Image

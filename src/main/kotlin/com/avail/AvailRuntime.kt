@@ -313,6 +313,11 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 	}
 
 	/**
+	 * The number of clock ticks since this [runtime][AvailRuntime] was created.
+	 */
+	val clock = AvailRuntimeSupport.Clock()
+
+	/**
 	 * The [timer][Timer] that managed scheduled [tasks][TimerTask] for this
 	 * [runtime][AvailRuntime]. The timer thread is not an
 	 * [Avail&#32;thread][AvailThread], and therefore cannot directly execute
@@ -321,11 +326,6 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 	val timer =  fixedRateTimer("timer for Avail runtime", true, period = 10) {
 		clock.increment()
 	}
-
-	/**
-	 * The number of clock ticks since this [runtime][AvailRuntime] was created.
-	 */
-	val clock = AvailRuntimeSupport.Clock()
 
 	/**
 	 * Perform an integrity check on the parser data structures.  Report the

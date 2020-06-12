@@ -106,7 +106,6 @@ import com.avail.utility.Locks.lockWhile
 import com.avail.utility.Mutable
 import com.avail.utility.MutableInt
 import com.avail.utility.MutableLong
-import com.avail.utility.Pair
 import com.avail.utility.javaNotifyAll
 import com.avail.utility.javaWait
 import com.bulenkov.darcula.DarculaLaf
@@ -1723,8 +1722,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	fun eventuallyUpdatePerModuleProgress(
 		moduleName: ModuleName, moduleSize: Long, position: Long)
 	{
-		lockWhile(perModuleProgressLock.writeLock())
-		{
+		perModuleProgressLock.write {
 			if (position == moduleSize)
 			{
 				perModuleProgress.remove(moduleName)
@@ -1757,8 +1755,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	{
 		assert(EventQueue.isDispatchThread())
 		val progress = ArrayList<Entry<ModuleName, Pair<Long, Long>>>()
-		lockWhile(perModuleProgressLock.writeLock())
-		{
+		perModuleProgressLock.write {
 			assert(hasQueuedPerModuleBuildUpdate)
 			progress.addAll(perModuleProgress.entries)
 			hasQueuedPerModuleBuildUpdate = false
@@ -1769,8 +1766,8 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 				append(
 					format(
 						"%,6d / %,6d - %s%n",
-						pair.first(),
-						pair.second(),
+						pair.first,
+						pair.second,
 						key))
 			}
 		}
@@ -1796,8 +1793,9 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 			assert(false)
 		}
 
-		lockWhile(perModuleProgressLock.writeLock())
-			{ perModuleStatusTextSize = string.length }
+		perModuleProgressLock.write {
+			perModuleStatusTextSize = string.length
+		}
 	}
 
 	/**
@@ -2930,8 +2928,8 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 						// Now select an initial module, if specified.
 						invokeLater {
 							workbench.refreshFor(
-								modulesAndEntryPoints.first(),
-								modulesAndEntryPoints.second())
+								modulesAndEntryPoints.first,
+								modulesAndEntryPoints.second)
 							if (initial.isNotEmpty())
 							{
 								val path = workbench.modulePath(initial)

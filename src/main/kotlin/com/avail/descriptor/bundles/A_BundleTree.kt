@@ -45,7 +45,6 @@ import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
-import com.avail.utility.Pair
 import java.util.*
 
 /**

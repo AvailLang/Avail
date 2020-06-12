@@ -43,7 +43,6 @@ import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind
 import com.avail.optimizer.L2ValueManifest
 import com.avail.optimizer.values.L2SemanticValue
 import com.avail.utility.Casts
-import com.avail.utility.Pair
 import java.util.*
 
 /**

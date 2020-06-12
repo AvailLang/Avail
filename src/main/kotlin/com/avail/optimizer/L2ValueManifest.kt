@@ -43,7 +43,6 @@ import com.avail.optimizer.values.Frame
 import com.avail.optimizer.values.L2SemanticPrimitiveInvocation
 import com.avail.optimizer.values.L2SemanticValue
 import com.avail.utility.Casts
-import com.avail.utility.Pair
 import java.util.*
 import kotlin.collections.component1
 import kotlin.collections.component2
@@ -378,8 +377,8 @@ class L2ValueManifest
 			followupMerges
 				.forEach { pair: Pair<L2SemanticValue, L2SemanticValue> ->
 					privateMergeSynonyms(
-						semanticValueToSynonym(pair.first()),
-						semanticValueToSynonym(pair.second()))
+						semanticValueToSynonym(pair.first),
+						semanticValueToSynonym(pair.second))
 				}
 		}
 	}

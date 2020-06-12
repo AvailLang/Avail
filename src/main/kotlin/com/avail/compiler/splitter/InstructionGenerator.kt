@@ -46,7 +46,6 @@ import com.avail.compiler.ParsingOperation.PERMUTE_LIST
 import com.avail.compiler.ParsingOperation.WRAP_IN_LIST
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.tupleFromIntegerList
-import com.avail.utility.Pair
 import java.util.*
 
 /**
@@ -215,13 +214,13 @@ internal class InstructionGenerator
 		label.position = instructions.size + 1
 		for (pair in label.operationsToFix)
 		{
-			assert(instructions[pair.first() - 1] == placeholderInstruction)
-			if (pair.first() + 1 == label.position)
+			assert(instructions[pair.first - 1] == placeholderInstruction)
+			if (pair.first + 1 == label.position)
 			{
 				println("DEBUG: Operation target falls through.")
 			}
-			instructions[pair.first() - 1] =
-				pair.second().encoding(label.position)
+			instructions[pair.first - 1] =
+				pair.second.encoding(label.position)
 		}
 		label.operationsToFix.clear()
 	}

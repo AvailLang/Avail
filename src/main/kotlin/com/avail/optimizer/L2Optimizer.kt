@@ -47,7 +47,6 @@ import com.avail.performance.StatisticReport
 import com.avail.utility.Casts
 import com.avail.utility.MutableInt
 import com.avail.utility.Nulls
-import com.avail.utility.Pair
 import com.avail.utility.Strings.increaseIndentation
 import com.avail.utility.structures.EnumMap.Companion.enumMap
 import java.util.*
@@ -638,8 +637,8 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 							{
 								edge.manifest().recordSourceInformation(
 									mutableRead!!.register(),
-									pair!!.first(),
-									pair.second())
+									pair!!.first,
+									pair.second)
 							}
 							val destinationBlock = edge.targetBlock()
 							val newInstruction = L2Instruction(
@@ -1313,8 +1312,8 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 		while (!blocksToCheck.isEmpty())
 		{
 			val pair = blocksToCheck.removeLast()
-			val block = pair.first()
-			val newUsed = pair.second()
+			val block = pair.first
+			val newUsed = pair.second
 			var checked = inSets[block]
 			if (checked == null)
 			{

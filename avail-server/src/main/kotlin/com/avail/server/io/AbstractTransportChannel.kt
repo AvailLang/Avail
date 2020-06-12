@@ -35,7 +35,6 @@ package com.avail.server.io
 import com.avail.server.AvailServer
 import com.avail.server.AvailServer.Companion.receiveMessageThen
 import com.avail.server.messages.Message
-import com.avail.utility.Pair
 import com.avail.utility.evaluation.Combinator.recurse
 import java.util.*
 
@@ -164,7 +163,7 @@ abstract class AbstractTransportChannel<T> constructor(
 						pair = senders.pollFirst()
 						if (pair != null)
 						{
-							sendQueue.addLast(pair.first())
+							sendQueue.addLast(pair.first)
 						}
 						nextMessage = sendQueue.peekFirst()
 						assert(sendQueue.size <= maximumSendQueueDepth)
@@ -187,7 +186,7 @@ abstract class AbstractTransportChannel<T> constructor(
 						}
 					}
 					// Proceed the paused client.
-					pair?.second()?.invoke()
+					pair?.second?.invoke()
 				}
 			},
 			{  })

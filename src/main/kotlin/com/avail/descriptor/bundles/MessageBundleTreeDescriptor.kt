@@ -116,7 +116,6 @@ import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEnc
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport
 import com.avail.utility.Mutable
-import com.avail.utility.Pair
 import com.avail.utility.Strings.newlineTab
 import java.util.*
 import java.util.Collections.sort

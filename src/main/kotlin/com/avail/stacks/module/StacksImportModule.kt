@@ -40,8 +40,6 @@ import com.avail.stacks.comment.GrammaticalRestrictionComment
 import com.avail.stacks.comment.MacroComment
 import com.avail.stacks.comment.MethodComment
 import com.avail.stacks.comment.SemanticRestrictionComment
-import com.avail.utility.Pair
-
 /**
  * A grouping of all implementationGroups originating from the names section of
  * this module that this is being imported by another module.
@@ -234,12 +232,12 @@ abstract class StacksImportModule constructor(
 		for (extendsModule in moduleNameToExtendsList.values)
 		{
 			val pair = extendsModule.flattenImplementationGroups()
-			newMap.putAll(pair.first())
-			nameToLinkMap.putAll(pair.second())
+			newMap.putAll(pair.first)
+			nameToLinkMap.putAll(pair.second)
 		}
 		val aPair = qualifiedImplementationNameToImplementation()
-		newMap.putAll(aPair.first())
-		nameToLinkMap.putAll(aPair.second())
+		newMap.putAll(aPair.first)
+		nameToLinkMap.putAll(aPair.second)
 		return Pair(newMap, nameToLinkMap)
 	}
 }

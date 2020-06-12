@@ -53,7 +53,6 @@ import com.avail.stacks.comment.AvailComment
 import com.avail.stacks.exceptions.StacksCommentBuilderException
 import com.avail.stacks.exceptions.StacksScannerException
 import com.avail.stacks.scanner.StacksScanner
-import com.avail.utility.Pair
 import com.avail.utility.json.JSONWriter
 import java.io.IOException
 import java.nio.ByteBuffer
@@ -666,7 +665,7 @@ class CommentsModule constructor(
 									//Create map used down below this block
 									namesExtendsImplementationsMap.putAll(
 										extendsModule.flattenImplementationGroups()
-											.first())
+											.first)
 
 									if (extendsModule
 											.extendsMethodLeafNameToModuleName
@@ -713,11 +712,11 @@ class CommentsModule constructor(
 					usesModule.moduleNameToExtendsList.values)
 				{
 					val first =
-						usesExtendsModule.flattenImplementationGroups().first()
+						usesExtendsModule.flattenImplementationGroups().first
 
 					for (key in first.keys)
 					{
-						if (first[key]!!.second().isPopulated)
+						if (first[key]!!.second.isPopulated)
 						{
 							namesUsesExtendsImplementationsMap[key] =
 								first[key]!!
@@ -729,9 +728,9 @@ class CommentsModule constructor(
 				{
 					if (namesExtendsImplementationsMap.containsKey(key))
 					{
-						namesExtendsImplementationsMap[key]!!.second()
+						namesExtendsImplementationsMap[key]!!.second
 							.mergeWith(
-								namesUsesExtendsImplementationsMap[key]!!.second())
+								namesUsesExtendsImplementationsMap[key]!!.second)
 					}
 				}
 			}
@@ -825,13 +824,13 @@ class CommentsModule constructor(
 
 		for (pair in names)
 		{
-			var nameToBeHashed = pair.first()
-			if (newHashNameMap.containsKey(pair.first()))
+			var nameToBeHashed = pair.first
+			if (newHashNameMap.containsKey(pair.first))
 			{
-				newHashNameMap[pair.first()] =
-					newHashNameMap[pair.first()]!! + 1
+				newHashNameMap[pair.first] =
+					newHashNameMap[pair.first]!! + 1
 				nameToBeHashed =
-					stringFrom(pair.first().asNativeString() + newHashNameMap[pair.first()])
+					stringFrom(pair.first.asNativeString() + newHashNameMap[pair.first])
 			}
 			else
 			{
@@ -843,8 +842,8 @@ class CommentsModule constructor(
 			val fileName = (hashedName.toString() + "."
 				+ fileExtension)
 
-			namesToFileNames[pair.first()] =
-				StacksFilename(pair.second().namingModule, fileName)
+			namesToFileNames[pair.first] =
+				StacksFilename(pair.second.namingModule, fileName)
 		}
 		return namesToFileNames
 	}
@@ -1208,9 +1207,9 @@ class CommentsModule constructor(
 			{
 				jsonWriter.startObject()
 				jsonWriter.write("link")
-				jsonWriter.write(link.first())
+				jsonWriter.write(link.first)
 				jsonWriter.write("module")
-				jsonWriter.write(link.second())
+				jsonWriter.write(link.second)
 				jsonWriter.endObject()
 			}
 

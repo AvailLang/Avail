@@ -96,7 +96,6 @@ import com.avail.optimizer.values.L2SemanticValue
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport
 import com.avail.utility.MutableInt
-import com.avail.utility.Pair
 import java.util.*
 import java.util.logging.Level
 
@@ -844,7 +843,7 @@ class L1Translator private constructor(
 		fun generateAllInvocationSites()
 		{
 			invocationSitesToCreate.forEach {
-				(_, pair) -> pair.second().invoke()
+				(_, pair) -> pair.second.invoke()
 			}
 		}
 
@@ -1271,7 +1270,7 @@ class L1Translator private constructor(
 		}
 		else
 		{
-			block = existingPair.first()
+			block = existingPair.first
 		}
 		// Whether we just created this pair or found it, emit a jump to
 		// the block.

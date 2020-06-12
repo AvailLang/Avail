@@ -33,7 +33,6 @@
 package com.avail.stacks
 
 import com.avail.stacks.comment.ModuleComment
-import com.avail.utility.Pair
 import com.avail.utility.Strings.tabs
 import com.avail.utility.json.JSONWriter
 import java.io.IOException
@@ -202,11 +201,11 @@ class LinkingFileMap
 				jsonWriter.startArray()
 				for (pair in pairs)
 				{
-					val distinct = pair.first() + pair.second()
-					val relativeLink = pair.second().substring(1)
+					val distinct = pair.first + pair.second
+					val relativeLink = pair.second.substring(1)
 					jsonWriter.startObject()
 					jsonWriter.write("methodName")
-					jsonWriter.write(pair.first())
+					jsonWriter.write(pair.first)
 					jsonWriter.write("link")
 					jsonWriter.write(relativeLink)
 					jsonWriter.write("distinct")
@@ -269,12 +268,12 @@ class LinkingFileMap
 						stringBuilder
 							.append(tabs(3))
 							.append("{\"methodName\" : \"")
-							.append(pair.first())
+							.append(pair.first)
 							.append("\", \"link\" : \"")
-							.append(pair.second().substring(1))
+							.append(pair.second.substring(1))
 							.append("\", \"distinct\" : \"")
-							.append(pair.first())
-							.append(pair.second())
+							.append(pair.first)
+							.append(pair.second)
 							.append("\"},\n")
 					}
 
@@ -283,12 +282,12 @@ class LinkingFileMap
 					stringBuilder
 						.append(tabs(3))
 						.append("{\"methodName\" : \"")
-						.append(lastPair.first())
+						.append(lastPair.first)
 						.append("\", \"link\" : \"")
-						.append(lastPair.second().substring(1))
+						.append(lastPair.second.substring(1))
 						.append("\", \"distinct\" : \"")
-						.append(lastPair.first())
-						.append(lastPair.second())
+						.append(lastPair.first)
+						.append(lastPair.second)
 						.append("\"}\n")
 						.append(tabs(2))
 						.append("]\n")
@@ -322,12 +321,12 @@ class LinkingFileMap
 					stringBuilder
 						.append(tabs(3))
 						.append("{\"methodName\" : \"")
-						.append(pair.first())
+						.append(pair.first)
 						.append("\", \"link\" : \"")
-						.append(pair.second().substring(1))
+						.append(pair.second.substring(1))
 						.append("\", \"distinct\" : \"")
-						.append(pair.first())
-						.append(pair.second())
+						.append(pair.first)
+						.append(pair.second)
 						.append("\"},\n")
 				}
 
@@ -336,12 +335,12 @@ class LinkingFileMap
 				stringBuilder
 					.append(tabs(3))
 					.append("{\"methodName\" : \"")
-					.append(lastPair.first())
+					.append(lastPair.first)
 					.append("\", \"link\" : \"")
-					.append(lastPair.second().substring(1))
+					.append(lastPair.second.substring(1))
 					.append("\", \"distinct\" : \"")
-					.append(lastPair.first())
-					.append(lastPair.second())
+					.append(lastPair.first)
+					.append(lastPair.second)
 					.append("\"}\n")
 					.append(tabs(2))
 					.append("]\n")

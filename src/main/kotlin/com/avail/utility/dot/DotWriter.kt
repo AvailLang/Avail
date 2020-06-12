@@ -35,7 +35,6 @@
 package com.avail.utility.dot
 
 import com.avail.utility.Casts.*
-import com.avail.utility.Pair
 import com.avail.utility.Strings.tabs
 import com.avail.utility.dot.DotWriter.AttributeWriter
 import com.avail.utility.dot.DotWriter.DefaultAttributeBlockType.EDGE
@@ -358,10 +357,10 @@ class DotWriter constructor(
 			while (residue.isNotEmpty())
 			{
 				val pair = extractLine(residue, limit)
-				val line = pair.first()
+				val line = pair.first
 				indent()
 				endOfLineComment(line)
-				residue = pair.second()
+				residue = pair.second
 			}
 		}
 

@@ -1,7 +1,5 @@
 package com.avail.environment.editor.utility
 
-import com.avail.utility.Pair
-
 /**
  * A `PrefixTrie` is trie of [PrefixNode]s.
  *

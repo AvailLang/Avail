@@ -329,56 +329,56 @@ class AvailServer constructor(
 		 * @param writer
 		 *   A `JSONWriter`.
 		 */
-		private fun recursivelyWriteOn(writer: JSONWriter): Unit =
-			writer.writeObject {
-				// Representatives should not have a visible footprint in the
-				// tree; we want their enclosing packages to represent them.
-				if (type !== REPRESENTATIVE)
-				{
-					writeObject {
-						at("localName") { write(localName) }
-						at("qualifiedName") { write(qualifiedName) }
-						at("type") { write(type.label) }
-						exception?.let {
-							at("error") { write(it.localizedMessage) }
-						}
-						when (type)
+		private fun recursivelyWriteOn(writer: JSONWriter)
+		{
+			// Representatives should not have a visible footprint in the
+			// tree; we want their enclosing packages to represent them.
+			if (type !== REPRESENTATIVE)
+			{
+				writer.writeObject {
+					at("localName") { write(localName) }
+					at("qualifiedName") { write(qualifiedName) }
+					at("type") { write(type.label) }
+					exception?.let {
+						at("error") { write(it.localizedMessage) }
+					}
+					when (type)
+					{
+						PACKAGE ->
 						{
-							PACKAGE ->
+							// Handle a missing representative as a special
+							// kind of error, but only if another error
+							// hasn't already been reported.
+							if (exception === null
+								&& modules.none {
+									it.localName == localName
+								})
 							{
-								// Handle a missing representative as a special
-								// kind of error, but only if another error
-								// hasn't already been reported.
-								if (exception === null
-									&& modules.none {
-										it.localName == localName
-									})
-								{
-									at("error") {
-										write("Missing representative")
-									}
+								at("error") {
+									write("Missing representative")
 								}
-								writeResolutionInformationOn(writer)
 							}
-							MODULE -> writeResolutionInformationOn(writer)
-							else -> { }
+							writeResolutionInformationOn(writer)
 						}
-						if (modules.isNotEmpty() || resources.isNotEmpty())
-						{
-							at("childNodes") {
-								writeArray {
-									modules.forEach { module ->
-										module.recursivelyWriteOn(writer)
-									}
-									resources.forEach { resource ->
-										resource.recursivelyWriteOn(writer)
-									}
+						MODULE -> writeResolutionInformationOn(writer)
+						else -> { }
+					}
+					if (modules.isNotEmpty() || resources.isNotEmpty())
+					{
+						at("childNodes") {
+							writeArray {
+								modules.forEach { module ->
+									module.recursivelyWriteOn(writer)
+								}
+								resources.forEach { resource ->
+									resource.recursivelyWriteOn(writer)
 								}
 							}
 						}
 					}
 				}
 			}
+		}
 
 		/**
 		 * Write information that requires
@@ -388,7 +388,7 @@ class AvailServer constructor(
 		 *   A `JSONWriter`.
 		 */
 		private fun writeResolutionInformationOn(writer: JSONWriter) =
-			writer.writeObject {
+			with(writer) {
 				val resolver = runtime.moduleNameResolver
 				var resolved: ResolvedModuleName? = null
 				var resolutionException: Throwable? = null

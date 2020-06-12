@@ -92,7 +92,6 @@ package com.avail.descriptor.representation
  import com.avail.performance.Statistic
  import com.avail.serialization.SerializerOperation
  import com.avail.utility.IteratorNotNull
- import com.avail.utility.Pair
  import com.avail.utility.json.JSONWriter
  import com.avail.utility.visitor.AvailSubobjectVisitor
  import com.avail.utility.visitor.BeImmutableSubobjectVisitor

@@ -55,7 +55,6 @@ import com.avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_GROUP
 import com.avail.exceptions.MalformedMessageException
 import com.avail.exceptions.SignatureException
-import com.avail.utility.Pair
 import java.util.*
 
 /**
@@ -345,7 +344,7 @@ internal class Sequence constructor(positionInName: Int)
 	 *   Where to emit instructions.
 	 * @param subexpressionsTupleType
 	 *   A tuple type containing the expected phrase types for this entire
-	 *   sequence.  Indexed by the second()s of the run pairs.
+	 *   sequence.  Indexed by the seconds of the run pairs.
 	 */
 	private fun emitRunOn(
 		run: List<Pair<Expression, Int>>,
@@ -355,8 +354,8 @@ internal class Sequence constructor(positionInName: Int)
 	{
 		val runSize = run.size
 		val pair = run[positionInRun]
-		val expression = pair.first()
-		val typeIndex = pair.second()
+		val expression = pair.first
+		val typeIndex = pair.second
 		val realTypeIndex =
 			if (typeIndex != 0
 					&& yieldersAreReordered === java.lang.Boolean.TRUE)
@@ -388,7 +387,7 @@ internal class Sequence constructor(positionInName: Int)
 			{
 				// Do the argument reversal at the outermost recursion.
 				val lastElementPushed =
-					run[runSize - 1].first().yieldsValue
+					run[runSize - 1].first.yieldsValue
 				val permutationSize = runSize + if (lastElementPushed) 0 else -1
 				if (permutationSize > 1)
 				{
@@ -418,7 +417,7 @@ internal class Sequence constructor(positionInName: Int)
 		for (run in allRuns)
 		{
 			val runSize = run.size
-			val lastInRun = run[runSize - 1].first()
+			val lastInRun = run[runSize - 1].first
 			if (lastInRun.hasSectionCheckpoints)
 			{
 				assert(runSize == 1)
