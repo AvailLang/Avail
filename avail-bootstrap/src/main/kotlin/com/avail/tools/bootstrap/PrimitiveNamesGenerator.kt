@@ -29,249 +29,212 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.tools.bootstrap
 
-package com.avail.tools.bootstrap;
-
-import com.avail.descriptor.representation.A_BasicObject;
-import com.avail.descriptor.types.A_Type;
-import com.avail.interpreter.Primitive;
-import com.avail.interpreter.Primitive.Flag;
-
-import javax.annotation.Nullable;
-import java.io.PrintWriter;
-import java.text.MessageFormat;
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.Properties;
-import java.util.PropertyResourceBundle;
-import java.util.ResourceBundle;
-import java.util.Set;
-
-import static com.avail.tools.bootstrap.Resources.Key.methodCommentParameterTemplate;
-import static com.avail.tools.bootstrap.Resources.Key.methodCommentRaisesTemplate;
-import static com.avail.tools.bootstrap.Resources.Key.methodCommentReturnsTemplate;
-import static com.avail.tools.bootstrap.Resources.Key.methodCommentTemplate;
-import static com.avail.tools.bootstrap.Resources.escape;
-import static com.avail.tools.bootstrap.Resources.primitiveCommentKey;
-import static com.avail.tools.bootstrap.Resources.primitiveParameterNameKey;
-import static com.avail.tools.bootstrap.Resources.primitivesBaseName;
-import static java.lang.String.format;
+import com.avail.descriptor.types.A_Type
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Companion.byPrimitiveNumberOrNull
+import com.avail.interpreter.Primitive.Companion.maxPrimitiveNumber
+import com.avail.tools.bootstrap.Resources.escape
+import com.avail.tools.bootstrap.Resources.primitiveCommentKey
+import com.avail.tools.bootstrap.Resources.primitiveParameterNameKey
+import java.io.PrintWriter
+import java.text.MessageFormat
+import java.util.*
+import com.avail.tools.bootstrap.Resources.primitivesBaseName
 
 /**
- * Generate a {@linkplain PropertyResourceBundle property resource bundle} that
- * specifies unbound properties for the Avail names of the {@linkplain Primitive
- * primitives}.
+ * Generate a [property resource bundle][PropertyResourceBundle] that specifies
+ * unbound properties for the Avail names of the [primitives][Primitive].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @constructor
+ * Construct a new [PrimitiveNamesGenerator].
+ *
+ * @param locale
+ *   The target [locale][Locale].
  */
-public final class PrimitiveNamesGenerator
-extends PropertiesFileGenerator
+class PrimitiveNamesGenerator constructor(locale: Locale)
+	: PropertiesFileGenerator(primitivesBaseName, locale)
 {
 	/**
 	 * Write the names of the properties, whose unspecified values should be
-	 * the Avail names of the corresponding {@linkplain Primitive primitives}.
+	 * the Avail names of the corresponding [primitives][Primitive].
 	 *
 	 * @param properties
-	 *        The existing {@linkplain Properties properties}. These should be
-	 *        copied into the resultant {@linkplain ResourceBundle properties
-	 *        resource bundle}.
+	 *   The existing [properties][Properties]. These should be copied into the
+	 *   resultant [properties resource bundle][ResourceBundle].
 	 * @param writer
-	 *        The {@linkplain PrintWriter output stream}.
+	 *   The [output stream][PrintWriter].
 	 */
-	@Override
-	protected void generateProperties (
-		final Properties properties,
-		final PrintWriter writer)
+	override fun generateProperties(
+		properties: Properties,
+		writer: PrintWriter)
 	{
-		final Set<String> keys = new HashSet<>();
-		for (
-			int primitiveNumber = 1;
-			primitiveNumber <= Primitive.Companion.maxPrimitiveNumber();
-			primitiveNumber++)
+		val keys: MutableSet<String> = HashSet()
+		for (primitiveNumber in 1 .. maxPrimitiveNumber())
 		{
-			final @Nullable Primitive primitive =
-				Primitive.Companion.byPrimitiveNumberOrNull(primitiveNumber);
-			if (primitive != null && !primitive.hasFlag(Flag.Private))
+			val primitive = byPrimitiveNumberOrNull(primitiveNumber)
+			if (primitive != null && !primitive.hasFlag(Primitive.Flag.Private))
 			{
 				// Write a comment that gives the primitive number and its
 				// arity.
-				keys.add(primitive.getClass().getSimpleName());
+				keys.add(primitive.javaClass.simpleName)
 				writer.format(
 					"# %s : _=%d%n",
 					primitive.fieldName(),
-					primitive.getArgCount());
+					primitive.argCount)
 				// Write the primitive key and any name already associated with
 				// it.
-				writer.print(primitive.getClass().getSimpleName());
-				writer.print('=');
-				final String primitiveName = properties.getProperty(
-					primitive.getClass().getSimpleName());
+				writer.print(primitive.javaClass.simpleName)
+				writer.print('=')
+				val primitiveName = properties.getProperty(
+					primitive.javaClass.simpleName)
 				if (primitiveName != null)
 				{
-					writer.print(escape(primitiveName));
+					writer.print(escape(primitiveName))
 				}
-				writer.println();
+				writer.println()
 				// Write each of the parameter keys and their previously
 				// associated values.
-				for (int i = 1; i <= primitive.getArgCount(); i++)
+				for (i in 1 .. primitive.argCount)
 				{
-					final String argNameKey =
-						primitiveParameterNameKey(primitive, i);
-					keys.add(argNameKey);
-					writer.print(argNameKey);
-					writer.print('=');
-					final String argName = properties.getProperty(argNameKey);
+					val argNameKey =
+						primitiveParameterNameKey(primitive, i)
+					keys.add(argNameKey)
+					writer.print(argNameKey)
+					writer.print('=')
+					val argName = properties.getProperty(argNameKey)
 					if (argName != null)
 					{
-						writer.print(escape(argName));
+						writer.print(escape(argName))
 					}
-					writer.println();
+					writer.println()
 				}
 				// Write out the comment.
-				final String commentKey = primitiveCommentKey(primitive);
-				keys.add(commentKey);
-				writer.print(commentKey);
-				writer.print('=');
-				final String comment = properties.getProperty(commentKey);
-				if (comment != null && !comment.isEmpty())
+				val commentKey = primitiveCommentKey(primitive)
+				keys.add(commentKey)
+				writer.print(commentKey)
+				writer.print('=')
+				val comment = properties.getProperty(commentKey)
+				if (comment !== null && comment.isNotEmpty())
 				{
-					writer.print(escape(comment));
+					writer.print(escape(comment))
 				}
 				else
 				{
 					// Initialize the count of template parameters that occur in
 					// the final value to 1, to account for the @method tag of
 					// methodCommentTemplate.
-					int templateParameters = 1;
-					final String commentTemplate =
-						preambleBundle.getString(methodCommentTemplate.name());
-					final String parameters;
-					final int argCount = primitive.getArgCount();
+					var templateParameters = 1
+					val commentTemplate =
+						preambleBundle.getString(
+							Resources.Key.methodCommentTemplate.name)
+					val parameters: String
+					val argCount = primitive.argCount
 					if (argCount > 0)
 					{
-						final String parameterTemplate =
-							preambleBundle.getString(
-								methodCommentParameterTemplate.name());
-						final StringBuilder builder = new StringBuilder(500);
-						for (int i = 0; i < primitive.getArgCount(); i++)
+						val parameterTemplate = preambleBundle.getString(
+							Resources.Key.methodCommentParameterTemplate.name)
+						val builder = StringBuilder(500)
+						for (i in 0 until primitive.argCount)
 						{
 							builder.append(MessageFormat.format(
 								parameterTemplate,
-								format("{%d}", templateParameters),
-								format("{%d}", templateParameters + argCount)));
-							templateParameters++;
+								"{$templateParameters}",
+								"{${templateParameters + argCount}}"))
+							templateParameters++
 						}
-						templateParameters += argCount;
-						parameters = builder.toString();
+						templateParameters += argCount
+						parameters = builder.toString()
 					}
 					else
 					{
-						parameters = "";
+						parameters = ""
 					}
 					// The return contributes one argument to the final
 					// template.
-					final String returnsTemplate = preambleBundle.getString(
-						methodCommentReturnsTemplate.name());
-					final String returns = MessageFormat.format(
-						returnsTemplate,
-						format("{%d}", templateParameters));
-					templateParameters++;
+					val returnsTemplate = preambleBundle.getString(
+						Resources.Key.methodCommentReturnsTemplate.name)
+					val returns = MessageFormat.format(
+						returnsTemplate, "{$templateParameters}")
+					templateParameters++
 					// If the primitive failure type is an enumeration, then
 					// exceptions contribute one argument to the final template
 					// for each value. Otherwise, it just contributes one
 					// argument. But if the primitive cannot fail, then no
 					// arguments are contributed.
-					final String raises;
-					if (!primitive.hasFlag(Flag.CannotFail))
+					val raises: String
+					raises = if (!primitive.hasFlag(Primitive.Flag.CannotFail))
 					{
-						final String raisesTemplate = preambleBundle.getString(
-							methodCommentRaisesTemplate.name());
-						final A_Type failureType =
-							primitive.getFailureVariableType();
-						if (failureType.isEnumeration())
+						val raisesTemplate = preambleBundle.getString(
+							Resources.Key.methodCommentRaisesTemplate.name)
+						val failureType: A_Type = primitive.failureVariableType
+						if (failureType.isEnumeration)
 						{
-							final StringBuilder builder =
-								new StringBuilder(500);
-							for (@SuppressWarnings("unused")
-								final A_BasicObject o :
-									failureType.instances())
+							val builder = StringBuilder(500)
+							for (o in failureType.instances())
 							{
 								builder.append(MessageFormat.format(
-									raisesTemplate,
-									format("{%d}", templateParameters)));
-								templateParameters++;
+									raisesTemplate, "{$templateParameters}"))
+								templateParameters++
 							}
-							raises = builder.toString();
+							builder.toString()
 						}
 						else
 						{
-							raises = MessageFormat.format(
-								raisesTemplate,
-								format("{%d}", templateParameters));
+							MessageFormat.format(
+								raisesTemplate, "{$templateParameters}")
 						}
 					}
 					else
 					{
-						raises = "";
+						""
 					}
 					writer.print(escape(MessageFormat.format(
-						commentTemplate, parameters, returns, raises)));
+						commentTemplate, parameters, returns, raises)))
 				}
-				writer.println();
+				writer.println()
 			}
 		}
-		for (final Object property : properties.keySet())
+		for (property in properties.keys)
 		{
-			final String key = (String) property;
+			val key = property as String
 			if (!keys.contains(key))
 			{
-				keys.add(key);
-				writer.print(key);
-				writer.print('=');
-				writer.println(escape(properties.getProperty(key)));
+				keys.add(key)
+				writer.print(key)
+				writer.print('=')
+				writer.println(escape(properties.getProperty(key)))
 			}
 		}
 	}
 
-	/**
-	 * Construct a new {@link PrimitiveNamesGenerator}.
-	 *
-	 * @param locale
-	 *        The target {@linkplain Locale locale}.
-	 */
-	public PrimitiveNamesGenerator (final Locale locale)
+	companion object
 	{
-		super(primitivesBaseName, locale);
-	}
-
-	/**
-	 * Generate the specified {@linkplain ResourceBundle resource bundles}.
-	 *
-	 * @param args
-	 *        The command-line arguments, an array of language codes that
-	 *        broadly specify the {@linkplain Locale locales} for which
-	 *        resource bundles should be generated.
-	 * @throws Exception
-	 *         If anything should go wrong.
-	 */
-	public static void main (final String[] args)
-		throws Exception
-	{
-		final String[] languages;
-		if (args.length > 0)
+		/**
+		 * Generate the specified [resource bundles][ResourceBundle].
+		 *
+		 * @param args
+		 *   The command-line arguments, an array of language codes that broadly
+		 *   specify the [locales][Locale] for which resource bundles should be
+		 *   generated.
+		 * @throws Exception
+		 *   If anything should go wrong.
+		 */
+		@Throws(Exception::class)
+		@JvmStatic
+		fun main(args: Array<String>)
 		{
-			languages = args;
-		}
-		else
-		{
-			languages = new String[] { System.getProperty("user.language") };
-		}
-
-		for (final String language : languages)
-		{
-			final PrimitiveNamesGenerator generator =
-				new PrimitiveNamesGenerator(new Locale(language));
-			generator.generate();
+			val languages: Array<String> =
+				if (args.isNotEmpty()) args
+				else arrayOf(System.getProperty("user.language"))
+			for (language in languages)
+			{
+				val generator = PrimitiveNamesGenerator(Locale(language))
+				generator.generate()
+			}
 		}
 	}
 }

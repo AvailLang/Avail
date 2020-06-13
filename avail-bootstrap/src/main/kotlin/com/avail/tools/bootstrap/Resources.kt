@@ -215,10 +215,7 @@ internal object Resources
 		var newValue = propertyValue.replace("\n", "\\n\\\n")
 		if (newValue.indexOf('\n') != newValue.lastIndexOf('\n'))
 		{
-			newValue = """
-				\
-				$newValue
-				""".trimIndent()
+			newValue = "\\\n$newValue"
 		}
 		if (newValue.endsWith("\\n\\\n"))
 		{

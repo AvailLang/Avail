@@ -1,5 +1,5 @@
 /*
- * ErrorCodeNamesGenerator.java
+ * ErrorCodeNamesGenerator.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,226 +29,193 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.tools.bootstrap
 
-package com.avail.tools.bootstrap;
-
-import com.avail.AvailRuntime;
-import com.avail.descriptor.numbers.A_Number;
-import com.avail.descriptor.sets.A_Set;
-import com.avail.descriptor.types.A_Type;
-import com.avail.exceptions.AvailErrorCode;
-import com.avail.interpreter.Primitive;
-import com.avail.interpreter.Primitive.Flag;
-
-import javax.annotation.Nullable;
-import java.io.PrintWriter;
-import java.util.EnumSet;
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.Properties;
-import java.util.PropertyResourceBundle;
-import java.util.ResourceBundle;
-import java.util.Set;
-
-import static com.avail.descriptor.sets.SetDescriptor.emptySet;
-import static com.avail.descriptor.types.VariableTypeDescriptor.mostGeneralVariableType;
-import static com.avail.tools.bootstrap.Resources.errorCodeCommentKey;
-import static com.avail.tools.bootstrap.Resources.errorCodeKey;
-import static com.avail.tools.bootstrap.Resources.errorCodesBaseName;
-import static com.avail.tools.bootstrap.Resources.escape;
+import com.avail.AvailRuntime.Companion.specialObjects
+import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
+import com.avail.exceptions.AvailErrorCode
+import com.avail.exceptions.AvailErrorCode.Companion.byNumericCode
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Companion.byPrimitiveNumberOrNull
+import com.avail.interpreter.Primitive.Companion.maxPrimitiveNumber
+import com.avail.tools.bootstrap.Resources.errorCodeCommentKey
+import com.avail.tools.bootstrap.Resources.errorCodeKey
+import com.avail.tools.bootstrap.Resources.escape
+import java.io.PrintWriter
+import java.util.*
+import com.avail.tools.bootstrap.Resources.errorCodesBaseName
 
 /**
- * Generate a {@linkplain PropertyResourceBundle property resource bundle} that
- * specifies unbound properties for the Avail names of the {@linkplain
- * AvailErrorCode primitive error codes}.
+ * Generate a [property resource bundle][PropertyResourceBundle] that specifies
+ * unbound properties for the Avail names of the
+ * [primitive error codes][AvailErrorCode].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class ErrorCodeNamesGenerator
-extends PropertiesFileGenerator
+class ErrorCodeNamesGenerator
+/**
+ * Construct a new `ErrorCodeNamesGenerator`.
+ *
+ * @param locale
+ *   The target [locale][Locale].
+ */
+(locale: Locale?) : PropertiesFileGenerator(errorCodesBaseName, locale!!)
 {
 	/**
-	 * Check if all {@linkplain AvailErrorCode error codes} are reachable from
-	 * {@linkplain Primitive primitive} {@linkplain
-	 * Primitive#getFailureVariableType() failure variable types}.
-	 *
-	 * @return {@code true} if all error codes are reachable, {@code false}
-	 *         otherwise.
-	 */
-	private static boolean allErrorCodesAreReachableFromPrimitives ()
-	{
-		// This forces initialization of Avail.
-		//noinspection ResultOfMethodCallIgnored
-		AvailRuntime.specialObjects();
-		A_Set allErrorCodes = emptySet();
-		for (final AvailErrorCode code : AvailErrorCode.values())
-		{
-			if (!code.isCausedByInstructionFailure())
-			{
-				allErrorCodes = allErrorCodes.setWithElementCanDestroy(
-					code.numericCode(),
-					true);
-			}
-		}
-		A_Set reachableErrorCodes = emptySet();
-		for (
-			int primitiveNumber = 1;
-			primitiveNumber <= Primitive.Companion.maxPrimitiveNumber();
-			primitiveNumber++)
-		{
-			final @Nullable Primitive primitive =
-				Primitive.Companion.byPrimitiveNumberOrNull(primitiveNumber);
-			if (primitive != null && !primitive.hasFlag(Flag.CannotFail))
-			{
-				final A_Type failureType = primitive.getFailureVariableType();
-				if (failureType.isEnumeration())
-				{
-					reachableErrorCodes =
-						reachableErrorCodes.setUnionCanDestroy(
-							failureType.instances(),
-							true);
-				}
-				else if (failureType.isSubtypeOf(mostGeneralVariableType()))
-				{
-					// This supports P_CatchException, which hides its error
-					// codes inside a variable type.
-					reachableErrorCodes =
-						reachableErrorCodes.setUnionCanDestroy(
-							failureType.readType().instances(),
-							true);
-				}
-			}
-		}
-		final A_Set unreachableErrorCodes =
-			allErrorCodes.setMinusCanDestroy(reachableErrorCodes, true);
-		if (unreachableErrorCodes.setSize() != 0)
-		{
-			final EnumSet<AvailErrorCode> unreachable =
-				EnumSet.noneOf(AvailErrorCode.class);
-			for (final A_Number code : unreachableErrorCodes)
-			{
-				unreachable.add(
-					AvailErrorCode.byNumericCode(code.extractInt()));
-			}
-			System.err.printf(
-				"some error codes are unreachable: %s%n",
-				unreachable);
-			return false;
-		}
-		return true;
-	}
-
-	/**
-	 * Write the names of the properties, whose unspecified values should be
-	 * the Avail names of the corresponding {@linkplain AvailErrorCode
-	 * primitive error codes}.
+	 * Write the names of the properties, whose unspecified values should be the
+	 * Avail names of the corresponding [primitive error codes][AvailErrorCode].
 	 *
 	 * @param properties
-	 *        The existing {@linkplain Properties properties}. These should be
-	 *        copied into the resultant {@linkplain ResourceBundle properties
-	 *        resource bundle}.
+	 *   The existing [properties][Properties]. These should be copied into the
+	 *   resultant [properties resource bundle][ResourceBundle].
 	 * @param writer
-	 *        The {@linkplain PrintWriter output stream}.
+	 *   The [output stream][PrintWriter].
 	 */
-	@Override
-	protected void generateProperties (
-		final Properties properties,
-		final PrintWriter writer)
+	override fun generateProperties(properties: Properties, writer: PrintWriter)
 	{
-		final Set<String> keys = new HashSet<>();
-		for (final AvailErrorCode code : AvailErrorCode.values())
+		val keys: MutableSet<String> = HashSet()
+		for (code in AvailErrorCode.values())
 		{
 			if (code.nativeCode() > 0)
 			{
-				writer.print("# ");
-				writer.print(code.nativeCode());
-				writer.print(" : ");
-				writer.print(code.name());
-				writer.println();
-				final String key = errorCodeKey(code);
-				keys.add(key);
-				writer.print(key);
-				writer.print('=');
-				final String errorCodeName = properties.getProperty(key);
+				writer.print("# ")
+				writer.print(code.nativeCode())
+				writer.print(" : ")
+				writer.print(code.name)
+				writer.println()
+				val key = errorCodeKey(code)
+				keys.add(key)
+				writer.print(key)
+				writer.print('=')
+				val errorCodeName = properties.getProperty(key)
 				if (errorCodeName != null)
 				{
-					writer.print(escape(errorCodeName));
+					writer.print(escape(errorCodeName))
 				}
-				// Plug in sensible English language defaults if appropriate.
-				else if (locale.getLanguage().equals("en"))
+				else if (locale.language == "en")
 				{
 					writer.print(
-						code.name().substring(2).toLowerCase()
-							.replace('_', '-'));
-					writer.print(" code");
+						code.name.substring(2).toLowerCase()
+							.replace('_', '-'))
+					writer.print(" code")
 				}
-				writer.println();
-				final String commentKey = errorCodeCommentKey(code);
-				keys.add(commentKey);
-				writer.print(commentKey);
-				writer.print('=');
-				final String comment = properties.getProperty(commentKey);
-				if (comment != null)
+				writer.println()
+				val commentKey = errorCodeCommentKey(code)
+				keys.add(commentKey)
+				writer.print(commentKey)
+				writer.print('=')
+				val comment = properties.getProperty(commentKey)
+				if (comment !== null)
 				{
-					writer.print(escape(comment));
+					writer.print(escape(comment))
 				}
-				writer.println();
+				writer.println()
 			}
 		}
-		for (final Object property : properties.keySet())
+		for (property in properties.keys)
 		{
-			final String key = (String) property;
+			val key = property as String
 			if (!keys.contains(key))
 			{
-				keys.add(key);
-				writer.print(key);
-				writer.print('=');
-				writer.println(escape(properties.getProperty(key)));
+				keys.add(key)
+				writer.print(key)
+				writer.print('=')
+				writer.println(escape(properties.getProperty(key)))
 			}
 		}
 	}
 
-	/**
-	 * Construct a new {@code ErrorCodeNamesGenerator}.
-	 *
-	 * @param locale
-	 *        The target {@linkplain Locale locale}.
-	 */
-	public ErrorCodeNamesGenerator (final Locale locale)
+	companion object
 	{
-		super(errorCodesBaseName, locale);
-	}
-
-	/**
-	 * Generate the specified {@linkplain ResourceBundle resource bundles}.
-	 *
-	 * @param args
-	 *        The command-line arguments, an array of language codes that
-	 *        broadly specify the {@linkplain Locale locales} for which
-	 *        resource bundles should be generated.
-	 * @throws Exception
-	 *         If anything should go wrong.
-	 */
-	public static void main (final String[] args)
-		throws Exception
-	{
-		final String[] languages;
-		if (args.length > 0)
+		/**
+		 * Check if all [error codes][AvailErrorCode] are reachable from
+		 * [primitive][Primitive] [failure variable
+		 * types][Primitive.failureVariableType].
+		 *
+		 * @return
+		 *   `true` if all error codes are reachable, `false` otherwise.
+		 */
+		private fun allErrorCodesAreReachableFromPrimitives(): Boolean
 		{
-			languages = args;
-		}
-		else
-		{
-			languages = new String[] { System.getProperty("user.language") };
-		}
-
-		if (allErrorCodesAreReachableFromPrimitives())
-		{
-			for (final String language : languages)
+			// This forces initialization of Avail.
+			specialObjects()
+			var allErrorCodes = emptySet()
+			for (code in AvailErrorCode.values())
 			{
-				final ErrorCodeNamesGenerator generator =
-					new ErrorCodeNamesGenerator(new Locale(language));
-				generator.generate();
+				if (!code.isCausedByInstructionFailure)
+				{
+					allErrorCodes = allErrorCodes.setWithElementCanDestroy(
+						code.numericCode(),
+						true)
+				}
+			}
+			var reachableErrorCodes = emptySet()
+			for (primitiveNumber in 1 .. maxPrimitiveNumber())
+			{
+				val primitive = byPrimitiveNumberOrNull(primitiveNumber)
+				if (primitive != null && !primitive.hasFlag(Primitive.Flag.CannotFail))
+				{
+					val failureType: A_Type = primitive.failureVariableType
+					if (failureType.isEnumeration)
+					{
+						reachableErrorCodes = reachableErrorCodes.setUnionCanDestroy(
+							failureType.instances(),
+							true)
+					}
+					else if (failureType.isSubtypeOf(mostGeneralVariableType()))
+					{
+						// This supports P_CatchException, which hides its error
+						// codes inside a variable type.
+						reachableErrorCodes = reachableErrorCodes.setUnionCanDestroy(
+							failureType.readType().instances(),
+							true)
+					}
+				}
+			}
+			val unreachableErrorCodes =
+				allErrorCodes.setMinusCanDestroy(reachableErrorCodes, true)
+			if (unreachableErrorCodes.setSize() != 0)
+			{
+				val unreachable =
+					EnumSet.noneOf(AvailErrorCode::class.java)
+				for (code in unreachableErrorCodes)
+				{
+					unreachable.add(byNumericCode(code.extractInt()))
+				}
+				System.err.printf(
+					"some error codes are unreachable: %s%n",
+					unreachable)
+				return false
+			}
+			return true
+		}
+
+		/**
+		 * Generate the specified [resource bundles][ResourceBundle].
+		 *
+		 * @param args
+		 *   The command-line arguments, an array of language codes that broadly
+		 *   specify the [locales][Locale] for which resource bundles should be
+		 *   generated.
+		 * @throws Exception
+		 *   If anything should go wrong.
+		 */
+		@Throws(Exception::class)
+		@JvmStatic
+		fun main(args: Array<String>)
+		{
+			val languages: Array<String> =
+				if (args.isNotEmpty()) args
+				else arrayOf(System.getProperty("user.language"))
+			if (allErrorCodesAreReachableFromPrimitives())
+			{
+				for (language in languages)
+				{
+					val generator = ErrorCodeNamesGenerator(Locale(language))
+					generator.generate()
+				}
 			}
 		}
 	}

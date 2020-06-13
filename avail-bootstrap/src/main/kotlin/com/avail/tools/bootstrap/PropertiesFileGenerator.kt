@@ -1,5 +1,5 @@
 /*
- * PropertiesFileGenerator.java
+ * PropertiesFileGenerator.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,159 +29,143 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.tools.bootstrap
 
-package com.avail.tools.bootstrap;
+import com.avail.tools.bootstrap.Resources.localName
+import com.avail.utility.UTF8ResourceBundleControl
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileNotFoundException
+import java.io.IOException
+import java.io.InputStreamReader
+import java.io.PrintWriter
+import java.nio.charset.StandardCharsets
+import java.text.MessageFormat
+import java.util.*
+import com.avail.tools.bootstrap.Resources.preambleBaseName
+import com.avail.tools.bootstrap.Resources.sourceBaseName
 
-import com.avail.utility.UTF8ResourceBundleControl;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.nio.charset.StandardCharsets;
-import java.text.MessageFormat;
-import java.util.Date;
-import java.util.Locale;
-import java.util.Properties;
-import java.util.ResourceBundle;
-
-import static com.avail.tools.bootstrap.Resources.Key.generatedPropertiesNotice;
-import static com.avail.tools.bootstrap.Resources.Key.propertiesCopyright;
-import static com.avail.tools.bootstrap.Resources.localName;
-import static com.avail.tools.bootstrap.Resources.preambleBaseName;
-import static com.avail.tools.bootstrap.Resources.sourceBaseName;
-import static java.lang.String.format;
 /**
- * {@code PropertiesFileGenerator} defines state and operations common to the
- * Avail properties file generators.
+ * `PropertiesFileGenerator` defines state and operations common to the Avail
+ * properties file generators.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @property baseName
+ *   The base name of the [resource bundle][ResourceBundle].
+ * @property locale
+ *   The target [locale][Locale].
+ *
+ * @constructor
+ * Construct a new [{@link ]PropertiesFileGenerator].
+ *
+ * @param baseName
+ *   The base name of the [resource bundle][ResourceBundle].
+ * @param locale
+ *   The target [locale][Locale].
  */
-abstract class PropertiesFileGenerator
+abstract class PropertiesFileGenerator protected constructor(
+	protected val baseName: String,
+	protected val locale: Locale)
 {
-	/** The base name of the {@linkplain ResourceBundle resource bundle}. */
-	protected final String baseName;
-
-	/** The target {@linkplain Locale locale}. */
-	protected final Locale locale;
 
 	/**
-	 * The {@linkplain ResourceBundle resource bundle} that contains file
-	 * preamble information.
+	 * The [resource bundle][ResourceBundle] that contains file preamble
+	 * information.
 	 */
-	protected final ResourceBundle preambleBundle;
+	@JvmField
+	protected val preambleBundle: ResourceBundle = ResourceBundle.getBundle(
+		preambleBaseName,
+		locale,
+		Resources::class.java.classLoader,
+		UTF8ResourceBundleControl())
 
 	/**
 	 * Generate the preamble for the properties file. This includes the
 	 * copyright and machine generation warnings.
 	 *
 	 * @param writer
-	 *        The {@linkplain PrintWriter output stream}.
+	 *   The [output stream][PrintWriter].
 	 */
-	protected void generatePreamble (final PrintWriter writer)
+	protected fun generatePreamble(writer: PrintWriter)
 	{
 		writer.println(MessageFormat.format(
-			preambleBundle.getString(propertiesCopyright.name()),
-			localName(baseName) + "_" + locale.getLanguage(),
-			new Date()));
+			preambleBundle.getString(Resources.Key.propertiesCopyright.name),
+			localName(baseName) + "_" + locale.language,
+			Date()))
 		writer.println(MessageFormat.format(
-			preambleBundle.getString(generatedPropertiesNotice.name()),
-			getClass().getName(),
-			new Date()));
+			preambleBundle.getString(
+				Resources.Key.generatedPropertiesNotice.name),
+			javaClass.name,
+			Date()))
 	}
 
 	/**
 	 * Write the names of the properties.
 	 *
 	 * @param properties
-	 *        The existing {@linkplain Properties properties}. These should be
-	 *        copied into the resultant {@linkplain ResourceBundle properties
-	 *        resource bundle}.
+	 *   The existing [properties][Properties]. These should be copied into the
+	 *   resultant [properties resource bundle][ResourceBundle].
 	 * @param writer
-	 *        The {@linkplain PrintWriter output stream}.
+	 * The [output stream][PrintWriter].
 	 */
-	protected abstract void generateProperties (
-		final Properties properties,
-		final PrintWriter writer);
+	protected abstract fun generateProperties(
+		properties: Properties,
+		writer: PrintWriter)
 
 	/**
-	 * (Re)generate the target {@linkplain Properties properties} file.
+	 * (Re)generate the target [properties][Properties] file.
 	 *
 	 * @throws IOException
-	 *         If an exceptional situation arises while reading properties.
+	 *   If an exceptional situation arises while reading properties.
 	 */
-	public void generate () throws IOException
+	@Throws(IOException::class)
+	fun generate()
 	{
-		final File fileName = new File(format(
+		val fileName = File(String.format(
 			"%s/%s_%s.properties",
 			sourceBaseName,
 			baseName.replace('.', '/'),
-			locale.getLanguage()));
-		System.out.println(fileName.getAbsolutePath());
-		final String[] components = baseName.split("\\.");
-		final File tempFileName = new File(format(
+			locale.language))
+		println(fileName.absolutePath)
+		val components = baseName.split("\\.".toRegex()).toTypedArray()
+		val tempFileName = File(String.format(
 			"%s/%s_%s.propertiesTEMP",
 			System.getProperty("java.io.tmpdir"),
-			components[components.length - 1],
-			locale.getLanguage()));
-		assert fileName.getPath().endsWith(".properties");
-		final Properties properties = new Properties();
-		try (final FileInputStream inputStream = new FileInputStream(fileName))
+			components[components.size - 1],
+			locale.language))
+		assert(fileName.path.endsWith(".properties"))
+		val properties = Properties()
+		try
 		{
-			try (final InputStreamReader reader =
-				new InputStreamReader(inputStream, StandardCharsets.UTF_8))
-			{
-				properties.load(reader);
+			FileInputStream(fileName).use { inputStream ->
+				InputStreamReader(inputStream, StandardCharsets.UTF_8)
+					.use { properties.load(it) }
 			}
 		}
-		catch (final FileNotFoundException e)
+		catch (e: FileNotFoundException)
 		{
 			// Ignore. It's okay if the file doesn't already exist.
 		}
-		final PrintWriter writer = new PrintWriter(tempFileName, "UTF-8");
-		generatePreamble(writer);
-		generateProperties(properties, writer);
-		writer.close();
+		val writer = PrintWriter(tempFileName, "UTF-8")
+		generatePreamble(writer)
+		generateProperties(properties, writer)
+		writer.close()
 		// Now switch the new file in.  In the rare event of failure between
 		// these steps, the complete content will still be available in the
 		// corresponding *.propertiesTEMP file.
-		boolean worked = fileName.delete();
+		var worked = fileName.delete()
 		if (!worked)
 		{
-			System.err.println(format(
-				"deleting the original properties file failed: %s",
-				fileName));
+			System.err.println(
+				"deleting the original properties file failed: $fileName")
 		}
-		worked = tempFileName.renameTo(fileName);
+		worked = tempFileName.renameTo(fileName)
 		if (!worked)
 		{
-			throw new RuntimeException(format(
-				"moving the temporary properties file failed: %s -> %s",
-				tempFileName,
-				fileName));
+			throw RuntimeException(
+				"moving the temporary properties file failed: " +
+					"$tempFileName -> $fileName")
 		}
-	}
-
-	/**
-	 * Construct a new {@link PropertiesFileGenerator}.
-	 *
-	 * @param baseName
-	 *        The base name of the {@linkplain ResourceBundle resource bundle}.
-	 * @param locale
-	 *        The target {@linkplain Locale locale}.
-	 */
-	protected PropertiesFileGenerator (
-		final String baseName,
-		final Locale locale)
-	{
-		this.baseName = baseName;
-		this.locale = locale;
-		this.preambleBundle = ResourceBundle.getBundle(
-			preambleBaseName,
-			locale,
-			Resources.class.getClassLoader(),
-			new UTF8ResourceBundleControl());
 	}
 }

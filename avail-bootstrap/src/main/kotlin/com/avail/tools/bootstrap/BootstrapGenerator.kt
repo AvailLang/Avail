@@ -1,5 +1,5 @@
 /*
- * BootstrapGenerator.java
+ * BootstrapGenerator.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,740 +29,777 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.tools.bootstrap
 
-package com.avail.tools.bootstrap;
-
-import com.avail.AvailRuntime;
-import com.avail.AvailRuntimeConfiguration;
-import com.avail.descriptor.module.ModuleDescriptor;
-import com.avail.descriptor.numbers.A_Number;
-import com.avail.descriptor.representation.A_BasicObject;
-import com.avail.descriptor.representation.AvailObject;
-import com.avail.descriptor.sets.A_Set;
-import com.avail.descriptor.tuples.A_String;
-import com.avail.descriptor.types.A_Type;
-import com.avail.exceptions.AvailErrorCode;
-import com.avail.interpreter.Primitive;
-import com.avail.interpreter.Primitive.Flag;
-import com.avail.interpreter.primitive.controlflow.P_InvokeWithTuple;
-import com.avail.interpreter.primitive.general.P_EmergencyExit;
-import com.avail.interpreter.primitive.methods.P_AddSemanticRestriction;
-import com.avail.interpreter.primitive.sets.P_TupleToSet;
-import com.avail.interpreter.primitive.types.P_CreateEnumeration;
-import com.avail.utility.UTF8ResourceBundleControl;
-
-import javax.annotation.Nullable;
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.ResourceBundle;
-import java.util.Set;
-import java.util.StringTokenizer;
-
-import static com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.tuples.TupleDescriptor.emptyTuple;
-import static com.avail.descriptor.types.BottomTypeDescriptor.bottom;
-import static com.avail.descriptor.types.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.types.InstanceMetaDescriptor.instanceMeta;
-import static com.avail.descriptor.types.IntegerRangeTypeDescriptor.naturalNumbers;
-import static com.avail.descriptor.types.TypeDescriptor.Types.ANY;
-import static com.avail.descriptor.types.TypeDescriptor.Types.TOP;
-import static com.avail.tools.bootstrap.Resources.Key;
-import static com.avail.tools.bootstrap.Resources.Key.availCopyright;
-import static com.avail.tools.bootstrap.Resources.Key.bootstrapDefineSpecialObjectMacro;
-import static com.avail.tools.bootstrap.Resources.Key.bootstrapDefiningMethod;
-import static com.avail.tools.bootstrap.Resources.Key.bootstrapMacroNames;
-import static com.avail.tools.bootstrap.Resources.Key.bootstrapMacros;
-import static com.avail.tools.bootstrap.Resources.Key.bootstrapSpecialObject;
-import static com.avail.tools.bootstrap.Resources.Key.definingMethodUse;
-import static com.avail.tools.bootstrap.Resources.Key.definingSpecialObjectUse;
-import static com.avail.tools.bootstrap.Resources.Key.errorCodesModuleName;
-import static com.avail.tools.bootstrap.Resources.Key.falliblePrimitivesModuleName;
-import static com.avail.tools.bootstrap.Resources.Key.generalModuleHeader;
-import static com.avail.tools.bootstrap.Resources.Key.generatedModuleNotice;
-import static com.avail.tools.bootstrap.Resources.Key.infalliblePrimitivesModuleName;
-import static com.avail.tools.bootstrap.Resources.Key.invokePrimitiveFailureFunctionMethod;
-import static com.avail.tools.bootstrap.Resources.Key.invokePrimitiveFailureFunctionMethodUse;
-import static com.avail.tools.bootstrap.Resources.Key.originModuleHeader;
-import static com.avail.tools.bootstrap.Resources.Key.originModuleName;
-import static com.avail.tools.bootstrap.Resources.Key.parameterPrefix;
-import static com.avail.tools.bootstrap.Resources.Key.primitiveFailureFunctionGetterMethod;
-import static com.avail.tools.bootstrap.Resources.Key.primitiveFailureFunctionName;
-import static com.avail.tools.bootstrap.Resources.Key.primitiveFailureFunctionSetterMethod;
-import static com.avail.tools.bootstrap.Resources.Key.primitiveFailureMethod;
-import static com.avail.tools.bootstrap.Resources.Key.primitiveFailureMethodUse;
-import static com.avail.tools.bootstrap.Resources.Key.primitiveFailureVariableName;
-import static com.avail.tools.bootstrap.Resources.Key.primitiveKeyword;
-import static com.avail.tools.bootstrap.Resources.Key.primitiveSemanticRestriction;
-import static com.avail.tools.bootstrap.Resources.Key.primitiveSemanticRestrictionUse;
-import static com.avail.tools.bootstrap.Resources.Key.primitivesModuleName;
-import static com.avail.tools.bootstrap.Resources.Key.representativeModuleName;
-import static com.avail.tools.bootstrap.Resources.Key.specialObjectUse;
-import static com.avail.tools.bootstrap.Resources.Key.specialObjectsModuleName;
-import static com.avail.tools.bootstrap.Resources.errorCodeCommentKey;
-import static com.avail.tools.bootstrap.Resources.errorCodeKey;
-import static com.avail.tools.bootstrap.Resources.errorCodesBaseName;
-import static com.avail.tools.bootstrap.Resources.generatedPackageName;
-import static com.avail.tools.bootstrap.Resources.preambleBaseName;
-import static com.avail.tools.bootstrap.Resources.primitiveCommentKey;
-import static com.avail.tools.bootstrap.Resources.primitiveParameterNameKey;
-import static com.avail.tools.bootstrap.Resources.primitivesBaseName;
-import static com.avail.tools.bootstrap.Resources.sourceBaseName;
-import static com.avail.tools.bootstrap.Resources.specialObjectCommentKey;
-import static com.avail.tools.bootstrap.Resources.specialObjectKey;
-import static com.avail.tools.bootstrap.Resources.specialObjectTypeKey;
-import static com.avail.tools.bootstrap.Resources.specialObjectsBaseName;
-import static com.avail.tools.bootstrap.Resources.stringify;
+import com.avail.AvailRuntime.Companion.specialObjects
+import com.avail.AvailRuntimeConfiguration.activeVersions
+import com.avail.descriptor.module.ModuleDescriptor
+import com.avail.descriptor.numbers.A_Number
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.NilDescriptor
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
+import com.avail.descriptor.types.TypeDescriptor
+import com.avail.exceptions.AvailErrorCode
+import com.avail.exceptions.AvailErrorCode.Companion.byNumericCode
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Companion.byPrimitiveNumberOrNull
+import com.avail.interpreter.Primitive.Companion.maxPrimitiveNumber
+import com.avail.interpreter.primitive.controlflow.P_InvokeWithTuple
+import com.avail.interpreter.primitive.general.P_EmergencyExit
+import com.avail.interpreter.primitive.methods.P_AddSemanticRestriction
+import com.avail.interpreter.primitive.sets.P_TupleToSet
+import com.avail.interpreter.primitive.types.P_CreateEnumeration
+import com.avail.tools.bootstrap.Resources.errorCodeCommentKey
+import com.avail.tools.bootstrap.Resources.errorCodeKey
+import com.avail.tools.bootstrap.Resources.errorCodesBaseName
+import com.avail.tools.bootstrap.Resources.generatedPackageName
+import com.avail.tools.bootstrap.Resources.preambleBaseName
+import com.avail.tools.bootstrap.Resources.primitiveCommentKey
+import com.avail.tools.bootstrap.Resources.primitiveParameterNameKey
+import com.avail.tools.bootstrap.Resources.primitivesBaseName
+import com.avail.tools.bootstrap.Resources.sourceBaseName
+import com.avail.tools.bootstrap.Resources.specialObjectCommentKey
+import com.avail.tools.bootstrap.Resources.specialObjectKey
+import com.avail.tools.bootstrap.Resources.specialObjectTypeKey
+import com.avail.tools.bootstrap.Resources.specialObjectsBaseName
+import com.avail.tools.bootstrap.Resources.stringify
+import com.avail.utility.UTF8ResourceBundleControl
+import java.io.File
+import java.io.IOException
+import java.io.PrintWriter
+import java.text.MessageFormat
+import java.util.*
 
 /**
- * Generate the Avail system {@linkplain ModuleDescriptor modules} that
- * bind the infallible and fallible {@linkplain Primitive primitives}.
+ * Generate the Avail system [modules][ModuleDescriptor] that bind the
+ * infallible and fallible [primitives][Primitive].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @property locale
+ *   The target [locale][Locale].
+ *
+ * @constructor
+ * Construct a new `BootstrapGenerator`.
+ *
+ * @param locale
+ *   The target [locale][Locale].
  */
-@SuppressWarnings({
-	"DynamicRegexReplaceableByCompiledPattern",
-	"StringBufferReplaceableByString"
-})
-public final class BootstrapGenerator
+class BootstrapGenerator constructor(private val locale: Locale)
 {
-	/** The Avail special objects. */
-	private static final List<AvailObject> specialObjects =
-		AvailRuntime.specialObjects();
-
-	/**
-	 * A {@linkplain Map map} from the special objects to their indices.
-	 */
-	private static final
-	Map<A_BasicObject, Integer> specialObjectIndexMap;
-
-	/* Capture the special objects. */
-	static
+	companion object
 	{
-		specialObjectIndexMap = new HashMap<>(specialObjects.size());
-		for (int i = 0; i < specialObjects.size(); i++)
+		/** The Avail special objects.  */
+		private val specialObjects: List<AvailObject> = specialObjects()
+
+		/**
+		 * A [map][Map] from the special objects to their indices.
+		 */
+		private val specialObjectIndexMap = mutableMapOf<A_BasicObject, Int>()
+
+		/**
+		 * Answer a textual representation of the specified version [list][List]
+		 * that is satisfactory for use in an Avail [module][ModuleDescriptor]
+		 * header's `check=vm` `Pragma`.
+		 *
+		 * @param versions
+		 *   The versions.
+		 * @return
+		 *   The version string.
+		 */
+		private fun vmVersionString(versions: List<String>): String
 		{
-			final AvailObject specialObject = specialObjects.get(i);
-			if (specialObject != null)
+			val builder = StringBuilder()
+			for (version in versions)
 			{
-				specialObjectIndexMap.put(specialObject, i);
+				builder.append(version)
+				builder.append(",")
+			}
+			val versionString = builder.toString()
+			return versionString.substring(0, versionString.length - 1)
+		}
+
+		/**
+		 * Answer a textual representation of the specified version [list][List]
+		 * that is satisfactory for use in an Avail [module][ModuleDescriptor]
+		 * header's `Versions` section.
+		 *
+		 * @param versions
+		 *   The versions.
+		 * @return
+		 *   The version string.
+		 */
+		private fun moduleVersionString(versions: List<String>): String
+		{
+			val builder = StringBuilder()
+			for (version in versions)
+			{
+				builder.append("\n\t\"")
+				builder.append(version)
+				builder.append("\",")
+			}
+			val versionString = builder.toString()
+			return versionString.substring(0, versionString.length - 1)
+		}
+
+		/**
+		 * Answer the selected [primitives][Primitive], the non-private,
+		 * non-bootstrap ones with the specified fallibility.
+		 *
+		 * @param fallible
+		 *   `true` if the fallible primitives should be answered, `false` if
+		 *   the infallible primitives should be answered, `null` if all
+		 *   primitives should be answered.
+		 * @return
+		 *   The selected primitives.
+		 */
+		private fun primitives(fallible: Boolean?): List<Primitive>
+		{
+			val primitives: MutableList<Primitive> = ArrayList()
+			for (i in 1 .. maxPrimitiveNumber())
+			{
+				val primitive = byPrimitiveNumberOrNull(i)
+				if (primitive != null)
+				{
+					if (!primitive.hasFlag(Primitive.Flag.Private)
+					    && !primitive.hasFlag(Primitive.Flag.Bootstrap)
+					    && (fallible == null
+					        || primitive.hasFlag(
+								Primitive.Flag.CannotFail) == !fallible))
+					{
+						primitives.add(primitive)
+					}
+				}
+			}
+			return primitives
+		}
+
+		/**
+		 * Answer the [primitive error codes][AvailErrorCode] for which Avail
+		 * methods should be generated.
+		 *
+		 * @return
+		 *   The relevant primitive error codes.
+		 */
+		private fun errorCodes(): List<AvailErrorCode>
+		{
+			val relevant: MutableList<AvailErrorCode> = mutableListOf()
+			for (code in AvailErrorCode.values())
+			{
+				if (code.nativeCode() > 0)
+				{
+					relevant.add(code)
+				}
+			}
+			return relevant
+		}
+
+		/**
+		 * Generate all bootstrap [modules][ModuleDescriptor].
+		 *
+		 * @param args
+		 *   The command-line arguments. The first argument is a comma-separated
+		 *   list of language codes that broadly specify the [locales][Locale]
+		 *   for which modules should be generated. The second argument is a
+		 *   comma-separated list of Avail system versions.
+		 * @throws Exception
+		 *   If anything should go wrong.
+		 */
+		@Throws(Exception::class)
+		@JvmStatic
+		fun main(args: Array<String>)
+		{
+			val languages: MutableList<String> = ArrayList()
+			if (args.isEmpty())
+			{
+				languages.add(System.getProperty("user.language"))
+			}
+			else
+			{
+				val tokenizer = StringTokenizer(args[0], ",")
+				while (tokenizer.hasMoreTokens())
+				{
+					languages.add(tokenizer.nextToken())
+				}
+			}
+			val versions: MutableList<String> = ArrayList()
+			if (args.size < 2)
+			{
+				val activeVersions = activeVersions()
+				val list = mutableListOf<String>()
+				for (activeVersion in activeVersions)
+				{
+					list.add(activeVersion.asNativeString())
+				}
+				versions.addAll(list)
+			}
+			else
+			{
+				val tokenizer = StringTokenizer(args[1], ",")
+				while (tokenizer.hasMoreTokens())
+				{
+					versions.add(tokenizer.nextToken())
+				}
+			}
+			for (language in languages)
+			{
+				val generator = BootstrapGenerator(Locale(language))
+				generator.generate(versions)
+			}
+		}
+
+		/* Capture the special objects. */
+		init
+		{
+			for (i in specialObjects.indices)
+			{
+				val specialObject = specialObjects[i]
+				if (specialObject !== NilDescriptor.nil)
+				{
+					specialObjectIndexMap[specialObject] = i
+				}
 			}
 		}
 	}
 
-	/** The target {@linkplain Locale locale}. */
-	private final Locale locale;
+	/**
+	 * The [resource bundle][ResourceBundle] that contains file preambleBaseName
+	 * information.
+	 */
+	private val preamble: ResourceBundle
 
 	/**
-	 * The {@linkplain ResourceBundle resource bundle} that contains file
-	 * preambleBaseName information.
+	 * The [resource bundle][ResourceBundle] that contains the Avail names of
+	 * the special objects.
 	 */
-	private final ResourceBundle preamble;
+	private val specialObjectBundle: ResourceBundle
 
 	/**
-	 * The {@linkplain ResourceBundle resource bundle} that contains the Avail
-	 * names of the special objects.
+	 * The [resource bundle][ResourceBundle] that contains the Avail names of
+	 * the [primitives][Primitive].
 	 */
-	private final ResourceBundle specialObjectBundle;
+	private val primitiveBundle: ResourceBundle
 
 	/**
-	 * The {@linkplain ResourceBundle resource bundle} that contains the Avail
-	 * names of the {@linkplain Primitive primitives}.
+	 * The [resource bundle][ResourceBundle] that contains the Avail names of
+	 * the [primitive error codes][AvailErrorCode].
 	 */
-	private final ResourceBundle primitiveBundle;
-
-	/**
-	 * The {@linkplain ResourceBundle resource bundle} that contains the Avail
-	 * names of the {@linkplain AvailErrorCode primitive error codes}.
-	 */
-	private final ResourceBundle errorCodeBundle;
+	private val errorCodeBundle: ResourceBundle
 
 	/**
 	 * Answer the name of the specified error code.
 	 *
-	 * @param numericCode The error code.
-	 * @return The localized name of the error code.
+	 * @param numericCode
+	 *   The error code.
+	 * @return
+	 *   The localized name of the error code.
 	 */
-	private String errorCodeName (final A_Number numericCode)
+	private fun errorCodeName(numericCode: A_Number): String
 	{
-		final @Nullable AvailErrorCode code = AvailErrorCode.byNumericCode(
-			numericCode.extractInt());
-		assert code != null : String.format(
-			"no %s for %s", AvailErrorCode.class.getSimpleName(), numericCode);
-		return errorCodeBundle.getString(errorCodeKey(code));
+		val code = byNumericCode(
+			numericCode.extractInt()) ?: error(String.format(
+			"no %s for %s", AvailErrorCode::class.java.simpleName, numericCode))
+		return errorCodeBundle.getString(errorCodeKey(code))
 	}
 
 	/**
 	 * Answer the name of the exception associated with the specified error
 	 * code.
 	 *
-	 * @param numericCode The error code.
-	 * @return The localized name of the error code.
+	 * @param numericCode
+	 *   The error code.
+	 * @return
+	 *   The localized name of the error code.
 	 */
-	private String exceptionName (final A_Number numericCode)
+	private fun exceptionName(numericCode: A_Number): String
 	{
-		final @Nullable AvailErrorCode code = AvailErrorCode.byNumericCode(
-			numericCode.extractInt());
-		assert code != null : String.format(
-			"no %s for %s", AvailErrorCode.class.getSimpleName(), numericCode);
-		final String codeName = errorCodeBundle.getString(errorCodeKey(code));
-		return codeName.replace(" code", " exception");
+		val code = byNumericCode(
+			numericCode.extractInt()) ?: error(String.format(
+			"no %s for %s", AvailErrorCode::class.java.simpleName, numericCode))
+		val codeName = errorCodeBundle.getString(errorCodeKey(code))
+		return codeName.replace(" code", " exception")
 	}
 
 	/**
-	 * Answer the correct {@linkplain File file name} for the {@linkplain
-	 * ModuleDescriptor module} specified by the {@linkplain Key key}.
+	 * Answer the correct [file name][File] for the [module][ModuleDescriptor]
+	 * specified by the [key][Resources.Key].
 	 *
-	 * @param key The module name key.
-	 * @return The file name.
+	 * @param key
+	 *   The module name key.
+	 * @return
+	 *   The file name.
 	 */
-	private File moduleFileName (final Key key)
+	private fun moduleFileName(key: Resources.Key): File
 	{
-		return new File(String.format(
+		return File(String.format(
 			"%s/%s/%s/%s.avail/%s.avail",
 			sourceBaseName,
 			generatedPackageName.replace('.', '/'),
-			locale.getLanguage(),
-			preamble.getString(representativeModuleName.name()),
-			preamble.getString(key.name())));
-	}
-
-	/**
-	 * Answer a textual representation of the specified version {@linkplain
-	 * List list} that is satisfactory for use in an Avail {@linkplain
-	 * ModuleDescriptor module} header's {@code check=vm} {@code Pragma}.
-	 *
-	 * @param versions The versions.
-	 * @return The version string.
-	 */
-	private static String vmVersionString (final List<String> versions)
-	{
-		final StringBuilder builder = new StringBuilder();
-		for (final String version : versions)
-		{
-			builder.append(version);
-			builder.append(",");
-		}
-		final String versionString = builder.toString();
-		return versionString.substring(0, versionString.length() - 1);
-	}
-
-	/**
-	 * Answer a textual representation of the specified version {@linkplain
-	 * List list} that is satisfactory for use in an Avail {@linkplain
-	 * ModuleDescriptor module} header's {@code Versions} section.
-	 *
-	 * @param versions The versions.
-	 * @return The version string.
-	 */
-	private static String moduleVersionString (final List<String> versions)
-	{
-		final StringBuilder builder = new StringBuilder();
-		for (final String version : versions)
-		{
-			builder.append("\n\t\"");
-			builder.append(version);
-			builder.append("\",");
-		}
-		final String versionString = builder.toString();
-		return versionString.substring(0, versionString.length() - 1);
+			locale.language,
+			preamble.getString(Resources.Key.representativeModuleName.name),
+			preamble.getString(key.name)))
 	}
 
 	/**
 	 * Generate the preamble for the pragma-containing module.
 	 *
 	 * @param versions
-	 *        The {@linkplain List list} of version strings supported by the
-	 *        module.
+	 *   The [list][List] of version strings supported by the module.
 	 * @param writer
-	 *        The {@linkplain PrintWriter output stream}.
+	 *   The [output stream][PrintWriter].
 	 */
-	private void generateOriginModulePreamble (
-		final List<String> versions,
-		final PrintWriter writer)
+	private fun generateOriginModulePreamble(
+		versions: List<String>,
+		writer: PrintWriter)
 	{
 		writer.println(MessageFormat.format(
-			preamble.getString(availCopyright.name()),
-			preamble.getString(originModuleName.name()),
-			new Date()));
+			preamble.getString(Resources.Key.availCopyright.name),
+			preamble.getString(Resources.Key.originModuleName.name),
+			Date()))
 		writer.println(MessageFormat.format(
-			preamble.getString(generatedModuleNotice.name()),
-			BootstrapGenerator.class.getName(),
-			new Date()));
+			preamble.getString(Resources.Key.generatedModuleNotice.name),
+			BootstrapGenerator::class.java.name,
+			Date()))
 		writer.println(MessageFormat.format(
-			preamble.getString(originModuleHeader.name()),
-			preamble.getString(originModuleName.name()),
+			preamble.getString(Resources.Key.originModuleHeader.name),
+			preamble.getString(Resources.Key.originModuleName.name),
 			moduleVersionString(versions),
 			vmVersionString(versions),
-			preamble.getString(bootstrapDefiningMethod.name()),
-			preamble.getString(bootstrapSpecialObject.name()),
-			preamble.getString(bootstrapDefineSpecialObjectMacro.name()),
-			preamble.getString(bootstrapMacroNames.name()),
-			preamble.getString(bootstrapMacros.name())));
+			preamble.getString(Resources.Key.bootstrapDefiningMethod.name),
+			preamble.getString(Resources.Key.bootstrapSpecialObject.name),
+			preamble.getString(
+				Resources.Key.bootstrapDefineSpecialObjectMacro.name),
+			preamble.getString(Resources.Key.bootstrapMacroNames.name),
+			preamble.getString(Resources.Key.bootstrapMacros.name)))
 	}
 
 	/**
-	 * A {@linkplain Map map} from localized names to Avail special objects.
+	 * A [map][Map] from localized names to Avail special objects.
 	 */
-	private final Map<String, AvailObject> specialObjectsByName =
-		new HashMap<>(specialObjects.size());
+	private val specialObjectsByName = mutableMapOf<String, AvailObject>()
 
 	/**
-	 * A {@linkplain Map map} from Avail special objects to localized names.
+	 * A [map][Map] from Avail special objects to localized names.
 	 */
-	private final Map<A_BasicObject, String> namesBySpecialObject =
-		new HashMap<>(specialObjects.size());
+	private val namesBySpecialObject = mutableMapOf<A_BasicObject, String>()
 
 	/**
 	 * Answer the name of the specified special object.
 	 *
-	 * @param specialObject A special object.
-	 * @return The localized name of the special object.
+	 * @param specialObject
+	 *   A special object.
+	 * @return
+	 *   The localized name of the special object.
 	 */
-	private String specialObjectName (
-		final A_BasicObject specialObject)
+	private fun specialObjectName(specialObject: A_BasicObject): String
 	{
-		final String name = namesBySpecialObject.get(specialObject);
-		assert name != null :
-			String.format("no special object for %s", specialObject);
-		return name;
+		return namesBySpecialObject[specialObject]
+		       ?: error("no special object for $specialObject")
 	}
 
 	/**
 	 * Answer a textual representation of the special objects that is
-	 * satisfactory for use in an Avail {@linkplain ModuleDescriptor module}
-	 * header.
+	 * satisfactory for use in an Avail [module][ModuleDescriptor] header.
 	 *
-	 * @return The "Names" string.
+	 * @return
+	 *   The "Names" string.
 	 */
-	private String specialObjectsNamesString ()
+	private fun specialObjectsNamesString(): String
 	{
-		final List<String> names = new ArrayList<>(
-			new ArrayList<>(specialObjectsByName.keySet()));
-		Collections.sort(names);
-		final StringBuilder builder = new StringBuilder();
-		for (final String name : names)
+		val names: MutableList<String> =
+			specialObjectsByName.keys.toMutableList()
+		names.sort()
+		val builder = StringBuilder()
+		for (name in names)
 		{
-			final A_BasicObject specialObject = specialObjectsByName.get(name);
-			builder.append("\n\t");
+			val specialObject: A_BasicObject? = specialObjectsByName[name]
+			builder.append("\n\t")
 			builder.append(String.format(
-				"/* %3d */", specialObjectIndexMap.get(specialObject)));
-			builder.append(" \"");
-			builder.append(name);
-			builder.append("\",");
+				"/* %3d */", specialObjectIndexMap[specialObject]))
+			builder.append(" \"")
+			builder.append(name)
+			builder.append("\",")
 		}
-		final String namesString = builder.toString();
-		return namesString.substring(0, namesString.length() - 1);
+		val namesString = builder.toString()
+		return namesString.substring(0, namesString.length - 1)
 	}
 
 	/**
 	 * Generate the preamble for the special object linking module.
 	 *
 	 * @param versions
-	 *        The {@linkplain List list} of version strings supported by the
-	 *        module.
+	 * The [list][List] of version strings supported by the module.
 	 * @param writer
-	 *        The {@linkplain PrintWriter output stream}.
+	 * The [output stream][PrintWriter].
 	 */
-	private void generateSpecialObjectModulePreamble (
-		final List<String> versions,
-		final PrintWriter writer)
+	private fun generateSpecialObjectModulePreamble(
+		versions: List<String>,
+		writer: PrintWriter)
 	{
 		writer.println(MessageFormat.format(
-			preamble.getString(availCopyright.name()),
-			preamble.getString(specialObjectsModuleName.name()),
-			new Date()));
+			preamble.getString(Resources.Key.availCopyright.name),
+			preamble.getString(Resources.Key.specialObjectsModuleName.name),
+			Date()))
 		writer.println(MessageFormat.format(
-			preamble.getString(generatedModuleNotice.name()),
-			BootstrapGenerator.class.getName(),
-			new Date()));
+			preamble.getString(Resources.Key.generatedModuleNotice.name),
+			BootstrapGenerator::class.java.name,
+			Date()))
 		writer.println(MessageFormat.format(
-			preamble.getString(generalModuleHeader.name()),
-			preamble.getString(specialObjectsModuleName.name()),
-			moduleVersionString(versions),
-			String.format(
-				"%n\t\"%s\"",
-				preamble.getString(originModuleName.name())),
+			preamble.getString(Resources.Key.generalModuleHeader.name),
+			preamble.getString(Resources.Key.specialObjectsModuleName.name),
+			moduleVersionString(versions), String.format(
+			"%n\t\"%s\"",
+			preamble.getString(Resources.Key.originModuleName.name)),
 			"",
-			specialObjectsNamesString()));
+			specialObjectsNamesString()))
 	}
 
 	/**
-	 * Generate the body of the special object linking {@linkplain
-	 * ModuleDescriptor module}.
+	 * Generate the body of the special object linking
+	 * [module][ModuleDescriptor].
 	 *
 	 * @param writer
-	 *        The {@linkplain PrintWriter output stream}.
+	 *   The [output stream][PrintWriter].
 	 */
-	private void generateSpecialObjectModuleBody (final PrintWriter writer)
+	private fun generateSpecialObjectModuleBody(writer: PrintWriter)
 	{
 		// Emit the special object methods.
-		for (int i = 0; i < specialObjects.size(); i++)
+		for (i in specialObjects.indices)
 		{
-			if (specialObjects.get(i) != null)
+			if (specialObjects[i] !== NilDescriptor.nil)
 			{
-				final String notAlphaKey = specialObjectKey(i);
+				val notAlphaKey = specialObjectKey(i)
 				if (!specialObjectBundle.containsKey(notAlphaKey)
-					|| specialObjectBundle.getString(notAlphaKey).isEmpty())
+				    || specialObjectBundle.getString(notAlphaKey).isEmpty())
 				{
-					System.err.println("missing key/value: " + notAlphaKey);
-					continue;
+					System.err.println("missing key/value: $notAlphaKey")
+					continue
 				}
-				final String methodName =
-					specialObjectBundle.getString(notAlphaKey);
-				final String typeKey = specialObjectTypeKey(i);
-				final String commentKey = specialObjectCommentKey(i);
+				val methodName = specialObjectBundle.getString(notAlphaKey)
+				val typeKey = specialObjectTypeKey(i)
+				val commentKey = specialObjectCommentKey(i)
 				if (specialObjectBundle.containsKey(commentKey))
 				{
-					final String commentTemplate =
-						specialObjectBundle.getString(commentKey);
-					String type = specialObjectBundle.getString(typeKey);
+					val commentTemplate =
+						specialObjectBundle.getString(commentKey)
+					var type = specialObjectBundle.getString(typeKey)
 					if (type.isEmpty())
 					{
-						type = methodName;
+						type = methodName
 					}
 					writer.print(MessageFormat.format(
-						commentTemplate, methodName, type));
+						commentTemplate, methodName, type))
 				}
-				final String use =
-					MessageFormat.format(
-						preamble.getString(specialObjectUse.name()), i);
+				val use = MessageFormat.format(
+					preamble.getString(Resources.Key.specialObjectUse.name), i)
 				writer.println(MessageFormat.format(
-					preamble.getString(definingSpecialObjectUse.name()),
+					preamble.getString(
+						Resources.Key.definingSpecialObjectUse.name),
 					stringify(methodName),
-					use));
-				writer.println();
+					use))
+				writer.println()
 			}
 		}
 	}
 
 	/**
-	 * Answer the selected {@linkplain Primitive primitives}, the non-private,
-	 * non-bootstrap ones with the specified fallibility.
+	 * A [map][Map] from localized names to Avail [primitives][Primitive].
+	 */
+	private val primitiveNameMap = mutableMapOf<String, MutableSet<Primitive>>()
+
+	/**
+	 * Answer a textual representation of the specified [primitive][Primitive]
+	 * names [list][List] that is satisfactory for use in an Avail
+	 * [module][ModuleDescriptor] header.
+	 *
+	 * @param primitives
+	 *   The primitives.
+	 * @return
+	 *   The "Names" string.
+	 */
+	private fun primitivesNamesString(primitives: List<Primitive>): String
+	{
+		val wanted: Set<Primitive> = HashSet(primitives)
+		val names = primitiveNameMap.keys.toMutableList()
+		names.sort()
+		val builder = StringBuilder()
+		for (name in names)
+		{
+			val set = primitiveNameMap[name]!!.toMutableSet()
+			set.retainAll(wanted)
+			if (set.isNotEmpty())
+			{
+				builder.append("\n\t\"")
+				builder.append(name)
+				builder.append("\",")
+			}
+		}
+		val namesString = builder.toString()
+		return namesString.substring(0, namesString.length - 1)
+	}
+
+	/**
+	 * Generate the preamble for the specified [primitive][Primitive] module.
 	 *
 	 * @param fallible
-	 *        {@code true} if the fallible primitives should be answered, {@code
-	 *        false} if the infallible primitives should be answered, {@code
-	 *        null} if all primitives should be answered.
-	 * @return The selected primitives.
-	 */
-	private static List<Primitive> primitives (final @Nullable Boolean fallible)
-	{
-		final List<Primitive> primitives = new ArrayList<>();
-		for (int i = 1; i <= Primitive.Companion.maxPrimitiveNumber(); i++)
-		{
-			final @Nullable Primitive primitive =
-				Primitive.Companion.byPrimitiveNumberOrNull(i);
-			if (primitive != null)
-			{
-				if (!primitive.hasFlag(Flag.Private)
-					&& !primitive.hasFlag(Flag.Bootstrap)
-					&& (fallible == null
-						|| primitive.hasFlag(Flag.CannotFail) == !fallible))
-				{
-					primitives.add(primitive);
-				}
-			}
-		}
-		return primitives;
-	}
-
-	/**
-	 * A {@linkplain Map map} from localized names to Avail {@linkplain
-	 * Primitive primitives}.
-	 */
-	private final Map<String, Set<Primitive>> primitiveNameMap =
-		new HashMap<>(specialObjects.size());
-
-	/**
-	 * Answer a textual representation of the specified {@linkplain Primitive
-	 * primitive} names {@linkplain List list} that is satisfactory for use in
-	 * an Avail {@linkplain ModuleDescriptor module} header.
-	 *
-	 * @param primitives The primitives.
-	 * @return The "Names" string.
-	 */
-	private String primitivesNamesString (
-		final List<Primitive> primitives)
-	{
-		final Set<Primitive> wanted = new HashSet<>(primitives);
-		final List<String> names = new ArrayList<>(
-			new ArrayList<>(primitiveNameMap.keySet()));
-		Collections.sort(names);
-		final StringBuilder builder = new StringBuilder();
-		for (final String name : names)
-		{
-			final Set<Primitive> set =
-				new HashSet<>(primitiveNameMap.get(name));
-			set.retainAll(wanted);
-			if (!set.isEmpty())
-			{
-				builder.append("\n\t\"");
-				builder.append(name);
-				builder.append("\",");
-			}
-		}
-		final String namesString = builder.toString();
-		return namesString.substring(0, namesString.length() - 1);
-	}
-
-	/**
-	 * Generate the preamble for the specified {@linkplain Primitive primitive}
-	 * module.
-	 *
-	 * @param fallible
-	 *        {@code true} to indicate the fallible primitives module, {@code
-	 *        false} to indicate the infallible primitives module, {@code null}
-	 *        to indicate the introductory primitives module.
+	 *   `true` to indicate the fallible primitives module, `false` to indicate
+	 *   the infallible primitives module, `null` to indicate the introductory
+	 *   primitives module.
 	 * @param versions
-	 *        The {@linkplain List list} of version strings supported by the
-	 *        module.
+	 *   The [list][List] of version strings supported by the module.
 	 * @param writer
-	 *        The {@linkplain PrintWriter output stream}.
+	 *   The [output stream][PrintWriter].
 	 */
-	private void generatePrimitiveModulePreamble (
-		final @Nullable Boolean fallible,
-		final List<String> versions,
-		final PrintWriter writer)
+	private fun generatePrimitiveModulePreamble(
+		fallible: Boolean?,
+		versions: List<String>,
+		writer: PrintWriter)
 	{
-		final Key key;
-		if (fallible == null)
-		{
-			key = primitivesModuleName;
-		}
-		else
-		{
-			key = fallible
-				? falliblePrimitivesModuleName
-				: infalliblePrimitivesModuleName;
-		}
+		val key: Resources.Key =
+			if (fallible == null)
+			{
+				Resources.Key.primitivesModuleName
+			}
+			else
+			{
+				if (fallible) Resources.Key.falliblePrimitivesModuleName
+				else Resources.Key.infalliblePrimitivesModuleName
+			}
 		// Write the copyright.
 		writer.println(MessageFormat.format(
-			preamble.getString(availCopyright.name()),
-			preamble.getString(key.name()),
-			new Date()));
+			preamble.getString(Resources.Key.availCopyright.name),
+			preamble.getString(key.name),
+			Date()))
 		// Write the generated module notice.
 		writer.println(MessageFormat.format(
-			preamble.getString(generatedModuleNotice.name()),
-			BootstrapGenerator.class.getName(),
-			new Date()));
+			preamble.getString(Resources.Key.generatedModuleNotice.name),
+			BootstrapGenerator::class.java.name,
+			Date()))
 		// Write the header.
-		final StringBuilder uses = new StringBuilder();
-		uses.append("\n\t\"");
-		uses.append(preamble.getString(originModuleName.name()));
-		uses.append('"');
+		val uses = StringBuilder()
+		uses.append("\n\t\"")
+		uses.append(preamble.getString(Resources.Key.originModuleName.name))
+		uses.append('"')
 		if (fallible != null)
 		{
-			if (Boolean.TRUE.equals(fallible))
+			if (java.lang.Boolean.TRUE == fallible)
 			{
-				uses.append(",\n\t\"");
-				uses.append(preamble.getString(errorCodesModuleName.name()));
-				uses.append("\"");
+				uses.append(",\n\t\"")
+				uses.append(preamble.getString(
+					Resources.Key.errorCodesModuleName.name))
+				uses.append("\"")
 			}
-			uses.append(",\n\t\"");
-			uses.append(preamble.getString(specialObjectsModuleName.name()));
-			uses.append("\",\n\t\"");
-			uses.append(preamble.getString(primitivesModuleName.name()));
-			uses.append("\" =\n\t(");
+			uses.append(",\n\t\"")
+			uses.append(preamble.getString(
+				Resources.Key.specialObjectsModuleName.name))
+			uses.append("\",\n\t\"")
+			uses.append(preamble.getString(
+				Resources.Key.primitivesModuleName.name))
+			uses.append("\" =\n\t(")
 			uses.append(primitivesNamesString(
-				primitives(fallible)).replace("\t", "\t\t"));
-			uses.append("\n\t)");
+				primitives(fallible)).replace("\t", "\t\t"))
+			uses.append("\n\t)")
 		}
-		final StringBuilder names = new StringBuilder();
+		val names = StringBuilder()
 		if (fallible == null)
 		{
-			names.append(primitivesNamesString(primitives(null)));
+			names.append(primitivesNamesString(primitives(null)))
 		}
-		else if (Boolean.TRUE.equals(fallible))
+		else if (java.lang.Boolean.TRUE == fallible)
 		{
-			names.append("\n\t");
+			names.append("\n\t")
 			names.append(stringify(preamble.getString(
-				primitiveFailureFunctionGetterMethod.name())));
-			names.append(",\n\t");
+				Resources.Key.primitiveFailureFunctionGetterMethod.name)))
+			names.append(",\n\t")
 			names.append(stringify(preamble.getString(
-				primitiveFailureFunctionSetterMethod.name())));
+				Resources.Key.primitiveFailureFunctionSetterMethod.name)))
 		}
 		writer.println(MessageFormat.format(
-			preamble.getString(generalModuleHeader.name()),
-			preamble.getString(key.name()),
+			preamble.getString(Resources.Key.generalModuleHeader.name),
+			preamble.getString(key.name),
 			moduleVersionString(versions),
 			"",
 			uses.toString(),
-			names.toString()));
+			names.toString()))
 	}
 
 	/**
-	 * Answer the method parameter declarations for the specified {@linkplain
-	 * Primitive primitive}.
+	 * Answer the method parameter declarations for the specified
+	 * [primitive][Primitive].
 	 *
 	 * @param primitive
-	 *        A primitive.
+	 *   A primitive.
 	 * @param forSemanticRestriction
-	 *        {@code true} if the parameters should be shifted out one type
-	 *        level for use by a semantic restriction, {@code false} otherwise.
-	 * @return The textual representation of the primitive method's parameters
-	 *         (indent=1).
+	 *   `true` if the parameters should be shifted out one type level for use
+	 *   by a semantic restriction, `false` otherwise.
+	 * @return
+	 *   The textual representation of the primitive method's parameters
+	 *   (indent=1).
 	 */
-	private String primitiveMethodParameterDeclarations (
-		final Primitive primitive,
-		final boolean forSemanticRestriction)
+	private fun primitiveMethodParameterDeclarations(
+		primitive: Primitive,
+		forSemanticRestriction: Boolean): String
 	{
-		final A_Type functionType = primitive.blockTypeRestriction();
-		final A_Type parameterTypes = functionType.argsTupleType();
-		final A_Type parameterCount = parameterTypes.sizeRange();
-		assert parameterCount.lowerBound().equals(
-				parameterCount.upperBound())
-			: String.format(
+		val functionType = primitive.blockTypeRestriction()
+		val parameterTypes = functionType.argsTupleType()
+		val parameterCount = parameterTypes.sizeRange()
+		assert(parameterCount.lowerBound().equals(
+			parameterCount.upperBound())) {
+			String.format(
 				"Expected %s to have a fixed parameter count",
-				primitive.getClass().getSimpleName());
-		final StringBuilder builder = new StringBuilder();
-		for (
-			int i = 1, end = parameterCount.lowerBound().extractInt();
-			i <= end;
-			i++)
+				primitive.javaClass.simpleName)
+		}
+		val builder = StringBuilder()
+		var i = 1
+		val end = parameterCount.lowerBound().extractInt()
+		while (i <= end)
 		{
-			final String argNameKey = primitiveParameterNameKey(primitive, i);
-			final String argName;
-			if (primitiveBundle.containsKey(argNameKey))
+			val argNameKey = primitiveParameterNameKey(primitive, i)
+			val argName: String
+			argName = if (primitiveBundle.containsKey(argNameKey))
 			{
-				final String localized = primitiveBundle.getString(argNameKey);
-				argName = !localized.isEmpty()
-					? localized
-					: preamble.getString(parameterPrefix.name()) + i;
+				val localized = primitiveBundle.getString(argNameKey)
+				if (localized.isNotEmpty()) localized
+				else preamble.getString(Resources.Key.parameterPrefix.name) + i
 			}
 			else
 			{
-				argName = preamble.getString(parameterPrefix.name()) + i;
+				preamble.getString(Resources.Key.parameterPrefix.name) + i
 			}
-			final A_Type type = parameterTypes.typeAtIndex(i);
-			final A_Type paramType = forSemanticRestriction
-				? instanceMeta(type)
-				: type;
-			final String typeName = specialObjectName(paramType);
-			builder.append('\t');
-			builder.append(argName);
-			builder.append(" : ");
-			builder.append(typeName);
+			val type = parameterTypes.typeAtIndex(i)
+			val paramType =
+				if (forSemanticRestriction) instanceMeta(type)
+				else type
+			val typeName = specialObjectName(paramType)
+			builder.append('\t')
+			builder.append(argName)
+			builder.append(" : ")
+			builder.append(typeName)
 			if (i != end)
 			{
-				builder.append(',');
+				builder.append(',')
 			}
-			builder.append('\n');
+			builder.append('\n')
+			i++
 		}
-		return builder.toString();
+		return builder.toString()
 	}
 
 	/**
-	 * Answer the method statements for the specified {@linkplain Primitive
-	 * primitive}.
+	 * Answer the method statements for the specified [primitive][Primitive].
 	 *
 	 * @param primitive
-	 *        A primitive.
-	 * @return The textual representation of the primitive's statements
-	 *         (indent=1).
+	 *   A primitive.
+	 * @return
+	 *   The textual representation of the primitive's statements (indent=1).
 	 */
-	private String primitiveMethodStatements (
-		final Primitive primitive)
+	private fun primitiveMethodStatements(
+		primitive: Primitive): String
 	{
-		final StringBuilder builder = new StringBuilder();
-		builder.append('\t');
-		builder.append(preamble.getString(primitiveKeyword.name()));
-		builder.append(' ');
-		builder.append(primitive.fieldName());
-		if (!primitive.hasFlag(Flag.CannotFail))
+		val builder = StringBuilder()
+		builder.append('\t')
+		builder.append(preamble.getString(Resources.Key.primitiveKeyword.name))
+		builder.append(' ')
+		builder.append(primitive.fieldName())
+		if (!primitive.hasFlag(Primitive.Flag.CannotFail))
 		{
-			builder.append(" (");
+			builder.append(" (")
 			builder.append(
-				preamble.getString(primitiveFailureVariableName.name()));
-			builder.append(" : ");
-			final A_Type varType = primitive.getFailureVariableType();
-			if (varType.isEnumeration())
+				preamble.getString(
+					Resources.Key.primitiveFailureVariableName.name))
+			builder.append(" : ")
+			val varType: A_Type = primitive.failureVariableType
+			if (varType.isEnumeration)
 			{
 				if (varType.isSubtypeOf(naturalNumbers()))
 				{
-					builder.append("{");
-					final A_Set instances = varType.instances();
-					final List<A_Number> codes = new ArrayList<>();
-					for (final A_Number instance : instances)
+					builder.append("{")
+					val instances = varType.instances()
+					val codes: MutableList<A_Number> = ArrayList()
+					for (instance in instances)
 					{
-						codes.add(instance);
+						codes.add(instance)
 					}
-					codes.sort((o1, o2) ->
+					codes.sortWith(Comparator { o1: A_Number, o2: A_Number ->
+						o1.extractInt().compareTo(o2.extractInt())
+					})
+					for (code in codes)
 					{
-						assert o1 != null;
-						assert o2 != null;
-						return Integer.compare(
-							o1.extractInt(), o2.extractInt());
-					});
-					for (final A_Number code : codes)
-					{
-						final String errorCodeName = errorCodeName(code);
-						builder.append("\n\t\t");
-						builder.append(errorCodeName);
-						builder.append(',');
+						val errorCodeName = errorCodeName(code)
+						builder.append("\n\t\t")
+						builder.append(errorCodeName)
+						builder.append(',')
 					}
 					// Discard the trailing comma.
-					builder.setLength(builder.length() - 1);
-					builder.append("}ᵀ");
+					builder.setLength(builder.length - 1)
+					builder.append("}ᵀ")
 				}
 				else
 				{
-					builder.append(specialObjectName(ANY.o()));
+					builder.append(specialObjectName(
+						TypeDescriptor.Types.ANY.o()))
 				}
 			}
 			else
 			{
-				builder.append(specialObjectName(varType));
+				builder.append(specialObjectName(varType))
 			}
-			builder.append(')');
+			builder.append(')')
 		}
-		builder.append(";\n");
-		if (!primitive.hasFlag(Flag.CannotFail))
+		builder.append(";\n")
+		if (!primitive.hasFlag(Primitive.Flag.CannotFail))
 		{
-			builder.append('\t');
-			if (primitive.hasFlag(Flag.CatchException))
+			builder.append('\t')
+			if (primitive.hasFlag(Primitive.Flag.CatchException))
 			{
-				final String argNameKey = primitiveParameterNameKey(
-					primitive, 1);
-				final String argName;
-				if (primitiveBundle.containsKey(argNameKey))
+				val argNameKey = primitiveParameterNameKey(
+					primitive, 1)
+				val argName: String
+				argName = if (primitiveBundle.containsKey(argNameKey))
 				{
-					final String localized =
-						primitiveBundle.getString(argNameKey);
-					argName = !localized.isEmpty()
-						? localized
-						: preamble.getString(parameterPrefix.name()) + 1;
+					val localized = primitiveBundle.getString(argNameKey)
+					if (localized.isNotEmpty())
+					{
+						localized
+					}
+					else
+					{
+						preamble.getString(
+							Resources.Key.parameterPrefix.name) + 1
+					}
 				}
 				else
 				{
-					argName = preamble.getString(parameterPrefix.name()) + 1;
+					preamble.getString(Resources.Key.parameterPrefix.name) + 1
 				}
 				builder.append(MessageFormat.format(
 					preamble.getString(
-						invokePrimitiveFailureFunctionMethodUse.name()),
+						Resources.Key
+							.invokePrimitiveFailureFunctionMethodUse.name),
 					argName,
-					namesBySpecialObject.get(emptyTuple())));
+					namesBySpecialObject[emptyTuple()]))
 			}
 			else
 			{
 				builder.append(MessageFormat.format(
 					preamble.getString(
-						invokePrimitiveFailureFunctionMethodUse.name()),
-					preamble.getString(primitiveFailureFunctionName.name()),
-					preamble.getString(primitiveFailureVariableName.name())));
+						Resources.Key
+							.invokePrimitiveFailureFunctionMethodUse.name),
+					preamble.getString(
+						Resources.Key.primitiveFailureFunctionName.name),
+					preamble.getString(
+						Resources.Key.primitiveFailureVariableName.name)))
 			}
-			builder.append("\n");
+			builder.append("\n")
 		}
-		return builder.toString();
+		return builder.toString()
 	}
 
 	/**
@@ -770,140 +807,143 @@ public final class BootstrapGenerator
 	 * declarations and (already formatted) statements.
 	 *
 	 * @param declarations
-	 *        The parameter declarations.
+	 *   The parameter declarations.
 	 * @param statements
-	 *        The block's statements.
+	 *   The block's statements.
 	 * @param returnType
-	 *        The return type, or {@code null} if the return type should not be
-	 *        explicit.
-	 * @return A textual representation of the block (indent=0).
+	 *   The return type, or `null` if the return type should not be explicit.
+	 * @return
+	 *   A textual representation of the block (indent=0).
 	 */
-	private String block (
-		final String declarations,
-		final String statements,
-		final @Nullable A_BasicObject returnType)
+	private fun block(
+		declarations: String,
+		statements: String,
+		returnType: A_BasicObject?): String
 	{
-		final StringBuilder builder = new StringBuilder();
-		builder.append("\n[\n");
-		builder.append(declarations);
-		if (!declarations.isEmpty())
+		val builder = StringBuilder()
+		builder.append("\n[\n")
+		builder.append(declarations)
+		if (declarations.isNotEmpty())
 		{
-			builder.append("|\n");
+			builder.append("|\n")
 		}
-		builder.append(statements);
-		builder.append(']');
+		builder.append(statements)
+		builder.append(']')
 		if (returnType != null)
 		{
-			builder.append(" : ");
-			builder.append(specialObjectName(returnType));
+			builder.append(" : ")
+			builder.append(specialObjectName(returnType))
 		}
-		return builder.toString();
+		return builder.toString()
 	}
 
 	/**
-	 * Answer a comment for the specified {@linkplain Primitive primitive}.
+	 * Answer a comment for the specified [primitive][Primitive].
 	 *
 	 * @param primitive
-	 *        A primitive.
-	 * @return A textual representation of the comment (indent=0).
+	 *   A primitive.
+	 * @return
+	 *   A textual representation of the comment (indent=0).
 	 */
-	private String primitiveComment (
-		final Primitive primitive)
+	private fun primitiveComment(
+		primitive: Primitive): String
 	{
-		final StringBuilder builder = new StringBuilder();
-		final String commentKey = primitiveCommentKey(primitive);
+		val builder = StringBuilder()
+		val commentKey = primitiveCommentKey(primitive)
 		if (primitiveBundle.containsKey(commentKey))
 		{
 			// Compute the number of template arguments.
-			final int primitiveArgCount = primitive.getArgCount();
-			final int templateArgCount = 2 + (primitiveArgCount << 1) +
-				(primitive.hasFlag(Flag.CannotFail)
-				? 0
-				: (primitive.getFailureVariableType().isEnumeration()
-					? primitive.getFailureVariableType()
-						.instanceCount().extractInt()
-					: 1));
-			final Object[] formatArgs = new Object[templateArgCount];
+			val primitiveArgCount = primitive.argCount
+			val templateArgCount = 2 + (primitiveArgCount shl 1) +
+               when
+               {
+                   primitive.hasFlag(Primitive.Flag.CannotFail) -> 0
+                   primitive.failureVariableType.isEnumeration ->
+	                   primitive.failureVariableType
+		                   .instanceCount().extractInt()
+                   else -> 1
+               }
+			val formatArgs = arrayOfNulls<Any>(templateArgCount)
 			// The method name goes into the first slot…
 			formatArgs[0] = primitiveBundle.getString(
-				primitive.getClass().getSimpleName());
+				primitive.javaClass.simpleName)
 			// …then come the parameter names, followed by their types…
-			final A_Type paramsType =
-				primitive.blockTypeRestriction().argsTupleType();
-			for (int i = 1; i <= primitiveArgCount; i++)
+			val paramsType = primitive.blockTypeRestriction().argsTupleType()
+			for (i in 1 .. primitiveArgCount)
 			{
-				final String argNameKey =
-					primitiveParameterNameKey(primitive, i);
-				final String argName;
-				if (primitiveBundle.containsKey(argNameKey))
+				val argNameKey = primitiveParameterNameKey(primitive, i)
+				val argName: String
+				argName = if (primitiveBundle.containsKey(argNameKey))
 				{
-					final String localized =
-						primitiveBundle.getString(argNameKey);
-					argName = !localized.isEmpty()
-						? localized
-						: preamble.getString(parameterPrefix.name()) + i;
+					val localized = primitiveBundle.getString(argNameKey)
+					if (localized.isNotEmpty())
+					{
+						localized
+					}
+					else
+					{
+						preamble.getString(
+							Resources.Key.parameterPrefix.name) + i
+					}
 				}
 				else
 				{
-					argName = preamble.getString(parameterPrefix.name()) + i;
+					preamble.getString(Resources.Key.parameterPrefix.name) + i
 				}
-				formatArgs[i] = argName;
+				formatArgs[i] = argName
 				formatArgs[i + primitiveArgCount] = specialObjectName(
-					paramsType.typeAtIndex(i));
+					paramsType.typeAtIndex(i))
 			}
 			// …then the return type…
-			formatArgs[(primitiveArgCount << 1) + 1] =
-				primitive.blockTypeRestriction().returnType();
+			formatArgs[(primitiveArgCount shl 1) + 1] =
+				primitive.blockTypeRestriction().returnType()
 			// …then the exceptions.
-			if (!primitive.hasFlag(Flag.CannotFail))
+			if (!primitive.hasFlag(Primitive.Flag.CannotFail))
 			{
-				int raiseIndex = (primitiveArgCount << 1) + 2;
-				final A_Type varType = primitive.getFailureVariableType();
-				if (varType.isEnumeration())
+				var raiseIndex = (primitiveArgCount shl 1) + 2
+				val varType: A_Type = primitive.failureVariableType
+				if (varType.isEnumeration)
 				{
 					if (varType.isSubtypeOf(naturalNumbers()))
 					{
-						final A_Set instances = varType.instances();
-						final List<A_Number> codes = new ArrayList<>();
-						for (final A_Number instance : instances)
+						val instances = varType.instances()
+						val codes: MutableList<A_Number> = ArrayList()
+						for (instance in instances)
 						{
-							codes.add(instance);
+							codes.add(instance)
 						}
-						codes.sort((o1, o2) ->
+						codes.sortWith(Comparator { o1: A_Number, o2: A_Number ->
+							o1.extractInt().compareTo(o2.extractInt())
+						})
+						for (code in codes)
 						{
-							assert o1 != null;
-							assert o2 != null;
-							return Integer.compare(
-								o1.extractInt(), o2.extractInt());
-						});
-						for (final A_Number code : codes)
-						{
-							formatArgs[raiseIndex++] = exceptionName(code);
+							formatArgs[raiseIndex++] = exceptionName(code)
 						}
 					}
 					else
 					{
 						formatArgs[raiseIndex] =
-							specialObjectName(ANY.o());
+							specialObjectName(TypeDescriptor.Types.ANY.o())
 					}
 				}
 				else
 				{
-					formatArgs[raiseIndex] = specialObjectName(varType);
+					formatArgs[raiseIndex] = specialObjectName(varType)
 				}
 			}
 			// Check if the string uses single-quotes incorrectly.  They should
 			// only be used for quoting brace-brackets, and should be doubled
 			// for all other uses.
-			final String messagePattern = primitiveBundle.getString(commentKey);
-			boolean inQuotes = false;
-			boolean sawBraces = false;
-			boolean isEmpty = true;
-			for (int index = 0; index < messagePattern.length(); index++)
+			val messagePattern = primitiveBundle.getString(commentKey)
+			var inQuotes = false
+			var sawBraces = false
+			var isEmpty = true
+			for (element in messagePattern)
 			{
-				switch (messagePattern.charAt(index))
+				when (element)
 				{
-					case '\'':
+					'\'' ->
+					{
 						if (inQuotes)
 						{
 							if (!sawBraces && !isEmpty)
@@ -913,260 +953,263 @@ public final class BootstrapGenerator
 									+ "Single-quoted section was not empty "
 									+ "but did not contain any brace "
 									+ "brackets ('{' or '}').%n",
-									commentKey);
+									commentKey)
 							}
 						}
-						inQuotes = !inQuotes;
-						sawBraces = false;
-						isEmpty = true;
-						break;
-					case '{':
-					case '}':
-						sawBraces = true;
-						//$FALL-THROUGH$
-					default:
-						isEmpty = false;
+						inQuotes = !inQuotes
+						sawBraces = false
+						isEmpty = true
+					}
+					'{', '}' ->
+					{
+						sawBraces = true
+						isEmpty = false
+					}
+					else -> isEmpty = false
 				}
 			}
 			if (inQuotes)
 			{
 				System.err.format(
 					"Malformed primitive comment (%s) – contains unclosed "
-					+ "single-quote character%n",
-					commentKey);
+						+ "single-quote character%n",
+					commentKey)
 			}
 			builder.append(MessageFormat.format(
 				messagePattern,
-				formatArgs));
+				*formatArgs))
 		}
-		return builder.toString();
+		return builder.toString()
 	}
 
 	/**
 	 * Generate a method from the specified name and block.
 	 *
 	 * @param name
-	 *        The (already localized) method name.
+	 *   The (already localized) method name.
 	 * @param block
-	 *        The textual block (indent=0).
+	 *   The textual block (indent=0).
 	 * @param writer
-	 *        The {@linkplain PrintWriter output stream}.
+	 *   The [output stream][PrintWriter].
 	 */
-	private void generateMethod (
-		final String name,
-		final String block,
-		final PrintWriter writer)
+	private fun generateMethod(
+		name: String,
+		block: String,
+		writer: PrintWriter)
 	{
 		writer.print(MessageFormat.format(
-			preamble.getString(definingMethodUse.name()),
+			preamble.getString(Resources.Key.definingMethodUse.name),
 			stringify(name),
-			block));
-		writer.println(';');
-		writer.println();
+			block))
+		writer.println(';')
+		writer.println()
 	}
 
 	/**
-	 * Generate the bootstrap {@linkplain Primitive primitive} tuple-to-set
-	 * converter. This will be used to provide precise failure variable types.
+	 * Generate the bootstrap [primitive][Primitive] tuple-to-set converter.
+	 * This will be used to provide precise failure variable types.
 	 *
 	 * @param writer
-	 *        The {@linkplain PrintWriter output stream}.
+	 *   The [output stream][PrintWriter].
 	 */
-	private void generatePrimitiveToSetMethod (final PrintWriter writer)
+	private fun generatePrimitiveToSetMethod(writer: PrintWriter)
 	{
-		final Primitive primitive = P_TupleToSet.INSTANCE;
-		final StringBuilder statements = new StringBuilder();
-		statements.append('\t');
-		statements.append(preamble.getString(primitiveKeyword.name()));
-		statements.append(' ');
-		statements.append(primitive.fieldName());
-		statements.append(";\n");
-		final String block = block(
+		val primitive: Primitive = P_TupleToSet
+		val statements = StringBuilder()
+		statements.append('\t')
+		statements.append(preamble.getString(Resources.Key.primitiveKeyword.name))
+		statements.append(' ')
+		statements.append(primitive.fieldName())
+		statements.append(";\n")
+		val block = block(
 			primitiveMethodParameterDeclarations(primitive, false),
 			statements.toString(),
-			primitive.blockTypeRestriction().returnType());
-		generateMethod("{«_‡,»}", block, writer);
+			primitive.blockTypeRestriction().returnType())
+		generateMethod("{«_‡,»}", block, writer)
 	}
 
 	/**
-	 * Generate the bootstrap {@linkplain Primitive primitive} enumeration
-	 * method. This will be used to provide precise failure variable types.
+	 * Generate the bootstrap [primitive][Primitive] enumeration method. This
+	 * will be used to provide precise failure variable types.
 	 *
 	 * @param writer
-	 *        The {@linkplain PrintWriter output stream}.
+	 *   The [output stream][PrintWriter].
 	 */
-	private void generatePrimitiveEnumMethod (final PrintWriter writer)
+	private fun generatePrimitiveEnumMethod(writer: PrintWriter)
 	{
-		final Primitive primitive = P_CreateEnumeration.INSTANCE;
-		final StringBuilder statements = new StringBuilder();
-		statements.append('\t');
-		statements.append(preamble.getString(primitiveKeyword.name()));
-		statements.append(' ');
-		statements.append(primitive.fieldName());
-		statements.append(";\n");
-		final String block = block(
+		val primitive: Primitive = P_CreateEnumeration
+		val statements = StringBuilder()
+		statements.append('\t')
+		statements.append(preamble.getString(
+			Resources.Key.primitiveKeyword.name))
+		statements.append(' ')
+		statements.append(primitive.fieldName())
+		statements.append(";\n")
+		val block = block(
 			primitiveMethodParameterDeclarations(primitive, false),
 			statements.toString(),
-			primitive.blockTypeRestriction().returnType());
-		generateMethod("_ᵀ", block, writer);
+			primitive.blockTypeRestriction().returnType())
+		generateMethod("_ᵀ", block, writer)
 	}
 
 	/**
-	 * Generate the bootstrap {@linkplain Primitive primitive} failure method.
-	 * This will be invoked if any primitive fails during the compilation of the
-	 * bootstrap modules.
+	 * Generate the bootstrap [primitive][Primitive] failure method. This will
+	 * be invoked if any primitive fails during the compilation of the bootstrap
+	 * modules.
 	 *
 	 * @param writer
-	 *        The {@linkplain PrintWriter output stream}.
+	 *   The [output stream][PrintWriter].
 	 */
-	private void generatePrimitiveFailureMethod (final PrintWriter writer)
+	private fun generatePrimitiveFailureMethod(writer: PrintWriter)
 	{
-		final Primitive primitive = P_EmergencyExit.INSTANCE;
-		final StringBuilder statements = new StringBuilder();
-		statements.append('\t');
-		statements.append(preamble.getString(primitiveKeyword.name()));
-		statements.append(' ');
-		statements.append(primitive.fieldName());
-		statements.append(";\n");
-		final String block = block(
+		val primitive: Primitive = P_EmergencyExit
+		val statements = StringBuilder()
+		statements.append('\t')
+		statements.append(preamble.getString(
+			Resources.Key.primitiveKeyword.name))
+		statements.append(' ')
+		statements.append(primitive.fieldName())
+		statements.append(";\n")
+		val block = block(
 			primitiveMethodParameterDeclarations(primitive, false),
 			statements.toString(),
-			primitive.blockTypeRestriction().returnType());
+			primitive.blockTypeRestriction().returnType())
 		generateMethod(
-			preamble.getString(primitiveFailureMethod.name()),
+			preamble.getString(Resources.Key.primitiveFailureMethod.name),
 			block,
-			writer);
+			writer)
 	}
 
 	/**
-	 * Generate the {@linkplain Primitive primitive} failure function.
+	 * Generate the [primitive][Primitive] failure function.
 	 *
 	 * @param writer
-	 *        The {@linkplain PrintWriter output stream}.
+	 *   The [output stream][PrintWriter].
 	 */
-	private void generatePrimitiveFailureFunction (final PrintWriter writer)
+	private fun generatePrimitiveFailureFunction(writer: PrintWriter)
 	{
-		final A_BasicObject functionType =
-			functionType(tuple(naturalNumbers()), bottom());
+		val functionType: A_BasicObject =
+			functionType(tuple(naturalNumbers()), bottom())
 		writer.print(
-			preamble.getString(primitiveFailureFunctionName.name()));
-		writer.print(" : ");
-		writer.print(specialObjectName(functionType));
-		writer.println(" :=");
-		writer.println("\t[");
-		writer.print("\t\t");
-		writer.print(preamble.getString(parameterPrefix.name()));
-		writer.print(1);
-		writer.print(" : ");
-		writer.println(specialObjectName(ANY.o()));
-		writer.println("\t|");
-		writer.print("\t\t");
+			preamble.getString(Resources.Key.primitiveFailureFunctionName.name))
+		writer.print(" : ")
+		writer.print(specialObjectName(functionType))
+		writer.println(" :=")
+		writer.println("\t[")
+		writer.print("\t\t")
+		writer.print(preamble.getString(Resources.Key.parameterPrefix.name))
+		writer.print(1)
+		writer.print(" : ")
+		writer.println(specialObjectName(TypeDescriptor.Types.ANY.o()))
+		writer.println("\t|")
+		writer.print("\t\t")
 		writer.print(MessageFormat.format(
-			preamble.getString(primitiveFailureMethodUse.name()),
-			preamble.getString(parameterPrefix.name()) + 1));
-		writer.println("");
-		writer.print("\t] : ");
-		writer.print(specialObjectName(bottom()));
-		writer.println(';');
-		writer.println();
+			preamble.getString(Resources.Key.primitiveFailureMethodUse.name),
+			preamble.getString(Resources.Key.parameterPrefix.name) + 1))
+		writer.println("")
+		writer.print("\t] : ")
+		writer.print(specialObjectName(bottom()))
+		writer.println(';')
+		writer.println()
 	}
 
 	/**
-	 * Generate the {@linkplain Primitive primitive} failure function getter.
+	 * Generate the [primitive][Primitive] failure function getter.
 	 *
 	 * @param writer
-	 *        The {@linkplain PrintWriter output stream}.
+	 *   The [output stream][PrintWriter].
 	 */
-	private void generatePrimitiveFailureFunctionGetter (
-		final PrintWriter writer)
+	private fun generatePrimitiveFailureFunctionGetter(
+		writer: PrintWriter)
 	{
-		final StringBuilder statements = new StringBuilder();
-		statements.append('\t');
+		val statements = StringBuilder()
+		statements.append('\t')
 		statements.append(
-			preamble.getString(primitiveFailureFunctionName.name()));
-		statements.append("\n");
-		final String block = block(
+			preamble.getString(Resources.Key.primitiveFailureFunctionName.name))
+		statements.append("\n")
+		val block = block(
 			"",
 			statements.toString(),
-			functionType(tuple(naturalNumbers()), bottom()));
+			functionType(tuple(naturalNumbers()), bottom()))
 		generateMethod(
-			preamble.getString(primitiveFailureFunctionGetterMethod.name()),
+			preamble.getString(
+				Resources.Key.primitiveFailureFunctionGetterMethod.name),
 			block,
-			writer);
+			writer)
 	}
 
 	/**
-	 * Generate the {@linkplain Primitive primitive} failure function setter.
+	 * Generate the [primitive][Primitive] failure function setter.
 	 *
 	 * @param writer
-	 *        The {@linkplain PrintWriter output stream}.
+	 *   The [output stream][PrintWriter].
 	 */
-	private void generatePrimitiveFailureFunctionSetter (
-		final PrintWriter writer)
+	private fun generatePrimitiveFailureFunctionSetter(writer: PrintWriter)
 	{
-		final String argName = preamble.getString(parameterPrefix.name()) + 1;
-		final StringBuilder declarations = new StringBuilder();
-		declarations.append('\t');
-		declarations.append(argName);
-		declarations.append(" : ");
-		final A_BasicObject functionType =
-			functionType(tuple(naturalNumbers()), bottom());
-		declarations.append(specialObjectName(functionType));
-		declarations.append('\n');
-		final StringBuilder statements = new StringBuilder();
-		statements.append('\t');
+		val argName = preamble.getString(Resources.Key.parameterPrefix.name) + 1
+		val declarations = StringBuilder()
+		declarations.append('\t')
+		declarations.append(argName)
+		declarations.append(" : ")
+		val functionType: A_BasicObject =
+			functionType(tuple(naturalNumbers()), bottom())
+		declarations.append(specialObjectName(functionType))
+		declarations.append('\n')
+		val statements = StringBuilder()
+		statements.append('\t')
 		statements.append(
-			preamble.getString(primitiveFailureFunctionName.name()));
-		statements.append(" := ");
-		statements.append(argName);
-		statements.append(";\n");
-		final String block = block(
+			preamble.getString(Resources.Key.primitiveFailureFunctionName.name))
+		statements.append(" := ")
+		statements.append(argName)
+		statements.append(";\n")
+		val block = block(
 			declarations.toString(),
 			statements.toString(),
-			TOP.o());
+			TypeDescriptor.Types.TOP.o())
 		generateMethod(
-			preamble.getString(primitiveFailureFunctionSetterMethod.name()),
+			preamble.getString(
+				Resources.Key.primitiveFailureFunctionSetterMethod.name),
 			block,
-			writer);
+			writer)
 	}
 
 	/**
 	 * Generate the bootstrap function application method that the exported
-	 * {@linkplain Primitive primitives} use to invoke the primitive failure
-	 * function.
+	 * [primitives][Primitive] use to invoke the primitive failure function.
 	 *
 	 * @param writer
-	 *        The {@linkplain PrintWriter output stream}.
+	 *   The [output stream][PrintWriter].
 	 */
-	private void generateInvokePrimitiveFailureFunctionMethod (
-		final PrintWriter writer)
+	private fun generateInvokePrimitiveFailureFunctionMethod(
+		writer: PrintWriter)
 	{
-		final Primitive primitive = P_InvokeWithTuple.INSTANCE;
-		final StringBuilder statements = new StringBuilder();
-		statements.append('\t');
-		statements.append(preamble.getString(primitiveKeyword.name()));
-		statements.append(' ');
-		statements.append(primitive.fieldName());
-		statements.append(" (");
+		val primitive: Primitive = P_InvokeWithTuple
+		val statements = StringBuilder()
+		statements.append('\t')
+		statements.append(preamble.getString(Resources.Key.primitiveKeyword.name))
+		statements.append(' ')
+		statements.append(primitive.fieldName())
+		statements.append(" (")
 		statements.append(
-			preamble.getString(primitiveFailureVariableName.name()));
-		statements.append(" : ");
-		statements.append(specialObjectName(primitive.getFailureVariableType()));
-		statements.append(')');
-		statements.append(";\n");
-		statements.append('\t');
+			preamble.getString(Resources.Key.primitiveFailureVariableName.name))
+		statements.append(" : ")
+		statements.append(specialObjectName(primitive.failureVariableType))
+		statements.append(')')
+		statements.append(";\n")
+		statements.append('\t')
 		statements.append(MessageFormat.format(
-			preamble.getString(primitiveFailureMethodUse.name()),
-			preamble.getString(primitiveFailureVariableName.name())));
-		statements.append("\n");
-		final String block = block(
+			preamble.getString(Resources.Key.primitiveFailureMethodUse.name),
+			preamble.getString(Resources.Key.primitiveFailureVariableName.name)))
+		statements.append("\n")
+		val block = block(
 			primitiveMethodParameterDeclarations(primitive, false),
 			statements.toString(),
-			TOP.o());
+			TypeDescriptor.Types.TOP.o())
 		generateMethod(
-			preamble.getString(invokePrimitiveFailureFunctionMethod.name()),
+			preamble.getString(
+				Resources.Key.invokePrimitiveFailureFunctionMethod.name),
 			block,
-			writer);
+			writer)
 	}
 
 	/**
@@ -1176,579 +1219,479 @@ public final class BootstrapGenerator
 	 * restriction.
 	 *
 	 * @param writer
-	 *        The {@linkplain PrintWriter output stream}.
+	 *   The [output stream][PrintWriter].
 	 */
-	private void generatePrivateSemanticRestrictionMethod (
-		final PrintWriter writer)
+	private fun generatePrivateSemanticRestrictionMethod(
+		writer: PrintWriter)
 	{
-		final Primitive primitive = P_AddSemanticRestriction.INSTANCE;
-		StringBuilder statements = new StringBuilder();
-		statements.append('\t');
-		statements.append(preamble.getString(primitiveKeyword.name()));
-		statements.append(' ');
-		statements.append(primitive.fieldName());
-		statements.append(" (");
+		val primitive: Primitive = P_AddSemanticRestriction
+		var statements = StringBuilder()
+		statements.append('\t')
+		statements.append(preamble.getString(Resources.Key.primitiveKeyword.name))
+		statements.append(' ')
+		statements.append(primitive.fieldName())
+		statements.append(" (")
 		statements.append(
-			preamble.getString(primitiveFailureVariableName.name()));
-		statements.append(" : ");
+			preamble.getString(Resources.Key.primitiveFailureVariableName.name))
+		statements.append(" : ")
 		statements.append(
-			specialObjectName(naturalNumbers()));
-		statements.append(')');
-		statements.append(";\n");
-		statements.append('\t');
+			specialObjectName(naturalNumbers()))
+		statements.append(')')
+		statements.append(";\n")
+		statements.append('\t')
 		statements.append(MessageFormat.format(
-			preamble.getString(primitiveFailureMethodUse.name()),
-			preamble.getString(primitiveFailureVariableName.name())));
-		statements.append("\n");
-		String block = block(
+			preamble.getString(Resources.Key.primitiveFailureMethodUse.name),
+			preamble.getString(
+				Resources.Key.primitiveFailureVariableName.name)))
+		statements.append("\n")
+		var block = block(
 			primitiveMethodParameterDeclarations(primitive, false),
 			statements.toString(),
-			TOP.o());
+			TypeDescriptor.Types.TOP.o())
 		generateMethod(
-			preamble.getString(primitiveSemanticRestriction.name()),
+			preamble.getString(Resources.Key.primitiveSemanticRestriction.name),
 			block,
-			writer);
-		statements = new StringBuilder();
-		statements.append('\t');
-		statements.append(specialObjectName(bottom()));
-		statements.append("\n");
+			writer)
+		statements = StringBuilder()
+		statements.append('\t')
+		statements.append(specialObjectName(bottom()))
+		statements.append("\n")
 		block = block(
 			primitiveMethodParameterDeclarations(
-				P_InvokeWithTuple.INSTANCE,
+				P_InvokeWithTuple,
 				true),
 			statements.toString(),
-			null);
+			null)
 		writer.append(MessageFormat.format(
-			preamble.getString(primitiveSemanticRestrictionUse.name()),
+			preamble.getString(
+				Resources.Key.primitiveSemanticRestrictionUse.name),
 			stringify(preamble.getString(
-				invokePrimitiveFailureFunctionMethod.name())),
-			block));
-		writer.println(";\n");
+				Resources.Key.invokePrimitiveFailureFunctionMethod.name)),
+			block))
+		writer.println(";\n")
 	}
 
 	/**
-	 * Generate a linkage method for the specified {@linkplain Primitive
-	 * primitive}.
+	 * Generate a linkage method for the specified [primitive][Primitive].
 	 *
 	 * @param primitive
-	 *        A primitive.
+	 *   A primitive.
 	 * @param writer
-	 *        The {@linkplain PrintWriter output stream}.
+	 *   The [output stream][PrintWriter].
 	 */
-	private void generatePrimitiveMethod (
-		final Primitive primitive,
-		final PrintWriter writer)
+	private fun generatePrimitiveMethod(
+		primitive: Primitive,
+		writer: PrintWriter)
 	{
-		final String name = primitive.getClass().getSimpleName();
+		val name = primitive.javaClass.simpleName
 		if (!primitiveBundle.containsKey(name)
-			|| primitiveBundle.getString(name).isEmpty())
+		    || primitiveBundle.getString(name).isEmpty())
 		{
-			System.err.println("missing key/value: " + name);
-			return;
+			System.err.println("missing key/value: $name")
+			return
 		}
-
-		final String comment = primitiveComment(primitive);
-		final String block = block(
+		val comment = primitiveComment(primitive)
+		val block = block(
 			primitiveMethodParameterDeclarations(primitive, false),
 			primitiveMethodStatements(primitive),
-			primitive.blockTypeRestriction().returnType());
-		writer.print(comment);
-		generateMethod(primitiveBundle.getString(name), block, writer);
+			primitive.blockTypeRestriction().returnType())
+		writer.print(comment)
+		generateMethod(primitiveBundle.getString(name), block, writer)
 	}
 
 	/**
-	 * Generate the body of the specified {@linkplain Primitive primitive}
-	 * module.
+	 * Generate the body of the specified [primitive][Primitive] module.
 	 *
 	 * @param fallible
-	 *        {@code true} to indicate the fallible primitives module, {@code
-	 *        false} to indicate the infallible primitives module.
+	 *   `true` to indicate the fallible primitives module, `false` to indicate
+	 *   the infallible primitives module.
 	 * @param writer
-	 *        The {@linkplain PrintWriter output stream}.
+	 *   The [output stream][PrintWriter].
 	 */
-	private void generatePrimitiveModuleBody (
-		final @Nullable Boolean fallible,
-		final PrintWriter writer)
+	private fun generatePrimitiveModuleBody(
+		fallible: Boolean?,
+		writer: PrintWriter)
 	{
 		// Generate the module variable that holds the primitive failure
 		// function.
-		if (Boolean.TRUE.equals(fallible))
+		if (java.lang.Boolean.TRUE == fallible)
 		{
-			generatePrimitiveToSetMethod(writer);
-			generatePrimitiveEnumMethod(writer);
-			generatePrimitiveFailureMethod(writer);
-			generatePrimitiveFailureFunction(writer);
-			generatePrimitiveFailureFunctionGetter(writer);
-			generatePrimitiveFailureFunctionSetter(writer);
-			generateInvokePrimitiveFailureFunctionMethod(writer);
-			generatePrivateSemanticRestrictionMethod(writer);
+			generatePrimitiveToSetMethod(writer)
+			generatePrimitiveEnumMethod(writer)
+			generatePrimitiveFailureMethod(writer)
+			generatePrimitiveFailureFunction(writer)
+			generatePrimitiveFailureFunctionGetter(writer)
+			generatePrimitiveFailureFunctionSetter(writer)
+			generateInvokePrimitiveFailureFunctionMethod(writer)
+			generatePrivateSemanticRestrictionMethod(writer)
 		}
 
 		// Generate the primitive methods.
 		if (fallible != null)
 		{
-			final List<Primitive> primitives = primitives(fallible);
-			for (final Primitive primitive : primitives)
+			val primitives = primitives(fallible)
+			for (primitive in primitives)
 			{
-				if (!primitive.hasFlag(Flag.Private)
-					&& !primitive.hasFlag(Flag.Bootstrap))
+				if (!primitive.hasFlag(Primitive.Flag.Private)
+				    && !primitive.hasFlag(Primitive.Flag.Bootstrap))
 				{
-					generatePrimitiveMethod(primitive, writer);
+					generatePrimitiveMethod(primitive, writer)
 				}
 			}
 		}
 	}
 
 	/**
-	 * Answer the {@linkplain AvailErrorCode primitive error codes} for which
-	 * Avail methods should be generated.
-	 *
-	 * @return The relevant primitive error codes.
+	 * A [map][Map] from localized names to [primitive error
+	 * codes][AvailErrorCode].
 	 */
-	private static List<AvailErrorCode> errorCodes ()
+	private val errorCodesByName = mutableMapOf<String, AvailErrorCode>()
+
+	/**
+	 * Answer a textual representation of the
+	 * [primitive error codes][AvailErrorCode] that is satisfactory for use in
+	 * an Avail [module][ModuleDescriptor] header.
+	 *
+	 * @return
+	 *   The "Names" string.
+	 */
+	private fun errorCodesNamesString(): String
 	{
-		final List<AvailErrorCode> relevant = new ArrayList<>(100);
-		for (final AvailErrorCode code : AvailErrorCode.values())
+		val names = errorCodesByName.keys.toMutableList()
+		names.sort()
+		val builder = StringBuilder()
+		for (name in names)
 		{
-			if (code.nativeCode() > 0)
-			{
-				relevant.add(code);
-			}
+			val code = errorCodesByName[name]
+			builder.append("\n\t")
+			builder.append(String.format("/* %3d */", code!!.nativeCode()))
+			builder.append(" \"")
+			builder.append(name)
+			builder.append("\",")
 		}
-		return relevant;
+		val namesString = builder.toString()
+		return namesString.substring(0, namesString.length - 1)
 	}
 
 	/**
-	 * A {@linkplain Map map} from localized names to {@linkplain AvailErrorCode
-	 * primitive error codes}.
-	 */
-	private final Map<String, AvailErrorCode> errorCodesByName =
-		new HashMap<>(AvailErrorCode.values().length);
-
-	/**
-	 * Answer a textual representation of the {@linkplain AvailErrorCode
-	 * primitive error codes} that is satisfactory for use in an Avail
-	 * {@linkplain ModuleDescriptor module} header.
-	 *
-	 * @return The "Names" string.
-	 */
-	private String errorCodesNamesString ()
-	{
-		final List<String> names = new ArrayList<>(
-			errorCodesByName.keySet());
-		Collections.sort(names);
-		final StringBuilder builder = new StringBuilder();
-		for (final String name : names)
-		{
-			final AvailErrorCode code = errorCodesByName.get(name);
-			builder.append("\n\t");
-			builder.append(String.format("/* %3d */", code.nativeCode()));
-			builder.append(" \"");
-			builder.append(name);
-			builder.append("\",");
-		}
-		final String namesString = builder.toString();
-		return namesString.substring(0, namesString.length() - 1);
-	}
-
-	/**
-	 * Generate the preamble for the error codes {@linkplain ModuleDescriptor
-	 * module}.
+	 * Generate the preamble for the error codes [module][ModuleDescriptor].
 	 *
 	 * @param versions
-	 *        The {@linkplain List list} of version strings supported by the
-	 *        module.
+	 *   The [list][List] of version strings supported by the module.
 	 * @param writer
-	 *        The {@linkplain PrintWriter output stream}.
+	 *   The [output stream][PrintWriter].
 	 */
-	private void generateErrorCodesModulePreamble (
-		final List<String> versions,
-		final PrintWriter writer)
+	private fun generateErrorCodesModulePreamble(
+		versions: List<String>,
+		writer: PrintWriter)
 	{
 		writer.println(MessageFormat.format(
-			preamble.getString(availCopyright.name()),
-			preamble.getString(errorCodesModuleName.name()),
-			new Date()));
+			preamble.getString(Resources.Key.availCopyright.name),
+			preamble.getString(Resources.Key.errorCodesModuleName.name),
+			Date()))
 		writer.println(MessageFormat.format(
-			preamble.getString(generatedModuleNotice.name()),
-			BootstrapGenerator.class.getName(),
-			new Date()));
-		final StringBuilder uses = new StringBuilder();
-		uses.append("\n\t\"");
-		uses.append(preamble.getString(originModuleName.name()));
-		uses.append('"');
+			preamble.getString(Resources.Key.generatedModuleNotice.name),
+			BootstrapGenerator::class.java.name,
+			Date()))
+		val uses = StringBuilder()
+		uses.append("\n\t\"")
+		uses.append(preamble.getString(Resources.Key.originModuleName.name))
+		uses.append('"')
 		writer.println(MessageFormat.format(
-			preamble.getString(generalModuleHeader.name()),
-			preamble.getString(errorCodesModuleName.name()),
+			preamble.getString(Resources.Key.generalModuleHeader.name),
+			preamble.getString(Resources.Key.errorCodesModuleName.name),
 			moduleVersionString(versions),
 			"",
 			uses.toString(),
-			errorCodesNamesString()));
+			errorCodesNamesString()))
 	}
 
 	/**
-	 * Generate the body for the error codes {@linkplain ModuleDescriptor
-	 * module}.
+	 * Generate the body for the error codes [module][ModuleDescriptor].
 	 *
 	 * @param writer
-	 *        The {@linkplain PrintWriter output stream}.
+	 *   The [output stream][PrintWriter].
 	 */
-	private void generateErrorCodesModuleBody (
-		final PrintWriter writer)
+	private fun generateErrorCodesModuleBody(
+		writer: PrintWriter)
 	{
-		for (final AvailErrorCode code : errorCodes())
+		for (code in errorCodes())
 		{
-			final String key = errorCodeKey(code);
+			val key = errorCodeKey(code)
 			if (!errorCodeBundle.containsKey(key)
-				|| errorCodeBundle.getString(key).isEmpty())
+			    || errorCodeBundle.getString(key).isEmpty())
 			{
-				System.err.println("missing key/value: " + key);
-				continue;
+				System.err.println("missing key/value: $key")
+				continue
 			}
-			final String commentKey = errorCodeCommentKey(code);
+			val commentKey = errorCodeCommentKey(code)
 			if (errorCodeBundle.containsKey(commentKey))
 			{
-				writer.print(errorCodeBundle.getString(commentKey));
+				writer.print(errorCodeBundle.getString(commentKey))
 			}
 			writer.println(MessageFormat.format(
-				preamble.getString(definingMethodUse.name()),
-				stringify(errorCodeBundle.getString(key)),
-				String.format("%n[%n\t%d%n];%n", code.nativeCode())));
+				preamble.getString(Resources.Key.definingMethodUse.name),
+				stringify(
+					errorCodeBundle.getString(key)),
+					"\n[\n\t${code.nativeCode()}\n];\n"))
 		}
 	}
 
 	/**
-	 * Generate the preamble for the representative {@linkplain
-	 * ModuleDescriptor module}.
+	 * Generate the preamble for the representative [module][ModuleDescriptor].
 	 *
 	 * @param versions
-	 *        The {@linkplain List list} of version strings supported by the
-	 *        module.
+	 *   The [list][List] of version strings supported by the module.
 	 * @param writer
-	 *        The {@linkplain PrintWriter output stream}.
+	 *   The [output stream][PrintWriter].
 	 */
-	private void generateRepresentativeModulePreamble (
-		final List<String> versions,
-		final PrintWriter writer)
+	private fun generateRepresentativeModulePreamble(
+		versions: List<String>,
+		writer: PrintWriter)
 	{
 		writer.println(MessageFormat.format(
-			preamble.getString(availCopyright.name()),
-			preamble.getString(representativeModuleName.name()),
-			new Date()));
+			preamble.getString(Resources.Key.availCopyright.name),
+			preamble.getString(Resources.Key.representativeModuleName.name),
+			Date()))
 		writer.println(MessageFormat.format(
-			preamble.getString(generatedModuleNotice.name()),
-			BootstrapGenerator.class.getName(),
-			new Date()));
-		final Key[] keys =
+			preamble.getString(Resources.Key.generatedModuleNotice.name),
+			BootstrapGenerator::class.java.name,
+			Date()))
+		val keys = arrayOf(
+			Resources.Key.originModuleName,
+			Resources.Key.specialObjectsModuleName,
+			Resources.Key.errorCodesModuleName,
+			Resources.Key.primitivesModuleName,
+			Resources.Key.infalliblePrimitivesModuleName,
+			Resources.Key.falliblePrimitivesModuleName)
+		val extended = StringBuilder()
+		for (key in keys)
 		{
-			originModuleName,
-			specialObjectsModuleName,
-			errorCodesModuleName,
-			primitivesModuleName,
-			infalliblePrimitivesModuleName,
-			falliblePrimitivesModuleName
-		};
-		final StringBuilder extended = new StringBuilder();
-		for (final Key key : keys)
-		{
-			extended.append("\n\t\"");
-			extended.append(preamble.getString(key.name()));
-			extended.append("\",");
+			extended.append("\n\t\"")
+			extended.append(preamble.getString(key.name))
+			extended.append("\",")
 		}
-		String extendedString = extended.toString();
+		var extendedString = extended.toString()
 		extendedString = extendedString.substring(
-			0, extendedString.length() - 1);
+			0, extendedString.length - 1)
 		writer.println(MessageFormat.format(
-			preamble.getString(generalModuleHeader.name()),
-			preamble.getString(representativeModuleName.name()),
+			preamble.getString(Resources.Key.generalModuleHeader.name),
+			preamble.getString(Resources.Key.representativeModuleName.name),
 			moduleVersionString(versions),
 			extendedString,
 			"",
-			""));
+			""))
 	}
 
 	/**
-	 * Generate the {@linkplain ModuleDescriptor module} that contains the
-	 * pragmas.
+	 * Generate the [module][ModuleDescriptor] that contains the pragmas.
 	 *
 	 * @param versions
-	 *        The supported versions.
+	 *   The supported versions.
 	 * @throws IOException
-	 *         If the source module could not be written.
+	 *   If the source module could not be written.
 	 */
-	private void generateOriginModule (
-			final List<String> versions)
-		throws IOException
+	@Throws(IOException::class)
+	private fun generateOriginModule(
+		versions: List<String>)
 	{
-		final File fileName = moduleFileName(originModuleName);
-		assert fileName.getPath().endsWith(".avail");
-		final PrintWriter writer = new PrintWriter(fileName, "UTF-8");
-		generateOriginModulePreamble(versions, writer);
-		writer.close();
+		val fileName = moduleFileName(Resources.Key.originModuleName)
+		assert(fileName.path.endsWith(".avail"))
+		val writer = PrintWriter(fileName, "UTF-8")
+		generateOriginModulePreamble(versions, writer)
+		writer.close()
 	}
 
 	/**
-	 * Generate the {@linkplain ModuleDescriptor module} that binds the special
-	 * objects to Avail names.
+	 * Generate the [module][ModuleDescriptor] that binds the special objects to
+	 * Avail names.
 	 *
 	 * @param versions
-	 *        The supported versions.
+	 *   The supported versions.
 	 * @throws IOException
-	 *         If the source module could not be written.
+	 *   If the source module could not be written.
 	 */
-	private void generateSpecialObjectsModule (
-			final List<String> versions)
-		throws IOException
+	@Throws(IOException::class)
+	private fun generateSpecialObjectsModule(versions: List<String>)
 	{
-		final File fileName = moduleFileName(specialObjectsModuleName);
-		assert fileName.getPath().endsWith(".avail");
-		final PrintWriter writer = new PrintWriter(fileName, "UTF-8");
-		generateSpecialObjectModulePreamble(versions, writer);
-		generateSpecialObjectModuleBody(writer);
-		writer.close();
+		val fileName = moduleFileName(Resources.Key.specialObjectsModuleName)
+		assert(fileName.path.endsWith(".avail"))
+		val writer = PrintWriter(fileName, "UTF-8")
+		generateSpecialObjectModulePreamble(versions, writer)
+		generateSpecialObjectModuleBody(writer)
+		writer.close()
 	}
 
 	/**
-	 * Generate the specified primitive {@linkplain ModuleDescriptor module}.
+	 * Generate the specified primitive [module][ModuleDescriptor].
 	 *
 	 * @param fallible
-	 *        {@code true} to indicate the fallible primitives module, {@code
-	 *        false} to indicate the infallible primitives module, {@code null}
-	 *        to indicate the introductory primitives module.
+	 *   `true` to indicate the fallible primitives module, `false` to indicate
+	 *   the infallible primitives module, `null` to indicate the introductory
+	 *   primitives module.
 	 * @param versions
-	 *        The {@linkplain List list} of version strings supported by the
-	 *        module.
+	 *   The [list][List] of version strings supported by the module.
 	 * @throws IOException
-	 *         If the source module could not be written.
+	 *   If the source module could not be written.
 	 */
-	private void generatePrimitiveModule (
-			final @Nullable Boolean fallible,
-			final List<String> versions)
-		throws IOException
+	@Throws(IOException::class)
+	private fun generatePrimitiveModule(
+		fallible: Boolean?,
+		versions: List<String>)
 	{
-		final Key key;
-		if (fallible == null)
+		val key: Resources.Key = if (fallible == null)
 		{
-			key = primitivesModuleName;
+			Resources.Key.primitivesModuleName
 		}
 		else
 		{
-			key = fallible
-				? falliblePrimitivesModuleName
-				: infalliblePrimitivesModuleName;
+			if (fallible) Resources.Key.falliblePrimitivesModuleName
+			else Resources.Key.infalliblePrimitivesModuleName
 		}
-		final File fileName = moduleFileName(key);
-		assert fileName.getPath().endsWith(".avail");
-		final PrintWriter writer = new PrintWriter(fileName, "UTF-8");
-		generatePrimitiveModulePreamble(fallible, versions, writer);
-		generatePrimitiveModuleBody(fallible, writer);
-		writer.close();
+		val fileName = moduleFileName(key)
+		assert(fileName.path.endsWith(".avail"))
+		val writer = PrintWriter(fileName, "UTF-8")
+		generatePrimitiveModulePreamble(fallible, versions, writer)
+		generatePrimitiveModuleBody(fallible, writer)
+		writer.close()
 	}
 
 	/**
-	 * Generate the {@linkplain ModuleDescriptor module} that binds the
-	 * {@linkplain AvailErrorCode primitive error codes} to Avail names.
+	 * Generate the [module][ModuleDescriptor] that binds the
+	 * [primitive error codes][AvailErrorCode] to Avail names.
 	 *
 	 * @param versions
-	 *        The supported versions.
+	 *   The supported versions.
 	 * @throws IOException
-	 *         If the source module could not be written.
+	 *   If the source module could not be written.
 	 */
-	private void generateErrorCodesModule (final List<String> versions)
-		throws IOException
+	@Throws(IOException::class)
+	private fun generateErrorCodesModule(versions: List<String>)
 	{
-		final File fileName = moduleFileName(errorCodesModuleName);
-		assert fileName.getPath().endsWith(".avail");
-		final PrintWriter writer = new PrintWriter(fileName, "UTF-8");
-		generateErrorCodesModulePreamble(versions, writer);
-		generateErrorCodesModuleBody(writer);
-		writer.close();
+		val fileName = moduleFileName(Resources.Key.errorCodesModuleName)
+		assert(fileName.path.endsWith(".avail"))
+		val writer = PrintWriter(fileName, "UTF-8")
+		generateErrorCodesModulePreamble(versions, writer)
+		generateErrorCodesModuleBody(writer)
+		writer.close()
 	}
 
 	/**
-	 * Generate the {@linkplain ModuleDescriptor module} that represents the
-	 * bootstrap package.
+	 * Generate the [module][ModuleDescriptor] that represents the bootstrap package.
 	 *
 	 * @param versions
-	 *        The supported versions.
+	 *   The supported versions.
 	 * @throws IOException
-	 *         If the source module could not be written.
+	 *   If the source module could not be written.
 	 */
-	private void generateRepresentativeModule (
-			final List<String> versions)
-		throws IOException
+	@Throws(IOException::class)
+	private fun generateRepresentativeModule(versions: List<String>)
 	{
-		final File fileName = moduleFileName(representativeModuleName);
-		assert fileName.getPath().endsWith(".avail");
-		final PrintWriter writer = new PrintWriter(fileName, "UTF-8");
-		generateRepresentativeModulePreamble(versions, writer);
-		writer.close();
+		val fileName = moduleFileName(Resources.Key.representativeModuleName)
+		assert(fileName.path.endsWith(".avail"))
+		val writer = PrintWriter(fileName, "UTF-8")
+		generateRepresentativeModulePreamble(versions, writer)
+		writer.close()
 	}
 
 	/**
-	 * Generate the target Avail source {@linkplain ModuleDescriptor modules}.
+	 * Generate the target Avail source [modules][ModuleDescriptor].
 	 *
 	 * @param versions
-	 *        The supported versions.
+	 *   The supported versions.
 	 * @throws IOException
-	 *         If any of the source modules could not be written.
+	 * If any of the source modules could not be written.
 	 */
-	public void generate (final List<String> versions)
-		throws IOException
+	@Throws(IOException::class)
+	fun generate(versions: List<String>)
 	{
-		final File languagePath = new File(String.format(
+		val languagePath = File(String.format(
 			"%s/%s/%s",
 			sourceBaseName,
 			generatedPackageName.replace('.', '/'),
-			locale.getLanguage()));
-		@SuppressWarnings("unused")
-		final boolean ignored1 = languagePath.mkdir();
-		final File packageName = new File(String.format(
+			locale.language))
+		val ignored1 = languagePath.mkdir()
+		val packageName = File(String.format(
 			"%s/%s/%s/%s.avail",
 			sourceBaseName,
 			generatedPackageName.replace('.', '/'),
-			locale.getLanguage(),
-			preamble.getString(representativeModuleName.name())));
-		@SuppressWarnings("unused")
-		final boolean ignored2 = packageName.mkdir();
-		generateOriginModule(versions);
-		generateSpecialObjectsModule(versions);
-		generatePrimitiveModule(null, versions);
-		generatePrimitiveModule(false, versions);
-		generatePrimitiveModule(true, versions);
-		generateErrorCodesModule(versions);
-		generateRepresentativeModule(versions);
+			locale.language,
+			preamble.getString(Resources.Key.representativeModuleName.name)))
+		val ignored2 = packageName.mkdir()
+		generateOriginModule(versions)
+		generateSpecialObjectsModule(versions)
+		generatePrimitiveModule(null, versions)
+		generatePrimitiveModule(false, versions)
+		generatePrimitiveModule(true, versions)
+		generateErrorCodesModule(versions)
+		generateRepresentativeModule(versions)
 	}
 
-	/**
-	 * Construct a new {@code BootstrapGenerator}.
-	 *
-	 * @param locale The target {@linkplain Locale locale}.
-	 */
-	public BootstrapGenerator (final Locale locale)
+	init
 	{
-		this.locale = locale;
-		final UTF8ResourceBundleControl control =
-			new UTF8ResourceBundleControl();
-		this.preamble = ResourceBundle.getBundle(
+		val control = UTF8ResourceBundleControl()
+		preamble = ResourceBundle.getBundle(
 			preambleBaseName,
 			locale,
-			BootstrapGenerator.class.getClassLoader(),
-			control);
-		this.specialObjectBundle = ResourceBundle.getBundle(
+			BootstrapGenerator::class.java.classLoader,
+			control)
+		specialObjectBundle = ResourceBundle.getBundle(
 			specialObjectsBaseName,
 			locale,
-			BootstrapGenerator.class.getClassLoader(),
-			control);
-		this.primitiveBundle = ResourceBundle.getBundle(
+			BootstrapGenerator::class.java.classLoader,
+			control)
+		primitiveBundle = ResourceBundle.getBundle(
 			primitivesBaseName,
 			locale,
-			BootstrapGenerator.class.getClassLoader(),
-			control);
-		this.errorCodeBundle = ResourceBundle.getBundle(
+			BootstrapGenerator::class.java.classLoader,
+			control)
+		errorCodeBundle = ResourceBundle.getBundle(
 			errorCodesBaseName,
 			locale,
-			BootstrapGenerator.class.getClassLoader(),
-			control);
+			BootstrapGenerator::class.java.classLoader,
+			control)
 
 		// Map localized names to the special objects.
-		for (int i = 0; i < specialObjects.size(); i++)
+		for (i in specialObjects.indices)
 		{
-			final AvailObject specialObject = specialObjects.get(i);
-			if (specialObject != null)
+			val specialObject = specialObjects[i]
+			if (specialObject !== NilDescriptor.nil)
 			{
-				final String key = specialObjectKey(i);
-				final String value = specialObjectBundle.getString(key);
-				if (!value.isEmpty())
+				val key = specialObjectKey(i)
+				val value = specialObjectBundle.getString(key)
+				if (value.isNotEmpty())
 				{
-					specialObjectsByName.put(value, specialObject);
-					namesBySpecialObject.put(specialObject, value);
+					specialObjectsByName[value] = specialObject
+					namesBySpecialObject[specialObject] = value
 				}
 			}
 		}
 
 		// Map localized names to the primitives.
-		for (final Primitive primitive : primitives(null))
+		for (primitive in primitives(null))
 		{
-			if (!primitive.hasFlag(Flag.Private)
-				&& !primitive.hasFlag(Flag.Bootstrap))
+			if (!primitive.hasFlag(Primitive.Flag.Private)
+			    && !primitive.hasFlag(Primitive.Flag.Bootstrap))
 			{
-				final String value = primitiveBundle.getString(
-					primitive.getClass().getSimpleName());
-				if (!value.isEmpty())
+				val value = primitiveBundle.getString(
+					primitive.javaClass.simpleName)
+				if (value.isNotEmpty())
 				{
-					final Set<Primitive> set = primitiveNameMap.computeIfAbsent(
-						value, k -> new HashSet<>());
-					set.add(primitive);
+					val set = primitiveNameMap.computeIfAbsent(value)
+						{ mutableSetOf() }
+					set.add(primitive)
 				}
 			}
 		}
 
 		// Map localized names to the primitive error codes.
-		for (final AvailErrorCode code : errorCodes())
+		for (code in errorCodes())
 		{
-			final String value = errorCodeBundle.getString(errorCodeKey(code));
-			if (!value.isEmpty())
+			val value = errorCodeBundle.getString(errorCodeKey(code))
+			if (value.isNotEmpty())
 			{
-				errorCodesByName.put(value, code);
+				errorCodesByName[value] = code
 			}
-		}
-	}
-
-	/**
-	 * Generate all bootstrap {@linkplain ModuleDescriptor modules}.
-	 *
-	 * @param args
-	 *        The command-line arguments. The first argument is a
-	 *        comma-separated list of language codes that broadly specify the
-	 *        {@linkplain Locale locales} for which modules should be generated.
-	 *        The second argument is a comma-separated list of Avail system
-	 *        versions.
-	 * @throws Exception
-	 *         If anything should go wrong.
-	 */
-	public static void main (final String[] args)
-		throws Exception
-	{
-		final List<String> languages = new ArrayList<>();
-		if (args.length < 1)
-		{
-			languages.add(System.getProperty("user.language"));
-		}
-		else
-		{
-			final StringTokenizer tokenizer = new StringTokenizer(args[0], ",");
-			while (tokenizer.hasMoreTokens())
-			{
-				languages.add(tokenizer.nextToken());
-			}
-		}
-		final List<String> versions = new ArrayList<>();
-		if (args.length < 2)
-		{
-			final A_Set activeVersions =
-				AvailRuntimeConfiguration.activeVersions();
-			final List<String> list = new ArrayList<>(activeVersions.setSize());
-			for (final A_String activeVersion : activeVersions)
-			{
-				list.add(activeVersion.asNativeString());
-			}
-			versions.addAll(list);
-		}
-		else
-		{
-			final StringTokenizer tokenizer = new StringTokenizer(args[1], ",");
-			while (tokenizer.hasMoreTokens())
-			{
-				versions.add(tokenizer.nextToken());
-			}
-		}
-
-		for (final String language : languages)
-		{
-			final BootstrapGenerator generator =
-				new BootstrapGenerator(new Locale(language));
-			generator.generate(versions);
 		}
 	}
 }

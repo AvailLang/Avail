@@ -1,5 +1,5 @@
 /*
- * SpecialObjectNamesGenerator.java
+ * SpecialObjectNamesGenerator.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,174 +29,148 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.tools.bootstrap
 
-package com.avail.tools.bootstrap;
-
-import com.avail.AvailRuntime;
-import com.avail.descriptor.representation.A_BasicObject;
-import com.avail.descriptor.representation.AvailObject;
-
-import java.io.PrintWriter;
-import java.text.MessageFormat;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Properties;
-import java.util.PropertyResourceBundle;
-import java.util.ResourceBundle;
-import java.util.Set;
-
-import static com.avail.tools.bootstrap.Resources.Key.specialObjectCommentTemplate;
-import static com.avail.tools.bootstrap.Resources.Key.specialObjectCommentTypeTemplate;
-import static com.avail.tools.bootstrap.Resources.Key.specialObjectCommentValueTemplate;
-import static com.avail.tools.bootstrap.Resources.escape;
-import static com.avail.tools.bootstrap.Resources.specialObjectCommentKey;
-import static com.avail.tools.bootstrap.Resources.specialObjectKey;
-import static com.avail.tools.bootstrap.Resources.specialObjectTypeKey;
-import static com.avail.tools.bootstrap.Resources.specialObjectsBaseName;
+import com.avail.AvailRuntime.Companion.specialObjects
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.NilDescriptor
+import com.avail.tools.bootstrap.Resources.escape
+import com.avail.tools.bootstrap.Resources.specialObjectCommentKey
+import com.avail.tools.bootstrap.Resources.specialObjectKey
+import com.avail.tools.bootstrap.Resources.specialObjectTypeKey
+import com.avail.tools.bootstrap.Resources.specialObjectsBaseName
+import java.io.PrintWriter
+import java.text.MessageFormat
+import java.util.*
 
 /**
- * Generate a {@linkplain PropertyResourceBundle property resource bundle} that
- * specifies unbound properties for the Avail names of the special objects.
+ * Generate a [property resource bundle][PropertyResourceBundle] that specifies
+ * unbound properties for the Avail names of the special objects.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @constructor
+ * Construct a new [SpecialObjectNamesGenerator].
+ *
+ * @param locale
+ *   The target [locale][Locale].
  */
-public final class SpecialObjectNamesGenerator
-extends PropertiesFileGenerator
+internal class SpecialObjectNamesGenerator constructor(locale: Locale)
+	: PropertiesFileGenerator(specialObjectsBaseName, locale)
 {
 	/**
 	 * Write the names of the properties, whose unspecified values should be
 	 * the Avail names of the corresponding special objects.
 	 *
 	 * @param properties
-	 *        The existing {@linkplain Properties properties}. These should be
-	 *        copied into the resultant {@linkplain ResourceBundle properties
-	 *        resource bundle}.
+	 *   The existing [properties][Properties]. These should be copied into the
+	 *   resultant [properties resource bundle][ResourceBundle].
 	 * @param writer
-	 *        The {@linkplain PrintWriter output stream}.
+	 *   The [output stream][PrintWriter].
 	 */
-	@Override
-	protected void generateProperties (
-		final Properties properties,
-		final PrintWriter writer)
+	override fun generateProperties(
+		properties: Properties,
+		writer: PrintWriter)
 	{
-		final List<AvailObject> specialObjects = AvailRuntime.specialObjects();
-		final Set<String> keys = new HashSet<>();
-		for (int i = 0; i < specialObjects.size(); i++)
+		val specialObjects = specialObjects()
+		val keys = mutableSetOf<String>()
+		for (i in specialObjects.indices)
 		{
-			final A_BasicObject specialObject = specialObjects.get(i);
-			if (specialObject != null)
+			if (specialObjects[i] !== NilDescriptor.nil)
 			{
+				val specialObject: A_BasicObject = specialObjects[i]
 				// Write a primitive descriptive of the special object as a
 				// comment, to assist a human translator.
-				final String text =
-					specialObject.toString().replace("\n", "\n#");
-				writer.print("# ");
-				writer.print(text);
-				writer.println();
+				val text = specialObject.toString().replace("\n", "\n#")
+				writer.print("# ")
+				writer.print(text)
+				writer.println()
 				// Write the method name of the special object.
-				final String key = specialObjectKey(i);
-				keys.add(key);
-				writer.print(key);
-				writer.print('=');
-				final String specialObjectName = properties.getProperty(key);
+				val key = specialObjectKey(i)
+				keys.add(key)
+				writer.print(key)
+				writer.print('=')
+				val specialObjectName = properties.getProperty(key)
 				if (specialObjectName != null)
 				{
-					writer.print(escape(specialObjectName));
+					writer.print(escape(specialObjectName))
 				}
-				writer.println();
+				writer.println()
 				// Write the preferred alias that Stacks should indicate.
-				final String typeKey = specialObjectTypeKey(i);
-				keys.add(typeKey);
-				writer.print(typeKey);
-				writer.print('=');
-				final String type = properties.getProperty(typeKey, "");
-				writer.print(escape(type));
-				writer.println();
+				val typeKey = specialObjectTypeKey(i)
+				keys.add(typeKey)
+				writer.print(typeKey)
+				writer.print('=')
+				val type = properties.getProperty(typeKey, "")
+				writer.print(escape(type))
+				writer.println()
 				// Write the Stacks comment.
-				final String commentKey = specialObjectCommentKey(i);
-				keys.add(commentKey);
-				writer.print(commentKey);
-				writer.print('=');
-				final String comment = properties.getProperty(commentKey);
-				if (comment != null && !comment.isEmpty())
+				val commentKey = specialObjectCommentKey(i)
+				keys.add(commentKey)
+				writer.print(commentKey)
+				writer.print('=')
+				val comment = properties.getProperty(commentKey)
+				if (comment != null && comment.isNotEmpty())
 				{
-					writer.print(escape(comment));
+					writer.print(escape(comment))
 				}
 				else
 				{
-					final String commentTemplate =
-						preambleBundle.getString(
-							specialObjectCommentTemplate.name());
-					final String template;
-					if (specialObject.isType())
+					val commentTemplate = preambleBundle.getString(
+						Resources.Key.specialObjectCommentTemplate.name)
+					val template: String = if (specialObject.isType)
 					{
-						template = specialObjectCommentTypeTemplate.name();
+						Resources.Key.specialObjectCommentTypeTemplate.name
 					}
 					else
 					{
-						template = specialObjectCommentValueTemplate.name();
+						Resources.Key.specialObjectCommentValueTemplate.name
 					}
 					writer.print(escape(
 						MessageFormat.format(
 							commentTemplate,
-							preambleBundle.getString(template))));
+							preambleBundle.getString(template))))
 				}
-				writer.println();
+				writer.println()
 			}
 		}
-		for (final Object property : properties.keySet())
+		for (property in properties.keys)
 		{
-			final String key = (String) property;
+			val key = property as String
 			if (!keys.contains(key))
 			{
-				keys.add(key);
-				writer.print(key);
-				writer.print('=');
-				writer.println(escape(properties.getProperty(key)));
+				keys.add(key)
+				writer.print(key)
+				writer.print('=')
+				writer.println(escape(properties.getProperty(key)))
 			}
 		}
 	}
 
-	/**
-	 * Construct a new {@link SpecialObjectNamesGenerator}.
-	 *
-	 * @param locale
-	 *        The target {@linkplain Locale locale}.
-	 */
-	public SpecialObjectNamesGenerator (final Locale locale)
+	companion object
 	{
-		super(specialObjectsBaseName, locale);
-	}
-
-	/**
-	 * Generate the specified {@linkplain ResourceBundle resource bundles}.
-	 *
-	 * @param args
-	 *        The command-line arguments, an array of language codes that
-	 *        broadly specify the {@linkplain Locale locales} for which
-	 *        resource bundles should be generated.
-	 * @throws Exception
-	 *         If anything should go wrong.
-	 */
-	public static void main (final String[] args)
-		throws Exception
-	{
-		final String[] languages;
-		if (args.length > 0)
+		/**
+		 * Generate the specified [resource bundles][ResourceBundle].
+		 *
+		 * @param args
+		 *   The command-line arguments, an array of language codes that broadly
+		 *   specify the [locales][Locale] for which resource bundles should be
+		 *   generated.
+		 * @throws Exception
+		 *   If anything should go wrong.
+		 */
+		@Throws(Exception::class)
+		@JvmStatic
+		fun main(args: Array<String>)
 		{
-			languages = args;
-		}
-		else
-		{
-			languages = new String[] { System.getProperty("user.language") };
-		}
-
-		for (final String language : languages)
-		{
-			final SpecialObjectNamesGenerator generator =
-				new SpecialObjectNamesGenerator(new Locale(language));
-			generator.generate();
+			val languages: Array<String> =
+				if (args.isNotEmpty()) args
+				else arrayOf(System.getProperty("user.language"))
+			for (language in languages)
+			{
+				val generator = SpecialObjectNamesGenerator(Locale(language))
+				generator.generate()
+			}
 		}
 	}
 }
