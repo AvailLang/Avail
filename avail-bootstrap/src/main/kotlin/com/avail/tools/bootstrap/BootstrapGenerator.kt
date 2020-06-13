@@ -37,7 +37,6 @@ import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
@@ -188,18 +187,8 @@ class BootstrapGenerator constructor(private val locale: Locale)
 		 * @return
 		 *   The relevant primitive error codes.
 		 */
-		private fun errorCodes(): List<AvailErrorCode>
-		{
-			val relevant: MutableList<AvailErrorCode> = mutableListOf()
-			for (code in AvailErrorCode.values())
-			{
-				if (code.nativeCode() > 0)
-				{
-					relevant.add(code)
-				}
-			}
-			return relevant
-		}
+		private fun errorCodes(): List<AvailErrorCode> =
+			AvailErrorCode.values().filter { it.nativeCode() > 0 }
 
 		/**
 		 * Generate all bootstrap [modules][ModuleDescriptor].
@@ -229,16 +218,10 @@ class BootstrapGenerator constructor(private val locale: Locale)
 					languages.add(tokenizer.nextToken())
 				}
 			}
-			val versions: MutableList<String> = ArrayList()
+			val versions = mutableListOf<String>()
 			if (args.size < 2)
 			{
-				val activeVersions = activeVersions()
-				val list = mutableListOf<String>()
-				for (activeVersion in activeVersions)
-				{
-					list.add(activeVersion.asNativeString())
-				}
-				versions.addAll(list)
+				activeVersions().mapTo(versions) { it.asNativeString() }
 			}
 			else
 			{
@@ -261,7 +244,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 			for (i in specialObjects.indices)
 			{
 				val specialObject = specialObjects[i]
-				if (specialObject !== NilDescriptor.nil)
+				if (!specialObject.equalsNil())
 				{
 					specialObjectIndexMap[specialObject] = i
 				}
@@ -473,7 +456,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 		// Emit the special object methods.
 		for (i in specialObjects.indices)
 		{
-			if (specialObjects[i] !== NilDescriptor.nil)
+			if (!specialObjects[i].equalsNil())
 			{
 				val notAlphaKey = specialObjectKey(i)
 				if (!specialObjectBundle.containsKey(notAlphaKey)
@@ -1655,7 +1638,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 		for (i in specialObjects.indices)
 		{
 			val specialObject = specialObjects[i]
-			if (specialObject !== NilDescriptor.nil)
+			if (!specialObject.equalsNil())
 			{
 				val key = specialObjectKey(i)
 				val value = specialObjectBundle.getString(key)

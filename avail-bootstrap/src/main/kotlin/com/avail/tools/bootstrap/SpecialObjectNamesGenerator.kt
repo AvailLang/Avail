@@ -1,6 +1,6 @@
 /*
  * SpecialObjectNamesGenerator.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,6 @@ package com.avail.tools.bootstrap
 
 import com.avail.AvailRuntime.Companion.specialObjects
 import com.avail.descriptor.representation.A_BasicObject
-import com.avail.descriptor.representation.NilDescriptor
 import com.avail.tools.bootstrap.Resources.escape
 import com.avail.tools.bootstrap.Resources.specialObjectCommentKey
 import com.avail.tools.bootstrap.Resources.specialObjectKey
@@ -76,7 +75,7 @@ internal class SpecialObjectNamesGenerator constructor(locale: Locale)
 		val keys = mutableSetOf<String>()
 		for (i in specialObjects.indices)
 		{
-			if (specialObjects[i] !== NilDescriptor.nil)
+			if (!specialObjects[i].equalsNil())
 			{
 				val specialObject: A_BasicObject = specialObjects[i]
 				// Write a primitive descriptive of the special object as a
