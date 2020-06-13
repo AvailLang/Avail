@@ -3006,6 +3006,9 @@ class AvailObject private constructor(
 	@ReferencedInGeneratedCode
 	override fun fieldAt(field: A_Atom) = dispatch(field) { it::o_FieldAt }
 
+	override fun fieldAtOrNull(field: A_Atom) =
+		dispatch(field) { it::o_FieldAtOrNull }
+
 	override fun fieldAtPuttingCanDestroy(
 		field: A_Atom,
 		value: A_BasicObject,
@@ -3014,6 +3017,9 @@ class AvailObject private constructor(
 
 	override fun fieldTypeAt(field: A_Atom) =
 		dispatch(field) { it::o_FieldTypeAt }
+
+	override fun fieldTypeAtOrNull(field: A_Atom) =
+		dispatch(field) { it::o_FieldTypeAtOrNull }
 
 	@Throws(VariableGetException::class, VariableSetException::class)
 	override fun atomicAddToMap(key: A_BasicObject, value: A_BasicObject) =

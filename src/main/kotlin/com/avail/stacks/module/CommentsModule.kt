@@ -807,7 +807,7 @@ class CommentsModule constructor(
 	 * Create the String file names for the methods defined in this module.
 	 *
 	 * @param names
-	 *   A pair of [[A_String] and [CommentGroup] that are to have file names
+	 *   A pair of [A_String] and [CommentGroup] that are to have file names
 	 *   constructed for them.
 	 * @param fileExtension
 	 *   The string extension the stacks output files should have (e.g. "json")
@@ -953,7 +953,7 @@ class CommentsModule constructor(
 							mutableMapOf<String, CommentGroup>()
 						modToImplement[modName] = implementation
 						filteredMap[key] = modToImplement
-					}.invoke()
+					}()
 
 					for (category in implementation.categories())
 					{
@@ -1005,7 +1005,7 @@ class CommentsModule constructor(
 							HashMap<String, CommentGroup>()
 						modToImplement[tempEntry.key] = implementation
 						filteredMap[key] = modToImplement
-					}.invoke()
+					}()
 
 					for (category in implementation.categories())
 					{

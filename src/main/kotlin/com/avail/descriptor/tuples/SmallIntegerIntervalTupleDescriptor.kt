@@ -31,6 +31,7 @@
  */
 package com.avail.descriptor.tuples
 
+import com.avail.annotations.HideFieldInDebugger
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.representation.*
@@ -49,14 +50,14 @@ import java.util.*
  * tuple][IntegerIntervalTupleDescriptor] whose slots are all Java `long`s.
  *
  * @author Leslie Schultz &lt;leslie@availlang.org&gt;
- * 
+ *
  * @constructor
  * Construct a new `SmallIntegerIntervalTupleDescriptor`.
  *
  * @param mutability
  *   The mutability of the descriptor.
  */
-class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?) 
+class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 	: NumericTupleDescriptor(
 		mutability!!, null, IntegerSlots::class.java)
 {
@@ -71,6 +72,7 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 		 * case that the hash value actually equals zero, the hash value has to
 		 * be computed every time it is requested.
 		 */
+		@HideFieldInDebugger
 		HASH_AND_MORE,
 
 		/** [BitField]s containing the extrema of the tuple.  */
@@ -369,12 +371,12 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 		{
 			return false
 		}
-		if (firstTraversed.slot(IntegerSlots.SIZE) != 
+		if (firstTraversed.slot(IntegerSlots.SIZE) !=
 			secondTraversed.slot(IntegerSlots.SIZE))
 		{
 			return false
 		}
-		if (firstTraversed.slot(IntegerSlots.DELTA) != 
+		if (firstTraversed.slot(IntegerSlots.DELTA) !=
 			secondTraversed.slot(IntegerSlots.DELTA))
 		{
 			return false

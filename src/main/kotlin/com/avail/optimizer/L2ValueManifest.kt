@@ -34,12 +34,20 @@ package com.avail.optimizer
 import com.avail.descriptor.types.A_Type
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2Operation
-import com.avail.interpreter.levelTwo.operand.*
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadFloatOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadFloatVectorOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadIntVectorOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteOperand
+import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.interpreter.levelTwo.operation.L2_MAKE_IMMUTABLE
 import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION
 import com.avail.interpreter.levelTwo.register.L2Register
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind
-import com.avail.optimizer.values.Frame
 import com.avail.optimizer.values.L2SemanticPrimitiveInvocation
 import com.avail.optimizer.values.L2SemanticValue
 import com.avail.utility.Casts
@@ -130,9 +138,10 @@ class L2ValueManifest
 	 * @return
 	 *   The [L2Synonym] bound to that semantic value, or `null`.
 	 */
-	fun semanticValueToSynonymOrElse(
+	private fun semanticValueToSynonymOrElse(
 		semanticValue: L2SemanticValue,
-		elseSupplier: ()->L2Synonym): L2Synonym? =
+		elseSupplier: ()->L2Synonym
+	): L2Synonym? =
 			semanticValueToSynonym[semanticValue] ?: elseSupplier()
 
 
@@ -702,7 +711,7 @@ class L2ValueManifest
 	 * @param writer
 	 *   The operand that received the value.
 	 */
-	fun recordDefinitionForNewKind(writer: L2WriteOperand<*>)
+	private fun recordDefinitionForNewKind(writer: L2WriteOperand<*>)
 	{
 		assert(writer.instructionHasBeenEmitted())
 		val semanticValue = writer.pickSemanticValue()
@@ -1117,24 +1126,21 @@ class L2ValueManifest
 	}
 
 	/**
-	 * Transform this manifest by mapping its [L2SemanticValue]s and [Frame]s.
+	 * Transform this manifest by mapping its [L2SemanticValue]s.
 	 *
 	 * @param semanticValueTransformer
 	 *   The transformation for [L2SemanticValue]s.
-	 * @param frameTransformer
-	 *   The transformation for [Frame]s.
 	 * @return
 	 *   The transformed manifest.
 	 */
 	fun transform(
-		semanticValueTransformer: (L2SemanticValue) -> L2SemanticValue,
-		frameTransformer: (Frame)->Frame): L2ValueManifest
+		semanticValueTransformer: (L2SemanticValue) -> L2SemanticValue
+	): L2ValueManifest
 	{
 		val newManifest = L2ValueManifest()
 		for (oldSynonym in synonymsArray())
 		{
-			val restriction =
-				restrictionFor(oldSynonym.pickSemanticValue())
+			val restriction = restrictionFor(oldSynonym.pickSemanticValue())
 			newManifest.introduceSynonym(
 				oldSynonym.transform(semanticValueTransformer),
 				restriction)
@@ -1298,7 +1304,7 @@ class L2ValueManifest
 	 * @param synonym
 	 *   The [L2Synonym] for which to forget all boxed definitions.
 	 */
-	fun forgetBoxedRegistersFor(synonym: L2Synonym)
+	private fun forgetBoxedRegistersFor(synonym: L2Synonym)
 	{
 		assert(definitions.containsKey(synonym))
 		val defs = definitions[synonym]!!.filter {

@@ -57,8 +57,8 @@ import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT
+import com.avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP
 import com.avail.interpreter.levelTwo.operation.L2_SUBTRACT_INT_MINUS_INT
-import com.avail.interpreter.levelTwo.operation.L2_SUBTRACT_INT_MINUS_INT_MOD_32_BITS
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
 import com.avail.optimizer.L2Generator.Companion.edgeTo
@@ -119,11 +119,9 @@ object P_Subtraction : Primitive(2, CanFold, CanInline)
 			if (aType.isIntegerRangeType && bType.isIntegerRangeType)
 			{
 				val low = aType.lowerBound().minusCanDestroy(
-					bType.upperBound(),
-					false)
+					bType.upperBound(), false)
 				val high = aType.upperBound().minusCanDestroy(
-					bType.lowerBound(),
-					false)
+					bType.lowerBound(), false)
 				val includesNegativeInfinity =
 					negativeInfinity().isInstanceOf(aType)
 						|| positiveInfinity().isInstanceOf(bType)
@@ -179,7 +177,8 @@ object P_Subtraction : Primitive(2, CanFold, CanInline)
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
 		translator: L1Translator,
-		callSiteHelper: CallSiteHelper): Boolean
+		callSiteHelper: CallSiteHelper
+	): Boolean
 	{
 		val a = arguments[0]
 		val b = arguments[1]
@@ -208,8 +207,7 @@ object P_Subtraction : Primitive(2, CanFold, CanInline)
 				returnTypeGuaranteedByVM(
 					rawFunction,
 					argumentTypes.map { it.typeIntersection(int32()) })
-			val semanticTemp =
-				generator.topFrame.temp(generator.nextUnique())
+			val semanticTemp = generator.topFrame.temp(generator.nextUnique())
 			val tempWriter =
 				generator.intWrite(
 					semanticTemp,
@@ -222,7 +220,7 @@ object P_Subtraction : Primitive(2, CanFold, CanInline)
 				// synonym, so subsequent uses of the result might use either
 				// register, depending whether an unboxed value is desired.
 				translator.addInstruction(
-					L2_SUBTRACT_INT_MINUS_INT_MOD_32_BITS,
+					L2_BIT_LOGIC_OP.wrappedSubtract,
 					intA,
 					intB,
 					tempWriter)

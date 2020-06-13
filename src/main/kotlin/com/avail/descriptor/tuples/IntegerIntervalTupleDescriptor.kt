@@ -9,7 +9,7 @@
  * * Redistributions of source code must retain the above copyright notice, this
  *     list of conditions and the following disclaimer.
  *
- * * Redistributions in binary form must reproduce the above copyright notice, 
+ * * Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
  *
@@ -31,6 +31,7 @@
  */
 package com.avail.descriptor.tuples
 
+import com.avail.annotations.HideFieldInDebugger
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
@@ -72,6 +73,7 @@ class IntegerIntervalTupleDescriptor private constructor(mutability: Mutability)
 		 * case that the hash value actually equals zero, the hash value has to
 		 * be computed every time it is requested.
 		 */
+		@HideFieldInDebugger
 		HASH_AND_MORE;
 
 		companion object

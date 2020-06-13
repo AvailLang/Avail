@@ -65,7 +65,7 @@ import com.avail.descriptor.tuples.ObjectTupleDescriptor
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
-import com.avail.descriptor.tuples.StringDescriptor
+import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.instanceTypeOrMetaOn
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
@@ -243,11 +243,21 @@ class ObjectTypeDescriptor internal constructor(
 		return true
 	}
 
-	override fun o_FieldTypeAt(self: AvailObject, field: A_Atom): AvailObject =
+	override fun o_FieldTypeAt(self: AvailObject, field: A_Atom): A_Type =
 		// Fails with NullPointerException if key is not found.
 		when (val slotIndex = variant.fieldToSlotIndex[field]) {
 			0 -> instanceType(field)
 			else -> self.slot(FIELD_TYPES_, slotIndex!!)
+		}
+
+	override fun o_FieldTypeAtOrNull(
+		self: AvailObject,
+		field: A_Atom
+	): A_Type? =
+		when (val slotIndex = variant.fieldToSlotIndex[field]) {
+			null -> null
+			0 -> instanceType(field)
+			else -> self.slot(FIELD_TYPES_, slotIndex)
 		}
 
 	override fun o_FieldTypeMap(self: AvailObject): A_Map
@@ -268,8 +278,8 @@ class ObjectTypeDescriptor internal constructor(
 		val fieldIterator = variant.fieldToSlotIndex.entries.iterator()
 		return generateObjectTupleFrom(variant.fieldToSlotIndex.size) {
 			val (field, slotIndex) = fieldIterator.next()
-			if (slotIndex == 0) ObjectTupleDescriptor.tuple(field, instanceType(field))
-			else ObjectTupleDescriptor.tuple(field, self.slot(FIELD_TYPES_, slotIndex))
+			if (slotIndex == 0) tuple(field, instanceType(field))
+			else tuple(field, self.slot(FIELD_TYPES_, slotIndex))
 		}.also { assert(!fieldIterator.hasNext()) }
 	}
 
@@ -782,7 +792,7 @@ class ObjectTypeDescriptor internal constructor(
 				names = names.setUnionCanDestroy(type, true)
 				baseTypes = baseTypes.setWithElementCanDestroy(name, true)
 			}
-			return ObjectTupleDescriptor.tuple(names, baseTypes)
+			return tuple(names, baseTypes)
 		}
 
 		/**
@@ -885,9 +895,8 @@ class ObjectTypeDescriptor internal constructor(
 		 */
 		private var exceptionType: A_Type = run {
 			val type: A_Type = objectTypeFromTuple(
-				ObjectTupleDescriptor.tuple(
-					tuple(exceptionAtom, instanceType(exceptionAtom))))
-			setNameForType(type, StringDescriptor.stringFrom("exception"), true)
+				tuple(tuple(exceptionAtom, instanceType(exceptionAtom))))
+			setNameForType(type, stringFrom("exception"), true)
 			type.makeShared()
 		}
 

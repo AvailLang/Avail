@@ -192,7 +192,7 @@ abstract class L2Operation
 	 */
 	protected constructor(vararg theNamedOperandTypes: L2NamedOperandType)
 	{
-		val simpleName = javaClass.simpleName
+		val simpleName = this@L2Operation.javaClass.simpleName
 		name =
 			if (simpleName.startsWith("L2_"))
 			{

@@ -9,7 +9,7 @@
  * * Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- * * Redistributions in binary form must reproduce the above copyright notice, 
+ * * Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
  *
@@ -31,6 +31,7 @@
  */
 package com.avail.descriptor.tuples
 
+import com.avail.annotations.HideFieldInDebugger
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromUnsignedByte
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.hashOfUnsignedByte
@@ -50,14 +51,14 @@ import kotlin.experimental.and
  * [thinly wrapped][RawPojoDescriptor] byte array.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
- * 
+ *
  * @constructor
  * Construct a new `ByteArrayTupleDescriptor`.
  *
  * @param mutability
  *   The [mutability][Mutability] of the new descriptor.
  */
-class ByteArrayTupleDescriptor private constructor(mutability: Mutability) 
+class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 	: NumericTupleDescriptor(
 		mutability, ObjectSlots::class.java, IntegerSlots::class.java)
 {
@@ -70,6 +71,7 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 		 * The low 32 bits are used for the [HASH_OR_ZERO], but the upper 32 can
 		 * be used by other [BitField]s in subclasses of [TupleDescriptor].
 		 */
+		@HideFieldInDebugger
 		HASH_AND_MORE;
 
 		companion object

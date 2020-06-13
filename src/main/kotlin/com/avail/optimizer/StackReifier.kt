@@ -78,7 +78,7 @@ import java.util.*
 class StackReifier(
 	private val actuallyReify: Boolean,
 	val reificationStatistic: Statistic,
-	val postReificationAction: () -> Unit)
+	val postReificationAction: ()->Unit)
 {
 	/**
 	 * The stack of lambdas that's accumulated as the call stack is popped.

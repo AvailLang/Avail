@@ -44,9 +44,9 @@ import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
 import com.avail.descriptor.sets.SetDescriptor.Companion.toSet
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor
-import com.avail.descriptor.types.BottomTypeDescriptor
-import com.avail.descriptor.types.TypeDescriptor
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
+import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
+import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.exceptions.AvailErrorCode.E_ABSTRACT_METHOD_DEFINITION
 import com.avail.exceptions.AvailErrorCode.E_AMBIGUOUS_METHOD_DEFINITION
 import com.avail.exceptions.AvailErrorCode.E_FORWARD_METHOD_DEFINITION
@@ -65,7 +65,7 @@ import com.avail.interpreter.levelTwo.operand.L2PcOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import com.avail.interpreter.levelTwo.operand.L2SelectorOperand
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
-import com.avail.interpreter.levelTwo.operand.TypeRestriction
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding
 import com.avail.optimizer.L2Generator
 import com.avail.optimizer.L2ValueManifest
@@ -98,8 +98,8 @@ object L2_LOOKUP_BY_VALUES : L2ControlFlowOperation(
 		"error code", L2NamedOperandType.Purpose.FAILURE),
 	L2OperandType.PC.named(
 		"lookup succeeded", L2NamedOperandType.Purpose.SUCCESS),
-	L2OperandType.PC.named("" +
-						   "lookup failed", L2NamedOperandType.Purpose.FAILURE))
+	L2OperandType.PC.named(
+		"lookup failed", L2NamedOperandType.Purpose.FAILURE))
 {
 	override fun instructionWasAdded(
 		instruction: L2Instruction,
@@ -138,7 +138,7 @@ object L2_LOOKUP_BY_VALUES : L2ControlFlowOperation(
 			val numArgs = arguments.size
 			val functions: Set<A_Function> = toSet(functionType.instances())
 			val argumentTupleUnionType =
-				functions.fold(BottomTypeDescriptor.bottom()) { union, function ->
+				functions.fold(bottom()) { union, function ->
 					union.typeUnion(
 						function.code().functionType().argsTupleType())
 				}
@@ -180,40 +180,28 @@ object L2_LOOKUP_BY_VALUES : L2ControlFlowOperation(
 			errorCodeReg.register(), lookupErrorsType, instruction)
 		// If the lookup succeeds, then the situation is more complex.
 		val registerSet = registerSets[1]
-		val numArgs = argRegs.elements().size
-		val argRestrictions: MutableList<TypeRestriction> = ArrayList(numArgs)
-		for (argRegister in argRegs.elements())
-		{
-			val type =
-				if (registerSet.hasTypeAt(argRegister.register()))
+		val argRestrictions = argRegs.elements().map { argRegister ->
+			val type = when
 				{
-					registerSet.typeAt(argRegister.register())
+					registerSet.hasTypeAt(argRegister.register()) ->
+						registerSet.typeAt(argRegister.register())
+					else -> Types.ANY.o()
 				}
-				else
-				{
-					TypeDescriptor.Types.ANY.o()
-				}
-			argRestrictions.add(TypeRestriction.restrictionForType(
-				type, RestrictionFlagEncoding.BOXED))
+			restrictionForType(type, RestrictionFlagEncoding.BOXED)
+
 		}
 		// Figure out what could be invoked at runtime given these argument
 		// type constraints.
-		val possibleFunctions: MutableList<A_Function> = ArrayList()
 		val possibleDefinitions: List<A_Definition> =
 			bundleOperand.bundle.bundleMethod().definitionsAtOrBelow(
-			argRestrictions)
-		for (definition in possibleDefinitions)
-		{
-			if (definition.isMethodDefinition())
-			{
-				possibleFunctions.add(definition.bodyBlock())
-			}
-		}
+				argRestrictions)
+		val possibleFunctions = possibleDefinitions
+			.filter(A_Definition::isMethodDefinition)
+			.map(A_Definition::bodyBlock)
 		if (possibleFunctions.size == 1)
 		{
-			// Only one function could be looked up (it's monomorphic for
-			// this call site).  Therefore we know strongly what the
-			// function is.
+			// Only one function could be looked up (it's monomorphic for this
+			// call site).  Therefore we know strongly what the function is.
 			registerSet.constantAtPut(
 				functionReg.register(),
 				possibleFunctions[0],
@@ -221,11 +209,8 @@ object L2_LOOKUP_BY_VALUES : L2ControlFlowOperation(
 		}
 		else
 		{
-			val enumType =
-				AbstractEnumerationTypeDescriptor.enumerationWith(
-					setFromCollection(possibleFunctions))
-			registerSet.typeAtPut(
-				functionReg.register(), enumType, instruction)
+			val enumType = enumerationWith(setFromCollection(possibleFunctions))
+			registerSet.typeAtPut(functionReg.register(), enumType, instruction)
 		}
 	}
 
@@ -286,7 +271,7 @@ object L2_LOOKUP_BY_VALUES : L2ControlFlowOperation(
 	 */
 	@kotlin.jvm.JvmField
 	val lookupErrorsType : A_Type =
-		AbstractEnumerationTypeDescriptor.enumerationWith(set(
+		enumerationWith(set(
 			E_NO_METHOD,
 			E_NO_METHOD_DEFINITION,
 			E_AMBIGUOUS_METHOD_DEFINITION,

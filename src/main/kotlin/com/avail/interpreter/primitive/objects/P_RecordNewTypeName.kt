@@ -65,8 +65,7 @@ object P_RecordNewTypeName : Primitive(2, CanInline, CannotFail, HasSideEffect)
 		userType.makeImmutable()
 		name.makeImmutable()
 		setNameForType(userType, name, false)
-		val loader = interpreter.availLoaderOrNull()
-		loader?.recordEffect(
+		interpreter.availLoaderOrNull()?.recordEffect(
 			LoadingEffectToRunPrimitive(
 				SpecialMethodAtom.RECORD_TYPE_NAME.bundle, userType, name))
 		return interpreter.primitiveSuccess(nil)

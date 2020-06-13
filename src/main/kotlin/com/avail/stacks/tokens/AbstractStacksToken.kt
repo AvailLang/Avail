@@ -104,12 +104,12 @@ abstract class AbstractStacksToken constructor(
 		errorLog: StacksErrorLog,
 		jsonWriter: JSONWriter): String = lexeme
 
-	override fun toString(): String =
-		StringBuilder()
-			.append('〖')
-			.append(lexeme)
-			.append("〗 (class: ")
-			.append(this.javaClass.simpleName)
-			.append(")")
-			.toString()
+	override fun toString() =
+		buildString {
+			append('〖')
+			append(lexeme)
+			append("〗 (class: ")
+			append(this@AbstractStacksToken.javaClass.simpleName)
+			append(")")
+		}
 }

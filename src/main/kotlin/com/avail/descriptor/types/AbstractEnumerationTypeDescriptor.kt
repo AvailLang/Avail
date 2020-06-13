@@ -55,7 +55,7 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode
  * elements (there's only one) uses [BottomTypeDescriptor].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
- * 
+ *
  * @constructor
  * Construct a new `AbstractEnumerationTypeDescriptor`.
  *
@@ -296,6 +296,10 @@ abstract class AbstractEnumerationTypeDescriptor protected constructor(
 	abstract override fun o_FieldTypeAt(
 		self: AvailObject,
 		field: A_Atom): A_Type
+
+	abstract override fun o_FieldTypeAtOrNull(
+		self: AvailObject,
+		field: A_Atom): A_Type?
 
 	abstract override fun o_FieldTypeMap(self: AvailObject): A_Map
 

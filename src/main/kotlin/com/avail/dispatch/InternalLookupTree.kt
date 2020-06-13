@@ -34,7 +34,6 @@ package com.avail.dispatch
 
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.TupleDescriptor.Companion.toList
 import com.avail.descriptor.types.A_Type
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import java.lang.String.format
@@ -175,33 +174,30 @@ internal constructor(
 			&& positiveElements.isEmpty()
 			&& undecidedElements.size > 1)
 		{
-			var commonArgTypes: MutableList<A_Type?>? = null
-			for (element in undecidedElements)
-			{
-				val signature = adaptor.restrictedSignature(element, bound)
-				val argTypes =
-					toList<A_Type?>(signature.tupleOfTypesFromTo(1, numArgs))
-				if (commonArgTypes === null)
+			val iterator = undecidedElements.iterator()
+			assert(iterator.hasNext())
+			val firstElement = iterator.next()
+			val commonArgTypes =
+				adaptor.restrictedSignature(firstElement, bound)
+					.tupleOfTypesFromTo(1, numArgs)
+					.toMutableList<A_Type?>()
+			iterator.forEachRemaining { element ->
+				val argTypes = adaptor.restrictedSignature(element, bound)
+					.tupleOfTypesFromTo(1, numArgs)
+					.toList<A_Type>()
+				for (i in 0 until numArgs)
 				{
-					commonArgTypes = argTypes
-				}
-				else
-				{
-					for (i in 0 until numArgs)
+					val commonArgType = commonArgTypes[i]
+					if (commonArgType !== null
+						&& !commonArgType.equals(argTypes[i]))
 					{
-						val commonArgType = commonArgTypes[i]
-						if (commonArgType !== null && !commonArgType.equals(
-								argTypes[i]))
-						{
-							commonArgTypes[i] = null
-						}
+						commonArgTypes[i] = null
 					}
 				}
 			}
-			// assert commonArgTypes !== null;
 			for (argNumber in 1..numArgs)
 			{
-				val commonType = commonArgTypes!![argNumber - 1]
+				val commonType = commonArgTypes[argNumber - 1]
 				if (commonType !== null
 						&& !knownArgumentRestrictions[argNumber - 1]
 							.containedByType(commonType))

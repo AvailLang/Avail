@@ -1347,7 +1347,7 @@ abstract class AvailObjectRepresentation protected constructor(
 	}
 
 	/**
-	 * Slice the current [[AvailObject] into two objects, the left one (at the
+	 * Slice the current [AvailObject] into two objects, the left one (at the
 	 * same starting address as the input), and the right one (a
 	 * [filler&#32;object][FillerDescriptor] that nobody should ever create a
 	 * pointer to). The new Filler can have zero post-header slots (i.e., just

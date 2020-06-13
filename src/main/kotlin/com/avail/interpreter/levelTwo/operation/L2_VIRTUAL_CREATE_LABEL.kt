@@ -322,6 +322,7 @@ object L2_VIRTUAL_CREATE_LABEL : L2Operation(
 		instruction: L2Instruction)
 	{
 		throw UnsupportedOperationException(
-			"${javaClass.simpleName} should have been replaced during optimization")
+			"${this@L2_VIRTUAL_CREATE_LABEL.javaClass.simpleName} should " +
+				"have been replaced during optimization")
 	}
 }

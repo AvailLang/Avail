@@ -95,8 +95,7 @@ object P_DeclareStringificationAtom : Primitive(
 		function.makeShared()
 		// Set the stringification function.
 		STRINGIFICATION.set(interpreter.runtime(), function)
-		val loader = interpreter.availLoaderOrNull()
-		loader?.statementCanBeSummarized(false)
+		interpreter.availLoaderOrNull()?.statementCanBeSummarized(false)
 		return interpreter.primitiveSuccess(nil)
 	}
 

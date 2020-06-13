@@ -396,7 +396,7 @@ abstract class AbstractDescriptor protected constructor (
 	open fun o_DescribeForDebugger (
 		self: AvailObject): Array<AvailObjectFieldHelper>
 	{
-		val cls: Class<Descriptor> = cast(this.javaClass)
+		val cls: Class<Descriptor> = cast(this@AbstractDescriptor.javaClass)
 		val loader = cls.classLoader
 		var enumClass: Class<Enum<*>>? = nullableCast(
 			try
@@ -571,7 +571,7 @@ abstract class AbstractDescriptor protected constructor (
 		indent: Int) =
 	with(builder) {
 		append('a')
-		val className = javaClass.simpleName
+		val className = this@AbstractDescriptor.javaClass.simpleName
 		val shortenedName = className.substring(
 			0,
 			className.length - 10)
@@ -597,7 +597,7 @@ abstract class AbstractDescriptor protected constructor (
 			// Circled Latin capital letter S.
 			append('\u24C8')
 		}
-		val cls: Class<Descriptor> = cast(this.javaClass)
+		val cls: Class<Descriptor> = cast(this@AbstractDescriptor.javaClass)
 		val loader = cls.classLoader
 		val intEnumClass: Class<out IntegerSlotsEnum>? = nullableCast(
 			try
@@ -3671,6 +3671,10 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_FieldAt (self: AvailObject, field: A_Atom): AvailObject
 
+	abstract fun o_FieldAtOrNull (
+		self: AvailObject,
+		field: A_Atom): AvailObject?
+
 	abstract fun o_FieldAtPuttingCanDestroy (
 		self: AvailObject,
 		field: A_Atom,
@@ -3678,6 +3682,8 @@ abstract class AbstractDescriptor protected constructor (
 		canDestroy: Boolean): A_BasicObject
 
 	abstract fun o_FieldTypeAt (self: AvailObject, field: A_Atom): A_Type
+
+	abstract fun o_FieldTypeAtOrNull (self: AvailObject, field: A_Atom): A_Type?
 
 	abstract fun o_ParsingPlan (self: AvailObject): A_DefinitionParsingPlan
 
@@ -4122,7 +4128,7 @@ abstract class AbstractDescriptor protected constructor (
 		 *   Where to describe the number.
 		 */
 		@JvmStatic
-		protected fun describeLong (
+		fun describeLong (
 			value: Long,
 			numBits: Int,
 			builder: StringBuilder): Unit =

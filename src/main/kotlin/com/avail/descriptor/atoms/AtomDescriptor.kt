@@ -32,6 +32,7 @@
 package com.avail.descriptor.atoms
 
 import com.avail.AvailRuntimeSupport
+import com.avail.annotations.HideFieldInDebugger
 import com.avail.annotations.ThreadSafe
 import com.avail.compiler.ParserState
 import com.avail.compiler.splitter.MessageSplitter
@@ -149,6 +150,7 @@ open class AtomDescriptor protected constructor(
 		 * The low 32 bits are used for the [HASH_OR_ZERO], but the upper
 		 * 32 can be used by other [BitField]s in subclasses.
 		 */
+		@HideFieldInDebugger
 		HASH_AND_MORE;
 
 		companion object {

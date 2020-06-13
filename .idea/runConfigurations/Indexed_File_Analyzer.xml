@@ -6,6 +6,8 @@
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
     <option name="ALTERNATIVE_JRE_PATH" />
     <module name="avail.indexed-file-analyzer.main" />
-    <method v="2" />
+    <method v="2">
+      <option name="Gradle.BeforeRunTask" enabled="true" tasks="build" externalProjectPath="$PROJECT_DIR$/indexed-file-analyzer" vmOptions="" scriptParameters="" />
+    </method>
   </configuration>
 </component>

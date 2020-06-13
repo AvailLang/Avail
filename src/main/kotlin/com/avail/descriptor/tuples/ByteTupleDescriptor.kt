@@ -31,6 +31,7 @@
  */
 package com.avail.descriptor.tuples
 
+import com.avail.annotations.HideFieldInDebugger
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromUnsignedByte
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.hashOfUnsignedByte
@@ -79,6 +80,7 @@ class ByteTupleDescriptor private constructor(
 		 * The low 32 bits are used for the [.HASH_OR_ZERO], but the upper 32
 		 * can be used by other [BitField]s in subclasses of [TupleDescriptor].
 		 */
+		@HideFieldInDebugger
 		HASH_AND_MORE,
 
 		/**
@@ -537,11 +539,11 @@ class ByteTupleDescriptor private constructor(
 		 */
 		private fun descriptorFor(
 			flag: Mutability,
-			size: Int): ByteTupleDescriptor = 
+			size: Int): ByteTupleDescriptor =
 				descriptors[(size and 7) * 3 + flag.ordinal]!!
 
 		/**
-		 * Build a mutable byte tuple with the specified number of zeroed 
+		 * Build a mutable byte tuple with the specified number of zeroed
 		 * elements.
 		 *
 		 * @param size
@@ -558,8 +560,8 @@ class ByteTupleDescriptor private constructor(
 		}
 
 		/**
-		 * Create an object of the appropriate size, whose descriptor is an 
-		 * instance of `ByteTupleDescriptor`.  Run the generator for each 
+		 * Create an object of the appropriate size, whose descriptor is an
+		 * instance of `ByteTupleDescriptor`.  Run the generator for each
 		 * position in ascending order to produce the unsigned bytes (as shorts
 		 * in the range [0..15]) with which to populate the tuple.
 		 *
@@ -614,21 +616,21 @@ class ByteTupleDescriptor private constructor(
 					ByteTupleDescriptor(Mutability.MUTABLE, excess)
 				descriptors[i++] =
 					ByteTupleDescriptor(Mutability.IMMUTABLE, excess)
-				descriptors[i++] = 
+				descriptors[i++] =
 					ByteTupleDescriptor(Mutability.SHARED, excess)
 			}
 		}
 	}
 
-	override fun mutable(): ByteTupleDescriptor = 
-		descriptors[(8 - unusedBytesOfLastLong and 7) * 3 
+	override fun mutable(): ByteTupleDescriptor =
+		descriptors[(8 - unusedBytesOfLastLong and 7) * 3
 					+ Mutability.MUTABLE.ordinal]!!
 
-	override fun immutable(): ByteTupleDescriptor = 
-		descriptors[(8 - unusedBytesOfLastLong and 7) * 3 
+	override fun immutable(): ByteTupleDescriptor =
+		descriptors[(8 - unusedBytesOfLastLong and 7) * 3
 					+ Mutability.IMMUTABLE.ordinal]!!
 
-	override fun shared(): ByteTupleDescriptor = 
-		descriptors[(8 - unusedBytesOfLastLong and 7) * 3 
+	override fun shared(): ByteTupleDescriptor =
+		descriptors[(8 - unusedBytesOfLastLong and 7) * 3
 					+ Mutability.SHARED.ordinal]!!
 }
