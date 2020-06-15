@@ -313,7 +313,7 @@ your best source of Avail news.
 
 GENERATING DOCUMENTATION
 --------------------------------------------------------------------------------
-#### Software
+### Software
 
 - [Python 3](https://www.python.org/) / [pip 3](https://pip.pypa.io/en/stable/)
 - [MkDocs](https://www.mkdocs.org/)
@@ -351,6 +351,7 @@ Depending on your Linux distro, a package manager may make MkDocs available to y
 
 It is recommeneded that the [manual instructions](https://www.mkdocs.org/#installation) using `pip`. Be sure to use `pip3` for installation of MkDocs. Doing this may prevent mkdocs from being available on the PATH. The command `mkdocs` will need to be available on the PATH for documentation to function. 
 
+###### Locating MkDocs
 To see where mkdocs was installed (_the package directory_), use the command: `pip3 show mkdocs`. You'll see an output similar to this:
 ```
 Name: mkdocs
@@ -372,7 +373,7 @@ At the time of writing this README, Material could be installed using PIP.
 pip3 install mkdocs-material
 ```
 
-#### Generating Documentation
+### Generating Documentation
 
 To generate the documentation, run the gradle task:
 ```
@@ -386,13 +387,14 @@ gradle cleanDocs
 ``` 
 or use the convenience run configuration, _`Avail [cleanDocs]`_.
 
-#### Serving Documentation
-To make the documentation available through a web browser, run the gradle task:
-```
-gradle serveDocsUnix
-```
-or use the convenience run configuration, _`Avail [serveDocsUnix]`_.
 
+### Serving Documentation
+To make the documentation available through a web browser, from the terminal in the documentation directory run the command:
+```
+mkdocs serve
+```
+
+As the Avail codebase is large and extensively documented, the site may take several minutes to generate.
 Access the documentation from your web browser at [http://127.0.0.1:8000/]()
 
 REPORTING PROBLEMS

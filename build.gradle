@@ -136,8 +136,18 @@ task generateBuildTime {
 }
 
 // DOCUMENTATION TASKS
+
+// Creates documentation/docs/index.md from README.md
+task copyReadMeToDocs(type: Copy) {
+	from file("README.md")
+	rename { String fileName ->
+		"index.md"
+	}
+	into file("documentation/docs")
+}
+
+// Generate documentation
 dokka {
-	// Generate documentation
 	outputFormat='gfm'
 	outputDirectory='documentation/docs/src_docs'
 	subProjects = [
@@ -148,25 +158,22 @@ dokka {
 		"indexed-file-analyzer",
 		"unicode-catalog"
 	]
-	doLast {
-		copyReadMeToDocs
-	}
-}
 
-task copyReadMeToDocs(type: Copy) {
-	from file("README.md")
-	into file("documentation/docs/index.md")
-}
+}.dependsOn copyReadMeToDocs
 
+// Remove Dokka generated files
 task cleanDocs {
-	// Remove Dokka generated files
 	delete 'documentation/docs/src_docs'
 }
+cleanDocs.dependsOn(clean)
 
+// Start MkDocs server on http://127.0.0.1:8000/
 task serveDocsUnix(type: Exec) {
-	commandLine './documentation/docs.sh', 'serve'
+//	This task always deletes the documentation before starting the server...
+//	commandLine 'documentation/docs.sh', 'serve'
 }
 
+// Install MkDocs and other dependencies
 task installDocsToolsUnix(type:Exec) {
 	commandLine './documentation/docs.sh', 'install'
 }

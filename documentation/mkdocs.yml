@@ -35,16 +35,23 @@ markdown_extensions:
 
 nav:
   - 'Avail Implementation':
-    - Documentation: src_docs/avail/index.md
+    - Packages: src_docs/avail/index.md
+    - Types: src_docs/avail/alltypes/index.md
   - 'Avail Server':
-    - Documentation: src_docs/avail-server/index.md
+    - Packages: src_docs/avail-server/index.md
+    - Types: src_docs/avail-server/alltypes/index.md
   - 'Avail Bootstrap':
-      - Documentation: src_docs/avail-bootstrap/index.md
+    - Packages: src_docs/avail-bootstrap/index.md
+    - Types: src_docs/avail-bootstrap/alltypes/index.md
   - 'Avail Workbench':
-      - Documentation: src_docs/avail-workbench/index.md
+    - Packages: src_docs/avail-workbench/index.md
+    - Types: src_docs/avail-workbench/alltypes/index.md
   - 'Avail CLI':
-      - Documentation: src_docs/avail-cli/index.md
+    - Packages: src_docs/avail-cli/index.md
+    - Types: src_docs/avail-cli/alltypes/index.md
   - 'Unicode Catalog':
-      - Documentation: src_docs/unicode-catalog/index.md
+    - Packages:  src_docs/unicode-catalog/index.md
+    - Types: src_docs/unicode-catalog/alltypes/index.md
   - 'Index File Anaylzer':
-      - Documentation: src_docs/indexed-file-analyzer/index.md
+    - Packages:  src_docs/indexed-file-analyzer/index.md
+    - Types: src_docs/indexed-file-analyzer/alltypes/index.md
