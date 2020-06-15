@@ -38,6 +38,7 @@ plugins {
 	id 'java'
 	id 'org.jetbrains.kotlin.jvm'
 	id 'com.github.johnrengelman.shadow'
+	id 'org.jetbrains.dokka'
 }
 
 group 'org.availlang'
@@ -112,3 +113,15 @@ task releaseUnicodeGenerator(type: Copy) {
 
 // Update the dependencies of "assemble".
 assemble.dependsOn releaseUnicodeGenerator
+
+// Generate documentation
+dokka {
+	outputFormat='gfm'
+	// Outputting to documentation/docs/src-docs directly causes the contents of
+	// the directory to be deleted. Moving the directory post generation is the
+	// work around.
+	doLast {
+		ant.move file: "${buildDir}/dokka/unicode-catalog",
+			todir: "../documentation/docs/src_docs"
+	}
+}

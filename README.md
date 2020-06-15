@@ -311,6 +311,89 @@ maintenance. Our active team has shrunk in recent years, and the website suffers
 for it. Development of Avail itself is quite active, however, so GitHub might be
 your best source of Avail news.
 
+GENERATING DOCUMENTATION
+--------------------------------------------------------------------------------
+#### Software
+
+- [Python 3](https://www.python.org/) / [pip 3](https://pip.pypa.io/en/stable/)
+- [MkDocs](https://www.mkdocs.org/)
+- [MkDocs Material](https://squidfunk.github.io/mkdocs-material/)
+
+The following instructions assume that both Python 3 (`python3`) and Pip 3 (`pip3`) are installed. If you have not done this please install them before proceeding.
+
+### Automated Setup
+Simply run the command `gradle installDocsToolsUnix`. The following Gradle commands should now be available:
+
+* _serveDocsUnix_: Can be run with `gradle serveDocsUnix` or from the provided convenience run configuration of the same name. 
+
+### Manual Setup (_not recommended_)
+
+If you feel automation is making the masses too lazy, the following enumerates all the manual steps for setting up documentation.
+
+##### Scripts
+
+Ensure the _scripts/docs.sh_ is executable. This can be done From the terminal run the following command:
+```
+chmod +x scripts/docs.sh
+```
+
+##### MkDocs
+
+###### Mac OSX
+
+It is recommended that you use Homebrew to install MkDocs. If you do not have Homebrew installed, follow the [installation instructions](https://docs.brew.sh/Installation). Once homebrew is installed, in the terminal simply run:
+```
+brew install mkdocs
+```
+
+###### Linux
+Depending on your Linux distro, a package manager may make MkDocs available to you with an easy install. Using this path for installation is disrecommended as the versions of the binaries available through the OS package managers may be out of date.
+
+It is recommeneded that the [manual instructions](https://www.mkdocs.org/#installation) using `pip`. Be sure to use `pip3` for installation of MkDocs. Doing this may prevent mkdocs from being available on the PATH. The command `mkdocs` will need to be available on the PATH for documentation to function. 
+
+To see where mkdocs was installed (_the package directory_), use the command: `pip3 show mkdocs`. You'll see an output similar to this:
+```
+Name: mkdocs
+Version: 1.1.2
+Summary: Project documentation with Markdown.
+Home-page: https://www.mkdocs.org
+Author: Tom Christie
+Author-email: tom@tomchristie.com
+License: BSD
+Location: /home/MY_COMPUTER/.local/lib/python3.6/site-packages
+Requires: Jinja2, Markdown, livereload, lunr, PyYAML, click, tornado
+```
+##### MkDocs Material
+
+The documentation site utilizes Material for MkDocs for its style theme. To install Material, follow their _[Getting Started](https://squidfunk.github.io/mkdocs-material/getting-started/)_ guide.
+
+At the time of writing this README, Material could be installed using PIP.
+```
+pip3 install mkdocs-material
+```
+
+#### Generating Documentation
+
+To generate the documentation, run the gradle task:
+```
+gradle dokka
+```
+or use the convenience run configuration, _`Avail [generateDocumentation]`_.
+
+To clean the documentation (_delete it_), run the gradle task:
+```
+gradle cleanDocs
+``` 
+or use the convenience run configuration, _`Avail [cleanDocs]`_.
+
+#### Serving Documentation
+To make the documentation available through a web browser, run the gradle task:
+```
+gradle serveDocsUnix
+```
+or use the convenience run configuration, _`Avail [serveDocsUnix]`_.
+
+Access the documentation from your web browser at [http://127.0.0.1:8000/]()
 
 REPORTING PROBLEMS
 --------------------------------------------------------------------------------
@@ -359,5 +442,6 @@ issue to let us know that you are no longer working on the problem.
 Thank you for using Avail!
 
                                                Todd L Smith <todd@availlang.org>
-                                       and Leslie Schultz <leslie@availlang.org>
+                                           Leslie Schultz <leslie@availlang.org>
+                                            Richard Arriaga <rich@availlang.org>
                                                on behalf of The Avail Foundation

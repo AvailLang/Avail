@@ -1,0 +1,50 @@
+site_name: 'Avail Implementation Documentation'
+copyright: Copyright &copy; 1993-2020, The Avail Foundation, LLC.<br>All rights reserved.
+
+# Repository
+repo_name: Avail
+repo_url:  https://github.com/AvailLang/Avail
+edit_uri: ""
+
+theme:
+  name: material
+  logo: 'img/AvailHammer.png'
+  highlightjs: true
+  features:
+    - tabs
+  favicon: 'img/favicon.ico'
+
+extra_css:
+  - css/extra.css
+
+markdown_extensions:
+  - smarty
+  - footnotes
+  - meta
+  - toc:
+      permalink: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.inlinehilite
+  - pymdownx.magiclink
+  - pymdownx.smartsymbols
+  - pymdownx.superfences
+  - pymdownx.tilde
+  - tables
+
+nav:
+  - 'Avail Implementation':
+    - Documentation: src_docs/avail/index.md
+  - 'Avail Server':
+    - Documentation: src_docs/avail-server/index.md
+  - 'Avail Bootstrap':
+      - Documentation: src_docs/avail-bootstrap/index.md
+  - 'Avail Workbench':
+      - Documentation: src_docs/avail-workbench/index.md
+  - 'Avail CLI':
+      - Documentation: src_docs/avail-cli/index.md
+  - 'Unicode Catalog':
+      - Documentation: src_docs/unicode-catalog/index.md
+  - 'Index File Anaylzer':
+      - Documentation: src_docs/indexed-file-analyzer/index.md

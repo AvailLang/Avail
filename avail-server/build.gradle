@@ -38,6 +38,7 @@ plugins {
 	id 'java'
 	id 'org.jetbrains.kotlin.jvm'
 	id 'com.github.johnrengelman.shadow'
+	id 'org.jetbrains.dokka'
 }
 
 group 'org.availlang'
@@ -98,6 +99,18 @@ task generateBuildTime {
 
 // Update the dependencies of "classes".
 classes.dependsOn generateBuildTime
+
+// Generate documentation
+dokka {
+	outputFormat='gfm'
+	// Outputting to documentation/docs/src-docs directly causes the contents of
+	// the directory to be deleted. Moving the directory post generation is the
+	// work around.
+	doLast {
+		ant.move file: "${buildDir}/dokka/avail-server",
+			todir: "../documentation/docs/src_docs"
+	}
+}
 
 // Produce a fat JAR for the Avail server.
 jar {
