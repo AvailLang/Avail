@@ -49,7 +49,7 @@ import com.avail.exceptions.MalformedMessageException
  * interface that defines the behavior that all [AvailObject]s are required to
  * support.
  *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author [Mark van Gulik](mark@availlang.org)
  */
 interface A_Atom : A_BasicObject {
 

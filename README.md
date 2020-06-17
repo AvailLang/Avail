@@ -311,91 +311,112 @@ maintenance. Our active team has shrunk in recent years, and the website suffers
 for it. Development of Avail itself is quite active, however, so GitHub might be
 your best source of Avail news.
 
-GENERATING DOCUMENTATION
+DOCUMENTATION
 --------------------------------------------------------------------------------
-### Software
+Avail's codebase is extensively documented. Raw Markdown documentation can be
+ generated using [Dokka](https://github.com/Kotlin/dokka). The Avail Gradle 
+ `dokka` task has been set up to generate GitHub Flavored Markdown (gfm) by 
+default. This places the documentation in `documentation/docs/src_docs`. 
+
+On Unix:
+
+	$ ./gradlew dokka
+
+On vanilla Windows:
+
+    $ .\gradlew.bat dokka
+
+If you prefer to generate direct navigable HTML documentation, you can utilize 
+the Gradle task, `dokkaHTML`. That has been added to each project of Avail.
+
+On Unix:
+
+	$ ./gradlew dokkaHTML
+
+On vanilla Windows:
+
+    $ .\gradlew.bat dokkaHTML
+     
+If you prefer a more integrated documentation environment, you can optionally 
+follow the below instructions to generate a documentation website using
+[MkDocs](https://www.mkdocs.org/).
+
+
+#### MkDocs Generated Site
+The following lists the software that will be needed to complete this taks.
 
 - [Python 3](https://www.python.org/) / [pip 3](https://pip.pypa.io/en/stable/)
 - [MkDocs](https://www.mkdocs.org/)
 - [MkDocs Material](https://squidfunk.github.io/mkdocs-material/)
 
-The following instructions assume that both Python 3 (`python3`) and Pip 3 (`pip3`) are installed. If you have not done this please install them before proceeding.
+The following instructions assume that both Python 3 (`python3`) and Pip 3 
+(`pip3`) are installed. If you have not done this please install them before 
+proceeding.
 
-### Automated Setup
-Simply run the command `gradle installDocsToolsUnix`. The following Gradle commands should now be available:
+**Automated Setup - (*Mac OSX Only*)** It is presumed you have Mac's Homebrew
+installed. Run the gradle task:
+    
+    $ ./gradlew installDocsToolsMac
 
-* _serveDocsUnix_: Can be run with `gradle serveDocsUnix` or from the provided convenience run configuration of the same name. 
+**Manual Setup MkDocs**
 
-### Manual Setup (_not recommended_)
+***Mac OSX***
 
-If you feel automation is making the masses too lazy, the following enumerates all the manual steps for setting up documentation.
+It is recommended that you use Homebrew to install MkDocs. If you do not have 
+Homebrew installed, follow the 
+[installation instructions](https://docs.brew.sh/Installation). Once homebrew is 
+installed, in the terminal run:
 
-##### Scripts
+    $ brew install mkdocs
 
-Ensure the _scripts/docs.sh_ is executable. This can be done From the terminal run the following command:
-```
-chmod +x scripts/docs.sh
-```
+***Linux***
 
-##### MkDocs
+Depending on your Linux distro, a package manager may make MkDocs available to 
+you with an easy install. Using this path for installation is disrecommended as 
+the versions of the binaries available through the OS package managers may be 
+out of date.
 
-###### Mac OSX
+It is recommended that you follow the 
+[manual instructions](https://www.mkdocs.org/#installation) using `pip`. Be sure 
+to use `pip3` for installation of MkDocs. Doing this may prevent mkdocs from 
+being available on the PATH. The command `mkdocs` will need to be available on 
+the PATH for documentation to function. 
 
-It is recommended that you use Homebrew to install MkDocs. If you do not have Homebrew installed, follow the [installation instructions](https://docs.brew.sh/Installation). Once homebrew is installed, in the terminal simply run:
-```
-brew install mkdocs
-```
+***Windows***
 
-###### Linux
-Depending on your Linux distro, a package manager may make MkDocs available to you with an easy install. Using this path for installation is disrecommended as the versions of the binaries available through the OS package managers may be out of date.
+It is recommeneded that you follow the
+[manual instructions](https://www.mkdocs.org/#installation) using `pip`. Be sure 
+to use `pip3` for installation of MkDocs. 
 
-It is recommeneded that the [manual instructions](https://www.mkdocs.org/#installation) using `pip`. Be sure to use `pip3` for installation of MkDocs. Doing this may prevent mkdocs from being available on the PATH. The command `mkdocs` will need to be available on the PATH for documentation to function. 
+**Manual Setup MkDocs Material**
 
-###### Locating MkDocs
-To see where mkdocs was installed (_the package directory_), use the command: `pip3 show mkdocs`. You'll see an output similar to this:
-```
-Name: mkdocs
-Version: 1.1.2
-Summary: Project documentation with Markdown.
-Home-page: https://www.mkdocs.org
-Author: Tom Christie
-Author-email: tom@tomchristie.com
-License: BSD
-Location: /home/MY_COMPUTER/.local/lib/python3.6/site-packages
-Requires: Jinja2, Markdown, livereload, lunr, PyYAML, click, tornado
-```
-##### MkDocs Material
+The documentation site utilizes Material for MkDocs for its style theme. To 
+install Material, follow their 
+*[Getting Started](https://squidfunk.github.io/mkdocs-material/getting-started/)* 
+guide.
 
-The documentation site utilizes Material for MkDocs for its style theme. To install Material, follow their _[Getting Started](https://squidfunk.github.io/mkdocs-material/getting-started/)_ guide.
+At the time of writing this README, Material could be installed using PIP:
 
-At the time of writing this README, Material could be installed using PIP.
 ```
 pip3 install mkdocs-material
 ```
 
-### Generating Documentation
+**Building Documentation Website**
 
-To generate the documentation, run the gradle task:
-```
-gradle dokka
-```
-or use the convenience run configuration, _`Avail [generateDocumentation]`_.
+To build the documentation website, first run the `dokka` gradle task as
+described above for your operating system. Then from the documentation directory
+in the terminal, run `$ mkdocs build`.  As the Avail codebase is large and
+extensively documented, the site may take several minutes to generate.
 
-To clean the documentation (_delete it_), run the gradle task:
-```
-gradle cleanDocs
-``` 
-or use the convenience run configuration, _`Avail [cleanDocs]`_.
+**Serving Documentation**
 
-
-### Serving Documentation
-To make the documentation available through a web browser, from the terminal in the documentation directory run the command:
-```
-mkdocs serve
-```
-
-As the Avail codebase is large and extensively documented, the site may take several minutes to generate.
-Access the documentation from your web browser at [http://127.0.0.1:8000/]()
+The documentation site is now available to be served up through your preferred
+method of local website serving. Some quick options include:
+ 
+ - Python: run `python3 -m http.server [PORT]` from `documentation/site`
+ - Node: 
+    - using npm, install `http-server`  
+    - run `http-server` from `documentation/site`
 
 REPORTING PROBLEMS
 --------------------------------------------------------------------------------

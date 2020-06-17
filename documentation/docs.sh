@@ -34,26 +34,16 @@
 # making it available via a web browser.
 #
 # @author Rich Arriaga <rich@availlang.org>
+
 # Options:
 #  `--help`     : provides help documentation
-#  `--version`  : provides the version of this script
 # Commands:
-#  `serve`    : servers up the
 #  `install`  : install system requirements
-
-# Change working directory
-dir=$(cd -P -- "$(dirname -- "$0")" && pwd -P)
-cd "$dir" || exit
-
-# Indicates what version this script is.
-VER="0.0.1"
 
 #Options
 HELP="--help"
-VERSION="--version"
 
 # Commands
-SERVE="serve"
 INSTALL="install"
 
 # Print script help documentation
@@ -67,18 +57,10 @@ print_help() {
     echo ""
     echo "Options:"
     echo "  $HELP      : provides help documentation"
-    echo "  $VERSION   : provides the version of this script"
     echo ""
     echo "Commands:"
-    echo "  $SERVE    : serves documentation on http://127.0.0.1:8000/"
-    echo "  $INSTALL  : installs all necessary packages (mkdocs, mkdocs-material"
+	echo "  $INSTALL  : installs all necessary packages (mkdocs, mkdocs-material"
     echo ""
-}
-
-# Run mkdocs serve.
-mkdocs_serve() {
-	echo "Starting..."
-    command mkdocs serve
 }
 
 install_packages() {
@@ -91,18 +73,9 @@ install_packages() {
 if [ $# -eq 0 ]
   then
     print_help
-elif [ "$1" == $SERVE ]
-    then
-        mkdocs_serve
 elif [ "$1" == $INSTALL ]
     then
         install_packages
-elif [ "$1" == $HELP ] || [ "$1" == "-h" ]
-    then
-        print_help
-elif [ "$1" == $VERSION ] || [ "$1" == "-v" ]
-    then
-        echo $VER
 else
     print_help
 fi

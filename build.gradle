@@ -137,6 +137,14 @@ task generateBuildTime {
 
 // DOCUMENTATION TASKS
 
+// Remove generated documentation files
+task cleanDocs {
+	description 'Cleaning up previously generated documentation website'
+	delete 'documentation/docs/src_docs'
+	delete 'documentation/site'
+}
+cleanDocs.dependsOn clean
+
 // Creates documentation/docs/index.md from README.md
 task copyReadMeToDocs(type: Copy) {
 	from file("README.md")
@@ -145,8 +153,9 @@ task copyReadMeToDocs(type: Copy) {
 	}
 	into file("documentation/docs")
 }
+copyReadMeToDocs.dependsOn cleanDocs
 
-// Generate documentation
+// Generate Kotlin documentation
 dokka {
 	outputFormat='gfm'
 	outputDirectory='documentation/docs/src_docs'
@@ -158,23 +167,16 @@ dokka {
 		"indexed-file-analyzer",
 		"unicode-catalog"
 	]
-
-}.dependsOn copyReadMeToDocs
-
-// Remove Dokka generated files
-task cleanDocs {
-	delete 'documentation/docs/src_docs'
 }
-cleanDocs.dependsOn(clean)
 
-// Start MkDocs server on http://127.0.0.1:8000/
-task serveDocsUnix(type: Exec) {
-//	This task always deletes the documentation before starting the server...
-//	commandLine 'documentation/docs.sh', 'serve'
+task dokkaHTML(type: org.jetbrains.dokka.gradle.DokkaTask) {
+	outputFormat = 'html'
+	outputDirectory = "$buildDir/dokka"
 }
 
 // Install MkDocs and other dependencies
-task installDocsToolsUnix(type:Exec) {
+task installDocsToolsMac(type:Exec) {
+	description 'Installing documenation website dependencies'
 	commandLine './documentation/docs.sh', 'install'
 }
 

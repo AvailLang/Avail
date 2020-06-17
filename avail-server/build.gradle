@@ -112,6 +112,11 @@ dokka {
 	}
 }
 
+task dokkaHTML(type: org.jetbrains.dokka.gradle.DokkaTask) {
+	outputFormat = 'html'
+	outputDirectory = "$buildDir/dokka"
+}
+
 // Produce a fat JAR for the Avail server.
 jar {
 	manifest {
