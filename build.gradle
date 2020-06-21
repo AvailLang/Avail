@@ -30,8 +30,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -39,7 +37,7 @@ import java.time.format.DateTimeFormatter
 plugins {
 	id 'java'
 	id 'org.jetbrains.kotlin.jvm' version '1.3.72' // $kotlin_version
-	id 'com.github.johnrengelman.shadow' version '5.2.0' // $shadow_version
+	id 'com.github.johnrengelman.shadow' version '6.0.0' // $shadow_version
 }
 
 group 'org.availlang'
@@ -51,11 +49,20 @@ repositories {
 	mavenCentral()
 }
 
-tasks.withType(JavaCompile) {
-	options.encoding = 'UTF-8'
+allprojects {
+	tasks.withType(JavaCompile) {
+		options.encoding = 'UTF-8'
+	}
 }
 
-tasks.withType(KotlinCompile) {
+compileKotlin {
+	kotlinOptions {
+		jvmTarget = '1.8'
+		freeCompilerArgs = ['-Xjvm-default=compatibility']
+	}
+}
+
+compileTestKotlin {
 	kotlinOptions {
 		jvmTarget = '1.8'
 		freeCompilerArgs = ['-Xjvm-default=compatibility']
@@ -98,14 +105,18 @@ dependencies {
 }
 
 // Compute the Avail roots. This is needed to properly configure "test".
-ext.computeAvailRoots = {
-	def pathRepos = "$projectDir/repositories"
-	def pathRootsSrc = "$projectDir/distro/src"
-	def roots = "avail=$pathRepos/avail.repo,$pathRootsSrc/avail"
-	roots += ";experimental=$pathRepos/experimental.repo,$projectDir/experimental/even-newer-avail"
-	roots += ";examples=$pathRepos/examples.repo,$pathRootsSrc/examples"
-	roots += ";website=$pathRepos/website.repo,$pathRootsSrc/website"
-	roots
+ext {
+	computeAvailRoots = {
+		def pathRepos = "$projectDir/repositories"
+		def pathRootsSrc = "$projectDir/distro/src"
+		def roots = [
+				["avail", "$pathRootsSrc/avail"],
+				["experimental", "$projectDir/experimental/even-newer-avail"],
+				["examples", "$pathRootsSrc/examples"],
+				["website", "$pathRootsSrc/website"]
+		].collect { "${it[0]}=$pathRepos/${it[0]}.repo,${it[1]}" } join ";"
+		return roots
+	}
 }
 
 test {
@@ -113,7 +124,7 @@ test {
 	minHeapSize = "4g"
 	maxHeapSize = "6g"
 	enableAssertions = true
-	systemProperty "availRoots", computeAvailRoots()
+	systemProperty "availRoots", computeAvailRoots.call()
 }
 
 // Capture the time at which the build began and record it into a resource file.

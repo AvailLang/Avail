@@ -48,7 +48,12 @@ import com.avail.descriptor.pojos.PojoDescriptor.Companion.nullPojo
 import com.avail.descriptor.pojos.RawPojoDescriptor
 import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.equalityPojo
 import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.rawObjectClass
-import com.avail.descriptor.representation.*
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.IntegerSlotsEnum
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.NilDescriptor
+import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
@@ -68,7 +73,13 @@ import com.avail.utility.Casts
 import com.avail.utility.LRUCache
 import com.avail.utility.Mutable
 import com.avail.utility.Nulls
-import java.lang.reflect.*
+import java.lang.reflect.Constructor
+import java.lang.reflect.Executable
+import java.lang.reflect.Method
+import java.lang.reflect.Modifier
+import java.lang.reflect.ParameterizedType
+import java.lang.reflect.Type
+import java.lang.reflect.TypeVariable
 import java.math.BigInteger
 import java.util.*
 
@@ -144,7 +155,7 @@ abstract class PojoTypeDescriptor protected constructor(
 
 		/**
 		 * Construct a new `Canon` that has initial capacity for five
-		 * bindings and includes a binding for [java.lang.Object].
+		 * bindings and includes a binding for `java.lang.Object`.
 		 */
 		init
 		{
@@ -204,7 +215,6 @@ abstract class PojoTypeDescriptor protected constructor(
 		{
 			if (other is LRUCacheKey)
 			{
-				val other = other
 				return javaClass == other.javaClass
 				   && typeArgs.equals(other.typeArgs)
 			}
@@ -1265,7 +1275,7 @@ abstract class PojoTypeDescriptor protected constructor(
 			val params: List<AvailObject> =
 				if (paramCount > 0)
 				{
-					Array<AvailObject>(paramCount)
+					Array(paramCount)
 					{
 						Types.ANY.o()
 					}.toList()

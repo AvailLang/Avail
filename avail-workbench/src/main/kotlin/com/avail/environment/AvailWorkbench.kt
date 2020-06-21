@@ -102,7 +102,6 @@ import com.avail.performance.StatisticReport.WORKBENCH_TRANSCRIPT
 import com.avail.stacks.StacksGenerator
 import com.avail.utility.Casts.cast
 import com.avail.utility.IO
-import com.avail.utility.Locks.lockWhile
 import com.avail.utility.javaNotifyAll
 import com.avail.utility.javaWait
 import com.bulenkov.darcula.DarculaLaf
@@ -190,9 +189,7 @@ import javax.swing.tree.DefaultTreeModel
 import javax.swing.tree.TreeNode
 import javax.swing.tree.TreePath
 import javax.swing.tree.TreeSelectionModel
-import kotlin.collections.Map.Entry
 import kotlin.concurrent.schedule
-import kotlin.concurrent.timerTask
 import kotlin.concurrent.withLock
 import kotlin.concurrent.write
 import kotlin.math.max
@@ -1734,7 +1731,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	 * Update the visual presentation of the per-module statistics.  This must
 	 * be invoked from within the UI dispatch thread,
 	 */
-	internal fun updatePerModuleProgressInUIThread()
+	private fun updatePerModuleProgressInUIThread()
 	{
 		assert(EventQueue.isDispatchThread())
 		val progress = perModuleProgressLock.write {
@@ -1743,7 +1740,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 			perModuleProgress.entries.toMutableList()
 		}
 		progress.sortBy { it.key.qualifiedName }
-		val string = progress.joinToString { (key, pair) ->
+		val string = progress.joinToString("") { (key, pair) ->
 			format("%,6d / %,6d - %s%n", pair.first, pair.second, key)
 		}
 		val doc = transcript.styledDocument

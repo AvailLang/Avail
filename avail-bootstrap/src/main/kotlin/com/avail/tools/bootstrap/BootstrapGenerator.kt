@@ -812,7 +812,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 		}
 		builder.append(statements)
 		builder.append(']')
-		if (returnType != null)
+		if (returnType !== null)
 		{
 			builder.append(" : ")
 			builder.append(specialObjectName(returnType))
@@ -1593,7 +1593,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 			sourceBaseName,
 			generatedPackageName.replace('.', '/'),
 			locale.language))
-		val ignored1 = languagePath.mkdir()
+		languagePath.mkdir()
 		val packageName = File(String.format(
 			"%s/%s/%s/%s.avail",
 			sourceBaseName,

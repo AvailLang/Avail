@@ -64,7 +64,7 @@ import javax.annotation.Nullable;
 import java.io.FileNotFoundException;
 import java.util.concurrent.SynchronousQueue;
 
-import static com.avail.CallbackSystem.createCallbackFunction;
+import static com.avail.CallbackSystem.createCallbackFunctionInJava;
 import static com.avail.descriptor.fiber.FiberDescriptor.commandPriority;
 import static com.avail.descriptor.fiber.FiberDescriptor.createFiber;
 import static com.avail.descriptor.numbers.IntegerDescriptor.fromInt;
@@ -76,10 +76,7 @@ import static com.avail.descriptor.types.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.types.TypeDescriptor.Types.NUMBER;
 import static com.avail.utility.Casts.cast;
 import static java.util.Arrays.asList;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Unit tests for calls into Avail from Java code.
@@ -166,7 +163,7 @@ public final class CallbackTest
 				failure.failed(e);
 			}
 		};
-		return createCallbackFunction(
+		return createCallbackFunctionInJava(
 			functionType(
 				tuple(NUMBER.o()),
 				NUMBER.o()),
@@ -198,7 +195,7 @@ public final class CallbackTest
 				failure.failed(e);
 			}
 		};
-		return createCallbackFunction(
+		return createCallbackFunctionInJava(
 			functionType(
 				tuple(NUMBER.o(), NUMBER.o()),
 				NUMBER.o()),

@@ -256,26 +256,64 @@ class CallbackSystem
 		 *
 		 * @param functionType
 		 *   The signature of the [A_Function] to create.
-		 * @param callback
-		 *   The [Callback] to invoke when the corresponding Avail function is
-		 *   invoked.
+		 * @param callbackFunction
+		 *   The Kotlin function from which to build a [Callback] to invoke when
+		 *   the corresponding Avail function is invoked.
 		 * @return
 		 *   The Avail [A_Function].
 		 */
 		@JvmStatic
 		fun createCallbackFunction(
 			functionType: A_Type,
-			callback: Callback?): A_Function
+			callbackFunction: (
+				argumentsTuple: A_Tuple,
+				completion: CallbackCompletion,
+				failure: CallbackFailure
+			) -> Unit
+		): A_Function
 		{
-			val callbackPojo =
-				newPojo(identityPojo(callback), callbackTypePojo)
-			val rawFunction = rawFunctionCache.computeIfAbsent(
-				functionType
-			) { fType: A_Type? ->
+			val callback = object : Callback {
+				override fun call(
+					argumentsTuple: A_Tuple,
+					completion: CallbackCompletion,
+					failure: CallbackFailure
+				) = callbackFunction(argumentsTuple, completion, failure)
+			}
+			val callbackPojo = newPojo(identityPojo(callback), callbackTypePojo)
+			val rawFunction = rawFunctionCache.computeIfAbsent(functionType) {
+				fType: A_Type ->
 				rawPojoInvokerFunctionFromFunctionType(
-					P_InvokeCallback,
-					fType!!,
-					callbackTypePojo)
+					P_InvokeCallback, fType, callbackTypePojo)
+			}
+			return createWithOuters1(rawFunction, callbackPojo)
+		}
+
+		/**
+		 * Create an [A_Function] from the given [Callback] and function
+		 * [A_Type].  Since Kotlin is actively hostile toward SAM (single
+		 * abstract method) lambda conversions, this method is targeted toward
+		 * use from Java callers that can simply use the lambda notation.
+		 *
+		 * @param functionType
+		 *   The signature of the [A_Function] to create.
+		 * @param callback
+		 *   The [Callback] to invoke when the corresponding Avail function is
+		 *   invoked.
+		 * @return
+		 *   The Avail [A_Function].
+		 */
+		@Suppress("unused")
+		@JvmStatic
+		fun createCallbackFunctionInJava(
+			functionType: A_Type,
+			callback: Callback
+		): A_Function
+		{
+			val callbackPojo = newPojo(identityPojo(callback), callbackTypePojo)
+			val rawFunction = rawFunctionCache.computeIfAbsent(functionType) {
+				fType: A_Type ->
+				rawPojoInvokerFunctionFromFunctionType(
+					P_InvokeCallback, fType, callbackTypePojo)
 			}
 			return createWithOuters1(rawFunction, callbackPojo)
 		}
