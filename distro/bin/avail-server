@@ -31,7 +31,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
-JAR=$AVAIL_HOME/lib/avail-server-1.4-all.jar
+JAR=$AVAIL_HOME/lib/avail-server.jar
 
 source avail-config
 

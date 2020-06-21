@@ -30,8 +30,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -39,25 +37,47 @@ import java.time.format.DateTimeFormatter
 plugins {
 	id 'java'
 	id 'org.jetbrains.kotlin.jvm' version '1.3.72' // $kotlin_version
-	id 'com.github.johnrengelman.shadow' version '5.2.0' // $shadow_version
+	id 'com.github.johnrengelman.shadow' version '6.0.0' // $shadow_version
 	id 'org.jetbrains.dokka' version '0.10.1'
+	id 'maven-publish'
+	id 'publishing'
+
+	id "com.dorongold.task-tree" version "1.5"  // adds 'taskTree' analysis task
 }
 
-group 'org.availlang'
-version '1.4'
+ext.versionToPublish = {
+	def formatter = DateTimeFormatter
+		.ofPattern("yyyyMMdd.HHmmss")
+		.withLocale(Locale.default)
+		.withZone(ZoneId.of("UTC"))
+	def timeString = formatter.format(Instant.now())
+	"1.4.0.$timeString"
+}()
 
-sourceCompatibility = 1.8
+allprojects {
+	group 'org.availlang'
+	version versionToPublish
+
+	sourceCompatibility = 1.8
+
+	tasks.withType(JavaCompile) {
+		options.encoding = 'UTF-8'
+	}
+}
 
 repositories {
 	mavenCentral()
 	jcenter()
 }
 
-tasks.withType(JavaCompile) {
-	options.encoding = 'UTF-8'
+compileKotlin {
+	kotlinOptions {
+		jvmTarget = '1.8'
+		freeCompilerArgs = ['-Xjvm-default=compatibility']
+	}
 }
 
-tasks.withType(KotlinCompile) {
+compileTestKotlin {
 	kotlinOptions {
 		jvmTarget = '1.8'
 		freeCompilerArgs = ['-Xjvm-default=compatibility']
@@ -66,24 +86,24 @@ tasks.withType(KotlinCompile) {
 
 dependencies {
 	// Kotlin.
-	implementation group: 'org.jetbrains.kotlin',
+	api group: 'org.jetbrains.kotlin',
 		name: 'kotlin-stdlib-jdk8',
 		version: "$kotlin_version"
 
 	// JSR-305 null analysis framework.
-	implementation group: 'com.google.code.findbugs',
+	api group: 'com.google.code.findbugs',
 		name: 'jsr305',
 		version: "$jsr_version"
 
 	// ObjectWeb JVM code generation/analysis framework.
-	implementation group: 'org.ow2.asm', name: 'asm', version: "$asm_version"
-	implementation group: 'org.ow2.asm',
+	api group: 'org.ow2.asm', name: 'asm', version: "$asm_version"
+	api group: 'org.ow2.asm',
 		name: 'asm-analysis',
 		version: "$asm_version"
-	implementation group: 'org.ow2.asm',
+	api group: 'org.ow2.asm',
 		name: 'asm-tree',
 		version: "$asm_version"
-	implementation group: 'org.ow2.asm',
+	api group: 'org.ow2.asm',
 		name: 'asm-util',
 		version: "$asm_version"
 
@@ -100,22 +120,26 @@ dependencies {
 }
 
 // Compute the Avail roots. This is needed to properly configure "test".
-ext.computeAvailRoots = {
+def computeAvailRoots = {
 	def pathRepos = "$projectDir/repositories"
 	def pathRootsSrc = "$projectDir/distro/src"
-	def roots = "avail=$pathRepos/avail.repo,$pathRootsSrc/avail"
-	roots += ";experimental=$pathRepos/experimental.repo,$projectDir/experimental/even-newer-avail"
-	roots += ";examples=$pathRepos/examples.repo,$pathRootsSrc/examples"
-	roots += ";website=$pathRepos/website.repo,$pathRootsSrc/website"
-	roots
-}
+	def roots = [
+			["avail", "$pathRootsSrc/avail"],
+			["experimental", "$projectDir/experimental/even-newer-avail"],
+			["examples", "$pathRootsSrc/examples"],
+			["website", "$pathRootsSrc/website"]
+	]
+	return roots.collect {
+		"${it[0]}=$pathRepos/${it[0]}.repo,${it[1]}"
+	}.join(";")
+}()
 
 test {
 	useJUnitPlatform()
 	minHeapSize = "4g"
 	maxHeapSize = "6g"
 	enableAssertions = true
-	systemProperty "availRoots", computeAvailRoots()
+	systemProperty "availRoots", computeAvailRoots
 }
 
 // Capture the time at which the build began and record it into a resource file.
@@ -200,9 +224,9 @@ task generatePrimitivesList {
 	doLast {
 		def allPrimitiveNames = allPrimitives.collect {
 			it.absolutePath
-				.replaceAll('\\\\', '/')
-				.replaceFirst("^$pathAvailBuildMain/", "")
-				.replaceFirst('\\.class', "\n")
+				.replaceAll("\\\\", '/')
+				.replaceFirst(/^$pathAvailBuildMain\//, "")
+				.replaceFirst(/\.class/, "\n")
 				.replaceAll("/", ".")
 		}.sort()
 
@@ -219,6 +243,7 @@ task releaseAvail(type: Copy) {
 	group = 'release'
 	from shadowJar.outputs.files
 	into file("$projectDir/distro/lib")
+	rename '.*', 'avail.jar'
 	duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
 
@@ -281,4 +306,52 @@ This is convenient for experimenting with Avail, but must be
 extended with custom module roots as you develop your own modules.
 ====================================================================
 """
+}
+
+allprojects {
+	task sourcesJar(type: Jar) {
+		description = 'Creates sources JAR.'
+		archiveClassifier.set("sources")
+		from sourceSets.main.allSource
+	}
+}
+
+ext.credentialsWarning = "Missing credentials.  To publish, you'll need to " +
+	"create a GitHub token:" +
+	"\n" +
+	(
+		"https://help.github.com/en/actions/" +
+			"configuring-and-managing-workflows/" +
+			"authenticating-with-the-github_token") +
+	"\n" +
+	"Then set GITHUB_USER and GITHUB_TOKEN variables to hold your github " +
+	"username and the (generated  hexadecimal) token, respectively, in " +
+	"~/.bash_profile or other appropriate login script." +
+	"\n" +
+	'Remember to restart IntelliJ after this change.'
+
+publishing {
+	repositories {
+		maven {
+			name = "GitHub"
+			url = uri("https://maven.pkg.github.com/AvailLang/Avail")
+			credentials {
+				username = System.getenv("GITHUB_USER")
+				password = System.getenv("GITHUB_TOKEN")
+				if (username == null || password == null)
+				{
+					System.err.println("GITHUB_USER = $username")
+					System.err.println("GITHUB_TOKEN = $password")
+					System.err.println(credentialsWarning)
+				}
+			}
+		}
+	}
+
+	publications {
+		avail(MavenPublication) {
+			from components.java
+			artifact sourcesJar
+		}
+	}
 }

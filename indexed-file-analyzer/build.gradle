@@ -41,11 +41,6 @@ plugins {
 	id 'org.jetbrains.dokka'
 }
 
-group 'org.availlang'
-version '1.4'
-
-sourceCompatibility = 1.8
-
 compileKotlin {
 	kotlinOptions {
 		jvmTarget = "1.8"
@@ -108,6 +103,7 @@ task releaseIndexedFileAnalyzer(type: Copy) {
 	group = 'release'
 	from shadowJar.outputs.files
 	into file("${rootProject.projectDir}/distro/lib")
+	rename '.*', 'indexed-file-analyzer.jar'
 	duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
 

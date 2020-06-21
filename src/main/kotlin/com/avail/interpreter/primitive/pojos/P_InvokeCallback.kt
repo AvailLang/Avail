@@ -38,7 +38,7 @@ import com.avail.CallbackSystem.CallbackFailure
 import com.avail.descriptor.pojos.PojoDescriptor
 import com.avail.descriptor.pojos.PojoDescriptor.Companion.newPojo
 import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
-import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
@@ -76,7 +76,7 @@ object P_InvokeCallback : Primitive(-1, Private, CanSuspend)
 				callbackPojo.javaObjectNotNull(),
 				argumentsTuple,
 				object: CallbackCompletion {
-					override fun complete(result: AvailObject)
+					override fun complete(result: A_BasicObject)
 					{
 						succeed(result.makeShared())
 					}
