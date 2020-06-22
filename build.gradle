@@ -38,6 +38,8 @@ plugins {
 	id 'java'
 	id 'org.jetbrains.kotlin.jvm' version '1.3.72' // $kotlin_version
 	id 'com.github.johnrengelman.shadow' version '6.0.0' // $shadow_version
+	id 'maven-publish'
+	id 'publishing'
 }
 
 group 'org.availlang'
@@ -47,6 +49,10 @@ sourceCompatibility = 1.8
 
 repositories {
 	mavenCentral()
+}
+
+kotlinSourcesJar {
+	from project.sourceSets.main.allSource
 }
 
 allprojects {
@@ -244,3 +250,35 @@ extended with custom module roots as you develop your own modules.
 ====================================================================
 """
 }
+
+task sourcesJar(type: Jar) {
+	description = 'Creates sources JAR.'
+	kotlinSourcesJar
+
+	from project.sourceSets.main.allSource
+}
+
+artifacts {
+	archives jar
+	archives sourcesJar
+}
+
+publishing {
+//	repositories {
+//		maven {
+//			name = "GitHubPackages"
+//			url = uri("https://maven.pkg.github.com/markatavaillang/availlang")
+//			credentials {
+//				username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
+//				password = project.findProperty("gpr.key") ?: System.getenv("TOKEN")
+//			}
+//		}
+//	}
+	publications {
+		publishAvail(MavenPublication) {
+			artifact jar
+			artifact sourcesJar
+		}
+	}
+}
+

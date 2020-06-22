@@ -1600,7 +1600,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 			generatedPackageName.replace('.', '/'),
 			locale.language,
 			preamble.getString(Resources.Key.representativeModuleName.name)))
-		val ignored2 = packageName.mkdir()
+		packageName.mkdir()
 		generateOriginModule(versions)
 		generateSpecialObjectsModule(versions)
 		generatePrimitiveModule(null, versions)
