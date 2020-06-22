@@ -35,11 +35,6 @@ plugins {
 	id 'org.jetbrains.kotlin.jvm'
 }
 
-group 'org.availlang'
-version '1.4'
-
-sourceCompatibility = 1.8
-
 compileKotlin {
 	kotlinOptions {
 		jvmTarget = "1.8"

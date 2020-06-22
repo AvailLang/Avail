@@ -42,23 +42,27 @@ plugins {
 	id 'publishing'
 }
 
-group 'org.availlang'
-version '1.4'
-
-sourceCompatibility = 1.8
-
-repositories {
-	mavenCentral()
-}
-
-kotlinSourcesJar {
-	from project.sourceSets.main.allSource
-}
+ext.buildTimeForPublication = {
+	def formatter = DateTimeFormatter
+		.ofPattern("yyyyMMdd.HHmmss")
+		.withLocale(Locale.default)
+		.withZone(ZoneId.of("UTC"))
+	formatter.format(Instant.now())
+}.call()
 
 allprojects {
+	group 'org.availlang'
+	version "1.4.0-$buildTimeForPublication-1"
+
+	sourceCompatibility = 1.8
+
 	tasks.withType(JavaCompile) {
 		options.encoding = 'UTF-8'
 	}
+}
+
+repositories {
+	mavenCentral()
 }
 
 compileKotlin {
@@ -120,8 +124,10 @@ ext {
 				["experimental", "$projectDir/experimental/even-newer-avail"],
 				["examples", "$pathRootsSrc/examples"],
 				["website", "$pathRootsSrc/website"]
-		].collect { "${it[0]}=$pathRepos/${it[0]}.repo,${it[1]}" } join ";"
-		return roots
+		]
+		return roots.collect {
+			"${it[0]}=$pathRepos/${it[0]}.repo,${it[1]}"
+		}.join(";")
 	}
 }
 
@@ -251,31 +257,50 @@ extended with custom module roots as you develop your own modules.
 """
 }
 
-task sourcesJar(type: Jar) {
-	description = 'Creates sources JAR.'
-	kotlinSourcesJar
 
+kotlinSourcesJar {
 	from project.sourceSets.main.allSource
 }
 
-artifacts {
-	archives jar
-	archives sourcesJar
+task sourcesJar(type: Jar) {
+	description = 'Creates sources JAR.'
+	archiveClassifier.set("sources")
+	from project.sourceSets.main.allSource
+	kotlinSourcesJar
 }
 
 publishing {
-//	repositories {
-//		maven {
-//			name = "GitHubPackages"
-//			url = uri("https://maven.pkg.github.com/markatavaillang/availlang")
-//			credentials {
-//				username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
-//				password = project.findProperty("gpr.key") ?: System.getenv("TOKEN")
-//			}
-//		}
-//	}
+	repositories {
+		maven {
+			name = "GitHub"
+			url = uri("https://maven.pkg.github.com/AvailLang/Avail")
+			credentials {
+				username = System.getenv("GITHUB_USER")
+				password = System.getenv("GITHUB_TOKEN")
+				if (username == null || password == null) {
+					System.err.println(
+						"Missing credentials.  To publish, you'll need to " +
+							"create a GitHub token:" +
+							"\n" +
+							("https://help.github.com/en/actions/" +
+							"configuring-and-managing-workflows/" +
+							"authenticating-with-the-github_token") +
+							"\n" +
+							"Then set GITHUB_USER and GITHUB_TOKEN variables " +
+							"to hold your github username and the (generated " +
+							"hexadecimal) token, respectively, in " +
+							"~/.bash_profile or other appropriate login " +
+							"script." +
+							"\n" +
+							"Remember to restart IntelliJ after this change.")
+				}
+			}
+		}
+	}
+
 	publications {
-		publishAvail(MavenPublication) {
+		availlang(MavenPublication) {
+			artifactId = 'availlang'
 			artifact jar
 			artifact sourcesJar
 		}
