@@ -1,21 +1,21 @@
 /*
- * SetTest.java
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * SetTest.kt
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * * Redistributions of source code must retain the above copyright notice, this
- *   list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice, this
+ *     list of conditions and the following disclaimer.
  *
- * * Redistributions in binary form must reproduce the above copyright notice,
- *   this list of conditions and the following disclaimer in the documentation
- *   and/or other materials provided with the distribution.
+ *  * Redistributions in binary form must reproduce the above copyright notice, this
+ *     list of conditions and the following disclaimer in the documentation
+ *     and/or other materials provided with the distribution.
  *
- * * Neither the name of the copyright holder nor the names of the contributors
- *   may be used to endorse or promote products derived from this software
- *   without specific prior written permission.
+ *  * Neither the name of the copyright holder nor the names of the contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -30,69 +30,89 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.test;
+package com.avail.test
 
-
-import com.avail.descriptor.sets.A_Set;
-import org.junit.jupiter.api.Test;
-
-import static com.avail.descriptor.numbers.IntegerDescriptor.fromInt;
-import static com.avail.descriptor.sets.SetDescriptor.emptySet;
-import static com.avail.descriptor.tuples.SmallIntegerIntervalTupleDescriptor.createSmallInterval;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
+import com.avail.descriptor.sets.A_Set
+import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
+import com.avail.descriptor.tuples.SmallIntegerIntervalTupleDescriptor.Companion.createSmallInterval
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
 
 /**
  * A test of SetDescriptor.
  *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author
+ *   Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class SetTest
+class SetTest
 {
 	/**
 	 * Test: Check the usual simple operations.
 	 */
 	@Test
-	public void testIntegerIntervalTupleDescriptorReverse ()
+	fun testIntegerIntervalTupleDescriptorReverse()
 	{
-		final A_Set set1_20 =
-			createSmallInterval(1, 20, 1).asSet().makeShared();
-		assertEquals(20, set1_20.setSize());
-
-		final A_Set set11_25 =
-			createSmallInterval(11, 25, 1).asSet().makeShared();
-		assertEquals(15, set11_25.setSize());
+		val set1to20: A_Set = createSmallInterval(1, 20, 1)
+			.asSet()
+			.makeShared()
+		Assertions.assertEquals(20, set1to20.setSize())
+		val set11to25: A_Set = createSmallInterval(11, 25, 1)
+			.asSet()
+			.makeShared()
+		Assertions.assertEquals(15, set11to25.setSize())
 
 		// Add new element.
-		assertEquals(
-			21, set1_20.setWithElementCanDestroy(fromInt(99), true).setSize());
+		Assertions.assertEquals(
+			21,
+			set1to20
+				.setWithElementCanDestroy(
+					fromInt(99),
+					true
+				)
+				.setSize()
+		)
 
 		// Add existing element.
-		assertEquals(
-			20, set1_20.setWithElementCanDestroy(fromInt(10), true).setSize());
+		Assertions.assertEquals(
+			20,
+			set1to20
+				.setWithElementCanDestroy(
+					fromInt(10),
+					true
+				)
+				.setSize()
+		)
 
 		// Union
-		assertEquals(
-			25, set1_20.setUnionCanDestroy(set11_25, true).setSize());
+		Assertions.assertEquals(
+			25, set1to20.setUnionCanDestroy(set11to25, true).setSize()
+		)
 
 		// Intersection
-		assertEquals(
-			10, set1_20.setIntersectionCanDestroy(set11_25, true).setSize());
+		Assertions.assertEquals(
+			10, set1to20.setIntersectionCanDestroy(set11to25, true).setSize()
+		)
 
 		// Intersection test - a,b -> true
-		assertTrue(set1_20.setIntersects(set11_25));
+		Assertions.assertTrue(set1to20.setIntersects(set11to25))
 
 		// Intersection test - a,a -> true
-		assertTrue(set1_20.setIntersects(set1_20));
+		Assertions.assertTrue(set1to20.setIntersects(set1to20))
 
 		// Intersection test - a,empty -> false
-		assertFalse(set1_20.setIntersects(emptySet()));
+		Assertions.assertFalse(set1to20.setIntersects(emptySet()))
 
 		// Intersection test - empty,empty -> false
-		assertFalse(emptySet().setIntersects(emptySet()));
+		Assertions.assertFalse(
+			emptySet()
+				.setIntersects(emptySet())
+		)
 
 		// Asymmetric Difference
-		assertEquals(10, set1_20.setMinusCanDestroy(set11_25, true).setSize());
+		Assertions.assertEquals(
+			10,
+			set1to20.setMinusCanDestroy(set11to25, true).setSize()
+		)
 	}
 }
