@@ -417,7 +417,7 @@ abstract class AbstractDescriptor protected constructor (
 				if (getAnnotation(
 						slot,
 						HideFieldInDebugger::class.java)
-					== null)
+					=== null)
 				{
 					fields.add(
 						AvailObjectFieldHelper(
@@ -464,7 +464,7 @@ abstract class AbstractDescriptor protected constructor (
 				if (getAnnotation(
 						slot,
 						HideFieldInDebugger::class.java)
-					== null)
+					=== null)
 				{
 					fields.add(
 						AvailObjectFieldHelper(
@@ -4027,7 +4027,7 @@ abstract class AbstractDescriptor protected constructor (
 							{
 								if (field.getAnnotation(
 										HideFieldInDebugger::class.java)
-									== null)
+									=== null)
 								{
 									bitField.enumField = field.getAnnotation(
 										EnumField::class.java)
