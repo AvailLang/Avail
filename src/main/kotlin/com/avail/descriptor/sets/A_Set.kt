@@ -99,7 +99,7 @@ interface A_Set : A_BasicObject, Iterable<AvailObject> {
 	 * @return
 	 *   An [iterator][Iterator].
 	 */
-	override fun iterator(): MutableIterator<AvailObject>
+	override fun iterator(): Iterator<AvailObject>
 
 	/**
 	 * Check if all elements of the set are instances of the specified kind (any

@@ -551,7 +551,7 @@ interface A_Tuple : A_BasicObject, Iterable<AvailObject>
 	 * @return
 	 *   An [iterator][Iterator].
 	 */
-	override fun iterator(): MutableIterator<AvailObject>
+	override fun iterator(): Iterator<AvailObject>
 
 	/**
 	 * Returns a Java [Spliterator] over the elements, which are [AvailObject]s.

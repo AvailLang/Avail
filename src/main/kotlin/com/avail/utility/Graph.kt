@@ -31,7 +31,7 @@
  */
 package com.avail.utility
 
-import com.avail.utility.evaluation.Combinator
+import com.avail.utility.evaluation.Combinator.recurse
 import org.jetbrains.annotations.Contract
 import java.util.ArrayDeque
 import java.util.ArrayList
@@ -496,33 +496,31 @@ class Graph<Vertex> constructor ()
 			for (start in outEdges.keys)
 			{
 				assert(stack.isEmpty())
-				Combinator.recurse(
-					start,
-					{ vertex: Vertex, body: (Vertex) -> Unit ->
-						if (solution !== null)
-						{
-							return@recurse
+				recurse(start) { vertex, body ->
+					if (solution !== null)
+					{
+						return@recurse
+					}
+					if (stack.contains(vertex))
+					{
+						// Found a cycle.
+						val list = stack.toMutableList()
+						// Include this vertex twice.
+						list.add(vertex)
+						solution = list.subList(
+							list.indexOf(vertex), list.size)
+						return@recurse
+					}
+					if (!reached.contains(vertex))
+					{
+						reached.add(vertex)
+						stack.add(vertex)
+						outEdges[vertex]!!.forEach { successor ->
+							body(successor)
 						}
-						if (stack.contains(vertex))
-						{
-							// Found a cycle.
-							val list = stack.toMutableList()
-							// Include this vertex twice.
-							list.add(vertex)
-							solution = list.subList(
-								list.indexOf(vertex), list.size)
-							return@recurse
-						}
-						if (!reached.contains(vertex))
-						{
-							reached.add(vertex)
-							stack.add(vertex)
-							outEdges[vertex]!!.forEach { successor ->
-								body(successor)
-							}
-							stack.remove(vertex)
-						}
-					})
+						stack.remove(vertex)
+					}
+				}
 				if (solution !== null)
 				{
 					break
@@ -646,7 +644,8 @@ class Graph<Vertex> constructor ()
 		 * A [Map] keeping track of how many predecessors of each vertex have
 		 * not yet been completed.
 		 */
-		private val predecessorCountdowns = mutableMapOf<Vertex, AtomicInteger>()
+		private val predecessorCountdowns =
+			mutableMapOf<Vertex, AtomicInteger>()
 
 		/**
 		 * A collection of all outstanding vertices which have had a predecessor
@@ -843,31 +842,28 @@ class Graph<Vertex> constructor ()
 				.map { obj -> obj.key }
 				.forEach { startVertex ->
 					assert(stackSet.isEmpty() && stackList.isEmpty())
-					Combinator.recurse(
-						startVertex,
-						{ vertex, body ->
-							if (!stackSet.contains(vertex))
+					recurse(startVertex) { vertex, body ->
+						if (!stackSet.contains(vertex))
+						{
+							// The edge is part of a dag formed by a
+							// depth-first traversal. Include it.
+							if (stackList.isNotEmpty())
 							{
-								// The edge is part of a dag formed by a
-								// depth-first traversal. Include it.
-								if (stackList.isNotEmpty())
-								{
-									spanningDag.addEdge(
-										stackList[stackList.size - 1],
-										vertex
-									)
-								}
-								if (!scanned.contains(vertex))
-								{
-									scanned.add(vertex)
-									stackSet.add(vertex)
-									stackList.add(vertex)
-									outEdges[vertex]!!.forEach { p -> body(p) }
-									stackSet.remove(vertex)
-									stackList.remove(vertex)
-								}
+								spanningDag.addEdge(
+									stackList[stackList.size - 1],
+									vertex)
 							}
-						})
+							if (!scanned.contains(vertex))
+							{
+								scanned.add(vertex)
+								stackSet.add(vertex)
+								stackList.add(vertex)
+								outEdges[vertex]!!.forEach { p -> body(p) }
+								stackSet.remove(vertex)
+								stackList.remove(vertex)
+							}
+						}
+					}
 				}
 			return spanningDag
 		}

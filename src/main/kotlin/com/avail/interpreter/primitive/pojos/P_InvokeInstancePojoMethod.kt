@@ -47,7 +47,7 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.Private
 import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.primitive.pojos.PrimitiveHelper.marshalValues
-import com.avail.utility.MutableOrNull
+import com.avail.utility.Mutable
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 
@@ -85,7 +85,7 @@ object P_InvokeInstancePojoMethod : Primitive(-1, Private)
 
 		// Marshal the arguments.
 		val method = methodPojo.javaObjectNotNull<Method>()
-		val errorOut = MutableOrNull<AvailErrorCode>()
+		val errorOut = Mutable<AvailErrorCode?>(null)
 		val receiver = methodArgs.tupleAt(1).marshalToJava(
 			marshaledTypes.tupleAt(1).javaObject())
 		val marshaledArgs = marshalValues(
@@ -96,7 +96,7 @@ object P_InvokeInstancePojoMethod : Primitive(-1, Private)
 			errorOut)
 		if (errorOut.value !== null)
 		{
-			val e = errorOut.value()
+			val e = errorOut.value!!
 			return interpreter.primitiveFailure(
 				newPojo(identityPojo(e), pojoTypeForClass(e.javaClass)))
 		}

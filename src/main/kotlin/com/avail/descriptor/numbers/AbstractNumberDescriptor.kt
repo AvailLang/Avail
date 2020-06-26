@@ -53,8 +53,8 @@ import com.avail.descriptor.types.TypeTag
 import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-import com.avail.utility.MutableOrNull
-import java.util.*
+import com.avail.utility.Mutable
+import java.util.Comparator
 import java.util.EnumSet.noneOf
 
 /**
@@ -440,10 +440,10 @@ abstract class AbstractNumberDescriptor protected constructor(
 
 	companion object {
 		/**
-		 * Analyze a numeric type, updating the [mutable][MutableOrNull]
-		 * arguments and populating the [comparablesList].  Answer whether to
-		 * give up attempting to determine the possible results of a comparison
-		 * against this type.
+		 * Analyze a numeric type, updating the [mutable][Mutable] arguments and
+		 * populating the [comparablesList].  Answer whether to give up
+		 * attempting to determine the possible results of a comparison against
+		 * this type.
 		 *
 		 * @param type
 		 *   The numeric type to analyze.
@@ -469,10 +469,10 @@ abstract class AbstractNumberDescriptor protected constructor(
 		private fun analyzeType(
 			type: A_Type,
 			possibleResults: MutableSet<Order>,
-			min: MutableOrNull<A_Number>,
-			max: MutableOrNull<A_Number>,
-			minInclusive: MutableOrNull<Boolean>,
-			maxInclusive: MutableOrNull<Boolean>,
+			min: Mutable<A_Number?>,
+			max: Mutable<A_Number?>,
+			minInclusive: Mutable<Boolean?>,
+			maxInclusive: Mutable<Boolean?>,
 			comparablesList: MutableList<A_Number>
 		) = when {
 			type.isEnumeration -> {
@@ -488,11 +488,11 @@ abstract class AbstractNumberDescriptor protected constructor(
 					} else {
 						comparablesList.add(value)
 						if (max.value === null
-							|| value.greaterThan(max.value()))
+							|| value.greaterThan(max.value!!))
 						{
 							max.value = value
 						}
-						if (min.value === null || value.lessThan(min.value()))
+						if (min.value === null || value.lessThan(min.value!!))
 						{
 							min.value = value
 						}
@@ -558,10 +558,10 @@ abstract class AbstractNumberDescriptor protected constructor(
 			// incomparables (things that always produce INCOMPARABLE when
 			// numerically compared with anything).  So there's no value in
 			// computing the type intersection.
-			val firstMin = MutableOrNull<A_Number>()
-			val firstMax = MutableOrNull<A_Number>()
-			val firstMinInclusive = MutableOrNull<Boolean>()
-			val firstMaxInclusive = MutableOrNull<Boolean>()
+			val firstMin = Mutable<A_Number?>(null)
+			val firstMax = Mutable<A_Number?>(null)
+			val firstMinInclusive = Mutable<Boolean?>(null)
+			val firstMaxInclusive = Mutable<Boolean?>(null)
 			val firstComparablesList = mutableListOf<A_Number>()
 			if (analyzeType(
 					firstType,
@@ -573,10 +573,10 @@ abstract class AbstractNumberDescriptor protected constructor(
 					firstComparablesList)) {
 				return possibleResults
 			}
-			val secondMin = MutableOrNull<A_Number>()
-			val secondMax = MutableOrNull<A_Number>()
-			val secondMinInclusive = MutableOrNull<Boolean>()
-			val secondMaxInclusive = MutableOrNull<Boolean>()
+			val secondMin = Mutable<A_Number?>(null)
+			val secondMax = Mutable<A_Number?>(null)
+			val secondMinInclusive = Mutable<Boolean?>(null)
+			val secondMaxInclusive = Mutable<Boolean?>(null)
 			val secondComparablesList = mutableListOf<A_Number>()
 			if (analyzeType(
 					secondType,
@@ -589,10 +589,10 @@ abstract class AbstractNumberDescriptor protected constructor(
 				return possibleResults
 			}
 			// Each is (independently) an enumeration or an integer range type.
-			if (firstMin.value().numericCompare(secondMax.value()) == LESS) {
+			if (firstMin.value!!.numericCompare(secondMax.value!!) == LESS) {
 				possibleResults.add(LESS)
 			}
-			if (firstMax.value().numericCompare(secondMin.value()) == MORE) {
+			if (firstMax.value!!.numericCompare(secondMin.value!!) == MORE) {
 				possibleResults.add(MORE)
 			}
 			// From here down we only need to determine if EQUAL is possible.
@@ -628,9 +628,9 @@ abstract class AbstractNumberDescriptor protected constructor(
 				for (firstValue in firstComparablesList) {
 					if (firstValue.isFinite) {
 						val compareMin =
-							firstValue.numericCompare(secondMin.value())
+							firstValue.numericCompare(secondMin.value!!)
 						val compareMax =
-							firstValue.numericCompare(secondMax.value())
+							firstValue.numericCompare(secondMax.value!!)
 						if (compareMin.isMoreOrEqual()
 							&& compareMax.isLessOrEqual()
 							&& firstValue.isNumericallyIntegral())
@@ -660,9 +660,9 @@ abstract class AbstractNumberDescriptor protected constructor(
 				for (secondValue in secondComparablesList) {
 					if (secondValue.isFinite) {
 						val compareMin =
-							secondValue.numericCompare(firstMin.value())
+							secondValue.numericCompare(firstMin.value!!)
 						val compareMax =
-							secondValue.numericCompare(firstMax.value())
+							secondValue.numericCompare(firstMax.value!!)
 						if (compareMin.isMoreOrEqual()
 							&& compareMax.isLessOrEqual()
 							&& secondValue.isNumericallyIntegral())

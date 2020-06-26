@@ -69,7 +69,7 @@ package com.avail.utility.structures
 @Suppress("UNCHECKED_CAST", "unused")
 class EnumMap<K: Enum<K>, V : Any> constructor(
 	private val enums: Array<K>,
-	private val sourceValues: Array<V?>) : Map<K, V>
+	private val sourceValues: Array<V?>) : MutableMap<K, V>
 {
 	init
 	{
@@ -78,11 +78,11 @@ class EnumMap<K: Enum<K>, V : Any> constructor(
 
 	override val size: Int = sourceValues.count { it !== null }
 
-	override val keys: Set<K> get() =
+	override val keys: MutableSet<K> get() =
 		sourceValues.indices.filter { sourceValues[it] !== null }
 			.map { enums[it] }.toMutableSet()
 
-	override val values: Collection<V>
+	override val values: MutableCollection<V>
 		get() = sourceValues.filterNotNull().toMutableList()
 
 	/**
@@ -115,9 +115,21 @@ class EnumMap<K: Enum<K>, V : Any> constructor(
 	 * @param value
 	 *   The value to set.
 	 */
-	fun set(key: K, value: V)
+	operator fun set(key: K, value: V)
 	{
 		sourceValues[key.ordinal] = value
+	}
+
+	override fun put(key: K, value: V): V?
+	{
+		val old = sourceValues[key.ordinal]
+		sourceValues[key.ordinal] = value
+		return old
+	}
+
+	override fun putAll(from: Map<out K, V>)
+	{
+		from.forEach { (k, v) -> sourceValues[k.ordinal] = v }
 	}
 
 	/**
@@ -128,7 +140,7 @@ class EnumMap<K: Enum<K>, V : Any> constructor(
 	 *   The previous value associated with the key, or `null` if the key was
 	 *   not present in the map.
 	 */
-	fun remove(key: K): V?
+	override fun remove(key: K): V?
 	{
 		val value = sourceValues[key.ordinal]
 		sourceValues[key.ordinal] = null
@@ -138,7 +150,7 @@ class EnumMap<K: Enum<K>, V : Any> constructor(
 	/**
 	 * Removes all elements from this [EnumMap].
 	 */
-	fun clear()
+	override fun clear()
 	{
 		sourceValues.fill(null)
 	}
@@ -148,20 +160,26 @@ class EnumMap<K: Enum<K>, V : Any> constructor(
 	override fun containsValue(value: V): Boolean =
 		sourceValues.any { value == it }
 
-	override fun get(key: K): V = sourceValues[key.ordinal]!!
+	override operator fun get(key: K): V = sourceValues[key.ordinal]!!
 
 	override fun isEmpty(): Boolean = false
 
-	override val entries: Set<Map.Entry<K, V>>
+	override val entries: MutableSet<MutableMap.MutableEntry<K, V>>
 		get() = enums.filter {
 			sourceValues[it.ordinal] !== null
 		}.map {
-			object : Map.Entry<K, V>
+			object : MutableMap.MutableEntry<K, V>
 			{
 				override val key: K = it
 				override val value: V = sourceValues[it.ordinal]!!
+				override fun setValue (newValue: V): V
+				{
+					val old = value
+					sourceValues[key.ordinal] = newValue
+					return old
+				}
 			}
-		}.toSet()
+		}.toMutableSet()
 
 	/**
 	 * Construct an [EnumMap].

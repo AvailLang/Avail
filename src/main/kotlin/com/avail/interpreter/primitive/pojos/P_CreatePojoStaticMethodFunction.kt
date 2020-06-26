@@ -63,10 +63,10 @@ import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.primitive.pojos.PrimitiveHelper.lookupMethod
 import com.avail.interpreter.primitive.pojos.PrimitiveHelper.rawPojoInvokerFunctionFromFunctionType
 import com.avail.utility.Casts.cast
-import com.avail.utility.MutableOrNull
+import com.avail.utility.Mutable
 import java.lang.reflect.Method
-import java.util.*
 import java.util.Collections.synchronizedMap
+import java.util.WeakHashMap
 
 /**
  * **Primitive:** Given a [type][A_Type] that can be successfully marshaled to a
@@ -106,12 +106,12 @@ object P_CreatePojoStaticMethodFunction : Primitive(3, CanInline, CanFold)
 		try
 		{
 			val marshaledTypes = marshalTypes(paramTypes)
-			val errorOut = MutableOrNull<AvailErrorCode>()
+			val errorOut = Mutable<AvailErrorCode?>(null)
 			method = lookupMethod(
 				pojoType, methodName, marshaledTypes, errorOut)
 			if (method === null)
 			{
-				return interpreter.primitiveFailure(errorOut.value())
+				return interpreter.primitiveFailure(errorOut.value!!)
 			}
 			marshaledTypesTuple = generateObjectTupleFrom(marshaledTypes.size) {
 				equalityPojo(marshaledTypes[it - 1])

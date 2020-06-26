@@ -54,7 +54,7 @@ import com.avail.exceptions.AvailErrorCode.E_ATOM_ALREADY_EXISTS
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.execution.Interpreter
-import com.avail.utility.MutableOrNull
+import com.avail.utility.Mutable
 
 /**
  * **Primitive:** Create a new [atom][AtomDescriptor] with the given name that
@@ -71,8 +71,8 @@ object P_CreateFiberHeritableAtom : Primitive(1, CanInline)
 		interpreter.checkArgumentCount(1)
 		val name = interpreter.argument(0)
 		val module = currentModule()
-		val trueName = MutableOrNull<A_Atom>()
-		val errorCode = MutableOrNull<AvailErrorCode>()
+		val trueName = Mutable<A_Atom?>(null)
+		val errorCode = Mutable<AvailErrorCode?>(null)
 		if (!module.equalsNil())
 		{
 			module.lock {
@@ -100,7 +100,7 @@ object P_CreateFiberHeritableAtom : Primitive(1, CanInline)
 		{
 			interpreter.primitiveFailure(errorCode.value!!)
 		}
-		else interpreter.primitiveSuccess(trueName.value().makeShared())
+		else interpreter.primitiveSuccess(trueName.value!!.makeShared())
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

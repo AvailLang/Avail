@@ -56,7 +56,6 @@ import com.avail.descriptor.types.TypeDescriptor
 import com.avail.descriptor.types.TypeTag
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.serialization.SerializerOperation
-import com.avail.utility.IteratorNotNull
 import com.avail.utility.json.JSONWriter
 import java.nio.ByteBuffer
 import java.util.*
@@ -935,7 +934,7 @@ abstract class TupleDescriptor protected constructor(
 	 *   The tuple over which to iterate.
 	 */
 	private class TupleIterator internal constructor(
-		private val tuple: AvailObject) : IteratorNotNull<AvailObject>
+		private val tuple: AvailObject) : Iterator<AvailObject>
 	{
 		/**
 		 * The size of the tuple.
@@ -957,12 +956,6 @@ abstract class TupleDescriptor protected constructor(
 			}
 			return tuple.tupleAt(index++)
 		}
-
-		override fun remove()
-		{
-			throw UnsupportedOperationException()
-		}
-
 	}
 
 	/**
@@ -1034,7 +1027,7 @@ abstract class TupleDescriptor protected constructor(
 				or Spliterator.IMMUTABLE)
 	}
 
-	override fun o_Iterator(self: AvailObject): IteratorNotNull<AvailObject>
+	override fun o_Iterator(self: AvailObject): Iterator<AvailObject>
 	{
 		self.makeImmutable()
 		return TupleIterator(self)

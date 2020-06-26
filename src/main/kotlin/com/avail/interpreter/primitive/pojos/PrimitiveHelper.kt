@@ -59,7 +59,7 @@ import com.avail.interpreter.levelOne.L1InstructionWriter
 import com.avail.interpreter.levelOne.L1Operation.L1_doCall
 import com.avail.interpreter.levelOne.L1Operation.L1_doMakeTuple
 import com.avail.interpreter.levelOne.L1Operation.L1_doPushLocal
-import com.avail.utility.MutableOrNull
+import com.avail.utility.Mutable
 import java.lang.reflect.Field
 import java.lang.reflect.Method
 
@@ -83,8 +83,8 @@ object PrimitiveHelper
 	 *   The array of [Class]es for the arguments, used to disambiguate
 	 *   overloaded methods.
 	 * @param errorOut
-	 *   A [MutableOrNull] into which an [AvailErrorCode] can be written in the
-	 *   event that a unique [Method] is not found.
+	 *   A [Mutable] into which an [AvailErrorCode] can be written in the event
+	 *   that a unique [Method] is not found.
 	 * @return
 	 *   Either the successfully looked up [Method] or `null`. Note that either
 	 *   the return is non-null or the errorOut will have a non-null value
@@ -94,7 +94,7 @@ object PrimitiveHelper
 		pojoType: A_Type,
 		methodName: A_String,
 		marshaledTypes: Array<Class<*>>,
-		errorOut: MutableOrNull<AvailErrorCode>
+		errorOut: Mutable<AvailErrorCode?>
 	): Method?
 	{
 		if (!pojoType.isPojoType || !pojoType.isPojoFusedType)
@@ -149,8 +149,8 @@ object PrimitiveHelper
 	 * @param fieldName
 	 *   The name of the field.
 	 * @param errorOut
-	 *   A [MutableOrNull] into which an [AvailErrorCode] can be written in the
-	 *   event that a unique [Field] is not found.
+	 *   A [Mutable] into which an [AvailErrorCode] can be written in the event
+	 *   that a unique [Field] is not found.
 	 * @return
 	 *   Either the successfully looked up [Field] or `null`. Note that either
 	 *   the return is non-null or the errorOut will have a non-null value
@@ -159,7 +159,7 @@ object PrimitiveHelper
 	internal fun lookupField(
 		pojoType: A_Type,
 		fieldName: A_String,
-		errorOut: MutableOrNull<AvailErrorCode>
+		errorOut: Mutable<AvailErrorCode?>
 	): Field?
 	{
 		if (!pojoType.isPojoType || !pojoType.isPojoFusedType)
@@ -227,7 +227,7 @@ object PrimitiveHelper
 	{
 		val argTypes = functionType.argsTupleType()
 		val numArgs = argTypes.sizeRange().lowerBound().extractInt()
-		val argTypesArray = Array<A_Type>(numArgs) {
+		val argTypesArray = Array(numArgs) {
 			argTypes.typeAtIndex(it + 1)
 		}
 		val returnType = functionType.returnType()
@@ -269,15 +269,15 @@ object PrimitiveHelper
 	 * @param args
 	 *   The values to marshal using the corresponding types.
 	 * @param errorOut
-	 *   A [MutableOrNull] into which an [AvailErrorCode] can be written in the
-	 *   event that marshaling fails for some value.
+	 *   A [Mutable] into which an [AvailErrorCode] can be written in the event
+	 *   that marshaling fails for some value.
 	 * @return
 	 *   The marshaled values.
 	 */
 	internal fun marshalValues(
 		marshaledTypes: A_Tuple,
 		args: A_Tuple,
-		errorOut: MutableOrNull<AvailErrorCode>
+		errorOut: Mutable<AvailErrorCode?>
 	): Array<Any?>?
 	{
 		assert(marshaledTypes.tupleSize() == args.tupleSize())

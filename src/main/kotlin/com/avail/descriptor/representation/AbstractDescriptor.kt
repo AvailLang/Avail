@@ -123,7 +123,6 @@ import com.avail.performance.Statistic
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.Casts.cast
 import com.avail.utility.Casts.nullableCast
-import com.avail.utility.IteratorNotNull
 import com.avail.utility.Strings.newlineTab
 import com.avail.utility.json.JSONWriter
 import com.avail.utility.visitor.AvailSubobjectVisitor
@@ -2763,7 +2762,7 @@ abstract class AbstractDescriptor protected constructor (
 	 * @return
 	 *   An [iterator][Iterator].
 	 */
-	abstract fun o_Iterator (self: AvailObject): IteratorNotNull<AvailObject>
+	abstract fun o_Iterator (self: AvailObject): Iterator<AvailObject>
 
 	abstract fun o_Spliterator (self: AvailObject): Spliterator<AvailObject>
 
