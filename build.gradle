@@ -40,6 +40,7 @@ plugins {
 	id 'java'
 	id 'org.jetbrains.kotlin.jvm' version '1.3.72' // $kotlin_version
 	id 'com.github.johnrengelman.shadow' version '5.2.0' // $shadow_version
+	id 'org.jetbrains.dokka' version '0.10.1'
 }
 
 group 'org.availlang'
@@ -49,6 +50,7 @@ sourceCompatibility = 1.8
 
 repositories {
 	mavenCentral()
+	jcenter()
 }
 
 tasks.withType(JavaCompile) {
@@ -132,6 +134,53 @@ task generateBuildTime {
 		file(pathToBuildTime).text = "$now\n"
 	}
 }
+
+// DOCUMENTATION TASKS
+
+// Remove generated documentation files
+task cleanDocs {
+	description 'Cleaning up previously generated documentation website'
+	delete 'documentation/docs/src_docs'
+	delete 'documentation/site'
+}
+cleanDocs.dependsOn clean
+
+// Creates documentation/docs/index.md from README.md
+task copyReadMeToDocs(type: Copy) {
+	from file("README.md")
+	rename { String fileName ->
+		"index.md"
+	}
+	into file("documentation/docs")
+}
+copyReadMeToDocs.dependsOn cleanDocs
+
+// Generate Kotlin documentation
+dokka {
+	outputFormat='gfm'
+	outputDirectory='documentation/docs/src_docs'
+	subProjects = [
+		"avail-bootstrap",
+		"avail-cli",
+		"avail-server",
+		"avail-workbench",
+		"indexed-file-analyzer",
+		"unicode-catalog"
+	]
+}
+
+task dokkaHTML(type: org.jetbrains.dokka.gradle.DokkaTask) {
+	outputFormat = 'html'
+	outputDirectory = "$buildDir/dokka"
+}
+
+// Install MkDocs and other dependencies
+task installDocsToolsMac(type:Exec) {
+	description 'Installing documenation website dependencies'
+	commandLine './documentation/docs.sh', 'install'
+}
+
+// END DOCUMENTATION TASKS
 
 // Generate the list of all primitives, which a running Avail system uses during
 // setup to reflectively identify the complete catalog of primitives.

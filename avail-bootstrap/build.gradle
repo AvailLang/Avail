@@ -33,6 +33,7 @@
 plugins {
 	id 'java'
 	id 'org.jetbrains.kotlin.jvm'
+	id 'org.jetbrains.dokka'
 }
 
 group 'org.availlang'
@@ -162,3 +163,20 @@ task generateBootstrap(type: Copy) {
 
 // Don't build any JAR files, since these are bootstrap tools only.
 jar.enabled = false
+
+// Generate documentation
+dokka {
+	outputFormat='gfm'
+	// Outputting to documentation/docs/src-docs directly causes the contents of
+	// the directory to be deleted. Moving the directory post generation is the
+	// work around.
+	doLast {
+		ant.move file: "${buildDir}/dokka/avail-bootstrap",
+			todir: "../documentation/docs/src_docs"
+	}
+}
+
+task dokkaHTML(type: org.jetbrains.dokka.gradle.DokkaTask) {
+	outputFormat = 'html'
+	outputDirectory = "$buildDir/dokka"
+}
