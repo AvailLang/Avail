@@ -120,52 +120,36 @@ enum class TypeTag
 	TUPLE_TAG(TOP_TAG),
 	STRING_TAG(TUPLE_TAG),
 	VARIABLE_TAG(TOP_TAG),
-	TOP_TYPE_TAG(TOP_TAG,
-	TOP_TAG),
+	TOP_TYPE_TAG(TOP_TAG, TOP_TAG),
 	ANY_TYPE_TAG(TOP_TYPE_TAG),
 	NONTYPE_TYPE_TAG(ANY_TYPE_TAG),
-	SET_TYPE_TAG(NONTYPE_TYPE_TAG,
-	SET_TAG),
-	POJO_TYPE_TAG(NONTYPE_TYPE_TAG,
-	POJO_TAG),
-	NUMBER_TYPE_TAG(NONTYPE_TYPE_TAG,
-	NUMBER_TAG),
-	EXTENDED_INTEGER_TYPE_TAG(NUMBER_TYPE_TAG,
-	EXTENDED_INTEGER_TAG),
-	PHRASE_TYPE_TAG(NONTYPE_TYPE_TAG,
-	PHRASE_TAG),
-	LIST_PHRASE_TYPE_TAG(PHRASE_TYPE_TAG,
-	LIST_PHRASE_TAG),
-	VARIABLE_TYPE_TAG(NONTYPE_TYPE_TAG,
-	VARIABLE_TAG),
+	SET_TYPE_TAG(NONTYPE_TYPE_TAG, SET_TAG),
+	POJO_TYPE_TAG(NONTYPE_TYPE_TAG, POJO_TAG),
+	NUMBER_TYPE_TAG(NONTYPE_TYPE_TAG, NUMBER_TAG),
+	EXTENDED_INTEGER_TYPE_TAG(NUMBER_TYPE_TAG, EXTENDED_INTEGER_TAG),
+	PHRASE_TYPE_TAG(NONTYPE_TYPE_TAG, PHRASE_TAG),
+	LIST_PHRASE_TYPE_TAG(PHRASE_TYPE_TAG, LIST_PHRASE_TAG),
+	VARIABLE_TYPE_TAG(NONTYPE_TYPE_TAG, VARIABLE_TAG),
 	PRIMITIVE_TYPE_TAG(NONTYPE_TYPE_TAG),
-	FUNCTION_TYPE_TAG(NONTYPE_TYPE_TAG,
-	FUNCTION_TAG),
-	OBJECT_TYPE_TAG(NONTYPE_TYPE_TAG,
-	OBJECT_TAG),
-	MAP_TYPE_TAG(NONTYPE_TYPE_TAG,
-	MAP_TAG),
-	TUPLE_TYPE_TAG(NONTYPE_TYPE_TAG,
-	TUPLE_TAG),
-	CONTINUATION_TYPE_TAG(NONTYPE_TYPE_TAG,
-	CONTINUATION_TAG),
-	RAW_FUNCTION_TYPE_TAG(NONTYPE_TYPE_TAG,
-	RAW_FUNCTION_TAG),
-	FIBER_TYPE_TAG(NONTYPE_TYPE_TAG,
-	FIBER_TAG),
-	META_TAG(ANY_TYPE_TAG,
-	TOP_TYPE_TAG),
+	FUNCTION_TYPE_TAG(NONTYPE_TYPE_TAG, FUNCTION_TAG),
+	OBJECT_TYPE_TAG(NONTYPE_TYPE_TAG, OBJECT_TAG),
+	MAP_TYPE_TAG(NONTYPE_TYPE_TAG, MAP_TAG),
+	TUPLE_TYPE_TAG(NONTYPE_TYPE_TAG, TUPLE_TAG),
+	CONTINUATION_TYPE_TAG(NONTYPE_TYPE_TAG, CONTINUATION_TAG),
+	RAW_FUNCTION_TYPE_TAG(NONTYPE_TYPE_TAG, RAW_FUNCTION_TAG),
+	FIBER_TYPE_TAG(NONTYPE_TYPE_TAG, FIBER_TAG),
+	META_TAG(ANY_TYPE_TAG, 	TOP_TYPE_TAG),
 	BOTTOM_TYPE_TAG(ANY_TYPE_TAG);
 
 	// Special case
-	constructor()
+	constructor ()
 	{
 		depth = 0
 		parent = null
 		highOrdinal = ordinal
 	}
 
-	constructor(parent: TypeTag)
+	constructor (parent: TypeTag)
 	{
 		assert(parent.metaTag === null) { 
 			"Children of tags with metaTags should also have metaTags" 
@@ -176,8 +160,7 @@ enum class TypeTag
 		parent.addDescendant(this)
 	}
 
-	constructor(parent: TypeTag,
-	instance: TypeTag)
+	constructor (parent: TypeTag, instance: TypeTag)
 	{
 		depth = parent.depth + 1
 		this.parent = parent
@@ -186,7 +169,7 @@ enum class TypeTag
 		instance.metaTag = this
 	}
 
-	fun addDescendant(descendant: TypeTag)
+	fun addDescendant (descendant: TypeTag)
 	{
 		assert(descendant.ordinal == highOrdinal + 1)
 		descendants.add(descendant)
@@ -204,12 +187,12 @@ enum class TypeTag
 	
 	private var highOrdinal: Int
 	
-	fun metaTag(): TypeTag = metaTag!!
+	fun metaTag (): TypeTag = metaTag!!
 
-	fun isSubtagOf(otherTag: TypeTag): Boolean =
+	fun isSubtagOf (otherTag: TypeTag): Boolean =
 		(ordinal >= otherTag.ordinal && highOrdinal <= otherTag.highOrdinal)
 
-	fun commonAncestorWith(other: TypeTag?): TypeTag
+	fun commonAncestorWith (other: TypeTag?): TypeTag
 	{
 		if (this == other)
 		{
