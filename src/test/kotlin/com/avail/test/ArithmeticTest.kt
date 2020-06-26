@@ -32,8 +32,7 @@
 package com.avail.test
 
 import com.avail.descriptor.numbers.A_Number
-import com.avail.descriptor.numbers.DoubleDescriptor.Companion
-.doubleTruncatedToExtendedInteger
+import com.avail.descriptor.numbers.DoubleDescriptor.Companion.doubleTruncatedToExtendedInteger
 import com.avail.descriptor.numbers.DoubleDescriptor.Companion.fromDouble
 import com.avail.descriptor.numbers.FloatDescriptor
 import com.avail.descriptor.numbers.FloatDescriptor.Companion.fromFloat
@@ -484,8 +483,7 @@ class ArithmeticTest
 			val availShift: A_Number = fromInt(leftShift)
 			val shiftedAvailInt = availInt.bitShift(availShift, true)
 			val availInt2 = fromBigInteger(base)
-			val shiftedAvailInt2 = availInt2.bitShift(availShift,
-													  false)
+			val shiftedAvailInt2 = availInt2.bitShift(availShift, false)
 			Assertions.assertEquals(shiftedAvailInt, shiftedAvailInt2)
 			val shiftedBigInt = base.shiftLeft(leftShift)
 			Assertions.assertEquals(fromBigInteger(shiftedBigInt),
