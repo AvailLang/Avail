@@ -238,7 +238,7 @@ class PrefixSharingList<E> : AbstractList<E>
 
 	override fun addAll(
 		index: Int,
-		c: Collection<E>): Boolean
+		elements: Collection<E>): Boolean
 	{
 		throw UnsupportedOperationException()
 	}

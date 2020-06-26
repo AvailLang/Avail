@@ -51,7 +51,7 @@ import java.util.concurrent.atomic.AtomicInteger
  *
  * [Graph] is not synchronized.
  *
- * @param <Vertex>
+ * @param Vertex
  *   The vertex type with which to parameterize the Graph.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
