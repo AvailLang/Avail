@@ -283,14 +283,12 @@ class PrefixSharingList<E> : AbstractList<E>
 		 *   The list's element type.
 		 */
 		@JvmStatic
-		fun <E2> append(
-			allButLast: List<E2>,
-			lastElement: E2): List<E2> =
-				if (allButLast.isEmpty())
-				{
-					listOf(lastElement)
-				}
-				else PrefixSharingList(allButLast, lastElement)
+		fun <E2> append(allButLast: List<E2>, lastElement: E2): List<E2> =
+			if (allButLast.isEmpty())
+			{
+				listOf(lastElement)
+			}
+			else PrefixSharingList(allButLast, lastElement)
 
 		/**
 		 * Produce a new immutable list based on the given list, but with the
@@ -333,18 +331,13 @@ class PrefixSharingList<E> : AbstractList<E>
 		 * Answer the last element of the given non-empty list.
 		 *
 		 * @param list
-		 * The list.
+		 *   The list.
 		 * @return
-		 * The last element of that list.
+		 *   The last element of that list.
 		 * @param E2
-		 * The list's element type.
+		 *   The list's element type.
 		 */
 		@JvmStatic
-		fun <E2> last(
-			list: List<E2>
-		): E2
-		{
-			return list[list.size - 1]
-		}
+		fun <E2> last(list: List<E2>): E2 = list[list.size - 1]
 	}
 }
