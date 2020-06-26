@@ -239,8 +239,8 @@ import com.avail.utility.Locks.lockWhile
 import com.avail.utility.Mutable
 import com.avail.utility.MutableOrNull
 import com.avail.utility.PrefixSharingList
-import com.avail.utility.PrefixSharingList.append
-import com.avail.utility.PrefixSharingList.last
+import com.avail.utility.PrefixSharingList.Companion.append
+import com.avail.utility.PrefixSharingList.Companion.last
 import com.avail.utility.StackPrinter.Companion.trace
 import com.avail.utility.Strings.increaseIndentation
 import com.avail.utility.evaluation.Describer
@@ -2157,8 +2157,8 @@ class AvailCompiler(
 			lockWhile(outstandingLock.writeLock()) {
 				if (failureCount.get() == 0)
 				{
-					intersection.value = intersection.value.typeIntersection(
-						restrictionType)
+					intersection.value =
+						intersection.value.typeIntersection(restrictionType)
 				}
 			}
 			if (outstanding.decrementAndGet() == 0)
