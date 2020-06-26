@@ -1,21 +1,21 @@
 /*
- * EnvironmentConfigurationTest.java
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * EnvironmentConfigurationTest.kt
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * * Redistributions of source code must retain the above copyright notice, this
- *   list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice, this
+ *     list of conditions and the following disclaimer.
  *
- * * Redistributions in binary form must reproduce the above copyright notice,
- *   this list of conditions and the following disclaimer in the documentation
- *   and/or other materials provided with the distribution.
+ *  * Redistributions in binary form must reproduce the above copyright notice, this
+ *     list of conditions and the following disclaimer in the documentation
+ *     and/or other materials provided with the distribution.
  *
- * * Neither the name of the copyright holder nor the names of the contributors
- *   may be used to endorse or promote products derived from this software
- *   without specific prior written permission.
+ *  * Neither the name of the copyright holder nor the names of the contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -29,20 +29,17 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.test
 
-package com.avail.test;
-
-
-import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.fail;
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
 
 /**
  * Check that the development environment is configured correctly.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class EnvironmentConfigurationTest
+class EnvironmentConfigurationTest
 {
 	/**
 	 * Make sure assertions are enabled.  Eclipse has the habit of disabling
@@ -50,15 +47,13 @@ public class EnvironmentConfigurationTest
 	 * test cases that didn't really test the code correctly.
 	 */
 	@Test
-	public void testAssertionsEnabled ()
+	fun testAssertionsEnabled()
 	{
-		int x = 123;
-		//noinspection NestedAssignment,AssertWithSideEffects,ConstantConditions
-		assert ((x = 456) == 456);
-		//noinspection ConstantConditions
+		var x = 123
+		assert(456.also { x = it } == 456)
 		if (x != 456)
 		{
-			fail("Assertion checking was not enabled");
+			Assertions.fail<Any>("Assertion checking was not enabled")
 		}
 	}
 }
