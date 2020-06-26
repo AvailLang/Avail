@@ -39,7 +39,6 @@ import com.avail.server.AvailServer
 import com.avail.server.AvailServer.Companion.logger
 import com.avail.server.messages.Message
 import com.avail.utility.IO
-import com.avail.utility.MutableOrNull
 import com.avail.utility.evaluation.Combinator.recurse
 import java.io.ByteArrayOutputStream
 import java.io.IOException
@@ -497,7 +496,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 			{
 				val bytes = ByteArrayOutputStream(1024)
 				val buffer = ByteBuffer.allocate(1024)
-				val state = MutableOrNull(HttpHeaderState.START)
+				var state: HttpHeaderState? = HttpHeaderState.START
 				val transport = channel.transport
 				SimpleCompletionHandler<Int>(
 					{
@@ -506,10 +505,9 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 							return@SimpleCompletionHandler
 						}
 						buffer.flip()
-						while (buffer.hasRemaining()
-							&& !state.value().isAcceptState)
+						while (buffer.hasRemaining() && !state!!.isAcceptState)
 						{
-							state.value = state.value().nextState(
+							state = state!!.nextState(
 								buffer.get().toInt())
 						}
 						if (buffer.hasRemaining())
@@ -526,7 +524,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 								buffer.array(),
 								buffer.position(),
 								buffer.remaining())
-							if (!state.value().isAcceptState)
+							if (!state!!.isAcceptState)
 							{
 								buffer.clear()
 								handler.guardedDo {

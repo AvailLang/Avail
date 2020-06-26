@@ -646,7 +646,7 @@ class Graph<Vertex> constructor ()
 		 * A [Map] keeping track of how many predecessors of each vertex have
 		 * not yet been completed.
 		 */
-		private val predecessorCountdowns = mutableMapOf<Vertex, MutableInt>()
+		private val predecessorCountdowns = mutableMapOf<Vertex, AtomicInteger>()
 
 		/**
 		 * A collection of all outstanding vertices which have had a predecessor
@@ -676,12 +676,12 @@ class Graph<Vertex> constructor ()
 				{
 					// Seed it with 1, as though each root has an incoming edge.
 					// Also queue the root as though that edge has been visited.
-					predecessorCountdowns[vertex] = MutableInt(1)
+					predecessorCountdowns[vertex] = AtomicInteger(1)
 					queue.addLast(vertex)
 				}
 				else
 				{
-					predecessorCountdowns[vertex] = MutableInt(predecessorsSize)
+					predecessorCountdowns[vertex] = AtomicInteger(predecessorsSize)
 				}
 			}
 		}
@@ -711,9 +711,9 @@ class Graph<Vertex> constructor ()
 			{
 				val vertex = queue.removeFirst()
 				val countdown = predecessorCountdowns[vertex]
-				countdown!!.value--
-				assert(countdown.value >= 0)
-				if (countdown.value == 0)
+				val value = countdown!!.decrementAndGet()
+				assert(value >= 0)
+				if (value == 0)
 				{
 					predecessorCountdowns.remove(vertex)
 					val alreadyRan = AtomicBoolean(false)

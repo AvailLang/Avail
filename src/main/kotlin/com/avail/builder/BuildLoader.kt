@@ -64,7 +64,6 @@ import com.avail.persistence.Repository.ModuleVersionKey
 import com.avail.serialization.Deserializer
 import com.avail.serialization.MalformedSerialStreamException
 import com.avail.serialization.Serializer
-import com.avail.utility.MutableLong
 import com.avail.utility.evaluation.Combinator.recurse
 import java.io.ByteArrayOutputStream
 import java.lang.String.format
@@ -466,7 +465,7 @@ internal class BuildLoader constructor(
 		val archive = repository.getArchive(moduleName.rootRelativeName)
 		val digest = archive.digestForFile(moduleName)
 		val versionKey = ModuleVersionKey(moduleName, digest)
-		val lastPosition = MutableLong(0L)
+		var lastPosition = 0L
 		val ranOnce = AtomicBoolean(false)
 		AvailCompiler.create(
 			moduleName,
@@ -479,12 +478,12 @@ internal class BuildLoader constructor(
 				localTracker(
 					moduleName, moduleSize, min(position, moduleSize - 1))
 				globalTracker(
-					bytesCompiled.addAndGet(position - lastPosition.value),
+					bytesCompiled.addAndGet(position - lastPosition),
 					globalCodeSize)
-				lastPosition.value = position
+				lastPosition = position
 			},
 			{
-				postLoad(moduleName, lastPosition.value)
+				postLoad(moduleName, lastPosition)
 				completionAction()
 			},
 			problemHandler
@@ -517,7 +516,7 @@ internal class BuildLoader constructor(
 
 					repository.commitIfStaleChanges(
 						AvailBuilder.maximumStaleRepositoryMs)
-					postLoad(moduleName, lastPosition.value)
+					postLoad(moduleName, lastPosition)
 					availBuilder.putLoadedModule(
 						moduleName,
 						LoadedModule(
@@ -529,7 +528,7 @@ internal class BuildLoader constructor(
 					completionAction()
 				},
 				{
-					postLoad(moduleName, lastPosition.value)
+					postLoad(moduleName, lastPosition)
 					completionAction()
 				})
 		}

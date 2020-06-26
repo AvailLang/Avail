@@ -41,7 +41,6 @@ import com.avail.interpreter.levelTwo.operation.L2_JUMP
 import com.avail.interpreter.levelTwo.operation.L2_UNREACHABLE_CODE
 import com.avail.interpreter.levelTwo.register.L2Register
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind
-import com.avail.utility.MutableInt
 import com.avail.utility.Strings.repeated
 import com.avail.utility.dot.DotWriter
 import com.avail.utility.dot.DotWriter.*
@@ -52,6 +51,7 @@ import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.util.*
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.regex.Pattern
 import kotlin.Comparator
 
@@ -290,13 +290,13 @@ class L2ControlFlowGraphVisualizer constructor(
 	 * @param started
 	 *   Whether code generation has started for the targetBlock.
 	 * @param edgeCounter
-	 *   A [MutableInt], suitable for uniquely numbering edges.
+	 *   An [AtomicInteger], suitable for uniquely numbering edges.
 	 */
 	private fun edge(
 		edge: L2PcOperand,
 		writer: GraphWriter,
 		started: Boolean,
-		edgeCounter: MutableInt)
+		edgeCounter: AtomicInteger)
 	{
 		val sourceBlock = edge.sourceBlock()
 		val sourceInstruction = edge.instruction()
@@ -457,7 +457,7 @@ class L2ControlFlowGraphVisualizer constructor(
 				{ attr: AttributeWriter ->
 					// Number each edge uniquely, to allow a multigraph.
 					attr.attribute(
-						"id", (edgeCounter.value++).toString())
+						"id", (edgeCounter.getAndIncrement()).toString())
 					if (!started)
 					{
 						attr.attribute("color", "#4040ff/8080ff")
@@ -645,7 +645,7 @@ class L2ControlFlowGraphVisualizer constructor(
 				unstartedBlocks
 					.filter { it.zone === null }
 					.forEach { basicBlock(it, graph, false) }
-				val edgeCounter = MutableInt(1)
+				val edgeCounter = AtomicInteger(1)
 				controlFlowGraph.basicBlockOrder.forEach {
 					it.predecessorEdgesDo { edge ->
 						edge(edge, graph, true, edgeCounter)

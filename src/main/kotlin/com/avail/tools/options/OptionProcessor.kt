@@ -36,11 +36,11 @@ import com.avail.tools.options.OptionProcessorFactory.Cardinality
 import com.avail.tools.options.OptionProcessorFactory.OptionInvocation
 import com.avail.tools.options.OptionProcessorFactory.OptionInvocationWithArgument
 import com.avail.utility.CollectionExtensions.populatedEnumMap
-import com.avail.utility.MutableInt
 import com.avail.utility.ParagraphFormatter
 import com.avail.utility.ParagraphFormatterStream
 import java.io.IOException
 import java.util.*
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * An `OptionProcessor` serves primarily to support command-line argument
@@ -115,8 +115,8 @@ class OptionProcessor<OptionKeyType : Enum<OptionKeyType>> internal constructor(
 		options.associateByTo(EnumMap(optionKeyType)) { it.key }
 
 	/** A mapping from option key to times encountered during processing.  */
-	private val timesEncountered: EnumMap<OptionKeyType, MutableInt> =
-		populatedEnumMap(optionKeyType) { MutableInt(0) }
+	private val timesEncountered: EnumMap<OptionKeyType, AtomicInteger> =
+		populatedEnumMap(optionKeyType) { AtomicInteger(0) }
 
 	/**
 	 * Perform the action associated with the option key bound to the specified
@@ -137,7 +137,7 @@ class OptionProcessor<OptionKeyType : Enum<OptionKeyType>> internal constructor(
 		val optionKey = allKeywords[keyword]
 			?: throw UnrecognizedKeywordException(keyword)
 		val option = allOptions[optionKey]!!
-		timesEncountered[optionKey]!!.value++
+		timesEncountered[optionKey]!!.getAndIncrement()
 		// Make sure we haven't exceeded the maximum count.
 		checkEncountered(optionKey, option.cardinality.max)
 		if (option.takesArgument) {
@@ -364,7 +364,7 @@ class OptionProcessor<OptionKeyType : Enum<OptionKeyType>> internal constructor(
 	 * @return
 	 *   The number of times that the option has been processed.
 	 */
-	fun timesEncountered(key: OptionKeyType) = timesEncountered[key]!!.value
+	fun timesEncountered(key: OptionKeyType) = timesEncountered[key]!!.get()
 
 	/**
 	 * If the specified key was encountered more times than allowed, then throw

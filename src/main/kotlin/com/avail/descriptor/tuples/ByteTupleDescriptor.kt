@@ -41,7 +41,6 @@ import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor
 import com.avail.descriptor.types.TypeDescriptor
-import com.avail.utility.MutableInt
 import com.avail.utility.json.JSONWriter
 import java.nio.ByteBuffer
 
@@ -489,10 +488,10 @@ class ByteTupleDescriptor private constructor(
 		if (tupleSize in 1 until maximumCopySize)
 		{
 			// It's not empty and it's reasonably small.
-			val sourceIndex = MutableInt(tupleSize)
+			var sourceIndex = tupleSize
 			return generateByteTupleFrom(tupleSize) {
 				self.byteSlot(
-					IntegerSlots.RAW_LONG_AT_, sourceIndex.value--).toInt()
+					IntegerSlots.RAW_LONG_AT_, sourceIndex--).toInt()
 			}
 		}
 		return super.o_TupleReverse(self)

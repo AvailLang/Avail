@@ -45,11 +45,11 @@ import com.avail.optimizer.values.L2SemanticValue
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport
 import com.avail.utility.Casts
-import com.avail.utility.MutableInt
 import com.avail.utility.Nulls
 import com.avail.utility.Strings.increaseIndentation
 import com.avail.utility.structures.EnumMap.Companion.enumMap
 import java.util.*
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.reflect.KClass
 
 /**
@@ -1013,10 +1013,10 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 	 */
 	fun orderBlocks()
 	{
-		val countdowns = mutableMapOf<L2BasicBlock, MutableInt>()
+		val countdowns = mutableMapOf<L2BasicBlock, AtomicInteger>()
 		for (block in blocks)
 		{
-			countdowns[block] = MutableInt(block.predecessorEdgesCount())
+			countdowns[block] = AtomicInteger(block.predecessorEdgesCount())
 		}
 		val order = mutableListOf<L2BasicBlock>()
 		assert(blocks[0].predecessorEdgesCount() == 0)
@@ -1043,7 +1043,7 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 					val countdown = countdowns[edge.targetBlock()]
 					// Note that the entry may have been removed to break a
 					// cycle.  See below.
-					if (countdown !== null && --countdown.value == 0)
+					if (countdown !== null && countdown.decrementAndGet() == 0)
 					{
 						countdowns.remove(edge.targetBlock())
 						zeroed.add(edge.targetBlock())
@@ -1058,7 +1058,7 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 				var victim: L2BasicBlock? = null
 				for ((key, value) in countdowns)
 				{
-					if (value.value < key.predecessorEdgesCount())
+					if (value.get() < key.predecessorEdgesCount())
 					{
 						victim = key
 						break
