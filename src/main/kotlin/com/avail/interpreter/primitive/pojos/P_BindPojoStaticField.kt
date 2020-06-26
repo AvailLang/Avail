@@ -54,7 +54,7 @@ import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.primitive.pojos.PrimitiveHelper.lookupField
-import com.avail.utility.MutableOrNull
+import com.avail.utility.Mutable
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 
@@ -66,6 +66,7 @@ import java.lang.reflect.Modifier
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_BindPojoStaticField : Primitive(2, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result
@@ -76,9 +77,9 @@ object P_BindPojoStaticField : Primitive(2, CanFold, CanInline)
 
 		interpreter.availLoaderOrNull()?.statementCanBeSummarized(false)
 
-		val errorOut = MutableOrNull<AvailErrorCode>()
+		val errorOut = Mutable<AvailErrorCode?>(null)
 		val field = lookupField(pojoType, fieldName, errorOut)
-			?: return interpreter.primitiveFailure(errorOut.value())
+			?: return interpreter.primitiveFailure(errorOut.value!!)
 		if (!Modifier.isStatic(field.modifiers))
 		{
 			// This is not the right primitive to bind instance fields.

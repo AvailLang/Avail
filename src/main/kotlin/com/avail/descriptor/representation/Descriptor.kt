@@ -91,7 +91,6 @@ package com.avail.descriptor.representation
  import com.avail.io.TextInterface
  import com.avail.performance.Statistic
  import com.avail.serialization.SerializerOperation
- import com.avail.utility.IteratorNotNull
  import com.avail.utility.json.JSONWriter
  import com.avail.utility.visitor.AvailSubobjectVisitor
  import com.avail.utility.visitor.BeImmutableSubobjectVisitor
@@ -1599,7 +1598,7 @@ abstract class Descriptor protected constructor (
 	 * @return
 	 *   An [iterator][Iterator].
 	 */
-	override fun o_Iterator (self: AvailObject): IteratorNotNull<AvailObject> =
+	override fun o_Iterator (self: AvailObject): Iterator<AvailObject> =
 		unsupported
 
 	override fun o_Spliterator (self: AvailObject): Spliterator<AvailObject> =

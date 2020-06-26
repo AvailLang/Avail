@@ -37,7 +37,6 @@ import com.avail.builder.RenamesFileParserException;
 import com.avail.builder.UnresolvedDependencyException;
 import com.avail.descriptor.atoms.A_Atom;
 import com.avail.test.AvailRuntimeTestHelper.TestErrorChannel;
-import com.avail.utility.Mutable;
 import com.avail.utility.Nulls;
 import kotlin.Unit;
 import kotlin.jvm.functions.Function0;
@@ -54,6 +53,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import javax.annotation.Nullable;
 import java.io.FileNotFoundException;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -197,7 +197,7 @@ public class AvailTest
 		final boolean loaded = helper().loadModule(testModuleName);
 		assertTrue(loaded, "Failed to load module: " + testModuleName);
 		final Semaphore semaphore = new Semaphore(0);
-		final Mutable<Boolean> ok = new Mutable<>(false);
+		final AtomicBoolean ok = new AtomicBoolean(false);
 		helper().builder.attemptCommand(
 			"Run all tests",
 			(commands, proceed) ->
@@ -208,7 +208,7 @@ public class AvailTest
 			(result, cleanup) ->
 				cleanup.invoke((Function0<Unit>) () ->
 				{
-					ok.value = A_Atom.Companion.extractBoolean(result);
+					ok.set(A_Atom.Companion.extractBoolean(result));
 					semaphore.release();
 					return Unit.INSTANCE;
 				}),
@@ -218,7 +218,7 @@ public class AvailTest
 				return Unit.INSTANCE;
 			});
 		semaphore.acquireUninterruptibly();
-		assertTrue(ok.value, "Some Avail tests failed");
+		assertTrue(ok.get(), "Some Avail tests failed");
 		assertFalse(helper().errorDetected());
 		// TODO: [TLS] Runners.avail needs to be reworked so that Avail unit
 		// test failures show up on standard error instead of standard output,

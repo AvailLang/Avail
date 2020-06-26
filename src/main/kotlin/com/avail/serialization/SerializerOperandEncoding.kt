@@ -263,7 +263,7 @@ internal enum class SerializerOperandEncoding
 			// Visit the *elements* of the tuple.
 			for (element in obj)
 			{
-				serializer.traceOne(element as AvailObject)
+				serializer.traceOne(element)
 			}
 		}
 

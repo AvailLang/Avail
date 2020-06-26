@@ -46,7 +46,7 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.Private
 import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.primitive.pojos.PrimitiveHelper.marshalValues
-import com.avail.utility.MutableOrNull
+import com.avail.utility.Mutable
 import java.lang.reflect.Constructor
 import java.lang.reflect.InvocationTargetException
 
@@ -83,12 +83,12 @@ object P_InvokePojoConstructor : Primitive(-1, Private)
 
 		// Marshal the arguments.
 		val constructor = constructorPojo.javaObjectNotNull<Constructor<*>>()
-		val errorOut = MutableOrNull<AvailErrorCode>()
+		val errorOut = Mutable<AvailErrorCode?>(null)
 		val marshaledArgs = marshalValues(
 			marshaledTypes, constructorArgs, errorOut)
 		if (errorOut.value !== null)
 		{
-			val e = errorOut.value()
+			val e = errorOut.value!!
 			return interpreter.primitiveFailure(
 				newPojo(identityPojo(e), pojoTypeForClass(e.javaClass)))
 		}

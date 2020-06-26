@@ -237,7 +237,6 @@ import com.avail.performance.StatisticReport.RUNNING_PARSING_INSTRUCTIONS
 import com.avail.persistence.Repository
 import com.avail.utility.Locks.lockWhile
 import com.avail.utility.Mutable
-import com.avail.utility.MutableOrNull
 import com.avail.utility.PrefixSharingList
 import com.avail.utility.PrefixSharingList.Companion.append
 import com.avail.utility.PrefixSharingList.Companion.last
@@ -724,10 +723,10 @@ class AvailCompiler(
 	 *   The map to associate with the [SpecialAtom.CLIENT_DATA_GLOBAL_KEY] atom
 	 *   in the fiber.
 	 * @param clientParseDataOut
-	 *   A [MutableOrNull] into which we will store an [A_Map] when the fiber
+	 *   A [Mutable] into which we will store an [A_Map] when the fiber
 	 *   completes successfully.  The map will be the content of the fiber
 	 *   variable holding the client data, extracted just after the fiber
-	 *   completes.  If unsuccessful, don't assign to the `MutableOrNull`.
+	 *   completes.  If unsuccessful, don't assign to the `Mutable`.
 	 * @param lexingState
 	 *   The position at which the macro body is being evaluated.
 	 * @param onSuccess
@@ -739,7 +738,7 @@ class AvailCompiler(
 		macro: A_Definition,
 		args: List<A_Phrase>,
 		clientParseData: A_Map,
-		clientParseDataOut: MutableOrNull<A_Map>,
+		clientParseDataOut: Mutable<A_Map?>,
 		lexingState: LexingState,
 		onSuccess: (AvailObject)->Unit,
 		onFailure: (Throwable)->Unit)
@@ -2933,7 +2932,7 @@ class AvailCompiler(
 				+ ' '.toString()
 				+ argumentsList)
 		}
-		val clientDataAfterRunning = MutableOrNull<A_Map>()
+		val clientDataAfterRunning = Mutable<A_Map?>(null)
 		evaluateMacroFunctionThen(
 			macroDefinitionToInvoke,
 			argumentsList,
@@ -2991,7 +2990,7 @@ class AvailCompiler(
 				// Continue after this macro invocation with whatever client
 				// data was set up by the macro.
 				val stateAfter = stateAfterCall.withMap(
-					clientDataAfterRunning.value())
+					clientDataAfterRunning.value!!)
 				val original = newSendNode(
 					tupleFromList(consumedTokens),
 					bundle,

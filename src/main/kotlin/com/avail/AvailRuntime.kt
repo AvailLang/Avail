@@ -6,12 +6,12 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
  *
  *  * Neither the name of the copyright holder nor the names of the contributors
  *    may be used to endorse or promote products derived from this software
@@ -186,10 +186,16 @@ import com.avail.io.TextInterface.Companion.system
 import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-import com.avail.utility.StackPrinter.Companion.trace
 import com.avail.utility.evaluation.OnceSupplier
+import com.avail.utility.StackPrinter.Companion.trace
 import com.avail.utility.structures.EnumMap.Companion.enumMap
-import java.util.*
+import java.util.ArrayDeque
+import java.util.Collections
+import java.util.HashSet
+import java.util.Queue
+import java.util.Timer
+import java.util.TimerTask
+import java.util.WeakHashMap
 import java.util.concurrent.PriorityBlockingQueue
 import java.util.concurrent.ThreadFactory
 import java.util.concurrent.ThreadPoolExecutor
@@ -199,7 +205,6 @@ import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantLock
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.function.Consumer
-import java.util.function.Supplier
 import kotlin.concurrent.fixedRateTimer
 import kotlin.concurrent.read
 import kotlin.concurrent.withLock
@@ -652,9 +657,10 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 		private val hookName: A_String = stringFrom(hookName)
 
 		/**
-		 * A [Supplier] of a default [A_Function] to use for this hook type.
+		 * A [supplier][OnceSupplier] of a default [A_Function] to use for this
+		 * hook type.
 		 */
-		val defaultFunctionSupplier: Supplier<A_Function>
+		val defaultFunctionSupplier: OnceSupplier<A_Function>
 
 		/**
 		 * Extract the current [A_Function] for this hook from the given
@@ -703,14 +709,19 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 					newPrimitiveRawFunction(primitive, nil, 0)
 				code.setMethodName(this.hookName)
 				defaultFunctionSupplier =
-					OnceSupplier { createFunction(code, emptyTuple()) }
+					OnceSupplier {
+						createFunction(
+							code,
+							emptyTuple()
+						)
+					}
 			}
 		}
 	}
 
 	/** The collection of hooks for this runtime.  */
 	val hooks =
-		enumMap(HookType.values()) { it.defaultFunctionSupplier.get() }
+		enumMap(HookType.values()) { it.defaultFunctionSupplier() }
 	/**
 	 * Answer the [function][FunctionDescriptor] to invoke whenever the value
 	 * produced by a [method][MethodDescriptor] send disagrees with the

@@ -37,7 +37,6 @@ import com.avail.descriptor.representation.AvailObjectRepresentation.Companion.n
 import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-import com.avail.utility.IteratorNotNull
 import java.util.*
 
 /**
@@ -375,7 +374,7 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 	 *   The tuple over which to iterate.
 	 */
 	private class ObjectTupleIterator internal constructor(
-		private val tuple: AvailObject) : IteratorNotNull<AvailObject>
+		private val tuple: AvailObject) : Iterator<AvailObject>
 	{
 
 		/**
@@ -403,15 +402,9 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 			// descriptor cannot be changed.
 			return tuple.slot(ObjectSlots.TUPLE_AT_, index++)
 		}
-
-		override fun remove()
-		{
-			throw UnsupportedOperationException()
-		}
-
 	}
 
-	override fun o_Iterator(self: AvailObject): IteratorNotNull<AvailObject>
+	override fun o_Iterator(self: AvailObject): Iterator<AvailObject>
 	{
 		self.makeImmutable()
 		return ObjectTupleIterator(self)

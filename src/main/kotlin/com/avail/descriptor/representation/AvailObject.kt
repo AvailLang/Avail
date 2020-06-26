@@ -116,7 +116,6 @@ import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.utility.Casts.cast
-import com.avail.utility.IteratorNotNull
 import com.avail.utility.StackPrinter
 import com.avail.utility.json.JSONWriter
 import com.avail.utility.visitor.AvailSubobjectVisitor
@@ -1662,7 +1661,7 @@ class AvailObject private constructor(
 	 *   An [iterator][Iterator].
 	 */
 	@ReferencedInGeneratedCode
-	override fun iterator(): IteratorNotNull<AvailObject> =
+	override fun iterator(): Iterator<AvailObject> =
 		dispatch { it::o_Iterator }
 
 	override fun spliterator(): Spliterator<AvailObject> =
@@ -3409,7 +3408,7 @@ class AvailObject private constructor(
 		val iteratorMethod: CheckedMethod = instanceMethod(
 			AvailObject::class.java,
 			AvailObject::iterator.name,
-			IteratorNotNull::class.java)
+			Iterator::class.java)
 
 		/** Access the [frameAt] method.  */
 		@JvmField

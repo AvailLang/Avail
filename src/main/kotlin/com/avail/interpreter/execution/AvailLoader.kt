@@ -143,8 +143,9 @@ import com.avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerWhitespa
 import com.avail.interpreter.primitive.methods.P_Alias
 import com.avail.io.TextInterface
 import com.avail.utility.StackPrinter
-import com.avail.utility.evaluation.Combinator
-import java.util.*
+import com.avail.utility.evaluation.Combinator.recurse
+import java.util.ArrayDeque
+import java.util.Arrays
 import java.util.concurrent.locks.ReentrantLock
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import javax.annotation.concurrent.GuardedBy
@@ -1240,7 +1241,7 @@ class AvailLoader(
 		val size = unloadFunctions.tupleSize()
 		// The index into the tuple of unload functions.
 		var index = 1
-		Combinator.recurse { again: () -> Unit ->
+		recurse { again ->
 			if (index <= size) {
 				val currentIndex = index++
 				val unloadFunction: A_Function =

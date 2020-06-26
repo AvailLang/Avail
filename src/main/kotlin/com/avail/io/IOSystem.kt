@@ -42,7 +42,7 @@ import com.avail.descriptor.representation.AvailObject.Companion.multiplier
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.utility.LRUCache
-import com.avail.utility.MutableOrNull
+import com.avail.utility.Mutable
 import com.avail.utility.SimpleThreadFactory
 import java.io.IOException
 import java.nio.channels.AsynchronousChannelGroup
@@ -65,8 +65,8 @@ import java.nio.file.attribute.PosixFilePermission.OTHERS_WRITE
 import java.nio.file.attribute.PosixFilePermission.OWNER_EXECUTE
 import java.nio.file.attribute.PosixFilePermission.OWNER_READ
 import java.nio.file.attribute.PosixFilePermission.OWNER_WRITE
-import java.util.*
 import java.util.Collections.synchronizedMap
+import java.util.WeakHashMap
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy
@@ -129,14 +129,14 @@ class IOSystem constructor(val runtime: AvailRuntime)
 	 * thread-safe).
 	 *
 	 * A miss for this cache doesn't actually read the necessary data from the
-	 * operating system.  Instead, it simply creates a [MutableOrNull]
-	 * initially.  The client is responsible for reading the actual data that
-	 * should be stored into the `MutableOrNull`.
+	 * operating system.  Instead, it simply creates a [Mutable] initially.  The
+	 * client is responsible for reading the actual data that should be stored
+	 * into the `Mutable`.
 	 */
-	private val cachedBuffers = LRUCache<BufferKey, MutableOrNull<A_Tuple>>(
+	private val cachedBuffers = LRUCache<BufferKey, Mutable<A_Tuple?>>(
 		10000,
 		10,
-		{ MutableOrNull() },
+		{ Mutable(null) },
 		{ _, value ->
 			// Just clear the mutable's value slot, freeing the actual
 			// buffer.
@@ -337,19 +337,19 @@ class IOSystem constructor(val runtime: AvailRuntime)
 	}
 
 	/**
-	 * Answer the [container][MutableOrNull] responsible for the
-	 * [buffer][A_Tuple] indicated by the supplied [key][BufferKey].
+	 * Answer the [container][Mutable] responsible for the [buffer][A_Tuple]
+	 * indicated by the supplied [key][BufferKey].
 	 *
 	 * @param key
 	 *   A key.
 	 * @return
 	 *   A container for a buffer, possibly empty.
 	 */
-	fun getBuffer(key: BufferKey): MutableOrNull<A_Tuple> = cachedBuffers[key]
+	fun getBuffer(key: BufferKey): Mutable<A_Tuple?> = cachedBuffers[key]
 
 	/**
-	 * Discard the [container][MutableOrNull] responsible for the
-	 * [buffer][A_Tuple] indicated by the supplied [key][BufferKey].
+	 * Discard the [container][Mutable] responsible for the [buffer][A_Tuple]
+	 * indicated by the supplied [key][BufferKey].
 	 *
 	 * @param key
 	 *   A key.

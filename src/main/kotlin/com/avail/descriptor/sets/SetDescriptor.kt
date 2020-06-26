@@ -59,7 +59,6 @@ import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.serialization.SerializerOperation
-import com.avail.utility.IteratorNotNull
 import com.avail.utility.json.JSONWriter
 import java.util.*
 
@@ -417,11 +416,7 @@ private constructor(
 	 * [AvailObject.iterator].  Among other uses, this is useful when combined
 	 * with Kotlin's "forEach" control structure.
 	 */
-	abstract class SetIterator : IteratorNotNull<AvailObject> {
-		override fun remove() {
-			throw UnsupportedOperationException()
-		}
-	}
+	abstract class SetIterator : Iterator<AvailObject>
 
 	override fun o_Iterator(self: AvailObject): SetIterator =
 		rootBin(self).setBinIterator()

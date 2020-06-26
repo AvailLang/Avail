@@ -175,7 +175,6 @@ package com.avail.descriptor.representation
  import com.avail.io.TextInterface
  import com.avail.performance.Statistic
  import com.avail.serialization.SerializerOperation
- import com.avail.utility.IteratorNotNull
  import com.avail.utility.json.JSONWriter
  import com.avail.utility.visitor.AvailSubobjectVisitor
  import java.math.BigInteger
@@ -1081,7 +1080,7 @@ class IndirectionDescriptor private constructor(
 		anEnumerationType: A_Type
 	): Boolean = self .. { isSupertypeOfEnumerationType(anEnumerationType) }
 
-	override fun o_Iterator(self: AvailObject): IteratorNotNull<AvailObject> =
+	override fun o_Iterator(self: AvailObject): Iterator<AvailObject> =
 		self .. { iterator() }
 
 	override fun o_Spliterator(self: AvailObject): Spliterator<AvailObject> =

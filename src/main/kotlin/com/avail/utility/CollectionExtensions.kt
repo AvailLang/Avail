@@ -1,6 +1,6 @@
 /*
- * IteratorNotNull.java
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * CollectionExtensions.kt
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,26 +29,28 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.utility
 
-package com.avail.utility;
-
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-
-import java.util.Iterator;
-import java.util.NoSuchElementException;
+import com.avail.utility.structures.EnumMap
 
 /**
- * A sub-interface of Iterator that does not produce {@code null} elements.
+ * Project the receiver onto an {@link EnumMap}, applying the function to each
+ * enum value of the array.
  *
- * @param <E> The type of elements produced by the iterator – never null.
- *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @param K
+ *   The key type, an [Enum].
+ * @param V
+ *   The value type produced by the function.
+ * @param generator
+ *   A function to map keys to values.
+ * @return
+ *   A fully populated [EnumMap].
  */
-public interface IteratorNotNull<E> extends Iterator<E>
+fun <K : Enum<K>, V: Any> Array<K>.toEnumMap (
+	generator: (K) -> V
+): EnumMap<K, V>
 {
-	@Override
-	@ReferencedInGeneratedCode
-	E next ()
-	throws NoSuchElementException;
+	val map = EnumMap<K, V>(this)
+	this.forEach { key -> map[key] = generator(key) }
+	return map
 }
-

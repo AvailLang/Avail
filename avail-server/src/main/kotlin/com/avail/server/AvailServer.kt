@@ -78,7 +78,7 @@ import com.avail.server.messages.SimpleCommandMessage
 import com.avail.server.messages.UnloadModuleCommandMessage
 import com.avail.server.messages.UpgradeCommandMessage
 import com.avail.server.messages.VersionCommandMessage
-import com.avail.utility.MutableOrNull
+import com.avail.utility.Mutable
 import com.avail.utility.configuration.ConfigurationException
 import com.avail.utility.json.JSONWriter
 import java.io.FileNotFoundException
@@ -438,14 +438,13 @@ class AvailServer constructor(
 	 * @param root
 	 *   A module root.
 	 * @param tree
-	 *   The [holder][MutableOrNull] for the resultant tree of
-	 *   [modules][ModuleNode].
+	 *   The [holder][Mutable] for the resultant tree of [modules][ModuleNode].
 	 * @return
 	 *   A `FileVisitor`.
 	 */
 	private fun sourceModuleVisitor(
 		root: ModuleRoot,
-		tree: MutableOrNull<ModuleNode>): FileVisitor<Path>
+		tree: Mutable<ModuleNode?>): FileVisitor<Path>
 	{
 		val extension = ModuleNameResolver.availExtension
 		var isRoot = true
@@ -593,7 +592,7 @@ class AvailServer constructor(
 			writeArray {
 				for (root in roots)
 				{
-					val tree = MutableOrNull<ModuleNode>()
+					val tree = Mutable<ModuleNode?>(null)
 					val directory = root.sourceDirectory
 					if (directory !== null)
 					{
@@ -611,7 +610,7 @@ class AvailServer constructor(
 							// exceptions in the visitor.
 						}
 					}
-					tree.value().writeOn(this)
+					tree.value!!.writeOn(this)
 				}
 			}
 		}
