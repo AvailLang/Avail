@@ -329,7 +329,7 @@ class L2RegisterColorer constructor(controlFlowGraph: L2ControlFlowGraph)
 			// Find the nodes having the fewest neighbors.
 			var fewestCount = Int.MAX_VALUE
 			val withFewest: MutableList<RegisterGroup> = ArrayList()
-			for (reg in graphCopy.vertices())
+			for (reg in graphCopy.vertices)
 			{
 				val neighborCount = graphCopy.successorsOf(reg).size
 				if (neighborCount < fewestCount)
@@ -366,7 +366,7 @@ class L2RegisterColorer constructor(controlFlowGraph: L2ControlFlowGraph)
 			neighbors.clear()
 			for (registerGroup in interferences.successorsOf(group))
 			{
-				val index = registerGroup!!.finalIndex
+				val index = registerGroup.finalIndex
 				if (index != -1)
 				{
 					neighbors.set(index)
@@ -390,7 +390,7 @@ class L2RegisterColorer constructor(controlFlowGraph: L2ControlFlowGraph)
 			append(it)
 		}
 		append("\n\tInterferences:")
-		for (group in interferences.vertices())
+		for (group in interferences.vertices)
 		{
 			val neighbors =
 				interferences.successorsOf(group)

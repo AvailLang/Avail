@@ -97,7 +97,7 @@ internal class GraphTracer constructor(
 		{
 			val ancestry =
 				availBuilder.moduleGraph.ancestryOfAll(setOf(targetModule))
-			val dag = ancestry.spanningDag()
+			val dag = ancestry.spanningDag
 			val reduced = ancestry.withoutRedundantEdges(dag)
 			renderGraph(reduced, dag)
 		}
@@ -195,14 +195,14 @@ internal class GraphTracer constructor(
 		reducedGraph: Graph<ResolvedModuleName>,
 		spanningDag: Graph<ResolvedModuleName>)
 	{
-		assert(reducedGraph.vertexCount() == spanningDag.vertexCount())
+		assert(reducedGraph.vertexCount == spanningDag.vertexCount)
 		val trees = HashMap<String, ModuleTree>()
 		val root = ModuleTree(
 			"root_",
 			"Module Dependencies",
 			null)
 		trees[""] = root
-		for (moduleName in reducedGraph.vertices())
+		for (moduleName in reducedGraph.vertices)
 		{
 			var string = moduleName.qualifiedName
 			var node: ModuleTree? = ModuleTree(
@@ -294,7 +294,7 @@ internal class GraphTracer constructor(
 					if (node === root) {
 						append("\n")
 						// Output *all* the edges.
-						for (from in reducedGraph.vertices()) {
+						for (from in reducedGraph.vertices) {
 							val qualified = from.qualifiedName
 							val fromNode = trees[qualified]!!
 							val parts = qualified

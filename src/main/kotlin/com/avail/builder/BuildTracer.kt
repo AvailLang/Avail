@@ -379,7 +379,7 @@ internal class BuildTracer constructor(val availBuilder: AvailBuilder)
 			val graphSize: Int
 			val completions: Int
 			synchronized(this) {
-				graphSize = availBuilder.moduleGraph.size()
+				graphSize = availBuilder.moduleGraph.size
 				completions = traceCompletions
 			}
 			AvailBuilder.log(

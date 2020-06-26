@@ -204,7 +204,6 @@ abstract class PojoTypeDescriptor protected constructor(
 		{
 			if (other is LRUCacheKey)
 			{
-				val other = other
 				return javaClass == other.javaClass
 				   && typeArgs.equals(other.typeArgs)
 			}
