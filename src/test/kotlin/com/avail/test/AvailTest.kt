@@ -37,7 +37,6 @@ import com.avail.builder.RenamesFileParserException
 import com.avail.builder.UnresolvedDependencyException
 import com.avail.descriptor.atoms.A_Atom.Companion.extractBoolean
 import com.avail.descriptor.representation.AvailObject
-import com.avail.utility.Mutable
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeAll
@@ -50,6 +49,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import java.io.FileNotFoundException
 import java.util.concurrent.Semaphore
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Build the Avail standard library and run all Avail test units.
@@ -187,7 +187,7 @@ class AvailTest
 		Assertions.assertTrue(
 			loaded, "Failed to load module: $testModuleName")
 		val semaphore = Semaphore(0)
-		val ok = Mutable(false)
+		val ok = AtomicBoolean(false)
 		helper().builder.attemptCommand(
 			"Run all tests",
 			{ commands: List<CompiledCommand>, proceed: (CompiledCommand) -> Unit ->
@@ -195,13 +195,13 @@ class AvailTest
 			},
 			{ result: AvailObject, cleanup: (() -> Unit) -> Unit ->
 				cleanup.invoke {
-					ok.value = result.extractBoolean()
+					ok.set(result.extractBoolean())
 					semaphore.release()
 				}
 			}) { semaphore.release()
 		}
 		semaphore.acquireUninterruptibly()
-		Assertions.assertTrue(ok.value, "Some Avail tests failed")
+		Assertions.assertTrue(ok.get(), "Some Avail tests failed")
 		Assertions.assertFalse(helper().errorDetected())
 		// TODO: [TLS] Runners.avail needs to be reworked so that Avail unit
 		// test failures show up on standard error instead of standard output,
