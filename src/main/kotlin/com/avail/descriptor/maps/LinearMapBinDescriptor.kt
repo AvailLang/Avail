@@ -57,7 +57,7 @@ package com.avail.descriptor.maps
  import com.avail.descriptor.types.A_Type
  import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
  import com.avail.descriptor.types.TypeTag
- import com.avail.utility.Casts.cast
+ import com.avail.utility.cast
  import java.util.*
 
 /**
@@ -389,7 +389,7 @@ internal class LinearMapBinDescriptor private constructor(
 				&& self.slot(BIN_SLOT_AT_, (i shl 1) - 1).equals(key)) {
 				// The key is present.
 				val oldValue: AvailObject = self.slot(BIN_SLOT_AT_, i shl 1)
-				val newValue = transformer(cast(key), oldValue)
+				val newValue = transformer(key.cast(), oldValue)
 				val newBin: AvailObject =
 					if (canDestroy && isMutable) {
 						self
@@ -415,7 +415,7 @@ internal class LinearMapBinDescriptor private constructor(
 		return self.mapBinAtHashPutLevelCanDestroy(
 			key,
 			keyHash,
-			transformer(cast(key), cast(notFoundValue)),
+			transformer(key.cast(), notFoundValue.cast()),
 			myLevel,
 			canDestroy)
 	}

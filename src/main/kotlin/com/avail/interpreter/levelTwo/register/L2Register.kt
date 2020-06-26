@@ -48,7 +48,7 @@ import com.avail.optimizer.L2Entity
 import com.avail.optimizer.L2Generator
 import com.avail.optimizer.reoptimizer.L2Inliner
 import com.avail.optimizer.values.L2SemanticValue
-import com.avail.utility.Casts
+import com.avail.utility.cast
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
 
@@ -128,11 +128,10 @@ abstract class L2Register constructor (val uniqueValue: Int) : L2Entity
 				restriction: TypeRestriction,
 				register: R): RR
 			{
-				return Casts.cast<L2ReadOperand<*>, RR>(
-					L2ReadBoxedOperand(
-						semanticValue,
-						restriction,
-						register as L2BoxedRegister))
+				return L2ReadBoxedOperand(
+					semanticValue,
+					restriction,
+					register as L2BoxedRegister).cast<L2ReadOperand<*>?, RR>()
 			}
 		},
 
@@ -152,11 +151,10 @@ abstract class L2Register constructor (val uniqueValue: Int) : L2Entity
 				restriction: TypeRestriction,
 				register: R): RR
 			{
-				return Casts.cast<L2ReadOperand<*>, RR>(
-					L2ReadIntOperand(
-						semanticValue,
-						restriction,
-						register as L2IntRegister))
+				return L2ReadIntOperand(
+					semanticValue,
+					restriction,
+					register as L2IntRegister).cast<L2ReadOperand<*>?, RR>()
 			}
 		},
 
@@ -176,11 +174,10 @@ abstract class L2Register constructor (val uniqueValue: Int) : L2Entity
 				restriction: TypeRestriction,
 				register: R): RR
 			{
-				return Casts.cast<L2ReadOperand<*>, RR>(
-					L2ReadFloatOperand(
-						semanticValue,
-						restriction,
-						register as L2FloatRegister))
+				return L2ReadFloatOperand(
+					semanticValue,
+					restriction,
+					register as L2FloatRegister).cast<L2ReadOperand<*>?, RR>()
 			}
 		};
 		//		/**
@@ -226,10 +223,11 @@ abstract class L2Register constructor (val uniqueValue: Int) : L2Entity
 		 */
 		fun <R : L2Register, RR : L2ReadOperand<R>, WR : L2WriteOperand<R>> move()
 			: L2_MOVE<R, RR, WR> =
-				Casts.cast<L2_MOVE<*, *, *>, L2_MOVE<R, RR, WR>>(
-					L2_MOVE.moveByKind<L2Register,
-						L2ReadOperand<L2Register>,
-						L2WriteOperand<L2Register>>(this))
+			L2_MOVE.moveByKind<
+					L2Register,
+					L2ReadOperand<L2Register>,
+					L2WriteOperand<L2Register>>(this)
+				.cast<L2_MOVE<*, *, *>?, L2_MOVE<R, RR, WR>>()
 
 		companion object
 		{

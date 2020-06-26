@@ -79,7 +79,7 @@ import com.avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.serialization.SerializerOperation
-import com.avail.utility.Casts.cast
+import com.avail.utility.cast
 import java.util.*
 
 /**
@@ -311,7 +311,7 @@ class ContinuationDescriptor private constructor(
 		// rare case that we do need it.
 		var hash = self.slot(IntegerSlots.HASH_OR_ZERO)
 		if (hash == 0) {
-			val caller = cast(self.caller().traversed())
+			val caller = self.caller().traversed().cast()
 			var callerHash = 0
 			if (!caller.equalsNil()
 				&& caller.slot(IntegerSlots.HASH_OR_ZERO) == 0) {

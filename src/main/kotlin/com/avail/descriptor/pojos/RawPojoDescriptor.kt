@@ -32,7 +32,6 @@
 package com.avail.descriptor.pojos
 
 import com.avail.descriptor.representation.A_BasicObject
-import com.avail.descriptor.representation.AbstractDescriptor
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.AvailObjectFieldHelper
 import com.avail.descriptor.representation.Descriptor
@@ -43,11 +42,12 @@ import com.avail.descriptor.types.PojoTypeDescriptor
 import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.descriptor.types.TypeTag
 import com.avail.serialization.SerializerOperation
-import com.avail.utility.Casts.cast
-import com.avail.utility.Casts.nullableCast
+import com.avail.utility.cast
 import java.lang.reflect.Constructor
 import java.lang.reflect.Method
-import java.util.*
+import java.util.ArrayList
+import java.util.IdentityHashMap
+import java.util.WeakHashMap
 
 /**
  * A `RawPojoDescriptor` is a thin veneer over a plain-old Java object (pojo).
@@ -111,7 +111,7 @@ open class RawPojoDescriptor protected constructor(
 	override fun o_IsRawPojo(self: AvailObject): Boolean = true
 
 	override fun <T> o_JavaObject(self: AvailObject): T? =
-		nullableCast<Any?, T?>(javaObject)
+		javaObject.cast<Any?, T?>()
 
 	override fun o_Kind(self: AvailObject): A_Type = Types.RAW_POJO.o()
 
@@ -153,7 +153,7 @@ open class RawPojoDescriptor protected constructor(
 		{
 			null -> SerializerOperation.RAW_POJO_NULL
 			is Class<*> ->
-				when (cast<Any, Class<*>>(javaObject).isPrimitive)
+				when (javaObject.cast<Any, Class<*>>().isPrimitive)
 				{
 					true -> SerializerOperation.RAW_PRIMITIVE_JAVA_CLASS
 					else -> SerializerOperation.RAW_NONPRIMITIVE_JAVA_CLASS

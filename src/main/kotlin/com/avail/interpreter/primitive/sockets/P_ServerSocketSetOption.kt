@@ -56,7 +56,7 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
 import com.avail.interpreter.execution.Interpreter
-import com.avail.utility.Casts.cast
+import com.avail.utility.cast
 import java.io.IOException
 import java.net.SocketOption
 import java.net.StandardSocketOptions.SO_RCVBUF
@@ -98,12 +98,12 @@ object P_ServerSocketSetOption : Primitive(2, CanInline, HasSideEffect)
 				val value = entry.value()
 				if (option.type() == java.lang.Boolean::class.java
 						&& value.isBoolean) {
-					val booleanOption: SocketOption<Boolean> = cast(option)
+					val booleanOption: SocketOption<Boolean> = option.cast()
 					socket.setOption(booleanOption, value.extractBoolean())
 				}
 				else if (option.type() == java.lang.Integer::class.java
 						&& value.isInt) {
-					val intOption: SocketOption<Int> = cast(option)
+					val intOption: SocketOption<Int> = option.cast()
 					socket.setOption(intOption, value.extractInt())
 				}
 				else return interpreter.primitiveFailure(

@@ -57,9 +57,9 @@ import com.avail.optimizer.L2ValueManifest
 import com.avail.optimizer.RegisterSet
 import com.avail.optimizer.jvm.JVMTranslator
 import com.avail.optimizer.values.L2SemanticValue
-import com.avail.utility.Casts
+import com.avail.utility.cast
 import org.objectweb.asm.MethodVisitor
-import java.util.*
+import java.util.EnumMap
 import kotlin.collections.set
 
 /**
@@ -342,7 +342,7 @@ private constructor(
 		 */
 		fun <R : L2Register, RR : L2ReadOperand<R>, WR : L2WriteOperand<R>> moveByKind(
 			registerKind: RegisterKind): L2_MOVE<R, RR, WR> =
-				Casts.cast(movesByKind[registerKind]!!)
+				movesByKind[registerKind]!!.cast()
 	}
 
 	init

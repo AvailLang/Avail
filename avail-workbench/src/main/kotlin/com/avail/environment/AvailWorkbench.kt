@@ -100,9 +100,8 @@ import com.avail.io.TextInterface
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport.WORKBENCH_TRANSCRIPT
 import com.avail.stacks.StacksGenerator
-import com.avail.utility.Casts.cast
 import com.avail.utility.IO
-import com.avail.utility.Locks.lockWhile
+import com.avail.utility.cast
 import com.avail.utility.javaNotifyAll
 import com.avail.utility.javaWait
 import com.bulenkov.darcula.DarculaLaf
@@ -145,7 +144,15 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.attribute.BasicFileAttributes
-import java.util.*
+import java.util.ArrayDeque
+import java.util.ArrayList
+import java.util.Arrays
+import java.util.Deque
+import java.util.EnumSet
+import java.util.Enumeration
+import java.util.HashMap
+import java.util.Queue
+import java.util.TimerTask
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -190,9 +197,7 @@ import javax.swing.tree.DefaultTreeModel
 import javax.swing.tree.TreeNode
 import javax.swing.tree.TreePath
 import javax.swing.tree.TreeSelectionModel
-import kotlin.collections.Map.Entry
 import kotlin.concurrent.schedule
-import kotlin.concurrent.timerTask
 import kotlin.concurrent.withLock
 import kotlin.concurrent.write
 import kotlin.math.max
@@ -755,7 +760,8 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 			// have kept adding things unboundedly while we were removing them.
 			// Adding things "boundedly" is fine, however (i.e., blocking on the
 			// dequeLock if too much is added).
-			val afterRemove = totalQueuedTextSize.addAndGet(cast(-removedSize))
+			val afterRemove =
+				totalQueuedTextSize.addAndGet((-removedSize).cast())
 			assert(afterRemove >= 0)
 			afterRemove == 0L
 		}
@@ -1462,7 +1468,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 
 		}
 		val enumeration: Enumeration<AbstractBuilderFrameTreeNode> =
-			cast(treeRoot.preorderEnumeration())
+			treeRoot.preorderEnumeration().cast()
 		// Skip the invisible root.
 		enumeration.nextElement()
 		for (node in enumeration) { node.sortChildren() }
@@ -1506,7 +1512,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 			entryPointsTreeRoot.add(moduleNodes[moduleLabel])
 		}
 		val enumeration: Enumeration<AbstractBuilderFrameTreeNode> =
-			cast(entryPointsTreeRoot.preorderEnumeration())
+			entryPointsTreeRoot.preorderEnumeration().cast()
 		// Skip the invisible root.
 		enumeration.nextElement()
 		for (node in enumeration) { node.sortChildren() }
@@ -1533,11 +1539,11 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		val model = moduleTree.model
 		val treeRoot = model.root as DefaultMutableTreeNode
 		var nodes: Enumeration<DefaultMutableTreeNode> =
-			cast(treeRoot.children())
+			treeRoot.children().cast()
 		var index = 1
 		while (nodes.hasMoreElements())
 		{
-			val node: AbstractBuilderFrameTreeNode = cast(nodes.nextElement())
+			val node: AbstractBuilderFrameTreeNode = nodes.nextElement().cast()
 			if (node.isSpecifiedByString(path[index]))
 			{
 				index++
@@ -1545,7 +1551,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 				{
 					return TreePath(node.path)
 				}
-				nodes = cast(node.children())
+				nodes = node.children().cast()
 			}
 		}
 		return null

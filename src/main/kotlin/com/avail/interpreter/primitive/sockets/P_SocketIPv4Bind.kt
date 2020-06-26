@@ -57,7 +57,7 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
 import com.avail.interpreter.execution.Interpreter
-import com.avail.utility.Casts.cast
+import com.avail.utility.cast
 import java.io.IOException
 import java.net.Inet4Address
 import java.net.InetAddress.getByAddress
@@ -95,7 +95,7 @@ object P_SocketIPv4Bind : Primitive(3, CanInline, HasSideEffect)
 		}
 		return try
 		{
-			val inetAddress: Inet4Address = cast(getByAddress(addressBytes))
+			val inetAddress: Inet4Address = getByAddress(addressBytes).cast()
 			val address =
 				InetSocketAddress(inetAddress, port.extractUnsignedShort())
 			socket.bind(address)

@@ -1,17 +1,17 @@
 /*
- * PublicCloneable.kt
+ * HideFieldJustForPrinting.kt
  * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
  *
  *  * Neither the name of the copyright holder nor the names of the contributors
  *    may be used to endorse or promote products derived from this software
@@ -29,30 +29,17 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.utility
+package com.avail.annotations
 
 /**
- * Subclasses get a public [.clone] method without a silly catch of an
- * impossible exception.
- *
- * @param X
- * The self-type of the object to be cloned.
+ * `HideFieldJustForPrinting` annotation is used to indicate that a slot should
+ * not be presented in the default print representation.  The annotation
+ * [HideFieldInDebugger] *also* hides the field for printing, but that
+ * annotation also prevents the field from showing up in the debugger when using
+ * the Eclipse debugger's "Show Logical Structure".
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-open class PublicCloneable<X : PublicCloneable<X>> : Cloneable
-{
-	public override fun clone(): X
-	{
-		return try
-		{
-			super.clone().cast()
-		}
-		catch (e: CloneNotSupportedException)
-		{
-			throw RuntimeException(
-				"Superclass should not throw this", e
-			)
-		}
-	}
-}
+@Retention(AnnotationRetention.RUNTIME)
+@Target(AnnotationTarget.FIELD)
+annotation class HideFieldJustForPrinting

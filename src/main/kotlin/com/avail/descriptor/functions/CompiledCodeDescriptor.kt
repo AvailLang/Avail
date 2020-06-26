@@ -91,8 +91,8 @@ import com.avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport
 import com.avail.serialization.SerializerOperation
-import com.avail.utility.Casts.cast
 import com.avail.utility.Strings.newlineTab
+import com.avail.utility.cast
 import com.avail.utility.json.JSONWriter
 import java.util.*
 import java.util.Collections.newSetFromMap
@@ -1047,10 +1047,10 @@ class CompiledCodeDescriptor private constructor(
 					// Loop over each instance, setting the touched flag to
 					// false and discarding optimizations.
 					for (rawFunction in activeRawFunctions) {
-						val self = cast<A_RawFunction, AvailObject>(rawFunction)
-						val descriptor =
-							cast<AbstractDescriptor, CompiledCodeDescriptor>(
-								self.descriptor())
+						val self = rawFunction.cast<
+							A_RawFunction, AvailObject>()
+						val descriptor = self.descriptor().cast<
+							AbstractDescriptor, CompiledCodeDescriptor>()
 						descriptor.invocationStatistic.hasRun = false
 						if (!descriptor.module.equalsNil()) {
 							descriptor.startingChunk.invalidate(
@@ -1086,8 +1086,9 @@ class CompiledCodeDescriptor private constructor(
 
 			// Loop over each instance, creating its report object.
 			for (rawFunction in activeRawFunctions) {
-				val self = cast<A_RawFunction, AvailObject>(rawFunction)
-				val descriptor: CompiledCodeDescriptor = cast(self.descriptor())
+				val self = rawFunction.cast<A_RawFunction, AvailObject>()
+				val descriptor: CompiledCodeDescriptor =
+					self.descriptor().cast()
 				val module = descriptor.module
 				if (!module.equalsNil()) {
 					val report = CodeCoverageReport(

@@ -115,8 +115,8 @@ import com.avail.io.TextInterface
 import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-import com.avail.utility.Casts.cast
 import com.avail.utility.StackPrinter
+import com.avail.utility.cast
 import com.avail.utility.json.JSONWriter
 import com.avail.utility.visitor.AvailSubobjectVisitor
 import com.avail.utility.visitor.MarkUnreachableSubobjectVisitor
@@ -965,8 +965,7 @@ class AvailObject private constructor(
 	 */
 	override fun copyStringFromToCanDestroy(
 		start: Int, end: Int, canDestroy: Boolean
-	): A_String = cast(
-		dispatch(start, end, canDestroy) { it::o_CopyTupleFromToCanDestroy })
+	): A_String = dispatch(start, end, canDestroy) { it::o_CopyTupleFromToCanDestroy }.cast()
 
 	override fun couldEverBeInvokedWith(
 		argRestrictions: List<TypeRestriction>

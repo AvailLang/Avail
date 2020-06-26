@@ -32,8 +32,8 @@
 package com.avail.descriptor.types
 
 import com.avail.descriptor.phrases.A_Phrase
-import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
 import com.avail.descriptor.phrases.A_Phrase.Companion.expressionType
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
 import com.avail.descriptor.phrases.AssignmentPhraseDescriptor
 import com.avail.descriptor.phrases.BlockPhraseDescriptor
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor
@@ -62,9 +62,8 @@ import com.avail.descriptor.types.ListPhraseTypeDescriptor.Companion.createListN
 import com.avail.descriptor.types.LiteralTokenTypeDescriptor.Companion.literalTokenType
 import com.avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 import com.avail.serialization.SerializerOperation
-import com.avail.utility.Nulls
 import com.avail.utility.json.JSONWriter
-import java.util.*
+import java.util.IdentityHashMap
 
 /**
  * Define the structure and behavior of phrase types.  The phrase types
@@ -87,6 +86,7 @@ import java.util.*
  *   The Java [Class] which is a subclass of [IntegerSlotsEnum] and defines this
  *   object's object slots layout, or `null` if there are no integer slots.
  */
+@Suppress("LeakingThis")
 open class PhraseTypeDescriptor protected constructor(
 	mutability: Mutability?,
 	/** The `PhraseKind` of instances that use this descriptor.  */
@@ -146,7 +146,7 @@ open class PhraseTypeDescriptor protected constructor(
 	 */
 	enum class PhraseKind constructor(
 		val jsonName: String,
-		val parentKind: PhraseKind?,
+		private val parentKind: PhraseKind?,
 		val typeTag: TypeTag) : IntegerEnumSlotDescriptionEnum
 	{
 		/** The root phrase kind.  */
@@ -383,12 +383,13 @@ open class PhraseTypeDescriptor protected constructor(
 		 * @return
 		 *   The new descriptor.
 		 */
-		open fun createDescriptor(mutability: Mutability): PhraseTypeDescriptor =
-			PhraseTypeDescriptor(
-				mutability,
-				this,
-				ObjectSlots::class.java,
-				IntegerSlots::class.java)
+		open fun createDescriptor(
+			mutability: Mutability): PhraseTypeDescriptor =
+				PhraseTypeDescriptor(
+					mutability,
+					this,
+					ObjectSlots::class.java,
+					IntegerSlots::class.java)
 
 		/**
 		 * Create a [phrase&#32;type][PhraseTypeDescriptor] given the yield type
@@ -480,11 +481,11 @@ open class PhraseTypeDescriptor protected constructor(
 				val diff = b.depth - a.depth
 				if (diff <= 0)
 				{
-					a = Nulls.stripNull(a.parentKind())
+					a = a.parentKind()!!
 				}
 				if (diff >= 0)
 				{
-					b = Nulls.stripNull(b.parentKind())
+					b = b.parentKind()!!
 				}
 			}
 			return a

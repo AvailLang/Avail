@@ -58,7 +58,7 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
 import com.avail.interpreter.execution.Interpreter
-import com.avail.utility.Casts.cast
+import com.avail.utility.cast
 import java.io.IOException
 import java.net.Inet6Address
 import java.net.Inet6Address.getByAddress
@@ -99,7 +99,7 @@ object P_ServerSocketIPv6Bind : Primitive(4, CanInline, HasSideEffect)
 		val backlogInt = backlog.extractInt()
 		return try
 		{
-			val inetAddress: Inet6Address = cast(getByAddress(addressBytes))
+			val inetAddress: Inet6Address = getByAddress(addressBytes).cast()
 			val address =
 				InetSocketAddress(inetAddress, port.extractUnsignedShort())
 			socket.bind(address, backlogInt)

@@ -44,9 +44,8 @@ import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import com.avail.descriptor.types.TypeDescriptor.Types.Companion.all
 import com.avail.serialization.SerializerOperation
-import com.avail.utility.Nulls
 import com.avail.utility.json.JSONWriter
-import java.util.*
+import java.util.IdentityHashMap
 
 /**
  * The primitive types of Avail are different from the notion of primitive types
@@ -436,8 +435,7 @@ open class PrimitiveTypeDescriptor : TypeDescriptor
 		 *   The [TypeDescriptor.Types] enum value.
 		 */
 		private fun extractEnum(self: AvailObject): Types =
-			Nulls.stripNull(
-				(self.descriptor() as PrimitiveTypeDescriptor).primitiveType)
+			(self.descriptor() as PrimitiveTypeDescriptor).primitiveType!!
 
 		/**
 		 * Extract the [TypeDescriptor.Types] enum value's [Enum.ordinal] from

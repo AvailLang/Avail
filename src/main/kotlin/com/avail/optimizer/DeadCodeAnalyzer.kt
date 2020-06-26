@@ -32,11 +32,14 @@
 package com.avail.optimizer
 
 import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2Operation
 import com.avail.interpreter.levelTwo.operand.L2PcOperand
 import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION
 import com.avail.optimizer.values.L2SemanticValue
-import com.avail.utility.Casts
-import java.util.*
+import com.avail.utility.cast
+import java.util.ArrayDeque
+import java.util.Collections
+import java.util.Deque
 
 /**
  * A mechanism for determining which instructions are dead versus live.
@@ -159,7 +162,7 @@ internal class DeadCodeAnalyzer constructor(
 				{
 					val phiInstruction = instructions[index]
 					val phiOperation: L2_PHI_PSEUDO_OPERATION<*, *, *> =
-						Casts.cast(phiInstruction.operation())
+						phiInstruction.operation().cast()
 					val readOperands =
 						phiOperation.sourceRegisterReads(phiInstruction)
 					for (predecessorIndex in 0 until predecessorCount)

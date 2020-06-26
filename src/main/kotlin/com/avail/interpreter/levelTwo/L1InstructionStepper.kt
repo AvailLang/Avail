@@ -46,6 +46,7 @@ import com.avail.descriptor.functions.ContinuationDescriptor.Companion.createLab
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createExceptOuters
 import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.methods.A_Method
+import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.NilDescriptor
@@ -97,7 +98,7 @@ import com.avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport
-import com.avail.utility.Casts.cast
+import com.avail.utility.cast
 import java.util.*
 import java.util.logging.Level
 import java.util.regex.Pattern
@@ -1039,9 +1040,9 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 		val savedStackp = stackp
 		with (interpreter.argsBuffer) {
 			clear()
-			add(cast(errorCode.numericCode()))
-			add(cast(method))
-			add(cast(arguments))
+			add(errorCode.numericCode().cast())
+			add(method.cast())
+			add(arguments.cast())
 		}
 		val reifier = interpreter.invokeFunction(
 			interpreter.runtime().invalidMessageSendFunction())!!

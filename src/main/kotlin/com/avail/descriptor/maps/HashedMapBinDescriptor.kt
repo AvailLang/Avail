@@ -60,7 +60,7 @@ package com.avail.descriptor.maps
  import com.avail.descriptor.types.A_Type
  import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
  import com.avail.descriptor.types.TypeTag
- import com.avail.utility.Casts.cast
+ import com.avail.utility.cast
  import java.util.*
 
 /**
@@ -482,7 +482,7 @@ class HashedMapBinDescriptor private constructor(
 			return self.mapBinAtHashPutLevelCanDestroy(
 				key,
 				keyHash,
-				transformer(cast(key), cast(notFoundValue)),
+				transformer(key.cast(), notFoundValue.cast()),
 				level,
 				canDestroy)
 		}

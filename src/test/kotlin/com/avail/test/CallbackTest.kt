@@ -47,6 +47,7 @@ import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.methods.A_Method
 import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.one
 import com.avail.descriptor.representation.AvailObject
@@ -58,7 +59,7 @@ import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.TypeDescriptor
 import com.avail.interpreter.execution.Interpreter.Companion.runOutermostFunction
-import com.avail.utility.Casts
+import com.avail.utility.cast
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeAll
@@ -259,11 +260,7 @@ class CallbackTest
 								one(),
 								true
 							)
-							completion.complete(
-								Casts.cast(
-									successor
-								)
-							)
+							completion.complete(successor.cast())
 						}
 						catch (e: Throwable)
 						{
@@ -305,7 +302,7 @@ class CallbackTest
 						try
 						{
 							val c = a.divideCanDestroy(b, true)
-							completion.complete(Casts.cast(c))
+							completion.complete(c.cast())
 						}
 						catch (e: Throwable)
 						{

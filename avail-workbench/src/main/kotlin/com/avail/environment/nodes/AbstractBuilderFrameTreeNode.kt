@@ -41,8 +41,8 @@ import com.avail.environment.nodes.AbstractBuilderFrameTreeNode.Companion.Rename
 import com.avail.environment.nodes.AbstractBuilderFrameTreeNode.Companion.RenamedState.Renamed
 import com.avail.environment.nodes.AbstractBuilderFrameTreeNode.Companion.SelectedState.Selected
 import com.avail.environment.nodes.AbstractBuilderFrameTreeNode.Companion.SelectedState.Unselected
-import com.avail.utility.Casts.cast
 import com.avail.utility.LRUCache
+import com.avail.utility.cast
 import com.avail.utility.ifZero
 import java.awt.Color
 import java.awt.Image
@@ -153,7 +153,7 @@ abstract class AbstractBuilderFrameTreeNode internal constructor(
 		{
 			// HACK to make children (Vector!) sortable
 			val temp: MutableList<AbstractBuilderFrameTreeNode> =
-				cast(children.toMutableList())
+				children.toMutableList().cast()
 			temp.sort()
 			children.clear()
 			children.addAll(temp)

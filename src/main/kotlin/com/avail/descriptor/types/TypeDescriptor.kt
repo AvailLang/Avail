@@ -430,7 +430,7 @@ abstract class TypeDescriptor protected constructor(
 		 * @return
 		 *   The parent of this Types object.
 		 */
-		fun parent(): Types = Nulls.stripNull(parent)
+		fun parent(): Types = parent!!
 
 		/**
 		 * The [AvailObject] itself that this represents.
@@ -826,7 +826,7 @@ abstract class TypeDescriptor protected constructor(
 			{
 				return anotherAncestor.o()
 			}
-			anotherAncestor = Nulls.stripNull(anotherAncestor.parent)
+			anotherAncestor = anotherAncestor.parent!!
 		}
 	}
 

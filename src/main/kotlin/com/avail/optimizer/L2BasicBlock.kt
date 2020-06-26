@@ -37,8 +37,8 @@ import com.avail.interpreter.levelTwo.operand.L2PcOperand
 import com.avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK
 import com.avail.interpreter.levelTwo.operation.L2_JUMP
 import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION
-import com.avail.utility.Casts
 import com.avail.utility.PrefixSharingList
+import com.avail.utility.cast
 
 /**
  * This is a traditional basic block, consisting of a sequence of
@@ -232,9 +232,8 @@ class L2BasicBlock @JvmOverloads constructor(
 					// exhausted them.
 					break
 				}
-				val phiOperation =
-					Casts.cast<L2Operation, L2_PHI_PSEUDO_OPERATION<*, *, *>>(
-						operation)
+				val phiOperation = operation
+					.cast<L2Operation?, L2_PHI_PSEUDO_OPERATION<*, *, *>>()
 
 				// The body of the loop is required to still have available
 				// every semantic value mentioned in the original phis.
@@ -265,9 +264,8 @@ class L2BasicBlock @JvmOverloads constructor(
 					// Phi functions are always at the start of a block.
 					break
 				}
-				val phiOperation =
-					Casts.cast<L2Operation, L2_PHI_PSEUDO_OPERATION<*, *, *>>(
-						instruction.operation())
+				val phiOperation = instruction.operation()
+						.cast<L2Operation?, L2_PHI_PSEUDO_OPERATION<*, *, *>>()
 				val replacement =
 					phiOperation.withoutIndex(instruction, index)
 				instruction.justRemoved()

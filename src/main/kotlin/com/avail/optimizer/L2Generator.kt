@@ -51,13 +51,44 @@ import com.avail.interpreter.levelTwo.L2Chunk.Companion.allocate
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2OperandDispatcher
 import com.avail.interpreter.levelTwo.L2Operation
-import com.avail.interpreter.levelTwo.operand.*
+import com.avail.interpreter.levelTwo.operand.L2CommentOperand
+import com.avail.interpreter.levelTwo.operand.L2ConstantOperand
+import com.avail.interpreter.levelTwo.operand.L2FloatImmediateOperand
+import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand
+import com.avail.interpreter.levelTwo.operand.L2Operand
+import com.avail.interpreter.levelTwo.operand.L2PcOperand
+import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadFloatOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadFloatVectorOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadIntVectorOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadOperand
+import com.avail.interpreter.levelTwo.operand.L2SelectorOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteFloatOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteOperand
+import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding
-import com.avail.interpreter.levelTwo.operation.*
+import com.avail.interpreter.levelTwo.operation.L2_BOX_FLOAT
+import com.avail.interpreter.levelTwo.operation.L2_BOX_INT
+import com.avail.interpreter.levelTwo.operation.L2_CREATE_TUPLE
 import com.avail.interpreter.levelTwo.operation.L2_CREATE_TUPLE.tupleSourceRegistersOf
+import com.avail.interpreter.levelTwo.operation.L2_JUMP
+import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_UNBOX_FLOAT
+import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_UNBOX_INT
+import com.avail.interpreter.levelTwo.operation.L2_MAKE_IMMUTABLE
+import com.avail.interpreter.levelTwo.operation.L2_MOVE
+import com.avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT
 import com.avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT.Companion.constantOf
+import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION
+import com.avail.interpreter.levelTwo.operation.L2_TUPLE_AT_CONSTANT
+import com.avail.interpreter.levelTwo.operation.L2_UNBOX_FLOAT
+import com.avail.interpreter.levelTwo.operation.L2_UNBOX_INT
 import com.avail.interpreter.levelTwo.register.L2BoxedRegister
 import com.avail.interpreter.levelTwo.register.L2FloatRegister
 import com.avail.interpreter.levelTwo.register.L2IntRegister
@@ -70,7 +101,7 @@ import com.avail.optimizer.values.L2SemanticValue.Companion.constant
 import com.avail.optimizer.values.L2SemanticValue.Companion.primitiveInvocation
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport
-import com.avail.utility.Casts
+import com.avail.utility.cast
 
 /**
  * The `L2Generator` converts a Level One [function][FunctionDescriptor] into a
@@ -746,7 +777,7 @@ class L2Generator internal constructor(
 			{
 				if (def.instruction().basicBlock() == block)
 				{
-					val write: WR = Casts.cast(def)
+					val write: WR = def.cast()
 					sourceWritesInBlock.add(write)
 				}
 			}

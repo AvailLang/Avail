@@ -32,7 +32,7 @@
 package com.avail
 
 import com.avail.interpreter.execution.Interpreter
-import com.avail.utility.Casts
+import com.avail.utility.cast
 import java.util.concurrent.ScheduledThreadPoolExecutor
 
 /**
@@ -100,6 +100,6 @@ class AvailThread internal constructor(
 		 */
 		@JvmStatic
 		@Throws(ClassCastException::class)
-		fun current(): AvailThread = Casts.cast(currentThread())
+		fun current(): AvailThread = currentThread().cast()
 	}
 }

@@ -64,8 +64,8 @@ import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.serialization.SerializerOperation
-import com.avail.utility.Casts.cast
 import com.avail.utility.Strings.newlineTab
+import com.avail.utility.cast
 import com.avail.utility.json.JSONWriter
 import java.util.*
 
@@ -234,7 +234,7 @@ class MapDescriptor private constructor(
 			fields[arrayIndex++] = AvailObjectFieldHelper(
 				self, FakeMapSlots.VALUE_, entryCount + 1, value)
 		}
-		return cast(fields)
+		return fields.cast()
 	}
 
 	override fun o_NameForDebugger(self: AvailObject) =

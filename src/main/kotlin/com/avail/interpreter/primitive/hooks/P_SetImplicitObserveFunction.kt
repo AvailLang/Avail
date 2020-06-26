@@ -38,6 +38,7 @@ import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createWithOuters1
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
@@ -58,7 +59,7 @@ import com.avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
 import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelOne.L1InstructionWriter
 import com.avail.interpreter.levelOne.L1Operation
-import com.avail.utility.Casts.cast
+import com.avail.utility.cast
 
 /**
  * **Primitive:** Set the [function][FunctionDescriptor] to invoke whenever a
@@ -128,7 +129,7 @@ object P_SetImplicitObserveFunction : Primitive(
 		// Produce a wrapper that will invoke the supplied function, and then
 		// specially resume the calling continuation (which won't be correctly
 		// set up for a return).
-		val wrapper = createWithOuters1(rawFunction, cast(function))
+		val wrapper = createWithOuters1(rawFunction, function.cast())
 		// Now set the wrapper as the implicit observe function.
 		IMPLICIT_OBSERVE.set(interpreter.runtime(), wrapper)
 		return interpreter.primitiveSuccess(nil)

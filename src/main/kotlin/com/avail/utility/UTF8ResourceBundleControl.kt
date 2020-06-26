@@ -31,7 +31,6 @@
  */
 package com.avail.utility
 
-import com.avail.utility.Casts.cast
 import java.io.IOException
 import java.io.InputStream
 import java.io.InputStreamReader
@@ -65,7 +64,7 @@ class UTF8ResourceBundleControl : ResourceBundle.Control()
 			try
 			{
 				val bundleClass: Class<out ResourceBundle> =
-					cast(loader.loadClass(bundleName))
+					loader.loadClass(bundleName).cast()
 
 				// If the class isn't a ResourceBundle subclass, throw a
 				// ClassCastException.

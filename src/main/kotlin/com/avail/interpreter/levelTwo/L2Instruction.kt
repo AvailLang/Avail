@@ -45,10 +45,10 @@ import com.avail.optimizer.L2ValueManifest
 import com.avail.optimizer.jvm.JVMTranslator
 import com.avail.optimizer.reoptimizer.L2Inliner
 import com.avail.optimizer.values.L2SemanticValue
-import com.avail.utility.Casts
 import com.avail.utility.Mutable
+import com.avail.utility.cast
 import org.objectweb.asm.MethodVisitor
-import java.util.*
+import java.util.EnumSet
 
 /**
  * `L2Instruction` is the foundation for all instructions understood by
@@ -223,7 +223,7 @@ class L2Instruction constructor(
 	 * @return
 	 *   The specified operand.
 	 */
-	fun <O : L2Operand> operand(index: Int): O = Casts.cast(operands[index])
+	fun <O : L2Operand> operand(index: Int): O = operands[index].cast()
 
 	/**
 	 * Answer the position of this instruction within its array of instructions.

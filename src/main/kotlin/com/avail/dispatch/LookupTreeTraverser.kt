@@ -34,7 +34,7 @@ package com.avail.dispatch
 
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.types.A_Type
-import com.avail.utility.Casts.cast
+import com.avail.utility.cast
 import java.util.*
 
 /**
@@ -160,7 +160,7 @@ protected constructor(
 			visitLeafNode(solution)
 			return
 		}
-		val internalNode: InternalLookupTree<Element, Result> = cast(node)
+		val internalNode: InternalLookupTree<Element, Result> = node.cast()
 		if (expandAll)
 		{
 			internalNode.expandIfNecessary(adaptor, adaptorMemento)

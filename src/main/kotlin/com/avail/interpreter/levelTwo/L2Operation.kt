@@ -60,10 +60,10 @@ import com.avail.optimizer.jvm.JVMTranslator
 import com.avail.optimizer.reoptimizer.L2Inliner
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport
-import com.avail.utility.Casts
 import com.avail.utility.Strings.increaseIndentation
+import com.avail.utility.cast
 import org.objectweb.asm.MethodVisitor
-import java.util.*
+import java.util.ArrayList
 
 /**
  * The instruction set for the
@@ -190,6 +190,7 @@ abstract class L2Operation
 	 *   The [L2NamedOperandType]s that describe the layout of operands for my
 	 *   instructions.
 	 */
+	@Suppress("LeakingThis")
 	protected constructor(vararg theNamedOperandTypes: L2NamedOperandType)
 	{
 		val simpleName = this@L2Operation.javaClass.simpleName
@@ -223,6 +224,7 @@ abstract class L2Operation
 	 *   The [L2NamedOperandType]s that describe the layout of operands for my
 	 *   instructions.
 	 */
+	@Suppress("LeakingThis")
 	protected constructor(
 		name: String, vararg theNamedOperandTypes: L2NamedOperandType)
 	{
@@ -463,8 +465,7 @@ abstract class L2Operation
 		// Create separate copies of the manifest for each outgoing edge.
 		for (operandIndex in edgeIndexOrder)
 		{
-			val edge =
-				Casts.cast<L2Operand, L2PcOperand>(operands[operandIndex])
+			val edge = operands[operandIndex].cast<L2Operand?, L2PcOperand>()
 			val purpose = namedOperandTypes[operandIndex].purpose()
 			val manifestCopy = L2ValueManifest(manifest)
 			for (i in operands.indices)
@@ -787,7 +788,7 @@ abstract class L2Operation
 			if (operand is L2WriteOperand<*>)
 			{
 				val write =
-					Casts.cast<L2Operand, L2WriteOperand<*>>(operand)
+					operand.cast<L2Operand?, L2WriteOperand<*>>()
 				// Pay attention to purpose-less writes, or writes for the
 				// specified purpose.
 				if (namedOperandTypes[i].purpose() === null

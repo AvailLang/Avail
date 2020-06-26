@@ -34,7 +34,7 @@ package com.avail.interpreter.levelTwo.operand
 import com.avail.interpreter.levelTwo.L2OperandDispatcher
 import com.avail.interpreter.levelTwo.L2OperandType
 import com.avail.interpreter.levelTwo.register.L2IntRegister
-import com.avail.utility.Casts
+import com.avail.utility.cast
 
 /**
  * An `L2ReadIntVectorOperand` is an operand of type
@@ -56,7 +56,7 @@ class L2ReadIntVectorOperand constructor(elements: List<L2ReadIntOperand>)
 		L2ReadIntVectorOperand(
 			// Requires explicit parameter typing
 			elements.map<L2ReadIntOperand, L2ReadIntOperand>{
-				Casts.cast(it.clone())
+				it.clone().cast()
 			})
 
 	override fun clone(

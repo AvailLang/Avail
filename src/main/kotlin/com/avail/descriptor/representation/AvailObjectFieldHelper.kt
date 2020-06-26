@@ -31,8 +31,8 @@
  */
 package com.avail.descriptor.representation
 
-import com.avail.utility.Casts.cast
 import com.avail.utility.StackPrinter
+import com.avail.utility.cast
 
 /**
  * This class assists with the presentation of [AvailObject]s in the IntelliJ
@@ -167,7 +167,7 @@ class AvailObjectFieldHelper(
 			is AvailObject -> append(' ').append(value.nameForDebugger())
 			is AvailIntegerValueHelper -> {
 				try {
-					val strongSlot: IntegerSlotsEnum = cast(slot)
+					val strongSlot: IntegerSlotsEnum = slot.cast()
 					val bitFields = AbstractDescriptor.bitFieldsFor(strongSlot)
 					if (bitFields.isNotEmpty()) {
 						// Remove the name.

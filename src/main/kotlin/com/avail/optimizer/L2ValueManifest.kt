@@ -50,8 +50,9 @@ import com.avail.interpreter.levelTwo.register.L2Register
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind
 import com.avail.optimizer.values.L2SemanticPrimitiveInvocation
 import com.avail.optimizer.values.L2SemanticValue
-import com.avail.utility.Casts
-import java.util.*
+import com.avail.utility.cast
+import java.util.EnumSet
+import java.util.HashSet
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.set
@@ -456,7 +457,7 @@ class L2ValueManifest
 		{
 			if (register.registerKind() === registerKind)
 			{
-				return Casts.cast(register)
+				return register.cast()
 			}
 		}
 		throw RuntimeException("Appropriate register for kind not found")
@@ -640,6 +641,7 @@ class L2ValueManifest
 		assert(writer.instructionHasBeenEmitted())
 		for (semanticValue in writer.semanticValues())
 		{
+			@Suppress("ControlFlowWithEmptyBody")
 			if (semanticValue == sourceSemanticValue)
 			{
 				// Introduce a definition of a new kind for a semantic value

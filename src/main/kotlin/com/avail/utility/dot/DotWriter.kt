@@ -34,8 +34,8 @@
 
 package com.avail.utility.dot
 
-import com.avail.utility.Casts.*
 import com.avail.utility.Strings.tabs
+import com.avail.utility.cast
 import com.avail.utility.dot.DotWriter.AttributeWriter
 import com.avail.utility.dot.DotWriter.DefaultAttributeBlockType.EDGE
 import com.avail.utility.dot.DotWriter.DefaultAttributeBlockType.GRAPH
@@ -959,7 +959,7 @@ class DotWriter constructor(
 						{
 							linefeed()
 						}
-						subgraph(cast(o))
+						subgraph(o.cast())
 					}
 					else
 					{

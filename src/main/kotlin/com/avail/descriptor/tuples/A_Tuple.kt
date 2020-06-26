@@ -42,9 +42,9 @@ import com.avail.descriptor.types.TypeDescriptor
 import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-import com.avail.utility.Casts
+import com.avail.utility.cast
 import java.nio.ByteBuffer
-import java.util.*
+import java.util.Spliterator
 import java.util.stream.Stream
 
 /**
@@ -844,8 +844,7 @@ interface A_Tuple : A_BasicObject, Iterable<AvailObject>
 			secondTuple: T,
 			canDestroy: Boolean): T
 		{
-			return Casts.cast(
-				firstTuple.concatenateWith(secondTuple, canDestroy))
+			return firstTuple.concatenateWith(secondTuple, canDestroy).cast()
 		}
 
 		/**

@@ -36,9 +36,13 @@ import com.avail.interpreter.levelTwo.L2Operation
 import com.avail.interpreter.levelTwo.operand.L2PcOperand
 import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION
 import com.avail.interpreter.levelTwo.register.L2Register
-import com.avail.utility.Casts
 import com.avail.utility.Graph
-import java.util.*
+import com.avail.utility.cast
+import java.util.ArrayDeque
+import java.util.ArrayList
+import java.util.BitSet
+import java.util.Deque
+import java.util.HashSet
 
 /**
  * Used to compute which registers can use the same storage due to not being
@@ -139,9 +143,8 @@ class L2RegisterColorer constructor(controlFlowGraph: L2ControlFlowGraph)
 				val instruction = read.instruction()
 				if (instruction.operation().isPhi)
 				{
-					val phiOperation =
-						Casts.cast<L2Operation, L2_PHI_PSEUDO_OPERATION<*, *, *>>(
-							instruction.operation())
+					val phiOperation = instruction.operation()
+						.cast<L2Operation?, L2_PHI_PSEUDO_OPERATION<*, *, *>>()
 					for (predBlock in
 						phiOperation.predecessorBlocksForUseOf(instruction, reg))
 					{

@@ -42,8 +42,8 @@ import com.avail.interpreter.levelTwo.register.L2Register
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind
 import com.avail.optimizer.L2ValueManifest
 import com.avail.optimizer.values.L2SemanticValue
-import com.avail.utility.Casts
-import java.util.*
+import com.avail.utility.cast
+import java.util.HashSet
 
 /**
  * `L2ReadOperand` abstracts the capabilities of actual register read operands.
@@ -155,7 +155,7 @@ abstract class L2ReadOperand<R : L2Register> protected constructor(
 	 * @return
 	 *   The defining [L2WriteOperand].
 	 */
-	fun definition(): L2WriteOperand<R> = Casts.cast(register.definition())
+	fun definition(): L2WriteOperand<R> = register.definition().cast()
 
 	override fun instructionWasAdded(
 		manifest: L2ValueManifest)
@@ -229,7 +229,7 @@ abstract class L2ReadOperand<R : L2Register> protected constructor(
 		registerRemap: Map<L2Register, L2Register>,
 		theInstruction: L2Instruction)
 	{
-		val replacement: R? = Casts.nullableCast(registerRemap[register])
+		val replacement: R? = registerRemap[register].cast()
 		if (replacement === null || replacement === register)
 		{
 			return
@@ -396,9 +396,8 @@ abstract class L2ReadOperand<R : L2Register> protected constructor(
 			val instruction = def.instruction()
 			if (instruction.operation().isMove)
 			{
-				val operation =
-					Casts.cast<L2Operation, L2_MOVE<*, *, *>>(
-						instruction.operation())
+				val operation = instruction.operation()
+					.cast<L2Operation?, L2_MOVE<*, *, *>>()
 				def = operation.sourceOf(instruction).definition()
 				continue
 			}

@@ -65,7 +65,7 @@ import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.serialization.SerializerOperation
-import com.avail.utility.Casts.cast
+import com.avail.utility.cast
 import com.avail.utility.json.JSONFriendly
 import com.avail.utility.json.JSONWriter
 import com.avail.utility.visitor.AvailSubobjectVisitor
@@ -1216,7 +1216,7 @@ interface A_BasicObject : JSONFriendly {
 		 */
 		inline fun <R> A_BasicObject.dispatch(
 			f: AbstractDescriptor.(AvailObject) -> R): R =
-				descriptor().f(cast(this))
+				descriptor().f(this.cast())
 
 		/**
 		 * If the provided condition is true, synchronize with the receiver's

@@ -319,9 +319,7 @@ class PrefixSharingList<E> : AbstractList<E>
 				{
 					return butLast
 				}
-				val flat = Nulls.stripNull(
-					strongOriginal.cachedFlatListOrMore
-				)
+				val flat = strongOriginal.cachedFlatListOrMore!!
 				return PrefixSharingList(flat, originalList.size - 1)
 			}
 			return PrefixSharingList(originalList, originalList.size - 1)

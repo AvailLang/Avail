@@ -206,7 +206,7 @@ enum class TypeTag
 	
 	private var highOrdinal: Int
 	
-	fun metaTag(): TypeTag = Nulls.stripNull(metaTag)
+	fun metaTag(): TypeTag = metaTag!!
 
 	fun isSubtagOf(otherTag: TypeTag): Boolean =
 		(ordinal >= otherTag.ordinal && highOrdinal <= otherTag.highOrdinal)
@@ -242,7 +242,7 @@ enum class TypeTag
 			{
 				if (tag.metaTag === null && tag != UNKNOWN_TAG)
 				{
-					tag.metaTag = Nulls.stripNull(tag.parent).metaTag
+					tag.metaTag = tag.parent!!.metaTag
 				}
 			}
 			BOTTOM_TYPE_TAG.highOrdinal = ANY_TYPE_TAG.ordinal

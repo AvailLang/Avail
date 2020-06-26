@@ -121,15 +121,18 @@ import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.performance.Statistic
 import com.avail.serialization.SerializerOperation
-import com.avail.utility.Casts.cast
-import com.avail.utility.Casts.nullableCast
 import com.avail.utility.Strings.newlineTab
+import com.avail.utility.cast
 import com.avail.utility.json.JSONWriter
 import com.avail.utility.visitor.AvailSubobjectVisitor
 import java.lang.reflect.Modifier
 import java.math.BigInteger
 import java.nio.ByteBuffer
-import java.util.*
+import java.util.ArrayList
+import java.util.Deque
+import java.util.IdentityHashMap
+import java.util.Spliterator
+import java.util.TimerTask
 import java.util.concurrent.locks.ReadWriteLock
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.stream.Stream
@@ -395,9 +398,9 @@ abstract class AbstractDescriptor protected constructor (
 	open fun o_DescribeForDebugger (
 		self: AvailObject): Array<AvailObjectFieldHelper>
 	{
-		val cls: Class<Descriptor> = cast(this@AbstractDescriptor.javaClass)
+		val cls: Class<Descriptor> = this@AbstractDescriptor.javaClass.cast()
 		val loader = cls.classLoader
-		var enumClass: Class<Enum<*>>? = nullableCast(
+		var enumClass: Class<Enum<*>>? =
 			try
 			{
 				loader.loadClass("${cls.canonicalName}\$IntegerSlots")
@@ -405,7 +408,7 @@ abstract class AbstractDescriptor protected constructor (
 			catch (e: ClassNotFoundException)
 			{
 				null
-			})
+			}.cast()
 		val fields = mutableListOf<AvailObjectFieldHelper>()
 		if (enumClass !== null)
 		{
@@ -445,15 +448,14 @@ abstract class AbstractDescriptor protected constructor (
 				}
 			}
 		}
-		enumClass = nullableCast(
-			try
-			{
-				loader.loadClass("${cls.canonicalName}\$ObjectSlots")
-			}
-			catch (e: ClassNotFoundException)
-			{
-				null
-			})
+		enumClass = try
+					{
+						loader.loadClass("${cls.canonicalName}\$ObjectSlots")
+					}
+					catch (e: ClassNotFoundException)
+					{
+						null
+					}.cast()
 		if (enumClass !== null)
 		{
 			val slots: Array<Enum<*>> = enumClass.enumConstants
@@ -596,17 +598,16 @@ abstract class AbstractDescriptor protected constructor (
 			// Circled Latin capital letter S.
 			append('\u24C8')
 		}
-		val cls: Class<Descriptor> = cast(this@AbstractDescriptor.javaClass)
+		val cls: Class<Descriptor> = this@AbstractDescriptor.javaClass.cast<Class<out AbstractDescriptor>?, Class<Descriptor>>()
 		val loader = cls.classLoader
-		val intEnumClass: Class<out IntegerSlotsEnum>? = nullableCast(
-			try
-			{
-				loader.loadClass("${cls.canonicalName}\$IntegerSlots")
-			}
-			catch (e: ClassNotFoundException)
-			{
-				null
-			})
+		val intEnumClass: Class<out IntegerSlotsEnum>? = try
+					{
+						loader.loadClass("${cls.canonicalName}\$IntegerSlots")
+					}
+					catch (e: ClassNotFoundException)
+					{
+						null
+					}.cast()
 		val intSlots: Array<out IntegerSlotsEnum> =
 			if (intEnumClass !== null) intEnumClass.enumConstants
 			else arrayOf()
@@ -654,15 +655,14 @@ abstract class AbstractDescriptor protected constructor (
 				i++
 			}
 		}
-		val objectEnumClass: Class<out ObjectSlotsEnum>? = nullableCast(
-			try
-			{
-				loader.loadClass("${cls.canonicalName}\$ObjectSlots")
-			}
-			catch (e: ClassNotFoundException)
-			{
-				null
-			})
+		val objectEnumClass: Class<out ObjectSlotsEnum>? = try
+					{
+						loader.loadClass("${cls.canonicalName}\$ObjectSlots")
+					}
+					catch (e: ClassNotFoundException)
+					{
+						null
+					}.cast()
 		val objectSlots: Array<out ObjectSlotsEnum> =
 			if (objectEnumClass !== null) objectEnumClass.enumConstants
 			else arrayOf()
@@ -4021,7 +4021,7 @@ abstract class AbstractDescriptor protected constructor (
 					{
 						try
 						{
-							val bitField = cast<Any, BitField>(field[null])
+							val bitField = field[null].cast<Any, BitField>()
 							if (bitField.integerSlot === slot)
 							{
 								if (field.getAnnotation(
@@ -4073,13 +4073,13 @@ abstract class AbstractDescriptor protected constructor (
 			if (enumAnnotation !== null)
 			{
 				val describingClass: Class<Enum<*>> =
-					cast(enumAnnotation.describedBy)
+					enumAnnotation.describedBy.cast()
 				val lookupName = enumAnnotation.lookupMethodName
 				if (lookupName.isEmpty())
 				{
 					// Look it up by ordinal (must be an actual Enum).
 					val allValues: Array<AbstractSlotsEnum> =
-						cast(describingClass.enumConstants)
+						describingClass.enumConstants.cast()
 					if (value in allValues.indices)
 					{
 						append(allValues[value.toInt()].fieldName())

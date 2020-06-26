@@ -42,7 +42,7 @@ import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import com.avail.optimizer.L2Generator
 import com.avail.optimizer.L2ValueManifest
 import com.avail.optimizer.jvm.JVMTranslator
-import com.avail.utility.Casts
+import com.avail.utility.cast
 import org.objectweb.asm.MethodVisitor
 
 /**
@@ -158,15 +158,14 @@ object L2_MAKE_IMMUTABLE : L2Operation(
 	 * @return
 	 *   The instruction's source [L2ReadBoxedOperand].
 	 */
-	@kotlin.jvm.JvmStatic
-	fun sourceOfImmutable(
-		instruction: L2Instruction): L2ReadBoxedOperand
+	@JvmStatic
+	fun sourceOfImmutable(instruction: L2Instruction): L2ReadBoxedOperand
 	{
 		assert(instruction.operation() is L2_MAKE_IMMUTABLE)
 		{
 			"$instruction is an  ${instruction.operation()}"
 		}
-		return Casts.cast<Any, L2ReadBoxedOperand>(instruction.operand(0))
+		return instruction.operand<L2ReadBoxedOperand>(0).cast()
 	}
 
 	/**
@@ -179,10 +178,9 @@ object L2_MAKE_IMMUTABLE : L2Operation(
 	 * @return
 	 *   The instruction's destination [L2WriteBoxedOperand].
 	 */
-	fun destinationOfImmutable(
-		instruction: L2Instruction): L2WriteBoxedOperand
+	fun destinationOfImmutable(instruction: L2Instruction): L2WriteBoxedOperand
 	{
 		assert(instruction.operation() is L2_MAKE_IMMUTABLE)
-		return Casts.cast<Any, L2WriteBoxedOperand>(instruction.operand(1))
+		return instruction.operand<L2WriteBoxedOperand>(1).cast()
 	}
 }

@@ -37,6 +37,7 @@ import com.avail.descriptor.functions.FunctionDescriptor.Companion.createWithOut
 import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.equalityPojo
 import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
@@ -65,8 +66,8 @@ import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.primitive.pojos.PrimitiveHelper.lookupMethod
 import com.avail.interpreter.primitive.pojos.PrimitiveHelper.rawPojoInvokerFunctionFromFunctionType
-import com.avail.utility.Casts.cast
 import com.avail.utility.Mutable
+import com.avail.utility.cast
 import java.lang.reflect.Method
 import java.util.Collections.synchronizedMap
 import java.util.WeakHashMap
@@ -151,7 +152,8 @@ object P_CreatePojoInstanceMethodFunction : Primitive(3, CanInline, CanFold)
 			// Outer#1 = Instance method to invoke.
 			equalityPojo(method),
 			// Outer#2 = Marshaled type parameters.
-			cast(marshaledTypesTuple))
+			marshaledTypesTuple.cast()
+		)
 		return interpreter.primitiveSuccess(function)
 	}
 

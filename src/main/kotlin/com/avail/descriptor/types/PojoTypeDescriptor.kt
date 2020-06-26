@@ -48,7 +48,12 @@ import com.avail.descriptor.pojos.PojoDescriptor.Companion.nullPojo
 import com.avail.descriptor.pojos.RawPojoDescriptor
 import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.equalityPojo
 import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.rawObjectClass
-import com.avail.descriptor.representation.*
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.IntegerSlotsEnum
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.NilDescriptor
+import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
@@ -64,13 +69,21 @@ import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import com.avail.descriptor.types.FusedPojoTypeDescriptor.Companion.createFusedPojoType
 import com.avail.exceptions.MarshalingException
-import com.avail.utility.Casts
 import com.avail.utility.LRUCache
 import com.avail.utility.Mutable
-import com.avail.utility.Nulls
-import java.lang.reflect.*
+import com.avail.utility.cast
+import java.lang.reflect.Constructor
+import java.lang.reflect.Executable
+import java.lang.reflect.Method
+import java.lang.reflect.Modifier
+import java.lang.reflect.ParameterizedType
+import java.lang.reflect.Type
+import java.lang.reflect.TypeVariable
 import java.math.BigInteger
-import java.util.*
+import java.util.ArrayList
+import java.util.HashMap
+import java.util.HashSet
+import java.util.IdentityHashMap
 
 /**
  * An `PojoTypeDescriptor` describes the type of a plain-old Java object (pojo)
@@ -766,8 +779,8 @@ abstract class PojoTypeDescriptor protected constructor(
 			// Marshal the argument types.
 			Array(types.tupleSize())
 			{
-				Casts.nullableCast<Any, Class<*>>(types.tupleAt(it + 1)
-					.marshalToJava(null))!!
+				types.tupleAt(it + 1).marshalToJava(null)!!
+					.cast<Any?, Class<*>>()
 			}
 
 		/**
@@ -784,8 +797,7 @@ abstract class PojoTypeDescriptor protected constructor(
 		 */
 		fun marshalDefiningType(type: A_Type): Class<*>
 		{
-			val aClass = Casts.nullableCast<Any, Class<*>>(
-				type.marshalToJava(null))!!
+			val aClass = type.marshalToJava(null)!!.cast<Any?, Class<*>>()
 			if (aClass.isPrimitive)
 			{
 				return when (aClass)
@@ -1097,7 +1109,7 @@ abstract class PojoTypeDescriptor protected constructor(
 					}
 					is TypeVariable<*> ->
 					{
-						val index = Nulls.stripNull(vars[arg.name])
+						val index = vars[arg.name]!!
 						propagation.add(typeArgs.tupleAt(index + 1))
 					}
 					is ParameterizedType ->

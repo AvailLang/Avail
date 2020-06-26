@@ -42,8 +42,8 @@ import com.avail.builder.RenamesFileParserException
 import com.avail.builder.UnresolvedDependencyException
 import com.avail.io.TextInterface
 import com.avail.io.TextOutputChannel
-import com.avail.utility.Casts
 import com.avail.utility.IO.closeIfNotNull
+import com.avail.utility.cast
 import org.junit.jupiter.api.Assertions
 import java.io.BufferedReader
 import java.io.File
@@ -179,7 +179,7 @@ class AvailRuntimeTestHelper
 	fun clearError()
 	{
 		val channel: TestErrorChannel =
-			Casts.cast(builder.textInterface.errorChannel)
+			builder.textInterface.errorChannel.cast()
 		channel.errorDetected = false
 	}
 
@@ -200,7 +200,7 @@ class AvailRuntimeTestHelper
 	fun errorDetected(): Boolean
 	{
 		val channel: TestErrorChannel =
-			Casts.cast(builder.textInterface.errorChannel)
+			builder.textInterface.errorChannel.cast()
 		return channel.errorDetected
 	}
 

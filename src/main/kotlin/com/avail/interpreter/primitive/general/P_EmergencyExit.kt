@@ -53,7 +53,7 @@ import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
-import com.avail.utility.Casts.cast
+import com.avail.utility.cast
 import java.lang.String.format
 
 /**
@@ -92,7 +92,7 @@ object P_EmergencyExit : Primitive(
 				errorMessageProducer))
 			if (errorMessageProducer.isInt)
 			{
-				val errorNumber: A_Number = cast(errorMessageProducer)
+				val errorNumber: A_Number = errorMessageProducer.cast()
 				val intValue = errorNumber.extractInt()
 				val code = AvailErrorCode.byNumericCode(intValue)
 				if (code !== null)

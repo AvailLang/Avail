@@ -107,8 +107,8 @@ import com.avail.exceptions.AvailErrorCode.E_UP_ARROW_MUST_FOLLOW_ARGUMENT
 import com.avail.exceptions.AvailErrorCode.E_VERTICAL_BAR_MUST_SEPARATE_TOKENS_OR_SIMPLE_GROUPS
 import com.avail.exceptions.MalformedMessageException
 import com.avail.exceptions.SignatureException
-import com.avail.utility.Casts.cast
 import com.avail.utility.Locks.auto
+import com.avail.utility.cast
 import java.util.*
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -1127,7 +1127,7 @@ class MessageSplitter
 				// The guillemet group should have had a single element, an
 				// alternation.
 				val alternation: Alternation =
-					cast(group.beforeDagger.expressions[0])
+					group.beforeDagger.expressions[0].cast()
 				NumberedChoice(alternation)
 			}
 			else -> group

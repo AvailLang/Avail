@@ -35,20 +35,36 @@ import com.avail.AvailRuntimeSupport
 import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2Operation
-import com.avail.interpreter.levelTwo.operand.*
-import com.avail.interpreter.levelTwo.operation.*
+import com.avail.interpreter.levelTwo.operand.L2Operand
+import com.avail.interpreter.levelTwo.operand.L2PcOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteOperand
+import com.avail.interpreter.levelTwo.operand.TypeRestriction
+import com.avail.interpreter.levelTwo.operation.L2_JUMP
+import com.avail.interpreter.levelTwo.operation.L2_JUMP_BACK
+import com.avail.interpreter.levelTwo.operation.L2_MAKE_IMMUTABLE
 import com.avail.interpreter.levelTwo.operation.L2_MAKE_IMMUTABLE.sourceOfImmutable
+import com.avail.interpreter.levelTwo.operation.L2_MOVE
+import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION
+import com.avail.interpreter.levelTwo.operation.L2_VIRTUAL_CREATE_LABEL
 import com.avail.interpreter.levelTwo.register.L2Register
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind
 import com.avail.optimizer.L2ControlFlowGraph.StateFlag
 import com.avail.optimizer.values.L2SemanticValue
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport
-import com.avail.utility.Casts
-import com.avail.utility.Nulls
 import com.avail.utility.Strings.increaseIndentation
+import com.avail.utility.cast
 import com.avail.utility.structures.EnumMap.Companion.enumMap
-import java.util.*
+import java.util.ArrayDeque
+import java.util.ArrayList
+import java.util.BitSet
+import java.util.Collections
+import java.util.Deque
+import java.util.HashMap
+import java.util.HashSet
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.reflect.KClass
 
@@ -520,7 +536,7 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 				{
 					val phiInstruction = instructions[i]
 					val phiOperation: L2_PHI_PSEUDO_OPERATION<*, *, *> =
-						Casts.cast(phiInstruction.operation())
+						phiInstruction.operation().cast()
 					edgeSometimesLiveIn.removeAll(
 						phiInstruction.destinationRegisters())
 					edgeAlwaysLiveIn.removeAll(
@@ -789,7 +805,7 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 					break
 				}
 				val phiOperation: L2_PHI_PSEUDO_OPERATION<R, *, *> =
-					Casts.cast(instruction.operation())
+					instruction.operation().cast()
 				val phiSources = phiOperation.sourceRegisterReads(instruction)
 				val fanIn = block.predecessorEdgesCount()
 				assert(fanIn == phiSources.size)
@@ -864,7 +880,7 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 	 */
 	fun coalesceNoninterferingMoves()
 	{
-		Nulls.stripNull(colorer).coalesceNoninterferingMoves()
+		colorer!!.coalesceNoninterferingMoves()
 	}
 
 	/**
@@ -873,7 +889,7 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 	 */
 	fun computeColors()
 	{
-		Nulls.stripNull(colorer).computeColors()
+		colorer!!.computeColors()
 		colorer = null
 	}
 
@@ -1244,9 +1260,8 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 					assert(added)
 					if (operand is L2ReadVectorOperand<*, *>)
 					{
-						val vector =
-							Casts.cast<L2Operand, L2ReadVectorOperand<*, *>>(
-								operand)
+						val vector = operand
+							.cast<L2Operand?, L2ReadVectorOperand<*, *>>()
 						vector.elements().forEach {
 							val ok = allOperands.add(it)
 							assert(ok)

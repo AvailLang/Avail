@@ -37,7 +37,7 @@ import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.environment.AvailWorkbench
 import com.avail.persistence.Repository.ModuleCompilation
 import com.avail.persistence.RepositoryDescriber
-import com.avail.utility.Casts.nullableCast
+import com.avail.utility.cast
 import java.awt.event.ActionEvent
 import javax.swing.Action
 import javax.swing.JOptionPane
@@ -81,18 +81,17 @@ class ExamineCompilationAction constructor (
 				val compilationsArray =
 					compilations.toTypedArray()
 				val selectedCompilation =
-					nullableCast<Any, ModuleCompilation>(
-						JOptionPane.showInputDialog(
-							workbench,
-							"Select module compilation to examine",
-							"Examine compilation",
-							JOptionPane.PLAIN_MESSAGE,
-							null,
-							compilationsArray,
-							if (compilationsArray.isNotEmpty())
-							{ compilationsArray[0] }
-							else
-							{ null }))
+					JOptionPane.showInputDialog(
+						workbench,
+						"Select module compilation to examine",
+						"Examine compilation",
+						JOptionPane.PLAIN_MESSAGE,
+						null,
+						compilationsArray,
+						if (compilationsArray.isNotEmpty())
+						{ compilationsArray[0] }
+						else
+						{ null }).cast<Any, ModuleCompilation?>()
 					?: return@execute // Nothing was selected, so abort the command silently.
 
 				val describer = RepositoryDescriber(repository)

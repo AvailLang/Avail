@@ -34,7 +34,7 @@ package com.avail.server.io
 
 import com.avail.io.TextInputChannel
 import com.avail.server.messages.Message
-import com.avail.utility.Casts.cast
+import com.avail.utility.cast
 import java.io.IOException
 import java.nio.BufferOverflowException
 import java.nio.CharBuffer
@@ -119,7 +119,7 @@ class ServerInputChannel constructor(
 		 * The [completion&#32;handler][CompletionHandler] provided for
 		 * notification of data availability.
 		 */
-		internal val handler: CompletionHandler<Int, Any> = cast(handler)
+		internal val handler: CompletionHandler<Int, Any> = handler.cast()
 
 		/** The number of bytes read. */
 		internal var bytesRead = 0

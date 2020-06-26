@@ -38,8 +38,8 @@ import com.avail.interpreter.levelTwo.register.L2Register
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind
 import com.avail.optimizer.L2ValueManifest
 import com.avail.optimizer.values.L2SemanticValue
-import com.avail.utility.Casts
-import java.util.*
+import com.avail.utility.cast
+import java.util.HashSet
 
 /**
  * `L2WriteOperand` abstracts the capabilities of actual register write
@@ -238,7 +238,7 @@ abstract class L2WriteOperand<R : L2Register> constructor(
 		}
 		register().removeDefinition(this)
 		replacement.addDefinition(this)
-		register = Casts.cast(replacement)
+		register = replacement.cast()
 	}
 
 	override fun addWritesTo(writeOperands: MutableList<L2WriteOperand<*>>)

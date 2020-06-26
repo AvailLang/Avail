@@ -35,6 +35,7 @@ import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createWithOuters2
 import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.equalityPojo
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -58,7 +59,7 @@ import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.primitive.pojos.PrimitiveHelper.rawPojoInvokerFunctionFromFunctionType
-import com.avail.utility.Casts.cast
+import com.avail.utility.cast
 import java.lang.reflect.Constructor
 import java.lang.reflect.Modifier
 import java.util.*
@@ -134,7 +135,8 @@ object P_CreatePojoConstructorFunction : Primitive(2, CanInline, CanFold)
 			// Outer#1 = Constructor to invoke.
 			equalityPojo(constructor),
 			// Outer#2 = Marshaled type parameters.
-			cast(marshaledTypesTuple))
+			marshaledTypesTuple.cast()
+		)
 		return interpreter.primitiveSuccess(function)
 	}
 

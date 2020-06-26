@@ -59,8 +59,8 @@ import com.avail.optimizer.L2Generator
 import com.avail.optimizer.L2ValueManifest
 import com.avail.optimizer.values.Frame
 import com.avail.optimizer.values.L2SemanticValue
-import com.avail.utility.Casts
-import java.util.*
+import com.avail.utility.cast
+import java.util.Collections
 
 /**
  * This is used to transform and embed a called function's chunk's control flow
@@ -260,7 +260,7 @@ class L2Inliner internal constructor(
 	{
 		operandInlineTransformer.currentOperand = operand
 		operand.dispatchOperand(operandInlineTransformer)
-		return Casts.cast(operandInlineTransformer.currentOperand!!)
+		return operandInlineTransformer.currentOperand!!.cast()
 		// Don't bother clearing the currentOperand field afterward.
 	}
 

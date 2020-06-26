@@ -36,8 +36,8 @@ import com.avail.interpreter.levelTwo.L2OperandDispatcher
 import com.avail.interpreter.levelTwo.L2OperandType
 import com.avail.interpreter.levelTwo.register.L2Register
 import com.avail.optimizer.L2ValueManifest
-import com.avail.utility.Casts
-import java.util.*
+import com.avail.utility.cast
+import java.util.Collections
 
 /**
  * An `L2ReadVectorOperand` is an operand of type
@@ -109,8 +109,8 @@ abstract class L2ReadVectorOperand<RR : L2ReadOperand<R>, R
 		val newElements: MutableList<RR> = mutableListOf()
 		for (element in elements)
 		{
-			val newElement = Casts.cast<L2ReadOperand<*>, RR>(
-				element.adjustedForReinsertion(manifest))
+			val newElement = element.adjustedForReinsertion(manifest)
+				.cast<L2ReadOperand<*>?, RR>()
 			newElements.add(newElement)
 		}
 		return clone(newElements)
@@ -145,7 +145,7 @@ abstract class L2ReadVectorOperand<RR : L2ReadOperand<R>, R
 		: L2ReadVectorOperand<RR, R>
 	{
 		val vs: List<RR> = elements.map {
-			val x: RR = Casts.cast(it.transformEachRead(transformer))
+			val x: RR = it.transformEachRead(transformer).cast()
 			x
 		}
 		return clone(vs)
