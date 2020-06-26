@@ -153,7 +153,7 @@ class ModuleNameResolver constructor(val moduleRoots: ModuleRoots)
 	private fun canonicalNameFor(qualifiedName: ModuleName): ModuleName
 	{
 		val substitute = renames[qualifiedName.qualifiedName]
-		return if (substitute != null)
+		return if (substitute !== null)
 		{
 			ModuleName(substitute, true)
 		}
@@ -210,7 +210,7 @@ class ModuleNameResolver constructor(val moduleRoots: ModuleRoots)
 		// If the source directory is available, then build a search stack of
 		// trials at ascending tiers of enclosing packages.
 		var sourceDirectory = root!!.sourceDirectory
-		if (sourceDirectory != null)
+		if (sourceDirectory !== null)
 		{
 			pathStack = LinkedList()
 			pathStack.addLast(sourceDirectory)
@@ -222,7 +222,7 @@ class ModuleNameResolver constructor(val moduleRoots: ModuleRoots)
 				"%s/%s",
 				nameStack.peekLast(),
 				components[index]))
-			if (sourceDirectory != null)
+			if (sourceDirectory !== null)
 			{
 				pathStack!!.addLast(File(
 					pathStack.peekLast(),
@@ -234,7 +234,7 @@ class ModuleNameResolver constructor(val moduleRoots: ModuleRoots)
 		val checkedPaths = ArrayList<ModuleName>()
 		var repository: Repository? = null
 		var sourceFile: File? = null
-		if (sourceDirectory != null)
+		if (sourceDirectory !== null)
 		{
 			assert(!pathStack!!.isEmpty())
 			// Explore the search stack from most enclosing package to least
@@ -260,7 +260,7 @@ class ModuleNameResolver constructor(val moduleRoots: ModuleRoots)
 
 		// If resolution failed, then one final option is available: search the
 		// other roots.
-		if (repository == null)
+		if (repository === null)
 		{
 			for (rootName in moduleRoots.rootNames)
 			{
@@ -272,9 +272,9 @@ class ModuleNameResolver constructor(val moduleRoots: ModuleRoots)
 						canonicalName.isRename)
 					checkedPaths.add(canonicalName)
 					root = moduleRoots.moduleRootFor(rootName)
-					assert(root != null)
+					assert(root !== null)
 					sourceDirectory = root!!.sourceDirectory
-					if (sourceDirectory != null)
+					if (sourceDirectory !== null)
 					{
 						val trial = File(
 							sourceDirectory,
@@ -291,7 +291,7 @@ class ModuleNameResolver constructor(val moduleRoots: ModuleRoots)
 		}
 
 		// We found a candidate.
-		if (repository != null)
+		if (repository !== null)
 		{
 			// If the candidate is a package, then substitute
 			// the package representative.
@@ -340,7 +340,7 @@ class ModuleNameResolver constructor(val moduleRoots: ModuleRoots)
 		 * Whether the resolution produced a [ResolvedModuleName], rather than
 		 * an exception.
 		 */
-		val isResolved get() = resolvedModule != null
+		val isResolved get() = resolvedModule !== null
 
 		/**
 		 * Construct a new `ModuleNameResolutionResult`, upon successful
@@ -395,7 +395,7 @@ class ModuleNameResolver constructor(val moduleRoots: ModuleRoots)
 		if (!result.isResolved)
 		{
 			// The resolution failed.
-			if (dependent != null)
+			if (dependent !== null)
 			{
 				result.exception!!.referringModuleName = dependent
 			}

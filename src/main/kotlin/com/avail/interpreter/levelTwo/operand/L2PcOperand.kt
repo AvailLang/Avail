@@ -478,7 +478,7 @@ class L2PcOperand constructor (
 	 */
 	fun installCounter()
 	{
-		assert(counter == null // Don't install twice.
+		assert(counter === null // Don't install twice.
 		)
 		counter = LongAdder()
 	}

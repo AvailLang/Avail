@@ -340,7 +340,7 @@ class CommandLineConfigurator constructor(
 				}
 			configuration.rule("No input file was specified"
 			) {
-				inputFile != null
+				inputFile !== null
 			}
 			configuration.rule(
 				"--explode cannot produce --binary + --text combination"
@@ -348,7 +348,7 @@ class CommandLineConfigurator constructor(
 				// Since bytes are transferred verbatim during an explode, and
 				// the text flag only affects the file name, it would be
 				// misleading to allow both binary and text to be set.
-				explodeDirectory == null || !binary || !text
+				explodeDirectory === null || !binary || !text
 			}
 			configuration.rule(
 				"If only --counts are requested (not --sizes, -binary, or "
@@ -360,12 +360,12 @@ class CommandLineConfigurator constructor(
 				"The '--patch-utf-8' option is incompatible with --counts, "
 				+ "--sizes, --binary, --text, --explode, or --metadata."
 			) {
-				patchOutputFile == null ||
+				patchOutputFile === null ||
 					(!counts
 						&& !sizes
 						&& !binary
 						&& !text
-						&& explodeDirectory == null
+						&& explodeDirectory === null
 						&& !metadata)
 			}
 		}

@@ -632,7 +632,7 @@ class HashedSetBinDescriptor private constructor(
 				val element = generator(i)
 				val groupIndex = element.hash() ushr shift and 63
 				var group = groups[groupIndex]
-				if (group == null) {
+				if (group === null) {
 					group = mutableListOf(element)
 					groups[groupIndex] = group
 				} else {
@@ -650,7 +650,7 @@ class HashedSetBinDescriptor private constructor(
 			var bitVector: Long = 0
 			var occupiedBinCount = 0
 			for (binIndex in 0..63) {
-				if (groups[binIndex] != null) {
+				if (groups[binIndex] !== null) {
 					bitVector = bitVector or (1L shl binIndex)
 					occupiedBinCount++
 				}
@@ -669,7 +669,7 @@ class HashedSetBinDescriptor private constructor(
 			var totalCount = 0
 			for (binIndex in 0..63) {
 				val group: List<A_BasicObject>? = groups[binIndex]
-				if (group != null) {
+				if (group !== null) {
 					val childBin =
 						generateSetBinFrom(level + 1, group.size) {
 							group[it - 1]

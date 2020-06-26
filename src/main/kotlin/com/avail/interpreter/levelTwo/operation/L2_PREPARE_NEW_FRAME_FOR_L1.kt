@@ -97,7 +97,7 @@ object L2_PREPARE_NEW_FRAME_FOR_L1 : L2Operation()
 		prepareMethod.generateCall(method)
 		method.visitInsn(Opcodes.DUP)
 		method.visitVarInsn(Opcodes.ASTORE, translator.reifierLocal())
-		// :: if (reifier == null) goto noReification;
+		// :: if (reifier === null) goto noReification;
 		val noReification = Label()
 		method.visitJumpInsn(Opcodes.IFNULL, noReification)
 		// :: else return reifier;
@@ -171,7 +171,7 @@ object L2_PREPARE_NEW_FRAME_FOR_L1 : L2Operation()
 		stepper.instructionDecoder.pc(1)
 		stepper.stackp = numSlots + 1
 		val primitive = code.primitive()
-		if (primitive != null)
+		if (primitive !== null)
 		{
 			// A failed primitive.  The failure value was captured in the
 			// latestResult().

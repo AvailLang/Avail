@@ -178,14 +178,14 @@ class LRUCache<K, V> @JvmOverloads constructor(
 			assert(softMap.size <= softCapacity)
 			for ((key, value) in softMap)
 			{
-				assert(key != null)
+				assert(key !== null)
 				assert(keysBySoftReference.containsKey(value))
 				assert(keysBySoftReference[value] === key)
 			}
 			for ((key, value) in strongMap)
 			{
-				assert(key != null)
-				assert(value != null)
+				assert(key !== null)
+				assert(value !== null)
 			}
 		}
 	}
@@ -216,7 +216,7 @@ class LRUCache<K, V> @JvmOverloads constructor(
 			assert(this === softMap)
 			if (this@SoftCacheMap.size > capacity)
 			{
-				assert(eldest != null)
+				assert(eldest !== null)
 				val key = eldest!!.key
 				val reference = eldest.value
 				assert(softMap.containsKey(key))
@@ -224,7 +224,7 @@ class LRUCache<K, V> @JvmOverloads constructor(
 				softMap.remove(key)
 				keysBySoftReference.remove(reference)
 				val referent = reference.get()
-				if (referent != null)
+				if (referent !== null)
 				{
 					retire(key, referent)
 				}
@@ -317,7 +317,7 @@ class LRUCache<K, V> @JvmOverloads constructor(
 			}
 
 			// If an exception was set, then we now rethrow that exception.
-			if (exception != null)
+			if (exception !== null)
 			{
 				throw RuntimeException(exception)
 			}
@@ -354,9 +354,9 @@ class LRUCache<K, V> @JvmOverloads constructor(
 		while (true)
 		{
 			val reference = defunctReferences.poll() ?: break
-			assert(reference.get() == null)
+			assert(reference.get() === null)
 			val key = keysBySoftReference.remove(reference)
-			if (key != null)
+			if (key !== null)
 			{
 				assert(softMap.containsKey(key))
 				softMap.remove(key)
@@ -399,7 +399,7 @@ class LRUCache<K, V> @JvmOverloads constructor(
 			for ((key, reference) in entries)
 			{
 				val referent = reference.get()
-				if (referent != null)
+				if (referent !== null)
 				{
 					retire(key, referent)
 				}
@@ -440,7 +440,7 @@ class LRUCache<K, V> @JvmOverloads constructor(
 		lock.withLock {
 			expungeDefunctReferences()
 			val result: V? = softMap[key]?.get()
-			if (result != null)
+			if (result !== null)
 			{
 				// Update the map containing strong references to the most
 				// recently accessed cached values. The eldest entry will be
@@ -488,7 +488,7 @@ class LRUCache<K, V> @JvmOverloads constructor(
 			var reference: SoftReference<V>? = softMap[key]
 			var result: V? = reference?.get()
 
-			if (reference == null || result == null)
+			if (reference === null || result === null)
 			{
 				// We didn't find the desired value in the cache, so now we
 				// check the set of futures to see if some other thread is
@@ -497,7 +497,7 @@ class LRUCache<K, V> @JvmOverloads constructor(
 
 				// No other thread is computing a value for our key, so it is
 				// our responsibility.
-				if (future == null)
+				if (future === null)
 				{
 					future = ValueFuture()
 					futures[key] = future
@@ -522,7 +522,7 @@ class LRUCache<K, V> @JvmOverloads constructor(
 						// the exception to the future so that waiters can react
 						// appropriately.
 						lock.lock()
-						if (exception == null)
+						if (exception === null)
 						{
 							future.result = result
 						}
@@ -601,7 +601,7 @@ class LRUCache<K, V> @JvmOverloads constructor(
 			val reference = softMap.remove(key)
 			strongMap.remove(key)
 			val result: V? = reference?.get()
-			if (result != null)
+			if (result !== null)
 			{
 				retire(key, result)
 			}

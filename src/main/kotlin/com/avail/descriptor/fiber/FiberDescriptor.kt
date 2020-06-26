@@ -855,7 +855,7 @@ class FiberDescriptor private constructor(
 		task: TimerTask?
 	) = self.setMutableSlot(
 		WAKEUP_TASK,
-		if (task == null) nil else identityPojo(task))
+		if (task === null) nil else identityPojo(task))
 
 	override fun o_TextInterface(self: AvailObject): TextInterface =
 		self.mutableSlot(TEXT_INTERFACE).javaObjectNotNull()

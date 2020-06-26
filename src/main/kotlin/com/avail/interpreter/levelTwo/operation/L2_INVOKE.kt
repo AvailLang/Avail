@@ -198,7 +198,7 @@ object L2_INVOKE : L2ControlFlowOperation(
 		method.visitVarInsn(Opcodes.ASTORE, translator.reifierLocal())
 		// :: []
 		method.visitVarInsn(Opcodes.ALOAD, translator.reifierLocal())
-		// :: if (reifier != null) goto onReificationPreamble;
+		// :: if (reifier !== null) goto onReificationPreamble;
 		// :: result = interpreter.getLatestResult();
 		// :: goto onNormalReturn;
 		// :: onReificationPreamble: ...

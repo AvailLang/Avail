@@ -54,7 +54,7 @@ class InsertEntryPointAction constructor(workbench: AvailWorkbench)
 {
 	override fun actionPerformed(event: ActionEvent?)
 	{
-		assert(workbench.backgroundTask == null)
+		assert(workbench.backgroundTask === null)
 
 		val selectedEntryPoint = workbench.selectedEntryPoint() ?: return
 		// Strip back-ticks as a nicety.  Also put spaces around underscores
@@ -85,9 +85,9 @@ class InsertEntryPointAction constructor(workbench: AvailWorkbench)
 
 		val moduleName =
 			workbench.selectedEntryPointModule()
-		if (moduleName != null)
+		if (moduleName !== null)
 		{
-			if (workbench.availBuilder.getLoadedModule(moduleName) == null)
+			if (workbench.availBuilder.getLoadedModule(moduleName) === null)
 			{
 				// Start loading the module as a convenience.
 				workbench.cursor = getPredefinedCursor(WAIT_CURSOR)

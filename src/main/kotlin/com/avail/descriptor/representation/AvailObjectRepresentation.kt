@@ -145,7 +145,7 @@ abstract class AvailObjectRepresentation protected constructor(
 		if (shouldCheckSlots) {
 			val debugSlots = currentDescriptor.debugObjectSlots
 			val permittedFields = debugSlots[field.fieldOrdinal()]
-			if (permittedFields != null) {
+			if (permittedFields !== null) {
 				for (permittedField in permittedFields) {
 					if (permittedField === field) {
 						return
@@ -183,7 +183,7 @@ abstract class AvailObjectRepresentation protected constructor(
 		if (shouldCheckSlots) {
 			val debugSlots = currentDescriptor.debugIntegerSlots
 			val permittedFields = debugSlots[field.fieldOrdinal()]
-			if (permittedFields != null) {
+			if (permittedFields !== null) {
 				for (permittedField in permittedFields) {
 					if (permittedField === field) {
 						return

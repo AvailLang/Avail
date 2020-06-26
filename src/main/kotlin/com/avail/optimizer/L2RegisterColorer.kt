@@ -190,7 +190,7 @@ class L2RegisterColorer constructor(controlFlowGraph: L2ControlFlowGraph)
 		block: L2BasicBlock,
 		statementIndex: Int)
 	{
-		assert(registerBeingTraced != null)
+		assert(registerBeingTraced !== null)
 		val instructions = block.instructions()
 		for (index in statementIndex - 1 downTo 0)
 		{

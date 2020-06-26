@@ -213,7 +213,7 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 					anyRemoved = true
 					val replacement =
 						instruction.optionalReplacementForDeadInstruction()
-					if (replacement == null)
+					if (replacement === null)
 					{
 						iterator.remove()
 						instruction.justRemoved()
@@ -291,7 +291,7 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 				{
 					var favoredSemanticValue =
 						favoredSemanticValuesMap[read.register()]
-					if (favoredSemanticValue == null)
+					if (favoredSemanticValue === null)
 					{
 						var intersection: MutableSet<L2SemanticValue>? = null
 						for (write in read.register().definitions())
@@ -302,7 +302,7 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 										write.semanticValues().toMutableSet()
 								}()
 						}
-						assert(intersection != null)
+						assert(intersection !== null)
 						assert(intersection!!.isNotEmpty())
 						favoredSemanticValue = intersection!!.iterator().next()
 						favoredSemanticValuesMap[read.register()] =
@@ -611,7 +611,7 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 						dependentReadsLaterInBlock,
 						allWritesLaterInBlock,
 						reachableTargetEdges)
-					if (edgesToMoveThrough != null
+					if (edgesToMoveThrough !== null
 						&& edgesToMoveThrough.none(L2PcOperand::isBackward))
 					{
 						assert(edgesToMoveThrough.isNotEmpty())
@@ -822,7 +822,7 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 						edge.manifest().recordDefinition(
 							phiOperation.moveOperation.destinationOf(move))
 					}
-					if (edge.forcedClampedEntities != null)
+					if (edge.forcedClampedEntities !== null)
 					{
 						// Replace the semantic value(s) and register in the
 						// clamped set of entities, if present.
@@ -1043,7 +1043,7 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 					val countdown = countdowns[edge.targetBlock()]
 					// Note that the entry may have been removed to break a
 					// cycle.  See below.
-					if (countdown != null && --countdown.value == 0)
+					if (countdown !== null && --countdown.value == 0)
 					{
 						countdowns.remove(edge.targetBlock())
 						zeroed.add(edge.targetBlock())
@@ -1066,7 +1066,7 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 				}
 				// No remaining block has had a predecessor placed.  Pick a
 				// block at random.
-				if (victim == null)
+				if (victim === null)
 				{
 					victim = countdowns.keys.iterator().next()
 				}
@@ -1317,7 +1317,7 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 			val block = pair.first
 			val newUsed = pair.second
 			var checked = inSets[block]
-			if (checked == null)
+			if (checked === null)
 			{
 				checked = UsedRegisters(newUsed)
 				inSets[block] = checked

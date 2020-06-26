@@ -181,7 +181,7 @@ class AvailTask constructor(
 					// have had a chance to resume the fiber and update its
 					// state.
 					val postExit = interpreter.postExitContinuation
-					if (postExit != null)
+					if (postExit !== null)
 					{
 						interpreter.postExitContinuation(null)
 						postExit()

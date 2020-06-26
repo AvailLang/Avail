@@ -314,7 +314,7 @@ object IndexedFileAnalyzer
 				indexedFile = builder.openOrCreate(inputFile!!, false)
 				val indices = indices()
 				when {
-					patchOutputFile != null -> {
+					patchOutputFile !== null -> {
 						// Patch the file into an output file by transforming
 						// each record, stripping one level of UTF-8 encoding.
 						// Fail and delete the destination file if any record
@@ -335,7 +335,7 @@ object IndexedFileAnalyzer
 								outputFile.add(targetRecord)
 							}
 							val metadata = indexedFile.metadata
-							if (metadata != null) {
+							if (metadata !== null) {
 								outputFile.metadata = metadata
 							}
 							outputFile.commit()
@@ -348,7 +348,7 @@ object IndexedFileAnalyzer
 							throw e
 						}
 					}
-					explodeDirectory != null -> {
+					explodeDirectory !== null -> {
 						// Explode records into files.
 						val dir = explodeDirectory!!
 						val suffix = if (text) ".txt" else ""
@@ -359,7 +359,7 @@ object IndexedFileAnalyzer
 						}
 						if (metadata) {
 							val metadataBytes = indexedFile.metadata
-							if (metadataBytes != null) {
+							if (metadataBytes !== null) {
 								dir.resolve("metadata$suffix")
 									.writeBytes(metadataBytes)
 							}

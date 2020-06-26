@@ -135,8 +135,8 @@ class CommentGroup
 	val isPopulated: Boolean
 		get() = methods.isNotEmpty() ||
 			macros.isNotEmpty() ||
-			global != null ||
-			classImplementation != null
+			global !== null ||
+			classImplementation !== null
 
 	/**
 	 * set the boolean, [hasStickyComment], presumably to true as the default is
@@ -461,11 +461,11 @@ class CommentGroup
 				jsonWriter.endArray()
 			}
 		}
-		else if (global != null)
+		else if (global !== null)
 		{
 			global!!.toJSON(linkingFileMap, nameOfGroup, errorLog, jsonWriter)
 		}
-		else if (classImplementation != null)
+		else if (classImplementation !== null)
 		{
 			jsonWriter.write("type")
 			jsonWriter.write("class")

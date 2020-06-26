@@ -232,7 +232,7 @@ abstract class L2WriteOperand<R : L2Register> constructor(
 		theInstruction: L2Instruction)
 	{
 		val replacement = registerRemap[register]
-		if (replacement == null || replacement === register)
+		if (replacement === null || replacement === register)
 		{
 			return
 		}

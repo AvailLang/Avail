@@ -113,7 +113,7 @@ internal class DocumentationTracer constructor(
 		completionAction: ()->Unit)
 	{
 		val version = getVersion(moduleName)
-		if (version?.comments == null)
+		if (version?.comments === null)
 		{
 			val problem = object : Problem(
 				moduleName,

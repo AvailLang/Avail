@@ -120,7 +120,7 @@ class UTF8ResourceBundleControl : ResourceBundle.Control()
 			{
 				throw (e.exception as IOException)
 			}
-			if (stream != null)
+			if (stream !== null)
 			{
 				bundle = stream.use { PropertyResourceBundle(it) }
 			}

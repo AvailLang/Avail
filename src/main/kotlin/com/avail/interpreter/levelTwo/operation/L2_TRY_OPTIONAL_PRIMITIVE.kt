@@ -93,7 +93,7 @@ object L2_TRY_OPTIONAL_PRIMITIVE : L2Operation()
 		method: MethodVisitor,
 		instruction: L2Instruction)
 	{
-		// :: if (interpreter.function.code().primitive() == null)
+		// :: if (interpreter.function.code().primitive() === null)
 		// ::    goto noPrimitive;
 		translator.loadInterpreter(method)
 		method.visitInsn(Opcodes.DUP)

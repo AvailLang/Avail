@@ -73,7 +73,7 @@ abstract class L2Operand : PublicCloneable<L2Operand>()
 	 *   `true` if this operand has been written inside an [L2Instruction],
 	 *   otherwise `false`.
 	 */
-	fun instructionHasBeenEmitted(): Boolean = instruction != null
+	fun instructionHasBeenEmitted(): Boolean = instruction !== null
 
 	/**
 	 * Assert that this operand knows its instruction, which should always be
@@ -82,7 +82,7 @@ abstract class L2Operand : PublicCloneable<L2Operand>()
 	@OverridingMethodsMustInvokeSuper
 	open fun assertHasBeenEmitted()
 	{
-		assert(instruction != null)
+		assert(instruction !== null)
 	}
 
 	/**
@@ -113,7 +113,7 @@ abstract class L2Operand : PublicCloneable<L2Operand>()
 	open fun instructionWasAdded(
 		manifest: L2ValueManifest)
 	{
-		assert(instruction != null)
+		assert(instruction !== null)
 	}
 
 	/**
@@ -264,7 +264,7 @@ abstract class L2Operand : PublicCloneable<L2Operand>()
 		indent: Int,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		if (instruction == null)
+		if (instruction === null)
 		{
 			warningStyleChange(true)
 			builder.append("DEAD-OPERAND: ")
@@ -291,7 +291,7 @@ abstract class L2Operand : PublicCloneable<L2Operand>()
 	val isMisconnected: Boolean
 		get()
 		{
-			if (instruction == null)
+			if (instruction === null)
 			{
 				return true
 			}

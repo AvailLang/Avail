@@ -143,7 +143,7 @@ object L2_VIRTUAL_CREATE_LABEL : L2Operation(
 		val frameSize =
 			instruction.operand<L2IntImmediateOperand>(3)
 		val reifiedCaller: L2ReadBoxedOperand
-		reifiedCaller = if (generator.currentBlock().zone != null)
+		reifiedCaller = if (generator.currentBlock().zone !== null)
 		{
 			// We're in a reification zone, so our caller has already been
 			// reified.

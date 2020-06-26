@@ -78,7 +78,7 @@ class PrefixTrie<T>
 		val wordTemplates = ArrayList<NodeContent<T>>()
 		root.words().forEach { word ->
 			val nodeContent = searchNode(word)!!.content()
-			if (nodeContent != null)
+			if (nodeContent !== null)
 			{
 				wordTemplates.add(
 					NodeContent(word, nodeContent))

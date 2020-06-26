@@ -595,7 +595,7 @@ class AvailServer constructor(
 				{
 					val tree = MutableOrNull<ModuleNode>()
 					val directory = root.sourceDirectory
-					if (directory != null)
+					if (directory !== null)
 					{
 						try
 						{
@@ -721,7 +721,7 @@ class AvailServer constructor(
 		val upgrader = synchronized(pendingUpgrades) {
 			pendingUpgrades.remove(command.uuid)
 		}
-		if (upgrader == null)
+		if (upgrader === null)
 		{
 			val message = newErrorMessage(
 				channel, command, "no such upgrade")
@@ -1233,7 +1233,7 @@ class AvailServer constructor(
 			val writer = JSONWriter()
 			writer.writeObject {
 				writeStatusOn(false, writer)
-				if (command != null)
+				if (command !== null)
 				{
 					writeCommandOn(command.command, writer)
 					writeCommandIdentifierOn(command.commandId, writer)
@@ -1348,7 +1348,7 @@ class AvailServer constructor(
 				{
 					val command = Command.VERSION.parse(
 						message.stringContent)
-					if (command != null)
+					if (command !== null)
 					{
 						command.commandId = channel.nextCommandId
 						command.processThen(channel, receiveNext)

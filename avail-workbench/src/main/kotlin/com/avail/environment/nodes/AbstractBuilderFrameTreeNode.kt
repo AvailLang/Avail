@@ -149,7 +149,7 @@ abstract class AbstractBuilderFrameTreeNode internal constructor(
 	 */
 	fun sortChildren()
 	{
-		if (children != null)
+		if (children !== null)
 		{
 			// HACK to make children (Vector!) sortable
 			val temp: MutableList<AbstractBuilderFrameTreeNode> =

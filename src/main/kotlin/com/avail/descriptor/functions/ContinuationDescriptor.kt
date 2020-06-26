@@ -477,7 +477,7 @@ class ContinuationDescriptor private constructor(
 			args: List<AvailObject>
 		): A_Continuation {
 			val code = function.code()
-			assert(code.primitive() == null)
+			assert(code.primitive() === null)
 			val frameSize = code.numSlots()
 			val cont = mutable.create(frameSize)
 			cont.setSlot(CALLER, caller)

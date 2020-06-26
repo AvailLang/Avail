@@ -390,7 +390,7 @@ class RenamesFileParser @ThreadSafe constructor(
 		{
 			val c = nextCodePoint()
 			val token = actionFor(c).scan(this, c)
-			if (token != null)
+			if (token !== null)
 			{
 				if (token.tokenType == TokenType.UNKNOWN)
 				{
@@ -489,7 +489,7 @@ class RenamesFileParser @ThreadSafe constructor(
 	fun parse(): ModuleNameResolver
 	{
 		var theResolver = resolver
-		if (theResolver == null)
+		if (theResolver === null)
 		{
 			theResolver = ModuleNameResolver(roots)
 			resolver = theResolver

@@ -342,7 +342,7 @@ enum class Command
 					}
 				}
 				val existingCommand = node.command
-				assert(existingCommand == null) {
+				assert(existingCommand === null) {
 					format(
 						"Commands %s and %s have the same syntax!",
 						existingCommand!!.name,
@@ -405,7 +405,7 @@ enum class Command
 			{
 				val parsedCommands = ArrayList<CommandMessage>()
 				val simpleCommand = parseSimpleCommand(source)
-				if (simpleCommand != null)
+				if (simpleCommand !== null)
 				{
 					parsedCommands.add(SimpleCommandMessage(simpleCommand))
 				}
@@ -414,7 +414,7 @@ enum class Command
 					try
 					{
 						val commandMessage = command.parse(source)
-						if (commandMessage != null)
+						if (commandMessage !== null)
 						{
 							parsedCommands.add(commandMessage)
 						}

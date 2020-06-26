@@ -1191,7 +1191,7 @@ abstract class PojoTypeDescriptor protected constructor(
 				javaClass, typeArgs, true)
 			// Recursively accumulate the class ancestry.
 			val superclass = target.superclass
-			if (superclass != null)
+			if (superclass !== null)
 			{
 				if (!canon.containsKey(superclass))
 				{

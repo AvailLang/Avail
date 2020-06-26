@@ -53,7 +53,7 @@ class CleanAction constructor(workbench: AvailWorkbench)
 	override fun actionPerformed(event: ActionEvent?)
 	{
 		workbench.availBuilder.unloadTarget(null)
-		assert(workbench.backgroundTask == null)
+		assert(workbench.backgroundTask === null)
 		// Clear all repositories.
 		for (root in workbench.resolver.moduleRoots.roots)
 		{

@@ -392,13 +392,13 @@ class L2Inliner internal constructor(
 	fun mapFrame(frame: Frame?): Frame
 	{
 		val mapped = frameMap[frame]
-		if (mapped != null)
+		if (mapped !== null)
 		{
 			return mapped
 		}
-		assert(frame!!.outerFrame != null)
+		assert(frame!!.outerFrame !== null)
 			{ "The frameMap should have been seeded with the outer frame." }
-		val mappedOuter = mapFrame(frame.outerFrame)
+		val mappedOuter = mapFrame(frame!!.outerFrame)
 		val newFrame = Frame(mappedOuter, frame.code, "Inlined")
 		frameMap[frame] = newFrame
 		return newFrame

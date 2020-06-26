@@ -352,7 +352,7 @@ class L2Chunk private constructor(
 			fun removeInvalidatedChunk(chunk: L2Chunk)
 			{
 				val gen = chunk.generation
-				if (gen != null)
+				if (gen !== null)
 				{
 					gen.chunks.remove(chunk)
 					chunk.generation = null

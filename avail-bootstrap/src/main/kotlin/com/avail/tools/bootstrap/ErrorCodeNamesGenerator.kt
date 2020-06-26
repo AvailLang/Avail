@@ -90,7 +90,7 @@ class ErrorCodeNamesGenerator
 				writer.print(key)
 				writer.print('=')
 				val errorCodeName = properties.getProperty(key)
-				if (errorCodeName != null)
+				if (errorCodeName !== null)
 				{
 					writer.print(escape(errorCodeName))
 				}
@@ -155,7 +155,7 @@ class ErrorCodeNamesGenerator
 			for (primitiveNumber in 1 .. maxPrimitiveNumber())
 			{
 				val primitive = byPrimitiveNumberOrNull(primitiveNumber)
-				if (primitive != null && !primitive.hasFlag(Primitive.Flag.CannotFail))
+				if (primitive !== null && !primitive.hasFlag(Primitive.Flag.CannotFail))
 				{
 					val failureType: A_Type = primitive.failureVariableType
 					if (failureType.isEnumeration)

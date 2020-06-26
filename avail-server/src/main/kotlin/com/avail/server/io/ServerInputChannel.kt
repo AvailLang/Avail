@@ -232,7 +232,7 @@ class ServerInputChannel constructor(
 				// If the channel has been marked, then duplicate message data
 				// into the mark buffer.
 				val mark = markBuffer
-				if (mark != null)
+				if (mark !== null)
 				{
 					try
 					{
@@ -257,7 +257,7 @@ class ServerInputChannel constructor(
 			// necessary in order to keep positioning simple (by eliminating
 			// redundant data).
 			val mark = markBuffer
-			if (mark != null && position != 0 && !messages.isEmpty())
+			if (mark !== null && position != 0 && !messages.isEmpty())
 			{
 				val message = messages.removeFirst()
 				val newMessage = Message(
@@ -305,7 +305,7 @@ class ServerInputChannel constructor(
 				// If the channel has been marked, then duplicate message data
 				// into the mark buffer.
 				val mark = markBuffer
-				if (mark != null)
+				if (mark !== null)
 				{
 					try
 					{
@@ -326,7 +326,7 @@ class ServerInputChannel constructor(
 				// If data has been marked, then truncate the current message if
 				// necessary in order to keep positioning simple (by eliminating
 				// redundant data). Reset the position.
-				if (mark != null)
+				if (mark !== null)
 				{
 					val newMessage = Message(
 						message.stringContent.substring(position).toByteArray(),

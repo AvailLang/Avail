@@ -63,7 +63,7 @@ class SubmitInputAction constructor(workbench: AvailWorkbench)
 	{
 		if (workbench.inputField.isFocusOwner)
 		{
-			assert(workbench.backgroundTask == null)
+			assert(workbench.backgroundTask === null)
 			if (workbench.isRunning)
 			{
 				// Program is running.  Feed this new line of text to the
@@ -92,8 +92,8 @@ class SubmitInputAction constructor(workbench: AvailWorkbench)
 					Arrays.sort(
 						array
 					) { o1, o2 ->
-						assert(o1 != null)
-						assert(o2 != null)
+						assert(o1 !== null)
+						assert(o2 !== null)
 						o1!!.toString().compareTo(
 							o2!!.toString())
 					}

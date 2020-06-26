@@ -220,16 +220,16 @@ enum class TypeTag
 		val myParent = parent
 		if (depth > other!!.depth)
 		{
-			assert(myParent != null)
+			assert(myParent !== null)
 			return myParent!!.commonAncestorWith(other)
 		}
 		val otherParent = other.parent
 		if (other.depth > depth)
 		{
-			assert(otherParent != null)
+			assert(otherParent !== null)
 			return otherParent!!.commonAncestorWith(this)
 		}
-		assert(myParent != null && otherParent != null)
+		assert(myParent !== null && otherParent !== null)
 		assert(this != UNKNOWN_TAG && other != UNKNOWN_TAG)
 		return myParent!!.commonAncestorWith(otherParent)
 	}
@@ -240,7 +240,7 @@ enum class TypeTag
 		{
 			for (tag in values())
 			{
-				if (tag.metaTag == null && tag != UNKNOWN_TAG)
+				if (tag.metaTag === null && tag != UNKNOWN_TAG)
 				{
 					tag.metaTag = Nulls.stripNull(tag.parent).metaTag
 				}

@@ -331,7 +331,7 @@ internal class BuildDirectoryTracer constructor(
 		val digest = archive.digestForFile(resolvedName)
 		val versionKey = ModuleVersionKey(resolvedName, digest)
 		val existingVersion = archive.getVersion(versionKey)
-		if (existingVersion != null)
+		if (existingVersion !== null)
 		{
 			// This version was already traced and recorded for a subsequent
 			// replay... like right now.  Reuse it.

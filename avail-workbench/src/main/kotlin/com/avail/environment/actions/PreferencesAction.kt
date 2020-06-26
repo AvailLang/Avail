@@ -104,7 +104,7 @@ class PreferencesAction constructor(workbench: AvailWorkbench)
 
 	override fun actionPerformed(event: ActionEvent?)
 	{
-		if (preferencesDialog == null)
+		if (preferencesDialog === null)
 		{
 			createDialog()
 			preferencesDialog!!.isVisible = true
@@ -186,7 +186,7 @@ class PreferencesAction constructor(workbench: AvailWorkbench)
 			triple.add(root.name)
 			triple.add(root.repository.fileName.path)
 			val source = root.sourceDirectory
-			triple.add(if (source == null) "" else source.path)
+			triple.add(if (source === null) "" else source.path)
 			rootsTableModel.rows.add(triple)
 		}
 		val rootsTable = JTable(rootsTableModel)

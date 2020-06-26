@@ -78,7 +78,7 @@ object IO
 	@JvmStatic
 	fun closeIfNotNull(closeable: AutoCloseable?)
 	{
-		if (closeable != null)
+		if (closeable !== null)
 		{
 			try
 			{

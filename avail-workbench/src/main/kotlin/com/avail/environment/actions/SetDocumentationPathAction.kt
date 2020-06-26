@@ -69,7 +69,7 @@ class SetDocumentationPathAction constructor(workbench: AvailWorkbench)
 
 			   override fun accept(f: File?): Boolean
 			   {
-			       assert(f != null)
+			       assert(f !== null)
 			       return f!!.isDirectory && f.canWrite()
 			   }
 			})

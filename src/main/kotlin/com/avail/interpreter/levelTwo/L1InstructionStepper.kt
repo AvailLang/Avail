@@ -292,7 +292,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 							bundle, afterLookup - beforeLookup.toDouble())
 					}
 					val reifier = callMethodAfterLookup(matching)
-					if (reifier != null)
+					if (reifier !== null)
 					{
 						return reifier
 					}
@@ -311,7 +311,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 					}
 					val returnCheckReifier =
 						checkReturnType(result, expectedReturnType, function)
-					if (returnCheckReifier != null)
+					if (returnCheckReifier !== null)
 					{
 						// Reification is happening within the handling of
 						// the failed return type check.
@@ -383,7 +383,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 				{
 					val reifier = setVariable(
 						pointerAt(instructionDecoder.getOperand()), pop())
-					if (reifier != null)
+					if (reifier !== null)
 					{
 						return reifier
 					}
@@ -444,7 +444,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 					val reifier = setVariable(
 						function.outerVarAt(instructionDecoder.getOperand()),
 						pop())
-					if (reifier != null)
+					if (reifier !== null)
 					{
 						return reifier
 					}
@@ -499,7 +499,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 				L1Ext_doPushLabel ->
 				{
 					val numArgs = code.numArgs()
-					assert(code.primitive() == null)
+					assert(code.primitive() === null)
 					val args: MutableList<AvailObject> = ArrayList(numArgs)
 					var i = 1
 					while (i <= numArgs)
@@ -667,7 +667,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 							bundle, afterLookup - beforeLookup.toDouble())
 					}
 					val reifier = callMethodAfterLookup(matching)
-					if (reifier != null)
+					if (reifier !== null)
 					{
 						return reifier
 					}
@@ -686,7 +686,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 					}
 					val returnCheckReifier =
 						checkReturnType(result, expectedReturnType, function)
-					if (returnCheckReifier != null)
+					if (returnCheckReifier !== null)
 					{
 						// Reification is happening within the handling of
 						// the failed return type check.
@@ -858,7 +858,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 			savedFunction.code().setUpInstructionDecoder(instructionDecoder)
 			instructionDecoder.pc(savedPc)
 			stackp = savedStackp
-			if (reifier != null)
+			if (reifier !== null)
 			{
 				if (reifier.actuallyReify())
 				{
@@ -915,7 +915,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 		savedFunction.code().setUpInstructionDecoder(instructionDecoder)
 		instructionDecoder.pc(savedPc)
 		stackp = savedStackp
-		if (reifier != null)
+		if (reifier !== null)
 		{
 			if (Interpreter.debugL2)
 			{
@@ -961,7 +961,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 		val after = AvailRuntimeSupport.captureNanos()
 		val returner = interpreter.returningFunction!!
 		val calledPrimitive = returner.code().primitive()
-		if (calledPrimitive != null)
+		if (calledPrimitive !== null)
 		{
 			calledPrimitive.addNanosecondsCheckingResultType(
 				after - before, interpreter.interpreterIndex)

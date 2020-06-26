@@ -1098,7 +1098,7 @@ class L2Generator internal constructor(
 	 *   Whether the current block is probably reachable.
 	 */
 	fun currentlyReachable(): Boolean =
-		currentBlock != null && currentBlock!!.currentlyReachable()
+		currentBlock !== null && currentBlock!!.currentlyReachable()
 
 	/**
 	 * Create and add an [L2Instruction] with the given [L2Operation] and
@@ -1111,7 +1111,7 @@ class L2Generator internal constructor(
 	 */
 	fun addInstruction(operation: L2Operation, vararg operands: L2Operand)
 	{
-		if (currentBlock != null)
+		if (currentBlock !== null)
 		{
 			currentBlock!!.addInstruction(
 				L2Instruction(currentBlock, operation, *operands),
@@ -1127,7 +1127,7 @@ class L2Generator internal constructor(
 	 */
 	fun addInstruction(instruction: L2Instruction)
 	{
-		if (currentBlock != null)
+		if (currentBlock !== null)
 		{
 			currentBlock!!.addInstruction(instruction, currentManifest)
 		}
@@ -1148,7 +1148,7 @@ class L2Generator internal constructor(
 	 */
 	fun reinsertInstruction(operation: L2Operation, vararg operands: L2Operand)
 	{
-		if (currentBlock == null)
+		if (currentBlock === null)
 		{
 			return
 		}
@@ -1270,7 +1270,7 @@ class L2Generator internal constructor(
 	 */
 	fun createChunk(code: A_RawFunction)
 	{
-		assert(chunk == null)
+		assert(chunk === null)
 		val instructions = mutableListOf<L2Instruction>()
 		controlFlowGraph.generateOn(instructions)
 		val registerCounter = RegisterCounter()

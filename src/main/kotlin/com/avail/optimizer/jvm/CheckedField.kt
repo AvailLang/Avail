@@ -108,7 +108,7 @@ class CheckedField private constructor(
 	{
 		if (isStatic)
 		{
-			if (isFinal && valueIfFinalAndStatic == null)
+			if (isFinal && valueIfFinalAndStatic === null)
 			{
 				methodVisitor.visitInsn(Opcodes.ACONST_NULL)
 			}

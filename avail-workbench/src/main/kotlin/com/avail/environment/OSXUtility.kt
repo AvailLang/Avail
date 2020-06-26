@@ -235,7 +235,7 @@ object OSXUtility
 				OSXUtility::class.java.classLoader,
 				arrayOf(applicationListenerClass))
 			{ thisProxy, method, args ->
-				assert(thisProxy != null)
+				assert(thisProxy !== null)
 				val success: Boolean =
 					if (method.name == handlerMessage)
 					{

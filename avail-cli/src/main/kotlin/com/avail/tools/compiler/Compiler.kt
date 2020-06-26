@@ -271,7 +271,7 @@ object Compiler
 	{
 		resolver.moduleRoots.roots.forEach { root ->
 			val dir = root.sourceDirectory
-			if (dir != null && dir.isDirectory)
+			if (dir !== null && dir.isDirectory)
 			{
 				root.clearRepository()
 			}

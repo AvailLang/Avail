@@ -173,7 +173,7 @@ class StackReifier(
 			interpreter.setOffset(newDummy.levelTwoOffset())
 			val result =
 				interpreter.chunk!!.runChunk(interpreter, interpreter.offset)
-			assert(result == null) { "Must not reify in dummy continuation!" }
+			assert(result === null) { "Must not reify in dummy continuation!" }
 			// The dummy's code will have cleaned up the stack.  Let the
 			// next action run, or if exhausted, run the reifier's
 			// postReificationAction, or resume the top continuation.

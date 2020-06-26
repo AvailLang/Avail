@@ -421,7 +421,7 @@ class IndexedFile internal constructor(
 	 * file instead.
 	 */
 	init {
-		if (setupActionIfNew == null)
+		if (setupActionIfNew === null)
 		{
 			// Open the existing file.
 			readHeaderData(versionCheck)
@@ -1001,7 +1001,7 @@ class IndexedFile internal constructor(
 	fun close()
 	{
 		lock.write {
-			if (longTermLock != null) {
+			if (longTermLock !== null) {
 				try {
 					longTermLock!!.release()
 				} catch (e: IOException) {
@@ -1134,7 +1134,7 @@ class IndexedFile internal constructor(
 			// why we only grab a read lock.
 			metadataCache ?: master!!.run {
 				when {
-					metadataCache != null -> metadataCache
+					metadataCache !== null -> metadataCache
 					metadataLocation == RecordCoordinates.origin -> null
 					else -> {
 						val block =
@@ -1185,13 +1185,13 @@ class IndexedFile internal constructor(
 				// Determine the newest valid master node.
 				val previous = decodeMasterNode(previousMasterPosition)
 				var current = decodeMasterNode(masterPosition)
-				if (previous == null && current == null) {
+				if (previous === null && current === null) {
 					throw IndexedFileException(
 						"Invalid indexed file -- both master nodes are " +
 							"corrupt.")
 				}
 				var delta: Int? = null
-				if (previous != null && current != null) {
+				if (previous !== null && current !== null) {
 					delta = current.serialNumber - previous.serialNumber
 					if (abs(delta) != 1) {
 						throw IndexedFileException(
@@ -1200,14 +1200,14 @@ class IndexedFile internal constructor(
 					}
 				}
 				// Swap the previous and current nodes if necessary.
-				if (previous != null && Integer.valueOf(1) != delta) {
+				if (previous !== null && Integer.valueOf(1) != delta) {
 					current = previous
 					// previous is unused after this point.
 					val tempPos = previousMasterPosition
 					previousMasterPosition = masterPosition
 					masterPosition = tempPos
 				}
-				if (master != null &&
+				if (master !== null &&
 					master!!.serialNumber != current!!.serialNumber) {
 					// Clear the cached metadata if it has changed.
 					if (master!!.metadataLocation != current.metadataLocation) {

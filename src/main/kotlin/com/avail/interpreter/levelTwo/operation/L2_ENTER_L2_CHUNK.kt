@@ -113,7 +113,7 @@ object L2_ENTER_L2_CHUNK : L2Operation(
 		// should have extracted the registerDump for us already.
 		val localNumberLists =
 			translator.liveLocalNumbersByKindPerEntryPoint[instruction]
-		if (localNumberLists != null)
+		if (localNumberLists !== null)
 		{
 			val boxedList = localNumberLists[RegisterKind.BOXED]
 			val intsList = localNumberLists[RegisterKind.INTEGER]

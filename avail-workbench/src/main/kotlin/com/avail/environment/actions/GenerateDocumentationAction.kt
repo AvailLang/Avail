@@ -59,7 +59,7 @@ class GenerateDocumentationAction constructor (workbench: AvailWorkbench)
 {
 	override fun actionPerformed(event: ActionEvent?)
 	{
-		assert(workbench.backgroundTask == null)
+		assert(workbench.backgroundTask === null)
 		val selectedModule =
 			workbench.selectedModule()!!
 

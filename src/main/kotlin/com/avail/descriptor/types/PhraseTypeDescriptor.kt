@@ -435,7 +435,7 @@ open class PhraseTypeDescriptor protected constructor(
 
 		init
 		{
-			depth = if (parentKind == null)
+			depth = if (parentKind === null)
 			{
 				0
 			}

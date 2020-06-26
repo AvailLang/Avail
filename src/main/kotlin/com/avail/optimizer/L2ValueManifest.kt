@@ -160,7 +160,7 @@ class L2ValueManifest
 		for (sv in freshSynonym.semanticValues())
 		{
 			val priorSynonym = semanticValueToSynonym.put(sv, freshSynonym)
-			assert(priorSynonym == null)
+			assert(priorSynonym === null)
 		}
 		synonymRestrictions[freshSynonym] = restriction
 		definitions[freshSynonym] = mutableListOf()
@@ -790,7 +790,7 @@ class L2ValueManifest
 		var mergedPick: L2SemanticValue? = null
 		for (syn in connectedSynonyms)
 		{
-			if (mergedPick == null)
+			if (mergedPick === null)
 			{
 				mergedPick = syn.pickSemanticValue()
 			}

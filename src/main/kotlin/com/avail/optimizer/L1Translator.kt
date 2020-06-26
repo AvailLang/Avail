@@ -1109,7 +1109,7 @@ class L1Translator private constructor(
 				val rawFunction = function.code()
 				val primitive = rawFunction.primitive()
 				val returnType: A_Type
-				returnType = if (primitive != null)
+				returnType = if (primitive !== null)
 				{
 					val signatureTupleType =
 						rawFunction.functionType().argsTupleType()
@@ -1296,7 +1296,7 @@ class L1Translator private constructor(
 		val existingPair =
 			callSiteHelper.invocationSitesToCreate[function]
 		val block: L2BasicBlock
-		if (existingPair == null)
+		if (existingPair === null)
 		{
 			block = generator.createBasicBlock("successful lookup")
 			// Safety check.
@@ -1764,7 +1764,7 @@ class L1Translator private constructor(
 		if (rawFunction !== null)
 		{
 			val primitive = rawFunction.primitive()
-			if (primitive != null)
+			if (primitive !== null)
 			{
 				val generated: Boolean
 				val argsTupleType = rawFunction.functionType().argsTupleType()
@@ -2708,7 +2708,7 @@ class L1Translator private constructor(
 		generator.initialBlock.makeIrremovable()
 		generator.startBlock(generator.initialBlock)
 		val primitive = code.primitive()
-		if (primitive != null)
+		if (primitive !== null)
 		{
 			// Try the primitive, automatically returning if successful.
 			addInstruction(
@@ -2796,7 +2796,7 @@ class L1Translator private constructor(
 		}
 
 		// Capture the primitive failure value in the first local if applicable.
-		if (primitive != null)
+		if (primitive !== null)
 		{
 			assert(!primitive.hasFlag(Primitive.Flag.CannotFail))
 			// Move the primitive failure value into the first local.  This
@@ -2848,7 +2848,7 @@ class L1Translator private constructor(
 			assert(stackp == numSlots)
 			stackp = Int.MIN_VALUE
 		}
-		if (generator.unreachableBlock != null
+		if (generator.unreachableBlock !== null
 			&& generator.unreachableBlock!!.predecessorEdgesCount() > 0)
 		{
 			// Generate the unreachable block.
@@ -3130,7 +3130,7 @@ class L1Translator private constructor(
 		// We just ensured the caller is reified, and captured in reifiedCaller.
 		// Create a label continuation whose caller is the reified caller, but
 		// only capturing arguments (with pc=0 and stack=empty).
-		assert(code.primitive() == null)
+		assert(code.primitive() === null)
 		val numArgs = code.numArgs()
 		val argumentsForLabel =
 			mutableListOf<L2ReadBoxedOperand>()

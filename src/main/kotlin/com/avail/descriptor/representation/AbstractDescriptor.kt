@@ -248,7 +248,7 @@ abstract class AbstractDescriptor protected constructor (
 	init
 	{
 		val objectSlots: Array<out ObjectSlotsEnum> =
-			if (objectSlotsEnumClass != null) objectSlotsEnumClass.enumConstants
+			if (objectSlotsEnumClass !== null) objectSlotsEnumClass.enumConstants
 			else arrayOf()
 		@Suppress("ConstantConditionIf")
 		debugObjectSlots =
@@ -262,7 +262,7 @@ abstract class AbstractDescriptor protected constructor (
 		numberOfFixedObjectSlots =
 			objectSlots.size - if (hasVariableObjectSlots) 1 else 0
 		val integerSlots: Array<out IntegerSlotsEnum> =
-			if (integerSlotsEnumClass != null)
+			if (integerSlotsEnumClass !== null)
 				integerSlotsEnumClass.enumConstants
 			else
 				arrayOf()
@@ -408,7 +408,7 @@ abstract class AbstractDescriptor protected constructor (
 				null
 			})
 		val fields = mutableListOf<AvailObjectFieldHelper>()
-		if (enumClass != null)
+		if (enumClass !== null)
 		{
 			val slots = enumClass.enumConstants
 			for (i in 0 until numberOfFixedIntegerSlots())
@@ -429,7 +429,7 @@ abstract class AbstractDescriptor protected constructor (
 				}
 			}
 			val slot = slots[slots.size - 1]
-			if (getAnnotation(slot, HideFieldInDebugger::class.java) == null)
+			if (getAnnotation(slot, HideFieldInDebugger::class.java) === null)
 			{
 				for (i in numberOfFixedIntegerSlots()
 					until self.integerSlotsCount())
@@ -455,7 +455,7 @@ abstract class AbstractDescriptor protected constructor (
 			{
 				null
 			})
-		if (enumClass != null)
+		if (enumClass !== null)
 		{
 			val slots: Array<Enum<*>> = enumClass.enumConstants
 			for (i in 0 until numberOfFixedObjectSlots())
@@ -475,7 +475,7 @@ abstract class AbstractDescriptor protected constructor (
 				}
 			}
 			val slot = slots[slots.size - 1]
-			if (getAnnotation(slot, HideFieldInDebugger::class.java) == null)
+			if (getAnnotation(slot, HideFieldInDebugger::class.java) === null)
 			{
 				for (i in numberOfFixedObjectSlots()
 					until self.objectSlotsCount())
@@ -609,7 +609,7 @@ abstract class AbstractDescriptor protected constructor (
 				null
 			})
 		val intSlots: Array<out IntegerSlotsEnum> =
-			if (intEnumClass != null) intEnumClass.enumConstants
+			if (intEnumClass !== null) intEnumClass.enumConstants
 			else arrayOf()
 		run {
 			var i = 1
@@ -620,10 +620,10 @@ abstract class AbstractDescriptor protected constructor (
 				val slot = intSlots[ordinal]
 				if (getAnnotation(
 						slot as Enum<*>,
-						HideFieldInDebugger::class.java) == null
+						HideFieldInDebugger::class.java) === null
 					&& getAnnotation(
 						slot as Enum<*>,
-						HideFieldJustForPrinting::class.java) == null)
+						HideFieldJustForPrinting::class.java) === null)
 				{
 					newlineTab(builder, indent)
 					val slotName = slot.fieldName()
@@ -665,7 +665,7 @@ abstract class AbstractDescriptor protected constructor (
 				null
 			})
 		val objectSlots: Array<out ObjectSlotsEnum> =
-			if (objectEnumClass != null) objectEnumClass.enumConstants
+			if (objectEnumClass !== null) objectEnumClass.enumConstants
 			else arrayOf()
 		var i = 1
 		val limit = self.objectSlotsCount()
@@ -675,10 +675,10 @@ abstract class AbstractDescriptor protected constructor (
 			val slot = objectSlots[ordinal]
 			if (getAnnotation(
 					slot as Enum<*>,
-					HideFieldInDebugger::class.java) == null
+					HideFieldInDebugger::class.java) === null
 				&& getAnnotation(
 					slot as Enum<*>,
-					HideFieldJustForPrinting::class.java) == null)
+					HideFieldJustForPrinting::class.java) === null)
 			{
 				newlineTab(builder, indent)
 				val slotName = slot.fieldName()
@@ -3937,7 +3937,7 @@ abstract class AbstractDescriptor protected constructor (
 					val enumAnnotation =
 						slotMirror.getAnnotation(EnumField::class.java)
 					var numBits = 64
-					if (enumAnnotation != null)
+					if (enumAnnotation !== null)
 					{
 						val enumClass = enumAnnotation.describedBy.java
 						val enumValues = enumClass.enumConstants
@@ -3999,7 +3999,7 @@ abstract class AbstractDescriptor protected constructor (
 			bitFieldsLock.read {
 				// Vast majority of cases.
 				val bitFields = bitFieldsCache[slot]
-				if (bitFields != null)
+				if (bitFields !== null)
 				{
 					return@bitFieldsFor bitFields
 				}
@@ -4008,7 +4008,7 @@ abstract class AbstractDescriptor protected constructor (
 				// Try again, this time holding the write lock to avoid multiple
 				// threads trying to populate the cache.
 				var bitFields = bitFieldsCache[slot]
-				if (bitFields != null)
+				if (bitFields !== null)
 				{
 					return@bitFieldsFor bitFields
 				}
@@ -4071,7 +4071,7 @@ abstract class AbstractDescriptor protected constructor (
 			enumAnnotation: EnumField?,
 			builder: StringBuilder) =
 		with(builder) {
-			if (enumAnnotation != null)
+			if (enumAnnotation !== null)
 			{
 				val describingClass: Class<Enum<*>> =
 					cast(enumAnnotation.describedBy)

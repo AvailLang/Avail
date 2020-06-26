@@ -215,7 +215,7 @@ class L2ControlFlowGraphVisualizer constructor(
 					fillcolor = "#9070ff/302090"
 					fontcolor = "#000000/f0f0f0"
 				}
-				first != null && first.isEntryPoint ->
+				first !== null && first.isEntryPoint ->
 				{
 					fillcolor = "#ffd394/604000"
 					fontcolor = "#000000/e0e0e0"
@@ -327,7 +327,7 @@ class L2ControlFlowGraphVisualizer constructor(
 			// Show any clamped entities for this edge.  These are registers and
 			// semantic values that are declared always live along this edge,
 			// and act as the (cycle breaking) end-roots for dead code analysis.
-			if (edge.forcedClampedEntities != null)
+			if (edge.forcedClampedEntities !== null)
 			{
 				builder
 					.append("<font face=\"Helvetica\"><i>CLAMPED:</i></font>")
@@ -473,7 +473,7 @@ class L2ControlFlowGraphVisualizer constructor(
 						attr.attribute("constraint", "false")
 						attr.attribute(
 							"color",
-							if (sourceBlock.zone == null) "#9070ff/6050ff"
+							if (sourceBlock.zone === null) "#9070ff/6050ff"
 							else "#90f0a0/60ff70")
 						attr.attribute("style", "dashed")
 					}
@@ -526,7 +526,7 @@ class L2ControlFlowGraphVisualizer constructor(
 		for (block in blocks)
 		{
 			val zone = block.zone
-			if (zone != null)
+			if (zone !== null)
 			{
 				blocksByZone.computeIfAbsent(zone) { mutableSetOf() }.add(block)
 			}
@@ -640,10 +640,10 @@ class L2ControlFlowGraphVisualizer constructor(
 					cluster(zone, graph) { !unstartedBlocks.contains(it) }
 				}
 				controlFlowGraph.basicBlockOrder
-					.filter { it.zone == null }
+					.filter { it.zone === null }
 					.forEach { basicBlock(it, graph, true) }
 				unstartedBlocks
-					.filter { it.zone == null }
+					.filter { it.zone === null }
 					.forEach { basicBlock(it, graph, false) }
 				val edgeCounter = MutableInt(1)
 				controlFlowGraph.basicBlockOrder.forEach {

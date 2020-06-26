@@ -73,7 +73,7 @@ class ModuleOrPackageNode constructor(
 	 */
 	val isLoaded: Boolean
 		get() = synchronized(builder) {
-			return builder.getLoadedModule(resolvedModuleName) != null
+			return builder.getLoadedModule(resolvedModuleName) !== null
 		}
 
 	/**

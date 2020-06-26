@@ -450,7 +450,7 @@ abstract class L2Operation
 			val namedOperandType = namedOperandTypes[i]
 			val purpose = namedOperandType.purpose()
 			val operand = operands[i]
-			if (purpose == null)
+			if (purpose === null)
 			{
 				// Process all operands without a purpose first.
 				operand.instructionWasAdded(manifest)
@@ -790,7 +790,7 @@ abstract class L2Operation
 					Casts.cast<L2Operand, L2WriteOperand<*>>(operand)
 				// Pay attention to purpose-less writes, or writes for the
 				// specified purpose.
-				if (namedOperandTypes[i].purpose() == null
+				if (namedOperandTypes[i].purpose() === null
 					|| namedOperandTypes[i].purpose() == optionalPurpose)
 				{
 					manifest.recordDefinition(write)
@@ -822,7 +822,7 @@ abstract class L2Operation
 		val readsAnnotation =
 			javaClass.getAnnotation(ReadsHiddenVariable::class.java)
 		var readMask = 0
-		if (readsAnnotation != null)
+		if (readsAnnotation !== null)
 		{
 			for (hiddenVariableSubclass in readsAnnotation.theValue)
 			{
@@ -836,7 +836,7 @@ abstract class L2Operation
 		val writesAnnotation =
 			javaClass.getAnnotation(WritesHiddenVariable::class.java)
 		var writeMask = 0
-		if (writesAnnotation != null)
+		if (writesAnnotation !== null)
 		{
 			for (hiddenVariableSubclass in writesAnnotation.value)
 			{

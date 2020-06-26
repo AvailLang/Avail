@@ -684,7 +684,7 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 		}
 		init
 		{
-			if (primitive == null)
+			if (primitive === null)
 			{
 				// Create an invocation of P_EmergencyExit.
 				val argumentsTupleType = functionType.argsTupleType()

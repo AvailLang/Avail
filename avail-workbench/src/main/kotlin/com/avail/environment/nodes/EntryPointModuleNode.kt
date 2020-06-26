@@ -63,7 +63,7 @@ class EntryPointModuleNode constructor(
 	 */
 	private val isLoaded: Boolean
 		get() = synchronized(builder) {
-			return builder.getLoadedModule(resolvedModuleName) != null
+			return builder.getLoadedModule(resolvedModuleName) !== null
 		}
 
 	override fun iconResourceName(): String = "ModuleInTree"

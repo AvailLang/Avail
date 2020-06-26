@@ -120,7 +120,7 @@ object AvailRuntimeConfiguration
 		{
 			ClassLoader.getSystemResourceAsStream(
 				"resources/build-time.txt").use { resourceStream ->
-				if (resourceStream != null)
+				if (resourceStream !== null)
 				{
 					Scanner(resourceStream).use { version = it.nextLine() }
 				}

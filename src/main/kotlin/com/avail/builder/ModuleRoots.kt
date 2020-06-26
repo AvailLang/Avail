@@ -99,7 +99,7 @@ class ModuleRoots(modulePath: String) : Iterable<ModuleRoot>
 			builder.append("=")
 			builder.append(root.repository.fileName.path)
 			val sourceDirectory = root.sourceDirectory
-			if (sourceDirectory != null)
+			if (sourceDirectory !== null)
 			{
 				builder.append(",")
 				builder.append(sourceDirectory.path)
@@ -166,7 +166,7 @@ class ModuleRoots(modulePath: String) : Iterable<ModuleRoot>
 			val sourceDirectory =
 				if (paths.size == 2) File(paths[1])
 				else null
-			require(!(sourceDirectory != null && !sourceDirectory.isDirectory))
+			require(!(sourceDirectory !== null && !sourceDirectory.isDirectory))
 
 			addRoot(ModuleRoot(rootName, repositoryFile, sourceDirectory))
 		}

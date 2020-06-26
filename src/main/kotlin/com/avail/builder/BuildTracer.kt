@@ -198,7 +198,7 @@ internal class BuildTracer constructor(val availBuilder: AvailBuilder)
 			{
 				availBuilder.moduleGraph.addVertex(resolvedName)
 			}
-			if (resolvedSuccessor != null)
+			if (resolvedSuccessor !== null)
 			{
 				// Note that a module can be both Extended and Used from the
 				// same module.  That's to support selective import and renames.
@@ -218,7 +218,7 @@ internal class BuildTracer constructor(val availBuilder: AvailBuilder)
 		val digest = archive.digestForFile(resolvedName)
 		val versionKey = ModuleVersionKey(resolvedName, digest)
 		val version = archive.getVersion(versionKey)
-		if (version != null)
+		if (version !== null)
 		{
 			// This version was already traced and recorded for a subsequent
 			// replay… like right now.  Reuse it.

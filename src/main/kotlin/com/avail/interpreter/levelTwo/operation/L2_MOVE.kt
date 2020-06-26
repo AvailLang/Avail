@@ -347,7 +347,7 @@ private constructor(
 
 	init
 	{
-		assert(movesByKind[kind] == null)
+		assert(movesByKind[kind] === null)
 		movesByKind[kind] = this
 	}
 }

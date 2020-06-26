@@ -455,7 +455,7 @@ open class VariableSharedDescriptor protected constructor(
 		private fun recordReadFromSharedVariable(self: AvailObject)
 		{
 			val loader = Interpreter.current().availLoaderOrNull()
-			if (loader != null && loader.statementCanBeSummarized()
+			if (loader !== null && loader.statementCanBeSummarized()
 			    && !self.slot(VALUE).equalsNil()
 			    && !self.valueWasStablyComputed())
 			{

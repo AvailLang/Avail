@@ -355,7 +355,7 @@ class Interpreter(
 
 		// Produce the current chunk's L2 instructions...
 		outerArray[FakeStackTraceSlots.L2_INSTRUCTIONS.ordinal] =
-			if (chunk != null) chunk!!.instructions else emptyList<Any>()
+			if (chunk !== null) chunk!!.instructions else emptyList<Any>()
 
 		// Produce the current function being executed...
 		outerArray[FakeStackTraceSlots.CURRENT_FUNCTION.ordinal] = function

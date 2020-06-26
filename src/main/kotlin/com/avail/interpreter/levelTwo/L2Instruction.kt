@@ -269,7 +269,7 @@ class L2Instruction constructor(
 	 */
 	fun assertHasBeenEmitted()
 	{
-		assert(basicBlock != null)
+		assert(basicBlock !== null)
 		operandsDo { it.assertHasBeenEmitted() }
 	}
 
@@ -580,7 +580,7 @@ class L2Instruction constructor(
 		operandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		if (basicBlock == null)
+		if (basicBlock === null)
 		{
 			warningStyleChange(true)
 			builder.append("DEAD: ")

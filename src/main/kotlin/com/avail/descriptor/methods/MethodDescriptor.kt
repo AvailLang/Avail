@@ -309,7 +309,7 @@ class MethodDescriptor private constructor(
 		self: AvailObject
 	): LookupTree<A_Definition, A_Tuple> {
 		var tree = methodTestingTree
-		if (tree == null) {
+		if (tree === null) {
 			val numArgs = self.slot(NUM_ARGS)
 			val newTree = runtimeDispatcher.createRoot(
 				toList(self.slot(DEFINITIONS_TUPLE)),
@@ -321,7 +321,7 @@ class MethodDescriptor private constructor(
 				// winner's tree.
 				methodTestingTreeUpdater.compareAndSet(this, null, newTree)
 				tree = methodTestingTree
-			} while (tree == null)
+			} while (tree === null)
 		}
 		return tree
 	}
@@ -339,7 +339,7 @@ class MethodDescriptor private constructor(
 		self: AvailObject
 	): LookupTree<A_Definition, A_Tuple> {
 		var tree = macroTestingTree
-		if (tree == null) {
+		if (tree === null) {
 			val numArgs = self.slot(NUM_ARGS)
 			val newTree = runtimeDispatcher.createRoot(
 				toList(self.slot(MACRO_DEFINITIONS_TUPLE)),
@@ -353,7 +353,7 @@ class MethodDescriptor private constructor(
 				// winner's tree.
 				macroTestingTreeUpdater.compareAndSet(this, null, newTree)
 				tree = macroTestingTree
-			} while (tree == null)
+			} while (tree === null)
 		}
 		return tree
 	}
@@ -398,7 +398,7 @@ class MethodDescriptor private constructor(
 		// The set of dependents is only ever accessed within the monitor.
 		synchronized(self) {
 			var set = dependentChunksWeakSet
-			if (set == null) {
+			if (set === null) {
 				set = synchronizedSet(newSetFromMap(HashMap()))
 				dependentChunksWeakSet = set
 			}
@@ -670,7 +670,7 @@ class MethodDescriptor private constructor(
 	) = synchronized(self) {
 		assert(L2Chunk.invalidationLock.isHeldByCurrentThread)
 		val set = dependentChunksWeakSet
-		if (set != null) {
+		if (set !== null) {
 			set.remove(chunk)
 			if (set.isEmpty()) {
 				dependentChunksWeakSet = null
@@ -753,12 +753,12 @@ class MethodDescriptor private constructor(
 		synchronized(self) {
 			val set: Set<L2Chunk?>? = dependentChunksWeakSet
 			dependentsCopy =
-				if (set == null) emptyList()
+				if (set === null) emptyList()
 				else ArrayList(dependentChunksWeakSet!!)
 		}
 		dependentsCopy.forEach { it.invalidate(invalidationsFromMethodChange) }
 		synchronized(self) {
-			assert(dependentChunksWeakSet == null
+			assert(dependentChunksWeakSet === null
 				|| dependentChunksWeakSet!!.isEmpty())
 
 			// Invalidate the roots of the lookup trees.

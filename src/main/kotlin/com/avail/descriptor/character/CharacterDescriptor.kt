@@ -192,7 +192,7 @@ class CharacterDescriptor private constructor(
 			// plane (BMP) as marshaling to Java's primitive char type. Use
 			// Java's primitive int type for all others.
 			else -> {
-				assert(classHint == null)
+				assert(classHint === null)
 				// Only understand Unicode code points in the basic multilingual
 				// plane (BMP) as marshaling to Java's primitive char type.
 				if (codePoint < 65536) codePoint.toChar()

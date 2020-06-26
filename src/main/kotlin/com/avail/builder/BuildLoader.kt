@@ -186,7 +186,7 @@ internal class BuildLoader constructor(
 		globalTracker(bytesCompiled.get(), globalCodeSize)
 		// If the module is already loaded into the runtime, then we must not
 		// reload it.
-		val isLoaded = availBuilder.getLoadedModule(moduleName) != null
+		val isLoaded = availBuilder.getLoadedModule(moduleName) !== null
 
 		assert(isLoaded == availBuilder.runtime.includesModuleNamed(
 			stringFrom(moduleName.qualifiedName)))
@@ -245,7 +245,7 @@ internal class BuildLoader constructor(
 			val compilationKey =
 				ModuleCompilationKey(predecessorCompilationTimes)
 			val compilation = version.getCompilation(compilationKey)
-			if (compilation != null)
+			if (compilation !== null)
 			{
 				// The current version of the module is already compiled, so
 				// load the repository's version.
@@ -324,7 +324,7 @@ internal class BuildLoader constructor(
 			val header = ModuleHeader(moduleName)
 			header.deserializeHeaderFrom(deserializer)
 			val errorString = header.applyToModule(module, availBuilder.runtime)
-			if (errorString != null)
+			if (errorString !== null)
 			{
 				throw RuntimeException(errorString)
 			}

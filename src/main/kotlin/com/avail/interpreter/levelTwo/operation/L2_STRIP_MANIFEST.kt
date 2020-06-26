@@ -83,7 +83,7 @@ object L2_STRIP_MANIFEST : L2Operation(
 		optionalPurpose: L2NamedOperandType.Purpose?)
 	{
 		assert(this == instruction.operation())
-		assert(optionalPurpose == null)
+		assert(optionalPurpose === null)
 		val liveVector = instruction.operand<L2ReadBoxedVectorOperand>(0)
 
 		// Clear the manifest, other than the mentioned semantic values and

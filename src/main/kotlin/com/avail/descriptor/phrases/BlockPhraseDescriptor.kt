@@ -209,7 +209,7 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 		val endsWithStatement = (statementsSize < 1
 			|| statementsTuple.tupleAt(statementsSize).expressionType().isTop)
 		if (argCount == 0
-			&& primitive == null
+			&& primitive === null
 			&& statementsSize == 1
 			&& explicitResultType === null
 			&& declaredExceptions === null
@@ -248,7 +248,7 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 			builder.append('|')
 		}
 		var skipFailureDeclaration = false
-		if (primitive != null && !primitive.hasFlag(Flag.SpecialForm)) {
+		if (primitive !== null && !primitive.hasFlag(Flag.SpecialForm)) {
 			wroteAnything = true
 			newlineTab(builder, indent)
 			builder.append("Primitive ")

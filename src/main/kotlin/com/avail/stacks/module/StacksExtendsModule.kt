@@ -195,7 +195,7 @@ class StacksExtendsModule : StacksImportModule
 	{
 		val groupMap = extendsMethodLeafNameToModuleName[key]
 
-		if (groupMap != null)
+		if (groupMap !== null)
 		{
 
 			var group = CommentGroup(

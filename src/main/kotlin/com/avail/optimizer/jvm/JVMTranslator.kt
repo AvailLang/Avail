@@ -492,7 +492,7 @@ class JVMTranslator constructor(
 
 		override fun doOperand(operand: L2PcOperand)
 		{
-			if (operand.counter != null)
+			if (operand.counter !== null)
 			{
 				recordLiteralObject(operand.counter)
 			}
@@ -750,7 +750,7 @@ class JVMTranslator constructor(
 		rawAccessors.sortBy { it.classLoaderIndex }
 		val accessors =
 			rawAccessors.filter {
-				accessor: LiteralAccessor -> accessor.setter != null
+				accessor: LiteralAccessor -> accessor.setter !== null
 			}
 		if (accessors.isNotEmpty())
 		{
@@ -1356,7 +1356,7 @@ class JVMTranslator constructor(
 				}
 			}
 			val l2Path = dumpL2SourceToFile()
-			if (l2Path != null)
+			if (l2Path !== null)
 			{
 				val annotation = method.visitAnnotation(
 					Type.getDescriptor(JVMChunkL2Source::class.java),
@@ -1388,7 +1388,7 @@ class JVMTranslator constructor(
 		for (instruction in instructions)
 		{
 			val label = labels[instruction.offset()]
-			if (label != null)
+			if (label !== null)
 			{
 				method.visitLabel(label)
 				method.visitLineNumber(instruction.offset(), label)
@@ -1433,7 +1433,7 @@ class JVMTranslator constructor(
 			val beforeTranslation = AvailRuntimeSupport.captureNanos()
 			instruction.translateToJVM(this, method)
 			val afterTranslation = AvailRuntimeSupport.captureNanos()
-			if (interpreter != null)
+			if (interpreter !== null)
 			{
 				instruction.operation().jvmTranslationTime.record(
 					afterTranslation - beforeTranslation,
@@ -1634,7 +1634,7 @@ class JVMTranslator constructor(
 				{
 					val before = AvailRuntimeSupport.captureNanos()
 					phase.action(jvmTranslator)
-					if (interpreter != null)
+					if (interpreter !== null)
 					{
 						phase.statistic.record(
 							AvailRuntimeSupport.captureNanos() - before,

@@ -132,7 +132,7 @@ class PrefixSharingList<E> : AbstractList<E>
 				break
 			}
 			flatList.add(0, pointer.lastElement)
-			assert(pointer.allButLast != null)
+			assert(pointer.allButLast !== null)
 			if (pointer.allButLast !is PrefixSharingList<*>)
 			{
 				flatList.addAll(0, pointer.allButLast!!)
@@ -317,7 +317,7 @@ class PrefixSharingList<E> : AbstractList<E>
 			{
 				val strongOriginal = originalList as PrefixSharingList<E2>
 				val butLast = strongOriginal.allButLast
-				if (butLast != null)
+				if (butLast !== null)
 				{
 					return butLast
 				}

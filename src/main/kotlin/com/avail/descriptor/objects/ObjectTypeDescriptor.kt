@@ -436,9 +436,9 @@ class ObjectTypeDescriptor internal constructor(
 				val mySlotIndex = mySlotMap[field]
 				val otherSlotIndex = otherSlotMap[field]
 				val fieldType = when {
-					mySlotIndex == null ->
+					mySlotIndex === null ->
 						anObjectType.slot(FIELD_TYPES_, otherSlotIndex!!)
-					otherSlotIndex == null ->
+					otherSlotIndex === null ->
 						self.slot(FIELD_TYPES_, mySlotIndex)
 					else -> {
 						val intersection = self.slot(FIELD_TYPES_, mySlotIndex)

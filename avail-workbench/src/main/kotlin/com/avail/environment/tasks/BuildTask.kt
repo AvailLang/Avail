@@ -57,7 +57,7 @@ class BuildTask (
 {
 	override fun executeTask()
 	{
-		assert(targetModuleName != null)
+		assert(targetModuleName !== null)
 		workbench.availBuilder.buildTarget(
 			targetModuleName(),
 			workbench::eventuallyUpdatePerModuleProgress,

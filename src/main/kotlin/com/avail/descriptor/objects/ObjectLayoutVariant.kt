@@ -172,7 +172,7 @@ class ObjectLayoutVariant private constructor(
 		fun variantForFields(allFields: A_Set): ObjectLayoutVariant {
 			variantsLock.read {
 				val variant = allVariants[allFields]
-				if (variant != null) {
+				if (variant !== null) {
 					// By far the most likely path.
 					return variant
 				}

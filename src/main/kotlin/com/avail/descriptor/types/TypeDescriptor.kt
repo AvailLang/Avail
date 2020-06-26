@@ -333,7 +333,7 @@ abstract class TypeDescriptor protected constructor(
 						}
 					descriptor.finishInitializingPrimitiveTypeWithParent(
 						o,
-						if (spec.parent == null)
+						if (spec.parent === null)
 						{
 							NilDescriptor.nil
 						}
@@ -406,7 +406,7 @@ abstract class TypeDescriptor protected constructor(
 				// Sanity check them for metacovariance: a<=b -> a.type<=b.type
 				for (spec in all)
 				{
-					if (spec.parent != null)
+					if (spec.parent !== null)
 					{
 						assert(spec.o().isSubtypeOf(spec.parent.o()))
 						assert(spec.o().isInstanceOfKind(

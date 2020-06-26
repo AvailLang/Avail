@@ -230,7 +230,7 @@ abstract class L2ReadOperand<R : L2Register> protected constructor(
 		theInstruction: L2Instruction)
 	{
 		val replacement: R? = Casts.nullableCast(registerRemap[register])
-		if (replacement == null || replacement === register)
+		if (replacement === null || replacement === register)
 		{
 			return
 		}

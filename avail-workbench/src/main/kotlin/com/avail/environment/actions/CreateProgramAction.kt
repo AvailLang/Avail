@@ -51,12 +51,12 @@ class CreateProgramAction constructor(workbench: AvailWorkbench)
 {
 	override fun actionPerformed(event: ActionEvent?)
 	{
-		assert(workbench.backgroundTask == null)
+		assert(workbench.backgroundTask === null)
 
 		workbench.selectedEntryPoint() ?: return
 
 		val moduleName = workbench.selectedEntryPointModule() ?: return
-		if (workbench.availBuilder.getLoadedModule(moduleName) == null)
+		if (workbench.availBuilder.getLoadedModule(moduleName) === null)
 		{
 			return
 		}

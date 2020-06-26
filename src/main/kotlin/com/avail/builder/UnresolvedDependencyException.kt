@@ -68,7 +68,7 @@ abstract class UnresolvedDependencyException internal constructor(
 	 */
 	override val message get(): String
 	{
-		return if (referringModuleName == null)
+		return if (referringModuleName === null)
 		{
 			"[Unknown module] refers to unresolved module " +
 				"\"$unresolvedModuleName\"."

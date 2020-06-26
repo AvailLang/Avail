@@ -109,7 +109,7 @@ internal constructor(
 		assert(ref.isFile)
 		val fileName = ref.name
 		val directoryName = ref.parentFile
-		this.isPackage = directoryName != null && fileName == directoryName.name
+		this.isPackage = directoryName !== null && fileName == directoryName.name
 	}
 
 	/**

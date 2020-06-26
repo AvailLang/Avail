@@ -53,7 +53,7 @@ class UnloadAllAction constructor(workbench: AvailWorkbench)
 {
 	override fun actionPerformed(event: ActionEvent?)
 	{
-		assert(workbench.backgroundTask == null)
+		assert(workbench.backgroundTask === null)
 
 		// Update the UI.
 		workbench.cursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR)

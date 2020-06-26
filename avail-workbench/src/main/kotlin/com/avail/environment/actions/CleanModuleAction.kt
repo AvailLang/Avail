@@ -55,10 +55,10 @@ class CleanModuleAction constructor(workbench: AvailWorkbench)
 {
 	override fun actionPerformed(event: ActionEvent?)
 	{
-		assert(workbench.backgroundTask == null)
+		assert(workbench.backgroundTask === null)
 
 		val root = workbench.selectedModuleRoot()
-		if (root != null)
+		if (root !== null)
 		{
 			// Delete an entire repository.
 			try

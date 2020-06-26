@@ -104,7 +104,7 @@ object L2_MAKE_IMMUTABLE : L2Operation(
 		optionalPurpose: L2NamedOperandType.Purpose?)
 	{
 		assert(this == instruction.operation())
-		assert(optionalPurpose == null)
+		assert(optionalPurpose === null)
 		val read = sourceOfImmutable(instruction)
 		val write = destinationOfImmutable(instruction)
 

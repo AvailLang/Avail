@@ -413,7 +413,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 					return null
 				}
 				val method = HttpRequestMethod.named(requestParts[0])
-				if (method == null)
+				if (method === null)
 				{
 					badRequest(
 						channel,
@@ -441,7 +441,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 				}
 				// Validate the request.
 				val host = map["host"]
-				if (host != null)
+				if (host !== null)
 				{
 					val hostParts = host.split(":".toRegex(), 2)
 					if (!adapter.serverAuthority.equals(
@@ -541,7 +541,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 									String(
 										bytes.toByteArray(),
 										StandardCharsets.US_ASCII))
-								if (request != null)
+								if (request !== null)
 								{
 									continuation(request)
 								}
@@ -626,7 +626,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 					return null
 				}
 				val connection = map["connection"]
-				if (connection != null)
+				if (connection !== null)
 				{
 					val tokens = paddedComma.split(connection)
 					var includesUpgrade = false
@@ -940,7 +940,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 			{
 				val handshake =
 					ClientHandshake.readClientHandshake(channel, request)
-				if (handshake != null)
+				if (handshake !== null)
 				{
 					if (handshake.uri != "/avail")
 					{
@@ -1537,7 +1537,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 			transport: AsynchronousSocketChannel,
 			result: Int?): Boolean
 		{
-			assert(result != null)
+			assert(result !== null)
 			if (result == -1)
 			{
 				logger.log(Level.INFO, "$transport closed")

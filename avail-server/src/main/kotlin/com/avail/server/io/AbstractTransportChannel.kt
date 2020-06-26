@@ -161,7 +161,7 @@ abstract class AbstractTransportChannel<T> constructor(
 						// Remove the oldest sender, but release the monitor
 						// before evaluating it.
 						pair = senders.pollFirst()
-						if (pair != null)
+						if (pair !== null)
 						{
 							sendQueue.addLast(pair.first)
 						}
@@ -169,7 +169,7 @@ abstract class AbstractTransportChannel<T> constructor(
 						assert(sendQueue.size <= maximumSendQueueDepth)
 					}
 					// Begin transmission of the next message.
-					if (nextMessage != null)
+					if (nextMessage !== null)
 					{
 						adapter.sendUserData(this, nextMessage, sendMore, { })
 					}
@@ -279,7 +279,7 @@ abstract class AbstractTransportChannel<T> constructor(
 					adapter.readMessage(this)
 				}
 				// Process the next message.
-				if (nextMessage != null)
+				if (nextMessage !== null)
 				{
 					receiveMessageThen(nextMessage, this, receiveMore)
 				}

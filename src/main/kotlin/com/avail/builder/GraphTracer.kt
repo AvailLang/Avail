@@ -215,7 +215,7 @@ internal class GraphTracer constructor(
 				string = string.substring(0, string.lastIndexOf('/'))
 				val previous = node!!
 				node = trees[string]
-				if (node == null)
+				if (node === null)
 				{
 					node = ModuleTree(
 						asNodeName(string),
@@ -266,7 +266,7 @@ internal class GraphTracer constructor(
 							append(node.safeLabel)
 							append(";\n\n")
 						}
-						node.resolvedModuleName == null -> {
+						node.resolvedModuleName === null -> {
 							append("subgraph cluster_")
 							append(node.node)
 							append('\n')
@@ -332,7 +332,7 @@ internal class GraphTracer constructor(
 						}
 						tab(depth)
 						append("}\n")
-					} else if (node.resolvedModuleName == null) {
+					} else if (node.resolvedModuleName === null) {
 						tab(depth)
 						append("}\n")
 					}

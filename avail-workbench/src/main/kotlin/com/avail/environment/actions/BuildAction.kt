@@ -64,7 +64,7 @@ class BuildAction constructor (
 {
 	override fun actionPerformed(event: ActionEvent?)
 	{
-		assert(workbench.backgroundTask == null)
+		assert(workbench.backgroundTask === null)
 		val selectedModule = (if (forEntryPointModule)
 			workbench.selectedEntryPointModule()
 		else

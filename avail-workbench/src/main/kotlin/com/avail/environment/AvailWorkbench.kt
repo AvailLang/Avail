@@ -569,7 +569,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 			val status: String?
 			val t = terminator
 			status = when {
-				t != null -> "Aborted (${t.javaClass.simpleName})"
+				t !== null -> "Aborted (${t.javaClass.simpleName})"
 				workbench.availBuilder.shouldStopBuild ->
 					workbench.availBuilder.stopBuildReason
 				else -> "Done"
@@ -730,10 +730,10 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 					updateQueue.poll()!!
 				else
 					null
-				if (entry == null || entry.style != currentStyle)
+				if (entry === null || entry.style != currentStyle)
 				{
 					// Either the final entry or a style change.
-					if (currentStyle != null)
+					if (currentStyle !== null)
 					{
 						val string = builder.toString()
 						aggregatedEntries.add(
@@ -741,7 +741,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 						lengthToInsert += string.length
 						builder.setLength(0)
 					}
-					if (entry == null)
+					if (entry === null)
 					{
 						// The queue has been emptied.
 						break
@@ -962,7 +962,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		@Throws(IOException::class)
 		override fun write(b: ByteArray?)
 		{
-			assert(b != null)
+			assert(b !== null)
 			super.write(b!!)
 			queueForTranscript()
 		}
@@ -973,7 +973,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 			off: Int,
 			len: Int)
 		{
-			assert(b != null)
+			assert(b !== null)
 			super.write(b!!, off, len)
 			queueForTranscript()
 		}
@@ -1109,7 +1109,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		override fun read(
 			readBuffer: ByteArray?, start: Int, requestSize: Int): Int
 		{
-			assert(readBuffer != null)
+			assert(readBuffer !== null)
 			if (requestSize <= 0)
 			{
 				return 0
@@ -1160,35 +1160,35 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	 */
 	fun setEnablements()
 	{
-		val busy = backgroundTask != null || isRunning
+		val busy = backgroundTask !== null || isRunning
 		buildProgress.isEnabled = busy
 		buildProgress.isVisible = backgroundTask is BuildTask
 		inputField.isEnabled = !busy || isRunning
 		retrievePreviousAction.isEnabled = !busy
 		retrieveNextAction.isEnabled = !busy
 		cancelAction.isEnabled = busy
-		buildAction.isEnabled = !busy && selectedModule() != null
+		buildAction.isEnabled = !busy && selectedModule() !== null
 		unloadAction.isEnabled = !busy && selectedModuleIsLoaded()
 		unloadAllAction.isEnabled = !busy
 		cleanAction.isEnabled = !busy
 		cleanModuleAction.isEnabled =
-			!busy && (selectedModuleRoot() != null || selectedModule() != null)
+			!busy && (selectedModuleRoot() !== null || selectedModule() !== null)
 		refreshAction.isEnabled = !busy
 		setDocumentationPathAction.isEnabled = !busy
-		documentAction.isEnabled = !busy && selectedModule() != null
-		graphAction.isEnabled = !busy && selectedModule() != null
-		insertEntryPointAction.isEnabled = !busy && selectedEntryPoint() != null
+		documentAction.isEnabled = !busy && selectedModule() !== null
+		graphAction.isEnabled = !busy && selectedModule() !== null
+		insertEntryPointAction.isEnabled = !busy && selectedEntryPoint() !== null
 		val selectedEntryPointModule = selectedEntryPointModule()
 		createProgramAction.isEnabled =
-			(!busy && selectedEntryPoint() != null
-				&& selectedEntryPointModule != null
+			(!busy && selectedEntryPoint() !== null
+				&& selectedEntryPointModule !== null
 				&& availBuilder.getLoadedModule(selectedEntryPointModule)
 					!= null)
 		examineRepositoryAction.isEnabled =
-			!busy && selectedModuleRootNode() != null
-		examineCompilationAction.isEnabled = !busy && selectedModule() != null
+			!busy && selectedModuleRootNode() !== null
+		examineCompilationAction.isEnabled = !busy && selectedModule() !== null
 		buildEntryPointModuleAction.isEnabled =
-			!busy && selectedEntryPointModule() != null
+			!busy && selectedEntryPointModule() !== null
 		inputLabel.text = if (isRunning) "Console Input:" else "Command:"
 		inputField.background =
 			if (isRunning) inputBackgroundWhenRunning.color else null
@@ -1253,10 +1253,10 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		{
 			moduleTree.expandRow(i)
 		}
-		if (selection != null)
+		if (selection !== null)
 		{
 			val path = modulePath(selection.qualifiedName)
-			if (path != null)
+			if (path !== null)
 			{
 				moduleTree.selectionPath = path
 			}
@@ -1331,7 +1331,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 			override fun preVisitDirectory(
 				dir: Path?, unused: BasicFileAttributes?): FileVisitResult
 			{
-				assert(dir != null)
+				assert(dir !== null)
 				val parentNode = stack.peekFirst()
 				if (isRoot)
 				{
@@ -1378,7 +1378,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 			override fun postVisitDirectory(
 				dir: Path?, ex: IOException?): FileVisitResult
 			{
-				assert(dir != null)
+				assert(dir !== null)
 				// Pop the node from the stack.
 				stack.removeFirst()
 				return FileVisitResult.CONTINUE
@@ -1388,7 +1388,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 			override fun visitFile(
 				file: Path?, attributes: BasicFileAttributes?): FileVisitResult
 			{
-				assert(file != null)
+				assert(file !== null)
 				val parentNode = stack.peekFirst()
 				if (isRoot)
 				{
@@ -1598,7 +1598,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	private fun selectedModuleIsLoaded(): Boolean
 	{
 		val node = selectedModuleNode()
-		return node != null && node.isLoaded
+		return node !== null && node.isLoaded
 	}
 
 	/**
@@ -1785,7 +1785,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 			val roots = resolver.moduleRoots
 			for (oldChildName in rootsNode.childrenNames())
 			{
-				if (roots.moduleRootFor(oldChildName) == null)
+				if (roots.moduleRootFor(oldChildName) === null)
 				{
 					rootsNode.node(oldChildName).removeNode()
 				}
@@ -1877,7 +1877,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		internal fun moduleVerticalProportion(): Double
 		{
 			val h = moduleVerticalProportion
-			return if (h != null) max(0.0, min(1.0, h)) else 0.5
+			return if (h !== null) max(0.0, min(1.0, h)) else 0.5
 		}
 
 		/**
@@ -1906,7 +1906,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		{
 			val strings = Array(10) { "" }
 			val p = placement
-			if (p != null)
+			if (p !== null)
 			{
 				strings[0] = p.x.toString()
 				strings[1] = p.y.toString()
@@ -2113,7 +2113,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
             {
                 override fun mouseClicked(e: MouseEvent?)
                 {
-                    assert(e != null)
+                    assert(e !== null)
                     if (buildAction.isEnabled
                         && e!!.clickCount == 2
                         && e.button == MouseEvent.BUTTON1)
@@ -2156,8 +2156,8 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 			{
 				 override fun mouseClicked(e: MouseEvent?)
 				 {
-				     assert(e != null)
-				     if (selectedEntryPoint() != null)
+				     assert(e !== null)
+				     if (selectedEntryPoint() !== null)
 				     {
 				         if (insertEntryPointAction.isEnabled
 				             && e!!.clickCount == 2
@@ -2169,7 +2169,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 				             insertEntryPointAction.actionPerformed(actionEvent)
 				         }
 				     }
-				     else if (selectedEntryPointModule() != null)
+				     else if (selectedEntryPointModule() !== null)
 				     {
 				         if (buildEntryPointModuleAction.isEnabled
 				             && e!!.clickCount == 2
@@ -2863,7 +2863,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 				}
 				val renameParser = RenamesFileParser(reader, roots)
 				resolver = renameParser.parse()
-				if (renames == null)
+				if (renames === null)
 				{
 					// Now load the rename rules from preferences.
 					loadRenameRulesInto(resolver)
@@ -2908,7 +2908,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 							if (initial.isNotEmpty())
 							{
 								val path = workbench.modulePath(initial)
-								if (path != null)
+								if (path !== null)
 								{
 									workbench.moduleTree.selectionPath = path
 									workbench.moduleTree.scrollRowToVisible(

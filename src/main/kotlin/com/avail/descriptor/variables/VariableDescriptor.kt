@@ -485,7 +485,7 @@ open class VariableDescriptor protected constructor(
 		val writeReactors =
 			rawPojo.javaObjectNotNull<MutableMap<A_Atom, VariableAccessReactor?>>()
 		discardInvalidWriteReactors(writeReactors)
-		if (writeReactors.remove(key) == null)
+		if (writeReactors.remove(key) === null)
 		{
 			throw AvailException(AvailErrorCode.E_KEY_NOT_FOUND)
 		}

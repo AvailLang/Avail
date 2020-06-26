@@ -148,6 +148,6 @@ class L2NamedOperandType internal constructor(
 
 	init
 	{
-		assert(purpose == null || operandType.canHavePurpose)
+		assert(purpose === null || operandType.canHavePurpose)
 	}
 }

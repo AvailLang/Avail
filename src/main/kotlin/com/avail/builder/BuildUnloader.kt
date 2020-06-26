@@ -110,8 +110,8 @@ internal class BuildUnloader constructor(private val availBuilder: AvailBuilder)
 		moduleName: ResolvedModuleName?,
 		completionAction: (()->Unit)?)
 	{
-		assert(moduleName != null)
-		assert(completionAction != null)
+		assert(moduleName !== null)
+		assert(completionAction !== null)
 		availBuilder.runtime.execute(loaderPriority) {
 			var dirty = false
 			for (predecessor
@@ -231,7 +231,7 @@ internal class BuildUnloader constructor(private val availBuilder: AvailBuilder)
 	 */
 	fun unload(targetName: ResolvedModuleName?)
 	{
-		if (targetName == null)
+		if (targetName === null)
 		{
 			for (loadedModule in availBuilder.loadedModulesCopy())
 			{
@@ -241,7 +241,7 @@ internal class BuildUnloader constructor(private val availBuilder: AvailBuilder)
 		else
 		{
 			val target = availBuilder.getLoadedModule(targetName)
-			if (target != null)
+			if (target !== null)
 			{
 				target.deletionRequest = true
 			}

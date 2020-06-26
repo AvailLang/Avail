@@ -90,7 +90,7 @@ internal class SpecialObjectNamesGenerator constructor(locale: Locale)
 				writer.print(key)
 				writer.print('=')
 				val specialObjectName = properties.getProperty(key)
-				if (specialObjectName != null)
+				if (specialObjectName !== null)
 				{
 					writer.print(escape(specialObjectName))
 				}
@@ -109,7 +109,7 @@ internal class SpecialObjectNamesGenerator constructor(locale: Locale)
 				writer.print(commentKey)
 				writer.print('=')
 				val comment = properties.getProperty(commentKey)
-				if (comment != null && comment.isNotEmpty())
+				if (comment !== null && comment.isNotEmpty())
 				{
 					writer.print(escape(comment))
 				}

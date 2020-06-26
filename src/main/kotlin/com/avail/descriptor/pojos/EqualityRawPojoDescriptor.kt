@@ -69,8 +69,8 @@ internal class EqualityRawPojoDescriptor(
 	{
 		return when
 		{
-			javaObject == null -> otherJavaObject == null
-			otherJavaObject == null -> false
+			javaObject === null -> otherJavaObject === null
+			otherJavaObject === null -> false
 			// Neither is null.
 			javaObject != otherJavaObject -> false
 			// They're equal.

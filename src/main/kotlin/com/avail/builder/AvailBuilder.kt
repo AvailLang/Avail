@@ -289,7 +289,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	 * `true` iff the current build should stop, `false` otherwise.
 	 */
 	val shouldStopBuild: Boolean
-		get() = privateStopBuildReason.get() != null
+		get() = privateStopBuildReason.get() !== null
 
 	/**
 	 * The reason why the current build should stop, or `null` if a stop is not
@@ -1124,7 +1124,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 							1,
 							EXECUTION,
 							"Error executing command:{0}\n{1}",
-							if (e.message != null) " " + e.message else "",
+							if (e.message !== null) " " + e.message else "",
 							trace(e))
 						{
 							override fun abortCompilation() = onFailure()

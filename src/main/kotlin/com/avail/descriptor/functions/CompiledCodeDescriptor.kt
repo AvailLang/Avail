@@ -931,7 +931,7 @@ class CompiledCodeDescriptor private constructor(
 	override fun o_ReturnerCheckStat(self: AvailObject): Statistic
 	{
 		var returnerStat = invocationStatistic.returnerCheckStat
-		if (returnerStat == null) {
+		if (returnerStat === null) {
 			// Look it up by name, creating it if necessary.
 			val name = self.methodName()
 			returnerStat = returnerCheckStatisticsByName.computeIfAbsent(
@@ -960,7 +960,7 @@ class CompiledCodeDescriptor private constructor(
 	override fun o_ReturneeCheckStat(self: AvailObject): Statistic
 	{
 		var returneeStat = invocationStatistic.returneeCheckStat
-		if (returneeStat == null) {
+		if (returneeStat === null) {
 			// Look it up by name, creating it if necessary.
 			val name = self.methodName()
 			returneeStat = returneeCheckStatisticsByName.computeIfAbsent(
@@ -1167,7 +1167,7 @@ class CompiledCodeDescriptor private constructor(
 			lineNumberEncodedDeltas: A_Tuple,
 			originatingPhrase: A_Phrase
 		): AvailObject {
-			if (primitive != null) {
+			if (primitive !== null) {
 				// Sanity check for primitive blocks.  Use this to hunt incorrectly
 				// specified primitive signatures.
 				val canHaveCode = primitive.canHaveNybblecodes()

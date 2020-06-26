@@ -189,7 +189,7 @@ class CommentsModule constructor(
 			for ((key, value) in comment.stickyNamesImplementations)
 			{
 				val localEntry = stickyNamesImplementations[key]
-				if (localEntry != null)
+				if (localEntry !== null)
 				{
 					localEntry.putAll(value)
 					stickyNamesImplementations[key] = localEntry
@@ -231,7 +231,7 @@ class CommentsModule constructor(
 				val implementation = StacksScanner.processCommentString(
 					aToken, moduleName, linkingFileMap)
 
-				if (implementation != null)
+				if (implementation !== null)
 				{
 					addImplementation(implementation)
 				}
@@ -931,7 +931,7 @@ class CommentsModule constructor(
 			/* If there is a sticky implementation group, force it into
 			 * the filteredMap for exporting.  If a duplicate file is created,
 			 * the documentation should be updated. */
-			if (stickyMap != null)
+			if (stickyMap !== null)
 			{
 				value.putAll(stickyMap)
 			}
@@ -987,7 +987,7 @@ class CommentsModule constructor(
 		{
 			val exportMap = extendsMethodLeafNameToModuleName[key]
 
-			if (exportMap == null)
+			if (exportMap === null)
 			{
 				if (value.size > 1)
 				{

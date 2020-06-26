@@ -161,7 +161,7 @@ object L2_TRY_PRIMITIVE : L2Operation(
 				interpreter.chunk = savedChunk
 				interpreter.setOffset(savedOffset)
 				stepper.pointers = savedPointers
-				if (reifier != null)
+				if (reifier !== null)
 				{
 					return reifier
 				}

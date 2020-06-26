@@ -70,7 +70,7 @@ class AvailServerConfiguration : Configuration
 		get()
 		{
 			var roots = privateAvailRoots
-			if (roots == null)
+			if (roots === null)
 			{
 				roots = ModuleRoots(availRootsPath)
 				privateAvailRoots = roots
@@ -120,7 +120,7 @@ class AvailServerConfiguration : Configuration
 	fun moduleNameResolver(): ModuleNameResolver
 	{
 		var resolver = moduleNameResolver
-		if (resolver == null)
+		if (resolver === null)
 		{
 			val reader = when (val path = renamesFilePath)
 			{
@@ -138,5 +138,5 @@ class AvailServerConfiguration : Configuration
 	 * `true` if the server should serve up documents from the web root, `false`
 	 * otherwise.
 	 */
-	val shouldServeDocuments get() = documentPath != null
+	val shouldServeDocuments get() = documentPath !== null
 }

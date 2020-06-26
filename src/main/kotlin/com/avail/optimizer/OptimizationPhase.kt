@@ -276,23 +276,23 @@ internal enum class OptimizationPhase constructor(
 					e)
 			}
 		val requiresAnnotation = enumMirror.getAnnotation(Requires::class.java)
-		if (requiresAnnotation != null)
+		if (requiresAnnotation !== null)
 		{
 			Collections.addAll(requiresFlags, *requiresAnnotation.value)
 		}
 		val requiresNotAnnotation =
 			enumMirror.getAnnotation(RequiresNot::class.java)
-		if (requiresNotAnnotation != null)
+		if (requiresNotAnnotation !== null)
 		{
 			Collections.addAll(requiresNotFlags, *requiresNotAnnotation.value)
 		}
 		val setsAnnotation = enumMirror.getAnnotation(Sets::class.java)
-		if (setsAnnotation != null)
+		if (setsAnnotation !== null)
 		{
 			Collections.addAll(setsFlags, *setsAnnotation.value)
 		}
 		val clearsAnnotation = enumMirror.getAnnotation(Clears::class.java)
-		if (clearsAnnotation != null)
+		if (clearsAnnotation !== null)
 		{
 			Collections.addAll(clearsFlags, *clearsAnnotation.value)
 		}

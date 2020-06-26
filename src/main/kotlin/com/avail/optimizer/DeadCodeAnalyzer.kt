@@ -84,7 +84,7 @@ internal class DeadCodeAnalyzer constructor(
 			for (i in block.predecessorEdgesCount() - 1 downTo 0)
 			{
 				val edge = block.predecessorEdgeAt(i)
-				if (edge.forcedClampedEntities == null)
+				if (edge.forcedClampedEntities === null)
 				{
 					continue
 				}

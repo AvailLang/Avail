@@ -84,12 +84,12 @@ class EnvironmentConfigurator constructor(
 		if (!isConfigured)
 		{
 			val availRootPath = System.getenv("AVAIL_ROOTS")
-			if (availRootPath != null)
+			if (availRootPath !== null)
 			{
 				configuration.availRootsPath = availRootPath
 			}
 			val renamesFilePath = System.getenv("AVAIL_RENAMES")
-			if (renamesFilePath != null)
+			if (renamesFilePath !== null)
 			{
 				configuration.renamesFilePath = renamesFilePath
 			}

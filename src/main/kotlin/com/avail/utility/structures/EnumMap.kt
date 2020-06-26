@@ -76,10 +76,10 @@ class EnumMap<K: Enum<K>, V : Any> constructor(
 		assert(enums.size == sourceValues.size)
 	}
 
-	override val size: Int = sourceValues.count { it != null }
+	override val size: Int = sourceValues.count { it !== null }
 
 	override val keys: Set<K> get() =
-		sourceValues.indices.filter { sourceValues[it] != null }
+		sourceValues.indices.filter { sourceValues[it] !== null }
 			.map { enums[it] }.toMutableSet()
 
 	override val values: Collection<V>
@@ -99,7 +99,7 @@ class EnumMap<K: Enum<K>, V : Any> constructor(
 	fun getOrPut (key: K, mappingFunction: (K) -> V): V
 	{
 		var value = sourceValues[key.ordinal]
-		if (value == null)
+		if (value === null)
 		{
 			value = mappingFunction(key)
 			sourceValues[key.ordinal] = value
@@ -154,7 +154,7 @@ class EnumMap<K: Enum<K>, V : Any> constructor(
 
 	override val entries: Set<Map.Entry<K, V>>
 		get() = enums.filter {
-			sourceValues[it.ordinal] != null
+			sourceValues[it.ordinal] !== null
 		}.map {
 			object : Map.Entry<K, V>
 			{

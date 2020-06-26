@@ -92,5 +92,5 @@ interface Option<OptionKeyType : Enum<OptionKeyType>>
 	 */
 	val action2: (OptionInvocationWithArgument<OptionKeyType>.() -> Unit)?
 
-	val takesArgument: Boolean get() = action2 != null
+	val takesArgument: Boolean get() = action2 !== null
 }

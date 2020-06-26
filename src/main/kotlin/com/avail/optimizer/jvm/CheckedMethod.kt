@@ -133,7 +133,7 @@ class CheckedMethod private constructor(
 				methodDescriptorString,
 				isInterface)
 		}
-		if (internalNameToCheckCastOrNull != null)
+		if (internalNameToCheckCastOrNull !== null)
 		{
 			methodVisitor.visitTypeInsn(CHECKCAST, internalNameToCheckCastOrNull)
 		}

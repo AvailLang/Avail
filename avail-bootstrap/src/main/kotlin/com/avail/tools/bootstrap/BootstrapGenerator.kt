@@ -165,11 +165,11 @@ class BootstrapGenerator constructor(private val locale: Locale)
 			for (i in 1 .. maxPrimitiveNumber())
 			{
 				val primitive = byPrimitiveNumberOrNull(i)
-				if (primitive != null)
+				if (primitive !== null)
 				{
 					if (!primitive.hasFlag(Primitive.Flag.Private)
 					    && !primitive.hasFlag(Primitive.Flag.Bootstrap)
-					    && (fallible == null
+					    && (fallible === null
 					        || primitive.hasFlag(
 								Primitive.Flag.CannotFail) == !fallible))
 					{
@@ -546,7 +546,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 		writer: PrintWriter)
 	{
 		val key: Resources.Key =
-			if (fallible == null)
+			if (fallible === null)
 			{
 				Resources.Key.primitivesModuleName
 			}
@@ -570,7 +570,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 		uses.append("\n\t\"")
 		uses.append(preamble.getString(Resources.Key.originModuleName.name))
 		uses.append('"')
-		if (fallible != null)
+		if (fallible !== null)
 		{
 			if (java.lang.Boolean.TRUE == fallible)
 			{
@@ -591,7 +591,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 			uses.append("\n\t)")
 		}
 		val names = StringBuilder()
-		if (fallible == null)
+		if (fallible === null)
 		{
 			names.append(primitivesNamesString(primitives(null)))
 		}
@@ -1310,7 +1310,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 		}
 
 		// Generate the primitive methods.
-		if (fallible != null)
+		if (fallible !== null)
 		{
 			val primitives = primitives(fallible)
 			for (primitive in primitives)
@@ -1522,7 +1522,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 		fallible: Boolean?,
 		versions: List<String>)
 	{
-		val key: Resources.Key = if (fallible == null)
+		val key: Resources.Key = if (fallible === null)
 		{
 			Resources.Key.primitivesModuleName
 		}

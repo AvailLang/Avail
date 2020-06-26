@@ -194,7 +194,7 @@ class Graph<Vertex> constructor ()
 	fun excludeVertex (vertex: Vertex)
 	{
 		val outVertices: Set<Vertex>? = outEdges[vertex]
-		if (outVertices != null)
+		if (outVertices !== null)
 		{
 			val inVertices: Set<Vertex> = inEdges[vertex]
 				?: error("Inconsistent edge information in graph")

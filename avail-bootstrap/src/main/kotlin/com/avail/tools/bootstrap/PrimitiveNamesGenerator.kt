@@ -76,7 +76,7 @@ class PrimitiveNamesGenerator constructor(locale: Locale)
 		for (primitiveNumber in 1 .. maxPrimitiveNumber())
 		{
 			val primitive = byPrimitiveNumberOrNull(primitiveNumber)
-			if (primitive != null && !primitive.hasFlag(Primitive.Flag.Private))
+			if (primitive !== null && !primitive.hasFlag(Primitive.Flag.Private))
 			{
 				// Write a comment that gives the primitive number and its
 				// arity.
@@ -91,7 +91,7 @@ class PrimitiveNamesGenerator constructor(locale: Locale)
 				writer.print('=')
 				val primitiveName = properties.getProperty(
 					primitive.javaClass.simpleName)
-				if (primitiveName != null)
+				if (primitiveName !== null)
 				{
 					writer.print(escape(primitiveName))
 				}
@@ -106,7 +106,7 @@ class PrimitiveNamesGenerator constructor(locale: Locale)
 					writer.print(argNameKey)
 					writer.print('=')
 					val argName = properties.getProperty(argNameKey)
-					if (argName != null)
+					if (argName !== null)
 					{
 						writer.print(escape(argName))
 					}

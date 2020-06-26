@@ -82,7 +82,7 @@ class Frame constructor(
 	{
 		var f = outerFrame
 		var depth = 1
-		while (f != null)
+		while (f !== null)
 		{
 			depth++
 			f = f.outerFrame
@@ -182,7 +182,7 @@ class Frame constructor(
 		topFrameReplacement: Frame,
 		frameTransformer: (Frame) -> Frame): Frame
 	{
-		if (outerFrame == null)
+		if (outerFrame === null)
 		{
 			return topFrameReplacement
 		}
