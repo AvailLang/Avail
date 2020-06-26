@@ -31,8 +31,6 @@
  */
 package com.avail.descriptor.types
 
-import com.avail.utility.Nulls
-
 /**
  * `TypeTag` is an enumeration that corresponds with the basic type
  * structure of Avail's type lattice.  Even though the type lattice contains an

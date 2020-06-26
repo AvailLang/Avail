@@ -69,7 +69,6 @@ import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.descriptor.variables.VariableDescriptor
 import com.avail.interpreter.execution.AvailLoader
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
-import com.avail.utility.Nulls
 import java.beans.MethodDescriptor
 
 /**
