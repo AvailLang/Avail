@@ -46,6 +46,7 @@ class EnvironmentConfigurationTest
 	 * assertion checking by default, so detect this nonsense before trusting
 	 * test cases that didn't really test the code correctly.
 	 */
+	@Suppress("VARIABLE_WITH_REDUNDANT_INITIALIZER")
 	@Test
 	fun testAssertionsEnabled()
 	{
