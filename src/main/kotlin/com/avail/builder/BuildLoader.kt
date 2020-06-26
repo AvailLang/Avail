@@ -122,7 +122,7 @@ internal class BuildLoader constructor(
 	init
 	{
 		var size = 0L
-		for (mod in availBuilder.moduleGraph.vertices())
+		for (mod in availBuilder.moduleGraph.vertices)
 		{
 			size += mod.moduleSize
 		}
@@ -565,14 +565,14 @@ internal class BuildLoader constructor(
 	fun loadThen(afterAll: ()->Unit)
 	{
 		bytesCompiled.set(0L)
-		val vertexCountBefore = availBuilder.moduleGraph.vertexCount()
+		val vertexCountBefore = availBuilder.moduleGraph.vertexCount
 		availBuilder.moduleGraph.parallelVisitThen(
 			{ vertex, done -> scheduleLoadModule(vertex, done) },
 			{
 				try
 				{
 					assert(
-						availBuilder.moduleGraph.vertexCount()
+						availBuilder.moduleGraph.vertexCount
 							== vertexCountBefore)
 					availBuilder.runtime
 						.moduleNameResolver

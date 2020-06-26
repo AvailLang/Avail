@@ -204,7 +204,7 @@ internal class BuildUnloader constructor(private val availBuilder: AvailBuilder)
 		availBuilder.moduleGraph.parallelVisit { moduleName, done ->
 			determineDirtyModules(moduleName, done)
 		}
-		availBuilder.moduleGraph.reverse().parallelVisit { moduleName, done ->
+		availBuilder.moduleGraph.reverse.parallelVisit { moduleName, done ->
 			unloadOneModule(moduleName, done)
 		}
 		// Unloading of each A_Module is complete.  Update my local structures
@@ -246,11 +246,11 @@ internal class BuildUnloader constructor(private val availBuilder: AvailBuilder)
 				target.deletionRequest = true
 			}
 		}
-		var moduleCount = availBuilder.moduleGraph.vertexCount()
+		var moduleCount = availBuilder.moduleGraph.vertexCount
 		availBuilder.moduleGraph.parallelVisit { moduleName, done ->
 			determineSuccessorModules(moduleName, done)
 		}
-		availBuilder.moduleGraph.reverse().parallelVisit { moduleName, done ->
+		availBuilder.moduleGraph.reverse.parallelVisit { moduleName, done ->
 			unloadOneModule(moduleName, done)
 		}
 		// Unloading of each A_Module is complete.  Update my local structures
@@ -265,6 +265,6 @@ internal class BuildUnloader constructor(private val availBuilder: AvailBuilder)
 				moduleCount--
 			}
 		}
-		assert(availBuilder.moduleGraph.vertexCount() == moduleCount)
+		assert(availBuilder.moduleGraph.vertexCount == moduleCount)
 	}
 }

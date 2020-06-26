@@ -253,7 +253,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	 */
 	internal fun trimGraphToLoadedModules()
 	{
-		for (moduleName in ArrayList(moduleGraph.vertices()))
+		for (moduleName in ArrayList(moduleGraph.vertices))
 		{
 			if (getLoadedModule(moduleName) ==
 				null)
@@ -261,7 +261,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 				moduleGraph.exciseVertex(moduleName)
 			}
 		}
-		assert(moduleGraph.vertexCount() == allLoadedModules.size)
+		assert(moduleGraph.vertexCount == allLoadedModules.size)
 	}
 
 	/**
@@ -270,12 +270,12 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	fun checkStableInvariants()
 	{
 		val loadedRuntimeModules = runtime.loadedModules()
-		val moduleGraphSize = moduleGraph.vertexCount()
+		val moduleGraphSize = moduleGraph.vertexCount
 		val allLoadedModulesSize = allLoadedModules.size
 		val loadedRuntimeModulesSize = loadedRuntimeModules.mapSize()
 		assert(moduleGraphSize == allLoadedModulesSize)
 		assert(moduleGraphSize == loadedRuntimeModulesSize)
-		for (graphModuleName in ArrayList(moduleGraph.vertices()))
+		for (graphModuleName in ArrayList(moduleGraph.vertices))
 		{
 			val qualifiedAvailName = stringFrom(graphModuleName.qualifiedName)
 			assert(allLoadedModules.containsKey(graphModuleName))
@@ -553,7 +553,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 						0,
 						TRACE,
 						"Cycle detected in ancestor modules: {0}",
-						moduleGraph.findCycle().stream()
+						moduleGraph.firstCycle.stream()
 							.map { it.qualifiedName }
 							.collect(joining("\n\t", "\n\t", "")))
 					{

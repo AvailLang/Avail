@@ -67,7 +67,7 @@ package com.avail.descriptor.tokens
  import com.avail.descriptor.types.TypeDescriptor.Types
  import com.avail.descriptor.types.TypeTag
  import com.avail.serialization.SerializerOperation
- import com.avail.utility.PrefixSharingList.append
+ import com.avail.utility.PrefixSharingList.Companion.append
  import com.avail.utility.json.JSONWriter
  import java.util.*
 

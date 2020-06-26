@@ -63,7 +63,7 @@ public class GraphTest
 		final Graph<Integer> emptyGraph = new Graph<>();
 		assertFalse(emptyGraph.includesVertex(5));
 		assertFalse(emptyGraph.includesVertex(7));
-		assertEquals(0, emptyGraph.size());
+		assertEquals(0, emptyGraph.getSize());
 	}
 
 	/**
@@ -80,7 +80,7 @@ public class GraphTest
 		tinyGraph.addVertex(6);
 		assertFalse(tinyGraph.includesEdge(5, 6));
 		assertFalse(tinyGraph.includesEdge(6, 5));
-		assertEquals(2, tinyGraph.size());
+		assertEquals(2, tinyGraph.getSize());
 
 		tinyGraph.addEdge(5, 6);
 		assertFalse(tinyGraph.includesEdge(5, 5));
@@ -89,7 +89,7 @@ public class GraphTest
 		assertFalse(tinyGraph.includesEdge(6, 6));
 
 		tinyGraph.addVertices(Arrays.asList(7, 8, 9));
-		assertEquals(5, tinyGraph.size());
+		assertEquals(5, tinyGraph.getSize());
 		assertTrue(tinyGraph.includesVertex(5));
 		assertTrue(tinyGraph.includesVertex(6));
 		assertTrue(tinyGraph.includesVertex(7));
