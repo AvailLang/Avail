@@ -198,12 +198,12 @@ class RegisterState
 	 * @param originRegisters
 	 *   The source registers.
 	 */
-	fun origins(originRegisters: MutableList<L2Register>)
+	fun origins(originRegisters: List<L2Register>)
 	{
 		assert(!isShared)
 		assert(originRegisters.size <= 1
 			   || HashSet(originRegisters).size == originRegisters.size)
-		origins = originRegisters
+		origins = originRegisters.toMutableList()
 	}
 
 	/**
@@ -220,7 +220,7 @@ class RegisterState
 		{
 			if (PrefixSharingList.last(origins) === origin)
 			{
-				origins = PrefixSharingList.withoutLast(origins)
+				origins = PrefixSharingList.withoutLast(origins).toMutableList()
 			}
 			else
 			{
@@ -266,6 +266,7 @@ class RegisterState
 		assert(!isShared)
 		invertedOrigins =
 			PrefixSharingList.append(invertedOrigins, invertedOrigin)
+				.toMutableList()
 	}
 
 	/**
@@ -283,7 +284,8 @@ class RegisterState
 		{
 			if (PrefixSharingList.last(invertedOrigins) === invertedOrigin)
 			{
-				invertedOrigins = PrefixSharingList.withoutLast(invertedOrigins)
+				invertedOrigins =
+					PrefixSharingList.withoutLast(invertedOrigins).toMutableList()
 			}
 			else
 			{

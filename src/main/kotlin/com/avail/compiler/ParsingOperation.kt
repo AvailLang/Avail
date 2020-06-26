@@ -90,9 +90,9 @@ import com.avail.descriptor.variables.VariableDescriptor
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport.EXPANDING_PARSING_INSTRUCTIONS
 import com.avail.performance.StatisticReport.RUNNING_PARSING_INSTRUCTIONS
-import com.avail.utility.PrefixSharingList.append
-import com.avail.utility.PrefixSharingList.last
-import com.avail.utility.PrefixSharingList.withoutLast
+import com.avail.utility.PrefixSharingList.Companion.append
+import com.avail.utility.PrefixSharingList.Companion.last
+import com.avail.utility.PrefixSharingList.Companion.withoutLast
 import com.avail.utility.StackPrinter.Companion.trace
 import com.avail.utility.evaluation.Describer
 import java.util.*
