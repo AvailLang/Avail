@@ -32,10 +32,10 @@
 package com.avail.test
 
 import com.avail.AvailRuntime
-import com.avail.CallbackSystem
+import com.avail.CallbackSystem.Callback
 import com.avail.CallbackSystem.CallbackCompletion
 import com.avail.CallbackSystem.CallbackFailure
-import com.avail.CallbackSystem.Companion.createCallbackFunction
+import com.avail.CallbackSystem.Companion.createCallbackFunctionInJava
 import com.avail.builder.RenamesFileParserException
 import com.avail.builder.UnresolvedDependencyException
 import com.avail.descriptor.atoms.A_Atom
@@ -47,19 +47,16 @@ import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.methods.A_Method
 import com.avail.descriptor.module.A_Module
-import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
-import com.avail.descriptor.numbers.IntegerDescriptor.Companion.one
 import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.representation.NilDescriptor
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import com.avail.descriptor.types.TypeDescriptor
+import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.interpreter.execution.Interpreter.Companion.runOutermostFunction
-import com.avail.utility.cast
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeAll
@@ -175,9 +172,9 @@ class CallbackTest
 			stringFrom(harnessModuleName),
 			stringFrom("Invoke Once_with_"))
 		val fiber = createFiber(
-			TypeDescriptor.Types.NUMBER.o(),
+			Types.NUMBER.o(),
 			FiberDescriptor.commandPriority,
-			NilDescriptor.nil,
+			nil,
 			{ stringFrom("testDivisionCallback") },
 			helper().runtime)
 		val expectedAnswer = fromInt(14)
@@ -190,10 +187,8 @@ class CallbackTest
 						Runnable {
 							Assertions.assertEquals(
 								expectedAnswer,
-								result
-							)
-						}
-					)
+								result)
+						})
 				}
 				catch (e: InterruptedException)
 				{
@@ -218,10 +213,7 @@ class CallbackTest
 				divisionCallback(),
 				tuple(
 					fromInt(42),
-					fromInt(3)
-				)
-			)
-		)
+					fromInt(3))))
 		try
 		{
 			mailbox.take().run()
@@ -235,49 +227,6 @@ class CallbackTest
 	companion object
 	{
 		/**
-		 * Create a callback [A_Function] that extracts a number from the sole
-		 * element of the tuple of arguments provided to it, adds one, and completes
-		 * with that number.
-		 *
-		 * @return
-		 * An [A_Function] that adds two numbers.
-		 */
-		fun plusOneCallback(): A_Function
-		{
-			val callback: CallbackSystem.Callback =
-				object: CallbackSystem.Callback
-				{
-					override fun call(
-						argumentsTuple: A_Tuple,
-						completion: CallbackCompletion,
-						failure: CallbackFailure)
-					{
-						assert(argumentsTuple.tupleSize() == 1)
-						val a = argumentsTuple.tupleAt(1)
-						try
-						{
-							val successor = a.plusCanDestroy(
-								one(),
-								true
-							)
-							completion.complete(successor.cast())
-						}
-						catch (e: Throwable)
-						{
-							failure.failed(e)
-						}
-					}
-				}
-			return createCallbackFunction(
-				functionType(
-					tuple(TypeDescriptor.Types.NUMBER.o()),
-					TypeDescriptor.Types.NUMBER.o()
-				),
-				callback
-			)
-		}
-
-		/**
 		 * Create a callback [A_Function] that extracts the two numbers from a
 		 * provided tuple, divides the first by the second, and answers that
 		 * quotient.  If it fails with some [Throwable], a suitable exception
@@ -288,38 +237,34 @@ class CallbackTest
 		 */
 		fun divisionCallback(): A_Function
 		{
-			val callback: CallbackSystem.Callback =
-				object: CallbackSystem.Callback
+			val callback = object: Callback
+			{
+				override fun call(
+					argumentsTuple: A_Tuple,
+					completion: CallbackCompletion,
+					failure: CallbackFailure)
 				{
-					override fun call(
-						argumentsTuple: A_Tuple,
-						completion: CallbackCompletion,
-						failure: CallbackFailure)
+					assert(argumentsTuple.tupleSize() == 2)
+					val a = argumentsTuple.tupleAt(1)
+					val b = argumentsTuple.tupleAt(2)
+					try
 					{
-						assert(argumentsTuple.tupleSize() == 2)
-						val a = argumentsTuple.tupleAt(1)
-						val b = argumentsTuple.tupleAt(2)
-						try
-						{
-							val c = a.divideCanDestroy(b, true)
-							completion.complete(c.cast())
-						}
-						catch (e: Throwable)
-						{
-							failure.failed(e)
-						}
+						val c = a.divideCanDestroy(b, true)
+						completion.complete(c)
+					}
+					catch (e: Throwable)
+					{
+						failure.failed(e)
 					}
 				}
-			return createCallbackFunction(
+			}
+			return createCallbackFunctionInJava(
 				functionType(
 					tuple(
-						TypeDescriptor.Types.NUMBER.o(),
-						TypeDescriptor.Types.NUMBER.o()
-					),
-					TypeDescriptor.Types.NUMBER.o()
-				),
-				callback
-			)
+						Types.NUMBER.o(),
+						Types.NUMBER.o()),
+					Types.NUMBER.o()),
+				callback)
 		}
 	}
 }

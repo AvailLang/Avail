@@ -157,7 +157,7 @@ abstract class PojoTypeDescriptor protected constructor(
 
 		/**
 		 * Construct a new `Canon` that has initial capacity for five
-		 * bindings and includes a binding for [java.lang.Object].
+		 * bindings and includes a binding for `java.lang.Object`.
 		 */
 		init
 		{
@@ -1276,7 +1276,7 @@ abstract class PojoTypeDescriptor protected constructor(
 			val params: List<AvailObject> =
 				if (paramCount > 0)
 				{
-					Array<AvailObject>(paramCount)
+					Array(paramCount)
 					{
 						Types.ANY.o()
 					}.toList()

@@ -761,7 +761,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 			// Adding things "boundedly" is fine, however (i.e., blocking on the
 			// dequeLock if too much is added).
 			val afterRemove =
-				totalQueuedTextSize.addAndGet((-removedSize).cast())
+				totalQueuedTextSize.addAndGet((-removedSize).toLong())
 			assert(afterRemove >= 0)
 			afterRemove == 0L
 		}
@@ -1740,7 +1740,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	 * Update the visual presentation of the per-module statistics.  This must
 	 * be invoked from within the UI dispatch thread,
 	 */
-	internal fun updatePerModuleProgressInUIThread()
+	private fun updatePerModuleProgressInUIThread()
 	{
 		assert(EventQueue.isDispatchThread())
 		val progress = perModuleProgressLock.write {
@@ -1749,7 +1749,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 			perModuleProgress.entries.toMutableList()
 		}
 		progress.sortBy { it.key.qualifiedName }
-		val string = progress.joinToString { (key, pair) ->
+		val string = progress.joinToString("") { (key, pair) ->
 			format("%,6d / %,6d - %s%n", pair.first, pair.second, key)
 		}
 		val doc = transcript.styledDocument

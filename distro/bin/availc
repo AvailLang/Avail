@@ -31,7 +31,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
-JAR=$AVAIL_HOME/lib/avail-cli-1.4-all.jar
+JAR=$AVAIL_HOME/lib/avail-cli.jar
 
 SKIP_OPT=true
 source avail-config

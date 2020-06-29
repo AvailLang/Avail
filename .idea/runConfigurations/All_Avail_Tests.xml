@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="All Avail Tests" type="JUnit" factoryName="JUnit" singleton="true">
+  <configuration default="false" name="All Avail Tests" type="JUnit" factoryName="JUnit" singleton="false">
     <useClassPathOnly />
     <option name="ALTERNATIVE_JRE_PATH" value="8" />
     <option name="PACKAGE_NAME" value="com.avail.test" />
@@ -13,9 +13,9 @@
       <value defaultName="wholeProject" />
     </option>
     <dir value="$PROJECT_DIR$/test/com/avail/test" />
+    <fork_mode value="class" />
     <method v="2">
-      <option name="Gradle.BeforeRunTask" enabled="true" tasks="build" externalProjectPath="$PROJECT_DIR$" vmOptions="" scriptParameters="" />
-      <option name="BSP.BeforeRunTask" enabled="true" />
+      <option name="Gradle.BeforeRunTask" enabled="false" tasks="testClasses" externalProjectPath="$PROJECT_DIR$" vmOptions="" scriptParameters="" />
     </method>
   </configuration>
 </component>

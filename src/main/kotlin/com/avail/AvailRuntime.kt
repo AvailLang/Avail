@@ -807,7 +807,7 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 	 * @param fiber
 	 *   A fiber to unregister.
 	 */
-	fun unregisterFiber(fiber: A_Fiber?)
+	fun unregisterFiber(fiber: A_Fiber)
 	{
 		allFibers.remove(fiber)
 	}
