@@ -313,6 +313,7 @@ allprojects {
 		description = 'Creates sources JAR.'
 		archiveClassifier.set("sources")
 		from sourceSets.main.allSource
+		duplicatesStrategy = DuplicatesStrategy.INCLUDE
 	}
 }
 

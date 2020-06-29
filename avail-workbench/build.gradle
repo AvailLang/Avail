@@ -108,6 +108,7 @@ shadowJar {
 	dependencies {
 		exclude(rootProject.path)
 	}
+	duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
 
 // Produce a jar for the Avail workbench.  It should have a Gradle dependency on
