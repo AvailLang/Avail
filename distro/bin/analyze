@@ -34,7 +34,7 @@
 # Assume the currently installed Java is adequate to run the
 # IndexedFileAnalyzer.
 
-JAR=$AVAIL_HOME/lib/indexed-file-analyzer-1.4-all.jar
+JAR=$AVAIL_HOME/lib/indexed-file-analyzer-all.jar
 
 FORCE_FOREGROUND=true
 SKIP_OPT=true
