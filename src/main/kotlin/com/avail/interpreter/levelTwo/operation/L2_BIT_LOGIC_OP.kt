@@ -53,9 +53,10 @@ import org.objectweb.asm.Opcodes
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 class L2_BIT_LOGIC_OP(
-	private val name: String,
+	name: String,
 	private vararg val jvmOpcodes: Int
 ) : L2Operation(
+	"BIT_LOGIC_OP($name)",
 	L2OperandType.READ_INT.named("input1"),
 	L2OperandType.READ_INT.named("input2"),
 	L2OperandType.WRITE_INT.named("output"))
@@ -75,7 +76,7 @@ class L2_BIT_LOGIC_OP(
 		builder.append(output.registerString())
 		builder.append(" ← ")
 		builder.append(input1.registerString())
-		builder.append(" $name ")
+		builder.append(" ${name()} ")
 		builder.append(input2.registerString())
 	}
 

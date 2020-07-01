@@ -400,7 +400,7 @@ class BottomTypeDescriptor private constructor()
 		/**
 		 * The unique object that represents the type with no instances.
 		 */
-		private val bottom: A_Type = shared.create()
+		private val bottom: A_Type = shared.create { }
 
 		/**
 		 * Answer the unique type that has no instances.

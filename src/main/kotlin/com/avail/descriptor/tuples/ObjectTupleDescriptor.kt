@@ -485,7 +485,7 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 		 *   An uninitialized object tuple of the requested size.
 		 */
 		private fun createUninitialized(size: Int): AvailObject =
-			mutable.create(size)
+			mutable.create(size) { }
 
 		/**
 		 * Create an object of the appropriate size, whose descriptor is an

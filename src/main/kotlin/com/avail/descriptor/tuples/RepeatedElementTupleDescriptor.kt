@@ -526,13 +526,11 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 		 */
 		fun forceCreate(
 			size: Int,
-			element: A_BasicObject?): A_Tuple
-		{
-			val repeatedElementTuple = mutable.create()
-			repeatedElementTuple.setSlot(IntegerSlots.HASH_OR_ZERO, 0)
-			repeatedElementTuple.setSlot(IntegerSlots.SIZE, size)
-			repeatedElementTuple.setSlot(ObjectSlots.ELEMENT, element!!)
-			return repeatedElementTuple
+			element: A_BasicObject?
+		): A_Tuple = mutable.create {
+			setSlot(IntegerSlots.HASH_OR_ZERO, 0)
+			setSlot(IntegerSlots.SIZE, size)
+			setSlot(ObjectSlots.ELEMENT, element!!)
 		}
 	}
 }

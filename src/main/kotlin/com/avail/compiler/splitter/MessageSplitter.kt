@@ -149,8 +149,8 @@ class MessageSplitter
 	 * The individual tokens ([strings][StringDescriptor])
 	 * constituting the message.
 	 *
-	 *  * Alphanumerics are in runs, separated from other
-	 *   alphanumerics by a single space.
+	 *  * Alphanumerics are in runs, separated from other alphanumerics by a
+	 *    single space.
 	 *  * Operator characters are never beside spaces, and are always parsed as
 	 *    individual tokens.
 	 *  * [Open&#32;guillemet][Metacharacter.OPEN_GUILLEMET] («),

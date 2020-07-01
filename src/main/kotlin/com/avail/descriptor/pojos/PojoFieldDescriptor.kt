@@ -307,7 +307,7 @@ class PojoFieldDescriptor private constructor(
 			field: AvailObject,
 			receiver: AvailObject,
 			outerType: A_Type
-		): AvailObject = mutable.create().apply {
+		): AvailObject = mutable.create {
 			setSlot(FIELD, field)
 			setSlot(RECEIVER, receiver)
 			setSlot(KIND, outerType)

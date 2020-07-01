@@ -63,6 +63,7 @@ import java.io.PrintWriter
 import java.io.StringWriter
 import java.lang.String.format
 import java.util.*
+import java.util.Collections.singletonList
 import java.util.Collections.unmodifiableList
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
@@ -170,6 +171,20 @@ class LexingState constructor(
 		argument: ArgType)
 	{
 		compilationContext.workUnitsDo(this, listOf(continuation), argument)
+	}
+
+	/**
+	 * Eventually invoke the given 0-argument function.  Track it as an
+	 * outstanding action, ensuring [CompilationContext.noMoreWorkUnits] is
+	 * invoked only when all such queued actions have completed.
+	 *
+	 * @param continuation
+	 *   What to execute eventually.
+	 */
+	fun workUnitDo(continuation: ()->Unit)
+	{
+		compilationContext.workUnitsDo(
+			this, singletonList { _ -> continuation() }, Unit)
 	}
 
 	/**

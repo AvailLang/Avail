@@ -572,7 +572,7 @@ class HashedSetBinDescriptor private constructor(
 		): AvailObject {
 			assert(java.lang.Long.bitCount(bitVector) == localSize)
 			val descriptor = descriptorFor(Mutability.MUTABLE, level)
-			return descriptor.create(localSize).apply {
+			return descriptor.create(localSize) {
 				setSlot(BIN_HASH, hash)
 				setSlot(BIN_SIZE, totalSize)
 				setSlot(BIT_VECTOR, bitVector)

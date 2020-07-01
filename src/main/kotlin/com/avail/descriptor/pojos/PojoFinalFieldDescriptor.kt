@@ -225,7 +225,7 @@ class PojoFinalFieldDescriptor(
 			receiver: AvailObject,
 			cachedValue: AvailObject,
 			outerType: A_Type
-		): AvailObject = mutable.create().apply {
+		): AvailObject = mutable.create {
 			setSlot(FIELD, field)
 			setSlot(RECEIVER, receiver)
 			setSlot(CACHED_VALUE, cachedValue)

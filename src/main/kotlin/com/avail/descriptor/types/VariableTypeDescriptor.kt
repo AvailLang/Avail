@@ -38,6 +38,7 @@ import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import com.avail.descriptor.types.VariableTypeDescriptor.ObjectSlots
+import com.avail.descriptor.types.VariableTypeDescriptor.ObjectSlots.INNER_TYPE
 import com.avail.descriptor.variables.VariableDescriptor
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
@@ -82,17 +83,17 @@ class VariableTypeDescriptor private constructor(mutability: Mutability)
 		indent: Int)
 	{
 		builder.append("↑")
-		self.slot(ObjectSlots.INNER_TYPE).printOnAvoidingIndent(
+		self.slot(INNER_TYPE).printOnAvoidingIndent(
 			builder,
 			recursionMap,
 			indent + 1)
 	}
 
 	override fun o_ReadType(self: AvailObject): A_Type =
-		self.slot(ObjectSlots.INNER_TYPE)
+		self.slot(INNER_TYPE)
 
 	override fun o_WriteType(self: AvailObject): A_Type =
-		self.slot(ObjectSlots.INNER_TYPE)
+		self.slot(INNER_TYPE)
 
 	override fun o_Equals(
 		self: AvailObject,
@@ -107,8 +108,8 @@ class VariableTypeDescriptor private constructor(mutability: Mutability)
 			return true
 		}
 		val same =
-			(aType.readType().equals(self.slot(ObjectSlots.INNER_TYPE))
-	            && aType.writeType().equals(self.slot(ObjectSlots.INNER_TYPE)))
+			(aType.readType().equals(self.slot(INNER_TYPE))
+	            && aType.writeType().equals(self.slot(INNER_TYPE)))
 		if (same)
 		{
 			if (!isShared)
@@ -126,7 +127,7 @@ class VariableTypeDescriptor private constructor(mutability: Mutability)
 	}
 
 	override fun o_Hash(self: AvailObject): Int =
-		(self.slot(ObjectSlots.INNER_TYPE).hash() xor 0x7613E420) + 0x024E3167
+		(self.slot(INNER_TYPE).hash() xor 0x7613E420) + 0x024E3167
 
 	override fun o_IsSubtypeOf(self: AvailObject, aType: A_Type): Boolean =
 		aType.isSupertypeOfVariableType(self)
@@ -135,7 +136,7 @@ class VariableTypeDescriptor private constructor(mutability: Mutability)
 		self: AvailObject,
 		aVariableType: A_Type): Boolean
 	{
-		val innerType = self.slot(ObjectSlots.INNER_TYPE)
+		val innerType = self.slot(INNER_TYPE)
 
 		// Variable types are covariant by read capability and contravariant by
 		// write capability.
@@ -155,7 +156,7 @@ class VariableTypeDescriptor private constructor(mutability: Mutability)
 		self: AvailObject,
 		aVariableType: A_Type): A_Type
 	{
-		val innerType: A_Type = self.slot(ObjectSlots.INNER_TYPE)
+		val innerType: A_Type = self.slot(INNER_TYPE)
 		// The intersection of two variable types is a variable type whose
 		// read type is the type intersection of the two incoming read types and
 		// whose write type is the type union of the two incoming write types.
@@ -178,7 +179,7 @@ class VariableTypeDescriptor private constructor(mutability: Mutability)
 		self: AvailObject,
 		aVariableType: A_Type): A_Type
 	{
-		val innerType: A_Type = self.slot(ObjectSlots.INNER_TYPE)
+		val innerType: A_Type = self.slot(INNER_TYPE)
 
 		// The union of two variable types is a variable type whose
 		// read type is the type union of the two incoming read types and whose
@@ -205,7 +206,7 @@ class VariableTypeDescriptor private constructor(mutability: Mutability)
 		writer.write("kind")
 		writer.write("variable type")
 		writer.write("write type")
-		val innerType = self.slot(ObjectSlots.INNER_TYPE)
+		val innerType = self.slot(INNER_TYPE)
 		innerType.writeTo(writer)
 		writer.write("read type")
 		innerType.writeTo(writer)
@@ -218,7 +219,7 @@ class VariableTypeDescriptor private constructor(mutability: Mutability)
 		writer.write("kind")
 		writer.write("variable type")
 		writer.write("write type")
-		val innerType = self.slot(ObjectSlots.INNER_TYPE)
+		val innerType = self.slot(INNER_TYPE)
 		innerType.writeSummaryTo(writer)
 		writer.write("read type")
 		innerType.writeSummaryTo(writer)
@@ -244,11 +245,8 @@ class VariableTypeDescriptor private constructor(mutability: Mutability)
 		 *   The new variable type.
 		 */
 		@JvmStatic
-		fun variableTypeFor(innerType: A_Type): A_Type
-		{
-			val result = mutable.create()
-			result.setSlot(ObjectSlots.INNER_TYPE, innerType.makeImmutable())
-			return result
+		fun variableTypeFor(innerType: A_Type): A_Type = mutable.create {
+			setSlot(INNER_TYPE, innerType.makeImmutable())
 		}
 
 		/**

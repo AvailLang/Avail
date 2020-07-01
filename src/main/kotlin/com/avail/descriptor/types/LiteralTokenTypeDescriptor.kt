@@ -38,6 +38,7 @@ import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.tokens.LiteralTokenDescriptor
 import com.avail.descriptor.tokens.TokenDescriptor
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
+import com.avail.descriptor.types.LiteralTokenTypeDescriptor.ObjectSlots.*
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
 import java.util.*
@@ -95,7 +96,7 @@ class LiteralTokenTypeDescriptor private constructor(mutability: Mutability)
 			self.literalType().equals(aLiteralTokenType.literalType())
 
 	override fun o_Hash(self: AvailObject): Int =
-		self.slot(ObjectSlots.LITERAL_TYPE).hash() xor -0xb800e4f
+		self.slot(LITERAL_TYPE).hash() xor -0xb800e4f
 
 	override fun o_IsLiteralTokenType(self: AvailObject): Boolean = true
 
@@ -119,10 +120,10 @@ class LiteralTokenTypeDescriptor private constructor(mutability: Mutability)
 				self.literalType())
 
 	override fun o_IsVacuousType(self: AvailObject): Boolean =
-		self.slot(ObjectSlots.LITERAL_TYPE).isVacuousType
+		self.slot(LITERAL_TYPE).isVacuousType
 
 	override fun o_LiteralType(self: AvailObject): A_Type =
-		self.slot(ObjectSlots.LITERAL_TYPE)
+		self.slot(LITERAL_TYPE)
 
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		SerializerOperation.LITERAL_TOKEN_TYPE
@@ -151,11 +152,11 @@ class LiteralTokenTypeDescriptor private constructor(mutability: Mutability)
 
 	override fun o_TypeIntersectionOfPrimitiveTypeEnum(
 		self: AvailObject,
-		primitiveTypeEnum: Types): A_Type = 
-			if (Types.TOKEN.superTests[primitiveTypeEnum.ordinal]) self 
+		primitiveTypeEnum: Types): A_Type =
+			if (Types.TOKEN.superTests[primitiveTypeEnum.ordinal]) self
 			else bottom()
 
-	override fun o_TypeUnion(self: AvailObject, another: A_Type): A_Type = 
+	override fun o_TypeUnion(self: AvailObject, another: A_Type): A_Type =
 		when
 		{
 			self.isSubtypeOf(another) -> another
@@ -178,7 +179,7 @@ class LiteralTokenTypeDescriptor private constructor(mutability: Mutability)
 
 	override fun o_TypeUnionOfPrimitiveTypeEnum(
 		self: AvailObject,
-		primitiveTypeEnum: Types): A_Type = 
+		primitiveTypeEnum: Types): A_Type =
 			Types.TOKEN.unionTypes[primitiveTypeEnum.ordinal]!!
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter)
@@ -187,7 +188,7 @@ class LiteralTokenTypeDescriptor private constructor(mutability: Mutability)
 		writer.write("kind")
 		writer.write("literal token type")
 		writer.write("literal type")
-		self.slot(ObjectSlots.LITERAL_TYPE).writeTo(writer)
+		self.slot(LITERAL_TYPE).writeTo(writer)
 		writer.endObject()
 	}
 
@@ -210,13 +211,10 @@ class LiteralTokenTypeDescriptor private constructor(mutability: Mutability)
 		 *   A [literal&#32;token&#32;type][LiteralTokenTypeDescriptor].
 		 */
 		@JvmStatic
-		fun literalTokenType(literalType: A_Type): AvailObject
-		{
-			val instance = mutable.create()
-			instance.setSlot(
-				ObjectSlots.LITERAL_TYPE, literalType.makeImmutable())
-			return instance
-		}
+		fun literalTokenType(literalType: A_Type): AvailObject =
+			mutable.create {
+				setSlot(LITERAL_TYPE, literalType.makeImmutable())
+			}
 
 		/** The mutable [LiteralTokenTypeDescriptor].  */
 		private val mutable = LiteralTokenTypeDescriptor(Mutability.MUTABLE)
@@ -225,7 +223,7 @@ class LiteralTokenTypeDescriptor private constructor(mutability: Mutability)
 		private val shared = LiteralTokenTypeDescriptor(Mutability.SHARED)
 
 		/** The most general literal token type  */
-		private val mostGeneralType: A_Type = 
+		private val mostGeneralType: A_Type =
 			literalTokenType(Types.ANY.o()).makeShared()
 
 		/**

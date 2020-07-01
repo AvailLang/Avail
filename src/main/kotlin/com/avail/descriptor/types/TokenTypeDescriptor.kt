@@ -38,6 +38,7 @@ import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.tokens.TokenDescriptor
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType.Companion.lookupTokenType
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
+import com.avail.descriptor.types.TokenTypeDescriptor.IntegerSlots.*
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
 import jdk.nashorn.internal.parser.TokenType
@@ -95,7 +96,7 @@ class TokenTypeDescriptor private constructor(mutability: Mutability)
 			self.tokenType() === aTokenType.tokenType()
 
 	override fun o_Hash(self: AvailObject): Int =
-		Integer.hashCode(self.slot(IntegerSlots.TOKEN_TYPE_CODE).toInt()) xor
+		Integer.hashCode(self.slot(TOKEN_TYPE_CODE).toInt()) xor
 			-0x32659c49
 
 	override fun o_IsTokenType(self: AvailObject): Boolean = true
@@ -118,7 +119,7 @@ class TokenTypeDescriptor private constructor(mutability: Mutability)
 			self.tokenType() === aTokenType.tokenType()
 
 	override fun o_TokenType(self: AvailObject): TokenDescriptor.TokenType =
-		lookupTokenType(self.slot(IntegerSlots.TOKEN_TYPE_CODE).toInt())
+		lookupTokenType(self.slot(TOKEN_TYPE_CODE).toInt())
 
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		SerializerOperation.TOKEN_TYPE
@@ -193,13 +194,10 @@ class TokenTypeDescriptor private constructor(mutability: Mutability)
 		 *   A [token type][TokenTypeDescriptor].
 		 */
 		@JvmStatic
-		fun tokenType(tokenType: TokenDescriptor.TokenType): AvailObject
-		{
-			val instance = mutable.create()
-			instance.setSlot(
-				IntegerSlots.TOKEN_TYPE_CODE, tokenType.ordinal.toLong())
-			return instance
-		}
+		fun tokenType(tokenType: TokenDescriptor.TokenType): AvailObject =
+			mutable.create {
+				setSlot(TOKEN_TYPE_CODE, tokenType.ordinal.toLong())
+			}
 
 		/** The mutable [TokenTypeDescriptor].  */
 		private val mutable = TokenTypeDescriptor(Mutability.MUTABLE)

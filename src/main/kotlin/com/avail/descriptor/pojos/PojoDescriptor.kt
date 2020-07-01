@@ -184,11 +184,9 @@ class PojoDescriptor private constructor(
 		fun newPojo(
 			rawPojo: AvailObject,
 			pojoType: A_Type
-		): AvailObject = with(mutable.create())
-		{
+		): AvailObject = mutable.createImmutable {
 			setSlot(RAW_POJO, rawPojo)
 			setSlot(KIND, pojoType)
-			makeImmutable()
 		}
 
 		/** The [pojo][PojoDescriptor] that wraps Java's `null`.  */

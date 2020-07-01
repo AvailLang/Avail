@@ -192,9 +192,8 @@ class SequencePhraseDescriptor private constructor(
 		 *   The resulting sequence phrase.
 		 */
 		fun newSequence(statements: A_Tuple): A_Phrase =
-			mutable.create().apply {
+			mutable.createShared {
 				setSlot(STATEMENTS, statements)
-				makeShared()
 			}
 
 		/** The mutable [SequencePhraseDescriptor].  */

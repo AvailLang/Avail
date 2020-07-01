@@ -349,7 +349,7 @@ class VariableSharedGlobalDescriptor private constructor(
 			name: A_String,
 			writeOnce: Boolean): AvailObject
 		{
-			return mutableInitial.create().apply {
+			return mutableInitial.create {
 				setSlot(KIND, variableType!!)
 				setSlot(HASH_ALWAYS_SET, AvailRuntimeSupport.nextNonzeroHash())
 				setSlot(VALUE, NilDescriptor.nil)

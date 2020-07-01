@@ -1238,35 +1238,36 @@ class FiberDescriptor private constructor(
 			runtime: AvailRuntime
 		): A_Fiber {
 			assert(priority and 255.inv() == 0) { "Priority must be [0..255]" }
-			val fiber = mutable.create()
-			fiber.setSlot(RESULT_TYPE, resultType.makeImmutable())
-			fiber.setSlot(NAME_SUPPLIER, identityPojo(nameSupplier))
-			fiber.setSlot(NAME_OR_NIL, nil)
-			fiber.setSlot(PRIORITY, priority)
-			fiber.setSlot(CONTINUATION, nil)
-			fiber.setSlot(SUSPENDING_FUNCTION, nil)
-			fiber.setSlot(
-				EXECUTION_STATE, ExecutionState.UNSTARTED.ordinal.toLong())
-			fiber.setSlot(BREAKPOINT_BLOCK, nil)
-			fiber.setSlot(FIBER_GLOBALS, emptyMap())
-			fiber.setSlot(HERITABLE_FIBER_GLOBALS, emptyMap())
-			fiber.setSlot(RESULT, nil)
-			fiber.setSlot(LOADER, loaderPojoOrNil!!)
-			fiber.setSlot(RESULT_CONTINUATION, defaultResultContinuation)
-			fiber.setSlot(FAILURE_CONTINUATION, defaultFailureContinuation)
-			fiber.setSlot(JOINING_FIBERS, emptySet())
-			fiber.setSlot(WAKEUP_TASK, nil)
-			fiber.setSlot(
-				TRACED_VARIABLES,
-				identityPojo(
-					synchronizedMap(WeakHashMap<A_Variable, Boolean>())))
-			fiber.setSlot(REIFICATION_WAITERS, emptySet())
-			fiber.setSlot(TEXT_INTERFACE, runtime.textInterfacePojo())
-			fiber.setSlot(
-				DEBUG_UNIQUE_ID, uniqueDebugCounter.incrementAndGet().toLong())
-			fiber.setSlot(DEBUG_LOG, identityPojo(StringBuilder()))
-			runtime.registerFiber(fiber)
-			return fiber
+			return mutable.create {
+				setSlot(RESULT_TYPE, resultType.makeImmutable())
+				setSlot(NAME_SUPPLIER, identityPojo(nameSupplier))
+				setSlot(NAME_OR_NIL, nil)
+				setSlot(PRIORITY, priority)
+				setSlot(CONTINUATION, nil)
+				setSlot(SUSPENDING_FUNCTION, nil)
+				setSlot(
+					EXECUTION_STATE, ExecutionState.UNSTARTED.ordinal.toLong())
+				setSlot(BREAKPOINT_BLOCK, nil)
+				setSlot(FIBER_GLOBALS, emptyMap())
+				setSlot(HERITABLE_FIBER_GLOBALS, emptyMap())
+				setSlot(RESULT, nil)
+				setSlot(LOADER, loaderPojoOrNil!!)
+				setSlot(RESULT_CONTINUATION, defaultResultContinuation)
+				setSlot(FAILURE_CONTINUATION, defaultFailureContinuation)
+				setSlot(JOINING_FIBERS, emptySet())
+				setSlot(WAKEUP_TASK, nil)
+				setSlot(
+					TRACED_VARIABLES,
+					identityPojo(
+						synchronizedMap(WeakHashMap<A_Variable, Boolean>())))
+				setSlot(REIFICATION_WAITERS, emptySet())
+				setSlot(TEXT_INTERFACE, runtime.textInterfacePojo())
+				setSlot(
+					DEBUG_UNIQUE_ID,
+					uniqueDebugCounter.incrementAndGet().toLong())
+				setSlot(DEBUG_LOG, identityPojo(StringBuilder()))
+				runtime.registerFiber(this)
+			}
 		}
 
 		/**

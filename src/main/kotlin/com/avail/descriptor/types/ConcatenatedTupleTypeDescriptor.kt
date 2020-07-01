@@ -38,6 +38,8 @@ import com.avail.descriptor.representation.*
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
+import com.avail.descriptor.types.ConcatenatedTupleTypeDescriptor.IntegerSlots.Companion.TUPLE_TYPE_COMPLEXITY
+import com.avail.descriptor.types.ConcatenatedTupleTypeDescriptor.ObjectSlots.*
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
 import kotlin.math.max
@@ -108,8 +110,8 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 	 */
 	override fun o_DefaultType(self: AvailObject): A_Type
 	{
-		val a: A_Type = self.slot(ObjectSlots.FIRST_TUPLE_TYPE)
-		val b: A_Type = self.slot(ObjectSlots.SECOND_TUPLE_TYPE)
+		val a: A_Type = self.slot(FIRST_TUPLE_TYPE)
+		val b: A_Type = self.slot(SECOND_TUPLE_TYPE)
 		return defaultTypeOfConcatenation(a, b)
 	}
 
@@ -177,7 +179,7 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 	 * I'm not a very time-efficient representation of a tuple type.
 	 */
 	override fun o_RepresentationCostOfTupleType(self: AvailObject): Int =
-		self.slot(IntegerSlots.TUPLE_TYPE_COMPLEXITY)
+		self.slot(TUPLE_TYPE_COMPLEXITY)
 
 	/**
 	 * Answer what range of tuple sizes my instances could be. Note that this
@@ -186,8 +188,8 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 	 */
 	override fun o_SizeRange(self: AvailObject): A_Type
 	{
-		val sizeRange1 = self.slot(ObjectSlots.FIRST_TUPLE_TYPE).sizeRange()
-		val sizeRange2 = self.slot(ObjectSlots.SECOND_TUPLE_TYPE).sizeRange()
+		val sizeRange1 = self.slot(FIRST_TUPLE_TYPE).sizeRange()
+		val sizeRange2 = self.slot(SECOND_TUPLE_TYPE).sizeRange()
 		return sizeRangeOfConcatenation(sizeRange1, sizeRange2)
 	}
 
@@ -239,8 +241,8 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 	override fun o_IsTupleType(self: AvailObject): Boolean = true
 
 	override fun o_IsVacuousType(self: AvailObject): Boolean =
-		(self.slot(ObjectSlots.FIRST_TUPLE_TYPE).isVacuousType
-			|| self.slot(ObjectSlots.SECOND_TUPLE_TYPE).isVacuousType)
+		(self.slot(FIRST_TUPLE_TYPE).isVacuousType
+			|| self.slot(SECOND_TUPLE_TYPE).isVacuousType)
 
 	override fun o_MakeShared(self: AvailObject): AvailObject
 	{
@@ -275,8 +277,8 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 	 */
 	override fun o_TypeAtIndex(self: AvailObject, index: Int): A_Type
 	{
-		val firstTupleType = self.slot(ObjectSlots.FIRST_TUPLE_TYPE)
-		val secondTupleType = self.slot(ObjectSlots.SECOND_TUPLE_TYPE)
+		val firstTupleType = self.slot(FIRST_TUPLE_TYPE)
+		val secondTupleType = self.slot(SECOND_TUPLE_TYPE)
 		return elementOfConcatenation(firstTupleType, secondTupleType, index)
 	}
 
@@ -416,8 +418,8 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 		{
 			return bottom()
 		}
-		val firstTupleType: A_Type = self.slot(ObjectSlots.FIRST_TUPLE_TYPE)
-		val secondTupleType: A_Type = self.slot(ObjectSlots.SECOND_TUPLE_TYPE)
+		val firstTupleType: A_Type = self.slot(FIRST_TUPLE_TYPE)
+		val secondTupleType: A_Type = self.slot(SECOND_TUPLE_TYPE)
 		val firstUpper = firstTupleType.sizeRange().upperBound()
 		val secondUpper = secondTupleType.sizeRange().upperBound()
 		val totalUpper = firstUpper.noFailPlusCanDestroy(secondUpper, false)
@@ -479,8 +481,8 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 		// sharing.
 		assert(!isShared)
 		val newObject = reallyConcatenate(
-			self.slot(ObjectSlots.FIRST_TUPLE_TYPE),
-			self.slot(ObjectSlots.SECOND_TUPLE_TYPE))
+			self.slot(FIRST_TUPLE_TYPE),
+			self.slot(SECOND_TUPLE_TYPE))
 		self.becomeIndirectionTo(newObject)
 	}
 
@@ -505,7 +507,7 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 
 		/**
 		 * Answer what type the given index would have in a tuple whose type
-		 * complies with the concatenation of the two tuple types. Answer bottom 
+		 * complies with the concatenation of the two tuple types. Answer bottom
 		 * if the index is definitely out of bounds.
 		 *
 		 * @param firstTupleType
@@ -609,7 +611,7 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 				return tupleType2.defaultType()
 			}
 			val highIndexInB: Int
-			highIndexInB = 
+			highIndexInB =
 				if (bRange.upperBound().isFinite)
 				{
 					bRange.upperBound().extractInt()
@@ -646,14 +648,14 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 				sizes1.lowerBound().extractInt())
 			val sizes2 = part2.sizeRange()
 			val upper2 = sizes2.upperBound()
-			val limit2 = 
-				if (upper2.isFinite) upper2.extractInt() 
+			val limit2 =
+				if (upper2.isFinite) upper2.extractInt()
 				else part2.typeTuple().tupleSize() + 1
 			val total = limit1 + limit2
 			val section1 = min(sizes1.lowerBound().extractInt(), limit1)
-			val typeTuple: A_Tuple = generateObjectTupleFrom(total) { 
-				if (it <= section1) part1.typeAtIndex(it) 
-				else elementOfConcatenation(part1, part2, it) 
+			val typeTuple: A_Tuple = generateObjectTupleFrom(total) {
+				if (it <= section1) part1.typeAtIndex(it)
+				else elementOfConcatenation(part1, part2, it)
 			}
 			return TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 				sizeRangeOfConcatenation(sizes1, sizes2),
@@ -663,8 +665,8 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 
 		/**
 		 * Construct a lazy concatenated tuple type object to represent the type
-		 * that is the concatenation of the two tuple types.  Make the objects 
-		 * be immutable, because the new type represents the concatenation of 
+		 * that is the concatenation of the two tuple types.  Make the objects
+		 * be immutable, because the new type represents the concatenation of
 		 * the objects *at the time it was built*.
 		 *
 		 * @param firstTupleType
@@ -698,21 +700,19 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 					firstTupleType.makeImmutable(),
 					secondTupleType.makeImmutable())
 			}
-			val result = mutable.create()
-			result.setSlot(IntegerSlots.TUPLE_TYPE_COMPLEXITY, maxCost + 1)
-			result.setSlot(
-				ObjectSlots.FIRST_TUPLE_TYPE, firstTupleType.makeImmutable())
-			result.setSlot(
-				ObjectSlots.SECOND_TUPLE_TYPE, secondTupleType.makeImmutable())
-			return result
+			return mutable.create {
+				setSlot(TUPLE_TYPE_COMPLEXITY, maxCost + 1)
+				setSlot(FIRST_TUPLE_TYPE, firstTupleType.makeImmutable())
+				setSlot(SECOND_TUPLE_TYPE, secondTupleType.makeImmutable())
+			}
 		}
 
 		/** The mutable [ConcatenatedTupleTypeDescriptor].  */
-		private val mutable = 
+		private val mutable =
 			ConcatenatedTupleTypeDescriptor(Mutability.MUTABLE)
 
 		/** The immutable [ConcatenatedTupleTypeDescriptor].  */
-		private val immutable = 
+		private val immutable =
 			ConcatenatedTupleTypeDescriptor(Mutability.IMMUTABLE)
 	}
 }

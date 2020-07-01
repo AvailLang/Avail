@@ -621,13 +621,13 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 				{ "Proposed tuple has too many elements" }
 			val adjustedEnd = newStart + delta * (size.toInt() - 1)
 			assert(adjustedEnd == adjustedEnd.toInt().toLong())
-			val interval = mutable.create()
-			interval.setSlot(IntegerSlots.START, newStart)
-			interval.setSlot(IntegerSlots.END, adjustedEnd.toInt())
-			interval.setSlot(IntegerSlots.DELTA, delta)
-			interval.setSlot(IntegerSlots.HASH_OR_ZERO, 0)
-			interval.setSlot(IntegerSlots.SIZE, size.toInt())
-			return interval
+			return mutable.create {
+				setSlot(IntegerSlots.START, newStart)
+				setSlot(IntegerSlots.END, adjustedEnd.toInt())
+				setSlot(IntegerSlots.DELTA, delta)
+				setSlot(IntegerSlots.HASH_OR_ZERO, 0)
+				setSlot(IntegerSlots.SIZE, size.toInt())
+			}
 		}
 	}
 }

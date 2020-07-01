@@ -47,6 +47,7 @@ import com.avail.descriptor.sets.SetDescriptor.Companion.singletonSet
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
+import com.avail.descriptor.types.InstanceTypeDescriptor.ObjectSlots.*
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
@@ -561,7 +562,7 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 		 *   The instance represented by the given instance type.
 		 */
 		private fun getInstance(self: AvailObject): AvailObject =
-			self.slot(ObjectSlots.INSTANCE)
+			self.slot(INSTANCE)
 
 		/**
 		 * Answer the kind that is nearest to the given object, an
@@ -600,15 +601,12 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 		 */
 		@JvmStatic
 		@ReferencedInGeneratedCode
-		fun instanceType(instance: A_BasicObject): AvailObject
-		{
-			assert(!instance.isType)
-			assert(!instance.equalsNil())
-			val result = mutable.create()
-			instance.makeImmutable()
-			result.setSlot(ObjectSlots.INSTANCE, instance)
-			return result
-		}
+		fun instanceType(instance: A_BasicObject): AvailObject =
+			mutable.create {
+				assert(!instance.isType)
+				assert(!instance.equalsNil())
+				setSlot(INSTANCE, instance.makeImmutable())
+			}
 
 		/**
 		 * The [CheckedMethod] for [instanceType].

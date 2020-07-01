@@ -162,11 +162,10 @@ class MethodDefinitionDescriptor private constructor(
 			definitionMethod: A_Method,
 			definitionModule: A_Module,
 			bodyBlock: A_Function
-		): A_Definition = mutable.create().apply {
+		): A_Definition = mutable.createShared {
 			setSlot(DEFINITION_METHOD, definitionMethod)
 			setSlot(MODULE, definitionModule)
 			setSlot(BODY_BLOCK, bodyBlock)
-			makeShared()
 		}
 
 		/** The mutable [MethodDefinitionDescriptor].  */

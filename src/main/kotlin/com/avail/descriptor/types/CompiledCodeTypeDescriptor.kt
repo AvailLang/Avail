@@ -36,6 +36,7 @@ import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
+import com.avail.descriptor.types.CompiledCodeTypeDescriptor.ObjectSlots.*
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
 import java.util.*
@@ -92,7 +93,7 @@ class CompiledCodeTypeDescriptor private constructor(mutability: Mutability)
 	}
 
 	override fun o_FunctionType(self: AvailObject): A_Type =
-		self.slot(ObjectSlots.FUNCTION_TYPE)
+		self.slot(FUNCTION_TYPE)
 
 	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean =
 		another.equalsCompiledCodeType(self)
@@ -136,7 +137,7 @@ class CompiledCodeTypeDescriptor private constructor(mutability: Mutability)
 	}
 
 	override fun o_IsVacuousType(self: AvailObject): Boolean =
-		self.slot(ObjectSlots.FUNCTION_TYPE).isVacuousType
+		self.slot(FUNCTION_TYPE).isVacuousType
 
 	override fun o_TypeIntersection(self: AvailObject, another: A_Type): A_Type =
 		when
@@ -220,7 +221,7 @@ class CompiledCodeTypeDescriptor private constructor(mutability: Mutability)
 		writer.write("kind")
 		writer.write("function implementation type")
 		writer.write("function type")
-		self.slot(ObjectSlots.FUNCTION_TYPE).writeTo(writer)
+		self.slot(FUNCTION_TYPE).writeTo(writer)
 		writer.endObject()
 	}
 
@@ -245,31 +246,28 @@ class CompiledCodeTypeDescriptor private constructor(mutability: Mutability)
 		 *   A new compiled code type.
 		 */
 		fun compiledCodeTypeForFunctionType(
-			functionType: A_BasicObject): AvailObject
-		{
-			val result = mutable.create()
-			result.setSlot(
-				ObjectSlots.FUNCTION_TYPE, functionType.makeImmutable())
-			result.makeImmutable()
-			return result
-		}
+			functionType: A_BasicObject
+		): AvailObject =
+			mutable.createImmutable {
+				setSlot(FUNCTION_TYPE, functionType.makeImmutable())
+			}
 
 		/** The mutable [CompiledCodeTypeDescriptor].  */
-		private val mutable: TypeDescriptor = 
+		private val mutable: TypeDescriptor =
 			CompiledCodeTypeDescriptor(Mutability.MUTABLE)
 
 		/** The shared [CompiledCodeTypeDescriptor].  */
-		private val shared: TypeDescriptor = 
+		private val shared: TypeDescriptor =
 			CompiledCodeTypeDescriptor(Mutability.SHARED)
 
 		/**
 		 * The most general compiled code type. Since compiled code types are
 		 * contravariant by argument types and contravariant by return type, the
 		 * most general type is the one taking bottom as the arguments list
-		 * (i.e., not specific enough to be able to call it), and having the 
+		 * (i.e., not specific enough to be able to call it), and having the
 		 * return type bottom.
 		 */
-		private val mostGeneralType: A_Type = 
+		private val mostGeneralType: A_Type =
 			compiledCodeTypeForFunctionType(
 				FunctionTypeDescriptor.mostGeneralFunctionType()).makeShared()
 
@@ -288,7 +286,7 @@ class CompiledCodeTypeDescriptor private constructor(mutability: Mutability)
 		 * the [instance type][InstanceTypeDescriptor] for the
 		 * [most&#32;general&#32;compiled&#32;code&#32;type][mostGeneralType].
 		 */
-		private val meta: A_Type = 
+		private val meta: A_Type =
 			InstanceMetaDescriptor.instanceMeta(mostGeneralType).makeShared()
 
 		/**

@@ -341,10 +341,9 @@ class ListPhraseDescriptor private constructor(
 		 *   The resulting list phrase.
 		 */
 		fun newListNode(expressions: A_Tuple): AvailObject =
-			mutable.create().apply {
+			mutable.createShared {
 				setSlot(EXPRESSIONS_TUPLE, expressions)
 				setSlot(TUPLE_TYPE, nil)
-				makeShared()
 			}
 
 		/** The mutable [ListPhraseDescriptor].  */

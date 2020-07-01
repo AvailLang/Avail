@@ -479,23 +479,22 @@ class SubrangeTupleDescriptor private constructor(mutability: Mutability)
 		//Because SubrangeTupleDescriptor is also a wrapper, presume
 		//that decision was already made that tuple size was too big to make
 		//a copy.
-		val instance = mutable.create()
-		instance.setSlot(
-			BASIS_TUPLE,
-			self.slot(BASIS_TUPLE).tupleReverse())
-		instance.setSlot(
-			START_INDEX,
-			self.slot(BASIS_TUPLE).tupleSize() + 2 -
-				(self.tupleSize() + self.slot(START_INDEX)))
-		instance.setSlot(SIZE, self.tupleSize())
-		return instance
+		return mutable.create {
+			setSlot(
+				BASIS_TUPLE,
+				self.slot(BASIS_TUPLE).tupleReverse())
+			setSlot(
+				START_INDEX,
+				self.slot(BASIS_TUPLE).tupleSize() + 2 -
+					(self.tupleSize() + self.slot(START_INDEX)))
+			setSlot(SIZE, self.tupleSize())
+		}
 	}
 
 	/**
 	 * Answer the number of elements in the tuple as an int.
 	 */
-	override fun o_TupleSize(self: AvailObject): Int =
-		self.slot(SIZE)
+	override fun o_TupleSize(self: AvailObject): Int = self.slot(SIZE)
 
 	override fun mutable(): SubrangeTupleDescriptor = mutable
 
@@ -534,11 +533,11 @@ class SubrangeTupleDescriptor private constructor(mutability: Mutability)
 			assert(size >= minSize)
 			assert(size < basisTuple.tupleSize())
 			basisTuple.makeImmutable()
-			val instance = mutable.create(size)
-			instance.setSlot(BASIS_TUPLE, basisTuple)
-			instance.setSlot(START_INDEX, startIndex)
-			instance.setSlot(SIZE, size)
-			return instance
+			return mutable.create(size) {
+				setSlot(BASIS_TUPLE, basisTuple)
+				setSlot(START_INDEX, startIndex)
+				setSlot(SIZE, size)
+			}
 		}
 
 		/** The mutable [SubrangeTupleDescriptor].  */

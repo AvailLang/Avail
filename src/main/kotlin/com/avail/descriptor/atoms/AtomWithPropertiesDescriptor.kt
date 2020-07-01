@@ -237,7 +237,7 @@ open class AtomWithPropertiesDescriptor protected constructor(
 		fun createAtomWithProperties(
 			name: A_String,
 			issuingModule: A_Module
-		): AvailObject = with(mutable.create()) {
+		): AvailObject = mutable.createShared {
 			setSlot(NAME, name)
 			setSlot(ISSUING_MODULE, issuingModule)
 			setSlot(
@@ -245,7 +245,6 @@ open class AtomWithPropertiesDescriptor protected constructor(
 				identityPojo(
 					synchronizedMap(WeakHashMap<A_Atom, A_BasicObject>())))
 			setSlot(IntegerSlots.HASH_OR_ZERO, 0)
-			makeShared()
 		}
 
 		/**
@@ -272,7 +271,7 @@ open class AtomWithPropertiesDescriptor protected constructor(
 			name: A_String,
 			issuingModule: A_Module,
 			originalHash: Int
-		): AvailObject = with(mutable.create()) {
+		): AvailObject = mutable.createShared {
 			setSlot(NAME, name)
 			setSlot(ISSUING_MODULE, issuingModule)
 			setSlot(
@@ -280,7 +279,6 @@ open class AtomWithPropertiesDescriptor protected constructor(
 				identityPojo(
 					synchronizedMap(WeakHashMap<A_Atom, A_BasicObject>())))
 			setSlot(IntegerSlots.HASH_OR_ZERO, originalHash)
-			makeShared()
 		}
 
 		/** The mutable [AtomWithPropertiesDescriptor].  */

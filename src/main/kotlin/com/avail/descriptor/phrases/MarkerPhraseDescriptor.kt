@@ -182,9 +182,8 @@ class MarkerPhraseDescriptor private constructor(
 		 *   A new immutable marker phrase.
 		 */
 		fun newMarkerNode(markerValue: A_BasicObject?): AvailObject =
-			mutable.create().apply {
+			mutable.createShared {
 				setSlot(MARKER_VALUE, markerValue!!)
-				makeShared()
 			}
 
 		/** The mutable [MarkerPhraseDescriptor].  */

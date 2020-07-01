@@ -378,7 +378,7 @@ private constructor(
 			}
 			return self
 		}
-		val result = if (canDestroy && isMutable) self else mutable().create()
+		val result = if (canDestroy && isMutable) self else mutable().create { }
 		setRootBin(result, newRootBin)
 		return result
 	}
@@ -404,7 +404,11 @@ private constructor(
 			}
 			return self
 		}
-		val result = if (canDestroy && isMutable) self else mutable().create()
+		val result = when
+		{
+			canDestroy && isMutable -> self
+			else -> mutable().create { }
+		}
 		setRootBin(result, newRootBin)
 		return result
 	}
@@ -608,10 +612,9 @@ private constructor(
 		private val shared = SetDescriptor(Mutability.SHARED)
 
 		/** The empty set.  */
-		private var theEmptySet: A_Set = mutable.create().apply {
+		private var theEmptySet: A_Set = mutable.createShared {
 			setRootBin(this, emptyLinearSetBin(0))
 			hash()
-			makeShared()
 		}
 
 		/**
@@ -644,7 +647,7 @@ private constructor(
 		 */
 		@JvmStatic
 		fun singletonSet(element: A_BasicObject): A_Set =
-			mutable.create().apply {
+			mutable.create {
 				setRootBin(this, element)
 				hash()
 			}
@@ -664,10 +667,8 @@ private constructor(
 			element2: A_BasicObject
 		): A_Set {
 			assert(!element1.equals(element2))
-			return mutable.create().apply {
-				setRootBin(
-					this,
-					createLinearSetBinPair(0, element1, element2))
+			return mutable.create {
+				setRootBin(this, createLinearSetBinPair(0, element1, element2))
 				hash()
 			}
 		}
@@ -699,9 +700,8 @@ private constructor(
 					else -> twoElementSet(element1, element2)
 				}
 			}
-			else -> mutable.create().apply {
-				setRootBin(
-					this, generateSetBinFrom(0, size, generator))
+			else -> mutable.create {
+				setRootBin(this, generateSetBinFrom(0, size, generator))
 			}
 		}
 

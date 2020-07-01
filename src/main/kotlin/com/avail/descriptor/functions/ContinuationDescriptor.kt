@@ -479,25 +479,25 @@ class ContinuationDescriptor private constructor(
 			val code = function.code()
 			assert(code.primitive() === null)
 			val frameSize = code.numSlots()
-			val cont = mutable.create(frameSize)
-			cont.setSlot(CALLER, caller)
-			cont.setSlot(FUNCTION, function)
-			cont.setSlot(LEVEL_TWO_REGISTER_DUMP, nil)
-			cont.setSlot(PROGRAM_COUNTER, 0) // Indicates this is a label.
-			cont.setSlot(STACK_POINTER, frameSize + 1)
-			cont.levelTwoChunkOffset(startingChunk, startingOffset)
-			//  Set up arguments...
-			val numArgs = args.size
-			assert(numArgs == code.numArgs())
+			return mutable.create(frameSize) {
+				setSlot(CALLER, caller)
+				setSlot(FUNCTION, function)
+				setSlot(LEVEL_TWO_REGISTER_DUMP, nil)
+				setSlot(PROGRAM_COUNTER, 0) // Indicates this is a label.
+				setSlot(STACK_POINTER, frameSize + 1)
+				levelTwoChunkOffset(startingChunk, startingOffset)
+				//  Set up arguments...
+				val numArgs = args.size
+				assert(numArgs == code.numArgs())
 
-			// Arguments area.  These are used by P_RestartContinuation, but they're
-			// replaced before resumption if using
-			// P_RestartContinuationWithArguments.
-			cont.setSlotsFromList(FRAME_AT_, 1, args, 0, numArgs)
+				// Arguments area.  These are used by P_RestartContinuation, but
+				// they're replaced before resumption if using
+				// P_RestartContinuationWithArguments.
+				setSlotsFromList(FRAME_AT_, 1, args, 0, numArgs)
 
-			// All the remaining slots.  DO NOT capture or build locals.
-			cont.fillSlots(FRAME_AT_, numArgs + 1, frameSize - numArgs, nil)
-			return cont
+				// All the remaining slots.  DO NOT capture or build locals.
+				fillSlots(FRAME_AT_, numArgs + 1, frameSize - numArgs, nil)
+			}
 		}
 
 		/**
@@ -534,7 +534,7 @@ class ContinuationDescriptor private constructor(
 			levelTwoOffset: Int
 		): AvailObject {
 			val frameSize = function.code().numSlots()
-			return mutable.create(frameSize).apply {
+			return mutable.create(frameSize) {
 				setSlot(CALLER, caller)
 				setSlot(FUNCTION, function)
 				setSlot(LEVEL_TWO_REGISTER_DUMP, registerDump)
@@ -641,7 +641,7 @@ class ContinuationDescriptor private constructor(
 			unboxedRegisters: LongArray,
 			levelTwoChunk: L2Chunk,
 			levelTwoOffset: Int
-		): AvailObject = mutable.create(0).apply {
+		): AvailObject = mutable.create {
 			setSlot(CALLER, nil)
 			setSlot(FUNCTION, function)
 			setSlot(

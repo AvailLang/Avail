@@ -35,6 +35,8 @@ import com.avail.annotations.HideFieldInDebugger
 import com.avail.descriptor.representation.*
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import com.avail.descriptor.tuples.ReverseTupleDescriptor.IntegerSlots.Companion.SIZE
+import com.avail.descriptor.tuples.ReverseTupleDescriptor.ObjectSlots.*
 import com.avail.descriptor.types.A_Type
 
 /**
@@ -130,7 +132,7 @@ class ReverseTupleDescriptor private constructor(mutability: Mutability)
 		{
 			val treeTuple =
 				TreeTupleDescriptor.internalTreeReverse(
-					self.slot(ObjectSlots.ORIGIN_TUPLE))
+					self.slot(ORIGIN_TUPLE))
 			treeTuple.setHashOrZero(self.slot(IntegerSlots.HASH_OR_ZERO))
 			self.becomeIndirectionTo(treeTuple)
 			return treeTuple.childAt(childIndex)
@@ -139,13 +141,13 @@ class ReverseTupleDescriptor private constructor(mutability: Mutability)
 		// need to return the reverse of the child one level down at the
 		// opposite end of the tree from the childIndex.
 		val adjustedSubscript = self.childCount() + 1 - childIndex
-		return self.slot(ObjectSlots.ORIGIN_TUPLE)
+		return self.slot(ORIGIN_TUPLE)
 			.childAt(adjustedSubscript)
 			.tupleReverse()
 	}
 
 	override fun o_ChildCount(self: AvailObject): Int =
-		self.slot(ObjectSlots.ORIGIN_TUPLE).childCount()
+		self.slot(ORIGIN_TUPLE).childCount()
 
 	override fun o_CompareFromToWithStartingAt(
 		self: AvailObject,
@@ -198,7 +200,7 @@ class ReverseTupleDescriptor private constructor(mutability: Mutability)
 		{
 			// Copy the objects.
 			val dereversedFirstTuple: A_Tuple =
-				self.slot(ObjectSlots.ORIGIN_TUPLE)
+				self.slot(ORIGIN_TUPLE)
 			return generateObjectTupleFrom(newSize)
 			{
 				if (it <= size1)
@@ -216,7 +218,7 @@ class ReverseTupleDescriptor private constructor(mutability: Mutability)
 			self.makeImmutable()
 			otherTuple.makeImmutable()
 		}
-		if (self.slot(ObjectSlots.ORIGIN_TUPLE).treeTupleLevel() == 0)
+		if (self.slot(ORIGIN_TUPLE).treeTupleLevel() == 0)
 		{
 			return if (otherTuple.treeTupleLevel() == 0)
 			{
@@ -227,7 +229,7 @@ class ReverseTupleDescriptor private constructor(mutability: Mutability)
 				self, otherTuple, true)
 		}
 		val newTree = TreeTupleDescriptor.internalTreeReverse(
-			self.slot(ObjectSlots.ORIGIN_TUPLE))
+			self.slot(ORIGIN_TUPLE))
 		return TreeTupleDescriptor
 			.concatenateAtLeastOneTree(newTree, otherTuple, true)
 	}
@@ -275,7 +277,7 @@ class ReverseTupleDescriptor private constructor(mutability: Mutability)
 			return result
 		}
 		val subrangeOnOrigin =
-			self.slot(ObjectSlots.ORIGIN_TUPLE).copyTupleFromToCanDestroy(
+			self.slot(ORIGIN_TUPLE).copyTupleFromToCanDestroy(
 				self.tupleSize() + 1 - end,
 				self.tupleSize() + 1 - start,
 				canDestroy)
@@ -333,18 +335,18 @@ class ReverseTupleDescriptor private constructor(mutability: Mutability)
 	override fun o_EqualsReverseTuple(
 		self: AvailObject,
 		aTuple: A_Tuple): Boolean =
-			self.slot(ObjectSlots.ORIGIN_TUPLE).equals(
-				(aTuple as AvailObject).slot(ObjectSlots.ORIGIN_TUPLE))
+			self.slot(ORIGIN_TUPLE).equals(
+				(aTuple as AvailObject).slot(ORIGIN_TUPLE))
 
 	override fun o_TreeTupleLevel(self: AvailObject): Int =
-		self.slot(ObjectSlots.ORIGIN_TUPLE).treeTupleLevel()
+		self.slot(ORIGIN_TUPLE).treeTupleLevel()
 
 	override fun o_TupleAt(self: AvailObject, index: Int): AvailObject
 	{
-		val size = self.slot(ObjectSlots.ORIGIN_TUPLE).tupleSize()
+		val size = self.slot(ORIGIN_TUPLE).tupleSize()
 		assert(index in 1 .. size)
 		val reverseIndex = size + 1 - index
-		return self.slot(ObjectSlots.ORIGIN_TUPLE).tupleAt(reverseIndex)
+		return self.slot(ORIGIN_TUPLE).tupleAt(reverseIndex)
 	}
 
 	override fun o_TupleAtPuttingCanDestroy(
@@ -357,16 +359,16 @@ class ReverseTupleDescriptor private constructor(mutability: Mutability)
 		// index we should have newValueObject.  This may destroy the original
 		// tuple if canDestroy is true.
 		assert(index >= 1 && index <= self.tupleSize())
-		val innerTuple = self.slot(ObjectSlots.ORIGIN_TUPLE)
+		val innerTuple = self.slot(ORIGIN_TUPLE)
 			.tupleAtPuttingCanDestroy(
-				self.slot(IntegerSlots.SIZE) + 1 - index,
+				self.slot(SIZE) + 1 - index,
 				newValueObject,
 				canDestroy)
 		if (!canDestroy || !isMutable)
 		{
 			return createReverseTuple(innerTuple)
 		}
-		self.setSlot(ObjectSlots.ORIGIN_TUPLE, innerTuple)
+		self.setSlot(ORIGIN_TUPLE, innerTuple)
 		self.setHashOrZero(0)
 		return self
 	}
@@ -377,26 +379,26 @@ class ReverseTupleDescriptor private constructor(mutability: Mutability)
 		endIndex: Int,
 		type: A_Type): Boolean
 	{
-		val size = self.slot(ObjectSlots.ORIGIN_TUPLE).tupleSize()
+		val size = self.slot(ORIGIN_TUPLE).tupleSize()
 		val originStart = size + 1 - endIndex
 		val originEnd = size + 1 - startIndex
-		return self.slot(ObjectSlots.ORIGIN_TUPLE)
+		return self.slot(ORIGIN_TUPLE)
 			.tupleElementsInRangeAreInstancesOf(originStart, originEnd, type)
 	}
 
 	override fun o_TupleIntAt(self: AvailObject, index: Int): Int
 	{
-		val size = self.slot(ObjectSlots.ORIGIN_TUPLE).tupleSize()
+		val size = self.slot(ORIGIN_TUPLE).tupleSize()
 		assert(index in 1 .. size)
 		val reverseIndex = size + 1 - index
-		return self.slot(ObjectSlots.ORIGIN_TUPLE).tupleIntAt(reverseIndex)
+		return self.slot(ORIGIN_TUPLE).tupleIntAt(reverseIndex)
 	}
 
 	override fun o_TupleReverse(self: AvailObject): A_Tuple =
-		self.slot(ObjectSlots.ORIGIN_TUPLE)
+		self.slot(ORIGIN_TUPLE)
 
 	override fun o_TupleSize(self: AvailObject): Int =
-		self.slot(IntegerSlots.SIZE)
+		self.slot(SIZE)
 
 	override fun mutable(): ReverseTupleDescriptor = mutable
 
@@ -435,12 +437,10 @@ class ReverseTupleDescriptor private constructor(mutability: Mutability)
 		 * @return
 		 *   A new reverse tuple.
 		 */
-		fun createReverseTuple(originTuple: A_Tuple): AvailObject
-		{
-			val instance = mutable.create()
-			instance.setSlot(ObjectSlots.ORIGIN_TUPLE, originTuple)
-			instance.setSlot(IntegerSlots.SIZE, originTuple.tupleSize())
-			return instance
-		}
+		fun createReverseTuple(originTuple: A_Tuple): AvailObject =
+			mutable.create {
+				setSlot(ORIGIN_TUPLE, originTuple)
+				setSlot(SIZE, originTuple.tupleSize())
+			}
 	}
 }

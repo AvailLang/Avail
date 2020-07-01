@@ -527,26 +527,26 @@ open class VariableSharedDescriptor protected constructor(
 			// temporarily having non-shared fields is not a violation of the
 			// invariant, since no other fibers can access the value until the
 			// entire makeShared activity has completed.
-			val newVariable = mutableInitial.create()
-			newVariable.setSlot(KIND, kind)
-			newVariable.setSlot(HASH_ALWAYS_SET, hash)
-			newVariable.setSlot(VALUE, value)
-			newVariable.setSlot(WRITE_REACTORS, nil)
-			newVariable.setSlot(DEPENDENT_CHUNKS_WEAK_SET_POJO, nil)
-			assert(!oldVariable.descriptor().isShared)
-			oldVariable.becomeIndirectionTo(newVariable)
+			return mutableInitial.create {
+				setSlot(KIND, kind)
+				setSlot(HASH_ALWAYS_SET, hash)
+				setSlot(VALUE, value)
+				setSlot(WRITE_REACTORS, nil)
+				setSlot(DEPENDENT_CHUNKS_WEAK_SET_POJO, nil)
+				assert(!oldVariable.descriptor().isShared)
+				oldVariable.becomeIndirectionTo(this)
 
-			// Make the parts shared.  This may recurse, but it will terminate
-			// when it sees this variable again.  Write back the shared versions
-			// for efficiency.
-			newVariable.setSlot(KIND, kind.makeShared())
-			newVariable.setSlot(VALUE, value.makeShared())
-			assert(newVariable.descriptor() === mutableInitial)
-			newVariable.setDescriptor(shared)
+				// Make the parts shared.  This may recurse, but it will terminate
+				// when it sees this variable again.  Write back the shared versions
+				// for efficiency.
+				setSlot(KIND, kind.makeShared())
+				setSlot(VALUE, value.makeShared())
+				assert(descriptor() === mutableInitial)
+				setDescriptor(shared)
 
-			// For safety, make sure the indirection is also shared.
-			oldVariable.makeShared()
-			return newVariable
+				// For safety, make sure the indirection is also shared.
+				oldVariable.makeShared()
+			}
 		}
 
 		/**

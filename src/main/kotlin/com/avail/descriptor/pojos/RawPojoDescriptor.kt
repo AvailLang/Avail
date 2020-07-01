@@ -261,7 +261,7 @@ open class RawPojoDescriptor protected constructor(
 		 */
 		@JvmStatic
 		fun identityPojo(javaObject: Any?): AvailObject =
-			RawPojoDescriptor(Mutability.MUTABLE, javaObject).create()
+			RawPojoDescriptor(Mutability.MUTABLE, javaObject).create { }
 
 		/**
 		 * Create a new [AvailObject] that wraps the specified Java [Object] for
@@ -274,6 +274,6 @@ open class RawPojoDescriptor protected constructor(
 		 */
 		@JvmStatic
 		fun equalityPojo(javaObject: Any): AvailObject =
-			EqualityRawPojoDescriptor(Mutability.MUTABLE, javaObject).create()
+			EqualityRawPojoDescriptor(Mutability.MUTABLE, javaObject).create { }
 	}
 }

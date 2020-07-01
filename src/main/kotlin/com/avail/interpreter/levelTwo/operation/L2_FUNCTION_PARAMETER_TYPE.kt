@@ -64,12 +64,9 @@ object L2_FUNCTION_PARAMETER_TYPE : L2Operation(
 		registerSet: RegisterSet,
 		generator: L2Generator)
 	{
-		val functionReg =
-			instruction.operand<L2ReadBoxedOperand>(0)
-		val paramIndex =
-			instruction.operand<L2IntImmediateOperand>(1)
-		val outputParamTypeReg =
-			instruction.operand<L2WriteBoxedOperand>(2)
+		val functionReg = instruction.operand<L2ReadBoxedOperand>(0)
+		val paramIndex = instruction.operand<L2IntImmediateOperand>(1)
+		val outputParamTypeReg = instruction.operand<L2WriteBoxedOperand>(2)
 
 		// Function types are contravariant, so we may have to fall back on
 		// just saying the parameter type must be a type and can't be top –
@@ -77,7 +74,8 @@ object L2_FUNCTION_PARAMETER_TYPE : L2Operation(
 		if (registerSet.hasConstantAt(functionReg.register()))
 		{
 			// Exact function is known.
-			val function: A_Function = registerSet.constantAt(functionReg.register())
+			val function: A_Function =
+				registerSet.constantAt(functionReg.register())
 			val functionType = function.code().functionType()
 			registerSet.constantAtPut(
 				outputParamTypeReg.register(),

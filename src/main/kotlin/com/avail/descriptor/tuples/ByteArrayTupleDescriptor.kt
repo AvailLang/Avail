@@ -566,13 +566,10 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 		 *   The requested tuple.
 		 */
 		@JvmStatic
-		fun tupleForByteArray(array: ByteArray): AvailObject
-		{
-			val wrapped = identityPojo(array)
-			val newObject = mutable.create()
-			newObject.setSlot(IntegerSlots.HASH_OR_ZERO, 0)
-			newObject.setSlot(ObjectSlots.BYTE_ARRAY_POJO, wrapped)
-			return newObject
-		}
+		fun tupleForByteArray(array: ByteArray): AvailObject =
+			mutable.create {
+				setSlot(IntegerSlots.HASH_OR_ZERO, 0)
+				setSlot(ObjectSlots.BYTE_ARRAY_POJO, identityPojo(array))
+			}
 	}
 }

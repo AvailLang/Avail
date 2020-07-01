@@ -52,27 +52,32 @@ import com.avail.descriptor.methods.A_SemanticRestriction
 import com.avail.descriptor.methods.MethodDescriptor
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.representation.NilDescriptor
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
 import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.ObjectTupleDescriptor
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import com.avail.descriptor.types.BottomTypeDescriptor
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
-import com.avail.descriptor.types.ContinuationTypeDescriptor
-import com.avail.descriptor.types.FunctionTypeDescriptor
-import com.avail.descriptor.types.InstanceMetaDescriptor
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor
-import com.avail.descriptor.types.TupleTypeDescriptor
+import com.avail.descriptor.types.ContinuationTypeDescriptor.Companion.continuationTypeForFunctionType
+import com.avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralContinuationType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
+import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
+import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int32
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
 import com.avail.descriptor.types.TypeDescriptor
-import com.avail.descriptor.types.VariableTypeDescriptor
+import com.avail.descriptor.types.TypeDescriptor.Types
+import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import com.avail.descriptor.variables.A_Variable
 import com.avail.descriptor.variables.VariableDescriptor
 import com.avail.dispatch.InternalLookupTree
 import com.avail.dispatch.LookupTreeTraverser
 import com.avail.exceptions.AvailErrorCode
+import com.avail.exceptions.AvailErrorCode.E_NO_METHOD_DEFINITION
 import com.avail.exceptions.MethodDefinitionException
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Fallibility
@@ -157,12 +162,14 @@ import com.avail.interpreter.levelTwo.register.L2Register
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuation
 import com.avail.interpreter.primitive.general.P_Equality
 import com.avail.optimizer.L2ControlFlowGraph.ZoneType
+import com.avail.optimizer.L2Generator.Companion.backEdgeTo
+import com.avail.optimizer.L2Generator.Companion.edgeTo
 import com.avail.optimizer.L2Generator.OptimizationLevel
 import com.avail.optimizer.values.Frame
 import com.avail.optimizer.values.L2SemanticValue
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport
-import java.util.*
+import java.util.ArrayList
 import java.util.logging.Level
 
 /**
@@ -370,7 +377,7 @@ class L1Translator private constructor(
 	 */
 	private fun nilSlot(slotIndex: Int)
 	{
-		moveConstantToSlot(NilDescriptor.nil, slotIndex)
+		moveConstantToSlot(nil, slotIndex)
 	}
 
 	/**
@@ -484,7 +491,7 @@ class L1Translator private constructor(
 		{
 			val writer = generator.boxedWriteTemp(
 				restrictionForType(
-					FunctionTypeDescriptor.mostGeneralFunctionType(),
+					mostGeneralFunctionType(),
 					RestrictionFlagEncoding.BOXED))
 			addInstruction(
 				L2_GET_RETURNING_FUNCTION,
@@ -565,7 +572,7 @@ class L1Translator private constructor(
 		val zone = generator.currentBlock().zone
 		val newContinuationWrite = generator.boxedWriteTemp(
 			restrictionForType(
-				ContinuationTypeDescriptor.mostGeneralContinuationType(),
+				mostGeneralContinuationType(),
 				RestrictionFlagEncoding.BOXED))
 		val onReturnIntoReified =
 			generator.createBasicBlock("Return into reified continuation")
@@ -607,27 +614,27 @@ class L1Translator private constructor(
 		// the slot registers are the new ones we just created.
 		val writeOffset = generator.intWriteTemp(
 			restrictionForType(
-				IntegerRangeTypeDescriptor.int32(),
+				int32(),
 				RestrictionFlagEncoding.UNBOXED_INT))
 		val writeRegisterDump = generator.boxedWriteTemp(
 			restrictionForType(
-				TypeDescriptor.Types.ANY.o(),
+				Types.ANY.o(),
 				RestrictionFlagEncoding.BOXED))
 		val fallThrough =
 			generator.createBasicBlock("Off-ramp", zone)
 		addInstruction(
 			L2_SAVE_ALL_AND_PC_TO_INT,
-			L2Generator.edgeTo(onReturnIntoReified),
+			edgeTo(onReturnIntoReified),
 			writeOffset,
 			writeRegisterDump,
-			L2Generator.edgeTo(fallThrough))
+			edgeTo(fallThrough))
 		generator.startBlock(fallThrough)
 		// We're in a reification handler here, so the caller is guaranteed to
 		// contain the reified caller.
 		val writeReifiedCaller = generator.boxedWrite(
 			topFrame().reifiedCaller(),
 			restrictionForType(
-				ContinuationTypeDescriptor.mostGeneralContinuationType(),
+				mostGeneralContinuationType(),
 				RestrictionFlagEncoding.BOXED))
 		addInstruction(
 			L2_GET_CURRENT_CONTINUATION,
@@ -702,12 +709,11 @@ class L1Translator private constructor(
 		{
 			val invalidResultFunction = generator.boxedWriteTemp(
 				restrictionForType(
-					FunctionTypeDescriptor.functionType(
-						ObjectTupleDescriptor.tuple(
-							FunctionTypeDescriptor.mostGeneralFunctionType(),
-							InstanceMetaDescriptor.topMeta(),
-							VariableTypeDescriptor.variableTypeFor(
-								TypeDescriptor.Types.ANY.o())),
+					functionType(
+						tuple(
+							mostGeneralFunctionType(),
+							topMeta(),
+							variableTypeFor(Types.ANY.o())),
 						bottom()),
 					RestrictionFlagEncoding.BOXED))
 			addInstruction(
@@ -971,7 +977,7 @@ class L1Translator private constructor(
 			// below with a constant move of the expectedType.
 			if (i != nArgs - 1)
 			{
-				moveConstantToSlot(NilDescriptor.nil, stackp + i)
+				moveConstantToSlot(nil, stackp + i)
 			}
 		}
 		// Pop the arguments, but push a slot for the expectedType.
@@ -1518,7 +1524,7 @@ class L1Translator private constructor(
 		// generate a more complex collection of branches – but this is already
 		// a pretty rare case.
 		val argMeta =
-			InstanceMetaDescriptor.instanceMeta(argRestriction.type)
+			instanceMeta(argRestriction.type)
 		val argTypeWrite =
 			generator.boxedWriteTemp(argRestriction.metaRestriction())
 		addInstruction(L2_GET_TYPE, argRead, argTypeWrite)
@@ -1537,8 +1543,8 @@ class L1Translator private constructor(
 			L2_JUMP_IF_SUBTYPE_OF_CONSTANT,
 			readBoxed(unionReg),
 			L2ConstantOperand(typeToTest),
-			L2Generator.edgeTo(memento.passCheckBasicBlock),
-			L2Generator.edgeTo(memento.failCheckBasicBlock))
+			edgeTo(memento.passCheckBasicBlock),
+			edgeTo(memento.failCheckBasicBlock))
 		return memento
 	}
 
@@ -1610,9 +1616,9 @@ class L1Translator private constructor(
 						L2_JUMP_IF_OBJECTS_EQUAL,
 						read1,
 						read2,
-						L2Generator.edgeTo(
+						edgeTo(
 							if (constantBool) passBlock else failBlock),
-						L2Generator.edgeTo(
+						edgeTo(
 							if (constantBool) failBlock else passBlock))
 					return
 				}
@@ -1648,9 +1654,9 @@ class L1Translator private constructor(
 						L2_JUMP_IF_SUBTYPE_OF_CONSTANT,
 						firstTypeOperand,
 						secondConstantOperand,
-						L2Generator.edgeTo(
+						edgeTo(
 							if (constantBool) passBlock else failBlock),
-						L2Generator.edgeTo(
+						edgeTo(
 							if (constantBool) failBlock else passBlock))
 					return
 				}
@@ -1677,9 +1683,9 @@ class L1Translator private constructor(
 							L2_JUMP_IF_KIND_OF_OBJECT,
 							valueSource,
 							secondTypeOperand,
-							L2Generator.edgeTo(
+							edgeTo(
 								if (constantBool) passBlock else failBlock),
-							L2Generator.edgeTo(
+							edgeTo(
 								if (constantBool) failBlock else passBlock))
 						return
 					}
@@ -1689,9 +1695,9 @@ class L1Translator private constructor(
 						L2_JUMP_IF_SUBTYPE_OF_OBJECT,
 						firstTypeOperand,
 						secondTypeOperand,
-						L2Generator.edgeTo(
+						edgeTo(
 							if (constantBool) passBlock else failBlock),
-						L2Generator.edgeTo(
+						edgeTo(
 							if (constantBool) failBlock else passBlock))
 					return
 				}
@@ -1705,8 +1711,8 @@ class L1Translator private constructor(
 			L2_JUMP_IF_EQUALS_CONSTANT,
 			registerToTest,
 			L2ConstantOperand(constantValue),
-			L2Generator.edgeTo(passBlock),
-			L2Generator.edgeTo(failBlock))
+			edgeTo(passBlock),
+			edgeTo(failBlock))
 	}
 
 	/**
@@ -1716,12 +1722,12 @@ class L1Translator private constructor(
 	 * expectedType or not.
 	 *
 	 * The code generation position is never [L2Generator.currentlyReachable]
-	 * after this (Java) method completes.
+	 * after this (Kotlin) method completes.
 	 *
 	 * The final output from the entire polymorphic call will always be fully
 	 * strengthened to the intersection of the VM-guaranteed type and the
 	 * expectedType of the callSiteHelper, although an explicit type check may
-	 * have to be generate along some paths.
+	 * have to be generated along some paths.
 	 *
 	 * @param functionToCallReg
 	 *   The [L2ReadBoxedOperand] containing the function to invoke.
@@ -1742,8 +1748,7 @@ class L1Translator private constructor(
 		tryToGenerateSpecialPrimitiveInvocation: Boolean,
 		callSiteHelper: CallSiteHelper)
 	{
-		assert(functionToCallReg.type().isSubtypeOf(
-			FunctionTypeDescriptor.mostGeneralFunctionType()))
+		assert(functionToCallReg.type().isSubtypeOf(mostGeneralFunctionType()))
 
 		// Sanity check the number of arguments against the function.  The
 		// function type's acceptable arguments tuple type may be bottom,
@@ -1755,8 +1760,7 @@ class L1Translator private constructor(
 		// as a denormalized uninstantiable type.  For now just treat a spread
 		// of sizes like bottom (i.e., the count is not known).
 		val argumentCount = arguments.size
-		val sizeRange =
-			functionToCallReg.type().argsTupleType().sizeRange()
+		val sizeRange = functionToCallReg.type().argsTupleType().sizeRange()
 		assert(sizeRange.isBottom
 		   || !sizeRange.lowerBound().equals(sizeRange.upperBound())
 		   || sizeRange.rangeIncludesInt(argumentCount))
@@ -1820,11 +1824,18 @@ class L1Translator private constructor(
 						// The primitive cannot fail at this site. Output code
 						// to run the primitive as simply as possible, feeding a
 						// register with as strong a type as possible.
+						var resultType = primitive.returnTypeGuaranteedByVM(
+							rawFunction, argumentTypes)
+						if (resultType.isBottom) {
+							// Even though the Invoke primitive can't fail, the
+							// ultimately called function won't return.  In this
+							// case, weaken the resultType to avoid ⊥, just to
+							// keep the call machinery happy.
+							resultType = Types.ANY.o()
+						}
 						val writer = generator.boxedWriteTemp(
 							restrictionForType(
-								primitive.returnTypeGuaranteedByVM(
-									rawFunction, argumentTypes),
-								RestrictionFlagEncoding.BOXED))
+								resultType, RestrictionFlagEncoding.BOXED))
 						addInstruction(
 							forPrimitive(primitive),
 							L2ConstantOperand(rawFunction),
@@ -1881,7 +1892,7 @@ class L1Translator private constructor(
 			stackp,
 			instructionDecoder.pc() + if (skipCheck) 0 else -1,
 			restrictionForType(
-				if (guaranteedResultType.isBottom) TypeDescriptor.Types.ANY.o() // unreachable
+				if (guaranteedResultType.isBottom) Types.ANY.o() // unreachable
 				else guaranteedResultType, RestrictionFlagEncoding.BOXED))
 		if (constantFunction !== null)
 		{
@@ -1890,9 +1901,9 @@ class L1Translator private constructor(
 				L2ConstantOperand(constantFunction),
 				L2ReadBoxedVectorOperand(arguments),
 				writeResult,
-				if (canReturn) L2Generator.edgeTo(successBlock)
+				if (canReturn) edgeTo(successBlock)
 				else generator.unreachablePcOperand(),
-				L2Generator.edgeTo(reificationTarget))
+				edgeTo(reificationTarget))
 		}
 		else
 		{
@@ -1901,9 +1912,9 @@ class L1Translator private constructor(
 				functionToCallReg,
 				L2ReadBoxedVectorOperand(arguments),
 				writeResult,
-				if (canReturn) L2Generator.edgeTo(successBlock)
+				if (canReturn) edgeTo(successBlock)
 				else generator.unreachablePcOperand(),
-				L2Generator.edgeTo(reificationTarget))
+				edgeTo(reificationTarget))
 		}
 		generator.startBlock(reificationTarget)
 		generator.addInstruction(
@@ -1980,14 +1991,14 @@ class L1Translator private constructor(
 		generator.startBlock(failedCheck)
 		val variableToHoldValueWrite = generator.boxedWriteTemp(
 			restrictionForType(
-				VariableTypeDescriptor.variableTypeFor(
-					TypeDescriptor.Types.ANY.o()),
+				variableTypeFor(
+					Types.ANY.o()),
 				RestrictionFlagEncoding.BOXED))
 		addInstruction(
 			L2_CREATE_VARIABLE,
 			L2ConstantOperand(
-				VariableTypeDescriptor.variableTypeFor(
-					TypeDescriptor.Types.ANY.o())),
+				variableTypeFor(
+					Types.ANY.o())),
 			variableToHoldValueWrite)
 		val wroteVariable =
 			generator.createBasicBlock("wrote offending value into variable")
@@ -1995,8 +2006,8 @@ class L1Translator private constructor(
 			L2_SET_VARIABLE_NO_CHECK,
 			readBoxed(variableToHoldValueWrite),
 			uncheckedValueRead,
-			L2Generator.edgeTo(wroteVariable),
-			L2Generator.edgeTo(wroteVariable))
+			edgeTo(wroteVariable),
+			edgeTo(wroteVariable))
 
 		// Whether the set succeeded or failed doesn't really matter, although
 		// it should always succeed for this freshly created variable.
@@ -2018,13 +2029,14 @@ class L1Translator private constructor(
 					readBoxed(variableToHoldValueWrite))),
 			generator.boxedWriteTemp(TypeRestriction.anyRestriction),  // unreachable
 			generator.unreachablePcOperand(),
-			L2Generator.edgeTo(onReificationInHandler))
+			edgeTo(onReificationInHandler))
 
 		// Reification has been requested while the call is in progress.
 		generator.startBlock(onReificationInHandler)
 		generator.addInstruction(
 			L2_ENTER_L2_CHUNK,
-			L2IntImmediateOperand(ChunkEntryPoint.TRANSIENT.offsetInDefaultChunk),
+			L2IntImmediateOperand(
+				ChunkEntryPoint.TRANSIENT.offsetInDefaultChunk),
 			L2CommentOperand(
 				"Transient - cannot be invalid."))
 		reify(bottom(), ChunkEntryPoint.TO_RETURN_INTO)
@@ -2100,8 +2112,8 @@ class L1Translator private constructor(
 			L2_JUMP_IF_KIND_OF_CONSTANT,
 			valueRead,
 			L2ConstantOperand(expectedType),
-			L2Generator.edgeTo(passedCheck),
-			L2Generator.edgeTo(failedCheck))
+			edgeTo(passedCheck),
+			edgeTo(failedCheck))
 	}
 
 	/**
@@ -2263,8 +2275,7 @@ class L1Translator private constructor(
 			}
 		}
 		val functionTypeUnion =
-			AbstractEnumerationTypeDescriptor.enumerationWith(
-				setFromCollection(possibleFunctions))
+			enumerationWith(setFromCollection(possibleFunctions))
 		val argumentReads =
 			semanticArguments.map { currentManifest().readBoxed(it) }
 
@@ -2281,8 +2292,7 @@ class L1Translator private constructor(
 			generateLookupFailure(
 				method,
 				callSiteHelper,
-				generator.boxedConstant(
-					AvailErrorCode.E_NO_METHOD_DEFINITION.numericCode()),
+				generator.boxedConstant(E_NO_METHOD_DEFINITION.numericCode()),
 				argumentRestrictions,
 				argumentReads)
 			return
@@ -2303,8 +2313,8 @@ class L1Translator private constructor(
 				L2ReadBoxedVectorOperand(argumentReads),
 				functionWrite,
 				errorCodeWrite,
-				L2Generator.edgeTo(lookupSucceeded),
-				L2Generator.edgeTo(lookupFailed))
+				edgeTo(lookupSucceeded),
+				edgeTo(lookupFailed))
 		}
 		else
 		{
@@ -2331,7 +2341,7 @@ class L1Translator private constructor(
 							argStaticType.typeUnion(superUnionElementType)
 						val argTypeWrite = generator.boxedWriteTemp(
 							restrictionForType(
-								InstanceMetaDescriptor.instanceMeta(typeBound),
+								instanceMeta(typeBound),
 								RestrictionFlagEncoding.BOXED))
 						if (superUnionElementType.isBottom)
 						{
@@ -2347,8 +2357,7 @@ class L1Translator private constructor(
 							val originalArgTypeWrite =
 								generator.boxedWriteTemp(
 									restrictionForType(
-										InstanceMetaDescriptor.instanceMeta(
-											typeBound),
+										instanceMeta(typeBound),
 										RestrictionFlagEncoding.BOXED))
 							addInstruction(
 								L2_GET_TYPE, argReg, originalArgTypeWrite)
@@ -2368,8 +2377,8 @@ class L1Translator private constructor(
 				L2ReadBoxedVectorOperand(argTypeRegs),
 				functionWrite,
 				errorCodeWrite,
-				L2Generator.edgeTo(lookupSucceeded),
-				L2Generator.edgeTo(lookupFailed))
+				edgeTo(lookupSucceeded),
+				edgeTo(lookupFailed))
 		}
 		// At this point, we've attempted to look up the method, and either
 		// jumped to lookupSucceeded with functionWrite set to the body
@@ -2445,7 +2454,7 @@ class L1Translator private constructor(
 		val argTypes = argumentRestrictions.map { it.type }
 		val argumentsTupleWrite = generator.boxedWriteTemp(
 			restrictionForType(
-				TupleTypeDescriptor.tupleTypeForTypes(argTypes),
+				tupleTypeForTypes(argTypes),
 				RestrictionFlagEncoding.BOXED))
 		addInstruction(
 			L2_CREATE_TUPLE,
@@ -2467,7 +2476,7 @@ class L1Translator private constructor(
 					readBoxed(argumentsTupleWrite))),
 			generator.boxedWriteTemp(TypeRestriction.anyRestriction),  // unreachable
 			generator.unreachablePcOperand(),
-			L2Generator.edgeTo(onReificationDuringFailure))
+			edgeTo(onReificationDuringFailure))
 
 		// Reification has been requested while the failure call is in
 		// progress.
@@ -2498,8 +2507,8 @@ class L1Translator private constructor(
 			generator.createBasicBlock("merge after possible interrupt")
 		addInstruction(
 			L2_JUMP_IF_INTERRUPT,
-			L2Generator.edgeTo(serviceInterrupt),
-			L2Generator.edgeTo(merge))
+			edgeTo(serviceInterrupt),
+			edgeTo(merge))
 		generator.startBlock(serviceInterrupt)
 		// Service the interrupt:  Generate the reification instructions,
 		// ensuring that when returning into the resulting continuation, it will
@@ -2518,7 +2527,7 @@ class L1Translator private constructor(
 			L2IntImmediateOperand(1),
 			L2IntImmediateOperand(
 				StatisticCategory.INTERRUPT_OFF_RAMP_IN_L2.ordinal),
-			L2Generator.edgeTo(onReification))
+			edgeTo(onReification))
 		generator.startBlock(onReification)
 		generator.addInstruction(
 			L2_ENTER_L2_CHUNK,
@@ -2574,8 +2583,8 @@ class L1Translator private constructor(
 			getOperation,
 			variable,
 			valueWrite,
-			L2Generator.edgeTo(success),
-			L2Generator.edgeTo(failure))
+			edgeTo(success),
+			edgeTo(failure))
 
 		// Emit the failure path. Unbind the destination of the variable get in
 		// this case, since it won't have been populated (by definition,
@@ -2592,15 +2601,17 @@ class L1Translator private constructor(
 			L2_INVOKE,
 			readBoxed(unassignedReadFunction),
 			L2ReadBoxedVectorOperand(emptyList()),
-			generator.boxedWriteTemp(TypeRestriction.anyRestriction),  // unreachable
+			//Unreachable:
+			generator.boxedWriteTemp(TypeRestriction.anyRestriction),
 			generator.unreachablePcOperand(),
-			L2Generator.edgeTo(onReificationDuringFailure))
+			edgeTo(onReificationDuringFailure))
 
 		// Reification has been requested while the failure call is in progress.
 		generator.startBlock(onReificationDuringFailure)
 		generator.addInstruction(
 			L2_ENTER_L2_CHUNK,
-			L2IntImmediateOperand(ChunkEntryPoint.TRANSIENT.offsetInDefaultChunk),
+			L2IntImmediateOperand(
+				ChunkEntryPoint.TRANSIENT.offsetInDefaultChunk),
 			L2CommentOperand(
 				"Transient - cannot be invalid."))
 		reify(bottom(), ChunkEntryPoint.TO_RETURN_INTO)
@@ -2650,8 +2661,8 @@ class L1Translator private constructor(
 			setOperation,
 			variable,
 			newValue,
-			L2Generator.edgeTo(success),
-			L2Generator.edgeTo(failure))
+			edgeTo(success),
+			edgeTo(failure))
 
 		// Emit the failure path.
 		generator.startBlock(failure)
@@ -2664,7 +2675,7 @@ class L1Translator private constructor(
 			observeFunction)
 		val variableAndValueTupleReg = generator.boxedWriteTemp(
 			restrictionForType(
-				TupleTypeDescriptor.tupleTypeForTypes(
+				tupleTypeForTypes(
 					variable.type(), newValue.type()),
 				RestrictionFlagEncoding.BOXED))
 		addInstruction(
@@ -2681,16 +2692,18 @@ class L1Translator private constructor(
 					generator
 						.boxedConstant(assignmentFunction()),
 					readBoxed(variableAndValueTupleReg))),
-			generator.boxedWriteTemp(TypeRestriction.anyRestriction),  // unreachable
-			L2Generator.edgeTo(success),
-			L2Generator.edgeTo(onReificationDuringFailure))
+			// Unreachable:
+			generator.boxedWriteTemp(TypeRestriction.anyRestriction),
+			edgeTo(success),
+			edgeTo(onReificationDuringFailure))
 		generator.startBlock(onReificationDuringFailure)
 		generator.addInstruction(
 			L2_ENTER_L2_CHUNK,
-			L2IntImmediateOperand(ChunkEntryPoint.TRANSIENT.offsetInDefaultChunk),
+			L2IntImmediateOperand(
+				ChunkEntryPoint.TRANSIENT.offsetInDefaultChunk),
 			L2CommentOperand(
 				"Transient - cannot be invalid."))
-		reify(TypeDescriptor.Types.TOP.o(), ChunkEntryPoint.TO_RETURN_INTO)
+		reify(Types.TOP.o(), ChunkEntryPoint.TO_RETURN_INTO)
 		generator.jumpTo(success)
 
 		// End with the success block.  Note that the failure path can lead here
@@ -2734,7 +2747,8 @@ class L1Translator private constructor(
 		// for such continuations.
 		addInstruction(
 			L2_ENTER_L2_CHUNK,
-			L2IntImmediateOperand(ChunkEntryPoint.TO_RESTART.offsetInDefaultChunk),
+			L2IntImmediateOperand(
+				ChunkEntryPoint.TO_RESTART.offsetInDefaultChunk),
 			L2CommentOperand(
 				"If invalid, reenter «default» at the beginning."))
 
@@ -2807,7 +2821,7 @@ class L1Translator private constructor(
 				L2_SET_VARIABLE_NO_CHECK,
 				readSlot(numArgs + 1),
 				getLatestReturnValue(code.localTypeAt(1).writeType()),
-				L2Generator.edgeTo(success),
+				edgeTo(success),
 				generator.unreachablePcOperand())
 			generator.startBlock(success)
 		}
@@ -2981,7 +2995,7 @@ class L1Translator private constructor(
 		forceSlotRegister(
 			stackp,
 			instructionDecoder.pc(),
-			generator.boxedConstant(NilDescriptor.nil))
+			generator.boxedConstant(nil))
 		stackp++
 	}
 
@@ -3041,7 +3055,7 @@ class L1Translator private constructor(
 		forceSlotRegister(
 			stackp,
 			instructionDecoder.pc(),
-			generator.boxedConstant(NilDescriptor.nil))
+			generator.boxedConstant(nil))
 		stackp++
 	}
 
@@ -3097,7 +3111,7 @@ class L1Translator private constructor(
 					stackp,
 					instructionDecoder.pc(),
 					restrictionForType(
-						TupleTypeDescriptor.tupleTypeForTypes(types),
+						tupleTypeForTypes(types),
 						RestrictionFlagEncoding.BOXED)))
 		}
 	}
@@ -3141,8 +3155,7 @@ class L1Translator private constructor(
 
 		// Now create the actual label continuation and push it.
 		val continuationType =
-			ContinuationTypeDescriptor.continuationTypeForFunctionType(
-				code.functionType())
+			continuationTypeForFunctionType(code.functionType())
 		val label = topFrame().label()
 		val destinationRegister = generator.boxedWrite(
 			label,
@@ -3202,7 +3215,7 @@ class L1Translator private constructor(
 		forceSlotRegister(
 			stackp,
 			instructionDecoder.pc(),
-			generator.boxedConstant(NilDescriptor.nil))
+			generator.boxedConstant(nil))
 		stackp++
 	}
 
@@ -3365,7 +3378,7 @@ class L1Translator private constructor(
 			unreachableBlock.makeIrremovable()
 			val generator = L2Generator(
 				OptimizationLevel.UNOPTIMIZED,
-				Frame(null, NilDescriptor.nil, "top frame"),
+				Frame(null, nil, "top frame"),
 				"default chunk")
 
 			// 0. First try to run it as a primitive.
@@ -3393,8 +3406,8 @@ class L1Translator private constructor(
 			generator.startBlock(loopBlock)
 			generator.addInstruction(
 				L2_INTERPRET_LEVEL_ONE,
-				L2Generator.edgeTo(reenterFromCallBlock),
-				L2Generator.edgeTo(reenterFromInterruptBlock))
+				edgeTo(reenterFromCallBlock),
+				edgeTo(reenterFromInterruptBlock))
 
 			// 4,5. If reified, calls return here.
 			generator.startBlock(reenterFromCallBlock)
@@ -3402,7 +3415,7 @@ class L1Translator private constructor(
 				L2_REENTER_L1_CHUNK_FROM_CALL)
 			generator.addInstruction(
 				L2_JUMP,
-				L2Generator.backEdgeTo(loopBlock))
+				backEdgeTo(loopBlock))
 
 			// 6,7. If reified, interrupts return here.
 			generator.startBlock(reenterFromInterruptBlock)
@@ -3410,7 +3423,7 @@ class L1Translator private constructor(
 				L2_REENTER_L1_CHUNK_FROM_INTERRUPT)
 			generator.addInstruction(
 				L2_JUMP,
-				L2Generator.backEdgeTo(loopBlock))
+				backEdgeTo(loopBlock))
 
 			// 8. Unreachable.
 			generator.startBlock(unreachableBlock)

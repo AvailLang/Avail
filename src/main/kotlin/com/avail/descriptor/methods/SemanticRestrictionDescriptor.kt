@@ -155,11 +155,10 @@ private constructor(mutability: Mutability) : Descriptor(
 			function: A_Function,
 			method: A_Method,
 			module: A_Module
-		): A_SemanticRestriction = with(mutable.create()) {
+		): A_SemanticRestriction = mutable.createShared {
 			setSlot(ObjectSlots.FUNCTION, function)
 			setSlot(ObjectSlots.DEFINITION_METHOD, method)
 			setSlot(ObjectSlots.DEFINITION_MODULE, module)
-			makeShared()
 		}
 	}
 }

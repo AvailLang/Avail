@@ -258,7 +258,7 @@ class LiteralTokenDescriptor private constructor(
 			start: Int,
 			lineNumber: Int,
 			literal: A_BasicObject
-		): AvailObject = with(mutable.create()) {
+		): AvailObject = mutable.createShared {
 			setSlot(STRING, string)
 			setSlot(START, start)
 			setSlot(LINE_NUMBER, lineNumber)
@@ -283,7 +283,6 @@ class LiteralTokenDescriptor private constructor(
 			} else {
 				setSlot(NEXT_LEXING_STATE_POJO, nil)
 			}
-			makeShared()
 		}
 
 		/** The mutable [LiteralTokenDescriptor].  */

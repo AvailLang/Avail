@@ -94,6 +94,6 @@ class NilDescriptor private constructor() : Descriptor(
 
 		/** The sole instance of `NilDescriptor`, called "nil".  */
 		@JvmField
-		val nil: AvailObject = shared.create()
+		val nil: AvailObject = shared.create { }
 	}
 }

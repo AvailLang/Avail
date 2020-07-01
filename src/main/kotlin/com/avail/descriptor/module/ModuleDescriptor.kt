@@ -950,29 +950,29 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 		@JvmStatic
 		fun newModule(moduleName: A_String): A_Module
 		{
-			val module = mutable.create()
-			module.setSlot(NAME, moduleName)
-			module.setSlot(ALL_ANCESTORS, nil)
-			module.setSlot(VERSIONS, emptySet())
-			module.setSlot(NEW_NAMES, emptyMap())
-			module.setSlot(IMPORTED_NAMES, emptyMap())
-			module.setSlot(PRIVATE_NAMES, emptyMap())
-			module.setSlot(VISIBLE_NAMES, emptySet())
-			module.setSlot(EXPORTED_NAMES, emptySet())
-			module.setSlot(METHOD_DEFINITIONS_SET, emptySet())
-			module.setSlot(GRAMMATICAL_RESTRICTIONS, emptySet())
-			module.setSlot(VARIABLE_BINDINGS, emptyMap())
-			module.setSlot(CONSTANT_BINDINGS, emptyMap())
-			module.setSlot(VARIABLE_BINDINGS, emptyMap())
-			module.setSlot(SEMANTIC_RESTRICTIONS, emptySet())
-			module.setSlot(SEALS, emptyMap())
-			module.setSlot(ENTRY_POINTS, emptyMap())
-			module.setSlot(UNLOAD_FUNCTIONS, emptyTuple())
-			module.setSlot(LEXERS, emptySet())
-			// Adding the module to its ancestors set will cause recursive scanning
-			// to mark everything as shared, so it's essential that all fields have
-			// been initialized to *something* by now.
-			module.makeShared()
+			val module = mutable.createShared {
+				setSlot(NAME, moduleName)
+				setSlot(ALL_ANCESTORS, nil)
+				setSlot(VERSIONS, emptySet())
+				setSlot(NEW_NAMES, emptyMap())
+				setSlot(IMPORTED_NAMES, emptyMap())
+				setSlot(PRIVATE_NAMES, emptyMap())
+				setSlot(VISIBLE_NAMES, emptySet())
+				setSlot(EXPORTED_NAMES, emptySet())
+				setSlot(METHOD_DEFINITIONS_SET, emptySet())
+				setSlot(GRAMMATICAL_RESTRICTIONS, emptySet())
+				setSlot(VARIABLE_BINDINGS, emptyMap())
+				setSlot(CONSTANT_BINDINGS, emptyMap())
+				setSlot(VARIABLE_BINDINGS, emptyMap())
+				setSlot(SEMANTIC_RESTRICTIONS, emptySet())
+				setSlot(SEALS, emptyMap())
+				setSlot(ENTRY_POINTS, emptyMap())
+				setSlot(UNLOAD_FUNCTIONS, emptyTuple())
+				setSlot(LEXERS, emptySet())
+				// Adding the module to its ancestors set will cause recursive
+				// scanning to mark everything as shared, so it's essential that
+				// all fields have been initialized to *something* by now.
+			}
 			module.setSlot(ALL_ANCESTORS, set(module).makeShared())
 			return module
 		}

@@ -732,14 +732,12 @@ class DeclarationPhraseDescriptor(
 			assert(literalObject.equalsNil()
 				|| declarationKind === DeclarationKind.MODULE_VARIABLE
 				|| declarationKind === DeclarationKind.MODULE_CONSTANT)
-			val declaration = mutables[declarationKind.ordinal].create()
-			return declaration.apply {
+			return mutables[declarationKind.ordinal].createShared {
 				setSlot(TOKEN, token)
 				setSlot(DECLARED_TYPE, declaredType)
 				setSlot(TYPE_EXPRESSION, typeExpression)
 				setSlot(INITIALIZATION_EXPRESSION, initializationExpression)
 				setSlot(LITERAL_OBJECT, literalObject)
-				makeShared()
 			}
 		}
 

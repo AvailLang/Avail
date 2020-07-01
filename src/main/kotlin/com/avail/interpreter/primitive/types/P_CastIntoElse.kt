@@ -39,7 +39,6 @@ import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.interpreter.Primitive
@@ -47,11 +46,7 @@ import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.Primitive.Flag.Invokes
 import com.avail.interpreter.execution.Interpreter
-import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
-import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED
-import com.avail.interpreter.levelTwo.operation.L2_FUNCTION_PARAMETER_TYPE
 import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
@@ -101,7 +96,7 @@ object P_CastIntoElse : Primitive(3, Invokes, CanInline, CannotFail)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			ObjectTupleDescriptor.tuple(
+			tuple(
 				ANY.o(),
 				functionType(
 					tuple(
@@ -128,8 +123,10 @@ object P_CastIntoElse : Primitive(3, Invokes, CanInline, CannotFail)
 		val castFunctionRead = arguments[1]
 		val elseFunctionRead = arguments[2]
 
-		val castBlock = translator.generator.createBasicBlock("cast type matched")
-		val elseBlock = translator.generator.createBasicBlock("cast type did not match")
+		val castBlock =
+			translator.generator.createBasicBlock("cast type matched")
+		val elseBlock =
+			translator.generator.createBasicBlock("cast type did not match")
 
 		val typeTest = castFunctionRead.exactSoleArgumentType()
 		if (typeTest !== null)
@@ -179,17 +176,13 @@ object P_CastIntoElse : Primitive(3, Invokes, CanInline, CannotFail)
 			// castFunction's argument type.  Note that we can't phi-strengthen
 			// the valueRead along the branches, since we don't statically know
 			// the type that it was compared to.
-			val parameterTypeWrite = translator.generator.boxedWriteTemp(
-				restrictionForType(anyMeta(), BOXED))
-			translator.addInstruction(
-				L2_FUNCTION_PARAMETER_TYPE,
-				castFunctionRead,
-				L2IntImmediateOperand(1),
-				parameterTypeWrite)
+			val parameterTypeRead =
+				translator.generator.extractParameterTypeFromFunction(
+					castFunctionRead, 1)
 			translator.addInstruction(
 				L2_JUMP_IF_KIND_OF_OBJECT,
 				valueRead,
-				translator.readBoxed(parameterTypeWrite),
+				parameterTypeRead,
 				edgeTo(castBlock),
 				edgeTo(elseBlock))
 		}

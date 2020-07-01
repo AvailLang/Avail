@@ -92,11 +92,12 @@ import kotlin.collections.set
  *   An array of [L2NamedOperandType]s that describe this particular
  *   L2Operation, allowing it to be specialized by register type.
  */
-abstract class L2_MOVE<R : L2Register, RR : L2ReadOperand<R>, WR : L2WriteOperand<R>>
+abstract class
+	L2_MOVE<R : L2Register, RR : L2ReadOperand<R>, WR : L2WriteOperand<R>>
 private constructor(
-		val kind: RegisterKind,
-		vararg theNamedOperandTypes: L2NamedOperandType)
-	: L2Operation("MOVE(" + kind.kindName + ")", *theNamedOperandTypes)
+	val kind: RegisterKind,
+	vararg theNamedOperandTypes: L2NamedOperandType
+) : L2Operation("MOVE(" + kind.kindName + ")", *theNamedOperandTypes)
 {
 	/**
 	 * Synthesize an [L2WriteOperand] of the appropriately strengthened type
@@ -348,6 +349,7 @@ private constructor(
 	init
 	{
 		assert(movesByKind[kind] === null)
+		@Suppress("LeakingThis")
 		movesByKind[kind] = this
 	}
 }

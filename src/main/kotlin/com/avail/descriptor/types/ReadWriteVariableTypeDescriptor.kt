@@ -36,6 +36,7 @@ import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.types.ReadWriteVariableTypeDescriptor.ObjectSlots
+import com.avail.descriptor.types.ReadWriteVariableTypeDescriptor.ObjectSlots.*
 import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableReadWriteType
 import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import com.avail.descriptor.variables.VariableDescriptor
@@ -86,22 +87,22 @@ class ReadWriteVariableTypeDescriptor private constructor(
 		indent: Int)
 	{
 		builder.append("read ")
-		self.slot(ObjectSlots.READ_TYPE).printOnAvoidingIndent(
+		self.slot(READ_TYPE).printOnAvoidingIndent(
 			builder,
 			recursionMap,
 			indent + 1)
 		builder.append("/write ")
-		self.slot(ObjectSlots.WRITE_TYPE).printOnAvoidingIndent(
+		self.slot(WRITE_TYPE).printOnAvoidingIndent(
 			builder,
 			recursionMap,
 			indent + 1)
 	}
 
 	override fun o_ReadType(self: AvailObject): A_Type =
-		self.slot(ObjectSlots.READ_TYPE)
+		self.slot(READ_TYPE)
 
 	override fun o_WriteType(self: AvailObject): A_Type =
-		self.slot(ObjectSlots.WRITE_TYPE)
+		self.slot(WRITE_TYPE)
 
 	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean =
 		another.equalsVariableType(self)
@@ -110,8 +111,8 @@ class ReadWriteVariableTypeDescriptor private constructor(
 		when
 		{
 			self.sameAddressAs(aType) -> true
-			aType.readType().equals(self.slot(ObjectSlots.READ_TYPE))
-				&& aType.writeType().equals(self.slot(ObjectSlots.WRITE_TYPE)) ->
+			aType.readType().equals(self.slot(READ_TYPE))
+				&& aType.writeType().equals(self.slot(WRITE_TYPE)) ->
 			{
 				if (!isShared)
 				{
@@ -129,8 +130,8 @@ class ReadWriteVariableTypeDescriptor private constructor(
 		}
 
 	override fun o_Hash(self: AvailObject): Int =
-		self.slot(ObjectSlots.READ_TYPE).hash() xor
-			(0x0F40149E + self.slot(ObjectSlots.WRITE_TYPE).hash()) xor
+		self.slot(READ_TYPE).hash() xor
+			(0x0F40149E + self.slot(WRITE_TYPE).hash()) xor
 				0x05469E1A
 
 	override fun o_IsSubtypeOf(self: AvailObject, aType: A_Type): Boolean =
@@ -142,8 +143,8 @@ class ReadWriteVariableTypeDescriptor private constructor(
 		self: AvailObject,
 		aVariableType: A_Type): Boolean =
 			(aVariableType.readType().isSubtypeOf(
-					self.slot(ObjectSlots.READ_TYPE))
-		        && self.slot(ObjectSlots.WRITE_TYPE)
+					self.slot(READ_TYPE))
+		        && self.slot(WRITE_TYPE)
 				    .isSubtypeOf(aVariableType.writeType()))
 
 	override fun o_TypeIntersection(self: AvailObject, another: A_Type): A_Type =
@@ -161,9 +162,9 @@ class ReadWriteVariableTypeDescriptor private constructor(
 		self: AvailObject,
 		aVariableType: A_Type): A_Type =
 			variableReadWriteType(
-				self.slot(ObjectSlots.READ_TYPE)
+				self.slot(READ_TYPE)
 					.typeIntersection(aVariableType.readType()),
-				self.slot(ObjectSlots.WRITE_TYPE)
+				self.slot(WRITE_TYPE)
 					.typeUnion(aVariableType.writeType()))
 
 	override fun o_TypeUnion(self: AvailObject, another: A_Type): A_Type =
@@ -181,9 +182,9 @@ class ReadWriteVariableTypeDescriptor private constructor(
 		self: AvailObject,
 		aVariableType: A_Type): A_Type =
 			variableReadWriteType(
-				self.slot(ObjectSlots.READ_TYPE)
+				self.slot(READ_TYPE)
 					.typeUnion(aVariableType.readType()),
-				self.slot(ObjectSlots.WRITE_TYPE)
+				self.slot(WRITE_TYPE)
 					.typeIntersection(aVariableType.writeType()))
 
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
@@ -211,9 +212,9 @@ class ReadWriteVariableTypeDescriptor private constructor(
 		writer.write("kind")
 		writer.write("variable type")
 		writer.write("write type")
-		self.slot(ObjectSlots.WRITE_TYPE).writeTo(writer)
+		self.slot(WRITE_TYPE).writeTo(writer)
 		writer.write("read type")
-		self.slot(ObjectSlots.READ_TYPE).writeTo(writer)
+		self.slot(READ_TYPE).writeTo(writer)
 		writer.endObject()
 	}
 
@@ -223,9 +224,9 @@ class ReadWriteVariableTypeDescriptor private constructor(
 		writer.write("kind")
 		writer.write("variable type")
 		writer.write("write type")
-		self.slot(ObjectSlots.WRITE_TYPE).writeSummaryTo(writer)
+		self.slot(WRITE_TYPE).writeSummaryTo(writer)
 		writer.write("read type")
-		self.slot(ObjectSlots.READ_TYPE).writeSummaryTo(writer)
+		self.slot(READ_TYPE).writeSummaryTo(writer)
 		writer.endObject()
 	}
 
@@ -265,10 +266,10 @@ class ReadWriteVariableTypeDescriptor private constructor(
 			{
 				return variableTypeFor(readType)
 			}
-			val result = mutable.create()
-			result.setSlot(ObjectSlots.READ_TYPE, readType)
-			result.setSlot(ObjectSlots.WRITE_TYPE, writeType)
-			return result
+			return mutable.create {
+				setSlot(READ_TYPE, readType)
+				setSlot(WRITE_TYPE, writeType)
+			}
 		}
 	}
 }

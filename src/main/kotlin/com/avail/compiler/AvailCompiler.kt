@@ -453,62 +453,85 @@ class AvailCompiler(
 	}
 
 	/**
-	 * Execute `#tryBlock`, passing a [continuation][Con1] that it should run
-	 * upon finding exactly one local [solution][CompilerSolution].  Report
-	 * ambiguity as an error.
+	 * Execute `#tryBlock`, passing a function that it should run upon finding
+	 * exactly one local [solution][CompilerSolution].  Report ambiguity as an
+	 * error.
 	 *
 	 * @param start
 	 *   Where to start parsing.
-	 * @param tryBlock
-	 *   What to try. This is a continuation that accepts a continuation that
-	 *   tracks completion of parsing.
-	 * @param supplyAnswer
+	 * @param acceptAnswer
 	 *   What to do if exactly one result was produced. This is a continuation
-	 *   that accepts a solution.
+	 *   that accepts the [ParserState] after the uniquely parsed phrase, and
+	 *   the [A_Phrase] itself that was parsed.
 	 */
 	private fun tryIfUnambiguousThen(
 		start: ParserState,
-		tryBlock: (Con1)->Unit,
-		supplyAnswer: Con1)
+		acceptAnswer: (ParserState, A_Phrase)->Unit)
 	{
-		assert(compilationContext.noMoreWorkUnits === null)
 		val solutions = ArrayList<CompilerSolution>(1)
-		compilationContext.noMoreWorkUnits = noMoreWorkUnits@{
-			if (compilationContext.diagnostics.pollForAbort())
+
+		// Set up an action to perform when the last work unit for this compiler
+		// has completed.  That's the moment when we can check how many
+		// solutions were actually found.
+		assert(compilationContext.noMoreWorkUnits === null)
+		compilationContext.noMoreWorkUnits = {
+			when
 			{
-				// We may have been asked to abort sub-tasks by a failure in
-				// another module, so we can't trust the count of solutions.
-				compilationContext.diagnostics.reportError()
-				return@noMoreWorkUnits
-			}
-			when (solutions.size)
-			{
-				0 ->
+				compilationContext.diagnostics.pollForAbort() ->
+				{
+					// We may have been asked to abort sub-tasks by a failure in
+					// another module, so we can't trust the count of solutions.
+					compilationContext.diagnostics.reportError()
+				}
+				solutions.size == 0 ->
 				{
 					// No solutions were found.  Report the problems.
 					compilationContext.diagnostics.reportError()
 				}
-				1 ->
+				solutions.size == 1 ->
 				{
 					// A unique solution was found.
-					supplyAnswer(solutions[0])
+					acceptAnswer(
+						solutions[0].endState,
+						solutions[0].phrase)
 				}
 				else ->
 				{
-					val solution1 = solutions[0]
-					val solution2 = solutions[1]
+					// Multiple solutions were found.  Report the ambiguity.
 					reportAmbiguousInterpretations(
-						solution1.endState,
-						solution1.phrase,
-						solution2.phrase)
+						solutions[0].endState,
+						solutions[0].phrase,
+						solutions[1].phrase)
 				}
 			}
 		}
-		start.workUnitDo(
-			tryBlock,
-			Con1(supplyAnswer.superexpressions) {
-				newSolution -> captureOneMoreSolution(newSolution, solutions)
-			})
+		start.workUnitDo {
+			parseExpressionThen(start, null) {
+				afterExpression, expression ->
+				when
+				{
+					expression.phraseKindIsUnder(STATEMENT_PHRASE) ->
+						captureOneMoreSolution(
+							CompilerSolution(afterExpression, expression),
+							solutions)
+					else ->
+						afterExpression.expected(
+							STRONG,
+							FormattingDescriber(
+								"an outer level statement, not %s (%s)",
+								expression.phraseKind(),
+								expression))
+				}
+			}
+			nextNonwhitespaceTokensDo(start) { token ->
+				if (token.tokenType() == END_OF_FILE)
+				{
+					captureOneMoreSolution(
+						CompilerSolution(start, endOfFileMarkerPhrase),
+						solutions)
+				}
+			}
+		}
 	}
 
 	/**
@@ -752,12 +775,8 @@ class AvailCompiler(
 		) {
 			formatString(
 				"Macro evaluation %s, in %s:%d",
-				macro.definitionMethod().bundles()
-					.iterator().next().message(),
-				if (mod.equalsNil())
-					"no module"
-				else
-					mod.moduleName(),
+				macro.definitionMethod().bundles().iterator().next().message(),
+				if (mod.equalsNil()) "no module" else mod.moduleName(),
 				code.startingLineNumber())
 		}
 		fiber.setGeneralFlag(GeneralFlag.CAN_REJECT_PARSE)
@@ -1160,12 +1179,15 @@ class AvailCompiler(
 	 *
 	 * @param start
 	 *   Where to start parsing.
+	 * @param superexpressions
+	 *   The enclosing partially-parsed expressions, if any.
 	 * @param continuation
 	 *   What to do after parsing a complete send phrase.
 	 */
 	private fun parseLeadingKeywordSendThen(
 		start: ParserState,
-		continuation: Con1)
+		superexpressions: PartialSubexpressionList?,
+		continuation: (ParserState, A_Phrase)->Unit)
 	{
 		val loader = compilationContext.loader!!
 		parseRestOfSendNode(
@@ -1178,11 +1200,8 @@ class AvailCompiler(
 			emptyList(),
 			initialParseStack,
 			initialMarkStack,
-			Con1(
-				PartialSubexpressionList(
-					loader.rootBundleTree(),
-					continuation.superexpressions),
-				continuation))
+			PartialSubexpressionList(loader.rootBundleTree(), superexpressions),
+			continuation)
 	}
 
 	/**
@@ -1194,6 +1213,8 @@ class AvailCompiler(
 	 *   The argument that was already parsed.
 	 * @param initialTokenPosition
 	 *   Where the leading argument started.
+	 * @param superexpressions
+	 *   The enclosing partially-parsed expressions, if any.
 	 * @param continuation
 	 *   What to do after parsing a send phrase.
 	 */
@@ -1201,7 +1222,8 @@ class AvailCompiler(
 		start: ParserState,
 		leadingArgument: A_Phrase,
 		initialTokenPosition: ParserState,
-		continuation: Con1)
+		superexpressions: PartialSubexpressionList?,
+		continuation: (ParserState, A_Phrase)->Unit)
 	{
 		assert(start.lexingState != initialTokenPosition.lexingState)
 		val loader = compilationContext.loader!!
@@ -1215,11 +1237,8 @@ class AvailCompiler(
 			emptyList(),
 			initialParseStack,
 			initialMarkStack,
-			Con1(
-				PartialSubexpressionList(
-					loader.rootBundleTree(),
-					continuation.superexpressions),
-				continuation))
+			PartialSubexpressionList(loader.rootBundleTree(), superexpressions),
+			continuation)
 	}
 
 	/**
@@ -1233,6 +1252,8 @@ class AvailCompiler(
 	 * @param phrase
 	 *   An expression that acts as the first argument for a potential
 	 *   leading-argument message send, or possibly a chain of them.
+	 * @param superexpressions
+	 *   The enclosing partially-parsed expressions, if any.
 	 * @param continuation
 	 *   What to do with either the passed phrase, or the phrase wrapped in a
 	 *   leading-argument send.
@@ -1241,31 +1262,31 @@ class AvailCompiler(
 		startOfLeadingArgument: ParserState,
 		afterLeadingArgument: ParserState,
 		phrase: A_Phrase,
-		continuation: Con1)
+		superexpressions: PartialSubexpressionList?,
+		continuation: (ParserState, A_Phrase)->Unit)
 	{
 		// It's optional, so try it with no wrapping.  We have to try this even
 		// if it's a supercast, since we may be parsing an expression to be a
 		// non-leading argument of some send.
-		afterLeadingArgument.workUnitDo(
-			continuation,
-			CompilerSolution(afterLeadingArgument, phrase))
-		// Try to wrap it in a leading-argument message send.
-		val con = Con1(continuation.superexpressions) { solution2 ->
-			parseLeadingArgumentSendAfterThen(
-				solution2.endState,
-				solution2.phrase,
-				startOfLeadingArgument,
-				Con1(continuation.superexpressions) { solutionAfter ->
-					parseOptionalLeadingArgumentSendAfterThen(
-						startOfLeadingArgument,
-						solutionAfter.endState,
-						solutionAfter.phrase,
-						continuation)
-				})
+		afterLeadingArgument.workUnitDo {
+			continuation(afterLeadingArgument, phrase)
 		}
-		afterLeadingArgument.workUnitDo(
-			con,
-			CompilerSolution(afterLeadingArgument, phrase))
+		// Try to wrap it in a leading-argument message send.
+		afterLeadingArgument.workUnitDo {
+			parseLeadingArgumentSendAfterThen(
+				afterLeadingArgument,
+				phrase,
+				startOfLeadingArgument,
+				superexpressions
+			) { afterSend, sendPhrase ->
+				parseOptionalLeadingArgumentSendAfterThen(
+					startOfLeadingArgument,
+					afterSend,
+					sendPhrase,
+					superexpressions,
+					continuation)
+			}
+		}
 	}
 
 	/**
@@ -1302,6 +1323,8 @@ class AvailCompiler(
 	 * @param marksSoFar
 	 *   The stack of mark positions used to test if parsing certain
 	 *   subexpressions makes progress.
+	 * @param superexpressions
+	 *   The enclosing partially-parsed expressions, if any.
 	 * @param continuation
 	 *   What to do with a fully parsed send phrase.
 	 */
@@ -1315,7 +1338,8 @@ class AvailCompiler(
 		consumedTokens: List<A_Token>,
 		argsSoFar: List<A_Phrase>,
 		marksSoFar: List<Int>,
-		continuation: Con1)
+		superexpressions: PartialSubexpressionList?,
+		continuation: (ParserState, A_Phrase)->Unit)
 	{
 		var tempBundleTree = bundleTreeArg
 		// If a bundle tree is marked as a source of a cycle, its latest
@@ -1384,9 +1408,10 @@ class AvailCompiler(
 					consumedTokens,
 					argsSoFar,
 					marksSoFar,
-					continuation,
 					incomplete,
-					false)
+					false,
+					superexpressions,
+					continuation)
 			}
 			val caseInsensitive = bundleTree.lazyIncompleteCaseInsensitive()
 			if (caseInsensitive.mapSize() > 0)
@@ -1398,9 +1423,10 @@ class AvailCompiler(
 					consumedTokens,
 					argsSoFar,
 					marksSoFar,
-					continuation,
 					caseInsensitive,
-					true)
+					true,
+					superexpressions,
+					continuation)
 			}
 			val prefilter = bundleTree.lazyPrefilterMap()
 			if (prefilter.mapSize() > 0)
@@ -1432,6 +1458,7 @@ class AvailCompiler(
 							consumedTokens,
 							argsSoFar,
 							marksSoFar,
+							superexpressions,
 							continuation)
 						// Don't allow any check-argument actions to be
 						// processed normally, as it would ignore the
@@ -1497,6 +1524,7 @@ class AvailCompiler(
 					consumedTokens,
 					argsSoFar,
 					marksSoFar,
+					superexpressions,
 					continuation)
 				// Parse instruction optimization allows there to be some plans
 				// that do a type filter here, but some that are able to
@@ -1535,6 +1563,7 @@ class AvailCompiler(
 								consumedAnythingBeforeLatestArgument,
 								consumedTokens,
 								it,
+								superexpressions,
 								continuation)
 						},
 						entry.value())
@@ -1563,13 +1592,15 @@ class AvailCompiler(
 	 *   The argument phrases that have been accumulated so far.
 	 * @param marksSoFar
 	 *   The mark stack.
-	 * @param continuation
-	 *   What to do when the current potential send phrase is complete.
 	 * @param tokenMap
 	 *   A map from string to message bundle tree, used for parsing tokens when
 	 *   in this state.
 	 * @param caseInsensitive
 	 *   Whether to match the token case-insensitively.
+	 * @param superexpressions
+	 *   The enclosing partially-parsed expressions, if any.
+	 * @param continuation
+	 *   What to do when the current potential send phrase is complete.
 	 */
 	private fun attemptToConsumeToken(
 		start: ParserState,
@@ -1578,9 +1609,10 @@ class AvailCompiler(
 		consumedTokens: List<A_Token>,
 		argsSoFar: List<A_Phrase>,
 		marksSoFar: List<Int>,
-		continuation: Con1,
 		tokenMap: A_Map,
-		caseInsensitive: Boolean)
+		caseInsensitive: Boolean,
+		superexpressions: PartialSubexpressionList?,
+		continuation: (ParserState, A_Phrase)->Unit)
 	{
 		skipWhitespaceAndComments(start) { afterWhiteSpaceStates ->
 			for (afterWhiteSpace in afterWhiteSpaceStates)
@@ -1634,6 +1666,7 @@ class AvailCompiler(
 							append(consumedTokens, token),
 							argsSoFar,
 							marksSoFar,
+							superexpressions,
 							continuation)
 						val timeAfter = captureNanos()
 						val stat =
@@ -1821,6 +1854,8 @@ class AvailCompiler(
 	 *   The [tuple][TupleDescriptor] of
 	 *   [message&#32;bundle&#32;tree][A_BundleTree] at which to continue
 	 *   parsing.
+	 * @param superexpressions
+	 *   The enclosing partially-parsed expressions, if any.
 	 * @param continuation
 	 *   What to do with a complete
 	 *   [message&#32;send&#32;phrase][SendPhraseDescriptor].
@@ -1836,7 +1871,8 @@ class AvailCompiler(
 		consumedAnythingBeforeLatestArgument: Boolean,
 		consumedTokens: List<A_Token>,
 		successorTrees: A_Tuple,
-		continuation: Con1)
+		superexpressions: PartialSubexpressionList?,
+		continuation: (ParserState, A_Phrase)->Unit)
 	{
 		val op = decode(instruction)
 		if (AvailRuntimeConfiguration.debugCompilerSteps)
@@ -1878,6 +1914,7 @@ class AvailCompiler(
 			consumedAnything,
 			consumedAnythingBeforeLatestArgument,
 			consumedTokens,
+			superexpressions,
 			continuation)
 		val timeAfter = captureNanos()
 		op.parsingStatisticInNanoseconds.record(timeAfter - timeBefore)
@@ -1915,6 +1952,8 @@ class AvailCompiler(
 	 * @param marksSoFar
 	 *   The stack of markers that detect epsilon transitions (subexpressions
 	 *   consisting of no tokens).
+	 * @param superexpressions
+	 *   The enclosing partially-parsed expressions, if any.
 	 * @param continuation
 	 *   What should eventually be done with the completed macro invocation,
 	 *   should parsing ever get that far.
@@ -1931,7 +1970,8 @@ class AvailCompiler(
 		consumedTokens: List<A_Token>,
 		argsSoFar: List<A_Phrase>,
 		marksSoFar: List<Int>,
-		continuation: Con1)
+		superexpressions: PartialSubexpressionList?,
+		continuation: (ParserState, A_Phrase)->Unit)
 	{
 		if (!prefixFunction.kind().acceptsListOfArgValues(listOfArgs))
 		{
@@ -1977,6 +2017,7 @@ class AvailCompiler(
 					consumedTokens,
 					argsSoFar,
 					marksSoFar,
+					superexpressions,
 					continuation)
 			},
 			{ e ->
@@ -1997,6 +2038,7 @@ class AvailCompiler(
 						consumedTokens,
 						argsSoFar,
 						marksSoFar,
+						superexpressions,
 						continuation)
 				}
 				if (e is AvailRejectedParseException)
@@ -2405,7 +2447,7 @@ class AvailCompiler(
 		argumentsListNode: A_Phrase,
 		bundle: A_Bundle,
 		consumedTokens: List<A_Token>,
-		continuation: Con1)
+		continuation: (ParserState, A_Phrase)->Unit)
 	{
 		val method = bundle.bundleMethod()
 		val macroDefinitionsTuple = method.macroDefinitionsTuple()
@@ -2449,18 +2491,9 @@ class AvailCompiler(
 					argumentsListNode.expressionsTuple())
 				when (matchingMacros.tupleSize())
 				{
-					0 ->
-					{
-						errorCode = E_NO_METHOD_DEFINITION
-					}
-					1 ->
-					{
-						macro = matchingMacros.tupleAt(1)
-					}
-					else ->
-					{
-						errorCode = E_AMBIGUOUS_METHOD_DEFINITION
-					}
+					0 -> errorCode = E_NO_METHOD_DEFINITION
+					1 -> macro = matchingMacros.tupleAt(1)
+					else -> errorCode = E_AMBIGUOUS_METHOD_DEFINITION
 				}
 			}
 			else
@@ -2614,9 +2647,9 @@ class AvailCompiler(
 					bundle,
 					argumentsListNode,
 					expectedYieldType)
-				afterState.workUnitDo(
-					continuation,
-					CompilerSolution(afterState, sendNode))
+				afterState.workUnitDo {
+					continuation(afterState, sendNode)
+				}
 				return@validateArgumentTypes
 			}
 			completedSendNodeForMacro(
@@ -2625,11 +2658,10 @@ class AvailCompiler(
 				bundle,
 				consumedTokens,
 				finalMacro,
-				expectedYieldType,
-				Con1(continuation.superexpressions) { macroSolution ->
-					assert(macroSolution.phrase.isMacroSubstitutionNode())
-					continuation(macroSolution)
-				})
+				expectedYieldType) { endState, macroPhrase ->
+					assert(macroPhrase.isMacroSubstitutionNode())
+					continuation(endState, macroPhrase)
+				}
 		}
 	}
 
@@ -2652,6 +2684,8 @@ class AvailCompiler(
 	 * @param wrapInLiteral
 	 *   Whether the argument should be wrapped inside a literal phrase. This
 	 *   allows statements to be more easily processed by macros.
+	 * @param superexpressions
+	 *   The enclosing partially-parsed expressions, if any.
 	 * @param continuation
 	 *   What to do with the argument.
 	 */
@@ -2661,7 +2695,8 @@ class AvailCompiler(
 		firstArgOrNull: A_Phrase?,
 		canReallyParse: Boolean,
 		wrapInLiteral: Boolean,
-		continuation: Con1)
+		superexpressions: PartialSubexpressionList?,
+		continuation: (ParserState, A_Phrase)->Unit)
 	{
 		if (firstArgOrNull !== null)
 		{
@@ -2674,26 +2709,20 @@ class AvailCompiler(
 			// are ⊤- or ⊥-valued.
 			if (wrapInLiteral)
 			{
-				start.workUnitDo(
-					continuation,
-					CompilerSolution(start, wrapAsLiteral(firstArgOrNull)))
+				start.workUnitDo {
+					continuation(start, wrapAsLiteral(firstArgOrNull))
+				}
 				return
 			}
 			val expressionType = firstArgOrNull.expressionType()
-			if (expressionType.isTop)
+			when
 			{
-				start.expected(
-					WEAK, "leading argument not to be ⊤-valued.")
-				return
+				expressionType.isTop ->
+					start.expected(WEAK, "leading argument not to be ⊤-valued.")
+				expressionType.isBottom ->
+					start.expected(WEAK, "leading argument not to be ⊥-valued.")
+				else -> start.workUnitDo { continuation(start, firstArgOrNull) }
 			}
-			if (expressionType.isBottom)
-			{
-				start.expected(
-					WEAK, "leading argument not to be ⊥-valued.")
-				return
-			}
-			start.workUnitDo(
-				continuation, CompilerSolution(start, firstArgOrNull))
 			return
 		}
 		// There was no leading argument, or it has already been accounted for.
@@ -2704,44 +2733,41 @@ class AvailCompiler(
 		{
 			return
 		}
-		parseExpressionThen(
-			start,
-			Con1(continuation.superexpressions) { solution ->
-				// Only accept a ⊤-valued or ⊥-valued expression if
-				// wrapInLiteral is true.
-				val argument = solution.phrase
-				val afterArgument = solution.endState
-				if (!wrapInLiteral)
-				{
-					val type = argument.expressionType()
-					val badTypeName =
-						when
-						{
-							type.isTop -> "⊤"
-							type.isBottom -> "⊥"
-							else -> null
-						}
-					if (badTypeName !== null)
+		parseExpressionThen(start, superexpressions) {
+			afterArgument, argument ->
+			// Only accept a ⊤-valued or ⊥-valued expression if
+			// wrapInLiteral is true.
+			if (!wrapInLiteral)
+			{
+				val type = argument.expressionType()
+				val badTypeName =
+					when
 					{
-						afterArgument.expected(WEAK) {
-							it(
-								buildString {
-									append(kindOfArgument)
-									append(" to have a type other than ")
-									append(badTypeName)
-									append(" in:")
-									describeOn(
-										continuation.superexpressions, this)
-								})
-						}
-						return@Con1
+						type.isTop -> "⊤"
+						type.isBottom -> "⊥"
+						else -> null
 					}
+				if (badTypeName !== null)
+				{
+					afterArgument.expected(WEAK) {
+						it(
+							buildString {
+								append(kindOfArgument)
+								append(" to have a type other than ")
+								append(badTypeName)
+								append(" in:")
+								describeOn(superexpressions, this)
+							})
+					}
+					return@parseExpressionThen
 				}
-				val argument1 = CompilerSolution(
+			}
+			afterArgument.workUnitDo {
+				continuation(
 					afterArgument,
 					if (wrapInLiteral) wrapAsLiteral(argument) else argument)
-				afterArgument.workUnitDo(continuation, argument1)
-			})
+			}
+		}
 	}
 
 	/**
@@ -2775,6 +2801,8 @@ class AvailCompiler(
 	 * @param successorTrees
 	 *   A [tuple][TupleDescriptor] of [message&#32;bundle&#32;trees] along
 	 *   which to continue parsing if a local solution is found.
+	 * @param superexpressions
+	 *   The enclosing partially-parsed expressions, if any.
 	 * @param continuation
 	 *   What to do once we have a fully parsed send phrase (of which we are
 	 *   currently parsing an argument).
@@ -2788,7 +2816,8 @@ class AvailCompiler(
 		argsSoFar: List<A_Phrase>,
 		marksSoFar: List<Int>,
 		successorTrees: A_Tuple,
-		continuation: Con1)
+		superexpressions: PartialSubexpressionList?,
+		continuation: (ParserState, A_Phrase)->Unit)
 	{
 		// Parse an argument in the outermost (module) scope and continue.
 		assert(successorTrees.tupleSize() == 1)
@@ -2804,17 +2833,14 @@ class AvailCompiler(
 			firstArgOrNull === null
 				&& initialTokenPosition.lexingState != start.lexingState,
 			false, // Static argument can't be top-valued
-			Con1(continuation.superexpressions) { solution ->
-				val newArg = solution.phrase
-				val afterArg = solution.endState
+			superexpressions) { afterArg, newArg ->
 				if (newArg.hasSuperCast())
 				{
 					afterArg.expected(
 						STRONG,
 						"global-scoped argument, not supercast")
-					return@Con1
+					return@parseSendArgumentWithExplanationThen
 				}
-
 				if (firstArgOrNull !== null)
 				{
 					// A leading argument was already supplied.  We couldn't
@@ -2842,7 +2868,7 @@ class AvailCompiler(
 									+ "some local variables: "
 									+ localNames)
 						}
-						return@Con1
+						return@parseSendArgumentWithExplanationThen
 					}
 				}
 				val newArgsSoFar = append(argsSoFar, newArg)
@@ -2861,8 +2887,9 @@ class AvailCompiler(
 					consumedTokens,
 					newArgsSoFar,
 					marksSoFar,
+					superexpressions,
 					continuation)
-			})
+			}
 	}
 
 	/**
@@ -2899,7 +2926,7 @@ class AvailCompiler(
 		consumedTokens: List<A_Token>,
 		macroDefinitionToInvoke: A_Definition,
 		expectedYieldType: A_Type,
-		continuation: Con1)
+		continuation: (ParserState, A_Phrase)->Unit)
 	{
 		val argumentsTuple = argumentsListNode.expressionsTuple()
 		val argCount = argumentsTuple.tupleSize()
@@ -3008,9 +3035,7 @@ class AvailCompiler(
 						+ ") "
 						+ substitution)
 				}
-				stateAfter.workUnitDo(
-					continuation,
-					CompilerSolution(stateAfter, substitution))
+				stateAfter.workUnitDo { continuation(stateAfter, substitution) }
 			},
 			{ e ->
 				when (e)
@@ -3454,80 +3479,78 @@ class AvailCompiler(
 				startLexingState.lineNumber,
 				emptyList()),
 			start.clientDataMap)
-		parseOutermostStatement(
-			startWithoutAnyTokens,
-			Con1(null) { solution ->
-				// The counters must be read in this order for correctness.
-				assert(compilationContext.workUnitsCompleted
+		parseOutermostStatement(startWithoutAnyTokens) {
+			afterStatement, unambiguousStatement ->
+			// The counters must be read in this order for correctness.
+			assert(
+				compilationContext.workUnitsCompleted
 					== compilationContext.workUnitsQueued)
 
-				// Check if we're cleanly at the end.
-				if (solution.phrase.equals(endOfFileMarkerPhrase))
+			// Check if we're cleanly at the end.
+			if (unambiguousStatement.equals(endOfFileMarkerPhrase))
+			{
+				reachedEndOfModule(afterStatement)
+				return@parseOutermostStatement
+			}
+
+			// In case the top level statement is compound, process the
+			// base statements individually.
+			val simpleStatements = ArrayList<A_Phrase>()
+			unambiguousStatement.statementsDo { simpleStatement ->
+				assert(
+					simpleStatement.phraseKindIsUnder(STATEMENT_PHRASE))
+				simpleStatements.add(simpleStatement)
+			}
+
+			// For each top-level simple statement, (1) transform it to have
+			// referenced previously transformed top-level declarations
+			// mapped from local scope into global scope, (2) if it's itself
+			// a declaration, transform it and record the transformation for
+			// subsequent statements, and (3) execute it.  The
+			// declarationRemap accumulates the transformations.  Parts 2
+			// and 3 actually happen together so that module constants can
+			// have types as strong as the actual values produced by running
+			// their initialization expressions.
+
+			// What to do after running all these simple statements.
+			val resumeParsing = {
+				// Report progress.
+				compilationContext.progressReporter.invoke(
+					moduleName,
+					source.tupleSize().toLong(),
+					afterStatement.position.toLong())
+				parseAndExecuteOutermostStatements(
+					afterStatement.withMap(start.clientDataMap))
+			}
+
+			compilationContext.loader!!.setPhase(EXECUTING_FOR_COMPILE)
+			// Run the simple statements in succession.
+			val simpleStatementIterator = simpleStatements.iterator()
+			val declarationRemap = HashMap<A_Phrase, A_Phrase>()
+			var recurse: (()->Unit)? = null
+			recurse = recurse@{
+				if (!simpleStatementIterator.hasNext())
 				{
-					reachedEndOfModule(solution.endState)
-					return@Con1
+					resumeParsing()
+					return@recurse
 				}
-
-				// In case the top level statement is compound, process the
-				// base statements individually.
-				val afterStatement = solution.endState
-				val unambiguousStatement = solution.phrase
-				val simpleStatements = ArrayList<A_Phrase>()
-				unambiguousStatement.statementsDo { simpleStatement ->
-					assert(
-						simpleStatement.phraseKindIsUnder(STATEMENT_PHRASE))
-					simpleStatements.add(simpleStatement)
+				val statement = simpleStatementIterator.next()
+				if (AvailLoader.debugLoadedStatements)
+				{
+					println(
+						moduleName.qualifiedName
+							+ ':'.toString() + start.lineNumber
+							+ " Running statement:\n" + statement)
 				}
-
-				// For each top-level simple statement, (1) transform it to have
-				// referenced previously transformed top-level declarations
-				// mapped from local scope into global scope, (2) if it's itself
-				// a declaration, transform it and record the transformation for
-				// subsequent statements, and (3) execute it.  The
-				// declarationRemap accumulates the transformations.  Parts 2
-				// and 3 actually happen together so that module constants can
-				// have types as strong as the actual values produced by running
-				// their initialization expressions.
-
-				// What to do after running all these simple statements.
-				val resumeParsing = {
-					// Report progress.
-					compilationContext.progressReporter.invoke(
-						moduleName,
-						source.tupleSize().toLong(),
-						afterStatement.position.toLong())
-					parseAndExecuteOutermostStatements(
-						afterStatement.withMap(start.clientDataMap))
-				}
-
-				compilationContext.loader!!.setPhase(EXECUTING_FOR_COMPILE)
-				// Run the simple statements in succession.
-				val simpleStatementIterator = simpleStatements.iterator()
-				val declarationRemap = HashMap<A_Phrase, A_Phrase>()
-				var recurse: (()->Unit)? = null
-				recurse = recurse@ {
-					if (!simpleStatementIterator.hasNext())
-					{
-						resumeParsing()
-						return@recurse
-					}
-					val statement = simpleStatementIterator.next()
-					if (AvailLoader.debugLoadedStatements)
-					{
-						println(
-							moduleName.qualifiedName
-								+ ':'.toString() + start.lineNumber
-								+ " Running statement:\n" + statement)
-					}
-					evaluateModuleStatementThen(
-						start,
-						afterStatement,
-						statement,
-						declarationRemap,
-						recurse!!)
-				}
-				recurse()
-			})
+				evaluateModuleStatementThen(
+					start,
+					afterStatement,
+					statement,
+					declarationRemap,
+					recurse!!)
+			}
+			recurse()
+		}
 	}
 
 	/**
@@ -3660,41 +3683,40 @@ class AvailCompiler(
 				STRONG,
 				"module to export at least 1 lexer in order to handle command")
 		}
-		parseExpressionThen(
-			start,
-			Con1(null) { solution ->
-				val expression = solution.phrase
-				val afterExpression = solution.endState
-				if (expression.equals(endOfFileMarkerPhrase))
+		parseExpressionThen(start, null) { afterExpression, expression ->
+			if (expression.equals(endOfFileMarkerPhrase))
+			{
+				afterExpression.expected(
+					STRONG,
+					"a valid command, not just whitespace"
+				)
+				return@parseExpressionThen
+			}
+			if (expression.hasSuperCast())
+			{
+				afterExpression.expected(
+					STRONG,
+					"a valid command, not a supercast"
+				)
+				return@parseExpressionThen
+			}
+			// Check that after the expression is only whitespace and
+			// the end-of-file.
+			nextNonwhitespaceTokensDo(afterExpression) { token ->
+				if (token.tokenType() == END_OF_FILE)
 				{
-					afterExpression.expected(
-						STRONG,
-						"a valid command, not just whitespace")
-					return@Con1
-				}
-				if (expression.hasSuperCast())
-				{
-					afterExpression.expected(
-						STRONG,
-						"a valid command, not a supercast")
-					return@Con1
-				}
-				// Check that after the expression is only whitespace and
-				// the end-of-file.
-				nextNonwhitespaceTokensDo(afterExpression) { token ->
-					if (token.tokenType() == END_OF_FILE)
-					{
-						synchronized(solutions) {
-							solutions.add(expression)
-						}
-					}
-					else
-					{
-						afterExpression.expected(
-							STRONG, "end of command")
+					synchronized(solutions) {
+						solutions.add(expression)
 					}
 				}
-			})
+				else
+				{
+					afterExpression.expected(
+						STRONG, "end of command"
+					)
+				}
+			}
+		}
 	}
 
 	/**
@@ -3961,61 +3983,58 @@ class AvailCompiler(
 		recordExpectationsRelativeTo(state)
 
 		// Parse an invocation of the special module header macro.
-		parseOutermostStatement(
-			state,
-			Con1(null) { solution ->
-				val headerPhrase = solution.phrase
-				if (headerPhrase.phraseKindIsUnder(MARKER_PHRASE))
-				{
-					// It made it to the end of the file.  This mechanism is
-					// used to determine when we've already parsed the last
-					// top-level statement of a module, when only whitespace and
-					// comments remain.  Not appropriate for a module header.
+		parseOutermostStatement(state) { endState, headerPhrase ->
+			if (headerPhrase.phraseKindIsUnder(MARKER_PHRASE))
+			{
+				// It made it to the end of the file.  This mechanism is
+				// used to determine when we've already parsed the last
+				// top-level statement of a module, when only whitespace and
+				// comments remain.  Not appropriate for a module header.
+				compilationContext.diagnostics.reportError(
+					endState.lexingState,
+					"Unexpectedly reached end of file without "
+						+ "encountering module header.",
+					"")
+				return@parseOutermostStatement
+			}
+			if (!headerPhrase.phraseKindIsUnder(
+					EXPRESSION_AS_STATEMENT_PHRASE)
+				|| !headerPhrase.apparentSendName().equals(
+					MODULE_HEADER.atom))
+			{
+				// This shouldn't be possible, but in theory we might some
+				// day introduce non-root macros for arguments.
+				stringifyThen(
+					compilationContext.runtime,
+					compilationContext.textInterface,
+					headerPhrase
+				) { headerPhraseAsString ->
 					compilationContext.diagnostics.reportError(
-						solution.endState.lexingState,
-						"Unexpectedly reached end of file without "
-							+ "encountering module header.",
-						"")
-					return@Con1
+						endState.lexingState,
+						"Expected module header, but found this "
+							+ "phrase instead: %s",
+						headerPhraseAsString)
 				}
-				if (!headerPhrase.phraseKindIsUnder(
-						EXPRESSION_AS_STATEMENT_PHRASE)
-					|| !headerPhrase.apparentSendName().equals(
-						MODULE_HEADER.atom))
+				return@parseOutermostStatement
+			}
+			try
+			{
+				val ok = processHeaderMacro(
+					headerPhrase.expression(), endState)
+				if (ok)
 				{
-					// This shouldn't be possible, but in theory we might some
-					// day introduce non-root macros for arguments.
-					stringifyThen(
-						compilationContext.runtime,
-						compilationContext.textInterface,
-						headerPhrase
-					) { headerPhraseAsString ->
-						compilationContext.diagnostics.reportError(
-							solution.endState.lexingState,
-							"Expected module header, but found this "
-								+ "phrase instead: %s",
-							headerPhraseAsString)
-					}
-					return@Con1
+					onSuccess(endState)
 				}
-				try
-				{
-					val ok = processHeaderMacro(
-						headerPhrase.expression(), solution.endState)
-					if (ok)
-					{
-						onSuccess(solution.endState)
-					}
-				}
-				catch (e: Exception)
-				{
-					compilationContext.diagnostics.reportError(
-						solution.endState.lexingState,
-						"Unexpected exception encountered while processing "
-							+ "module header (ends at %s, line %d):",
-						trace(e))
-				}
-			})
+			}
+			catch (e: Exception)
+			{
+				compilationContext.diagnostics.reportError(
+					endState.lexingState,
+					"Unexpected exception encountered while processing "
+						+ "module header (ends at %s, line %d):",
+					trace(e))
+			}
+		}
 	}
 
 	/**
@@ -4032,12 +4051,15 @@ class AvailCompiler(
 	 *
 	 * @param start
 	 *   Where to start parsing.
+	 * @param superexpressions
+	 *   The enclosing partially-parsed expressions, if any.
 	 * @param originalContinuation
 	 *   What to do with the expression.
 	 */
 	private fun parseExpressionThen(
 		start: ParserState,
-		originalContinuation: Con1)
+		superexpressions: PartialSubexpressionList?,
+		originalContinuation: (ParserState, A_Phrase)->Unit)
 	{
 		// The first time we parse at this position the fragmentCache will have
 		// no knowledge about it.
@@ -4047,22 +4069,21 @@ class AvailCompiler(
 			// We're the (only) cause of the transition from hasn't-started to
 			// has-started.  Suppress reporting if there are no superexpressions
 			// being parsed, or if we're at the root of the bundle tree.
-			val isRoot = originalContinuation.superexpressions === null
-				|| originalContinuation.superexpressions.bundleTree.equals(
+			val isRoot = superexpressions === null
+				|| superexpressions.bundleTree.equals(
 					compilationContext.loader!!.rootBundleTree())
 			start.expected(if (isRoot) SILENT else WEAK) {
 				val builder = StringBuilder()
 				builder.append("an expression for (at least) this reason:")
-				describeOn(originalContinuation.superexpressions, builder)
+				describeOn(superexpressions, builder)
 				it(builder.toString())
 			}
-			start.workUnitDo(
-				{ a -> parseExpressionUncachedThen(start, a) },
-				Con1(originalContinuation.superexpressions) {
-					rendezvous.addSolution(it)
-				})
+			start.workUnitDo {
+				parseExpressionUncachedThen(
+					start, superexpressions, rendezvous::addSolution)
+			}
 		}
-		start.workUnitDo({ rendezvous.addAction(it) }, originalContinuation)
+		start.workUnitDo { rendezvous.addAction(originalContinuation) }
 	}
 
 	/**
@@ -4077,42 +4098,14 @@ class AvailCompiler(
 	 * @param continuation
 	 *   What to do with the (unambiguous) top-level statement.
 	 */
-	private fun parseOutermostStatement(start: ParserState, continuation: Con1)
+	private fun parseOutermostStatement(
+		start: ParserState,
+		continuation: (ParserState, A_Phrase)->Unit)
 	{
 		// If a parsing error happens during parsing of this outermost
 		// statement, only show the section of the file starting here.
 		recordExpectationsRelativeTo(start)
-		tryIfUnambiguousThen(
-			start,
-			{ whenFoundStatement ->
-				parseExpressionThen(
-					start,
-					Con1(null) { solution ->
-						val expression = solution.phrase
-						val afterExpression = solution.endState
-						if (expression.phraseKindIsUnder(STATEMENT_PHRASE))
-						{
-							whenFoundStatement(
-								CompilerSolution(
-									afterExpression, expression))
-							return@Con1
-						}
-						afterExpression.expected(
-							STRONG,
-							FormattingDescriber(
-								"an outer level statement, not %s (%s)",
-								expression.phraseKind(),
-								expression))
-					})
-				nextNonwhitespaceTokensDo(start) { token ->
-					if (token.tokenType() == END_OF_FILE)
-					{
-						whenFoundStatement(
-							CompilerSolution(start, endOfFileMarkerPhrase))
-					}
-				}
-			},
-			continuation)
+		tryIfUnambiguousThen(start, continuation)
 	}
 
 	/**
@@ -4120,22 +4113,21 @@ class AvailCompiler(
 	 *
 	 * @param start
 	 *   Where to start parsing.
+	 * @param superexpressions
+	 *   The enclosing partially-parsed expressions, if any.
 	 * @param continuation
 	 *   What to do with the expression.
 	 */
 	private fun parseExpressionUncachedThen(
 		start: ParserState,
-		continuation: Con1)
+		superexpressions: PartialSubexpressionList?,
+		continuation: (ParserState, A_Phrase)->Unit)
 	{
-		parseLeadingKeywordSendThen(
-			start,
-			Con1(continuation.superexpressions) { solution ->
-				parseOptionalLeadingArgumentSendAfterThen(
-					start,
-					solution.endState,
-					solution.phrase,
-					continuation)
-			})
+		parseLeadingKeywordSendThen(start, superexpressions) {
+			endState, phrase ->
+			parseOptionalLeadingArgumentSendAfterThen(
+				start, endState, phrase, superexpressions, continuation)
+		}
 	}
 
 	/**
@@ -4165,6 +4157,8 @@ class AvailCompiler(
 	 *   The arguments stack.
 	 * @param marksSoFar
 	 *   The marks stack.
+	 * @param superexpressions
+	 *   The enclosing partially-parsed expressions, if any.
 	 * @param continuation
 	 *   What to do with a completed phrase.
 	 */
@@ -4178,7 +4172,8 @@ class AvailCompiler(
 		consumedTokens: List<A_Token>,
 		argsSoFar: List<A_Phrase>,
 		marksSoFar: List<Int>,
-		continuation: Con1)
+		superexpressions: PartialSubexpressionList?,
+		continuation: (ParserState, A_Phrase)->Unit)
 	{
 		start.workUnitDo(
 			{
@@ -4192,6 +4187,7 @@ class AvailCompiler(
 					consumedTokens,
 					argsSoFar,
 					marksSoFar,
+					superexpressions,
 					continuation)
 			},
 			"ignored")

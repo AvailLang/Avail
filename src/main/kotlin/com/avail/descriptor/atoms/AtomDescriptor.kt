@@ -507,11 +507,10 @@ open class AtomDescriptor protected constructor(
 		fun createAtom(
 			name: A_String,
 			issuingModule: A_Module
-		) = with(mutable.create()) {
+		) = mutable.createImmutable {
 			setSlot(NAME, name)
 			setSlot(HASH_OR_ZERO, 0)
 			setSlot(ISSUING_MODULE, issuingModule)
-			makeImmutable()
 		}
 
 		/**
@@ -529,11 +528,10 @@ open class AtomDescriptor protected constructor(
 		@JvmStatic
 		fun createSpecialAtom(
 			name: String
-		) = with(mutable.create()) {
+		) = mutable.createShared {
 			setSlot(NAME, stringFrom(name).makeShared())
 			setSlot(HASH_OR_ZERO, 0)
 			setSlot(ISSUING_MODULE, nil)
-			makeShared()
 		}.apply {
 			setDescriptor(sharedAndSpecial)
 		}
@@ -554,11 +552,10 @@ open class AtomDescriptor protected constructor(
 		private fun createSpecialBooleanAtom(
 			name: String,
 			booleanValue: Boolean
-		) = with(mutable.create()) {
+		) = mutable.createShared {
 			setSlot(NAME, stringFrom(name).makeShared())
 			setSlot(HASH_OR_ZERO, 0)
 			setSlot(ISSUING_MODULE, nil)
-			makeShared()
 		}.apply {
 			setDescriptor(
 				if (booleanValue) sharedAndSpecialForTrue

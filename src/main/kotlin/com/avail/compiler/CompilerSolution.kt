@@ -80,4 +80,10 @@ internal class CompilerSolution constructor(
 		return "Solution(@${endState.position}: ${endState.clientDataMap}) " +
 			   "= $phrase"
 	}
+
+	/** Support Kotlin deconstructor syntax for (endState, phrase). */
+	operator fun component1() = endState
+
+	/** Support Kotlin deconstructor syntax for (endState, phrase). */
+	operator fun component2() = phrase
 }

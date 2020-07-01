@@ -47,6 +47,7 @@ import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottomMeta
+import com.avail.descriptor.types.EnumerationTypeDescriptor.ObjectSlots.*
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
@@ -123,7 +124,7 @@ class EnumerationTypeDescriptor private constructor(mutability: Mutability)
 	 */
 	private fun rawGetSuperkind(self: AvailObject): A_Type
 	{
-		var cached: A_Type = self.slot(ObjectSlots.CACHED_SUPERKIND)
+		var cached: A_Type = self.slot(CACHED_SUPERKIND)
 		if (cached.equalsNil())
 		{
 			cached = bottom()
@@ -139,7 +140,7 @@ class EnumerationTypeDescriptor private constructor(mutability: Mutability)
 			{
 				cached = cached.traversed().makeShared()
 			}
-			self.setSlot(ObjectSlots.CACHED_SUPERKIND, cached)
+			self.setSlot(CACHED_SUPERKIND, cached)
 		}
 		return cached
 	}
@@ -163,7 +164,7 @@ class EnumerationTypeDescriptor private constructor(mutability: Mutability)
 	}
 
 	override fun allowsImmutableToMutableReferenceInField(
-		e: AbstractSlotsEnum): Boolean = e === ObjectSlots.CACHED_SUPERKIND
+		e: AbstractSlotsEnum): Boolean = e === CACHED_SUPERKIND
 
 	override fun o_ComputeSuperkind(self: AvailObject): A_Type =
 		getSuperkind(self)
@@ -574,7 +575,7 @@ class EnumerationTypeDescriptor private constructor(mutability: Mutability)
 	override fun o_IsBetterRepresentationThan(
 		self: AvailObject,
 		anotherObject: A_BasicObject): Boolean =
-			!self.mutableSlot(ObjectSlots.CACHED_SUPERKIND).equalsNil()
+			!self.mutableSlot(CACHED_SUPERKIND).equalsNil()
 
 	override fun o_KeyType(self: AvailObject): A_Type =
 		getSuperkind(self).keyType()
@@ -631,7 +632,7 @@ class EnumerationTypeDescriptor private constructor(mutability: Mutability)
 		writer.write("kind")
 		getSuperkind(self).writeTo(writer)
 		writer.write("instances")
-		self.slot(ObjectSlots.INSTANCES).writeTo(writer)
+		self.slot(INSTANCES).writeTo(writer)
 		writer.endObject()
 	}
 
@@ -641,7 +642,7 @@ class EnumerationTypeDescriptor private constructor(mutability: Mutability)
 		writer.write("kind")
 		getSuperkind(self).writeSummaryTo(writer)
 		writer.write("instances")
-		self.slot(ObjectSlots.INSTANCES).writeSummaryTo(writer)
+		self.slot(INSTANCES).writeSummaryTo(writer)
 		writer.endObject()
 	}
 
@@ -684,7 +685,7 @@ class EnumerationTypeDescriptor private constructor(mutability: Mutability)
 		 * @return
 		 *   The instances of this enumeration.
 		 */
-		fun getInstances(self: AvailObject): A_Set = self.slot(ObjectSlots.INSTANCES)
+		fun getInstances(self: AvailObject): A_Set = self.slot(INSTANCES)
 
 		/**
 		 * Construct an enumeration type from a [set][SetDescriptor] with at
@@ -699,10 +700,10 @@ class EnumerationTypeDescriptor private constructor(mutability: Mutability)
 		fun fromNormalizedSet(normalizedSet: A_Set): A_Type
 		{
 			assert(normalizedSet.setSize() > 1)
-			val result = mutable.create()
-			result.setSlot(ObjectSlots.INSTANCES, normalizedSet.makeImmutable())
-			result.setSlot(ObjectSlots.CACHED_SUPERKIND, NilDescriptor.nil)
-			return result
+			return mutable.create {
+				setSlot(INSTANCES, normalizedSet.makeImmutable())
+				setSlot(CACHED_SUPERKIND, NilDescriptor.nil)
+			}
 		}
 
 		/** The mutable [EnumerationTypeDescriptor].  */

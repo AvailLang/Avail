@@ -40,6 +40,7 @@ package com.avail.descriptor.parsing
  import com.avail.descriptor.parsing.A_Lexer.Companion.lexerBodyFunction
  import com.avail.descriptor.parsing.A_Lexer.Companion.lexerFilterFunction
  import com.avail.descriptor.parsing.A_Lexer.Companion.lexerMethod
+ import com.avail.descriptor.parsing.LexerDescriptor.IntegerSlots.Companion.HASH
  import com.avail.descriptor.parsing.LexerDescriptor.ObjectSlots.DEFINITION_MODULE
  import com.avail.descriptor.parsing.LexerDescriptor.ObjectSlots.LEXER_BODY_FUNCTION
  import com.avail.descriptor.parsing.LexerDescriptor.ObjectSlots.LEXER_FILTER_FUNCTION
@@ -179,7 +180,7 @@ class LexerDescriptor private constructor(
 		return when {
 			otherTraversed.sameAddressAs(self) -> true
 			otherTraversed.typeTag() != TypeTag.LEXER_TAG -> false
-			self.slot(IntegerSlots.HASH) != otherTraversed.hash() -> false
+			self.slot(HASH) != otherTraversed.hash() -> false
 			!self.slot(LEXER_METHOD).equals(otherTraversed.definitionModule())
 				-> false
 			!self.slot(LEXER_FILTER_FUNCTION)
@@ -195,7 +196,7 @@ class LexerDescriptor private constructor(
 		}
 	}
 
-	override fun o_Hash(self: AvailObject): Int = self.slot(IntegerSlots.HASH)
+	override fun o_Hash(self: AvailObject): Int = self.slot(HASH)
 
 	override fun o_Kind(self: AvailObject): A_Type = Types.LEXER.o()
 
@@ -279,7 +280,7 @@ class LexerDescriptor private constructor(
 			lexerMethod: A_Method,
 			definitionModule: A_Module
 		): A_Lexer {
-			return mutable.create().apply {
+			val lexer = mutable.createShared {
 				setSlot(LEXER_FILTER_FUNCTION, lexerFilterFunction)
 				setSlot(LEXER_BODY_FUNCTION, lexerBodyFunction!!)
 				setSlot(LEXER_METHOD, lexerMethod)
@@ -291,13 +292,13 @@ class LexerDescriptor private constructor(
 				hash = hash xor lexerMethod.hash() + 0x520C1078
 				hash *= multiplier
 				hash = hash xor definitionModule.hash() - -0x463e0e17
-				setSlot(IntegerSlots.HASH, hash)
-				makeShared()
-				lexerMethod.setLexer(this)
-				if (!definitionModule.equalsNil()) {
-					definitionModule.addLexer(this)
-				}
+				setSlot(HASH, hash)
 			}
+			lexerMethod.setLexer(lexer)
+			if (!definitionModule.equalsNil()) {
+				definitionModule.addLexer(lexer)
+			}
+			return lexer
 		}
 
 		/** The mutable [LexerDescriptor]. */

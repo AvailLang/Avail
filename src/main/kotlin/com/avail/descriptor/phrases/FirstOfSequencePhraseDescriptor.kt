@@ -229,9 +229,8 @@ class FirstOfSequencePhraseDescriptor private constructor(
 		 */
 		fun newFirstOfSequenceNode(statements: A_Tuple): A_Phrase {
 			assert(statements.tupleSize() > 1)
-			return mutable.create().apply {
+			return mutable.createShared {
 				setSlot(STATEMENTS, statements)
-				makeShared()
 			}
 		}
 

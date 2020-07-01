@@ -191,12 +191,11 @@ class GrammaticalRestrictionDescriptor private constructor(
 			argumentRestrictionSets: A_Tuple,
 			restrictedBundle: A_Bundle,
 			module: A_Module
-		): A_GrammaticalRestriction = with(mutable.create()) {
+		): A_GrammaticalRestriction = mutable.createShared {
 			setSlot(HASH, AvailRuntimeSupport.nextNonzeroHash())
 			setSlot(ARGUMENT_RESTRICTION_SETS, argumentRestrictionSets)
 			setSlot(RESTRICTED_BUNDLE, restrictedBundle)
 			setSlot(DEFINITION_MODULE, module)
-			makeShared()
 		}
 
 		/** The mutable [GrammaticalRestrictionDescriptor].  */

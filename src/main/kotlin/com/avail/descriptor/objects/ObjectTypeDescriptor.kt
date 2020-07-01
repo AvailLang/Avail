@@ -407,20 +407,21 @@ class ObjectTypeDescriptor internal constructor(
 		val otherVariant = otherDescriptor.variant
 		if (otherVariant == variant) {
 			// Field slot indices agree, so blast through the slots in order.
-			val intersection = variant.mutableObjectTypeDescriptor.create(
-				variant.realSlotCount)
-			(1..variant.realSlotCount).forEach {
-				val fieldIntersection =
-					self.slot(FIELD_TYPES_, it).typeIntersection(
-						anObjectType.slot(FIELD_TYPES_, it))
-				if (fieldIntersection.isBottom) {
-					// Abandon the partially built object type.
-					return bottom()
+			return variant.mutableObjectTypeDescriptor.create(
+				variant.realSlotCount
+			) {
+				(1..variant.realSlotCount).forEach {
+					val fieldIntersection =
+						self.slot(FIELD_TYPES_, it).typeIntersection(
+							anObjectType.slot(FIELD_TYPES_, it))
+					if (fieldIntersection.isBottom) {
+						// Abandon the partially built object type.
+						return bottom()
+					}
+					setSlot(FIELD_TYPES_, it, fieldIntersection)
 				}
-				intersection.setSlot(FIELD_TYPES_, it, fieldIntersection)
+				setSlot(HASH_OR_ZERO, 0)
 			}
-			intersection.setSlot(HASH_OR_ZERO, 0)
-			return intersection
 		}
 		// The variants disagree, so do it the hard(er) way.
 		val mergedFields = variant.allFields.setUnionCanDestroy(
@@ -429,30 +430,37 @@ class ObjectTypeDescriptor internal constructor(
 		val mySlotMap = variant.fieldToSlotIndex
 		val otherSlotMap = otherVariant.fieldToSlotIndex
 		val resultSlotMap = resultVariant.fieldToSlotIndex
-		val result = resultVariant.mutableObjectTypeDescriptor.create(
-			resultVariant.realSlotCount)
-		resultSlotMap.forEach { (field, resultSlotIndex) ->
-			if (resultSlotIndex > 0) {
-				val mySlotIndex = mySlotMap[field]
-				val otherSlotIndex = otherSlotMap[field]
-				val fieldType = when {
-					mySlotIndex === null ->
-						anObjectType.slot(FIELD_TYPES_, otherSlotIndex!!)
-					otherSlotIndex === null ->
-						self.slot(FIELD_TYPES_, mySlotIndex)
-					else -> {
-						val intersection = self.slot(FIELD_TYPES_, mySlotIndex)
-							.typeIntersection(
-								anObjectType.slot(FIELD_TYPES_, otherSlotIndex))
-						if (intersection.isBottom) return bottom()
-						intersection
+		return resultVariant.mutableObjectTypeDescriptor.create(
+			resultVariant.realSlotCount
+		) {
+			resultSlotMap.forEach { (field, resultSlotIndex) ->
+				if (resultSlotIndex > 0)
+				{
+					val mySlotIndex = mySlotMap[field]
+					val otherSlotIndex = otherSlotMap[field]
+					val fieldType = when
+					{
+						mySlotIndex === null ->
+							anObjectType.slot(FIELD_TYPES_, otherSlotIndex!!)
+						otherSlotIndex === null ->
+							self.slot(FIELD_TYPES_, mySlotIndex)
+						else ->
+						{
+							val intersection = self
+								.slot(FIELD_TYPES_, mySlotIndex)
+								.typeIntersection(
+									anObjectType.slot(
+										FIELD_TYPES_,
+										otherSlotIndex))
+							if (intersection.isBottom) return bottom()
+							intersection
+						}
 					}
+					setSlot(FIELD_TYPES_, resultSlotIndex, fieldType)
 				}
-				result.setSlot(FIELD_TYPES_, resultSlotIndex, fieldType)
 			}
+			setSlot(HASH_OR_ZERO, 0)
 		}
-		result.setSlot(HASH_OR_ZERO, 0)
-		return result
 	}
 
 	override fun o_TypeUnion(
@@ -476,15 +484,16 @@ class ObjectTypeDescriptor internal constructor(
 		val otherVariant = otherDescriptor.variant
 		if (otherVariant == variant) {
 			// Field slot indices agree, so blast through the slots in order.
-			val union = variant.mutableObjectTypeDescriptor.create(
-				variant.realSlotCount)
-			(1..variant.realSlotCount).forEach {
-				val fieldUnion = self.slot(FIELD_TYPES_, it).typeUnion(
-					anObjectType.slot(FIELD_TYPES_, it))
-				union.setSlot(FIELD_TYPES_, it, fieldUnion)
+			return variant.mutableObjectTypeDescriptor.create(
+				variant.realSlotCount
+			) {
+				(1..variant.realSlotCount).forEach {
+					val fieldUnion = self.slot(FIELD_TYPES_, it).typeUnion(
+						anObjectType.slot(FIELD_TYPES_, it))
+					setSlot(FIELD_TYPES_, it, fieldUnion)
+				}
+				setSlot(HASH_OR_ZERO, 0)
 			}
-			union.setSlot(HASH_OR_ZERO, 0)
-			return union
 		}
 		// The variants disagree, so do it the hard(er) way.
 		val narrowedFields = variant.allFields.setIntersectionCanDestroy(
@@ -493,19 +502,23 @@ class ObjectTypeDescriptor internal constructor(
 		val mySlotMap = variant.fieldToSlotIndex
 		val otherSlotMap = otherVariant.fieldToSlotIndex
 		val resultSlotMap = resultVariant.fieldToSlotIndex
-		val result = resultVariant.mutableObjectTypeDescriptor.create(
-			resultVariant.realSlotCount)
-		resultSlotMap.forEach { (field, resultSlotIndex) ->
-			if (resultSlotIndex > 0) {
-				val mySlotIndex = mySlotMap[field]!!
-				val otherSlotIndex = otherSlotMap[field]!!
-				val fieldType = self.slot(FIELD_TYPES_, mySlotIndex).typeUnion(
-					anObjectType.slot(FIELD_TYPES_, otherSlotIndex))
-				result.setSlot(FIELD_TYPES_, resultSlotIndex, fieldType)
+		return resultVariant.mutableObjectTypeDescriptor.create(
+			resultVariant.realSlotCount
+		) {
+			resultSlotMap.forEach { (field, resultSlotIndex) ->
+				if (resultSlotIndex > 0)
+				{
+					val mySlotIndex = mySlotMap[field]!!
+					val otherSlotIndex = otherSlotMap[field]!!
+					val fieldType = self
+						.slot(FIELD_TYPES_, mySlotIndex)
+						.typeUnion(
+							anObjectType.slot(FIELD_TYPES_, otherSlotIndex))
+					setSlot(FIELD_TYPES_, resultSlotIndex, fieldType)
+				}
 			}
+			setSlot(HASH_OR_ZERO, 0)
 		}
-		result.setSlot(HASH_OR_ZERO, 0)
-		return result
 	}
 
 	@ThreadSafe
@@ -541,7 +554,7 @@ class ObjectTypeDescriptor internal constructor(
 	 *   An object type.
 	 */
 	fun createFromObject(self: AvailObject): AvailObject =
-		create(variant.realSlotCount).apply {
+		create(variant.realSlotCount) {
 			(1..variant.realSlotCount).forEach {
 				val fieldValue = ObjectDescriptor.getField(self, it)
 				setSlot(FIELD_TYPES_, it, instanceTypeOrMetaOn(fieldValue))
@@ -595,7 +608,7 @@ class ObjectTypeDescriptor internal constructor(
 			val variant: ObjectLayoutVariant = variantForFields(map.keysAsSet())
 			val mutableDescriptor = variant.mutableObjectTypeDescriptor
 			val slotMap = variant.fieldToSlotIndex
-			return mutableDescriptor.create(variant.realSlotCount).apply {
+			return mutableDescriptor.create(variant.realSlotCount) {
 				map.mapIterable().forEach { (key, value) ->
 					val slotIndex = slotMap[key]!!
 					if (slotIndex > 0) {
@@ -635,8 +648,9 @@ class ObjectTypeDescriptor internal constructor(
 		fun createUninitializedObjectType(
 			variant: ObjectLayoutVariant
 		): AvailObject =
-			(variant.mutableObjectTypeDescriptor.create(variant.realSlotCount))
-				.apply { setSlot(HASH_OR_ZERO, 0) }
+			variant.mutableObjectTypeDescriptor.create(variant.realSlotCount) {
+				setSlot(HASH_OR_ZERO, 0)
+			}
 
 		/**
 		 * Assign a name to the specified `object type`.  If the only field key

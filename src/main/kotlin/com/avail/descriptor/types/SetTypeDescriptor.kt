@@ -355,11 +355,10 @@ class SetTypeDescriptor private constructor(mutability: Mutability)
 					newContentType = contentType
 				}
 			}
-			val result = mutable.create()
-			result.setSlot(ObjectSlots.SIZE_RANGE, newSizeRange)
-			result.setSlot(ObjectSlots.CONTENT_TYPE, newContentType)
-			result.makeShared()
-			return result
+			return mutable.createShared {
+				setSlot(ObjectSlots.SIZE_RANGE, newSizeRange)
+				setSlot(ObjectSlots.CONTENT_TYPE, newContentType)
+			}
 		}
 
 		/** The mutable [SetTypeDescriptor].  */

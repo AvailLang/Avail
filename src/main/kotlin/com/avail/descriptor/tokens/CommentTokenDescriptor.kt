@@ -40,7 +40,11 @@ import com.avail.descriptor.representation.BitField
 import com.avail.descriptor.representation.IntegerSlotsEnum
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.NilDescriptor
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.representation.ObjectSlotsEnum
+import com.avail.descriptor.tokens.CommentTokenDescriptor.IntegerSlots.Companion.LINE_NUMBER
+import com.avail.descriptor.tokens.CommentTokenDescriptor.IntegerSlots.Companion.START
+import com.avail.descriptor.tokens.CommentTokenDescriptor.ObjectSlots.*
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.StringDescriptor
 import com.avail.descriptor.types.TypeTag
@@ -139,7 +143,7 @@ class CommentTokenDescriptor private constructor(mutability: Mutability)
 
 	override fun allowsImmutableToMutableReferenceInField(
 		e: AbstractSlotsEnum): Boolean =
-			(e === ObjectSlots.NEXT_LEXING_STATE_POJO
+			(e === NEXT_LEXING_STATE_POJO
 		        || super.allowsImmutableToMutableReferenceInField(e))
 
 	override fun o_SerializerOperation(
@@ -155,9 +159,9 @@ class CommentTokenDescriptor private constructor(mutability: Mutability)
 			at("token type") {
 				write(self.tokenType().name.toLowerCase().replace('_', ' '))
 			}
-			at("start") { write(self.slot(IntegerSlots.START)) }
-			at("line number") { write(self.slot(IntegerSlots.LINE_NUMBER)) }
-			at("lexeme") { self.slot(ObjectSlots.STRING).writeTo(writer) }
+			at("start") { write(self.slot(START)) }
+			at("line number") { write(self.slot(LINE_NUMBER)) }
+			at("lexeme") { self.slot(STRING).writeTo(writer) }
 		}
 
 	override fun mutable() = mutable
@@ -185,12 +189,12 @@ class CommentTokenDescriptor private constructor(mutability: Mutability)
 			start: Int,
 			lineNumber: Int): A_Token
 		{
-			val instance = mutable.create()
-			instance.setSlot(ObjectSlots.STRING, string!!)
-			instance.setSlot(IntegerSlots.START, start)
-			instance.setSlot(IntegerSlots.LINE_NUMBER, lineNumber)
-			instance.setSlot(ObjectSlots.NEXT_LEXING_STATE_POJO, NilDescriptor.nil)
-			return instance.makeShared()
+			return mutable.createShared {
+				setSlot(STRING, string!!)
+				setSlot(START, start)
+				setSlot(LINE_NUMBER, lineNumber)
+				setSlot(NEXT_LEXING_STATE_POJO, nil)
+			}
 		}
 
 		/** The mutable [LiteralTokenDescriptor].  */

@@ -164,11 +164,10 @@ class AbstractDefinitionDescriptor private constructor(
 			definitionMethod: A_Method,
 			definitionModule: A_Module,
 			bodySignature: A_Type
-		): A_Definition = with(mutable.create()) {
+		): A_Definition = mutable.createShared {
 			setSlot(DEFINITION_METHOD, definitionMethod)
 			setSlot(MODULE, definitionModule)
 			setSlot(BODY_SIGNATURE, bodySignature)
-			makeShared()
 		}
 
 		/** The mutable [AbstractDefinitionDescriptor].  */

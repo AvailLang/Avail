@@ -434,11 +434,11 @@ internal class ArrayPojoTypeDescriptor private constructor(
 				equalityPojo(PojoArray::class.java),
 				tuple(elementType),
 				false)
-			val newObject = mutable.create()
-			newObject.setSlot(JAVA_ANCESTORS, javaAncestors)
-			newObject.setSlot(CONTENT_TYPE, elementType)
-			newObject.setSlot(SIZE_RANGE, sizeRange)
-			return newObject.makeImmutable()
+			return mutable.createImmutable {
+				setSlot(JAVA_ANCESTORS, javaAncestors)
+				setSlot(CONTENT_TYPE, elementType)
+				setSlot(SIZE_RANGE, sizeRange)
+			}
 		}
 
 		init

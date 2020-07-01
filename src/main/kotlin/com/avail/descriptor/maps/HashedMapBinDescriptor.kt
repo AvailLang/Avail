@@ -334,21 +334,22 @@ class HashedMapBinDescriptor private constructor(
 			if (!canDestroy && isMutable) {
 				self.makeSubobjectsImmutable()
 			}
-			objectToModify = descriptorFor(MUTABLE, level)
-				.create(objectEntryCount + 1)
-			objectToModify.setSlot(BIT_VECTOR, vector or (1L shl logicalIndex))
-			objectToModify.setSlotsFromObjectSlots(
-				SUB_BINS_, 1, self, SUB_BINS_, 1, physicalIndex - 1)
-			val newSingleBin = createSingleLinearMapBin(
-				key, keyHash, value, myLevel + 1)
-			objectToModify.setSlot(SUB_BINS_, physicalIndex, newSingleBin)
-			objectToModify.setSlotsFromObjectSlots(
-				SUB_BINS_,
-				physicalIndex + 1,
-				self,
-				SUB_BINS_,
-				physicalIndex,
-				objectEntryCount - physicalIndex + 1)
+			objectToModify =
+				descriptorFor(MUTABLE, level).create(objectEntryCount + 1) {
+					setSlot(BIT_VECTOR, vector or (1L shl logicalIndex))
+					setSlotsFromObjectSlots(
+						SUB_BINS_, 1, self, SUB_BINS_, 1, physicalIndex - 1)
+					val newSingleBin = createSingleLinearMapBin(
+						key, keyHash, value, myLevel + 1)
+					setSlot(SUB_BINS_, physicalIndex, newSingleBin)
+					setSlotsFromObjectSlots(
+						SUB_BINS_,
+						physicalIndex + 1,
+						self,
+						SUB_BINS_,
+						physicalIndex,
+						objectEntryCount - physicalIndex + 1)
+				}
 		}
 		assert(objectToModify.descriptor().isMutable)
 		objectToModify.setSlot(KEYS_HASH, oldKeysHash + hashDelta)
@@ -698,20 +699,20 @@ class HashedMapBinDescriptor private constructor(
 			bitVector: Long
 		): AvailObject {
 			val newSize: Int = java.lang.Long.bitCount(bitVector)
-			val result = descriptorFor(MUTABLE, myLevel).create(newSize)
-			result.setSlot(KEYS_HASH, 0)
-			result.setSlot(VALUES_HASH_OR_ZERO, 0)
-			result.setSlot(BIN_SIZE, 0)
-			result.setSlot(BIT_VECTOR, bitVector)
-			result.setSlot(BIN_KEY_UNION_KIND_OR_NIL, nil)
-			result.setSlot(BIN_VALUE_UNION_KIND_OR_NIL, nil)
-			result.fillSlots(
-				SUB_BINS_,
-				1,
-				newSize,
-				emptyLinearMapBin(myLevel + 1))
-			checkHashedMapBin(result)
-			return result
+			return descriptorFor(MUTABLE, myLevel).create(newSize) {
+				setSlot(KEYS_HASH, 0)
+				setSlot(VALUES_HASH_OR_ZERO, 0)
+				setSlot(BIN_SIZE, 0)
+				setSlot(BIT_VECTOR, bitVector)
+				setSlot(BIN_KEY_UNION_KIND_OR_NIL, nil)
+				setSlot(BIN_VALUE_UNION_KIND_OR_NIL, nil)
+				fillSlots(
+					SUB_BINS_,
+					1,
+					newSize,
+					emptyLinearMapBin(myLevel + 1))
+				checkHashedMapBin(this)
+			}
 		}
 
 		/**

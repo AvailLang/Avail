@@ -232,12 +232,11 @@ class MacroDefinitionDescriptor private constructor(
 			definitionModule: A_Module,
 			bodyBlock: A_Function,
 			prefixFunctions: A_Tuple
-		): A_Definition = with(mutable.create()) {
+		): A_Definition = mutable.createShared {
 			setSlot(DEFINITION_METHOD, method)
 			setSlot(MODULE, definitionModule)
 			setSlot(BODY_BLOCK, bodyBlock)
 			setSlot(MACRO_PREFIX_FUNCTIONS, prefixFunctions)
-			makeShared()
 		}
 
 		/** The mutable [MacroDefinitionDescriptor].  */

@@ -43,6 +43,9 @@ import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.FunctionTypeDescriptor
+import com.avail.descriptor.types.InstanceMetaDescriptor
+import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor
 import com.avail.descriptor.types.TypeDescriptor
 import com.avail.interpreter.Primitive
@@ -78,6 +81,7 @@ import com.avail.interpreter.levelTwo.operation.L2_BOX_FLOAT
 import com.avail.interpreter.levelTwo.operation.L2_BOX_INT
 import com.avail.interpreter.levelTwo.operation.L2_CREATE_TUPLE
 import com.avail.interpreter.levelTwo.operation.L2_CREATE_TUPLE.tupleSourceRegistersOf
+import com.avail.interpreter.levelTwo.operation.L2_FUNCTION_PARAMETER_TYPE
 import com.avail.interpreter.levelTwo.operation.L2_JUMP
 import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_UNBOX_FLOAT
 import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_UNBOX_INT
@@ -1006,6 +1010,58 @@ class L2Generator internal constructor(
 	}
 
 	/**
+	 * If we can determine where the function in this register came from, and
+	 * unambiguously determine the function's exact
+	 * [signature][FunctionTypeDescriptor], answer it.
+	 *
+	 * @param functionReg
+	 *   The register that contains the function to investigate.
+	 * @return
+	 *   Either the exact signature that this function will always have (a
+	 *   function type), or `null`.
+	 */
+	fun exactFunctionSignatureFor(functionReg: L2ReadBoxedOperand): A_Type? =
+		functionReg.exactFunctionType()
+
+	/**
+	 * Given a register containing a function and a parameter index, emit code
+	 * to extract the parameter type at runtime from the actual function.
+	 *
+	 * @param functionRead
+	 *   The register that will hold the function at runtime.
+	 * @param parameterIndex
+	 *   Which function parameter should have its type extracted.
+	 * @return
+	 *   The register containing the parameter type.
+	 */
+	fun extractParameterTypeFromFunction(
+		functionRead: L2ReadBoxedOperand,
+		parameterIndex: Int
+	): L2ReadBoxedOperand
+	{
+		// First, see if the function type is exactly known.
+		val exactFunctionType = exactFunctionSignatureFor(functionRead)
+		if (exactFunctionType !== null)
+		{
+			return boxedConstant(
+				exactFunctionType
+					.argsTupleType()
+					.typeAtIndex(parameterIndex))
+		}
+		// Extract it at runtime instead.
+		val parameterTypeWrite = boxedWriteTemp(
+			restrictionForType(
+				anyMeta(),
+				RestrictionFlagEncoding.BOXED))
+		addInstruction(
+			L2_FUNCTION_PARAMETER_TYPE,
+			functionRead,
+			L2IntImmediateOperand(parameterIndex),
+			parameterTypeWrite)
+		return readBoxed(parameterTypeWrite)
+	}
+
+	/**
 	 * Answer a semantic value representing the result of invoking a foldable
 	 * primitive.
 	 *
@@ -1018,10 +1074,11 @@ class L2Generator internal constructor(
 	 */
 	fun primitiveInvocation(
 		primitive: Primitive,
-		argumentReads: List<L2ReadBoxedOperand>): L2SemanticValue =
-			primitiveInvocation(
-				primitive,
-				argumentReads.map { it.semanticValue() })
+		argumentReads: List<L2ReadBoxedOperand>
+	): L2SemanticValue =
+		primitiveInvocation(
+			primitive,
+			argumentReads.map { it.semanticValue() })
 
 	/**
 	 * Create a new [L2BasicBlock].  It's initially not connected to anything,

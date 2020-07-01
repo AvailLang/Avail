@@ -522,7 +522,7 @@ class DoubleDescriptor private constructor(
 		@JvmStatic
 		@ReferencedInGeneratedCode
 		fun fromDouble(aDouble: Double): A_Number =
-			mutable.create().apply {
+			mutable.create {
 				setSlot(LONG_BITS, doubleToRawLongBits(aDouble))
 			}
 
@@ -557,7 +557,7 @@ class DoubleDescriptor private constructor(
 				if (canDestroy && recyclable1.descriptor().isMutable) {
 					recyclable1 as AvailObject
 				} else {
-					mutable.create()
+					mutable.create { }
 				}
 			result.setSlot(LONG_BITS, doubleToRawLongBits(aDouble))
 			return result
@@ -590,7 +590,7 @@ class DoubleDescriptor private constructor(
 					recyclable1 as AvailObject
 				canDestroy && recyclable2.descriptor().isMutable ->
 					recyclable2 as AvailObject
-				else -> mutable.create()
+				else -> mutable.create { }
 			}
 			val castAsLong = doubleToRawLongBits(aDouble)
 			result.setSlot(LONG_BITS, castAsLong)

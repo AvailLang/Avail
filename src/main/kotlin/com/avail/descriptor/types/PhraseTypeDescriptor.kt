@@ -60,6 +60,7 @@ import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFu
 import com.avail.descriptor.types.ListPhraseTypeDescriptor.Companion.createListNodeType
 import com.avail.descriptor.types.ListPhraseTypeDescriptor.Companion.createListNodeTypeNoCheck
 import com.avail.descriptor.types.LiteralTokenTypeDescriptor.Companion.literalTokenType
+import com.avail.descriptor.types.PhraseTypeDescriptor.ObjectSlots.*
 import com.avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
@@ -418,12 +419,10 @@ open class PhraseTypeDescriptor protected constructor(
 		 * @return
 		 *   The new phrase type, whose kind is the receiver.
 		 */
-		open fun createNoCheck(yieldType: A_Type): A_Type
-		{
-			val type = mutableDescriptor.create()
-			type.setSlot(ObjectSlots.EXPRESSION_TYPE, yieldType.makeImmutable())
-			return type
-		}
+		open fun createNoCheck(yieldType: A_Type): A_Type =
+			mutableDescriptor.create {
+				setSlot(EXPRESSION_TYPE, yieldType.makeImmutable())
+			}
 
 		/** The descriptor for mutable instances of this kind.  */
 		val mutableDescriptor: PhraseTypeDescriptor
@@ -635,7 +634,7 @@ open class PhraseTypeDescriptor protected constructor(
 	 *   by a phrase of this type.
 	 */
 	override fun o_ExpressionType(self: AvailObject): A_Type =
-		self.slot(ObjectSlots.EXPRESSION_TYPE)
+		self.slot(EXPRESSION_TYPE)
 
 	/**
 	 * {@inheritDoc}
@@ -656,7 +655,7 @@ open class PhraseTypeDescriptor protected constructor(
 		self: AvailObject,
 		aPhraseType: A_Type): Boolean =
 			(kind === aPhraseType.phraseKind()
-		        && self.slot(ObjectSlots.EXPRESSION_TYPE).equals(
+		        && self.slot(EXPRESSION_TYPE).equals(
 					aPhraseType.expressionType()))
 
 	/**
@@ -668,7 +667,7 @@ open class PhraseTypeDescriptor protected constructor(
 		var hash = self.slot(IntegerSlots.HASH_OR_ZERO)
 		if (hash == 0)
 		{
-			hash = (self.slot(ObjectSlots.EXPRESSION_TYPE).hash()
+			hash = (self.slot(EXPRESSION_TYPE).hash()
 				xor kind.ordinal * AvailObject.multiplier)
 			self.setSlot(IntegerSlots.HASH_OR_ZERO, hash)
 		}
@@ -716,7 +715,7 @@ open class PhraseTypeDescriptor protected constructor(
 	override fun o_SubexpressionsTupleType(self: AvailObject): A_Type =
 		// Only applicable if the expression type is a tuple type.
 		TupleTypeDescriptor.tupleTypeFromTupleOfTypes(
-			self.slot(ObjectSlots.EXPRESSION_TYPE)) { yieldType: A_Type ->
+			self.slot(EXPRESSION_TYPE)) { yieldType: A_Type ->
 				PhraseKind.PARSE_PHRASE.create(yieldType)
 		}
 
@@ -750,7 +749,7 @@ open class PhraseTypeDescriptor protected constructor(
 		// It should be safe to assume the mostGeneralType() of a subkind is
 		// always a subtype of the mostGeneralType() of a superkind.
 		return intersectionKind.createNoCheck(
-			self.slot(ObjectSlots.EXPRESSION_TYPE).typeIntersection(
+			self.slot(EXPRESSION_TYPE).typeIntersection(
 				aPhraseType.expressionType()))
 	}
 
@@ -778,7 +777,7 @@ open class PhraseTypeDescriptor protected constructor(
 		val unionKind = kind.commonAncestorWith(
 			aPhraseType.phraseKind())
 		return unionKind.createNoCheck(
-			self.slot(ObjectSlots.EXPRESSION_TYPE).typeUnion(
+			self.slot(EXPRESSION_TYPE).typeUnion(
 				aPhraseType.expressionType()))
 	}
 
@@ -788,7 +787,7 @@ open class PhraseTypeDescriptor protected constructor(
 		writer.write("kind")
 		writer.write(kind.jsonName)
 		writer.write("expression type")
-		self.slot(ObjectSlots.EXPRESSION_TYPE).writeTo(writer)
+		self.slot(EXPRESSION_TYPE).writeTo(writer)
 		writer.endObject()
 	}
 

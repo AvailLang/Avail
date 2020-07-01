@@ -204,10 +204,10 @@ class ParsingPlanInProgressDescriptor private constructor(
 		fun newPlanInProgress(
 			plan: A_DefinitionParsingPlan,
 			pc: Int
-		): A_ParsingPlanInProgress = mutable.create().apply {
+		): A_ParsingPlanInProgress = mutable.createShared {
 			setSlot(PARSING_PLAN, plan)
 			setSlot(PARSING_PC, pc)
-		}.makeShared()
+		}
 
 		/** The mutable [ParsingPlanInProgressDescriptor].  */
 		private val mutable =

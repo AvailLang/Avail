@@ -52,6 +52,7 @@ import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.types.ArrayPojoTypeDescriptor.PojoArray
 import com.avail.descriptor.types.BottomPojoTypeDescriptor.Companion.pojoBottom
+import com.avail.descriptor.types.SelfPojoTypeDescriptor.ObjectSlots.*
 import com.avail.serialization.SerializerOperation
 import java.lang.reflect.Modifier
 import java.util.*
@@ -99,10 +100,10 @@ class SelfPojoTypeDescriptor constructor(mutability: Mutability)
 	}
 
 	override fun o_JavaAncestors(self: AvailObject): AvailObject =
-		self.slot(ObjectSlots.JAVA_ANCESTORS)
+		self.slot(JAVA_ANCESTORS)
 
 	override fun o_JavaClass(self: AvailObject): AvailObject =
-		self.slot(ObjectSlots.JAVA_CLASS)
+		self.slot(JAVA_CLASS)
 
 	override fun o_EqualsPojoType(
 		self: AvailObject,
@@ -111,30 +112,30 @@ class SelfPojoTypeDescriptor constructor(mutability: Mutability)
 		// Callers have ensured that aPojoType is either an unfused pojo type
 		// or a self type.
 		val other: A_BasicObject = aPojoType.pojoSelfType()
-		return (self.slot(ObjectSlots.JAVA_CLASS).equals(other.javaClass())
-		        && self.slot(ObjectSlots.JAVA_ANCESTORS).equals(other.javaAncestors()))
+		return (self.slot(JAVA_CLASS).equals(other.javaClass())
+		        && self.slot(JAVA_ANCESTORS).equals(other.javaAncestors()))
 	}
 
 	// Note that this definition produces a value compatible with an unfused
 	// pojo type; this is necessary to permit comparison between an unfused
 	// pojo type and its self type.
 	override fun o_Hash(self: AvailObject): Int =
-		self.slot(ObjectSlots.JAVA_ANCESTORS).hash() xor -0x5fea43bc
+		self.slot(JAVA_ANCESTORS).hash() xor -0x5fea43bc
 
 	override fun o_IsAbstract(self: AvailObject): Boolean
 	{
-		val javaClass: A_BasicObject = self.slot(ObjectSlots.JAVA_CLASS)
+		val javaClass: A_BasicObject = self.slot(JAVA_CLASS)
 		return (javaClass.equalsNil()
-		        || Modifier.isAbstract(
+			|| Modifier.isAbstract(
 			javaClass.javaObjectNotNull<Class<*>>().modifiers))
 	}
 
 	override fun o_IsPojoArrayType(self: AvailObject): Boolean =
-		self.slot(ObjectSlots.JAVA_CLASS)
+		self.slot(JAVA_CLASS)
 			.equals(equalityPojo(PojoArray::class.java))
 
 	override fun o_IsPojoFusedType(self: AvailObject): Boolean =
-		self.slot(ObjectSlots.JAVA_CLASS).equalsNil()
+		self.slot(JAVA_CLASS).equalsNil()
 
 	override fun o_IsPojoSelfType(self: AvailObject): Boolean = true
 
@@ -145,7 +146,7 @@ class SelfPojoTypeDescriptor constructor(mutability: Mutability)
 		// Check type compatibility by computing the set intersection of the
 		// ancestry of the arguments. If the result is not equal to the
 		// ancestry of object, then object is not a supertype of aPojoType.
-		val ancestors: A_Set = self.slot(ObjectSlots.JAVA_ANCESTORS)
+		val ancestors: A_Set = self.slot(JAVA_ANCESTORS)
 		val otherAncestors: A_Set = aPojoType.pojoSelfType().javaAncestors()
 		val intersection =
 			ancestors.setIntersectionCanDestroy(otherAncestors, false)
@@ -164,7 +165,7 @@ class SelfPojoTypeDescriptor constructor(mutability: Mutability)
 
 	override fun o_MarshalToJava(self: AvailObject, classHint: Class<*>?): Any?
 	{
-		val javaClass: A_BasicObject = self.slot(ObjectSlots.JAVA_CLASS)
+		val javaClass: A_BasicObject = self.slot(JAVA_CLASS)
 		return if (javaClass.equalsNil())
 		{
 			// TODO: [TLS] Answer the nearest mutual parent of the leaf types.
@@ -182,7 +183,7 @@ class SelfPojoTypeDescriptor constructor(mutability: Mutability)
 		aPojoType: A_Type): A_Type
 	{
 		val other = aPojoType.pojoSelfType()
-		val ancestors: A_Set = self.slot(ObjectSlots.JAVA_ANCESTORS)
+		val ancestors: A_Set = self.slot(JAVA_ANCESTORS)
 		val otherAncestors: A_Set = other.javaAncestors()
 		for (ancestor in ancestors)
 		{
@@ -226,7 +227,7 @@ class SelfPojoTypeDescriptor constructor(mutability: Mutability)
 		aPojoType: A_Type): A_Type
 	{
 		val intersection =
-			self.slot(ObjectSlots.JAVA_ANCESTORS).setIntersectionCanDestroy(
+			self.slot(JAVA_ANCESTORS).setIntersectionCanDestroy(
 				aPojoType.pojoSelfType().javaAncestors(), false)
 		return newSelfPojoType(mostSpecificOf(intersection), intersection)
 	}
@@ -253,14 +254,14 @@ class SelfPojoTypeDescriptor constructor(mutability: Mutability)
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int)
 	{
-		val javaClass: A_BasicObject = self.slot(ObjectSlots.JAVA_CLASS)
+		val javaClass: A_BasicObject = self.slot(JAVA_CLASS)
 		if (!javaClass.equalsNil())
 		{
 			builder.append(javaClass.javaObjectNotNull<Class<*>>().name)
 		}
 		else
 		{
-			val ancestors: A_Set = self.slot(ObjectSlots.JAVA_ANCESTORS)
+			val ancestors: A_Set = self.slot(JAVA_ANCESTORS)
 			val childless: List<AvailObject> = ArrayList(
 				childlessAmong(ancestors))
 			childless.sortedWith(Comparator{ o1: AvailObject, o2: AvailObject ->
@@ -321,12 +322,10 @@ class SelfPojoTypeDescriptor constructor(mutability: Mutability)
 		 */
 		fun newSelfPojoType(
 			javaClass: AvailObject?,
-			javaAncestors: A_Set?): AvailObject
-		{
-			val newObject = mutable.create()
-			newObject.setSlot(ObjectSlots.JAVA_CLASS, javaClass!!)
-			newObject.setSlot(ObjectSlots.JAVA_ANCESTORS, javaAncestors!!)
-			return newObject.makeImmutable()
+			javaAncestors: A_Set?
+		): AvailObject = mutable.createImmutable {
+			setSlot(JAVA_CLASS, javaClass!!)
+			setSlot(JAVA_ANCESTORS, javaAncestors!!)
 		}
 
 		/**

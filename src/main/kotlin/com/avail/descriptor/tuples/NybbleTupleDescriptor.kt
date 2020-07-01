@@ -663,7 +663,7 @@ class NybbleTupleDescriptor private constructor(
 		{
 			val d = descriptorFor(Mutability.MUTABLE, size)
 			assert(size + d.unusedNybblesOfLastLong and 15 == 0)
-			return d.create(size + 15 ushr 4)
+			return d.create(size + 15 ushr 4) { }
 		}
 
 		/**

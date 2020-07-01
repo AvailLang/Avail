@@ -38,6 +38,7 @@ import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.pojos.PojoDescriptor
 import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.rawObjectClass
 import com.avail.descriptor.representation.*
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.StringDescriptor
@@ -45,6 +46,9 @@ import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.BottomPojoTypeDescriptor.Companion.pojoBottom
+import com.avail.descriptor.types.FusedPojoTypeDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
+import com.avail.descriptor.types.FusedPojoTypeDescriptor.IntegerSlots.HASH_AND_MORE
+import com.avail.descriptor.types.FusedPojoTypeDescriptor.ObjectSlots.*
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
 import java.lang.reflect.Modifier
@@ -119,9 +123,9 @@ internal class FusedPojoTypeDescriptor constructor (mutability: Mutability)
 
 	override fun allowsImmutableToMutableReferenceInField(
 		e: AbstractSlotsEnum): Boolean =
-			e === IntegerSlots.HASH_AND_MORE
-				|| e === ObjectSlots.TYPE_VARIABLES
-				|| e === ObjectSlots.SELF_TYPE
+			e === HASH_AND_MORE
+				|| e === TYPE_VARIABLES
+				|| e === SELF_TYPE
 
 	override fun o_EqualsPojoType(
 		self: AvailObject,
@@ -135,7 +139,7 @@ internal class FusedPojoTypeDescriptor constructor (mutability: Mutability)
 		{
 			return false
 		}
-		val ancestors: A_Map = self.slot(ObjectSlots.JAVA_ANCESTORS)
+		val ancestors: A_Map = self.slot(JAVA_ANCESTORS)
 		val otherAncestors: A_Map = aPojoType.javaAncestors()
 		if (ancestors.mapSize() != otherAncestors.mapSize())
 		{
@@ -190,9 +194,9 @@ internal class FusedPojoTypeDescriptor constructor (mutability: Mutability)
 	override fun o_IsPojoFusedType(self: AvailObject): Boolean = true
 
 	override fun o_JavaAncestors(self: AvailObject): AvailObject =
-		self.slot(ObjectSlots.JAVA_ANCESTORS)
+		self.slot(JAVA_ANCESTORS)
 
-	override fun o_JavaClass(self: AvailObject): AvailObject = NilDescriptor.nil
+	override fun o_JavaClass(self: AvailObject): AvailObject = nil
 
 	// TODO: [TLS] Answer the nearest mutual parent of the leaf types.
 	override fun o_MarshalToJava(
@@ -210,17 +214,17 @@ internal class FusedPojoTypeDescriptor constructor (mutability: Mutability)
 	 */
 	private fun pojoSelfType(self: AvailObject): AvailObject
 	{
-		var selfType = self.slot(ObjectSlots.SELF_TYPE)
+		var selfType = self.slot(SELF_TYPE)
 		if (selfType.equalsNil())
 		{
 			selfType = SelfPojoTypeDescriptor.newSelfPojoType(
-				NilDescriptor.nil, self.slot(
-					ObjectSlots.JAVA_ANCESTORS).keysAsSet())
+				nil, self.slot(
+					JAVA_ANCESTORS).keysAsSet())
 			if (isShared)
 			{
 				selfType = selfType.traversed().makeShared()
 			}
-			self.setSlot(ObjectSlots.SELF_TYPE, selfType)
+			self.setSlot(SELF_TYPE, selfType)
 		}
 		return selfType
 	}
@@ -291,7 +295,7 @@ internal class FusedPojoTypeDescriptor constructor (mutability: Mutability)
 			// If any of the fused pojo type's ancestors are Java classes, then
 			// the intersection is pojo bottom.
 			for (ancestor in
-				self.slot(ObjectSlots.JAVA_ANCESTORS).keysAsSet())
+				self.slot(JAVA_ANCESTORS).keysAsSet())
 			{
 				// Ignore java.lang.Object.
 				if (!ancestor.equals(rawObjectClass()))
@@ -382,12 +386,12 @@ internal class FusedPojoTypeDescriptor constructor (mutability: Mutability)
 	 */
 	private fun typeVariables(self: AvailObject): A_Map
 	{
-		var typeVars: A_Map = self.slot(ObjectSlots.TYPE_VARIABLES)
+		var typeVars: A_Map = self.slot(TYPE_VARIABLES)
 		if (typeVars.equalsNil())
 		{
 			typeVars = emptyMap()
 			for (entry in
-				self.slot(ObjectSlots.JAVA_ANCESTORS).mapIterable())
+				self.slot(JAVA_ANCESTORS).mapIterable())
 			{
 				val ancestor = entry.key().javaObjectNotNull<Class<*>>()
 				val vars = ancestor.typeParameters
@@ -407,7 +411,7 @@ internal class FusedPojoTypeDescriptor constructor (mutability: Mutability)
 					typeVars = typeVars.traversed().makeShared()
 				}
 			}
-			self.setSlot(ObjectSlots.TYPE_VARIABLES, typeVars)
+			self.setSlot(TYPE_VARIABLES, typeVars)
 		}
 		return typeVars
 	}
@@ -427,7 +431,7 @@ internal class FusedPojoTypeDescriptor constructor (mutability: Mutability)
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int)
 	{
-		val ancestors: A_Map = self.slot(ObjectSlots.JAVA_ANCESTORS)
+		val ancestors: A_Map = self.slot(JAVA_ANCESTORS)
 		val childless = mutableListOf<AvailObject>()
 		childless.addAll(childlessAmong(ancestors.keysAsSet()))
 		childless.sortWith(Comparator { o1: AvailObject, o2: AvailObject ->
@@ -494,16 +498,16 @@ internal class FusedPojoTypeDescriptor constructor (mutability: Mutability)
 		 */
 		private fun hash(self: AvailObject): Int
 		{
-			var hash = self.slot(IntegerSlots.HASH_OR_ZERO)
+			var hash = self.slot(HASH_OR_ZERO)
 			if (hash == 0)
 			{
 				// Note that this definition produces a value compatible with a
 				// pojo self type; this is necessary to permit comparison
 				// between an unfused pojo type and its self type.
 				hash =
-					self.slot(ObjectSlots.JAVA_ANCESTORS).keysAsSet().hash() xor
+					self.slot(JAVA_ANCESTORS).keysAsSet().hash() xor
 						-0x5fea43bc
-				self.setSlot(IntegerSlots.HASH_OR_ZERO, hash)
+				self.setSlot(HASH_OR_ZERO, hash)
 			}
 			return hash
 		}
@@ -531,14 +535,12 @@ internal class FusedPojoTypeDescriptor constructor (mutability: Mutability)
 		 *   The requested pojo type.
 		 */
 		@JvmStatic
-		fun createFusedPojoType(javaAncestors: A_Map?): AvailObject
-		{
-			val newObject = mutable.create()
-			newObject.setSlot(IntegerSlots.HASH_OR_ZERO, 0)
-			newObject.setSlot(ObjectSlots.JAVA_ANCESTORS, javaAncestors!!)
-			newObject.setSlot(ObjectSlots.TYPE_VARIABLES, NilDescriptor.nil)
-			newObject.setSlot(ObjectSlots.SELF_TYPE, NilDescriptor.nil)
-			return newObject.makeImmutable()
-		}
+		fun createFusedPojoType(javaAncestors: A_Map?): AvailObject =
+			mutable.createImmutable {
+				setSlot(HASH_OR_ZERO, 0)
+				setSlot(JAVA_ANCESTORS, javaAncestors!!)
+				setSlot(TYPE_VARIABLES, nil)
+				setSlot(SELF_TYPE, nil)
+			}
 	}
 }

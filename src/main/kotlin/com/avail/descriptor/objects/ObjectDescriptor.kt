@@ -257,22 +257,23 @@ class ObjectDescriptor internal constructor(
 					variant.allFields.setWithElementCanDestroy(field, false)
 				val newVariant = variantForFields(newFieldsSet)
 				val newVariantSlotMap = newVariant.fieldToSlotIndex
-				val result = newVariant.mutableObjectDescriptor.create(
-					newVariant.realSlotCount)
-				variant.fieldToSlotIndex.forEach { (key, value1) ->
-					@Suppress("MapGetWithNotNullAssertionOperator")
-					result.setSlot(
-						FIELD_VALUES_,
-						newVariantSlotMap[key]!!,
-						self.slot(FIELD_VALUES_, value1))
+				return newVariant.mutableObjectDescriptor.create(
+					newVariant.realSlotCount
+				) {
+					variant.fieldToSlotIndex.forEach { (key, value1) ->
+						@Suppress("MapGetWithNotNullAssertionOperator")
+						(setSlot(
+							FIELD_VALUES_,
+							newVariantSlotMap[key]!!,
+							self.slot(FIELD_VALUES_, value1)))
+					}
+					val newVariantSlotIndex = newVariantSlotMap[field]!!
+					if (newVariantSlotIndex != 0) {
+						setSlot(FIELD_VALUES_, newVariantSlotIndex, value)
+					}
+					setSlot(KIND, nil)
+					setSlot(HASH_OR_ZERO, 0)
 				}
-				val newVariantSlotIndex = newVariantSlotMap[field]!!
-				if (newVariantSlotIndex != 0) {
-					result.setSlot(FIELD_VALUES_, newVariantSlotIndex, value)
-				}
-				result.setSlot(KIND, nil)
-				result.setSlot(HASH_OR_ZERO, 0)
-				return result
 			}
 			0 -> {
 				assert(value.equals(field))
@@ -497,7 +498,7 @@ class ObjectDescriptor internal constructor(
 			val variant = variantForFields(map.keysAsSet())
 			val mutableDescriptor = variant.mutableObjectDescriptor
 			val slotMap = variant.fieldToSlotIndex
-			return mutableDescriptor.create(variant.realSlotCount).apply {
+			return mutableDescriptor.create(variant.realSlotCount) {
 				map.mapIterable().forEach { (key, value) ->
 					val slotIndex = slotMap[key]!!
 					if (slotIndex > 0) {
@@ -550,8 +551,9 @@ class ObjectDescriptor internal constructor(
 		fun createUninitializedObject(
 			variant: ObjectLayoutVariant
 		): AvailObject =
-			variant.mutableObjectDescriptor.create(variant.realSlotCount)
-				.apply { setSlot(HASH_OR_ZERO, 0) }
+			variant.mutableObjectDescriptor.create(variant.realSlotCount) {
+				setSlot(HASH_OR_ZERO, 0)
+			}
 
 		/**
 		 * Access the [createUninitializedObject] static method.

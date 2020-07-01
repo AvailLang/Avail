@@ -1729,7 +1729,7 @@ class IntegerDescriptor private constructor(
 		 *   An uninitialized, mutable integer.
 		 */
 		fun createUninitializedInteger(size: Int): AvailObject =
-			mutableFor(size).create(size + 1 shr 1)
+			mutableFor(size).create(size + 1 shr 1) { }
 
 		/**
 		 * The static list of descriptors of this kind, organized in such a way

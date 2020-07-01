@@ -263,7 +263,7 @@ class DefinitionParsingPlanDescriptor private constructor(
 		fun newParsingPlan(
 			bundle: A_Bundle,
 			definition: A_Definition
-		): A_DefinitionParsingPlan = mutable.create().apply {
+		): A_DefinitionParsingPlan = mutable.create {
 			setSlot(BUNDLE, bundle)
 			setSlot(DEFINITION, definition)
 			setSlot(

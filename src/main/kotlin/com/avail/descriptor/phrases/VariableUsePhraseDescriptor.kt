@@ -243,11 +243,10 @@ class VariableUsePhraseDescriptor private constructor(
 			assert(theToken.isInstanceOfKind(Types.TOKEN.o()))
 			assert(declaration.isInstanceOfKind(
 				PhraseKind.DECLARATION_PHRASE.mostGeneralType()))
-			return mutable.create().apply {
+			return mutable.createShared {
 				setSlot(USE_TOKEN, theToken)
 				setSlot(DECLARATION, declaration)
 				setSlot(FLAGS, 0)
-				makeShared()
 			}
 		}
 

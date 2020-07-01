@@ -311,11 +311,10 @@ class PermutedListPhraseDescriptor private constructor(
 		fun newPermutedListNode(
 			list: A_Phrase,
 			permutation: A_Tuple
-		): A_Phrase = mutable.create().apply {
+		): A_Phrase = mutable.createShared {
 			setSlot(LIST, list)
 			setSlot(PERMUTATION, permutation)
 			setSlot(EXPRESSION_TYPE, nil)
-			makeShared()
 		}
 
 		/** The mutable [PermutedListPhraseDescriptor].  */

@@ -42,6 +42,7 @@ import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromArray
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
+import com.avail.descriptor.types.ListPhraseTypeDescriptor.ObjectSlots.*
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeFromTupleOfTypes
 import com.avail.serialization.SerializerOperation
@@ -180,9 +181,9 @@ class ListPhraseTypeDescriptor internal constructor(
 	{
 		assert(aListNodeType.phraseKindIsUnder(PhraseKind.LIST_PHRASE))
 		return (self.phraseKind() === aListNodeType.phraseKind()
-		        && self.slot(ObjectSlots.EXPRESSION_TYPE).equals(
+		        && self.slot(EXPRESSION_TYPE).equals(
 			aListNodeType.expressionType())
-		        && self.slot(ObjectSlots.SUBEXPRESSIONS_TUPLE_TYPE).equals(
+		        && self.slot(SUBEXPRESSIONS_TUPLE_TYPE).equals(
 			aListNodeType.subexpressionsTupleType()))
 	}
 
@@ -191,12 +192,11 @@ class ListPhraseTypeDescriptor internal constructor(
 		var hash = self.slot(IntegerSlots.HASH_OR_ZERO)
 		if (hash == 0)
 		{
-			hash = self.slot(ObjectSlots.EXPRESSION_TYPE).hash()
+			hash = self.slot(EXPRESSION_TYPE).hash()
 			hash *= AvailObject.multiplier
 			hash -= kind.ordinal
 			hash *= AvailObject.multiplier
-			hash =
-				hash xor self.slot(ObjectSlots.SUBEXPRESSIONS_TUPLE_TYPE).hash()
+			hash = hash xor self.slot(SUBEXPRESSIONS_TUPLE_TYPE).hash()
 			hash *= AvailObject.multiplier
 			self.setSlot(IntegerSlots.HASH_OR_ZERO, hash)
 		}
@@ -204,7 +204,7 @@ class ListPhraseTypeDescriptor internal constructor(
 	}
 
 	override fun o_SubexpressionsTupleType(self: AvailObject): A_Type =
-		self.slot(ObjectSlots.SUBEXPRESSIONS_TUPLE_TYPE)
+		self.slot(SUBEXPRESSIONS_TUPLE_TYPE)
 
 	override fun o_IsSubtypeOf(self: AvailObject, aType: A_Type): Boolean =
 		aType.isSupertypeOfListNodeType(self)
@@ -214,9 +214,9 @@ class ListPhraseTypeDescriptor internal constructor(
 		aListNodeType: A_Type): Boolean =
 			(aListNodeType.phraseKindIsUnder(self.phraseKind())
 			        && aListNodeType.expressionType().isSubtypeOf(
-				self.slot(ObjectSlots.EXPRESSION_TYPE))
+				self.slot(EXPRESSION_TYPE))
 			        && aListNodeType.subexpressionsTupleType().isSubtypeOf(
-				self.slot(ObjectSlots.SUBEXPRESSIONS_TUPLE_TYPE)))
+				self.slot(SUBEXPRESSIONS_TUPLE_TYPE)))
 
 	override fun o_IsSupertypeOfPhraseType(
 		self: AvailObject,
@@ -307,9 +307,9 @@ class ListPhraseTypeDescriptor internal constructor(
 		writer.write("kind")
 		writer.write(self.phraseKind().jsonName)
 		writer.write("expression type")
-		self.slot(ObjectSlots.EXPRESSION_TYPE).writeTo(writer)
+		self.slot(EXPRESSION_TYPE).writeTo(writer)
 		writer.write("subexpressions tuple type")
-		self.slot(ObjectSlots.SUBEXPRESSIONS_TUPLE_TYPE).writeTo(writer)
+		self.slot(SUBEXPRESSIONS_TUPLE_TYPE).writeTo(writer)
 		writer.endObject()
 	}
 
@@ -499,11 +499,10 @@ class ListPhraseTypeDescriptor internal constructor(
 			// assert listNodeEnumKind.isSubkindOf(LIST_NODE);
 			assert(yieldType.isTupleType)
 			assert(subexpressionsTupleType.isTupleType)
-			val type = listNodeEnumKind.mutableDescriptor.create()
-			type.setSlot(ObjectSlots.EXPRESSION_TYPE, yieldType.makeImmutable())
-			type.setSlot(
-				ObjectSlots.SUBEXPRESSIONS_TUPLE_TYPE, subexpressionsTupleType)
-			return type
+			return listNodeEnumKind.mutableDescriptor.create {
+				setSlot(EXPRESSION_TYPE, yieldType.makeImmutable())
+				setSlot(SUBEXPRESSIONS_TUPLE_TYPE, subexpressionsTupleType)
+			}
 		}
 
 		/**

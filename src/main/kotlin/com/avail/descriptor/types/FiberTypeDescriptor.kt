@@ -39,6 +39,8 @@ import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
+import com.avail.descriptor.types.FiberTypeDescriptor.ObjectSlots.*
+import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
 import java.util.*
@@ -78,7 +80,7 @@ class FiberTypeDescriptor constructor (mutability: Mutability)
 	}
 
 	override fun o_ResultType(self: AvailObject): A_Type =
-		self.slot(ObjectSlots.RESULT_TYPE)
+		self.slot(RESULT_TYPE)
 
 	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean =
 		another.equalsFiberType(self)
@@ -88,10 +90,10 @@ class FiberTypeDescriptor constructor (mutability: Mutability)
 		aFiberType: A_Type): Boolean =
 			(self.sameAddressAs(aFiberType)
 				|| aFiberType.resultType().equals(
-					self.slot(ObjectSlots.RESULT_TYPE)))
+					self.slot(RESULT_TYPE)))
 
 	override fun o_Hash(self: AvailObject): Int =
-		self.slot(ObjectSlots.RESULT_TYPE).hash() * 1307 xor -0x43f7b58f
+		self.slot(RESULT_TYPE).hash() * 1307 xor -0x43f7b58f
 
 	override fun o_IsSubtypeOf(self: AvailObject, aType: A_Type): Boolean =
 		aType.isSupertypeOfFiberType(self)
@@ -99,7 +101,7 @@ class FiberTypeDescriptor constructor (mutability: Mutability)
 	override fun o_IsSupertypeOfFiberType(
 		self: AvailObject,
 		aType: A_Type): Boolean =
-			aType.resultType().isSubtypeOf(self.slot(ObjectSlots.RESULT_TYPE))
+			aType.resultType().isSubtypeOf(self.slot(RESULT_TYPE))
 
 	override fun o_TypeIntersection(self: AvailObject, another: A_Type): A_Type =
 		when
@@ -116,7 +118,7 @@ class FiberTypeDescriptor constructor (mutability: Mutability)
 		self: AvailObject,
 		aFiberType: A_Type): A_Type =
 			fiberType(
-				self.slot(ObjectSlots.RESULT_TYPE)
+				self.slot(RESULT_TYPE)
 					.typeIntersection(aFiberType.resultType()))
 
 	override fun o_TypeUnion(self: AvailObject, another: A_Type): A_Type =
@@ -137,7 +139,7 @@ class FiberTypeDescriptor constructor (mutability: Mutability)
 		self: AvailObject,
 		aFiberType: A_Type): A_Type =
 			fiberType(
-				self.slot(ObjectSlots.RESULT_TYPE)
+				self.slot(RESULT_TYPE)
 					.typeUnion(aFiberType.resultType()))
 
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
@@ -159,7 +161,7 @@ class FiberTypeDescriptor constructor (mutability: Mutability)
 		writer.write("kind")
 		writer.write("fiber type")
 		writer.write("result type")
-		self.slot(ObjectSlots.RESULT_TYPE).writeTo(writer)
+		self.slot(RESULT_TYPE).writeTo(writer)
 		writer.endObject()
 	}
 
@@ -169,7 +171,7 @@ class FiberTypeDescriptor constructor (mutability: Mutability)
 		writer.write("kind")
 		writer.write("fiber type")
 		writer.write("result type")
-		self.slot(ObjectSlots.RESULT_TYPE).writeSummaryTo(writer)
+		self.slot(RESULT_TYPE).writeSummaryTo(writer)
 		writer.endObject()
 	}
 
@@ -181,7 +183,7 @@ class FiberTypeDescriptor constructor (mutability: Mutability)
 		indent: Int)
 	{
 		builder.append("fiber→")
-		self.slot(ObjectSlots.RESULT_TYPE).printOnAvoidingIndent(
+		self.slot(RESULT_TYPE).printOnAvoidingIndent(
 			builder, recursionMap, indent)
 	}
 
@@ -210,12 +212,8 @@ class FiberTypeDescriptor constructor (mutability: Mutability)
 		 *   A new fiber type.
 		 */
 		@JvmStatic
-		fun fiberType(resultType: A_Type): AvailObject
-		{
-			val result = mutable.create()
-			result.setSlot(ObjectSlots.RESULT_TYPE, resultType.makeImmutable())
-			result.makeShared()
-			return result
+		fun fiberType(resultType: A_Type): AvailObject = mutable.createShared {
+			setSlot(RESULT_TYPE, resultType.makeImmutable())
 		}
 
 		/**
@@ -237,7 +235,7 @@ class FiberTypeDescriptor constructor (mutability: Mutability)
 		 * The metatype for all [fiber&#32;types][FiberTypeDescriptor].
 		 */
 		private val meta: A_Type =
-			InstanceMetaDescriptor.instanceMeta(mostGeneralFiberType).makeShared()
+			instanceMeta(mostGeneralFiberType).makeShared()
 
 		/**
 		 * Answer the metatype for all [fiber&#32;types][FiberTypeDescriptor].

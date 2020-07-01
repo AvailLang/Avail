@@ -41,6 +41,9 @@ import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
+import com.avail.descriptor.types.FunctionTypeDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
+import com.avail.descriptor.types.FunctionTypeDescriptor.IntegerSlots.HASH_AND_MORE
+import com.avail.descriptor.types.FunctionTypeDescriptor.ObjectSlots.*
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.Strings.newlineTab
@@ -131,7 +134,7 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 	}
 
 	public override fun allowsImmutableToMutableReferenceInField(
-		e: AbstractSlotsEnum): Boolean = e === IntegerSlots.HASH_AND_MORE
+		e: AbstractSlotsEnum): Boolean = e === HASH_AND_MORE
 
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
@@ -202,13 +205,13 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 		self: AvailObject,
 		functionType: A_Type): Boolean =
 			functionType.argsTupleType().isSubtypeOf(
-				self.slot(ObjectSlots.ARGS_TUPLE_TYPE))
+				self.slot(ARGS_TUPLE_TYPE))
 
 	override fun o_AcceptsListOfArgTypes(
 		self: AvailObject,
 		argTypes: List<A_Type>): Boolean
 	{
-		val tupleType: A_Type = self.slot(ObjectSlots.ARGS_TUPLE_TYPE)
+		val tupleType: A_Type = self.slot(ARGS_TUPLE_TYPE)
 		var i = 1
 		val end = argTypes.size
 		while (i <= end)
@@ -226,7 +229,7 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 		self: AvailObject,
 		argValues: List<A_BasicObject>): Boolean
 	{
-		val tupleType: A_Type = self.slot(ObjectSlots.ARGS_TUPLE_TYPE)
+		val tupleType: A_Type = self.slot(ARGS_TUPLE_TYPE)
 		var i = 1
 		val end = argValues.size
 		while (i <= end)
@@ -245,7 +248,7 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 		self: AvailObject,
 		argTypes: A_Tuple): Boolean
 	{
-		val tupleType: A_Type = self.slot(ObjectSlots.ARGS_TUPLE_TYPE)
+		val tupleType: A_Type = self.slot(ARGS_TUPLE_TYPE)
 		var i = 1
 		val end = argTypes.tupleSize()
 		while (i <= end)
@@ -262,16 +265,16 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 	override fun o_AcceptsTupleOfArguments(
 		self: AvailObject,
 		arguments: A_Tuple): Boolean =
-			arguments.isInstanceOf(self.slot(ObjectSlots.ARGS_TUPLE_TYPE))
+			arguments.isInstanceOf(self.slot(ARGS_TUPLE_TYPE))
 
 	override fun o_ArgsTupleType(self: AvailObject): A_Type =
-		self.slot(ObjectSlots.ARGS_TUPLE_TYPE)
+		self.slot(ARGS_TUPLE_TYPE)
 
 	override fun o_CouldEverBeInvokedWith(
 		self: AvailObject,
 		argRestrictions: List<TypeRestriction>): Boolean
 	{
-		val tupleType: A_Type = self.slot(ObjectSlots.ARGS_TUPLE_TYPE)
+		val tupleType: A_Type = self.slot(ARGS_TUPLE_TYPE)
 		var i = 1
 		val end = argRestrictions.size
 		while (i <= end)
@@ -287,7 +290,7 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 	}
 
 	override fun o_DeclaredExceptions(self: AvailObject): A_Set =
-		self.slot(ObjectSlots.DECLARED_EXCEPTIONS)
+		self.slot(DECLARED_EXCEPTIONS)
 
 	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean =
 		another.equalsFunctionType(self)
@@ -300,11 +303,11 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 		{
 			self.sameAddressAs(aFunctionType) -> return true
 			self.hash() != aFunctionType.hash() -> return false
-			!self.slot(ObjectSlots.ARGS_TUPLE_TYPE)
+			!self.slot(ARGS_TUPLE_TYPE)
 				.equals(aFunctionType.argsTupleType()) -> return false
-			!self.slot(ObjectSlots.RETURN_TYPE)
+			!self.slot(RETURN_TYPE)
 				.equals(aFunctionType.returnType()) -> return false
-			!self.slot(ObjectSlots.DECLARED_EXCEPTIONS).equals(
+			!self.slot(DECLARED_EXCEPTIONS).equals(
 				aFunctionType.declaredExceptions()) -> return false
 			!isShared ->
 			{
@@ -341,11 +344,11 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 			return true
 		}
 		if (!aFunctionType.returnType()
-				.isSubtypeOf(self.slot(ObjectSlots.RETURN_TYPE)))
+				.isSubtypeOf(self.slot(RETURN_TYPE)))
 		{
 			return false
 		}
-		val inners: A_Set = self.slot(ObjectSlots.DECLARED_EXCEPTIONS)
+		val inners: A_Set = self.slot(DECLARED_EXCEPTIONS)
 		// A ⊆ B if everything A can throw was declared by B
 		each_outer@ for (outer in aFunctionType.declaredExceptions())
 		{
@@ -358,19 +361,19 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 			}
 			return false
 		}
-		return self.slot(ObjectSlots.ARGS_TUPLE_TYPE).isSubtypeOf(
+		return self.slot(ARGS_TUPLE_TYPE).isSubtypeOf(
 			aFunctionType.argsTupleType())
 	}
 
 	override fun o_IsVacuousType(self: AvailObject): Boolean
 	{
-		val argsTupleType: A_Type = self.slot(ObjectSlots.ARGS_TUPLE_TYPE)
+		val argsTupleType: A_Type = self.slot(ARGS_TUPLE_TYPE)
 		val sizeRange = argsTupleType.sizeRange()
 		return sizeRange.lowerBound().lessThan(sizeRange.upperBound())
 	}
 
 	override fun o_ReturnType(self: AvailObject): A_Type =
-		self.slot(ObjectSlots.RETURN_TYPE)
+		self.slot(RETURN_TYPE)
 
 	override fun o_TypeIntersection(self: AvailObject, another: A_Type): A_Type =
 		when
@@ -388,13 +391,13 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 		aFunctionType: A_Type): A_Type
 	{
 		val tupleTypeUnion =
-			self.slot(ObjectSlots.ARGS_TUPLE_TYPE).typeUnion(
+			self.slot(ARGS_TUPLE_TYPE).typeUnion(
 				aFunctionType.argsTupleType())
 		val returnType =
-			self.slot(ObjectSlots.RETURN_TYPE).typeIntersection(
+			self.slot(RETURN_TYPE).typeIntersection(
 				aFunctionType.returnType())
 		var exceptions = emptySet()
-		for (outer in self.slot(ObjectSlots.DECLARED_EXCEPTIONS))
+		for (outer in self.slot(DECLARED_EXCEPTIONS))
 		{
 			for (inner in aFunctionType.declaredExceptions())
 			{
@@ -428,13 +431,13 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 		// Subobjects may be shared with result.
 		self.makeSubobjectsImmutable()
 		val tupleTypeIntersection =
-			self.slot(ObjectSlots.ARGS_TUPLE_TYPE).typeIntersection(
+			self.slot(ARGS_TUPLE_TYPE).typeIntersection(
 				aFunctionType.argsTupleType())
 		val returnType =
-			self.slot(ObjectSlots.RETURN_TYPE)
+			self.slot(RETURN_TYPE)
 				.typeUnion(aFunctionType.returnType())
 		val exceptions = normalizeExceptionSet(
-			self.slot(ObjectSlots.DECLARED_EXCEPTIONS).setUnionCanDestroy(
+			self.slot(DECLARED_EXCEPTIONS).setUnionCanDestroy(
 				aFunctionType.declaredExceptions(), true))
 		return functionTypeFromArgumentTupleType(
 			tupleTypeIntersection,
@@ -453,11 +456,11 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 		writer.write("kind")
 		writer.write("function type")
 		writer.write("arguments type")
-		self.slot(ObjectSlots.ARGS_TUPLE_TYPE).writeSummaryTo(writer)
+		self.slot(ARGS_TUPLE_TYPE).writeSummaryTo(writer)
 		writer.write("return type")
-		self.slot(ObjectSlots.RETURN_TYPE).writeSummaryTo(writer)
+		self.slot(RETURN_TYPE).writeSummaryTo(writer)
 		writer.write("declared exceptions")
-		self.slot(ObjectSlots.DECLARED_EXCEPTIONS).writeSummaryTo(writer)
+		self.slot(DECLARED_EXCEPTIONS).writeSummaryTo(writer)
 		writer.endObject()
 	}
 
@@ -467,11 +470,11 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 		writer.write("kind")
 		writer.write("function type")
 		writer.write("arguments type")
-		self.slot(ObjectSlots.ARGS_TUPLE_TYPE).writeTo(writer)
+		self.slot(ARGS_TUPLE_TYPE).writeTo(writer)
 		writer.write("return type")
-		self.slot(ObjectSlots.RETURN_TYPE).writeTo(writer)
+		self.slot(RETURN_TYPE).writeTo(writer)
 		writer.write("declared exceptions")
-		self.slot(ObjectSlots.DECLARED_EXCEPTIONS).writeTo(writer)
+		self.slot(DECLARED_EXCEPTIONS).writeTo(writer)
 		writer.endObject()
 	}
 
@@ -559,17 +562,17 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 		 */
 		private fun hash(self: AvailObject): Int
 		{
-			var hash = self.slot(IntegerSlots.HASH_OR_ZERO)
+			var hash = self.slot(HASH_OR_ZERO)
 			if (hash == 0)
 			{
 				hash = 0x163FC934
-				hash += self.slot(ObjectSlots.RETURN_TYPE).hash()
+				hash += self.slot(RETURN_TYPE).hash()
 				hash *= AvailObject.multiplier
-				hash = hash xor self.slot(ObjectSlots.DECLARED_EXCEPTIONS).hash()
+				hash = hash xor self.slot(DECLARED_EXCEPTIONS).hash()
 				hash *= AvailObject.multiplier
-				hash = hash xor self.slot(ObjectSlots.ARGS_TUPLE_TYPE).hash()
+				hash = hash xor self.slot(ARGS_TUPLE_TYPE).hash()
 				hash += 0x10447107
-				self.setSlot(IntegerSlots.HASH_OR_ZERO, hash)
+				self.setSlot(HASH_OR_ZERO, hash)
 			}
 			return hash
 		}
@@ -696,13 +699,12 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 		{
 			assert(argsTupleType.isTupleType)
 			val exceptionsReduced = normalizeExceptionSet(exceptionSet)
-			val type = mutable.create()
-			type.setSlot(ObjectSlots.ARGS_TUPLE_TYPE, argsTupleType)
-			type.setSlot(ObjectSlots.DECLARED_EXCEPTIONS, exceptionsReduced)
-			type.setSlot(ObjectSlots.RETURN_TYPE, returnType!!)
-			type.setSlot(IntegerSlots.HASH_OR_ZERO, 0)
-			type.makeImmutable()
-			return type
+			return mutable.createImmutable {
+				setSlot(ARGS_TUPLE_TYPE, argsTupleType)
+				setSlot(DECLARED_EXCEPTIONS, exceptionsReduced)
+				setSlot(RETURN_TYPE, returnType!!)
+				setSlot(HASH_OR_ZERO, 0)
+			}
 		}
 
 		/**

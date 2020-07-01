@@ -52,6 +52,7 @@ import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.zeroOrOne
 import com.avail.descriptor.types.TupleTypeDescriptor.ObjectSlots
+import com.avail.descriptor.types.TupleTypeDescriptor.ObjectSlots.*
 import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.serialization.SerializerOperation
@@ -118,16 +119,16 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int)
 	{
-		if (self.slot(ObjectSlots.TYPE_TUPLE).tupleSize() == 0)
+		if (self.slot(TYPE_TUPLE).tupleSize() == 0)
 		{
-			if (self.slot(ObjectSlots.SIZE_RANGE).equals(wholeNumbers()))
+			if (self.slot(SIZE_RANGE).equals(wholeNumbers()))
 			{
-				if (self.slot(ObjectSlots.DEFAULT_TYPE).equals(Types.ANY.o()))
+				if (self.slot(DEFAULT_TYPE).equals(Types.ANY.o()))
 				{
 					builder.append("tuple")
 					return
 				}
-				if (self.slot(ObjectSlots.DEFAULT_TYPE)
+				if (self.slot(DEFAULT_TYPE)
 						.equals(Types.CHARACTER.o()))
 				{
 					builder.append("string")
@@ -144,7 +145,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 			}
 		}
 		builder.append('<')
-		val end = self.slot(ObjectSlots.TYPE_TUPLE).tupleSize()
+		val end = self.slot(TYPE_TUPLE).tupleSize()
 		for (i in 1 .. end)
 		{
 			self.typeAtIndex(i).printOnAvoidingIndent(
@@ -153,12 +154,12 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 				indent + 1)
 			builder.append(", ")
 		}
-		self.slot(ObjectSlots.DEFAULT_TYPE).printOnAvoidingIndent(
+		self.slot(DEFAULT_TYPE).printOnAvoidingIndent(
 			builder,
 			recursionMap,
 			indent + 1)
 		builder.append("…|")
-		val sizeRange: A_Type = self.slot(ObjectSlots.SIZE_RANGE)
+		val sizeRange: A_Type = self.slot(SIZE_RANGE)
 		sizeRange.lowerBound().printOnAvoidingIndent(
 			builder,
 			recursionMap,
@@ -175,7 +176,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 	}
 
 	override fun o_DefaultType(self: AvailObject): A_Type =
-		self.slot(ObjectSlots.DEFAULT_TYPE)
+		self.slot(DEFAULT_TYPE)
 
 	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean =
 		another.equalsTupleType(self)
@@ -190,11 +191,11 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		self: AvailObject,
 		aTupleType: A_Type): Boolean =
 			(self.sameAddressAs(aTupleType)
-		        || (self.slot(ObjectSlots.SIZE_RANGE)
+		        || (self.slot(SIZE_RANGE)
 		            .equals(aTupleType.sizeRange())
-	            && self.slot(ObjectSlots.DEFAULT_TYPE)
+	            && self.slot(DEFAULT_TYPE)
 		            .equals(aTupleType.defaultType())
-	            && self.slot(ObjectSlots.TYPE_TUPLE)
+	            && self.slot(TYPE_TUPLE)
 		            .equals(aTupleType.typeTuple())))
 
 	override fun o_IsBetterRepresentationThan(
@@ -208,9 +209,9 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 	override fun o_Hash(self: AvailObject): Int
 	{
 		return hashOfTupleTypeWithSizesHashTypesHashDefaultTypeHash(
-			self.slot(ObjectSlots.SIZE_RANGE).hash(),
-			self.slot(ObjectSlots.TYPE_TUPLE).hash(),
-			self.slot(ObjectSlots.DEFAULT_TYPE).hash())
+			self.slot(SIZE_RANGE).hash(),
+			self.slot(TYPE_TUPLE).hash(),
+			self.slot(DEFAULT_TYPE).hash())
 	}
 
 	/**
@@ -269,12 +270,12 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 			return true
 		}
 		if (!aTupleType.sizeRange().isSubtypeOf(
-				self.slot(ObjectSlots.SIZE_RANGE)))
+				self.slot(SIZE_RANGE)))
 		{
 			return false
 		}
 		val subTuple = aTupleType.typeTuple()
-		val superTuple: A_Tuple = self.slot(ObjectSlots.TYPE_TUPLE)
+		val superTuple: A_Tuple = self.slot(TYPE_TUPLE)
 		var end = Math.max(subTuple.tupleSize(), superTuple.tupleSize()) + 1
 		val smallUpper = aTupleType.sizeRange().upperBound()
 		if (smallUpper.isInt)
@@ -299,7 +300,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 				}
 				else
 				{
-					self.slot(ObjectSlots.DEFAULT_TYPE)
+					self.slot(DEFAULT_TYPE)
 				}
 			if (!subType.isSubtypeOf(superType))
 			{
@@ -323,7 +324,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		// after the variations (i.e., just after the leading typeTuple).
 		val minSize = Math.min(
 			minSizeObject.extractInt(),
-			self.slot(ObjectSlots.TYPE_TUPLE).tupleSize() + 1)
+			self.slot(TYPE_TUPLE).tupleSize() + 1)
 		for (i in 1 .. minSize)
 		{
 			if (self.typeAtIndex(i).isVacuousType)
@@ -343,7 +344,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		SerializerOperation.TUPLE_TYPE
 
 	override fun o_SizeRange(self: AvailObject): A_Type =
-		self.slot(ObjectSlots.SIZE_RANGE)
+		self.slot(SIZE_RANGE)
 
 	override fun o_TupleOfTypesFromTo(
 		self: AvailObject,
@@ -356,13 +357,10 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		val size = endIndex - startIndex + 1
 		assert(size >= 0)
 		return generateObjectTupleFrom(size) {
-			if (it <= size)
+			when
 			{
-				self.typeAtIndex(it + startIndex - 1).makeImmutable()
-			}
-			else
-			{
-				bottom()
+				it > size -> bottom()
+				else -> self.typeAtIndex(it + startIndex - 1).makeImmutable()
 			}
 		}
 	}
@@ -375,7 +373,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		{
 			return bottom()
 		}
-		val upper = self.slot(ObjectSlots.SIZE_RANGE).upperBound()
+		val upper = self.slot(SIZE_RANGE).upperBound()
 		if (upper.isInt)
 		{
 			if (upper.extractInt() < index)
@@ -387,12 +385,12 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		{
 			return bottom()
 		}
-		val leading: A_Tuple = self.slot(ObjectSlots.TYPE_TUPLE)
+		val leading: A_Tuple = self.slot(TYPE_TUPLE)
 		return if (index <= leading.tupleSize())
 		{
 			leading.tupleAt(index)
 		}
-		else self.slot(ObjectSlots.DEFAULT_TYPE)
+		else self.slot(DEFAULT_TYPE)
 	}
 
 	override fun o_TypeIntersection(self: AvailObject, another: A_Type): A_Type =
@@ -408,9 +406,9 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		aTupleType: A_Type): A_Type
 	{
 		var newSizesObject =
-			self.slot(ObjectSlots.SIZE_RANGE)
+			self.slot(SIZE_RANGE)
 				.typeIntersection(aTupleType.sizeRange())
-		val lead1: A_Tuple = self.slot(ObjectSlots.TYPE_TUPLE)
+		val lead1: A_Tuple = self.slot(TYPE_TUPLE)
 		val lead2 = aTupleType.typeTuple()
 		var newLeading: A_Tuple
 		newLeading =
@@ -458,7 +456,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 	}
 
 	override fun o_TypeTuple(self: AvailObject): A_Tuple =
-		self.slot(ObjectSlots.TYPE_TUPLE)
+		self.slot(TYPE_TUPLE)
 
 	override fun o_TypeUnion(self: AvailObject, another: A_Type): A_Type =
 		when
@@ -473,8 +471,8 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		aTupleType: A_Type): A_Type
 	{
 		val newSizesObject =
-			self.slot(ObjectSlots.SIZE_RANGE).typeUnion(aTupleType.sizeRange())
-		val lead1: A_Tuple = self.slot(ObjectSlots.TYPE_TUPLE)
+			self.slot(SIZE_RANGE).typeUnion(aTupleType.sizeRange())
+		val lead1: A_Tuple = self.slot(TYPE_TUPLE)
 		val lead2 = aTupleType.typeTuple()
 		var newLeading: A_Tuple
 		newLeading =
@@ -508,11 +506,11 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		writer.write("kind")
 		writer.write("tuple type")
 		writer.write("leading types")
-		self.slot(ObjectSlots.TYPE_TUPLE).writeTo(writer)
+		self.slot(TYPE_TUPLE).writeTo(writer)
 		writer.write("default type")
-		self.slot(ObjectSlots.DEFAULT_TYPE).writeTo(writer)
+		self.slot(DEFAULT_TYPE).writeTo(writer)
 		writer.write("cardinality")
-		self.slot(ObjectSlots.SIZE_RANGE).writeTo(writer)
+		self.slot(SIZE_RANGE).writeTo(writer)
 		writer.endObject()
 	}
 
@@ -522,11 +520,11 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		writer.write("kind")
 		writer.write("tuple type")
 		writer.write("leading types")
-		self.slot(ObjectSlots.TYPE_TUPLE).writeSummaryTo(writer)
+		self.slot(TYPE_TUPLE).writeSummaryTo(writer)
 		writer.write("default type")
-		self.slot(ObjectSlots.DEFAULT_TYPE).writeSummaryTo(writer)
+		self.slot(DEFAULT_TYPE).writeSummaryTo(writer)
 		writer.write("cardinality")
-		self.slot(ObjectSlots.SIZE_RANGE).writeSummaryTo(writer)
+		self.slot(SIZE_RANGE).writeSummaryTo(writer)
 		writer.endObject()
 	}
 
@@ -771,11 +769,11 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 			{
 				assert(typeTuple.tupleAt(i).isType)
 			}
-			val result = mutable.create()
-			result.setSlot(ObjectSlots.SIZE_RANGE, sizeRangeKind)
-			result.setSlot(ObjectSlots.TYPE_TUPLE, typeTuple)
-			result.setSlot(ObjectSlots.DEFAULT_TYPE, defaultType)
-			return result
+			return mutable.create {
+				setSlot(SIZE_RANGE, sizeRangeKind)
+				setSlot(TYPE_TUPLE, typeTuple)
+				setSlot(DEFAULT_TYPE, defaultType)
+			}
 		}
 
 		/**

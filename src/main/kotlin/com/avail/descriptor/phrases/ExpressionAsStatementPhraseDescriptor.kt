@@ -172,9 +172,8 @@ class ExpressionAsStatementPhraseDescriptor(
 		 *   [PhraseKind.EXPRESSION_AS_STATEMENT_PHRASE]).
 		 */
 		fun newExpressionAsStatement(expression: A_Phrase): A_Phrase =
-			mutable.create().apply {
+			mutable.createShared {
 				setSlot(EXPRESSION, expression)
-				makeShared()
 			}
 
 		/** The mutable [ExpressionAsStatementPhraseDescriptor].  */

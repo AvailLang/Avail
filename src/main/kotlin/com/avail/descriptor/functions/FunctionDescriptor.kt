@@ -370,7 +370,7 @@ class FunctionDescriptor private constructor(
 			copiedTuple: A_Tuple
 		): A_Function {
 			val copiedSize = copiedTuple.tupleSize()
-			return mutable.create(copiedSize).apply {
+			return mutable.create(copiedSize) {
 				setSlot(CODE, code)
 				if (copiedSize > 0) {
 					setSlotsFromTuple(
@@ -397,7 +397,7 @@ class FunctionDescriptor private constructor(
 			code: A_RawFunction,
 			outersCount: Int
 		): AvailObject =
-			mutable.create(outersCount).apply { setSlot(CODE, code) }
+			mutable.create(outersCount) { setSlot(CODE, code) }
 
 		/**
 		 * Access the [createExceptOuters] method.

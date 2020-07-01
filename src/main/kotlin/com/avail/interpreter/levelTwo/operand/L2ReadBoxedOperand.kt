@@ -119,6 +119,38 @@ class L2ReadBoxedOperand : L2ReadOperand<L2BoxedRegister>
 
 	override fun registerKind(): RegisterKind = RegisterKind.BOXED
 
+
+	/**
+	 * See if we can determine the exact type of this register, which holds a
+	 * function.  If the function type is known, answer it, otherwise `null`.
+	 *
+	 * @return
+	 *   Either `null` or an exact [A_Type] for the function in this register.
+	 */
+	fun exactFunctionType(): A_Type?
+	{
+		val constantFunction: A_Function? = constantOrNull()
+		if (constantFunction !== null)
+		{
+			// Function is a constant.
+			return constantFunction.code().functionType()
+		}
+		val originOfFunction = definitionSkippingMoves(true)
+		if (originOfFunction.operation() === L2_MOVE_CONSTANT.boxed)
+		{
+			// Function came from a constant (although the TypeRestriction
+			// should have ensured the clause above caught it).
+			return constantOf(originOfFunction).code().functionType()
+		}
+		if (originOfFunction.operation() === L2_CREATE_FUNCTION)
+		{
+			// We found where the function was closed from a raw function,
+			// which knows the exact function type that it'll be.  Use that.
+			return constantRawFunctionOf(originOfFunction).functionType()
+		}
+		return null
+	}
+
 	/**
 	 * See if we can determine the exact type required as the first argument of
 	 * the function produced by this read.  If the exact type is known, answer
@@ -131,26 +163,7 @@ class L2ReadBoxedOperand : L2ReadOperand<L2BoxedRegister>
 	 */
 	fun exactSoleArgumentType(): A_Type?
 	{
-		val constantFunction: A_Function? = constantOrNull()
-		if (constantFunction !== null)
-		{
-			// Function is a constant.
-			val functionType = constantFunction.code().functionType()
-			return functionType.argsTupleType().typeAtIndex(1)
-		}
-		val originOfFunction = definitionSkippingMoves(true)
-		if (originOfFunction.operation() === L2_MOVE_CONSTANT.boxed)
-		{
-			val function: A_Function = constantOf(originOfFunction)
-			val functionType = function.code().functionType()
-			return functionType.argsTupleType().typeAtIndex(1)
-		}
-		if (originOfFunction.operation() === L2_CREATE_FUNCTION)
-		{
-			val code = constantRawFunctionOf(originOfFunction)
-			val functionType = code.functionType()
-			return functionType.argsTupleType().typeAtIndex(1)
-		}
-		return null
+		val functionType = exactFunctionType() ?: return null
+		return functionType.argsTupleType().typeAtIndex(1)
 	}
 }

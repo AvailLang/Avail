@@ -1209,7 +1209,7 @@ class MessageBundleTreeDescriptor private constructor(
 		@JvmStatic
 		fun newBundleTree(
 			latestBackwardJump: A_BundleTree
-		): A_BundleTree = with(mutable.create()) {
+		): A_BundleTree = mutable.createShared {
 			setSlot(HASH_OR_ZERO, 0)
 			setSlot(ALL_PLANS_IN_PROGRESS, emptyMap())
 			setSlot(UNCLASSIFIED, emptyMap())
@@ -1221,7 +1221,6 @@ class MessageBundleTreeDescriptor private constructor(
 			setSlot(LAZY_TYPE_FILTER_PAIRS_TUPLE, emptyTuple())
 			setSlot(LAZY_TYPE_FILTER_TREE_POJO, nil)
 			setSlot(LATEST_BACKWARD_JUMP, latestBackwardJump)
-			makeShared()
 		}
 
 		/** The mutable [MessageBundleTreeDescriptor].  */

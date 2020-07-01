@@ -32,6 +32,7 @@
 
 package com.avail.compiler
 
+import com.avail.compiler.AvailCompiler.PartialSubexpressionList
 import com.avail.compiler.ParsingConversionRule.Companion.ruleNumber
 import com.avail.compiler.ParsingOperation.PARSE_PART
 import com.avail.compiler.ParsingOperation.PARSE_PART_CASE_INSENSITIVELY
@@ -154,7 +155,9 @@ enum class ParsingOperation constructor(
 			consumedAnything: Boolean,
 			consumedAnythingBeforeLatestArgument: Boolean,
 			consumedStaticTokens: List<A_Token>,
-			continuation: Con1)
+			superexpressions: PartialSubexpressionList?,
+			continuation: (ParserState, A_Phrase)->Unit
+		)
 		{
 			// Push an empty list phrase and continue.
 			assert(successorTrees.tupleSize() == 1)
@@ -168,6 +171,7 @@ enum class ParsingOperation constructor(
 				consumedStaticTokens,
 				append(argsSoFar, emptyListNode()),
 				marksSoFar,
+				superexpressions,
 				continuation)
 		}
 	},
@@ -192,7 +196,9 @@ enum class ParsingOperation constructor(
 			consumedAnything: Boolean,
 			consumedAnythingBeforeLatestArgument: Boolean,
 			consumedStaticTokens: List<A_Token>,
-			continuation: Con1)
+			superexpressions: PartialSubexpressionList?,
+			continuation: (ParserState, A_Phrase)->Unit
+		)
 		{
 			assert(successorTrees.tupleSize() == 1)
 			val value = last(argsSoFar)
@@ -208,6 +214,7 @@ enum class ParsingOperation constructor(
 				consumedStaticTokens,
 				append(withoutLast(poppedOnce), oldNode.copyWith(value)),
 				marksSoFar,
+				superexpressions,
 				continuation)
 		}
 	},
@@ -229,7 +236,9 @@ enum class ParsingOperation constructor(
 			consumedAnything: Boolean,
 			consumedAnythingBeforeLatestArgument: Boolean,
 			consumedStaticTokens: List<A_Token>,
-			continuation: Con1)
+			superexpressions: PartialSubexpressionList?,
+			continuation: (ParserState, A_Phrase)->Unit
+		)
 		{
 			assert(successorTrees.tupleSize() == 1)
 			val marker = if (firstArgOrNull === null)
@@ -246,6 +255,7 @@ enum class ParsingOperation constructor(
 				consumedStaticTokens,
 				argsSoFar,
 				append(marksSoFar, marker),
+				superexpressions,
 				continuation)
 		}
 	},
@@ -267,7 +277,9 @@ enum class ParsingOperation constructor(
 			consumedAnything: Boolean,
 			consumedAnythingBeforeLatestArgument: Boolean,
 			consumedStaticTokens: List<A_Token>,
-			continuation: Con1)
+			superexpressions: PartialSubexpressionList?,
+			continuation: (ParserState, A_Phrase)->Unit
+		)
 		{
 			assert(successorTrees.tupleSize() == 1)
 			compiler.eventuallyParseRestOfSendNode(
@@ -280,6 +292,7 @@ enum class ParsingOperation constructor(
 				consumedStaticTokens,
 				argsSoFar,
 				withoutLast(marksSoFar),
+				superexpressions,
 				continuation)
 		}
 	},
@@ -304,7 +317,9 @@ enum class ParsingOperation constructor(
 			consumedAnything: Boolean,
 			consumedAnythingBeforeLatestArgument: Boolean,
 			consumedStaticTokens: List<A_Token>,
-			continuation: Con1)
+			superexpressions: PartialSubexpressionList?,
+			continuation: (ParserState, A_Phrase)->Unit
+		)
 		{
 			assert(successorTrees.tupleSize() == 1)
 			val oldMarker = last(marksSoFar)
@@ -324,6 +339,7 @@ enum class ParsingOperation constructor(
 				consumedStaticTokens,
 				argsSoFar,
 				append(withoutLast(marksSoFar), newMarker),
+				superexpressions,
 				continuation)
 		}
 	},
@@ -346,15 +362,17 @@ enum class ParsingOperation constructor(
 			consumedAnything: Boolean,
 			consumedAnythingBeforeLatestArgument: Boolean,
 			consumedStaticTokens: List<A_Token>,
-			continuation: Con1)
+			superexpressions: PartialSubexpressionList?,
+			continuation: (ParserState, A_Phrase)->Unit
+		)
 		{
 			assert(successorTrees.tupleSize() == 1)
 			val successorTree = successorTrees.tupleAt(1)
 			val partialSubexpressionList =
 				if (firstArgOrNull === null)
-					continuation.superexpressions!!.advancedTo(successorTree)
+					superexpressions!!.advancedTo(successorTree)
 				else
-					continuation.superexpressions
+					superexpressions
 			compiler.parseSendArgumentWithExplanationThen(
 				start,
 				"argument",
@@ -362,24 +380,26 @@ enum class ParsingOperation constructor(
 				firstArgOrNull === null
 					&& initialTokenPosition.lexingState != start.lexingState,
 				false,
-				Con1(partialSubexpressionList) { solution ->
-					compiler.eventuallyParseRestOfSendNode(
-						solution.endState,
-						successorTree,
-						null,
-						initialTokenPosition,
-						// The argument counts as something that was consumed if
-						// it's not a leading argument...
-						firstArgOrNull === null,
-						// We're about to parse an argument, so whatever was in
-						// consumedAnything should be moved into
-						// consumedAnythingBeforeLatestArgument.
-						consumedAnything,
-						consumedStaticTokens,
-						append(argsSoFar, solution.phrase),
-						marksSoFar,
-						continuation)
-				})
+				partialSubexpressionList
+			) { endState, phrase ->
+				compiler.eventuallyParseRestOfSendNode(
+					endState,
+					successorTree,
+					null,
+					initialTokenPosition,
+					// The argument counts as something that was consumed if
+					// it's not a leading argument...
+					firstArgOrNull === null,
+					// We're about to parse an argument, so whatever was in
+					// consumedAnything should be moved into
+					// consumedAnythingBeforeLatestArgument.
+					consumedAnything,
+					consumedStaticTokens,
+					append(argsSoFar, phrase),
+					marksSoFar,
+					superexpressions,
+					continuation)
+			}
 		}
 	},
 
@@ -408,15 +428,16 @@ enum class ParsingOperation constructor(
 			consumedAnything: Boolean,
 			consumedAnythingBeforeLatestArgument: Boolean,
 			consumedStaticTokens: List<A_Token>,
-			continuation: Con1)
+			superexpressions: PartialSubexpressionList?,
+			continuation: (ParserState, A_Phrase)->Unit
+		)
 		{
 			assert(successorTrees.tupleSize() == 1)
 			val partialSubexpressionList =
 				if (firstArgOrNull === null)
-					continuation.superexpressions!!.advancedTo(
-						successorTrees.tupleAt(1))
+					superexpressions!!.advancedTo(successorTrees.tupleAt(1))
 				else
-					continuation.superexpressions
+					superexpressions
 			compiler.parseSendArgumentWithExplanationThen(
 				start,
 				"top-valued argument",
@@ -424,24 +445,26 @@ enum class ParsingOperation constructor(
 				firstArgOrNull === null
 					&& initialTokenPosition.lexingState != start.lexingState,
 				true,
-				Con1(partialSubexpressionList) { solution ->
-					compiler.eventuallyParseRestOfSendNode(
-						solution.endState,
-						successorTrees.tupleAt(1),
-						null,
-						initialTokenPosition,
-						// The argument counts as something that was consumed if
-						// it's not a leading argument...
-						firstArgOrNull === null,
-						// We're about to parse an argument, so whatever was in
-						// consumedAnything should be moved into
-						// consumedAnythingBeforeLatestArgument.
-						consumedAnything,
-						consumedStaticTokens,
-						append(argsSoFar, solution.phrase),
-						marksSoFar,
-						continuation)
-				})
+				partialSubexpressionList
+			) { endState, phrase ->
+				compiler.eventuallyParseRestOfSendNode(
+					endState,
+					successorTrees.tupleAt(1),
+					null,
+					initialTokenPosition,
+					// The argument counts as something that was consumed if
+					// it's not a leading argument...
+					firstArgOrNull === null,
+					// We're about to parse an argument, so whatever was in
+					// consumedAnything should be moved into
+					// consumedAnythingBeforeLatestArgument.
+					consumedAnything,
+					consumedStaticTokens,
+					append(argsSoFar, phrase),
+					marksSoFar,
+					superexpressions,
+					continuation)
+			}
 		}
 	},
 
@@ -464,15 +487,16 @@ enum class ParsingOperation constructor(
 			consumedAnything: Boolean,
 			consumedAnythingBeforeLatestArgument: Boolean,
 			consumedStaticTokens: List<A_Token>,
-			continuation: Con1)
+			superexpressions: PartialSubexpressionList?,
+			continuation: (ParserState, A_Phrase)->Unit
+		)
 		{
 			assert(successorTrees.tupleSize() == 1)
 			val partialSubexpressionList =
 				if (firstArgOrNull === null)
-					continuation.superexpressions!!.advancedTo(
-						successorTrees.tupleAt(1))
+					superexpressions!!.advancedTo(successorTrees.tupleAt(1))
 				else
-					continuation.superexpressions
+					superexpressions
 			compiler.parseSendArgumentWithExplanationThen(
 				start,
 				"variable reference",
@@ -480,73 +504,73 @@ enum class ParsingOperation constructor(
 				firstArgOrNull === null
 					&& initialTokenPosition.lexingState != start.lexingState,
 				false,
-				Con1(partialSubexpressionList) { variableUseSolution ->
-					assert(successorTrees.tupleSize() == 1)
-					val variableUse = variableUseSolution.phrase
-					val rawVariableUse = variableUse.stripMacro()
-					val afterUse = variableUseSolution.endState
-					if (!rawVariableUse.phraseKindIsUnder(
-							VARIABLE_USE_PHRASE))
+				partialSubexpressionList
+			) { afterUse, variableUse ->
+				assert(successorTrees.tupleSize() == 1)
+				val rawVariableUse = variableUse.stripMacro()
+				if (!rawVariableUse.phraseKindIsUnder(
+						VARIABLE_USE_PHRASE))
+				{
+					if (consumedAnything)
 					{
-						if (consumedAnything)
-						{
-							// At least one token besides the variable use has
-							// been encountered, so go ahead and report that we
-							// expected a variable.
-							afterUse.expected(
-								if (consumedStaticTokens.isEmpty()) WEAK
-								else STRONG,
-								describeWhyVariableUseIsExpected(
-									successorTrees.tupleAt(1)))
-						}
-						// It wasn't a variable use phrase, so give up.
-						return@Con1
+						// At least one token besides the variable use has
+						// been encountered, so go ahead and report that we
+						// expected a variable.
+						afterUse.expected(
+							if (consumedStaticTokens.isEmpty()) WEAK
+							else STRONG,
+							describeWhyVariableUseIsExpected(
+								successorTrees.tupleAt(1)))
 					}
-					// Make sure taking a reference is appropriate.
-					val declarationKind =
-						rawVariableUse.declaration().declarationKind()
-					if (!declarationKind.isVariable)
+					// It wasn't a variable use phrase, so give up.
+					return@parseSendArgumentWithExplanationThen
+				}
+				// Make sure taking a reference is appropriate.
+				val declarationKind =
+					rawVariableUse.declaration().declarationKind()
+				if (!declarationKind.isVariable)
+				{
+					if (consumedAnything)
 					{
-						if (consumedAnything)
-						{
-							// Only complain about this not being a variable if
-							// we've parsed something besides the variable
-							// reference argument.
-							afterUse.expected(
-								STRONG,
-								"variable for reference argument to be "
-								+ "assignable, not "
-								+ declarationKind.nativeKindName())
-						}
-						return@Con1
+						// Only complain about this not being a variable if
+						// we've parsed something besides the variable
+						// reference argument.
+						afterUse.expected(
+							STRONG,
+							"variable for reference argument to be "
+							+ "assignable, not "
+							+ declarationKind.nativeKindName())
 					}
-					// Create a variable reference from this use.
-					val rawVariableReference =
-						referenceNodeFromUse(rawVariableUse)
-					val variableReference =
-						if (variableUse.isMacroSubstitutionNode())
-							newMacroSubstitution(
-								variableUse.macroOriginalSendNode(),
-								rawVariableReference)
-						else
-							rawVariableReference
-					compiler.eventuallyParseRestOfSendNode(
-						afterUse,
-						successorTrees.tupleAt(1),
-						null,
-						initialTokenPosition,
-						// The argument counts as something that was consumed if
-						// it's not a leading argument...
-						firstArgOrNull === null,
-						// We're about to parse an argument, so whatever was in
-						// consumedAnything should be moved into
-						// consumedAnythingBeforeLatestArgument.
-						consumedAnything,
-						consumedStaticTokens,
-						append(argsSoFar, variableReference),
-						marksSoFar,
-						continuation)
-				})
+					return@parseSendArgumentWithExplanationThen
+				}
+				// Create a variable reference from this use.
+				val rawVariableReference =
+					referenceNodeFromUse(rawVariableUse)
+				val variableReference =
+					if (variableUse.isMacroSubstitutionNode())
+						newMacroSubstitution(
+							variableUse.macroOriginalSendNode(),
+							rawVariableReference)
+					else
+						rawVariableReference
+				compiler.eventuallyParseRestOfSendNode(
+					afterUse,
+					successorTrees.tupleAt(1),
+					null,
+					initialTokenPosition,
+					// The argument counts as something that was consumed if
+					// it's not a leading argument...
+					firstArgOrNull === null,
+					// We're about to parse an argument, so whatever was in
+					// consumedAnything should be moved into
+					// consumedAnythingBeforeLatestArgument.
+					consumedAnything,
+					consumedStaticTokens,
+					append(argsSoFar, variableReference),
+					marksSoFar,
+					superexpressions,
+					continuation)
+			}
 		}
 	},
 
@@ -568,7 +592,9 @@ enum class ParsingOperation constructor(
 			consumedAnything: Boolean,
 			consumedAnythingBeforeLatestArgument: Boolean,
 			consumedStaticTokens: List<A_Token>,
-			continuation: Con1)
+			superexpressions: PartialSubexpressionList?,
+			continuation: (ParserState, A_Phrase)->Unit
+		)
 		{
 			assert(successorTrees.tupleSize() == 1)
 			compiler.parseArgumentInModuleScopeThen(
@@ -580,6 +606,7 @@ enum class ParsingOperation constructor(
 				argsSoFar,
 				marksSoFar,
 				successorTrees,
+				superexpressions,
 				continuation)
 		}
 	},
@@ -603,7 +630,9 @@ enum class ParsingOperation constructor(
 			consumedAnything: Boolean,
 			consumedAnythingBeforeLatestArgument: Boolean,
 			consumedStaticTokens: List<A_Token>,
-			continuation: Con1)
+			superexpressions: PartialSubexpressionList?,
+			continuation: (ParserState, A_Phrase)->Unit
+		)
 		{
 			assert(successorTrees.tupleSize() == 1)
 			if (firstArgOrNull !== null)
@@ -648,6 +677,7 @@ enum class ParsingOperation constructor(
 					consumedStaticTokens,
 					newArgsSoFar,
 					marksSoFar,
+					superexpressions,
 					continuation)
 			}
 		}
@@ -671,7 +701,9 @@ enum class ParsingOperation constructor(
 			consumedAnything: Boolean,
 			consumedAnythingBeforeLatestArgument: Boolean,
 			consumedStaticTokens: List<A_Token>,
-			continuation: Con1)
+			superexpressions: PartialSubexpressionList?,
+			continuation: (ParserState, A_Phrase)->Unit
+		)
 		{
 			assert(successorTrees.tupleSize() == 1)
 			if (firstArgOrNull !== null)
@@ -728,6 +760,7 @@ enum class ParsingOperation constructor(
 					consumedStaticTokens,
 					newArgsSoFar,
 					marksSoFar,
+					superexpressions,
 					continuation)
 			}
 		}
@@ -751,7 +784,9 @@ enum class ParsingOperation constructor(
 			consumedAnything: Boolean,
 			consumedAnythingBeforeLatestArgument: Boolean,
 			consumedStaticTokens: List<A_Token>,
-			continuation: Con1)
+			superexpressions: PartialSubexpressionList?,
+			continuation: (ParserState, A_Phrase)->Unit
+		)
 		{
 			assert(successorTrees.tupleSize() == 1)
 			if (firstArgOrNull !== null)
@@ -810,6 +845,7 @@ enum class ParsingOperation constructor(
 					consumedStaticTokens,
 					newArgsSoFar,
 					marksSoFar,
+					superexpressions,
 					continuation)
 			}
 		}
@@ -833,7 +869,9 @@ enum class ParsingOperation constructor(
 			consumedAnything: Boolean,
 			consumedAnythingBeforeLatestArgument: Boolean,
 			consumedStaticTokens: List<A_Token>,
-			continuation: Con1)
+			superexpressions: PartialSubexpressionList?,
+			continuation: (ParserState, A_Phrase)->Unit
+		)
 		{
 			assert(successorTrees.tupleSize() == 1)
 			if (firstArgOrNull !== null)
@@ -894,6 +932,7 @@ enum class ParsingOperation constructor(
 					consumedStaticTokens,
 					newArgsSoFar,
 					marksSoFar,
+					superexpressions,
 					continuation)
 			}
 		}
@@ -916,7 +955,9 @@ enum class ParsingOperation constructor(
 			consumedAnything: Boolean,
 			consumedAnythingBeforeLatestArgument: Boolean,
 			consumedStaticTokens: List<A_Token>,
-			continuation: Con1)
+			superexpressions: PartialSubexpressionList?,
+			continuation: (ParserState, A_Phrase)->Unit
+		)
 		{
 			assert(successorTrees.tupleSize() == 1)
 			val right = last(argsSoFar)
@@ -937,6 +978,7 @@ enum class ParsingOperation constructor(
 				consumedStaticTokens,
 				append(popped2, concatenated),
 				marksSoFar,
+				superexpressions,
 				continuation)
 		}
 	},
@@ -959,7 +1001,9 @@ enum class ParsingOperation constructor(
 			consumedAnything: Boolean,
 			consumedAnythingBeforeLatestArgument: Boolean,
 			consumedStaticTokens: List<A_Token>,
-			continuation: Con1)
+			superexpressions: PartialSubexpressionList?,
+			continuation: (ParserState, A_Phrase)->Unit
+		)
 		{
 			assert(false) { "Illegal reserved parsing operation" }
 		}
@@ -983,7 +1027,9 @@ enum class ParsingOperation constructor(
 			consumedAnything: Boolean,
 			consumedAnythingBeforeLatestArgument: Boolean,
 			consumedStaticTokens: List<A_Token>,
-			continuation: Con1)
+			superexpressions: PartialSubexpressionList?,
+			continuation: (ParserState, A_Phrase)->Unit
+		)
 		{
 			assert(false) { "Illegal reserved parsing operation" }
 		}
@@ -1015,7 +1061,9 @@ enum class ParsingOperation constructor(
 			consumedAnything: Boolean,
 			consumedAnythingBeforeLatestArgument: Boolean,
 			consumedStaticTokens: List<A_Token>,
-			continuation: Con1)
+			superexpressions: PartialSubexpressionList?,
+			continuation: (ParserState, A_Phrase)->Unit
+		)
 		{
 			for (successorTree in successorTrees)
 			{
@@ -1029,6 +1077,7 @@ enum class ParsingOperation constructor(
 					consumedStaticTokens,
 					argsSoFar,
 					marksSoFar,
+					superexpressions,
 					continuation)
 			}
 		}
@@ -1055,7 +1104,9 @@ enum class ParsingOperation constructor(
 			consumedAnything: Boolean,
 			consumedAnythingBeforeLatestArgument: Boolean,
 			consumedStaticTokens: List<A_Token>,
-			continuation: Con1)
+			superexpressions: PartialSubexpressionList?,
+			continuation: (ParserState, A_Phrase)->Unit
+		)
 		{
 			assert(successorTrees.tupleSize() == 1)
 			compiler.eventuallyParseRestOfSendNode(
@@ -1068,6 +1119,7 @@ enum class ParsingOperation constructor(
 				consumedStaticTokens,
 				argsSoFar,
 				marksSoFar,
+				superexpressions,
 				continuation)
 		}
 	},
@@ -1093,7 +1145,9 @@ enum class ParsingOperation constructor(
 			consumedAnything: Boolean,
 			consumedAnythingBeforeLatestArgument: Boolean,
 			consumedStaticTokens: List<A_Token>,
-			continuation: Con1)
+			superexpressions: PartialSubexpressionList?,
+			continuation: (ParserState, A_Phrase)->Unit
+		)
 		{
 			assert(successorTrees.tupleSize() == 1)
 			compiler.eventuallyParseRestOfSendNode(
@@ -1106,6 +1160,7 @@ enum class ParsingOperation constructor(
 				consumedStaticTokens,
 				argsSoFar,
 				marksSoFar,
+				superexpressions,
 				continuation)
 		}
 	},
@@ -1132,7 +1187,9 @@ enum class ParsingOperation constructor(
 			consumedAnything: Boolean,
 			consumedAnythingBeforeLatestArgument: Boolean,
 			consumedStaticTokens: List<A_Token>,
-			continuation: Con1)
+			superexpressions: PartialSubexpressionList?,
+			continuation: (ParserState, A_Phrase)->Unit
+		)
 		{
 			assert(false) { "$name instruction should not be dispatched" }
 		}
@@ -1160,7 +1217,9 @@ enum class ParsingOperation constructor(
 			consumedAnything: Boolean,
 			consumedAnythingBeforeLatestArgument: Boolean,
 			consumedStaticTokens: List<A_Token>,
-			continuation: Con1)
+			superexpressions: PartialSubexpressionList?,
+			continuation: (ParserState, A_Phrase)->Unit
+		)
 		{
 			assert(false) { "$name instruction should not be dispatched" }
 		}
@@ -1187,7 +1246,9 @@ enum class ParsingOperation constructor(
 			consumedAnything: Boolean,
 			consumedAnythingBeforeLatestArgument: Boolean,
 			consumedStaticTokens: List<A_Token>,
-			continuation: Con1)
+			superexpressions: PartialSubexpressionList?,
+			continuation: (ParserState, A_Phrase)->Unit
+		)
 		{
 			assert(successorTrees.tupleSize() == 1)
 			assert(firstArgOrNull === null)
@@ -1201,6 +1262,7 @@ enum class ParsingOperation constructor(
 				consumedStaticTokens,
 				argsSoFar,
 				marksSoFar,
+				superexpressions,
 				continuation)
 		}
 	},
@@ -1223,7 +1285,9 @@ enum class ParsingOperation constructor(
 			consumedAnything: Boolean,
 			consumedAnythingBeforeLatestArgument: Boolean,
 			consumedStaticTokens: List<A_Token>,
-			continuation: Con1)
+			superexpressions: PartialSubexpressionList?,
+			continuation: (ParserState, A_Phrase)->Unit
+		)
 		{
 			assert(successorTrees.tupleSize() == 1)
 			val input = last(argsSoFar)
@@ -1245,6 +1309,7 @@ enum class ParsingOperation constructor(
 						consumedStaticTokens,
 						append(withoutLast(argsSoFar), replacementExpression),
 						marksSoFar,
+						superexpressions,
 						continuation)
 				},
 				{ e ->
@@ -1287,7 +1352,9 @@ enum class ParsingOperation constructor(
 			consumedAnything: Boolean,
 			consumedAnythingBeforeLatestArgument: Boolean,
 			consumedStaticTokens: List<A_Token>,
-			continuation: Con1)
+			superexpressions: PartialSubexpressionList?,
+			continuation: (ParserState, A_Phrase)->Unit
+		)
 		{
 			var stackCopy = argsSoFar
 			// Only do N-1 steps.  We simply couldn't encode zero as an operand,
@@ -1315,6 +1382,7 @@ enum class ParsingOperation constructor(
 					consumedStaticTokens,
 					append(argsSoFar, stackCopy[0]),
 					marksSoFar,
+					superexpressions,
 					continuation)
 			}
 		}
@@ -1347,7 +1415,9 @@ enum class ParsingOperation constructor(
 			consumedAnything: Boolean,
 			consumedAnythingBeforeLatestArgument: Boolean,
 			consumedStaticTokens: List<A_Token>,
-			continuation: Con1)
+			superexpressions: PartialSubexpressionList?,
+			continuation: (ParserState, A_Phrase)->Unit
+		)
 		{
 			assert(successorTrees.tupleSize() == 1)
 			val successorTree = successorTrees.tupleAt(1)
@@ -1372,6 +1442,7 @@ enum class ParsingOperation constructor(
 				consumedStaticTokens,
 				withoutLast(argsSoFar),
 				marksSoFar,
+				superexpressions,
 				continuation)
 		}
 	},
@@ -1395,7 +1466,9 @@ enum class ParsingOperation constructor(
 			consumedAnything: Boolean,
 			consumedAnythingBeforeLatestArgument: Boolean,
 			consumedStaticTokens: List<A_Token>,
-			continuation: Con1)
+			superexpressions: PartialSubexpressionList?,
+			continuation: (ParserState, A_Phrase)->Unit
+		)
 		{
 			val permutationIndex = operand(instruction)
 			val permutation = permutationAtIndex(permutationIndex)
@@ -1412,6 +1485,7 @@ enum class ParsingOperation constructor(
 				consumedStaticTokens,
 				stack,
 				marksSoFar,
+				superexpressions,
 				continuation)
 		}
 	},
@@ -1435,7 +1509,9 @@ enum class ParsingOperation constructor(
 			consumedAnything: Boolean,
 			consumedAnythingBeforeLatestArgument: Boolean,
 			consumedStaticTokens: List<A_Token>,
-			continuation: Con1)
+			superexpressions: PartialSubexpressionList?,
+			continuation: (ParserState, A_Phrase)->Unit
+		)
 		{
 			val limit = operand(instruction)
 			val top = last(argsSoFar)
@@ -1451,6 +1527,7 @@ enum class ParsingOperation constructor(
 					consumedStaticTokens,
 					argsSoFar,
 					marksSoFar,
+					superexpressions,
 					continuation)
 			}
 		}
@@ -1475,7 +1552,9 @@ enum class ParsingOperation constructor(
 			consumedAnything: Boolean,
 			consumedAnythingBeforeLatestArgument: Boolean,
 			consumedStaticTokens: List<A_Token>,
-			continuation: Con1)
+			superexpressions: PartialSubexpressionList?,
+			continuation: (ParserState, A_Phrase)->Unit
+		)
 		{
 			val limit = operand(instruction)
 			val top = last(argsSoFar)
@@ -1491,6 +1570,7 @@ enum class ParsingOperation constructor(
 					consumedStaticTokens,
 					argsSoFar,
 					marksSoFar,
+					superexpressions,
 					continuation)
 			}
 		}
@@ -1521,7 +1601,9 @@ enum class ParsingOperation constructor(
 			consumedAnything: Boolean,
 			consumedAnythingBeforeLatestArgument: Boolean,
 			consumedStaticTokens: List<A_Token>,
-			continuation: Con1)
+			superexpressions: PartialSubexpressionList?,
+			continuation: (ParserState, A_Phrase)->Unit
+		)
 		{
 			assert(false) { "$name instruction should not be dispatched" }
 		}
@@ -1555,7 +1637,9 @@ enum class ParsingOperation constructor(
 			consumedAnything: Boolean,
 			consumedAnythingBeforeLatestArgument: Boolean,
 			consumedStaticTokens: List<A_Token>,
-			continuation: Con1)
+			superexpressions: PartialSubexpressionList?,
+			continuation: (ParserState, A_Phrase)->Unit
+		)
 		{
 			assert(successorTrees.tupleSize() == 1)
 			val listSize = operand(instruction)
@@ -1574,6 +1658,7 @@ enum class ParsingOperation constructor(
 				consumedStaticTokens,
 				newArgsSoFar,
 				marksSoFar,
+				superexpressions,
 				continuation)
 		}
 	},
@@ -1597,7 +1682,9 @@ enum class ParsingOperation constructor(
 			consumedAnything: Boolean,
 			consumedAnythingBeforeLatestArgument: Boolean,
 			consumedStaticTokens: List<A_Token>,
-			continuation: Con1)
+			superexpressions: PartialSubexpressionList?,
+			continuation: (ParserState, A_Phrase)->Unit
+		)
 		{
 			val constant = constantForIndex(operand(instruction))
 			val token = literalToken(
@@ -1615,6 +1702,7 @@ enum class ParsingOperation constructor(
 				consumedStaticTokens,
 				append(argsSoFar, literalNodeFromToken(token)),
 				marksSoFar,
+				superexpressions,
 				continuation)
 		}
 	},
@@ -1637,7 +1725,9 @@ enum class ParsingOperation constructor(
 			consumedAnything: Boolean,
 			consumedAnythingBeforeLatestArgument: Boolean,
 			consumedStaticTokens: List<A_Token>,
-			continuation: Con1)
+			superexpressions: PartialSubexpressionList?,
+			continuation: (ParserState, A_Phrase)->Unit
+		)
 		{
 			assert(successorTrees.tupleSize() == 1)
 			val depthToReverse = operand(instruction)
@@ -1658,6 +1748,7 @@ enum class ParsingOperation constructor(
 				consumedStaticTokens,
 				newArgsSoFar,
 				marksSoFar,
+				superexpressions,
 				continuation)
 		}
 	};
@@ -1822,7 +1913,8 @@ enum class ParsingOperation constructor(
 		consumedAnything: Boolean,
 		consumedAnythingBeforeLatestArgument: Boolean,
 		consumedStaticTokens: List<A_Token>,
-		continuation: Con1)
+		superexpressions: PartialSubexpressionList?,
+		continuation: (ParserState, A_Phrase)->Unit)
 
 	companion object
 	{

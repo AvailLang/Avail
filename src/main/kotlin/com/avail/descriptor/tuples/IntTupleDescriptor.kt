@@ -647,7 +647,7 @@ class IntTupleDescriptor private constructor(
 		{
 			val descriptor = descriptorFor(Mutability.MUTABLE, size)
 			assert(size + descriptor.unusedIntsOfLastLong and 1 == 0)
-			return descriptor.create(size + 1 ushr 1)
+			return descriptor.create(size + 1 ushr 1) { }
 		}
 
 		/**

@@ -50,6 +50,7 @@ import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.ObjectSlots.*
 import com.avail.descriptor.types.PojoTypeDescriptor.Companion.byteRange
 import com.avail.descriptor.types.PojoTypeDescriptor.Companion.charRange
 import com.avail.descriptor.types.PojoTypeDescriptor.Companion.intRange
@@ -120,12 +121,12 @@ class IntegerRangeTypeDescriptor private constructor(
 		indent: Int)
 	{
 		builder.append(if (self.lowerInclusive()) '[' else '(')
-		self.slot(ObjectSlots.LOWER_BOUND).printOnAvoidingIndent(
+		self.slot(LOWER_BOUND).printOnAvoidingIndent(
 			builder,
 			recursionMap,
 			indent + 1)
 		builder.append("..")
-		self.slot(ObjectSlots.UPPER_BOUND).printOnAvoidingIndent(
+		self.slot(UPPER_BOUND).printOnAvoidingIndent(
 			builder,
 			recursionMap,
 			indent + 1)
@@ -138,8 +139,8 @@ class IntegerRangeTypeDescriptor private constructor(
 	override fun o_EqualsIntegerRangeType(
 		self: AvailObject,
 		another: A_Type): Boolean =
-			(self.slot(ObjectSlots.LOWER_BOUND).equals(another.lowerBound())
-		        && self.slot(ObjectSlots.UPPER_BOUND).equals(another.upperBound())
+			(self.slot(LOWER_BOUND).equals(another.lowerBound())
+		        && self.slot(UPPER_BOUND).equals(another.upperBound())
 		        && self.lowerInclusive() == another.lowerInclusive()
 			    && self.upperInclusive() == another.upperInclusive())
 
@@ -156,8 +157,8 @@ class IntegerRangeTypeDescriptor private constructor(
 	 */
 	override fun o_Hash(self: AvailObject): Int =
 		computeHash(
-			self.slot(ObjectSlots.LOWER_BOUND).hash(),
-			self.slot(ObjectSlots.UPPER_BOUND).hash(),
+			self.slot(LOWER_BOUND).hash(),
+			self.slot(UPPER_BOUND).hash(),
 			self.lowerInclusive(),
 			self.upperInclusive())
 
@@ -182,7 +183,7 @@ class IntegerRangeTypeDescriptor private constructor(
 		anIntegerRangeType: A_Type): Boolean
 	{
 		val subMinObject = anIntegerRangeType.lowerBound()
-		val superMinObject = self.slot(ObjectSlots.LOWER_BOUND)
+		val superMinObject = self.slot(LOWER_BOUND)
 		if (subMinObject.lessThan(superMinObject))
 		{
 			return false
@@ -194,7 +195,7 @@ class IntegerRangeTypeDescriptor private constructor(
 			return false
 		}
 		val subMaxObject = anIntegerRangeType.upperBound()
-		val superMaxObject: A_Number = self.slot(ObjectSlots.UPPER_BOUND)
+		val superMaxObject: A_Number = self.slot(UPPER_BOUND)
 		return if (superMaxObject.lessThan(subMaxObject))
 		{
 			false
@@ -205,7 +206,7 @@ class IntegerRangeTypeDescriptor private constructor(
 	}
 
 	override fun o_LowerBound(self: AvailObject): A_Number =
-		self.slot(ObjectSlots.LOWER_BOUND)
+		self.slot(LOWER_BOUND)
 
 	override fun o_LowerInclusive(self: AvailObject): Boolean =
 		lowerInclusive
@@ -241,7 +242,7 @@ class IntegerRangeTypeDescriptor private constructor(
 
 	override fun o_RangeIncludesInt(self: AvailObject, anInt: Int): Boolean
 	{
-		val lower: A_Number = self.slot(ObjectSlots.LOWER_BOUND)
+		val lower: A_Number = self.slot(LOWER_BOUND)
 		val asInteger: A_Number?
 		when
 		{
@@ -256,7 +257,7 @@ class IntegerRangeTypeDescriptor private constructor(
 				}
 			}
 		}
-		val upper: A_Number = self.slot(ObjectSlots.UPPER_BOUND)
+		val upper: A_Number = self.slot(UPPER_BOUND)
 		return when
 		{
 			upper.isInt ->
@@ -287,7 +288,7 @@ class IntegerRangeTypeDescriptor private constructor(
 		self: AvailObject,
 		anIntegerRangeType: A_Type): A_Type
 	{
-		var minObject: A_Number = self.slot(ObjectSlots.LOWER_BOUND)
+		var minObject: A_Number = self.slot(LOWER_BOUND)
 		var isMinInc = self.lowerInclusive()
 		if (anIntegerRangeType.lowerBound().equals(minObject))
 		{
@@ -298,7 +299,7 @@ class IntegerRangeTypeDescriptor private constructor(
 			minObject = anIntegerRangeType.lowerBound()
 			isMinInc = anIntegerRangeType.lowerInclusive()
 		}
-		var maxObject: A_Number = self.slot(ObjectSlots.UPPER_BOUND)
+		var maxObject: A_Number = self.slot(UPPER_BOUND)
 		var isMaxInc = self.upperInclusive()
 		if (anIntegerRangeType.upperBound().equals(maxObject))
 		{
@@ -335,7 +336,7 @@ class IntegerRangeTypeDescriptor private constructor(
 		self: AvailObject,
 		anIntegerRangeType: A_Type): A_Type
 	{
-		var minObject: A_Number = self.slot(ObjectSlots.LOWER_BOUND)
+		var minObject: A_Number = self.slot(LOWER_BOUND)
 		var isMinInc = self.lowerInclusive()
 		if (anIntegerRangeType.lowerBound().equals(minObject))
 		{
@@ -346,7 +347,7 @@ class IntegerRangeTypeDescriptor private constructor(
 			minObject = anIntegerRangeType.lowerBound()
 			isMinInc = anIntegerRangeType.lowerInclusive()
 		}
-		var maxObject: A_Number = self.slot(ObjectSlots.UPPER_BOUND)
+		var maxObject: A_Number = self.slot(UPPER_BOUND)
 		var isMaxInc = self.upperInclusive()
 		if (anIntegerRangeType.upperBound().equals(maxObject))
 		{
@@ -366,7 +367,7 @@ class IntegerRangeTypeDescriptor private constructor(
 			Types.NUMBER.unionTypes[primitiveTypeEnum.ordinal]!!
 
 	override fun o_UpperBound(self: AvailObject): A_Number =
-		self.slot(ObjectSlots.UPPER_BOUND)
+		self.slot(UPPER_BOUND)
 
 	override fun o_UpperInclusive(self: AvailObject): Boolean =
 		upperInclusive
@@ -377,9 +378,9 @@ class IntegerRangeTypeDescriptor private constructor(
 		writer.write("kind")
 		writer.write("integer type")
 		writer.write("lower bound")
-		self.slot(ObjectSlots.LOWER_BOUND).writeTo(writer)
+		self.slot(LOWER_BOUND).writeTo(writer)
 		writer.write("upper bound")
-		self.slot(ObjectSlots.UPPER_BOUND).writeTo(writer)
+		self.slot(UPPER_BOUND).writeTo(writer)
 		writer.endObject()
 	}
 
@@ -522,12 +523,10 @@ class IntegerRangeTypeDescriptor private constructor(
 					return smallRanges[highInt][lowInt]
 				}
 			}
-			val descriptor =
-				lookupDescriptor(true, lowInc, highInc)
-			val result = descriptor.create()
-			result.setSlot(ObjectSlots.LOWER_BOUND, low)
-			result.setSlot(ObjectSlots.UPPER_BOUND, high)
-			return result
+			return lookupDescriptor(true, lowInc, highInc).create {
+				setSlot(LOWER_BOUND, low)
+				setSlot(UPPER_BOUND, high)
+			}
 		}
 
 		/**
@@ -759,7 +758,7 @@ class IntegerRangeTypeDescriptor private constructor(
 		 * is [extended&#32;integer][extendedIntegers], and therefore has
 		 * all integer range types as instances.
 		 */
-		private val extendedIntegersMeta: A_Type = 
+		private val extendedIntegersMeta: A_Type =
 			instanceMeta(extendedIntegers).makeShared()
 
 		/**
@@ -773,17 +772,13 @@ class IntegerRangeTypeDescriptor private constructor(
 
 		init
 		{
-			smallRanges = Array(smallRangeLimit)
-			{ upper->
-				val byLower = Array<A_Type>(upper + 1)
-				{ lower ->
-					val descriptor = lookupDescriptor(true, true, true)
-					val result: AvailObject = descriptor.create()
-					result.setSlot(ObjectSlots.UPPER_BOUND, fromInt(upper))
-					result.setSlot(ObjectSlots.LOWER_BOUND, fromInt(lower))
-					result.makeShared()
+			smallRanges = Array(smallRangeLimit) { upper->
+				Array<A_Type>(upper + 1) { lower ->
+					lookupDescriptor(true, true, true).createShared {
+						setSlot(UPPER_BOUND, fromInt(upper))
+						setSlot(LOWER_BOUND, fromInt(lower))
+					}
 				}
-				byLower
 			}
 		}
 
@@ -800,13 +795,13 @@ class IntegerRangeTypeDescriptor private constructor(
 		fun zeroOrOne(): A_Type = zeroOrOne
 	}
 
-	override fun mutable(): AbstractDescriptor = 
+	override fun mutable(): AbstractDescriptor =
 		lookupDescriptor(true, lowerInclusive, upperInclusive)
 
 	// There are no immutable descriptors, only shared ones.
-	override fun immutable(): AbstractDescriptor = 
+	override fun immutable(): AbstractDescriptor =
 		lookupDescriptor(false, lowerInclusive, upperInclusive)
 
-	override fun shared(): AbstractDescriptor = 
+	override fun shared(): AbstractDescriptor =
 		lookupDescriptor(false, lowerInclusive, upperInclusive)
 }

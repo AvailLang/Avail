@@ -407,7 +407,7 @@ class InfinityDescriptor private constructor(
 		 * representing positive infinity.
 		 */
 		private val positiveInfinity: A_Number =
-			mutablePositive.create().makeShared()
+			mutablePositive.createShared { }
 
 		/**
 		 * Answer the positive infinity object.
@@ -424,7 +424,7 @@ class InfinityDescriptor private constructor(
 		 * representing negative infinity.
 		 */
 		private val negativeInfinity: A_Number =
-			mutableNegative.create().makeShared()
+			mutableNegative.createShared { }
 
 		/**
 		 * Answer the negative infinity object.

@@ -193,11 +193,10 @@ class ForwardDefinitionDescriptor private constructor(
 			definitionMethod: A_BasicObject,
 			definitionModule: A_Module,
 			bodySignature: A_Type
-		): AvailObject = with(mutable.create()) {
+		): AvailObject = mutable.createShared {
 			setSlot(DEFINITION_METHOD, definitionMethod)
 			setSlot(MODULE, definitionModule)
 			setSlot(BODY_SIGNATURE, bodySignature)
-			makeShared()
 		}
 
 		/** The mutable [ForwardDefinitionDescriptor].  */

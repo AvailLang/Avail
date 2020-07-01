@@ -297,12 +297,11 @@ class AssignmentPhraseDescriptor private constructor(
 			expression: A_Phrase,
 			tokens: A_Tuple,
 			isInline: Boolean
-		): A_Phrase = mutable.create().apply {
+		): A_Phrase = mutable.createShared {
 			setSlot(VARIABLE, variableUse)
 			setSlot(EXPRESSION, expression)
 			setSlot(TOKENS, tokens)
 			setSlot(IS_INLINE, if (isInline) 1 else 0)
-			makeShared()
 		}
 
 		/** The mutable [AssignmentPhraseDescriptor].  */

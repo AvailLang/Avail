@@ -208,9 +208,8 @@ class ReferencePhraseDescriptor(
 		 *   The new reference phrase.
 		 */
 		fun referenceNodeFromUse(variableUse: A_Phrase): A_Phrase =
-			mutable.create().apply {
+			mutable.createShared {
 				setSlot(VARIABLE, variableUse)
-				makeShared()
 			}
 
 		/** The mutable [ReferencePhraseDescriptor].  */

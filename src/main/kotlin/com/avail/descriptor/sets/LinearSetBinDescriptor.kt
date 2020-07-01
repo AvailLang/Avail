@@ -357,7 +357,7 @@ class LinearSetBinDescriptor private constructor(
 			firstElement: A_BasicObject,
 			secondElement: A_BasicObject
 		): AvailObject =
-			descriptorFor(Mutability.MUTABLE, level).create(2).apply {
+			descriptorFor(Mutability.MUTABLE, level).create(2) {
 				setSlot(BIN_ELEMENT_AT_, 1, firstElement)
 				setSlot(BIN_ELEMENT_AT_, 2, secondElement)
 				setSlot(BIN_HASH, firstElement.hash() + secondElement.hash())
@@ -398,9 +398,9 @@ class LinearSetBinDescriptor private constructor(
 		 */
 		private val emptyBins =
 			Array(HashedSetBinDescriptor.numberOfLevels) {
-				descriptorFor(Mutability.MUTABLE, it).create(0).apply {
+				descriptorFor(Mutability.MUTABLE, it).createShared(0) {
 					setSlot(BIN_HASH, 0)
-				}.makeShared()
+				}
 			}
 
 		/**
@@ -438,19 +438,22 @@ class LinearSetBinDescriptor private constructor(
 			size: Int,
 			generator: (Int)->A_BasicObject
 		): AvailObject {
-			val bin = descriptorFor(Mutability.MUTABLE, level).create(size)
-			var hash = 0
 			var written = 0
-			(1..size).forEach { i ->
-				val element = generator(i)
-				if ((1..written).none { j ->
-						element.equals(bin.slot(BIN_ELEMENT_AT_, j)) })
+			val bin = descriptorFor(Mutability.MUTABLE, level).create(size) {
+				var hash = 0
+				for (i in 1 .. size)
 				{
-					bin.setSlot(BIN_ELEMENT_AT_, ++written, element)
-					hash += element.hash()
+					val element = generator(i)
+					if ((1 .. written).none { j ->
+							element.equals(slot(BIN_ELEMENT_AT_, j))
+						})
+					{
+						setSlot(BIN_ELEMENT_AT_, ++written, element)
+						hash += element.hash()
+					}
 				}
+				setSlot(BIN_HASH, hash)
 			}
-			bin.setSlot(BIN_HASH, hash)
 			return when (written) {
 				1 -> bin.slot(BIN_ELEMENT_AT_, 1)
 				size -> bin

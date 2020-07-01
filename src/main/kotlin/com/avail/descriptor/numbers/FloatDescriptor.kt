@@ -415,7 +415,7 @@ class FloatDescriptor private constructor(
 		 */
 		@JvmStatic
 		fun fromFloat(aFloat: Float): A_Number =
-			mutable.create().apply {
+			mutable.create {
 				setSlot(RAW_INT, floatToRawIntBits(aFloat))
 			}
 
@@ -441,7 +441,7 @@ class FloatDescriptor private constructor(
 				if (canDestroy && recyclable1.descriptor().isMutable) {
 					recyclable1 as AvailObject
 				} else {
-					mutable.create()
+					mutable.create { }
 				}
 			result.setSlot(RAW_INT, floatToRawIntBits(aFloat))
 			return result
@@ -474,7 +474,7 @@ class FloatDescriptor private constructor(
 					recyclable1 as AvailObject
 				canDestroy && recyclable2.descriptor().isMutable ->
 					recyclable2 as AvailObject
-				else -> mutable.create()
+				else -> mutable.create { }
 			}
 			result.setSlot(RAW_INT, floatToRawIntBits(aFloat))
 			return result

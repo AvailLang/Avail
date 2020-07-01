@@ -750,7 +750,7 @@ class MapDescriptor private constructor(
 		 *   A new mutable map.
 		 */
 		private fun createFromBin(rootBin: A_MapBin): A_Map =
-			mutable.create().also { setRootBin(it, rootBin) }
+			mutable.create { setRootBin(this, rootBin) }
 
 		/**
 		 * Combine the two [maps][A_Map] into a single map, destroying the

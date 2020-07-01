@@ -276,12 +276,11 @@ class CharacterDescriptor private constructor(
 			// holding the write lock, creating and adding it if not found.
 			return characterCacheLock.write {
 				characterCache.computeIfAbsent(codePoint) { cp: Int ->
-					mutable.create().run {
+					mutable.createShared {
 						setSlot(CODE_POINT, cp)
 						setSlot(
 							HASH,
 							computeHashOfCharacterWithCodePoint(codePoint))
-						makeShared()
 					}
 				}
 			}
@@ -304,10 +303,9 @@ class CharacterDescriptor private constructor(
 
 		/** The first 256 Unicode characters. */
 		private val byteCharacters = Array(256) {
-			mutable.create().run {
+			mutable.createShared {
 				setSlot(CODE_POINT, it)
 				setSlot(HASH, computeHashOfCharacterWithCodePoint(it))
-				makeShared()
 			}
 		}
 

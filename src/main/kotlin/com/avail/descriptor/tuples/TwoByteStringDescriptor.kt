@@ -471,7 +471,7 @@ class TwoByteStringDescriptor private constructor(
 		 */
 		@JvmStatic
 		fun mutableTwoByteStringOfSize(size: Int): AvailObject =
-			descriptorFor(Mutability.MUTABLE, size).create(size + 3 shr 2)
+			descriptorFor(Mutability.MUTABLE, size).create(size + 3 shr 2) { }
 
 		/**
 		 * Answer the descriptor that has the specified mutability flag and is

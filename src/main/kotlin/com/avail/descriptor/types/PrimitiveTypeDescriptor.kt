@@ -33,6 +33,7 @@ package com.avail.descriptor.types
 
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.multiplier
 import com.avail.descriptor.representation.BitField
 import com.avail.descriptor.representation.IntegerSlotsEnum
 import com.avail.descriptor.representation.Mutability
@@ -42,6 +43,8 @@ import com.avail.descriptor.tuples.StringDescriptor
 import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.IntegerSlots.Companion.HASH
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.ObjectSlots.*
 import com.avail.descriptor.types.TypeDescriptor.Types.Companion.all
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
@@ -110,7 +113,7 @@ open class PrimitiveTypeDescriptor : TypeDescriptor
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int)
 	{
-		builder.append(self.slot(ObjectSlots.NAME).asNativeString())
+		builder.append(self.slot(NAME).asNativeString())
 	}
 
 	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean =
@@ -121,10 +124,10 @@ open class PrimitiveTypeDescriptor : TypeDescriptor
 		self: AvailObject,
 		aPrimitiveType: A_Type): Boolean = self.sameAddressAs(aPrimitiveType)
 
-	override fun o_Hash(self: AvailObject): Int = self.slot(IntegerSlots.HASH)
+	override fun o_Hash(self: AvailObject): Int = self.slot(HASH)
 
 	override fun o_Parent(self: AvailObject): A_BasicObject =
-		self.slot(ObjectSlots.PARENT)
+		self.slot(PARENT)
 
 	// Check if object (a type) is a subtype of aType (should also be a
 	// type).
@@ -322,7 +325,7 @@ open class PrimitiveTypeDescriptor : TypeDescriptor
 		writer.startObject()
 		writer.write("kind")
 		writer.write(
-			"${self.slot(ObjectSlots.NAME).asNativeString().toLowerCase()} type")
+			"${self.slot(NAME).asNativeString().toLowerCase()} type")
 		writer.endObject()
 	}
 
@@ -339,7 +342,7 @@ open class PrimitiveTypeDescriptor : TypeDescriptor
 		parentType: A_Type)
 	{
 		assert(mutability === Mutability.SHARED)
-		self.setSlot(ObjectSlots.PARENT, parentType)
+		self.setSlot(PARENT, parentType)
 		self.setDescriptor(this)
 	}
 
@@ -460,16 +463,12 @@ open class PrimitiveTypeDescriptor : TypeDescriptor
 		 *   The partially initialized type.
 		 */
 		fun createMutablePrimitiveObjectNamed(
-			typeNameString: String): AvailObject
-		{
+			typeNameString: String
+		): AvailObject = transientMutable.create {
 			val name = stringFrom(typeNameString)
-			val self = transientMutable.create()
-			self.setSlot(ObjectSlots.NAME, name.makeShared())
-			self.setSlot(ObjectSlots.PARENT, NilDescriptor.nil)
-			self.setSlot(
-				IntegerSlots.HASH,
-				typeNameString.hashCode() * AvailObject.multiplier)
-			return self
+			setSlot(NAME, name.makeShared())
+			setSlot(PARENT, NilDescriptor.nil)
+			setSlot(HASH, typeNameString.hashCode() * multiplier)
 		}
 
 		/**

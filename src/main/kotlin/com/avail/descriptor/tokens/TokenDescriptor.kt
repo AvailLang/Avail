@@ -407,13 +407,12 @@ open class TokenDescriptor protected constructor(
 			{
 				return newCommentToken(string, start, lineNumber)
 			}
-			return with(mutable.create()) {
+			return mutable.createShared {
 				setSlot(STRING, string)
 				setSlot(START, start)
 				setSlot(LINE_NUMBER, lineNumber)
 				setSlot(TOKEN_TYPE_CODE, tokenType.ordinal)
 				setSlot(NEXT_LEXING_STATE_POJO, nil)
-				makeShared()
 			}
 		}
 

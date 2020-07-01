@@ -38,6 +38,7 @@ import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
+import com.avail.descriptor.types.ContinuationTypeDescriptor.ObjectSlots.*
 import com.avail.interpreter.primitive.controlflow.P_ExitContinuationWithResultIf
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments
 import com.avail.serialization.SerializerOperation
@@ -45,7 +46,7 @@ import com.avail.utility.json.JSONWriter
 import java.util.*
 
 /**
- * Continuation types are the types of [continuations][ContinuationDescriptor]. 
+ * Continuation types are the types of [continuations][ContinuationDescriptor].
  * They contain information about the
  * [types&#32;of&#32;function][FunctionTypeDescriptor] that can appear
  * on the top stack frame for a continuation of this type.
@@ -64,18 +65,18 @@ import java.util.*
  * instantly voided.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
- * 
+ *
  * @constructor
  *  Construct a new `ContinuationTypeDescriptor`.
  *
  * @param mutability
  *   The [mutability][Mutability] of the new descriptor.
  */
-class ContinuationTypeDescriptor private constructor(mutability: Mutability) 
+class ContinuationTypeDescriptor private constructor(mutability: Mutability)
 	: TypeDescriptor(
-		mutability, 
+		mutability,
 		TypeTag.CONTINUATION_TYPE_TAG,
-		ObjectSlots::class.java, 
+		ObjectSlots::class.java,
 		null)
 {
 	/**
@@ -85,7 +86,7 @@ class ContinuationTypeDescriptor private constructor(mutability: Mutability)
 	{
 		/**
 		 * The type of function that this
-		 * [continuation&#32;type][ContinuationTypeDescriptor] supports. 
+		 * [continuation&#32;type][ContinuationTypeDescriptor] supports.
 		 * Continuation types are contravariant with respect to the function
 		 * type's argument types, and, surprisingly, they are also contravariant
 		 * with respect to the function type's return type.
@@ -94,7 +95,7 @@ class ContinuationTypeDescriptor private constructor(mutability: Mutability)
 	}
 
 	override fun o_FunctionType(self: AvailObject): A_Type =
-		self.slot(ObjectSlots.FUNCTION_TYPE)
+		self.slot(FUNCTION_TYPE)
 
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
@@ -125,12 +126,12 @@ class ContinuationTypeDescriptor private constructor(mutability: Mutability)
 			{
 				true
 			}
-			else 
+			else
 			{
 				aContinuationType.functionType().equals(self.functionType())
 			}
 
-	override fun o_Hash(self: AvailObject): Int = 
+	override fun o_Hash(self: AvailObject): Int =
 		self.functionType().hash() * 11 xor 0x3E20409
 
 	override fun o_IsSubtypeOf(self: AvailObject, aType: A_Type): Boolean =
@@ -159,7 +160,7 @@ class ContinuationTypeDescriptor private constructor(mutability: Mutability)
 	}
 
 	override fun o_IsVacuousType(self: AvailObject): Boolean =
-		self.slot(ObjectSlots.FUNCTION_TYPE).isVacuousType
+		self.slot(FUNCTION_TYPE).isVacuousType
 
 	override fun o_TypeIntersection(
 		self: AvailObject,
@@ -188,7 +189,7 @@ class ContinuationTypeDescriptor private constructor(mutability: Mutability)
 			functionType2.argsTupleType())
 		val returnType = functionType1.returnType().typeIntersection(
 			functionType2.returnType())
-		val intersection = 
+		val intersection =
 			FunctionTypeDescriptor.functionTypeFromArgumentTupleType(
 				argsTupleType, returnType, emptySet())
 		return continuationTypeForFunctionType(intersection)
@@ -198,7 +199,7 @@ class ContinuationTypeDescriptor private constructor(mutability: Mutability)
 		when
 		{
 			self.isSubtypeOf(another) -> another
-			else -> 
+			else ->
 			{
 				if (another.isSubtypeOf(self)) self
 				else another.typeUnionOfContinuationType(self)
@@ -234,7 +235,7 @@ class ContinuationTypeDescriptor private constructor(mutability: Mutability)
 		writer.write("kind")
 		writer.write("continuation type")
 		writer.write("function type")
-		self.slot(ObjectSlots.FUNCTION_TYPE).writeTo(writer)
+		self.slot(FUNCTION_TYPE).writeTo(writer)
 		writer.endObject()
 	}
 
@@ -259,12 +260,9 @@ class ContinuationTypeDescriptor private constructor(mutability: Mutability)
 		 */
 		@JvmStatic
 		fun continuationTypeForFunctionType(
-			functionType: A_Type): A_Type
-		{
-			val result = mutable.create()
-			result.setSlot(ObjectSlots.FUNCTION_TYPE, functionType.makeImmutable())
-			result.makeImmutable()
-			return result
+			functionType: A_Type
+		): A_Type = mutable.createImmutable {
+			setSlot(FUNCTION_TYPE, functionType.makeImmutable())
 		}
 
 		/** The mutable [ContinuationTypeDescriptor].  */
@@ -280,7 +278,7 @@ class ContinuationTypeDescriptor private constructor(mutability: Mutability)
 		 * The most general continuation type.  Since continuation types are
 		 * contravariant by argument types and contravariant by return type, the
 		 * most general type is the one taking bottom as the arguments list
-		 * (i.e., not specific enough to be able to call it), and having the 
+		 * (i.e., not specific enough to be able to call it), and having the
 		 * return type bottom.
 		 */
 		private val mostGeneralType: A_Type = continuationTypeForFunctionType(
@@ -301,7 +299,7 @@ class ContinuationTypeDescriptor private constructor(mutability: Mutability)
 		 * the [instance&#32;type][InstanceTypeDescriptor] for the
 		 * [mostGeneralContinuationType].
 		 */
-		private val meta: A_Type = 
+		private val meta: A_Type =
 			InstanceMetaDescriptor.instanceMeta(mostGeneralType).makeShared()
 
 		/**

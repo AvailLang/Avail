@@ -536,17 +536,52 @@ abstract class AbstractDescriptor protected constructor (
 	 * @return
 	 *   The new uninitialized [object][AvailObject].
 	 */
-	fun create (indexedSlotCount: Int) =
-		newIndexedDescriptor(indexedSlotCount, this)
+	inline fun create (
+		indexedSlotCount: Int = 0,
+		init: AvailObject.()->Unit): AvailObject
+	{
+		val value = newIndexedDescriptor(indexedSlotCount, this)
+		value.init()
+		return value
+	}
 
 	/**
 	 * Create a new [object][AvailObject] whose [descriptor][AbstractDescriptor]
-	 * is the receiver, and which has no indexed (variable) slots.
+	 * is the receiver, and which has the specified number of indexed (variable)
+	 * slots.
 	 *
+	 * @param indexedSlotCount
+	 *   The number of variable slots to include.
 	 * @return
 	 *   The new uninitialized [object][AvailObject].
 	 */
-	fun create (): AvailObject = newIndexedDescriptor(0, this)
+	inline fun createImmutable (
+		indexedSlotCount: Int = 0,
+		init: AvailObject.()->Unit): AvailObject
+	{
+		val value = newIndexedDescriptor(indexedSlotCount, this)
+		value.init()
+		return value.makeImmutable()
+	}
+
+	/**
+	 * Create a new [object][AvailObject] whose [descriptor][AbstractDescriptor]
+	 * is the receiver, and which has the specified number of indexed (variable)
+	 * slots.
+	 *
+	 * @param indexedSlotCount
+	 *   The number of variable slots to include.
+	 * @return
+	 *   The new uninitialized [object][AvailObject].
+	 */
+	inline fun createShared (
+		indexedSlotCount: Int = 0,
+		init: AvailObject.()->Unit): AvailObject
+	{
+		val value = newIndexedDescriptor(indexedSlotCount, this)
+		value.init()
+		return value.makeShared()
+	}
 
 	/**
 	 * Print the [object][AvailObject] to the [StringBuilder]. By default show

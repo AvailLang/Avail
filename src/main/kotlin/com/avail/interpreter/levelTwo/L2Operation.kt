@@ -74,10 +74,26 @@ import java.util.ArrayList
  * optional part of an Avail implementation, but modern hardware has enough
  * memory that this should really always be present.
  *
+ * @constructor
+ *   Protect the constructor so the subclasses can maintain a fly-weight pattern
+ *   (or arguably a singleton).
+ *
+ * @param theNamedOperandTypes
+ *   The [L2NamedOperandType]s that describe the layout of operands for my
+ *   instructions.
+ *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 abstract class L2Operation
+@Suppress("LeakingThis")
+protected constructor(
+	name: String?,
+	vararg theNamedOperandTypes: L2NamedOperandType)
 {
+	protected constructor(
+		vararg theNamedOperandTypes: L2NamedOperandType
+	) : this(null, *theNamedOperandTypes)
+
 	/**
 	 * A brief hierarchy of classes for sensibly parameterizing the
 	 * [ReadsHiddenVariable] and [WritesHiddenVariable] annotations on an
@@ -150,7 +166,12 @@ abstract class L2Operation
 	 * [operation][L2Operation] expects.
 	 */
 	@JvmField
-	val namedOperandTypes: Array<out L2NamedOperandType>
+	val namedOperandTypes: Array<out L2NamedOperandType> =
+		theNamedOperandTypes.clone().also { types ->
+			assert(this is L2ControlFlowOperation
+				|| this is L2_SAVE_ALL_AND_PC_TO_INT
+				|| types.none { it.operandType() == L2OperandType.PC })
+		}
 
 	/**
 	 * Answer the [named&#32;operand&#32;types][L2NamedOperandType] that this
@@ -161,10 +182,10 @@ abstract class L2Operation
 	fun operandTypes(): Array<out L2NamedOperandType> = namedOperandTypes
 
 	/**
-	 * The name of this level two operation.  This is initialized to be the
-	 * [simple&#32;name][Class.getSimpleName] of the [Class].
+	 * Initialize the name from the constructor argument, or produce a default
+	 * if it was unspecified or null.
 	 */
-	private val name: String
+	private val name: String = name ?: computeDefaultName()
 
 	/**
 	 * Answer the name of this `L2Operation`.
@@ -180,62 +201,20 @@ abstract class L2Operation
 	 * executing [L2Instruction]s that use this operation.
 	 */
 	@JvmField
-	val jvmTranslationTime: Statistic
+	val jvmTranslationTime = Statistic(
+		name(), StatisticReport.L2_TO_JVM_TRANSLATION_TIME)
 
 	/**
-	 * Protect the constructor so the subclasses can maintain a fly-weight
-	 * pattern (or arguably a singleton).
-	 *
-	 * @param theNamedOperandTypes
-	 *   The [L2NamedOperandType]s that describe the layout of operands for my
-	 *   instructions.
+	 * Answer a suitable default symbolic name for this operation.
 	 */
-	@Suppress("LeakingThis")
-	protected constructor(vararg theNamedOperandTypes: L2NamedOperandType)
-	{
-		val simpleName = this@L2Operation.javaClass.simpleName
-		name =
-			if (simpleName.startsWith("L2_"))
+	private fun computeDefaultName(): String =
+		with(javaClass.simpleName) {
+			when
 			{
-				simpleName.substring(3)
+				startsWith("L2_") -> substring(3)
+				else -> this
 			}
-			else
-			{
-				simpleName
-			}
-		namedOperandTypes = theNamedOperandTypes.clone()
-		assert(this is L2ControlFlowOperation
-			   || this is L2_SAVE_ALL_AND_PC_TO_INT
-			   || namedOperandTypes.none { it.operandType() == L2OperandType.PC })
-		jvmTranslationTime = Statistic(
-			name, StatisticReport.L2_TO_JVM_TRANSLATION_TIME)
-	}
-
-	/**
-	 * Protect the constructor so the subclasses can maintain a fly-weight
-	 * pattern (or arguably a singleton).  This is a supplementary constructor
-	 * that allows a specific name to be provided, rather than relying on the
-	 * class name.  This is useful for anonymous subclasses, or distinguishing
-	 * multiple instances of the same (non-singleton) class.
-	 *
-	 * @param name
-	 *   The [String] that names this operation.
-	 * @param theNamedOperandTypes
-	 *   The [L2NamedOperandType]s that describe the layout of operands for my
-	 *   instructions.
-	 */
-	@Suppress("LeakingThis")
-	protected constructor(
-		name: String, vararg theNamedOperandTypes: L2NamedOperandType)
-	{
-		this.name = name
-		namedOperandTypes = theNamedOperandTypes.clone()
-		assert(this is L2ControlFlowOperation
-			   || this is L2_SAVE_ALL_AND_PC_TO_INT
-			   || namedOperandTypes.none { it.operandType() == L2OperandType.PC })
-		jvmTranslationTime = Statistic(
-			name, StatisticReport.L2_TO_JVM_TRANSLATION_TIME)
-	}
+		}
 
 	/**
 	 * Propagate type, value, alias, and source instruction information due to
@@ -757,7 +736,8 @@ abstract class L2Operation
 		instruction: L2Instruction, generator: L2Generator)
 	{
 		throw RuntimeException(
-			"A ${instruction.operation()} cannot be transformed by regeneration")
+			"A ${instruction.operation()} cannot be transformed " +
+				"by regeneration")
 	}
 
 	/**
@@ -842,7 +822,8 @@ abstract class L2Operation
 			for (hiddenVariableSubclass in writesAnnotation.value)
 			{
 				val shiftAnnotation =
-					hiddenVariableSubclass.java.getAnnotation(HiddenVariableShift::class.java)
+					hiddenVariableSubclass.java.getAnnotation(
+						HiddenVariableShift::class.java)
 				writeMask = writeMask or (1 shl shiftAnnotation.value)
 			}
 		}

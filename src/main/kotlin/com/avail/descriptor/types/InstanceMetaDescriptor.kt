@@ -440,13 +440,9 @@ class InstanceMetaDescriptor private constructor(mutability: Mutability)
 		 */
 		@JvmStatic
 		@ReferencedInGeneratedCode
-		fun instanceMeta(instance: A_Type): A_Type
-		{
+		fun instanceMeta(instance: A_Type): A_Type = mutable.create {
 			assert(instance.isType)
-			val result = mutable.create()
-			instance.makeImmutable()
-			result.setSlot(INSTANCE, instance)
-			return result
+			setSlot(INSTANCE, instance.makeImmutable())
 		}
 
 		/**

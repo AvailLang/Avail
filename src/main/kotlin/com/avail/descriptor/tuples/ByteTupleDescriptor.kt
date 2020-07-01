@@ -555,7 +555,7 @@ class ByteTupleDescriptor private constructor(
 		{
 			val descriptor = descriptorFor(Mutability.MUTABLE, size)
 			assert(size + descriptor.unusedBytesOfLastLong and 7 == 0)
-			return descriptor.create(size + 7 shr 3)
+			return descriptor.create(size + 7 shr 3) { }
 		}
 
 		/**

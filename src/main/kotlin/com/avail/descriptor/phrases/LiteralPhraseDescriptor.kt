@@ -194,9 +194,8 @@ class LiteralPhraseDescriptor(
 		 *   The new literal phrase.
 		 */
 		fun fromTokenForDecompiler(token: A_Token): A_Phrase =
-			mutable.create().apply {
+			mutable.createShared {
 				setSlot(TOKEN, token)
-				makeShared()
 			}
 
 		/**
@@ -209,9 +208,8 @@ class LiteralPhraseDescriptor(
 		 */
 		fun literalNodeFromToken(token: A_Token): A_Phrase {
 			assert(token.isInstanceOfKind(mostGeneralLiteralTokenType()))
-			return mutable.create().apply {
+			return mutable.createShared {
 				setSlot(TOKEN, token)
-				makeShared()
 			}
 		}
 

@@ -382,10 +382,9 @@ class MacroSubstitutionPhraseDescriptor(
 		fun newMacroSubstitution(
 			macroSend: A_Phrase,
 			outputPhrase: A_Phrase
-		): A_Phrase = mutable.create().apply {
+		): A_Phrase = mutable.createShared {
 			setSlot(MACRO_ORIGINAL_SEND, macroSend)
 			setSlot(OUTPUT_PARSE_NODE, outputPhrase)
-			makeShared()
 		}
 
 		/** The mutable [MacroSubstitutionPhraseDescriptor].  */

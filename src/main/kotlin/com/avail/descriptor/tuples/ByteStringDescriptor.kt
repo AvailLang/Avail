@@ -39,7 +39,11 @@ import com.avail.descriptor.character.CharacterDescriptor.Companion.fromByteCode
 import com.avail.descriptor.character.CharacterDescriptor.Companion.hashOfByteCharacterWithCodePoint
 import com.avail.descriptor.representation.*
 import com.avail.descriptor.representation.AvailObjectRepresentation.Companion.newLike
+import com.avail.descriptor.tuples.ByteStringDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
+import com.avail.descriptor.tuples.ByteStringDescriptor.IntegerSlots.RAW_LONGS_
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import com.avail.descriptor.tuples.TreeTupleDescriptor.Companion.concatenateAtLeastOneTree
+import com.avail.descriptor.tuples.TreeTupleDescriptor.Companion.createTwoPartTreeTuple
 import com.avail.descriptor.tuples.TwoByteStringDescriptor.Companion.mutableTwoByteStringOfSize
 import com.avail.serialization.SerializerOperation
 
@@ -130,8 +134,8 @@ class ByteStringDescriptor private constructor(
 		{
 			// Enlarge it in place, using more of the final partial long field.
 			self.setDescriptor(descriptorFor(Mutability.MUTABLE, newSize))
-			self.setByteSlot(IntegerSlots.RAW_LONGS_, newSize, intValue.toShort())
-			self.setSlot(IntegerSlots.HASH_OR_ZERO, 0)
+			self.setByteSlot(RAW_LONGS_, newSize, intValue.toShort())
+			self.setSlot(HASH_OR_ZERO, 0)
 			return self
 		}
 		// Copy to a potentially larger ByteTupleDescriptor.
@@ -140,8 +144,8 @@ class ByteStringDescriptor private constructor(
 			self,
 			0,
 			if (originalSize and 7 == 0) 1 else 0)
-		result.setByteSlot(IntegerSlots.RAW_LONGS_, newSize, intValue.toShort())
-		result.setSlot(IntegerSlots.HASH_OR_ZERO, 0)
+		result.setByteSlot(RAW_LONGS_, newSize, intValue.toShort())
+		result.setSlot(HASH_OR_ZERO, 0)
 		return result
 	}
 
@@ -249,7 +253,7 @@ class ByteStringDescriptor private constructor(
 	{
 		//  Answer the byte that encodes the character at the given index.
 		assert(index >= 1 && index <= self.tupleSize())
-		return self.byteSlot(IntegerSlots.RAW_LONGS_, index)
+		return self.byteSlot(RAW_LONGS_, index)
 	}
 
 	override fun o_TupleAt(self: AvailObject, index: Int): AvailObject
@@ -257,7 +261,7 @@ class ByteStringDescriptor private constructor(
 		// Answer the element at the given index in the tuple object.  It's a
 		// one-byte character.
 		assert(index >= 1 && index <= self.tupleSize())
-		val codePoint = self.byteSlot(IntegerSlots.RAW_LONGS_, index)
+		val codePoint = self.byteSlot(RAW_LONGS_, index)
 		return fromByteCodePoint(codePoint) as AvailObject
 	}
 
@@ -279,7 +283,7 @@ class ByteStringDescriptor private constructor(
 				val result =
 					if (canDestroy && isMutable) self
 					else newLike(mutable(), self, 0, 0)
-				result.setByteSlot(IntegerSlots.RAW_LONGS_, index, codePoint.toShort())
+				result.setByteSlot(RAW_LONGS_, index, codePoint.toShort())
 				result.setHashOrZero(0)
 				return result
 			}
@@ -298,7 +302,7 @@ class ByteStringDescriptor private constructor(
 	override fun o_TupleCodePointAt(self: AvailObject, index: Int): Int
 	{
 		assert(index >= 1 && index <= self.tupleSize())
-		return self.byteSlot(IntegerSlots.RAW_LONGS_, index).toInt()
+		return self.byteSlot(RAW_LONGS_, index).toInt()
 	}
 
 	override fun o_TupleReverse(self: AvailObject): A_Tuple
@@ -309,8 +313,7 @@ class ByteStringDescriptor private constructor(
 			super.o_TupleReverse(self)
 		}
 		else generateByteString(size) {
-			self.byteSlot(
-				IntegerSlots.RAW_LONGS_, size + 1 - it).toInt()
+			self.byteSlot(RAW_LONGS_, size + 1 - it).toInt()
 		}
 
 		// It's not empty, it's not a total copy, and it's reasonably small.
@@ -342,7 +345,7 @@ class ByteStringDescriptor private constructor(
 		for (index in end downTo start)
 		{
 			val itemHash = (hashOfByteCharacterWithCodePoint(
-				self.byteSlot(IntegerSlots.RAW_LONGS_, index)) xor preToggle)
+				self.byteSlot(RAW_LONGS_, index)) xor preToggle)
 			hash = (hash + itemHash) * AvailObject.multiplier
 		}
 		return hash
@@ -373,8 +376,7 @@ class ByteStringDescriptor private constructor(
 			// newLike() if start is 1.  Make sure to mask the last word in that
 			// case.
 			generateByteString(size) {
-				self.byteSlot(
-					IntegerSlots.RAW_LONGS_, it + start - 1).toInt()
+				self.byteSlot(RAW_LONGS_, it + start - 1).toInt()
 			}
 		}
 		else
@@ -432,13 +434,13 @@ class ByteStringDescriptor private constructor(
 			while (src <= size2)
 			{
 				result.setByteSlot(
-					IntegerSlots.RAW_LONGS_,
+					RAW_LONGS_,
 				   	dest,
 					otherTuple.rawByteForCharacterAt(src))
 				src++
 				dest++
 			}
-			result.setSlot(IntegerSlots.HASH_OR_ZERO, 0)
+			result.setSlot(HASH_OR_ZERO, 0)
 			return result
 		}
 		if (!canDestroy)
@@ -448,11 +450,11 @@ class ByteStringDescriptor private constructor(
 		}
 		return if (otherTuple.treeTupleLevel() == 0)
 		{
-			TreeTupleDescriptor.createTwoPartTreeTuple(self, otherTuple, 1, 0)
+			createTwoPartTreeTuple(self, otherTuple, 1, 0)
 		}
 		else
 		{
-			TreeTupleDescriptor.concatenateAtLeastOneTree(self, otherTuple, true)
+			concatenateAtLeastOneTree(self, otherTuple, true)
 		}
 	}
 
@@ -469,7 +471,7 @@ class ByteStringDescriptor private constructor(
 	{
 		assert(isMutable)
 		assert(size + unusedBytesOfLastLong and 7 == 0)
-		return create(size + 7 shr 3)
+		return create(size + 7 shr 3) { }
 	}
 
 	companion object
@@ -517,7 +519,7 @@ class ByteStringDescriptor private constructor(
 					combined += c shl shift
 					shift += 8
 				}
-				result.setSlot(IntegerSlots.RAW_LONGS_, slotIndex, combined)
+				result.setSlot(RAW_LONGS_, slotIndex, combined)
 				slotIndex++
 			}
 			// Do the last 0-7 writes the slow way.
@@ -525,7 +527,7 @@ class ByteStringDescriptor private constructor(
 			{
 				val c = generator(counter++).toLong()
 				assert(c and 255 == c)
-				result.setByteSlot(IntegerSlots.RAW_LONGS_, index, c.toShort())
+				result.setByteSlot(RAW_LONGS_, index, c.toShort())
 			}
 			return result
 		}
@@ -549,7 +551,7 @@ class ByteStringDescriptor private constructor(
 			while (i <= end)
 			{
 				result.rawShortForCharacterAtPut(
-					i, self.byteSlot(IntegerSlots.RAW_LONGS_, i).toInt())
+					i, self.byteSlot(RAW_LONGS_, i).toInt())
 				i++
 			}
 			return result

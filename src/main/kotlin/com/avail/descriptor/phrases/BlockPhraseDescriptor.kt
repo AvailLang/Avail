@@ -619,7 +619,7 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 					flattenedStatements.removeAt(index)
 				}
 			}
-			return mutable.create().apply {
+			return mutable.createShared {
 				setSlot(ARGUMENTS_TUPLE, arguments)
 				setSlot(PRIMITIVE, primitive)
 				setSlot(STATEMENTS_TUPLE, tupleFromList(flattenedStatements))
@@ -628,7 +628,6 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 				setSlot(DECLARED_EXCEPTIONS, declaredExceptions)
 				setSlot(TOKENS, tokens)
 				setSlot(STARTING_LINE_NUMBER, lineNumber)
-				makeShared()
 			}
 		}
 

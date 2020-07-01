@@ -332,29 +332,32 @@ class MessageBundleDescriptor private constructor(
 		fun newBundle(
 			methodName: A_Atom,
 			method: A_Method,
-			splitter: MessageSplitter): A_Bundle {
+			splitter: MessageSplitter
+		): A_Bundle {
 			assert(methodName.isAtom)
 			assert(splitter.numberOfArguments == method.numArgs())
 			assert(splitter.messageName.equals(methodName.atomName()))
-			val splitterPojo = identityPojo(splitter)
-			val result = mutable.create()
-			result.setSlot(METHOD, method)
-			result.setSlot(MESSAGE, methodName)
-			result.setSlot(MESSAGE_SPLITTER_POJO, splitterPojo)
-			result.setSlot(GRAMMATICAL_RESTRICTIONS, emptySet())
-			var plans = emptyMap()
-			for (definition in method.definitionsTuple()) {
-				val plan = newParsingPlan(result, definition)
-				plans = plans.mapAtPuttingCanDestroy(definition, plan, true)
+			return mutable.create {
+				val splitterPojo = identityPojo(splitter)
+				setSlot(METHOD, method)
+				setSlot(MESSAGE, methodName)
+				setSlot(MESSAGE_SPLITTER_POJO, splitterPojo)
+				setSlot(GRAMMATICAL_RESTRICTIONS, emptySet())
+				var plans = emptyMap()
+				for (definition in method.definitionsTuple())
+				{
+					val plan = newParsingPlan(this, definition)
+					plans = plans.mapAtPuttingCanDestroy(definition, plan, true)
+				}
+				for (definition in method.macroDefinitionsTuple())
+				{
+					val plan = newParsingPlan(this, definition)
+					plans = plans.mapAtPuttingCanDestroy(definition, plan, true)
+				}
+				setSlot(DEFINITION_PARSING_PLANS, plans)
+				makeShared()
+				method.methodAddBundle(this)
 			}
-			for (definition in method.macroDefinitionsTuple()) {
-				val plan = newParsingPlan(result, definition)
-				plans = plans.mapAtPuttingCanDestroy(definition, plan, true)
-			}
-			result.setSlot(DEFINITION_PARSING_PLANS, plans)
-			result.makeShared()
-			method.methodAddBundle(result)
-			return result
 		}
 
 		/** The mutable [MessageBundleDescriptor].  */

@@ -238,14 +238,23 @@ class ParserState internal constructor(
 	 * Queue an action to be performed later, passing an argument.
 	 *
 	 * @param ArgType
-	 * The type of argument to the given continuation.
+	 *   The type of argument to the given continuation.
 	 * @param continuation
-	 * What to execute with the passed argument.
+	 *   What to execute with the passed argument.
 	 * @param argument
-	 * What to pass as an argument to the provided function.
+	 *   What to pass as an argument to the provided function.
 	 */
 	internal fun <ArgType> workUnitDo(
 			continuation: (ArgType) -> Unit,
 			argument: ArgType) =
 		lexingState.workUnitDo(continuation, argument)
+
+	/**
+	 * Queue an action to be performed later, with no arguments.
+	 *
+	 * @param continuation
+	 *   What to execute.
+	 */
+	internal fun workUnitDo(continuation: () -> Unit) =
+		lexingState.workUnitDo(continuation)
 }

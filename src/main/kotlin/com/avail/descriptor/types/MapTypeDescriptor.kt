@@ -399,11 +399,11 @@ class MapTypeDescriptor private constructor(mutability: Mutability)
 				newKeyType = keyType
 				newValueType = valueType
 			}
-			val result = mutable.create()
-			result.setSlot(ObjectSlots.SIZE_RANGE, newSizeRange)
-			result.setSlot(ObjectSlots.KEY_TYPE, newKeyType)
-			result.setSlot(ObjectSlots.VALUE_TYPE, newValueType)
-			return result
+			return mutable.create {
+				setSlot(ObjectSlots.SIZE_RANGE, newSizeRange)
+				setSlot(ObjectSlots.KEY_TYPE, newKeyType)
+				setSlot(ObjectSlots.VALUE_TYPE, newValueType)
+			}
 		}
 
 		/** The mutable [MapTypeDescriptor].  */

@@ -256,12 +256,11 @@ class SendPhraseDescriptor private constructor(
 		): A_Phrase {
 			assert(bundle.isInstanceOfKind(Types.MESSAGE_BUNDLE.o()))
 			assert(argsListNode.phraseKindIsUnder(PhraseKind.LIST_PHRASE))
-			return mutable.create().apply {
+			return mutable.createShared {
 				setSlot(TOKENS, tokens)
 				setSlot(ARGUMENTS_LIST_NODE, argsListNode)
 				setSlot(BUNDLE, bundle)
 				setSlot(RETURN_TYPE, returnType)
-				makeShared()
 			}
 		}
 

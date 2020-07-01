@@ -208,10 +208,9 @@ class SuperCastPhraseDescriptor private constructor(
 		fun newSuperCastNode(
 			expression: A_Phrase,
 			superUnionType: A_Type
-		): A_Phrase = mutable.create().apply {
+		): A_Phrase = mutable.createShared {
 			setSlot(EXPRESSION, expression)
 			setSlot(TYPE_FOR_LOOKUP, superUnionType)
-			makeShared()
 		}
 
 		/** The mutable [SuperCastPhraseDescriptor].  */
