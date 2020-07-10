@@ -41,6 +41,7 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Companion.byPrimitiveNumberOrNull
 import com.avail.interpreter.Primitive.Companion.maxPrimitiveNumber
 import com.avail.tools.bootstrap.Resources.errorCodeCommentKey
+import com.avail.tools.bootstrap.Resources.errorCodeExceptionKey
 import com.avail.tools.bootstrap.Resources.errorCodeKey
 import com.avail.tools.bootstrap.Resources.escape
 import java.io.PrintWriter
@@ -100,6 +101,23 @@ class ErrorCodeNamesGenerator (locale: Locale?)
 						code.name.substring(2).toLowerCase()
 							.replace('_', '-'))
 					writer.print(" code")
+				}
+				writer.println()
+				val exceptionKey = errorCodeExceptionKey(code)
+				keys.add(exceptionKey)
+				writer.print(exceptionKey)
+				writer.print('=')
+				val exception = properties.getProperty(exceptionKey)
+				if (exception !== null)
+				{
+					writer.print(escape(exception))
+				}
+				else if (locale.language == "en")
+				{
+					writer.print(
+						code.name.substring(2).toLowerCase()
+							.replace('_', '-'))
+					writer.print(" exception")
 				}
 				writer.println()
 				val commentKey = errorCodeCommentKey(code)

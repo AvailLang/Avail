@@ -45,8 +45,8 @@ import java.util.regex.Matcher
 internal object Resources
 {
 	/**
-	 * The path to the source directory, relative to the current working
-	 * directory, which should be the parent directory of the source directory.
+	 * The path to the Kotlin source directory, relative to the current working
+	 * directory.
 	 */
 	const val sourceBaseName = "src/main/kotlin"
 
@@ -54,35 +54,30 @@ internal object Resources
 	 * The base name of the [resource bundle][ResourceBundle] that contains the
 	 * preamble.
 	 */
-	@JvmField
 	val preambleBaseName = "${Resources::class.java.getPackage().name}.Preamble"
 
 	/**
 	 * The name of the package that should contain the generated output.
 	 */
-	@JvmField
-	val generatedPackageName = 
+	val generatedPackageName =
 		"${Resources::class.java.getPackage().name}.generated"
 
 	/**
 	 * The base name of the [resource bundle][ResourceBundle] that contains the
 	 * Avail names of the special objects.
 	 */
-	@JvmField
 	val specialObjectsBaseName = "$generatedPackageName.SpecialObjectNames"
 
 	/**
 	 * The base name of the target [resource bundle][ResourceBundle] that
 	 * contains the Avail names of the primitives.
 	 */
-	@JvmField
 	val primitivesBaseName = "$generatedPackageName.PrimitiveNames"
 
 	/**
 	 * The base name of the target [resource bundle][ResourceBundle] that
 	 * contains the Avail names of the [primitive error codes][AvailErrorCode].
 	 */
-	@JvmField
 	val errorCodesBaseName = "$generatedPackageName.ErrorCodeNames"
 
 	/**
@@ -94,8 +89,7 @@ internal object Resources
 	 * @return
 	 *   The local name, e.g. the name following the last period (.).
 	 */
-	@JvmStatic
-	fun localName(bundleName: String) = 
+	fun localName(bundleName: String) =
 		bundleName.substring(bundleName.lastIndexOf('.') + 1)
 
 	/**
@@ -106,7 +100,6 @@ internal object Resources
 	 * @return
 	 *   The argument embedded in double quotes (").
 	 */
-	@JvmStatic
 	fun stringify(string: String) = """"$string""""
 
 	/**
@@ -118,7 +111,6 @@ internal object Resources
 	 *   A key that may be used to access the Avail name of the special object
 	 *   in the appropriate [resource bundle][ResourceBundle].
 	 */
-	@JvmStatic
 	fun specialObjectKey(index: Int) = "specialObject$index"
 
 	/**
@@ -130,8 +122,7 @@ internal object Resources
 	 *   A key that may be used to access the special object's comment in the
 	 *   appropriate [resource bundle][ResourceBundle].
 	 */
-	@JvmStatic
-	fun specialObjectCommentKey(index: Int) = 
+	fun specialObjectCommentKey(index: Int) =
 		"${specialObjectKey(index)}_comment"
 
 	/**
@@ -144,7 +135,6 @@ internal object Resources
 	 *   A key that may be used to access the special object's preferred Stacks
 	 *   `@type` name in the appropriate [resource bundle][ResourceBundle].
 	 */
-	@JvmStatic
 	fun specialObjectTypeKey(index: Int) = "${specialObjectKey(index)}_type"
 
 	/**
@@ -159,8 +149,7 @@ internal object Resources
 	 *   A key that may be used to access the name of the primitive's `index`-th
 	 *   parameter in the appropriate [resource bundle][ResourceBundle].
 	 */
-	@JvmStatic
-	fun primitiveParameterNameKey(primitive: Primitive, index: Int) = 
+	fun primitiveParameterNameKey(primitive: Primitive, index: Int) =
 		"${primitive.javaClass.simpleName}_$index"
 
 	/**
@@ -172,8 +161,7 @@ internal object Resources
 	 *   A key that may be used to access the primitive method's comment in the
 	 *   appropriate [resource bundle][ResourceBundle].
 	 */
-	@JvmStatic
-	fun primitiveCommentKey(primitive: Primitive) = 
+	fun primitiveCommentKey(primitive: Primitive) =
 		"${primitive.javaClass.simpleName}_comment"
 
 	/**
@@ -185,8 +173,21 @@ internal object Resources
 	 *   A key that may be used to access the Avail name of the primitive error
 	 *   code in the appropriate [resource bundle][ResourceBundle].
 	 */
-	@JvmStatic
 	fun errorCodeKey(code: AvailErrorCode) = "errorCode${code.nativeCode()}"
+
+	/**
+	 * Answer the key for the specified [primitive error code's][AvailErrorCode]
+	 * corresponding Avail exception class.
+	 *
+	 * @param code
+	 *   A primitive error code.
+	 * @return
+	 *   A key that may be used to access the primitive error code's
+	 *   corresponding Avail exception class in the appropriate
+	 *   [resource bundle][ResourceBundle].
+	 */
+	fun errorCodeExceptionKey(code: AvailErrorCode) =
+		"${errorCodeKey(code)}_exception"
 
 	/**
 	 * Answer the key for the specified [primitive error code][AvailErrorCode]'s
@@ -198,7 +199,6 @@ internal object Resources
 	 *   A key that may be used to access the primitive error code's comment in
 	 *   the appropriate [resource bundle][ResourceBundle].
 	 */
-	@JvmStatic
 	fun errorCodeCommentKey(code: AvailErrorCode) = "${errorCodeKey(code)}_comment"
 
 	/**
@@ -209,7 +209,6 @@ internal object Resources
 	 * @return
 	 *   An appropriately escaped property value.
 	 */
-	@JvmStatic
 	fun escape(propertyValue: String): String
 	{
 		var newValue = propertyValue.replace("\n", "\\n\\\n")
@@ -269,6 +268,14 @@ internal object Resources
 		invokePrimitiveFailureFunctionMethod,
 		invokePrimitiveFailureFunctionMethodUse,
 		primitiveSemanticRestriction,
-		primitiveSemanticRestrictionUse
+		primitiveSemanticRestrictionUse,
+		primitiveCoverageTestPackageName,
+		primitiveCoverageTestPackageRepresentativeHeader,
+		availModuleName,
+		primitiveCoverageTestModuleName,
+		primitiveCoverageTestModuleHeader,
+		primitiveCoverageTestCaseOk,
+		primitiveCoverageTestCaseFailed,
+		primitiveCoverageTestCaseFailedSpecial
 	}
 }

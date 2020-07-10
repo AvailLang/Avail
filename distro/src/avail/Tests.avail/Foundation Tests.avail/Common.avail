@@ -36,16 +36,27 @@ Versions
 Extends
 	"Avail"
 Names
-	"Foundation|foundation test suite"
+	"Foundation|foundation test suite",
+	"Primitives|primitives test suite"
 Body
 
 /**
  * Answer the foundation test suite identifier.
  *
- * @method "foundation test suite"
+ * @method "Foundation|foundation test suite"
  * @returns "atom"
  *          The requested test suite identifier.
  */
 Public method "Foundation|foundation test suite" is [$"foundation test suite"];
 
+/**
+ * Answer the primitives test suite identifier.
+ *
+ * @method "Primitives|primitives test suite"
+ * @returns "atom"
+ *          The requested test suite identifier.
+ */
+Public method "Primitives|primitives test suite" is [$"primitives test suite"];
+
 Foundation test suite is a new test suite;
+Primitives test suite is a new test suite;

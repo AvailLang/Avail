@@ -919,7 +919,7 @@ Primitive "_[_]" is
  * @param "count" "whole number"
  *        The requested number of characters of read ahead.
  * @returns "⊤"
- * @raises "I/O-error exception"
+ * @raises "I/O exception"
  */
 Primitive "Mark for_character|characters of read ahead" is
 [
@@ -973,7 +973,7 @@ Primitive "Error:_" is
  * @method "next character"
  * @returns "character"
  *    The next character from the standard input stream.
- * @raises "I/O-error exception"
+ * @raises "I/O exception"
  */
 Primitive "next character" is
 [
@@ -988,7 +988,7 @@ Primitive "next character" is
  * @category "Primitives" "Standard IO"
  * @method "Reset to mark"
  * @returns "⊤"
- * @raises "I/O-error exception"
+ * @raises "I/O exception"
  */
 Primitive "Reset to mark" is
 [
@@ -3065,7 +3065,7 @@ Primitive "`«supercast(_::_)`»" is
  * @method "current macro name"
  * @returns "atom"
  *    The atom of the send phrase undergoing macro expansion.
- * @raises "not-evaluating-macro"
+ * @raises "not-evaluating-macro exception"
  *    If a macro is not being evaluated by the current fiber.
  */
 Primitive "current macro name" is

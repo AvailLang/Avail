@@ -40,7 +40,11 @@ Extends
 	"Backtracking Tests" = ("backtracking test suite"),
 	"Cast Tests" = ("cast test suite"),
 	"Characters Tests" = ("character test suite"),
-	"Common" = ("Foundation|foundation test suite"),
+	"Common" =
+	(
+		"Foundation|foundation test suite",
+		"Primitives|primitives test suite"
+	),
 	"Concurrency Tests" = ("concurrency test suite"),
 	"Control Structure Tests" = ("control structure test suite"),
 	"Decompiler Tests" = ("decompiler test suite"),
@@ -57,4 +61,6 @@ Extends
 	"String Tests" = ("string test suite"),
 	"Tuple Tests" = ("tuple test suite"),
 	"Type Tests" = ("type test suite")
+Uses
+	"Primitive Coverage Tests"
 Body
