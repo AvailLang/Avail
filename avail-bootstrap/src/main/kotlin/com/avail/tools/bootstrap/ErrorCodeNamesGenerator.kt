@@ -53,15 +53,15 @@ import com.avail.tools.bootstrap.Resources.errorCodesBaseName
  * [primitive error codes][AvailErrorCode].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
- */
-class ErrorCodeNamesGenerator
-/**
+ *
+ * @constructor
  * Construct a new `ErrorCodeNamesGenerator`.
  *
  * @param locale
  *   The target [locale][Locale].
  */
-(locale: Locale?) : PropertiesFileGenerator(errorCodesBaseName, locale!!)
+class ErrorCodeNamesGenerator (locale: Locale?)
+	: PropertiesFileGenerator(errorCodesBaseName, locale!!)
 {
 	/**
 	 * Write the names of the properties, whose unspecified values should be the
