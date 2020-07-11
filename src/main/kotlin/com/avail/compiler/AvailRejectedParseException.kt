@@ -37,7 +37,7 @@ import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.StringDescriptor
 import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.exceptions.PrimitiveThrownException
-import com.avail.interpreter.primitive.phrases.P_RejectParsing
+import com.avail.interpreter.primitive.compiler.P_RejectParsing
 import java.lang.String.format
 import java.util.function.Supplier
 

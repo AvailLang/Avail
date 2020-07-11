@@ -32,11 +32,13 @@
 
 package com.avail.interpreter.levelOne
 
+import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.bundles.MessageBundleDescriptor
 import com.avail.descriptor.functions.CompiledCodeDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.methods.MethodDefinitionDescriptor
 import com.avail.descriptor.methods.MethodDescriptor
+import com.avail.descriptor.representation.AbstractDescriptor
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.variables.VariableDescriptor
@@ -82,8 +84,8 @@ enum class L1Operation constructor(
 	 * Invoke a method.
 	 *
 	 * The first operand is an index into the current code's
-	 * [literals][AvailObject.literalAt], which specifies a
-	 * [method][MethodDescriptor] that contains a collection of
+	 * [literals][AvailObject.literalAt], which specifies an [A_Bundle] which
+	 * names a [method][MethodDescriptor] that contains a collection of
 	 * [method&#32;definitions][MethodDefinitionDescriptor] that might be
 	 * invoked.  The arguments are expected to already have been pushed. They
 	 * are popped from the stack and the literal specified by the second operand

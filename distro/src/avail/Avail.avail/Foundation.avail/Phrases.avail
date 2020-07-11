@@ -604,7 +604,7 @@ Semantic restriction "Evaluate|evaluate_" is
 	phraseType's semantic type
 ];
 
-Semantic restriction "restricted send_with_:_" is
+Semantic restriction "bootstrap restricted send_with_:_" is
 [
 	messageType : atom's type,
 	argsType : list phrase's type,

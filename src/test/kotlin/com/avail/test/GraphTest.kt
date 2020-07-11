@@ -36,7 +36,6 @@ import com.avail.utility.Graph.GraphPreconditionFailure
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import java.util.ArrayList
-import java.util.Arrays
 import java.util.HashSet
 
 /**
@@ -78,13 +77,44 @@ class GraphTest
 		Assertions.assertTrue(tinyGraph.includesEdge(5, 6))
 		Assertions.assertFalse(tinyGraph.includesEdge(6, 5))
 		Assertions.assertFalse(tinyGraph.includesEdge(6, 6))
-		tinyGraph.addVertices(Arrays.asList(7, 8, 9))
+		tinyGraph.addVertices(listOf(7, 8, 9))
 		Assertions.assertEquals(5, tinyGraph.size)
 		Assertions.assertTrue(tinyGraph.includesVertex(5))
 		Assertions.assertTrue(tinyGraph.includesVertex(6))
 		Assertions.assertTrue(tinyGraph.includesVertex(7))
 		Assertions.assertTrue(tinyGraph.includesVertex(8))
 		Assertions.assertTrue(tinyGraph.includesVertex(9))
+	}
+
+	/** Test: Check that a simple graph can be reversed successfully. */
+	@Test
+	fun reverseGraph()
+	{
+		val tinyGraph = Graph<Int>()
+		tinyGraph.addVertices(listOf(1, 2, 3, 4))
+		tinyGraph.addEdge(1, 2)
+		tinyGraph.addEdge(1, 3)
+		tinyGraph.addEdge(2, 4)
+		tinyGraph.addEdge(3, 4)
+
+		val reverse = tinyGraph.reverse
+		Assertions.assertTrue(reverse.includesEdge(2, 1))
+		Assertions.assertTrue(reverse.includesEdge(3, 1))
+		Assertions.assertTrue(reverse.includesEdge(4, 2))
+		Assertions.assertTrue(reverse.includesEdge(4, 3))
+
+		// Make sure the original was not destroyed.
+		Assertions.assertTrue(tinyGraph.includesEdge(1, 2))
+		// Also make sure the reverse doesn't include the forward edges.
+		Assertions.assertFalse(reverse.includesEdge(1, 2))
+
+		// Add 1->4 in the original.
+		tinyGraph.addEdge(1, 4)
+		Assertions.assertTrue(tinyGraph.includesEdge(1, 4))
+		Assertions.assertFalse(tinyGraph.includesEdge(4, 1))
+		// ...and make sure the reverse graph is unaffected.
+		Assertions.assertFalse(reverse.includesEdge(1, 4))
+		Assertions.assertFalse(reverse.includesEdge(4, 1))
 	}
 
 	/**

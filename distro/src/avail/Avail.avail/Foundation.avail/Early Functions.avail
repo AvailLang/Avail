@@ -134,7 +134,7 @@ Semantic restriction "Invoke|invoke_with_" is
 		validSizes ::= parametersSizes ∩ argumentsSizes;
 		If validSizes = ⊥ then
 		[
-			Reject parse, expected: sizesIncompatibleMessage
+			Immediately reject parse, expected: sizesIncompatibleMessage
 		];
 	];
 	functionType's return type
@@ -187,7 +187,7 @@ Semantic restriction "_(«_‡,»)" is
 		validSizes ::= parametersSizes ∩ argumentsSizes;
 		If validSizes = ⊥ then
 		[
-			Reject parse, expected: sizesIncompatibleMessage
+			Immediately reject parse, expected: sizesIncompatibleMessage
 		];
 		/* Verify each of the arguments. */
 		From 1 to ⌊argumentsSizes⌋ do
@@ -197,7 +197,7 @@ Semantic restriction "_(«_‡,»)" is
 			parameterType ::= parametersType[index];
 			If parameterType ≠ ⊥ ∧ ¬argumentsType[index] ⊆ parameterType then
 			[
-				Reject parse, expected:
+				Immediately reject parse, expected:
 					"argument #"
 					++ “index”
 					++ " of type ("
@@ -240,7 +240,7 @@ Semantic restriction "_[_]" is
 		start ::= ⌊index⌋;
 		If start > limit then
 		[
-			Reject parse, expected:
+			Immediately reject parse, expected:
 				"a subscript ("
 				++ “start”
 				++ " ≤ theSubscript ≤ "

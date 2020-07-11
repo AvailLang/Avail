@@ -1,5 +1,5 @@
 /*
- * P_RejectParsing.kt
+ * P_InstallBaseFrameFunction.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,54 +29,59 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.primitive.phrases
 
-import com.avail.compiler.AvailRejectedParseException
-import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel
-import com.avail.descriptor.fiber.FiberDescriptor.GeneralFlag.CAN_REJECT_PARSE
-import com.avail.descriptor.sets.SetDescriptor.Companion.set
+package com.avail.interpreter.primitive.hooks
+
+import com.avail.AvailRuntime.HookType.BASE_FRAME
+import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
-import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
-import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
-import com.avail.exceptions.AvailErrorCode.E_UNTIMELY_PARSE_REJECTION
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.Unknown
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.Primitive.Flag.ReadsFromHiddenGlobalState
+import com.avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
 import com.avail.interpreter.execution.Interpreter
+import com.avail.interpreter.primitive.controlflow.P_InvokeWithTuple
 
 /**
- * **Primitive:** Reject current macro substitution with the specified one-based
- * error level [1..4] and error string.  The levels correspond to the instances
- * of [ParseNotificationLevel], although the integer has to be adjusted to
- * zero-based to use [ParseNotificationLevel.levelFromInt].
+ * **Primitive:** Set the [function][FunctionDescriptor] to invoke as the base
+ * frame of every fiber.  It takes a function and a tuple of arguments, and
+ * returns that function's result, if successful, out to the fiber result
+ * itself.  Answer the previous value of this hook function.
+ *
+ * After the primitive runs, any new fibers that are created will have this new
+ * hook function as their base frame, passing it a function to invoke and its
+ * arguments.  The initial hook function is just a [P_InvokeWithTuple].
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-object P_RejectParsing : Primitive(2, Unknown)
+@Suppress("unused")
+object P_InstallBaseFrameFunction : Primitive(
+	1,
+	CannotFail,
+	HasSideEffect,
+	ReadsFromHiddenGlobalState,
+	WritesToHiddenGlobalState)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
-		interpreter.checkArgumentCount(2)
-		if (!interpreter.fiber().generalFlag(CAN_REJECT_PARSE))
-		{
-			return interpreter.primitiveFailure(E_UNTIMELY_PARSE_REJECTION)
-		}
-		val oneBasedRejectionLevel = interpreter.argument(0)
-		val rejectionString = interpreter.argument(1)
-		throw AvailRejectedParseException(
-			ParseNotificationLevel.levelFromInt(
-				oneBasedRejectionLevel.extractInt() - 1),
-			rejectionString)
+		interpreter.checkArgumentCount(1)
+		val function = interpreter.argument(0)
+
+		val runtime = interpreter.runtime()
+		val oldHook = BASE_FRAME[runtime]
+		BASE_FRAME[runtime] = function
+		interpreter.availLoaderOrNull()?.statementCanBeSummarized(false)
+		return interpreter.primitiveSuccess(oldHook)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				inclusive(1L, 4L),
-				stringType()),
-			bottom())
-
-	override fun privateFailureVariableType(): A_Type =
-		enumerationWith(set(E_UNTIMELY_PARSE_REJECTION))
+				// Accepts the new hook function.
+				BASE_FRAME.functionType),
+			// Returns the old hook function.
+			BASE_FRAME.functionType)
 }

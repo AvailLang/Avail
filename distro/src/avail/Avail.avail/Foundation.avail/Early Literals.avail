@@ -180,7 +180,7 @@ Semantic restriction "{«_‡,»}(set of string)" is
 blockMacro ::= "\
 	\|[§\
 		\|««…:_†§‡,»`|»?\
-		\|«Primitive…«(…:_†)»?§;»?\
+		\|«Primitive…«(…:_†)»?;§»?\
 		\|«`$…«:_†»?;§»?\
 		\|«_!§»\
 		\|«_!»?\

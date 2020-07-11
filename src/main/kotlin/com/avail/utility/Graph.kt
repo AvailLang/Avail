@@ -537,10 +537,10 @@ class Graph<Vertex> constructor ()
 		get ()
 		{
 			val result = Graph<Vertex>()
-			outEdges.entries.associateTo(result.outEdges) {
+			outEdges.entries.associateTo(result.inEdges) {
 				(k, v) -> k to v.toMutableSet()
 			}
-			inEdges.entries.associateTo(result.inEdges) {
+			inEdges.entries.associateTo(result.outEdges) {
 				(k, v) -> k to v.toMutableSet()
 			}
 			return result

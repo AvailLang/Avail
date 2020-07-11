@@ -40,6 +40,7 @@ Extends
 		"Exit_",
 		"Exit_with_",
 		"Ignore:_",
+		"bootstrap restricted send_with_:_",
 		"(_)",
 		"((_))"
 	)
@@ -124,7 +125,7 @@ Private method "basic send phrase_conditional_then_else_" is
 	boolType ::= predicatePhrase's semantic type;
 	returnType ::= strengthen ⊤ for call of anAtom
 		using <boolType, thenBlockReturnType, elseBlockReturnType>;
-	restricted send anAtom with
+	bootstrap restricted send anAtom with
 		«<predicatePhrase, thenBlock, elseBlock>» : returnType
 ] : send phrase ⇒ ⊤;
 
@@ -236,7 +237,7 @@ Semantic restriction "Restart_with_" is
 		validSizes ::= parametersSizes ∩ argumentsSizes;
 		If validSizes = ⊥ then
 		[
-			Reject parse, expected: sizesIncompatibleMessage
+			Immediately reject parse, expected: sizesIncompatibleMessage
 		];
 	];
 	⊥
@@ -447,7 +448,7 @@ Semantic restriction "From_to_by_do_" is
 		];
 	If action[1] ≠ ⊥ ∧ ¬subscripts ⊆ action[1] then
 	[
-		Reject parse, expected:
+		Immediately reject parse, expected:
 			"repeatedly applied function to accept all values in the range "
 			++ “subscripts”
 			++ ", but it only accepts "
@@ -601,7 +602,7 @@ Public method "Require:_accepts subscripts from_to_by_" is
 		];
 	If action[1] ≠ ⊥ ∧ ¬subscripts ⊆ action[1] then
 	[
-		Reject parse, expected:
+		Immediately reject parse, expected:
 			"repeatedly applied function to accept all values in the range "
 			++ “subscripts”
 			++ ", but it only accepts "
@@ -719,7 +720,7 @@ Public macro "For each…from_to_by_§do_" is
 		into [t : phrase+ | t[|t|]'s semantic type]
 		else [⊤];
 	Undeclare name;
-	restricted send $"From_to_by_do_" with
+	bootstrap restricted send $"From_to_by_do_" with
 		«<
 			start,
 			end,
@@ -887,7 +888,7 @@ Public macro "For each…from_to_§do_" is
 	blockReturnType ::= cast statements
 		into [t : phrase+ | t[|t|]'s semantic type]
 		else [⊤];
-	restricted send anAtom with
+	bootstrap restricted send anAtom with
 		«<
 			start,
 			end,
@@ -950,7 +951,7 @@ Semantic restriction "_(«_‡,»)" is
 		validSizes ::= parametersSizes ∩ argumentsSizes;
 		If validSizes = ⊥ then
 		[
-			Reject parse, expected: sizesIncompatibleMessage
+			Immediately reject parse, expected: sizesIncompatibleMessage
 		];
 		/* Verify each of the arguments. */
 		From 1 to ⌊argumentsSizes⌋ do
@@ -959,7 +960,7 @@ Semantic restriction "_(«_‡,»)" is
 		|
 			If ¬argumentsType[index] ⊆ parametersType[index] then
 			[
-				Reject parse, expected:
+				Immediately reject parse, expected:
 					"argument #"
 					++ “index”
 					++ " of type ("
@@ -999,7 +1000,7 @@ Public method "Require:_'s⁇keeper is valid" is
 	expectedType ::= [⊥]→⊤;
 	If ¬action[parametersSize] ⊆ expectedType then
 	[
-		Reject parse, expected:
+		Immediately reject parse, expected:
 			"last argument ⊆ "
 			++ “expectedType”
 			++ " (but instead it was "
@@ -1681,7 +1682,7 @@ Macro "While_do_" is
 	expressionPhrase : expression phrase ⇒ boolean,
 	action : block phrase ⇒ []→⊤
 |
-	restricted send $"While_do_" with
+	bootstrap restricted send $"While_do_" with
 		«<
 			«[<> | <expressionPhrase>] : boolean»,
 			action
@@ -1754,7 +1755,7 @@ Macro "Until_do_" is
 	expressionPhrase : expression phrase ⇒ boolean,
 	action : block phrase ⇒ []→⊤
 |
-	restricted send $"Until_do_" with
+	bootstrap restricted send $"Until_do_" with
 		«<
 			«[<> | <expressionPhrase>] : boolean», action
 		>» : ⊤
@@ -1821,7 +1822,7 @@ Macro "Do_while_" is
 	action : block phrase ⇒ []→⊤,
 	expressionPhrase : expression phrase ⇒ boolean
 |
-	restricted send $"Do_while_" with
+	bootstrap restricted send $"Do_while_" with
 		«<
 			action,	«[<> | <expressionPhrase>] : boolean»
 		>» : ⊤
@@ -1898,7 +1899,7 @@ Macro "Do_while_alternate with_" is
 	expressionPhrase : expression phrase ⇒ boolean,
 	between : block phrase ⇒ []→⊤
 |
-	restricted send $"Do_while_alternate with_" with
+	bootstrap restricted send $"Do_while_alternate with_" with
 		«<
 			action,	«[<> | <expressionPhrase>] : boolean», between
 		>» : ⊤
@@ -1975,7 +1976,7 @@ Macro "While_do_alternate with_" is
 	action : block phrase ⇒ []→⊤,
 	between : block phrase ⇒ []→⊤
 |
-	restricted send $"While_do_alternate with_" with
+	bootstrap restricted send $"While_do_alternate with_" with
 		«<
 			«[<> | <expressionPhrase>] : boolean», action, between
 		>» : ⊤
@@ -2042,7 +2043,7 @@ Macro "Do_until_" is
 	action : block phrase ⇒ []→⊤,
 	expressionPhrase : expression phrase ⇒ boolean
 |
-	restricted send $"Do_until_" with
+	bootstrap restricted send $"Do_until_" with
 		«<
 			action,	«[<> | <expressionPhrase>] : boolean»
 		>» : ⊤
@@ -2119,7 +2120,7 @@ Macro "Do_until_alternate with_" is
 	expressionPhrase : expression phrase ⇒ boolean,
 	between : block phrase ⇒ []→⊤
 |
-	restricted send $"Do_until_alternate with_" with
+	bootstrap restricted send $"Do_until_alternate with_" with
 		«<
 			action,	«[<> | <expressionPhrase>] : boolean», between
 		>» : ⊤
@@ -2196,7 +2197,7 @@ Macro "Until_do_alternate with_" is
 	action : block phrase ⇒ []→⊤,
 	between : block phrase ⇒ []→⊤
 |
-	restricted send $"Until_do_alternate with_" with
+	bootstrap restricted send $"Until_do_alternate with_" with
 		«<
 			«[<> | <expressionPhrase>] : boolean», action, between
 		>» : ⊤
@@ -2267,7 +2268,7 @@ Semantic restriction "Cast|cast_into«_‡,»«else_»" is
 		functionType ::= caseTuple[index];
 		If valueType ⊆ functionType[1] then
 		[
-			Reject parse, expected:
+			Immediately reject parse, expected:
 				"necessary cast expression, but "
 				++ “valueType”
 				++ " is a subtype of "
@@ -2275,7 +2276,7 @@ Semantic restriction "Cast|cast_into«_‡,»«else_»" is
 		];
 		If valueType ∩ (functionType[1]) = ⊥ then
 		[
-			Reject parse, expected:
+			Immediately reject parse, expected:
 				"allowed cast expression, but "
 				++ “valueType”
 				++ " is not a supertype of "
@@ -2368,11 +2369,11 @@ Semantic restriction "Choose|choose_from_where«_is_‡,»«,else_»" is
 	$body : type;
 	If |meta| ≠ 1 ∨ ¬0 < |meta's instance| < ∞ then
 	[
-		Reject parse, expected: "enumeration to be statically known"
+		Immediately reject parse, expected: "enumeration to be statically known"
 	];
 	If ¬valueType ∈ meta then
 	[
-		Reject parse, expected:
+		Immediately reject parse, expected:
 			"case selector ("
 			++ “valueType”
 			++ ") to be an instance of "
@@ -2388,14 +2389,14 @@ Semantic restriction "Choose|choose_from_where«_is_‡,»«,else_»" is
 		case ::= caseTuple[index];
 		If |case[1]| ≠ 1 then
 		[
-			Reject parse, expected:
+			Immediately reject parse, expected:
 				"all cases to be statically known values, but discovered "
 				++ “case[1]”
 		];
 		instance ::= case[1]'s instance;
 		If ¬instance ∈ enum then
 		[
-			Reject parse, expected:
+			Immediately reject parse, expected:
 				"all cases to be instances of "
 				++ “enum”
 				++ ", but "
@@ -2404,7 +2405,7 @@ Semantic restriction "Choose|choose_from_where«_is_‡,»«,else_»" is
 		];
 		If case[1] ⊆ caseEnum then
 		[
-			Reject parse, expected:
+			Immediately reject parse, expected:
 				"each case to be unique, but "
 				++ “instance”
 				++ " occurs more than once"
@@ -2424,7 +2425,7 @@ Semantic restriction "Choose|choose_from_where«_is_‡,»«,else_»" is
 		allCases ::= enum's instances;
 		handledCases ::= caseEnum's instances;
 		unhandledCases ::= allCases \ handledCases;
-		Reject parse, expected:
+		Immediately reject parse, expected:
 			"all cases to be handled, but these cases are not: "
 			++ “unhandledCases”
 	];

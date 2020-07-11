@@ -141,6 +141,7 @@ Names
 	/*  22 */ "object",
 	/*  23 */ "object meta",
 	/* 163 */ "operator",
+	/* 172 */ "optional send phrase and report string",
 	/* 143 */ "parse map key",
 	/* 168 */ "parse rejection level",
 	/* 151 */ "permutation tuple",
@@ -2257,4 +2258,15 @@ Special object "continuation returning top" is special object 170;
  * @alias "non-empty string of digits"
  */
 Special object "non-empty string of digits" is special object 171;
+
+/**
+ * The 2-element tuple type where the first element is itself a tuple of zero
+ * or one occurrences of send phrase, and the second element is a (possibly
+ * empty) string.
+ *
+ * @category "Primitives" "Types"
+ * @type "<(send phrase→⊤)?, string…|2>"
+ * @alias "optional send phrase and report string"
+ */
+Special object "optional send phrase and report string" is special object 172;
 

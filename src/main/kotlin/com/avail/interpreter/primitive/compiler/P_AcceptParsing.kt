@@ -29,7 +29,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.primitive.phrases
+package com.avail.interpreter.primitive.compiler
 
 import com.avail.compiler.AvailAcceptedParseException
 import com.avail.descriptor.fiber.FiberDescriptor.GeneralFlag.CAN_REJECT_PARSE

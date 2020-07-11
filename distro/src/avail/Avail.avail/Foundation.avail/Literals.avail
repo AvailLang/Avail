@@ -180,7 +180,7 @@ Semantic restriction "⌊_⌋" is
 [
 	bottom : ⊥'s type's type
 |
-	Reject parse, expected:
+	Immediately reject parse, expected:
 		"a value other than ⊥'s type for ⌊_⌋."
 ];
 
@@ -192,7 +192,7 @@ Semantic restriction "⌈_⌉" is
 [
 	bottom : ⊥'s type's type
 |
-	Reject parse, expected:
+	Immediately reject parse, expected:
 		"a value other than ⊥'s type for ⌈_⌉."
 ];
 
@@ -390,7 +390,7 @@ Public macro "¢…!" is
 	lexeme ::= tokenPhrase's token's lexeme;
 	If |lexeme| ≠ 1 then
 	[
-		Reject parse, expected:
+		Immediately reject parse, expected:
 			"a single-character token or single-character literal string"
 	];
 	‘lexeme[1]’
@@ -465,7 +465,7 @@ Semantic restriction "_[_]" is
 			“⌈aTupleType⌉”,
 			")">;
 		message ::= cast messageTuple into [ t : string | t ];
-		Reject parse, expected: message
+		Immediately reject parse, expected: message
 	];
 	union : type := ⊥;
 	limit ::= |aTupleType's leading types| + 1;
@@ -511,7 +511,7 @@ Semantic restriction "_[_]" is
 			“⌈aTupleType⌉”,
 			")">;
 		message ::= cast messageTuple into [ t : string | t ];
-		Reject parse, expected: message
+		Immediately reject parse, expected: message
 	];
 	union : type := ⊥;
 	limit ::= |aTupleType's leading types| + 1;
@@ -874,7 +874,7 @@ Macro "{«_‡,»}" is
 		];
 		‘values→set’
 	]
-	else [restricted send $"{«_‡,»}" with «<exprs>» : set]
+	else [bootstrap restricted send $"{«_‡,»}" with «<exprs>» : set]
 ];
 
 /**
@@ -928,7 +928,7 @@ Macro "{«_→_‡,»}" is
 	bindings ::= cast values
 		into [t : <<>, <<>, any… | 2's type>… | whole number> | t];
 	if literalizable then [‘bindings→map’]
-	else [restricted send $"{«_→_‡,»}" with «<exprs>» : map]
+	else [bootstrap restricted send $"{«_→_‡,»}" with «<exprs>» : map]
 ];
 
 /**

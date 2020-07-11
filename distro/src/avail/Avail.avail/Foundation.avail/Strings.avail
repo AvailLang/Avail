@@ -1381,7 +1381,7 @@ Public method "Require:_contains no Avail message⁇metacharacters" is
 	metachars ::= select each c from s where [c is an Avail metacharacter];
 	If ¬metachars is empty then
 	[
-		Reject parse, expected:
+		Immediately reject parse, expected:
 			"string " ++ “s” ++ " not to contain Avail message metacharacters, \
 				\|but the following included characters are Avail message \
         		\|metacharacters: " ++ “metachars” (as simple list)
@@ -1404,7 +1404,7 @@ Public method "Require:_contains no Avail message⁇metacharacters" is
 |
 	If |sT| ≠ 1 then
 	[
-		Reject parse, expected:
+		Immediately reject parse, expected:
 			"string that forbids Avail message metacharacters to be \
 			\|statically known"
 	];

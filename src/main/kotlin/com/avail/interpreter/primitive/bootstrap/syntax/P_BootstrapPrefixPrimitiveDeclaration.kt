@@ -184,7 +184,8 @@ object P_BootstrapPrefixPrimitiveDeclaration
 			throw AvailRejectedParseException(
 				STRONG,
 				"a primitive failure variable declaration for this "
-					+ "fallible primitive")
+					+ "fallible primitive.  Its type should be:\n\t"
+					+ prim.failureVariableType)
 		}
 		return interpreter.primitiveSuccess(nil)
 	}

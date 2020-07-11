@@ -135,7 +135,7 @@ Private method "_partial evaluator with_" is
 	innerFunction ::=
 		«[innerParams |
 			<
-				restricted send invokeAtom with
+				bootstrap restricted send invokeAtom with
 				«<
 					«↓functionItselfParam»,
 					allParamUses → list phrase
@@ -146,7 +146,7 @@ Private method "_partial evaluator with_" is
 		«[outerParams |
 			<innerFunction>
 		] : innerFunction's semantic type»;
-	restricted send invokeAtom with
+	bootstrap restricted send invokeAtom with
 	«<
 		outerFunction,
 		outerInvokeArgs → list phrase
@@ -214,19 +214,19 @@ Semantic restriction "_(««_»?«`_»?‡,»)" is
 |
 	If ⌊pairs⌋ ≠ ⌈pairs⌉ then
 	[
-		Reject parse weakly, expected:
+		Immediately reject parse weakly, expected:
 			"Need a definite number of arguments and underscores"
 	];
 	paramTypes ::= originalFunction's parameters' type;
 	If paramTypes = ⊥ ∨ ⌊paramTypes⌋ ≠ ⌈paramTypes⌉ then
 	[
-		Reject parse weakly, expected:
+		Immediately reject parse weakly, expected:
 			"function for partial application to have \
 			\|a statically known number of arguments"
 	];
 	If ⌊paramTypes⌋ ≠ ⌊pairs⌋ then
 	[
-		Reject parse weakly, expected:
+		Immediately reject parse weakly, expected:
 			"agreement between number of supplied arguments ("
 				++ “⌊pairs⌋” ++ ") and function parameters ("
 				++ “⌊paramTypes⌋” ++ "), for partial application"
@@ -241,7 +241,7 @@ Semantic restriction "_(««_»?«`_»?‡,»)" is
 		[
 			If ¬ ||pairType[1]|| ⊆ [0..0] then
 			[
-				Reject parse weakly, expected:
+				Immediately reject parse weakly, expected:
 					"either no argument or no underscore for partial \
 					\|function application, index " ++ “index” ++
 					".  The arguments were:\n" ++ “pairTypes” ++ "."
@@ -253,7 +253,7 @@ Semantic restriction "_(««_»?«`_»?‡,»)" is
 		[
 			If ¬ ||pairType[1]|| ⊆ [1..1] then
 			[
-				Reject parse weakly, expected:
+				Immediately reject parse weakly, expected:
 					"either an argument or an underscore for partial \
 					\|function application, at index " ++ “index” ++
 					".  The arguments were:\n" ++ “pairTypes” ++ "."
@@ -261,7 +261,7 @@ Semantic restriction "_(««_»?«`_»?‡,»)" is
 			valueType ::= pairType[1][1];
 			If ¬ valueType ⊆ originalFunction[index] then
 			[
-				Reject parse weakly, expected:
+				Immediately reject parse weakly, expected:
 					"type of argument #" ++ “index” ++
 					" to be a subtype of " ++ “originalFunction[index]” ++
 					", not of type " ++ “valueType”
@@ -269,19 +269,19 @@ Semantic restriction "_(««_»?«`_»?‡,»)" is
 		]
 		else
 		[
-			Reject parse weakly, expected:
+			Immediately reject parse weakly, expected:
 				"statically determined presence or absence of an underscore"
 		];
 	];
 	If |argumentTypes| = 0 then
 	[
 		/* This is a *very* weak theory. */
-		Reject parse silently, expected:
+		Immediately reject parse silently, expected:
 			"at least one underscore for partial function application"
 	];
 	If |argumentTypes| = |pairTypes| then
 	[
-		Reject parse weakly, expected:
+		Immediately reject parse weakly, expected:
 			"at least one argument value for partial function application"
 	];
 	function accepting argumentTypes
@@ -328,17 +328,17 @@ Semantic restriction "_(_,`…)" is
 	argumentsType ::= originalFunction's parameters' type;
 	If ⌊argumentsType⌋ ≠ ⌈argumentsType⌉ then
 	[
-		Reject parse, expected:
+		Immediately reject parse, expected:
 			"function to take a definite number of arguments"
 	];
 	If ⌊argumentsType⌋ < 2 then
 	[
-		Reject parse, expected:
+		Immediately reject parse, expected:
 			"function for partial evaluation to take at least two arguments"
 	];
 	If ¬ firstValue ⊆ argumentsType[1] then
 	[
-		Reject parse, expected:
+		Immediately reject parse, expected:
 			"first argument (" ++ “firstValue” ++ ") to agree with function's \
 			\|first parameter (" ++ “argumentsType[1]” ++ ")"
 	];
@@ -386,18 +386,18 @@ Semantic restriction "_(`…,_)" is
 	argumentsType ::= originalFunction's parameters' type;
 	If ⌊argumentsType⌋ ≠ ⌈argumentsType⌉ then
 	[
-		Reject parse, expected:
+		Immediately reject parse, expected:
 			"function to take a definite number of arguments"
 	];
 	If ⌊argumentsType⌋ < 2 then
 	[
-		Reject parse, expected:
+		Immediately reject parse, expected:
 			"function for partial evaluation to take at least two arguments"
 	];
 	argumentsCount ::= cast ⌊argumentsType⌋ into [n : [2..∞) | n];
 	If ¬ lastValue ⊆ argumentsType[argumentsCount] then
 	[
-		Reject parse, expected:
+		Immediately reject parse, expected:
 			"last argument (" ++ “lastValue” ++ ") to agree with function's \
 			\|last parameter (" ++ “argumentsType[argumentsCount]” ++ ")"
 	];

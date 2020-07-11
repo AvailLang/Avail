@@ -34,18 +34,18 @@ Module "Pojos"
 Versions
 	"1.4.0"
 Uses
-	"Bootstrap" =
-	(
-		"Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_"
-			→ "Reject parse(confidence=_),expected:_"
-		…
-	),
+	"Bootstrap",
 	"Characters",
 	"Control Structures",
 	"Definers",
 	"Early Conditionals",
 	"Enumeration Support",
-	"Exceptions",
+	"Exceptions" =
+	(
+		"Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_"
+			→ "Reject parse(confidence=_),expected:_"
+		…
+	),
 	"Format",
 	"Late Math",
 	"Literals",

@@ -47,6 +47,7 @@ Names
 	"Exit_with_",
 	"From_to_do_",
 	"Ignore:_",
+	"bootstrap restricted send_with_:_",
 	"(_)",
 	"((_))"
 Body
@@ -86,7 +87,8 @@ Public macro "(_)" is
 |
 	If expr ∈ super cast phrase then
 	[
-		Reject parse, expected: "argument of parentheses not to be a supercast"
+		Immediately reject parse, expected:
+			"argument of parentheses not to be a supercast"
 	];
 	expr
 ];
@@ -205,7 +207,7 @@ Semantic restriction "Cast|cast_into_else_" is
 		[
 			message : string
 		|
-			Reject parse, expected: message
+			Immediately reject parse, expected: message
 		];
 	];
 	If accept[1] ∩ value = ⊥ then
@@ -220,7 +222,7 @@ Semantic restriction "Cast|cast_into_else_" is
 		[
 			message : string
 		|
-			Reject parse, expected: message
+			Immediately reject parse, expected: message
 		];
 	];
 	accept's return type ∪ reject's return type
@@ -251,7 +253,7 @@ Semantic restriction "Cast|cast_into_" is
 		[
 			message : string
 		|
-			Reject parse, expected: message
+			Immediately reject parse, expected: message
 		];
 	];
 	If value ∩ accept[1] = ⊥ then
@@ -265,7 +267,7 @@ Semantic restriction "Cast|cast_into_" is
 		[
 			message : string
 		|
-			Reject parse, expected: message
+			Immediately reject parse, expected: message
 		];
 	];
 	accept's return type
@@ -296,7 +298,8 @@ Public macro "((_))" is
 [
 	expr : expression phrase
 |
-	Reject parse, expected: "something other than directly nested parentheses"
+	Immediately reject parse,
+		expected: "something other than directly nested parentheses"
 ];
 
 /**
@@ -330,6 +333,69 @@ Semantic restriction "Invoke|invoke_with_" is
 	aFunction's return type
 ];
 
+zeroOrOne ::= integer range from 0 (inclusive = true) to 1 (inclusive = true);
+optionalSendPhraseType ::= <<>, send phrase… | zeroOrOne>;
+
+/**
+ * Create a send phrase from the supplied message name (atom), list phrase of
+ * arguments, and return type.  Strengthen the return type based on the
+ * applicable method definitions.  Also launch a fiber for each applicable
+ * semantic restriction and strengthen the return type with their eventual
+ * results.
+ *
+ * If any semantic restrictions reject parsing, reject it again immediately in
+ * the current fiber.  This ignores unwind blocks, so don't export this
+ * mechanism past Exceptions, where a safer form is created.
+ *
+ * @method "restricted send_with_:_"
+ * @param "message" "atom"
+ *        The atom that names the method to be invoked by the send phrase.
+ * @param "args" "list phrase"
+ *        The list phrase of phrases that are supplied as arguments of the send
+ *        phrase.
+ * @param "basicReturnType" "type"
+ *        The return type of the send phrase, prior to strengthening by
+ *        applicable method definitions and semantic restrictions.
+ * @returns "send phrase⇒⊤"
+ *        The strengthened send phrase.
+ * @raises "incorrect-number-of-arguments exception"
+ * @raises "incorrect-argument-type exception"
+ * @raises "incorrect-type-for-group exception"
+ * @raises "exclamation-mark-must-follow-an-alternation-group exception"
+ * @raises "incorrect-type-for-complex-group exception"
+ * @raises "incorrect-use-of-double-dagger exception"
+ * @raises "unbalanced-guillemets exception"
+ * @raises "method-name-is-not-canonical exception"
+ * @raises "expected-operator-after-backquote exception"
+ * @raises "incorrect-type-for-boolean-group exception"
+ * @raises "incorrect-type-for-counting-group exception"
+ * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
+ * @raises "question-mark-must-follow-a-simple-group exception"
+ * @raises "case-insensitive-expression-canonization exception"
+ * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
+ * @raises "alternative-must-not-contain-arguments exception"
+ * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
+ * @raises "incorrect-type-for-numbered-choice exception"
+ * @raises "dollar-sign-must-follow-an-ellipsis exception"
+ * @raises "loading-is-over exception"
+ */
+Public method "bootstrap restricted send_with_:_" is
+[
+	message : atom,
+	args : list phrase,
+	basicReturnType : type
+|
+	pair ::= restricted report and send message with args : basicReturnType;
+	optionalPhrase ::= cast pair[1] into [opt : optionalSendPhraseType | opt];
+	If optionalPhrase = <> then
+	[
+		report ::= cast pair[2] into [s : string | s];
+		Immediately reject parse strongly, expected: report
+	];
+	cast optionalPhrase[1] into [p : send phrase | p]
+] : send phrase;
+
+
 /**
  * Reject the current parse unless the value supplied upon exit of a
  * continuation conforms to its function type's return type.
@@ -347,7 +413,7 @@ Semantic restriction "Exit_with_if_" is
 	functionType ::= continuationType's function type;
 	Unless exitType ⊆ functionType's return type then
 	[
-		Reject parse, expected:
+		Immediately reject parse, expected:
 			cast concatenate <
 				"continuation (",
 				“continuationType”,
@@ -378,7 +444,7 @@ Public macro "Exit_" is
 	aContinuation : expression phrase ⇒ $[…]→⊤
 |
 	trueLiteral ::= `true`("true")@0:0 → literal phrase;
-	sendPhrase ::= restricted send exitIfAtom
+	sendPhrase ::= bootstrap restricted send exitIfAtom
 		with <aContinuation, trueLiteral> → list phrase
 		: ⊥;
 	cast sendPhrase into [x : send phrase ⇒ ⊥ | x]
@@ -406,7 +472,7 @@ Public macro "Exit_with_" is
 	value : expression phrase ⇒ any
 |
 	trueLiteral ::= `true`("true")@0:0 → literal phrase;
-	sendPhrase ::= restricted send exitWithIfAtom
+	sendPhrase ::= bootstrap restricted send exitWithIfAtom
 		with <aContinuation, value, trueLiteral> → list phrase
 		: ⊥;
 	cast sendPhrase into [x : send phrase ⇒ ⊥ | x]
@@ -428,7 +494,7 @@ Semantic restriction "Exit_with_" is
 	functionType ::= continuationType's function type;
 	Unless exitType ⊆ functionType's return type then
 	[
-		Reject parse, expected:
+		Immediately reject parse, expected:
 			cast concatenate <
 				"continuation (",
 				“continuationType”,
@@ -510,7 +576,7 @@ Semantic restriction "From_to_do_" is
 			[
 				message : string
 			|
-				Reject parse, expected: message
+				Immediately reject parse, expected: message
 			]
 		];
 	];

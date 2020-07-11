@@ -232,7 +232,7 @@ Macro "_`↑_" is
 	a : expression phrase ⇒ boolean,
 	b : expression phrase ⇒ boolean
 |
-	restricted send atom for "_`↑_" with
+	bootstrap restricted send atom for "_`↑_" with
 	«<
 		a,
 		«[<> | <b>] : boolean»
@@ -354,7 +354,7 @@ Macro "_↓_" is
 	a : expression phrase ⇒ boolean,
 	b : expression phrase ⇒ boolean
 |
-	restricted send atom for "_↓_" with
+	bootstrap restricted send atom for "_↓_" with
 	«<
 		a,
 		«[<> | <b>] : boolean»
@@ -442,7 +442,7 @@ Macro "_→_" is
 	a : expression phrase ⇒ boolean,
 	b : expression phrase ⇒ boolean
 |
-	restricted send atom for "_→_" with
+	bootstrap restricted send atom for "_→_" with
 	«<
 		a,
 		«[<> | <b>] : boolean»
@@ -529,7 +529,7 @@ Macro "_←_" is
 	a : expression phrase ⇒ boolean,
 	b : expression phrase ⇒ boolean
 |
-	restricted send atom for "_←_" with
+	bootstrap restricted send atom for "_←_" with
 	«<
 		a,
 		«[<> | <b>] : boolean»
@@ -655,7 +655,7 @@ Macro "_↛_" is
 	a : expression phrase ⇒ boolean,
 	b : expression phrase ⇒ boolean
 |
-	restricted send atom for "_↛_" with
+	bootstrap restricted send atom for "_↛_" with
 	«<
 		a,
 		«[<> | <b>] : boolean»
@@ -761,7 +761,7 @@ Macro "_↚_" is
 	a : expression phrase ⇒ boolean,
 	b : expression phrase ⇒ boolean
 |
-	restricted send atom for "_↚_" with
+	bootstrap restricted send atom for "_↚_" with
 	«<
 		a,
 		«[<> | <b>] : boolean»
@@ -900,7 +900,7 @@ Public macro "¬_≠_" is
 	a : expression phrase,
 	b : expression phrase
 |
-	Reject parse, expected:
+	Immediately reject parse, expected:
 		"use of \"_=_\", instead of \"¬_≠_\""
 ];
 
@@ -921,6 +921,6 @@ Public macro "¬_=_" is
 	a : expression phrase,
 	b : expression phrase
 |
-	Reject parse, expected:
+	Immediately reject parse, expected:
 		"use of \"_≠_\", instead of \"¬_=_\""
 ];
