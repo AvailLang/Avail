@@ -35,7 +35,6 @@ import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createWithOuters2
 import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.equalityPojo
-import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -62,8 +61,8 @@ import com.avail.interpreter.primitive.pojos.PrimitiveHelper.rawPojoInvokerFunct
 import com.avail.utility.cast
 import java.lang.reflect.Constructor
 import java.lang.reflect.Modifier
-import java.util.*
 import java.util.Collections.synchronizedMap
+import java.util.WeakHashMap
 
 /**
  * **Primitive:** Given a [type][A_Type] that can be successfully marshaled to a

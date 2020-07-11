@@ -52,12 +52,15 @@ import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.zeroOrOne
 import com.avail.descriptor.types.TupleTypeDescriptor.ObjectSlots
-import com.avail.descriptor.types.TupleTypeDescriptor.ObjectSlots.*
+import com.avail.descriptor.types.TupleTypeDescriptor.ObjectSlots.DEFAULT_TYPE
+import com.avail.descriptor.types.TupleTypeDescriptor.ObjectSlots.SIZE_RANGE
+import com.avail.descriptor.types.TupleTypeDescriptor.ObjectSlots.TYPE_TUPLE
 import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
-import java.util.*
+import java.util.IdentityHashMap
+import kotlin.math.max
 import kotlin.math.min
 
 /**
@@ -241,8 +244,8 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		}
 		val leading = self.typeTuple()
 		val interestingLimit = leading.tupleSize() + 1
-		val clipStart = Math.max(Math.min(startIndex, interestingLimit), 1)
-		val clipEnd = Math.max(Math.min(endIndex, interestingLimit), 1)
+		val clipStart = max(min(startIndex, interestingLimit), 1)
+		val clipEnd = max(min(endIndex, interestingLimit), 1)
 		var typeUnion = self.typeAtIndex(clipStart)
 		for (i in clipStart + 1 .. clipEnd)
 		{
@@ -276,7 +279,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		}
 		val subTuple = aTupleType.typeTuple()
 		val superTuple: A_Tuple = self.slot(TYPE_TUPLE)
-		var end = Math.max(subTuple.tupleSize(), superTuple.tupleSize()) + 1
+		var end = max(subTuple.tupleSize(), superTuple.tupleSize()) + 1
 		val smallUpper = aTupleType.sizeRange().upperBound()
 		if (smallUpper.isInt)
 		{
@@ -322,7 +325,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		}
 		// Only check the element types up to the minimum size.  It's ok to stop
 		// after the variations (i.e., just after the leading typeTuple).
-		val minSize = Math.min(
+		val minSize = min(
 			minSizeObject.extractInt(),
 			self.slot(TYPE_TUPLE).tupleSize() + 1)
 		for (i in 1 .. minSize)
@@ -335,9 +338,14 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		return false
 	}
 
-	override fun o_MarshalToJava(self: AvailObject, classHint: Class<*>?): Any? =
-		if (self.isSubtypeOf(stringType())) String::class.java
-		else super.o_MarshalToJava(self, classHint)
+	override fun o_MarshalToJava(
+		self: AvailObject,
+		classHint: Class<*>?
+	): Any? = when
+	{
+		self.isSubtypeOf(stringType()) -> String::class.java
+		else -> super.o_MarshalToJava(self, classHint)
+	}
 
 	@ThreadSafe
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =

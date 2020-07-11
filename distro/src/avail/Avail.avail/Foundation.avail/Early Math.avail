@@ -1037,7 +1037,7 @@ Method "_+_" is type promotion function for
 |
 	If {a, b} = {-∞, ∞} then
 	[
-		Reject parse, expected: cannotAddMessage
+		Immediately reject parse, expected: cannotAddMessage
 	];
 	a + b
 ];
@@ -1066,7 +1066,7 @@ Method "_-_" is type promotion function for
 |
 	If {a, b} ∈ {{-∞}, {∞}} then
 	[
-		Reject parse, expected: cannotSubtractMessage
+		Immediately reject parse, expected: cannotSubtractMessage
 	];
 	a - b
 ];
@@ -1096,7 +1096,7 @@ Method "_×_" is type promotion function for
 	terms ::= {a, b};
 	If terms = {0, ∞} ∨ terms = {0, -∞} then
 	[
-		Reject parse, expected: cannotMultiplyMessage
+		Immediately reject parse, expected: cannotMultiplyMessage
 	];
 	a × b
 ];
@@ -1125,12 +1125,12 @@ Method "_÷_" is type promotion function for
 |
 	If b = 0 ∧ a's type ⊆ extended integer then
 	[
-		Reject parse, expected: cannotDivideByZeroMessage
+		Immediately reject parse, expected: cannotDivideByZeroMessage
 	];
 	infinities ::= {∞, -∞};
 	If a ∈ infinities ∧ b ∈ infinities then
 	[
-		Reject parse, expected: cannotDivideTwoInfinitiesMessage
+		Immediately reject parse, expected: cannotDivideTwoInfinitiesMessage
 	];
 	a ÷ b
 ];

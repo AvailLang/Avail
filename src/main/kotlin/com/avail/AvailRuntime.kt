@@ -162,7 +162,9 @@ import com.avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleMeta
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrOneOf
 import com.avail.descriptor.types.TypeDescriptor
 import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
@@ -178,6 +180,7 @@ import com.avail.exceptions.MalformedMessageException
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.L2Chunk
+import com.avail.interpreter.primitive.controlflow.P_InvokeWithTuple
 import com.avail.interpreter.primitive.general.P_EmergencyExit
 import com.avail.interpreter.primitive.general.P_ToString
 import com.avail.io.IOSystem
@@ -186,8 +189,8 @@ import com.avail.io.TextInterface.Companion.system
 import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-import com.avail.utility.evaluation.OnceSupplier
 import com.avail.utility.StackPrinter.Companion.trace
+import com.avail.utility.evaluation.OnceSupplier
 import com.avail.utility.structures.EnumMap.Companion.enumMap
 import java.util.ArrayDeque
 import java.util.Collections
@@ -233,7 +236,7 @@ import kotlin.math.min
  */
 class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 {
-	/** The [IOSystem] for this runtime.  */
+	/** The [IOSystem] for this runtime. */
 	private val ioSystem = IOSystem(this)
 
 	/**
@@ -244,7 +247,7 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 	 */
 	fun ioSystem(): IOSystem =  ioSystem
 
-	/** The [CallbackSystem] for this runtime.  */
+	/** The [CallbackSystem] for this runtime. */
 	private val callbackSystem = CallbackSystem()
 
 	/**
@@ -651,16 +654,59 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 				tuple(
 					pojoTypeForClass(Throwable::class.java)),
 				bottom()),
-			null);
+			null),
 
-		/** The name to attach to functions plugged into this hook.  */
+		/**
+		 * The `HookType` for a hook that holds the [A_Function] to invoke at
+		 * the outermost stack frame to run a fiber.  This function is passed a
+		 * function to execute and the arguments to supply to it.  The result
+		 * returned by the passed function is returned from this frame.
+		 */
+		BASE_FRAME(
+			"«base frame»",
+			functionType(
+				tuple(
+					mostGeneralFunctionType(),
+					mostGeneralTupleType()),
+				Types.TOP.o()),
+			P_InvokeWithTuple);
+
+		/** The name to attach to functions plugged into this hook. */
 		private val hookName: A_String = stringFrom(hookName)
 
 		/**
 		 * A [supplier][OnceSupplier] of a default [A_Function] to use for this
 		 * hook type.
 		 */
-		val defaultFunctionSupplier: OnceSupplier<A_Function>
+		@Suppress("LeakingThis")
+		val defaultFunctionSupplier: OnceSupplier<A_Function> =
+			produceDefaultFunctionSupplier(hookName, primitive)
+
+		open fun produceDefaultFunctionSupplier(
+			hookName: String,
+			primitive: Primitive?
+		): OnceSupplier<A_Function> = when (primitive)
+		{
+			null ->
+			{
+				// Create an invocation of P_EmergencyExit.
+				val argumentsTupleType = functionType.argsTupleType()
+				val argumentTypesTuple =
+					argumentsTupleType.tupleOfTypesFromTo(
+						1,
+						argumentsTupleType.sizeRange().upperBound()
+							.extractInt())
+				OnceSupplier {
+					newCrashFunction(hookName, argumentTypesTuple).makeShared()
+				}
+			}
+			else ->
+			{
+				val code = newPrimitiveRawFunction(primitive, nil, 0)
+				code.setMethodName(this.hookName)
+				OnceSupplier { createFunction(code, emptyTuple()).makeShared() }
+			}
+		}
 
 		/**
 		 * Extract the current [A_Function] for this hook from the given
@@ -686,42 +732,12 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 		{
 			assert(function.isInstanceOf(functionType))
 			function.code().setMethodName(hookName)
-			runtime.hooks.set(this, function)
-		}
-		init
-		{
-			if (primitive === null)
-			{
-				// Create an invocation of P_EmergencyExit.
-				val argumentsTupleType = functionType.argsTupleType()
-				val argumentTypesTuple =
-					argumentsTupleType.tupleOfTypesFromTo(
-						1,
-						argumentsTupleType.sizeRange().upperBound().extractInt())
-				defaultFunctionSupplier =
-					OnceSupplier {
-						newCrashFunction(hookName, argumentTypesTuple)
-					}
-			}
-			else
-			{
-				val code =
-					newPrimitiveRawFunction(primitive, nil, 0)
-				code.setMethodName(this.hookName)
-				defaultFunctionSupplier =
-					OnceSupplier {
-						createFunction(
-							code,
-							emptyTuple()
-						)
-					}
-			}
+			runtime.hooks[this] = function
 		}
 	}
 
-	/** The collection of hooks for this runtime.  */
-	val hooks =
-		enumMap(HookType.values()) { it.defaultFunctionSupplier() }
+	/** The collection of hooks for this runtime. */
+	val hooks = enumMap(HookType.values()) { it.defaultFunctionSupplier() }
 	/**
 	 * Answer the [function][FunctionDescriptor] to invoke whenever the value
 	 * produced by a [method][MethodDescriptor] send disagrees with the
@@ -1134,6 +1150,9 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 			specials[170] = continuationTypeForFunctionType(
 				functionTypeReturning(Types.TOP.o()))
 			specials[171] = CharacterDescriptor.nonemptyStringOfDigitsType
+			specials[172] = tupleTypeForTypes(
+				zeroOrOneOf(PhraseKind.SEND_PHRASE.mostGeneralType()),
+				stringType())
 
 			assert(specialAtomsList.isEmpty())
 			specialAtomsList.addAll(listOf(

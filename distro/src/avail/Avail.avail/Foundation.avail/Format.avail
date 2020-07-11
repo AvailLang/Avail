@@ -551,7 +551,7 @@ Semantic restriction "partially format_with«…::=_‡,»" is
 			var ::= format variable for binding[1]'s instance;
 			If var ∈ stringVars ∧ ¬binding[2] ⊆ string then
 			[
-				Reject parse, expected:
+				Immediately reject parse, expected:
 					"format variable "
 					++ “var”
 					++ " ∈ string, not "
@@ -563,7 +563,7 @@ Semantic restriction "partially format_with«…::=_‡,»" is
 		unmentionedVars ::= bindingVars \ templateVars;
 		If unmentionedVars ≠ ∅ then
 		[
-			Reject parse, expected:
+			Immediately reject parse, expected:
 				"only bindings for format variables, but bindings also include "
 				++ “unmentionedVars”
 		];
@@ -646,7 +646,7 @@ Semantic restriction "format_with«…!::=_‡,»" is
 			var ::= format variable for binding[1]'s instance;
 			If var ∈ stringVars ∧ ¬binding[2] ⊆ string then
 			[
-				Reject parse, expected:
+				Immediately reject parse, expected:
 					"format variable "
 					++ “var”
 					++ " ∈ string, not "
@@ -658,14 +658,14 @@ Semantic restriction "format_with«…!::=_‡,»" is
 		unboundVars ::= templateVars \ bindingVars;
 		If unboundVars ≠ ∅ then
 		[
-			Reject parse, expected:
+			Immediately reject parse, expected:
 				"bindings for format variables "
 				++ “unboundVars”
 		];
 		unmentionedVars ::= bindingVars \ templateVars;
 		If unmentionedVars ≠ ∅ then
 		[
-			Reject parse, expected:
+			Immediately reject parse, expected:
 				"only bindings for format variables, but bindings also include "
 				++ “unmentionedVars”
 		];
@@ -851,7 +851,7 @@ Semantic restriction "format_with«_‡,»" is
 				bindingType ::= bindingsType[index];
 				If var ∈ stringVars ∧ ¬bindingType ⊆ string then
 				[
-					Reject parse, expected:
+					Immediately reject parse, expected:
 						"format variable "
 						++ “var”
 						++ " ∈ string, not "
@@ -863,14 +863,14 @@ Semantic restriction "format_with«_‡,»" is
 		unboundVars ::= templateVars \ bindingVars;
 		If unboundVars ≠ ∅ then
 		[
-			Reject parse, expected:
+			Immediately reject parse, expected:
 				"bindings for format variables "
 				++ “unboundVars”
 		];
 		unmentionedVars ::= bindingVars \ templateVars;
 		If unmentionedVars ≠ ∅ then
 		[
-			Reject parse, expected:
+			Immediately reject parse, expected:
 				"only bindings for format variables, but bindings also include "
 				++ “unmentionedVars”
 		];

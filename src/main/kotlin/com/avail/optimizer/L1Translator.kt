@@ -1194,13 +1194,22 @@ class L1Translator private constructor(
 			reify(expectedType, ChunkEntryPoint.TO_RETURN_INTO)
 			if (generator.currentlyReachable())
 			{
-				// Capture the value being returned into the on-ramp.
-				forceSlotRegister(
-					stackp,
-					instructionDecoder.pc(),
-					getLatestReturnValue(
-						unionOfPossibleResults.typeIntersection(expectedType)))
-				generator.jumpTo(callSiteHelper.afterCallNoCheck)
+				val resultType =
+					unionOfPossibleResults.typeIntersection(expectedType)
+				if (resultType.isVacuousType)
+				{
+					// We proved it was actually ⊥-valued, so unreachable.
+					generator.addUnreachableCode()
+				}
+				else
+				{
+					// Capture the value being returned into the on-ramp.
+					forceSlotRegister(
+						stackp,
+						instructionDecoder.pc(),
+						getLatestReturnValue(resultType))
+					generator.jumpTo(callSiteHelper.afterCallNoCheck)
+				}
 			}
 		}
 

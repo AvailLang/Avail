@@ -46,7 +46,8 @@ package com.avail.utility.evaluation
  * @param innerSupplier
  *   The supplier to be evaluated at most once.
  */
-class OnceSupplier<T> constructor (private val innerSupplier: () -> T) : () -> T
+class OnceSupplier<T : Any> constructor (
+	private val innerSupplier: () -> T) : () -> T
 {
 	/**
 	 * The cached value produced by the [innerSupplier], or `null` if it has not

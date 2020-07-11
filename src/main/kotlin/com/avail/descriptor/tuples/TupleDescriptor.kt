@@ -1052,12 +1052,13 @@ abstract class TupleDescriptor protected constructor(
 	}
 
 	override fun o_MarshalToJava(
-		self: AvailObject, classHint: Class<*>?): Any? =
-			if (self.isString)
-			{
-				self.asNativeString()
-			}
-			else super.o_MarshalToJava(self, classHint)
+		self: AvailObject,
+		classHint: Class<*>?
+	): Any? = when
+	{
+		self.isString -> self.asNativeString()
+		else -> super.o_MarshalToJava(self, classHint)
+	}
 
 	override fun o_ShowValueInNameForDebugger(self: AvailObject): Boolean =
 		self.isString

@@ -159,7 +159,7 @@ Semantic restriction "«Public»?_is a|an new⁇field⁇atom" is
 	public ::= publicType's instance;
 	If public ∧ |nameType| ≠ 1 then
 	[
-		Reject parse, expected:
+		Immediately reject parse, expected:
 			"public modifier to be provided only when the atom name \
 			\|is statically known"
 	];
@@ -174,7 +174,7 @@ Semantic restriction "«Public»?_is a|an new⁇field⁇atom" is
 				"\" not to specify any parameters">;
 			s : string;
 			s ?= t;
-			Reject parse, expected: s
+			Immediately reject parse, expected: s
 		];
 		If public ∧ ¬current module has public name name then
 		[
@@ -184,7 +184,7 @@ Semantic restriction "«Public»?_is a|an new⁇field⁇atom" is
 				"\" to be included in the module's \"Names\" section">;
 			s : string;
 			s ?= t;
-			Reject parse, expected: s
+			Immediately reject parse, expected: s
 		];
 	];
 	⊤
@@ -223,7 +223,7 @@ Semantic restriction "«Public»?_is a new⁇heritable«fiber-local»⁇atom" is
 	public ::= publicType's instance;
 	If public ∧ |nameType| ≠ 1 then
 	[
-		Reject parse, expected:
+		Immediately reject parse, expected:
 			"public modifier to be provided only when the atom name \
 			\|is statically known"
 	];
@@ -238,7 +238,7 @@ Semantic restriction "«Public»?_is a new⁇heritable«fiber-local»⁇atom" is
 				"\" not to specify any parameters">;
 			s : string;
 			s ?= t;
-			Reject parse, expected: s
+			Immediately reject parse, expected: s
 		];
 		If public ∧ ¬current module has public name name then
 		[
@@ -248,7 +248,7 @@ Semantic restriction "«Public»?_is a new⁇heritable«fiber-local»⁇atom" is
 				"\" to be included in the module's \"Names\" section">;
 			s : string;
 			s ?= t;
-			Reject parse, expected: s
+			Immediately reject parse, expected: s
 		];
 	];
 	⊤

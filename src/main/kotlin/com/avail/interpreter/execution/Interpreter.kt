@@ -2660,10 +2660,10 @@ class Interpreter(
 
 		/**
 		 * Schedule the specified [fiber][FiberDescriptor] to run the given
-		 * [function][FunctionDescriptor]. This function is run as an outermost
-		 * function, and must correspond to a top-level action. The fiber must
-		 * be in the [unstarted][ExecutionState.UNSTARTED] state. This method is
-		 * an entry point.
+		 * [function][FunctionDescriptor]. This function is invoked via the
+		 * [HookType.BASE_FRAME] hook. The fiber must be in the
+		 * [unstarted][ExecutionState.UNSTARTED] state. This Kotlin method is an
+		 * entry point for driving Avail externally.
 		 *
 		 * If the function successfully runs to completion, then the fiber's
 		 * "on success" continuation will be invoked with the function's result.
@@ -2676,7 +2676,7 @@ class Interpreter(
 		 *   An [Avail&#32;runtime][AvailRuntime].
 		 * @param aFiber
 		 *   The fiber to run.
-		 * @param function
+		 * @param functionToRun
 		 *   A [function][FunctionDescriptor] to run.
 		 * @param arguments
 		 *   The arguments for the function.
@@ -2685,12 +2685,12 @@ class Interpreter(
 		fun runOutermostFunction(
 			runtime: AvailRuntime,
 			aFiber: A_Fiber,
-			function: A_Function,
+			functionToRun: A_Function,
 			arguments: List<A_BasicObject>)
 		{
 			assert(aFiber.executionState() === UNSTARTED)
 			aFiber.fiberNameSupplier {
-				val code = function.code()
+				val code = functionToRun.code()
 				formatString("Outermost %s @ %s:%d",
 					code.methodName().asNativeString(),
 					if (code.module().equalsNil()) "«vm»"
@@ -2702,18 +2702,19 @@ class Interpreter(
 				assert(aFiber === interpreter.fiberOrNull())
 				assert(aFiber.executionState() === RUNNING)
 				assert(aFiber.continuation().equalsNil())
-				// Invoke the function. If it's a primitive and it
-				// succeeds, then immediately invoke the fiber's
-				// result continuation with the primitive's result.
+				// Invoke the base-frame (hook) function with the given function
+				// and its arguments collected as a tuple.
+				val baseFrameFunction = HookType.BASE_FRAME[runtime]
 				interpreter.exitNow = false
 				interpreter.returnNow = false
 				interpreter.setReifiedContinuation(nil)
-				interpreter.function = function
-				interpreter.argsBuffer.clear()
-				arguments.mapTo(
-					interpreter.argsBuffer, { it as AvailObject })
-				interpreter.chunk = function.code().startingChunk()
+				interpreter.function = baseFrameFunction
+				interpreter.chunk = baseFrameFunction.code().startingChunk()
 				interpreter.offset = 0
+				interpreter.argsBuffer.clear()
+				interpreter.argsBuffer.add(functionToRun as AvailObject)
+				interpreter.argsBuffer.add(
+					tupleFromList(arguments) as AvailObject)
 			}
 		}
 

@@ -777,11 +777,9 @@ abstract class PojoTypeDescriptor protected constructor(
 		@Throws(MarshalingException::class)
 		fun marshalTypes(types: A_Tuple): Array<Class<*>> =
 			// Marshal the argument types.
-			Array(types.tupleSize())
-			{
-				types.tupleAt(it + 1).marshalToJava(null)!!
-					.cast<Any?, Class<*>>()
-			}
+			types.map {
+				it.marshalToJava(null)!!.cast<Any, Class<*>>()
+			}.toTypedArray()
 
 		/**
 		 * Marshal the supplied [A_Type], as though it will be used for
@@ -797,7 +795,8 @@ abstract class PojoTypeDescriptor protected constructor(
 		 */
 		fun marshalDefiningType(type: A_Type): Class<*>
 		{
-			val aClass = type.marshalToJava(null)!!.cast<Any?, Class<*>>()
+			val marshalledType = type.marshalToJava(null)
+			val aClass: Class<*> = marshalledType.cast()
 			if (aClass.isPrimitive)
 			{
 				return when (aClass)
@@ -849,28 +848,19 @@ abstract class PojoTypeDescriptor protected constructor(
 				{
 					AvailObject::class.java -> self as AvailObject
 					java.lang.Boolean::class.java ->
-						objectFromBoolean((self as Boolean?)!!)
+						objectFromBoolean(self as Boolean)
 					java.lang.Byte::class.java ->
-					{
 						fromInt((self as Byte).toInt())
-					}
 					java.lang.Short::class.java ->
-					{
 						fromInt((self as Short).toInt())
-					}
-					java.lang.Integer::class.java -> fromInt((self as Int?)!!)
-					java.lang.Long::class.java -> fromLong((self as Long?)!!)
-					java.lang.Float::class.java -> fromFloat((self as Float?)!!)
-					java.lang.Double::class.java ->
-						fromDouble((self as Double?)!!)
+					java.lang.Integer::class.java -> fromInt(self as Int)
+					java.lang.Long::class.java -> fromLong(self as Long)
+					java.lang.Float::class.java -> fromFloat(self as Float)
+					java.lang.Double::class.java -> fromDouble(self as Double)
 					java.lang.Character::class.java ->
-					{
 						fromInt((self as Char).toInt())
-					}
-					java.lang.String::class.java ->
-						stringFrom((self as String?)!!)
-					BigInteger::class.java ->
-						fromBigInteger((self as BigInteger?)!!)
+					java.lang.String::class.java -> stringFrom(self as String)
+					BigInteger::class.java -> fromBigInteger(self as BigInteger)
 					else -> newPojo(equalityPojo(self), type)
 				}
 			if (!availObject.isInstanceOf(type))

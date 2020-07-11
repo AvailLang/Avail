@@ -331,20 +331,17 @@ ext.credentialsWarning = "Missing credentials.  To publish, you'll need to " +
 	"\n" +
 	'Remember to restart IntelliJ after this change.'
 
+ext.github_username = System.getenv("GITHUB_USER")
+ext.github_password = System.getenv("GITHUB_TOKEN")
+
 publishing {
 	repositories {
 		maven {
 			name = "GitHub"
 			url = uri("https://maven.pkg.github.com/AvailLang/Avail")
 			credentials {
-				username = System.getenv("GITHUB_USER")
-				password = System.getenv("GITHUB_TOKEN")
-				if (username == null || password == null)
-				{
-					System.err.println("GITHUB_USER = $username")
-					System.err.println("GITHUB_TOKEN = $password")
-					System.err.println(credentialsWarning)
-				}
+				username = github_username
+				password = github_password
 			}
 		}
 	}
@@ -354,5 +351,12 @@ publishing {
 			from components.java
 			artifact sourcesJar
 		}
+	}
+}
+
+publish.doFirst {
+	if (github_username == null || github_password == null)
+	{
+		System.err.println(credentialsWarning)
 	}
 }

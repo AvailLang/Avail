@@ -36,13 +36,12 @@ import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.representation.A_BasicObject
-import com.avail.descriptor.representation.AbstractDescriptor
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.Descriptor
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.types.TypeTag
-import com.avail.interpreter.primitive.phrases.P_RejectParsing
+import com.avail.interpreter.primitive.compiler.P_RejectParsing
 
 /**
  * A [semantic&#32;restriction][A_SemanticRestriction] holds a function to

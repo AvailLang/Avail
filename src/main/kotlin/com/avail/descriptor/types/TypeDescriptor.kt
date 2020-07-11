@@ -680,7 +680,8 @@ abstract class TypeDescriptor protected constructor(
 	// class of AvailObject.
 	override fun o_MarshalToJava(
 		self: AvailObject,
-		classHint: Class<*>?): Any? =  AvailObject::class.java
+		classHint: Class<*>?
+	): Any? = AvailObject::class.java
 
 	override fun o_Parent(self: AvailObject): A_BasicObject = unsupported
 

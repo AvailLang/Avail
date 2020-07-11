@@ -49,7 +49,6 @@ Uses
 	"Primitives" =
 	(
 		"Abstract method_is_",
-		"Accept parse",
 		"After the current module is unloaded,⁇do_",
 		"Alias_to_",
 		"Attempt to join_",
@@ -58,6 +57,8 @@ Uses
 		"Export_as a new name",
 		"Forward method_is_",
 		"Grammatical restriction_is_",
+		"Immediately accept parse",
+		"Immediately reject parse«silently|weakly|moderately|strongly⁇»!,expected:_",
 		"In_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_",
 		"Invoke_with_,⁇forked at priority_",
 		"Invoke|invoke_with_",
@@ -65,7 +66,6 @@ Uses
 		"Macro_is«_,»_",
 		"Mark for_character|characters of read ahead",
 		"Print:_",
-		"Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_",
 		"Remove current fiber[_]",
 		"Remove_[_]",
 		"Reset to mark",
@@ -130,7 +130,7 @@ Uses
 		"new explicit subclass atom named_",
 		"new⁇heritable«fiber-local»⁇atom named_",
 		"next character",
-		"restricted send_with_:_",
+		"restricted report and send_with_:_",
 		"semantic restrictions for_given_",
 		"send_with_:_",
 		"seq`«_`»",
@@ -426,6 +426,126 @@ Primitive "all atoms for_" is
 		loading-is-over code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : set of atom;
+
+/**
+ * Accept the current attempt at parsing an expression.  This can be used by
+ * semantic restrictions and macro prefix functions to allow early exits.  In
+ * addition, it allows semantic restriction bodies to be bottom-typed,
+ * indicating that it <em>cannot</em> strengthen the expression type, allowing
+ * detection of methods that are always ⊤-valued, avoiding the search for
+ * invocations of them as ordinary subexpressions.  This should improve both
+ * parsing speed and the diagnostic quality of parse errors.
+ *
+ * This method may only be invoked from the body of a semantic restriction
+ * function: it should only be invoked by the Avail compiler, never by a
+ * semantically valid Avail program.
+ *
+ * @category "Primitives"
+ * @method "Immediately accept parse"
+ * @returns "⊥"
+ *    Ends the current fiber immediately (or after safely unwinding to the base
+ *    stack frame after exceptions are installed), and does not return.
+ * @raises "untimely-parse-acceptance exception"
+ */
+Primitive "Immediately accept parse" is
+[
+	Primitive AcceptParsing (failureCode : {
+		untimely-parse-acceptance code}ᵀ);
+	Private invoke _fail_primitive with failureCode
+] : ⊥;
+
+/**
+ * Answer the atom for the message bundle of the send phrase being evaluated as
+ * a macro.  Fail if a macro is not being evaluated by the current fiber.
+ *
+ * @category "Primitives"
+ * @method "current macro name"
+ * @returns "atom"
+ *    The atom of the send phrase undergoing macro expansion.
+ * @raises "not-evaluating-macro exception"
+ *    If a macro is not being evaluated by the current fiber.
+ */
+Primitive "current macro name" is
+[
+	Primitive CurrentMacroName (failureCode : {
+		not-evaluating-macro}ᵀ);
+	Private invoke _fail_primitive with failureCode
+] : atom;
+
+/**
+ * Generate and answer a function from the specified block.
+ *
+ * @category "Primitives" "Phrases" "Functions" "Conversions"
+ * @method "_→function"
+ * @param "aBlock" "block phrase"
+ *        A block. Note that the block is treated as a top-level construct, so
+ *        it must not refer to any outer variable declarations.
+ * @returns "[…]→⊤"
+ *    The requested function.
+ * @raises "block-is-invalid exception"
+ * @raises "block-must-not-contain-outers exception"
+ * @raises "block-compilation-failed exception"
+ */
+Primitive "_→function" is
+[
+	aBlock : block phrase
+|
+	Primitive GenerateFunctionForBlock (failureCode : {
+		block-is-invalid code,
+		block-must-not-contain-outers code,
+		block-compilation-failed code}ᵀ);
+	Private invoke _fail_primitive with failureCode
+] : function;
+
+/**
+ * Reject the current parse. This causes the compiler to reject the
+ * interpretation of the program text that resulted in execution of the code
+ * that invoked this method. The argument is a description of the parse
+ * rejection, but in positive terms that primarily assert what the caller was
+ * expecting (on the compiler's behalf). It is, of course, also useful to state
+ * what was actually discovered.
+ *
+ * Note that the Avail compiler attempts, in parallel, many different parses of
+ * a statement. If the only parses syntactically accepted by the compiler are
+ * semantically rejected by callers of this method, then and only then is the
+ * statement deemed invalid and the arguments of such calls emitted by the
+ * compiler as error messages to assist the programmer in correcting the
+ * rejected statement.
+ *
+ * This method may only be invoked from the body of a macro function or a
+ * semantic restriction function: it should only be invoked by the Avail
+ * compiler, never by a semantically valid Avail program.
+ *
+ * Also note that this mechanism bypasses exceptions, so this should only be
+ * used as the primitive function supplied to an invocation of
+ * "unwind fiber and run_with_".  This extra wrapping has no effect prior to
+ * bootstrapping exceptions, but it applies retroactively after the bootstrap.
+ *
+ * @category "Primitives" "Semantic Restrictions"
+ * @method "Immediately reject parse«silently|weakly|moderately|strongly⁇»!,expected:_"
+ * @param "level" "parse rejection level"
+ *        The notification level that controls under what circumstances the text
+ *        should be presented as a compilation error.  The values are: 
+ *            1=silently, which is never displayed,
+ *            2=weakly, which is only displayed if there is nothing >2,
+ *            3=moderately, which is only displayed if there is nothing >3, and
+ *            4=strongly, which is always displayed, as long as parsing has not
+ *              proceeded too far beyond this position.
+ * @param "expected" "string"
+ *        A description of the cause of rejection, worded to sound good
+ *        after {@code "Expected..."}.
+ * @returns "⊥"
+ * @raises "untimely-parse-rejection exception"
+ */
+Primitive "Immediately reject parse«silently|weakly|moderately|strongly⁇»!,expected:_" is
+[
+	level : parse rejection level,
+	expected : string
+|
+	Primitive RejectParsing (failureCode : {
+		untimely-parse-rejection code}ᵀ);
+	Private invoke _fail_primitive with failureCode
+] : ⊥;
 
 /**
  * Construct and answer a continuation whose current function, Level One
@@ -2693,28 +2813,6 @@ Primitive "_→tuple" is
 ] : field type tuple;
 
 /**
- * Accept the current attempt at parsing an expression.  This can be used by
- * semantic restrictions and macro prefix functions to allow early exits.  In
- * addition, it allows semantic restriction bodies to be bottom-typed,
- * indicating that it <em>cannot</em> strengthen the expression type, allowing
- * detection of methods that are always ⊤-valued, avoiding the search for
- * invocations of them as ordinary subexpressions.  This should improve both
- * parsing speed and the diagnostic quality of parse errors.
- *
- * @category "Primitives"
- * @method "Accept parse"
- * @returns "⊥"
- *    Ends the current fiber immediately, and does not return.
- * @raises "untimely-parse-acceptance exception"
- */
-Primitive "Accept parse" is
-[
-	Primitive AcceptParsing (failureCode : {
-		untimely-parse-acceptance code}ᵀ);
-	Private invoke _fail_primitive with failureCode
-] : ⊥;
-
-/**
  * Construct and answer an assignment expression.
  *
  * @category "Primitives" "Phrases" "Constructors"
@@ -2874,12 +2972,16 @@ Primitive "`«`↑_`»" is
  * arguments, and return type.  Strengthen the return type based on the
  * applicable method definitions.  Also launch a fiber for each applicable
  * semantic restriction and strengthen the return type with their eventual
- * results.  If any semantic restrictions reject parsing, collect the failures
- * into an aggregate message and reject the parse in the original fiber (the
- * one running this primitive).
+ * results.
+ *
+ * If any semantic restrictions reject parsing, collect the failure messages
+ * into an aggregate message.  Answer a tuple where the first element is either
+ * an empty tuple or a tuple containing the send phrase, and where the second
+ * element is either the report from rejecting semantic restrictions or the
+ * empty string.
  *
  * @category "Primitives"
- * @method "restricted send_with_:_"
+ * @method "restricted report and send_with_:_"
  * @param "message" "atom"
  *        The atom that names the method to be invoked by the send phrase.
  * @param "args" "list phrase"
@@ -2888,8 +2990,8 @@ Primitive "`«`↑_`»" is
  * @param "basicReturnType" "type"
  *        The return type of the send phrase, prior to strengthening by
  *        applicable method definitions and semantic restrictions.
- * @returns "send phrase⇒⊤"
- *        A send phrase with a strengthened return type.
+ * @returns "<<send phrase⇒⊤…|0..1>, string…|2>"
+ *        A pair of the optional restricted send phrase and report string.
  * @raises "incorrect-number-of-arguments exception"
  * @raises "incorrect-argument-type exception"
  * @raises "incorrect-type-for-group exception"
@@ -2911,7 +3013,7 @@ Primitive "`«`↑_`»" is
  * @raises "dollar-sign-must-follow-an-ellipsis exception"
  * @raises "loading-is-over exception"
  */
-Primitive "restricted send_with_:_" is
+Primitive "restricted report and send_with_:_" is
 [
 	message : atom,
 	args : list phrase,
@@ -2942,7 +3044,7 @@ Primitive "restricted send_with_:_" is
 		no-method-definition code,
 		inconsistent-argument-reordering code}ᵀ);
 	Private invoke _fail_primitive with failureCode
-] : send phrase;
+] : optional send phrase and report string;
 
 /**
  * Construct and answer a message send. {@param "messageName"} must be an atom which has
@@ -3056,94 +3158,6 @@ Primitive "`«supercast(_::_)`»" is
 		supercast-must-be-strict-supertype-of-expression-type code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : super cast phrase;
-
-/**
- * Answer the atom for the message bundle of the send phrase being evaluated as
- * a macro.  Fail if a macro is not being evaluated by the current fiber.
- *
- * @category "Primitives"
- * @method "current macro name"
- * @returns "atom"
- *    The atom of the send phrase undergoing macro expansion.
- * @raises "not-evaluating-macro exception"
- *    If a macro is not being evaluated by the current fiber.
- */
-Primitive "current macro name" is
-[
-	Primitive CurrentMacroName (failureCode : {
-		not-evaluating-macro}ᵀ);
-	Private invoke _fail_primitive with failureCode
-] : atom;
-
-/**
- * Generate and answer a function from the specified block.
- *
- * @category "Primitives" "Phrases" "Functions" "Conversions"
- * @method "_→function"
- * @param "aBlock" "block phrase"
- *        A block. Note that the block is treated as a top-level construct, so
- *        it must not refer to any outer variable declarations.
- * @returns "[…]→⊤"
- *    The requested function.
- * @raises "block-is-invalid exception"
- * @raises "block-must-not-contain-outers exception"
- * @raises "block-compilation-failed exception"
- */
-Primitive "_→function" is
-[
-	aBlock : block phrase
-|
-	Primitive GenerateFunctionForBlock (failureCode : {
-		block-is-invalid code,
-		block-must-not-contain-outers code,
-		block-compilation-failed code}ᵀ);
-	Private invoke _fail_primitive with failureCode
-] : function;
-
-/**
- * Reject the current parse. This causes the compiler to reject the
- * interpretation of the program text that resulted in execution of the code
- * that invoked this method. The argument is a description of the parse
- * rejection, but in positive terms that primarily assert what the caller was
- * expecting (on the compiler's behalf). It is, of course, also useful to state
- * what was actually discovered.
- *
- * Note that the Avail compiler attempts, in parallel, many different parses of
- * a statement. If the only parses syntactically accepted by the compiler are
- * semantically rejected by callers of this method, then and only then is the
- * statement deemed invalid and the arguments of such calls emitted by the
- * compiler as error messages to assist the programmer in correcting the
- * rejected statement.
- *
- * This method may only be invoked from the body of a macro function or a
- * semantic restriction function: it should only be invoked by the Avail
- * compiler, never by a semantically valid Avail program.
- *
- * @category "Primitives" "Semantic Restrictions"
- * @method "Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_"
- * @param "level" "parse rejection level"
- *        The notification level that controls under what circumstances the text
- *        should be presented as a compilation error.  The values are: 
- *            1=silently, which is never displayed,
- *            2=weakly, which is only displayed if there is nothing >2,
- *            3=moderately, which is only displayed if there is nothing >3, and
- *            4=strongly, which is always displayed, as long as parsing has not
- *              proceeded too far beyond this position.
- * @param "expected" "string"
- *        A description of the cause of rejection, worded to sound good
- *        after {@code "Expected..."}.
- * @returns "⊥"
- * @raises "untimely-parse-rejection exception"
- */
-Primitive "Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_" is
-[
-	level : parse rejection level,
-	expected : string
-|
-	Primitive RejectParsing (failureCode : {
-		untimely-parse-rejection code}ᵀ);
-	Private invoke _fail_primitive with failureCode
-] : ⊥;
 
 /**
  * Construct and answer a variable that, when read or written, will pass

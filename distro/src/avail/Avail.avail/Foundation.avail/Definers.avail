@@ -270,12 +270,12 @@ Private method "stability body for_with«_‡,»" is
 		]
 		with
 		[
-			restricted send methodName with argumentList : any
+			bootstrap restricted send methodName with argumentList : any
 		]
 	]
 	else
 	[
-		restricted send methodName with argumentList : any
+		bootstrap restricted send methodName with argumentList : any
 	]
 ];
 
@@ -345,9 +345,9 @@ Public method "Method_is stable at_" is
 	];
 	currentMacroToken ::= (this token: currentMacroName);
 	sendGetCurrentMacro ::=
-		restricted send getCurrentMacroNameAtom with «<>» : atom;
+		bootstrap restricted send getCurrentMacroNameAtom with «<>» : atom;
 	sendStabilityBody ::=
-		restricted send stabilityBodyAtom
+		bootstrap restricted send stabilityBodyAtom
 		with
 			«<
 				sendGetCurrentMacro,

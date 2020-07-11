@@ -229,7 +229,7 @@ import com.avail.interpreter.execution.Interpreter.Companion.stringifyThen
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED
-import com.avail.interpreter.primitive.phrases.P_RejectParsing
+import com.avail.interpreter.primitive.compiler.P_RejectParsing
 import com.avail.io.SimpleCompletionHandler
 import com.avail.io.TextInterface
 import com.avail.performance.Statistic

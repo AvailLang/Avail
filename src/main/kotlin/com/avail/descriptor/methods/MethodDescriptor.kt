@@ -119,10 +119,6 @@ import com.avail.interpreter.primitive.controlflow.P_ResumeContinuation
 import com.avail.interpreter.primitive.general.P_EmergencyExit
 import com.avail.interpreter.primitive.hooks.P_DeclareStringificationAtom
 import com.avail.interpreter.primitive.hooks.P_GetRaiseJavaExceptionInAvailFunction
-import com.avail.interpreter.primitive.hooks.P_SetInvalidMessageSendFunction
-import com.avail.interpreter.primitive.hooks.P_SetRaiseJavaExceptionInAvailFunction
-import com.avail.interpreter.primitive.hooks.P_SetResultDisagreedWithExpectedTypeFunction
-import com.avail.interpreter.primitive.hooks.P_SetUnassignedVariableAccessFunction
 import com.avail.interpreter.primitive.methods.P_AbstractMethodDeclarationForAtom
 import com.avail.interpreter.primitive.methods.P_AddSemanticRestrictionForAtom
 import com.avail.interpreter.primitive.methods.P_Alias
@@ -150,11 +146,14 @@ import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
-import java.util.*
+import java.util.ArrayList
 import java.util.Collections.emptyList
 import java.util.Collections.nCopies
 import java.util.Collections.newSetFromMap
 import java.util.Collections.synchronizedSet
+import java.util.HashMap
+import java.util.IdentityHashMap
+import java.util.WeakHashMap
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater.newUpdater
 import kotlin.concurrent.withLock
 
@@ -823,7 +822,7 @@ class MethodDescriptor private constructor(
 
 		/** The special atom for function application. */
 		APPLY(
-			"vm function apply_(«_‡,»)",
+			"vm function apply_with tuple_",
 			P_InvokeWithTuple),
 
 		/** The special atom for adding properties to atoms. */

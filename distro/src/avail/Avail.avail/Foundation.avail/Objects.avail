@@ -365,12 +365,13 @@ Semantic restriction "extend_with«_:_‡,»" is
 		newType ::= def[2]'s instance;
 		If |atomType| ≠ 1 then
 		[
-			Reject parse, expected: "all field atoms to be known statically"
+			Immediately reject parse, expected:
+				"all field atoms to be known statically"
 		];
 		fieldAtom ::= atomType's instance;
 		If fieldAtom ∈ newDefinitions then
 		[
-			Reject parse, expected:
+			Immediately reject parse, expected:
 				fieldAtom's name
 				++ " to appear only once during extension (but it already\
 				\| appeared with type = "
@@ -380,7 +381,7 @@ Semantic restriction "extend_with«_:_‡,»" is
 		oldType ::= oldDefinitions[fieldAtom] else [ any ];
 		If ¬newType ⊆ oldType then
 		[
-			Reject parse, expected:
+			Immediately reject parse, expected:
 				"covariant specialization of "
 				++ fieldAtom's name
 				++ " (but new field type "
@@ -1430,7 +1431,7 @@ is
 	public ::= publicType's instance;
 	If public ∧ |classNameType| ≠ 1 then
 	[
-		Reject parse, expected:
+		Immediately reject parse, expected:
 			"public class modifier to be provided only when the class name \
 			\|is statically known"
 	];
@@ -1439,7 +1440,7 @@ is
 		className ::= classNameType's instance;
 		If public ∧ ¬current module has public name className then
 		[
-			Reject parse, expected:
+			Immediately reject parse, expected:
 				"\""
 				++ className
 				++ "\" to be included in the module's \"Names\" section"
@@ -1467,14 +1468,14 @@ is
 			[
 				If ¬public then
 				[
-					Reject parse, expected:
+					Immediately reject parse, expected:
 						"field atom \""
 						++ fieldAtom's name
 						++ "\" to be private (because the class is private)"
 				];
 				If |nameType| ≠ 1 then
 				[
-					Reject parse, expected:
+					Immediately reject parse, expected:
 						"accessor name for public field atom \""
 						++ fieldAtom's name
 						++ "\" to be statically known"
@@ -1482,7 +1483,7 @@ is
 				accessorName ::= nameType's instance;
 				If |message accessorName's parameters| ≠ 1 then
 				[
-					Reject parse, expected:
+					Immediately reject parse, expected:
 						"accessor name \""
 						++ accessorName
 						++ "\" to specify exactly one underscore"
@@ -1492,7 +1493,7 @@ is
 					into [t : nonempty string | t];
 				If accessorName ≠ extantName then
 				[
-					Reject parse, expected:
+					Immediately reject parse, expected:
 						"accessor name \""
 						++ accessorName
 						++ "\" to agree with previous definition ("
@@ -1501,7 +1502,7 @@ is
 				];
 				If ¬current module has public name accessorName then
 				[
-					Reject parse, expected:
+					Immediately reject parse, expected:
 						"\""
 						++ accessorName
 						++ "\" to be included in the module's \"Names\" section\
@@ -1512,7 +1513,7 @@ is
 					reconstructorName ::= reconstructor name for <accessorName>;
 					If ¬current module has public name reconstructorName then
 					[
-						Reject parse, expected:
+						Immediately reject parse, expected:
 							"\""
 							++ reconstructorName
 							++ "\" to be included in the module's \"Names\"\
@@ -1523,7 +1524,7 @@ is
 			];
 			If fieldAtom ∈ newDefinitions then
 			[
-				Reject parse, expected:
+				Immediately reject parse, expected:
 					fieldAtom's name
 					++ " to appear only once during extension (but it already\
 					\| appeared with type = "
@@ -1533,7 +1534,7 @@ is
 			oldType ::= oldDefinitions[fieldAtom] else [any];
 			If ¬newType ⊆ oldType then
 			[
-				Reject parse, expected:
+				Immediately reject parse, expected:
 					"covariant specialization of "
 					++ fieldAtom's name
 					++ " (but new field type "
@@ -1573,7 +1574,7 @@ is
 					If choice ∈ choicesSeen then
 					[
 						choiceNames ::= <"accessor", "mutator", "referrer">;
-						Reject parse, expected:
+						Immediately reject parse, expected:
 							choiceNames[choice]
 							++ " name not to be supplied more than once"
 					];
@@ -1585,14 +1586,14 @@ is
 			[
 				If ¬public then
 				[
-					Reject parse, expected:
+					Immediately reject parse, expected:
 						"field atom \""
 						++ fieldAtom's name
 						++ "\" to be private (because the class is private)"
 				];
 				If |orderedNames[1]| ≠ 1 then
 				[
-					Reject parse, expected:
+					Immediately reject parse, expected:
 						"accessor name for public field atom \""
 						++ fieldAtom's name
 						++ "\" to be statically known"
@@ -1600,7 +1601,7 @@ is
 				accessorName ::= orderedNames[1]'s instance;
 				If |message accessorName's parameters| ≠ 1 then
 				[
-					Reject parse, expected:
+					Immediately reject parse, expected:
 						"accessor name \""
 						++ accessorName
 						++ "\" to specify exactly one underscore"
@@ -1610,7 +1611,7 @@ is
 					into [t : nonempty string | t];
 				If accessorName ≠ extantAccessorName then
 				[
-					Reject parse, expected:
+					Immediately reject parse, expected:
 						"accessor name \""
 						++ accessorName
 						++ "\" to agree with previous definition ("
@@ -1619,7 +1620,7 @@ is
 				];
 				If ¬current module has public name accessorName then
 				[
-					Reject parse, expected:
+					Immediately reject parse, expected:
 						"\""
 						++ accessorName
 						++ "\" to be included in the module's \"Names\" section\
@@ -1630,7 +1631,7 @@ is
 				[
 					If |orderedNames[3]| ≠ 1 then
 					[
-						Reject parse, expected:
+						Immediately reject parse, expected:
 							"referrer name for public field atom \""
 							++ fieldAtom's name
 							++ "\" to be statically known"
@@ -1638,7 +1639,7 @@ is
 					referrerName ::= orderedNames[3]'s instance;
 					If |message referrerName's parameters| ≠ 1 then
 					[
-						Reject parse, expected:
+						Immediately reject parse, expected:
 							"referrer name \""
 							++ referrerName
 							++ "\" to specify exactly one underscore"
@@ -1648,7 +1649,7 @@ is
 						into [t : nonempty string | t];
 					If referrerName ≠ extantReferrerName then
 					[
-						Reject parse, expected:
+						Immediately reject parse, expected:
 							"referrer name \""
 							++ referrerName
 							++ "\" to agree with previous definition ("
@@ -1657,7 +1658,7 @@ is
 					];
 					If ¬current module has public name referrerName then
 					[
-						Reject parse, expected:
+						Immediately reject parse, expected:
 							"\""
 							++ referrerName
 							++ "\" to be included in the module's \"Names\"\
@@ -1676,7 +1677,7 @@ is
 							choice ::= nameTuple[1]'s instance;
 							If choice = 3 then
 							[
-								Reject parse, expected:
+								Immediately reject parse, expected:
 									"referrer name to be omitted for \
 									\|non-referable field \""
 									++ fieldAtom's name
@@ -1689,7 +1690,7 @@ is
 				[
 					If |orderedNames[2]| ≠ 1 then
 					[
-						Reject parse, expected:
+						Immediately reject parse, expected:
 							"mutator name for public field atom \""
 							++ fieldAtom's name
 							++ "\" to be statically known"
@@ -1697,7 +1698,7 @@ is
 					mutatorName ::= orderedNames[2]'s instance;
 					If |message mutatorName's parameters| ≠ 2 then
 					[
-						Reject parse, expected:
+						Immediately reject parse, expected:
 							"mutator name \""
 							++ mutatorName
 							++ "\" to specify exactly two underscores"
@@ -1707,7 +1708,7 @@ is
 						into [t : nonempty string | t];
 					If mutatorName ≠ extantMutatorName then
 					[
-						Reject parse, expected:
+						Immediately reject parse, expected:
 							"mutator name \""
 							++ mutatorName
 							++ "\" to agree with previous definition ("
@@ -1716,7 +1717,7 @@ is
 					];
 					If ¬current module has public name mutatorName then
 					[
-						Reject parse, expected:
+						Immediately reject parse, expected:
 							"\""
 							++ mutatorName
 							++ "\" to be included in the module's \"Names\"\
@@ -1727,7 +1728,7 @@ is
 			];
 			If fieldAtom ∈ newDefinitions then
 			[
-				Reject parse, expected:
+				Immediately reject parse, expected:
 					fieldAtom's name
 					++ " to appear only once during extension (but it already\
 					\| appeared with type = "
@@ -1737,7 +1738,7 @@ is
 			oldType ::= oldDefinitions[fieldAtom] else [newType];
 			Unless newType = oldType then
 			[
-				Reject parse, expected:
+				Immediately reject parse, expected:
 					"equivalent specification of "
 					++ fieldAtom's name
 					++ " (but new field type "
@@ -1770,14 +1771,14 @@ is
 				map each a of nonemptyFieldAtoms through [namesByAtom[a]];
 			If ¬public then
 			[
-				Reject parse, expected:
+				Immediately reject parse, expected:
 					"\""
 					++ reconstructorName
 					++ "\" to be private (because the class is private)"
 			];
 			If ¬current module has public name reconstructorName then
 			[
-				Reject parse, expected:
+				Immediately reject parse, expected:
 					"\""
 					++ reconstructorName
 					++ "\" to be included in the module's \"Names\" section\
@@ -1787,7 +1788,7 @@ is
 	];
 	If |allNamesTuple| ≠ |allNamesTuple→set| then
 	[
-		Reject parse, expected:
+		Immediately reject parse, expected:
 			"no duplication of names among accessors, mutators, and referrers"
 	];
 	⊤
@@ -1941,7 +1942,7 @@ Semantic restriction "a|an_«with«_«:»?:=_‡,»»" is
 		fieldAtom ::= atomType's instance;
 		If fieldAtom ∈ assignments then
 		[
-			Reject parse, expected:
+			Immediately reject parse, expected:
 				fieldAtom's name
 				++ " to appear only once during instantiation (but it already\
 				\| appeared with type = "
@@ -1953,7 +1954,7 @@ Semantic restriction "a|an_«with«_«:»?:=_‡,»»" is
 			[
 				fieldType ::= definitions[fieldAtom] else
 					[
-						Reject parse, expected:
+						Immediately reject parse, expected:
 							"mutable field assignment not to introduce \
 							\|target field "
 							++ fieldAtom's name
@@ -1967,7 +1968,7 @@ Semantic restriction "a|an_«with«_«:»?:=_‡,»»" is
 				]
 				else
 				[
-					Reject parse, expected:
+					Immediately reject parse, expected:
 						"mutable field assignment to target a mutable field \
 						\|(but "
 						++ fieldAtom's name
@@ -1980,7 +1981,7 @@ Semantic restriction "a|an_«with«_«:»?:=_‡,»»" is
 			];
 		If ¬valueType ⊆ requiredType then
 		[
-			Reject parse, expected:
+			Immediately reject parse, expected:
 				"valid assignment to "
 				++ fieldAtom's name
 				++ " (but "
@@ -2005,7 +2006,7 @@ Semantic restriction "a|an_«with«_«:»?:=_‡,»»" is
 	missing ::= reject each a from definitions' keys where [a ∈ assignments];
 	If |missing| ≠ 0 then
 	[
-		Reject parse, expected:
+		Immediately reject parse, expected:
 			"assignments for all immutable fields of "
 			++ “objectType”
 			++ " (but assignments are missing for "
@@ -2097,7 +2098,7 @@ Semantic restriction "_as_«with«_::=_‡,»»" is
 		fieldAtom ::= atomType's instance;
 		If fieldAtom ∈ assignments then
 		[
-			Reject parse, expected:
+			Immediately reject parse, expected:
 				fieldAtom's name
 				++ " to appear only once during instantiation (but it already\
 				\| appeared with type = "
@@ -2107,7 +2108,7 @@ Semantic restriction "_as_«with«_::=_‡,»»" is
 		requiredType ::= definitions[fieldAtom] else [ any ];
 		If ¬valueType ⊆ requiredType then
 		[
-			Reject parse, expected:
+			Immediately reject parse, expected:
 				"valid assignment to "
 				++ fieldAtom's name
 				++ " (but "
@@ -2128,7 +2129,7 @@ Semantic restriction "_as_«with«_::=_‡,»»" is
 	missing ::= reject each a from definitions' keys where [a ∈ assignments];
 	If |missing| ≠ 0 then
 	[
-		Reject parse, expected:
+		Immediately reject parse, expected:
 			"assignments for all fields of "
 			++ “objectType”
 			++ " (but assignments are missing for "

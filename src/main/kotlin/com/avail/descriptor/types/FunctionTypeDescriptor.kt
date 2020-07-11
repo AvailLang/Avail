@@ -44,6 +44,7 @@ import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.FunctionTypeDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import com.avail.descriptor.types.FunctionTypeDescriptor.IntegerSlots.HASH_AND_MORE
 import com.avail.descriptor.types.FunctionTypeDescriptor.ObjectSlots.*
+import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.Strings.newlineTab
@@ -604,8 +605,7 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 		/**
 		 * The metatype of any function types.
 		 */
-		private val meta: A_Type =
-			InstanceMetaDescriptor.instanceMeta(mostGeneralType).makeShared()
+		private val meta: A_Type = instanceMeta(mostGeneralType).makeShared()
 
 		/**
 		 * Answer the metatype for all function types.  This is just an
