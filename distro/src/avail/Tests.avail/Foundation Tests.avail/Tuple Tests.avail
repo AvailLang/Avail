@@ -52,18 +52,6 @@ Test "tuple cardinality" in tuple test suite is
 	Require: <> is empty = true;
 ];
 
-Test "tuple concatenation" in tuple test suite is
-[
-	a ::= <1,2>;
-	b ::= <3,4>;
-	c ::= <"foo", "bar">;
-	Require: a ++ b = <1,2,3,4>;
-	Require: a ++ c = <1,2,"foo", "bar">;
-	Require: c[1] ++ c[2] = "foobar";
-	Require: concatenate c = "foobar";
-	Require: concatenate <> = <>;
-];
-
 Test "tuple ranges" in tuple test suite is
 [
 	a ::= <1,2,3,4>;

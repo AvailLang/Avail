@@ -264,7 +264,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 	 * The [resource bundle][ResourceBundle] that contains file preambleBaseName
 	 * information.
 	 */
-	private val preamble: ResourceBundle
+	val preamble: ResourceBundle
 
 	/**
 	 * The [resource bundle][ResourceBundle] that contains the Avail names of
@@ -1584,6 +1584,20 @@ class BootstrapGenerator constructor(private val locale: Locale)
 	}
 
 	/**
+	 * Answer the correct package name for the location the provided
+	 * [primitive][Primitive] test coverage module will be generated in.
+	 */
+	private fun primitiveCoverageTestPackageName (primitive: Primitive): String
+	{
+		val packagePath = primitive.javaClass.getPackage().name.split(".")
+		assert(packagePath.size > 2)
+		return MessageFormat.format(
+			preamble.getString(
+				primitiveCoverageTestModuleName.name),
+			packagePath[packagePath.size - 2])
+	}
+
+	/**
 	 * Answer the correct [module][ModuleDescriptor] name for the
 	 * [primitive][Primitive] test coverage module specified by the provided
 	 * primitive.
@@ -1608,15 +1622,18 @@ class BootstrapGenerator constructor(private val locale: Locale)
 	 * @return
 	 *   The file name.
 	 */
-	private fun primitiveCoverageTestModuleFileName(primitive: Primitive): File
+	private fun primitiveCoverageTestModuleFileName(
+		primitive: Primitive,
+		testPackage: TestPackage
+	): File
 	{
 		return File(String.format(
-			"%s/%s/%s/%s.avail/%s.avail",
+			"%s/%s/%s/%s.avail/%s.avail/%s.avail",
 			sourceBaseName,
 			generatedPackageName.replace('.', '/'),
 			locale.language,
-			preamble.getString(
-				primitiveCoverageTestPackageName.name),
+			preamble.getString(primitiveCoverageTestPackageName.name),
+			testPackage.name,
 			primitiveCoverageTestModuleName(primitive)))
 	}
 
@@ -1626,12 +1643,15 @@ class BootstrapGenerator constructor(private val locale: Locale)
 	 *
 	 * @param versions
 	 *   The supported versions.
+	 * @return
+	 *   The Map from the [primitive][Primitive] package to the corresponding
+	 *   [TestPackage].
 	 * @throws IOException
 	 *   If any module could not be written.
 	 */
 	@Throws(IOException::class)
 	private fun generatePrimitiveCoverageTestRepresentativeModule(
-		versions: List<String>)
+		versions: List<String>): Map<String, TestPackage>
 	{
 		val packageName = preamble.getString(
 			primitiveCoverageTestPackageName.name)
@@ -1655,10 +1675,21 @@ class BootstrapGenerator constructor(private val locale: Locale)
 		used.append("\n\t\"")
 		used.append(preamble.getString(availModuleName.name))
 		used.append("\",")
+		val testPackageMap = mutableMapOf<String, TestPackage>()
 		for (primitive in primitives(null))
 		{
+			val primitivePackage =
+				primitive.javaClass.getPackage().name
+			testPackageMap.computeIfAbsent(primitivePackage) {
+				TestPackage(primitivePackage)
+			}.add(primitive)
+		}
+		val testPackages = testPackageMap.values.toMutableList()
+		testPackages.sortBy { it.name }
+		for (testPackage in testPackages)
+		{
 			used.append("\n\t\"")
-			used.append(primitiveCoverageTestModuleName(primitive))
+			used.append(testPackage.name)
 			used.append("\",")
 		}
 		var usedString = used.toString()
@@ -1671,6 +1702,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 			moduleVersionString(versions),
 			usedString))
 		writer.close()
+		return testPackageMap
 	}
 
 	/**
@@ -1678,17 +1710,25 @@ class BootstrapGenerator constructor(private val locale: Locale)
 	 *
 	 * @param versions
 	 *   The supported versions.
+	 * @param testPackageMap
+	 *   The Map from the [primitive][Primitive] package to the corresponding
+	 *   [TestPackage].
 	 * @throws IOException
 	 *   If any module could not be written.
 	 */
 	@Throws(IOException::class)
-	private fun generatePrimitiveCoverageTestModules(versions: List<String>)
+	private fun generatePrimitiveCoverageTestModules(
+		versions: List<String>,
+		testPackageMap: Map<String, TestPackage>)
 	{
 		for (primitive in primitives(null))
 		{
 			val primitiveName = primitive.javaClass.simpleName.substring(2)
+			val testPackage =
+				testPackageMap[primitive.javaClass.getPackage().name]!!
 			val moduleName = primitiveCoverageTestModuleName(primitive)
-			val fileName = primitiveCoverageTestModuleFileName(primitive)
+			val fileName =
+				primitiveCoverageTestModuleFileName(primitive, testPackage)
 			val writer = PrintWriter(fileName, "UTF-8")
 			writer.println(MessageFormat.format(
 				preamble.getString(availCopyright.name),
@@ -1767,8 +1807,13 @@ class BootstrapGenerator constructor(private val locale: Locale)
 			preamble.getString(
 				primitiveCoverageTestPackageName.name)))
 		packageName.mkdir()
-		generatePrimitiveCoverageTestRepresentativeModule(versions)
-		generatePrimitiveCoverageTestModules(versions)
+		val testPackageMap =
+			generatePrimitiveCoverageTestRepresentativeModule(versions)
+		for (testPackage in testPackageMap.values)
+		{
+			testPackage.generatePackageRepresentativeModule(versions)
+		}
+		generatePrimitiveCoverageTestModules(versions, testPackageMap)
 	}
 
 	/**
@@ -1866,6 +1911,114 @@ class BootstrapGenerator constructor(private val locale: Locale)
 			{
 				errorCodesByName[value] = code
 			}
+		}
+	}
+
+	/**
+	 * `TestPackage` groups [primitive][Primitive] test sub packages with the
+	 * names of the primitive test modules contained in them.
+	 *
+	 * @constructor
+	 * Construct a new [TestPackage].
+	 *
+	 * @param primitive
+	 *   The [Primitive] used to extract the package information.
+	 */
+	private inner class TestPackage constructor(primitivePackage: String)
+	{
+		/**
+		 * The [module][ModuleDescriptor] name of this [TestPackage].
+		 */
+		val name: String
+
+		/**
+		 * The [set][Set] of [module][ModuleDescriptor] names of the modules
+		 * included in this [TestPackage]
+		 */
+		val usesModuleNames = mutableSetOf<String>()
+
+		/**
+		 * Add the provided [Primitive] to the [usesModuleNames].
+		 *
+		 * @param primitive
+		 *   The `Primitive` to add.
+		 */
+		fun add (primitive: Primitive)
+		{
+			this.usesModuleNames.add(primitiveCoverageTestModuleName(primitive))
+		}
+
+		/**
+		 * Generate the subpackage representative for the [primitive][Primitive]
+		 * coverage test cases.
+		 *
+		 * @param versions
+		 *   The supported versions.
+		 * @throws IOException
+		 *   If any module could not be written.
+		 */
+		@Throws(IOException::class)
+		fun generatePackageRepresentativeModule(versions: List<String>)
+		{
+			val packageName = preamble.getString(
+				primitiveCoverageTestPackageName.name)
+			val fileName = File(String.format(
+				"%s/%s/%s/%s.avail/%s.avail/%s.avail",
+				sourceBaseName,
+				generatedPackageName.replace('.', '/'),
+				locale.language,
+				packageName,
+				name,
+				name))
+			val writer = PrintWriter(fileName, "UTF-8")
+			writer.println(MessageFormat.format(
+				preamble.getString(availCopyright.name),
+				name,
+				Date()))
+			writer.println(MessageFormat.format(
+				preamble.getString(generatedModuleNotice.name),
+				BootstrapGenerator::class.java.name,
+				Date()))
+			val usesModules = usesModuleNames.toMutableList().let {
+				it.sortBy { module -> module  }
+				it
+			}
+			val used = StringBuilder()
+			used.append("\n\t\"")
+			used.append(preamble.getString(availModuleName.name))
+			used.append("\",")
+			for (usesModule in usesModules)
+			{
+				used.append("\n\t\"")
+				used.append(usesModule)
+				used.append("\",")
+			}
+			var usedString = used.toString()
+			usedString = usedString.substring(0, usedString.length - 1)
+			writer.println(MessageFormat.format(
+				preamble.getString(
+					primitiveCoverageTestPackageRepresentativeHeader.name),
+				name,
+				moduleVersionString(versions),
+				usedString))
+			writer.close()
+		}
+
+		init
+		{
+			val packagePath = primitivePackage.split(".")
+			assert(packagePath.size > 2)
+			this.name = MessageFormat.format(
+				preamble.getString(primitiveCoverageTestModuleName.name),
+				packagePath[packagePath.size - 1].capitalize())
+			val packageName = File(String.format(
+				"%s/%s/%s/%s.avail/%s.avail",
+				sourceBaseName,
+				generatedPackageName.replace('.', '/'),
+				locale.language,
+				preamble.getString(primitiveCoverageTestPackageName.name),
+				this.name))
+			packageName.mkdir()
 		}
 	}
 }

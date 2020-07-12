@@ -1,5 +1,5 @@
 /*
- * TupleAt Tests.avail
+ * General Tests.avail
  * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,21 +30,39 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "TupleAt Tests"
+/*
+ * GENERATED FILE
+ * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
+ * * Last Generated: 7/12/20 4:32 PM
+ *
+ * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
+ */
+
+Module "General Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Avail",
+	"AdjustDebugSetting Tests",
+	"Assert Tests",
+	"BreakPoint Tests",
+	"ComputeDigest Tests",
+	"CreateUUIDByteTuple Tests",
+	"CurrentTimeMilliseconds Tests",
+	"CurrentTimeNanoseconds Tests",
+	"Deserialize Tests",
+	"EmergencyExit Tests",
+	"EnvironmentMap Tests",
+	"Equality Tests",
+	"Hash Tests",
+	"IsPrimitiveDefined Tests",
+	"MarkStandardInputStream Tests",
+	"PrintToConsole Tests",
+	"PrintToErrorConsole Tests",
+	"ReadFromStandardInput Tests",
+	"ResetStandardInputStream Tests",
+	"Serialize Tests",
+	"ToJSON Tests",
+	"ToString Tests"
 Body
-
-Test "TupleAt ok" in primitives test suite if supported is
-[
-	Skip test
-];
-
-Test "TupleAt fails with subscript-out-of-bounds exception" in primitives test suite if supported is
-[
-	Skip test
-]
-must raise subscript-out-of-bounds exception;
 

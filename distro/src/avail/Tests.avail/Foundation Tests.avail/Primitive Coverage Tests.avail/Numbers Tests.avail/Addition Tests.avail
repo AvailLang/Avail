@@ -1,5 +1,5 @@
 /*
- * Multiplication Tests.avail
+ * Addition Tests.avail
  * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,21 +30,43 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Multiplication Tests"
+Module "Addition Tests"
 Versions
 	"1.4.0"
 Uses
 	"Common"
 Body
 
-Test "Multiplication ok" in primitives test suite if supported is
+Test "Addition ok" in primitives test suite is
 [
-	Skip test
+	For each i from 1 to 10 do
+	[
+		Require: i + 0 = i;
+		Require: i + -i = 0;
+		Require: i + 1 > i;
+		Require: i + i = i × 2;
+		For each j from 1 to 10 do [Require: i + j = j + i;];
+	];
+	Require: 2147483647 + 1 = 2147483648;
+	Require: 9223372036854775807 + 1 = 9223372036854775808;
+	Require: 1111111111111111111111111 + 1111111111111111111111111
+		= 2222222222222222222222222;
+	Require: ∞ + 1 = ∞;
+	Require: ∞ + ∞ = ∞;
+	Require: -∞ + 1 = -∞;
+	Require: -∞ + -∞ = -∞;
+	Require: 1.0f + 1.0f = 2.0f;
+	Require: 1.0 + 1.0 = 2.0;
+	Require: 1 + 1.0f = 2.0f;
+	Require: 1 + 1.0 = 2.0;
+	Require: 1.0f + 1.0 = 2.0;
 ];
 
-Test "Multiplication fails with cannot-multiply-zero-and-infinity exception" in primitives test suite if supported is
+Test "Addition fails with cannot-add-unlike-infinities exception" in primitives test suite is
 [
-	Skip test
-]
-must raise cannot-multiply-zero-and-infinity exception;
+	/* Hide ∞ from the compiler. */
+	v : extended integer := ∞;
+	Require: [v + -v] raises cannot-add-unlike-infinities exception;
+	Require: [-v + v] raises cannot-add-unlike-infinities exception;
+];
 

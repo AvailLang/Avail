@@ -1,5 +1,5 @@
 /*
- * LessOrEqual Tests.avail
+ * Integers Tests.avail
  * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,15 +30,27 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "LessOrEqual Tests"
+/*
+ * GENERATED FILE
+ * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
+ * * Last Generated: 7/12/20 4:32 PM
+ *
+ * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
+ */
+
+Module "Integers Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Avail",
+	"BitShiftLeft Tests",
+	"BitShiftRight Tests",
+	"BitShiftWithTruncation Tests",
+	"BitwiseAnd Tests",
+	"BitwiseOr Tests",
+	"BitwiseXor Tests",
+	"CreateIntegerRange Tests",
+	"LowerBound Tests",
+	"UpperBound Tests"
 Body
-
-Test "LessOrEqual ok" in primitives test suite if supported is
-[
-	Skip test
-];
 
