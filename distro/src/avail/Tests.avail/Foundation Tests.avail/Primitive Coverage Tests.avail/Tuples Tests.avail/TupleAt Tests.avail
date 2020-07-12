@@ -47,9 +47,8 @@ Test "TupleAt ok" in primitives test suite is
 	Require: a[5] = "foo";
 ];
 
-Test "TupleAt fails with subscript-out-of-bounds exception" in primitives test suite if supported is
+Test "TupleAt fails with subscript-out-of-bounds exception" in primitives test suite is
 [
-	Skip test
-]
-must raise subscript-out-of-bounds exception;
+	Require:  [t:tuple:=<>; t[1]] raises subscript-out-of-bounds exception;
+];
 
