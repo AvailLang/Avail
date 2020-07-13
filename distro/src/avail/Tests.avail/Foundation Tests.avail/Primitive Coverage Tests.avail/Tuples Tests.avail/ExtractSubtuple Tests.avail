@@ -37,14 +37,37 @@ Uses
 	"Common"
 Body
 
-Test "ExtractSubtuple ok" in primitives test suite if supported is
+Test "ExtractSubtuple ok" in primitives test suite is
 [
-	Skip test
+	Require: <1, 2, 3, 4 ,5, 6>[2..4] = <2, 3, 4>;
 ];
 
-Test "ExtractSubtuple fails with subscript-out-of-bounds exception" in primitives test suite if supported is
+Test "ExtractSubtuple fails with subscript-out-of-bounds exception" in primitives test suite is
 [
-	Skip test
-]
-must raise subscript-out-of-bounds exception;
+	a : <natural number…|0..> := <1, 2, 3, 4>;
+	Require:
+	[
+		start : natural number := 1;
+		end : natural number := 9;
+		a[start..end]
+	] raises subscript-out-of-bounds exception;
+	Require:
+	[
+		start : natural number := 8;
+		end : natural number := 9;
+	a[start..end]
+	] raises subscript-out-of-bounds exception;
+	Require:
+	[
+		start : natural number := 1;
+		end : natural number := 55555555555555;
+		a[start..end]
+	] raises subscript-out-of-bounds exception;
+	Require:
+	[
+		start : natural number := 55555555555555;
+		end : natural number := 3;
+		a[start..end]
+	] raises subscript-out-of-bounds exception;
+];
 

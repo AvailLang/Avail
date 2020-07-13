@@ -37,8 +37,8 @@ Uses
 	"Common"
 Body
 
-Test "ReverseTuple ok" in primitives test suite if supported is
+Test "ReverseTuple ok" in primitives test suite is
 [
-	Skip test
+	Require: <1,2,3> reversed = <3,2,1>;
 ];
 

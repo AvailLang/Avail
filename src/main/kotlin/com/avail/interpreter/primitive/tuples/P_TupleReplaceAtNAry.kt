@@ -105,7 +105,12 @@ object P_TupleReplaceAtNAry : Primitive(3, CanInline, CanFold)
 		pathIndex: Int,
 		newValue: A_BasicObject): A_Tuple
 	{
-		val targetIndex = pathTuple.tupleAt(pathIndex).extractInt()
+		val targetIndexObject = pathTuple.tupleAt(pathIndex)
+		if (!targetIndexObject.isInt)
+		{
+			throw AvailException(E_SUBSCRIPT_OUT_OF_BOUNDS)
+		}
+		val targetIndex = targetIndexObject.extractInt()
 		if (targetIndex > targetTuple.tupleSize())
 		{
 			throw AvailException(E_SUBSCRIPT_OUT_OF_BOUNDS)

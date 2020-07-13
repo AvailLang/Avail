@@ -37,14 +37,26 @@ Uses
 	"Common"
 Body
 
-Test "TupleReplaceAt ok" in primitives test suite if supported is
+Test "TupleReplaceAt ok" in primitives test suite is
 [
-	Skip test
+	a : <natural number…|0..> := <1, 2, 3, 4>;
+    Require: <1, 2, 3, 4>[1] → 2 = <2, 2, 3, 4>;
 ];
 
-Test "TupleReplaceAt fails with subscript-out-of-bounds exception" in primitives test suite if supported is
+Test "TupleReplaceAt fails with subscript-out-of-bounds exception" in primitives test suite is
 [
-	Skip test
-]
-must raise subscript-out-of-bounds exception;
+	Require:
+	[
+		a : <natural number…|0..> := <1, 2, 3, 4>;
+		index : natural number := 5555555555555;
+		a[index] → 2
+	] raises subscript-out-of-bounds exception;
+
+	Require:
+	[
+		a : <natural number…|0..> := <1, 2, 3, 4>;
+		index : natural number := 5;
+		a[index] → 2
+	] raises subscript-out-of-bounds exception;
+];
 

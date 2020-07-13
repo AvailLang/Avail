@@ -37,14 +37,14 @@ Uses
 	"Common"
 Body
 
-Test "RepeatedElementTuple ok" in primitives test suite if supported is
+Test "RepeatedElementTuple ok" in primitives test suite is
 [
-	Skip test
+	Require: 5 occurrences of "foo" = <"foo", "foo", "foo", "foo", "foo">;
 ];
 
-Test "RepeatedElementTuple fails with exceeds-vm-limit exception" in primitives test suite if supported is
+Test "RepeatedElementTuple fails with exceeds-vm-limit exception" in primitives test suite is
 [
-	Skip test
-]
-must raise exceeds-vm-limit exception;
+	a : whole number := 555555555555555555555555555555555;
+	Require: |a occurrences of 9| = 555555555555555555555555555555555;
+] must raise exceeds-vm-limit exception;
 

@@ -37,9 +37,13 @@ Uses
 	"Common"
 Body
 
-Test "TupleReplaceAtNAry ok" in primitives test suite if supported is
+Test "TupleReplaceAtNAry ok" in primitives test suite is
 [
-	Skip test
+	Require: <4, <5, 18, <1, 2, 3>, 11, 12>, 6>[2][3][1] → 0 =
+    		<4, <5, 18, <0, 2, 3>, 11, 12>, 6>;
+    	Require:
+    		{4 → {4 → {4 → 4}}, 5 → {5 → {5 → 5}}, 6 → {6 → {6 → 6}}}[5][5][5] → 1 =
+    			{4 → {4 → {4 → 4}}, 5 → {5 → {5 → 1}}, 6 → {6 → {6 → 6}}};
 ];
 
 Test "TupleReplaceAtNAry fails with subscript-out-of-bounds exception" in primitives test suite if supported is

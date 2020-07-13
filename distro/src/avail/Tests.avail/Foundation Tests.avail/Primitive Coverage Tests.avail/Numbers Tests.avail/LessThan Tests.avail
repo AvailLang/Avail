@@ -37,7 +37,7 @@ Uses
 	"Common"
 Body
 
-Test "LessThan ok" in primitives test suite if supported is
+Test "LessThan ok" in primitives test suite is
 [
 	Require: ¬2 < 2;
 	Require: 2 < 3;
