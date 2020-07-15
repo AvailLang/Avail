@@ -37,26 +37,72 @@ Uses
 	"Common"
 Body
 
-Test "MapReplacingNAryKey ok" in primitives test suite if supported is
+Test "MapReplacingNAryKey ok" in primitives test suite is
 [
-	Skip test
+	Require:
+	{
+		4 → {4 → {"boo" → 4}},
+		5 → {5 → {"foo" → 5}},
+		6 → {6 → {"moo" → 6}}
+	}[5][5]["foo"] → 1 =
+		{
+			4 → {4 → {"boo" → 4}},
+			5 → {5 → {"foo" → 1}},
+			6 → {6 → {"moo" → 6}}
+		};
+	Require:
+	{
+		4 → {4 → {"boo" → 4}},
+		5 → {5 → {"foo" → 5}},
+		6 → {6 → {"moo" → 6}}
+	}[5][5]["foo"] → ∅ =
+		{
+			4 → {4 → {"boo" → 4}},
+			5 → {5 → {"foo" → ∅}},
+			6 → {6 → {"moo" → 6}}
+		};
+	Require:
+		{
+			4 → {4 → {"boo" → <4, <9, "q", {1, 4}>>}},
+			5 → {5 → {"foo" → <4, <9, "q", {1, 4}>>}},
+			6 → {6 → {"moo" → <4, <9, "q", {1, 4}>>}}
+		}[6][6]["moo"][2] → <2, "market", {99, 44}> =
+			{
+				4 → {4 → {"boo" → <4, <9, "q", {1, 4}>>}},
+				5 → {5 → {"foo" → <4, <9, "q", {1, 4}>>}},
+				6 → {6 → {"moo" → <4, <2, "market", {99, 44}>>}}
+			};
 ];
 
-Test "MapReplacingNAryKey fails with subscript-out-of-bounds exception" in primitives test suite if supported is
+Test "MapReplacingNAryKey fails with subscript-out-of-bounds exception" in primitives test suite is
 [
-	Skip test
-]
-must raise subscript-out-of-bounds exception;
+	a : map := {"Q" → <4, <5, 18, <1, 2, 3>, 11, 12>, 6>};
+    	a["Q"][2][35][1] → 0
+] must raise subscript-out-of-bounds exception;
 
-Test "MapReplacingNAryKey fails with incorrect-argument-type exception" in primitives test suite if supported is
+Test "MapReplacingNAryKey fails with incorrect-argument-type exception" in primitives test suite is
 [
-	Skip test
-]
-must raise incorrect-argument-type exception;
+	Require:
+	[
+		a : map := {8 → <4, <5, 18, <1, 2, 3>, 11, 12>, 6>};
+		a[8][2][3][1][8] → 92
+	] raises incorrect-argument-type exception;
 
-Test "MapReplacingNAryKey fails with key-not-found exception" in primitives test suite if supported is
+	Require:
+	[
+		a : map := {88 → <{4 → {4 → {4 → 4}}, 5 → {5 → {5 → 5}}, 6 → {6 → {6 → 6}}}>};
+		a[88][1][5][5][5]["moo"] → "q"
+	] raises incorrect-argument-type exception;
+] must raise incorrect-argument-type exception;
+
+Test "MapReplacingNAryKey fails with key-not-found exception" in primitives test suite is
 [
-	Skip test
-]
-must raise key-not-found exception;
+	a : map :=
+    	{
+    		4 → {4 → {"boo" → <4, <9, "q", {1, 4}>>}},
+    		5 → {5 → {"foo" → <4, <9, "q", {1, 4}>>}},
+    		6 → {6 → {"moo" → <4, <9, "q", {1, 4}>>}}
+    	};
+    	a[1][5][5]["moo"][2] → <2, "market", {99, 44}>
+] must raise key-not-found exception;
 

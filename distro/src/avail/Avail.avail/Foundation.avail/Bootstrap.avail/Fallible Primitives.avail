@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 7/12/20 4:32 PM
+ * * Last Generated: 7/14/20 1:31 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -1264,7 +1264,9 @@ Primitive "_«[_]»(_.._)→_" is
 
 /**
  * Replace the value at the location indicated by the path tuple of the target
- * map with the new value.
+ * map with the new value. If the replacement value type differs from the
+ * type of the value at the replacement location, the answered map will have a
+ * different type than the original source map.
  *
  * @category "Primitives" "Tuples" "Maps" "Transformers"
  * @method "_«[_]»→_"
@@ -1278,8 +1280,15 @@ Primitive "_«[_]»(_.._)→_" is
  * @returns "map"
  *    a new map with the new value installed at the proposed location
  * @raises "subscript-out-of-bounds exception"
+ *    If an index in the pathTuple attempts to access an index that is greater
+ *    than the size of the targeted tuple within aMap.
  * @raises "incorrect-argument-type exception"
+ *    If an index in the pathTuple, that is not the final index where the 
+ *    replacement is made, attempts to access a value as if it were a
+ *    map or a tuple but the value at that location is neither.
  * @raises "key-not-found exception"
+ *    If an index in the pathTuple attempts to access a map in aMap with a key
+ *    not in the map.
  */
 Primitive "_«[_]»→_" is
 [
@@ -3585,7 +3594,9 @@ Primitive "_[_]→_" is
 
 /**
  * Replace the value with a new value in the tuple at the location indicated
- * by the path tuple.
+ * by the path tuple. If the replacement value type differs from the type of
+ * the value at the replacement location, the answered tuple will have a
+ * different type than the original source tuple.
  *
  * @category "Primitives" "Tuples" "Maps" "Transformers"
  * @method "_«[_]»→_"
@@ -3597,10 +3608,17 @@ Primitive "_[_]→_" is
  * @param "newValue" "any"
  *        The replacement value.
  * @returns "tuple"
- *    a new tuple with the new value installed at the proposed location.
+ *    A new tuple with the new value installed at the proposed location.
  * @raises "subscript-out-of-bounds exception"
+ *    If an index in the pathTuple attempts to access an index that is greater
+ *    than the size of the targeted tuple within aTuple.
  * @raises "incorrect-argument-type exception"
+ *    If an index in the pathTuple, that is not the final index where the 
+ *    replacement is made, attempts to access a value as if it were a
+ *    map or a tuple but the value at that location is neither.
  * @raises "key-not-found exception"
+ *    If an index in the pathTuple attempts to access a map in aTuple with a key
+ *    not in the map.
  */
 Primitive "_«[_]»→_" is
 [
