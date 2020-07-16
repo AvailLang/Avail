@@ -34,10 +34,9 @@ Module "AtomName Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "AtomName ok" in primitives test suite if supported is
+Test "AtomName ok" in primitive atoms test suite if supported is
 [
 	Skip test
 ];

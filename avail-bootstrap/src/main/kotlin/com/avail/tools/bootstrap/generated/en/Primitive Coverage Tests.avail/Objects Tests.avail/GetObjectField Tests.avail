@@ -34,15 +34,14 @@ Module "GetObjectField Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "GetObjectField ok" in primitives test suite if supported is
+Test "GetObjectField ok" in primitive objects test suite if supported is
 [
 	Skip test
 ];
 
-Test "GetObjectField fails with no-such-field exception" in primitives test suite if supported is
+Test "GetObjectField fails with no-such-field exception" in primitive objects test suite if supported is
 [
 	Skip test
 ]

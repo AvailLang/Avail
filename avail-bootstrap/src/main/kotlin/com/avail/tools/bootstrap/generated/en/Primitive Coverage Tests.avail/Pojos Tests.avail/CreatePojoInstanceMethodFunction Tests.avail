@@ -34,21 +34,20 @@ Module "CreatePojoInstanceMethodFunction Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "CreatePojoInstanceMethodFunction ok" in primitives test suite if supported is
+Test "CreatePojoInstanceMethodFunction ok" in primitive pojos test suite if supported is
 [
 	Skip test
 ];
 
-Test "CreatePojoInstanceMethodFunction fails with Java-method-not-available exception" in primitives test suite if supported is
+Test "CreatePojoInstanceMethodFunction fails with Java-method-not-available exception" in primitive pojos test suite if supported is
 [
 	Skip test
 ]
 must raise Java-method-not-available exception;
 
-Test "CreatePojoInstanceMethodFunction fails with Java-method-reference-is-ambiguous exception" in primitives test suite if supported is
+Test "CreatePojoInstanceMethodFunction fails with Java-method-reference-is-ambiguous exception" in primitive pojos test suite if supported is
 [
 	Skip test
 ]

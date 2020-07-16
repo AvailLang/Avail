@@ -34,10 +34,9 @@ Module "ConcatenateTuples Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "ConcatenateTuples ok" in primitives test suite if supported is
+Test "ConcatenateTuples ok" in primitive tuples test suite if supported is
 [
 	Skip test
 ];

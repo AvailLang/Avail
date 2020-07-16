@@ -34,15 +34,14 @@ Module "MapAtKey Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "MapAtKey ok" in primitives test suite if supported is
+Test "MapAtKey ok" in primitive maps test suite if supported is
 [
 	Skip test
 ];
 
-Test "MapAtKey fails with key-not-found exception" in primitives test suite if supported is
+Test "MapAtKey fails with key-not-found exception" in primitive maps test suite if supported is
 [
 	Skip test
 ]

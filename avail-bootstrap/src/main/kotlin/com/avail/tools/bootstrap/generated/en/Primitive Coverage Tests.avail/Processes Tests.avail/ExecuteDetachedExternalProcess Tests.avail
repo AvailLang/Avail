@@ -34,21 +34,20 @@ Module "ExecuteDetachedExternalProcess Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "ExecuteDetachedExternalProcess ok" in primitives test suite if supported is
+Test "ExecuteDetachedExternalProcess ok" in primitive processes test suite if supported is
 [
 	Skip test
 ];
 
-Test "ExecuteDetachedExternalProcess fails with permission-denied exception" in primitives test suite if supported is
+Test "ExecuteDetachedExternalProcess fails with permission-denied exception" in primitive processes test suite if supported is
 [
 	Skip test
 ]
 must raise permission-denied exception;
 
-Test "ExecuteDetachedExternalProcess fails with no-external-process exception" in primitives test suite if supported is
+Test "ExecuteDetachedExternalProcess fails with no-external-process exception" in primitive processes test suite if supported is
 [
 	Skip test
 ]

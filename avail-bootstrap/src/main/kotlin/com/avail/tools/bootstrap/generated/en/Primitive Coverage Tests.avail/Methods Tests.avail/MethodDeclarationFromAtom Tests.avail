@@ -34,165 +34,164 @@ Module "MethodDeclarationFromAtom Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "MethodDeclarationFromAtom ok" in primitives test suite if supported is
+Test "MethodDeclarationFromAtom ok" in primitive methods test suite if supported is
 [
 	Skip test
 ];
 
-Test "MethodDeclarationFromAtom fails with incorrect-argument-type exception" in primitives test suite if supported is
+Test "MethodDeclarationFromAtom fails with incorrect-argument-type exception" in primitive methods test suite if supported is
 [
 	Skip test
 ]
 must raise incorrect-argument-type exception;
 
-Test "MethodDeclarationFromAtom fails with method-return-type-not-as-forward-declared exception" in primitives test suite if supported is
+Test "MethodDeclarationFromAtom fails with method-return-type-not-as-forward-declared exception" in primitive methods test suite if supported is
 [
 	Skip test
 ]
 must raise method-return-type-not-as-forward-declared exception;
 
-Test "MethodDeclarationFromAtom fails with incorrect-type-for-group exception" in primitives test suite if supported is
+Test "MethodDeclarationFromAtom fails with incorrect-type-for-group exception" in primitive methods test suite if supported is
 [
 	Skip test
 ]
 must raise incorrect-type-for-group exception;
 
-Test "MethodDeclarationFromAtom fails with exclamation-mark-must-follow-an-alternation-group exception" in primitives test suite if supported is
+Test "MethodDeclarationFromAtom fails with exclamation-mark-must-follow-an-alternation-group exception" in primitive methods test suite if supported is
 [
 	Skip test
 ]
 must raise exclamation-mark-must-follow-an-alternation-group exception;
 
-Test "MethodDeclarationFromAtom fails with redefined-with-same-argument-types exception" in primitives test suite if supported is
+Test "MethodDeclarationFromAtom fails with redefined-with-same-argument-types exception" in primitive methods test suite if supported is
 [
 	Skip test
 ]
 must raise redefined-with-same-argument-types exception;
 
-Test "MethodDeclarationFromAtom fails with result-type-should-covary-with-arguments exception" in primitives test suite if supported is
+Test "MethodDeclarationFromAtom fails with result-type-should-covary-with-arguments exception" in primitive methods test suite if supported is
 [
 	Skip test
 ]
 must raise result-type-should-covary-with-arguments exception;
 
-Test "MethodDeclarationFromAtom fails with incorrect-type-for-complex-group exception" in primitives test suite if supported is
+Test "MethodDeclarationFromAtom fails with incorrect-type-for-complex-group exception" in primitive methods test suite if supported is
 [
 	Skip test
 ]
 must raise incorrect-type-for-complex-group exception;
 
-Test "MethodDeclarationFromAtom fails with incorrect-use-of-double-dagger exception" in primitives test suite if supported is
+Test "MethodDeclarationFromAtom fails with incorrect-use-of-double-dagger exception" in primitive methods test suite if supported is
 [
 	Skip test
 ]
 must raise incorrect-use-of-double-dagger exception;
 
-Test "MethodDeclarationFromAtom fails with unbalanced-guillemets exception" in primitives test suite if supported is
+Test "MethodDeclarationFromAtom fails with unbalanced-guillemets exception" in primitive methods test suite if supported is
 [
 	Skip test
 ]
 must raise unbalanced-guillemets exception;
 
-Test "MethodDeclarationFromAtom fails with method-name-is-not-canonical exception" in primitives test suite if supported is
+Test "MethodDeclarationFromAtom fails with method-name-is-not-canonical exception" in primitive methods test suite if supported is
 [
 	Skip test
 ]
 must raise method-name-is-not-canonical exception;
 
-Test "MethodDeclarationFromAtom fails with expected-operator-after-backquote exception" in primitives test suite if supported is
+Test "MethodDeclarationFromAtom fails with expected-operator-after-backquote exception" in primitive methods test suite if supported is
 [
 	Skip test
 ]
 must raise expected-operator-after-backquote exception;
 
-Test "MethodDeclarationFromAtom fails with incorrect-type-for-boolean-group exception" in primitives test suite if supported is
+Test "MethodDeclarationFromAtom fails with incorrect-type-for-boolean-group exception" in primitive methods test suite if supported is
 [
 	Skip test
 ]
 must raise incorrect-type-for-boolean-group exception;
 
-Test "MethodDeclarationFromAtom fails with incorrect-type-for-counting-group exception" in primitives test suite if supported is
+Test "MethodDeclarationFromAtom fails with incorrect-type-for-counting-group exception" in primitive methods test suite if supported is
 [
 	Skip test
 ]
 must raise incorrect-type-for-counting-group exception;
 
-Test "MethodDeclarationFromAtom fails with octothorp-must-follow-a-simple-group-or-ellipsis exception" in primitives test suite if supported is
+Test "MethodDeclarationFromAtom fails with octothorp-must-follow-a-simple-group-or-ellipsis exception" in primitive methods test suite if supported is
 [
 	Skip test
 ]
 must raise octothorp-must-follow-a-simple-group-or-ellipsis exception;
 
-Test "MethodDeclarationFromAtom fails with question-mark-must-follow-a-simple-group exception" in primitives test suite if supported is
+Test "MethodDeclarationFromAtom fails with question-mark-must-follow-a-simple-group exception" in primitive methods test suite if supported is
 [
 	Skip test
 ]
 must raise question-mark-must-follow-a-simple-group exception;
 
-Test "MethodDeclarationFromAtom fails with case-insensitive-expression-canonization exception" in primitives test suite if supported is
+Test "MethodDeclarationFromAtom fails with case-insensitive-expression-canonization exception" in primitive methods test suite if supported is
 [
 	Skip test
 ]
 must raise case-insensitive-expression-canonization exception;
 
-Test "MethodDeclarationFromAtom fails with double-question-mark-must-follow-a-token-or-simple-group exception" in primitives test suite if supported is
+Test "MethodDeclarationFromAtom fails with double-question-mark-must-follow-a-token-or-simple-group exception" in primitive methods test suite if supported is
 [
 	Skip test
 ]
 must raise double-question-mark-must-follow-a-token-or-simple-group exception;
 
-Test "MethodDeclarationFromAtom fails with alternative-must-not-contain-arguments exception" in primitives test suite if supported is
+Test "MethodDeclarationFromAtom fails with alternative-must-not-contain-arguments exception" in primitive methods test suite if supported is
 [
 	Skip test
 ]
 must raise alternative-must-not-contain-arguments exception;
 
-Test "MethodDeclarationFromAtom fails with vertical-bar-must-separate-tokens-or-simple-groups exception" in primitives test suite if supported is
+Test "MethodDeclarationFromAtom fails with vertical-bar-must-separate-tokens-or-simple-groups exception" in primitive methods test suite if supported is
 [
 	Skip test
 ]
 must raise vertical-bar-must-separate-tokens-or-simple-groups exception;
 
-Test "MethodDeclarationFromAtom fails with incorrect-type-for-numbered-choice exception" in primitives test suite if supported is
+Test "MethodDeclarationFromAtom fails with incorrect-type-for-numbered-choice exception" in primitive methods test suite if supported is
 [
 	Skip test
 ]
 must raise incorrect-type-for-numbered-choice exception;
 
-Test "MethodDeclarationFromAtom fails with dollar-sign-must-follow-an-ellipsis exception" in primitives test suite if supported is
+Test "MethodDeclarationFromAtom fails with dollar-sign-must-follow-an-ellipsis exception" in primitive methods test suite if supported is
 [
 	Skip test
 ]
 must raise dollar-sign-must-follow-an-ellipsis exception;
 
-Test "MethodDeclarationFromAtom fails with cannot-define-during-compilation exception" in primitives test suite if supported is
+Test "MethodDeclarationFromAtom fails with cannot-define-during-compilation exception" in primitive methods test suite if supported is
 [
 	Skip test
 ]
 must raise cannot-define-during-compilation exception;
 
-Test "MethodDeclarationFromAtom fails with loading-is-over exception" in primitives test suite if supported is
+Test "MethodDeclarationFromAtom fails with loading-is-over exception" in primitive methods test suite if supported is
 [
 	Skip test
 ]
 must raise loading-is-over exception;
 
-Test "MethodDeclarationFromAtom fails with method-is-sealed exception" in primitives test suite if supported is
+Test "MethodDeclarationFromAtom fails with method-is-sealed exception" in primitive methods test suite if supported is
 [
 	Skip test
 ]
 must raise method-is-sealed exception;
 
-Test "MethodDeclarationFromAtom fails with up-arrow-must-follow-argument exception" in primitives test suite if supported is
+Test "MethodDeclarationFromAtom fails with up-arrow-must-follow-argument exception" in primitive methods test suite if supported is
 [
 	Skip test
 ]
 must raise up-arrow-must-follow-argument exception;
 
-Test "MethodDeclarationFromAtom fails with inconsistent-argument-reordering exception" in primitives test suite if supported is
+Test "MethodDeclarationFromAtom fails with inconsistent-argument-reordering exception" in primitive methods test suite if supported is
 [
 	Skip test
 ]

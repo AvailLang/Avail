@@ -34,10 +34,9 @@ Module "CreateVariableType Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "CreateVariableType ok" in primitives test suite if supported is
+Test "CreateVariableType ok" in primitive variables test suite if supported is
 [
 	Skip test
 ];

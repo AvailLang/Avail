@@ -34,10 +34,9 @@ Module "FloatModulus Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "FloatModulus ok" in primitives test suite if supported is
+Test "FloatModulus ok" in primitive floats test suite if supported is
 [
 	Skip test
 ];

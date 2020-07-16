@@ -34,21 +34,20 @@ Module "CreateContinuation Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "CreateContinuation ok" in primitives test suite if supported is
+Test "CreateContinuation ok" in primitive continuations test suite if supported is
 [
 	Skip test
 ];
 
-Test "CreateContinuation fails with incorrect-continuation-stack-size exception" in primitives test suite if supported is
+Test "CreateContinuation fails with incorrect-continuation-stack-size exception" in primitive continuations test suite if supported is
 [
 	Skip test
 ]
 must raise incorrect-continuation-stack-size exception;
 
-Test "CreateContinuation fails with cannot-create-continuation-for-infallible-primitive-function exception" in primitives test suite if supported is
+Test "CreateContinuation fails with cannot-create-continuation-for-infallible-primitive-function exception" in primitive continuations test suite if supported is
 [
 	Skip test
 ]

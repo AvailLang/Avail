@@ -34,21 +34,20 @@ Module "Swap Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "Swap ok" in primitives test suite if supported is
+Test "Swap ok" in primitive variables test suite if supported is
 [
 	Skip test
 ];
 
-Test "Swap fails with cannot-swap-contents-of-differently-typed-variables exception" in primitives test suite if supported is
+Test "Swap fails with cannot-swap-contents-of-differently-typed-variables exception" in primitive variables test suite if supported is
 [
 	Skip test
 ]
 must raise cannot-swap-contents-of-differently-typed-variables exception;
 
-Test "Swap fails with observed-variable-written-while-untraced exception" in primitives test suite if supported is
+Test "Swap fails with observed-variable-written-while-untraced exception" in primitive variables test suite if supported is
 [
 	Skip test
 ]

@@ -34,21 +34,20 @@ Module "FiberResult Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "FiberResult ok" in primitives test suite if supported is
+Test "FiberResult ok" in primitive fibers test suite if supported is
 [
 	Skip test
 ];
 
-Test "FiberResult fails with fiber-result-unavailable exception" in primitives test suite if supported is
+Test "FiberResult fails with fiber-result-unavailable exception" in primitive fibers test suite if supported is
 [
 	Skip test
 ]
 must raise fiber-result-unavailable exception;
 
-Test "FiberResult fails with fiber-produced-incorrectly-typed-result exception" in primitives test suite if supported is
+Test "FiberResult fails with fiber-produced-incorrectly-typed-result exception" in primitive fibers test suite if supported is
 [
 	Skip test
 ]

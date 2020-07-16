@@ -34,15 +34,14 @@ Module "DisableTraceVariableReadsBeforeWrites Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "DisableTraceVariableReadsBeforeWrites ok" in primitives test suite if supported is
+Test "DisableTraceVariableReadsBeforeWrites ok" in primitive variables test suite if supported is
 [
 	Skip test
 ];
 
-Test "DisableTraceVariableReadsBeforeWrites fails with illegal-trace-mode exception" in primitives test suite if supported is
+Test "DisableTraceVariableReadsBeforeWrites fails with illegal-trace-mode exception" in primitive variables test suite if supported is
 [
 	Skip test
 ]

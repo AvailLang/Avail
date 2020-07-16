@@ -34,27 +34,26 @@ Module "PojoArraySet Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "PojoArraySet ok" in primitives test suite if supported is
+Test "PojoArraySet ok" in primitive pojos test suite if supported is
 [
 	Skip test
 ];
 
-Test "PojoArraySet fails with cannot-store-incorrectly-typed-value exception" in primitives test suite if supported is
+Test "PojoArraySet fails with cannot-store-incorrectly-typed-value exception" in primitive pojos test suite if supported is
 [
 	Skip test
 ]
 must raise cannot-store-incorrectly-typed-value exception;
 
-Test "PojoArraySet fails with subscript-out-of-bounds exception" in primitives test suite if supported is
+Test "PojoArraySet fails with subscript-out-of-bounds exception" in primitive pojos test suite if supported is
 [
 	Skip test
 ]
 must raise subscript-out-of-bounds exception;
 
-Test "PojoArraySet fails with Java-marshaling-failed exception" in primitives test suite if supported is
+Test "PojoArraySet fails with Java-marshaling-failed exception" in primitive pojos test suite if supported is
 [
 	Skip test
 ]

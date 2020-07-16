@@ -34,15 +34,14 @@ Module "ExceptionStackDump Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "ExceptionStackDump ok" in primitives test suite if supported is
+Test "ExceptionStackDump ok" in primitive controlflow test suite if supported is
 [
 	Skip test
 ];
 
-Test "ExceptionStackDump fails with incorrect-argument-type exception" in primitives test suite if supported is
+Test "ExceptionStackDump fails with incorrect-argument-type exception" in primitive controlflow test suite if supported is
 [
 	Skip test
 ]

@@ -34,33 +34,32 @@ Module "FileGetGroup Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "FileGetGroup ok" in primitives test suite if supported is
+Test "FileGetGroup ok" in primitive files test suite if supported is
 [
 	Skip test
 ];
 
-Test "FileGetGroup fails with operation-not-supported exception" in primitives test suite if supported is
+Test "FileGetGroup fails with operation-not-supported exception" in primitive files test suite if supported is
 [
 	Skip test
 ]
 must raise operation-not-supported exception;
 
-Test "FileGetGroup fails with I/O exception" in primitives test suite if supported is
+Test "FileGetGroup fails with I/O exception" in primitive files test suite if supported is
 [
 	Skip test
 ]
 must raise I/O exception;
 
-Test "FileGetGroup fails with permission-denied exception" in primitives test suite if supported is
+Test "FileGetGroup fails with permission-denied exception" in primitive files test suite if supported is
 [
 	Skip test
 ]
 must raise permission-denied exception;
 
-Test "FileGetGroup fails with invalid-path exception" in primitives test suite if supported is
+Test "FileGetGroup fails with invalid-path exception" in primitive files test suite if supported is
 [
 	Skip test
 ]

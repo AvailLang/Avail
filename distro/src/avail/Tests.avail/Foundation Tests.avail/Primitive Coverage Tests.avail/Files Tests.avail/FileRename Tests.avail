@@ -34,15 +34,14 @@ Module "FileRename Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "FileRename ok" in primitives test suite if supported is
+Test "FileRename ok" in primitive files test suite if supported is
 [
 	Skip test
 ];
 
-Test "FileRename fails with invalid-path exception" in primitives test suite if supported is
+Test "FileRename fails with invalid-path exception" in primitive files test suite if supported is
 [
 	Skip test
 ]

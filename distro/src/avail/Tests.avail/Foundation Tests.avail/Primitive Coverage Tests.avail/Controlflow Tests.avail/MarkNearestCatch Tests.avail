@@ -34,21 +34,20 @@ Module "MarkNearestCatch Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "MarkNearestCatch ok" in primitives test suite if supported is
+Test "MarkNearestCatch ok" in primitive controlflow test suite if supported is
 [
 	Skip test
 ];
 
-Test "MarkNearestCatch fails with cannot-mark-handler-frame exception" in primitives test suite if supported is
+Test "MarkNearestCatch fails with cannot-mark-handler-frame exception" in primitive controlflow test suite if supported is
 [
 	Skip test
 ]
 must raise cannot-mark-handler-frame exception;
 
-Test "MarkNearestCatch fails with no-handler-frame exception" in primitives test suite if supported is
+Test "MarkNearestCatch fails with no-handler-frame exception" in primitive controlflow test suite if supported is
 [
 	Skip test
 ]

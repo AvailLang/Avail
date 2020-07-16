@@ -34,10 +34,9 @@ Module "BundleMessage Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "BundleMessage ok" in primitives test suite if supported is
+Test "BundleMessage ok" in primitive methods test suite if supported is
 [
 	Skip test
 ];

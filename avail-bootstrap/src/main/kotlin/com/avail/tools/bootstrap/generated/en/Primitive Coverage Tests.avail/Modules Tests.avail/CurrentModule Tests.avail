@@ -34,15 +34,14 @@ Module "CurrentModule Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "CurrentModule ok" in primitives test suite if supported is
+Test "CurrentModule ok" in primitive modules test suite if supported is
 [
 	Skip test
 ];
 
-Test "CurrentModule fails with loading-is-over exception" in primitives test suite if supported is
+Test "CurrentModule fails with loading-is-over exception" in primitive modules test suite if supported is
 [
 	Skip test
 ]

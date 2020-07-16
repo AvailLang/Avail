@@ -271,11 +271,16 @@ internal object Resources
 		primitiveSemanticRestrictionUse,
 		primitiveCoverageTestPackageName,
 		primitiveCoverageTestPackageRepresentativeHeader,
+		primitiveCoverageTestSubPackageRepresentativeHeader,
+		primitiveCommonTestPackageName,
+		primitiveCommonTestPackageRepresentativeHeader,
 		availModuleName,
 		primitiveCoverageTestModuleName,
 		primitiveCoverageTestModuleHeader,
 		primitiveCoverageTestCaseOk,
 		primitiveCoverageTestCaseFailed,
-		primitiveCoverageTestCaseFailedSpecial
+		primitiveCoverageTestCaseFailedSpecial,
+		primitiveTestSuiteName,
+		primitiveTestSuiteImplementation
 	}
 }

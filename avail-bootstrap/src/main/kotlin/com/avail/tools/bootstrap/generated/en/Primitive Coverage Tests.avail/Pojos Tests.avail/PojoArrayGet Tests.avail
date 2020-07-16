@@ -34,21 +34,20 @@ Module "PojoArrayGet Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "PojoArrayGet ok" in primitives test suite if supported is
+Test "PojoArrayGet ok" in primitive pojos test suite if supported is
 [
 	Skip test
 ];
 
-Test "PojoArrayGet fails with subscript-out-of-bounds exception" in primitives test suite if supported is
+Test "PojoArrayGet fails with subscript-out-of-bounds exception" in primitive pojos test suite if supported is
 [
 	Skip test
 ]
 must raise subscript-out-of-bounds exception;
 
-Test "PojoArrayGet fails with Java-marshaling-failed exception" in primitives test suite if supported is
+Test "PojoArrayGet fails with Java-marshaling-failed exception" in primitive pojos test suite if supported is
 [
 	Skip test
 ]

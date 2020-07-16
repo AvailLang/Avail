@@ -57,6 +57,7 @@ Extends
 	"Observation Tests" = ("observation test suite"),
 	"Optimizer Tests" = ("optimizer test suite"),
 	"Pojo Tests" = ("pojo test suite"),
+	"Primitive Coverage Tests",
 	"Set Tests" = ("set test suite"),
 	"String Tests" = ("string test suite"),
 	"Tuple Tests" = ("tuple test suite"),

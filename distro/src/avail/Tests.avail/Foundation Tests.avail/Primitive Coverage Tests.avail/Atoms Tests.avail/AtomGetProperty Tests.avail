@@ -34,21 +34,20 @@ Module "AtomGetProperty Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "AtomGetProperty ok" in primitives test suite if supported is
+Test "AtomGetProperty ok" in primitive atoms test suite if supported is
 [
 	Skip test
 ];
 
-Test "AtomGetProperty fails with key-not-found exception" in primitives test suite if supported is
+Test "AtomGetProperty fails with key-not-found exception" in primitive atoms test suite if supported is
 [
 	Skip test
 ]
 must raise key-not-found exception;
 
-Test "AtomGetProperty fails with no-such-field exception" in primitives test suite if supported is
+Test "AtomGetProperty fails with no-such-field exception" in primitive atoms test suite if supported is
 [
 	Skip test
 ]

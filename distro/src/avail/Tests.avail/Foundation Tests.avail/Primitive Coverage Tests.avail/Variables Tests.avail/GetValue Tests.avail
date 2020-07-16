@@ -34,21 +34,20 @@ Module "GetValue Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "GetValue ok" in primitives test suite if supported is
+Test "GetValue ok" in primitive variables test suite if supported is
 [
 	Skip test
 ];
 
-Test "GetValue fails with cannot-read-unassigned-variable exception" in primitives test suite if supported is
+Test "GetValue fails with cannot-read-unassigned-variable exception" in primitive variables test suite if supported is
 [
 	Skip test
 ]
 must raise cannot-read-unassigned-variable exception;
 
-Test "GetValue fails with Java-marshaling-failed exception" in primitives test suite if supported is
+Test "GetValue fails with Java-marshaling-failed exception" in primitive variables test suite if supported is
 [
 	Skip test
 ]

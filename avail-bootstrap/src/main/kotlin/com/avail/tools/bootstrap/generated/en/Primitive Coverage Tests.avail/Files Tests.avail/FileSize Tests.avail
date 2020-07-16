@@ -34,21 +34,20 @@ Module "FileSize Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "FileSize ok" in primitives test suite if supported is
+Test "FileSize ok" in primitive files test suite if supported is
 [
 	Skip test
 ];
 
-Test "FileSize fails with I/O exception" in primitives test suite if supported is
+Test "FileSize fails with I/O exception" in primitive files test suite if supported is
 [
 	Skip test
 ]
 must raise I/O exception;
 
-Test "FileSize fails with invalid-handle exception" in primitives test suite if supported is
+Test "FileSize fails with invalid-handle exception" in primitive files test suite if supported is
 [
 	Skip test
 ]

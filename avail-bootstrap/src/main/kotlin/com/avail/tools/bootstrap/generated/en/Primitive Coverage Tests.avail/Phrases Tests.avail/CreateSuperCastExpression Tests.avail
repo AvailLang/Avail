@@ -34,27 +34,26 @@ Module "CreateSuperCastExpression Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "CreateSuperCastExpression ok" in primitives test suite if supported is
+Test "CreateSuperCastExpression ok" in primitive phrases test suite if supported is
 [
 	Skip test
 ];
 
-Test "CreateSuperCastExpression fails with supercast-expression-type-must-not-be-top-or-bottom exception" in primitives test suite if supported is
+Test "CreateSuperCastExpression fails with supercast-expression-type-must-not-be-top-or-bottom exception" in primitive phrases test suite if supported is
 [
 	Skip test
 ]
 must raise supercast-expression-type-must-not-be-top-or-bottom exception;
 
-Test "CreateSuperCastExpression fails with supercast-expression-must-not-also-be-a-supercast exception" in primitives test suite if supported is
+Test "CreateSuperCastExpression fails with supercast-expression-must-not-also-be-a-supercast exception" in primitive phrases test suite if supported is
 [
 	Skip test
 ]
 must raise supercast-expression-must-not-also-be-a-supercast exception;
 
-Test "CreateSuperCastExpression fails with supercast-must-be-strict-supertype-of-expression-type exception" in primitives test suite if supported is
+Test "CreateSuperCastExpression fails with supercast-must-be-strict-supertype-of-expression-type exception" in primitive phrases test suite if supported is
 [
 	Skip test
 ]

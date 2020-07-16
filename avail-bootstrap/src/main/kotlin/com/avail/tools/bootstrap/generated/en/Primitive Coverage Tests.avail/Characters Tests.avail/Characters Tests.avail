@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 7/14/20 1:31 PM
+ * * Last Generated: 7/16/20 11:13 AM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -47,4 +47,3 @@ Uses
 	"CharacterFromCodePoint Tests",
 	"CharacterType Tests"
 Body
-

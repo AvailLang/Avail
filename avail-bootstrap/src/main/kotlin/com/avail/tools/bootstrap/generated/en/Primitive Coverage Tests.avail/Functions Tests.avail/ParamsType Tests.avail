@@ -34,10 +34,9 @@ Module "ParamsType Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "ParamsType ok" in primitives test suite if supported is
+Test "ParamsType ok" in primitive functions test suite if supported is
 [
 	Skip test
 ];

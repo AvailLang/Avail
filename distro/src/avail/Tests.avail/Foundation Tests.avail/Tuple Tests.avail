@@ -44,14 +44,6 @@ Body
 
 New test suite tuple test suite extends foundation test suite;
 
-Test "tuple cardinality" in tuple test suite is
-[
-	a ::= <1,2,3,4>;
-	Require: |a| = 4;
-	Require: |<>| = 0;
-	Require: <> is empty = true;
-];
-
 Test "tuple ranges" in tuple test suite is
 [
 	a ::= <1,2,3,4>;

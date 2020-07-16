@@ -34,15 +34,14 @@ Module "CreateReferenceExpression Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "CreateReferenceExpression ok" in primitives test suite if supported is
+Test "CreateReferenceExpression ok" in primitive phrases test suite if supported is
 [
 	Skip test
 ];
 
-Test "CreateReferenceExpression fails with declaration-kind-does-not-support-reference exception" in primitives test suite if supported is
+Test "CreateReferenceExpression fails with declaration-kind-does-not-support-reference exception" in primitive phrases test suite if supported is
 [
 	Skip test
 ]

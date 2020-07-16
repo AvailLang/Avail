@@ -34,15 +34,14 @@ Module "AtomSetProperty Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "AtomSetProperty ok" in primitives test suite if supported is
+Test "AtomSetProperty ok" in primitive atoms test suite if supported is
 [
 	Skip test
 ];
 
-Test "AtomSetProperty fails with special-atom exception" in primitives test suite if supported is
+Test "AtomSetProperty fails with special-atom exception" in primitive atoms test suite if supported is
 [
 	Skip test
 ]

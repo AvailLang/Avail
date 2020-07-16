@@ -34,21 +34,20 @@ Module "RemoveFiberVariable Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "RemoveFiberVariable ok" in primitives test suite if supported is
+Test "RemoveFiberVariable ok" in primitive fibers test suite if supported is
 [
 	Skip test
 ];
 
-Test "RemoveFiberVariable fails with no-such-fiber-variable exception" in primitives test suite if supported is
+Test "RemoveFiberVariable fails with no-such-fiber-variable exception" in primitive fibers test suite if supported is
 [
 	Skip test
 ]
 must raise no-such-fiber-variable exception;
 
-Test "RemoveFiberVariable fails with special-atom exception" in primitives test suite if supported is
+Test "RemoveFiberVariable fails with special-atom exception" in primitive fibers test suite if supported is
 [
 	Skip test
 ]

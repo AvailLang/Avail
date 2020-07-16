@@ -34,10 +34,9 @@ Module "CreateFiberType Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "CreateFiberType ok" in primitives test suite if supported is
+Test "CreateFiberType ok" in primitive fibers test suite if supported is
 [
 	Skip test
 ];

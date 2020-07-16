@@ -34,51 +34,50 @@ Module "AtomicFetchAndAdd Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "AtomicFetchAndAdd ok" in primitives test suite if supported is
+Test "AtomicFetchAndAdd ok" in primitive variables test suite if supported is
 [
 	Skip test
 ];
 
-Test "AtomicFetchAndAdd fails with cannot-add-unlike-infinities exception" in primitives test suite if supported is
+Test "AtomicFetchAndAdd fails with cannot-add-unlike-infinities exception" in primitive variables test suite if supported is
 [
 	Skip test
 ]
 must raise cannot-add-unlike-infinities exception;
 
-Test "AtomicFetchAndAdd fails with cannot-read-unassigned-variable exception" in primitives test suite if supported is
+Test "AtomicFetchAndAdd fails with cannot-read-unassigned-variable exception" in primitive variables test suite if supported is
 [
 	Skip test
 ]
 must raise cannot-read-unassigned-variable exception;
 
-Test "AtomicFetchAndAdd fails with cannot-store-incorrectly-typed-value exception" in primitives test suite if supported is
+Test "AtomicFetchAndAdd fails with cannot-store-incorrectly-typed-value exception" in primitive variables test suite if supported is
 [
 	Skip test
 ]
 must raise cannot-store-incorrectly-typed-value exception;
 
-Test "AtomicFetchAndAdd fails with cannot-overwrite-write-once-variable exception" in primitives test suite if supported is
+Test "AtomicFetchAndAdd fails with cannot-overwrite-write-once-variable exception" in primitive variables test suite if supported is
 [
 	Skip test
 ]
 must raise cannot-overwrite-write-once-variable exception;
 
-Test "AtomicFetchAndAdd fails with observed-variable-written-while-untraced exception" in primitives test suite if supported is
+Test "AtomicFetchAndAdd fails with observed-variable-written-while-untraced exception" in primitive variables test suite if supported is
 [
 	Skip test
 ]
 must raise observed-variable-written-while-untraced exception;
 
-Test "AtomicFetchAndAdd fails with Java-marshaling-failed exception" in primitives test suite if supported is
+Test "AtomicFetchAndAdd fails with Java-marshaling-failed exception" in primitive variables test suite if supported is
 [
 	Skip test
 ]
 must raise Java-marshaling-failed exception;
 
-Test "AtomicFetchAndAdd fails with cannot-modify-final-Java-field exception" in primitives test suite if supported is
+Test "AtomicFetchAndAdd fails with cannot-modify-final-Java-field exception" in primitive variables test suite if supported is
 [
 	Skip test
 ]

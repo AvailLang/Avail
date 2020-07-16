@@ -34,10 +34,9 @@ Module "LessOrEqual Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "LessOrEqual ok" in primitives test suite if supported is
+Test "LessOrEqual ok" in primitive numbers test suite if supported is
 [
 	Skip test
 ];

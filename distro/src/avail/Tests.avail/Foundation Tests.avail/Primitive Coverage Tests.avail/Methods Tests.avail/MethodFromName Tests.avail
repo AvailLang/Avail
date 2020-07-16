@@ -34,15 +34,14 @@ Module "MethodFromName Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "MethodFromName ok" in primitives test suite if supported is
+Test "MethodFromName ok" in primitive methods test suite if supported is
 [
 	Skip test
 ];
 
-Test "MethodFromName fails with no-method exception" in primitives test suite if supported is
+Test "MethodFromName fails with no-method exception" in primitive methods test suite if supported is
 [
 	Skip test
 ]

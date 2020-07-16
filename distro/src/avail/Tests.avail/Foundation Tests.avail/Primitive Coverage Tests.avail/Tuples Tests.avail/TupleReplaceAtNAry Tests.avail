@@ -34,10 +34,9 @@ Module "TupleReplaceAtNAry Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "TupleReplaceAtNAry ok" in primitives test suite is
+Test "TupleReplaceAtNAry ok" in primitive tuples test suite is
 [
 	Require: <4, <5, 18, <1, 2, 3>, 11, 12>, 6>[2][3][1] → 0 =
 		<4, <5, 18, <0, 2, 3>, 11, 12>, 6>;
@@ -58,13 +57,14 @@ Test "TupleReplaceAtNAry ok" in primitives test suite is
 			}>;
 ];
 
-Test "TupleReplaceAtNAry fails with subscript-out-of-bounds exception" in primitives test suite is
+Test "TupleReplaceAtNAry fails with subscript-out-of-bounds exception" in primitive tuples test suite is
 [
 	a : tuple := <4, <5, 18, <1, 2, 3>, 11, 12>, 6>;
 	a[2][35][1] → 0
-] must raise subscript-out-of-bounds exception;
+]
+must raise subscript-out-of-bounds exception;
 
-Test "TupleReplaceAtNAry fails with incorrect-argument-type exception" in primitives test suite is
+Test "TupleReplaceAtNAry fails with incorrect-argument-type exception" in primitive tuples test suite is
 [
 	Require:
 	[
@@ -79,7 +79,7 @@ Test "TupleReplaceAtNAry fails with incorrect-argument-type exception" in primit
 	] raises incorrect-argument-type exception;
 ];
 
-Test "TupleReplaceAtNAry fails with key-not-found exception" in primitives test suite is
+Test "TupleReplaceAtNAry fails with key-not-found exception" in primitive tuples test suite is
 [
 	a : tuple :=
 	<{
@@ -88,5 +88,6 @@ Test "TupleReplaceAtNAry fails with key-not-found exception" in primitives test 
 		6 → {6 → {"moo" → <4, <9, "q", {1, 4}>>}}
 	}>;
 	a[1][5][5]["moo"][2] → <2, "market", {99, 44}>
-] must raise key-not-found exception;
+]
+must raise key-not-found exception;
 

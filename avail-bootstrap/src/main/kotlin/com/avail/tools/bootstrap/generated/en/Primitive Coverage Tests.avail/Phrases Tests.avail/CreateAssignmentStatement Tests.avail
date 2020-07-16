@@ -34,21 +34,20 @@ Module "CreateAssignmentStatement Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "CreateAssignmentStatement ok" in primitives test suite if supported is
+Test "CreateAssignmentStatement ok" in primitive phrases test suite if supported is
 [
 	Skip test
 ];
 
-Test "CreateAssignmentStatement fails with cannot-store-incorrectly-typed-value exception" in primitives test suite if supported is
+Test "CreateAssignmentStatement fails with cannot-store-incorrectly-typed-value exception" in primitive phrases test suite if supported is
 [
 	Skip test
 ]
 must raise cannot-store-incorrectly-typed-value exception;
 
-Test "CreateAssignmentStatement fails with declaration-kind-does-not-support-assignment exception" in primitives test suite if supported is
+Test "CreateAssignmentStatement fails with declaration-kind-does-not-support-assignment exception" in primitive phrases test suite if supported is
 [
 	Skip test
 ]

@@ -34,10 +34,9 @@ Module "NewNames Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "NewNames ok" in primitives test suite if supported is
+Test "NewNames ok" in primitive modules test suite if supported is
 [
 	Skip test
 ];

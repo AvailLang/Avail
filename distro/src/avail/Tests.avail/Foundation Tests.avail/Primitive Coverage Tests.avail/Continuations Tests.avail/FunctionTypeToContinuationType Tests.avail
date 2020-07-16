@@ -34,10 +34,9 @@ Module "FunctionTypeToContinuationType Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "FunctionTypeToContinuationType ok" in primitives test suite if supported is
+Test "FunctionTypeToContinuationType ok" in primitive continuations test suite if supported is
 [
 	Skip test
 ];

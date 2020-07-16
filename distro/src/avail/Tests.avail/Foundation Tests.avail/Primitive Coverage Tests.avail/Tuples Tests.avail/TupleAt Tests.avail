@@ -34,10 +34,9 @@ Module "TupleAt Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "TupleAt ok" in primitives test suite is
+Test "TupleAt ok" in primitive tuples test suite is
 [
 	a ::= <1,2,3,4, "foo">;
 	Require: a[4] = 4;
@@ -47,8 +46,10 @@ Test "TupleAt ok" in primitives test suite is
 	Require: a[5] = "foo";
 ];
 
-Test "TupleAt fails with subscript-out-of-bounds exception" in primitives test suite is
+Test "TupleAt fails with subscript-out-of-bounds exception" in primitive tuples test suite is
 [
-	Require:  [t:tuple:=<>; t[1]] raises subscript-out-of-bounds exception;
-];
+	t:tuple:=<>;
+	t[1]
+]
+must raise subscript-out-of-bounds exception;
 

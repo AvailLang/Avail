@@ -1641,6 +1641,54 @@ class BootstrapGenerator constructor(private val locale: Locale)
 	 * Generate the package representative for the [primitive][Primitive]
 	 * coverage test cases.
 	 *
+	 * @param targetDirectory
+	 *   The directory the file will be written to.
+	 * @param versionString
+	 *   The module-insertion-ready supported versions.
+	 * @param names
+	 *   The exported Names section of the module.
+	 * @param body
+	 *   The body of the [Resources.Key.primitiveCommonTestPackageName] module.
+	 * @throws IOException
+	 *   If any module could not be written.
+	 */
+	@Throws(IOException::class)
+	private fun generatePrimitiveTestCommonModule(
+		targetDirectory: String,
+		versionString: String,
+		names: String,
+		body: String)
+	{
+		val moduleName = preamble.getString(
+			primitiveCommonTestPackageName.name)
+		val fileName = File(String.format(
+			"%s/%s.avail",
+			targetDirectory,
+			moduleName))
+		val writer = PrintWriter(fileName, "UTF-8")
+		writer.println(MessageFormat.format(
+			preamble.getString(availCopyright.name),
+			moduleName,
+			Date()))
+		writer.println(MessageFormat.format(
+			preamble.getString(generatedModuleNotice.name),
+			BootstrapGenerator::class.java.name,
+			Date()))
+
+		writer.println(MessageFormat.format(
+			preamble.getString(
+				primitiveCommonTestPackageRepresentativeHeader.name),
+			moduleName,
+			versionString,
+			names))
+		writer.println(body)
+		writer.close()
+	}
+
+	/**
+	 * Generate the package representative for the [primitive][Primitive]
+	 * coverage test cases.
+	 *
 	 * @param versions
 	 *   The supported versions.
 	 * @return
@@ -1655,12 +1703,15 @@ class BootstrapGenerator constructor(private val locale: Locale)
 	{
 		val packageName = preamble.getString(
 			primitiveCoverageTestPackageName.name)
-		val fileName = File(String.format(
-			"%s/%s/%s/%s.avail/%s.avail",
+		val targetDirectory = String.format(
+			"%s/%s/%s/%s.avail",
 			sourceBaseName,
 			generatedPackageName.replace('.', '/'),
 			locale.language,
-			packageName,
+			packageName)
+		val fileName = File(String.format(
+			"%s/%s.avail",
+			targetDirectory,
 			packageName))
 		val writer = PrintWriter(fileName, "UTF-8")
 		writer.println(MessageFormat.format(
@@ -1675,6 +1726,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 		used.append("\n\t\"")
 		used.append(preamble.getString(availModuleName.name))
 		used.append("\",")
+		val extendsPrimitiveCommon = StringBuilder()
 		val testPackageMap = mutableMapOf<String, TestPackage>()
 		for (primitive in primitives(null))
 		{
@@ -1686,22 +1738,50 @@ class BootstrapGenerator constructor(private val locale: Locale)
 		}
 		val testPackages = testPackageMap.values.toMutableList()
 		testPackages.sortBy { it.name }
+		val primitiveCommonNames = StringBuilder()
+		val primitiveCommonImplementation = StringBuilder()
 		for (testPackage in testPackages)
 		{
 			used.append("\n\t\"")
 			used.append(testPackage.name)
 			used.append("\",")
+
+			extendsPrimitiveCommon.append("\n\t\t\"")
+			extendsPrimitiveCommon.append(testPackage.testSuiteName)
+			extendsPrimitiveCommon.append("\",")
+
+			primitiveCommonNames.append("\n\t\"")
+			primitiveCommonNames.append(testPackage.testSuiteName)
+			primitiveCommonNames.append("\",")
+
+			primitiveCommonImplementation.append(testPackage.testSuiteCreationCode)
+			primitiveCommonImplementation.append("\n")
 		}
 		var usedString = used.toString()
 		usedString = usedString.substring(0, usedString.length - 1)
+
+		var extendsPrimitiveCommonString = extendsPrimitiveCommon.toString()
+		extendsPrimitiveCommonString =
+			extendsPrimitiveCommonString.substring(
+				0, extendsPrimitiveCommonString.length - 1)
+
+		val versionString = moduleVersionString(versions)
 		writer.println(MessageFormat.format(
 			preamble.getString(
 				primitiveCoverageTestPackageRepresentativeHeader.name),
-			preamble.getString(
-				primitiveCoverageTestPackageName.name),
-			moduleVersionString(versions),
-			usedString))
+			preamble.getString(primitiveCoverageTestPackageName.name),
+			versionString,
+			usedString,
+			preamble.getString(primitiveCommonTestPackageName.name),
+			extendsPrimitiveCommonString))
 		writer.close()
+		generatePrimitiveTestCommonModule(
+			targetDirectory,
+			versionString,
+			primitiveCommonNames.substring(
+				0, primitiveCommonNames.length - 1),
+			primitiveCommonImplementation.toString().substring(
+				0, primitiveCommonImplementation.length - 2))
 		return testPackageMap
 	}
 
@@ -1737,10 +1817,12 @@ class BootstrapGenerator constructor(private val locale: Locale)
 			writer.println(MessageFormat.format(
 				preamble.getString(primitiveCoverageTestModuleHeader.name),
 				moduleName,
-				moduleVersionString(versions)))
+				moduleVersionString(versions),
+				preamble.getString(primitiveCommonTestPackageName.name)))
 			writer.println(MessageFormat.format(
 				preamble.getString(primitiveCoverageTestCaseOk.name),
-				primitiveName))
+				primitiveName,
+				testPackage.testSuiteName))
 			if (!primitive.hasFlag(Primitive.Flag.CannotFail))
 			{
 				val varType = primitive.failureVariableType
@@ -1764,7 +1846,8 @@ class BootstrapGenerator constructor(private val locale: Locale)
 								preamble.getString(
 									primitiveCoverageTestCaseFailed.name),
 								primitiveName,
-								exceptionName))
+								exceptionName,
+								testPackage.testSuiteName))
 						}
 					}
 					else
@@ -1921,7 +2004,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 	 * @constructor
 	 * Construct a new [TestPackage].
 	 *
-	 * @param primitive
+	 * @param primitivePackage
 	 *   The [Primitive] used to extract the package information.
 	 */
 	private inner class TestPackage constructor(primitivePackage: String)
@@ -1930,6 +2013,17 @@ class BootstrapGenerator constructor(private val locale: Locale)
 		 * The [module][ModuleDescriptor] name of this [TestPackage].
 		 */
 		val name: String
+
+		/**
+		 * The name of the test suite used by this [TestPackage].
+		 */
+		val testSuiteName: String
+
+		/**
+		 * The Avail code that creates the [test suite][testSuiteName] used by
+		 * this [TestPackage].
+		 */
+		val testSuiteCreationCode: String
 
 		/**
 		 * The [set][Set] of [module][ModuleDescriptor] names of the modules
@@ -1996,8 +2090,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 			var usedString = used.toString()
 			usedString = usedString.substring(0, usedString.length - 1)
 			writer.println(MessageFormat.format(
-				preamble.getString(
-					primitiveCoverageTestPackageRepresentativeHeader.name),
+				preamble.getString(primitiveCoverageTestSubPackageRepresentativeHeader.name),
 				name,
 				moduleVersionString(versions),
 				usedString))
@@ -2008,9 +2101,10 @@ class BootstrapGenerator constructor(private val locale: Locale)
 		{
 			val packagePath = primitivePackage.split(".")
 			assert(packagePath.size > 2)
+			val basePackageName = packagePath[packagePath.size - 1]
 			this.name = MessageFormat.format(
 				preamble.getString(primitiveCoverageTestModuleName.name),
-				packagePath[packagePath.size - 1].capitalize())
+				basePackageName.capitalize())
 			val packageName = File(String.format(
 				"%s/%s/%s/%s.avail/%s.avail",
 				sourceBaseName,
@@ -2019,6 +2113,13 @@ class BootstrapGenerator constructor(private val locale: Locale)
 				preamble.getString(primitiveCoverageTestPackageName.name),
 				this.name))
 			packageName.mkdir()
+			this.testSuiteName = MessageFormat.format(
+				preamble.getString(primitiveTestSuiteName.name),
+				basePackageName)
+			this.testSuiteCreationCode = MessageFormat.format(
+				preamble.getString(primitiveTestSuiteImplementation.name),
+				basePackageName,
+				this.testSuiteName)
 		}
 	}
 }

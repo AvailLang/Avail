@@ -34,27 +34,26 @@ Module "FileAbsolutePath Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "FileAbsolutePath ok" in primitives test suite if supported is
+Test "FileAbsolutePath ok" in primitive files test suite if supported is
 [
 	Skip test
 ];
 
-Test "FileAbsolutePath fails with I/O exception" in primitives test suite if supported is
+Test "FileAbsolutePath fails with I/O exception" in primitive files test suite if supported is
 [
 	Skip test
 ]
 must raise I/O exception;
 
-Test "FileAbsolutePath fails with permission-denied exception" in primitives test suite if supported is
+Test "FileAbsolutePath fails with permission-denied exception" in primitive files test suite if supported is
 [
 	Skip test
 ]
 must raise permission-denied exception;
 
-Test "FileAbsolutePath fails with invalid-path exception" in primitives test suite if supported is
+Test "FileAbsolutePath fails with invalid-path exception" in primitive files test suite if supported is
 [
 	Skip test
 ]

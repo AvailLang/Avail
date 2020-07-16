@@ -34,10 +34,9 @@ Module "ParkCurrentFiber Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "ParkCurrentFiber ok" in primitives test suite if supported is
+Test "ParkCurrentFiber ok" in primitive fibers test suite if supported is
 [
 	Skip test
 ];

@@ -34,10 +34,9 @@ Module "UnionOfTupleOfTypes Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "UnionOfTupleOfTypes ok" in primitives test suite if supported is
+Test "UnionOfTupleOfTypes ok" in primitive tuples test suite if supported is
 [
 	Skip test
 ];

@@ -34,21 +34,20 @@ Module "DelayedFork Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "DelayedFork ok" in primitives test suite if supported is
+Test "DelayedFork ok" in primitive fibers test suite if supported is
 [
 	Skip test
 ];
 
-Test "DelayedFork fails with incorrect-number-of-arguments exception" in primitives test suite if supported is
+Test "DelayedFork fails with incorrect-number-of-arguments exception" in primitive fibers test suite if supported is
 [
 	Skip test
 ]
 must raise incorrect-number-of-arguments exception;
 
-Test "DelayedFork fails with incorrect-argument-type exception" in primitives test suite if supported is
+Test "DelayedFork fails with incorrect-argument-type exception" in primitive fibers test suite if supported is
 [
 	Skip test
 ]

@@ -34,27 +34,26 @@ Module "PublishName Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "PublishName ok" in primitives test suite if supported is
+Test "PublishName ok" in primitive modules test suite if supported is
 [
 	Skip test
 ];
 
-Test "PublishName fails with ambiguous-name exception" in primitives test suite if supported is
+Test "PublishName fails with ambiguous-name exception" in primitive modules test suite if supported is
 [
 	Skip test
 ]
 must raise ambiguous-name exception;
 
-Test "PublishName fails with cannot-define-during-compilation exception" in primitives test suite if supported is
+Test "PublishName fails with cannot-define-during-compilation exception" in primitive modules test suite if supported is
 [
 	Skip test
 ]
 must raise cannot-define-during-compilation exception;
 
-Test "PublishName fails with loading-is-over exception" in primitives test suite if supported is
+Test "PublishName fails with loading-is-over exception" in primitive modules test suite if supported is
 [
 	Skip test
 ]

@@ -34,33 +34,32 @@ Module "FileRead Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "FileRead ok" in primitives test suite if supported is
+Test "FileRead ok" in primitive files test suite if supported is
 [
 	Skip test
 ];
 
-Test "FileRead fails with invalid-handle exception" in primitives test suite if supported is
+Test "FileRead fails with invalid-handle exception" in primitive files test suite if supported is
 [
 	Skip test
 ]
 must raise invalid-handle exception;
 
-Test "FileRead fails with special-atom exception" in primitives test suite if supported is
+Test "FileRead fails with special-atom exception" in primitive files test suite if supported is
 [
 	Skip test
 ]
 must raise special-atom exception;
 
-Test "FileRead fails with not-open-for-read exception" in primitives test suite if supported is
+Test "FileRead fails with not-open-for-read exception" in primitive files test suite if supported is
 [
 	Skip test
 ]
 must raise not-open-for-read exception;
 
-Test "FileRead fails with exceeds-vm-limit exception" in primitives test suite if supported is
+Test "FileRead fails with exceeds-vm-limit exception" in primitive files test suite if supported is
 [
 	Skip test
 ]

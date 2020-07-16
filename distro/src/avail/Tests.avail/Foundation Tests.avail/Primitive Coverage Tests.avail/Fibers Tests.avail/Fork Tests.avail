@@ -34,21 +34,20 @@ Module "Fork Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "Fork ok" in primitives test suite if supported is
+Test "Fork ok" in primitive fibers test suite if supported is
 [
 	Skip test
 ];
 
-Test "Fork fails with incorrect-number-of-arguments exception" in primitives test suite if supported is
+Test "Fork fails with incorrect-number-of-arguments exception" in primitive fibers test suite if supported is
 [
 	Skip test
 ]
 must raise incorrect-number-of-arguments exception;
 
-Test "Fork fails with incorrect-argument-type exception" in primitives test suite if supported is
+Test "Fork fails with incorrect-argument-type exception" in primitive fibers test suite if supported is
 [
 	Skip test
 ]

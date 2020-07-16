@@ -34,15 +34,14 @@ Module "ObjectTypeToMap Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "ObjectTypeToMap ok" in primitives test suite if supported is
+Test "ObjectTypeToMap ok" in primitive objects test suite if supported is
 [
 	Skip test
 ];
 
-Test "ObjectTypeToMap fails with no-such-field exception" in primitives test suite if supported is
+Test "ObjectTypeToMap fails with no-such-field exception" in primitive objects test suite if supported is
 [
 	Skip test
 ]

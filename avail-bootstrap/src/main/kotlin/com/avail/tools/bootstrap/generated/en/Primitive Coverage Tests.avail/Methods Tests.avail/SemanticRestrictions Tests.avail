@@ -34,15 +34,14 @@ Module "SemanticRestrictions Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "SemanticRestrictions ok" in primitives test suite if supported is
+Test "SemanticRestrictions ok" in primitive methods test suite if supported is
 [
 	Skip test
 ];
 
-Test "SemanticRestrictions fails with incorrect-number-of-arguments exception" in primitives test suite if supported is
+Test "SemanticRestrictions fails with incorrect-number-of-arguments exception" in primitive methods test suite if supported is
 [
 	Skip test
 ]

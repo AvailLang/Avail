@@ -34,10 +34,9 @@ Module "TupleTypeSizes Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "TupleTypeSizes ok" in primitives test suite if supported is
+Test "TupleTypeSizes ok" in primitive tuples test suite if supported is
 [
 	Skip test
 ];

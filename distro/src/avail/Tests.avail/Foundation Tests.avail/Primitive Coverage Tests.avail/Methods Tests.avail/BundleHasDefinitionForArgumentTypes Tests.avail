@@ -34,33 +34,32 @@ Module "BundleHasDefinitionForArgumentTypes Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "BundleHasDefinitionForArgumentTypes ok" in primitives test suite if supported is
+Test "BundleHasDefinitionForArgumentTypes ok" in primitive methods test suite if supported is
 [
 	Skip test
 ];
 
-Test "BundleHasDefinitionForArgumentTypes fails with incorrect-number-of-arguments exception" in primitives test suite if supported is
+Test "BundleHasDefinitionForArgumentTypes fails with incorrect-number-of-arguments exception" in primitive methods test suite if supported is
 [
 	Skip test
 ]
 must raise incorrect-number-of-arguments exception;
 
-Test "BundleHasDefinitionForArgumentTypes fails with no-method exception" in primitives test suite if supported is
+Test "BundleHasDefinitionForArgumentTypes fails with no-method exception" in primitive methods test suite if supported is
 [
 	Skip test
 ]
 must raise no-method exception;
 
-Test "BundleHasDefinitionForArgumentTypes fails with no-method-definition exception" in primitives test suite if supported is
+Test "BundleHasDefinitionForArgumentTypes fails with no-method-definition exception" in primitive methods test suite if supported is
 [
 	Skip test
 ]
 must raise no-method-definition exception;
 
-Test "BundleHasDefinitionForArgumentTypes fails with ambiguous-method-definition exception" in primitives test suite if supported is
+Test "BundleHasDefinitionForArgumentTypes fails with ambiguous-method-definition exception" in primitive methods test suite if supported is
 [
 	Skip test
 ]

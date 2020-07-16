@@ -34,10 +34,9 @@ Module "CharacterType Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "CharacterType ok" in primitives test suite if supported is
+Test "CharacterType ok" in primitive characters test suite if supported is
 [
 	Skip test
 ];

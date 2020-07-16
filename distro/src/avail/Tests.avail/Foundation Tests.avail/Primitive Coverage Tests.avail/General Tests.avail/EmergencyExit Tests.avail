@@ -34,10 +34,9 @@ Module "EmergencyExit Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "EmergencyExit ok" in primitives test suite if supported is
+Test "EmergencyExit ok" in primitive general test suite if supported is
 [
 	Skip test
 ];

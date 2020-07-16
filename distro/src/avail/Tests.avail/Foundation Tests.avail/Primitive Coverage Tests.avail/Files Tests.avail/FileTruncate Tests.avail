@@ -34,27 +34,26 @@ Module "FileTruncate Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "FileTruncate ok" in primitives test suite if supported is
+Test "FileTruncate ok" in primitive files test suite if supported is
 [
 	Skip test
 ];
 
-Test "FileTruncate fails with invalid-handle exception" in primitives test suite if supported is
+Test "FileTruncate fails with invalid-handle exception" in primitive files test suite if supported is
 [
 	Skip test
 ]
 must raise invalid-handle exception;
 
-Test "FileTruncate fails with special-atom exception" in primitives test suite if supported is
+Test "FileTruncate fails with special-atom exception" in primitive files test suite if supported is
 [
 	Skip test
 ]
 must raise special-atom exception;
 
-Test "FileTruncate fails with not-open-for-write exception" in primitives test suite if supported is
+Test "FileTruncate fails with not-open-for-write exception" in primitive files test suite if supported is
 [
 	Skip test
 ]

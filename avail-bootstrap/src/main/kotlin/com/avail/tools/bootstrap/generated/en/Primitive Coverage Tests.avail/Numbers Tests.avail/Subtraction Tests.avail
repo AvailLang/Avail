@@ -34,15 +34,14 @@ Module "Subtraction Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "Subtraction ok" in primitives test suite if supported is
+Test "Subtraction ok" in primitive numbers test suite if supported is
 [
 	Skip test
 ];
 
-Test "Subtraction fails with cannot-subtract-like-infinities exception" in primitives test suite if supported is
+Test "Subtraction fails with cannot-subtract-like-infinities exception" in primitive numbers test suite if supported is
 [
 	Skip test
 ]

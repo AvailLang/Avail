@@ -34,15 +34,14 @@ Module "ReadFromStandardInput Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "ReadFromStandardInput ok" in primitives test suite if supported is
+Test "ReadFromStandardInput ok" in primitive general test suite if supported is
 [
 	Skip test
 ];
 
-Test "ReadFromStandardInput fails with I/O exception" in primitives test suite if supported is
+Test "ReadFromStandardInput fails with I/O exception" in primitive general test suite if supported is
 [
 	Skip test
 ]

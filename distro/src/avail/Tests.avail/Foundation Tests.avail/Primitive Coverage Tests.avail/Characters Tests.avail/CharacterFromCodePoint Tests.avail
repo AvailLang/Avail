@@ -34,10 +34,9 @@ Module "CharacterFromCodePoint Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "CharacterFromCodePoint ok" in primitives test suite if supported is
+Test "CharacterFromCodePoint ok" in primitive characters test suite if supported is
 [
 	Skip test
 ];

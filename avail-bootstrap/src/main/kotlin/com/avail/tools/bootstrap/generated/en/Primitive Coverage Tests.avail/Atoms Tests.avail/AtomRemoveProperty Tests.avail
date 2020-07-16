@@ -34,21 +34,20 @@ Module "AtomRemoveProperty Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "AtomRemoveProperty ok" in primitives test suite if supported is
+Test "AtomRemoveProperty ok" in primitive atoms test suite if supported is
 [
 	Skip test
 ];
 
-Test "AtomRemoveProperty fails with key-not-found exception" in primitives test suite if supported is
+Test "AtomRemoveProperty fails with key-not-found exception" in primitive atoms test suite if supported is
 [
 	Skip test
 ]
 must raise key-not-found exception;
 
-Test "AtomRemoveProperty fails with no-such-field exception" in primitives test suite if supported is
+Test "AtomRemoveProperty fails with no-such-field exception" in primitive atoms test suite if supported is
 [
 	Skip test
 ]

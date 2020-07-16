@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 7/14/20 1:31 PM
+ * * Last Generated: 7/16/20 11:13 AM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -70,5 +70,36 @@ Uses
 	"Tuples Tests",
 	"Types Tests",
 	"Variables Tests"
+Extends
+	"Primitive Test Common" =
+	(
+		"primitive atoms test suite",
+		"primitive characters test suite",
+		"primitive compiler test suite",
+		"primitive continuations test suite",
+		"primitive controlflow test suite",
+		"primitive doubles test suite",
+		"primitive fibers test suite",
+		"primitive files test suite",
+		"primitive floats test suite",
+		"primitive functions test suite",
+		"primitive general test suite",
+		"primitive hooks test suite",
+		"primitive integers test suite",
+		"primitive maps test suite",
+		"primitive methods test suite",
+		"primitive modules test suite",
+		"primitive numbers test suite",
+		"primitive objects test suite",
+		"primitive phrases test suite",
+		"primitive pojos test suite",
+		"primitive processes test suite",
+		"primitive rawfunctions test suite",
+		"primitive sets test suite",
+		"primitive sockets test suite",
+		"primitive tuples test suite",
+		"primitive types test suite",
+		"primitive variables test suite"
+	)
 Body
 

@@ -34,27 +34,26 @@ Module "FileRefresh Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "FileRefresh ok" in primitives test suite if supported is
+Test "FileRefresh ok" in primitive files test suite if supported is
 [
 	Skip test
 ];
 
-Test "FileRefresh fails with invalid-handle exception" in primitives test suite if supported is
+Test "FileRefresh fails with invalid-handle exception" in primitive files test suite if supported is
 [
 	Skip test
 ]
 must raise invalid-handle exception;
 
-Test "FileRefresh fails with special-atom exception" in primitives test suite if supported is
+Test "FileRefresh fails with special-atom exception" in primitive files test suite if supported is
 [
 	Skip test
 ]
 must raise special-atom exception;
 
-Test "FileRefresh fails with not-open-for-read exception" in primitives test suite if supported is
+Test "FileRefresh fails with not-open-for-read exception" in primitive files test suite if supported is
 [
 	Skip test
 ]

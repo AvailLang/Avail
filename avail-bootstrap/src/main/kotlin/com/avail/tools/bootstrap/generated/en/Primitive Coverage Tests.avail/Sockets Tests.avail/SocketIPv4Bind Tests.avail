@@ -34,33 +34,32 @@ Module "SocketIPv4Bind Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "SocketIPv4Bind ok" in primitives test suite if supported is
+Test "SocketIPv4Bind ok" in primitive sockets test suite if supported is
 [
 	Skip test
 ];
 
-Test "SocketIPv4Bind fails with I/O exception" in primitives test suite if supported is
+Test "SocketIPv4Bind fails with I/O exception" in primitive sockets test suite if supported is
 [
 	Skip test
 ]
 must raise I/O exception;
 
-Test "SocketIPv4Bind fails with permission-denied exception" in primitives test suite if supported is
+Test "SocketIPv4Bind fails with permission-denied exception" in primitive sockets test suite if supported is
 [
 	Skip test
 ]
 must raise permission-denied exception;
 
-Test "SocketIPv4Bind fails with invalid-handle exception" in primitives test suite if supported is
+Test "SocketIPv4Bind fails with invalid-handle exception" in primitive sockets test suite if supported is
 [
 	Skip test
 ]
 must raise invalid-handle exception;
 
-Test "SocketIPv4Bind fails with special-atom exception" in primitives test suite if supported is
+Test "SocketIPv4Bind fails with special-atom exception" in primitive sockets test suite if supported is
 [
 	Skip test
 ]

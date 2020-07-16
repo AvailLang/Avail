@@ -34,18 +34,17 @@ Module "ConcatenateTuples Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "ConcatenateTuples ok" in primitives test suite is
+Test "ConcatenateTuples ok" in primitive tuples test suite is
 [
 	a ::= <1,2>;
-    	b ::= <3,4>;
-    	c ::= <"foo", "bar">;
-    	Require: a ++ b = <1,2,3,4>;
-    	Require: a ++ c = <1,2,"foo", "bar">;
-    	Require: c[1] ++ c[2] = "foobar";
-    	Require: concatenate c = "foobar";
-    	Require: concatenate <> = <>;
+	b ::= <3,4>;
+	c ::= <"foo", "bar">;
+	Require: a ++ b = <1,2,3,4>;
+	Require: a ++ c = <1,2,"foo", "bar">;
+	Require: c[1] ++ c[2] = "foobar";
+	Require: concatenate c = "foobar";
+	Require: concatenate <> = <>;
 ];
 

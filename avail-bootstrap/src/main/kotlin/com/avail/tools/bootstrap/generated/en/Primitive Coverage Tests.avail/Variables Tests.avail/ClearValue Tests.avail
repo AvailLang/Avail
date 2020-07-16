@@ -34,33 +34,32 @@ Module "ClearValue Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "ClearValue ok" in primitives test suite if supported is
+Test "ClearValue ok" in primitive variables test suite if supported is
 [
 	Skip test
 ];
 
-Test "ClearValue fails with cannot-overwrite-write-once-variable exception" in primitives test suite if supported is
+Test "ClearValue fails with cannot-overwrite-write-once-variable exception" in primitive variables test suite if supported is
 [
 	Skip test
 ]
 must raise cannot-overwrite-write-once-variable exception;
 
-Test "ClearValue fails with observed-variable-written-while-untraced exception" in primitives test suite if supported is
+Test "ClearValue fails with observed-variable-written-while-untraced exception" in primitive variables test suite if supported is
 [
 	Skip test
 ]
 must raise observed-variable-written-while-untraced exception;
 
-Test "ClearValue fails with Java-marshaling-failed exception" in primitives test suite if supported is
+Test "ClearValue fails with Java-marshaling-failed exception" in primitive variables test suite if supported is
 [
 	Skip test
 ]
 must raise Java-marshaling-failed exception;
 
-Test "ClearValue fails with cannot-modify-final-Java-field exception" in primitives test suite if supported is
+Test "ClearValue fails with cannot-modify-final-Java-field exception" in primitive variables test suite if supported is
 [
 	Skip test
 ]

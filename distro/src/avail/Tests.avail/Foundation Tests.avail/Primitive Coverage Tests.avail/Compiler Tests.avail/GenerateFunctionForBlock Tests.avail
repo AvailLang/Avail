@@ -34,27 +34,26 @@ Module "GenerateFunctionForBlock Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "GenerateFunctionForBlock ok" in primitives test suite if supported is
+Test "GenerateFunctionForBlock ok" in primitive compiler test suite if supported is
 [
 	Skip test
 ];
 
-Test "GenerateFunctionForBlock fails with block-is-invalid exception" in primitives test suite if supported is
+Test "GenerateFunctionForBlock fails with block-is-invalid exception" in primitive compiler test suite if supported is
 [
 	Skip test
 ]
 must raise block-is-invalid exception;
 
-Test "GenerateFunctionForBlock fails with block-must-not-contain-outers exception" in primitives test suite if supported is
+Test "GenerateFunctionForBlock fails with block-must-not-contain-outers exception" in primitive compiler test suite if supported is
 [
 	Skip test
 ]
 must raise block-must-not-contain-outers exception;
 
-Test "GenerateFunctionForBlock fails with block-compilation-failed exception" in primitives test suite if supported is
+Test "GenerateFunctionForBlock fails with block-compilation-failed exception" in primitive compiler test suite if supported is
 [
 	Skip test
 ]

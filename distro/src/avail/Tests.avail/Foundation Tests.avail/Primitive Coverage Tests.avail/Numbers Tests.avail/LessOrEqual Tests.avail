@@ -34,10 +34,9 @@ Module "LessOrEqual Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "LessOrEqual ok" in primitives test suite is
+Test "LessOrEqual ok" in primitive numbers test suite is
 [
 	Require: 2 ≤ 2;
 	Require: 2 ≤ 3;

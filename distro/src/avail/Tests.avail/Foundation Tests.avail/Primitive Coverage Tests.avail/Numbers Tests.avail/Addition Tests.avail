@@ -34,10 +34,9 @@ Module "Addition Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "Addition ok" in primitives test suite is
+Test "Addition ok" in primitive numbers test suite is
 [
 	For each i from 1 to 10 do
 	[
@@ -62,7 +61,8 @@ Test "Addition ok" in primitives test suite is
 	Require: 1.0f + 1.0 = 2.0;
 ];
 
-Test "Addition fails with cannot-add-unlike-infinities exception" in primitives test suite is
+
+Test "Addition fails with cannot-add-unlike-infinities exception" in primitive numbers test suite is
 [
 	/* Hide ∞ from the compiler. */
 	v : extended integer := ∞;

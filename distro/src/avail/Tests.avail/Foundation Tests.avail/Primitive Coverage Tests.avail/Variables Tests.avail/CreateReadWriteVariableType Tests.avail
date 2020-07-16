@@ -34,10 +34,9 @@ Module "CreateReadWriteVariableType Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "CreateReadWriteVariableType ok" in primitives test suite if supported is
+Test "CreateReadWriteVariableType ok" in primitive variables test suite if supported is
 [
 	Skip test
 ];

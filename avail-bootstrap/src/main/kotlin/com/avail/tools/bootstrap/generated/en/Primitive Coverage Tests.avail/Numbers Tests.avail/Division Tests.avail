@@ -34,21 +34,20 @@ Module "Division Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "Division ok" in primitives test suite if supported is
+Test "Division ok" in primitive numbers test suite if supported is
 [
 	Skip test
 ];
 
-Test "Division fails with cannot-divide-by-zero exception" in primitives test suite if supported is
+Test "Division fails with cannot-divide-by-zero exception" in primitive numbers test suite if supported is
 [
 	Skip test
 ]
 must raise cannot-divide-by-zero exception;
 
-Test "Division fails with cannot-divide-infinities exception" in primitives test suite if supported is
+Test "Division fails with cannot-divide-infinities exception" in primitive numbers test suite if supported is
 [
 	Skip test
 ]

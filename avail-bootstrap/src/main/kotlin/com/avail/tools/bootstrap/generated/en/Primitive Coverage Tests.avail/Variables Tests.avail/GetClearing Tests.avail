@@ -34,39 +34,38 @@ Module "GetClearing Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "GetClearing ok" in primitives test suite if supported is
+Test "GetClearing ok" in primitive variables test suite if supported is
 [
 	Skip test
 ];
 
-Test "GetClearing fails with cannot-read-unassigned-variable exception" in primitives test suite if supported is
+Test "GetClearing fails with cannot-read-unassigned-variable exception" in primitive variables test suite if supported is
 [
 	Skip test
 ]
 must raise cannot-read-unassigned-variable exception;
 
-Test "GetClearing fails with cannot-overwrite-write-once-variable exception" in primitives test suite if supported is
+Test "GetClearing fails with cannot-overwrite-write-once-variable exception" in primitive variables test suite if supported is
 [
 	Skip test
 ]
 must raise cannot-overwrite-write-once-variable exception;
 
-Test "GetClearing fails with observed-variable-written-while-untraced exception" in primitives test suite if supported is
+Test "GetClearing fails with observed-variable-written-while-untraced exception" in primitive variables test suite if supported is
 [
 	Skip test
 ]
 must raise observed-variable-written-while-untraced exception;
 
-Test "GetClearing fails with Java-marshaling-failed exception" in primitives test suite if supported is
+Test "GetClearing fails with Java-marshaling-failed exception" in primitive variables test suite if supported is
 [
 	Skip test
 ]
 must raise Java-marshaling-failed exception;
 
-Test "GetClearing fails with cannot-modify-final-Java-field exception" in primitives test suite if supported is
+Test "GetClearing fails with cannot-modify-final-Java-field exception" in primitive variables test suite if supported is
 [
 	Skip test
 ]

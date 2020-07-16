@@ -34,15 +34,14 @@ Module "CreateDirectory Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "CreateDirectory ok" in primitives test suite if supported is
+Test "CreateDirectory ok" in primitive files test suite if supported is
 [
 	Skip test
 ];
 
-Test "CreateDirectory fails with invalid-path exception" in primitives test suite if supported is
+Test "CreateDirectory fails with invalid-path exception" in primitive files test suite if supported is
 [
 	Skip test
 ]

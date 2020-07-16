@@ -34,15 +34,14 @@ Module "GetContinuationOfOtherFiber Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "GetContinuationOfOtherFiber ok" in primitives test suite if supported is
+Test "GetContinuationOfOtherFiber ok" in primitive fibers test suite if supported is
 [
 	Skip test
 ];
 
-Test "GetContinuationOfOtherFiber fails with fiber-is-terminated exception" in primitives test suite if supported is
+Test "GetContinuationOfOtherFiber fails with fiber-is-terminated exception" in primitive fibers test suite if supported is
 [
 	Skip test
 ]

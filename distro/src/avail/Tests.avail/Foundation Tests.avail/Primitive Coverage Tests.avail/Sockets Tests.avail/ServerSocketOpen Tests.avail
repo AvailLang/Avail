@@ -34,15 +34,14 @@ Module "ServerSocketOpen Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "ServerSocketOpen ok" in primitives test suite if supported is
+Test "ServerSocketOpen ok" in primitive sockets test suite if supported is
 [
 	Skip test
 ];
 
-Test "ServerSocketOpen fails with I/O exception" in primitives test suite if supported is
+Test "ServerSocketOpen fails with I/O exception" in primitive sockets test suite if supported is
 [
 	Skip test
 ]

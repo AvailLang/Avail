@@ -34,15 +34,14 @@ Module "LookupFiberVariable Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "LookupFiberVariable ok" in primitives test suite if supported is
+Test "LookupFiberVariable ok" in primitive fibers test suite if supported is
 [
 	Skip test
 ];
 
-Test "LookupFiberVariable fails with no-such-fiber-variable exception" in primitives test suite if supported is
+Test "LookupFiberVariable fails with no-such-fiber-variable exception" in primitive fibers test suite if supported is
 [
 	Skip test
 ]

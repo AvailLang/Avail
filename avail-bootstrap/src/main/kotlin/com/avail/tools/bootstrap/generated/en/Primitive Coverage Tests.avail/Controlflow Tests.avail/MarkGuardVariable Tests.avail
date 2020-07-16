@@ -34,15 +34,14 @@ Module "MarkGuardVariable Tests"
 Versions
 	"1.4.0"
 Uses
-	"Common"
+	"Primitive Test Common"
 Body
-
-Test "MarkGuardVariable ok" in primitives test suite if supported is
+Test "MarkGuardVariable ok" in primitive controlflow test suite if supported is
 [
 	Skip test
 ];
 
-Test "MarkGuardVariable fails with cannot-mark-handler-frame exception" in primitives test suite if supported is
+Test "MarkGuardVariable fails with cannot-mark-handler-frame exception" in primitive controlflow test suite if supported is
 [
 	Skip test
 ]
