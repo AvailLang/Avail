@@ -37,8 +37,11 @@ Uses
 	"Common"
 Body
 
-Test "MapSize ok" in primitives test suite if supported is
+Test "MapSize ok" in primitives test suite is
 [
-	Skip test
+	a ::= {1→"foo",2→"bar",3→"frog",4→"prince"};
+    	Require: 4 = |a|;
+    	Require: 0 = |{}|;
+    	Require: true = {} is empty;
 ];
 

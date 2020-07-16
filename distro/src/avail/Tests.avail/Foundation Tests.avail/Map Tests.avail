@@ -44,14 +44,6 @@ Body
 
 New test suite map test suite extends foundation test suite;
 
-Test "map cardinality" in map test suite is
-[
-	a ::= {1→"foo",2→"bar",3→"frog",4→"prince"};
-	Require: 4 = |a|;
-	Require: 0 = |{}|;
-	Require: true = {} is empty;
-];
-
 Test "keys values and bindings" in map test suite is
 [
 	a ::= {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
