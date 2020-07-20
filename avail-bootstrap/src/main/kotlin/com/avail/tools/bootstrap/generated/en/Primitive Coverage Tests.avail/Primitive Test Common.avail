@@ -1,0 +1,182 @@
+/*
+ * Primitive Test Common.avail
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+/*
+ * GENERATED FILE
+ * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
+ * * Last Generated: 7/16/20 11:13 AM
+ *
+ * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
+ */
+
+Module "Primitive Test Common"
+Versions
+	"1.4.0"
+Extends
+	"Common"
+Names
+	"primitive atoms test suite",
+	"primitive characters test suite",
+	"primitive compiler test suite",
+	"primitive continuations test suite",
+	"primitive controlflow test suite",
+	"primitive doubles test suite",
+	"primitive fibers test suite",
+	"primitive files test suite",
+	"primitive floats test suite",
+	"primitive functions test suite",
+	"primitive general test suite",
+	"primitive hooks test suite",
+	"primitive integers test suite",
+	"primitive maps test suite",
+	"primitive methods test suite",
+	"primitive modules test suite",
+	"primitive numbers test suite",
+	"primitive objects test suite",
+	"primitive phrases test suite",
+	"primitive pojos test suite",
+	"primitive processes test suite",
+	"primitive rawfunctions test suite",
+	"primitive sets test suite",
+	"primitive sockets test suite",
+	"primitive tuples test suite",
+	"primitive types test suite",
+	"primitive variables test suite"
+Body
+
+/* The primitive atoms package test suite identifier. */
+"primitive atoms test suite" is a new atom;
+New test suite primitive atoms test suite extends primitives test suite;
+
+/* The primitive characters package test suite identifier. */
+"primitive characters test suite" is a new atom;
+New test suite primitive characters test suite extends primitives test suite;
+
+/* The primitive compiler package test suite identifier. */
+"primitive compiler test suite" is a new atom;
+New test suite primitive compiler test suite extends primitives test suite;
+
+/* The primitive continuations package test suite identifier. */
+"primitive continuations test suite" is a new atom;
+New test suite primitive continuations test suite extends primitives test suite;
+
+/* The primitive controlflow package test suite identifier. */
+"primitive controlflow test suite" is a new atom;
+New test suite primitive controlflow test suite extends primitives test suite;
+
+/* The primitive doubles package test suite identifier. */
+"primitive doubles test suite" is a new atom;
+New test suite primitive doubles test suite extends primitives test suite;
+
+/* The primitive fibers package test suite identifier. */
+"primitive fibers test suite" is a new atom;
+New test suite primitive fibers test suite extends primitives test suite;
+
+/* The primitive files package test suite identifier. */
+"primitive files test suite" is a new atom;
+New test suite primitive files test suite extends primitives test suite;
+
+/* The primitive floats package test suite identifier. */
+"primitive floats test suite" is a new atom;
+New test suite primitive floats test suite extends primitives test suite;
+
+/* The primitive functions package test suite identifier. */
+"primitive functions test suite" is a new atom;
+New test suite primitive functions test suite extends primitives test suite;
+
+/* The primitive general package test suite identifier. */
+"primitive general test suite" is a new atom;
+New test suite primitive general test suite extends primitives test suite;
+
+/* The primitive hooks package test suite identifier. */
+"primitive hooks test suite" is a new atom;
+New test suite primitive hooks test suite extends primitives test suite;
+
+/* The primitive integers package test suite identifier. */
+"primitive integers test suite" is a new atom;
+New test suite primitive integers test suite extends primitives test suite;
+
+/* The primitive maps package test suite identifier. */
+"primitive maps test suite" is a new atom;
+New test suite primitive maps test suite extends primitives test suite;
+
+/* The primitive methods package test suite identifier. */
+"primitive methods test suite" is a new atom;
+New test suite primitive methods test suite extends primitives test suite;
+
+/* The primitive modules package test suite identifier. */
+"primitive modules test suite" is a new atom;
+New test suite primitive modules test suite extends primitives test suite;
+
+/* The primitive numbers package test suite identifier. */
+"primitive numbers test suite" is a new atom;
+New test suite primitive numbers test suite extends primitives test suite;
+
+/* The primitive objects package test suite identifier. */
+"primitive objects test suite" is a new atom;
+New test suite primitive objects test suite extends primitives test suite;
+
+/* The primitive phrases package test suite identifier. */
+"primitive phrases test suite" is a new atom;
+New test suite primitive phrases test suite extends primitives test suite;
+
+/* The primitive pojos package test suite identifier. */
+"primitive pojos test suite" is a new atom;
+New test suite primitive pojos test suite extends primitives test suite;
+
+/* The primitive processes package test suite identifier. */
+"primitive processes test suite" is a new atom;
+New test suite primitive processes test suite extends primitives test suite;
+
+/* The primitive rawfunctions package test suite identifier. */
+"primitive rawfunctions test suite" is a new atom;
+New test suite primitive rawfunctions test suite extends primitives test suite;
+
+/* The primitive sets package test suite identifier. */
+"primitive sets test suite" is a new atom;
+New test suite primitive sets test suite extends primitives test suite;
+
+/* The primitive sockets package test suite identifier. */
+"primitive sockets test suite" is a new atom;
+New test suite primitive sockets test suite extends primitives test suite;
+
+/* The primitive tuples package test suite identifier. */
+"primitive tuples test suite" is a new atom;
+New test suite primitive tuples test suite extends primitives test suite;
+
+/* The primitive types package test suite identifier. */
+"primitive types test suite" is a new atom;
+New test suite primitive types test suite extends primitives test suite;
+
+/* The primitive variables package test suite identifier. */
+"primitive variables test suite" is a new atom;
+New test suite primitive variables test suite extends primitives test suite;
