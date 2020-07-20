@@ -70,7 +70,7 @@ object P_AtomGetProperty : Primitive(
 		val propertyValue = atom.getAtomProperty(propertyKey)
 		return if (propertyValue.equalsNil())
 		{
-			interpreter.primitiveFailure(E_KEY_NOT_FOUND)
+			interpreter.primitiveFailure(E_NO_SUCH_FIELD)
 		}
 		else interpreter.primitiveSuccess(propertyValue)
 	}
@@ -79,5 +79,5 @@ object P_AtomGetProperty : Primitive(
 		functionType(tuple(ATOM.o(), ATOM.o()), ANY.o())
 
 	override fun privateFailureVariableType(): A_Type =
-		enumerationWith(set(E_NO_SUCH_FIELD, E_KEY_NOT_FOUND))
+		enumerationWith(set(E_NO_SUCH_FIELD))
 }

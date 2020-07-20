@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 7/16/20 11:13 AM
+ * * Last Generated: 7/20/20 11:21 AM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -221,7 +221,6 @@ Private semantic restriction "Private invoke_with«_‡,»" is
  *        The property key.
  * @returns "any"
  *    The property value bound to the key.
- * @raises "key-not-found exception"
  * @raises "no-such-field exception"
  */
 Primitive "_[_]" is
@@ -230,7 +229,6 @@ Primitive "_[_]" is
 	key : atom
 |
 	Primitive AtomGetProperty (failureCode : {
-		key-not-found code,
 		no-such-field code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : any;
@@ -289,7 +287,6 @@ Primitive "_'s⁇issuing module" is
  * @param "key" "atom"
  *        A property key.
  * @returns "⊤"
- * @raises "key-not-found exception"
  * @raises "no-such-field exception"
  */
 Primitive "Remove_[_]" is
@@ -298,7 +295,6 @@ Primitive "Remove_[_]" is
 	key : atom
 |
 	Primitive AtomRemoveProperty (failureCode : {
-		key-not-found code,
 		no-such-field code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;

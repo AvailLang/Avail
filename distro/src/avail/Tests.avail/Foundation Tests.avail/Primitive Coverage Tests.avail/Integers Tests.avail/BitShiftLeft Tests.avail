@@ -36,9 +36,23 @@ Versions
 Uses
 	"Primitive Test Common"
 Body
-Test "BitShiftLeft ok" in primitive integers test suite if supported is
+Test "BitShiftLeft ok" in primitive integers test suite is
 [
-	Skip test
+	Require: 0 << 1 = 0;
+	Require: 1 << 1 = 2;
+	Require: 1 << 2 = 4;
+	Require: 1 << 3 = 8;
+	Require: 3 << 3 = 24;
+	Require: 1 << 4 = 16;
+	Require: 1 << 5 = 32;
+	Require: 1 << 6 = 64;
+	Require: 1 << 7 = 128;
+	Require: 1 << 8 = 256;
+	Require: 1 << 9 = 512;
+	Require: 1 << 10 = 1024;
+	Require: 1 << 11 = 2048;
+	Require: 1 << 12 = 4096;
+	Require: 1 << 30 = 1073741824;
 ];
 
 Test "BitShiftLeft fails with too-large-to-represent exception" in primitive integers test suite if supported is

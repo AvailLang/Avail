@@ -41,9 +41,10 @@ Test "LookupAtomsForName ok" in primitive atoms test suite if supported is
 	Skip test
 ];
 
-Test "LookupAtomsForName fails with loading-is-over exception" in primitive atoms test suite if supported is
+Test "LookupAtomsForName fails with loading-is-over exception" in primitive atoms test suite is
 [
-	Skip test
+	a ::= new atom named "quimzical";
+	all atoms for "quimzical"
 ]
 must raise loading-is-over exception;
 

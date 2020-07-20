@@ -75,7 +75,7 @@ object P_AtomRemoveProperty : Primitive(
 		val propertyValue = atom.getAtomProperty(propertyKey)
 		if (propertyValue.equalsNil())
 		{
-			return interpreter.primitiveFailure(E_KEY_NOT_FOUND)
+			return interpreter.primitiveFailure(E_NO_SUCH_FIELD)
 		}
 		atom.setAtomProperty(propertyKey, nil)
 		interpreter.availLoaderOrNull()?.recordEffect(
@@ -90,5 +90,5 @@ object P_AtomRemoveProperty : Primitive(
 		functionType(tuple(ATOM.o(), ATOM.o()), TOP.o())
 
 	override fun privateFailureVariableType(): A_Type =
-		enumerationWith(set(E_NO_SUCH_FIELD, E_KEY_NOT_FOUND))
+		enumerationWith(set(E_NO_SUCH_FIELD))
 }

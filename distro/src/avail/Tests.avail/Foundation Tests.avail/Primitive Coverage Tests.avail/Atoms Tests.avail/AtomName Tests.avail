@@ -40,5 +40,6 @@ Test "AtomName ok" in primitive atoms test suite is
 [
 	k ::= new atom named "key";
 	Require: k's name = "key";
+	Require: primitive atoms test suite's name = "primitive atoms test suite";
 ];
 

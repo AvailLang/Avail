@@ -46,17 +46,11 @@ Test "AtomRemoveProperty ok" in primitive atoms test suite is
 	Require: ¬k ∈ o;
 ];
 
-Test "AtomRemoveProperty fails with key-not-found exception" in primitive atoms test suite is
+Test "AtomRemoveProperty fails with no-such-field exception" in primitive atoms test suite is
 [
 	k ::= new atom named "key";
 	o ::= new atom named "outer";
 	Remove o[k];
-]
-must raise key-not-found exception;
-
-Test "AtomRemoveProperty fails with no-such-field exception" in primitive atoms test suite if supported is
-[
-	Skip test
 ]
 must raise no-such-field exception;
 

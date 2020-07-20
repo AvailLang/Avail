@@ -36,8 +36,13 @@ Versions
 Uses
 	"Primitive Test Common"
 Body
-Test "CharacterFromCodePoint ok" in primitive characters test suite if supported is
+Test "CharacterFromCodePoint ok" in primitive characters test suite is
 [
-	Skip test
+	Require: 33 →character = ¢!;
+    Require: 174 →character = ¢®;
+    Require: 181 →character = ¢µ;
+    Require: 182 →character = ¢¶;
+    Require: 477 →character = ¢ǝ;
+    Require: 1106 →character = ¢ђ;
 ];
 

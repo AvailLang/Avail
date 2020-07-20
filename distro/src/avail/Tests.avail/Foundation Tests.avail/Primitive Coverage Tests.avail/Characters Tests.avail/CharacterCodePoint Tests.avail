@@ -36,8 +36,13 @@ Versions
 Uses
 	"Primitive Test Common"
 Body
-Test "CharacterCodePoint ok" in primitive characters test suite if supported is
+Test "CharacterCodePoint ok" in primitive characters test suite is
 [
-	Skip test
+	Require: ¢!'s code point = 33;
+	Require: ¢®'s code point = 174;
+	Require: ¢µ's code point = 181;
+	Require: ¢¶'s code point = 182;
+	Require: ¢ǝ's code point = 477;
+	Require: ¢ђ's code point = 1106;
 ];
 
