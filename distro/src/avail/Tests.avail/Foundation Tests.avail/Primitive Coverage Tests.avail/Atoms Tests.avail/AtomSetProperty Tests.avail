@@ -36,9 +36,13 @@ Versions
 Uses
 	"Primitive Test Common"
 Body
-Test "AtomSetProperty ok" in primitive atoms test suite if supported is
+Test "AtomSetProperty ok" in primitive atoms test suite is
 [
-	Skip test
+	k ::= new atom named "key";
+	o ::= new atom named "outer";
+	Require: [o[k]] raises key-not-found exception;
+	o[k] := 1;
+	Require: o[k] = 1;
 ];
 
 Test "AtomSetProperty fails with special-atom exception" in primitive atoms test suite if supported is

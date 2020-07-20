@@ -36,8 +36,9 @@ Versions
 Uses
 	"Primitive Test Common"
 Body
-Test "AtomName ok" in primitive atoms test suite if supported is
+Test "AtomName ok" in primitive atoms test suite is
 [
-	Skip test
+	k ::= new atom named "key";
+	Require: k's name = "key";
 ];
 

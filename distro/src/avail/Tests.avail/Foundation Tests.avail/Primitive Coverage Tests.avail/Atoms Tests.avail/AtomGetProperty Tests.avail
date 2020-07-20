@@ -36,14 +36,19 @@ Versions
 Uses
 	"Primitive Test Common"
 Body
-Test "AtomGetProperty ok" in primitive atoms test suite if supported is
+Test "AtomGetProperty ok" in primitive atoms test suite is
 [
-	Skip test
+	k ::= new atom named "key";
+	o ::= new atom named "outer";
+	o[k] := 1;
+	Require: o[k] = 1;
 ];
 
-Test "AtomGetProperty fails with key-not-found exception" in primitive atoms test suite if supported is
+Test "AtomGetProperty fails with key-not-found exception" in primitive atoms test suite is
 [
-	Skip test
+	k ::= new atom named "not going to be found";
+	o ::= new atom named "test atom";
+	o[k]
 ]
 must raise key-not-found exception;
 

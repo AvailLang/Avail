@@ -36,9 +36,11 @@ Versions
 Uses
 	"Primitive Test Common"
 Body
-Test "CreateAtom ok" in primitive atoms test suite if supported is
+Test "CreateAtom ok" in primitive atoms test suite is
 [
-	Skip test
+	a ::= new atom named "Avail is cool";
+	/* By virtue of the above and following running indicates a success. */
+	Require: a's name = "Avail is cool";
 ];
 
 Test "CreateAtom fails with ambiguous-name exception" in primitive atoms test suite if supported is
