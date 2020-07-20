@@ -55,9 +55,10 @@ Test "BitShiftRight ok" in primitive integers test suite is
 	Require: 1073741824 >> 30 = 1;
 ];
 
-Test "BitShiftRight fails with too-large-to-represent exception" in primitive integers test suite if supported is
+Test "BitShiftRight fails with too-large-to-represent exception" in primitive integers test suite is
 [
-	Skip test
+	a : integer := -999999999999999999999;
+	123 >> a
 ]
 must raise too-large-to-represent exception;
 

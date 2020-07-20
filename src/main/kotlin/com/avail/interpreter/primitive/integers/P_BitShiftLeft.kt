@@ -47,6 +47,7 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.execution.Interpreter
+import com.avail.exceptions.ArithmeticException
 
 /**
  * **Primitive:** Given any integer B, and a shift factor S, compute
@@ -63,10 +64,15 @@ object P_BitShiftLeft : Primitive(2, CanFold, CanInline)
 		interpreter.checkArgumentCount(2)
 		val baseInteger = interpreter.argument(0)
 		val shiftFactor = interpreter.argument(1)
-		return interpreter.primitiveSuccess(
-			baseInteger.bitShift(
-				shiftFactor,
-				true))
+		return try
+		{
+			interpreter.primitiveSuccess(
+				baseInteger.bitShift(shiftFactor, true))
+		}
+		catch (e: ArithmeticException)
+		{
+			interpreter.primitiveFailure(e)
+		}
 	}
 
 	override fun fallibilityForArgumentTypes(

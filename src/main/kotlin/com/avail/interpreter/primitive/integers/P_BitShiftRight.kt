@@ -42,6 +42,7 @@ import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeType
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
+import com.avail.exceptions.ArithmeticException
 import com.avail.exceptions.AvailErrorCode.E_TOO_LARGE_TO_REPRESENT
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
@@ -63,10 +64,17 @@ object P_BitShiftRight : Primitive(2, CanFold, CanInline)
 		interpreter.checkArgumentCount(2)
 		val baseInteger = interpreter.argument(0)
 		val shiftFactor = interpreter.argument(1)
-		return interpreter.primitiveSuccess(
-			baseInteger.bitShift(
-				zero().minusCanDestroy(shiftFactor, true),
-				true))
+		return try
+		{
+			interpreter.primitiveSuccess(
+				baseInteger.bitShift(
+					zero().minusCanDestroy(shiftFactor, true),
+					true))
+		}
+		catch (e: ArithmeticException)
+		{
+			interpreter.primitiveFailure(e)
+		}
 	}
 
 	override fun fallibilityForArgumentTypes(
