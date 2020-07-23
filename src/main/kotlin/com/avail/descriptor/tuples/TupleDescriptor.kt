@@ -1171,15 +1171,14 @@ abstract class TupleDescriptor protected constructor(
 			self.computeHashFromTo(1, self.tupleSize())
 
 		/** The empty tuple. */
-		val emptyTuple: AvailObject = {
-			val t: A_Tuple =
-				NybbleTupleDescriptor.generateNybbleTupleFrom(0) {
-					assert(false) { "This should be an empty nybble tuple" }
-					0
-				}
-			t.hash()
-			t.makeShared()
-		}()
+		val emptyTuple: AvailObject =
+			NybbleTupleDescriptor.generateNybbleTupleFrom(0) {
+				assert(false) { "This should be an empty nybble tuple" }
+				0
+			}.let {
+				it.hash()
+				it.makeShared()
+			}
 
 		/**
 		 * Answer the empty [tuple][A_Tuple].
