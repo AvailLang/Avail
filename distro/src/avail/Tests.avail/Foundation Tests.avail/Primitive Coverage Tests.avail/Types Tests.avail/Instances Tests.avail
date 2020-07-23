@@ -36,6 +36,7 @@ Versions
 Uses
 	"Primitive Test Common"
 Body
+
 Test "Instances ok" in primitive types test suite if supported is
 [
 	Skip test

@@ -16,6 +16,7 @@
     <fork_mode value="class" />
     <method v="2">
       <option name="Gradle.BeforeRunTask" enabled="false" tasks="testClasses" externalProjectPath="$PROJECT_DIR$" vmOptions="" scriptParameters="" />
+      <option name="BSP.BeforeRunTask" enabled="true" />
     </method>
   </configuration>
 </component>

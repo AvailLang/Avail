@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 7/20/20 11:21 AM
+ * * Last Generated: 7/23/20 10:22 AM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -473,7 +473,7 @@ Primitive "current macro name" is
  *
  * @category "Primitives" "Phrases" "Functions" "Conversions"
  * @method "_→function"
- * @param "aBlock" "block phrase"
+ * @param "aBlock" "block phrase⇒[…]→⊤"
  *        A block. Note that the block is treated as a top-level construct, so
  *        it must not refer to any outer variable declarations.
  * @returns "[…]→⊤"
@@ -519,7 +519,7 @@ Primitive "_→function" is
  *
  * @category "Primitives" "Semantic Restrictions"
  * @method "Immediately reject parse«silently|weakly|moderately|strongly⁇»!,expected:_"
- * @param "level" "parse rejection level"
+ * @param "level" "[1..4]"
  *        The notification level that controls under what circumstances the text
  *        should be presented as a compilation error.  The values are: 
  *            1=silently, which is never displayed,
@@ -550,19 +550,19 @@ Primitive "Immediately reject parse«silently|weakly|moderately|strongly⁇»!,e
  *
  * @category "Primitives" "Continuations" "Constructors"
  * @method "`$_@pc=_stack=_[_]caller=_"
- * @param "aFunction" "function"
+ * @param "aFunction" "[…]→⊤"
  *        The new continuation's current function.
- * @param "programCounter" "whole number"
+ * @param "programCounter" "[0..∞)"
  *        @param "aFunction"'s program counter. This is the index of the
  *        next Level One instruction to execute when the new continuation is
  *        resumed.
  * @param "stack" "tuple"
  *        @param "aFunction"'s stack. This tuple contains the arguments, local
  *        variables, and temporaries.
- * @param "stackPointer" "natural number"
+ * @param "stackPointer" "[1..∞)"
  *        @param "aFunction"'s stack pointer. This is the index of the
  *        top of the stack.
- * @param "caller" "continuation variable"
+ * @param "caller" "↑$[…]→⊥"
  *        A variable holding the new continuation's calling continuation.
  *        If the variable is unassigned, then create a root continuation (i.e.
  *        one without a caller).
@@ -595,7 +595,7 @@ Primitive "`$_@pc=_stack=_[_]caller=_" is
  *
  * @category "Primitives" "Continuations" "Control Structures"
  * @method "Exit_with_if_"
- * @param "aContinuation" "continuation"
+ * @param "aContinuation" "$[…]→⊥"
  *        The continuation to exit.
  * @param "value" "any"
  *        The value with which to exit {@param "aContinuation"}.
@@ -621,7 +621,7 @@ Primitive "Exit_with_if_" is
  *
  * @category "Primitives" "Functions" "Function Application"
  * @method "Invoke|invoke_with_"
- * @param "aFunction" "function"
+ * @param "aFunction" "[…]→⊤"
  *        A function.
  * @param "arguments" "tuple"
  *        The tuple of arguments.
@@ -649,7 +649,7 @@ Primitive "Invoke|invoke_with_" is
  *
  * @category "Primitives" "Continuations" "Control Structures"
  * @method "Restart_with_"
- * @param "aContinuation" "continuation"
+ * @param "aContinuation" "$[…]→⊥"
  *        The continuation to restart.
  * @param "arguments" "tuple"
  *        The new arguments with which to restart {@param "aContinuation"}.
@@ -696,7 +696,7 @@ Primitive "_→extended integer" is
  *
  * @category "Primitives" "Concurrency" "Synchronization" "Control Structures"
  * @method "Attempt to join_"
- * @param "aFiber" "fiber"
+ * @param "aFiber" "fiber→⊤"
  *        A fiber.
  * @returns "⊤"
  * @raises "fiber-cannot-join-itself exception"
@@ -748,14 +748,14 @@ Primitive "new⁇heritable«fiber-local»⁇atom named_" is
  *
  * @category "Primitives" "Concurrency" "Time" "Control Structures"
  * @method "in_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_"
- * @param "delayMillis" "nonnegative extended integer"
+ * @param "delayMillis" "[0..∞]"
  *        The minimum number of milliseconds to delay the start of the new
  *       fiber.
- * @param "aFunction" "function"
+ * @param "aFunction" "[…]→⊤"
  *        A function.
  * @param "arguments" "tuple"
  *        The arguments to the function.
- * @param "priority" "byte"
+ * @param "priority" "[0..255]"
  *        The priority of the new fiber.
  * @returns "fiber→⊤"
  *    The new fiber.
@@ -783,14 +783,14 @@ Primitive "in_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_" i
  *
  * @category "Primitives" "Concurrency" "Time" "Control Structures"
  * @method "In_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_"
- * @param "delayMillis" "nonnegative extended integer"
+ * @param "delayMillis" "[0..∞]"
  *        The minimum number of milliseconds to delay the start of the new
  *       fiber.
- * @param "aFunction" "function"
+ * @param "aFunction" "[…]→⊤"
  *        A function.
  * @param "arguments" "tuple"
  *        The arguments to the function.
- * @param "priority" "byte"
+ * @param "priority" "[0..255]"
  *        The priority of the new fiber.
  * @returns "⊤"
  * @raises "incorrect-number-of-arguments exception"
@@ -816,7 +816,7 @@ Primitive "In_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_" i
  *
  * @category "Primitives" "Concurrency" "Queries"
  * @method "_'s⁇result"
- * @param "aFiber" "fiber"
+ * @param "aFiber" "fiber→⊤"
  *        A fiber.
  * @returns "any"
  *    The result yielded by the specified fiber. This is the value produced by
@@ -840,11 +840,11 @@ Primitive "_'s⁇result" is
  *
  * @category "Primitives" "Concurrency" "Control Structures"
  * @method "invoke_with_,⁇forked at priority_"
- * @param "aFunction" "function"
+ * @param "aFunction" "[…]→⊤"
  *        A function.
  * @param "arguments" "tuple"
  *        The arguments to the function.
- * @param "priority" "byte"
+ * @param "priority" "[0..255]"
  *        The priority of the new fiber.
  * @returns "fiber→⊤"
  *    The new fiber.
@@ -869,11 +869,11 @@ Primitive "invoke_with_,⁇forked at priority_" is
  *
  * @category "Primitives" "Concurrency" "Control Structures"
  * @method "Invoke_with_,⁇forked at priority_"
- * @param "aFunction" "function"
+ * @param "aFunction" "[…]→⊤"
  *        A function.
  * @param "arguments" "tuple"
  *        The arguments to the function.
- * @param "priority" "byte"
+ * @param "priority" "[0..255]"
  *        The priority of the new fiber.
  * @returns "⊤"
  * @raises "incorrect-number-of-arguments exception"
@@ -986,7 +986,7 @@ Primitive "_→extended integer" is
  *
  * @category "Primitives" "Functions" "Constructors"
  * @method "function from_and_"
- * @param "implementation" "function implementation"
+ * @param "implementation" "¢[…]→⊤"
  *        The compiled code that describes the algorithm.
  * @param "outerVariables" "tuple"
  *        The tuple of outer variables.
@@ -1009,9 +1009,9 @@ Primitive "function from_and_" is
  *
  * @category "Primitives" "Types" "Functions" "Queries"
  * @method "_[_]"
- * @param "functionType" "function meta"
+ * @param "functionType" "([…]→⊤)'s type"
  *        A function type.
- * @param "index" "natural number"
+ * @param "index" "[1..∞)"
  *        The one-based index of the desired parameter type.
  * @returns "(any)'s type"
  *    The {@param "index"}-th parameter type of the argument.
@@ -1032,7 +1032,7 @@ Primitive "_[_]" is
  *
  * @category "Primitives" "Standard IO"
  * @method "Mark for_character|characters of read ahead"
- * @param "count" "whole number"
+ * @param "count" "[0..∞)"
  *        The requested number of characters of read ahead.
  * @returns "⊤"
  * @raises "I/O exception"
@@ -1120,9 +1120,9 @@ Primitive "Reset to mark" is
  *
  * @category "Primitives" "Numbers" "Integers" "Mathematics" "Bits"
  * @method "_<<_"
- * @param "baseInteger" "integer"
+ * @param "baseInteger" "(-∞..∞)"
  *        An integer to shift.
- * @param "shiftFactor" "integer"
+ * @param "shiftFactor" "(-∞..∞)"
  *        How many bits to shift left (or right if negative).
  * @returns "(-∞..∞)"
  *    ⌊_<<_ × 2<sup>baseInteger</sup>⌋
@@ -1145,9 +1145,9 @@ Primitive "_<<_" is
  *
  * @category "Primitives" "Numbers" "Integers" "Mathematics" "Bits"
  * @method "_>>_"
- * @param "baseInteger" "integer"
+ * @param "baseInteger" "(-∞..∞)"
  *        An integer to shift.
- * @param "shiftFactor" "integer"
+ * @param "shiftFactor" "(-∞..∞)"
  *        How many bits to shift right (or left if negative).
  * @returns "(-∞..∞)"
  *    ⌊_>>_ ÷ 2<sup>baseInteger</sup>⌋
@@ -1170,11 +1170,11 @@ Primitive "_>>_" is
  *
  * @category "Primitives" "Numbers" "Integers" "Mathematics" "Bits"
  * @method "_<<_keeping_bits"
- * @param "baseInteger" "whole number"
+ * @param "baseInteger" "[0..∞)"
  *        A non-negative integer to shift and mask.
- * @param "shiftFactor" "integer"
+ * @param "shiftFactor" "(-∞..∞)"
  *        How many bit positions to shift left by (negative for a right shift).
- * @param "truncationBits" "whole number"
+ * @param "truncationBits" "[0..∞)"
  *        The number of low-order bits to preserve after the shift (must
  *        be ≥ 0).
  * @returns "[0..∞)"
@@ -1226,14 +1226,14 @@ Primitive "_[_]" is
  * @method "_«[_]»(_.._)→_"
  * @param "aMap" "map"
  *        The target map.
- * @param "pathTuple" "nonempty tuple"
+ * @param "pathTuple" "<any…|1..∞>"
  *        The tuple providing the path to follow to reach the location
  *        to be updated.
- * @param "replaceStartIndex" "whole number"
+ * @param "replaceStartIndex" "[0..∞)"
  *        The start index of the range to replace.
- * @param "replaceEndIndex" "natural number"
+ * @param "replaceEndIndex" "[1..∞)"
  *        The end index of the range to replace.
- * @param "newValues" "two or more tuple"
+ * @param "newValues" "<any…|2..∞>"
  *        The replacement values.
  * @returns "map"
  *    a new map with the new values installed at the proposed locations.
@@ -1268,7 +1268,7 @@ Primitive "_«[_]»(_.._)→_" is
  * @method "_«[_]»→_"
  * @param "aMap" "map"
  *        The target map.
- * @param "pathTuple" "nonempty tuple"
+ * @param "pathTuple" "<any…|1..∞>"
  *        The tuple providing the path to follow to reach the location
  *        to be updated.
  * @param "newValue" "any"
@@ -1308,7 +1308,7 @@ Primitive "_«[_]»→_" is
  * @method "Abstract method_is_"
  * @param "methodName" "string"
  *        The name of the abstract method to declare.
- * @param "aFunctionType" "function meta"
+ * @param "aFunctionType" "([…]→⊤)'s type"
  *        The signature.
  * @returns "⊤"
  * @raises "incorrect-argument-type exception"
@@ -1382,7 +1382,7 @@ Primitive "Abstract method_is_" is
  * @method "Abstract method_is_"
  * @param "methodName" "atom"
  *        The atom that uniquely names the abstract method to declare.
- * @param "signature" "function meta"
+ * @param "signature" "([…]→⊤)'s type"
  *        The signature.
  * @returns "⊤"
  * @raises "incorrect-argument-type exception"
@@ -1459,7 +1459,7 @@ Primitive "Abstract method_is_" is
  * @method "Semantic restriction_is_"
  * @param "methodName" "string"
  *        The name of the method to which the semantic restriction applies.
- * @param "restriction" "semantic restriction function"
+ * @param "restriction" "[…]→(⊤)'s type"
  *        The restriction function.
  * @returns "⊤"
  * @raises "incorrect-number-of-arguments exception"
@@ -1536,7 +1536,7 @@ Primitive "Semantic restriction_is_" is
  * @method "Semantic restriction_is_"
  * @param "methodName" "atom"
  *        The name of the method to which the semantic restriction applies.
- * @param "restriction" "semantic restriction function"
+ * @param "restriction" "[…]→(⊤)'s type"
  *        The restriction function.
  * @returns "⊤"
  * @raises "incorrect-number-of-arguments exception"
@@ -1669,7 +1669,7 @@ Primitive "Alias_to_" is
  * @method "_has definition for_"
  * @param "methodName" "atom"
  *        A method name (an atom).
- * @param "parameterTypes" "tuple of any meta"
+ * @param "parameterTypes" "<(any)'s type…|>"
  *        A tuple of parameter types. This must agree in length with the number
  *        of parameters expected by the method.
  * @returns "boolean"
@@ -1701,7 +1701,7 @@ Primitive "_has definition for_" is
  * @method "method definition of_for_"
  * @param "methodName" "atom"
  *        The name of the method.
- * @param "parameterTypes" "tuple of any meta"
+ * @param "parameterTypes" "<(any)'s type…|>"
  *        A tuple of parameter types. This must agree in length with the number
  *        of parameters expected by the method.
  * @returns "definition"
@@ -1737,7 +1737,7 @@ Primitive "method definition of_for_" is
  * @method "Forward method_is_"
  * @param "methodName" "string"
  *        The name of the method to forward declare.
- * @param "aFunctionType" "function meta"
+ * @param "aFunctionType" "([…]→⊤)'s type"
  *        The signature.
  * @returns "⊤"
  * @raises "incorrect-argument-type exception"
@@ -1814,9 +1814,9 @@ Primitive "Forward method_is_" is
  *
  * @category "Primitives" "Name Resolution" "Methods" "Constructors" "Mutators"
  * @method "Grammatical restriction_is_"
- * @param "methodsToRestrict" "nonempty set of string"
+ * @param "methodsToRestrict" "{string|1..∞}"
  *        A set of method names, each of which should be restricted.
- * @param "exclusions" "tuple of set of string"
+ * @param "exclusions" "<{string|}…|>"
  *        A tuple of sets of method names. The method names in the `n`-th set
  *        are restricted from occurring grammatically at the `n`-th argument
  *        position of any invocation of a method named in {@param "methodsToRestrict"}.
@@ -1890,9 +1890,9 @@ Primitive "Grammatical restriction_is_" is
  *
  * @category "Primitives" "Name Resolution" "Methods" "Constructors" "Mutators"
  * @method "Grammatical restriction_is_"
- * @param "methodsToRestrict" "nonempty set of atom"
+ * @param "methodsToRestrict" "{atom|1..∞}"
  *        A set of method names, each of which should be restricted.
- * @param "exclusions" "tuple of set of atom"
+ * @param "exclusions" "<{atom|}…|>"
  *        A tuple of sets of method names. The method names in the
  *       `n`-th set are restricted from occurring grammatically at the `n`-th
  *       argument position of any invocation of a method named in
@@ -2091,7 +2091,7 @@ Primitive "`|message_'s⁇parameters`|" is
  * @method "Seal method_at_"
  * @param "methodName" "string"
  *        The name of the method to seal.
- * @param "signature" "tuple of any meta"
+ * @param "signature" "<(any)'s type…|>"
  *        A tuple of parameter types. This is the signature at which the
  *       seal will be placed.
  * @returns "⊤"
@@ -2158,7 +2158,7 @@ Primitive "Seal method_at_" is
  * @method "Seal method_at_"
  * @param "methodName" "atom"
  *        The atom that uniquely designates the method to seal.
- * @param "signature" "tuple of any meta"
+ * @param "signature" "<(any)'s type…|>"
  *        A tuple of parameter types. This is the signature at which the seal
  *        will be placed.
  * @returns "⊤"
@@ -2220,7 +2220,7 @@ Primitive "Seal method_at_" is
  *
  * @category "Primitives" "Methods" "Mutators"
  * @method "Seal method|methods_at existing definitions"
- * @param "methodNames" "set of atom"
+ * @param "methodNames" "{atom|}"
  *        A set of atoms that serve as method names.
  * @returns "⊤"
  * @raises "cannot-define-during-compilation exception"
@@ -2243,7 +2243,7 @@ Primitive "Seal method|methods_at existing definitions" is
  * @method "semantic restrictions for_given_"
  * @param "aMethod" "method"
  *        A method.
- * @param "arguments" "tuple of any meta"
+ * @param "arguments" "<(any)'s type…|>"
  *        The tuple of arguments that should be used to filter the semantic
  *        restrictions.
  * @returns "<[…]→(⊤)'s type…|>"
@@ -2269,9 +2269,9 @@ Primitive "semantic restrictions for_given_" is
  * @method "Lexer_when_is_"
  * @param "lexerName" "atom"
  *        The atom that names the lexer.
- * @param "filterFunction" "lexer filter function"
+ * @param "filterFunction" "[character]→boolean"
  *        The filter function of the lexer.
- * @param "bodyFunction" "lexer body function"
+ * @param "bodyFunction" "[string, [1..4294967295], [1..268435455]]→{<token…|1..∞>|}"
  *        The body of the lexer.
  * @returns "⊤"
  * @raises "incorrect-argument-type exception"
@@ -2351,9 +2351,9 @@ Primitive "Lexer_when_is_" is
  * @method "Macro_is«_,»_"
  * @param "macroName" "string"
  *        The name of the macro to define.
- * @param "prefixFunctions" "tuple of function"
+ * @param "prefixFunctions" "<[…]→⊤…|>"
  *        A tuple of zero or more prefix functions.
- * @param "body" "macro function"
+ * @param "body" "[…]→phrase⇒⊤"
  *        The function that implements the macro.
  * @returns "⊤"
  * @raises "incorrect-number-of-arguments exception"
@@ -2443,9 +2443,9 @@ Primitive "Macro_is«_,»_" is
  * @method "Macro_is«_,»_"
  * @param "macroName" "atom"
  *        The name of the macro to define.
- * @param "prefixFunctions" "tuple of function"
+ * @param "prefixFunctions" "<[…]→⊤…|>"
  *        A tuple of zero or more prefix functions.
- * @param "body" "macro function"
+ * @param "body" "[…]→phrase⇒⊤"
  *        The function that implements the macro.
  * @returns "⊤"
  * @raises "incorrect-number-of-arguments exception"
@@ -2521,7 +2521,7 @@ Primitive "Macro_is«_,»_" is
  *
  * @category "Primitives" "Modules" "Mutators"
  * @method "After the current module is unloaded,⁇do_"
- * @param "aFunction" "function"
+ * @param "aFunction" "[…]→⊤"
  *        The post-unload function.
  * @returns "⊤"
  * @raises "loading-is-over exception"
@@ -2758,7 +2758,7 @@ Primitive "_[_]" is
  *
  * @category "Primitives" "Types" "Objects" "Queries"
  * @method "_[_]"
- * @param "objectType" "object meta"
+ * @param "objectType" "(object)'s type"
  *        An object type.
  * @param "field" "atom"
  *        The field for which to extract the type.
@@ -2781,7 +2781,7 @@ Primitive "_[_]" is
  *
  * @category "Primitives" "Types" "Objects" "Maps" "Conversions"
  * @method "_→map"
- * @param "anObjectType" "object meta"
+ * @param "anObjectType" "(object)'s type"
  *        An object type whose fields should be the keys of the new map and
  *        whose values are the corresponding values.
  * @returns "{atom→(any)'s type|}"
@@ -2801,7 +2801,7 @@ Primitive "_→map" is
  *
  * @category "Primitives" "Types" "Tuples" "Objects" "Conversions"
  * @method "_→tuple"
- * @param "anObjectType" "object meta"
+ * @param "anObjectType" "(object)'s type"
  *        An object type.
  * @returns "<<atom, (any)'s type…|2>…|>"
  *    A tuple that represents the composition of the object type. Its elements
@@ -2822,9 +2822,9 @@ Primitive "_→tuple" is
  *
  * @category "Primitives" "Phrases" "Constructors"
  * @method "`«(_:=_)`»"
- * @param "variableUse" "variable use phrase"
+ * @param "variableUse" "variable use phrase⇒any"
  *        A variable use expression.
- * @param "valueExpression" "expression yielding any"
+ * @param "valueExpression" "expression phrase⇒any"
  *        An expression.
  * @returns "assignment phrase⇒⊤"
  *    An expression that describes assigning to the variable indicated by
@@ -2849,9 +2849,9 @@ Primitive "`«(_:=_)`»" is
  *
  * @category "Primitives" "Phrases" "Constructors"
  * @method "`«_:=_`»"
- * @param "variableUse" "variable use phrase"
+ * @param "variableUse" "variable use phrase⇒any"
  *        A variable use expression.
- * @param "valueExpression" "expression yielding any"
+ * @param "valueExpression" "expression phrase⇒any"
  *        An expression.
  * @returns "assignment phrase⇒⊤"
  *    A statement that describes assigning to the variable indicated by
@@ -2877,16 +2877,16 @@ Primitive "`«_:=_`»" is
  *
  * @category "Primitives" "Phrases" "Constructors"
  * @method "`«[_`|Primitive__]:_^_`»"
- * @param "argumentDeclarations" "argument tuple"
+ * @param "argumentDeclarations" "<argument phrase⇒⊤…|>"
  *        A tuple of argument declarations.
  * @param "primitiveName" "string"
  *        The primitive linkage number, or 0 for no primitive linkage.
- * @param "statements" "phrase tuple"
+ * @param "statements" "<phrase⇒⊤…|>"
  *        A tuple of statements. Each element except for the last must be an
  *        assignment, declaration, label, sequence, or ⊤-valued send.
- * @param "returnType" "type"
+ * @param "returnType" "(⊤)'s type"
  *        The return type.
- * @param "exceptions" "set of exception"
+ * @param "exceptions" "{exception|}"
  *        The set of exceptions that may be raised.
  * @returns "block phrase⇒[…]→⊤"
  *    The requested block.
@@ -2912,7 +2912,7 @@ Primitive "`«[_`|Primitive__]:_^_`»" is
  *
  * @category "Primitives"
  * @method "first-of-seq`«_`»"
- * @param "statements" "phrase tuple"
+ * @param "statements" "<phrase⇒⊤…|>"
  *        A tuple of statements.
  * @returns "first of sequence phrase⇒⊤"
  *    The requested first-of-sequence phrase.
@@ -2932,9 +2932,9 @@ Primitive "first-of-seq`«_`»" is
  *
  * @category "Primitives" "Types" "Phrases" "Constructors"
  * @method "_⇒_"
- * @param "aPhrase" "phrase meta"
+ * @param "aPhrase" "(phrase⇒⊤)'s type"
  *        A phrase type.
- * @param "semanticType" "type"
+ * @param "semanticType" "(⊤)'s type"
  *        The semantic type of values producible by phrases that are instances
  *        of the answer.
  * @returns "(phrase⇒⊤)'s type"
@@ -2956,7 +2956,7 @@ Primitive "_⇒_" is
  *
  * @category "Primitives" "Phrases" "Constructors"
  * @method "`«`↑_`»"
- * @param "variableUse" "variable use phrase"
+ * @param "variableUse" "variable use phrase⇒any"
  *        A variable use expression.
  * @returns "reference phrase⇒read ⊤/write ⊥"
  *    A variable reference expression that answers the variable described by
@@ -2989,10 +2989,10 @@ Primitive "`«`↑_`»" is
  * @method "restricted report and send_with_:_"
  * @param "message" "atom"
  *        The atom that names the method to be invoked by the send phrase.
- * @param "args" "list phrase"
+ * @param "args" "list phrase⇒tuple (subexpressions tuple type=<phrase⇒any…|>)"
  *        The list phrase of phrases that are supplied as arguments of the send
  *        phrase.
- * @param "basicReturnType" "type"
+ * @param "basicReturnType" "(⊤)'s type"
  *        The return type of the send phrase, prior to strengthening by
  *        applicable method definitions and semantic restrictions.
  * @returns "<<send phrase⇒⊤…|0..1>, string…|2>"
@@ -3060,10 +3060,10 @@ Primitive "restricted report and send_with_:_" is
  * @method "send_with_:_"
  * @param "messageName" "atom"
  *        The name of the method to be invoked.
- * @param "argumentsList" "list phrase"
+ * @param "argumentsList" "list phrase⇒tuple (subexpressions tuple type=<phrase⇒any…|>)"
  *        The list phrase containing the argument expressions, corresponding
  *        left-to-right with the arguments of the method.
- * @param "returnType" "type"
+ * @param "returnType" "(⊤)'s type"
  *        The expected (strengthened) return type of the method send.
  * @returns "send phrase⇒⊤"
  *    The requested message send.
@@ -3122,7 +3122,7 @@ Primitive "send_with_:_" is
  *
  * @category "Primitives" "Phrases" "Constructors"
  * @method "seq`«_`»"
- * @param "statements" "phrase tuple"
+ * @param "statements" "<phrase⇒⊤…|>"
  *        A tuple of statements.
  * @returns "sequence phrase⇒⊤"
  *    The requested sequence.
@@ -3142,9 +3142,9 @@ Primitive "seq`«_`»" is
  *
  * @category "Primitives"
  * @method "`«supercast(_::_)`»"
- * @param "baseExpression" "expression yielding any"
+ * @param "baseExpression" "expression phrase⇒any"
  *        The base phrase that produces the argument to be passed in a call.
- * @param "lookupType" "any meta"
+ * @param "lookupType" "(any)'s type"
  *        The type to use to lookup this argument rather than its actual type.
  * @returns "super cast phrase⇒any"
  *    A supercast phrase.
@@ -3171,7 +3171,7 @@ Primitive "`«supercast(_::_)`»" is
  *
  * @category "Primitives" "Variables" "POJO" "Constructors"
  * @method "_'s⁇_field"
- * @param "aPojo" "pojo"
+ * @param "aPojo" "java.lang.Object"
  *        The pojo whose instance field should be bound to the answered
  *        variable.
  * @param "fieldName" "string"
@@ -3197,7 +3197,7 @@ Primitive "_'s⁇_field" is
  *
  * @category "Primitives" "Variables" "POJO" "Constructors"
  * @method "_'s⁇_field"
- * @param "aPojoType" "any meta"
+ * @param "aPojoType" "(any)'s type"
  *        A pojo type whose static field should be bound to the answered
  *        variable.
  * @param "fieldName" "string"
@@ -3249,9 +3249,9 @@ Primitive "_'s⁇_field" is
  *
  * @category "Primitives" "Functions" "POJO" "Constructors"
  * @method "constructor of_,⁇parameterized by_"
- * @param "aPojoType" "any meta"
+ * @param "aPojoType" "(any)'s type"
  *        A pojo type.
- * @param "parameterTypes" "tuple of any meta"
+ * @param "parameterTypes" "<(any)'s type…|>"
  *        The parameter types accepted by the desired constructor.
  * @returns "[…]→any"
  *    The requested constructor invocation function.
@@ -3302,11 +3302,11 @@ Primitive "constructor of_,⁇parameterized by_" is
  *
  * @category "Primitives" "Functions" "POJO" "Constructors"
  * @method "method_._,⁇parameterized by_"
- * @param "aPojoType" "any meta"
+ * @param "aPojoType" "(any)'s type"
  *        A pojo type.
  * @param "methodName" "string"
  *        The name of the desired method.
- * @param "parameterTypes" "tuple of any meta"
+ * @param "parameterTypes" "<(any)'s type…|>"
  *        The parameter types accepted by the desired method.
  * @returns "[…]→⊤"
  *    The requested instance method invocation function.
@@ -3356,11 +3356,11 @@ Primitive "method_._,⁇parameterized by_" is
  *
  * @category "Primitives" "Functions" "POJO" "Constructors"
  * @method "static method_._,⁇parameterized by_"
- * @param "aPojoType" "any meta"
+ * @param "aPojoType" "(any)'s type"
  *        A pojo type.
  * @param "methodName" "string"
  *        The name of the desired method.
- * @param "parameterTypes" "tuple of any meta"
+ * @param "parameterTypes" "<(any)'s type…|>"
  *        The parameter types accepted by the desired method.
  * @returns "[…]→⊤"
  *    The requested static method invocation function.
@@ -3386,7 +3386,7 @@ Primitive "static method_._,⁇parameterized by_" is
  * @method "_parameterized by_"
  * @param "javaName" "string"
  *        The fully qualified name of the Java class or interface.
- * @param "typeParameters" "tuple of any meta"
+ * @param "typeParameters" "<(any)'s type…|>"
  *        The type arguments. The cardinality of this tuple must agree with the
  *        number of type parameters required by the Java class or interface.
  * @returns "(any)'s type"
@@ -3410,9 +3410,9 @@ Primitive "_parameterized by_" is
  *
  * @category "Primitives" "POJO" "Queries"
  * @method "_[_]"
- * @param "anArray" "pojo array"
+ * @param "anArray" "any[]"
  *        A pojo array.
- * @param "index" "natural number"
+ * @param "index" "[1..∞)"
  *        A one-based index into the pojo array.
  * @returns "any"
  *    The {@param "index"}-th element of {@param "anArray"}.
@@ -3436,9 +3436,9 @@ Primitive "_[_]" is
  *
  * @category "Primitives" "POJO" "Mutators"
  * @method "_[_]:=_"
- * @param "anArray" "pojo array"
+ * @param "anArray" "any[]"
  *        A pojo array.
- * @param "index" "natural number"
+ * @param "index" "[1..∞)"
  *        A one-based index into the pojo array.
  * @param "value" "any"
  *        The value that should be written into the pojo array.
@@ -3467,9 +3467,9 @@ Primitive "_[_]:=_" is
  * @method "_[_.._]"
  * @param "aTuple" "tuple"
  *        A tuple.
- * @param "sliceStart" "natural number"
+ * @param "sliceStart" "[1..∞)"
  *        The one-based start index (inclusive) of the desired slice.
- * @param "sliceEnd" "whole number"
+ * @param "sliceEnd" "[0..∞)"
  *        The one-based end index (inclusive) of the desired slice.
  * @returns "tuple"
  *    The requested tuple.
@@ -3491,13 +3491,13 @@ Primitive "_[_.._]" is
  *
  * @category "Primitives" "Tuples" "Constructors"
  * @method "_to_by_"
- * @param "start" "integer"
+ * @param "start" "(-∞..∞)"
  *        The first value in the tuple.
- * @param "end" "integer"
+ * @param "end" "(-∞..∞)"
  *        The last allowed value in the tuple. This value will only be the
  *        last value in the tuple if the difference between the first and last
  *        values is a multiple of the step size.
- * @param "delta" "integer"
+ * @param "delta" "(-∞..∞)"
  *        The step size of the interval.
  * @returns "<(-∞..∞)…|>"
  *    The requested tuple.
@@ -3519,7 +3519,7 @@ Primitive "_to_by_" is
  *
  * @category "Primitives" "Tuples" "Constructors"
  * @method "_occurrences⁇of_"
- * @param "count" "whole number"
+ * @param "count" "[0..∞)"
  *        The number of elements in the resulting tuple.
  * @param "value" "any"
  *        The repeated value.
@@ -3544,7 +3544,7 @@ Primitive "_occurrences⁇of_" is
  * @method "_[_]"
  * @param "aTuple" "tuple"
  *        A tuple.
- * @param "index" "natural number"
+ * @param "index" "[1..∞)"
  *        The one-based index of the desired element.
  * @returns "any"
  *    The requested element.
@@ -3568,7 +3568,7 @@ Primitive "_[_]" is
  * @method "_[_]→_"
  * @param "aTuple" "tuple"
  *        A tuple.
- * @param "index" "natural number"
+ * @param "index" "[1..∞)"
  *        The one-based index of the element that should (potentially) differ
  *        in the resultant tuple.
  * @param "value" "any"
@@ -3598,7 +3598,7 @@ Primitive "_[_]→_" is
  * @method "_«[_]»→_"
  * @param "aTuple" "tuple"
  *        The target tuple.
- * @param "pathTuple" "two or more tuple"
+ * @param "pathTuple" "<any…|2..∞>"
  *        The tuple providing the path to follow to reach the location
  *        to be updated.
  * @param "newValue" "any"
@@ -3638,14 +3638,14 @@ Primitive "_«[_]»→_" is
  * @method "_«[_]»(_.._)→_"
  * @param "aTuple" "tuple"
  *        The target tuple.
- * @param "pathTuple" "nonempty tuple"
+ * @param "pathTuple" "<any…|1..∞>"
  *        The tuple providing the path to follow to reach the location
  *        to be updated.
- * @param "headEndIndex" "natural number"
+ * @param "headEndIndex" "[1..∞)"
  *        The last index in the head of the target tuple to keep.
- * @param "tailStartIndex" "whole number"
+ * @param "tailStartIndex" "[0..∞)"
  *        The first index of the tail of the target tuple to keep.
- * @param "newValues" "two or more tuple"
+ * @param "newValues" "<any…|2..∞>"
  *        The replacement values.
  * @returns "tuple"
  *    a new tuple with the new values installed at the proposed locations.
@@ -3678,9 +3678,9 @@ Primitive "_«[_]»(_.._)→_" is
  * @method "_[_↔_]"
  * @param "aTuple" "tuple"
  *        The initial tuple.
- * @param "index1" "natural number"
+ * @param "index1" "[1..∞)"
  *        An index into the tuple.
- * @param "index2" "natural number"
+ * @param "index2" "[1..∞)"
  *        Another index into the tuple.
  * @returns "tuple"
  *    A tuple like the input, but with the specified indices swapped.
@@ -3703,11 +3703,11 @@ Primitive "_[_↔_]" is
  *
  * @category "Primitives" "Types" "Tuples" "Queries"
  * @method "_[_.._]"
- * @param "aTupleType" "tuple meta"
+ * @param "aTupleType" "(tuple)'s type"
  *        A tuple type.
- * @param "sliceStart" "natural number"
+ * @param "sliceStart" "[1..∞)"
  *        The one-based index (inclusive) of the start of the slice.
- * @param "sliceEnd" "whole number"
+ * @param "sliceEnd" "[0..∞)"
  *        The one-based index (inclusive) of the end of the slice.
  * @returns "<(any)'s type…|>"
  *    The requested slice of element types.
@@ -3731,7 +3731,7 @@ Primitive "_[_.._]" is
  *
  * @category "Primitives" "Types" "Queries"
  * @method "_'s⁇instances"
- * @param "enum" "type"
+ * @param "enum" "(⊤)'s type"
  *        An enumeration.
  * @returns "set"
  *    A set whose members are the instances of the enumeration.
@@ -3751,7 +3751,7 @@ Primitive "_'s⁇instances" is
  *
  * @category "Primitives"
  * @method "_[_]:=_"
- * @param "var" "map variable"
+ * @param "var" "read map/write ⊥"
  *        The variable containing a map.
  * @param "key" "any"
  *        The key to add or overwrite.
@@ -3779,7 +3779,7 @@ Primitive "_[_]:=_" is
  *
  * @category "Primitives" "Variables" "Queries"
  * @method "↓_"
- * @param "var" "write-only variable"
+ * @param "var" "read ⊤/write ⊥"
  *        A variable.
  * @returns "any"
  *    The value contained within the specified variable.
@@ -3803,7 +3803,7 @@ Primitive "↓_" is
  * @method "_∈_"
  * @param "key" "any"
  *        The key to search for.
- * @param "mapVariable" "map variable"
+ * @param "mapVariable" "read map/write ⊥"
  *        The variable holding a map whose keys are to be searched.
  * @returns "boolean"
  *    Whether the key is present in the variable's map.

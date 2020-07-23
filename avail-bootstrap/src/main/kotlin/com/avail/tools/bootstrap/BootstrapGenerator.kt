@@ -870,8 +870,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 					}
 					else
 					{
-						preamble.getString(
-							parameterPrefix.name) + i
+						preamble.getString(parameterPrefix.name) + i
 					}
 				}
 				else
@@ -879,8 +878,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 					preamble.getString(parameterPrefix.name) + i
 				}
 				formatArgs[i] = argName
-				formatArgs[i + primitiveArgCount] = specialObjectName(
-					paramsType.typeAtIndex(i))
+				formatArgs[i + primitiveArgCount] = paramsType.typeAtIndex(i)
 			}
 			// …then the return type…
 			formatArgs[(primitiveArgCount shl 1) + 1] =
@@ -1584,20 +1582,6 @@ class BootstrapGenerator constructor(private val locale: Locale)
 	}
 
 	/**
-	 * Answer the correct package name for the location the provided
-	 * [primitive][Primitive] test coverage module will be generated in.
-	 */
-	private fun primitiveCoverageTestPackageName (primitive: Primitive): String
-	{
-		val packagePath = primitive.javaClass.getPackage().name.split(".")
-		assert(packagePath.size > 2)
-		return MessageFormat.format(
-			preamble.getString(
-				primitiveCoverageTestModuleName.name),
-			packagePath[packagePath.size - 2])
-	}
-
-	/**
 	 * Answer the correct [module][ModuleDescriptor] name for the
 	 * [primitive][Primitive] test coverage module specified by the provided
 	 * primitive.
@@ -1804,6 +1788,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 		for (primitive in primitives(null))
 		{
 			val primitiveName = primitive.javaClass.simpleName.substring(2)
+			@Suppress("MapGetWithNotNullAssertionOperator")
 			val testPackage =
 				testPackageMap[primitive.javaClass.getPackage().name]!!
 			val moduleName = primitiveCoverageTestModuleName(primitive)
@@ -1819,6 +1804,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 				moduleName,
 				moduleVersionString(versions),
 				preamble.getString(primitiveCommonTestPackageName.name)))
+			writer.println()
 			writer.println(MessageFormat.format(
 				preamble.getString(primitiveCoverageTestCaseOk.name),
 				primitiveName,

@@ -36,6 +36,7 @@ Versions
 Uses
 	"Primitive Test Common"
 Body
+
 Test "GenerateFunctionForBlock ok" in primitive compiler test suite if supported is
 [
 	Skip test

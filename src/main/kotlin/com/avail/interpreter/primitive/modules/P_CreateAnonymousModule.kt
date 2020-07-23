@@ -32,85 +32,45 @@
 
 package com.avail.interpreter.primitive.modules
 
+import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.module.ModuleDescriptor
-import com.avail.descriptor.module.ModuleDescriptor.Companion.currentModule
 import com.avail.descriptor.module.ModuleDescriptor.Companion.newModule
-import com.avail.descriptor.sets.SetDescriptor.Companion.set
+import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
-import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import com.avail.descriptor.types.TupleTypeDescriptor.Companion.nonemptyStringType
-import com.avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
-import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
-import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
-import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrOneOf
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
+import com.avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
+import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.types.TypeDescriptor.Types.MODULE
-import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Answer the [module][ModuleDescriptor] currently undergoing
- * compilation. Fails at runtime (if compilation is over).
+ * **Primitive:** Create an anonymous [module][ModuleDescriptor] that privately
+ * imports only and exactly the supplied [set][A_Set] of
+ * [atoms][AtomDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object P_CreateAnonymousModule : Primitive(1, CanInline)
+object P_CreateAnonymousModule : Primitive(1, CanInline, CannotFail)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
-//		val allUses: A_Tuple = interpreter.argument(0)
+		val allUses: A_Set = interpreter.argument(0)
 
-		val currentModule = currentModule()
 		val newModule = newModule(TupleDescriptor.emptyTuple())
-//		val loader = interpreter.availLoaderOrNull() ?:
-//			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
-//		for ((moduleName, importsForModule) in allUses) {
-//			val importedModule = moduleName
-//			//TODO finish this
-//		}
-
-		if (currentModule.equalsNil())
-		{
-			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
-		}
+		newModule.addPrivateNames(allUses)
 		return interpreter.primitiveSuccess(newModule)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type = functionType(
-		tuple(
-			// Entire 'uses' argument
-			oneOrMoreOf(
-				// One imported module.
-				tupleTypeForTypes(
-					// Imported module name. Must be imported in current module.
-					nonemptyStringType(),
-					// Optional imported names list section.
-					zeroOrOneOf(
-						// Imported names list section.
-						tupleTypeForTypes(
-							// Imported names list.
-							zeroOrMoreOf(
-								// Single imported name.
-								tupleTypeForTypes(
-									// Negated import.
-									booleanType(),
-									// Name being imported.
-									nonemptyStringType(),
-									// Optional rename string.
-									zeroOrOneOf(
-										// Rename string.
-										nonemptyStringType()))),
-							// Wildcard for imported names.
-							booleanType()))))),
-		MODULE.o())
-
-	override fun privateFailureVariableType(): A_Type = enumerationWith(
-		set(
-			E_LOADING_IS_OVER))
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			// All atoms that should be imported privately.
+			tuple(setTypeForSizesContentType(wholeNumbers(), ATOM.o())),
+			MODULE.o())
 }

@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 7/20/20 11:21 AM
+ * * Last Generated: 7/23/20 10:22 AM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -268,6 +268,7 @@ Names
 	"method for_",
 	"method_._,⁇parameterized by_",
 	"milliseconds since the Epoch",
+	"new anonymous module importing_",
 	"new atom named_",
 	"new explicit subclass atom named_",
 	"new_[_]",

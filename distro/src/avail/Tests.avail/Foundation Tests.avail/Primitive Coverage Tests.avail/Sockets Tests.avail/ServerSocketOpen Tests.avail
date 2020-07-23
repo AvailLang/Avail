@@ -36,6 +36,7 @@ Versions
 Uses
 	"Primitive Test Common"
 Body
+
 Test "ServerSocketOpen ok" in primitive sockets test suite if supported is
 [
 	Skip test

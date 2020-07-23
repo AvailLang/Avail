@@ -36,6 +36,7 @@ Versions
 Uses
 	"Primitive Test Common"
 Body
+
 Test "CreatePojoStaticMethodFunction ok" in primitive pojos test suite if supported is
 [
 	Skip test

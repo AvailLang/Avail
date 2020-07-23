@@ -36,6 +36,7 @@ Versions
 Uses
 	"Primitive Test Common"
 Body
+
 Test "ReverseTuple ok" in primitive tuples test suite is
 [
 	Require: <1,2,3> reversed = <3,2,1>;

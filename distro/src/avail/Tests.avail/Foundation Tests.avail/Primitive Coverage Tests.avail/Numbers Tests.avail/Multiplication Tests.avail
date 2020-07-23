@@ -36,6 +36,7 @@ Versions
 Uses
 	"Primitive Test Common"
 Body
+
 Test "Multiplication ok" in primitive numbers test suite is
 [
 	For each i from 1 to 10 do

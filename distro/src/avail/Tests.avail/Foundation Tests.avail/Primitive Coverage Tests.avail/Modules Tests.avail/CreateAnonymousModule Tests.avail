@@ -36,14 +36,8 @@ Versions
 Uses
 	"Primitive Test Common"
 Body
+
 Test "CreateAnonymousModule ok" in primitive modules test suite if supported is
 [
 	Skip test
 ];
-
-Test "CreateAnonymousModule fails with loading-is-over exception" in primitive modules test suite if supported is
-[
-	Skip test
-]
-must raise loading-is-over exception;
-

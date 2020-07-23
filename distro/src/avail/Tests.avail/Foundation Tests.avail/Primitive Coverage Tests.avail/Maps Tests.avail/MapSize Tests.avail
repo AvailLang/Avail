@@ -36,6 +36,7 @@ Versions
 Uses
 	"Primitive Test Common"
 Body
+
 Test "MapSize ok" in primitive maps test suite is
 [
 	a ::= {1→"foo",2→"bar",3→"frog",4→"prince"};

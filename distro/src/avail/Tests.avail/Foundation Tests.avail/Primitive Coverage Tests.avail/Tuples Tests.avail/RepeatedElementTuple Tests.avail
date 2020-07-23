@@ -36,6 +36,7 @@ Versions
 Uses
 	"Primitive Test Common"
 Body
+
 Test "RepeatedElementTuple ok" in primitive tuples test suite is
 [
 	Require: 5 occurrences of "foo" = <"foo", "foo", "foo", "foo", "foo">;

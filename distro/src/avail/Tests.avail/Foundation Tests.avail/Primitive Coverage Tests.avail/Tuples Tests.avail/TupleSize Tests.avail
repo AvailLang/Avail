@@ -36,6 +36,7 @@ Versions
 Uses
 	"Primitive Test Common"
 Body
+
 Test "TupleSize ok" in primitive tuples test suite is
 [
 	a ::= <1,2,3,4>;

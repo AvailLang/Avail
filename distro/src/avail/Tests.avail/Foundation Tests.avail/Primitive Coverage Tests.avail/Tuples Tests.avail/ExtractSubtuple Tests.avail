@@ -36,6 +36,7 @@ Versions
 Uses
 	"Primitive Test Common"
 Body
+
 Test "ExtractSubtuple ok" in primitive tuples test suite is
 [
 	Require: <1, 2, 3, 4 ,5, 6>[2..4] = <2, 3, 4>;

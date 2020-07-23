@@ -36,6 +36,7 @@ Versions
 Uses
 	"Primitive Test Common"
 Body
+
 Test "TupleReplaceAt ok" in primitive tuples test suite is
 [
 	Require: <1, 2, 3, 4>[1] → 2 = <2, 2, 3, 4>;

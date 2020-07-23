@@ -36,6 +36,7 @@ Versions
 Uses
 	"Primitive Test Common"
 Body
+
 Test "AsDouble ok" in primitive doubles test suite if supported is
 [
 	Skip test

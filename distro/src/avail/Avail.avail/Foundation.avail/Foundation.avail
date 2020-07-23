@@ -206,6 +206,7 @@ Extends
 		"module constant phrase",
 		"module variable phrase",
 		"natural number",
+		"new anonymous module importing_",
 		"new atom named_",
 		"new_[_]",
 		"new_applying_",

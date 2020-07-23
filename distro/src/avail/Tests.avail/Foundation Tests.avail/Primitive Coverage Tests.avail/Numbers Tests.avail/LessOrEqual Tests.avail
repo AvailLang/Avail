@@ -36,6 +36,7 @@ Versions
 Uses
 	"Primitive Test Common"
 Body
+
 Test "LessOrEqual ok" in primitive numbers test suite is
 [
 	Require: 2 ≤ 2;

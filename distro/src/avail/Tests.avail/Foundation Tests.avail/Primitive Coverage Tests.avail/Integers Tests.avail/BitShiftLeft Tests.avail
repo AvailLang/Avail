@@ -36,6 +36,7 @@ Versions
 Uses
 	"Primitive Test Common"
 Body
+
 Test "BitShiftLeft ok" in primitive integers test suite is
 [
 	Require: 0 << 1 = 0;

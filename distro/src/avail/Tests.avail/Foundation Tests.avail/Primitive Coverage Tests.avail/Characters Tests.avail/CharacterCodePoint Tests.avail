@@ -36,6 +36,7 @@ Versions
 Uses
 	"Primitive Test Common"
 Body
+
 Test "CharacterCodePoint ok" in primitive characters test suite is
 [
 	Require: ¢!'s code point = 33;
