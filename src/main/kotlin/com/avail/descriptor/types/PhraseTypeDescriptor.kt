@@ -61,6 +61,7 @@ import com.avail.descriptor.types.ListPhraseTypeDescriptor.Companion.createListN
 import com.avail.descriptor.types.ListPhraseTypeDescriptor.Companion.createListNodeTypeNoCheck
 import com.avail.descriptor.types.LiteralTokenTypeDescriptor.Companion.literalTokenType
 import com.avail.descriptor.types.PhraseTypeDescriptor.ObjectSlots.*
+import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
@@ -185,7 +186,7 @@ open class PhraseTypeDescriptor protected constructor(
 			"literal phrase type", EXPRESSION_PHRASE,
 			TypeTag.LITERAL_PHRASE_TAG)
 		{
-			override fun mostGeneralYieldType(): A_Type = Types.ANY.o()
+			override fun mostGeneralYieldType(): A_Type = ANY.o
 		},
 
 		/**
@@ -206,7 +207,7 @@ open class PhraseTypeDescriptor protected constructor(
 			"super cast phrase", EXPRESSION_PHRASE,
 			TypeTag.SUPER_CAST_PHRASE_TAG)
 		{
-			override fun mostGeneralYieldType(): A_Type = Types.ANY.o()
+			override fun mostGeneralYieldType(): A_Type = ANY.o
 		},
 
 		/** The kind of a [send&#32;phrase][SendPhraseDescriptor].  */
@@ -273,7 +274,7 @@ open class PhraseTypeDescriptor protected constructor(
 			EXPRESSION_PHRASE,
 			TypeTag.VARIABLE_TAG)
 		{
-			override fun mostGeneralYieldType(): A_Type = Types.ANY.o()
+			override fun mostGeneralYieldType(): A_Type = ANY.o
 		},
 
 		/** A phrase that does not produce a result.  */
@@ -369,7 +370,7 @@ open class PhraseTypeDescriptor protected constructor(
 		 * @return
 		 *   The most general inner type for this kind of phrase.
 		 */
-		open fun mostGeneralYieldType(): A_Type = Types.TOP.o()
+		open fun mostGeneralYieldType(): A_Type = Types.TOP.o
 
 		/**
 		 * The depth of this object in the PhraseKind hierarchy.

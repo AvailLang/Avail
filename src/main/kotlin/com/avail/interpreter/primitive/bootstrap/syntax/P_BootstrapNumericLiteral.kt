@@ -69,6 +69,6 @@ object P_BootstrapNumericLiteral :
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				LITERAL_PHRASE.create(literalTokenType(NUMBER.o()))),
-			LITERAL_PHRASE.create(NUMBER.o()))
+				LITERAL_PHRASE.create(literalTokenType(NUMBER.o))),
+			LITERAL_PHRASE.create(NUMBER.o))
 }

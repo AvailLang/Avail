@@ -62,5 +62,5 @@ object P_DoubleCeiling : Primitive(1, CannotFail, CanFold, CanInline)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(DOUBLE.o()), DOUBLE.o())
+		functionType(tuple(DOUBLE.o), DOUBLE.o)
 }

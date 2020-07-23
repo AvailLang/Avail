@@ -52,7 +52,6 @@ package com.avail.descriptor.phrases
  import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.MODULE_VARIABLE
  import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.PRIMITIVE_FAILURE_REASON
  import com.avail.descriptor.representation.A_BasicObject
- import com.avail.descriptor.representation.AbstractDescriptor
  import com.avail.descriptor.representation.AvailObject
  import com.avail.descriptor.representation.AvailObject.Companion.error
  import com.avail.descriptor.representation.AvailObject.Companion.multiplier
@@ -66,11 +65,11 @@ package com.avail.descriptor.phrases
  import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
  import com.avail.descriptor.types.A_Type
  import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
- import com.avail.descriptor.types.TypeDescriptor.Types
+ import com.avail.descriptor.types.TypeDescriptor.Types.TOP
  import com.avail.descriptor.types.TypeTag
  import com.avail.serialization.SerializerOperation
  import com.avail.utility.json.JSONWriter
- import java.util.*
+ import java.util.IdentityHashMap
 
 /**
  * My instances represent assignment statements.
@@ -149,7 +148,7 @@ class AssignmentPhraseDescriptor private constructor(
 	override fun o_ExpressionType(self: AvailObject): A_Type =
 		when {
 			isInline(self) -> self.slot(EXPRESSION).expressionType()
-			else -> Types.TOP.o()
+			else -> TOP.o
 		}
 
 	override fun o_Hash(self: AvailObject) =

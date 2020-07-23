@@ -47,7 +47,6 @@ import com.avail.descriptor.module.ModuleDescriptor.Companion.currentModule
 import com.avail.descriptor.numbers.IntegerDescriptor
 import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
-import com.avail.descriptor.tuples.ObjectTupleDescriptor
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.StringDescriptor
 import com.avail.descriptor.tuples.StringDescriptor.Companion.formatString
@@ -163,16 +162,19 @@ object P_ServerSocketAccept : Primitive(5, CanInline, HasSideEffect)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			ObjectTupleDescriptor.tuple(
-				ATOM.o(),
+			tuple(
+				ATOM.o,
 				nonemptyStringType(),
 				functionType(
-					tuple(ATOM.o()),
-					TOP.o()),
+					tuple(ATOM.o),
+					TOP.o
+				),
 				functionType(
 					tuple(instanceType(E_IO_ERROR.numericCode())),
-					TOP.o()),
-				bytes()),
+					TOP.o
+				),
+				bytes
+			),
 			mostGeneralFiberType())
 
 	override fun privateFailureVariableType(): A_Type =

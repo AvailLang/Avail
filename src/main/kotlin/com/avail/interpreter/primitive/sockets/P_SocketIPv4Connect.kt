@@ -182,19 +182,23 @@ object P_SocketIPv4Connect : Primitive(6, CanInline, HasSideEffect)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tupleFromArray(
-				ATOM.o(),
+				ATOM.o,
 				tupleTypeForSizesTypesDefaultType(
 					singleInt(4),
 					emptyTuple,
-					bytes()),
-				unsignedShorts(),
+					bytes
+				),
+				unsignedShorts,
 				functionType(
 					emptyTuple,
-					TOP.o()),
+					TOP.o
+				),
 				functionType(
 					tuple(instanceType(E_IO_ERROR.numericCode())),
-					TOP.o()),
-				bytes()),
+					TOP.o
+				),
+				bytes
+			),
 			mostGeneralFiberType())
 
 	override fun privateFailureVariableType(): A_Type =

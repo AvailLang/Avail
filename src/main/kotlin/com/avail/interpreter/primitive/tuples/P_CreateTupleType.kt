@@ -70,6 +70,6 @@ object P_CreateTupleType : Primitive(3, CannotFail, CanFold, CanInline)
 			tuple(
 				zeroOrMoreOf(anyMeta()),
 				anyMeta(),
-				instanceMeta(wholeNumbers())),
+				instanceMeta(wholeNumbers)),
 			tupleMeta())
 }

@@ -323,7 +323,10 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 					// An infallible primitive must have no statements.
 					prim.blockTypeRestriction().returnType()
 				}
-				else { TOP.o() }
+				else
+				{
+					TOP.o
+				}
 			}
 
 		if (allStatements.size > 0 && !canHaveStatements)
@@ -437,7 +440,7 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 							/* An argument. */
 							tupleTypeForTypes(
 								/* Argument name, a token. */
-								TOKEN.o(),
+								TOKEN.o,
 								/* Argument type. */
 								anyMeta())))),
 				/* Macro argument is a phrase. */
@@ -447,13 +450,13 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 						/* Primitive declaration */
 						tupleTypeForTypes(
 							/* Primitive name. */
-							TOKEN.o(),
+							TOKEN.o,
 							/* Optional failure variable declaration. */
 							zeroOrOneOf(
 								/* Primitive failure variable parts. */
 								tupleTypeForTypes(
 									/* Primitive failure variable name token */
-									TOKEN.o(),
+									TOKEN.o,
 									/* Primitive failure variable type */
 									anyMeta()))))),
 				/* Macro argument is a phrase. */
@@ -463,7 +466,7 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 						/* Label parts. */
 						tupleTypeForTypes(
 							/* Label name */
-							TOKEN.o(),
+							TOKEN.o,
 							/* Optional label return type. */
 							zeroOrOneOf(
 								/* Label return type. */
@@ -478,7 +481,7 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 						 */
 						STATEMENT_PHRASE.mostGeneralType())),
 				/* Optional return expression */
-				LIST_PHRASE.create(zeroOrOneOf(PARSE_PHRASE.create(ANY.o()))),
+				LIST_PHRASE.create(zeroOrOneOf(PARSE_PHRASE.create(ANY.o))),
 				/* Optional return type */
 				LIST_PHRASE.create(zeroOrOneOf(topMeta())),
 				/* Optional tuple of exception types */

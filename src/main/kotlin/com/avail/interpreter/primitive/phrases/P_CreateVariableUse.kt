@@ -70,6 +70,7 @@ object P_CreateVariableUse : Primitive(2, CannotFail, CanFold, CanInline)
 		functionType(
 			tuple(
 				DECLARATION_PHRASE.mostGeneralType(),
-				TOKEN.o()),
+				TOKEN.o
+			),
 			VARIABLE_USE_PHRASE.mostGeneralType())
 }

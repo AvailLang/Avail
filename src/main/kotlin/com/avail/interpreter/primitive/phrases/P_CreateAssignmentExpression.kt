@@ -88,7 +88,7 @@ object P_CreateAssignmentExpression : Primitive(2, CanFold, CanInline)
 		functionType(
 			tuple(
 				VARIABLE_USE_PHRASE.mostGeneralType(),
-				EXPRESSION_PHRASE.create(ANY.o())),
+				EXPRESSION_PHRASE.create(ANY.o)),
 			ASSIGNMENT_PHRASE.mostGeneralType())
 
 	override fun privateFailureVariableType(): A_Type =

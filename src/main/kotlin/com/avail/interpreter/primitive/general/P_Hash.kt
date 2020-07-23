@@ -62,5 +62,5 @@ object P_Hash : Primitive(1, CannotFail, CanFold, CanInline)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(ANY.o()), int32())
+		functionType(tuple(ANY.o), int32)
 }

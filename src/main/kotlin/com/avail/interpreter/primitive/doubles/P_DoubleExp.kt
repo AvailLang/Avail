@@ -67,6 +67,8 @@ object P_DoubleExp : Primitive(2, CannotFail, CanFold, CanInline)
 		functionType(
 			tuple(
 				instanceType(fromDouble(E)),
-				DOUBLE.o()),
-			DOUBLE.o())
+				DOUBLE.o
+			),
+			DOUBLE.o
+		)
 }

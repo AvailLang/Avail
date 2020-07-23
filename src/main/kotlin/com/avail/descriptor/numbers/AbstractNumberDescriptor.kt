@@ -711,46 +711,46 @@ abstract class AbstractNumberDescriptor protected constructor(
 			bType: A_Type
 		): A_Type {
 			var union = bottom()
-			if (!aType.typeIntersection(DOUBLE.o()).isBottom
-				|| !bType.typeIntersection(DOUBLE.o()).isBottom)
+			if (!aType.typeIntersection(DOUBLE.o).isBottom
+				|| !bType.typeIntersection(DOUBLE.o).isBottom)
 			{
 				// One of the values might be a double.
-				if (aType.isSubtypeOf(DOUBLE.o())
-					|| bType.isSubtypeOf(DOUBLE.o())) {
+				if (aType.isSubtypeOf(DOUBLE.o)
+					|| bType.isSubtypeOf(DOUBLE.o)) {
 					// One of the types is definitely a double, so the result
 					// *must* be a double.
-					return DOUBLE.o()
+					return DOUBLE.o
 				}
-				union = union.typeUnion(DOUBLE.o())
+				union = union.typeUnion(DOUBLE.o)
 			}
-			if (!aType.typeIntersection(FLOAT.o()).isBottom
-				|| !bType.typeIntersection(FLOAT.o()).isBottom)
+			if (!aType.typeIntersection(FLOAT.o).isBottom
+				|| !bType.typeIntersection(FLOAT.o).isBottom)
 			{
 				// One of the values might be a float.
-				if (aType.isSubtypeOf(FLOAT.o())
-					|| bType.isSubtypeOf(FLOAT.o()))
+				if (aType.isSubtypeOf(FLOAT.o)
+					|| bType.isSubtypeOf(FLOAT.o))
 				{
 					// One is definitely a float.
 					if (union.isBottom) {
 						// Neither could be a double, but one is definitely a
 						// float. Therefore the result must be a float.
-						return FLOAT.o()
+						return FLOAT.o
 					}
 				}
 				// Add float as a possibility.
-				union = union.typeUnion(FLOAT.o())
+				union = union.typeUnion(FLOAT.o)
 			}
-			if (!aType.typeIntersection(extendedIntegers()).isBottom
-				&& !bType.typeIntersection(extendedIntegers()).isBottom) {
+			if (!aType.typeIntersection(extendedIntegers).isBottom
+				&& !bType.typeIntersection(extendedIntegers).isBottom) {
 				// *Both* could be extended integers, so the result could be
 				// also.
-				if (aType.isSubtypeOf(extendedIntegers())
-					&& bType.isSubtypeOf(extendedIntegers())) {
+				if (aType.isSubtypeOf(extendedIntegers)
+					&& bType.isSubtypeOf(extendedIntegers)) {
 					// Both are definitely extended integers, so the result must
 					// also be an extended integer.
-					return extendedIntegers()
+					return extendedIntegers
 				}
-				union = union.typeUnion(extendedIntegers())
+				union = union.typeUnion(extendedIntegers)
 			}
 			assert(!union.isBottom)
 			return union

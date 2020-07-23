@@ -330,7 +330,7 @@ internal class ArrayPojoTypeDescriptor private constructor(
 				range.lowerBound().printOnAvoidingIndent(
 					builder, recursionMap, indent)
 			}
-			wholeNumbers().isSubtypeOf(range) ->
+			wholeNumbers.isSubtypeOf(range) ->
 			{
 				// This is the most common range, as it corresponds with all real
 				// Java array types.
@@ -462,6 +462,6 @@ internal class ArrayPojoTypeDescriptor private constructor(
 		/** The most general [pojo&#32;array&#32;type][PojoTypeDescriptor].  */
 		@JvmField
 		val mostGeneralType: A_Type =
-			pojoArrayType(Types.ANY.o(), wholeNumbers()).makeShared()
+			pojoArrayType(Types.ANY.o, wholeNumbers).makeShared()
 	}
 }

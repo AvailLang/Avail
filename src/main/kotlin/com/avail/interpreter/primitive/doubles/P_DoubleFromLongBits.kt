@@ -64,5 +64,5 @@ object P_DoubleFromLongBits : Primitive(1, CannotFail, CanFold, CanInline)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(int64()), DOUBLE.o())
+		functionType(tuple(int64), DOUBLE.o)
 }

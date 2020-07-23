@@ -163,10 +163,12 @@ object P_DelayedForkOrphan : Primitive(
 		functionType(
 			tuple(
 				inclusive(zero(), positiveInfinity()),
-				functionTypeReturning(TOP.o()),
+				functionTypeReturning(TOP.o),
 				mostGeneralTupleType(),
-				bytes()),
-			TOP.o())
+				bytes
+			),
+			TOP.o
+		)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

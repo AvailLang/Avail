@@ -47,6 +47,7 @@ package com.avail.descriptor.phrases
  import com.avail.descriptor.types.A_Type
  import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
  import com.avail.descriptor.types.TypeDescriptor.Types
+ import com.avail.descriptor.types.TypeDescriptor.Types.TOP
  import com.avail.descriptor.types.TypeTag
  import com.avail.serialization.SerializerOperation
  import com.avail.utility.json.JSONWriter
@@ -118,7 +119,7 @@ class ExpressionAsStatementPhraseDescriptor(
 		self.slot(EXPRESSION)
 
 	/** Statements are always ⊤-valued. */
-	override fun o_ExpressionType(self: AvailObject): A_Type = Types.TOP.o()
+	override fun o_ExpressionType(self: AvailObject): A_Type = TOP.o
 
 	override fun o_Hash(self: AvailObject) =
 		self.slot(EXPRESSION).hash() + -0x6f773228

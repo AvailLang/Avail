@@ -68,7 +68,7 @@ object P_CreateVariableExpression : Primitive(2, CanInline, CannotFail)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				TOKEN.o(),
+				TOKEN.o,
 				anyMeta()),
 			LOCAL_VARIABLE_PHRASE.mostGeneralType())
 }

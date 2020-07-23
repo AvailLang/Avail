@@ -69,10 +69,11 @@ package com.avail.descriptor.phrases
  import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
  import com.avail.descriptor.types.TypeDescriptor
  import com.avail.descriptor.types.TypeDescriptor.Types
+ import com.avail.descriptor.types.TypeDescriptor.Types.TOP
  import com.avail.descriptor.variables.VariableDescriptor
  import com.avail.serialization.SerializerOperation
  import com.avail.utility.json.JSONWriter
- import java.util.*
+ import java.util.IdentityHashMap
 
 /**
  * My instances represent variable and constant declaration statements.  There
@@ -571,7 +572,7 @@ class DeclarationPhraseDescriptor(
 	override fun o_DeclarationKind(self: AvailObject): DeclarationKind =
 		declarationKind
 
-	override fun o_ExpressionType(self: AvailObject): A_Type = Types.TOP.o()
+	override fun o_ExpressionType(self: AvailObject): A_Type = TOP.o
 
 	/**
 	 * This is a declaration, so it was handled on a separate pass.  Do nothing.
@@ -725,10 +726,10 @@ class DeclarationPhraseDescriptor(
 			literalObject: A_BasicObject
 		): A_Phrase {
 			assert(declaredType.isType)
-			assert(token.isInstanceOf(Types.TOKEN.o()))
+			assert(token.isInstanceOf(Types.TOKEN.o))
 			assert(initializationExpression.equalsNil()
 				|| initializationExpression.isInstanceOfKind(
-					PhraseKind.EXPRESSION_PHRASE.create(Types.ANY.o())))
+					PhraseKind.EXPRESSION_PHRASE.create(Types.ANY.o)))
 			assert(literalObject.equalsNil()
 				|| declarationKind === DeclarationKind.MODULE_VARIABLE
 				|| declarationKind === DeclarationKind.MODULE_CONSTANT)

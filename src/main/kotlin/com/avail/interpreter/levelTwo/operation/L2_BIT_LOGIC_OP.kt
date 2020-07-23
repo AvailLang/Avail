@@ -92,8 +92,8 @@ class L2_BIT_LOGIC_OP(
 		val (aType, bType) = argumentTypes
 		// If either of the argument types does not intersect with int32, then
 		// fall back to the primitive invocation.
-		if (aType.typeIntersection(int32()).isBottom
-			|| bType.typeIntersection(int32()).isBottom)
+		if (aType.typeIntersection(int32).isBottom
+			|| bType.typeIntersection(int32).isBottom)
 		{
 			return false
 		}
@@ -110,8 +110,8 @@ class L2_BIT_LOGIC_OP(
 			val semanticTemp = generator.topFrame.temp(generator.nextUnique())
 			val typeGuarantee = typeGuaranteeFunction(
 				listOf(
-					aType.typeIntersection(int32()),
-					bType.typeIntersection(int32())))
+					aType.typeIntersection(int32),
+					bType.typeIntersection(int32)))
 			val tempWriter =
 				generator.intWrite(
 					semanticTemp,

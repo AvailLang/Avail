@@ -41,7 +41,6 @@ import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.en
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
-import com.avail.exceptions.AvailErrorCode.E_KEY_NOT_FOUND
 import com.avail.exceptions.AvailErrorCode.E_NO_SUCH_FIELD
 import com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
 import com.avail.interpreter.Primitive
@@ -76,7 +75,7 @@ object P_AtomGetProperty : Primitive(
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(ATOM.o(), ATOM.o()), ANY.o())
+		functionType(tuple(ATOM.o, ATOM.o), ANY.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_NO_SUCH_FIELD))

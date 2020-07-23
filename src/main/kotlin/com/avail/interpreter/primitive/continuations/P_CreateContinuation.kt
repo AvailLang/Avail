@@ -103,9 +103,9 @@ object P_CreateContinuation : Primitive(5, CanFold, CanInline)
 		functionType(
 			tuple(
 				mostGeneralFunctionType(),
-				wholeNumbers(),
+				wholeNumbers,
 				mostGeneralTupleType(),
-				naturalNumbers(),
+				naturalNumbers,
 				variableTypeFor(
 					mostGeneralContinuationType())),
 			mostGeneralContinuationType())

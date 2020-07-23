@@ -74,7 +74,7 @@ object P_ReadFromStandardInput : Primitive(0, CanSuspend, Unknown)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(emptyTuple, CHARACTER.o())
+		functionType(emptyTuple, CHARACTER.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_IO_ERROR))

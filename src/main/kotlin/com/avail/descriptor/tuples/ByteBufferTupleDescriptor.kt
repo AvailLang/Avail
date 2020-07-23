@@ -265,7 +265,7 @@ class ByteBufferTupleDescriptor constructor(mutability: Mutability)
 					}
 				}
 				val defaultTypeObject = aType.defaultType()
-				if (IntegerRangeTypeDescriptor.bytes()
+				if (IntegerRangeTypeDescriptor.bytes
 						.isSubtypeOf(defaultTypeObject))
 				{
 					return true
@@ -467,7 +467,7 @@ class ByteBufferTupleDescriptor constructor(mutability: Mutability)
 		startIndex: Int,
 		endIndex: Int,
 		type: A_Type): Boolean =
-			(IntegerRangeTypeDescriptor.bytes().isSubtypeOf(type)
+			(IntegerRangeTypeDescriptor.bytes.isSubtypeOf(type)
 			 	|| super.o_TupleElementsInRangeAreInstancesOf(
 					self, startIndex, endIndex, type))
 

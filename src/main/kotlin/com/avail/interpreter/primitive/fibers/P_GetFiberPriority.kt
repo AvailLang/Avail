@@ -60,5 +60,5 @@ object P_GetFiberPriority : Primitive(
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(mostGeneralFiberType()), bytes())
+		functionType(tuple(mostGeneralFiberType()), bytes)
 }

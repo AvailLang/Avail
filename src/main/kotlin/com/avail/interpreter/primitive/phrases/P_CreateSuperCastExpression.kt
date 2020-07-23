@@ -85,7 +85,7 @@ object P_CreateSuperCastExpression : Primitive(2, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				EXPRESSION_PHRASE.create(ANY.o()),
+				EXPRESSION_PHRASE.create(ANY.o),
 				anyMeta()),
 			SUPER_CAST_PHRASE.mostGeneralType())
 

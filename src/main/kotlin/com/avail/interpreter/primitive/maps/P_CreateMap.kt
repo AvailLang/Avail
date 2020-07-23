@@ -64,6 +64,6 @@ object P_CreateMap : Primitive(1, CannotFail, CanFold, CanInline)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(zeroOrMoreOf(tupleTypeForTypes(ANY.o(), ANY.o()))),
+			tuple(zeroOrMoreOf(tupleTypeForTypes(ANY.o, ANY.o))),
 			mostGeneralMapType())
 }

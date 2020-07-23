@@ -61,5 +61,6 @@ object P_CompiledCodeNumArgs : Primitive(1, CannotFail, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(mostGeneralCompiledCodeType()),
-			wholeNumbers())
+			wholeNumbers
+		)
 }

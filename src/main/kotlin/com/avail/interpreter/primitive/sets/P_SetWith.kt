@@ -72,10 +72,12 @@ object P_SetWith : Primitive(2, CannotFail, CanFold, CanInline)
 		functionType(
 			tuple(
 				mostGeneralSetType(),
-				ANY.o()),
+				ANY.o
+			),
 			setTypeForSizesContentType(
-				naturalNumbers(),
-				ANY.o()))
+				naturalNumbers,
+				ANY.o
+			))
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,

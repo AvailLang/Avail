@@ -48,6 +48,7 @@ import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottomMeta
 import com.avail.descriptor.types.EnumerationTypeDescriptor.ObjectSlots.*
+import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
@@ -131,7 +132,7 @@ class EnumerationTypeDescriptor private constructor(mutability: Mutability)
 			for (instance in getInstances(self))
 			{
 				cached = cached.typeUnion(instance.kind())
-				if (cached.equals(TypeDescriptor.Types.ANY.o()))
+				if (cached.equals(ANY.o))
 				{
 					break
 				}
@@ -181,7 +182,7 @@ class EnumerationTypeDescriptor private constructor(mutability: Mutability)
 		indent: Int)
 	{
 		// Print boolean specially.
-		if (self.equals(booleanType()))
+		if (self.equals(booleanType))
 		{
 			builder.append("boolean")
 			return
@@ -264,7 +265,7 @@ class EnumerationTypeDescriptor private constructor(mutability: Mutability)
 		}
 		// I'm an enumeration of non-types, so I could only be an instance of a
 		// meta (already excluded), or of ANY or TOP.
-		return aType.isSupertypeOfPrimitiveTypeEnum(TypeDescriptor.Types.ANY)
+		return aType.isSupertypeOfPrimitiveTypeEnum(ANY)
 	}
 
 	/**
@@ -591,7 +592,7 @@ class EnumerationTypeDescriptor private constructor(mutability: Mutability)
 
 	override fun o_MarshalToJava(self: AvailObject, classHint: Class<*>?): Any?
 	{
-		return if (self.isSubtypeOf(booleanType()))
+		return if (self.isSubtypeOf(booleanType))
 		{
 			Boolean::class.javaPrimitiveType
 		}
@@ -722,53 +723,26 @@ class EnumerationTypeDescriptor private constructor(mutability: Mutability)
 		 * Avail's boolean type, the equivalent of Java's primitive `boolean`
 		 * pseudo-type, similar to Java's boxed [Boolean] class.
 		 */
-		private val booleanObject: A_Type
+		val booleanType: A_Type
 
 		/**
 		 * The type whose only instance is the value
 		 * [true][AtomDescriptor.trueObject].
 		 */
-		private val trueType: A_Type
+		val trueType: A_Type
 
 		/**
 		 * The type whose only instance is the value
 		 * [false][AtomDescriptor.falseObject].
 		 */
-		private var falseType: A_Type
+		val falseType: A_Type
 
 		init
 		{
-			booleanObject =
+			booleanType =
 				enumerationWith(set(trueObject, falseObject)).makeShared()
 			trueType = instanceTypeOrMetaOn(trueObject).makeShared()
 			falseType = instanceTypeOrMetaOn(falseObject).makeShared()
 		}
-
-		/**
-		 * Return Avail's boolean type.
-		 *
-		 * @return
-		 *   The enumeration [A_Type] that acts as Avail's boolean type.
-		 */
-		@JvmStatic
-		fun booleanType(): A_Type = booleanObject
-
-		/**
-		 * Return the type for which [true][AtomDescriptor.trueObject] is the
-		 * only instance.
-		 *
-		 * @return
-		 *   `true`'s type.
-		 */
-		fun trueType(): A_Type = trueType
-
-		/**
-		 * Return the type for which [false][AtomDescriptor.falseObject] is the
-		 * only instance.
-		 *
-		 * @return
-		 *   `false`'s type.
-		 */
-		fun falseType(): A_Type = falseType
 	}
 }

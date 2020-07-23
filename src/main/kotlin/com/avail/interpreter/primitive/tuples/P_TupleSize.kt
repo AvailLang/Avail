@@ -70,12 +70,13 @@ object P_TupleSize : Primitive(1, CannotFail, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(mostGeneralTupleType()),
-			wholeNumbers())
+			wholeNumbers
+		)
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,
 		argumentTypes: List<A_Type>
-	): A_Type = argumentTypes[0].sizeRange().typeIntersection(int32())
+	): A_Type = argumentTypes[0].sizeRange().typeIntersection(int32)
 
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,

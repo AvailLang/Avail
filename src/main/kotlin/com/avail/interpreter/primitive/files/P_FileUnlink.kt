@@ -209,8 +209,9 @@ object P_FileUnlink : Primitive(4, CanInline, HasSideEffect)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(booleanType(), stringType(), booleanType(), booleanType()),
-			TOP.o())
+			tuple(booleanType, stringType(), booleanType, booleanType),
+			TOP.o
+		)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

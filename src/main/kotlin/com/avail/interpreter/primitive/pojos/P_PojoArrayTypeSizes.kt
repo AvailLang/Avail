@@ -65,5 +65,5 @@ object P_PojoArrayTypeSizes : Primitive(1, CannotFail, CanFold, CanInline)
 		functionType(
 			tuple(
 				instanceMeta(mostGeneralPojoArrayType())),
-			instanceMeta(wholeNumbers()))
+			instanceMeta(wholeNumbers))
 }

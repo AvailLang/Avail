@@ -89,7 +89,8 @@ object P_DeclareAllExportedAtoms : Primitive(
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				setTypeForSizesContentType(wholeNumbers(), ATOM.o()),
-				booleanType()),
-			TOP.o())
+				setTypeForSizesContentType(wholeNumbers, ATOM.o),
+				booleanType),
+			TOP.o
+		)
 }

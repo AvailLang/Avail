@@ -47,6 +47,7 @@ import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.StringDescriptor
 import com.avail.descriptor.variables.A_Variable
+import com.avail.exceptions.AvailRuntimeException
 import com.avail.interpreter.execution.AvailLoader
 import com.avail.interpreter.execution.AvailLoader.LexicalScanner
 import com.avail.interpreter.primitive.modules.P_PublishName
@@ -64,59 +65,89 @@ interface A_Module : A_BasicObject
 	/**
 	 * TODO MvG Comment Me!
 	 * @param moreAncestors
+	 * @throws AvailRuntimeException
+	 *   If the [module][A_Module] is already closed.
 	 */
-	fun addAncestors(moreAncestors: A_Set)
+	@Throws(AvailRuntimeException::class)
+	fun addAncestors (moreAncestors: A_Set)
 
 	/**
 	 * TODO MvG Comment Me!
 	 * @param name
 	 * @param constantBinding
+	 * @throws AvailRuntimeException
+	 *   If the [module][A_Module] is already closed.
 	 */
-	fun addConstantBinding(
+	@Throws(AvailRuntimeException::class)
+	fun addConstantBinding (
 		name: A_String,
 		constantBinding: A_Variable)
 
 	/**
-	 * Dispatch to the descriptor.
+	 * TODO MvG Comment Me!
+	 *
+	 * @param stringName
+	 * @param trueName
+	 * @throws AvailRuntimeException
+	 *   If the [module][A_Module] is already closed.
 	 */
-	fun addEntryPoint(stringName: A_String, trueName: A_Atom)
+	@Throws(AvailRuntimeException::class)
+	fun addEntryPoint (stringName: A_String, trueName: A_Atom)
 
 	/**
 	 * TODO MvG Comment Me!
 	 * @param trueName
+	 * @throws AvailRuntimeException
+	 *   If the [module][A_Module] is already closed.
 	 */
-	fun addImportedName(trueName: A_Atom)
+	@Throws(AvailRuntimeException::class)
+	fun addImportedName (trueName: A_Atom)
 
 	/**
 	 * TODO MvG Comment Me!
 	 * @param trueNames
+	 * @throws AvailRuntimeException
+	 *   If the [module][A_Module] is already closed.
 	 */
-	fun addImportedNames(trueNames: A_Set)
+	@Throws(AvailRuntimeException::class)
+	fun addImportedNames (trueNames: A_Set)
 
 	/**
 	 * TODO MvG Comment Me!
 	 * @param lexer
+	 * @throws AvailRuntimeException
+	 *   If the [module][A_Module] is already closed.
 	 */
-	fun addLexer(lexer: A_Lexer)
+	@Throws(AvailRuntimeException::class)
+	fun addLexer (lexer: A_Lexer)
 
 	/**
 	 * TODO MvG Comment Me!
 	 * @param trueName
+	 * @throws AvailRuntimeException
+	 *   If the [module][A_Module] is already closed.
 	 */
-	fun addPrivateName(trueName: A_Atom)
+	@Throws(AvailRuntimeException::class)
+	fun addPrivateName (trueName: A_Atom)
 
 	/**
 	 * TODO MvG Comment Me!
 	 * @param trueNames
+	 * @throws AvailRuntimeException
+	 *   If the [module][A_Module] is already closed.
 	 */
-	fun addPrivateNames(trueNames: A_Set)
+	@Throws(AvailRuntimeException::class)
+	fun addPrivateNames (trueNames: A_Set)
 
 	/**
 	 * TODO MvG Comment Me!
 	 * @param methodName
 	 * @param sealSignature
+	 * @throws AvailRuntimeException
+	 *   If the [module][A_Module] is already closed.
 	 */
-	fun addSeal(
+	@Throws(AvailRuntimeException::class)
+	fun addSeal (
 		methodName: A_Atom,
 		sealSignature: A_Tuple)
 
@@ -126,8 +157,11 @@ interface A_Module : A_BasicObject
 	 *
 	 * @param unloadFunction
 	 *   A function.
+	 * @throws AvailRuntimeException
+	 *   If the [module][A_Module] is already closed.
 	 */
-	fun addUnloadFunction(unloadFunction: A_Function)
+	@Throws(AvailRuntimeException::class)
+	fun addUnloadFunction (unloadFunction: A_Function)
 
 	/**
 	 * Add a module variable binding to this module.
@@ -136,10 +170,11 @@ interface A_Module : A_BasicObject
 	 *   The string naming the variable binding.
 	 * @param variableBinding
 	 *   The [variable][A_Variable] itself.
+	 * @throws AvailRuntimeException
+	 *   If the [module][A_Module] is already closed.
 	 */
-	fun addVariableBinding(
-		name: A_String,
-		variableBinding: A_Variable)
+	@Throws(AvailRuntimeException::class)
+	fun addVariableBinding (name: A_String, variableBinding: A_Variable)
 
 	/**
 	 * Return the set of all ancestor modules of this module. Include this
@@ -148,17 +183,17 @@ interface A_Module : A_BasicObject
 	 * @return
 	 *   The set of all ancestors of this module, including itself.
 	 */
-	fun allAncestors(): A_Set
+	fun allAncestors (): A_Set
 
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	fun buildFilteredBundleTree(): A_BundleTree
+	fun buildFilteredBundleTree (): A_BundleTree
 
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	fun constantBindings(): A_Map
+	fun constantBindings (): A_Map
 
 	/**
 	 * Create and answer a [LexicalScanner] containing all lexers that are in
@@ -167,12 +202,12 @@ interface A_Module : A_BasicObject
 	 * @return
 	 *   The new [LexicalScanner].
 	 */
-	fun createLexicalScanner(): LexicalScanner
+	fun createLexicalScanner (): LexicalScanner
 
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	fun entryPoints(): A_Map
+	fun entryPoints (): A_Map
 
 	/**
 	 * Answer the [set][A_Set] of all [names][A_Atom] exported by this module.
@@ -180,41 +215,50 @@ interface A_Module : A_BasicObject
 	 * @return
 	 *   The set of exported names.
 	 */
-	fun exportedNames(): A_Set
+	fun exportedNames (): A_Set
 
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	fun importedNames(): A_Map
+	fun importedNames (): A_Map
 
 	/**
 	 * Introduce a new atom into this module.
 	 *
 	 * @param trueName
 	 *   The atom to introduce.
+	 * @throws AvailRuntimeException
+	 *   If the [module][A_Module] is already closed.
 	 */
-	fun introduceNewName(trueName: A_Atom)
+	@Throws(AvailRuntimeException::class)
+	fun introduceNewName (trueName: A_Atom)
 
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	fun methodDefinitions(): A_Set
+	fun methodDefinitions (): A_Set
 
 	/**
 	 * Add a [definition][A_Definition] to this module.
 	 *
 	 * @param definition
 	 *   The definition to add.
+	 * @throws AvailRuntimeException
+	 *   If the [module][A_Module] is already closed.
 	 */
-	fun moduleAddDefinition(definition: A_Definition)
+	@Throws(AvailRuntimeException::class)
+	fun moduleAddDefinition (definition: A_Definition)
 
 	/**
 	 * Add a grammatical restriction to this module.
 	 *
 	 * @param grammaticalRestriction
 	 *   The grammatical restriction to add.
+	 * @throws AvailRuntimeException
+	 *   If the [module][A_Module] is already closed.
 	 */
-	fun moduleAddGrammaticalRestriction(
+	@Throws(AvailRuntimeException::class)
+	fun moduleAddGrammaticalRestriction (
 		grammaticalRestriction: A_GrammaticalRestriction)
 
 	/**
@@ -222,8 +266,11 @@ interface A_Module : A_BasicObject
 	 *
 	 * @param semanticRestriction
 	 *   The semantic restriction to add.
+	 * @throws AvailRuntimeException
+	 *   If the [module][A_Module] is already closed.
 	 */
-	fun moduleAddSemanticRestriction(
+	@Throws(AvailRuntimeException::class)
+	fun moduleAddSemanticRestriction (
 		semanticRestriction: A_SemanticRestriction)
 
 	/**
@@ -232,7 +279,7 @@ interface A_Module : A_BasicObject
 	 * @return
 	 *   A [string][StringDescriptor] naming this module.
 	 */
-	fun moduleName(): A_String
+	fun moduleName (): A_String
 
 	/**
 	 * Answer this module's [A_Set] of [A_GrammaticalRestriction]s.
@@ -240,7 +287,7 @@ interface A_Module : A_BasicObject
 	 * @return
 	 *   The set of grammatical restrictions defined by this module.
 	 */
-	fun moduleGrammaticalRestrictions(): A_Set
+	fun moduleGrammaticalRestrictions (): A_Set
 
 	/**
 	 * Answer this module's [A_Set] of [A_SemanticRestriction]s.
@@ -248,12 +295,12 @@ interface A_Module : A_BasicObject
 	 * @return
 	 *   The set of semantic restrictions defined by this module.
 	 */
-	fun moduleSemanticRestrictions(): A_Set
+	fun moduleSemanticRestrictions (): A_Set
 
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	fun nameVisible(trueName: A_Atom): Boolean
+	fun nameVisible (trueName: A_Atom): Boolean
 
 	/**
 	 * Answer a [map][A_Map] from [strings][A_String] to [atoms][A_Atom]. These
@@ -263,32 +310,32 @@ interface A_Module : A_BasicObject
 	 * @return
 	 *   The map of new names.
 	 */
-	fun newNames(): A_Map
+	fun newNames (): A_Map
 
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	fun privateNames(): A_Map
+	fun privateNames (): A_Map
 
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	fun removeFrom(loader: AvailLoader, afterRemoval: () -> Unit)
+	fun removeFrom (loader: AvailLoader, afterRemoval: () -> Unit)
 
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	fun resolveForward(forwardDefinition: A_BasicObject)
+	fun resolveForward (forwardDefinition: A_BasicObject)
 
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	fun trueNamesForStringName(stringName: A_String): A_Set
+	fun trueNamesForStringName (stringName: A_String): A_Set
 
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	fun variableBindings(): A_Map
+	fun variableBindings (): A_Map
 
 	/**
 	 * Answer the [set][SetDescriptor] of acceptable version
@@ -298,7 +345,7 @@ interface A_Module : A_BasicObject
 	 * @return
 	 *   This module's set of acceptable version strings.
 	 */
-	fun versions(): A_Set
+	fun versions (): A_Set
 
 	/**
 	 * Set this module's [set][SetDescriptor] of acceptable version
@@ -307,10 +354,29 @@ interface A_Module : A_BasicObject
 	 *
 	 * @param versionStrings A set of version strings.
 	 */
-	fun setVersions(versionStrings: A_Set)
+	fun setVersions (versionStrings: A_Set)
 
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	fun visibleNames(): A_Set
+	fun visibleNames (): A_Set
+
+	/**
+	 * Determine whether the [module][A_Module] is still open to the performance
+	 * of further side effects upon it.
+	 *
+	 * @return
+	 *   `true` iff the module is open.
+	 */
+	fun isOpen (): Boolean
+
+	/**
+	 * Close the [module][A_Module] to prevent the performance of further side
+	 * effects upon it.
+	 *
+	 * @throws AvailRuntimeException
+	 *   If the [module][A_Module] is already closed.
+	 */
+	@Throws(AvailRuntimeException::class)
+	fun closeModule ()
 }

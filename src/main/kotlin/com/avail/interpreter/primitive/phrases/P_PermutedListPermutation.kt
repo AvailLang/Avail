@@ -67,5 +67,5 @@ object P_PermutedListPermutation : Primitive(1, CannotFail, CanFold, CanInline)
 		functionType(
 			tuple(
 				PERMUTED_LIST_PHRASE.mostGeneralType()),
-			oneOrMoreOf(naturalNumbers()))
+			oneOrMoreOf(naturalNumbers))
 }

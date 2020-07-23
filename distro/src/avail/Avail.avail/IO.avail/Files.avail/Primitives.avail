@@ -166,7 +166,7 @@ Private method
 		operation-not-supported code,
 		permission-denied code,
 		I/O-error code,
-		exceeds-vm-limit code}ᵀ);
+		exceeds-VM-limit code}ᵀ);
 	Raise an exception for e
 ] : atom;
 
@@ -464,7 +464,7 @@ Private method
 		invalid-handle code,
 		special-atom code,
 		not-open-for-read code,
-		exceeds-vm-limit code}ᵀ);
+		exceeds-VM-limit code}ᵀ);
 	Raise an exception for e
 ] : fiber;
 
@@ -502,7 +502,7 @@ Private method "private starting at_write_to_then_else_priority_" is
 		invalid-handle code,
 		special-atom code,
 		not-open-for-write code,
-		exceeds-vm-limit code}ᵀ);
+		exceeds-VM-limit code}ᵀ);
 	Raise an exception for e
 ] : fiber;
 

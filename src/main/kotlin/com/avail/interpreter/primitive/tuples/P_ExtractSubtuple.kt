@@ -125,8 +125,9 @@ object P_ExtractSubtuple : Primitive(3, CanFold, CanInline)
 		functionType(
 			tuple(
 				mostGeneralTupleType(),
-				naturalNumbers(),
-				wholeNumbers()),
+				naturalNumbers,
+				wholeNumbers
+			),
 			mostGeneralTupleType())
 
 	override fun privateFailureVariableType(): A_Type =

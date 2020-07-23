@@ -69,7 +69,7 @@ object P_CreateLabelDeclaration : Primitive(2, CanInline, CannotFail)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				TOKEN.o(),
+				TOKEN.o,
 				mostGeneralContinuationType()),
 			LABEL_PHRASE.mostGeneralType())
 }

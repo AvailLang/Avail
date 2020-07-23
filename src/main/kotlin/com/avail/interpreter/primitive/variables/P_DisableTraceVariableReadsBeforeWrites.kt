@@ -91,9 +91,10 @@ object P_DisableTraceVariableReadsBeforeWrites : Primitive(
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				ATOM.o(),
-				functionType(emptyTuple, TOP.o())),
-			TOP.o())
+				ATOM.o,
+				functionType(emptyTuple, TOP.o)),
+			TOP.o
+		)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_ILLEGAL_TRACE_MODE))

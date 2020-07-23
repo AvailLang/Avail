@@ -58,5 +58,5 @@ object P_AtomName : Primitive(1, CannotFail, CanFold, CanInline)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(ATOM.o()), stringType())
+		functionType(tuple(ATOM.o), stringType())
 }

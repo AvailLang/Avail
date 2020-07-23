@@ -45,6 +45,7 @@ import com.avail.descriptor.types.FunctionTypeDescriptor.IntegerSlots.Companion.
 import com.avail.descriptor.types.FunctionTypeDescriptor.IntegerSlots.HASH_AND_MORE
 import com.avail.descriptor.types.FunctionTypeDescriptor.ObjectSlots.*
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
+import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.Strings.newlineTab
@@ -591,7 +592,7 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 		 * The most general function type.
 		 */
 		private val mostGeneralType: A_Type =
-			functionTypeReturning(Types.TOP.o()).makeShared()
+			functionTypeReturning(TOP.o).makeShared()
 
 		/**
 		 * Answer the top (i.e., most general) function type.

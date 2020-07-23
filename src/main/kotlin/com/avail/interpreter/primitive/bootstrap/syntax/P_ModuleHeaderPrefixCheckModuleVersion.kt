@@ -98,5 +98,6 @@ object P_ModuleHeaderPrefixCheckModuleVersion : Primitive(2, Private, Bootstrap)
 				stringLiteralType,
 				/* Optional versions */
 				zeroOrOneList(zeroOrMoreList(stringLiteralType))),
-			TOP.o())
+			TOP.o
+		)
 }

@@ -47,7 +47,7 @@ import com.avail.descriptor.tuples.ObjectTupleDescriptor
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
-import com.avail.descriptor.types.TypeDescriptor
+import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.exceptions.AvailErrorCode.E_ABSTRACT_METHOD_DEFINITION
 import com.avail.exceptions.AvailErrorCode.E_AMBIGUOUS_METHOD_DEFINITION
 import com.avail.exceptions.AvailErrorCode.E_FORWARD_METHOD_DEFINITION
@@ -79,7 +79,8 @@ import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
-import java.util.*
+import java.util.ArrayList
+import java.util.Collections
 import java.util.logging.Level
 
 /**
@@ -202,7 +203,7 @@ object L2_LOOKUP_BY_TYPES : L2ControlFlowOperation(
 				}
 				else
 				{
-					TypeDescriptor.Types.ANY.o()
+					ANY.o
 				}
 			}
 			.map { type: A_Type ->

@@ -121,7 +121,7 @@ object P_Deserialize : Primitive(2, CanInline)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(zeroOrMoreOf(bytes()), MODULE.o()), zeroOrMoreOf(ANY.o()))
+			tuple(zeroOrMoreOf(bytes), MODULE.o), zeroOrMoreOf(ANY.o))
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_DESERIALIZATION_FAILED))

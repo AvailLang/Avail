@@ -84,8 +84,10 @@ object P_SetValue : Primitive(2, CanInline, HasSideEffect)
 		functionType(
 			tuple(
 				mostGeneralVariableType(),
-				ANY.o()),
-			TOP.o())
+				ANY.o
+			),
+			TOP.o
+		)
 
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,

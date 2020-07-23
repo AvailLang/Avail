@@ -60,11 +60,11 @@ Test "FileOpen fails with permission-denied exception" in primitive files test s
 ]
 must raise permission-denied exception;
 
-Test "FileOpen fails with exceeds-vm-limit exception" in primitive files test suite if supported is
+Test "FileOpen fails with exceeds-VM-limit exception" in primitive files test suite if supported is
 [
 	Skip test
 ]
-must raise exceeds-vm-limit exception;
+must raise exceeds-VM-limit exception;
 
 Test "FileOpen fails with illegal-option exception" in primitive files test suite if supported is
 [

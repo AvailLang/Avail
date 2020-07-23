@@ -70,7 +70,7 @@ object P_CreatePojoType : Primitive(2, CanFold, CanInline)
 				interpreter.runtime().lookupJavaType(className, classParameters)
 			interpreter.primitiveSuccess(canonicalPojoType(pojoType, true))
 		} catch (e: AvailRuntimeException) {
-			interpreter.primitiveFailure(e.numericCode())
+			interpreter.primitiveFailure(e.numericCode)
 		}
 	}
 

@@ -46,7 +46,7 @@ import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
-import com.avail.descriptor.types.TypeDescriptor.Types
+import com.avail.descriptor.types.TypeDescriptor.Types.CHARACTER
 import com.avail.descriptor.types.TypeTag
 import com.avail.exceptions.MarshalingException
 import com.avail.serialization.SerializerOperation
@@ -167,7 +167,7 @@ class CharacterDescriptor private constructor(
 		return self
 	}
 
-	override fun o_Kind(self: AvailObject): A_Type = Types.CHARACTER.o()
+	override fun o_Kind(self: AvailObject): A_Type = CHARACTER.o
 
 	override fun o_MarshalToJava(
 		self: AvailObject,

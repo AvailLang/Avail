@@ -61,5 +61,6 @@ object P_LiteralTokenValue : Primitive(1, CannotFail, CanFold, CanInline)
 		functionType(
 			tuple(
 				mostGeneralLiteralTokenType()),
-			ANY.o())
+			ANY.o
+		)
 }

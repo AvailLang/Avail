@@ -83,6 +83,7 @@ object P_TupleAppend : Primitive(2, CannotFail, CanFold, CanInline)
 		functionType(
 			tuple(
 				mostGeneralTupleType(),
-				ANY.o()),
+				ANY.o
+			),
 			mostGeneralTupleType())
 }

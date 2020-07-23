@@ -36,7 +36,6 @@ import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createWithOuters2
 import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.equalityPojo
-import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
@@ -133,9 +132,9 @@ object P_CreatePojoStaticMethodFunction : Primitive(3, CanInline, CanFold)
 				P_InvokeStaticPojoMethod,
 				it,
 				// Outer#1 = Static method to invoke.
-				RAW_POJO.o(),
+				RAW_POJO.o,
 				// Outer#2 = Marshaled type parameters.
-				zeroOrMoreOf(RAW_POJO.o()))
+				zeroOrMoreOf(RAW_POJO.o))
 		}
 		val function = createWithOuters2(
 			rawFunction,
@@ -153,7 +152,7 @@ object P_CreatePojoStaticMethodFunction : Primitive(3, CanInline, CanFold)
 				anyMeta(),
 				stringType(),
 				zeroOrMoreOf(anyMeta())),
-			functionTypeReturning(TOP.o()))
+			functionTypeReturning(TOP.o))
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

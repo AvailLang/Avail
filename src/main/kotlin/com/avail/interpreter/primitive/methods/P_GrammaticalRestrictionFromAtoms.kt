@@ -100,10 +100,11 @@ object P_GrammaticalRestrictionFromAtoms : Primitive(2, Unknown)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				setTypeForSizesContentType(naturalNumbers(), ATOM.o()),
+				setTypeForSizesContentType(naturalNumbers, ATOM.o),
 				zeroOrMoreOf(
-					setTypeForSizesContentType(wholeNumbers(), ATOM.o()))),
-			TOP.o())
+					setTypeForSizesContentType(wholeNumbers, ATOM.o))),
+			TOP.o
+		)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(

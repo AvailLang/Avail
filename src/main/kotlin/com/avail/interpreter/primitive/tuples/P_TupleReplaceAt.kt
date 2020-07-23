@@ -90,8 +90,9 @@ object P_TupleReplaceAt : Primitive(3, CanFold, CanInline)
 		functionType(
 			tuple(
 				mostGeneralTupleType(),
-				naturalNumbers(),
-				ANY.o()),
+				naturalNumbers,
+				ANY.o
+			),
 			mostGeneralTupleType())
 
 	override fun returnTypeGuaranteedByVM(

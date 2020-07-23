@@ -138,5 +138,5 @@ object P_BitwiseAnd : Primitive(2, CannotFail, CanFold, CanInline)
 		})
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(integers(), integers()), integers())
+		functionType(tuple(integers, integers), integers)
 }

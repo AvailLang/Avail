@@ -686,7 +686,7 @@ class MessageBundleTreeDescriptor private constructor(
 	}
 
 	override fun o_Kind(self: AvailObject): A_Type =
-		TypeDescriptor.Types.MESSAGE_BUNDLE_TREE.o()
+		TypeDescriptor.Types.MESSAGE_BUNDLE_TREE.o
 
 	override fun o_LazyActions(self: AvailObject): A_Map
 	{

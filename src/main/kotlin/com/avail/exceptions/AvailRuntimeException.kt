@@ -32,7 +32,6 @@
 
 package com.avail.exceptions
 
-import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.representation.AvailObject
 
 /**
@@ -45,7 +44,7 @@ import com.avail.descriptor.representation.AvailObject
 open class AvailRuntimeException : RuntimeException
 {
 	/** The [error code][AvailErrorCode].  */
-	private val errorCode: AvailErrorCode
+	val errorCode: AvailErrorCode
 
 	/**
 	 * Answer the numeric error code as an [Avail][AvailObject].
@@ -53,7 +52,7 @@ open class AvailRuntimeException : RuntimeException
 	 * @return
 	 *   The [numeric&#32;error&#32;code][AvailObject].
 	 */
-	fun numericCode(): A_Number = errorCode.numericCode()
+	val numericCode get () = errorCode.numericCode()
 
 	/**
 	 * Construct a new `AvailRuntimeException` with the specified

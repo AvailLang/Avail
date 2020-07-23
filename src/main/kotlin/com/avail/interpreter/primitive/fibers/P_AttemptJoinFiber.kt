@@ -135,7 +135,7 @@ object P_AttemptJoinFiber : Primitive(
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(mostGeneralFiberType()), TOP.o())
+		functionType(tuple(mostGeneralFiberType()), TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_FIBER_CANNOT_JOIN_ITSELF))

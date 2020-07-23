@@ -749,7 +749,7 @@ Semantic restriction "try_else_" is
  *
  * @type "system exception"
  * @field "error code" "natural number"
- * 		The vm error code.
+ * 		The VM error code.
  * @field "error name" "string"
  * 		The full name of the system exception including the word "exception"
  * 		at the end.
@@ -885,7 +885,7 @@ Public explicit class "code-generation exception" extends exception;
 
 /**
  * A definition exception describes error conditions related to defining Avail
- * methods, restrictions, types, and other entities.
+ * methods, restrictions, types, modules, and other entities.
  *
  * @type "definition exception"
  * @supertype "exception"
@@ -984,7 +984,7 @@ Public explicit class "variable-use exception" extends exception;
  * @type "cannot-add-unlike-infinities exception"
  * @supertype "arithmetic exception"
  * @field "error code" "1's type"
- * 		The vm error code.
+ * 		The VM error code.
  * @field "error name" "string"
  * 		The full name of the system exception including the word "exception"
  * 		at the end.
@@ -1000,7 +1000,7 @@ System exception "cannot-add-unlike-infinities" (1)
  * @type "cannot-subtract-like-infinities exception"
  * @supertype "arithmetic exception"
  * @field "error code" "2's type"
- * 		The vm error code.
+ * 		The VM error code.
  * @field "error name" "string"
  * 		The full name of the system exception including the word "exception"
  * 		at the end.
@@ -1015,7 +1015,7 @@ System exception "cannot-subtract-like-infinities" (2)
  * @type "cannot-multiply-zero-and-infinity exception"
  * @supertype "arithmetic exception"
  * @field "error code" "3's type"
- * 		The vm error code.
+ * 		The VM error code.
  * @field "error name" "string"
  * 		The full name of the system exception including the word "exception"
  * 		at the end.
@@ -1030,7 +1030,7 @@ System exception "cannot-multiply-zero-and-infinity" (3)
  * @type "cannot-divide-by-zero exception"
  * @supertype "arithmetic exception"
  * @field "error code" "4's type"
- * 		The vm error code.
+ * 		The VM error code.
  * @field "error name" "string"
  * 		The full name of the system exception including the word "exception"
  * 		at the end.
@@ -1045,7 +1045,7 @@ System exception "cannot-divide-by-zero" (4)
  * @type "cannot-divide-infinities exception"
  * @supertype "arithmetic exception"
  * @field "error code" "5's type"
- * 		The vm error code.
+ * 		The VM error code.
  * @field "error name" "string"
  * 		The full name of the system exception including the word "exception"
  * 		at the end.
@@ -1061,7 +1061,7 @@ System exception "cannot-divide-infinities" (5)
  * @type "cannot-read-unassigned-variable exception"
  * @supertype "variable-use exception"
  * @field "error code" "6's type"
- * 		The vm error code.
+ * 		The VM error code.
  * @field "error name" "string"
  * 		The full name of the system exception including the word "exception"
  * 		at the end.
@@ -1077,7 +1077,7 @@ System exception "cannot-read-unassigned-variable" (6)
  * @type "cannot-store-incorrectly-typed-value exception"
  * @supertype "variable-use exception"
  * @field "error code" "7's type"
- * 		The vm error code.
+ * 		The VM error code.
  * @field "error name" "string"
  * 		The full name of the system exception including the word "exception"
  * 		at the end.
@@ -1093,7 +1093,7 @@ System exception "cannot-store-incorrectly-typed-value" (7)
  * @type "cannot-swap-contents-of-differently-typed-variables exception"
  * @supertype "variable-use exception"
  * @field "error code" "8's type"
- * 		The vm error code.
+ * 		The VM error code.
  * @field "error name" "string"
  * 		The full name of the system exception including the word "exception"
  * 		at the end.
@@ -1108,7 +1108,7 @@ System exception "cannot-swap-contents-of-differently-typed-variables" (8)
  * @type "no-such-fiber-variable exception"
  * @supertype "element-access exception"
  * @field "error code" "9's type"
- * 		The vm error code.
+ * 		The VM error code.
  * @field "error name" "string"
  * 		The full name of the system exception including the word "exception"
  * 		at the end.
@@ -1125,7 +1125,7 @@ System exception "no-such-fiber-variable" (9)
  * @type "subscript-out-of-bounds exception"
  * @supertype "element-access exception"
  * @field "error code" "10's type"
- * 		The vm error code.
+ * 		The VM error code.
  * @field "error name" "string"
  * 		The full name of the system exception including the word "exception"
  * 		at the end.
@@ -1140,7 +1140,7 @@ System exception "subscript-out-of-bounds" (10)
  * @type "incorrect-number-of-arguments exception"
  * @supertype "invocation exception"
  * @field "error code" "11's type"
- * 		The vm error code.
+ * 		The VM error code.
  * @field "error name" "string"
  * 		The full name of the system exception including the word "exception"
  * 		at the end.
@@ -1156,7 +1156,7 @@ System exception "incorrect-number-of-arguments" (11)
  * @type "incorrect-argument-type exception"
  * @supertype "invocation exception"
  * @field "error code" "12's type"
- * 		The vm error code.
+ * 		The VM error code.
  * @field "error name" "string"
  * 		The full name of the system exception including the word "exception"
  * 		at the end.
@@ -1174,7 +1174,7 @@ System exception "incorrect-argument-type" (12)
  * @type "method-return-type-not-as-forward-declared exception"
  * @supertype "definition exception"
  * @field "error code" "13's type"
- * 		The vm error code.
+ * 		The VM error code.
  * @field "error name" "string"
  * 		The full name of the system exception including the word "exception"
  * 		at the end.
@@ -1191,7 +1191,7 @@ System exception "method-return-type-not-as-forward-declared" (13)
  * @type "continuation-expected-stronger-type exception"
  * @supertype "invocation exception"
  * @field "error code" "14's type"
- * 		The vm error code.
+ * 		The VM error code.
  * @field "error name" "string"
  * 		The full name of the system exception including the word "exception"
  * 		at the end.
@@ -1205,9 +1205,9 @@ System exception "continuation-expected-stronger-type" (14)
  * the underlying platform.
  *
  * @type "operation-not-supported exception"
- * @supertype "unsupported-operation"
+ * @supertype "unsupported-operation exception"
  * @field "error code" "15's type"
- * 		The vm error code.
+ * 		The VM error code.
  * @field "error name" "string"
  * 		The full name of the system exception including the word "exception"
  * 		at the end.
@@ -1217,13 +1217,29 @@ System exception "operation-not-supported" (15)
 	extends unsupported-operation exception;
 
 /**
+ * Raised when attempting to perform a side effect upon a {@type "module"} that
+ * has been closed for further side effects.
+ *
+ * @type "module-is-closed exception"
+ * @supertype "definition exception"
+ * @field "error code" "16's type"
+ *      The VM error code.
+ * @field "error name" "string"
+ * 		The full name of the system exception including the word "exception"
+ * 		at the end.
+ * @category "Exceptions" "Modules"
+ */
+System exception "module-is-closed" (16)
+	extends definition exception;
+
+/**
  * Raised when invoking an operation that expects an enumeration type with an
  * argument that is not an enumeration type.
  *
  * @type "not-an-enumeration exception"
  * @supertype "invocation exception"
  * @field "error code" "17's type"
- * 		The vm error code.
+ * 		The VM error code.
  * @field "error name" "string"
  * 		The full name of the system exception including the word "exception"
  * 		at the end.
@@ -1238,7 +1254,7 @@ System exception "not-an-enumeration" (17)
  * @type "shift-and-truncate-requires-non-negative exception"
  * @supertype "arithmetic exception"
  * @field "error code" "18's type"
- * 		The vm error code.
+ * 		The VM error code.
  * @field "error name" "string"
  * 		The full name of the system exception including the word "exception"
  * 		at the end.
@@ -1253,7 +1269,7 @@ System exception "shift-and-truncate-requires-non-negative" (18)
  * @type "no-method exception"
  * @supertype "element-access exception"
  * @field "error code" "19's type"
- * 		The vm error code.
+ * 		The VM error code.
  * @field "error name" "string"
  * 		The full name of the system exception including the word "exception"
  * 		at the end.
@@ -1269,7 +1285,7 @@ System exception "no-method" (19)
  * @type "wrong-outers exception"
  * @supertype "code-generation"
  * @field "error code" "20's type"
- * 		The vm error code.
+ * 		The VM error code.
  * @field "error name" "string"
  * 		The full name of the system exception including the word "exception"
  * 		at the end.
@@ -1424,7 +1440,7 @@ System exception "not-open-for-read" (93)
 	extends bad-argument exception;
 System exception "not-open-for-write" (94)
 	extends bad-argument exception;
-System exception "exceeds-vm-limit" (95)
+System exception "exceeds-VM-limit" (95)
 	extends bad-argument exception;
 System exception "serialization-failed" (96)
 	extends bad-argument exception;

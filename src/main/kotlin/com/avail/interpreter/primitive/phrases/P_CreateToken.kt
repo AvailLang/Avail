@@ -116,5 +116,6 @@ object P_CreateToken : Primitive(4, CannotFail, CanFold, CanInline)
 				stringType(),
 				inclusive(0L, (1L shl 32) - 1),
 				inclusive(0L, (1L shl 28) - 1)),
-			TOKEN.o())
+			TOKEN.o
+		)
 }

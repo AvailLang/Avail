@@ -89,6 +89,7 @@ object P_TupleTypeAt : Primitive(2, CannotFail, CanFold, CanInline)
 		functionType(
 			tuple(
 				tupleMeta(),
-				naturalNumbers()),
+				naturalNumbers
+			),
 			anyMeta())
 }

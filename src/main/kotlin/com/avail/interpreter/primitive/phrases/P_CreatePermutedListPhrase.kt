@@ -71,6 +71,6 @@ object P_CreatePermutedListPhrase : Primitive(2, CannotFail, CanInline)
 		functionType(
 			tuple(
 				LIST_PHRASE.mostGeneralType(),
-				oneOrMoreOf(naturalNumbers())),
+				oneOrMoreOf(naturalNumbers)),
 			PERMUTED_LIST_PHRASE.mostGeneralType())
 }

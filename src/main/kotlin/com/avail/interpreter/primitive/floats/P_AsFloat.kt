@@ -65,5 +65,5 @@ object P_AsFloat : Primitive(1, CannotFail, CanFold, CanInline)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(NUMBER.o()), FLOAT.o())
+		functionType(tuple(NUMBER.o), FLOAT.o)
 }

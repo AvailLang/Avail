@@ -320,7 +320,7 @@ abstract class TypeDescriptor protected constructor(
 				// Connect the objects.
 				for (spec in all)
 				{
-					val o: AvailObject = spec.o()
+					val o: AvailObject = spec.o
 					val descriptor =
 						if (spec == TOP)
 						{
@@ -338,7 +338,7 @@ abstract class TypeDescriptor protected constructor(
 						}
 						else
 						{
-							spec.parent.o()
+							spec.parent.o
 						})
 					var pointer: Types? = spec
 					while (pointer !== null)
@@ -373,13 +373,13 @@ abstract class TypeDescriptor protected constructor(
 								union = aAncestor
 								break
 							}
-							aAncestor = aAncestor.parent()
-							bAncestor = bAncestor.parent()
+							aAncestor = aAncestor.parent!!
+							bAncestor = bAncestor.parent!!
 							// Neither pointer can be null, because if one were
 							// at  "top", it would have already been detected as
 							// a supertype of the other.
 						}
-						a.unionTypes[bOrdinal] = union.o()
+						a.unionTypes[bOrdinal] = union.o
 						assert(a.superTests[union.ordinal])
 						assert(b.superTests[union.ordinal])
 
@@ -391,8 +391,8 @@ abstract class TypeDescriptor protected constructor(
 						a.intersectionTypes[bOrdinal] =
 							when
 							{
-								a.superTests[bOrdinal] -> a.o()
-								b.superTests[a.ordinal] -> b.o()
+								a.superTests[bOrdinal] -> a.o
+								b.superTests[a.ordinal] -> b.o
 								else -> bottom()
 							}
 					}
@@ -400,16 +400,16 @@ abstract class TypeDescriptor protected constructor(
 				// Now make all the objects shared.
 				for (spec in all)
 				{
-					spec.o().makeShared()
+					spec.o.makeShared()
 				}
 				// Sanity check them for metacovariance: a<=b -> a.type<=b.type
 				for (spec in all)
 				{
 					if (spec.parent !== null)
 					{
-						assert(spec.o().isSubtypeOf(spec.parent.o()))
-						assert(spec.o().isInstanceOfKind(
-							spec.parent.o().kind()))
+						assert(spec.o.isSubtypeOf(spec.parent.o))
+						assert(spec.o.isInstanceOfKind(
+							spec.parent.o.kind()))
 					}
 				}
 			}
@@ -424,24 +424,15 @@ abstract class TypeDescriptor protected constructor(
 		val typeTag: TypeTag
 
 		/**
-		 * Answer the parent `Types` object.  Fail if this is the top type.
-		 *
-		 * @return
-		 *   The parent of this Types object.
-		 */
-		fun parent(): Types = parent!!
-
-		/**
 		 * The [AvailObject] itself that this represents.
 		 */
-		private val o: AvailObject
+		val o: AvailObject
 
 		/**
 		 * A boolean array where the entries correspond to ordinals of other
 		 * Types. They are true precisely when the type with that ordinal is a
 		 * supertype of the current type.
 		 */
-		@JvmField
 		val superTests = BooleanArray(enumCount)
 
 		/**
@@ -449,7 +440,6 @@ abstract class TypeDescriptor protected constructor(
 		 * of other Types, and hold the unions of that type and the current
 		 * type.
 		 */
-		@JvmField
 		val unionTypes = arrayOfNulls<A_Type>(enumCount)
 
 		/**
@@ -457,7 +447,6 @@ abstract class TypeDescriptor protected constructor(
 		 * of other Types, and hold the intersection of that type and the
 		 * current type.
 		 */
-		@JvmField
 		val intersectionTypes = arrayOfNulls<A_Type>(enumCount)
 
 		/**
@@ -489,14 +478,6 @@ abstract class TypeDescriptor protected constructor(
 			o = PrimitiveTypeDescriptor.createMutablePrimitiveObjectNamed(
 				name.toLowerCase().replace('_', ' '))
 		}
-
-		/**
-		 * Answer the [AvailObject] representing this Avail type.
-		 *
-		 * @return
-		 *   The actual [type][TypeDescriptor], an AvailObject.
-		 */
-		fun o(): AvailObject = o
 	}
 
 	override fun o_AcceptsArgTypesFromFunctionType(
@@ -765,55 +746,55 @@ abstract class TypeDescriptor protected constructor(
 
 	override fun o_TypeUnionOfFiberType(
 		self: AvailObject,
-		aFiberType: A_Type): A_Type = self.typeUnion(Types.NONTYPE.o())
+		aFiberType: A_Type): A_Type = self.typeUnion(Types.NONTYPE.o)
 
 	override fun o_TypeUnionOfFunctionType(
 		self: AvailObject,
-		aFunctionType: A_Type): A_Type = self.typeUnion(Types.NONTYPE.o())
+		aFunctionType: A_Type): A_Type = self.typeUnion(Types.NONTYPE.o)
 
 	override fun o_TypeUnionOfVariableType(
 		self: AvailObject,
-		aVariableType: A_Type): A_Type = self.typeUnion(Types.NONTYPE.o())
+		aVariableType: A_Type): A_Type = self.typeUnion(Types.NONTYPE.o)
 
 	override fun o_TypeUnionOfContinuationType(
 		self: AvailObject,
-		aContinuationType: A_Type): A_Type = self.typeUnion(Types.NONTYPE.o())
+		aContinuationType: A_Type): A_Type = self.typeUnion(Types.NONTYPE.o)
 
 	override fun o_TypeUnionOfCompiledCodeType(
 		self: AvailObject,
-		aCompiledCodeType: A_Type): A_Type = self.typeUnion(Types.NONTYPE.o())
+		aCompiledCodeType: A_Type): A_Type = self.typeUnion(Types.NONTYPE.o)
 
 	override fun o_TypeUnionOfIntegerRangeType(
 		self: AvailObject,
-		anIntegerRangeType: A_Type): A_Type = self.typeUnion(Types.NUMBER.o())
+		anIntegerRangeType: A_Type): A_Type = self.typeUnion(Types.NUMBER.o)
 
 	override fun o_TypeUnionOfListNodeType(
 		self: AvailObject,
-		aListNodeType: A_Type): A_Type = self.typeUnion(Types.NONTYPE.o())
+		aListNodeType: A_Type): A_Type = self.typeUnion(Types.NONTYPE.o)
 
 	override fun o_TypeUnionOfTokenType(
 		self: AvailObject,
-		aTokenType: A_Type): A_Type = self.typeUnion(Types.TOKEN.o())
+		aTokenType: A_Type): A_Type = self.typeUnion(Types.TOKEN.o)
 
 	override fun o_TypeUnionOfLiteralTokenType(
 		self: AvailObject,
-		aLiteralTokenType: A_Type): A_Type = self.typeUnion(Types.TOKEN.o())
+		aLiteralTokenType: A_Type): A_Type = self.typeUnion(Types.TOKEN.o)
 
 	override fun o_TypeUnionOfMapType(
 		self: AvailObject,
-		aMapType: A_Type): A_Type = self.typeUnion(Types.NONTYPE.o())
+		aMapType: A_Type): A_Type = self.typeUnion(Types.NONTYPE.o)
 
 	override fun o_TypeUnionOfObjectType(
 		self: AvailObject,
-		anObjectType: AvailObject): A_Type = self.typeUnion(Types.NONTYPE.o())
+		anObjectType: AvailObject): A_Type = self.typeUnion(Types.NONTYPE.o)
 
 	override fun o_TypeUnionOfPhraseType(
 		self: AvailObject,
-		aPhraseType: A_Type): A_Type = self.typeUnion(Types.NONTYPE.o())
+		aPhraseType: A_Type): A_Type = self.typeUnion(Types.NONTYPE.o)
 
 	override fun o_TypeUnionOfPojoType(
 		self: AvailObject,
-		aPojoType: A_Type): A_Type = self.typeUnion(Types.NONTYPE.o())
+		aPojoType: A_Type): A_Type = self.typeUnion(Types.NONTYPE.o)
 
 	override fun o_TypeUnionOfPrimitiveTypeEnum(
 		self: AvailObject,
@@ -822,9 +803,9 @@ abstract class TypeDescriptor protected constructor(
 		var anotherAncestor = primitiveTypeEnum
 		while (true)
 		{
-			if (self.isSubtypeOf(anotherAncestor.o()))
+			if (self.isSubtypeOf(anotherAncestor.o))
 			{
-				return anotherAncestor.o()
+				return anotherAncestor.o
 			}
 			anotherAncestor = anotherAncestor.parent!!
 		}
@@ -832,11 +813,11 @@ abstract class TypeDescriptor protected constructor(
 
 	override fun o_TypeUnionOfSetType(
 		self: AvailObject,
-		aSetType: A_Type): A_Type = self.typeUnion(Types.NONTYPE.o())
+		aSetType: A_Type): A_Type = self.typeUnion(Types.NONTYPE.o)
 
 	override fun o_TypeUnionOfTupleType(
 		self: AvailObject,
-		aTupleType: A_Type): A_Type = self.typeUnion(Types.NONTYPE.o())
+		aTupleType: A_Type): A_Type = self.typeUnion(Types.NONTYPE.o)
 
 	override fun o_UnionOfTypesAtThrough(
 		self: AvailObject,

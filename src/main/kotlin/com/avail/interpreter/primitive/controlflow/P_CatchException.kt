@@ -34,7 +34,6 @@ package com.avail.interpreter.primitive.controlflow
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.exceptionType
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
-import com.avail.descriptor.tuples.ObjectTupleDescriptor
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
@@ -97,11 +96,12 @@ object P_CatchException : Primitive(
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			ObjectTupleDescriptor.tuple(
-				functionType(emptyTuple, TOP.o()),
-				zeroOrMoreOf(functionType(tuple(bottom()), TOP.o())),
-				functionType(emptyTuple, TOP.o())),
-			TOP.o())
+			tuple(
+				functionType(emptyTuple, TOP.o),
+				zeroOrMoreOf(functionType(tuple(bottom()), TOP.o)),
+				functionType(emptyTuple, TOP.o)),
+			TOP.o
+		)
 
 	override fun privateFailureVariableType(): A_Type =
 		// Note: The failure value is itself a new variable stuffed into the

@@ -82,8 +82,10 @@ object P_RemoveWriteReactor : Primitive(2, HasSideEffect)
 		functionType(
 			tuple(
 				mostGeneralVariableType(),
-				ATOM.o()),
-			TOP.o())
+				ATOM.o
+			),
+			TOP.o
+		)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

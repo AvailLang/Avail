@@ -3279,4 +3279,9 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_RegisterDump(self: AvailObject): AvailObject =
 		self .. { registerDump() }
+
+	override fun o_IsOpen(self: AvailObject) = self .. { isOpen() }
+
+	override fun o_CloseModule(self: AvailObject) =
+		self .. { closeModule() }
 }

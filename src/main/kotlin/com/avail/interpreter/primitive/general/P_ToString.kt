@@ -64,7 +64,7 @@ object P_ToString : Primitive(1, CanInline, CannotFail)
 	override fun privateBlockTypeRestriction(): A_Type
 	{
 		return functionType(
-			tuple(ANY.o()),
+			tuple(ANY.o),
 			stringType())
 	}
 

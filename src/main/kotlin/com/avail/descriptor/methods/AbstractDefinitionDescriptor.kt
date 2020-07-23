@@ -42,7 +42,7 @@ import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor
-import com.avail.descriptor.types.TypeDescriptor.Types
+import com.avail.descriptor.types.TypeDescriptor.Types.ABSTRACT_DEFINITION
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
 
@@ -103,7 +103,7 @@ class AbstractDefinitionDescriptor private constructor(
 		self.slot(BODY_SIGNATURE).hash() * 19 xor 0x201FE782
 
 	override fun o_Kind(self: AvailObject): AvailObject =
-		Types.ABSTRACT_DEFINITION.o()
+		ABSTRACT_DEFINITION.o
 
 	override fun o_IsAbstractDefinition(self: AvailObject) = true
 

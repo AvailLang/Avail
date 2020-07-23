@@ -75,10 +75,11 @@ object P_IfFalseThenElse : Primitive(3, Invokes, CanInline, CannotFail)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				ANY.o(),
-				functionType(emptyTuple, TOP.o()),
-				functionType(emptyTuple, TOP.o())),
-			TOP.o())
+				ANY.o,
+				functionType(emptyTuple, TOP.o),
+				functionType(emptyTuple, TOP.o)),
+			TOP.o
+		)
 
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,

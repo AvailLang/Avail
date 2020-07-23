@@ -108,7 +108,8 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 			tuple(
 				mostGeneralFunctionType(),
 				mostGeneralTupleType()),
-			TOP.o())
+			TOP.o
+		)
 
 	override fun fallibilityForArgumentTypes(argumentTypes: List<A_Type>)
 		: Fallibility
@@ -240,7 +241,7 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 		val explodedArgumentRegisters =
 			generator.explodeTupleIfPossible(
 				tupleReg,
-				nCopies(argsSize, Types.ANY.o()))
+				nCopies(argsSize, Types.ANY.o))
 
 		// Fall back if we couldn't even pin down the argument count.
 		explodedArgumentRegisters ?: return false

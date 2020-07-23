@@ -63,6 +63,6 @@ object P_Entries : Primitive(1, CanInline, CannotFail)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(MODULE.o()),
-			setTypeForSizesContentType(wholeNumbers(), stringType()))
+			tuple(MODULE.o),
+			setTypeForSizesContentType(wholeNumbers, stringType()))
 }

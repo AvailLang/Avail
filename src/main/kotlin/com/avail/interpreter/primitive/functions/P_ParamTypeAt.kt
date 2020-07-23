@@ -82,7 +82,8 @@ object P_ParamTypeAt : Primitive(2, CanFold, CanInline)
 		functionType(
 			tuple(
 				functionMeta(),
-				naturalNumbers()),
+				naturalNumbers
+			),
 			anyMeta())
 
 	override fun fallibilityForArgumentTypes(

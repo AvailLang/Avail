@@ -98,10 +98,11 @@ object P_SealMethodByAtom : Primitive(2, CanInline, HasSideEffect)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				ATOM.o(),
+				ATOM.o,
 				tupleTypeForSizesTypesDefaultType(
-					wholeNumbers(), emptyTuple, anyMeta())),
-			TOP.o())
+					wholeNumbers, emptyTuple, anyMeta())),
+			TOP.o
+		)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

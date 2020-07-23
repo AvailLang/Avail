@@ -95,6 +95,6 @@ object P_ComputeDigest : Primitive(2, CannotFail, CanFold, CanInline)
 			tuple(
 				enumerationWith(
 					tupleFromIntegerList(listOf(1, 256, 384, 512)).asSet()),
-				zeroOrMoreOf(bytes())),
-			oneOrMoreOf(bytes()))
+				zeroOrMoreOf(bytes)),
+			oneOrMoreOf(bytes))
 }

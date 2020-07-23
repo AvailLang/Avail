@@ -62,5 +62,5 @@ object P_CanRejectParse : Primitive(0, CannotFail, CanInline)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(emptyTuple, booleanType())
+		functionType(emptyTuple, booleanType)
 }

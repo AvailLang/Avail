@@ -90,8 +90,10 @@ object P_TupleAt : Primitive(2, CanFold, CanInline)
 		functionType(
 			tuple(
 				mostGeneralTupleType(),
-				naturalNumbers()),
-			ANY.o())
+				naturalNumbers
+			),
+			ANY.o
+		)
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,
@@ -146,7 +148,7 @@ object P_TupleAt : Primitive(2, CanFold, CanInline)
 			val semanticSize = generator.primitiveInvocation(
 				P_TupleSize, listOf(tupleReg))
 			val intSizeRestriction = restrictionForType(
-				tupleReg.type().sizeRange().typeIntersection(int32()),
+				tupleReg.type().sizeRange().typeIntersection(int32),
 				UNBOXED_INT)
 			val sizeWriter = generator.intWrite(
 				semanticSize, intSizeRestriction)

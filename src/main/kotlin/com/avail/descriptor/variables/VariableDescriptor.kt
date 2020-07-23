@@ -350,7 +350,8 @@ open class VariableDescriptor protected constructor(
 		handleVariableWriteTracing(self)
 		val outerKind: A_Type = self.slot(KIND)
 		assert(outerKind.readType().isSubtypeOf(
-			IntegerRangeTypeDescriptor.extendedIntegers()))
+			IntegerRangeTypeDescriptor.extendedIntegers
+		))
 		// The variable is not visible to multiple fibers, and cannot become
 		// visible to any other fiber except by an act of the current fiber,
 		// therefore do not worry about atomicity.

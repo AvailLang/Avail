@@ -154,9 +154,9 @@ object P_FileGetPermissions : Primitive(2, CanInline, HasSideEffect)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(stringType(), booleanType()),
+			tuple(stringType(), booleanType),
 			setTypeForSizesContentType(
-				wholeNumbers(), inclusive(1, 9)))
+				wholeNumbers, inclusive(1, 9)))
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

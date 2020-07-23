@@ -107,7 +107,7 @@ object P_SimpleMethodDeclaration : Primitive(2, Bootstrap, CanSuspend, Unknown)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(stringType(), mostGeneralFunctionType()), TOP.o())
+		functionType(tuple(stringType(), mostGeneralFunctionType()), TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(

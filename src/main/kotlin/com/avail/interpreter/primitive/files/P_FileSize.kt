@@ -85,7 +85,7 @@ object P_FileSize : Primitive(1, CanInline, HasSideEffect)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(ATOM.o()), wholeNumbers())
+		functionType(tuple(ATOM.o), wholeNumbers)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_INVALID_HANDLE, E_IO_ERROR))

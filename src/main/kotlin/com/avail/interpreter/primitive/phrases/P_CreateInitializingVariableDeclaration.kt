@@ -73,8 +73,8 @@ object P_CreateInitializingVariableDeclaration : Primitive(3, CanInline, CannotF
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				TOKEN.o(),
+				TOKEN.o,
 				anyMeta(),
-				EXPRESSION_PHRASE.create(ANY.o())),
+				EXPRESSION_PHRASE.create(ANY.o)),
 			LOCAL_VARIABLE_PHRASE.mostGeneralType())
 }

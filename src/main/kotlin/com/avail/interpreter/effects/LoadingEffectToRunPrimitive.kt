@@ -35,7 +35,7 @@ package com.avail.interpreter.effects
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import com.avail.descriptor.representation.A_BasicObject
-import com.avail.descriptor.types.TypeDescriptor.Types
+import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.interpreter.levelOne.L1InstructionWriter
 import com.avail.interpreter.levelOne.L1Operation
 
@@ -83,6 +83,6 @@ internal class LoadingEffectToRunPrimitive constructor(
 			0,
 			L1Operation.L1_doCall,
 			writer.addLiteral(primitiveBundle),
-			writer.addLiteral(Types.TOP.o()))
+			writer.addLiteral(TOP.o))
 	}
 }

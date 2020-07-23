@@ -71,5 +71,6 @@ object P_RemoveTypeName : Primitive(2, CanInline, CannotFail, HasSideEffect)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(stringType(), instanceMeta(mostGeneralObjectType())), TOP.o())
+			tuple(stringType(), instanceMeta(mostGeneralObjectType())), TOP.o
+		)
 }

@@ -169,15 +169,18 @@ object P_SocketWrite : Primitive(5, CanInline, HasSideEffect)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			ObjectTupleDescriptor.tuple(
-				zeroOrMoreOf(bytes()),
-				ATOM.o(),
+				zeroOrMoreOf(bytes),
+				ATOM.o,
 				functionType(
 					emptyTuple,
-					TOP.o()),
+					TOP.o
+				),
 				functionType(
 					tuple(instanceType(E_IO_ERROR.numericCode())),
-					TOP.o()),
-				bytes()),
+					TOP.o
+				),
+				bytes
+			),
 			mostGeneralFiberType())
 
 	override fun privateFailureVariableType(): A_Type =

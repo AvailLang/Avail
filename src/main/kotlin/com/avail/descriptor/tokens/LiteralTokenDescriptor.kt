@@ -53,6 +53,7 @@ import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.InstanceTypeDescriptor
 import com.avail.descriptor.types.LiteralTokenTypeDescriptor
 import com.avail.descriptor.types.TypeDescriptor.Types
+import com.avail.descriptor.types.TypeDescriptor.Types.TOKEN
 import com.avail.descriptor.types.TypeTag
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
@@ -198,7 +199,8 @@ class LiteralTokenDescriptor private constructor(
 	override fun o_IsInstanceOfKind(
 		self: AvailObject, aType: A_Type): Boolean =
 		(aType.isSupertypeOfPrimitiveTypeEnum(
-			Types.TOKEN)
+			TOKEN
+		)
 			|| aType.isLiteralTokenType
 			&& self.slot(LITERAL)
 			.isInstanceOf(aType.literalType()))
@@ -263,7 +265,7 @@ class LiteralTokenDescriptor private constructor(
 			setSlot(START, start)
 			setSlot(LINE_NUMBER, lineNumber)
 			setSlot(LITERAL, literal)
-			if (literal.isInstanceOfKind(Types.TOKEN.o())) {
+			if (literal.isInstanceOfKind(TOKEN.o)) {
 				// We're wrapping another token, so share that token's
 				// nextLexingState pojo, if set.
 				val innerToken: A_Token = literal.traversed()

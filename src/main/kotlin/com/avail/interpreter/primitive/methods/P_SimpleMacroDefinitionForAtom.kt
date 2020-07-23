@@ -176,10 +176,11 @@ object P_SimpleMacroDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				ATOM.o(),
+				ATOM.o,
 				zeroOrMoreOf(mostGeneralFunctionType()),
 				functionTypeReturning(PARSE_PHRASE.mostGeneralType())),
-			TOP.o())
+			TOP.o
+		)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(

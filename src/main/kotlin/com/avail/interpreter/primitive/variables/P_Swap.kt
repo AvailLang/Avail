@@ -89,7 +89,8 @@ object P_Swap : Primitive(2, CanInline, HasSideEffect)
 			tuple(
 				mostGeneralVariableType(),
 				mostGeneralVariableType()),
-			TOP.o())
+			TOP.o
+		)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

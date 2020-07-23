@@ -34,7 +34,7 @@ package com.avail.interpreter.levelTwo.operation
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.InstanceMetaDescriptor
 import com.avail.descriptor.types.TupleTypeDescriptor
-import com.avail.descriptor.types.TypeDescriptor
+import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2OperandType
 import com.avail.interpreter.levelTwo.L2Operation
@@ -44,7 +44,7 @@ import com.avail.optimizer.L2Generator
 import com.avail.optimizer.RegisterSet
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
-import java.util.*
+import java.util.ArrayList
 
 /**
  * Create a fixed sized [tuple&#32;type][TupleTypeDescriptor] from the
@@ -53,6 +53,7 @@ import java.util.*
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object L2_CREATE_TUPLE_TYPE : L2Operation(
 	L2OperandType.READ_BOXED_VECTOR.named("element types"),
 	L2OperandType.WRITE_BOXED.named("tuple type"))
@@ -97,12 +98,13 @@ object L2_CREATE_TUPLE_TYPE : L2Operation(
 						}
 						else
 						{
-							TypeDescriptor.Types.ANY.o()
+							@Suppress("unused")
+							ANY.o
 						})
 				}
 				else
 				{
-					newTypes.add(TypeDescriptor.Types.ANY.o())
+					newTypes.add(ANY.o)
 				}
 			}
 			val newTupleType =

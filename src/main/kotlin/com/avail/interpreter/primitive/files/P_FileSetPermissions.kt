@@ -120,10 +120,11 @@ object P_FileSetPermissions : Primitive(3, CanInline, HasSideEffect)
 		functionType(
 			tuple(stringType(),
 				  setTypeForSizesContentType(
-				      inclusive(0, 9),
-				inclusive(1, 9)),
-				  booleanType()),
-			TOP.o())
+					  inclusive(0, 9),
+					  inclusive(1, 9)),
+				  booleanType),
+			TOP.o
+		)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

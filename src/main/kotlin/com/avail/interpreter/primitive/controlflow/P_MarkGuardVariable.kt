@@ -82,7 +82,8 @@ object P_MarkGuardVariable : Primitive(2, CanInline, Unknown)
 							E_UNWIND_SENTINEL))),
 				enumerationWith(
 					set(E_HANDLER_SENTINEL, E_UNWIND_SENTINEL))),
-			TOP.o())
+			TOP.o
+		)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_CANNOT_MARK_HANDLER_FRAME))

@@ -326,7 +326,7 @@ ext.credentialsWarning = "Missing credentials.  To publish, you'll need to " +
 			"authenticating-with-the-github_token") +
 	"\n" +
 	"Then set GITHUB_USER and GITHUB_TOKEN variables to hold your github " +
-	"username and the (generated  hexadecimal) token, respectively, in " +
+	"username and the (generated hexadecimal) token, respectively, in " +
 	"~/.bash_profile or other appropriate login script." +
 	"\n" +
 	'Remember to restart IntelliJ after this change.'

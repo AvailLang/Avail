@@ -76,7 +76,7 @@ import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.CompiledCodeTypeDescriptor.Companion.compiledCodeTypeForFunctionType
 import com.avail.descriptor.types.CompiledCodeTypeDescriptor.Companion.mostGeneralCompiledCodeType
 import com.avail.descriptor.types.FunctionTypeDescriptor
-import com.avail.descriptor.types.TypeDescriptor
+import com.avail.descriptor.types.TypeDescriptor.Types.MODULE
 import com.avail.descriptor.types.TypeTag
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.execution.Interpreter
@@ -1193,7 +1193,7 @@ class CompiledCodeDescriptor private constructor(
 			assert(numLiterals and 0xFFFF.inv() == 0)
 			assert(numOuters and 0xFFFF.inv() == 0)
 			assert(module.equalsNil()
-				|| module.isInstanceOf(TypeDescriptor.Types.MODULE.o()))
+				|| module.isInstanceOf(MODULE.o))
 			assert(lineNumber >= 0)
 			val nybbleCount = nybbles.tupleSize()
 			val code = newObjectIndexedIntegerIndexedDescriptor(

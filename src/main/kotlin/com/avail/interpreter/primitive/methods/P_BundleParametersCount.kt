@@ -66,5 +66,5 @@ object P_BundleParametersCount : Primitive(1, CannotFail, CanFold, CanInline)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(MESSAGE_BUNDLE.o()), wholeNumbers())
+		functionType(tuple(MESSAGE_BUNDLE.o), wholeNumbers)
 }

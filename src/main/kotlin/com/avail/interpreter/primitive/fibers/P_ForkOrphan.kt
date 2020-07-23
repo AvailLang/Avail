@@ -128,10 +128,12 @@ object P_ForkOrphan : Primitive(
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				functionTypeReturning(TOP.o()),
+				functionTypeReturning(TOP.o),
 				mostGeneralTupleType(),
-				bytes()),
-			TOP.o())
+				bytes
+			),
+			TOP.o
+		)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

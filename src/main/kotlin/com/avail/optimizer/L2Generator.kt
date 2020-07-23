@@ -601,12 +601,12 @@ class L2Generator internal constructor(
 		if (restriction.isUnboxedInt)
 		{
 			// It already exists in an unboxed int register.
-			assert(restriction.type.isSubtypeOf(IntegerRangeTypeDescriptor.int32()))
+			assert(restriction.type.isSubtypeOf(IntegerRangeTypeDescriptor.int32))
 			return currentManifest.readInt(semanticValue)
 		}
 		// It's not available as an unboxed int, so generate code to unbox it.
 		if (!restriction.isBoxed ||
-			!restriction.intersectsType(IntegerRangeTypeDescriptor.int32()))
+			!restriction.intersectsType(IntegerRangeTypeDescriptor.int32))
 		{
 			// It's not an unboxed int, and it's either not boxed or it has a
 			// type that can never be an int32, so it must always fail.
@@ -615,7 +615,7 @@ class L2Generator internal constructor(
 			return unboxedIntConstant(-999)
 		}
 		// Check for constant.  It can be infallibly converted.
-		if (restriction.containedByType(IntegerRangeTypeDescriptor.int32())
+		if (restriction.containedByType(IntegerRangeTypeDescriptor.int32)
 			&& restriction.constantOrNull !== null)
 		{
 			// Make it available as a constant in an int register.
@@ -626,12 +626,12 @@ class L2Generator internal constructor(
 			currentManifest.semanticValueToSynonym(semanticValue)
 				.semanticValues(),
 			restriction
-				.intersectionWithType(IntegerRangeTypeDescriptor.int32())
+				.intersectionWithType(IntegerRangeTypeDescriptor.int32)
 				.withFlag(RestrictionFlagEncoding.UNBOXED_INT),
 			L2IntRegister(nextUnique()))
 		val boxedRead =
 			currentManifest.readBoxed(semanticValue)
-		if (restriction.containedByType(IntegerRangeTypeDescriptor.int32()))
+		if (restriction.containedByType(IntegerRangeTypeDescriptor.int32))
 		{
 			addInstruction(L2_UNBOX_INT, boxedRead, intWrite)
 		}
@@ -688,12 +688,12 @@ class L2Generator internal constructor(
 		if (restriction.isUnboxedFloat)
 		{
 			// It already exists in an unboxed float register.
-			assert(restriction.type.isSubtypeOf(TypeDescriptor.Types.DOUBLE.o()))
+			assert(restriction.type.isSubtypeOf(TypeDescriptor.Types.DOUBLE.o))
 			return currentManifest.readFloat(semanticValue)
 		}
 		// It's not available as an unboxed float, so generate code to unbox it.
 		if (!restriction.isBoxed ||
-			!restriction.intersectsType(TypeDescriptor.Types.DOUBLE.o()))
+			!restriction.intersectsType(TypeDescriptor.Types.DOUBLE.o))
 		{
 			// It's not an unboxed float, and it's either not boxed or it has a
 			// type that can never be a float, so it must always fail.
@@ -702,7 +702,7 @@ class L2Generator internal constructor(
 			return unboxedFloatConstant(-99.9)
 		}
 		// Check for constant.  It can be infallibly converted.
-		if (restriction.containedByType(TypeDescriptor.Types.DOUBLE.o())
+		if (restriction.containedByType(TypeDescriptor.Types.DOUBLE.o)
 			&& restriction.constantOrNull !== null)
 		{
 			// Make it available as a constant in a float register.
@@ -714,12 +714,12 @@ class L2Generator internal constructor(
 			currentManifest.semanticValueToSynonym(semanticValue)
 				.semanticValues(),
 			restriction
-				.intersectionWithType(TypeDescriptor.Types.DOUBLE.o())
+				.intersectionWithType(TypeDescriptor.Types.DOUBLE.o)
 				.withFlag(RestrictionFlagEncoding.UNBOXED_FLOAT),
 			L2FloatRegister(nextUnique()))
 		val boxedRead =
 			currentManifest.readBoxed(semanticValue)
-		if (restriction.containedByType(TypeDescriptor.Types.DOUBLE.o()))
+		if (restriction.containedByType(TypeDescriptor.Types.DOUBLE.o))
 		{
 			addInstruction(L2_UNBOX_FLOAT, boxedRead, floatWrite)
 		}

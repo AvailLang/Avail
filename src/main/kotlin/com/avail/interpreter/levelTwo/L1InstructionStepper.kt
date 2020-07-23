@@ -783,7 +783,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 		}
 		catch (e: VariableGetException)
 		{
-			assert(e.numericCode().equals(
+			assert(e.numericCode.equals(
 				AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE.numericCode()))
 			val savedFunction = interpreter.function!!
 			val savedPointers = pointers
@@ -836,7 +836,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 		}
 		catch (e: VariableSetException)
 		{
-			assert(e.numericCode().equals(
+			assert(e.numericCode.equals(
 				AvailErrorCode.E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED
 					.numericCode()))
 			val savedFunction = interpreter.function!!
@@ -983,7 +983,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 			val savedPc = instructionDecoder.pc()
 			val savedStackp = stackp
 			val reportedResult =
-				newVariableWithContentType(TypeDescriptor.Types.ANY.o())
+				newVariableWithContentType(TypeDescriptor.Types.ANY.o)
 			reportedResult.setValueNoCheck(result)
 			val argsBuffer = interpreter.argsBuffer
 			argsBuffer.clear()

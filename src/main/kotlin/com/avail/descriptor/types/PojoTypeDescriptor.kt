@@ -486,7 +486,7 @@ abstract class PojoTypeDescriptor protected constructor(
 		 * The [integer&#32;range&#32;type][IntegerRangeTypeDescriptor] that
 		 * corresponds to Java `int`.
 		 */
-		private val intRange = IntegerRangeTypeDescriptor.int32()
+		private val intRange = IntegerRangeTypeDescriptor.int32
 
 		/**
 		 * Answer the [integer&#32;range&#32;type][IntegerRangeTypeDescriptor]
@@ -502,7 +502,7 @@ abstract class PojoTypeDescriptor protected constructor(
 		 * The [integer&#32;range&#32;type][IntegerRangeTypeDescriptor] that
 		 * corresponds to Java `long`.
 		 */
-		private val longRange = IntegerRangeTypeDescriptor.int64()
+		private val longRange = IntegerRangeTypeDescriptor.int64
 
 		/**
 		 * Answer the [integer&#32;range&#32;type][IntegerRangeTypeDescriptor]
@@ -892,7 +892,7 @@ abstract class PojoTypeDescriptor protected constructor(
 				// If type represents java.lang.Object, then answer any.
 				if (type == Any::class.java)
 				{
-					return Types.ANY.o()
+					return Types.ANY.o
 				}
 				// If type represents a Java primitive, then unmarshal it.
 				if (type.isPrimitive)
@@ -900,9 +900,9 @@ abstract class PojoTypeDescriptor protected constructor(
 					// If type represents Java void, then answer top.
 					return when (type)
 					{
-						Void.TYPE -> Types.TOP.o()
+						Void.TYPE -> Types.TOP.o
 						java.lang.Boolean::class.javaPrimitiveType ->
-							booleanType()
+							booleanType
 						java.lang.Byte::class.javaPrimitiveType ->
 							byteRange()
 						java.lang.Short::class.javaPrimitiveType ->
@@ -910,9 +910,9 @@ abstract class PojoTypeDescriptor protected constructor(
 						java.lang.Integer::class.javaPrimitiveType -> intRange()
 						java.lang.Long::class.javaPrimitiveType -> longRange()
 						java.lang.Float::class.javaPrimitiveType ->
-							Types.FLOAT.o()
+							Types.FLOAT.o
 						java.lang.Double::class.javaPrimitiveType ->
-							Types.DOUBLE.o()
+							Types.DOUBLE.o
 						java.lang.Character::class.javaPrimitiveType ->
 							charRange()
 						else ->
@@ -926,14 +926,14 @@ abstract class PojoTypeDescriptor protected constructor(
 				}
 				when (type)
 				{
-					Void::class.java -> return Types.TOP.o()
-					java.lang.Boolean::class.java -> return booleanType()
+					Void::class.java -> return Types.TOP.o
+					java.lang.Boolean::class.java -> return booleanType
 					java.lang.Byte::class.java -> return byteRange()
 					java.lang.Short::class.java -> return shortRange()
 					java.lang.Integer::class.java -> return intRange()
 					java.lang.Long::class.java -> return longRange()
-					java.lang.Float::class.java -> return Types.FLOAT.o()
-					java.lang.Double::class.java -> return Types.DOUBLE.o()
+					java.lang.Float::class.java -> return Types.FLOAT.o
+					java.lang.Double::class.java -> return Types.DOUBLE.o
 					java.lang.Character::class.java -> return charRange()
 					String::class.java ->
 						return TupleTypeDescriptor.stringType()
@@ -941,7 +941,7 @@ abstract class PojoTypeDescriptor protected constructor(
 					{
 						return if (type == BigInteger::class.java)
 						{
-							IntegerRangeTypeDescriptor.integers()
+							IntegerRangeTypeDescriptor.integers
 						}
 						else
 						{
@@ -1035,9 +1035,9 @@ abstract class PojoTypeDescriptor protected constructor(
 					if (javaClass.typeParameters.isEmpty())
 					{
 						val resolved = resolvePojoType(javaClass, emptyMap)
-						return if (!allowMetas && resolved.equals(Types.ANY.o()))
+						return if (!allowMetas && resolved.equals(Types.ANY.o))
 						{
-							Types.NONTYPE.o()
+							Types.NONTYPE.o
 						}
 						else resolved
 					}
@@ -1268,7 +1268,7 @@ abstract class PojoTypeDescriptor protected constructor(
 				{
 					Array(paramCount)
 					{
-						Types.ANY.o()
+						Types.ANY.o
 					}.toList()
 				}
 				else
@@ -1297,7 +1297,8 @@ abstract class PojoTypeDescriptor protected constructor(
 		fun pojoArrayType(elementType: A_Type, sizeRange: A_Type): AvailObject
 		{
 			assert(sizeRange.isSubtypeOf(
-				IntegerRangeTypeDescriptor.wholeNumbers()))
+				IntegerRangeTypeDescriptor.wholeNumbers
+			))
 			return arrayPojoType(elementType, sizeRange)
 		}
 

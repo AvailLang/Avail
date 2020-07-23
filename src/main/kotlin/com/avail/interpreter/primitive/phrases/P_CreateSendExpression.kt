@@ -103,7 +103,7 @@ object P_CreateSendExpression : Primitive(3, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				ATOM.o(),
+				ATOM.o,
 				LIST_PHRASE.mostGeneralType(),
 				topMeta()),
 			SEND_PHRASE.mostGeneralType())

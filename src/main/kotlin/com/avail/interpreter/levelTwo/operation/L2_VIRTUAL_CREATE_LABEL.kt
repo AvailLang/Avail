@@ -198,11 +198,11 @@ object L2_VIRTUAL_CREATE_LABEL : L2Operation(
 					"Transient, cannot be invalid."))
 			val tempOffset = generator.intWriteTemp(
 				TypeRestriction.restrictionForType(
-					IntegerRangeTypeDescriptor.int32(),
+					IntegerRangeTypeDescriptor.int32,
 					RestrictionFlagEncoding.UNBOXED_INT))
 			val tempRegisterDump =
 				generator.boxedWriteTemp(TypeRestriction.restrictionForType(
-					TypeDescriptor.Types.ANY.o(), RestrictionFlagEncoding.BOXED))
+					TypeDescriptor.Types.ANY.o, RestrictionFlagEncoding.BOXED))
 			generator.addInstruction(
 				L2_SAVE_ALL_AND_PC_TO_INT,
 				L2Generator.edgeTo(afterReification),
@@ -272,11 +272,11 @@ object L2_VIRTUAL_CREATE_LABEL : L2Operation(
 			generator.currentBlock().zone)
 		val writeOffset = generator.intWriteTemp(
 			TypeRestriction.restrictionForType(
-				IntegerRangeTypeDescriptor.int32(),
+				IntegerRangeTypeDescriptor.int32,
 				RestrictionFlagEncoding.UNBOXED_INT))
 		val writeRegisterDump =
 			generator.boxedWriteTemp(TypeRestriction.restrictionForType(
-				TypeDescriptor.Types.ANY.o(), RestrictionFlagEncoding.BOXED))
+				TypeDescriptor.Types.ANY.o, RestrictionFlagEncoding.BOXED))
 		generator.addInstruction(
 			L2_SAVE_ALL_AND_PC_TO_INT,
 			L2Generator.backEdgeTo(generator.afterOptionalInitialPrimitiveBlock),

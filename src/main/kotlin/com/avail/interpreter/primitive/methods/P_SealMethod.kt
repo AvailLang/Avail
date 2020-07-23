@@ -102,7 +102,7 @@ object P_SealMethod : Primitive(2, CanInline, HasSideEffect)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(stringType(), zeroOrMoreOf(anyMeta())), TOP.o())
+		functionType(tuple(stringType(), zeroOrMoreOf(anyMeta())), TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

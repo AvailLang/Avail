@@ -63,5 +63,5 @@ object P_CompiledCodeNybbles : Primitive(1, CannotFail, CanFold, CanInline)
 		functionType(
 			tuple(
 				mostGeneralCompiledCodeType()),
-			zeroOrMoreOf(nybbles()))
+			zeroOrMoreOf(nybbles))
 }

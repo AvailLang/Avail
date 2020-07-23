@@ -67,7 +67,8 @@ object P_MarkNearestCatch : Primitive(1, CanSuspend, Unknown)
 		functionType(
 			ObjectTupleDescriptor.tuple(enumerationWith(
 				set(E_HANDLER_SENTINEL, E_UNWIND_SENTINEL))),
-			TOP.o())
+			TOP.o
+		)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

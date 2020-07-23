@@ -44,6 +44,7 @@ import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInteger
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import com.avail.descriptor.types.SetTypeDescriptor.ObjectSlots
+import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
 import java.util.*
@@ -93,8 +94,8 @@ class SetTypeDescriptor private constructor(mutability: Mutability)
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int)
 	{
-		if (self.slot(ObjectSlots.CONTENT_TYPE).equals(Types.ANY.o())
-		    && self.slot(ObjectSlots.SIZE_RANGE).equals(wholeNumbers()))
+		if (self.slot(ObjectSlots.CONTENT_TYPE).equals(ANY.o)
+		    && self.slot(ObjectSlots.SIZE_RANGE).equals(wholeNumbers))
 		{
 			builder.append("set")
 			return
@@ -104,7 +105,7 @@ class SetTypeDescriptor private constructor(mutability: Mutability)
 			builder, recursionMap, indent + 1)
 		builder.append('|')
 		val sizeRange: A_Type = self.slot(ObjectSlots.SIZE_RANGE)
-		if (sizeRange.equals(wholeNumbers()))
+		if (sizeRange.equals(wholeNumbers))
 		{
 			builder.append('}')
 			return
@@ -347,7 +348,7 @@ class SetTypeDescriptor private constructor(mutability: Mutability)
 							else ->
 							{
 								// Otherwise don't narrow the size range.
-								wholeNumbers()
+								wholeNumbers
 							}
 						}
 					newSizeRange = sizeRangeKind.typeIntersection(
@@ -369,7 +370,7 @@ class SetTypeDescriptor private constructor(mutability: Mutability)
 
 		/** The most general set type.  */
 		private val mostGeneralType: A_Type =
-			setTypeForSizesContentType(wholeNumbers(), Types.ANY.o())
+			setTypeForSizesContentType(wholeNumbers, ANY.o)
 				.makeShared()
 
 		/**

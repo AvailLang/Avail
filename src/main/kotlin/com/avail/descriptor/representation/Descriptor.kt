@@ -195,14 +195,12 @@ abstract class Descriptor protected constructor (
 		pc: Int,
 		stackp: Int): Unit = unsupported
 
-	override fun o_AllAncestors (self: AvailObject): A_Set =
-		unsupported
+	override fun o_AllAncestors (self: AvailObject): A_Set = unsupported
 
 	override fun o_ArgumentRestrictionSets (self: AvailObject): A_Tuple =
 		unsupported
 
-	override fun o_AtomName (self: AvailObject): A_String =
-		unsupported
+	override fun o_AtomName (self: AvailObject): A_String = unsupported
 
 	override fun o_AddDefinitionParsingPlan (
 		self: AvailObject,
@@ -229,20 +227,15 @@ abstract class Descriptor protected constructor (
 		index: Int,
 		value: AvailObject): AvailObject = unsupported
 
-	override fun o_AsNativeString (self: AvailObject): String =
-		unsupported
+	override fun o_AsNativeString (self: AvailObject): String = unsupported
 
-	override fun o_AsSet (self: AvailObject): A_Set =
-		unsupported
+	override fun o_AsSet (self: AvailObject): A_Set = unsupported
 
-	override fun o_AsTuple (self: AvailObject): A_Tuple =
-		unsupported
+	override fun o_AsTuple (self: AvailObject): A_Tuple = unsupported
 
-	override fun o_ArgumentsTuple (self: AvailObject): A_Tuple =
-		unsupported
+	override fun o_ArgumentsTuple (self: AvailObject): A_Tuple = unsupported
 
-	override fun o_ApparentSendName (self: AvailObject): A_Atom =
-		unsupported
+	override fun o_ApparentSendName (self: AvailObject): A_Atom = unsupported
 
 	override fun o_AllParsingPlansInProgress (self: AvailObject): A_Map =
 		unsupported
@@ -251,8 +244,8 @@ abstract class Descriptor protected constructor (
 		unsupported
 
 	override fun o_AddSemanticRestriction (
-		self: AvailObject,
-		restriction: A_SemanticRestriction): Unit =
+			self: AvailObject,
+			restriction: A_SemanticRestriction): Unit =
 		unsupported
 
 	override fun o_AddSealedArgumentsType (
@@ -279,8 +272,7 @@ abstract class Descriptor protected constructor (
 		floatObject: A_Number,
 		canDestroy: Boolean): A_Number = unsupported
 
-	override fun o_AsBigInteger (self: AvailObject): BigInteger =
-		unsupported
+	override fun o_AsBigInteger (self: AvailObject): BigInteger = unsupported
 
 	override fun o_AppendCanDestroy (
 		self: AvailObject,
@@ -295,8 +287,7 @@ abstract class Descriptor protected constructor (
 		methodName: A_Atom,
 		argumentTypes: A_Tuple): Unit = unsupported
 
-	override fun o_AvailLoader (self: AvailObject): AvailLoader? =
-		unsupported
+	override fun o_AvailLoader (self: AvailObject): AvailLoader? = unsupported
 
 	override fun o_SetAvailLoader (
 		self: AvailObject,
@@ -452,8 +443,7 @@ abstract class Descriptor protected constructor (
 			argRestrictions: List<TypeRestriction>): Boolean =
 		unsupported
 
-	override fun o_DebugLog (self: AvailObject): StringBuilder =
-		unsupported
+	override fun o_DebugLog (self: AvailObject): StringBuilder = unsupported
 
 	override fun o_DivideCanDestroy (
 		self: AvailObject,
@@ -808,8 +798,7 @@ abstract class Descriptor protected constructor (
 		self: AvailObject,
 		stringName: A_String): A_Set = unsupported
 
-	override fun o_TupleReverse (self: AvailObject): A_Tuple =
-		unsupported
+	override fun o_TupleReverse (self: AvailObject): A_Tuple = unsupported
 
 	override fun o_TupleAt (self: AvailObject, index: Int): AvailObject =
 		unsupported
@@ -820,8 +809,7 @@ abstract class Descriptor protected constructor (
 		newValueObject: A_BasicObject,
 		canDestroy: Boolean): A_Tuple = unsupported
 
-	override fun o_TupleIntAt (self: AvailObject, index: Int): Int =
-		unsupported
+	override fun o_TupleIntAt (self: AvailObject, index: Int): Int = unsupported
 
 	override fun o_TypeAtIndex (self: AvailObject, index: Int): A_Type =
 		unsupported
@@ -939,20 +927,16 @@ abstract class Descriptor protected constructor (
 		startIndex: Int,
 		endIndex: Int): A_Type = unsupported
 
-	override fun o_BitsPerEntry (self: AvailObject): Int =
-		unsupported
+	override fun o_BitsPerEntry (self: AvailObject): Int = unsupported
 
-	override fun o_BodyBlock (self: AvailObject): A_Function =
-		unsupported
+	override fun o_BodyBlock (self: AvailObject): A_Function = unsupported
 
-	override fun o_BodySignature (self: AvailObject): A_Type =
-		unsupported
+	override fun o_BodySignature (self: AvailObject): A_Type = unsupported
 
 	override fun o_BreakpointBlock (self: AvailObject): A_BasicObject =
 		unsupported
 
-	override fun o_Caller (self: AvailObject): A_Continuation =
-		unsupported
+	override fun o_Caller (self: AvailObject): A_Continuation = unsupported
 
 	@Throws(VariableGetException::class, VariableSetException::class)
 	override fun o_AtomicAddToMap (
@@ -969,22 +953,17 @@ abstract class Descriptor protected constructor (
 
 	override fun o_Function (self: AvailObject): A_Function = unsupported
 
-	override fun o_FunctionType (self: AvailObject): A_Type =
-		unsupported
+	override fun o_FunctionType (self: AvailObject): A_Type = unsupported
 
-	override fun o_Code (self: AvailObject): A_RawFunction =
-		unsupported
+	override fun o_Code (self: AvailObject): A_RawFunction = unsupported
 
 	override fun o_CodePoint (self: AvailObject): Int = unsupported
 
-	override fun o_LazyComplete (self: AvailObject): A_Set =
-		unsupported
+	override fun o_LazyComplete (self: AvailObject): A_Set = unsupported
 
-	override fun o_ConstantBindings (self: AvailObject): A_Map =
-		unsupported
+	override fun o_ConstantBindings (self: AvailObject): A_Map = unsupported
 
-	override fun o_ContentType (self: AvailObject): A_Type =
-		unsupported
+	override fun o_ContentType (self: AvailObject): A_Type = unsupported
 
 	override fun o_Continuation (self: AvailObject): A_Continuation =
 		unsupported
@@ -995,8 +974,7 @@ abstract class Descriptor protected constructor (
 	override fun o_CopyAsMutableObjectTuple (self: AvailObject): A_Tuple =
 		unsupported
 
-	override fun o_DefaultType (self: AvailObject): A_Type =
-		unsupported
+	override fun o_DefaultType (self: AvailObject): A_Type = unsupported
 
 	override fun o_EnsureMutable (self: AvailObject): A_Continuation =
 		unsupported
@@ -1008,17 +986,13 @@ abstract class Descriptor protected constructor (
 		self: AvailObject,
 		module: A_Module): Unit = unsupported
 
-	override fun o_ExtractBoolean (self: AvailObject): Boolean =
-		unsupported
+	override fun o_ExtractBoolean (self: AvailObject): Boolean = unsupported
 
-	override fun o_ExtractUnsignedByte (self: AvailObject): Short =
-		unsupported
+	override fun o_ExtractUnsignedByte (self: AvailObject): Short = unsupported
 
-	override fun o_ExtractDouble (self: AvailObject): Double =
-		unsupported
+	override fun o_ExtractDouble (self: AvailObject): Double = unsupported
 
-	override fun o_ExtractFloat (self: AvailObject): Float =
-		unsupported
+	override fun o_ExtractFloat (self: AvailObject): Float = unsupported
 
 	override fun o_ExtractInt (self: AvailObject): Int = unsupported
 
@@ -1031,56 +1005,46 @@ abstract class Descriptor protected constructor (
 	 * @return
 	 *   A 64-bit signed Java `long`
 	 */
-	override fun o_ExtractLong (self: AvailObject): Long =
-		unsupported
+	override fun o_ExtractLong (self: AvailObject): Long = unsupported
 
-	override fun o_ExtractNybble (self: AvailObject): Byte =
-		unsupported
+	override fun o_ExtractNybble (self: AvailObject): Byte = unsupported
 
 	override fun o_FieldMap (self: AvailObject): A_Map = unsupported
 
-	override fun o_FieldTypeMap (self: AvailObject): A_Map =
-		unsupported
+	override fun o_FieldTypeMap (self: AvailObject): A_Map = unsupported
 
 	@Throws(VariableGetException::class)
-	override fun o_GetValue (self: AvailObject): AvailObject =
-		unsupported
+	override fun o_GetValue (self: AvailObject): AvailObject = unsupported
 
 	override fun o_HashOrZero (self: AvailObject): Int = unsupported
 
 	override fun o_HasGrammaticalRestrictions (self: AvailObject): Boolean =
 		unsupported
 
-	override fun o_DefinitionsTuple (self: AvailObject): A_Tuple =
-		unsupported
+	override fun o_DefinitionsTuple (self: AvailObject): A_Tuple = unsupported
 
-	override fun o_LazyIncomplete (self: AvailObject): A_Map =
-		unsupported
+	override fun o_LazyIncomplete (self: AvailObject): A_Map = unsupported
 
 	override fun o_DecrementCountdownToReoptimize (
 		self: AvailObject,
 		continuation: (Boolean)->Unit): Unit =
 		unsupported
 
-	override fun o_IsAbstract (self: AvailObject): Boolean =
-		unsupported
+	override fun o_IsAbstract (self: AvailObject): Boolean = unsupported
 
 	override fun o_IsAbstractDefinition (self: AvailObject): Boolean =
 		unsupported
 
-	override fun o_IsFinite (self: AvailObject): Boolean =
-		unsupported
+	override fun o_IsFinite (self: AvailObject): Boolean = unsupported
 
 	override fun o_IsForwardDefinition (self: AvailObject): Boolean =
 		unsupported
 
 	override fun o_IsInstanceMeta (self: AvailObject): Boolean = false
 
-	override fun o_IsMethodDefinition (self: AvailObject): Boolean =
-		unsupported
+	override fun o_IsMethodDefinition (self: AvailObject): Boolean = unsupported
 
-	override fun o_IsPositive (self: AvailObject): Boolean =
-		unsupported
+	override fun o_IsPositive (self: AvailObject): Boolean = unsupported
 
 	override fun o_IsSupertypeOfBottom (self: AvailObject): Boolean =
 		unsupported
@@ -1089,43 +1053,33 @@ abstract class Descriptor protected constructor (
 
 	override fun o_KeyType (self: AvailObject): A_Type = unsupported
 
-	override fun o_LevelTwoChunk (self: AvailObject): L2Chunk =
-		unsupported
+	override fun o_LevelTwoChunk (self: AvailObject): L2Chunk = unsupported
 
-	override fun o_LevelTwoOffset (self: AvailObject): Int =
-		unsupported
+	override fun o_LevelTwoOffset (self: AvailObject): Int = unsupported
 
-	override fun o_Literal (self: AvailObject): AvailObject =
-		unsupported
+	override fun o_Literal (self: AvailObject): AvailObject = unsupported
 
-	override fun o_LowerBound (self: AvailObject): A_Number =
-		unsupported
+	override fun o_LowerBound (self: AvailObject): A_Number = unsupported
 
-	override fun o_LowerInclusive (self: AvailObject): Boolean =
-		unsupported
+	override fun o_LowerInclusive (self: AvailObject): Boolean = unsupported
 
 	override fun o_MapSize (self: AvailObject): Int = unsupported
 
-	override fun o_MaxStackDepth (self: AvailObject): Int =
-		unsupported
+	override fun o_MaxStackDepth (self: AvailObject): Int = unsupported
 
 	override fun o_Message (self: AvailObject): A_Atom = unsupported
 
-	override fun o_MessageParts (self: AvailObject): A_Tuple =
-		unsupported
+	override fun o_MessageParts (self: AvailObject): A_Tuple = unsupported
 
-	override fun o_MethodDefinitions (self: AvailObject): A_Set =
-		unsupported
+	override fun o_MethodDefinitions (self: AvailObject): A_Set = unsupported
 
-	override fun o_ImportedNames (self: AvailObject): A_Map =
-		unsupported
+	override fun o_ImportedNames (self: AvailObject): A_Map = unsupported
 
 	override fun o_NewNames (self: AvailObject): A_Map = unsupported
 
 	override fun o_NumArgs (self: AvailObject): Int = unsupported
 
-	override fun o_NumConstants (self: AvailObject): Int =
-		unsupported
+	override fun o_NumConstants (self: AvailObject): Int = unsupported
 
 	override fun o_NumSlots (self: AvailObject): Int = unsupported
 
@@ -1135,81 +1089,63 @@ abstract class Descriptor protected constructor (
 
 	override fun o_NumOuters (self: AvailObject): Int = unsupported
 
-	override fun o_NumOuterVars (self: AvailObject): Int =
-		unsupported
+	override fun o_NumOuterVars (self: AvailObject): Int = unsupported
 
 	override fun o_Nybbles (self: AvailObject): A_Tuple = unsupported
 
-	override fun o_Parent (self: AvailObject): A_BasicObject =
-		unsupported
+	override fun o_Parent (self: AvailObject): A_BasicObject = unsupported
 
 	override fun o_Pc (self: AvailObject): Int = unsupported
 
-	override fun o_PrimitiveNumber (self: AvailObject): Int =
-		unsupported
+	override fun o_PrimitiveNumber (self: AvailObject): Int = unsupported
 
 	override fun o_Priority (self: AvailObject): Int = unsupported
 
-	override fun o_PrivateNames (self: AvailObject): A_Map =
-		unsupported
+	override fun o_PrivateNames (self: AvailObject): A_Map = unsupported
 
-	override fun o_FiberGlobals (self: AvailObject): A_Map =
-		unsupported
+	override fun o_FiberGlobals (self: AvailObject): A_Map = unsupported
 
 	override fun o_GrammaticalRestrictions (self: AvailObject): A_Set =
 		unsupported
 
-	override fun o_ReturnType (self: AvailObject): A_Type =
-		unsupported
+	override fun o_ReturnType (self: AvailObject): A_Type = unsupported
 
 	override fun o_SetSize (self: AvailObject): Int = unsupported
 
-	override fun o_SizeRange (self: AvailObject): A_Type =
-		unsupported
+	override fun o_SizeRange (self: AvailObject): A_Type = unsupported
 
-	override fun o_LazyActions (self: AvailObject): A_Map =
-		unsupported
+	override fun o_LazyActions (self: AvailObject): A_Map = unsupported
 
 	override fun o_Stackp (self: AvailObject): Int = unsupported
 
 	override fun o_Start (self: AvailObject): Int = unsupported
 
-	override fun o_StartingChunk (self: AvailObject): L2Chunk =
-		unsupported
+	override fun o_StartingChunk (self: AvailObject): L2Chunk = unsupported
 
 	override fun o_String (self: AvailObject): A_String = unsupported
 
 	override fun o_TokenType (self: AvailObject): TokenDescriptor.TokenType =
 		unsupported
 
-	override fun o_TrimExcessInts (self: AvailObject): Unit =
-		unsupported
+	override fun o_TrimExcessInts (self: AvailObject): Unit = unsupported
 
 	override fun o_TupleSize (self: AvailObject): Int = unsupported
 
-	override fun o_TypeTuple (self: AvailObject): A_Tuple =
-		unsupported
+	override fun o_TypeTuple (self: AvailObject): A_Tuple = unsupported
 
-	override fun o_UpperBound (self: AvailObject): A_Number =
-		unsupported
+	override fun o_UpperBound (self: AvailObject): A_Number = unsupported
 
-	override fun o_UpperInclusive (self: AvailObject): Boolean =
-		unsupported
+	override fun o_UpperInclusive (self: AvailObject): Boolean = unsupported
 
-	override fun o_Value (self: AvailObject): AvailObject =
-		unsupported
+	override fun o_Value (self: AvailObject): AvailObject = unsupported
 
-	override fun o_ValuesAsTuple (self: AvailObject): A_Tuple =
-		unsupported
+	override fun o_ValuesAsTuple (self: AvailObject): A_Tuple = unsupported
 
-	override fun o_ValueType (self: AvailObject): A_Type =
-		unsupported
+	override fun o_ValueType (self: AvailObject): A_Type = unsupported
 
-	override fun o_VariableBindings (self: AvailObject): A_Map =
-		unsupported
+	override fun o_VariableBindings (self: AvailObject): A_Map = unsupported
 
-	override fun o_VisibleNames (self: AvailObject): A_Set =
-		unsupported
+	override fun o_VisibleNames (self: AvailObject): A_Set = unsupported
 
 	override fun o_Equals (
 		self: AvailObject, another: A_BasicObject): Boolean =
@@ -1613,36 +1549,28 @@ abstract class Descriptor protected constructor (
 	override fun o_ParsingInstructions (self: AvailObject): A_Tuple =
 		unsupported
 
-	override fun o_Expression (self: AvailObject): A_Phrase =
-		unsupported
+	override fun o_Expression (self: AvailObject): A_Phrase = unsupported
 
-	override fun o_Variable (self: AvailObject): A_Phrase =
-		unsupported
+	override fun o_Variable (self: AvailObject): A_Phrase = unsupported
 
-	override fun o_StatementsTuple (self: AvailObject): A_Tuple =
-		unsupported
+	override fun o_StatementsTuple (self: AvailObject): A_Tuple = unsupported
 
-	override fun o_ResultType (self: AvailObject): A_Type =
-		unsupported
+	override fun o_ResultType (self: AvailObject): A_Type = unsupported
 
 	override fun o_NeededVariables (
 		self: AvailObject,
 		neededVariables: A_Tuple): Unit = unsupported
 
-	override fun o_NeededVariables (self: AvailObject): A_Tuple =
-		unsupported
+	override fun o_NeededVariables (self: AvailObject): A_Tuple = unsupported
 
-	override fun o_Primitive (self: AvailObject): Primitive? =
-		unsupported
+	override fun o_Primitive (self: AvailObject): Primitive? = unsupported
 
-	override fun o_DeclaredType (self: AvailObject): A_Type =
-		unsupported
+	override fun o_DeclaredType (self: AvailObject): A_Type = unsupported
 
 	override fun o_DeclarationKind (self: AvailObject): DeclarationKind =
 		unsupported
 
-	override fun o_TypeExpression (self: AvailObject): A_Phrase =
-		unsupported
+	override fun o_TypeExpression (self: AvailObject): A_Phrase = unsupported
 
 	override fun o_InitializationExpression (self: AvailObject): AvailObject =
 		unsupported
@@ -1652,19 +1580,15 @@ abstract class Descriptor protected constructor (
 
 	override fun o_Token (self: AvailObject): A_Token = unsupported
 
-	override fun o_MarkerValue (self: AvailObject): A_BasicObject =
-		unsupported
+	override fun o_MarkerValue (self: AvailObject): A_BasicObject = unsupported
 
 	override fun o_Bundle (self: AvailObject): A_Bundle = unsupported
 
-	override fun o_ExpressionsTuple (self: AvailObject): A_Tuple =
-		unsupported
+	override fun o_ExpressionsTuple (self: AvailObject): A_Tuple = unsupported
 
-	override fun o_Declaration (self: AvailObject): A_Phrase =
-		unsupported
+	override fun o_Declaration (self: AvailObject): A_Phrase = unsupported
 
-	override fun o_ExpressionType (self: AvailObject): A_Type =
-		unsupported
+	override fun o_ExpressionType (self: AvailObject): A_Type = unsupported
 
 	override fun o_EmitEffectOn (
 		self: AvailObject,
@@ -1703,23 +1627,18 @@ abstract class Descriptor protected constructor (
 	override fun o_IsLastUse (self: AvailObject, isLastUse: Boolean): Unit =
 		unsupported
 
-	override fun o_IsLastUse (self: AvailObject): Boolean =
-		unsupported
+	override fun o_IsLastUse (self: AvailObject): Boolean = unsupported
 
-	override fun o_IsMacroDefinition (self: AvailObject): Boolean =
-		unsupported
+	override fun o_IsMacroDefinition (self: AvailObject): Boolean = unsupported
 
-	override fun o_CopyMutablePhrase (self: AvailObject): A_Phrase =
-		unsupported
+	override fun o_CopyMutablePhrase (self: AvailObject): A_Phrase = unsupported
 
 	// Ordinary (non-bin, non-nil) objects act as set bins of size one.
 	override fun o_BinUnionKind (self: AvailObject): A_Type = self.kind()
 
-	override fun o_OutputPhrase (self: AvailObject): A_Phrase =
-		unsupported
+	override fun o_OutputPhrase (self: AvailObject): A_Phrase = unsupported
 
-	override fun o_Statements (self: AvailObject): A_Tuple =
-		unsupported
+	override fun o_Statements (self: AvailObject): A_Tuple = unsupported
 
 	override fun o_FlattenStatementsInto (
 			self: AvailObject,
@@ -1730,11 +1649,9 @@ abstract class Descriptor protected constructor (
 
 	override fun o_IsSetBin (self: AvailObject) = false
 
-	override fun o_MapIterable (self: AvailObject): MapIterable =
-		unsupported
+	override fun o_MapIterable (self: AvailObject): MapIterable = unsupported
 
-	override fun o_DeclaredExceptions (self: AvailObject): A_Set =
-		unsupported
+	override fun o_DeclaredExceptions (self: AvailObject): A_Set = unsupported
 
 	override fun o_IsInt (self: AvailObject) = false
 
@@ -1762,8 +1679,7 @@ abstract class Descriptor protected constructor (
 		self: AvailObject,
 		potentialInstance: AvailObject): Boolean = unsupported
 
-	override fun o_ComputeSuperkind (self: AvailObject): A_Type =
-		unsupported
+	override fun o_ComputeSuperkind (self: AvailObject): A_Type = unsupported
 
 	override fun o_SetAtomProperty (
 		self: AvailObject,
@@ -1780,16 +1696,14 @@ abstract class Descriptor protected constructor (
 
 	override fun o_ReadType (self: AvailObject): A_Type = unsupported
 
-	override fun o_WriteType (self: AvailObject): A_Type =
-		unsupported
+	override fun o_WriteType (self: AvailObject): A_Type = unsupported
 
 	override fun o_SetVersions (self: AvailObject, versionStrings: A_Set): Unit =
 		unsupported
 
 	override fun o_Versions (self: AvailObject): A_Set = unsupported
 
-	override fun o_PhraseKind (self: AvailObject): PhraseKind =
-		unsupported
+	override fun o_PhraseKind (self: AvailObject): PhraseKind = unsupported
 
 	override fun o_PhraseKindIsUnder (
 		self: AvailObject,
@@ -1801,8 +1715,7 @@ abstract class Descriptor protected constructor (
 		self: AvailObject,
 		restriction: A_SemanticRestriction): Unit = unsupported
 
-	override fun o_SemanticRestrictions (self: AvailObject): A_Set =
-		unsupported
+	override fun o_SemanticRestrictions (self: AvailObject): A_Set = unsupported
 
 	override fun o_RemoveSealedArgumentsType (
 		self: AvailObject,
@@ -1816,28 +1729,23 @@ abstract class Descriptor protected constructor (
 			semanticRestriction: A_SemanticRestriction): Unit =
 		unsupported
 
-	override fun o_IsMethodEmpty (self: AvailObject): Boolean =
-		unsupported
+	override fun o_IsMethodEmpty (self: AvailObject): Boolean = unsupported
 
 	override fun o_IsPojoSelfType (self: AvailObject) = false
 
-	override fun o_PojoSelfType (self: AvailObject): A_Type =
-		unsupported
+	override fun o_PojoSelfType (self: AvailObject): A_Type = unsupported
 
-	override fun o_JavaClass (self: AvailObject): AvailObject =
-		unsupported
+	override fun o_JavaClass (self: AvailObject): AvailObject = unsupported
 
 	override fun o_IsUnsignedShort (self: AvailObject) = false
 
-	override fun o_ExtractUnsignedShort (self: AvailObject): Int =
-		unsupported
+	override fun o_ExtractUnsignedShort (self: AvailObject): Int = unsupported
 
 	override fun o_IsFloat (self: AvailObject) = false
 
 	override fun o_IsDouble (self: AvailObject) = false
 
-	override fun o_RawPojo (self: AvailObject): AvailObject =
-		unsupported
+	override fun o_RawPojo (self: AvailObject): AvailObject = unsupported
 
 	override fun o_IsPojo (self: AvailObject) = false
 
@@ -1889,8 +1797,7 @@ abstract class Descriptor protected constructor (
 		floatObject: A_Number,
 		canDestroy: Boolean): A_Number = unsupported
 
-	override fun o_LazyPrefilterMap (self: AvailObject): A_Map =
-		unsupported
+	override fun o_LazyPrefilterMap (self: AvailObject): A_Map = unsupported
 
 	override fun o_SerializerOperation (
 		self: AvailObject): SerializerOperation = unsupported
@@ -1918,33 +1825,27 @@ abstract class Descriptor protected constructor (
 		myLevel: Int,
 		canDestroy: Boolean): A_MapBin = unsupported
 
-	override fun o_MapBinKeyUnionKind (self: AvailObject): A_Type =
-		unsupported
+	override fun o_MapBinKeyUnionKind (self: AvailObject): A_Type = unsupported
 
 	override fun o_MapBinValueUnionKind (self: AvailObject): A_Type =
 		unsupported
 
-	override fun o_IsHashedMapBin (self: AvailObject): Boolean =
-		unsupported
+	override fun o_IsHashedMapBin (self: AvailObject): Boolean = unsupported
 
 	override fun o_MapBinAtHash (
 		self: AvailObject,
 		key: A_BasicObject,
 		keyHash: Int): AvailObject? = unsupported
 
-	override fun o_MapBinKeysHash (self: AvailObject): Int =
-		unsupported
+	override fun o_MapBinKeysHash (self: AvailObject): Int = unsupported
 
 	override fun o_MapBinSize (self: AvailObject): Int = unsupported
 
-	override fun o_MapBinValuesHash (self: AvailObject): Int =
-		unsupported
+	override fun o_MapBinValuesHash (self: AvailObject): Int = unsupported
 
-	override fun o_IssuingModule (self: AvailObject): A_Module =
-		unsupported
+	override fun o_IssuingModule (self: AvailObject): A_Module = unsupported
 
-	override fun o_IsPojoFusedType (self: AvailObject): Boolean =
-		unsupported
+	override fun o_IsPojoFusedType (self: AvailObject): Boolean = unsupported
 
 	override fun o_IsSupertypeOfPojoBottomType (
 		self: AvailObject,
@@ -1952,8 +1853,7 @@ abstract class Descriptor protected constructor (
 
 	override fun o_EqualsPojoBottomType (self: AvailObject) = false
 
-	override fun o_JavaAncestors (self: AvailObject): AvailObject =
-		unsupported
+	override fun o_JavaAncestors (self: AvailObject): AvailObject = unsupported
 
 	override fun o_TypeIntersectionOfPojoFusedType (
 		self: AvailObject,
@@ -1971,8 +1871,7 @@ abstract class Descriptor protected constructor (
 		self: AvailObject,
 		anUnfusedPojoType: A_Type): A_Type = unsupported
 
-	override fun o_IsPojoArrayType (self: AvailObject): Boolean =
-		unsupported
+	override fun o_IsPojoArrayType (self: AvailObject): Boolean = unsupported
 
 	// Treat AvailObjects as opaque for most purposes. Pass them to Java
 	// unmarshaled, but made shared.
@@ -1980,57 +1879,44 @@ abstract class Descriptor protected constructor (
 		self: AvailObject,
 		classHint: Class<*>?): Any? = self.makeShared()
 
-	override fun o_TypeVariables (self: AvailObject): A_Map =
-		unsupported
+	override fun o_TypeVariables (self: AvailObject): A_Map = unsupported
 
 	override fun o_EqualsPojoField (
 		self: AvailObject,
 		field: AvailObject,
 		receiver: AvailObject) = false
 
-	override fun o_IsSignedByte (self: AvailObject): Boolean =
-		unsupported
+	override fun o_IsSignedByte (self: AvailObject): Boolean = unsupported
 
-	override fun o_IsSignedShort (self: AvailObject): Boolean =
-		unsupported
+	override fun o_IsSignedShort (self: AvailObject): Boolean = unsupported
 
-	override fun o_ExtractSignedByte (self: AvailObject): Byte =
-		unsupported
+	override fun o_ExtractSignedByte (self: AvailObject): Byte = unsupported
 
-	override fun o_ExtractSignedShort (self: AvailObject): Short =
-		unsupported
+	override fun o_ExtractSignedShort (self: AvailObject): Short = unsupported
 
 	override fun o_EqualsEqualityRawPojo (
 		self: AvailObject,
 		otherEqualityRawPojo: AvailObject,
 		otherJavaObject: Any?) = false
 
-	override fun <T> o_JavaObject(self: AvailObject): T? =
-		unsupported
+	override fun <T> o_JavaObject(self: AvailObject): T? = unsupported
 
 	override fun o_LazyIncompleteCaseInsensitive (self: AvailObject): A_Map =
 		unsupported
 
-	override fun o_LowerCaseString (self: AvailObject): A_String =
-		unsupported
+	override fun o_LowerCaseString (self: AvailObject): A_String = unsupported
 
-	override fun o_InstanceCount (self: AvailObject): A_Number =
-		unsupported
+	override fun o_InstanceCount (self: AvailObject): A_Number = unsupported
 
-	override fun o_TotalInvocations (self: AvailObject): Long =
-		unsupported
+	override fun o_TotalInvocations (self: AvailObject): Long = unsupported
 
-	override fun o_TallyInvocation (self: AvailObject): Unit =
-		unsupported
+	override fun o_TallyInvocation (self: AvailObject): Unit = unsupported
 
-	override fun o_FieldTypeTuple (self: AvailObject): A_Tuple =
-		unsupported
+	override fun o_FieldTypeTuple (self: AvailObject): A_Tuple = unsupported
 
-	override fun o_FieldTuple (self: AvailObject): A_Tuple =
-		unsupported
+	override fun o_FieldTuple (self: AvailObject): A_Tuple = unsupported
 
-	override fun o_LiteralType (self: AvailObject): A_Type =
-		unsupported
+	override fun o_LiteralType (self: AvailObject): A_Type = unsupported
 
 	override fun o_TypeIntersectionOfTokenType (
 		self: AvailObject,
@@ -2098,16 +1984,13 @@ abstract class Descriptor protected constructor (
 		self: AvailObject,
 		methodName: A_String): Unit = unsupported
 
-	override fun o_StartingLineNumber (self: AvailObject): Int =
-		unsupported
+	override fun o_StartingLineNumber (self: AvailObject): Int = unsupported
 
-	override fun o_OriginatingPhrase (self: AvailObject): A_Phrase =
-		unsupported
+	override fun o_OriginatingPhrase (self: AvailObject): A_Phrase = unsupported
 
 	override fun o_Module (self: AvailObject): A_Module = unsupported
 
-	override fun o_MethodName (self: AvailObject): A_String =
-		unsupported
+	override fun o_MethodName (self: AvailObject): A_String = unsupported
 
 	override fun o_NameForDebugger (self: AvailObject): String
 	{
@@ -2137,8 +2020,7 @@ abstract class Descriptor protected constructor (
 		self: AvailObject,
 		kind: AvailObject): Boolean = unsupported
 
-	override fun o_MapBinIterable (self: AvailObject): MapIterable =
-		unsupported
+	override fun o_MapBinIterable (self: AvailObject): MapIterable = unsupported
 
 	override fun o_RangeIncludesInt (self: AvailObject, anInt: Int): Boolean =
 		unsupported
@@ -2181,14 +2063,11 @@ abstract class Descriptor protected constructor (
 		self: AvailObject,
 		aPhrase: A_Phrase) = false
 
-	override fun o_StripMacro (self: AvailObject): A_Phrase =
-		unsupported
+	override fun o_StripMacro (self: AvailObject): A_Phrase = unsupported
 
-	override fun o_DefinitionMethod (self: AvailObject): A_Method =
-		unsupported
+	override fun o_DefinitionMethod (self: AvailObject): A_Method = unsupported
 
-	override fun o_PrefixFunctions (self: AvailObject): A_Tuple =
-		unsupported
+	override fun o_PrefixFunctions (self: AvailObject): A_Tuple = unsupported
 
 	override fun o_EqualsByteArrayTuple (
 		self: AvailObject,
@@ -2219,11 +2098,9 @@ abstract class Descriptor protected constructor (
 		if (isShared) synchronized(self) { body() }
 		else body()
 
-	override fun o_ModuleName (self: AvailObject): A_String =
-		unsupported
+	override fun o_ModuleName (self: AvailObject): A_String = unsupported
 
-	override fun o_BundleMethod (self: AvailObject): A_Method =
-		unsupported
+	override fun o_BundleMethod (self: AvailObject): A_Method = unsupported
 
 	@Throws(VariableGetException::class, VariableSetException::class)
 	override fun o_GetAndSetValue (
@@ -2267,11 +2144,9 @@ abstract class Descriptor protected constructor (
 		self: AvailObject,
 		result: A_BasicObject): Unit = unsupported
 
-	override fun o_JoiningFibers (self: AvailObject): A_Set =
-		unsupported
+	override fun o_JoiningFibers (self: AvailObject): A_Set = unsupported
 
-	override fun o_WakeupTask (self: AvailObject): TimerTask? =
-		unsupported
+	override fun o_WakeupTask (self: AvailObject): TimerTask? = unsupported
 
 	override fun o_SetWakeupTask (self: AvailObject, task: TimerTask?): Unit =
 		unsupported
@@ -2324,27 +2199,21 @@ abstract class Descriptor protected constructor (
 	override fun o_MethodAddBundle (self: AvailObject, bundle: A_Bundle): Unit =
 		unsupported
 
-	override fun o_DefinitionModule (self: AvailObject): A_Module =
-		unsupported
+	override fun o_DefinitionModule (self: AvailObject): A_Module = unsupported
 
 	override fun o_DefinitionModuleName (self: AvailObject): A_String =
 		unsupported
 
 	@Throws(MalformedMessageException::class)
-	override fun o_BundleOrCreate (self: AvailObject): A_Bundle =
-		unsupported
+	override fun o_BundleOrCreate (self: AvailObject): A_Bundle = unsupported
 
-	override fun o_BundleOrNil (self: AvailObject): A_Bundle =
-		unsupported
+	override fun o_BundleOrNil (self: AvailObject): A_Bundle = unsupported
 
-	override fun o_EntryPoints (self: AvailObject): A_Map =
-		unsupported
+	override fun o_EntryPoints (self: AvailObject): A_Map = unsupported
 
-	override fun o_RestrictedBundle (self: AvailObject): A_Bundle =
-		unsupported
+	override fun o_RestrictedBundle (self: AvailObject): A_Bundle = unsupported
 
-	override fun o_TreeTupleLevel (self: AvailObject): Int =
-		unsupported
+	override fun o_TreeTupleLevel (self: AvailObject): Int = unsupported
 
 	override fun o_ChildCount (self: AvailObject): Int = unsupported
 
@@ -2409,25 +2278,20 @@ abstract class Descriptor protected constructor (
 		self: AvailObject): A_Set = unsupported
 
 	// Only types should be tested for being bottom.
-	override fun o_IsBottom (self: AvailObject): Boolean =
-		unsupported
+	override fun o_IsBottom (self: AvailObject): Boolean = unsupported
 
 	// Only types should be tested for being vacuous.
-	override fun o_IsVacuousType (self: AvailObject): Boolean =
-		unsupported
+	override fun o_IsVacuousType (self: AvailObject): Boolean = unsupported
 
 	// Only types should be tested for being top.
 	override fun o_IsTop (self: AvailObject): Boolean = unsupported
 
 	// Only atoms should be tested for being special.
-	override fun o_IsAtomSpecial (self: AvailObject): Boolean =
-		unsupported
+	override fun o_IsAtomSpecial (self: AvailObject): Boolean = unsupported
 
-	override fun o_HasValue (self: AvailObject): Boolean =
-		unsupported
+	override fun o_HasValue (self: AvailObject): Boolean = unsupported
 
-	override fun o_ExportedNames (self: AvailObject): A_Set =
-		unsupported
+	override fun o_ExportedNames (self: AvailObject): A_Set = unsupported
 
 	override fun o_IsInitializedWriteOnceVariable (self: AvailObject): Boolean =
 		unsupported
@@ -2485,11 +2349,9 @@ abstract class Descriptor protected constructor (
 		self: AvailObject,
 		codeGenerator: AvailCodeGenerator): Unit = unsupported
 
-	override fun o_SuperUnionType (self: AvailObject): A_Type =
-		unsupported
+	override fun o_SuperUnionType (self: AvailObject): A_Type = unsupported
 
-	override fun o_HasSuperCast (self: AvailObject): Boolean =
-		unsupported
+	override fun o_HasSuperCast (self: AvailObject): Boolean = unsupported
 
 	override fun o_MacroDefinitionsTuple (self: AvailObject): A_Tuple =
 		unsupported
@@ -2501,16 +2363,14 @@ abstract class Descriptor protected constructor (
 	override fun o_ExpressionAt (self: AvailObject, index: Int): A_Phrase =
 		unsupported
 
-	override fun o_ExpressionsSize (self: AvailObject): Int =
-		unsupported
+	override fun o_ExpressionsSize (self: AvailObject): Int = unsupported
 
 	override fun o_ParsingPc (self: AvailObject): Int = unsupported
 
 	override fun o_IsMacroSubstitutionNode (self: AvailObject): Boolean =
 		unsupported
 
-	override fun o_LastExpression (self: AvailObject): A_Phrase =
-		unsupported
+	override fun o_LastExpression (self: AvailObject): A_Phrase = unsupported
 
 	override fun o_MessageSplitter (self: AvailObject): MessageSplitter =
 		unsupported
@@ -2591,8 +2451,7 @@ abstract class Descriptor protected constructor (
 	override fun o_ModuleGrammaticalRestrictions (self: AvailObject): A_Set =
 		unsupported
 
-	override fun o_ComputeTypeTag (self: AvailObject): TypeTag =
-		unsupported
+	override fun o_ComputeTypeTag (self: AvailObject): TypeTag = unsupported
 
 	override fun o_FieldAt (
 		self: AvailObject,
@@ -2626,8 +2485,7 @@ abstract class Descriptor protected constructor (
 		anIntTuple: A_Tuple,
 		startIndex2: Int): Boolean = unsupported
 
-	override fun o_LexerMethod (self: AvailObject): A_Method =
-		unsupported
+	override fun o_LexerMethod (self: AvailObject): A_Method = unsupported
 
 	override fun o_LexerFilterFunction (self: AvailObject): A_Function =
 		unsupported
@@ -2654,14 +2512,11 @@ abstract class Descriptor protected constructor (
 	override fun o_TupleCodePointAt (self: AvailObject, index: Int): Int =
 		unsupported
 
-	override fun o_IsGlobal (self: AvailObject): Boolean =
-		unsupported
+	override fun o_IsGlobal (self: AvailObject): Boolean = unsupported
 
-	override fun o_GlobalModule (self: AvailObject): A_Module =
-		unsupported
+	override fun o_GlobalModule (self: AvailObject): A_Module = unsupported
 
-	override fun o_GlobalName (self: AvailObject): A_String =
-		unsupported
+	override fun o_GlobalName (self: AvailObject): A_String = unsupported
 
 	override fun o_CreateLexicalScanner (self: AvailObject): LexicalScanner =
 		unsupported
@@ -2681,11 +2536,9 @@ abstract class Descriptor protected constructor (
 	override fun o_LatestBackwardJump (self: AvailObject): A_BundleTree =
 		unsupported
 
-	override fun o_HasBackwardJump (self: AvailObject): Boolean =
-		unsupported
+	override fun o_HasBackwardJump (self: AvailObject): Boolean = unsupported
 
-	override fun o_IsSourceOfCycle (self: AvailObject): Boolean =
-		unsupported
+	override fun o_IsSourceOfCycle (self: AvailObject): Boolean = unsupported
 
 	override fun o_IsSourceOfCycle (
 		self: AvailObject,
@@ -2702,11 +2555,9 @@ abstract class Descriptor protected constructor (
 	override fun o_LineNumberEncodedDeltas (self: AvailObject): A_Tuple =
 		unsupported
 
-	override fun o_CurrentLineNumber (self: AvailObject): Int =
-		unsupported
+	override fun o_CurrentLineNumber (self: AvailObject): Int = unsupported
 
-	override fun o_FiberResultType (self: AvailObject): A_Type =
-		unsupported
+	override fun o_FiberResultType (self: AvailObject): A_Type = unsupported
 
 	override fun o_TestingTree (
 			self: AvailObject): LookupTree<A_Definition, A_Tuple> =
@@ -2727,9 +2578,11 @@ abstract class Descriptor protected constructor (
 		onSuccess: (AvailObject) -> Unit,
 		onFailure: (Throwable) -> Unit): Unit = unsupported
 
-	override fun o_ClearLexingState (self: AvailObject): Unit =
-		unsupported
+	override fun o_ClearLexingState (self: AvailObject): Unit = unsupported
 
-	override fun o_RegisterDump (self: AvailObject): AvailObject =
-		unsupported
+	override fun o_RegisterDump (self: AvailObject): AvailObject = unsupported
+
+	override fun o_IsOpen(self: AvailObject): Boolean = unsupported
+
+	override fun o_CloseModule (self: AvailObject): Unit = unsupported
 }

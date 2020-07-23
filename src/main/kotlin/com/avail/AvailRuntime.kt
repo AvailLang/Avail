@@ -581,7 +581,7 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 		 */
 		STRINGIFICATION(
 			"«stringification»",
-			functionType(tuple(Types.ANY.o()), stringType()),
+			functionType(tuple(Types.ANY.o), stringType()),
 			P_ToString),
 
 		/**
@@ -603,7 +603,7 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 				tuple(
 					mostGeneralFunctionType(),
 					topMeta(),
-					variableTypeFor(Types.ANY.o())),
+					variableTypeFor(Types.ANY.o)),
 				bottom()),
 			null),
 
@@ -621,7 +621,7 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 						    AvailErrorCode.E_AMBIGUOUS_METHOD_DEFINITION,
 						    AvailErrorCode.E_FORWARD_METHOD_DEFINITION,
 						    AvailErrorCode.E_ABSTRACT_METHOD_DEFINITION)),
-					Types.METHOD.o(),
+					Types.METHOD.o,
 					mostGeneralTupleType()),
 				bottom()),
 			null),
@@ -640,7 +640,8 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 				tuple(
 					mostGeneralFunctionType(),
 					mostGeneralTupleType()),
-				Types.TOP.o()),
+				Types.TOP.o
+			),
 			null),
 
 		/**
@@ -668,7 +669,8 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 				tuple(
 					mostGeneralFunctionType(),
 					mostGeneralTupleType()),
-				Types.TOP.o()),
+				Types.TOP.o
+			),
 			P_InvokeWithTuple);
 
 		/** The name to attach to functions plugged into this hook. */
@@ -929,9 +931,9 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 		{
 			// Set up the special objects.
 			val specials: Array<A_BasicObject> = Array(173) { nil }
-			specials[1] = Types.ANY.o()
-			specials[2] = booleanType()
-			specials[3] = Types.CHARACTER.o()
+			specials[1] = Types.ANY.o
+			specials[2] = booleanType
+			specials[3] = Types.CHARACTER.o
 			specials[4] = mostGeneralFunctionType()
 			specials[5] = functionMeta()
 			specials[6] = mostGeneralCompiledCodeType()
@@ -939,16 +941,16 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 			specials[8] = variableMeta()
 			specials[9] = mostGeneralContinuationType()
 			specials[10] = continuationMeta()
-			specials[11] = Types.ATOM.o()
-			specials[12] = Types.DOUBLE.o()
-			specials[13] = extendedIntegers()
+			specials[11] = Types.ATOM.o
+			specials[12] = Types.DOUBLE.o
+			specials[13] = extendedIntegers
 			specials[14] = instanceMeta(zeroOrMoreOf(anyMeta()))
-			specials[15] = Types.FLOAT.o()
-			specials[16] = Types.NUMBER.o()
-			specials[17] = integers()
-			specials[18] = extendedIntegersMeta()
+			specials[15] = Types.FLOAT.o
+			specials[16] = Types.NUMBER.o
+			specials[17] = integers
+			specials[18] = extendedIntegersMeta
 			specials[19] = mapMeta()
-			specials[20] = Types.MODULE.o()
+			specials[20] = Types.MODULE.o
 			specials[21] = tupleFromIntegerList(allNumericCodes())
 			specials[22] = mostGeneralObjectType()
 			specials[23] = mostGeneralObjectMeta()
@@ -959,23 +961,23 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 			specials[28] = stringType()
 			specials[29] = bottom()
 			specials[30] = bottomMeta()
-			specials[31] = Types.NONTYPE.o()
+			specials[31] = Types.NONTYPE.o
 			specials[32] = mostGeneralTupleType()
 			specials[33] = tupleMeta()
 			specials[34] = topMeta()
-			specials[35] = Types.TOP.o()
-			specials[36] = wholeNumbers()
-			specials[37] = naturalNumbers()
-			specials[38] = characterCodePoints()
+			specials[35] = Types.TOP.o
+			specials[36] = wholeNumbers
+			specials[37] = naturalNumbers
+			specials[38] = characterCodePoints
 			specials[39] = mostGeneralMapType()
-			specials[40] = Types.MESSAGE_BUNDLE.o()
-			specials[41] = Types.MESSAGE_BUNDLE_TREE.o()
-			specials[42] = Types.METHOD.o()
-			specials[43] = Types.DEFINITION.o()
-			specials[44] = Types.ABSTRACT_DEFINITION.o()
-			specials[45] = Types.FORWARD_DEFINITION.o()
-			specials[46] = Types.METHOD_DEFINITION.o()
-			specials[47] = Types.MACRO_DEFINITION.o()
+			specials[40] = Types.MESSAGE_BUNDLE.o
+			specials[41] = Types.MESSAGE_BUNDLE_TREE.o
+			specials[42] = Types.METHOD.o
+			specials[43] = Types.DEFINITION.o
+			specials[44] = Types.ABSTRACT_DEFINITION.o
+			specials[45] = Types.FORWARD_DEFINITION.o
+			specials[46] = Types.METHOD_DEFINITION.o
+			specials[47] = Types.MACRO_DEFINITION.o
 			specials[48] = zeroOrMoreOf(mostGeneralFunctionType())
 			specials[49] = stackDumpAtom()
 			specials[50] = PhraseKind.PARSE_PHRASE.mostGeneralType()
@@ -1004,10 +1006,10 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 			specials[72] = zeroOrMoreOf(stringType())
 			specials[73] = zeroOrMoreOf(topMeta())
 			specials[74] = zeroOrMoreOf(
-				setTypeForSizesContentType(wholeNumbers(), stringType()))
+				setTypeForSizesContentType(wholeNumbers, stringType()))
 			specials[75] =
-				setTypeForSizesContentType(wholeNumbers(), stringType())
-			specials[76] = functionType(tuple(naturalNumbers()), bottom())
+				setTypeForSizesContentType(wholeNumbers, stringType())
+			specials[76] = functionType(tuple(naturalNumbers), bottom())
 			specials[77] = emptySet
 			specials[78] = negativeInfinity()
 			specials[79] = positiveInfinity()
@@ -1017,47 +1019,51 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 			specials[83] = pojoSelfType()
 			specials[84] = instanceMeta(mostGeneralPojoType())
 			specials[85] = instanceMeta(mostGeneralPojoArrayType())
-			specials[86] = functionTypeReturning(Types.ANY.o())
+			specials[86] = functionTypeReturning(Types.ANY.o)
 			specials[87] = mostGeneralPojoArrayType()
 			specials[88] = pojoSelfTypeAtom()
 			specials[89] = pojoTypeForClass(Throwable::class.java)
-			specials[90] = functionType(emptyTuple, Types.TOP.o())
-			specials[91] = functionType(emptyTuple, booleanType())
+			specials[90] = functionType(emptyTuple, Types.TOP.o)
+			specials[91] = functionType(emptyTuple, booleanType)
 			specials[92] = variableTypeFor(mostGeneralContinuationType())
 			specials[93] = mapTypeForSizesKeyTypeValueType(
-				wholeNumbers(),
-				Types.ATOM.o(),
-				Types.ANY.o())
+				wholeNumbers,
+				Types.ATOM.o,
+				Types.ANY.o
+			)
 			specials[94] = mapTypeForSizesKeyTypeValueType(
-				wholeNumbers(),
-				Types.ATOM.o(),
+				wholeNumbers,
+				Types.ATOM.o,
 				anyMeta())
 			specials[95] = tupleTypeForSizesTypesDefaultType(
-				wholeNumbers(),
+				wholeNumbers,
 				emptyTuple,
 				tupleTypeForSizesTypesDefaultType(
 					singleInt(2),
 					emptyTuple,
-					Types.ANY.o()))
+					Types.ANY.o
+				))
 			specials[96] = emptyMap
 			specials[97] = mapTypeForSizesKeyTypeValueType(
-				naturalNumbers(),
-				Types.ANY.o(),
-				Types.ANY.o())
-			specials[98] = instanceMeta(wholeNumbers())
+				naturalNumbers,
+				Types.ANY.o,
+				Types.ANY.o
+			)
+			specials[98] = instanceMeta(wholeNumbers)
 			specials[99] = setTypeForSizesContentType(
-				naturalNumbers(), Types.ANY.o())
+				naturalNumbers, Types.ANY.o
+			)
 			specials[100] = tupleTypeForSizesTypesDefaultType(
-				wholeNumbers(), emptyTuple, mostGeneralTupleType())
-			specials[101] = nybbles()
-			specials[102] = zeroOrMoreOf(nybbles())
-			specials[103] = unsignedShorts()
+				wholeNumbers, emptyTuple, mostGeneralTupleType())
+			specials[101] = nybbles
+			specials[102] = zeroOrMoreOf(nybbles)
+			specials[103] = unsignedShorts
 			specials[104] = emptyTuple
-			specials[105] = functionType(tuple(bottom()), Types.TOP.o())
+			specials[105] = functionType(tuple(bottom()), Types.TOP.o)
 			specials[106] = instanceType(zero())
 			specials[107] = functionTypeReturning(topMeta())
 			specials[108] = tupleTypeForSizesTypesDefaultType(
-				wholeNumbers(), emptyTuple, functionTypeReturning(topMeta()))
+				wholeNumbers, emptyTuple, functionTypeReturning(topMeta()))
 			specials[109] = functionTypeReturning(
 				PhraseKind.PARSE_PHRASE.mostGeneralType())
 			specials[110] = instanceType(two())
@@ -1066,51 +1072,55 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 			specials[113] = instanceMeta(
 				PhraseKind.PARSE_PHRASE.mostGeneralType())
 			specials[114] = setTypeForSizesContentType(
-				wholeNumbers(), Types.ATOM.o())
-			specials[115] = Types.TOKEN.o()
+				wholeNumbers, Types.ATOM.o
+			)
+			specials[115] = Types.TOKEN.o
 			specials[116] = mostGeneralLiteralTokenType()
 			specials[117] = zeroOrMoreOf(anyMeta())
 			specials[118] = inclusive(zero(), positiveInfinity())
 			specials[119] = zeroOrMoreOf(
 				tupleTypeForSizesTypesDefaultType(
 					singleInt(2),
-					tuple(Types.ATOM.o()), anyMeta()))
+					tuple(Types.ATOM.o), anyMeta()))
 			specials[120] = zeroOrMoreOf(
 				tupleTypeForSizesTypesDefaultType(
 					singleInt(2),
-					tuple(Types.ATOM.o()),
-					Types.ANY.o()))
+					tuple(Types.ATOM.o),
+					Types.ANY.o
+				))
 			specials[121] = zeroOrMoreOf(
 				PhraseKind.PARSE_PHRASE.mostGeneralType())
 			specials[122] = zeroOrMoreOf(
 				PhraseKind.ARGUMENT_PHRASE.mostGeneralType())
 			specials[123] = zeroOrMoreOf(
 				PhraseKind.DECLARATION_PHRASE.mostGeneralType())
-			specials[124] = variableReadWriteType(Types.TOP.o(), bottom())
+			specials[124] = variableReadWriteType(Types.TOP.o, bottom())
 			specials[125] = zeroOrMoreOf(
-				PhraseKind.EXPRESSION_PHRASE.create(Types.ANY.o()))
-			specials[126] = PhraseKind.EXPRESSION_PHRASE.create(Types.ANY.o())
+				PhraseKind.EXPRESSION_PHRASE.create(Types.ANY.o))
+			specials[126] = PhraseKind.EXPRESSION_PHRASE.create(Types.ANY.o)
 			specials[127] = functionType(
 				tuple(pojoTypeForClass(Throwable::class.java)), bottom())
 			specials[128] = zeroOrMoreOf(
-				setTypeForSizesContentType(wholeNumbers(), Types.ATOM.o()))
-			specials[129] = bytes()
+				setTypeForSizesContentType(wholeNumbers, Types.ATOM.o))
+			specials[129] = bytes
 			specials[130] = zeroOrMoreOf(zeroOrMoreOf(anyMeta()))
-			specials[131] = variableReadWriteType(extendedIntegers(), bottom())
+			specials[131] = variableReadWriteType(extendedIntegers, bottom())
 			specials[132] = fiberMeta()
 			specials[133] = nonemptyStringType()
 			specials[134] = setTypeForSizesContentType(
-				wholeNumbers(), exceptionType())
+				wholeNumbers, exceptionType())
 			specials[135] = setTypeForSizesContentType(
-				naturalNumbers(), stringType())
+				naturalNumbers, stringType())
 			specials[136] = setTypeForSizesContentType(
-				naturalNumbers(), Types.ATOM.o())
-			specials[137] = oneOrMoreOf(Types.ANY.o())
-			specials[138] = zeroOrMoreOf(integers())
+				naturalNumbers, Types.ATOM.o
+			)
+			specials[137] = oneOrMoreOf(Types.ANY.o)
+			specials[138] = zeroOrMoreOf(integers)
 			specials[139] = tupleTypeForSizesTypesDefaultType(
 				integerRangeType(fromInt(2), true, positiveInfinity(), false),
 				emptyTuple,
-				Types.ANY.o())
+				Types.ANY.o
+			)
 			// Some of these entries may need to be shuffled into earlier slots to
 			// maintain reasonable topical consistency.
 			specials[140] =
@@ -1120,16 +1130,17 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 			specials[143] = SpecialAtom.CLIENT_DATA_GLOBAL_KEY.atom
 			specials[144] = SpecialAtom.COMPILER_SCOPE_MAP_KEY.atom
 			specials[145] = SpecialAtom.ALL_TOKENS_KEY.atom
-			specials[146] = int32()
-			specials[147] = int64()
+			specials[146] = int32
+			specials[147] = int64
 			specials[148] = PhraseKind.STATEMENT_PHRASE.mostGeneralType()
 			specials[149] = SpecialAtom.COMPILER_SCOPE_STACK_KEY.atom
 			specials[150] =
 				PhraseKind.EXPRESSION_AS_STATEMENT_PHRASE.mostGeneralType()
-			specials[151] = oneOrMoreOf(naturalNumbers())
-			specials[152] = zeroOrMoreOf(Types.DEFINITION.o())
+			specials[151] = oneOrMoreOf(naturalNumbers)
+			specials[152] = zeroOrMoreOf(Types.DEFINITION.o)
 			specials[153] = mapTypeForSizesKeyTypeValueType(
-				wholeNumbers(), stringType(), Types.ATOM.o())
+				wholeNumbers, stringType(), Types.ATOM.o
+			)
 			specials[154] = SpecialAtom.MACRO_BUNDLE_KEY.atom
 			specials[155] = SpecialAtom.EXPLICIT_SUBCLASSING_KEY.atom
 			specials[156] =
@@ -1148,7 +1159,7 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 			specials[168] = inclusive(1L, 4L)
 			specials[169] = inclusive(0L, 31L)
 			specials[170] = continuationTypeForFunctionType(
-				functionTypeReturning(Types.TOP.o()))
+				functionTypeReturning(Types.TOP.o))
 			specials[171] = CharacterDescriptor.nonemptyStringOfDigitsType
 			specials[172] = tupleTypeForTypes(
 				zeroOrOneOf(PhraseKind.SEND_PHRASE.mostGeneralType()),
@@ -1259,6 +1270,8 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 	{
 		modules = runtimeLock.write {
 			assert(!includesModuleNamed(module.moduleName()))
+			// Ensure that the module is closed before installing it globally.
+			module.closeModule()
 			modules.mapAtPuttingCanDestroy(
 				module.moduleName(), module, true)
 		}

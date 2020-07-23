@@ -33,6 +33,7 @@
 package com.avail.interpreter.primitive.atoms
 
 import com.avail.descriptor.atoms.A_Atom
+import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -52,8 +53,8 @@ import com.avail.interpreter.execution.Interpreter
 
 /**
 * **Primitive:** Look up every [true&#32;name][A_Atom] bound to the specified
- * [name][A_String] in the [module][com.avail.descriptor.A_Module] currently
- * being [loaded][AvailLoader]. Never create a true name.
+ * [name][A_String] in the [module][A_Module] currently being
+ * [loaded][AvailLoader]. Never create a true name.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -74,7 +75,7 @@ object P_LookupAtomsForName : Primitive(
 	override fun privateBlockTypeRestriction(): A_Type =
 		 functionType(
 			 tuple(stringType()),
-			 setTypeForSizesContentType(wholeNumbers(), ATOM.o()))
+			 setTypeForSizesContentType(wholeNumbers, ATOM.o))
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_LOADING_IS_OVER))

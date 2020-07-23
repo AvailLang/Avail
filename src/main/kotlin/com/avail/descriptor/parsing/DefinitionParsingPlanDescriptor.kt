@@ -59,7 +59,6 @@ import com.avail.descriptor.parsing.DefinitionParsingPlanDescriptor.ObjectSlots.
 import com.avail.descriptor.parsing.DefinitionParsingPlanDescriptor.ObjectSlots.DEFINITION
 import com.avail.descriptor.parsing.DefinitionParsingPlanDescriptor.ObjectSlots.PARSING_INSTRUCTIONS
 import com.avail.descriptor.representation.A_BasicObject
-import com.avail.descriptor.representation.AbstractDescriptor
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.AvailObjectFieldHelper
 import com.avail.descriptor.representation.Descriptor
@@ -67,10 +66,10 @@ import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.TypeDescriptor.Types
+import com.avail.descriptor.types.TypeDescriptor.Types.DEFINITION_PARSING_PLAN
 import com.avail.descriptor.types.TypeTag
 import com.avail.utility.StackPrinter
-import java.util.*
+import java.util.IdentityHashMap
 
 /**
  * A definition parsing plan describes the sequence of parsing operations that
@@ -208,7 +207,7 @@ class DefinitionParsingPlanDescriptor private constructor(
 		self.slot(DEFINITION)
 
 	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean {
-		if (!another.kind().equals(Types.DEFINITION_PARSING_PLAN.o())) {
+		if (!another.kind().equals(DEFINITION_PARSING_PLAN.o)) {
 			return false
 		}
 		val strongAnother = another as A_DefinitionParsingPlan
@@ -221,7 +220,7 @@ class DefinitionParsingPlanDescriptor private constructor(
 			- self.slot(BUNDLE).hash())
 
 	override fun o_Kind(self: AvailObject): A_Type =
-		Types.DEFINITION_PARSING_PLAN.o()
+		DEFINITION_PARSING_PLAN.o
 
 	override fun o_ParsingInstructions(self: AvailObject): A_Tuple =
 		self.slot(PARSING_INSTRUCTIONS)

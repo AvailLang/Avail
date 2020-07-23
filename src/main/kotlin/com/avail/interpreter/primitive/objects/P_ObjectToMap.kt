@@ -64,5 +64,5 @@ object P_ObjectToMap : Primitive(1, CannotFail, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(mostGeneralObjectType()),
-			mapTypeForSizesKeyTypeValueType(wholeNumbers(), ATOM.o(), ANY.o()))
+			mapTypeForSizesKeyTypeValueType(wholeNumbers, ATOM.o, ANY.o))
 }

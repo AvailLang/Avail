@@ -38,7 +38,6 @@ import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createWithOuters1
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
-import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
@@ -99,7 +98,7 @@ object P_SetImplicitObserveFunction : Primitive(
 			0,
 			L1Operation.L1_doCall,
 			writer.addLiteral(SpecialMethodAtom.APPLY.bundle),
-			writer.addLiteral(TOP.o()))
+			writer.addLiteral(TOP.o))
 		writer.write(0, L1Operation.L1_doPop)
 		writer.write(0, L1Operation.L1Ext_doPushLabel)
 		writer.write(
@@ -136,5 +135,5 @@ object P_SetImplicitObserveFunction : Primitive(
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(IMPLICIT_OBSERVE.functionType), TOP.o())
+		functionType(tuple(IMPLICIT_OBSERVE.functionType), TOP.o)
 }

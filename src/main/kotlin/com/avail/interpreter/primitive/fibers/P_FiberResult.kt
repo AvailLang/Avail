@@ -77,7 +77,7 @@ object P_FiberResult : Primitive(
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(mostGeneralFiberType()), ANY.o())
+		functionType(tuple(mostGeneralFiberType()), ANY.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		 enumerationWith(set(

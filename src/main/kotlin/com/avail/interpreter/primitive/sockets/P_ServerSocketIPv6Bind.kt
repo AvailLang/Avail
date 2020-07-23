@@ -130,14 +130,16 @@ object P_ServerSocketIPv6Bind : Primitive(4, CanInline, HasSideEffect)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				ATOM.o(),
+				ATOM.o,
 				tupleTypeForSizesTypesDefaultType(
 					singleInt(16),
 					emptyTuple,
-					bytes()),
-				unsignedShorts(),
+					bytes
+				),
+				unsignedShorts,
 				intRange()),
-			TOP.o())
+			TOP.o
+		)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

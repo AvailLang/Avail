@@ -98,7 +98,7 @@ object P_BundleHasDefinitionForArgumentTypes : Primitive(2, CanInline)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(ATOM.o(), zeroOrMoreOf(anyMeta())), booleanType())
+		functionType(tuple(ATOM.o, zeroOrMoreOf(anyMeta())), booleanType)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

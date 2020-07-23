@@ -71,6 +71,7 @@ object P_CreateModuleVariableDeclaration : Primitive(2, CanInline, CannotFail)
 		functionType(
 			tuple(
 				mostGeneralVariableType(),
-				TOKEN.o()),
+				TOKEN.o
+			),
 			MODULE_VARIABLE_PHRASE.mostGeneralType())
 }

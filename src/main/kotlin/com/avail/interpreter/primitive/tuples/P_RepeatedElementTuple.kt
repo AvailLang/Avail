@@ -78,8 +78,9 @@ object P_RepeatedElementTuple : Primitive(2, CanInline, CanFold)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				wholeNumbers(),
-				ANY.o()),
+				wholeNumbers,
+				ANY.o
+			),
 			mostGeneralTupleType())
 
 	override fun privateFailureVariableType(): A_Type =

@@ -47,7 +47,6 @@ import com.avail.descriptor.parsing.A_ParsingPlanInProgress.Companion.parsingPla
 import com.avail.descriptor.parsing.ParsingPlanInProgressDescriptor.IntegerSlots.Companion.PARSING_PC
 import com.avail.descriptor.parsing.ParsingPlanInProgressDescriptor.ObjectSlots.PARSING_PLAN
 import com.avail.descriptor.representation.A_BasicObject
-import com.avail.descriptor.representation.AbstractDescriptor
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.AvailObject.Companion.multiplier
 import com.avail.descriptor.representation.BitField
@@ -56,9 +55,9 @@ import com.avail.descriptor.representation.IntegerSlotsEnum
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.TypeDescriptor.Types
+import com.avail.descriptor.types.TypeDescriptor.Types.PARSING_PLAN_IN_PROGRESS
 import com.avail.descriptor.types.TypeTag
-import java.util.*
+import java.util.IdentityHashMap
 
 /**
  * A definition parsing plan describes the sequence of parsing operations that
@@ -122,7 +121,7 @@ class ParsingPlanInProgressDescriptor private constructor(
 		self.slot(PARSING_PLAN)
 
 	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean {
-		if (!another.kind().equals(Types.PARSING_PLAN_IN_PROGRESS.o())) {
+		if (!another.kind().equals(PARSING_PLAN_IN_PROGRESS.o)) {
 			return false
 		}
 		val strongAnother = another as A_ParsingPlanInProgress
@@ -135,7 +134,7 @@ class ParsingPlanInProgressDescriptor private constructor(
 			- self.slot(PARSING_PLAN).hash())
 
 	override fun o_Kind(self: AvailObject): A_Type =
-		Types.PARSING_PLAN_IN_PROGRESS.o()
+		PARSING_PLAN_IN_PROGRESS.o
 
 	override fun o_IsBackwardJump(self: AvailObject): Boolean {
 		val plan: A_DefinitionParsingPlan = self.slot(PARSING_PLAN)

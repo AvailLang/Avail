@@ -44,6 +44,7 @@ import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.InstanceTypeDescriptor
 import com.avail.descriptor.types.TupleTypeDescriptor
 import com.avail.descriptor.types.TypeDescriptor
+import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2OperandType
 import com.avail.interpreter.levelTwo.L2Operation
@@ -90,7 +91,7 @@ object L2_CREATE_TUPLE : L2Operation(
 			}
 			else
 			{
-				types.add(TypeDescriptor.Types.ANY.o())
+				types.add(ANY.o)
 			}
 		}
 		val tupleType =

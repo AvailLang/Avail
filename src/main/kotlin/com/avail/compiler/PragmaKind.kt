@@ -211,7 +211,8 @@ enum class PragmaKind constructor(val lexeme: String)
 				emptyTuple,
 				DECLARE_STRINGIFIER.bundle,
 				newListNode(tuple(syntheticLiteralNodeFor(atom))),
-				TOP.o())
+				TOP.o
+			)
 			compiler.evaluateModuleStatementThen(
 				state, state, send, HashMap(), success)
 		}

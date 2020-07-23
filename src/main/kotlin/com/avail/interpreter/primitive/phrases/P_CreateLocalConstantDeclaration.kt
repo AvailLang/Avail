@@ -69,7 +69,7 @@ object P_CreateLocalConstantDeclaration : Primitive(2, CanInline, CannotFail)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				TOKEN.o(),
-				EXPRESSION_PHRASE.create(ANY.o())),
+				TOKEN.o,
+				EXPRESSION_PHRASE.create(ANY.o)),
 			LOCAL_CONSTANT_PHRASE.mostGeneralType())
 }

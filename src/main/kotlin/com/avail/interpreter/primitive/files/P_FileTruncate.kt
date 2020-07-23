@@ -39,7 +39,6 @@ import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.FILE_KEY
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
-import com.avail.descriptor.tuples.ObjectTupleDescriptor
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.StringDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
@@ -160,17 +159,20 @@ object P_FileTruncate : Primitive(5, CanInline, HasSideEffect)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			ObjectTupleDescriptor.tuple(
-				ATOM.o(),
-				wholeNumbers(),
+			tuple(
+				ATOM.o,
+				wholeNumbers,
 				functionType(
 					emptyTuple,
-					TOP.o()),
+					TOP.o
+				),
 				functionType(
 					tuple(instanceType(E_IO_ERROR.numericCode())),
-					TOP.o()),
-				bytes()),
-			fiberType(TOP.o()))
+					TOP.o
+				),
+				bytes
+			),
+			fiberType(TOP.o))
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

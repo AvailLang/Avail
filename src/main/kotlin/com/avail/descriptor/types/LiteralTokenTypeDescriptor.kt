@@ -39,6 +39,7 @@ import com.avail.descriptor.tokens.LiteralTokenDescriptor
 import com.avail.descriptor.tokens.TokenDescriptor
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.LiteralTokenTypeDescriptor.ObjectSlots.*
+import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
 import java.util.*
@@ -224,7 +225,7 @@ class LiteralTokenTypeDescriptor private constructor(mutability: Mutability)
 
 		/** The most general literal token type  */
 		private val mostGeneralType: A_Type =
-			literalTokenType(Types.ANY.o()).makeShared()
+			literalTokenType(ANY.o).makeShared()
 
 		/**
 		 * Answer the most general literal token type, specifically the literal

@@ -87,7 +87,7 @@ object P_CreateLiteralToken : Primitive(4, CannotFail, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				ANY.o(),
+				ANY.o,
 				stringType(),
 				inclusive(0, (1L shl 32) - 1),
 				inclusive(0, (1L shl 28) - 1)),

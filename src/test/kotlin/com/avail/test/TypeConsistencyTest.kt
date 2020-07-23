@@ -244,7 +244,7 @@ class TypeConsistencyTest
 						null -> emptyArray()
 						else -> arrayOf(tempMap[parent]!!)
 					}
-					Node(type.name, type.o(), *parents).also {
+					Node(type.name, type.o, *parents).also {
 						tempMap[type] = it
 					}
 				}
@@ -260,7 +260,7 @@ class TypeConsistencyTest
 			/** The type of `nontype`.  */
 			private val NONTYPE_META = Node(
 				"NONTYPE_META",
-				instanceMeta(Types.NONTYPE.o()),
+				instanceMeta(Types.NONTYPE.o),
 				ANY_META)
 
 			/** The type `tuple`  */
@@ -305,7 +305,7 @@ class TypeConsistencyTest
 			 */
 			private val NOTHING_TO_INT_FUNCTION = Node(
 				"NOTHING_TO_INT_FUNCTION",
-				functionType(emptyTuple, integers()),
+				functionType(emptyTuple, integers),
 				MOST_GENERAL_FUNCTION)
 
 			/**
@@ -314,7 +314,7 @@ class TypeConsistencyTest
 			 */
 			private val INT_TO_INT_FUNCTION = Node(
 				"INT_TO_INT_FUNCTION",
-				functionType(tuple(integers()), integers()),
+				functionType(tuple(integers), integers),
 				MOST_GENERAL_FUNCTION)
 
 			/**
@@ -323,7 +323,7 @@ class TypeConsistencyTest
 			 */
 			private val INTS_TO_INT_FUNCTION = Node(
 				"INTS_TO_INT_FUNCTION",
-				functionType(tuple(integers(), integers()), integers()),
+				functionType(tuple(integers, integers), integers),
 				MOST_GENERAL_FUNCTION)
 
 			/** The most specific function type, other than bottom.  */
@@ -342,12 +342,12 @@ class TypeConsistencyTest
 			 */
 			private val EXTENDED_INTEGER = Node(
 				"EXTENDED_INTEGER",
-				extendedIntegers(),
+				extendedIntegers,
 				primitiveTypes[Types.NUMBER])
 
 			/** The primitive type representing whole numbers `[0..∞)`. */
 			private val WHOLE_NUMBER = Node(
-				"WHOLE_NUMBER", wholeNumbers(), EXTENDED_INTEGER)
+				"WHOLE_NUMBER", wholeNumbers, EXTENDED_INTEGER)
 
 			/** Some [atom][AtomDescriptor]'s instance type. */
 			private val SOME_ATOM_TYPE = Node(
@@ -386,7 +386,7 @@ class TypeConsistencyTest
 				objectTypeFromMap(
 					emptyMap.mapAtPuttingCanDestroy(
 						SOME_ATOM_TYPE.t.instance(),
-						Types.ANY.o(),
+						Types.ANY.o,
 						false)),
 				OBJECT_TYPE)
 
@@ -398,7 +398,7 @@ class TypeConsistencyTest
 				objectTypeFromMap(emptyMap
 					.mapAtPuttingCanDestroy(
 						SOME_ATOM_TYPE.t.instance(),
-						integers(),
+						integers,
 						false)),
 				NON_ROOT_OBJECT_TYPE)
 
@@ -410,7 +410,7 @@ class TypeConsistencyTest
 				objectTypeFromMap(emptyMap
 					.mapAtPuttingCanDestroy(
 						ANOTHER_ATOM_TYPE.t.instance(),
-						Types.ANY.o(),
+						Types.ANY.o,
 						false)),
 				OBJECT_TYPE)
 
@@ -492,7 +492,7 @@ class TypeConsistencyTest
 				"COMPARABLE_OF_AVAIL_INTEGER_POJO",
 				pojoTypeForClassWithTypeArguments(
 					Comparable::class.java,
-					tuple(integers())),
+					tuple(integers)),
 				primitiveTypes[Types.NONTYPE])
 
 			/**
@@ -500,7 +500,7 @@ class TypeConsistencyTest
 			 */
 			private val JAVA_OBJECT_ARRAY_POJO = Node(
 				"JAVA_OBJECT_ARRAY_POJO",
-				pojoArrayType(mostGeneralPojoType(), wholeNumbers()),
+				pojoArrayType(mostGeneralPojoType(), wholeNumbers),
 				primitiveTypes[Types.NONTYPE])
 
 			/**
@@ -508,7 +508,7 @@ class TypeConsistencyTest
 			 */
 			private val JAVA_STRING_ARRAY_POJO = Node(
 				"JAVA_STRING_ARRAY_POJO",
-				pojoArrayType(JAVA_STRING_POJO.t, wholeNumbers()),
+				pojoArrayType(JAVA_STRING_POJO.t, wholeNumbers),
 				JAVA_OBJECT_ARRAY_POJO)
 
 			/**
@@ -539,14 +539,14 @@ class TypeConsistencyTest
 			 * The metatype for integer types.
 			 */
 			private val INTEGER_META = Node(
-				"INTEGER_META", extendedIntegersMeta(), NONTYPE_META)
+				"INTEGER_META", extendedIntegersMeta, NONTYPE_META)
 
 			/**
 			 * The primitive type representing the metatype of whole numbers
 			 * `[0..∞)`.
 			 */
 			private val WHOLE_NUMBER_META = Node(
-				"WHOLE_NUMBER_META", instanceMeta(wholeNumbers()), INTEGER_META)
+				"WHOLE_NUMBER_META", instanceMeta(wholeNumbers), INTEGER_META)
 
 			/**
 			 * The primitive type representing the metametatype of the metatype
@@ -554,7 +554,7 @@ class TypeConsistencyTest
 			 */
 			private val WHOLE_NUMBER_META_META = Node(
 				"WHOLE_NUMBER_META_META",
-				instanceMeta(instanceMeta(wholeNumbers())),
+				instanceMeta(instanceMeta(wholeNumbers)),
 				ANY_META,
 				TOP_META)
 
@@ -571,7 +571,7 @@ class TypeConsistencyTest
 			 * holds [integers][IntegerDescriptor].
 			 */
 			private val INT_VARIABLE = Node(
-				"INT_VARIABLE", variableTypeFor(integers()), ROOT_VARIABLE)
+				"INT_VARIABLE", variableTypeFor(integers), ROOT_VARIABLE)
 
 			/**
 			 * The [type of variable][VariableTypeDescriptor] which holds only a
@@ -588,7 +588,7 @@ class TypeConsistencyTest
 			 */
 			private val BOTTOM_VARIABLE = Node(
 				"BOTTOM_VARIABLE",
-				variableReadWriteType(bottom(), Types.TOP.o()),
+				variableReadWriteType(bottom(), Types.TOP.o),
 				INT_VARIABLE,
 				SOME_ATOM_VARIABLE)
 
@@ -657,7 +657,7 @@ class TypeConsistencyTest
 			 */
 			private val INT_LITERAL_TOKEN = Node(
 				"INT_LITERAL_TOKEN",
-				literalTokenType(integers()),
+				literalTokenType(integers),
 				ANY_LITERAL_TOKEN)
 
 			/**
@@ -1542,7 +1542,7 @@ class TypeConsistencyTest
 		checkContravariance("function argument") {
 			functionType(
 				tuple(it),
-				Types.TOP.o()
+				Types.TOP.o
 			)
 		}
 

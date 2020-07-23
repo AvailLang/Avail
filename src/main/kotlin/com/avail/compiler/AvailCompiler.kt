@@ -669,7 +669,8 @@ class AvailCompiler(
 
 	/**
 	 * Rollback the [module][ModuleDescriptor] that was defined since the most
-	 * recent [startModuleTransaction].
+	 * recent [startModuleTransaction]. [Close][A_Module.closeModule] the
+	 * module.
 	 *
 	 * @param afterRollback
 	 *   What to do after rolling back.
@@ -679,8 +680,8 @@ class AvailCompiler(
 			compilationContext.loader!!, afterRollback)
 
 	/**
-	 * Commit the [module][ModuleDescriptor] that was defined since the most
-	 * recent [startModuleTransaction].
+	 * Commit the [module][A_Module] that was defined since the most recent
+	 * [startModuleTransaction]. [Close][A_Module.closeModule] the module.
 	 */
 	private fun commitModuleTransaction() =
 		compilationContext.runtime.addModule(compilationContext.module)
@@ -922,7 +923,8 @@ class AvailCompiler(
 									syntheticLiteralNodeFor(trueObject),
 									syntheticLiteralNodeFor(
 										objectFromBoolean(canSummarize)))),
-							TOP.o())
+							TOP.o
+						)
 						val creationFunction = createFunctionForPhrase(
 							creationSend,
 							module,
@@ -989,7 +991,8 @@ class AvailCompiler(
 							syntheticLiteralNodeFor(varType),
 							syntheticLiteralNodeFor(falseObject),
 							syntheticLiteralNodeFor(falseObject))),
-					TOP.o())
+					TOP.o
+				)
 				val creationFunction = createFunctionForPhrase(
 					creationSend,
 					module,
@@ -2218,7 +2221,7 @@ class AvailCompiler(
 					if (e is AvailAcceptedParseException)
 					{
 						// This is really a success.
-						intersectAndDecrement(TOP.o())
+						intersectAndDecrement(TOP.o)
 						return@evaluateSemanticRestrictionFunctionThen
 					}
 					when (e)
@@ -3162,7 +3165,8 @@ class AvailCompiler(
 			emptyTuple,
 			METHOD_DEFINER.bundle,
 			newListNode(ObjectTupleDescriptor.tuple(nameLiteral, syntheticLiteralNodeFor(function))),
-			TOP.o())
+			TOP.o
+		)
 		evaluateModuleStatementThen(
 			state, state, send, HashMap(), success)
 	}
@@ -3239,7 +3243,8 @@ class AvailCompiler(
 					nameLiteral,
 					newListNode(tupleFromList(functionLiterals)),
 					bodyLiteral)),
-			TOP.o())
+			TOP.o
+		)
 		evaluateModuleStatementThen(state, state, send, HashMap(), success)
 	}
 
@@ -3349,7 +3354,8 @@ class AvailCompiler(
 					nameLiteral,
 					syntheticLiteralNodeFor(filterFunction),
 					syntheticLiteralNodeFor(bodyFunction))),
-			TOP.o())
+			TOP.o
+		)
 		evaluateModuleStatementThen(
 			ParserState(token.nextLexingState(), emptyMap),
 			state,
@@ -3766,7 +3772,7 @@ class AvailCompiler(
 		// Imports section (all Extends/Uses subsections)
 		for ((importKindToken, importEntries) in allImportsPart)
 		{
-			assert(importKindToken.isInstanceOfKind(TOKEN.o()))
+			assert(importKindToken.isInstanceOfKind(TOKEN.o))
 			val importKind = importKindToken.literal()
 			assert(importKind.isInt)
 			val importKindInt = importKind.extractInt()
@@ -4246,7 +4252,8 @@ class AvailCompiler(
 							stringFrom("(complete module imports)")),
 						syntheticLiteralNodeFor(
 							objectFromBoolean(isPublic)))),
-				TOP.o())
+				TOP.o
+			)
 			val function = createFunctionForPhrase(
 				send, compilationContext.module, 0)
 			privateSerializeFunction(function.makeImmutable())
@@ -4264,7 +4271,8 @@ class AvailCompiler(
 							leftovers,
 							stringFrom("(${leftovers.setSize()} atoms)")),
 						syntheticLiteralNodeFor(objectFromBoolean(isPublic)))),
-				TOP.o())
+				TOP.o
+			)
 			val function = createFunctionForPhrase(
 				send, compilationContext.module, 0)
 			function.makeImmutable()
@@ -4928,7 +4936,7 @@ class AvailCompiler(
 		 */
 		private fun stringFromToken(token: A_Token): A_String
 		{
-			assert(token.isInstanceOfKind(TOKEN.o()))
+			assert(token.isInstanceOfKind(TOKEN.o))
 			val innerToken = token.literal()
 			val literal = innerToken.literal()
 			assert(literal.isInstanceOfKind(stringType()))

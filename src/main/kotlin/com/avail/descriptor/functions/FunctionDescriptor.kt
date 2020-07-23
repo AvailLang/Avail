@@ -64,7 +64,7 @@ import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.FunctionTypeDescriptor
-import com.avail.descriptor.types.TypeDescriptor.Types
+import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.descriptor.types.TypeTag
 import com.avail.interpreter.levelOne.L1Decompiler.Companion.decompile
 import com.avail.interpreter.levelOne.L1InstructionWriter
@@ -556,7 +556,7 @@ class FunctionDescriptor private constructor(
 				emptyTuple,
 				0,
 				tuple(phrase),
-				Types.TOP.o(),
+				TOP.o,
 				emptySet,
 				lineNumber,
 				phrase.tokens())

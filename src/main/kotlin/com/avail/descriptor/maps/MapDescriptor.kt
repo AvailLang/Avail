@@ -56,7 +56,8 @@ import com.avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import com.avail.descriptor.types.MapTypeDescriptor.Companion.mapTypeForSizesKeyTypeValueType
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
-import com.avail.descriptor.types.TypeDescriptor.Types
+import com.avail.descriptor.types.TypeDescriptor.Types.ANY
+import com.avail.descriptor.types.TypeDescriptor.Types.NONTYPE
 import com.avail.descriptor.types.TypeTag
 import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.MapException
@@ -187,7 +188,8 @@ class MapDescriptor private constructor(
 	): Array<AvailObjectFieldHelper> {
 		if (self.isInstanceOfKind(
 				mapTypeForSizesKeyTypeValueType(
-					wholeNumbers(), stringType(), Types.ANY.o()))
+					wholeNumbers, stringType(), ANY.o
+				))
 		) {
 			// The keys are all strings.
 			val mapIterable = self.mapIterable()
@@ -279,7 +281,7 @@ class MapDescriptor private constructor(
 		aType: A_Type
 	): Boolean {
 		when {
-			aType.isSupertypeOfPrimitiveTypeEnum(Types.NONTYPE) -> return true
+			aType.isSupertypeOfPrimitiveTypeEnum(NONTYPE) -> return true
 			!aType.isMapType -> return false
 			!aType.sizeRange().rangeIncludesInt(self.mapSize()) -> return false
 		}
@@ -291,7 +293,7 @@ class MapDescriptor private constructor(
 		var keyUnionKind: A_Type? = null
 		val keysMatch: Boolean
 		when {
-			keyType.equals(Types.ANY.o()) -> keysMatch = true
+			keyType.equals(ANY.o) -> keysMatch = true
 			keyTypeIsEnumeration -> keysMatch = false
 			else -> {
 				keyUnionKind = rootBin.mapBinKeyUnionKind()
@@ -301,7 +303,7 @@ class MapDescriptor private constructor(
 		var valueUnionKind: A_Type? = null
 		val valuesMatch: Boolean
 		when {
-			valueType.equals(Types.ANY.o()) -> valuesMatch = true
+			valueType.equals(ANY.o) -> valuesMatch = true
 			valueTypeIsEnumeration -> valuesMatch = false
 			else -> {
 				valueUnionKind = rootBin.mapBinValueUnionKind()

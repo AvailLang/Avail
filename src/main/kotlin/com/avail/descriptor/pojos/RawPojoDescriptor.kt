@@ -39,7 +39,7 @@ import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.PojoTypeDescriptor
-import com.avail.descriptor.types.TypeDescriptor.Types
+import com.avail.descriptor.types.TypeDescriptor.Types.RAW_POJO
 import com.avail.descriptor.types.TypeTag
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.cast
@@ -113,7 +113,7 @@ open class RawPojoDescriptor protected constructor(
 	override fun <T> o_JavaObject(self: AvailObject): T? =
 		javaObject.cast<Any?, T?>()
 
-	override fun o_Kind(self: AvailObject): A_Type = Types.RAW_POJO.o()
+	override fun o_Kind(self: AvailObject): A_Type = RAW_POJO.o
 
 	/**
 	 * Replace the descriptor with a newly synthesized one that has the same

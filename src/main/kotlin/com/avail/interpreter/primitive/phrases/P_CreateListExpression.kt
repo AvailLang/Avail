@@ -68,6 +68,6 @@ object P_CreateListExpression : Primitive(1, CannotFail, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				zeroOrMoreOf(EXPRESSION_PHRASE.create(ANY.o()))),
+				zeroOrMoreOf(EXPRESSION_PHRASE.create(ANY.o))),
 			LIST_PHRASE.mostGeneralType())
 }

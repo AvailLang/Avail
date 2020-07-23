@@ -70,7 +70,7 @@ object P_CreatePrimitiveFailureVariableDeclaration : Primitive(
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				TOKEN.o(),
+				TOKEN.o,
 				anyMeta()),
 			PRIMITIVE_FAILURE_REASON_PHRASE.mostGeneralType())
 }

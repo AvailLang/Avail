@@ -134,12 +134,14 @@ object P_SocketSetOption : Primitive(2, CanInline, HasSideEffect)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				ATOM.o(),
+				ATOM.o,
 				mapTypeForSizesKeyTypeValueType(
 					inclusive(0, (socketOptions.size - 1).toLong()),
 					inclusive(1, (socketOptions.size - 1).toLong()),
-					ANY.o())),
-			TOP.o())
+					ANY.o
+				)),
+			TOP.o
+		)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

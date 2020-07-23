@@ -66,7 +66,7 @@ object P_ElementInSet : Primitive(2, CannotFail, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				ANY.o(),
+				ANY.o,
 				mostGeneralSetType()),
-			booleanType())
+			booleanType)
 }

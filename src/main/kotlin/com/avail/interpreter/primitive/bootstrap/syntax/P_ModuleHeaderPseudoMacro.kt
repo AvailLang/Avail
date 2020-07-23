@@ -98,7 +98,8 @@ object P_ModuleHeaderPseudoMacro
 							optionalNames,
 							optionalEntries,
 							optionalPragmas)),
-					TOP.o())))
+					TOP.o
+				)))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
@@ -124,14 +125,14 @@ object P_ModuleHeaderPseudoMacro
 								zeroOrOneList(list(
 									zeroOrMoreList(list(
 										// Negated import
-										LITERAL_PHRASE.create(booleanType()),
+										LITERAL_PHRASE.create(booleanType),
 										// Name
 										stringLiteralType,
 										// Replacement name
 										zeroOrOneList(stringLiteralType))),
 									// Final ellipsis (import all the rest)
 									LITERAL_PHRASE.create(
-										booleanType()))))))),
+										booleanType))))))),
 				/* Optional names */
 				zeroOrOneList(zeroOrMoreList(stringLiteralType)),
 				/* Optional entries */

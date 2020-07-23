@@ -64,5 +64,5 @@ object P_TupleTypeSizes : Primitive(1, CannotFail, CanFold, CanInline)
 		functionType(
 			tuple(
 				tupleMeta()),
-			instanceMeta(wholeNumbers()))
+			instanceMeta(wholeNumbers))
 }

@@ -46,7 +46,7 @@ import com.avail.descriptor.sets.SetDescriptor.Companion.toSet
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
-import com.avail.descriptor.types.TypeDescriptor.Types
+import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.exceptions.AvailErrorCode.E_ABSTRACT_METHOD_DEFINITION
 import com.avail.exceptions.AvailErrorCode.E_AMBIGUOUS_METHOD_DEFINITION
 import com.avail.exceptions.AvailErrorCode.E_FORWARD_METHOD_DEFINITION
@@ -77,7 +77,8 @@ import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
-import java.util.*
+import java.util.ArrayList
+import java.util.Collections
 import java.util.logging.Level
 
 /**
@@ -185,7 +186,7 @@ object L2_LOOKUP_BY_VALUES : L2ControlFlowOperation(
 				{
 					registerSet.hasTypeAt(argRegister.register()) ->
 						registerSet.typeAt(argRegister.register())
-					else -> Types.ANY.o()
+					else -> ANY.o
 				}
 			restrictionForType(type, RestrictionFlagEncoding.BOXED)
 

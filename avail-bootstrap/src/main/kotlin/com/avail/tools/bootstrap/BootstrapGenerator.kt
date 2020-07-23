@@ -708,7 +708,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 			val varType: A_Type = primitive.failureVariableType
 			if (varType.isEnumeration)
 			{
-				if (varType.isSubtypeOf(naturalNumbers()))
+				if (varType.isSubtypeOf(naturalNumbers))
 				{
 					builder.append("{")
 					val instances = varType.instances()
@@ -734,7 +734,8 @@ class BootstrapGenerator constructor(private val locale: Locale)
 				else
 				{
 					builder.append(specialObjectName(
-						TypeDescriptor.Types.ANY.o()))
+						TypeDescriptor.Types.ANY.o
+					))
 				}
 			}
 			else
@@ -890,7 +891,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 				val varType: A_Type = primitive.failureVariableType
 				if (varType.isEnumeration)
 				{
-					if (varType.isSubtypeOf(naturalNumbers()))
+					if (varType.isSubtypeOf(naturalNumbers))
 					{
 						val instances = varType.instances()
 						val codes: MutableList<A_Number> = ArrayList()
@@ -909,7 +910,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 					else
 					{
 						formatArgs[raiseIndex] =
-							specialObjectName(TypeDescriptor.Types.ANY.o())
+							specialObjectName(TypeDescriptor.Types.ANY.o)
 					}
 				}
 				else
@@ -1075,7 +1076,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 	private fun generatePrimitiveFailureFunction(writer: PrintWriter)
 	{
 		val functionType: A_BasicObject =
-			functionType(tuple(naturalNumbers()), bottom())
+			functionType(tuple(naturalNumbers), bottom())
 		writer.print(
 			preamble.getString(primitiveFailureFunctionName.name))
 		writer.print(" : ")
@@ -1086,7 +1087,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 		writer.print(preamble.getString(parameterPrefix.name))
 		writer.print(1)
 		writer.print(" : ")
-		writer.println(specialObjectName(TypeDescriptor.Types.ANY.o()))
+		writer.println(specialObjectName(TypeDescriptor.Types.ANY.o))
 		writer.println("\t|")
 		writer.print("\t\t")
 		writer.print(MessageFormat.format(
@@ -1116,7 +1117,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 		val block = block(
 			"",
 			statements.toString(),
-			functionType(tuple(naturalNumbers()), bottom()))
+			functionType(tuple(naturalNumbers), bottom()))
 		generateMethod(
 			preamble.getString(
 				primitiveFailureFunctionGetterMethod.name),
@@ -1138,7 +1139,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 		declarations.append(argName)
 		declarations.append(" : ")
 		val functionType: A_BasicObject =
-			functionType(tuple(naturalNumbers()), bottom())
+			functionType(tuple(naturalNumbers), bottom())
 		declarations.append(specialObjectName(functionType))
 		declarations.append('\n')
 		val statements = StringBuilder()
@@ -1151,7 +1152,8 @@ class BootstrapGenerator constructor(private val locale: Locale)
 		val block = block(
 			declarations.toString(),
 			statements.toString(),
-			TypeDescriptor.Types.TOP.o())
+			TypeDescriptor.Types.TOP.o
+		)
 		generateMethod(
 			preamble.getString(
 				primitiveFailureFunctionSetterMethod.name),
@@ -1190,7 +1192,8 @@ class BootstrapGenerator constructor(private val locale: Locale)
 		val block = block(
 			primitiveMethodParameterDeclarations(primitive, false),
 			statements.toString(),
-			TypeDescriptor.Types.TOP.o())
+			TypeDescriptor.Types.TOP.o
+		)
 		generateMethod(
 			preamble.getString(
 				invokePrimitiveFailureFunctionMethod.name),
@@ -1221,7 +1224,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 			preamble.getString(primitiveFailureVariableName.name))
 		statements.append(" : ")
 		statements.append(
-			specialObjectName(naturalNumbers()))
+			specialObjectName(naturalNumbers))
 		statements.append(')')
 		statements.append(";\n")
 		statements.append('\t')
@@ -1233,7 +1236,8 @@ class BootstrapGenerator constructor(private val locale: Locale)
 		var block = block(
 			primitiveMethodParameterDeclarations(primitive, false),
 			statements.toString(),
-			TypeDescriptor.Types.TOP.o())
+			TypeDescriptor.Types.TOP.o
+		)
 		generateMethod(
 			preamble.getString(primitiveSemanticRestriction.name),
 			block,
@@ -1814,7 +1818,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 				val varType = primitive.failureVariableType
 				if (varType.isEnumeration)
 				{
-					if (varType.isSubtypeOf(naturalNumbers()))
+					if (varType.isSubtypeOf(naturalNumbers))
 					{
 						val instances = varType.instances()
 						val codes = mutableListOf<AvailErrorCode>()

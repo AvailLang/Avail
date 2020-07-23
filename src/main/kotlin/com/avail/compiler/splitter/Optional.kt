@@ -109,7 +109,7 @@ internal class Optional constructor(
 	override fun checkType(argumentType: A_Type, sectionNumber: Int)
 	{
 		// The declared type of the subexpression must be a subtype of boolean.
-		if (!argumentType.isSubtypeOf(booleanType()))
+		if (!argumentType.isSubtypeOf(booleanType))
 		{
 			throwSignatureException(E_INCORRECT_TYPE_FOR_BOOLEAN_GROUP)
 		}

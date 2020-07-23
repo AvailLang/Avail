@@ -101,7 +101,7 @@ object P_BootstrapVariableDeclarationMacro
 		functionType(
 			tuple(
 				/* Variable name phrase. */
-				LITERAL_PHRASE.create(TOKEN.o()),
+				LITERAL_PHRASE.create(TOKEN.o),
 				/* Variable type's literal phrase. */
 				LITERAL_PHRASE.create(anyMeta())),
 			DECLARATION_PHRASE.mostGeneralType())

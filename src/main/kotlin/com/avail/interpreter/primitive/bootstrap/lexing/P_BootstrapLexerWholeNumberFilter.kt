@@ -68,5 +68,5 @@ object P_BootstrapLexerWholeNumberFilter
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(CHARACTER.o()), booleanType())
+		functionType(tuple(CHARACTER.o), booleanType)
 }

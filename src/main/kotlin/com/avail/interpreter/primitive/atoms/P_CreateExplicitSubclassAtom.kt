@@ -93,7 +93,7 @@ object P_CreateExplicitSubclassAtom : Primitive(1, CanInline)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(stringType()), ATOM.o())
+		functionType(tuple(stringType()), ATOM.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_AMBIGUOUS_NAME))

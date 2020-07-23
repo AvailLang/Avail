@@ -70,5 +70,5 @@ object P_ListExpressions : Primitive(1, CannotFail, CanFold, CanInline)
 		functionType(
 			tuple(
 				LIST_PHRASE.mostGeneralType()),
-			zeroOrMoreOf(EXPRESSION_PHRASE.create(ANY.o())))
+			zeroOrMoreOf(EXPRESSION_PHRASE.create(ANY.o)))
 }

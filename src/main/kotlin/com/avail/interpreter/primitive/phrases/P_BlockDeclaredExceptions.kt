@@ -69,7 +69,8 @@ object P_BlockDeclaredExceptions : Primitive(1, CannotFail, CanFold, CanInline)
 			tuple(
 				BLOCK_PHRASE.mostGeneralType()),
 			setTypeForSizesContentType(
-				wholeNumbers(),
+				wholeNumbers,
 				// TODO: [MvG] Update with primitive exception type.
-				ANY.o()))
+				ANY.o
+			))
 }

@@ -86,9 +86,10 @@ object P_AtomicCompareAndSwap : Primitive(3, CanInline, HasSideEffect)
 		functionType(
 			tuple(
 				mostGeneralVariableType(),
-				ANY.o(),
-				ANY.o()),
-			booleanType())
+				ANY.o,
+				ANY.o
+			),
+			booleanType)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

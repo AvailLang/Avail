@@ -288,7 +288,7 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				ATOM.o(),
+				ATOM.o,
 				LIST_PHRASE.mostGeneralType(),
 				topMeta()),
 			tupleTypeForTypes(

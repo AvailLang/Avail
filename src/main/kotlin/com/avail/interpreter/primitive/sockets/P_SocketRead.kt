@@ -45,7 +45,6 @@ import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.ByteBufferTupleDescriptor
 import com.avail.descriptor.tuples.ByteBufferTupleDescriptor.Companion.tupleForByteBuffer
-import com.avail.descriptor.tuples.ObjectTupleDescriptor
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.StringDescriptor.Companion.formatString
 import com.avail.descriptor.types.A_Type
@@ -166,16 +165,19 @@ object P_SocketRead : Primitive(5, CanInline, HasSideEffect)
 		functionType(
 			tuple(
 				inclusive(0, MAX_VALUE.toLong()),
-				ATOM.o(),
+				ATOM.o,
 				functionType(
-					ObjectTupleDescriptor.tuple(
-						zeroOrMoreOf(bytes()),
-						booleanType()),
-					TOP.o()),
+					tuple(
+						zeroOrMoreOf(bytes),
+						booleanType),
+					TOP.o
+				),
 				functionType(
-					ObjectTupleDescriptor.tuple(instanceType(E_IO_ERROR.numericCode())),
-					TOP.o()),
-				bytes()),
+					tuple(instanceType(E_IO_ERROR.numericCode())),
+					TOP.o
+				),
+				bytes
+			),
 			mostGeneralFiberType())
 
 	override fun privateFailureVariableType(): A_Type =

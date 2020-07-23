@@ -120,7 +120,7 @@ object P_FileSetOwner : Primitive(3, CanInline, HasSideEffect)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(stringType(), stringType(), booleanType()), TOP.o())
+		functionType(tuple(stringType(), stringType(), booleanType), TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

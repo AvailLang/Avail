@@ -89,7 +89,7 @@ object P_FileExists : Primitive(2, CanInline, HasSideEffect)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(stringType(), booleanType()), booleanType())
+		functionType(tuple(stringType(), booleanType), booleanType)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_INVALID_PATH, E_PERMISSION_DENIED))

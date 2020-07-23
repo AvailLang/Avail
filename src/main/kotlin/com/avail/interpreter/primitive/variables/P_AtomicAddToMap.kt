@@ -91,9 +91,11 @@ object P_AtomicAddToMap : Primitive(3, CanInline, HasSideEffect) {
 				variableReadWriteType(
 					mostGeneralMapType(),
 					bottom()),
-				ANY.o(),
-				ANY.o()),
-			TOP.o())
+				ANY.o,
+				ANY.o
+			),
+			TOP.o
+		)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

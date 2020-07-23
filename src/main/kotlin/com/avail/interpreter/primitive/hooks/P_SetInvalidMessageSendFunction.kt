@@ -66,5 +66,5 @@ object P_SetInvalidMessageSendFunction
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(INVALID_MESSAGE_SEND.functionType), TOP.o())
+		functionType(tuple(INVALID_MESSAGE_SEND.functionType), TOP.o)
 }

@@ -47,7 +47,7 @@ import com.avail.descriptor.representation.BitField
 import com.avail.descriptor.representation.IntegerSlotsEnum
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.TypeDescriptor.Types
+import com.avail.descriptor.types.TypeDescriptor.Types.FLOAT
 import com.avail.descriptor.types.TypeTag
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
@@ -56,7 +56,7 @@ import java.lang.Float.floatToRawIntBits
 import java.lang.Float.intBitsToFloat
 import java.lang.Float.isInfinite
 import java.lang.Float.isNaN
-import java.util.*
+import java.util.IdentityHashMap
 import kotlin.math.floor
 
 /**
@@ -219,7 +219,7 @@ class FloatDescriptor private constructor(
 	override fun o_IsInstanceOfKind(
 		self: AvailObject,
 		aType: A_Type
-	) = aType.isSupertypeOfPrimitiveTypeEnum(Types.FLOAT)
+	) = aType.isSupertypeOfPrimitiveTypeEnum(FLOAT)
 
 	override fun o_IsNumericallyIntegral(self: AvailObject): Boolean =
 		getFloat(self).let {
@@ -228,7 +228,7 @@ class FloatDescriptor private constructor(
 				&& floor(it.toDouble()) == it.toDouble()
 		}
 
-	override fun o_Kind(self: AvailObject): A_Type = Types.FLOAT.o()
+	override fun o_Kind(self: AvailObject): A_Type = FLOAT.o
 
 	override fun o_MarshalToJava(
 		self: AvailObject,

@@ -68,5 +68,5 @@ object P_AssignmentValue : Primitive(1, CannotFail, CanFold, CanInline)
 		functionType(
 			tuple(
 				ASSIGNMENT_PHRASE.mostGeneralType()),
-			EXPRESSION_PHRASE.create(ANY.o()))
+			EXPRESSION_PHRASE.create(ANY.o))
 }

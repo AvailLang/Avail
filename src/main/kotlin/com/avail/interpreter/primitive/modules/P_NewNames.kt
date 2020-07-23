@@ -70,7 +70,8 @@ object P_NewNames : Primitive(
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(MODULE.o()),
+			tuple(MODULE.o),
 			mapTypeForSizesKeyTypeValueType(
-				wholeNumbers(), stringType(), ATOM.o()))
+				wholeNumbers, stringType(), ATOM.o
+			))
 }

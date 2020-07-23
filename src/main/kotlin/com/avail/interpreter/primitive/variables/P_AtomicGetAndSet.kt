@@ -81,8 +81,10 @@ object P_AtomicGetAndSet : Primitive(2, CanInline, HasSideEffect)
 		functionType(
 			tuple(
 				mostGeneralVariableType(),
-				ANY.o()),
-			ANY.o())
+				ANY.o
+			),
+			ANY.o
+		)
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,
@@ -90,7 +92,7 @@ object P_AtomicGetAndSet : Primitive(2, CanInline, HasSideEffect)
 	{
 		val varType = argumentTypes[0]
 		val readType = varType.readType()
-		return if (readType.isTop) ANY.o() else readType
+		return if (readType.isTop) ANY.o else readType
 	}
 
 	override fun privateFailureVariableType(): A_Type =

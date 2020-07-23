@@ -354,14 +354,16 @@ object P_FileWrite : Primitive(6, CanInline, HasSideEffect)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tupleFromArray(
-				naturalNumbers(),
-				oneOrMoreOf(bytes()),
-				ATOM.o(),
-				functionType(emptyTuple, TOP.o()),
+				naturalNumbers,
+				oneOrMoreOf(bytes),
+				ATOM.o,
+				functionType(emptyTuple, TOP.o),
 				functionType(
-					tuple(instanceType(E_IO_ERROR.numericCode())), TOP.o()),
-				bytes()),
-			fiberType(TOP.o()))
+					tuple(instanceType(E_IO_ERROR.numericCode())), TOP.o
+				),
+				bytes
+			),
+			fiberType(TOP.o))
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

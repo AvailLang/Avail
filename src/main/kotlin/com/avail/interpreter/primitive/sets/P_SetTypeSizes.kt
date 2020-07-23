@@ -67,5 +67,5 @@ object P_SetTypeSizes : Primitive(1, CannotFail, CanFold, CanInline)
 		functionType(
 			tuple(
 				setMeta()),
-			instanceMeta(wholeNumbers()))
+			instanceMeta(wholeNumbers))
 }

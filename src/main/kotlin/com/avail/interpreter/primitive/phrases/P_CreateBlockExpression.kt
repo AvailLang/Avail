@@ -116,7 +116,7 @@ object P_CreateBlockExpression : Primitive(5, CanFold, CanInline)
 				stringType(),
 				zeroOrMoreOf(PARSE_PHRASE.mostGeneralType()),
 				topMeta(),
-				setTypeForSizesContentType(wholeNumbers(), exceptionType())),
+				setTypeForSizesContentType(wholeNumbers, exceptionType())),
 			BLOCK_PHRASE.mostGeneralType())
 
 	override fun privateFailureVariableType(): A_Type =

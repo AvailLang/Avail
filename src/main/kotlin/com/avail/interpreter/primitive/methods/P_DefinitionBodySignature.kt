@@ -61,5 +61,5 @@ object P_DefinitionBodySignature : Primitive(1, CannotFail, CanFold, CanInline)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(DEFINITION.o()), functionMeta())
+		functionType(tuple(DEFINITION.o), functionMeta())
 }

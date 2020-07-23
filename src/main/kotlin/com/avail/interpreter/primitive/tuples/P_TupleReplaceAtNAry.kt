@@ -203,8 +203,10 @@ object P_TupleReplaceAtNAry : Primitive(3, CanInline, CanFold)
 						positiveInfinity(),
 						false),
 					emptyTuple,
-					ANY.o()),
-				ANY.o()),
+					ANY.o
+				),
+				ANY.o
+			),
 			mostGeneralTupleType())
 
 	override fun privateFailureVariableType(): A_Type =

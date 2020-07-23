@@ -39,6 +39,7 @@ import com.avail.descriptor.tokens.TokenDescriptor
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType.Companion.lookupTokenType
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.TokenTypeDescriptor.IntegerSlots.*
+import com.avail.descriptor.types.TypeDescriptor.Types.TOKEN
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
 import jdk.nashorn.internal.parser.TokenType
@@ -142,7 +143,7 @@ class TokenTypeDescriptor private constructor(mutability: Mutability)
 	override fun o_TypeIntersectionOfPrimitiveTypeEnum(
 		self: AvailObject,
 		primitiveTypeEnum: Types): A_Type =
-			if (Types.TOKEN.superTests[primitiveTypeEnum.ordinal]) self
+			if (TOKEN.superTests[primitiveTypeEnum.ordinal]) self
 			else bottom()
 
 	override fun o_TypeUnion(self: AvailObject, another: A_Type): A_Type =
@@ -157,12 +158,12 @@ class TokenTypeDescriptor private constructor(mutability: Mutability)
 		self: AvailObject,
 		aTokenType: A_Type): A_Type =
 			if (self.tokenType() === aTokenType.tokenType()) self
-			else Types.TOKEN.o()
+			else TOKEN.o
 
 	override fun o_TypeUnionOfPrimitiveTypeEnum(
 		self: AvailObject,
 		primitiveTypeEnum: Types): A_Type =
-			Types.TOKEN.unionTypes[primitiveTypeEnum.ordinal]!!
+			TOKEN.unionTypes[primitiveTypeEnum.ordinal]!!
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter)
 	{

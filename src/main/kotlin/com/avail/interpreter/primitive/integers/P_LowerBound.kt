@@ -59,5 +59,5 @@ object P_LowerBound : Primitive(1, CannotFail, CanFold, CanInline)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(extendedIntegersMeta()), extendedIntegers())
+		functionType(tuple(extendedIntegersMeta), extendedIntegers)
 }

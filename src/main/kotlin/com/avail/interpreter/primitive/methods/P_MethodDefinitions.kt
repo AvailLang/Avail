@@ -62,5 +62,5 @@ object P_MethodDefinitions : Primitive(1, CannotFail, CanInline)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(METHOD.o()), zeroOrMoreOf(DEFINITION.o()))
+		functionType(tuple(METHOD.o), zeroOrMoreOf(DEFINITION.o))
 }

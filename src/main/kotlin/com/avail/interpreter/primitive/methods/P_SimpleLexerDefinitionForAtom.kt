@@ -123,8 +123,9 @@ object P_SimpleLexerDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				ATOM.o(), lexerFilterFunctionType(), lexerBodyFunctionType()),
-			TOP.o())
+				ATOM.o, lexerFilterFunctionType(), lexerBodyFunctionType()),
+			TOP.o
+		)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(

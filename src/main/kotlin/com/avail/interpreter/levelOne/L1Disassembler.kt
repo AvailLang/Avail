@@ -44,6 +44,9 @@ import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import com.avail.descriptor.types.PrimitiveTypeDescriptor
 import com.avail.descriptor.types.TypeDescriptor.Types
+import com.avail.descriptor.types.TypeDescriptor.Types.MESSAGE_BUNDLE
+import com.avail.descriptor.types.TypeDescriptor.Types.METHOD
+import com.avail.descriptor.types.TypeDescriptor.Types.NUMBER
 import com.avail.utility.Strings
 import java.util.*
 
@@ -257,10 +260,10 @@ class L1Disassembler constructor(
 					// Show some things textually.
 					value.equalsNil() -> value to false
 					value.isString -> value to false
-					value.isInstanceOf(Types.NUMBER.o()) -> value to false
-					value.isInstanceOf(Types.MESSAGE_BUNDLE.o()) ->
+					value.isInstanceOf(NUMBER.o) -> value to false
+					value.isInstanceOf(MESSAGE_BUNDLE.o) ->
 						value.message().atomName() to true
-					value.isInstanceOf(Types.METHOD.o()) -> value to true
+					value.isInstanceOf(METHOD.o) -> value to true
 					value.isAtom -> value.atomName() to true
 					value.isCharacter -> value to false
 					!value.isType -> value to true

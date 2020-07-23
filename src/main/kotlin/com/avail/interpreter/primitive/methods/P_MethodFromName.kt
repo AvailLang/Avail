@@ -68,7 +68,7 @@ object P_MethodFromName : Primitive(1, CanInline)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(ATOM.o()), METHOD.o())
+		functionType(tuple(ATOM.o), METHOD.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_NO_METHOD))

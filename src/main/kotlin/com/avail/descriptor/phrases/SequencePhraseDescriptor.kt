@@ -48,7 +48,7 @@ package com.avail.descriptor.phrases
  import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
  import com.avail.descriptor.types.A_Type
  import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
- import com.avail.descriptor.types.TypeDescriptor.Types
+ import com.avail.descriptor.types.TypeDescriptor.Types.TOP
  import com.avail.descriptor.types.TypeTag
  import com.avail.serialization.SerializerOperation
  import com.avail.utility.json.JSONWriter
@@ -127,7 +127,7 @@ class SequencePhraseDescriptor private constructor(
 	override fun o_ExpressionType(self: AvailObject): A_Type {
 		val statements: A_Tuple = self.slot(STATEMENTS)
 		return when(statements.tupleSize()) {
-			0 -> Types.TOP.o()
+			0 -> TOP.o
 			else -> statements.tupleAt(statements.tupleSize()).expressionType()
 		}
 	}

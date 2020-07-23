@@ -62,11 +62,11 @@ package com.avail.descriptor.phrases
  import com.avail.descriptor.types.A_Type
  import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
  import com.avail.descriptor.types.TypeDescriptor
- import com.avail.descriptor.types.TypeDescriptor.Types
+ import com.avail.descriptor.types.TypeDescriptor.Types.MESSAGE_BUNDLE
  import com.avail.descriptor.types.TypeTag
  import com.avail.serialization.SerializerOperation
  import com.avail.utility.json.JSONWriter
- import java.util.*
+ import java.util.IdentityHashMap
 
 /**
  * My instances represent invocations of multi-methods in Avail code.
@@ -254,7 +254,7 @@ class SendPhraseDescriptor private constructor(
 			argsListNode: A_Phrase,
 			returnType: A_Type
 		): A_Phrase {
-			assert(bundle.isInstanceOfKind(Types.MESSAGE_BUNDLE.o()))
+			assert(bundle.isInstanceOfKind(MESSAGE_BUNDLE.o))
 			assert(argsListNode.phraseKindIsUnder(PhraseKind.LIST_PHRASE))
 			return mutable.createShared {
 				setSlot(TOKENS, tokens)

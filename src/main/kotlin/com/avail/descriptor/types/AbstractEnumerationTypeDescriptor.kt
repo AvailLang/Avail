@@ -185,7 +185,7 @@ abstract class AbstractEnumerationTypeDescriptor protected constructor(
 	override fun o_TypeIntersectionOfPrimitiveTypeEnum(
 		self: AvailObject,
 		primitiveTypeEnum: TypeDescriptor.Types): A_Type =
-			computeIntersectionWith(self, primitiveTypeEnum.o())
+			computeIntersectionWith(self, primitiveTypeEnum.o)
 
 	override fun o_TypeIntersectionOfVariableType(
 		self: AvailObject,
@@ -275,7 +275,7 @@ abstract class AbstractEnumerationTypeDescriptor protected constructor(
 	override fun o_TypeUnionOfPrimitiveTypeEnum(
 		self: AvailObject,
 		primitiveTypeEnum: TypeDescriptor.Types): A_Type =
-			computeUnionWith(self, primitiveTypeEnum.o())
+			computeUnionWith(self, primitiveTypeEnum.o)
 
 	override fun o_TypeUnionOfSetType(
 		self: AvailObject,
@@ -541,7 +541,7 @@ abstract class AbstractEnumerationTypeDescriptor protected constructor(
 				return InstanceMetaDescriptor.instanceMeta(typesUnion)
 			}
 			// It's a mix of types and non-types.
-			return TypeDescriptor.Types.ANY.o()
+			return TypeDescriptor.Types.ANY.o
 		}
 
 		/**

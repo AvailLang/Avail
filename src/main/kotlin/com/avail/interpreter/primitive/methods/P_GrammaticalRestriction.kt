@@ -126,10 +126,11 @@ object P_GrammaticalRestriction : Primitive(2, Unknown)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				setTypeForSizesContentType(naturalNumbers(), stringType()),
+				setTypeForSizesContentType(naturalNumbers, stringType()),
 				zeroOrMoreOf(
-					setTypeForSizesContentType(wholeNumbers(), stringType()))),
-			TOP.o())
+					setTypeForSizesContentType(wholeNumbers, stringType()))),
+			TOP.o
+		)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(

@@ -99,9 +99,11 @@ object P_PojoArraySet : Primitive(3, CanInline)
 		functionType(
 			tuple(
 				mostGeneralPojoArrayType(),
-				naturalNumbers(),
-				ANY.o()),
-			TOP.o())
+				naturalNumbers,
+				ANY.o
+			),
+			TOP.o
+		)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

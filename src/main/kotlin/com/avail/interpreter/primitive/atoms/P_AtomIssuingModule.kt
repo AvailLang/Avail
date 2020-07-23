@@ -72,7 +72,7 @@ object P_AtomIssuingModule : Primitive(1, CanFold, CanInline)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(ATOM.o()), MODULE.o())
+		functionType(tuple(ATOM.o), MODULE.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_SPECIAL_ATOM))

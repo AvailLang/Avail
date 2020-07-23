@@ -94,8 +94,9 @@ object P_ConstructDoubleFromParts : Primitive(3, CannotFail, CanInline, CanFold)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				literalTokenType(wholeNumbers()),
-				literalTokenType(wholeNumbers()),
-				literalTokenType(integers())),
-			DOUBLE.o())
+				literalTokenType(wholeNumbers),
+				literalTokenType(wholeNumbers),
+				literalTokenType(integers)),
+			DOUBLE.o
+		)
 }

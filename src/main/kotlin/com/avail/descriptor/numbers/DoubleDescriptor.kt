@@ -45,13 +45,12 @@ import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.truncatedFromDouble
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import com.avail.descriptor.representation.A_BasicObject
-import com.avail.descriptor.representation.AbstractDescriptor
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.AvailObject.Companion.multiplier
 import com.avail.descriptor.representation.IntegerSlotsEnum
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.TypeDescriptor.Types
+import com.avail.descriptor.types.TypeDescriptor.Types.DOUBLE
 import com.avail.descriptor.types.TypeTag
 import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
@@ -64,7 +63,7 @@ import java.lang.Double.isNaN
 import java.lang.Double.longBitsToDouble
 import java.lang.Math.getExponent
 import java.lang.Math.scalb
-import java.util.*
+import java.util.IdentityHashMap
 import kotlin.math.abs
 import kotlin.math.floor
 import kotlin.math.max
@@ -236,14 +235,14 @@ class DoubleDescriptor private constructor(
 	override fun o_IsInstanceOfKind(
 		self: AvailObject,
 		aType: A_Type
-	) = aType.isSupertypeOfPrimitiveTypeEnum(Types.DOUBLE)
+	) = aType.isSupertypeOfPrimitiveTypeEnum(DOUBLE)
 
 	override fun o_IsNumericallyIntegral(self: AvailObject) =
 		getDouble(self).let {
 			!isInfinite(it) && !isNaN(it) && floor(it) == it
 		}
 
-	override fun o_Kind(self: AvailObject): A_Type = Types.DOUBLE.o()
+	override fun o_Kind(self: AvailObject): A_Type = DOUBLE.o
 
 	override fun o_MarshalToJava(
 		self: AvailObject,

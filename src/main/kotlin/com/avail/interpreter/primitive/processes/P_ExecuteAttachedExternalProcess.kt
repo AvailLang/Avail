@@ -113,7 +113,7 @@ object P_ExecuteAttachedExternalProcess : Primitive(6, CanInline, HasSideEffect)
 		}
 		// Create the new fiber that will be connected to the external process.
 		val current = interpreter.fiber()
-		val newFiber = newFiber(TOP.o(), priority.extractInt()) {
+		val newFiber = newFiber(TOP.o, priority.extractInt()) {
 			stringFrom("External process execution")
 		}
 		newFiber.setAvailLoader(current.availLoader())
@@ -160,19 +160,22 @@ object P_ExecuteAttachedExternalProcess : Primitive(6, CanInline, HasSideEffect)
 				zeroOrOneOf(stringType()),
 				zeroOrOneOf(
 					mapTypeForSizesKeyTypeValueType(
-						wholeNumbers(), stringType(), stringType())),
+						wholeNumbers, stringType(), stringType())),
 				functionType(
 					emptyTuple,
-					TOP.o()),
+					TOP.o
+				),
 				functionType(
 					tuple(
 						enumerationWith(
 							set(
 								E_PERMISSION_DENIED,
 								E_NO_EXTERNAL_PROCESS))),
-					TOP.o()),
-				bytes()),
-			fiberType(TOP.o()))
+					TOP.o
+				),
+				bytes
+			),
+			fiberType(TOP.o))
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

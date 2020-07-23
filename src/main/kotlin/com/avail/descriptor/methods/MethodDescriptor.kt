@@ -91,7 +91,8 @@ import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
 import com.avail.descriptor.types.TupleTypeDescriptor
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
 import com.avail.descriptor.types.TypeDescriptor
-import com.avail.descriptor.types.TypeDescriptor.Types
+import com.avail.descriptor.types.TypeDescriptor.Types.ANY
+import com.avail.descriptor.types.TypeDescriptor.Types.METHOD
 import com.avail.descriptor.types.TypeTag
 import com.avail.dispatch.LookupTree
 import com.avail.dispatch.LookupTreeAdaptor
@@ -515,7 +516,7 @@ class MethodDescriptor private constructor(
 			&& self.slot(SEALED_ARGUMENTS_TYPES_TUPLE).tupleSize() == 0
 	}
 
-	override fun o_Kind(self: AvailObject): A_Type = Types.METHOD.o()
+	override fun o_Kind(self: AvailObject): A_Type = METHOD.o
 
 	override fun o_Lexer(self: AvailObject): A_Lexer =
 		synchronized(self) { self.slot(LEXER_OR_NIL) }
@@ -1118,13 +1119,13 @@ class MethodDescriptor private constructor(
 		/**
 		 * The number of lists to cache of N occurrences of the
 		 * [TypeRestriction] that restricts an element to the type
-		 * [any][Types.ANY].
+		 * [any][ANY].
 		 */
 		private const val sizeOfListsOfAny = 10
 
 		/**
 		 * An array of lists of increasing size consisting only of
-		 * [TypeRestriction]s to the type [any][Types.ANY].
+		 * [TypeRestriction]s to the type [any][ANY].
 		 */
 		private val listsOfAny = Array(sizeOfListsOfAny) {
 			nCopies(it, anyRestriction)
@@ -1132,7 +1133,7 @@ class MethodDescriptor private constructor(
 
 		/**
 		 * Return a [List] of n copies of the [TypeRestriction] for
-		 * [any][Types.ANY].  N is required to be ≥ 0.
+		 * [any][ANY].  N is required to be ≥ 0.
 		 *
 		 * @param n
 		 *   The number of elements in the desired list, all the type any.

@@ -37,6 +37,7 @@ import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
+import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.descriptor.types.VariableTypeDescriptor.ObjectSlots
 import com.avail.descriptor.types.VariableTypeDescriptor.ObjectSlots.INNER_TYPE
 import com.avail.descriptor.variables.VariableDescriptor
@@ -282,7 +283,7 @@ class VariableTypeDescriptor private constructor(mutability: Mutability)
 		 * The most general [variable][ReadWriteVariableTypeDescriptor].
 		 */
 		private val mostGeneralType: A_Type =
-			variableReadWriteType(Types.TOP.o(), bottom()).makeShared()
+			variableReadWriteType(TOP.o, bottom()).makeShared()
 
 		/**
 		 * Answer the most general

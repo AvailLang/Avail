@@ -74,7 +74,7 @@ object P_DeclareStringificationAtom : Primitive(
 		// Generate a function that will invoke the stringifier method for
 		// the specified value.
 		val writer = L1InstructionWriter(nil, 0, nil)
-		writer.argumentTypes(ANY.o())
+		writer.argumentTypes(ANY.o)
 		writer.returnType = stringType()
 		writer.write(0, L1Operation.L1_doPushLocal, 1)
 		try
@@ -100,5 +100,5 @@ object P_DeclareStringificationAtom : Primitive(
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(ATOM.o()), TOP.o())
+		functionType(tuple(ATOM.o), TOP.o)
 }

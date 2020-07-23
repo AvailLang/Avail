@@ -92,9 +92,10 @@ object P_ExitContinuationIf : Primitive(
 		functionType(
 			ObjectTupleDescriptor.tuple(
 				continuationTypeForFunctionType(
-					functionTypeReturning(TOP.o())),
-				booleanType()),
-			TOP.o())
+					functionTypeReturning(TOP.o)),
+				booleanType),
+			TOP.o
+		)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

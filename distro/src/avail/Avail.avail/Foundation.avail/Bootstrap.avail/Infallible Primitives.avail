@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 7/23/20 10:22 AM
+ * * Last Generated: 7/23/20 5:21 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -142,6 +142,7 @@ Uses
 		"_has terminated",
 		"_is a primitive",
 		"_is a valid message",
+		"_is open for side effects",
 		"_is special",
 		"_mod_",
 		"_permuted by_",
@@ -2020,7 +2021,7 @@ Primitive "_'s⁇seals" is
  * Create an anonymous {@type "module"} that privately imports only and exactly
  * the supplied {@type "set"} of {@type "atom" atoms}.
  *
- * @category "Primitives"
+ * @category "Primitives" "Modules"
  * @method "new anonymous module importing_"
  * @param "allImports" "{atom|}"
  *        Every atom to be imported privately by the new module.
@@ -2069,6 +2070,24 @@ Primitive "_has public name_" is
 	aString : string
 |
 	Primitive HasNewName;
+] : boolean;
+
+/**
+ * Determine whether the {@type "module"} is still open to the performance of
+ * further side effects upon it.
+ *
+ * @category "Primitives" "Modules"
+ * @method "_is open for side effects"
+ * @param "aModule" "module"
+ *        The module to query for openness.
+ * @returns "boolean"
+ *    {@method "true"} if {@param "aModule"} is open, {@method "false"} otherwise.
+ */
+Primitive "_is open for side effects" is
+[
+	aModule : module
+|
+	Primitive IsModuleOpen;
 ] : boolean;
 
 /**

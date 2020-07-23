@@ -41,6 +41,7 @@ import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.types.FiberTypeDescriptor.ObjectSlots.*
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
+import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
 import java.util.*
@@ -220,7 +221,7 @@ class FiberTypeDescriptor constructor (mutability: Mutability)
 		 * The most general [fiber type][FiberTypeDescriptor].
 		 */
 		private val mostGeneralFiberType: A_Type =
-			fiberType(Types.TOP.o()).makeShared()
+			fiberType(TOP.o).makeShared()
 
 		/**
 		 * Answer the most general [fiber&#32;type][FiberDescriptor].

@@ -463,9 +463,9 @@ class SerializerTest
 	{
 		val writer = L1InstructionWriter(
 			NilDescriptor.nil, 0, NilDescriptor.nil)
-		writer.argumentTypes(TypeDescriptor.Types.FLOAT.o())
+		writer.argumentTypes(TypeDescriptor.Types.FLOAT.o)
 		writer.primitive = P_FloatFloor
-		writer.returnType = TypeDescriptor.Types.FLOAT.o()
+		writer.returnType = TypeDescriptor.Types.FLOAT.o
 		val code: A_RawFunction = writer.compiledCode()
 		val function = createFunction(code, emptyTuple)
 		val newFunction: A_Function = roundTrip(function)

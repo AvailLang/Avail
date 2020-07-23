@@ -90,7 +90,7 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(NUMBER.o(), NUMBER.o()), NUMBER.o())
+		functionType(tuple(NUMBER.o, NUMBER.o), NUMBER.o)
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type
@@ -223,7 +223,7 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 				}
 			}
 			// Trim off the infinities for now...
-			union = union.typeIntersection(integers())
+			union = union.typeIntersection(integers)
 			// ...and add them back if needed.
 			for (infinity in includedInfinities)
 			{
@@ -294,8 +294,8 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 
 		// If either of the argument types does not intersect with int32, then
 		// fall back to the primitive invocation.
-		if (aType.typeIntersection(int32()).isBottom
-		    || bType.typeIntersection(int32()).isBottom)
+		if (aType.typeIntersection(int32).isBottom
+		    || bType.typeIntersection(int32).isBottom)
 		{
 			return false
 		}
@@ -312,14 +312,14 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 			// available unboxed arithmetic.
 			val returnTypeIfInts = returnTypeGuaranteedByVM(
 				rawFunction,
-				argumentTypes.map { it.typeIntersection(int32()) })
+				argumentTypes.map { it.typeIntersection(int32) })
 			val semanticTemp =
 				generator.topFrame.temp(generator.nextUnique())
 			val tempWriter =
 				generator.intWrite(
 					semanticTemp,
 					restrictionForType(returnTypeIfInts, UNBOXED_INT))
-			if (returnTypeIfInts.isSubtypeOf(int32()))
+			if (returnTypeIfInts.isSubtypeOf(int32))
 			{
 				// The result is guaranteed not to overflow, so emit an
 				// instruction that won't bother with an overflow check.  Note

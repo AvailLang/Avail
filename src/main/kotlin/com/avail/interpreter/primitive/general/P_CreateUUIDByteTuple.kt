@@ -72,5 +72,6 @@ object P_CreateUUIDByteTuple : Primitive(0, CannotFail, CanInline, HasSideEffect
 		functionType(
 			emptyTuple,
 			tupleTypeForSizesTypesDefaultType(
-				singleInt(16), emptyTuple, bytes()))
+				singleInt(16), emptyTuple, bytes
+			))
 }

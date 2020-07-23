@@ -65,5 +65,5 @@ object P_HasTerminated : Primitive(
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(mostGeneralFiberType()), booleanType())
+		functionType(tuple(mostGeneralFiberType()), booleanType)
 }

@@ -55,6 +55,8 @@ import com.avail.descriptor.types.TupleTypeDescriptor.ObjectSlots
 import com.avail.descriptor.types.TupleTypeDescriptor.ObjectSlots.DEFAULT_TYPE
 import com.avail.descriptor.types.TupleTypeDescriptor.ObjectSlots.SIZE_RANGE
 import com.avail.descriptor.types.TupleTypeDescriptor.ObjectSlots.TYPE_TUPLE
+import com.avail.descriptor.types.TypeDescriptor.Types.ANY
+import com.avail.descriptor.types.TypeDescriptor.Types.CHARACTER
 import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.serialization.SerializerOperation
@@ -124,15 +126,14 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 	{
 		if (self.slot(TYPE_TUPLE).tupleSize() == 0)
 		{
-			if (self.slot(SIZE_RANGE).equals(wholeNumbers()))
+			if (self.slot(SIZE_RANGE).equals(wholeNumbers))
 			{
-				if (self.slot(DEFAULT_TYPE).equals(Types.ANY.o()))
+				if (self.slot(DEFAULT_TYPE).equals(ANY.o))
 				{
 					builder.append("tuple")
 					return
 				}
-				if (self.slot(DEFAULT_TYPE)
-						.equals(Types.CHARACTER.o()))
+				if (self.slot(DEFAULT_TYPE).equals(CHARACTER.o))
 				{
 					builder.append("string")
 					return
@@ -630,7 +631,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		 *   A size [0..1] tuple type whose element has the given type.
 		 */
 		fun zeroOrOneOf(aType: A_Type): A_Type =
-			tupleTypeForSizesTypesDefaultType(zeroOrOne(), emptyTuple, aType)
+			tupleTypeForSizesTypesDefaultType(zeroOrOne, emptyTuple, aType)
 
 		/**
 		 * Answer a tuple type consisting of zero or more of the given element
@@ -644,7 +645,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		@JvmStatic
 		fun zeroOrMoreOf(aType: A_Type): A_Type =
 			tupleTypeForSizesTypesDefaultType(
-				wholeNumbers(),
+				wholeNumbers,
 				emptyTuple,
 				aType)
 
@@ -660,7 +661,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		@JvmStatic
 		fun oneOrMoreOf(aType: A_Type): A_Type =
 			tupleTypeForSizesTypesDefaultType(
-				naturalNumbers(),
+				naturalNumbers,
 				emptyTuple,
 				aType)
 
@@ -821,7 +822,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 
 		/** The most general tuple type.  */
 		private val mostGeneralType: A_Type =
-			zeroOrMoreOf(Types.ANY.o()).makeShared()
+			zeroOrMoreOf(ANY.o).makeShared()
 
 		/**
 		 * Answer the most general tuple type.  This is the supertype of all
@@ -835,7 +836,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 
 		/** The most general string type (i.e., tuples of characters).  */
 		private val stringType: A_Type =
-			zeroOrMoreOf(Types.CHARACTER.o()).makeShared()
+			zeroOrMoreOf(CHARACTER.o).makeShared()
 
 		/**
 		 * Answer the most general string type.  This type subsumes strings of
@@ -849,7 +850,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 
 		/** The most general string type (i.e., tuples of characters).  */
 		private val nonemptyStringType: A_Type =
-			oneOrMoreOf(Types.CHARACTER.o()).makeShared()
+			oneOrMoreOf(CHARACTER.o).makeShared()
 
 		/**
 		 * Answer the non-empty string type.  This type subsumes strings of any

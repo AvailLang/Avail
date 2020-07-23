@@ -81,7 +81,7 @@ object P_BootstrapPrefixPostStatement : Primitive(4, CanInline, Bootstrap)
 		// only be invoked if there is at least one statement.
 		val latestStatementLiteral = statementsPhrase.lastExpression()
 		val latestStatement = latestStatementLiteral.token().literal()
-		if (!latestStatement.expressionType().equals(TOP.o()))
+		if (!latestStatement.expressionType().equals(TOP.o))
 		{
 			throw AvailRejectedParseException(WEAK, "statement to have type ⊤")
 		}
@@ -100,7 +100,7 @@ object P_BootstrapPrefixPostStatement : Primitive(4, CanInline, Bootstrap)
 							// An argument.
 							tupleTypeForTypes(
 								// Argument name, a token.
-								TOKEN.o(),
+								TOKEN.o,
 								// Argument type.
 								anyMeta())))),
 				// Macro argument is a phrase.
@@ -110,13 +110,13 @@ object P_BootstrapPrefixPostStatement : Primitive(4, CanInline, Bootstrap)
 						// Primitive declaration
 						tupleTypeForTypes(
 							// Primitive name.
-							TOKEN.o(),
+							TOKEN.o,
 							// Optional failure variable declaration.
 							zeroOrOneOf(
 								// Primitive failure variable parts.
 								tupleTypeForTypes(
 									// Primitive failure variable name token
-									TOKEN.o(),
+									TOKEN.o,
 									// Primitive failure variable type
 									anyMeta()))))),
 				// Macro argument is a phrase.
@@ -126,7 +126,7 @@ object P_BootstrapPrefixPostStatement : Primitive(4, CanInline, Bootstrap)
 						// Label parts.
 						tupleTypeForTypes(
 							// Label name
-							TOKEN.o(),
+							TOKEN.o,
 							// Optional label return type.
 							zeroOrOneOf(
 								// Label return type.
@@ -139,5 +139,6 @@ object P_BootstrapPrefixPostStatement : Primitive(4, CanInline, Bootstrap)
 						// declaration inside a literal phrase, so expect a
 						// phrase here instead of TOP.o().
 						STATEMENT_PHRASE.mostGeneralType()))),
-			TOP.o())
+			TOP.o
+		)
 }

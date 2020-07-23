@@ -33,7 +33,6 @@ package com.avail.interpreter.primitive.types
 
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.A_RawFunction
-import com.avail.descriptor.tuples.ObjectTupleDescriptor
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
@@ -96,15 +95,18 @@ object P_CastIntoElse : Primitive(3, Invokes, CanInline, CannotFail)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				ANY.o(),
+				ANY.o,
 				functionType(
 					tuple(
 						bottom()),
-					TOP.o()),
+					TOP.o
+				),
 				functionType(
 					emptyTuple,
-					TOP.o())),
-			TOP.o())
+					TOP.o
+				)),
+			TOP.o
+		)
 
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,

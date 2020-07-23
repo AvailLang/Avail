@@ -82,11 +82,13 @@ object P_AddWriteReactor : Primitive(3, HasSideEffect)
 		functionType(
 			tuple(
 				mostGeneralVariableType(),
-				ATOM.o(),
+				ATOM.o,
 				functionType(
 					emptyTuple,
-					TOP.o())),
-			TOP.o())
+					TOP.o
+				)),
+			TOP.o
+		)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_SPECIAL_ATOM))

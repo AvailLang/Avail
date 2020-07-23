@@ -74,7 +74,7 @@ object P_LookupFiberVariable : Primitive(1, CanInline)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(ATOM.o()), ANY.o())
+		functionType(tuple(ATOM.o), ANY.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_NO_SUCH_FIBER_VARIABLE))

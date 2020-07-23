@@ -237,7 +237,7 @@ open class AtomDescriptor protected constructor (
 	}
 
 	override fun o_Kind(self: AvailObject): AvailObject =
-		TypeDescriptor.Types.ATOM.o()
+		TypeDescriptor.Types.ATOM.o
 
 	override fun o_ExtractBoolean (self: AvailObject): Boolean = when(self) {
 		trueObject -> true
@@ -309,7 +309,7 @@ open class AtomDescriptor protected constructor (
 	}
 
 	override fun o_IsBoolean (self: AvailObject) =
-		self.isInstanceOf(booleanType())
+		self.isInstanceOf(booleanType)
 
 	override fun o_IsAtomSpecial (self: AvailObject) = false
 

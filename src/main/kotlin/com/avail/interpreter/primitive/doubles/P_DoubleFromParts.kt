@@ -100,7 +100,8 @@ object P_DoubleFromParts : Primitive(4, CannotFail, CanInline, CanFold)
 			tuple(
 				nonemptyStringOfDigitsType,
 				nonemptyStringOfDigitsType,
-				booleanType(),
+				booleanType,
 				nonemptyStringOfDigitsType),
-			DOUBLE.o())
+			DOUBLE.o
+		)
 }

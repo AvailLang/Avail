@@ -75,7 +75,7 @@ object P_IsSubtypeOf : Primitive(2, CannotFail, CanFold, CanInline)
 			tuple(
 				topMeta(),
 				topMeta()),
-			booleanType())
+			booleanType)
 
 	/**
 	 * Some identities apply.  The terms x and y are the values being compared

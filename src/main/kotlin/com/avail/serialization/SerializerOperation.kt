@@ -1638,7 +1638,7 @@ enum class SerializerOperation constructor(
 			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			assert(obj.isInstanceOf(TypeDescriptor.Types.METHOD.o()))
+			assert(obj.isInstanceOf(TypeDescriptor.Types.METHOD.o))
 			val pairs = ArrayList<A_Tuple>()
 			for (bundle in obj.bundles())
 			{
@@ -2552,7 +2552,7 @@ enum class SerializerOperation constructor(
 			subobjects: Array<AvailObject>,
 			deserializer: Deserializer): A_BasicObject
 		{
-			return TypeDescriptor.Types.all()[subobjects[0].extractInt()].o()
+			return TypeDescriptor.Types.all()[subobjects[0].extractInt()].o
 		}
 	},
 

@@ -60,5 +60,5 @@ object P_BundleHasRestrictions : Primitive(1, CanInline, CannotFail)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(MESSAGE_BUNDLE.o()), booleanType())
+		functionType(tuple(MESSAGE_BUNDLE.o), booleanType)
 }

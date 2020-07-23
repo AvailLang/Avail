@@ -41,7 +41,7 @@ import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.ABSTRACT_
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.FORWARD_DEFINER
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.MACRO_DEFINER
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.METHOD_DEFINER
-import com.avail.descriptor.types.TypeDescriptor.Types
+import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.interpreter.levelOne.L1InstructionWriter
 import com.avail.interpreter.levelOne.L1Operation
 
@@ -85,7 +85,7 @@ internal class LoadingEffectToAddDefinition constructor(
 						0,
 						L1Operation.L1_doCall,
 						addLiteral(ABSTRACT_DEFINER.bundle),
-						addLiteral(Types.TOP.o()))
+						addLiteral(TOP.o))
 				}
 				definition.isForwardDefinition() -> {
 					// Push the bundle's atom.
@@ -103,7 +103,7 @@ internal class LoadingEffectToAddDefinition constructor(
 						0,
 						L1Operation.L1_doCall,
 						addLiteral(FORWARD_DEFINER.bundle),
-						addLiteral(Types.TOP.o()))
+						addLiteral(TOP.o))
 				}
 				definition.isMacroDefinition() -> {
 					// NOTE: The prefix functions are dealt with as separate effects.
@@ -127,7 +127,7 @@ internal class LoadingEffectToAddDefinition constructor(
 						0,
 						L1Operation.L1_doCall,
 						addLiteral(MACRO_DEFINER.bundle),
-						addLiteral(Types.TOP.o()))
+						addLiteral(TOP.o))
 				}
 				else -> {
 					assert(definition.isMethodDefinition())
@@ -146,7 +146,7 @@ internal class LoadingEffectToAddDefinition constructor(
 						0,
 						L1Operation.L1_doCall,
 						addLiteral(METHOD_DEFINER.bundle),
-						addLiteral(Types.TOP.o()))
+						addLiteral(TOP.o))
 				}
 			}
 		}

@@ -457,7 +457,7 @@ class IntTupleDescriptor private constructor(
 			}
 		}
 		val defaultTypeObject = aType.defaultType()
-		if (IntegerRangeTypeDescriptor.int32().isSubtypeOf(defaultTypeObject))
+		if (IntegerRangeTypeDescriptor.int32.isSubtypeOf(defaultTypeObject))
 		{
 			return true
 		}
@@ -550,7 +550,7 @@ class IntTupleDescriptor private constructor(
 		startIndex: Int,
 		endIndex: Int,
 		type: A_Type): Boolean =
-			(IntegerRangeTypeDescriptor.int32().isSubtypeOf(type)
+			(IntegerRangeTypeDescriptor.int32.isSubtypeOf(type)
 				|| super.o_TupleElementsInRangeAreInstancesOf(
 					self, startIndex, endIndex, type))
 

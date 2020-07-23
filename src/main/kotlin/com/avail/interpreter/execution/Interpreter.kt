@@ -807,7 +807,7 @@ class Interpreter(
 	 *   Primitive [Result.FAILURE].
 	 */
 	fun primitiveFailure(exception: AvailRuntimeException): Result =
-		primitiveFailure(exception.numericCode())
+		primitiveFailure(exception.numericCode)
 
 	/**
 	 * Set the resulting value of a primitive invocation. Answer primitive

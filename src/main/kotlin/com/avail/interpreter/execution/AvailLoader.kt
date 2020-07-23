@@ -111,6 +111,7 @@ import com.avail.descriptor.types.EnumerationTypeDescriptor
 import com.avail.descriptor.types.FunctionTypeDescriptor
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
 import com.avail.descriptor.types.TypeDescriptor.Types
+import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AmbiguousNameException
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
 import com.avail.exceptions.AvailErrorCode.E_MACRO_MUST_RETURN_A_PARSE_NODE
@@ -425,7 +426,7 @@ class AvailLoader(
 			val failureMap = mutableMapOf<A_Lexer, Throwable>()
 			val fibers = allVisibleLexers.map { lexer ->
 				newLoaderFiber(
-					EnumerationTypeDescriptor.booleanType(),
+					EnumerationTypeDescriptor.booleanType,
 					loader
 				) {
 					formatString(
@@ -1246,7 +1247,7 @@ class AvailLoader(
 				val currentIndex = index++
 				val unloadFunction: A_Function =
 					unloadFunctions.tupleAt(currentIndex)
-				val fiber = newFiber(Types.TOP.o(), loaderPriority) {
+				val fiber = newFiber(TOP.o, loaderPriority) {
 					formatString(
 						"Unload function #%d/%d for module %s",
 						currentIndex,

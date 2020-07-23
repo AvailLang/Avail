@@ -65,5 +65,5 @@ object P_AsDouble : Primitive(1, CannotFail, CanFold, CanInline)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(NUMBER.o()), DOUBLE.o())
+		functionType(tuple(NUMBER.o), DOUBLE.o)
 }

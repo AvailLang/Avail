@@ -190,7 +190,7 @@ object P_MapReplacingNAryKey : Primitive(3, CanInline, CanFold)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(mostGeneralMapType(), oneOrMoreOf(ANY.o()), ANY.o()),
+			tuple(mostGeneralMapType(), oneOrMoreOf(ANY.o), ANY.o),
 			mostGeneralMapType())
 
 	override fun privateFailureVariableType(): A_Type =

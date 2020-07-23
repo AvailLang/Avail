@@ -80,5 +80,5 @@ object P_SetFiberVariable : Primitive(
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(ATOM.o(), ANY.o()), TOP.o())
+		functionType(tuple(ATOM.o, ANY.o), TOP.o)
 }

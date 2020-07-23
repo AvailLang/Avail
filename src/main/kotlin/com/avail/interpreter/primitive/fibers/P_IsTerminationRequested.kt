@@ -64,5 +64,5 @@ object P_IsTerminationRequested : Primitive(
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(emptyTuple, booleanType())
+		functionType(emptyTuple, booleanType)
 }

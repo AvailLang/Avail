@@ -53,6 +53,7 @@ import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.en
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
 import com.avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
 import com.avail.descriptor.types.TypeDescriptor.Types
+import com.avail.descriptor.types.TypeDescriptor.Types.CHARACTER
 import com.avail.descriptor.types.TypeTag
 import com.avail.exceptions.AvailErrorCode
 import com.avail.optimizer.jvm.CheckedMethod
@@ -114,7 +115,7 @@ private constructor(
 	): Unit = with(builder) {
 		when {
 			self.setSize() == 0 -> append('∅')
-			self.setElementsAreAllInstancesOfKind(Types.CHARACTER.o()) -> {
+			self.setElementsAreAllInstancesOfKind(CHARACTER.o) -> {
 				append("¢[")
 				val codePointsSet: SortedSet<Int> = TreeSet()
 				self.mapTo(codePointsSet) { it.codePoint() }

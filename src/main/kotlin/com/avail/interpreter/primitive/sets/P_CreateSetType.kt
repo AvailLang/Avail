@@ -65,6 +65,6 @@ object P_CreateSetType : Primitive(2, CannotFail, CanFold, CanInline)
 		functionType(
 			tuple(
 				anyMeta(),
-				instanceMeta(wholeNumbers())),
+				instanceMeta(wholeNumbers)),
 			setMeta())
 }

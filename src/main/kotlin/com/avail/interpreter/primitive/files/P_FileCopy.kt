@@ -207,10 +207,11 @@ object P_FileCopy : Primitive(5, CanInline, HasSideEffect)
 			tuple(
 				stringType(),
 				stringType(),
-				booleanType(),
-				booleanType(),
-				booleanType()),
-			TOP.o())
+				booleanType,
+				booleanType,
+				booleanType),
+			TOP.o
+		)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(

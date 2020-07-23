@@ -45,10 +45,10 @@ import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
-import com.avail.descriptor.types.TypeDescriptor.Types
+import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.descriptor.types.TypeTag
 import com.avail.serialization.SerializerOperation
-import java.util.*
+import java.util.IdentityHashMap
 
 /**
  * My instances represent a parsing marker that can be pushed onto the parse
@@ -138,7 +138,7 @@ class MarkerPhraseDescriptor private constructor(
 		&& self.markerValue().equals(aPhrase.markerValue()))
 
 	/** This shouldn't make a difference. */
-	override fun o_ExpressionType(self: AvailObject): A_Type = Types.TOP.o()
+	override fun o_ExpressionType(self: AvailObject): A_Type = TOP.o
 
 	override fun o_Hash(self: AvailObject): Int =
 		self.markerValue().hash() xor -0x34353534

@@ -91,10 +91,11 @@ object P_DisableTraceVariableWrites : Primitive(
 		functionType(
 			emptyTuple,
 			setTypeForSizesContentType(
-				wholeNumbers(),
+				wholeNumbers,
 				functionType(
 					emptyTuple,
-					TOP.o())))
+					TOP.o
+				)))
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_ILLEGAL_TRACE_MODE))

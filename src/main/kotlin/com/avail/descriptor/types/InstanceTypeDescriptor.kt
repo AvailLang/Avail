@@ -48,6 +48,7 @@ import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.InstanceTypeDescriptor.ObjectSlots.*
+import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
@@ -180,7 +181,7 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 		{
 			another.isEnumeration && another.isInstanceMeta ->
 				// Union of an instance type and an instance meta is any.
-				TypeDescriptor.Types.ANY.o()
+				ANY.o
 			another.isEnumeration ->
 				// Create a new enumeration containing all elements from both
 				// enumerations.
@@ -258,7 +259,7 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 		{
 			// I'm a singular enumeration of a non-type, so I could only be an
 			// instance of a meta (already excluded), or of ANY or TOP.
-			aType.isSupertypeOfPrimitiveTypeEnum(TypeDescriptor.Types.ANY)
+			aType.isSupertypeOfPrimitiveTypeEnum(ANY)
 		}
 
 	override fun o_FieldTypeAt(self: AvailObject, field: A_Atom): A_Type =

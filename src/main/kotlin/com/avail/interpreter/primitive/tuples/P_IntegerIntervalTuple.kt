@@ -77,10 +77,11 @@ object P_IntegerIntervalTuple : Primitive(3, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				integers(),
-				integers(),
-				integers()),
-			zeroOrMoreOf(integers()))
+				integers,
+				integers,
+				integers
+			),
+			zeroOrMoreOf(integers))
 
 	override fun fallibilityForArgumentTypes(
 		argumentTypes: List<A_Type>

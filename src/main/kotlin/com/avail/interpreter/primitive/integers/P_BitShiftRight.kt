@@ -117,14 +117,14 @@ object P_BitShiftRight : Primitive(2, CanFold, CanInline)
 			baseIntegers.lowerBound().greaterOrEqual(zero()) ->
 			{
 				// Be conservative for simplicity.
-				wholeNumbers()
+				wholeNumbers
 			}
 			else -> super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
 		}
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(integers(), integers()), integers())
+		functionType(tuple(integers, integers), integers)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_TOO_LARGE_TO_REPRESENT))

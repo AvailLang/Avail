@@ -105,6 +105,7 @@ import com.avail.descriptor.variables.VariableDescriptor
 import com.avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
 import com.avail.dispatch.LookupTree
 import com.avail.exceptions.AvailException
+import com.avail.exceptions.AvailRuntimeException
 import com.avail.exceptions.AvailUnsupportedOperationException
 import com.avail.exceptions.MalformedMessageException
 import com.avail.exceptions.MethodDefinitionException
@@ -3807,6 +3808,11 @@ abstract class AbstractDescriptor protected constructor (
 	abstract fun o_ClearLexingState (self: AvailObject)
 
 	abstract fun o_RegisterDump (self: AvailObject): AvailObject
+
+	abstract fun o_IsOpen (self: AvailObject): Boolean
+
+	@Throws(AvailRuntimeException::class)
+	abstract fun o_CloseModule (self: AvailObject)
 
 	companion object
 	{

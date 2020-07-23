@@ -70,7 +70,8 @@ object P_BitShiftWithTruncation : Primitive(3, CanInline, CanFold)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(wholeNumbers(), integers(), wholeNumbers()), wholeNumbers())
+			tuple(wholeNumbers, integers, wholeNumbers), wholeNumbers
+		)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

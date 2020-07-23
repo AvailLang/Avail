@@ -77,7 +77,7 @@ object P_Equality : Primitive(2, CannotFail, CanFold, CanInline)
 		if (type1.typeIntersection(type2).isBottom)
 		{
 			// The actual values cannot be equal at runtime.
-			return falseType()
+			return falseType
 		}
 		if (type1.isEnumeration
 		    && type1.equals(type2)
@@ -90,14 +90,14 @@ object P_Equality : Primitive(2, CannotFail, CanFold, CanInline)
 			if (!value.isType)
 			{
 				// The actual values will have to be equal at runtime.
-				return trueType()
+				return trueType
 			}
 		}
 		return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(ANY.o(), ANY.o()), booleanType())
+		functionType(tuple(ANY.o, ANY.o), booleanType)
 
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,

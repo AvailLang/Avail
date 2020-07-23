@@ -38,7 +38,6 @@ import com.avail.descriptor.module.ModuleDescriptor.Companion.newModule
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
-import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import com.avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
@@ -69,9 +68,10 @@ object P_CreateAnonymousModule : Primitive(1, CanInline, CannotFail)
 		return interpreter.primitiveSuccess(newModule)
 	}
 
-	override fun privateBlockTypeRestriction (): A_Type =
+	override fun privateBlockTypeRestriction () =
 		functionType(
 			// All atoms that should be imported privately.
-			tuple(setTypeForSizesContentType(wholeNumbers(), ATOM.o())),
-			MODULE.o())
+			tuple(setTypeForSizesContentType(wholeNumbers, ATOM.o)),
+			MODULE.o
+		)
 }

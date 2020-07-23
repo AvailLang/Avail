@@ -334,14 +334,16 @@ object P_FileRead : Primitive(6, CanInline, HasSideEffect)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tupleFromArray(
-				naturalNumbers(),
+				naturalNumbers,
 				inclusive(one(), positiveInfinity()),
-				ATOM.o(),
-				functionType(tuple(zeroOrMoreOf(bytes())), TOP.o()),
+				ATOM.o,
+				functionType(tuple(zeroOrMoreOf(bytes)), TOP.o),
 				functionType(
-					tuple(instanceType(E_IO_ERROR.numericCode())), TOP.o()),
-				bytes()),
-			fiberType(TOP.o()))
+					tuple(instanceType(E_IO_ERROR.numericCode())), TOP.o
+				),
+				bytes
+			),
+			fiberType(TOP.o))
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

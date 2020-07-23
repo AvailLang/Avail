@@ -166,12 +166,13 @@ object P_FileOpen : Primitive(4, CanInline, HasSideEffect)
 		functionType(
 			tuple(
 				stringType(),
-				wholeNumbers(),
+				wholeNumbers,
 				setTypeForSizesContentType(
-					wholeNumbers(), inclusive(0, 9)),
+					wholeNumbers, inclusive(0, 9)),
 				setTypeForSizesContentType(
-					wholeNumbers(), inclusive(1, 9))),
-			ATOM.o())
+					wholeNumbers, inclusive(1, 9))),
+			ATOM.o
+		)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

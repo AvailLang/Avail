@@ -65,7 +65,7 @@ object L2_TUPLE_AT_NO_FAIL : L2Operation(
 		val subscript = instruction.operand<L2ReadIntOperand>(1)
 		val destination = instruction.operand<L2WriteBoxedOperand>(2)
 		val tupleType = tuple.type()
-		val bounded = subscript.type().typeIntersection(IntegerRangeTypeDescriptor.int32())
+		val bounded = subscript.type().typeIntersection(IntegerRangeTypeDescriptor.int32)
 		val minInt = bounded.lowerBound().extractInt()
 		val maxInt = bounded.upperBound().extractInt()
 		registerSet.typeAtPut(

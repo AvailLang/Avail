@@ -62,5 +62,5 @@ object P_ModuleName : Primitive(1, CannotFail, CanFold, CanInline)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(MODULE.o()), stringType())
+		functionType(tuple(MODULE.o), stringType())
 }

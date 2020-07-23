@@ -65,5 +65,5 @@ object P_CharacterType : Primitive(1, CannotFail, CanFold, CanInline)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(CHARACTER.o()), inclusive(0, 31))
+		functionType(tuple(CHARACTER.o), inclusive(0, 31))
 }

@@ -77,7 +77,7 @@ object P_PushConstant : Primitive(
 		argumentTypes: List<A_Type>): A_Type
 	{
 		val value = rawFunction.literalAt(1)
-		return if (value.equalsNil()) TOP.o() else instanceTypeOrMetaOn(value)
+		return if (value.equalsNil()) TOP.o else instanceTypeOrMetaOn(value)
 	}
 
 	override fun tryToGenerateSpecialPrimitiveInvocation(

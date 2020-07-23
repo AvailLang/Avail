@@ -66,5 +66,6 @@ object P_VariableUseToken : Primitive(1, CannotFail, CanFold, CanInline)
 		functionType(
 			tuple(
 				VARIABLE_USE_PHRASE.mostGeneralType()),
-			TOKEN.o())
+			TOKEN.o
+		)
 }

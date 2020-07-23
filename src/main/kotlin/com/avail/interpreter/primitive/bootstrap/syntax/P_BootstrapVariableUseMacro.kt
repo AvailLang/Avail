@@ -85,7 +85,7 @@ object P_BootstrapVariableUseMacro
 		val literalToken = variableNameLiteral.token()
 		assert(literalToken.tokenType() == TokenType.LITERAL)
 		val actualToken = literalToken.literal()
-		assert(actualToken.isInstanceOf(TOKEN.o()))
+		assert(actualToken.isInstanceOf(TOKEN.o))
 		val variableNameString = actualToken.string()
 		if (actualToken.tokenType() != TokenType.KEYWORD)
 		{
@@ -162,6 +162,6 @@ object P_BootstrapVariableUseMacro
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(LITERAL_PHRASE.create(TOKEN.o())), // Variable name
+			tuple(LITERAL_PHRASE.create(TOKEN.o)), // Variable name
 			EXPRESSION_PHRASE.mostGeneralType())
 }

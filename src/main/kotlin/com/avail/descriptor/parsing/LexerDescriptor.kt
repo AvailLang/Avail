@@ -64,9 +64,10 @@ package com.avail.descriptor.parsing
  import com.avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
  import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
  import com.avail.descriptor.types.TypeDescriptor.Types
+ import com.avail.descriptor.types.TypeDescriptor.Types.LEXER
  import com.avail.descriptor.types.TypeTag
  import com.avail.utility.json.JSONWriter
- import java.util.*
+ import java.util.IdentityHashMap
 
 /**
  * A method maintains all definitions that have the same name.  At compile time
@@ -198,7 +199,7 @@ class LexerDescriptor private constructor(
 
 	override fun o_Hash(self: AvailObject): Int = self.slot(HASH)
 
-	override fun o_Kind(self: AvailObject): A_Type = Types.LEXER.o()
+	override fun o_Kind(self: AvailObject): A_Type = LEXER.o
 
 	// A method is always shared. Never make it immutable.
 	override fun o_MakeImmutable(self: AvailObject): AvailObject =
@@ -236,8 +237,8 @@ class LexerDescriptor private constructor(
 
 	companion object {
 		private val lexerFilterFunctionType: A_Type = functionType(
-			ObjectTupleDescriptor.tuple(Types.CHARACTER.o()),
-			booleanType()
+			ObjectTupleDescriptor.tuple(Types.CHARACTER.o),
+			booleanType
 		).makeShared()
 
 		@JvmStatic
@@ -249,8 +250,8 @@ class LexerDescriptor private constructor(
 				inclusive(1, (1L shl 32) - 1),
 				inclusive(1, (1L shl 28) - 1)),
 			setTypeForSizesContentType(
-				wholeNumbers(),
-				oneOrMoreOf(Types.TOKEN.o()))
+				wholeNumbers,
+				oneOrMoreOf(Types.TOKEN.o))
 		).makeShared()
 
 		@JvmStatic

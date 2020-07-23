@@ -46,6 +46,7 @@ import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.InstanceMetaDescriptor.ObjectSlots.*
 import com.avail.descriptor.types.TypeDescriptor.Types
+import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
@@ -137,7 +138,7 @@ class InstanceMetaDescriptor private constructor(mutability: Mutability)
 		another.isInstanceMeta ->
 			instanceMeta(
 				getInstance(self).typeIntersection(another.instance()))
-		another.isSupertypeOfPrimitiveTypeEnum(Types.ANY) -> self
+		another.isSupertypeOfPrimitiveTypeEnum(ANY) -> self
 		else -> bottom()
 	}
 
@@ -163,15 +164,14 @@ class InstanceMetaDescriptor private constructor(mutability: Mutability)
 		another.isInstanceMeta ->
 			instanceMeta(getInstance(self).typeUnion(another.instance()))
 		// Unless another is top, then the answer will be any.
-		else -> Types.ANY.o().typeUnion(another)
+		else -> ANY.o.typeUnion(another)
 	}
 
 	override fun o_Instance(self: AvailObject): AvailObject = getInstance(self)
 
 	override fun o_IsInstanceMeta(self: AvailObject): Boolean = true
 
-	override fun o_ComputeSuperkind(self: AvailObject): A_Type =
-		Types.ANY.o()
+	override fun o_ComputeSuperkind(self: AvailObject): A_Type = ANY.o
 
 	/**
 	 * {@inheritDoc}
@@ -242,7 +242,7 @@ class InstanceMetaDescriptor private constructor(mutability: Mutability)
 		{
 			// I'm a meta, a singular enumeration of a type, so I could only be
 			// an instance of a meta meta (already excluded), or of ANY or TOP.
-			aType.isSupertypeOfPrimitiveTypeEnum(Types.ANY)
+			aType.isSupertypeOfPrimitiveTypeEnum(ANY)
 		}
 
 	// A metatype can't have an integer as an instance.
@@ -356,13 +356,13 @@ class InstanceMetaDescriptor private constructor(mutability: Mutability)
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
-			at("kind") { Types.ANY.o().writeTo(writer) }
+			at("kind") { ANY.o.writeTo(writer) }
 			at("instances") { self.instances().writeTo(writer) }
 		}
 
 	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
-			at("kind") { Types.ANY.o().writeSummaryTo(writer) }
+			at("kind") { ANY.o.writeSummaryTo(writer) }
 			at("instances") { self.instances().writeSummaryTo(writer) }
 		}
 
@@ -404,7 +404,7 @@ class InstanceMetaDescriptor private constructor(mutability: Mutability)
 		/**
 		 * `⊤`'s type, cached statically for convenience.
 		 */
-		private val topMeta: A_Type = instanceMeta(Types.TOP.o()).makeShared()
+		private val topMeta: A_Type = instanceMeta(Types.TOP.o).makeShared()
 
 		/**
 		 * Answer ⊤'s type, the most general metatype.
@@ -418,7 +418,7 @@ class InstanceMetaDescriptor private constructor(mutability: Mutability)
 		/**
 		 * Any's type, cached statically for convenience.
 		 */
-		private val anyMeta: A_Type = instanceMeta(Types.ANY.o()).makeShared()
+		private val anyMeta: A_Type = instanceMeta(ANY.o).makeShared()
 
 		/**
 		 * Answer any's type, a metatype.

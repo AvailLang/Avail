@@ -154,8 +154,7 @@ object P_FileMetadata : Primitive(2, CanInline, HasSideEffect)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(stringType(),
-				  booleanType()),
+			tuple(stringType(), booleanType),
 			tupleTypeForSizesTypesDefaultType(
 				singleInt(6),
 				tuple(mostGeneralPojoType(), inclusive(1, 4)),

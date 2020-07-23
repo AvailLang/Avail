@@ -236,7 +236,7 @@ class IntegerRangeTypeDescriptor private constructor(
 				java.lang.Long::class.javaPrimitiveType
 			// If the integer range type is something else, then treat the
 			// type as opaque.
-			self.isSubtypeOf(integers()) -> BigInteger::class.java
+			self.isSubtypeOf(integers) -> BigInteger::class.java
 			else -> super.o_MarshalToJava(self, classHint)
 		}
 
@@ -618,139 +618,49 @@ class IntegerRangeTypeDescriptor private constructor(
 		 */
 		private val smallRanges: Array<Array<A_Type>>
 
-		/** The range [0..255].  */
-		private val bytes: A_Type = inclusive(0, 255).makeShared()
+		/** The range [0..255]. */
+		val bytes: A_Type = inclusive(0, 255).makeShared()
 
-		/**
-		 * Return the range [0..255].
-		 *
-		 * @return
-		 *   The unsigned byte range.
-		 */
-		@JvmStatic
-		fun bytes(): A_Type = bytes
-
-		/** The range of Unicode code points, [0..1114111].  */
-		private val characterCodePoints: A_Type =
+		/** The range of Unicode code points, [0..1114111]. */
+		val characterCodePoints: A_Type =
 			inclusive(0, CharacterDescriptor.maxCodePointInt.toLong())
 				.makeShared()
 
-		/**
-		 * Return the range of Unicode code points, [0..1114111].
-		 *
-		 * @return
-		 *   The range of Unicode code points.
-		 */
-		@JvmStatic
-		fun characterCodePoints(): A_Type = characterCodePoints
-
-		/** The range of integers including infinities, [-∞..∞].  */
-		private val extendedIntegers: A_Type =
+		/** The range of integers including infinities, [-∞..∞]. */
+		val extendedIntegers: A_Type =
 			inclusive(negativeInfinity(), positiveInfinity()).makeShared()
 
-		/**
-		 * Return the range of integers including infinities, [-∞..∞].
-		 *
-		 * @return
-		 *   The range of integers including infinities.
-		 */
-		@JvmStatic
-		fun extendedIntegers(): A_Type = extendedIntegers
-
-		/** The range of integers not including infinities, (∞..∞).  */
-		private val integers: A_Type =
+		/** The range of integers not including infinities, (∞..∞). */
+		val integers: A_Type =
 			integerRangeType(
 				negativeInfinity(), false, positiveInfinity(), false)
 					.makeShared()
 
-		/**
-		 * Return the range of integers not including infinities, (∞..∞).
-		 *
-		 * @return
-		 *   The range of finite integers.
-		 */
-		@JvmStatic
-		fun integers(): A_Type = integers
-
-		/** The range of natural numbers, [1..∞).  */
-		private val naturalNumbers: A_Type =
+		/** The range of natural numbers, [1..∞). */
+		val naturalNumbers: A_Type =
 			integerRangeType(one(), true, positiveInfinity(), false)
 				.makeShared()
 
-		/**
-		 * Return the range of natural numbers, [1..∞).
-		 *
-		 * @return
-		 *   The range of positive finite integers.
-		 */
-		@JvmStatic
-		fun naturalNumbers(): A_Type = naturalNumbers
+		/** The range [0..15]. */
+		val nybbles: A_Type = inclusive(0, 15).makeShared()
 
-		/** The range [0..15].  */
-		private val nybbles: A_Type = inclusive(0, 15).makeShared()
-
-		/**
-		 * Return the range [0..15].
-		 *
-		 * @return
-		 *   The non-negative integers that can be represented in 4 bits.
-		 */
-		@JvmStatic
-		fun nybbles(): A_Type =  nybbles
-
-		/** The range [0..65535].  */
-		private val unsignedShorts: A_Type =
+		/** The range [0..65535]. */
+		val unsignedShorts: A_Type =
 			inclusive(0, 65535).makeShared()
 
-		/**
-		 * Return the range [0..65535].
-		 *
-		 * @return
-		 *   The non-negative integers that can be represented in 16 bits.
-		 */
-		@JvmStatic
-		fun unsignedShorts(): A_Type = unsignedShorts
-
-		/** The range of whole numbers, [0..∞).  */
-		private val wholeNumbers: A_Type =
+		/** The range of whole numbers, [0..∞). */
+		val wholeNumbers: A_Type =
 			integerRangeType(zero(), true, positiveInfinity(), false)
 				.makeShared()
 
-		/**
-		 * Return the range of whole numbers, [0..∞).
-		 *
-		 * @return
-		 *   The non-negative finite integers.
-		 */
-		@JvmStatic
-		fun wholeNumbers(): A_Type = wholeNumbers
-
-		/** The range of a signed 32-bit `int`, [-2^31..2^31).  */
-		private val int32: A_Type =
+		/** The range of a signed 32-bit `int`, [-2^31..2^31). */
+		val int32: A_Type =
 			inclusive(Int.MIN_VALUE.toLong(), Int.MAX_VALUE.toLong())
 				.makeShared()
 
-		/**
-		 * Return the range of 32-bit signed ints.
-		 *
-		 * @return
-		 *   [-0x80000000..0x7FFFFFFF].
-		 */
-		@JvmStatic
-		fun int32(): A_Type = int32
-
-		/** The range of a signed 64-bit `long`, [-2^63..2^63).  */
-		private val int64: A_Type =
+		/** The range of a signed 64-bit `long`, [-2^63..2^63). */
+		val int64: A_Type =
 			inclusive(Long.MIN_VALUE, Long.MAX_VALUE).makeShared()
-
-		/**
-		 * Return the range of 64-bit signed longs.
-		 *
-		 * @return
-		 *   [-0x8000_0000_0000_0000..0x7FFF_FFFF_FFFF_FFFF].
-		 */
-		@JvmStatic
-		fun int64(): A_Type = int64
 
 		/**
 		 * The metatype for integers. This is an
@@ -758,17 +668,8 @@ class IntegerRangeTypeDescriptor private constructor(
 		 * is [extended&#32;integer][extendedIntegers], and therefore has
 		 * all integer range types as instances.
 		 */
-		private val extendedIntegersMeta: A_Type =
+		val extendedIntegersMeta: A_Type =
 			instanceMeta(extendedIntegers).makeShared()
-
-		/**
-		 * Return the metatype for all integer range types.
-		 *
-		 * @return
-		 *   The integer metatype.
-		 */
-		@JvmStatic
-		fun extendedIntegersMeta(): A_Type = extendedIntegersMeta
 
 		init
 		{
@@ -782,17 +683,8 @@ class IntegerRangeTypeDescriptor private constructor(
 			}
 		}
 
-		/** The range [0..1].  */
-		private val zeroOrOne = smallRanges[1][0]
-
-		/**
-		 * Return the range [0..1].
-		 *
-		 * @return
-		 *   The integer range that includes just zero and one.
-		 */
-		@JvmStatic
-		fun zeroOrOne(): A_Type = zeroOrOne
+		/** The range [0..1]. */
+		val zeroOrOne = smallRanges[1][0]
 	}
 
 	override fun mutable(): AbstractDescriptor =

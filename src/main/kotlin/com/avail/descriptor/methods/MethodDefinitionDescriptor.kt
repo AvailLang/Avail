@@ -43,7 +43,7 @@ import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.TypeDescriptor.Types
+import com.avail.descriptor.types.TypeDescriptor.Types.METHOD_DEFINITION
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
 
@@ -103,7 +103,7 @@ class MethodDefinitionDescriptor private constructor(
 		self.bodyBlock().hash() * 19 xor 0x70B2B1A9
 
 	override fun o_Kind(self: AvailObject): A_Type {
-		return Types.METHOD_DEFINITION.o()
+		return METHOD_DEFINITION.o
 	}
 
 	override fun o_IsMethodDefinition(self: AvailObject) = true

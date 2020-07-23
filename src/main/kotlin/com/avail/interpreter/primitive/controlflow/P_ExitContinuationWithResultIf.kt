@@ -100,9 +100,10 @@ object P_ExitContinuationWithResultIf : Primitive(
 		functionType(
 			tuple(
 				mostGeneralContinuationType(),
-				ANY.o(),
-				booleanType()),
-			TOP.o())
+				ANY.o,
+				booleanType),
+			TOP.o
+		)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

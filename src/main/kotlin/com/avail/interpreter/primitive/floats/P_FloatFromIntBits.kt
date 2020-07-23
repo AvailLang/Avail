@@ -64,5 +64,5 @@ object P_FloatFromIntBits : Primitive(1, CannotFail, CanFold, CanInline)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(int32()), FLOAT.o())
+		functionType(tuple(int32), FLOAT.o)
 }

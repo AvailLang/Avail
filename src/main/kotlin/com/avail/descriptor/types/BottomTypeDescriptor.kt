@@ -46,6 +46,7 @@ import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.RepeatedElementTupleDescriptor.Companion.createRepeatedElementTuple
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
+import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
@@ -248,7 +249,7 @@ class BottomTypeDescriptor private constructor()
 			return aType.enumerationIncludesInstance(self)
 		}
 		// Bottom is an instance of top and any.
-		return if (aType.isTop || aType.equals(TypeDescriptor.Types.ANY.o()))
+		return if (aType.isTop || aType.equals(ANY.o))
 		{
 			true
 		}
@@ -262,7 +263,7 @@ class BottomTypeDescriptor private constructor()
 		aType: A_Type): Boolean
 	{
 		assert(!aType.isBottom)
-		return (aType.isSupertypeOfPrimitiveTypeEnum(TypeDescriptor.Types.ANY)
+		return (aType.isSupertypeOfPrimitiveTypeEnum(ANY)
 				|| aType.isSubtypeOf(InstanceMetaDescriptor.topMeta()))
 	}
 
@@ -356,7 +357,7 @@ class BottomTypeDescriptor private constructor()
 	override fun o_ValueType(self: AvailObject): A_Type = self
 
 	override fun o_ReadType(self: AvailObject): A_Type =
-		TypeDescriptor.Types.TOP.o()
+		TypeDescriptor.Types.TOP.o
 
 	// Answer the tuple of types over the given range of indices.  Any
 	// indices out of range for this tuple type will be ⊥.

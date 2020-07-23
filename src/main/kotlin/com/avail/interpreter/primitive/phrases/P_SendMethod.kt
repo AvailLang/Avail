@@ -67,5 +67,6 @@ object P_SendMethod : Primitive(1, CannotFail, CanFold, CanInline)
 		functionType(
 			tuple(
 				SEND_PHRASE.mostGeneralType()),
-			METHOD.o())
+			METHOD.o
+		)
 }

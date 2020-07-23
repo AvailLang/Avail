@@ -48,7 +48,7 @@ import com.avail.descriptor.methods.ForwardDefinitionDescriptor
 import com.avail.descriptor.methods.MacroDefinitionDescriptor
 import com.avail.descriptor.methods.MethodDefinitionDescriptor
 import com.avail.descriptor.methods.MethodDescriptor
-import com.avail.descriptor.module.ModuleDescriptor
+import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.numbers.InfinityDescriptor
 import com.avail.descriptor.numbers.IntegerDescriptor
@@ -177,7 +177,11 @@ enum class AvailErrorCode constructor(val code: Int)
 	/** The requested operation is not currently supported on this platform. */
 	E_OPERATION_NOT_SUPPORTED(15),
 
-	//	E_??? (16),
+	/**
+	 * The [module][A_Module] is permanently closed and does not support
+	 * mutative operations any longer.
+	 */
+	E_MODULE_IS_CLOSED(16),
 
 	/**
 	 * The specified type is not a finite
@@ -493,8 +497,8 @@ enum class AvailErrorCode constructor(val code: Int)
 	E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE(73),
 
 	/**
-	 * A [module][ModuleDescriptor] already has an [atom][AtomDescriptor]
-	 * associated with a particular [name][StringDescriptor].
+	 * A [module][A_Module] already has an [atom][AtomDescriptor] associated
+	 * with a particular [name][StringDescriptor].
 	 */
 	E_ATOM_ALREADY_EXISTS(74),
 

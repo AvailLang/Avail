@@ -77,11 +77,11 @@ object P_KeyInVariableMap : Primitive(2, CanInline, HasSideEffect)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				ANY.o(),
+				ANY.o,
 				variableReadWriteType(
 					mostGeneralMapType(),
 					bottom())),
-			booleanType())
+			booleanType)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_CANNOT_READ_UNASSIGNED_VARIABLE))

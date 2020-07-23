@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 7/23/20 10:22 AM
+ * * Last Generated: 7/23/20 5:21 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -53,6 +53,7 @@ Names
 	"Attempt to join_",
 	"Breakpoint",
 	"Cast|cast_into_else_",
+	"Close module_",
 	"Crash:_",
 	"Error:_",
 	"Exit_if_",
@@ -177,6 +178,7 @@ Names
 	"_has terminated",
 	"_is a primitive",
 	"_is a valid message",
+	"_is open for side effects",
 	"_is special",
 	"_is unambiguous",
 	"_mod_",

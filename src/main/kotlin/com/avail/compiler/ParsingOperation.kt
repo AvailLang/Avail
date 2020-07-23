@@ -889,7 +889,7 @@ enum class ParsingOperation constructor(
 			) { token ->
 				val tokenType = token.tokenType()
 				if (tokenType != LITERAL
-					|| !token.literal().isInstanceOf(NUMBER.o()))
+					|| !token.literal().isInstanceOf(NUMBER.o))
 				{
 					if (consumedAnything)
 					{

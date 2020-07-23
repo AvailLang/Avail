@@ -66,5 +66,6 @@ object P_DeclarationToken : Primitive(1, CannotFail, CanFold, CanInline)
 		functionType(
 			tuple(
 				DECLARATION_PHRASE.mostGeneralType()),
-			TOKEN.o())
+			TOKEN.o
+		)
 }

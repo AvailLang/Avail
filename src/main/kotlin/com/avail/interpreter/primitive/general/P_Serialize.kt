@@ -78,7 +78,7 @@ object P_Serialize : Primitive(1, CanInline)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(ANY.o()), oneOrMoreOf(bytes()))
+		functionType(tuple(ANY.o), oneOrMoreOf(bytes))
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_SERIALIZATION_FAILED))

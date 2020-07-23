@@ -70,7 +70,7 @@ object P_GetClearing : Primitive(1, CanInline, HasSideEffect)
 			variable.clearValue()
 			interpreter.primitiveSuccess(valueObject)
 		} catch (e: VariableGetException) {
-			interpreter.primitiveFailure(e.numericCode())
+			interpreter.primitiveFailure(e.numericCode)
 		}
 }
 
@@ -78,7 +78,8 @@ object P_GetClearing : Primitive(1, CanInline, HasSideEffect)
 		functionType(
 			tuple(
 				mostGeneralVariableType()),
-			ANY.o())
+			ANY.o
+		)
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,
@@ -86,7 +87,7 @@ object P_GetClearing : Primitive(1, CanInline, HasSideEffect)
 	{
 		val varType = argumentTypes[0]
 		val readType = varType.readType()
-		return if (readType.isTop) ANY.o() else readType
+		return if (readType.isTop) ANY.o else readType
 	}
 
 	override fun privateFailureVariableType(): A_Type =

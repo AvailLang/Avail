@@ -117,7 +117,7 @@ internal class Counter(
 	{
 		// The declared type for the subexpression must be a subtype of whole
 		// number.
-		if (!argumentType.isSubtypeOf(wholeNumbers()))
+		if (!argumentType.isSubtypeOf(wholeNumbers))
 		{
 			throwSignatureException(E_INCORRECT_TYPE_FOR_COUNTING_GROUP)
 		}

@@ -63,5 +63,5 @@ object P_SuperCastExpression : Primitive(1, CanFold, CanInline, CannotFail)
 		functionType(
 			tuple(
 				SUPER_CAST_PHRASE.mostGeneralType()),
-			EXPRESSION_PHRASE.create(ANY.o()))
+			EXPRESSION_PHRASE.create(ANY.o))
 }

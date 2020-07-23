@@ -71,7 +71,7 @@ object P_GetObjectField : Primitive(2, CanFold, CanInline)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(mostGeneralObjectType(), ATOM.o()), ANY.o())
+		functionType(tuple(mostGeneralObjectType(), ATOM.o), ANY.o)
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type
@@ -92,7 +92,7 @@ object P_GetObjectField : Primitive(2, CanFold, CanInline)
 				if (!fieldTypeMap.hasKey(possibleField))
 				{
 					// Unknown field, so the type could be anything.
-					return ANY.o()
+					return ANY.o
 				}
 				union = union.typeUnion(fieldTypeMap.mapAt(possibleField))
 			}

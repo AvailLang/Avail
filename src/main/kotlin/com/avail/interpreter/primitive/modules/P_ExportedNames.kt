@@ -67,5 +67,5 @@ object P_ExportedNames : Primitive(0, CanInline)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			emptyTuple, setTypeForSizesContentType(wholeNumbers(), ATOM.o()))
+			emptyTuple, setTypeForSizesContentType(wholeNumbers, ATOM.o))
 }

@@ -86,12 +86,14 @@ object P_CastInto : Primitive(2, Invokes, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				ANY.o(),
+				ANY.o,
 				functionType(
 					tuple(
 						bottom()),
-					TOP.o())),
-			TOP.o())
+					TOP.o
+				)),
+			TOP.o
+		)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_INCORRECT_ARGUMENT_TYPE))

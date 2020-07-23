@@ -51,7 +51,7 @@ import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.ListPhraseTypeDescriptor
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeFromTupleOfTypes
-import com.avail.descriptor.types.TypeDescriptor.Types
+import com.avail.descriptor.types.TypeDescriptor.Types.MACRO_DEFINITION
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
 
@@ -144,7 +144,7 @@ class MacroDefinitionDescriptor private constructor(
 
 	override fun o_IsMacroDefinition(self: AvailObject) = true
 
-	override fun o_Kind(self: AvailObject): A_Type = Types.MACRO_DEFINITION.o()
+	override fun o_Kind(self: AvailObject): A_Type = MACRO_DEFINITION.o
 
 	override fun o_ParsingSignature(self: AvailObject): A_Type
 	{

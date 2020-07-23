@@ -108,8 +108,8 @@ object P_BootstrapConstantDeclarationMacro
 		functionType(
 			tuple(
 				/* Constant name token as a literal phrase */
-				LITERAL_PHRASE.create(TOKEN.o()),
+				LITERAL_PHRASE.create(TOKEN.o),
 				/* Initialization expression */
-				EXPRESSION_PHRASE.create(ANY.o())),
+				EXPRESSION_PHRASE.create(ANY.o)),
 			LOCAL_CONSTANT_PHRASE.mostGeneralType())
 }

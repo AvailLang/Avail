@@ -258,16 +258,18 @@ object P_TupleReplaceRangeAtNary : Primitive(5, CanInline, CanFold)
 			tuple(
 				mostGeneralTupleType(),
 				tupleTypeForSizesTypesDefaultType(
-					naturalNumbers(),
+					naturalNumbers,
 					emptyTuple,
-					ANY.o()),
-				naturalNumbers(),
-				wholeNumbers(),
+					ANY.o
+				),
+				naturalNumbers,
+				wholeNumbers,
 				tupleTypeForSizesTypesDefaultType(
 					integerRangeType(
 						fromInt(2), true, positiveInfinity(), false),
 					emptyTuple,
-					ANY.o())),
+					ANY.o
+				)),
 			mostGeneralTupleType())
 
 	override fun privateFailureVariableType(): A_Type =

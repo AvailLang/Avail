@@ -45,8 +45,9 @@ import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.en
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.instanceTypeOrMetaOn
 import com.avail.descriptor.types.BottomTypeDescriptor
 import com.avail.descriptor.types.InstanceMetaDescriptor
-import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.descriptor.types.TypeDescriptor.Companion.isProperSubtype
+import com.avail.descriptor.types.TypeDescriptor.Types.ANY
+import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_EQUALS_CONSTANT
 import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_CONSTANT
 import com.avail.interpreter.levelTwo.register.L2BoxedRegister
@@ -54,7 +55,10 @@ import com.avail.interpreter.levelTwo.register.L2FloatRegister
 import com.avail.interpreter.levelTwo.register.L2IntRegister
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind
 import com.avail.optimizer.L2Synonym
-import java.util.*
+import java.util.Collections
+import java.util.EnumSet
+import java.util.HashSet
+import java.util.Objects
 
 /**
  * This mechanism describes a restriction of a type without saying what it's to
@@ -268,7 +272,7 @@ class TypeRestriction private constructor(
 		}
 		val resultExcludedValues: MutableSet<A_BasicObject> = HashSet()
 		// No object has exact type ⊥ or ⊤.
-		resultExcludedValues.add(Types.TOP.o())
+		resultExcludedValues.add(TOP.o)
 		for (v in excludedValues)
 		{
 			resultExcludedValues.add(
@@ -755,7 +759,7 @@ class TypeRestriction private constructor(
 			return "=" + constant.typeTag().name.replace(
 				"_TAG", "")
 		}
-		return if (!type.equals(Types.TOP.o()))
+		return if (!type.equals(TOP.o))
 		{
 			":" + (type as AvailObject).typeTag().name
 				.replace("_TAG", "")
@@ -822,9 +826,9 @@ class TypeRestriction private constructor(
 		 * [AvailObject] with a [NilDescriptor] as its descriptor.
 		 */
 		private val nilRestriction = TypeRestriction(
-			Types.TOP.o(),
+			TOP.o,
 			NilDescriptor.nil,
-			setOf(Types.ANY.o()),
+			setOf(ANY.o),
 			emptySet(),
 			true,
 			true,
@@ -836,7 +840,7 @@ class TypeRestriction private constructor(
 		 * including [NilDescriptor.nil], and is not known to be immutable.
 		 */
 		private val topRestriction = TypeRestriction(
-			Types.TOP.o(),
+			TOP.o,
 			null,
 			emptySet(),
 			emptySet(),
@@ -850,7 +854,7 @@ class TypeRestriction private constructor(
 		 * including [NilDescriptor.nil], but is known to be immutable.
 		 */
 		private val topRestrictionImmutable = TypeRestriction(
-			Types.TOP.o(),
+			TOP.o,
 			null,
 			emptySet(),
 			emptySet(),
@@ -865,7 +869,7 @@ class TypeRestriction private constructor(
 		 */
 		@JvmField
 		val anyRestriction = TypeRestriction(
-			Types.ANY.o(),
+			ANY.o,
 			null,
 			emptySet(),
 			emptySet(),
@@ -879,7 +883,7 @@ class TypeRestriction private constructor(
 		 * excluding [NilDescriptor.nil], but it's known to be immutable.
 		 */
 		private val anyRestrictionImmutable = TypeRestriction(
-			Types.ANY.o(),
+			ANY.o,
 			null,
 			emptySet(),
 			emptySet(),
@@ -985,7 +989,7 @@ class TypeRestriction private constructor(
 				// Not a known constant.
 				givenExcludedTypes.isEmpty() && givenExcludedValues.isEmpty() ->
 				{
-					if (givenType.equals(Types.TOP.o()))
+					if (givenType.equals(TOP.o))
 					{
 						if (flags and RestrictionFlagEncoding.IMMUTABLE.mask != 0)
 						{
@@ -996,7 +1000,7 @@ class TypeRestriction private constructor(
 							topRestriction
 						}
 					}
-					else if (givenType.equals(Types.ANY.o()))
+					else if (givenType.equals(ANY.o))
 					{
 						if (flags and RestrictionFlagEncoding.IMMUTABLE.mask != 0)
 						{
@@ -1243,7 +1247,7 @@ class TypeRestriction private constructor(
 			excludedValues.removeIf { v: A_BasicObject ->
 				!v.isInstanceOf(type) || excludedTypes.any { v.isInstanceOf(it) }
 			}
-			return if (type.equals(Types.TOP.o())
+			return if (type.equals(TOP.o)
 					   && excludedTypes.isEmpty()
 					   && excludedValues.isEmpty())
 			{
@@ -1317,7 +1321,7 @@ class TypeRestriction private constructor(
 			return restriction(
 				if (constant.equalsNil())
 				{
-					Types.TOP.o()
+					TOP.o
 				}
 				else
 				{

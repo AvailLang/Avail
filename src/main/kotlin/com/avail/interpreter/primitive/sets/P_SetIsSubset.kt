@@ -65,5 +65,5 @@ object P_SetIsSubset : Primitive(2, CannotFail, CanFold, CanInline)
 			tuple(
 				mostGeneralSetType(),
 				mostGeneralSetType()),
-			booleanType())
+			booleanType)
 }

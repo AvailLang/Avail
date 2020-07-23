@@ -34,10 +34,10 @@ package com.avail.descriptor.representation
 import com.avail.annotations.ThreadSafe
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.TypeDescriptor.Types
+import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.descriptor.types.TypeTag
 import com.avail.serialization.SerializerOperation
-import java.util.*
+import java.util.IdentityHashMap
 
 /**
  * `NilDescriptor` implements the Avail [nil] value, the sole direct instance of
@@ -66,7 +66,7 @@ class NilDescriptor private constructor() : Descriptor(
 	}
 
 	@ThreadSafe
-	override fun o_Kind(self: AvailObject): A_Type = Types.TOP.o()
+	override fun o_Kind(self: AvailObject): A_Type = TOP.o
 
 	@ThreadSafe
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =

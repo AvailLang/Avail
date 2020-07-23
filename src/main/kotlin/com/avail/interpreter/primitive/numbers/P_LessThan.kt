@@ -71,7 +71,7 @@ object P_LessThan : Primitive(2, CannotFail, CanFold, CanInline)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(NUMBER.o(), NUMBER.o()), booleanType())
+		functionType(tuple(NUMBER.o, NUMBER.o), booleanType)
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type
@@ -87,11 +87,11 @@ object P_LessThan : Primitive(2, CannotFail, CanFold, CanInline)
 		assert(canBeTrue || canBeFalse)
 		return if (canBeTrue)
 		{
-			if (canBeFalse) { booleanType() } else { trueType() }
+			if (canBeFalse) { booleanType } else { trueType }
 		}
 		else
 		{
-			falseType()
+			falseType
 		}
 	}
 

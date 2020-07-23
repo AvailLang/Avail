@@ -158,9 +158,10 @@ object P_DelayedFork : Primitive(
 		functionType(
 			tuple(
 				inclusive(zero(), positiveInfinity()),
-				functionTypeReturning(TOP.o()),
+				functionTypeReturning(TOP.o),
 				mostGeneralTupleType(),
-				bytes()),
+				bytes
+			),
 			mostGeneralFiberType())
 
 	override fun privateFailureVariableType(): A_Type =

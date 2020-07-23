@@ -71,7 +71,7 @@ object P_FileGetAlignment : Primitive(1, CanInline, HasSideEffect)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(ATOM.o()), naturalNumbers())
+		functionType(tuple(ATOM.o), naturalNumbers)
 
 	override fun privateFailureVariableType(): A_Type =
 		instanceType(E_INVALID_HANDLE.numericCode())

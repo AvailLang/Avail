@@ -69,8 +69,8 @@ object P_MapReplacingKey : Primitive(3, CannotFail, CanFold, CanInline)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(mostGeneralMapType(), ANY.o(), ANY.o()),
-			mapTypeForSizesKeyTypeValueType(naturalNumbers(), ANY.o(), ANY.o()))
+			tuple(mostGeneralMapType(), ANY.o, ANY.o),
+			mapTypeForSizesKeyTypeValueType(naturalNumbers, ANY.o, ANY.o))
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type

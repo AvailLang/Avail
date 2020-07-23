@@ -74,7 +74,7 @@ object P_Division : Primitive(2, CanFold, CanInline)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(NUMBER.o(), NUMBER.o()), NUMBER.o())
+		functionType(tuple(NUMBER.o, NUMBER.o), NUMBER.o)
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type =

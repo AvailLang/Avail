@@ -177,7 +177,8 @@ object P_SimpleMacroDeclaration : Primitive(3, CanSuspend, Unknown)
 				stringType(),
 				zeroOrMoreOf(mostGeneralFunctionType()),
 				functionTypeReturning(PARSE_PHRASE.mostGeneralType())),
-			TOP.o())
+			TOP.o
+		)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(

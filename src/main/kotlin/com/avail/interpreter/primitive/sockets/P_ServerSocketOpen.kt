@@ -81,7 +81,8 @@ object P_ServerSocketOpen : Primitive(1, CanInline, HasSideEffect)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(nonemptyStringType()),
-			ATOM.o())
+			ATOM.o
+		)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_IO_ERROR))

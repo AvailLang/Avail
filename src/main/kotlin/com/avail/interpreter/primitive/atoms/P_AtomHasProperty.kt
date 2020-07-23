@@ -71,7 +71,7 @@ object P_AtomHasProperty : Primitive(
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(ATOM.o(), ATOM.o()), booleanType())
+		functionType(tuple(ATOM.o, ATOM.o), booleanType)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_SPECIAL_ATOM))

@@ -125,10 +125,11 @@ object P_ExecuteDetachedExternalProcess : Primitive(6, CanInline, HasSideEffect)
 				zeroOrOneOf(stringType()),
 				zeroOrOneOf(
 					mapTypeForSizesKeyTypeValueType(
-						wholeNumbers(),
+						wholeNumbers,
 						stringType(),
 						stringType()))),
-			TOP.o())
+			TOP.o
+		)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

@@ -74,7 +74,7 @@ object P_IsUnambiguousName : Primitive(
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(stringType()), booleanType())
+		functionType(tuple(stringType()), booleanType)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_LOADING_IS_OVER))

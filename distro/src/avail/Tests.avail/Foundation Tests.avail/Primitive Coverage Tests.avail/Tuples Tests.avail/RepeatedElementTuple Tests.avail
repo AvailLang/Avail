@@ -42,10 +42,10 @@ Test "RepeatedElementTuple ok" in primitive tuples test suite is
 	Require: 5 occurrences of "foo" = <"foo", "foo", "foo", "foo", "foo">;
 ];
 
-Test "RepeatedElementTuple fails with exceeds-vm-limit exception" in primitive tuples test suite is
+Test "RepeatedElementTuple fails with exceeds-VM-limit exception" in primitive tuples test suite is
 [
 	a : whole number := 555555555555555555555555555555555;
 	Require: |a occurrences of 9| = 555555555555555555555555555555555;
 ]
-must raise exceeds-vm-limit exception;
+must raise exceeds-VM-limit exception;
 

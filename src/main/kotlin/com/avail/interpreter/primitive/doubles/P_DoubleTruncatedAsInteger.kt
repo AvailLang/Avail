@@ -69,7 +69,7 @@ object P_DoubleTruncatedAsInteger : Primitive(1, CanFold, CanInline)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(DOUBLE.o()), extendedIntegers())
+		functionType(tuple(DOUBLE.o), extendedIntegers)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_CANNOT_CONVERT_NOT_A_NUMBER_TO_INTEGER))

@@ -3094,6 +3094,10 @@ class AvailObject private constructor(
 	@ReferencedInGeneratedCode
 	override fun registerDump() = dispatch { it::o_RegisterDump }
 
+	override fun isOpen() = dispatch { it::o_IsOpen }
+
+	override fun closeModule() = dispatch { it::o_CloseModule }
+
 	override fun component1() = tupleAt(1)
 
 	override fun component2() = tupleAt(2)

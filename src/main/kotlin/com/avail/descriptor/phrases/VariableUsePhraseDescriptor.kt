@@ -58,11 +58,11 @@ package com.avail.descriptor.phrases
  import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
  import com.avail.descriptor.types.A_Type
  import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
- import com.avail.descriptor.types.TypeDescriptor.Types
+ import com.avail.descriptor.types.TypeDescriptor.Types.TOKEN
  import com.avail.descriptor.types.TypeTag
  import com.avail.serialization.SerializerOperation
  import com.avail.utility.json.JSONWriter
- import java.util.*
+ import java.util.IdentityHashMap
 
 /**
  * My instances represent the use of some
@@ -240,7 +240,7 @@ class VariableUsePhraseDescriptor private constructor(
 			theToken: A_Token,
 			declaration: A_Phrase
 		): A_Phrase {
-			assert(theToken.isInstanceOfKind(Types.TOKEN.o()))
+			assert(theToken.isInstanceOfKind(TOKEN.o))
 			assert(declaration.isInstanceOfKind(
 				PhraseKind.DECLARATION_PHRASE.mostGeneralType()))
 			return mutable.createShared {

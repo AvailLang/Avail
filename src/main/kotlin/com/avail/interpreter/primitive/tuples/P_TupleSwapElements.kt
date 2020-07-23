@@ -92,8 +92,9 @@ object P_TupleSwapElements : Primitive(3, CanFold, CanInline)
 		functionType(
 			tuple(
 				mostGeneralTupleType(),
-				naturalNumbers(),
-				naturalNumbers()),
+				naturalNumbers,
+				naturalNumbers
+			),
 			mostGeneralTupleType())
 
 	override fun returnTypeGuaranteedByVM(

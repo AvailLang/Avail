@@ -67,5 +67,5 @@ object P_MapBindings : Primitive(1, CannotFail, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			ObjectTupleDescriptor.tuple(mostGeneralMapType()),
-			zeroOrMoreOf(tupleTypeForTypes(ANY.o(), ANY.o())))
+			zeroOrMoreOf(tupleTypeForTypes(ANY.o, ANY.o)))
 }

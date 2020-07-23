@@ -187,7 +187,7 @@ class MessageSplitterTest private constructor ()
 					List(
 						0,
 						-1,
-						Phrase(TypeDescriptor.Types.ANY.o()))))
+						Phrase(TypeDescriptor.Types.ANY.o))))
 			return Case(message, listPhraseType, tokens, instructions)
 		}
 
@@ -405,7 +405,7 @@ class MessageSplitterTest private constructor ()
 					List(
 						2,
 						2,
-						Phrase(NUMBER.o())
+						Phrase(NUMBER.o)
 					),
 					A(
 						"_",
@@ -417,11 +417,11 @@ class MessageSplitterTest private constructor ()
 						// Hoisted before the checks.
 						PARSE_PART.encoding(2),
 						CHECK_ARGUMENT.encoding(1),
-						typeCheckEncodingForPhrase(NUMBER.o()),
+						typeCheckEncodingForPhrase(NUMBER.o),
 						// See wrap/concatenate below
 						PARSE_ARGUMENT.encoding,
 						CHECK_ARGUMENT.encoding(2),
-						typeCheckEncodingForPhrase(NUMBER.o()),
+						typeCheckEncodingForPhrase(NUMBER.o),
 						WRAP_IN_LIST.encoding(2),
 						CONCATENATE.encoding
 					)
@@ -431,7 +431,7 @@ class MessageSplitterTest private constructor ()
 					List(
 						3,
 						3,
-						Phrase(NUMBER.o())
+						Phrase(NUMBER.o)
 					),
 					A(
 						"_",
@@ -445,17 +445,17 @@ class MessageSplitterTest private constructor ()
 						// Hoisted before arg 1 checks
 						PARSE_PART.encoding(2),
 						CHECK_ARGUMENT.encoding(1),
-						typeCheckEncodingForPhrase(NUMBER.o()),
+						typeCheckEncodingForPhrase(NUMBER.o),
 						// See wrap/concatenate below
 						PARSE_ARGUMENT.encoding,
 						// Hoisted before arg 2 checks
 						PARSE_PART.encoding(4),
 						CHECK_ARGUMENT.encoding(2),
-						typeCheckEncodingForPhrase(NUMBER.o()),
+						typeCheckEncodingForPhrase(NUMBER.o),
 						// See wrap/concatenate below
 						PARSE_ARGUMENT.encoding,
 						CHECK_ARGUMENT.encoding(3),
-						typeCheckEncodingForPhrase(NUMBER.o()),
+						typeCheckEncodingForPhrase(NUMBER.o),
 						WRAP_IN_LIST.encoding(3),
 						CONCATENATE.encoding
 					)
@@ -465,7 +465,7 @@ class MessageSplitterTest private constructor ()
 					List(
 						1,
 						1,
-						Phrase(Phrase(TOP.o()))
+						Phrase(Phrase(TOP.o))
 					),
 					A("_", ";"),
 					A(
@@ -473,7 +473,7 @@ class MessageSplitterTest private constructor ()
 						// Hoisted before checks
 						PARSE_PART.encoding(2),
 						CHECK_ARGUMENT.encoding(1),
-						typeCheckEncodingForPhrase(Phrase(TOP.o())),
+						typeCheckEncodingForPhrase(Phrase(TOP.o)),
 						APPEND_ARGUMENT.encoding
 					)
 				),
@@ -505,14 +505,14 @@ class MessageSplitterTest private constructor ()
 						1,
 						Phrase(
 							LiteralToken(
-								wholeNumbers()
+								wholeNumbers
 							)
 						)
 					),
 					A("…", "#"),
 					A(
 						PARSE_RAW_NUMERIC_LITERAL_TOKEN.encoding,
-						typeCheckEncodingForPhrase(LiteralToken(wholeNumbers())),
+						typeCheckEncodingForPhrase(LiteralToken(wholeNumbers)),
 						APPEND_ARGUMENT.encoding
 					)
 				),
@@ -648,7 +648,7 @@ class MessageSplitterTest private constructor ()
 					List(
 						1,
 						1,
-						Phrase(NUMBER.o())
+						Phrase(NUMBER.o)
 					),
 					A(
 						"`",
@@ -668,7 +668,7 @@ class MessageSplitterTest private constructor ()
 						PARSE_PART.encoding(7), // Hoisted before checks
 						PARSE_PART.encoding(9), // Also hoisted before checks
 						CHECK_ARGUMENT.encoding(1),
-						typeCheckEncodingForPhrase(NUMBER.o()),
+						typeCheckEncodingForPhrase(NUMBER.o),
 						APPEND_ARGUMENT.encoding
 					)
 				),  /* Repeated groups. */
@@ -678,7 +678,7 @@ class MessageSplitterTest private constructor ()
 						1,
 						1,
 						Phrase(
-							zeroOrMoreOf(NUMBER.o())
+							zeroOrMoreOf(NUMBER.o)
 						)
 					),
 					A(
@@ -693,14 +693,14 @@ class MessageSplitterTest private constructor ()
 						PARSE_ARGUMENT.encoding,
 						PARSE_PART.encoding(3), // Hoisted before checks
 						CHECK_ARGUMENT.encoding(1),
-						typeCheckEncodingForPhrase(NUMBER.o()),
+						typeCheckEncodingForPhrase(NUMBER.o),
 						APPEND_ARGUMENT.encoding,
 						BRANCH_FORWARD.encoding(16), // Maybe that's all
 						// 9: Top of loop.
 						PARSE_ARGUMENT.encoding,
 						PARSE_PART.encoding(3), // Hoisted before checks
 						CHECK_ARGUMENT.encoding(1),
-						typeCheckEncodingForPhrase(NUMBER.o()),
+						typeCheckEncodingForPhrase(NUMBER.o),
 						APPEND_ARGUMENT.encoding,
 						BRANCH_FORWARD.encoding(16), // Maybe that's all
 						JUMP_BACKWARD.encoding(9), // To top of loop
@@ -789,7 +789,7 @@ class MessageSplitterTest private constructor ()
 						List(
 							0,
 							-1,
-							Phrase(NUMBER.o())
+							Phrase(NUMBER.o)
 						)
 					),
 					A(
@@ -811,7 +811,7 @@ class MessageSplitterTest private constructor ()
 						PARSE_ARGUMENT.encoding,
 						PARSE_PART.encoding(4), // Hoisted before checks
 						CHECK_ARGUMENT.encoding(1),
-						typeCheckEncodingForPhrase(NUMBER.o()),
+						typeCheckEncodingForPhrase(NUMBER.o),
 						APPEND_ARGUMENT.encoding, // save it and parse more.
 						BRANCH_FORWARD.encoding(18), // done after one?
 						//10: Start of loop after unrolled iteration.
@@ -819,7 +819,7 @@ class MessageSplitterTest private constructor ()
 						PARSE_ARGUMENT.encoding,
 						PARSE_PART.encoding(4), // Hoisted before checks
 						CHECK_ARGUMENT.encoding(1),
-						typeCheckEncodingForPhrase(NUMBER.o()),
+						typeCheckEncodingForPhrase(NUMBER.o),
 						APPEND_ARGUMENT.encoding, // save it and parse more.
 						BRANCH_FORWARD.encoding(18), // exit loop?
 						JUMP_BACKWARD.encoding(10),
@@ -838,7 +838,7 @@ class MessageSplitterTest private constructor ()
 							List(
 								2,
 								2,
-								Phrase(NUMBER.o())
+								Phrase(NUMBER.o)
 							)
 						)
 					),
@@ -858,10 +858,10 @@ class MessageSplitterTest private constructor ()
 						PARSE_ARGUMENT.encoding,
 						PARSE_PART.encoding(3), // Hoisted before checks
 						CHECK_ARGUMENT.encoding(1),
-						typeCheckEncodingForPhrase(NUMBER.o()),
+						typeCheckEncodingForPhrase(NUMBER.o),
 						PARSE_ARGUMENT.encoding,
 						CHECK_ARGUMENT.encoding(2),
-						typeCheckEncodingForPhrase(NUMBER.o()),
+						typeCheckEncodingForPhrase(NUMBER.o),
 						WRAP_IN_LIST.encoding(2),
 						BRANCH_FORWARD.encoding(24), // done after one?
 						APPEND_ARGUMENT.encoding, // save it and parse more.
@@ -869,10 +869,10 @@ class MessageSplitterTest private constructor ()
 						PARSE_ARGUMENT.encoding,
 						PARSE_PART.encoding(3), // Hoisted before checks
 						CHECK_ARGUMENT.encoding(1),
-						typeCheckEncodingForPhrase(NUMBER.o()),
+						typeCheckEncodingForPhrase(NUMBER.o),
 						PARSE_ARGUMENT.encoding,
 						CHECK_ARGUMENT.encoding(2),
-						typeCheckEncodingForPhrase(NUMBER.o()),
+						typeCheckEncodingForPhrase(NUMBER.o),
 						WRAP_IN_LIST.encoding(2),
 						BRANCH_FORWARD.encoding(24), // exit loop?
 						APPEND_ARGUMENT.encoding, // save it and parse more.
@@ -930,7 +930,7 @@ class MessageSplitterTest private constructor ()
 						List(
 							0,
 							-1,
-							Phrase(NUMBER.o())
+							Phrase(NUMBER.o)
 						)
 					),
 					A(
@@ -946,7 +946,7 @@ class MessageSplitterTest private constructor ()
 						//3: Unrolled first occurrence
 						PARSE_ARGUMENT.encoding,
 						CHECK_ARGUMENT.encoding(1),
-						typeCheckEncodingForPhrase(NUMBER.o()),
+						typeCheckEncodingForPhrase(NUMBER.o),
 						APPEND_ARGUMENT.encoding,
 						BRANCH_FORWARD.encoding(16), // Try single occurrence
 						//8: after double dagger.
@@ -954,7 +954,7 @@ class MessageSplitterTest private constructor ()
 						//9: second and later occurrences.
 						PARSE_ARGUMENT.encoding,
 						CHECK_ARGUMENT.encoding(1),
-						typeCheckEncodingForPhrase(NUMBER.o()),
+						typeCheckEncodingForPhrase(NUMBER.o),
 						APPEND_ARGUMENT.encoding,
 						BRANCH_FORWARD.encoding(16), // Try solution
 						//14: after double dagger
@@ -976,7 +976,7 @@ class MessageSplitterTest private constructor ()
 							List(
 								2,
 								2,
-								Phrase(NUMBER.o()),
+								Phrase(NUMBER.o),
 								Phrase(
 									stringType()
 								)
@@ -1005,7 +1005,7 @@ class MessageSplitterTest private constructor ()
 						PARSE_ARGUMENT.encoding,
 						PARSE_PART.encoding(6),  // "=" read-ahead
 						CHECK_ARGUMENT.encoding(2),
-						typeCheckEncodingForPhrase(NUMBER.o()),
+						typeCheckEncodingForPhrase(NUMBER.o),
 						PARSE_ARGUMENT.encoding,
 						CHECK_ARGUMENT.encoding(3),
 						typeCheckEncodingForPhrase(stringType()),
@@ -1017,7 +1017,7 @@ class MessageSplitterTest private constructor ()
 						PARSE_ARGUMENT.encoding,
 						PARSE_PART.encoding(6),  // "=" read-ahead
 						CHECK_ARGUMENT.encoding(2),
-						typeCheckEncodingForPhrase(NUMBER.o()),
+						typeCheckEncodingForPhrase(NUMBER.o),
 						PARSE_ARGUMENT.encoding,
 						CHECK_ARGUMENT.encoding(3),
 						typeCheckEncodingForPhrase(stringType()),
@@ -1038,7 +1038,7 @@ class MessageSplitterTest private constructor ()
 						1,
 						1,
 						Phrase(
-							naturalNumbers()
+							naturalNumbers
 						)
 					),
 					A(
@@ -1070,7 +1070,7 @@ class MessageSplitterTest private constructor ()
 						1,
 						1,
 						Phrase(
-							naturalNumbers()
+							naturalNumbers
 						)
 					),
 					A(
@@ -1148,7 +1148,7 @@ class MessageSplitterTest private constructor ()
 						1,
 						1,
 						Phrase(
-							booleanType()
+							booleanType
 						)
 					),
 					A(
@@ -1174,7 +1174,7 @@ class MessageSplitterTest private constructor ()
 						1,
 						1,
 						Phrase(
-							booleanType()
+							booleanType
 						)
 					),
 					A(
@@ -1247,7 +1247,7 @@ class MessageSplitterTest private constructor ()
 					List(
 						1,
 						1,
-						Phrase(NUMBER.o())
+						Phrase(NUMBER.o)
 					),
 					A(
 						"the",
@@ -1258,7 +1258,7 @@ class MessageSplitterTest private constructor ()
 						PARSE_PART_CASE_INSENSITIVELY.encoding(1),
 						PARSE_ARGUMENT.encoding,
 						CHECK_ARGUMENT.encoding(1),
-						typeCheckEncodingForPhrase(NUMBER.o()),
+						typeCheckEncodingForPhrase(NUMBER.o),
 						APPEND_ARGUMENT.encoding
 					)
 				),
@@ -1334,7 +1334,7 @@ class MessageSplitterTest private constructor ()
 						1,
 						1,
 						Phrase(
-							wholeNumbers()
+							wholeNumbers
 						)
 					),
 					A(
@@ -1372,7 +1372,7 @@ class MessageSplitterTest private constructor ()
 						1,
 						1,
 						Phrase(
-							booleanType()
+							booleanType
 						)
 					),
 					A(
@@ -1544,7 +1544,7 @@ class MessageSplitterTest private constructor ()
 		splitter.checkImplementationSignature(
 			functionType(
 				typeTuple,
-				TOP.o()
+				TOP.o
 			)
 		)
 		val instructionsTuple = splitter.instructionsTupleFor(splitCase.listPhraseType)

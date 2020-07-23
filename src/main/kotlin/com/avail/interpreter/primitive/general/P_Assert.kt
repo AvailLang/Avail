@@ -101,7 +101,7 @@ object P_Assert : Primitive(2, Unknown, CanSuspend, CannotFail)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(booleanType(), stringType()), TOP.o())
+		functionType(tuple(booleanType, stringType()), TOP.o)
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type
@@ -110,7 +110,7 @@ object P_Assert : Primitive(2, Unknown, CanSuspend, CannotFail)
 		return if (trueObject.isInstanceOf(booleanType))
 		{
 			// The assertion might pass, so the type is top.
-			TOP.o()
+			TOP.o
 		}
 		else
 		{

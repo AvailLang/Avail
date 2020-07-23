@@ -60,9 +60,9 @@ Test "FileRead fails with not-open-for-read exception" in primitive files test s
 ]
 must raise not-open-for-read exception;
 
-Test "FileRead fails with exceeds-vm-limit exception" in primitive files test suite if supported is
+Test "FileRead fails with exceeds-VM-limit exception" in primitive files test suite if supported is
 [
 	Skip test
 ]
-must raise exceeds-vm-limit exception;
+must raise exceeds-VM-limit exception;
 

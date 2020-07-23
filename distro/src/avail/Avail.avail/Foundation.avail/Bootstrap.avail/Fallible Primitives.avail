@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 7/23/20 10:22 AM
+ * * Last Generated: 7/23/20 5:21 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -52,6 +52,7 @@ Uses
 		"After the current module is unloaded,⁇do_",
 		"Alias_to_",
 		"Attempt to join_",
+		"Close module_",
 		"Error:_",
 		"Exit_with_if_",
 		"Export_as a new name",
@@ -2536,6 +2537,27 @@ Primitive "After the current module is unloaded,⁇do_" is
 ] : ⊤;
 
 /**
+ * Close the specified anonymous {@type "module"}, thereby preventing the
+ * performance of any new side effects upon it.
+ *
+ * @category "Primitives" "Modules"
+ * @method "Close module_"
+ * @param "aModule" "module"
+ *        The module to close.
+ * @returns "⊤"
+ * @raises "module-is-closed exception"
+ *    If {@param "aModule"} is already closed.
+ */
+Primitive "Close module_" is
+[
+	aModule : module
+|
+	Primitive CloseModule (failureCode : {
+		module-is-closed code}ᵀ);
+	Private invoke _fail_primitive with failureCode
+] : ⊤;
+
+/**
  * Answer the module currently undergoing compilation.
  *
  * @category "Primitives" "Modules" "Queries"
@@ -3525,7 +3547,7 @@ Primitive "_to_by_" is
  *        The repeated value.
  * @returns "tuple"
  *    A tuple containing {@param "count"} occurrences of {@param "value"}.
- * @raises "exceeds-vm-limit exception"
+ * @raises "exceeds-VM-limit exception"
  */
 Primitive "_occurrences⁇of_" is
 [
@@ -3533,7 +3555,7 @@ Primitive "_occurrences⁇of_" is
 	value : any
 |
 	Primitive RepeatedElementTuple (failureCode : {
-		exceeds-vm-limit code}ᵀ);
+		exceeds-VM-limit code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : tuple;
 

@@ -91,8 +91,9 @@ object P_DeclareAllAtomsExportedFromAnotherModule : Primitive(
 		functionType(
 			tuple(
 				setTypeForSizesContentType(
-					naturalNumbers(),
+					naturalNumbers,
 					stringType()),
-				booleanType()),
-			TOP.o())
+				booleanType),
+			TOP.o
+		)
 }

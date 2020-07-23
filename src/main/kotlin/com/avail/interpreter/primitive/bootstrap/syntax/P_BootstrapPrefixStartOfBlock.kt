@@ -89,5 +89,5 @@ object P_BootstrapPrefixStartOfBlock : Primitive(0, CanInline, Bootstrap)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(emptyTuple, TOP.o())
+		functionType(emptyTuple, TOP.o)
 }

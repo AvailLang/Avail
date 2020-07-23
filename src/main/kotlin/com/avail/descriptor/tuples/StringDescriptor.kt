@@ -40,7 +40,7 @@ import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.TypeDescriptor
+import com.avail.descriptor.types.TypeDescriptor.Types.CHARACTER
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
 
@@ -95,7 +95,7 @@ abstract class StringDescriptor protected constructor(
 		startIndex: Int,
 		endIndex: Int,
 		type: A_Type): Boolean =
-			(TypeDescriptor.Types.CHARACTER.o().isSubtypeOf(type)
+			(CHARACTER.o.isSubtypeOf(type)
 				|| super.o_TupleElementsInRangeAreInstancesOf(
 					self, startIndex, endIndex, type))
 

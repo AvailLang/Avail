@@ -367,7 +367,7 @@ Semantic restriction "a_for_\
 /**
  * Is the {@type "file"} underlying the specified {@type "file iterator"} open?
  *
- * @method "_is open"
+ * @method "_is open for side effects"
  * @param "anIterator" "file iterator"
  * @returns "boolean"
  *          {@method "true"} if {@param "anIterator"} is open, {@method "false"}

@@ -66,8 +66,7 @@ object P_SetResultDisagreedWithExpectedTypeFunction : Primitive(
 	{
 		interpreter.checkArgumentCount(1)
 		val function = interpreter.argument(0)
-		RESULT_DISAGREED_WITH_EXPECTED_TYPE.set(
-			interpreter.runtime(), function)
+		RESULT_DISAGREED_WITH_EXPECTED_TYPE[interpreter.runtime()] = function
 		interpreter.availLoaderOrNull()?.statementCanBeSummarized(false)
 		return interpreter.primitiveSuccess(nil)
 	}
@@ -79,7 +78,8 @@ object P_SetResultDisagreedWithExpectedTypeFunction : Primitive(
 					ObjectTupleDescriptor.tuple(
 						mostGeneralFunctionType(),
 						topMeta(),
-						variableTypeFor(ANY.o())),
+						variableTypeFor(ANY.o)),
 					bottom())),
-			TOP.o())
+			TOP.o
+		)
 }

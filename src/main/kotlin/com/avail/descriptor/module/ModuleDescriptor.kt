@@ -31,88 +31,89 @@
  */
 package com.avail.descriptor.module
 
- import com.avail.compiler.AvailCompiler
- import com.avail.descriptor.atoms.A_Atom
- import com.avail.descriptor.atoms.A_Atom.Companion.atomName
- import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrNil
- import com.avail.descriptor.atoms.AtomDescriptor
- import com.avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
- import com.avail.descriptor.bundles.A_Bundle
- import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
- import com.avail.descriptor.bundles.A_Bundle.Companion.definitionParsingPlans
- import com.avail.descriptor.bundles.A_BundleTree
- import com.avail.descriptor.bundles.A_BundleTree.Companion.addPlanInProgress
- import com.avail.descriptor.bundles.MessageBundleDescriptor
- import com.avail.descriptor.bundles.MessageBundleTreeDescriptor
- import com.avail.descriptor.bundles.MessageBundleTreeDescriptor.Companion.newBundleTree
- import com.avail.descriptor.fiber.FiberDescriptor
- import com.avail.descriptor.functions.A_Function
- import com.avail.descriptor.functions.FunctionDescriptor
- import com.avail.descriptor.maps.A_Map
- import com.avail.descriptor.maps.MapDescriptor
- import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
- import com.avail.descriptor.methods.A_Definition
- import com.avail.descriptor.methods.A_GrammaticalRestriction
- import com.avail.descriptor.methods.A_Method
- import com.avail.descriptor.methods.A_SemanticRestriction
- import com.avail.descriptor.methods.DefinitionDescriptor
- import com.avail.descriptor.methods.ForwardDefinitionDescriptor
- import com.avail.descriptor.methods.GrammaticalRestrictionDescriptor
- import com.avail.descriptor.methods.MethodDescriptor
- import com.avail.descriptor.methods.SemanticRestrictionDescriptor
- import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.ALL_ANCESTORS
- import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.CONSTANT_BINDINGS
- import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.ENTRY_POINTS
- import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.EXPORTED_NAMES
- import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.GRAMMATICAL_RESTRICTIONS
- import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.IMPORTED_NAMES
- import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.LEXERS
- import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.METHOD_DEFINITIONS_SET
- import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.NAME
- import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.NEW_NAMES
- import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.PRIVATE_NAMES
- import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.SEALS
- import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.SEMANTIC_RESTRICTIONS
- import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.UNLOAD_FUNCTIONS
- import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.VARIABLE_BINDINGS
- import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.VERSIONS
- import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.VISIBLE_NAMES
- import com.avail.descriptor.parsing.A_Lexer
- import com.avail.descriptor.parsing.A_Lexer.Companion.lexerMethod
- import com.avail.descriptor.parsing.ParsingPlanInProgressDescriptor.Companion.newPlanInProgress
- import com.avail.descriptor.representation.A_BasicObject
- import com.avail.descriptor.representation.AbstractSlotsEnum
- import com.avail.descriptor.representation.AvailObject
- import com.avail.descriptor.representation.Descriptor
- import com.avail.descriptor.representation.Mutability
- import com.avail.descriptor.representation.NilDescriptor
- import com.avail.descriptor.representation.NilDescriptor.Companion.nil
- import com.avail.descriptor.representation.ObjectSlotsEnum
- import com.avail.descriptor.sets.A_Set
- import com.avail.descriptor.sets.SetDescriptor
- import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
- import com.avail.descriptor.sets.SetDescriptor.Companion.set
- import com.avail.descriptor.tuples.A_String
- import com.avail.descriptor.tuples.A_Tuple
- import com.avail.descriptor.tuples.StringDescriptor
- import com.avail.descriptor.tuples.TupleDescriptor
- import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
- import com.avail.descriptor.types.A_Type
- import com.avail.descriptor.types.TypeDescriptor.Types
- import com.avail.descriptor.types.TypeTag
- import com.avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
- import com.avail.descriptor.variables.A_Variable
- import com.avail.descriptor.variables.VariableDescriptor
- import com.avail.exceptions.AvailRuntimeException
- import com.avail.exceptions.MalformedMessageException
- import com.avail.interpreter.execution.AvailLoader
- import com.avail.interpreter.execution.AvailLoader.LexicalScanner
- import com.avail.interpreter.primitive.modules.P_CloseModule
- import com.avail.interpreter.primitive.modules.P_CreateAnonymousModule
- import com.avail.serialization.SerializerOperation
- import com.avail.utility.json.JSONWriter
- import java.util.HashSet
- import java.util.IdentityHashMap
+import com.avail.compiler.AvailCompiler
+import com.avail.descriptor.atoms.A_Atom
+import com.avail.descriptor.atoms.A_Atom.Companion.atomName
+import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrNil
+import com.avail.descriptor.atoms.A_Atom.Companion.extractBoolean
+import com.avail.descriptor.atoms.AtomDescriptor
+import com.avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
+import com.avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
+import com.avail.descriptor.bundles.A_Bundle
+import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
+import com.avail.descriptor.bundles.A_Bundle.Companion.definitionParsingPlans
+import com.avail.descriptor.bundles.A_BundleTree
+import com.avail.descriptor.bundles.A_BundleTree.Companion.addPlanInProgress
+import com.avail.descriptor.bundles.MessageBundleDescriptor
+import com.avail.descriptor.bundles.MessageBundleTreeDescriptor
+import com.avail.descriptor.bundles.MessageBundleTreeDescriptor.Companion.newBundleTree
+import com.avail.descriptor.fiber.FiberDescriptor
+import com.avail.descriptor.functions.A_Function
+import com.avail.descriptor.functions.FunctionDescriptor
+import com.avail.descriptor.maps.A_Map
+import com.avail.descriptor.maps.MapDescriptor
+import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
+import com.avail.descriptor.methods.A_Definition
+import com.avail.descriptor.methods.A_GrammaticalRestriction
+import com.avail.descriptor.methods.A_Method
+import com.avail.descriptor.methods.A_SemanticRestriction
+import com.avail.descriptor.methods.ForwardDefinitionDescriptor
+import com.avail.descriptor.methods.MethodDescriptor
+import com.avail.descriptor.methods.SemanticRestrictionDescriptor
+import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.ALL_ANCESTORS
+import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.CONSTANT_BINDINGS
+import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.ENTRY_POINTS
+import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.EXPORTED_NAMES
+import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.GRAMMATICAL_RESTRICTIONS
+import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.IMPORTED_NAMES
+import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.IS_OPEN
+import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.LEXERS
+import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.METHOD_DEFINITIONS_SET
+import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.NAME
+import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.NEW_NAMES
+import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.PRIVATE_NAMES
+import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.SEALS
+import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.SEMANTIC_RESTRICTIONS
+import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.UNLOAD_FUNCTIONS
+import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.VARIABLE_BINDINGS
+import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.VERSIONS
+import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.VISIBLE_NAMES
+import com.avail.descriptor.parsing.A_Lexer
+import com.avail.descriptor.parsing.A_Lexer.Companion.lexerMethod
+import com.avail.descriptor.parsing.ParsingPlanInProgressDescriptor.Companion.newPlanInProgress
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AbstractSlotsEnum
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.Descriptor
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.NilDescriptor
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.descriptor.representation.ObjectSlotsEnum
+import com.avail.descriptor.sets.A_Set
+import com.avail.descriptor.sets.SetDescriptor
+import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
+import com.avail.descriptor.tuples.A_String
+import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.StringDescriptor
+import com.avail.descriptor.tuples.TupleDescriptor
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.TypeDescriptor.Types
+import com.avail.descriptor.types.TypeTag
+import com.avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
+import com.avail.descriptor.variables.A_Variable
+import com.avail.exceptions.AvailErrorCode.E_MODULE_IS_CLOSED
+import com.avail.exceptions.AvailRuntimeException
+import com.avail.exceptions.MalformedMessageException
+import com.avail.interpreter.execution.AvailLoader
+import com.avail.interpreter.execution.AvailLoader.LexicalScanner
+import com.avail.interpreter.primitive.modules.P_CloseModule
+import com.avail.interpreter.primitive.modules.P_CreateAnonymousModule
+import com.avail.serialization.SerializerOperation
+import com.avail.utility.json.JSONWriter
+import java.util.HashSet
+import java.util.IdentityHashMap
 
 /**
  * A [module][ModuleDescriptor] is the mechanism by which Avail code is
@@ -145,89 +146,92 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 	enum class ObjectSlots : ObjectSlotsEnum
 	{
 		/**
-		 * A [string][StringDescriptor] that names the
-		 * [module][ModuleDescriptor].
+		 * A [string][A_String] that names the [module][A_Module].
 		 */
 		NAME,
 
 		/**
-		 * The [set][SetDescriptor] of all ancestor modules of this module.  A
-		 * module's ancestor set includes the module itself.  While this may
-		 * seem like mutual recursion: (1) modules are allowed to mutate this
-		 * field after construction, (2) this field is not exposed via
-		 * primitives.
+		 * Whether the module is capable of receiving new content. Modules are
+		 * created in an open state. Static modules are closed by the
+		 * [compiler][AvailCompiler] following a successful parse of the entire
+		 * module body. [Anonymous modules][P_CreateAnonymousModule] must be
+		 * [closed explicitly][P_CloseModule].
+		 */
+		IS_OPEN,
+
+		/**
+		 * The [set][A_Set] of all ancestor modules of this module. A module's
+		 * ancestor set includes the module itself. While this may seem like
+		 * mutual recursion: (1) modules are allowed to mutate this field after
+		 * construction, (2) this field is not exposed via primitives.
 		 */
 		ALL_ANCESTORS,
 
 		/**
-		 * The [set][SetDescriptor] of [versions][StringDescriptor] that this
-		 * module alleges to support.
+		 * The [set][A_Set] of [versions][A_String] that this module alleges to
+		 * support.
 		 */
 		VERSIONS,
 
 		/**
-		 * A [map][MapDescriptor] from [strings][StringDescriptor] to
-		 * [atoms][AtomDescriptor] which act as true names. The true names are
-		 * identity-based identifiers that prevent or at least clarify name
-		 * conflicts. This field holds only those names that are newly added by
-		 * this module.
+		 * A [map][A_Map] from [strings][A_String] to [atoms][A_Atom] which act
+		 * as true names. The true names are identity-based identifiers that
+		 * prevent or at least clarify name conflicts. This field holds only
+		 * those names that are newly added by this module.
 		 */
 		NEW_NAMES,
 
 		/**
-		 * A [map][MapDescriptor] from [strings][StringDescriptor] to
-		 * [atoms][AtomDescriptor] which act as true names. The true names are
-		 * identity-based identifiers that prevent or at least clarify name
-		 * conflicts. This field holds only those names that have been imported
-		 * from other modules.
+		 * A [map][A_Map] from [strings][A_String] to [atoms][A_Atom] which act
+		 * as true names. The true names are identity-based identifiers that
+		 * prevent or at least clarify name conflicts. This field holds only
+		 * those names that have been imported from other modules.
 		 */
 		IMPORTED_NAMES,
 
 		/**
-		 * A [map][MapDescriptor] from [strings][StringDescriptor] to
-		 * [atoms][AtomDescriptor] which act as true names. The true names are
-		 * identity-based identifiers that prevent or at least clarify name
-		 * conflicts. This field holds only those names that are neither
-		 * imported from another module nor exported from the current module.
+		 * A [map][A_Map] from [strings][A_String] to [atoms][A_Atom] which act
+		 * as true names. The true names are identity-based identifiers that
+		 * prevent or at least clarify name conflicts. This field holds only
+		 * those names that are neither imported from another module nor
+		 * exported from the current module.
 		 */
 		PRIVATE_NAMES,
 
 		/**
-		 * A [set][SetDescriptor] of [true&#32;names][AtomDescriptor] that are
-		 * visible within this module.
+		 * A [set][A_Set] of [true&#32;names][A_Atom] that are visible within
+		 * this module.
 		 */
 		VISIBLE_NAMES,
 
 		/**
-		 * A redundant cached [A_Set] of [A_Atom]s that have been
-		 * exported.  These are precisely the [IMPORTED_NAMES] minus the
-		 * [PRIVATE_NAMES].
+		 * A redundant cached [set][A_Set] of [atoms][A_Atom] that have been
+		 * exported. These are precisely the [imported names][IMPORTED_NAMES]
+		 * less the [private names][PRIVATE_NAMES].
 		 */
 		EXPORTED_NAMES,
 
 		/**
-		 * A [set][SetDescriptor] of [definitions][DefinitionDescriptor] which
-		 * implement methods and macros (and forward declarations, abstract
-		 * declarations, etc.).
+		 * A [set][A_Set] of [definitions][A_Definition] which implement methods
+		 * and macros (and forward declarations, abstract declarations, etc.).
 		 */
 		METHOD_DEFINITIONS_SET,
 
 		/**
-		 * A [set][SetDescriptor] of
-		 * [grammatical&#32;restrictions][GrammaticalRestrictionDescriptor]
-		 * defined within this module.
+		 * A [set][A_Set] of
+		 * [grammatical&#32;restrictions][A_GrammaticalRestriction] defined
+		 * within this module.
 		 */
 		GRAMMATICAL_RESTRICTIONS,
 
 		/**
-		 * A [map][MapDescriptor] from [string][StringDescriptor] to a
-		 * [variable][VariableDescriptor].
+		 * A [map][A_Map] from [strings][A_String] to
+		 * [module&#32;variables][A_Variable].
 		 */
 		VARIABLE_BINDINGS,
 
 		/**
-		 * A [map][MapDescriptor] from [string][StringDescriptor] to an
-		 * [AvailObject].
+		 * A [map][A_Map] from [string][A_String] to an [AvailObject].
 		 */
 		CONSTANT_BINDINGS,
 
@@ -266,6 +270,7 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 	override fun allowsImmutableToMutableReferenceInField(e: AbstractSlotsEnum)
 		: Boolean =
 			e === ALL_ANCESTORS
+				|| e === IS_OPEN
 				|| e === VERSIONS
 				|| e === NEW_NAMES
 				|| e === IMPORTED_NAMES
@@ -288,7 +293,7 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int)
 	{
-		builder.append("Module: ")
+		builder.append("module ")
 		builder.append(self.moduleName())
 	}
 
@@ -296,8 +301,7 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 		(super.o_NameForDebugger(self) + " = "
 			+ self.moduleName().asNativeString())
 
-	override fun o_ModuleName(self: AvailObject): A_String =
-		self.slot(NAME)
+	override fun o_ModuleName(self: AvailObject): A_String = self.slot(NAME)
 
 	override fun o_Versions(self: AvailObject): A_Set =
 		synchronized(self) { return self.slot(VERSIONS) }
@@ -305,6 +309,9 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 	override fun o_SetVersions(self: AvailObject, versionStrings: A_Set)
 	{
 		synchronized(self) {
+			// Asserted because only the compiler should do this, and only for
+			// static modules.
+			assert(self.slot(IS_OPEN).extractBoolean())
 			self.setSlot(VERSIONS, versionStrings.traversed().makeShared())
 		}
 	}
@@ -375,6 +382,8 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 		synchronized(self) {
 			assert(constantBinding.kind().isSubtypeOf(
 				mostGeneralVariableType()))
+			self.slot(IS_OPEN).extractBoolean()
+				|| throw AvailRuntimeException(E_MODULE_IS_CLOSED)
 			var constantBindings: A_Map =
 				self.slot(CONSTANT_BINDINGS)
 			constantBindings = constantBindings.mapAtPuttingCanDestroy(
@@ -387,6 +396,8 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 		self: AvailObject, definition: A_Definition)
 	{
 		synchronized(self) {
+			self.slot(IS_OPEN).extractBoolean()
+				|| throw AvailRuntimeException(E_MODULE_IS_CLOSED)
 			var methods: A_Set = self.slot(METHOD_DEFINITIONS_SET)
 			methods = methods.setWithElementCanDestroy(definition, false)
 			self.setSlot(METHOD_DEFINITIONS_SET, methods.makeShared())
@@ -399,6 +410,8 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 		argumentTypes: A_Tuple)
 	{
 		synchronized(self) {
+			self.slot(IS_OPEN).extractBoolean()
+				|| throw AvailRuntimeException(E_MODULE_IS_CLOSED)
 			var seals: A_Map = self.slot(SEALS)
 			var tuple: A_Tuple
 			tuple = when {
@@ -416,6 +429,8 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 		semanticRestriction: A_SemanticRestriction)
 	{
 		synchronized(self) {
+			self.slot(IS_OPEN).extractBoolean()
+				|| throw AvailRuntimeException(E_MODULE_IS_CLOSED)
 			var restrictions: A_Set = self.slot(SEMANTIC_RESTRICTIONS)
 			restrictions = restrictions.setWithElementCanDestroy(
 				semanticRestriction, true)
@@ -432,6 +447,8 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 		synchronized(self) {
 			assert(variableBinding.kind().isSubtypeOf(
 				mostGeneralVariableType()))
+			self.slot(IS_OPEN).extractBoolean()
+				|| throw AvailRuntimeException(E_MODULE_IS_CLOSED)
 			var variableBindings: A_Map = self.slot(VARIABLE_BINDINGS)
 			variableBindings = variableBindings.mapAtPuttingCanDestroy(
 				name, variableBinding, true)
@@ -443,6 +460,8 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 	{
 		// Add the atom to the current public scope.
 		synchronized(self) {
+			self.slot(IS_OPEN).extractBoolean()
+				|| throw AvailRuntimeException(E_MODULE_IS_CLOSED)
 			val string: A_String = trueName.atomName()
 			var importedNames: A_Map = self.slot(IMPORTED_NAMES)
 			importedNames = importedNames.mapAtReplacingCanDestroy(
@@ -488,6 +507,8 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 	{
 		// Add the set of atoms to the current public scope.
 		synchronized(self) {
+			self.slot(IS_OPEN).extractBoolean()
+				|| throw AvailRuntimeException(E_MODULE_IS_CLOSED)
 			var importedNames: A_Map = self.slot(IMPORTED_NAMES)
 			var privateNames: A_Map = self.slot(PRIVATE_NAMES)
 			for (trueName in trueNames)
@@ -534,6 +555,8 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 	{
 		// Set up this true name, which is local to the module.
 		synchronized(self) {
+			self.slot(IS_OPEN).extractBoolean()
+				|| throw AvailRuntimeException(E_MODULE_IS_CLOSED)
 			val string: A_String = trueName.atomName()
 			var newNames: A_Map = self.slot(NEW_NAMES)
 			assert(!newNames.hasKey(string)) {
@@ -551,6 +574,8 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 	{
 		// Add the atom to the current private scope.
 		synchronized(self) {
+			self.slot(IS_OPEN).extractBoolean()
+				|| throw AvailRuntimeException(E_MODULE_IS_CLOSED)
 			val string: A_String = trueName.atomName()
 			var privateNames: A_Map = self.slot(PRIVATE_NAMES)
 			privateNames = privateNames.mapAtReplacingCanDestroy(
@@ -580,6 +605,8 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 	{
 		// Add the set of atoms to the current private scope.
 		synchronized(self) {
+			self.slot(IS_OPEN).extractBoolean()
+				|| throw AvailRuntimeException(E_MODULE_IS_CLOSED)
 			var privateNames: A_Map = self.slot(PRIVATE_NAMES)
 			var visibleNames: A_Set = self.slot(VISIBLE_NAMES)
 			var exportedNames: A_Set = self.slot(EXPORTED_NAMES)
@@ -615,6 +642,8 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 		trueName: A_Atom)
 	{
 		synchronized(self) {
+			self.slot(IS_OPEN).extractBoolean()
+				|| throw AvailRuntimeException(E_MODULE_IS_CLOSED)
 			var entryPoints: A_Map = self.slot(ENTRY_POINTS)
 			entryPoints = entryPoints.mapAtPuttingCanDestroy(
 				stringName,
@@ -627,6 +656,8 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 	override fun o_AddLexer(self: AvailObject, lexer: A_Lexer)
 	{
 		synchronized(self) {
+			// To support entry points and evaluation, this needs to remain
+			// mutable even when a module is closed.
 			var lexers: A_Set = self.slot(LEXERS)
 			lexers = lexers.setWithElementCanDestroy(lexer, false)
 			self.setSlot(LEXERS, lexers.makeShared())
@@ -638,6 +669,8 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 		unloadFunction: A_Function)
 	{
 		synchronized(self) {
+			self.slot(IS_OPEN).extractBoolean()
+				|| throw AvailRuntimeException(E_MODULE_IS_CLOSED)
 			var unloadFunctions: A_Tuple = self.slot(UNLOAD_FUNCTIONS)
 			unloadFunctions = unloadFunctions.appendCanDestroy(
 				unloadFunction, true)
@@ -653,7 +686,7 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 	override fun o_Hash(self: AvailObject): Int =
 		self.slot(NAME).hash() * 173 xor -0x20c7c074
 
-	override fun o_Kind(self: AvailObject): A_Type = Types.MODULE.o()
+	override fun o_Kind(self: AvailObject): A_Type = Types.MODULE.o
 
 	// Modules are always shared, never immutable.
 	override fun o_MakeImmutable(self: AvailObject): AvailObject =
@@ -667,6 +700,8 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 		grammaticalRestriction: A_GrammaticalRestriction)
 	{
 		synchronized(self) {
+			self.slot(IS_OPEN).extractBoolean()
+				|| throw AvailRuntimeException(E_MODULE_IS_CLOSED)
 			var grammaticalRestrictions: A_Set =
 				self.slot(GRAMMATICAL_RESTRICTIONS)
 			grammaticalRestrictions =
@@ -701,6 +736,9 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 				finishUnloading(self, loader)
 				afterRemoval()
 			}
+			// The module may already be closed, but ensure that it is closed
+			// following removal.
+			self.setSlot(IS_OPEN, falseObject)
 		}
 	}
 
@@ -774,8 +812,12 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 		forwardDefinition: A_BasicObject)
 	{
 		synchronized(self) {
+			// Asserted because only the compiler should do this directly, and
+			// never for a closed module.
+			assert(self.slot(IS_OPEN).extractBoolean())
 			assert(forwardDefinition.isInstanceOfKind(
-				Types.FORWARD_DEFINITION.o()))
+				Types.FORWARD_DEFINITION.o
+			))
 			var methods: A_Set = self.slot(METHOD_DEFINITIONS_SET)
 			assert(methods.hasElement(forwardDefinition))
 			methods = methods.setWithoutElementCanDestroy(
@@ -908,9 +950,23 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 	override fun o_AddAncestors(self: AvailObject, moreAncestors: A_Set)
 	{
 		synchronized(self) {
+			assert(self.slot(IS_OPEN).extractBoolean())
 			val union =
 				self.slot(ALL_ANCESTORS).setUnionCanDestroy(moreAncestors, true)
 			self.setSlot(ALL_ANCESTORS, union.makeShared())
+		}
+	}
+
+	override fun o_IsOpen (self: AvailObject): Boolean =
+		synchronized(self) { self.slot(IS_OPEN) }.extractBoolean()
+
+	override fun o_CloseModule(self: AvailObject)
+	{
+		synchronized(self)
+		{
+			self.slot(IS_OPEN).extractBoolean()
+				|| throw AvailRuntimeException(E_MODULE_IS_CLOSED)
+			self.setSlot(IS_OPEN, falseObject)
 		}
 	}
 
@@ -947,6 +1003,7 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 		{
 			val module = mutable.createShared {
 				setSlot(NAME, moduleName)
+				setSlot(IS_OPEN, trueObject)
 				setSlot(ALL_ANCESTORS, nil)
 				setSlot(VERSIONS, emptySet)
 				setSlot(NEW_NAMES, emptyMap)

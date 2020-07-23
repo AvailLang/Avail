@@ -89,8 +89,10 @@ object P_SocketShutdownOutput : Primitive(1, CanInline, HasSideEffect)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				ATOM.o()),
-			TOP.o())
+				ATOM.o
+			),
+			TOP.o
+		)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

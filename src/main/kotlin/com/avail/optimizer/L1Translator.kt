@@ -614,11 +614,11 @@ class L1Translator private constructor(
 		// the slot registers are the new ones we just created.
 		val writeOffset = generator.intWriteTemp(
 			restrictionForType(
-				int32(),
+				int32,
 				RestrictionFlagEncoding.UNBOXED_INT))
 		val writeRegisterDump = generator.boxedWriteTemp(
 			restrictionForType(
-				Types.ANY.o(),
+				Types.ANY.o,
 				RestrictionFlagEncoding.BOXED))
 		val fallThrough =
 			generator.createBasicBlock("Off-ramp", zone)
@@ -713,7 +713,7 @@ class L1Translator private constructor(
 						tuple(
 							mostGeneralFunctionType(),
 							topMeta(),
-							variableTypeFor(Types.ANY.o())),
+							variableTypeFor(Types.ANY.o)),
 						bottom()),
 					RestrictionFlagEncoding.BOXED))
 			addInstruction(
@@ -1840,7 +1840,7 @@ class L1Translator private constructor(
 							// ultimately called function won't return.  In this
 							// case, weaken the resultType to avoid ⊥, just to
 							// keep the call machinery happy.
-							resultType = Types.ANY.o()
+							resultType = Types.ANY.o
 						}
 						val writer = generator.boxedWriteTemp(
 							restrictionForType(
@@ -1901,7 +1901,7 @@ class L1Translator private constructor(
 			stackp,
 			instructionDecoder.pc() + if (skipCheck) 0 else -1,
 			restrictionForType(
-				if (guaranteedResultType.isBottom) Types.ANY.o() // unreachable
+				if (guaranteedResultType.isBottom) Types.ANY.o // unreachable
 				else guaranteedResultType, RestrictionFlagEncoding.BOXED))
 		if (constantFunction !== null)
 		{
@@ -2001,13 +2001,15 @@ class L1Translator private constructor(
 		val variableToHoldValueWrite = generator.boxedWriteTemp(
 			restrictionForType(
 				variableTypeFor(
-					Types.ANY.o()),
+					Types.ANY.o
+				),
 				RestrictionFlagEncoding.BOXED))
 		addInstruction(
 			L2_CREATE_VARIABLE,
 			L2ConstantOperand(
 				variableTypeFor(
-					Types.ANY.o())),
+					Types.ANY.o
+				)),
 			variableToHoldValueWrite)
 		val wroteVariable =
 			generator.createBasicBlock("wrote offending value into variable")
@@ -2712,7 +2714,7 @@ class L1Translator private constructor(
 				ChunkEntryPoint.TRANSIENT.offsetInDefaultChunk),
 			L2CommentOperand(
 				"Transient - cannot be invalid."))
-		reify(Types.TOP.o(), ChunkEntryPoint.TO_RETURN_INTO)
+		reify(Types.TOP.o, ChunkEntryPoint.TO_RETURN_INTO)
 		generator.jumpTo(success)
 
 		// End with the success block.  Note that the failure path can lead here

@@ -64,7 +64,7 @@ object P_BitwiseOr : Primitive(2, CannotFail, CanFold, CanInline)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(integers(), integers()), integers())
+		functionType(tuple(integers, integers), integers)
 
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,

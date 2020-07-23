@@ -71,7 +71,8 @@ object L2_ADD_INT_TO_INT : L2ControlFlowOperation(
 		val inRange = instruction.operand<L2PcOperand>(4)
 		super.instructionWasAdded(instruction, manifest)
 		inRange.manifest().intersectType(
-			sumReg.pickSemanticValue(), int32())
+			sumReg.pickSemanticValue(), int32
+		)
 	}
 
 	// It jumps if the result doesn't fit in an int.

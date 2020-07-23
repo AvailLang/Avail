@@ -74,9 +74,10 @@ object P_CreateIntegerRange : Primitive(4, CannotFail, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				extendedIntegers(),
-				booleanType(),
-				extendedIntegers(),
-				booleanType()),
-			extendedIntegersMeta())
+				extendedIntegers,
+				booleanType,
+				extendedIntegers,
+				booleanType),
+			extendedIntegersMeta
+		)
 }

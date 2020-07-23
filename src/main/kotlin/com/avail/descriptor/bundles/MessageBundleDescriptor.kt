@@ -174,7 +174,7 @@ class MessageBundleDescriptor private constructor(
 	override fun o_Hash(self: AvailObject) =
 		self.message().hash() xor 0x0312CAB9
 
-	override fun o_Kind(self: AvailObject) = MESSAGE_BUNDLE.o()
+	override fun o_Kind(self: AvailObject) = MESSAGE_BUNDLE.o
 
 	override fun o_Message(self: AvailObject): A_Atom = self.slot(MESSAGE)
 

@@ -140,7 +140,7 @@ object P_Alias : Primitive(2, CanInline, HasSideEffect)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(stringType(), ATOM.o()), TOP.o())
+		functionType(tuple(stringType(), ATOM.o), TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

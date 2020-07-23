@@ -125,12 +125,13 @@ object P_ModuleHeaderPrefixCheckImportVersion
 								zeroOrOneList(list(
 									zeroOrMoreList(list(
 											// Negated import
-											LITERAL_PHRASE.create(booleanType()),
+											LITERAL_PHRASE.create(booleanType),
 											stringLiteralType, // Name
 											// Replacement name
 											zeroOrOneList(stringLiteralType))),
 										// Final ellipsis (import all the rest)
 										LITERAL_PHRASE.create(
-											booleanType())))))))),
-			TOP.o())
+											booleanType)))))))),
+			TOP.o
+		)
 }

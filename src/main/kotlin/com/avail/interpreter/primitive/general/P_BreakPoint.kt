@@ -66,5 +66,5 @@ object P_BreakPoint : Primitive(0, Unknown, CannotFail)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(emptyTuple, TOP.o())
+		functionType(emptyTuple, TOP.o)
 }

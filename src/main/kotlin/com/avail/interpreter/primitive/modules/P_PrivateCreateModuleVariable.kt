@@ -88,10 +88,11 @@ object P_PrivateCreateModuleVariable
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				MODULE.o(),
+				MODULE.o,
 				stringType(),
 				variableMeta(),
-				booleanType(),
-				booleanType()),
-			TOP.o())
+				booleanType,
+				booleanType),
+			TOP.o
+		)
 }

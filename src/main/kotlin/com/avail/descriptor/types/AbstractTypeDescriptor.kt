@@ -37,6 +37,7 @@ import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.representation.*
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.serialization.SerializerOperation
 
@@ -235,8 +236,7 @@ abstract class AbstractTypeDescriptor protected constructor(
 
 	// A type's kind is always ANY, since there are no more metatypes that
 	// are kinds.
-	override fun o_Kind(self: AvailObject): A_Type =
-		TypeDescriptor.Types.ANY.o()
+	override fun o_Kind(self: AvailObject): A_Type = ANY.o
 
 	abstract override fun o_LowerBound(self: AvailObject): A_Number
 

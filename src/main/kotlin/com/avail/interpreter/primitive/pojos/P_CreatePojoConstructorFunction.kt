@@ -126,9 +126,9 @@ object P_CreatePojoConstructorFunction : Primitive(2, CanInline, CanFold)
 				P_InvokePojoConstructor,
 				it,
 				// Outer#1 = Constructor to invoke.
-				RAW_POJO.o(),
+				RAW_POJO.o,
 				// Outer#2 = Marshaled type parameters.
-				zeroOrMoreOf(RAW_POJO.o()))
+				zeroOrMoreOf(RAW_POJO.o))
 		}
 		val function = createWithOuters2(
 			rawFunction,
@@ -145,7 +145,7 @@ object P_CreatePojoConstructorFunction : Primitive(2, CanInline, CanFold)
 			tuple(
 				anyMeta(),
 				zeroOrMoreOf(anyMeta())),
-			functionTypeReturning(ANY.o()))
+			functionTypeReturning(ANY.o))
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

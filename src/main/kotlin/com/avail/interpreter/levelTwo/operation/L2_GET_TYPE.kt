@@ -35,7 +35,7 @@ import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor
 import com.avail.descriptor.types.InstanceMetaDescriptor
 import com.avail.descriptor.types.InstanceTypeDescriptor
-import com.avail.descriptor.types.TypeDescriptor
+import com.avail.descriptor.types.TypeDescriptor.Types.NONTYPE
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2OperandType
 import com.avail.interpreter.levelTwo.L2Operation
@@ -119,7 +119,7 @@ object L2_GET_TYPE : L2Operation(
 		val type = instruction.operand<L2WriteBoxedOperand>(1)
 		translator.load(method, value.register())
 		// [value]
-		if (value.restriction().containedByType(TypeDescriptor.Types.NONTYPE.o()))
+		if (value.restriction().containedByType(NONTYPE.o))
 		{
 			// The value will *never* be a type.
 			InstanceTypeDescriptor.instanceTypeMethod.generateCall(method)

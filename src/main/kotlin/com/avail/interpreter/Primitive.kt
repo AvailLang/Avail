@@ -605,7 +605,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	 *   A type which is at least as specific as the type of the failure
 	 *   variable declared in a block using this primitive.
 	 */
-	protected open fun privateFailureVariableType(): A_Type = naturalNumbers()
+	protected open fun privateFailureVariableType(): A_Type = naturalNumbers
 
 	/**
 	 * Answer the [fallibility][Fallibility] of the [primitive][Primitive] for a
@@ -858,7 +858,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		val guaranteedType =
 			returnTypeGuaranteedByVM(rawFunction, argumentTypes)
 		val restriction = restrictionForType(
-			if (guaranteedType.isBottom) TOP.o() else guaranteedType, BOXED)
+			if (guaranteedType.isBottom) TOP.o else guaranteedType, BOXED)
 		val semanticValue: L2SemanticValue
 		if (hasFlag(CanFold) && !guaranteedType.isBottom)
 		{
