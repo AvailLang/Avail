@@ -49,6 +49,7 @@ import com.avail.optimizer.L1Translator.CallSiteHelper
 /**
  * **Primitive:** A global variable's value is being returned.
  */
+@Suppress("unused")
 object P_GetGlobalVariableValue : Primitive(
 	1, SpecialForm, CanInline, Private, CannotFail)
 {

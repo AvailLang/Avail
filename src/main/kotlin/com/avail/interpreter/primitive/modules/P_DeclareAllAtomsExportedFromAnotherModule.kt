@@ -65,6 +65,7 @@ import com.avail.interpreter.execution.Interpreter
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
+@Suppress("unused")
 object P_DeclareAllAtomsExportedFromAnotherModule : Primitive(
 	2, CannotFail, Private, HasSideEffect, WritesToHiddenGlobalState)
 {

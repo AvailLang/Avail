@@ -52,6 +52,7 @@ import com.avail.interpreter.execution.Interpreter
  * macro-evaluated in the current fiber.  Fail if macro evaluation is not
  * happening in this fiber.
  */
+@Suppress("unused")
 object P_CurrentMacroName : Primitive(0, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

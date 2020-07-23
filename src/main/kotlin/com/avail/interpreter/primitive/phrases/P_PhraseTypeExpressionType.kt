@@ -50,6 +50,7 @@ import com.avail.interpreter.execution.Interpreter
  * **Primitive:** Extract the result [type][TypeDescriptor] of a
  * [phrase&#32;type][PhraseTypeDescriptor].
  */
+@Suppress("unused")
 object P_PhraseTypeExpressionType : Primitive(1, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

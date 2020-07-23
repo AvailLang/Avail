@@ -67,6 +67,7 @@ import com.avail.interpreter.execution.Interpreter
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
+@Suppress("unused")
 object P_AcceptParsing : Primitive(0, Unknown)
 {
 	override fun attempt(interpreter: Interpreter): Result

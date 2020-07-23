@@ -48,6 +48,7 @@ import com.avail.interpreter.execution.Interpreter
 * **Primitive:** Extract a [set&#32;type][SetTypeDescriptor]'s element
  * [type][TypeDescriptor].
  */
+@Suppress("unused")
 object P_SetTypeElementType : Primitive(1, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

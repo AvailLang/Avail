@@ -49,6 +49,7 @@ import com.avail.interpreter.execution.Interpreter
  * without the excluded [element][AvailObject]. If it was already absent, answer
  * the original set.
  */
+@Suppress("unused")
 object P_SetWithout : Primitive(2, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

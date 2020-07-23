@@ -79,6 +79,7 @@ import com.avail.optimizer.values.L2SemanticValue
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
+@Suppress("unused")
 object P_RestartContinuationWithArguments : Primitive(
 	2,
 	CanInline,

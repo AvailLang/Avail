@@ -54,6 +54,7 @@ import com.avail.interpreter.execution.Interpreter
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_CreatePrimitiveFailureVariableDeclaration : Primitive(
 	2, CanInline, CannotFail)
 {

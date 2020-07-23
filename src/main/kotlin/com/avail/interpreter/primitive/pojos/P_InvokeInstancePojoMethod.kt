@@ -66,6 +66,7 @@ import java.lang.reflect.Method
  * [P_CreatePojoInstanceMethodFunction], and has two outer values: the Java
  * [Method] and the [tuple][A_Tuple] of marshaled types.
  */
+@Suppress("unused")
 object P_InvokeInstancePojoMethod : Primitive(-1, Private)
 {
 	override fun attempt(interpreter: Interpreter): Result

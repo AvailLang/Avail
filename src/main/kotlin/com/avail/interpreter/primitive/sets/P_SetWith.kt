@@ -55,6 +55,7 @@ import com.avail.interpreter.execution.Interpreter
  * including the new [element][AvailObject].  If it was already present, answer
  * the original set.
  */
+@Suppress("unused")
 object P_SetWith : Primitive(2, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

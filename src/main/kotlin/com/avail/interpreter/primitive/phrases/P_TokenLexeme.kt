@@ -48,6 +48,7 @@ import com.avail.interpreter.execution.Interpreter
  * **Primitive:** Get the lexeme ([string][A_String]) associated with the
  * specified [token][TokenDescriptor].
  */
+@Suppress("unused")
 object P_TokenLexeme : Primitive(1, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

@@ -61,6 +61,7 @@ import com.avail.interpreter.execution.Interpreter
  * [body&#32;block][FunctionDescriptor]. A handler block is only invoked when an
  * exception is raised.
  */
+@Suppress("unused")
 object P_CatchException : Primitive(
 	3,
 	CatchException,

@@ -48,6 +48,7 @@ import com.avail.interpreter.execution.Interpreter
 * **Primitive:** Answer the [compiled&#32;code][CompiledCodeDescriptor] within
  * this [function][FunctionDescriptor].
  */
+@Suppress("unused")
 object P_CompiledCodeOfFunction : Primitive(1, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

@@ -75,6 +75,7 @@ import java.lang.ProcessBuilder.Redirect
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_ExecuteAttachedExternalProcess : Primitive(6, CanInline, HasSideEffect)
 {
 	override fun attempt(interpreter: Interpreter): Result

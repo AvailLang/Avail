@@ -50,6 +50,7 @@ import com.avail.interpreter.execution.Interpreter
  * of the specified [continuation][ContinuationDescriptor]. The variable will be
  * unassigned if the continuation has no caller.
  */
+@Suppress("unused")
 object P_ContinuationCaller : Primitive(1, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

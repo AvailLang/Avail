@@ -55,6 +55,7 @@ import com.avail.interpreter.execution.Interpreter
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
+@Suppress("unused")
 object P_FirstOfSequenceStatements : Primitive(1, CannotFail, CanFold, CanInline)
 {
 

@@ -58,6 +58,7 @@ import com.avail.optimizer.L1Translator.CallSiteHelper
  * normally skips making the actual called function available, so we must be
  * careful to expose it for the customized code generator.
  */
+@Suppress("unused")
 object P_PushConstant : Primitive(
 	-1, SpecialForm, Private, CanInline, CannotFail)
 {

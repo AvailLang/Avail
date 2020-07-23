@@ -59,6 +59,7 @@ import com.avail.interpreter.execution.Interpreter
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_AbstractMethodDeclarationForAtom : Primitive(2, CanSuspend, Unknown)
 {
 	override fun attempt(interpreter: Interpreter): Result

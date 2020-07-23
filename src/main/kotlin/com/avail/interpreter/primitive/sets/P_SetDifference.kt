@@ -46,6 +46,7 @@ import com.avail.interpreter.execution.Interpreter
  * **Primitive:** Answer the difference between two
  * [sets][SetDescriptor] (`set1 - set2`).
  */
+@Suppress("unused")
 object P_SetDifference : Primitive(2, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

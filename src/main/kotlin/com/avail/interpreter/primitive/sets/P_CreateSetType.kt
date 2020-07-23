@@ -49,6 +49,7 @@ import com.avail.interpreter.execution.Interpreter
 /**
 * **Primitive:** Create a [set&#32;type][SetTypeDescriptor].
  */
+@Suppress("unused")
 object P_CreateSetType : Primitive(2, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

@@ -49,6 +49,7 @@ import java.lang.reflect.Array
  * **Primitive:** Answer the length of the specified
  * [pojo&#32;array][PojoDescriptor].
  */
+@Suppress("unused")
 object P_PojoArrayLength : Primitive(1, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

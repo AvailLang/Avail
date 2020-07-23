@@ -59,6 +59,7 @@ import com.avail.optimizer.L1Translator.CallSiteHelper
  * **Primitive:** Compare two extended integers and answer a
  * [boolean][EnumerationTypeDescriptor.booleanType].
  */
+@Suppress("unused")
 object P_LessOrEqual : Primitive(2, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

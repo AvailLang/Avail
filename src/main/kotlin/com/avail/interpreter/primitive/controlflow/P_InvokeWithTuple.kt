@@ -66,6 +66,7 @@ import java.util.Collections.nCopies
  * dynamically to prevent corruption of the type system. Fail if the arguments
  * are not of the required types.
  */
+@Suppress("unused")
 object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

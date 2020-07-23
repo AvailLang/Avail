@@ -65,6 +65,7 @@ import com.avail.interpreter.execution.Interpreter
  *
  * @author Todd L Smith &lt;tsmith@safetyweb.org&gt;
  */
+@Suppress("unused")
 object P_CreateToken : Primitive(4, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

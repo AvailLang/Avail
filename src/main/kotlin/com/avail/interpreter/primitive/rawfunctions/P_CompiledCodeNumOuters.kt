@@ -50,6 +50,7 @@ import com.avail.interpreter.execution.Interpreter
  * [functions][FunctionDescriptor] derived from this
  * [compiled&#32;code][CompiledCodeDescriptor].
  */
+@Suppress("unused")
 object P_CompiledCodeNumOuters : Primitive(1, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

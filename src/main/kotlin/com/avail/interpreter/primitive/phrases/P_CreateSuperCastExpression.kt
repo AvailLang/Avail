@@ -57,6 +57,7 @@ import com.avail.interpreter.execution.Interpreter
  * produced by the expression.  Also fail if the expression is itself a
  * supertype, or if it is top-valued or bottom-valued.
  */
+@Suppress("unused")
 object P_CreateSuperCastExpression : Primitive(2, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

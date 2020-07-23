@@ -55,6 +55,7 @@ import java.lang.reflect.Array
  * answers elements of the specified Avail [type][TypeDescriptor] and has the
  * specified [length][IntegerDescriptor].
  */
+@Suppress("unused")
 object P_CreatePojoArray : Primitive(2, CannotFail, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

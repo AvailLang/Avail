@@ -55,6 +55,7 @@ import com.avail.interpreter.execution.Interpreter
  * [bottom][BottomTypeDescriptor]-typed [variable][A_Variable]
  * (unconstructible from Avail) for any [null][NilDescriptor.nil] values.
  */
+@Suppress("unused")
 object P_ContinuationStackData : Primitive(1, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

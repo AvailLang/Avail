@@ -50,6 +50,7 @@ import com.avail.interpreter.execution.Interpreter
  * position within the source module [string][A_String]. A result of `0` means
  * that the line number is unknown or meaningless.
  */
+@Suppress("unused")
 object P_TokenStart : Primitive(1, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

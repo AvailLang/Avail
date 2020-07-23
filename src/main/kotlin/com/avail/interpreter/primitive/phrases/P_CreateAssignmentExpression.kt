@@ -59,6 +59,7 @@ import com.avail.interpreter.execution.Interpreter
  * [assignment][AssignmentPhraseDescriptor]. Such a node also produces the
  * assigned value as its result, so it can be embedded as a subexpression.
  */
+@Suppress("unused")
 object P_CreateAssignmentExpression : Primitive(2, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

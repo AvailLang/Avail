@@ -48,6 +48,7 @@ import com.avail.interpreter.execution.Interpreter
  * **Primitive:** Answer the number of locals created by the
  * [compiled&#32;code][CompiledCodeDescriptor].
  */
+@Suppress("unused")
 object P_CompiledCodeNumLocals : Primitive(1, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

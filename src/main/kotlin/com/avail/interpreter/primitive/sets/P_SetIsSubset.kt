@@ -47,6 +47,7 @@ import com.avail.interpreter.execution.Interpreter
 /**
  * **Primitive:** Check if [set1][SetDescriptor] is a subset of `set2`.
  */
+@Suppress("unused")
 object P_SetIsSubset : Primitive(2, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

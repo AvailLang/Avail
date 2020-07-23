@@ -53,6 +53,7 @@ import com.avail.interpreter.execution.Interpreter
  * of [ParseNotificationLevel], although the integer has to be adjusted to
  * zero-based to use [ParseNotificationLevel.levelFromInt].
  */
+@Suppress("unused")
 object P_RejectParsing : Primitive(2, Unknown)
 {
 	override fun attempt(interpreter: Interpreter): Result

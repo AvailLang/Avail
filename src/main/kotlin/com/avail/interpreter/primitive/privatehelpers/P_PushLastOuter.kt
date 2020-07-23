@@ -47,6 +47,7 @@ import com.avail.optimizer.L1Translator.CallSiteHelper
 /**
  * **Primitive:** The sole outer value is being returned.
  */
+@Suppress("unused")
 object P_PushLastOuter : Primitive(
 	-1, SpecialForm, Private, CanInline, CannotFail)
 {

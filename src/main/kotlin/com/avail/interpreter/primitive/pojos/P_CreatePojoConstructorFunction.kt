@@ -78,6 +78,7 @@ import java.util.WeakHashMap
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_CreatePojoConstructorFunction : Primitive(2, CanInline, CanFold)
 {
 	/**

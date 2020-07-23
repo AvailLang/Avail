@@ -47,6 +47,7 @@ import com.avail.interpreter.execution.Interpreter
  * **Primitive:** Get the specified
  * [literal&#32;token][LiteralTokenDescriptor]'s literal value.
  */
+@Suppress("unused")
 object P_LiteralTokenValue : Primitive(1, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

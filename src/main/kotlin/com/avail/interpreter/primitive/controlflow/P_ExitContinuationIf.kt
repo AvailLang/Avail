@@ -62,6 +62,7 @@ import com.avail.optimizer.L1Translator.CallSiteHelper
  * (returning nil to its caller), but only if the provided boolean is true.
  * Otherwise do nothing.
  */
+@Suppress("unused")
 object P_ExitContinuationIf : Primitive(
 	2,
 	CanInline,

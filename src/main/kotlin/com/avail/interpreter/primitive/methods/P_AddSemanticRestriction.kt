@@ -61,6 +61,7 @@ import com.avail.interpreter.execution.Interpreter
 /**
  * **Primitive:** Add a type restriction function.
  */
+@Suppress("unused")
 object P_AddSemanticRestriction : Primitive(2, Unknown)
 {
 	override fun attempt(interpreter: Interpreter): Result

@@ -61,6 +61,7 @@ import com.avail.interpreter.levelOne.L1InstructionWriter
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
+@Suppress("unused")
 object P_InvokeCallback : Primitive(-1, Private, CanSuspend)
 {
 	override fun attempt(interpreter: Interpreter): Result

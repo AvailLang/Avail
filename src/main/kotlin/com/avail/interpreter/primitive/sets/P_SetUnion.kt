@@ -49,6 +49,7 @@ import com.avail.interpreter.execution.Interpreter
 /**
  * **Primitive:** Answer the union of two [sets][SetDescriptor].
  */
+@Suppress("unused")
 object P_SetUnion : Primitive(2, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

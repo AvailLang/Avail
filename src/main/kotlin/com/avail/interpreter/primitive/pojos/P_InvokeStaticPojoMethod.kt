@@ -64,6 +64,7 @@ import java.lang.reflect.Method
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_InvokeStaticPojoMethod : Primitive(-1, Private)
 {
 	override fun attempt(interpreter: Interpreter): Result

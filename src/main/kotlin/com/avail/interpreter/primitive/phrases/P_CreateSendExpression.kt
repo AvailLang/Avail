@@ -70,6 +70,7 @@ import com.avail.interpreter.execution.Interpreter
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_CreateSendExpression : Primitive(3, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

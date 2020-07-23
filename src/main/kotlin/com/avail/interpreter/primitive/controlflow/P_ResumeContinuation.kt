@@ -52,6 +52,7 @@ import com.avail.interpreter.execution.Interpreter
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_ResumeContinuation : Primitive(
 	1,
 	Private,

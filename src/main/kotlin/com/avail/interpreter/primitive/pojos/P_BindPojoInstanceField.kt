@@ -60,6 +60,7 @@ import java.lang.reflect.Modifier
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_BindPojoInstanceField : Primitive(2, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

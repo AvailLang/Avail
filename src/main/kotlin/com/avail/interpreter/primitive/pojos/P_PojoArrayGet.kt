@@ -56,6 +56,7 @@ import java.lang.reflect.Array
  * [subscript][IntegerDescriptor] of the specified
  * [pojo&#32;array&#32;type][PojoTypeDescriptor].
  */
+@Suppress("unused")
 object P_PojoArrayGet : Primitive(2, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

@@ -55,6 +55,7 @@ import com.avail.interpreter.execution.Interpreter
 /**
  * **Primitive:** Forward declare a method (for recursion or mutual recursion).
  */
+@Suppress("unused")
 object P_ForwardMethodDeclarationForAtom : Primitive(2, CanSuspend, Unknown)
 {
 	override fun attempt(interpreter: Interpreter): Result

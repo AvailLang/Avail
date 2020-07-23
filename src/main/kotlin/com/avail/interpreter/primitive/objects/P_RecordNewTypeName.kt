@@ -54,6 +54,7 @@ import com.avail.interpreter.execution.Interpreter
  * [user-defined&#32;object&#32;type][ObjectTypeDescriptor]. This can be useful
  * for debugging.
  */
+@Suppress("unused")
 object P_RecordNewTypeName : Primitive(2, CanInline, CannotFail, HasSideEffect)
 {
 	override fun attempt(interpreter: Interpreter): Result

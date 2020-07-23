@@ -68,6 +68,7 @@ import java.nio.channels.ClosedChannelException
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_SocketRemotePeer : Primitive(1, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

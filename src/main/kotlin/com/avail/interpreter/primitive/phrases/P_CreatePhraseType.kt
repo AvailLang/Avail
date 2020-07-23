@@ -51,6 +51,7 @@ import com.avail.interpreter.execution.Interpreter
  * [phrase&#32;type][PhraseTypeDescriptor]. In particular, create a phrase type
  * of the same [kind][PhraseKind] but with the specified expression type.
  */
+@Suppress("unused")
 object P_CreatePhraseType : Primitive(2, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

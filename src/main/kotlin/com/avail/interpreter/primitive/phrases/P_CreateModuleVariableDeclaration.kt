@@ -55,6 +55,7 @@ import com.avail.interpreter.execution.Interpreter
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
+@Suppress("unused")
 object P_CreateModuleVariableDeclaration : Primitive(2, CanInline, CannotFail)
 {
 	override fun attempt(interpreter: Interpreter): Result

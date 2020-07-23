@@ -50,6 +50,7 @@ import com.avail.interpreter.execution.Interpreter
  * [compiled&#32;code][CompiledCodeDescriptor].  Answer the empty string if this
  * code is not a primitive.
  */
+@Suppress("unused")
 object P_CompiledCodePrimitiveName : Primitive(1, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

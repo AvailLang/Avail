@@ -70,6 +70,7 @@ import java.nio.channels.AsynchronousServerSocketChannel
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_ServerSocketSetOption : Primitive(2, CanInline, HasSideEffect)
 {
 	/**

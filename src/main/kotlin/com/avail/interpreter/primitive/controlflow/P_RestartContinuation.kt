@@ -66,6 +66,7 @@ import com.avail.optimizer.values.L2SemanticValue
  * continuation requires a value to be stored on its stack in order to resume
  * it, something this primitive does not do.
  */
+@Suppress("unused")
 object P_RestartContinuation : Primitive(
 	1,
 	CannotFail,

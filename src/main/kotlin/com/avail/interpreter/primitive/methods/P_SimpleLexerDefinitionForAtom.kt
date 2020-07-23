@@ -71,6 +71,7 @@ import com.avail.interpreter.execution.Interpreter
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
+@Suppress("unused")
 object P_SimpleLexerDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 {
 	override fun attempt(interpreter: Interpreter): Result

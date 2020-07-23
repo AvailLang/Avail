@@ -74,6 +74,7 @@ import java.nio.channels.AsynchronousServerSocketChannel
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_ServerSocketIPv4Bind : Primitive(4, CanInline, HasSideEffect)
 {
 	override fun attempt(interpreter: Interpreter): Result

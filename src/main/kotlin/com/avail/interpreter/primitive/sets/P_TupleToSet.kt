@@ -60,6 +60,7 @@ import com.avail.optimizer.L1Translator
  * **Primitive:** Convert a [tuple][TupleDescriptor] into a
  * [set][SetDescriptor].
  */
+@Suppress("unused")
 object P_TupleToSet : Primitive(1, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

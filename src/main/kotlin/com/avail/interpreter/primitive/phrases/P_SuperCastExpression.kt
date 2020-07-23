@@ -49,6 +49,7 @@ import com.avail.interpreter.execution.Interpreter
  * **Primitive:** Extract the base expression from a
  * [supercast&#32;phrase][SuperCastPhraseDescriptor].
  */
+@Suppress("unused")
 object P_SuperCastExpression : Primitive(1, CanFold, CanInline, CannotFail)
 {
 	override fun attempt(interpreter: Interpreter): Result

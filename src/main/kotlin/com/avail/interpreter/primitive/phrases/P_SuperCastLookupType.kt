@@ -49,6 +49,7 @@ import com.avail.interpreter.execution.Interpreter
  * [supercast&#32;phrase][SuperCastPhraseDescriptor].  This is the type that the
  * argument is to be treated as during method lookup.
  */
+@Suppress("unused")
 object P_SuperCastLookupType : Primitive(1, CanFold, CanInline, CannotFail)
 {
 	override fun attempt(interpreter: Interpreter): Result

@@ -53,6 +53,7 @@ import com.avail.interpreter.execution.Interpreter
  * specified [type][TypeDescriptor] and [range][IntegerRangeTypeDescriptor] of
  * sizes.
  */
+@Suppress("unused")
 object P_CreatePojoArrayType : Primitive(2, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

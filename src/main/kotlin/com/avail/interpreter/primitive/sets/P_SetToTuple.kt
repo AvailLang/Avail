@@ -52,6 +52,7 @@ import com.avail.interpreter.execution.Interpreter
  * [tuple][TupleDescriptor]. The conversion is unstable – two successive calls
  * may produce different orderings.
  */
+@Suppress("unused")
 object P_SetToTuple : Primitive(1, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

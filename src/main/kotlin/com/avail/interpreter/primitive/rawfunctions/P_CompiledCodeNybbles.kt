@@ -49,6 +49,7 @@ import com.avail.interpreter.execution.Interpreter
  * **Primitive:** Answer the [nybblecodes][TupleDescriptor] of the
  * [compiled&#32;code][CompiledCodeDescriptor].
  */
+@Suppress("unused")
 object P_CompiledCodeNybbles : Primitive(1, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

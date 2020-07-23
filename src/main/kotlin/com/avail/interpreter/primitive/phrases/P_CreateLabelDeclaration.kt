@@ -55,6 +55,7 @@ import com.avail.interpreter.execution.Interpreter
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_CreateLabelDeclaration : Primitive(2, CanInline, CannotFail)
 {
 	override fun attempt(interpreter: Interpreter): Result

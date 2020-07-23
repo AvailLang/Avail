@@ -50,6 +50,7 @@ import com.avail.interpreter.execution.Interpreter
  * **Primitive:** Check if the [object][AvailObject] is an element of the
  * [set][SetDescriptor].
  */
+@Suppress("unused")
 object P_ElementInSet : Primitive(2, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

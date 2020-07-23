@@ -51,6 +51,7 @@ import com.avail.interpreter.execution.Interpreter
  * **Primitive:** Answer a [tuple][TupleDescriptor] with the literals from this
  * [compiled&#32;code][CompiledCodeDescriptor].
  */
+@Suppress("unused")
 object P_CompiledCodeLiterals : Primitive(1, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

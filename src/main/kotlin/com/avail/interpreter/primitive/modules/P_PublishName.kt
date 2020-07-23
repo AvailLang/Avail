@@ -64,6 +64,7 @@ import com.avail.interpreter.execution.Interpreter
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_PublishName : Primitive(
 	1, CanInline, HasSideEffect, WritesToHiddenGlobalState)
 {

@@ -75,6 +75,7 @@ import com.avail.interpreter.execution.Interpreter
  * third argument is the function to invoke for the complete macro.  It is
  * constrained to answer a [method][MethodDescriptor].
  */
+@Suppress("unused")
 object P_SimpleMacroDeclaration : Primitive(3, CanSuspend, Unknown)
 {
 	override fun attempt(interpreter: Interpreter): Result

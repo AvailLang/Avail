@@ -49,6 +49,7 @@ import com.avail.interpreter.execution.Interpreter
 /**
  * **Primitive:** Answer the size of the [set][SetDescriptor].
  */
+@Suppress("unused")
 object P_SetSize : Primitive(1, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

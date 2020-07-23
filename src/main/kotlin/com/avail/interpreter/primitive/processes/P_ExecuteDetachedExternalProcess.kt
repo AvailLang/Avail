@@ -60,6 +60,7 @@ import java.io.IOException
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_ExecuteDetachedExternalProcess : Primitive(6, CanInline, HasSideEffect)
 {
 	override fun attempt(interpreter: Interpreter): Result

@@ -71,6 +71,7 @@ import com.avail.interpreter.execution.Interpreter
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_AttemptJoinFiber : Primitive(
 	1,
 	CanSuspend,

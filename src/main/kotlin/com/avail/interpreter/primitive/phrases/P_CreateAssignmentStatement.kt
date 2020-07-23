@@ -68,6 +68,7 @@ import com.avail.interpreter.execution.Interpreter
  * assignment phrase proper (whose output is effectively discarded) and a
  * literal [null&#32;value][NilDescriptor.nil].
  */
+@Suppress("unused")
 object P_CreateAssignmentStatement : Primitive(2, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

@@ -63,6 +63,7 @@ import com.avail.interpreter.execution.Interpreter
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_GenerateFunctionForBlock : Primitive(1, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

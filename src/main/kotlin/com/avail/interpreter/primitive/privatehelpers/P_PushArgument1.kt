@@ -47,6 +47,7 @@ import com.avail.optimizer.L1Translator.CallSiteHelper
 /**
  * **Primitive:** The first argument is being returned.
  */
+@Suppress("unused")
 object P_PushArgument1 : Primitive(
 	-1, SpecialForm, Private, CanInline, CannotFail)
 {
