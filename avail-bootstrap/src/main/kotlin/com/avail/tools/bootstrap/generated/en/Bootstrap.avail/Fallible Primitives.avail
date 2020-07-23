@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 7/23/20 5:21 PM
+ * * Last Generated: 7/23/20 6:41 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -1180,7 +1180,6 @@ Primitive "_>>_" is
  *        be ≥ 0).
  * @returns "[0..∞)"
  *    ⌊_<<_keeping_bits × 2<sup>baseInteger</sup>⌋ mod 2<sup>shiftFactor</sup>
- * @raises "shift-and-truncate-requires-non-negative exception"
  * @raises "too-large-to-represent exception"
  */
 Primitive "_<<_keeping_bits" is
@@ -1190,7 +1189,6 @@ Primitive "_<<_keeping_bits" is
 	truncationBits : whole number
 |
 	Primitive BitShiftWithTruncation (failureCode : {
-		shift-and-truncate-requires-non-negative code,
 		too-large-to-represent code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : whole number;

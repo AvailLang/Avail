@@ -39,6 +39,7 @@ import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.en
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
+import com.avail.exceptions.ArithmeticException
 import com.avail.exceptions.AvailErrorCode.E_SHIFT_AND_TRUNCATE_REQUIRES_NON_NEGATIVE
 import com.avail.exceptions.AvailErrorCode.E_TOO_LARGE_TO_REPRESENT
 import com.avail.interpreter.Primitive
@@ -63,9 +64,16 @@ object P_BitShiftWithTruncation : Primitive(3, CanInline, CanFold)
 		val baseInteger = interpreter.argument(0)
 		val shiftFactor = interpreter.argument(1)
 		val truncationBits = interpreter.argument(2)
-		return interpreter.primitiveSuccess(
-			baseInteger.bitShiftLeftTruncatingToBits(
-				shiftFactor, truncationBits, true))
+		return try
+		{
+			return interpreter.primitiveSuccess(
+				baseInteger.bitShiftLeftTruncatingToBits(
+					shiftFactor, truncationBits, true))
+		}
+		catch (e: ArithmeticException)
+		{
+			interpreter.primitiveFailure(e)
+		}
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
@@ -74,8 +82,5 @@ object P_BitShiftWithTruncation : Primitive(3, CanInline, CanFold)
 		)
 
 	override fun privateFailureVariableType(): A_Type =
-		enumerationWith(
-			set(
-				E_SHIFT_AND_TRUNCATE_REQUIRES_NON_NEGATIVE,
-				E_TOO_LARGE_TO_REPRESENT))
+		enumerationWith(set(E_TOO_LARGE_TO_REPRESENT))
 }

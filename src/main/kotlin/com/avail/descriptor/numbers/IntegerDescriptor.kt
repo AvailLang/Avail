@@ -1080,8 +1080,7 @@ class IntegerDescriptor private constructor(
 		canDestroy: Boolean
 	): A_Number {
 		if (!truncationBits.isInt) {
-			throw ArithmeticException(
-				AvailErrorCode.E_SHIFT_AND_TRUNCATE_REQUIRES_NON_NEGATIVE)
+			throw ArithmeticException(AvailErrorCode.E_TOO_LARGE_TO_REPRESENT)
 		}
 		val truncationInt = truncationBits.extractInt()
 		if (truncationInt < 0) {
