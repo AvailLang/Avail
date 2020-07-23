@@ -126,7 +126,7 @@ object P_CreatePojoStaticMethodFunction : Primitive(3, CanInline, CanFold)
 
 		val returnType = resolvePojoType(
 			method.genericReturnType,
-			if (pojoType.isPojoType) pojoType.typeVariables() else emptyMap())
+			if (pojoType.isPojoType) pojoType.typeVariables() else emptyMap)
 		val functionType = functionType(paramTypes, returnType)
 		val rawFunction = rawFunctionCache.computeIfAbsent(functionType) {
 			rawPojoInvokerFunctionFromFunctionType(

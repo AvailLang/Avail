@@ -71,7 +71,7 @@ object P_TraceVariableWrites : Primitive(
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(emptyTuple(), TOP.o())
+		functionType(emptyTuple, TOP.o())
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_ILLEGAL_TRACE_MODE))

@@ -58,7 +58,7 @@ object P_CurrentModule : Primitive(0, CanInline, ReadsFromHiddenGlobalState)
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(0)
-		val module = currentModule()
+		val module = currentModule
 		return if (module.equalsNil())
 		{
 			interpreter.primitiveFailure(E_LOADING_IS_OVER)
@@ -67,7 +67,7 @@ object P_CurrentModule : Primitive(0, CanInline, ReadsFromHiddenGlobalState)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(emptyTuple(), MODULE.o())
+		functionType(emptyTuple, MODULE.o())
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_LOADING_IS_OVER))

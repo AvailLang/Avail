@@ -296,7 +296,7 @@ class FunctionDescriptor private constructor(
 					addLiteral(functionReturnType))
 				compiledCode()
 			}
-			val newFunction = createFunction(code, emptyTuple())
+			val newFunction = createFunction(code, emptyTuple)
 			newFunction.makeImmutable()
 			return newFunction
 		}
@@ -349,7 +349,7 @@ class FunctionDescriptor private constructor(
 					L1Operation.L1_doCall,
 					addLiteral(bundle),
 					addLiteral(functionReturnType))
-				createFunction(compiledCode(), emptyTuple()).makeImmutable()
+				createFunction(compiledCode(), emptyTuple).makeImmutable()
 			}
 		}
 
@@ -553,17 +553,17 @@ class FunctionDescriptor private constructor(
 			lineNumber: Int
 		): A_Function {
 			val block: A_Phrase = newBlockNode(
-				emptyTuple(),
+				emptyTuple,
 				0,
 				tuple(phrase),
 				Types.TOP.o(),
-				emptySet(),
+				emptySet,
 				lineNumber,
 				phrase.tokens())
 			recursivelyValidate(block)
 			val compiledBlock = block.generateInModule(module)
 			assert(compiledBlock.numOuters() == 0)
-			return createFunction(compiledBlock, emptyTuple()).makeImmutable()
+			return createFunction(compiledBlock, emptyTuple).makeImmutable()
 		}
 
 		/**
@@ -604,7 +604,7 @@ class FunctionDescriptor private constructor(
 			val code: A_RawFunction = compiledCode()
 			code.setMethodName(
 				stringFrom("VM crash function: $messageString"))
-			return createFunction(code, emptyTuple()).makeShared()
+			return createFunction(code, emptyTuple).makeShared()
 		}
 
 		/** The mutable [FunctionDescriptor]. */

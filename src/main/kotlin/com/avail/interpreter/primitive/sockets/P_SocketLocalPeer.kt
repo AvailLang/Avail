@@ -108,7 +108,7 @@ object P_SocketLocalPeer : Primitive(1, CanInline)
 			tupleTypeForTypes(
 				tupleTypeForSizesTypesDefaultType(
 					inclusive(4, 16),
-					emptyTuple(),
+					emptyTuple,
 					bytes()),
 				unsignedShorts()))
 

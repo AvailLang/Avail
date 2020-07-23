@@ -1340,7 +1340,7 @@ class MessageSplitter
 		 * with compare-and-set and retry.  The tuple itself should always be
 		 * marked as shared.  This mechanism is thread-safe.
 		 */
-		private val permutations = AtomicReference<A_Tuple>(emptyTuple())
+		private val permutations = AtomicReference<A_Tuple>(emptyTuple)
 
 		/**
 		 * A statically-scoped [List] of unique constants needed as operands of
@@ -1441,11 +1441,11 @@ class MessageSplitter
 
 		/** The position at which true is stored in the [constantsList].  */
 		@JvmStatic
-		val indexForTrue = indexForConstant(trueObject())
+		val indexForTrue = indexForConstant(trueObject)
 
 		/** The position at which false is stored in the [constantsList].  */
 		@JvmStatic
-		val indexForFalse = indexForConstant(falseObject())
+		val indexForFalse = indexForConstant(falseObject)
 
 		/**
 		 * Answer the [AvailObject] having the given one-based index in the

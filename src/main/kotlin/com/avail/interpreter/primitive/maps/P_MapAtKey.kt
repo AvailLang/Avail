@@ -76,7 +76,7 @@ object P_MapAtKey : Primitive(2, CanFold, CanInline)
 		val keyType = argumentTypes[1]
 		if (mapType.isEnumeration && keyType.isEnumeration)
 		{
-			var values = emptySet()
+			var values = emptySet
 			val keyTypeInstances = keyType.instances()
 			for (mapInstance in mapType.instances())
 			{

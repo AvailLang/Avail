@@ -1138,7 +1138,8 @@ enum class SerializerOperation constructor(
 			serializer.checkAtom(obj)
 			assert(
 				obj.getAtomProperty(HERITABLE_KEY.atom).equals(
-					trueObject()))
+					trueObject
+				))
 			val module = obj.issuingModule()
 			if (module.equalsNil())
 			{
@@ -1153,7 +1154,7 @@ enum class SerializerOperation constructor(
 		{
 			val (atomName, moduleName) = subobjects
 			val atom = lookupAtom(atomName, moduleName, deserializer)
-			atom.setAtomProperty(HERITABLE_KEY.atom, trueObject())
+			atom.setAtomProperty(HERITABLE_KEY.atom, trueObject)
 			return atom.makeShared()
 		}
 	},
@@ -1200,7 +1201,7 @@ enum class SerializerOperation constructor(
 			}
 			val module = obj.module()
 			val moduleName = if (module.equalsNil())
-				emptyTuple()
+				emptyTuple
 			else
 				module.moduleName()
 			val primitive = obj.primitive()
@@ -1208,7 +1209,7 @@ enum class SerializerOperation constructor(
 			primName =
 				if (primitive === null)
 				{
-					emptyTuple()
+					emptyTuple
 				}
 				else
 				{
@@ -1292,7 +1293,7 @@ enum class SerializerOperation constructor(
 			deserializer: Deserializer): A_BasicObject
 		{
 			val code = subobjects[0]
-			return createFunction(code, emptyTuple())
+			return createFunction(code, emptyTuple)
 		}
 	},
 
@@ -2176,7 +2177,7 @@ enum class SerializerOperation constructor(
 		{
 			val primitive = obj.primitive()
 			val primitiveName = if (primitive === null)
-				emptyTuple()
+				emptyTuple
 			else
 				stringFrom(primitive.fieldName())
 			return array(
@@ -2591,7 +2592,7 @@ enum class SerializerOperation constructor(
 					fieldName.asNativeString())
 				assert(field.modifiers and Modifier.STATIC != 0)
 				val fieldType = resolvePojoType(
-					field.genericType, emptyMap())
+					field.genericType, emptyMap)
 				return pojoFieldVariableForInnerType(
 					equalityPojo(field), rawNullPojo(), fieldType)
 			}
@@ -2898,7 +2899,7 @@ enum class SerializerOperation constructor(
 		{
 			assert(obj.isPojoType)
 			assert(obj.isPojoFusedType)
-			var symbolicMap = emptyMap()
+			var symbolicMap = emptyMap
 			for (entry in obj.javaAncestors().mapIterable())
 			{
 				val baseClass = entry.key().javaObjectNotNull<Class<*>>()
@@ -2929,7 +2930,7 @@ enum class SerializerOperation constructor(
 			deserializer: Deserializer): A_BasicObject
 		{
 			val classLoader = deserializer.runtime.classLoader
-			var ancestorMap = emptyMap()
+			var ancestorMap = emptyMap
 			try
 			{
 				for (entry in subobjects[0].mapIterable())

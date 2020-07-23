@@ -75,11 +75,11 @@ object P_DeclarationInitializingExpression : Primitive(2, CanInline, HasSideEffe
 		val decl = interpreter.argument(1)
 		val initializer = decl.initializationExpression()
 		if (initializer.equalsNil()) {
-			return interpreter.primitiveSuccess(falseObject())
+			return interpreter.primitiveSuccess(falseObject)
 		}
 		return try {
 			variable.setValue(initializer)
-			interpreter.primitiveSuccess(trueObject())
+			interpreter.primitiveSuccess(trueObject)
 		} catch (e: VariableSetException) {
 			interpreter.primitiveFailure(e)
 		}

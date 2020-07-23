@@ -105,17 +105,17 @@ object P_CreateObjectFieldGetter : Primitive(2, CanFold, CanInline)
 		val module = interpreter.availLoaderOrNull()?.module() ?: nil
 		val returnType = objectType.fieldTypeAt(fieldAtom)
 		val rawFunction = newCompiledCode(
-			emptyTuple(),
+			emptyTuple,
 			0,
 			functionType(ObjectTupleDescriptor.tuple(objectType), returnType),
 			P_PrivateGetSpecificObjectField,
-			emptyTuple(),
-			emptyTuple(),
-			emptyTuple(),
+			emptyTuple,
+			emptyTuple,
+			emptyTuple,
 			ObjectTupleDescriptor.tuple(instanceType(fieldAtom)),
 			module,
 			0,
-			emptyTuple(),
+			emptyTuple,
 			nil)
 		val newFunction = createWithOuters1(rawFunction, fieldAtom)
 		return interpreter.primitiveSuccess(newFunction)

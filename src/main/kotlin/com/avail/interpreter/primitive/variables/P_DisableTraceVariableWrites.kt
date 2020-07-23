@@ -78,7 +78,7 @@ object P_DisableTraceVariableWrites : Primitive(
 		}
 		interpreter.setTraceVariableWrites(false)
 		val written = fiber.variablesWritten()
-		var functions = emptySet()
+		var functions = emptySet
 		for (variable in written)
 		{
 			functions = functions.setUnionCanDestroy(
@@ -89,11 +89,11 @@ object P_DisableTraceVariableWrites : Primitive(
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			emptyTuple(),
+			emptyTuple,
 			setTypeForSizesContentType(
 				wholeNumbers(),
 				functionType(
-					emptyTuple(),
+					emptyTuple,
 					TOP.o())))
 
 	override fun privateFailureVariableType(): A_Type =

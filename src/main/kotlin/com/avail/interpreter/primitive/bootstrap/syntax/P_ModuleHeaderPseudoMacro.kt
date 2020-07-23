@@ -88,7 +88,7 @@ object P_ModuleHeaderPseudoMacro
 			newExpressionAsStatement(
 				newSendNode(
 					// Don't bother collecting tokens in header.
-					emptyTuple(),
+					emptyTuple,
 					MODULE_HEADER.bundle,
 					newListNode(
 						tupleFromArray(

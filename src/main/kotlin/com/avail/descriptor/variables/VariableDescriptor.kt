@@ -499,7 +499,7 @@ open class VariableDescriptor protected constructor(
 		{
 			val writeReactors =
 				rawPojo.javaObjectNotNull<MutableMap<A_Atom, VariableAccessReactor>>()
-			var set = SetDescriptor.emptySet()
+			var set = SetDescriptor.emptySet
 			for ((_, value) in writeReactors)
 			{
 				val function = value.getAndClearFunction()
@@ -511,7 +511,7 @@ open class VariableDescriptor protected constructor(
 			writeReactors.clear()
 			return set
 		}
-		return SetDescriptor.emptySet()
+		return SetDescriptor.emptySet
 	}
 
 	override fun o_Kind(self: AvailObject): A_Type =
@@ -673,7 +673,7 @@ open class VariableDescriptor protected constructor(
 			FunctionDescriptor.createFunction(
 				CompiledCodeDescriptor.newPrimitiveRawFunction(
 					P_SetValue, nil, 0),
-			TupleDescriptor.emptyTuple()).makeShared()
+			TupleDescriptor.emptyTuple).makeShared()
 
 		/**
 		 * Create a `VariableDescriptor variable` which can only contain values

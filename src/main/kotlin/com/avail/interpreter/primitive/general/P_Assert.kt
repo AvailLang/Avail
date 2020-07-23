@@ -107,7 +107,7 @@ object P_Assert : Primitive(2, Unknown, CanSuspend, CannotFail)
 		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type
 	{
 		val booleanType = argumentTypes[0]
-		return if (trueObject().isInstanceOf(booleanType))
+		return if (trueObject.isInstanceOf(booleanType))
 		{
 			// The assertion might pass, so the type is top.
 			TOP.o()
@@ -130,14 +130,14 @@ object P_Assert : Primitive(2, Unknown, CanSuspend, CannotFail)
 	{
 		assert(arguments.size == 2)
 		val conditionType = argumentTypes[0]
-		if (!falseObject().isInstanceOf(conditionType))
+		if (!falseObject.isInstanceOf(conditionType))
 		{
 			// The condition can't be false, so skip the call.
 			callSiteHelper.useAnswer(
 				translator.generator.boxedConstant(nil))
 			return true
 		}
-		if (!trueObject().isInstanceOf(conditionType))
+		if (!trueObject.isInstanceOf(conditionType))
 		{
 			// The condition can't be true, so don't optimize the call.
 			return false
@@ -153,7 +153,7 @@ object P_Assert : Primitive(2, Unknown, CanSuspend, CannotFail)
 		translator.addInstruction(
 			L2_JUMP_IF_EQUALS_CONSTANT,
 			arguments[0],
-			L2ConstantOperand(trueObject()),
+			L2ConstantOperand(trueObject),
 			edgeTo(passPath),
 			edgeTo(failPath))
 
@@ -163,7 +163,7 @@ object P_Assert : Primitive(2, Unknown, CanSuspend, CannotFail)
 		translator.generateGeneralFunctionInvocation(
 			functionToCallReg,
 			listOf(
-				translator.generator.boxedConstant(falseObject()),
+				translator.generator.boxedConstant(falseObject),
 				arguments[1]),
 			true,
 			callSiteHelper)

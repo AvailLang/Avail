@@ -77,7 +77,7 @@ object P_BootstrapLexerOperatorBody
 			if (startPosition < sourceSize && source.tupleCodePointAt(startPosition + 1) == '*'.toInt())
 			{
 				// No solution in this case, but don't complain.
-				return interpreter.primitiveSuccess(emptySet())
+				return interpreter.primitiveSuccess(emptySet)
 			}
 		}
 		val token = newToken(

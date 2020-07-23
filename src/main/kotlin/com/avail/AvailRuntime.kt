@@ -590,7 +590,7 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 		 */
 		READ_UNASSIGNED_VARIABLE(
 			"«cannot read unassigned variable»",
-			functionType(emptyTuple(), bottom()),
+			functionType(emptyTuple, bottom()),
 			null),
 
 		/**
@@ -704,7 +704,7 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 			{
 				val code = newPrimitiveRawFunction(primitive, nil, 0)
 				code.setMethodName(this.hookName)
-				OnceSupplier { createFunction(code, emptyTuple()).makeShared() }
+				OnceSupplier { createFunction(code, emptyTuple).makeShared() }
 			}
 		}
 
@@ -999,8 +999,8 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 			specials[68] =
 				PhraseKind.PRIMITIVE_FAILURE_REASON_PHRASE.mostGeneralType()
 			specials[69] = anyMeta()
-			specials[70] = trueObject()
-			specials[71] = falseObject()
+			specials[70] = trueObject
+			specials[71] = falseObject
 			specials[72] = zeroOrMoreOf(stringType())
 			specials[73] = zeroOrMoreOf(topMeta())
 			specials[74] = zeroOrMoreOf(
@@ -1008,7 +1008,7 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 			specials[75] =
 				setTypeForSizesContentType(wholeNumbers(), stringType())
 			specials[76] = functionType(tuple(naturalNumbers()), bottom())
-			specials[77] = emptySet()
+			specials[77] = emptySet
 			specials[78] = negativeInfinity()
 			specials[79] = positiveInfinity()
 			specials[80] = mostGeneralPojoType()
@@ -1021,8 +1021,8 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 			specials[87] = mostGeneralPojoArrayType()
 			specials[88] = pojoSelfTypeAtom()
 			specials[89] = pojoTypeForClass(Throwable::class.java)
-			specials[90] = functionType(emptyTuple(), Types.TOP.o())
-			specials[91] = functionType(emptyTuple(), booleanType())
+			specials[90] = functionType(emptyTuple, Types.TOP.o())
+			specials[91] = functionType(emptyTuple, booleanType())
 			specials[92] = variableTypeFor(mostGeneralContinuationType())
 			specials[93] = mapTypeForSizesKeyTypeValueType(
 				wholeNumbers(),
@@ -1034,12 +1034,12 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 				anyMeta())
 			specials[95] = tupleTypeForSizesTypesDefaultType(
 				wholeNumbers(),
-				emptyTuple(),
+				emptyTuple,
 				tupleTypeForSizesTypesDefaultType(
 					singleInt(2),
-					emptyTuple(),
+					emptyTuple,
 					Types.ANY.o()))
-			specials[96] = emptyMap()
+			specials[96] = emptyMap
 			specials[97] = mapTypeForSizesKeyTypeValueType(
 				naturalNumbers(),
 				Types.ANY.o(),
@@ -1048,16 +1048,16 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 			specials[99] = setTypeForSizesContentType(
 				naturalNumbers(), Types.ANY.o())
 			specials[100] = tupleTypeForSizesTypesDefaultType(
-				wholeNumbers(), emptyTuple(), mostGeneralTupleType())
+				wholeNumbers(), emptyTuple, mostGeneralTupleType())
 			specials[101] = nybbles()
 			specials[102] = zeroOrMoreOf(nybbles())
 			specials[103] = unsignedShorts()
-			specials[104] = emptyTuple()
+			specials[104] = emptyTuple
 			specials[105] = functionType(tuple(bottom()), Types.TOP.o())
 			specials[106] = instanceType(zero())
 			specials[107] = functionTypeReturning(topMeta())
 			specials[108] = tupleTypeForSizesTypesDefaultType(
-				wholeNumbers(), emptyTuple(), functionTypeReturning(topMeta()))
+				wholeNumbers(), emptyTuple, functionTypeReturning(topMeta()))
 			specials[109] = functionTypeReturning(
 				PhraseKind.PARSE_PHRASE.mostGeneralType())
 			specials[110] = instanceType(two())
@@ -1109,7 +1109,7 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 			specials[138] = zeroOrMoreOf(integers())
 			specials[139] = tupleTypeForSizesTypesDefaultType(
 				integerRangeType(fromInt(2), true, positiveInfinity(), false),
-				emptyTuple(),
+				emptyTuple,
 				Types.ANY.o())
 			// Some of these entries may need to be shuffled into earlier slots to
 			// maintain reasonable topical consistency.
@@ -1246,7 +1246,7 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 	/**
 	 * The loaded Avail modules: a [A_Map] from [A_String] to [A_Module].
 	 */
-	private var modules = emptyMap()
+	private var modules = emptyMap
 
 	/**
 	 * Add the specified [module][ModuleDescriptor] to the runtime.

@@ -92,7 +92,7 @@ object P_CreateSendExpression : Primitive(3, CanFold, CanInline)
 					E_INCORRECT_NUMBER_OF_ARGUMENTS)
 			}
 			return interpreter.primitiveSuccess(
-				newSendNode(emptyTuple(), bundle, argsListNode, returnType))
+				newSendNode(emptyTuple, bundle, argsListNode, returnType))
 		}
 		catch (e: MalformedMessageException)
 		{

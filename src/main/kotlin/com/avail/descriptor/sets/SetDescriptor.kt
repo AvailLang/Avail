@@ -429,7 +429,7 @@ private constructor(
 	{
 		val size = self.setSize()
 		if (size == 0) {
-			return emptyTuple()
+			return emptyTuple
 		}
 		val iterator = self.iterator()
 		return generateObjectTupleFrom(self.setSize()) {
@@ -556,7 +556,6 @@ private constructor(
 		 * @return
 		 *   A new mutable set containing the elements of the collection.
 		 */
-		@JvmStatic
 		fun setFromCollection(collection: Collection<A_BasicObject>): A_Set {
 			val iterator = collection.iterator()
 			return generateSetFrom(collection.size) { iterator.next() }
@@ -571,7 +570,6 @@ private constructor(
 		 * @return
 		 *   The corresponding Java [Set] of [AvailObject]s.
 		 */
-		@JvmStatic
 		fun toSet(set: A_Set): Set<AvailObject> =
 			set.mapTo(mutableSetOf()) { it }
 
@@ -584,7 +582,6 @@ private constructor(
 		 * @return
 		 *   The new mutable set.
 		 */
-		@JvmStatic
 		fun set(vararg elements: A_BasicObject): A_Set =
 			generateSetFrom(elements.size) { elements[it - 1] }
 
@@ -598,7 +595,6 @@ private constructor(
 		 * @return
 		 *   The new mutable set.
 		 */
-		@JvmStatic
 		fun set(vararg errorCodeElements: AvailErrorCode): A_Set =
 			generateSetFrom(errorCodeElements) { it.numericCode() }
 
@@ -612,28 +608,27 @@ private constructor(
 		private val shared = SetDescriptor(Mutability.SHARED)
 
 		/** The empty set.  */
-		private var theEmptySet: A_Set = mutable.createShared {
+		val emptySet: A_Set = mutable.createShared {
 			setRootBin(this, emptyLinearSetBin(0))
 			hash()
 		}
 
 		/**
-		 * Answer the empty set.
+		 * Answer the empty [set][A_Set].
 		 *
 		 * @return
 		 *   The empty set.
 		 */
 		@ReferencedInGeneratedCode
 		@JvmStatic
-		fun emptySet(): A_Set = theEmptySet
+		fun emptyAvailSet(): A_Set = emptySet
 
 		/**
 		 * The [CheckedMethod] for [emptySet].
 		 */
-		@JvmField
 		val emptySetMethod: CheckedMethod = staticMethod(
 			SetDescriptor::class.java,
-			::emptySet.name,
+			::emptyAvailSet.name,
 			A_Set::class.java)
 
 		/**
@@ -645,7 +640,6 @@ private constructor(
 		 * @return
 		 *   The new mutable set.
 		 */
-		@JvmStatic
 		fun singletonSet(element: A_BasicObject): A_Set =
 			mutable.create {
 				setRootBin(this, element)
@@ -685,12 +679,11 @@ private constructor(
 		 * @return
 		 *   The new set.
 		 */
-		@JvmStatic
 		fun generateSetFrom(
 			size: Int,
 			generator: (Int) -> A_BasicObject
 		): A_Set = when (size) {
-			0 -> emptySet()
+			0 -> emptySet
 			1 -> singletonSet(generator(1))
 			2 -> {
 				val element1 = generator(1)
@@ -717,7 +710,6 @@ private constructor(
 		 * @return
 		 *   The new set.
 		 */
-		@JvmStatic
 		fun generateSetFrom(
 			size: Int,
 			iterator: Iterator<A_BasicObject>
@@ -740,7 +732,6 @@ private constructor(
 		 * @return
 		 *   The new set.
 		 */
-		@JvmStatic
 		fun <A> generateSetFrom(
 			size: Int,
 			iterator: Iterator<A>,
@@ -762,7 +753,6 @@ private constructor(
 		 * @return
 		 *   The new set.
 		 */
-		@JvmStatic
 		fun <A> generateSetFrom(
 			collection: Collection<A>,
 			transformer: (A)->A_BasicObject
@@ -784,7 +774,6 @@ private constructor(
 		 * @return
 		 *   The new set.
 		 */
-		@JvmStatic
 		fun <A> generateSetFrom(
 			array: Array<A>,
 			transformer: (A)->A_BasicObject
@@ -802,7 +791,6 @@ private constructor(
 		 * @return
 		 *   The new set.
 		 */
-		@JvmStatic
 		fun generateSetFrom(
 			tuple: A_Tuple,
 			transformer: (AvailObject)->A_BasicObject

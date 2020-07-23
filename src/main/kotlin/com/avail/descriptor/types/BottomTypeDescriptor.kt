@@ -155,7 +155,7 @@ class BottomTypeDescriptor private constructor()
 		self: AvailObject,
 		argRestrictions: List<TypeRestriction>): Boolean = true
 
-	override fun o_DeclaredExceptions(self: AvailObject): A_Set = emptySet()
+	override fun o_DeclaredExceptions(self: AvailObject): A_Set = emptySet
 
 	// Since I'm a degenerate tuple type, I must answer ⊥.
 	override fun o_DefaultType(self: AvailObject): A_Type = self
@@ -226,7 +226,7 @@ class BottomTypeDescriptor private constructor()
 	override fun o_InstanceCount(self: AvailObject): A_Number = zero()
 
 	// ⊥ is the empty enumeration.
-	override fun o_Instances(self: AvailObject): A_Set = emptySet()
+	override fun o_Instances(self: AvailObject): A_Set = emptySet
 
 	override fun o_IsBottom(self: AvailObject): Boolean = true
 
@@ -333,7 +333,7 @@ class BottomTypeDescriptor private constructor()
 	override fun o_TypeAtIndex(self: AvailObject, index: Int): A_Type = self
 
 	// Since I'm a degenerate tuple type, I have no leading types.
-	override fun o_TypeTuple(self: AvailObject): A_Tuple = emptyTuple()
+	override fun o_TypeTuple(self: AvailObject): A_Tuple = emptyTuple
 
 	// Answer the union of the types the given indices would have in an
 	// object instance of me. Answer ⊥ if the index is out of bounds, which

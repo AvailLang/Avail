@@ -389,7 +389,7 @@ internal class FusedPojoTypeDescriptor constructor (mutability: Mutability)
 		var typeVars: A_Map = self.slot(TYPE_VARIABLES)
 		if (typeVars.equalsNil())
 		{
-			typeVars = emptyMap()
+			typeVars = emptyMap
 			for (entry in
 				self.slot(JAVA_ANCESTORS).mapIterable())
 			{
@@ -450,7 +450,7 @@ internal class FusedPojoTypeDescriptor constructor (mutability: Mutability)
 			builder.append(javaClass.javaObjectNotNull<Class<*>>().name)
 			val params: A_Tuple =
 				if (ancestors.hasKey(javaClass)) ancestors.mapAt(javaClass)
-				else emptyTuple()
+				else emptyTuple
 			if (params.tupleSize() != 0)
 			{
 				builder.append('<')

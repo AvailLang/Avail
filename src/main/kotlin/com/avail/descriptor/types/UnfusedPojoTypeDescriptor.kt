@@ -420,7 +420,7 @@ internal class UnfusedPojoTypeDescriptor constructor(mutability: Mutability)
 		var typeVars: A_Map = self.slot(TYPE_VARIABLES)
 		if (typeVars.equalsNil())
 		{
-			typeVars = emptyMap()
+			typeVars = emptyMap
 			for (entry in self.slot(JAVA_ANCESTORS).mapIterable())
 			{
 				val ancestor = entry.key().javaObjectNotNull<Class<*>>()

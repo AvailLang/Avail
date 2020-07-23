@@ -80,7 +80,7 @@ object P_CreateAssignmentExpression : Primitive(2, CanFold, CanInline)
 			return interpreter.primitiveFailure(
 				E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
 		}
-		val assignment = newAssignment(variable, expression, emptyTuple(), true)
+		val assignment = newAssignment(variable, expression, emptyTuple, true)
 		return interpreter.primitiveSuccess(assignment)
 	}
 

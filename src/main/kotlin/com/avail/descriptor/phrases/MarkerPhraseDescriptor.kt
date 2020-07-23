@@ -161,7 +161,7 @@ class MarkerPhraseDescriptor private constructor(
 		continuation: (A_Phrase) -> Unit
 	): Unit = unsupported
 
-	override fun o_Tokens(self: AvailObject): A_Tuple = emptyTuple()
+	override fun o_Tokens(self: AvailObject): A_Tuple = emptyTuple
 
 	override fun o_ValidateLocally(
 		self: AvailObject,

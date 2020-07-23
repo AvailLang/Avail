@@ -202,7 +202,7 @@ object P_TupleReplaceAtNAry : Primitive(3, CanInline, CanFold)
 						true,
 						positiveInfinity(),
 						false),
-					emptyTuple(),
+					emptyTuple,
 					ANY.o()),
 				ANY.o()),
 			mostGeneralTupleType())

@@ -88,7 +88,7 @@ object P_BindPojoStaticField : Primitive(2, CanFold, CanInline)
 		// A static field cannot have a type parametric on type variables
 		// of the declaring class, so pass an empty map where the type
 		// variables are expected.
-		val fieldType = resolvePojoType(field.genericType, emptyMap())
+		val fieldType = resolvePojoType(field.genericType, emptyMap)
 		val variable = pojoFieldVariableForInnerType(
 			equalityPojo(field), rawNullPojo(), fieldType)
 		return interpreter.primitiveSuccess(variable)

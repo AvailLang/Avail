@@ -129,7 +129,7 @@ object P_SocketIPv6Bind : Primitive(3, CanInline, HasSideEffect)
 				ATOM.o(),
 				tupleTypeForSizesTypesDefaultType(
 					singleInt(16),
-					emptyTuple(),
+					emptyTuple,
 					bytes()),
 				unsignedShorts()),
 			TOP.o())

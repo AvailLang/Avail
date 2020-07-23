@@ -84,7 +84,7 @@ object P_AddWriteReactor : Primitive(3, HasSideEffect)
 				mostGeneralVariableType(),
 				ATOM.o(),
 				functionType(
-					emptyTuple(),
+					emptyTuple,
 					TOP.o())),
 			TOP.o())
 

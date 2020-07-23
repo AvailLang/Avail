@@ -71,7 +71,7 @@ object P_VisibleAtoms : Primitive(0, CanInline, ReadsFromHiddenGlobalState)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			emptyTuple(), setTypeForSizesContentType(wholeNumbers(), ATOM.o()))
+			emptyTuple, setTypeForSizesContentType(wholeNumbers(), ATOM.o()))
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_LOADING_IS_OVER))

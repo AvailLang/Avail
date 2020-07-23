@@ -66,5 +66,5 @@ object P_GetRaiseJavaExceptionInAvailFunction
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(emptyTuple(), RAISE_JAVA_EXCEPTION_IN_AVAIL.functionType)
+		functionType(emptyTuple, RAISE_JAVA_EXCEPTION_IN_AVAIL.functionType)
 }

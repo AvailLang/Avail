@@ -342,8 +342,8 @@ class MessageBundleDescriptor private constructor(
 				setSlot(METHOD, method)
 				setSlot(MESSAGE, methodName)
 				setSlot(MESSAGE_SPLITTER_POJO, splitterPojo)
-				setSlot(GRAMMATICAL_RESTRICTIONS, emptySet())
-				var plans = emptyMap()
+				setSlot(GRAMMATICAL_RESTRICTIONS, emptySet)
+				var plans = emptyMap
 				for (definition in method.definitionsTuple())
 				{
 					val plan = newParsingPlan(this, definition)

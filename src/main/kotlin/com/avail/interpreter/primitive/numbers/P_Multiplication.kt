@@ -109,7 +109,7 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 			// be few enough entries.
 			if (aValues.setSize() * bValues.setSize().toLong() < 100)
 			{
-				var answers = emptySet()
+				var answers = emptySet
 				for (aValue in aValues)
 				{
 					for (bValue in bValues)

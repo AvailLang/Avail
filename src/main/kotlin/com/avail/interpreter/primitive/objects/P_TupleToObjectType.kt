@@ -91,7 +91,7 @@ object P_TupleToObjectType : Primitive(1, CannotFail, CanFold, CanInline)
 			return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
 		}
 		val tupleSize = tupleSizeLowerBound.extractInt()
-		var fieldTypeMap = emptyMap()
+		var fieldTypeMap = emptyMap
 		for (i in 1 .. tupleSize)
 		{
 			val pairType = tupleType.typeAtIndex(i)

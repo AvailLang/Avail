@@ -316,7 +316,7 @@ class TreeTupleDescriptor internal constructor(
 		assert(1 <= start && start <= end + 1 && end <= tupleSize)
 		if (start - 1 == end)
 		{
-			return emptyTuple()
+			return emptyTuple
 		}
 		if (!canDestroy)
 		{

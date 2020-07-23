@@ -103,7 +103,7 @@ object P_Subtraction : Primitive(2, CanFold, CanInline)
 				// be few enough entries.
 				if (aInstances.setSize() * bInstances.setSize().toLong() < 100)
 				{
-					var answers = emptySet()
+					var answers = emptySet
 					for (aInstance in aInstances)
 					{
 						for (bInstance in bInstances)

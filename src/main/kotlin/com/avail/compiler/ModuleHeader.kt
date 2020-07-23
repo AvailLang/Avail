@@ -281,7 +281,7 @@ class ModuleHeader constructor(val moduleName: ResolvedModuleName)
 		val resolver = runtime.moduleNameResolver
 		module.setVersions(setFromCollection(versions))
 
-		val newAtoms = exportedNames.fold(emptySet()) { set, name ->
+		val newAtoms = exportedNames.fold(emptySet) { set, name ->
 			val trueName = createAtomWithProperties(name, module)
 			module.introduceNewName(trueName)
 			set.setWithElementCanDestroy(trueName, true)
@@ -348,7 +348,7 @@ class ModuleHeader constructor(val moduleName: ResolvedModuleName)
 
 			// Look up the strings to get existing atoms.  Don't complain
 			// about ambiguity, just export all that match.
-			var atomsToImport = emptySet()
+			var atomsToImport = emptySet
 			for (string in stringsToImport)
 			{
 				if (!importedNamesMultimap.hasKey(string))

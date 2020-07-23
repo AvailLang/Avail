@@ -48,7 +48,6 @@ import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
-import java.util.Collections.emptyList
 
 /**
  * **Primitive:** Invoke the [falseBlock][FunctionDescriptor].
@@ -77,8 +76,8 @@ object P_IfFalseThenElse : Primitive(3, Invokes, CanInline, CannotFail)
 		functionType(
 			tuple(
 				ANY.o(),
-				functionType(emptyTuple(), TOP.o()),
-				functionType(emptyTuple(), TOP.o())),
+				functionType(emptyTuple, TOP.o()),
+				functionType(emptyTuple, TOP.o())),
 			TOP.o())
 
 	override fun tryToGenerateSpecialPrimitiveInvocation(

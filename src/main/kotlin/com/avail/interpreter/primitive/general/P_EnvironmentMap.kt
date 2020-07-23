@@ -79,7 +79,7 @@ object P_EnvironmentMap : Primitive(0, CannotFail, CanInline, HasSideEffect)
 		var result = environmentMap.get()
 		if (result === null)
 		{
-			result = emptyMap()
+			result = emptyMap
 			val map = System.getenv()
 			for ((key, value) in map)
 			{
@@ -101,7 +101,7 @@ object P_EnvironmentMap : Primitive(0, CannotFail, CanInline, HasSideEffect)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			emptyTuple(),
+			emptyTuple,
 			mapTypeForSizesKeyTypeValueType(
 				wholeNumbers(), stringType(), stringType()))
 }

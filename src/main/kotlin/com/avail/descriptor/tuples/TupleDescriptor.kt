@@ -596,7 +596,7 @@ abstract class TupleDescriptor protected constructor(
 		val tupleSize = self.tupleSize()
 		if (tupleSize == 0)
 		{
-			return emptyTuple()
+			return emptyTuple
 		}
 		var accumulator: A_Tuple = self.tupleAt(1)
 		if (canDestroy)
@@ -639,7 +639,7 @@ abstract class TupleDescriptor protected constructor(
 			{
 				self.assertObjectUnreachableIfMutable()
 			}
-			return emptyTuple()
+			return emptyTuple
 		}
 		if (size == tupleSize)
 		{
@@ -1134,25 +1134,6 @@ abstract class TupleDescriptor protected constructor(
 		}
 	}
 
-	/** A static inner type that delays initialization until first use.  */
-	private object Empty
-	{
-		/** The empty tuple.  */
-		var emptyTuple: AvailObject
-
-		init
-		{
-			// Create the empty tuple.
-			val t: A_Tuple = NybbleTupleDescriptor.generateNybbleTupleFrom(0)
-			{
-				assert(false) { "This should be an empty nybble tuple" }
-				0
-			}
-			t.hash()
-			emptyTuple = t.makeShared()
-		}
-	}
-
 	companion object
 	{
 		/**
@@ -1189,17 +1170,26 @@ abstract class TupleDescriptor protected constructor(
 		private fun computeHashForObject(self: A_Tuple): Int =
 			self.computeHashFromTo(1, self.tupleSize())
 
+		/** The empty tuple. */
+		val emptyTuple: AvailObject = {
+			val t: A_Tuple =
+				NybbleTupleDescriptor.generateNybbleTupleFrom(0) {
+					assert(false) { "This should be an empty nybble tuple" }
+					0
+				}
+			t.hash()
+			t.makeShared()
+		}()
+
 		/**
-		 * Return the empty `TupleDescriptor tuple`.  Other empty tuples can be
-		 * created, but if you know the tuple is empty you can save time and
-		 * space by returning this one.
+		 * Answer the empty [tuple][A_Tuple].
 		 *
 		 * @return
-		 *   The tuple of size zero.
+		 *   The empty tuple.
 		 */
 		@JvmStatic
 		@ReferencedInGeneratedCode
-		fun emptyTuple(): AvailObject = Empty.emptyTuple
+		fun emptyTuple(): AvailObject = emptyTuple
 
 		/**
 		 * Construct a Java [List] from the specified [tuple][TupleDescriptor].
@@ -1224,14 +1214,15 @@ abstract class TupleDescriptor protected constructor(
 		}
 
 		/**
-		 * Construct an [AvailObject[]][AvailObject] from the specified
-		 * [A_Tuple]. The elements are not made immutable.
+		 * Construct an [array][AvailObject] from the specified [A_Tuple]. The
+		 * elements are not made immutable.
 		 *
 		 * @param tuple
 		 *   A tuple.
 		 * @return
 		 *   The corresponding Java array of AvailObjects.
 		 */
+		@Suppress("unused")
 		fun toArray(tuple: A_Tuple): Array<AvailObject> =
 			Array(tuple.tupleSize()) { tuple.tupleAt(it + 1) }
 
@@ -1285,12 +1276,11 @@ abstract class TupleDescriptor protected constructor(
 		 * @return
 		 *   A new mutable tuple of integers.
 		 */
-		@JvmStatic
 		fun tupleFromIntegerList(list: List<Int>): A_Tuple
 		{
 			if (list.isEmpty())
 			{
-				return emptyTuple()
+				return emptyTuple
 			}
 
 			val minValue = list.min()!!

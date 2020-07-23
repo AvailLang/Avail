@@ -137,7 +137,7 @@ abstract class StringDescriptor protected constructor(
 			val charCount = aNativeString.length
 			if (charCount == 0)
 			{
-				return emptyTuple()
+				return emptyTuple
 			}
 			var maxChar = 0
 			var index = 0
@@ -181,7 +181,7 @@ abstract class StringDescriptor protected constructor(
 			val charCount = aNativeString.length
 			if (charCount == 0)
 			{
-				return emptyTuple()
+				return emptyTuple
 			}
 			var maxCodePoint = 0
 			var count = 0

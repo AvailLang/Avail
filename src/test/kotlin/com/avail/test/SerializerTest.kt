@@ -255,8 +255,8 @@ class SerializerTest
 	@Throws(MalformedSerialStreamException::class)
 	fun testBooleans()
 	{
-		checkObject(trueObject())
-		checkObject(falseObject())
+		checkObject(trueObject)
+		checkObject(falseObject)
 	}
 
 	/**
@@ -388,7 +388,7 @@ class SerializerTest
 							else ->
 							{
 								//if (choice == 4)
-								var map = emptyMap()
+								var map = emptyMap
 								var i = 0
 								while (i < size)
 								{
@@ -467,7 +467,7 @@ class SerializerTest
 		writer.primitive = P_FloatFloor
 		writer.returnType = TypeDescriptor.Types.FLOAT.o()
 		val code: A_RawFunction = writer.compiledCode()
-		val function = createFunction(code, emptyTuple())
+		val function = createFunction(code, emptyTuple)
 		val newFunction: A_Function = roundTrip(function)
 		val code2 = newFunction.code()
 		Assertions.assertEquals(code.numOuters(), code2.numOuters())

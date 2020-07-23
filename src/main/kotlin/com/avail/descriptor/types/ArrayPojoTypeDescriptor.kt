@@ -311,7 +311,7 @@ internal class ArrayPojoTypeDescriptor private constructor(
 		}
 	}
 
-	override fun o_TypeVariables(self: AvailObject): A_Map = emptyMap()
+	override fun o_TypeVariables(self: AvailObject): A_Map = emptyMap
 
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
@@ -443,18 +443,18 @@ internal class ArrayPojoTypeDescriptor private constructor(
 
 		init
 		{
-			var javaAncestors = emptyMap()
+			var javaAncestors = emptyMap
 			javaAncestors = javaAncestors.mapAtPuttingCanDestroy(
 				rawObjectClass(),
-				emptyTuple(),
+				emptyTuple,
 				true)
 			javaAncestors = javaAncestors.mapAtPuttingCanDestroy(
 				equalityPojo(Cloneable::class.java),
-				emptyTuple(),
+				emptyTuple,
 				true)
 			javaAncestors = javaAncestors.mapAtPuttingCanDestroy(
 				equalityPojo(Serializable::class.java),
-				emptyTuple(),
+				emptyTuple,
 				true)
 			arrayBaseAncestorMap = javaAncestors.makeShared()
 		}

@@ -59,7 +59,7 @@ object P_CompiledCodePrimitiveName : Primitive(1, CannotFail, CanFold, CanInline
 		val code = interpreter.argument(0)
 		val prim = code.primitive()
 		val string = when {
-			prim === null -> emptyTuple()
+			prim === null -> emptyTuple
 			else -> stringFrom(prim.fieldName())
 		}
 		return interpreter.primitiveSuccess(string)

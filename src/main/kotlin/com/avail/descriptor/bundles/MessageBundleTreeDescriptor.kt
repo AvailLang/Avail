@@ -593,7 +593,7 @@ class MessageBundleTreeDescriptor private constructor(
 					LAZY_TYPE_FILTER_TREE_POJO, identityPojo(tree).makeShared())
 			}
 			// Do this volatile write last for correctness.
-			self.setVolatileSlot(UNCLASSIFIED, emptyMap())
+			self.setVolatileSlot(UNCLASSIFIED, emptyMap)
 		}
 	}
 
@@ -843,10 +843,10 @@ class MessageBundleTreeDescriptor private constructor(
 			val definition = plan.definition()
 			var submap =
 				if (outerMap.hasKey(bundle)) outerMap.mapAt(bundle)
-				else emptyMap()
+				else emptyMap
 			var inProgressSet =
 				if (submap.hasKey(definition)) submap.mapAt(definition)
-				else emptySet()
+				else emptySet
 			inProgressSet =
 				inProgressSet.setWithElementCanDestroy(planInProgress, true)
 			submap =
@@ -872,12 +872,12 @@ class MessageBundleTreeDescriptor private constructor(
 		private fun invalidate(self: AvailObject) =
 			invalidationsStat.record(Interpreter.currentIndexOrZero()) {
 				synchronized(self) {
-					self.setSlot(LAZY_COMPLETE, emptySet())
-					self.setSlot(LAZY_INCOMPLETE, emptyMap())
-					self.setSlot(LAZY_INCOMPLETE_CASE_INSENSITIVE, emptyMap())
-					self.setSlot(LAZY_ACTIONS, emptyMap())
-					self.setSlot(LAZY_PREFILTER_MAP, emptyMap())
-					self.setSlot(LAZY_TYPE_FILTER_PAIRS_TUPLE, emptyTuple())
+					self.setSlot(LAZY_COMPLETE, emptySet)
+					self.setSlot(LAZY_INCOMPLETE, emptyMap)
+					self.setSlot(LAZY_INCOMPLETE_CASE_INSENSITIVE, emptyMap)
+					self.setSlot(LAZY_ACTIONS, emptyMap)
+					self.setSlot(LAZY_PREFILTER_MAP, emptyMap)
+					self.setSlot(LAZY_TYPE_FILTER_PAIRS_TUPLE, emptyTuple)
 					self.setSlot(LAZY_TYPE_FILTER_TREE_POJO, nil)
 					self.setSlot(UNCLASSIFIED, self.slot(ALL_PLANS_IN_PROGRESS))
 				}
@@ -1069,7 +1069,7 @@ class MessageBundleTreeDescriptor private constructor(
 						if (actionMap.value.hasKey(instructionObject)) {
 							actionMap.value.mapAt(instructionObject)
 						} else {
-							emptyTuple()
+							emptyTuple
 						}
 					successors = successors.appendCanDestroy(newTarget, true)
 					actionMap.value = actionMap.value.mapAtPuttingCanDestroy(
@@ -1106,7 +1106,7 @@ class MessageBundleTreeDescriptor private constructor(
 							actionMap.value.mapAtPuttingCanDestroy(
 								instructionObject, ObjectTupleDescriptor.tuple(successor), true)
 					}
-					var forbiddenBundles = emptySet()
+					var forbiddenBundles = emptySet
 					plan.bundle().grammaticalRestrictions().forEach {
 						restriction ->
 						// Exclude grammatical restrictions that aren't defined
@@ -1211,14 +1211,14 @@ class MessageBundleTreeDescriptor private constructor(
 			latestBackwardJump: A_BundleTree
 		): A_BundleTree = mutable.createShared {
 			setSlot(HASH_OR_ZERO, 0)
-			setSlot(ALL_PLANS_IN_PROGRESS, emptyMap())
-			setSlot(UNCLASSIFIED, emptyMap())
-			setSlot(LAZY_COMPLETE, emptySet())
-			setSlot(LAZY_INCOMPLETE, emptyMap())
-			setSlot(LAZY_INCOMPLETE_CASE_INSENSITIVE, emptyMap())
-			setSlot(LAZY_ACTIONS, emptyMap())
-			setSlot(LAZY_PREFILTER_MAP, emptyMap())
-			setSlot(LAZY_TYPE_FILTER_PAIRS_TUPLE, emptyTuple())
+			setSlot(ALL_PLANS_IN_PROGRESS, emptyMap)
+			setSlot(UNCLASSIFIED, emptyMap)
+			setSlot(LAZY_COMPLETE, emptySet)
+			setSlot(LAZY_INCOMPLETE, emptyMap)
+			setSlot(LAZY_INCOMPLETE_CASE_INSENSITIVE, emptyMap)
+			setSlot(LAZY_ACTIONS, emptyMap)
+			setSlot(LAZY_PREFILTER_MAP, emptyMap)
+			setSlot(LAZY_TYPE_FILTER_PAIRS_TUPLE, emptyTuple)
 			setSlot(LAZY_TYPE_FILTER_TREE_POJO, nil)
 			setSlot(LATEST_BACKWARD_JUMP, latestBackwardJump)
 		}

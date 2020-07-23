@@ -467,7 +467,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 					{
 						0 ->
 						{
-							push(TupleDescriptor.emptyTuple())
+							push(TupleDescriptor.emptyTuple)
 						}
 						1 ->
 						{

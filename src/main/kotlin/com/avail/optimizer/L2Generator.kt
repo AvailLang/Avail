@@ -197,7 +197,7 @@ class L2Generator internal constructor(
 	 * All [contingent&#32;values][A_ChunkDependable] for which changes should
 	 * cause the current [Level&#32;Two&#32;chunk][L2Chunk] to be invalidated.
 	 */
-	var contingentValues = emptySet()
+	var contingentValues = emptySet
 
 	/**
 	 * The head of the loop formed when a [P_RestartContinuation] is invoked on

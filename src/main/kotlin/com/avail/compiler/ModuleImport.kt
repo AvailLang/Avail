@@ -264,9 +264,9 @@ class ModuleImport
 					stringFrom(name.localName),
 					module.versions(),
 					true,
-					emptySet(),
-					emptyMap(),
-					emptySet(),
+					emptySet,
+					emptyMap,
+					emptySet,
 					true)
 			}
 			catch (e: ImportValidationException)

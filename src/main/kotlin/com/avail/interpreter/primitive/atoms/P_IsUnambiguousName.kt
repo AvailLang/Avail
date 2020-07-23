@@ -67,9 +67,9 @@ object P_IsUnambiguousName : Primitive(
 			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		return try {
 			loader.lookupName(name)
-			interpreter.primitiveSuccess(trueObject())
+			interpreter.primitiveSuccess(trueObject)
 		} catch (e: AmbiguousNameException) {
-			interpreter.primitiveSuccess(falseObject())
+			interpreter.primitiveSuccess(falseObject)
 		}
 	}
 

@@ -284,7 +284,7 @@ class EnumerationTypeDescriptor private constructor(mutability: Mutability)
 		another: A_Type): A_Type
 	{
 		assert(another.isType)
-		var set = emptySet()
+		var set = emptySet
 		val elements = getInstances(self)
 		if (another.isEnumeration)
 		{
@@ -293,7 +293,7 @@ class EnumerationTypeDescriptor private constructor(mutability: Mutability)
 			// intersections of all pairs of types in the product of the sets.
 			// This should even correctly deal with bottom as an element.
 			val otherElements = another.instances()
-			var myTypes = emptySet()
+			var myTypes = emptySet
 			for (element in elements)
 			{
 				if (element.isType)
@@ -739,9 +739,9 @@ class EnumerationTypeDescriptor private constructor(mutability: Mutability)
 		init
 		{
 			booleanObject =
-				enumerationWith(set(trueObject(), falseObject())).makeShared()
-			trueType = instanceTypeOrMetaOn(trueObject()).makeShared()
-			falseType = instanceTypeOrMetaOn(falseObject()).makeShared()
+				enumerationWith(set(trueObject, falseObject)).makeShared()
+			trueType = instanceTypeOrMetaOn(trueObject).makeShared()
+			falseType = instanceTypeOrMetaOn(falseObject).makeShared()
 		}
 
 		/**

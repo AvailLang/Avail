@@ -544,7 +544,7 @@ class IntegerIntervalTupleDescriptor private constructor(mutability: Mutability)
 			// are no members of this interval, so return the empty tuple.
 			if (difference.greaterThan(zero) != delta.greaterThan(zero))
 			{
-				return emptyTuple()
+				return emptyTuple
 			}
 
 			// If there are fewer than maximumCopySize members in this interval,

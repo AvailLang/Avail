@@ -68,7 +68,7 @@ object P_SocketOpen : Primitive(1, CanInline, HasSideEffect)
 		interpreter.checkArgumentCount(1)
 		val name = interpreter.argument(0)
 		return try {
-			val handle = createAtom(name, currentModule())
+			val handle = createAtom(name, currentModule)
 			val channel = currentRuntime().ioSystem().openSocket()
 			handle.setAtomProperty(SOCKET_KEY.atom, identityPojo(channel))
 			interpreter.primitiveSuccess(handle)

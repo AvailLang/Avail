@@ -73,7 +73,7 @@ object P_DeclareAllAtomsExportedFromAnotherModule : Primitive(
 	{
 		interpreter.checkArgumentCount(2)
 		val (importedModuleNames, isPublic) = interpreter.argsBuffer
-		val module = currentModule()
+		val module = currentModule
 		assert(!module.equalsNil())
 		val runtime = interpreter.runtime()
 		importedModuleNames.forEach { importedModuleName ->

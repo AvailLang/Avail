@@ -550,9 +550,9 @@ abstract class PojoTypeDescriptor protected constructor(
 			// of java.lang.Object. Make this relationship explicit: seed the
 			// ancestry with java.lang.Object.
 			val canon = Canon()
-			val ancestors = Mutable(emptyMap())
+			val ancestors = Mutable(emptyMap)
 			ancestors.value = ancestors.value.mapAtPuttingCanDestroy(
-				canon[Any::class.java]!!, emptyTuple(), true)
+				canon[Any::class.java]!!, emptyTuple, true)
 			computeAncestry(key.javaClass, key.typeArgs, ancestors, canon)
 			return UnfusedPojoTypeDescriptor.createUnfusedPojoType(
 				canon[key.javaClass]!!, ancestors.value)
@@ -590,7 +590,7 @@ abstract class PojoTypeDescriptor protected constructor(
 			val otherJavaClasses = otherAncestors.keysAsSet()
 			val union = javaClasses.setUnionCanDestroy(
 				otherJavaClasses, false)
-			var unionAncestors = emptyMap()
+			var unionAncestors = emptyMap
 			for (javaClass in union)
 			{
 				val params: A_Tuple =
@@ -660,7 +660,7 @@ abstract class PojoTypeDescriptor protected constructor(
 			val otherJavaClasses = otherAncestors.keysAsSet()
 			val intersection = javaClasses.setIntersectionCanDestroy(
 				otherJavaClasses, false)
-			var intersectionAncestors = emptyMap()
+			var intersectionAncestors = emptyMap
 			for (javaClass in intersection)
 			{
 				val params: A_Tuple = ancestors.mapAt(javaClass)
@@ -1034,7 +1034,7 @@ abstract class PojoTypeDescriptor protected constructor(
 					val javaClass = pojoClass.javaObjectNotNull<Class<*>>()
 					if (javaClass.typeParameters.isEmpty())
 					{
-						val resolved = resolvePojoType(javaClass, emptyMap())
+						val resolved = resolvePojoType(javaClass, emptyMap)
 						return if (!allowMetas && resolved.equals(Types.ANY.o()))
 						{
 							Types.NONTYPE.o()
@@ -1152,7 +1152,7 @@ abstract class PojoTypeDescriptor protected constructor(
 			// answer an empty type parameterization tuple.
 			return when (supertype)
 			{
-				is Class<*> -> emptyTuple()
+				is Class<*> -> emptyTuple
 				is ParameterizedType ->
 					computeTypeArgumentsOf(
 						supertype,

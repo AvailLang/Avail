@@ -246,7 +246,7 @@ class SelfPojoTypeDescriptor constructor(mutability: Mutability)
 		throw unsupportedOperationException()
 	}
 
-	override fun o_TypeVariables(self: AvailObject): A_Map = emptyMap()
+	override fun o_TypeVariables(self: AvailObject): A_Map = emptyMap
 
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
@@ -352,7 +352,7 @@ class SelfPojoTypeDescriptor constructor(mutability: Mutability)
 				val javaClass = pojoClass.javaObjectNotNull<Class<*>>()
 				stringFrom(javaClass.name)
 			}
-			var ancestorNames = emptySet()
+			var ancestorNames = emptySet
 			for (ancestor in selfPojo.javaAncestors())
 			{
 				val javaClass = ancestor.javaObjectNotNull<Class<*>>()
@@ -393,7 +393,7 @@ class SelfPojoTypeDescriptor constructor(mutability: Mutability)
 					className.asNativeString(), true, classLoader)
 				equalityPojo(mainClass)
 			}
-			var ancestorTypes = emptySet()
+			var ancestorTypes = emptySet
 			for (ancestorClassName in selfPojoProxy.tupleAt(2))
 			{
 				val ancestorClass = Class.forName(

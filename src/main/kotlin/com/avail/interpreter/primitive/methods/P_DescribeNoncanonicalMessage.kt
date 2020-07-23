@@ -70,7 +70,7 @@ object P_DescribeNoncanonicalMessage
 				stringFrom(e.describeProblem()))
 		}
 
-		return interpreter.primitiveSuccess(emptyTuple())
+		return interpreter.primitiveSuccess(emptyTuple)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

@@ -62,7 +62,6 @@ import com.avail.interpreter.execution.Interpreter.Companion.runOutermostFunctio
 import com.avail.io.IOSystem.FileHandle
 import java.io.IOException
 import java.nio.channels.AsynchronousFileChannel
-import java.util.Collections.emptyList
 
 /**
  * **Primitive:** Force all system buffers associated with the
@@ -155,7 +154,7 @@ object P_FileSync : Primitive(4, CanInline, HasSideEffect)
 		functionType(
 			ObjectTupleDescriptor.tuple(
 				ATOM.o(),
-				functionType(emptyTuple(), TOP.o()),
+				functionType(emptyTuple, TOP.o()),
 				functionType(
 					tuple(instanceType(E_IO_ERROR.numericCode())),
 					TOP.o()),

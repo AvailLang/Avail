@@ -412,7 +412,7 @@ class AvailLoader(
 		) {
 			var countdown = allVisibleLexers.size
 			if (countdown == 0) {
-				continuation(emptySet(), emptyMap())
+				continuation(emptySet, emptyMap())
 				return
 			}
 			// Initially use the immutable emptyMap for the failureMap, but
@@ -737,7 +737,7 @@ class AvailLoader(
 	}
 
 	/** The currently unresolved forward method declarations. */
-	var pendingForwards: A_Set = emptySet()
+	var pendingForwards: A_Set = emptySet
 
 	/**
 	 * The given forward is in the process of being resolved. A real definition
@@ -1165,7 +1165,7 @@ class AvailLoader(
 		parentAtoms.makeShared()
 		illegalArgumentMessages.makeShared()
 		val bundleSetList = illegalArgumentMessages.map { atomsSet ->
-			var bundleSet = emptySet()
+			var bundleSet = emptySet
 			for (atom in atomsSet) {
 				bundleSet = bundleSet.setWithElementCanDestroy(
 					atom.bundleOrCreate(), true)
@@ -1324,17 +1324,17 @@ class AvailLoader(
 		val newNames = when {
 			module.newNames().hasKey(stringName) ->
 				singletonSet(module.newNames().mapAt(stringName))
-			else -> emptySet()
+			else -> emptySet
 		}
 		val publicNames = when {
 			module.importedNames().hasKey(stringName) ->
 				module.importedNames().mapAt(stringName)
-			else -> emptySet()
+			else -> emptySet
 		}
 		val privateNames = when {
 			module.privateNames().hasKey(stringName) ->
 				module.privateNames().mapAt(stringName)
-			else -> emptySet()
+			else -> emptySet
 		}
 		newNames
 			.setUnionCanDestroy(publicNames, true)
@@ -1459,10 +1459,10 @@ class AvailLoader(
 		) {
 			val stringLexerFilter = createFunction(
 				newPrimitiveRawFunction(filterPrimitive, nil, 0),
-				emptyTuple())
+				emptyTuple)
 			val stringLexerBody = createFunction(
 				newPrimitiveRawFunction(bodyPrimitive, nil, 0),
-				emptyTuple())
+				emptyTuple)
 			val bundle: A_Bundle = try {
 				createSpecialAtom(atomName).bundleOrCreate()
 			} catch (e: MalformedMessageException) {

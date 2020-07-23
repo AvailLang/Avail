@@ -101,12 +101,12 @@ class SetTest
 		Assertions.assertTrue(set1to20.setIntersects(set1to20))
 
 		// Intersection test - a,empty -> false
-		Assertions.assertFalse(set1to20.setIntersects(emptySet()))
+		Assertions.assertFalse(set1to20.setIntersects(emptySet))
 
 		// Intersection test - empty,empty -> false
 		Assertions.assertFalse(
-			emptySet()
-				.setIntersects(emptySet())
+			emptySet
+				.setIntersects(emptySet)
 		)
 
 		// Asymmetric Difference

@@ -169,7 +169,7 @@ object L2_CREATE_TUPLE : L2Operation(
 			if (size == 0)
 			{
 				// :: destination = theEmptyTupleLiteral;
-				translator.literal(method, TupleDescriptor.emptyTuple())
+				translator.literal(method, TupleDescriptor.emptyTuple)
 				translator.store(method, tuple.register())
 				return
 			}

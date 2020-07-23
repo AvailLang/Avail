@@ -72,7 +72,7 @@ object L2_CONCATENATE_TUPLES : L2Operation(
 		{
 			registerSet.constantAtPut(
 				output.register(),
-				TupleDescriptor.emptyTuple(),
+				TupleDescriptor.emptyTuple,
 				instruction)
 			return
 		}
@@ -125,7 +125,7 @@ object L2_CONCATENATE_TUPLES : L2Operation(
 		val tupleCount = elements.size
 		if (tupleCount == 0)
 		{
-			translator.literal(method, TupleDescriptor.emptyTuple())
+			translator.literal(method, TupleDescriptor.emptyTuple)
 		}
 		else
 		{

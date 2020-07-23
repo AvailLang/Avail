@@ -85,7 +85,7 @@ object P_ReverseTuple : Primitive(1, CannotFail, CanFold, CanInline)
 			// should be sufficient.
 			return tupleTypeForSizesTypesDefaultType(
 				tupleSizes,
-				emptyTuple(),
+				emptyTuple,
 				tupleType.unionOfTypesAtThrough(1, MAX_VALUE))
 		}
 		val tupleSize = tupleSizeLowerBound.extractInt()

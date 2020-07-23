@@ -479,7 +479,7 @@ internal enum class SerializerOperandEncoding
 			if (tupleSize == 0)
 			{
 				// Reasonably common case.
-				return emptyTuple()
+				return emptyTuple
 			}
 			var twoNybbles = 0
 			return generateNybbleTupleFrom(tupleSize) { index ->
@@ -526,7 +526,7 @@ internal enum class SerializerOperandEncoding
 		override fun read(deserializer: AbstractDeserializer): AvailObject
 		{
 			val mapSize = readCompressedPositiveInt(deserializer)
-			var map = emptyMap()
+			var map = emptyMap
 			for (index in 1..mapSize)
 			{
 				map = map.mapAtPuttingCanDestroy(

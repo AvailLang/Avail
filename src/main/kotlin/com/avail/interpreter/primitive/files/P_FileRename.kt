@@ -197,7 +197,7 @@ object P_FileRename : Primitive(6, CanInline, HasSideEffect)
 				stringType(),
 				stringType(),
 				booleanType(),
-				functionType(emptyTuple(), TOP.o()),
+				functionType(emptyTuple, TOP.o()),
 				functionType(
 					tuple(enumerationWith(
 						set(

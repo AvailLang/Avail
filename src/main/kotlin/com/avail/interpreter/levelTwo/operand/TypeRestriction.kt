@@ -644,7 +644,7 @@ class TypeRestriction private constructor(
 	fun enumerationValuesOrNull(maximumCount: Int): A_Set? =
 		when
 		{
-			maximumCount >= 0 && this === bottomRestriction -> emptySet()
+			maximumCount >= 0 && this === bottomRestriction -> emptySet
 			maximumCount >= 1 && constantOrNull !== null -> set(constantOrNull)
 			type.isEnumeration && !type.isInstanceMeta
 			   && type.instanceCount().lessOrEqual(fromInt(maximumCount)) ->
@@ -825,7 +825,7 @@ class TypeRestriction private constructor(
 			Types.TOP.o(),
 			NilDescriptor.nil,
 			setOf(Types.ANY.o()),
-			Collections.emptySet(),
+			emptySet(),
 			true,
 			true,
 			false,
@@ -838,8 +838,8 @@ class TypeRestriction private constructor(
 		private val topRestriction = TypeRestriction(
 			Types.TOP.o(),
 			null,
-			Collections.emptySet(),
-			Collections.emptySet(),
+			emptySet(),
+			emptySet(),
 			false,
 			true,
 			false,
@@ -852,8 +852,8 @@ class TypeRestriction private constructor(
 		private val topRestrictionImmutable = TypeRestriction(
 			Types.TOP.o(),
 			null,
-			Collections.emptySet(),
-			Collections.emptySet(),
+			emptySet(),
+			emptySet(),
 			true,
 			true,
 			false,
@@ -867,8 +867,8 @@ class TypeRestriction private constructor(
 		val anyRestriction = TypeRestriction(
 			Types.ANY.o(),
 			null,
-			Collections.emptySet(),
-			Collections.emptySet(),
+			emptySet(),
+			emptySet(),
 			false,
 			true,
 			false,
@@ -881,8 +881,8 @@ class TypeRestriction private constructor(
 		private val anyRestrictionImmutable = TypeRestriction(
 			Types.ANY.o(),
 			null,
-			Collections.emptySet(),
-			Collections.emptySet(),
+			emptySet(),
+			emptySet(),
 			true,
 			true,
 			false,
@@ -899,8 +899,8 @@ class TypeRestriction private constructor(
 		val bottomRestriction = TypeRestriction(
 			BottomTypeDescriptor.bottom(),
 			null,
-			Collections.emptySet(),
-			Collections.emptySet(),
+			emptySet(),
+			emptySet(),
 			true,
 			false,
 			false,
@@ -920,8 +920,8 @@ class TypeRestriction private constructor(
 		private val bottomTypeRestriction = TypeRestriction(
 			BottomTypeDescriptor.bottomMeta(),
 			BottomTypeDescriptor.bottom(),
-			Collections.emptySet(),
-			Collections.emptySet(),
+			emptySet(),
+			emptySet(),
 			true,
 			true,
 			false,
@@ -977,8 +977,8 @@ class TypeRestriction private constructor(
 						TypeRestriction(
 							instanceTypeOrMetaOn(givenConstantOrNull),
 							givenConstantOrNull,
-							Collections.emptySet(),
-							Collections.emptySet(),
+							emptySet(),
+							emptySet(),
 							flags)
 					}
 				}
@@ -1023,8 +1023,8 @@ class TypeRestriction private constructor(
 							TypeRestriction(
 								givenType,
 								instance,
-								Collections.emptySet(),
-								Collections.emptySet(),
+								emptySet(),
+								emptySet(),
 								flags)
 						}
 					}
@@ -1079,9 +1079,9 @@ class TypeRestriction private constructor(
 			type: A_Type,
 			constantOrNull: A_BasicObject?,
 			givenExcludedTypes: Set<A_Type> =
-				Collections.emptySet(),
+				emptySet(),
 			givenExcludedValues: Set<A_BasicObject> =
-				Collections.emptySet(),
+				emptySet(),
 			isImmutable: Boolean =
 				false,
 			isBoxed: Boolean =
@@ -1153,8 +1153,8 @@ class TypeRestriction private constructor(
 						fromCanonical(
 							instanceTypeOrMetaOn(instance),
 							instance,
-							Collections.emptySet(),
-							Collections.emptySet(),
+							emptySet(),
+							emptySet(),
 							flags)
 					}
 					else ->
@@ -1164,8 +1164,8 @@ class TypeRestriction private constructor(
 						TypeRestriction(
 							enumerationWith(setFromCollection(instances)),
 							null,
-							Collections.emptySet(),
-							Collections.emptySet(),
+							emptySet(),
+							emptySet(),
 							flags)
 					}
 				}
@@ -1201,8 +1201,8 @@ class TypeRestriction private constructor(
 				return TypeRestriction(
 					instanceTypeOrMetaOn(constantOrNull),
 					constantOrNull,
-					Collections.emptySet(),
-					Collections.emptySet(),
+					emptySet(),
+					emptySet(),
 					flags)
 			}
 
@@ -1282,8 +1282,8 @@ class TypeRestriction private constructor(
 			return restriction(
 				type,
 				null,
-				Collections.emptySet(),
-				Collections.emptySet(),
+				emptySet(),
+				emptySet(),
 				encoding.mask)
 		}
 
@@ -1324,8 +1324,8 @@ class TypeRestriction private constructor(
 					instanceTypeOrMetaOn(constant)
 				},
 				constant,
-				Collections.emptySet(),
-				Collections.emptySet(),
+				emptySet(),
+				emptySet(),
 				encoding.mask
 					or if (encoding == RestrictionFlagEncoding.BOXED)
 					{
@@ -1349,7 +1349,7 @@ class TypeRestriction private constructor(
 		{
 			0 ->
 			{
-				Collections.emptySet()
+				emptySet()
 			}
 			1 ->
 			{
@@ -1366,7 +1366,7 @@ class TypeRestriction private constructor(
 			{
 				0 ->
 				{
-					Collections.emptySet()
+					emptySet()
 				}
 				1 -> setOf(excludedValues.iterator().next())
 				else -> Collections.unmodifiableSet(HashSet(excludedValues))

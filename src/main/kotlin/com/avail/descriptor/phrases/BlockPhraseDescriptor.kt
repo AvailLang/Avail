@@ -344,7 +344,7 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 		val compiledBlock = self.generateInModule(codeGenerator.module)
 		val neededVariables = self.neededVariables()
 		if (neededVariables.tupleSize() == 0) {
-			val function = createFunction(compiledBlock, emptyTuple())
+			val function = createFunction(compiledBlock, emptyTuple)
 			codeGenerator.emitPushLiteral(
 				self.tokens(), function.makeImmutable())
 		} else {

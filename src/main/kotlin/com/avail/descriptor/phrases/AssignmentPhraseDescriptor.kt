@@ -198,7 +198,7 @@ class AssignmentPhraseDescriptor private constructor(
 				// assignment.
 				declarationKind.emitVariableAssignmentForOn(
 					self.tokens(), declaration, codeGenerator)
-				codeGenerator.emitPushLiteral(emptyTuple(), nil)
+				codeGenerator.emitPushLiteral(emptyTuple, nil)
 			}
 		}
 	}

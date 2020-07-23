@@ -79,7 +79,6 @@ import com.avail.serialization.Serializer
 import com.avail.utility.StackPrinter.Companion.trace
 import java.io.ByteArrayOutputStream
 import java.lang.String.format
-import java.util.Collections.emptyList
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 import java.util.logging.Level
@@ -625,7 +624,7 @@ class CompilationContext(
 				expressionNode, module, lexingState.lineNumber),
 			lexingState,
 			emptyList(),
-			emptyMap(),
+			emptyMap,
 			shouldSerialize,
 			trackTasks,
 			onSuccess,
@@ -705,7 +704,7 @@ class CompilationContext(
 				assert(batchCount > 0)
 				// Flush the batch.
 				val summaryFunction =
-					createFunction(writer.compiledCode(), emptyTuple())
+					createFunction(writer.compiledCode(), emptyTuple)
 				if (AvailLoader.debugUnsummarizedStatements)
 				{
 					println(

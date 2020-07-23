@@ -162,7 +162,7 @@ object P_ExecuteAttachedExternalProcess : Primitive(6, CanInline, HasSideEffect)
 					mapTypeForSizesKeyTypeValueType(
 						wholeNumbers(), stringType(), stringType())),
 				functionType(
-					emptyTuple(),
+					emptyTuple,
 					TOP.o()),
 				functionType(
 					tuple(

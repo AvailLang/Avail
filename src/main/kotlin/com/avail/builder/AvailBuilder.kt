@@ -81,7 +81,6 @@ import java.nio.ByteBuffer
 import java.nio.file.Path
 import java.nio.file.attribute.BasicFileAttributes
 import java.util.*
-import java.util.Collections.emptyList
 import java.util.Collections.synchronizedList
 import java.util.Collections.synchronizedMap
 import java.util.concurrent.Semaphore
@@ -1106,7 +1105,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 			) { stringFrom("Running command: $phrase") }
 			var fiberGlobals = fiber.fiberGlobals()
 			fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
-				CLIENT_DATA_GLOBAL_KEY.atom, emptyMap(), true)
+				CLIENT_DATA_GLOBAL_KEY.atom, emptyMap, true)
 			fiber.setFiberGlobals(fiberGlobals)
 			fiber.setTextInterface(textInterface)
 			fiber.setSuccessAndFailure(

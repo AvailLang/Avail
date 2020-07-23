@@ -116,7 +116,7 @@ object P_DelayedFork : Primitive(
 				"Delayed fork, %s, %s:%d",
 				code.methodName(),
 				if (code.module().equalsNil())
-					emptyTuple()
+					emptyTuple
 				else
 					code.module().moduleName(),
 				code.startingLineNumber())

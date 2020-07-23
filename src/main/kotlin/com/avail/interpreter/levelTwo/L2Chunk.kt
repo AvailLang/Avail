@@ -567,7 +567,7 @@ class L2Chunk private constructor(
 		assert(invalidationLock.isHeldByCurrentThread)
 		isValid = false
 		val contingents: A_Set = contingentValues.makeImmutable()
-		contingentValues = emptySet()
+		contingentValues = emptySet
 		for (value in contingents)
 		{
 			value.removeDependentChunk(this)
@@ -821,7 +821,7 @@ class L2Chunk private constructor(
 					reenterFromRestartBlock.offset(),
 					instructions,
 					controlFlowGraph,
-					emptySet())
+					emptySet)
 			assert(initialBlock.offset() == 0)
 			assert(reenterFromRestartBlock.offset()
 				   == ChunkEntryPoint.TO_RESTART.offsetInDefaultChunk)

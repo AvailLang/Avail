@@ -126,7 +126,7 @@ object P_ExitContinuationIf : Primitive(
 			translator.jumpIfEqualsConstant(
 				generator.readBoxed(
 					conditionReg.originalBoxedWriteSkippingMoves(true)),
-				trueObject(),
+				trueObject,
 				exit,
 				dontExit)
 			generator.startBlock(exit)

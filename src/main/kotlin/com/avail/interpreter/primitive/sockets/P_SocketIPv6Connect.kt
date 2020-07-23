@@ -75,7 +75,6 @@ import java.net.Inet6Address.getByAddress
 import java.net.InetSocketAddress
 import java.net.UnknownHostException
 import java.nio.channels.AsynchronousSocketChannel
-import java.util.Collections.emptyList
 
 /**
  * **Primitive:** Connect the [AsynchronousSocketChannel] referenced by the
@@ -185,10 +184,10 @@ object P_SocketIPv6Connect : Primitive(6, CanInline, HasSideEffect)
 			tupleFromArray(
 				ATOM.o(),
 				tupleTypeForSizesTypesDefaultType(
-					singleInt(16), emptyTuple(), bytes()),
+					singleInt(16), emptyTuple, bytes()),
 				unsignedShorts(),
 				functionType(
-					emptyTuple(),
+					emptyTuple,
 					TOP.o()),
 				functionType(
 					tuple(instanceType(E_IO_ERROR.numericCode())),

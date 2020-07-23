@@ -178,7 +178,7 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 
 		val argumentDeclarationPairs =
 			if (optionalArgumentDeclarations.expressionsSize() == 0)
-			{ emptyTuple() }
+			{ emptyTuple }
 			else
 			{
 				optionalArgumentDeclarations.expressionAt(1)
@@ -389,7 +389,7 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 				"primitive function to declare its return type")
 		}
 		val returnType = declaredReturnType ?: deducedReturnType
-		var exceptionsSet: A_Set = emptySet()
+		var exceptionsSet: A_Set = emptySet
 		if (optionalExceptionTypes.expressionsSize() == 1)
 		{
 			val expressions =

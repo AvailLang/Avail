@@ -81,7 +81,7 @@ object P_AcceptParsing : Primitive(0, Unknown)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(emptyTuple(), bottom())
+		functionType(emptyTuple, bottom())
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_UNTIMELY_PARSE_ACCEPTANCE))

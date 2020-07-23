@@ -593,7 +593,7 @@ class DeclarationPhraseDescriptor(
 		codeGenerator: AvailCodeGenerator
 	) {
 		self.emitEffectOn(codeGenerator)
-		codeGenerator.emitPushLiteral(emptyTuple(), nil)
+		codeGenerator.emitPushLiteral(emptyTuple, nil)
 	}
 
 	override fun o_Hash(self: AvailObject): Int {

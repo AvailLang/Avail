@@ -98,9 +98,9 @@ object P_CatchException : Primitive(
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			ObjectTupleDescriptor.tuple(
-				functionType(emptyTuple(), TOP.o()),
+				functionType(emptyTuple, TOP.o()),
 				zeroOrMoreOf(functionType(tuple(bottom()), TOP.o())),
-				functionType(emptyTuple(), TOP.o())),
+				functionType(emptyTuple, TOP.o())),
 			TOP.o())
 
 	override fun privateFailureVariableType(): A_Type =

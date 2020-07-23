@@ -307,7 +307,7 @@ class SubrangeTupleDescriptor private constructor(mutability: Mutability)
 		val newSize = end - start + 1
 		if (newSize == 0)
 		{
-			return emptyTuple()
+			return emptyTuple
 		}
 		val oldStartIndex = self.slot(START_INDEX)
 		if (canDestroy && isMutable && newSize >= minSize)

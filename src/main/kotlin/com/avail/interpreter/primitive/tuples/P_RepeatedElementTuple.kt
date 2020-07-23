@@ -102,6 +102,6 @@ object P_RepeatedElementTuple : Primitive(2, CanInline, CanFold)
 					sizeType.instance().extractInt(), elementType.instance()))
 		}
 		else tupleTypeForSizesTypesDefaultType(
-			sizeType, emptyTuple(), elementType)
+			sizeType, emptyTuple, elementType)
 	}
 }

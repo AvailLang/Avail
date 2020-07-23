@@ -249,7 +249,7 @@ class CallbackSystem
 		 * The Pojo type for a Java [Callback] object.
 		 */
 		private val callbackTypePojo: A_Type =
-			resolvePojoType(Callback::class.java, emptyMap()).makeShared()
+			resolvePojoType(Callback::class.java, emptyMap).makeShared()
 
 		/**
 		 * Create an [A_Function] from the given [Callback] and function

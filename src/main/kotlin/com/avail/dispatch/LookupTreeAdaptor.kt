@@ -38,7 +38,6 @@ import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import java.util.*
-import java.util.Collections.emptyList
 import kotlin.streams.toList
 
 /**

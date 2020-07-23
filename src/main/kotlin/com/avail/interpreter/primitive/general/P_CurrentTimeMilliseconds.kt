@@ -58,5 +58,5 @@ object P_CurrentTimeMilliseconds
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(emptyTuple(), wholeNumbers())
+		functionType(emptyTuple, wholeNumbers())
 }

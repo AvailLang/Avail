@@ -106,31 +106,31 @@ object P_BootstrapDefineSpecialObjectMacro
 		// Create a send of the bootstrap method definer that, when actually
 		// sent, will produce a method that answers the special object.
 		val defineMethod = newSendNode(
-			emptyTuple(),
+			emptyTuple,
 			METHOD_DEFINER.bundle,
 			newListNode(
 				ObjectTupleDescriptor.tuple(
 					nameLiteral,
 					newBlockNode(
-						emptyTuple(),
+						emptyTuple,
 						0,
 						ObjectTupleDescriptor.tuple(specialObjectLiteral),
 						specialObjectLiteral.expressionType(),
-						emptySet(),
+						emptySet,
 						0,
-						emptyTuple()))),
+						emptyTuple))),
 			TOP.o())
 		// Create a send of the bootstrap macro definer that, when actually
 		// sent, will produce a method that literalizes the special object.
 		val getValue =
 			newSendNode(
-				emptyTuple(),
+				emptyTuple,
 				bundle,
-				newListNode(emptyTuple()),
+				newListNode(emptyTuple),
 				specialObjectLiteral.expressionType())
 		val createLiteralToken =
 			newSendNode(
-				emptyTuple(),
+				emptyTuple,
 				CREATE_LITERAL_TOKEN.bundle,
 				newListNode(
 					tuple(
@@ -144,27 +144,27 @@ object P_BootstrapDefineSpecialObjectMacro
 				literalTokenType(specialObjectLiteral.expressionType()))
 		val createLiteralNode =
 			newSendNode(
-				emptyTuple(),
+				emptyTuple,
 				CREATE_LITERAL_PHRASE.bundle,
 				newListNode(ObjectTupleDescriptor.tuple(createLiteralToken)),
 				LITERAL_PHRASE.create(specialObjectLiteral.expressionType()))
 		val defineMacro =
 			newSendNode(
-				emptyTuple(),
+				emptyTuple,
 				MACRO_DEFINER.bundle,
 				newListNode(
 					ObjectTupleDescriptor.tuple(
 						nameLiteral,
 						emptyListNode(),
 						newBlockNode(
-							emptyTuple(),
+							emptyTuple,
 							0,
 							ObjectTupleDescriptor.tuple(createLiteralNode),
 							LITERAL_PHRASE.create(
 								specialObjectLiteral.expressionType()),
-							emptySet(),
+							emptySet,
 							0,
-							emptyTuple()))),
+							emptyTuple))),
 				TOP.o())
 		return interpreter.primitiveSuccess(
 			newSequence(

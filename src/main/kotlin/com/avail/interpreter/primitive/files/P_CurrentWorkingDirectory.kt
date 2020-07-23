@@ -87,5 +87,5 @@ object P_CurrentWorkingDirectory : Primitive(0, CannotFail, CanInline, CanFold)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(emptyTuple(), stringType())
+		functionType(emptyTuple, stringType())
 }

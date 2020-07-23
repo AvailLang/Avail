@@ -86,14 +86,14 @@ object P_GenerateFunctionForBlock : Primitive(1, CanFold, CanInline)
 		val compiledCode: A_RawFunction
 		try
 		{
-			compiledCode = block.generateInModule(currentModule())
+			compiledCode = block.generateInModule(currentModule)
 		}
 		catch (e: Exception)
 		{
 			return interpreter.primitiveFailure(E_BLOCK_COMPILATION_FAILED)
 		}
 
-		val function = createFunction(compiledCode, emptyTuple())
+		val function = createFunction(compiledCode, emptyTuple)
 		return interpreter.primitiveSuccess(function.makeImmutable())
 	}
 

@@ -74,7 +74,7 @@ object P_ResetStandardInputStream : Primitive(0, CanInline, HasSideEffect)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(emptyTuple(), TOP.o())
+		functionType(emptyTuple, TOP.o())
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_IO_ERROR))

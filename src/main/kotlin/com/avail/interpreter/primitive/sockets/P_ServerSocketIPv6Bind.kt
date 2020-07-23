@@ -133,7 +133,7 @@ object P_ServerSocketIPv6Bind : Primitive(4, CanInline, HasSideEffect)
 				ATOM.o(),
 				tupleTypeForSizesTypesDefaultType(
 					singleInt(16),
-					emptyTuple(),
+					emptyTuple,
 					bytes()),
 				unsignedShorts(),
 				intRange()),

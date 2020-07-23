@@ -72,7 +72,7 @@ object P_SetToTuple : Primitive(1, CannotFail, CanFold, CanInline)
 		// The order of elements is unstable, but we can still say how many
 		// elements, and bound each element to the set's element type.
 		return tupleTypeForSizesTypesDefaultType(
-			setType.sizeRange(), emptyTuple(), setType.contentType())
+			setType.sizeRange(), emptyTuple, setType.contentType())
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

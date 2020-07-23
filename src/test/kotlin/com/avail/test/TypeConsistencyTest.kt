@@ -281,7 +281,7 @@ class TypeConsistencyTest
 
 			/** The type `type of <>`  */
 			private val EMPTY_TUPLE = Node(
-				"EMPTY_TUPLE", emptyTuple().kind(), TUPLE, STRING)
+				"EMPTY_TUPLE", emptyTuple.kind(), TUPLE, STRING)
 
 			/** The type `set`  */
 			private val SET = Node(
@@ -305,7 +305,7 @@ class TypeConsistencyTest
 			 */
 			private val NOTHING_TO_INT_FUNCTION = Node(
 				"NOTHING_TO_INT_FUNCTION",
-				functionType(emptyTuple(), integers()),
+				functionType(emptyTuple, integers()),
 				MOST_GENERAL_FUNCTION)
 
 			/**
@@ -332,7 +332,7 @@ class TypeConsistencyTest
 				functionTypeFromArgumentTupleType(
 					mostGeneralTupleType(),
 					bottom(),
-					emptySet()),
+					emptySet),
 				NOTHING_TO_INT_FUNCTION,
 				INT_TO_INT_FUNCTION,
 				INTS_TO_INT_FUNCTION)
@@ -384,7 +384,7 @@ class TypeConsistencyTest
 			private val NON_ROOT_OBJECT_TYPE = Node(
 				"NON_ROOT_OBJECT_TYPE",
 				objectTypeFromMap(
-					emptyMap().mapAtPuttingCanDestroy(
+					emptyMap.mapAtPuttingCanDestroy(
 						SOME_ATOM_TYPE.t.instance(),
 						Types.ANY.o(),
 						false)),
@@ -395,7 +395,7 @@ class TypeConsistencyTest
 			 */
 			private val NON_ROOT_OBJECT_TYPE_WITH_INTEGERS = Node(
 				"NON_ROOT_OBJECT_TYPE_WITH_INTEGERS",
-				objectTypeFromMap(emptyMap()
+				objectTypeFromMap(emptyMap
 					.mapAtPuttingCanDestroy(
 						SOME_ATOM_TYPE.t.instance(),
 						integers(),
@@ -407,7 +407,7 @@ class TypeConsistencyTest
 			 */
 			private val NON_ROOT_OBJECT_TYPE_WITH_DIFFERENT_KEY = Node(
 				"NON_ROOT_OBJECT_TYPE_WITH_DIFFERENT_KEY",
-				objectTypeFromMap(emptyMap()
+				objectTypeFromMap(emptyMap
 					.mapAtPuttingCanDestroy(
 						ANOTHER_ATOM_TYPE.t.instance(),
 						Types.ANY.o(),
@@ -1505,7 +1505,7 @@ class TypeConsistencyTest
 	 */
 	@Test
 	fun testFunctionResultCovariance() =
-		checkCovariance("function result") { functionType(emptyTuple(), it) }
+		checkCovariance("function result") { functionType(emptyTuple, it) }
 
 	/**
 	 * Test that the subtype relation covaries with (homogeneous) tuple element

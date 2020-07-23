@@ -259,14 +259,14 @@ object P_TupleReplaceRangeAtNary : Primitive(5, CanInline, CanFold)
 				mostGeneralTupleType(),
 				tupleTypeForSizesTypesDefaultType(
 					naturalNumbers(),
-					emptyTuple(),
+					emptyTuple,
 					ANY.o()),
 				naturalNumbers(),
 				wholeNumbers(),
 				tupleTypeForSizesTypesDefaultType(
 					integerRangeType(
 						fromInt(2), true, positiveInfinity(), false),
-					emptyTuple(),
+					emptyTuple,
 					ANY.o())),
 			mostGeneralTupleType())
 

@@ -583,7 +583,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 			{
 				return privateTupleTypeForSizesTypesDefaultType(
 					sizeRange,
-					emptyTuple(),
+					emptyTuple,
 					bottom())
 			}
 			val typeTupleSize = typeTuple.tupleSize()
@@ -630,7 +630,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		 *   A size [0..1] tuple type whose element has the given type.
 		 */
 		fun zeroOrOneOf(aType: A_Type): A_Type =
-			tupleTypeForSizesTypesDefaultType(zeroOrOne(), emptyTuple(), aType)
+			tupleTypeForSizesTypesDefaultType(zeroOrOne(), emptyTuple, aType)
 
 		/**
 		 * Answer a tuple type consisting of zero or more of the given element
@@ -645,7 +645,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		fun zeroOrMoreOf(aType: A_Type): A_Type =
 			tupleTypeForSizesTypesDefaultType(
 				wholeNumbers(),
-				emptyTuple(),
+				emptyTuple,
 				aType)
 
 		/**
@@ -661,7 +661,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		fun oneOrMoreOf(aType: A_Type): A_Type =
 			tupleTypeForSizesTypesDefaultType(
 				naturalNumbers(),
-				emptyTuple(),
+				emptyTuple,
 				aType)
 
 		/**

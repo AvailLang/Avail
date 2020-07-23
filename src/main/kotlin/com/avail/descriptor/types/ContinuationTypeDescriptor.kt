@@ -191,7 +191,7 @@ class ContinuationTypeDescriptor private constructor(mutability: Mutability)
 			functionType2.returnType())
 		val intersection =
 			FunctionTypeDescriptor.functionTypeFromArgumentTupleType(
-				argsTupleType, returnType, emptySet())
+				argsTupleType, returnType, emptySet)
 		return continuationTypeForFunctionType(intersection)
 	}
 
@@ -222,7 +222,7 @@ class ContinuationTypeDescriptor private constructor(mutability: Mutability)
 				functionType2.argsTupleType()),
 			functionType1.returnType().typeIntersection(
 				functionType2.returnType()),
-			emptySet())
+			emptySet)
 		return continuationTypeForFunctionType(union)
 	}
 

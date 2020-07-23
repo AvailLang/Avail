@@ -65,9 +65,9 @@ object P_IsCanonicalMessage : Primitive(1, CannotFail, CanInline, CanFold)
 			// canonical; attempting to create the bundle and its associated
 			// MessageSplitter should suffice.
 			name.bundleOrCreate()
-			interpreter.primitiveSuccess(trueObject())
+			interpreter.primitiveSuccess(trueObject)
 		} catch (e: MalformedMessageException) {
-			interpreter.primitiveSuccess(falseObject())
+			interpreter.primitiveSuccess(falseObject)
 		}
 
 	}

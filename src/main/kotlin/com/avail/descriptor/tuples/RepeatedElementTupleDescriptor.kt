@@ -499,7 +499,7 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 			// If there are no members in the range, return the empty tuple.
 			if (size == 0)
 			{
-				return emptyTuple()
+				return emptyTuple
 			}
 
 			// If there are fewer than minimumRepeatSize members in this tuple,

@@ -249,7 +249,7 @@ class ReverseTupleDescriptor private constructor(mutability: Mutability)
 			{
 				self.assertObjectUnreachableIfMutable()
 			}
-			return emptyTuple()
+			return emptyTuple
 		}
 		if (subrangeSize == tupleSize)
 		{

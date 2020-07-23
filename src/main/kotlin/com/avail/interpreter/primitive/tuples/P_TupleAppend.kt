@@ -75,7 +75,7 @@ object P_TupleAppend : Primitive(2, CannotFail, CanFold, CanInline)
 		val anElementType = argumentTypes[1]
 
 		val anElementTupleType = tupleTypeForSizesTypesDefaultType(
-			singleInt(1), emptyTuple(), anElementType)
+			singleInt(1), emptyTuple, anElementType)
 		return concatenatingAnd(aTupleType, anElementTupleType)
 	}
 

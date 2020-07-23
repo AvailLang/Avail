@@ -89,7 +89,7 @@ object P_FilePathConcatenation : Primitive(1, CanInline, CanFold)
 
 		return if (path === null)
 			{
-				interpreter.primitiveSuccess(emptyTuple())
+				interpreter.primitiveSuccess(emptyTuple)
 			}
 			else
 			{

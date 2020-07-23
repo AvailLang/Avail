@@ -260,7 +260,7 @@ class L1Decompiler constructor(
 			code.functionType().returnType(),
 			code.functionType().declaredExceptions(),
 			0,
-			emptyTuple())
+			emptyTuple)
 	}
 
 	/**
@@ -369,7 +369,7 @@ class L1Decompiler constructor(
 			{
 				listNode = newPermutedListNode(listNode, permutationTuple)
 			}
-			val sendNode = newSendNode(emptyTuple(), bundle, listNode, type)
+			val sendNode = newSendNode(emptyTuple, bundle, listNode, type)
 			pushExpression(sendNode)
 		}
 
@@ -508,7 +508,7 @@ class L1Decompiler constructor(
 			val valueNode = popExpression()
 			val variableUse = newUse(declaration.token(), declaration)
 			val assignmentNode = newAssignment(
-				variableUse, valueNode, emptyTuple(), false)
+				variableUse, valueNode, emptyTuple, false)
 			if (expressionStack.isEmpty()
 				|| peekExpression.phraseKind() !== MARKER_PHRASE)
 			{
@@ -593,7 +593,7 @@ class L1Decompiler constructor(
 			val use = newUse(declaration.token(), declaration)
 			val valueExpr = popExpression()
 			val assignmentNode = newAssignment(
-				use, valueExpr, emptyTuple(), false)
+				use, valueExpr, emptyTuple, false)
 			if (expressionStack.isEmpty())
 			{
 				statements.add(assignmentNode)
@@ -712,7 +712,7 @@ class L1Decompiler constructor(
 				globalToken, globalVar, nil, nil)
 			val varUse = newUse(globalToken, declaration)
 			val assignmentNode = newAssignment(
-				varUse, popExpression(), emptyTuple(), false)
+				varUse, popExpression(), emptyTuple, false)
 			if (expressionStack.isEmpty())
 			{
 				statements.add(assignmentNode)
@@ -765,7 +765,7 @@ class L1Decompiler constructor(
 			val method = bundle.bundleMethod()
 			val nArgs = method.numArgs()
 			val argsNode = reconstructListWithSuperUnionType(nArgs, superUnionType)
-			val sendNode = newSendNode(emptyTuple(), bundle, argsNode, type)
+			val sendNode = newSendNode(emptyTuple, bundle, argsNode, type)
 			pushExpression(sendNode)
 		}
 

@@ -1586,7 +1586,7 @@ class L1Translator private constructor(
 	{
 		if (constantValue.isBoolean)
 		{
-			val constantBool = constantValue.equals(trueObject())
+			val constantBool = constantValue.equals(trueObject)
 			val boolSource = registerToTest.definitionSkippingMoves(true)
 			when
 			{

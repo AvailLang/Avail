@@ -61,7 +61,6 @@ import com.avail.utility.evaluation.SimpleDescriber
 import java.lang.String.format
 import java.util.*
 import java.util.Collections.emptyIterator
-import java.util.Collections.emptyList
 import java.util.Collections.reverseOrder
 import java.util.Collections.sort
 import java.util.concurrent.atomic.AtomicBoolean
@@ -673,7 +672,7 @@ class CompilerDiagnostics(
 		// Tidy up all tokens from the previous top-level statement.
 		val priorTokens = lockWhile<List<A_Token>>(liveTokensLock.writeLock()) {
 			val old = liveTokens
-			liveTokens = emptyList()
+			liveTokens = mutableListOf()
 			old
 		}
 
@@ -929,7 +928,7 @@ class CompilerDiagnostics(
 			{
 				val state = startLexingStates.iterator().next()
 				val emptyToken = newToken(
-					emptyTuple(),
+					emptyTuple,
 					state.position,
 					state.lineNumber,
 					WHITESPACE)

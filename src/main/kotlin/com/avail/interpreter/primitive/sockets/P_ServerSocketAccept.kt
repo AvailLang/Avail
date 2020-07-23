@@ -132,7 +132,7 @@ object P_ServerSocketAccept : Primitive(5, CanInline, HasSideEffect)
 		val runtime = currentRuntime()
 		return try
 		{
-			val module = currentModule()
+			val module = currentModule
 			socket.accept(
 				dummy,
 				SimpleCompletionHandler(

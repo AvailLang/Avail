@@ -561,7 +561,8 @@ class MapDescriptor private constructor(
 	 *
 	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
-	class Entry {
+	class Entry
+	{
 		/**
 		 * The key at some [MapIterable]'s current position.
 		 */
@@ -647,7 +648,8 @@ class MapDescriptor private constructor(
 	/**
 	 * Construct a new `MapIterable`.
 	 */
-	protected constructor() : MutableIterator<Entry>, Iterable<Entry> {
+	protected constructor() : MutableIterator<Entry>, Iterable<Entry>
+	{
 		/**
 		 * The [Entry] to be reused for each <key, value> pair while iterating
 		 * over this [map][MapDescriptor].
@@ -669,7 +671,8 @@ class MapDescriptor private constructor(
 
 	override fun shared() = shared
 
-	companion object {
+	companion object
+	{
 		/**
 		 * Extract the root [bin][MapBinDescriptor] from the
 		 * [map][MapDescriptor].
@@ -713,7 +716,7 @@ class MapDescriptor private constructor(
 		 */
 		fun mapWithBindings(tupleOfBindings: A_Tuple): A_Map {
 			assert(tupleOfBindings.isTuple)
-			return tupleOfBindings.fold(emptyMap()) { map, binding ->
+			return tupleOfBindings.fold(emptyMap) { map, binding ->
 				assert(binding.isTuple)
 				assert(binding.tupleSize() == 2)
 				map.mapAtPuttingCanDestroy(
@@ -734,7 +737,7 @@ class MapDescriptor private constructor(
 		 */
 		fun mapFromPairs(vararg keysAndValues: A_BasicObject): A_Map {
 			assert(keysAndValues.size and 1 == 0)
-			return (keysAndValues.indices step 2).fold(emptyMap()) { map, i ->
+			return (keysAndValues.indices step 2).fold(emptyMap) { map, i ->
 				map.mapAtPuttingCanDestroy(
 					keysAndValues[i], keysAndValues[i + 1], true)
 			}
@@ -790,7 +793,7 @@ class MapDescriptor private constructor(
 		}
 
 		/** The empty map.  */
-		private var theEmptyMap: A_Map =
+		val emptyMap: A_Map =
 			createFromBin(emptyLinearMapBin(0)).let {
 				it.hash()
 				it.makeShared()
@@ -804,13 +807,12 @@ class MapDescriptor private constructor(
 		 */
 		@JvmStatic
 		@ReferencedInGeneratedCode
-		fun emptyMap() = theEmptyMap
+		fun emptyAvailMap() = emptyMap
 
 		/** The [CheckedMethod] for [emptyMap].  */
-		@JvmField
 		val emptyMapMethod: CheckedMethod = staticMethod(
 			MapDescriptor::class.java,
-			::emptyMap.name,
+			::emptyAvailMap.name,
 			A_Map::class.java)
 	}
 }

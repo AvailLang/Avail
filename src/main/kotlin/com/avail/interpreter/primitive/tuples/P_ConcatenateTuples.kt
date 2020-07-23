@@ -103,7 +103,7 @@ object P_ConcatenateTuples : Primitive(1, CannotFail, CanFold, CanInline)
 			val bound = lowerBound.extractInt()
 			if (bound == 0)
 			{
-				return instanceType(emptyTuple())
+				return instanceType(emptyTuple)
 			}
 			var concatenatedType = tuplesType.typeAtIndex(1)
 			for (i in 2 .. bound)
@@ -129,7 +129,7 @@ object P_ConcatenateTuples : Primitive(1, CannotFail, CanFold, CanInline)
 				val newSizeRange = integerRangeType(
 					minSize, true, maxSize.plusCanDestroy(one(), true), false)
 				return tupleTypeForSizesTypesDefaultType(
-					newSizeRange, emptyTuple(), innerTupleType.defaultType())
+					newSizeRange, emptyTuple, innerTupleType.defaultType())
 			}
 		}
 		// Too tricky to bother narrowing.
@@ -183,7 +183,7 @@ object P_ConcatenateTuples : Primitive(1, CannotFail, CanFold, CanInline)
 		}
 		when (adjustedSources.size) {
 			0 -> callSiteHelper.useAnswer(
-				translator.generator.boxedConstant(emptyTuple()))
+				translator.generator.boxedConstant(emptyTuple))
 			1 -> callSiteHelper.useAnswer(adjustedSources[0])
 			else -> {
 				val guaranteedType = returnTypeGuaranteedByVM(

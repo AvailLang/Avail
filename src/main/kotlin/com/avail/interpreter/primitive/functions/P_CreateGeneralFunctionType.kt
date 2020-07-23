@@ -59,7 +59,7 @@ object P_CreateGeneralFunctionType
 		val returnType = interpreter.argument(0)
 		return interpreter.primitiveSuccess(
 			functionTypeFromArgumentTupleType(
-				bottom(), returnType, emptySet()))
+				bottom(), returnType, emptySet))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

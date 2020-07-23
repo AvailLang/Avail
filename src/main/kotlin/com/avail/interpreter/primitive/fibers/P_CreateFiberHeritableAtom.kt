@@ -70,7 +70,7 @@ object P_CreateFiberHeritableAtom : Primitive(1, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val name = interpreter.argument(0)
-		val module = currentModule()
+		val module = currentModule
 		val trueName = Mutable<A_Atom?>(null)
 		val errorCode = Mutable<AvailErrorCode?>(null)
 		if (!module.equalsNil())
@@ -81,7 +81,8 @@ object P_CreateFiberHeritableAtom : Primitive(1, CanInline)
 					0 -> {
 						val newName = createAtom(name, module)
 						newName.setAtomProperty(
-							HERITABLE_KEY.atom, trueObject())
+							HERITABLE_KEY.atom, trueObject
+						)
 						module.addPrivateName(newName)
 						trueName.value = newName
 					}
@@ -93,7 +94,7 @@ object P_CreateFiberHeritableAtom : Primitive(1, CanInline)
 		else
 		{
 			val newName = createAtom(name, nil)
-			newName.setAtomProperty(HERITABLE_KEY.atom, trueObject())
+			newName.setAtomProperty(HERITABLE_KEY.atom, trueObject)
 			trueName.value = newName
 		}
 		return if (errorCode.value !== null)

@@ -81,7 +81,7 @@ object L2_CREATE_SET : L2Operation(
 		val values = instruction.operand<L2ReadBoxedVectorOperand>(0)
 		val set = instruction.operand<L2WriteBoxedOperand>(1)
 
-		// :: set = SetDescriptor.emptySet();
+		// :: set = SetDescriptor.emptySet;
 		SetDescriptor.emptySetMethod.generateCall(method)
 		for (operand in values.elements())
 		{

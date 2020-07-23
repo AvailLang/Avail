@@ -72,7 +72,6 @@ import com.avail.utility.evaluation.Combinator.recurse
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousFileChannel
 import java.util.*
-import java.util.Collections.emptyList
 import kotlin.math.min
 
 /**
@@ -358,7 +357,7 @@ object P_FileWrite : Primitive(6, CanInline, HasSideEffect)
 				naturalNumbers(),
 				oneOrMoreOf(bytes()),
 				ATOM.o(),
-				functionType(emptyTuple(), TOP.o()),
+				functionType(emptyTuple, TOP.o()),
 				functionType(
 					tuple(instanceType(E_IO_ERROR.numericCode())), TOP.o()),
 				bytes()),

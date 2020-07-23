@@ -191,7 +191,7 @@ class FirstOfSequencePhraseDescriptor private constructor(
 		continuation: (A_Phrase) -> Unit
 	) = self.slot(STATEMENTS).forEach { it.statementsDo(continuation) }
 
-	override fun o_Tokens(self: AvailObject): A_Tuple = emptyTuple()
+	override fun o_Tokens(self: AvailObject): A_Tuple = emptyTuple
 
 	override fun o_ValidateLocally(
 		self: AvailObject,

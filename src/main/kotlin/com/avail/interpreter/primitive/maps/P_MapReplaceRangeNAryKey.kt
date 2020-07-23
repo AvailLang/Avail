@@ -276,7 +276,7 @@ object P_MapReplaceRangeNAryKey : Primitive(5, CanInline, CanFold)
 				tupleTypeForSizesTypesDefaultType(
 					integerRangeType(
 						fromInt(2), true, positiveInfinity(), false),
-					emptyTuple(),
+					emptyTuple,
 					ANY.o())),
 			mostGeneralMapType())
 

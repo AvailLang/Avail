@@ -686,7 +686,7 @@ class CompiledCodeDescriptor private constructor(
 		val longCount = self.variableIntegerSlotsCount()
 		if (longCount == 0) {
 			// Special case: when there are no nybbles, don't reserve any longs.
-			return TupleDescriptor.emptyTuple()
+			return TupleDescriptor.emptyTuple
 		}
 		val decoder = L1InstructionDecoder()
 		self.setUpInstructionDecoder(decoder)

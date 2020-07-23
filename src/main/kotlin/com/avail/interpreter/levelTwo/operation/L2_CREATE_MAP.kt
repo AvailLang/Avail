@@ -97,7 +97,7 @@ object L2_CREATE_MAP : L2Operation(
 		val values = instruction.operand<L2ReadBoxedVectorOperand>(1)
 		val map = instruction.operand<L2WriteBoxedOperand>(2)
 
-		// :: map = MapDescriptor.emptyMap();
+		// :: map = MapDescriptor.emptyMap;
 		MapDescriptor.emptyMapMethod.generateCall(method)
 		val limit = keys.elements().size
 		assert(limit == values.elements().size)

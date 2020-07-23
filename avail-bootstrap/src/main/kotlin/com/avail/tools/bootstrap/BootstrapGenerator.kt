@@ -773,7 +773,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 					preamble.getString(
 						invokePrimitiveFailureFunctionMethodUse.name),
 					argName,
-					namesBySpecialObject[emptyTuple()]))
+					namesBySpecialObject[emptyTuple]))
 			}
 			else
 			{

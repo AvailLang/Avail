@@ -560,7 +560,7 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 			val size = elements.size
 			if (size == 0)
 			{
-				return emptyTuple()
+				return emptyTuple
 			}
 			val result = createUninitialized(size)
 			result.setSlotsFromArray<A_BasicObject>(
@@ -781,7 +781,7 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 			val size = list.size
 			if (size == 0)
 			{
-				return emptyTuple()
+				return emptyTuple
 			}
 			val result = createUninitialized(size)
 			result.setSlotsFromList(ObjectSlots.TUPLE_AT_, 1, list, 0, size)

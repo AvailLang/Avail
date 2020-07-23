@@ -295,7 +295,7 @@ class ObjectDescriptor internal constructor(
 
 	override fun o_FieldMap(self: AvailObject): A_Map =
 		// Warning: May be much slower than it was before ObjectLayoutVariant.
-		variant.fieldToSlotIndex.entries.fold(emptyMap()) {
+		variant.fieldToSlotIndex.entries.fold(emptyMap) {
 			map, (field, slotIndex) ->
 			map.mapAtPuttingCanDestroy(
 				field,
@@ -399,7 +399,7 @@ class ObjectDescriptor internal constructor(
 				names.map { it.asNativeString() }.sorted().joinToString(" ∩ "))
 		}
 		val explicitSubclassingKey = EXPLICIT_SUBCLASSING_KEY.atom
-		var ignoreKeys = emptySet()
+		var ignoreKeys = emptySet
 		baseTypes.forEach { baseType ->
 			baseType.fieldTypeMap().mapIterable().forEach { (k, _) ->
 				if (!k.getAtomProperty(explicitSubclassingKey).equalsNil()) {
@@ -532,7 +532,7 @@ class ObjectDescriptor internal constructor(
 		 */
 		fun objectFromTuple(tuple: A_Tuple): AvailObject =
 			objectFromMap(
-				tuple.fold(emptyMap()) { m, (atom, value) ->
+				tuple.fold(emptyMap) { m, (atom, value) ->
 					m.mapAtPuttingCanDestroy(atom, value, true)
 				})
 

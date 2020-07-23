@@ -114,7 +114,7 @@ object P_IsSubtypeOf : Primitive(2, CannotFail, CanFold, CanInline)
 				// The y type is known precisely, and the x type is constrained
 				// to always be a subtype of it.
 				callSiteHelper.useAnswer(
-					translator.generator.boxedConstant(trueObject()))
+					translator.generator.boxedConstant(trueObject))
 				return true
 			}
 		}
@@ -130,7 +130,7 @@ object P_IsSubtypeOf : Primitive(2, CannotFail, CanFold, CanInline)
 				// specific at runtime, but x still can't be a subtype of the
 				// stronger y.
 				callSiteHelper.useAnswer(
-					translator.generator.boxedConstant(falseObject()))
+					translator.generator.boxedConstant(falseObject))
 				return true
 			}
 		}
@@ -141,7 +141,7 @@ object P_IsSubtypeOf : Primitive(2, CannotFail, CanFold, CanInline)
 			// looking for a constant x, since ⊥'s type is special and doesn't
 			// report that it only has one instance (i.e., ⊥).
 			callSiteHelper.useAnswer(
-				translator.generator.boxedConstant(trueObject()))
+				translator.generator.boxedConstant(trueObject))
 			return true
 		}
 
@@ -190,10 +190,10 @@ object P_IsSubtypeOf : Primitive(2, CannotFail, CanFold, CanInline)
 		}
 		translator.generator.startBlock(ifSubtype)
 		callSiteHelper.useAnswer(
-			translator.generator.boxedConstant(trueObject()))
+			translator.generator.boxedConstant(trueObject))
 		translator.generator.startBlock(ifNotSubtype)
 		callSiteHelper.useAnswer(
-			translator.generator.boxedConstant(falseObject()))
+			translator.generator.boxedConstant(falseObject))
 		return true
 	}
 }

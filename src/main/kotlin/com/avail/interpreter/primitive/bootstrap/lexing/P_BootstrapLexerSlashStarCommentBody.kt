@@ -72,7 +72,7 @@ object P_BootstrapLexerSlashStarCommentBody
 		    || source.tupleCodePointAt(position) != '*'.toInt())
 		{
 			// It didn't start with "/*", so it's not a comment.
-			return interpreter.primitiveSuccess(emptySet())
+			return interpreter.primitiveSuccess(emptySet)
 		}
 		position++
 

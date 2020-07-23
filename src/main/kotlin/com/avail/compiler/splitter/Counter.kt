@@ -148,11 +148,11 @@ internal class Counter(
 		 */
 		generator.flushDelayed()
 		val phraseCountRange = phraseType.expressionType()
-		val emptyTupleType = instanceType(emptyTuple())
+		val emptyTupleType = instanceType(emptyTuple)
 		val tupleOfEmptyTuplesType = tupleTypeForSizesTypesDefaultType(
-			phraseCountRange, emptyTuple(), emptyTupleType)
+			phraseCountRange, emptyTuple, emptyTupleType)
 		val tupleOfEmptyTuplePhrasesType = tupleTypeForSizesTypesDefaultType(
-			phraseCountRange, emptyTuple(), PARSE_PHRASE.create(emptyTupleType))
+			phraseCountRange, emptyTuple, PARSE_PHRASE.create(emptyTupleType))
 		val listPhraseType = ListPhraseTypeDescriptor.createListNodeType(
 			LIST_PHRASE, tupleOfEmptyTuplesType, tupleOfEmptyTuplePhrasesType)
 		val newWrapState = group.emitOn(listPhraseType, generator, wrapState)

@@ -188,7 +188,7 @@ object P_CreateDirectory : Primitive(5, CanInline, HasSideEffect)
 										setTypeForSizesContentType(
 																				  inclusive(0, 9),
 																				  inclusive(1, 9)),
-										functionType(emptyTuple(), TOP.o()),
+										functionType(emptyTuple, TOP.o()),
 										functionType(tuple(
 																				  enumerationWith(
 																					  set(E_FILE_EXISTS, E_PERMISSION_DENIED, E_IO_ERROR))),

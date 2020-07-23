@@ -397,7 +397,7 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 		val returnType =
 			self.slot(RETURN_TYPE).typeIntersection(
 				aFunctionType.returnType())
-		var exceptions = emptySet()
+		var exceptions = emptySet
 		for (outer in self.slot(DECLARED_EXCEPTIONS))
 		{
 			for (inner in aFunctionType.declaredExceptions())
@@ -644,14 +644,14 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 			{
 				return if (exceptionSet.iterator().next().isBottom)
 				{
-					emptySet()
+					emptySet
 				}
 				else exceptionSet
 			}
 
 			// Actually normalize the set. That is, eliminate types for which a
 			// supertype is already present. Also, eliminate bottom.
-			var normalizedSet = emptySet()
+			var normalizedSet = emptySet
 			each_outer@ for (outer in exceptionSet)
 			{
 				if (!outer.isBottom)
@@ -726,7 +726,7 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 		fun functionType(
 			argTypes: A_Tuple,
 			returnType: A_Type,
-			exceptionSet: A_Set = emptySet()): A_Type
+			exceptionSet: A_Set = emptySet): A_Type
 		{
 			val tupleType =
 				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
@@ -753,6 +753,6 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 			functionTypeFromArgumentTupleType(
 				bottom(),
 				returnType,  // TODO: [MvG] Probably should allow any exception.
-				emptySet())
+				emptySet)
 	}
 }

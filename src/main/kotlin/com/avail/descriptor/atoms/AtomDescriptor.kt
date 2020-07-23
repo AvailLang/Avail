@@ -84,7 +84,7 @@ import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
 import java.nio.channels.AsynchronousServerSocketChannel
 import java.nio.channels.AsynchronousSocketChannel
-import java.util.*
+import java.util.IdentityHashMap
 import java.util.regex.Pattern
 
 /**
@@ -135,7 +135,7 @@ import java.util.regex.Pattern
  * @see AtomWithPropertiesDescriptor
  * @see AtomWithPropertiesSharedDescriptor
  */
-open class AtomDescriptor protected constructor(
+open class AtomDescriptor protected constructor (
 	mutability: Mutability,
 	typeTag: TypeTag,
 	objectSlotsEnumClass: Class<out ObjectSlotsEnum>,
@@ -180,14 +180,14 @@ open class AtomDescriptor protected constructor(
 		ISSUING_MODULE
 	}
 
-	override fun allowsImmutableToMutableReferenceInField(
+	override fun allowsImmutableToMutableReferenceInField (
 		e: AbstractSlotsEnum
 	) = e === IntegerSlots.HASH_AND_MORE
 
 	/** A [Pattern] of one or more word characters.  */
 	private val wordPattern = Pattern.compile("\\w+")
 
-	override fun printObjectOnAvoidingIndent(
+	override fun printObjectOnAvoidingIndent (
 		self: AvailObject,
 		builder: StringBuilder,
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
@@ -213,16 +213,16 @@ open class AtomDescriptor protected constructor(
 		}
 	}
 
-	override fun o_AtomName(self: AvailObject): A_String = self.slot(NAME)
+	override fun o_AtomName (self: AvailObject): A_String = self.slot(NAME)
 
-	override fun o_IssuingModule(self: AvailObject): A_Module = self.slot(ISSUING_MODULE)
+	override fun o_IssuingModule (self: AvailObject): A_Module = self.slot(ISSUING_MODULE)
 
-	override fun o_Equals(
+	override fun o_Equals (
 		self: AvailObject,
 		another: A_BasicObject
 	) = another.traversed().sameAddressAs(self)
 
-	override fun o_Hash(self: AvailObject): Int {
+	override fun o_Hash (self: AvailObject): Int {
 		var hash = self.slot(HASH_OR_ZERO)
 		if (hash == 0) {
 			synchronized(self) {
@@ -239,15 +239,15 @@ open class AtomDescriptor protected constructor(
 	override fun o_Kind(self: AvailObject): AvailObject =
 		TypeDescriptor.Types.ATOM.o()
 
-	override fun o_ExtractBoolean(self: AvailObject): Boolean = when(self) {
-		trueObject() -> true
-		falseObject() -> false
+	override fun o_ExtractBoolean (self: AvailObject): Boolean = when(self) {
+		trueObject -> true
+		falseObject -> false
 		else -> error("Atom is not a boolean")
 	}
 
-	override fun o_IsAtom(self: AvailObject) = true
+	override fun o_IsAtom (self: AvailObject) = true
 
-	override fun o_IsInstanceOfKind(
+	override fun o_IsInstanceOfKind (
 		self: AvailObject,
 		aType: A_Type
 	) = aType.isSupertypeOfPrimitiveTypeEnum(TypeDescriptor.Types.ATOM)
@@ -259,7 +259,7 @@ open class AtomDescriptor protected constructor(
 	 *
 	 * Special atoms, which are already shared, should not transform.
 	 */
-	override fun o_MakeShared(self: AvailObject): AvailObject = when {
+	override fun o_MakeShared (self: AvailObject): AvailObject = when {
 		isShared -> self
 		else -> {
 			val substituteAtom: AvailObject =
@@ -278,7 +278,7 @@ open class AtomDescriptor protected constructor(
 	 * [atom&#32;with&#32;properties][AtomWithPropertiesDescriptor], then add
 	 * the property to it.
 	 */
-	override fun o_SetAtomProperty(
+	override fun o_SetAtomProperty (
 		self: AvailObject,
 		key: A_Atom,
 		value: A_BasicObject
@@ -296,10 +296,10 @@ open class AtomDescriptor protected constructor(
 	/**
 	 * This atom has no properties, so always answer [nil].
 	 */
-	override fun o_GetAtomProperty(self: AvailObject, key: A_Atom) = nil
+	override fun o_GetAtomProperty (self: AvailObject, key: A_Atom) = nil
 
 	@ThreadSafe
-	override fun o_SerializerOperation(self: AvailObject) = when {
+	override fun o_SerializerOperation (self: AvailObject) = when {
 		self.isAtomSpecial() -> SerializerOperation.SPECIAL_ATOM
 		!self.getAtomProperty(HERITABLE_KEY.atom).equalsNil() ->
 			SerializerOperation.HERITABLE_ATOM
@@ -308,22 +308,22 @@ open class AtomDescriptor protected constructor(
 		else -> SerializerOperation.ATOM
 	}
 
-	override fun o_IsBoolean(self: AvailObject) =
+	override fun o_IsBoolean (self: AvailObject) =
 		self.isInstanceOf(booleanType())
 
-	override fun o_IsAtomSpecial(self: AvailObject) = false
+	override fun o_IsAtomSpecial (self: AvailObject) = false
 
-	override fun o_MarshalToJava(
+	override fun o_MarshalToJava (
 		self: AvailObject,
 		classHint: Class<*>?
 	): Any? = when {
-		self.equals(trueObject()) -> java.lang.Boolean.TRUE
-		self.equals(falseObject()) -> java.lang.Boolean.FALSE
+		self.equals(trueObject) -> java.lang.Boolean.TRUE
+		self.equals(falseObject) -> java.lang.Boolean.FALSE
 		else -> super.o_MarshalToJava(self, classHint)
 	}
 
 	@Throws(MalformedMessageException::class)
-	override fun o_BundleOrCreate(self: AvailObject): A_Bundle
+	override fun o_BundleOrCreate (self: AvailObject): A_Bundle
 	{
 		var bundle: A_Bundle = self.getAtomProperty(MESSAGE_BUNDLE_KEY.atom)
 		if (bundle.equalsNil()) {
@@ -336,10 +336,10 @@ open class AtomDescriptor protected constructor(
 		return bundle
 	}
 
-	override fun o_BundleOrNil(self: AvailObject): A_Bundle =
+	override fun o_BundleOrNil (self: AvailObject): A_Bundle =
 		self.getAtomProperty(MESSAGE_BUNDLE_KEY.atom)
 
-	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
+	override fun o_WriteTo (self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("atom") }
 			at("atom name") { self.slot(NAME).writeTo(writer) }
@@ -349,14 +349,14 @@ open class AtomDescriptor protected constructor(
 			}
 		}
 
-	override fun mutable() = mutable
+	override fun mutable () = mutable
 
-	override fun immutable() = immutable
+	override fun immutable () = immutable
 
 	@Deprecated(
 		"Shared atoms are implemented in subclasses",
 		level = DeprecationLevel.HIDDEN)
-	override fun shared() = unsupported
+	override fun shared () = unsupported
 
 	/**
 	 * `SpecialAtom` enumerates [atoms][A_Atom] that are known to the virtual
@@ -369,7 +369,7 @@ open class AtomDescriptor protected constructor(
 	 * @param atom
 	 *   The actual [A_Atom] to be held by this [SpecialAtom].
 	 */
-	enum class SpecialAtom constructor(
+	enum class SpecialAtom constructor (
 		@JvmField val atom: A_Atom
 	) {
 		/** The atom representing the Avail concept "true". */
@@ -473,10 +473,11 @@ open class AtomDescriptor protected constructor(
 		 *
 		 * @param name The name of the atom to be created.
 		 */
-		constructor(name: String) : this(createSpecialAtom(name))
+		constructor (name: String) : this(createSpecialAtom(name))
 	}
 
-	companion object {
+	companion object
+	{
 		/** The mutable [AtomDescriptor].  */
 		private val mutable = AtomDescriptor(
 			Mutability.MUTABLE,
@@ -504,7 +505,7 @@ open class AtomDescriptor protected constructor(
 		 *   invoked.
 		 */
 		@JvmStatic
-		fun createAtom(
+		fun createAtom (
 			name: A_String,
 			issuingModule: A_Module
 		) = mutable.createImmutable {
@@ -526,7 +527,7 @@ open class AtomDescriptor protected constructor(
 		 *   invoked.
 		 */
 		@JvmStatic
-		fun createSpecialAtom(
+		fun createSpecialAtom (
 			name: String
 		) = mutable.createShared {
 			setSlot(NAME, stringFrom(name).makeShared())
@@ -549,7 +550,7 @@ open class AtomDescriptor protected constructor(
 		 *   The new atom, not equal to any object in use before this method was
 		 *   invoked.
 		 */
-		private fun createSpecialBooleanAtom(
+		private fun createSpecialBooleanAtom (
 			name: String,
 			booleanValue: Boolean
 		) = mutable.createShared {
@@ -572,26 +573,13 @@ open class AtomDescriptor protected constructor(
 		 * @return
 		 *   An Avail boolean.
 		 */
-		@JvmStatic
-		fun objectFromBoolean(aBoolean: Boolean): A_Atom =
+		fun objectFromBoolean (aBoolean: Boolean): A_Atom =
 			if (aBoolean) TRUE.atom else FALSE.atom
 
-		/**
-		 * Answer the atom representing the Avail concept "true".
-		 *
-		 * @return
-		 *   Avail's `true` boolean object.
-		 */
-		@JvmStatic
-		fun trueObject(): A_Atom = TRUE.atom
+		/** The atom representing the Avail concept "true". */
+		val trueObject get () = TRUE.atom
 
-		/**
-		 * Answer the atom representing the Avail concept "false".
-		 *
-		 * @return
-		 *   Avail's `false` boolean object.
-		 */
-		@JvmStatic
-		fun falseObject(): A_Atom = FALSE.atom
+		/** The atom representing the Avail concept "false". */
+		val falseObject get () = FALSE.atom
 	}
 }

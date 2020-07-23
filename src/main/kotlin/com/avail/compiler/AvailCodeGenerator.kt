@@ -575,7 +575,7 @@ class AvailCodeGenerator private constructor(
 	fun emitDuplicate()
 	{
 		increaseDepth()
-		addInstruction(AvailDuplicate(emptyTuple()))
+		addInstruction(AvailDuplicate(emptyTuple))
 	}
 
 	/**
@@ -676,7 +676,7 @@ class AvailCodeGenerator private constructor(
 	 */
 	fun emitPop()
 	{
-		addInstruction(AvailPop(emptyTuple()))
+		addInstruction(AvailPop(emptyTuple))
 		decreaseDepth(1)
 	}
 
@@ -853,7 +853,7 @@ class AvailCodeGenerator private constructor(
 			{
 				assert(!p.hasFlag(Flag.CannotFail))
 				val fakeFailureVariableUse = AvailGetLocalVariable(
-					emptyTuple(), numArgs + 1)
+					emptyTuple, numArgs + 1)
 				fakeFailureVariableUse.fixUsageFlags(
 					localData, outerData, this)
 			}
@@ -864,7 +864,7 @@ class AvailCodeGenerator private constructor(
 				for (index in 1 .. numArgs)
 				{
 					val fakeArgumentUse =
-						AvailPushLocalVariable(emptyTuple(), index)
+						AvailPushLocalVariable(emptyTuple, index)
 					fakeArgumentUse.fixUsageFlags(localData, outerData, this)
 				}
 			}
@@ -907,7 +907,7 @@ class AvailCodeGenerator private constructor(
 				&& (primitive === null || primitive.canHaveNybblecodes()))
 			{
 				// Ideally, we could capture just the close-square-bracket here.
-				generator.emitPushLiteral(emptyTuple(), nil)
+				generator.emitPushLiteral(emptyTuple, nil)
 			}
 			else
 			{
@@ -928,7 +928,7 @@ class AvailCodeGenerator private constructor(
 						// the nil object as the return value. Ideally, we could
 						// capture just the close-square-bracket token here.
 						lastStatement.emitEffectOn(generator)
-						generator.emitPushLiteral(emptyTuple(), nil)
+						generator.emitPushLiteral(emptyTuple, nil)
 					}
 					else
 					{

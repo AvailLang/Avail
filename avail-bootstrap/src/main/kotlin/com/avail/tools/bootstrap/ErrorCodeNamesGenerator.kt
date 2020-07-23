@@ -159,7 +159,7 @@ class ErrorCodeNamesGenerator (locale: Locale?)
 		{
 			// This forces initialization of Avail.
 			specialObjects()
-			var allErrorCodes = emptySet()
+			var allErrorCodes = emptySet
 			for (code in AvailErrorCode.values())
 			{
 				if (!code.isCausedByInstructionFailure)
@@ -169,7 +169,7 @@ class ErrorCodeNamesGenerator (locale: Locale?)
 						true)
 				}
 			}
-			var reachableErrorCodes = emptySet()
+			var reachableErrorCodes = emptySet
 			for (primitiveNumber in 1 .. maxPrimitiveNumber())
 			{
 				val primitive = byPrimitiveNumberOrNull(primitiveNumber)

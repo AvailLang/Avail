@@ -172,8 +172,8 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 				tuple(
 					tuple(
 						newSendNode(
-							emptyTuple(), bundle, argsListNode, intersection)),
-					emptyTuple()))
+							emptyTuple, bundle, argsListNode, intersection)),
+					emptyTuple))
 		}
 
 		// Merge in the (non-empty list of) semantic restriction results.
@@ -192,16 +192,16 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 							tuple(
 								tuple(
 									newSendNode(
-										emptyTuple(),
+										emptyTuple,
 										bundle,
 										argsListNode,
 										intersection)),
-								emptyTuple()))
+								emptyTuple))
 					else ->
 						// There were problems.  Succeed with <<>, "report...">.
 						succeed(
 							tuple(
-								emptyTuple(),
+								emptyTuple,
 								collectProblemReport(problems)))
 				}
 			}

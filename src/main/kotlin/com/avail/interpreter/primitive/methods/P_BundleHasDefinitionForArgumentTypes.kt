@@ -89,11 +89,11 @@ object P_BundleHasDefinitionForArgumentTypes : Primitive(2, CanInline)
 				val definition =
 					method.lookupByTypesFromTuple(argTypes)
 				assert(!definition.equalsNil())
-				trueObject()
+				trueObject
 			}
 			catch (e: MethodDefinitionException)
 			{
-				falseObject()
+				falseObject
 			})
 	}
 

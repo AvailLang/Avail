@@ -150,14 +150,14 @@ internal class CompletelyOptional constructor(
 		{
 			// A single optional token.
 			sequence.printWithArguments(
-				emptyTuple().iterator(), builder, indent)
+				emptyTuple.iterator(), builder, indent)
 		}
 		else
 		{
 			// A sequence of tokens that are optional (in aggregate).
 			builder.append('«')
 			sequence.printWithArguments(
-				emptyTuple().iterator(), builder, indent)
+				emptyTuple.iterator(), builder, indent)
 			builder.append('»')
 		}
 		builder.append('⁇')

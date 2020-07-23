@@ -92,7 +92,7 @@ object P_DisableTraceVariableReadsBeforeWrites : Primitive(
 		functionType(
 			tuple(
 				ATOM.o(),
-				functionType(emptyTuple(), TOP.o())),
+				functionType(emptyTuple, TOP.o())),
 			TOP.o())
 
 	override fun privateFailureVariableType(): A_Type =

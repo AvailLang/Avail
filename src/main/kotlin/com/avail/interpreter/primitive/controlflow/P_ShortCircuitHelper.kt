@@ -48,7 +48,6 @@ import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
-import java.util.Collections.emptyList
 
 /**
  * **Primitive:** Run the zero-argument [function][FunctionDescriptor], ignoring
@@ -76,7 +75,7 @@ object P_ShortCircuitHelper : Primitive(2, Invokes, CanInline, CannotFail)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(ANY.o(), functionType(emptyTuple(), TOP.o())),
+			tuple(ANY.o(), functionType(emptyTuple, TOP.o())),
 			TOP.o())
 
 	override fun tryToGenerateSpecialPrimitiveInvocation(

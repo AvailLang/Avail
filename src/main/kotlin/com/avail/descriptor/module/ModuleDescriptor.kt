@@ -31,10 +31,12 @@
  */
 package com.avail.descriptor.module
 
+ import com.avail.compiler.AvailCompiler
  import com.avail.descriptor.atoms.A_Atom
  import com.avail.descriptor.atoms.A_Atom.Companion.atomName
  import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrNil
  import com.avail.descriptor.atoms.AtomDescriptor
+ import com.avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
  import com.avail.descriptor.bundles.A_Bundle
  import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
  import com.avail.descriptor.bundles.A_Bundle.Companion.definitionParsingPlans
@@ -78,7 +80,6 @@ package com.avail.descriptor.module
  import com.avail.descriptor.parsing.A_Lexer
  import com.avail.descriptor.parsing.A_Lexer.Companion.lexerMethod
  import com.avail.descriptor.parsing.ParsingPlanInProgressDescriptor.Companion.newPlanInProgress
- import com.avail.descriptor.phrases.DeclarationPhraseDescriptor
  import com.avail.descriptor.representation.A_BasicObject
  import com.avail.descriptor.representation.AbstractSlotsEnum
  import com.avail.descriptor.representation.AvailObject
@@ -106,9 +107,12 @@ package com.avail.descriptor.module
  import com.avail.exceptions.MalformedMessageException
  import com.avail.interpreter.execution.AvailLoader
  import com.avail.interpreter.execution.AvailLoader.LexicalScanner
+ import com.avail.interpreter.primitive.modules.P_CloseModule
+ import com.avail.interpreter.primitive.modules.P_CreateAnonymousModule
  import com.avail.serialization.SerializerOperation
  import com.avail.utility.json.JSONWriter
- import java.util.*
+ import java.util.HashSet
+ import java.util.IdentityHashMap
 
 /**
  * A [module][ModuleDescriptor] is the mechanism by which Avail code is
@@ -217,21 +221,13 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 
 		/**
 		 * A [map][MapDescriptor] from [string][StringDescriptor] to a
-		 * [variable][VariableDescriptor]. Since
-		 * [module&#32;variables][DeclarationPhraseDescriptor.DeclarationKind.MODULE_VARIABLE]
-		 * are never accessible outside the module in which they are defined,
-		 * this slot is overwritten with [nil][NilDescriptor.nil] when module
-		 * compilation is complete.
+		 * [variable][VariableDescriptor].
 		 */
 		VARIABLE_BINDINGS,
 
 		/**
 		 * A [map][MapDescriptor] from [string][StringDescriptor] to an
-		 * [AvailObject]. Since a
-		 * [module&#32;constants][DeclarationPhraseDescriptor.DeclarationKind.MODULE_CONSTANT]
-		 * are never accessible outside the module in which they are defined,
-		 * this slot is overwritten with [nil][NilDescriptor.nil] when module
-		 * compilation is complete.
+		 * [AvailObject].
 		 */
 		CONSTANT_BINDINGS,
 
@@ -338,7 +334,7 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 
 	override fun o_ExportedNames(self: AvailObject): A_Set
 	{
-		var exportedNames = emptySet()
+		var exportedNames = emptySet
 		synchronized(self) {
 			for ((_, value) in
 				self.slot(IMPORTED_NAMES).mapIterable())
@@ -407,7 +403,7 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 			var tuple: A_Tuple
 			tuple = when {
 				seals.hasKey(methodName) -> seals.mapAt(methodName)
-				else -> emptyTuple()
+				else -> emptyTuple
 			}
 			tuple = tuple.appendCanDestroy(argumentTypes, true)
 			seals = seals.mapAtPuttingCanDestroy(methodName, tuple, true)
@@ -451,7 +447,7 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 			var importedNames: A_Map = self.slot(IMPORTED_NAMES)
 			importedNames = importedNames.mapAtReplacingCanDestroy(
 				string,
-				emptySet(),
+				emptySet,
 				{ _, set: A_Set ->
 					set.setWithElementCanDestroy(trueName, true)
 				},
@@ -499,7 +495,7 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 				val string: A_String = trueName.atomName()
 				importedNames = importedNames.mapAtReplacingCanDestroy(
 					string,
-					emptySet(),
+					emptySet,
 					{ _, set: A_Set ->
 						set.setWithElementCanDestroy(trueName, true)
 					},
@@ -559,7 +555,7 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 			var privateNames: A_Map = self.slot(PRIVATE_NAMES)
 			privateNames = privateNames.mapAtReplacingCanDestroy(
 				string,
-				emptySet(),
+				emptySet,
 				{ _, set: A_Set ->
 					set.setWithElementCanDestroy(trueName, true)
 				},
@@ -593,7 +589,7 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 				val string: A_String = trueName.atomName()
 				privateNames = privateNames.mapAtReplacingCanDestroy(
 					string,
-					emptySet(),
+					emptySet,
 					{ _, set: A_Set ->
 						set.setWithElementCanDestroy(trueName, true)
 					},
@@ -809,7 +805,7 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 			assert(stringName.isTuple)
 			if (self.slot(NEW_NAMES).hasKey(stringName))
 			{
-				return emptySet().setWithElementCanDestroy(
+				return emptySet.setWithElementCanDestroy(
 					self.slot(NEW_NAMES).mapAt(stringName),
 					false)
 			}
@@ -820,7 +816,7 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 				}
 				else
 				{
-					emptySet()
+					emptySet
 				}
 			if (!self.slot(PRIVATE_NAMES).hasKey(stringName))
 			{
@@ -947,28 +943,27 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 		 * @return
 		 *   The new module.
 		 */
-		@JvmStatic
 		fun newModule(moduleName: A_String): A_Module
 		{
 			val module = mutable.createShared {
 				setSlot(NAME, moduleName)
 				setSlot(ALL_ANCESTORS, nil)
-				setSlot(VERSIONS, emptySet())
-				setSlot(NEW_NAMES, emptyMap())
-				setSlot(IMPORTED_NAMES, emptyMap())
-				setSlot(PRIVATE_NAMES, emptyMap())
-				setSlot(VISIBLE_NAMES, emptySet())
-				setSlot(EXPORTED_NAMES, emptySet())
-				setSlot(METHOD_DEFINITIONS_SET, emptySet())
-				setSlot(GRAMMATICAL_RESTRICTIONS, emptySet())
-				setSlot(VARIABLE_BINDINGS, emptyMap())
-				setSlot(CONSTANT_BINDINGS, emptyMap())
-				setSlot(VARIABLE_BINDINGS, emptyMap())
-				setSlot(SEMANTIC_RESTRICTIONS, emptySet())
-				setSlot(SEALS, emptyMap())
-				setSlot(ENTRY_POINTS, emptyMap())
-				setSlot(UNLOAD_FUNCTIONS, emptyTuple())
-				setSlot(LEXERS, emptySet())
+				setSlot(VERSIONS, emptySet)
+				setSlot(NEW_NAMES, emptyMap)
+				setSlot(IMPORTED_NAMES, emptyMap)
+				setSlot(PRIVATE_NAMES, emptyMap)
+				setSlot(VISIBLE_NAMES, emptySet)
+				setSlot(EXPORTED_NAMES, emptySet)
+				setSlot(METHOD_DEFINITIONS_SET, emptySet)
+				setSlot(GRAMMATICAL_RESTRICTIONS, emptySet)
+				setSlot(VARIABLE_BINDINGS, emptyMap)
+				setSlot(CONSTANT_BINDINGS, emptyMap)
+				setSlot(VARIABLE_BINDINGS, emptyMap)
+				setSlot(SEMANTIC_RESTRICTIONS, emptySet)
+				setSlot(SEALS, emptyMap)
+				setSlot(ENTRY_POINTS, emptyMap)
+				setSlot(UNLOAD_FUNCTIONS, emptyTuple)
+				setSlot(LEXERS, emptySet)
 				// Adding the module to its ancestors set will cause recursive
 				// scanning to mark everything as shared, so it's essential that
 				// all fields have been initialized to *something* by now.
@@ -993,11 +988,12 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 		 *   [nil][NilDescriptor.nil] if the current fiber is not a loader
 		 *   fiber.
 		 */
-		fun currentModule(): A_Module
-		{
-			val fiber = FiberDescriptor.currentFiber()
-			val loader = fiber.availLoader() ?: return nil
-			return loader.module()
-		}
+		val currentModule: A_Module
+			get()
+			{
+				val fiber = FiberDescriptor.currentFiber()
+				val loader = fiber.availLoader() ?: return nil
+				return loader.module()
+			}
 	}
 }

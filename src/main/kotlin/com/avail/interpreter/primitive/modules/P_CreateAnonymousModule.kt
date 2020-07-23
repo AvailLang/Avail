@@ -33,11 +33,11 @@
 package com.avail.interpreter.primitive.modules
 
 import com.avail.descriptor.atoms.AtomDescriptor
-import com.avail.descriptor.module.ModuleDescriptor
+import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.module.ModuleDescriptor.Companion.newModule
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import com.avail.descriptor.tuples.TupleDescriptor
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
@@ -50,7 +50,7 @@ import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Create an anonymous [module][ModuleDescriptor] that privately
+ * **Primitive:** Create an anonymous [module][A_Module] that privately
  * imports only and exactly the supplied [set][A_Set] of
  * [atoms][AtomDescriptor].
  *
@@ -59,17 +59,17 @@ import com.avail.interpreter.execution.Interpreter
 @Suppress("unused")
 object P_CreateAnonymousModule : Primitive(1, CanInline, CannotFail)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt (interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val allUses: A_Set = interpreter.argument(0)
 
-		val newModule = newModule(TupleDescriptor.emptyTuple())
+		val newModule = newModule(emptyTuple)
 		newModule.addPrivateNames(allUses)
 		return interpreter.primitiveSuccess(newModule)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type =
+	override fun privateBlockTypeRestriction (): A_Type =
 		functionType(
 			// All atoms that should be imported privately.
 			tuple(setTypeForSizesContentType(wholeNumbers(), ATOM.o())),

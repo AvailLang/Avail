@@ -147,7 +147,6 @@ import com.avail.performance.StatisticReport
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
 import java.util.ArrayList
-import java.util.Collections.emptyList
 import java.util.Collections.nCopies
 import java.util.Collections.newSetFromMap
 import java.util.Collections.synchronizedSet
@@ -1001,7 +1000,7 @@ class MethodDescriptor private constructor(
 			primitives.forEach { primitive ->
 				val function = createFunction(
 					newPrimitiveRawFunction(primitive, nil, 0),
-					emptyTuple())
+					emptyTuple)
 				val definition: A_Definition = when (prefixFunctions) {
 					null -> newMethodDefinition(
 						method,
@@ -1016,7 +1015,7 @@ class MethodDescriptor private constructor(
 								createFunction(
 									newPrimitiveRawFunction(
 										prefixPrimitive, nil, 0),
-									emptyTuple())
+									emptyTuple)
 							}))
 				}
 				try {
@@ -1107,11 +1106,11 @@ class MethodDescriptor private constructor(
 			newIndexedDescriptor(0, initialMutableDescriptor).apply {
 				setSlot(HASH, AvailRuntimeSupport.nextNonzeroHash())
 				setSlot(NUM_ARGS, numArgs)
-				setSlot(OWNING_BUNDLES, emptySet())
-				setSlot(DEFINITIONS_TUPLE, emptyTuple())
-				setSlot(SEMANTIC_RESTRICTIONS_SET, emptySet())
-				setSlot(SEALED_ARGUMENTS_TYPES_TUPLE, emptyTuple())
-				setSlot(MACRO_DEFINITIONS_TUPLE, emptyTuple())
+				setSlot(OWNING_BUNDLES, emptySet)
+				setSlot(DEFINITIONS_TUPLE, emptyTuple)
+				setSlot(SEMANTIC_RESTRICTIONS_SET, emptySet)
+				setSlot(SEALED_ARGUMENTS_TYPES_TUPLE, emptyTuple)
+				setSlot(MACRO_DEFINITIONS_TUPLE, emptyTuple)
 				setSlot(LEXER_OR_NIL, nil)
 				setDescriptor(MethodDescriptor(Mutability.SHARED))
 			}

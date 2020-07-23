@@ -55,5 +55,5 @@ object P_CurrentFiber : Primitive(0, CanInline, CannotFail)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(emptyTuple(), mostGeneralFiberType())
+		functionType(emptyTuple, mostGeneralFiberType())
 }

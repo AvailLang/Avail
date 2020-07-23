@@ -391,7 +391,7 @@ class CommentsModule constructor(
 
 				if (moduleImport.isExtension)
 				{
-					var collectedExtendedNames = emptySet()
+					var collectedExtendedNames = emptySet
 
 					if (moduleImport.wildcard)
 					{
@@ -408,10 +408,10 @@ class CommentsModule constructor(
 								setFromCollection(
 									moduleToComments[moduleImportName]
 										?.namedPublicCommentImplementations
-										?.keys ?: Collections.emptySet()),
+										?.keys ?: emptySet()),
 								true)
 					}
-					if (!moduleImport.excludes.equals(emptySet()))
+					if (!moduleImport.excludes.equals(emptySet))
 					{
 						collectedExtendedNames = collectedExtendedNames
 							.setMinusCanDestroy(moduleImport.excludes, true)
@@ -518,7 +518,7 @@ class CommentsModule constructor(
 				}
 				else
 				{
-					var collectedUsesNames = emptySet()
+					var collectedUsesNames = emptySet
 
 					if (moduleImport.wildcard)
 					{
@@ -537,7 +537,7 @@ class CommentsModule constructor(
 										.keys),
 								true)
 					}
-					if (!moduleImport.excludes.equals(emptySet()))
+					if (!moduleImport.excludes.equals(emptySet))
 					{
 						collectedUsesNames = collectedUsesNames
 							.setMinusCanDestroy(moduleImport.excludes, true)

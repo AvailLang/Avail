@@ -276,7 +276,7 @@ object P_FileRead : Primitive(6, CanInline, HasSideEffect)
 					// We started reading after the last byte of the file. Avail
 					// expects an empty buffer in this case.
 					assert(buffer.remaining() == 0)
-					bytesTuple = emptyTuple()
+					bytesTuple = emptyTuple
 				}
 				else
 				{

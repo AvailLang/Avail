@@ -51,7 +51,6 @@ import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
 import com.avail.optimizer.L2Generator.Companion.edgeTo
-import java.util.Collections.emptyList
 
 /**
  * **Primitive:** If the second argument, a [function][A_Function], accepts the
@@ -103,7 +102,7 @@ object P_CastIntoElse : Primitive(3, Invokes, CanInline, CannotFail)
 						bottom()),
 					TOP.o()),
 				functionType(
-					emptyTuple(),
+					emptyTuple,
 					TOP.o())),
 			TOP.o())
 

@@ -90,7 +90,7 @@ object P_CreateAssignmentStatement : Primitive(2, CanFold, CanInline)
 				E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
 		}
 		val assignment = newAssignment(
-			variable, expression, emptyTuple(), false)
+			variable, expression, emptyTuple, false)
 		return interpreter.primitiveSuccess(assignment)
 	}
 

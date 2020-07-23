@@ -105,7 +105,7 @@ object P_CreateBlockExpression : Primitive(5, CanFold, CanInline)
 			resultType,
 			exceptions,
 			0,
-			emptyTuple())
+			emptyTuple)
 		return interpreter.primitiveSuccess(block)
 	}
 

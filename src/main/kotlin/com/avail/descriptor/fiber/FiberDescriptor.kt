@@ -600,7 +600,7 @@ class FiberDescriptor private constructor(
 		 *   A [Set] of execution states.
 		 */
 		protected open fun privateSuccessors(): Set<ExecutionState> {
-			return kotlin.collections.emptySet()
+			return emptySet()
 		}
 
 		/**
@@ -884,7 +884,7 @@ class FiberDescriptor private constructor(
 		assert(self.mutableSlot(_TRACE_VARIABLE_READS_BEFORE_WRITES) != 1)
 		val rawPojo = self.slot(TRACED_VARIABLES)
 		val map = rawPojo.javaObjectNotNull<MutableMap<A_Variable, Boolean>>()
-		var set = emptySet()
+		var set = emptySet
 		map.forEach { (key, value) ->
 			if (value) {
 				set = set.setWithElementCanDestroy(key, true)
@@ -951,7 +951,7 @@ class FiberDescriptor private constructor(
 	override fun o_GetAndClearReificationWaiters(self: AvailObject): A_Set =
 		synchronized(self) {
 			val previousSet = self.slot(REIFICATION_WAITERS)
-			self.setSlot(REIFICATION_WAITERS, emptySet())
+			self.setSlot(REIFICATION_WAITERS, emptySet)
 			previousSet
 		}
 
@@ -1248,19 +1248,19 @@ class FiberDescriptor private constructor(
 				setSlot(
 					EXECUTION_STATE, ExecutionState.UNSTARTED.ordinal.toLong())
 				setSlot(BREAKPOINT_BLOCK, nil)
-				setSlot(FIBER_GLOBALS, emptyMap())
-				setSlot(HERITABLE_FIBER_GLOBALS, emptyMap())
+				setSlot(FIBER_GLOBALS, emptyMap)
+				setSlot(HERITABLE_FIBER_GLOBALS, emptyMap)
 				setSlot(RESULT, nil)
 				setSlot(LOADER, loaderPojoOrNil!!)
 				setSlot(RESULT_CONTINUATION, defaultResultContinuation)
 				setSlot(FAILURE_CONTINUATION, defaultFailureContinuation)
-				setSlot(JOINING_FIBERS, emptySet())
+				setSlot(JOINING_FIBERS, emptySet)
 				setSlot(WAKEUP_TASK, nil)
 				setSlot(
 					TRACED_VARIABLES,
 					identityPojo(
 						synchronizedMap(WeakHashMap<A_Variable, Boolean>())))
-				setSlot(REIFICATION_WAITERS, emptySet())
+				setSlot(REIFICATION_WAITERS, emptySet)
 				setSlot(TEXT_INTERFACE, runtime.textInterfacePojo())
 				setSlot(
 					DEBUG_UNIQUE_ID,

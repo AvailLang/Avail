@@ -184,7 +184,7 @@ class ListPhraseDescriptor private constructor(
 		childNodes.forEach {
 			it.emitValueOn(codeGenerator)
 		}
-		codeGenerator.emitMakeTuple(emptyTuple(), childNodes.tupleSize())
+		codeGenerator.emitMakeTuple(emptyTuple, childNodes.tupleSize())
 	}
 
 	override fun o_EqualsPhrase(
@@ -353,7 +353,7 @@ class ListPhraseDescriptor private constructor(
 		private val shared = ListPhraseDescriptor(Mutability.SHARED)
 
 		/** The empty [list phrase][ListPhraseDescriptor].  */
-		private val empty = newListNode(emptyTuple()).makeShared()
+		private val empty = newListNode(emptyTuple).makeShared()
 
 		/**
 		 * Answer the empty list phrase.

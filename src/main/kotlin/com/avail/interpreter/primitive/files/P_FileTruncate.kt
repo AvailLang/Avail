@@ -164,7 +164,7 @@ object P_FileTruncate : Primitive(5, CanInline, HasSideEffect)
 				ATOM.o(),
 				wholeNumbers(),
 				functionType(
-					emptyTuple(),
+					emptyTuple,
 					TOP.o()),
 				functionType(
 					tuple(instanceType(E_IO_ERROR.numericCode())),

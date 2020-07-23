@@ -155,7 +155,7 @@ class ObjectTypeDescriptor internal constructor(
 				names.map { it.asNativeString() }.sorted().joinToString(" ∩ "))
 		}
 		val explicitSubclassingKey = EXPLICIT_SUBCLASSING_KEY.atom
-		var ignoreKeys = emptySet()
+		var ignoreKeys = emptySet
 		baseTypes.forEach { baseType ->
 			baseType.fieldTypeMap().mapIterable().forEach { (atom, type) ->
 				if (!atom.getAtomProperty(explicitSubclassingKey).equalsNil()
@@ -263,7 +263,7 @@ class ObjectTypeDescriptor internal constructor(
 	override fun o_FieldTypeMap(self: AvailObject): A_Map
 	{
 		// Warning: May be much slower than it was before ObjectLayoutVariant.
-		return variant.fieldToSlotIndex.entries.fold(emptyMap()) {
+		return variant.fieldToSlotIndex.entries.fold(emptyMap) {
 			map, (field, slotIndex) ->
 			map.mapAtPuttingCanDestroy(
 				field,
@@ -631,7 +631,7 @@ class ObjectTypeDescriptor internal constructor(
 		 */
 		fun objectTypeFromTuple(tuple: A_Tuple): AvailObject =
 			objectTypeFromMap(
-				tuple.fold(emptyMap()) { m, (atom, type) ->
+				tuple.fold(emptyMap) { m, (atom, type) ->
 					m.mapAtPuttingCanDestroy(atom, type, true)
 				})
 
@@ -686,7 +686,7 @@ class ObjectTypeDescriptor internal constructor(
 						val namesMap: A_Map = atom.getAtomProperty(propertyKey)
 						if (namesMap.equalsNil()) {
 							keyAtomWithLeastNames = atom
-							keyAtomNamesMap = emptyMap()
+							keyAtomNamesMap = emptyMap
 							break
 						}
 						val mapSize = namesMap.mapSize()
@@ -701,7 +701,7 @@ class ObjectTypeDescriptor internal constructor(
 					var namesSet = when {
 						keyAtomNamesMap!!.hasKey(anObjectType) ->
 							keyAtomNamesMap.mapAt(anObjectType)
-						else -> emptySet()
+						else -> emptySet
 					}
 					namesSet = namesSet.setWithElementCanDestroy(aString, false)
 					keyAtomNamesMap = keyAtomNamesMap.mapAtPuttingCanDestroy(
@@ -769,7 +769,7 @@ class ObjectTypeDescriptor internal constructor(
 			anObjectType: A_Type
 		): A_Tuple {
 			val propertyKey = OBJECT_TYPE_NAME_PROPERTY_KEY.atom
-			var applicable = emptyMap()
+			var applicable = emptyMap
 			synchronized(propertyKey) {
 				anObjectType.fieldTypeMap().mapIterable().forEach { (key, _) ->
 					val map: A_Map = key.getAtomProperty(propertyKey)
@@ -800,8 +800,8 @@ class ObjectTypeDescriptor internal constructor(
 					}
 				}
 			}
-			var names = emptySet()
-			var baseTypes = emptySet()
+			var names = emptySet
+			var baseTypes = emptySet
 			filtered.mapIterable().forEach { (name, type) ->
 				names = names.setUnionCanDestroy(type, true)
 				baseTypes = baseTypes.setWithElementCanDestroy(name, true)
@@ -842,7 +842,7 @@ class ObjectTypeDescriptor internal constructor(
 		 * The most general [object&#32;type][ObjectTypeDescriptor].
 		 */
 		private val mostGeneralType: A_Type =
-			objectTypeFromMap(emptyMap()).makeShared()
+			objectTypeFromMap(emptyMap).makeShared()
 
 		/**
 		 * Answer the top (i.e., most general) object type.
@@ -875,7 +875,7 @@ class ObjectTypeDescriptor internal constructor(
 		 */
 		private val exceptionAtom: A_Atom =
 			createSpecialAtom("explicit-exception").apply {
-				setAtomProperty(EXPLICIT_SUBCLASSING_KEY.atom, trueObject())
+				setAtomProperty(EXPLICIT_SUBCLASSING_KEY.atom, trueObject)
 			}
 
 		/**

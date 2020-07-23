@@ -155,7 +155,7 @@ class SequencePhraseDescriptor private constructor(
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		SerializerOperation.SEQUENCE_PHRASE
 
-	override fun o_Tokens(self: AvailObject): A_Tuple = emptyTuple()
+	override fun o_Tokens(self: AvailObject): A_Tuple = emptyTuple
 
 	override fun o_ValidateLocally(
 		self: AvailObject,

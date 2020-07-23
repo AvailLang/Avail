@@ -68,7 +68,6 @@ import com.avail.utility.evaluation.Combinator.recurse
 import java.io.ByteArrayOutputStream
 import java.lang.String.format
 import java.util.*
-import java.util.Collections.emptyList
 import java.util.concurrent.Semaphore
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
@@ -509,7 +508,7 @@ internal class BuildLoader constructor(
 					// TODO MvG - Capture "/**" comments for Stacks.
 					//		final A_Tuple comments = fromList(
 					//         module.commentTokens());
-					val comments = emptyTuple()
+					val comments = emptyTuple
 					serializer.serialize(comments)
 					val version = archive.getVersion(versionKey)!!
 					version.putComments(appendCRC(out.toByteArray()))

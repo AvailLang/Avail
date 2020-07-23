@@ -73,7 +73,7 @@ object P_DeclareAllExportedAtoms : Primitive(
 		interpreter.checkArgumentCount(2)
 		val names = interpreter.argument(0)
 		val isPublic = interpreter.argument(1)
-		val module = currentModule()
+		val module = currentModule
 		assert(!module.equalsNil())
 		if (isPublic.extractBoolean())
 		{

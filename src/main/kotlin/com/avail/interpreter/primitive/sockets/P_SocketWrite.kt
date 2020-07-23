@@ -70,8 +70,6 @@ import com.avail.io.SimpleCompletionHandler
 import com.avail.io.SimpleCompletionHandler.Dummy.Companion.dummy
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousSocketChannel
-import java.util.Collections.emptyList
-
 
 /**
  * **Primitive:** Initiate an asynchronous write from the
@@ -174,7 +172,7 @@ object P_SocketWrite : Primitive(5, CanInline, HasSideEffect)
 				zeroOrMoreOf(bytes()),
 				ATOM.o(),
 				functionType(
-					emptyTuple(),
+					emptyTuple,
 					TOP.o()),
 				functionType(
 					tuple(instanceType(E_IO_ERROR.numericCode())),

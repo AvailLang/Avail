@@ -208,7 +208,7 @@ enum class PragmaKind constructor(val lexeme: String)
 			}
 			val atom = atoms.asTuple().tupleAt(1)
 			val send = newSendNode(
-				emptyTuple(),
+				emptyTuple,
 				DECLARE_STRINGIFIER.bundle,
 				newListNode(tuple(syntheticLiteralNodeFor(atom))),
 				TOP.o())

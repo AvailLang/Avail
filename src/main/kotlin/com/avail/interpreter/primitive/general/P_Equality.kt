@@ -115,7 +115,7 @@ object P_Equality : Primitive(2, CannotFail, CanFold, CanInline)
 			// A value is being compared to itself, even though we might not
 			// know anything specific about what it is.
 			callSiteHelper.useAnswer(
-				translator.generator.boxedConstant(trueObject()))
+				translator.generator.boxedConstant(trueObject))
 			return true
 		}
 
@@ -125,7 +125,7 @@ object P_Equality : Primitive(2, CannotFail, CanFold, CanInline)
 		{
 			// The actual values cannot be equal at runtime.
 			callSiteHelper.useAnswer(
-				translator.generator.boxedConstant(falseObject()))
+				translator.generator.boxedConstant(falseObject))
 			return true
 		}
 		// Because of metacovariance, a meta may actually have many instances.
@@ -136,7 +136,7 @@ object P_Equality : Primitive(2, CannotFail, CanFold, CanInline)
 		    && !type1.isInstanceMeta)
 		{
 			callSiteHelper.useAnswer(
-				translator.generator.boxedConstant(trueObject()))
+				translator.generator.boxedConstant(trueObject))
 			return true
 		}
 
