@@ -1406,3 +1406,5 @@ Public method "_is prime" is
 	sinclairBases ::= <2, 325, 9375, 28178, 450775, 9780504, 1795265022>;
 	each b of sinclairBases satisfies [x is a strong probable prime to base b]
 ];
+
+Grammatical restriction "-_" is <{"_bit∧_", "_bit∨_", "_bit⊕_"}>;
