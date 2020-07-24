@@ -34,27 +34,20 @@ package com.avail.interpreter.primitive.maps
 
 import com.avail.descriptor.maps.A_Map
 import com.avail.descriptor.maps.MapDescriptor
-import com.avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
-import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.TupleDescriptor
-import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeType
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import com.avail.descriptor.types.MapTypeDescriptor.Companion.mostGeneralMapType
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
-import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
-import com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
-import com.avail.exceptions.AvailErrorCode.E_KEY_NOT_FOUND
-import com.avail.exceptions.AvailErrorCode.E_NEGATIVE_SIZE
-import com.avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS
+import com.avail.exceptions.AvailErrorCode.*
 import com.avail.exceptions.AvailException
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
@@ -76,15 +69,15 @@ object P_MapReplaceRangeNAryKey : Primitive(5, CanInline, CanFold)
 		interpreter.checkArgumentCount(5)
 		val targetMap = interpreter.argument(0)
 		val pathTuple = interpreter.argument(1)
-		val headLastIndex = interpreter.argument(2)
-		val tailFirstIndex = interpreter.argument(3)
+		val sliceStartIndex = interpreter.argument(2)
+		val sliceEndIndex = interpreter.argument(3)
 		val newValues = interpreter.argument(4)
-		if (!headLastIndex.isInt || !tailFirstIndex.isInt)
+		if (!sliceStartIndex.isInt || !sliceEndIndex.isInt)
 		{
 			return interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS)
 		}
-		val startInt = headLastIndex.extractInt()
-		val endInt = tailFirstIndex.extractInt()
+		val startInt = sliceStartIndex.extractInt()
+		val endInt = sliceEndIndex.extractInt()
 
 		if (startInt < 1 || endInt < 0 || startInt > endInt + 1)
 		{
@@ -99,12 +92,12 @@ object P_MapReplaceRangeNAryKey : Primitive(5, CanInline, CanFold)
 		}
 		catch (e: AvailException)
 		{
-			interpreter.primitiveFailure(e) }
-
+			interpreter.primitiveFailure(e)
+		}
 	}
 
 	/**
-	 * Recursively traverses the target [tuple][TupleDescriptor] ultimately
+	 * Recursively traverses the target [tuple][TupleDescriptor], ultimately
 	 * updating the value range at the final index of the pathIndex.
 	 *
 	 * @param targetTuple
@@ -112,40 +105,40 @@ object P_MapReplaceRangeNAryKey : Primitive(5, CanInline, CanFold)
 	 * @param pathTuple
 	 *   The [tuple][TupleDescriptor] containing the path of indices to
 	 *   traverse.
-	 * @param headLastIndex
-	 *   The last index in the head of the target tuple to be kept.
-	 * @param tailFirstIndex
-	 *   The first index in the tail of the target tuple to be kept.
+	 * @param sliceStartIndex
+	 *   The start index of the tuple slice to be replaced.
+	 * @param sliceEndIndex
+	 *   The end index of the tuple slice to be replaced.
 	 * @param pathIndex
 	 *   The current position of the pathTuple being accessed.
 	 * @param newValues
 	 *   The [tuple][TupleDescriptor] of values used to update the given target
 	 *   range.
-	 * @return The updated tuple.
-	 * @throws AvailException
-	 *   If the path cannot be used to correctly navigate the structure.
+	 * @return
+	 *   The outermost tuple with the range updated.
+	 * @throws AvailException If a problem occurs.
 	 */
 	@Throws(AvailException::class)
 	private fun recursivelyUpdateTuple(
 		targetTuple: A_Tuple,
 		pathTuple: A_Tuple,
-		headLastIndex: Int,
-		tailFirstIndex: Int,
+		sliceStartIndex: Int,
+		sliceEndIndex: Int,
 		pathIndex: Int,
 		newValues: A_Tuple): A_Tuple
 	{
 		if (pathIndex == pathTuple.tupleSize() + 1)
 		{
-			if (tailFirstIndex > targetTuple.tupleSize() + 1)
+			if (sliceEndIndex > targetTuple.tupleSize())
 			{
 				throw AvailException(E_SUBSCRIPT_OUT_OF_BOUNDS)
 			}
 			// Note: We can't destroy the targetTuple while extracting the
 			// leftPart, since we still need to extract the rightPart.
-			val leftPart =
-				targetTuple.copyTupleFromToCanDestroy(1, headLastIndex, false)
+			val leftPart = targetTuple.copyTupleFromToCanDestroy(
+					1, sliceStartIndex - 1, false)
 			val rightPart = targetTuple.copyTupleFromToCanDestroy(
-				tailFirstIndex, targetTuple.tupleSize(), true)
+				sliceEndIndex + 1, targetTuple.tupleSize(), true)
 			return leftPart
 				.concatenateWith(newValues, true)
 				.concatenateWith(rightPart, true)
@@ -158,10 +151,11 @@ object P_MapReplaceRangeNAryKey : Primitive(5, CanInline, CanFold)
 			throw AvailException(E_SUBSCRIPT_OUT_OF_BOUNDS)
 		}
 		val targetIndex = targetIndexNumber.extractInt()
-		if (targetIndex < 1 || targetIndex > targetTuple.tupleSize())
+		if (targetIndex > targetTuple.tupleSize())
 		{
 			throw AvailException(E_SUBSCRIPT_OUT_OF_BOUNDS)
 		}
+
 		val subtuple = targetTuple.tupleAt(targetIndex)
 		when
 		{
@@ -170,8 +164,8 @@ object P_MapReplaceRangeNAryKey : Primitive(5, CanInline, CanFold)
 				val newTuple = recursivelyUpdateTuple(
 					subtuple,
 					pathTuple,
-					headLastIndex,
-					tailFirstIndex,
+					sliceStartIndex,
+					sliceEndIndex,
 					pathIndex + 1,
 					newValues)
 				return targetTuple.tupleAtPuttingCanDestroy(
@@ -182,8 +176,8 @@ object P_MapReplaceRangeNAryKey : Primitive(5, CanInline, CanFold)
 				val newMap = recursivelyUpdateMap(
 					subtuple,
 					pathTuple,
-					headLastIndex,
-					tailFirstIndex,
+					sliceStartIndex,
+					sliceEndIndex,
 					pathIndex + 1,
 					newValues)
 				return targetTuple.tupleAtPuttingCanDestroy(
@@ -203,10 +197,10 @@ object P_MapReplaceRangeNAryKey : Primitive(5, CanInline, CanFold)
 	 * @param pathTuple
 	 *   The [tuple][TupleDescriptor] containing the path of indices to
 	 *   traverse.
-	 * @param headLastIndex
-	 *   The last index in the head of the target tuple to be kept.
-	 * @param tailFirstIndex
-	 *   The first index in the tail of the target tuple to be kept.
+	 * @param sliceStartIndex
+	 *   The start index of the tuple slice to be replaced.
+	 * @param sliceEndIndex
+	 *   The end index of the tuple slice to be replaced.
 	 * @param pathIndex
 	 *   The current position of the pathTuple being accessed.
 	 * @param newValues
@@ -220,8 +214,8 @@ object P_MapReplaceRangeNAryKey : Primitive(5, CanInline, CanFold)
 	private fun recursivelyUpdateMap(
 		targetMap: A_Map,
 		pathTuple: A_Tuple,
-		headLastIndex: Int,
-		tailFirstIndex: Int,
+		sliceStartIndex: Int,
+		sliceEndIndex: Int,
 		pathIndex: Int,
 		newValues: A_Tuple): A_Map
 	{
@@ -244,8 +238,8 @@ object P_MapReplaceRangeNAryKey : Primitive(5, CanInline, CanFold)
 				val newTuple = recursivelyUpdateTuple(
 					targetElement,
 					pathTuple,
-					headLastIndex,
-					tailFirstIndex,
+					sliceStartIndex,
+					sliceEndIndex,
 					pathIndex + 1,
 					newValues)
 				return targetMap.mapAtPuttingCanDestroy(
@@ -256,11 +250,12 @@ object P_MapReplaceRangeNAryKey : Primitive(5, CanInline, CanFold)
 				val newMap = recursivelyUpdateMap(
 					targetElement,
 					pathTuple,
-					headLastIndex,
-					tailFirstIndex,
+					sliceStartIndex,
+					sliceEndIndex,
 					pathIndex + 1,
 					newValues)
-				return targetMap.mapAtPuttingCanDestroy(targetIndex, newMap, true)
+				return targetMap.mapAtPuttingCanDestroy(
+					targetIndex, newMap, true)
 			}
 			else -> throw AvailException(E_INCORRECT_ARGUMENT_TYPE)
 		}
@@ -271,14 +266,9 @@ object P_MapReplaceRangeNAryKey : Primitive(5, CanInline, CanFold)
 			tuple(
 				mostGeneralMapType(),
 				oneOrMoreOf(ANY.o),
-				wholeNumbers,
 				naturalNumbers,
-				tupleTypeForSizesTypesDefaultType(
-					integerRangeType(
-						fromInt(2), true, positiveInfinity(), false),
-					emptyTuple,
-					ANY.o
-				)),
+				wholeNumbers,
+				zeroOrMoreOf(ANY.o)),
 			mostGeneralMapType())
 
 	override fun privateFailureVariableType(): A_Type =

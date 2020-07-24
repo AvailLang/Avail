@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 7/23/20 6:41 PM
+ * * Last Generated: 7/24/20 12:40 AM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -93,7 +93,7 @@ Uses
 		"_occurrences⁇of_",
 		"_parameterized by_",
 		"_to_by_",
-		"_«[_]»(_.._)→_",
+		"_«[_]»[_.._]→_",
 		"_«[_]»→_",
 		"_×_",
 		"_÷_",
@@ -1217,23 +1217,25 @@ Primitive "_[_]" is
 ] : any;
 
 /**
- * Replace the tuple value-range with new values in the map at the location
- * indicated by the path tuple.  The replacement tuple can be
- * different in size from the target range to replace.
+ * Given a multi-level data structure where the outermost later is a map, the
+ * intervening layers are maps or tuples, and the innermost target reached by
+ * the provided path is a tuple, answer a variant of the data structure such
+ * that the indicated slice of the innermost target has been replaced with the
+ * provided tuple. The replacement tuple can differ in size from the slice.
  *
  * @category "Primitives" "Tuples" "Maps" "Transformers"
- * @method "_«[_]»(_.._)→_"
+ * @method "_«[_]»[_.._]→_"
  * @param "aMap" "map"
  *        The target map.
  * @param "pathTuple" "<any…|1..∞>"
  *        The tuple providing the path to follow to reach the location
  *        to be updated.
- * @param "replaceStartIndex" "[0..∞)"
- *        The start index of the range to replace.
- * @param "replaceEndIndex" "[1..∞)"
- *        The end index of the range to replace.
- * @param "newValues" "<any…|2..∞>"
- *        The replacement values.
+ * @param "sliceStartIndex" "[1..∞)"
+ *        The start index of the tuple slice to be replaced.
+ * @param "sliceEndIndex" "[0..∞)"
+ *        The end index of the tuple slice to be replaced.
+ * @param "newValues" "tuple"
+ *        The tuple containing the replacement values.
  * @returns "map"
  *    a new map with the new values installed at the proposed locations.
  * @raises "subscript-out-of-bounds exception"
@@ -1241,13 +1243,13 @@ Primitive "_[_]" is
  * @raises "key-not-found exception"
  * @raises "negative-size exception"
  */
-Primitive "_«[_]»(_.._)→_" is
+Primitive "_«[_]»[_.._]→_" is
 [
 	aMap : map,
 	pathTuple : nonempty tuple,
-	replaceStartIndex : whole number,
-	replaceEndIndex : natural number,
-	newValues : two or more tuple
+	sliceStartIndex : natural number,
+	sliceEndIndex : whole number,
+	newValues : tuple
 |
 	Primitive MapReplaceRangeNAryKey (failureCode : {
 		subscript-out-of-bounds code,
@@ -3518,10 +3520,11 @@ Primitive "_[_.._]" is
  *        last value in the tuple if the difference between the first and last
  *        values is a multiple of the step size.
  * @param "delta" "(-∞..∞)"
- *        The step size of the interval.
+ *        The step size of the interval, which must not be zero.
  * @returns "<(-∞..∞)…|>"
  *    The requested tuple.
  * @raises "incorrect-argument-type exception"
+ *    If {@param "delta"} is zero.
  */
 Primitive "_to_by_" is
 [
@@ -3650,23 +3653,25 @@ Primitive "_«[_]»→_" is
 ] : tuple;
 
 /**
- * Replace the tuple value-range with new values in the tuple at the
- * location indicated by the path tuple.  The replacement tuple can be
- * different in size from the target range to replace.
+ * Given a multi-level data structure where the outermost layer is a tuple, the
+ * intervening layers are maps or tuples, and the innermost target reached by the
+ * provided path is a tuple, answer a variant of the data structure such that the
+ * indicated slice of the innermost target has been replaced with the provided
+ * tuple. The replacement tuple can differ in size from the slice.
  *
  * @category "Primitives" "Tuples" "Maps" "Transformers"
- * @method "_«[_]»(_.._)→_"
+ * @method "_«[_]»[_.._]→_"
  * @param "aTuple" "tuple"
  *        The target tuple.
  * @param "pathTuple" "<any…|1..∞>"
  *        The tuple providing the path to follow to reach the location
  *        to be updated.
- * @param "headEndIndex" "[1..∞)"
- *        The last index in the head of the target tuple to keep.
- * @param "tailStartIndex" "[0..∞)"
- *        The first index of the tail of the target tuple to keep.
- * @param "newValues" "<any…|2..∞>"
- *        The replacement values.
+ * @param "sliceStartIndex" "[1..∞)"
+ *        The start index of the tuple slice to be replaced.
+ * @param "sliceEndIndex" "[0..∞)"
+ *        The end index of the tuple slice to be replaced.
+ * @param "newValues" "tuple"
+ *        The tuple containing the replacement values.
  * @returns "tuple"
  *    a new tuple with the new values installed at the proposed locations.
  * @raises "subscript-out-of-bounds exception"
@@ -3674,13 +3679,13 @@ Primitive "_«[_]»→_" is
  * @raises "key-not-found exception"
  * @raises "negative-size exception"
  */
-Primitive "_«[_]»(_.._)→_" is
+Primitive "_«[_]»[_.._]→_" is
 [
 	aTuple : tuple,
 	pathTuple : nonempty tuple,
-	headEndIndex : natural number,
-	tailStartIndex : whole number,
-	newValues : two or more tuple
+	sliceStartIndex : natural number,
+	sliceEndIndex : whole number,
+	newValues : tuple
 |
 	Primitive TupleReplaceRangeAtNary (failureCode : {
 		subscript-out-of-bounds code,

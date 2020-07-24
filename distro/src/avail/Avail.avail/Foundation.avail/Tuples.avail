@@ -2127,7 +2127,7 @@ Semantic restriction "_to_by_" is
 		rangeFrom ::= if diff is infinite ∧ ⌈delta⌉ is infinite
 			then [0]
 			else [0 max (diff ÷ ⌈delta⌉ + 1)];
-		rangeTo ::= (high - low) ÷ ⌊delta⌋ + 1;
+		rangeTo ::= 0 max ((high - low) ÷ ⌊delta⌋ + 1);
 		sizes := [rangeFrom .. rangeTo + 1);
 	]
 	else if delta ⊆ (-∞..-1] then
@@ -2138,7 +2138,7 @@ Semantic restriction "_to_by_" is
 		rangeFrom ::= if diff is infinite ∧ ⌈delta⌉ is infinite
 			then [0]
 			else [0 max (diff ÷ -⌈delta⌉ + 1)];
-		rangeTo ::= (high - low) ÷ -⌊delta⌋ + 1;
+		rangeTo ::= 0 max ((high - low) ÷ -⌊delta⌋ + 1);
 		sizes := [rangeFrom .. rangeTo + 1);
 	]
 	else
@@ -3184,6 +3184,14 @@ Semantic restriction "_[_.._]→_" is
 	suffix ::= tuple type of aTuple[suffixStart..||aTuple||];
 	prefix ++ replacement ++ suffix
 ];
+
+/**
+ * Forbid subscript in the lead argument position for range update.
+ *
+ * @method "_[_.._]→_"
+ * @forbids "1" "_[_]"
+ */
+Grammatical restriction "_[_.._]→_" is <{"_[_]"},∅,∅,∅>;
 
 /**
  * @method "_[_↔_]"

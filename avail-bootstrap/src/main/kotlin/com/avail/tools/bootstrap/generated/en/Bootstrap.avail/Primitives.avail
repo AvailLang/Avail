@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 7/23/20 6:41 PM
+ * * Last Generated: 7/24/20 12:40 AM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -190,7 +190,7 @@ Names
 	"_reinterpreted as float",
 	"_reversed",
 	"_to_by_",
-	"_«[_]»(_.._)→_",
+	"_«[_]»[_.._]→_",
 	"_«[_]»→_",
 	"_×_",
 	"_÷_",
