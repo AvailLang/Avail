@@ -530,6 +530,7 @@ class L2ValueManifest
 	 * @param type
 	 *   The [A_Type] to exclude from the synonym's restriction.
 	 */
+	@Suppress("unused")
 	fun subtractType(semanticValue: L2SemanticValue, type: A_Type)
 	{
 		val synonym = semanticValueToSynonym(semanticValue)

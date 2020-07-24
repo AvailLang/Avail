@@ -89,32 +89,6 @@ object Locks
 	}
 
 	/**
-	 * Execute the given [Supplier] while holding the given [Lock]. Return the
-	 * value produced by the supplier.  The result may be `null`.
-	 *
-	 * @param lock
-	 *   The [Lock] to be acquired.
-	 * @param supplier
-	 *   The [Supplier] to execute while holding the lock.
-	 * @return
-	 *   The result of running the supplier, which may be `null`.
-	 * @param T
-	 *   The type of `nullable` value to pass through from the supplier.
-	 */
-	fun <T> lockWhileNullable(lock: Lock, supplier: Supplier<T>): T?
-	{
-		lock.lock()
-		return try
-		{
-			supplier.get()
-		}
-		finally
-		{
-			lock.unlock()
-		}
-	}
-
-	/**
 	 * Acquire the [Lock], and return an [AutoCloseable] which will carry the
 	 * responsibility for releasing the lock.  This mechanism allows locking to
 	 * use the much more convenient try-with-resources mechanism.

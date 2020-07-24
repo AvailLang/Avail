@@ -32,50 +32,26 @@
 package com.avail
 
 import com.avail.descriptor.methods.MacroDefinitionDescriptor
-import com.avail.descriptor.sets.A_Set
-import com.avail.descriptor.sets.SetDescriptor.Companion.generateSetFrom
-import com.avail.descriptor.tuples.StringDescriptor
 import com.avail.interpreter.execution.Interpreter
 import java.io.IOException
-import java.util.*
+import java.util.Scanner
 
 /**
  * This class contains static state and methods related to the current running
  * configuration.
  */
+@Suppress("unused")
 object AvailRuntimeConfiguration
 {
 	/** The build version, set by the build process.  */
-	private var buildVersion: String = "dev"
-
-	/**
-	 * Answer the build version, as set by the build process.
-	 *
-	 * @return
-	 *   The build version, or `"dev"` if Avail is not running from a
-	 *   distribution JAR.
-	 */
-	fun buildVersion(): String
-	{
-		return buildVersion
-	}
+	@Suppress("MemberVisibilityCanBePrivate")
+	val buildVersion: String
 
 	/**
 	 * The active versions of the Avail virtual machine. These are the versions
 	 * for which the virtual machine guarantees compatibility.
 	 */
-	private val activeVersions = arrayOf("1.4.0")
-
-	/**
-	 * Answer the active versions of the Avail virtual machine. These are the
-	 * versions for which the virtual machine guarantees compatibility.
-	 *
-	 * @return
-	 * The active versions.
-	 */
-	@JvmStatic
-	fun activeVersions(): A_Set =
-		generateSetFrom(activeVersions) { StringDescriptor.stringFrom(it) }
+	val activeVersions = arrayOf("1.4.0")
 
 	/**
 	 * Answer a short string indicating the most recent version of Avail
@@ -84,20 +60,19 @@ object AvailRuntimeConfiguration
 	 * @return
 	 *   A short [String].
 	 */
-	fun activeVersionSummary(): String =
-		activeVersions[activeVersions.size - 1].split(" ".toRegex(), 2)
+	val activeVersionSummary: String
+		get() = activeVersions[activeVersions.size - 1].split(" ".toRegex(), 2)
 			.toTypedArray()[0]
 
 	/** The number of available processors.  */
-	@JvmField
 	val availableProcessors = Runtime.getRuntime().availableProcessors()
 
 	/**
 	 * The maximum number of [Interpreter]s that can be constructed for
 	 * this runtime.
 	 */
-	@JvmField
 	val maxInterpreters = availableProcessors
+
 	/**
 	 * Whether to show all [macro][MacroDefinitionDescriptor] expansions as
 	 * they happen.

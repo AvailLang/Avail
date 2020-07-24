@@ -56,6 +56,7 @@ class AvailAssertionFailedException : Exception
 	 * @param assertionString
 	 *   The [error&#32;message][StringDescriptor] describing the assertion.
 	 */
+	@Suppress("unused")
 	constructor(assertionString: A_String)
 	{
 		assert(assertionString.isString)

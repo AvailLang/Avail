@@ -64,6 +64,7 @@ class RegisterSet
 	 * @param builder
 	 *   Where to describe this RegisterSet.
 	 */
+	@Suppress("unused")
 	fun debugOn(builder: StringBuilder)
 	{
 		val sortedRegs = registerStates.keys.toMutableList()
@@ -519,6 +520,7 @@ class RegisterSet
 	 * @return
 	 *   Whether the receiver changed due to the new information.
 	 */
+	@Suppress("unused")
 	fun mergeFrom(other: RegisterSet): Boolean
 	{
 		var registerSetChanged = false

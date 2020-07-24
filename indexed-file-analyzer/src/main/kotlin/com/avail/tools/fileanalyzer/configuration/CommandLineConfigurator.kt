@@ -45,6 +45,7 @@ import com.avail.tools.fileanalyzer.configuration.CommandLineConfigurator.Option
 import com.avail.tools.fileanalyzer.configuration.CommandLineConfigurator.OptionKey.TEXT
 import com.avail.tools.fileanalyzer.configuration.CommandLineConfigurator.OptionKey.UPPER
 import com.avail.tools.options.OptionProcessingException
+import com.avail.tools.options.OptionProcessor
 import com.avail.tools.options.OptionProcessorFactory
 import com.avail.tools.options.OptionProcessorFactory.Cardinality
 import com.avail.utility.configuration.ConfigurationException

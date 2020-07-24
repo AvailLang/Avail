@@ -130,7 +130,7 @@ object P_SetImplicitObserveFunction : Primitive(
 		// set up for a return).
 		val wrapper = createWithOuters1(rawFunction, function.cast())
 		// Now set the wrapper as the implicit observe function.
-		IMPLICIT_OBSERVE.set(interpreter.runtime(), wrapper)
+		IMPLICIT_OBSERVE[interpreter.runtime()] = wrapper
 		return interpreter.primitiveSuccess(nil)
 	}
 

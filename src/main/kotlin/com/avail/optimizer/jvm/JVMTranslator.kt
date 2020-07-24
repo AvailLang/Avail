@@ -117,7 +117,11 @@ import kotlin.collections.LinkedHashMap
  * @param instructions
  *   The source [L2Instruction]s.
  */
-@Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE", "UNUSED_PARAMETER")
+@Suppress(
+	"PARAMETER_NAME_CHANGED_ON_OVERRIDE",
+	"UNUSED_PARAMETER",
+	"MemberVisibilityCanBePrivate"
+)
 class JVMTranslator constructor(
 	val code: A_RawFunction?,
 	private val chunkName: String,
@@ -893,6 +897,7 @@ class JVMTranslator constructor(
 	 * @param value
 	 *   The `float`.
 	 */
+	@Suppress("unused")
 	fun floatConstant(method: MethodVisitor, value: Float)
 	{
 		when (value)
@@ -975,9 +980,8 @@ class JVMTranslator constructor(
 	 * @return
 	 *   The branch opcode with the reversed sense.
 	 */
-	fun reverseOpcode(opcode: Int): Int
-	{
-		val reversedOpcode: Int = when (opcode)
+	fun reverseOpcode(opcode: Int): Int =
+		when (opcode)
 		{
 			IFEQ -> IFNE
 			IFNE -> IFEQ
@@ -1001,8 +1005,6 @@ class JVMTranslator constructor(
 				throw RuntimeException("bad opcode ($opcode)")
 			}
 		}
-		return reversedOpcode
-	}
 
 	/**
 	 * Emit code to unconditionally branch to the specified
@@ -1578,6 +1580,7 @@ class JVMTranslator constructor(
 	 *
 	 * @property action
 	 *   The action to perform for this phase.
+	 *
 	 * @constructor
 	 * Initialize the enum value.
 	 *
@@ -1588,27 +1591,35 @@ class JVMTranslator constructor(
 		private val action: (JVMTranslator) -> Unit)
 	{
 		/** Prepare to generate the JVM translation.  */
+		@Suppress("unused")
 		PREPARE({ it.prepare() }),
 
 		/** Create the static &lt;clinit&gt; method for capturing constants.  */
+		@Suppress("unused")
 		GENERATE_STATIC_INITIALIZER({  it.generateStaticInitializer() }),
 
 		/** Prepare the default constructor, invoked once via reflection.  */
+		@Suppress("unused")
 		GENERATE_CONSTRUCTOR_V({ it.generateConstructorV() }),
 
 		/** Generate the name() method.  */
+		@Suppress("unused")
 		GENERATE_NAME({ it.generateName() }),
 
 		/** Generate the runChunk() method.  */
+		@Suppress("unused")
 		GENERATE_RUN_CHUNK({ it.generateRunChunk() }),
 
 		/** Indicate code emission has completed.  */
+		@Suppress("unused")
 		VISIT_END({ it.classVisitEnd() }),
 
 		/** Create a byte array that would be the content of a class file.  */
+		@Suppress("unused")
 		CREATE_CLASS_BYTES({ it.createClassBytes() }),
 
 		/** Load the class into the running system.  */
+		@Suppress("unused")
 		LOAD_CLASS({ it.loadClass() });
 
 		/** Statistic about this L2 -> JVM translation phase.  */
@@ -1698,7 +1709,7 @@ class JVMTranslator constructor(
 		const val callTraceL2AfterEveryInstruction = false
 
 		/** Helper for stripping "_TAG" from end of tag names.  */
-		val tagEndPattern = Pattern.compile("_TAG$")
+		val tagEndPattern: Pattern = Pattern.compile("_TAG$")
 
 		/**
 		 * Answer the JVM local for the receiver of a generated implementation

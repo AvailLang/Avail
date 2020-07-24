@@ -44,7 +44,4 @@ package com.avail.optimizer.jvm
 		AnnotationTarget.PROPERTY_SETTER,
 		AnnotationTarget.FIELD)
 @kotlin.annotation.Retention(AnnotationRetention.RUNTIME)
-// No implementation required.
 annotation class ReferencedInGeneratedCode
-{
-}

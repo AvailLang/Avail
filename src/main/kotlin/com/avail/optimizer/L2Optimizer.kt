@@ -1163,6 +1163,7 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 		/**
 		 * Clear usage information about all registers.
 		 */
+		@Suppress("unused")
 		fun clearAll()
 		{
 			for (i in liveRegistersByKind.indices)

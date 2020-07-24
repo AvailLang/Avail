@@ -267,6 +267,7 @@ class ObjectDescriptor internal constructor(
 							newVariantSlotMap[key]!!,
 							self.slot(FIELD_VALUES_, value1)))
 					}
+					@Suppress("MapGetWithNotNullAssertionOperator")
 					val newVariantSlotIndex = newVariantSlotMap[field]!!
 					if (newVariantSlotIndex != 0) {
 						setSlot(FIELD_VALUES_, newVariantSlotIndex, value)
@@ -500,6 +501,7 @@ class ObjectDescriptor internal constructor(
 			val slotMap = variant.fieldToSlotIndex
 			return mutableDescriptor.create(variant.realSlotCount) {
 				map.mapIterable().forEach { (key, value) ->
+					@Suppress("MapGetWithNotNullAssertionOperator")
 					val slotIndex = slotMap[key]!!
 					if (slotIndex > 0) {
 						setSlot(FIELD_VALUES_, slotIndex, value)
@@ -513,6 +515,7 @@ class ObjectDescriptor internal constructor(
 		/**
 		 * The [CheckedMethod] for [objectFromMap].
 		 */
+		@Suppress("unused")
 		val objectFromMapMethod: CheckedMethod = staticMethod(
 			ObjectDescriptor::class.java,
 			::objectFromMap.name,

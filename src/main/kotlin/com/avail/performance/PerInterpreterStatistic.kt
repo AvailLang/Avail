@@ -185,6 +185,7 @@ class PerInterpreterStatistic internal constructor(
 	 * @return
 	 *   The Bessel-corrected standard deviation of the samples.
 	 */
+	@Suppress("unused")
 	internal fun standardDeviation() = sqrt(variance())
 
 	/**

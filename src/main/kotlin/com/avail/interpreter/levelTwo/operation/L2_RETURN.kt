@@ -59,7 +59,7 @@ object L2_RETURN : L2ControlFlowOperation(
 		generator: L2Generator)
 	{
 		// A return instruction doesn't mention where it might end up.
-		assert(registerSets.size == 0)
+		assert(registerSets.isEmpty())
 	}
 
 	// Never remove this.

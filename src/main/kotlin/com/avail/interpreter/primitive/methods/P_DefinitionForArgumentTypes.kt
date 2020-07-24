@@ -35,7 +35,10 @@ package com.avail.interpreter.primitive.methods
 import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrNil
 import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import com.avail.descriptor.bundles.MessageBundleDescriptor
+import com.avail.descriptor.methods.A_Definition
+import com.avail.descriptor.methods.A_Method
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
+import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
@@ -54,10 +57,9 @@ import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Lookup the unique [definition][DefinitionDescriptor] in the
- * specified [message&#32;bundle's][MessageBundleDescriptor]
- * [method][MethodDescriptor] by the [tuple][TupleDescriptor] of parameter
- * [types][TypeDescriptor].
+ * **Primitive:** Lookup the unique [definition][A_Definition] in the specified
+ * [message&#32;bundle's][MessageBundleDescriptor] [method][A_Method] by the
+ * [tuple][A_Tuple] of parameter [types][A_Type].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

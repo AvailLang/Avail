@@ -44,7 +44,6 @@ import java.lang.String.format
  * usage is that it will only be written by a single [Thread] at a time,
  * and read by another [Thread] only rarely.
  *
- *
  * If you want to record samples from multiple processes, use a Statistic,
  * which holds a PerInterpreterStatistic for up to
  * [AvailRuntimeConfiguration.maxInterpreters] separate Threads to access,
@@ -68,6 +67,7 @@ enum class ReportingUnit (private vararg val ranges: Range)
 	),
 
 	/** The number of bytes consumed or produced by some activity.  */
+	@Suppress("unused")
 	BYTES(
 		Range(999_999_999_500.0, POSITIVE_INFINITY, 1.0e-12, "%, 8.3f TB"),
 		Range(999_999_500.0, 999_999_999_500.0, 1.0e-9, "%, 8.3f GB"),
@@ -76,6 +76,7 @@ enum class ReportingUnit (private vararg val ranges: Range)
 	),
 
 	/** A dimensionless measurement, such as a count of something.  */
+	@Suppress("unused")
 	DIMENSIONLESS_DOUBLE(
 		Range(NEGATIVE_INFINITY, POSITIVE_INFINITY, 1.0, "%, 10.3f")
 	),

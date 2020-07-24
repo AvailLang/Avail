@@ -402,7 +402,7 @@ interface A_Number : A_BasicObject {
 	fun extractUnsignedShort(): Int
 
 	/**
-	 * Extract a Kotln [Double] from the [receiver][AvailObject].
+	 * Extract a Kotlin [Double] from the [receiver][AvailObject].
 	 *
 	 * @return
 	 *   A Kotlin [Double].

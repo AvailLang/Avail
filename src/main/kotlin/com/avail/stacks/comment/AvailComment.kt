@@ -99,6 +99,7 @@ abstract class AvailComment internal constructor(
 	val isSticky: Boolean)
 {
 	/** A set of category String names for this implementation. */
+	@Suppress("unused")
 	val categorySet: MutableSet<String>
 		get()
 		{

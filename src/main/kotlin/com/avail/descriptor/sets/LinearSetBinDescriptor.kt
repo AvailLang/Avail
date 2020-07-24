@@ -32,7 +32,6 @@
 package com.avail.descriptor.sets
 
 import com.avail.descriptor.representation.A_BasicObject
-import com.avail.descriptor.representation.AbstractDescriptor
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.AvailObjectRepresentation.Companion.newLike
 import com.avail.descriptor.representation.BitField
@@ -45,7 +44,7 @@ import com.avail.descriptor.sets.LinearSetBinDescriptor.ObjectSlots.BIN_ELEMENT_
 import com.avail.descriptor.sets.SetDescriptor.SetIterator
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.TypeTag
-import java.util.*
+import java.util.NoSuchElementException
 
 /**
  * A LinearSetBinDescriptor] is a leaf bin in a [set][SetDescriptor]'s hierarchy

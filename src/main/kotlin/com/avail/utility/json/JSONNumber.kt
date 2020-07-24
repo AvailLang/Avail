@@ -45,6 +45,7 @@ import java.math.BigInteger
 class JSONNumber : JSONData
 {
 	/** The [BigDecimal] that encodes the value.  */
+	@Suppress("MemberVisibilityCanBePrivate")
 	val bigDecimal: BigDecimal
 
 	override val isNumber: Boolean

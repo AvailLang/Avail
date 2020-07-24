@@ -59,7 +59,8 @@ import javax.swing.KeyStroke
  *   than for the module tree's selection.
  */
 class BuildAction constructor (
-		workbench: AvailWorkbench, internal val forEntryPointModule: Boolean)
+		workbench: AvailWorkbench,
+		private val forEntryPointModule: Boolean)
 	: AbstractWorkbenchAction(workbench, "Build")
 {
 	override fun actionPerformed(event: ActionEvent?)

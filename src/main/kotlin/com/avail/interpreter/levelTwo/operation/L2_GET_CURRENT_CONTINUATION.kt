@@ -51,7 +51,7 @@ import org.objectweb.asm.MethodVisitor
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-@ReadsHiddenVariable(theValue = arrayOf(CURRENT_CONTINUATION::class))
+@ReadsHiddenVariable(theValue = [CURRENT_CONTINUATION::class])
 object L2_GET_CURRENT_CONTINUATION : L2Operation(
 	L2OperandType.WRITE_BOXED.named("current continuation"))
 {

@@ -48,6 +48,7 @@ package com.avail.utility.json
  *   The array of [JSONData]s. This must not be modified by the caller
  *   afterward; this call transfers ownership of the reference.
  */
+@Suppress("unused")
 class JSONArray internal constructor(
 	private val array: Array<JSONData>) : JSONData(), Iterable<JSONData>
 {

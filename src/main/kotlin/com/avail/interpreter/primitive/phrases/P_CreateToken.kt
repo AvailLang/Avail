@@ -35,6 +35,7 @@ package com.avail.interpreter.primitive.phrases
 import com.avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
+import com.avail.descriptor.tokens.A_Token
 import com.avail.descriptor.tokens.TokenDescriptor.Companion.newToken
 import com.avail.descriptor.tokens.TokenDescriptor.StaticInit.tokenTypeOrdinalKey
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType
@@ -58,7 +59,7 @@ import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Create a [token][TokenDescriptor] with the specified
+ * **Primitive:** Create a [token][A_Token] with the specified
  * [TokenType], [lexeme][A_Token.string],
  * [starting&#32;character&#32;position][A_Token.start], and
  * [line&#32;number][A_Token.lineNumber].

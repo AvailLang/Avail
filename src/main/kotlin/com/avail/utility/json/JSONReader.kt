@@ -306,13 +306,11 @@ class JSONReader @Throws(IllegalArgumentException::class) constructor(
 				// Do nothing.
 			}
 		}
+		// Optional exponent sign.
 		if (peekFor('e'.toInt(), builder) || peekFor('E'.toInt(), builder))
 		{
 			// Engineering notation.
-			if (peekFor('-'.toInt(), builder) || peekFor('+'.toInt(), builder))
-			{
-				// Optional exponent sign.
-			}
+			peekFor('-'.toInt(), builder) || peekFor('+'.toInt(), builder)
 			while (peekForDigit(builder))
 			{
 				// Do nothing.

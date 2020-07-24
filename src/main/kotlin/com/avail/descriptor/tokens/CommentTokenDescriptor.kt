@@ -39,12 +39,12 @@ import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.BitField
 import com.avail.descriptor.representation.IntegerSlotsEnum
 import com.avail.descriptor.representation.Mutability
-import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.tokens.CommentTokenDescriptor.IntegerSlots.Companion.LINE_NUMBER
 import com.avail.descriptor.tokens.CommentTokenDescriptor.IntegerSlots.Companion.START
-import com.avail.descriptor.tokens.CommentTokenDescriptor.ObjectSlots.*
+import com.avail.descriptor.tokens.CommentTokenDescriptor.ObjectSlots.NEXT_LEXING_STATE_POJO
+import com.avail.descriptor.tokens.CommentTokenDescriptor.ObjectSlots.STRING
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.StringDescriptor
 import com.avail.descriptor.types.TypeTag

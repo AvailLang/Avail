@@ -146,6 +146,7 @@ class L2Instruction constructor(
 	 * @param consumer
 	 *   The lambda to evaluate.
 	 */
+	@Suppress("unused")
 	fun operandsWithNamedTypesDo(
 		consumer: (L2Operand, L2NamedOperandType) -> Unit)
 	{
@@ -448,6 +449,7 @@ class L2Instruction constructor(
 	 * @return
 	 *   An [L2ValueManifest].
 	 */
+	@Suppress("unused")
 	fun recreateIncomingManifest(): L2ValueManifest
 	{
 		// Start with the intersection of the incoming manifests.
@@ -488,6 +490,7 @@ class L2Instruction constructor(
 	 *   If non-`null`, produce tha manifest that should be active along
 	 *   outbound edges having the indicated [L2NamedOperandType.Purpose].
 	 */
+	@Suppress("unused")
 	fun updateManifest(
 		manifest: L2ValueManifest?,
 		optionalPurpose: L2NamedOperandType.Purpose?)
@@ -509,6 +512,7 @@ class L2Instruction constructor(
 	 * @return
 	 *   The new instruction or `null`.
 	 */
+	@Suppress("unused")
 	fun copyInstructionForManifest(
 		newBlock: L2BasicBlock, manifest: L2ValueManifest): L2Instruction?
 	{

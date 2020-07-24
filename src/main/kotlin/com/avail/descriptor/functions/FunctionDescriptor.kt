@@ -317,6 +317,7 @@ class FunctionDescriptor private constructor(
 		 *   If the atom has no associated bundle/method, or the function
 		 *   signature is inconsistent with the available method definitions.
 		 */
+		@Suppress("unused")
 		fun createStubToCallMethod(
 			functionType: A_Type,
 			atom: A_Atom

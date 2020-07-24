@@ -30,7 +30,10 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-@file:Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
+@file:Suppress(
+	"PLATFORM_CLASS_MAPPED_TO_KOTLIN",
+	"RemoveRedundantQualifierName"
+)
 
 package com.avail.interpreter
 
@@ -59,7 +62,7 @@ typealias JavaList = java.util.List<*>
  *
  * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
-@Suppress("unused")
+@Suppress("unused", "MemberVisibilityCanBePrivate")
 object JavaLibrary
 {
 	// The Java primitive classes.

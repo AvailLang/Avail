@@ -34,7 +34,6 @@ package com.avail.interpreter.primitive.files
 import com.avail.AvailRuntime.Companion.currentRuntime
 import com.avail.descriptor.atoms.A_Atom.Companion.extractBoolean
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
-import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromArray
@@ -68,7 +67,7 @@ import java.nio.file.InvalidPathException
 import java.nio.file.NoSuchFileException
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption
-import java.util.*
+import java.util.ArrayList
 
 /**
  * **Primitive:** Rename the source [path][Path] to the destination path. Try
@@ -186,7 +185,7 @@ object P_FileRename : Primitive(6, CanInline, HasSideEffect)
                    runtime,
                    newFiber,
                    succeed,
-                   emptyList<A_BasicObject>())
+                   emptyList())
            })
 		return interpreter.primitiveSuccess(newFiber)
 	}

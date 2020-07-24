@@ -61,7 +61,6 @@ import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.ObjectTupleDescriptor
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
@@ -77,7 +76,7 @@ import com.avail.descriptor.types.TypeTag
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.Strings.newlineTab
 import com.avail.utility.json.JSONWriter
-import java.util.*
+import java.util.IdentityHashMap
 
 /**
  * [ObjectTypeDescriptor] represents an Avail object type. An object type
@@ -508,7 +507,9 @@ class ObjectTypeDescriptor internal constructor(
 			resultSlotMap.forEach { (field, resultSlotIndex) ->
 				if (resultSlotIndex > 0)
 				{
+					@Suppress("MapGetWithNotNullAssertionOperator")
 					val mySlotIndex = mySlotMap[field]!!
+					@Suppress("MapGetWithNotNullAssertionOperator")
 					val otherSlotIndex = otherSlotMap[field]!!
 					val fieldType = self
 						.slot(FIELD_TYPES_, mySlotIndex)
@@ -610,6 +611,7 @@ class ObjectTypeDescriptor internal constructor(
 			val slotMap = variant.fieldToSlotIndex
 			return mutableDescriptor.create(variant.realSlotCount) {
 				map.mapIterable().forEach { (key, value) ->
+					@Suppress("MapGetWithNotNullAssertionOperator")
 					val slotIndex = slotMap[key]!!
 					if (slotIndex > 0) {
 						setSlot(FIELD_TYPES_, slotIndex, value)

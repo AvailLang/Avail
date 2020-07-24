@@ -135,6 +135,7 @@ class CheckedConstructor private constructor(
 		 * @return
 		 *   The `CheckedMethod`.
 		 */
+		@Suppress("unused")
 		fun javaLibraryConstructorMethod(
 			receiverClass: Class<*>,
 			vararg argumentTypes: Class<*>): CheckedConstructor =

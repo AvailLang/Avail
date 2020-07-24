@@ -48,6 +48,7 @@ enum class DataCouplingMode
 	 * The liveness analyses should consider the flows through
 	 * [L2SemanticValue]s.
 	 */
+	@Suppress("unused")
 	FOLLOW_SEMANTIC_VALUES
 	{
 		override fun addEntitiesFromRead(
@@ -187,6 +188,7 @@ enum class DataCouplingMode
 	 *   Each [L2Entity] written by the [L2WriteOperand], and which the policy
 	 *   deems relevant.
 	 */
+	@Suppress("unused")
 	fun writeEntitiesOf(writeOperand: L2WriteOperand<*>): Set<L2Entity>
 	{
 		val entitiesWritten = mutableSetOf<L2Entity>()

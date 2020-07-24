@@ -51,7 +51,7 @@ import org.objectweb.asm.Type
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-@ReadsHiddenVariable(theValue = arrayOf(CURRENT_FUNCTION::class))
+@ReadsHiddenVariable(theValue = [CURRENT_FUNCTION::class])
 object L2_GET_RETURNING_FUNCTION : L2Operation(
 	L2OperandType.WRITE_BOXED.named("returning function"))
 {

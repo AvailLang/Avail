@@ -53,7 +53,7 @@ import org.objectweb.asm.Type
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-@ReadsHiddenVariable(theValue = arrayOf(CURRENT_ARGUMENTS::class))
+@ReadsHiddenVariable(theValue = [CURRENT_ARGUMENTS::class])
 object L2_GET_ARGUMENT : L2Operation(
 	L2OperandType.INT_IMMEDIATE.named("subscript into argsBuffer"),
 	L2OperandType.WRITE_BOXED.named("argument"))

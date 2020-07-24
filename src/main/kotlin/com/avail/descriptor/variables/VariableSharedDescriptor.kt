@@ -469,6 +469,7 @@ open class VariableSharedDescriptor protected constructor(
 		 * @param self
 		 *   The method that changed.
 		 */
+		@Suppress("unused")
 		private fun invalidateChunks(self: AvailObject)
 		{
 			assert(L2Chunk.invalidationLock.isHeldByCurrentThread)

@@ -119,26 +119,31 @@ object L2_GET_TYPE : L2Operation(
 		val type = instruction.operand<L2WriteBoxedOperand>(1)
 		translator.load(method, value.register())
 		// [value]
-		if (value.restriction().containedByType(NONTYPE.o))
+		when
 		{
-			// The value will *never* be a type.
-			InstanceTypeDescriptor.instanceTypeMethod.generateCall(method)
-		}
-		else if (value.restriction().containedByType(InstanceMetaDescriptor.topMeta()))
-		{
-			// The value will *always* be a type. Strengthen to AvailObject.
-			InstanceMetaDescriptor.instanceMetaMethod.generateCall(method)
-			method.visitTypeInsn(
-				Opcodes.CHECKCAST, Type.getInternalName(AvailObject::class.java))
-		}
-		else
-		{
-			// The value could be either a type or a non-type.
-			AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOnMethod
-				.generateCall(method)
-			// Strengthen to AvailObject
-			method.visitTypeInsn(
-				Opcodes.CHECKCAST, Type.getInternalName(AvailObject::class.java))
+			value.restriction().containedByType(NONTYPE.o) ->
+			{
+				// The value will *never* be a type.
+				InstanceTypeDescriptor.instanceTypeMethod.generateCall(method)
+			}
+			value.restriction().containedByType(
+				InstanceMetaDescriptor.topMeta()) ->
+			{
+				// The value will *always* be a type. Strengthen to AvailObject.
+				InstanceMetaDescriptor.instanceMetaMethod.generateCall(method)
+				method.visitTypeInsn(
+					Opcodes.CHECKCAST,
+					Type.getInternalName(AvailObject::class.java))
+			}
+			else ->
+			{
+				// The value could be either a type or a non-type.
+				AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOnMethod
+					.generateCall(method)
+				// Strengthen to AvailObject
+				method.visitTypeInsn(
+					Opcodes.CHECKCAST, Type.getInternalName(AvailObject::class.java))
+			}
 		}
 		// [type]
 		translator.store(method, type.register())

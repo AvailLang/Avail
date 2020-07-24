@@ -33,7 +33,6 @@
 
 package com.avail.test
 
-import com.avail.compiler.ParsingConversionRule
 import com.avail.compiler.ParsingConversionRule.LIST_TO_SIZE
 import com.avail.compiler.ParsingOperation
 import com.avail.compiler.ParsingOperation.APPEND_ARGUMENT
@@ -64,7 +63,7 @@ import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
-import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.parsing.A_DefinitionParsingPlan
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromArray
 import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.types.A_Type
@@ -329,7 +328,7 @@ class MessageSplitterTest private constructor ()
 		 */
 		@Suppress("unused")
 		@JvmStatic
-		fun casesProvider() =
+		fun casesProvider(): Stream<Arguments> =
 			Arrays.stream(splitCases).map { arguments: Case? ->
 				Arguments.of(arguments)
 			}

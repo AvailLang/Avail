@@ -309,6 +309,7 @@ class AvailServer constructor(
 	internal inner class ModuleNode constructor(
 		val localName: String,
 		val qualifiedName: String,
+		@Suppress("MemberVisibilityCanBePrivate")
 		val type: ModuleNodeType = MODULE)
 	{
 		/** The children of the [node][ModuleNode]. */

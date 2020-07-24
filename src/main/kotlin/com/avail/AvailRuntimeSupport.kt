@@ -90,6 +90,7 @@ object AvailRuntimeSupport
 	 * @return
 	 *   The next fiber identifier.
 	 */
+	@Suppress("unused")
 	@ThreadSafe
 	fun nextFiberId(): Int = fiberIdGenerator.getAndIncrement()
 

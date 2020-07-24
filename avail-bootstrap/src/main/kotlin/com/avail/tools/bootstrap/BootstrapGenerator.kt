@@ -229,7 +229,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 			val versions = mutableListOf<String>()
 			if (args.size < 2)
 			{
-				activeVersions().mapTo(versions) { it.asNativeString() }
+				activeVersions.mapTo(versions) { it }
 			}
 			else
 			{

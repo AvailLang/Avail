@@ -168,7 +168,7 @@ object P_SocketWrite : Primitive(5, CanInline, HasSideEffect)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			ObjectTupleDescriptor.tuple(
+			tuple(
 				zeroOrMoreOf(bytes),
 				ATOM.o,
 				functionType(

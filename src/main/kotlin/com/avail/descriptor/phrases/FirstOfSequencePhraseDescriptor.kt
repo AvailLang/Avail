@@ -40,7 +40,6 @@ package com.avail.descriptor.phrases
  import com.avail.descriptor.phrases.A_Phrase.Companion.statements
  import com.avail.descriptor.phrases.A_Phrase.Companion.statementsDo
  import com.avail.descriptor.phrases.FirstOfSequencePhraseDescriptor.ObjectSlots.STATEMENTS
- import com.avail.descriptor.representation.AbstractDescriptor
  import com.avail.descriptor.representation.AvailObject
  import com.avail.descriptor.representation.Mutability
  import com.avail.descriptor.representation.NilDescriptor.Companion.nil
