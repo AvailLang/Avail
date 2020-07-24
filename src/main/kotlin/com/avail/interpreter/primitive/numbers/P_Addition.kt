@@ -87,6 +87,9 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(tuple(NUMBER.o, NUMBER.o), NUMBER.o)
 
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_CANNOT_ADD_UNLIKE_INFINITIES))
+
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type
 	{
@@ -167,9 +170,6 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 			CallSiteCannotFail
 		}
 	}
-
-	override fun privateFailureVariableType(): A_Type =
-		enumerationWith(set(E_CANNOT_ADD_UNLIKE_INFINITIES))
 
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
