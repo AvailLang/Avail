@@ -37,14 +37,18 @@ Uses
 	"Primitive Test Common"
 Body
 
-Test "MapAtKey ok" in primitive maps test suite if supported is
+Test "MapAtKey ok" in primitive maps test suite is
 [
-	Skip test
+	a ::= { 1 → "one", 2 → "two", 3 → "three" };
+	Require: a[1] = "one";
+	Require: a[2] = "two";
+	Require: a[3] = "three";
 ];
 
-Test "MapAtKey fails with key-not-found exception" in primitive maps test suite if supported is
+Test "MapAtKey fails with key-not-found exception" in primitive maps test suite is
 [
-	Skip test
+	a : map := { 1 → "one", 2 → "two", 3 → "three" };
+	a[999]
 ]
 must raise key-not-found exception;
 

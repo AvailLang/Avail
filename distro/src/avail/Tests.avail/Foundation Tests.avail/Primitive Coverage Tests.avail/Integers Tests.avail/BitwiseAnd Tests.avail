@@ -37,8 +37,20 @@ Uses
 	"Primitive Test Common"
 Body
 
-Test "BitwiseAnd ok" in primitive integers test suite if supported is
+Test "BitwiseAnd ok" in primitive integers test suite is
 [
-	Skip test
+    /* Bitwise with 1 bit */
+	Require: 0 bit∧ 0 = 0;
+	Require: 0 bit∧ 1 = 0;
+	Require: 1 bit∧ 0 = 0;
+	Require: 1 bit∧ 1 = 1;
+
+	Require: 0b1001 bit∧ 0b1111 = 0b1001;
+	Require:      9 bit∧     15 =      9;
+
+	Require: -1 bit∧ 0 = 0; /* -1 ~ ...11111111 */
+	Require: -3 bit∧ 3 = 1; /* -3 ~ ...11111101 */
+
+	Require: 0xDEADBEEF bit∧ 0xCAFEBABE = 0xCAACBAAE;
 ];
 
