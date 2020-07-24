@@ -31,10 +31,12 @@
  */
 package com.avail.interpreter.primitive.tuples
 
+import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleMeta
 import com.avail.interpreter.Primitive
@@ -45,10 +47,10 @@ import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Answer the allowed size [ranges][IntegerRangeTypeDescriptor]
- * for this [tuple&#32;type][TupleTypeDescriptor]. These are the sizes that a
- * [tuple][TupleDescriptor] may be and still be considered instances of the
- * tuple type, assuming the element [types][TypeDescriptor] are consistent with
- * those specified by the tuple type.
+ * for this [tuple&#32;type][A_Type]. These are the sizes that a
+ * [tuple][A_Tuple] may be and still be considered instances of the tuple type,
+ * assuming the element [types][A_Type] are consistent with those specified by
+ * the tuple type.
  */
 @Suppress("unused")
 object P_TupleTypeSizes : Primitive(1, CannotFail, CanFold, CanInline)

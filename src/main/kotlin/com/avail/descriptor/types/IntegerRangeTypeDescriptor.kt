@@ -603,7 +603,7 @@ class IntegerRangeTypeDescriptor private constructor(
 		}
 
 		/** One past the maximum lower or upper bound of a pre-built range.  */
-		const val smallRangeLimit = 10
+		private const val smallRangeLimit = 10
 
 		/**
 		 * An array of arrays of small inclusive-inclusive ranges.  The first

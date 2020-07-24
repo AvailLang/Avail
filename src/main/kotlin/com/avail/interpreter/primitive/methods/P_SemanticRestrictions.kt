@@ -32,7 +32,9 @@
 package com.avail.interpreter.primitive.methods
 
 import com.avail.descriptor.functions.A_Function
+import com.avail.descriptor.methods.A_Method
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
+import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import com.avail.descriptor.types.A_Type
@@ -50,9 +52,9 @@ import com.avail.interpreter.execution.Interpreter
 import java.util.*
 
 /**
- * **Primitive:** Answer a [tuple][TupleDescriptor] of restriction
- * [functions][FunctionDescriptor] that would run for a call site for the
- * specified [method][MethodDescriptor] and tuple of argument types.
+ * **Primitive:** Answer a [tuple][A_Tuple] of restriction
+ * [functions][A_Function] that would run for a call site for the specified
+ * [method][A_Method] and tuple of argument types.
  */
 @Suppress("unused")
 object P_SemanticRestrictions : Primitive(2, CanInline)

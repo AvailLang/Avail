@@ -109,7 +109,7 @@ class BitField (
 		assert(integerSlot === other!!.integerSlot) {
 			"Bit fields of different slots are incomparable"
 		}
-		return Integer.compare(other!!.shift, shift)
+		return other!!.shift.compareTo(shift)
 	}
 
 	/**

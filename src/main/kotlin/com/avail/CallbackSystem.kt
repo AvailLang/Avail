@@ -75,6 +75,7 @@ import java.util.function.Function
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
+@Suppress("unused")
 class CallbackSystem
 {
 	/** A mechanism for invoking Java lambdas from Avail.  */

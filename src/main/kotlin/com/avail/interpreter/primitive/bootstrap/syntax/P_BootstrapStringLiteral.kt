@@ -50,6 +50,7 @@ import com.avail.interpreter.execution.Interpreter
  * (already wrapped as a literal phrase).  This is a bootstrapped macro because
  * not all subsets of the core Avail syntax should allow literal string phrases.
  */
+@Suppress("unused")
 object P_BootstrapStringLiteral
 	: Primitive(1, CannotFail, CanInline, Bootstrap)
 {

@@ -33,8 +33,10 @@ package com.avail.descriptor.representation
 
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.bundles.A_BundleTree
+import com.avail.descriptor.fiber.A_Fiber
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.methods.MethodDescriptor
+import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.representation.Mutability.IMMUTABLE
 import com.avail.descriptor.representation.Mutability.MUTABLE
 import com.avail.descriptor.representation.Mutability.SHARED
@@ -49,7 +51,8 @@ import com.avail.descriptor.representation.Mutability.SHARED
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-enum class Mutability {
+enum class Mutability
+{
 	/**
 	 * Indicates that instances of the [descriptor][Descriptor] are *mutable*.
 	 * An [object][AvailObject] can be *mutable* only if there exists but a
@@ -63,7 +66,7 @@ enum class Mutability {
 	 * Indicates that instances of the [descriptor][Descriptor] are *immutable*.
 	 * An [object][AvailObject] that is *immutable* may have more than one
 	 * reference, but must be reachable only by a single
-	 * [fiber][FiberDescriptor]. An *immutable* object may not be modified, in
+	 * [fiber][A_Fiber]. An *immutable* object may not be modified, in
 	 * general, though some
 	 * [slots][AbstractDescriptor.allowsImmutableToMutableReferenceInField] may
 	 * remain mutable.
@@ -73,8 +76,8 @@ enum class Mutability {
 	/**
 	 * Indicates that instances of the [descriptor][Descriptor] are immutable
 	 * and shared. An [object][AvailObject] that is shared may have more than
-	 * one reference and may be reachable by multiple [fibers][FiberDescriptor].
-	 * [Modules][ModuleDescriptor], [methods][MethodDescriptor],
+	 * one reference and may be reachable by multiple [fibers][A_Fiber].
+	 * [Modules][A_Module], [methods][MethodDescriptor],
 	 * [message&32;bundle&#32;trees][A_BundleTree], and
 	 * [special&#32;atoms][A_Atom] begin existence in the *shared* state. A
 	 * fiber begins existence *shared* only if the parent fiber retains a

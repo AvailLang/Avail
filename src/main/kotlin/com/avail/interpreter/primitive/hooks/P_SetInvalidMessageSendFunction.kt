@@ -60,7 +60,7 @@ object P_SetInvalidMessageSendFunction
 	{
 		interpreter.checkArgumentCount(1)
 		val function = interpreter.argument(0)
-		INVALID_MESSAGE_SEND.set(interpreter.runtime(), function)
+		INVALID_MESSAGE_SEND[interpreter.runtime()] = function
 		interpreter.availLoaderOrNull()?.statementCanBeSummarized(false)
 		return interpreter.primitiveSuccess(nil)
 	}

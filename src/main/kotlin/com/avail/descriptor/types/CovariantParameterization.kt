@@ -52,6 +52,7 @@ package com.avail.descriptor.types
  *   The the type that any specific phrase type's covariant specialization type
  *   is constrained to.
  */
+@Suppress("unused")
 class CovariantParameterization internal constructor(
 	val name: String,
 	val mostGeneralType: A_Type)

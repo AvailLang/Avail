@@ -49,6 +49,7 @@ class AvailEmergencyExitException : Exception
 	 * The [error&#32;message][StringDescriptor] describing the emergency exit
 	 * situation.
 	 */
+	@Suppress("MemberVisibilityCanBePrivate")
 	val failureString: A_String
 
 	/**
@@ -58,6 +59,7 @@ class AvailEmergencyExitException : Exception
 	 *   The [error&#32;message][StringDescriptor] describing the emergency exit
 	 *   situation.
 	 */
+	@Suppress("unused")
 	constructor(failureString: A_String)
 	{
 		assert(failureString.isString)

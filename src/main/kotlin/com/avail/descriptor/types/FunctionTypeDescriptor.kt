@@ -51,6 +51,7 @@ import com.avail.serialization.SerializerOperation
 import com.avail.utility.Strings.newlineTab
 import com.avail.utility.json.JSONWriter
 import java.util.*
+import kotlin.math.max
 
 /**
  * Function types are the types of [functions][FunctionDescriptor]. They contain
@@ -168,7 +169,7 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 					// arguments.
 					list.add(null)
 					var max = tupleType.typeTuple().tupleSize() + 1
-					max = Math.max(max, min + 1)
+					max = max(max, min + 1)
 					for (i in min + 1 .. max)
 					{
 						list.add(tupleType.typeAtIndex(i))

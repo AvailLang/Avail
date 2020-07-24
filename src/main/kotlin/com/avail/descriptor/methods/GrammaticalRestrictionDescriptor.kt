@@ -41,7 +41,6 @@ import com.avail.descriptor.methods.GrammaticalRestrictionDescriptor.ObjectSlots
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.representation.A_BasicObject
-import com.avail.descriptor.representation.AbstractDescriptor
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.BitField
 import com.avail.descriptor.representation.Descriptor

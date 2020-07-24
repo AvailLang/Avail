@@ -438,6 +438,7 @@ class L2Chunk private constructor(
 		 * attempted but failed, and we need to run the (unoptimized, L1)
 		 * alternative code.
 		 */
+		@Suppress("unused")
 		AFTER_TRY_PRIMITIVE(1),
 
 		/**
@@ -593,6 +594,7 @@ class L2Chunk private constructor(
 	 *   The base name, i.e., `JVMChunk_«uuid»`, to allow location of the
 	 *   generated files.
 	 */
+	@Suppress("unused")
 	fun dumpChunk(): String
 	{
 		val translator = JVMTranslator(

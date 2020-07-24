@@ -188,6 +188,7 @@ import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
+import com.avail.descriptor.tuples.StringDescriptor
 import com.avail.descriptor.tuples.StringDescriptor.Companion.formatString
 import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.tuples.TupleDescriptor
@@ -3092,7 +3093,10 @@ class AvailCompiler(
 			// Put the required versions into a set.
 			val requiredVersions = generateSetFrom(versions, ::stringFrom)
 			// Ask for the guaranteed versions.
-			val activeVersions = AvailRuntimeConfiguration.activeVersions()
+			val activeVersions =
+				generateSetFrom(AvailRuntimeConfiguration.activeVersions) {
+					stringFrom(it)
+				}
 			// If the intersection of the sets is empty, then the module and
 			// the virtual machine are incompatible.
 			if (!requiredVersions.setIntersects(activeVersions))

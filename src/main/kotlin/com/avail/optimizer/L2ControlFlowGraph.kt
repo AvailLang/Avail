@@ -72,12 +72,14 @@ class L2ControlFlowGraph
 		 * that no edge both leads from a node with multiple successor edges and
 		 * leads to a node with multiple predecessor edges.
 		 */
+		@Suppress("unused")
 		class IS_EDGE_SPLIT : StateFlag()
 
 		/**
 		 * Indicates that every [L2_PHI_PSEUDO_OPERATION] has been replaced by
 		 * moves to the same [L2Register] along each (split) incoming edge.
 		 */
+		@Suppress("unused")
 		class HAS_ELIMINATED_PHIS : StateFlag()
 	}
 
@@ -292,6 +294,7 @@ class L2ControlFlowGraph
 	 * @return
 	 *   The requested visualization.
 	 */
+	@Suppress("unused")
 	fun visualize(): String = buildString {
 		val visualizer = L2ControlFlowGraphVisualizer(
 			"«control flow graph»",

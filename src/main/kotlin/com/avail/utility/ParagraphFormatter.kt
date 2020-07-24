@@ -108,7 +108,7 @@ class ParagraphFormatter @JvmOverloads constructor(
 		input = input.replace("[^\\S\n\r]".toRegex(), " ")
 		val lineWidth = windowWidth - leftMargin - rightMargin
 		val output = StringBuilder()
-		while (!input.isEmpty())
+		while (input.isNotEmpty())
 		{
 			// Get the next paragraph.
 			var newlineIndex = input.indexOf(nwln)
@@ -136,7 +136,7 @@ class ParagraphFormatter @JvmOverloads constructor(
 				var adjustedLineWidth = lineWidth - firstIndent
 
 				// If there is data to process in the paragraph,
-				while (!paragraph.isEmpty())
+				while (paragraph.isNotEmpty())
 				{
 					// Inspect the remaining portion of the paragraph.
 					var currentLine = paragraph

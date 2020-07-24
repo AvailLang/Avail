@@ -43,7 +43,6 @@ import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.InstanceTypeDescriptor
 import com.avail.descriptor.types.TupleTypeDescriptor
-import com.avail.descriptor.types.TypeDescriptor
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2OperandType
@@ -58,7 +57,7 @@ import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
-import java.util.*
+import java.util.ArrayList
 
 /**
  * Create a [tuple][TupleDescriptor] from the [objects][AvailObject] in the

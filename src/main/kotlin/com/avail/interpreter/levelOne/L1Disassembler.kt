@@ -43,12 +43,11 @@ import com.avail.descriptor.representation.AvailObjectFieldHelper
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import com.avail.descriptor.types.PrimitiveTypeDescriptor
-import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.descriptor.types.TypeDescriptor.Types.MESSAGE_BUNDLE
 import com.avail.descriptor.types.TypeDescriptor.Types.METHOD
 import com.avail.descriptor.types.TypeDescriptor.Types.NUMBER
 import com.avail.utility.Strings
-import java.util.*
+import java.util.IdentityHashMap
 
 /**
  * An instance of `L1Disassembler` converts a

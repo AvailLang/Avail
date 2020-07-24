@@ -169,7 +169,7 @@ abstract class L2_RUN_INFALLIBLE_PRIMITIVE private constructor()
 		instruction: L2Instruction): L2WriteBoxedOperand?
 	{
 		assert(instruction.operation() === this)
-		return instruction.operand<L2WriteBoxedOperand>(3)
+		return instruction.operand(3)
 	}
 
 	override fun appendToWithWarnings(

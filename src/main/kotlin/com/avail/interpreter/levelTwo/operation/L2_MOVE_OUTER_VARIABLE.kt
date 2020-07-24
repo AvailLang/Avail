@@ -55,7 +55,7 @@ import org.objectweb.asm.MethodVisitor
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-@ReadsHiddenVariable(theValue = arrayOf(CURRENT_FUNCTION::class))
+@ReadsHiddenVariable(theValue = [CURRENT_FUNCTION::class])
 object L2_MOVE_OUTER_VARIABLE : L2Operation(
 	L2OperandType.INT_IMMEDIATE.named("outer index"),
 	L2OperandType.READ_BOXED.named("function"),

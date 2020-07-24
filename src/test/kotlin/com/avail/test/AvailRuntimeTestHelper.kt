@@ -80,6 +80,7 @@ class AvailRuntimeTestHelper
 	constructor()
 {
 	/** The [module name resolver][ModuleNameResolver].  */
+	@Suppress("MemberVisibilityCanBePrivate")
 	val resolver: ModuleNameResolver
 
 	/** The [Avail runtime][AvailRuntime].  */
@@ -91,9 +92,11 @@ class AvailRuntimeTestHelper
 	val builder: AvailBuilder
 
 	/** The last [System.currentTimeMillis] that an update was shown.  */
+	@Suppress("MemberVisibilityCanBePrivate")
 	var lastUpdateMillis: Long = 0
 
 	/** The maximum notification rate for partially-loaded modules.  */
+	@Suppress("MemberVisibilityCanBePrivate")
 	var updateRateMillis: Long = 500
 
 	/**

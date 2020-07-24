@@ -62,13 +62,12 @@ abstract class JVMChunk @ReferencedInGeneratedCode constructor()
 	: ExecutableChunk
 {
 	/**
-	 * Answer the L1 source code, if any is available.
-	 *
-	 * @return
-	 *   The L1 source, or `null` if no source is available.
+	 * The L1 source code, if any is available; `null` otherwise. Primarily
+	 * intended for debugging.
 	 */
-	fun l1Source(): String? =
-		try
+	@Suppress("unused")
+	val l1Source: String?
+		get () = try
 		{
 			val cl: Class<out JVMChunk?> = javaClass
 			val m = cl.getMethod("runChunk", Interpreter::class.java)
@@ -84,13 +83,12 @@ abstract class JVMChunk @ReferencedInGeneratedCode constructor()
 		}
 
 	/**
-	 * Answer the L2 source code, if any is available.
-	 *
-	 * @return
-	 *   The L2 source, or `null` if no source is available.
+	 * The L2 source code, if any is available; `null` otherwise. Primarily
+	 * intended for debugging.
 	 */
-	fun l2Source(): String? =
-		try
+	@Suppress("unused")
+	val l2Source: String?
+		get () = try
 		{
 			val cl: Class<out JVMChunk?> = javaClass
 			val m = cl.getMethod("runChunk", Interpreter::class.java)

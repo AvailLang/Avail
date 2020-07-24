@@ -193,7 +193,7 @@ object L2_PREPARE_NEW_FRAME_FOR_L1 : L2Operation()
 				stackp = numSlots + 1,  // empty stack
 				levelTwoChunk = L2Chunk.unoptimizedChunk,
 				levelTwoOffset = ChunkEntryPoint.TO_RESUME.offsetInDefaultChunk,
-				frameValues = Arrays.asList(*stepper.pointers),
+				frameValues = listOf(*stepper.pointers),
 				zeroBasedStartIndex = 1)
 			// Push the continuation from above onto the reified stack.
 			interpreter.isReifying = true

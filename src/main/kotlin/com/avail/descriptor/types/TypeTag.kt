@@ -189,6 +189,7 @@ enum class TypeTag
 	
 	fun metaTag (): TypeTag = metaTag!!
 
+	@Suppress("unused")
 	fun isSubtagOf (otherTag: TypeTag): Boolean =
 		(ordinal >= otherTag.ordinal && highOrdinal <= otherTag.highOrdinal)
 

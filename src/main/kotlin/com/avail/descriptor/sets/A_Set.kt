@@ -218,6 +218,7 @@ interface A_Set : A_BasicObject, Iterable<AvailObject> {
 
 	companion object {
 		/** The [CheckedMethod] for [setSize]. */
+		@Suppress("unused")
 		@JvmField
 		val setSizeMethod: CheckedMethod = instanceMethod(
 			A_Set::class.java,

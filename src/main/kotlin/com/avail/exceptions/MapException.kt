@@ -61,6 +61,7 @@ class MapException : AvailRuntimeException
 	 * @param cause
 	 *   The proximal [cause][Throwable] of the `MapException`.
 	 */
+	@Suppress("unused")
 	constructor(errorCode: AvailErrorCode, cause: Throwable)
 		: super(errorCode, cause)
 }

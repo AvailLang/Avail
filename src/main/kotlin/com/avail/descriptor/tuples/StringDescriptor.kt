@@ -43,6 +43,7 @@ import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.TypeDescriptor.Types.CHARACTER
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
+import kotlin.math.max
 
 /**
  * `StringDescriptor` has Avail strings as its instances. The actual
@@ -132,6 +133,7 @@ abstract class StringDescriptor protected constructor(
 		 *   surrogate pairs (D800-DBFF and DC00-DFFF) preserved in the Avail
 		 *   string.
 		 */
+		@Suppress("unused")
 		fun stringWithSurrogatesFrom(aNativeString: String): A_String
 		{
 			val charCount = aNativeString.length
@@ -189,7 +191,7 @@ abstract class StringDescriptor protected constructor(
 			while (index < charCount)
 			{
 				val codePoint = aNativeString.codePointAt(index)
-				maxCodePoint = Math.max(maxCodePoint, codePoint)
+				maxCodePoint = max(maxCodePoint, codePoint)
 				count++
 				index += Character.charCount(codePoint)
 			}

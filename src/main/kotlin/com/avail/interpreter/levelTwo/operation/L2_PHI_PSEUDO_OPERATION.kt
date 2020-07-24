@@ -38,18 +38,9 @@ import com.avail.interpreter.levelTwo.L2Operation
 import com.avail.interpreter.levelTwo.operand.L2Operand
 import com.avail.interpreter.levelTwo.operand.L2Operand.Companion.instructionWasAddedForPhi
 import com.avail.interpreter.levelTwo.operand.L2PcOperand
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import com.avail.interpreter.levelTwo.operand.L2ReadFloatOperand
-import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand
-import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
-import com.avail.interpreter.levelTwo.operand.L2WriteFloatOperand
-import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import com.avail.interpreter.levelTwo.operand.L2WriteOperand
-import com.avail.interpreter.levelTwo.register.L2BoxedRegister
-import com.avail.interpreter.levelTwo.register.L2FloatRegister
-import com.avail.interpreter.levelTwo.register.L2IntRegister
 import com.avail.interpreter.levelTwo.register.L2Register
 import com.avail.optimizer.L2BasicBlock
 import com.avail.optimizer.L2ControlFlowGraph
@@ -58,7 +49,7 @@ import com.avail.optimizer.L2ValueManifest
 import com.avail.optimizer.RegisterSet
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
-import java.util.*
+import java.util.HashSet
 
 /**
  * The `L2_PHI_PSEUDO_OPERATION` occurs at the start of a [L2BasicBlock].  It's
@@ -341,7 +332,7 @@ private constructor(
 		 * Initialize the instance used for merging boxed values.
 		 */
 		@kotlin.jvm.JvmField
-		val boxed = L2_PHI_PSEUDO_OPERATION<L2BoxedRegister, L2ReadBoxedOperand, L2WriteBoxedOperand>(
+		val boxed = L2_PHI_PSEUDO_OPERATION(
 			L2_MOVE.boxed,
 			L2OperandType.READ_BOXED_VECTOR.named("potential boxed sources"),
 			L2OperandType.WRITE_BOXED.named("boxed destination"))
@@ -350,7 +341,7 @@ private constructor(
 		 * Initialize the instance used for merging boxed values.
 		 */
 		@kotlin.jvm.JvmField
-		val unboxedInt = L2_PHI_PSEUDO_OPERATION<L2IntRegister, L2ReadIntOperand, L2WriteIntOperand>(
+		val unboxedInt = L2_PHI_PSEUDO_OPERATION(
 			L2_MOVE.unboxedInt,
 			L2OperandType.READ_INT_VECTOR.named("potential int sources"),
 			L2OperandType.WRITE_INT.named("int destination"))
@@ -359,7 +350,7 @@ private constructor(
 		 * Initialize the instance used for merging boxed values.
 		 */
 		@kotlin.jvm.JvmField
-		val unboxedFloat = L2_PHI_PSEUDO_OPERATION<L2FloatRegister, L2ReadFloatOperand, L2WriteFloatOperand>(
+		val unboxedFloat = L2_PHI_PSEUDO_OPERATION(
 			L2_MOVE.unboxedFloat,
 			L2OperandType.READ_FLOAT_VECTOR.named("potential float sources"),
 			L2OperandType.WRITE_FLOAT.named("float destination"))

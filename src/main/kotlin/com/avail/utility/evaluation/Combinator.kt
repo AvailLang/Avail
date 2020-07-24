@@ -35,6 +35,7 @@ package com.avail.utility.evaluation
  * Utilities for applying functions recursively and enabling function
  * self-reference.
  */
+@Suppress("unused")
 object Combinator
 {
 	/**

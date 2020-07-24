@@ -279,6 +279,7 @@ class CheckedField private constructor(
 		 * @return
 		 *   The `CheckedField`.
 		 */
+		@Suppress("unused")
 		fun javaLibraryStaticField(
 			receiverClass: Class<*>,
 			fieldName: String,

@@ -2815,7 +2815,8 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 
 				val application = OSXUtility.macOSXApplication
 				OSXUtility.setDockIconBadgeMethod.invoke(
-					application, activeVersionSummary())
+					application, activeVersionSummary
+				)
 			}
 			catch (e: Exception)
 			{

@@ -563,7 +563,7 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 				return emptyTuple
 			}
 			val result = createUninitialized(size)
-			result.setSlotsFromArray<A_BasicObject>(
+			result.setSlotsFromArray(
 				ObjectSlots.TUPLE_AT_, 1, arrayOf(*elements), 0, size)
 			return result
 		}
@@ -596,6 +596,7 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 		/**
 		 * The [CheckedMethod] for [tuple].
 		 */
+		@Suppress("unused")
 		val tuple1Method = staticMethod(
 			ObjectTupleDescriptor::class.java,
 			"tuple",
@@ -626,6 +627,7 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 		/**
 		 * The [CheckedMethod] for [tuple].
 		 */
+		@Suppress("unused")
 		val tuple2Method = staticMethod(
 			ObjectTupleDescriptor::class.java,
 			"tuple",
@@ -663,6 +665,7 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 		/**
 		 * The [CheckedMethod] for [tuple].
 		 */
+		@Suppress("unused")
 		val tuple3Method = staticMethod(
 			ObjectTupleDescriptor::class.java,
 			"tuple",
@@ -705,6 +708,7 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 		/**
 		 * The [CheckedMethod] for [tuple].
 		 */
+		@Suppress("unused")
 		val tuple4Method = staticMethod(
 			ObjectTupleDescriptor::class.java,
 			"tuple",
@@ -752,6 +756,7 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 		/**
 		 * The [CheckedMethod] for [tuple].
 		 */
+		@Suppress("unused")
 		val tuple5Method = staticMethod(
 			ObjectTupleDescriptor::class.java,
 			"tuple",

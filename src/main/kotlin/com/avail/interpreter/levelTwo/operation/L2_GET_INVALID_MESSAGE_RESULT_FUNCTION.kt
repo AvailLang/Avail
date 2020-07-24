@@ -67,7 +67,7 @@ import org.objectweb.asm.Type
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-@ReadsHiddenVariable(theValue = arrayOf(GLOBAL_STATE::class))
+@ReadsHiddenVariable(theValue = [GLOBAL_STATE::class])
 object L2_GET_INVALID_MESSAGE_RESULT_FUNCTION : L2Operation(
 	L2OperandType.WRITE_BOXED.named("invalid message result function"))
 {

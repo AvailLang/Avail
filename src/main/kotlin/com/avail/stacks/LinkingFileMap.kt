@@ -86,6 +86,7 @@ class LinkingFileMap
 	 * @param alias the alias to add to the map
 	 * @param fileLink the file that the alias links to
 	 */
+	@Suppress("unused")
 	fun addAlias(alias: String, fileLink: String)
 	{
 		if (aliasesToFileLink.containsKey(alias))
@@ -136,6 +137,7 @@ class LinkingFileMap
 	 *   The key to search
 	 * @return Whether or not the name is a category
 	 */
+	@Suppress("unused")
 	fun isCategory(key: String): Boolean= categoryToDescription.containsKey(key)
 
 	/**
@@ -232,6 +234,7 @@ class LinkingFileMap
 	 * links.
 	 * @return
 	 */
+	@Suppress("unused")
 	fun categoryMethodsToJson(): String
 	{
 		val stringBuilder = StringBuilder().append("[\n")

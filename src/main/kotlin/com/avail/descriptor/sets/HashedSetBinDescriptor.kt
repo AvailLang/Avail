@@ -35,7 +35,6 @@ import com.avail.descriptor.maps.HashedMapBinDescriptor
 import com.avail.descriptor.maps.MapDescriptor
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
-import com.avail.descriptor.representation.AbstractDescriptor
 import com.avail.descriptor.representation.AbstractSlotsEnum
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.AvailObjectRepresentation.Companion.newLike
@@ -53,7 +52,8 @@ import com.avail.descriptor.sets.LinearSetBinDescriptor.Companion.emptyLinearSet
 import com.avail.descriptor.sets.SetDescriptor.SetIterator
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.TypeTag
-import java.util.*
+import java.util.ArrayDeque
+import java.util.NoSuchElementException
 
 /**
  * This class implements the internal hashed nodes of a Bagwell Ideal Hash Tree.

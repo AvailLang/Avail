@@ -44,7 +44,6 @@ import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor
-import com.avail.descriptor.types.InstanceMetaDescriptor
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor
 import com.avail.descriptor.types.TypeDescriptor
@@ -171,6 +170,7 @@ class L2Generator internal constructor(
 		 * things like continuation-based conditionals and loops into mere jumps
 		 * is expected to be highly profitable.
 		 */
+		@Suppress("unused")
 		CHASED_BLOCKS;
 
 		companion object
@@ -373,6 +373,7 @@ class L2Generator internal constructor(
 	 * @return
 	 *   The new unboxed float write operand.
 	 */
+	@Suppress("unused")
 	fun floatWriteTemp(restriction: TypeRestriction): L2WriteFloatOperand =
 		floatWrite(topFrame.temp(nextUnique()), restriction)
 
@@ -679,6 +680,7 @@ class L2Generator internal constructor(
 	 * @return
 	 *   The unboxed [L2ReadFloatOperand].
 	 */
+	@Suppress("unused")
 	fun readFloat(
 		semanticValue: L2SemanticValue,
 		onFailure: L2BasicBlock): L2ReadFloatOperand

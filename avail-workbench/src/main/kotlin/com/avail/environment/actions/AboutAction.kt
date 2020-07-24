@@ -84,10 +84,10 @@ class AboutAction constructor(workbench: AvailWorkbench)
 		builder.append("<html><center>")
 		builder.append("<font size=+2>The Avail Workbench</font><br>")
 		builder.append("<font size=-1>Supported Versions:</font>")
-		for (version in AvailRuntimeConfiguration.activeVersions())
+		for (version in AvailRuntimeConfiguration.activeVersions)
 		{
 			builder.append("<br><font size=-2>")
-			builder.append(version.asNativeString())
+			builder.append(version)
 			builder.append("</font>")
 		}
 		builder.append("<br><br>")

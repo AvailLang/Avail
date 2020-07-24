@@ -76,6 +76,7 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.StringReader
 import java.util.Random
+import kotlin.math.min
 
 /**
  * Unit tests for object serialization.
@@ -370,7 +371,7 @@ class SerializerTest
 					1 -> fromCodePoint(random.nextInt(0x110000))
 					else ->
 					{
-						var size = random.nextInt(Math.min(20, partIndex + 1))
+						var size = random.nextInt(min(20, partIndex + 1))
 						if (choice == 4)
 						{
 							// For a map.

@@ -44,6 +44,7 @@ import com.avail.descriptor.types.TypeDescriptor
 import com.avail.utility.json.JSONWriter
 import java.nio.ByteBuffer
 import kotlin.experimental.and
+import kotlin.math.min
 
 /**
  * `ByteArrayTupleDescriptor` represents a tuple of integers that happen to fall
@@ -356,7 +357,7 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 		}
 		// tuple's size is in range.
 		val typeTuple = aType.typeTuple()
-		val breakIndex = Math.min(self.tupleSize(), typeTuple.tupleSize())
+		val breakIndex = min(self.tupleSize(), typeTuple.tupleSize())
 		for (i in 1 .. breakIndex)
 		{
 			if (!self.tupleAt(i).isInstanceOf(aType.typeAtIndex(i)))

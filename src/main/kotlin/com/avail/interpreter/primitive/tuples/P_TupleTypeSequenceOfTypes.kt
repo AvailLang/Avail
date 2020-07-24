@@ -32,10 +32,12 @@
 package com.avail.interpreter.primitive.tuples
 
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
+import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
+import com.avail.descriptor.types.BottomTypeDescriptor
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
@@ -50,10 +52,9 @@ import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Answer a [tuple][TupleDescriptor] of [types][TypeDescriptor]
- * representing the types of the given range of indices within the
- * [tuple][TupleTypeDescriptor]. Use [bottom][BottomTypeDescriptor] for indices
- * out of range.
+ * **Primitive:** Answer a [tuple][A_Tuple] of [types][A_Type] representing the
+ * types of the given range of indices within the [tuple][A_Type]. Use
+ * [bottom][BottomTypeDescriptor] for indices out of range.
  */
 @Suppress("unused")
 object P_TupleTypeSequenceOfTypes : Primitive(3, CanFold, CanInline)

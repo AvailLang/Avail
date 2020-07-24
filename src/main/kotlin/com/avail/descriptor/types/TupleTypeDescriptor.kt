@@ -707,6 +707,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 				bottom())
 
 		/** Access the method [tupleTypeForTypes].  */
+		@Suppress("unused")
 		@JvmField
 		val tupleTypesForTypesListMethod = staticMethod(
 			TupleTypeDescriptor::class.java,

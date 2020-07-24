@@ -67,7 +67,7 @@ class Deserializer constructor(
 
 	/** A reusable buffer of operand objects.  */
 	private val subobjectsBuffer =
-		Array<AvailObject>(SerializerOperation.maxSubobjects) { nil }
+		Array(SerializerOperation.maxSubobjects) { nil }
 
 	/**
 	 * Record a newly reconstituted object.

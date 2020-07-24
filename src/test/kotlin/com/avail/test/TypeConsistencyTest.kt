@@ -1626,6 +1626,7 @@ class TypeConsistencyTest
 		 * Test fixture: clear and then create all special objects well-known to
 		 * the Avail runtime, then set up the graph of types.
 		 */
+		@Suppress("unused")
 		@BeforeAll
 		@JvmStatic
 		fun initializeAllWellKnownObjects()
@@ -1634,6 +1635,7 @@ class TypeConsistencyTest
 			// prevent initialization errors.
 			specialAtoms()
 			Node.createTypes()
+			@Suppress("ConstantConditionIf")
 			if (false)
 			{
 				System.out.format(
@@ -1723,6 +1725,7 @@ class TypeConsistencyTest
 		/**
 		 * Test fixture: clear all special objects, wiping each `Node`'s type.
 		 */
+		@Suppress("unused")
 		@AfterAll
 		fun clearAllWellKnownObjects()
 		{

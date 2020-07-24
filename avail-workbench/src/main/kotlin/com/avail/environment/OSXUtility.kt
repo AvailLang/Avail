@@ -193,8 +193,11 @@ object OSXUtility
 	 * the CFBundleDocumentTypes dictionary in the application bundle's
 	 * Info.plist.
 	 *
+	 * // TODO: MvG
+	 *
 	 * @param fileHandler
 	 */
+	@Suppress("unused")
 	fun setFileHandler(fileHandler: (String) -> Boolean)
 	{
 		setHandler("handleOpenFile") { event ->

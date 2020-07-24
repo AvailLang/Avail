@@ -410,7 +410,7 @@ class L2BasicBlock @JvmOverloads constructor(
 	 * @param instruction
 	 *   The [L2Instruction] to append.
 	 */
-	fun justAddInstruction(instruction: L2Instruction)
+	private fun justAddInstruction(instruction: L2Instruction)
 	{
 		assert(!hasControlFlowAtEnd)
 		assert(instruction.basicBlock() == this)
