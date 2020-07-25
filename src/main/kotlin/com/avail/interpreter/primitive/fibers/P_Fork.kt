@@ -37,6 +37,8 @@ import com.avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.StringDescriptor.Companion.formatString
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
@@ -122,10 +124,7 @@ object P_Fork : Primitive(
 		// since it will be visible to the caller.
 		newFiber.makeShared()
 		Interpreter.runOutermostFunction(
-			interpreter.runtime(),
-			newFiber,
-			function,
-			callArgs)
+			interpreter.runtime, newFiber, function, callArgs)
 		return interpreter.primitiveSuccess(newFiber)
 	}
 

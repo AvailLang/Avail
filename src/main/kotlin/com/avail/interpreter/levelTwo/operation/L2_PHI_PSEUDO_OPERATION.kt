@@ -138,8 +138,7 @@ private constructor(
 		// look up the best source semantic values.
 		val sources: L2ReadVectorOperand<RR, R> = instruction.operand(0)
 		val destination: L2WriteOperand<R> = instruction.operand(1)
-		val predecessorEdges =
-			instruction.basicBlock().predecessorEdgesCopy()
+		val predecessorEdges = instruction.basicBlock().predecessorEdges()
 		instructionWasAddedForPhi(sources, predecessorEdges)
 		destination.instructionWasAdded(manifest)
 	}
@@ -243,11 +242,10 @@ private constructor(
 				   == instruction.basicBlock().predecessorEdgesCount())
 		val list = mutableListOf<L2BasicBlock>()
 		var i = 0
-		instruction.basicBlock().predecessorEdgesDo { edge: L2PcOperand ->
+		instruction.basicBlock().predecessorEdges().forEach {
+			edge: L2PcOperand ->
 			if (sources.elements()[i++].register() === usedRegister)
-			{
 				list.add(edge.sourceBlock())
-			}
 		}
 		return list
 	}
@@ -341,7 +339,7 @@ private constructor(
 		 * Initialize the instance used for merging boxed values.
 		 */
 		@kotlin.jvm.JvmField
-		val boxed = L2_PHI_PSEUDO_OPERATION<L2BoxedRegister, L2ReadBoxedOperand, L2WriteBoxedOperand>(
+		val boxed = L2_PHI_PSEUDO_OPERATION(
 			L2_MOVE.boxed,
 			L2OperandType.READ_BOXED_VECTOR.named("potential boxed sources"),
 			L2OperandType.WRITE_BOXED.named("boxed destination"))
@@ -350,7 +348,7 @@ private constructor(
 		 * Initialize the instance used for merging boxed values.
 		 */
 		@kotlin.jvm.JvmField
-		val unboxedInt = L2_PHI_PSEUDO_OPERATION<L2IntRegister, L2ReadIntOperand, L2WriteIntOperand>(
+		val unboxedInt = L2_PHI_PSEUDO_OPERATION(
 			L2_MOVE.unboxedInt,
 			L2OperandType.READ_INT_VECTOR.named("potential int sources"),
 			L2OperandType.WRITE_INT.named("int destination"))
@@ -359,7 +357,7 @@ private constructor(
 		 * Initialize the instance used for merging boxed values.
 		 */
 		@kotlin.jvm.JvmField
-		val unboxedFloat = L2_PHI_PSEUDO_OPERATION<L2FloatRegister, L2ReadFloatOperand, L2WriteFloatOperand>(
+		val unboxedFloat = L2_PHI_PSEUDO_OPERATION(
 			L2_MOVE.unboxedFloat,
 			L2OperandType.READ_FLOAT_VECTOR.named("potential float sources"),
 			L2OperandType.WRITE_FLOAT.named("float destination"))

@@ -37,7 +37,7 @@ import com.avail.compiler.ParsingOperation.Companion.decode
 import com.avail.descriptor.bundles.A_Bundle.Companion.messageSplitter
 import com.avail.descriptor.bundles.MessageBundleTreeDescriptor
 import com.avail.descriptor.methods.A_Definition
-import com.avail.descriptor.methods.MacroDefinitionDescriptor
+import com.avail.descriptor.methods.MacroDescriptor
 import com.avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.bundle
 import com.avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.definition
 import com.avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.parsingInstructions
@@ -55,6 +55,8 @@ import com.avail.descriptor.representation.Descriptor
 import com.avail.descriptor.representation.IntegerSlotsEnum
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.descriptor.types.TypeTag
@@ -63,7 +65,7 @@ import java.util.*
 /**
  * A definition parsing plan describes the sequence of parsing operations that
  * must be performed to parse an invocation of a [definition][A_Definition],
- * possibly a [macro&#32;definition][MacroDefinitionDescriptor].
+ * possibly a [macro&#32;definition][MacroDescriptor].
  *
  * The sequences of instructions in multiple definition parse plans may have
  * common prefixes with each other, and it's along this commonality that

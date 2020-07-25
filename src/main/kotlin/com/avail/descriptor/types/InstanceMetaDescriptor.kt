@@ -246,7 +246,7 @@ class InstanceMetaDescriptor private constructor(mutability: Mutability)
 		}
 
 	// A metatype can't have an integer as an instance.
-	override fun o_RangeIncludesInt(self: AvailObject, anInt: Int): Boolean =
+	override fun o_RangeIncludesLong(self: AvailObject, aLong: Long): Boolean =
 		false
 
 	override fun o_FieldTypeAt(self: AvailObject, field: A_Atom): A_Type =
@@ -450,7 +450,7 @@ class InstanceMetaDescriptor private constructor(mutability: Mutability)
 		 */
 		val instanceMetaMethod = staticMethod(
 			InstanceMetaDescriptor::class.java,
-			"instanceMeta",
+			::instanceMeta.name,
 			A_Type::class.java,
 			A_Type::class.java)
 	}

@@ -41,6 +41,9 @@ import com.avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinit
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.one
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.concatenateTuplesCanDestroy
+import com.avail.descriptor.tuples.A_Tuple.Companion.copyTupleFromToCanDestroy
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.ByteArrayTupleDescriptor
 import com.avail.descriptor.tuples.ByteBufferTupleDescriptor.Companion.tupleForByteBuffer
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -140,7 +143,7 @@ object P_FileRead : Primitive(6, CanInline, HasSideEffect)
 		{
 			return interpreter.primitiveFailure(E_EXCEEDS_VM_LIMIT)
 		}
-		val runtime = interpreter.runtime()
+		val runtime = interpreter.runtime
 		val ioSystem = runtime.ioSystem()
 		val oneBasedPositionLong = positionObject.extractLong()
 		// Guaranteed positive by argument constraint.
@@ -251,13 +254,9 @@ object P_FileRead : Primitive(6, CanInline, HasSideEffect)
 			// We began with buffer hits, so don't fetch anything.
 			// Concatenate the buffers we have.
 			val buffersTuple = tupleFromList(buffers)
-			val concatenated =
-				buffersTuple.concatenateTuplesCanDestroy(false)
+			val concatenated = buffersTuple.concatenateTuplesCanDestroy(false)
 			runOutermostFunction(
-				runtime,
-				newFiber,
-				succeed,
-				listOf(concatenated))
+				runtime, newFiber, succeed, listOf(concatenated))
 			return interpreter.primitiveSuccess(newFiber)
 		}
 		// We began with buffer misses, and we can figure out how many...

@@ -48,7 +48,7 @@ import kotlin.reflect.KClass
  *   annotated [L2Operation].
  *
  * @constructor
- * Construct a [WritesHiddenVariable].
+ *   Construct a [WritesHiddenVariable].
  *
  * @param value
  *   The classes of [HiddenVariable] written by an [L2Instruction] using the

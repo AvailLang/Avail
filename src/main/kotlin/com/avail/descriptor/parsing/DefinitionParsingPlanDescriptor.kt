@@ -31,6 +31,7 @@
  */
 package com.avail.descriptor.parsing
 
+import com.avail.annotations.HideFieldInDebugger
 import com.avail.compiler.AvailCompilerFragmentCache
 import com.avail.compiler.ParsingConversionRule.Companion.ruleNumber
 import com.avail.compiler.ParsingOperation.CONVERT
@@ -46,12 +47,13 @@ import com.avail.compiler.splitter.MessageSplitter.Companion.constantForIndex
 import com.avail.compiler.splitter.MessageSplitter.Companion.permutationAtIndex
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.bundles.A_Bundle.Companion.message
-import com.avail.descriptor.bundles.A_Bundle.Companion.messageParts
+import com.avail.descriptor.bundles.A_Bundle.Companion.messagePart
 import com.avail.descriptor.bundles.A_Bundle.Companion.messageSplitter
 import com.avail.descriptor.bundles.A_BundleTree
 import com.avail.descriptor.bundles.MessageBundleTreeDescriptor
 import com.avail.descriptor.methods.A_Definition
-import com.avail.descriptor.methods.MacroDefinitionDescriptor
+import com.avail.descriptor.methods.A_Sendable
+import com.avail.descriptor.methods.MacroDescriptor
 import com.avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.bundle
 import com.avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.definition
 import com.avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.parsingInstructions
@@ -59,23 +61,24 @@ import com.avail.descriptor.parsing.DefinitionParsingPlanDescriptor.ObjectSlots.
 import com.avail.descriptor.parsing.DefinitionParsingPlanDescriptor.ObjectSlots.DEFINITION
 import com.avail.descriptor.parsing.DefinitionParsingPlanDescriptor.ObjectSlots.PARSING_INSTRUCTIONS
 import com.avail.descriptor.representation.A_BasicObject
-import com.avail.descriptor.representation.AbstractDescriptor
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.AvailObjectFieldHelper
 import com.avail.descriptor.representation.Descriptor
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.descriptor.types.TypeTag
 import com.avail.utility.StackPrinter
-import java.util.*
+import java.util.IdentityHashMap
 
 /**
  * A definition parsing plan describes the sequence of parsing operations that
  * must be performed to parse an invocation of a [definition][A_Definition],
- * possibly a [macro&#32;definition][MacroDefinitionDescriptor].
+ * possibly a [macro&#32;definition][MacroDescriptor].
  *
  * The sequences of instructions in multiple definition parse plans may have
  * common prefixes with each other, and it's along this commonality that
@@ -126,22 +129,8 @@ class DefinitionParsingPlanDescriptor private constructor(
 		 * [MessageSplitter], which has a description of the complete
 		 * instruction set.
 		 */
+		@HideFieldInDebugger
 		PARSING_INSTRUCTIONS
-	}
-
-	/**
-	 * Used for describing logical aspects of the bundle in the Eclipse
-	 * debugger.
-	 */
-	private enum class FakeSlots : ObjectSlotsEnum {
-		/** Used for showing the parsing instructions symbolically.  */
-		SYMBOLIC_INSTRUCTIONS,
-
-		/**
-		 * Used to indicate a problem producing the parsing instructions, or
-		 * printing them symbolically.
-		 */
-		ERROR_PRODUCING_INSTRUCTIONS
 	}
 
 	/**
@@ -166,8 +155,7 @@ class DefinitionParsingPlanDescriptor private constructor(
 						append(when (operation) {
 							PARSE_PART,
 							PARSE_PART_CASE_INSENSITIVELY -> {
-								val part = self.bundle().messageParts()
-									.tupleAt(operand)
+								val part = self.bundle().messagePart(operand)
 									.asNativeString()
 								" Part = '$part'"
 							}
@@ -186,7 +174,7 @@ class DefinitionParsingPlanDescriptor private constructor(
 			fields.add(
 				AvailObjectFieldHelper(
 					self,
-					FakeSlots.SYMBOLIC_INSTRUCTIONS,
+					DebuggerObjectSlots("Symbolic instructions"),
 					-1,
 					descriptionsList.toTypedArray()))
 		} catch (e: Exception) {
@@ -194,7 +182,7 @@ class DefinitionParsingPlanDescriptor private constructor(
 			stackStrings.mapIndexedTo(fields) { lineNumber, line ->
 				AvailObjectFieldHelper(
 					self,
-					FakeSlots.ERROR_PRODUCING_INSTRUCTIONS,
+					DebuggerObjectSlots("ERROR while producing instructions"),
 					lineNumber + 1,
 					line)
 			}
@@ -262,7 +250,7 @@ class DefinitionParsingPlanDescriptor private constructor(
 		 */
 		fun newParsingPlan(
 			bundle: A_Bundle,
-			definition: A_Definition
+			definition: A_Sendable
 		): A_DefinitionParsingPlan = mutable.create {
 			setSlot(BUNDLE, bundle)
 			setSlot(DEFINITION, definition)

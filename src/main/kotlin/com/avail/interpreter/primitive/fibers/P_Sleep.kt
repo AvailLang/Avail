@@ -80,7 +80,7 @@ object P_Sleep : Primitive(1, CannotFail, CanSuspend, Unknown)
 		// If the requested sleep time isn't colossally big, then arrange for
 		// the fiber to resume later. If the delay is too big, then the fiber
 		// will only awaken due to interruption.
-		val runtime = interpreter.runtime()
+		val runtime = interpreter.runtime
 		val primitiveFunction = interpreter.function!!
 		if (sleepMillis.isLong)
 		{

@@ -91,7 +91,7 @@ object P_CreateDirectory : Primitive(5, CanInline, HasSideEffect)
 		val fail = interpreter.argument(3)
 		val priority = interpreter.argument(4)
 
-		val runtime = interpreter.runtime()
+		val runtime = interpreter.runtime
 		val fileSystem = IOSystem.fileSystem
 		val path: Path =
 			try
@@ -184,15 +184,19 @@ object P_CreateDirectory : Primitive(5, CanInline, HasSideEffect)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			ObjectTupleDescriptor.tuple(stringType(),
-										setTypeForSizesContentType(
-																				  inclusive(0, 9),
-																				  inclusive(1, 9)),
-										functionType(emptyTuple(), TOP.o()),
-										functionType(tuple(
-																				  enumerationWith(
-																					  set(E_FILE_EXISTS, E_PERMISSION_DENIED, E_IO_ERROR))),
-																						   TOP.o()), bytes()),
+			tuple(
+				stringType(),
+				setTypeForSizesContentType(inclusive(0, 9), inclusive(1, 9)),
+				functionType(emptyTuple(), TOP.o()),
+				functionType(
+					tuple(
+						enumerationWith(
+							set(
+								E_FILE_EXISTS,
+								E_PERMISSION_DENIED,
+								E_IO_ERROR))),
+						TOP.o()),
+				bytes()),
 			fiberType(TOP.o()))
 
 	override fun privateFailureVariableType(): A_Type =

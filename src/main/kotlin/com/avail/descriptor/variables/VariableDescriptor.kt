@@ -37,8 +37,9 @@ import com.avail.annotations.HideFieldJustForPrinting
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.fiber.A_Fiber
 import com.avail.descriptor.functions.A_Function
-import com.avail.descriptor.functions.CompiledCodeDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor
+import com.avail.descriptor.functions.PrimitiveCompiledCodeDescriptor
+import com.avail.descriptor.functions.PrimitiveCompiledCodeDescriptor.Companion.newPrimitiveRawFunction
 import com.avail.descriptor.maps.A_Map
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.pojos.RawPojoDescriptor
@@ -671,8 +672,7 @@ open class VariableDescriptor protected constructor(
 		@JvmField
 		val bootstrapAssignmentFunction: A_Function =
 			FunctionDescriptor.createFunction(
-				CompiledCodeDescriptor.newPrimitiveRawFunction(
-					P_SetValue, nil, 0),
+				newPrimitiveRawFunction(P_SetValue, nil, 0),
 			TupleDescriptor.emptyTuple()).makeShared()
 
 		/**

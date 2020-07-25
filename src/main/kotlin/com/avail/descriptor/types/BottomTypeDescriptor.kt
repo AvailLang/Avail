@@ -312,7 +312,7 @@ class BottomTypeDescriptor private constructor()
 		throw unsupportedOperationException()
 	}
 
-	override fun o_RangeIncludesInt(self: AvailObject, anInt: Int): Boolean =
+	override fun o_RangeIncludesLong(self: AvailObject, aLong: Long): Boolean =
 		false
 
 	override fun o_ReturnType(self: AvailObject): A_Type = self

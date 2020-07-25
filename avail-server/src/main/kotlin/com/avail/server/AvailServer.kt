@@ -309,7 +309,7 @@ class AvailServer constructor(
 	internal inner class ModuleNode constructor(
 		val localName: String,
 		val qualifiedName: String,
-		val type: ModuleNodeType = MODULE)
+		private val type: ModuleNodeType = MODULE)
 	{
 		/** The children of the [node][ModuleNode]. */
 		val modules = mutableListOf<ModuleNode>()
@@ -898,12 +898,13 @@ class AvailServer constructor(
 		builder.textInterface = ioChannel.textInterface!!
 		builder.buildTarget(
 			command.target,
-			{ name, size, position ->
+			{ name, size, position, line ->
 				val writer = JSONWriter()
 				writer.writeObject {
 					at("module") { write(name.qualifiedName) }
 					at("size") { write(size) }
 					at("position") { write(position) }
+					at("line") { write(line) }
 				}
 				synchronized(localUpdates) {
 					localUpdates.add(writer)

@@ -200,4 +200,8 @@ internal class Alternation constructor(
 
 	override fun mightBeEmpty(phraseType: A_Type): Boolean =
 		alternatives.stream().anyMatch { it.mightBeEmpty(bottom()) }
+
+	override fun checkListStructure(phrase: A_Phrase): Boolean =
+		throw RuntimeException(
+			"checkListStructure() inapplicable for Alternation.")
 }

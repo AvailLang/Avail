@@ -31,47 +31,47 @@
  */
 package com.avail.descriptor.phrases
 
- import com.avail.compiler.AvailCodeGenerator
- import com.avail.descriptor.phrases.A_Phrase.Companion.declaredType
- import com.avail.descriptor.phrases.A_Phrase.Companion.emitEffectOn
- import com.avail.descriptor.phrases.A_Phrase.Companion.emitValueOn
- import com.avail.descriptor.phrases.A_Phrase.Companion.expressionType
- import com.avail.descriptor.phrases.A_Phrase.Companion.initializationExpression
- import com.avail.descriptor.phrases.A_Phrase.Companion.literalObject
- import com.avail.descriptor.phrases.A_Phrase.Companion.token
- import com.avail.descriptor.phrases.A_Phrase.Companion.tokens
- import com.avail.descriptor.phrases.A_Phrase.Companion.typeExpression
- import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
- import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.ObjectSlots.DECLARED_TYPE
- import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.ObjectSlots.INITIALIZATION_EXPRESSION
- import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.ObjectSlots.LITERAL_OBJECT
- import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.ObjectSlots.TOKEN
- import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.ObjectSlots.TYPE_EXPRESSION
- import com.avail.descriptor.representation.A_BasicObject
- import com.avail.descriptor.representation.AvailObject
- import com.avail.descriptor.representation.AvailObject.Companion.error
- import com.avail.descriptor.representation.AvailObject.Companion.multiplier
- import com.avail.descriptor.representation.IntegerEnumSlotDescriptionEnum
- import com.avail.descriptor.representation.Mutability
- import com.avail.descriptor.representation.NilDescriptor.Companion.nil
- import com.avail.descriptor.representation.ObjectSlotsEnum
- import com.avail.descriptor.tokens.A_Token
- import com.avail.descriptor.tokens.TokenDescriptor
- import com.avail.descriptor.tuples.A_String
- import com.avail.descriptor.tuples.A_Tuple
- import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
- import com.avail.descriptor.tuples.StringDescriptor
- import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
- import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
- import com.avail.descriptor.types.A_Type
- import com.avail.descriptor.types.ContinuationTypeDescriptor
- import com.avail.descriptor.types.FunctionTypeDescriptor
- import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
- import com.avail.descriptor.types.TypeDescriptor
- import com.avail.descriptor.types.TypeDescriptor.Types
- import com.avail.descriptor.variables.VariableDescriptor
- import com.avail.serialization.SerializerOperation
- import com.avail.utility.json.JSONWriter
+import com.avail.compiler.AvailCodeGenerator
+import com.avail.descriptor.phrases.A_Phrase.Companion.declaredType
+import com.avail.descriptor.phrases.A_Phrase.Companion.emitEffectOn
+import com.avail.descriptor.phrases.A_Phrase.Companion.emitValueOn
+import com.avail.descriptor.phrases.A_Phrase.Companion.expressionType
+import com.avail.descriptor.phrases.A_Phrase.Companion.initializationExpression
+import com.avail.descriptor.phrases.A_Phrase.Companion.literalObject
+import com.avail.descriptor.phrases.A_Phrase.Companion.token
+import com.avail.descriptor.phrases.A_Phrase.Companion.tokens
+import com.avail.descriptor.phrases.A_Phrase.Companion.typeExpression
+import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
+import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.ObjectSlots.DECLARED_TYPE
+import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.ObjectSlots.INITIALIZATION_EXPRESSION
+import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.ObjectSlots.LITERAL_OBJECT
+import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.ObjectSlots.TOKEN
+import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.ObjectSlots.TYPE_EXPRESSION
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.error
+import com.avail.descriptor.representation.AvailObject.Companion.multiplier
+import com.avail.descriptor.representation.IntegerEnumSlotDescriptionEnum
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.descriptor.representation.ObjectSlotsEnum
+import com.avail.descriptor.tokens.A_Token
+import com.avail.descriptor.tokens.TokenDescriptor
+import com.avail.descriptor.tuples.A_String
+import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import com.avail.descriptor.tuples.StringDescriptor
+import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.ContinuationTypeDescriptor
+import com.avail.descriptor.types.FunctionTypeDescriptor
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
+import com.avail.descriptor.types.TypeDescriptor
+import com.avail.descriptor.types.TypeDescriptor.Types
+import com.avail.descriptor.variables.VariableDescriptor
+import com.avail.serialization.SerializerOperation
+import com.avail.utility.json.JSONWriter
  import java.util.*
 
 /**

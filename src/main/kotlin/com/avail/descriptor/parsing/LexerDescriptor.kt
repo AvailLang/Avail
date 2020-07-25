@@ -31,41 +31,41 @@
  */
 package com.avail.descriptor.parsing
 
- import com.avail.compiler.scanning.LexingState
- import com.avail.descriptor.bundles.A_Bundle.Companion.message
- import com.avail.descriptor.functions.A_Function
- import com.avail.descriptor.methods.A_Method
- import com.avail.descriptor.methods.MacroDefinitionDescriptor
- import com.avail.descriptor.module.A_Module
- import com.avail.descriptor.parsing.A_Lexer.Companion.lexerBodyFunction
- import com.avail.descriptor.parsing.A_Lexer.Companion.lexerFilterFunction
- import com.avail.descriptor.parsing.A_Lexer.Companion.lexerMethod
- import com.avail.descriptor.parsing.LexerDescriptor.IntegerSlots.Companion.HASH
- import com.avail.descriptor.parsing.LexerDescriptor.ObjectSlots.DEFINITION_MODULE
- import com.avail.descriptor.parsing.LexerDescriptor.ObjectSlots.LEXER_BODY_FUNCTION
- import com.avail.descriptor.parsing.LexerDescriptor.ObjectSlots.LEXER_FILTER_FUNCTION
- import com.avail.descriptor.parsing.LexerDescriptor.ObjectSlots.LEXER_METHOD
- import com.avail.descriptor.representation.A_BasicObject
- import com.avail.descriptor.representation.AvailObject
- import com.avail.descriptor.representation.AvailObject.Companion.multiplier
- import com.avail.descriptor.representation.BitField
- import com.avail.descriptor.representation.Descriptor
- import com.avail.descriptor.representation.IntegerSlotsEnum
- import com.avail.descriptor.representation.Mutability
- import com.avail.descriptor.representation.ObjectSlotsEnum
- import com.avail.descriptor.tokens.A_Token
- import com.avail.descriptor.tuples.ObjectTupleDescriptor
- import com.avail.descriptor.types.A_Type
- import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
- import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
- import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
- import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
- import com.avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
- import com.avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
- import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
- import com.avail.descriptor.types.TypeDescriptor.Types
- import com.avail.descriptor.types.TypeTag
- import com.avail.utility.json.JSONWriter
+import com.avail.compiler.scanning.LexingState
+import com.avail.descriptor.bundles.A_Bundle.Companion.message
+import com.avail.descriptor.functions.A_Function
+import com.avail.descriptor.methods.A_Method
+import com.avail.descriptor.methods.MacroDescriptor
+import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.parsing.A_Lexer.Companion.lexerBodyFunction
+import com.avail.descriptor.parsing.A_Lexer.Companion.lexerFilterFunction
+import com.avail.descriptor.parsing.A_Lexer.Companion.lexerMethod
+import com.avail.descriptor.parsing.LexerDescriptor.IntegerSlots.Companion.HASH
+import com.avail.descriptor.parsing.LexerDescriptor.ObjectSlots.DEFINITION_MODULE
+import com.avail.descriptor.parsing.LexerDescriptor.ObjectSlots.LEXER_BODY_FUNCTION
+import com.avail.descriptor.parsing.LexerDescriptor.ObjectSlots.LEXER_FILTER_FUNCTION
+import com.avail.descriptor.parsing.LexerDescriptor.ObjectSlots.LEXER_METHOD
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.multiplier
+import com.avail.descriptor.representation.BitField
+import com.avail.descriptor.representation.Descriptor
+import com.avail.descriptor.representation.IntegerSlotsEnum
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.ObjectSlotsEnum
+import com.avail.descriptor.tokens.A_Token
+import com.avail.descriptor.tuples.ObjectTupleDescriptor
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
+import com.avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
+import com.avail.descriptor.types.TypeDescriptor.Types
+import com.avail.descriptor.types.TypeTag
+import com.avail.utility.json.JSONWriter
  import java.util.*
 
 /**
@@ -78,7 +78,7 @@ package com.avail.descriptor.parsing
  * previous membership.
  *
  * Methods and macros are stored in separate lists.  Note that macros may be
- * polymorphic (multiple [definitions][MacroDefinitionDescriptor]), and a lookup
+ * polymorphic (multiple [definitions][MacroDescriptor]), and a lookup
  * structure is used at compile time to decide which macro is most specific.
  *
  * @constructor

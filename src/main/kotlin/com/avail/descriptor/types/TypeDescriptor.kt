@@ -41,7 +41,6 @@ import com.avail.descriptor.maps.A_Map
 import com.avail.descriptor.methods.AbstractDefinitionDescriptor
 import com.avail.descriptor.methods.DefinitionDescriptor
 import com.avail.descriptor.methods.ForwardDefinitionDescriptor
-import com.avail.descriptor.methods.MacroDefinitionDescriptor
 import com.avail.descriptor.methods.MethodDefinitionDescriptor
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.numbers.A_Number
@@ -214,6 +213,11 @@ abstract class TypeDescriptor protected constructor(
 		DEFINITION_PARSING_PLAN(NONTYPE, TypeTag.NONTYPE_TYPE_TAG),
 
 		/**
+		 * The type of macro definitions.
+		 */
+		MACRO_DEFINITION(NONTYPE, TypeTag.NONTYPE_TYPE_TAG),
+
+		/**
 		 * This is the kind of all
 		 * [parsing-plans-in-progress][ParsingPlanInProgressDescriptor], which
 		 * are used during parsing of Avail code.
@@ -258,20 +262,11 @@ abstract class TypeDescriptor protected constructor(
 		FORWARD_DEFINITION(DEFINITION, TypeTag.NONTYPE_TYPE_TAG),
 
 		/**
-		 * The specific kind of signature which is an actual
+		 * The specific kind of definition which is an actual
 		 * [method&#32;function][MethodDefinitionDescriptor], by far the most
 		 * common case.
 		 */
 		METHOD_DEFINITION(DEFINITION, TypeTag.NONTYPE_TYPE_TAG),
-
-		/**
-		 * The specific kind of signature which is an actual
-		 * [macro&#32;definition][MacroDefinitionDescriptor].  A
-		 * [method][MethodDescriptor] may not contain multiple macro definition
-		 * sites, nor may it mix macro definition sites and any other type of
-		 * sites.
-		 */
-		MACRO_DEFINITION(DEFINITION, TypeTag.NONTYPE_TYPE_TAG),
 
 		/**
 		 * [Modules][ModuleDescriptor] are maintained mostly automatically by
@@ -684,7 +679,7 @@ abstract class TypeDescriptor protected constructor(
 
 	override fun o_Parent(self: AvailObject): A_BasicObject = unsupported
 
-	override fun o_RangeIncludesInt(self: AvailObject, anInt: Int) = false
+	override fun o_RangeIncludesLong(self: AvailObject, aLong: Long) = false
 
 	override fun o_ReturnType(self: AvailObject): A_Type = unsupported
 

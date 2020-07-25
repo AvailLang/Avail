@@ -34,16 +34,32 @@ package com.avail.descriptor.tuples
 import com.avail.annotations.HideFieldInDebugger
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
-import com.avail.descriptor.representation.*
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.BitField
+import com.avail.descriptor.representation.IntegerSlotsEnum
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithSmallIntegerIntervalTupleStartingAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.concatenateWith
+import com.avail.descriptor.tuples.A_Tuple.Companion.copyTupleFromToCanDestroy
+import com.avail.descriptor.tuples.A_Tuple.Companion.treeTupleLevel
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.ByteTupleDescriptor.Companion.generateByteTupleFrom
 import com.avail.descriptor.tuples.IntTupleDescriptor.Companion.generateIntTupleFrom
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import com.avail.descriptor.tuples.SmallIntegerIntervalTupleDescriptor.IntegerSlots.Companion.END
+import com.avail.descriptor.tuples.SmallIntegerIntervalTupleDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
+import com.avail.descriptor.tuples.SmallIntegerIntervalTupleDescriptor.IntegerSlots.Companion.SIZE
+import com.avail.descriptor.tuples.SmallIntegerIntervalTupleDescriptor.IntegerSlots.Companion.START
+import com.avail.descriptor.tuples.SmallIntegerIntervalTupleDescriptor.IntegerSlots.DELTA
 import com.avail.descriptor.tuples.TreeTupleDescriptor.Companion.concatenateAtLeastOneTree
 import com.avail.descriptor.tuples.TreeTupleDescriptor.Companion.createTwoPartTreeTuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor
-import java.util.*
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
+import java.util.IdentityHashMap
 
 /**
  * `SmallIntegerIntervalTupleDescriptor` represents an [integer interval
@@ -87,15 +103,18 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 		companion object
 		{
 			/** The number of elements in the tuple.  */
+			@JvmField
 			val SIZE = BitField(HASH_AND_MORE, 32, 32)
 
 			/** The first value in the tuple, inclusive.  */
+			@JvmField
 			val START = BitField(START_AND_END, 32, 32)
 
 			/**
 			 * The last value in the tuple, inclusive. Within the constructor,
 			 * the supplied END is normalized to the actual last value.
 			 */
+			@JvmField
 			val END = BitField(START_AND_END, 0, 32)
 
 			/**
@@ -104,6 +123,7 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 			 * very rare case that the hash value actually equals zero, the hash
 			 * value has to be computed every time it is requested.
 			 */
+			@JvmField
 			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
 
 			init
@@ -122,10 +142,10 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int)
 	{
-		builder.append(self.slot(IntegerSlots.START))
+		builder.append(self.slot(START))
 		builder.append(" to ")
-		builder.append(self.slot(IntegerSlots.END))
-		val delta = self.slot(IntegerSlots.DELTA)
+		builder.append(self.slot(END))
+		val delta = self.slot(DELTA)
 		if (delta != 1L)
 		{
 			builder.append(" by ")
@@ -139,8 +159,8 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 		canDestroy: Boolean): A_Tuple
 	{
 		val originalSize = self.tupleSize()
-		val endValue = self.slot(IntegerSlots.END).toLong()
-		val deltaValue = self.slot(IntegerSlots.DELTA)
+		val endValue = self.slot(END).toLong()
+		val deltaValue = self.slot(DELTA)
 		if (newElement.isInt)
 		{
 			val newElementValue = (newElement as A_Number).extractInt()
@@ -150,19 +170,19 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 				// Extend the interval.
 				if (canDestroy && isMutable)
 				{
-					self.setSlot(IntegerSlots.END, newElementValue)
-					self.setSlot(IntegerSlots.SIZE, originalSize + 1)
-					self.setSlot(IntegerSlots.HASH_OR_ZERO, 0)
+					self.setSlot(END, newElementValue)
+					self.setSlot(SIZE, originalSize + 1)
+					self.setSlot(HASH_OR_ZERO, 0)
 					return self
 				}
 				// Create another small integer interval.
 				return createSmallInterval(
-					self.slot(IntegerSlots.START), newElementValue, deltaValue)
+					self.slot(START), newElementValue, deltaValue)
 			}
 			// The new value isn't consecutive, but it's still an int.
 			if (originalSize < maximumCopySize)
 			{
-				val start = self.slot(IntegerSlots.START)
+				val start = self.slot(START)
 				return generateIntTupleFrom(originalSize + 1) {
 					if (it == originalSize) newElementValue
 					else start + ((it - 1) * deltaValue).toInt()
@@ -185,13 +205,13 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 		startIndex1: Int,
 		endIndex1: Int,
 		anotherObject: A_Tuple,
-		startIndex2: Int): Boolean =
-			anotherObject
-				.compareFromToWithSmallIntegerIntervalTupleStartingAt(
-					startIndex2,
-					startIndex2 + endIndex1 - startIndex1,
-					self,
-					startIndex1)
+		startIndex2: Int
+	): Boolean =
+		anotherObject.compareFromToWithSmallIntegerIntervalTupleStartingAt(
+			startIndex2,
+			startIndex2 + endIndex1 - startIndex1,
+			self,
+			startIndex1)
 
 	override fun o_CompareFromToWithSmallIntegerIntervalTupleStartingAt(
 		self: AvailObject,
@@ -230,13 +250,9 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 
 		// Finally, check the subranges.
 		val first = self.copyTupleFromToCanDestroy(
-			startIndex1,
-			endIndex1,
-			false)
+			startIndex1, endIndex1, false)
 		val second = aSmallIntegerIntervalTuple.copyTupleFromToCanDestroy(
-			startIndex2,
-			startIndex2 + endIndex1 - startIndex1,
-			false)
+			startIndex2, startIndex2 + endIndex1 - startIndex1, false)
 		return first.equals(second)
 	}
 
@@ -256,16 +272,14 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 		if (otherTuple.isSmallIntegerIntervalTuple)
 		{
 			val otherDirect = otherTuple.traversed()
-			val delta = self.slot(IntegerSlots.DELTA)
+			val delta = self.slot(DELTA)
 
 			// If the other's delta is the same as mine,
-			if (delta == otherDirect.slot(IntegerSlots.DELTA))
+			if (delta == otherDirect.slot(DELTA))
 			{
-				val newSize = self.slot(IntegerSlots.SIZE) +
-					  otherDirect.slot(IntegerSlots.SIZE).toLong()
+				val newSize = self.slot(SIZE) + otherDirect.slot(SIZE).toLong()
 				// and the other's start is one delta away from my end,
-				if ((self.slot(IntegerSlots.END) + delta ==
-					 	otherDirect.slot(IntegerSlots.START).toLong()
+				if ((self.slot(END) + delta == otherDirect.slot(START).toLong()
 					 && newSize == newSize.toInt().toLong()))
 				{
 					// then we're adjacent.
@@ -274,27 +288,23 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 					// use me for the return value.
 					if (isMutable)
 					{
-						self.setSlot(
-							IntegerSlots.END, otherDirect.slot(IntegerSlots.END))
-						self.setSlot(IntegerSlots.SIZE, newSize.toInt())
+						self.setSlot(END, otherDirect.slot(END))
+						self.setSlot(SIZE, newSize.toInt())
 						self.setHashOrZero(0)
 						return self
 					}
 					// Or the other one.
 					if (otherDirect.descriptor().isMutable)
 					{
-						otherDirect.setSlot(
-							IntegerSlots.START, self.slot(IntegerSlots.START))
-						otherDirect.setSlot(IntegerSlots.SIZE, newSize.toInt())
+						otherDirect.setSlot(START, self.slot(START))
+						otherDirect.setSlot(SIZE, newSize.toInt())
 						otherDirect.setHashOrZero(0)
 						return otherDirect
 					}
 
 					// Otherwise, create a new interval.
 					return createSmallInterval(
-						self.slot(IntegerSlots.START),
-						otherDirect.slot(IntegerSlots.END),
-						delta)
+						self.slot(START), otherDirect.slot(END), delta)
 				}
 			}
 		}
@@ -315,7 +325,7 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 		canDestroy: Boolean): A_Tuple
 	{
 		// Ensure parameters are in bounds
-		val oldSize = self.slot(IntegerSlots.SIZE)
+		val oldSize = self.slot(SIZE)
 		assert(1 <= start && start <= end + 1 && end <= oldSize)
 		val newSize = end - start + 1
 		if (newSize == oldSize)
@@ -329,8 +339,8 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 		}
 
 		// The request is for a proper subrange.
-		val delta = self.slot(IntegerSlots.DELTA)
-		val oldStartValue = self.slot(IntegerSlots.START)
+		val delta = self.slot(DELTA)
+		val oldStartValue = self.slot(START)
 		val newStartValue = oldStartValue + delta * (start - 1)
 		assert(newStartValue == newStartValue.toInt().toLong())
 		val newEndValue = newStartValue + delta * (newSize - 1)
@@ -338,9 +348,9 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 		if (isMutable && canDestroy)
 		{
 			// Recycle the object.
-			self.setSlot(IntegerSlots.START, newStartValue.toInt())
-			self.setSlot(IntegerSlots.END, newEndValue.toInt())
-			self.setSlot(IntegerSlots.SIZE, newSize)
+			self.setSlot(START, newStartValue.toInt())
+			self.setSlot(END, newEndValue.toInt())
+			self.setSlot(SIZE, newSize)
 			return self
 		}
 		return createSmallInterval(newStartValue.toInt(), newEndValue.toInt(), delta)
@@ -365,52 +375,43 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 		val secondTraversed = aSmallIntegerIntervalTuple.traversed()
 
 		// Check that the slots match.
-		val firstHash = firstTraversed.slot(IntegerSlots.HASH_OR_ZERO)
-		val secondHash = secondTraversed.slot(IntegerSlots.HASH_OR_ZERO)
-		if (firstHash != 0 && secondHash != 0 && firstHash != secondHash)
+		val firstHash = firstTraversed.slot(HASH_OR_ZERO)
+		val secondHash = secondTraversed.slot(HASH_OR_ZERO)
+		when
 		{
-			return false
-		}
-		if (firstTraversed.slot(IntegerSlots.SIZE) !=
-			secondTraversed.slot(IntegerSlots.SIZE))
-		{
-			return false
-		}
-		if (firstTraversed.slot(IntegerSlots.DELTA) !=
-			secondTraversed.slot(IntegerSlots.DELTA))
-		{
-			return false
-		}
-		if (firstTraversed.slot(IntegerSlots.START) !=
-			secondTraversed.slot(IntegerSlots.START))
-		{
-			return false
-		}
+			firstHash != 0 && secondHash != 0 && firstHash != secondHash ->
+				return false
+			firstTraversed.slot(SIZE) != secondTraversed.slot(SIZE) ->
+				return false
+			firstTraversed.slot(DELTA) != secondTraversed.slot(DELTA) ->
+				return false
+			firstTraversed.slot(START) != secondTraversed.slot(START) ->
+				return false
 
-		// All the slots match. Indirect one to the other if it is not shared.
-		if (!isShared)
-		{
-			aSmallIntegerIntervalTuple.makeImmutable()
-			self.becomeIndirectionTo(aSmallIntegerIntervalTuple)
-		}
-		else if (!aSmallIntegerIntervalTuple.descriptor().isShared)
-		{
-			self.makeImmutable()
-			aSmallIntegerIntervalTuple.becomeIndirectionTo(self)
+			// All the slots match. Indirect one to the other if it is not shared.
+			!isShared ->
+			{
+				aSmallIntegerIntervalTuple.makeImmutable()
+				self.becomeIndirectionTo(aSmallIntegerIntervalTuple)
+			}
+			!aSmallIntegerIntervalTuple.descriptor().isShared ->
+			{
+				self.makeImmutable()
+				aSmallIntegerIntervalTuple.becomeIndirectionTo(self)
+			}
 		}
 		return true
 	}
 
-	override fun o_IsSmallIntegerIntervalTuple(self: AvailObject): Boolean = true
+	override fun o_IsSmallIntegerIntervalTuple(self: AvailObject): Boolean =
+		true
 
 	override fun o_TupleAt(self: AvailObject, index: Int): AvailObject
 	{
 		// Answer the value at the given index in the tuple object.
 		// START + (index-1) × DELTA
 		assert(index >= 1 && index <= self.tupleSize())
-		val temp =
-			self.slot(IntegerSlots.START) + (index - 1) *
-				self.slot(IntegerSlots.DELTA)
+		val temp = self.slot(START) + (index - 1) * self.slot(DELTA)
 		assert(temp == temp.toInt().toLong())
 		return fromInt(temp.toInt())
 	}
@@ -427,18 +428,15 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 		assert(index >= 1 && index <= self.tupleSize())
 		if (newValueObject.isInt
 			&& self.tupleIntAt(index)
-			== (newValueObject as A_Number).extractInt())
+				== (newValueObject as A_Number).extractInt())
 		{
 			// The element is to be replaced with itself.
-			if (!canDestroy)
-			{
-				self.makeImmutable()
-			}
+			if (!canDestroy) self.makeImmutable()
 			return self
 		}
-		val start = self.slot(IntegerSlots.START)
-		val end = self.slot(IntegerSlots.END)
-		val delta = self.slot(IntegerSlots.DELTA)
+		val start = self.slot(START)
+		val end = self.slot(END)
+		val delta = self.slot(DELTA)
 		val result: AvailObject
 		result =
 			if (start and 255.inv() == 0
@@ -446,7 +444,7 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 				&& newValueObject.isUnsignedByte)
 			{
 				// Everything will be bytes.  Synthesize a byte tuple.
-				generateByteTupleFrom(self.slot(IntegerSlots.SIZE)) {
+				generateByteTupleFrom(self.slot(SIZE)) {
 					if (it == index)
 					{
 						(newValueObject as A_Number)
@@ -461,7 +459,7 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 			else
 			{
 				// Synthesize a general object tuple instead.
-				generateObjectTupleFrom(self.slot(IntegerSlots.SIZE)) {
+				generateObjectTupleFrom(self.slot(SIZE)) {
 					if (it == index) newValueObject
 					else fromInt(start + ((it - 1) * delta).toInt())
 				}
@@ -493,8 +491,7 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 			low = end
 			high = start
 		}
-		return (type.isSupertypeOfIntegerRangeType(
-				IntegerRangeTypeDescriptor.inclusive(low, high))
+		return (type.isSupertypeOfIntegerRangeType(inclusive(low, high))
 			|| super.o_TupleElementsInRangeAreInstancesOf(
 				self, startIndex, endIndex, type))
 	}
@@ -505,35 +502,43 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 		// START + (index-1) × DELTA
 		assert(index >= 1 && index <= self.tupleSize())
 		var temp = index - 1.toLong()
-		temp *= self.slot(IntegerSlots.DELTA)
-		temp += self.slot(IntegerSlots.START).toLong()
+		temp *= self.slot(DELTA)
+		temp += self.slot(START).toLong()
 		assert(temp == temp.toInt().toLong())
 		return temp.toInt()
 	}
 
+	override fun o_TupleLongAt(self: AvailObject, index: Int): Long
+	{
+		// Answer the value at the given index in the tuple object.
+		// START + (index-1) × DELTA
+		assert(index >= 1 && index <= self.tupleSize())
+		var temp = index - 1.toLong()
+		temp *= self.slot(DELTA)
+		temp += self.slot(START).toLong()
+		return temp
+	}
+
 	override fun o_TupleReverse(self: AvailObject): A_Tuple
 	{
-		val newDelta = 0 - self.slot(IntegerSlots.DELTA)
+		val newDelta = 0 - self.slot(DELTA)
 		// If tuple is small enough or is immutable, create a new interval.
-		if (self.tupleSize() < maximumCopySize || !isMutable)
+		if (!isMutable)
 		{
 			return createSmallInterval(
-				self.slot(IntegerSlots.END),
-				self.slot(IntegerSlots.START),
-				newDelta)
+				self.slot(END), self.slot(START), newDelta)
 		}
 
 		//The interval is mutable and large enough to warrant changing in place.
-		val newStart = self.slot(IntegerSlots.END)
-		val newEnd = self.slot(IntegerSlots.START)
-		self.setSlot(IntegerSlots.START, newStart)
-		self.setSlot(IntegerSlots.END, newEnd)
-		self.setSlot(IntegerSlots.DELTA, newDelta)
+		val newStart = self.slot(END)
+		val newEnd = self.slot(START)
+		self.setSlot(START, newStart)
+		self.setSlot(END, newEnd)
+		self.setSlot(DELTA, newDelta)
 		return self
 	}
 
-	override fun o_TupleSize(self: AvailObject): Int =
-		self.slot(IntegerSlots.SIZE)
+	override fun o_TupleSize(self: AvailObject): Int = self.slot(SIZE)
 
 	override fun mutable(): SmallIntegerIntervalTupleDescriptor = mutable
 
@@ -551,7 +556,8 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 		private const val maximumCopySize = 32
 
 		/** The mutable [SmallIntegerIntervalTupleDescriptor].  */
-		val mutable = SmallIntegerIntervalTupleDescriptor(Mutability.MUTABLE)
+		private val mutable =
+			SmallIntegerIntervalTupleDescriptor(Mutability.MUTABLE)
 
 		/** The immutable [IntegerIntervalTupleDescriptor].  */
 		private val immutable =
@@ -622,11 +628,11 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 			val adjustedEnd = newStart + delta * (size.toInt() - 1)
 			assert(adjustedEnd == adjustedEnd.toInt().toLong())
 			return mutable.create {
-				setSlot(IntegerSlots.START, newStart)
-				setSlot(IntegerSlots.END, adjustedEnd.toInt())
-				setSlot(IntegerSlots.DELTA, delta)
-				setSlot(IntegerSlots.HASH_OR_ZERO, 0)
-				setSlot(IntegerSlots.SIZE, size.toInt())
+				setSlot(START, newStart)
+				setSlot(END, adjustedEnd.toInt())
+				setSlot(DELTA, delta)
+				setSlot(HASH_OR_ZERO, 0)
+				setSlot(SIZE, size.toInt())
 			}
 		}
 	}

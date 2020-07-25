@@ -32,20 +32,31 @@
 
 package com.avail.interpreter.primitive.phrases
 
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.one
+import com.avail.descriptor.phrases.A_Phrase
+import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsTuple
 import com.avail.descriptor.phrases.ListPhraseDescriptor
 import com.avail.descriptor.phrases.PermutedListPhraseDescriptor
 import com.avail.descriptor.phrases.PermutedListPhraseDescriptor.Companion.newPermutedListNode
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
+import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.asSet
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
+import com.avail.descriptor.tuples.IntegerIntervalTupleDescriptor.Companion.createInterval
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PERMUTED_LIST_PHRASE
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
+import com.avail.exceptions.AvailErrorCode.E_INCONSISTENT_ARGUMENT_REORDERING
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.execution.Interpreter
 
 /**
@@ -54,16 +65,36 @@ import com.avail.interpreter.execution.Interpreter
  * [list][ListPhraseDescriptor] and permutation [tuple][TupleDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-object P_CreatePermutedListPhrase : Primitive(2, CannotFail, CanInline)
+object P_CreatePermutedListPhrase : Primitive(2, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
-		val list = interpreter.argument(0)
-		val permutation = interpreter.argument(1)
-		return interpreter.primitiveSuccess(
-			newPermutedListNode(list, permutation))
+		val list: A_Phrase = interpreter.argument(0)
+		val permutation: A_Tuple = interpreter.argument(1)
+		val size = permutation.tupleSize()
+		return when
+		{
+			// Permutation is empty, or different size than list.
+			size == 0 || size != list.expressionsTuple().tupleSize() ->
+				interpreter.primitiveFailure(E_INCONSISTENT_ARGUMENT_REORDERING)
+			// Permutation values are not all int32.
+			permutation.any { !it.isInt } ->
+				interpreter.primitiveFailure(E_INCONSISTENT_ARGUMENT_REORDERING)
+			// Permutation values are not unique.
+			size != permutation.asSet().setSize() ->
+				interpreter.primitiveFailure(E_INCONSISTENT_ARGUMENT_REORDERING)
+			// Entries are unique, but don't cover 1..N (pigeonhole principle).
+			permutation.maxBy(AvailObject::extractInt)!!.extractInt() != size ->
+				interpreter.primitiveFailure(E_INCONSISTENT_ARGUMENT_REORDERING)
+			// Permutation is the forbidden identity.
+			permutation.equals(createInterval(one(), fromInt(size), one())) ->
+				interpreter.primitiveFailure(E_INCONSISTENT_ARGUMENT_REORDERING)
+			else -> interpreter.primitiveSuccess(
+				newPermutedListNode(list, permutation))
+		}
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
@@ -72,4 +103,9 @@ object P_CreatePermutedListPhrase : Primitive(2, CannotFail, CanInline)
 				LIST_PHRASE.mostGeneralType(),
 				oneOrMoreOf(naturalNumbers())),
 			PERMUTED_LIST_PHRASE.mostGeneralType())
+
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
+			set(
+				E_INCONSISTENT_ARGUMENT_REORDERING))
 }

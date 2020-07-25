@@ -37,10 +37,18 @@ import com.avail.descriptor.maps.MapDescriptor
 import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.pojos.PojoDescriptor
 import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.rawObjectClass
-import com.avail.descriptor.representation.*
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AbstractSlotsEnum
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.BitField
+import com.avail.descriptor.representation.IntegerSlotsEnum
+import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.StringDescriptor
 import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.tuples.TupleDescriptor
@@ -48,12 +56,15 @@ import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.BottomPojoTypeDescriptor.Companion.pojoBottom
 import com.avail.descriptor.types.FusedPojoTypeDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import com.avail.descriptor.types.FusedPojoTypeDescriptor.IntegerSlots.HASH_AND_MORE
-import com.avail.descriptor.types.FusedPojoTypeDescriptor.ObjectSlots.*
+import com.avail.descriptor.types.FusedPojoTypeDescriptor.ObjectSlots.JAVA_ANCESTORS
+import com.avail.descriptor.types.FusedPojoTypeDescriptor.ObjectSlots.SELF_TYPE
+import com.avail.descriptor.types.FusedPojoTypeDescriptor.ObjectSlots.TYPE_VARIABLES
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
 import java.lang.reflect.Modifier
 import java.lang.reflect.TypeVariable
-import java.util.*
+import java.util.Comparator
+import java.util.IdentityHashMap
 
 /**
  * `FusedPojoTypeDescriptor` describes synthetic points in Avail's pojo type
@@ -91,6 +102,7 @@ internal class FusedPojoTypeDescriptor constructor (mutability: Mutability)
 			 * A slot to hold the hash value, or zero if it has not been
 			 * computed. The hash of an atom is a random number, computed once.
 			 */
+			@JvmField
 			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
 		}
 	}

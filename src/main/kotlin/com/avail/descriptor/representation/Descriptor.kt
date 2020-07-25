@@ -31,70 +31,71 @@
  */
 package com.avail.descriptor.representation
 
- import com.avail.compiler.AvailCodeGenerator
- import com.avail.compiler.scanning.LexingState
- import com.avail.compiler.splitter.MessageSplitter
- import com.avail.descriptor.atoms.A_Atom
- import com.avail.descriptor.bundles.A_Bundle
- import com.avail.descriptor.bundles.A_BundleTree
- import com.avail.descriptor.fiber.FiberDescriptor.ExecutionState
- import com.avail.descriptor.fiber.FiberDescriptor.GeneralFlag
- import com.avail.descriptor.fiber.FiberDescriptor.InterruptRequestFlag
- import com.avail.descriptor.fiber.FiberDescriptor.SynchronizationFlag
- import com.avail.descriptor.fiber.FiberDescriptor.TraceFlag
- import com.avail.descriptor.functions.A_Continuation
- import com.avail.descriptor.functions.A_Function
- import com.avail.descriptor.functions.A_RawFunction
- import com.avail.descriptor.maps.A_Map
- import com.avail.descriptor.maps.A_MapBin
- import com.avail.descriptor.maps.MapDescriptor.MapIterable
- import com.avail.descriptor.methods.A_Definition
- import com.avail.descriptor.methods.A_GrammaticalRestriction
- import com.avail.descriptor.methods.A_Method
- import com.avail.descriptor.methods.A_SemanticRestriction
- import com.avail.descriptor.module.A_Module
- import com.avail.descriptor.numbers.A_Number
- import com.avail.descriptor.numbers.AbstractNumberDescriptor.Order
- import com.avail.descriptor.numbers.AbstractNumberDescriptor.Sign
- import com.avail.descriptor.numbers.IntegerDescriptor
- import com.avail.descriptor.parsing.A_DefinitionParsingPlan
- import com.avail.descriptor.parsing.A_Lexer
- import com.avail.descriptor.parsing.A_ParsingPlanInProgress
- import com.avail.descriptor.phrases.A_Phrase
- import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
- import com.avail.descriptor.sets.A_Set
- import com.avail.descriptor.sets.LinearSetBinDescriptor.Companion.createLinearSetBinPair
- import com.avail.descriptor.sets.LinearSetBinDescriptor.Companion.emptyLinearSetBin
- import com.avail.descriptor.sets.SetDescriptor.SetIterator
- import com.avail.descriptor.tokens.A_Token
- import com.avail.descriptor.tokens.TokenDescriptor
- import com.avail.descriptor.tuples.A_String
- import com.avail.descriptor.tuples.A_Tuple
- import com.avail.descriptor.types.A_Type
- import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
- import com.avail.descriptor.types.TypeDescriptor
- import com.avail.descriptor.types.TypeTag
- import com.avail.descriptor.variables.A_Variable
- import com.avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
- import com.avail.dispatch.LookupTree
- import com.avail.exceptions.AvailException
- import com.avail.exceptions.MalformedMessageException
- import com.avail.exceptions.MethodDefinitionException
- import com.avail.exceptions.SignatureException
- import com.avail.exceptions.VariableGetException
- import com.avail.exceptions.VariableSetException
- import com.avail.interpreter.Primitive
- import com.avail.interpreter.execution.AvailLoader
- import com.avail.interpreter.execution.AvailLoader.LexicalScanner
- import com.avail.interpreter.levelTwo.L2Chunk
- import com.avail.interpreter.levelTwo.operand.TypeRestriction
- import com.avail.io.TextInterface
- import com.avail.performance.Statistic
- import com.avail.serialization.SerializerOperation
- import com.avail.utility.json.JSONWriter
- import com.avail.utility.visitor.AvailSubobjectVisitor
- import com.avail.utility.visitor.BeImmutableSubobjectVisitor
- import com.avail.utility.visitor.BeSharedSubobjectVisitor
+import com.avail.compiler.AvailCodeGenerator
+import com.avail.compiler.scanning.LexingState
+import com.avail.compiler.splitter.MessageSplitter
+import com.avail.descriptor.atoms.A_Atom
+import com.avail.descriptor.bundles.A_Bundle
+import com.avail.descriptor.bundles.A_BundleTree
+import com.avail.descriptor.fiber.FiberDescriptor.ExecutionState
+import com.avail.descriptor.fiber.FiberDescriptor.GeneralFlag
+import com.avail.descriptor.fiber.FiberDescriptor.InterruptRequestFlag
+import com.avail.descriptor.fiber.FiberDescriptor.SynchronizationFlag
+import com.avail.descriptor.fiber.FiberDescriptor.TraceFlag
+import com.avail.descriptor.functions.A_Continuation
+import com.avail.descriptor.functions.A_Function
+import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.maps.A_Map
+import com.avail.descriptor.maps.A_MapBin
+import com.avail.descriptor.maps.MapDescriptor.MapIterable
+import com.avail.descriptor.methods.A_Definition
+import com.avail.descriptor.methods.A_GrammaticalRestriction
+import com.avail.descriptor.methods.A_Macro
+import com.avail.descriptor.methods.A_Method
+import com.avail.descriptor.methods.A_SemanticRestriction
+import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.numbers.A_Number
+import com.avail.descriptor.numbers.AbstractNumberDescriptor.Order
+import com.avail.descriptor.numbers.AbstractNumberDescriptor.Sign
+import com.avail.descriptor.numbers.IntegerDescriptor
+import com.avail.descriptor.parsing.A_DefinitionParsingPlan
+import com.avail.descriptor.parsing.A_Lexer
+import com.avail.descriptor.parsing.A_ParsingPlanInProgress
+import com.avail.descriptor.phrases.A_Phrase
+import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
+import com.avail.descriptor.sets.A_Set
+import com.avail.descriptor.sets.LinearSetBinDescriptor.Companion.createLinearSetBinPair
+import com.avail.descriptor.sets.LinearSetBinDescriptor.Companion.emptyLinearSetBin
+import com.avail.descriptor.sets.SetDescriptor.SetIterator
+import com.avail.descriptor.tokens.A_Token
+import com.avail.descriptor.tokens.TokenDescriptor
+import com.avail.descriptor.tuples.A_String
+import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
+import com.avail.descriptor.types.TypeDescriptor
+import com.avail.descriptor.types.TypeTag
+import com.avail.descriptor.variables.A_Variable
+import com.avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
+import com.avail.dispatch.LookupTree
+import com.avail.exceptions.AvailException
+import com.avail.exceptions.MalformedMessageException
+import com.avail.exceptions.MethodDefinitionException
+import com.avail.exceptions.SignatureException
+import com.avail.exceptions.VariableGetException
+import com.avail.exceptions.VariableSetException
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.execution.AvailLoader
+import com.avail.interpreter.execution.AvailLoader.LexicalScanner
+import com.avail.interpreter.levelTwo.L2Chunk
+import com.avail.interpreter.levelTwo.operand.TypeRestriction
+import com.avail.io.TextInterface
+import com.avail.performance.Statistic
+import com.avail.serialization.SerializerOperation
+import com.avail.utility.json.JSONWriter
+import com.avail.utility.visitor.AvailSubobjectVisitor
+import com.avail.utility.visitor.BeImmutableSubobjectVisitor
+import com.avail.utility.visitor.BeSharedSubobjectVisitor
  import java.math.BigInteger
  import java.nio.ByteBuffer
  import java.util.*
@@ -511,7 +512,8 @@ abstract class Descriptor protected constructor (
 
 	override fun o_CountdownToReoptimize (
 		self: AvailObject,
-		value: Int): Unit = unsupported
+		value: Long
+	): Unit = unsupported
 
 	override fun o_IsSubsetOf (
 		self: AvailObject,
@@ -823,6 +825,9 @@ abstract class Descriptor protected constructor (
 	override fun o_TupleIntAt (self: AvailObject, index: Int): Int =
 		unsupported
 
+	override fun o_TupleLongAt (self: AvailObject, index: Int): Long =
+		unsupported
+
 	override fun o_TypeAtIndex (self: AvailObject, index: Int): A_Type =
 		unsupported
 
@@ -992,6 +997,9 @@ abstract class Descriptor protected constructor (
 	override fun o_CopyAsMutableIntTuple (self: AvailObject): A_Tuple =
 		unsupported
 
+	override fun o_CopyAsMutableLongTuple (self: AvailObject): A_Tuple =
+		unsupported
+
 	override fun o_CopyAsMutableObjectTuple (self: AvailObject): A_Tuple =
 		unsupported
 
@@ -1110,6 +1118,9 @@ abstract class Descriptor protected constructor (
 		unsupported
 
 	override fun o_Message (self: AvailObject): A_Atom = unsupported
+
+	override fun o_MessagePart (self: AvailObject, index: Int): A_String =
+		unsupported
 
 	override fun o_MessageParts (self: AvailObject): A_Tuple =
 		unsupported
@@ -1250,6 +1261,10 @@ abstract class Descriptor protected constructor (
 	override fun o_EqualsIntTuple (
 		self: AvailObject,
 		anIntTuple: A_Tuple) = false
+
+	override fun o_EqualsLongTuple (
+		self: AvailObject,
+		aLongTuple: A_Tuple) = false
 
 	override fun o_EqualsSmallIntegerIntervalTuple (
 		self: AvailObject,
@@ -1454,6 +1469,8 @@ abstract class Descriptor protected constructor (
 	override fun o_IsCharacter (self: AvailObject) = false
 
 	override fun o_IsIntTuple (self: AvailObject) = false
+
+	override fun o_IsLongTuple (self: AvailObject) = false
 
 	/**
 	 * Is the specified [AvailObject] an Avail string?
@@ -1704,9 +1721,6 @@ abstract class Descriptor protected constructor (
 		unsupported
 
 	override fun o_IsLastUse (self: AvailObject): Boolean =
-		unsupported
-
-	override fun o_IsMacroDefinition (self: AvailObject): Boolean =
 		unsupported
 
 	override fun o_CopyMutablePhrase (self: AvailObject): A_Phrase =
@@ -2005,7 +2019,7 @@ abstract class Descriptor protected constructor (
 		otherEqualityRawPojo: AvailObject,
 		otherJavaObject: Any?) = false
 
-	override fun <T> o_JavaObject(self: AvailObject): T? =
+	override fun <T : Any> o_JavaObject(self: AvailObject): T? =
 		unsupported
 
 	override fun o_LazyIncompleteCaseInsensitive (self: AvailObject): A_Map =
@@ -2140,7 +2154,7 @@ abstract class Descriptor protected constructor (
 	override fun o_MapBinIterable (self: AvailObject): MapIterable =
 		unsupported
 
-	override fun o_RangeIncludesInt (self: AvailObject, anInt: Int): Boolean =
+	override fun o_RangeIncludesLong(self: AvailObject, aLong: Long): Boolean =
 		unsupported
 
 	override fun o_BitShiftLeftTruncatingToBits (
@@ -2324,6 +2338,11 @@ abstract class Descriptor protected constructor (
 	override fun o_MethodAddBundle (self: AvailObject, bundle: A_Bundle): Unit =
 		unsupported
 
+	override fun o_MethodRemoveBundle (
+		self: AvailObject,
+		bundle: A_Bundle
+	): Unit = unsupported
+
 	override fun o_DefinitionModule (self: AvailObject): A_Module =
 		unsupported
 
@@ -2491,7 +2510,7 @@ abstract class Descriptor protected constructor (
 	override fun o_HasSuperCast (self: AvailObject): Boolean =
 		unsupported
 
-	override fun o_MacroDefinitionsTuple (self: AvailObject): A_Tuple =
+	override fun o_MacrosTuple (self: AvailObject): A_Tuple =
 		unsupported
 
 	override fun o_LookupMacroByPhraseTuple (
@@ -2727,9 +2746,38 @@ abstract class Descriptor protected constructor (
 		onSuccess: (AvailObject) -> Unit,
 		onFailure: (Throwable) -> Unit): Unit = unsupported
 
-	override fun o_ClearLexingState (self: AvailObject): Unit =
+	override fun o_ClearLexingState (self: AvailObject): Unit = unsupported
+
+	override fun o_RegisterDump (self: AvailObject): AvailObject = unsupported
+
+	override fun o_MembershipChanged(self: AvailObject): Unit = unsupported
+
+	override fun o_DefinitionBundle(self: AvailObject): A_Bundle = unsupported
+
+	override fun o_BundleAddMacro(self: AvailObject, macro: A_Macro): Unit =
 		unsupported
 
-	override fun o_RegisterDump (self: AvailObject): AvailObject =
+	override fun o_ModuleAddMacro(self: AvailObject, macro: A_Macro): Unit =
+		unsupported
+
+	override fun o_ModuleMacros(self: AvailObject): A_Set = unsupported
+
+	override fun o_RemoveMacro(self: AvailObject, macro: A_Macro): Unit =
+		unsupported
+
+	override fun o_AddBundle(self: AvailObject, bundle: A_Bundle): Unit =
+		unsupported
+
+	override fun o_ModuleBundles(self: AvailObject): A_Set = unsupported
+
+	override fun o_ReturnTypeIfPrimitiveFails(self: AvailObject): A_Type =
+		unsupported
+
+	override fun o_ExtractDumpedObjectAt(
+		self: AvailObject,
+		index: Int
+	): AvailObject = unsupported
+
+	override fun o_ExtractDumpedLongAt(self: AvailObject, index: Int): Long =
 		unsupported
 }

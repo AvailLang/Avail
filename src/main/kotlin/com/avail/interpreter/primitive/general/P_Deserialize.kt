@@ -35,6 +35,10 @@ package com.avail.interpreter.primitive.general
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.byteArray
+import com.avail.descriptor.tuples.A_Tuple.Companion.byteBuffer
+import com.avail.descriptor.tuples.A_Tuple.Companion.transferIntoByteBuffer
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import com.avail.descriptor.types.A_Type
@@ -98,8 +102,7 @@ object P_Deserialize : Primitive(2, CanInline)
 		}
 
 		val input = ByteArrayInputStream(byteArray)
-		val deserializer = Deserializer(
-			input, interpreter.runtime())
+		val deserializer = Deserializer(input, interpreter.runtime)
 		deserializer.currentModule = module
 		val values = ArrayList<A_BasicObject>()
 		try

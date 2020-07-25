@@ -41,6 +41,7 @@ import com.avail.descriptor.representation.BitField
 import com.avail.descriptor.representation.Descriptor
 import com.avail.descriptor.representation.IntegerSlotsEnum
 import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.tuples.A_Tuple.Companion.asSet
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.types.A_Type
@@ -92,11 +93,13 @@ class CharacterDescriptor private constructor(
 			/**
 			 * This character's Unicode code point, in the range 0..1,411,111.
 			 */
+			@JvmField
 			val CODE_POINT = BitField(CODE_POINT_AND_HASH, 0, 32)
 
 			/**
 			 * This character's hash value, which is eagerly computed.
 			 */
+			@JvmField
 			val HASH = BitField(CODE_POINT_AND_HASH, 32, 32)
 		}
 	}

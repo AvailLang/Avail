@@ -195,28 +195,21 @@ object L2_CREATE_FUNCTION : L2Operation(
 		val outerRegs = instruction.operand<L2ReadBoxedVectorOperand>(1)
 		val newFunctionReg = instruction.operand<L2WriteBoxedOperand>(2)
 		val numOuters = outerRegs.elements().size
+
 		assert(numOuters == code.constant.numOuters())
 		translator.literal(method, code.constant)
+		assert(numOuters != 0)
+		if (numOuters <= 5)
+		{
+			outerRegs.registers().forEach { translator.load(method, it) }
+		}
 		when (numOuters)
 		{
-			1 ->
-			{
-				translator.load(method, outerRegs.registers()[0])
-				FunctionDescriptor.createWithOuters1Method.generateCall(method)
-			}
-			2 ->
-			{
-				translator.load(method, outerRegs.registers()[0])
-				translator.load(method, outerRegs.registers()[1])
-				FunctionDescriptor.createWithOuters2Method.generateCall(method)
-			}
-			3 ->
-			{
-				translator.load(method, outerRegs.registers()[0])
-				translator.load(method, outerRegs.registers()[1])
-				translator.load(method, outerRegs.registers()[2])
-				FunctionDescriptor.createWithOuters3Method.generateCall(method)
-			}
+			1 -> FunctionDescriptor.createWithOuters1Method.generateCall(method)
+			2 -> FunctionDescriptor.createWithOuters2Method.generateCall(method)
+			3 -> FunctionDescriptor.createWithOuters3Method.generateCall(method)
+			4 -> FunctionDescriptor.createWithOuters4Method.generateCall(method)
+			5 -> FunctionDescriptor.createWithOuters5Method.generateCall(method)
 			else ->
 			{
 				// :: function = createExceptOuters(code, numOuters);

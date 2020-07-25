@@ -41,13 +41,18 @@ import com.avail.compiler.splitter.MessageSplitter.Metacharacter.BACK_QUOTE
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter.SPACE
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter.UNDERSCORE
 import com.avail.descriptor.tuples.A_String
+import com.avail.descriptor.tuples.A_Tuple.Companion.concatenateTuplesCanDestroy
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.StringDescriptor
 import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.exceptions.AvailErrorCode.E_EXPECTED_OPERATOR_AFTER_BACKQUOTE
 import com.avail.exceptions.AvailErrorCode.E_METHOD_NAME_IS_NOT_CANONICAL
 import com.avail.exceptions.MalformedMessageException
-import java.util.*
+import java.util.concurrent.locks.ReentrantReadWriteLock
+import kotlin.concurrent.read
+import kotlin.concurrent.write
 
 /**
  * `MessageSplitterTokenizer` breaks a message name into a sequence of token
@@ -85,18 +90,24 @@ class MessageSplitterTokenizer
 	private var positionInName = 1
 
 	/**
-	 * The individual tokens ([strings][StringDescriptor])
-	 * constituting the message.
+	 * The individual tokens ([strings][StringDescriptor]) constituting the
+	 * message.
 	 *
-	 * @see .messagePartsTuple
+	 * @see [canonicalMessageParts]
 	 */
-	val messagePartsList: MutableList<A_String> = ArrayList(10)
+	private val messagePartsList = mutableListOf<A_String>()
 
 	/**
 	 * A collection of one-based positions in the original string, corresponding
 	 * to the [messagePartsList] that have been extracted.
 	 */
-	val messagePartPositions: MutableList<Int> = ArrayList(10)
+	private val messagePartPositions = mutableListOf<Int>()
+
+	/**
+	 * Access the (read-only) array of one-based positions of tokens in the
+	 * original string.
+	 */
+	fun messagePartPositions(): IntArray = messagePartPositions.toIntArray()
 
 	init
 	{
@@ -284,5 +295,51 @@ class MessageSplitterTokenizer
 				}
 			}
 		}
+	}
+
+	/**
+	 * Answer the message parts that this tokenizer has produced, but mapped to
+	 * canonical values to minimize the cost of storage and indirections.
+	 *
+	 * @return
+	 *   An immutable [List] of canonical [A_String]s.
+	 */
+	fun canonicalMessageParts(): Array<A_String>
+	{
+		// First, hold a shared read lock while checking if all parts are
+		// already present in the canonical map.  DO NOT modify the map.
+		var allPresent = true
+		val firstAttempt = allCanonicalMessagePartsLock.read {
+			messagePartsList.map { part ->
+				allCanonicalMessageParts.getOrElse(part) {
+					allPresent = false
+					part
+				}
+			}.toTypedArray()
+		}
+		if (allPresent) return firstAttempt
+		// At least one part was absent from the canonical map.  Hold the write
+		// lock and translate each part, updating the map as needed.
+		return allCanonicalMessagePartsLock.write {
+			firstAttempt.map { part ->
+				allCanonicalMessageParts.getOrPut(part) { part.makeShared() }
+			}
+		}.toTypedArray()
+	}
+
+	companion object
+	{
+		/** The lock for accessing [allCanonicalMessageParts]. */
+		val allCanonicalMessagePartsLock = ReentrantReadWriteLock()
+
+		/**
+		 * A map from [A_String] to *canonical* [A_String] for each message part
+		 * in every method name.  All [MessageSplitter]s hold only canonical
+		 * [A_String]s to minimize footprint (and presumably improve
+		 * performance).
+		 *
+		 * Must be accessed within the [allCanonicalMessagePartsLock].
+		 */
+		val allCanonicalMessageParts = mutableMapOf<A_String, A_String>()
 	}
 }

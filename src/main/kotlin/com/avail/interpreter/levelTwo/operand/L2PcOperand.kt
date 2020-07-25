@@ -55,7 +55,6 @@ import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
 import java.util.*
 import java.util.concurrent.atomic.LongAdder
-
 /**
  * An `L2PcOperand` is an operand of type [L2OperandType.PC].
  * It refers to a target [L2BasicBlock], that either be branched to at
@@ -178,6 +177,15 @@ class L2PcOperand constructor (
 	 *   This edge's [L2ValueManifest].
 	 */
 	fun manifest(): L2ValueManifest = manifest!!
+
+	/**
+	 * If the [L2ValueManifest] has not yet been stripped from the containing
+	 * chunk, answer it, otherwise answer `null`.
+	 *
+	 * @return
+	 *   Either this edge's value manifest or `null`.
+	 */
+	fun manifestOrNull(): L2ValueManifest? = manifest
 
 	override fun dispatchOperand(dispatcher: L2OperandDispatcher)
 	{
@@ -363,15 +371,13 @@ class L2PcOperand constructor (
 		// the target will restore the register dump found in the continuation.
 		val targetInstruction = targetBlock.instructions()[0]
 		assert(targetInstruction.operation() === L2_ENTER_L2_CHUNK)
-		val liveMap =
-			enumMap(RegisterKind.values()) { mutableListOf<Int>() }
-		val liveRegistersSet: MutableSet<L2Register> = HashSet(alwaysLiveInRegisters)
-		liveRegistersSet.addAll(sometimesLiveInRegisters)
-		val liveRegistersList = liveRegistersSet.toMutableList()
-		liveRegistersList.sortBy(L2Register::finalIndex)
+		val liveMap = enumMap(RegisterKind.values()) { mutableListOf<Int>() }
+		val liveRegistersList =
+			(alwaysLiveInRegisters + sometimesLiveInRegisters)
+				.sortedBy(L2Register::finalIndex)
 		liveRegistersList.forEach {
-			liveMap[it.registerKind()]
-				.add(translator.localNumberFromRegister(it))
+			liveMap[it.registerKind()].add(
+				translator.localNumberFromRegister(it))
 		}
 		translator.liveLocalNumbersByKindPerEntryPoint[targetInstruction] =
 			liveMap
@@ -478,8 +484,16 @@ class L2PcOperand constructor (
 	 */
 	fun installCounter()
 	{
-		assert(counter === null // Don't install twice.
-		)
+		assert(counter === null) // Don't install twice.
 		counter = LongAdder()
 	}
+
+	override fun postOptimizationCleanup()
+	{
+		manifest = null
+		alwaysLiveInRegisters.clear()
+		sometimesLiveInRegisters.clear()
+		forcedClampedEntities?.retainAll { it is L2Register }
+	}
 }
+

@@ -43,6 +43,7 @@ import com.avail.descriptor.phrases.ListPhraseDescriptor
 import com.avail.descriptor.phrases.SendPhraseDescriptor
 import com.avail.descriptor.phrases.SendPhraseDescriptor.Companion.newSendNode
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
@@ -54,6 +55,7 @@ import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE
 import com.avail.descriptor.types.TypeDescriptor
 import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
+import com.avail.exceptions.AvailErrorCode.E_INCONSISTENT_ARGUMENT_REORDERING
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
 import com.avail.exceptions.MalformedMessageException
 import com.avail.interpreter.Primitive
@@ -76,10 +78,10 @@ object P_CreateSendExpression : Primitive(3, CanFold, CanInline)
 	{
 		interpreter.checkArgumentCount(3)
 		val messageName = interpreter.argument(0)
-		val argsListNode = interpreter.argument(1)
+		val argsListPhrase = interpreter.argument(1)
 		val returnType = interpreter.argument(2)
 
-		val argExpressions = argsListNode.expressionsTuple()
+		val argExpressions = argsListPhrase.expressionsTuple()
 		val argsCount = argExpressions.tupleSize()
 		try
 		{
@@ -90,8 +92,13 @@ object P_CreateSendExpression : Primitive(3, CanFold, CanInline)
 				return interpreter.primitiveFailure(
 					E_INCORRECT_NUMBER_OF_ARGUMENTS)
 			}
+			if (!splitter.checkListStructure(argsListPhrase))
+			{
+				return interpreter.primitiveFailure(
+					E_INCONSISTENT_ARGUMENT_REORDERING)
+			}
 			return interpreter.primitiveSuccess(
-				newSendNode(emptyTuple(), bundle, argsListNode, returnType))
+				newSendNode(emptyTuple(), bundle, argsListPhrase, returnType))
 		}
 		catch (e: MalformedMessageException)
 		{

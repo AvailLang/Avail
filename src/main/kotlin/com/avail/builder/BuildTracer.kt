@@ -233,7 +233,7 @@ internal class BuildTracer constructor(val availBuilder: AvailBuilder)
 			resolvedName,
 			availBuilder.textInterface,
 			availBuilder.pollForAbort,
-			{ _, _, _ -> },
+			{ _, _, _, _ -> },
 			this::indicateTraceCompleted,
 			problemHandler) {
 				compiler ->

@@ -102,9 +102,7 @@ internal class ArgumentForMacroOnly constructor(
 		generator.emit(this, PARSE_TOP_VALUED_ARGUMENT)
 		generator.emitDelayed(this, CHECK_ARGUMENT, absoluteUnderscoreIndex)
 		generator.emitDelayed(
-			this,
-			TYPE_CHECK_ARGUMENT,
-			indexForConstant(phraseType))
+			this, TYPE_CHECK_ARGUMENT, indexForConstant(phraseType))
 		return wrapState
 	}
 }

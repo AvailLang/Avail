@@ -329,52 +329,6 @@ Method "_<_" is
 ] : boolean;
 
 /**
- * Compare two strings lexicographically by Unicode code point.
- *
- * @method "_≥_"
- * @param "s1" "string"
- * @param "s2" "string"
- * @returns "boolean"
- *          {@method "true"} if {@param "s1"} collates after {@param "s2"},
- *          {@method "false"} otherwise.
- * @category "Strings" "Relations"
- */
-Method "_≥_" is
-[
-	s1 : string,
-	s2 : string
-|
-	$body : boolean;
-	For each index from 1 to |s1| min |s2| do
-	[
-		cp1 ::= s1[index]'s code point;
-		cp2 ::= s2[index]'s code point;
-		Exit body with true if cp1 > cp2;
-		Exit body with false if cp1 < cp2;
-	];
-	|s1| ≥ |s2|
-] : boolean;
-
-/**
- * Compare two strings lexicographically by Unicode code point.
- *
- * @method "_>_"
- * @param "s1" "string"
- * @param "s2" "string"
- * @returns "boolean"
- *          {@method "true"} if {@param "s1"} collates strictly after
- *          {@param "s2"}, {@method "false"} otherwise.
- * @category "Strings" "Relations"
- */
-Method "_>_" is
-[
-	s1 : string,
-	s2 : string
-|
-	s1 ≥ s2 ∧ s1 ≠ s2
-] : boolean;
-
-/**
  * Quicksort a tuple of strings in ascending order.
  *
  * @method "quicksort_"

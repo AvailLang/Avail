@@ -54,16 +54,19 @@ import com.avail.compiler.splitter.MessageSplitter.Metacharacter.VERTICAL_BAR
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom
+import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.bundles.A_BundleTree
 import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.methods.DefinitionDescriptor
-import com.avail.descriptor.methods.MacroDefinitionDescriptor
+import com.avail.descriptor.methods.MacroDescriptor
 import com.avail.descriptor.methods.MethodDefinitionDescriptor
 import com.avail.descriptor.numbers.IntegerDescriptor
 import com.avail.descriptor.parsing.A_Lexer
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.A_Phrase.Companion.argumentsListNode
 import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsTuple
+import com.avail.descriptor.phrases.ListPhraseDescriptor
+import com.avail.descriptor.phrases.PermutedListPhraseDescriptor
 import com.avail.descriptor.phrases.ReferencePhraseDescriptor
 import com.avail.descriptor.phrases.SendPhraseDescriptor
 import com.avail.descriptor.phrases.VariableUsePhraseDescriptor
@@ -74,7 +77,10 @@ import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tokens.LiteralTokenDescriptor
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
+import com.avail.descriptor.tuples.A_Tuple.Companion.appendCanDestroy
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.StringDescriptor
 import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.tuples.TupleDescriptor
@@ -107,11 +113,13 @@ import com.avail.exceptions.AvailErrorCode.E_UP_ARROW_MUST_FOLLOW_ARGUMENT
 import com.avail.exceptions.AvailErrorCode.E_VERTICAL_BAR_MUST_SEPARATE_TOKENS_OR_SIMPLE_GROUPS
 import com.avail.exceptions.MalformedMessageException
 import com.avail.exceptions.SignatureException
-import com.avail.utility.Locks.auto
 import com.avail.utility.cast
-import java.util.*
+import java.util.ArrayList
+import java.util.HashMap
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.locks.ReentrantReadWriteLock
+import kotlin.concurrent.read
+import kotlin.concurrent.write
 
 /**
  * `MessageSplitter` is used to split Avail message names into a sequence of
@@ -206,19 +214,13 @@ class MessageSplitter
 	 *    backquote (to indicate that an actual backquote token will appear in a
 	 *    call).
 	 */
-	private val messagePartsList: List<A_String>
-
-	/**
-	 * The [A_Tuple] of [A_String]s constituting discrete tokens of the message
-	 * name.
-	 */
-	val messagePartsTuple: A_Tuple
+	val messageParts: Array<A_String>
 
 	/**
 	 * A collection of one-based positions in the original string, corresponding
-	 * to the [messagePartsList] that have been extracted.
+	 * to the [messageParts] array that have been extracted.
 	 */
-	private val messagePartPositions: List<Int>
+	private val messagePartPositions: IntArray
 
 	/** The current one-based parsing position in the list of tokens.  */
 	private var messagePartPosition: Int = 0
@@ -230,10 +232,11 @@ class MessageSplitter
 	 * embedded underscores/ellipses is counted as `N`, not one.
 	 *
 	 * This count of underscores/ellipses is essential for expressing negative
-	 * precedence rules in the presence of repeated arguments.  Also note that
-	 * backquoted underscores are not counted, since they don't represent a
-	 * position at which a subexpression must occur.  Similarly, backquoted
-	 * ellipses are not a place where an arbitrary input token can go.
+	 * precedence rules (grammatical restrictions) in the presence of repeated
+	 * arguments.  Also note that backquoted underscores are not counted, since
+	 * they don't represent a position at which a subexpression must occur.
+	 * Similarly, backquoted ellipses are not a place where an arbitrary input
+	 * token can go.
 	 */
 	var leafArgumentCount = 0
 		private set
@@ -254,7 +257,7 @@ class MessageSplitter
 	 * Initialize an enum instance.
 	 *
 	 * @param javaString
-	 *        The Java [String] denoting the metacharacter.
+	 *   The Java [String] denoting the metacharacter.
 	 */
 	enum class Metacharacter constructor(javaString: String) {
 		/**
@@ -473,14 +476,12 @@ class MessageSplitter
 		VERTICAL_BAR("|");
 
 		/** The Avail [A_String] denoting this metacharacter.  */
-		val string: A_String = stringFrom(javaString).makeShared()
+		val string: A_String = stringFrom(javaString).makeShared().also {
+			assert(it.tupleSize() == 1)
+		}
 
 		/** The sole codepoint ([Int]) of this [Metacharacter] instance. */
 		val codepoint: Int = string.tupleCodePointAt(1)
-
-		init {
-			assert(string.tupleSize() == 1)
-		}
 
 		companion object {
 			/**
@@ -514,8 +515,8 @@ class MessageSplitter
 	init {
 		this.messageName = messageName.makeShared()
 		val tokenizer = MessageSplitterTokenizer(this.messageName)
-		this.messagePartsList = tokenizer.messagePartsList
-		this.messagePartPositions = tokenizer.messagePartPositions
+		this.messageParts = tokenizer.canonicalMessageParts()
+		this.messagePartPositions = tokenizer.messagePartPositions()
 		try {
 			messagePartPosition = 1
 			rootSequence = parseSequence()
@@ -536,7 +537,6 @@ class MessageSplitter
 					E_UNBALANCED_GUILLEMETS,
 					"Encountered unexpected character: $currentMessagePart")
 			}
-			messagePartsTuple = tupleFromList(messagePartsList).makeShared()
 		} catch (e: MalformedMessageException) {
 			// Add contextual text and rethrow it.
 			throw MalformedMessageException(e.errorCode)
@@ -575,7 +575,7 @@ class MessageSplitter
 	private fun dumpForDebug(builder: StringBuilder) = with(builder) {
 		append(messageName.asNativeString())
 		append("\n------\n")
-		messagePartsList.forEach {
+		messageParts.forEach {
 			append("\t${it.asNativeString()}\n")
 		}
 	}
@@ -599,7 +599,7 @@ class MessageSplitter
 	 * @return
 	 *   `true` if the current position has consumed the last message part.
 	 */
-	private val atEnd get() = messagePartPosition > messagePartsList.size
+	private val atEnd get() = messagePartPosition > messageParts.size
 
 	/**
 	 * Answer the current message part, or `null` if we are [atEnd].  Do not
@@ -609,8 +609,7 @@ class MessageSplitter
 	 *   The current message part or `null`.
 	 */
 	private val currentMessagePartOrNull
-		get() =
-			if (atEnd) null else messagePartsList[messagePartPosition - 1]
+		get() = if (atEnd) null else messageParts[messagePartPosition - 1]
 
 	/**
 	 * Answer the current message part.  We must not be [atEnd].  Do
@@ -622,7 +621,7 @@ class MessageSplitter
 	private val currentMessagePart
 		get(): A_String {
 			assert(!atEnd)
-			return messagePartsList[messagePartPosition - 1]
+			return messageParts[messagePartPosition - 1]
 		}
 
 	/**
@@ -811,7 +810,7 @@ class MessageSplitter
 	 * double-dagger (‡).
 	 *
 	 * @return
-	 *   A [Sequence] expression parsed from the [messagePartsList].
+	 *   A [Sequence] expression parsed from the [messageParts] array.
 	 * @throws MalformedMessageException
 	 *   If the method name is malformed.
 	 */
@@ -1207,7 +1206,7 @@ class MessageSplitter
 	 *   A function type.
 	 * @param sectionNumber
 	 *   The [SectionCheckpoint]'s subscript if this is a check of a
-	 *   [macro][MacroDefinitionDescriptor]'s,
+	 *   [macro][MacroDescriptor]'s,
 	 *   [prefix&#32;function][A_Definition.prefixFunctions], otherwise any
 	 *   value past the total [numberOfSectionCheckpoints] for a method or macro
 	 *   body.
@@ -1234,6 +1233,25 @@ class MessageSplitter
 			throwSignatureException(E_INCORRECT_NUMBER_OF_ARGUMENTS)
 		}
 		rootSequence.checkRootType(functionType.argsTupleType(), sectionNumber)
+	}
+
+	/**
+	 * Answer whether the given list is correctly internally structured for a
+	 * send of this message.  It must recursively match the expected number of
+	 * arguments, as well as have the expected permutations in the corresponding
+	 * recursive [Expression]s.
+	 *
+	 * @param list
+	 *   The [list&#32;phrase][ListPhraseDescriptor] or
+	 *   [permuted&#32;list&#32;phrase][PermutedListPhraseDescriptor] being
+	 *   checked for conformance with the expected argument structure.
+	 * @return
+	 *   Whether the supplied list is recursively of the right shape to be used
+	 *   as the argument list for a call of this splitter's [A_Bundle].
+	 */
+	fun checkListStructure(list: A_Phrase): Boolean
+	{
+		return rootSequence.checkListStructure(list)
 	}
 
 	/**
@@ -1419,14 +1437,14 @@ class MessageSplitter
 		@JvmStatic
 		fun indexForConstant(constant: A_BasicObject): Int {
 			val strongConstant = constant.makeShared()
-			auto(constantsLock.readLock()).use {
+			constantsLock.read {
 				val index = constantsMap[strongConstant]
 				if (index !== null) {
 					return index
 				}
 			}
 
-			auto(constantsLock.writeLock()).use {
+			constantsLock.write {
 				val index = constantsMap[strongConstant]
 				if (index !== null) {
 					return index
@@ -1457,10 +1475,8 @@ class MessageSplitter
 		 *   The [AvailObject] at the given index.
 		 */
 		@JvmStatic
-		fun constantForIndex(index: Int): AvailObject {
-			auto(constantsLock.readLock())
-				.use { return constantsList[index - 1] }
-		}
+		fun constantForIndex(index: Int): AvailObject =
+			constantsLock.read { constantsList[index - 1] }
 
 		/**
 		 * If the condition is true, throw a [MalformedMessageException] with
@@ -1501,8 +1517,7 @@ class MessageSplitter
 		@Throws(MalformedMessageException::class)
 		private fun checkAlternative(expression: Expression) {
 			throwMalformedIf(
-				expression.yieldsValue
-					|| expression.underscoreCount > 0,
+				expression.yieldsValue || expression.underscoreCount > 0,
 				E_ALTERNATIVE_MUST_NOT_CONTAIN_ARGUMENTS,
 				"Alternatives must not contain arguments")
 		}

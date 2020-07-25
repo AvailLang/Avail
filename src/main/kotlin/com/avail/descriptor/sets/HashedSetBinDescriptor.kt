@@ -129,11 +129,13 @@ class HashedSetBinDescriptor private constructor(
 			 * A slot to hold the bin's hash value, or zero if it has not been
 			 * computed.
 			 */
+			@JvmField
 			val BIN_HASH = BitField(BIN_HASH_AND_MORE, 0, 32)
 
 			/**
 			 * The total number of elements within this bin.
 			 */
+			@JvmField
 			val BIN_SIZE = BitField(BIN_HASH_AND_MORE, 32, 32)
 
 			init {

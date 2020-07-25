@@ -243,7 +243,7 @@ class L2RegisterColorer constructor(controlFlowGraph: L2ControlFlowGraph)
 		}
 		// We reached the start of the block without hitting the defining phi.
 		// Continue tracing in each predecessor block.
-		block.predecessorEdgesDo { sourceEdge: L2PcOperand ->
+		block.predecessorEdges().forEach { sourceEdge: L2PcOperand ->
 			val sourceBlock = sourceEdge.sourceBlock()
 			if (reachedBlocks.add(sourceBlock))
 			{

@@ -31,7 +31,7 @@
  */
 package com.avail.test
 
-import com.avail.AvailRuntime.Companion.specialAtoms
+import com.avail.AvailRuntime
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.createAtom
 import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
@@ -1632,7 +1632,7 @@ class TypeConsistencyTest
 		{
 			// Force early initialization of the Avail runtime in order to
 			// prevent initialization errors.
-			specialAtoms()
+			AvailRuntime
 			Node.createTypes()
 			if (false)
 			{

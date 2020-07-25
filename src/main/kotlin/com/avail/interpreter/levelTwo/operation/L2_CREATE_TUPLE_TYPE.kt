@@ -33,7 +33,10 @@ package com.avail.interpreter.levelTwo.operation
 
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.InstanceMetaDescriptor
+import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import com.avail.descriptor.types.TupleTypeDescriptor
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypesList
 import com.avail.descriptor.types.TypeDescriptor
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2OperandType
@@ -44,7 +47,7 @@ import com.avail.optimizer.L2Generator
 import com.avail.optimizer.RegisterSet
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
-import java.util.*
+import java.util.ArrayList
 
 /**
  * Create a fixed sized [tuple&#32;type][TupleTypeDescriptor] from the
@@ -71,13 +74,9 @@ object L2_CREATE_TUPLE_TYPE : L2Operation(
 		if (registerSet.allRegistersAreConstant(elements))
 		{
 			// The types are all constants, so create the tuple type statically.
-			val constants: MutableList<A_Type> = ArrayList(size)
-			for (element in elements)
-			{
-				constants.add(registerSet.constantAt(element.register()))
-			}
-			val newTupleType =
-				TupleTypeDescriptor.tupleTypeForTypes(constants)
+			val constants =
+				elements.map { registerSet.constantAt(it.register()) }
+			val newTupleType = tupleTypeForTypesList(constants)
 			newTupleType.makeImmutable()
 			registerSet.constantAtPut(
 				tupleType.register(), newTupleType, instruction)
@@ -105,10 +104,8 @@ object L2_CREATE_TUPLE_TYPE : L2Operation(
 					newTypes.add(TypeDescriptor.Types.ANY.o())
 				}
 			}
-			val newTupleType =
-				TupleTypeDescriptor.tupleTypeForTypes(newTypes)
-			val newTupleMeta =
-				InstanceMetaDescriptor.instanceMeta(newTupleType)
+			val newTupleType = tupleTypeForTypesList(newTypes)
+			val newTupleMeta = instanceMeta(newTupleType)
 			newTupleMeta.makeImmutable()
 			registerSet.removeConstantAt(tupleType.register())
 			registerSet.typeAtPut(

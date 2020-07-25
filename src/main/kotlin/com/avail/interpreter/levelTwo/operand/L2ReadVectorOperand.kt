@@ -49,8 +49,10 @@ import java.util.Collections
  * @param R
  *   A subclass of L2Register
  */
-abstract class L2ReadVectorOperand<RR : L2ReadOperand<R>, R
-	: L2Register> constructor(elements: List<RR>) : L2Operand()
+abstract class L2ReadVectorOperand<
+	RR : L2ReadOperand<R>,
+	R : L2Register>
+constructor(elements: List<RR>) : L2Operand()
 {
 	/**
 	 * The [List] of [L2ReadBoxedOperand]s.
@@ -187,4 +189,10 @@ abstract class L2ReadVectorOperand<RR : L2ReadOperand<R>, R
 			append(">")
 			Unit
 		}
+
+	override fun replaceConstantRegisters() =
+		elements.forEach { it.replaceConstantRegisters() }
+
+	override fun postOptimizationCleanup() =
+		elements.forEach { it.postOptimizationCleanup() }
 }

@@ -574,7 +574,7 @@ abstract class AbstractEnumerationTypeDescriptor protected constructor(
 		 */
 		val instanceTypeOrMetaOnMethod = staticMethod(
 			AbstractEnumerationTypeDescriptor::class.java,
-			"instanceTypeOrMetaOn",
+			::instanceTypeOrMetaOn.name,
 			A_Type::class.java,
 			A_BasicObject::class.java)
 	}

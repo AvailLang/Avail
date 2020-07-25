@@ -219,16 +219,12 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 				// synonym, so subsequent uses of the result might use either
 				// register, depending whether an unboxed value is desired.
 				translator.addInstruction(
-					L2_BIT_LOGIC_OP.wrappedAdd,
-					intA,
-					intB,
-					tempWriter)
+					L2_BIT_LOGIC_OP.wrappedAdd, intA, intB, tempWriter)
 			}
 			else
 			{
 				// The result could exceed an int32.
-				val success =
-					generator.createBasicBlock("sum is in range")
+				val success = generator.createBasicBlock("sum is in range")
 				translator.addInstruction(
 					L2_ADD_INT_TO_INT,
 					intA,

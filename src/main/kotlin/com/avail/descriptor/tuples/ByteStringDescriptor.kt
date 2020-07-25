@@ -39,13 +39,25 @@ import com.avail.descriptor.character.CharacterDescriptor.Companion.fromByteCode
 import com.avail.descriptor.character.CharacterDescriptor.Companion.hashOfByteCharacterWithCodePoint
 import com.avail.descriptor.representation.*
 import com.avail.descriptor.representation.AvailObjectRepresentation.Companion.newLike
+import com.avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithByteStringStartingAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.concatenateWith
+import com.avail.descriptor.tuples.A_Tuple.Companion.copyAsMutableObjectTuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.rawByteForCharacterAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.rawShortForCharacterAtPut
+import com.avail.descriptor.tuples.A_Tuple.Companion.treeTupleLevel
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAtPuttingCanDestroy
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.ByteStringDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import com.avail.descriptor.tuples.ByteStringDescriptor.IntegerSlots.RAW_LONGS_
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.TreeTupleDescriptor.Companion.concatenateAtLeastOneTree
 import com.avail.descriptor.tuples.TreeTupleDescriptor.Companion.createTwoPartTreeTuple
 import com.avail.descriptor.tuples.TwoByteStringDescriptor.Companion.mutableTwoByteStringOfSize
+import com.avail.optimizer.jvm.CheckedMethod
+import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.serialization.SerializerOperation
+import javax.annotation.Generated
 
 /**
  * `ByteStringDescriptor` represents a string of Latin-1 characters.
@@ -100,6 +112,7 @@ class ByteStringDescriptor private constructor(
 			 * very rare case that the hash value actually equals zero, the hash
 			 * value has to be computed every time it is requested.
 			 */
+			@JvmField
 			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
 
 			init
@@ -571,6 +584,28 @@ class ByteStringDescriptor private constructor(
 				generateByteString(aNativeByteString.length)
 					{ aNativeByteString[it - 1].toInt() }
 
+		/**
+		 * Create a mutable byte string of the specified size, where all
+		 * elements are the null byte (code point U+0000).
+		 *
+		 * @param size
+		 *   The size of the byte string to construct.
+		 * @return
+		 *   An Avail [A_String].
+		 */
+		@JvmStatic
+		@ReferencedInGeneratedCode
+		fun createUninitializedByteString(size: Int): AvailObject =
+			descriptorFor(Mutability.MUTABLE, size).create(size + 7 shr 3)
+
+		/** The [CheckedMethod] for [createUninitializedByteString]. */
+		@JvmField
+		val createUninitializedByteStringMethod: CheckedMethod = staticMethod(
+			ByteStringDescriptor::class.java,
+			::createUninitializedByteString.name,
+			AvailObject::class.java,
+			Int::class.javaPrimitiveType!!)
+
 		/** The [ByteStringDescriptor] instances.  */
 		private val descriptors = arrayOfNulls<ByteStringDescriptor>(8 * 3)
 
@@ -584,7 +619,7 @@ class ByteStringDescriptor private constructor(
 		 *   The desired number of elements.
 		 * @return
 		 *   A `ByteStringDescriptor` suitable for representing a byte string of
-		 *   the given mutability and [size][AvailObject.tupleSize].
+		 *   the given mutability and [size][A_Tuple.tupleSize].
 		 */
 		private fun descriptorFor(
 			flag: Mutability,

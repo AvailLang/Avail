@@ -32,6 +32,8 @@
 package com.avail.descriptor.methods
 
 import com.avail.AvailRuntimeSupport
+import com.avail.annotations.EnumField
+import com.avail.annotations.HideFieldInDebugger
 import com.avail.annotations.ThreadSafe
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.atoms.A_Atom.Companion.atomName
@@ -42,20 +44,20 @@ import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.createSpecialAtom
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.bundles.A_Bundle.Companion.addDefinitionParsingPlan
+import com.avail.descriptor.bundles.A_Bundle.Companion.bundleAddMacro
 import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import com.avail.descriptor.bundles.A_Bundle.Companion.message
 import com.avail.descriptor.bundles.A_Bundle.Companion.removePlanForDefinition
 import com.avail.descriptor.bundles.MessageBundleDescriptor
-import com.avail.descriptor.functions.CompiledCodeDescriptor.Companion.newPrimitiveRawFunction
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
-import com.avail.descriptor.methods.MacroDefinitionDescriptor.Companion.newMacroDefinition
+import com.avail.descriptor.functions.PrimitiveCompiledCodeDescriptor.Companion.newPrimitiveRawFunction
+import com.avail.descriptor.methods.MacroDescriptor.Companion.newMacroDefinition
 import com.avail.descriptor.methods.MethodDefinitionDescriptor.Companion.newMethodDefinition
 import com.avail.descriptor.methods.MethodDescriptor.Companion.initialMutableDescriptor
 import com.avail.descriptor.methods.MethodDescriptor.IntegerSlots.Companion.HASH
 import com.avail.descriptor.methods.MethodDescriptor.IntegerSlots.Companion.NUM_ARGS
 import com.avail.descriptor.methods.MethodDescriptor.ObjectSlots.DEFINITIONS_TUPLE
 import com.avail.descriptor.methods.MethodDescriptor.ObjectSlots.LEXER_OR_NIL
-import com.avail.descriptor.methods.MethodDescriptor.ObjectSlots.MACRO_DEFINITIONS_TUPLE
 import com.avail.descriptor.methods.MethodDescriptor.ObjectSlots.OWNING_BUNDLES
 import com.avail.descriptor.methods.MethodDescriptor.ObjectSlots.SEALED_ARGUMENTS_TYPES_TUPLE
 import com.avail.descriptor.methods.MethodDescriptor.ObjectSlots.SEMANTIC_RESTRICTIONS_SET
@@ -65,7 +67,7 @@ import com.avail.descriptor.parsing.DefinitionParsingPlanDescriptor.Companion.ne
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AbstractSlotsEnum
 import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.representation.AvailObject.Companion.newIndexedDescriptor
+import com.avail.descriptor.representation.AvailObjectFieldHelper
 import com.avail.descriptor.representation.BitField
 import com.avail.descriptor.representation.Descriptor
 import com.avail.descriptor.representation.IntegerSlotsEnum
@@ -78,6 +80,8 @@ import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.appendCanDestroy
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
@@ -87,7 +91,6 @@ import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.BottomTypeDescriptor
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
-import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
 import com.avail.descriptor.types.TupleTypeDescriptor
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
 import com.avail.descriptor.types.TypeDescriptor
@@ -103,10 +106,9 @@ import com.avail.exceptions.MethodDefinitionException.Companion.extractUniqueMet
 import com.avail.exceptions.SignatureException
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.levelTwo.L2Chunk
+import com.avail.interpreter.levelTwo.L2Chunk.InvalidationReason.DEPENDENCY_CHANGED
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.anyRestriction
-import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
-import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED
 import com.avail.interpreter.primitive.atoms.P_AtomRemoveProperty
 import com.avail.interpreter.primitive.atoms.P_AtomSetProperty
 import com.avail.interpreter.primitive.bootstrap.syntax.P_ModuleHeaderPrefixCheckImportVersion
@@ -119,10 +121,6 @@ import com.avail.interpreter.primitive.controlflow.P_ResumeContinuation
 import com.avail.interpreter.primitive.general.P_EmergencyExit
 import com.avail.interpreter.primitive.hooks.P_DeclareStringificationAtom
 import com.avail.interpreter.primitive.hooks.P_GetRaiseJavaExceptionInAvailFunction
-import com.avail.interpreter.primitive.hooks.P_SetInvalidMessageSendFunction
-import com.avail.interpreter.primitive.hooks.P_SetRaiseJavaExceptionInAvailFunction
-import com.avail.interpreter.primitive.hooks.P_SetResultDisagreedWithExpectedTypeFunction
-import com.avail.interpreter.primitive.hooks.P_SetUnassignedVariableAccessFunction
 import com.avail.interpreter.primitive.methods.P_AbstractMethodDeclarationForAtom
 import com.avail.interpreter.primitive.methods.P_AddSemanticRestrictionForAtom
 import com.avail.interpreter.primitive.methods.P_Alias
@@ -146,15 +144,16 @@ import com.avail.interpreter.primitive.rawfunctions.P_SetCompiledCodeName
 import com.avail.interpreter.primitive.variables.P_AtomicAddToMap
 import com.avail.interpreter.primitive.variables.P_GetValue
 import com.avail.optimizer.L2Generator
-import com.avail.performance.Statistic
-import com.avail.performance.StatisticReport
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
-import java.util.*
+import java.util.ArrayList
 import java.util.Collections.emptyList
 import java.util.Collections.nCopies
 import java.util.Collections.newSetFromMap
 import java.util.Collections.synchronizedSet
+import java.util.HashMap
+import java.util.IdentityHashMap
+import java.util.WeakHashMap
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater.newUpdater
 import kotlin.concurrent.withLock
 
@@ -168,7 +167,7 @@ import kotlin.concurrent.withLock
  * code that depends on the previous membership.
  *
  * Methods and macros are stored in separate tuples.  Note that macros may be
- * polymorphic (multiple [definitions][MacroDefinitionDescriptor]), and a lookup
+ * polymorphic (multiple [definitions][MacroDescriptor]), and a lookup
  * structure is used at compile time to decide which macro is most specific.
  *
  * @constructor
@@ -198,15 +197,6 @@ class MethodDescriptor private constructor(
 	private var methodTestingTree: LookupTree<A_Definition, A_Tuple>? = null
 
 	/**
-	 * A [LookupTree] used to determine the most specific
-	 * [macro&#32;definition][MacroDefinitionDescriptor] that satisfies the
-	 * supplied argument types.  A `null` indicates the tree has not yet been
-	 * constructed.
-	 */
-	@Volatile
-	private var macroTestingTree: LookupTree<A_Definition, A_Tuple>? = null
-
-	/**
 	 * A weak set (implemented as the [key&#32;set][Map.keys] of a
 	 * [WeakHashMap]) of [L2Chunk]s that depend on the membership of this
 	 * method.  A change to the membership will invalidate all such chunks.
@@ -221,6 +211,7 @@ class MethodDescriptor private constructor(
 		/**
 		 * [BitField]s for the hash and the argument count.  See below.
 		 */
+		@HideFieldInDebugger
 		HASH_AND_NUM_ARGS;
 
 		companion object {
@@ -228,7 +219,7 @@ class MethodDescriptor private constructor(
 			 * The hash of this method.  It's set to a random number during
 			 * construction.
 			 */
-			@JvmField
+			@HideFieldInDebugger
 			val HASH = BitField(HASH_AND_NUM_ARGS, 0, 32)
 
 			/**
@@ -236,6 +227,9 @@ class MethodDescriptor private constructor(
 			 * construction time.
 			 */
 			@JvmField
+			@EnumField(
+				describedBy = EnumField.Converter::class,
+				lookupMethodName = "decimal")
 			val NUM_ARGS = BitField(HASH_AND_NUM_ARGS, 32, 32)
 		}
 	}
@@ -284,13 +278,6 @@ class MethodDescriptor private constructor(
 		SEALED_ARGUMENTS_TYPES_TUPLE,
 
 		/**
-		 * The [tuple][A_Tuple] of
-		 * [macro&#32;definitions][MacroDefinitionDescriptor] that are defined
-		 * for this macro.
-		 */
-		MACRO_DEFINITIONS_TUPLE,
-
-		/**
 		 * The method's [lexer][A_Lexer] or [nil][NilDescriptor.nil].
 		 */
 		LEXER_OR_NIL
@@ -326,45 +313,12 @@ class MethodDescriptor private constructor(
 		return tree
 	}
 
-	/**
-	 * Extract the current [macroTestingTree], creating one atomically, if
-	 * necessary.
-	 *
-	 * @param self
-	 *   The [A_Method] for which to answer the [macroTestingTree].
-	 * @return
-	 *   The [LookupTree] for looking up macro definitions.
-	 */
-	private fun macroTestingTree(
-		self: AvailObject
-	): LookupTree<A_Definition, A_Tuple> {
-		var tree = macroTestingTree
-		if (tree === null) {
-			val numArgs = self.slot(NUM_ARGS)
-			val newTree = runtimeDispatcher.createRoot(
-				toList(self.slot(MACRO_DEFINITIONS_TUPLE)),
-				nCopies(
-					numArgs,
-					restrictionForType(PARSE_PHRASE.mostGeneralType(), BOXED)),
-				Unit)
-			do {
-				// Try to replace null with the new tree.  If the replacement
-				// fails, it means someone else already succeeded, so use that
-				// winner's tree.
-				macroTestingTreeUpdater.compareAndSet(this, null, newTree)
-				tree = macroTestingTree
-			} while (tree === null)
-		}
-		return tree
-	}
-
 	override fun allowsImmutableToMutableReferenceInField(
 		e: AbstractSlotsEnum
 	) = e === OWNING_BUNDLES
 		|| e === DEFINITIONS_TUPLE
 		|| e === SEMANTIC_RESTRICTIONS_SET
 		|| e === SEALED_ARGUMENTS_TYPES_TUPLE
-		|| e === MACRO_DEFINITIONS_TUPLE
 		|| e === LEXER_OR_NIL
 
 	override fun printObjectOnAvoidingIndent(
@@ -373,21 +327,15 @@ class MethodDescriptor private constructor(
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int
 	) = with(builder) {
-		val size = (self.definitionsTuple().tupleSize()
-			+ self.macroDefinitionsTuple().tupleSize())
-		append(size)
-		append(" definition")
-		if (size != 1) {
-			append('s')
+		when (val size = self.definitionsTuple().tupleSize())
+		{
+			1 -> append("1 definition")
+			else -> append("$size definitions")
 		}
 		append(" of ")
-		var first = true
-		for (eachBundle in self.bundles()) {
-			if (!first) {
-				append(" a.k.a. ")
-			}
+		self.bundles().forEachIndexed { i, eachBundle ->
+			if (i > 0) append(" a.k.a. ")
 			append(eachBundle.message())
-			first = false
 		}
 	}
 
@@ -472,8 +420,28 @@ class MethodDescriptor private constructor(
 
 	override fun o_DefinitionsTuple(self: AvailObject): A_Tuple
 	{
-		assert(isShared)
 		synchronized(self) { return self.slot(DEFINITIONS_TUPLE) }
+	}
+
+	override fun o_DescribeForDebugger(
+		self: AvailObject
+	): Array<AvailObjectFieldHelper> {
+		val fields = super.o_DescribeForDebugger(self).toMutableList()
+		fields.add(
+			AvailObjectFieldHelper(
+				self,
+				DebuggerObjectSlots("methodTestingTree"),
+				-1,
+				methodTestingTree))
+		dependentChunksWeakSet?.let {
+			fields.add(
+				AvailObjectFieldHelper(
+					self,
+					DebuggerObjectSlots("dependentChunks"),
+					-1,
+					it.toTypedArray()))
+		}
+		return fields.toTypedArray()
 	}
 
 	override fun o_Equals(
@@ -512,9 +480,11 @@ class MethodDescriptor private constructor(
 
 	override fun o_IsMethodEmpty(self: AvailObject) = synchronized(self) {
 		self.slot(DEFINITIONS_TUPLE).tupleSize() == 0
-			&& self.slot(MACRO_DEFINITIONS_TUPLE).tupleSize() == 0
 			&& self.slot(SEMANTIC_RESTRICTIONS_SET).setSize() == 0
 			&& self.slot(SEALED_ARGUMENTS_TYPES_TUPLE).tupleSize() == 0
+			&& self.slot(OWNING_BUNDLES).all {
+				it.macrosTuple().tupleSize() == 0
+		}
 	}
 
 	override fun o_Kind(self: AvailObject): A_Type = Types.METHOD.o()
@@ -547,29 +517,6 @@ class MethodDescriptor private constructor(
 		runtimeDispatcher.lookupByValues(
 			methodTestingTree(self), argumentList, Unit))
 
-	/**
-	 * Look up the macro definition to invoke, given an array of argument
-	 * phrases.  Use the [macroTestingTree] to find the macro definition to
-	 * invoke.  Answer the tuple of applicable macro definitions, ideally just
-	 * one if there is an unambiguous macro to invoke.
-	 *
-	 * Note that this testing tree approach is only applicable if all of the
-	 * macro definitions are visible (defined in the current module or an
-	 * ancestor.  That should be the *vast* majority of the use of macros, but
-	 * when it isn't, other lookup approaches are necessary.
-	 */
-	override fun o_LookupMacroByPhraseTuple(
-		self: AvailObject,
-		argumentPhraseTuple: A_Tuple
-	): A_Tuple = runtimeDispatcher.lookupByValues(
-		macroTestingTree(self), argumentPhraseTuple, Unit)
-
-	override fun o_MacroDefinitionsTuple(self: AvailObject): A_Tuple
-	{
-		assert(isShared)
-		return synchronized(self) { self.slot(MACRO_DEFINITIONS_TUPLE) }
-	}
-
 	override fun o_MakeImmutable(self: AvailObject): AvailObject {
 		// A method is always shared, except during construction.
 		assert(isShared)
@@ -579,10 +526,15 @@ class MethodDescriptor private constructor(
 	override fun o_MethodAddBundle(
 		self: AvailObject,
 		bundle: A_Bundle
-	) {
-		var bundles: A_Set = self.slot(OWNING_BUNDLES)
-		bundles = bundles.setWithElementCanDestroy(bundle, false)
-		self.setSlot(OWNING_BUNDLES, bundles.makeShared())
+	) = self.updateSlotShared(OWNING_BUNDLES) {
+		setWithElementCanDestroy(bundle, false)
+	}
+
+	override fun o_MethodRemoveBundle(
+		self: AvailObject,
+		bundle: A_Bundle
+	) = self.updateSlotShared(OWNING_BUNDLES) {
+		setWithoutElementCanDestroy(bundle, false)
 	}
 
 	/**
@@ -601,32 +553,22 @@ class MethodDescriptor private constructor(
 		self: AvailObject,
 		definition: A_Definition
 	) = L2Chunk.invalidationLock.withLock {
-		when {
-			definition.isMacroDefinition() -> {
-				// Install the macro.
-				val oldTuple: A_Tuple = self.slot(MACRO_DEFINITIONS_TUPLE)
-				val newTuple = oldTuple.appendCanDestroy(definition, true)
-				self.setSlot(MACRO_DEFINITIONS_TUPLE, newTuple.makeShared())
-			}
-			else -> {
-				val paramTypes = definition.bodySignature().argsTupleType()
-				val seals: A_Tuple = self.slot(SEALED_ARGUMENTS_TYPES_TUPLE)
-				seals.forEach { seal ->
-					val sealType = tupleTypeForSizesTypesDefaultType(
-						singleInt(seal.tupleSize()), seal, bottom())
-					if (paramTypes.isSubtypeOf(sealType)) {
-						throw SignatureException(E_METHOD_IS_SEALED)
-					}
-				}
-				val oldTuple: A_Tuple = self.slot(DEFINITIONS_TUPLE)
-				val newTuple = oldTuple.appendCanDestroy(definition, true)
-				self.setSlot(DEFINITIONS_TUPLE, newTuple.makeShared())
+		val paramTypes = definition.bodySignature().argsTupleType()
+		val seals: A_Tuple = self.slot(SEALED_ARGUMENTS_TYPES_TUPLE)
+		seals.forEach { seal: A_Tuple ->
+			val sealType = tupleTypeForSizesTypesDefaultType(
+				singleInt(seal.tupleSize()), seal, bottom())
+			if (paramTypes.isSubtypeOf(sealType)) {
+				throw SignatureException(E_METHOD_IS_SEALED)
 			}
 		}
+		val oldTuple: A_Tuple = self.slot(DEFINITIONS_TUPLE)
+		val newTuple = oldTuple.appendCanDestroy(definition, true)
+		self.setSlot(DEFINITIONS_TUPLE, newTuple.makeShared())
 		self.slot(OWNING_BUNDLES).forEach {
 			it.addDefinitionParsingPlan(newParsingPlan(it, definition))
 		}
-		membershipChanged(self)
+		self.membershipChanged()
 	}
 
 	override fun o_MethodName(self: AvailObject): A_String =
@@ -647,16 +589,13 @@ class MethodDescriptor private constructor(
 		definition: A_Definition
 	) = L2Chunk.invalidationLock.withLock {
 		assert(!definition.definitionModule().equalsNil())
-		val slot: ObjectSlotsEnum =
-			if (definition.isMacroDefinition()) MACRO_DEFINITIONS_TUPLE
-			else DEFINITIONS_TUPLE
-		var definitionsTuple: A_Tuple = self.slot(slot)
+		var definitionsTuple: A_Tuple = self.slot(DEFINITIONS_TUPLE)
 		definitionsTuple = tupleWithout(definitionsTuple, definition)
-		self.setSlot(slot, definitionsTuple.makeShared())
+		self.setSlot(DEFINITIONS_TUPLE, definitionsTuple.makeShared())
 		self.slot(OWNING_BUNDLES).forEach { bundle ->
 			bundle.removePlanForDefinition(definition)
 		}
-		membershipChanged(self)
+		self.membershipChanged()
 	}
 
 	/**
@@ -719,9 +658,6 @@ class MethodDescriptor private constructor(
 			at("kind") { write("method") }
 			at("aliases") { self.slot(OWNING_BUNDLES).writeTo(writer) }
 			at("definitions") { self.slot(DEFINITIONS_TUPLE).writeTo(writer) }
-			at("macro definitions") {
-				self.slot(MACRO_DEFINITIONS_TUPLE).writeTo(writer)
-			}
 		}
 
 	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
@@ -731,21 +667,17 @@ class MethodDescriptor private constructor(
 			at("definitions") {
 				self.slot(DEFINITIONS_TUPLE).writeSummaryTo(writer)
 			}
-			at("macro definitions") {
-				self.slot(MACRO_DEFINITIONS_TUPLE).writeSummaryTo(writer)
-			}
 		}
 
 	/**
 	 * The membership of this [method][MethodDescriptor] has changed. Invalidate
 	 * anything that depended on the previous membership, including the
-	 * [methodTestingTree], the [macroTestingTree], and any [L2Chunk]s in the
-	 * [dependentChunksWeakSet].
+	 * [methodTestingTree] and any [L2Chunk]s in the [dependentChunksWeakSet].
 	 *
 	 * @param self
 	 *   The method that changed.
 	 */
-	private fun membershipChanged(self: AvailObject) {
+	override fun o_MembershipChanged(self: AvailObject) {
 		assert(L2Chunk.invalidationLock.isHeldByCurrentThread)
 		// Invalidate any affected level two chunks.
 		// Copy the set of chunks to avoid modification during iteration.
@@ -756,14 +688,13 @@ class MethodDescriptor private constructor(
 				if (set === null) emptyList()
 				else ArrayList(dependentChunksWeakSet!!)
 		}
-		dependentsCopy.forEach { it.invalidate(invalidationsFromMethodChange) }
+		dependentsCopy.forEach { it.invalidate(DEPENDENCY_CHANGED) }
 		synchronized(self) {
 			assert(dependentChunksWeakSet === null
 				|| dependentChunksWeakSet!!.isEmpty())
 
 			// Invalidate the roots of the lookup trees.
 			methodTestingTree = null
-			macroTestingTree = null
 		}
 	}
 
@@ -776,7 +707,7 @@ class MethodDescriptor private constructor(
 	 * @constructor
 	 *   Create an [A_Atom], an [A_Bundle], and either synthesized
 	 *   [method&#32;definitions][MethodDefinitionDescriptor] or synthesized
-	 *   [macro&#32;definitions][MacroDefinitionDescriptor] wrapping the given
+	 *   [macro&#32;definitions][MacroDescriptor] wrapping the given
 	 *   vararg array of [Primitive]s.  If the `prefixFunctions` list is
 	 *   provided and non-null, produce macros, otherwise (`prefixFunctions` is
 	 *   elided or null), produce methods.
@@ -821,7 +752,7 @@ class MethodDescriptor private constructor(
 			"vm alias new name_to_",
 			P_Alias),
 
-		/** The special atom for function application. */
+		/** The special atom for	 function application. */
 		APPLY(
 			"vm function apply_(«_‡,»)",
 			P_InvokeWithTuple),
@@ -998,31 +929,35 @@ class MethodDescriptor private constructor(
 
 		init
 		{
-			val method: A_Method = bundle.bundleMethod()
 			primitives.forEach { primitive ->
 				val function = createFunction(
 					newPrimitiveRawFunction(primitive, nil, 0),
 					emptyTuple())
-				val definition: A_Definition = when (prefixFunctions) {
-					null -> newMethodDefinition(
-						method,
-						nil,
-						function)
-					else -> newMacroDefinition(
-						method,
-						nil,
-						function,
-						tupleFromList(
-							prefixFunctions.map { prefixPrimitive ->
-								createFunction(
-									newPrimitiveRawFunction(
-										prefixPrimitive, nil, 0),
-									emptyTuple())
-							}))
+				try
+				{
+					when (prefixFunctions)
+					{
+						null -> {
+							val method: A_Method = bundle.bundleMethod()
+							method.methodAddDefinition(
+								newMethodDefinition(method, nil, function))
+						}
+						else -> bundle.bundleAddMacro(
+							newMacroDefinition(
+								bundle,
+								nil,
+								function,
+								tupleFromList(
+									prefixFunctions.map { prefixPrimitive ->
+										createFunction(
+											newPrimitiveRawFunction(
+												prefixPrimitive, nil, 0),
+											emptyTuple())
+									})))
+					}
 				}
-				try {
-					method.methodAddDefinition(definition)
-				} catch (e: SignatureException) {
+				catch (e: SignatureException)
+				{
 					assert(false) { "This should not happen!" }
 					throw RuntimeException(
 						"VM method name is invalid: $name", e)
@@ -1049,19 +984,12 @@ class MethodDescriptor private constructor(
 			LookupTree::class.java,
 			"methodTestingTree")
 
-		/** Atomic access to [macroTestingTree]. */
-		private val macroTestingTreeUpdater = newUpdater(
-			MethodDescriptor::class.java,
-			LookupTree::class.java,
-			"macroTestingTree")
-
 		/**
 		 * A [LookupTreeAdaptor] used for building and navigating the
 		 * [LookupTree]s that implement runtime dispatching.  Also used for
-		 * looking up macros.
+		 * looking up [A_Macro]s in an [A_Bundle].
 		 *
 		 * @see methodTestingTree
-		 * @see macroTestingTree
 		 */
 		@JvmField
 		val runtimeDispatcher =
@@ -1105,15 +1033,15 @@ class MethodDescriptor private constructor(
 		 *   A new method with no name and no definitions.
 		 */
 		fun newMethod(numArgs: Int): AvailObject =
-			newIndexedDescriptor(0, initialMutableDescriptor).apply {
+			initialMutableDescriptor.create {
 				setSlot(HASH, AvailRuntimeSupport.nextNonzeroHash())
 				setSlot(NUM_ARGS, numArgs)
 				setSlot(OWNING_BUNDLES, emptySet())
 				setSlot(DEFINITIONS_TUPLE, emptyTuple())
 				setSlot(SEMANTIC_RESTRICTIONS_SET, emptySet())
 				setSlot(SEALED_ARGUMENTS_TYPES_TUPLE, emptyTuple())
-				setSlot(MACRO_DEFINITIONS_TUPLE, emptyTuple())
 				setSlot(LEXER_OR_NIL, nil)
+				// Create and plug in a new shared descriptor.
 				setDescriptor(MethodDescriptor(Mutability.SHARED))
 			}
 
@@ -1151,13 +1079,5 @@ class MethodDescriptor private constructor(
 		 */
 		private val initialMutableDescriptor =
 			MethodDescriptor(Mutability.MUTABLE)
-
-		/**
-		 * [Statistic] for tracking the cost of invalidating chunks due to a
-		 * change in a dependency.
-		 */
-		private val invalidationsFromMethodChange = Statistic(
-			"(invalidation from dependent method change)",
-			StatisticReport.L2_OPTIMIZATION_TIME)
 	}
 }

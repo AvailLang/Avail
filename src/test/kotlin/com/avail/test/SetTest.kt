@@ -35,8 +35,11 @@ package com.avail.test
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
+import com.avail.descriptor.tuples.A_Tuple.Companion.asSet
 import com.avail.descriptor.tuples.SmallIntegerIntervalTupleDescriptor.Companion.createSmallInterval
-import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 /**
@@ -56,14 +59,14 @@ class SetTest
 		val set1to20: A_Set = createSmallInterval(1, 20, 1)
 			.asSet()
 			.makeShared()
-		Assertions.assertEquals(20, set1to20.setSize())
+		assertEquals(20, set1to20.setSize())
 		val set11to25: A_Set = createSmallInterval(11, 25, 1)
 			.asSet()
 			.makeShared()
-		Assertions.assertEquals(15, set11to25.setSize())
+		assertEquals(15, set11to25.setSize())
 
 		// Add new element.
-		Assertions.assertEquals(
+		assertEquals(
 			21,
 			set1to20
 				.setWithElementCanDestroy(
@@ -74,7 +77,7 @@ class SetTest
 		)
 
 		// Add existing element.
-		Assertions.assertEquals(
+		assertEquals(
 			20,
 			set1to20
 				.setWithElementCanDestroy(
@@ -85,34 +88,25 @@ class SetTest
 		)
 
 		// Union
-		Assertions.assertEquals(
-			25, set1to20.setUnionCanDestroy(set11to25, true).setSize()
-		)
+		assertEquals(25, set1to20.setUnionCanDestroy(set11to25, true).setSize())
 
 		// Intersection
-		Assertions.assertEquals(
-			10, set1to20.setIntersectionCanDestroy(set11to25, true).setSize()
-		)
+		assertEquals(
+			10, set1to20.setIntersectionCanDestroy(set11to25, true).setSize())
 
 		// Intersection test - a,b -> true
-		Assertions.assertTrue(set1to20.setIntersects(set11to25))
+		assertTrue(set1to20.setIntersects(set11to25))
 
 		// Intersection test - a,a -> true
-		Assertions.assertTrue(set1to20.setIntersects(set1to20))
+		assertTrue(set1to20.setIntersects(set1to20))
 
 		// Intersection test - a,empty -> false
-		Assertions.assertFalse(set1to20.setIntersects(emptySet()))
+		assertFalse(set1to20.setIntersects(emptySet()))
 
 		// Intersection test - empty,empty -> false
-		Assertions.assertFalse(
-			emptySet()
-				.setIntersects(emptySet())
-		)
+		assertFalse(emptySet().setIntersects(emptySet()))
 
 		// Asymmetric Difference
-		Assertions.assertEquals(
-			10,
-			set1to20.setMinusCanDestroy(set11to25, true).setSize()
-		)
+		assertEquals(10, set1to20.setMinusCanDestroy(set11to25, true).setSize())
 	}
 }

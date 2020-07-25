@@ -54,7 +54,11 @@ import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.function.Function
+import javax.annotation.concurrent.GuardedBy
+import kotlin.concurrent.read
+import kotlin.concurrent.write
 
 /**
  * A mechanism for adapting a Java [Function] into an Avail [A_Function].  The
@@ -242,8 +246,11 @@ class CallbackSystem
 		/**
 		 * Cache generated [A_RawFunction]s, keyed by signature [A_Type]s.
 		 */
-		private val rawFunctionCache =
-			Collections.synchronizedMap(WeakHashMap<A_Type, A_RawFunction>())
+		@GuardedBy("rawFunctionCacheLock")
+		private val rawFunctionCache = WeakHashMap<A_Type, A_RawFunction>()
+
+		/** The lock that protects the [rawFunctionCache]. */
+		private val rawFunctionCacheLock = ReentrantReadWriteLock()
 
 		/**
 		 * The Pojo type for a Java [Callback] object.
@@ -281,10 +288,11 @@ class CallbackSystem
 				) = callbackFunction(argumentsTuple, completion, failure)
 			}
 			val callbackPojo = newPojo(identityPojo(callback), callbackTypePojo)
-			val rawFunction = rawFunctionCache.computeIfAbsent(functionType) {
-				fType: A_Type ->
-				rawPojoInvokerFunctionFromFunctionType(
-					P_InvokeCallback, fType, callbackTypePojo)
+			val rawFunction = rawFunctionCacheLock.write {
+				rawFunctionCache.computeIfAbsent(functionType) { fType ->
+					rawPojoInvokerFunctionFromFunctionType(
+						P_InvokeCallback, fType, callbackTypePojo)
+				}
 			}
 			return createWithOuters1(rawFunction, callbackPojo)
 		}
@@ -311,12 +319,15 @@ class CallbackSystem
 		): A_Function
 		{
 			val callbackPojo = newPojo(identityPojo(callback), callbackTypePojo)
-			val rawFunction = rawFunctionCache.computeIfAbsent(functionType) {
-				fType: A_Type ->
-				rawPojoInvokerFunctionFromFunctionType(
-					P_InvokeCallback, fType, callbackTypePojo)
+			val rawFunction = rawFunctionCacheLock.read {
+				rawFunctionCache[functionType]
+			} ?: rawFunctionCacheLock.write {
+				rawFunctionCache.computeIfAbsent(functionType) { fType ->
+					rawPojoInvokerFunctionFromFunctionType(
+						P_InvokeCallback, fType, callbackTypePojo)
+				}
 			}
-			return createWithOuters1(rawFunction, callbackPojo)
+			return createWithOuters1(rawFunction!!, callbackPojo)
 		}
 	}
 }

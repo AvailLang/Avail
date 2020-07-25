@@ -9,7 +9,7 @@
  *  * Redistributions of source code must retain the above copyright notice, this
  *     list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this 
+ *  * Redistributions in binary form must reproduce the above copyright notice, this
  *     list of conditions and the following disclaimer in the documentation
  *     and/or other materials provided with the distribution.
  *
@@ -58,6 +58,7 @@ import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.tupleFromIntegerList
+import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.TypeDescriptor
 import com.avail.interpreter.levelOne.L1InstructionWriter
 import com.avail.interpreter.primitive.floats.P_FloatFloor
@@ -422,17 +423,12 @@ class SerializerTest
 	@Throws(MalformedSerialStreamException::class)
 	fun testAtoms()
 	{
-		val inputModule = newModule(
-			stringFrom("Imported"))
-		val currentModule = newModule(
-			stringFrom("Current"))
-		val atom1: A_Atom = createAtom(
-			stringFrom("importAtom1"),
-			inputModule)
+		val inputModule = newModule(stringFrom("Imported"))
+		val currentModule = newModule(stringFrom("Current"))
+		val atom1: A_Atom = createAtom(stringFrom("importAtom1"), inputModule)
 		inputModule.addPrivateName(atom1)
 		val atom2: A_Atom = createAtom(
-			stringFrom("currentAtom2"),
-			currentModule)
+			stringFrom("currentAtom2"), currentModule)
 		currentModule.addPrivateName(atom2)
 		val tuple = tuple(atom1, atom2)
 		prepareToWrite()
@@ -466,6 +462,7 @@ class SerializerTest
 		writer.argumentTypes(TypeDescriptor.Types.FLOAT.o())
 		writer.primitive = P_FloatFloor
 		writer.returnType = TypeDescriptor.Types.FLOAT.o()
+		writer.returnTypeIfPrimitiveFails = bottom()
 		val code: A_RawFunction = writer.compiledCode()
 		val function = createFunction(code, emptyTuple())
 		val newFunction: A_Function = roundTrip(function)
@@ -474,7 +471,7 @@ class SerializerTest
 		Assertions.assertEquals(code.numSlots(), code2.numSlots())
 		Assertions.assertEquals(code.numArgs(), code2.numArgs())
 		Assertions.assertEquals(code.numLocals(), code2.numLocals())
-		Assertions.assertEquals(code.primitiveNumber(), code2.primitiveNumber())
+		Assertions.assertEquals(code.primitive(), code2.primitive())
 		Assertions.assertEquals(code.nybbles(), code2.nybbles())
 		Assertions.assertEquals(code.functionType(), code2.functionType())
 		for (i in code.numLiterals() downTo 1)

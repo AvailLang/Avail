@@ -65,7 +65,6 @@ import java.nio.file.attribute.PosixFilePermission.OTHERS_WRITE
 import java.nio.file.attribute.PosixFilePermission.OWNER_EXECUTE
 import java.nio.file.attribute.PosixFilePermission.OWNER_READ
 import java.nio.file.attribute.PosixFilePermission.OWNER_WRITE
-import java.util.Collections.synchronizedMap
 import java.util.WeakHashMap
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
@@ -116,13 +115,6 @@ class IOSystem constructor(val runtime: AvailRuntime)
 		CallerRunsPolicy())
 
 	/**
-	 * The [asynchronous&#32;channel&#32;group][AsynchronousChannelGroup] that
-	 * manages [asynchronous&#32;socket][AsynchronousSocketChannel] on behalf of
-	 * this [Avail&#32;runtime][AvailRuntime].
-	 */
-	private val socketGroup: AsynchronousChannelGroup
-
-	/**
 	 * Maintain an [LRUCache] of file buffers.  This allows us to avoid a trip
 	 * to the operating system to re-fetch recently accessed buffers of data,
 	 * which is especially powerful since the buffers are shared (immutable and
@@ -158,19 +150,20 @@ class IOSystem constructor(val runtime: AvailRuntime)
 		fileExecutor.execute(task)
 	}
 
-	init
-	{
+	/**
+	 * The [asynchronous&#32;channel&#32;group][AsynchronousChannelGroup] that
+	 * manages [asynchronous&#32;socket][AsynchronousSocketChannel] on behalf of
+	 * this [Avail&#32;runtime][AvailRuntime].
+	 */
+	private val socketGroup: AsynchronousChannelGroup =
 		try
 		{
-			socketGroup =
-				AsynchronousChannelGroup.withThreadPool(socketExecutor)
+			AsynchronousChannelGroup.withThreadPool(socketExecutor)
 		}
 		catch (e: IOException)
 		{
 			throw RuntimeException(e)
 		}
-
-	}
 
 	/**
 	 * Schedule the specified [task][Runnable] for eventual execution by the
@@ -332,8 +325,7 @@ class IOSystem constructor(val runtime: AvailRuntime)
 		 * explicitly when the file is closed.  This weak set allows the cache
 		 * removals to happen efficiently.
 		 */
-		val bufferKeys: MutableMap<BufferKey, Void> =
-			synchronizedMap(WeakHashMap())
+		val bufferKeys = WeakHashMap<BufferKey, Void>()
 	}
 
 	/**

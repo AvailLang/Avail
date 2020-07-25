@@ -65,7 +65,7 @@ class AvailThread internal constructor(
 	 * The [Avail runtime][AvailRuntime] that owns this [thread][AvailThread].
 	 */
 	@JvmField
-	val runtime: AvailRuntime = interpreter.runtime()
+	val runtime: AvailRuntime = interpreter.runtime
 
 	companion object
 	{

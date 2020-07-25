@@ -37,6 +37,7 @@ import com.avail.annotations.ThreadSafe
 import com.avail.compiler.ParserState
 import com.avail.compiler.splitter.MessageSplitter
 import com.avail.descriptor.atoms.A_Atom.Companion.atomName
+import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrNil
 import com.avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
 import com.avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
 import com.avail.descriptor.atoms.A_Atom.Companion.setAtomProperty
@@ -63,6 +64,7 @@ import com.avail.descriptor.objects.ObjectTypeDescriptor
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AbstractSlotsEnum
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObjectFieldHelper
 import com.avail.descriptor.representation.BitField
 import com.avail.descriptor.representation.Descriptor
 import com.avail.descriptor.representation.IntegerSlotsEnum
@@ -184,9 +186,6 @@ open class AtomDescriptor protected constructor(
 		e: AbstractSlotsEnum
 	) = e === IntegerSlots.HASH_AND_MORE
 
-	/** A [Pattern] of one or more word characters.  */
-	private val wordPattern = Pattern.compile("\\w+")
-
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
@@ -212,6 +211,25 @@ open class AtomDescriptor protected constructor(
 			append(" (from $localIssuer)")
 		}
 	}
+
+	override fun o_DescribeForDebugger(
+		self: AvailObject
+	): Array<AvailObjectFieldHelper> {
+		val fields = super.o_DescribeForDebugger(self).toMutableList()
+		val bundle = self.bundleOrNil()
+		if (!bundle.equalsNil())
+		{
+			fields.add(
+				AvailObjectFieldHelper(
+					self,
+					DebuggerObjectSlots("Message bundle"),
+					-1,
+					bundle))
+		}
+		return fields.toTypedArray()
+	}
+
+
 
 	override fun o_AtomName(self: AvailObject): A_String = self.slot(NAME)
 
@@ -490,6 +508,9 @@ open class AtomDescriptor protected constructor(
 			TypeTag.ATOM_TAG,
 			ObjectSlots::class.java,
 			IntegerSlots::class.java)
+
+		/** A [Pattern] of one or more word characters.  */
+		private val wordPattern = Pattern.compile("\\w+")
 
 		/**
 		 * Create a new atom with the given name. The name is not globally

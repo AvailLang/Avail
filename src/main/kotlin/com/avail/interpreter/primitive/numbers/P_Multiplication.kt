@@ -313,8 +313,7 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 			val returnTypeIfInts = returnTypeGuaranteedByVM(
 				rawFunction,
 				argumentTypes.map { it.typeIntersection(int32()) })
-			val semanticTemp =
-				generator.topFrame.temp(generator.nextUnique())
+			val semanticTemp = generator.topFrame.temp(generator.nextUnique())
 			val tempWriter =
 				generator.intWrite(
 					semanticTemp,

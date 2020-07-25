@@ -343,7 +343,7 @@ internal class BuildDirectoryTracer constructor(
 			resolvedName,
 			availBuilder.textInterface,
 			availBuilder.pollForAbort,
-			{ _, _, _ -> },
+			{ _, _, _, _ -> },
 			completedAction,
 			object : BuilderProblemHandler(availBuilder, "")
 			{

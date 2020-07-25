@@ -213,4 +213,6 @@ internal class NumberedChoice constructor(private val alternation: Alternation)
 
 	override fun mightBeEmpty(phraseType: A_Type): Boolean =
 		alternation.mightBeEmpty(bottom())
+
+	override fun checkListStructure(phrase: A_Phrase): Boolean = true
 }

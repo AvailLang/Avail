@@ -48,6 +48,10 @@ import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.sets.SetDescriptor.Companion.generateSetFrom
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.concatenateTuplesCanDestroy
+import com.avail.descriptor.tuples.A_Tuple.Companion.copyTupleFromToCanDestroy
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
@@ -281,7 +285,8 @@ class MapDescriptor private constructor(
 		when {
 			aType.isSupertypeOfPrimitiveTypeEnum(Types.NONTYPE) -> return true
 			!aType.isMapType -> return false
-			!aType.sizeRange().rangeIncludesInt(self.mapSize()) -> return false
+			!aType.sizeRange().rangeIncludesLong(self.mapSize().toLong()) ->
+				return false
 		}
 		val keyType = aType.keyType()
 		val valueType = aType.valueType()

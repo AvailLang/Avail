@@ -46,12 +46,14 @@ import com.avail.descriptor.tokens.TokenDescriptor.Companion.newToken
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType.END_OF_FILE
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType.WHITESPACE
 import com.avail.descriptor.tuples.A_String
+import com.avail.descriptor.tuples.A_Tuple.Companion.appendCanDestroy
+import com.avail.descriptor.tuples.A_Tuple.Companion.concatenateTuplesCanDestroy
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.persistence.Repository
-import com.avail.utility.Locks.auto
-import com.avail.utility.Locks.lockWhile
 import com.avail.utility.Mutable
 import com.avail.utility.Strings.addLineNumbers
 import com.avail.utility.Strings.lineBreakPattern
@@ -59,18 +61,22 @@ import com.avail.utility.evaluation.Combinator.recurse
 import com.avail.utility.evaluation.Describer
 import com.avail.utility.evaluation.SimpleDescriber
 import java.lang.String.format
-import java.util.*
+import java.util.ArrayList
 import java.util.Collections.emptyIterator
 import java.util.Collections.emptyList
 import java.util.Collections.reverseOrder
 import java.util.Collections.sort
+import java.util.HashMap
+import java.util.HashSet
+import java.util.PriorityQueue
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.locks.ReadWriteLock
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.function.BooleanSupplier
 import java.util.regex.Matcher
 import javax.annotation.concurrent.GuardedBy
 import kotlin.collections.set
+import kotlin.concurrent.read
+import kotlin.concurrent.write
 import kotlin.math.min
 
 /**
@@ -283,7 +289,7 @@ class CompilerDiagnostics(
 	private inner class ExpectationsList
 	{
 		/** Guards access to [expectations] and expectationsIndexHeap]. */
-		internal val expectationsLock: ReadWriteLock = ReentrantReadWriteLock()
+		internal val expectationsLock = ReentrantReadWriteLock()
 
 		/**
 		 * The rightmost few positions at which potential problems have been
@@ -309,16 +315,14 @@ class CompilerDiagnostics(
 
 		/** `true` iff there are no expectations recorded herein. */
 		internal val isEmpty: Boolean
-			get() = lockWhile<Boolean>(expectationsLock.readLock()) {
-				expectations.isEmpty()
-			}
+			get() = expectationsLock.read { expectations.isEmpty() }
 
 		/**
 		 * Remove all expectations in preparation for parsing another top-level
 		 * expression.
 		 */
 		fun clear() =
-			lockWhile(expectationsLock.writeLock()) {
+			expectationsLock.write {
 				expectations.clear()
 				expectationsIndexHeap.clear()
 			}
@@ -341,7 +345,7 @@ class CompilerDiagnostics(
 			describer: Describer,
 			lexingState: LexingState)
 		{
-			auto(expectationsLock.writeLock()).use {
+			expectationsLock.write {
 				val position = lexingState.position
 				var localExpectations = expectations[position]
 				if (localExpectations === null)
@@ -550,15 +554,14 @@ class CompilerDiagnostics(
 		internal fun reportError(headerMessagePattern: String)
 		{
 			assert(!isEmpty)
-			val descendingIndices =
-				lockWhile<ArrayList<Int>>(expectationsLock.readLock()) {
-					ArrayList(expectationsIndexHeap)
-				}
+			val descendingIndices = expectationsLock.read {
+				expectationsIndexHeap.toMutableList()
+			}
 			descendingIndices.sortWith(reverseOrder())
 			accumulateErrorsThen(
 				descendingIndices.iterator(),
 				IndicatorGenerator(),
-				ArrayList()
+				mutableListOf()
 			) { groups -> reportGroupedErrors(groups, headerMessagePattern) }
 		}
 
@@ -580,7 +583,7 @@ class CompilerDiagnostics(
 			headerMessagePattern: String,
 			message: String)
 		{
-			auto(expectationsLock.writeLock()).use {
+			expectationsLock.write {
 				// Delete any potential parsing errors already encountered,
 				// and replace them with the new error.
 				expectations.clear()
@@ -624,20 +627,20 @@ class CompilerDiagnostics(
 				return
 			}
 			val sourcePosition = descendingIterator.next()
-			var describers: List<Describer>? = null
-			var lexingStates: Set<LexingState>? = null
-			auto(expectationsLock.readLock()).use {
+			lateinit var describers: List<Describer>
+			lateinit var lexingStates: Set<LexingState>
+			expectationsLock.read {
 				val localExpectations = expectations[sourcePosition]!!
 				describers = ArrayList(localExpectations.problems)
 				lexingStates = HashSet(localExpectations.lexingStates)
 			}
-			assert(describers!!.isNotEmpty())
+			assert(describers.isNotEmpty())
 			// Due to local lexer ambiguity, there may be multiple possible
 			// tokens at this position.  Choose the longest for the purpose
 			// of displaying the diagnostics.  We only care about the tokens
 			// that have already been formed, not ones in progress.
-			findLongestTokenThen(lexingStates!!) { longestToken ->
-				val before = lexingStates!!.iterator().next()
+			findLongestTokenThen(lexingStates) { longestToken ->
+				val before = lexingStates.iterator().next()
 				groupedProblems.add(
 					ProblemsAtPosition(
 						before,
@@ -646,7 +649,7 @@ class CompilerDiagnostics(
 						else
 							longestToken.nextLexingState(),
 						indicatorGenerator.next(),
-						describers!!))
+						describers))
 				accumulateErrorsThen(
 					descendingIterator,
 					indicatorGenerator,
@@ -671,7 +674,7 @@ class CompilerDiagnostics(
 		expectationsList.clear()
 		silentExpectationsList.clear()
 		// Tidy up all tokens from the previous top-level statement.
-		val priorTokens = lockWhile<List<A_Token>>(liveTokensLock.writeLock()) {
+		val priorTokens = liveTokensLock.write {
 			val old = liveTokens
 			liveTokens = emptyList()
 			old
@@ -682,8 +685,8 @@ class CompilerDiagnostics(
 			token.clearLexingState()
 		}
 
-		lockWhile(liveTokensLock.writeLock()) {
-			liveTokens = ArrayList(100)
+		liveTokensLock.write {
+			liveTokens = mutableListOf()
 		}
 	}
 
@@ -754,7 +757,7 @@ class CompilerDiagnostics(
 	 */
 	fun recordToken(token: A_Token)
 	{
-		lockWhile<Boolean>(liveTokensLock.writeLock()) { liveTokens.add(token) }
+		liveTokensLock.write { liveTokens.add(token) }
 	}
 
 	/**

@@ -35,40 +35,65 @@ import com.avail.compiler.splitter.MessageSplitter
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.atoms.A_Atom.Companion.atomName
 import com.avail.descriptor.atoms.AtomDescriptor
+import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import com.avail.descriptor.bundles.A_Bundle.Companion.message
 import com.avail.descriptor.bundles.MessageBundleDescriptor.ObjectSlots
 import com.avail.descriptor.bundles.MessageBundleDescriptor.ObjectSlots.DEFINITION_PARSING_PLANS
 import com.avail.descriptor.bundles.MessageBundleDescriptor.ObjectSlots.GRAMMATICAL_RESTRICTIONS
+import com.avail.descriptor.bundles.MessageBundleDescriptor.ObjectSlots.MACROS_TUPLE
 import com.avail.descriptor.bundles.MessageBundleDescriptor.ObjectSlots.MESSAGE
-import com.avail.descriptor.bundles.MessageBundleDescriptor.ObjectSlots.MESSAGE_SPLITTER_POJO
 import com.avail.descriptor.bundles.MessageBundleDescriptor.ObjectSlots.METHOD
 import com.avail.descriptor.maps.A_Map
 import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.methods.A_GrammaticalRestriction
+import com.avail.descriptor.methods.A_Macro
 import com.avail.descriptor.methods.A_Method
+import com.avail.descriptor.methods.MacroDescriptor
 import com.avail.descriptor.methods.MethodDescriptor
 import com.avail.descriptor.parsing.A_DefinitionParsingPlan
 import com.avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.definition
 import com.avail.descriptor.parsing.DefinitionParsingPlanDescriptor
 import com.avail.descriptor.parsing.DefinitionParsingPlanDescriptor.Companion.newParsingPlan
-import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
 import com.avail.descriptor.representation.AbstractSlotsEnum
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObjectFieldHelper
 import com.avail.descriptor.representation.Descriptor
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.descriptor.tokens.A_Token
+import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.appendCanDestroy
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromArray
+import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.toList
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.tupleWithout
+import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
 import com.avail.descriptor.types.TypeDescriptor.Types.MESSAGE_BUNDLE
 import com.avail.descriptor.types.TypeTag
+import com.avail.dispatch.LookupTree
+import com.avail.exceptions.AvailErrorCode
+import com.avail.exceptions.SignatureException
+import com.avail.interpreter.execution.Interpreter
+import com.avail.interpreter.levelTwo.L2Chunk
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
-import java.util.*
+import java.util.Collections.nCopies
+import java.util.IdentityHashMap
+import java.util.concurrent.atomic.AtomicReferenceFieldUpdater
+import kotlin.concurrent.withLock
 
 /**
  * A message bundle is how a message name is bound to a [method][A_Method].
@@ -91,13 +116,25 @@ import java.util.*
  *
  * @param mutability
  *   The [mutability][Mutability] of the new descriptor.
- *
+ * @param
+ *   The [MessageSplitter] that describes how to parse invocations of this
+ *   message bundle.
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 class MessageBundleDescriptor private constructor(
-	mutability: Mutability
+	mutability: Mutability,
+	private val messageSplitter: MessageSplitter
 ) : Descriptor(mutability, TypeTag.BUNDLE_TAG, ObjectSlots::class.java, null)
 {
+	/**
+	 * A [LookupTree] used to determine the most specific
+	 * [macro&#32;definition][MacroDescriptor] that satisfies the
+	 * supplied argument types.  A `null` indicates the tree has not yet been
+	 * constructed.
+	 */
+	@Volatile
+	private var macroTestingTree: LookupTree<A_Definition, A_Tuple>? = null
+
 	/**
 	 * The layout of object slots for my instances.
 	 */
@@ -118,17 +155,18 @@ class MessageBundleDescriptor private constructor(
 		MESSAGE,
 
 		/**
-		 * The [MessageSplitter] that describes how to parse invocations of this
-		 * message bundle.
-		 */
-		MESSAGE_SPLITTER_POJO,
-
-		/**
 		 * A [set][A_Set] of
 		 * [grammatical&#32;restrictions][A_GrammaticalRestriction] that apply
 		 * to this message bundle.
 		 */
 		GRAMMATICAL_RESTRICTIONS,
+
+		/**
+		 * The [tuple][A_Tuple] of
+		 * [macro&#32;definitions][MacroDescriptor] that are defined
+		 * for this macro.
+		 */
+		MACROS_TUPLE,
 
 		/**
 		 * The [A_Map] from [A_Definition] to [A_DefinitionParsingPlan].  The
@@ -138,10 +176,47 @@ class MessageBundleDescriptor private constructor(
 		DEFINITION_PARSING_PLANS
 	}
 
+	/**
+	 * Extract the current [macroTestingTree], creating one atomically, if
+	 * necessary.
+	 *
+	 * @param self
+	 *   The [A_Method] for which to answer the [macroTestingTree].
+	 * @return
+	 *   The [LookupTree] for looking up macro definitions.
+	 */
+	private fun macroTestingTree(
+		self: AvailObject
+	): LookupTree<A_Definition, A_Tuple>
+	{
+		var tree = macroTestingTree
+		if (tree === null) {
+			val method = self.slot(METHOD)
+			val numArgs = method.numArgs()
+			val newTree = MethodDescriptor.runtimeDispatcher.createRoot(
+				toList(self.slot(MACROS_TUPLE)),
+				nCopies(
+					numArgs,
+					restrictionForType(
+						PhraseKind.PARSE_PHRASE.mostGeneralType(),
+						RestrictionFlagEncoding.BOXED)),
+				Unit)
+			do {
+				// Try to replace null with the new tree.  If the replacement
+				// fails, it means someone else already succeeded, so use that
+				// winner's tree.
+				macroTestingTreeUpdater.compareAndSet(this, null, newTree)
+				tree = macroTestingTree
+			} while (tree === null)
+		}
+		return tree
+	}
+
 	override fun allowsImmutableToMutableReferenceInField(
 		e: AbstractSlotsEnum
 	) = e === METHOD
 		|| e === GRAMMATICAL_RESTRICTIONS
+		|| e === MACROS_TUPLE
 		|| e === DEFINITION_PARSING_PLANS
 
 	override fun o_AddGrammaticalRestriction(
@@ -156,11 +231,68 @@ class MessageBundleDescriptor private constructor(
 		plan: A_DefinitionParsingPlan
 	) = self.synchronizeIf(isShared) { addDefinitionParsingPlan(self, plan) }
 
+	/**
+	 * Method/bundle manipulation takes place while all fibers are L1-precise
+	 * and suspended.  Use a global lock at the outermost calls to side-step
+	 * deadlocks.  Because no fiber is running, we don't have to protect
+	 * subsystems like the L2Generator from these changes.
+	 *
+	 * Also create a definition parsing plan for this bundle.  HOWEVER, note
+	 * that we don't update the current module's message bundle tree here, and
+	 * leave that to the caller to deal with.  Other modules' parsing should be
+	 * unaffected by this change.
+	 */
+	@Throws(SignatureException::class)
+	override fun o_BundleAddMacro(
+		self: AvailObject,
+		macro: A_Macro
+	) = L2Chunk.invalidationLock.withLock {
+		val paramTypes = macro.bodySignature().argsTupleType()
+		val seals: A_Tuple = self.bundleMethod().sealedArgumentsTypesTuple()
+		seals.forEach { seal: A_Tuple ->
+			val sealType = tupleTypeForSizesTypesDefaultType(
+				singleInt(seal.tupleSize()), seal, bottom())
+			if (paramTypes.isSubtypeOf(sealType)) {
+				throw SignatureException(AvailErrorCode.E_METHOD_IS_SEALED)
+			}
+		}
+		// Install the macro.
+		val oldTuple: A_Tuple = self.slot(MACROS_TUPLE)
+		val newTuple = oldTuple.appendCanDestroy(macro, true)
+		self.setSlot(MACROS_TUPLE, newTuple.makeShared())
+		// It's only a macro change, so don't invalidate dependent L2Chunks.
+		synchronized(self) {
+			macroTestingTree = null
+			addDefinitionParsingPlan(self, newParsingPlan(self, macro))
+		}
+	}
+
 	override fun o_BundleMethod(self: AvailObject) =
 		self.mutableSlot(METHOD)
 
 	override fun o_DefinitionParsingPlans(self: AvailObject): A_Map =
 		self.slot(DEFINITION_PARSING_PLANS)
+
+	override fun o_DescribeForDebugger(
+		self: AvailObject
+	): Array<AvailObjectFieldHelper> {
+		val fields = super.o_DescribeForDebugger(self).toMutableList()
+		fields.add(
+			AvailObjectFieldHelper(
+				self,
+				DebuggerObjectSlots("messageSplitter"),
+				-1,
+				messageSplitter,
+				forcedName = "messageSplitter"))
+		fields.add(
+			AvailObjectFieldHelper(
+				self,
+				DebuggerObjectSlots("macroTestingTree"),
+				-1,
+				macroTestingTree,
+				forcedName = "macroTestingTree"))
+		return fields.toTypedArray()
+	}
 
 	override fun o_Equals(self: AvailObject, another: A_BasicObject) =
 		another.traversed().sameAddressAs(self)
@@ -176,19 +308,49 @@ class MessageBundleDescriptor private constructor(
 
 	override fun o_Kind(self: AvailObject) = MESSAGE_BUNDLE.o()
 
-	override fun o_Message(self: AvailObject): A_Atom = self.slot(MESSAGE)
+	/**
+	 * Look up the macro definition to invoke, given an array of argument
+	 * phrases.  Use the [macroTestingTree] to find the macro definition to
+	 * invoke.  Answer the tuple of applicable macro definitions, ideally just
+	 * one if there is an unambiguous macro to invoke.
+	 *
+	 * Note that this testing tree approach is only applicable if all of the
+	 * macro definitions are visible (defined in the current module or an
+	 * ancestor.  That should be the *vast* majority of the use of macros, but
+	 * when it isn't, other lookup approaches are necessary.
+	 */
+	override fun o_LookupMacroByPhraseTuple(
+		self: AvailObject,
+		argumentPhraseTuple: A_Tuple
+	): A_Tuple = MethodDescriptor.runtimeDispatcher.lookupByValues(
+		macroTestingTree(self), argumentPhraseTuple, Unit)
 
-	override fun o_MessageParts(self: AvailObject): A_Tuple
+	override fun o_MacrosTuple(self: AvailObject): A_Tuple
 	{
-		val splitterPojo = self.slot(MESSAGE_SPLITTER_POJO)
-		val messageSplitter = splitterPojo.javaObjectNotNull<MessageSplitter>()
-		return messageSplitter.messagePartsTuple
+		assert(isShared)
+		return synchronized(self) { self.slot(MACROS_TUPLE) }
 	}
 
-	override fun o_MessageSplitter(self: AvailObject): MessageSplitter
-	{
-		val splitterPojo = self.slot(MESSAGE_SPLITTER_POJO)
-		return splitterPojo.javaObjectNotNull()
+	override fun o_Message(self: AvailObject): A_Atom = self.slot(MESSAGE)
+
+	override fun o_MessagePart(self: AvailObject, index: Int): A_String =
+		// One-based index.
+		messageSplitter.messageParts[index - 1]
+
+	override fun o_MessageParts(self: AvailObject): A_Tuple =
+		tupleFromArray(*messageSplitter.messageParts)
+
+	override fun o_MessageSplitter(self: AvailObject): MessageSplitter =
+		messageSplitter
+
+	override fun o_NumArgs(self: AvailObject): Int =
+		messageSplitter.numberOfArguments
+
+	override fun o_RemoveMacro(
+		self: AvailObject,
+		macro: A_Macro
+	) = self.synchronizeIf(isShared) {
+		removeMacro(self, macro)
 	}
 
 	override fun o_RemovePlanForDefinition(
@@ -212,6 +374,13 @@ class MessageBundleDescriptor private constructor(
 		writer.writeObject {
 			at("kind") { write("message bundle") }
 			at("method") { self.slot(MESSAGE).atomName().writeTo(writer) }
+			at("macro definitions") { self.slot(MACROS_TUPLE).writeTo(writer) }
+		}
+
+	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
+		writer.writeObject {
+			at("kind") { write("message bundle") }
+			at("method") { self.slot(MESSAGE).atomName().writeTo(writer) }
 		}
 
 	override fun printObjectOnAvoidingIndent(
@@ -226,16 +395,32 @@ class MessageBundleDescriptor private constructor(
 		builder.append("bundle \"")
 		builder.append(self.message().atomName().asNativeString())
 		builder.append("\"")
+		when (val numMacros = self.macrosTuple().tupleSize())
+		{
+			0 -> { }
+			1 -> builder.append(" (1 macro)")
+			else -> builder.append(" ($numMacros macros)")
+		}
 	}
 
-	override fun mutable() = mutable
 
-	// There is no immutable variant.
-	override fun immutable() = shared
+	@Deprecated("Not supported", ReplaceWith("newBundle()"))
+	override fun mutable() = unsupported
 
-	override fun shared() = shared
+	@Deprecated("Not supported", ReplaceWith("newBundle()"))
+	override fun immutable() = unsupported
+
+	@Deprecated("Not supported", ReplaceWith("newBundle()"))
+	override fun shared() = unsupported
 
 	companion object {
+		/** Atomic access to [macroTestingTree]. */
+		private val macroTestingTreeUpdater =
+			AtomicReferenceFieldUpdater.newUpdater(
+				MessageBundleDescriptor::class.java,
+				LookupTree::class.java,
+				"macroTestingTree")
+
 		/**
 		 * Add a
 		 * [definition&#32;parsing&#32;plan][DefinitionParsingPlanDescriptor] to
@@ -257,8 +442,22 @@ class MessageBundleDescriptor private constructor(
 		}
 
 		/**
+		 * Remove an [A_Macro] from this bundle.  This is performed to make the
+		 * bundle agree with the method's definitions and macro definitions.
+		 *
+		 * @param self
+		 *   The affected message bundle.
+		 * @param macro
+		 *   The [A_Macro] to be removed.
+		 */
+		private fun removeMacro(
+			self: AvailObject,
+			macro: A_Macro
+		) = self.updateSlotShared(MACROS_TUPLE) { tupleWithout(this, macro) }
+
+		/**
 		 * Remove a [A_DefinitionParsingPlan] from this bundle, specifically
-		 * the one associated with the give [A_Definition].  This is performed
+		 * the one associated with the given [A_Definition].  This is performed
 		 * to make the bundle agree with the method's definitions and macro
 		 * definitions.
 		 *
@@ -288,11 +487,8 @@ class MessageBundleDescriptor private constructor(
 		private fun addGrammaticalRestriction(
 			self: AvailObject,
 			grammaticalRestriction: A_GrammaticalRestriction
-		) {
-			var restrictions: A_Set = self.slot(GRAMMATICAL_RESTRICTIONS)
-			restrictions = restrictions.setWithElementCanDestroy(
-				grammaticalRestriction, true)
-			self.setSlot(GRAMMATICAL_RESTRICTIONS, restrictions.makeShared())
+		) = self.updateSlotShared(GRAMMATICAL_RESTRICTIONS) {
+			setWithElementCanDestroy(grammaticalRestriction, true)
 		}
 
 		/**
@@ -307,12 +503,8 @@ class MessageBundleDescriptor private constructor(
 		private fun removeGrammaticalRestriction(
 			self: AvailObject,
 			obsoleteRestriction: A_GrammaticalRestriction
-		) {
-			var restrictions: A_Set = self.mutableSlot(GRAMMATICAL_RESTRICTIONS)
-			restrictions = restrictions.setWithoutElementCanDestroy(
-				obsoleteRestriction, true)
-			self.setMutableSlot(
-				GRAMMATICAL_RESTRICTIONS, restrictions.makeShared())
+		) = self.updateSlotShared(GRAMMATICAL_RESTRICTIONS) {
+			setWithoutElementCanDestroy(obsoleteRestriction, true)
 		}
 
 		/**
@@ -337,33 +529,38 @@ class MessageBundleDescriptor private constructor(
 			assert(methodName.isAtom)
 			assert(splitter.numberOfArguments == method.numArgs())
 			assert(splitter.messageName.equals(methodName.atomName()))
-			return mutable.create {
-				val splitterPojo = identityPojo(splitter)
+			val currentModule = Interpreter.currentOrNull()
+				?.availLoaderOrNull()
+				?.module()
+			return initialMutableDescriptor.create {
 				setSlot(METHOD, method)
-				setSlot(MESSAGE, methodName)
-				setSlot(MESSAGE_SPLITTER_POJO, splitterPojo)
+				setSlot(MESSAGE, methodName.makeShared())
+				setSlot(MACROS_TUPLE, emptyTuple())
 				setSlot(GRAMMATICAL_RESTRICTIONS, emptySet())
+				setSlot(DEFINITION_PARSING_PLANS, emptyMap())
+				val newDescriptor = MessageBundleDescriptor(
+					Mutability.SHARED, splitter)
+				setDescriptor(newDescriptor)
+				method.methodAddBundle(this)
+				currentModule?.addBundle(this)
+				// Note that there are no macros implementations in this bundle
+				// at this time, since this bundle is new.
 				var plans = emptyMap()
 				for (definition in method.definitionsTuple())
 				{
 					val plan = newParsingPlan(this, definition)
 					plans = plans.mapAtPuttingCanDestroy(definition, plan, true)
 				}
-				for (definition in method.macroDefinitionsTuple())
-				{
-					val plan = newParsingPlan(this, definition)
-					plans = plans.mapAtPuttingCanDestroy(definition, plan, true)
-				}
-				setSlot(DEFINITION_PARSING_PLANS, plans)
-				makeShared()
-				method.methodAddBundle(this)
+				setSlot(DEFINITION_PARSING_PLANS, plans.makeShared())
 			}
 		}
 
-		/** The mutable [MessageBundleDescriptor].  */
-		private val mutable = MessageBundleDescriptor(Mutability.MUTABLE)
-
-		/** The shared [MessageBundleDescriptor].  */
-		private val shared = MessageBundleDescriptor(Mutability.SHARED)
+		/**
+		 * The mutable [MessageBundleDescriptor].  It has a dummy
+		 * [MessageSplitter] to ensure the field is always non-null.
+		 */
+		private val initialMutableDescriptor = MessageBundleDescriptor(
+			Mutability.MUTABLE,
+			MessageSplitter(stringFrom("dummy")))
 	}
 }

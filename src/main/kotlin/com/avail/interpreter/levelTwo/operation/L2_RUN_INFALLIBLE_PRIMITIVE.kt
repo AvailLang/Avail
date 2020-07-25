@@ -81,36 +81,39 @@ abstract class L2_RUN_INFALLIBLE_PRIMITIVE private constructor()
 	L2OperandType.WRITE_BOXED.named("primitive result"))
 {
 	/** The subclass for primitives that have no global dependency.  */
-	@WritesHiddenVariable(LATEST_RETURN_VALUE::class)
+	@WritesHiddenVariable(
+		LATEST_RETURN_VALUE::class)
 	private class L2_RUN_INFALLIBLE_PRIMITIVE_no_dependency
 		: L2_RUN_INFALLIBLE_PRIMITIVE()
 
 	/** The subclass for primitives that have global read dependency.  */
-	@ReadsHiddenVariable([GLOBAL_STATE::class])
-	@WritesHiddenVariable(value = [
+	@ReadsHiddenVariable(
+		GLOBAL_STATE::class)
+	@WritesHiddenVariable(
 		CURRENT_CONTINUATION::class,
 		CURRENT_FUNCTION::class,
-		LATEST_RETURN_VALUE::class])
+		LATEST_RETURN_VALUE::class)
 	private class L2_RUN_INFALLIBLE_PRIMITIVE_read_dependency
 		: L2_RUN_INFALLIBLE_PRIMITIVE()
 
 	/** The subclass for primitives that have global write dependency.  */
-	@WritesHiddenVariable(value = [
+	@WritesHiddenVariable(
 		CURRENT_CONTINUATION::class,
 		CURRENT_FUNCTION::class,
 		LATEST_RETURN_VALUE::class,
-		GLOBAL_STATE::class])
+		GLOBAL_STATE::class)
 	private class L2_RUN_INFALLIBLE_PRIMITIVE_write_dependency
 		: L2_RUN_INFALLIBLE_PRIMITIVE()
 
 	/** The subclass for primitives that have global read/write dependency.  */
-	@ReadsHiddenVariable([GLOBAL_STATE::class])
-	@WritesHiddenVariable(value = [
+	@ReadsHiddenVariable(
+		GLOBAL_STATE::class)
+	@WritesHiddenVariable(
 		CURRENT_CONTINUATION::class,
 		CURRENT_FUNCTION::class,
 		//		CURRENT_ARGUMENTS.class,
 		LATEST_RETURN_VALUE::class,
-		GLOBAL_STATE::class])
+		GLOBAL_STATE::class)
 	private class L2_RUN_INFALLIBLE_PRIMITIVE_readwrite_dependency
 		: L2_RUN_INFALLIBLE_PRIMITIVE()
 
@@ -169,7 +172,7 @@ abstract class L2_RUN_INFALLIBLE_PRIMITIVE private constructor()
 		instruction: L2Instruction): L2WriteBoxedOperand?
 	{
 		assert(instruction.operation() === this)
-		return instruction.operand<L2WriteBoxedOperand>(3)
+		return instruction.operand(3)
 	}
 
 	override fun appendToWithWarnings(

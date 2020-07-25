@@ -85,6 +85,8 @@ import com.avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken
 import com.avail.descriptor.tokens.TokenDescriptor.Companion.newToken
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType.KEYWORD
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.appendCanDestroy
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromArray
@@ -255,7 +257,8 @@ class L1Decompiler constructor(
 		}
 		block = newBlockNode(
 			tupleFromArray(*args),
-			code.primitiveNumber(),
+			code.
+			primitiveNumber(),
 			tupleFromList(statements),
 			code.functionType().returnType(),
 			code.functionType().declaredExceptions(),
@@ -749,9 +752,7 @@ class L1Decompiler constructor(
 		override fun L1Ext_doPermute()
 		{
 			// Note that this applies to any guillemet group, not just the top
-			// level implicit list of arguments to a call.  It's also used for
-			// permuting both the arguments and their types in the case of a
-			// super-call to a bundle containing permutations.
+			// level implicit list of arguments to a call.
 			val permutation = code.literalAt(instructionDecoder.getOperand())
 			pushExpression(syntheticLiteralNodeFor(permutation))
 			pushExpression(PERMUTE.marker)

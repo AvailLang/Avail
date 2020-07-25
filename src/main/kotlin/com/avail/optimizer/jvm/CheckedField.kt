@@ -41,7 +41,7 @@ import java.lang.reflect.Modifier
  * A helper class for referring to a field.  It verifies at construction time
  * that the referenced field is marked with the [ReferencedInGeneratedCode]
  * annotation, and that the specified type agrees.  When it generates a read
- * (getfield/getstatic) or write (putfield/putstatic),, it uses the appropriate
+ * (getfield/getstatic) or write (putfield/putstatic), it uses the appropriate
  * instruction.  It substitutes a literal if the field is final, and forbids
  * generating a write to it.
  *
@@ -181,13 +181,14 @@ class CheckedField private constructor(
 		fun instanceField(
 			receiverClass: Class<*>,
 			fieldName: String,
-			fieldClass: Class<*>): CheckedField =
-				CheckedField(
-					true,
-					false,
-					receiverClass,
-					fieldName,
-					fieldClass)
+			fieldClass: Class<*>
+		): CheckedField =
+			CheckedField(
+				true,
+				false,
+				receiverClass,
+				fieldName,
+				fieldClass)
 
 		/**
 		 * Create a `CheckedField` for accessing a static field that has been
@@ -206,13 +207,14 @@ class CheckedField private constructor(
 		fun staticField(
 			receiverClass: Class<*>,
 			fieldName: String,
-			fieldClass: Class<*>): CheckedField =
-				CheckedField(
-					true,
-					true,
-					receiverClass,
-					fieldName,
-					fieldClass)
+			fieldClass: Class<*>
+		): CheckedField =
+			CheckedField(
+				true,
+				true,
+				receiverClass,
+				fieldName,
+				fieldClass)
 
 		/**
 		 * Create a `CheckedField` for accessing an `enum` instance that has
@@ -257,13 +259,14 @@ class CheckedField private constructor(
 		fun javaLibraryInstanceField(
 			receiverClass: Class<*>,
 			fieldName: String,
-			fieldClass: Class<*>): CheckedField =
-				CheckedField(
-					false,
-					false,
-					receiverClass,
-					fieldName,
-					fieldClass)
+			fieldClass: Class<*>
+		): CheckedField =
+			CheckedField(
+				false,
+				false,
+				receiverClass,
+				fieldName,
+				fieldClass)
 
 		/**
 		 * Create a `CheckedField` for accessing a static field that has not
@@ -282,13 +285,14 @@ class CheckedField private constructor(
 		fun javaLibraryStaticField(
 			receiverClass: Class<*>,
 			fieldName: String,
-			fieldClass: Class<*>): CheckedField =
-				CheckedField(
-					false,
-					true,
-					receiverClass,
-					fieldName,
-					fieldClass)
+			fieldClass: Class<*>
+		): CheckedField =
+			CheckedField(
+				false,
+				true,
+				receiverClass,
+				fieldName,
+				fieldClass)
 	}
 
 	init
@@ -325,20 +329,23 @@ class CheckedField private constructor(
 		receiverClassInternalName = Type.getInternalName(field.declaringClass)
 		fieldTypeDescriptorString = Type.getDescriptor(field.type)
 		valueIfFinalAndStatic =
-			if (isStatic && isFinal)
+			when
 			{
-				try
+				isStatic && isFinal ->
 				{
-					field[null]
+					try
+					{
+						field[null]
+					}
+					catch (e: IllegalAccessException)
+					{
+						throw RuntimeException(e)
+					}
 				}
-				catch (e: IllegalAccessException)
+				else ->
 				{
-					throw RuntimeException(e)
+					null
 				}
-			}
-			else
-			{
-				null
 			}
 	}
 }

@@ -61,7 +61,7 @@ import com.avail.utility.structures.EnumMap.Companion.enumMap
 import java.util.ArrayDeque
 import java.util.ArrayList
 import java.util.BitSet
-import java.util.Collections
+import java.util.Collections.disjoint
 import java.util.Deque
 import java.util.HashMap
 import java.util.HashSet
@@ -90,8 +90,7 @@ import kotlin.reflect.KClass
 class L2Optimizer internal constructor(val generator: L2Generator)
 {
 	/** The [L2ControlFlowGraph] to optimize.  */
-	private val controlFlowGraph: L2ControlFlowGraph =
-		generator.controlFlowGraph
+	private val controlFlowGraph = generator.controlFlowGraph
 
 	/** The mutable list of blocks taken from the [controlFlowGraph].  */
 	val blocks: MutableList<L2BasicBlock> = controlFlowGraph.basicBlockOrder
@@ -100,7 +99,7 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 	 * Whether any [L2_VIRTUAL_CREATE_LABEL] instructions, or other
 	 * placeholders, were replaced since the last time we cleared the flag.
 	 */
-	var replacedAnyPlaceholders = false
+	private var replacedAnyPlaceholders = false
 
 	/** The register coloring algorithm.  */
 	private var colorer: L2RegisterColorer? = null
@@ -190,8 +189,7 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 			for (block in blocks)
 			{
 				if (block.isLoopHead
-					&& block.predecessorEdgesCopy().stream()
-						.noneMatch(L2PcOperand::isBackward))
+					&& block.predecessorEdges().none(L2PcOperand::isBackward))
 				{
 					// It's a loop head that has no back-edges pointing to it.
 					block.isLoopHead = false
@@ -267,17 +265,63 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 		blocks.forEach { it.instructions().forEach { ins ->
 			ins.writeOperands().forEach {
 				writeOperand: L2WriteOperand<*> ->
-					registersToKeep.add(writeOperand.register()) }
-				}
-			}
+				registersToKeep.add(writeOperand.register()) }
+		}
+		}
 		// Visit each edge's manifest.  In the manifest's definitions map's
 		// values (which are lists of L2Registers), retain only those registers
 		// for which writes were found above.
 		blocks.forEach { it.successorEdgesIterator().forEachRemaining { edge ->
 			edge.manifest().retainRegisters(registersToKeep)
-			}
+		}
 		}
 	}
+
+//	@Deprecated("Warning - does not work.")
+//	private fun updateAllManifests()
+//	{
+//		val completed = mutableSetOf<L2BasicBlock>()
+//		val queue = ArrayDeque<L2BasicBlock>()
+//		queue.add(blocks[0])
+//		while (queue.isNotEmpty())
+//		{
+//			val block = queue.remove()
+//			if (!completed.contains(block))
+//			{
+//				val predecessors = block.predecessorEdges()
+//				if (predecessors.all {
+//						it.isBackward || completed.contains(it.sourceBlock())
+//					})
+//				{
+//					val manifest = intersectionOfManifests(
+//						predecessors.map { it.manifest() })
+//					block.instructions().forEach { instruction ->
+//						if (!instruction.altersControlFlow)
+//						{
+//							instruction.updateManifest(manifest, null)
+//						}
+//						else
+//						{
+//							instruction.edgesAndPurposesDo { edge, purpose ->
+//								val manifestCopy = L2ValueManifest(manifest)
+//								instruction.updateManifest(
+//									manifestCopy, purpose)
+//								edge.justSetManifest(manifestCopy)
+//								val target = edge.targetBlock()
+//								if (!edge.isBackward &&
+//									!completed.contains(target))
+//								{
+//									queue.add(target)
+//								}
+//							}
+//						}
+//					}
+//					// The successor edges have now had their manifests replaced.
+//					completed.add(block)
+//				}
+//			}
+//		}
+//	}
 
 	/**
 	 * Code has been removed, replaced, or moved.  As a consequence, some
@@ -312,15 +356,14 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 						var intersection: MutableSet<L2SemanticValue>? = null
 						for (write in read.register().definitions())
 						{
-							intersection?.retainAll(write.semanticValues())
-								?: {
-									intersection =
-										write.semanticValues().toMutableSet()
-								}()
+							if (intersection === null)
+								intersection =
+									write.semanticValues().toMutableSet()
+							else intersection.retainAll(write.semanticValues())
 						}
 						assert(intersection !== null)
 						assert(intersection!!.isNotEmpty())
-						favoredSemanticValue = intersection!!.iterator().next()
+						favoredSemanticValue = intersection.iterator().next()
 						favoredSemanticValuesMap[read.register()] =
 							favoredSemanticValue
 					}
@@ -356,22 +399,21 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 		val visibleSemanticValues =
 			mutableMapOf<L2PcOperand, MutableSet<L2SemanticValue>>()
 		blocks.forEach { b: L2BasicBlock ->
-			b.predecessorEdgesDo { e: L2PcOperand ->
+			b.predecessorEdges().forEach { e: L2PcOperand ->
 				visibleRegisters[e] = mutableSetOf()
 				visibleSemanticValues[e] = mutableSetOf()
 			}
 		}
 		// These two collections should maintain the same membership.
 		val toVisitQueue: Deque<L2BasicBlock> = ArrayDeque(blocks)
-		val toVisitSet: MutableSet<L2BasicBlock> = HashSet(blocks)
+		val toVisitSet = blocks.toMutableSet()
 		while (toVisitQueue.isNotEmpty())
 		{
 			val block = toVisitQueue.removeFirst()!!
 			toVisitSet.remove(block)
 			val regs: MutableSet<L2Register>
 			val values: MutableSet<L2SemanticValue>
-			val predecessors =
-				block.predecessorEdgesIterator()
+			val predecessors = block.predecessorEdges().iterator()
 			if (predecessors.hasNext())
 			{
 				val first = predecessors.next()
@@ -389,7 +431,7 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 			}
 			for (instruction in block.instructions())
 			{
-				if (!instruction.altersControlFlow())
+				if (!instruction.altersControlFlow)
 				{
 					instruction.writeOperands().forEach {
 						regs.add(it.register())
@@ -399,19 +441,16 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 				else
 				{
 					instruction.edgesAndPurposesDo { edge, purpose ->
-						val regsForEdge: MutableSet<L2Register> =
-							regs.toMutableSet()
-						val valuesForEdge =
-							values.toMutableSet()
+						val regsForEdge = regs.toMutableSet()
+						val valuesForEdge = values.toMutableSet()
 						instruction.writesForPurposeDo(purpose!!) {
 							regsForEdge.add(it.register())
-							valuesForEdge.addAll(
-								it.semanticValues())
+							valuesForEdge.addAll(it.semanticValues())
 						}
 						var changed =
 							visibleRegisters[edge]!!.addAll(regsForEdge)
-						changed = changed or visibleSemanticValues[edge]!!
-							.addAll(valuesForEdge)
+						changed = changed or
+							visibleSemanticValues[edge]!!.addAll(valuesForEdge)
 						if (changed && toVisitSet.add(edge.targetBlock()))
 						{
 							toVisitQueue.add(edge.targetBlock())
@@ -468,14 +507,14 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 	{
 		for (block in blocks)
 		{
-			block.predecessorEdgesDo { predecessor ->
+			block.predecessorEdges().forEach { predecessor ->
 				predecessor.alwaysLiveInRegisters.clear()
 				predecessor.sometimesLiveInRegisters.clear()
 			}
 		}
 
 		// The deque and the set maintain the same membership.
-		val workQueue: Deque<L2BasicBlock> = ArrayDeque(blocks)
+		val workQueue = ArrayDeque(blocks)
 		val workSet = blocks.toMutableSet()
 		while (!workQueue.isEmpty())
 		{
@@ -484,7 +523,7 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 			// Take the union of the outbound edges' sometimes-live registers.
 			// Also find the intersection of those edges' always-live registers.
 			val alwaysLive: MutableSet<L2Register> = HashSet()
-			if (block!!.successorEdgesCount() > 0)
+			if (block.successorEdgesCount() > 0)
 			{
 				// Before processing instructions in reverse order, the
 				// always-live-in set will be the intersection of the successor
@@ -526,11 +565,9 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 			// based on the corresponding positions inside phi instructions.
 			val finalLastPhiIndex = lastPhiIndex
 			var edgeIndex = 0
-			block.predecessorEdgesDo { edge ->
-				val edgeAlwaysLiveIn =
-					alwaysLive.toMutableSet()
-				val edgeSometimesLiveIn =
-					sometimesLive.toMutableSet()
+			block.predecessorEdges().forEach { edge ->
+				val edgeAlwaysLiveIn = alwaysLive.toMutableSet()
+				val edgeSometimesLiveIn = sometimesLive.toMutableSet()
 				// Add just the registers used along this edge.
 				for (i in finalLastPhiIndex downTo 0)
 				{
@@ -547,8 +584,7 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 					edgeSometimesLiveIn.add(source)
 					edgeAlwaysLiveIn.add(source)
 				}
-				val predecessorEdge =
-					block.predecessorEdgeAt(edgeIndex)
+				val predecessorEdge = block.predecessorEdges()[edgeIndex]
 				var changed =
 					predecessorEdge.sometimesLiveInRegisters.addAll(
 						edgeSometimesLiveIn)
@@ -569,6 +605,17 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 				edgeIndex++
 			}
 		}
+	}
+
+	/**
+	 * Replace constant-valued registers with fresh registers that have no
+	 * definitions.  The JVM code generator will recognize that these are
+	 * constants, and produce code to produce them on the JVM stack by reading
+	 * the constants pool or via special instructions for int/double constants.
+	 */
+	fun replaceConstantRegisters()
+	{
+		//TODO Not yet implemented.
 	}
 
 	/**
@@ -632,9 +679,9 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 					{
 						assert(edgesToMoveThrough.isNotEmpty())
 						changed = true
-						var mutableRead: L2ReadBoxedOperand? = null
-						var pair: Pair<Set<L2SemanticValue>, TypeRestriction>? =
-							null
+						lateinit var mutableRead: L2ReadBoxedOperand
+						lateinit var pair:
+							Pair<Set<L2SemanticValue>, TypeRestriction>
 						if (operation === L2_MAKE_IMMUTABLE)
 						{
 							mutableRead = sourceOfImmutable(instruction)
@@ -643,8 +690,8 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 						block.instructions().remove(instruction)
 						instruction.justRemoved()
 						val writesList = instruction.writeOperands()
-						val writtenSet: Set<L2Register> = writesList
-							.map { it.register() }.toSet()
+						val writtenSet =
+							writesList.map { it.register() }.toSet()
 						for (edge in edgesToMoveThrough)
 						{
 							if (writtenSet.isNotEmpty())
@@ -654,8 +701,8 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 							if (operation === L2_MAKE_IMMUTABLE)
 							{
 								edge.manifest().recordSourceInformation(
-									mutableRead!!.register(),
-									pair!!.first,
+									mutableRead.register(),
+									pair.first,
 									pair.second)
 							}
 							val destinationBlock = edge.targetBlock()
@@ -717,13 +764,13 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 							operation.writesHiddenVariablesMask
 						// The last instruction of the block can alter the
 						// control flow, so capture its edges.
-						reachableTargetEdges.addAll(instruction.targetEdges())
+						reachableTargetEdges.addAll(instruction.targetEdges)
 					}
 				}
 			}
 			if (changed)
 			{
-				updateAllManifests()
+//				updateAllManifests()
 				computeLivenessAtEachEdge()
 			}
 		}
@@ -752,7 +799,7 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 			{
 				for (instruction in block.instructions())
 				{
-					if (instruction.operation().isPlaceholder)
+					if (instruction.isPlaceholder)
 					{
 						generator.replaceInstructionByGenerating(instruction)
 						computeLivenessAtEachEdge()
@@ -814,20 +861,18 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 				// Insert a non-SSA move in each predecessor block.
 				for (i in 0 until fanIn)
 				{
-					val edge = block.predecessorEdgeAt(i)
+					val edge = block.predecessorEdges()[i]
 					val predecessor = edge.sourceBlock()
-					val instructions =
-						predecessor.instructions()
+					val instructions = predecessor.instructions()
 					assert(predecessor.finalInstruction().operation()
-							   .isUnconditionalJump)
+						.isUnconditionalJump)
 					val sourceRead = phiSources[i]
 					val move = L2Instruction(
 						predecessor,
 						phiOperation.moveOperation,
 						sourceRead,
 						targetWriter.clone())
-					predecessor.insertInstruction(
-						instructions.size - 1, move)
+					predecessor.insertInstruction(instructions.size - 1, move)
 					if (edge.isBackward)
 					{
 						edge.manifest().replaceDefinitions(
@@ -835,15 +880,15 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 					}
 					else
 					{
-						edge.manifest().recordDefinition(
+						edge.manifest().recordDefinitionNoCheck(
 							phiOperation.moveOperation.destinationOf(move))
 					}
 					if (edge.forcedClampedEntities !== null)
 					{
 						// Replace the semantic value(s) and register in the
 						// clamped set of entities, if present.
-						val clamped = edge.forcedClampedEntities
-						if (clamped!!.remove(sourceRead.semanticValue()))
+						val clamped = edge.forcedClampedEntities!!
+						if (clamped.remove(sourceRead.semanticValue()))
 						{
 							clamped.addAll(targetWriter.semanticValues())
 						}
@@ -982,8 +1027,7 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 					continue
 				}
 				val soleInstruction = block.finalInstruction()
-				val jumpEdge: L2PcOperand
-				jumpEdge = if (soleInstruction.operation() === L2_JUMP)
+				val jumpEdge = if (soleInstruction.operation() === L2_JUMP)
 				{
 					L2_JUMP.jumpTarget(soleInstruction)
 				}
@@ -998,7 +1042,8 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 				// Redirect all predecessors through the jump.
 				val jumpTarget = jumpEdge.targetBlock()
 				val isBackward = jumpEdge.isBackward
-				for (inEdge in block.predecessorEdgesCopy())
+				// Copy it; the predecessorEdges list will change in the loop.
+				for (inEdge in block.predecessorEdges().toList())
 				{
 					changed = true
 					inEdge.switchTargetBlockNonSSA(jumpTarget, isBackward)
@@ -1094,6 +1139,26 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 		assert(order[0] == blocks[0])
 		blocks.clear()
 		blocks.addAll(order)
+	}
+
+	/**
+	 * Remove information from the [L2ControlFlowGraph] that will no longer be
+	 * needed.  Note that during subsequent inlining of this chunk at a call
+	 * site, the type information will be reconstructed without too much cost.
+	 */
+	fun postOptimizationCleanup()
+	{
+		for (block in blocks)
+		{
+			for (instruction in block.instructions())
+			{
+				for (operand in instruction.operands())
+				{
+					// Note that this includes L2PcOperands, all edges.
+					operand.postOptimizationCleanup()
+				}
+			}
+		}
 	}
 
 	/**
@@ -1227,10 +1292,10 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 			block.instructions().forEach { instruction ->
 				instruction.assertHasBeenEmitted()
 				instruction.readOperands().forEach {
-					uses.computeIfAbsent(it.register()) { mutableSetOf() }.add(it)
+					uses.getOrPut(it.register()) { mutableSetOf() }.add(it)
 				}
 				instruction.writeOperands().forEach {
-					definitions.computeIfAbsent(it.register()) { mutableSetOf() }
+					definitions.getOrPut(it.register()) { mutableSetOf() }
 						.add(it)
 				}
 			}
@@ -1260,9 +1325,7 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 					assert(added)
 					if (operand is L2ReadVectorOperand<*, *>)
 					{
-						val vector = operand
-							.cast<L2Operand?, L2ReadVectorOperand<*, *>>()
-						vector.elements().forEach {
+						operand.elements().forEach {
 							val ok = allOperands.add(it)
 							assert(ok)
 						}
@@ -1286,7 +1349,7 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 				assert(!instruction.operation().isPhi
 					   || instruction.sourceRegisters().size
 					   == block.predecessorEdgesCount())
-				allEdgesFromBlock.addAll(instruction.targetEdges())
+				allEdgesFromBlock.addAll(instruction.targetEdges)
 			}
 			assert(block.successorEdgesCopy() == allEdgesFromBlock)
 			assert(HashSet(allEdgesFromBlock)
@@ -1296,10 +1359,10 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 				val targetBlock = edge.targetBlock()
 				assert(!edge.isBackward || targetBlock.isLoopHead)
 				assert(blocks.contains(targetBlock))
-				assert(targetBlock.predecessorEdgesCopy().contains(edge))
+				assert(targetBlock.predecessorEdges().contains(edge))
 			}
 			// Also check incoming edges.
-			block.predecessorEdgesDo { inEdge: L2PcOperand ->
+			block.predecessorEdges().forEach { inEdge: L2PcOperand ->
 				assert(inEdge.targetBlock() == block)
 				val predecessorBlock = inEdge.sourceBlock()
 				assert(blocks.contains(predecessorBlock))
@@ -1324,7 +1387,7 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 	{
 		val blocksToCheck: Deque<Pair<L2BasicBlock, UsedRegisters>> =
 			ArrayDeque()
-		blocksToCheck.add(Pair(blocks[0], UsedRegisters()))
+		blocksToCheck.add(blocks[0] to UsedRegisters())
 		val inSets: MutableMap<L2BasicBlock, UsedRegisters> = HashMap()
 		while (!blocksToCheck.isEmpty())
 		{
@@ -1371,7 +1434,7 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 				val workingCopy = UsedRegisters(workingSet)
 				val targetBlock = edge.targetBlock()
 				val predecessorIndex =
-					targetBlock.predecessorEdgesCopy().indexOf(edge)
+					targetBlock.predecessorEdges().indexOf(edge)
 				if (predecessorIndex == -1)
 				{
 					System.err.println("Phi predecessor not found")
@@ -1391,7 +1454,7 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 						phiInTarget.destinationRegisters()[0],
 						registerIdFunction)
 				}
-				blocksToCheck.add(Pair(targetBlock, workingCopy))
+				blocksToCheck.add(targetBlock to workingCopy)
 			}
 		}
 	}
@@ -1462,7 +1525,7 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 	companion object
 	{
 		/** Whether to sanity-check the graph between optimization steps.  */
-		var shouldSanityCheck = true //TODO false;
+		var shouldSanityCheck = true //TODO false
 
 		/** Statistic for tracking the cost of sanity checks.  */
 		private val sanityCheckStat = Statistic(
@@ -1511,13 +1574,13 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 			writeMaskLaterInBlock: Int,
 			candidateTargetEdges: Set<L2PcOperand>): Set<L2PcOperand>?
 		{
-			if (instruction!!.altersControlFlow()
+			if (instruction!!.altersControlFlow
 				|| instruction.operation().isPhi
 				|| instruction.isEntryPoint)
 			{
 				return null
 			}
-			if (instruction.hasSideEffect())
+			if (instruction.hasSideEffect)
 			{
 				return null
 			}
@@ -1525,52 +1588,54 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 			if (writeMask and readMaskLaterInBlock != 0
 				|| writeMask and writeMaskLaterInBlock != 0)
 			{
-				// Either the instruction writes something that a later instruction
-				// reads, or there are multiple writes that should maintain their
-				// order in case a later block has a dependent read.  Don't move it.
+				// Either the instruction writes something that a later
+				// instruction reads, or there are multiple writes that should
+				// maintain their order in case a later block has a dependent
+				// read.  Don't move it.
 				return null
 			}
 			val readMask = instruction.operation().readsHiddenVariablesMask
 			if (readMask and writeMaskLaterInBlock != 0)
 			{
-				// The instruction reads something that a later instruction would
-				// clobber.  Don't move it.
+				// The instruction reads something that a later instruction
+				// would clobber.  Don't move it.
 				return null
 			}
 			val written: List<L2Register?> = instruction.destinationRegisters()
-			val writtenSemanticValues: MutableList<L2SemanticValue?> = ArrayList()
+			val writtenSemanticValues = mutableListOf<L2SemanticValue>()
 			instruction.writeOperands().forEach {
 				writtenSemanticValues.addAll(it.semanticValues())
 			}
 			assert(written.isNotEmpty()) {
-				("Every instruction should either have side effects or write "
-				 + "to at least one register")
+				"Every instruction should either have side effects or write " +
+					"to at least one register"
 			}
-			if (!Collections.disjoint(written, registersConsumedLaterInBlock))
+			if (!disjoint(written, registersConsumedLaterInBlock))
 			{
-				// A later instruction in the current basic block consumes one of
-				// the registers produced by the given instruction, so we can't move
-				// the given instruction into later blocks.
+				// A later instruction in the current basic block consumes one
+				// of the registers produced by the given instruction, so we
+				// can't move the given instruction into later blocks.
 				return null
 			}
-			if (!Collections.disjoint(
+			if (!disjoint(
 					writtenSemanticValues, semanticValuesConsumedLaterInBlock))
 			{
-				// A later instruction in the current basic block consumes one of
-				// the semantic values produced by the given instruction, so we
-				// can't move the given instruction into later blocks.
+				// A later instruction in the current basic block consumes one
+				// of the semantic values produced by the given instruction, so
+				// we can't move the given instruction into later blocks.
 				return null
 			}
 			if (candidateTargetEdges.size == 1)
 			{
-				// There's only one successor edge.  Since the CFG is in edge-split
-				// form, the successor might have multiple predecessors.  Don't move
-				// across the edge in that case, since it may cause the instruction
-				// to run in situations that it doesn't need to.
+				// There's only one successor edge.  Since the CFG is in
+				// edge-split form, the successor might have multiple
+				// predecessors.  Don't move across the edge in that case, since
+				// it may cause the instruction to run in situations that it
+				// doesn't need to.
 				//
 				// TODO When code splitting is eventually implemented, it should
-				// clean up this case by duplicating the successor block just for
-				// this edge.
+				// clean up this case by duplicating the successor block just
+				// for this edge.
 				val successorEdge =
 					candidateTargetEdges.iterator().next()
 				val successor = successorEdge.targetBlock()
@@ -1592,7 +1657,7 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 					// There's an edge that it shouldn't flow to.
 					shouldMoveInstruction = true
 				}
-				if (!Collections.disjoint(edge.sometimesLiveInRegisters, written))
+				if (!disjoint(edge.sometimesLiveInRegisters, written))
 				{
 					// There's an edge that's only sometimes live-in.
 					shouldMoveInstruction = true

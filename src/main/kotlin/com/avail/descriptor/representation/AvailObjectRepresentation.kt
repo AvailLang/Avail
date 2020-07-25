@@ -37,6 +37,7 @@ import com.avail.descriptor.functions.CompiledCodeDescriptor
 import com.avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
 import com.avail.descriptor.functions.ContinuationDescriptor
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import com.avail.descriptor.types.TypeTag
 import com.avail.utility.visitor.MarkUnreachableSubobjectVisitor
 import sun.misc.Unsafe
@@ -64,16 +65,14 @@ abstract class AvailObjectRepresentation protected constructor(
 	integerSlotsCount: Int
 ) : AbstractAvailObject(initialDescriptor), A_BasicObject {
 	/** An array of all my references to other [AvailObject]s.  */
-	private var objectSlots: Array<AvailObject?> = when (objectSlotsSize) {
-		0 -> emptyObjectSlots
-		else -> arrayOfNulls(objectSlotsSize)
-	}
+	private var objectSlots: Array<AvailObject?> =
+		if (objectSlotsSize == 0) emptyObjectSlots
+		else arrayOfNulls(objectSlotsSize)
 
 	/** A `LongArray` encoding all of my digital state.  */
-	private var longSlots: LongArray = when (integerSlotsCount) {
-		0 -> emptyIntegerSlots
-		else -> LongArray(integerSlotsCount)
-	}
+	private var longSlots: LongArray =
+		if (integerSlotsCount == 0) emptyIntegerSlots
+		else LongArray(integerSlotsCount)
 
 	/**
 	 * Helper method for transferring this object's longSlots into an
@@ -618,20 +617,57 @@ abstract class AvailObjectRepresentation protected constructor(
 	 *
 	 * @param field
 	 *   An enumeration value that defines the field ordering.
-	 * @param anAvailObject
-	 *   The object to store at the specified slot.
+	 * @param newValue
+	 *   The [A_BasicObject] to store at the specified slot.
 	 */
 	fun setSlot(
 		field: ObjectSlotsEnum,
-		anAvailObject: A_BasicObject
+		newValue: A_BasicObject
 	) {
 		// If the receiver is shared, then the new value must become shared
 		// before it can be stored.
 		assert(!currentDescriptor.isShared
-			|| anAvailObject.descriptor().isShared)
+			|| newValue.descriptor().isShared)
 		checkSlot(field)
 		checkWriteForField(field)
-		objectSlots[field.fieldOrdinal()] = anAvailObject as AvailObject
+		objectSlots[field.fieldOrdinal()] = newValue as AvailObject
+	}
+
+	/**
+	 * Extract the current value of the slot, pass it to the supplied inline
+	 * Kotlin function, and write the result back to the slot.
+	 */
+	fun updateSlot(
+		field: ObjectSlotsEnum,
+		updater: AvailObject.()->A_BasicObject
+	) {
+		// If the receiver is shared, then the new value must become shared
+		// before it can be stored.
+		checkSlot(field)
+		checkWriteForField(field)
+		val ordinal = field.fieldOrdinal()
+		val oldValue = objectSlots[ordinal]!!
+		val newValue = oldValue.updater() as AvailObject
+		assert(!currentDescriptor.isShared || newValue.descriptor().isShared)
+		objectSlots[ordinal] = newValue
+	}
+
+	/**
+	 * Extract the current value of the slot, pass it to the supplied inline
+	 * Kotlin function, make it shared, and write the result back to the slot.
+	 */
+	fun updateSlotShared(
+		field: ObjectSlotsEnum,
+		updater: AvailObject.()->A_BasicObject
+	) {
+		// If the receiver is shared, then the new value must become shared
+		// before it can be stored.
+		checkSlot(field)
+		checkWriteForField(field)
+		val ordinal = field.fieldOrdinal()
+		val oldValue = objectSlots[ordinal]!!
+		val newValue = oldValue.updater() as AvailObject
+		objectSlots[ordinal] = newValue.makeShared()
 	}
 
 	/**

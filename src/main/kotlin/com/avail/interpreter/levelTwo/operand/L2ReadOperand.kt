@@ -43,7 +43,6 @@ import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind
 import com.avail.optimizer.L2ValueManifest
 import com.avail.optimizer.values.L2SemanticValue
 import com.avail.utility.cast
-import java.util.HashSet
 
 /**
  * `L2ReadOperand` abstracts the capabilities of actual register read operands.
@@ -76,7 +75,7 @@ import java.util.HashSet
  *   The [L2Register] being read by this operand.
  */
 abstract class L2ReadOperand<R : L2Register> protected constructor(
-	private var semanticValue: L2SemanticValue,
+	private var semanticValue: L2SemanticValue?,
 	private val restriction: TypeRestriction,
 	private var register: R) : L2Operand()
 {
@@ -86,7 +85,7 @@ abstract class L2ReadOperand<R : L2Register> protected constructor(
 	 * @return
 	 *   The [L2SemanticValue].
 	 */
-	fun semanticValue(): L2SemanticValue = semanticValue
+	fun semanticValue(): L2SemanticValue = semanticValue!!
 
 	/**
 	 * Answer this read's [L2Register].
@@ -102,7 +101,9 @@ abstract class L2ReadOperand<R : L2Register> protected constructor(
 	 * @return
 	 *   A [String].
 	 */
-	fun registerString(): String = "$register[$semanticValue]"
+	fun registerString(): String =
+		if (semanticValue != null) "$register[$semanticValue]"
+		else "$register"
 
 	/**
 	 * Answer the [L2Register]'s [finalIndex][L2Register.finalIndex].
@@ -161,14 +162,14 @@ abstract class L2ReadOperand<R : L2Register> protected constructor(
 		manifest: L2ValueManifest)
 	{
 		super.instructionWasAdded(manifest)
-		manifest.setRestriction(semanticValue, restriction)
+		manifest.setRestriction(semanticValue!!, restriction)
 		register().addUse(this)
 	}
 
 	override fun adjustedForReinsertion(
 		manifest: L2ValueManifest): L2ReadOperand<*>
 	{
-		if (manifest.hasSemanticValue(semanticValue))
+		if (manifest.hasSemanticValue(semanticValue!!))
 		{
 			return this
 		}
@@ -330,35 +331,31 @@ abstract class L2ReadOperand<R : L2Register> protected constructor(
 				// yet, during placeholder substitution.
 				if (thisBlock.instructions().contains(def.instruction()))
 				{
-					return Pair(def.semanticValues(), def.restriction())
+					return def.semanticValues() to def.restriction()
 				}
 			}
 		}
 
 		// Integrate the information from the block's incoming manifests.
-		val incoming = thisBlock.predecessorEdgesIterator()
+		val incoming = thisBlock.predecessorEdges().iterator()
 		assert(incoming.hasNext())
 		val firstManifest = incoming.next().manifest()
-		val semanticValues: MutableSet<L2SemanticValue> = HashSet()
+		val semanticValues = mutableSetOf<L2SemanticValue>()
 		var typeRestriction: TypeRestriction? = null
 		for (syn in firstManifest.synonymsForRegister(register))
 		{
 			semanticValues.addAll(syn.semanticValues())
-			typeRestriction =
-				if (typeRestriction === null)
-				{
-					firstManifest.restrictionFor(syn.pickSemanticValue())
-				}
-				else
-				{
-					typeRestriction.union(
-						firstManifest.restrictionFor(syn.pickSemanticValue()))
-				}
+			val nextRestriction =
+				firstManifest.restrictionFor(syn.pickSemanticValue())
+			typeRestriction = when (typeRestriction)
+			{
+				null -> nextRestriction
+				else -> typeRestriction.union(nextRestriction)
+			}
 		}
-		while (incoming.hasNext())
-		{
-			val nextManifest = incoming.next().manifest()
-			val newSemanticValues: MutableSet<L2SemanticValue> = HashSet()
+		incoming.forEachRemaining {
+			val nextManifest = it.manifest()
+			val newSemanticValues = mutableSetOf<L2SemanticValue>()
 			for (syn in nextManifest.synonymsForRegister(register))
 			{
 				newSemanticValues.addAll(syn.semanticValues())
@@ -368,7 +365,7 @@ abstract class L2ReadOperand<R : L2Register> protected constructor(
 			// Intersect with the newSemanticValues.
 			semanticValues.retainAll(newSemanticValues)
 		}
-		return Pair(semanticValues, typeRestriction!!)
+		return semanticValues to typeRestriction!!
 	}
 
 	/**
@@ -425,4 +422,31 @@ abstract class L2ReadOperand<R : L2Register> protected constructor(
 		semanticValue = replacementSemanticValue
 	}
 
+	/**
+	 * Replace my register with a fresh one that has no writers.
+	 */
+	override fun replaceConstantRegisters()
+	{
+		if (restriction().constantOrNull !== null)
+		{
+			val oldRegister = register()
+			oldRegister.removeUse(this)
+			register = createNewRegister()
+			register.addUse(this)
+		}
+	}
+
+	/**
+	 * Create a new register of a suitable type for this read.
+	 *
+	 * @return
+	 *   An instance of [R], which is [L2Register] specialized for this read.
+	 */
+	abstract fun createNewRegister(): R
+
+	override fun postOptimizationCleanup()
+	{
+		// Leave the restriction in place.  It shouldn't be all that big.
+		semanticValue = null
+	}
 }

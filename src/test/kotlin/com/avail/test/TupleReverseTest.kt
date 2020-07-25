@@ -35,6 +35,14 @@ import com.avail.descriptor.character.CharacterDescriptor.Companion.fromCodePoin
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.childAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.childCount
+import com.avail.descriptor.tuples.A_Tuple.Companion.concatenateWith
+import com.avail.descriptor.tuples.A_Tuple.Companion.copyTupleFromToCanDestroy
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAtPuttingCanDestroy
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleReverse
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.ByteArrayTupleDescriptor
 import com.avail.descriptor.tuples.ByteArrayTupleDescriptor.Companion.tupleForByteArray
 import com.avail.descriptor.tuples.ByteBufferTupleDescriptor
@@ -54,7 +62,7 @@ import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.tuples.TreeTupleDescriptor
 import com.avail.descriptor.tuples.TreeTupleDescriptor.Companion.createTwoPartTreeTuple
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.toList
-import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.nio.ByteBuffer
 
@@ -83,16 +91,16 @@ class TupleReverseTest
 		val shouldBeSame = integerInterval
 			.tupleReverse()
 			.tupleReverse()
-		Assertions.assertEquals(
+		assertEquals(
 			integerInterval.tupleReverse(),
 			integerIntervalOppositeDirection)
-		Assertions.assertEquals(
+		assertEquals(
 			integerInterval.tupleReverse().tupleAt(1),
 			integerInterval.tupleAt(23))
-		Assertions.assertEquals(integerInterval, shouldBeSame)
+		assertEquals(integerInterval, shouldBeSame)
 
 		//Small size where copies are made
-		Assertions.assertEquals(
+		assertEquals(
 			createInterval(
 				fromInt(1),
 				fromInt(3),
@@ -120,16 +128,16 @@ class TupleReverseTest
 		val shouldBeSame = integerInterval
 			.tupleReverse()
 			.tupleReverse()
-		Assertions.assertEquals(
+		assertEquals(
 			integerInterval.tupleReverse(),
 			integerIntervalOppositeDirection)
-		Assertions.assertEquals(
+		assertEquals(
 			integerInterval.tupleReverse().tupleAt(1),
 			integerInterval.tupleAt(23))
-		Assertions.assertEquals(integerInterval, shouldBeSame)
+		assertEquals(integerInterval, shouldBeSame)
 
 		//Small size where copies are made
-		Assertions.assertEquals(
+		assertEquals(
 			createSmallInterval(1, 3, 1)
 				.tupleReverse(),
 			createSmallInterval(
@@ -153,18 +161,17 @@ class TupleReverseTest
 			fromInt(1),
 			fromInt(-1))
 		val anObjectTupleReversed: A_Tuple = integerIntervalReversed
-			.tupleAtPuttingCanDestroy(
-				35, fromCodePoint(97), false)
+			.tupleAtPuttingCanDestroy(35, fromCodePoint(97), false)
 			.makeImmutable()
-		val anObjectTuple: A_Tuple = integerInterval.tupleAtPuttingCanDestroy(
-			2, fromCodePoint(97), false)
+		val anObjectTuple: A_Tuple = integerInterval
+			.tupleAtPuttingCanDestroy(2, fromCodePoint(97), false)
 			.makeImmutable()
 		val shouldBeSame = anObjectTuple.tupleReverse().tupleReverse()
-		Assertions.assertEquals(
+		assertEquals(
 			anObjectTuple.tupleReverse(),
 			anObjectTupleReversed)
-		Assertions.assertEquals(anObjectTuple, shouldBeSame)
-		Assertions.assertEquals(
+		assertEquals(anObjectTuple, shouldBeSame)
+		assertEquals(
 			anObjectTuple.tupleAt(2),
 			anObjectTuple.tupleReverse().tupleAt(35))
 
@@ -172,35 +179,23 @@ class TupleReverseTest
 		val anObjectTupleSubrange: A_Tuple = anObjectTuple
 			.copyTupleFromToCanDestroy(2, 34, false)
 			.makeImmutable()
-		Assertions.assertEquals(
+		assertEquals(
 			anObjectTupleSubrange.tupleAt(2),
 			anObjectTupleSubrange.tupleReverse().tupleAt(32))
 		val anObjectTupleSubrangeSmall: A_Tuple = anObjectTuple
 			.copyTupleFromToCanDestroy(1, 5, false)
 			.makeImmutable()
-		Assertions.assertEquals(
+		assertEquals(
 			anObjectTupleSubrangeSmall.tupleAt(2),
 			anObjectTupleSubrangeSmall.tupleReverse().tupleAt(4))
 
 		//Small size where copies are made
-		Assertions.assertEquals(
-			createInterval(
-				fromInt(1),
-				fromInt(5),
-				fromInt(1))
-				.tupleAtPuttingCanDestroy(
-					2,
-					fromCodePoint(97),
-					false)
+		assertEquals(
+			createInterval(fromInt(1), fromInt(5), fromInt(1))
+				.tupleAtPuttingCanDestroy(2, fromCodePoint(97), false)
 				.makeImmutable().tupleReverse(),
-			createInterval(
-				fromInt(5),
-				fromInt(1),
-				fromInt(-1))
-				.tupleAtPuttingCanDestroy(
-					4,
-					fromCodePoint(97),
-					false)
+			createInterval(fromInt(5), fromInt(1), fromInt(-1))
+				.tupleAtPuttingCanDestroy(4, fromCodePoint(97), false)
 				.makeImmutable())
 	}
 
@@ -226,9 +221,9 @@ class TupleReverseTest
 		}
 		myByteTupleReverse.makeImmutable()
 		val shouldBeSame = myByteTuple.tupleReverse().tupleReverse()
-		Assertions.assertEquals(myByteTuple.tupleReverse(), myByteTupleReverse)
-		Assertions.assertEquals(myByteTuple, shouldBeSame)
-		Assertions.assertEquals(
+		assertEquals(myByteTuple.tupleReverse(), myByteTupleReverse)
+		assertEquals(myByteTuple, shouldBeSame)
+		assertEquals(
 			myByteTuple.tupleAt(2),
 			myByteTuple.tupleReverse().tupleAt(35))
 
@@ -237,7 +232,7 @@ class TupleReverseTest
 			generateByteTupleFrom(3) { i: Int? -> i!! }
 		val myByteTupleSmallReversed =
 			generateByteTupleFrom(3) { i: Int -> 4 - i }
-		Assertions.assertEquals(
+		assertEquals(
 			myByteTupleSmall.tupleReverse(),
 			myByteTupleSmallReversed)
 	}
@@ -269,11 +264,11 @@ class TupleReverseTest
 		val shouldBeSame = myByteBufferTuple
 			.tupleReverse()
 			.tupleReverse()
-		Assertions.assertEquals(
+		assertEquals(
 			myByteBufferTuple.tupleReverse(),
 			myByteBufferTupleReversed)
-		Assertions.assertEquals(myByteBufferTuple, shouldBeSame)
-		Assertions.assertEquals(
+		assertEquals(myByteBufferTuple, shouldBeSame)
+		assertEquals(
 			myByteBufferTuple.tupleAt(2),
 			myByteBufferTuple.tupleReverse().tupleAt(35))
 
@@ -294,7 +289,7 @@ class TupleReverseTest
 		val myByteBufferTupleSmallReversed: A_Tuple = tupleForByteBuffer(
 			aByteBufferSmallReversed)
 			.makeImmutable()
-		Assertions.assertEquals(
+		assertEquals(
 			myByteBufferTupleSmall.tupleReverse(),
 			myByteBufferTupleSmallReversed)
 	}
@@ -323,11 +318,11 @@ class TupleReverseTest
 		val shouldBeSame = myByteArrayTuple
 			.tupleReverse()
 			.tupleReverse()
-		Assertions.assertEquals(
+		assertEquals(
 			myByteArrayTuple.tupleReverse(),
 			myByteBufferTupleReversed)
-		Assertions.assertEquals(myByteArrayTuple, shouldBeSame)
-		Assertions.assertEquals(
+		assertEquals(myByteArrayTuple, shouldBeSame)
+		assertEquals(
 			myByteArrayTuple.tupleAt(2),
 			myByteArrayTuple.tupleReverse().tupleAt(35))
 
@@ -345,7 +340,7 @@ class TupleReverseTest
 		val myByteBufferTupleSmallReversed: A_Tuple = tupleForByteArray(
 			aByteArraySmallReversed)
 			.makeImmutable()
-		Assertions.assertEquals(
+		assertEquals(
 			myByteArrayTupleSmall.tupleReverse(),
 			myByteBufferTupleSmallReversed)
 	}
@@ -364,9 +359,9 @@ class TupleReverseTest
 			"zyxwvutsrqponmlkjihgfedcbazyxwvutsrqponmlkjihgfedcba")
 			.makeImmutable()
 		val shouldBeSame = byteString.tupleReverse().tupleReverse()
-		Assertions.assertEquals(byteString.tupleReverse(), byteStringReverse)
-		Assertions.assertEquals(byteString, shouldBeSame)
-		Assertions.assertEquals(
+		assertEquals(byteString.tupleReverse(), byteStringReverse)
+		assertEquals(byteString, shouldBeSame)
+		assertEquals(
 			byteString.tupleAt(51),
 			byteString.tupleReverse().tupleAt(2))
 
@@ -378,11 +373,11 @@ class TupleReverseTest
 		val shouldBeSameSmall = byteStringSmall
 			.tupleReverse()
 			.tupleReverse()
-		Assertions.assertEquals(
+		assertEquals(
 			byteStringSmall.tupleReverse(),
 			byteStringReverseSmall)
-		Assertions.assertEquals(byteStringSmall, shouldBeSameSmall)
-		Assertions.assertEquals(
+		assertEquals(byteStringSmall, shouldBeSameSmall)
+		assertEquals(
 			byteStringSmall.tupleAt(2),
 			byteStringSmall.tupleReverse().tupleAt(3))
 
@@ -396,11 +391,11 @@ class TupleReverseTest
 		val twoShouldBeSame = twoByteString
 			.tupleReverse()
 			.tupleReverse()
-		Assertions.assertEquals(
+		assertEquals(
 			twoByteString.tupleReverse(),
 			twoByteStringReverse)
-		Assertions.assertEquals(twoByteString, twoShouldBeSame)
-		Assertions.assertEquals(
+		assertEquals(twoByteString, twoShouldBeSame)
+		assertEquals(
 			twoByteString.tupleAt(51),
 			twoByteString.tupleReverse().tupleAt(2))
 
@@ -412,11 +407,11 @@ class TupleReverseTest
 		val twoShouldBeSameSmall = twoByteStringSmall
 			.tupleReverse()
 			.tupleReverse()
-		Assertions.assertEquals(
+		assertEquals(
 			twoByteStringSmall.tupleReverse(),
 			twoByteStringReverseSmall)
-		Assertions.assertEquals(twoByteStringSmall, twoShouldBeSameSmall)
-		Assertions.assertEquals(
+		assertEquals(twoByteStringSmall, twoShouldBeSameSmall)
+		assertEquals(
 			twoByteStringSmall.tupleAt(2),
 			twoByteStringSmall.tupleReverse().tupleAt(3))
 	}
@@ -458,17 +453,17 @@ class TupleReverseTest
 				true)
 			.makeImmutable()
 		val shouldBeSame = nybbleTuple.tupleReverse().tupleReverse()
-		Assertions.assertEquals(nybbleTuple.tupleReverse(), nybbleTupleReverse)
-		Assertions.assertEquals(
+		assertEquals(nybbleTuple.tupleReverse(), nybbleTupleReverse)
+		assertEquals(
 			nybbleTuple.tupleReverse().tupleAt(17),
 			nybbleTuple.tupleAt(1))
-		Assertions.assertEquals(
+		assertEquals(
 			nybbleTuple.tupleReverse().tupleAt(16),
 			nybbleTuple.tupleAt(2))
-		Assertions.assertEquals(
+		assertEquals(
 			nybbleTuple.tupleReverse().tupleAt(15),
 			nybbleTuple.tupleAt(3))
-		Assertions.assertEquals(shouldBeSame, nybbleTuple)
+		assertEquals(shouldBeSame, nybbleTuple)
 		var nybbleTupleSmall: A_Tuple = mutableObjectOfSize(5)
 		nybbleTupleSmall = nybbleTupleSmall
 			.tupleAtPuttingCanDestroy(
@@ -486,13 +481,13 @@ class TupleReverseTest
 		val shouldBeSameSmall = nybbleTupleSmall
 			.tupleReverse()
 			.tupleReverse()
-		Assertions.assertEquals(
+		assertEquals(
 			nybbleTupleSmall.tupleReverse(),
 			nybbleTupleReverseSmall)
-		Assertions.assertEquals(
+		assertEquals(
 			nybbleTupleSmall.tupleReverse().tupleAt(4),
 			nybbleTupleSmall.tupleAt(2))
-		Assertions.assertEquals(shouldBeSameSmall, nybbleTupleSmall)
+		assertEquals(shouldBeSameSmall, nybbleTupleSmall)
 	}
 
 	/**
@@ -524,30 +519,30 @@ class TupleReverseTest
 
 		// Compare all the elements but not the tuples themselves, to avoid
 		// transforming one into an indirection.
-		Assertions.assertEquals(
+		assertEquals(
 			toList<A_BasicObject>(aTreeTuple.tupleReverse()),
 			toList<A_BasicObject>(aTreeTupleReversed))
 		val aTreeTupleReversedSubrange = aTreeTuple
 			.tupleReverse()
 			.copyTupleFromToCanDestroy(17, 63, false)
 		assert(aTreeTupleReversedSubrange.descriptor() is ReverseTupleDescriptor)
-		Assertions.assertEquals(
+		assertEquals(
 			aTreeTupleReversedSubrange.tupleSize(),
 			63 - 17 + 1)
 		val aConcatenation = aTreeTuple
 			.tupleReverse()
 			.concatenateWith(aTreeTupleReversed.tupleReverse(), true)
 		assert(aConcatenation.descriptor() is TreeTupleDescriptor)
-		Assertions.assertEquals(aConcatenation.childCount(), 4)
-		Assertions.assertEquals(aConcatenation.childAt(4), anObjectTuple)
-		Assertions.assertEquals(aConcatenation.childAt(3), byteString)
-		Assertions.assertEquals(
+		assertEquals(aConcatenation.childCount(), 4)
+		assertEquals(aConcatenation.childAt(4), anObjectTuple)
+		assertEquals(aConcatenation.childAt(3), byteString)
+		assertEquals(
 			aConcatenation.childAt(2),
 			byteString.tupleReverse())
-		Assertions.assertEquals(
+		assertEquals(
 			aConcatenation.childAt(1),
 			anObjectTuple.tupleReverse())
-		Assertions.assertEquals(
+		assertEquals(
 			aConcatenation.tupleAt(142),
 			fromCodePoint(411))
 	}

@@ -32,8 +32,8 @@
 package com.avail.interpreter.levelTwo.operation
 
 import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.TupleDescriptor
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.concatenateTupleMethod
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.ConcatenatedTupleTypeDescriptor
 import com.avail.interpreter.levelTwo.L2Instruction
@@ -72,7 +72,7 @@ object L2_CONCATENATE_TUPLES : L2Operation(
 		{
 			registerSet.constantAtPut(
 				output.register(),
-				TupleDescriptor.emptyTuple(),
+				emptyTuple(),
 				instruction)
 			return
 		}
@@ -125,7 +125,7 @@ object L2_CONCATENATE_TUPLES : L2Operation(
 		val tupleCount = elements.size
 		if (tupleCount == 0)
 		{
-			translator.literal(method, TupleDescriptor.emptyTuple())
+			translator.literal(method, emptyTuple())
 		}
 		else
 		{
@@ -134,10 +134,12 @@ object L2_CONCATENATE_TUPLES : L2Operation(
 			{
 				translator.load(method, elements[i].register())
 				translator.intConstant(method, 1) // canDestroy = true
-				A_Tuple.concatenateWithMethod.generateCall(method)
+				concatenateTupleMethod.generateCall(method)
 			}
 			// Strengthen the final result to AvailObject.
-			method.visitTypeInsn(Opcodes.CHECKCAST, Type.getInternalName(AvailObject::class.java))
+			method.visitTypeInsn(
+				Opcodes.CHECKCAST,
+				Type.getInternalName(AvailObject::class.java))
 		}
 		translator.store(method, output.register())
 	}

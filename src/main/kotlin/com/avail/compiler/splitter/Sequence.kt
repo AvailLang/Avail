@@ -43,10 +43,20 @@ import com.avail.compiler.splitter.WrapState.NEEDS_TO_PUSH_LIST
 import com.avail.compiler.splitter.WrapState.PUSHED_LIST
 import com.avail.compiler.splitter.WrapState.SHOULD_NOT_HAVE_ARGUMENTS
 import com.avail.compiler.splitter.WrapState.SHOULD_NOT_PUSH_LIST
+import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.phrases.A_Phrase
+import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsTuple
+import com.avail.descriptor.phrases.A_Phrase.Companion.permutation
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
+import com.avail.descriptor.phrases.ListPhraseDescriptor
+import com.avail.descriptor.phrases.PermutedListPhraseDescriptor
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.tupleFromIntegerList
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.ListPhraseTypeDescriptor.Companion.emptyListPhraseType
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PERMUTED_LIST_PHRASE
 import com.avail.descriptor.types.TupleTypeDescriptor
 import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.AvailErrorCode.E_INCONSISTENT_ARGUMENT_REORDERING
@@ -55,7 +65,8 @@ import com.avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_GROUP
 import com.avail.exceptions.MalformedMessageException
 import com.avail.exceptions.SignatureException
-import java.util.*
+import java.util.ArrayList
+import java.util.HashSet
 
 /**
  * A `Sequence` is the juxtaposition of any number of other [Expression]s.  It
@@ -88,19 +99,15 @@ internal class Sequence constructor(positionInName: Int)
 	 * in which they occur to the order in which they are bound to arguments at
 	 * a call site.
 	 */
-	val permutedYielders = mutableListOf<Int>()
+	val permutation = mutableListOf<Int>()
 
 	/**
-	 * A three-state indicator of whether my argument components should be
-	 * reordered.  If `null`, a decision has not yet been made, either during
-	 * parsing (because an argument/group has not yet been encountered), or
-	 * because this `Sequence` has no arguments or subgroups that act as
-	 * arguments.  If [java.lang.Boolean.TRUE], then all argument positions so
-	 * far have specified reordering (by using circled numbers), and if
-	 * [java.lang.Boolean.FALSE], then no arguments so far have specified
-	 * reordering.
+	 * An indicator of whether the arguments have been reordered with the
+	 * circled numbers notation.  Within a sequence, either none or all of the
+	 * yielding subexpressions must be reordered.  If there are no yielding
+	 * subexpressions (yet), this will be false.
 	 */
-	var yieldersAreReordered: Boolean? = null
+	var isReordered = false
 
 	override val isLowerCase: Boolean
 		get() = expressions.stream().allMatch { it.isLowerCase }
@@ -113,7 +120,7 @@ internal class Sequence constructor(positionInName: Int)
 		return copy
 	}
 
-	/** A cache of places at which code splitting can take place.  */
+	/** A cache of places at which code splitting can take place. */
 	@Volatile
 	private var cachedRunsForCodeSplitting: List<List<Pair<Expression, Int>>>? =
 		null
@@ -133,21 +140,26 @@ internal class Sequence constructor(positionInName: Int)
 		expressions.add(e)
 		if (e.yieldsValue)
 		{
-			yielders.add(e)
-		}
-		if (e.canBeReordered)
-		{
-			if (yieldersAreReordered !== null
-				&& yieldersAreReordered == (e.explicitOrdinal == -1))
+			assert(e.canBeReordered)
+			val alsoReordered = e.explicitOrdinal != -1
+			if (yielders.isEmpty())
 			{
-				throwMalformedMessageException(
-					E_INCONSISTENT_ARGUMENT_REORDERING,
-					"The sequence of subexpressions before or after a "
-						+ "double-dagger (‡) in a group must have either all "
-						+ "or none of its arguments or direct subgroups numbered "
-						+ "for reordering")
+				isReordered = alsoReordered
 			}
-			yieldersAreReordered = e.explicitOrdinal != -1
+			else
+			{
+				// Check that the reordering agrees with the current consensus.
+				if (isReordered != alsoReordered)
+				{
+					throwMalformedMessageException(
+						E_INCONSISTENT_ARGUMENT_REORDERING,
+						"The sequence of subexpressions before or after a " +
+							"double-dagger (‡) in a group must have either " +
+							"all or none of its arguments or direct " +
+							"subgroups numbered for reordering")
+				}
+			}
+			yielders.add(e)
 		}
 	}
 
@@ -242,13 +254,13 @@ internal class Sequence constructor(positionInName: Int)
 		{
 			throwSignatureException(errorCode)
 		}
-		if (yieldersAreReordered === java.lang.Boolean.TRUE)
+		if (isReordered)
 		{
 			for (i in 1..expected)
 			{
 				val argumentOrGroup = yielders[i - 1]
 				val providedType =
-					argumentType.typeAtIndex(permutedYielders[i - 1])
+					argumentType.typeAtIndex(permutation[i - 1])
 				assert(!providedType.isBottom)
 				argumentOrGroup.checkType(providedType, sectionNumber)
 			}
@@ -357,16 +369,11 @@ internal class Sequence constructor(positionInName: Int)
 		val expression = pair.first
 		val typeIndex = pair.second
 		val realTypeIndex =
-			if (typeIndex != 0
-					&& yieldersAreReordered === java.lang.Boolean.TRUE)
-				permutedYielders[typeIndex - 1]
-			else
-				typeIndex
+			if (typeIndex != 0 && isReordered) permutation[typeIndex - 1]
+			else typeIndex
 		val subexpressionType =
-			if (typeIndex == 0)
-				emptyListPhraseType()
-			else
-				subexpressionsTupleType.typeAtIndex(realTypeIndex)
+			if (typeIndex == 0) emptyListPhraseType()
+			else subexpressionsTupleType.typeAtIndex(realTypeIndex)
 		if (positionInRun == runSize - 1)
 		{
 			// We're on the last element of the run, or it's a singleton run.
@@ -479,10 +486,10 @@ internal class Sequence constructor(positionInName: Int)
 		assert(
 			subexpressionsTupleType.sizeRange().upperBound().equalsInt(
 				argIndex))
-		if (yieldersAreReordered === java.lang.Boolean.TRUE)
+		if (isReordered)
 		{
 			assert(listIsPushed)
-			val permutationTuple = tupleFromIntegerList(permutedYielders)
+			val permutationTuple = tupleFromIntegerList(permutation)
 			val permutationIndex = indexForPermutation(permutationTuple)
 			// This sequence was already collected into a list phrase as the
 			// arguments/groups were parsed.  Permute the list.
@@ -529,11 +536,9 @@ internal class Sequence constructor(positionInName: Int)
 				builder.append(' ')
 			}
 			val oldLength = builder.length
-			expression.printWithArguments(
-				arguments, builder, indent)
-			needsSpace =
+			expression.printWithArguments(arguments, builder, indent)
+			needsSpace = builder.length != oldLength &&
 				expression.shouldBeSeparatedOnRight
-					&& builder.length != oldLength
 		}
 		assert(!arguments!!.hasNext())
 	}
@@ -544,8 +549,8 @@ internal class Sequence constructor(positionInName: Int)
 
 	override val shouldBeSeparatedOnRight: Boolean
 		get() =
-			expressions.isNotEmpty() && expressions[expressions.size - 1]
-				.shouldBeSeparatedOnRight
+			expressions.isNotEmpty() &&
+				expressions[expressions.size - 1].shouldBeSeparatedOnRight
 
 	/**
 	 * Check that if ordinals were specified for my N argument positions, that
@@ -559,15 +564,13 @@ internal class Sequence constructor(positionInName: Int)
 	@Throws(MalformedMessageException::class)
 	fun checkForConsistentOrdinals()
 	{
-		if (yieldersAreReordered !== java.lang.Boolean.TRUE)
+		if (!isReordered)
 		{
 			return
 		}
 		val usedOrdinalsList = expressions
-			.asSequence()
-			.filter { it.canBeReordered }
-			.map { it.explicitOrdinal }
-			.toList()
+			.filter(Expression::canBeReordered)
+			.map(Expression::explicitOrdinal)
 		val size = usedOrdinalsList.size
 		val sortedOrdinalsList = ArrayList(usedOrdinalsList)
 		sortedOrdinalsList.sort()
@@ -589,8 +592,8 @@ internal class Sequence constructor(positionInName: Int)
 					"the number of arguments/groups, but must not be in " +
 					"ascending order (got $usedOrdinalsList)")
 		}
-		assert(permutedYielders.isEmpty())
-		permutedYielders.addAll(usedOrdinalsList)
+		assert(permutation.isEmpty())
+		permutation.addAll(usedOrdinalsList)
 	}
 
 	override fun mightBeEmpty(phraseType: A_Type): Boolean
@@ -599,29 +602,75 @@ internal class Sequence constructor(positionInName: Int)
 		var index = 0
 		for (expression in expressions)
 		{
-			if (expression.yieldsValue)
+			when
 			{
-				index++
-				val realTypeIndex =
-					if (yieldersAreReordered === java.lang.Boolean.TRUE)
-						permutedYielders[index - 1]
-					else
-						index
-				val entryType =
-					subexpressionsTupleType.typeAtIndex(realTypeIndex)
-				if (!expression.mightBeEmpty(entryType))
+				expression.yieldsValue ->
 				{
-					return false
+					index++
+					val realTypeIndex = when (isReordered)
+					{
+						true -> permutation[index - 1]
+						else -> index
+					}
+					val entryType =
+						subexpressionsTupleType.typeAtIndex(realTypeIndex)
+					if (!expression.mightBeEmpty(entryType))
+					{
+						return false
+					}
 				}
-			}
-			else
-			{
-				if (!expression.mightBeEmpty(emptyListPhraseType()))
-				{
-					return false
-				}
+				!expression.mightBeEmpty(emptyListPhraseType()) -> return false
 			}
 		}
 		return true
+	}
+
+	/**
+	 * Answer whether the given list is correctly internally structured for this
+	 * sequence.  If [isReordered] then the list must be a
+	 * [permuted&#32;list&#phrase][PermutedListPhraseDescriptor] with the same
+	 * ordering as [permutation].  Otherwise, it must be a simple
+	 * [list&#32;phrase][ListPhraseDescriptor].  The internal structure of the
+	 * list must also correspond recursively to the shape that the sequence's
+	 * [Expression]s require.
+	 *
+	 * @param phrase
+	 *   The [list&#32;phrase][ListPhraseDescriptor] or
+	 *   [permuted&#32;list&#32;phrase][PermutedListPhraseDescriptor] being
+	 *   checked for conformance with the expected argument structure.
+	 * @return
+	 *   Whether the supplied list is recursively of the right shape to be used
+	 *   as the argument list for a call of this splitter's [A_Bundle].
+	 */
+	override fun checkListStructure(phrase: A_Phrase): Boolean
+	{
+		when
+		{
+			// Assume literals have the right shape, or that a subsequent type
+			// check will catch it if not.
+			phrase.phraseKindIsUnder(LITERAL_PHRASE) -> return true
+		}
+		val subphrases = phrase.expressionsTuple()
+		val subphrasesSize = subphrases.tupleSize()
+		when
+		{
+			subphrasesSize != yielders.size -> return false
+			isReordered ->
+			{
+				// A permuted list phrase is required here (or a literal,
+				// handled above).
+				if (!phrase.phraseKindIsUnder(PERMUTED_LIST_PHRASE))
+					return false
+				// Check that the permutation agrees with what's required.
+				if (permutation != phrase.permutation().toList()) return false
+			}
+			else ->
+			{
+				if (phrase.phraseKindIsUnder(PERMUTED_LIST_PHRASE)) return false
+			}
+		}
+		return (yielders zip subphrases).all { (yielder, subphrase) ->
+			yielder.checkListStructure(subphrase)
+		}
 	}
 }

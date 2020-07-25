@@ -33,6 +33,19 @@ package com.avail.descriptor.tuples
 
 import com.avail.annotations.HideFieldInDebugger
 import com.avail.descriptor.representation.*
+import com.avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithStartingAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.computeHashFromTo
+import com.avail.descriptor.tuples.A_Tuple.Companion.concatenateWith
+import com.avail.descriptor.tuples.A_Tuple.Companion.copyTupleFromToCanDestroy
+import com.avail.descriptor.tuples.A_Tuple.Companion.transferIntoByteBuffer
+import com.avail.descriptor.tuples.A_Tuple.Companion.treeTupleLevel
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAtPuttingCanDestroy
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleElementsInRangeAreInstancesOf
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleLongAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleReverse
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.SubrangeTupleDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import com.avail.descriptor.tuples.SubrangeTupleDescriptor.IntegerSlots.Companion.SIZE
@@ -94,11 +107,13 @@ class SubrangeTupleDescriptor private constructor(mutability: Mutability)
 			 * very rare case that the hash value actually equals zero, the hash
 			 * value has to be computed every time it is requested.
 			 */
+			@JvmField
 			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
 
 			/**
 			 * The first index of the basis tuple that is within this subrange.
 			 */
+			@JvmField
 			val START_INDEX = BitField(START_AND_SIZE, 0, 32)
 
 			/**
@@ -106,6 +121,7 @@ class SubrangeTupleDescriptor private constructor(mutability: Mutability)
 			 * [START_INDEX].  Must not be zero, and should probably be at
 			 * least some reasonable size to avoid time and space overhead.
 			 */
+			@JvmField
 			val SIZE = BitField(START_AND_SIZE, 32, 32)
 
 			init
@@ -457,21 +473,22 @@ class SubrangeTupleDescriptor private constructor(mutability: Mutability)
 		type: A_Type): Boolean
 	{
 		val offset = self.slot(START_INDEX) - 1
-		return self.slot(BASIS_TUPLE)
-			.tupleElementsInRangeAreInstancesOf(
-				startIndex + offset,
-				endIndex + offset,
-				type)
+		return self.slot(BASIS_TUPLE).tupleElementsInRangeAreInstancesOf(
+			startIndex + offset, endIndex + offset, type)
 	}
 
-	/**
-	 * Answer the integer element at the given index in the tuple object.
-	 */
 	override fun o_TupleIntAt(self: AvailObject, index: Int): Int
 	{
 		assert(1 <= index && index <= self.slot(SIZE))
 		val adjustedIndex = index + self.slot(START_INDEX) - 1
 		return self.slot(BASIS_TUPLE).tupleIntAt(adjustedIndex)
+	}
+
+	override fun o_TupleLongAt(self: AvailObject, index: Int): Long
+	{
+		assert(1 <= index && index <= self.slot(SIZE))
+		val adjustedIndex = index + self.slot(START_INDEX) - 1
+		return self.slot(BASIS_TUPLE).tupleLongAt(adjustedIndex)
 	}
 
 	override fun o_TupleReverse(self: AvailObject): A_Tuple

@@ -32,6 +32,7 @@
 package com.avail.descriptor.atoms
 
 import com.avail.annotations.HideFieldInDebugger
+import com.avail.descriptor.atoms.AtomWithPropertiesDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import com.avail.descriptor.atoms.AtomWithPropertiesDescriptor.ObjectSlots.ISSUING_MODULE
 import com.avail.descriptor.atoms.AtomWithPropertiesDescriptor.ObjectSlots.NAME
 import com.avail.descriptor.atoms.AtomWithPropertiesDescriptor.ObjectSlots.PROPERTY_MAP_POJO
@@ -50,8 +51,7 @@ import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.types.TypeTag
 import com.avail.serialization.Serializer
-import java.util.*
-import java.util.Collections.synchronizedMap
+import java.util.WeakHashMap
 
 /**
  * An `atom` is an object that has identity by fiat, i.e., it is distinguished
@@ -172,6 +172,7 @@ open class AtomWithPropertiesDescriptor protected constructor(
 		propertyMapPojo.makeShared()
 		val propertyMap: Map<A_Atom, AvailObject> =
 			propertyMapPojo.javaObjectNotNull()
+		// No need to lock it, since it hasn't been shared with other fibers.
 		for ((key, value) in propertyMap.entries) {
 			key.makeShared()
 			value.makeShared()
@@ -193,9 +194,11 @@ open class AtomWithPropertiesDescriptor protected constructor(
 		val propertyMapPojo = self.slot(PROPERTY_MAP_POJO)
 		val map: MutableMap<A_Atom, A_BasicObject> =
 			propertyMapPojo.javaObjectNotNull()
-		when {
-			value.equalsNil() -> map.remove(key)
-			else -> map[key.makeShared()] = value.makeShared()
+		synchronized(map) {
+			when {
+				value.equalsNil() -> map.remove(key)
+				else -> map[key.makeShared()] = value.makeShared()
+			}
 		}
 	}
 
@@ -211,7 +214,7 @@ open class AtomWithPropertiesDescriptor protected constructor(
 		val propertyMapPojo: A_BasicObject = self.slot(PROPERTY_MAP_POJO)
 		val propertyMap: Map<A_Atom, AvailObject> =
 			propertyMapPojo.javaObjectNotNull()
-		return propertyMap[key] ?: nil
+		return synchronized(propertyMap) { propertyMap[key] } ?: nil
 	}
 
 	override fun mutable() = mutable
@@ -242,9 +245,8 @@ open class AtomWithPropertiesDescriptor protected constructor(
 			setSlot(ISSUING_MODULE, issuingModule)
 			setSlot(
 				PROPERTY_MAP_POJO,
-				identityPojo(
-					synchronizedMap(WeakHashMap<A_Atom, A_BasicObject>())))
-			setSlot(IntegerSlots.HASH_OR_ZERO, 0)
+				identityPojo(WeakHashMap<A_Atom, A_BasicObject>()))
+			setSlot(HASH_OR_ZERO, 0)
 		}
 
 		/**
@@ -276,9 +278,8 @@ open class AtomWithPropertiesDescriptor protected constructor(
 			setSlot(ISSUING_MODULE, issuingModule)
 			setSlot(
 				PROPERTY_MAP_POJO,
-				identityPojo(
-					synchronizedMap(WeakHashMap<A_Atom, A_BasicObject>())))
-			setSlot(IntegerSlots.HASH_OR_ZERO, originalHash)
+				identityPojo(WeakHashMap<A_Atom, A_BasicObject>()))
+			setSlot(HASH_OR_ZERO, originalHash)
 		}
 
 		/** The mutable [AtomWithPropertiesDescriptor].  */

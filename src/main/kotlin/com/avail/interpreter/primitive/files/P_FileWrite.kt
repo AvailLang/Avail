@@ -40,6 +40,12 @@ import com.avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.byteArray
+import com.avail.descriptor.tuples.A_Tuple.Companion.byteBuffer
+import com.avail.descriptor.tuples.A_Tuple.Companion.concatenateWith
+import com.avail.descriptor.tuples.A_Tuple.Companion.copyTupleFromToCanDestroy
+import com.avail.descriptor.tuples.A_Tuple.Companion.transferIntoByteBuffer
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromArray
 import com.avail.descriptor.tuples.StringDescriptor
@@ -71,8 +77,9 @@ import com.avail.io.SimpleCompletionHandler
 import com.avail.utility.evaluation.Combinator.recurse
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousFileChannel
-import java.util.*
+import java.util.ArrayList
 import java.util.Collections.emptyList
+import java.util.NoSuchElementException
 import kotlin.math.min
 
 /**
@@ -254,9 +261,11 @@ object P_FileWrite : Primitive(6, CanInline, HasSideEffect)
 						// Invalidate *all* pages for this file to ensure
 						// subsequent I/O has a proper opportunity to
 						// re-encounter problems like read faults and whatnot.
-						for (key in ArrayList(handle.bufferKeys.keys))
-						{
-							ioSystem.discardBuffer(key)
+						synchronized(handle.bufferKeys) {
+							for (key in ArrayList(handle.bufferKeys.keys))
+							{
+								ioSystem.discardBuffer(key)
+							}
 						}
 						runOutermostFunction(
 							runtime,

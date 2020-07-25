@@ -203,10 +203,9 @@ object P_Subtraction : Primitive(2, CanFold, CanInline)
 		{
 			// The happy path is reachable.  Generate the most efficient
 			// available unboxed arithmetic.
-			val returnTypeIfInts =
-				returnTypeGuaranteedByVM(
-					rawFunction,
-					argumentTypes.map { it.typeIntersection(int32()) })
+			val returnTypeIfInts = returnTypeGuaranteedByVM(
+				rawFunction,
+				argumentTypes.map { it.typeIntersection(int32()) })
 			val semanticTemp = generator.topFrame.temp(generator.nextUnique())
 			val tempWriter =
 				generator.intWrite(

@@ -158,7 +158,7 @@ abstract class JVMChunk @ReferencedInGeneratedCode constructor()
 		@JvmField
 		val badOffsetMethod: CheckedMethod = CheckedMethod.staticMethod(
 			JVMChunk::class.java,
-			"badOffset",
+			::badOffset.name,
 			RuntimeException::class.java,
 			Int::class.javaPrimitiveType!!)
 	}

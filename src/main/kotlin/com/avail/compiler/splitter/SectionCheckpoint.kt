@@ -37,6 +37,8 @@ import com.avail.compiler.ParsingOperation.RUN_PREFIX_FUNCTION
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.types.A_Type
+import com.avail.exceptions.AvailUnsupportedOperationException
+import java.lang.UnsupportedOperationException
 
 /**
  * An `SectionCheckpoint` expression is an occurrence of the
@@ -120,4 +122,8 @@ internal class SectionCheckpoint constructor(
 		get() = true
 
 	override fun mightBeEmpty(phraseType: A_Type) = true
+
+	override fun checkListStructure(phrase: A_Phrase): Boolean =
+		throw RuntimeException(
+			"checkListStructure() inapplicable for SectionCheckpoint.")
 }

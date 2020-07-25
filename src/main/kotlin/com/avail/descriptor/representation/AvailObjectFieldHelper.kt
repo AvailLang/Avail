@@ -31,8 +31,11 @@
  */
 package com.avail.descriptor.representation
 
+import com.avail.descriptor.representation.AbstractDescriptor.Companion.bitFieldsFor
+import com.avail.descriptor.representation.AbstractDescriptor.Companion.describeIntegerSlot
 import com.avail.utility.StackPrinter
 import com.avail.utility.cast
+import org.jetbrains.annotations.Debug.Renderer
 
 /**
  * This class assists with the presentation of [AvailObject]s in the IntelliJ
@@ -114,24 +117,17 @@ import com.avail.utility.cast
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
+@Renderer(
+	text = "nameForDebugger()",
+	childrenArray = "describeForDebugger()")
 class AvailObjectFieldHelper(
 	private val parentObject: A_BasicObject?,
 	val slot: AbstractSlotsEnum,
 	val subscript: Int,
 	val value: Any?,
-	val forcedName: String?, //= null   TODO - Temporary Java compatibility
-	val forcedChildren: Array<*>? //= null  TODO - Temporary Java compatibility
+	val forcedName: String? = null,
+	val forcedChildren: Array<*>? = null
 ) {
-	/**
-	 * TODO Remove - Temporary compatibility for Java.
-	 */
-	constructor(
-		parentObject: A_BasicObject?,
-		slot: AbstractSlotsEnum,
-		subscript: Int,
-		value: Any?
-	) : this(parentObject, slot, subscript, value, null, null)
-
 	/**
 	 * The name to present for this field.
 	 */
@@ -157,7 +153,9 @@ class AvailObjectFieldHelper(
 		}
 		when {
 			subscript != -1 -> {
-				append(slot.fieldName(), 0, slot.fieldName().length - 1)
+				val name = slot.fieldName()
+				append(name)
+				if (name.endsWith("_")) setLength(length - 1)
 				append("[$subscript]")
 			}
 			else -> append(slot.fieldName())
@@ -168,18 +166,18 @@ class AvailObjectFieldHelper(
 			is AvailIntegerValueHelper -> {
 				try {
 					val strongSlot: IntegerSlotsEnum = slot.cast()
-					val bitFields = AbstractDescriptor.bitFieldsFor(strongSlot)
+					val bitFields = bitFieldsFor(strongSlot)
 					if (bitFields.isNotEmpty()) {
 						// Remove the name.
 						delete(0, length)
 					}
-					AbstractDescriptor.describeIntegerSlot(
+					describeIntegerSlot(
 						parentObject as AvailObject,
 						value.longValue,
 						strongSlot,
 						bitFields,
 						this)
-				} catch (e: RuntimeException) {
+				} catch (e: Throwable) {
 					append("PROBLEM DESCRIBING INTEGER FIELD:\n")
 					append(StackPrinter.trace(e))
 				}

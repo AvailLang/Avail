@@ -106,6 +106,8 @@ class L2ReadIntOperand : L2ReadOperand<L2IntRegister>
 		L2ReadIntOperand(
 			semanticValue(), restriction(), newRegister as L2IntRegister)
 
+	override fun createNewRegister() = L2IntRegister(-1)
+
 	override fun dispatchOperand(dispatcher: L2OperandDispatcher)
 	{
 		dispatcher.doOperand(this)

@@ -31,19 +31,8 @@
  */
 package com.avail.descriptor.methods
 
-import com.avail.descriptor.functions.A_Function
-import com.avail.descriptor.functions.FunctionDescriptor
-import com.avail.descriptor.module.A_Module
-import com.avail.descriptor.module.ModuleDescriptor
-import com.avail.descriptor.parsing.A_DefinitionParsingPlan
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.tuples.A_String
-import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.FunctionTypeDescriptor
-import com.avail.descriptor.types.ListPhraseTypeDescriptor
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 
 /**
  * `A_Definition` is an interface that specifies the operations specific
@@ -53,28 +42,7 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-interface A_Definition : A_BasicObject {
-	/**
-	 * If this is a [method&#32;definition][MethodDefinitionDescriptor] then
-	 * answer the actual [function][FunctionDescriptor].  If this is a
-	 * [macro&#32;definition][MacroDefinitionDescriptor], answer the macro body
-	 * function.  Fail otherwise.
-	 *
-	 * @return
-	 *   The function of the method/macro definition.
-	 */
-	fun bodyBlock(): A_Function
-
-	/**
-	 * Answer a [function&#32;type][FunctionTypeDescriptor] that identifies
-	 * where this definition occurs in the [method][MethodDescriptor]'s directed
-	 * acyclic graph of definitions.
-	 *
-	 * @return
-	 *   The function type for this definition.
-	 */
-	fun bodySignature(): A_Type
-
+interface A_Definition : A_Sendable {
 	/**
 	 * Answer the [method][MethodDescriptor] that this
 	 * [definition][DefinitionDescriptor] is for.
@@ -85,86 +53,4 @@ interface A_Definition : A_BasicObject {
 	 *   The definition's method.
 	 */
 	fun definitionMethod(): A_Method
-
-	/**
-	 * Answer the [module][ModuleDescriptor] in which this
-	 * [definition][DefinitionDescriptor] occurred.
-	 *
-	 * Also defined in [A_SemanticRestriction] and [A_GrammaticalRestriction].
-	 *
-	 * @return
-	 *   The definition's originating module.
-	 */
-	fun definitionModule(): A_Module
-
-	/**
-	 * Answer the [A_String] that names the [module][ModuleDescriptor] in which
-	 * this [definition][DefinitionDescriptor] occurred.  If the definition is
-	 * built-in (i.e., not created in any module), reply with a suitable string
-	 * to indicate this.
-	 *
-	 * @return
-	 *   The definition's originating module's name.
-	 */
-	fun definitionModuleName(): A_String
-
-	/**
-	 * Answer whether this is an
-	 * [abstract&#32;definition][AbstractDefinitionDescriptor].
-	 *
-	 * @return
-	 *   Whether it's abstract.
-	 */
-	@ReferencedInGeneratedCode
-	fun isAbstractDefinition(): Boolean
-
-	/**
-	 * Is the [receiver][AvailObject] a
-	 * [forward&#32;declaration&#32;site][ForwardDefinitionDescriptor]?
-	 *
-	 * @return
-	 *   `true` if the receiver is a forward declaration site.
-	 */
-	@ReferencedInGeneratedCode
-	fun isForwardDefinition(): Boolean
-
-	/**
-	 * Answer whether this definition is a
-	 * [macro&#32;definition][MacroDefinitionDescriptor].  Macro definitions may
-	 * not be mixed with any other kinds of definitions.
-	 *
-	 * @return
-	 *   Whether it's a macro.
-	 */
-	fun isMacroDefinition(): Boolean
-
-	/**
-	 * Is the [receiver][AvailObject] a
-	 * [method&#32;definition][MethodDefinitionDescriptor]?
-	 *
-	 * @return
-	 *   `true` if the receiver is a method definition.
-	 */
-	fun isMethodDefinition(): Boolean
-
-	/**
-	 * Answer the [list&#32;phrase&#32;type][ListPhraseTypeDescriptor] for this
-	 * definition.  The parser uses this type to produce a customized
-	 * [parsing&#32;plan][A_DefinitionParsingPlan], specialized to a particular
-	 * [A_Definition].
-	 *
-	 * @return
-	 *   A subtype of `list phrase type`.
-	 */
-	fun parsingSignature(): A_Type
-
-	/**
-	 * Answer the [tuple][A_Tuple] of macro prefix [functions][A_Function] for
-	 * this [macro&#32;definition][MacroDefinitionDescriptor]. Fail if this is
-	 * not a macro definition.
-	 *
-	 * @return
-	 *   This macro definition's tuple of prefix functions.
-	 */
-	fun prefixFunctions(): A_Tuple
 }

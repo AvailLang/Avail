@@ -32,17 +32,39 @@
 package com.avail.descriptor.tuples
 
 import com.avail.annotations.HideFieldInDebugger
-import com.avail.descriptor.representation.*
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.AvailObject.Companion.newObjectIndexedIntegerIndexedDescriptor
 import com.avail.descriptor.representation.AvailObjectRepresentation.Companion.newLike
+import com.avail.descriptor.representation.BitField
+import com.avail.descriptor.representation.IntegerSlotsEnum
+import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.Mutability.IMMUTABLE
 import com.avail.descriptor.representation.Mutability.MUTABLE
 import com.avail.descriptor.representation.Mutability.SHARED
+import com.avail.descriptor.representation.ObjectSlotsEnum
+import com.avail.descriptor.tuples.A_Tuple.Companion.childAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.childCount
+import com.avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithStartingAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.concatenateWith
+import com.avail.descriptor.tuples.A_Tuple.Companion.copyTupleFromToCanDestroy
+import com.avail.descriptor.tuples.A_Tuple.Companion.hashFromTo
+import com.avail.descriptor.tuples.A_Tuple.Companion.replaceFirstChild
+import com.avail.descriptor.tuples.A_Tuple.Companion.transferIntoByteBuffer
+import com.avail.descriptor.tuples.A_Tuple.Companion.treeTupleLevel
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAtPuttingCanDestroy
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleElementsInRangeAreInstancesOf
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleLongAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleReverse
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import com.avail.descriptor.tuples.TreeTupleDescriptor.Companion.maxWidth
+import com.avail.descriptor.tuples.TreeTupleDescriptor.Companion.minWidthOfNonRoot
 import com.avail.descriptor.tuples.TreeTupleDescriptor.IntegerSlots.CUMULATIVE_SIZES_AREA_
 import com.avail.descriptor.tuples.TreeTupleDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import com.avail.descriptor.tuples.TreeTupleDescriptor.ObjectSlots.SUBTUPLE_AT_
-
 import com.avail.descriptor.types.A_Type
 import com.avail.utility.structures.EnumMap
 import java.nio.ByteBuffer
@@ -103,6 +125,7 @@ class TreeTupleDescriptor internal constructor(
 			 * subtuples is easily computable from the hashes of the subtuples
 			 * and their lengths.
 			 */
+			@JvmField
 			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
 
 			init
@@ -614,15 +637,20 @@ class TreeTupleDescriptor internal constructor(
 		return true
 	}
 
-	/**
-	 * Answer the integer element at the given index in the tuple object.
-	 */
 	override fun o_TupleIntAt(self: AvailObject, index: Int): Int
 	{
 		val childSubscript = childSubscriptForIndex(self, index)
 		val offset = offsetForChildSubscript(self, childSubscript)
 		val child: A_Tuple = self.slot(SUBTUPLE_AT_, childSubscript)
 		return child.tupleIntAt(index - offset)
+	}
+
+	override fun o_TupleLongAt(self: AvailObject, index: Int): Long
+	{
+		val childSubscript = childSubscriptForIndex(self, index)
+		val offset = offsetForChildSubscript(self, childSubscript)
+		val child: A_Tuple = self.slot(SUBTUPLE_AT_, childSubscript)
+		return child.tupleLongAt(index - offset)
 	}
 
 	/**

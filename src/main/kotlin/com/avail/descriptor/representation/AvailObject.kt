@@ -47,6 +47,7 @@ import com.avail.descriptor.fiber.FiberDescriptor.TraceFlag
 import com.avail.descriptor.functions.A_Continuation
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.functions.A_RegisterDump
 import com.avail.descriptor.functions.CompiledCodeDescriptor
 import com.avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
 import com.avail.descriptor.functions.FunctionDescriptor
@@ -55,6 +56,7 @@ import com.avail.descriptor.maps.A_MapBin
 import com.avail.descriptor.maps.MapBinDescriptor
 import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.methods.A_GrammaticalRestriction
+import com.avail.descriptor.methods.A_Macro
 import com.avail.descriptor.methods.A_Method
 import com.avail.descriptor.methods.A_SemanticRestriction
 import com.avail.descriptor.methods.DefinitionDescriptor
@@ -73,6 +75,7 @@ import com.avail.descriptor.parsing.A_DefinitionParsingPlan
 import com.avail.descriptor.parsing.A_Lexer
 import com.avail.descriptor.parsing.A_ParsingPlanInProgress
 import com.avail.descriptor.phrases.A_Phrase
+import com.avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor
@@ -80,17 +83,16 @@ import com.avail.descriptor.tokens.A_Token
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.isBetterRepresentationThan
 import com.avail.descriptor.tuples.ByteStringDescriptor
 import com.avail.descriptor.tuples.ByteTupleDescriptor
 import com.avail.descriptor.tuples.IntTupleDescriptor
 import com.avail.descriptor.tuples.IntegerIntervalTupleDescriptor
-import com.avail.descriptor.tuples.NybbleTupleDescriptor
-import com.avail.descriptor.tuples.ObjectTupleDescriptor
+import com.avail.descriptor.tuples.LongTupleDescriptor
 import com.avail.descriptor.tuples.RepeatedElementTupleDescriptor
 import com.avail.descriptor.tuples.SmallIntegerIntervalTupleDescriptor
 import com.avail.descriptor.tuples.StringDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor
-import com.avail.descriptor.tuples.TwoByteStringDescriptor
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor
 import com.avail.descriptor.types.FunctionTypeDescriptor
@@ -116,13 +118,15 @@ import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.utility.StackPrinter
+import com.avail.utility.Strings.traceFor
 import com.avail.utility.cast
 import com.avail.utility.json.JSONWriter
 import com.avail.utility.visitor.AvailSubobjectVisitor
 import com.avail.utility.visitor.MarkUnreachableSubobjectVisitor
-import java.nio.ByteBuffer
-import java.util.*
-import java.util.stream.Stream
+import org.jetbrains.annotations.Debug.Renderer
+import java.util.IdentityHashMap
+import java.util.Spliterator
+import java.util.TimerTask
 
 /**
  * `AvailObject` is the fully realized, and mostly machine generated,
@@ -145,7 +149,9 @@ import java.util.stream.Stream
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-@Suppress("HasPlatformType")
+@Renderer(
+	text = "nameForDebugger()",
+	childrenArray = "describeForDebugger()")
 class AvailObject private constructor(
 	descriptor: AbstractDescriptor,
 	objectSlotsSize: Int,
@@ -166,6 +172,7 @@ class AvailObject private constructor(
 	A_Function,
 	A_GrammaticalRestriction,
 	A_Lexer,
+	A_Macro,
 	A_Map,
 	A_MapBin,
 	A_Method,
@@ -174,6 +181,7 @@ class AvailObject private constructor(
 	A_ParsingPlanInProgress,
 	A_Phrase,
 	A_RawFunction,
+	A_RegisterDump,
 	A_SemanticRestriction,
 	A_Set,
 	A_Token,
@@ -226,8 +234,6 @@ class AvailObject private constructor(
 		}
 	}
 
-	enum class FakeSlots : ObjectSlotsEnum { ERROR_ }
-
 	/**
 	 * Utility method for decomposing this object in the debugger.  See
 	 * [AvailObjectFieldHelper] for instructions to enable this functionality in
@@ -246,9 +252,18 @@ class AvailObject private constructor(
 			arrayOf(
 				AvailObjectFieldHelper(
 					this,
-					FakeSlots.ERROR_,
+					DebuggerObjectSlots("Error"),
 					-1,
-					e))
+					e,
+					forcedName = e.toString(),
+					forcedChildren = arrayOf(
+						AvailObjectFieldHelper(
+							this,
+							DebuggerObjectSlots("Stack trace"),
+							-1,
+							traceFor(e),
+							forcedName = "Stack trace")
+					)))
 		}
 
 	/**
@@ -540,15 +555,6 @@ class AvailObject private constructor(
 	override fun asNativeString() = dispatch { it::o_AsNativeString }
 
 	/**
-	 * Construct an Avail [set][SetDescriptor] from the receiver, a
-	 * [tuple][TupleDescriptor].
-	 *
-	 * @return
-	 *   A set containing each element of the tuple.
-	 */
-	override fun asSet() = dispatch { it::o_AsSet }
-
-	/**
 	 * Construct a [tuple][TupleDescriptor] from the receiver, a
 	 * [set][SetDescriptor]. Element ordering in the tuple is arbitrary and
 	 * unstable.
@@ -612,8 +618,6 @@ class AvailObject private constructor(
 		it::o_BinRemoveElementHashLevelCanDestroy
 	}
 
-	override fun bitsPerEntry() = dispatch { it::o_BitsPerEntry }
-
 	override fun bodyBlock() = dispatch { it::o_BodyBlock }
 
 	override fun bodySignature() = dispatch { it::o_BodySignature }
@@ -636,301 +640,6 @@ class AvailObject private constructor(
 
 	override fun code() = dispatch { it::o_Code }
 
-	/**
-	 * Compare a subrange of the receiver with a subrange of another
-	 * [tuple][TupleDescriptor]. The size of the subrange of both objects is
-	 * determined by the index range supplied for the receiver.
-	 *
-	 * @param startIndex1
-	 *   The inclusive lower bound of the receiver's subrange.
-	 * @param endIndex1
-	 *   The inclusive upper bound of the receiver's subrange.
-	 * @param anotherObject
-	 *   The other object used in the comparison.
-	 * @param startIndex2
-	 *   The inclusive lower bound of the other object's subrange.
-	 * @return
-	 *   `true` if the contents of the subranges match exactly, `false`
-	 *   otherwise.
-	 */
-	override fun compareFromToWithStartingAt(
-		startIndex1: Int,
-		endIndex1: Int,
-		anotherObject: A_Tuple,
-		startIndex2: Int
-	) = dispatch(startIndex1, endIndex1, anotherObject, startIndex2) {
-		it::o_CompareFromToWithStartingAt
-	}
-
-	/**
-	 * Compare a subrange of the receiver with a subrange of the given
-	 * [tuple][TupleDescriptor]. The size of the subrange of both objects is
-	 * determined by the index range supplied for the receiver.
-	 *
-	 * @param startIndex1
-	 *   The inclusive lower bound of the receiver's subrange.
-	 * @param endIndex1
-	 *   The inclusive upper bound of the receiver's subrange.
-	 * @param aTuple
-	 *   The tuple used in the comparison.
-	 * @param startIndex2
-	 *   The inclusive lower bound of the tuple's subrange.
-	 * @return
-	 *   `true` if the contents of the subranges match exactly, `false`
-	 *   otherwise.
-	 */
-	override fun compareFromToWithAnyTupleStartingAt(
-		startIndex1: Int,
-		endIndex1: Int,
-		aTuple: A_Tuple,
-		startIndex2: Int
-	) = dispatch(startIndex1, endIndex1, aTuple, startIndex2) {
-		it::o_CompareFromToWithAnyTupleStartingAt
-	}
-
-	/**
-	 * Compare a subrange of the receiver with a subrange of the given
-	 * [byte&#32;string][ByteStringDescriptor]. The size of the subrange of both
-	 * objects is determined by the index range supplied for the receiver.
-	 *
-	 * @param startIndex1
-	 *   The inclusive lower bound of the receiver's subrange.
-	 * @param endIndex1
-	 *   The inclusive upper bound of the receiver's subrange.
-	 * @param aByteString
-	 *   The byte string used in the comparison.
-	 * @param startIndex2
-	 *   The inclusive lower bound of the byte string's subrange.
-	 * @return
-	 *   `true` if the contents of the subranges match exactly, `false`
-	 *   otherwise.
-	 */
-	override fun compareFromToWithByteStringStartingAt(
-		startIndex1: Int,
-		endIndex1: Int,
-		aByteString: A_String,
-		startIndex2: Int
-	) = dispatch(startIndex1, endIndex1, aByteString, startIndex2) {
-		it::o_CompareFromToWithByteStringStartingAt
-	}
-
-	/**
-	 * Compare a subrange of the receiver with a subrange of the given
-	 * [byte&#32;tuple][ByteTupleDescriptor]. The size of the subrange of both
-	 * objects is determined by the index range supplied for the receiver.
-	 *
-	 * @param startIndex1
-	 *   The inclusive lower bound of the receiver's subrange.
-	 * @param endIndex1
-	 *   The inclusive upper bound of the receiver's subrange.
-	 * @param aByteTuple
-	 *   The byte tuple used in the comparison.
-	 * @param startIndex2
-	 *   The inclusive lower bound of the byte tuple's subrange.
-	 * @return
-	 *   `true` if the contents of the subranges match exactly, `false`
-	 *   otherwise.
-	 */
-	override fun compareFromToWithByteTupleStartingAt(
-		startIndex1: Int,
-		endIndex1: Int,
-		aByteTuple: A_Tuple,
-		startIndex2: Int
-	) = dispatch(startIndex1, endIndex1, aByteTuple, startIndex2) {
-		it::o_CompareFromToWithByteTupleStartingAt
-	}
-
-	/**
-	 * Compare a subrange of the receiver with a subrange of the given
-	 * [integer&#32;interval&#32;tuple][IntegerIntervalTupleDescriptor]. The
-	 * size of the subrange of both objects is determined by the index range
-	 * supplied for the receiver.
-	 *
-	 * @param startIndex1
-	 * The inclusive lower bound of the receiver's subrange.
-	 * @param endIndex1
-	 * The inclusive upper bound of the receiver's subrange.
-	 * @param anIntegerIntervalTuple
-	 * The integer interval tuple used in the comparison.
-	 * @param startIndex2
-	 * The inclusive lower bound of the byte tuple's subrange.
-	 * @return `true` if the contents of the subranges match exactly,
-	 * `false` otherwise.
-	 */
-	override fun compareFromToWithIntegerIntervalTupleStartingAt(
-		startIndex1: Int,
-		endIndex1: Int,
-		anIntegerIntervalTuple: A_Tuple,
-		startIndex2: Int
-	) = dispatch(startIndex1, endIndex1, anIntegerIntervalTuple, startIndex2) {
-		it::o_CompareFromToWithIntegerIntervalTupleStartingAt
-	}
-
-	/**
-	 * Compare a subrange of the receiver with a subrange of the given
-	 * [int&#32;tuple][IntTupleDescriptor]. The size of the subrange of both
-	 * objects is determined by the index range supplied for the receiver.
-	 *
-	 * @param startIndex1
-	 *   The inclusive lower bound of the receiver's subrange.
-	 * @param endIndex1
-	 *   The inclusive upper bound of the receiver's subrange.
-	 * @param anIntTuple
-	 *   The int tuple used in the comparison.
-	 * @param startIndex2
-	 *   The inclusive lower bound of the int tuple's subrange.
-	 * @return
-	 *   `true` if the contents of the subranges match exactly, `false`
-	 *   otherwise.
-	 */
-	override fun compareFromToWithIntTupleStartingAt(
-		startIndex1: Int,
-		endIndex1: Int,
-		anIntTuple: A_Tuple,
-		startIndex2: Int
-	) = dispatch(startIndex1, endIndex1, anIntTuple, startIndex2) {
-		it::o_CompareFromToWithIntTupleStartingAt
-	}
-
-	/**
-	 * Compare a subrange of the receiver with a subrange of the given small
-	 * integer [interval&#32;tuple][SmallIntegerIntervalTupleDescriptor]. The
-	 * size of the subrange of both objects is determined by the index range
-	 * supplied for the receiver.
-	 *
-	 * @param startIndex1
-	 *   The inclusive lower bound of the receiver's subrange.
-	 * @param endIndex1
-	 *   The inclusive upper bound of the receiver's subrange.
-	 * @param aSmallIntegerIntervalTuple
-	 *   The small integer interval tuple used in the comparison.
-	 * @param startIndex2
-	 *   The inclusive lower bound of the byte tuple's subrange.
-	 * @return
-	 *   `true` if the contents of the subranges match exactly, `false`
-	 *   otherwise.
-	 */
-	override fun compareFromToWithSmallIntegerIntervalTupleStartingAt(
-		startIndex1: Int,
-		endIndex1: Int,
-		aSmallIntegerIntervalTuple: A_Tuple,
-		startIndex2: Int
-	) = dispatch(
-		startIndex1, endIndex1, aSmallIntegerIntervalTuple, startIndex2
-	) { it::o_CompareFromToWithSmallIntegerIntervalTupleStartingAt }
-
-	/**
-	 * Compare a subrange of the receiver with a subrange of the given
-	 * [repeated&#32;element&#32;tuple][RepeatedElementTupleDescriptor]. The
-	 * size of the subrange of both objects is determined by the index range
-	 * supplied for the receiver.
-	 *
-	 * @param startIndex1
-	 *   The inclusive lower bound of the receiver's subrange.
-	 * @param endIndex1
-	 *   The inclusive upper bound of the receiver's subrange.
-	 * @param aRepeatedElementTuple
-	 *   The repeated element tuple used in the comparison.
-	 * @param startIndex2
-	 *   The inclusive lower bound of the repeated element tuple's subrange.
-	 * @return
-	 *   `true` if the contents of the subranges match exactly, `false`
-	 *   otherwise.
-	 */
-	override fun compareFromToWithRepeatedElementTupleStartingAt(
-		startIndex1: Int,
-		endIndex1: Int,
-		aRepeatedElementTuple: A_Tuple,
-		startIndex2: Int
-	) = dispatch(startIndex1, endIndex1, aRepeatedElementTuple, startIndex2) {
-		it::o_CompareFromToWithRepeatedElementTupleStartingAt
-	}
-
-	/**
-	 * Compare a subrange of the receiver with a subrange of the given
-	 * [nybble&#32;tuple][NybbleTupleDescriptor]. The size of the subrange of
-	 * both objects is determined by the index range supplied for the receiver.
-	 *
-	 * @param startIndex1
-	 *   The inclusive lower bound of the receiver's subrange.
-	 * @param endIndex1
-	 *   The inclusive upper bound of the receiver's subrange.
-	 * @param aNybbleTuple
-	 *   The nybble tuple used in the comparison.
-	 * @param startIndex2
-	 *   The inclusive lower bound of the nybble tuple's subrange.
-	 * @return
-	 *   `true` if the contents of the subranges match exactly, `false`
-	 *   otherwise.
-	 */
-	override fun compareFromToWithNybbleTupleStartingAt(
-		startIndex1: Int,
-		endIndex1: Int,
-		aNybbleTuple: A_Tuple,
-		startIndex2: Int
-	) = dispatch(startIndex1, endIndex1, aNybbleTuple, startIndex2) {
-		it::o_CompareFromToWithNybbleTupleStartingAt
-	}
-
-	/**
-	 * Compare a subrange of the receiver with a subrange of the given
-	 * [object&#32;tuple][ObjectTupleDescriptor]. The size of the subrange of
-	 * both objects is determined by the index range supplied for the receiver.
-	 *
-	 * @param startIndex1
-	 *   The inclusive lower bound of the receiver's subrange.
-	 * @param endIndex1
-	 *   The inclusive upper bound of the receiver's subrange.
-	 * @param anObjectTuple
-	 *   The object tuple used in the comparison.
-	 * @param startIndex2
-	 *   The inclusive lower bound of the object tuple's subrange.
-	 * @return
-	 *   `true` if the contents of the subranges match exactly, `false`
-	 *   otherwise.
-	 */
-	override fun compareFromToWithObjectTupleStartingAt(
-		startIndex1: Int,
-		endIndex1: Int,
-		anObjectTuple: A_Tuple,
-		startIndex2: Int
-	) = dispatch(startIndex1, endIndex1, anObjectTuple, startIndex2) {
-		it::o_CompareFromToWithObjectTupleStartingAt
-	}
-
-	/**
-	 * Compare a subrange of the receiver with a subrange of the given
-	 * [two-byte&#32;string][TwoByteStringDescriptor]. The size of the subrange
-	 * of both objects is determined by the index range supplied for the
-	 * receiver.
-	 *
-	 * @param startIndex1
-	 *   The inclusive lower bound of the receiver's subrange.
-	 * @param endIndex1
-	 *   The inclusive upper bound of the receiver's subrange.
-	 * @param aTwoByteString
-	 *   The two-byte string used in the comparison.
-	 * @param startIndex2
-	 *   The inclusive lower bound of the two-byte string's subrange.
-	 * @return
-	 *   `true` if the contents of the subranges match exactly, `false`
-	 *   otherwise.
-	 */
-	override fun compareFromToWithTwoByteStringStartingAt(
-		startIndex1: Int,
-		endIndex1: Int,
-		aTwoByteString: A_String,
-		startIndex2: Int
-	) = dispatch(startIndex1, endIndex1, aTwoByteString, startIndex2) {
-		it::o_CompareFromToWithTwoByteStringStartingAt
-	}
-
-	override fun computeHashFromTo(start: Int, end: Int) =
-		dispatch(start, end) { it::o_ComputeHashFromTo }
-
-	override fun concatenateTuplesCanDestroy(canDestroy: Boolean) =
-		dispatch(canDestroy) { it::o_ConcatenateTuplesCanDestroy }
-
 	override fun constantBindings() = dispatch { it::o_ConstantBindings }
 
 	override fun contentType() = dispatch { it::o_ContentType }
@@ -939,16 +648,6 @@ class AvailObject private constructor(
 
 	override fun setContinuation(value: A_Continuation) =
 		dispatch(value) { it::o_SetContinuation }
-
-	override fun copyAsMutableIntTuple() =
-		dispatch { it::o_CopyAsMutableIntTuple }
-
-	override fun copyAsMutableObjectTuple() =
-		dispatch { it::o_CopyAsMutableObjectTuple }
-
-	override fun copyTupleFromToCanDestroy(
-		start: Int, end: Int, canDestroy: Boolean
-	) = dispatch(start, end, canDestroy) { it::o_CopyTupleFromToCanDestroy }
 
 	/**
 	 * A convenience method that exposes the fact that a subtuple of a string is
@@ -1160,6 +859,19 @@ class AvailObject private constructor(
 	 */
 	override fun equalsIntTuple(anIntTuple: A_Tuple) =
 		dispatch(anIntTuple) { it::o_EqualsIntTuple }
+
+	/**
+	 * Answer whether the receiver, an [AvailObject], and the argument, a
+	 * [long&#32;tuple][LongTupleDescriptor], are equal in value.
+	 *
+	 * @param aLongTuple
+	 *   The long tuple to be compared to the receiver.
+	 * @return
+	 *   `true` if the receiver is a tuple equal to the argument, `false`
+	 *   otherwise.
+	 */
+	override fun equalsLongTuple(aLongTuple: A_Tuple) =
+		dispatch(aLongTuple) { it::o_EqualsLongTuple }
 
 	/**
 	 * Answer whether the receiver, an [AvailObject], and the argument, a
@@ -1378,9 +1090,6 @@ class AvailObject private constructor(
 
 	override fun extractNybble() = dispatch { it::o_ExtractNybble }
 
-	override fun extractNybbleFromTupleAt(index: Int) =
-		dispatch(index) { it::o_ExtractNybbleFromTupleAt }
-
 	override fun fieldMap() = dispatch { it::o_FieldMap }
 
 	override fun fieldTypeMap() = dispatch { it::o_FieldTypeMap }
@@ -1402,9 +1111,6 @@ class AvailObject private constructor(
 	 */
 	override fun hasElement(elementObject: A_BasicObject) =
 		dispatch(elementObject) { it::o_HasElement }
-
-	override fun hashFromTo(startIndex: Int, endIndex: Int) =
-		dispatch(startIndex, endIndex) { it::o_HashFromTo }
 
 	override fun hashOrZero() = dispatch { it::o_HashOrZero }
 
@@ -1432,16 +1138,13 @@ class AvailObject private constructor(
 		continuation: (Boolean) -> Unit
 	) = dispatch(continuation) { it::o_DecrementCountdownToReoptimize }
 
-	override fun countdownToReoptimize(value: Int) =
+	override fun countdownToReoptimize(value: Long) =
 		dispatch(value) { it::o_CountdownToReoptimize }
 
 	override val isAbstract get() = dispatch { it::o_IsAbstract }
 
 	override fun isAbstractDefinition() =
 		dispatch { it::o_IsAbstractDefinition }
-
-	override fun isBetterRepresentationThan(anotherObject: A_BasicObject) =
-		dispatch(anotherObject) { it::o_IsBetterRepresentationThan }
 
 	override fun representationCostOfTupleType() =
 		dispatch { it::o_RepresentationCostOfTupleType }
@@ -1534,6 +1237,8 @@ class AvailObject private constructor(
 		dispatch { it::o_IsIntegerIntervalTuple }
 
 	override val isIntTuple get() = dispatch { it::o_IsIntTuple }
+
+	override val isLongTuple get() = dispatch { it::o_IsLongTuple }
 
 	override val isSmallIntegerIntervalTuple get() =
 		dispatch { it::o_IsSmallIntegerIntervalTuple }
@@ -1665,12 +1370,6 @@ class AvailObject private constructor(
 
 	override fun spliterator(): Spliterator<AvailObject> =
 		dispatch { it::o_Spliterator }
-
-	override fun stream(): Stream<AvailObject> =
-		dispatch { it::o_Stream }
-
-	override fun parallelStream(): Stream<AvailObject> =
-		dispatch { it::o_ParallelStream }
 
 	override fun keysAsSet() = dispatch { it::o_KeysAsSet }
 
@@ -1942,15 +1641,6 @@ class AvailObject private constructor(
 	override fun setFiberGlobals(value: A_Map) =
 		dispatch(value) { it::o_SetFiberGlobals }
 
-	override fun rawByteForCharacterAt(index: Int) =
-		dispatch(index) { it::o_RawByteForCharacterAt }
-
-	override fun rawShortForCharacterAt(index: Int) =
-		dispatch(index) { it::o_RawShortForCharacterAt }
-
-	override fun rawShortForCharacterAtPut(index: Int, anInteger: Int) =
-		dispatch(index, anInteger) { it::o_RawShortForCharacterAtPut }
-
 	override fun rawSignedIntegerAt(index: Int) =
 		dispatch(index) { it::o_RawSignedIntegerAt }
 
@@ -2132,22 +1822,6 @@ class AvailObject private constructor(
 	override fun trueNamesForStringName(stringName: A_String) =
 		dispatch(stringName) { it::o_TrueNamesForStringName }
 
-	override fun tupleAt(index: Int) = dispatch(index) { it::o_TupleAt }
-
-	override fun tupleAtPuttingCanDestroy(
-		index: Int,
-		newValueObject: A_BasicObject,
-		canDestroy: Boolean
-	) = dispatch(index, newValueObject, canDestroy) {
-		it::o_TupleAtPuttingCanDestroy
-	}
-
-	override fun tupleIntAt(index: Int) = dispatch(index) { it::o_TupleIntAt }
-
-	override fun tupleReverse() = dispatch { it::o_TupleReverse }
-
-	override fun tupleSize() = dispatch { it::o_TupleSize }
-
 	override fun kind() = dispatch { it::o_Kind }
 
 	override fun typeAtIndex(index: Int) =
@@ -2266,8 +1940,6 @@ class AvailObject private constructor(
 
 	override fun expressionType() = dispatch { it::o_ExpressionType }
 
-	override fun isMacroDefinition() = dispatch { it::o_IsMacroDefinition }
-
 	override fun binUnionKind() = dispatch { it::o_BinUnionKind }
 
 	override fun lineNumber() = dispatch { it::o_LineNumber }
@@ -2302,7 +1974,7 @@ class AvailObject private constructor(
 	override fun equalsEnumerationWithSet(aSet: A_Set) =
 		dispatch(aSet) { it::o_EqualsEnumerationWithSet }
 
-	override val isEnumeration = dispatch { it::o_IsEnumeration }
+	override val isEnumeration get() = dispatch { it::o_IsEnumeration }
 
 	override fun enumerationIncludesInstance(potentialInstance: AvailObject) =
 		dispatch(potentialInstance) { it::o_EnumerationIncludesInstance }
@@ -2552,17 +2224,11 @@ class AvailObject private constructor(
 		it::o_EqualsEqualityRawPojo
 	}
 
-	override fun <T> javaObject() = dispatch<T?> { it::o_JavaObject }
+	override fun <T : Any> javaObject() = dispatch<T?> { it::o_JavaObject }
 
-	override fun <T> javaObjectNotNull(): T =
-		dispatch<T?> { it::o_JavaObject }!!
+	override fun <T : Any> javaObjectNotNull(): T = javaObject()!!
 
 	override fun asBigInteger() = dispatch { it::o_AsBigInteger }
-
-	override fun appendCanDestroy(
-		newElement: A_BasicObject,
-		canDestroy: Boolean
-	) = dispatch(newElement, canDestroy) { it::o_AppendCanDestroy }
 
 	override fun lowerCaseString() = dispatch { it::o_LowerCaseString }
 
@@ -2582,9 +2248,7 @@ class AvailObject private constructor(
 		dispatch(aTokenType) { it::o_TypeIntersectionOfTokenType }
 
 	override fun typeIntersectionOfLiteralTokenType(aLiteralTokenType: A_Type) =
-		dispatch(aLiteralTokenType) {
-			it::o_TypeIntersectionOfLiteralTokenType
-		}
+		dispatch(aLiteralTokenType) { it::o_TypeIntersectionOfLiteralTokenType }
 
 	override fun typeUnionOfTokenType(aTokenType: A_Type) =
 		dispatch(aTokenType) { it::o_TypeUnionOfTokenType }
@@ -2644,8 +2308,8 @@ class AvailObject private constructor(
 
 	override fun mapBinIterable() = dispatch { it::o_MapBinIterable }
 
-	override fun rangeIncludesInt(anInt: Int) =
-		dispatch(anInt) { it::o_RangeIncludesInt }
+	override fun rangeIncludesLong(aLong: Long) =
+		dispatch(aLong) { it::o_RangeIncludesLong }
 
 	override fun bitShiftLeftTruncatingToBits(
 		shiftFactor: A_Number,
@@ -2676,17 +2340,6 @@ class AvailObject private constructor(
 
 	override fun equalsByteArrayTuple(aByteArrayTuple: A_Tuple) =
 		dispatch(aByteArrayTuple) { it::o_EqualsByteArrayTuple }
-
-	override fun compareFromToWithByteArrayTupleStartingAt(
-		startIndex1: Int,
-		endIndex1: Int,
-		aByteArrayTuple: A_Tuple,
-		startIndex2: Int
-	) = dispatch(startIndex1, endIndex1, aByteArrayTuple, startIndex2) {
-		it::o_CompareFromToWithByteArrayTupleStartingAt
-	}
-
-	override fun byteArray() = dispatch { it::o_ByteArray }
 
 	override val isByteArrayTuple get() = dispatch { it::o_IsByteArrayTuple }
 
@@ -2801,19 +2454,8 @@ class AvailObject private constructor(
 	override fun clearGeneralFlag(flag: GeneralFlag) =
 		dispatch(flag) { it::o_ClearGeneralFlag }
 
-	override fun byteBuffer() = dispatch { it::o_ByteBuffer }
-
 	override fun equalsByteBufferTuple(aByteBufferTuple: A_Tuple) =
 		dispatch(aByteBufferTuple) { it::o_EqualsByteBufferTuple }
-
-	override fun compareFromToWithByteBufferTupleStartingAt(
-		startIndex1: Int,
-		endIndex1: Int,
-		aByteBufferTuple: A_Tuple,
-		startIndex2: Int
-	) = dispatch(startIndex1, endIndex1, aByteBufferTuple, startIndex2) {
-		it::o_CompareFromToWithByteBufferTupleStartingAt
-	}
 
 	override val isByteBufferTuple get() =
 		dispatch { it::o_IsByteBufferTuple }
@@ -2827,6 +2469,12 @@ class AvailObject private constructor(
 
 	override fun methodAddBundle(bundle: A_Bundle) =
 		dispatch(bundle) { it::o_MethodAddBundle }
+
+	override fun methodRemoveBundle(bundle: A_Bundle) =
+		dispatch(bundle) { it::o_MethodRemoveBundle }
+
+	override fun definitionBundle(): A_Bundle =
+		dispatch { it::o_DefinitionBundle }
 
 	override fun definitionModule() = dispatch { it::o_DefinitionModule }
 
@@ -2850,19 +2498,6 @@ class AvailObject private constructor(
 
 	override fun adjustPcAndStackp(pc: Int, stackp: Int) =
 		dispatch(pc, stackp) { it::o_AdjustPcAndStackp }
-
-	override fun treeTupleLevel() = dispatch { it::o_TreeTupleLevel }
-
-	override fun childCount() = dispatch { it::o_ChildCount }
-
-	override fun childAt(childIndex: Int) =
-		dispatch(childIndex) { it::o_ChildAt }
-
-	override fun concatenateWith(otherTuple: A_Tuple, canDestroy: Boolean) =
-		dispatch(otherTuple, canDestroy) { it::o_ConcatenateWith }
-
-	override fun replaceFirstChild(newFirst: A_Tuple) =
-		dispatch(newFirst) { it::o_ReplaceFirstChild }
 
 	override val isByteString get() = dispatch { it::o_IsByteString }
 
@@ -2924,22 +2559,6 @@ class AvailObject private constructor(
 	override val isInitializedWriteOnceVariable get() =
 		dispatch { it::o_IsInitializedWriteOnceVariable }
 
-	override fun transferIntoByteBuffer(
-		startIndex: Int,
-		endIndex: Int,
-		outputByteBuffer: ByteBuffer
-	) = dispatch(startIndex, endIndex, outputByteBuffer) {
-		it::o_TransferIntoByteBuffer
-	}
-
-	override fun tupleElementsInRangeAreInstancesOf(
-		startIndex: Int,
-		endIndex: Int,
-		type: A_Type
-	) = dispatch(startIndex, endIndex, type) {
-		it::o_TupleElementsInRangeAreInstancesOf
-	}
-
 	override fun isNumericallyIntegral() =
 		dispatch { it::o_IsNumericallyIntegral }
 
@@ -2965,11 +2584,8 @@ class AvailObject private constructor(
 	override fun tupleOfTypesFromTo(startIndex: Int, endIndex: Int) =
 		dispatch(startIndex, endIndex) { it::o_TupleOfTypesFromTo }
 
-	override fun macroDefinitionsTuple() =
-		dispatch { it::o_MacroDefinitionsTuple }
-
-	override fun lookupMacroByPhraseTuple(argumentPhraseTuple: A_Tuple) =
-		dispatch(argumentPhraseTuple) { it::o_LookupMacroByPhraseTuple }
+	override fun macrosTuple() =
+		dispatch { it::o_MacrosTuple }
 
 	override fun equalsInt(theInt: Int) = dispatch(theInt) { it::o_EqualsInt }
 
@@ -3048,9 +2664,6 @@ class AvailObject private constructor(
 	override fun setNextLexingStateFromPrior(priorLexingState: LexingState) =
 		dispatch(priorLexingState) { it::o_SetNextLexingStateFromPrior }
 
-	override fun tupleCodePointAt(index: Int) =
-		dispatch(index) { it::o_TupleCodePointAt }
-
 	override fun createLexicalScanner() =
 		dispatch { it::o_CreateLexicalScanner }
 
@@ -3085,32 +2698,34 @@ class AvailObject private constructor(
 	override fun forEach(action: (AvailObject, AvailObject) -> Unit) =
 		dispatch(action) { it::o_ForEach }
 
-	override fun forEachInMapBin(
-		action: (AvailObject, AvailObject) -> Unit
-	) = dispatch(action) { it::o_ForEachInMapBin }
+	override fun forEachInMapBin(action: (AvailObject, AvailObject) -> Unit) =
+		dispatch(action) { it::o_ForEachInMapBin }
 
 	override fun clearLexingState() = dispatch { it::o_ClearLexingState }
 
 	@ReferencedInGeneratedCode
 	override fun registerDump() = dispatch { it::o_RegisterDump }
 
-	override fun component1() = tupleAt(1)
+	override fun membershipChanged() = dispatch { it::o_MembershipChanged }
 
-	override fun component2() = tupleAt(2)
+	override fun moduleAddMacro(macro: A_Macro) =
+		dispatch(macro) { it::o_ModuleAddMacro }
 
-	override fun component3() = tupleAt(3)
+	override fun moduleMacros(): A_Set = dispatch { it::o_ModuleMacros }
 
-	override fun component4() = tupleAt(4)
+	override fun addBundle(bundle: A_Bundle) =
+		dispatch(bundle) { it::o_AddBundle  }
 
-	override fun component5() = tupleAt(5)
+	override fun moduleBundles() = dispatch { it::o_ModuleBundles }
 
-	override fun component6() = tupleAt(6)
+	override fun returnTypeIfPrimitiveFails(): A_Type =
+		dispatch { it::o_ReturnTypeIfPrimitiveFails }
 
-	override fun component7() = tupleAt(7)
+	override fun extractDumpedObjectAt(index: Int): AvailObject =
+		dispatch(index) { it::o_ExtractDumpedObjectAt }
 
-	override fun component8() = tupleAt(8)
-
-	override fun component9() = tupleAt(9)
+	override fun extractDumpedLongAt(index: Int): Long =
+		dispatch(index) { it::o_ExtractDumpedLongAt }
 
 	companion object {
 		/**

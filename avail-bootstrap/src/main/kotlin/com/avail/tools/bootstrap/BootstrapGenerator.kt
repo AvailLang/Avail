@@ -74,7 +74,13 @@ import java.io.File
 import java.io.IOException
 import java.io.PrintWriter
 import java.text.MessageFormat
-import java.util.*
+import java.util.ArrayList
+import java.util.Comparator
+import java.util.Date
+import java.util.HashSet
+import java.util.Locale
+import java.util.ResourceBundle
+import java.util.StringTokenizer
 
 /**
  * Generate the Avail system [modules][ModuleDescriptor] that bind the
@@ -95,9 +101,6 @@ class BootstrapGenerator constructor(private val locale: Locale)
 {
 	companion object
 	{
-		/** The Avail special objects.  */
-		private val specialObjects: List<AvailObject> = specialObjects()
-
 		/**
 		 * A [map][Map] from the special objects to their indices.
 		 */

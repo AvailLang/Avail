@@ -91,8 +91,7 @@ object L2_RESTART_CONTINUATION : L2ControlFlowOperation(
 		method: MethodVisitor,
 		instruction: L2Instruction)
 	{
-		val continuation =
-			instruction.operand<L2ReadBoxedOperand>(0)
+		val continuation = instruction.operand<L2ReadBoxedOperand>(0)
 
 		// :: return interpreter.reifierToRestart(continuation);
 		translator.loadInterpreter(method)

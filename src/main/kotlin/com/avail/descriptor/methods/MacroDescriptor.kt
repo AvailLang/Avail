@@ -32,26 +32,34 @@
 package com.avail.descriptor.methods
 
 import com.avail.annotations.HideFieldJustForPrinting
+import com.avail.descriptor.atoms.A_Atom.Companion.atomName
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom
+import com.avail.descriptor.bundles.A_Bundle
+import com.avail.descriptor.bundles.A_Bundle.Companion.message
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.FunctionDescriptor
-import com.avail.descriptor.methods.MacroDefinitionDescriptor.ObjectSlots.BODY_BLOCK
-import com.avail.descriptor.methods.MacroDefinitionDescriptor.ObjectSlots.DEFINITION_METHOD
-import com.avail.descriptor.methods.MacroDefinitionDescriptor.ObjectSlots.MACRO_PREFIX_FUNCTIONS
-import com.avail.descriptor.methods.MacroDefinitionDescriptor.ObjectSlots.MODULE
+import com.avail.descriptor.methods.DefinitionDescriptor.Companion.builtInNoModuleName
+import com.avail.descriptor.methods.MacroDescriptor.ObjectSlots.BODY_BLOCK
+import com.avail.descriptor.methods.MacroDescriptor.ObjectSlots.BUNDLE
+import com.avail.descriptor.methods.MacroDescriptor.ObjectSlots.MACRO_PREFIX_FUNCTIONS
+import com.avail.descriptor.methods.MacroDescriptor.ObjectSlots.MODULE
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.phrases.ListPhraseDescriptor
 import com.avail.descriptor.phrases.PhraseDescriptor
+import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.Descriptor
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
+import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.ListPhraseTypeDescriptor
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeFromTupleOfTypes
 import com.avail.descriptor.types.TypeDescriptor.Types
+import com.avail.descriptor.types.TypeTag
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
 
@@ -87,18 +95,17 @@ import com.avail.utility.json.JSONWriter
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-class MacroDefinitionDescriptor private constructor(
+class MacroDescriptor private constructor(
 	mutability: Mutability
-) : DefinitionDescriptor(mutability, ObjectSlots::class.java, null) {
+) : Descriptor(mutability, TypeTag.MACRO_TAG, ObjectSlots::class.java, null) {
 	/**
 	 * The layout of object slots for my instances.
 	 */
 	enum class ObjectSlots : ObjectSlotsEnum {
 		/**
-		 * Duplicated from parent.  The method in which this definition occurs.
+		 * The [A_Bundle] for which this macro is defined.
 		 */
-		@HideFieldJustForPrinting
-		DEFINITION_METHOD,
+		BUNDLE,
 
 		/**
 		 * The [module][ModuleDescriptor] in which this definition occurs.
@@ -122,16 +129,23 @@ class MacroDefinitionDescriptor private constructor(
 		 */
 		@HideFieldJustForPrinting
 		MACRO_PREFIX_FUNCTIONS;
+	}
 
-		companion object {
-			init {
-				assert(DefinitionDescriptor.ObjectSlots.DEFINITION_METHOD.ordinal
-					== DEFINITION_METHOD.ordinal)
-				assert(DefinitionDescriptor.ObjectSlots.MODULE.ordinal
-					== MODULE.ordinal)
-			}
+	override fun o_DefinitionModule(self: AvailObject): A_Module =
+		self.slot(MODULE)
+
+	override fun o_DefinitionModuleName(self: AvailObject): A_String
+	{
+		val module: A_Module = self.slot(MODULE)
+		return if (module.equalsNil()) {
+			builtInNoModuleName
+		} else {
+			module.moduleName()
 		}
 	}
+
+	override fun o_Equals(self: AvailObject, another: A_BasicObject) =
+		another.traversed().sameAddressAs(self)
 
 	override fun o_BodyBlock(self: AvailObject): A_Function =
 		self.slot(BODY_BLOCK)
@@ -139,10 +153,11 @@ class MacroDefinitionDescriptor private constructor(
 	override fun o_BodySignature(self: AvailObject): A_Type =
 		self.slot(BODY_BLOCK).kind()
 
+	override fun o_DefinitionBundle(self: AvailObject): A_Bundle =
+		self.slot(BUNDLE)
+
 	override fun o_Hash(self: AvailObject): Int =
 		self.bodyBlock().hash() xor 0x67f6ec56 + 0x0AFB0E62
-
-	override fun o_IsMacroDefinition(self: AvailObject) = true
 
 	override fun o_Kind(self: AvailObject): A_Type = Types.MACRO_DEFINITION.o()
 
@@ -155,8 +170,7 @@ class MacroDefinitionDescriptor private constructor(
 		val sizes = argsTupleType.sizeRange()
 		assert(sizes.lowerBound().extractInt()
 			== sizes.upperBound().extractInt())
-		assert(sizes.lowerBound().extractInt()
-			== self.slot(DEFINITION_METHOD).numArgs())
+		assert(sizes.lowerBound().extractInt() == self.slot(BUNDLE).numArgs())
 		// TODO MvG - 2016-08-21 deal with permutation of main list.
 		return ListPhraseTypeDescriptor.createListNodeType(
 			PhraseKind.LIST_PHRASE,
@@ -174,7 +188,7 @@ class MacroDefinitionDescriptor private constructor(
 		writer.writeObject {
 			at("kind") { write("macro definition") }
 			at("definition method") {
-				self.slot(DEFINITION_METHOD).methodName().writeTo(writer)
+				self.definitionBundle().message().atomName().writeTo(writer)
 			}
 			at("definition module") {
 				self.definitionModuleName().writeTo(writer)
@@ -189,7 +203,7 @@ class MacroDefinitionDescriptor private constructor(
 		writer.writeObject {
 			at("kind") { write("macro definition") }
 			at("definition method") {
-				self.slot(DEFINITION_METHOD).methodName().writeTo(writer)
+				self.definitionBundle().message().atomName().writeTo(writer)
 			}
 			at("definition module") {
 				self.definitionModuleName().writeTo(writer)
@@ -211,38 +225,37 @@ class MacroDefinitionDescriptor private constructor(
 		/**
 		 * Create a new macro signature from the provided argument.
 		 *
-		 * @param method
-		 *   The [method][MethodDescriptor] in which to define this macro
-		 *   definition.
+		 * @param bundle
+		 *   The [A_Bundle] that names the macro.
 		 * @param definitionModule
-		 *   The module in which this definition is added.
+		 *   The module in which this macro is added.
 		 * @param bodyBlock
 		 *   The body of the signature.  This will be invoked when a call site
-		 *   is compiled, passing the sub*expressions*
+		 *   is compiled, passing the subexpressions
 		 *   ([phrases][PhraseDescriptor]) as arguments.
 		 * @param prefixFunctions
 		 *   The tuple of prefix functions that correspond with the section
 		 *   checkpoints (`"§"`) in the macro's name.
 		 * @return
-		 *   A macro signature.
+		 *   A macro definition.
 		 */
 		@JvmStatic
 		fun newMacroDefinition(
-			method: A_Method,
+			bundle: A_Bundle,
 			definitionModule: A_Module,
 			bodyBlock: A_Function,
 			prefixFunctions: A_Tuple
-		): A_Definition = mutable.createShared {
-			setSlot(DEFINITION_METHOD, method)
+		): A_Macro = mutable.createShared {
+			setSlot(BUNDLE, bundle)
 			setSlot(MODULE, definitionModule)
 			setSlot(BODY_BLOCK, bodyBlock)
 			setSlot(MACRO_PREFIX_FUNCTIONS, prefixFunctions)
 		}
 
-		/** The mutable [MacroDefinitionDescriptor].  */
-		private val mutable = MacroDefinitionDescriptor(Mutability.MUTABLE)
+		/** The mutable [MacroDescriptor].  */
+		private val mutable = MacroDescriptor(Mutability.MUTABLE)
 
-		/** The shared [MacroDefinitionDescriptor].  */
-		private val shared = MacroDefinitionDescriptor(Mutability.SHARED)
+		/** The shared [MacroDescriptor].  */
+		private val shared = MacroDescriptor(Mutability.SHARED)
 	}
 }

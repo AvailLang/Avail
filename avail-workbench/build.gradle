@@ -219,7 +219,7 @@ publishing {
 	publications {
 		workbench(MavenPublication) {
 			from components.java
-			artifact sourcesJar
+			artifact sourceJar
 		}
 	}
 }

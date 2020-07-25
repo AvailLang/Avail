@@ -32,11 +32,14 @@
 package com.avail.descriptor.module
 
 import com.avail.descriptor.atoms.A_Atom
+import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.bundles.A_BundleTree
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.maps.A_Map
 import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.methods.A_GrammaticalRestriction
+import com.avail.descriptor.methods.A_Macro
+import com.avail.descriptor.methods.A_Method
 import com.avail.descriptor.methods.A_SemanticRestriction
 import com.avail.descriptor.parsing.A_Lexer
 import com.avail.descriptor.representation.A_BasicObject
@@ -218,6 +221,14 @@ interface A_Module : A_BasicObject
 		grammaticalRestriction: A_GrammaticalRestriction)
 
 	/**
+	 * Add an [A_Macro] to this module.
+	 *
+	 * @param macro
+	 *   The [A_Macro] to add.
+	 */
+	fun moduleAddMacro(macro: A_Macro)
+
+	/**
 	 * Add a semantic restriction to this module.
 	 *
 	 * @param semanticRestriction
@@ -225,6 +236,14 @@ interface A_Module : A_BasicObject
 	 */
 	fun moduleAddSemanticRestriction(
 		semanticRestriction: A_SemanticRestriction)
+
+	/**
+	 * Answer the [A_Set] of [A_Macro]s defined in this module.
+	 *
+	 * @return
+	 *   The set of macros in this module.
+	 */
+	fun moduleMacros(): A_Set
 
 	/**
 	 * Answer the name of this module.
@@ -313,4 +332,15 @@ interface A_Module : A_BasicObject
 	 * Dispatch to the descriptor.
 	 */
 	fun visibleNames(): A_Set
+
+	/**
+	 * Add the given [A_Bundle] to this module.  It will be removed from its
+	 * connected [A_Method] when this module is unloaded.
+	 */
+	fun addBundle(bundle: A_Bundle)
+
+	/**
+	 * Answer the [A_Set] of [A_Bundle]s that have been defined in this module.
+	 */
+	fun moduleBundles(): A_Set
 }

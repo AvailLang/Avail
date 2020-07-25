@@ -36,7 +36,6 @@ import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createWithOuters2
 import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.equalityPojo
-import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
@@ -66,7 +65,6 @@ import com.avail.interpreter.primitive.pojos.PrimitiveHelper.rawPojoInvokerFunct
 import com.avail.utility.Mutable
 import com.avail.utility.cast
 import java.lang.reflect.Method
-import java.util.Collections.synchronizedMap
 import java.util.WeakHashMap
 
 /**
@@ -89,8 +87,7 @@ object P_CreatePojoStaticMethodFunction : Primitive(3, CanInline, CanFold)
 	/**
 	 * Cache of [A_RawFunction]s, keyed by the function [A_Type].
 	 */
-	private val rawFunctionCache =
-		synchronizedMap(WeakHashMap<A_Type, A_RawFunction>())
+	private val rawFunctionCache = WeakHashMap<A_Type, A_RawFunction>()
 
 	override fun attempt(interpreter: Interpreter): Result
 	{
@@ -127,14 +124,16 @@ object P_CreatePojoStaticMethodFunction : Primitive(3, CanInline, CanFold)
 			method.genericReturnType,
 			if (pojoType.isPojoType) pojoType.typeVariables() else emptyMap())
 		val functionType = functionType(paramTypes, returnType)
-		val rawFunction = rawFunctionCache.computeIfAbsent(functionType) {
-			rawPojoInvokerFunctionFromFunctionType(
-				P_InvokeStaticPojoMethod,
-				it,
-				// Outer#1 = Static method to invoke.
-				RAW_POJO.o(),
-				// Outer#2 = Marshaled type parameters.
-				zeroOrMoreOf(RAW_POJO.o()))
+		val rawFunction = synchronized(rawFunctionCache) {
+			rawFunctionCache.computeIfAbsent(functionType) {
+				rawPojoInvokerFunctionFromFunctionType(
+					P_InvokeStaticPojoMethod,
+					it,
+					// Outer#1 = Static method to invoke.
+					RAW_POJO.o(),
+					// Outer#2 = Marshaled type parameters.
+					zeroOrMoreOf(RAW_POJO.o()))
+			}
 		}
 		val function = createWithOuters2(
 			rawFunction,

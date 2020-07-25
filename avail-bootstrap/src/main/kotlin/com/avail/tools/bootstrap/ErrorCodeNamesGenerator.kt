@@ -31,7 +31,7 @@
  */
 package com.avail.tools.bootstrap
 
-import com.avail.AvailRuntime.Companion.specialObjects
+import com.avail.AvailRuntime
 import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
@@ -42,10 +42,15 @@ import com.avail.interpreter.Primitive.Companion.byPrimitiveNumberOrNull
 import com.avail.interpreter.Primitive.Companion.maxPrimitiveNumber
 import com.avail.tools.bootstrap.Resources.errorCodeCommentKey
 import com.avail.tools.bootstrap.Resources.errorCodeKey
+import com.avail.tools.bootstrap.Resources.errorCodesBaseName
 import com.avail.tools.bootstrap.Resources.escape
 import java.io.PrintWriter
-import java.util.*
-import com.avail.tools.bootstrap.Resources.errorCodesBaseName
+import java.util.EnumSet
+import java.util.HashSet
+import java.util.Locale
+import java.util.Properties
+import java.util.PropertyResourceBundle
+import java.util.ResourceBundle
 
 /**
  * Generate a [property resource bundle][PropertyResourceBundle] that specifies
@@ -139,8 +144,8 @@ class ErrorCodeNamesGenerator
 		 */
 		private fun allErrorCodesAreReachableFromPrimitives(): Boolean
 		{
-			// This forces initialization of Avail.
-			specialObjects()
+			// This forces initialization of the Avail runtime constants.
+			AvailRuntime
 			var allErrorCodes = emptySet()
 			for (code in AvailErrorCode.values())
 			{

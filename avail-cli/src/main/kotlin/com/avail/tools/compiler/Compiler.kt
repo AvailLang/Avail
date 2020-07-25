@@ -222,14 +222,18 @@ object Compiler
 	 */
 	private fun localTracker(
 			configuration: CompilerConfiguration): CompilerProgressReporter =
-		{ module, moduleSize, position ->
+		{ module, moduleSize, position, line ->
 			synchronized(statusLock) {
 				val level = configuration.verbosityLevel
 				if (level.displayLocalProgress)
 				{
 					val percent = (position * 100 / moduleSize).toInt()
 					var modName = module.qualifiedName
-					val maxModuleNameLength = 61
+					var maxModuleNameLength = 61
+					if (line != Int.MAX_VALUE) {
+						modName += "\u001b[35m:$line"
+						maxModuleNameLength += 5  // Just the escape sequence.
+					}
 					val len = modName.length
 					if (len > maxModuleNameLength)
 					{
@@ -238,7 +242,8 @@ object Compiler
 					}
 
 					val status = String.format(
-						"%s  |  \u001b[34m%-61s\u001b[0m - %3d%%",
+						"%s  |  \u001b[34m%-${maxModuleNameLength}s" +
+							"\u001b[0m - %3d%%",
 						globalStatus,
 						modName,
 						percent)

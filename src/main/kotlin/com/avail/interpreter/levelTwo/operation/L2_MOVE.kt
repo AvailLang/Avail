@@ -253,6 +253,19 @@ private constructor(
 
 	override fun toString(): String = name()
 
+	override fun extractTupleElement(
+		tupleReg: L2ReadBoxedOperand,
+		index: Int,
+		generator: L2Generator
+	): L2ReadBoxedOperand
+	{
+		val instruction = tupleReg.definition().instruction()
+		val source: L2ReadOperand<R> = instruction.operand(0)
+		// val destination: L2WriteOperand<R> = instruction.operand(1)
+
+		return generator.extractTupleElement(source.cast(), index)
+	}
+
 	override fun translateToJVM(
 		translator: JVMTranslator,
 		method: MethodVisitor,
@@ -278,9 +291,10 @@ private constructor(
 		/**
 		 * Initialize the move operation for boxed values.
 		 */
-		@kotlin.jvm.JvmField
-		val boxed: L2_MOVE<L2BoxedRegister, L2ReadBoxedOperand, L2WriteBoxedOperand> =
-			object : L2_MOVE<L2BoxedRegister, L2ReadBoxedOperand, L2WriteBoxedOperand>(
+		val boxed: L2_MOVE<
+				L2BoxedRegister, L2ReadBoxedOperand, L2WriteBoxedOperand> =
+			object : L2_MOVE<
+					L2BoxedRegister, L2ReadBoxedOperand, L2WriteBoxedOperand>(
 				RegisterKind.BOXED,
 				L2OperandType.READ_BOXED.named("source boxed"),
 				L2OperandType.WRITE_BOXED.named("destination boxed"))
@@ -297,8 +311,10 @@ private constructor(
 		/**
 		 * Initialize the move operation for int values.
 		 */
-		val unboxedInt: L2_MOVE<L2IntRegister, L2ReadIntOperand, L2WriteIntOperand> =
-			object : L2_MOVE<L2IntRegister, L2ReadIntOperand, L2WriteIntOperand>(
+		val unboxedInt: L2_MOVE<
+				L2IntRegister, L2ReadIntOperand, L2WriteIntOperand> =
+			object : L2_MOVE<
+					L2IntRegister, L2ReadIntOperand, L2WriteIntOperand>(
 				RegisterKind.INTEGER,
 				L2OperandType.READ_INT.named("source int"),
 				L2OperandType.WRITE_INT.named("destination int"))
@@ -313,8 +329,10 @@ private constructor(
 		/**
 		 * Initialize the move operation for float values.
 		 */
-		val unboxedFloat: L2_MOVE<L2FloatRegister, L2ReadFloatOperand, L2WriteFloatOperand> =
-			object : L2_MOVE<L2FloatRegister, L2ReadFloatOperand, L2WriteFloatOperand>(
+		val unboxedFloat: L2_MOVE<
+				L2FloatRegister, L2ReadFloatOperand, L2WriteFloatOperand> =
+			object : L2_MOVE<
+					L2FloatRegister, L2ReadFloatOperand, L2WriteFloatOperand>(
 				RegisterKind.FLOAT,
 				L2OperandType.READ_FLOAT.named("source float"),
 				L2OperandType.WRITE_FLOAT.named("destination float"))
@@ -341,9 +359,9 @@ private constructor(
 		 * @return
 		 *   The requested `L2_MOVE` operation.
 		 */
-		fun <R : L2Register, RR : L2ReadOperand<R>, WR : L2WriteOperand<R>> moveByKind(
-			registerKind: RegisterKind): L2_MOVE<R, RR, WR> =
-				movesByKind[registerKind]!!.cast()
+		fun <R : L2Register, RR : L2ReadOperand<R>, WR : L2WriteOperand<R>>
+		moveByKind(registerKind: RegisterKind): L2_MOVE<R, RR, WR> =
+			movesByKind[registerKind]!!.cast()
 	}
 
 	init

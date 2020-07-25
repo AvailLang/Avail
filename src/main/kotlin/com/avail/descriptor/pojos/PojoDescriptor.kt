@@ -116,7 +116,7 @@ class PojoDescriptor private constructor(
 
 	override fun o_RawPojo(self: AvailObject): AvailObject = self.slot(RAW_POJO)
 
-	override fun <T> o_JavaObject(self: AvailObject): T? =
+	override fun <T : Any> o_JavaObject(self: AvailObject): T? =
 		self.slot(RAW_POJO).javaObject()
 
 	override fun o_ShowValueInNameForDebugger(self: AvailObject): Boolean =

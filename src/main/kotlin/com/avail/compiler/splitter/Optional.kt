@@ -137,7 +137,7 @@ internal class Optional constructor(
 		val `$absent` = Label()
 		generator.emitBranchForward(this, `$absent`)
 		generator.emitIf(needsProgressCheck, this, SAVE_PARSE_POSITION)
-		assert(sequence.yieldersAreReordered !== java.lang.Boolean.TRUE)
+		assert(!sequence.isReordered)
 		sequence.emitOn(
 			emptyListPhraseType(), generator, SHOULD_NOT_HAVE_ARGUMENTS)
 		generator.flushDelayed()
@@ -184,7 +184,7 @@ internal class Optional constructor(
 		val `$absent` = Label()
 		generator.emitBranchForward(this, `$absent`)
 		generator.emitIf(needsProgressCheck, this, SAVE_PARSE_POSITION)
-		assert(sequence.yieldersAreReordered !== java.lang.Boolean.TRUE)
+		assert(!sequence.isReordered)
 		sequence.emitOn(
 			emptyListPhraseType(), generator, SHOULD_NOT_HAVE_ARGUMENTS)
 		generator.flushDelayed()
@@ -239,4 +239,6 @@ internal class Optional constructor(
 		// Optional things can be absent.
 		return true
 	}
+
+	override fun checkListStructure(phrase: A_Phrase): Boolean = true
 }

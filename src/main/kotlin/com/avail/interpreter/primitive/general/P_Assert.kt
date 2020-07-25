@@ -85,7 +85,7 @@ object P_Assert : Primitive(2, Unknown, CanSuspend, CannotFail)
 		val continuation = interpreter.getReifiedContinuation()!!
 		interpreter.primitiveSuspend(interpreter.function!!)
 		dumpStackThen(
-			interpreter.runtime(), fiber.textInterface(), continuation
+			interpreter.runtime, fiber.textInterface(), continuation
 		) { stack ->
 			val killer = AvailAssertionFailedException(
 				stack.joinToString(

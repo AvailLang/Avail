@@ -31,8 +31,8 @@
  */
 package com.avail.interpreter.levelTwo.operation
 
-import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.TupleDescriptor
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.tupleAtMethod
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2OperandType
 import com.avail.interpreter.levelTwo.L2Operation
@@ -111,7 +111,7 @@ object L2_TUPLE_AT_CONSTANT : L2Operation(
 		// :: destination = tuple.tupleAt(subscript);
 		translator.load(method, tuple.register())
 		translator.literal(method, subscript.value)
-		A_Tuple.tupleAtMethod.generateCall(method)
+		tupleAtMethod.generateCall(method)
 		translator.store(method, destination.register())
 	}
 }

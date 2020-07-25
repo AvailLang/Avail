@@ -39,6 +39,10 @@ import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.copyTupleFromToCanDestroy
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAtPuttingCanDestroy
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromArray
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
@@ -58,6 +62,7 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
 import java.util.*
+import kotlin.math.max
 import kotlin.math.min
 
 /**
@@ -241,8 +246,8 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		}
 		val leading = self.typeTuple()
 		val interestingLimit = leading.tupleSize() + 1
-		val clipStart = Math.max(Math.min(startIndex, interestingLimit), 1)
-		val clipEnd = Math.max(Math.min(endIndex, interestingLimit), 1)
+		val clipStart = max(min(startIndex, interestingLimit), 1)
+		val clipEnd = max(min(endIndex, interestingLimit), 1)
 		var typeUnion = self.typeAtIndex(clipStart)
 		for (i in clipStart + 1 .. clipEnd)
 		{
@@ -276,7 +281,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		}
 		val subTuple = aTupleType.typeTuple()
 		val superTuple: A_Tuple = self.slot(TYPE_TUPLE)
-		var end = Math.max(subTuple.tupleSize(), superTuple.tupleSize()) + 1
+		var end = max(subTuple.tupleSize(), superTuple.tupleSize()) + 1
 		val smallUpper = aTupleType.sizeRange().upperBound()
 		if (smallUpper.isInt)
 		{
@@ -322,7 +327,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		}
 		// Only check the element types up to the minimum size.  It's ok to stop
 		// after the variations (i.e., just after the leading typeTuple).
-		val minSize = Math.min(
+		val minSize = min(
 			minSizeObject.extractInt(),
 			self.slot(TYPE_TUPLE).tupleSize() + 1)
 		for (i in 1 .. minSize)
@@ -588,10 +593,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 				val upper = sizeRange.upperBound().extractInt()
 				return tupleTypeForSizesTypesDefaultType(
 					sizeRange,
-					typeTuple.copyTupleFromToCanDestroy(
-						1,
-						upper - 1,
-						false),
+					typeTuple.copyTupleFromToCanDestroy(1, upper - 1, false),
 					typeTuple.tupleAt(upper).makeImmutable())
 			}
 			if (typeTupleSize > 0
@@ -676,7 +678,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		/** Access the method [tupleTypeForTypes].  */
 		var tupleTypesForTypesArrayMethod = staticMethod(
 			TupleTypeDescriptor::class.java,
-			"tupleTypeForTypes",
+			::tupleTypeForTypes.name,
 			A_Type::class.java,
 			Array<A_Type>::class.java)
 
@@ -691,7 +693,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		 */
 		@ReferencedInGeneratedCode
 		@JvmStatic
-		fun tupleTypeForTypes(types: List<A_Type>): A_Type =
+		fun tupleTypeForTypesList(types: List<A_Type>): A_Type =
 			tupleTypeForSizesTypesDefaultType(
 				singleInt(types.size),
 				tupleFromList(types),
@@ -701,7 +703,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		@JvmField
 		val tupleTypesForTypesListMethod = staticMethod(
 			TupleTypeDescriptor::class.java,
-			"tupleTypeForTypes",
+			::tupleTypeForTypesList.name,
 			A_Type::class.java,
 			MutableList::class.java)
 

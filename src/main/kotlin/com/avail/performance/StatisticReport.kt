@@ -169,8 +169,7 @@ enum class StatisticReport constructor(
 	fun sortedPairs(): MutableList<Pair<String, PerInterpreterStatistic>> =
 		synchronized(statistics) {
 			val namedSnapshots =
-				statistics.map { Pair(it.name(), it.aggregate()) }
-					.toMutableList()
+				statistics.map { it.name() to it.aggregate() }.toMutableList()
 			namedSnapshots.removeIf {
 				(_, aggregate) -> aggregate.count() == 0L
 			}
@@ -216,7 +215,7 @@ enum class StatisticReport constructor(
 					if (pairs.isNotEmpty()) {
 						val total = PerInterpreterStatistic()
 						pairs.forEach { (_, stat) -> stat.addTo(total) }
-						pairs.add(0, Pair("TOTAL", total))
+						pairs.add(0, "TOTAL" to total)
 						pairs.forEach { (name, stat) ->
 							stat.describeOn(this@apply, report.unit)
 							append(" $name\n")

@@ -31,26 +31,26 @@
  */
 package com.avail.descriptor.phrases
 
- import com.avail.compiler.AvailCodeGenerator
- import com.avail.descriptor.phrases.A_Phrase.Companion.emitValueOn
- import com.avail.descriptor.phrases.A_Phrase.Companion.expression
- import com.avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
- import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKind
- import com.avail.descriptor.phrases.A_Phrase.Companion.superUnionType
- import com.avail.descriptor.phrases.A_Phrase.Companion.tokens
- import com.avail.descriptor.phrases.SuperCastPhraseDescriptor.ObjectSlots.EXPRESSION
- import com.avail.descriptor.phrases.SuperCastPhraseDescriptor.ObjectSlots.TYPE_FOR_LOOKUP
- import com.avail.descriptor.representation.A_BasicObject
- import com.avail.descriptor.representation.AvailObject
- import com.avail.descriptor.representation.AvailObject.Companion.multiplier
- import com.avail.descriptor.representation.Mutability
- import com.avail.descriptor.representation.ObjectSlotsEnum
- import com.avail.descriptor.tuples.A_Tuple
- import com.avail.descriptor.types.A_Type
- import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
- import com.avail.descriptor.types.TypeTag
- import com.avail.serialization.SerializerOperation
- import com.avail.utility.json.JSONWriter
+import com.avail.compiler.AvailCodeGenerator
+import com.avail.descriptor.phrases.A_Phrase.Companion.emitValueOn
+import com.avail.descriptor.phrases.A_Phrase.Companion.expression
+import com.avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKind
+import com.avail.descriptor.phrases.A_Phrase.Companion.superUnionType
+import com.avail.descriptor.phrases.A_Phrase.Companion.tokens
+import com.avail.descriptor.phrases.SuperCastPhraseDescriptor.ObjectSlots.EXPRESSION
+import com.avail.descriptor.phrases.SuperCastPhraseDescriptor.ObjectSlots.TYPE_FOR_LOOKUP
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.multiplier
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.ObjectSlotsEnum
+import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
+import com.avail.descriptor.types.TypeTag
+import com.avail.serialization.SerializerOperation
+import com.avail.utility.json.JSONWriter
  import java.util.*
 
 /**

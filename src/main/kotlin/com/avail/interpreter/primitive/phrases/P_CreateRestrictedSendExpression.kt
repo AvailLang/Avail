@@ -51,10 +51,10 @@ import com.avail.descriptor.phrases.SendPhraseDescriptor.Companion.newSendNode
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.A_String
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
-import com.avail.descriptor.tuples.TupleDescriptor.Companion.toList
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
@@ -64,6 +64,7 @@ import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE
 import com.avail.descriptor.types.TypeDescriptor
 import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
+import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
 import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
@@ -107,13 +108,13 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 	{
 		interpreter.checkArgumentCount(3)
 		val messageName = interpreter.argument(0)
-		val argsListNode = interpreter.argument(1)
+		val argsListPhrase = interpreter.argument(1)
 		val returnType = interpreter.argument(2)
 
 		val originalFiber = currentFiber()
 		val loader = originalFiber.availLoader() ?:
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
-		val argExpressions = argsListNode.expressionsTuple()
+		val argExpressions = argsListPhrase.expressionsTuple()
 		val argsCount = argExpressions.tupleSize()
 		val bundle: A_Bundle
 		try
@@ -125,15 +126,21 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 				return interpreter.primitiveFailure(
 					E_INCORRECT_NUMBER_OF_ARGUMENTS)
 			}
+			if (!splitter.checkListStructure(argsListPhrase))
+			{
+				return interpreter.primitiveFailure(
+					AvailErrorCode.E_INCONSISTENT_ARGUMENT_REORDERING)
+			}
 		}
 		catch (e: MalformedMessageException)
 		{
 			return interpreter.primitiveFailure(e)
 		}
 
-		val argsTupleType = argsListNode.expressionType()
-		val argTypesTuple = argsTupleType.tupleOfTypesFromTo(1, argsCount)
-		val argTypesList = toList<A_Type>(argTypesTuple)
+		val argsTupleType = argsListPhrase.expressionType()
+		val argTypesList = (1..argsCount).map { index ->
+			argsTupleType.typeAtIndex(index).makeShared()
+		}
 		// Compute the intersection of the supplied type, applicable definition
 		// return types, and semantic restriction types.  Start with the
 		// supplied type.
@@ -159,19 +166,17 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 		}
 		// Note, the semantic restriction takes the *types* as arguments.
 		val applicableRestrictions =
-			bundle.bundleMethod().semanticRestrictions().asSequence()
-				.filter {
-					allVisibleModules.hasElement(it.definitionModule()) &&
-						it.function().kind().acceptsListOfArgValues(
-							argTypesList)
-				}
-				.toList()
+			bundle.bundleMethod().semanticRestrictions().filter {
+				allVisibleModules.hasElement(it.definitionModule()) &&
+					it.function().kind().acceptsListOfArgValues(
+						argTypesList)
+			}
 		val restrictionsSize = applicableRestrictions.size
 		if (restrictionsSize == 0)
 		{
 			// No semantic restrictions.  Trivial success.
 			return interpreter.primitiveSuccess(
-				newSendNode(emptyTuple(), bundle, argsListNode, intersection))
+				newSendNode(emptyTuple(), bundle, argsListPhrase, intersection))
 		}
 
 		// Merge in the (non-empty list of) semantic restriction results.
@@ -193,7 +198,7 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 							newSendNode(
 								emptyTuple(),
 								bundle,
-								argsListNode,
+								argsListPhrase,
 								intersection))
 					else -> {
 						// There were problems.  Fail the primitive with a

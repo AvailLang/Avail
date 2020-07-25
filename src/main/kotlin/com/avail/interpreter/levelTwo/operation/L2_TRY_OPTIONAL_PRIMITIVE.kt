@@ -31,25 +31,22 @@
  */
 package com.avail.interpreter.levelTwo.operation
 
-import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.CompiledCodeDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.representation.AvailObject
-import com.avail.interpreter.Primitive
 import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.L2Chunk
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2Operation
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_ARGUMENTS
 import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_CONTINUATION
 import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_FUNCTION
 import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.LATEST_RETURN_VALUE
 import com.avail.interpreter.levelTwo.ReadsHiddenVariable
+import com.avail.interpreter.levelTwo.WritesHiddenVariable
 import com.avail.optimizer.L2Generator
 import com.avail.optimizer.RegisterSet
-import com.avail.optimizer.StackReifier
-import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.JVMTranslator
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
@@ -67,11 +64,12 @@ import org.objectweb.asm.Opcodes
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-@ReadsHiddenVariable(theValue = [
+@ReadsHiddenVariable(
 	CURRENT_CONTINUATION::class,
 	CURRENT_FUNCTION::class,
-	//	CURRENT_ARGUMENTS.class,
-	LATEST_RETURN_VALUE::class])
+	CURRENT_ARGUMENTS::class)
+@WritesHiddenVariable(
+	LATEST_RETURN_VALUE::class)
 object L2_TRY_OPTIONAL_PRIMITIVE : L2Operation()
 {
 	override fun isEntryPoint(instruction: L2Instruction): Boolean = true
@@ -93,69 +91,38 @@ object L2_TRY_OPTIONAL_PRIMITIVE : L2Operation()
 		method: MethodVisitor,
 		instruction: L2Instruction)
 	{
-		// :: if (interpreter.function.code().primitive() === null)
-		// ::    goto noPrimitive;
+		// if (interpreter.function.code().primitive() === null)
+		//     goto noPrimitive;
 		translator.loadInterpreter(method)
+		// :: interpreter
 		method.visitInsn(Opcodes.DUP)
+		// :: interpreter, interpreter
 		Interpreter.interpreterFunctionField.generateRead(method)
+		// :: interpreter, function
 		method.visitInsn(Opcodes.DUP)
+		// :: interpreter, function, function
 		FunctionDescriptor.functionCodeMethod.generateCall(method)
+		// :: interpreter, function, code
 		CompiledCodeDescriptor.codePrimitiveMethod.generateCall(method)
+		// :: interpreter, function, primitive
 		method.visitInsn(Opcodes.DUP)
+		// :: interpreter, function, primitive, primitive
 		val noPrimitive = Label()
 		method.visitJumpInsn(Opcodes.IFNULL, noPrimitive)
-		// :: return L2_TRY_OPTIONAL_PRIMITIVE.attemptThePrimitive(
-		// ::    interpreter, function, primitive);
-		attemptThePrimitiveMethod.generateCall(method)
+		// return L2_TRY_OPTIONAL_PRIMITIVE.attemptThePrimitive(
+		//     interpreter, function, primitive);
+		// :: interpreter, function, primitive
+		Interpreter.attemptThePrimitiveMethod.generateCall(method)
+		// :: stackReifier
 		method.visitInsn(Opcodes.ARETURN)
+
 		method.visitLabel(noPrimitive)
 		// Pop the three Category-1 arguments that were waiting for
 		// attemptThePrimitive().
+		// :: interpreter, function, primitive
 		method.visitInsn(Opcodes.POP2)
+		// :: interpreter
 		method.visitInsn(Opcodes.POP)
+		// ::
 	}
-
-	/**
-	 * Attempt the [primitive][Primitive], dynamically checking
-	 * whether it is an [inlineable][Primitive.Flag.CanInline] primitive.
-	 *
-	 * @param interpreter
-	 *   The [Interpreter].
-	 * @param function
-	 *   The [A_Function].
-	 * @param primitive
-	 *   The [Primitive].
-	 * @return
-	 *   The [StackReifier], if any.
-	 */
-	@JvmStatic
-	@ReferencedInGeneratedCode
-	fun attemptThePrimitive(
-		interpreter: Interpreter,
-		function: A_Function,
-		primitive: Primitive): StackReifier?
-	{
-		return if (primitive.hasFlag(Primitive.Flag.CanInline))
-		{
-			L2_TRY_PRIMITIVE.attemptInlinePrimitive(
-				interpreter, function, primitive)
-		}
-		else
-		{
-			L2_TRY_PRIMITIVE.attemptNonInlinePrimitive(
-				interpreter, function, primitive)
-		}
-	}
-
-	/**
-	 * The [CheckedMethod] for invoking [attemptThePrimitive].
-	 */
-	val attemptThePrimitiveMethod =
-		CheckedMethod.staticMethod(
-			L2_TRY_OPTIONAL_PRIMITIVE::class.java,
-			::attemptThePrimitive.name,
-			StackReifier::class.java,
-			Interpreter::class.java,
-			A_Function::class.java,
-			Primitive::class.java)
 }

@@ -31,36 +31,36 @@
  */
 package com.avail.descriptor.maps
 
- import com.avail.descriptor.maps.HashedMapBinDescriptor.IntegerSlots.BIN_SIZE
- import com.avail.descriptor.maps.HashedMapBinDescriptor.IntegerSlots.BIT_VECTOR
- import com.avail.descriptor.maps.HashedMapBinDescriptor.IntegerSlots.COMBINED_HASHES
- import com.avail.descriptor.maps.HashedMapBinDescriptor.IntegerSlots.Companion.KEYS_HASH
- import com.avail.descriptor.maps.HashedMapBinDescriptor.IntegerSlots.Companion.VALUES_HASH_OR_ZERO
- import com.avail.descriptor.maps.HashedMapBinDescriptor.ObjectSlots.BIN_KEY_UNION_KIND_OR_NIL
- import com.avail.descriptor.maps.HashedMapBinDescriptor.ObjectSlots.BIN_VALUE_UNION_KIND_OR_NIL
- import com.avail.descriptor.maps.HashedMapBinDescriptor.ObjectSlots.SUB_BINS_
- import com.avail.descriptor.maps.LinearMapBinDescriptor.Companion.createSingleLinearMapBin
- import com.avail.descriptor.maps.LinearMapBinDescriptor.Companion.emptyLinearMapBin
- import com.avail.descriptor.maps.MapDescriptor.MapIterable
- import com.avail.descriptor.representation.A_BasicObject
- import com.avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
- import com.avail.descriptor.representation.AbstractSlotsEnum
- import com.avail.descriptor.representation.AvailObject
- import com.avail.descriptor.representation.AvailObject.Companion.newIndexedDescriptor
- import com.avail.descriptor.representation.AvailObjectRepresentation.Companion.newLike
- import com.avail.descriptor.representation.BitField
- import com.avail.descriptor.representation.IntegerSlotsEnum
- import com.avail.descriptor.representation.Mutability
- import com.avail.descriptor.representation.Mutability.MUTABLE
- import com.avail.descriptor.representation.NilDescriptor.Companion.nil
- import com.avail.descriptor.representation.ObjectSlotsEnum
- import com.avail.descriptor.sets.A_Set
- import com.avail.descriptor.sets.HashedSetBinDescriptor
- import com.avail.descriptor.sets.SetDescriptor
- import com.avail.descriptor.types.A_Type
- import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
- import com.avail.descriptor.types.TypeTag
- import com.avail.utility.cast
+import com.avail.descriptor.maps.HashedMapBinDescriptor.IntegerSlots.BIN_SIZE
+import com.avail.descriptor.maps.HashedMapBinDescriptor.IntegerSlots.BIT_VECTOR
+import com.avail.descriptor.maps.HashedMapBinDescriptor.IntegerSlots.COMBINED_HASHES
+import com.avail.descriptor.maps.HashedMapBinDescriptor.IntegerSlots.Companion.KEYS_HASH
+import com.avail.descriptor.maps.HashedMapBinDescriptor.IntegerSlots.Companion.VALUES_HASH_OR_ZERO
+import com.avail.descriptor.maps.HashedMapBinDescriptor.ObjectSlots.BIN_KEY_UNION_KIND_OR_NIL
+import com.avail.descriptor.maps.HashedMapBinDescriptor.ObjectSlots.BIN_VALUE_UNION_KIND_OR_NIL
+import com.avail.descriptor.maps.HashedMapBinDescriptor.ObjectSlots.SUB_BINS_
+import com.avail.descriptor.maps.LinearMapBinDescriptor.Companion.createSingleLinearMapBin
+import com.avail.descriptor.maps.LinearMapBinDescriptor.Companion.emptyLinearMapBin
+import com.avail.descriptor.maps.MapDescriptor.MapIterable
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
+import com.avail.descriptor.representation.AbstractSlotsEnum
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.newIndexedDescriptor
+import com.avail.descriptor.representation.AvailObjectRepresentation.Companion.newLike
+import com.avail.descriptor.representation.BitField
+import com.avail.descriptor.representation.IntegerSlotsEnum
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.Mutability.MUTABLE
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.descriptor.representation.ObjectSlotsEnum
+import com.avail.descriptor.sets.A_Set
+import com.avail.descriptor.sets.HashedSetBinDescriptor
+import com.avail.descriptor.sets.SetDescriptor
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
+import com.avail.descriptor.types.TypeTag
+import com.avail.utility.cast
  import java.util.*
 
 /**

@@ -81,10 +81,8 @@ object P_EmergencyExit : Primitive(
 		val continuation = interpreter.getReifiedContinuation()!!
 		interpreter.primitiveSuspend(interpreter.function!!)
 		dumpStackThen(
-			interpreter.runtime(),
-			fiber.textInterface(),
-			continuation)
-		{ stack ->
+			interpreter.runtime, fiber.textInterface(), continuation
+		) { stack ->
 			val builder = StringBuilder()
 			builder.append(format(
 				"A fiber (%s) has exited: %s",

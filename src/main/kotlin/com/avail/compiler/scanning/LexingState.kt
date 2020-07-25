@@ -53,6 +53,9 @@ import com.avail.descriptor.tokens.A_Token
 import com.avail.descriptor.tokens.TokenDescriptor.Companion.newToken
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType.END_OF_FILE
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.StringDescriptor.Companion.formatString
 import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.interpreter.execution.Interpreter
@@ -235,7 +238,7 @@ class LexingState constructor(
 			this.actions = null
 			return
 		}
-		compilationContext.loader!!.lexicalScanner().getLexersForCodePointThen(
+		compilationContext.loader.lexicalScanner().getLexersForCodePointThen(
 			this,
 			source.tupleCodePointAt(position),
 			{ this.evaluateLexers(it) },
@@ -260,7 +263,7 @@ class LexingState constructor(
 		if (applicableLexers.tupleSize() == 0)
 		{
 			// No applicable lexers.
-			val scanner = compilationContext.loader!!.lexicalScanner()
+			val scanner = compilationContext.loader.lexicalScanner()
 			val codePoint =
 				compilationContext.source.tupleCodePointAt(position)
 			val charString =
@@ -313,7 +316,7 @@ class LexingState constructor(
 		arguments: List<A_BasicObject>,
 		countdown: AtomicInteger)
 	{
-		val loader = compilationContext.loader!!
+		val loader = compilationContext.loader
 		val fiber = newLoaderFiber(
 			lexerBodyFunctionType().returnType(),
 			loader
@@ -581,7 +584,7 @@ class LexingState constructor(
 	{
 		expected(level) { continuation ->
 			stringifyThen(
-				compilationContext.loader!!.runtime(),
+				compilationContext.loader.runtime(),
 				compilationContext.textInterface,
 				values
 			) { list -> continuation(transformer.apply(list)) }

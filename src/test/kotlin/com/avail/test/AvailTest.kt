@@ -9,7 +9,7 @@
  *  * Redistributions of source code must retain the above copyright notice, this
  *     list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this 
+ *  * Redistributions in binary form must reproduce the above copyright notice, this
  *     list of conditions and the following disclaimer in the documentation
  *     and/or other materials provided with the distribution.
  *
@@ -118,7 +118,7 @@ class AvailTest
 	 *   If a module can't be resolved.
 	 */
 	@DisplayName("Avail standard libraries")
-	@ParameterizedTest
+	@ParameterizedTest(name = "{displayName}: {0}")
 	@ValueSource(strings = [
 		"/avail/Avail",
 		"/avail/Convenient ASCII",
@@ -145,7 +145,7 @@ class AvailTest
 	 *   If a module can't be resolved.
 	 */
 	@DisplayName("Invalid modules")
-	@ParameterizedTest
+	@ParameterizedTest(name = "{displayName}: {0}")
 	@ValueSource(strings = [
 		"/experimental/builder tests/MutuallyRecursive1",
 		"/experimental/builder tests/MutuallyRecursive2",

@@ -160,7 +160,7 @@ object P_FileTruncate : Primitive(5, CanInline, HasSideEffect)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			ObjectTupleDescriptor.tuple(
+			tuple(
 				ATOM.o(),
 				wholeNumbers(),
 				functionType(

@@ -38,6 +38,7 @@ import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.methods.MethodDescriptor
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.tuples.TupleDescriptor
@@ -64,6 +65,7 @@ import com.avail.exceptions.AvailException
 import com.avail.exceptions.MalformedMessageException
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanSuspend
+import com.avail.interpreter.Primitive.Flag.HasSideEffect
 import com.avail.interpreter.Primitive.Flag.Unknown
 import com.avail.interpreter.execution.Interpreter
 
@@ -75,7 +77,7 @@ import com.avail.interpreter.execution.Interpreter
  * third argument is the function to invoke for the complete macro.  It is
  * constrained to answer a [method][MethodDescriptor].
  */
-object P_SimpleMacroDeclaration : Primitive(3, CanSuspend, Unknown)
+object P_SimpleMacroDeclaration : Primitive(3, CanSuspend, HasSideEffect)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{

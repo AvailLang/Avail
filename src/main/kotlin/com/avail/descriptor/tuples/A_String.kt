@@ -53,9 +53,9 @@ interface A_String : A_Tuple
 	fun asNativeString(): String
 
 	/**
-	 * Even though [copyTupleFromToCanDestroy] would perform the same activity,
-	 * this method returns the stronger `A_String` type as a convenience, when
-	 * the code knows it's working on strings.
+	 * Even though [A_Tuple.copyTupleFromToCanDestroy] would perform the same
+	 * activity, this method returns the stronger `A_String` type as a
+	 * convenience, when the code knows it's working on strings.
 	 *
 	 * @param start
 	 *   The start of the range to extract.

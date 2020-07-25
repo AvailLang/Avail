@@ -91,6 +91,7 @@ object P_SetImplicitObserveFunction : Primitive(
 		val outerIndex = writer.createOuter(IMPLICIT_OBSERVE.functionType)
 		writer.argumentTypes(mostGeneralFunctionType(), mostGeneralTupleType())
 		writer.returnType = bottom()
+		writer.returnTypeIfPrimitiveFails = bottom()
 		writer.write(0, L1Operation.L1_doPushOuter, outerIndex)
 		writer.write(0, L1Operation.L1_doPushLocal, 1)
 		writer.write(0, L1Operation.L1_doPushLocal, 2)
@@ -131,7 +132,7 @@ object P_SetImplicitObserveFunction : Primitive(
 		// set up for a return).
 		val wrapper = createWithOuters1(rawFunction, function.cast())
 		// Now set the wrapper as the implicit observe function.
-		IMPLICIT_OBSERVE.set(interpreter.runtime(), wrapper)
+		IMPLICIT_OBSERVE[interpreter.runtime] = wrapper
 		return interpreter.primitiveSuccess(nil)
 	}
 

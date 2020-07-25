@@ -91,9 +91,10 @@ object L2_GET_UNASSIGNED_VARIABLE_READ_FUNCTION : L2Operation(
 
 		// :: register = interpreter.runtime().unassignedVariableReadFunction();
 		translator.loadInterpreter(method)
-		Interpreter.runtimeMethod.generateCall(method)
+		Interpreter.runtimeField.generateRead(method)
 		AvailRuntime.unassignedVariableReadFunctionMethod.generateCall(method)
-		method.visitTypeInsn(Opcodes.CHECKCAST, Type.getInternalName(AvailObject::class.java))
+		method.visitTypeInsn(
+			Opcodes.CHECKCAST, Type.getInternalName(AvailObject::class.java))
 		translator.store(method, function.register())
 	}
 }

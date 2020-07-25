@@ -373,3 +373,11 @@ Public method "self currentGame:_during:_" is
 |
 	Use game ?→ Wump the Wumpus as the implied game and do action;
 ];
+
+/**
+ * Install the renamed macros.
+ */
+[
+	Copy macros from $"_!;" to $"_!.";
+	Copy macros from $"…:=_;" to $ "…:=_.";
+]();

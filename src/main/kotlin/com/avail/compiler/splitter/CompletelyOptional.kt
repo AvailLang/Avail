@@ -176,4 +176,8 @@ internal class CompletelyOptional constructor(
 		// Completely optional expressions can be absent.
 		return true
 	}
+
+	override fun checkListStructure(phrase: A_Phrase): Boolean =
+		throw RuntimeException(
+			"checkListStructure() inapplicable for CompletelyOptional.")
 }

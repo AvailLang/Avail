@@ -40,6 +40,8 @@ import com.avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinit
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.StringDescriptor.Companion.formatString
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
@@ -138,7 +140,7 @@ object P_DelayedFork : Primitive(
 		}
 		else if (sleepMillis.isLong)
 		{
-			val runtime = interpreter.runtime()
+			val runtime = interpreter.runtime
 			runtime.timer.schedule(
 				object : TimerTask()
 				{

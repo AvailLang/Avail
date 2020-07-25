@@ -57,11 +57,15 @@ import com.avail.descriptor.representation.AvailObject
  * @param pcAfter
  *   The L1 program counter just after the instruction responsible for
  *   effectively writing this value in the frame's slot.
+ * @param optionalName
+ *   Either a [String] that provides a useful naming hint for this slot, or
+ *   `null`.
  */
 internal class L2SemanticSlot(
 	frame: Frame,
 	val slotIndex: Int,
-	val pcAfter: Int
+	val pcAfter: Int,
+	val optionalName: String?
 ) : L2FrameSpecificSemanticValue(
 	frame, slotIndex * AvailObject.multiplier xor pcAfter)
 {
@@ -70,6 +74,7 @@ internal class L2SemanticSlot(
 		assert(slotIndex >= 1)
 	}
 
+	// Note: Ignore the optionalName.
 	override fun equalsSemanticValue(other: L2SemanticValue): Boolean =
 		(other is L2SemanticSlot
 			&& super.equalsSemanticValue(other)
@@ -80,13 +85,30 @@ internal class L2SemanticSlot(
 		semanticValueTransformer: (L2SemanticValue) -> L2SemanticValue,
 		frameTransformer: (Frame) -> Frame): L2SemanticValue =
 			frameTransformer.invoke(frame()).let {
-			if (it == frame()) this else L2SemanticSlot(it, slotIndex, pcAfter)
+			if (it == frame()) this
+			else L2SemanticSlot(it, slotIndex, pcAfter, optionalName)
 		}
 
-	override fun toString(): String =
-		"Slot#$slotIndex@$pcAfter${if (frame.depth() == 1) "" else "[$frame]"}"
+	override fun toString(): String = buildString {
+		when (optionalName)
+		{
+			null -> append("Slot#$slotIndex")
+			else -> append(optionalName)
+		}
+		append("@")
+		append(pcAfter)
+		if (frame.depth() > 1) append("[$frame]")
+	}
 
-	override fun toStringForSynonym(): String =
-		"$slotIndex@$pcAfter${if (frame.depth() == 1) "" else "[$frame]"}"
 
+	override fun toStringForSynonym(): String = buildString {
+		when (optionalName)
+		{
+			null -> append(slotIndex)
+			else -> append(optionalName)
+		}
+		append("@")
+		append(pcAfter)
+		if (frame.depth() > 1) append("[$frame]")
+	}
 }

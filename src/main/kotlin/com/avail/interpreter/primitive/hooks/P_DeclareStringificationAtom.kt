@@ -76,6 +76,7 @@ object P_DeclareStringificationAtom : Primitive(
 		val writer = L1InstructionWriter(nil, 0, nil)
 		writer.argumentTypes(ANY.o())
 		writer.returnType = stringType()
+		writer.returnTypeIfPrimitiveFails = stringType()
 		writer.write(0, L1Operation.L1_doPushLocal, 1)
 		try
 		{
@@ -94,7 +95,7 @@ object P_DeclareStringificationAtom : Primitive(
 		val function = createFunction(writer.compiledCode(), emptyTuple())
 		function.makeShared()
 		// Set the stringification function.
-		STRINGIFICATION.set(interpreter.runtime(), function)
+		STRINGIFICATION[interpreter.runtime] = function
 		interpreter.availLoaderOrNull()?.statementCanBeSummarized(false)
 		return interpreter.primitiveSuccess(nil)
 	}

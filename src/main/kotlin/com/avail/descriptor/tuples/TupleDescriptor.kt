@@ -46,19 +46,38 @@ import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor.Companion.generateSetFrom
+import com.avail.descriptor.tuples.A_Tuple.Companion.bitsPerEntry
+import com.avail.descriptor.tuples.A_Tuple.Companion.computeHashFromTo
+import com.avail.descriptor.tuples.A_Tuple.Companion.concatenateWith
+import com.avail.descriptor.tuples.A_Tuple.Companion.copyAsMutableObjectTuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.isBetterRepresentationThan
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAtPuttingCanDestroy
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleElementsInRangeAreInstancesOf
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleLongAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
+import com.avail.descriptor.tuples.IntTupleDescriptor.Companion.generateIntTupleFrom
+import com.avail.descriptor.tuples.LongTupleDescriptor.Companion.generateLongTupleFrom
+import com.avail.descriptor.tuples.NybbleTupleDescriptor.Companion.mutableObjectOfSize
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import com.avail.descriptor.tuples.TupleDescriptor.IntegerSlots
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.instanceTypeOrMetaOn
 import com.avail.descriptor.types.BottomTypeDescriptor
 import com.avail.descriptor.types.TupleTypeDescriptor
 import com.avail.descriptor.types.TypeDescriptor
 import com.avail.descriptor.types.TypeTag
+import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
 import java.nio.ByteBuffer
-import java.util.*
+import java.util.ArrayList
+import java.util.IdentityHashMap
+import java.util.NoSuchElementException
+import java.util.Spliterator
 import java.util.function.Consumer
 import java.util.stream.Stream
 import java.util.stream.StreamSupport
@@ -313,6 +332,11 @@ abstract class TupleDescriptor protected constructor(
 		anIntTuple: A_Tuple): Boolean = o_EqualsAnyTuple(self, anIntTuple)
 
 	// Default to generic tuple comparison.
+	override fun o_EqualsLongTuple(
+		self: AvailObject,
+		aLongTuple: A_Tuple): Boolean = o_EqualsAnyTuple(self, aLongTuple)
+
+	// Default to generic tuple comparison.
 	override fun o_EqualsReverseTuple(
 		self: AvailObject,
 		aTuple: A_Tuple): Boolean = o_EqualsAnyTuple(self, aTuple)
@@ -365,7 +389,7 @@ abstract class TupleDescriptor protected constructor(
 		}
 		// See if it's an acceptable size...
 		val tupleSize = self.tupleSize()
-		if (!aType.sizeRange().rangeIncludesInt(tupleSize))
+		if (!aType.sizeRange().rangeIncludesLong(tupleSize.toLong()))
 		{
 			return false
 		}
@@ -403,10 +427,7 @@ abstract class TupleDescriptor protected constructor(
 		for (i in 1 .. tupleSize)
 		{
 			tupleOfTypes.tupleAtPuttingCanDestroy(
-				i,
-				AbstractEnumerationTypeDescriptor
-					.instanceTypeOrMetaOn(self.tupleAt(i)),
-				true)
+				i, instanceTypeOrMetaOn(self.tupleAt(i)), true)
 		}
 		return TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 			fromInt(self.tupleSize()).kind(),
@@ -428,18 +449,11 @@ abstract class TupleDescriptor protected constructor(
 		aTuple: A_Tuple,
 		startIndex2: Int): Boolean
 	{
-		var index1 = startIndex1
+		// Compare actual entries.
 		var index2 = startIndex2
-		while (index1 <= endIndex1)
-		{
-			if (!self.tupleAt(index1).equals(aTuple.tupleAt(index2)))
-			{
-				return false
-			}
-			index1++
-			index2++
+		return (startIndex1..endIndex1).all { index1 ->
+			(self.tupleAt(index1).equals(aTuple.tupleAt(index2++)))
 		}
-		return true
 	}
 
 	override fun o_CompareFromToWithByteStringStartingAt(
@@ -685,6 +699,9 @@ abstract class TupleDescriptor protected constructor(
 	override fun o_TupleIntAt(self: AvailObject, index: Int): Int =
 		self.tupleAt(index).extractInt()
 
+	override fun o_TupleLongAt(self: AvailObject, index: Int): Long =
+		self.tupleAt(index).extractLong()
+
 	override fun o_AsSet(self: AvailObject): A_Set =
 		generateSetFrom(self.tupleSize(), self.iterator())
 
@@ -887,8 +904,19 @@ abstract class TupleDescriptor protected constructor(
 	override fun o_CopyAsMutableIntTuple(self: AvailObject): A_Tuple
 	{
 		val size = self.tupleSize()
-		val result = IntTupleDescriptor.generateIntTupleFrom(
-			size) { index: Int -> self.tupleIntAt(index) }
+		val result = generateIntTupleFrom(size) { self.tupleIntAt(it) }
+		result.setHashOrZero(self.hashOrZero())
+		return result
+	}
+
+	/**
+	 * Answer a mutable copy of object that holds longs.
+	 */
+	override fun o_CopyAsMutableLongTuple(self: AvailObject): A_Tuple
+	{
+		val result = generateLongTupleFrom(self.tupleSize()) {
+			self.tupleLongAt(it)
+		}
 		result.setHashOrZero(self.hashOrZero())
 		return result
 	}
@@ -896,14 +924,10 @@ abstract class TupleDescriptor protected constructor(
 	/**
 	 * Answer a mutable copy of object that holds arbitrary objects.
 	 */
-	override fun o_CopyAsMutableObjectTuple(self: AvailObject): A_Tuple
-	{
-		val size = self.tupleSize()
-		val result = generateObjectTupleFrom(size)
-		{ index: Int -> self.tupleAt(index) }
-		result.setHashOrZero(self.hashOrZero())
-		return result
-	}
+	override fun o_CopyAsMutableObjectTuple(self: AvailObject): A_Tuple =
+		generateObjectTupleFrom(self.tupleSize()) { self.tupleAt(it) }.apply {
+			setHashOrZero(self.hashOrZero())
+		}
 
 	override fun o_TupleElementsInRangeAreInstancesOf(
 		self: AvailObject,
@@ -1137,19 +1161,8 @@ abstract class TupleDescriptor protected constructor(
 	private object Empty
 	{
 		/** The empty tuple.  */
-		var emptyTuple: AvailObject
-
-		init
-		{
-			// Create the empty tuple.
-			val t: A_Tuple = NybbleTupleDescriptor.generateNybbleTupleFrom(0)
-			{
-				assert(false) { "This should be an empty nybble tuple" }
-				0
-			}
-			t.hash()
-			emptyTuple = t.makeShared()
-		}
+		val emptyTuple: AvailObject =
+			mutableObjectOfSize(0).apply { hash() }.makeShared()
 	}
 
 	companion object
@@ -1307,8 +1320,7 @@ abstract class TupleDescriptor protected constructor(
 						{ list[it - 1] }
 				}
 			}
-			return IntTupleDescriptor
-				.generateIntTupleFrom(list.size) { list[it - 1] }
+			return generateIntTupleFrom(list.size) { list[it - 1] }
 		}
 
 		/**
@@ -1356,5 +1368,109 @@ abstract class TupleDescriptor protected constructor(
 				scaledMultiplier = power
 			}
 		}
+
+		/**
+		 * Concatenate two `A_Tuple`s.
+		 *
+		 * @param firstTuple
+		 *   The first tuple to concatenate.
+		 * @param secondTuple
+		 *   The second tuple to concatenate.
+		 * @param canDestroy
+		 *   Whether either input tuple may be destroyed if it's also mutable.
+		 * @return
+		 *   The concatenated tuple.
+		 */
+		@JvmStatic
+		@ReferencedInGeneratedCode
+		fun staticConcatenateTuples(
+			firstTuple: A_Tuple,
+			secondTuple: A_Tuple,
+			canDestroy: Boolean
+		): A_Tuple = firstTuple.concatenateWith(secondTuple, canDestroy)
+
+		/** The [CheckedMethod] for [staticConcatenateTuples]. */
+		@JvmField
+		val concatenateTupleMethod = CheckedMethod.staticMethod(
+			TupleDescriptor::class.java,
+			::staticConcatenateTuples.name,
+			A_Tuple::class.java,
+			A_Tuple::class.java,
+			A_Tuple::class.java,
+			Boolean::class.javaPrimitiveType!!)
+
+		/**
+		 * Answer the specified element of the tuple.
+		 *
+		 * @param tuple
+		 *   The tuple from which to extract a value.
+		 * @param index
+		 *   Which element should be extracted.
+		 * @return
+		 *   The element of the tuple.
+		 */
+		@JvmStatic
+		@ReferencedInGeneratedCode
+		fun staticTupleAt(tuple: A_Tuple, index: Int): AvailObject =
+			tuple.tupleAt(index)
+
+		/** The [CheckedMethod] for [staticTupleAt].  */
+		@JvmField
+		val tupleAtMethod = CheckedMethod.staticMethod(
+			TupleDescriptor::class.java,
+			::staticTupleAt.name,
+			AvailObject::class.java,
+			A_Tuple::class.java,
+			Int::class.javaPrimitiveType!!)
+
+		/**
+		 * Replace the specified element of the tuple, destructively if it's
+		 * mutable and of the right optimized element type.  Answer the modified
+		 * original or edited copy.
+		 *
+		 * @param tuple
+		 *   The tuple in which to replace a value.
+		 * @param index
+		 *   Which element should be replaced.
+		 * @param newValue
+		 *   The value to write.
+		 * @return
+		 *   Either the given tuple, modified, or a new tuple containing the
+		 *   edit.  This is strengthened to [AvailObject] for convenience.
+		 */
+		@JvmStatic
+		@ReferencedInGeneratedCode
+		fun staticTupleAtPutting(
+			tuple: A_Tuple, index: Int, newValue: A_BasicObject
+		): AvailObject =
+			tuple.tupleAtPuttingCanDestroy(index, newValue, true) as AvailObject
+
+		/** The [CheckedMethod] for [staticTupleAt].  */
+		@JvmField
+		val tupleAtPuttingMethod = CheckedMethod.staticMethod(
+			TupleDescriptor::class.java,
+			::staticTupleAtPutting.name,
+			AvailObject::class.java,
+			A_Tuple::class.java,
+			Int::class.javaPrimitiveType!!,
+			A_BasicObject::class.java)
+
+		/**
+		 * Answer the number of elements in this tuple.
+		 *
+		 * @return
+		 *   The maximum valid 1-based index for this tuple.
+		 */
+		@JvmStatic
+		@ReferencedInGeneratedCode
+		fun staticTupleSize(tuple: A_Tuple): Int = tuple.tupleSize()
+
+		/** The [CheckedMethod] for [staticTupleSize].  */
+		@JvmField
+		val tupleSizeMethod = CheckedMethod.staticMethod(
+			TupleDescriptor::class.java,
+			::staticTupleSize.name,
+			Int::class.javaPrimitiveType!!,
+			A_Tuple::class.java)
 	}
 }

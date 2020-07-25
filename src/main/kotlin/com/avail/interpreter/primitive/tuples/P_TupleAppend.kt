@@ -34,6 +34,7 @@ package com.avail.interpreter.primitive.tuples
 
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.tuples.A_Tuple.Companion.appendCanDestroy
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple

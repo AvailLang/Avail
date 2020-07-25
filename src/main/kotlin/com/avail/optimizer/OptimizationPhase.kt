@@ -137,6 +137,8 @@ internal enum class OptimizationPhase constructor(
 	 */
 	POSTPONE_CONDITIONALLY_USED_VALUES_2({ postponeConditionallyUsedValues() }),
 
+	REPLACE_CONSTANT_REGISTERS({ replaceConstantRegisters() }),
+
 	/**
 	 * Insert phi moves along preceding edges.  This requires the CFG to be in
 	 * edge-split form, although strict SSA isn't required.
@@ -203,6 +205,7 @@ internal enum class OptimizationPhase constructor(
 	 * jump to follow the jump, since final code generation elides the jump.
 	 */
 	ORDER_BLOCKS({ orderBlocks() });
+
 	// Additional optimization ideas:
 	//		-Strengthen the types of all registers and register uses.
 	//		-Ask instructions to regenerate if they want.
@@ -216,7 +219,6 @@ internal enum class OptimizationPhase constructor(
 	//		  get more specific types to work with.
 	//		-Splitting for int32s.
 	//		-Leverage more inter-primitive identities.
-	//		-JVM target.
 
 	/** The [Statistic] for tracking this pass's cost.  */
 	val stat: Statistic = Statistic(name, StatisticReport.L2_OPTIMIZATION_TIME)

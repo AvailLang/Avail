@@ -125,7 +125,7 @@ object P_FileSync : Primitive(4, CanInline, HasSideEffect)
 		succeed.makeShared()
 		fail.makeShared()
 
-		val runtime = interpreter.runtime()
+		val runtime = interpreter.runtime
 		runtime.ioSystem().executeFileTask(
 			Runnable {
                try
@@ -153,7 +153,7 @@ object P_FileSync : Primitive(4, CanInline, HasSideEffect)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			ObjectTupleDescriptor.tuple(
+			tuple(
 				ATOM.o(),
 				functionType(emptyTuple(), TOP.o()),
 				functionType(

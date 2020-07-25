@@ -227,4 +227,58 @@ object Strings {
 			throw RuntimeException(x)
 		}
 	}
+
+	/**
+	 * With the given StringBuilder, append the prefix, run the body, and append
+	 * the suffix.  Attempt to append the suffix even if the body fails.
+	 *
+	 * @param prefix
+	 *   The first string to append.
+	 * @param suffix
+	 *   The last string to append.
+	 * @param body
+	 *   The body function that produces the middle part.
+	 */
+	fun StringBuilder.wrap(
+		prefix: String,
+		suffix: String,
+		body: StringBuilder.()->Unit)
+	{
+		append(prefix)
+		try
+		{
+			body()
+		}
+		finally
+		{
+			append(suffix)
+		}
+	}
+
+	/**
+	 * Output an XML tag with the given tag name and attributes supplied as
+	 * [Pair]s.  The values of the attributes will be escaped and quoted.  Then
+	 * run the body function and output a matching close tag.  If at exception
+	 * is thrown by the body, still attempt to output the close tag.
+	 */
+	fun StringBuilder.tag(
+		tag: String,
+		vararg attributes: Pair<String, String>,
+		body: StringBuilder.()->Unit)
+	{
+		append("<")
+		append(tag)
+		attributes.forEach { (key, value) ->
+			append(" $key=${escape(value)}" )
+		}
+		append(">")
+		try
+		{
+			body()
+		}
+		finally
+		{
+			append("</$tag>")
+		}
+	}
 }

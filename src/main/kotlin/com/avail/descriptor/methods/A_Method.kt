@@ -177,24 +177,6 @@ interface A_Method : A_ChunkDependable {
 	fun lookupByValuesFromList(argumentList: List<A_BasicObject>): A_Definition
 
 	/**
-	 * Look up the macro [A_Definition] to invoke, given an [A_Tuple] of
-	 * argument phrases.  Use the [A_Method]'s macro testing tree to find the
-	 * macro definition to invoke.  Answer the [A_Tuple] of applicable macro
-	 * definitions.
-	 *
-	 * Note that this testing tree approach is only applicable if all of the
-	 * macro definitions are visible (defined in the current module or an
-	 * ancestor.  That should be the *vast* majority of the use of macros, but
-	 * when it isn't, other lookup approaches are necessary.
-	 *
-	 * @param argumentPhraseTuple
-	 *   The argument phrases destined to be transformed by the macro.
-	 * @return
-	 *   The selected macro definitions.
-	 */
-	fun lookupMacroByPhraseTuple(argumentPhraseTuple: A_Tuple): A_Tuple
-
-	/**
 	 * Remove the specified [definition][A_Definition] from this [A_Method].
 	 * Behaves idempotently.
 	 *
@@ -276,13 +258,28 @@ interface A_Method : A_ChunkDependable {
 	fun methodAddBundle(bundle: A_Bundle)
 
 	/**
-	 * Answer the tuple of [macro][MacroDefinitionDescriptor] for this method.
+	 * As part of unloading a module, remove the bundle from this [A_Method].
+	 *
+	 * @param bundle
+	 *   The message bundle to remove from this method.
+	 */
+	fun methodRemoveBundle(bundle: A_Bundle)
+
+	/**
+	 * Answer the tuple of [macro][MacroDescriptor] for this method.
 	 * Their order is irrelevant, but fixed for use by the macro testing tree.
 	 *
 	 * @return
 	 *   A tuple of [macro&#32;definitions][A_Definition].
 	 */
-	fun macroDefinitionsTuple(): A_Tuple
+	fun macrosTuple(): A_Tuple
+
+	/**
+	 * The membership of this [method][MethodDescriptor] has changed. Invalidate
+	 * anything that depended on the previous membership, including any
+	 * [LookupTree]s or dependent [L2Chunk]s.
+	 */
+	fun membershipChanged()
 
 	/**
 	 * Of this method's bundles, choose one that is visible in the current

@@ -73,16 +73,16 @@ Body
  * @raises "expected-operator-after-backquote exception"
  * @raises "incorrect-type-for-boolean-group exception"
  * @raises "incorrect-type-for-counting-group exception"
- * @raises "octothorp-must-follow-a-simple-group exception"
+ * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
  * @raises "question-mark-must-follow-a-simple-group exception"
  * @raises "case-insensitive-expression-canonization exception"
  * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
  * @raises "alternative-must-not-contain-arguments exception"
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
+ * @raises "dollar-sign-must-follow-an-ellipsis exception"
+ * @raises "cannot-define-during-compilation exception"
  * @raises "loading-is-over exception"
- * @raises "atom-already-exists exception"
- * @raises "up-arrow-must-follow-argument exception"
  */
 Method "Alias_to_" is
 [
@@ -142,7 +142,7 @@ Public method "«Public»?_is a|an new⁇field⁇atom" is
 	atomName : string
 |
 	theAtom ::= atom for atomName;
-	Macro atomName is [`theAtom`(atomName) → literal phrase];
+	Method atomName is [theAtom];
 	Semantic restriction atomName is [theAtom's type];
 ] : ⊤;
 

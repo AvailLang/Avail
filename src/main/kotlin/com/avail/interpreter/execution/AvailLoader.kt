@@ -47,8 +47,10 @@ import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.bundles.A_Bundle.Companion.addGrammaticalRestriction
+import com.avail.descriptor.bundles.A_Bundle.Companion.bundleAddMacro
 import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import com.avail.descriptor.bundles.A_Bundle.Companion.definitionParsingPlans
+import com.avail.descriptor.bundles.A_Bundle.Companion.macrosTuple
 import com.avail.descriptor.bundles.A_Bundle.Companion.message
 import com.avail.descriptor.bundles.A_Bundle.Companion.messageSplitter
 import com.avail.descriptor.bundles.A_BundleTree
@@ -64,11 +66,13 @@ import com.avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.newLoaderFiber
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.setSuccessAndFailure
 import com.avail.descriptor.functions.A_Function
-import com.avail.descriptor.functions.CompiledCodeDescriptor.Companion.newPrimitiveRawFunction
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
+import com.avail.descriptor.functions.PrimitiveCompiledCodeDescriptor
+import com.avail.descriptor.functions.PrimitiveCompiledCodeDescriptor.Companion.newPrimitiveRawFunction
 import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.methods.A_GrammaticalRestriction
+import com.avail.descriptor.methods.A_Macro
 import com.avail.descriptor.methods.A_Method
 import com.avail.descriptor.methods.A_SemanticRestriction
 import com.avail.descriptor.methods.AbstractDefinitionDescriptor
@@ -77,8 +81,8 @@ import com.avail.descriptor.methods.DefinitionDescriptor
 import com.avail.descriptor.methods.ForwardDefinitionDescriptor
 import com.avail.descriptor.methods.ForwardDefinitionDescriptor.Companion.newForwardDefinition
 import com.avail.descriptor.methods.GrammaticalRestrictionDescriptor.Companion.newGrammaticalRestriction
-import com.avail.descriptor.methods.MacroDefinitionDescriptor
-import com.avail.descriptor.methods.MacroDefinitionDescriptor.Companion.newMacroDefinition
+import com.avail.descriptor.methods.MacroDescriptor
+import com.avail.descriptor.methods.MacroDescriptor.Companion.newMacroDefinition
 import com.avail.descriptor.methods.MethodDefinitionDescriptor
 import com.avail.descriptor.methods.MethodDefinitionDescriptor.Companion.newMethodDefinition
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
@@ -102,6 +106,8 @@ import com.avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
 import com.avail.descriptor.sets.SetDescriptor.Companion.singletonSet
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import com.avail.descriptor.tuples.StringDescriptor
 import com.avail.descriptor.tuples.StringDescriptor.Companion.formatString
@@ -122,6 +128,7 @@ import com.avail.exceptions.SignatureException
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.effects.LoadingEffect
 import com.avail.interpreter.effects.LoadingEffectToAddDefinition
+import com.avail.interpreter.effects.LoadingEffectToAddMacro
 import com.avail.interpreter.effects.LoadingEffectToRunPrimitive
 import com.avail.interpreter.execution.AvailLoader.Phase.COMPILING
 import com.avail.interpreter.execution.AvailLoader.Phase.EXECUTING_FOR_COMPILE
@@ -158,7 +165,7 @@ import kotlin.concurrent.write
  * such as those caused by adding [method][MethodDefinitionDescriptor],
  * [abstract][AbstractDefinitionDescriptor], and
  * [forward][ForwardDefinitionDescriptor] definitions.  Also
- * [macros][MacroDefinitionDescriptor], [A_Lexer]s, [A_SemanticRestriction]s,
+ * [macros][MacroDescriptor], [A_Lexer]s, [A_SemanticRestriction]s,
  * [A_GrammaticalRestriction]s, and method [seals][AvailRuntime.addSeal].
  *
  * @constructor
@@ -419,7 +426,7 @@ class AvailLoader(
 			// replace it if/when the first error happens.
 			val argsList = listOf(fromCodePoint(codePoint))
 			val compilationContext = lexingState.compilationContext
-			val loader = compilationContext.loader!!
+			val loader = compilationContext.loader
 			val applicableLexers = mutableListOf<A_Lexer>()
 			val joinLock = ReentrantLock()
 			val failureMap = mutableMapOf<A_Lexer, Throwable>()
@@ -1049,22 +1056,21 @@ class AvailLoader(
 		methodName.makeShared()
 		macroBody.makeShared()
 		// Add the macro definition.
-		val method: A_Method = bundle.bundleMethod()
 		val macroDefinition = newMacroDefinition(
-			method, module, macroBody, prefixFunctions)
+			bundle, module, macroBody, prefixFunctions)
 		val macroBodyType = macroBody.kind()
 		val argsType = macroBodyType.argsTupleType()
 		// Note: Macro definitions don't have to satisfy a covariance
 		// relationship with their result types, since they're static.
-		if (method.macroDefinitionsTuple().any { existingDef ->
+		if (bundle.macrosTuple().any { existingDef ->
 			argsType.equals(existingDef.bodySignature().argsTupleType())
 		}) {
 			throw SignatureException(E_REDEFINED_WITH_SAME_ARGUMENT_TYPES)
 		}
-		method.methodAddDefinition(macroDefinition)
-		module.moduleAddDefinition(macroDefinition)
+		bundle.bundleAddMacro(macroDefinition)
+		module.moduleAddMacro(macroDefinition)
 		if (phase == EXECUTING_FOR_COMPILE) {
-			recordEffect(LoadingEffectToAddDefinition(bundle, macroDefinition))
+			recordEffect(LoadingEffectToAddMacro(bundle, macroDefinition))
 			module.lock {
 				val plan: A_DefinitionParsingPlan =
 					bundle.definitionParsingPlans().mapAt(macroDefinition)
@@ -1195,7 +1201,7 @@ class AvailLoader(
 					ArrayDeque<Pair<A_BundleTree, A_ParsingPlanInProgress>>()
 				bundle.definitionParsingPlans().mapIterable().forEach {
 					(_, plan: A_DefinitionParsingPlan) ->
-					treesToVisit.addLast(Pair(root, newPlanInProgress(plan, 1)))
+					treesToVisit.addLast(root to newPlanInProgress(plan, 1))
 					while (treesToVisit.isNotEmpty()) {
 						val (tree, planInProgress) = treesToVisit.removeLast()
 						tree.updateForNewGrammaticalRestriction(
@@ -1223,6 +1229,16 @@ class AvailLoader(
 				definition, true)
 		}
 		runtime.removeDefinition(definition)
+	}
+
+	/**
+	 * Unbind the specified macro definition from this loader and runtime.
+	 *
+	 * @param macro
+	 *   A [definition][DefinitionDescriptor].
+	 */
+	fun removeMacro(macro: A_Macro) {
+		runtime.removeMacro(macro)
 	}
 
 	/**

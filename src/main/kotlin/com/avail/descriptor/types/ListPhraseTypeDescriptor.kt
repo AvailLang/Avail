@@ -100,6 +100,7 @@ class ListPhraseTypeDescriptor internal constructor(
 			/**
 			 * The hash, or zero (`0`) if the hash has not yet been computed.
 			 */
+			@JvmField
 			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
 
 			init

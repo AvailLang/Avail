@@ -64,7 +64,7 @@ object P_SetUnassignedVariableAccessFunction : Primitive(
 	{
 		interpreter.checkArgumentCount(1)
 		val function = interpreter.argument(0)
-		READ_UNASSIGNED_VARIABLE.set(interpreter.runtime(), function)
+		READ_UNASSIGNED_VARIABLE[interpreter.runtime] = function
 		interpreter.availLoaderOrNull()?.statementCanBeSummarized(false)
 		return interpreter.primitiveSuccess(nil)
 	}

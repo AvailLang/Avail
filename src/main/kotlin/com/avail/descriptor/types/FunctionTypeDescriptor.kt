@@ -34,21 +34,32 @@ package com.avail.descriptor.types
 import com.avail.annotations.ThreadSafe
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.objects.ObjectTypeDescriptor
-import com.avail.descriptor.representation.*
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AbstractSlotsEnum
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.BitField
+import com.avail.descriptor.representation.IntegerSlotsEnum
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.FunctionTypeDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import com.avail.descriptor.types.FunctionTypeDescriptor.IntegerSlots.HASH_AND_MORE
-import com.avail.descriptor.types.FunctionTypeDescriptor.ObjectSlots.*
+import com.avail.descriptor.types.FunctionTypeDescriptor.ObjectSlots.ARGS_TUPLE_TYPE
+import com.avail.descriptor.types.FunctionTypeDescriptor.ObjectSlots.DECLARED_EXCEPTIONS
+import com.avail.descriptor.types.FunctionTypeDescriptor.ObjectSlots.RETURN_TYPE
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.Strings.newlineTab
 import com.avail.utility.json.JSONWriter
-import java.util.*
+import java.util.ArrayList
+import java.util.IdentityHashMap
 
 /**
  * Function types are the types of [functions][FunctionDescriptor]. They contain
@@ -103,6 +114,7 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 			/**
 			 * The hash, or zero (`0`) if the hash has not yet been computed.
 			 */
+			@JvmField
 			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
 		}
 	}

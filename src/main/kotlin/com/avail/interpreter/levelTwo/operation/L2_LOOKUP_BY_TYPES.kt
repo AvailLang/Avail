@@ -279,8 +279,7 @@ object L2_LOOKUP_BY_TYPES : L2ControlFlowOperation(
 		// fall through, because the next instruction expects a
 		// MethodDefinitionException to be pushed onto the stack. So always do
 		// the jump.
-		method.visitJumpInsn(
-			Opcodes.GOTO, translator.labelFor(lookupSucceeded.offset()))
+		translator.jump(method, lookupSucceeded)
 		// :: } catch (MethodDefinitionException e) {
 		method.visitLabel(catchStart)
 		// ::    errorCode = e.numericCode();

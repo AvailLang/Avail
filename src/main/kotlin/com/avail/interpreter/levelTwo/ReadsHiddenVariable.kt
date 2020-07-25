@@ -48,7 +48,7 @@ import kotlin.reflect.KClass
  *   annotated [L2Operation].
  *
  * @constructor
- * Construct a [ReadsHiddenVariable].
+ *   Construct a [ReadsHiddenVariable].
  *
  * @param theValue
  *   The classes of [HiddenVariable] read by an [L2Instruction] using the
@@ -57,4 +57,4 @@ import kotlin.reflect.KClass
 @Target(AnnotationTarget.ANNOTATION_CLASS, AnnotationTarget.CLASS)
 @kotlin.annotation.Retention(AnnotationRetention.RUNTIME)
 annotation class ReadsHiddenVariable constructor(
-	val theValue: Array<KClass<out HiddenVariable>>)
+	vararg val value: KClass<out HiddenVariable>)

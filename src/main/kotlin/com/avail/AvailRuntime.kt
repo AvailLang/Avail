@@ -53,19 +53,21 @@ import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import com.avail.descriptor.bundles.A_Bundle.Companion.definitionParsingPlans
 import com.avail.descriptor.bundles.A_Bundle.Companion.message
 import com.avail.descriptor.bundles.A_Bundle.Companion.removeGrammaticalRestriction
+import com.avail.descriptor.bundles.A_Bundle.Companion.removeMacro
 import com.avail.descriptor.character.CharacterDescriptor
 import com.avail.descriptor.fiber.A_Fiber
 import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.descriptor.functions.A_Function
-import com.avail.descriptor.functions.CompiledCodeDescriptor.Companion.newPrimitiveRawFunction
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.newCrashFunction
+import com.avail.descriptor.functions.PrimitiveCompiledCodeDescriptor.Companion.newPrimitiveRawFunction
 import com.avail.descriptor.maps.A_Map
 import com.avail.descriptor.maps.MapDescriptor
 import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.methods.A_GrammaticalRestriction
+import com.avail.descriptor.methods.A_Macro
 import com.avail.descriptor.methods.A_Method
 import com.avail.descriptor.methods.A_SemanticRestriction
 import com.avail.descriptor.methods.DefinitionDescriptor
@@ -99,13 +101,15 @@ import com.avail.descriptor.tokens.TokenDescriptor.StaticInit
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.concatenateWith
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.StringDescriptor
 import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
-import com.avail.descriptor.tuples.TupleDescriptor.Companion.toList
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.tupleFromIntegerList
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
@@ -182,12 +186,12 @@ import com.avail.interpreter.primitive.general.P_EmergencyExit
 import com.avail.interpreter.primitive.general.P_ToString
 import com.avail.io.IOSystem
 import com.avail.io.TextInterface
-import com.avail.io.TextInterface.Companion.system
+import com.avail.io.TextInterface.Companion.systemTextInterface
 import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-import com.avail.utility.evaluation.OnceSupplier
 import com.avail.utility.StackPrinter.Companion.trace
+import com.avail.utility.evaluation.OnceSupplier
 import com.avail.utility.structures.EnumMap.Companion.enumMap
 import java.util.ArrayDeque
 import java.util.Collections
@@ -231,7 +235,7 @@ import kotlin.math.min
  *   The [module name resolver][ModuleNameResolver] that this `AvailRuntime`
  *   should use to resolve unqualified [module][ModuleDescriptor] names.
  */
-class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
+class AvailRuntime constructor(val moduleNameResolver: ModuleNameResolver)
 {
 	/** The [IOSystem] for this runtime.  */
 	private val ioSystem = IOSystem(this)
@@ -349,26 +353,20 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 			for (moduleEntry in modules.mapIterable())
 			{
 				val module: A_Module = moduleEntry.value()
-				atoms.addAll(
-					toList(
-						module.newNames().valuesAsTuple()))
-				atoms.addAll(
-					toList(
-						module.visibleNames().asTuple()))
+				atoms.addAll(module.newNames().valuesAsTuple())
+				atoms.addAll(module.visibleNames())
 				var atomSets = module.importedNames().valuesAsTuple()
 				atomSets = atomSets.concatenateWith(
 					module.privateNames().valuesAsTuple(), true)
 				for (atomSet in atomSets)
 				{
-					atoms.addAll(
-						toList(atomSet.asTuple()))
+					atoms.addAll(atomSet)
 				}
 				for (definition in module.methodDefinitions())
 				{
 					if (definitions.contains(definition))
 					{
-						println(
-							"Duplicate definition: $definition")
+						println("Duplicate definition: $definition")
 					}
 					definitions.add(definition)
 				}
@@ -385,10 +383,8 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 			for (method in methods)
 			{
 				val bundleDefinitions: MutableSet<A_Definition> =
-					toList<A_Definition>(method.definitionsTuple())
-						.toMutableSet()
-				bundleDefinitions.addAll(
-					toList(method.macroDefinitionsTuple()))
+					method.definitionsTuple().toMutableSet()
+				bundleDefinitions.addAll(method.macrosTuple())
 				for (bundle in method.bundles())
 				{
 					val bundlePlans: A_Map = bundle.definitionParsingPlans()
@@ -507,7 +503,7 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 	/**
 	 * The [runtime][AvailRuntime]'s default [text interface][TextInterface].
 	 */
-	private var textInterface = system()
+	private var textInterface = systemTextInterface()
 
 	/**
 	 * A [raw pojo][RawPojoDescriptor] wrapping the [default][textInterface]
@@ -545,7 +541,7 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 	fun setTextInterface(textInterface: TextInterface) =
 		runtimeLock.write {
 			this.textInterface = textInterface
-			textInterfacePojo = identityPojo(textInterface)
+			textInterfacePojo = identityPojo(textInterface).makeShared()
 		}
 
 	/**
@@ -570,7 +566,7 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 	 */
 	enum class HookType constructor(
 		hookName: String,
-		val functionType: A_Type,
+		functionType: A_Type,
 		primitive: Primitive?)
 	{
 		/**
@@ -654,7 +650,7 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 			null);
 
 		/** The name to attach to functions plugged into this hook.  */
-		private val hookName: A_String = stringFrom(hookName)
+		private val hookName: A_String = stringFrom(hookName).makeShared()
 
 		/**
 		 * A [supplier][OnceSupplier] of a default [A_Function] to use for this
@@ -686,8 +682,11 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 		{
 			assert(function.isInstanceOf(functionType))
 			function.code().setMethodName(hookName)
-			runtime.hooks.set(this, function)
+			runtime.hooks[this] = function.makeShared()
 		}
+
+		val functionType: A_Type = functionType.makeShared()
+
 		init
 		{
 			if (primitive === null)
@@ -697,7 +696,8 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 				val argumentTypesTuple =
 					argumentsTupleType.tupleOfTypesFromTo(
 						1,
-						argumentsTupleType.sizeRange().upperBound().extractInt())
+						argumentsTupleType.sizeRange().upperBound()
+							.extractInt())
 				defaultFunctionSupplier =
 					OnceSupplier {
 						newCrashFunction(hookName, argumentTypesTuple)
@@ -705,15 +705,11 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 			}
 			else
 			{
-				val code =
-					newPrimitiveRawFunction(primitive, nil, 0)
+				val code = newPrimitiveRawFunction(primitive, nil, 0)
 				code.setMethodName(this.hookName)
 				defaultFunctionSupplier =
 					OnceSupplier {
-						createFunction(
-							code,
-							emptyTuple()
-						)
+						createFunction(code, emptyTuple()).makeShared()
 					}
 			}
 		}
@@ -836,7 +832,7 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 	companion object
 	{
 		/**
-		 * Answer the Avail runtime associated with the current [thread][Thread].
+		 * Answer the Avail runtime associated with the current [Thread].
 		 *
 		 * @return
 		 *   The Avail runtime of the current thread.
@@ -848,7 +844,7 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 		 */
 		val resultDisagreedWithExpectedTypeFunctionMethod = instanceMethod(
 			AvailRuntime::class.java,
-			"resultDisagreedWithExpectedTypeFunction",
+			AvailRuntime::resultDisagreedWithExpectedTypeFunction.name,
 			A_Function::class.java)
 
 		/**
@@ -856,7 +852,7 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 		 */
 		val implicitObserveFunctionMethod = instanceMethod(
 			AvailRuntime::class.java,
-			"implicitObserveFunction",
+			AvailRuntime::implicitObserveFunction.name,
 			A_Function::class.java)
 
 		/**
@@ -864,7 +860,7 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 		 */
 		val invalidMessageSendFunctionMethod = instanceMethod(
 			AvailRuntime::class.java,
-			"invalidMessageSendFunction",
+			AvailRuntime::invalidMessageSendFunction.name,
 			A_Function::class.java)
 
 		/**
@@ -872,13 +868,280 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 		 */
 		val unassignedVariableReadFunctionMethod = instanceMethod(
 			AvailRuntime::class.java,
-			"unassignedVariableReadFunction",
+			AvailRuntime::unassignedVariableReadFunction.name,
 			A_Function::class.java)
+
+		/** A helper for constructing lists with checked positions. */
+		private class NumericBuilder {
+			/** The list of [AvailObject]s being built. */
+			private val list = mutableListOf<AvailObject>()
+
+			/** Verify that we're at the expected index. */
+			fun at (position: Int) = assert(list.size == position)
+
+			/** Add an item to the end. */
+			fun put (value: A_BasicObject) = list.add(value.makeShared())
+
+			/** Extract the final immutable list. */
+			fun list(): List<AvailObject> = list
+		}
 
 		/**
 		 * The [special objects][AvailObject] of the [runtime][AvailRuntime].
 		 */
-		private val specialObjects: Array<AvailObject>
+		val specialObjects = NumericBuilder().apply {
+			at(0)
+			put(nil)  // Special entry, not used.
+			put(Types.ANY.o())
+			put(booleanType())
+			put(Types.CHARACTER.o())
+			put(mostGeneralFunctionType())
+			put(functionMeta())
+			put(mostGeneralCompiledCodeType())
+			put(mostGeneralVariableType())
+			put(variableMeta())
+			put(mostGeneralContinuationType())
+
+			at(10)
+			put(continuationMeta())
+			put(Types.ATOM.o())
+			put(Types.DOUBLE.o())
+			put(extendedIntegers())
+			put(instanceMeta(zeroOrMoreOf(anyMeta())))
+			put(Types.FLOAT.o())
+			put(Types.NUMBER.o())
+			put(integers())
+			put(extendedIntegersMeta())
+			put(mapMeta())
+
+			at(20)
+			put(Types.MODULE.o())
+			put(tupleFromIntegerList(allNumericCodes()))
+			put(mostGeneralObjectType())
+			put(mostGeneralObjectMeta())
+			put(exceptionType())
+			put(mostGeneralFiberType())
+			put(mostGeneralSetType())
+			put(setMeta())
+			put(stringType())
+			put(bottom())
+
+			at(30)
+			put(bottomMeta())
+			put(Types.NONTYPE.o())
+			put(mostGeneralTupleType())
+			put(tupleMeta())
+			put(topMeta())
+			put(Types.TOP.o())
+			put(wholeNumbers())
+			put(naturalNumbers())
+			put(characterCodePoints())
+			put(mostGeneralMapType())
+
+			at(40)
+			put(Types.MESSAGE_BUNDLE.o())
+			put(Types.MESSAGE_BUNDLE_TREE.o())
+			put(Types.METHOD.o())
+			put(Types.DEFINITION.o())
+			put(Types.ABSTRACT_DEFINITION.o())
+			put(Types.FORWARD_DEFINITION.o())
+			put(Types.METHOD_DEFINITION.o())
+			put(Types.MACRO_DEFINITION.o())
+			put(zeroOrMoreOf(mostGeneralFunctionType()))
+			put(stackDumpAtom())
+
+			at(50)
+			put(PhraseKind.PARSE_PHRASE.mostGeneralType())
+			put(PhraseKind.SEQUENCE_PHRASE.mostGeneralType())
+			put(PhraseKind.EXPRESSION_PHRASE.mostGeneralType())
+			put(PhraseKind.ASSIGNMENT_PHRASE.mostGeneralType())
+			put(PhraseKind.BLOCK_PHRASE.mostGeneralType())
+			put(PhraseKind.LITERAL_PHRASE.mostGeneralType())
+			put(PhraseKind.REFERENCE_PHRASE.mostGeneralType())
+			put(PhraseKind.SEND_PHRASE.mostGeneralType())
+			put(instanceMeta(mostGeneralLiteralTokenType()))
+			put(PhraseKind.LIST_PHRASE.mostGeneralType())
+
+			at(60)
+			put(PhraseKind.VARIABLE_USE_PHRASE.mostGeneralType())
+			put(PhraseKind.DECLARATION_PHRASE.mostGeneralType())
+			put(PhraseKind.ARGUMENT_PHRASE.mostGeneralType())
+			put(PhraseKind.LABEL_PHRASE.mostGeneralType())
+			put(PhraseKind.LOCAL_VARIABLE_PHRASE.mostGeneralType())
+			put(PhraseKind.LOCAL_CONSTANT_PHRASE.mostGeneralType())
+			put(PhraseKind.MODULE_VARIABLE_PHRASE.mostGeneralType())
+			put(PhraseKind.MODULE_CONSTANT_PHRASE.mostGeneralType())
+			put(PhraseKind.PRIMITIVE_FAILURE_REASON_PHRASE.mostGeneralType())
+			put(anyMeta())
+
+			at(70)
+			put(trueObject())
+			put(falseObject())
+			put(zeroOrMoreOf(stringType()))
+			put(zeroOrMoreOf(topMeta()))
+			put(zeroOrMoreOf(
+				setTypeForSizesContentType(wholeNumbers(), stringType())))
+			put(setTypeForSizesContentType(wholeNumbers(), stringType()))
+			put(functionType(tuple(naturalNumbers()), bottom()))
+			put(emptySet())
+			put(negativeInfinity())
+			put(positiveInfinity())
+
+			at(80)
+			put(mostGeneralPojoType())
+			put(pojoBottom())
+			put(nullPojo())
+			put(pojoSelfType())
+			put(instanceMeta(mostGeneralPojoType()))
+			put(instanceMeta(mostGeneralPojoArrayType()))
+			put(functionTypeReturning(Types.ANY.o()))
+			put(mostGeneralPojoArrayType())
+			put(pojoSelfTypeAtom())
+			put(pojoTypeForClass(Throwable::class.java))
+
+			at(90)
+			put(functionType(emptyTuple(), Types.TOP.o()))
+			put(functionType(emptyTuple(), booleanType()))
+			put(variableTypeFor(mostGeneralContinuationType()))
+			put(mapTypeForSizesKeyTypeValueType(
+				wholeNumbers(), Types.ATOM.o(), Types.ANY.o()))
+			put(mapTypeForSizesKeyTypeValueType(
+				wholeNumbers(), Types.ATOM.o(), anyMeta()))
+			put(tupleTypeForSizesTypesDefaultType(
+				wholeNumbers(),
+				emptyTuple(),
+				tupleTypeForSizesTypesDefaultType(
+					singleInt(2),
+					emptyTuple(),
+					Types.ANY.o())))
+			put(emptyMap())
+			put(mapTypeForSizesKeyTypeValueType(
+				naturalNumbers(), Types.ANY.o(), Types.ANY.o()))
+			put(instanceMeta(wholeNumbers()))
+			put(setTypeForSizesContentType(naturalNumbers(), Types.ANY.o()))
+
+			at(100)
+			put(tupleTypeForSizesTypesDefaultType(
+				wholeNumbers(), emptyTuple(), mostGeneralTupleType()))
+			put(nybbles())
+			put(zeroOrMoreOf(nybbles()))
+			put(unsignedShorts())
+			put(emptyTuple())
+			put(functionType(tuple(bottom()), Types.TOP.o()))
+			put(instanceType(zero()))
+			put(functionTypeReturning(topMeta()))
+			put(tupleTypeForSizesTypesDefaultType(
+				wholeNumbers(),
+				emptyTuple(),
+				functionTypeReturning(topMeta())))
+			put(functionTypeReturning(
+				PhraseKind.PARSE_PHRASE.mostGeneralType()))
+
+			at(110)
+			put(instanceType(two()))
+			put(fromDouble(Math.E))
+			put(instanceType(fromDouble(Math.E)))
+			put(instanceMeta(
+				PhraseKind.PARSE_PHRASE.mostGeneralType()))
+			put(setTypeForSizesContentType(
+				wholeNumbers(), Types.ATOM.o()))
+			put(Types.TOKEN.o())
+			put(mostGeneralLiteralTokenType())
+			put(zeroOrMoreOf(anyMeta()))
+			put(inclusive(zero(), positiveInfinity()))
+			put(zeroOrMoreOf(
+				tupleTypeForSizesTypesDefaultType(
+					singleInt(2),
+					tuple(Types.ATOM.o()), anyMeta())))
+
+			at(120)
+			put(zeroOrMoreOf(
+				tupleTypeForSizesTypesDefaultType(
+					singleInt(2),
+					tuple(Types.ATOM.o()),
+					Types.ANY.o())))
+			put(zeroOrMoreOf(
+				PhraseKind.PARSE_PHRASE.mostGeneralType()))
+			put(zeroOrMoreOf(
+				PhraseKind.ARGUMENT_PHRASE.mostGeneralType()))
+			put(zeroOrMoreOf(
+				PhraseKind.DECLARATION_PHRASE.mostGeneralType()))
+			put(variableReadWriteType(Types.TOP.o(), bottom()))
+			put(zeroOrMoreOf(
+				PhraseKind.EXPRESSION_PHRASE.create(Types.ANY.o())))
+			put(PhraseKind.EXPRESSION_PHRASE.create(Types.ANY.o()))
+			put(functionType(
+				tuple(pojoTypeForClass(Throwable::class.java)), bottom()))
+			put(zeroOrMoreOf(
+				setTypeForSizesContentType(wholeNumbers(), Types.ATOM.o())))
+			put(bytes())
+
+			at(130)
+			put(zeroOrMoreOf(zeroOrMoreOf(anyMeta())))
+			put(variableReadWriteType(extendedIntegers(), bottom()))
+			put(fiberMeta())
+			put(nonemptyStringType())
+			put(setTypeForSizesContentType(
+				wholeNumbers(), exceptionType()))
+			put(setTypeForSizesContentType(
+				naturalNumbers(), stringType()))
+			put(setTypeForSizesContentType(
+				naturalNumbers(), Types.ATOM.o()))
+			put(oneOrMoreOf(Types.ANY.o()))
+			put(zeroOrMoreOf(integers()))
+			put(tupleTypeForSizesTypesDefaultType(
+				integerRangeType(
+					fromInt(2), true, positiveInfinity(), false),
+				emptyTuple(),
+				Types.ANY.o()))
+
+			// Some of these entries may need to be shuffled into earlier
+			// slots to maintain reasonable topical consistency.)
+
+			at(140)
+			put(PhraseKind.FIRST_OF_SEQUENCE_PHRASE.mostGeneralType())
+			put(PhraseKind.PERMUTED_LIST_PHRASE.mostGeneralType())
+			put(PhraseKind.SUPER_CAST_PHRASE.mostGeneralType())
+			put(SpecialAtom.CLIENT_DATA_GLOBAL_KEY.atom)
+			put(SpecialAtom.COMPILER_SCOPE_MAP_KEY.atom)
+			put(SpecialAtom.ALL_TOKENS_KEY.atom)
+			put(int32())
+			put(int64())
+			put(PhraseKind.STATEMENT_PHRASE.mostGeneralType())
+			put(SpecialAtom.COMPILER_SCOPE_STACK_KEY.atom)
+
+			at(150)
+			put(PhraseKind.EXPRESSION_AS_STATEMENT_PHRASE.mostGeneralType())
+			put(oneOrMoreOf(naturalNumbers()))
+			put(zeroOrMoreOf(Types.DEFINITION.o()))
+			put(mapTypeForSizesKeyTypeValueType(
+				wholeNumbers(), stringType(), Types.ATOM.o()))
+			put(SpecialAtom.MACRO_BUNDLE_KEY.atom)
+			put(SpecialAtom.EXPLICIT_SUBCLASSING_KEY.atom)
+			put(variableReadWriteType(mostGeneralMapType(), bottom()))
+			put(lexerFilterFunctionType())
+			put(lexerBodyFunctionType())
+			put(SpecialAtom.STATIC_TOKENS_KEY.atom)
+
+			at(160)
+			put(TokenType.END_OF_FILE.atom)
+			put(TokenType.KEYWORD.atom)
+			put(TokenType.LITERAL.atom)
+			put(TokenType.OPERATOR.atom)
+			put(TokenType.COMMENT.atom)
+			put(TokenType.WHITESPACE.atom)
+			put(inclusive(0, (1L shl 32) - 1))
+			put(inclusive(0, (1L shl 28) - 1))
+			put(inclusive(1L, 4L))
+			put(inclusive(0L, 31L))
+
+			at(170)
+			put(continuationTypeForFunctionType(
+				functionTypeReturning(Types.TOP.o())))
+			put(CharacterDescriptor.nonemptyStringOfDigitsType)
+
+			at(172)
+		}.list().apply { forEach { assert(!it.isAtom || it.isAtomSpecial()) } }
 
 		/**
 		 * Answer the [special object][AvailObject] with the specified ordinal.
@@ -893,335 +1156,62 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 
 		/**
 		 * The [special atoms][AtomDescriptor] known to the
-		 * [runtime][AvailRuntime].  Populated by the anonymous static section
-		 * below.
+		 * [runtime][AvailRuntime].
 		 */
-		private val specialAtomsList = mutableListOf<A_Atom>()
-
-		/**
-		 * Answer the [special atoms][AtomDescriptor] known to the runtime as an
-		 * [immutable][Collections.unmodifiableList] [list][List].
-		 *
-		 * @return
-		 *   The special atoms list.
-		 */
-		@JvmStatic
-		@ThreadSafe
-		fun specialAtoms(): List<A_Atom> = specialAtomsList
-
-		init
-		{
-			// Set up the special objects.
-			val specials: Array<A_BasicObject> = Array(173) { nil }
-			specials[1] = Types.ANY.o()
-			specials[2] = booleanType()
-			specials[3] = Types.CHARACTER.o()
-			specials[4] = mostGeneralFunctionType()
-			specials[5] = functionMeta()
-			specials[6] = mostGeneralCompiledCodeType()
-			specials[7] = mostGeneralVariableType()
-			specials[8] = variableMeta()
-			specials[9] = mostGeneralContinuationType()
-			specials[10] = continuationMeta()
-			specials[11] = Types.ATOM.o()
-			specials[12] = Types.DOUBLE.o()
-			specials[13] = extendedIntegers()
-			specials[14] = instanceMeta(zeroOrMoreOf(anyMeta()))
-			specials[15] = Types.FLOAT.o()
-			specials[16] = Types.NUMBER.o()
-			specials[17] = integers()
-			specials[18] = extendedIntegersMeta()
-			specials[19] = mapMeta()
-			specials[20] = Types.MODULE.o()
-			specials[21] = tupleFromIntegerList(allNumericCodes())
-			specials[22] = mostGeneralObjectType()
-			specials[23] = mostGeneralObjectMeta()
-			specials[24] = exceptionType()
-			specials[25] = mostGeneralFiberType()
-			specials[26] = mostGeneralSetType()
-			specials[27] = setMeta()
-			specials[28] = stringType()
-			specials[29] = bottom()
-			specials[30] = bottomMeta()
-			specials[31] = Types.NONTYPE.o()
-			specials[32] = mostGeneralTupleType()
-			specials[33] = tupleMeta()
-			specials[34] = topMeta()
-			specials[35] = Types.TOP.o()
-			specials[36] = wholeNumbers()
-			specials[37] = naturalNumbers()
-			specials[38] = characterCodePoints()
-			specials[39] = mostGeneralMapType()
-			specials[40] = Types.MESSAGE_BUNDLE.o()
-			specials[41] = Types.MESSAGE_BUNDLE_TREE.o()
-			specials[42] = Types.METHOD.o()
-			specials[43] = Types.DEFINITION.o()
-			specials[44] = Types.ABSTRACT_DEFINITION.o()
-			specials[45] = Types.FORWARD_DEFINITION.o()
-			specials[46] = Types.METHOD_DEFINITION.o()
-			specials[47] = Types.MACRO_DEFINITION.o()
-			specials[48] = zeroOrMoreOf(mostGeneralFunctionType())
-			specials[49] = stackDumpAtom()
-			specials[50] = PhraseKind.PARSE_PHRASE.mostGeneralType()
-			specials[51] = PhraseKind.SEQUENCE_PHRASE.mostGeneralType()
-			specials[52] = PhraseKind.EXPRESSION_PHRASE.mostGeneralType()
-			specials[53] = PhraseKind.ASSIGNMENT_PHRASE.mostGeneralType()
-			specials[54] = PhraseKind.BLOCK_PHRASE.mostGeneralType()
-			specials[55] = PhraseKind.LITERAL_PHRASE.mostGeneralType()
-			specials[56] = PhraseKind.REFERENCE_PHRASE.mostGeneralType()
-			specials[57] = PhraseKind.SEND_PHRASE.mostGeneralType()
-			specials[58] = instanceMeta(mostGeneralLiteralTokenType())
-			specials[59] = PhraseKind.LIST_PHRASE.mostGeneralType()
-			specials[60] = PhraseKind.VARIABLE_USE_PHRASE.mostGeneralType()
-			specials[61] = PhraseKind.DECLARATION_PHRASE.mostGeneralType()
-			specials[62] = PhraseKind.ARGUMENT_PHRASE.mostGeneralType()
-			specials[63] = PhraseKind.LABEL_PHRASE.mostGeneralType()
-			specials[64] = PhraseKind.LOCAL_VARIABLE_PHRASE.mostGeneralType()
-			specials[65] = PhraseKind.LOCAL_CONSTANT_PHRASE.mostGeneralType()
-			specials[66] = PhraseKind.MODULE_VARIABLE_PHRASE.mostGeneralType()
-			specials[67] = PhraseKind.MODULE_CONSTANT_PHRASE.mostGeneralType()
-			specials[68] =
-				PhraseKind.PRIMITIVE_FAILURE_REASON_PHRASE.mostGeneralType()
-			specials[69] = anyMeta()
-			specials[70] = trueObject()
-			specials[71] = falseObject()
-			specials[72] = zeroOrMoreOf(stringType())
-			specials[73] = zeroOrMoreOf(topMeta())
-			specials[74] = zeroOrMoreOf(
-				setTypeForSizesContentType(wholeNumbers(), stringType()))
-			specials[75] =
-				setTypeForSizesContentType(wholeNumbers(), stringType())
-			specials[76] = functionType(tuple(naturalNumbers()), bottom())
-			specials[77] = emptySet()
-			specials[78] = negativeInfinity()
-			specials[79] = positiveInfinity()
-			specials[80] = mostGeneralPojoType()
-			specials[81] = pojoBottom()
-			specials[82] = nullPojo()
-			specials[83] = pojoSelfType()
-			specials[84] = instanceMeta(mostGeneralPojoType())
-			specials[85] = instanceMeta(mostGeneralPojoArrayType())
-			specials[86] = functionTypeReturning(Types.ANY.o())
-			specials[87] = mostGeneralPojoArrayType()
-			specials[88] = pojoSelfTypeAtom()
-			specials[89] = pojoTypeForClass(Throwable::class.java)
-			specials[90] = functionType(emptyTuple(), Types.TOP.o())
-			specials[91] = functionType(emptyTuple(), booleanType())
-			specials[92] = variableTypeFor(mostGeneralContinuationType())
-			specials[93] = mapTypeForSizesKeyTypeValueType(
-				wholeNumbers(),
-				Types.ATOM.o(),
-				Types.ANY.o())
-			specials[94] = mapTypeForSizesKeyTypeValueType(
-				wholeNumbers(),
-				Types.ATOM.o(),
-				anyMeta())
-			specials[95] = tupleTypeForSizesTypesDefaultType(
-				wholeNumbers(),
-				emptyTuple(),
-				tupleTypeForSizesTypesDefaultType(
-					singleInt(2),
-					emptyTuple(),
-					Types.ANY.o()))
-			specials[96] = emptyMap()
-			specials[97] = mapTypeForSizesKeyTypeValueType(
-				naturalNumbers(),
-				Types.ANY.o(),
-				Types.ANY.o())
-			specials[98] = instanceMeta(wholeNumbers())
-			specials[99] = setTypeForSizesContentType(
-				naturalNumbers(), Types.ANY.o())
-			specials[100] = tupleTypeForSizesTypesDefaultType(
-				wholeNumbers(), emptyTuple(), mostGeneralTupleType())
-			specials[101] = nybbles()
-			specials[102] = zeroOrMoreOf(nybbles())
-			specials[103] = unsignedShorts()
-			specials[104] = emptyTuple()
-			specials[105] = functionType(tuple(bottom()), Types.TOP.o())
-			specials[106] = instanceType(zero())
-			specials[107] = functionTypeReturning(topMeta())
-			specials[108] = tupleTypeForSizesTypesDefaultType(
-				wholeNumbers(), emptyTuple(), functionTypeReturning(topMeta()))
-			specials[109] = functionTypeReturning(
-				PhraseKind.PARSE_PHRASE.mostGeneralType())
-			specials[110] = instanceType(two())
-			specials[111] = fromDouble(Math.E)
-			specials[112] = instanceType(fromDouble(Math.E))
-			specials[113] = instanceMeta(
-				PhraseKind.PARSE_PHRASE.mostGeneralType())
-			specials[114] = setTypeForSizesContentType(
-				wholeNumbers(), Types.ATOM.o())
-			specials[115] = Types.TOKEN.o()
-			specials[116] = mostGeneralLiteralTokenType()
-			specials[117] = zeroOrMoreOf(anyMeta())
-			specials[118] = inclusive(zero(), positiveInfinity())
-			specials[119] = zeroOrMoreOf(
-				tupleTypeForSizesTypesDefaultType(
-					singleInt(2),
-					tuple(Types.ATOM.o()), anyMeta()))
-			specials[120] = zeroOrMoreOf(
-				tupleTypeForSizesTypesDefaultType(
-					singleInt(2),
-					tuple(Types.ATOM.o()),
-					Types.ANY.o()))
-			specials[121] = zeroOrMoreOf(
-				PhraseKind.PARSE_PHRASE.mostGeneralType())
-			specials[122] = zeroOrMoreOf(
-				PhraseKind.ARGUMENT_PHRASE.mostGeneralType())
-			specials[123] = zeroOrMoreOf(
-				PhraseKind.DECLARATION_PHRASE.mostGeneralType())
-			specials[124] = variableReadWriteType(Types.TOP.o(), bottom())
-			specials[125] = zeroOrMoreOf(
-				PhraseKind.EXPRESSION_PHRASE.create(Types.ANY.o()))
-			specials[126] = PhraseKind.EXPRESSION_PHRASE.create(Types.ANY.o())
-			specials[127] = functionType(
-				tuple(pojoTypeForClass(Throwable::class.java)), bottom())
-			specials[128] = zeroOrMoreOf(
-				setTypeForSizesContentType(wholeNumbers(), Types.ATOM.o()))
-			specials[129] = bytes()
-			specials[130] = zeroOrMoreOf(zeroOrMoreOf(anyMeta()))
-			specials[131] = variableReadWriteType(extendedIntegers(), bottom())
-			specials[132] = fiberMeta()
-			specials[133] = nonemptyStringType()
-			specials[134] = setTypeForSizesContentType(
-				wholeNumbers(), exceptionType())
-			specials[135] = setTypeForSizesContentType(
-				naturalNumbers(), stringType())
-			specials[136] = setTypeForSizesContentType(
-				naturalNumbers(), Types.ATOM.o())
-			specials[137] = oneOrMoreOf(Types.ANY.o())
-			specials[138] = zeroOrMoreOf(integers())
-			specials[139] = tupleTypeForSizesTypesDefaultType(
-				integerRangeType(fromInt(2), true, positiveInfinity(), false),
-				emptyTuple(),
-				Types.ANY.o())
-			// Some of these entries may need to be shuffled into earlier slots to
-			// maintain reasonable topical consistency.
-			specials[140] =
-				PhraseKind.FIRST_OF_SEQUENCE_PHRASE.mostGeneralType()
-			specials[141] = PhraseKind.PERMUTED_LIST_PHRASE.mostGeneralType()
-			specials[142] = PhraseKind.SUPER_CAST_PHRASE.mostGeneralType()
-			specials[143] = SpecialAtom.CLIENT_DATA_GLOBAL_KEY.atom
-			specials[144] = SpecialAtom.COMPILER_SCOPE_MAP_KEY.atom
-			specials[145] = SpecialAtom.ALL_TOKENS_KEY.atom
-			specials[146] = int32()
-			specials[147] = int64()
-			specials[148] = PhraseKind.STATEMENT_PHRASE.mostGeneralType()
-			specials[149] = SpecialAtom.COMPILER_SCOPE_STACK_KEY.atom
-			specials[150] =
-				PhraseKind.EXPRESSION_AS_STATEMENT_PHRASE.mostGeneralType()
-			specials[151] = oneOrMoreOf(naturalNumbers())
-			specials[152] = zeroOrMoreOf(Types.DEFINITION.o())
-			specials[153] = mapTypeForSizesKeyTypeValueType(
-				wholeNumbers(), stringType(), Types.ATOM.o())
-			specials[154] = SpecialAtom.MACRO_BUNDLE_KEY.atom
-			specials[155] = SpecialAtom.EXPLICIT_SUBCLASSING_KEY.atom
-			specials[156] =
-				variableReadWriteType(mostGeneralMapType(), bottom())
-			specials[157] = lexerFilterFunctionType()
-			specials[158] = lexerBodyFunctionType()
-			specials[159] = SpecialAtom.STATIC_TOKENS_KEY.atom
-			specials[160] = TokenType.END_OF_FILE.atom
-			specials[161] = TokenType.KEYWORD.atom
-			specials[162] = TokenType.LITERAL.atom
-			specials[163] = TokenType.OPERATOR.atom
-			specials[164] = TokenType.COMMENT.atom
-			specials[165] = TokenType.WHITESPACE.atom
-			specials[166] = inclusive(0, (1L shl 32) - 1)
-			specials[167] = inclusive(0, (1L shl 28) - 1)
-			specials[168] = inclusive(1L, 4L)
-			specials[169] = inclusive(0L, 31L)
-			specials[170] = continuationTypeForFunctionType(
-				functionTypeReturning(Types.TOP.o()))
-			specials[171] = CharacterDescriptor.nonemptyStringOfDigitsType
-
-			assert(specialAtomsList.isEmpty())
-			specialAtomsList.addAll(listOf(
-				SpecialAtom.ALL_TOKENS_KEY.atom,
-				SpecialAtom.CLIENT_DATA_GLOBAL_KEY.atom,
-				SpecialAtom.COMPILER_SCOPE_MAP_KEY.atom,
-				SpecialAtom.COMPILER_SCOPE_STACK_KEY.atom,
-				SpecialAtom.EXPLICIT_SUBCLASSING_KEY.atom,
-				SpecialAtom.FALSE.atom,
-				SpecialAtom.FILE_KEY.atom,
-				SpecialAtom.HERITABLE_KEY.atom,
-				SpecialAtom.MACRO_BUNDLE_KEY.atom,
-				SpecialAtom.MESSAGE_BUNDLE_KEY.atom,
-				SpecialAtom.OBJECT_TYPE_NAME_PROPERTY_KEY.atom,
-				SpecialAtom.SERVER_SOCKET_KEY.atom,
-				SpecialAtom.SOCKET_KEY.atom,
-				SpecialAtom.STATIC_TOKENS_KEY.atom,
-				SpecialAtom.TRUE.atom,
-				SpecialMethodAtom.ABSTRACT_DEFINER.atom,
-				SpecialMethodAtom.ADD_TO_MAP_VARIABLE.atom,
-				SpecialMethodAtom.ALIAS.atom,
-				SpecialMethodAtom.APPLY.atom,
-				SpecialMethodAtom.ATOM_PROPERTY.atom,
-				SpecialMethodAtom.CONTINUATION_CALLER.atom,
-				SpecialMethodAtom.CRASH.atom,
-				SpecialMethodAtom.CREATE_LITERAL_PHRASE.atom,
-				SpecialMethodAtom.CREATE_LITERAL_TOKEN.atom,
-				SpecialMethodAtom.DECLARE_STRINGIFIER.atom,
-				SpecialMethodAtom.FORWARD_DEFINER.atom,
-				SpecialMethodAtom.GET_RETHROW_JAVA_EXCEPTION.atom,
-				SpecialMethodAtom.GET_VARIABLE.atom,
-				SpecialMethodAtom.GRAMMATICAL_RESTRICTION.atom,
-				SpecialMethodAtom.MACRO_DEFINER.atom,
-				SpecialMethodAtom.METHOD_DEFINER.atom,
-				SpecialMethodAtom.ADD_UNLOADER.atom,
-				SpecialMethodAtom.PUBLISH_ATOMS.atom,
-				SpecialMethodAtom.PUBLISH_ALL_ATOMS_FROM_OTHER_MODULE.atom,
-				SpecialMethodAtom.RESUME_CONTINUATION.atom,
-				SpecialMethodAtom.RECORD_TYPE_NAME.atom,
-				SpecialMethodAtom.CREATE_MODULE_VARIABLE.atom,
-				SpecialMethodAtom.SEAL.atom,
-				SpecialMethodAtom.SEMANTIC_RESTRICTION.atom,
-				SpecialMethodAtom.LEXER_DEFINER.atom,
-				SpecialMethodAtom.PUBLISH_NEW_NAME.atom,
-				exceptionAtom(),
-				stackDumpAtom(),
-				pojoSelfTypeAtom(),
-				TokenType.END_OF_FILE.atom,
-				TokenType.KEYWORD.atom,
-				TokenType.LITERAL.atom,
-				TokenType.OPERATOR.atom,
-				TokenType.COMMENT.atom,
-				TokenType.WHITESPACE.atom,
-				StaticInit.tokenTypeOrdinalKey))
-			for (atom in specialAtomsList)
-			{
-				assert(atom.isAtomSpecial())
-			}
-
-			// Make sure all special objects are shared, and also make sure all
-			// special objects that are atoms are also special.
-
-			specialObjects = Array(specials.size) { specials[it].makeShared() }
-			for (obj in specialObjects)
-			{
-				assert(!obj.isAtom || obj.isAtomSpecial())
-			}
-		}
-
-		/**
-		 * An unmodifiable [List] of the [runtime][AvailRuntime]'s special
-		 * objects.
-		 */
-		private val specialObjectsList: List<AvailObject> =
-			listOf(*specialObjects)
-
-		/**
-		 * Answer the [special&#32;objects][AvailObject] of the
-		 * [runtime][AvailRuntime] as an
-		 * [immutable][Collections.unmodifiableList] [list][List]. Some elements
-		 * may be `null`.
-		 *
-		 * @return
-		 *   The special objects.
-		 */
-		@JvmStatic
-		@ThreadSafe
-		fun specialObjects(): List<AvailObject> = specialObjectsList
+		val specialAtoms = NumericBuilder().apply {
+			at(0)
+			put(SpecialAtom.ALL_TOKENS_KEY.atom)
+			put(SpecialAtom.CLIENT_DATA_GLOBAL_KEY.atom)
+			put(SpecialAtom.COMPILER_SCOPE_MAP_KEY.atom)
+			put(SpecialAtom.COMPILER_SCOPE_STACK_KEY.atom)
+			put(SpecialAtom.EXPLICIT_SUBCLASSING_KEY.atom)
+			put(SpecialAtom.FALSE.atom)
+			put(SpecialAtom.FILE_KEY.atom)
+			put(SpecialAtom.HERITABLE_KEY.atom)
+			put(SpecialAtom.MACRO_BUNDLE_KEY.atom)
+			put(SpecialAtom.MESSAGE_BUNDLE_KEY.atom)
+			put(SpecialAtom.OBJECT_TYPE_NAME_PROPERTY_KEY.atom)
+			put(SpecialAtom.SERVER_SOCKET_KEY.atom)
+			put(SpecialAtom.SOCKET_KEY.atom)
+			put(SpecialAtom.STATIC_TOKENS_KEY.atom)
+			put(SpecialAtom.TRUE.atom)
+			put(SpecialMethodAtom.ABSTRACT_DEFINER.atom)
+			put(SpecialMethodAtom.ADD_TO_MAP_VARIABLE.atom)
+			put(SpecialMethodAtom.ALIAS.atom)
+			put(SpecialMethodAtom.APPLY.atom)
+			put(SpecialMethodAtom.ATOM_PROPERTY.atom)
+			put(SpecialMethodAtom.CONTINUATION_CALLER.atom)
+			put(SpecialMethodAtom.CRASH.atom)
+			put(SpecialMethodAtom.CREATE_LITERAL_PHRASE.atom)
+			put(SpecialMethodAtom.CREATE_LITERAL_TOKEN.atom)
+			put(SpecialMethodAtom.DECLARE_STRINGIFIER.atom)
+			put(SpecialMethodAtom.FORWARD_DEFINER.atom)
+			put(SpecialMethodAtom.GET_RETHROW_JAVA_EXCEPTION.atom)
+			put(SpecialMethodAtom.GET_VARIABLE.atom)
+			put(SpecialMethodAtom.GRAMMATICAL_RESTRICTION.atom)
+			put(SpecialMethodAtom.MACRO_DEFINER.atom)
+			put(SpecialMethodAtom.METHOD_DEFINER.atom)
+			put(SpecialMethodAtom.ADD_UNLOADER.atom)
+			put(SpecialMethodAtom.PUBLISH_ATOMS.atom)
+			put(SpecialMethodAtom.PUBLISH_ALL_ATOMS_FROM_OTHER_MODULE.atom)
+			put(SpecialMethodAtom.RESUME_CONTINUATION.atom)
+			put(SpecialMethodAtom.RECORD_TYPE_NAME.atom)
+			put(SpecialMethodAtom.CREATE_MODULE_VARIABLE.atom)
+			put(SpecialMethodAtom.SEAL.atom)
+			put(SpecialMethodAtom.SEMANTIC_RESTRICTION.atom)
+			put(SpecialMethodAtom.LEXER_DEFINER.atom)
+			put(SpecialMethodAtom.PUBLISH_NEW_NAME.atom)
+			put(exceptionAtom())
+			put(stackDumpAtom())
+			put(pojoSelfTypeAtom())
+			put(TokenType.END_OF_FILE.atom)
+			put(TokenType.KEYWORD.atom)
+			put(TokenType.LITERAL.atom)
+			put(TokenType.OPERATOR.atom)
+			put(TokenType.COMMENT.atom)
+			put(TokenType.WHITESPACE.atom)
+			put(StaticInit.tokenTypeOrdinalKey)
+		}.list().apply { forEach { assert(it.isAtomSpecial()) } }
 	}
 
 	/**
@@ -1332,6 +1322,20 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 						nil)
 				}
 			}
+		}
+	}
+
+	/**
+	 * Unbind the specified [macro][A_Macro] from the runtime system.
+	 *
+	 * @param macro
+	 *   An [A_Macro] to remove from its [A_Bundle].
+	 */
+	@ThreadSafe
+	fun removeMacro(macro: A_Macro)
+	{
+		runtimeLock.write{
+			macro.definitionBundle().removeMacro(macro)
 		}
 	}
 

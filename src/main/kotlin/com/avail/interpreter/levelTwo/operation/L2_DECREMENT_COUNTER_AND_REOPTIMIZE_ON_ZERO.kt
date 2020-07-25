@@ -115,8 +115,7 @@ object L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO : L2Operation(
 		code.decrementCountdownToReoptimize { optimize: Boolean ->
 			if (optimize)
 			{
-				code.countdownToReoptimize(
-					countdownForNewlyOptimizedCode())
+				code.countdownToReoptimize(countdownForNewlyOptimizedCode())
 				L1Translator.translateToLevelTwo(
 					code,
 					OptimizationLevel.optimizationLevel(targetOptimizationLevel),

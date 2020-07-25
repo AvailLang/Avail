@@ -9,7 +9,7 @@
  * * Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- * * Redistributions in binary form must reproduce the above copyright notice, 
+ * * Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
  *
@@ -40,7 +40,7 @@ import com.avail.utility.json.JSONWriter
  * `TopTypeDescriptor` implements the type of [nil][NilDescriptor.nil].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
- * 
+ *
  * @constructor
  * Construct a new [shared][Mutability.SHARED] [PrimitiveTypeDescriptor].
  *
@@ -72,6 +72,7 @@ class TopTypeDescriptor internal constructor(
 			/**
 			 * The hash, populated during construction.
 			 */
+			@JvmField
 			val HASH = BitField(HASH_AND_MORE, 0, 32)
 
 			init

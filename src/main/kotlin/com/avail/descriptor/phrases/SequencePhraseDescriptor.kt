@@ -31,27 +31,29 @@
  */
 package com.avail.descriptor.phrases
 
- import com.avail.compiler.AvailCodeGenerator
- import com.avail.descriptor.phrases.A_Phrase.Companion.emitEffectOn
- import com.avail.descriptor.phrases.A_Phrase.Companion.emitValueOn
- import com.avail.descriptor.phrases.A_Phrase.Companion.flattenStatementsInto
- import com.avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
- import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKind
- import com.avail.descriptor.phrases.A_Phrase.Companion.statements
- import com.avail.descriptor.phrases.SequencePhraseDescriptor.ObjectSlots.STATEMENTS
- import com.avail.descriptor.representation.AvailObject
- import com.avail.descriptor.representation.Mutability
- import com.avail.descriptor.representation.ObjectSlotsEnum
- import com.avail.descriptor.tuples.A_Tuple
- import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
- import com.avail.descriptor.tuples.TupleDescriptor
- import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
- import com.avail.descriptor.types.A_Type
- import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
- import com.avail.descriptor.types.TypeDescriptor.Types
- import com.avail.descriptor.types.TypeTag
- import com.avail.serialization.SerializerOperation
- import com.avail.utility.json.JSONWriter
+import com.avail.compiler.AvailCodeGenerator
+import com.avail.descriptor.phrases.A_Phrase.Companion.emitEffectOn
+import com.avail.descriptor.phrases.A_Phrase.Companion.emitValueOn
+import com.avail.descriptor.phrases.A_Phrase.Companion.flattenStatementsInto
+import com.avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKind
+import com.avail.descriptor.phrases.A_Phrase.Companion.statements
+import com.avail.descriptor.phrases.SequencePhraseDescriptor.ObjectSlots.STATEMENTS
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.ObjectSlotsEnum
+import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
+import com.avail.descriptor.tuples.TupleDescriptor
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
+import com.avail.descriptor.types.TypeDescriptor.Types
+import com.avail.descriptor.types.TypeTag
+import com.avail.serialization.SerializerOperation
+import com.avail.utility.json.JSONWriter
 
 /**
  * My instances represent a sequence of [phrases][PhraseDescriptor] to

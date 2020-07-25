@@ -42,7 +42,11 @@ import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.sets.A_Set
+import java.lang.ref.WeakReference
+import java.util.Collections.synchronizedMap
+import java.util.WeakHashMap
 import java.util.concurrent.locks.ReentrantReadWriteLock
+import javax.annotation.concurrent.GuardedBy
 import kotlin.concurrent.read
 import kotlin.concurrent.write
 
@@ -149,7 +153,9 @@ class ObjectLayoutVariant private constructor(
 		/**
 		 * The collection of all variants, indexed by the set of field atoms.
 		 */
-		private val allVariants = mutableMapOf<A_Set, ObjectLayoutVariant>()
+		@GuardedBy("variantsLock")
+		private val allVariants =
+			WeakHashMap<A_Set, WeakReference<ObjectLayoutVariant>>()
 
 		/** The lock used to protect access to the [allVariants] map. */
 		private val variantsLock = ReentrantReadWriteLock()
@@ -159,6 +165,7 @@ class ObjectLayoutVariant private constructor(
 		 * [variantId] for each variant.  Should only be accessed while holding
 		 * the [variantsLock]'s [writeLock][ReentrantReadWriteLock.writeLock].
 		 */
+		@GuardedBy("variantsLock")
 		private var variantsCounter = 0
 
 		/**
@@ -171,7 +178,7 @@ class ObjectLayoutVariant private constructor(
 		 */
 		fun variantForFields(allFields: A_Set): ObjectLayoutVariant {
 			variantsLock.read {
-				val variant = allVariants[allFields]
+				val variant = allVariants[allFields]?.get()
 				if (variant !== null) {
 					// By far the most likely path.
 					return variant
@@ -183,9 +190,9 @@ class ObjectLayoutVariant private constructor(
 			// Instead, hold the write lock, test again, and create and add if
 			// necessary.
 			return variantsLock.write {
-				when (val theirVariant = allVariants[allFields]) {
+				when (val theirVariant = allVariants[allFields]?.get()) {
 					null -> ObjectLayoutVariant(allFields, ++variantsCounter)
-						.also { allVariants[allFields] = it }
+						.also { allVariants[allFields] = WeakReference(it) }
 					else -> theirVariant
 				}
 			}

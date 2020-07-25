@@ -1233,15 +1233,14 @@ Private method "_positive range pairs" is
 			boundary := boundary bit∨ (boundary << -1);
 			Restart here
 		]();
-		last ::= Cast [boundary + 1..∞)
-			into [t : whole number's type | t];
+		last ::= Cast [boundary + 1..∞) into [t : whole number's type | t];
 		Exit outer with
 			[low .. boundary] positive range pairs ++ <last>
 	];
-	strongLowBits : whole number :=
-		cast lowBits into [x : whole number | x];
 	[
-		$loop : whole number's type*;
+		strongLowBits : whole number
+	|
+		$loop : ⊥;
 		subrangeEnd ::= low + strongLowBits;
 		If subrangeEnd ∈ range then
 		[
@@ -1249,10 +1248,8 @@ Private method "_positive range pairs" is
 				<[low .. low + strongLowBits]>
 				++ (low + strongLowBits .. ⌈range⌉ + 1) positive range pairs
 		];
-		Assert: strongLowBits ≠ 0;
-		strongLowBits := strongLowBits << -1;
-		Restart loop
-	] : whole number's type* ()
+		Restart loop with <strongLowBits << -1>
+	](cast lowBits into [x : whole number | x])
 ] : whole number's type*;
 
 /**

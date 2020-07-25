@@ -38,6 +38,7 @@ import com.avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import com.avail.descriptor.maps.A_Map
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
 import com.avail.descriptor.objects.ObjectDescriptor
 import com.avail.descriptor.representation.*
 import com.avail.descriptor.sets.A_Set
@@ -614,8 +615,8 @@ class EnumerationTypeDescriptor private constructor(mutability: Mutability)
 		return unionType
 	}
 
-	override fun o_RangeIncludesInt(self: AvailObject, anInt: Int): Boolean =
-		getInstances(self).hasElement(fromInt(anInt))
+	override fun o_RangeIncludesLong(self: AvailObject, aLong: Long): Boolean =
+		getInstances(self).any { it.isLong && it.extractLong() == aLong }
 
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		SerializerOperation.ENUMERATION_TYPE

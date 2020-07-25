@@ -35,10 +35,19 @@ import com.avail.annotations.HideFieldInDebugger
 import com.avail.descriptor.character.A_Character.Companion.codePoint
 import com.avail.descriptor.representation.*
 import com.avail.descriptor.representation.AvailObjectRepresentation.Companion.newLike
+import com.avail.descriptor.tuples.A_Tuple.Companion.appendCanDestroy
+import com.avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithRepeatedElementTupleStartingAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.concatenateWith
+import com.avail.descriptor.tuples.A_Tuple.Companion.copyTupleFromToCanDestroy
+import com.avail.descriptor.tuples.A_Tuple.Companion.treeTupleLevel
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAtPuttingCanDestroy
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.ByteStringDescriptor.Companion.generateByteString
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
+import com.avail.descriptor.tuples.RepeatedElementTupleDescriptor.ObjectSlots.ELEMENT
 import com.avail.descriptor.tuples.TreeTupleDescriptor.Companion.concatenateAtLeastOneTree
 import com.avail.descriptor.tuples.TreeTupleDescriptor.Companion.createTwoPartTreeTuple
 import com.avail.descriptor.tuples.TwoByteStringDescriptor.Companion.generateTwoByteString
@@ -79,11 +88,12 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 			/**
 			 * The number of elements in the tuple.
 			 *
-			 * The API's [tuple size accessor][AvailObject.tupleSize] currently
+			 * The API's [tuple size accessor][A_Tuple.tupleSize] currently
 			 * returns a Java `int`, because there wasn't much of a problem
 			 * limiting manually-constructed tuples to two billion elements.
 			 * This restriction will eventually be removed.
 			 */
+			@JvmField
 			val SIZE = BitField(HASH_AND_MORE, 32, 32)
 
 			/**
@@ -92,6 +102,7 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 			 * very rare case that the hash value actually equals zero, the hash
 			 * value has to be computed every time it is requested.
 			 */
+			@JvmField
 			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
 
 			init
@@ -134,7 +145,7 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 		{
 			builder.append(size)
 			builder.append(" of ")
-			self.slot(ObjectSlots.ELEMENT).printOnAvoidingIndent(
+			self.slot(ELEMENT).printOnAvoidingIndent(
 				builder,
 				recursionMap,
 				indent + 1)
@@ -162,7 +173,7 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 				return self
 			}
 			return createRepeatedElementTuple(
-				newSize, self.slot(ObjectSlots.ELEMENT))
+				newSize, self.slot(ELEMENT))
 		}
 
 		// Otherwise, this method is requesting a full copy of the original.
@@ -201,12 +212,13 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 			// they're equal.
 			return true
 		}
-		if (self.slot(ObjectSlots.ELEMENT).equals(
+		if (self.slot(ELEMENT).equals(
 				aRepeatedElementTuple.tupleAt(1)))
 		{
 			// The elements are the same, so the subranges must be as well.
 			// Coalesce equal tuples as a nicety.
-			if (self.slot(IntegerSlots.SIZE) == aRepeatedElementTuple.tupleSize())
+			if (self.slot(IntegerSlots.SIZE)
+				== aRepeatedElementTuple.tupleSize())
 			{
 				// Indirect one to the other if it is not shared.
 				if (!isShared)
@@ -244,10 +256,10 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 		if (otherTuple.isRepeatedElementTuple)
 		{
 			val otherDirect = otherTuple.traversed()
-			val element = self.slot(ObjectSlots.ELEMENT)
+			val element = self.slot(ELEMENT)
 
 			// If the other's element is the same as mine,
-			if (element.equals(otherDirect.slot(ObjectSlots.ELEMENT)))
+			if (element.equals(otherDirect.slot(ELEMENT)))
 			{
 				// then we can be concatenated.
 				val newSize = self.slot(IntegerSlots.SIZE) +
@@ -320,8 +332,8 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 		{
 			return false
 		}
-		if (!self.slot(ObjectSlots.ELEMENT).equals(
-				secondTraversed.slot(ObjectSlots.ELEMENT)))
+		if (!self.slot(ELEMENT).equals(
+				secondTraversed.slot(ELEMENT)))
 		{
 			return false
 		}
@@ -350,7 +362,7 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 		// Answer the value at the given index in the tuple object.
 		// Every element in this tuple is identical.
 		assert(index >= 1 && index <= self.slot(IntegerSlots.SIZE))
-		return self.slot(ObjectSlots.ELEMENT)
+		return self.slot(ELEMENT)
 	}
 
 	override fun o_TupleAtPuttingCanDestroy(
@@ -364,7 +376,7 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 		// tuple if canDestroy is true.
 		val size = self.slot(IntegerSlots.SIZE)
 		assert(index in 1 .. size)
-		val element = self.slot(ObjectSlots.ELEMENT)
+		val element = self.slot(ELEMENT)
 		if (element.equals(newValueObject))
 		{
 			// Replacement is the same as the repeating element.
@@ -421,7 +433,7 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 		newElement: A_BasicObject,
 		canDestroy: Boolean): A_Tuple
 	{
-		if (self.slot(ObjectSlots.ELEMENT).equals(newElement))
+		if (self.slot(ELEMENT).equals(newElement))
 		{
 			val result =
 				if (canDestroy && isMutable) self
@@ -437,9 +449,14 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 
 	override fun o_TupleIntAt(self: AvailObject, index: Int): Int
 	{
-		// Answer the value at the given index in the tuple object.
 		assert(1 <= index && index <= self.slot(IntegerSlots.SIZE))
-		return self.slot(ObjectSlots.ELEMENT).extractInt()
+		return self.slot(ELEMENT).extractInt()
+	}
+
+	override fun o_TupleLongAt(self: AvailObject, index: Int): Long
+	{
+		assert(1 <= index && index <= self.slot(IntegerSlots.SIZE))
+		return self.slot(ELEMENT).extractLong()
 	}
 
 	override fun o_TupleReverse(self: AvailObject): A_Tuple = self
@@ -453,7 +470,7 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 		endIndex: Int,
 		type: A_Type): Boolean
 	{
-		return self.slot(ObjectSlots.ELEMENT).isInstanceOf(type)
+		return self.slot(ELEMENT).isInstanceOf(type)
 	}
 
 	override fun mutable(): RepeatedElementTupleDescriptor = mutable
@@ -530,7 +547,7 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 		): A_Tuple = mutable.create {
 			setSlot(IntegerSlots.HASH_OR_ZERO, 0)
 			setSlot(IntegerSlots.SIZE, size)
-			setSlot(ObjectSlots.ELEMENT, element!!)
+			setSlot(ELEMENT, element!!)
 		}
 	}
 }

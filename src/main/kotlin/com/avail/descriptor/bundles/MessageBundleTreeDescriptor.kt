@@ -46,7 +46,7 @@ import com.avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT
 import com.avail.compiler.splitter.MessageSplitter
 import com.avail.compiler.splitter.MessageSplitter.Companion.constantForIndex
 import com.avail.descriptor.bundles.A_Bundle.Companion.grammaticalRestrictions
-import com.avail.descriptor.bundles.A_Bundle.Companion.messageParts
+import com.avail.descriptor.bundles.A_Bundle.Companion.messagePart
 import com.avail.descriptor.bundles.A_BundleTree.Companion.addPlanInProgress
 import com.avail.descriptor.bundles.A_BundleTree.Companion.allParsingPlansInProgress
 import com.avail.descriptor.bundles.A_BundleTree.Companion.latestBackwardJump
@@ -97,6 +97,12 @@ import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.appendCanDestroy
+import com.avail.descriptor.tuples.A_Tuple.Companion.component1
+import com.avail.descriptor.tuples.A_Tuple.Companion.component2
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.ObjectTupleDescriptor
 import com.avail.descriptor.tuples.StringDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
@@ -117,8 +123,11 @@ import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport
 import com.avail.utility.Mutable
 import com.avail.utility.Strings.newlineTab
-import java.util.*
+import java.util.ArrayDeque
 import java.util.Collections.sort
+import java.util.Deque
+import java.util.HashMap
+import java.util.IdentityHashMap
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.set
@@ -639,22 +648,22 @@ class MessageBundleTreeDescriptor private constructor(
 					// Look it up in LAZY_INCOMPLETE.
 					val keywordIndex = op.keywordIndex(instruction)
 					val keyword: A_String =
-						plan.bundle().messageParts().tupleAt(keywordIndex)
+						plan.bundle().messagePart(keywordIndex)
 					val successor: A_BundleTree =
 						self.slot(LAZY_INCOMPLETE).mapAt(keyword)
 					treesToVisit.add(
-						Pair(successor, newPlanInProgress(plan, pc + 1)))
+						successor to newPlanInProgress(plan, pc + 1))
 				}
 				PARSE_PART_CASE_INSENSITIVELY -> {
 					// Look it up in LAZY_INCOMPLETE_CASE_INSENSITIVE.
 					val keywordIndex = op.keywordIndex(instruction)
 					val keyword: A_String =
-						plan.bundle().messageParts().tupleAt(keywordIndex)
+						plan.bundle().messagePart(keywordIndex)
 					val successor: A_BundleTree =
 						self.slot(LAZY_INCOMPLETE_CASE_INSENSITIVE)
 							.mapAt(keyword)
 					treesToVisit.add(
-						Pair(successor, newPlanInProgress(plan, pc + 1)))
+						successor to newPlanInProgress(plan, pc + 1))
 				}
 				else -> {
 					// It's an ordinary action.  Each JUMP and BRANCH was
@@ -663,7 +672,7 @@ class MessageBundleTreeDescriptor private constructor(
 						self.slot(LAZY_ACTIONS).mapAt(instructions.tupleAt(pc))
 					for (successor in successors) {
 						treesToVisit.add(
-							Pair(successor, newPlanInProgress(plan, pc + 1)))
+							successor to newPlanInProgress(plan, pc + 1))
 					}
 				}
 			}
@@ -1042,7 +1051,7 @@ class MessageBundleTreeDescriptor private constructor(
 					// Parse a specific keyword, or case-insensitive keyword.
 					val keywordIndex = op.keywordIndex(instruction)
 					val part: A_String =
-						plan.bundle().messageParts().tupleAt(keywordIndex)
+						plan.bundle().messagePart(keywordIndex)
 					val map =
 						if (op === PARSE_PART) incomplete
 						else caseInsensitive

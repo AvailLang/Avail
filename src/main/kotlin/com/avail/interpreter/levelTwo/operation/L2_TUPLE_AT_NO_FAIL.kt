@@ -31,8 +31,8 @@
  */
 package com.avail.interpreter.levelTwo.operation
 
-import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.TupleDescriptor
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.tupleAtMethod
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2OperandType
@@ -106,7 +106,7 @@ object L2_TUPLE_AT_NO_FAIL : L2Operation(
 		// :: destination = tuple.tupleAt(subscript);
 		translator.load(method, tuple.register())
 		translator.load(method, subscript.register())
-		A_Tuple.tupleAtMethod.generateCall(method)
+		tupleAtMethod.generateCall(method)
 		translator.store(method, destination.register())
 	}
 }

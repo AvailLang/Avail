@@ -40,6 +40,7 @@ import com.avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinit
 import com.avail.descriptor.numbers.IntegerDescriptor.IntegerSlots.RAW_LONG_SLOTS_
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.multiplier
 import com.avail.descriptor.representation.AvailObjectFieldHelper
 import com.avail.descriptor.representation.IntegerSlotsEnum
 import com.avail.descriptor.representation.Mutability
@@ -589,60 +590,73 @@ class IntegerDescriptor private constructor(
 		canDestroy: Boolean
 	): A_Number
 	{
-		// Compute anInteger / object. Round towards negative infinity.
-		if (self.equals(zero())) {
-			throw ArithmeticException(E_CANNOT_DIVIDE_BY_ZERO)
+		// Compute anInteger / self. Round towards negative infinity.
+		if (self.isLong)
+		{
+			var denominator = self.extractLong()
+			if (denominator == 0L)
+			{
+				throw ArithmeticException(E_CANNOT_DIVIDE_BY_ZERO)
+			}
+			if (anInteger.isLong)
+			{
+				// Two longs - by far the most common case.
+				var numerator = anInteger.extractLong()
+				if (numerator != Long.MIN_VALUE
+					&& denominator != Long.MIN_VALUE)
+				{
+					// It's safe to negate either value without overflow.
+					if (denominator < 0)
+					{
+						// n/d for d<0:  use (-n/-d)
+						denominator = -denominator
+						numerator = -numerator
+					}
+					// assert(denominator > 0)
+					if (numerator < 0)
+					{
+						// n/d for n<0, d>0:  use -1-(-1-n)/d
+						// e.g., -9/5  = -1-(-1+9)/5  = -1-8/5 = -2
+						// e.g., -10/5 = -1-(-1+10)/5 = -1-9/5 = -2
+						// e.g., -11/5 = -1-(-1+11)/5 = -1-10/5 = -3
+						return fromLong(-1 - (-1 - numerator) / denominator)
+					}
+				}
+			}
 		}
-		if (anInteger.equals(zero())) {
-			return anInteger
+		// Rare - fall back to slower math.
+		var numerator: A_Number = anInteger
+		var denominator: A_Number = self
+		if (denominator.lessThan(zero()))
+		{
+			// n/d for d<0:  Compute (-n/-d) instead.
+			numerator =
+				numerator.subtractFromIntegerCanDestroy(zero, canDestroy)
+			denominator =
+				denominator.subtractFromIntegerCanDestroy(zero, canDestroy)
 		}
-		if (self.lessThan(zero())) {
-			// a/o for o<0:  use (-a/-o)
-			val positiveNumerator =
-				anInteger.subtractFromIntegerCanDestroy(zero, canDestroy)
-			return self.subtractFromIntegerCanDestroy(zero, canDestroy)
-				.divideIntoIntegerCanDestroy(
-					positiveNumerator as AvailObject, canDestroy)
-		}
-		if (anInteger.lessThan(zero())) {
-			// a/o for a<0, o>0:  use -1-(-1-a)/o
+		var invertResult = false
+		if (numerator.lessThan(zero()))
+		{
+			// n/d for n<0, d>0:  use -1-(-1-n)/d
 			// e.g., -9/5  = -1-(-1+9)/5  = -1-8/5 = -2
 			// e.g., -10/5 = -1-(-1+10)/5 = -1-9/5 = -2
 			// e.g., -11/5 = -1-(-1+11)/5 = -1-10/5 = -3
-			val minusOneMinusA = negativeOne().minusCanDestroy(anInteger, false)
-			val quotient = minusOneMinusA.divideCanDestroy(self, true)
-			return negativeOne().minusCanDestroy(quotient, true)
+			numerator = numerator.bitwiseXor(negativeOne, canDestroy)
+			invertResult = true
 		}
-		if (self.isLong && anInteger.isLong) {
-			val numerator = anInteger.extractLong()
-			val denominator = self.extractLong()
-			if (denominator == -1L) {
-				// This also handles the only overflow case, -2^63/-1.
-				return zero().minusCanDestroy(anInteger, canDestroy)
-			}
-			val quotient = numerator / denominator
-			// Clobber one of the inputs, or create a new single-long object if
-			// they were both immutable...
-			val output = if (canDestroy) mutableOf(self, anInteger) else null
-			if (output !== null) {
-				// Eventually we can just do a single long write.
-				output.setIntSlot(RAW_LONG_SLOTS_, 1, quotient.toInt())
-				output.setIntSlot(RAW_LONG_SLOTS_, 2, (quotient shr 32).toInt())
-				// Distinguish between a long-sized and int-sized integer.
-				output.setDescriptor(
-					mutableFor(
-						if (quotient == quotient.toInt().toLong()) 1 else 2))
-				return output
-			}
-			return fromLong(quotient)
-		}
-
+		// At this point, neither numerator nor denominator is negative.
 		// For simplicity and efficiency, fall back on Java's BigInteger
 		// implementation.
-		val numeratorBigInt = anInteger.asBigInteger()
-		val denominatorBigInt = self.asBigInteger()
+		val numeratorBigInt = numerator.asBigInteger()
+		val denominatorBigInt = denominator.asBigInteger()
 		val quotient = numeratorBigInt.divide(denominatorBigInt)
-		return fromBigInteger(quotient)
+		var result = fromBigInteger(quotient)
+		if (invertResult)
+		{
+			result = result.bitwiseXor(negativeOne, true)
+		}
+		return result
 	}
 
 	override fun o_DivideIntoDoubleCanDestroy(
@@ -1689,9 +1703,42 @@ class IntegerDescriptor private constructor(
 		@JvmStatic
 		fun computeHashOfInt(anInt: Int): Int {
 			var h = initialHashValue + anInt
-			h *= AvailObject.multiplier
+			h *= multiplier
 			h = h xor postMultiplyHashToggle
-			h *= AvailObject.multiplier
+			h *= multiplier
+			h += finalHashAddend
+			return h
+		}
+
+		/**
+		 * Hash the passed [Long].  Note that it must have the same value as
+		 * what [computeHashOfIntegerObject] would return, given an encoding of
+		 * the [Long] as an Avail integer.  Even if that integer is within the
+		 * 32-bit [Int] range.
+		 *
+		 * @param aLong
+		 *   The [Long] to hash.
+		 * @return
+		 *   The hash of the given [Long], consistent with Avail integer hashing.
+		 */
+		@JvmStatic
+		fun computeHashOfLong(aLong: Long): Int {
+			val lowInt = aLong.toInt()
+			if (aLong == lowInt.toLong()) return computeHashOfInt(lowInt)
+			var h = initialHashValue
+
+			// First unrolled loop iteration (high 32).
+			h += (aLong shr 32).toInt()
+			h *= multiplier
+			h = h xor postMultiplyHashToggle
+
+			// Second unrolled loop iteration (low 32)
+			h += lowInt
+			h *= multiplier
+			h = h xor postMultiplyHashToggle
+
+			// After loop.
+			h *= multiplier
 			h += finalHashAddend
 			return h
 		}
@@ -1711,10 +1758,10 @@ class IntegerDescriptor private constructor(
 			var output = initialHashValue
 			for (i in intCount(anIntegerObject) downTo 1) {
 				output += anIntegerObject.rawSignedIntegerAt(i)
-				output *= AvailObject.multiplier
+				output *= multiplier
 				output = output xor postMultiplyHashToggle
 			}
-			output *= AvailObject.multiplier
+			output *= multiplier
 			output += finalHashAddend
 			return output
 		}
@@ -1729,7 +1776,7 @@ class IntegerDescriptor private constructor(
 		 *   An uninitialized, mutable integer.
 		 */
 		fun createUninitializedInteger(size: Int): AvailObject =
-			mutableFor(size).create(size + 1 shr 1) { }
+			mutableFor(size).create(size + 1 shr 1)
 
 		/**
 		 * The static list of descriptors of this kind, organized in such a way

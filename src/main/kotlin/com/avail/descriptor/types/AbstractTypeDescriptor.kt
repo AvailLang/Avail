@@ -402,9 +402,10 @@ abstract class AbstractTypeDescriptor protected constructor(
 	abstract override fun o_ValueType(
 		self: AvailObject): A_Type
 
-	abstract override fun o_RangeIncludesInt(
+	abstract override fun o_RangeIncludesLong(
 		self: AvailObject,
-		anInt: Int): Boolean
+		aLong: Long
+	): Boolean
 
 	abstract override fun o_SerializerOperation(
 		self: AvailObject): SerializerOperation

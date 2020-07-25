@@ -1525,13 +1525,13 @@ class MessageSplitterTest private constructor ()
 		val msgString = splitCase.message
 		val message = stringFrom(msgString)
 		val splitter = MessageSplitter(message)
-		val parts = splitter.messagePartsTuple
-		assert(splitCase.tokens.size == parts.tupleSize())
-		for (i in 1 .. parts.tupleSize())
+		val parts = splitter.messageParts
+		assert(splitCase.tokens.size == parts.size)
+		for (i in 0 until parts.size)
 		{
 			Assertions.assertEquals(
-				splitCase.tokens[i - 1],
-				parts.tupleAt(i).asNativeString(),
+				splitCase.tokens[i],
+				parts[i].asNativeString(),
 				"Split was not as expected"
 			)
 		}

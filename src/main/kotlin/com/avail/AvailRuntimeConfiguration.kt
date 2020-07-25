@@ -31,7 +31,7 @@
  */
 package com.avail
 
-import com.avail.descriptor.methods.MacroDefinitionDescriptor
+import com.avail.descriptor.methods.MacroDescriptor
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor.Companion.generateSetFrom
 import com.avail.descriptor.tuples.StringDescriptor
@@ -99,7 +99,7 @@ object AvailRuntimeConfiguration
 	@JvmField
 	val maxInterpreters = availableProcessors
 	/**
-	 * Whether to show all [macro][MacroDefinitionDescriptor] expansions as
+	 * Whether to show all [macro][MacroDescriptor] expansions as
 	 * they happen.
 	 */
 	var debugMacroExpansions = false

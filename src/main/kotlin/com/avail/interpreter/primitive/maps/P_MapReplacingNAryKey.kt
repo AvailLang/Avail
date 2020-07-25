@@ -37,6 +37,9 @@ import com.avail.descriptor.maps.MapDescriptor
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAtPuttingCanDestroy
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.types.A_Type
@@ -102,16 +105,14 @@ object P_MapReplacingNAryKey : Primitive(3, CanInline, CanFold)
 			subtuple.isTuple ->
 			{
 				val newTuple = recursivelyUpdateTuple(
-					subtuple, pathTuple, pathIndex + 1,
-					newValue)
+					subtuple, pathTuple, pathIndex + 1, newValue)
 				return targetTuple.tupleAtPuttingCanDestroy(
 					targetIndex, newTuple, true)
 			}
 			subtuple.isMap ->
 			{
 				val newMap = recursivelyUpdateMap(
-					subtuple, pathTuple, pathIndex + 1,
-					newValue)
+					subtuple, pathTuple, pathIndex + 1, newValue)
 				return targetTuple.tupleAtPuttingCanDestroy(
 					targetIndex, newMap, true)
 			}

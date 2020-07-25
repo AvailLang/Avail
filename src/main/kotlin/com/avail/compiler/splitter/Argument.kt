@@ -128,4 +128,6 @@ internal open class Argument constructor(
 	override val shouldBeSeparatedOnLeft get() = true
 
 	override val shouldBeSeparatedOnRight get() = true
+
+	override fun checkListStructure(phrase: A_Phrase): Boolean = true
 }

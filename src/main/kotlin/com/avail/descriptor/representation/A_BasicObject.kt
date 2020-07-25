@@ -52,6 +52,7 @@ import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.ByteStringDescriptor
 import com.avail.descriptor.tuples.ByteTupleDescriptor
 import com.avail.descriptor.tuples.IntTupleDescriptor
+import com.avail.descriptor.tuples.LongTupleDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.tuples.TwoByteStringDescriptor
 import com.avail.descriptor.types.A_Type
@@ -692,10 +693,22 @@ interface A_BasicObject : JSONFriendly {
 	 * conservative, in that some object tuples *may* only contain ints but not
 	 * be reported as being int tuples.
 	 *
-	 * @return `true` if the receiver is easily determined to be an int
-	 * tuple, `false` otherwise.
+	 * @return
+	 *   `true` if the receiver is easily determined to be an int tuple, `false`
+	 *   otherwise.
 	 */
 	val isIntTuple: Boolean
+
+	/**
+	 * Is the [receiver][AvailObject] an Avail [LongTupleDescriptor]?  This is
+	 * conservative, in that some object tuples *may* only contain longs but not
+	 * be reported as being long tuples.
+	 *
+	 * @return
+	 *   `true` if the receiver is easily determined to be a long tuple, `false`
+	 *   otherwise.
+	 */
+	val isLongTuple: Boolean
 
 	/**
 	 * Is the [receiver][AvailObject] an Avail map?
@@ -973,12 +986,12 @@ interface A_BasicObject : JSONFriendly {
 	/**
 	 * @return
 	 */
-	fun <T> javaObject(): T?
+	fun <T : Any> javaObject(): T?
 
 	/**
 	 * @return
 	 */
-	fun <T> javaObjectNotNull(): T
+	fun <T : Any> javaObjectNotNull(): T
 
 	/**
 	 * @return
@@ -1101,6 +1114,12 @@ interface A_BasicObject : JSONFriendly {
 	 * @return
 	 */
 	fun equalsIntTuple(anIntTuple: A_Tuple): Boolean
+
+	/**
+	 * @param aLongTuple
+	 * @return
+	 */
+	fun equalsLongTuple(aLongTuple: A_Tuple): Boolean
 
 	/**
 	 * @param aSmallIntegerIntervalTuple

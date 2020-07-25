@@ -138,4 +138,7 @@ internal class CaseInsensitive constructor(
 
 	override fun mightBeEmpty(phraseType: A_Type) =
 		expression.mightBeEmpty(phraseType)
+
+	override fun checkListStructure(phrase: A_Phrase): Boolean =
+		expression.checkListStructure(phrase)
 }

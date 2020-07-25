@@ -31,6 +31,7 @@
  */
 package com.avail.optimizer.jvm
 
+import com.avail.descriptor.representation.AvailObject
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Opcodes.*
@@ -135,7 +136,8 @@ class CheckedMethod private constructor(
 		}
 		if (internalNameToCheckCastOrNull !== null)
 		{
-			methodVisitor.visitTypeInsn(CHECKCAST, internalNameToCheckCastOrNull)
+			methodVisitor.visitTypeInsn(
+				CHECKCAST, internalNameToCheckCastOrNull)
 		}
 	}
 
@@ -143,7 +145,7 @@ class CheckedMethod private constructor(
 	{
 		/**
 		 * Create a `CheckedMethod` for invoking an instance method that has
-		 * been annotated with [ReferencedInGeneratedCode], failing if there  is
+		 * been annotated with [ReferencedInGeneratedCode], failing if there is
 		 * a problem.
 		 *
 		 * @param receiverClass
@@ -260,21 +262,23 @@ class CheckedMethod private constructor(
 					*argumentTypes)
 	}
 
+	/* The [Method] that was looked up during construction of this instance. */
+	private val method =
+		try
+		{
+			receiverClass.getMethod(methodNameString, *argumentTypes)
+		}
+		catch (e: NoSuchMethodException)
+		{
+			throw RuntimeException(e)
+		}
+		catch (e: SecurityException)
+		{
+			throw RuntimeException(e)
+		}
+
 	init
 	{
-		val method: Method =
-			try
-			{
-				receiverClass.getMethod(methodNameString, *argumentTypes)
-			}
-			catch (e: NoSuchMethodException)
-			{
-				throw RuntimeException(e)
-			}
-			catch (e: SecurityException)
-			{
-				throw RuntimeException(e)
-			}
 		if (verifyAnnotation)
 		{
 			// Check the annotation before anything else, in case we selected
@@ -290,16 +294,19 @@ class CheckedMethod private constructor(
 		assert(modifiers and Modifier.STATIC != 0 == isStatic)
 		val methodReturnType = method.returnType
 		internalNameToCheckCastOrNull =
-			if (returnClass.isAssignableFrom(methodReturnType))
+			when
 			{
-				null
-			}
-			else
-			{
-				// For sanity, the type to check-cast-strengthen to should be a
-				// subtype of the method's return type.
-				assert(methodReturnType.isAssignableFrom(returnClass))
-				Type.getInternalName(returnClass)
+				methodReturnType == AvailObject::class.java -> null
+				methodReturnType.isAssignableFrom(AvailObject::class.java) ->
+					Type.getInternalName(AvailObject::class.java)
+				returnClass.isAssignableFrom(methodReturnType) -> null
+				else ->
+				{
+					// For sanity, the type to check-cast-strengthen to should be a
+					// subtype of the method's return type.
+					assert(methodReturnType.isAssignableFrom(returnClass))
+					Type.getInternalName(returnClass)
+				}
 			}
 		receiverClassInternalName = Type.getInternalName(method.declaringClass)
 		isInterface = method.declaringClass.isInterface

@@ -109,12 +109,12 @@ object P_BootstrapDefineSpecialObjectMacro
 			emptyTuple(),
 			METHOD_DEFINER.bundle,
 			newListNode(
-				ObjectTupleDescriptor.tuple(
+				tuple(
 					nameLiteral,
 					newBlockNode(
 						emptyTuple(),
 						0,
-						ObjectTupleDescriptor.tuple(specialObjectLiteral),
+						tuple(specialObjectLiteral),
 						specialObjectLiteral.expressionType(),
 						emptySet(),
 						0,
@@ -146,20 +146,20 @@ object P_BootstrapDefineSpecialObjectMacro
 			newSendNode(
 				emptyTuple(),
 				CREATE_LITERAL_PHRASE.bundle,
-				newListNode(ObjectTupleDescriptor.tuple(createLiteralToken)),
+				newListNode(tuple(createLiteralToken)),
 				LITERAL_PHRASE.create(specialObjectLiteral.expressionType()))
 		val defineMacro =
 			newSendNode(
 				emptyTuple(),
 				MACRO_DEFINER.bundle,
 				newListNode(
-					ObjectTupleDescriptor.tuple(
+					tuple(
 						nameLiteral,
 						emptyListNode(),
 						newBlockNode(
 							emptyTuple(),
 							0,
-							ObjectTupleDescriptor.tuple(createLiteralNode),
+							tuple(createLiteralNode),
 							LITERAL_PHRASE.create(
 								specialObjectLiteral.expressionType()),
 							emptySet(),
@@ -168,14 +168,14 @@ object P_BootstrapDefineSpecialObjectMacro
 				TOP.o())
 		return interpreter.primitiveSuccess(
 			newSequence(
-				ObjectTupleDescriptor.tuple(
+				tuple(
 					newExpressionAsStatement(defineMethod),
 					newExpressionAsStatement(defineMacro))))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			ObjectTupleDescriptor.tuple(
+			tuple(
 				LITERAL_PHRASE.create(nonemptyStringType()),
 				LITERAL_PHRASE.create(ANY.o())),
 			SEQUENCE_PHRASE.mostGeneralType())

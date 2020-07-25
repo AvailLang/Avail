@@ -242,7 +242,8 @@ class TypeRestriction private constructor(
 		isImmutable: Boolean,
 		isBoxed: Boolean,
 		isUnboxedInt: Boolean,
-		isUnboxedFloat: Boolean) : this(
+		isUnboxedFloat: Boolean
+	) : this(
 		type,
 		constantOrNull,
 		excludedTypes,
@@ -465,41 +466,29 @@ class TypeRestriction private constructor(
 	 */
 	fun containsEntireType(testType: A_Type): Boolean
 	{
-		if (constantOrNull !== null)
+		val constant = constantOrNull
+		return when
 		{
-			return if (constantOrNull.isType && !constantOrNull.isBottom)
+			constant == null ->
 			{
-				// The value is known to be a type other than bottom, so there
-				// is no possible testType that could contain just this
-				// constant as a member.
-				false
+				when
+				{
+					!testType.isSubtypeOf(type) -> false
+					excludedTypes.any {
+						!it.typeIntersection(testType).isBottom
+					} -> false
+					else -> excludedValues.none { it.isInstanceOf(testType) }
+				}
 			}
-			else
-			{
-				testType.equals(
-					instanceTypeOrMetaOn(
-						constantOrNull))
-			}
+			// The value is known to be a type other than bottom, so there is no
+			// possible testType that could contain just this constant as a
+			// member.
+			constant.isType && !constant.isBottom -> false
+			// The value is not a type, or it's bottom.  Either way, the only
+			// way the testType could be a subtype is if it's an instance (or
+			// meta) type containing just that value.
+			else -> testType.equals(instanceTypeOrMetaOn(constant))
 		}
-		if (!testType.isSubtypeOf(type))
-		{
-			return false
-		}
-		for (excludedType in excludedTypes)
-		{
-			if (!excludedType.typeIntersection(testType).isBottom)
-			{
-				return false
-			}
-		}
-		for (excludedValue in excludedValues)
-		{
-			if (excludedValue.isInstanceOf(testType))
-			{
-				return false
-			}
-		}
-		return true
 	}
 
 	/**
@@ -543,9 +532,9 @@ class TypeRestriction private constructor(
 			return false
 		}
 		return !(excludedValues.isNotEmpty()
-				 && intersectedType.isEnumeration
-				 && !intersectedType.isInstanceMeta
-				 && intersectedType.instances().isSubsetOf(
+			&& intersectedType.isEnumeration
+			&& !intersectedType.isInstanceMeta
+			&& intersectedType.instances().isSubsetOf(
 			setFromCollection(excludedValues)))
 	}
 

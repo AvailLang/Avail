@@ -81,7 +81,7 @@ class TextInterface constructor(
 		 *   A text interface suitable for managing the system streams.
 		 */
 		@JvmStatic
-		fun system(): TextInterface
+		fun systemTextInterface(): TextInterface
 		{
 			return TextInterface(
 				ConsoleInputChannel(System.`in`),

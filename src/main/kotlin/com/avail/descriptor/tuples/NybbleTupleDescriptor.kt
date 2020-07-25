@@ -32,17 +32,42 @@
 package com.avail.descriptor.tuples
 
 import com.avail.annotations.HideFieldInDebugger
+import com.avail.descriptor.character.A_Character.Companion.codePoint
 import com.avail.descriptor.functions.CompiledCodeDescriptor
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromUnsignedByte
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.hashOfUnsignedByte
-import com.avail.descriptor.representation.*
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.AvailObjectRepresentation.Companion.newLike
+import com.avail.descriptor.representation.BitField
+import com.avail.descriptor.representation.IntegerSlotsEnum
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithNybbleTupleStartingAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.concatenateWith
+import com.avail.descriptor.tuples.A_Tuple.Companion.copyAsMutableIntTuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.copyAsMutableObjectTuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.extractNybbleFromTupleAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.treeTupleLevel
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAtPuttingCanDestroy
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
+import com.avail.descriptor.tuples.ByteStringDescriptor.Companion.generateByteString
 import com.avail.descriptor.tuples.ByteTupleDescriptor.Companion.generateByteTupleFrom
+import com.avail.descriptor.tuples.IntTupleDescriptor.Companion.generateIntTupleFrom
+import com.avail.descriptor.tuples.LongTupleDescriptor.Companion.generateLongTupleFrom
+import com.avail.descriptor.tuples.NybbleTupleDescriptor.IntegerSlots
+import com.avail.descriptor.tuples.NybbleTupleDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
+import com.avail.descriptor.tuples.NybbleTupleDescriptor.IntegerSlots.RAW_LONG_AT_
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import com.avail.descriptor.tuples.TwoByteStringDescriptor.Companion.generateTwoByteString
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor
 import com.avail.descriptor.types.TypeDescriptor
+import com.avail.descriptor.types.TypeDescriptor.Types
+import com.avail.optimizer.jvm.CheckedMethod
+import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.serialization.SerializerOperation
 import java.nio.ByteBuffer
 
@@ -100,6 +125,7 @@ class NybbleTupleDescriptor private constructor(
 			 * very rare case that the hash value actually equals zero, the hash
 			 * value has to be computed every time it is requested.
 			 */
+			@JvmField
 			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
 
 			init
@@ -117,39 +143,67 @@ class NybbleTupleDescriptor private constructor(
 		newElement: A_BasicObject,
 		canDestroy: Boolean): A_Tuple
 	{
+		val strongNewElement = newElement as AvailObject
 		val originalSize = self.tupleSize()
-		if (originalSize >= maximumCopySize || !newElement.isInt)
+		if (originalSize == 0)
 		{
-			// Transition to a tree tuple.
-			val singleton = tuple(newElement)
-			return self.concatenateWith(singleton, canDestroy)
+			// When accumulating a tuple, use the first element as an indicator
+			// of which kind of tuple to create.  It'll probably be a good
+			// guess, and at worst we switch to a more general form when the
+			// second element shows up.
+			when
+			{
+				strongNewElement.isCharacter ->
+					return when (val codePoint = strongNewElement.codePoint())
+					{
+						in 0 .. 0xFF -> generateByteString(1) { codePoint }
+						in 0 .. 0xFFFF -> generateTwoByteString(1) { codePoint }
+						else -> tuple(strongNewElement)
+					}
+				strongNewElement.isLong ->
+					return when (val longValue = strongNewElement.extractLong())
+					{
+						in 0 .. 0xFF -> generateByteTupleFrom(1) {
+							longValue.toInt()
+						}
+						in -0x8000_0000 .. 0x7FFF_FFFF ->
+							generateIntTupleFrom(1) { longValue.toInt() }
+						else -> generateLongTupleFrom(1) { longValue }
+					}
+			}
 		}
-		val intValue = (newElement as A_Number).extractInt()
-		if (intValue and 15.inv() != 0)
+		if (originalSize < maximumCopySize && strongNewElement.isInt)
 		{
-			// Transition to a tree tuple.
-			val singleton = tuple(newElement)
-			return self.concatenateWith(singleton, canDestroy)
+			val intValue = strongNewElement.extractInt()
+			if (intValue and 15.inv() != 0)
+			{
+				// Transition to a tree tuple.
+				val singleton = tuple(strongNewElement)
+				return self.concatenateWith(singleton, canDestroy)
+			}
+			val newSize = originalSize + 1
+			val result: AvailObject
+			if (isMutable && canDestroy && originalSize and 15 != 0)
+			{
+				// Enlarge it in place, using the pad nybbles of the last long.
+				result = self
+				result.setDescriptor(descriptorFor(Mutability.MUTABLE, newSize))
+			}
+			else
+			{
+				result = newLike(
+					descriptorFor(Mutability.MUTABLE, newSize),
+					self,
+					0,
+					if (originalSize and 15 == 0) 1 else 0)
+			}
+			setNybble(result, newSize, intValue.toByte())
+			result.setSlot(HASH_OR_ZERO, 0)
+			return result
 		}
-		val newSize = originalSize + 1
-		val result: AvailObject
-		if (isMutable && canDestroy && originalSize and 15 != 0)
-		{
-			// Enlarge it in place, using more of the final partial int field.
-			result = self
-			result.setDescriptor(descriptorFor(Mutability.MUTABLE, newSize))
-		}
-		else
-		{
-			result = newLike(
-				descriptorFor(Mutability.MUTABLE, newSize),
-				self,
-				0,
-				if (originalSize and 15 == 0) 1 else 0)
-		}
-		setNybble(result, newSize, intValue.toByte())
-		result.setSlot(IntegerSlots.HASH_OR_ZERO, 0)
-		return result
+		// Transition to a tree tuple.
+		val singleton = tuple(strongNewElement)
+		return self.concatenateWith(singleton, canDestroy)
 	}
 
 	// Answer approximately how many bits per entry are taken up by this
@@ -257,7 +311,7 @@ class NybbleTupleDescriptor private constructor(
 				newLike(descriptorFor(
 					Mutability.MUTABLE, newSize), self, 0, deltaSlots)
 			}
-			copy.setSlot(IntegerSlots.HASH_OR_ZERO, 0)
+			copy.setSlot(HASH_OR_ZERO, 0)
 			var dest = size1 + 1
 			var result: A_Tuple = copy
 			var src = 1
@@ -371,17 +425,18 @@ class NybbleTupleDescriptor private constructor(
 	{
 		when
 		{
-			aType.isSupertypeOfPrimitiveTypeEnum(TypeDescriptor.Types.NONTYPE) ->
+			aType.isSupertypeOfPrimitiveTypeEnum(Types.NONTYPE) ->
 				return true
 			!aType.isTupleType -> return false
 			// See if it's an acceptable size...
-			!aType.sizeRange().rangeIncludesInt(self.tupleSize()) ->
+			!aType.sizeRange().rangeIncludesLong(self.tupleSize().toLong()) ->
 				return false
 			// Tuple's size is out of range.
 			else ->
 			{
 				val typeTuple = aType.typeTuple()
-				val breakIndex = self.tupleSize().coerceAtMost(typeTuple.tupleSize())
+				val breakIndex =
+					self.tupleSize().coerceAtMost(typeTuple.tupleSize())
 				for (i in 1 .. breakIndex)
 				{
 					if (!self.tupleAt(i).isInstanceOf(aType.typeAtIndex(i)))
@@ -505,10 +560,11 @@ class NybbleTupleDescriptor private constructor(
 				|| super.o_TupleElementsInRangeAreInstancesOf(
 					self, startIndex, endIndex, type))
 
-	// Answer the integer element at the given index in the nybble tuple
-	// object.
 	override fun o_TupleIntAt(self: AvailObject, index: Int): Int =
 		getNybble(self, index).toInt()
+
+	override fun o_TupleLongAt(self: AvailObject, index: Int): Long =
+		getNybble(self, index).toLong()
 
 	override fun o_TupleReverse(self: AvailObject): A_Tuple
 	{
@@ -547,7 +603,7 @@ class NybbleTupleDescriptor private constructor(
 		{
 			assert(nybbleIndex >= 1 && nybbleIndex <= self.tupleSize())
 			val longIndex = nybbleIndex + 15 ushr 4
-			val longValue = self.slot(IntegerSlots.RAW_LONG_AT_, longIndex)
+			val longValue = self.slot(RAW_LONG_AT_, longIndex)
 			val shift = nybbleIndex - 1 and 15 shl 2
 			return (longValue ushr shift and 0x0F).toByte()
 		}
@@ -571,11 +627,11 @@ class NybbleTupleDescriptor private constructor(
 			assert(nybbleIndex >= 1 && nybbleIndex <= self.tupleSize())
 			assert(aNybble.toInt() and 15 == aNybble.toInt())
 			val longIndex = nybbleIndex + 15 ushr 4
-			var longValue = self.slot(IntegerSlots.RAW_LONG_AT_, longIndex)
+			var longValue = self.slot(RAW_LONG_AT_, longIndex)
 			val leftShift = nybbleIndex - 1 and 15 shl 2
 			longValue = longValue and (0x0FL shl leftShift).inv()
 			longValue = longValue or (aNybble.toLong() shl leftShift)
-			self.setSlot(IntegerSlots.RAW_LONG_AT_, longIndex, longValue)
+			self.setSlot(RAW_LONG_AT_, longIndex, longValue)
 		}
 
 		/**
@@ -618,7 +674,7 @@ class NybbleTupleDescriptor private constructor(
 					combined = combined or (nybble.toLong() shl shift)
 					shift += 4
 				}
-				result.setSlot(IntegerSlots.RAW_LONG_AT_, slotIndex, combined)
+				result.setSlot(RAW_LONG_AT_, slotIndex, combined)
 				slotIndex++
 			}
 			// Do the last 0-15 writes the slow way.
@@ -659,12 +715,22 @@ class NybbleTupleDescriptor private constructor(
 		 * @return
 		 *   A mutable nybble tuple.
 		 */
+		@JvmStatic
+		@ReferencedInGeneratedCode
 		fun mutableObjectOfSize(size: Int): AvailObject
 		{
 			val d = descriptorFor(Mutability.MUTABLE, size)
 			assert(size + d.unusedNybblesOfLastLong and 15 == 0)
-			return d.create(size + 15 ushr 4) { }
+			return d.create(size + 15 ushr 4)
 		}
+
+		/** The [CheckedMethod] for [mutableObjectOfSize]. */
+		@JvmField
+		val createUninitializedNybbleTupleMethod: CheckedMethod = staticMethod(
+			NybbleTupleDescriptor::class.java,
+			::mutableObjectOfSize.name,
+			AvailObject::class.java,
+			Int::class.javaPrimitiveType!!)
 
 		/**
 		 * Answer the descriptor that has the specified mutability flag and is
@@ -677,7 +743,7 @@ class NybbleTupleDescriptor private constructor(
 		 *   descriptor.
 		 * @return
 		 *   A `NybbleTupleDescriptor` suitable for representing a nybble tuple
-		 *   of the given mutability and [size][AvailObject.tupleSize].
+		 *   of the given mutability and [size][A_Tuple.tupleSize].
 		 */
 		private fun descriptorFor(
 			flag: Mutability,
@@ -687,8 +753,8 @@ class NybbleTupleDescriptor private constructor(
 		init
 		{
 			var i = 0
-			for (excess in
-				intArrayOf(0, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1))
+			for (excess in intArrayOf(
+				0, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1))
 			{
 				descriptors[i++] =
 					NybbleTupleDescriptor(Mutability.MUTABLE, excess)
