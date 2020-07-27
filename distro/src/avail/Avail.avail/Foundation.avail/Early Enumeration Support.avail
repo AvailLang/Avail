@@ -74,22 +74,3 @@ Semantic restriction "_'s⁇instance" is
 	Cast aMeta's instance into [t : type | result := t;] else [];
 	result
 ];
-
-/**
- * Is {@param "value"} an instance of {@param "aType"}?
- *
- * @method "_∈_"
- * @param "value" "any"
- * @param "aType" "type"
- * @returns "boolean"
- *          {@method "true"} if {@param "value"} is an instance of {@param
- *          "aType"}, {@method "false"} otherwise.
- * @category "Types" "Queries"
- */
-Method "_∈_" is
-[
-	value : any,
-	aType : type
-|
-	value's type ⊆ aType
-];

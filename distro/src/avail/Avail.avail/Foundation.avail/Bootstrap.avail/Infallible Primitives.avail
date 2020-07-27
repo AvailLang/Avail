@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 7/24/20 12:40 AM
+ * * Last Generated: 7/27/20 6:24 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -4003,6 +4003,27 @@ Primitive "`|_`|" is
 |
 	Primitive InstanceCount;
 ] : nonnegative extended integer;
+
+/**
+ * Is {@param "value"} an instance of {@param "aType"}?
+ *
+ * @category "Primitives"
+ * @method "_∈_"
+ * @param "value" "any"
+ *        The value to test for membership in {@param "aType"}.
+ * @param "aType" "(⊤)'s type"
+ *        The target type for the membership check.
+ * @returns "boolean"
+ *    {@method "true"} if {@param "value"} is an instance of {@param
+ *    "aType"}, {@method "false"} otherwise.
+ */
+Primitive "_∈_" is
+[
+	value : any,
+	aType : type
+|
+	Primitive IsInstanceOf;
+] : boolean;
 
 /**
  * Is the first argument a subtype of the second argument? This does not

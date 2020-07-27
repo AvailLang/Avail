@@ -40,41 +40,38 @@ import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
+import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.execution.Interpreter
-import com.avail.interpreter.levelTwo.operand.L2ConstantOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import com.avail.interpreter.levelTwo.operation.L2_GET_TYPE
 import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT
-import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_SUBTYPE_OF_CONSTANT
-import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_SUBTYPE_OF_OBJECT
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
 import com.avail.optimizer.L2Generator.Companion.edgeTo
 
 /**
- * **Primitive:** Answer whether type1 is a subtype of type2 (or equal).
+ * **Primitive:** Answer whether `value` is an instance of `type`.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_IsSubtypeOf : Primitive(2, CannotFail, CanFold, CanInline)
+object P_IsInstanceOf : Primitive(2, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
-		val type1 = interpreter.argument(0)
-		val type2 = interpreter.argument(1)
+		val (value, type) = interpreter.argsBuffer
+
 		return interpreter.primitiveSuccess(
-			objectFromBoolean(type1.isSubtypeOf(type2)))
+			objectFromBoolean(value.isInstanceOf(type)))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(
-				topMeta(),
-				topMeta()),
+			tuple(ANY.o, topMeta()),
 			booleanType)
 
 	/**
@@ -83,11 +80,10 @@ object P_IsSubtypeOf : Primitive(2, CannotFail, CanFold, CanInline)
 	 * (making them metatypes).
 	 *
 	 *  1. The test is always true if the exact type y1 is known (not a
-	 * subtype) and x' ⊆ y1'.
+	 * subtype) and x' ∈ y1'.
 	 *  1. The test is always false if the exact type x1 is known (not a
-	 * subtype) and x1' ⊈ y'.
-	 *  1. The test is always true if x = ⊥.
-	 *
+	 * subtype) and x1' ∉ y'.
+	 *  1. The test is always true if y = ⊤.
 	 */
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
@@ -97,98 +93,44 @@ object P_IsSubtypeOf : Primitive(2, CannotFail, CanFold, CanInline)
 		translator: L1Translator,
 		callSiteHelper: CallSiteHelper): Boolean
 	{
-		val (xTypeReg, yTypeReg) = arguments
+		val (xReg, yTypeReg) = arguments
 
-		val xType = xTypeReg.type().instance()
-		val yType = yTypeReg.type().instance()
+		if (xReg.restriction().metaRestriction().intersection(
+			yTypeReg.restriction()).type.isVacuousType)
+		{
+			// The intersection is vacuous, so no further testing is required.
+			callSiteHelper.useAnswer(
+				translator.generator.boxedConstant(falseObject))
+			return true
+		}
+
+		val (ifInstance, ifNotInstance) = with(translator.generator) {
+			createBasicBlock("if instance") to
+				createBasicBlock("not instance")
+		}
 
 		val constantYType = yTypeReg.constantOrNull()
 		if (constantYType !== null)
 		{
-			assert(constantYType.isSubtypeOf(yType))
-			if (xType.isSubtypeOf(constantYType))
-			{
-				// The y type is known precisely, and the x type is constrained
-				// to always be a subtype of it.
-				callSiteHelper.useAnswer(
-					translator.generator.boxedConstant(trueObject))
-				return true
-			}
-		}
-
-		val constantXType = xTypeReg.constantOrNull()
-		if (constantXType !== null)
-		{
-			assert(constantXType.isSubtypeOf(xType))
-			if (!constantXType.isSubtypeOf(yType))
-			{
-				// In x ⊆ y, the exact type x happens to be known statically,
-				// and it is not a subtype of y.  The actual y might be more
-				// specific at runtime, but x still can't be a subtype of the
-				// stronger y.
-				callSiteHelper.useAnswer(
-					translator.generator.boxedConstant(falseObject))
-				return true
-			}
-		}
-
-		if (xType.isBottom)
-		{
-			// ⊥ is a subtype of all other types.  We test this separately from
-			// looking for a constant x, since ⊥'s type is special and doesn't
-			// report that it only has one instance (i.e., ⊥).
-			callSiteHelper.useAnswer(
-				translator.generator.boxedConstant(trueObject))
-			return true
-		}
-
-		val ifSubtype = translator.generator.createBasicBlock("if subtype")
-		val ifNotSubtype = translator.generator.createBasicBlock("not subtype")
-
-		val xDef = xTypeReg.definitionSkippingMoves(true)
-		if (xDef.operation() == L2_GET_TYPE)
-		{
-			// X is an L2_GET_TYPE of some other register.
-			// Convert this into an L2_JUMP_IF_KIND_OF_OBJECT/CONSTANT, but
-			// use the value that was provided to L2_GET_TYPE.
-			val xInstanceRead = L2_GET_TYPE.sourceValueOf(xDef)
-			if (constantYType !== null)
-			{
-				translator.jumpIfKindOfConstant(
-					xInstanceRead, constantYType, ifSubtype, ifNotSubtype)
-			}
-			else
-			{
-				translator.addInstruction(
-					L2_JUMP_IF_KIND_OF_OBJECT,
-					xInstanceRead,
-					yTypeReg,
-					edgeTo(ifSubtype),
-					edgeTo(ifNotSubtype))
-			}
-		}
-		else if (constantYType !== null)
-		{
-			translator.addInstruction(
-				L2_JUMP_IF_SUBTYPE_OF_CONSTANT,
-				xTypeReg,
-				L2ConstantOperand(constantYType),
-				edgeTo(ifSubtype),
-				edgeTo(ifNotSubtype))
+			translator.jumpIfKindOfConstant(
+				xReg,
+				constantYType.typeIntersection(xReg.type()),
+				ifInstance,
+				ifNotInstance)
 		}
 		else
 		{
 			translator.addInstruction(
-				L2_JUMP_IF_SUBTYPE_OF_OBJECT,
-				xTypeReg,
+				L2_JUMP_IF_KIND_OF_OBJECT,
+				xReg,
 				yTypeReg,
-				edgeTo(ifSubtype),
-				edgeTo(ifNotSubtype))
+				edgeTo(ifInstance),
+				edgeTo(ifNotInstance))
 		}
-		translator.generator.startBlock(ifSubtype)
+		translator.generator.startBlock(ifInstance)
 		callSiteHelper.useAnswer(
 			translator.generator.boxedConstant(trueObject))
-		translator.generator.startBlock(ifNotSubtype)
+		translator.generator.startBlock(ifNotInstance)
 		callSiteHelper.useAnswer(
 			translator.generator.boxedConstant(falseObject))
 		return true
