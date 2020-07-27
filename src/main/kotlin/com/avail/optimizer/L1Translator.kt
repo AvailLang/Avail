@@ -169,7 +169,6 @@ import com.avail.optimizer.values.Frame
 import com.avail.optimizer.values.L2SemanticValue
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport
-import java.util.ArrayList
 import java.util.logging.Level
 
 /**
@@ -2166,7 +2165,7 @@ class L1Translator private constructor(
 		if (primitive.hasFlag(Primitive.Flag.CanFold))
 		{
 			// It can be folded, if supplied with constants.
-			val constants: MutableList<AvailObject> = ArrayList(argumentCount)
+			val constants = mutableListOf<AvailObject>()
 			for (regRead in arguments)
 			{
 				val constant = regRead.constantOrNull() ?: break
@@ -3097,7 +3096,7 @@ class L1Translator private constructor(
 		}
 		stackp += count - 1
 		// Fold into a constant tuple if possible
-		val constants: MutableList<A_BasicObject?> = ArrayList(count)
+		val constants = mutableListOf<A_BasicObject?>()
 		for (regRead in vector)
 		{
 			if (regRead.constantOrNull() === null)

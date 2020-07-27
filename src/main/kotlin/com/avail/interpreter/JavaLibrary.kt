@@ -60,7 +60,7 @@ typealias JavaList = java.util.List<*>
 /**
  * [CheckedMethod]s and [CheckedField]s for the Java class library.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 object JavaLibrary

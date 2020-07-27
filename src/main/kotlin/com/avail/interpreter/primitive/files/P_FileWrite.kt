@@ -253,9 +253,8 @@ object P_FileWrite : Primitive(6, CanInline, HasSideEffect)
 						// Invalidate *all* pages for this file to ensure
 						// subsequent I/O has a proper opportunity to
 						// re-encounter problems like read faults and whatnot.
-						for (key in ArrayList(handle.bufferKeys.keys))
-						{
-							ioSystem.discardBuffer(key)
+						handle.bufferKeys.keys.toList().forEach {
+							ioSystem.discardBuffer(it)
 						}
 						runOutermostFunction(
 							runtime,
@@ -302,7 +301,7 @@ object P_FileWrite : Primitive(6, CanInline, HasSideEffect)
 					{
 						// Update the cached tuple.
 						assert(tuple.tupleSize() == alignment)
-						val parts = ArrayList<A_Tuple>(3)
+						val parts = mutableListOf<A_Tuple>()
 						if (offsetInBuffer > 1)
 						{
 							parts.add(

@@ -231,7 +231,7 @@ class ModuleNameResolver constructor(val moduleRoots: ModuleRoots)
 		}
 
 		// If the source directory is available, then search the file system.
-		val checkedPaths = ArrayList<ModuleName>()
+		val checkedPaths = mutableListOf<ModuleName>()
 		var repository: Repository? = null
 		var sourceFile: File? = null
 		if (sourceDirectory !== null)

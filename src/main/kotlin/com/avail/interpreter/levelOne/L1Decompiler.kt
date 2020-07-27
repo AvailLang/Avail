@@ -185,12 +185,12 @@ class L1Decompiler constructor(
 	 * The stack of expressions roughly corresponding to the subexpressions that
 	 * have been parsed but not yet integrated into their parent expressions.
 	 */
-	internal val expressionStack: MutableList<A_Phrase> = ArrayList()
+	internal val expressionStack = mutableListOf<A_Phrase>()
 
 	/**
 	 * The list of completely decompiled [ statements][PhraseDescriptor].
 	 */
-	internal val statements: MutableList<A_Phrase> = ArrayList()
+	internal val statements = mutableListOf<A_Phrase>()
 
 	/**
 	 * A flag to indicate that the last instruction was a push of the null
@@ -323,10 +323,8 @@ class L1Decompiler constructor(
 	 */
 	internal fun popExpressions(count: Int): List<A_Phrase>
 	{
-		val result = ArrayList<A_Phrase>(count)
-		(1 .. count).forEach { _ ->
-			result.add(0, popExpression())
-		}
+		val result = mutableListOf<A_Phrase>()
+		(1 .. count).forEach { _ -> result.add(0, popExpression()) }
 		return result
 	}
 

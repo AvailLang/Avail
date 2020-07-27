@@ -77,7 +77,6 @@ import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
-import java.util.ArrayList
 import java.util.Collections
 import java.util.logging.Level
 
@@ -310,7 +309,7 @@ object L2_LOOKUP_BY_VALUES : L2ControlFlowOperation(
 				interpreter.debugModeString,
 				bundle.message().atomName())
 		}
-		val valuesList: MutableList<AvailObject> = ArrayList(values.size)
+		val valuesList = mutableListOf<AvailObject>()
 		Collections.addAll(valuesList, *values)
 		val method: A_Method = bundle.bundleMethod()
 		val before = AvailRuntimeSupport.captureNanos()

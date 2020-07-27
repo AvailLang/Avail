@@ -38,7 +38,6 @@ import com.avail.utility.PrefixSharingList.Companion.withoutLast
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.RepeatedTest
 import org.junit.jupiter.api.RepetitionInfo
-import java.util.ArrayList
 import java.util.Random
 
 /**
@@ -105,14 +104,14 @@ class PrefixSharingListTest
 		val list2 = randomlyAssemble(count)
 		assert(list2.size == count)
 		Assertions.assertEquals(list1, list2)
-		Assertions.assertEquals(ArrayList(list1), list2)
-		Assertions.assertEquals(list1, ArrayList(list2))
+		Assertions.assertEquals(list1.toList(), list2)
+		Assertions.assertEquals(list1, list2.toList())
 		// Check iterator().
-		val list3: MutableList<Int> = ArrayList()
+		val list3 = mutableListOf<Int>()
 		list2.iterator().forEachRemaining { e -> list3.add(e) }
 		Assertions.assertEquals(list1, list3)
 		// Check listIterator().
-		val list4: MutableList<Int> = ArrayList()
+		val list4 = mutableListOf<Int>()
 		list2.listIterator().forEachRemaining { e -> list4.add(e) }
 		Assertions.assertEquals(list1, list4)
 		// Check indexOf(), lastIndexOf(), and last().

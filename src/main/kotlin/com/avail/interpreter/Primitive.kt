@@ -941,7 +941,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	     */
 		init
 		{
-			val byNumbers = ArrayList<PrimitiveHolder>()
+			val byNumbers = mutableListOf<PrimitiveHolder>()
 			// Entry zero is reserved for not-a-primitive.
 			byNumbers.add(NullPrimitiveHolder)
 			var counter = 1

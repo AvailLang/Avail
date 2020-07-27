@@ -1202,15 +1202,8 @@ abstract class TupleDescriptor protected constructor(
 		 *   The Java type of the elements.
 		 */
 		@JvmStatic
-		fun <X : A_BasicObject?> toList(tuple: A_Tuple): MutableList<X>
-		{
-			val list: MutableList<X> = ArrayList(tuple.tupleSize())
-			for (element in tuple)
-			{
-				list.add(element as X)
-			}
-			return list
-		}
+		fun <X : A_BasicObject?> toList(tuple: A_Tuple): MutableList<X> =
+			tuple.toMutableList() as MutableList<X>
 
 		/**
 		 * Construct an [array][AvailObject] from the specified [A_Tuple]. The

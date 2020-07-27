@@ -53,8 +53,7 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.StandardOpenOption
 import java.nio.file.attribute.BasicFileAttributes
-import java.util.*
-import kotlin.collections.HashMap
+import java.util.EnumSet
 import kotlin.collections.set
 
 /**
@@ -254,56 +253,6 @@ class StacksGenerator @Throws(IllegalArgumentException::class) constructor(
 		 * documentation and data files.
 		 */
 		val defaultDocumentationPath: Path = Paths.get("resources/stacks")
-
-		/**
-		 * Given a template file path, create a new file with the provided new
-		 * file path and replace given template place holders with replacement
-		 * content.
-		 *
-		 * @param templateFilePath
-		 *   The [path][Path] to the template file.
-		 * @param newFilePath
-		 *   The [path][Path] to the new file.
-		 * @param replacementPairs
-		 *   The [pairs][Pair] of <template text, replacement text> </template>
-		 */
-		fun createFileFromTemplate(
-			templateFilePath: Path,
-			newFilePath: Path,
-			replacementPairs: ArrayList<Pair<String, String>>)
-		{
-			try
-			{
-				val newFile = FileChannel.open(
-					newFilePath,
-					EnumSet.of(
-						StandardOpenOption.CREATE,
-						StandardOpenOption.WRITE,
-						StandardOpenOption.TRUNCATE_EXISTING))
-				try
-				{
-					var newFileContent = getOuterTemplate(templateFilePath)
-					for (pair in replacementPairs)
-					{
-						newFileContent =
-							newFileContent.replace(pair.first, pair.second)
-					}
-					newFile.write(
-						ByteBuffer.wrap(newFileContent.toByteArray(UTF_8)))
-				}
-				catch (e: IOException)
-				{
-					e.printStackTrace()
-				}
-
-				IO.close(newFile)
-			}
-			catch (e: IOException)
-			{
-				e.printStackTrace()
-			}
-
-		}
 
 		/**
 		 * Obtain a template file and return a string of that template.

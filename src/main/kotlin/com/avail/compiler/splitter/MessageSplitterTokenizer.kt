@@ -47,7 +47,6 @@ import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.exceptions.AvailErrorCode.E_EXPECTED_OPERATOR_AFTER_BACKQUOTE
 import com.avail.exceptions.AvailErrorCode.E_METHOD_NAME_IS_NOT_CANONICAL
 import com.avail.exceptions.MalformedMessageException
-import java.util.*
 
 /**
  * `MessageSplitterTokenizer` breaks a message name into a sequence of token
@@ -90,13 +89,13 @@ class MessageSplitterTokenizer
 	 *
 	 * @see .messagePartsTuple
 	 */
-	val messagePartsList: MutableList<A_String> = ArrayList(10)
+	val messagePartsList = mutableListOf<A_String>()
 
 	/**
 	 * A collection of one-based positions in the original string, corresponding
 	 * to the [messagePartsList] that have been extracted.
 	 */
-	val messagePartPositions: MutableList<Int> = ArrayList(10)
+	val messagePartPositions = mutableListOf<Int>()
 
 	init
 	{

@@ -756,9 +756,7 @@ class Repository constructor(
 		 * versions that forced this module to be recompiled.
 		 */
 		val allCompilations: List<ModuleCompilation>
-			get() = lock.withLock {
-				unmodifiableList(ArrayList(compilations.values))
-			}
+			get() = lock.withLock { compilations.values.toList() }
 
 		/**
 		 * Look up the [ModuleCompilation] associated with the provided
@@ -878,13 +876,13 @@ class Repository constructor(
 		{
 			moduleSize = binaryStream.readLong()
 			var localImportCount = binaryStream.readInt()
-			localImportNames = ArrayList(localImportCount)
+			localImportNames = mutableListOf()
 			while (localImportCount-- > 0)
 			{
 				localImportNames.add(binaryStream.readUTF())
 			}
 			var entryPointCount = binaryStream.readInt()
-			entryPoints = ArrayList(entryPointCount)
+			entryPoints = mutableListOf()
 			while (entryPointCount-- > 0)
 			{
 				entryPoints.add(binaryStream.readUTF())
@@ -915,8 +913,8 @@ class Repository constructor(
 			entryPoints: List<String>)
 		{
 			this.moduleSize = moduleSize
-			this.localImportNames = ArrayList(localImportNames)
-			this.entryPoints = ArrayList(entryPoints)
+			this.localImportNames = localImportNames.toMutableList()
+			this.entryPoints = entryPoints.toMutableList()
 		}
 	}
 

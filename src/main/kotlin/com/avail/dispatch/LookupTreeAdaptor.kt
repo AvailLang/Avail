@@ -37,7 +37,6 @@ import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
-import java.util.*
 import kotlin.streams.toList
 
 /**
@@ -148,8 +147,8 @@ abstract class LookupTreeAdaptor<
 	{
 		// Do all type testing intersected with the known type bounds.
 		val bound = extractBoundingType(knownArgumentRestrictions)
-		val prequalified = ArrayList<Element>(1)
-		val undecided = ArrayList<Element>(allElements.size)
+		val prequalified = mutableListOf<Element>()
+		val undecided = mutableListOf<Element>()
 		for (element in allElements)
 		{
 			val signatureType = restrictedSignature(element, bound)
@@ -256,7 +255,7 @@ abstract class LookupTreeAdaptor<
 				return LeafLookupTree(constructResult(positive, memento))
 			}
 			val size = positive.size
-			val mostSpecific = ArrayList<Element>(1)
+			val mostSpecific = mutableListOf<Element>()
 			outer@ for (outer in 0 until size)
 			{
 				// Use the actual signatures for dominance checking, since using

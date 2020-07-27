@@ -62,9 +62,7 @@ import com.avail.utility.evaluation.SimpleDescriber
 import java.io.PrintWriter
 import java.io.StringWriter
 import java.lang.String.format
-import java.util.*
 import java.util.Collections.singletonList
-import java.util.Collections.unmodifiableList
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.Function
@@ -128,7 +126,7 @@ class LexingState constructor(
 	 * waiting actions.  Newer actions are launched upon arrival after the
 	 * tokens have been computed.
 	 */
-	private var actions: MutableList<(List<A_Token>)->Unit>? = ArrayList()
+	private var actions: MutableList<(List<A_Token>)->Unit>? = mutableListOf()
 
 	/**
 	 * Eventually invoke the given functions, each with the given argument.
@@ -218,7 +216,7 @@ class LexingState constructor(
 		}
 		// This was the first action, so launch the lexers to produce the list
 		// of nextTokens and then run the queued actions.
-		nextTokens = ArrayList(2)
+		nextTokens = mutableListOf()
 		val nextTokens = nextTokens!!
 		val source = compilationContext.source
 		if (position > source.tupleSize())
@@ -528,13 +526,7 @@ class LexingState constructor(
 	 */
 	val knownToBeComputedTokensOrNull: List<A_Token>?
 		@Synchronized
-		get()
-		{
-			return if (nextTokens === null)
-				null
-			else
-				unmodifiableList(ArrayList(nextTokens!!))
-		}
+		get () = nextTokens?.toList()
 
 	/**
 	 * Record an expectation at the current parse position. The expectations

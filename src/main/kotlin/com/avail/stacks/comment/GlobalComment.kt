@@ -46,15 +46,14 @@ import com.avail.stacks.tags.StacksCategoryTag
 import com.avail.stacks.tags.StacksGlobalTag
 import com.avail.stacks.tags.StacksSeeTag
 import com.avail.utility.json.JSONWriter
-import java.util.*
 
 /**
  * A module global variable comment
  *
- * @author Richard Arriaga &lt;rich@availlang.org&gt;
- *
  * @property globalTag
  *   A global module variable comment tag
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ *
  * @constructor
  * Construct a new [GlobalComment].
  *
@@ -66,47 +65,45 @@ import java.util.*
  * @param author
  *   The [author][StacksAuthorTag] of the implementation.
  * @param sees
- *   A [ArrayList] of any [&quot;@sees&quot;][StacksSeeTag] references.
+ *   A list of any [&quot;@sees&quot;][StacksSeeTag] references.
  * @param description
- *   The overall description of the implementation
+ *   The overall description of the implementation.
  * @param categories
- *   The categories the implementation appears in
+ *   The categories the implementation appears in.
  * @param aliases
- *   The aliases the implementation
+ *   The aliases the implementation.
  * @param globalTag
- *   A global module variable comment tag
+ *   A global module variable comment tag.
  */
 class GlobalComment constructor (
-		signature: CommentSignature,
-		commentStartLine: Int,
-		author: ArrayList<StacksAuthorTag>,
-		sees: ArrayList<StacksSeeTag>,
-		description: StacksDescription,
-		categories: ArrayList<StacksCategoryTag>,
-		aliases: ArrayList<StacksAliasTag>,
-		val globalTag: StacksGlobalTag)
-	: AvailComment(
-		signature,
-		commentStartLine,
-		author,
-		sees,
-		description,
-		categories,
-		aliases,
-		false)
+	signature: CommentSignature,
+	commentStartLine: Int,
+	author: List<StacksAuthorTag>,
+	sees: List<StacksSeeTag>,
+	description: StacksDescription,
+	categories: List<StacksCategoryTag>,
+	aliases: List<StacksAliasTag>,
+	private val globalTag: StacksGlobalTag)
+: AvailComment(
+	signature,
+	commentStartLine,
+	author,
+	sees,
+	description,
+	categories,
+	aliases,
+	false)
 {
-
-	override fun addToImplementationGroup(
-		commentGroup: CommentGroup)
+	override fun addToImplementationGroup (commentGroup: CommentGroup)
 	{
 		commentGroup.global(this)
 	}
 
-	//Do nothing as globals will never be defined outside of its module.
+	// Do nothing as globals will never be defined outside of its module.
 	override fun addImplementationToImportModule(
 		name: A_String, importModule: StacksImportModule) = Unit
 
-	//DO NOTHING AS GLOBALS AREN'T WRITTEN TO DOCUMENTATION
+	// DO NOTHING AS GLOBALS AREN'T WRITTEN TO DOCUMENTATION
 	override fun toJSON(
 		linkingFileMap: LinkingFileMap,
 		nameOfGroup: String,

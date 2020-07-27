@@ -146,7 +146,7 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 		indent: Int)
 	{
 		builder.append('[')
-		val list: MutableList<A_BasicObject?> = ArrayList()
+		val list = mutableListOf<A_BasicObject?>()
 		val tupleType = self.argsTupleType()
 		if (tupleType.isBottom)
 		{
@@ -510,7 +510,7 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 		{
 			val objectCount = objects.size
 			var anyBreaks = false
-			val tempStrings: MutableList<String> = ArrayList(objectCount)
+			val tempStrings = mutableListOf<String>()
 			for (elem in objects)
 			{
 				val str = elem?.toString() ?: "…"

@@ -189,6 +189,7 @@ import com.avail.io.TextInterface.Companion.system
 import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
+import com.avail.utility.safeWrite
 import com.avail.utility.StackPrinter.Companion.trace
 import com.avail.utility.evaluation.OnceSupplier
 import com.avail.utility.structures.EnumMap.Companion.enumMap
@@ -546,7 +547,7 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 	 */
 	@ThreadSafe
 	fun setTextInterface(textInterface: TextInterface) =
-		runtimeLock.write {
+		runtimeLock.safeWrite {
 			this.textInterface = textInterface
 			textInterfacePojo = identityPojo(textInterface)
 		}
@@ -1268,7 +1269,7 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 	@ThreadSafe
 	fun addModule(module: A_Module)
 	{
-		modules = runtimeLock.write {
+		modules = runtimeLock.safeWrite {
 			assert(!includesModuleNamed(module.moduleName()))
 			// Ensure that the module is closed before installing it globally.
 			module.closeModule()
@@ -1286,7 +1287,7 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 	 */
 	fun unlinkModule(module: A_Module)
 	{
-		modules = runtimeLock.write {
+		modules = runtimeLock.safeWrite {
 			assert(includesModuleNamed(module.moduleName()))
 			modules.mapWithoutKeyCanDestroy(
 				module.moduleName(), true)
@@ -1377,7 +1378,7 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 	 */
 	fun addSemanticRestriction(restriction: A_SemanticRestriction)
 	{
-		runtimeLock.write {
+		runtimeLock.safeWrite {
 			val method = restriction.definitionMethod()
 			method.addSemanticRestriction(restriction)
 		}
@@ -1393,7 +1394,7 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 	 */
 	fun removeTypeRestriction(restriction: A_SemanticRestriction)
 	{
-		runtimeLock.write {
+		runtimeLock.safeWrite {
 			val method = restriction.definitionMethod()
 			method.removeSemanticRestriction(restriction)
 		}
@@ -1409,7 +1410,7 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 	 */
 	fun removeGrammaticalRestriction(restriction: A_GrammaticalRestriction)
 	{
-		runtimeLock.write {
+		runtimeLock.safeWrite {
 			val bundle = restriction.restrictedBundle()
 			bundle.removeGrammaticalRestriction(restriction)
 		}
@@ -1430,7 +1431,7 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 	{
 		assert(methodName.isAtom)
 		assert(sealSignature.isTuple)
-		runtimeLock.write {
+		runtimeLock.safeWrite {
 			val bundle: A_Bundle = methodName.bundleOrCreate()
 			val method: A_Method = bundle.bundleMethod()
 			assert(method.numArgs() == sealSignature.tupleSize())
@@ -1452,7 +1453,7 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 	@Throws(MalformedMessageException::class)
 	fun removeSeal(methodName: A_Atom, sealSignature: A_Tuple)
 	{
-		runtimeLock.write {
+		runtimeLock.safeWrite {
 			val bundle: A_Bundle = methodName.bundleOrCreate()
 			val method: A_Method = bundle.bundleMethod()
 			method.removeSealedArgumentsType(sealSignature)

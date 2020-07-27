@@ -368,8 +368,7 @@ class CommentGroup
 			if (grammaticalRestrictions.isNotEmpty())
 			{
 				val listSize = grammaticalRestrictions.size
-				val restrictions = ArrayList(
-					grammaticalRestrictions.values)
+				val restrictions = grammaticalRestrictions.values.toList()
 				if (listSize > 1)
 				{
 					for (i in 1 until listSize)
@@ -379,8 +378,8 @@ class CommentGroup
 								restrictions[i])
 					}
 				}
-				restrictions[0]
-					.toJSON(linkingFileMap, nameOfGroup, errorLog, jsonWriter)
+				restrictions[0].toJSON(
+					linkingFileMap, nameOfGroup, errorLog, jsonWriter)
 
 			}
 			jsonWriter.write("definitions")
@@ -419,8 +418,7 @@ class CommentGroup
 			if (grammaticalRestrictions.isNotEmpty())
 			{
 				val listSize = grammaticalRestrictions.size
-				val restrictions = ArrayList(
-					grammaticalRestrictions.values)
+				val restrictions = grammaticalRestrictions.values.toList()
 				if (listSize > 1)
 				{
 					for (i in 1 until listSize)
@@ -430,8 +428,8 @@ class CommentGroup
 								restrictions[i])
 					}
 				}
-				restrictions[0]
-					.toJSON(linkingFileMap, nameOfGroup, errorLog, jsonWriter)
+				restrictions[0].toJSON(
+					linkingFileMap, nameOfGroup, errorLog, jsonWriter)
 			}
 			jsonWriter.write("definitions")
 			jsonWriter.startArray()

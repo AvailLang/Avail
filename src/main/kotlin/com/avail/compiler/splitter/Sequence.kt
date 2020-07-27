@@ -288,8 +288,8 @@ internal class Sequence constructor(positionInName: Int)
 		{
 			return cached
 		}
-		val result = ArrayList<List<Pair<Expression, Int>>>()
-		val currentRun = ArrayList<Pair<Expression, Int>>()
+		val result = mutableListOf<List<Pair<Expression, Int>>>()
+		val currentRun = mutableListOf<Pair<Expression, Int>>()
 		var typeIndex = 0
 		for (expression in expressions)
 		{
@@ -298,7 +298,7 @@ internal class Sequence constructor(positionInName: Int)
 			{
 				if (currentRun.isNotEmpty())
 				{
-					result.add(ArrayList(currentRun))
+					result.add(currentRun.toList())
 					currentRun.clear()
 				}
 				result.add(
@@ -315,7 +315,7 @@ internal class Sequence constructor(positionInName: Int)
 						if (expression.yieldsValue) ++typeIndex else 0))
 				if (expression !is Optional)
 				{
-					result.add(ArrayList(currentRun))
+					result.add(currentRun.toList())
 					currentRun.clear()
 				}
 			}
@@ -569,8 +569,7 @@ internal class Sequence constructor(positionInName: Int)
 			.map { it.explicitOrdinal }
 			.toList()
 		val size = usedOrdinalsList.size
-		val sortedOrdinalsList = ArrayList(usedOrdinalsList)
-		sortedOrdinalsList.sort()
+		val sortedOrdinalsList = usedOrdinalsList.sorted()
 		val usedOrdinalsSet = HashSet(usedOrdinalsList)
 		if (usedOrdinalsSet.size < usedOrdinalsList.size
 			|| sortedOrdinalsList[0] != 1

@@ -79,7 +79,6 @@ import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
-import java.util.ArrayList
 import java.util.Collections
 import java.util.logging.Level
 
@@ -212,17 +211,12 @@ object L2_LOOKUP_BY_TYPES : L2ControlFlowOperation(
 			}.toList()
 		// Figure out what could be invoked at runtime given these argument
 		// type constraints.
-		val possibleFunctions: MutableList<A_Function> = ArrayList()
 		val possibleDefinitions: List<A_Definition> =
 			bundleOperand.bundle.bundleMethod().definitionsAtOrBelow(
 			argRestrictions)
-		for (definition in possibleDefinitions)
-		{
-			if (definition.isMethodDefinition())
-			{
-				possibleFunctions.add(definition.bodyBlock())
-			}
-		}
+		val possibleFunctions = possibleDefinitions
+			.filter { it.isMethodDefinition() }
+			.map { it.bodyBlock() }
 		if (possibleFunctions.size == 1)
 		{
 			// Only one function could be looked up (it's monomorphic for
@@ -326,7 +320,7 @@ object L2_LOOKUP_BY_TYPES : L2ControlFlowOperation(
 				interpreter.debugModeString,
 				bundle.message().atomName())
 		}
-		val typesList: MutableList<AvailObject> = ArrayList(types.size)
+		val typesList = mutableListOf<AvailObject>()
 		Collections.addAll(typesList, *types)
 		val method: A_Method = bundle.bundleMethod()
 		val before = AvailRuntimeSupport.captureNanos()

@@ -143,7 +143,7 @@ class ServerInputChannel constructor(
 	@Throws(IOException::class)
 	override fun reset()
 	{
-		val ready = ArrayList<Waiter>()
+		val ready: MutableList<Waiter>
 		synchronized(this) {
 			val buffer = markBuffer ?: throw IOException()
 			// Discard the mark.
@@ -158,6 +158,7 @@ class ServerInputChannel constructor(
 			}
 			assert(messages.isEmpty())
 			assert(position == 0)
+			ready = mutableListOf()
 			val content = buffer.toString()
 			val contentLength = content.length
 			while (position != contentLength && !waiters.isEmpty())
@@ -291,7 +292,7 @@ class ServerInputChannel constructor(
 			// Otherwise, attempt to feed the message into any waiters.
 			assert(messages.isEmpty())
 			assert(position == 0)
-			ready = ArrayList()
+			ready = mutableListOf()
 			val content = message.stringContent
 			val contentLength = content.length
 			while (position != contentLength && !waiters.isEmpty())

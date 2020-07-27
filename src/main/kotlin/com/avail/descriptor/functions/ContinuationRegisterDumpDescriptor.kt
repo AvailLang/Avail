@@ -114,21 +114,22 @@ class ContinuationRegisterDumpDescriptor private constructor(
 		@ReferencedInGeneratedCode
 		fun createRegisterDump(
 			objects: Array<AvailObject>,
-			longs: LongArray): AvailObject =
-				if (objects.isEmpty() && longs.isEmpty())
-				{
-					nil
+			longs: LongArray
+		): AvailObject =
+			if (objects.isEmpty() && longs.isEmpty())
+			{
+				nil
+			}
+			else
+			{
+				newObjectIndexedIntegerIndexedDescriptor(
+					objects.size, longs.size, mutable
+				).apply {
+					setSlotsFromArray(
+						OBJECT_SLOTS_, 1, objects, 0, objects.size)
+					setSlotsFromArray(INTEGER_SLOTS_, 1, longs, 0, longs.size)
 				}
-				else
-				{
-					newObjectIndexedIntegerIndexedDescriptor(
-						objects.size, longs.size, mutable).apply{
-						setSlotsFromArray(
-							OBJECT_SLOTS_, 1, objects, 0, objects.size)
-						setSlotsFromArray(
-							INTEGER_SLOTS_, 1, longs, 0, longs.size)
-					}
-				}
+			}
 
 		/** Access the method [createRegisterDump]. */
 		@JvmField

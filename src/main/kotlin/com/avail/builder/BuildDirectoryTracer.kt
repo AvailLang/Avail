@@ -46,8 +46,7 @@ import java.nio.file.FileVisitor
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.attribute.BasicFileAttributes
-import java.util.*
-import java.util.Collections.sort
+import java.util.HashSet
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.logging.Level
 import javax.annotation.concurrent.GuardedBy
@@ -278,17 +277,16 @@ internal class BuildDirectoryTracer constructor(
 					outstanding.removeAll(traceCompletions)
 					if (outstanding.isNotEmpty())
 					{
-						val sorted = ArrayList(outstanding)
-						sort(sorted)
-						val builder = StringBuilder()
-						builder.append("Still tracing files:\n")
-						for (path in sorted)
-						{
-							builder.append('\t')
-							builder.append(path)
-							builder.append('\n')
-						}
-						System.err.print(builder)
+						val sorted = outstanding.sorted()
+						System.err.print(buildString {
+							append("Still tracing files:\n")
+							for (path in sorted)
+							{
+								append('\t')
+								append(path)
+								append('\n')
+							}
+						})
 					}
 				}
 				nextReportMillis = System.currentTimeMillis() + period

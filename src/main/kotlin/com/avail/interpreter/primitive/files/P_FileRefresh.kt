@@ -53,7 +53,6 @@ import com.avail.interpreter.Primitive.Flag.HasSideEffect
 import com.avail.interpreter.execution.Interpreter
 import com.avail.io.IOSystem.FileHandle
 import java.nio.channels.AsynchronousFileChannel
-import java.util.*
 
 /**
  * **Primitive:** Force all system buffers associated with the
@@ -82,9 +81,8 @@ object P_FileRefresh : Primitive(1, CanInline, HasSideEffect)
 			return interpreter.primitiveFailure(E_NOT_OPEN_FOR_READ)
 		}
 		val runtime = currentRuntime()
-		for (key in ArrayList(handle.bufferKeys.keys))
-		{
-			runtime.ioSystem().discardBuffer(key)
+		handle.bufferKeys.keys.toList().forEach {
+			runtime.ioSystem().discardBuffer(it)
 		}
 		return interpreter.primitiveSuccess(nil)
 	}

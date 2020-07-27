@@ -80,7 +80,6 @@ import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 import java.lang.reflect.TypeVariable
 import java.math.BigInteger
-import java.util.ArrayList
 import java.util.HashMap
 import java.util.HashSet
 import java.util.IdentityHashMap
@@ -613,7 +612,7 @@ abstract class PojoTypeDescriptor protected constructor(
 					}
 				val limit = params.tupleSize()
 				assert(limit == otherParams.tupleSize())
-				val intersectionParams: MutableList<A_Type> = ArrayList(limit)
+				val intersectionParams = mutableListOf<A_Type>()
 				for (i in 1 .. limit)
 				{
 					val x: A_Type = params.tupleAt(i)
@@ -667,7 +666,7 @@ abstract class PojoTypeDescriptor protected constructor(
 				val otherParams: A_Tuple = otherAncestors.mapAt(javaClass)
 				val limit = params.tupleSize()
 				assert(limit == otherParams.tupleSize())
-				val unionParams: MutableList<A_Type> = ArrayList(limit)
+				val unionParams = mutableListOf<A_Type>()
 				for (i in 1 .. limit)
 				{
 					val x: A_Type = params.tupleAt(i)
@@ -993,8 +992,7 @@ abstract class PojoTypeDescriptor protected constructor(
 			if (type is ParameterizedType)
 			{
 				val unresolved = type.actualTypeArguments
-				val resolved: MutableList<A_Type> = ArrayList(
-					unresolved.size)
+				val resolved = mutableListOf<A_Type>()
 				for (anUnresolved in unresolved)
 				{
 					resolved.add(resolvePojoType(anUnresolved, typeVars))
@@ -1074,7 +1072,7 @@ abstract class PojoTypeDescriptor protected constructor(
 			canon: Canon): A_Tuple
 		{
 			val args = target.actualTypeArguments
-			val propagation: MutableList<A_Type> = ArrayList(2)
+			val propagation = mutableListOf<A_Type>()
 			for (arg in args)
 			{
 				// class Target<...> extends Supertype<Arg> { ... }

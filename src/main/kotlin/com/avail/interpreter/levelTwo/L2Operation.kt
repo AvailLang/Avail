@@ -63,16 +63,15 @@ import com.avail.performance.StatisticReport
 import com.avail.utility.Strings.increaseIndentation
 import com.avail.utility.cast
 import org.objectweb.asm.MethodVisitor
-import java.util.ArrayList
 
 /**
  * The instruction set for the
- * [Level&#32;Two&#32;Avail&#32;interpreter][Interpreter].
- * Avail programs can only see as far down as the level one nybblecode
- * representation.  Level two translations are invisibly created as necessary to
- * boost performance of frequently executed code.  Technically level two is an
- * optional part of an Avail implementation, but modern hardware has enough
- * memory that this should really always be present.
+ * [Level&#32;Two&#32;Avail&#32;interpreter][Interpreter]. Avail programs can
+ * only see as far down as the level one nybblecode representation.  Level two
+ * translations are invisibly created as necessary to boost performance of
+ * frequently executed code.  Technically level two is an optional part of an
+ * Avail implementation, but modern hardware has enough memory that this should
+ * really always be present.
  *
  * @constructor
  *   Protect the constructor so the subclasses can maintain a fly-weight pattern
@@ -424,7 +423,7 @@ protected constructor(
 	open fun instructionWasAdded(
 		instruction: L2Instruction, manifest: L2ValueManifest)
 	{
-		val edgeIndexOrder: MutableList<Int> = ArrayList()
+		val edgeIndexOrder = mutableListOf<Int>()
 		val operands = instruction.operands()
 		for (i in operands.indices)
 		{

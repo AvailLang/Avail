@@ -45,7 +45,6 @@ import com.avail.serialization.SerializerOperation
 import com.avail.utility.cast
 import java.lang.reflect.Constructor
 import java.lang.reflect.Method
-import java.util.ArrayList
 import java.util.IdentityHashMap
 import java.util.WeakHashMap
 
@@ -192,17 +191,13 @@ open class RawPojoDescriptor protected constructor(
 	 */
 	override fun o_DescribeForDebugger(
 		self: AvailObject
-	): Array<AvailObjectFieldHelper>
-	{
-		val fields: MutableList<AvailObjectFieldHelper> = ArrayList()
-		fields.add(
+	): Array<AvailObjectFieldHelper> =
+		arrayOf(
 			AvailObjectFieldHelper(
 				self,
 				FakeSlots.JAVA_OBJECT,
 				-1,
 				javaObject))
-		return fields.toTypedArray()
-	}
 
 	@Deprecated(
 		"Not applicable to pojos",

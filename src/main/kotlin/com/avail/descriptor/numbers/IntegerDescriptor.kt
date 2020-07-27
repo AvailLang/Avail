@@ -56,6 +56,7 @@ import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.serialization.SerializerOperation
+import com.avail.utility.safeWrite
 import com.avail.utility.json.JSONWriter
 import java.lang.Double.isInfinite
 import java.lang.Math.getExponent
@@ -1860,7 +1861,7 @@ class IntegerDescriptor private constructor(
 				}
 			}
 			// Otherwise, hold the write-lock and try again.
-			squaresOfQuintillionLock.write {
+			squaresOfQuintillionLock.safeWrite {
 				// Note that the list may have changed between releasing the
 				// read-lock and acquiring the write-lock.  The for-loop should
 				// accommodate that situation.

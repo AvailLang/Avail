@@ -70,13 +70,9 @@ class ExamineCompilationAction constructor (
 				workbench.selectedModule()!!
 			moduleName.repository.use { repository ->
 				repository.reopenIfNecessary()
-				val compilations = ArrayList<ModuleCompilation>()
-				val archive =
-					repository.getArchive(moduleName.rootRelativeName)
-				for ((_, version) in archive.allKnownVersions)
-				{
-					// final ModuleVersionKey versionKey = entry.getKey();
-					compilations.addAll(version.allCompilations)
+				val archive = repository.getArchive(moduleName.rootRelativeName)
+				val compilations = archive.allKnownVersions.flatMap {
+					it.value.allCompilations
 				}
 				val compilationsArray =
 					compilations.toTypedArray()
@@ -89,9 +85,13 @@ class ExamineCompilationAction constructor (
 						null,
 						compilationsArray,
 						if (compilationsArray.isNotEmpty())
-						{ compilationsArray[0] }
+						{
+							compilationsArray[0]
+						}
 						else
-						{ null }).cast<Any, ModuleCompilation?>()
+						{
+							null
+						}).cast<Any, ModuleCompilation?>()
 					?: return@execute // Nothing was selected, so abort the command silently.
 
 				val describer = RepositoryDescriber(repository)

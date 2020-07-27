@@ -37,7 +37,6 @@ import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import java.io.InputStream
-import java.util.*
 
 /**
  * A [Deserializer] takes a stream of bytes and reconstructs objects that
@@ -60,7 +59,7 @@ class Deserializer constructor(
 	runtime: AvailRuntime) : AbstractDeserializer(input, runtime)
 {
 	/** The objects that have been assembled so far. */
-	private val assembledObjects = ArrayList<AvailObject>(1000)
+	private val assembledObjects = mutableListOf<AvailObject>()
 
 	/** The most recent object produced by deserialization. */
 	private var producedObject: AvailObject? = null

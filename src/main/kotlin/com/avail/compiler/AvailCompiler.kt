@@ -188,7 +188,6 @@ import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
-import com.avail.descriptor.tuples.StringDescriptor
 import com.avail.descriptor.tuples.StringDescriptor.Companion.formatString
 import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.tuples.TupleDescriptor
@@ -236,7 +235,6 @@ import com.avail.io.TextInterface
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport.RUNNING_PARSING_INSTRUCTIONS
 import com.avail.persistence.Repository
-import com.avail.utility.Locks.lockWhile
 import com.avail.utility.Mutable
 import com.avail.utility.PrefixSharingList
 import com.avail.utility.PrefixSharingList.Companion.append
@@ -245,6 +243,7 @@ import com.avail.utility.StackPrinter.Companion.trace
 import com.avail.utility.Strings.increaseIndentation
 import com.avail.utility.evaluation.Describer
 import com.avail.utility.evaluation.FormattingDescriber
+import com.avail.utility.safeWrite
 import java.io.IOException
 import java.lang.String.format
 import java.nio.ByteBuffer
@@ -253,7 +252,11 @@ import java.nio.channels.AsynchronousFileChannel
 import java.nio.charset.CodingErrorAction
 import java.nio.charset.StandardCharsets
 import java.nio.file.StandardOpenOption
-import java.util.*
+import java.util.Arrays
+import java.util.EnumSet
+import java.util.Formatter
+import java.util.HashMap
+import java.util.HashSet
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -468,7 +471,7 @@ class AvailCompiler(
 		start: ParserState,
 		acceptAnswer: (ParserState, A_Phrase)->Unit)
 	{
-		val solutions = ArrayList<CompilerSolution>(1)
+		val solutions = mutableListOf<CompilerSolution>()
 
 		// Set up an action to perform when the last work unit for this compiler
 		// has completed.  That's the moment when we can check how many
@@ -834,7 +837,7 @@ class AvailCompiler(
 			expression,
 			{ phrase, _, _ -> phrase },
 			nil,
-			ArrayList(),
+			mutableListOf(),
 			declarationRemap)
 
 		val phraseFailure = { e: Throwable ->
@@ -1066,110 +1069,103 @@ class AvailCompiler(
 		excludedStrings: Set<A_String>)
 	{
 		where.expected(MEDIUM) { withString ->
-			val builder = StringBuilder(200)
-			if (caseInsensitive)
-			{
-				builder.append(
-					"one of the following case-insensitive tokens:")
-			}
-			else
-			{
-				builder.append("one of the following tokens:")
-			}
-			val sorted = ArrayList<String>(incomplete.mapSize())
-			val detail = incomplete.mapSize() < 10
-			for (entry in incomplete.mapIterable())
-			{
-				val availTokenString = entry.key()
-				if (!excludedStrings.contains(availTokenString))
+			val builder = buildString {
+				if (caseInsensitive)
 				{
-					if (!detail)
-					{
-						sorted.add(availTokenString.asNativeString())
-						continue
-					}
-					// Collect the plans-in-progress and deduplicate them by
-					// their string representation (including the indicator at
-					// the current parsing location). We can't just deduplicate
-					// by bundle, since the current bundle tree might be
-					// eligible for continued parsing at multiple positions.
-					val strings = HashSet<String>()
-					val nextTree = entry.value()
-					for (successorBundleEntry
-						in nextTree.allParsingPlansInProgress().mapIterable())
-					{
-						val bundle = successorBundleEntry.key()
-						for (definitionEntry
-							in successorBundleEntry.value().mapIterable())
-						{
-							for (inProgress in definitionEntry.value())
-							{
-								val previousPlan = newPlanInProgress(
-									inProgress.parsingPlan(),
-									max(inProgress.parsingPc() - 1, 1))
-								val issuingModule =
-									bundle.message().issuingModule()
-								val moduleName =
-									if (issuingModule.equalsNil())
-										"(built-in)"
-									else
-										issuingModule.moduleName()
-											.asNativeString()
-								val shortModuleName = moduleName.substring(
-									moduleName.lastIndexOf('/') + 1)
-								strings.add(
-									previousPlan.nameHighlightingPc()
-									+ " from "
-									+ shortModuleName)
-							}
-						}
-					}
-					val sortedStrings = ArrayList(strings)
-					sortedStrings.sort()
-					val buffer = StringBuilder()
-					buffer.append(availTokenString.asNativeString())
-					buffer.append("  (")
-					var first = true
-					for (progressString in sortedStrings)
-					{
-						if (!first)
-						{
-							buffer.append(", ")
-						}
-						buffer.append(progressString)
-						first = false
-					}
-					buffer.append(')')
-					sorted.add(buffer.toString())
-				}
-			}
-			sorted.sort()
-			var startOfLine = true
-			val leftColumn = 4 + 4 // ">>> " and a tab.
-			var column = leftColumn
-			for (s in sorted)
-			{
-				if (startOfLine)
-				{
-					builder.append("\n\t")
-					column = leftColumn
+					append("one of the following case-insensitive tokens:")
 				}
 				else
 				{
-					builder.append("  ")
-					column += 2
+					append("one of the following tokens:")
 				}
-				startOfLine = false
-				val lengthBefore = builder.length
-				builder.append(s)
-				column += builder.length - lengthBefore
-				if (detail || column + 2 + s.length > 80)
+				val sorted = mutableListOf<String>()
+				val detail = incomplete.mapSize() < 10
+				incomplete.forEach { availTokenString, nextTree ->
+					if (!excludedStrings.contains(availTokenString))
+					{
+						if (!detail)
+						{
+							sorted.add(availTokenString.asNativeString())
+							return@forEach
+						}
+						// Collect the plans-in-progress and deduplicate them by
+						// their string representation (including the indicator
+						// at the current parsing location). We can't just
+						// deduplicate by bundle, since the current bundle tree
+						// might be eligible for continued parsing at multiple
+						// positions.
+						val strings = mutableSetOf<String>()
+						nextTree.allParsingPlansInProgress().forEach {
+							bundle, definitions ->
+							definitions.forEach { _, plans ->
+								plans.forEach { inProgress ->
+									val previousPlan = newPlanInProgress(
+										inProgress.parsingPlan(),
+										max(inProgress.parsingPc() - 1, 1)
+									)
+									val issuingModule =
+										bundle.message().issuingModule()
+									val moduleName =
+										if (issuingModule.equalsNil())
+											"(built-in)"
+										else
+											issuingModule.moduleName()
+												.asNativeString()
+									val shortModuleName =
+										moduleName.substring(
+											moduleName.lastIndexOf('/') + 1)
+									strings.add(
+										previousPlan.nameHighlightingPc()
+											+ " from "
+											+ shortModuleName
+									)
+								}
+							}
+						}
+						val sortedStrings = strings.toList().sorted()
+						val buffer = buildString {
+							append(availTokenString.asNativeString())
+							append("  (")
+							var first = true
+							for (progressString in sortedStrings)
+							{
+								if (!first) append(", ")
+								append(progressString)
+								first = false
+							}
+							append(')')
+						}
+						sorted.add(buffer)
+					}
+				}
+				sorted.sort()
+				var startOfLine = true
+				val leftColumn = 4 + 4 // ">>> " and a tab.
+				var column = leftColumn
+				for (s in sorted)
 				{
-					startOfLine = true
+					if (startOfLine)
+					{
+						append("\n\t")
+						column = leftColumn
+					}
+					else
+					{
+						append("  ")
+						column += 2
+					}
+					startOfLine = false
+					val lengthBefore = length
+					append(s)
+					column += length - lengthBefore
+					if (detail || column + 2 + s.length > 80)
+					{
+						startOfLine = true
+					}
 				}
 			}
 			compilationContext.eventuallyDo(where.lexingState) {
-				withString(builder.toString())
+				withString(builder)
 			}
 		}
 	}
@@ -1780,7 +1776,7 @@ class AvailCompiler(
 				}
 			}
 		}
-		val typeList = ArrayList(typeSet)
+		val typeList = typeSet.toList()
 		// Generate the type names in parallel.
 		stringifyThen(
 			compilationContext.runtime,
@@ -1791,9 +1787,7 @@ class AvailCompiler(
 			val typeMap = (typeList zip typeNamesList).toMap()
 			// Stitch the type names back onto the plan strings, prior to
 			// sorting by type name.
-			val entries: ArrayList<Map.Entry<String, Set<A_Type>>> =
-				ArrayList(typesByPlanString.entries)
-			entries.sortedBy { it.key }
+			val entries = typesByPlanString.entries.sortedBy { it.key }
 			val string = buildString {
 				append("phrase to have a type other than ")
 				append(actualTypeString)
@@ -2113,7 +2107,7 @@ class AvailCompiler(
 				method.filterByTypes(argTypes)
 			else
 				listOf(macroOrNil)
-		val satisfyingDefinitions = ArrayList<A_Definition>()
+		val satisfyingDefinitions = mutableListOf<A_Definition>()
 		for (definition in filteredByTypes)
 		{
 			val definitionModule = definition.definitionModule()
@@ -2160,8 +2154,7 @@ class AvailCompiler(
 				macroOrNil.bodySignature().returnType().expressionType())
 		}
 		// Determine which semantic restrictions are relevant.
-		val restrictionsToTry =
-			ArrayList<A_SemanticRestriction>(restrictions.setSize())
+		val restrictionsToTry = mutableListOf<A_SemanticRestriction>()
 		for (restriction in restrictions)
 		{
 			val definitionModule = restriction.definitionModule()
@@ -2198,7 +2191,7 @@ class AvailCompiler(
 		}
 		val intersectAndDecrement = { restrictionType: AvailObject ->
 			assert(restrictionType.isType)
-			lockWhile(outstandingLock.writeLock()) {
+			outstandingLock.safeWrite {
 				if (failureCount.get() == 0)
 				{
 					intersection.value =
@@ -2297,17 +2290,12 @@ class AvailCompiler(
 					"macro"
 				else
 					"method"
-			val allVisible = ArrayList<A_Definition>()
-			for (def in definitionsTuple)
-			{
-				val definingModule = def.definitionModule()
-				if (definingModule.equalsNil()
-					|| allAncestorModules.hasElement(def.definitionModule()))
-				{
-					allVisible.add(def)
-				}
+			val allVisible: List<A_Definition> = definitionsTuple.filter {
+				val definingModule = it.definitionModule()
+				definingModule.equalsNil()
+					|| allAncestorModules.hasElement(definingModule)
 			}
-			val allFailedIndices = ArrayList<Int>(3)
+			val allFailedIndices = mutableListOf<Int>()
 			run {
 				var i = 1
 				val end = argTypes.size
@@ -2342,8 +2330,8 @@ class AvailCompiler(
 			// Don't stringify all the argument types, just the failed ones. And
 			// don't stringify the same value twice. Obviously side effects in
 			// stringifiers won't work right here…
-			val uniqueValues = ArrayList<A_BasicObject>()
-			val valuesToStringify = HashMap<A_BasicObject, Int>()
+			val uniqueValues = mutableListOf<A_BasicObject>()
+			val valuesToStringify = mutableMapOf<A_BasicObject, Int>()
 			for (i in allFailedIndices)
 			{
 				val argType = argTypes[i - 1]
@@ -2475,8 +2463,7 @@ class AvailCompiler(
 			// Only consider definitions that are defined in the current module
 			// or an ancestor.
 			val allAncestors = compilationContext.module.allAncestors()
-			val visibleDefinitions =
-				ArrayList<A_Definition>(macroDefinitionsTuple.tupleSize())
+			val visibleDefinitions = mutableListOf<A_Definition>()
 			for (definition in macroDefinitionsTuple)
 			{
 				val definitionModule = definition.definitionModule()
@@ -2503,14 +2490,13 @@ class AvailCompiler(
 			{
 				// Some of the macro definitions are not visible.  Search the
 				// hard (but hopefully infrequent) way.
-				val phraseRestrictions =
-					ArrayList<TypeRestriction>(method.numArgs())
+				val phraseRestrictions = mutableListOf<TypeRestriction>()
 				for (argPhrase in argumentsListNode.expressionsTuple())
 				{
 					phraseRestrictions.add(
 						restrictionForConstant(argPhrase, BOXED))
 				}
-				val filtered = ArrayList<A_Definition>()
+				val filtered = mutableListOf<A_Definition>()
 				for (macroDefinition in visibleDefinitions)
 				{
 					if (macroDefinition.bodySignature().couldEverBeInvokedWith(
@@ -2538,7 +2524,7 @@ class AvailCompiler(
 					{
 						// Find the most specific macro(s).
 						// assert filtered.size() > 1;
-						val mostSpecific = ArrayList<A_Definition>()
+						val mostSpecific = mutableListOf<A_Definition>()
 						for (candidate in filtered)
 						{
 							var isMostSpecific = true
@@ -2597,7 +2583,7 @@ class AvailCompiler(
 				{
 					// There are only macro definitions, but the arguments were
 					// not the right types.
-					val phraseTypes = ArrayList<A_Type>(method.numArgs())
+					val phraseTypes = mutableListOf<A_Type>()
 					for (argPhrase in argumentsListNode.expressionsTuple())
 					{
 						phraseTypes.add(instanceTypeOrMetaOn(argPhrase))
@@ -2628,7 +2614,7 @@ class AvailCompiler(
 		val argTupleType = argumentsListNode.superUnionType().typeUnion(
 			argumentsListNode.expressionType())
 		val argCount = argumentsListNode.expressionsSize()
-		val argTypes = ArrayList<A_Type>(argCount)
+		val argTypes = mutableListOf<A_Type>()
 		for (i in 1 .. argCount)
 		{
 			argTypes.add(argTupleType.typeAtIndex(i))
@@ -2858,11 +2844,9 @@ class AvailCompiler(
 						// A leading argument was supplied which used at least
 						// one local.  It shouldn't have.
 						afterArg.expected(WEAK) {
-							val localNames = ArrayList<String>()
-							for (usedLocal in usedLocals)
-							{
-								val name = usedLocal.token().string()
-								localNames.add(name.asNativeString())
+							val localNames = usedLocals.map {
+								val name = it.token().string()
+								name.asNativeString()
 							}
 							it(
 								"a leading argument which "
@@ -2932,10 +2916,9 @@ class AvailCompiler(
 		continuation: (ParserState, A_Phrase)->Unit)
 	{
 		val argumentsTuple = argumentsListNode.expressionsTuple()
-		val argCount = argumentsTuple.tupleSize()
 		// Strip off macro substitution wrappers from the arguments.  These were
 		// preserved only long enough to test grammatical restrictions.
-		val argumentsList = ArrayList<A_Phrase>(argCount)
+		val argumentsList = mutableListOf<A_Phrase>()
 		for (argument in argumentsTuple)
 		{
 			argumentsList.add(argument)
@@ -3212,7 +3195,7 @@ class AvailCompiler(
 			0,
 			availName)
 		val nameLiteral = literalNodeFromToken(token1)
-		val functionLiterals = ArrayList<A_Phrase>()
+		val functionLiterals = mutableListOf<A_Phrase>()
 		try
 		{
 			for (primitiveName in primitiveNames)
@@ -3504,7 +3487,7 @@ class AvailCompiler(
 
 			// In case the top level statement is compound, process the
 			// base statements individually.
-			val simpleStatements = ArrayList<A_Phrase>()
+			val simpleStatements = mutableListOf<A_Phrase>()
 			unambiguousStatement.statementsDo { simpleStatement ->
 				assert(
 					simpleStatement.phraseKindIsUnder(STATEMENT_PHRASE))
@@ -3672,7 +3655,7 @@ class AvailCompiler(
 			emptyTuple)
 		val start = ParserState(
 			LexingState(compilationContext, 1, 1, emptyList()), clientData)
-		val solutions = ArrayList<A_Phrase>()
+		val solutions = mutableListOf<A_Phrase>()
 		compilationContext.noMoreWorkUnits = noMoreWorkUnits@ {
 			// The counters must be read in this order for correctness.
 			assert(compilationContext.workUnitsCompleted == compilationContext.workUnitsQueued)
@@ -4601,9 +4584,9 @@ class AvailCompiler(
 					// deeper.
 					return
 				}
-				val parts1 = ArrayList<A_Phrase>()
+				val parts1 = mutableListOf<A_Phrase>()
 				phrase1.value.childrenDo { parts1.add(it) }
-				val parts2 = ArrayList<A_Phrase>()
+				val parts2 = mutableListOf<A_Phrase>()
 				phrase2.value.childrenDo { parts2.add(it) }
 				val isBlock = phrase1.value.phraseKindIsUnder(BLOCK_PHRASE)
 				if (parts1.size != parts2.size && !isBlock)
@@ -4611,7 +4594,7 @@ class AvailCompiler(
 					// Different structure at this level.
 					return
 				}
-				val differentIndices = ArrayList<Int>()
+				val differentIndices = mutableListOf<Int>()
 				for (i in 0 until min(parts1.size, parts2.size))
 				{
 					if (!parts1[i].equals(parts2[i]))
@@ -4746,8 +4729,8 @@ class AvailCompiler(
 				return
 			}
 			start.lexingState.withTokensDo { tokens ->
-				val toSkip = ArrayList<A_Token>(1)
-				val toKeep = ArrayList<A_Token>(1)
+				val toSkip = mutableListOf<A_Token>()
+				val toKeep = mutableListOf<A_Token>()
 				for (token in tokens)
 				{
 					val tokenType = token.tokenType()
@@ -4836,7 +4819,7 @@ class AvailCompiler(
 				}
 				// Rarer, more complicated cases with at least two
 				// interpretations, at least one of which is whitespace/comment.
-				val result = ArrayList<ParserState>(3)
+				val result = mutableListOf<ParserState>()
 				if (toKeep.size > 0)
 				{
 					// There's at least one non-whitespace token present at

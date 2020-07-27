@@ -34,7 +34,6 @@ package com.avail.utility
 import com.avail.utility.evaluation.Combinator.recurse
 import org.jetbrains.annotations.Contract
 import java.util.ArrayDeque
-import java.util.ArrayList
 import java.util.Comparator
 import java.util.Deque
 import java.util.LinkedHashSet
@@ -806,7 +805,7 @@ class Graph<Vertex> constructor ()
 			ancestrySet.addAll(newAncestors)
 		}
 		val ancestryGraph = Graph(this)
-		ArrayList(ancestryGraph.outEdges.keys).forEach { vertex ->
+		ancestryGraph.outEdges.keys.toList().forEach { vertex ->
 			if (!ancestrySet.contains(vertex))
 			{
 				ancestryGraph.exciseVertex(vertex)

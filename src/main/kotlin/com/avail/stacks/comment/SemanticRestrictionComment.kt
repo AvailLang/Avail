@@ -47,62 +47,59 @@ import com.avail.stacks.tags.StacksRestrictsTag
 import com.avail.stacks.tags.StacksReturnTag
 import com.avail.stacks.tags.StacksSeeTag
 import com.avail.utility.json.JSONWriter
-import java.util.*
 
 /**
  * A comment implementation of grammatical restrictions
  *
+ * @property restricts
+ *   The list of input types in the semantic restriction.
+ * @property returnsContent
+ *   The [@returns][StacksReturnTag] content.
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
- */
-class SemanticRestrictionComment
-/**
+ *
+ * @constructor
+ *
  * Construct a new [SemanticRestrictionComment].
  *
  * @param signature
- * The [signature][SemanticRestrictionCommentSignature] of the
- * class/method the comment describes.
+ *   The [signature][SemanticRestrictionCommentSignature] of the class/method
+ *   the comment describes.
  * @param commentStartLine
- * The start line in the module the comment being parsed appears.
+ *   The start line in the module the comment being parsed appears.
  * @param author
- * The [authors][StacksAuthorTag] of the implementation.
+ *   The [authors][StacksAuthorTag] of the implementation.
  * @param sees
- * A [ArrayList] of any [&quot;@sees&quot;][StacksSeeTag] references.
+ *   A list of any [@sees][StacksSeeTag] references.
  * @param description
- * The overall description of the implementation
+ *   The overall description of the implementation.
  * @param categories
- * The categories the implementation appears in
+ *   The categories the implementation appears in.
  * @param aliases
- * The aliases the implementation is known by
+ *   The aliases the implementation is known by.
  * @param restricts
- * The list of input types in the semantic restriction.
+ *   The list of input types in the semantic restriction.
  * @param returnsContent
- * The [&quot;@returns&quot;][StacksReturnTag] content
+ *   The [@returns][StacksReturnTag] content
  */
-	(
+class SemanticRestrictionComment constructor(
 	signature: SemanticRestrictionCommentSignature,
 	commentStartLine: Int,
-	author: ArrayList<StacksAuthorTag>,
-	sees: ArrayList<StacksSeeTag>,
+	author: List<StacksAuthorTag>,
+	sees: List<StacksSeeTag>,
 	description: StacksDescription,
-	categories: ArrayList<StacksCategoryTag>,
-	aliases: ArrayList<StacksAliasTag>,
-	/**
-	 * The list of input types in the semantic restriction.
-	 */
-	internal val restricts: ArrayList<StacksRestrictsTag>,
-	/**
-	 * The [&quot;@returns&quot;][StacksReturnTag] content
-	 */
-	internal val returnsContent: ArrayList<StacksReturnTag>) :
-	AvailComment(
-		signature,
-		commentStartLine,
-		author,
-		sees,
-		description,
-		categories,
-		aliases,
-		false)
+	categories: List<StacksCategoryTag>,
+	aliases: List<StacksAliasTag>,
+	internal val restricts: List<StacksRestrictsTag>,
+	internal val returnsContent: List<StacksReturnTag>
+) : AvailComment(
+	signature,
+	commentStartLine,
+	author,
+	sees,
+	description,
+	categories,
+	aliases,
+	false)
 {
 
 	/**

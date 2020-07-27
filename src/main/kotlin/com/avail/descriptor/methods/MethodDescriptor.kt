@@ -147,7 +147,6 @@ import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
-import java.util.ArrayList
 import java.util.Collections.nCopies
 import java.util.Collections.newSetFromMap
 import java.util.Collections.synchronizedSet
@@ -455,19 +454,12 @@ class MethodDescriptor private constructor(
 	override fun o_DefinitionsAtOrBelow(
 		self: AvailObject,
 		argRestrictions: List<TypeRestriction>
-	): List<A_Definition> {
-		val result: MutableList<A_Definition> = ArrayList(3)
+	): List<A_Definition> =
 		// Use the accessor instead of reading the slot directly (to acquire the
 		// monitor first).
-		val definitionsTuple = self.definitionsTuple()
-		for (definition in definitionsTuple) {
-			if (definition.bodySignature().couldEverBeInvokedWith(
-					argRestrictions)) {
-				result.add(definition)
-			}
+		self.definitionsTuple().filter {
+			it.bodySignature().couldEverBeInvokedWith(argRestrictions)
 		}
-		return result
-	}
 
 	override fun o_DefinitionsTuple(self: AvailObject): A_Tuple
 	{
@@ -748,12 +740,12 @@ class MethodDescriptor private constructor(
 		assert(L2Chunk.invalidationLock.isHeldByCurrentThread)
 		// Invalidate any affected level two chunks.
 		// Copy the set of chunks to avoid modification during iteration.
-		var dependentsCopy: List<L2Chunk>
+		val dependentsCopy: List<L2Chunk>
 		synchronized(self) {
 			val set: Set<L2Chunk?>? = dependentChunksWeakSet
 			dependentsCopy =
 				if (set === null) emptyList()
-				else ArrayList(dependentChunksWeakSet!!)
+				else dependentChunksWeakSet!!.toList()
 		}
 		dependentsCopy.forEach { it.invalidate(invalidationsFromMethodChange) }
 		synchronized(self) {

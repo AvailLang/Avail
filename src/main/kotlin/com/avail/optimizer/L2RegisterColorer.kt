@@ -39,7 +39,6 @@ import com.avail.interpreter.levelTwo.register.L2Register
 import com.avail.utility.Graph
 import com.avail.utility.cast
 import java.util.ArrayDeque
-import java.util.ArrayList
 import java.util.BitSet
 import java.util.Deque
 import java.util.HashSet
@@ -331,7 +330,7 @@ class L2RegisterColorer constructor(controlFlowGraph: L2ControlFlowGraph)
 		{
 			// Find the nodes having the fewest neighbors.
 			var fewestCount = Int.MAX_VALUE
-			val withFewest: MutableList<RegisterGroup> = ArrayList()
+			val withFewest = mutableListOf<RegisterGroup>()
 			for (reg in graphCopy.vertices)
 			{
 				val neighborCount = graphCopy.successorsOf(reg).size

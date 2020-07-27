@@ -38,7 +38,7 @@ import java.io.ByteArrayOutputStream
  * `NybbleOutputStream` is a [ByteArrayOutputStream] that enforces that only
  * nybbles — values in `[0..15]` — are written.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 class NybbleOutputStream
 @JvmOverloads constructor(size: Int = 0): ByteArrayOutputStream(size)

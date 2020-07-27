@@ -355,7 +355,7 @@ enum class Command
 			 * The [commands][Command] that
 			 * [require&#32;special&#32;parsing][requiresSpecialParsing].
 			 */
-			private val speciallyParsedCommands = ArrayList<Command>(10)
+			private val speciallyParsedCommands = mutableListOf<Command>()
 
 			/**
 			 * Add the specified [command][Command] to the
@@ -403,7 +403,7 @@ enum class Command
 			 */
 			fun parseCommands(source: String): List<CommandMessage>
 			{
-				val parsedCommands = ArrayList<CommandMessage>()
+				val parsedCommands = mutableListOf<CommandMessage>()
 				val simpleCommand = parseSimpleCommand(source)
 				if (simpleCommand !== null)
 				{

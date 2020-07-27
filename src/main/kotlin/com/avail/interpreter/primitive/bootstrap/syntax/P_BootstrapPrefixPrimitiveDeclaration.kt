@@ -102,7 +102,7 @@ object P_BootstrapPrefixPrimitiveDeclaration
 		           "a supported primitive name, not $primName")
 
 		// Check that the primitive signature agrees with the arguments.
-		val blockArgumentPhrases = ArrayList<A_Phrase>()
+		val blockArgumentPhrases = mutableListOf<A_Phrase>()
 		if (optionalBlockArgumentsList.expressionsSize() == 1)
 		{
 			val blockArgumentsList =

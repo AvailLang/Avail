@@ -37,7 +37,6 @@ import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import java.lang.String.format
-import java.util.*
 import kotlin.math.max
 import kotlin.math.min
 
@@ -227,7 +226,8 @@ internal constructor(
 		for (criterionIndex in 0 until undecidedCount)
 		{
 			val criterion = undecidedElements[criterionIndex]
-			val criterionRestrictions = ArrayList(knownArgumentRestrictions)
+			val criterionRestrictions =
+				knownArgumentRestrictions.toMutableList()
 			val boundedCriterionSignature =
 				adaptor.restrictedSignature(criterion, bound)
 			assert(!boundedCriterionSignature.isBottom)
@@ -360,13 +360,15 @@ internal constructor(
 			oldRestriction = knownArgumentRestrictions[0]
 		}
 
-		val positiveKnownRestrictions = ArrayList(knownArgumentRestrictions)
+		val positiveKnownRestrictions =
+			knownArgumentRestrictions.toMutableList()
 		positiveKnownRestrictions[zeroBasedIndex] =
 			oldRestriction.intersectionWithType(typeToTest)
 		val positiveBound =
 			adaptor.extractBoundingType(positiveKnownRestrictions)
 
-		val negativeKnownRestrictions = ArrayList(knownArgumentRestrictions)
+		val negativeKnownRestrictions =
+			knownArgumentRestrictions.toMutableList()
 		negativeKnownRestrictions[zeroBasedIndex] =
 			oldRestriction.minusType(typeToTest)
 		val negativeBound =
@@ -376,10 +378,10 @@ internal constructor(
 		// classify it as a positive hit in the holds branch, an undecided in
 		// the holds branch, an undecided in the fails branch, or some
 		// combination (but not both collections in the holds branch).
-		val positiveIfTrue = ArrayList(positiveElements)
-		val undecidedIfTrue = ArrayList<Element>()
-		val positiveIfFalse = ArrayList<Element>()
-		val undecidedIfFalse = ArrayList<Element>()
+		val positiveIfTrue = positiveElements.toMutableList()
+		val undecidedIfTrue = mutableListOf<Element>()
+		val positiveIfFalse = mutableListOf<Element>()
+		val undecidedIfFalse = mutableListOf<Element>()
 		for (undecidedElement in undecidedElements)
 		{
 			val positiveComparison = adaptor.compareTypes(

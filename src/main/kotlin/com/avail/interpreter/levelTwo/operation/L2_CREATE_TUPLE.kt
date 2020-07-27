@@ -39,7 +39,6 @@ import com.avail.descriptor.tuples.ObjectTupleDescriptor
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromArrayMethod
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import com.avail.descriptor.tuples.TupleDescriptor
-import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.InstanceTypeDescriptor
 import com.avail.descriptor.types.TupleTypeDescriptor
@@ -57,7 +56,6 @@ import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
-import java.util.ArrayList
 
 /**
  * Create a [tuple][TupleDescriptor] from the [objects][AvailObject] in the
@@ -81,18 +79,17 @@ object L2_CREATE_TUPLE : L2Operation(
 			instruction.operand<L2WriteBoxedOperand>(1)
 		val size = values.elements().size
 		val sizeRange = fromInt(size).kind()
-		val types: MutableList<A_Type> = ArrayList(size)
-		for (element in values.elements())
-		{
-			if (registerSet.hasTypeAt(element.register()))
-			{
-				types.add(registerSet.typeAt(element.register()))
+		val types =
+			values.elements().map {
+				if (registerSet.hasTypeAt(it.register()))
+				{
+					registerSet.typeAt(it.register())
+				}
+				else
+				{
+					ANY.o
+				}
 			}
-			else
-			{
-				types.add(ANY.o)
-			}
-		}
 		val tupleType =
 			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 				sizeRange, tupleFromList(types), bottom())
@@ -104,13 +101,10 @@ object L2_CREATE_TUPLE : L2Operation(
 			instruction)
 		if (registerSet.allRegistersAreConstant(values.elements()))
 		{
-			val constants: MutableList<AvailObject> = ArrayList(size)
-			for (element in values.elements())
-			{
-				constants.add(registerSet.constantAt(element.register()))
+			val constants = values.elements().map {
+				registerSet.constantAt(it.register())
 			}
-			val newTuple =
-				tupleFromList(constants)
+			val newTuple = tupleFromList(constants)
 			newTuple.makeImmutable()
 			assert(newTuple.isInstanceOf(tupleType))
 			registerSet.typeAtPut(

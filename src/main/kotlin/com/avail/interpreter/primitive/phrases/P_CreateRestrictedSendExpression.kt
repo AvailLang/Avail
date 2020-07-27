@@ -77,9 +77,9 @@ import com.avail.interpreter.Primitive.Flag.Unknown
 import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.execution.Interpreter.Companion.runOutermostFunction
 import com.avail.utility.Strings.increaseIndentation
+import com.avail.utility.safeWrite
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantReadWriteLock
-import kotlin.concurrent.write
 
 /**
  * **Primitive CreateRestrictedSendExpression**: Create a
@@ -206,7 +206,7 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 				}
 			}
 			val success: (AvailObject) -> Unit = {
-				resultLock.write {
+				resultLock.safeWrite {
 					when
 					{
 						it.isType ->
@@ -244,13 +244,13 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 							is AvailRejectedParseException -> {
 								// Compute rejectionString outside the mutex.
 								val string = throwable.rejectionString
-								resultLock.write { problems.add(string) }
+								resultLock.safeWrite { problems.add(string) }
 							}
 							is AvailAcceptedParseException -> {
 								// Success without type narrowing – do nothing.
 							}
 							else ->
-								resultLock.write {
+								resultLock.safeWrite {
 									problems.add(stringFrom(
 										"evaluation of macro body not to " +
 											"raise an unhandled " +

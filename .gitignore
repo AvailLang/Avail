@@ -5,6 +5,7 @@
 /stacks
 /modules.dot
 /out
+/debug
 /documentation/docs/src_docs
 /documentation/docs/index.md
-documentation/site
+/documentation/site

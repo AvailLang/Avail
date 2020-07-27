@@ -553,7 +553,7 @@ class IntegerIntervalTupleDescriptor private constructor(mutability: Mutability)
 					   difference.divideCanDestroy(delta, false).extractInt()
 			if (size < maximumCopySize)
 			{
-				val members: MutableList<A_Number> = ArrayList(size)
+				val members = mutableListOf<A_Number>()
 				var newMember: A_Number = start
 				for (i in 0 until size)
 				{

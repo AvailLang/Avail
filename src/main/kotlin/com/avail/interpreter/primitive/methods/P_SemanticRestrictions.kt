@@ -49,7 +49,6 @@ import com.avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.execution.Interpreter
-import java.util.*
 
 /**
  * **Primitive:** Answer a [tuple][A_Tuple] of restriction
@@ -71,7 +70,7 @@ object P_SemanticRestrictions : Primitive(2, CanInline)
 				E_INCORRECT_NUMBER_OF_ARGUMENTS)
 		}
 		val restrictions = method.semanticRestrictions()
-		val applicable = ArrayList<A_Function>(restrictions.setSize())
+		val applicable = mutableListOf<A_Function>()
 		for (restriction in restrictions)
 		{
 			val function = restriction.function()

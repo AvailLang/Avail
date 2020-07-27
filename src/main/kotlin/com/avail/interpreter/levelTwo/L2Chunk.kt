@@ -68,12 +68,15 @@ import com.avail.optimizer.jvm.JVMTranslator
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport
-import java.util.*
+import com.avail.utility.safeWrite
+import java.util.ArrayDeque
+import java.util.Collections
+import java.util.Deque
+import java.util.WeakHashMap
 import java.util.concurrent.locks.ReentrantLock
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.logging.Level
 import javax.annotation.concurrent.GuardedBy
-import kotlin.concurrent.write
 
 /**
  * A Level Two chunk represents an optimized implementation of a
@@ -233,7 +236,7 @@ class L2Chunk private constructor(
 				newest.chunks.add(newChunk)
 				if (newest.chunks.size > maximumNewestGenerationSize)
 				{
-					generationsLock.write {
+					generationsLock.safeWrite {
 						var lastGenerationToKeep = newest
 						generations.addFirst(newest)
 						newest = Generation()
@@ -324,7 +327,7 @@ class L2Chunk private constructor(
 				chunk.generation = theNewest
 				if (theNewest.chunks.size > maximumNewestGenerationSize)
 				{
-					generationsLock.write {
+					generationsLock.safeWrite {
 						generations.add(newest)
 						newest = Generation()
 						// Even though simply using a chunk doesn't exert any cache

@@ -96,8 +96,6 @@ import com.avail.utility.PrefixSharingList.Companion.last
 import com.avail.utility.PrefixSharingList.Companion.withoutLast
 import com.avail.utility.StackPrinter.Companion.trace
 import com.avail.utility.evaluation.Describer
-import java.util.*
-import java.util.Collections.reverse
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -1732,12 +1730,13 @@ enum class ParsingOperation constructor(
 			assert(successorTrees.tupleSize() == 1)
 			val depthToReverse = operand(instruction)
 			val totalSize = argsSoFar.size
-			val unpopped = argsSoFar.subList(0, totalSize - depthToReverse)
-			val popped = ArrayList(
-				argsSoFar.subList(totalSize - depthToReverse, totalSize))
-			reverse(popped)
-			val newArgsSoFar = ArrayList(unpopped)
-			newArgsSoFar.addAll(popped)
+			val unpopped = argsSoFar.subList(
+				0,
+				totalSize - depthToReverse).toList()
+			val popped = argsSoFar.subList(
+				totalSize - depthToReverse,
+				totalSize).reversed()
+			val newArgsSoFar = unpopped + popped
 			compiler.eventuallyParseRestOfSendNode(
 				start,
 				successorTrees.tupleAt(1),

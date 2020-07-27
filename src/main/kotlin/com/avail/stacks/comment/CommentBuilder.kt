@@ -90,18 +90,18 @@ class CommentBuilder private constructor(
 	 * The alias keyword provides alias to which the method/macro is referred
 	 * to by.
 	 */
-	private val aliases = ArrayList<StacksAliasTag>(0)
+	private val aliases = mutableListOf<StacksAliasTag>()
 
 	/**
 	 * The author keyword indicates the method implementation author.
 	 */
-	private val authors: ArrayList<StacksAuthorTag> = ArrayList(0)
+	private val authors = mutableListOf<StacksAuthorTag>()
 
 	/**
 	 * The category keyword provides a category to which the method
 	 * implementation belongs.
 	 */
-	private val categories = ArrayList<StacksCategoryTag>(1)
+	private val categories = mutableListOf<StacksCategoryTag>()
 
 	/**
 	 * The general description provided by the comment
@@ -111,7 +111,7 @@ class CommentBuilder private constructor(
 	/**
 	 * The field keyword indicates a field in the class implementation.
 	 */
-	private val fields = ArrayList<StacksFieldTag>(0)
+	private val fields = mutableListOf<StacksFieldTag>()
 
 	/**
 	 * The forbids keyword indicates the methods forbidden by a
@@ -122,69 +122,69 @@ class CommentBuilder private constructor(
 	/**
 	 * The globals keyword indicates the name of the method implementation.
 	 */
-	private val globalVariables = ArrayList<StacksGlobalTag>(0)
+	private val globalVariables = mutableListOf<StacksGlobalTag>()
 
 	/**
 	 * The method keyword indicates the name of the method implementation.
 	 */
-	private val methods = ArrayList<StacksMethodTag>(0)
+	private val methods = mutableListOf<StacksMethodTag>()
 
 	/**
 	 * The method keyword indicates the name of the method implementation.
 	 */
-	private val modules = ArrayList<StacksModuleTag>(0)
+	private val modules = mutableListOf<StacksModuleTag>()
 
 	/**
 	 * The macro keyword indicates the name of the macro implementation.
 	 */
-	private val macros = ArrayList<StacksMacroTag>(0)
+	private val macros = mutableListOf<StacksMacroTag>()
 
 	/**
 	 * The parameter keyword indicates an input for the method
 	 * implementation.
 	 */
-	private val parameters = ArrayList<StacksParameterTag>(0)
+	private val parameters = mutableListOf<StacksParameterTag>()
 
 	/**
 	 * The raises keyword indicates the exceptions thrown by the method
 	 * implementation.
 	 */
-	private val raises = ArrayList<StacksRaisesTag>(0)
+	private val raises = mutableListOf<StacksRaisesTag>()
 
 	/**
 	 * The restricts keyword indicates the input types used by the method
 	 * implementation's semantic restriction.
 	 */
-	private val restricts = ArrayList<StacksRestrictsTag>(0)
+	private val restricts = mutableListOf<StacksRestrictsTag>()
 
 	/**
 	 * The returns keyword indicates the output for the method
 	 * implementation.
 	 */
-	private val returns = ArrayList<StacksReturnTag>(0)
+	private val returns = mutableListOf<StacksReturnTag>()
 
 	/**
 	 * The see keyword refers the reader to something else.  Not
 	 * inherently linked.
 	 */
-	private val sees = ArrayList<StacksSeeTag>(0)
+	private val sees = mutableListOf<StacksSeeTag>()
 
 	/**
 	 * The sticky keyword indicates an implementation should be documented
 	 * regardless of visibility.
 	 */
-	private val stickies = ArrayList<StacksStickyTag>(0)
+	private val stickies = mutableListOf<StacksStickyTag>()
 
 	/**
 	 * The supertype keyword indicates the supertype of the class
 	 * implementation.
 	 */
-	private val supertypes = ArrayList<StacksSuperTypeTag>(0)
+	private val supertypes = mutableListOf<StacksSuperTypeTag>()
 
 	/**
 	 * The type keyword indicates the name of the class implementation.
 	 */
-	private val types = ArrayList<StacksTypeTag>(0)
+	private val types = mutableListOf<StacksTypeTag>()
 
 	/**
 	 * The module file name without the path.
@@ -202,10 +202,10 @@ class CommentBuilder private constructor(
 	 */
 	@Throws(ClassCastException::class, StacksCommentBuilderException::class)
 	fun addStacksAliasTag(
-		tagContentTokens: ArrayList<AbstractStacksToken>,
+		tagContentTokens: List<AbstractStacksToken>,
 		@Suppress("UNUSED_PARAMETER") fileMap: LinkingFileMap)
 	{
-		val tempTokens = ArrayList<QuotedStacksToken>()
+		val tempTokens = mutableListOf<QuotedStacksToken>()
 
 		for (token in tagContentTokens)
 		{
@@ -241,8 +241,7 @@ class CommentBuilder private constructor(
 	 * The tokens held by the tag
 	 * @throws StacksCommentBuilderException
 	 */
-	fun addStacksAuthorTag(
-		tagContentTokens: ArrayList<AbstractStacksToken>)
+	fun addStacksAuthorTag(tagContentTokens: List<AbstractStacksToken>)
 	{
 		authors.add(StacksAuthorTag(tagContentTokens))
 	}
@@ -257,10 +256,10 @@ class CommentBuilder private constructor(
 	 */
 	@Throws(ClassCastException::class, StacksCommentBuilderException::class)
 	fun addStacksCategoryTag(
-		tagContentTokens: ArrayList<AbstractStacksToken>,
+		tagContentTokens: List<AbstractStacksToken>,
 		@Suppress("UNUSED_PARAMETER") fileMap: LinkingFileMap)
 	{
-		val tempTokens = ArrayList<QuotedStacksToken>()
+		val tempTokens = mutableListOf<QuotedStacksToken>()
 
 		for (token in tagContentTokens)
 		{
@@ -310,7 +309,7 @@ class CommentBuilder private constructor(
 	 */
 	@Throws(ClassCastException::class, StacksCommentBuilderException::class)
 	fun addStacksFieldTag(
-		tagContentTokens: ArrayList<AbstractStacksToken>)
+		tagContentTokens: List<AbstractStacksToken>)
 	{
 		val tokenCount = tagContentTokens.size
 
@@ -368,12 +367,11 @@ class CommentBuilder private constructor(
 			fields.add(
 				StacksFieldTag(
 					tempName, tempType,
-					StacksDescription(ArrayList(0))))
+					StacksDescription(mutableListOf())))
 		}
 		else
 		{
-			val rest = ArrayList(
-				tagContentTokens.subList(2, tokenCount))
+			val rest = tagContentTokens.subList(2, tokenCount)
 			fields.add(
 				StacksFieldTag(
 					tempName, tempType,
@@ -388,8 +386,7 @@ class CommentBuilder private constructor(
 	 * @throws StacksCommentBuilderException
 	 */
 	@Throws(ClassCastException::class, StacksCommentBuilderException::class)
-	fun addStacksForbidTag(
-		tagContentTokens: ArrayList<AbstractStacksToken>)
+	fun addStacksForbidTag(tagContentTokens: List<AbstractStacksToken>)
 	{
 		val arity: Int
 		try
@@ -412,7 +409,7 @@ class CommentBuilder private constructor(
 
 		try
 		{
-			val tempTokens = ArrayList<QuotedStacksToken>(1)
+			val tempTokens = mutableListOf<QuotedStacksToken>()
 
 			for (i in 1 until tagContentTokens.size)
 			{
@@ -446,8 +443,7 @@ class CommentBuilder private constructor(
 	 * @throws StacksCommentBuilderException
 	 */
 	@Throws(ClassCastException::class, StacksCommentBuilderException::class)
-	fun addStacksGlobalTag(
-		tagContentTokens: ArrayList<AbstractStacksToken>)
+	fun addStacksGlobalTag(tagContentTokens: List<AbstractStacksToken>)
 	{
 		val tokenCount = tagContentTokens.size
 
@@ -517,8 +513,7 @@ class CommentBuilder private constructor(
 	 * @throws StacksCommentBuilderException
 	 */
 	@Throws(ClassCastException::class, StacksCommentBuilderException::class)
-	fun addStacksMethodTag(
-		tagContentTokens: ArrayList<AbstractStacksToken>)
+	fun addStacksMethodTag(tagContentTokens: List<AbstractStacksToken>)
 	{
 		if (tagContentTokens.size == 1)
 		{
@@ -564,8 +559,7 @@ class CommentBuilder private constructor(
 	 * @throws StacksCommentBuilderException
 	 */
 	@Throws(ClassCastException::class, StacksCommentBuilderException::class)
-	fun addStacksModuleTag(
-		tagContentTokens: ArrayList<AbstractStacksToken>)
+	fun addStacksModuleTag(tagContentTokens: List<AbstractStacksToken>)
 	{
 		if (tagContentTokens.size == 0)
 		{
@@ -592,8 +586,7 @@ class CommentBuilder private constructor(
 	 * @throws StacksCommentBuilderException
 	 */
 	@Throws(ClassCastException::class, StacksCommentBuilderException::class)
-	fun addStacksMacroTag(
-		tagContentTokens: ArrayList<AbstractStacksToken>)
+	fun addStacksMacroTag(tagContentTokens: List<AbstractStacksToken>)
 	{
 		if (tagContentTokens.size == 1)
 		{
@@ -639,8 +632,7 @@ class CommentBuilder private constructor(
 	 * @throws StacksCommentBuilderException
 	 */
 	@Throws(ClassCastException::class, StacksCommentBuilderException::class)
-	fun addStacksParameterTag(
-		tagContentTokens: ArrayList<AbstractStacksToken>)
+	fun addStacksParameterTag(tagContentTokens: List<AbstractStacksToken>)
 	{
 		val tokenCount = tagContentTokens.size
 		if (tokenCount < 2)
@@ -697,12 +689,11 @@ class CommentBuilder private constructor(
 			parameters.add(
 				StacksParameterTag(
 					tempName, tempType,
-					StacksDescription(ArrayList(0))))
+					StacksDescription(mutableListOf())))
 		}
 		else
 		{
-			val rest = ArrayList(
-				tagContentTokens.subList(2, tokenCount))
+			val rest = tagContentTokens.subList(2, tokenCount)
 			parameters.add(
 				StacksParameterTag(
 					tempName, tempType,
@@ -717,8 +708,7 @@ class CommentBuilder private constructor(
 	 * @throws StacksCommentBuilderException
 	 */
 	@Throws(ClassCastException::class, StacksCommentBuilderException::class)
-	fun addStacksRaisesTag(
-		tagContentTokens: ArrayList<AbstractStacksToken>)
+	fun addStacksRaisesTag(tagContentTokens: List<AbstractStacksToken>)
 	{
 		val tokenCount = tagContentTokens.size
 
@@ -761,12 +751,11 @@ class CommentBuilder private constructor(
 			raises.add(
 				StacksRaisesTag(
 					tempName,
-					StacksDescription(ArrayList(0))))
+					StacksDescription(mutableListOf())))
 		}
 		else
 		{
-			val rest = ArrayList(
-				tagContentTokens.subList(1, tokenCount))
+			val rest = tagContentTokens.subList(1, tokenCount)
 			raises.add(
 				StacksRaisesTag(
 					tempName,
@@ -781,8 +770,7 @@ class CommentBuilder private constructor(
 	 * @throws StacksCommentBuilderException
 	 */
 	@Throws(ClassCastException::class, StacksCommentBuilderException::class)
-	fun addStacksRestrictsTag(
-		tagContentTokens: ArrayList<AbstractStacksToken>)
+	fun addStacksRestrictsTag(tagContentTokens: List<AbstractStacksToken>)
 	{
 		val tokenCount = tagContentTokens.size
 
@@ -824,12 +812,11 @@ class CommentBuilder private constructor(
 			restricts.add(
 				StacksRestrictsTag(
 					tempName,
-					StacksDescription(ArrayList(0))))
+					StacksDescription(mutableListOf())))
 		}
 		else
 		{
-			val rest = ArrayList(
-				tagContentTokens.subList(1, tokenCount))
+			val rest = tagContentTokens.subList(1, tokenCount)
 			restricts.add(
 				StacksRestrictsTag(
 					tempName,
@@ -845,7 +832,7 @@ class CommentBuilder private constructor(
 	 */
 	@Throws(ClassCastException::class, StacksCommentBuilderException::class)
 	fun addStacksReturnsTag(
-		tagContentTokens: ArrayList<AbstractStacksToken>)
+		tagContentTokens: List<AbstractStacksToken>)
 	{
 		val tokenCount = tagContentTokens.size
 
@@ -887,12 +874,11 @@ class CommentBuilder private constructor(
 			returns.add(
 				StacksReturnTag(
 					tempName,
-					StacksDescription(ArrayList(0))))
+					StacksDescription(mutableListOf())))
 		}
 		else
 		{
-			val rest = ArrayList(
-				tagContentTokens.subList(1, tokenCount))
+			val rest = tagContentTokens.subList(1, tokenCount)
 			returns.add(
 				StacksReturnTag(
 					tempName,
@@ -907,8 +893,7 @@ class CommentBuilder private constructor(
 	 * @throws StacksCommentBuilderException
 	 */
 	@Throws(ClassCastException::class, StacksCommentBuilderException::class)
-	fun addStacksSeesTag(
-		tagContentTokens: ArrayList<AbstractStacksToken>)
+	fun addStacksSeesTag(tagContentTokens: List<AbstractStacksToken>)
 	{
 		if (tagContentTokens.size == 1)
 		{
@@ -954,8 +939,7 @@ class CommentBuilder private constructor(
 	 * @throws StacksCommentBuilderException
 	 */
 	@Throws(ClassCastException::class, StacksCommentBuilderException::class)
-	fun addStacksStickyTag(
-		tagContentTokens: ArrayList<AbstractStacksToken>)
+	fun addStacksStickyTag(tagContentTokens: List<AbstractStacksToken>)
 	{
 		if (tagContentTokens.size == 0)
 		{
@@ -982,8 +966,7 @@ class CommentBuilder private constructor(
 	 * @throws StacksCommentBuilderException
 	 */
 	@Throws(ClassCastException::class, StacksCommentBuilderException::class)
-	fun addStacksSupertypeTag(
-		tagContentTokens: ArrayList<AbstractStacksToken>)
+	fun addStacksSupertypeTag(tagContentTokens: List<AbstractStacksToken>)
 	{
 		for (token in tagContentTokens)
 		{
@@ -1016,8 +999,7 @@ class CommentBuilder private constructor(
 	 * @throws StacksCommentBuilderException
 	 */
 	@Throws(ClassCastException::class, StacksCommentBuilderException::class)
-	fun addStacksTypeTag(
-		tagContentTokens: ArrayList<AbstractStacksToken>)
+	fun addStacksTypeTag(tagContentTokens: List<AbstractStacksToken>)
 	{
 		if (tagContentTokens.size == 1)
 		{
@@ -1057,7 +1039,7 @@ class CommentBuilder private constructor(
 
 	init
 	{
-		val tempTokens = ArrayList<QuotedStacksToken>()
+		val tempTokens = mutableListOf<QuotedStacksToken>()
 		tempTokens.add(
 			QuotedStacksToken.create("Unclassified", 0, 0, 0, moduleName))
 		this.categories.add(StacksCategoryTag(tempTokens))
@@ -1123,7 +1105,7 @@ class CommentBuilder private constructor(
 				if (restricts.isNotEmpty() && parameters.isEmpty() &&
 					forbids.isEmpty())
 				{
-					val orderedInputTypes = ArrayList<String>(0)
+					val orderedInputTypes = mutableListOf<String>()
 					for (restrict in restricts)
 					{
 						orderedInputTypes.add(restrict.paramMetaType().lexeme)
@@ -1131,13 +1113,19 @@ class CommentBuilder private constructor(
 
 					val signature =
 						SemanticRestrictionCommentSignature(
-								methods[0].methodName().lexeme, moduleName,
-								orderedInputTypes)
+							methods[0].methodName().lexeme,
+							moduleName,
+							orderedInputTypes)
 
 					return SemanticRestrictionComment(
-							signature,
-							commentStartLine, authors, sees, description,
-							categories, aliases, restricts, returns)
+						signature,
+						commentStartLine,authors,
+						sees,
+						description,
+						categories,
+						aliases,
+						restricts,
+						returns)
 				}
 
 				if (restricts.isEmpty() && parameters.isNotEmpty() &&
@@ -1155,7 +1143,7 @@ class CommentBuilder private constructor(
 							errorMessage,
 							this)
 					}
-					val orderedInputTypes = ArrayList<String>(0)
+					val orderedInputTypes = mutableListOf<String>()
 					for (param in parameters)
 					{
 						orderedInputTypes.add(param.paramType().lexeme)
@@ -1181,24 +1169,38 @@ class CommentBuilder private constructor(
 							methods[0].methodName().lexeme, moduleName)
 
 					return GrammaticalRestrictionComment(
-							signature, commentStartLine, authors, sees,
-							description, categories, aliases, forbids)
+						signature,
+						commentStartLine,
+						authors,
+						sees,
+						description,
+						categories,
+						aliases,
+						forbids)
 				}
 
 				if (restricts.isEmpty() && parameters.isEmpty() &&
 					forbids.isEmpty() && returns.isNotEmpty())
 				{
-					val orderedInputTypes = ArrayList<String>(0)
+					val orderedInputTypes = mutableListOf<String>()
 
 					val signature = MethodCommentSignature(
-							methods[0].methodName().lexeme, moduleName,
-							orderedInputTypes,
-							returns[0].returnType().lexeme)
+						methods[0].methodName().lexeme,
+						moduleName,
+						orderedInputTypes,
+						returns[0].returnType().lexeme)
 
 					return MethodComment(
 						signature,
-						commentStartLine, authors, sees, description,
-						categories, aliases, parameters, returns[0], raises,
+						commentStartLine,
+						authors,
+						sees,
+						description,
+						categories,
+						aliases,
+						parameters,
+						returns[0],
+						raises,
 						stickies.isNotEmpty())
 				}
 			}
@@ -1219,7 +1221,7 @@ class CommentBuilder private constructor(
 				if (restricts.isNotEmpty() && parameters.isEmpty() &&
 					forbids.isEmpty())
 				{
-					val orderedInputTypes = ArrayList<String>(0)
+					val orderedInputTypes = mutableListOf<String>()
 					for (restrict in restricts)
 					{
 						orderedInputTypes.add(restrict.paramMetaType().lexeme)
@@ -1227,17 +1229,26 @@ class CommentBuilder private constructor(
 
 					val signature =
 						SemanticRestrictionCommentSignature(
-								macros[0].methodName().lexeme, moduleName,
-								orderedInputTypes)
+							macros[0].methodName().lexeme,
+							moduleName,
+							orderedInputTypes)
 
 					return SemanticRestrictionComment(
-							signature,
-							commentStartLine, authors, sees, description,
-							categories, aliases, restricts, returns)
+						signature,
+						commentStartLine,
+						authors,
+						sees,
+						description,
+						categories,
+						aliases,
+						restricts,
+						returns)
 				}
 
-				if (restricts.isEmpty() && parameters.isNotEmpty() &&
-					forbids.isEmpty())
+				if (
+					restricts.isEmpty()
+					&& parameters.isNotEmpty()
+					&& forbids.isEmpty())
 				{
 					if (returns.isEmpty())
 					{
@@ -1251,21 +1262,29 @@ class CommentBuilder private constructor(
 							errorMessage,
 							this)
 					}
-					val orderedInputTypes = ArrayList<String>(0)
+					val orderedInputTypes = mutableListOf<String>()
 					for (param in parameters)
 					{
 						orderedInputTypes.add(param.paramType().lexeme)
 					}
 
 					val signature = MethodCommentSignature(
-							macros[0].methodName().lexeme,
-							moduleName, orderedInputTypes,
-							returns[0].returnType().lexeme)
+						macros[0].methodName().lexeme,
+						moduleName,
+						orderedInputTypes,
+						returns[0].returnType().lexeme)
 
 					return MacroComment(
 						signature,
-						commentStartLine, authors, sees, description,
-						categories, aliases, parameters, returns[0], raises,
+						commentStartLine,
+						authors,
+						sees,
+						description,
+						categories,
+						aliases,
+						parameters,
+						returns[0],
+						raises,
 						stickies.isNotEmpty())
 				}
 
@@ -1284,7 +1303,7 @@ class CommentBuilder private constructor(
 				if (restricts.isEmpty() && parameters.isEmpty() &&
 					forbids.isEmpty() && returns.isNotEmpty())
 				{
-					val orderedInputTypes = ArrayList<String>(0)
+					val orderedInputTypes = mutableListOf<String>()
 
 					val signature = MethodCommentSignature(
 							macros[0].methodName().lexeme, moduleName,
@@ -1313,8 +1332,13 @@ class CommentBuilder private constructor(
 
 				return GlobalComment(
 					signature,
-					commentStartLine, authors, sees, description,
-					categories, aliases, globalVariables[0])
+					commentStartLine,
+					authors,
+					sees,
+					description,
+					categories,
+					aliases,
+					globalVariables[0])
 			}
 			val errorMessage = String.format(
 				"\n<li><strong>%s"

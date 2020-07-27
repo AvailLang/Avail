@@ -185,7 +185,7 @@ class AvailCodeGenerator private constructor(
 	/**
 	 * The [list][List] of [instructions][AvailInstruction] generated so far.
 	 */
-	private val instructions = ArrayList<AvailInstruction>(10)
+	private val instructions = mutableListOf<AvailInstruction>()
 
 	/**
 	 * A stack of [A_Tuple]s of [A_Token]s, representing successive refinement
@@ -209,7 +209,7 @@ class AvailCodeGenerator private constructor(
 	/**
 	 * The list of literal objects that have been encountered so far.
 	 */
-	private val literals = ArrayList<A_BasicObject>(10)
+	private val literals = mutableListOf<A_BasicObject>()
 
 	/**
 	 * The current stack depth, which is the number of objects that have been
@@ -332,7 +332,7 @@ class AvailCodeGenerator private constructor(
 		val unusedOuters = BitSet(outerMap.size)
 		unusedOuters.flip(0, outerMap.size)
 		val nybbles = NybbleOutputStream(50)
-		val encodedLineNumberDeltas = ArrayList<Int>(50)
+		val encodedLineNumberDeltas = mutableListOf<Int>()
 		var currentLineNumber = startingLineNumber
 		for (instruction in instructions)
 		{

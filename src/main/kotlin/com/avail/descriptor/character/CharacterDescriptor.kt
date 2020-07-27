@@ -50,6 +50,7 @@ import com.avail.descriptor.types.TypeDescriptor.Types.CHARACTER
 import com.avail.descriptor.types.TypeTag
 import com.avail.exceptions.MarshalingException
 import com.avail.serialization.SerializerOperation
+import com.avail.utility.safeWrite
 import com.avail.utility.json.JSONWriter
 import java.util.*
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -274,7 +275,7 @@ class CharacterDescriptor private constructor(
 			}
 			// We didn't find it while holding the read lock.  Try it again while
 			// holding the write lock, creating and adding it if not found.
-			return characterCacheLock.write {
+			return characterCacheLock.safeWrite {
 				characterCache.computeIfAbsent(codePoint) { cp: Int ->
 					mutable.createShared {
 						setSlot(CODE_POINT, cp)

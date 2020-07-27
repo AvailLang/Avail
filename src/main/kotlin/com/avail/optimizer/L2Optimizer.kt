@@ -59,7 +59,6 @@ import com.avail.utility.Strings.increaseIndentation
 import com.avail.utility.cast
 import com.avail.utility.structures.EnumMap.Companion.enumMap
 import java.util.ArrayDeque
-import java.util.ArrayList
 import java.util.BitSet
 import java.util.Collections
 import java.util.Deque
@@ -439,7 +438,7 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 	{
 		// Copy the list of blocks, to safely visit existing blocks while new
 		// ones are added inside the loop.
-		for (sourceBlock in ArrayList(blocks))
+		for (sourceBlock in blocks.toList())
 		{
 			if (sourceBlock!!.successorEdgesCount() > 1)
 			{
@@ -1539,7 +1538,7 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 				return null
 			}
 			val written: List<L2Register?> = instruction.destinationRegisters()
-			val writtenSemanticValues: MutableList<L2SemanticValue?> = ArrayList()
+			val writtenSemanticValues = mutableListOf<L2SemanticValue?>()
 			instruction.writeOperands().forEach {
 				writtenSemanticValues.addAll(it.semanticValues())
 			}

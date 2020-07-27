@@ -104,6 +104,7 @@ import com.avail.utility.IO
 import com.avail.utility.cast
 import com.avail.utility.javaNotifyAll
 import com.avail.utility.javaWait
+import com.avail.utility.safeWrite
 import com.bulenkov.darcula.DarculaLaf
 import java.awt.Color
 import java.awt.Component
@@ -145,7 +146,6 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.attribute.BasicFileAttributes
 import java.util.ArrayDeque
-import java.util.ArrayList
 import java.util.Arrays
 import java.util.Deque
 import java.util.EnumSet
@@ -199,7 +199,6 @@ import javax.swing.tree.TreePath
 import javax.swing.tree.TreeSelectionModel
 import kotlin.concurrent.schedule
 import kotlin.concurrent.withLock
-import kotlin.concurrent.write
 import kotlin.math.max
 import kotlin.math.min
 
@@ -724,7 +723,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		// Hold the dequeLock just long enough to extract all entries, only
 		// decreasing totalQueuedTextSize just before unlocking.
 		var lengthToInsert = 0
-		val aggregatedEntries = ArrayList<BuildOutputStreamEntry>()
+		val aggregatedEntries = mutableListOf<BuildOutputStreamEntry>()
 		val wentToZero = dequeLock.withLock {
 			var removedSize = privateDiscardExcessLeadingQueuedUpdates()
 			var currentStyle: StreamStyle? = null
@@ -1497,7 +1496,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 						availBuilder, resolvedName, entryPoint)
 					moduleNode.add(entryPointNode)
 				}
-				mutex.write {
+				mutex.safeWrite {
 					moduleNodes.put(resolvedName.qualifiedName, moduleNode)
 				}
 			}
@@ -1661,7 +1660,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	 */
 	fun eventuallyUpdateBuildProgress(position: Long, globalCodeSize: Long)
 	{
-		buildGlobalUpdateLock.write {
+		buildGlobalUpdateLock.safeWrite {
 			latestGlobalBuildPosition = position
 			globalBuildLimit = globalCodeSize
 			if (!hasQueuedGlobalBuildUpdate)
@@ -1687,7 +1686,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	{
 		var position = 0L
 		var max = 0L
-		buildGlobalUpdateLock.write {
+		buildGlobalUpdateLock.safeWrite {
 			assert(hasQueuedGlobalBuildUpdate)
 			position = latestGlobalBuildPosition
 			max = globalBuildLimit
@@ -1717,7 +1716,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	fun eventuallyUpdatePerModuleProgress(
 		moduleName: ModuleName, moduleSize: Long, position: Long)
 	{
-		perModuleProgressLock.write {
+		perModuleProgressLock.safeWrite {
 			if (position == moduleSize)
 			{
 				perModuleProgress.remove(moduleName)
@@ -1743,7 +1742,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	private fun updatePerModuleProgressInUIThread()
 	{
 		assert(EventQueue.isDispatchThread())
-		val progress = perModuleProgressLock.write {
+		val progress = perModuleProgressLock.safeWrite {
 			assert(hasQueuedPerModuleBuildUpdate)
 			hasQueuedPerModuleBuildUpdate = false
 			perModuleProgress.entries.toMutableList()
@@ -1774,7 +1773,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 			assert(false)
 		}
 
-		perModuleProgressLock.write {
+		perModuleProgressLock.safeWrite {
 			perModuleStatusTextSize = string.length
 		}
 	}
@@ -2561,19 +2560,10 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		 *
 		 * @return The list of rectangles to which physical screens are mapped.
 		 */
-		fun allScreenNames(): List<String>
-		{
-			val graphicsEnvironment =
-				GraphicsEnvironment.getLocalGraphicsEnvironment()
-			val screens =
-				graphicsEnvironment.screenDevices
-			val allScreens = ArrayList<String>()
-			for (screen in screens)
-			{
-				allScreens.add(screen.iDstring)
-			}
-			return allScreens
-		}
+		fun allScreenNames(): List<String> =
+			GraphicsEnvironment
+				.getLocalGraphicsEnvironment()
+				.screenDevices.map { it.iDstring }
 
 		/**
 		 * Answer the [Preferences] node responsible for holding the default

@@ -35,13 +35,13 @@ package com.avail.utility
 import java.lang.Boolean.parseBoolean
 import java.lang.ref.ReferenceQueue
 import java.lang.ref.SoftReference
-import java.util.*
+import java.util.HashMap
+import java.util.LinkedHashMap
 import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.Condition
 import java.util.concurrent.locks.ReentrantLock
 import java.util.function.Function
-import kotlin.collections.Map.Entry
 import kotlin.concurrent.withLock
 
 /**
@@ -392,7 +392,7 @@ class LRUCache<K, V> @JvmOverloads constructor(
 			{
 				futuresCondition.await()
 			}
-			val entries = ArrayList<Entry<K, SoftReference<V>>>(softMap.entries)
+			val entries = softMap.entries.toList()
 			softMap.clear()
 			keysBySoftReference.clear()
 			strongMap.clear()

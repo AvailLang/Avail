@@ -119,8 +119,9 @@ import com.avail.performance.PerInterpreterStatistic
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport
 import com.avail.utility.Strings.tab
+import com.avail.utility.safeWrite
 import java.text.MessageFormat
-import java.util.*
+import java.util.WeakHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -129,7 +130,6 @@ import java.util.logging.Level
 import java.util.logging.Logger
 import javax.annotation.concurrent.GuardedBy
 import kotlin.concurrent.read
-import kotlin.concurrent.write
 
 /**
  * This class is used to execute [Level&#32;Two&#32;code][L2Chunk], which is a
@@ -2031,7 +2031,7 @@ class Interpreter(
 				// It didn't exist when we looked for it while holding the read
 				// lock.  Having released the read lock, grab the write lock,
 				// double-check for the element, then if necessary create it.
-				dynamicLookupStatsLock.write {
+				dynamicLookupStatsLock.safeWrite {
 					globalStat = dynamicLookupStatsByCount[size]
 					if (globalStat === null) {
 						// Create it.

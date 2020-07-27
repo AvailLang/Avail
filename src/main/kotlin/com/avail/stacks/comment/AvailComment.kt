@@ -91,11 +91,11 @@ import com.avail.utility.json.JSONWriter
 abstract class AvailComment internal constructor(
 	internal val signature: CommentSignature,
 	internal val commentStartLine: Int,
-	internal val authors: MutableList<StacksAuthorTag>,
-	internal val sees: MutableList<StacksSeeTag>,
+	internal val authors: List<StacksAuthorTag>,
+	internal val sees: List<StacksSeeTag>,
 	internal val description: StacksDescription,
-	internal val categories: MutableList<StacksCategoryTag>,
-	internal val aliases: MutableList<StacksAliasTag>,
+	internal val categories: List<StacksCategoryTag>,
+	internal val aliases: List<StacksAliasTag>,
 	val isSticky: Boolean)
 {
 	/** A set of category String names for this implementation. */

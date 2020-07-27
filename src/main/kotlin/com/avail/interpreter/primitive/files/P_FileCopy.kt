@@ -97,7 +97,7 @@ object P_FileCopy : Primitive(5, CanInline, HasSideEffect)
 				return interpreter.primitiveFailure(E_INVALID_PATH)
 			}
 
-		val optionList = ArrayList<CopyOption>(2)
+		val optionList = mutableListOf<CopyOption>()
 		if (replace.extractBoolean())
 		{
 			optionList.add(StandardCopyOption.REPLACE_EXISTING)

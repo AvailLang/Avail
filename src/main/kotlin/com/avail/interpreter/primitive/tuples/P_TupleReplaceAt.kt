@@ -49,7 +49,6 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.execution.Interpreter
-import java.util.*
 import kotlin.math.max
 import kotlin.math.min
 
@@ -114,15 +113,15 @@ object P_TupleReplaceAt : Primitive(3, CanFold, CanInline)
 		}
 		val originalTypeTuple = originalTupleType.typeTuple()
 		val originalTypeTupleSize = originalTypeTuple.tupleSize()
-		val minSubscript = if (lowerBound.isInt)
-			max(lowerBound.extractInt(), 1)
-		else
-			1
-		val maxSubscript = if (upperBound.isFinite)
-			min(upperBound.extractInt(), originalTypeTupleSize)
-		else
-			Integer.MAX_VALUE
-		val typeList = ArrayList<A_Type>(originalTypeTuple.tupleSize())
+		val minSubscript =
+			if (lowerBound.isInt) max(lowerBound.extractInt(), 1)
+			else 1
+		val maxSubscript =
+			if (upperBound.isFinite)
+				min(upperBound.extractInt(), originalTypeTupleSize)
+			else
+				Integer.MAX_VALUE
+		val typeList = mutableListOf<A_Type>()
 		typeList.addAll(originalTypeTuple)
 		for (i in 1 until minSubscript)
 		{

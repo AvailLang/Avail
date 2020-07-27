@@ -55,7 +55,6 @@ import com.avail.optimizer.L2Generator
 import com.avail.optimizer.jvm.JVMTranslator
 import com.avail.utility.PrefixSharingList
 import org.objectweb.asm.MethodVisitor
-import java.util.*
 
 /**
  * This is a placeholder instruction, which is replaced if still live after data
@@ -293,10 +292,8 @@ object L2_VIRTUAL_CREATE_LABEL : L2Operation(
 		referenceEdge.forcedClampedEntities = mutableSetOf()
 		generator.startBlock(fallThrough)
 		val frameSizeInt = frameSize.value
-		val slots: MutableList<L2ReadBoxedOperand> =
-			ArrayList(arguments.elements())
-		val nilRead =
-			generator.boxedConstant(NilDescriptor.nil)
+		val slots = arguments.elements().toMutableList()
+		val nilRead = generator.boxedConstant(NilDescriptor.nil)
 		while (slots.size < frameSizeInt)
 		{
 			slots.add(nilRead)

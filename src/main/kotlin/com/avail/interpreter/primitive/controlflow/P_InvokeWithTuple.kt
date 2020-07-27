@@ -57,7 +57,6 @@ import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
 import com.avail.optimizer.L2Generator.Companion.edgeTo
-import java.util.ArrayList
 import java.util.Collections.nCopies
 
 /**
@@ -160,10 +159,8 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 					if (primArgSizes.lowerBound().equalsInt(primArgCount)
 					    && primArgSizes.upperBound().equalsInt(primArgCount))
 					{
-						val innerArgTypes = ArrayList<A_Type>(primArgCount)
-						for (i in 1 .. primArgCount)
-						{
-							innerArgTypes.add(argTupleType.typeAtIndex(i))
+						val innerArgTypes = (1 .. primArgCount).map {
+							argTupleType.typeAtIndex(it)
 						}
 						val fallibility = primitive.fallibilityForArgumentTypes(
 							innerArgTypes)

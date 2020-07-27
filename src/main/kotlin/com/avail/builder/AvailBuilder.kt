@@ -71,7 +71,7 @@ import com.avail.persistence.Repository.ModuleVersion
 import com.avail.serialization.MalformedSerialStreamException
 import com.avail.serialization.Serializer
 import com.avail.utility.Graph
-import com.avail.utility.Locks.auto
+import com.avail.utility.safeWrite
 import com.avail.utility.StackPrinter.Companion.trace
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
@@ -80,9 +80,10 @@ import java.lang.String.format
 import java.nio.ByteBuffer
 import java.nio.file.Path
 import java.nio.file.attribute.BasicFileAttributes
-import java.util.*
 import java.util.Collections.synchronizedList
 import java.util.Collections.synchronizedMap
+import java.util.HashMap
+import java.util.HashSet
 import java.util.concurrent.Semaphore
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
@@ -194,7 +195,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	 *   The list of modules currently loaded.
 	 */
 	fun loadedModulesCopy(): List<LoadedModule> =
-		builderLock.read { ArrayList(allLoadedModules.values) }
+		builderLock.read { allLoadedModules.values.toList() }
 
 	/**
 	 * Look up the currently loaded module with the specified
@@ -221,7 +222,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 		resolvedModuleName: ResolvedModuleName,
 		loadedModule: LoadedModule)
 	{
-		auto(builderLock.writeLock()).use {
+		builderLock.safeWrite {
 			allLoadedModules[resolvedModuleName] = loadedModule
 			for (subscription in subscriptions)
 			{
@@ -239,7 +240,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	 */
 	internal fun removeLoadedModule(resolvedModuleName: ResolvedModuleName)
 	{
-		auto(builderLock.writeLock()).use {
+		builderLock.safeWrite {
 			val loadedModule = allLoadedModules[resolvedModuleName]!!
 			allLoadedModules.remove(resolvedModuleName)
 			subscriptions.forEach { it(loadedModule, false) }
@@ -252,10 +253,9 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	 */
 	internal fun trimGraphToLoadedModules()
 	{
-		for (moduleName in ArrayList(moduleGraph.vertices))
+		for (moduleName in moduleGraph.vertices.toList())
 		{
-			if (getLoadedModule(moduleName) ==
-				null)
+			if (getLoadedModule(moduleName) === null)
 			{
 				moduleGraph.exciseVertex(moduleName)
 			}
@@ -274,7 +274,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 		val loadedRuntimeModulesSize = loadedRuntimeModules.mapSize()
 		assert(moduleGraphSize == allLoadedModulesSize)
 		assert(moduleGraphSize == loadedRuntimeModulesSize)
-		for (graphModuleName in ArrayList(moduleGraph.vertices))
+		for (graphModuleName in moduleGraph.vertices.toList())
 		{
 			val qualifiedAvailName = stringFrom(graphModuleName.qualifiedName)
 			assert(allLoadedModules.containsKey(graphModuleName))
@@ -298,7 +298,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 		get() = privateStopBuildReason.get()
 		set(why)
 		{
-			auto(builderLock.writeLock()).use {
+			builderLock.safeWrite {
 				val old = privateStopBuildReason.getAndSet(why)
 				if (debugWorkUnits)
 				{
@@ -442,7 +442,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 		 * The list of children of this package or module (in which case it must
 		 * be empty.
 		 */
-		val children: MutableList<ModuleTree> = ArrayList()
+		val children=  mutableListOf<ModuleTree>()
 
 		/**
 		 * Add a child to this node.
@@ -865,7 +865,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 		val allSolutions =
 			synchronizedMap(HashMap<LoadedModule, List<A_Phrase>>())
 		val allCleanups =
-			synchronizedList(ArrayList<(()->Unit)->Unit>())
+			synchronizedList(mutableListOf<(()->Unit)->Unit>())
 		val allProblems =
 			synchronizedMap(HashMap<LoadedModule, MutableList<Problem>>())
 		val outstanding = AtomicInteger(modulesWithEntryPoints.size)
@@ -924,7 +924,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 							}
 						}
 						allProblems.compute(loadedModule) { _, oldV ->
-							val v = oldV ?: ArrayList()
+							val v = oldV ?: mutableListOf()
 							v.add(copy)
 							v
 						}
@@ -1035,7 +1035,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 			// encountered.  Actually, choose the modules that tied for the
 			// deepest parse, and only show those problems.
 			var deepestPosition = Long.MIN_VALUE
-			val deepestProblems = ArrayList<Problem>()
+			val deepestProblems = mutableListOf<Problem>()
 			for ((_, value) in problems)
 			{
 				for (problem in value)
@@ -1059,7 +1059,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 			return
 		}
 		// Filter the solutions to invocations of entry points.
-		val commands = ArrayList<CompiledCommand>()
+		val commands = mutableListOf<CompiledCommand>()
 		for ((key, value) in solutions)
 		{
 			val moduleEntryPoints = key.entryPoints

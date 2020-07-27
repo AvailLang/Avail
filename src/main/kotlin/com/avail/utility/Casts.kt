@@ -44,3 +44,16 @@ package com.avail.utility
  */
 @Suppress("UNCHECKED_CAST", "NOTHING_TO_INLINE")
 inline fun <I, O : I?> I.cast (): O = this as O
+
+/**
+ * If the receiver is `null`, answer `false`. Otherwise run the body with the
+ * non-`null` receiver and answer the resulting [Boolean].
+ *
+ * @receiver
+ *   Either `null` or a value to use as the receiver of the provided function.
+ * @param body
+ *   `true` iff the receiver is non-null and the [body] yields `true` for it.
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ */
+inline fun <T> T?.notNullAnd (body: T.() -> Boolean): Boolean =
+	this !== null && body(this)

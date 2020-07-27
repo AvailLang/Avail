@@ -43,7 +43,6 @@ import com.avail.stacks.exceptions.StacksScannerException
 import com.avail.stacks.tokens.BracketedStacksToken
 import com.avail.stacks.tokens.SectionKeywordStacksToken
 import com.avail.stacks.tokens.StacksToken
-import java.util.*
 
 /**
  * A scanner for Stacks comments.
@@ -99,7 +98,7 @@ class StacksScanner constructor (commentToken: A_Token, moduleName: String)
 	 * The index locations where a new [section][SectionKeywordStacksToken]
 	 * begins in in the
 	 */
-	internal val sectionStartLocations: ArrayList<Int>
+	internal val sectionStartLocations = mutableListOf<Int>()
 
 	/**
 	 * Increment new line
@@ -199,7 +198,6 @@ class StacksScanner constructor (commentToken: A_Token, moduleName: String)
 		this.lineNumber(commentToken.lineNumber())
 		this.filePosition(commentToken.start())
 		this.startOfTokenLinePosition(0)
-		this.sectionStartLocations = ArrayList(9)
 	}
 
 	/**

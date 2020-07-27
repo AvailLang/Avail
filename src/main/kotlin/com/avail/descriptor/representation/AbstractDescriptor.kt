@@ -125,11 +125,11 @@ import com.avail.serialization.SerializerOperation
 import com.avail.utility.Strings.newlineTab
 import com.avail.utility.cast
 import com.avail.utility.json.JSONWriter
+import com.avail.utility.safeWrite
 import com.avail.utility.visitor.AvailSubobjectVisitor
 import java.lang.reflect.Modifier
 import java.math.BigInteger
 import java.nio.ByteBuffer
-import java.util.ArrayList
 import java.util.Deque
 import java.util.IdentityHashMap
 import java.util.Spliterator
@@ -138,7 +138,6 @@ import java.util.concurrent.locks.ReadWriteLock
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.stream.Stream
 import kotlin.concurrent.read
-import kotlin.concurrent.write
 import kotlin.math.max
 import kotlin.math.min
 
@@ -746,7 +745,7 @@ abstract class AbstractDescriptor protected constructor (
 	override fun toString () = buildString {
 		val thisClass = this@AbstractDescriptor.javaClass
 		append(thisClass.simpleName)
-		val supers = ArrayList<Class<*>>()
+		val supers = mutableListOf<Class<*>>()
 		var cls: Class<*> = thisClass
 		while (cls != Any::class.java)
 		{
@@ -4044,7 +4043,7 @@ abstract class AbstractDescriptor protected constructor (
 					return@bitFieldsFor bitFields
 				}
 			}
-			bitFieldsLock.write {
+			bitFieldsLock.safeWrite {
 				// Try again, this time holding the write lock to avoid multiple
 				// threads trying to populate the cache.
 				var bitFields = bitFieldsCache[slot]
@@ -4054,7 +4053,7 @@ abstract class AbstractDescriptor protected constructor (
 				}
 				val slotAsEnum = slot as Enum<*>
 				val slotClass = slotAsEnum::class.java.declaringClass
-				bitFields = ArrayList()
+				bitFields = mutableListOf()
 				for (field in slotClass.declaredFields)
 				{
 					if (Modifier.isStatic(field.modifiers)

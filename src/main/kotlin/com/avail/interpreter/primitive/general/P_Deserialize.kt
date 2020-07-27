@@ -101,7 +101,7 @@ object P_Deserialize : Primitive(2, CanInline)
 		val deserializer = Deserializer(
 			input, interpreter.runtime())
 		deserializer.currentModule = module
-		val values = ArrayList<A_BasicObject>()
+		val values = mutableListOf<A_BasicObject>()
 		try
 		{
 			var value: A_BasicObject? = deserializer.deserialize()

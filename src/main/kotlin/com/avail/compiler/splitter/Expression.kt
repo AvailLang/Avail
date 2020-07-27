@@ -38,7 +38,6 @@ import com.avail.descriptor.phrases.PhraseDescriptor
 import com.avail.descriptor.types.A_Type
 import com.avail.exceptions.MalformedMessageException
 import com.avail.exceptions.SignatureException
-import java.util.*
 
 /**
  * An `Expression` represents a structural view of part of the
@@ -157,12 +156,10 @@ internal abstract class Expression constructor(val positionInName: Int)
 	 *   `true` if this expression recursively contains any section checkpoints,
 	 *   otherwise `false`.
 	 */
-	internal val hasSectionCheckpoints: Boolean
-		get()
-		{
-			val any = ArrayList<SectionCheckpoint>()
-			extractSectionCheckpointsInto(any)
-			return any.isNotEmpty()
+	internal val hasSectionCheckpoints: Boolean get () =
+		mutableListOf<SectionCheckpoint>().let {
+			extractSectionCheckpointsInto(it)
+			it.isNotEmpty()
 		}
 
 	/**

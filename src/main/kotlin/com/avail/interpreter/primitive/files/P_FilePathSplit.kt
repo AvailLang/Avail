@@ -75,7 +75,7 @@ object P_FilePathSplit : Primitive(1, CanInline, CanFold)
 				return interpreter.primitiveFailure(E_INVALID_PATH)
 			}
 
-		val components = ArrayList<A_String>()
+		val components = mutableListOf<A_String>()
 		for (component in path)
 		{
 			components.add(stringFrom(component.toString()))

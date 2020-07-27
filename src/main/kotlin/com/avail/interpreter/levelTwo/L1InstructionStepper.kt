@@ -98,7 +98,6 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport
 import com.avail.utility.cast
-import java.util.ArrayList
 import java.util.logging.Level
 import java.util.regex.Pattern
 
@@ -500,7 +499,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 				{
 					val numArgs = code.numArgs()
 					assert(code.primitive() === null)
-					val args: MutableList<AvailObject> = ArrayList(numArgs)
+					val args = mutableListOf<AvailObject>()
 					var i = 1
 					while (i <= numArgs)
 					{

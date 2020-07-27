@@ -69,7 +69,6 @@ import com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_COMPLEX_GROUP
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_GROUP
 import com.avail.exceptions.MalformedMessageException
 import com.avail.exceptions.SignatureException
-import java.util.*
 import kotlin.math.max
 import kotlin.math.min
 
@@ -766,9 +765,7 @@ internal class Group : Expression
 			// was the last iteration and didn't have a right side.
 			val leftArgCount = beforeDagger.yielders.size
 			val rightArgCount = afterDagger.yielders.size
-			val adjustedPermutationSize = leftArgCount + rightArgCount
-			val adjustedPermutationList =
-				ArrayList<Int>(adjustedPermutationSize)
+			val adjustedPermutationList = mutableListOf<Int>()
 			for (i in 1..leftArgCount)
 			{
 				// The left portion is the identity permutation, since
@@ -829,17 +826,17 @@ internal class Group : Expression
 
 	override fun toString(): String
 	{
-		val strings = ArrayList<String>()
+		val strings = mutableListOf<String>()
 		for (e in beforeDagger.expressions)
 		{
-			val builder = StringBuilder()
-			builder.append(e)
-			if (e.canBeReordered && e.explicitOrdinal != -1)
-			{
-				builder.appendCodePoint(
-					circledNumberCodePoint(e.explicitOrdinal))
+			val string = buildString {
+				append(e)
+				if (e.canBeReordered && e.explicitOrdinal != -1)
+				{
+					appendCodePoint(circledNumberCodePoint(e.explicitOrdinal))
+				}
 			}
-			strings.add(builder.toString())
+			strings.add(string)
 		}
 		if (hasDagger)
 		{
@@ -849,21 +846,17 @@ internal class Group : Expression
 				strings.add(e.toString())
 			}
 		}
-
-		val builder = StringBuilder()
-		builder.append("Group(")
-		var first = true
-		for (s in strings)
-		{
-			if (!first)
+		return buildString {
+			append("Group(")
+			var first = true
+			for (s in strings)
 			{
-				builder.append(", ")
+				if (!first) append(", ")
+				append(s)
+				first = false
 			}
-			builder.append(s)
-			first = false
+			append(')')
 		}
-		builder.append(')')
-		return builder.toString()
 	}
 
 	override fun printWithArguments(
@@ -935,10 +928,7 @@ internal class Group : Expression
 		val expressionsToVisit: MutableList<Expression?>
 		if (completeGroup && afterDagger.expressions.isNotEmpty())
 		{
-			expressionsToVisit = ArrayList(
-				beforeDagger.expressions.size
-					+ 1
-					+ afterDagger.expressions.size)
+			expressionsToVisit = mutableListOf()
 			expressionsToVisit.addAll(beforeDagger.expressions)
 			expressionsToVisit.add(null)  // Represents the dagger
 			expressionsToVisit.addAll(afterDagger.expressions)

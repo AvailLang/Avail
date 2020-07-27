@@ -58,10 +58,10 @@ import java.util.*
 internal class InstructionGenerator
 {
 	/** The instructions generated so far.  */
-	private val instructions = ArrayList<Int>()
+	private val instructions = mutableListOf<Int>()
 
 	/** The [Expression] that produced the corresponding [instructions]. */
-	private val expressionList = ArrayList<Expression>()
+	private val expressionList = mutableListOf<Expression>()
 
 	/**
 	 * Holds a sequence of (relocatable) instructions that will perform grammar
@@ -70,13 +70,13 @@ internal class InstructionGenerator
 	 * checks (like token matching) to filter out incorrect matches, avoiding
 	 * expensive type tests.
 	 */
-	private val delayedArgumentInstructions = ArrayList<Int>()
+	private val delayedArgumentInstructions = mutableListOf<Int>()
 
 	/**
 	 * A [List] parallel to [delayedArgumentInstructions], which indicates the
 	 * expression that produced each delayed instruction.
 	 */
-	private val delayedExpressionList = ArrayList<Expression>()
+	private val delayedExpressionList = mutableListOf<Expression>()
 
 	/** Whether to emit case-insensitive keyword matches at the moment. */
 	var caseInsensitive = false
@@ -111,8 +111,7 @@ internal class InstructionGenerator
 		 * location after combining with this label's position to form a parsing
 		 * instruction.
 		 */
-		val operationsToFix: MutableList<Pair<Int, ParsingOperation>> =
-			ArrayList()
+		val operationsToFix = mutableListOf<Pair<Int, ParsingOperation>>()
 
 		/**  Has an instruction using this label as an operand been emitted? */
 		val isUsed: Boolean

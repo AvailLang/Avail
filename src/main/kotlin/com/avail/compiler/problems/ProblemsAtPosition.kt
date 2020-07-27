@@ -34,7 +34,6 @@ package com.avail.compiler.problems
 
 import com.avail.compiler.scanning.LexingState
 import com.avail.utility.evaluation.Describer
-import java.util.*
 
 /**
  * An aggregate of problems at a specific token.  It also includes the [String]
@@ -74,7 +73,7 @@ class ProblemsAtPosition internal constructor(
 	describers: List<Describer>) : Comparable<ProblemsAtPosition>
 {
 	/** A list of [Describer]s able to describe the problems.  */
-	internal val describers: List<Describer> = ArrayList(describers)
+	internal val describers = describers.toList()
 
 	override fun compareTo(other: ProblemsAtPosition): Int =
 		lexingState.position.compareTo(other.position)

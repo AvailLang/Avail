@@ -35,7 +35,6 @@ package com.avail.dispatch
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.types.A_Type
 import com.avail.utility.cast
-import java.util.*
 
 /**
  * `LookupTreeTraverser` is used to enumerate the nodes of a [LookupTree].
@@ -87,7 +86,7 @@ protected constructor(
 	 * The stack of outstanding actions, which allows the tree to be traversed
 	 * without recursion, only iteration.
 	 */
-	private val actionStack: MutableList<() -> Unit> = ArrayList()
+	private val actionStack = mutableListOf<() -> Unit>()
 
 	/**
 	 * An expanded internal node has been reached, having expanded it if it

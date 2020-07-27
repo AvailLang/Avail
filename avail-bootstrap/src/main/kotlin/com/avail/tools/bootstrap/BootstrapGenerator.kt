@@ -55,7 +55,52 @@ import com.avail.interpreter.primitive.general.P_EmergencyExit
 import com.avail.interpreter.primitive.methods.P_AddSemanticRestriction
 import com.avail.interpreter.primitive.sets.P_TupleToSet
 import com.avail.interpreter.primitive.types.P_CreateEnumeration
+import com.avail.tools.bootstrap.Resources.Key.availCopyright
+import com.avail.tools.bootstrap.Resources.Key.availModuleName
+import com.avail.tools.bootstrap.Resources.Key.bootstrapDefineSpecialObjectMacro
+import com.avail.tools.bootstrap.Resources.Key.bootstrapDefiningMethod
+import com.avail.tools.bootstrap.Resources.Key.bootstrapMacroNames
+import com.avail.tools.bootstrap.Resources.Key.bootstrapMacros
+import com.avail.tools.bootstrap.Resources.Key.bootstrapSpecialObject
+import com.avail.tools.bootstrap.Resources.Key.definingMethodUse
+import com.avail.tools.bootstrap.Resources.Key.definingSpecialObjectUse
+import com.avail.tools.bootstrap.Resources.Key.errorCodesModuleName
+import com.avail.tools.bootstrap.Resources.Key.falliblePrimitivesModuleName
+import com.avail.tools.bootstrap.Resources.Key.generalModuleHeader
+import com.avail.tools.bootstrap.Resources.Key.generatedModuleNotice
+import com.avail.tools.bootstrap.Resources.Key.infalliblePrimitivesModuleName
+import com.avail.tools.bootstrap.Resources.Key.invokePrimitiveFailureFunctionMethod
+import com.avail.tools.bootstrap.Resources.Key.invokePrimitiveFailureFunctionMethodUse
+import com.avail.tools.bootstrap.Resources.Key.originModuleHeader
+import com.avail.tools.bootstrap.Resources.Key.originModuleName
+import com.avail.tools.bootstrap.Resources.Key.parameterPrefix
+import com.avail.tools.bootstrap.Resources.Key.primitiveCommonTestPackageName
+import com.avail.tools.bootstrap.Resources.Key.primitiveCommonTestPackageRepresentativeHeader
+import com.avail.tools.bootstrap.Resources.Key.primitiveCoverageTestCaseFailed
+import com.avail.tools.bootstrap.Resources.Key.primitiveCoverageTestCaseFailedSpecial
+import com.avail.tools.bootstrap.Resources.Key.primitiveCoverageTestCaseOk
+import com.avail.tools.bootstrap.Resources.Key.primitiveCoverageTestModuleHeader
+import com.avail.tools.bootstrap.Resources.Key.primitiveCoverageTestModuleName
+import com.avail.tools.bootstrap.Resources.Key.primitiveCoverageTestPackageName
+import com.avail.tools.bootstrap.Resources.Key.primitiveCoverageTestPackageRepresentativeHeader
+import com.avail.tools.bootstrap.Resources.Key.primitiveCoverageTestSubPackageRepresentativeHeader
+import com.avail.tools.bootstrap.Resources.Key.primitiveFailureFunctionGetterMethod
+import com.avail.tools.bootstrap.Resources.Key.primitiveFailureFunctionName
+import com.avail.tools.bootstrap.Resources.Key.primitiveFailureFunctionSetterMethod
+import com.avail.tools.bootstrap.Resources.Key.primitiveFailureMethod
+import com.avail.tools.bootstrap.Resources.Key.primitiveFailureMethodUse
+import com.avail.tools.bootstrap.Resources.Key.primitiveFailureVariableName
+import com.avail.tools.bootstrap.Resources.Key.primitiveKeyword
+import com.avail.tools.bootstrap.Resources.Key.primitiveSemanticRestriction
+import com.avail.tools.bootstrap.Resources.Key.primitiveSemanticRestrictionUse
+import com.avail.tools.bootstrap.Resources.Key.primitiveTestSuiteImplementation
+import com.avail.tools.bootstrap.Resources.Key.primitiveTestSuiteName
+import com.avail.tools.bootstrap.Resources.Key.primitivesModuleName
+import com.avail.tools.bootstrap.Resources.Key.representativeModuleName
+import com.avail.tools.bootstrap.Resources.Key.specialObjectUse
+import com.avail.tools.bootstrap.Resources.Key.specialObjectsModuleName
 import com.avail.tools.bootstrap.Resources.errorCodeCommentKey
+import com.avail.tools.bootstrap.Resources.errorCodeExceptionKey
 import com.avail.tools.bootstrap.Resources.errorCodeKey
 import com.avail.tools.bootstrap.Resources.errorCodesBaseName
 import com.avail.tools.bootstrap.Resources.generatedPackageName
@@ -69,14 +114,11 @@ import com.avail.tools.bootstrap.Resources.specialObjectKey
 import com.avail.tools.bootstrap.Resources.specialObjectTypeKey
 import com.avail.tools.bootstrap.Resources.specialObjectsBaseName
 import com.avail.tools.bootstrap.Resources.stringify
-import com.avail.tools.bootstrap.Resources.Key.*
-import com.avail.tools.bootstrap.Resources.errorCodeExceptionKey
 import com.avail.utility.UTF8ResourceBundleControl
 import java.io.File
 import java.io.IOException
 import java.io.PrintWriter
 import java.text.MessageFormat
-import java.util.ArrayList
 import java.util.Comparator
 import java.util.Date
 import java.util.HashSet
@@ -169,7 +211,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 		 */
 		private fun primitives(fallible: Boolean?): List<Primitive>
 		{
-			val primitives: MutableList<Primitive> = ArrayList()
+			val primitives = mutableListOf<Primitive>()
 			for (i in 1 .. maxPrimitiveNumber())
 			{
 				val primitive = byPrimitiveNumberOrNull(i)
@@ -213,7 +255,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 		@JvmStatic
 		fun main(args: Array<String>)
 		{
-			val languages: MutableList<String> = ArrayList()
+			val languages = mutableListOf<String>()
 			if (args.isEmpty())
 			{
 				languages.add(System.getProperty("user.language"))
@@ -712,14 +754,10 @@ class BootstrapGenerator constructor(private val locale: Locale)
 				{
 					builder.append("{")
 					val instances = varType.instances()
-					val codes: MutableList<A_Number> = ArrayList()
-					for (instance in instances)
-					{
-						codes.add(instance)
-					}
-					codes.sortWith(Comparator { o1: A_Number, o2: A_Number ->
-						o1.extractInt().compareTo(o2.extractInt())
-					})
+					val codes = instances.sortedWith(
+						Comparator { o1: A_Number, o2: A_Number ->
+							o1.extractInt().compareTo(o2.extractInt())
+						})
 					for (code in codes)
 					{
 						val errorCodeName = errorCodeName(code)
@@ -894,14 +932,10 @@ class BootstrapGenerator constructor(private val locale: Locale)
 					if (varType.isSubtypeOf(naturalNumbers))
 					{
 						val instances = varType.instances()
-						val codes: MutableList<A_Number> = ArrayList()
-						for (instance in instances)
-						{
-							codes.add(instance)
-						}
-						codes.sortWith(Comparator { o1: A_Number, o2: A_Number ->
-							o1.extractInt().compareTo(o2.extractInt())
-						})
+						val codes = instances.sortedWith(
+							Comparator { o1: A_Number, o2: A_Number ->
+								o1.extractInt().compareTo(o2.extractInt())
+							})
 						for (code in codes)
 						{
 							formatArgs[raiseIndex++] = exceptionName(code)

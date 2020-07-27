@@ -97,7 +97,7 @@ class L1InstructionWriter constructor(
 	/**
 	 * The collection of literal objects that have been accumulated thus far.
 	 */
-	internal val literals: MutableList<AvailObject> = ArrayList()
+	internal val literals: MutableList<AvailObject> = mutableListOf()
 
 	/**
 	 * An inverse mapping of the literal objects encountered thus far.  The map
@@ -109,23 +109,23 @@ class L1InstructionWriter constructor(
 	 * The [List] of argument [types][TypeDescriptor] for this
 	 * [compiled&#32;code][CompiledCodeDescriptor].
 	 */
-	private var argumentTypes: MutableList<A_Type> = ArrayList()
+	private var argumentTypes = mutableListOf<A_Type>()
 
 	/** The return type of the [FunctionDescriptor] under construction. */
 	var returnType: A_Type? = null
 
 	/** The types of the local variables. */
-	private val localTypes = ArrayList<A_Type>()
+	private val localTypes = mutableListOf<A_Type>()
 
 	/** The types of the local constants. */
-	private val constantTypes = ArrayList<A_Type>()
+	private val constantTypes = mutableListOf<A_Type>()
 
 	/**
 	 * The types of the outer (lexically captured) variables.  Note that
 	 * arguments of outer scopes can also be captured, which aren't technically
 	 * variables.
 	 */
-	private val outerTypes = ArrayList<A_Type>()
+	private val outerTypes = mutableListOf<A_Type>()
 
 	/**
 	 * The [primitive][Primitive] [number][Primitive.primitiveNumber] of the
@@ -154,7 +154,7 @@ class L1InstructionWriter constructor(
 	 * magnitude.  This introduces an intentional encoding hole (the value 1
 	 * represents negative zero), which we may exploit at a later date.
 	 */
-	private val lineNumberEncodedDeltas = ArrayList<Int>()
+	private val lineNumberEncodedDeltas = mutableListOf<Int>()
 
 	/**
 	 * The [mechanism][L1StackTracker] used to ensure the stack is correctly

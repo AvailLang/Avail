@@ -1586,7 +1586,7 @@ enum class SerializerOperation constructor(
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			val frameSlotCount = obj.numSlots()
-			val frameSlotsList = ArrayList<AvailObject>(frameSlotCount)
+			val frameSlotsList = mutableListOf<AvailObject>()
 			for (i in 1..frameSlotCount)
 			{
 				frameSlotsList.add(obj.frameAt(i))
@@ -1639,7 +1639,7 @@ enum class SerializerOperation constructor(
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			assert(obj.isInstanceOf(TypeDescriptor.Types.METHOD.o))
-			val pairs = ArrayList<A_Tuple>()
+			val pairs = mutableListOf<A_Tuple>()
 			for (bundle in obj.bundles())
 			{
 				val atom = bundle.message()
@@ -2832,8 +2832,7 @@ enum class SerializerOperation constructor(
 			val className = stringFrom(baseClass.name)
 			val ancestorMap = obj.javaAncestors()
 			val myParameters = ancestorMap.mapAt(rawPojoType)
-			val processedParameters =
-				ArrayList<A_BasicObject>(myParameters.tupleSize())
+			val processedParameters = mutableListOf<A_BasicObject>()
 			for (parameter in myParameters)
 			{
 				assert(!parameter.isTuple)
@@ -2904,8 +2903,7 @@ enum class SerializerOperation constructor(
 			{
 				val baseClass = entry.key().javaObjectNotNull<Class<*>>()
 				val className = stringFrom(baseClass.name)
-				val processedParameters =
-					ArrayList<A_BasicObject>(entry.value().tupleSize())
+				val processedParameters = mutableListOf<A_BasicObject>()
 				for (parameter in entry.value())
 				{
 					assert(!parameter.isTuple)
@@ -2938,8 +2936,7 @@ enum class SerializerOperation constructor(
 					val baseClass = Class.forName(
 						entry.key().asNativeString(), true, classLoader)
 					val rawPojo = equalityPojo(baseClass)
-					val processedParameters =
-						ArrayList<AvailObject>(entry.value().tupleSize())
+					val processedParameters = mutableListOf<AvailObject>()
 					for (parameter in entry.value())
 					{
 						if (parameter.isTuple)

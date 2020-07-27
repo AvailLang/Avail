@@ -107,11 +107,12 @@ import com.avail.exceptions.AvailErrorCode.E_UP_ARROW_MUST_FOLLOW_ARGUMENT
 import com.avail.exceptions.AvailErrorCode.E_VERTICAL_BAR_MUST_SEPARATE_TOKENS_OR_SIMPLE_GROUPS
 import com.avail.exceptions.MalformedMessageException
 import com.avail.exceptions.SignatureException
-import com.avail.utility.Locks.auto
+import com.avail.utility.safeWrite
 import com.avail.utility.cast
 import java.util.*
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.locks.ReentrantReadWriteLock
+import kotlin.concurrent.read
 
 /**
  * `MessageSplitter` is used to split Avail message names into a sequence of
@@ -841,7 +842,7 @@ class MessageSplitter
 		!peekAheadFor(VERTICAL_BAR) && return firstExpression
 		// It must be an alternation.
 		checkAlternative(firstExpression)
-		val alternatives = ArrayList<Expression>()
+		val alternatives = mutableListOf<Expression>()
 		alternatives.add(firstExpression)
 		while (peekFor(VERTICAL_BAR)) {
 			val nextExpression = parseElement()
@@ -1347,7 +1348,7 @@ class MessageSplitter
 		 * some [ParsingOperation]s.  The inverse [Map] (but containing
 		 * one-based indices) is kept in #constantsMap}.
 		 */
-		private val constantsList = ArrayList<AvailObject>(100)
+		private val constantsList = mutableListOf<AvailObject>()
 
 		/**
 		 * A statically-scoped map from Avail object to one-based index (into
@@ -1419,14 +1420,14 @@ class MessageSplitter
 		@JvmStatic
 		fun indexForConstant(constant: A_BasicObject): Int {
 			val strongConstant = constant.makeShared()
-			auto(constantsLock.readLock()).use {
+			constantsLock.read {
 				val index = constantsMap[strongConstant]
 				if (index !== null) {
 					return index
 				}
 			}
 
-			auto(constantsLock.writeLock()).use {
+			constantsLock.safeWrite {
 				val index = constantsMap[strongConstant]
 				if (index !== null) {
 					return index
@@ -1457,10 +1458,8 @@ class MessageSplitter
 		 *   The [AvailObject] at the given index.
 		 */
 		@JvmStatic
-		fun constantForIndex(index: Int): AvailObject {
-			auto(constantsLock.readLock())
-				.use { return constantsList[index - 1] }
-		}
+		fun constantForIndex(index: Int): AvailObject =
+			constantsLock.read { constantsList[index - 1] }
 
 		/**
 		 * If the condition is true, throw a [MalformedMessageException] with

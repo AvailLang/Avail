@@ -44,7 +44,6 @@ import com.avail.optimizer.L2Generator
 import com.avail.optimizer.RegisterSet
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
-import java.util.ArrayList
 
 /**
  * Create a fixed sized [tuple&#32;type][TupleTypeDescriptor] from the
@@ -68,15 +67,11 @@ object L2_CREATE_TUPLE_TYPE : L2Operation(
 		val tupleType =
 			instruction.operand<L2WriteBoxedOperand>(1)
 		val elements = types.elements()
-		val size = elements.size
 		if (registerSet.allRegistersAreConstant(elements))
 		{
 			// The types are all constants, so create the tuple type statically.
-			val constants: MutableList<A_Type> = ArrayList(size)
-			for (element in elements)
-			{
-				constants.add(registerSet.constantAt(element.register()))
-			}
+			val constants =
+				elements.map { registerSet.constantAt(it.register()) }
 			val newTupleType =
 				TupleTypeDescriptor.tupleTypeForTypes(constants)
 			newTupleType.makeImmutable()
@@ -85,32 +80,26 @@ object L2_CREATE_TUPLE_TYPE : L2Operation(
 		}
 		else
 		{
-			val newTypes: MutableList<A_Type> = ArrayList(size)
-			for (element in elements)
-			{
-				if (registerSet.hasTypeAt(element.register()))
+			val newTypes = elements.map {
+				if (registerSet.hasTypeAt(it.register()))
 				{
-					val meta = registerSet.typeAt(element.register())
-					newTypes.add(
-						if (meta.isInstanceMeta)
-						{
-							meta.instance()
-						}
-						else
-						{
-							@Suppress("unused")
-							ANY.o
-						})
+					val meta = registerSet.typeAt(it.register())
+					if (meta.isInstanceMeta)
+					{
+						meta.instance()
+					}
+					else
+					{
+						ANY.o
+					}
 				}
 				else
 				{
-					newTypes.add(ANY.o)
+					ANY.o
 				}
 			}
-			val newTupleType =
-				TupleTypeDescriptor.tupleTypeForTypes(newTypes)
-			val newTupleMeta =
-				InstanceMetaDescriptor.instanceMeta(newTupleType)
+			val newTupleType = TupleTypeDescriptor.tupleTypeForTypes(newTypes)
+			val newTupleMeta = InstanceMetaDescriptor.instanceMeta(newTupleType)
 			newTupleMeta.makeImmutable()
 			registerSet.removeConstantAt(tupleType.register())
 			registerSet.typeAtPut(

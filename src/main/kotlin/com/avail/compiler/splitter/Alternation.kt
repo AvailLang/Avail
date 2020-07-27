@@ -40,8 +40,6 @@ import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.ListPhraseTypeDescriptor.Companion.emptyListPhraseType
-import java.util.*
-import java.util.Collections.unmodifiableList
 
 /**
  * An `Alternation` is a special [expression][Expression] indicated by
@@ -69,8 +67,7 @@ internal class Alternation constructor(
 	alternatives: List<Expression>) : Expression(positionInName)
 {
 	/** The alternative [expressions][Expression].  */
-	internal val alternatives: List<Expression> =
-		unmodifiableList(ArrayList(alternatives))
+	internal val alternatives: List<Expression> = alternatives.toList()
 
 	override val isLowerCase: Boolean
 		get() = alternatives.stream().allMatch(Expression::isLowerCase)

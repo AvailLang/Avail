@@ -979,7 +979,7 @@ class TypeConsistencyTest
 			/**
 			 * The list of all `Node`s except BOTTOM.
 			 */
-			private val nonBottomTypes: MutableList<Node> = ArrayList()
+			private val nonBottomTypes = mutableListOf<Node>()
 
 			/* Set this up before creating the BOTTOM node. */
 			init
@@ -1687,7 +1687,7 @@ class TypeConsistencyTest
 					}
 				}
 			}
-			val allTypesList: List<A_Type> = ArrayList(allTypes)
+			val allTypesList = allTypes.toList()
 			val inverse: MutableMap<A_Type?, Int> = HashMap()
 			val names = arrayOfNulls<String>(allTypes.size)
 			for (i in allTypesList.indices)

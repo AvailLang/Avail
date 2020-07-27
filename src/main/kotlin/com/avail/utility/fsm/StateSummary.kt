@@ -119,7 +119,7 @@ internal class StateSummary<
 
 	init
 	{
-		automaticTransitionTable = ArrayList()
+		automaticTransitionTable = mutableListOf()
 	}
 
 	/**
@@ -164,7 +164,7 @@ internal class StateSummary<
 				}
 				else
 				{
-					transitionTable.computeIfAbsent(event) { ArrayList() }
+					transitionTable.computeIfAbsent(event) { mutableListOf() }
 				}
 		collection.add(arc)
 	}
@@ -192,7 +192,7 @@ internal class StateSummary<
 	fun allTransitionArcs(): Collection<StateTransitionArc<
 		State, Event, GuardKey, ActionKey, Memento>>
 	{
-		val aggregate = ArrayList<StateTransitionArc<
+		val aggregate = mutableListOf<StateTransitionArc<
 			State, Event, GuardKey, ActionKey, Memento>>()
 		for (transitionArcs in transitionTable.values)
 		{

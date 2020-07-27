@@ -41,7 +41,6 @@ import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
-import java.util.*
 
 /**
  * Extract the given "reference" edge's target level two offset as an [Int],
@@ -65,10 +64,7 @@ object L2_SAVE_ALL_AND_PC_TO_INT : L2Operation(
 	override fun targetEdges(instruction: L2Instruction): List<L2PcOperand>
 	{
 		assert(this == instruction.operation())
-		val edges: MutableList<L2PcOperand> = ArrayList(2)
-		edges.add(instruction.operand(0))
-		edges.add(instruction.operand(3))
-		return edges
+		return listOf(instruction.operand(0), instruction.operand(3))
 	}
 
 	override fun hasSideEffect(

@@ -50,50 +50,50 @@ import com.avail.utility.json.JSONWriter
 /**
  * A comment implementation of grammatical restrictions
  *
+ * @property forbids
+ *   The forbids tag contents.
  * @author Richard Arriaga &lt;Rich@availlang.org&gt;
  *
- * @property forbids
- *   The forbids tag contents
- *
  * @constructor
+ *
  * Construct a new [GrammaticalRestrictionComment].
  *
  * @param signature
- * The [signature][CommentSignature] of the class/method the
- * comment describes.
+ *   The [signature][CommentSignature] of the class/method the comment
+ *   describes.
  * @param commentStartLine
- * The start line in the module the comment being parsed appears.
+ *   The start line in the module the comment being parsed appears.
  * @param author
- * The [authors][StacksAuthorTag] of the implementation.
+ *   The [authors][StacksAuthorTag] of the implementation.
  * @param sees
- * A [ArrayList] of any [&quot;@sees&quot;][StacksSeeTag] references.
+ *   A list of any [@sees][StacksSeeTag] references.
  * @param description
- * The overall description of the implementation
+ *   The overall description of the implementation.
  * @param categories
- * The categories the implementation appears in
+ *   The categories the implementation appears in.
  * @param aliases
- * The aliases the implementation is known by
+ *   The aliases the implementation is known by.
  * @param forbids
- * The forbids tag contents
+ *   The forbids tag contents.
  */
 class GrammaticalRestrictionComment constructor(
-		signature: CommentSignature,
-		commentStartLine: Int,
-		author: ArrayList<StacksAuthorTag>,
-		sees: ArrayList<StacksSeeTag>,
-		description: StacksDescription,
-		categories: ArrayList<StacksCategoryTag>,
-		aliases: ArrayList<StacksAliasTag>,
-		private val forbids: MutableMap<Int, StacksForbidsTag>)
-	: AvailComment(
-		signature,
-		commentStartLine,
-		author,
-		sees,
-		description,
-		categories,
-		aliases,
-		false)
+	signature: CommentSignature,
+	commentStartLine: Int,
+	author: List<StacksAuthorTag>,
+	sees: List<StacksSeeTag>,
+	description: StacksDescription,
+	categories: List<StacksCategoryTag>,
+	aliases: List<StacksAliasTag>,
+	private val forbids: MutableMap<Int, StacksForbidsTag>)
+: AvailComment(
+	signature,
+	commentStartLine,
+	author,
+	sees,
+	description,
+	categories,
+	aliases,
+	false)
 {
 
 	/**

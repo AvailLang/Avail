@@ -38,7 +38,6 @@ import com.avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
-import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.StringDescriptor.Companion.formatString
@@ -60,7 +59,7 @@ import com.avail.interpreter.Primitive.Flag.HasSideEffect
 import com.avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
 import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.execution.Interpreter.Companion.runOutermostFunction
-import java.util.*
+import java.util.TimerTask
 
 /**
  * **Primitive:** Schedule a new [fiber][FiberDescriptor] to execute the
@@ -77,10 +76,7 @@ object P_DelayedFork : Primitive(
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(4)
-		val sleepMillis = interpreter.argument(0)
-		val function = interpreter.argument(1)
-		val argTuple = interpreter.argument(2)
-		val priority = interpreter.argument(3)
+		val (sleepMillis, function, argTuple, priority) = interpreter.argsBuffer
 
 		// Ensure that the function is callable with the specified arguments.
 		val numArgs = argTuple.tupleSize()
@@ -89,24 +85,19 @@ object P_DelayedFork : Primitive(
 		{
 			return interpreter.primitiveFailure(E_INCORRECT_NUMBER_OF_ARGUMENTS)
 		}
-		val callArgs = ArrayList<AvailObject>(numArgs)
 		val tupleType = function.kind().argsTupleType()
-		for (i in 1 .. numArgs)
-		{
-			val anArg = argTuple.tupleAt(i)
-			if (!anArg.isInstanceOf(tupleType.typeAtIndex(i)))
+		val callArgs = (1 .. numArgs).map {
+			val anArg = argTuple.tupleAt(it)
+			if (!anArg.isInstanceOf(tupleType.typeAtIndex(it)))
 			{
 				return interpreter.primitiveFailure(E_INCORRECT_ARGUMENT_TYPE)
 			}
-			callArgs.add(anArg)
+			anArg
 		}
 		// Now that we know that the call will really happen, share the function
 		// and the arguments.
 		function.makeShared()
-		for (arg in callArgs)
-		{
-			arg.makeShared()
-		}
+		callArgs.forEach { it.makeShared() }
 		val current = interpreter.fiber()
 		val newFiber = newFiber(
 			function.kind().returnType(),

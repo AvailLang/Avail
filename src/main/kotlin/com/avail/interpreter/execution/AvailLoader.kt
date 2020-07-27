@@ -144,6 +144,7 @@ import com.avail.interpreter.primitive.methods.P_Alias
 import com.avail.io.TextInterface
 import com.avail.utility.StackPrinter
 import com.avail.utility.evaluation.Combinator.recurse
+import com.avail.utility.safeWrite
 import java.util.ArrayDeque
 import java.util.Arrays
 import java.util.concurrent.locks.ReentrantLock
@@ -151,7 +152,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock
 import javax.annotation.concurrent.GuardedBy
 import kotlin.concurrent.read
 import kotlin.concurrent.withLock
-import kotlin.concurrent.write
 
 /**
  * An `AvailLoader` is responsible for orchestrating module-level side-effects,
@@ -339,7 +339,7 @@ class AvailLoader(
 						// Just replace it, even if another thread beat
 						// us to the punch, since it's semantically
 						// idempotent.
-						latin1Lock.write {
+						latin1Lock.safeWrite {
 							latin1ApplicableLexers[codePoint] = tupleOfLexers
 						}
 						continuation(tupleOfLexers!!)
@@ -376,7 +376,7 @@ class AvailLoader(
 					// Just replace it, even if another thread beat
 					// us to the punch, since it's semantically
 					// idempotent.
-					nonLatin1Lock.write {
+					nonLatin1Lock.safeWrite {
 						nonLatin1Lexers.put(codePoint, tupleOfLexers!!)
 					}
 				}

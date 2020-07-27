@@ -52,7 +52,6 @@ import com.avail.descriptor.tuples.TupleDescriptor.Companion.tupleFromIntegerLis
 import com.avail.descriptor.tuples.TwoByteStringDescriptor.Companion.generateTwoByteString
 import com.avail.utility.Strings.increaseIndentation
 import java.io.OutputStream
-import java.util.*
 
 /**
  * A `SerializerOperandEncoding` is an encoding algorithm for part of a
@@ -414,7 +413,7 @@ internal enum class SerializerOperandEncoding
 		{
 			// Reconstruct into whatever tuple representation is most compact.
 			val tupleSize = readCompressedPositiveInt(deserializer)
-			val list = ArrayList<Int>(tupleSize)
+			val list = mutableListOf<Int>()
 			for (i in 0 until tupleSize)
 			{
 				list.add(readCompressedPositiveInt(deserializer))

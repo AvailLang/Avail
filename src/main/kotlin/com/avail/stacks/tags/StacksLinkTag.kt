@@ -85,7 +85,7 @@ class StacksLinkTag : StacksTag
 	constructor(link: QuotedStacksToken)
 	{
 		this.link = link
-		this.displayLinkTokens = ArrayList()
+		this.displayLinkTokens = mutableListOf()
 	}
 
 	/**

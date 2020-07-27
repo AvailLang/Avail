@@ -67,7 +67,6 @@ import java.nio.file.InvalidPathException
 import java.nio.file.NoSuchFileException
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption
-import java.util.ArrayList
 
 /**
  * **Primitive:** Rename the source [path][Path] to the destination path. Try
@@ -123,7 +122,7 @@ object P_FileRename : Primitive(6, CanInline, HasSideEffect)
 		val replace = replaceExisting.extractBoolean()
 		runtime.ioSystem().executeFileTask(
 			Runnable {
-               val options = ArrayList<CopyOption>()
+               val options = mutableListOf<CopyOption>()
                if (replace)
                {
                    options.add(StandardCopyOption.REPLACE_EXISTING)

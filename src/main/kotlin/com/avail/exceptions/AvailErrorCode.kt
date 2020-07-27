@@ -829,9 +829,7 @@ enum class AvailErrorCode constructor(val code: Int)
 		 * @return
 		 *   The error code, or `null` if not defined.
 		 */
-		@JvmStatic
-		fun byNumericCode(numericCode: Int): AvailErrorCode? =
-			byNumericCode[numericCode]
+		fun byNumericCode(numericCode: Int) = byNumericCode[numericCode]
 
 		/**
 		 * Answer all valid [numeric&#32;error&#32;codes][code].
@@ -839,20 +837,7 @@ enum class AvailErrorCode constructor(val code: Int)
 		 * @return
 		 *   A [list][List] of all valid numeric error codes.
 		 */
-		@JvmStatic
-		fun allNumericCodes(): List<Int>
-		{
-			val codes = ArrayList<Int>(values().size)
-			for (code in values())
-			{
-				// All right, not quite *all* of the numeric error codes, just
-				// the ones that are encountered in typical ways.
-				if (code.code > 0)
-				{
-					codes.add(code.code)
-				}
-			}
-			return codes
-		}
+		fun allNumericCodes() =
+			values().filter { it.code > 0 }.map { it.code }
 	}
 }

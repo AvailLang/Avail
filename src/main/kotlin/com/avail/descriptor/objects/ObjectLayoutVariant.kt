@@ -42,9 +42,9 @@ import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.sets.A_Set
+import com.avail.utility.safeWrite
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
-import kotlin.concurrent.write
 
 /**
  * The [ObjectLayoutVariant]s capture field layouts for objects and object
@@ -182,7 +182,7 @@ class ObjectLayoutVariant private constructor(
 			// write lock, abandoning it for the existing one if found.
 			// Instead, hold the write lock, test again, and create and add if
 			// necessary.
-			return variantsLock.write {
+			return variantsLock.safeWrite {
 				when (val theirVariant = allVariants[allFields]) {
 					null -> ObjectLayoutVariant(allFields, ++variantsCounter)
 						.also { allVariants[allFields] = it }

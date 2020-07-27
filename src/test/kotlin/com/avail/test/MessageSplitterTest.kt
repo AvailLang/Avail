@@ -95,7 +95,6 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
-import java.util.ArrayList
 import java.util.Arrays
 import java.util.stream.Stream
 
@@ -1547,7 +1546,7 @@ class MessageSplitterTest private constructor ()
 			)
 		)
 		val instructionsTuple = splitter.instructionsTupleFor(splitCase.listPhraseType)
-		val instructionsList: MutableList<Int> = ArrayList()
+		val instructionsList = mutableListOf<Int>()
 		for (instruction in instructionsTuple)
 		{
 			instructionsList.add(instruction.extractInt())

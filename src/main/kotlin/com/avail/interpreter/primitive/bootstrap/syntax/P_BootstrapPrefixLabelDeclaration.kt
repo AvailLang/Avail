@@ -124,7 +124,7 @@ object P_BootstrapPrefixLabelDeclaration : Primitive(3, CanInline, Bootstrap)
 
 		// Re-extract all the argument types so we can specify the exact type of
 		// the continuation.
-		val blockArgumentTypes = ArrayList<A_Type>()
+		val blockArgumentTypes = mutableListOf<A_Type>()
 		if (optionalBlockArgumentsList.expressionsSize() > 0)
 		{
 			assert(optionalBlockArgumentsList.expressionsSize() == 1)

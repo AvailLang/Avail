@@ -224,7 +224,7 @@ class RegisterState
 			}
 			else
 			{
-				origins = ArrayList(origins)
+				origins = origins.toMutableList()
 				origins.remove(origin)
 			}
 		}
@@ -284,12 +284,13 @@ class RegisterState
 		{
 			if (PrefixSharingList.last(invertedOrigins) === invertedOrigin)
 			{
-				invertedOrigins =
-					PrefixSharingList.withoutLast(invertedOrigins).toMutableList()
+				invertedOrigins = PrefixSharingList
+					.withoutLast(invertedOrigins)
+					.toMutableList()
 			}
 			else
 			{
-				invertedOrigins = ArrayList(invertedOrigins)
+				invertedOrigins = invertedOrigins.toMutableList()
 				invertedOrigins.remove(invertedOrigin)
 			}
 		}

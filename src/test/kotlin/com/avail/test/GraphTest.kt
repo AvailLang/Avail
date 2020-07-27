@@ -35,7 +35,6 @@ import com.avail.utility.Graph
 import com.avail.utility.Graph.GraphPreconditionFailure
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import java.util.ArrayList
 import java.util.HashSet
 
 /**
@@ -256,9 +255,7 @@ class GraphTest
 				}
 			}
 		}
-		val visitedVertices: MutableList<Int> = ArrayList(
-			scale
-		)
+		val visitedVertices = mutableListOf<Int>()
 		val mainThread = Thread.currentThread()
 		tinyGraph.parallelVisit { vertex: Int, completion: Function0<Unit> ->
 			Assertions.assertEquals(

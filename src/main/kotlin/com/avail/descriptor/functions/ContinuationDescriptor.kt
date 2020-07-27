@@ -724,15 +724,10 @@ class ContinuationDescriptor private constructor(
 				action(emptyList())
 				return
 			}
-			val allTypes: MutableList<A_Type> = ArrayList()
-			for (frame in frames)
-			{
+			val allTypes = frames.flatMap { frame ->
 				val code = frame.function().code()
 				val paramsType = code.functionType().argsTupleType()
-				for (i in 1..code.numArgs())
-				{
-					allTypes.add(paramsType.typeAtIndex(i))
-				}
+				(1..code.numArgs()).map { paramsType.typeAtIndex(it) }
 			}
 			val strings = arrayOfNulls<String>(lines)
 			stringifyThen(runtime, textInterface, allTypes) { allTypeNames ->

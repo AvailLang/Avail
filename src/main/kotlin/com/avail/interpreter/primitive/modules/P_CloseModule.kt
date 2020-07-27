@@ -49,7 +49,7 @@ import com.avail.interpreter.execution.Interpreter
  * **Primitive**: Close the specified anonymous [module][A_Module],
  * thereby preventing the addition of any new statements.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_CloseModule : Primitive(1, CanInline)
 {

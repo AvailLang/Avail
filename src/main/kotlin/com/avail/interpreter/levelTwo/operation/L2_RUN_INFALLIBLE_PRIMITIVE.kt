@@ -31,7 +31,6 @@
  */
 package com.avail.interpreter.levelTwo.operation
 
-import com.avail.descriptor.types.A_Type
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2OperandType
@@ -51,7 +50,6 @@ import com.avail.optimizer.L2Generator
 import com.avail.optimizer.RegisterSet
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
-import java.util.*
 
 /**
  * Execute a primitive with the provided arguments, writing the result into
@@ -127,11 +125,9 @@ abstract class L2_RUN_INFALLIBLE_PRIMITIVE private constructor()
 			instruction.operand<L2ReadBoxedVectorOperand>(2)
 		val result =
 			instruction.operand<L2WriteBoxedOperand>(3)
-		val argTypes: MutableList<A_Type> = ArrayList(arguments.elements().size)
-		for (arg in arguments.elements())
-		{
-			assert(registerSet.hasTypeAt(arg.register()))
-			argTypes.add(registerSet.typeAt(arg.register()))
+		val argTypes = arguments.elements().map {
+			assert(registerSet.hasTypeAt(it.register()))
+			registerSet.typeAt(it.register())
 		}
 		// We can at least believe what the primitive itself says it returns.
 		val guaranteedType =

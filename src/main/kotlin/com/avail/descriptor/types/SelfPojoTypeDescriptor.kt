@@ -262,13 +262,12 @@ class SelfPojoTypeDescriptor constructor(mutability: Mutability)
 		else
 		{
 			val ancestors: A_Set = self.slot(JAVA_ANCESTORS)
-			val childless: List<AvailObject> = ArrayList(
-				childlessAmong(ancestors))
-			childless.sortedWith(Comparator{ o1: AvailObject, o2: AvailObject ->
-				val c1 = o1.javaObjectNotNull<Class<*>>()
-				val c2 = o2.javaObjectNotNull<Class<*>>()
-				c1.name.compareTo(c2.name)
-			})
+			val childless = childlessAmong(ancestors).sortedWith(
+				Comparator{ o1: AvailObject, o2: AvailObject ->
+					val c1 = o1.javaObjectNotNull<Class<*>>()
+					val c2 = o2.javaObjectNotNull<Class<*>>()
+					c1.name.compareTo(c2.name)
+				})
 			builder.append('(')
 			var first = true
 			for (aClass in childless)

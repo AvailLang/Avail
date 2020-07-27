@@ -42,7 +42,6 @@ import java.awt.Dimension
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
 import java.io.File
-import java.util.*
 import javax.swing.Action
 import javax.swing.GroupLayout
 import javax.swing.GroupLayout.Alignment
@@ -182,7 +181,7 @@ class PreferencesAction constructor(workbench: AvailWorkbench)
 		rootsTableModel.rows.clear()
 		for (root in workbench.resolver.moduleRoots.roots)
 		{
-			val triple = ArrayList<String>(3)
+			val triple = mutableListOf<String>()
 			triple.add(root.name)
 			triple.add(root.repository.fileName.path)
 			val source = root.sourceDirectory
@@ -255,7 +254,7 @@ class PreferencesAction constructor(workbench: AvailWorkbench)
 		renamesTableModel.rows.clear()
 		for ((key, value) in workbench.resolver.renameRules)
 		{
-			val pair = ArrayList<String>(2)
+			val pair = mutableListOf<String>()
 			pair.add(key)
 			pair.add(value)
 			renamesTableModel.rows.add(pair)

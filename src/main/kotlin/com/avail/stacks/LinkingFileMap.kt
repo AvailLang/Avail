@@ -165,9 +165,7 @@ class LinkingFileMap
 		}
 		else
 		{
-			val aList = ArrayList<Pair<String, String>>()
-			aList.add(methodPair)
-			categoryMethodList[categoryName] = aList
+			categoryMethodList[categoryName] = mutableListOf(methodPair)
 		}
 	}
 
@@ -239,7 +237,7 @@ class LinkingFileMap
 	{
 		val stringBuilder = StringBuilder().append("[\n")
 
-		val categorySet = ArrayList(categoryMethodList.keys)
+		val categorySet = categoryMethodList.keys.toList()
 
 		val setSize = categorySet.size
 

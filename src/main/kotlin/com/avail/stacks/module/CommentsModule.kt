@@ -96,7 +96,7 @@ class CommentsModule constructor(
 	resolver: ModuleNameResolver,
 	moduleToComments: HashMap<String, CommentsModule>,
 	linkingFileMap: LinkingFileMap,
-	val linkPrefix: String)
+	private val linkPrefix: String)
 {
 	/**
 	 *  A map of the modules extended by this module to the
@@ -114,7 +114,7 @@ class CommentsModule constructor(
 	 * A map of the modules extended by this module to the
 	 * [comment&#32;group][CommentGroup] content.
 	 */
-	val stickyNamesImplementations =
+	private val stickyNamesImplementations =
 		mutableMapOf<A_String, MutableMap<String, CommentGroup>>()
 
 	/**
@@ -122,13 +122,6 @@ class CommentsModule constructor(
 	 * content.
 	 */
 	var usesNamesImplementations = mutableMapOf<String, StacksUsesModule>()
-
-	/**
-	 * A map keyed by the qualified module names used by this module to a map
-	 * keyed by a method name to implementations created in this module.
-	 */
-	private val usesModuleToImplementedNamesToImplementation =
-		mutableMapOf<String, HashMap<A_String, ArrayList<AvailComment>>>()
 
 	/**
 	 * The name of the module that contains these Stacks Comments.
@@ -144,7 +137,7 @@ class CommentsModule constructor(
 	/**
 	 * A map keyed by exported method names to the file path-name.
 	 */
-	val inScopeMethodsToFileNames: MutableMap<A_String, StacksFilename>
+	private val inScopeMethodsToFileNames: MutableMap<A_String, StacksFilename>
 
 	/**
 	 * All the [named&#32;implementations][CommentGroup] exported out of this
@@ -264,23 +257,6 @@ class CommentsModule constructor(
 				newLogEntry.toString().toByteArray(StandardCharsets.UTF_8))
 			errorLog.addLogEntry(errorBuffer, errorCount)
 		}
-	}
-
-	/**
-	 * Get namedPublicCommentImplementations
-	 * @return
-	 */
-	fun namedPublicCommentImplementations(): Map<A_String, CommentGroup>
-	{
-		return namedPublicCommentImplementations
-	}
-
-	/**
-	 * @return the inScopeMethodsToFileNames
-	 */
-	fun exportedMethodsTofileNames(): Map<A_String, StacksFilename>
-	{
-		return inScopeMethodsToFileNames
 	}
 
 	/**
@@ -433,7 +409,7 @@ class CommentsModule constructor(
 						StacksExtendsModule(
 							moduleToComments[moduleImportName]!!)
 
-					val renameValues = ArrayList<A_String>()
+					val renameValues = mutableListOf<A_String>()
 
 					for (rename in moduleImport.renames.keysAsSet())
 					{
@@ -494,7 +470,7 @@ class CommentsModule constructor(
 					}
 
 					val visibleValues =
-						ArrayList<Pair<A_String, CommentGroup>>()
+						mutableListOf<Pair<A_String, CommentGroup>>()
 					for ((name, value) in usesMethodLeafNameToModuleName)
 					{
 						for ((_, commentGroup) in value)
@@ -558,7 +534,7 @@ class CommentsModule constructor(
 						moduleToComments[moduleImportName]!!,
 						moduleImport.renames)
 
-					val renameValues = ArrayList<A_String>()
+					val renameValues = mutableListOf<A_String>()
 
 					for (rename in moduleImport.renames.keysAsSet())
 					{

@@ -91,14 +91,14 @@ class ModuleHeader constructor(val moduleName: ResolvedModuleName)
 	 * The versions for which the module undergoing compilation guarantees
 	 * support.
 	 */
-	val versions: MutableList<A_String> = ArrayList()
+	val versions = mutableListOf<A_String>()
 
 	/**
 	 * The [module&#32;imports][ModuleImport] imported by the module undergoing
 	 * compilation.  This includes both modules being extended and modules being
 	 * simply used.
 	 */
-	val importedModules: MutableList<ModuleImport> = ArrayList()
+	val importedModules = mutableListOf<ModuleImport>()
 
 	/**
 	 * The [names][StringDescriptor] defined and exported by the
@@ -110,13 +110,13 @@ class ModuleHeader constructor(val moduleName: ResolvedModuleName)
 	 * The [names][StringDescriptor] of [methods][MethodDescriptor] that are
 	 * [module][ModuleDescriptor] entry points.
 	 */
-	val entryPoints: MutableList<A_String> = ArrayList()
+	val entryPoints = mutableListOf<A_String>()
 
 	/**
 	 * The [pragma&#32;tokens][TokenDescriptor], which are always string
 	 * [literals][LiteralTokenDescriptor].
 	 */
-	val pragmas: MutableList<A_Token> = ArrayList()
+	val pragmas = mutableListOf<A_Token>()
 
 	/**
 	 * The position in the file where the body starts (right after the "body"
@@ -134,31 +134,15 @@ class ModuleHeader constructor(val moduleName: ResolvedModuleName)
 	 * The list of local module [names][String] imported by this module header,
 	 * in the order they appear in the `Uses` and `Extends` clauses.
 	 */
-	val importedModuleNames: List<String>
-		get()
-		{
-			val localNames = ArrayList<String>(importedModules.size)
-			for (moduleImport in importedModules)
-			{
-				localNames.add(moduleImport.moduleName.asNativeString())
-			}
-			return localNames
-		}
+	val importedModuleNames: List<String> get () =
+		importedModules.map { it.moduleName.asNativeString() }
 
 	/**
 	 * A [List] of [String]s which name entry points defined in this module
 	 * header.
 	 */
-	val entryPointNames: List<String>
-		get()
-		{
-			val javaStrings = ArrayList<String>(entryPoints.size)
-			for (entryPoint in entryPoints)
-			{
-				javaStrings.add(entryPoint.asNativeString())
-			}
-			return javaStrings
-		}
+	val entryPointNames: List<String> get () =
+		entryPoints.map { it.asNativeString() }
 
 	/**
 	 * Output the module header.
@@ -171,7 +155,7 @@ class ModuleHeader constructor(val moduleName: ResolvedModuleName)
 		serializer.serialize(stringFrom(moduleName.qualifiedName))
 		serializer.serialize(tupleFromList(versions))
 		serializer.serialize(tuplesForSerializingModuleImports)
-		serializer.serialize(tupleFromList(ArrayList(exportedNames)))
+		serializer.serialize(tupleFromList(exportedNames.toList()))
 		serializer.serialize(tupleFromList(entryPoints))
 		serializer.serialize(tupleFromList(pragmas))
 		serializer.serialize(fromInt(startOfBodyPosition))
@@ -182,16 +166,8 @@ class ModuleHeader constructor(val moduleName: ResolvedModuleName)
 	 * The information about the imported modules as a [tuple][A_Tuple] of
 	 * tuples suitable for serialization.
 	 */
-	private val tuplesForSerializingModuleImports: A_Tuple
-		get()
-		{
-			val list = ArrayList<A_Tuple>()
-			for (moduleImport in importedModules)
-			{
-				list.add(moduleImport.tupleForSerialization)
-			}
-			return tupleFromList(list)
-		}
+	private val tuplesForSerializingModuleImports: A_Tuple get () =
+		tupleFromList(importedModules.map { it.tupleForSerialization })
 
 	/**
 	 * Convert the information encoded in a tuple into a [List] of
@@ -206,15 +182,8 @@ class ModuleHeader constructor(val moduleName: ResolvedModuleName)
 	 */
 	@Throws(MalformedSerialStreamException::class)
 	private fun moduleImportsFromTuple(
-		serializedTuple: A_Tuple): List<ModuleImport>
-	{
-		val list = ArrayList<ModuleImport>()
-		for (importTuple in serializedTuple)
-		{
-			list.add(ModuleImport.fromSerializedTuple(importTuple))
-		}
-		return list
-	}
+			serializedTuple: A_Tuple): List<ModuleImport> =
+		serializedTuple.map { ModuleImport.fromSerializedTuple(it) }
 
 	/**
 	 * Extract the module's header information from the [Deserializer].

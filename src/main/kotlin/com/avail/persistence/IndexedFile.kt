@@ -32,6 +32,7 @@
 package com.avail.persistence
 
 import com.avail.utility.LRUCache
+import com.avail.utility.safeWrite
 import java.io.DataOutputStream
 import java.io.File
 import java.io.IOException
@@ -40,7 +41,7 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.channels.FileChannel
 import java.nio.channels.FileLock
-import java.util.*
+import java.util.Arrays
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.zip.CRC32
 import java.util.zip.Deflater
@@ -48,7 +49,6 @@ import java.util.zip.Deflater.BEST_COMPRESSION
 import java.util.zip.DeflaterOutputStream
 import java.util.zip.Inflater
 import kotlin.concurrent.read
-import kotlin.concurrent.write
 import kotlin.math.abs
 import kotlin.math.min
 
@@ -211,7 +211,7 @@ class IndexedFile internal constructor(
 				val block = fetchSizedFromFile(blockPosition)
 				val inflater = Inflater()
 				inflater.setInput(block)
-				val buffers = ArrayList<ByteArray>(10)
+				val buffers = mutableListOf<ByteArray>()
 				var size = 0
 				var bufferPos = -1
 				while (!inflater.needsInput())
@@ -479,7 +479,7 @@ class IndexedFile internal constructor(
 		val m = master!!
 		if (level >= m.orphansByLevel.size)
 		{
-			m.orphansByLevel.add(ArrayList(fanout))
+			m.orphansByLevel.add(mutableListOf())
 		}
 		val orphans = m.orphansByLevel[level]
 		orphans.add(orphanLocation)
@@ -738,7 +738,7 @@ class IndexedFile internal constructor(
 		node.metadataLocation = RecordCoordinates(
 			b.long,
 			b.int)
-		val orphans = ArrayList<MutableList<RecordCoordinates>>()
+		val orphans = mutableListOf<MutableList<RecordCoordinates>>()
 		for (left in b.int downTo 1)
 		{
 			val level = b.get() - 1
@@ -747,7 +747,7 @@ class IndexedFile internal constructor(
 				b.int)
 			while (level >= orphans.size)
 			{
-				orphans.add(ArrayList(fanout))
+				orphans.add(mutableListOf())
 			}
 			orphans[level].add(orphan)
 		}
@@ -980,7 +980,7 @@ class IndexedFile internal constructor(
 	@JvmOverloads
 	fun add(record: ByteArray, start: Int = 0, length: Int = record.size)
 	{
-		lock.write {
+		lock.safeWrite {
 			try {
 				val m = master!!
 				val coordinates = RecordCoordinates(
@@ -1000,7 +1000,7 @@ class IndexedFile internal constructor(
 	 */
 	fun close()
 	{
-		lock.write {
+		lock.safeWrite {
 			if (longTermLock !== null) {
 				try {
 					longTermLock!!.release()
@@ -1041,7 +1041,7 @@ class IndexedFile internal constructor(
 	 */
 	@Throws(IOException::class)
 	fun commit() =
-		lock.write {
+		lock.safeWrite {
 			val m = master!!
 			val c = channel
 			val b = masterNodeBuffer
@@ -1149,9 +1149,9 @@ class IndexedFile internal constructor(
 				}
 			}
 		}
-		set(newMetadata) = lock.write {
+		set(newMetadata) = lock.safeWrite {
 			// Note that the metadata is not committed by this write.
-			if (Arrays.equals(newMetadata, metadata)) return@write
+			if (Arrays.equals(newMetadata, metadata)) return
 			master!!.run {
 				metadataCache = newMetadata?.clone()
 				when (newMetadata) {
@@ -1178,7 +1178,7 @@ class IndexedFile internal constructor(
 	 */
 	@Throws(IOException::class, IndexedFileException::class)
 	fun refresh() =
-		lock.write {
+		lock.safeWrite {
 			val fileLock = channel.lock(
 				pageSize.toLong(), masterNodeSize.toLong() shl 1, false)
 			try {

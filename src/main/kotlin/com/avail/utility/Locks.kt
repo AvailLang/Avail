@@ -6,12 +6,12 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
  *
  *  * Neither the name of the copyright holder nor the names of the contributors
  *    may be used to endorse or promote products derived from this software
@@ -31,95 +31,25 @@
  */
 package com.avail.utility
 
-import java.util.concurrent.locks.Lock
-import java.util.function.Supplier
+import java.util.concurrent.locks.ReentrantReadWriteLock
+import kotlin.concurrent.withLock
+import kotlin.concurrent.write
 
 /**
- * `Locks` is a utility class for coordinating locking operations.
+ * Execute the given lambda while holding the supplied
+ * [ReentrantReadWriteLock]'s
+ * [write lock][ReentrantReadWriteLock.WriteLock]. This is the correct
+ * alternative to the broken [write] supplied by the Kotlin library, which
+ * non-atomically attempts to upgrade a read lock into a write lock by
+ * first dropping all extant holds of the read lock (!).
  *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @receiver
+ *   The `ReentrantReadWriteLock`.
+ * @param lambda
+ *   The action to perform while holding the write lock.
+ * @return
+ *   The result of evaluating the supplied lambda.
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object Locks
-{
-	/**
-	 * Execute the given [Runnable] while holding the given [Lock].
-	 *
-	 * @param lock
-	 *   The [Lock] to be acquired.
-	 * @param lambda
-	 *   The lambda to execute while holding the lock.
-	 */
-	fun lockWhile(lock: Lock, lambda: () -> Unit)
-	{
-		lock.lock()
-		try
-		{
-			lambda()
-		}
-		finally
-		{
-			lock.unlock()
-		}
-	}
-
-	/**
-	 * Execute the given [Supplier] while holding the given [Lock].  Return the
-	 * value produced by the supplier.
-	 *
-	 * @param lock
-	 *   The [Lock] to be acquired.
-	 * @param supplier
-	 *   The lambda that answer `T` to execute while holding the lock.
-	 * @return
-	 *   The result of running the `supplier`, which must not be `null`.
-	 * @param T
-	 *   The type of value to pass through from the supplier.
-	 */
-	fun <T> lockWhile(lock: Lock, supplier: () ->T): T
-	{
-		lock.lock()
-		return try
-		{
-			supplier()
-		}
-		finally
-		{
-			lock.unlock()
-		}
-	}
-
-	/**
-	 * Acquire the [Lock], and return an [AutoCloseable] which will carry the
-	 * responsibility for releasing the lock.  This mechanism allows locking to
-	 * use the much more convenient try-with-resources mechanism.
-	 *
-	 * @param lock
-	 *   The lock to lock.
-	 * @return
-	 *   An [AutoCloseable] which will unlock the lock when closed.
-	 */
-	fun auto(lock: Lock): Auto
-	{
-		lock.lock()
-		return Auto(lock)
-	}
-
-	/**
-	 * A convenient non-throwing form of [AutoCloseable].
-	 *
-	 * @property lock
-	 *   The lock to unlock during a [close].
-	 * @constructor
-	 * Create an Auto to unlock a given [Lock].
-	 *
-	 * @param lock
-	 *   The [Lock] to be eventually unlocked.
-	 */
-	class Auto constructor(private val lock: Lock) : AutoCloseable
-	{
-		override fun close()
-		{
-			lock.unlock()
-		}
-	}
-}
+inline fun <T> ReentrantReadWriteLock.safeWrite (lambda: () -> T) =
+	this.writeLock().withLock(lambda)

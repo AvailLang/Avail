@@ -47,7 +47,7 @@ import com.avail.interpreter.execution.Interpreter
  * **Primitive:** Determine whether the specified [module][A_Module] is open to
  * the performance of further side effects.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
 object P_IsModuleOpen : Primitive(1, CanInline, CannotFail)

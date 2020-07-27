@@ -38,9 +38,7 @@ import com.avail.performance.ReportingUnit.DIMENSIONLESS_INTEGRAL
 import com.avail.performance.ReportingUnit.NANOSECONDS
 import com.avail.utility.ifZero
 import java.text.Collator
-import java.util.ArrayList
 import java.util.EnumSet
-import kotlin.Comparator
 
 /**
  * The statistic reports requested of the compiler:
@@ -141,7 +139,7 @@ enum class StatisticReport constructor(
 	 * The [List] of [Statistic] objects that have been registered
 	 * for this particular [StatisticReport].
 	 */
-	internal val statistics: MutableList<Statistic> = ArrayList()
+	internal val statistics = mutableListOf<Statistic>()
 
 	/**
 	 * Register a [Statistic] with this `StatisticReport`.  This happens when

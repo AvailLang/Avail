@@ -309,7 +309,7 @@ internal class GraphTracer constructor(
 								append(fromNode.node)
 								append(" -> ")
 								append(toName)
-								val edgeStrings = ArrayList<String>()
+								val edgeStrings = mutableListOf<String>()
 								if (fromPackage) {
 									val parent = fromNode.parent!!
 									val parentName = "cluster_" + parent.node
