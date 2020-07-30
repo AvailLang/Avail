@@ -35,7 +35,6 @@ package com.avail.tools.options
 import com.avail.tools.options.OptionProcessorFactory.Cardinality
 import com.avail.tools.options.OptionProcessorFactory.OptionInvocation
 import com.avail.tools.options.OptionProcessorFactory.OptionInvocationWithArgument
-import java.util.LinkedHashSet
 
 /**
  * An implementation of [Option] whose accessible state is initialized during
@@ -90,8 +89,8 @@ internal open class GenericOption<OptionKeyType : Enum<OptionKeyType>>
 	: Option<OptionKeyType>
 {
 	/**
-	 * The [set][LinkedHashSet] of keywords that indicate this
+	 * The [set][MutableSet] of keywords that indicate this
 	 * [option][GenericOption].
 	 */
-	override val keywords: LinkedHashSet<String> = LinkedHashSet(keywords)
+	override val keywords = keywords.toMutableSet()
 }

@@ -68,7 +68,6 @@ import com.avail.exceptions.MalformedMessageException
 import com.avail.serialization.Deserializer
 import com.avail.serialization.MalformedSerialStreamException
 import com.avail.serialization.Serializer
-import java.util.LinkedHashSet
 
 /**
  * A module's header information.
@@ -104,7 +103,7 @@ class ModuleHeader constructor(val moduleName: ResolvedModuleName)
 	 * The [names][StringDescriptor] defined and exported by the
 	 * [module][ModuleDescriptor] undergoing compilation.
 	 */
-	val exportedNames: MutableSet<A_String> = LinkedHashSet()
+	val exportedNames = mutableSetOf<A_String>()
 
 	/**
 	 * The [names][StringDescriptor] of [methods][MethodDescriptor] that are

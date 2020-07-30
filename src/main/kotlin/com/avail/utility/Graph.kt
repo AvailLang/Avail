@@ -36,7 +36,6 @@ import org.jetbrains.annotations.Contract
 import java.util.ArrayDeque
 import java.util.Comparator
 import java.util.Deque
-import java.util.LinkedHashSet
 import java.util.concurrent.Semaphore
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
@@ -489,7 +488,7 @@ class Graph<Vertex> constructor ()
 		{
 			// Potentially expensive.
 			assert(isCyclic)
-			val stack = LinkedHashSet<Vertex>()
+			val stack = mutableSetOf<Vertex>()
 			val reached = mutableSetOf<Vertex>()
 			var solution: MutableList<Vertex>? = null
 			for (start in outEdges.keys)

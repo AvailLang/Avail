@@ -35,7 +35,6 @@ package com.avail.tools.options
 import com.avail.tools.options.OptionProcessorFactory.Cardinality
 import com.avail.tools.options.OptionProcessorFactory.OptionInvocation
 import com.avail.tools.options.OptionProcessorFactory.OptionInvocationWithArgument
-import java.util.LinkedHashSet
 
 /**
  * An `Option` comprises an [enumerated&#32;type][Enum] which defines the domain
@@ -57,10 +56,10 @@ interface Option<OptionKeyType : Enum<OptionKeyType>>
 	val key: OptionKeyType
 
 	/**
-	 * The [set][LinkedHashSet] of keywords that indicate this
+	 * The [set][MutableSet] of keywords that indicate this
 	 * [option][GenericOption].
 	 */
-	val keywords: LinkedHashSet<String>
+	val keywords: MutableSet<String>
 
 	/**
 	 * Answer an end-user comprehensible description of the option.

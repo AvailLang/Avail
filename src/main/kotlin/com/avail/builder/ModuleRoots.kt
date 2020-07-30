@@ -40,7 +40,6 @@ import java.io.File
 import java.io.IOException
 import java.util.Collections.unmodifiableSet
 import java.util.LinkedHashMap
-import java.util.LinkedHashSet
 
 /**
  * `ModuleRoots` encapsulates the Avail [module][ModuleDescriptor] path. The
@@ -199,11 +198,9 @@ class ModuleRoots(modulePath: String) : Iterable<ModuleRoot>
 	 * The [module&#32;roots][ModuleRoot] in the order that they are specified
 	 * in the Avail [module][ModuleDescriptor] path.
 	 */
-	val roots: Set<ModuleRoot>
-		get() = unmodifiableSet(LinkedHashSet(rootMap.values))
+	val roots get () = rootMap.values.toSet()
 
-	override fun iterator(): Iterator<ModuleRoot> =
-		unmodifiableSet(roots).iterator()
+	override fun iterator () = roots.toSet().iterator()
 
 	/**
 	 * Answer the [module&#32;root][ModuleRoot] bound to the specified logical

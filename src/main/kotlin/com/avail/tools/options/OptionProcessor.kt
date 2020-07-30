@@ -416,7 +416,7 @@ class OptionProcessor<OptionKeyType : Enum<OptionKeyType>> internal constructor(
 			val descriptionFormatter = ParagraphFormatter(80, 4, 4)
 			val descriptionStream =
 				ParagraphFormatterStream(descriptionFormatter, appendable)
-			val keywords = LinkedHashSet(option.keywords)
+			val keywords = option.keywords.toSet()
 			keywords.forEach { keyword ->
 				if (option is DefaultOption<*>)
 				{

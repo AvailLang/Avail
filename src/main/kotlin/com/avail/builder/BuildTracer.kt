@@ -40,7 +40,6 @@ import com.avail.descriptor.fiber.FiberDescriptor.Companion.tracerPriority
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.io.SimpleCompletionHandler
 import com.avail.persistence.Repository.ModuleVersionKey
-import java.util.LinkedHashSet
 import java.util.logging.Level
 
 /**
@@ -92,7 +91,7 @@ internal class BuildTracer constructor(val availBuilder: AvailBuilder)
 	private fun scheduleTraceModuleImports(
 		qualifiedName: ModuleName,
 		resolvedSuccessor: ResolvedModuleName?,
-		recursionSet: LinkedHashSet<ResolvedModuleName>,
+		recursionSet: MutableSet<ResolvedModuleName>,
 		problemHandler: ProblemHandler)
 	{
 		availBuilder.runtime.execute(tracerPriority) {
@@ -158,7 +157,7 @@ internal class BuildTracer constructor(val availBuilder: AvailBuilder)
 	 *   `null` if this module is the start of the recursive resolution (i.e.,
 	 *   it will be the last one compiled).
 	 * @param recursionSet
-	 *   A [LinkedHashSet] that remembers all modules visited along this branch
+	 *   A [MutableSet] that remembers all modules visited along this branch
 	 *   of the trace, and the order they were encountered.
 	 * @param problemHandler
 	 *   How to handle or report [Problem]s that arise during the build.
@@ -166,7 +165,7 @@ internal class BuildTracer constructor(val availBuilder: AvailBuilder)
 	private fun traceModuleImports(
 		resolvedName: ResolvedModuleName,
 		resolvedSuccessor: ResolvedModuleName?,
-		recursionSet: LinkedHashSet<ResolvedModuleName>,
+		recursionSet: MutableSet<ResolvedModuleName>,
 		problemHandler: ProblemHandler)
 	{
 		// Detect recursion into this module.
@@ -282,13 +281,12 @@ internal class BuildTracer constructor(val availBuilder: AvailBuilder)
 	private fun traceModuleNames(
 		moduleName: ResolvedModuleName,
 		importNames: List<String>,
-		recursionSet: LinkedHashSet<ResolvedModuleName>,
+		recursionSet: MutableSet<ResolvedModuleName>,
 		problemHandler: ProblemHandler)
 	{
 		// Copy the recursion set to ensure the independence of each path of the
 		// tracing algorithm.
-		val newSet = LinkedHashSet(recursionSet)
-		newSet.add(moduleName)
+		val newSet = (recursionSet + moduleName).toMutableSet()
 
 		synchronized(this) {
 			traceRequests += importNames.size
@@ -346,7 +344,7 @@ internal class BuildTracer constructor(val availBuilder: AvailBuilder)
 			traceCompletions = 0
 		}
 		scheduleTraceModuleImports(
-			target, null, LinkedHashSet(), problemHandler)
+			target, null, mutableSetOf(), problemHandler)
 		// Wait until the parallel recursive trace completes.
 		synchronized(this) {
 			while (traceRequests != traceCompletions)
