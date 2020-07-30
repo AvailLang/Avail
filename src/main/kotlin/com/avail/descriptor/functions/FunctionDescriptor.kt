@@ -586,7 +586,7 @@ class FunctionDescriptor private constructor(
 			paramTypes: A_Tuple
 		): A_Function = with(L1InstructionWriter(nil, 0, nil)) {
 			argumentTypesTuple(paramTypes)
-			returnType = bottom()
+			returnType = bottom
 			write(
 				0,
 				L1Operation.L1_doPushLiteral,
@@ -601,7 +601,7 @@ class FunctionDescriptor private constructor(
 				0,
 				L1Operation.L1_doCall,
 				addLiteral(SpecialMethodAtom.CRASH.bundle),
-				addLiteral(bottom()))
+				addLiteral(bottom))
 			val code: A_RawFunction = compiledCode()
 			code.setMethodName(
 				stringFrom("VM crash function: $messageString"))

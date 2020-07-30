@@ -232,7 +232,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 	{
 		if (startIndex > endIndex)
 		{
-			return bottom()
+			return bottom
 		}
 		if (startIndex == endIndex)
 		{
@@ -241,7 +241,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		val upper = self.sizeRange().upperBound()
 		if (fromInt(startIndex).greaterThan(upper))
 		{
-			return bottom()
+			return bottom
 		}
 		val leading = self.typeTuple()
 		val interestingLimit = leading.tupleSize() + 1
@@ -368,7 +368,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		return generateObjectTupleFrom(size) {
 			when
 			{
-				it > size -> bottom()
+				it > size -> bottom
 				else -> self.typeAtIndex(it + startIndex - 1).makeImmutable()
 			}
 		}
@@ -380,19 +380,19 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		// me.  Answer bottom if the index is out of bounds.
 		if (index <= 0)
 		{
-			return bottom()
+			return bottom
 		}
 		val upper = self.slot(SIZE_RANGE).upperBound()
 		if (upper.isInt)
 		{
 			if (upper.extractInt() < index)
 			{
-				return bottom()
+				return bottom
 			}
 		}
 		else if (upper.lessThan(fromInt(index)))
 		{
-			return bottom()
+			return bottom
 		}
 		val leading: A_Tuple = self.slot(TYPE_TUPLE)
 		return if (index <= leading.tupleSize())
@@ -432,7 +432,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 				aTupleType.typeAtIndex(i))
 			if (intersectionObject.isBottom)
 			{
-				return bottom()
+				return bottom
 			}
 			newLeading =
 				newLeading.tupleAtPuttingCanDestroy(i, intersectionObject, true)
@@ -448,7 +448,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 			val newLeadingSizeObject: A_Number = fromInt(newLeadingSize)
 			if (newLeadingSizeObject.lessThan(newSizesObject.lowerBound()))
 			{
-				return bottom()
+				return bottom
 			}
 			if (newLeadingSizeObject.lessThan(newSizesObject.upperBound()))
 			{
@@ -574,7 +574,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		{
 			if (sizeRange.isBottom)
 			{
-				return bottom()
+				return bottom
 			}
 			assert(sizeRange.lowerBound().isFinite)
 			assert(sizeRange.upperBound().isFinite
@@ -585,7 +585,8 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 				return privateTupleTypeForSizesTypesDefaultType(
 					sizeRange,
 					emptyTuple,
-					bottom())
+					bottom
+				)
 			}
 			val typeTupleSize = typeTuple.tupleSize()
 			if (fromInt(typeTupleSize).greaterOrEqual(sizeRange.upperBound()))
@@ -680,7 +681,8 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 			tupleTypeForSizesTypesDefaultType(
 				singleInt(types.size),
 				tupleFromArray(*types),
-				bottom())
+				bottom
+			)
 
 		/** Access the method [tupleTypeForTypes].  */
 		var tupleTypesForTypesArrayMethod = staticMethod(
@@ -704,7 +706,8 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 			tupleTypeForSizesTypesDefaultType(
 				singleInt(types.size),
 				tupleFromList(types),
-				bottom())
+				bottom
+			)
 
 		/** Access the method [tupleTypeForTypes].  */
 		@Suppress("unused")
@@ -720,7 +723,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		 * of the element types.  Assume the transformation is stable.  The
 		 * resulting tuple type should have the same size range as the input
 		 * tuple type, except if normalization produces
-		 * [bottom][BottomTypeDescriptor.bottom].
+		 * [bottom][BottomTypeDescriptor.getBottom].
 		 *
 		 * @param aTupleType
 		 *   A tuple type whose element types should be transformed.

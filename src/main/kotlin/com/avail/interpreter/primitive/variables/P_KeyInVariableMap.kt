@@ -80,7 +80,8 @@ object P_KeyInVariableMap : Primitive(2, CanInline, HasSideEffect)
 				ANY.o,
 				variableReadWriteType(
 					mostGeneralMapType(),
-					bottom())),
+					bottom
+				)),
 			booleanType)
 
 	override fun privateFailureVariableType(): A_Type =

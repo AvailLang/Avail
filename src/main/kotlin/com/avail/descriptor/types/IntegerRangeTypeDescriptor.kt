@@ -323,7 +323,7 @@ class IntegerRangeTypeDescriptor private constructor(
 		self: AvailObject,
 		primitiveTypeEnum: Types): A_Type =
 			if (Types.NUMBER.superTests[primitiveTypeEnum.ordinal]) self
-			else bottom()
+			else bottom
 
 	override fun o_TypeUnion(self: AvailObject, another: A_Type): A_Type =
 		when
@@ -505,13 +505,13 @@ class IntegerRangeTypeDescriptor private constructor(
 			}
 			if (high.lessThan(low))
 			{
-				return bottom()
+				return bottom
 			}
 			if (high.equals(low) && (!highInc || !lowInc))
 			{
 				// Unusual cases such as [INF..INF) give preference to exclusion
 				// over inclusion.
-				return bottom()
+				return bottom
 			}
 			if (low.isInt && high.isInt)
 			{

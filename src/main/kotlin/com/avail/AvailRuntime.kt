@@ -590,7 +590,7 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 		 */
 		READ_UNASSIGNED_VARIABLE(
 			"«cannot read unassigned variable»",
-			functionType(emptyTuple, bottom()),
+			functionType(emptyTuple, bottom),
 			null),
 
 		/**
@@ -604,7 +604,8 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 					mostGeneralFunctionType(),
 					topMeta(),
 					variableTypeFor(Types.ANY.o)),
-				bottom()),
+				bottom
+			),
 			null),
 
 		/**
@@ -623,7 +624,8 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 						    AvailErrorCode.E_ABSTRACT_METHOD_DEFINITION)),
 					Types.METHOD.o,
 					mostGeneralTupleType()),
-				bottom()),
+				bottom
+			),
 			null),
 
 		/**
@@ -654,7 +656,8 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 			functionType(
 				tuple(
 					pojoTypeForClass(Throwable::class.java)),
-				bottom()),
+				bottom
+			),
 			null),
 
 		/**
@@ -959,8 +962,8 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 			specials[26] = mostGeneralSetType()
 			specials[27] = setMeta()
 			specials[28] = stringType()
-			specials[29] = bottom()
-			specials[30] = bottomMeta()
+			specials[29] = bottom
+			specials[30] = bottomMeta
 			specials[31] = Types.NONTYPE.o
 			specials[32] = mostGeneralTupleType()
 			specials[33] = tupleMeta()
@@ -1009,7 +1012,7 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 				setTypeForSizesContentType(wholeNumbers, stringType()))
 			specials[75] =
 				setTypeForSizesContentType(wholeNumbers, stringType())
-			specials[76] = functionType(tuple(naturalNumbers), bottom())
+			specials[76] = functionType(tuple(naturalNumbers), bottom)
 			specials[77] = emptySet
 			specials[78] = negativeInfinity()
 			specials[79] = positiveInfinity()
@@ -1059,7 +1062,7 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 			specials[102] = zeroOrMoreOf(nybbles)
 			specials[103] = unsignedShorts
 			specials[104] = emptyTuple
-			specials[105] = functionType(tuple(bottom()), Types.TOP.o)
+			specials[105] = functionType(tuple(bottom), Types.TOP.o)
 			specials[106] = instanceType(zero())
 			specials[107] = functionTypeReturning(topMeta())
 			specials[108] = tupleTypeForSizesTypesDefaultType(
@@ -1094,17 +1097,18 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 				PhraseKind.ARGUMENT_PHRASE.mostGeneralType())
 			specials[123] = zeroOrMoreOf(
 				PhraseKind.DECLARATION_PHRASE.mostGeneralType())
-			specials[124] = variableReadWriteType(Types.TOP.o, bottom())
+			specials[124] = variableReadWriteType(Types.TOP.o, bottom)
 			specials[125] = zeroOrMoreOf(
 				PhraseKind.EXPRESSION_PHRASE.create(Types.ANY.o))
 			specials[126] = PhraseKind.EXPRESSION_PHRASE.create(Types.ANY.o)
 			specials[127] = functionType(
-				tuple(pojoTypeForClass(Throwable::class.java)), bottom())
+				tuple(pojoTypeForClass(Throwable::class.java)), bottom
+			)
 			specials[128] = zeroOrMoreOf(
 				setTypeForSizesContentType(wholeNumbers, Types.ATOM.o))
 			specials[129] = bytes
 			specials[130] = zeroOrMoreOf(zeroOrMoreOf(anyMeta()))
-			specials[131] = variableReadWriteType(extendedIntegers, bottom())
+			specials[131] = variableReadWriteType(extendedIntegers, bottom)
 			specials[132] = fiberMeta()
 			specials[133] = nonemptyStringType()
 			specials[134] = setTypeForSizesContentType(
@@ -1144,7 +1148,7 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 			specials[154] = SpecialAtom.MACRO_BUNDLE_KEY.atom
 			specials[155] = SpecialAtom.EXPLICIT_SUBCLASSING_KEY.atom
 			specials[156] =
-				variableReadWriteType(mostGeneralMapType(), bottom())
+				variableReadWriteType(mostGeneralMapType(), bottom)
 			specials[157] = lexerFilterFunctionType()
 			specials[158] = lexerBodyFunctionType()
 			specials[159] = SpecialAtom.STATIC_TOKENS_KEY.atom

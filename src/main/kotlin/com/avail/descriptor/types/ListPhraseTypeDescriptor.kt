@@ -240,7 +240,7 @@ class ListPhraseTypeDescriptor internal constructor(
 		// Intersection of two list phrase types.
 		val intersectionKind = self.phraseKind().commonDescendantWith(
 			aListNodeType.phraseKind())
-		                       ?: return bottom()
+		                       ?: return bottom
 		assert(intersectionKind.isSubkindOf(PhraseKind.LIST_PHRASE))
 		return createListNodeType(
 			intersectionKind,
@@ -257,7 +257,7 @@ class ListPhraseTypeDescriptor internal constructor(
 		val otherKind = aPhraseType.phraseKind()
 		assert(!otherKind.isSubkindOf(PhraseKind.LIST_PHRASE))
 		val intersectionKind =
-			otherKind.commonDescendantWith(self.phraseKind()) ?: return bottom()
+			otherKind.commonDescendantWith(self.phraseKind()) ?: return bottom
 		assert(intersectionKind.isSubkindOf(PhraseKind.LIST_PHRASE))
 		return createListNodeType(
 			intersectionKind,
@@ -397,7 +397,8 @@ class ListPhraseTypeDescriptor internal constructor(
 				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 					inclusive(fromInt(minimumSize), fromInt(types.size)),
 					tupleFromArray(*types),
-					bottom()))
+					bottom
+				))
 
 		/**
 		 * Create a list phrase type with the given yield type and the given

@@ -283,7 +283,7 @@ class SetTypeDescriptor private constructor(mutability: Mutability)
 		{
 			if (sizeRange.isBottom)
 			{
-				return bottom()
+				return bottom
 			}
 			assert(sizeRange.lowerBound().isFinite)
 			assert(zero().lessOrEqual(sizeRange.lowerBound()))
@@ -299,7 +299,7 @@ class SetTypeDescriptor private constructor(mutability: Mutability)
 				sizeRangeKind.upperBound().equalsInt(0) ->
 				{
 					newSizeRange = sizeRangeKind
-					newContentType = bottom()
+					newContentType = bottom
 				}
 				contentType.isBottom ->
 				{
@@ -308,14 +308,14 @@ class SetTypeDescriptor private constructor(mutability: Mutability)
 						// sizeRange includes at least 0 and 1, but the content
 						// type is bottom, so no contents exist.
 						newSizeRange = singleInteger(zero())
-						newContentType = bottom()
+						newContentType = bottom
 					}
 					else
 					{
 						// sizeRange does not include 0, and bottom is not the
 						// content type, so the whole type is inconsistent.
 						// Answer bottom.
-						return bottom()
+						return bottom
 					}
 				}
 				else ->

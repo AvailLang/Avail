@@ -514,7 +514,7 @@ abstract class AbstractEnumerationTypeDescriptor protected constructor(
 			val setSize = instancesSet.setSize()
 			if (setSize == 0)
 			{
-				return BottomTypeDescriptor.bottom()
+				return BottomTypeDescriptor.bottom
 			}
 			var typeCount = 0
 			for (element in instancesSet)

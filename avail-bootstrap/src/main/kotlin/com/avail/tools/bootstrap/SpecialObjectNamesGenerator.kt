@@ -72,49 +72,48 @@ internal class SpecialObjectNamesGenerator constructor(locale: Locale)
 	 */
 	override fun generateProperties(
 		properties: Properties,
-		writer: PrintWriter)
-	{
+		writer: PrintWriter
+	) = with(writer) {
 		val specialObjects = specialObjects()
 		val keys = mutableSetOf<String>()
-		for (i in specialObjects.indices)
-		{
+		specialObjects.indices.forEach { i ->
 			if (!specialObjects[i].equalsNil())
 			{
 				val specialObject: A_BasicObject = specialObjects[i]
 				// Write a primitive descriptive of the special object as a
 				// comment, to assist a human translator.
 				val text = specialObject.toString().replace("\n", "\n#")
-				writer.print("# ")
-				writer.print(text)
-				writer.println()
+				print("# ")
+				print(text)
+				println()
 				// Write the method name of the special object.
 				val key = specialObjectKey(i)
 				keys.add(key)
-				writer.print(key)
-				writer.print('=')
+				print(key)
+				print('=')
 				val specialObjectName = properties.getProperty(key)
 				if (specialObjectName !== null)
 				{
-					writer.print(escape(specialObjectName))
+					print(escape(specialObjectName))
 				}
-				writer.println()
+				println()
 				// Write the preferred alias that Stacks should indicate.
 				val typeKey = specialObjectTypeKey(i)
 				keys.add(typeKey)
-				writer.print(typeKey)
-				writer.print('=')
+				print(typeKey)
+				print('=')
 				val type = properties.getProperty(typeKey, "")
-				writer.print(escape(type))
-				writer.println()
+				print(escape(type))
+				println()
 				// Write the Stacks comment.
 				val commentKey = specialObjectCommentKey(i)
 				keys.add(commentKey)
-				writer.print(commentKey)
-				writer.print('=')
+				print(commentKey)
+				print('=')
 				val comment = properties.getProperty(commentKey)
 				if (comment !== null && comment.isNotEmpty())
 				{
-					writer.print(escape(comment))
+					print(escape(comment))
 				}
 				else
 				{
@@ -128,23 +127,22 @@ internal class SpecialObjectNamesGenerator constructor(locale: Locale)
 					{
 						Resources.Key.specialObjectCommentValueTemplate.name
 					}
-					writer.print(escape(
+					print(escape(
 						MessageFormat.format(
 							commentTemplate,
 							preambleBundle.getString(template))))
 				}
-				writer.println()
+				println()
 			}
 		}
-		for (property in properties.keys)
-		{
+		properties.keys.forEach { property ->
 			val key = property as String
 			if (!keys.contains(key))
 			{
 				keys.add(key)
-				writer.print(key)
-				writer.print('=')
-				writer.println(escape(properties.getProperty(key)))
+				print(key)
+				print('=')
+				println(escape(properties.getProperty(key)))
 			}
 		}
 	}
@@ -165,13 +163,11 @@ internal class SpecialObjectNamesGenerator constructor(locale: Locale)
 		@JvmStatic
 		fun main(args: Array<String>)
 		{
-			val languages: Array<String> =
+			val languages =
 				if (args.isNotEmpty()) args
 				else arrayOf(System.getProperty("user.language"))
-			for (language in languages)
-			{
-				val generator = SpecialObjectNamesGenerator(Locale(language))
-				generator.generate()
+			languages.forEach { language ->
+				SpecialObjectNamesGenerator(Locale(language)).generate()
 			}
 		}
 	}

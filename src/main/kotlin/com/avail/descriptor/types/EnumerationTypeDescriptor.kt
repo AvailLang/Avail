@@ -136,7 +136,7 @@ class EnumerationTypeDescriptor private constructor(mutability: Mutability)
 		var cached: A_Type = self.slot(CACHED_SUPERKIND)
 		if (cached.equalsNil())
 		{
-			cached = bottom()
+			cached = bottom
 			for (instance in getInstances(self))
 			{
 				cached = cached.typeUnion(instance.kind())
@@ -356,7 +356,7 @@ class EnumerationTypeDescriptor private constructor(mutability: Mutability)
 				&& another.isSubtypeOf(InstanceMetaDescriptor.topMeta())
 				&& !another.isBottom)
 			{
-				return bottomMeta()
+				return bottomMeta
 			}
 		}
 		return enumerationWith(set)
@@ -615,7 +615,7 @@ class EnumerationTypeDescriptor private constructor(mutability: Mutability)
 
 	override fun o_ExpressionType(self: AvailObject): A_Type
 	{
-		var unionType = bottom()
+		var unionType = bottom
 		for (instance in getInstances(self))
 		{
 			unionType = unionType.typeUnion(instance.expressionType())

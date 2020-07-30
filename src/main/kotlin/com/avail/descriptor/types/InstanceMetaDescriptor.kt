@@ -139,7 +139,7 @@ class InstanceMetaDescriptor private constructor(mutability: Mutability)
 			instanceMeta(
 				getInstance(self).typeIntersection(another.instance()))
 		another.isSupertypeOfPrimitiveTypeEnum(ANY) -> self
-		else -> bottom()
+		else -> bottom
 	}
 
 	/**

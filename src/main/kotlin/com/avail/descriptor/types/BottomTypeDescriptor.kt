@@ -376,7 +376,7 @@ class BottomTypeDescriptor private constructor()
 		writer.endObject()
 	}
 
-	override fun o_WriteType(self: AvailObject): A_Type =  bottom()
+	override fun o_WriteType(self: AvailObject): A_Type = bottom
 
 	override fun o_ComputeTypeTag(self: AvailObject): TypeTag =
 		TypeTag.BOTTOM_TYPE_TAG
@@ -401,31 +401,10 @@ class BottomTypeDescriptor private constructor()
 		/**
 		 * The unique object that represents the type with no instances.
 		 */
-		private val bottom: A_Type = shared.create { }
-
-		/**
-		 * Answer the unique type that has no instances.
-		 *
-		 * @return
-		 *   The type `bottom`.
-		 */
-		@JvmStatic
-		fun bottom(): A_Type
-		{
-			return bottom
-		}
+		val bottom: A_Type = shared.create { }
 
 		/** The meta-type with exactly one instance, [bottom].  */
-		private val bottomMeta: A_Type =
+		val bottomMeta: A_Type =
 			InstanceMetaDescriptor.instanceMeta(bottom).makeShared()
-
-		/**
-		 * Answer the meta-type whose sole instance is the type [bottom].
-		 *
-		 * @return
-		 *   The meta-type which is `bottom`'s type.
-		 */
-		@JvmStatic
-		fun bottomMeta(): A_Type =  bottomMeta
 	}
 }

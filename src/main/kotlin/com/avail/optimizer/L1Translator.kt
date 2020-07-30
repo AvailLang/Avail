@@ -713,7 +713,8 @@ class L1Translator private constructor(
 							mostGeneralFunctionType(),
 							topMeta(),
 							variableTypeFor(Types.ANY.o)),
-						bottom()),
+						bottom
+					),
 					RestrictionFlagEncoding.BOXED))
 			addInstruction(
 				L2_GET_INVALID_MESSAGE_RESULT_FUNCTION, invalidResultFunction)
@@ -946,7 +947,7 @@ class L1Translator private constructor(
 
 	/**
 	 * Generate code to perform a method invocation.  If a superUnionType other
-	 * than [bottom][BottomTypeDescriptor.bottom] is supplied, produce a
+	 * than [bottom][BottomTypeDescriptor.getBottom] is supplied, produce a
 	 * super-directed multimethod invocation.
 	 *
 	 * @param bundle
@@ -956,7 +957,7 @@ class L1Translator private constructor(
 	 * @param superUnionType
 	 *   A tuple type to combine through a type union with the pushed arguments'
 	 *   dynamic types, to use during method lookup.  This is
-	 *   [bottom][BottomTypeDescriptor.bottom] for non-super calls.
+	 *   [bottom][BottomTypeDescriptor.getBottom] for non-super calls.
 	 */
 	private fun generateCall(
 		bundle: A_Bundle,
@@ -1105,7 +1106,7 @@ class L1Translator private constructor(
 		// Calculate the union of the types guaranteed to be produced by the
 		// possible definitions, including analysis of primitives.  The phi
 		// combining final results will produce something at least this strict.
-		var tempUnion = bottom()
+		var tempUnion = bottom
 		for (definition in method.definitionsAtOrBelow(argumentRestrictions))
 		{
 			if (definition.isMethodDefinition())
@@ -2049,7 +2050,7 @@ class L1Translator private constructor(
 				ChunkEntryPoint.TRANSIENT.offsetInDefaultChunk),
 			L2CommentOperand(
 				"Transient - cannot be invalid."))
-		reify(bottom(), ChunkEntryPoint.TO_RETURN_INTO)
+		reify(bottom, ChunkEntryPoint.TO_RETURN_INTO)
 
 		// Generate the much more likely passed-check flow.
 		generator.startBlock(passedCheck)
@@ -2496,7 +2497,7 @@ class L1Translator private constructor(
 			L2IntImmediateOperand(ChunkEntryPoint.TRANSIENT.offsetInDefaultChunk),
 			L2CommentOperand(
 				"Transient - cannot be invalid."))
-		reify(bottom(), ChunkEntryPoint.TO_RETURN_INTO)
+		reify(bottom, ChunkEntryPoint.TO_RETURN_INTO)
 	}
 
 	/**
@@ -2624,7 +2625,7 @@ class L1Translator private constructor(
 				ChunkEntryPoint.TRANSIENT.offsetInDefaultChunk),
 			L2CommentOperand(
 				"Transient - cannot be invalid."))
-		reify(bottom(), ChunkEntryPoint.TO_RETURN_INTO)
+		reify(bottom, ChunkEntryPoint.TO_RETURN_INTO)
 
 		// End with the success path.
 		generator.startBlock(success)
@@ -2918,7 +2919,7 @@ class L1Translator private constructor(
 			code.literalAt(instructionDecoder.getOperand())
 		val expectedType: A_Type =
 			code.literalAt(instructionDecoder.getOperand())
-		generateCall(bundle, expectedType, bottom())
+		generateCall(bundle, expectedType, bottom)
 	}
 
 	override fun L1_doPushLiteral()

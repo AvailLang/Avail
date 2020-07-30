@@ -322,13 +322,13 @@ open class PrimitiveTypeDescriptor : TypeDescriptor
 		self: AvailObject,
 		aListNodeType: A_Type): A_Type =
 			if (NONTYPE.superTests[extractOrdinal(self)]) aListNodeType
-			else bottom()
+			else bottom
 
 	override fun o_TypeIntersectionOfPhraseType(
 		self: AvailObject,
 		aPhraseType: A_Type): A_Type =
 			if (NONTYPE.superTests[extractOrdinal(self)]) aPhraseType
-			else bottom()
+			else bottom
 
 	override fun o_TypeIntersectionOfPrimitiveTypeEnum(
 		self: AvailObject,

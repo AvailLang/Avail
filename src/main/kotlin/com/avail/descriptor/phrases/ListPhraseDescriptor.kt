@@ -271,7 +271,7 @@ class ListPhraseDescriptor private constructor(
 		return when {
 			anyNotBottom -> tupleTypeForTypes(*types)
 			// The elements' superunion types were all bottom, so answer bottom.
-			else -> bottom()
+			else -> bottom
 		}
 	}
 
@@ -323,7 +323,7 @@ class ListPhraseDescriptor private constructor(
 			if (!tupleType.equalsNil()) return tupleType
 			val types = self.expressionsTuple().map {
 				val expressionType = it.expressionType()
-				if (expressionType.isBottom) return bottom()
+				if (expressionType.isBottom) return bottom
 				expressionType
 			}
 			tupleType = tupleTypeForTypes(types).makeShared()

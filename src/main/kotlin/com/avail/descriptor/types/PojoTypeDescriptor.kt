@@ -977,7 +977,7 @@ abstract class PojoTypeDescriptor protected constructor(
 					return typeVars.mapAt(name)
 				}
 				// The type variable was unbound, so compute the upper bound.
-				var union = bottom()
+				var union = bottom
 				for (bound in type.bounds)
 				{
 					union = union.typeIntersection(resolvePojoType(

@@ -282,7 +282,7 @@ class ContinuationTypeDescriptor private constructor(mutability: Mutability)
 		 * return type bottom.
 		 */
 		private val mostGeneralType: A_Type = continuationTypeForFunctionType(
-			FunctionTypeDescriptor.functionTypeReturning(bottom())).makeShared()
+			FunctionTypeDescriptor.functionTypeReturning(bottom)).makeShared()
 
 		/**
 		 * Answer the most general continuation type}.

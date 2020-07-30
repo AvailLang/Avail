@@ -92,7 +92,8 @@ object L2_CREATE_TUPLE : L2Operation(
 			}
 		val tupleType =
 			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-				sizeRange, tupleFromList(types), bottom())
+				sizeRange, tupleFromList(types), bottom
+			)
 		tupleType.makeImmutable()
 		registerSet.removeConstantAt(tuple.register())
 		registerSet.typeAtPut(

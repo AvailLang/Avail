@@ -89,7 +89,8 @@ object P_CastInto : Primitive(2, Invokes, CanInline)
 				ANY.o,
 				functionType(
 					tuple(
-						bottom()),
+						bottom
+					),
 					TOP.o
 				)),
 			TOP.o

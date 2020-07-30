@@ -226,8 +226,8 @@ class HashedMapBinDescriptor private constructor(
 	 *   The hashed map bin to populate with key and value type information.
 	 */
 	private fun computeKeyAndValueKinds(self: AvailObject) {
-		var keyType = bottom()
-		var valueType = bottom()
+		var keyType = bottom
+		var valueType = bottom
 		val binCount = self.objectSlotsCount() - numberOfFixedObjectSlots()
 		for (i in 1..binCount) {
 			val subBin = self.slot(SUB_BINS_, i)

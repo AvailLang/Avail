@@ -75,7 +75,7 @@ object P_PushArgument2 : Primitive(
 	 * translator will have to ignore the primitive block type restriction for
 	 * this particular primitive.
 	 */
-	override fun privateBlockTypeRestriction(): A_Type = bottom()
+	override fun privateBlockTypeRestriction(): A_Type = bottom
 
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,

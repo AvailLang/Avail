@@ -710,7 +710,7 @@ abstract class AbstractNumberDescriptor protected constructor(
 			aType: A_Type,
 			bType: A_Type
 		): A_Type {
-			var union = bottom()
+			var union = bottom
 			if (!aType.typeIntersection(DOUBLE.o).isBottom
 				|| !bType.typeIntersection(DOUBLE.o).isBottom)
 			{

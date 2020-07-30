@@ -262,7 +262,7 @@ object IndexedFileAnalyzer
 		// Check that all characters are bytes (U+0000 – U+00FF), and write
 		// each character as an individual byte to the outputBuffer.
 		val targetBuffer = ByteBuffer.allocate(string.length)
-		for (i in string.indices) {
+		string.indices.forEach { i ->
 			val ch = string[i]
 			if (ch > '\u00ff') {
 				// Figure out where it was in the input by back-translating

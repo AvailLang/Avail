@@ -73,57 +73,57 @@ class PrimitiveNamesGenerator constructor(locale: Locale)
 	 */
 	override fun generateProperties(
 		properties: Properties,
-		writer: PrintWriter)
-	{
+		writer: PrintWriter
+	) = with(writer) {
 		val keys = mutableSetOf<String>()
 		for (primitiveNumber in 1 .. maxPrimitiveNumber())
 		{
 			val primitive = byPrimitiveNumberOrNull(primitiveNumber)
-			if (primitive !== null && !primitive.hasFlag(Primitive.Flag.Private))
+			if (primitive !== null
+				&& !primitive.hasFlag(Primitive.Flag.Private))
 			{
 				// Write a comment that gives the primitive number and its
 				// arity.
 				keys.add(primitive.javaClass.simpleName)
-				writer.format(
+				format(
 					"# %s : _=%d%n",
 					primitive.fieldName(),
 					primitive.argCount)
 				// Write the primitive key and any name already associated with
 				// it.
-				writer.print(primitive.javaClass.simpleName)
-				writer.print('=')
+				print(primitive.javaClass.simpleName)
+				print('=')
 				val primitiveName = properties.getProperty(
 					primitive.javaClass.simpleName)
 				if (primitiveName !== null)
 				{
-					writer.print(escape(primitiveName))
+					print(escape(primitiveName))
 				}
-				writer.println()
+				println()
 				// Write each of the parameter keys and their previously
 				// associated values.
 				for (i in 1 .. primitive.argCount)
 				{
-					val argNameKey =
-						primitiveParameterNameKey(primitive, i)
+					val argNameKey = primitiveParameterNameKey(primitive, i)
 					keys.add(argNameKey)
-					writer.print(argNameKey)
-					writer.print('=')
+					print(argNameKey)
+					print('=')
 					val argName = properties.getProperty(argNameKey)
 					if (argName !== null)
 					{
-						writer.print(escape(argName))
+						print(escape(argName))
 					}
-					writer.println()
+					println()
 				}
 				// Write out the comment.
 				val commentKey = primitiveCommentKey(primitive)
 				keys.add(commentKey)
-				writer.print(commentKey)
-				writer.print('=')
+				print(commentKey)
+				print('=')
 				val comment = properties.getProperty(commentKey)
 				if (comment !== null && comment.isNotEmpty())
 				{
-					writer.print(escape(comment))
+					print(escape(comment))
 				}
 				else
 				{
@@ -176,14 +176,17 @@ class PrimitiveNamesGenerator constructor(locale: Locale)
 						val failureType: A_Type = primitive.failureVariableType
 						if (failureType.isEnumeration)
 						{
-							val builder = StringBuilder(500)
-							for (o in failureType.instances())
-							{
-								builder.append(MessageFormat.format(
-									raisesTemplate, "{$templateParameters}"))
-								templateParameters++
+							buildString {
+								failureType.instances().forEach { o ->
+									append(
+										MessageFormat.format(
+											raisesTemplate,
+											"{$templateParameters}"
+										)
+									)
+									templateParameters++
+								}
 							}
-							builder.toString()
 						}
 						else
 						{
@@ -195,21 +198,20 @@ class PrimitiveNamesGenerator constructor(locale: Locale)
 					{
 						""
 					}
-					writer.print(escape(MessageFormat.format(
+					print(escape(MessageFormat.format(
 						commentTemplate, parameters, returns, raises)))
 				}
-				writer.println()
+				println()
 			}
 		}
-		for (property in properties.keys)
-		{
+		properties.keys.forEach { property ->
 			val key = property as String
 			if (!keys.contains(key))
 			{
 				keys.add(key)
-				writer.print(key)
-				writer.print('=')
-				writer.println(escape(properties.getProperty(key)))
+				print(key)
+				print('=')
+				println(escape(properties.getProperty(key)))
 			}
 		}
 	}
@@ -230,13 +232,11 @@ class PrimitiveNamesGenerator constructor(locale: Locale)
 		@JvmStatic
 		fun main(args: Array<String>)
 		{
-			val languages: Array<String> =
+			val languages =
 				if (args.isNotEmpty()) args
 				else arrayOf(System.getProperty("user.language"))
-			for (language in languages)
-			{
-				val generator = PrimitiveNamesGenerator(Locale(language))
-				generator.generate()
+			languages.forEach { language ->
+				PrimitiveNamesGenerator(Locale(language)).generate()
 			}
 		}
 	}

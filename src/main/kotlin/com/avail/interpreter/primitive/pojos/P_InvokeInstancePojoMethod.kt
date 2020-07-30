@@ -136,7 +136,7 @@ object P_InvokeInstancePojoMethod : Primitive(-1, Private)
 	 * This primitive is suitable for any block signature, although really the
 	 * primitive could only be applied if the function returns any.
 	 */
-	override fun privateBlockTypeRestriction(): A_Type = bottom()
+	override fun privateBlockTypeRestriction(): A_Type = bottom
 
 	override fun privateFailureVariableType(): A_Type =
 		pojoTypeForClass(Throwable::class.java)

@@ -88,7 +88,7 @@ object P_DeclarationInitializingExpression : Primitive(2, CanInline, HasSideEffe
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				variableReadWriteType(TOP.o, bottom()),
+				variableReadWriteType(TOP.o, bottom),
 				DECLARATION_PHRASE.mostGeneralType()),
 			booleanType)
 

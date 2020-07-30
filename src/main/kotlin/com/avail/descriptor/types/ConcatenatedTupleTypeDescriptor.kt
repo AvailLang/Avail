@@ -330,7 +330,7 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 				aTupleType.typeAtIndex(i))
 			if (intersectionObject.isBottom)
 			{
-				return bottom()
+				return bottom
 			}
 			newLeading = newLeading.tupleAtPuttingCanDestroy(
 				i, intersectionObject, true)
@@ -422,7 +422,7 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 		}
 		if (endIndex <= 0)
 		{
-			return bottom()
+			return bottom
 		}
 		val firstTupleType: A_Type = self.slot(FIRST_TUPLE_TYPE)
 		val secondTupleType: A_Type = self.slot(SECOND_TUPLE_TYPE)
@@ -434,7 +434,7 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 		{
 			if (startIndexObject.greaterThan(totalUpper))
 			{
-				return bottom()
+				return bottom
 			}
 		}
 		var typeUnion =
@@ -532,7 +532,7 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 		{
 			if (index <= 0)
 			{
-				return bottom()
+				return bottom
 			}
 			val firstSizeRange = firstTupleType.sizeRange()
 			val firstUpper = firstSizeRange.upperBound()
@@ -543,7 +543,7 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 				val indexObject: A_Number = fromInt(index)
 				if (indexObject.greaterThan(totalUpper))
 				{
-					return bottom()
+					return bottom
 				}
 			}
 			val firstLower = firstSizeRange.lowerBound()

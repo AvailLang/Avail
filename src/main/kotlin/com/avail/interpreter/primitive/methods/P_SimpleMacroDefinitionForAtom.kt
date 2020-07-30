@@ -97,13 +97,11 @@ object P_SimpleMacroDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 			return interpreter.primitiveFailure(
 				E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
-		for (prefixFunction in prefixFunctions)
-		{
+		prefixFunctions.forEach { prefixFunction ->
 			val numArgs = prefixFunction.code().numArgs()
 			val kind = prefixFunction.kind()
 			val argsKind = kind.argsTupleType()
-			for (argIndex in 1 .. numArgs)
-			{
+			(1 .. numArgs).forEach { argIndex ->
 				if (!argsKind.typeAtIndex(argIndex)
 						.isSubtypeOf(PARSE_PHRASE.mostGeneralType()))
 				{

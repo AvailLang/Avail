@@ -107,8 +107,7 @@ object P_BootstrapPrefixPrimitiveDeclaration
 			val blockArgumentsList =
 				optionalBlockArgumentsList.lastExpression()
 			assert(blockArgumentsList.expressionsSize() >= 1)
-			for (pair in blockArgumentsList.expressionsTuple())
-			{
+			blockArgumentsList.expressionsTuple().forEach { pair ->
 				assert(pair.expressionsSize() == 2)
 				val namePhrase = pair.expressionAt(1)
 				val name = namePhrase.token().literal().string()

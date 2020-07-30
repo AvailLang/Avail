@@ -429,7 +429,7 @@ internal class LinearMapBinDescriptor private constructor(
 	 *   The union of the kinds of this bin's keys.
 	 */
 	private fun computeKeyKind(self: AvailObject): A_Type {
-		var keyType = (1 until (entryCount(self) shl 1) step 2).fold(bottom()) {
+		var keyType = (1 until (entryCount(self) shl 1) step 2).fold(bottom) {
 			union, i ->
 			union.typeUnion(self.slot(BIN_SLOT_AT_, i).kind())
 		}
@@ -469,7 +469,7 @@ internal class LinearMapBinDescriptor private constructor(
 	 *   The union of the kinds of this bin's values.
 	 */
 	private fun computeValueKind(self: AvailObject): A_Type {
-		var valueType = (2 .. (entryCount(self) shl 1) step 2).fold(bottom()) {
+		var valueType = (2 .. (entryCount(self) shl 1) step 2).fold(bottom) {
 			union, i ->
 			union.typeUnion(self.slot(BIN_SLOT_AT_, i).kind())
 		}
@@ -619,8 +619,8 @@ internal class LinearMapBinDescriptor private constructor(
 				0, 0, descriptorFor(MUTABLE, myLevel))
 			bin.setSlot(KEYS_HASH, 0)
 			bin.setSlot(VALUES_HASH_OR_ZERO, 0)
-			bin.setSlot(BIN_KEY_UNION_KIND_OR_NIL, bottom())
-			bin.setSlot(BIN_VALUE_UNION_KIND_OR_NIL, bottom())
+			bin.setSlot(BIN_KEY_UNION_KIND_OR_NIL, bottom)
+			bin.setSlot(BIN_VALUE_UNION_KIND_OR_NIL, bottom)
 			check(bin)
 			return bin
 		}

@@ -680,7 +680,7 @@ class ContinuationDescriptor private constructor(
 		 * [P_ContinuationStackData].
 		 */
 		private val nilSubstitute: AvailObject =
-			newVariableWithContentType(bottom()).makeShared()
+			newVariableWithContentType(bottom).makeShared()
 
 		/**
 		 * Answer a substitute for [nil] for a non-existent caller. This is

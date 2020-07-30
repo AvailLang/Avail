@@ -278,7 +278,7 @@ class TypeRestriction private constructor(
 				instanceTypeOrMetaOn(v))
 		}
 		val resultExcludedTypes = mutableSetOf<A_Type>()
-		resultExcludedTypes.add(BottomTypeDescriptor.bottomMeta())
+		resultExcludedTypes.add(BottomTypeDescriptor.bottomMeta)
 		for (t in excludedTypes)
 		{
 			resultExcludedTypes.add(InstanceMetaDescriptor.instanceMeta(t))
@@ -886,7 +886,7 @@ class TypeRestriction private constructor(
 		 */
 		@JvmField
 		val bottomRestriction = TypeRestriction(
-			BottomTypeDescriptor.bottom(),
+			BottomTypeDescriptor.bottom,
 			null,
 			emptySet(),
 			emptySet(),
@@ -907,8 +907,8 @@ class TypeRestriction private constructor(
 		 * [BottomTypeDescriptor].
 		 */
 		private val bottomTypeRestriction = TypeRestriction(
-			BottomTypeDescriptor.bottomMeta(),
-			BottomTypeDescriptor.bottom(),
+			BottomTypeDescriptor.bottomMeta,
+			BottomTypeDescriptor.bottom,
 			emptySet(),
 			emptySet(),
 			true,
@@ -941,7 +941,7 @@ class TypeRestriction private constructor(
 			givenExcludedValues: Set<A_BasicObject>,
 			flags: Int): TypeRestriction
 		{
-			assert(!givenExcludedTypes.contains(BottomTypeDescriptor.bottom()))
+			assert(!givenExcludedTypes.contains(BottomTypeDescriptor.bottom))
 			givenExcludedTypes.forEach { it.makeImmutable() }
 			givenExcludedValues.forEach { it.makeImmutable() }
 			return when
@@ -1209,7 +1209,7 @@ class TypeRestriction private constructor(
 			val excludedTypes =
 				givenExcludedTypes.mapToSet { type.typeIntersection(it) }
 
-			excludedTypes.remove(BottomTypeDescriptor.bottom())
+			excludedTypes.remove(BottomTypeDescriptor.bottom)
 			val iterator = excludedTypes.iterator()
 			iterator.forEachRemaining { t: A_Type ->
 				if (t.isEnumeration && !t.isInstanceMeta)

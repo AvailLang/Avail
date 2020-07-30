@@ -225,7 +225,8 @@ class MessageSplitterTest private constructor ()
 				if (expressionPhraseTypes.isNotEmpty())
 					expressionPhraseTypes[expressionPhraseTypes.size - 1]
 				else
-					bottom())
+					bottom
+			)
 			return createListNodeType(
 				PhraseKind.LIST_PHRASE,
 				mostGeneralTupleType(),

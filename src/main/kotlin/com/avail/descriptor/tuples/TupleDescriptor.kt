@@ -413,7 +413,8 @@ abstract class TupleDescriptor protected constructor(
 		return TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 			fromInt(self.tupleSize()).kind(),
 			tupleOfTypes,
-			BottomTypeDescriptor.bottom())
+			BottomTypeDescriptor.bottom
+		)
 	}
 
 	abstract override fun o_CompareFromToWithStartingAt(

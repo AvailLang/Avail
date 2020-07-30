@@ -138,7 +138,7 @@ object L2_LOOKUP_BY_VALUES : L2ControlFlowOperation(
 			val numArgs = arguments.size
 			val functions: Set<A_Function> = toSet(functionType.instances())
 			val argumentTupleUnionType =
-				functions.fold(bottom()) { union, function ->
+				functions.fold(bottom) { union, function ->
 					union.typeUnion(
 						function.code().functionType().argsTupleType())
 				}

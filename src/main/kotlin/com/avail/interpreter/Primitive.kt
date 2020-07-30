@@ -754,7 +754,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 				lineNumber,
 				L1Operation.L1_doCall,
 				writer.addLiteral(SpecialMethodAtom.CRASH.bundle),
-				writer.addLiteral(bottom()))
+				writer.addLiteral(bottom))
 		}
 	}
 

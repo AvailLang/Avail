@@ -116,7 +116,7 @@ object P_Assert : Primitive(2, Unknown, CanSuspend, CannotFail)
 		{
 			// The assertion can't pass, so the fiber will always terminate.
 			// Thus, the type is bottom.
-			bottom()
+			bottom
 		}
 	}
 

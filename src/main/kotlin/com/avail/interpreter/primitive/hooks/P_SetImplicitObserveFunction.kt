@@ -89,7 +89,7 @@ object P_SetImplicitObserveFunction : Primitive(
 		val writer = L1InstructionWriter(nil, 0, nil)
 		val outerIndex = writer.createOuter(IMPLICIT_OBSERVE.functionType)
 		writer.argumentTypes(mostGeneralFunctionType(), mostGeneralTupleType())
-		writer.returnType = bottom()
+		writer.returnType = bottom
 		writer.write(0, L1Operation.L1_doPushOuter, outerIndex)
 		writer.write(0, L1Operation.L1_doPushLocal, 1)
 		writer.write(0, L1Operation.L1_doPushLocal, 2)
@@ -115,7 +115,7 @@ object P_SetImplicitObserveFunction : Primitive(
 			0,
 			L1Operation.L1_doCall,
 			writer.addLiteral(SpecialMethodAtom.RESUME_CONTINUATION.bundle),
-			writer.addLiteral(bottom()))
+			writer.addLiteral(bottom))
 		val code = writer.compiledCode()
 		code.setMethodName(stringFrom("«implicit observe function wrapper»"))
 		return code

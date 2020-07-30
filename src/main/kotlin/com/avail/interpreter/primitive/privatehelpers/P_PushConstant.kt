@@ -70,7 +70,7 @@ object P_PushConstant : Primitive(
 	}
 
 	/** This primitive is suitable for any block signature. */
-	override fun privateBlockTypeRestriction(): A_Type = bottom()
+	override fun privateBlockTypeRestriction(): A_Type = bottom
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,

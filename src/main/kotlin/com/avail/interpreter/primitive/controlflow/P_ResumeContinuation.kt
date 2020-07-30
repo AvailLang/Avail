@@ -76,5 +76,5 @@ object P_ResumeContinuation : Primitive(
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(mostGeneralContinuationType()), bottom())
+		functionType(tuple(mostGeneralContinuationType()), bottom)
 }

@@ -77,7 +77,7 @@ import kotlin.math.max
  * B.
  *
  * Note that the [A_Type.argsTupleType] can be
- * [bottom][BottomTypeDescriptor.bottom] (⊥) instead of a tuple type.  Because
+ * [bottom][BottomTypeDescriptor.getBottom] (⊥) instead of a tuple type.  Because
  * bottom is more specific than any tuple type, the resulting function type is
  * considered more general than one with a tuple type (if the other variances
  * also hold).
@@ -741,7 +741,8 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 			val tupleType =
 				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 					IntegerRangeTypeDescriptor
-						.singleInt(argTypes.tupleSize()), argTypes, bottom())
+						.singleInt(argTypes.tupleSize()), argTypes, bottom
+				)
 			return functionTypeFromArgumentTupleType(
 				tupleType, returnType, exceptionSet)
 		}
@@ -761,7 +762,7 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 		@JvmStatic
 		fun functionTypeReturning(returnType: A_Type): A_Type =
 			functionTypeFromArgumentTupleType(
-				bottom(),
+				bottom,
 				returnType,  // TODO: [MvG] Probably should allow any exception.
 				emptySet)
 	}

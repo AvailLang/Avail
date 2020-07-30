@@ -77,7 +77,7 @@ object P_RaiseException : Primitive(1, CanSuspend, CanSwitchContinuations)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(exceptionType()), bottom())
+		functionType(tuple(exceptionType()), bottom)
 
 	override fun privateFailureVariableType(): A_Type = exceptionType()
 }

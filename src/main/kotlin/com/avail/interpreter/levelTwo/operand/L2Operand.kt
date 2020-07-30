@@ -297,8 +297,7 @@ abstract class L2Operand : PublicCloneable<L2Operand>()
 			}
 			val operands = instruction!!.operands()
 
-			for (i in operands.indices)
-			{
+			operands.indices.forEach { i ->
 				when(val operand = operands[i])
 				{
 					this -> return false

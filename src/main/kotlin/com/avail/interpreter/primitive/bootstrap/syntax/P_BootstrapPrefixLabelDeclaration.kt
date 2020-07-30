@@ -118,7 +118,7 @@ object P_BootstrapPrefixLabelDeclaration : Primitive(3, CanInline, Bootstrap)
 				// Because of continuation return type contravariance, this is
 				// the most general answer.
 				labelReturnTypePhrase = nil
-				bottom()
+				bottom
 			}
 
 		// Re-extract all the argument types so we can specify the exact type of

@@ -92,7 +92,8 @@ object P_ReverseTuple : Primitive(1, CannotFail, CanFold, CanInline)
 		val elementTypes = tupleType.tupleOfTypesFromTo(1, tupleSize)
 		val reversedElementTypes = elementTypes.tupleReverse()
 		return tupleTypeForSizesTypesDefaultType(
-			tupleSizes, reversedElementTypes, bottom())
+			tupleSizes, reversedElementTypes, bottom
+		)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

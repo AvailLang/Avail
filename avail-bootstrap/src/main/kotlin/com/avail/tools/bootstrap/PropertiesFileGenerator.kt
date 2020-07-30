@@ -67,6 +67,7 @@ import java.util.ResourceBundle
  * @param locale
  *   The target [locale][Locale].
  */
+@Suppress("MemberVisibilityCanBePrivate")
 abstract class PropertiesFileGenerator protected constructor(
 	protected val baseName: String,
 	protected val locale: Locale)
@@ -90,13 +91,12 @@ abstract class PropertiesFileGenerator protected constructor(
 	 * @param writer
 	 *   The [output stream][PrintWriter].
 	 */
-	protected fun generatePreamble(writer: PrintWriter)
-	{
-		writer.println(MessageFormat.format(
+	protected fun generatePreamble(writer: PrintWriter) = with(writer) {
+		println(MessageFormat.format(
 			preambleBundle.getString(Resources.Key.propertiesCopyright.name),
 			localName(baseName) + "_" + locale.language,
 			Date()))
-		writer.println(MessageFormat.format(
+		println(MessageFormat.format(
 			preambleBundle.getString(
 				Resources.Key.generatedPropertiesNotice.name),
 			javaClass.name,
@@ -150,10 +150,10 @@ abstract class PropertiesFileGenerator protected constructor(
 		{
 			// Ignore. It's okay if the file doesn't already exist.
 		}
-		val writer = PrintWriter(tempFileName, "UTF-8")
-		generatePreamble(writer)
-		generateProperties(properties, writer)
-		writer.close()
+		PrintWriter(tempFileName, StandardCharsets.UTF_8.name()).use { writer ->
+			generatePreamble(writer)
+			generateProperties(properties, writer)
+		}
 		// Now switch the new file in.  In the rare event of failure between
 		// these steps, the complete content will still be available in the
 		// corresponding *.propertiesTEMP file.

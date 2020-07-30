@@ -85,7 +85,8 @@ object L2_GET_INVALID_MESSAGE_RESULT_FUNCTION : L2Operation(
 					mostGeneralFunctionType(),
 					topMeta(),
 					variableTypeFor(ANY.o)),
-				BottomTypeDescriptor.bottom()),
+				BottomTypeDescriptor.bottom
+			),
 			instruction)
 	}
 

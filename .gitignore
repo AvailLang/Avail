@@ -1,5 +1,6 @@
 /**/.DS_Store
 /**/*.jpage
+/**/*.ws.kts
 /.gradle
 /build
 /stacks

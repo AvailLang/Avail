@@ -63,7 +63,8 @@ object P_TupleTypeAt : Primitive(2, CannotFail, CanFold, CanInline)
 		val index = interpreter.argument(1)
 		return interpreter.primitiveSuccess(
 			if (index.isInt) tupleType.typeAtIndex(index.extractInt())
-			else bottom())
+			else bottom
+		)
 	}
 
 	override fun returnTypeGuaranteedByVM(

@@ -155,7 +155,7 @@ class LiteralTokenTypeDescriptor private constructor(mutability: Mutability)
 		self: AvailObject,
 		primitiveTypeEnum: Types): A_Type =
 			if (Types.TOKEN.superTests[primitiveTypeEnum.ordinal]) self
-			else bottom()
+			else bottom
 
 	override fun o_TypeUnion(self: AvailObject, another: A_Type): A_Type =
 		when

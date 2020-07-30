@@ -98,7 +98,8 @@ object P_CastIntoElse : Primitive(3, Invokes, CanInline, CannotFail)
 				ANY.o,
 				functionType(
 					tuple(
-						bottom()),
+						bottom
+					),
 					TOP.o
 				),
 				functionType(

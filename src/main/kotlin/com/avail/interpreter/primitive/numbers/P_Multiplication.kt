@@ -161,7 +161,7 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 		private val aType: A_Type, private val bType: A_Type)
 	{
 		/** Accumulate the range.  */
-		private var union = bottom()
+		private var union = bottom
 
 		/** The infinities that should be included in the result.  */
 		private val includedInfinities = mutableSetOf<A_Number>()

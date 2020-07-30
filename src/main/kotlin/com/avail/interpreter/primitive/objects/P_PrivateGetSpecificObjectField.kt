@@ -78,7 +78,7 @@ object P_PrivateGetSpecificObjectField : Primitive(
 	}
 
 	/** Specific [A_RawFunction]s will have suitable signatures. */
-	override fun privateBlockTypeRestriction(): A_Type = bottom()
+	override fun privateBlockTypeRestriction(): A_Type = bottom
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,

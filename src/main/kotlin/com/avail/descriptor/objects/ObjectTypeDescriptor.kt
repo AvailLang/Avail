@@ -415,7 +415,7 @@ class ObjectTypeDescriptor internal constructor(
 							anObjectType.slot(FIELD_TYPES_, it))
 					if (fieldIntersection.isBottom) {
 						// Abandon the partially built object type.
-						return bottom()
+						return bottom
 					}
 					setSlot(FIELD_TYPES_, it, fieldIntersection)
 				}
@@ -451,7 +451,7 @@ class ObjectTypeDescriptor internal constructor(
 									anObjectType.slot(
 										FIELD_TYPES_,
 										otherSlotIndex))
-							if (intersection.isBottom) return bottom()
+							if (intersection.isBottom) return bottom
 							intersection
 						}
 					}

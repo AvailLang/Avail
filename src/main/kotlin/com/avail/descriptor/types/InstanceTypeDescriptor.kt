@@ -144,7 +144,7 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 			{
 				// Intersection of an instance type and an instance meta is
 				// always bottom.
-				return bottom()
+				return bottom
 			}
 			// Create a new enumeration containing all elements that are
 			// simultaneously present in object and another.
@@ -152,7 +152,7 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 			{
 				self
 			}
-			else bottom()
+			else bottom
 		}
 		// Keep the instance if it complies with another, which is not an
 		// enumeration.
@@ -160,7 +160,7 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 		{
 			self
 		}
-		else bottom()
+		else bottom
 	}
 
 	/**
@@ -314,7 +314,7 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 		{
 			instanceTypeOrMetaOn(tuple.tupleAt(index))
 		}
-		else bottom()
+		else bottom
 	}
 
 	override fun o_UnionOfTypesAtThrough(
@@ -329,12 +329,12 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 		assert(tuple.isTuple)
 		if (startIndex > endIndex)
 		{
-			return bottom()
+			return bottom
 		}
 		val upperIndex = tuple.tupleSize()
 		if (startIndex > upperIndex)
 		{
-			return bottom()
+			return bottom
 		}
 		if (startIndex == endIndex)
 		{
@@ -353,7 +353,7 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 		val tupleSize = tuple.tupleSize()
 		return if (tupleSize == 0)
 		{
-			bottom()
+			bottom
 		}
 		else instanceTypeOrMetaOn(tuple.tupleAt(tupleSize))
 	}
@@ -518,7 +518,7 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 			}
 			else
 			{
-				bottom()
+				bottom
 			}
 		}
 	}

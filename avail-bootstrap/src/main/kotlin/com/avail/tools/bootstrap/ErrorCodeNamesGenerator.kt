@@ -78,73 +78,73 @@ class ErrorCodeNamesGenerator (locale: Locale?)
 	 * @param writer
 	 *   The [output stream][PrintWriter].
 	 */
-	override fun generateProperties(properties: Properties, writer: PrintWriter)
-	{
+	override fun generateProperties(
+		properties: Properties,
+		writer: PrintWriter
+	) = with(writer) {
 		val keys = mutableSetOf<String>()
-		for (code in AvailErrorCode.values())
-		{
+		AvailErrorCode.values().forEach { code ->
 			if (code.nativeCode() > 0)
 			{
-				writer.print("# ")
-				writer.print(code.nativeCode())
-				writer.print(" : ")
-				writer.print(code.name)
-				writer.println()
+				print("# ")
+				print(code.nativeCode())
+				print(" : ")
+				print(code.name)
+				println()
 				val key = errorCodeKey(code)
 				keys.add(key)
-				writer.print(key)
-				writer.print('=')
+				print(key)
+				print('=')
 				val errorCodeName = properties.getProperty(key)
 				if (errorCodeName !== null)
 				{
-					writer.print(escape(errorCodeName))
+					print(escape(errorCodeName))
 				}
 				else if (locale.language == "en")
 				{
-					writer.print(
+					print(
 						code.name.substring(2).toLowerCase()
 							.replace('_', '-'))
-					writer.print(" code")
+					print(" code")
 				}
-				writer.println()
+				println()
 				val exceptionKey = errorCodeExceptionKey(code)
 				keys.add(exceptionKey)
-				writer.print(exceptionKey)
-				writer.print('=')
+				print(exceptionKey)
+				print('=')
 				val exception = properties.getProperty(exceptionKey)
 				if (exception !== null)
 				{
-					writer.print(escape(exception))
+					print(escape(exception))
 				}
 				else if (locale.language == "en")
 				{
-					writer.print(
+					print(
 						code.name.substring(2).toLowerCase()
 							.replace('_', '-'))
-					writer.print(" exception")
+					print(" exception")
 				}
-				writer.println()
+				println()
 				val commentKey = errorCodeCommentKey(code)
 				keys.add(commentKey)
-				writer.print(commentKey)
-				writer.print('=')
+				print(commentKey)
+				print('=')
 				val comment = properties.getProperty(commentKey)
 				if (comment !== null)
 				{
-					writer.print(escape(comment))
+					print(escape(comment))
 				}
-				writer.println()
+				println()
 			}
 		}
-		for (property in properties.keys)
-		{
+		properties.keys.forEach { property ->
 			val key = property as String
 			if (!keys.contains(key))
 			{
 				keys.add(key)
-				writer.print(key)
-				writer.print('=')
-				writer.println(escape(properties.getProperty(key)))
+				print(key)
+				print('=')
+				println(escape(properties.getProperty(key)))
 			}
 		}
 	}
@@ -164,8 +164,7 @@ class ErrorCodeNamesGenerator (locale: Locale?)
 			// This forces initialization of Avail.
 			specialObjects()
 			var allErrorCodes = emptySet
-			for (code in AvailErrorCode.values())
-			{
+			AvailErrorCode.values().forEach { code ->
 				if (!code.isCausedByInstructionFailure)
 				{
 					allErrorCodes = allErrorCodes.setWithElementCanDestroy(
@@ -200,10 +199,8 @@ class ErrorCodeNamesGenerator (locale: Locale?)
 				allErrorCodes.setMinusCanDestroy(reachableErrorCodes, true)
 			if (unreachableErrorCodes.setSize() != 0)
 			{
-				val unreachable =
-					EnumSet.noneOf(AvailErrorCode::class.java)
-				for (code in unreachableErrorCodes)
-				{
+				val unreachable = EnumSet.noneOf(AvailErrorCode::class.java)
+				unreachableErrorCodes.forEach { code ->
 					unreachable.add(byNumericCode(code.extractInt()))
 				}
 				System.err.printf(
@@ -228,15 +225,13 @@ class ErrorCodeNamesGenerator (locale: Locale?)
 		@JvmStatic
 		fun main(args: Array<String>)
 		{
-			val languages: Array<String> =
+			val languages =
 				if (args.isNotEmpty()) args
 				else arrayOf(System.getProperty("user.language"))
 			if (allErrorCodesAreReachableFromPrimitives())
 			{
-				for (language in languages)
-				{
-					val generator = ErrorCodeNamesGenerator(Locale(language))
-					generator.generate()
+				languages.forEach { language ->
+					ErrorCodeNamesGenerator(Locale(language)).generate()
 				}
 			}
 		}

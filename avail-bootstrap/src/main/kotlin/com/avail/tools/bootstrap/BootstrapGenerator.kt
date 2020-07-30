@@ -45,6 +45,7 @@ import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
 import com.avail.descriptor.types.TypeDescriptor
+import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.AvailErrorCode.Companion.byNumericCode
 import com.avail.interpreter.Primitive
@@ -114,10 +115,13 @@ import com.avail.tools.bootstrap.Resources.specialObjectKey
 import com.avail.tools.bootstrap.Resources.specialObjectTypeKey
 import com.avail.tools.bootstrap.Resources.specialObjectsBaseName
 import com.avail.tools.bootstrap.Resources.stringify
+import com.avail.utility.Tuple4
 import com.avail.utility.UTF8ResourceBundleControl
+import com.avail.utility.t
 import java.io.File
 import java.io.IOException
 import java.io.PrintWriter
+import java.nio.charset.StandardCharsets.UTF_8
 import java.text.MessageFormat
 import java.util.Comparator
 import java.util.Date
@@ -164,13 +168,12 @@ class BootstrapGenerator constructor(private val locale: Locale)
 		 */
 		private fun vmVersionString(versions: List<String>): String
 		{
-			val builder = StringBuilder()
-			for (version in versions)
-			{
-				builder.append(version)
-				builder.append(",")
+			val versionString = buildString {
+				versions.forEach { version ->
+					append(version)
+					append(",")
+				}
 			}
-			val versionString = builder.toString()
 			return versionString.substring(0, versionString.length - 1)
 		}
 
@@ -186,14 +189,13 @@ class BootstrapGenerator constructor(private val locale: Locale)
 		 */
 		private fun moduleVersionString(versions: List<String>): String
 		{
-			val builder = StringBuilder()
-			for (version in versions)
-			{
-				builder.append("\n\t\"")
-				builder.append(version)
-				builder.append("\",")
+			val versionString = buildString {
+				versions.forEach { version ->
+					append("\n\t\"")
+					append(version)
+					append("\",")
+				}
 			}
-			val versionString = builder.toString()
 			return versionString.substring(0, versionString.length - 1)
 		}
 
@@ -442,24 +444,19 @@ class BootstrapGenerator constructor(private val locale: Locale)
 	 * @return
 	 *   The "Names" string.
 	 */
-	private fun specialObjectsNamesString(): String
-	{
-		val names: MutableList<String> =
-			specialObjectsByName.keys.toMutableList()
-		names.sort()
-		val builder = StringBuilder()
-		for (name in names)
-		{
+	private fun specialObjectsNamesString() = buildString {
+		specialObjectsByName.keys.sorted().forEach { name ->
 			val specialObject: A_BasicObject? = specialObjectsByName[name]
-			builder.append("\n\t")
-			builder.append(String.format(
-				"/* %3d */", specialObjectIndexMap[specialObject]))
-			builder.append(" \"")
-			builder.append(name)
-			builder.append("\",")
+			append("\n\t")
+			append(
+				String.format(
+					"/* %3d */",
+					specialObjectIndexMap[specialObject]))
+			append(" \"")
+			append(name)
+			append("\",")
 		}
-		val namesString = builder.toString()
-		return namesString.substring(0, namesString.length - 1)
+		setLength(length - 1)
 	}
 
 	/**
@@ -502,16 +499,15 @@ class BootstrapGenerator constructor(private val locale: Locale)
 	private fun generateSpecialObjectModuleBody(writer: PrintWriter)
 	{
 		// Emit the special object methods.
-		for (i in specialObjects.indices)
-		{
+		specialObjects.indices.forEach { i ->
 			if (!specialObjects[i].equalsNil())
 			{
 				val notAlphaKey = specialObjectKey(i)
 				if (!specialObjectBundle.containsKey(notAlphaKey)
-				    || specialObjectBundle.getString(notAlphaKey).isEmpty())
+					|| specialObjectBundle.getString(notAlphaKey).isEmpty())
 				{
 					System.err.println("missing key/value: $notAlphaKey")
-					continue
+					return@forEach
 				}
 				val methodName = specialObjectBundle.getString(notAlphaKey)
 				val typeKey = specialObjectTypeKey(i)
@@ -531,8 +527,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 				val use = MessageFormat.format(
 					preamble.getString(specialObjectUse.name), i)
 				writer.println(MessageFormat.format(
-					preamble.getString(
-						definingSpecialObjectUse.name),
+					preamble.getString(definingSpecialObjectUse.name),
 					stringify(methodName),
 					use))
 				writer.println()
@@ -555,26 +550,20 @@ class BootstrapGenerator constructor(private val locale: Locale)
 	 * @return
 	 *   The "Names" string.
 	 */
-	private fun primitivesNamesString(primitives: List<Primitive>): String
-	{
-		val wanted = primitives.toSet()
-		val names = primitiveNameMap.keys.toMutableList()
-		names.sort()
-		val builder = StringBuilder()
-		for (name in names)
-		{
-			val set = primitiveNameMap[name]!!.toMutableSet()
-			set.retainAll(wanted)
-			if (set.isNotEmpty())
-			{
-				builder.append("\n\t\"")
-				builder.append(name)
-				builder.append("\",")
+	private fun primitivesNamesString(primitives: List<Primitive>) =
+		buildString {
+			val wanted = primitives.toSet()
+			primitiveNameMap.keys.sorted().forEach { name ->
+				val set = primitiveNameMap[name]!!.intersect(wanted)
+				if (set.isNotEmpty())
+				{
+					append("\n\t\"")
+					append(name)
+					append("\",")
+				}
 			}
+			setLength(length - 1)
 		}
-		val namesString = builder.toString()
-		return namesString.substring(0, namesString.length - 1)
-	}
 
 	/**
 	 * Generate the preamble for the specified [primitive][Primitive] module.
@@ -614,51 +603,63 @@ class BootstrapGenerator constructor(private val locale: Locale)
 			BootstrapGenerator::class.java.name,
 			Date()))
 		// Write the header.
-		val uses = StringBuilder()
-		uses.append("\n\t\"")
-		uses.append(preamble.getString(originModuleName.name))
-		uses.append('"')
-		if (fallible !== null)
-		{
-			if (java.lang.Boolean.TRUE == fallible)
+		val uses = buildString {
+			append("\n\t\"")
+			append(preamble.getString(originModuleName.name))
+			append('"')
+			if (fallible !== null)
 			{
-				uses.append(",\n\t\"")
-				uses.append(preamble.getString(
-					errorCodesModuleName.name))
-				uses.append("\"")
+				if (java.lang.Boolean.TRUE == fallible)
+				{
+					append(",\n\t\"")
+					append(preamble.getString(errorCodesModuleName.name))
+					append("\"")
+				}
+				append(",\n\t\"")
+				append(preamble.getString(specialObjectsModuleName.name))
+				append("\",\n\t\"")
+				append(preamble.getString(primitivesModuleName.name))
+				append("\" =\n\t(")
+				append(
+					primitivesNamesString(
+						primitives(fallible)
+					).replace("\t", "\t\t")
+				)
+				append("\n\t)")
 			}
-			uses.append(",\n\t\"")
-			uses.append(preamble.getString(
-				specialObjectsModuleName.name))
-			uses.append("\",\n\t\"")
-			uses.append(preamble.getString(
-				primitivesModuleName.name))
-			uses.append("\" =\n\t(")
-			uses.append(primitivesNamesString(
-				primitives(fallible)).replace("\t", "\t\t"))
-			uses.append("\n\t)")
 		}
-		val names = StringBuilder()
-		if (fallible === null)
-		{
-			names.append(primitivesNamesString(primitives(null)))
-		}
-		else if (java.lang.Boolean.TRUE == fallible)
-		{
-			names.append("\n\t")
-			names.append(stringify(preamble.getString(
-				primitiveFailureFunctionGetterMethod.name)))
-			names.append(",\n\t")
-			names.append(stringify(preamble.getString(
-				primitiveFailureFunctionSetterMethod.name)))
+		val names = buildString {
+			if (fallible === null)
+			{
+				append(primitivesNamesString(primitives(null)))
+			}
+			else if (java.lang.Boolean.TRUE == fallible)
+			{
+				append("\n\t")
+				append(
+					stringify(
+						preamble.getString(
+							primitiveFailureFunctionGetterMethod.name
+						)
+					)
+				)
+				append(",\n\t")
+				append(
+					stringify(
+						preamble.getString(
+							primitiveFailureFunctionSetterMethod.name
+						)
+					)
+				)
+			}
 		}
 		writer.println(MessageFormat.format(
 			preamble.getString(generalModuleHeader.name),
 			preamble.getString(key.name),
 			moduleVersionString(versions),
 			"",
-			uses.toString(),
-			names.toString()))
+			uses,
+			names))
 	}
 
 	/**
@@ -687,40 +688,40 @@ class BootstrapGenerator constructor(private val locale: Locale)
 				"Expected %s to have a fixed parameter count",
 				primitive.javaClass.simpleName)
 		}
-		val builder = StringBuilder()
-		var i = 1
-		val end = parameterCount.lowerBound().extractInt()
-		while (i <= end)
-		{
-			val argNameKey = primitiveParameterNameKey(primitive, i)
-			val argName: String
-			argName = if (primitiveBundle.containsKey(argNameKey))
+		return buildString {
+			var i = 1
+			val end = parameterCount.lowerBound().extractInt()
+			while (i <= end)
 			{
-				val localized = primitiveBundle.getString(argNameKey)
-				if (localized.isNotEmpty()) localized
-				else preamble.getString(parameterPrefix.name) + i
+				val argNameKey = primitiveParameterNameKey(primitive, i)
+				val argName =
+					if (primitiveBundle.containsKey(argNameKey))
+					{
+						val localized = primitiveBundle.getString(argNameKey)
+						if (localized.isNotEmpty()) localized
+						else preamble.getString(parameterPrefix.name) + i
+					}
+					else
+					{
+						preamble.getString(parameterPrefix.name) + i
+					}
+				val type = parameterTypes.typeAtIndex(i)
+				val paramType =
+					if (forSemanticRestriction) instanceMeta(type)
+					else type
+				val typeName = specialObjectName(paramType)
+				append('\t')
+				append(argName)
+				append(" : ")
+				append(typeName)
+				if (i != end)
+				{
+					append(',')
+				}
+				append('\n')
+				i++
 			}
-			else
-			{
-				preamble.getString(parameterPrefix.name) + i
-			}
-			val type = parameterTypes.typeAtIndex(i)
-			val paramType =
-				if (forSemanticRestriction) instanceMeta(type)
-				else type
-			val typeName = specialObjectName(paramType)
-			builder.append('\t')
-			builder.append(argName)
-			builder.append(" : ")
-			builder.append(typeName)
-			if (i != end)
-			{
-				builder.append(',')
-			}
-			builder.append('\n')
-			i++
 		}
-		return builder.toString()
 	}
 
 	/**
@@ -731,27 +732,22 @@ class BootstrapGenerator constructor(private val locale: Locale)
 	 * @return
 	 *   The textual representation of the primitive's statements (indent=1).
 	 */
-	private fun primitiveMethodStatements(
-		primitive: Primitive): String
-	{
-		val builder = StringBuilder()
-		builder.append('\t')
-		builder.append(preamble.getString(primitiveKeyword.name))
-		builder.append(' ')
-		builder.append(primitive.fieldName())
+	private fun primitiveMethodStatements(primitive: Primitive) = buildString {
+		append('\t')
+		append(preamble.getString(primitiveKeyword.name))
+		append(' ')
+		append(primitive.fieldName())
 		if (!primitive.hasFlag(Primitive.Flag.CannotFail))
 		{
-			builder.append(" (")
-			builder.append(
-				preamble.getString(
-					primitiveFailureVariableName.name))
-			builder.append(" : ")
+			append(" (")
+			append(preamble.getString(primitiveFailureVariableName.name))
+			append(" : ")
 			val varType: A_Type = primitive.failureVariableType
 			if (varType.isEnumeration)
 			{
 				if (varType.isSubtypeOf(naturalNumbers))
 				{
-					builder.append("{")
+					append("{")
 					val instances = varType.instances()
 					val codes = instances.sortedWith(
 						Comparator { o1: A_Number, o2: A_Number ->
@@ -760,54 +756,45 @@ class BootstrapGenerator constructor(private val locale: Locale)
 					for (code in codes)
 					{
 						val errorCodeName = errorCodeName(code)
-						builder.append("\n\t\t")
-						builder.append(errorCodeName)
-						builder.append(',')
+						append("\n\t\t")
+						append(errorCodeName)
+						append(',')
 					}
 					// Discard the trailing comma.
-					builder.setLength(builder.length - 1)
-					builder.append("}ᵀ")
+					setLength(length - 1)
+					append("}ᵀ")
 				}
 				else
 				{
-					builder.append(specialObjectName(
-						TypeDescriptor.Types.ANY.o
-					))
+					append(specialObjectName(TypeDescriptor.Types.ANY.o))
 				}
 			}
 			else
 			{
-				builder.append(specialObjectName(varType))
+				append(specialObjectName(varType))
 			}
-			builder.append(')')
+			append(')')
 		}
-		builder.append(";\n")
+		append(";\n")
 		if (!primitive.hasFlag(Primitive.Flag.CannotFail))
 		{
-			builder.append('\t')
+			append('\t')
 			if (primitive.hasFlag(Primitive.Flag.CatchException))
 			{
 				val argNameKey = primitiveParameterNameKey(
 					primitive, 1)
-				val argName: String
-				argName = if (primitiveBundle.containsKey(argNameKey))
-				{
-					val localized = primitiveBundle.getString(argNameKey)
-					if (localized.isNotEmpty())
+				val argName =
+					if (primitiveBundle.containsKey(argNameKey))
 					{
-						localized
+						val localized = primitiveBundle.getString(argNameKey)
+						if (localized.isNotEmpty()) localized
+						else preamble.getString(parameterPrefix.name) + 1
 					}
 					else
 					{
-						preamble.getString(
-							parameterPrefix.name) + 1
+						preamble.getString(parameterPrefix.name) + 1
 					}
-				}
-				else
-				{
-					preamble.getString(parameterPrefix.name) + 1
-				}
-				builder.append(MessageFormat.format(
+				append(MessageFormat.format(
 					preamble.getString(
 						invokePrimitiveFailureFunctionMethodUse.name),
 					argName,
@@ -815,7 +802,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 			}
 			else
 			{
-				builder.append(MessageFormat.format(
+				append(MessageFormat.format(
 					preamble.getString(
 						invokePrimitiveFailureFunctionMethodUse.name),
 					preamble.getString(
@@ -823,9 +810,8 @@ class BootstrapGenerator constructor(private val locale: Locale)
 					preamble.getString(
 						primitiveFailureVariableName.name)))
 			}
-			builder.append("\n")
+			append("\n")
 		}
-		return builder.toString()
 	}
 
 	/**
@@ -844,23 +830,21 @@ class BootstrapGenerator constructor(private val locale: Locale)
 	private fun block(
 		declarations: String,
 		statements: String,
-		returnType: A_BasicObject?): String
-	{
-		val builder = StringBuilder()
-		builder.append("\n[\n")
-		builder.append(declarations)
+		returnType: A_BasicObject?
+	) = buildString {
+		append("\n[\n")
+		append(declarations)
 		if (declarations.isNotEmpty())
 		{
-			builder.append("|\n")
+			append("|\n")
 		}
-		builder.append(statements)
-		builder.append(']')
+		append(statements)
+		append(']')
 		if (returnType !== null)
 		{
-			builder.append(" : ")
-			builder.append(specialObjectName(returnType))
+			append(" : ")
+			append(specialObjectName(returnType))
 		}
-		return builder.toString()
 	}
 
 	/**
@@ -871,10 +855,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 	 * @return
 	 *   A textual representation of the comment (indent=0).
 	 */
-	private fun primitiveComment(
-		primitive: Primitive): String
-	{
-		val builder = StringBuilder()
+	private fun primitiveComment(primitive: Primitive) = buildString {
 		val commentKey = primitiveCommentKey(primitive)
 		if (primitiveBundle.containsKey(commentKey))
 		{
@@ -995,11 +976,8 @@ class BootstrapGenerator constructor(private val locale: Locale)
 						+ "single-quote character%n",
 					commentKey)
 			}
-			builder.append(MessageFormat.format(
-				messagePattern,
-				*formatArgs))
+			append(MessageFormat.format(messagePattern, *formatArgs))
 		}
-		return builder.toString()
 	}
 
 	/**
@@ -1015,14 +993,14 @@ class BootstrapGenerator constructor(private val locale: Locale)
 	private fun generateMethod(
 		name: String,
 		block: String,
-		writer: PrintWriter)
-	{
-		writer.print(MessageFormat.format(
+		writer: PrintWriter
+	) = with(writer) {
+		print(MessageFormat.format(
 			preamble.getString(definingMethodUse.name),
 			stringify(name),
 			block))
-		writer.println(';')
-		writer.println()
+		println(';')
+		println()
 	}
 
 	/**
@@ -1035,15 +1013,16 @@ class BootstrapGenerator constructor(private val locale: Locale)
 	private fun generatePrimitiveToSetMethod(writer: PrintWriter)
 	{
 		val primitive: Primitive = P_TupleToSet
-		val statements = StringBuilder()
-		statements.append('\t')
-		statements.append(preamble.getString(primitiveKeyword.name))
-		statements.append(' ')
-		statements.append(primitive.fieldName())
-		statements.append(";\n")
+		val statements = buildString {
+			append('\t')
+			append(preamble.getString(primitiveKeyword.name))
+			append(' ')
+			append(primitive.fieldName())
+			append(";\n")
+		}
 		val block = block(
 			primitiveMethodParameterDeclarations(primitive, false),
-			statements.toString(),
+			statements,
 			primitive.blockTypeRestriction().returnType())
 		generateMethod("{«_‡,»}", block, writer)
 	}
@@ -1057,17 +1036,17 @@ class BootstrapGenerator constructor(private val locale: Locale)
 	 */
 	private fun generatePrimitiveEnumMethod(writer: PrintWriter)
 	{
-		val primitive: Primitive = P_CreateEnumeration
-		val statements = StringBuilder()
-		statements.append('\t')
-		statements.append(preamble.getString(
-			primitiveKeyword.name))
-		statements.append(' ')
-		statements.append(primitive.fieldName())
-		statements.append(";\n")
+		val primitive = P_CreateEnumeration
+		val statements = buildString {
+			append('\t')
+			append(preamble.getString(primitiveKeyword.name))
+			append(' ')
+			append(primitive.fieldName())
+			append(";\n")
+		}
 		val block = block(
 			primitiveMethodParameterDeclarations(primitive, false),
-			statements.toString(),
+			statements,
 			primitive.blockTypeRestriction().returnType())
 		generateMethod("_ᵀ", block, writer)
 	}
@@ -1082,17 +1061,17 @@ class BootstrapGenerator constructor(private val locale: Locale)
 	 */
 	private fun generatePrimitiveFailureMethod(writer: PrintWriter)
 	{
-		val primitive: Primitive = P_EmergencyExit
-		val statements = StringBuilder()
-		statements.append('\t')
-		statements.append(preamble.getString(
-			primitiveKeyword.name))
-		statements.append(' ')
-		statements.append(primitive.fieldName())
-		statements.append(";\n")
+		val primitive = P_EmergencyExit
+		val statements = buildString {
+			append('\t')
+			append(preamble.getString(primitiveKeyword.name))
+			append(' ')
+			append(primitive.fieldName())
+			append(";\n")
+		}
 		val block = block(
 			primitiveMethodParameterDeclarations(primitive, false),
-			statements.toString(),
+			statements,
 			primitive.blockTypeRestriction().returnType())
 		generateMethod(
 			preamble.getString(primitiveFailureMethod.name),
@@ -1106,32 +1085,31 @@ class BootstrapGenerator constructor(private val locale: Locale)
 	 * @param writer
 	 *   The [output stream][PrintWriter].
 	 */
-	private fun generatePrimitiveFailureFunction(writer: PrintWriter)
-	{
-		val functionType: A_BasicObject =
-			functionType(tuple(naturalNumbers), bottom())
-		writer.print(
-			preamble.getString(primitiveFailureFunctionName.name))
-		writer.print(" : ")
-		writer.print(specialObjectName(functionType))
-		writer.println(" :=")
-		writer.println("\t[")
-		writer.print("\t\t")
-		writer.print(preamble.getString(parameterPrefix.name))
-		writer.print(1)
-		writer.print(" : ")
-		writer.println(specialObjectName(TypeDescriptor.Types.ANY.o))
-		writer.println("\t|")
-		writer.print("\t\t")
-		writer.print(MessageFormat.format(
-			preamble.getString(primitiveFailureMethodUse.name),
-			preamble.getString(parameterPrefix.name) + 1))
-		writer.println("")
-		writer.print("\t] : ")
-		writer.print(specialObjectName(bottom()))
-		writer.println(';')
-		writer.println()
-	}
+	private fun generatePrimitiveFailureFunction(writer: PrintWriter) =
+		with(writer)
+		{
+			val functionType = functionType(tuple(naturalNumbers), bottom)
+			print(preamble.getString(primitiveFailureFunctionName.name))
+			print(" : ")
+			print(specialObjectName(functionType))
+			println(" :=")
+			println("\t[")
+			print("\t\t")
+			print(preamble.getString(parameterPrefix.name))
+			print(1)
+			print(" : ")
+			println(specialObjectName(TypeDescriptor.Types.ANY.o))
+			println("\t|")
+			print("\t\t")
+			print(MessageFormat.format(
+				preamble.getString(primitiveFailureMethodUse.name),
+				preamble.getString(parameterPrefix.name) + 1))
+			println("")
+			print("\t] : ")
+			print(specialObjectName(bottom))
+			println(';')
+			println()
+		}
 
 	/**
 	 * Generate the [primitive][Primitive] failure function getter.
@@ -1139,21 +1117,19 @@ class BootstrapGenerator constructor(private val locale: Locale)
 	 * @param writer
 	 *   The [output stream][PrintWriter].
 	 */
-	private fun generatePrimitiveFailureFunctionGetter(
-		writer: PrintWriter)
+	private fun generatePrimitiveFailureFunctionGetter(writer: PrintWriter)
 	{
-		val statements = StringBuilder()
-		statements.append('\t')
-		statements.append(
-			preamble.getString(primitiveFailureFunctionName.name))
-		statements.append("\n")
+		val statements = buildString {
+			append('\t')
+			append(preamble.getString(primitiveFailureFunctionName.name))
+			append("\n")
+		}
 		val block = block(
 			"",
-			statements.toString(),
-			functionType(tuple(naturalNumbers), bottom()))
+			statements,
+			functionType(tuple(naturalNumbers), bottom))
 		generateMethod(
-			preamble.getString(
-				primitiveFailureFunctionGetterMethod.name),
+			preamble.getString(primitiveFailureFunctionGetterMethod.name),
 			block,
 			writer)
 	}
@@ -1167,29 +1143,24 @@ class BootstrapGenerator constructor(private val locale: Locale)
 	private fun generatePrimitiveFailureFunctionSetter(writer: PrintWriter)
 	{
 		val argName = preamble.getString(parameterPrefix.name) + 1
-		val declarations = StringBuilder()
-		declarations.append('\t')
-		declarations.append(argName)
-		declarations.append(" : ")
-		val functionType: A_BasicObject =
-			functionType(tuple(naturalNumbers), bottom())
-		declarations.append(specialObjectName(functionType))
-		declarations.append('\n')
-		val statements = StringBuilder()
-		statements.append('\t')
-		statements.append(
-			preamble.getString(primitiveFailureFunctionName.name))
-		statements.append(" := ")
-		statements.append(argName)
-		statements.append(";\n")
-		val block = block(
-			declarations.toString(),
-			statements.toString(),
-			TypeDescriptor.Types.TOP.o
-		)
+		val declarations = buildString {
+			append('\t')
+			append(argName)
+			append(" : ")
+			val functionType = functionType(tuple(naturalNumbers), bottom)
+			append(specialObjectName(functionType))
+			append('\n')
+		}
+		val statements = buildString {
+			append('\t')
+			append(preamble.getString(primitiveFailureFunctionName.name))
+			append(" := ")
+			append(argName)
+			append(";\n")
+		}
+		val block = block(declarations, statements, TOP.o)
 		generateMethod(
-			preamble.getString(
-				primitiveFailureFunctionSetterMethod.name),
+			preamble.getString(primitiveFailureFunctionSetterMethod.name),
 			block,
 			writer)
 	}
@@ -1205,31 +1176,33 @@ class BootstrapGenerator constructor(private val locale: Locale)
 		writer: PrintWriter)
 	{
 		val primitive: Primitive = P_InvokeWithTuple
-		val statements = StringBuilder()
-		statements.append('\t')
-		statements.append(preamble.getString(primitiveKeyword.name))
-		statements.append(' ')
-		statements.append(primitive.fieldName())
-		statements.append(" (")
-		statements.append(
-			preamble.getString(primitiveFailureVariableName.name))
-		statements.append(" : ")
-		statements.append(specialObjectName(primitive.failureVariableType))
-		statements.append(')')
-		statements.append(";\n")
-		statements.append('\t')
-		statements.append(MessageFormat.format(
-			preamble.getString(primitiveFailureMethodUse.name),
-			preamble.getString(primitiveFailureVariableName.name)))
-		statements.append("\n")
+		val statements = buildString {
+			append('\t')
+			append(preamble.getString(primitiveKeyword.name))
+			append(' ')
+			append(primitive.fieldName())
+			append(" (")
+			append(preamble.getString(primitiveFailureVariableName.name))
+			append(" : ")
+			append(specialObjectName(primitive.failureVariableType))
+			append(')')
+			append(";\n")
+			append('\t')
+			append(
+				MessageFormat.format(
+					preamble.getString(primitiveFailureMethodUse.name),
+					preamble.getString(primitiveFailureVariableName.name)
+				)
+			)
+			append("\n")
+		}
 		val block = block(
 			primitiveMethodParameterDeclarations(primitive, false),
-			statements.toString(),
-			TypeDescriptor.Types.TOP.o
+			statements,
+			TOP.o
 		)
 		generateMethod(
-			preamble.getString(
-				invokePrimitiveFailureFunctionMethod.name),
+			preamble.getString(invokePrimitiveFailureFunctionMethod.name),
 			block,
 			writer)
 	}
@@ -1247,47 +1220,47 @@ class BootstrapGenerator constructor(private val locale: Locale)
 		writer: PrintWriter)
 	{
 		val primitive: Primitive = P_AddSemanticRestriction
-		var statements = StringBuilder()
-		statements.append('\t')
-		statements.append(preamble.getString(primitiveKeyword.name))
-		statements.append(' ')
-		statements.append(primitive.fieldName())
-		statements.append(" (")
-		statements.append(
-			preamble.getString(primitiveFailureVariableName.name))
-		statements.append(" : ")
-		statements.append(
-			specialObjectName(naturalNumbers))
-		statements.append(')')
-		statements.append(";\n")
-		statements.append('\t')
-		statements.append(MessageFormat.format(
-			preamble.getString(primitiveFailureMethodUse.name),
-			preamble.getString(
-				primitiveFailureVariableName.name)))
-		statements.append("\n")
+		var statements = buildString {
+			append('\t')
+			append(preamble.getString(primitiveKeyword.name))
+			append(' ')
+			append(primitive.fieldName())
+			append(" (")
+			append(preamble.getString(primitiveFailureVariableName.name))
+			append(" : ")
+			append(specialObjectName(naturalNumbers))
+			append(')')
+			append(";\n")
+			append('\t')
+			append(
+				MessageFormat.format(
+					preamble.getString(primitiveFailureMethodUse.name),
+					preamble.getString(primitiveFailureVariableName.name
+					)
+				)
+			)
+			append("\n")
+		}
 		var block = block(
 			primitiveMethodParameterDeclarations(primitive, false),
-			statements.toString(),
-			TypeDescriptor.Types.TOP.o
+			statements,
+			TOP.o
 		)
 		generateMethod(
 			preamble.getString(primitiveSemanticRestriction.name),
 			block,
 			writer)
-		statements = StringBuilder()
-		statements.append('\t')
-		statements.append(specialObjectName(bottom()))
-		statements.append("\n")
+		statements = buildString {
+			append('\t')
+			append(specialObjectName(bottom))
+			append("\n")
+		}
 		block = block(
-			primitiveMethodParameterDeclarations(
-				P_InvokeWithTuple,
-				true),
-			statements.toString(),
+			primitiveMethodParameterDeclarations(P_InvokeWithTuple, true),
+			statements,
 			null)
 		writer.append(MessageFormat.format(
-			preamble.getString(
-				primitiveSemanticRestrictionUse.name),
+			preamble.getString(primitiveSemanticRestrictionUse.name),
 			stringify(preamble.getString(
 				invokePrimitiveFailureFunctionMethod.name)),
 			block))
@@ -1378,22 +1351,16 @@ class BootstrapGenerator constructor(private val locale: Locale)
 	 * @return
 	 *   The "Names" string.
 	 */
-	private fun errorCodesNamesString(): String
-	{
-		val names = errorCodesByName.keys.toMutableList()
-		names.sort()
-		val builder = StringBuilder()
-		for (name in names)
-		{
+	private fun errorCodesNamesString() = buildString {
+		errorCodesByName.keys.sorted().forEach { name ->
 			val code = errorCodesByName[name]
-			builder.append("\n\t")
-			builder.append(String.format("/* %3d */", code!!.nativeCode()))
-			builder.append(" \"")
-			builder.append(name)
-			builder.append("\",")
+			append("\n\t")
+			append(String.format("/* %3d */", code!!.nativeCode()))
+			append(" \"")
+			append(name)
+			append("\",")
 		}
-		val namesString = builder.toString()
-		return namesString.substring(0, namesString.length - 1)
+		setLength(length - 1)
 	}
 
 	/**
@@ -1406,26 +1373,27 @@ class BootstrapGenerator constructor(private val locale: Locale)
 	 */
 	private fun generateErrorCodesModulePreamble(
 		versions: List<String>,
-		writer: PrintWriter)
-	{
-		writer.println(MessageFormat.format(
+		writer: PrintWriter
+	) = with(writer) {
+		println(MessageFormat.format(
 			preamble.getString(availCopyright.name),
 			preamble.getString(errorCodesModuleName.name),
 			Date()))
-		writer.println(MessageFormat.format(
+		println(MessageFormat.format(
 			preamble.getString(generatedModuleNotice.name),
 			BootstrapGenerator::class.java.name,
 			Date()))
-		val uses = StringBuilder()
-		uses.append("\n\t\"")
-		uses.append(preamble.getString(originModuleName.name))
-		uses.append('"')
-		writer.println(MessageFormat.format(
+		val uses = buildString {
+			append("\n\t\"")
+			append(preamble.getString(originModuleName.name))
+			append('"')
+		}
+		println(MessageFormat.format(
 			preamble.getString(generalModuleHeader.name),
 			preamble.getString(errorCodesModuleName.name),
 			moduleVersionString(versions),
 			"",
-			uses.toString(),
+			uses,
 			errorCodesNamesString()))
 	}
 
@@ -1435,8 +1403,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 	 * @param writer
 	 *   The [output stream][PrintWriter].
 	 */
-	private fun generateErrorCodesModuleBody(
-		writer: PrintWriter)
+	private fun generateErrorCodesModuleBody(writer: PrintWriter)
 	{
 		for (code in errorCodes())
 		{
@@ -1470,13 +1437,13 @@ class BootstrapGenerator constructor(private val locale: Locale)
 	 */
 	private fun generateRepresentativeModulePreamble(
 		versions: List<String>,
-		writer: PrintWriter)
-	{
-		writer.println(MessageFormat.format(
+		writer: PrintWriter
+	) = with(writer) {
+		println(MessageFormat.format(
 			preamble.getString(availCopyright.name),
 			preamble.getString(representativeModuleName.name),
 			Date()))
-		writer.println(MessageFormat.format(
+		println(MessageFormat.format(
 			preamble.getString(generatedModuleNotice.name),
 			BootstrapGenerator::class.java.name,
 			Date()))
@@ -1487,16 +1454,14 @@ class BootstrapGenerator constructor(private val locale: Locale)
 			primitivesModuleName,
 			infalliblePrimitivesModuleName,
 			falliblePrimitivesModuleName)
-		val extended = StringBuilder()
-		for (key in keys)
-		{
-			extended.append("\n\t\"")
-			extended.append(preamble.getString(key.name))
-			extended.append("\",")
+		val extendedString = buildString {
+			keys.forEach { key ->
+				append("\n\t\"")
+				append(preamble.getString(key.name))
+				append("\",")
+			}
+			setLength(length - 1)
 		}
-		var extendedString = extended.toString()
-		extendedString = extendedString.substring(
-			0, extendedString.length - 1)
 		writer.println(MessageFormat.format(
 			preamble.getString(generalModuleHeader.name),
 			preamble.getString(representativeModuleName.name),
@@ -1515,14 +1480,13 @@ class BootstrapGenerator constructor(private val locale: Locale)
 	 *   If the source module could not be written.
 	 */
 	@Throws(IOException::class)
-	private fun generateOriginModule(
-		versions: List<String>)
+	private fun generateOriginModule(versions: List<String>)
 	{
 		val fileName = moduleFileName(originModuleName)
 		assert(fileName.path.endsWith(".avail"))
-		val writer = PrintWriter(fileName, "UTF-8")
-		generateOriginModulePreamble(versions, writer)
-		writer.close()
+		PrintWriter(fileName, UTF_8.name()).use {
+			generateOriginModulePreamble(versions, it)
+		}
 	}
 
 	/**
@@ -1539,10 +1503,10 @@ class BootstrapGenerator constructor(private val locale: Locale)
 	{
 		val fileName = moduleFileName(specialObjectsModuleName)
 		assert(fileName.path.endsWith(".avail"))
-		val writer = PrintWriter(fileName, "UTF-8")
-		generateSpecialObjectModulePreamble(versions, writer)
-		generateSpecialObjectModuleBody(writer)
-		writer.close()
+		PrintWriter(fileName, UTF_8.name()).use {
+			generateSpecialObjectModulePreamble(versions, it)
+			generateSpecialObjectModuleBody(it)
+		}
 	}
 
 	/**
@@ -1573,10 +1537,10 @@ class BootstrapGenerator constructor(private val locale: Locale)
 		}
 		val fileName = moduleFileName(key)
 		assert(fileName.path.endsWith(".avail"))
-		val writer = PrintWriter(fileName, "UTF-8")
-		generatePrimitiveModulePreamble(fallible, versions, writer)
-		generatePrimitiveModuleBody(fallible, writer)
-		writer.close()
+		PrintWriter(fileName, UTF_8.name()).use {
+			generatePrimitiveModulePreamble(fallible, versions, it)
+			generatePrimitiveModuleBody(fallible, it)
+		}
 	}
 
 	/**
@@ -1593,10 +1557,10 @@ class BootstrapGenerator constructor(private val locale: Locale)
 	{
 		val fileName = moduleFileName(errorCodesModuleName)
 		assert(fileName.path.endsWith(".avail"))
-		val writer = PrintWriter(fileName, "UTF-8")
-		generateErrorCodesModulePreamble(versions, writer)
-		generateErrorCodesModuleBody(writer)
-		writer.close()
+		PrintWriter(fileName, UTF_8.name()).use {
+			generateErrorCodesModulePreamble(versions, it)
+			generateErrorCodesModuleBody(it)
+		}
 	}
 
 	/**
@@ -1613,9 +1577,9 @@ class BootstrapGenerator constructor(private val locale: Locale)
 	{
 		val fileName = moduleFileName(representativeModuleName)
 		assert(fileName.path.endsWith(".avail"))
-		val writer = PrintWriter(fileName, "UTF-8")
-		generateRepresentativeModulePreamble(versions, writer)
-		writer.close()
+		PrintWriter(fileName, UTF_8.name()).use {
+			generateRepresentativeModulePreamble(versions, it)
+		}
 	}
 
 	/**
@@ -1628,10 +1592,9 @@ class BootstrapGenerator constructor(private val locale: Locale)
 	 * @return
 	 *   The module name.
 	 */
-	private fun primitiveCoverageTestModuleName(primitive: Primitive): String =
+	private fun primitiveCoverageTestModuleName(primitive: Primitive) =
 		MessageFormat.format(
-			preamble.getString(
-				primitiveCoverageTestModuleName.name),
+			preamble.getString(primitiveCoverageTestModuleName.name),
 			primitive.javaClass.simpleName.substring(2))
 
 	/**
@@ -1646,17 +1609,14 @@ class BootstrapGenerator constructor(private val locale: Locale)
 	private fun primitiveCoverageTestModuleFileName(
 		primitive: Primitive,
 		testPackage: TestPackage
-	): File
-	{
-		return File(String.format(
-			"%s/%s/%s/%s.avail/%s.avail/%s.avail",
-			sourceBaseName,
-			generatedPackageName.replace('.', '/'),
-			locale.language,
-			preamble.getString(primitiveCoverageTestPackageName.name),
-			testPackage.name,
-			primitiveCoverageTestModuleName(primitive)))
-	}
+	) = File(String.format(
+		"%s/%s/%s/%s.avail/%s.avail/%s.avail",
+		sourceBaseName,
+		generatedPackageName.replace('.', '/'),
+		locale.language,
+		preamble.getString(primitiveCoverageTestPackageName.name),
+		testPackage.name,
+		primitiveCoverageTestModuleName(primitive)))
 
 	/**
 	 * Generate the package representative for the [primitive][Primitive]
@@ -1686,24 +1646,33 @@ class BootstrapGenerator constructor(private val locale: Locale)
 			"%s/%s.avail",
 			targetDirectory,
 			moduleName))
-		val writer = PrintWriter(fileName, "UTF-8")
-		writer.println(MessageFormat.format(
-			preamble.getString(availCopyright.name),
-			moduleName,
-			Date()))
-		writer.println(MessageFormat.format(
-			preamble.getString(generatedModuleNotice.name),
-			BootstrapGenerator::class.java.name,
-			Date()))
-
-		writer.println(MessageFormat.format(
-			preamble.getString(
-				primitiveCommonTestPackageRepresentativeHeader.name),
-			moduleName,
-			versionString,
-			names))
-		writer.println(body)
-		writer.close()
+		PrintWriter(fileName, UTF_8.name()).use { writer ->
+			writer.println(
+				MessageFormat.format(
+					preamble.getString(availCopyright.name),
+					moduleName,
+					Date()
+				)
+			)
+			writer.println(
+				MessageFormat.format(
+					preamble.getString(generatedModuleNotice.name),
+					BootstrapGenerator::class.java.name,
+					Date()
+				)
+			)
+			writer.println(
+				MessageFormat.format(
+					preamble.getString(
+						primitiveCommonTestPackageRepresentativeHeader.name
+					),
+					moduleName,
+					versionString,
+					names
+				)
+			)
+			writer.println(body)
+		}
 	}
 
 	/**
@@ -1734,75 +1703,88 @@ class BootstrapGenerator constructor(private val locale: Locale)
 			"%s/%s.avail",
 			targetDirectory,
 			packageName))
-		val writer = PrintWriter(fileName, "UTF-8")
-		writer.println(MessageFormat.format(
-			preamble.getString(availCopyright.name),
-			packageName,
-			Date()))
-		writer.println(MessageFormat.format(
-			preamble.getString(generatedModuleNotice.name),
-			BootstrapGenerator::class.java.name,
-			Date()))
-		val used = StringBuilder()
-		used.append("\n\t\"")
-		used.append(preamble.getString(availModuleName.name))
-		used.append("\",")
-		val extendsPrimitiveCommon = StringBuilder()
-		val testPackageMap = mutableMapOf<String, TestPackage>()
-		for (primitive in primitives(null))
-		{
-			val primitivePackage =
-				primitive.javaClass.getPackage().name
-			testPackageMap.computeIfAbsent(primitivePackage) {
-				TestPackage(primitivePackage)
-			}.add(primitive)
-		}
-		val testPackages = testPackageMap.values.toMutableList()
-		testPackages.sortBy { it.name }
-		val primitiveCommonNames = StringBuilder()
-		val primitiveCommonImplementation = StringBuilder()
-		for (testPackage in testPackages)
-		{
-			used.append("\n\t\"")
-			used.append(testPackage.name)
-			used.append("\",")
-
-			extendsPrimitiveCommon.append("\n\t\t\"")
-			extendsPrimitiveCommon.append(testPackage.testSuiteName)
-			extendsPrimitiveCommon.append("\",")
-
-			primitiveCommonNames.append("\n\t\"")
-			primitiveCommonNames.append(testPackage.testSuiteName)
-			primitiveCommonNames.append("\",")
-
-			primitiveCommonImplementation.append(testPackage.testSuiteCreationCode)
-			primitiveCommonImplementation.append("\n")
-		}
-		var usedString = used.toString()
-		usedString = usedString.substring(0, usedString.length - 1)
-
-		var extendsPrimitiveCommonString = extendsPrimitiveCommon.toString()
-		extendsPrimitiveCommonString =
-			extendsPrimitiveCommonString.substring(
-				0, extendsPrimitiveCommonString.length - 1)
-
-		val versionString = moduleVersionString(versions)
-		writer.println(MessageFormat.format(
-			preamble.getString(
-				primitiveCoverageTestPackageRepresentativeHeader.name),
-			preamble.getString(primitiveCoverageTestPackageName.name),
+		val (
 			versionString,
-			usedString,
-			preamble.getString(primitiveCommonTestPackageName.name),
-			extendsPrimitiveCommonString))
-		writer.close()
+			primitiveCommonNames,
+			primitiveCommonImplementation,
+			testPackageMap
+		) = PrintWriter(fileName, UTF_8.name()).use { writer ->
+			writer.println(
+				MessageFormat.format(
+					preamble.getString(availCopyright.name),
+					packageName,
+					Date()
+				)
+			)
+			writer.println(
+				MessageFormat.format(
+					preamble.getString(generatedModuleNotice.name),
+					BootstrapGenerator::class.java.name,
+					Date()
+				)
+			)
+			val used = StringBuilder()
+				.append("\n\t\"")
+				.append(preamble.getString(availModuleName.name))
+				.append("\",")
+			val extendsPrimitiveCommon = StringBuilder()
+			val testPackageMap = mutableMapOf<String, TestPackage>()
+			primitives(null).forEach { primitive ->
+				val primitivePackage = primitive.javaClass.getPackage().name
+				testPackageMap.computeIfAbsent(primitivePackage) {
+					TestPackage(primitivePackage)
+				}.add(primitive)
+			}
+			val testPackages = testPackageMap.values.sortedBy { it.name }
+			val primitiveCommonNames = StringBuilder()
+			val primitiveCommonImplementation = StringBuilder()
+			testPackages.forEach { testPackage ->
+				used.append("\n\t\"")
+				used.append(testPackage.name)
+				used.append("\",")
+
+				extendsPrimitiveCommon.append("\n\t\t\"")
+				extendsPrimitiveCommon.append(testPackage.testSuiteName)
+				extendsPrimitiveCommon.append("\",")
+
+				primitiveCommonNames.append("\n\t\"")
+				primitiveCommonNames.append(testPackage.testSuiteName)
+				primitiveCommonNames.append("\",")
+
+				primitiveCommonImplementation.append(
+					testPackage.testSuiteCreationCode)
+				primitiveCommonImplementation.append("\n")
+			}
+			used.setLength(used.length - 1)
+			primitiveCommonNames.setLength(primitiveCommonNames.length - 1)
+			primitiveCommonImplementation.setLength(
+				primitiveCommonImplementation.length - 2)
+
+			val versionString = moduleVersionString(versions)
+			writer.println(
+				MessageFormat.format(
+					preamble.getString(
+						primitiveCoverageTestPackageRepresentativeHeader.name
+					),
+					preamble.getString(primitiveCoverageTestPackageName.name),
+					versionString,
+					used.toString(),
+					preamble.getString(primitiveCommonTestPackageName.name),
+					extendsPrimitiveCommon.toString()
+				)
+			)
+			t(
+				versionString,
+				primitiveCommonNames.toString(),
+				primitiveCommonImplementation.toString(),
+				testPackageMap
+			)
+		}
 		generatePrimitiveTestCommonModule(
 			targetDirectory,
 			versionString,
-			primitiveCommonNames.substring(
-				0, primitiveCommonNames.length - 1),
-			primitiveCommonImplementation.toString().substring(
-				0, primitiveCommonImplementation.length - 2))
+			primitiveCommonNames,
+			primitiveCommonImplementation)
 		return testPackageMap
 	}
 
@@ -1831,65 +1813,85 @@ class BootstrapGenerator constructor(private val locale: Locale)
 			val moduleName = primitiveCoverageTestModuleName(primitive)
 			val fileName =
 				primitiveCoverageTestModuleFileName(primitive, testPackage)
-			val writer = PrintWriter(fileName, "UTF-8")
-			writer.println(MessageFormat.format(
-				preamble.getString(availCopyright.name),
-				moduleName,
-				Date()))
-			writer.println(MessageFormat.format(
-				preamble.getString(primitiveCoverageTestModuleHeader.name),
-				moduleName,
-				moduleVersionString(versions),
-				preamble.getString(primitiveCommonTestPackageName.name)))
-			writer.println()
-			writer.println(MessageFormat.format(
-				preamble.getString(primitiveCoverageTestCaseOk.name),
-				primitiveName,
-				testPackage.testSuiteName))
-			if (!primitive.hasFlag(Primitive.Flag.CannotFail))
-			{
-				val varType = primitive.failureVariableType
-				if (varType.isEnumeration)
+			PrintWriter(fileName, UTF_8.name()).use { writer ->
+				writer.println(
+					MessageFormat.format(
+						preamble.getString(availCopyright.name),
+						moduleName,
+						Date()
+					)
+				)
+				writer.println(
+					MessageFormat.format(
+						preamble.getString(
+							primitiveCoverageTestModuleHeader.name),
+						moduleName,
+						moduleVersionString(versions),
+						preamble.getString(primitiveCommonTestPackageName.name)
+					)
+				)
+				writer.println()
+				writer.println(
+					MessageFormat.format(
+						preamble.getString(primitiveCoverageTestCaseOk.name),
+						primitiveName,
+						testPackage.testSuiteName
+					)
+				)
+				if (!primitive.hasFlag(Primitive.Flag.CannotFail))
 				{
-					if (varType.isSubtypeOf(naturalNumbers))
+					val varType = primitive.failureVariableType
+					if (varType.isEnumeration)
 					{
-						val instances = varType.instances()
-						val codes = mutableListOf<AvailErrorCode>()
-						for (instance in instances)
+						if (varType.isSubtypeOf(naturalNumbers))
 						{
-							codes.add(byNumericCode(instance.extractInt())!!)
+							varType.instances()
+								.map { i -> byNumericCode(i.extractInt())!! }
+								.sortedBy { i -> i.code }
+								.forEach { code ->
+									val exceptionKey =
+										errorCodeExceptionKey(code)
+									val exceptionName =
+										errorCodeBundle.getString(exceptionKey)
+									writer.println(
+										MessageFormat.format(
+											preamble.getString(
+												primitiveCoverageTestCaseFailed
+													.name
+											),
+											primitiveName,
+											exceptionName,
+											testPackage.testSuiteName
+										)
+									)
+								}
 						}
-						codes.sortBy { it.code }
-						for (code in codes)
+						else
 						{
-							val exceptionKey = errorCodeExceptionKey(code)
-							val exceptionName =
-								errorCodeBundle.getString(exceptionKey)
-							writer.println(MessageFormat.format(
-								preamble.getString(
-									primitiveCoverageTestCaseFailed.name),
-								primitiveName,
-								exceptionName,
-								testPackage.testSuiteName))
+							writer.println(
+								MessageFormat.format(
+									preamble.getString(
+										primitiveCoverageTestCaseFailedSpecial
+											.name
+									),
+									primitiveName
+								)
+							)
 						}
 					}
 					else
 					{
-						writer.println(MessageFormat.format(
-							preamble.getString(
-								primitiveCoverageTestCaseFailedSpecial.name),
-							primitiveName))
+						writer.println(
+							MessageFormat.format(
+								preamble.getString(
+									primitiveCoverageTestCaseFailedSpecial.name
+								),
+								primitiveName
+							)
+						)
 					}
 				}
-				else
-				{
-					writer.println(MessageFormat.format(
-						preamble.getString(
-							primitiveCoverageTestCaseFailedSpecial.name),
-						primitiveName))
-				}
 			}
-			writer.close()
 		}
 	}
 	
@@ -1915,8 +1917,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 		packageName.mkdir()
 		val testPackageMap =
 			generatePrimitiveCoverageTestRepresentativeModule(versions)
-		for (testPackage in testPackageMap.values)
-		{
+		testPackageMap.values.forEach { testPackage ->
 			testPackage.generatePackageRepresentativeModule(versions)
 		}
 		generatePrimitiveCoverageTestModules(versions, testPackageMap)
@@ -1981,8 +1982,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 			control)
 
 		// Map localized names to the special objects.
-		for (i in specialObjects.indices)
-		{
+		specialObjects.indices.forEach { i ->
 			val specialObject = specialObjects[i]
 			if (!specialObject.equalsNil())
 			{
@@ -1997,21 +1997,18 @@ class BootstrapGenerator constructor(private val locale: Locale)
 		}
 
 		// Map localized names to the primitives.
-		for (primitive in primitives(null))
-		{
+		primitives(null).forEach { primitive ->
 			val value = primitiveBundle.getString(
 				primitive.javaClass.simpleName)
 			if (value.isNotEmpty())
 			{
-				val set = primitiveNameMap.computeIfAbsent(value)
-					{ mutableSetOf() }
-				set.add(primitive)
+				primitiveNameMap.computeIfAbsent(value) { mutableSetOf() }
+					.add(primitive)
 			}
 		}
 
 		// Map localized names to the primitive error codes.
-		for (code in errorCodes())
-		{
+		errorCodes().forEach { code ->
 			val value = errorCodeBundle.getString(errorCodeKey(code))
 			if (value.isNotEmpty())
 			{
@@ -2025,6 +2022,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 	 * names of the primitive test modules contained in them.
 	 *
 	 * @constructor
+	 *
 	 * Construct a new [TestPackage].
 	 *
 	 * @param primitivePackage
@@ -2087,37 +2085,44 @@ class BootstrapGenerator constructor(private val locale: Locale)
 				packageName,
 				name,
 				name))
-			val writer = PrintWriter(fileName, "UTF-8")
-			writer.println(MessageFormat.format(
-				preamble.getString(availCopyright.name),
-				name,
-				Date()))
-			writer.println(MessageFormat.format(
-				preamble.getString(generatedModuleNotice.name),
-				BootstrapGenerator::class.java.name,
-				Date()))
-			val usesModules = usesModuleNames.toMutableList().let {
-				it.sortBy { module -> module  }
-				it
+			PrintWriter(fileName, "UTF-8").use { writer ->
+				writer.println(
+					MessageFormat.format(
+						preamble.getString(availCopyright.name),
+						name,
+						Date()
+					)
+				)
+				writer.println(
+					MessageFormat.format(
+						preamble.getString(generatedModuleNotice.name),
+						BootstrapGenerator::class.java.name,
+						Date()
+					)
+				)
+				val usedString = buildString {
+					append("\n\t\"")
+					append(preamble.getString(availModuleName.name))
+					append("\",")
+					usesModuleNames.sorted().forEach { usesModule ->
+						append("\n\t\"")
+						append(usesModule)
+						append("\",")
+					}
+					setLength(length - 1)
+				}
+				writer.println(
+					MessageFormat.format(
+						preamble.getString(
+							primitiveCoverageTestSubPackageRepresentativeHeader
+								.name
+						),
+						name,
+						moduleVersionString(versions),
+						usedString
+					)
+				)
 			}
-			val used = StringBuilder()
-			used.append("\n\t\"")
-			used.append(preamble.getString(availModuleName.name))
-			used.append("\",")
-			for (usesModule in usesModules)
-			{
-				used.append("\n\t\"")
-				used.append(usesModule)
-				used.append("\",")
-			}
-			var usedString = used.toString()
-			usedString = usedString.substring(0, usedString.length - 1)
-			writer.println(MessageFormat.format(
-				preamble.getString(primitiveCoverageTestSubPackageRepresentativeHeader.name),
-				name,
-				moduleVersionString(versions),
-				usedString))
-			writer.close()
 		}
 
 		init

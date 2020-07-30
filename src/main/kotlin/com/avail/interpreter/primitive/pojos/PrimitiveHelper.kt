@@ -253,7 +253,7 @@ object PrimitiveHelper
 			0,
 			L1_doCall,
 			writer.addLiteral(APPLY.bundle),
-			writer.addLiteral(bottom())
+			writer.addLiteral(bottom)
 		)
 		// TODO: [TLS] When functions can be made non-reflective, then make
 		// this raw function non-reflective for safety.

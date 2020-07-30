@@ -339,7 +339,7 @@ class MapTypeDescriptor private constructor(mutability: Mutability)
 		{
 			if (sizeRange.isBottom)
 			{
-				return bottom()
+				return bottom
 			}
 			assert(sizeRange.lowerBound().isFinite)
 			assert(zero().lessOrEqual(sizeRange.lowerBound()))
@@ -353,14 +353,14 @@ class MapTypeDescriptor private constructor(mutability: Mutability)
 			if (sizeRangeKind.upperBound().equalsInt(0))
 			{
 				newSizeRange = sizeRangeKind
-				newKeyType = bottom()
-				newValueType = bottom()
+				newKeyType = bottom
+				newValueType = bottom
 			}
 			else if (keyType.isBottom || valueType.isBottom)
 			{
 				newSizeRange = singleInteger(zero())
-				newKeyType = bottom()
-				newValueType = bottom()
+				newKeyType = bottom
+				newValueType = bottom
 			}
 			else
 			{

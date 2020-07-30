@@ -67,7 +67,7 @@ object P_PushLastOuter : Primitive(
 	 * This primitive is suitable for any block signature, although really the
 	 * primitive could only be applied if the function returns any.
 	 */
-	override fun privateBlockTypeRestriction(): A_Type = bottom()
+	override fun privateBlockTypeRestriction(): A_Type = bottom
 
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,

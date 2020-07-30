@@ -104,17 +104,12 @@ abstract class L2ReadVectorOperand<RR : L2ReadOperand<R>, R
 	}
 
 	override fun adjustedForReinsertion(manifest: L2ValueManifest)
-		: L2ReadVectorOperand<RR, R>
-	{
-		val newElements: MutableList<RR> = mutableListOf()
-		for (element in elements)
-		{
-			val newElement = element.adjustedForReinsertion(manifest)
+			: L2ReadVectorOperand<RR, R> =
+		clone(elements.map { element ->
+			element.adjustedForReinsertion(manifest)
 				.cast<L2ReadOperand<*>?, RR>()
-			newElements.add(newElement)
-		}
-		return clone(newElements)
-	}
+		})
+
 
 	override fun instructionWasInserted(newInstruction: L2Instruction)
 	{
@@ -163,28 +158,25 @@ abstract class L2ReadVectorOperand<RR : L2ReadOperand<R>, R
 		elements.forEach { it.setInstruction(theInstruction) }
 	}
 
-	override fun appendTo(builder: StringBuilder) =
-		with(builder)
-		{
-			append("@<")
-			var first = true
-			for (read in elements)
+	override fun appendTo(builder: StringBuilder) = with(builder) {
+		append("@<")
+		var first = true
+		elements.forEach { read ->
+			if (!first)
 			{
-				if (!first)
-				{
-					append(", ")
-				}
-				append(read.registerString())
-				val restriction = read.restriction()
-				if (restriction.constantOrNull === null)
-				{
-					// Don't redundantly print restriction information for
-					// constants.
-					append(restriction.suffixString())
-				}
-				first = false
+				append(", ")
 			}
-			append(">")
-			Unit
+			append(read.registerString())
+			val restriction = read.restriction()
+			if (restriction.constantOrNull === null)
+			{
+				// Don't redundantly print restriction information for
+				// constants.
+				append(restriction.suffixString())
+			}
+			first = false
 		}
+		append(">")
+		Unit
+	}
 }

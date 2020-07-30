@@ -82,13 +82,13 @@ object P_GetObjectTypeField : Primitive(2, CanFold, CanInline)
 
 		if (objectMeta.isBottom)
 		{
-			return bottom()
+			return bottom
 		}
 		if (fieldType.isEnumeration)
 		{
 			val objectType = objectMeta.instance()
 			val fieldTypeMap = objectType.fieldTypeMap()
-			var union = bottom()
+			var union = bottom
 			for (possibleField in fieldType.instances())
 			{
 				if (!fieldTypeMap.hasKey(possibleField))

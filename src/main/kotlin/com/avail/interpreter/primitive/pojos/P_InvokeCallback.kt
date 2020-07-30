@@ -97,7 +97,7 @@ object P_InvokeCallback : Primitive(-1, Private, CanSuspend)
 	}
 
 	/** This primitive is suitable for any block signature. */
-	override fun privateBlockTypeRestriction(): A_Type = bottom()
+	override fun privateBlockTypeRestriction(): A_Type = bottom
 
 	override fun privateFailureVariableType(): A_Type =
 		pojoTypeForClass(Throwable::class.java)

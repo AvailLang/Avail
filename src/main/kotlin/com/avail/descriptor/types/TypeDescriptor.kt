@@ -393,7 +393,7 @@ abstract class TypeDescriptor protected constructor(
 							{
 								a.superTests[bOrdinal] -> a.o
 								b.superTests[a.ordinal] -> b.o
-								else -> bottom()
+								else -> bottom
 							}
 					}
 				}
@@ -677,70 +677,70 @@ abstract class TypeDescriptor protected constructor(
 
 	override fun o_TypeIntersectionOfFiberType(
 		self: AvailObject,
-		aFiberType: A_Type): A_Type = bottom()
+		aFiberType: A_Type): A_Type = bottom
 
 	override fun o_TypeIntersectionOfFunctionType(
 		self: AvailObject,
-		aFunctionType: A_Type): A_Type = bottom()
+		aFunctionType: A_Type): A_Type = bottom
 
 	override fun o_TypeIntersectionOfVariableType(
 		self: AvailObject,
-		aVariableType: A_Type): A_Type = bottom()
+		aVariableType: A_Type): A_Type = bottom
 
 	override fun o_TypeIntersectionOfContinuationType(
 		self: AvailObject,
-		aContinuationType: A_Type): A_Type = bottom()
+		aContinuationType: A_Type): A_Type = bottom
 
 	override fun o_TypeIntersectionOfCompiledCodeType(
 		self: AvailObject,
-		aCompiledCodeType: A_Type): A_Type = bottom()
+		aCompiledCodeType: A_Type): A_Type = bottom
 
 	override fun o_TypeIntersectionOfIntegerRangeType(
 		self: AvailObject,
-		anIntegerRangeType: A_Type): A_Type = bottom()
+		anIntegerRangeType: A_Type): A_Type = bottom
 
 	override fun o_TypeIntersectionOfListNodeType(
 		self: AvailObject,
-		aListNodeType: A_Type): A_Type = bottom()
+		aListNodeType: A_Type): A_Type = bottom
 
 	override fun o_TypeIntersectionOfTokenType(
 		self: AvailObject,
-		aTokenType: A_Type): A_Type = bottom()
+		aTokenType: A_Type): A_Type = bottom
 
 	override fun o_TypeIntersectionOfLiteralTokenType(
 		self: AvailObject,
-		aLiteralTokenType: A_Type): A_Type = bottom()
+		aLiteralTokenType: A_Type): A_Type = bottom
 
 	override fun o_TypeIntersectionOfMapType(
 		self: AvailObject,
-		aMapType: A_Type): A_Type = bottom()
+		aMapType: A_Type): A_Type = bottom
 
 	override fun o_TypeIntersectionOfObjectType(
 		self: AvailObject,
-		anObjectType: AvailObject): A_Type = bottom()
+		anObjectType: AvailObject): A_Type = bottom
 
 	override fun o_TypeIntersectionOfPhraseType(
 		self: AvailObject,
-		aPhraseType: A_Type): A_Type = bottom()
+		aPhraseType: A_Type): A_Type = bottom
 
 	override fun o_TypeIntersectionOfPojoType(
 		self: AvailObject,
-		aPojoType: A_Type): A_Type = bottom()
+		aPojoType: A_Type): A_Type = bottom
 
 	override fun o_TypeIntersectionOfPrimitiveTypeEnum(
 		self: AvailObject,
 		primitiveTypeEnum: Types): A_Type =
 			if (Types.NONTYPE.superTests[primitiveTypeEnum.ordinal]) self
-			else bottom()
+			else bottom
 
 
 	override fun o_TypeIntersectionOfSetType(
 		self: AvailObject,
-		aSetType: A_Type): A_Type = bottom()
+		aSetType: A_Type): A_Type = bottom
 
 	override fun o_TypeIntersectionOfTupleType(
 		self: AvailObject,
-		aTupleType: A_Type): A_Type = bottom()
+		aTupleType: A_Type): A_Type = bottom
 
 	override fun o_TypeTuple(self: AvailObject): A_Tuple = unsupported
 

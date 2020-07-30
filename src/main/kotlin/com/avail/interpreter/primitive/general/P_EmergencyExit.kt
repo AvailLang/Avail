@@ -118,7 +118,7 @@ object P_EmergencyExit : Primitive(
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(ANY.o), bottom())
+		functionType(tuple(ANY.o), bottom)
 
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,

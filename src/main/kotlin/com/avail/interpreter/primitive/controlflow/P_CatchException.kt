@@ -98,7 +98,7 @@ object P_CatchException : Primitive(
 		functionType(
 			tuple(
 				functionType(emptyTuple, TOP.o),
-				zeroOrMoreOf(functionType(tuple(bottom()), TOP.o)),
+				zeroOrMoreOf(functionType(tuple(bottom), TOP.o)),
 				functionType(emptyTuple, TOP.o)),
 			TOP.o
 		)

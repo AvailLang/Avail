@@ -283,7 +283,7 @@ class VariableTypeDescriptor private constructor(mutability: Mutability)
 		 * The most general [variable][ReadWriteVariableTypeDescriptor].
 		 */
 		private val mostGeneralType: A_Type =
-			variableReadWriteType(TOP.o, bottom()).makeShared()
+			variableReadWriteType(TOP.o, bottom).makeShared()
 
 		/**
 		 * Answer the most general

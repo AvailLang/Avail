@@ -138,13 +138,13 @@ class TokenTypeDescriptor private constructor(mutability: Mutability)
 		self: AvailObject,
 		aTokenType: A_Type): A_Type =
 			if (self.tokenType() === aTokenType.tokenType()) self
-			else bottom()
+			else bottom
 
 	override fun o_TypeIntersectionOfPrimitiveTypeEnum(
 		self: AvailObject,
 		primitiveTypeEnum: Types): A_Type =
 			if (TOKEN.superTests[primitiveTypeEnum.ordinal]) self
-			else bottom()
+			else bottom
 
 	override fun o_TypeUnion(self: AvailObject, another: A_Type): A_Type =
 		when

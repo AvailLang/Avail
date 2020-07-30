@@ -62,5 +62,5 @@ object P_TerminateCurrentFiber : Primitive(
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(emptyTuple, bottom())
+		functionType(emptyTuple, bottom)
 }

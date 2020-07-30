@@ -197,13 +197,13 @@ class BottomPojoTypeDescriptor constructor(mutability: Mutability)
 
 		/**
 		 * The most specific [pojo type][PojoTypeDescriptor], other than
-		 * [bottom][BottomTypeDescriptor.bottom].
+		 * [bottom][BottomTypeDescriptor.getBottom].
 		 */
 		private val pojoBottom: A_Type = mutable.createShared { }
 
 		/**
 		 * Answer the most specific [pojo&#32;type][PojoTypeDescriptor],
-		 * other than [bottom][BottomTypeDescriptor.bottom].
+		 * other than [bottom][BottomTypeDescriptor.getBottom].
 		 *
 		 * @return
 		 *   The most specific pojo type.

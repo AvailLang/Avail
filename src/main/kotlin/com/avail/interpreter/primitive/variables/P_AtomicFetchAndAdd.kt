@@ -96,7 +96,8 @@ object P_AtomicFetchAndAdd : Primitive(2, CanInline, HasSideEffect)
 			tuple(
 				variableReadWriteType(
 					extendedIntegers,
-					bottom()),
+					bottom
+				),
 				extendedIntegers
 			),
 			extendedIntegers

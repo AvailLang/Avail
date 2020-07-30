@@ -119,8 +119,7 @@ internal class CompletelyOptional constructor(
 		// when the optional section actually occurs.  Since no completely
 		// optional section can produce a value (argument, counter, etc),
 		// there's no problem.
-		for (expression in sequence.expressions)
-		{
+		sequence.expressions.forEach { expression ->
 			expression.emitOn(
 				emptyListPhraseType(),
 				generator,

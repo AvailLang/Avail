@@ -194,7 +194,7 @@ class L1InstructionWriter constructor(
 	fun argumentTypes(vararg argTypes: A_Type)
 	{
 		assert(argumentTypes.isEmpty())
-		assert(bottom() !in argTypes)
+		assert(bottom !in argTypes)
 		assert(localTypes.size == 0) {
 			"Must declare argument types before allocating locals"
 		}
@@ -213,7 +213,7 @@ class L1InstructionWriter constructor(
 	fun argumentTypesTuple(argTypes: A_Tuple)
 	{
 		assert(argumentTypes.isEmpty())
-		assert(bottom() !in argTypes)
+		assert(bottom !in argTypes)
 		assert(localTypes.size == 0) {
 			"Must declare argument types before allocating locals"
 		}

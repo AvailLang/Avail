@@ -278,7 +278,7 @@ class PojoFinalFieldDescriptor(
 				field,
 				receiver,
 				value,
-				variableReadWriteType(innerType, bottom())
+				variableReadWriteType(innerType, bottom)
 			)
 		}
 	}

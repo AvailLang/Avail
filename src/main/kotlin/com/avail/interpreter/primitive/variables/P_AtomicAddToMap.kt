@@ -90,7 +90,8 @@ object P_AtomicAddToMap : Primitive(3, CanInline, HasSideEffect) {
 			tuple(
 				variableReadWriteType(
 					mostGeneralMapType(),
-					bottom()),
+					bottom
+				),
 				ANY.o,
 				ANY.o
 			),

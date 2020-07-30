@@ -78,7 +78,7 @@ object P_GetGlobalVariableValue : Primitive(
 	 * This primitive is suitable for any function with any as the return type.
 	 * We can't express that yet, so we allow any function.
 	 */
-	override fun privateBlockTypeRestriction(): A_Type = bottom()
+	override fun privateBlockTypeRestriction(): A_Type = bottom
 
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,

@@ -212,5 +212,5 @@ internal class NumberedChoice constructor(private val alternation: Alternation)
 		get() = false
 
 	override fun mightBeEmpty(phraseType: A_Type): Boolean =
-		alternation.mightBeEmpty(bottom())
+		alternation.mightBeEmpty(bottom)
 }

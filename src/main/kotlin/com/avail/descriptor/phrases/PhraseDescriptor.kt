@@ -266,7 +266,7 @@ abstract class PhraseDescriptor protected constructor(
 
 	override fun o_StripMacro(self: AvailObject): A_Phrase = self
 
-	override fun o_SuperUnionType(self: AvailObject): A_Type = bottom()
+	override fun o_SuperUnionType(self: AvailObject): A_Type = bottom
 
 	abstract override fun o_Tokens(self: AvailObject): A_Tuple
 

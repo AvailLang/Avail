@@ -1166,7 +1166,7 @@ class AvailLoader(
 		illegalArgumentMessages.makeShared()
 		val bundleSetList = illegalArgumentMessages.map { atomsSet ->
 			var bundleSet = emptySet
-			for (atom in atomsSet) {
+			atomsSet.forEach { atom ->
 				bundleSet = bundleSet.setWithElementCanDestroy(
 					atom.bundleOrCreate(), true)
 			}

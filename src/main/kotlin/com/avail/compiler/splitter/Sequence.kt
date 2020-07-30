@@ -243,8 +243,7 @@ internal class Sequence constructor(positionInName: Int)
 		}
 		if (yieldersAreReordered === java.lang.Boolean.TRUE)
 		{
-			for (i in 1..expected)
-			{
+			(1..expected).forEach { i ->
 				val argumentOrGroup = yielders[i - 1]
 				val providedType =
 					argumentType.typeAtIndex(permutedYielders[i - 1])
@@ -290,8 +289,7 @@ internal class Sequence constructor(positionInName: Int)
 		val result = mutableListOf<List<Pair<Expression, Int>>>()
 		val currentRun = mutableListOf<Pair<Expression, Int>>()
 		var typeIndex = 0
-		for (expression in expressions)
-		{
+		expressions.forEach { expression ->
 			// Put the subexpression into one of the runs.
 			if (expression.hasSectionCheckpoints)
 			{
@@ -413,8 +411,7 @@ internal class Sequence constructor(positionInName: Int)
 		var ungroupedArguments = 0
 		var listIsPushed = wrapState === PUSHED_LIST
 		val allRuns = runsForCodeSplitting()
-		for (run in allRuns)
-		{
+		allRuns.forEach { run ->
 			val runSize = run.size
 			val lastInRun = run[runSize - 1].first
 			if (lastInRun.hasSectionCheckpoints)
@@ -442,10 +439,9 @@ internal class Sequence constructor(positionInName: Int)
 				}
 			}
 			emitRunOn(run, 0, generator, subexpressionsTupleType)
-			val argsInRun = if (lastInRun.yieldsValue)
-				runSize
-			else
-				runSize - 1
+			val argsInRun =
+				if (lastInRun.yieldsValue) runSize
+				else runSize - 1
 			ungroupedArguments += argsInRun
 			argIndex += argsInRun
 		}
@@ -491,27 +487,22 @@ internal class Sequence constructor(positionInName: Int)
 		return if (wrapState === NEEDS_TO_PUSH_LIST) PUSHED_LIST else wrapState
 	}
 
-	override fun toString(): String
-	{
-		val builder = StringBuilder()
-		builder.append("Sequence(")
+	override fun toString() = buildString {
+		append("Sequence(")
 		var first = true
-		for (e in expressions)
-		{
+		expressions.forEach { e ->
 			if (!first)
 			{
-				builder.append(", ")
+				append(", ")
 			}
-			builder.append(e)
+			append(e)
 			if (e.canBeReordered && e.explicitOrdinal != -1)
 			{
-				builder.appendCodePoint(
-					circledNumberCodePoint(e.explicitOrdinal))
+				appendCodePoint(circledNumberCodePoint(e.explicitOrdinal))
 			}
 			first = false
 		}
-		builder.append(')')
-		return builder.toString()
+		append(')')
 	}
 
 	override fun printWithArguments(
@@ -521,15 +512,13 @@ internal class Sequence constructor(positionInName: Int)
 	{
 		assert(arguments !== null)
 		var needsSpace = false
-		for (expression in expressions)
-		{
+		expressions.forEach { expression ->
 			if (expression.shouldBeSeparatedOnLeft && needsSpace)
 			{
 				builder.append(' ')
 			}
 			val oldLength = builder.length
-			expression.printWithArguments(
-				arguments, builder, indent)
+			expression.printWithArguments(arguments, builder, indent)
 			needsSpace =
 				expression.shouldBeSeparatedOnRight
 					&& builder.length != oldLength
@@ -595,8 +584,7 @@ internal class Sequence constructor(positionInName: Int)
 	{
 		val subexpressionsTupleType = phraseType.subexpressionsTupleType()
 		var index = 0
-		for (expression in expressions)
-		{
+		expressions.forEach { expression ->
 			if (expression.yieldsValue)
 			{
 				index++

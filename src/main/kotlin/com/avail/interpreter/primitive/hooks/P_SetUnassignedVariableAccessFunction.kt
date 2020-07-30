@@ -70,5 +70,5 @@ object P_SetUnassignedVariableAccessFunction : Primitive(
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(functionType(emptyTuple, bottom())), TOP.o)
+		functionType(tuple(functionType(emptyTuple, bottom)), TOP.o)
 }

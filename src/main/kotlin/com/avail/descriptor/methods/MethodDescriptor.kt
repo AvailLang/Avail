@@ -441,7 +441,7 @@ class MethodDescriptor private constructor(
 	 * be invoked at runtime at a call site with the given restrictions. This
 	 * set is subject to change as new methods and types are created.  If a
 	 * restriction and the corresponding argument type of a definition have no
-	 * possible intersection except [bottom][BottomTypeDescriptor.bottom] (⊥),
+	 * possible intersection except [bottom][BottomTypeDescriptor.getBottom] (⊥),
 	 * then disallow the definition (it could never actually be invoked because
 	 * bottom is uninstantiable). Answer a [list][List] of
 	 * [method&#32;definitions][MethodDefinitionDescriptor].
@@ -603,7 +603,8 @@ class MethodDescriptor private constructor(
 				val seals: A_Tuple = self.slot(SEALED_ARGUMENTS_TYPES_TUPLE)
 				seals.forEach { seal ->
 					val sealType = tupleTypeForSizesTypesDefaultType(
-						singleInt(seal.tupleSize()), seal, bottom())
+						singleInt(seal.tupleSize()), seal, bottom
+					)
 					if (paramTypes.isSubtypeOf(sealType)) {
 						throw SignatureException(E_METHOD_IS_SEALED)
 					}

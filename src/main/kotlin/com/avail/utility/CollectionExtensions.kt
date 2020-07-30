@@ -29,6 +29,9 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
+@file:Suppress("unused")
+
 package com.avail.utility
 
 import com.avail.utility.structures.EnumMap
@@ -74,3 +77,159 @@ inline fun <T, R> Iterable<T>.mapToSet (
 	destination: MutableSet<R> = mutableSetOf(),
 	transform: (T) -> R
 ): MutableSet<R> = mapTo(destination, transform)
+
+/** Tuple of length 1. */
+data class Tuple1<T1> constructor (val t1: T1)
+
+/** Tuple of length 2. */
+typealias Tuple2<T1, T2> = Pair<T1, T2>
+
+/** Tuple of length 3. */
+typealias Tuple3<T1, T2, T3> = Triple<T1, T2, T3>
+
+/** Tuple of length 4. */
+data class Tuple4<T1, T2, T3, T4> constructor (
+	val t1: T1,
+	val t2: T2,
+	val t3: T3,
+	val t4: T4
+)
+
+/** Tuple of length 5. */
+data class Tuple5<T1, T2, T3, T4, T5> constructor (
+	val t1: T1,
+	val t2: T2,
+	val t3: T3,
+	val t4: T4,
+	val t5: T5
+)
+
+/** Tuple of length 6. */
+data class Tuple6<T1, T2, T3, T4, T5, T6> constructor (
+	val t1: T1,
+	val t2: T2,
+	val t3: T3,
+	val t4: T4,
+	val t5: T5,
+	val t6: T6
+)
+
+/** Tuple of length 7. */
+data class Tuple7<T1, T2, T3, T4, T5, T6, T7> constructor (
+	val t1: T1,
+	val t2: T2,
+	val t3: T3,
+	val t4: T4,
+	val t5: T5,
+	val t6: T6,
+	val t7: T7
+)
+
+/** Tuple of length 8. */
+data class Tuple8<T1, T2, T3, T4, T5, T6, T7, T8> constructor (
+	val t1: T1,
+	val t2: T2,
+	val t3: T3,
+	val t4: T4,
+	val t5: T5,
+	val t6: T6,
+	val t7: T7,
+	val t8: T8
+)
+
+/** Tuple of length 9. */
+data class Tuple9<T1, T2, T3, T4, T5, T6, T7, T8, T9> constructor (
+	val t1: T1,
+	val t2: T2,
+	val t3: T3,
+	val t4: T4,
+	val t5: T5,
+	val t6: T6,
+	val t7: T7,
+	val t8: T8,
+	val t9: T9
+)
+
+/** Tuple of length 10. */
+data class Tuple10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> constructor (
+	val t1: T1,
+	val t2: T2,
+	val t3: T3,
+	val t4: T4,
+	val t5: T5,
+	val t6: T6,
+	val t7: T7,
+	val t8: T8,
+	val t9: T9,
+	val t10: T10
+)
+
+/** Construct a tuple of length 1. */
+fun <T1> t(t1: T1) = Tuple1(t1)
+
+/** Construct a tuple of length 2. */
+fun <T1, T2> t(t1: T1, t2: T2) = Tuple2(t1, t2)
+
+/** Construct a tuple of length 3. */
+fun <T1, T2, T3> t(t1: T1, t2: T2, t3: T3) = Tuple3(t1, t2, t3)
+
+/** Construct a tuple of length 4. */
+fun <T1, T2, T3, T4> t(t1: T1, t2: T2, t3: T3, t4: T4) = Tuple4(t1, t2, t3, t4)
+
+/** Construct a tuple of length 5. */
+fun <T1, T2, T3, T4, T5> t(t1: T1, t2: T2, t3: T3, t4: T4, t5: T5) =
+	Tuple5(t1, t2, t3, t4, t5)
+
+/** Construct a tuple of length 6. */
+fun <T1, T2, T3, T4, T5, T6> t(t1: T1, t2: T2, t3: T3, t4: T4, t5: T5, t6: T6) =
+	Tuple6(t1, t2, t3, t4, t5, t6)
+
+/** Construct a tuple of length 7. */
+fun <T1, T2, T3, T4, T5, T6, T7> t(
+	t1: T1,
+	t2: T2,
+	t3: T3,
+	t4: T4,
+	t5: T5,
+	t6: T6,
+	t7: T7
+) = Tuple7(t1, t2, t3, t4, t5, t6, t7)
+
+/** Construct a tuple of length 8. */
+fun <T1, T2, T3, T4, T5, T6, T7, T8> t(
+	t1: T1,
+	t2: T2,
+	t3: T3,
+	t4: T4,
+	t5: T5,
+	t6: T6,
+	t7: T7,
+	t8: T8
+) = Tuple8(t1, t2, t3, t4, t5, t6, t7, t8)
+
+/** Construct a tuple of length 9. */
+fun <T1, T2, T3, T4, T5, T6, T7, T8, T9> t(
+	t1: T1,
+	t2: T2,
+	t3: T3,
+	t4: T4,
+	t5: T5,
+	t6: T6,
+	t7: T7,
+	t8: T8,
+	t9: T9
+) = Tuple9(t1, t2, t3, t4, t5, t6, t7, t8, t9)
+
+/** Construct a tuple of length 10. */
+fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> t(
+	t1: T1,
+	t2: T2,
+	t3: T3,
+	t4: T4,
+	t5: T5,
+	t6: T6,
+	t7: T7,
+	t8: T8,
+	t9: T9,
+	t10: T10
+) = Tuple10(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10)

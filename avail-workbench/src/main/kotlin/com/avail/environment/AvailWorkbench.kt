@@ -593,8 +593,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 			try
 			{
 				// Reopen the repositories if necessary.
-				for (root in workbench.resolver.moduleRoots.roots)
-				{
+				workbench.resolver.moduleRoots.roots.forEach { root ->
 					root.repository.reopenIfNecessary()
 				}
 				executeTask()
@@ -603,8 +602,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 			finally
 			{
 				// Close all the repositories.
-				for (root in workbench.resolver.moduleRoots.roots)
-				{
+				workbench.resolver.moduleRoots.roots.forEach { root ->
 					root.repository.close()
 				}
 				stopTimeMillis = currentTimeMillis()
@@ -782,8 +780,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 				// Always use index 0, since this only happens in the UI thread.
 				removeStringStat.record(System.nanoTime() - beforeRemove)
 			}
-			for (entry in aggregatedEntries)
-			{
+			aggregatedEntries.forEach { entry ->
 				val before = System.nanoTime()
 				document.insertString(
 					document.length, // The current length
@@ -1444,8 +1441,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		// Put the invisible root onto the work stack.
 		val stack = ArrayDeque<DefaultMutableTreeNode>()
 		stack.add(treeRoot)
-		for (root in roots.roots)
-		{
+		roots.roots.forEach { root ->
 			// Obtain the path associated with the module root.
 			root.repository.reopenIfNecessary()
 			val rootDirectory = root.sourceDirectory!!
@@ -1463,13 +1459,12 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 				stack.clear()
 				stack.add(treeRoot)
 			}
-
 		}
 		val enumeration: Enumeration<AbstractBuilderFrameTreeNode> =
 			treeRoot.preorderEnumeration().cast()
 		// Skip the invisible root.
 		enumeration.nextElement()
-		for (node in enumeration) { node.sortChildren() }
+		enumeration.iterator().forEach { node -> node.sortChildren() }
 		return treeRoot
 	}
 
@@ -1489,8 +1484,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 			{
 				val moduleNode =
 					EntryPointModuleNode(availBuilder, resolvedName)
-				for (entryPoint in entryPoints)
-				{
+				entryPoints.forEach { entryPoint ->
 					val entryPointNode = EntryPointNode(
 						availBuilder, resolvedName, entryPoint)
 					moduleNode.add(entryPointNode)
@@ -1505,15 +1499,14 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		Arrays.sort(mapKeys)
 		val entryPointsTreeRoot =
 			DefaultMutableTreeNode("(entry points hidden root)")
-		for (moduleLabel in mapKeys)
-		{
+		mapKeys.forEach { moduleLabel ->
 			entryPointsTreeRoot.add(moduleNodes[moduleLabel])
 		}
 		val enumeration: Enumeration<AbstractBuilderFrameTreeNode> =
 			entryPointsTreeRoot.preorderEnumeration().cast()
 		// Skip the invisible root.
 		enumeration.nextElement()
-		for (node in enumeration) { node.sortChildren() }
+		enumeration.iterator().forEach { node -> node.sortChildren() }
 		return entryPointsTreeRoot
 	}
 
@@ -1787,15 +1780,13 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		{
 			val rootsNode = basePreferences.node(moduleRootsKeyString)
 			val roots = resolver.moduleRoots
-			for (oldChildName in rootsNode.childrenNames())
-			{
+			rootsNode.childrenNames().forEach { oldChildName ->
 				if (roots.moduleRootFor(oldChildName) === null)
 				{
 					rootsNode.node(oldChildName).removeNode()
 				}
 			}
-			for (root in roots)
-			{
+			roots.forEach { root ->
 				val childNode = rootsNode.node(root.name)
 				childNode.put(
 					moduleRootsRepoSubkeyString,
@@ -1808,22 +1799,20 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 			val renamesNode =
 				basePreferences.node(moduleRenamesKeyString)
 			val renames = resolver.renameRules
-			for (oldChildName in renamesNode.childrenNames())
-			{
+			renamesNode.childrenNames().forEach { oldChildName ->
 				val nameInt = try {
 					parseInt(oldChildName)
 				} catch (e: NumberFormatException) { -1 }
 
 				if (oldChildName != nameInt.toString()
-				    || nameInt < 0
-				    || nameInt >= renames.size)
+					|| nameInt < 0
+					|| nameInt >= renames.size)
 				{
 					renamesNode.node(oldChildName).removeNode()
 				}
 			}
 			var rowCounter = 0
-			for ((key, value) in renames)
-			{
+			renames.forEach { (key, value) ->
 				val childNode = renamesNode.node(rowCounter.toString())
 				childNode.put(moduleRenameSourceSubkeyString, key)
 				childNode.put(moduleRenameTargetSubkeyString, value)
@@ -2255,8 +2244,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		// Set up styles for the transcript.
 		val doc = transcript.styledDocument
 		val tabStops = arrayOfNulls<TabStop>(500)
-		for (i in tabStops.indices)
-		{
+		tabStops.indices.forEach { i ->
 			tabStops[i] = TabStop(
 				32.0f * (i + 1),
 				TabStop.ALIGN_LEFT,
@@ -2271,10 +2259,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 				.getStyle(StyleContext.DEFAULT_STYLE)
 		defaultStyle.addAttributes(attributes)
 		StyleConstants.setFontFamily(defaultStyle, "Monospaced")
-		for (style in values())
-		{
-			style.defineStyleIn(doc)
-		}
+		values().forEach { style -> style.defineStyleIn(doc) }
 
 		// Redirect the standard streams.
 		try
@@ -2577,8 +2562,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 			: Preferences
 		{
 			val allNamesString = StringBuilder()
-			for (name in screenNames)
-			{
+			screenNames.forEach { name ->
 				allNamesString.append(name)
 				allNamesString.append(";")
 			}
@@ -2599,8 +2583,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 			try
 			{
 				val childNames = node.childrenNames()
-				for (childName in childNames)
-				{
+				childNames.forEach { childName ->
 					val childNode = node.node(childName)
 					val repoName = childNode.get(
 						moduleRootsRepoSubkeyString, "")
@@ -2634,8 +2617,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 			try
 			{
 				val childNames = node.childrenNames()
-				for (childName in childNames)
-				{
+				childNames.forEach { childName ->
 					val childNode = node.node(childName)
 					val source = childNode.get(
 						moduleRenameSourceSubkeyString, "")
@@ -2758,8 +2740,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		 */
 		private fun augment(menu: JMenu, vararg actionsAndSubmenus: Any?)
 		{
-			for (item in actionsAndSubmenus)
-			{
+			actionsAndSubmenus.forEach { item ->
 				when (item) {
 					null -> menu.addSeparator()
 					is Action -> menu.add(item)

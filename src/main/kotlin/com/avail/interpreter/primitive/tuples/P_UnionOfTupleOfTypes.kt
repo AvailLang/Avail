@@ -53,7 +53,7 @@ object P_UnionOfTupleOfTypes : Primitive(1, CannotFail, CanFold, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val tupleOfTypes = interpreter.argument(0)
-		var unionObject = bottom()
+		var unionObject = bottom
 		for (aType in tupleOfTypes)
 		{
 			unionObject = unionObject.typeUnion(aType)

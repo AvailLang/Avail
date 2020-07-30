@@ -753,10 +753,8 @@ abstract class AbstractDescriptor protected constructor (
 			cls = cls.superclass
 		}
 		var fieldCount = 0
-		for (sup in supers)
-		{
-			for (f in sup.declaredFields)
-			{
+		supers.forEach { sup ->
+			sup.declaredFields.forEach { f ->
 				if (!Modifier.isStatic(f.modifiers))
 				{
 					fieldCount++
@@ -4054,8 +4052,7 @@ abstract class AbstractDescriptor protected constructor (
 				val slotAsEnum = slot as Enum<*>
 				val slotClass = slotAsEnum::class.java.declaringClass
 				bitFields = mutableListOf()
-				for (field in slotClass.declaredFields)
-				{
+				slotClass.declaredFields.forEach { field ->
 					if (Modifier.isStatic(field.modifiers)
 						&& BitField::class.java.isAssignableFrom(field.type))
 					{

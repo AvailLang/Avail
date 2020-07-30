@@ -331,7 +331,7 @@ class TypeConsistencyTest
 				"MOST_SPECIFIC_FUNCTION",
 				functionTypeFromArgumentTupleType(
 					mostGeneralTupleType(),
-					bottom(),
+					bottom,
 					emptySet),
 				NOTHING_TO_INT_FUNCTION,
 				INT_TO_INT_FUNCTION,
@@ -588,7 +588,7 @@ class TypeConsistencyTest
 			 */
 			private val BOTTOM_VARIABLE = Node(
 				"BOTTOM_VARIABLE",
-				variableReadWriteType(bottom(), Types.TOP.o),
+				variableReadWriteType(bottom, Types.TOP.o),
 				INT_VARIABLE,
 				SOME_ATOM_VARIABLE)
 
@@ -676,7 +676,7 @@ class TypeConsistencyTest
 			 */
 			private val BOTTOM_LITERAL_TOKEN = Node(
 				"BOTTOM_LITERAL_TOKEN",
-				literalTokenType(bottom()),
+				literalTokenType(bottom),
 				INT_LITERAL_TOKEN,
 				SOME_ATOM_LITERAL_TOKEN)
 
@@ -705,7 +705,7 @@ class TypeConsistencyTest
 			/** The type of `bottom`.  This is the most specific meta. */
 			private val BOTTOM_TYPE = Node(
 				"BOTTOM_TYPE",
-				bottomMeta(),
+				bottomMeta,
 				FIBER_META,
 				FUNCTION_META,
 				CONTINUATION_META,
@@ -730,7 +730,7 @@ class TypeConsistencyTest
 			 * indicating the expressionType, and the array of Nodes that are
 			 * supertypes of the expressionType.  Passing null for the
 			 * expressionType causes
-			 * [the&#32;bottom&#32;type][BottomTypeDescriptor.bottom] to be
+			 * [the&#32;bottom&#32;type][BottomTypeDescriptor.getBottom] to be
 			 * used.  We can't use the node [BOTTOM] because of circular
 			 * dependency.
 			 *
@@ -740,7 +740,7 @@ class TypeConsistencyTest
 			 *   The [kind][PhraseKind] of phrase type.
 			 * @param innerNode
 			 *   The expressionType of the resulting phrase type, or `null` to
-			 *   indicate [bottom][BottomTypeDescriptor.bottom].
+			 *   indicate [bottom][BottomTypeDescriptor.getBottom].
 			 * @param parentInnerNodes
 			 *   An array of parent nodes of the innerNode.
 			 */
@@ -775,7 +775,7 @@ class TypeConsistencyTest
 				{
 					parents.add(submap[parentInnerNode]!!)
 				}
-				val innerType = innerNode?.t ?: bottom()
+				val innerType = innerNode?.t ?: bottom
 				val newType: A_Type
 				newType = when
 				{
@@ -993,7 +993,7 @@ class TypeConsistencyTest
 			 */
 			private val BOTTOM = Node(
 				"BOTTOM",
-				bottom(),
+				bottom,
 				*nonBottomTypes.toTypedArray())
 
 			// The nodes' slots have to be initialized here because they pass

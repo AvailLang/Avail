@@ -731,7 +731,7 @@ open class PhraseTypeDescriptor protected constructor(
 		// Intersection of two list phrase types.
 		val intersectionKind = kind.commonDescendantWith(
 			aListNodeType.phraseKind())
-		                       ?: return bottom()
+		                       ?: return bottom
 		assert(intersectionKind.isSubkindOf(PhraseKind.LIST_PHRASE))
 		return createListNodeType(
 			intersectionKind,
@@ -745,7 +745,7 @@ open class PhraseTypeDescriptor protected constructor(
 		aPhraseType: A_Type): A_Type
 	{
 		val intersectionKind =
-			kind.commonDescendantWith(aPhraseType.phraseKind()) ?: return bottom()
+			kind.commonDescendantWith(aPhraseType.phraseKind()) ?: return bottom
 		assert(!intersectionKind.isSubkindOf(PhraseKind.LIST_PHRASE))
 		// It should be safe to assume the mostGeneralType() of a subkind is
 		// always a subtype of the mostGeneralType() of a superkind.

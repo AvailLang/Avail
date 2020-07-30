@@ -293,8 +293,7 @@ internal class BuildTracer constructor(val availBuilder: AvailBuilder)
 		}
 
 		// Recurse in parallel into each import.
-		for (localImport in importNames)
-		{
+		importNames.forEach { localImport ->
 			val importName = moduleName.asSibling(localImport)
 			scheduleTraceModuleImports(
 				importName, moduleName, newSet, problemHandler)

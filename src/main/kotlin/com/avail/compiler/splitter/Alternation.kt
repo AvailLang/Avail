@@ -110,7 +110,7 @@ internal class Alternation constructor(
 		 * pop the parse position.
 		 */
 		val needsProgressCheck =
-			alternatives.stream().anyMatch { it.mightBeEmpty(bottom()) }
+			alternatives.stream().anyMatch { it.mightBeEmpty(bottom) }
 		generator.flushDelayed()
 		generator.emitIf(needsProgressCheck, this, SAVE_PARSE_POSITION)
 		val `$after` = Label()
@@ -196,5 +196,5 @@ internal class Alternation constructor(
 		}
 
 	override fun mightBeEmpty(phraseType: A_Type): Boolean =
-		alternatives.stream().anyMatch { it.mightBeEmpty(bottom()) }
+		alternatives.stream().anyMatch { it.mightBeEmpty(bottom) }
 }
