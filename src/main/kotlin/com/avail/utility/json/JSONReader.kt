@@ -37,7 +37,6 @@ import java.io.IOException
 import java.io.Reader
 import java.math.BigDecimal
 import java.nio.charset.MalformedInputException
-import java.util.HashMap
 import java.util.LinkedList
 
 /**
@@ -437,7 +436,7 @@ class JSONReader @Throws(IllegalArgumentException::class) constructor(
 		{
 			return JSONObject.empty
 		}
-		val map = HashMap<String, JSONData>()
+		val map = mutableMapOf<String, JSONData>()
 		do
 		{
 			skipWhitespace()

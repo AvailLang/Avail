@@ -106,7 +106,6 @@ import com.avail.interpreter.primitive.privatehelpers.P_PushLastOuter
 import com.avail.io.NybbleOutputStream
 import java.util.ArrayDeque
 import java.util.BitSet
-import java.util.HashMap
 
 /**
  * An [AvailCodeGenerator] is used to convert a [phrase][PhraseDescriptor] into
@@ -199,14 +198,14 @@ class AvailCodeGenerator private constructor(
 	 * A mapping from local variable/constant/argument/label declarations to
 	 * index.
 	 */
-	private val varMap = HashMap<A_Phrase, Int>()
+	private val varMap = mutableMapOf<A_Phrase, Int>()
 
 	/**
 	 * A mapping from lexically captured variable/constant/argument/label
 	 * declarations to the index within the list of outer variables that must be
 	 * provided when creating a function from the compiled code.
 	 */
-	private val outerMap = HashMap<A_Phrase, Int>()
+	private val outerMap = mutableMapOf<A_Phrase, Int>()
 
 	/**
 	 * The list of literal objects that have been encountered so far.
@@ -228,7 +227,7 @@ class AvailCodeGenerator private constructor(
 	 * A mapping from [label][DeclarationKind.LABEL] to [AvailLabel], a
 	 * pseudo-instruction.
 	 */
-	private val labelInstructions = HashMap<A_Phrase, AvailLabel>()
+	private val labelInstructions = mutableMapOf<A_Phrase, AvailLabel>()
 
 	/**
 	 * Answer the index of the literal, adding it if not already present.

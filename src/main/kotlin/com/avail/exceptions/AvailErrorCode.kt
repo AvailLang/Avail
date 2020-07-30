@@ -82,7 +82,6 @@ import java.lang.reflect.Field
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import java.nio.file.Path
-import java.util.HashMap
 
 /**
  * `AvailErrorCode` is an enumeration of all possible failures of operations on
@@ -809,7 +808,7 @@ enum class AvailErrorCode constructor(val code: Int)
 		/**
 		 * The mapping from [numeric&#32;codes][code] to [AvailErrorCode]s.
 		 */
-		private val byNumericCode = HashMap<Int, AvailErrorCode>()
+		private val byNumericCode = mutableMapOf<Int, AvailErrorCode>()
 
 		// The enumeration values have been initialized, so build the map.
 		init

@@ -44,7 +44,6 @@ import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.interpreter.Primitive.Companion.primitiveByName
 import java.lang.String.format
-import java.util.HashMap
 
 /**
  * These are the tokens that are understood directly by the Avail compiler.
@@ -214,7 +213,7 @@ enum class PragmaKind constructor(val lexeme: String)
 				TOP.o
 			)
 			compiler.evaluateModuleStatementThen(
-				state, state, send, HashMap(), success)
+				state, state, send, mutableMapOf(), success)
 		}
 	},
 

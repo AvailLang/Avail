@@ -67,7 +67,6 @@ import com.avail.serialization.Serializer
 import com.avail.utility.evaluation.Combinator.recurse
 import java.io.ByteArrayOutputStream
 import java.lang.String.format
-import java.util.HashMap
 import java.util.concurrent.Semaphore
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
@@ -208,7 +207,7 @@ internal class BuildLoader constructor(
 				"Version should have been populated during tracing")
 			val imports = version.imports
 			val resolver = availBuilder.runtime.moduleNameResolver
-			val loadedModulesByName = HashMap<String, LoadedModule>()
+			val loadedModulesByName = mutableMapOf<String, LoadedModule>()
 			for (localName in imports)
 			{
 				val resolvedName: ResolvedModuleName

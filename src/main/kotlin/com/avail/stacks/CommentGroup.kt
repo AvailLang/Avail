@@ -45,7 +45,6 @@ import com.avail.utility.json.JSONWriter
 import java.io.IOException
 import java.nio.file.Path
 import java.nio.file.attribute.BasicFileAttributes
-import java.util.HashMap
 
 /**
  * A grouping of [AvailComment]s from an Avail module.
@@ -276,10 +275,10 @@ class CommentGroup
 		isPrivate: Boolean)
 	{
 		this.name = name
-		this.methods = HashMap()
-		this.macros = HashMap()
-		this.semanticRestrictions = HashMap()
-		this.grammaticalRestrictions = HashMap()
+		this.methods = mutableMapOf()
+		this.macros = mutableMapOf()
+		this.semanticRestrictions = mutableMapOf()
+		this.grammaticalRestrictions = mutableMapOf()
 		this.aliases = mutableSetOf()
 		this.namingModule = namingModule
 		this.categories = mutableSetOf()

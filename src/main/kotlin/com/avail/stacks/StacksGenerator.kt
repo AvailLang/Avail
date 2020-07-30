@@ -115,7 +115,7 @@ class StacksGenerator @Throws(IllegalArgumentException::class) constructor(
 	 * A map of [module&#32;names][ModuleName] to a list of all the method
 	 * names exported from said module
 	 */
-	private var moduleToComments: HashMap<String, CommentsModule>
+	private var moduleToComments: MutableMap<String, CommentsModule>
 
 	init
 	{
@@ -127,10 +127,8 @@ class StacksGenerator @Throws(IllegalArgumentException::class) constructor(
 		this.jsonPath = outputPath.resolve("json")
 		this.logPath = outputPath.resolve("logs")
 		this.errorLog = StacksErrorLog(logPath)
-
 		this.providedDocumentPath = outputPath
-
-		this.moduleToComments = HashMap(50)
+		this.moduleToComments = mutableMapOf()
 	}
 
 	/**

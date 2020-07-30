@@ -108,7 +108,7 @@ class OptionProcessor<OptionKeyType : Enum<OptionKeyType>> internal constructor(
 	 * A mapping between recognizable keywords and the option keys that they
 	 * indicate.
 	 */
-	private val allKeywords = HashMap(keywords)
+	private val allKeywords = keywords.toMap()
 
 	/** A mapping between option keys and [options][Option]. */
 	private val allOptions: EnumMap<OptionKeyType, Option<OptionKeyType>> =

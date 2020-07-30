@@ -7,7 +7,7 @@
     <option name="ALTERNATIVE_JRE_PATH" />
     <module name="avail.avail-workbench.main" />
     <method v="2">
-      <option name="Gradle.BeforeRunTask" enabled="true" tasks="build" externalProjectPath="$PROJECT_DIR$/avail-workbench" vmOptions="" scriptParameters="" />
+      <option name="Gradle.BeforeRunTask" enabled="true" tasks="assemble" externalProjectPath="$PROJECT_DIR$/avail-workbench" vmOptions="" scriptParameters="" />
     </method>
   </configuration>
 </component>

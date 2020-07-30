@@ -60,7 +60,6 @@ import com.avail.utility.safeWrite
 import java.lang.String.format
 import java.util.Collections.emptyIterator
 import java.util.Collections.reverseOrder
-import java.util.HashMap
 import java.util.PriorityQueue
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -295,7 +294,7 @@ class CompilerDiagnostics(
 		 * the problem at an exact character position.
 		 */
 		@GuardedBy("expectationsLock")
-		private val expectations = HashMap<Int, ExpectationsAtPosition>()
+		private val expectations = mutableMapOf<Int, ExpectationsAtPosition>()
 
 		/**
 		 * A priority heap that keeps track of the rightmost `N` positions at

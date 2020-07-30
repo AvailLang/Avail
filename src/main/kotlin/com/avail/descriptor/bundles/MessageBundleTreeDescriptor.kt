@@ -120,7 +120,6 @@ import com.avail.utility.Strings.newlineTab
 import java.util.ArrayDeque
 import java.util.Collections.sort
 import java.util.Deque
-import java.util.HashMap
 import java.util.IdentityHashMap
 import kotlin.collections.component1
 import kotlin.collections.component2
@@ -414,7 +413,7 @@ class MessageBundleTreeDescriptor private constructor(
 		val allPlansInProgress: A_Map = self.slot(ALL_PLANS_IN_PROGRESS)
 		val bundleCount = allPlansInProgress.mapSize()
 		if (bundleCount <= 15) {
-			val strings: MutableMap<String, Int> = HashMap(bundleCount)
+			val strings = mutableMapOf<String, Int>()
 			allPlansInProgress.forEach { _, value: A_Map ->
 				value.forEach { _, plansInProgress: A_Set ->
 					plansInProgress.forEach { planInProgress ->

@@ -1688,7 +1688,7 @@ class TypeConsistencyTest
 				}
 			}
 			val allTypesList = allTypes.toList()
-			val inverse: MutableMap<A_Type?, Int> = HashMap()
+			val inverse: MutableMap<A_Type?, Int> = mutableMapOf()
 			val names = arrayOfNulls<String>(allTypes.size)
 			for (i in allTypesList.indices)
 			{

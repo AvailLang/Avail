@@ -32,8 +32,6 @@
 
 package com.avail.stacks.tokens
 
-import java.util.HashMap
-
 /**
  * A tokenized stacks keyword.
  *
@@ -256,7 +254,7 @@ abstract class KeywordStacksToken constructor(
 			 * the [StacksKeywords][Enum]
 			 */
 			internal val keywordTable: MutableMap<String, StacksKeyword> =
-				HashMap()
+				mutableMapOf()
 
 			// Learn the lexemes of the keywords.
 			init

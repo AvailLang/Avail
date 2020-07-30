@@ -115,7 +115,6 @@ import java.io.InputStreamReader
 import java.lang.String.format
 import java.nio.charset.StandardCharsets.UTF_8
 import java.util.EnumSet
-import java.util.HashMap
 import java.util.regex.Pattern
 
 /**
@@ -947,7 +946,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 			byNumbers.add(NullPrimitiveHolder)
 			var counter = 1
 			val byNames = mutableMapOf<String, PrimitiveHolder>()
-			val byClassNames = HashMap<String, PrimitiveHolder>()
+			val byClassNames = mutableMapOf<String, PrimitiveHolder>()
 			try
 			{
 				val resource =

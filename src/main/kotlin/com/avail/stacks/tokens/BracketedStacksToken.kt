@@ -41,7 +41,6 @@ import com.avail.stacks.tags.StacksSeeTag
 import com.avail.utility.json.JSONWriter
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
-import java.util.HashMap
 
 /**
  * A stacks token representing a bracketed region in the comment.  This region
@@ -936,7 +935,7 @@ class BracketedStacksToken @Throws(StacksScannerException::class) constructor(
 			 * [StacksKeywords][Enum]
 			 */
 			internal val keywordTable: MutableMap<String, StacksKeyword> =
-				HashMap()
+				mutableMapOf()
 
 			// Learn the lexeme's of the keywords.
 			init

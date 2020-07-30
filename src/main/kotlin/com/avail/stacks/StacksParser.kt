@@ -39,7 +39,6 @@ import com.avail.stacks.comment.CommentBuilder
 import com.avail.stacks.exceptions.StacksCommentBuilderException
 import com.avail.stacks.tokens.AbstractStacksToken
 import com.avail.stacks.tokens.SectionKeywordStacksToken
-import java.util.HashMap
 
 /**
  * Parses a List of [stacks&#32;tokens][AbstractStacksToken].
@@ -429,7 +428,7 @@ class StacksParser private constructor(
 			 * A [mapping][Map] from the string lexeme of the keyword to
 			 * the [StacksKeywords][Enum]
 			 */
-			internal val keywordTable = HashMap<String, StacksTagKeyword>()
+			internal val keywordTable = mutableMapOf<String, StacksTagKeyword>()
 
 			// Learn the lexeme's of the keywords.
 			init

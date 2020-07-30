@@ -109,7 +109,6 @@ import com.avail.exceptions.MalformedMessageException
 import com.avail.exceptions.SignatureException
 import com.avail.utility.cast
 import com.avail.utility.safeWrite
-import java.util.HashMap
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
@@ -1355,7 +1354,7 @@ class MessageSplitter
 		 * [constantsList], after adjusting to a zero-based [List]), for which
 		 * some [ParsingOperation] needed to hold that constant as an operand.
 		 */
-		private val constantsMap = HashMap<AvailObject, Int>(100)
+		private val constantsMap = mutableMapOf<AvailObject, Int>()
 
 		/**
 		 * A lock to protect [constantsList] and [constantsMap].

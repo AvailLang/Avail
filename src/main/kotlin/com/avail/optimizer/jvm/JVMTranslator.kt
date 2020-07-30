@@ -230,7 +230,7 @@ class JVMTranslator constructor(
 	 * The [entry&#32;points][L2Instruction.isEntryPoint] into the [L2Chunk],
 	 * mapped to their [Label]s.
 	 */
-	private val entryPoints: MutableMap<Int, Label> = LinkedHashMap()
+	private val entryPoints = mutableMapOf<Int, Label>()
 
 	/**
 	 * As the code is being generated and we encounter an
@@ -372,7 +372,7 @@ class JVMTranslator constructor(
 	 * The [literals][Object] used by the [L2Chunk] that must be embedded into
 	 * the translated [JVMChunk], mapped to their [accessors][LiteralAccessor].
 	 */
-	val literals: MutableMap<Any, LiteralAccessor> = HashMap()
+	val literals: MutableMap<Any, LiteralAccessor> = mutableMapOf()
 
 	/**
 	 * Emit code to push the specified literal on top of the stack.
@@ -424,7 +424,7 @@ class JVMTranslator constructor(
 	 * The [L2PcOperand]'s encapsulated program counters, mapped to their
 	 * [labels][Label].
 	 */
-	val labels: MutableMap<Int, Label> = HashMap()
+	val labels: MutableMap<Int, Label> = mutableMapOf()
 
 	/**
 	 * Answer the [Label] for the specified [L2Instruction]

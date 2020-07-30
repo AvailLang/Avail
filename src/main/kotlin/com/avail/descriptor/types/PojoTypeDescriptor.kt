@@ -80,7 +80,6 @@ import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 import java.lang.reflect.TypeVariable
 import java.math.BigInteger
-import java.util.HashMap
 import java.util.IdentityHashMap
 
 /**
@@ -129,7 +128,7 @@ abstract class PojoTypeDescriptor protected constructor(
 	 * [type&#32;parameterization][TupleDescriptor].
 	 */
 	private class Canon internal constructor()
-		: HashMap<Class<*>, AvailObject>(5)
+		: LinkedHashMap<Class<*>, AvailObject>(5)
 	{
 		/**
 		 * Answer the locally canonical [raw&#32;pojo][RawPojoDescriptor] that
@@ -176,7 +175,7 @@ abstract class PojoTypeDescriptor protected constructor(
 	 *   A Java class or interface.
 	 */
 	private class TypeVariableMap internal constructor(javaClass: Class<*>)
-		: HashMap<String, Int>(2)
+		: LinkedHashMap<String, Int>(2)
 	{
 		init
 		{

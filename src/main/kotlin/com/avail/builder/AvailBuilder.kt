@@ -82,7 +82,6 @@ import java.nio.file.Path
 import java.nio.file.attribute.BasicFileAttributes
 import java.util.Collections.synchronizedList
 import java.util.Collections.synchronizedMap
-import java.util.HashMap
 import java.util.concurrent.Semaphore
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
@@ -141,7 +140,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	 * [LoadedModule].
 	 */
 	private val allLoadedModules =
-		synchronizedMap(HashMap<ResolvedModuleName, LoadedModule>())
+		synchronizedMap(mutableMapOf<ResolvedModuleName, LoadedModule>())
 
 	/** Whom to notify when modules load and unload.  */
 	private val subscriptions = mutableSetOf<(LoadedModule, Boolean)->Unit>()
@@ -862,11 +861,11 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 		}
 
 		val allSolutions =
-			synchronizedMap(HashMap<LoadedModule, List<A_Phrase>>())
+			synchronizedMap(mutableMapOf<LoadedModule, List<A_Phrase>>())
 		val allCleanups =
 			synchronizedList(mutableListOf<(()->Unit)->Unit>())
 		val allProblems =
-			synchronizedMap(HashMap<LoadedModule, MutableList<Problem>>())
+			synchronizedMap(mutableMapOf<LoadedModule, MutableList<Problem>>())
 		val outstanding = AtomicInteger(modulesWithEntryPoints.size)
 		val decrement = {
 			if (outstanding.decrementAndGet() == 0)

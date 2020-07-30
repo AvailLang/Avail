@@ -42,7 +42,6 @@ import com.avail.stacks.comment.GrammaticalRestrictionComment
 import com.avail.stacks.comment.MacroComment
 import com.avail.stacks.comment.MethodComment
 import com.avail.stacks.comment.SemanticRestrictionComment
-import java.util.HashMap
 
 /**
  * A grouping of all implementationGroups originating from the names section of
@@ -201,7 +200,7 @@ class StacksUsesModule : StacksImportModule
 		}
 		else
 		{
-			val newMap = HashMap<String, CommentGroup>()
+			val newMap = mutableMapOf<String, CommentGroup>()
 
 			newMap[newlyDefinedModule.moduleName] = group
 

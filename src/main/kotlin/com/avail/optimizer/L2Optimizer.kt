@@ -63,7 +63,6 @@ import java.util.ArrayDeque
 import java.util.BitSet
 import java.util.Collections
 import java.util.Deque
-import java.util.HashMap
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.reflect.KClass
 
@@ -904,7 +903,7 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 		val byKindAndIndex =
 			enumMap<RegisterKind, MutableMap<Int, L2Register>>(
 				RegisterKind.values())
-		val remap: MutableMap<L2Register, L2Register> = HashMap()
+		val remap: MutableMap<L2Register, L2Register> = mutableMapOf()
 		// Also collect all the old registers.
 		val oldRegisters = mutableSetOf<L2Register>()
 		val action: (L2Register) -> Unit = { reg: L2Register ->
@@ -1323,7 +1322,7 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 		val blocksToCheck: Deque<Pair<L2BasicBlock, UsedRegisters>> =
 			ArrayDeque()
 		blocksToCheck.add(Pair(blocks[0], UsedRegisters()))
-		val inSets: MutableMap<L2BasicBlock, UsedRegisters> = HashMap()
+		val inSets: MutableMap<L2BasicBlock, UsedRegisters> = mutableMapOf()
 		while (!blocksToCheck.isEmpty())
 		{
 			val pair = blocksToCheck.removeLast()

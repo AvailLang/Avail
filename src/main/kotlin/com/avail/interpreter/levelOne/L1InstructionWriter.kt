@@ -58,7 +58,6 @@ import com.avail.interpreter.Primitive.Flag
 import com.avail.interpreter.levelOne.L1Operation.L1_doExtension
 import com.avail.io.NybbleOutputStream
 import java.util.Collections.addAll
-import java.util.HashMap
 
 /**
  * An instance of this class can be used to construct a
@@ -103,7 +102,7 @@ class L1InstructionWriter constructor(
 	 * An inverse mapping of the literal objects encountered thus far.  The map
 	 * is from each literal object to its 1-based index.
 	 */
-	private val reverseLiterals = HashMap<A_BasicObject, Int>()
+	private val reverseLiterals = mutableMapOf<A_BasicObject, Int>()
 
 	/**
 	 * The [List] of argument [types][TypeDescriptor] for this

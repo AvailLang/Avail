@@ -59,7 +59,6 @@ import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import java.nio.file.Path
 import java.nio.file.attribute.BasicFileAttributes
-import java.util.HashMap
 
 /**
  * A representation of all the fully parsed [comments][CommentTokenDescriptor]
@@ -94,7 +93,7 @@ class CommentsModule constructor(
 	commentTokens: A_Tuple,
 	errorLog: StacksErrorLog,
 	resolver: ModuleNameResolver,
-	moduleToComments: HashMap<String, CommentsModule>,
+	moduleToComments: MutableMap<String, CommentsModule>,
 	linkingFileMap: LinkingFileMap,
 	private val linkPrefix: String)
 {
@@ -202,7 +201,7 @@ class CommentsModule constructor(
 			this.namedPublicCommentImplementations[implementationName] = group
 
 			val moduleNameToImplementation =
-				HashMap<String, CommentGroup>()
+				mutableMapOf<String, CommentGroup>()
 			moduleNameToImplementation[this.moduleName] = group
 
 			this.extendsMethodLeafNameToModuleName[implementationName] =
@@ -352,10 +351,9 @@ class CommentsModule constructor(
 	private fun buildModuleImportMaps(
 		header: ModuleHeader,
 		resolver: ModuleNameResolver,
-		moduleToComments: HashMap<String, CommentsModule>)
+		moduleToComments: MutableMap<String, CommentsModule>)
 	{
-		val usesMap = HashMap<String, StacksUsesModule>()
-
+		val usesMap = mutableMapOf<String, StacksUsesModule>()
 		for (moduleImport in header.importedModules)
 		{
 			try
@@ -682,7 +680,7 @@ class CommentsModule constructor(
 				}
 
 				val namesUsesExtendsImplementationsMap =
-					HashMap<String, Pair<String, CommentGroup>>()
+					mutableMapOf<String, Pair<String, CommentGroup>>()
 
 				for (usesExtendsModule in
 					usesModule.moduleNameToExtendsList.values)
@@ -792,11 +790,11 @@ class CommentsModule constructor(
 	 */
 	private fun createFileNames(
 		names: List<Pair<A_String, CommentGroup>>,
-		fileExtension: String): HashMap<A_String, StacksFilename>
+		fileExtension: String): MutableMap<A_String, StacksFilename>
 	{
-		val newHashNameMap = HashMap<A_String, Int>()
+		val newHashNameMap = mutableMapOf<A_String, Int>()
 
-		val namesToFileNames = HashMap<A_String, StacksFilename>()
+		val namesToFileNames = mutableMapOf<A_String, StacksFilename>()
 
 		for (pair in names)
 		{
@@ -836,11 +834,11 @@ class CommentsModule constructor(
 	 */
 	private fun createFileNames(
 		names: Collection<A_String>, originatingModuleName: String,
-		fileExtension: String): HashMap<A_String, StacksFilename>
+		fileExtension: String): MutableMap<A_String, StacksFilename>
 	{
-		val newHashNameMap = HashMap<A_String, Int>()
+		val newHashNameMap = mutableMapOf<A_String, Int>()
 
-		val namesToFileNames = HashMap<A_String, StacksFilename>()
+		val namesToFileNames = mutableMapOf<A_String, StacksFilename>()
 
 		for (key in names)
 		{
@@ -978,7 +976,7 @@ class CommentsModule constructor(
 						it[tempEntry.key] = implementation
 					} ?: {
 						val modToImplement =
-							HashMap<String, CommentGroup>()
+							mutableMapOf<String, CommentGroup>()
 						modToImplement[tempEntry.key] = implementation
 						filteredMap[key] = modToImplement
 					}()
@@ -1109,7 +1107,7 @@ class CommentsModule constructor(
 		ambiguousMethodFileMap: Map<A_String, Map<String, CommentGroup>>,
 		linkingFileMap: LinkingFileMap)
 	{
-		val internalLinks = HashMap<String, String>()
+		val internalLinks = mutableMapOf<String, String>()
 
 		val outputFolder = outputPath
 			.resolve("_Ambiguities")

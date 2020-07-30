@@ -44,7 +44,6 @@ import java.nio.channels.AsynchronousFileChannel
 import java.nio.charset.StandardCharsets
 import java.nio.file.StandardOpenOption
 import java.util.EnumSet
-import java.util.HashMap
 
 /**
  * Used for graphics generation.
@@ -80,7 +79,7 @@ internal class GraphTracer constructor(
 	 * All full names that have been encountered for nodes so far, with their
 	 * more readable abbreviations.
 	 */
-	private val encounteredNames: MutableMap<String, String> = HashMap()
+	private val encounteredNames: MutableMap<String, String> = mutableMapOf()
 
 	/**
 	 * All abbreviated names that have been allocated so far as values of
@@ -197,7 +196,7 @@ internal class GraphTracer constructor(
 		spanningDag: Graph<ResolvedModuleName>)
 	{
 		assert(reducedGraph.vertexCount == spanningDag.vertexCount)
-		val trees = HashMap<String, ModuleTree>()
+		val trees = mutableMapOf<String, ModuleTree>()
 		val root = ModuleTree(
 			"root_",
 			"Module Dependencies",

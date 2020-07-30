@@ -255,7 +255,6 @@ import java.nio.file.StandardOpenOption
 import java.util.Arrays
 import java.util.EnumSet
 import java.util.Formatter
-import java.util.HashMap
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -1748,7 +1747,7 @@ class AvailCompiler(
 		continuation: (String)->Unit)
 	{
 		val typeSet = mutableSetOf<A_Type>()
-		val typesByPlanString = HashMap<String, MutableSet<A_Type>>()
+		val typesByPlanString = mutableMapOf<String, MutableSet<A_Type>>()
 		for (entry in bundleTree.allParsingPlansInProgress().mapIterable())
 		{
 			val submap = entry.value()
@@ -3154,7 +3153,7 @@ class AvailCompiler(
 			TOP.o
 		)
 		evaluateModuleStatementThen(
-			state, state, send, HashMap(), success)
+			state, state, send, mutableMapOf(), success)
 	}
 
 	/**
@@ -3231,7 +3230,7 @@ class AvailCompiler(
 					bodyLiteral)),
 			TOP.o
 		)
-		evaluateModuleStatementThen(state, state, send, HashMap(), success)
+		evaluateModuleStatementThen(state, state, send, mutableMapOf(), success)
 	}
 
 	/**
@@ -3346,7 +3345,7 @@ class AvailCompiler(
 			ParserState(token.nextLexingState(), emptyMap),
 			state,
 			send,
-			HashMap(),
+			mutableMapOf(),
 			success)
 	}
 
@@ -3517,7 +3516,7 @@ class AvailCompiler(
 			compilationContext.loader!!.setPhase(EXECUTING_FOR_COMPILE)
 			// Run the simple statements in succession.
 			val simpleStatementIterator = simpleStatements.iterator()
-			val declarationRemap = HashMap<A_Phrase, A_Phrase>()
+			val declarationRemap = mutableMapOf<A_Phrase, A_Phrase>()
 			var recurse: (()->Unit)? = null
 			recurse = recurse@{
 				if (!simpleStatementIterator.hasNext())

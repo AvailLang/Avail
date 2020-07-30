@@ -35,7 +35,6 @@ package com.avail.tools.options
 import com.avail.tools.options.OptionProcessorFactory.Cardinality.Companion.OPTIONAL
 import com.avail.utility.configuration.Configuration
 import java.util.EnumSet
-import java.util.HashMap
 
 /**
  * An `OptionProcessorFactory` enables a client to dynamically specify and
@@ -265,7 +264,7 @@ class OptionProcessorFactory<OptionKeyType : Enum<OptionKeyType>>
 	private fun createOptionProcessor(): OptionProcessor<OptionKeyType>
 	{
 		validateFactory()
-		val keywords = HashMap<String, OptionKeyType>()
+		val keywords = mutableMapOf<String, OptionKeyType>()
 		allOptions.forEach { option ->
 			option.keywords.forEach { keyword ->
 				keywords[keyword] = option.key

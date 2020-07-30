@@ -150,7 +150,6 @@ import com.avail.utility.json.JSONWriter
 import java.util.Collections.nCopies
 import java.util.Collections.newSetFromMap
 import java.util.Collections.synchronizedSet
-import java.util.HashMap
 import java.util.IdentityHashMap
 import java.util.WeakHashMap
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater.newUpdater
@@ -397,7 +396,7 @@ class MethodDescriptor private constructor(
 		synchronized(self) {
 			var set = dependentChunksWeakSet
 			if (set === null) {
-				set = synchronizedSet(newSetFromMap(HashMap()))
+				set = synchronizedSet(newSetFromMap(mutableMapOf()))
 				dependentChunksWeakSet = set
 			}
 			set!!.add(chunk)

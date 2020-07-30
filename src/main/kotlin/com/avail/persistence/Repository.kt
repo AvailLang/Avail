@@ -53,8 +53,6 @@ import java.security.NoSuchAlgorithmException
 import java.util.Collections.unmodifiableList
 import java.util.Collections.unmodifiableSortedMap
 import java.util.Formatter
-import java.util.HashMap
-import java.util.LinkedHashMap
 import java.util.Map.Entry.comparingByKey
 import java.util.SortedMap
 import java.util.TreeMap
@@ -124,7 +122,7 @@ class Repository constructor(
 	 * module that has ever been compiled within this repository to the
 	 * corresponding ModuleArchive.
 	 */
-	private val moduleMap = HashMap<String, ModuleArchive>(100)
+	private val moduleMap = mutableMapOf<String, ModuleArchive>()
 
 	/**
 	 * Produce an alphabetized list of all modules known to this repository.
@@ -210,7 +208,7 @@ class Repository constructor(
 		val allKnownVersions: SortedMap<ModuleVersionKey, ModuleVersion>
 			get()
 			{
-				val map = lock.withLock { HashMap(versions) }
+				val map = lock.withLock { versions.toMap() }
 				return unmodifiableSortedMap(TreeMap(map))
 			}
 

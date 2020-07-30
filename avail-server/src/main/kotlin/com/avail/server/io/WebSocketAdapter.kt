@@ -52,7 +52,6 @@ import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
 import java.util.Collections
 import java.util.Formatter
-import java.util.HashMap
 import java.util.concurrent.ScheduledThreadPoolExecutor
 import java.util.concurrent.ThreadFactory
 import java.util.logging.Level
@@ -237,7 +236,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 			 * A [map][Map] from HTTP request method names to
 			 * [HTTP&#32;request&#32;methods][HttpRequestMethod].
 			 */
-			private val methodsByName = HashMap<String, HttpRequestMethod>()
+			private val methodsByName = mutableMapOf<String, HttpRequestMethod>()
 
 			init
 			{
@@ -433,7 +432,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 					return null
 				}
 				// Parse the remaining lines into a map.
-				val map = HashMap<String, String>()
+				val map = mutableMapOf<String, String>()
 				for (i in 1 until headers.size - 1)
 				{
 					val pair = headers[i].split(":".toRegex(), 2)

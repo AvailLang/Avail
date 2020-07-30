@@ -34,7 +34,6 @@ package com.avail.utility.configuration
 
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Modifier
-import java.util.HashMap
 
 /**
  * An [XMLConfigurator] relies on an `XMLDocumentModel` to provide a schematic
@@ -165,10 +164,10 @@ internal constructor(elementClass: Class<ElementType>) where
 		}
 
 		// Initialize other data structures.
-		elementsByQName = HashMap(elements!!.size)
-		allowedChildren = HashMap(elements.size)
+		elementsByQName = mutableMapOf()
+		allowedChildren = mutableMapOf()
 		var root: ElementType? = null
-		elements.forEach { element ->
+		elements!!.forEach { element ->
 			elementsByQName[element.qName] = element
 			if (element.allowedParents.isEmpty())
 			{

@@ -105,7 +105,6 @@ import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_P
 import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import com.avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithOuterType
 import com.avail.utility.PrefixSharingList.Companion.last
-import java.util.HashMap
 import java.util.function.Function
 import java.util.function.UnaryOperator
 
@@ -915,7 +914,7 @@ class L1Decompiler constructor(
 		@JvmStatic
 		fun decompile(code: A_RawFunction): A_Phrase
 		{
-			val counts = HashMap<String, Int>()
+			val counts = mutableMapOf<String, Int>()
 			// Synthesize fake outers to allow decompilation.
 			val outerCount = code.numOuters()
 			val functionOuters = Array(outerCount) {

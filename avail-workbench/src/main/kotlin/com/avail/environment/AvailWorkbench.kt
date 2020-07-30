@@ -150,7 +150,6 @@ import java.util.Arrays
 import java.util.Deque
 import java.util.EnumSet
 import java.util.Enumeration
-import java.util.HashMap
 import java.util.Queue
 import java.util.TimerTask
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -505,7 +504,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	 * The progress map per module.  Protected by [perModuleProgressLock].
 	 */
 	//@GuardedBy("perModuleProgressLock")
-	private val perModuleProgress = HashMap<ModuleName, Pair<Long, Long>>()
+	private val perModuleProgress = mutableMapOf<ModuleName, Pair<Long, Long>>()
 
 	/**
 	 * Whether a user interface task for updating the visible per-module

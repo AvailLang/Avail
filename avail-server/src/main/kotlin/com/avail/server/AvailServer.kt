@@ -95,7 +95,6 @@ import java.util.ArrayDeque
 import java.util.Collections.sort
 import java.util.Collections.synchronizedMap
 import java.util.EnumSet
-import java.util.HashMap
 import java.util.TimerTask
 import java.util.UUID
 import java.util.concurrent.Semaphore
@@ -146,7 +145,7 @@ class AvailServer constructor(
 	 * [messages][Message] for the upgraded channel.
 	 */
 	private val pendingUpgrades =
-		HashMap<UUID, (AvailServerChannel, UUID, ()->Unit)->Unit>()
+		mutableMapOf<UUID, (AvailServerChannel, UUID, ()->Unit)->Unit>()
 
 	/**
 	 * Record an upgrade request issued by this `AvailServer` in response to a
@@ -641,7 +640,7 @@ class AvailServer constructor(
 	{
 		assert(command.command === Command.ENTRY_POINTS)
 		val message = newSuccessMessage(channel, command) {
-			val map = synchronizedMap(HashMap<String, List<String>>())
+			val map = synchronizedMap(mutableMapOf<String, List<String>>())
 			builder.traceDirectories { name, version, after ->
 				val entryPoints = version.getEntryPoints()
 				if (entryPoints.isNotEmpty())

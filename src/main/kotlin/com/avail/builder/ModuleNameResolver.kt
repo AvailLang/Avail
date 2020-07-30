@@ -39,7 +39,6 @@ import com.avail.utility.LRUCache
 import java.io.File
 import java.util.Collections
 import java.util.Deque
-import java.util.LinkedHashMap
 import java.util.LinkedList
 
 /**
@@ -92,7 +91,7 @@ class ModuleNameResolver constructor(val moduleRoots: ModuleRoots)
 	/**
 	 * A [map][Map] from fully-qualified module names to their canonical names.
 	 */
-	private val renames = LinkedHashMap<String, String>()
+	private val renames = mutableMapOf<String, String>()
 
 	/**
 	 * A [cache][LRUCache] of [resolved][ResolvedModuleName], keyed by

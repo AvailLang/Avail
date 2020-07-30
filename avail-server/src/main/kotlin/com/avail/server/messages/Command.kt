@@ -45,7 +45,6 @@ import com.avail.server.messages.Command.TrieNode
 import com.avail.server.messages.Command.TrieNode.Companion.trie
 import java.lang.String.format
 import java.util.Formatter
-import java.util.HashMap
 import java.util.UUID
 
 /**
@@ -316,7 +315,7 @@ enum class Command
 		/**
 		 * The transition [map][Map], indexed by following [token][String].
 		 */
-		val nextNodes: MutableMap<String, TrieNode> = HashMap()
+		val nextNodes: MutableMap<String, TrieNode> = mutableMapOf()
 
 		companion object
 		{

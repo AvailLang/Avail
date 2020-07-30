@@ -218,7 +218,7 @@ class StacksExtendsModule : StacksImportModule
 			}
 			else
 			{
-				val newMap = HashMap<String, CommentGroup>()
+				val newMap = mutableMapOf<String, CommentGroup>()
 
 				newMap[newlyDefinedModule.moduleName] = group
 

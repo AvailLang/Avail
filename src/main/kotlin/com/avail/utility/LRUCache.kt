@@ -35,8 +35,6 @@ package com.avail.utility
 import java.lang.Boolean.parseBoolean
 import java.lang.ref.ReferenceQueue
 import java.lang.ref.SoftReference
-import java.util.HashMap
-import java.util.LinkedHashMap
 import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.Condition
@@ -119,7 +117,7 @@ class LRUCache<K, V> @JvmOverloads constructor(
 	 * [primary&#32;map][softMap] after the garbage collector has reclaimed the
 	 * cached values.
 	 */
-	private val keysBySoftReference = HashMap<SoftReference<out V>, K>()
+	private val keysBySoftReference = mutableMapOf<SoftReference<out V>, K>()
 
 	/**
 	 * The access-ordered [map][StrongCacheMap] which maps access keys to
@@ -338,7 +336,7 @@ class LRUCache<K, V> @JvmOverloads constructor(
 
 		softMap = SoftCacheMap(softCapacity)
 		strongMap = StrongCacheMap(strongCapacity)
-		futures = HashMap()
+		futures = mutableMapOf()
 	}
 
 	/**

@@ -76,7 +76,6 @@ import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
-import java.util.HashMap
 import java.util.concurrent.atomic.AtomicReference
 
 /**
@@ -469,7 +468,7 @@ open class VariableDescriptor protected constructor(
 		if (rawPojo.equalsNil())
 		{
 			rawPojo = RawPojoDescriptor.identityPojo(
-				HashMap<A_Atom, VariableAccessReactor>())
+				mutableMapOf<A_Atom, VariableAccessReactor>())
 			self.setMutableSlot(WRITE_REACTORS, rawPojo)
 		}
 		val writeReactors =

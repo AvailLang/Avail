@@ -39,7 +39,6 @@ import com.avail.utility.json.JSONWriter
 import java.io.File
 import java.io.IOException
 import java.util.Collections.unmodifiableSet
-import java.util.LinkedHashMap
 
 /**
  * `ModuleRoots` encapsulates the Avail [module][ModuleDescriptor] path. The
