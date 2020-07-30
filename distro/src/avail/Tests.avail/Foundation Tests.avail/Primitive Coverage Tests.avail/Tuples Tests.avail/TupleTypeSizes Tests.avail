@@ -37,8 +37,13 @@ Uses
 	"Primitive Test Common"
 Body
 
-Test "TupleTypeSizes ok" in primitive tuples test suite if supported is
+Test "TupleTypeSizes ok" in primitive tuples test suite is
 [
-	Skip test
+	t : tuple's type := <natural number…|1..5>;
+	Require: ||t|| = [1..5];
+	Require: ||<1,2,3>'s type|| = [3..3];
+	Require: ||<>'s type|| = [0..0];
+	Require: ||<natural number…|1..5>|| = [1..5];
+	Require: ||<natural number…|0..∞>|| = [0..∞);
 ];
 
