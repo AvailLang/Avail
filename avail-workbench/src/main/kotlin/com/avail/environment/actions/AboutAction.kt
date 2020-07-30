@@ -1,6 +1,6 @@
 /*
  * AboutAction.java
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -92,7 +92,7 @@ class AboutAction constructor(workbench: AvailWorkbench)
 		}
 		builder.append("<br><br>")
 		builder.append(
-			"Copyright \u00A9 1993-2019 The Avail Foundation, LLC.<br>")
+			"Copyright \u00A9 1993-2020 The Avail Foundation, LLC.<br>")
 		builder.append("All rights reserved.<br><br>")
 		val siteColor = AdaptiveColor(
 			light = Color(16, 16, 192),
