@@ -38,10 +38,13 @@ import com.avail.interpreter.Primitive.Companion.maxPrimitiveNumber
 import com.avail.tools.bootstrap.Resources.escape
 import com.avail.tools.bootstrap.Resources.primitiveCommentKey
 import com.avail.tools.bootstrap.Resources.primitiveParameterNameKey
+import com.avail.tools.bootstrap.Resources.primitivesBaseName
 import java.io.PrintWriter
 import java.text.MessageFormat
-import java.util.*
-import com.avail.tools.bootstrap.Resources.primitivesBaseName
+import java.util.Locale
+import java.util.Properties
+import java.util.PropertyResourceBundle
+import java.util.ResourceBundle
 
 /**
  * Generate a [property resource bundle][PropertyResourceBundle] that specifies
@@ -72,7 +75,7 @@ class PrimitiveNamesGenerator constructor(locale: Locale)
 		properties: Properties,
 		writer: PrintWriter)
 	{
-		val keys: MutableSet<String> = HashSet()
+		val keys = mutableSetOf<String>()
 		for (primitiveNumber in 1 .. maxPrimitiveNumber())
 		{
 			val primitive = byPrimitiveNumberOrNull(primitiveNumber)

@@ -32,7 +32,8 @@
 
 package com.avail.utility.fsm
 
-import java.util.*
+import java.util.Collections
+import java.util.EnumMap
 
 /**
  * The complete runtime representation of a state.

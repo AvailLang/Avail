@@ -39,7 +39,12 @@ import com.avail.descriptor.maps.A_Map
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.objects.ObjectDescriptor
-import com.avail.descriptor.representation.*
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AbstractSlotsEnum
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.NilDescriptor
+import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
@@ -47,12 +52,15 @@ import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottomMeta
-import com.avail.descriptor.types.EnumerationTypeDescriptor.ObjectSlots.*
+import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
+import com.avail.descriptor.types.EnumerationTypeDescriptor.ObjectSlots.CACHED_SUPERKIND
+import com.avail.descriptor.types.EnumerationTypeDescriptor.ObjectSlots.INSTANCES
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
-import java.util.*
+import java.util.EnumSet
+import java.util.IdentityHashMap
 
 /**
  * My instances are called *enumerations*. This descriptor family is

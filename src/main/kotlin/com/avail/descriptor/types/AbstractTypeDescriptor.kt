@@ -34,7 +34,12 @@ package com.avail.descriptor.types
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.maps.A_Map
 import com.avail.descriptor.numbers.A_Number
-import com.avail.descriptor.representation.*
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.Descriptor
+import com.avail.descriptor.representation.IntegerSlotsEnum
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY

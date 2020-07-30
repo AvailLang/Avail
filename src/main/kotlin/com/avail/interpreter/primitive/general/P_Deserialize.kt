@@ -52,7 +52,6 @@ import com.avail.interpreter.execution.Interpreter
 import com.avail.serialization.Deserializer
 import java.io.ByteArrayInputStream
 import java.nio.ByteBuffer
-import java.util.*
 
 /**
  * **Primitive:** Answer a [tuple][A_Tuple] comprising the objects encoded in

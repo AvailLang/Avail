@@ -65,7 +65,7 @@ import java.nio.file.InvalidPathException
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption
 import java.nio.file.attribute.BasicFileAttributes
-import java.util.*
+import java.util.EnumSet
 
 /**
  * **Primitive:** Recursively copy the source [path][Path] to the destination

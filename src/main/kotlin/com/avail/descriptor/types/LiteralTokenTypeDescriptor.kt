@@ -38,11 +38,11 @@ import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.tokens.LiteralTokenDescriptor
 import com.avail.descriptor.tokens.TokenDescriptor
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
-import com.avail.descriptor.types.LiteralTokenTypeDescriptor.ObjectSlots.*
+import com.avail.descriptor.types.LiteralTokenTypeDescriptor.ObjectSlots.LITERAL_TYPE
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
-import java.util.*
+import java.util.IdentityHashMap
 
 /**
  * I represent the type of some [literal&#32;tokens][LiteralTokenDescriptor].

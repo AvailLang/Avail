@@ -47,7 +47,7 @@ import com.avail.descriptor.types.FunctionTypeDescriptor
 import com.avail.descriptor.types.TypeDescriptor.Types.FORWARD_DEFINITION
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
-import java.util.*
+import java.util.IdentityHashMap
 
 /**
  * This is a forward declaration of a method.  An actual method must be defined

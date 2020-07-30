@@ -40,7 +40,7 @@ import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.ReferencePhraseDescriptor
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.variables.VariableDescriptor
-import java.util.*
+import java.util.IdentityHashMap
 
 /**
  * A `VariableQuote` is an occurrence of [up&#32;arrow][Metacharacter.UP_ARROW]

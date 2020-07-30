@@ -50,7 +50,8 @@ import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.ObjectSlots.*
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.ObjectSlots.LOWER_BOUND
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.ObjectSlots.UPPER_BOUND
 import com.avail.descriptor.types.PojoTypeDescriptor.Companion.byteRange
 import com.avail.descriptor.types.PojoTypeDescriptor.Companion.charRange
 import com.avail.descriptor.types.PojoTypeDescriptor.Companion.intRange
@@ -59,7 +60,7 @@ import com.avail.descriptor.types.PojoTypeDescriptor.Companion.shortRange
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
 import java.math.BigInteger
-import java.util.*
+import java.util.IdentityHashMap
 
 /**
  * My instances represent the types of one or more extended integers. There are

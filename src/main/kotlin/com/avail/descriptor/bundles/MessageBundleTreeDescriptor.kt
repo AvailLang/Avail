@@ -117,8 +117,11 @@ import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport
 import com.avail.utility.Mutable
 import com.avail.utility.Strings.newlineTab
-import java.util.*
+import java.util.ArrayDeque
 import java.util.Collections.sort
+import java.util.Deque
+import java.util.HashMap
+import java.util.IdentityHashMap
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.set

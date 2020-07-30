@@ -42,11 +42,11 @@ import com.avail.utility.structures.EnumMap
  * @param V
  *   The value type produced by the function.
  * @param generator
- *   A function to map keys to values.
+ *   The function to map keys to values.
  * @return
  *   A fully populated [EnumMap].
  */
-fun <K : Enum<K>, V: Any> Array<K>.toEnumMap (
+inline fun <K : Enum<K>, V: Any> Array<K>.toEnumMap (
 	generator: (K) -> V
 ): EnumMap<K, V>
 {
@@ -54,3 +54,23 @@ fun <K : Enum<K>, V: Any> Array<K>.toEnumMap (
 	this.forEach { key -> map[key] = generator(key) }
 	return map
 }
+
+/**
+ * Transform the receiver via the supplied function and collect the results into
+ * an optionally provided set. Answer the result set.
+ *
+ * @param T
+ *   The element type of the incoming [Iterable].
+ * @param R
+ *   The element type of the outgoing [Set].
+ * @param destination
+ *   The destination [MutableSet]. Defaults to [mutableSetOf].
+ * @param transform
+ *   The function to map keys to values.
+ * @return
+ *   The resultant [MutableSet].
+ */
+inline fun <T, R> Iterable<T>.mapToSet (
+	destination: MutableSet<R> = mutableSetOf(),
+	transform: (T) -> R
+): MutableSet<R> = mapTo(destination, transform)

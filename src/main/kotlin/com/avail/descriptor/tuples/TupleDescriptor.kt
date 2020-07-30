@@ -58,7 +58,9 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
 import java.nio.ByteBuffer
-import java.util.*
+import java.util.IdentityHashMap
+import java.util.NoSuchElementException
+import java.util.Spliterator
 import java.util.function.Consumer
 import java.util.stream.Stream
 import java.util.stream.StreamSupport

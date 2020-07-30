@@ -40,7 +40,9 @@ import java.io.StringWriter
 import java.io.Writer
 import java.math.BigDecimal
 import java.math.BigInteger
-import java.util.*
+import java.util.Deque
+import java.util.Formatter
+import java.util.LinkedList
 
 /**
  * A `JSONWriter` produces ASCII-only documents that adhere strictly to

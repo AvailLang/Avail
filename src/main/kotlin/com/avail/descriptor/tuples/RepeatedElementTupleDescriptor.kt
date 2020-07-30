@@ -33,8 +33,13 @@ package com.avail.descriptor.tuples
 
 import com.avail.annotations.HideFieldInDebugger
 import com.avail.descriptor.character.A_Character.Companion.codePoint
-import com.avail.descriptor.representation.*
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.AvailObjectRepresentation.Companion.newLike
+import com.avail.descriptor.representation.BitField
+import com.avail.descriptor.representation.IntegerSlotsEnum
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.tuples.ByteStringDescriptor.Companion.generateByteString
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -43,7 +48,8 @@ import com.avail.descriptor.tuples.TreeTupleDescriptor.Companion.concatenateAtLe
 import com.avail.descriptor.tuples.TreeTupleDescriptor.Companion.createTwoPartTreeTuple
 import com.avail.descriptor.tuples.TwoByteStringDescriptor.Companion.generateTwoByteString
 import com.avail.descriptor.types.A_Type
-import java.util.*
+import java.util.Collections
+import java.util.IdentityHashMap
 
 /**
  * `RepeatedElementTupleDescriptor` represents a tuple with a single ELEMENT

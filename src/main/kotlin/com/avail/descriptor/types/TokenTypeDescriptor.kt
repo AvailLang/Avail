@@ -38,12 +38,12 @@ import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.tokens.TokenDescriptor
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType.Companion.lookupTokenType
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
-import com.avail.descriptor.types.TokenTypeDescriptor.IntegerSlots.*
+import com.avail.descriptor.types.TokenTypeDescriptor.IntegerSlots.TOKEN_TYPE_CODE
 import com.avail.descriptor.types.TypeDescriptor.Types.TOKEN
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
 import jdk.nashorn.internal.parser.TokenType
-import java.util.*
+import java.util.IdentityHashMap
 
 /**
  * I represent the type of some [tokens][TokenDescriptor]. Like any object, a

@@ -31,15 +31,22 @@
  */
 package com.avail.descriptor.pojos
 
-import com.avail.descriptor.pojos.PojoFinalFieldDescriptor.ObjectSlots.*
+import com.avail.descriptor.pojos.PojoFinalFieldDescriptor.ObjectSlots.CACHED_VALUE
+import com.avail.descriptor.pojos.PojoFinalFieldDescriptor.ObjectSlots.FIELD
+import com.avail.descriptor.pojos.PojoFinalFieldDescriptor.ObjectSlots.KIND
+import com.avail.descriptor.pojos.PojoFinalFieldDescriptor.ObjectSlots.RECEIVER
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.AvailObject.Companion.multiplier
 import com.avail.descriptor.representation.Descriptor
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
-import com.avail.descriptor.types.*
+import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
+import com.avail.descriptor.types.PojoTypeDescriptor
+import com.avail.descriptor.types.TypeDescriptor
+import com.avail.descriptor.types.TypeTag
+import com.avail.descriptor.types.VariableTypeDescriptor
 import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableReadWriteType
 import com.avail.descriptor.variables.VariableDescriptor
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_MODIFY_FINAL_JAVA_FIELD
@@ -50,7 +57,7 @@ import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
-import java.util.*
+import java.util.IdentityHashMap
 
 /**
  * A `PojoFinalFieldDescriptor` is an Avail [variable][VariableDescriptor] that

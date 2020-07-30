@@ -32,7 +32,7 @@
 package com.avail.descriptor.representation
 
 import com.avail.descriptor.types.TypeTag
-import java.util.*
+import java.util.IdentityHashMap
 
 /**
  * [FillerDescriptor] represents an unreachable [AvailObject] of arbitrary size.

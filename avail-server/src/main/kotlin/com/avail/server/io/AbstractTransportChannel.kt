@@ -36,7 +36,8 @@ import com.avail.server.AvailServer
 import com.avail.server.AvailServer.Companion.receiveMessageThen
 import com.avail.server.messages.Message
 import com.avail.utility.evaluation.Combinator.recurse
-import java.util.*
+import java.util.Deque
+import java.util.LinkedList
 
 /**
  * An `AbstractTransportChannel` represents an abstract connection between an

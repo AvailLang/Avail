@@ -42,7 +42,6 @@ import java.nio.file.Path
 import java.nio.file.StandardOpenOption.CREATE
 import java.nio.file.StandardOpenOption.TRUNCATE_EXISTING
 import java.nio.file.StandardOpenOption.WRITE
-import java.util.*
 
 /**
  * A holder for all categories in stacks
@@ -95,7 +94,7 @@ class LinkingFileMap
 		}
 		else
 		{
-			val newLinks = HashSet<String>()
+			val newLinks = mutableSetOf<String>()
 			newLinks.add(fileLink)
 			aliasesToFileLink[alias] = newLinks
 		}

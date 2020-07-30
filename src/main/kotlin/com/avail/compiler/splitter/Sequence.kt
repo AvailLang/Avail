@@ -55,7 +55,6 @@ import com.avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_GROUP
 import com.avail.exceptions.MalformedMessageException
 import com.avail.exceptions.SignatureException
-import java.util.*
 
 /**
  * A `Sequence` is the juxtaposition of any number of other [Expression]s.  It
@@ -570,7 +569,7 @@ internal class Sequence constructor(positionInName: Int)
 			.toList()
 		val size = usedOrdinalsList.size
 		val sortedOrdinalsList = usedOrdinalsList.sorted()
-		val usedOrdinalsSet = HashSet(usedOrdinalsList)
+		val usedOrdinalsSet = usedOrdinalsList.toSet()
 		if (usedOrdinalsSet.size < usedOrdinalsList.size
 			|| sortedOrdinalsList[0] != 1
 			|| sortedOrdinalsList[size - 1] != size

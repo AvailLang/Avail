@@ -51,7 +51,7 @@ import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.Primitive.Flag.Unknown
 import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.execution.Interpreter.Companion.resumeFromSuccessfulPrimitive
-import java.util.*
+import java.util.TimerTask
 
 /**
  * **Primitive:** Put the [current][FiberDescriptor.currentFiber]

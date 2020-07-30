@@ -33,7 +33,7 @@
 package com.avail.server.messages
 
 import com.avail.server.io.AvailServerChannel
-import java.util.*
+import java.util.UUID
 
 /**
  * An `UpgradeCommandMessage` represents an [UPGRADE][Command.UPGRADE]

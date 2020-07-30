@@ -44,7 +44,9 @@ import com.avail.server.io.AvailServerChannel
 import com.avail.server.messages.Command.TrieNode
 import com.avail.server.messages.Command.TrieNode.Companion.trie
 import java.lang.String.format
-import java.util.*
+import java.util.Formatter
+import java.util.HashMap
+import java.util.UUID
 
 /**
  * To direct the activities of an [Avail&#32;server][AvailServer], a client

@@ -59,7 +59,7 @@ import com.avail.stacks.tags.StacksTypeTag
 import com.avail.stacks.tokens.AbstractStacksToken
 import com.avail.stacks.tokens.QuotedStacksToken
 import com.avail.stacks.tokens.RegionStacksToken
-import java.util.*
+import java.util.TreeMap
 
 /**
  * A builder class for an [AvailComment].

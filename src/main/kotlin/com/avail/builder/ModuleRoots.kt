@@ -38,8 +38,9 @@ import com.avail.persistence.Repository.Companion.isIndexedRepositoryFile
 import com.avail.utility.json.JSONWriter
 import java.io.File
 import java.io.IOException
-import java.util.*
 import java.util.Collections.unmodifiableSet
+import java.util.LinkedHashMap
+import java.util.LinkedHashSet
 
 /**
  * `ModuleRoots` encapsulates the Avail [module][ModuleDescriptor] path. The

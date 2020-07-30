@@ -104,7 +104,9 @@ import com.avail.interpreter.primitive.privatehelpers.P_PushArgument3
 import com.avail.interpreter.primitive.privatehelpers.P_PushConstant
 import com.avail.interpreter.primitive.privatehelpers.P_PushLastOuter
 import com.avail.io.NybbleOutputStream
-import java.util.*
+import java.util.ArrayDeque
+import java.util.BitSet
+import java.util.HashMap
 
 /**
  * An [AvailCodeGenerator] is used to convert a [phrase][PhraseDescriptor] into
@@ -362,7 +364,7 @@ class AvailCodeGenerator private constructor(
 		}
 		if (!unusedOuters.isEmpty)
 		{
-			val unusedOuterDeclarations = HashSet<A_Phrase>()
+			val unusedOuterDeclarations = mutableSetOf<A_Phrase>()
 			for ((key, value) in outerMap)
 			{
 				if (unusedOuters.get(value - 1))

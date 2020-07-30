@@ -54,12 +54,15 @@ import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.types.BottomPojoTypeDescriptor.Companion.pojoBottom
 import com.avail.descriptor.types.FusedPojoTypeDescriptor.Companion.createFusedPojoType
 import com.avail.descriptor.types.UnfusedPojoTypeDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
-import com.avail.descriptor.types.UnfusedPojoTypeDescriptor.ObjectSlots.*
+import com.avail.descriptor.types.UnfusedPojoTypeDescriptor.ObjectSlots.JAVA_ANCESTORS
+import com.avail.descriptor.types.UnfusedPojoTypeDescriptor.ObjectSlots.JAVA_CLASS
+import com.avail.descriptor.types.UnfusedPojoTypeDescriptor.ObjectSlots.SELF_TYPE
+import com.avail.descriptor.types.UnfusedPojoTypeDescriptor.ObjectSlots.TYPE_VARIABLES
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
 import java.lang.reflect.Modifier
 import java.lang.reflect.TypeVariable
-import java.util.*
+import java.util.IdentityHashMap
 
 /**
  * `UnfusedPojoTypeDescriptor` describes a fully-parameterized Java reference

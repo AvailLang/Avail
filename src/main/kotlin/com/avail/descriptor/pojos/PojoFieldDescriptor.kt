@@ -32,7 +32,9 @@
 package com.avail.descriptor.pojos
 
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
-import com.avail.descriptor.pojos.PojoFieldDescriptor.ObjectSlots.*
+import com.avail.descriptor.pojos.PojoFieldDescriptor.ObjectSlots.FIELD
+import com.avail.descriptor.pojos.PojoFieldDescriptor.ObjectSlots.KIND
+import com.avail.descriptor.pojos.PojoFieldDescriptor.ObjectSlots.RECEIVER
 import com.avail.descriptor.pojos.PojoFinalFieldDescriptor.Companion.pojoFinalFieldForInnerType
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
@@ -40,7 +42,11 @@ import com.avail.descriptor.representation.AvailObject.Companion.multiplier
 import com.avail.descriptor.representation.Descriptor
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
-import com.avail.descriptor.types.*
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.PojoTypeDescriptor
+import com.avail.descriptor.types.TypeDescriptor
+import com.avail.descriptor.types.TypeTag
+import com.avail.descriptor.types.VariableTypeDescriptor
 import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import com.avail.descriptor.variables.VariableDescriptor
 import com.avail.exceptions.AvailErrorCode.E_JAVA_MARSHALING_FAILED
@@ -51,7 +57,7 @@ import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
-import java.util.*
+import java.util.IdentityHashMap
 
 /**
  * A `PojoFieldDescriptor` is an Avail [variable][VariableDescriptor] that

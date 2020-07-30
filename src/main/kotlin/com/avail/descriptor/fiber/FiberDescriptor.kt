@@ -106,8 +106,10 @@ import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.L2Chunk
 import com.avail.io.TextInterface
 import com.avail.utility.json.JSONWriter
-import java.util.*
 import java.util.Collections.synchronizedMap
+import java.util.EnumSet
+import java.util.TimerTask
+import java.util.WeakHashMap
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.atomic.AtomicInteger
 

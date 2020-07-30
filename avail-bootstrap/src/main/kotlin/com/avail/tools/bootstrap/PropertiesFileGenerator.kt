@@ -32,6 +32,8 @@
 package com.avail.tools.bootstrap
 
 import com.avail.tools.bootstrap.Resources.localName
+import com.avail.tools.bootstrap.Resources.preambleBaseName
+import com.avail.tools.bootstrap.Resources.sourceBaseName
 import com.avail.utility.UTF8ResourceBundleControl
 import java.io.File
 import java.io.FileInputStream
@@ -41,9 +43,10 @@ import java.io.InputStreamReader
 import java.io.PrintWriter
 import java.nio.charset.StandardCharsets
 import java.text.MessageFormat
-import java.util.*
-import com.avail.tools.bootstrap.Resources.preambleBaseName
-import com.avail.tools.bootstrap.Resources.sourceBaseName
+import java.util.Date
+import java.util.Locale
+import java.util.Properties
+import java.util.ResourceBundle
 
 /**
  * `PropertiesFileGenerator` defines state and operations common to the Avail

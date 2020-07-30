@@ -41,7 +41,7 @@ import com.avail.descriptor.types.TypeTag
 import com.avail.utility.visitor.MarkUnreachableSubobjectVisitor
 import sun.misc.Unsafe
 import java.lang.Integer.numberOfTrailingZeros
-import java.util.*
+import java.util.Arrays
 import kotlin.math.min
 
 /**

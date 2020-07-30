@@ -61,7 +61,9 @@ import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
-import java.util.*
+import java.util.IdentityHashMap
+import java.util.SortedSet
+import java.util.TreeSet
 
 /**
  * An Avail [set][SetDescriptor] refers to the root of a Bagwell Ideal Hash

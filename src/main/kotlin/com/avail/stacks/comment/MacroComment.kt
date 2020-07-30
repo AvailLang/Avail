@@ -48,7 +48,6 @@ import com.avail.stacks.tags.StacksRaisesTag
 import com.avail.stacks.tags.StacksReturnTag
 import com.avail.stacks.tags.StacksSeeTag
 import com.avail.utility.json.JSONWriter
-import java.util.*
 
 /**
  * A comment that describes a particular macro implementation

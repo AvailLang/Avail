@@ -55,9 +55,8 @@ import com.avail.interpreter.levelTwo.register.L2FloatRegister
 import com.avail.interpreter.levelTwo.register.L2IntRegister
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind
 import com.avail.optimizer.L2Synonym
-import java.util.Collections
+import com.avail.utility.mapToSet
 import java.util.EnumSet
-import java.util.HashSet
 import java.util.Objects
 
 /**
@@ -270,7 +269,7 @@ class TypeRestriction private constructor(
 			// We're a constant, so the metaRestriction is also a constant type.
 			return restrictionForConstant(type, RestrictionFlagEncoding.BOXED)
 		}
-		val resultExcludedValues: MutableSet<A_BasicObject> = HashSet()
+		val resultExcludedValues = mutableSetOf<A_BasicObject>()
 		// No object has exact type ⊥ or ⊤.
 		resultExcludedValues.add(TOP.o)
 		for (v in excludedValues)
@@ -278,7 +277,7 @@ class TypeRestriction private constructor(
 			resultExcludedValues.add(
 				instanceTypeOrMetaOn(v))
 		}
-		val resultExcludedTypes: MutableSet<A_Type> = HashSet()
+		val resultExcludedTypes = mutableSetOf<A_Type>()
 		resultExcludedTypes.add(BottomTypeDescriptor.bottomMeta())
 		for (t in excludedTypes)
 		{
@@ -315,7 +314,7 @@ class TypeRestriction private constructor(
 		// We can only exclude types that were excluded in both restrictions.
 		// Therefore find each intersection of an excluded type from the first
 		// restriction and an excluded type from the second restriction.
-		val mutualTypeIntersections: MutableSet<A_Type> = HashSet()
+		val mutualTypeIntersections = mutableSetOf<A_Type>()
 		for (t1 in excludedTypes)
 		{
 			for (t2 in other.excludedTypes)
@@ -329,7 +328,7 @@ class TypeRestriction private constructor(
 		}
 		// Figure out which excluded constants are also excluded in the other
 		// restriction.
-		val newExcludedValues: MutableSet<A_BasicObject> = HashSet()
+		val newExcludedValues = mutableSetOf<A_BasicObject>()
 		for (value in excludedValues)
 		{
 			if (other.excludedValues.contains(value)
@@ -365,27 +364,24 @@ class TypeRestriction private constructor(
 	 * @return
 	 *   The new type restriction.
 	 */
-	fun intersection(other: TypeRestriction): TypeRestriction
-	{
+	fun intersection(other: TypeRestriction) =
 		if (constantOrNull !== null && other.constantOrNull !== null
 			&& !constantOrNull.equals(other.constantOrNull))
 		{
 			// The restrictions are both constant, but disagree, so the
 			// intersection is empty.
-			return bottomRestriction
+			bottomRestriction
 		}
-		val unionOfExcludedTypes: MutableSet<A_Type> = HashSet(excludedTypes)
-		unionOfExcludedTypes.addAll(other.excludedTypes)
-		val unionOfExcludedValues: MutableSet<A_BasicObject> =
-			HashSet(excludedValues)
-		unionOfExcludedValues.addAll(other.excludedValues)
-		return restriction(
-			type.typeIntersection(other.type),
-			constantOrNull ?: other.constantOrNull,
-			unionOfExcludedTypes,
-			unionOfExcludedValues,
-			flags or other.flags)
-	}
+		else
+		{
+			restriction(
+				type.typeIntersection(other.type),
+				constantOrNull ?: other.constantOrNull,
+				excludedTypes + other.excludedTypes,
+				excludedValues + other.excludedValues,
+				flags or other.flags
+			)
+		}
 
 	/**
 	 * Create the intersection of the receiver with the given A_Type.  This is
@@ -399,15 +395,13 @@ class TypeRestriction private constructor(
 	 * @return
 	 *   The new type restriction.
 	 */
-	fun intersectionWithType(typeToIntersect: A_Type): TypeRestriction
-	{
-		return restriction(
+	fun intersectionWithType(typeToIntersect: A_Type) =
+		restriction(
 			type.typeIntersection(typeToIntersect),
 			constantOrNull,
 			excludedTypes,
 			excludedValues,
 			flags)
-	}
 
 	/**
 	 * Create the asymmetric difference of the receiver and the given A_Type.
@@ -420,17 +414,13 @@ class TypeRestriction private constructor(
 	 * @return
 	 *   The new type restriction.
 	 */
-	fun minusType(typeToExclude: A_Type): TypeRestriction
-	{
-		val augmentedExcludedTypes: MutableSet<A_Type> = HashSet(excludedTypes)
-		augmentedExcludedTypes.add(typeToExclude)
-		return restriction(
+	fun minusType(typeToExclude: A_Type) =
+		restriction(
 			type,
 			constantOrNull,
-			augmentedExcludedTypes,
+			excludedTypes + typeToExclude,
 			excludedValues,
 			flags)
-	}
 
 	/**
 	 * Create the asymmetric difference of the receiver and the given exact
@@ -444,18 +434,13 @@ class TypeRestriction private constructor(
 	 * @return
 	 *   The new type restriction.
 	 */
-	fun minusValue(valueToExclude: A_BasicObject): TypeRestriction
-	{
-		val augmentedExcludedValues: MutableSet<A_BasicObject> =
-			HashSet(excludedValues)
-		augmentedExcludedValues.add(valueToExclude)
-		return restriction(
+	fun minusValue(valueToExclude: A_BasicObject) =
+		restriction(
 			type,
 			constantOrNull,
 			excludedTypes,
-			augmentedExcludedValues,
+			excludedValues + valueToExclude,
 			flags)
-	}
 
 	/**
 	 * Answer true if this `TypeRestriction` contains every possible
@@ -1222,7 +1207,7 @@ class TypeRestriction private constructor(
 			val excludedValues: MutableSet<A_BasicObject> =
 				givenExcludedValues.toMutableSet()
 			val excludedTypes =
-				givenExcludedTypes.map { type.typeIntersection(it) }.toMutableSet()
+				givenExcludedTypes.mapToSet { type.typeIntersection(it) }
 
 			excludedTypes.remove(BottomTypeDescriptor.bottom())
 			val iterator = excludedTypes.iterator()
@@ -1351,29 +1336,17 @@ class TypeRestriction private constructor(
 		val typesSize = excludedTypes.size
 		this.excludedTypes = when (typesSize)
 		{
-			0 ->
-			{
-				emptySet()
-			}
-			1 ->
-			{
-				setOf(excludedTypes.iterator().next())
-			}
-			else ->
-			{
-				Collections.unmodifiableSet(HashSet(excludedTypes))
-			}
+			0 -> emptySet()
+			1 -> setOf(excludedTypes.iterator().next())
+			else -> excludedTypes.toSet()
 		}
 		val constantsSize = excludedValues.size
 		this.excludedValues =
 			when (constantsSize)
 			{
-				0 ->
-				{
-					emptySet()
-				}
+				0 -> emptySet()
 				1 -> setOf(excludedValues.iterator().next())
-				else -> Collections.unmodifiableSet(HashSet(excludedValues))
+				else -> excludedValues.toSet()
 			}
 		this.flags = flags
 	}

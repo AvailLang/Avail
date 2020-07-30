@@ -35,7 +35,7 @@ import java.io.ByteArrayOutputStream
 import java.io.PrintStream
 import java.io.UnsupportedEncodingException
 import java.nio.charset.StandardCharsets
-import java.util.*
+import java.util.Formatter
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 

@@ -57,10 +57,10 @@ import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.tuples.TupleDescriptor
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.FunctionTypeDescriptor
@@ -75,7 +75,7 @@ import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
-import java.util.*
+import java.util.IdentityHashMap
 
 /**
  * A function associates [compiled&#32;code][CompiledCodeDescriptor] with a

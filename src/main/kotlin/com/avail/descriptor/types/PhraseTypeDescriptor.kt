@@ -60,7 +60,7 @@ import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFu
 import com.avail.descriptor.types.ListPhraseTypeDescriptor.Companion.createListNodeType
 import com.avail.descriptor.types.ListPhraseTypeDescriptor.Companion.createListNodeTypeNoCheck
 import com.avail.descriptor.types.LiteralTokenTypeDescriptor.Companion.literalTokenType
-import com.avail.descriptor.types.PhraseTypeDescriptor.ObjectSlots.*
+import com.avail.descriptor.types.PhraseTypeDescriptor.ObjectSlots.EXPRESSION_TYPE
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 import com.avail.serialization.SerializerOperation

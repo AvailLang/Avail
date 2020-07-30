@@ -66,7 +66,6 @@ import com.avail.interpreter.levelTwo.operation.L2_MULTIPLY_INT_BY_INT_MOD_32_BI
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
 import com.avail.optimizer.L2Generator.Companion.edgeTo
-import java.util.*
 
 /**
  * **Primitive:** Multiply two extended integers.
@@ -165,7 +164,7 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 		private var union = bottom()
 
 		/** The infinities that should be included in the result.  */
-		private val includedInfinities = HashSet<A_Number>(2)
+		private val includedInfinities = mutableSetOf<A_Number>()
 
 		/**
 		 * Given an element from aType and an element from bType, extend the

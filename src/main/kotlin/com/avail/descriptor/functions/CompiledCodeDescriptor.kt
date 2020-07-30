@@ -94,9 +94,10 @@ import com.avail.serialization.SerializerOperation
 import com.avail.utility.Strings.newlineTab
 import com.avail.utility.cast
 import com.avail.utility.json.JSONWriter
-import java.util.*
 import java.util.Collections.newSetFromMap
 import java.util.Collections.synchronizedSet
+import java.util.IdentityHashMap
+import java.util.WeakHashMap
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 import java.util.concurrent.atomic.AtomicLong

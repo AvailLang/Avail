@@ -52,10 +52,12 @@ import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.types.ArrayPojoTypeDescriptor.PojoArray
 import com.avail.descriptor.types.BottomPojoTypeDescriptor.Companion.pojoBottom
-import com.avail.descriptor.types.SelfPojoTypeDescriptor.ObjectSlots.*
+import com.avail.descriptor.types.SelfPojoTypeDescriptor.ObjectSlots.JAVA_ANCESTORS
+import com.avail.descriptor.types.SelfPojoTypeDescriptor.ObjectSlots.JAVA_CLASS
 import com.avail.serialization.SerializerOperation
 import java.lang.reflect.Modifier
-import java.util.*
+import java.util.Comparator
+import java.util.IdentityHashMap
 
 /**
  * `SelfPojoTypeDescriptor` describes the self type of a Java class or

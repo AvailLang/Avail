@@ -43,7 +43,8 @@ import java.lang.String.format
 import java.nio.channels.AsynchronousFileChannel
 import java.nio.charset.StandardCharsets
 import java.nio.file.StandardOpenOption
-import java.util.*
+import java.util.EnumSet
+import java.util.HashMap
 
 /**
  * Used for graphics generation.
@@ -85,7 +86,7 @@ internal class GraphTracer constructor(
 	 * All abbreviated names that have been allocated so far as values of
 	 * [encounteredNames].
 	 */
-	private val allocatedNames: MutableSet<String> = HashSet()
+	private val allocatedNames = mutableSetOf<String>()
 
 	/**
 	 * Scan all module files in all visible source directories, writing the

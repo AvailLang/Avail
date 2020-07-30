@@ -57,13 +57,13 @@ import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport
 import com.avail.utility.Strings.increaseIndentation
 import com.avail.utility.cast
+import com.avail.utility.mapToSet
 import com.avail.utility.structures.EnumMap.Companion.enumMap
 import java.util.ArrayDeque
 import java.util.BitSet
 import java.util.Collections
 import java.util.Deque
 import java.util.HashMap
-import java.util.HashSet
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.reflect.KClass
 
@@ -99,7 +99,7 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 	 * Whether any [L2_VIRTUAL_CREATE_LABEL] instructions, or other
 	 * placeholders, were replaced since the last time we cleared the flag.
 	 */
-	var replacedAnyPlaceholders = false
+	private var replacedAnyPlaceholders = false
 
 	/** The register coloring algorithm.  */
 	private var colorer: L2RegisterColorer? = null
@@ -161,7 +161,7 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 	{
 		val blocksToVisit: Deque<L2BasicBlock> = ArrayDeque(blocks
 			.filter { obj: L2BasicBlock? -> obj!!.isIrremovable })
-		val reachableBlocks: MutableSet<L2BasicBlock?> = HashSet()
+		val reachableBlocks = mutableSetOf<L2BasicBlock?>()
 		while (!blocksToVisit.isEmpty())
 		{
 			val block = blocksToVisit.removeLast()
@@ -362,7 +362,7 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 		}
 		// These two collections should maintain the same membership.
 		val toVisitQueue: Deque<L2BasicBlock> = ArrayDeque(blocks)
-		val toVisitSet: MutableSet<L2BasicBlock> = HashSet(blocks)
+		val toVisitSet = blocks.toMutableSet()
 		while (toVisitQueue.isNotEmpty())
 		{
 			val block = toVisitQueue.removeFirst()!!
@@ -383,8 +383,8 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 			}
 			else
 			{
-				regs = HashSet()
-				values = HashSet()
+				regs = mutableSetOf()
+				values = mutableSetOf()
 			}
 			for (instruction in block.instructions())
 			{
@@ -438,9 +438,8 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 	{
 		// Copy the list of blocks, to safely visit existing blocks while new
 		// ones are added inside the loop.
-		for (sourceBlock in blocks.toList())
-		{
-			if (sourceBlock!!.successorEdgesCount() > 1)
+		blocks.toList().forEach { sourceBlock ->
+			if (sourceBlock.successorEdgesCount() > 1)
 			{
 				sourceBlock.successorEdgesDo { edge: L2PcOperand ->
 					val targetBlock = edge.targetBlock()
@@ -482,7 +481,7 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 			workSet.remove(block)
 			// Take the union of the outbound edges' sometimes-live registers.
 			// Also find the intersection of those edges' always-live registers.
-			val alwaysLive: MutableSet<L2Register> = HashSet()
+			val alwaysLive = mutableSetOf<L2Register>()
 			if (block!!.successorEdgesCount() > 0)
 			{
 				// Before processing instructions in reverse order, the
@@ -642,8 +641,7 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 						block.instructions().remove(instruction)
 						instruction.justRemoved()
 						val writesList = instruction.writeOperands()
-						val writtenSet: Set<L2Register> = writesList
-							.map { it.register() }.toSet()
+						val writtenSet = writesList.mapToSet { it.register() }
 						for (edge in edgesToMoveThrough)
 						{
 							if (writtenSet.isNotEmpty())
@@ -908,7 +906,7 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 				RegisterKind.values())
 		val remap: MutableMap<L2Register, L2Register> = HashMap()
 		// Also collect all the old registers.
-		val oldRegisters = HashSet<L2Register>()
+		val oldRegisters = mutableSetOf<L2Register>()
 		val action: (L2Register) -> Unit = { reg: L2Register ->
 			remap[reg] = byKindAndIndex
 				.getOrPut(reg.registerKind()) { mutableMapOf() }
@@ -1289,8 +1287,8 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 				allEdgesFromBlock.addAll(instruction.targetEdges())
 			}
 			assert(block.successorEdgesCopy() == allEdgesFromBlock)
-			assert(HashSet(allEdgesFromBlock)
-			   == block.successorEdgesCopy().toMutableSet())
+			assert(allEdgesFromBlock.toSet()
+			   == block.successorEdgesCopy().toSet())
 			block.successorEdgesDo { edge: L2PcOperand ->
 				assert(edge.sourceBlock() == block)
 				val targetBlock = edge.targetBlock()
@@ -1579,7 +1577,7 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 					return null
 				}
 			}
-			val destinations: MutableSet<L2PcOperand> = HashSet()
+			val destinations = mutableSetOf<L2PcOperand>()
 			var shouldMoveInstruction = false
 			for (edge in candidateTargetEdges)
 			{
@@ -1592,7 +1590,8 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 					// There's an edge that it shouldn't flow to.
 					shouldMoveInstruction = true
 				}
-				if (!Collections.disjoint(edge.sometimesLiveInRegisters, written))
+				if (!Collections.disjoint(
+						edge.sometimesLiveInRegisters, written))
 				{
 					// There's an edge that's only sometimes live-in.
 					shouldMoveInstruction = true

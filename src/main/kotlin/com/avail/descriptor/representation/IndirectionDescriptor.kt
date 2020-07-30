@@ -179,7 +179,10 @@ package com.avail.descriptor.representation
  import com.avail.utility.visitor.AvailSubobjectVisitor
  import java.math.BigInteger
  import java.nio.ByteBuffer
- import java.util.*
+ import java.util.Deque
+ import java.util.IdentityHashMap
+ import java.util.Spliterator
+ import java.util.TimerTask
  import java.util.stream.Stream
 
 /**

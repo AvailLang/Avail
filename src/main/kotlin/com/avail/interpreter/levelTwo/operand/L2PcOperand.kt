@@ -53,7 +53,8 @@ import com.avail.utility.structures.EnumMap.Companion.enumMap
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
-import java.util.*
+import java.util.ArrayDeque
+import java.util.Deque
 import java.util.concurrent.atomic.LongAdder
 
 /**
@@ -363,15 +364,11 @@ class L2PcOperand constructor (
 		// the target will restore the register dump found in the continuation.
 		val targetInstruction = targetBlock.instructions()[0]
 		assert(targetInstruction.operation() === L2_ENTER_L2_CHUNK)
-		val liveMap =
-			enumMap(RegisterKind.values()) { mutableListOf<Int>() }
-		val liveRegistersSet: MutableSet<L2Register> = HashSet(alwaysLiveInRegisters)
-		liveRegistersSet.addAll(sometimesLiveInRegisters)
-		val liveRegistersList = liveRegistersSet.toMutableList()
-		liveRegistersList.sortBy(L2Register::finalIndex)
-		liveRegistersList.forEach {
-			liveMap[it.registerKind()]
-				.add(translator.localNumberFromRegister(it))
+		val liveMap = enumMap(RegisterKind.values()) { mutableListOf<Int>() }
+		val liveRegisters = alwaysLiveInRegisters + sometimesLiveInRegisters
+		liveRegisters.sortedBy(L2Register::finalIndex).forEach {
+			liveMap[it.registerKind()].add(
+				translator.localNumberFromRegister(it))
 		}
 		translator.liveLocalNumbersByKindPerEntryPoint[targetInstruction] =
 			liveMap

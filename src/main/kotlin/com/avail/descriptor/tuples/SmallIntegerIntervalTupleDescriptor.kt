@@ -34,7 +34,11 @@ package com.avail.descriptor.tuples
 import com.avail.annotations.HideFieldInDebugger
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
-import com.avail.descriptor.representation.*
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.BitField
+import com.avail.descriptor.representation.IntegerSlotsEnum
+import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.tuples.ByteTupleDescriptor.Companion.generateByteTupleFrom
 import com.avail.descriptor.tuples.IntTupleDescriptor.Companion.generateIntTupleFrom
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
@@ -43,7 +47,7 @@ import com.avail.descriptor.tuples.TreeTupleDescriptor.Companion.concatenateAtLe
 import com.avail.descriptor.tuples.TreeTupleDescriptor.Companion.createTwoPartTreeTuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor
-import java.util.*
+import java.util.IdentityHashMap
 
 /**
  * `SmallIntegerIntervalTupleDescriptor` represents an [integer interval

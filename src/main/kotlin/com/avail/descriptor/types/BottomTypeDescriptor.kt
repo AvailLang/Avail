@@ -50,7 +50,7 @@ import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
-import java.util.*
+import java.util.IdentityHashMap
 
 /**
  * `BottomTypeDescriptor` represents Avail's most specific type, ⊥ (pronounced

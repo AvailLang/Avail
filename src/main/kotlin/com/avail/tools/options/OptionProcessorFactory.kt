@@ -34,7 +34,8 @@ package com.avail.tools.options
 
 import com.avail.tools.options.OptionProcessorFactory.Cardinality.Companion.OPTIONAL
 import com.avail.utility.configuration.Configuration
-import java.util.*
+import java.util.EnumSet
+import java.util.HashMap
 
 /**
  * An `OptionProcessorFactory` enables a client to dynamically specify and
@@ -84,7 +85,7 @@ class OptionProcessorFactory<OptionKeyType : Enum<OptionKeyType>>
 	}
 
 	/** The [set][Set] of all [options][Option].  */
-	private val allOptions = HashSet<Option<OptionKeyType>>()
+	private val allOptions = mutableSetOf<Option<OptionKeyType>>()
 
 	/** The rules to check, in order, for valid options and arguments. */
 	private val allRules =
@@ -221,7 +222,7 @@ class OptionProcessorFactory<OptionKeyType : Enum<OptionKeyType>>
 			optionKeys.add(it.key)
 		}
 
-		val keywords = HashSet<String>()
+		val keywords = mutableSetOf<String>()
 		allOptions.forEach { option ->
 			option.keywords.forEach { keyword ->
 				if (keywords.contains(keyword))

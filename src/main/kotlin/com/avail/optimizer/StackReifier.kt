@@ -39,7 +39,8 @@ import com.avail.interpreter.execution.Interpreter.Companion.traceL2
 import com.avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.performance.Statistic
-import java.util.*
+import java.util.ArrayDeque
+import java.util.Deque
 
 /**
  * The level two execution machinery allows limited use of the Java stack during

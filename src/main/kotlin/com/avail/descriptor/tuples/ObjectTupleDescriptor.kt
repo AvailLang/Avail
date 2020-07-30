@@ -32,12 +32,18 @@
 package com.avail.descriptor.tuples
 
 import com.avail.annotations.HideFieldInDebugger
-import com.avail.descriptor.representation.*
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.AvailObjectRepresentation.Companion.newLike
+import com.avail.descriptor.representation.BitField
+import com.avail.descriptor.representation.IntegerSlotsEnum
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.NilDescriptor
+import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-import java.util.*
+import java.util.NoSuchElementException
 
 /**
  * This is a representation for [tuples][TupleDescriptor] that can consist of

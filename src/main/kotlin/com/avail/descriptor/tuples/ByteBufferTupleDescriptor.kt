@@ -37,7 +37,13 @@ import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromUnsignedByte
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.hashOfUnsignedByte
 import com.avail.descriptor.pojos.RawPojoDescriptor
 import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
-import com.avail.descriptor.representation.*
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AbstractDescriptor
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.BitField
+import com.avail.descriptor.representation.IntegerSlotsEnum
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.tuples.ByteBufferTupleDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import com.avail.descriptor.tuples.ByteBufferTupleDescriptor.ObjectSlots.BYTE_BUFFER
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple

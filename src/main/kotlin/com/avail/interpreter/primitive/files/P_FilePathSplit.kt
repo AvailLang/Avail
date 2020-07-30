@@ -50,7 +50,6 @@ import com.avail.interpreter.execution.Interpreter
 import com.avail.io.IOSystem
 import java.nio.file.InvalidPathException
 import java.nio.file.Path
-import java.util.*
 
 /**
  * **Primitive:** Split the specified [path][Path] into its components.

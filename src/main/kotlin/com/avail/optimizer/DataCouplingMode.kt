@@ -36,7 +36,6 @@ import com.avail.interpreter.levelTwo.operand.L2ReadOperand
 import com.avail.interpreter.levelTwo.operand.L2WriteOperand
 import com.avail.interpreter.levelTwo.register.L2Register
 import com.avail.optimizer.values.L2SemanticValue
-import java.util.*
 
 /**
  * Whether [L2SemanticValue]s or the underlying [L2Register]s should be
@@ -174,7 +173,7 @@ enum class DataCouplingMode
 	 */
 	fun readEntitiesOf(readOperand: L2ReadOperand<*>): Set<L2Entity>
 	{
-		val entitiesRead: MutableSet<L2Entity> = HashSet(3)
+		val entitiesRead = mutableSetOf<L2Entity>()
 		addEntitiesFromRead(readOperand, entitiesRead)
 		return entitiesRead
 	}
@@ -207,7 +206,7 @@ enum class DataCouplingMode
 	 */
 	fun readEntitiesOf(instruction: L2Instruction): Set<L2Entity>
 	{
-		val entitiesRead: MutableSet<L2Entity> = HashSet()
+		val entitiesRead = mutableSetOf<L2Entity>()
 		instruction.readOperands()
 			.forEach { addEntitiesFromRead(it, entitiesRead) }
 		return entitiesRead
@@ -224,7 +223,7 @@ enum class DataCouplingMode
 	 */
 	fun writeEntitiesOf(instruction: L2Instruction): Set<L2Entity>
 	{
-		val entitiesWritten: MutableSet<L2Entity> = HashSet()
+		val entitiesWritten = mutableSetOf<L2Entity>()
 		instruction.writeOperands()
 			.forEach { addEntitiesFromWrite(it, entitiesWritten) }
 		return entitiesWritten

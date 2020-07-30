@@ -33,7 +33,10 @@ package com.avail.optimizer.jvm
 
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
-import org.objectweb.asm.Opcodes.*
+import org.objectweb.asm.Opcodes.CHECKCAST
+import org.objectweb.asm.Opcodes.INVOKEINTERFACE
+import org.objectweb.asm.Opcodes.INVOKESTATIC
+import org.objectweb.asm.Opcodes.INVOKEVIRTUAL
 import org.objectweb.asm.Type
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier

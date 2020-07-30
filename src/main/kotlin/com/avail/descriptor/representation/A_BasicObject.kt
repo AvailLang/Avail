@@ -69,7 +69,7 @@ import com.avail.utility.cast
 import com.avail.utility.json.JSONFriendly
 import com.avail.utility.json.JSONWriter
 import com.avail.utility.visitor.AvailSubobjectVisitor
-import java.util.*
+import java.util.IdentityHashMap
 import java.util.function.Supplier
 
 /**

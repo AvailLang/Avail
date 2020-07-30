@@ -189,13 +189,12 @@ import com.avail.io.TextInterface.Companion.system
 import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-import com.avail.utility.safeWrite
 import com.avail.utility.StackPrinter.Companion.trace
 import com.avail.utility.evaluation.OnceSupplier
+import com.avail.utility.safeWrite
 import com.avail.utility.structures.EnumMap.Companion.enumMap
 import java.util.ArrayDeque
 import java.util.Collections
-import java.util.HashSet
 import java.util.Queue
 import java.util.Timer
 import java.util.TimerTask
@@ -348,8 +347,8 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 		runtimeLock.writeLock().lock()
 		try
 		{
-			val atoms: MutableSet<A_Atom> = HashSet()
-			val definitions: MutableSet<A_Definition> = HashSet()
+			val atoms = mutableSetOf<A_Atom>()
+			val definitions = mutableSetOf<A_Definition>()
 			for (moduleEntry in modules.mapIterable())
 			{
 				val module: A_Module = moduleEntry.value()
@@ -377,7 +376,7 @@ class AvailRuntime(val moduleNameResolver: ModuleNameResolver)
 					definitions.add(definition)
 				}
 			}
-			val methods: MutableSet<A_Method> = HashSet()
+			val methods = mutableSetOf<A_Method>()
 			for (atom in atoms)
 			{
 				val bundle: A_Bundle = atom.bundleOrNil()

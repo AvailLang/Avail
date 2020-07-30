@@ -38,12 +38,12 @@ import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
-import com.avail.descriptor.types.ContinuationTypeDescriptor.ObjectSlots.*
+import com.avail.descriptor.types.ContinuationTypeDescriptor.ObjectSlots.FUNCTION_TYPE
 import com.avail.interpreter.primitive.controlflow.P_ExitContinuationWithResultIf
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
-import java.util.*
+import java.util.IdentityHashMap
 
 /**
  * Continuation types are the types of [continuations][ContinuationDescriptor].

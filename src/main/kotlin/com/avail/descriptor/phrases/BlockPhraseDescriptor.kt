@@ -96,7 +96,7 @@ import com.avail.serialization.SerializerOperation
 import com.avail.utility.Strings.newlineTab
 import com.avail.utility.evaluation.Combinator.recurse
 import com.avail.utility.json.JSONWriter
-import java.util.*
+import java.util.IdentityHashMap
 
 /**
  * My instances represent occurrences of blocks (functions) encountered in code.

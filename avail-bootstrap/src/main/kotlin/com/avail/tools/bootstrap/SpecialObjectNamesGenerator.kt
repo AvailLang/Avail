@@ -40,7 +40,10 @@ import com.avail.tools.bootstrap.Resources.specialObjectTypeKey
 import com.avail.tools.bootstrap.Resources.specialObjectsBaseName
 import java.io.PrintWriter
 import java.text.MessageFormat
-import java.util.*
+import java.util.Locale
+import java.util.Properties
+import java.util.PropertyResourceBundle
+import java.util.ResourceBundle
 
 /**
  * Generate a [property resource bundle][PropertyResourceBundle] that specifies

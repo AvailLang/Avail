@@ -60,7 +60,9 @@ import com.avail.descriptor.types.TypeTag
 import com.avail.descriptor.types.VariableTypeDescriptor
 import com.avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithContentType
 import com.avail.descriptor.variables.VariableDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
-import com.avail.descriptor.variables.VariableDescriptor.ObjectSlots.*
+import com.avail.descriptor.variables.VariableDescriptor.ObjectSlots.KIND
+import com.avail.descriptor.variables.VariableDescriptor.ObjectSlots.VALUE
+import com.avail.descriptor.variables.VariableDescriptor.ObjectSlots.WRITE_REACTORS
 import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.AvailException
 import com.avail.exceptions.VariableGetException
@@ -74,7 +76,7 @@ import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
-import java.util.*
+import java.util.HashMap
 import java.util.concurrent.atomic.AtomicReference
 
 /**

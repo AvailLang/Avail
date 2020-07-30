@@ -32,7 +32,7 @@
 
 package com.avail.stacks.tokens
 
-import java.util.*
+import java.util.HashMap
 
 /**
  * A tokenized stacks keyword.

@@ -37,7 +37,7 @@ import com.avail.compiler.problems.ProblemHandler
 import com.avail.compiler.problems.ProblemType
 import com.avail.io.SimpleCompletionHandler
 import java.lang.String.format
-import java.util.*
+import java.util.Formatter
 
 /**
  * The `BuilderProblemHandler` handles [problems][Problem]

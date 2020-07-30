@@ -58,7 +58,7 @@ import java.io.FileNotFoundException
 import java.nio.file.InvalidPathException
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.util.*
+import java.util.EnumSet
 
 /**
  * Provides the configuration for the command-line compiler. Specifies the

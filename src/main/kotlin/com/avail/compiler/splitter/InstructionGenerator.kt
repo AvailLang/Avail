@@ -46,7 +46,8 @@ import com.avail.compiler.ParsingOperation.PERMUTE_LIST
 import com.avail.compiler.ParsingOperation.WRAP_IN_LIST
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.tupleFromIntegerList
-import java.util.*
+import java.util.BitSet
+import java.util.Collections
 
 /**
  * `InstructionGenerator` is used by `MessageSplitter` to accumulate the

@@ -46,7 +46,7 @@ import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
-import java.util.*
+import java.util.Deque
 
 /**
  * `A_BundleTree` is an interface that specifies the operations specific to a

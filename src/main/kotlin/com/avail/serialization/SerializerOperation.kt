@@ -233,7 +233,6 @@ import java.lang.reflect.Constructor
 import java.lang.reflect.Field
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
-import java.util.*
 
 /**
  * A `SerializerOpcode` describes how to disassemble and assemble the various

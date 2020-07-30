@@ -61,7 +61,7 @@ package com.avail.descriptor.phrases
  import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
  import com.avail.serialization.SerializerOperation
  import com.avail.utility.json.JSONWriter
- import java.util.*
+ import java.util.IdentityHashMap
 
 /**
  * My instances represent a reference-taking expression.  A variable itself is

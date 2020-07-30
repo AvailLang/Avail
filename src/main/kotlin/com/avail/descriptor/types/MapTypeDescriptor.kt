@@ -46,7 +46,7 @@ import com.avail.descriptor.types.MapTypeDescriptor.ObjectSlots
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
-import java.util.*
+import java.util.IdentityHashMap
 
 /**
  * An object instance of `MapTypeDescriptor` is a type which maps may conform

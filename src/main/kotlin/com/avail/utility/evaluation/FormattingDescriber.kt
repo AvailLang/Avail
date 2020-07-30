@@ -33,7 +33,7 @@
 package com.avail.utility.evaluation
 
 import java.lang.String.format
-import java.util.*
+import java.util.Formatter
 
 /**
  * A `FormattingDescriber` is a [Describer] that is given a [String] to act as a

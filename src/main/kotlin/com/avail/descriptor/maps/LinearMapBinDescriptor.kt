@@ -58,7 +58,7 @@ package com.avail.descriptor.maps
  import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
  import com.avail.descriptor.types.TypeTag
  import com.avail.utility.cast
- import java.util.*
+ import java.util.NoSuchElementException
 
 /**
  * A [LinearMapBinDescriptor] is a leaf bin in a [map][MapDescriptor]'s

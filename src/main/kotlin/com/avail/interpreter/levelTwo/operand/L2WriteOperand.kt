@@ -39,7 +39,6 @@ import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind
 import com.avail.optimizer.L2ValueManifest
 import com.avail.optimizer.values.L2SemanticValue
 import com.avail.utility.cast
-import java.util.HashSet
 
 /**
  * `L2WriteOperand` abstracts the capabilities of actual register write
@@ -79,8 +78,7 @@ abstract class L2WriteOperand<R : L2Register> constructor(
 	 * The [L2SemanticValue]s being written when an [L2Instruction] uses this
 	 * [L2Operand].
 	 */
-	private val semanticValues: MutableSet<L2SemanticValue> =
-		HashSet(semanticValues)
+	private val semanticValues = semanticValues.toMutableSet()
 
 	/**
 	 * Answer this write's immutable set of [L2SemanticValue]s.

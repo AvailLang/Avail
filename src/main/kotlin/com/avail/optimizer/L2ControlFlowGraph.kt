@@ -41,7 +41,7 @@ import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION
 import com.avail.interpreter.levelTwo.register.L2Register
 import com.avail.optimizer.L2ControlFlowGraph.StateFlag.IS_SSA
 import com.avail.utility.Strings.increaseIndentation
-import java.util.*
+import java.util.Collections
 import kotlin.reflect.KClass
 
 /**

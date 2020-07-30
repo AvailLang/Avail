@@ -121,7 +121,6 @@ import java.io.PrintWriter
 import java.text.MessageFormat
 import java.util.Comparator
 import java.util.Date
-import java.util.HashSet
 import java.util.Locale
 import java.util.ResourceBundle
 import java.util.StringTokenizer
@@ -558,7 +557,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 	 */
 	private fun primitivesNamesString(primitives: List<Primitive>): String
 	{
-		val wanted: Set<Primitive> = HashSet(primitives)
+		val wanted = primitives.toSet()
 		val names = primitiveNameMap.keys.toMutableList()
 		names.sort()
 		val builder = StringBuilder()

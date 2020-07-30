@@ -91,10 +91,13 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.attribute.BasicFileAttributes
-import java.util.*
+import java.util.ArrayDeque
 import java.util.Collections.sort
 import java.util.Collections.synchronizedMap
-import java.util.Collections.unmodifiableSet
+import java.util.EnumSet
+import java.util.HashMap
+import java.util.TimerTask
+import java.util.UUID
 import java.util.concurrent.Semaphore
 import java.util.logging.Level
 import java.util.logging.Logger
@@ -1165,8 +1168,7 @@ class AvailServer constructor(
 		private const val protocolVersion = 5
 
 		/** The supported client protocol versions.  */
-		private val supportedProtocolVersions: Set<Int> =
-			unmodifiableSet(HashSet(listOf(protocolVersion)))
+		private val supportedProtocolVersions = setOf(protocolVersion)
 
 		/**
 		 * Write an `"ok"` field into the JSON object being written.

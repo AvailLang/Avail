@@ -43,7 +43,7 @@ import com.avail.descriptor.types.VariableTypeDescriptor.ObjectSlots.INNER_TYPE
 import com.avail.descriptor.variables.VariableDescriptor
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
-import java.util.*
+import java.util.IdentityHashMap
 
 /**
  * A `VariableTypeDescriptor variable type` is the [type][TypeDescriptor] of any

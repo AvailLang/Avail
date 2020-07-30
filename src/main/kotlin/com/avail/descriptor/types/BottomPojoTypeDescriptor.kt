@@ -40,7 +40,7 @@ import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.NilDescriptor
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
-import java.util.*
+import java.util.IdentityHashMap
 
 /**
  * `BottomPojoTypeDescriptor` describes the type of Java `null`, which is

@@ -32,7 +32,8 @@
 
 package com.avail.utility.fsm
 
-import java.util.*
+import java.util.EnumMap
+import java.util.EnumSet
 
 /**
  * A `StateMachineFactory` enables a client to dynamically specify and assemble
@@ -365,7 +366,7 @@ constructor(
 		{
 			// Allow null element in the following set to handle the
 			// automatic transitions.
-			val unguardedArcsFound = HashSet<Event>()
+			val unguardedArcsFound = mutableSetOf<Event>()
 			for (arc in getSummary(state).allTransitionArcs())
 			{
 				val event = arc.event

@@ -63,7 +63,6 @@ import com.avail.interpreter.Primitive.Flag.Bootstrap
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.execution.Interpreter
-import java.util.*
 
 /**
  * The `P_BootstrapPrefixVariableDeclaration` primitive is used for

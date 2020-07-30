@@ -63,7 +63,7 @@ import com.avail.exceptions.VariableSetException
 import com.avail.interpreter.effects.LoadingEffect
 import com.avail.interpreter.levelTwo.L2Chunk
 import com.avail.serialization.SerializerOperation
-import java.util.*
+import java.util.WeakHashMap
 
 /**
  * My [object&#32;instances][AvailObject] are [shared][Mutability.SHARED] variables

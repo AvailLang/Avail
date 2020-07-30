@@ -35,9 +35,13 @@ import com.avail.annotations.HideFieldInDebugger
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.computeHashOfInt
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
-import com.avail.descriptor.representation.*
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.AvailObject.Companion.newIndexedDescriptor
 import com.avail.descriptor.representation.AvailObjectRepresentation.Companion.newLike
+import com.avail.descriptor.representation.BitField
+import com.avail.descriptor.representation.IntegerSlotsEnum
+import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.TreeTupleDescriptor.Companion.concatenateAtLeastOneTree
 import com.avail.descriptor.tuples.TreeTupleDescriptor.Companion.createTwoPartTreeTuple

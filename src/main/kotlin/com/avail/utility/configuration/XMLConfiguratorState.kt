@@ -33,7 +33,8 @@
 package com.avail.utility.configuration
 
 import java.lang.Thread.State
-import java.util.*
+import java.util.ArrayDeque
+import java.util.Deque
 
 /**
  * An `XMLConfiguratorState` encapsulates the state of an [XMLConfigurator].

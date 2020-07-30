@@ -36,10 +36,10 @@ import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
-import com.avail.descriptor.types.CompiledCodeTypeDescriptor.ObjectSlots.*
+import com.avail.descriptor.types.CompiledCodeTypeDescriptor.ObjectSlots.FUNCTION_TYPE
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
-import java.util.*
+import java.util.IdentityHashMap
 
 /**
  * A [compiled&#32;code&#32;type][CompiledCodeTypeDescriptor] is the

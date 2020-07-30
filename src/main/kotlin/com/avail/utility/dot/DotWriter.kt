@@ -41,8 +41,6 @@ import com.avail.utility.dot.DotWriter.DefaultAttributeBlockType.EDGE
 import com.avail.utility.dot.DotWriter.DefaultAttributeBlockType.GRAPH
 import com.avail.utility.dot.DotWriter.DefaultAttributeBlockType.NODE
 import java.io.IOException
-import java.util.*
-import java.util.Collections.unmodifiableSet
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 import java.util.stream.Collectors
@@ -773,7 +771,7 @@ class DotWriter constructor(
 		 * Emit an edge.
 		 *
 		 * @param source
-		 *   The lamda to apply to generate the source subgraph.
+		 *   The lambda to apply to generate the source subgraph.
 		 * @param target
 		 *   The identifier of the target node.
 		 * @param block
@@ -1073,10 +1071,8 @@ class DotWriter constructor(
 		 * The keywords reserved by `dot`. Identifiers must not collide with
 		 * these names.
 		 */
-		internal val keywords = unmodifiableSet(
-			HashSet(
-				listOf(
-					"strict", "graph", "digraph", "subgraph", "node", "edge")))
+		internal val keywords = setOf(
+			"strict", "graph", "digraph", "subgraph", "node", "edge")
 
 		/** A pattern for matching tokens.  */
 		internal val tokenPattern = Pattern.compile("[A-Za-z0-9]+")

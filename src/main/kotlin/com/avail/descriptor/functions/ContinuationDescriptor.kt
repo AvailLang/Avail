@@ -80,7 +80,8 @@ import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.cast
-import java.util.*
+import java.util.ArrayDeque
+import java.util.Deque
 
 /**
  * A [continuation][ContinuationDescriptor] acts as an immutable execution

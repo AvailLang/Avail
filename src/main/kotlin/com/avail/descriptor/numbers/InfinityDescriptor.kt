@@ -50,7 +50,7 @@ import com.avail.exceptions.AvailErrorCode.E_CANNOT_DIVIDE_INFINITIES
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_MULTIPLY_ZERO_AND_INFINITY
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_SUBTRACT_LIKE_INFINITIES
 import com.avail.utility.json.JSONWriter
-import java.util.*
+import java.util.IdentityHashMap
 
 /**
  * I represent the [extended&#32;integers][ExtendedIntegerDescriptor] positive

@@ -50,8 +50,8 @@ import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.types.TypeTag
 import com.avail.serialization.Serializer
-import java.util.*
 import java.util.Collections.synchronizedMap
+import java.util.WeakHashMap
 
 /**
  * An `atom` is an object that has identity by fiat, i.e., it is distinguished

@@ -65,7 +65,7 @@ import java.nio.file.InvalidPathException
 import java.nio.file.NoSuchFileException
 import java.nio.file.Path
 import java.nio.file.attribute.BasicFileAttributes
-import java.util.*
+import java.util.EnumSet
 
 /**
  * **Primitive:** Unlink the specified [path][Path] from the file system.

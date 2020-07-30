@@ -51,7 +51,7 @@ import com.avail.descriptor.variables.A_Variable
 import com.avail.descriptor.variables.VariableDescriptor
 import com.avail.interpreter.execution.AvailLoader
 import com.avail.io.TextInterface
-import java.util.*
+import java.util.TimerTask
 
 /**
  * `A_Fiber` is an interface that specifies the fiber-specific operations that

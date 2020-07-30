@@ -41,7 +41,9 @@ import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.register.L2Register
 import com.avail.utility.PrefixSharingList
-import java.util.*
+import java.util.Comparator
+import java.util.Formatter
+import java.util.TreeMap
 
 /**
  * This class maintains register information during naive translation from Level

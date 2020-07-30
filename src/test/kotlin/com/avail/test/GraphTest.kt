@@ -35,7 +35,6 @@ import com.avail.utility.Graph
 import com.avail.utility.Graph.GraphPreconditionFailure
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import java.util.HashSet
 
 /**
  * Basic functionality test of [Graph]s.
@@ -270,6 +269,6 @@ class GraphTest
 			completion.invoke()
 		}
 		Assertions.assertEquals(scale, visitedVertices.size)
-		Assertions.assertEquals(scale, HashSet(visitedVertices).size)
+		Assertions.assertEquals(scale, visitedVertices.toSet().size)
 	}
 }

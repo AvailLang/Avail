@@ -74,7 +74,7 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.Strings.newlineTab
 import com.avail.utility.json.JSONWriter
-import java.util.*
+import java.util.IdentityHashMap
 
 /**
  * Avail [user-defined&#32;object&#32;types][ObjectTypeDescriptor] are novel.

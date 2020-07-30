@@ -37,7 +37,6 @@ import com.avail.interpreter.levelTwo.L2Chunk
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.register.L2Register
 import com.avail.utility.PrefixSharingList
-import java.util.*
 
 /**
  * This class maintains information about one [L2Register] on behalf of a
@@ -202,7 +201,7 @@ class RegisterState
 	{
 		assert(!isShared)
 		assert(originRegisters.size <= 1
-			   || HashSet(originRegisters).size == originRegisters.size)
+			   || originRegisters.toSet().size == originRegisters.size)
 		origins = originRegisters.toMutableList()
 	}
 
@@ -249,7 +248,7 @@ class RegisterState
 	{
 		assert(!isShared)
 		assert(invertedOriginRegisters.size <= 1
-			   || HashSet(invertedOriginRegisters).size
+			   || invertedOriginRegisters.toSet().size
 			   == invertedOriginRegisters.size)
 		invertedOrigins = invertedOriginRegisters
 	}

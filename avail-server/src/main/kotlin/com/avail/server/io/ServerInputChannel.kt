@@ -40,7 +40,8 @@ import java.nio.BufferOverflowException
 import java.nio.CharBuffer
 import java.nio.channels.ClosedChannelException
 import java.nio.channels.CompletionHandler
-import java.util.*
+import java.util.ArrayDeque
+import java.util.Deque
 import kotlin.math.min
 
 /**

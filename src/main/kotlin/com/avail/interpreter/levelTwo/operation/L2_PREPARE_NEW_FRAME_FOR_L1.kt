@@ -54,7 +54,6 @@ import com.avail.performance.StatisticReport
 import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
-import java.util.*
 
 /**
  * This operation is only used when entering a function that uses the

@@ -39,7 +39,7 @@ import com.avail.stacks.comment.CommentBuilder
 import com.avail.stacks.exceptions.StacksCommentBuilderException
 import com.avail.stacks.tokens.AbstractStacksToken
 import com.avail.stacks.tokens.SectionKeywordStacksToken
-import java.util.*
+import java.util.HashMap
 
 /**
  * Parses a List of [stacks&#32;tokens][AbstractStacksToken].

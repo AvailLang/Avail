@@ -92,7 +92,7 @@ import com.avail.descriptor.types.TypeTag
 import com.avail.interpreter.Primitive
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
-import java.util.*
+import java.util.IdentityHashMap
 
 /**
  * A [macro&#32;substitution&#32;phrase][MacroSubstitutionPhraseDescriptor]

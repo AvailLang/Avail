@@ -35,18 +35,25 @@ import com.avail.annotations.HideFieldInDebugger
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
-import com.avail.descriptor.representation.*
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.AvailObjectRepresentation.Companion.newLike
+import com.avail.descriptor.representation.BitField
+import com.avail.descriptor.representation.IntegerSlotsEnum
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.tuples.IntegerIntervalTupleDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import com.avail.descriptor.tuples.IntegerIntervalTupleDescriptor.IntegerSlots.Companion.SIZE
-import com.avail.descriptor.tuples.IntegerIntervalTupleDescriptor.ObjectSlots.*
+import com.avail.descriptor.tuples.IntegerIntervalTupleDescriptor.ObjectSlots.DELTA
+import com.avail.descriptor.tuples.IntegerIntervalTupleDescriptor.ObjectSlots.END
+import com.avail.descriptor.tuples.IntegerIntervalTupleDescriptor.ObjectSlots.START
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import com.avail.descriptor.tuples.TreeTupleDescriptor.Companion.concatenateAtLeastOneTree
 import com.avail.descriptor.tuples.TreeTupleDescriptor.Companion.createTwoPartTreeTuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor
-import java.util.*
+import java.util.IdentityHashMap
 
 /**
  * `IntegerIntervalTupleDescriptor` represents an ordered tuple of integers that

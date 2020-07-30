@@ -32,7 +32,12 @@
 package com.avail.descriptor.types
 
 import com.avail.annotations.ThreadSafe
-import com.avail.descriptor.representation.*
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.BitField
+import com.avail.descriptor.representation.IntegerSlotsEnum
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.NilDescriptor
+import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.tuples.StringDescriptor
 import com.avail.utility.json.JSONWriter
 

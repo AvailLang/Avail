@@ -48,7 +48,7 @@ import com.avail.descriptor.types.ListPhraseTypeDescriptor.Companion.emptyListPh
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_NUMBERED_CHOICE
 import com.avail.exceptions.SignatureException
-import java.util.*
+import java.util.Collections
 
 /**
  * A `NumberedChoice` is a special subgroup (i.e., not a root group) indicated

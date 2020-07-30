@@ -37,7 +37,10 @@ import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.persistence.Repository
 import com.avail.utility.LRUCache
 import java.io.File
-import java.util.*
+import java.util.Collections
+import java.util.Deque
+import java.util.LinkedHashMap
+import java.util.LinkedList
 
 /**
  * A `ModuleNameResolver` resolves fully-qualified references to Avail

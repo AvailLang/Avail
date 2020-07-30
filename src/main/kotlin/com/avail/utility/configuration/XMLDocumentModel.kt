@@ -34,7 +34,7 @@ package com.avail.utility.configuration
 
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Modifier
-import java.util.*
+import java.util.HashMap
 
 /**
  * An [XMLConfigurator] relies on an `XMLDocumentModel` to provide a schematic

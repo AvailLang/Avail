@@ -103,7 +103,7 @@ abstract class AvailComment internal constructor(
 	val categorySet: MutableSet<String>
 		get()
 		{
-			val categorySet = HashSet<String>()
+			val categorySet = mutableSetOf<String>()
 			for (aTag in categories)
 			{
 				categorySet.addAll(aTag.categorySet)

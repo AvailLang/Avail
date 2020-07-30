@@ -47,7 +47,7 @@ import com.avail.serialization.SerializerOperation.CHECKPOINT
 import com.avail.serialization.SerializerOperation.SPECIAL_OBJECT
 import java.io.IOException
 import java.io.OutputStream
-import java.util.*
+import java.util.ArrayDeque
 
 /**
  * A `Serializer` converts a series of objects passed individually to
@@ -63,14 +63,14 @@ class Serializer
 	 * from each [AvailObject] to the [SerializerInstruction] that will be
 	 * output for it at the appropriate time.
 	 */
-	private val encounteredObjects:
-		MutableMap<A_BasicObject, SerializerInstruction> = HashMap(100)
+	private val encounteredObjects =
+		mutableMapOf<A_BasicObject, SerializerInstruction>()
 
 	/**
 	 * All variables that must have their values assigned to them upon
 	 * deserialization.  The set is cleared at every checkpoint.
 	 */
-	private val variablesToAssign = HashSet<A_Variable>(100)
+	private val variablesToAssign = mutableSetOf<A_Variable>()
 
 	/** The number of instructions that have been written to the [output]. */
 	private var instructionsWritten = 0

@@ -47,7 +47,7 @@ import com.avail.descriptor.types.SetTypeDescriptor.ObjectSlots
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
-import java.util.*
+import java.util.IdentityHashMap
 
 /**
  * A `SetTypeDescriptor` object instance is a type that some

@@ -114,7 +114,8 @@ import java.io.IOException
 import java.io.InputStreamReader
 import java.lang.String.format
 import java.nio.charset.StandardCharsets.UTF_8
-import java.util.*
+import java.util.EnumSet
+import java.util.HashMap
 import java.util.regex.Pattern
 
 /**

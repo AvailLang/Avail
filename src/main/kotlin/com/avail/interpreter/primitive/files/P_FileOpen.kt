@@ -75,7 +75,7 @@ import java.nio.file.StandardOpenOption.WRITE
 import java.nio.file.attribute.FileAttribute
 import java.nio.file.attribute.PosixFilePermission
 import java.nio.file.attribute.PosixFilePermissions
-import java.util.*
+import java.util.EnumSet
 
 /**
  * **Primitive:** Open an [file][AsynchronousFileChannel]. Answer a

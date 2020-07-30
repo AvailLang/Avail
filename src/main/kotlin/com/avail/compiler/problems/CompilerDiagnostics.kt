@@ -50,18 +50,17 @@ import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.persistence.Repository
-import com.avail.utility.safeWrite
 import com.avail.utility.Mutable
 import com.avail.utility.Strings.addLineNumbers
 import com.avail.utility.Strings.lineBreakPattern
 import com.avail.utility.evaluation.Combinator.recurse
 import com.avail.utility.evaluation.Describer
 import com.avail.utility.evaluation.SimpleDescriber
+import com.avail.utility.safeWrite
 import java.lang.String.format
 import java.util.Collections.emptyIterator
 import java.util.Collections.reverseOrder
 import java.util.HashMap
-import java.util.HashSet
 import java.util.PriorityQueue
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -237,7 +236,7 @@ class CompilerDiagnostics(
 		 * code excerpt during error reporting.  This is relevant for multi-line
 		 * tokens like string literals.
 		 */
-		val lexingStates: MutableSet<LexingState> = HashSet()
+		val lexingStates = mutableSetOf<LexingState>()
 
 		/**
 		 * Record a new problem in this instance.  Discard problems that have a
@@ -469,7 +468,7 @@ class CompilerDiagnostics(
 			// off with an empty problemIterator to keep the code simple.
 			val groupIterator = groupedProblems.iterator()
 			val problemIterator = Mutable(emptyIterator<Describer>())
-			val alreadySeen = HashSet<String>()
+			val alreadySeen = mutableSetOf<String>()
 			// Initiate all the grouped error printing.
 			recurse { continueReport ->
 				if (!problemIterator.value.hasNext())

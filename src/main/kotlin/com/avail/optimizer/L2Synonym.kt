@@ -33,7 +33,6 @@ package com.avail.optimizer
 
 import com.avail.optimizer.values.Frame
 import com.avail.optimizer.values.L2SemanticValue
-import java.util.*
 
 /**
  * An `L2Synonym` is a set of [L2SemanticValue]s known to represent the same
@@ -86,7 +85,7 @@ class L2Synonym constructor(semanticValues: Collection<L2SemanticValue>)
 		semanticValueTransformer: (L2SemanticValue) -> L2SemanticValue)
 		: L2Synonym
 	{
-		val newSemanticValues: MutableSet<L2SemanticValue> = HashSet()
+		val newSemanticValues = mutableSetOf<L2SemanticValue>()
 		var changed = false
 		for (semanticValue in semanticValues)
 		{

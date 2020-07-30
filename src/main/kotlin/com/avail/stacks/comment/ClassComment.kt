@@ -47,7 +47,6 @@ import com.avail.stacks.tags.StacksFieldTag
 import com.avail.stacks.tags.StacksSeeTag
 import com.avail.stacks.tags.StacksSuperTypeTag
 import com.avail.utility.json.JSONWriter
-import java.util.*
 
 /**
  * A comment that describes a particular class.

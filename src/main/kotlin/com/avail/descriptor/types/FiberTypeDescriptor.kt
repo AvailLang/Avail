@@ -39,12 +39,12 @@ import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
-import com.avail.descriptor.types.FiberTypeDescriptor.ObjectSlots.*
+import com.avail.descriptor.types.FiberTypeDescriptor.ObjectSlots.RESULT_TYPE
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
-import java.util.*
+import java.util.IdentityHashMap
 
 /**
  * `FiberTypeDescriptor` represents the type of a [fiber][FiberDescriptor]. A

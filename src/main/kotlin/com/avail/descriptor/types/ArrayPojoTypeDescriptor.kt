@@ -59,7 +59,7 @@ import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
 import java.io.Serializable
 import java.lang.reflect.Array
-import java.util.*
+import java.util.IdentityHashMap
 
 /**
  * `ArrayPojoTypeDescriptor` describes Java array types. A Java array type

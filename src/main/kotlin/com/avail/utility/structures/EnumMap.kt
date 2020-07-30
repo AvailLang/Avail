@@ -32,6 +32,8 @@
 
 package com.avail.utility.structures
 
+import com.avail.utility.mapToSet
+
 /**
  * An `EnumMap` is a [Map] implementation for use with enum type keys only.  All
  * of the keys in an `EnumMap` must come from a single enum that is specified,
@@ -79,8 +81,9 @@ class EnumMap<K: Enum<K>, V : Any> constructor(
 	override val size: Int = sourceValues.count { it !== null }
 
 	override val keys: MutableSet<K> get() =
-		sourceValues.indices.filter { sourceValues[it] !== null }
-			.map { enums[it] }.toMutableSet()
+		sourceValues.indices
+			.filter { sourceValues[it] !== null }
+			.mapToSet { enums[it] }
 
 	override val values: MutableCollection<V>
 		get() = sourceValues.filterNotNull().toMutableList()

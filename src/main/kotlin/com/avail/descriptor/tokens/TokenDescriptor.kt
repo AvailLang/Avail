@@ -69,7 +69,7 @@ package com.avail.descriptor.tokens
  import com.avail.serialization.SerializerOperation
  import com.avail.utility.PrefixSharingList.Companion.append
  import com.avail.utility.json.JSONWriter
- import java.util.*
+ import java.util.IdentityHashMap
 
 /**
  * I represent a token scanned from Avail source code.

@@ -44,7 +44,7 @@ import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor.Companion.singletonSet
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
-import com.avail.descriptor.types.InstanceMetaDescriptor.ObjectSlots.*
+import com.avail.descriptor.types.InstanceMetaDescriptor.ObjectSlots.INSTANCE
 import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
@@ -53,7 +53,7 @@ import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
-import java.util.*
+import java.util.IdentityHashMap
 
 /**
  * My instances are called *instance metas*, the types of types.  These are the

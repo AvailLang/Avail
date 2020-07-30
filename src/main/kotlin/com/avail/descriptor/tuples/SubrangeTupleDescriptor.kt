@@ -32,12 +32,17 @@
 package com.avail.descriptor.tuples
 
 import com.avail.annotations.HideFieldInDebugger
-import com.avail.descriptor.representation.*
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.BitField
+import com.avail.descriptor.representation.IntegerSlotsEnum
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.SubrangeTupleDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import com.avail.descriptor.tuples.SubrangeTupleDescriptor.IntegerSlots.Companion.SIZE
 import com.avail.descriptor.tuples.SubrangeTupleDescriptor.IntegerSlots.Companion.START_INDEX
-import com.avail.descriptor.tuples.SubrangeTupleDescriptor.ObjectSlots.*
+import com.avail.descriptor.tuples.SubrangeTupleDescriptor.ObjectSlots.BASIS_TUPLE
 import com.avail.descriptor.tuples.TreeTupleDescriptor.Companion.concatenateAtLeastOneTree
 import com.avail.descriptor.tuples.TreeTupleDescriptor.Companion.createTwoPartTreeTuple
 import com.avail.descriptor.types.A_Type

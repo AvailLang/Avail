@@ -49,7 +49,6 @@ import com.avail.optimizer.L2ValueManifest
 import com.avail.optimizer.RegisterSet
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
-import java.util.HashSet
 
 /**
  * The `L2_PHI_PSEUDO_OPERATION` occurs at the start of a [L2BasicBlock].  It's
@@ -163,7 +162,7 @@ private constructor(
 		val destinationReg: L2WriteOperand<R> = instruction.operand(1)
 		val newSources = oldVector.elements().toMutableList()
 		newSources.removeAt(inputIndex)
-		val onlyOneRegister = HashSet(newSources).size == 1
+		val onlyOneRegister = newSources.size == 1
 		return if (onlyOneRegister)
 		{
 			// Replace the phi function with a simple move.

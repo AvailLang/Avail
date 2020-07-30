@@ -38,7 +38,8 @@ import com.avail.server.messages.Command
 import com.avail.server.messages.CommandMessage
 import com.avail.server.messages.Message
 import com.avail.server.messages.UpgradeCommandMessage
-import java.util.*
+import java.util.EnumSet
+import java.util.UUID
 import java.util.concurrent.atomic.AtomicLong
 
 /**
@@ -134,7 +135,7 @@ abstract class AvailServerChannel constructor(
 	 * The [UUID]s of any upgrade requests issued by this
 	 * [channel][AvailServerChannel].
 	 */
-	private val requestedUpgrades = HashSet<UUID>()
+	private val requestedUpgrades = mutableSetOf<UUID>()
 
 	/** The next [command][CommandMessage] [identifier][AtomicLong] to issue. */
 	private val commandId = AtomicLong(1)

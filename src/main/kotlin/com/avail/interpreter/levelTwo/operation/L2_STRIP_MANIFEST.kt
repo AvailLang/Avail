@@ -41,7 +41,6 @@ import com.avail.optimizer.L2ValueManifest
 import com.avail.optimizer.jvm.JVMTranslator
 import com.avail.optimizer.values.L2SemanticValue
 import org.objectweb.asm.MethodVisitor
-import java.util.*
 
 /**
  * This is a helper operation which produces no JVM code, but is useful to limit
@@ -65,8 +64,8 @@ object L2_STRIP_MANIFEST : L2Operation(
 
 		// Clear the manifest, other than the mentioned semantic values and
 		// registers.
-		val liveSemanticValues: MutableSet<L2SemanticValue> = HashSet()
-		val liveRegisters: MutableSet<L2Register> = HashSet()
+		val liveSemanticValues = mutableSetOf<L2SemanticValue>()
+		val liveRegisters = mutableSetOf<L2Register>()
 		for (read in liveVector.elements())
 		{
 			liveSemanticValues.add(read.semanticValue())

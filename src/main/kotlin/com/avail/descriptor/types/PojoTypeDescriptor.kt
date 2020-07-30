@@ -81,7 +81,6 @@ import java.lang.reflect.Type
 import java.lang.reflect.TypeVariable
 import java.math.BigInteger
 import java.util.HashMap
-import java.util.HashSet
 import java.util.IdentityHashMap
 
 /**
@@ -698,7 +697,7 @@ abstract class PojoTypeDescriptor protected constructor(
 		@JvmStatic
 		protected fun childlessAmong(ancestry: A_Set): Set<AvailObject>
 		{
-			val childless: MutableSet<AvailObject> = HashSet()
+			val childless = mutableSetOf<AvailObject>()
 			for (ancestor in ancestry)
 			{
 				childless.add(ancestor)

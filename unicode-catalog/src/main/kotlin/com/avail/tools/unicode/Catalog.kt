@@ -55,7 +55,9 @@ import java.nio.file.Paths
 import java.nio.file.SimpleFileVisitor
 import java.nio.file.StandardOpenOption
 import java.nio.file.attribute.BasicFileAttributes
-import java.util.*
+import java.util.EnumSet
+import java.util.LinkedList
+import java.util.TreeSet
 import java.util.regex.Pattern
 
 /**
@@ -83,7 +85,7 @@ internal class Catalog
 			var codePoints = field
 			if (codePoints === null)
 			{
-				codePoints = HashSet()
+				codePoints = mutableSetOf()
 				field = codePoints
 				refresh()
 				codePoints = TreeSet(codePoints)
@@ -405,7 +407,7 @@ internal class Catalog
 	 */
 	private constructor(data: JSONData?)
 	{
-		val set = HashSet<CharacterInfo>()
+		val set = mutableSetOf<CharacterInfo>()
 		(data as? JSONArray)?.forEach { set.add(CharacterInfo.readFrom(it)) }
 		allCodePoints = TreeSet(set)
 	}
@@ -448,10 +450,8 @@ internal class Catalog
 		 * The file name extensions of files that should be searched for Unicode
 		 * characters.
 		 */
-		internal val extensions: Set<String> = HashSet(listOf(
-			"java",
-			"avail",
-			"properties"))
+		internal val extensions = setOf(
+			"java", "avail", "properties")
 
 		/** The source paths to search for matching files.  */
 		internal val rootPaths = listOf(

@@ -32,8 +32,8 @@
 package com.avail.optimizer.jvm
 
 import com.avail.interpreter.levelTwo.L2Chunk
-import com.avail.optimizer.L2ControlFlowGraph
 import com.avail.optimizer.ExecutableChunk
+import com.avail.optimizer.L2ControlFlowGraph
 import java.nio.file.Path
 
 /**

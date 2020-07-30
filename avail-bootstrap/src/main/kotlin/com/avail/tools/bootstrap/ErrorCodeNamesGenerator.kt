@@ -43,10 +43,14 @@ import com.avail.interpreter.Primitive.Companion.maxPrimitiveNumber
 import com.avail.tools.bootstrap.Resources.errorCodeCommentKey
 import com.avail.tools.bootstrap.Resources.errorCodeExceptionKey
 import com.avail.tools.bootstrap.Resources.errorCodeKey
+import com.avail.tools.bootstrap.Resources.errorCodesBaseName
 import com.avail.tools.bootstrap.Resources.escape
 import java.io.PrintWriter
-import java.util.*
-import com.avail.tools.bootstrap.Resources.errorCodesBaseName
+import java.util.EnumSet
+import java.util.Locale
+import java.util.Properties
+import java.util.PropertyResourceBundle
+import java.util.ResourceBundle
 
 /**
  * Generate a [property resource bundle][PropertyResourceBundle] that specifies
@@ -76,7 +80,7 @@ class ErrorCodeNamesGenerator (locale: Locale?)
 	 */
 	override fun generateProperties(properties: Properties, writer: PrintWriter)
 	{
-		val keys: MutableSet<String> = HashSet()
+		val keys = mutableSetOf<String>()
 		for (code in AvailErrorCode.values())
 		{
 			if (code.nativeCode() > 0)

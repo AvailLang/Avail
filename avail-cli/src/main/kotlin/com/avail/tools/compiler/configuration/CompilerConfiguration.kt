@@ -49,7 +49,7 @@ import java.io.IOException
 import java.io.Reader
 import java.io.StringReader
 import java.nio.charset.StandardCharsets.UTF_8
-import java.util.*
+import java.util.EnumSet
 
 /**
  * A `CompilerConfiguration` instructs a [compiler][Compiler] on

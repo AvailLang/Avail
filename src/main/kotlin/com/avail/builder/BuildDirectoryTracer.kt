@@ -46,7 +46,6 @@ import java.nio.file.FileVisitor
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.attribute.BasicFileAttributes
-import java.util.HashSet
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.logging.Level
 import javax.annotation.concurrent.GuardedBy
@@ -74,11 +73,11 @@ internal class BuildDirectoryTracer constructor(
 {
 	/** The trace requests that have been scheduled.  */
 	@GuardedBy("this")
-	private val traceRequests = HashSet<Path>()
+	private val traceRequests = mutableSetOf<Path>()
 
 	/** The traces that have been completed.  */
 	@GuardedBy("this")
-	private val traceCompletions = HashSet<Path>()
+	private val traceCompletions = mutableSetOf<Path>()
 
 	/** A flag to indicate when all requests have been queued.  */
 	@GuardedBy("this")
@@ -273,8 +272,7 @@ internal class BuildDirectoryTracer constructor(
 					nextReportMillis - System.currentTimeMillis() + 5)
 				if (System.currentTimeMillis() > nextReportMillis)
 				{
-					val outstanding = HashSet(traceRequests)
-					outstanding.removeAll(traceCompletions)
+					val outstanding = traceRequests.toSet() - traceCompletions
 					if (outstanding.isNotEmpty())
 					{
 						val sorted = outstanding.sorted()

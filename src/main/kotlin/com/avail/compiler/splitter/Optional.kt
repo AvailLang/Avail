@@ -53,7 +53,7 @@ import com.avail.descriptor.types.ListPhraseTypeDescriptor.Companion.emptyListPh
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_BOOLEAN_GROUP
 import com.avail.exceptions.SignatureException
-import java.util.*
+import java.util.Collections
 
 /**
  * An `Optional` is a [Sequence] wrapped in guillemets («»), and followed by a

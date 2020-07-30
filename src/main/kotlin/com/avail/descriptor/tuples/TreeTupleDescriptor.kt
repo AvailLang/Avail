@@ -32,17 +32,23 @@
 package com.avail.descriptor.tuples
 
 import com.avail.annotations.HideFieldInDebugger
-import com.avail.descriptor.representation.*
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.AvailObject.Companion.newObjectIndexedIntegerIndexedDescriptor
 import com.avail.descriptor.representation.AvailObjectRepresentation.Companion.newLike
+import com.avail.descriptor.representation.BitField
+import com.avail.descriptor.representation.IntegerSlotsEnum
+import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.Mutability.IMMUTABLE
 import com.avail.descriptor.representation.Mutability.MUTABLE
 import com.avail.descriptor.representation.Mutability.SHARED
+import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import com.avail.descriptor.tuples.TreeTupleDescriptor.Companion.maxWidth
+import com.avail.descriptor.tuples.TreeTupleDescriptor.Companion.minWidthOfNonRoot
 import com.avail.descriptor.tuples.TreeTupleDescriptor.IntegerSlots.CUMULATIVE_SIZES_AREA_
 import com.avail.descriptor.tuples.TreeTupleDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import com.avail.descriptor.tuples.TreeTupleDescriptor.ObjectSlots.SUBTUPLE_AT_
-
 import com.avail.descriptor.types.A_Type
 import com.avail.utility.structures.EnumMap
 import java.nio.ByteBuffer

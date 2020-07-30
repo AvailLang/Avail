@@ -256,7 +256,6 @@ import java.util.Arrays
 import java.util.EnumSet
 import java.util.Formatter
 import java.util.HashMap
-import java.util.HashSet
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -1748,7 +1747,7 @@ class AvailCompiler(
 		bundleTree: A_BundleTree,
 		continuation: (String)->Unit)
 	{
-		val typeSet = HashSet<A_Type>()
+		val typeSet = mutableSetOf<A_Type>()
 		val typesByPlanString = HashMap<String, MutableSet<A_Type>>()
 		for (entry in bundleTree.allParsingPlansInProgress().mapIterable())
 		{
@@ -1771,7 +1770,7 @@ class AvailCompiler(
 					// a different underlying message bundle.
 					val typesForPlan = typesByPlanString.computeIfAbsent(
 						planInProgress.nameHighlightingPc()
-					) { HashSet() }
+					) { mutableSetOf() }
 					typesForPlan.add(argType)
 				}
 			}
@@ -3097,7 +3096,7 @@ class AvailCompiler(
 		}
 		else
 		{
-			val viableAssertions = HashSet<String>()
+			val viableAssertions = mutableSetOf<String>()
 			viableAssertions.add("version")
 			state.expected(
 				STRONG,

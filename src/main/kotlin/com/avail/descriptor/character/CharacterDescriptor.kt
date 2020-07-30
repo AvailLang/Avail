@@ -50,13 +50,12 @@ import com.avail.descriptor.types.TypeDescriptor.Types.CHARACTER
 import com.avail.descriptor.types.TypeTag
 import com.avail.exceptions.MarshalingException
 import com.avail.serialization.SerializerOperation
-import com.avail.utility.safeWrite
 import com.avail.utility.json.JSONWriter
-import java.util.*
+import com.avail.utility.safeWrite
+import java.util.IdentityHashMap
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import javax.annotation.concurrent.GuardedBy
 import kotlin.concurrent.read
-import kotlin.concurrent.write
 
 /**
  * [CharacterDescriptor] implements an Avail character. Avail characters are

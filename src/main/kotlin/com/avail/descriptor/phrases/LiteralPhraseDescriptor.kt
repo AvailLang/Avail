@@ -57,7 +57,7 @@ package com.avail.descriptor.phrases
  import com.avail.interpreter.levelOne.L1Decompiler
  import com.avail.serialization.SerializerOperation
  import com.avail.utility.json.JSONWriter
- import java.util.*
+ import java.util.IdentityHashMap
 
 /**
  * My instances are occurrences of literals parsed from Avail source code.  At

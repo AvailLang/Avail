@@ -112,7 +112,6 @@ import com.avail.interpreter.primitive.modules.P_CloseModule
 import com.avail.interpreter.primitive.modules.P_CreateAnonymousModule
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
-import java.util.HashSet
 import java.util.IdentityHashMap
 
 /**
@@ -921,7 +920,7 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 	 */
 	override fun o_CreateLexicalScanner(self: AvailObject): LexicalScanner
 	{
-		val lexers: MutableSet<A_Lexer> = HashSet()
+		val lexers = mutableSetOf<A_Lexer>()
 		synchronized(self) {
 			for (visibleName in self.visibleNames())
 			{

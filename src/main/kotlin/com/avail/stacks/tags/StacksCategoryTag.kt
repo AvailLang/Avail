@@ -36,7 +36,7 @@ import com.avail.stacks.LinkingFileMap
 import com.avail.stacks.StacksErrorLog
 import com.avail.stacks.tokens.QuotedStacksToken
 import com.avail.utility.json.JSONWriter
-import java.util.*
+import com.avail.utility.mapToSet
 
 /**
  * The Avail comment "@category" tag
@@ -60,16 +60,7 @@ class StacksCategoryTag
 	/**
 	 * @return A set of category String names
 	 */
-	val categorySet: HashSet<String>
-		get()
-		{
-			val categorySet = HashSet<String>()
-			for (category in categories)
-			{
-				categorySet.add(category.lexeme)
-			}
-			return categorySet
-		}
+	val categorySet get () = categories.mapToSet { it.lexeme }
 
 	/**
 	 * @return the categories

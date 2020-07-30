@@ -40,7 +40,7 @@ import com.avail.optimizer.annotations.Sets
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport
 import java.lang.reflect.Field
-import java.util.*
+import java.util.Collections
 import kotlin.reflect.KClass
 
 /**

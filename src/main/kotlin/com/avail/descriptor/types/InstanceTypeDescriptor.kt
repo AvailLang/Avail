@@ -47,7 +47,7 @@ import com.avail.descriptor.sets.SetDescriptor.Companion.singletonSet
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
-import com.avail.descriptor.types.InstanceTypeDescriptor.ObjectSlots.*
+import com.avail.descriptor.types.InstanceTypeDescriptor.ObjectSlots.INSTANCE
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.optimizer.jvm.CheckedMethod
@@ -55,7 +55,7 @@ import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
-import java.util.*
+import java.util.IdentityHashMap
 import kotlin.math.max
 import kotlin.math.min
 

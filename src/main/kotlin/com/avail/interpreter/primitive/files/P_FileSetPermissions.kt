@@ -63,7 +63,7 @@ import java.nio.file.InvalidPathException
 import java.nio.file.Path
 import java.nio.file.attribute.PosixFileAttributeView
 import java.nio.file.attribute.PosixFilePermission
-import java.util.*
+import java.util.EnumSet
 
 /**
  * **Primitive:** Set the access rights for the file specified by the given

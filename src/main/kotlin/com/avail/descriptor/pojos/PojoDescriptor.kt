@@ -44,7 +44,7 @@ import com.avail.descriptor.types.BottomPojoTypeDescriptor.Companion.pojoBottom
 import com.avail.descriptor.types.PojoTypeDescriptor
 import com.avail.descriptor.types.TypeTag
 import com.avail.utility.json.JSONWriter
-import java.util.*
+import java.util.IdentityHashMap
 
 /**
  * A `PojoDescriptor` describes a plain-old Java object (pojo) that is

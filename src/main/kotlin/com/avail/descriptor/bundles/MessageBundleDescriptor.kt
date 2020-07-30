@@ -68,7 +68,7 @@ import com.avail.descriptor.types.TypeDescriptor.Types.MESSAGE_BUNDLE
 import com.avail.descriptor.types.TypeTag
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
-import java.util.*
+import java.util.IdentityHashMap
 
 /**
  * A message bundle is how a message name is bound to a [method][A_Method].

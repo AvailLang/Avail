@@ -41,7 +41,6 @@ import com.avail.utility.cast
 import java.util.ArrayDeque
 import java.util.BitSet
 import java.util.Deque
-import java.util.HashSet
 
 /**
  * Used to compute which registers can use the same storage due to not being
@@ -66,7 +65,7 @@ class L2RegisterColorer constructor(controlFlowGraph: L2ControlFlowGraph)
 		 * The [Set] of [L2Register]s that may have the same color because they
 		 * don't carry values at the same time.
 		 */
-		val registers: MutableSet<L2Register?> = HashSet()
+		val registers = mutableSetOf<L2Register?>()
 
 		/** This group's final coloring, or -1 during calculation.  */
 		var finalIndex = -1

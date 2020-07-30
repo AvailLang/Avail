@@ -71,8 +71,8 @@ import com.avail.persistence.Repository.ModuleVersion
 import com.avail.serialization.MalformedSerialStreamException
 import com.avail.serialization.Serializer
 import com.avail.utility.Graph
-import com.avail.utility.safeWrite
 import com.avail.utility.StackPrinter.Companion.trace
+import com.avail.utility.safeWrite
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -83,7 +83,6 @@ import java.nio.file.attribute.BasicFileAttributes
 import java.util.Collections.synchronizedList
 import java.util.Collections.synchronizedMap
 import java.util.HashMap
-import java.util.HashSet
 import java.util.concurrent.Semaphore
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
@@ -145,7 +144,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 		synchronizedMap(HashMap<ResolvedModuleName, LoadedModule>())
 
 	/** Whom to notify when modules load and unload.  */
-	private val subscriptions = HashSet<(LoadedModule, Boolean)->Unit>()
+	private val subscriptions = mutableSetOf<(LoadedModule, Boolean)->Unit>()
 
 	/**
 	 * If not-`null`, an indication of why the current build should stop.
@@ -839,7 +838,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 		onSuccess: (AvailObject, (()->Unit)->Unit)->Unit,
 		onFailure: ()->Unit)
 	{
-		val modulesWithEntryPoints = HashSet<LoadedModule>()
+		val modulesWithEntryPoints = mutableSetOf<LoadedModule>()
 		for (loadedModule in loadedModulesCopy())
 		{
 			if (loadedModule.entryPoints.isNotEmpty())

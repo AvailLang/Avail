@@ -36,13 +36,14 @@ import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.types.ReadWriteVariableTypeDescriptor.ObjectSlots
-import com.avail.descriptor.types.ReadWriteVariableTypeDescriptor.ObjectSlots.*
+import com.avail.descriptor.types.ReadWriteVariableTypeDescriptor.ObjectSlots.READ_TYPE
+import com.avail.descriptor.types.ReadWriteVariableTypeDescriptor.ObjectSlots.WRITE_TYPE
 import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableReadWriteType
 import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import com.avail.descriptor.variables.VariableDescriptor
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
-import java.util.*
+import java.util.IdentityHashMap
 
 /**
  * A `ReadWriteVariableTypeDescriptor read-write variable type` is parametric on

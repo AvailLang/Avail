@@ -59,7 +59,7 @@ import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import java.nio.file.Path
 import java.nio.file.attribute.BasicFileAttributes
-import java.util.*
+import java.util.HashMap
 
 /**
  * A representation of all the fully parsed [comments][CommentTokenDescriptor]
@@ -1140,7 +1140,7 @@ class CommentsModule constructor(
 		{
 			val tempImplementationMap = ambiguousMethodFileMap[key]
 
-			val ambiguousLinks = HashSet<Pair<String, String>>()
+			val ambiguousLinks = mutableSetOf<Pair<String, String>>()
 
 			if (linkingFileMap.aliasesToFileLink
 					.containsKey(key.asNativeString()))
@@ -1153,7 +1153,7 @@ class CommentsModule constructor(
 			}
 
 			//Create ambiguous link list
-			val ambiguousNoLinks = HashSet<String>()
+			val ambiguousNoLinks = mutableSetOf<String>()
 			for (modulePath in tempImplementationMap!!.keys)
 			{
 				tempImplementationMap[modulePath]?.let {group ->

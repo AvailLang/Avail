@@ -68,7 +68,7 @@ import com.avail.serialization.SerializerOperation
 import com.avail.utility.Strings.newlineTab
 import com.avail.utility.cast
 import com.avail.utility.json.JSONWriter
-import java.util.*
+import java.util.IdentityHashMap
 
 /**
  * An Avail [map][MapDescriptor] refers to the root of a Bagwell Ideal Hash

@@ -36,8 +36,12 @@ import com.avail.descriptor.character.A_Character
 import com.avail.descriptor.character.A_Character.Companion.codePoint
 import com.avail.descriptor.character.CharacterDescriptor.Companion.computeHashOfCharacterWithCodePoint
 import com.avail.descriptor.character.CharacterDescriptor.Companion.fromCodePoint
-import com.avail.descriptor.representation.*
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.AvailObjectRepresentation.Companion.newLike
+import com.avail.descriptor.representation.BitField
+import com.avail.descriptor.representation.IntegerSlotsEnum
+import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.TwoByteStringDescriptor.IntegerSlots
 

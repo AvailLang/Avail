@@ -42,7 +42,7 @@ import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.LiteralPhraseDescriptor
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE
-import java.util.*
+import java.util.IdentityHashMap
 
 /**
  * A `ArgumentInModuleScope` is an occurrence of an

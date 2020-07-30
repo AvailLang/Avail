@@ -57,8 +57,8 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag
 import com.avail.interpreter.levelOne.L1Operation.L1_doExtension
 import com.avail.io.NybbleOutputStream
-import java.util.*
 import java.util.Collections.addAll
+import java.util.HashMap
 
 /**
  * An instance of this class can be used to construct a

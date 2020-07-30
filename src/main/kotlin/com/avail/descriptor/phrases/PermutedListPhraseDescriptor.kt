@@ -64,7 +64,7 @@ package com.avail.descriptor.phrases
  import com.avail.interpreter.levelOne.L1Operation
  import com.avail.serialization.SerializerOperation
  import com.avail.utility.json.JSONWriter
- import java.util.*
+ import java.util.IdentityHashMap
 
 /**
  * My instances represent [phrases][PhraseDescriptor] which will generate

@@ -43,17 +43,20 @@ import com.avail.interpreter.levelTwo.register.L2Register
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind
 import com.avail.utility.Strings.repeated
 import com.avail.utility.dot.DotWriter
-import com.avail.utility.dot.DotWriter.*
+import com.avail.utility.dot.DotWriter.AttributeWriter
 import com.avail.utility.dot.DotWriter.Companion.node
+import com.avail.utility.dot.DotWriter.CompassPoint
+import com.avail.utility.dot.DotWriter.DefaultAttributeBlockType
+import com.avail.utility.dot.DotWriter.GraphWriter
 import java.io.IOException
 import java.io.UncheckedIOException
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
-import java.util.*
+import java.util.ArrayDeque
+import java.util.EnumSet
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.regex.Pattern
-import kotlin.Comparator
 
 /**
  * An `L2ControlFlowGraphVisualizer` generates a `dot` source file that

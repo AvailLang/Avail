@@ -43,7 +43,6 @@ import com.avail.optimizer.L2ValueManifest
 import com.avail.optimizer.jvm.JVMTranslator
 import com.avail.optimizer.values.L2SemanticValue
 import org.objectweb.asm.MethodVisitor
-import java.util.*
 
 /**
  * Unconditionally jump to the level two offset in my [L2PcOperand], while also
@@ -71,8 +70,8 @@ object L2_JUMP_BACK : L2ControlFlowOperation(
 
 		// Play the reads against the old manifest, which is then filtered.
 		preservedReads.instructionWasAdded(manifest)
-		val semanticValuesToKeep: MutableSet<L2SemanticValue> = HashSet()
-		val registersToKeep: MutableSet<L2Register> = HashSet()
+		val semanticValuesToKeep = mutableSetOf<L2SemanticValue>()
+		val registersToKeep = mutableSetOf<L2Register>()
 		preservedReads.elements().forEach {
 			semanticValuesToKeep.add(it.semanticValue())
 			registersToKeep.add(it.register())

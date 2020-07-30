@@ -51,7 +51,7 @@ package com.avail.descriptor.phrases
  import com.avail.descriptor.types.TypeTag
  import com.avail.serialization.SerializerOperation
  import com.avail.utility.json.JSONWriter
- import java.util.*
+ import java.util.IdentityHashMap
 
 /**
  * My instances represent [phrases][PhraseDescriptor] which are elements of

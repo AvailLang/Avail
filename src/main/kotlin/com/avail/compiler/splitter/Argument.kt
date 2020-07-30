@@ -42,7 +42,7 @@ import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.BottomTypeDescriptor
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
 import com.avail.exceptions.SignatureException
-import java.util.*
+import java.util.IdentityHashMap
 
 /**
  * An `Argument` is an occurrence of [underscore][Metacharacter.UNDERSCORE] (_)

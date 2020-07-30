@@ -39,7 +39,9 @@ import java.nio.charset.StandardCharsets
 import java.security.AccessController
 import java.security.PrivilegedActionException
 import java.security.PrivilegedExceptionAction
-import java.util.*
+import java.util.Locale
+import java.util.PropertyResourceBundle
+import java.util.ResourceBundle
 
 /**
  * `UTF8ResourceBundleControl` permits the reading of UTF-8-encoded Java

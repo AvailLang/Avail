@@ -64,7 +64,7 @@ import java.nio.file.Files
 import java.nio.file.InvalidPathException
 import java.nio.file.Path
 import java.nio.file.attribute.PosixFilePermission
-import java.util.*
+import java.util.EnumMap
 
 /**
  * **Primitive:** Answer the [ordinals][IntegerDescriptor] (into

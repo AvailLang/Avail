@@ -42,12 +42,13 @@ import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromArray
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
-import com.avail.descriptor.types.ListPhraseTypeDescriptor.ObjectSlots.*
+import com.avail.descriptor.types.ListPhraseTypeDescriptor.ObjectSlots.EXPRESSION_TYPE
+import com.avail.descriptor.types.ListPhraseTypeDescriptor.ObjectSlots.SUBEXPRESSIONS_TUPLE_TYPE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeFromTupleOfTypes
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
-import java.util.*
+import java.util.IdentityHashMap
 
 /**
  * Define the structure and behavior of

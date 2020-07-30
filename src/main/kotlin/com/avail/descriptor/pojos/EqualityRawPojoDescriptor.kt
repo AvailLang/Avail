@@ -34,7 +34,7 @@ package com.avail.descriptor.pojos
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.Mutability
-import java.util.*
+import java.util.IdentityHashMap
 
 /**
  * `EqualityRawPojoDescriptor` differs from [RawPojoDescriptor] in that equality

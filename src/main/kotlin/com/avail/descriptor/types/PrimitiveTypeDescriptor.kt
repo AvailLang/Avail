@@ -44,7 +44,8 @@ import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import com.avail.descriptor.types.PrimitiveTypeDescriptor.IntegerSlots.Companion.HASH
-import com.avail.descriptor.types.PrimitiveTypeDescriptor.ObjectSlots.*
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.ObjectSlots.NAME
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.ObjectSlots.PARENT
 import com.avail.descriptor.types.TypeDescriptor.Types.ABSTRACT_DEFINITION
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.descriptor.types.TypeDescriptor.Types.ATOM

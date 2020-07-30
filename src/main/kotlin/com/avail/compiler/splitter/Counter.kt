@@ -50,7 +50,7 @@ import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_COUNTING_GROUP
 import com.avail.exceptions.SignatureException
-import java.util.*
+import java.util.Collections
 
 /**
  * A `Counter` is a special subgroup (i.e., not a root group)

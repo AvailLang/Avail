@@ -71,7 +71,7 @@ import com.avail.io.SimpleCompletionHandler
 import com.avail.utility.evaluation.Combinator.recurse
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousFileChannel
-import java.util.*
+import java.util.NoSuchElementException
 import kotlin.math.min
 
 /**

@@ -61,7 +61,9 @@ package com.avail.descriptor.maps
  import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
  import com.avail.descriptor.types.TypeTag
  import com.avail.utility.cast
- import java.util.*
+ import java.util.ArrayDeque
+ import java.util.Deque
+ import java.util.NoSuchElementException
 
 /**
  * This class implements the internal hashed nodes of a Bagwell Ideal Hash Tree.

@@ -62,7 +62,8 @@ import com.avail.interpreter.levelTwo.L2Chunk
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport
 import com.avail.utility.json.JSONWriter
-import java.util.*
+import java.util.Collections
+import java.util.WeakHashMap
 
 /**
  * My [object&#32;instances][AvailObject] are [shared][Mutability.SHARED]
@@ -481,7 +482,7 @@ open class VariableSharedDescriptor protected constructor(
 				// Copy the set of chunks to avoid modification during iteration.
 				val originalSet =
 					pojo.javaObjectNotNull<Set<L2Chunk>>()
-				val chunksToInvalidate: Set<L2Chunk> = HashSet(originalSet)
+				val chunksToInvalidate = originalSet.toSet()
 				chunksToInvalidate.forEach {
 					it.invalidate(invalidationForSlowVariable)
 				}

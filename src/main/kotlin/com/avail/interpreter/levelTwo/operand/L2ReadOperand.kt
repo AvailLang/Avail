@@ -43,7 +43,6 @@ import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind
 import com.avail.optimizer.L2ValueManifest
 import com.avail.optimizer.values.L2SemanticValue
 import com.avail.utility.cast
-import java.util.HashSet
 
 /**
  * `L2ReadOperand` abstracts the capabilities of actual register read operands.
@@ -339,7 +338,7 @@ abstract class L2ReadOperand<R : L2Register> protected constructor(
 		val incoming = thisBlock.predecessorEdgesIterator()
 		assert(incoming.hasNext())
 		val firstManifest = incoming.next().manifest()
-		val semanticValues: MutableSet<L2SemanticValue> = HashSet()
+		val semanticValues = mutableSetOf<L2SemanticValue>()
 		var typeRestriction: TypeRestriction? = null
 		for (syn in firstManifest.synonymsForRegister(register))
 		{
@@ -358,7 +357,7 @@ abstract class L2ReadOperand<R : L2Register> protected constructor(
 		while (incoming.hasNext())
 		{
 			val nextManifest = incoming.next().manifest()
-			val newSemanticValues: MutableSet<L2SemanticValue> = HashSet()
+			val newSemanticValues = mutableSetOf<L2SemanticValue>()
 			for (syn in nextManifest.synonymsForRegister(register))
 			{
 				newSemanticValues.addAll(syn.semanticValues())

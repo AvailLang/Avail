@@ -52,7 +52,6 @@ import com.avail.optimizer.values.L2SemanticPrimitiveInvocation
 import com.avail.optimizer.values.L2SemanticValue
 import com.avail.utility.cast
 import java.util.EnumSet
-import java.util.HashSet
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.set
@@ -567,7 +566,7 @@ class L2ValueManifest
 	 */
 	fun allRegisters(): Set<L2Register>
 	{
-		val registers: MutableSet<L2Register> = HashSet()
+		val registers = mutableSetOf<L2Register>()
 		definitions.values.forEach { registers.addAll(it) }
 		return registers
 	}

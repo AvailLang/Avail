@@ -46,7 +46,7 @@ import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
 import com.avail.interpreter.execution.Interpreter
 import java.nio.ByteBuffer
-import java.util.*
+import java.util.UUID
 
 /**
  * **Primitive:** Answer a cryptographically strong pseudo-random [UUID] as a
