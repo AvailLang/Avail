@@ -111,6 +111,7 @@ Extends
 		"primitive tuples test suite",
 		"primitive types test suite",
 		"primitive variables test suite",
+		"Primitives|primitives test suite",
 		"pRNG test suite",
 		"set test suite",
 		"string test suite",
