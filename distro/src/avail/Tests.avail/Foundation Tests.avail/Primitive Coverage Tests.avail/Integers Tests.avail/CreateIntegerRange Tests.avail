@@ -51,5 +51,13 @@ Test "CreateIntegerRange ok" in primitive integers test suite if supported is
 	integer range from -∞(inclusive = true) to ∞(inclusive = true) = [-∞..∞];
 	Require:
 	integer range from -∞(inclusive = false) to ∞(inclusive = false) = (-∞..∞);
+	Require:
+    integer range from -25(inclusive = true) to 8(inclusive = true) = [-25..8];
+    Require:
+    	integer range
+    	from -700000000000000000000000000000000(inclusive = true)
+    	to 800000000000000000000000000000000(inclusive = true)
+    	=
+    	[-700000000000000000000000000000000..800000000000000000000000000000000];
 ];
 

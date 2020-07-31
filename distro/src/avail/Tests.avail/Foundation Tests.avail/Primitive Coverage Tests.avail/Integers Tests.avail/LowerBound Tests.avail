@@ -44,5 +44,14 @@ Test "LowerBound ok" in primitive integers test suite if supported is
     	Require: [-∞..∞]'s genuine lower bound = -∞;
     	Require: (-∞..∞]'s genuine lower bound = -∞;
     	Require: [∞..∞]'s genuine lower bound = ∞;
+    	Require: (-400..580)'s genuine lower bound = -399;
+    	Require: [-400..580)'s genuine lower bound = -400;
+    	Require: [-20..-10]'s genuine lower bound = -20;
+    	Require:
+			[-700000000000000000000000000000..800000000000000000000000000000)'s
+			genuine lower bound = -700000000000000000000000000000;
+    	Require:
+			(-700000000000000000000000000000..800000000000000000000000000000)'s
+			genuine lower bound = -699999999999999999999999999999;
 ];
 
