@@ -39,6 +39,10 @@ Body
 
 Test "LowerBound ok" in primitive integers test suite if supported is
 [
-	Skip test
+		Require: [1..10]'s genuine lower bound = 1;
+    	Require: (1..10]'s genuine lower bound = 2;
+    	Require: [-∞..∞]'s genuine lower bound = -∞;
+    	Require: (-∞..∞]'s genuine lower bound = -∞;
+    	Require: [∞..∞]'s genuine lower bound = ∞;
 ];
 

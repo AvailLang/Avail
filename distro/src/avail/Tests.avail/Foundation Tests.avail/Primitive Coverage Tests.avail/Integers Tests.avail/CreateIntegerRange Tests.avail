@@ -39,6 +39,17 @@ Body
 
 Test "CreateIntegerRange ok" in primitive integers test suite if supported is
 [
-	Skip test
+	Require:
+	integer range from 1(inclusive = true) to 10(inclusive = true) = [1..10];
+	Require:
+	integer range from 1(inclusive = false) to 10(inclusive = false) = (1..10);
+	Require:
+	integer range from 1(inclusive = true) to 10(inclusive = false) = [1..10);
+	Require:
+	integer range from 1(inclusive = false) to 10(inclusive = true) = (1..10];
+	Require:
+	integer range from -∞(inclusive = true) to ∞(inclusive = true) = [∞..∞];
+	Require:
+	integer range from -∞(inclusive = false) to ∞(inclusive = false) = [∞..∞];
 ];
 

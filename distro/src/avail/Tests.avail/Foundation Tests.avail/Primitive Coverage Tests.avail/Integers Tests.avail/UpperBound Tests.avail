@@ -37,8 +37,12 @@ Uses
 	"Primitive Test Common"
 Body
 
-Test "UpperBound ok" in primitive integers test suite if supported is
+Test "UpperBound ok" in primitive integers test suite is
 [
-	Skip test
+	Require: [1..10]'s genuine upper bound = 10;
+	Require: [1..10)'s genuine upper bound = 9;
+	Require: [-∞..∞]'s genuine upper bound = ∞;
+	Require: [-∞..∞)'s genuine upper bound = ∞;
+	Require: [-∞..-∞]'s genuine upper bound = -∞;
 ];
 
