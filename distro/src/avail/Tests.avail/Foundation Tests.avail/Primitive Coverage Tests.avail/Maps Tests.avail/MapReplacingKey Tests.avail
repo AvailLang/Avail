@@ -37,8 +37,14 @@ Uses
 	"Primitive Test Common"
 Body
 
-Test "MapReplacingKey ok" in primitive maps test suite if supported is
+Test "MapReplacingKey ok" in primitive maps test suite is
 [
-	Skip test
+	c : {integer → integer | 0..} := {5 → 9};
+	Require: c + 7 → 10 = {5 → 9, 7 → 10};
+	Require: {5 → 9} + 7 → 10 = {5 → 9, 7 → 10};
+	Require: {} + 7 → 10 = {7 → 10};
+	m : map := {5 → 9, 7 → 10};
+	Require: m + 11 → "foo" = {5 → 9, 7 → 10, 11 → "foo"};
+	Require: {5 → 9, 7 → 10} + 3.2 → "foo" = {5 → 9, 7 → 10, 3.2 → "foo"};
 ];
 

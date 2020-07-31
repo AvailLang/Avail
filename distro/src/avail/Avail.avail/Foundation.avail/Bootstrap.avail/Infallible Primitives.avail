@@ -1746,8 +1746,8 @@ Primitive "_'s⁇keys" is
 /**
  * Construct and answer a map that is based on the supplied map. The answer
  * (potentially) differs from the argument in that it contains a binding from
- * {@param "key"} to {@param "value"}; any value previously bound to {@param "key"} is "forgotten" in the
- * new map.
+ * {@param "key"} to {@param "value"}; any value previously bound to
+ * {@param "key"} is "forgotten" in the new map.
  *
  * @category "Primitives" "Maps" "Transformers"
  * @method "_+_→_"
