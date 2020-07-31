@@ -37,8 +37,9 @@ Uses
 	"Primitive Test Common"
 Body
 
-Test "HasNoValue ok" in primitive variables test suite if supported is
+Test "HasNoValue ok" in primitive variables test suite is
 [
-	Skip test
+	c ::= new ↑whole number;
+	Require: c is unassigned;
 ];
 
