@@ -37,19 +37,31 @@ Uses
 	"Primitive Test Common"
 Body
 
-Test "GetValue ok" in primitive variables test suite if supported is
+Test "GetValue ok" in primitive variables test suite is
 [
-	Skip test
+	c ::= new ↑whole number;
+	c ?= 5;
+	Require: ↓c = 5;
+	a ::= new ↑string;
+	a ?= "Avail";
+	Require: ↓a = "Avail";
+	m ::= new ↑{whole number → string | 0..5};
+	m ?= {8 → "z", 9 → "a"};
+	Require: ↓m = {8 → "z", 9 → "a"};
 ];
 
-Test "GetValue fails with cannot-read-unassigned-variable exception" in primitive variables test suite if supported is
+Test "GetValue fails with cannot-read-unassigned-variable exception" in primitive variables test suite is
 [
-	Skip test
+	c ::= new ↑whole number;
+	fail ::= ↓c;
 ]
 must raise cannot-read-unassigned-variable exception;
 
-Test "GetValue fails with Java-marshaling-failed exception" in primitive variables test suite if supported is
+Test "GetValue fails with Java-marshaling-failed exception"
+in primitive variables test suite if supported is
 [
+	// This error can only occur with a deep system issue and is unreachable by
+	// Avail. This test is added for completeness
 	Skip test
 ]
 must raise Java-marshaling-failed exception;
