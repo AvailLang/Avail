@@ -37,8 +37,12 @@ Uses
 	"Primitive Test Common"
 Body
 
-Test "CreateVariable ok" in primitive variables test suite if supported is
+Test "CreateVariable ok" in primitive variables test suite is
 [
-	Skip test
+	c ::= new ↑whole number;
+	c ?= 5;
+	Require: ↓c = 5;
+	Require: c's type's read type = whole number;
+    Require: c's type's write type = whole number;
 ];
 

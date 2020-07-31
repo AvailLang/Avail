@@ -50,7 +50,8 @@ Test "GetValue ok" in primitive variables test suite is
 	Require: ↓m = {8 → "z", 9 → "a"};
 ];
 
-Test "GetValue fails with cannot-read-unassigned-variable exception" in primitive variables test suite is
+Test "GetValue fails with cannot-read-unassigned-variable exception"
+in primitive variables test suite is
 [
 	c ::= new ↑whole number;
 	fail ::= ↓c;
