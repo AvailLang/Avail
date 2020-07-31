@@ -44,5 +44,8 @@ Test "CreateVariable ok" in primitive variables test suite is
 	Require: ↓c = 5;
 	Require: c's type's read type = whole number;
     Require: c's type's write type = whole number;
+    b ::= new ↑(5's type);
+    Require: b's type's read type = 5's type;
+	Require: b's type's write type = 5's type;
 ];
 

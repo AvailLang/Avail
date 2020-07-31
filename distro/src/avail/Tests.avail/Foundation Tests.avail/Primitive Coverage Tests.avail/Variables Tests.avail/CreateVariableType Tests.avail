@@ -39,6 +39,14 @@ Body
 
 Test "CreateVariableType ok" in primitive variables test suite if supported is
 [
-	Skip test
+	c ::= new ↑whole number;
+	// By virtue of the rest working is indication the primitive works
+	c ?= 5;
+	Require: ↓c = 5;
+	Require: c's type's read type = whole number;
+	Require: c's type's write type = whole number;
+	b ::= new ↑(5's type);
+	Require: b's type's read type = 5's type;
+	Require: b's type's write type = 5's type;
 ];
 
