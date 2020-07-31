@@ -37,12 +37,13 @@ Uses
 	"Primitive Test Common"
 Body
 
-Test "O ok" in primitive atoms test suite if supported is
+Test "IsUnambiguousName ok" in primitive atoms test suite if supported is
 [
 	Skip test
 ];
 
-Test "IsUnambiguousName fails with loading-is-over exception" in primitive atoms test suite is
+Test "IsUnambiguousName fails with loading-is-over exception"
+in primitive atoms test suite is
 [
 	a ::= new atom named "quimzical";
 	all atoms for "quimzical"

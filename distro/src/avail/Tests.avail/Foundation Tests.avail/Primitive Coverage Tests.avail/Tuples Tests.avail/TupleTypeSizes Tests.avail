@@ -45,5 +45,6 @@ Test "TupleTypeSizes ok" in primitive tuples test suite is
 	Require: ||<>'s type|| = [0..0];
 	Require: ||<natural number…|1..5>|| = [1..5];
 	Require: ||<natural number…|0..∞>|| = [0..∞);
+	Require: ||⊥|| = (∞..-∞);
 ];
 
