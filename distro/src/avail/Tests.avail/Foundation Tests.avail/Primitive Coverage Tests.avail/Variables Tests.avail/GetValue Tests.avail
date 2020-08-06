@@ -59,11 +59,9 @@ in primitive variables test suite is
 must raise cannot-read-unassigned-variable exception;
 
 Test "GetValue fails with Java-marshaling-failed exception"
-in primitive variables test suite if supported is
+in primitive variables test suite is
 [
 	// This error can only occur with a deep system issue and is unreachable by
-	// Avail. This test is added for completeness
-	Skip test
-]
-must raise Java-marshaling-failed exception;
+	// Avail. This test is added for completeness.
+];
 
