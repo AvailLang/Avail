@@ -67,9 +67,9 @@ object P_CreateFunction : Primitive(2, CanFold, CanInline)
 		}
 		for (i in 1 .. numOuters)
 		{
-			val outerType = outers.tupleAt(i)
+			val outer = outers.tupleAt(i)
 			val requiredType = rawFunction.outerTypeAt(i)
-			if (!outerType.isSubtypeOf(requiredType))
+			if (!outer.isInstanceOf(requiredType))
 			{
 				return interpreter.primitiveFailure(E_WRONG_OUTERS)
 			}
