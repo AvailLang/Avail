@@ -197,7 +197,6 @@ import javax.swing.tree.TreeNode
 import javax.swing.tree.TreePath
 import javax.swing.tree.TreeSelectionModel
 import kotlin.concurrent.schedule
-import kotlin.concurrent.withLock
 import kotlin.concurrent.write
 import kotlin.math.max
 import kotlin.math.min
@@ -2855,24 +2854,23 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		@JvmStatic
 		fun main(args: Array<String>)
 		{
+			if (runningOnMac)
+			{
+				setUpForMac()
+			}
 			if (darkMode)
 			{
 				UIManager.setLookAndFeel(DarculaLaf())
 			}
 
-			if (runningOnMac)
+			val rootsString = System.getProperty("availRoots", "")
+			val roots = when
 			{
-				setUpForMac()
+				// Read the persistent preferences file...
+				rootsString.isEmpty() -> loadModuleRoots()
+				// Providing availRoots on command line overrides preferences...
+				else -> ModuleRoots(rootsString)
 			}
-
-				val rootsString = System.getProperty("availRoots", "")
-				val roots = when
-				{
-					// Read the persistent preferences file...
-					rootsString.isEmpty() -> loadModuleRoots()
-					// Providing availRoots on command line overrides preferences...
-					else -> ModuleRoots(rootsString)
-				}
 
 			val resolver: ModuleNameResolver
 			var reader: Reader? = null

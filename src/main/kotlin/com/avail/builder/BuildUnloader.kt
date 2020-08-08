@@ -161,7 +161,7 @@ internal class BuildUnloader constructor(private val availBuilder: AvailBuilder)
 	 * @param completionAction
 	 *   What to do after unloading completes.
 	 */
-	private fun unloadOneModule(
+	private fun scheduleUnloadOneModule(
 		moduleName: ResolvedModuleName,
 		completionAction: ()->Unit)
 	{
@@ -205,7 +205,7 @@ internal class BuildUnloader constructor(private val availBuilder: AvailBuilder)
 			determineDirtyModules(moduleName, done)
 		}
 		availBuilder.moduleGraph.reverse.parallelVisit { moduleName, done ->
-			unloadOneModule(moduleName, done)
+			scheduleUnloadOneModule(moduleName, done)
 		}
 		// Unloading of each A_Module is complete.  Update my local structures
 		// to agree.
@@ -251,7 +251,7 @@ internal class BuildUnloader constructor(private val availBuilder: AvailBuilder)
 			determineSuccessorModules(moduleName, done)
 		}
 		availBuilder.moduleGraph.reverse.parallelVisit { moduleName, done ->
-			unloadOneModule(moduleName, done)
+			scheduleUnloadOneModule(moduleName, done)
 		}
 		// Unloading of each A_Module is complete.  Update my local structures
 		// to agree.

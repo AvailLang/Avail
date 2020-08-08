@@ -678,7 +678,8 @@ class Graph<Vertex> constructor ()
 				}
 				else
 				{
-					predecessorCountdowns[vertex] = AtomicInteger(predecessorsSize)
+					predecessorCountdowns[vertex] =
+						AtomicInteger(predecessorsSize)
 				}
 			}
 		}
