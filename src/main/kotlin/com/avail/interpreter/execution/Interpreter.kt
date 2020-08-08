@@ -61,26 +61,30 @@ import com.avail.descriptor.fiber.FiberDescriptor.TraceFlag
 import com.avail.descriptor.functions.A_Continuation
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.A_RawFunction
-import com.avail.descriptor.functions.ContinuationDescriptor
+import com.avail.descriptor.functions.ContinuationDescriptor.Companion.createContinuationWithFrame
+import com.avail.descriptor.functions.ContinuationRegisterDumpDescriptor.Companion.createRegisterDump
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.representation.A_BasicObject
-import com.avail.descriptor.representation.AvailIntegerValueHelper
+import com.avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.AvailObjectFieldHelper
-import com.avail.descriptor.representation.IntegerSlotsEnum
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
-import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.copyTupleFromToCanDestroy
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import com.avail.descriptor.tuples.StringDescriptor.Companion.formatString
 import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
+import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
+import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.descriptor.types.TypeTag
 import com.avail.descriptor.variables.A_Variable
 import com.avail.descriptor.variables.VariableDescriptor
+import com.avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithContentType
 import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.AvailErrorCode.Companion.byNumericCode
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_MARK_HANDLER_FRAME
@@ -93,9 +97,14 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanSuspend
 import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.Primitive.Result
+import com.avail.interpreter.Primitive.Result.CONTINUATION_CHANGED
+import com.avail.interpreter.Primitive.Result.FAILURE
 import com.avail.interpreter.Primitive.Result.FIBER_SUSPENDED
+import com.avail.interpreter.Primitive.Result.READY_TO_INVOKE
+import com.avail.interpreter.Primitive.Result.SUCCESS
 import com.avail.interpreter.levelTwo.L1InstructionStepper
 import com.avail.interpreter.levelTwo.L2Chunk
+import com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.operation.L2_INVOKE
 import com.avail.interpreter.levelTwo.operation.L2_REIFY.StatisticCategory
@@ -120,6 +129,7 @@ import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport
 import com.avail.utility.Strings.tab
 import com.avail.utility.safeWrite
+import org.jetbrains.annotations.Debug.Renderer
 import java.text.MessageFormat
 import java.util.WeakHashMap
 import java.util.concurrent.atomic.AtomicBoolean
@@ -219,8 +229,12 @@ import kotlin.concurrent.read
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Renderer(
+	childrenArray = "describeForDebugger()")
 class Interpreter(
-	private val runtime: AvailRuntime)
+	@JvmField
+	@ReferencedInGeneratedCode
+	val runtime: AvailRuntime)
 {
 	/**
 	 * The [fiber][FiberDescriptor] that is currently locked for this
@@ -280,7 +294,7 @@ class Interpreter(
 	 *   Whether the caller is already reified.
 	 */
 	@ReferencedInGeneratedCode
-	fun callerIsReified(): Boolean = unreifiedCallDepth == 1
+	fun callerIsReified(): Boolean = unreifiedCallDepth == 0
 
 	/**
 	 * Add the delta to the current count of how many frames would be reified
@@ -303,35 +317,6 @@ class Interpreter(
 	}
 
 	/**
-	 * Fake slots used to show stack traces in the Java debugger.
-	 */
-	internal enum class FakeStackTraceSlots : ObjectSlotsEnum, IntegerSlotsEnum {
-		/**
-		 * The offset of the current L2 instruction.
-		 */
-		L2_OFFSET,
-
-		/**
-		 * The current frame's L2 instructions.
-		 */
-		L2_INSTRUCTIONS,
-
-		/**
-		 * The function that was being executed.
-		 */
-		CURRENT_FUNCTION,
-
-		/**
-		 * The chain of [continuations][ContinuationDescriptor] of the
-		 * [fiber][FiberDescriptor] bound to this [interpreter][Interpreter].
-		 */
-		FRAMES,
-
-		/** The current [AvailLoader], if any. */
-		LOADER
-	}
-
-	/**
 	 * Utility method for decomposing this object in the debugger. See
 	 * [AvailObjectFieldHelper] for instructions to enable this functionality in
 	 * IntelliJ.
@@ -347,18 +332,30 @@ class Interpreter(
 	 */
 	@Suppress("unused")
 	fun describeForDebugger(): Array<AvailObjectFieldHelper?> {
-		val outerArray = arrayOfNulls<Any>(FakeStackTraceSlots.values().size)
-
-		// Extract the current L2 offset...
-		outerArray[FakeStackTraceSlots.L2_OFFSET.ordinal] =
-			AvailIntegerValueHelper(offset.toLong())
-
-		// Produce the current chunk's L2 instructions...
-		outerArray[FakeStackTraceSlots.L2_INSTRUCTIONS.ordinal] =
-			if (chunk !== null) chunk!!.instructions else emptyList<Any>()
+		val helpers = mutableListOf<AvailObjectFieldHelper>()
 
 		// Produce the current function being executed...
-		outerArray[FakeStackTraceSlots.CURRENT_FUNCTION.ordinal] = function
+		helpers.add(
+			AvailObjectFieldHelper(
+				nil, DebuggerObjectSlots("Current function"), -1, function))
+
+		// Extract the current L2 offset...
+		helpers.add(
+			AvailObjectFieldHelper(
+				nil,
+				DebuggerObjectSlots("L2 offset"),
+				-1,
+				offset.toLong(),
+				forcedName = "L2 offset = $offset",
+				forcedChildren = emptyArray<Any>()))
+
+		// Produce the current chunk's L2 instructions...
+		helpers.add(
+			AvailObjectFieldHelper(
+				nil,
+				DebuggerObjectSlots("L2 instructions"),
+				-1,
+				if (chunk !== null) chunk!!.instructions else emptyList<Any>()))
 
 		// Build the stack frames...
 		var frame: A_Continuation? = getReifiedContinuation()
@@ -368,26 +365,24 @@ class Interpreter(
 				frames.add(frame)
 				frame = frame.caller()
 			}
-			outerArray[FakeStackTraceSlots.FRAMES.ordinal] =
-				tupleFromList(frames)
+			helpers.add(
+				AvailObjectFieldHelper(
+					nil,
+					DebuggerObjectSlots("Frames"),
+					-1,
+					tupleFromList(frames)))
 		}
-		outerArray[FakeStackTraceSlots.LOADER.ordinal] = availLoaderOrNull()
 
-		// Now put all the top level constructs together...
-		val helpers = FakeStackTraceSlots.values().map { field ->
-			AvailObjectFieldHelper(nil, field, -1, outerArray[field.ordinal])
-		}
+		helpers.add(
+			AvailObjectFieldHelper(
+				nil, DebuggerObjectSlots("Loader"), -1, availLoaderOrNull()))
+
+		helpers.add(
+			AvailObjectFieldHelper(
+				nil, DebuggerObjectSlots("Fiber"), -1, fiber))
+
 		return helpers.toTypedArray()
 	}
-
-	/**
-	 * Answer the [AvailRuntime] permanently used by this interpreter.
-	 *
-	 * @return
-	 *   This interpreter's runtime.
-	 */
-	@ReferencedInGeneratedCode
-	fun runtime(): AvailRuntime = runtime
 
 	/** Capture a unique ID between 0 and [maxInterpreters] minus one. */
 	@JvmField
@@ -766,7 +761,7 @@ class Interpreter(
 	fun primitiveSuccess(result: A_BasicObject): Result {
 		assert(fiber().executionState() === RUNNING)
 		setLatestResult(result)
-		return Result.SUCCESS
+		return SUCCESS
 	}
 
 	/**
@@ -821,7 +816,7 @@ class Interpreter(
 	fun primitiveFailure(result: A_BasicObject): Result {
 		assert(fiber().executionState() === RUNNING)
 		setLatestResult(result)
-		return Result.FAILURE
+		return FAILURE
 	}
 
 	/**
@@ -1021,6 +1016,235 @@ class Interpreter(
 	fun abortFiber() = exitFiber(nil, ABORTED)
 
 	/**
+	 * Attempt the [primitive][Primitive], dynamically checking whether it is an
+	 * [inlineable][Primitive.Flag.CanInline] primitive.
+	 *
+	 * This is used by the [L2Chunk.unoptimizedChunk]'s
+	 *
+	 * @param primitiveFunction
+	 *   The [A_Function].
+	 * @param primitive
+	 *   The [Primitive].
+	 * @return
+	 *   The [StackReifier], if any.
+	 */
+	@ReferencedInGeneratedCode
+	fun attemptThePrimitive(
+		primitiveFunction: A_Function,
+		primitive: Primitive): StackReifier?
+	{
+		return if (primitive.hasFlag(Primitive.Flag.CanInline))
+		{
+			attemptInlinePrimitive(primitiveFunction, primitive)
+		}
+		else
+		{
+			attemptNonInlinePrimitive(primitiveFunction, primitive)
+		}
+	}
+
+	/**
+	 * Attempt the [inlineable][Primitive.Flag.CanInline]
+	 * [primitive][Primitive].
+	 *
+	 * @param primitiveFunction
+	 *   The primitive [A_Function] to invoke.
+	 * @param primitive
+	 *   The [Primitive] to attempt.
+	 * @return
+	 *   The [StackReifier], if any.
+	 */
+	@ReferencedInGeneratedCode
+	fun attemptInlinePrimitive(
+		primitiveFunction: A_Function,
+		primitive: Primitive): StackReifier?
+	{
+		// It can succeed or fail, but it can't mess with the fiber's stack.
+		if (debugL2)
+		{
+			log(
+				loggerDebugL2,
+				Level.FINER,
+				"{0}          inline prim = {1}",
+				debugModeString,
+				primitive.fieldName())
+		}
+		val timeBefore = beforeAttemptPrimitive(primitive)
+		val result = primitive.attempt(this)
+		afterAttemptPrimitive(primitive, timeBefore, result)
+		return when (result)
+		{
+			SUCCESS ->
+			{
+				assert(latestResultOrNull() !== null)
+				function = null
+				returnNow = true
+				returningFunction = primitiveFunction
+				null
+			}
+			FAILURE ->
+			{
+				assert(latestResultOrNull() !== null)
+				function = primitiveFunction
+				setOffset(chunk!!.offsetAfterInitialTryPrimitive())
+				assert(!returnNow)
+				null
+			}
+			READY_TO_INVOKE ->
+			{
+				assert(primitive.hasFlag(Primitive.Flag.Invokes))
+				val stepper = levelOneStepper
+				val savedChunk = chunk
+				val savedOffset = offset
+				val savedPointers = stepper.pointers
+
+				// The invocation did a runChunk, but we need to do another
+				// runChunk now (via invokeFunction).  Only one should count
+				// as an unreified frame (specifically the inner one we're
+				// about to start).
+				adjustUnreifiedCallDepthBy(-1)
+				val reifier = invokeFunction(function!!)
+				adjustUnreifiedCallDepthBy(1)
+				function = primitiveFunction
+				chunk = savedChunk
+				setOffset(savedOffset)
+				stepper.pointers = savedPointers
+				if (reifier !== null)
+				{
+					return reifier
+				}
+				assert(latestResultOrNull() !== null)
+				returnNow = true
+				returningFunction = function
+				null
+			}
+			CONTINUATION_CHANGED ->
+			{
+				assert(primitive.hasFlag(Primitive.Flag.CanSwitchContinuations))
+				val newContinuation = getReifiedContinuation()!!
+				val newFunction = function
+				val newChunk = chunk
+				val newOffset = offset
+				val newReturnNow = returnNow
+				val newReturnValue = latestResultOrNull()
+				isReifying = true
+				StackReifier(false, primitive.reificationAbandonmentStat!!)
+				{
+					setReifiedContinuation(newContinuation)
+					function = newFunction
+					chunk = newChunk
+					setOffset(newOffset)
+					returnNow = newReturnNow
+					setLatestResult(newReturnValue)
+					isReifying = false
+				}
+			}
+			FIBER_SUSPENDED ->
+			{
+				assert(false)
+				{ "CanInline primitive must not suspend fiber" }
+				null
+			}
+		}
+	}
+
+	/**
+	 * Attempt the [non-inlineable][Primitive.Flag.CanInline]
+	 * [primitive][Primitive].
+	 *
+	 * @param primitiveFunction
+	 *   The [A_Function].
+	 * @param primitive
+	 *   The [Primitive].
+	 * @return
+	 *   The [StackReifier], if any.
+	 */
+	@ReferencedInGeneratedCode
+	fun attemptNonInlinePrimitive(
+		primitiveFunction: A_Function?,
+		primitive: Primitive): StackReifier
+	{
+		if (debugL2)
+		{
+			log(
+				loggerDebugL2,
+				Level.FINER,
+				"{0}          reifying for {1}",
+				debugModeString,
+				primitive.fieldName())
+		}
+		val stepper = levelOneStepper
+		val savedChunk = chunk!!
+		val savedOffset = offset
+		val savedPointers = stepper.pointers
+
+		// Continue in this frame where it left off, right after
+		// the L2_TRY_OPTIONAL_PRIMITIVE instruction.
+		// Inline and non-inline primitives are each allowed to
+		// change the continuation.  The stack has already been
+		// reified here, so just continue in whatever frame was
+		// set up by the continuation.
+		// The exitNow flag is set to ensure the interpreter
+		// will wind down correctly.  It should be in a state
+		// where all frames have been reified, so returnNow
+		// would be unnecessary.
+		isReifying = true
+		return StackReifier(true, primitive.reificationForNoninlineStat!!)
+		{
+			assert(unreifiedCallDepth() == 0)
+			{ "Should have reified stack for non-inlineable primitive" }
+			chunk = savedChunk
+			setOffset(savedOffset)
+			stepper.pointers = savedPointers
+			function = primitiveFunction
+			if (debugL2)
+			{
+				log(
+					loggerDebugL2,
+					Level.FINER,
+					"{0}          reified, now starting {1}",
+					debugModeString,
+					primitive.fieldName())
+			}
+			val timeBefore = beforeAttemptPrimitive(primitive)
+			val result = primitive.attempt(this)
+			afterAttemptPrimitive(primitive, timeBefore, result)
+			when (result)
+			{
+				SUCCESS ->
+				{
+					assert(latestResultOrNull() !== null)
+					returnNow = true
+					returningFunction = primitiveFunction
+				}
+				FAILURE ->
+				{
+					assert(latestResultOrNull() !== null)
+					function = primitiveFunction
+					setOffset(chunk!!.offsetAfterInitialTryPrimitive())
+					assert(!returnNow)
+				}
+				READY_TO_INVOKE ->
+				{
+					assert(false)
+					{ "Invoking primitives should be inlineable" }
+				}
+				CONTINUATION_CHANGED ->
+				{
+					assert(primitive.hasFlag(
+						Primitive.Flag.CanSwitchContinuations))
+				}
+				FIBER_SUSPENDED ->
+				{
+					assert(exitNow)
+					returnNow = false
+				}
+			}
+			isReifying = false
+		}
+	}
+
+	/**
 	 * Prepare to execute the given primitive.  Answer the current time in
 	 * nanoseconds.
 	 *
@@ -1085,18 +1309,18 @@ class Interpreter(
 		val timeAfter = AvailRuntimeSupport.captureNanos()
 		primitive.addNanosecondsRunning(
 			timeAfter - timeBefore, interpreterIndex)
-		assert(success !== Result.FAILURE || !primitive.hasFlag(CannotFail))
+		assert(success !== FAILURE || !primitive.hasFlag(CannotFail))
 		if (debugPrimitives) {
 			if (loggerDebugPrimitives.isLoggable(Level.FINER)) {
 				val detailPart = when {
-					success === Result.SUCCESS -> {
+					success === SUCCESS -> {
 						var result = getLatestResult().toString()
 						if (result.length > 70) {
 							result = result.substring(0, 70) + "..."
 						}
 						" --> $result"
 					}
-					success === Result.FAILURE && getLatestResult().isInt -> {
+					success === FAILURE && getLatestResult().isInt -> {
 						val errorInt = getLatestResult().extractInt()
 						" (${byNumericCode(errorInt)})"
 					}
@@ -1110,7 +1334,7 @@ class Interpreter(
 					primitive.fieldName(),
 					success.name,
 					detailPart)
-				if (success !== Result.SUCCESS) {
+				if (success !== SUCCESS) {
 					log(
 						loggerDebugPrimitives,
 						Level.FINER,
@@ -1376,12 +1600,11 @@ class Interpreter(
 		// an exception augmented with stack information.
 		assert(argsBuffer.size == 1)
 		argsBuffer[0] = exceptionValue
-		val primNum = P_CatchException.primitiveNumber
 		var continuation = getReifiedContinuation()!!
 		var depth = 0
 		while (!continuation.equalsNil()) {
 			val code = continuation.function().code()
-			if (code.primitiveNumber() == primNum) {
+			if (code.primitive() == P_CatchException) {
 				assert(code.numArgs() == 3)
 				val failureVariable: A_Variable = continuation.frameAt(4)
 				// Scan a currently unmarked frame.
@@ -1414,7 +1637,7 @@ class Interpreter(
 							levelOneStepper.wipeRegisters()
 							returnNow = false
 							setLatestResult(null)
-							return Result.CONTINUATION_CHANGED
+							return CONTINUATION_CHANGED
 						}
 					}
 				}
@@ -1478,12 +1701,11 @@ class Interpreter(
 	 *   The [success&#32;state][Result].
 	 */
 	fun markNearestGuard(marker: A_Number): Result {
-		val primNum = P_CatchException.primitiveNumber
 		var continuation: A_Continuation = getReifiedContinuation()!!
 		var depth = 0
 		while (!continuation.equalsNil()) {
 			val code = continuation.function().code()
-			if (code.primitiveNumber() == primNum) {
+			if (code.primitive() == P_CatchException) {
 				assert(code.numArgs() == 3)
 				val failureVariable: A_Variable = continuation.frameAt(4)
 				val guardVariable: A_Variable = failureVariable.value()
@@ -1619,7 +1841,7 @@ class Interpreter(
 			// after-reification action, restore the interpreter's state.
 			val savedFunction = function!!
 			val newReturnNow = returnNow
-			val newReturnValue = if (newReturnNow) getLatestResult() else null
+			val newReturnValue = latestResultOrNull()
 
 			// Reify-and-continue.  The current frame is also reified.
 			isReifying = true
@@ -1686,12 +1908,13 @@ class Interpreter(
 	@ReferencedInGeneratedCode
 	fun preinvoke0(
 		calledFunction: A_Function
-	): A_Function {
-		val savedFunction = function!!
+	): AvailObject {
+		val savedFunction = function!! as AvailObject
 		argsBuffer.clear()
 		function = calledFunction
 		chunk = calledFunction.code().startingChunk()
 		offset = 0
+		adjustUnreifiedCallDepthBy(1)
 		return savedFunction
 	}
 
@@ -1709,13 +1932,14 @@ class Interpreter(
 	fun preinvoke1(
 		calledFunction: A_Function,
 		arg1: AvailObject
-	): A_Function {
-		val savedFunction = function!!
+	): AvailObject {
+		val savedFunction = function!! as AvailObject
 		argsBuffer.clear()
 		argsBuffer.add(arg1)
 		function = calledFunction
 		chunk = calledFunction.code().startingChunk()
 		offset = 0
+		adjustUnreifiedCallDepthBy(1)
 		return savedFunction
 	}
 
@@ -1736,14 +1960,15 @@ class Interpreter(
 		calledFunction: A_Function,
 		arg1: AvailObject,
 		arg2: AvailObject
-	): A_Function {
-		val savedFunction = function!!
+	): AvailObject {
+		val savedFunction = function!! as AvailObject
 		argsBuffer.clear()
 		argsBuffer.add(arg1)
 		argsBuffer.add(arg2)
 		function = calledFunction
 		chunk = calledFunction.code().startingChunk()
 		offset = 0
+		adjustUnreifiedCallDepthBy(1)
 		return savedFunction
 	}
 
@@ -1767,8 +1992,8 @@ class Interpreter(
 		arg1: AvailObject,
 		arg2: AvailObject,
 		arg3: AvailObject
-	): A_Function {
-		val savedFunction = function!!
+	): AvailObject {
+		val savedFunction = function!! as AvailObject
 		argsBuffer.clear()
 		argsBuffer.add(arg1)
 		argsBuffer.add(arg2)
@@ -1776,6 +2001,7 @@ class Interpreter(
 		function = calledFunction
 		chunk = calledFunction.code().startingChunk()
 		offset = 0
+		adjustUnreifiedCallDepthBy(1)
 		return savedFunction
 	}
 
@@ -1794,13 +2020,14 @@ class Interpreter(
 	fun preinvoke(
 		calledFunction: A_Function,
 		args: Array<AvailObject>
-	): A_Function {
-		val savedFunction = function!!
+	): AvailObject {
+		val savedFunction = function!! as AvailObject
 		argsBuffer.clear()
 		argsBuffer.addAll(args)
 		function = calledFunction
 		chunk = calledFunction.code().startingChunk()
 		offset = 0
+		adjustUnreifiedCallDepthBy(1)
 		return savedFunction
 	}
 
@@ -1827,6 +2054,7 @@ class Interpreter(
 		function = callingFunction
 		returnNow = false
 		assert(!exitNow)
+		adjustUnreifiedCallDepthBy(-1)
 		return reifier
 	}
 
@@ -1851,7 +2079,15 @@ class Interpreter(
 		assert(chunk!!.isValid)
 		offset = 0
 		returnNow = false
-		return runChunk()
+		adjustUnreifiedCallDepthBy(1)
+		return try
+		{
+			runChunk()
+		}
+		finally
+		{
+			adjustUnreifiedCallDepthBy(-1)
+		}
 	}
 
 	/**
@@ -1880,7 +2116,7 @@ class Interpreter(
 			// to L1 if needed.
 			val calledFunction = function!!
 			val reifier = runChunk()
-			assert(unreifiedCallDepth() <= 1)
+			assert(unreifiedCallDepth() == 0)
 			returningFunction = calledFunction
 			if (reifier !== null) {
 				// Reification has been requested, and the exception has already
@@ -1943,11 +2179,11 @@ class Interpreter(
 	 * at which to start executing.  For an initial invocation, the argsBuffer
 	 * will have been set up for the call.  For a return into this continuation,
 	 * the offset will refer to code that will rebuild the register set from the
-	 * top reified continuation, using the [Interpreter.latestResult]. For
-	 * resuming the continuation, the offset will point to code that also
-	 * rebuilds the register set from the top reified continuation, but it won't
-	 * expect a return value.  These re-entry points should perform validity
-	 * checks on the chunk, allowing an orderly off-ramp into the
+	 * top reified continuation, using the [latestResult]. For resuming the
+	 * continuation, the offset will point to code that also rebuilds the
+	 * register set from the top reified continuation, but it won't expect a
+	 * return value.  These re-entry points should perform validity checks on
+	 * the chunk, allowing an orderly off-ramp into the
 	 * [L2Chunk.unoptimizedChunk] (which simply interprets the L1 nybblecodes).
 	 *
 	 * @return
@@ -1956,13 +2192,11 @@ class Interpreter(
 	 */
 	@ReferencedInGeneratedCode
 	fun runChunk(): StackReifier? {
-		adjustUnreifiedCallDepthBy(1)
 		assert(!exitNow)
 		var reifier: StackReifier? = null
 		while (!returnNow && !exitNow && reifier === null) {
 			reifier = chunk!!.runChunk(this, offset)
 		}
-		adjustUnreifiedCallDepthBy(-1)
 		return reifier
 	}
 
@@ -1982,6 +2216,78 @@ class Interpreter(
 				append("\n\n")
 			}
 		}
+	}
+
+	/**
+	 * Handle a return value that doesn't satisfy its expected type out-of-line.
+	 * This shrinks the control flow graph in L2, which is not just a time
+	 * saving during creation and memory saving ongoing, but may also increase
+	 * HotSpot's effectiveness.
+	 *
+	 * This [Interpreter]'s [function] and [returningFunction] are expected to
+	 * contain the calling and returning functions, respectively.
+	 *
+	 * Note that if the handler ([HookType.RESULT_DISAGREED_WITH_EXPECTED_TYPE])
+	 * asks to reify, this method will construct a continuation representing the
+	 * Avail calling function.  The continuation frame can't be resumed, so it
+	 * will use the [L2Chunk.unoptimizedChunk]'s [ChunkEntryPoint.UNREACHABLE].
+	 *
+	 * @param returnedValueOrNil
+	 *   The value that was actually returned, which may be [nil].
+	 * @param expectedReturnType
+	 *   The [A_Type] of value that was expected to be returned.
+	 * @param pc
+	 *   The level one [A_Continuation.pc] to use in a new continuation, if
+	 *   reification happens inside the error handler.
+	 * @param stackp
+	 *   The level one parameter stack pointer to use in a new continuation, if
+	 *   reification happens inside the error handler.
+	 * @param slots
+	 *   Values that will populate a continuation's frame slots if reification
+	 *   happens inside the error handler.
+	 * @return
+	 *   Either `null` or a [StackReifier] that the calling code should simply
+	 *   return.  This method creates a stack frame on behalf of the Avail
+	 *   calling function if needed.
+	 */
+	@ReferencedInGeneratedCode
+	fun reportWrongReturnType(
+		returnedValueOrNil: A_BasicObject,
+		expectedReturnType: A_Type,
+		pc: Int,
+		stackp: Int,
+		vararg slots: A_BasicObject
+	) : StackReifier?
+	{
+		val returner = returningFunction!!
+		val caller = function!!
+		val wrappedReturnValue = newVariableWithContentType(Types.ANY.o)
+		if (!returnedValueOrNil.equalsNil())
+		{
+			wrappedReturnValue.setValueNoCheck(returnedValueOrNil)
+		}
+		argsBuffer.clear()
+		argsBuffer.add(returner as AvailObject)
+		argsBuffer.add(expectedReturnType as AvailObject)
+		argsBuffer.add(wrappedReturnValue)
+		val reifier = invokeFunction(
+			runtime.resultDisagreedWithExpectedTypeFunction())
+		assert(reifier !== null) { "return type handler must not return." }
+		// Assemble a (non-resumable) stack frame for the reifier.
+		reifier!!.pushAction {
+			val continuation = createContinuationWithFrame(
+				caller,
+				it.getReifiedContinuation() ?: nil,
+				createRegisterDump(arrayOf(), LongArray(0)),
+				pc,
+				stackp,
+				L2Chunk.unoptimizedChunk,
+				ChunkEntryPoint.UNREACHABLE.offsetInDefaultChunk,
+				listOf(*slots),
+				0)
+			setReifiedContinuation(continuation)
+		}
+		return reifier
 	}
 
 	/**
@@ -2110,7 +2416,7 @@ class Interpreter(
 		 * Note that this only has an effect if one of the above debug flags is
 		 * set.
 		 */
-		private const val debugIntoFiberDebugLog = false //TODO - true
+		private const val debugIntoFiberDebugLog = true
 
 		/**
 		 * Whether to print debug information related to a specific problem
@@ -2249,7 +2555,7 @@ class Interpreter(
 							}
 						}
 						log.append(MessageFormat.format(
-							message, tidyArguments.toTypedArray()))
+							message, *tidyArguments.toTypedArray()))
 						log.append('\n')
 					}
 					// Ignore the bit of logging not tied to a specific fiber.
@@ -2372,11 +2678,12 @@ class Interpreter(
 			Interpreter::callerIsReified.name,
 			Boolean::class.javaPrimitiveType!!)
 
-		/** The [CheckedMethod] for [runtime].  */
+
+		/** The [CheckedField] for [runtime].  */
 		@JvmField
-		val runtimeMethod: CheckedMethod = instanceMethod(
+		val runtimeField: CheckedField = instanceField(
 			Interpreter::class.java,
-			"runtime",
+			Interpreter::runtime.name,
 			AvailRuntime::class.java)
 
 		/** Access the [setLatestResult] method.  */
@@ -2442,7 +2749,9 @@ class Interpreter(
 		/** Access the [popContinuation] method.  */
 		@JvmField
 		var popContinuationMethod: CheckedMethod = instanceMethod(
-			Interpreter::class.java, "popContinuation", Void.TYPE)
+			Interpreter::class.java,
+			Interpreter::popContinuation.name,
+			Void.TYPE)
 
 		/**
 		 * The maximum depth of the Java call stack, measured in unreified
@@ -2541,7 +2850,7 @@ class Interpreter(
 		var preinvoke0Method: CheckedMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::preinvoke0.name,
-			A_Function::class.java,
+			AvailObject::class.java,
 			A_Function::class.java)
 
 		/** Access the [preinvoke1] method.  */
@@ -2549,7 +2858,7 @@ class Interpreter(
 		var preinvoke1Method: CheckedMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::preinvoke1.name,
-			A_Function::class.java,
+			AvailObject::class.java,
 			A_Function::class.java,
 			AvailObject::class.java)
 
@@ -2560,7 +2869,7 @@ class Interpreter(
 		var preinvoke2Method: CheckedMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::preinvoke2.name,
-			A_Function::class.java,
+			AvailObject::class.java,
 			A_Function::class.java,
 			AvailObject::class.java,
 			AvailObject::class.java)
@@ -2572,7 +2881,7 @@ class Interpreter(
 		var preinvoke3Method: CheckedMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::preinvoke3.name,
-			A_Function::class.java,
+			AvailObject::class.java,
 			A_Function::class.java,
 			AvailObject::class.java,
 			AvailObject::class.java,
@@ -2585,7 +2894,7 @@ class Interpreter(
 		var preinvokeMethod: CheckedMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::preinvoke.name,
-			A_Function::class.java,
+			AvailObject::class.java,
 			A_Function::class.java,
 			Array<AvailObject>::class.java)
 
@@ -2609,6 +2918,50 @@ class Interpreter(
 			Interpreter::class.java,
 			Interpreter::runChunk.name,
 			StackReifier::class.java)
+
+		/**
+		 * The [CheckedMethod] for invoking [attemptThePrimitive].
+		 */
+		val attemptThePrimitiveMethod = instanceMethod(
+			Interpreter::class.java,
+			Interpreter::attemptThePrimitive.name,
+			StackReifier::class.java,
+			A_Function::class.java,
+			Primitive::class.java)
+
+		/**
+		 * The [CheckedMethod] for [attemptInlinePrimitive].
+		 */
+		val attemptTheInlinePrimitiveMethod = instanceMethod(
+			Interpreter::class.java,
+			Interpreter::attemptInlinePrimitive.name,
+			StackReifier::class.java,
+			A_Function::class.java,
+			Primitive::class.java)
+
+		/**
+		 * The [CheckedMethod] for [attemptNonInlinePrimitive].
+		 */
+		val attemptTheNonInlinePrimitiveMethod = instanceMethod(
+			Interpreter::class.java,
+			Interpreter::attemptNonInlinePrimitive.name,
+			StackReifier::class.java,
+			A_Function::class.java,
+			Primitive::class.java)
+
+		/**
+		 * Access the [reportWrongReturnType] method.
+		 */
+		@JvmField
+		var reportWrongReturnTypeMethod: CheckedMethod = instanceMethod(
+			Interpreter::class.java,
+			Interpreter::reportWrongReturnType.name,
+			StackReifier::class.java,
+			A_BasicObject::class.java,
+			A_Type::class.java,
+			Int::class.javaPrimitiveType!!,
+			Int::class.javaPrimitiveType!!,
+			Array<A_BasicObject>::class.java)
 
 		/**
 		 * Schedule the specified

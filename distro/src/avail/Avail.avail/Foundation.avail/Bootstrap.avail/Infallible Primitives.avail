@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 7/30/20 4:50 PM
+ * * Last Generated: 8/6/20 11:35 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -145,7 +145,6 @@ Uses
 		"_is open for side effects",
 		"_is special",
 		"_mod_",
-		"_permuted by_",
 		"_reinterpreted as bits",
 		"_reinterpreted as double",
 		"_reinterpreted as float",
@@ -1746,8 +1745,7 @@ Primitive "_'s⁇keys" is
 /**
  * Construct and answer a map that is based on the supplied map. The answer
  * (potentially) differs from the argument in that it contains a binding from
- * {@param "key"} to {@param "value"}; any value previously bound to
- * {@param "key"} is "forgotten" in the new map.
+ * {@param "key"} to {@param "value"}; any value previously bound to  * {@param "key"} is "forgotten" in the new map.
  *
  * @category "Primitives" "Maps" "Transformers"
  * @method "_+_→_"
@@ -2660,29 +2658,6 @@ Primitive "`«module variable_(_)`»" is
 |
 	Primitive CreateModuleVariableDeclaration;
 ] : module variable phrase;
-
-/**
- * Construct and answer a {@type "permuted list phrase"} given the specified
- * {@type "list phrase"} and permutation {@type "tuple"}.
- *
- * @category "Primitives"
- * @method "_permuted by_"
- * @param "list" "list phrase⇒tuple (subexpressions tuple type=<phrase⇒any…|>)"
- *        The {@type "list phrase"} whose subexpressions should be permuted.
- * @param "permutation" "<[1..∞)…|1..∞>"
- *        The permutation imposed by the resultant {@type
- *        "permuted list phrase"}. This is a {@type "tuple"} of target indices,
- *        index by source index.
- * @returns "permuted list phrase⇒tuple (subexpressions tuple type=<phrase⇒any…|>)"
- *    The requested {@type "permuted list phrase"}.
- */
-Primitive "_permuted by_" is
-[
-	list : list phrase,
-	permutation : permutation tuple
-|
-	Primitive CreatePermutedListPhrase;
-] : permuted list phrase;
 
 /**
  * Construct and answer a primitive failure local constant declaration.

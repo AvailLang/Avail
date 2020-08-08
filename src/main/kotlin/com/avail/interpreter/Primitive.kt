@@ -579,11 +579,11 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	 * return type in the primitive's basic function type.
 	 *
 	 * @param rawFunction
-	 * The [A_RawFunction] being invoked.
+	 *   The [A_RawFunction] being invoked.
 	 * @param argumentTypes
-	 * A [List] of argument [types][TypeDescriptor].
+	 *   A [List] of argument [types][TypeDescriptor].
 	 * @return
-	 * The return type guaranteed by the VM at some call site.
+	 *   The return type guaranteed by the VM at some call site.
 	 */
 	open fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,
@@ -613,7 +613,8 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	 *
 	 * @param argumentTypes
 	 *   A [list][List] of argument types.
-	 * @return The fallibility of the call site.
+	 * @return
+	 *   The fallibility of the call site.
 	 */
 	open fun fallibilityForArgumentTypes(
 		argumentTypes: List<A_Type>): Fallibility =
@@ -1024,7 +1025,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		 * Locate the primitive that has the specified primitive number.
 		 *
 		 * This is @JvmStatic because it's currently used for debugger's
-		 * nice description of [CompiledCodeDescriptor.IntegerSlots.PRIMITIVE].
+		 * nice description of a [CompiledCodeDescriptor]'s primitive.
 		 *
 		 * @param primitiveNumber The primitive number for which to search.
 		 * @return The primitive with the specified primitive number.
@@ -1178,38 +1179,46 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 
 		// If the infallible primitive definitely switches continuations, then
 		// return null to force the context switch.
-		if (hasFlag(AlwaysSwitchesContinuation)) {
-			// :: return null;
-			method.visitInsn(POP)
-			method.visitInsn(ACONST_NULL)
-			method.visitInsn(ARETURN)
-		} else if (!hasFlag(CanSwitchContinuations)) {
-			// :: result = interpreter.getLatestResult();
-			method.visitInsn(POP)
-			translator.loadInterpreter(method)
-			getLatestResultMethod.generateCall(method)
-			translator.store(method, result.register())
-		} else {
-			// :: if (res == Result.SUCCESS) {
-			SUCCESS.checkedField.generateRead(method)
-			val switchedContinuations = Label()
-			method.visitJumpInsn(IF_ACMPNE, switchedContinuations)
-			// ::    result = interpreter.getLatestResult();
-			translator.loadInterpreter(method)
-			getLatestResultMethod.generateCall(method)
-			translator.store(method, result.register())
-			// ::    goto success;
-			val success = Label()
-			method.visitJumpInsn(GOTO, success)
-			// :: } else {
-			method.visitLabel(switchedContinuations)
-			// We switched continuations, so we need to return control to the
-			// caller in order to honor the switch.
-			// ::    return null;
-			method.visitInsn(ACONST_NULL)
-			method.visitInsn(ARETURN)
-			// :: }
-			method.visitLabel(success)
+		when
+		{
+			hasFlag(AlwaysSwitchesContinuation) ->
+			{
+				// :: return null;
+				method.visitInsn(POP)
+				method.visitInsn(ACONST_NULL)
+				method.visitInsn(ARETURN)
+			}
+			hasFlag(CanSwitchContinuations) ->
+			{
+				// :: if (res == Result.SUCCESS) {
+				SUCCESS.checkedField.generateRead(method)
+				val switchedContinuations = Label()
+				method.visitJumpInsn(IF_ACMPNE, switchedContinuations)
+				// ::    result = interpreter.getLatestResult();
+				translator.loadInterpreter(method)
+				getLatestResultMethod.generateCall(method)
+				translator.store(method, result.register())
+				// ::    goto success;
+				val success = Label()
+				method.visitJumpInsn(GOTO, success)
+				// :: } else {
+				method.visitLabel(switchedContinuations)
+				// We switched continuations, so we need to return control to
+				// the caller in order to honor the switch.
+				// ::    return null;
+				method.visitInsn(ACONST_NULL)
+				method.visitInsn(ARETURN)
+				// :: }
+				method.visitLabel(success)
+			}
+			else ->
+			{
+				// :: result = interpreter.getLatestResult();
+				method.visitInsn(POP)
+				translator.loadInterpreter(method)
+				getLatestResultMethod.generateCall(method)
+				translator.store(method, result.register())
+			}
 		}
 	}
 }

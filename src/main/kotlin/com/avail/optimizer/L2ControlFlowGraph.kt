@@ -83,9 +83,11 @@ class L2ControlFlowGraph
 		class HAS_ELIMINATED_PHIS : StateFlag()
 	}
 
-	/** The current state of the graph.  */
-	val state =
-		mutableSetOf<KClass<out StateFlag>>()
+	/**
+	 * The current state of the graph.  New control flow graphs are expected to
+	 * be in SSA form.
+	 */
+	val state = mutableSetOf<KClass<out StateFlag>>(IS_SSA::class)
 
 	/**
 	 * Set each of the specified [StateFlag]s.
@@ -243,33 +245,29 @@ class L2ControlFlowGraph
 		return allRegisters.toMutableList()
 	}
 
-	override fun toString(): String
-	{
-		val builder = StringBuilder()
+	override fun toString(): String = buildString {
 		for (block in basicBlockOrder)
 		{
-			builder.append(block.name())
-			builder.append(":\n")
-			block.predecessorEdgesDo { edge: L2PcOperand? ->
-				builder
-					.append("\t\tFrom: ")
-					.append(edge!!.sourceBlock().name())
-					.append("\n\t\t\t[")
-					.append("always live-in: ")
-					.append(edge.alwaysLiveInRegisters)
-					.append(", sometimes live-in: ")
-					.append(edge.sometimesLiveInRegisters)
-					.append("]\n")
+			append(block.name())
+			append(":\n")
+			block.predecessorEdges().forEach { edge: L2PcOperand? ->
+				append("\t\tFrom: ")
+				append(edge!!.sourceBlock().name())
+				append("\n\t\t\t[")
+				append("always live-in: ")
+				append(edge.alwaysLiveInRegisters)
+				append(", sometimes live-in: ")
+				append(edge.sometimesLiveInRegisters)
+				append("]\n")
 			}
 			for (instruction in block.instructions())
 			{
-				builder.append("\t")
-				builder.append(increaseIndentation(instruction.toString(), 1))
-				builder.append("\n")
+				append("\t")
+				append(increaseIndentation(instruction.toString(), 1))
+				append("\n")
 			}
-			builder.append("\n")
+			append("\n")
 		}
-		return builder.toString()
 	}
 
 	/**
@@ -303,13 +301,28 @@ class L2ControlFlowGraph
 			this@L2ControlFlowGraph,
 			true,
 			true,
+			true,
 			this)
 		visualizer.visualize()
 	}
 
-	init
-	{
-		// New control flow graphs are expected to be in SSA form.
-		state.add(IS_SSA::class)
+	/**
+	 * Answer a visualization of this `L2ControlFlowGraph`. This is a
+	 * debug method, intended to be called via evaluation during debugging.
+	 *
+	 * @return
+	 *   The requested visualization.
+	 */
+	fun simplyVisualize(): String = buildString {
+		val visualizer = L2ControlFlowGraphVisualizer(
+			"«SIMPLE control flow graph»",
+			"«chunk»",
+			80,
+			this@L2ControlFlowGraph,
+			false,
+			false,
+			false,
+			this)
+		visualizer.visualize()
 	}
 }

@@ -64,9 +64,9 @@ class InsertEntryPointAction constructor(workbench: AvailWorkbench)
 		// We could do more, but this should be sufficient for now.
 		val entryPointText =
 			selectedEntryPoint
-							.replace("`".toRegex(), "")
-							.replace("\\B_".toRegex(), " _")
-							.replace("_\\B".toRegex(), "_ ")
+				.replace("`".toRegex(), "")
+				.replace("\\B_".toRegex(), " _")
+				.replace("_\\B".toRegex(), "_ ")
 		workbench.inputField.text = entryPointText
 		val offsetToUnderscore = entryPointText.indexOf('_')
 		val offset: Int

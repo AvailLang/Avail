@@ -1,20 +1,26 @@
 <component name="ProjectDictionaryState">
   <dictionary name="markvangulik">
     <words>
+      <w>api</w>
       <w>backpointer</w>
       <w>bgcolor</w>
       <w>boundedly</w>
       <w>cardinalities</w>
+      <w>cellspacing</w>
       <w>checkable</w>
       <w>comparables</w>
       <w>darcula</w>
+      <w>dbff</w>
+      <w>decompilable</w>
       <w>devirtualize</w>
+      <w>dfff</w>
       <w>distro</w>
       <w>eawt</w>
       <w>enablements</w>
       <w>enqueuer</w>
       <w>exponentiating</w>
       <w>fileanalyzer</w>
+      <w>fillcolor</w>
       <w>genericity</w>
       <w>hasher</w>
       <w>incomparables</w>
@@ -29,6 +35,7 @@
       <w>masse</w>
       <w>mersenne</w>
       <w>metainvariance</w>
+      <w>metametatype</w>
       <w>misconnected</w>
       <w>noninline</w>
       <w>nonprimitive</w>
@@ -39,10 +46,13 @@
       <w>preinvoke</w>
       <w>printability</w>
       <w>pseudoprimes</w>
+      <w>reifier's</w>
+      <w>resumable</w>
       <w>retranslator</w>
       <w>rewriter</w>
       <w>seminumerical</w>
       <w>semistackless</w>
+      <w>sendable</w>
       <w>situ</w>
       <w>spliterate</w>
       <w>spliterated</w>
@@ -52,8 +62,11 @@
       <w>subblock</w>
       <w>subgraphs</w>
       <w>subkey</w>
+      <w>subnode</w>
+      <w>subphrase</w>
       <w>subregion</w>
       <w>subtable</w>
+      <w>supernode</w>
       <w>superunion</w>
       <w>synchronizer</w>
       <w>unboundedly</w>
@@ -62,9 +75,15 @@
       <w>unparks</w>
       <w>unquoter</w>
       <w>unreturnable</w>
+      <w>unreversed</w>
       <w>unsynchronized</w>
       <w>untraced</w>
+      <w>uuids</w>
+      <w>vettings</w>
       <w>welford</w>
+      <w>wump</w>
+      <w>wumping</w>
+      <w>wumpus</w>
       <w>yielders</w>
     </words>
   </dictionary>

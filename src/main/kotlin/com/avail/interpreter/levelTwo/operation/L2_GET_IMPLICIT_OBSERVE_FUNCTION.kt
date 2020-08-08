@@ -97,7 +97,7 @@ object L2_GET_IMPLICIT_OBSERVE_FUNCTION : L2Operation(
 
 		// :: register = interpreter.runtime().implicitObserveFunction();
 		translator.loadInterpreter(method)
-		Interpreter.runtimeMethod.generateCall(method)
+		Interpreter.runtimeField.generateRead(method)
 		AvailRuntime.implicitObserveFunctionMethod.generateCall(method)
 		translator.store(method, function.register())
 	}

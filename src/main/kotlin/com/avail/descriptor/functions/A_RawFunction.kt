@@ -81,7 +81,7 @@ interface A_RawFunction : A_BasicObject {
 	 * @param value
 	 *   The countdown until reoptimization.
 	 */
-	fun countdownToReoptimize(value: Int)
+	fun countdownToReoptimize(value: Long)
 
 	/**
 	 * Atomically decrement the countdown to reoptimization by the
@@ -296,6 +296,12 @@ interface A_RawFunction : A_BasicObject {
 	 *   The statistic.
 	 */
 	fun returneeCheckStat(): Statistic
+
+	/**
+	 * Answer the type that this raw function will produce if there is no
+	 * primitive, or if the primitive fails and the nybblecodes run.
+	 */
+	fun returnTypeIfPrimitiveFails(): A_Type
 
 	/**
 	 * Specify that a [method][A_Method] with the given name includes a

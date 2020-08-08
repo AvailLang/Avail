@@ -34,6 +34,8 @@ package com.avail.interpreter.primitive.controlflow
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
@@ -46,6 +48,7 @@ import com.avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Fallibility.CallSiteCanFail
 import com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail
+import com.avail.interpreter.Primitive.Fallibility.CallSiteMustFail
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.Invokes
 import com.avail.interpreter.Primitive.Result.READY_TO_INVOKE
@@ -128,15 +131,16 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 	}
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type
+		rawFunction: A_RawFunction,
+		argumentTypes: List<A_Type>): A_Type
 	{
 		val functionType = argumentTypes[0]
 		val argTupleType = argumentTypes[1]
 		val paramsType = functionType.argsTupleType()
-		val fixedSize = argTupleType.sizeRange().upperBound().equals(
-			argTupleType.sizeRange().lowerBound())
-		if (fixedSize
-		    && paramsType.sizeRange().equals(argTupleType.sizeRange())
+		val argCountRange = argTupleType.sizeRange()
+		val argCount = argCountRange.upperBound()
+		if (argCount.equals(argCountRange.lowerBound())
+		    && paramsType.sizeRange().equals(argCountRange)
 		    && argTupleType.isSubtypeOf(paramsType))
 		{
 			// The argument types are hereby guaranteed to be compatible.
@@ -155,24 +159,35 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 					// deeper to find out whether that primitive would itself
 					// always succeed, and if so, what type it guarantees.
 					val primArgCount = primitive.argCount
-					val primArgSizes = argTupleType.sizeRange()
-					if (primArgSizes.lowerBound().equalsInt(primArgCount)
-					    && primArgSizes.upperBound().equalsInt(primArgCount))
+					if (argCountRange.lowerBound().equalsInt(primArgCount)
+					    && argCountRange.upperBound().equalsInt(primArgCount))
 					{
 						val innerArgTypes = (1 .. primArgCount).map {
 							argTupleType.typeAtIndex(it)
 						}
 						val fallibility = primitive.fallibilityForArgumentTypes(
 							innerArgTypes)
-						return if (fallibility == CallSiteCannotFail)
+						return when (fallibility)
 						{
-							// The inner invocation of the primitive function
-							// will always succeed. Ask the primitive what type
-							// it guarantees to return.
-							primitive.returnTypeGuaranteedByVM(
-								code, innerArgTypes)
+							CallSiteCannotFail ->
+							{
+								// The inner invocation of the primitive
+								// function will always succeed. Ask the
+								// primitive what type it guarantees to return.
+								primitive.returnTypeGuaranteedByVM(
+									code, innerArgTypes)
+							}
+							CallSiteMustFail ->
+							{
+								code.returnTypeIfPrimitiveFails()
+							}
+							else ->
+							{
+								code.returnTypeIfPrimitiveFails().typeUnion(
+									primitive.returnTypeGuaranteedByVM(
+										code, innerArgTypes))
+							}
 						}
-						else functionType.returnType()
 						// The inner primitive might fail, and its failure code
 						// can return something as general as the primitive
 						// function's return type.
@@ -186,7 +201,8 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 		}
 		// The arguments that will be supplied to the inner function might not
 		// have the right count.
-		return functionType.returnType()
+		return functionType.returnType().typeUnion(
+			rawFunction.returnTypeIfPrimitiveFails())
 	}
 
 	/**

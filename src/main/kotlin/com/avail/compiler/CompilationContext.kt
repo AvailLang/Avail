@@ -66,6 +66,7 @@ import com.avail.descriptor.tokens.A_Token
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.StringDescriptor.Companion.formatString
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
+import com.avail.descriptor.types.TypeDescriptor
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailAssertionFailedException
 import com.avail.exceptions.AvailEmergencyExitException
@@ -145,7 +146,8 @@ class CompilationContext(
 	 * The [CompilerDiagnostics] that tracks potential errors during
 	 * compilation.
 	 */
-	val diagnostics: CompilerDiagnostics
+	val diagnostics = CompilerDiagnostics(
+		source, moduleName, pollForAbort, problemHandler)
 
 	/**
 	 * The [AvailRuntime] for the compiler. Since a compiler cannot migrate
@@ -159,7 +161,7 @@ class CompilationContext(
 	 * [compiler][AvailCompiler] to facilitate the loading of
 	 * [modules][ModuleDescriptor].
 	 */
-	var loader: AvailLoader? = null
+	val loader = AvailLoader(module, textInterface)
 
 	/** The number of work units that have been queued.  */
 	private val atomicWorkUnitsQueued = AtomicLong(0)
@@ -221,7 +223,7 @@ class CompilationContext(
 	 * The serializer that captures the sequence of bytes representing the
 	 * module during compilation.
 	 */
-	internal val serializer: Serializer
+	internal val serializer = Serializer(serializerOutputStream, module)
 
 	/** The cached module name.  */
 	@Volatile
@@ -239,14 +241,6 @@ class CompilationContext(
 
 	/** The current number of work units that have been completed. */
 	val workUnitsCompleted get() = atomicWorkUnitsCompleted.get()
-
-	init
-	{
-		this.loader = AvailLoader(module, textInterface)
-		this.diagnostics = CompilerDiagnostics(
-			source, moduleName, pollForAbort, problemHandler)
-		this.serializer = Serializer(serializerOutputStream, module)
-	}
 
 	/**
 	 * Record the fact that this token was encountered while parsing the current
@@ -538,7 +532,6 @@ class CompilationContext(
 	{
 		val code = function.code()
 		assert(code.numArgs() == args.size)
-		val loader = loader!!
 		val fiber = newLoaderFiber(
 			function.kind().returnType(),
 			loader
@@ -674,7 +667,6 @@ class CompilationContext(
 	{
 		val code = function.code()
 		val startingLineNumber = code.startingLineNumber()
-		val loader = loader!!
 		if (loader.statementCanBeSummarized())
 		{
 			// Output summarized functions instead of what ran.  Associate the
@@ -690,6 +682,7 @@ class CompilationContext(
 					code.originatingPhrase())
 				writer.argumentTypes()
 				writer.returnType = TOP.o
+				writer.returnTypeIfPrimitiveFails = TOP.o
 				var batchCount = 0
 				while (batchCount < 100 && iterator.hasNext())
 				{

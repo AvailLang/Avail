@@ -160,7 +160,7 @@ class JVMChunkClassLoader : ClassLoader(JVMChunk::class.java.classLoader)
 		@JvmField
 		val parametersField = instanceField(
 			JVMChunkClassLoader::class.java,
-			"parameters",
+			JVMChunkClassLoader::parameters.name,
 			Array<Any>::class.java)
 	}
 }

@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 7/30/20 4:50 PM
+ * * Last Generated: 8/6/20 11:35 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -54,6 +54,7 @@ Names
 	"Breakpoint",
 	"Cast|cast_into_else_",
 	"Close module_",
+	"Copy macros from_to_",
 	"Crash:_",
 	"Error:_",
 	"Exit_if_",

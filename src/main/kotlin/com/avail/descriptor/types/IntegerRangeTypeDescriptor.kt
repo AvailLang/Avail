@@ -241,17 +241,17 @@ class IntegerRangeTypeDescriptor private constructor(
 			else -> super.o_MarshalToJava(self, classHint)
 		}
 
-	override fun o_RangeIncludesInt(self: AvailObject, anInt: Int): Boolean
+	override fun o_RangeIncludesLong(self: AvailObject, aLong: Long): Boolean
 	{
 		val lower: A_Number = self.slot(LOWER_BOUND)
-		val asInteger: A_Number?
+		val asInteger: A_Number
 		when
 		{
-			lower.isInt && anInt < lower.extractInt() -> return false
+			lower.isLong && aLong < lower.extractLong() -> return false
 			!lower.isFinite && lower.isPositive() -> return false
 			else ->
 			{
-				asInteger = fromInt(anInt)
+				asInteger = fromLong(aLong)
 				if (asInteger.lessThan(lower))
 				{
 					return false
@@ -261,14 +261,8 @@ class IntegerRangeTypeDescriptor private constructor(
 		val upper: A_Number = self.slot(UPPER_BOUND)
 		return when
 		{
-			upper.isInt ->
-			{
-				anInt <= upper.extractInt()
-			}
-			!upper.isFinite ->
-			{
-				upper.isPositive()
-			}
+			upper.isLong -> aLong <= upper.extractLong()
+			!upper.isFinite -> upper.isPositive()
 			else -> !upper.lessThan(asInteger)
 		}
 	}

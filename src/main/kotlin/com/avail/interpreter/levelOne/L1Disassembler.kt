@@ -38,9 +38,10 @@ import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.functions.CompiledCodeDescriptor
 import com.avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
 import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.AvailObjectFieldHelper
-import com.avail.descriptor.representation.ObjectSlotsEnum
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import com.avail.descriptor.types.PrimitiveTypeDescriptor
 import com.avail.descriptor.types.TypeDescriptor.Types.MESSAGE_BUNDLE
@@ -72,8 +73,15 @@ class L1Disassembler constructor(
 		/**
 		 * The given L1Operation was just encountered, and its operands will be
 		 * visited before the corresponding [endOperation] is called.
+		 *
+		 * @param operation
+		 *   The [L1Operation] that was encountered.
+		 * @param pc
+		 *   The nybblecode index at which the operation occurs.
+		 * @param line
+		 *   The source code line number associated with this operation.
 		 */
-		fun startOperation(operation: L1Operation, pc: Int)
+		fun startOperation(operation: L1Operation, pc: Int, line: Int)
 
 		/**
 		 * We're between processing operands of an operation.
@@ -82,6 +90,9 @@ class L1Disassembler constructor(
 
 		/**
 		 * The given [L1Operation] has now been completely processed.
+		 *
+		 * @param operation
+		 *   The operation that we're ending.
 		 */
 		fun endOperation(operation: L1Operation)
 	}
@@ -94,12 +105,22 @@ class L1Disassembler constructor(
 	 *   The [L1DisassemblyVisitor] to tell about the operations and operands.
 	 */
 	fun visit(visitor: L1DisassemblyVisitor) = with (L1InstructionDecoder()) {
+		val encodedDeltas = code.lineNumberEncodedDeltas()
+		var lineNumber = code.startingLineNumber()
+		var instructionCounter = 1
 		code.setUpInstructionDecoder(this@with)
 		pc(1)
 		while (!atEnd()) {
+			// Track the line number change from this operation.
+			val encodedDelta = encodedDeltas.tupleIntAt(instructionCounter++)
+			val decodedDelta =
+				if (encodedDelta and 1 == 0) encodedDelta shr 1
+				else -(encodedDelta shr 1)
+			lineNumber += decodedDelta
+
 			val pc = pc()
 			val operation = getOperation()
-			visitor.startOperation(operation, pc)
+			visitor.startOperation(operation, pc, lineNumber)
 			operation.operandTypes.forEachIndexed { i, operandType ->
 				if (i > 0) visitor.betweenOperands()
 				operandType.dispatch(visitor, getOperand())
@@ -122,19 +143,25 @@ class L1Disassembler constructor(
 	fun print(
 		builder: StringBuilder,
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
-		indent: Int)
+		indent: Int,
+		highlightPc: Int = -1)
 	{
 		val tabs = Strings.repeated("\t", indent)
 		val visitor = object : L1DisassemblyVisitor
 		{
-			override fun startOperation(operation: L1Operation, pc: Int)
+			override fun startOperation(
+				operation: L1Operation,
+				pc: Int,
+				line: Int)
 			{
 				if (pc != 1)
 				{
 					builder.append("\n")
 				}
-				builder.append(tabs)
-				builder.append(pc).append(": ")
+				if (pc == highlightPc) {
+					builder.append(" ==> ")
+				}
+				builder.append("$tabs$pc. [:$line] ")
 				builder.append(operation.name)
 				if (operation.operandTypes.isNotEmpty()) {
 					builder.append("(")
@@ -183,11 +210,6 @@ class L1Disassembler constructor(
 		visit(visitor)
 	}
 
-	enum class FakeInstructionFields : ObjectSlotsEnum
-	{
-		INSTRUCTION_;
-	}
-
 	/**
 	 * Output the disassembly to the given {@link List} of
 	 * {@link AvailObjectFieldHelper}s.
@@ -196,20 +218,29 @@ class L1Disassembler constructor(
 	 *   A [List] of [AvailObjectFieldHelper]s, one per disassembled
 	 *   instruction.
 	 */
-	fun disassembledAsSlots(): List<AvailObjectFieldHelper>
+	fun disassembledAsSlots(
+		highlightPc: Int = -1
+	): List<AvailObjectFieldHelper>
 	{
 		val slots = mutableListOf<AvailObjectFieldHelper>()
 		var currentOperationPc: Int = Int.MIN_VALUE
 		val operandValues = mutableListOf<AvailObject>()
-		lateinit var nameBuilder: StringBuilder
+		val nameBuilder = StringBuilder()
 
 		val visitor = object : L1DisassemblyVisitor
 		{
-			override fun startOperation(operation: L1Operation, pc: Int)
+			override fun startOperation(
+				operation: L1Operation,
+				pc: Int,
+				line: Int)
 			{
 				currentOperationPc = pc
 				operandValues.clear()
-				nameBuilder = StringBuilder("$pc. ${operation.shortName()}")
+				nameBuilder.clear()
+				if (pc == highlightPc) {
+					nameBuilder.append(" ==> ")
+				}
+				nameBuilder.append("$pc. [:$line] ${operation.shortName()}")
 				if (operation.operandTypes.isNotEmpty()) {
 					nameBuilder.append(" (")
 				}
@@ -228,7 +259,7 @@ class L1Disassembler constructor(
 				}
 				slots.add(AvailObjectFieldHelper(
 					code,
-					FakeInstructionFields.INSTRUCTION_,
+					DebuggerObjectSlots("Instruction"),
 					currentOperationPc,
 					tupleFromList(operandValues),
 					forcedName = nameBuilder.toString(),
@@ -289,7 +320,7 @@ class L1Disassembler constructor(
 					val (print2, _) = simplePrintable(instance)
 					if (print2 !== null)
 					{
-						nameBuilder.append(" = $print")
+						nameBuilder.append(" = $print2")
 					}
 					else if (instance.isInstanceMeta)
 					{
@@ -297,7 +328,7 @@ class L1Disassembler constructor(
 						val (print3, _) = simplePrintable(instanceInstance)
 						if (print3 !== null)
 						{
-							nameBuilder.append(" = $print")
+							nameBuilder.append(" = $print3")
 						}
 					}
 				}

@@ -814,10 +814,10 @@ interface A_Type : A_BasicObject
 	fun literalType(): A_Type
 
 	/**
-	 * @param anInt
+	 * @param aLong
 	 * @return
 	 */
-	fun rangeIncludesInt(anInt: Int): Boolean
+	fun rangeIncludesLong(aLong: Long): Boolean
 
 	/**
 	 * Also declared in A_Phrase, so the same operation applies both to phrases
@@ -853,31 +853,31 @@ interface A_Type : A_BasicObject
 
 	companion object
 	{
-		/** The [CheckedMethod] for [.argsTupleType].  */
+		/** The [CheckedMethod] for [argsTupleType].  */
 		val argsTupleTypeMethod = instanceMethod(
 			A_Type::class.java,
-			"argsTupleType",
-			A_Type::class.java)
+			A_Type::argsTupleType.name,
+			AvailObject::class.java)
 
-		/** The [CheckedMethod] for [.isSubtypeOf].  */
+		/** The [CheckedMethod] for [isSubtypeOf].  */
 		val isSubtypeOfMethod = instanceMethod(
 			A_Type::class.java,
-			"isSubtypeOf",
+			A_Type::isSubtypeOf.name,
 			Boolean::class.javaPrimitiveType!!,
 			A_Type::class.java)
 
-		/** The [CheckedMethod] for [.typeAtIndex].  */
+		/** The [CheckedMethod] for [typeAtIndex].  */
 		val typeAtIndexMethod = instanceMethod(
 			A_Type::class.java,
-			"typeAtIndex",
-			A_Type::class.java,
+			A_Type::typeAtIndex.name,
+			AvailObject::class.java,
 			Int::class.javaPrimitiveType!!)
 
-		/** The [CheckedMethod] for [.typeUnion].  */
+		/** The [CheckedMethod] for [typeUnion].  */
 		val typeUnionMethod = instanceMethod(
 			A_Type::class.java,
-			"typeUnion",
-			A_Type::class.java,
+			A_Type::typeUnion.name,
+			AvailObject::class.java,
 			A_Type::class.java)
 	}
 }

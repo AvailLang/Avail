@@ -115,11 +115,13 @@ class Frame constructor(
 	 * @param outerIndex
 	 *   The subscript of the outer value to retrieve from the function running
 	 *   for this frame.
+	 * @param optionalName
+	 *   Either a [String] providing a naming hint for this outer, or `null`.
 	 * @return
 	 *   The [L2SemanticValue] representing the specified outer.
 	 */
-	fun outer(outerIndex: Int): L2SemanticValue =
-		L2SemanticOuter(this, outerIndex)
+	fun outer(outerIndex: Int, optionalName: String?): L2SemanticValue =
+		L2SemanticOuter(this, outerIndex, optionalName)
 
 	/**
 	 * Answer the [L2SemanticValue] representing one of this frame's slots, as
@@ -131,11 +133,17 @@ class Frame constructor(
 	 * @param afterPc
 	 *   The level-one [A_Continuation.pc] just after the nybblecode instruction
 	 *   that produced the value in this slot.
+	 * @param optionalName
+	 *   Either a [String] providing a naming hint for this slot, or `null`.
 	 * @return
 	 *   The [L2SemanticValue] representing the specified slot.
 	 */
-	fun slot(slotIndex: Int, afterPc: Int): L2SemanticValue =
-		L2SemanticSlot(this, slotIndex, afterPc)
+	fun slot(
+		slotIndex: Int,
+		afterPc: Int,
+		optionalName: String?
+	): L2SemanticValue =
+		L2SemanticSlot(this, slotIndex, afterPc, optionalName)
 
 	/**
 	 * Answer the [L2SemanticValue] representing the return result from this

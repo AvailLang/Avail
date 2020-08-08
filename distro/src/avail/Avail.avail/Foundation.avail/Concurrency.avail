@@ -1362,12 +1362,14 @@ Public method "map_in parallel«_-way»through_" is
 	limit ::= optionalLimit[1] else [default maximum worker fibers];
 	lock ::= a non-reentrant mutex named "results mutex";
 	results : tuple := |aTuple| of filler;
+	nameSuffix ::= " from " ++ current fiber's name;
 	injector ::=
 		injector from 1 to |aTuple| by 1 doing
 		[
 			index : natural number
 		|
-			current fiber's name := "parallel map fiber #" ++ “index”;
+			current fiber's name :=
+				"parallel map fiber #" ++ “index” ++ nameSuffix;
 			workUnitRunner(
 				[
 					result ::= transformer(aTuple[index], index);
@@ -1547,12 +1549,14 @@ Public method "map_in parallel«_-way»through_" is
 	limit ::= optionalLimit[1] else [default maximum worker fibers];
 	lock ::= a non-reentrant mutex named "results mutex";
 	results : set := ∅;
+	nameSuffix ::= " from " ++ current fiber's name;
 	injector ::=
 		injector from 1 to |aSet| by 1 doing
 		[
 			index : natural number
 		|
-			current fiber's name := "parallel map fiber #" ++ “index”;
+			current fiber's name :=
+				"parallel map fiber #" ++ “index” ++ nameSuffix;
 			workUnitRunner(
 				[
 					result ::= transformer(aTuple[index]);
@@ -1665,12 +1669,14 @@ Public method "map_in parallel«_-way»through_" is
 	limit ::= optionalLimit[1] else [default maximum worker fibers];
 	lock ::= a non-reentrant mutex named "results mutex";
 	results : map := {};
+	nameSuffix ::= " from " ++ current fiber's name;
 	injector ::=
 		injector from 1 to |aMap| by 1 doing
 		[
 			index : natural number
 		|
-			current fiber's name := "parallel map fiber #" ++ “index”;
+			current fiber's name :=
+				"parallel map fiber #" ++ “index” ++ nameSuffix;
 			workUnitRunner(
 				[
 					binding ::= bindings[index];

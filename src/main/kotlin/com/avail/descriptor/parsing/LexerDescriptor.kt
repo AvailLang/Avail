@@ -35,7 +35,7 @@ package com.avail.descriptor.parsing
  import com.avail.descriptor.bundles.A_Bundle.Companion.message
  import com.avail.descriptor.functions.A_Function
  import com.avail.descriptor.methods.A_Method
- import com.avail.descriptor.methods.MacroDefinitionDescriptor
+ import com.avail.descriptor.methods.MacroDescriptor
  import com.avail.descriptor.module.A_Module
  import com.avail.descriptor.parsing.A_Lexer.Companion.lexerBodyFunction
  import com.avail.descriptor.parsing.A_Lexer.Companion.lexerFilterFunction
@@ -79,7 +79,7 @@ package com.avail.descriptor.parsing
  * previous membership.
  *
  * Methods and macros are stored in separate lists.  Note that macros may be
- * polymorphic (multiple [definitions][MacroDefinitionDescriptor]), and a lookup
+ * polymorphic (multiple [definitions][MacroDescriptor]), and a lookup
  * structure is used at compile time to decide which macro is most specific.
  *
  * @constructor

@@ -105,30 +105,6 @@ internal class LoadingEffectToAddDefinition constructor(
 						addLiteral(FORWARD_DEFINER.bundle),
 						addLiteral(TOP.o))
 				}
-				definition.isMacroDefinition() -> {
-					// NOTE: The prefix functions are dealt with as separate effects.
-					// Push the bundle's atom.
-					write(
-						0,
-						L1Operation.L1_doPushLiteral,
-						addLiteral(atom))
-					// Push the tuple of macro prefix functions.
-					write(
-						0,
-						L1Operation.L1_doPushLiteral,
-						addLiteral(definition.prefixFunctions()))
-					// Push the macro body function.
-					write(
-						0,
-						L1Operation.L1_doPushLiteral,
-						addLiteral(definition.bodyBlock()))
-					// Call the macro definition method.
-					write(
-						0,
-						L1Operation.L1_doCall,
-						addLiteral(MACRO_DEFINER.bundle),
-						addLiteral(TOP.o))
-				}
 				else -> {
 					assert(definition.isMethodDefinition())
 					// Push the bundle's atom.

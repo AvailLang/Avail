@@ -194,14 +194,14 @@ object L2_DIVIDE_INT_BY_INT : L2ControlFlowOperation(
 		method.visitInsn(Opcodes.L2I)
 		method.visitInsn(Opcodes.I2L)
 		method.visitInsn(Opcodes.LCMP)
-		method.visitJumpInsn(Opcodes.IFNE, translator.labelFor(outOfRange.offset()))
+		translator.jumpIf(method, Opcodes.IFNE, outOfRange)
 		// ::  if (remainder != (int) remainder) goto outOfRange;
 		method.visitVarInsn(Opcodes.LLOAD, remainderLong)
 		method.visitInsn(Opcodes.DUP)
 		method.visitInsn(Opcodes.L2I)
 		method.visitInsn(Opcodes.I2L)
 		method.visitInsn(Opcodes.LCMP)
-		method.visitJumpInsn(Opcodes.IFNE, translator.labelFor(outOfRange.offset()))
+		translator.jumpIf(method, Opcodes.IFNE, outOfRange)
 		// ::    intQuotient = (int) quotient;
 		method.visitVarInsn(Opcodes.LLOAD, quotientLong)
 		method.visitInsn(Opcodes.L2I)
@@ -211,6 +211,6 @@ object L2_DIVIDE_INT_BY_INT : L2ControlFlowOperation(
 		method.visitInsn(Opcodes.L2I)
 		translator.store(method, remainder.register())
 		// ::    goto success;
-		method.visitJumpInsn(Opcodes.GOTO, translator.labelFor(success.offset()))
+		translator.jump(method, success)
 	}
 }

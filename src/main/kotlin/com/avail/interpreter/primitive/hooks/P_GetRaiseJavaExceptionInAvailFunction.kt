@@ -60,8 +60,7 @@ object P_GetRaiseJavaExceptionInAvailFunction
 	{
 		interpreter.checkArgumentCount(0)
 
-		val raiseFunction =
-			RAISE_JAVA_EXCEPTION_IN_AVAIL[interpreter.runtime()]
+		val raiseFunction = RAISE_JAVA_EXCEPTION_IN_AVAIL[interpreter.runtime]
 		return interpreter.primitiveSuccess(raiseFunction)
 	}
 

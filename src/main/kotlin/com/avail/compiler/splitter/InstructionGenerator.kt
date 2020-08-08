@@ -192,7 +192,7 @@ internal class InstructionGenerator
 		{
 			// Label is still unresolved.  Promise to resolve this when the
 			// label is emitted.
-			label.operationsToFix.add(Pair(instructions.size + 1, operation))
+			label.operationsToFix.add(instructions.size + 1 to operation)
 			instructions.add(placeholderInstruction)
 		}
 		else
@@ -239,7 +239,7 @@ internal class InstructionGenerator
 		}
 		expressionList.add(expression)
 		// Promise to resolve this when the label is emitted.
-		label.operationsToFix.add(Pair(instructions.size + 1, JUMP_FORWARD))
+		label.operationsToFix.add(instructions.size + 1 to JUMP_FORWARD)
 		instructions.add(placeholderInstruction)
 	}
 
@@ -273,8 +273,7 @@ internal class InstructionGenerator
 		assert(label.position == -1) { "Branches must be forward" }
 		expressionList.add(expression)
 		// Promise to resolve this when the label is emitted.
-		label.operationsToFix.add(
-			Pair(instructions.size + 1, BRANCH_FORWARD))
+		label.operationsToFix.add(instructions.size + 1 to BRANCH_FORWARD)
 		instructions.add(placeholderInstruction)
 	}
 

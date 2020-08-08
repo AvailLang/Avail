@@ -57,6 +57,7 @@ import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.tuples.TupleDescriptor
@@ -281,6 +282,7 @@ class FunctionDescriptor private constructor(
 			val code = with(L1InstructionWriter(nil, 0, nil)) {
 				argumentTypes(*argTypesList.toTypedArray())
 				returnType = functionReturnType
+				returnTypeIfPrimitiveFails = functionReturnType
 				write(
 					0,
 					L1Operation.L1_doPushLiteral,
@@ -328,9 +330,8 @@ class FunctionDescriptor private constructor(
 			val argTypes = functionType.argsTupleType()
 			// Check that there's a definition, even abstract, that will catch all
 			// invocations for the given function type's argument types.
-			val ok = method.definitionsTuple().any { definition: AvailObject ->
-				!definition.isMacroDefinition()
-					&& definition.bodySignature().isSubtypeOf(functionType)
+			val ok = method.definitionsTuple().any {
+				it.bodySignature().isSubtypeOf(functionType)
 			}
 			require(ok) {
 				("Function signature is not strong enough to call method "
@@ -342,6 +343,7 @@ class FunctionDescriptor private constructor(
 			return with(L1InstructionWriter(nil, 0, nil)) {
 				argumentTypes(*argTypesList.toTypedArray())
 				returnType = functionReturnType
+				returnTypeIfPrimitiveFails = functionReturnType
 				for (i in 1..numArgs) {
 					write(0, L1Operation.L1_doPushLastLocal, i)
 				}
@@ -516,6 +518,101 @@ class FunctionDescriptor private constructor(
 			AvailObject::class.java,
 			AvailObject::class.java)
 
+		/**
+		 * Construct a function with the given code and four outer variables.
+		 *
+		 * @param code
+		 *   The code with which to build the function.
+		 * @param outer1
+		 *   The first outer variable that will be enclosed.
+		 * @param outer2
+		 *   The second outer variable that will be enclosed.
+		 * @param outer3
+		 *   The third outer variable that will be enclosed.
+		 * @param outer4
+		 *   The fourth outer variable that will be enclosed.
+		 * @return
+		 *   A function with its outer variables initialized.
+		 */
+		@JvmStatic
+		@ReferencedInGeneratedCode
+		fun createWithOuters4(
+			code: A_RawFunction,
+			outer1: AvailObject,
+			outer2: AvailObject,
+			outer3: AvailObject,
+			outer4: AvailObject
+		): AvailObject = createExceptOuters(code, 4).apply {
+			setSlot(OUTER_VAR_AT_, 1, outer1)
+			setSlot(OUTER_VAR_AT_, 2, outer2)
+			setSlot(OUTER_VAR_AT_, 3, outer3)
+			setSlot(OUTER_VAR_AT_, 4, outer4)
+		}
+
+		/**
+		 * Access the [createWithOuters4] method.
+		 */
+		@JvmField
+		val createWithOuters4Method: CheckedMethod = staticMethod(
+			FunctionDescriptor::class.java,
+			::createWithOuters4.name,
+			AvailObject::class.java,
+			A_RawFunction::class.java,
+			AvailObject::class.java,
+			AvailObject::class.java,
+			AvailObject::class.java,
+			AvailObject::class.java)
+
+		/**
+		 * Construct a function with the given code and five outer variables.
+		 *
+		 * @param code
+		 *   The code with which to build the function.
+		 * @param outer1
+		 *   The first outer variable that will be enclosed.
+		 * @param outer2
+		 *   The second outer variable that will be enclosed.
+		 * @param outer3
+		 *   The third outer variable that will be enclosed.
+		 * @param outer4
+		 *   The fourth outer variable that will be enclosed.
+		 * @param outer5
+		 *   The fifth outer variable that will be enclosed.
+		 * @return
+		 *   A function with its outer variables initialized.
+		 */
+		@JvmStatic
+		@ReferencedInGeneratedCode
+		fun createWithOuters5(
+			code: A_RawFunction,
+			outer1: AvailObject,
+			outer2: AvailObject,
+			outer3: AvailObject,
+			outer4: AvailObject,
+			outer5: AvailObject
+		): AvailObject = createExceptOuters(code, 5).apply {
+			setSlot(OUTER_VAR_AT_, 1, outer1)
+			setSlot(OUTER_VAR_AT_, 2, outer2)
+			setSlot(OUTER_VAR_AT_, 3, outer3)
+			setSlot(OUTER_VAR_AT_, 4, outer4)
+			setSlot(OUTER_VAR_AT_, 5, outer5)
+		}
+
+		/**
+		 * Access the [createWithOuters5] method.
+		 */
+		@JvmField
+		val createWithOuters5Method: CheckedMethod = staticMethod(
+			FunctionDescriptor::class.java,
+			::createWithOuters5.name,
+			AvailObject::class.java,
+			A_RawFunction::class.java,
+			AvailObject::class.java,
+			AvailObject::class.java,
+			AvailObject::class.java,
+			AvailObject::class.java,
+			AvailObject::class.java)
+
 		/** Access the [A_Function.outerVarAt] method. */
 		@JvmField
 		val outerVarAtMethod: CheckedMethod = instanceMethod(
@@ -587,6 +684,7 @@ class FunctionDescriptor private constructor(
 		): A_Function = with(L1InstructionWriter(nil, 0, nil)) {
 			argumentTypesTuple(paramTypes)
 			returnType = bottom
+			returnTypeIfPrimitiveFails = bottom
 			write(
 				0,
 				L1Operation.L1_doPushLiteral,

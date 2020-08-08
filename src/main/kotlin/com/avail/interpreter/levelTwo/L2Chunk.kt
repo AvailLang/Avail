@@ -50,6 +50,7 @@ import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.execution.Interpreter.Companion.log
 import com.avail.interpreter.levelTwo.L2Chunk.Generation
+import com.avail.interpreter.levelTwo.L2Chunk.InvalidationReason.EVICTION
 import com.avail.interpreter.levelTwo.operation.L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO
 import com.avail.interpreter.levelTwo.operation.L2_TRY_OPTIONAL_PRIMITIVE
 import com.avail.interpreter.levelTwo.register.L2BoxedRegister
@@ -70,13 +71,15 @@ import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport
 import com.avail.utility.safeWrite
 import java.util.ArrayDeque
-import java.util.Collections
+import java.util.Collections.newSetFromMap
+import java.util.Collections.synchronizedSet
 import java.util.Deque
 import java.util.WeakHashMap
 import java.util.concurrent.locks.ReentrantLock
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.logging.Level
 import javax.annotation.concurrent.GuardedBy
+import kotlin.concurrent.withLock
 
 /**
  * A Level Two chunk represents an optimized implementation of a
@@ -179,8 +182,7 @@ class L2Chunk private constructor(
 		 * The weak set of [L2Chunk]s in this generation.
 		 */
 		private val chunks =
-			Collections.synchronizedSet(
-				Collections.newSetFromMap(WeakHashMap<L2Chunk, Boolean>()))
+			synchronizedSet(newSetFromMap(WeakHashMap<L2Chunk, Boolean>()))
 		override fun toString(): String
 		{
 			return super.toString() + " (size=" + chunks.size + ")"
@@ -214,14 +216,14 @@ class L2Chunk private constructor(
 			 * recompiling a lot of [L2Chunk]s), which is balanced against
 			 * over-consumption of memory by chunks.
 			 */
-			private const val maximumNewestGenerationSize = 300
+			private const val maximumNewestGenerationSize = 1_000
 
 			/**
 			 * The approximate maximum number of chunks that should exist at any
 			 * time.  When there are significantly more chunks than this, the
 			 * ones in the oldest generations will be invalidated.
 			 */
-			private const val maximumTotalChunkCount = 1000
+			private const val maximumTotalChunkCount = 10_000
 
 			/**
 			 * Record a newly created chunk in the latest generation, triggering
@@ -275,30 +277,16 @@ class L2Chunk private constructor(
 							AvailRuntime.currentRuntime().whenLevelOneSafeDo(
 								FiberDescriptor.bulkL2InvalidationPriority)
 							{
-								invalidationLock.lock()
-								try
-								{
+								invalidationLock.withLock {
 									chunksToInvalidate.forEach {
-										it.invalidate(invalidationsFromEviction)
+										it.invalidate(EVICTION)
 									}
-								}
-								finally
-								{
-									invalidationLock.unlock()
 								}
 							}
 						}
 					}
 				}
 			}
-
-			/**
-			 * [Statistic] for tracking the cost of invalidating chunks due to
-			 * cache eviction (to limit the number of [L2Chunk]s in memory).
-			 */
-			private val invalidationsFromEviction = Statistic(
-				"(invalidation from eviction)",
-				StatisticReport.L2_OPTIMIZATION_TIME)
 
 			/**
 			 * Deal with the fact that the given chunk has just been invoked,
@@ -539,7 +527,53 @@ class L2Chunk private constructor(
 				name(),
 				offset)
 		}
+		// TODO Some of these might be mutable and could be clobbered by the call.
+//		val copiedArgumentsForDebug = interpreter.argsBuffer.toTypedArray()
+//		val copiedLatestValueForDebug = interpreter.latestResultOrNull()
+//		val copiedReifiedStackForDebug = interpreter.getReifiedContinuation()
 		return executableChunk.runChunk(interpreter, offset)
+	}
+
+	/**
+	 * An enumeration of reasons why a chunk might be invalidated.
+	 *
+	 * @constructor
+	 *
+	 * @property countdownToNextOptimization
+	 *   The number of invocations that must happen after this invalidation
+	 *   before the code will be optimized into another chunk.
+	 */
+	enum class InvalidationReason constructor(
+		val countdownToNextOptimization: Long)
+	{
+		/**
+		 * The chunk is being invalidated because a method it depends on has
+		 * changed.
+		 */
+		DEPENDENCY_CHANGED(200),
+
+		/**
+		 * The chunk is being invalidated because a rarely-changing global
+		 * variable that it is treating as effectively constant has changed.
+		 */
+		SLOW_VARIABLE(10000),
+
+		/**
+		 * The chunk is being invalidated due to it being evicted due to too
+		 * many chunks being in existence.
+		 */
+		EVICTION(20000),
+
+		/** The chunk is being invalidated to collect code coverage stats. */
+		CODE_COVERAGE(200);
+
+		/**
+		 * [Statistic] for tracking the cost of invalidating chunks due to this
+		 * reason.
+		 */
+		val statistic = Statistic(
+			"(invalidation from $name)",
+			StatisticReport.L2_OPTIMIZATION_TIME)
 	}
 
 	/**
@@ -562,10 +596,11 @@ class L2Chunk private constructor(
 	 * optimized code to determine that invalidation has happened,
 	 * using the default chunk.
 	 *
-	 * @param invalidationStatistic
-	 *   The [Statistic] under which this invalidation should be recorded.
+	 * @param reason
+	 *   The [InvalidationReason] that indicates why this invalidation is
+	 *   happening.
 	 */
-	fun invalidate(invalidationStatistic: Statistic)
+	fun invalidate(reason: InvalidationReason)
 	{
 		val before = AvailRuntimeSupport.captureNanos()
 		assert(invalidationLock.isHeldByCurrentThread)
@@ -577,12 +612,12 @@ class L2Chunk private constructor(
 			value.removeDependentChunk(this)
 		}
 		code?.setStartingChunkAndReoptimizationCountdown(
-			unoptimizedChunk, countdownForInvalidatedCode().toLong())
+			unoptimizedChunk, reason.countdownToNextOptimization)
 		Generation.removeInvalidatedChunk(this)
 		val after = AvailRuntimeSupport.captureNanos()
 		// Use interpreter #0, since the invalidationLock prevents concurrent
 		// updates.
-		invalidationStatistic.record(after - before, 0)
+		reason.statistic.record(after - before, 0)
 	}
 
 	/**
@@ -632,23 +667,13 @@ class L2Chunk private constructor(
 
 		/**
 		 * Return the number of times to invoke a
-		 * [compiled&#32;code][CompiledCodeDescriptor] object, *after an
-		 * invalidation*, before attempting to optimize it again.
-		 *
-		 * @return
-		 *   The number of invocations before post-invalidate reoptimization.
-		 */
-		private fun countdownForInvalidatedCode(): Int = 200
-
-		/**
-		 * Return the number of times to invoke a
 		 * [compiled&#32;code][CompiledCodeDescriptor] object, *after creation*,
 		 * before attempting to optimize it for the first time.
 		 *
 		 * @return
 		 *   The number of invocations before initial optimization.
 		 */
-		fun countdownForNewCode(): Int = 100
+		fun countdownForNewCode(): Long = 100
 
 		/**
 		 * Return the number of times to invoke a
@@ -663,7 +688,7 @@ class L2Chunk private constructor(
 		// TODO: [MvG] Set this to something sensible when optimization levels
 		// are implemented.
 		@JvmStatic
-		fun countdownForNewlyOptimizedCode(): Int = 1000000000
+		fun countdownForNewlyOptimizedCode(): Long = 1_000_000_000_000_000_000
 
 		/**
 		 * The [lock][ReentrantLock] that protects invalidation of chunks due to
@@ -757,7 +782,7 @@ class L2Chunk private constructor(
 				contingentValues,
 				jvmTranslator.jvmChunk())
 			code?.setStartingChunkAndReoptimizationCountdown(
-				chunk, countdownForNewlyOptimizedCode().toLong())
+				chunk, countdownForNewlyOptimizedCode())
 			for (value in contingentValues)
 			{
 				value.addDependentChunk(chunk)
@@ -806,7 +831,7 @@ class L2Chunk private constructor(
 					"Default reentry from interrupt",
 					false,
 					resumeAfterInterruptZone)
-			val unreachableBlock = L2BasicBlock("Unreachable")
+			val unreachableBlock = L2BasicBlock("unreachable")
 			val controlFlowGraph =
 				L1Translator.generateDefaultChunkControlFlowGraph(
 					initialBlock,

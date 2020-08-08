@@ -150,7 +150,10 @@ abstract class L2WriteOperand<R : L2Register> constructor(
 	 * @return
 	 *   A [String].
 	 */
-	fun registerString(): String = register.toString() + semanticValues
+	fun registerString(): String =
+		if (semanticValues.isNotEmpty()) register.toString() + semanticValues
+		else register.toString()
+
 
 	override fun instructionWasAdded(manifest: L2ValueManifest)
 	{
@@ -253,5 +256,11 @@ abstract class L2WriteOperand<R : L2Register> constructor(
 	override fun appendTo(builder: StringBuilder)
 	{
 		builder.append("→").append(registerString())
+	}
+
+	override fun postOptimizationCleanup()
+	{
+		// Leave the restriction in place.  It shouldn't be all that big.
+		semanticValues.clear()
 	}
 }

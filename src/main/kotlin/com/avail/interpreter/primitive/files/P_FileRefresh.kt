@@ -81,8 +81,12 @@ object P_FileRefresh : Primitive(1, CanInline, HasSideEffect)
 			return interpreter.primitiveFailure(E_NOT_OPEN_FOR_READ)
 		}
 		val runtime = currentRuntime()
-		handle.bufferKeys.keys.toList().forEach {
-			runtime.ioSystem().discardBuffer(it)
+
+		synchronized(handle.bufferKeys) {
+			for (key in ArrayList(handle.bufferKeys.keys))
+			{
+				runtime.ioSystem().discardBuffer(key)
+			}
 		}
 		return interpreter.primitiveSuccess(nil)
 	}

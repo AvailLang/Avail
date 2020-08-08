@@ -64,6 +64,9 @@ object P_RaiseException : Primitive(1, CanSuspend, CanSwitchContinuations)
 	{
 		interpreter.checkArgumentCount(1)
 		val exception = interpreter.argument(0)
+
+		assert(interpreter.unreifiedCallDepth() == 0)
+
 		// Attach the current continuation to the exception, so that a stack
 		// dump can be obtained later.
 		val fieldMap = exception.fieldMap()

@@ -31,27 +31,39 @@
  */
 package com.avail.interpreter.levelTwo.operation
 
-import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
+import com.avail.descriptor.character.A_Character.Companion.codePoint
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.ByteStringDescriptor.Companion.createUninitializedByteStringMethod
+import com.avail.descriptor.tuples.ByteTupleDescriptor.Companion.createUninitializedByteTupleMethod
+import com.avail.descriptor.tuples.IntTupleDescriptor.Companion.createUninitializedIntTupleMethod
+import com.avail.descriptor.tuples.LongTupleDescriptor.Companion.createUninitializedLongTupleMethod
+import com.avail.descriptor.tuples.NybbleTupleDescriptor.Companion.createUninitializedNybbleTupleMethod
 import com.avail.descriptor.tuples.ObjectTupleDescriptor
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple1Method
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple2Method
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple3Method
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple4Method
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple5Method
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromArrayMethod
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import com.avail.descriptor.tuples.TupleDescriptor
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.tupleAtPuttingMethod
+import com.avail.descriptor.tuples.TwoByteStringDescriptor.Companion.createUninitializedTwoByteStringMethod
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
-import com.avail.descriptor.types.InstanceTypeDescriptor
-import com.avail.descriptor.types.TupleTypeDescriptor
-import com.avail.descriptor.types.TypeDescriptor.Types.ANY
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.bytes
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int32
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int64
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.nybbles
+import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR
+import com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
 import com.avail.interpreter.levelTwo.L2Operation
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import com.avail.optimizer.L2Generator
-import com.avail.optimizer.RegisterSet
-import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
@@ -65,58 +77,9 @@ import org.objectweb.asm.Type
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_CREATE_TUPLE : L2Operation(
-	L2OperandType.READ_BOXED_VECTOR.named("elements"),
-	L2OperandType.WRITE_BOXED.named("tuple"))
+	READ_BOXED_VECTOR.named("elements"),
+	WRITE_BOXED.named("tuple"))
 {
-	override fun propagateTypes(
-		instruction: L2Instruction,
-		registerSet: RegisterSet,
-		generator: L2Generator)
-	{
-		val values =
-			instruction.operand<L2ReadBoxedVectorOperand>(0)
-		val tuple =
-			instruction.operand<L2WriteBoxedOperand>(1)
-		val size = values.elements().size
-		val sizeRange = fromInt(size).kind()
-		val types =
-			values.elements().map {
-				if (registerSet.hasTypeAt(it.register()))
-				{
-					registerSet.typeAt(it.register())
-				}
-				else
-				{
-					ANY.o
-				}
-			}
-		val tupleType =
-			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-				sizeRange, tupleFromList(types), bottom
-			)
-		tupleType.makeImmutable()
-		registerSet.removeConstantAt(tuple.register())
-		registerSet.typeAtPut(
-			tuple.register(),
-			tupleType,
-			instruction)
-		if (registerSet.allRegistersAreConstant(values.elements()))
-		{
-			val constants = values.elements().map {
-				registerSet.constantAt(it.register())
-			}
-			val newTuple = tupleFromList(constants)
-			newTuple.makeImmutable()
-			assert(newTuple.isInstanceOf(tupleType))
-			registerSet.typeAtPut(
-				tuple.register(),
-				InstanceTypeDescriptor.instanceType(newTuple),
-				instruction)
-			registerSet.constantAtPut(
-				tuple.register(), newTuple, instruction)
-		}
-	}
-
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,
@@ -124,10 +87,8 @@ object L2_CREATE_TUPLE : L2Operation(
 		warningStyleChange: (Boolean) -> Unit)
 	{
 		assert(this == instruction.operation())
-		val values =
-			instruction.operand<L2ReadBoxedVectorOperand>(0)
-		val tuple =
-			instruction.operand<L2WriteBoxedOperand>(1)
+		val values = instruction.operand<L2ReadBoxedVectorOperand>(0)
+		val tuple = instruction.operand<L2WriteBoxedOperand>(1)
 		renderPreamble(instruction, builder)
 		builder.append(' ')
 		builder.append(tuple.registerString())
@@ -138,13 +99,13 @@ object L2_CREATE_TUPLE : L2Operation(
 	/**
 	 * Generated code uses:
 	 *
-	 *  * [ObjectTupleDescriptor.tupleFromArray]
-	 *  * [TupleDescriptor.emptyTuple]
-	 *  * [ObjectTupleDescriptor.tuple]
-	 *  * [ObjectTupleDescriptor.tuple]
-	 *  * [ObjectTupleDescriptor.tuple]
-	 *  * [ObjectTupleDescriptor.tuple]
-	 *  * [ObjectTupleDescriptor.tuple]
+	 *  * [TupleDescriptor.emptyTuple] (zero arguments)
+	 *  * [ObjectTupleDescriptor.tuple] (one argument)
+	 *  * [ObjectTupleDescriptor.tuple] (two arguments)
+	 *  * [ObjectTupleDescriptor.tuple] (three arguments)
+	 *  * [ObjectTupleDescriptor.tuple] (four arguments)
+	 *  * [ObjectTupleDescriptor.tuple] (five arguments)
+	 *  * [ObjectTupleDescriptor.tupleFromArray] (>5 arguments)
 	 *
 	 */
 	override fun translateToJVM(
@@ -152,50 +113,123 @@ object L2_CREATE_TUPLE : L2Operation(
 		method: MethodVisitor,
 		instruction: L2Instruction)
 	{
-		val values =
-			instruction.operand<L2ReadBoxedVectorOperand>(0)
-		val tuple =
-			instruction.operand<L2WriteBoxedOperand>(1)
+		val values = instruction.operand<L2ReadBoxedVectorOperand>(0)
+		val tuple = instruction.operand<L2WriteBoxedOperand>(1)
+
 		val elements = values.elements()
 		val size = elements.size
-		if (size <= 5)
+
+		// Special cases for small tuples
+		assert (size > 0) {
+			"Empty tuple should have been replaced via generateReplacement()"
+		}
+
+		// Special cases for characters and integers
+		val unionType = elements.fold(bottom) { t, read ->
+			t.typeUnion(read.type())
+		}
+		when
 		{
-			// Special cases for small tuples
-			if (size == 0)
+			unionType.isSubtypeOf(Types.CHARACTER.o) ->
 			{
-				// :: destination = theEmptyTupleLiteral;
-				translator.literal(method, TupleDescriptor.emptyTuple)
+				translator.intConstant(method, size)
+				// :: size
+				if (elements.any { read ->
+						read.type().run {
+							isEnumeration &&
+								instances().any { c -> c.codePoint() > 255 }
+						}
+					})
+				{
+					// At least one element type is an enumeration that contains
+					// a non-Latin-1 character.  Not a perfect indicator by a
+					// long shot, but probably a pretty good predictor that this
+					// should start out as a two-byte-string.
+					createUninitializedTwoByteStringMethod.generateCall(method)
+					// :: uninitialized-two-byte-string
+				}
+				else
+				{
+					// Otherwise, just guess that it'll stay a byte-string.
+					createUninitializedByteStringMethod.generateCall(method)
+					// :: uninitialized-byte-string
+				}
+			}
+			unionType.isSubtypeOf(int64) ->
+			{
+				// It'll be a numeric tuple that we're able to optimize. Call
+				// the appropriate operation to create an uninitialized tuple
+				// with the best representation.
+				translator.intConstant(method, size)
+				// :: size
+				when
+				{
+					unionType.isSubtypeOf(nybbles) ->
+						createUninitializedNybbleTupleMethod.generateCall(
+							method)
+					unionType.isSubtypeOf(bytes) ->
+						createUninitializedByteTupleMethod.generateCall(method)
+					unionType.isSubtypeOf(int32) ->
+						createUninitializedIntTupleMethod.generateCall(method)
+					else ->
+						createUninitializedLongTupleMethod.generateCall(method)
+				}
+				// :: uninitialized-numeric-tuple
+			}
+			else ->
+			{
+				// Build a general object tuple.  First, push the elements.
+				if (size <= 5)
+				{
+					elements.forEach { translator.load(method, it.register()) }
+					// :: element1... elementN
+				}
+				when (size)
+				{
+					1 -> tuple1Method.generateCall(method)
+					2 -> tuple2Method.generateCall(method)
+					3 -> tuple3Method.generateCall(method)
+					4 -> tuple4Method.generateCall(method)
+					5 -> tuple5Method.generateCall(method)
+					else ->
+					{
+						// The elements are NOT already pushed.
+						translator.objectArray(
+							method, elements, A_BasicObject::class.java)
+						// :: initialized_array
+						tupleFromArrayMethod.generateCall(method)
+					}
+				}
+				// :: A_Tuple
+				method.visitTypeInsn(
+					Opcodes.CHECKCAST,
+					Type.getInternalName(AvailObject::class.java))
+				// :: AvailObject
 				translator.store(method, tuple.register())
 				return
 			}
-			// :: destination = TupleDescriptor.tuple(element1...elementN);
-			for (i in 0 until size)
-			{
-				translator.load(method, elements[i].register())
-			}
-			val callSignature =
-				Array(size)
-				{
-					A_BasicObject::class.java
-				}
-			val tupleMethod = CheckedMethod.staticMethod(
-				ObjectTupleDescriptor::class.java,
-				"tuple",
-				A_Tuple::class.java,
-				*callSignature)
-			tupleMethod.generateCall(method)
-			method.visitTypeInsn(
-				Opcodes.CHECKCAST,
-				Type.getInternalName(AvailObject::class.java))
-			translator.store(method, tuple.register())
-			return
 		}
-		// :: destination = TupleDescriptor.tupleFromArray(elements);
-		translator.objectArray(method, elements, A_BasicObject::class.java)
-		tupleFromArrayMethod.generateCall(method)
-		method.visitTypeInsn(
-			Opcodes.CHECKCAST, Type.getInternalName(AvailObject::class.java))
+		// :: an-uninitialized-tuple
+		elements.forEachIndexed { zeroIndex, read ->
+			translator.intConstant(method, zeroIndex + 1)
+			translator.load(method, read.register())
+			tupleAtPuttingMethod.generateCall(method)
+		}
+		// :: AvailObject
 		translator.store(method, tuple.register())
+	}
+
+	override fun extractTupleElement(
+		tupleReg: L2ReadBoxedOperand,
+		index: Int,
+		generator: L2Generator
+	): L2ReadBoxedOperand
+	{
+		val instruction = tupleReg.definition().instruction()
+		val values = instruction.operand<L2ReadBoxedVectorOperand>(0)
+		// val tuple = instruction.operand<L2WriteBoxedOperand>(1)
+
+		return values.elements[index - 1]
 	}
 
 	/**
@@ -208,13 +242,11 @@ object L2_CREATE_TUPLE : L2Operation(
 	 *   The instruction's [List] of [L2ReadBoxedOperand]s that supply the tuple
 	 *   elements.
 	 */
-	@kotlin.jvm.JvmStatic
 	fun tupleSourceRegistersOf(
 		instruction: L2Instruction): List<L2ReadBoxedOperand>
 	{
 		assert(instruction.operation() === this)
-		val vector =
-			instruction.operand<L2ReadBoxedVectorOperand>(0)
+		val vector = instruction.operand<L2ReadBoxedVectorOperand>(0)
 		return vector.elements()
 	}
 }

@@ -39,6 +39,7 @@ import com.avail.interpreter.levelTwo.operation.L2_JUMP
 import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION
 import com.avail.utility.PrefixSharingList
 import com.avail.utility.cast
+import java.lang.Integer.toHexString
 
 /**
  * This is a traditional basic block, consisting of a sequence of
@@ -160,52 +161,20 @@ class L2BasicBlock @JvmOverloads constructor(
 	fun finalInstruction(): L2Instruction = instructions[instructions.size - 1]
 
 	/**
+	 * Answer a read-only [List] of predecessor edges of this block.
+	 *
+	 * @return
+	 *   The predecessors.
+	 */
+	fun predecessorEdges(): List<L2PcOperand> = predecessorEdges
+
+	/**
 	 * Answer the number of predecessor edges that this block has.
 	 *
 	 * @return
 	 *   The number of predecessors.
 	 */
 	fun predecessorEdgesCount(): Int = predecessorEdges.size
-
-	/**
-	 * Answer an [Iterator] over the predecessor edges.  Don't change them
-	 * during iteration.
-	 *
-	 * @return
-	 *   The iterator over predecessors.
-	 */
-	fun predecessorEdgesIterator(): Iterator<L2PcOperand> =
-		predecessorEdges.iterator()
-
-	/**
-	 * Invoke the given lambda with each incoming [edge][L2PcOperand].
-	 *
-	 * @param consumer
-	 *   What to do with each edge.
-	 */
-	fun predecessorEdgesDo(consumer: (L2PcOperand) -> Unit)
-	{
-		predecessorEdges.forEach { consumer.invoke(it) }
-	}
-
-	/**
-	 * Answer a copy of the list of predecessor edges.
-	 *
-	 * @return
-	 *   The predecessor edges, copied to a new list.
-	 */
-	fun predecessorEdgesCopy(): List<L2PcOperand> = predecessorEdges.toList()
-
-	/**
-	 * Answer the predecessor [edge][L2PcOperand] with the given index in my
-	 * list of predecessors.
-	 *
-	 * @param index
-	 *   The index of the incoming edge.
-	 * @return
-	 *   The indicated predecessor.
-	 */
-	fun predecessorEdgeAt(index: Int): L2PcOperand = predecessorEdges[index]
 
 	/**
 	 * Add a predecessor, due to an earlier basic block adding an instruction
@@ -425,7 +394,7 @@ class L2BasicBlock @JvmOverloads constructor(
 			instructions.add(instruction)
 		}
 		hasStartedCodeGeneration = true
-		hasControlFlowAtEnd = instruction.altersControlFlow()
+		hasControlFlowAtEnd = instruction.altersControlFlow
 	}
 
 	/**
@@ -541,7 +510,7 @@ class L2BasicBlock @JvmOverloads constructor(
 		offset = counter
 		for (instruction in instructions)
 		{
-			if (instruction.shouldEmit())
+			if (instruction.shouldEmit)
 			{
 				instruction.setOffset(counter++)
 				output.add(instruction)
@@ -558,9 +527,10 @@ class L2BasicBlock @JvmOverloads constructor(
 			val lastOffset = PrefixSharingList.last(instructions).offset()
 			if (firstOffset != -1 && lastOffset != -1)
 			{
-				suffix = "[$firstOffset..$lastOffset"
+				suffix = " [$firstOffset..$lastOffset]"
 			}
 		}
-		return "BasicBlock($name)$suffix"
+		val hex = toHexString(hashCode())
+		return "BasicBlock($name)$suffix [$hex]"
 	}
 }

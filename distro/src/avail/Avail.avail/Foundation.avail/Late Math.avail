@@ -249,40 +249,37 @@ Method "_^_" is
 
 /**
  * Compute and answer the result of exponentiating {@param "base"} by {@param
- * "exponent"}. Do not complain about indeterminate values, under the assumption
- * that those are dealt with by the actual {@param "_^_"} method.
+ * "exponent"}, and multiplying it by {@param "accumulator"}. Do not complain
+ * about indeterminate values, under the assumption that those are dealt with by
+ * the actual {@param "_^_"} method.
  *
- * @method "_simple^_"
+ * @method "_simple^_onto_"
  * @param "base" "extended integer"
  * @param "exponent" "whole number"
+ * @param "accumulator" "extended integer"
  * @returns "extended integer"
  *          The result of raising {@param "base"} to the {@param "exponent"}
  *          power.
  * @category "Mathematics" "Numbers"
  */
-Private method "_simple^_" is
+Private method "_simple^_onto_" is
 [
-	base : extended integer,
-	exponent : whole number
+	base : integer,
+	exponent : whole number,
+	accumulator : integer
 |
+	$loop : extended integer;
+	newProduct ::= if exponent bit∧ 1 = 0 then
 	[
-		remainingExponent : whole number,
-		partialProduct : extended integer,
-		squares : extended integer
-	|
-		$loop : extended integer;
-		newProduct ::= if remainingExponent bit∧ 1 = 0 then
-		[
-			partialProduct
-		]
-		else
-		[
-			partialProduct × squares
-		];
-		Exit loop with newProduct if remainingExponent ≤ 1;
-		nextSquare ::= squares × squares;
-		Restart loop with <remainingExponent >> 1, newProduct, nextSquare>
-	](exponent, 1, base)
+		accumulator
+	]
+	else
+	[
+		accumulator × base
+	];
+	Exit loop with newProduct if exponent ≤ 1;
+	baseSquared ::= base × base;
+	Restart loop with <baseSquared, exponent >> 1, newProduct>
 ] : extended integer;
 
 Method "_^_" is
@@ -304,10 +301,20 @@ Method "_^_" is
 		];
 		1
 	]
+	else if base = ∞ then
+	[
+		∞
+	]
+	else if base = -∞ then
+	[
+		if exponent is odd then [-∞] else [∞]
+	]
 	else
 	[
-		intermediate ::= (base × base) simple^ (exponent ÷ 2);
-		if exponent is odd then [ intermediate × base ] else [ intermediate ]
+		integerBase ::= base ?→ integer;
+		(integerBase × integerBase)
+			simple^ (exponent >> 1)
+			onto if exponent is odd then [integerBase] else [1]
 	]
 ] : extended integer;
 
@@ -1064,7 +1071,7 @@ Private method "trial division factorization of_«,⁇from_»?«,⁇to_»?" is
 		// The second phase handles possibilities in a window of size 30, so we
 		// round our index down to the nearest 30 to ensure we are aligned. This
 		// may "overtest" a few values, but the logic is simpler and N<30 extra
-		// checks are neglible to the overall time cost of the operation.
+		// checks are negligible to the overall time cost of the operation.
 		i := i - (i mod 30) ?→ whole number;
 	];
 	Until i > stop do
@@ -1374,8 +1381,10 @@ Public method "_is prime" is
 	// have a single base, defined above, proven correct for all hashed values.
 
 	/* Check small divisors and ensure x is coprime with 210 */
-	Exit body with false if
-		(x is even) ∨ (x mod 3 = 0) ∨ (x mod 5 = 0) ∨ (x mod 7 = 0);
+	Exit body with false if x bit∧ 1 = 0;
+	Exit body with false if x mod 3 = 0;
+	Exit body with false if x mod 5 = 0;
+	Exit body with false if x mod 7 = 0;
 
 	hash : whole number := x;
 	hash := ((hash >> 16) bit⊕ hash) × 0x45d9f3b;

@@ -41,10 +41,24 @@ import com.avail.descriptor.representation.AvailObjectRepresentation.Companion.n
 import com.avail.descriptor.representation.BitField
 import com.avail.descriptor.representation.IntegerSlotsEnum
 import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithByteTupleStartingAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.concatenateWith
+import com.avail.descriptor.tuples.A_Tuple.Companion.copyAsMutableIntTuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.copyAsMutableObjectTuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.treeTupleLevel
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAtPuttingCanDestroy
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
+import com.avail.descriptor.tuples.ByteTupleDescriptor.IntegerSlots.RAW_LONG_AT_
+import com.avail.descriptor.tuples.NybbleTupleDescriptor.Companion.mutableObjectOfSize
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor
-import com.avail.descriptor.types.TypeDescriptor
+import com.avail.descriptor.types.TypeDescriptor.Types
+import com.avail.optimizer.jvm.CheckedMethod
+import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.utility.json.JSONWriter
 import java.nio.ByteBuffer
 
@@ -100,6 +114,7 @@ class ByteTupleDescriptor private constructor(
 			 * very rare case that the hash value actually equals zero, the hash
 			 * value has to be computed every time it is requested.
 			 */
+			@JvmField
 			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
 
 			init
@@ -134,7 +149,7 @@ class ByteTupleDescriptor private constructor(
 		{
 			// Enlarge it in place, using more of the final partial int field.
 			self.setDescriptor(descriptorFor(Mutability.MUTABLE, newSize))
-			self.setByteSlot(IntegerSlots.RAW_LONG_AT_, newSize, intValue.toShort())
+			self.setByteSlot(RAW_LONG_AT_, newSize, intValue.toShort())
 			self.setSlot(IntegerSlots.HASH_OR_ZERO, 0)
 			return self
 		}
@@ -145,7 +160,7 @@ class ByteTupleDescriptor private constructor(
 			0,
 			if (originalSize and 7 == 0) 1 else 0)
 		result.setByteSlot(
-			IntegerSlots.RAW_LONG_AT_, newSize, intValue.toShort())
+			RAW_LONG_AT_, newSize, intValue.toShort())
 		result.setSlot(IntegerSlots.HASH_OR_ZERO, 0)
 		return result
 	}// Answer approximately how many bits per entry are taken up by this
@@ -252,7 +267,7 @@ class ByteTupleDescriptor private constructor(
 			while (source <= size2)
 			{
 				result.setByteSlot(
-					IntegerSlots.RAW_LONG_AT_,
+					RAW_LONG_AT_,
 					destination,
 					otherTuple.tupleIntAt(source).toShort())
 				source++
@@ -297,9 +312,9 @@ class ByteTupleDescriptor private constructor(
 			while (src <= end)
 			{
 				result.setByteSlot(
-					IntegerSlots.RAW_LONG_AT_,
+					RAW_LONG_AT_,
 					destination,
-					self.byteSlot(IntegerSlots.RAW_LONG_AT_, src))
+					self.byteSlot(RAW_LONG_AT_, src))
 				src++
 				destination++
 			}
@@ -356,11 +371,11 @@ class ByteTupleDescriptor private constructor(
 	{
 		when
 		{
-			aType.isSupertypeOfPrimitiveTypeEnum(TypeDescriptor.Types.NONTYPE) ->
+			aType.isSupertypeOfPrimitiveTypeEnum(Types.NONTYPE) ->
 				return true
 			!aType.isTupleType -> return false
 			//  See if it's an acceptable size...
-			!aType.sizeRange().rangeIncludesInt(self.tupleSize()) ->
+			!aType.sizeRange().rangeIncludesLong(self.tupleSize().toLong()) ->
 				return false
 
 			//  tuple's size is in range.
@@ -426,7 +441,7 @@ class ByteTupleDescriptor private constructor(
 		for (index in startIndex .. endIndex)
 		{
 			outputByteBuffer.put(
-				self.byteSlot(IntegerSlots.RAW_LONG_AT_, index).toByte())
+				self.byteSlot(RAW_LONG_AT_, index).toByte())
 		}
 	}
 
@@ -436,7 +451,7 @@ class ByteTupleDescriptor private constructor(
 	{
 		//  Answer the element at the given index in the tuple object.
 		assert(index >= 1 && index <= self.tupleSize())
-		return fromUnsignedByte(self.byteSlot(IntegerSlots.RAW_LONG_AT_, index))
+		return fromUnsignedByte(self.byteSlot(RAW_LONG_AT_, index))
 	}
 
 	override fun o_TupleAtPuttingCanDestroy(
@@ -463,7 +478,7 @@ class ByteTupleDescriptor private constructor(
 			if (canDestroy && isMutable) self
 			else newLike(mutable(), self, 0, 0)
 		result.setByteSlot(
-			IntegerSlots.RAW_LONG_AT_,
+			RAW_LONG_AT_,
 			index,
 			(newValueObject as A_Number).extractUnsignedByte())
 		result.setHashOrZero(0)
@@ -481,9 +496,14 @@ class ByteTupleDescriptor private constructor(
 
 	override fun o_TupleIntAt(self: AvailObject, index: Int): Int
 	{
-		// Answer the integer element at the given index in the tuple object.
 		assert(index >= 1 && index <= self.tupleSize())
-		return self.byteSlot(IntegerSlots.RAW_LONG_AT_, index).toInt()
+		return self.byteSlot(RAW_LONG_AT_, index).toInt()
+	}
+
+	override fun o_TupleLongAt(self: AvailObject, index: Int): Long
+	{
+		assert(index >= 1 && index <= self.tupleSize())
+		return self.byteSlot(RAW_LONG_AT_, index).toLong()
 	}
 
 	override fun o_TupleReverse(self: AvailObject): A_Tuple
@@ -495,7 +515,7 @@ class ByteTupleDescriptor private constructor(
 			var sourceIndex = tupleSize
 			return generateByteTupleFrom(tupleSize) {
 				self.byteSlot(
-					IntegerSlots.RAW_LONG_AT_, sourceIndex--).toInt()
+					RAW_LONG_AT_, sourceIndex--).toInt()
 			}
 		}
 		return super.o_TupleReverse(self)
@@ -555,12 +575,21 @@ class ByteTupleDescriptor private constructor(
 		 *   A byte tuple with the specified number of bytes (initially zero).
 		 */
 		@JvmStatic
+		@ReferencedInGeneratedCode
 		fun mutableObjectOfSize(size: Int): AvailObject
 		{
 			val descriptor = descriptorFor(Mutability.MUTABLE, size)
 			assert(size + descriptor.unusedBytesOfLastLong and 7 == 0)
-			return descriptor.create(size + 7 shr 3) { }
+			return descriptor.create(size + 7 shr 3)
 		}
+
+		/** The [CheckedMethod] for [mutableObjectOfSize]. */
+		@JvmField
+		val createUninitializedByteTupleMethod: CheckedMethod = staticMethod(
+			ByteTupleDescriptor::class.java,
+			::mutableObjectOfSize.name,
+			AvailObject::class.java,
+			Int::class.javaPrimitiveType!!)
 
 		/**
 		 * Create an object of the appropriate size, whose descriptor is an
@@ -596,7 +625,7 @@ class ByteTupleDescriptor private constructor(
 					combined += c shl shift
 					shift += 8
 				}
-				result.setSlot(IntegerSlots.RAW_LONG_AT_, slotIndex, combined)
+				result.setSlot(RAW_LONG_AT_, slotIndex, combined)
 				slotIndex++
 			}
 			// Do the last 0-7 writes the slow way.
@@ -604,7 +633,7 @@ class ByteTupleDescriptor private constructor(
 			{
 				val c = generator(tupleIndex++).toLong()
 				assert(c and 255 == c)
-				result.setByteSlot(IntegerSlots.RAW_LONG_AT_, index, c.toShort())
+				result.setByteSlot(RAW_LONG_AT_, index, c.toShort())
 			}
 			assert(tupleIndex == size + 1)
 			return result

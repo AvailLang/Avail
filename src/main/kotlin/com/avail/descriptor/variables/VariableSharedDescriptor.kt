@@ -59,6 +59,7 @@ import com.avail.exceptions.VariableGetException
 import com.avail.exceptions.VariableSetException
 import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.L2Chunk
+import com.avail.interpreter.levelTwo.L2Chunk.InvalidationReason.SLOW_VARIABLE
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport
 import com.avail.utility.json.JSONWriter
@@ -280,13 +281,13 @@ open class VariableSharedDescriptor protected constructor(
 		reference: A_BasicObject,
 		newValue: A_BasicObject): Boolean
 	{
+		val newValueShared = newValue.makeShared()
 		// Because the separate read, compare, and write operations are all
 		// performed within the critical section, atomicity is ensured.
 		try
 		{
-			synchronized(self) {
-				return super.o_CompareAndSwapValues(
-					self, reference, newValue.makeShared())
+			return synchronized(self) {
+				super.o_CompareAndSwapValues(self, reference, newValueShared)
 			}
 		}
 		finally
@@ -484,7 +485,7 @@ open class VariableSharedDescriptor protected constructor(
 					pojo.javaObjectNotNull<Set<L2Chunk>>()
 				val chunksToInvalidate = originalSet.toSet()
 				chunksToInvalidate.forEach {
-					it.invalidate(invalidationForSlowVariable)
+					it.invalidate(SLOW_VARIABLE)
 				}
 				assert(originalSet.isEmpty())
 			}

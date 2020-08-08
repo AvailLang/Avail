@@ -264,7 +264,7 @@ class DotWriter constructor(
 				{
 					// Upon discovery of a linefeed, compute the next line and
 					// the residue.
-					return Pair(s.substring(0, i), s.substring(i + 1))
+					return s.substring(0, i) to s.substring(i + 1)
 				}
 				if (Character.isWhitespace(cp))
 				{
@@ -330,7 +330,7 @@ class DotWriter constructor(
 				// limit was exceeded, then answer the entire string as the
 				// line and empty residue.
 				assert(whiteRun == 0)
-				return Pair(s, "")
+				return s to ""
 			}
 			return Pair(
 				s.substring(0, whiteIndex),

@@ -153,7 +153,7 @@ object L2_GET_VARIABLE_CLEARING : L2ControlFlowOperation(
 		translator.load(method, variable.register())
 		VariableDescriptor.clearVariableMethod.generateCall(method)
 		// ::       goto success;
-		method.visitJumpInsn(Opcodes.GOTO, translator.labelFor(success.offset()))
+		translator.jump(method, success)
 		// ::    } else {
 		method.visitLabel(elseLabel)
 		// ::       dest.makeImmutable();
@@ -165,7 +165,7 @@ object L2_GET_VARIABLE_CLEARING : L2ControlFlowOperation(
 		// fall through, because the next instruction expects a
 		// VariableGetException to be pushed onto the stack. So always do the
 		// jump.
-		method.visitJumpInsn(Opcodes.GOTO, translator.labelFor(success.offset()))
+		translator.jump(method, success)
 		// :: } catch (VariableGetException|VariableSetException e) {
 		method.visitLabel(catchStart)
 		method.visitInsn(Opcodes.POP)

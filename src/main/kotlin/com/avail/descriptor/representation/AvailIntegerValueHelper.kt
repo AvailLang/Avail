@@ -31,6 +31,8 @@
  */
 package com.avail.descriptor.representation
 
+import org.jetbrains.annotations.Debug.Renderer
+
 /**
  * A helper class used by IntelliJ to show Logical Structures in the debugger.
  * In particular, it shows long-valued slots within [AvailObject]s.
@@ -40,4 +42,7 @@ package com.avail.descriptor.representation
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
+@Renderer(
+	text = "longValue",
+	childrenArray = "emptyArray<Int>")
 class AvailIntegerValueHelper(val longValue: Long)

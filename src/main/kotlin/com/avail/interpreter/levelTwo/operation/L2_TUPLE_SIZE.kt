@@ -32,6 +32,7 @@
 package com.avail.interpreter.levelTwo.operation
 
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.tupleSizeMethod
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2OperandType
 import com.avail.interpreter.levelTwo.L2Operation
@@ -75,7 +76,7 @@ object L2_TUPLE_SIZE : L2Operation(
 
 		// :: size = tuple.tupleSize();
 		translator.load(method, tuple.register())
-		A_Tuple.tupleSizeMethod.generateCall(method)
+		tupleSizeMethod.generateCall(method)
 		translator.store(method, size.register())
 	}
 }

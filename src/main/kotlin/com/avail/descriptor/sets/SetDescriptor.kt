@@ -46,6 +46,7 @@ import com.avail.descriptor.sets.LinearSetBinDescriptor.Companion.emptyLinearSet
 import com.avail.descriptor.sets.SetBinDescriptor.Companion.generateSetBinFrom
 import com.avail.descriptor.sets.SetDescriptor.ObjectSlots.ROOT_BIN
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
@@ -236,7 +237,7 @@ private constructor(
 		aType.isSupertypeOfPrimitiveTypeEnum(Types.NONTYPE) -> true
 		!aType.isSetType -> false
 		// See if it's an acceptable size...
-		!aType.sizeRange().rangeIncludesInt(self.setSize()) -> false
+		!aType.sizeRange().rangeIncludesLong(self.setSize().toLong()) -> false
 		else -> {
 			val expectedContentType = aType.contentType()
 			when {

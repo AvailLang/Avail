@@ -45,6 +45,8 @@ import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.FunctionTypeDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
@@ -76,11 +78,10 @@ import kotlin.math.max
  * subtype of an element of the exception set of B, then A can't be a subtype of
  * B.
  *
- * Note that the [A_Type.argsTupleType] can be
- * [bottom][BottomTypeDescriptor.getBottom] (⊥) instead of a tuple type.  Because
- * bottom is more specific than any tuple type, the resulting function type is
- * considered more general than one with a tuple type (if the other variances
- * also hold).
+ * Note that the [A_Type.argsTupleType] can be [bottom] (⊥) instead of a tuple
+ * type.  Because bottom is more specific than any tuple type, the resulting
+ * function type is considered more general than one with a tuple type (if the
+ * other variances also hold).
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -114,6 +115,7 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 			/**
 			 * The hash, or zero (`0`) if the hash has not yet been computed.
 			 */
+			@JvmField
 			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
 		}
 	}

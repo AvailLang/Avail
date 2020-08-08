@@ -58,6 +58,7 @@ import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.A_Phrase.Companion.apparentSendName
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.descriptor.tuples.A_Tuple.Companion.asSet
 import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE
 import com.avail.interpreter.execution.Interpreter.Companion.debugWorkUnits
@@ -82,6 +83,8 @@ import java.nio.file.Path
 import java.nio.file.attribute.BasicFileAttributes
 import java.util.Collections.synchronizedList
 import java.util.Collections.synchronizedMap
+import java.util.HashMap
+import java.util.HashSet
 import java.util.concurrent.Semaphore
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
@@ -95,6 +98,7 @@ import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.set
 import kotlin.concurrent.read
+import kotlin.concurrent.write
 
 /**
  * An `AvailBuilder` [compiles][AvailCompiler] and installs into an
@@ -898,7 +902,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 				stringFrom(command),
 				textInterface,
 				pollForAbort,
-				{ _, _, _ -> },
+				{ _, _, _, _ -> },
 				object : BuilderProblemHandler(this, "«collection only»")
 				{
 					override fun handleGeneric(
@@ -1070,9 +1074,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 					if (moduleEntryPoints.contains(nameString))
 					{
 						commands.add(CompiledCommand(
-							key.name,
-							nameString,
-							solution))
+							key.name, nameString, solution))
 					}
 				}
 			}

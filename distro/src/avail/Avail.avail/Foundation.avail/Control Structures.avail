@@ -212,38 +212,6 @@ sizesIncompatibleMessage ::=
 	\| continuation's parameter tuple";
 
 /**
- * Reject the current parse if the argument tuple cannot possibly match the
- * continuation's parameter tuple.
- *
- * @method "Restart_with_"
- * @restricts "continuation meta"
- * @restricts "tuple meta"
- */
-Semantic restriction "Restart_with_" is
-[
-	continuationType : continuation meta,
-	argumentsType : tuple meta
-|
-	functionType ::= continuationType's function type;
-	parametersType ::= functionType's parameters' type;
-	parametersSizes ::= ||parametersType||;
-	/* If `parameterSizes` = ⊥, then `parametersType` = ⊥. In this case, we
-	 * cannot statically ascertain anything interesting about the function and
-	 * the arguments to apply.
-	 */
-	If parametersSizes ≠ ⊥ then
-	[
-		argumentsSizes ::= ||argumentsType||;
-		validSizes ::= parametersSizes ∩ argumentsSizes;
-		If validSizes = ⊥ then
-		[
-			Immediately reject parse, expected: sizesIncompatibleMessage
-		];
-	];
-	⊥
-];
-
-/**
  * Answer a continuation that represents (approximately) the current
  * continuation. This facility may be used to simulate labels within (but not at
  * the start of) blocks. The answer may be restarted, but not exited, which
@@ -299,7 +267,8 @@ Public method "Repeat__times" is
 	$loop : ⊤;
 	Exit loop if count < 1;
 	action();
-	Restart loop with <action, cast count - 1 into [i : [0..∞] | i]>
+	nextCount ::= cast count - 1 into [i : [0..∞] | i];
+	Restart loop with <action, nextCount>
 ] : ⊤;
 
 /**
@@ -759,7 +728,8 @@ Public method "From_to_do_" is
 |
 	$loop : ⊤;
 	Exit loop if end < start;
-	Exit loop if ¬action(start);
+	shouldExit ::= ¬action(start);
+	Exit loop if shouldExit;
 	Restart loop with <start + 1, end, action>
 ];
 
@@ -1591,7 +1561,8 @@ Public method "Until_" is
 	action : []→boolean
 |
 	$loop : ⊤;
-	Exit loop if action();
+	shouldExit ::= action();
+	Exit loop if shouldExit;
 	Restart loop
 ] : ⊤;
 

@@ -45,6 +45,7 @@ import com.avail.compiler.splitter.InstructionGenerator.Label
 import com.avail.compiler.splitter.MessageSplitter.Companion.circledNumberCodePoint
 import com.avail.compiler.splitter.MessageSplitter.Companion.indexForPermutation
 import com.avail.compiler.splitter.MessageSplitter.Companion.throwSignatureException
+import com.avail.compiler.splitter.MessageSplitter.Metacharacter
 import com.avail.compiler.splitter.WrapState.PUSHED_LIST
 import com.avail.compiler.splitter.WrapState.SHOULD_NOT_HAVE_ARGUMENTS
 import com.avail.compiler.splitter.WrapState.SHOULD_NOT_PUSH_LIST
@@ -53,7 +54,16 @@ import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsTuple
+import com.avail.descriptor.phrases.A_Phrase.Companion.permutation
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
+import com.avail.descriptor.phrases.A_Phrase.Companion.token
+import com.avail.descriptor.phrases.ListPhraseDescriptor.Companion.newListNode
+import com.avail.descriptor.phrases.LiteralPhraseDescriptor.Companion.syntheticLiteralNodeFor
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
+import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.tupleFromIntegerList
 import com.avail.descriptor.types.A_Type
@@ -62,6 +72,8 @@ import com.avail.descriptor.types.ListPhraseTypeDescriptor.Companion.createListN
 import com.avail.descriptor.types.ListPhraseTypeDescriptor.Companion.emptyListPhraseType
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PERMUTED_LIST_PHRASE
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
 import com.avail.exceptions.AvailErrorCode.E_CASE_INSENSITIVE_EXPRESSION_CANONIZATION
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
@@ -74,19 +86,18 @@ import kotlin.math.min
 
 /**
  * A [Group] is delimited by the
- * [open&#32;guillemet][MessageSplitter.Metacharacter.OPEN_GUILLEMET] («) and
- * [close&#32;guillemet][MessageSplitter.Metacharacter.CLOSE_GUILLEMET] (»)
- * characters, and may contain subgroups and an occurrence of a
- * [double&#32;dagger][MessageSplitter.Metacharacter.DOUBLE_DAGGER] (‡). If no
- * double dagger or subgroup is present, the sequence of message parts between
- * the guillemets are allowed to occur zero or more times at a call site (i.e.,
- * a send of this message). When the number of
- * [underscore][MessageSplitter.Metacharacter.UNDERSCORE] (_) and
- * [ellipsis][MessageSplitter.Metacharacter.ELLIPSIS] (…) plus the number of
- * subgroups is exactly one, the argument (or subgroup) values are assembled
- * into a [tuple][TupleDescriptor]. Otherwise the leaf arguments and/or
- * subgroups are assembled into a tuple of fixed-sized tuples, each containing
- * one entry for each argument or subgroup.
+ * [open&#32;guillemet][Metacharacter.OPEN_GUILLEMET] («) and
+ * [close&#32;guillemet][Metacharacter.CLOSE_GUILLEMET] (») characters, and may
+ * contain subgroups and an occurrence of a
+ * [double&#32;dagger][Metacharacter.DOUBLE_DAGGER] (‡). If no double dagger or
+ * subgroup is present, the sequence of message parts between the guillemets are
+ * allowed to occur zero or more times at a call site (i.e., a send of this
+ * message). When the number of [underscore][Metacharacter.UNDERSCORE] (_) and
+ * [ellipsis][Metacharacter.ELLIPSIS] (…) plus the number of subgroups is
+ * exactly one, the argument (or subgroup) values are assembled into a
+ * [tuple][TupleDescriptor]. Otherwise the leaf arguments and/or subgroups are
+ * assembled into a tuple of fixed-sized tuples, each containing one entry for
+ * each argument or subgroup.
  *
  * When a double dagger occurs in a group, the parts to the left of the double
  * dagger can occur zero or more times, but separated by the parts to the right.
@@ -107,23 +118,22 @@ import kotlin.math.min
 internal class Group : Expression
 {
 	/**
-	 * Whether a
-	 * [double&#32;dagger][MessageSplitter.Metacharacter.DOUBLE_DAGGER] (‡) has
-	 * been encountered in the tokens for this group.
+	 * Whether a [double&#32;dagger][Metacharacter.DOUBLE_DAGGER] (‡) has been
+	 * encountered in the tokens for this group.
 	 */
 	val hasDagger: Boolean
 
 	/**
 	 * The [Sequence] of [Expression]s that appeared before the
-	 * [double&#32;dagger][MessageSplitter.Metacharacter.DOUBLE_DAGGER], or in
-	 * the entire subexpression if no double dagger is present.
+	 * [double&#32;dagger][Metacharacter.DOUBLE_DAGGER], or in the entire
+	 * subexpression if no double dagger is present.
 	 */
 	val beforeDagger: Sequence
 
 	/**
 	 * The [Sequence] of [Expression]s that appear after the
-	 * [double&#32;dagger][MessageSplitter.Metacharacter.DOUBLE_DAGGER], or an
-	 * empty sequence if no double dagger is present.
+	 * [double&#32;dagger][Metacharacter.DOUBLE_DAGGER], or an empty sequence if
+	 * no double dagger is present.
 	 */
 	val afterDagger: Sequence
 
@@ -252,10 +262,8 @@ internal class Group : Expression
 		val requiredRange = integerRangeType(
 			zero(),
 			true,
-			if (maximumCardinality == Integer.MAX_VALUE)
-				positiveInfinity()
-			else
-				fromInt(maximumCardinality + 1),
+			if (maximumCardinality == Integer.MAX_VALUE) positiveInfinity()
+			else fromInt(maximumCardinality + 1),
 			false)
 
 		if (!argumentType.sizeRange().isSubtypeOf(requiredRange))
@@ -274,8 +282,7 @@ internal class Group : Expression
 			val argsBeforeDagger = beforeDagger.yielders.size
 			val argsAfterDagger = afterDagger.yielders.size
 			val expectedLower = fromInt(argsBeforeDagger)
-			val expectedUpper = fromInt(
-				argsBeforeDagger + argsAfterDagger)
+			val expectedUpper = fromInt(argsBeforeDagger + argsAfterDagger)
 			val typeTuple = argumentType.typeTuple()
 			val limit = typeTuple.tupleSize() + 1
 			for (i in 1..limit)
@@ -310,13 +317,11 @@ internal class Group : Expression
 				var j = 1
 				for (e in beforeDagger.yielders)
 				{
-					e.checkType(solutionType.typeAtIndex(j), sectionNumber)
-					j++
+					e.checkType(solutionType.typeAtIndex(j++), sectionNumber)
 				}
 				for (e in afterDagger.yielders)
 				{
-					e.checkType(solutionType.typeAtIndex(j), sectionNumber)
-					j++
+					e.checkType(solutionType.typeAtIndex(j++), sectionNumber)
 				}
 			}
 		}
@@ -674,9 +679,8 @@ internal class Group : Expression
 			{
 				argIndex++
 				val realTypeIndex =
-					if (beforeDagger.yieldersAreReordered
-							=== java.lang.Boolean.TRUE)
-						beforeDagger.permutedYielders[argIndex - 1]
+					if (beforeDagger.isReordered)
+						beforeDagger.permutation[argIndex - 1]
 					else
 						argIndex
 				val entryType =
@@ -696,11 +700,11 @@ internal class Group : Expression
 		assert(argIndex == beforeDagger.yielders.size)
 		tidyPushedList(generator, ungroupedArgCount, listIsPushed)
 		generator.partialListsCount -= 2
-		if (beforeDagger.yieldersAreReordered === java.lang.Boolean.TRUE)
+		if (beforeDagger.isReordered)
 		{
 			// Permute the list on top of stack.
 			val permutationTuple =
-				tupleFromIntegerList(beforeDagger.permutedYielders)
+				tupleFromIntegerList(beforeDagger.permutation)
 			val permutationIndex = indexForPermutation(permutationTuple)
 			generator.flushDelayed()
 			generator.emit(this, PERMUTE_LIST, permutationIndex)
@@ -737,9 +741,8 @@ internal class Group : Expression
 			{
 				argIndex++
 				val realTypeIndex =
-					if (afterDagger.yieldersAreReordered
-							=== java.lang.Boolean.TRUE)
-						afterDagger.permutedYielders[argIndex - 1]
+					if (afterDagger.isReordered)
+						afterDagger.permutation[argIndex - 1]
 					else
 						argIndex
 				val entryType =
@@ -758,7 +761,7 @@ internal class Group : Expression
 		}
 		tidyPushedList(generator, ungroupedArgCount, true)
 		generator.partialListsCount -= 2
-		if (afterDagger.yieldersAreReordered === java.lang.Boolean.TRUE)
+		if (afterDagger.isReordered)
 		{
 			// Permute just the right portion of the list on top of
 			// stack.  The left portion was already adjusted in case it
@@ -865,7 +868,18 @@ internal class Group : Expression
 		indent: Int)
 	{
 		val needsDouble = needsDoubleWrapping
-		val groupArguments = arguments!!.next()
+		var groupArguments = arguments!!.next()
+		if (groupArguments.phraseKindIsUnder(LITERAL_PHRASE))
+		{
+			// Decompose a literal tuple as though it was a list phrase of
+			// its elements.
+			groupArguments = newListNode(
+				tupleFromList(
+					groupArguments.token().literal().map {
+						syntheticLiteralNodeFor(
+							it, stringFrom(it.toString()))
+					}))
+		}
 		val occurrenceProvider = groupArguments.expressionsTuple().iterator()
 		while (occurrenceProvider.hasNext())
 		{
@@ -925,17 +939,14 @@ internal class Group : Expression
 		completeGroup: Boolean)
 	{
 		builder.append('«')
-		val expressionsToVisit: MutableList<Expression?>
-		if (completeGroup && afterDagger.expressions.isNotEmpty())
-		{
-			expressionsToVisit = mutableListOf()
-			expressionsToVisit.addAll(beforeDagger.expressions)
-			expressionsToVisit.add(null)  // Represents the dagger
-			expressionsToVisit.addAll(afterDagger.expressions)
-		}
-		else
-		{
-			expressionsToVisit = beforeDagger.expressions.toMutableList()
+		val expressionsToVisit: List<Expression?> =
+			mutableListOf<Expression?>().apply {
+				addAll(beforeDagger.expressions)
+				if (completeGroup && afterDagger.expressions.isNotEmpty())
+				{
+					add(null)  // Represents the dagger
+					addAll(afterDagger.expressions)
+				}
 		}
 		var needsSpace = false
 		for (expr in expressionsToVisit)
@@ -962,11 +973,9 @@ internal class Group : Expression
 		builder.append('»')
 	}
 
-	override val shouldBeSeparatedOnLeft: Boolean
-		get() = false
+	override val shouldBeSeparatedOnLeft: Boolean get() = false
 
-	override val shouldBeSeparatedOnRight: Boolean
-		get() = false
+	override val shouldBeSeparatedOnRight: Boolean get() = false
 
 	override fun mightBeEmpty(phraseType: A_Type): Boolean
 	{
@@ -974,5 +983,91 @@ internal class Group : Expression
 		val tupleType = phraseType.expressionType()
 		assert(tupleType.isTupleType)
 		return tupleType.sizeRange().lowerBound().equalsInt(0)
+	}
+
+	override fun checkListStructure(phrase: A_Phrase): Boolean
+	{
+		// Don't check inside literals.  That's the job of type checking.
+		if (phrase.phraseKindIsUnder(LITERAL_PHRASE)) return true
+		// Must not permute the guillemet group repetition itself.
+		if (phrase.phraseKindIsUnder(PERMUTED_LIST_PHRASE)) return false
+		if (!phrase.phraseKindIsUnder(LIST_PHRASE)) return false
+		return phrase.expressionsTuple().all { subphrase ->
+			checkOneRepeatedSublistStructure(subphrase)
+		}
+	}
+
+	/**
+	 * Recursively check one occurrence of a [Group] repetition for validly
+	 * formed and permuted lists.
+	 *
+	 * @param phrase
+	 *   The phrase being supplied for one repetition of this group.
+	 */
+	private fun checkOneRepeatedSublistStructure(phrase: A_Phrase): Boolean
+	{
+		// Don't check inside literals.  That's the job of type checking.
+		if (!needsDoubleWrapping)
+		{
+			// Simple case of 1 arg before and 0 args after '‡'.
+			return beforeDagger.yielders[0].checkListStructure(phrase)
+		}
+		// It's double-wrapped (i.e., this repetition is itself a list).
+		if (phrase.phraseKindIsUnder(LITERAL_PHRASE)) return true
+		if (!phrase.phraseKindIsUnder(LIST_PHRASE)) return false
+		val subphrases = phrase.expressionsTuple()
+		val subphrasesSize = subphrases.tupleSize()
+		if (subphrasesSize == beforeDagger.yielders.size)
+		{
+			// Only check the left side.  Note - it might require a permutation.
+			return beforeDagger.checkListStructure(phrase)
+		}
+		// Both sides should be present.
+		if (subphrasesSize !=
+			beforeDagger.yielders.size + afterDagger.yielders.size)
+		{
+			// Wrong size.
+			return false
+		}
+		val leftSize = beforeDagger.yielders.size
+		if (beforeDagger.isReordered || afterDagger.isReordered)
+		{
+			// It must be permuted.
+			if (!phrase.phraseKindIsUnder(PERMUTED_LIST_PHRASE)) return false
+			val actualPermutation = phrase.permutation()
+			val expectedPermutation = beforeDagger.permutation.toMutableList()
+			afterDagger.permutation.mapTo(expectedPermutation) { it + leftSize }
+			if (!tupleFromIntegerList(expectedPermutation)
+					.equals(actualPermutation))
+			{
+				// The permutation isn't correct.
+				return false
+			}
+		}
+		else
+		{
+			// It must not be permuted.
+			if (phrase.phraseKindIsUnder(PERMUTED_LIST_PHRASE)) return false
+		}
+		// Check everything on the left.
+		for (i in 1..leftSize)
+		{
+			if (!beforeDagger.yielders[i - 1]
+					.checkListStructure(subphrases.tupleAt(i)))
+			{
+				return false
+			}
+		}
+		// Check everything on the right.
+		for (i in 1..afterDagger.yielders.size)
+		{
+			if (!afterDagger.yielders[i - 1]
+					.checkListStructure(subphrases.tupleAt(i + leftSize)))
+			{
+				return false
+			}
+		}
+		// It all checked out structurally.
+		return true
 	}
 }

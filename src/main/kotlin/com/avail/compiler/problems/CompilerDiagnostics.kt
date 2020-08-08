@@ -46,6 +46,10 @@ import com.avail.descriptor.tokens.TokenDescriptor.Companion.newToken
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType.END_OF_FILE
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType.WHITESPACE
 import com.avail.descriptor.tuples.A_String
+import com.avail.descriptor.tuples.A_Tuple.Companion.appendCanDestroy
+import com.avail.descriptor.tuples.A_Tuple.Companion.concatenateTuplesCanDestroy
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
@@ -617,20 +621,20 @@ class CompilerDiagnostics(
 				return
 			}
 			val sourcePosition = descendingIterator.next()
-			var describers: List<Describer>? = null
-			var lexingStates: Set<LexingState>? = null
+			lateinit var describers: List<Describer>
+			lateinit var lexingStates: Set<LexingState>
 			expectationsLock.read {
 				val localExpectations = expectations[sourcePosition]!!
 				describers = localExpectations.problems.toList()
 				lexingStates = localExpectations.lexingStates.toSet()
 			}
-			assert(describers!!.isNotEmpty())
+			assert(describers.isNotEmpty())
 			// Due to local lexer ambiguity, there may be multiple possible
 			// tokens at this position.  Choose the longest for the purpose
 			// of displaying the diagnostics.  We only care about the tokens
 			// that have already been formed, not ones in progress.
-			findLongestTokenThen(lexingStates!!) { longestToken ->
-				val before = lexingStates!!.iterator().next()
+			findLongestTokenThen(lexingStates) { longestToken ->
+				val before = lexingStates.iterator().next()
 				groupedProblems.add(
 					ProblemsAtPosition(
 						before,
@@ -639,7 +643,7 @@ class CompilerDiagnostics(
 						else
 							longestToken.nextLexingState(),
 						indicatorGenerator.next(),
-						describers!!))
+						describers))
 				accumulateErrorsThen(
 					descendingIterator,
 					indicatorGenerator,

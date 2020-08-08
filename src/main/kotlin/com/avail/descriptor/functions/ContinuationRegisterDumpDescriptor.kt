@@ -92,6 +92,12 @@ class ContinuationRegisterDumpDescriptor private constructor(
 
 	override fun o_ShowValueInNameForDebugger(self: AvailObject) = false
 
+	override fun o_ExtractDumpedObjectAt(self: AvailObject, index: Int) =
+		self.slot(OBJECT_SLOTS_, index)
+
+	override fun o_ExtractDumpedLongAt(self: AvailObject, index: Int): Long =
+		self.slot(INTEGER_SLOTS_, index)
+
 	override fun mutable() = mutable
 
 	override fun immutable() = immutable
@@ -139,66 +145,6 @@ class ContinuationRegisterDumpDescriptor private constructor(
 			AvailObject::class.java,
 			Array<AvailObject>::class.java,
 			LongArray::class.java)
-
-		/**
-		 * Given a continuation register dump, extract the object at the given
-		 * slot index.
-		 *
-		 * @param dump
-		 *   The continuation register dump to extract from.
-		 * @param index
-		 *   The index at which to extract an [AvailObject].
-		 * @return
-		 *   The extracted [AvailObject].
-		 */
-		@JvmStatic
-		@ReferencedInGeneratedCode
-		fun extractObjectAt(
-			dump: AvailObject,
-			index: Int
-		) = dump.slot(OBJECT_SLOTS_, index)
-
-		/**
-		 * A [CheckedMethod] for invoking the static method
-		 * [.extractObjectAt].
-		 */
-		@JvmField
-		var extractObjectAtMethod: CheckedMethod = staticMethod(
-			ContinuationRegisterDumpDescriptor::class.java,
-			::extractObjectAt.name,
-			AvailObject::class.java,
-			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!)
-
-		/**
-		 * Given a continuation register dump, extract the [Long] at the given
-		 * slot index.
-		 *
-		 * @param dump
-		 *   The continuation register dump to extract from.
-		 * @param index
-		 *   The index at which to extract a [Long].
-		 * @return
-		 *   The extracted [Long].
-		 */
-		@JvmStatic
-		@ReferencedInGeneratedCode
-		fun extractLongAt(
-			dump: AvailObject,
-			index: Int): Long {
-			return dump.slot(INTEGER_SLOTS_, index)
-		}
-
-		/**
-		 * A [CheckedMethod] for invoking the static method [extractLongAt].
-		 */
-		@JvmField
-		var extractLongAtMethod: CheckedMethod = staticMethod(
-			ContinuationRegisterDumpDescriptor::class.java,
-			::extractLongAt.name,
-			Long::class.javaPrimitiveType!!,
-			AvailObject::class.java,
-			Int::class.javaPrimitiveType!!)
 
 		/** The mutable [ContinuationRegisterDumpDescriptor]. */
 		private val mutable =

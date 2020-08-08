@@ -70,7 +70,7 @@ object P_InstallBaseFrameFunction : Primitive(
 		interpreter.checkArgumentCount(1)
 		val function = interpreter.argument(0)
 
-		val runtime = interpreter.runtime()
+		val runtime = interpreter.runtime
 		val oldHook = BASE_FRAME[runtime]
 		BASE_FRAME[runtime] = function
 		interpreter.availLoaderOrNull()?.statementCanBeSummarized(false)

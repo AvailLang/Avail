@@ -38,6 +38,7 @@ import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.NilDescriptor
+import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
 import java.util.IdentityHashMap
@@ -197,13 +198,13 @@ class BottomPojoTypeDescriptor constructor(mutability: Mutability)
 
 		/**
 		 * The most specific [pojo type][PojoTypeDescriptor], other than
-		 * [bottom][BottomTypeDescriptor.getBottom].
+		 * [bottom].
 		 */
 		private val pojoBottom: A_Type = mutable.createShared { }
 
 		/**
-		 * Answer the most specific [pojo&#32;type][PojoTypeDescriptor],
-		 * other than [bottom][BottomTypeDescriptor.getBottom].
+		 * Answer the most specific [pojo&#32;type][PojoTypeDescriptor], other
+		 * than [bottom].
 		 *
 		 * @return
 		 *   The most specific pojo type.

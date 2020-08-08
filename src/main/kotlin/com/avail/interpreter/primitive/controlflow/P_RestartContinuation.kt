@@ -168,7 +168,7 @@ object P_RestartContinuation : Primitive(
 			// moveRegister() uses to simply enlarge synonyms.
 			val newReads = tempSemanticValues.mapIndexed {
 				zeroIndex, temp ->
-				val newArg = generator.topFrame.slot(zeroIndex + 1, 1)
+				val newArg = translator.createSemanticSlot(zeroIndex + 1, 1)
 				val writeOperand = generator.boxedWrite(
 					newArg, manifest.restrictionFor(temp))
 				generator.addInstruction(

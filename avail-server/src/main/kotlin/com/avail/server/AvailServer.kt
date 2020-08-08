@@ -901,12 +901,13 @@ class AvailServer constructor(
 		builder.textInterface = ioChannel.textInterface!!
 		builder.buildTarget(
 			command.target,
-			{ name, size, position ->
+			{ name, size, position, line ->
 				val writer = JSONWriter()
 				writer.writeObject {
 					at("module") { write(name.qualifiedName) }
 					at("size") { write(size) }
 					at("position") { write(position) }
+					at("line") { write(line) }
 				}
 				synchronized(localUpdates) {
 					localUpdates.add(writer)

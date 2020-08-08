@@ -486,8 +486,8 @@ class ArithmeticTest
 			val shiftedAvailInt2 = availInt2.bitShift(availShift, false)
 			Assertions.assertEquals(shiftedAvailInt, shiftedAvailInt2)
 			val shiftedBigInt = base.shiftLeft(leftShift)
-			Assertions.assertEquals(fromBigInteger(shiftedBigInt),
-									shiftedAvailInt)
+			Assertions.assertEquals(
+				fromBigInteger(shiftedBigInt), shiftedAvailInt)
 		}
 
 		/**

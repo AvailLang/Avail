@@ -36,6 +36,14 @@ import com.avail.descriptor.character.CharacterDescriptor.Companion.fromCodePoin
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.childAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.childCount
+import com.avail.descriptor.tuples.A_Tuple.Companion.concatenateWith
+import com.avail.descriptor.tuples.A_Tuple.Companion.copyTupleFromToCanDestroy
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAtPuttingCanDestroy
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleReverse
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.ByteArrayTupleDescriptor
 import com.avail.descriptor.tuples.ByteArrayTupleDescriptor.Companion.tupleForByteArray
 import com.avail.descriptor.tuples.ByteBufferTupleDescriptor
@@ -405,6 +413,7 @@ class TreeTupleTest
 	/**
 	 * Test: Check reverse of [StringDescriptor].
 	 */
+	@Suppress("SpellCheckingInspection")
 	@Test
 	fun testStringDescriptorReverse()
 	{

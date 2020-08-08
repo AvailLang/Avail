@@ -33,11 +33,18 @@ package com.avail.optimizer.jvm
 
 import com.avail.AvailRuntimeSupport
 import com.avail.AvailThread
+import com.avail.descriptor.atoms.A_Atom.Companion.atomName
+import com.avail.descriptor.bundles.A_Bundle.Companion.message
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.functions.ContinuationDescriptor
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.NilDescriptor
+import com.avail.descriptor.tuples.A_String
+import com.avail.descriptor.types.CompiledCodeTypeDescriptor.Companion.mostGeneralCompiledCodeType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
+import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.interpreter.JavaLibrary.getClassLoader
 import com.avail.interpreter.JavaLibrary.javaUnboxIntegerMethod
 import com.avail.interpreter.JavaLibrary.longAdderIncrement
@@ -95,11 +102,13 @@ import org.objectweb.asm.Opcodes.ACONST_NULL
 import org.objectweb.asm.Opcodes.ALOAD
 import org.objectweb.asm.Opcodes.ANEWARRAY
 import org.objectweb.asm.Opcodes.ARETURN
+import org.objectweb.asm.Opcodes.ASTORE
 import org.objectweb.asm.Opcodes.ATHROW
 import org.objectweb.asm.Opcodes.BIPUSH
 import org.objectweb.asm.Opcodes.CHECKCAST
 import org.objectweb.asm.Opcodes.DCONST_0
 import org.objectweb.asm.Opcodes.DCONST_1
+import org.objectweb.asm.Opcodes.DSTORE
 import org.objectweb.asm.Opcodes.DUP
 import org.objectweb.asm.Opcodes.FCONST_0
 import org.objectweb.asm.Opcodes.FCONST_1
@@ -131,6 +140,7 @@ import org.objectweb.asm.Opcodes.IF_ICMPLE
 import org.objectweb.asm.Opcodes.IF_ICMPLT
 import org.objectweb.asm.Opcodes.IF_ICMPNE
 import org.objectweb.asm.Opcodes.ILOAD
+import org.objectweb.asm.Opcodes.ISTORE
 import org.objectweb.asm.Opcodes.LCONST_0
 import org.objectweb.asm.Opcodes.LCONST_1
 import org.objectweb.asm.Opcodes.PUTSTATIC
@@ -142,6 +152,7 @@ import java.io.IOException
 import java.io.UncheckedIOException
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
+import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.IdentityHashMap
 import java.util.UUID
@@ -339,13 +350,11 @@ class JVMTranslator constructor(
 	 *   [JVMChunk] subclass in which the corresponding [literal][AvailObject]
 	 *   is located, or `null` if no field is required.
 	 * @param getter
-	 *   The [Consumer] that generates an access of the literal when
-	 *   [evaluated][Consumer.accept].
+	 *   The function that generates an access of the literal when evaluated.
 	 * @param setter
-	 *   The [Consumer] that generates storage of the literal when
-	 *   [evaluated][Consumer.accept], or `null` if no such facility is
-	 *   required. The generated code assumes that the value to install is on
-	 *   top of the stack.
+	 *   The function that generates storage of the literal when evaluated, or
+	 *   `null` if no such facility is required. The generated code assumes that
+	 *   the value to install is on top of the stack.
 	 */
 	class LiteralAccessor constructor(
 		val classLoaderIndex: Int,
@@ -365,14 +374,13 @@ class JVMTranslator constructor(
 			 */
 			const val invalidIndex = -1
 		}
-
 	}
 
 	/**
 	 * The [literals][Object] used by the [L2Chunk] that must be embedded into
 	 * the translated [JVMChunk], mapped to their [accessors][LiteralAccessor].
 	 */
-	val literals: MutableMap<Any, LiteralAccessor> = mutableMapOf()
+	val literals = mutableMapOf<Any, LiteralAccessor>()
 
 	/**
 	 * Emit code to push the specified literal on top of the stack.
@@ -421,6 +429,20 @@ class JVMTranslator constructor(
 	}
 
 	/**
+	 * The start of the runChunk method, where the offset is used to jump to the
+	 * start of the control flow graph, or the specified entry point.
+	 */
+	val methodHead = Label()
+
+	/**
+	 * An entry point near the end of the method, which jumps back to the
+	 * [methodHead] for the purpose of performing a jump to a specified L2
+	 * offset without having the Fernflower Java decompiler produce tons of
+	 * spurious nested blocks, breaks, and duplicated code.  It's not very good.
+	 */
+	val jumper = Label()
+
+	/**
 	 * The [L2PcOperand]'s encapsulated program counters, mapped to their
 	 * [labels][Label].
 	 */
@@ -443,8 +465,7 @@ class JVMTranslator constructor(
 	 * The [L2Register]s used by the [L2Chunk], mapped to their JVM local
 	 * indices.
 	 */
-	val locals =
-		enumMap(RegisterKind.values()) { mutableMapOf<Int, Int>() }
+	val locals = enumMap(RegisterKind.values()) { mutableMapOf<Int, Int>() }
 
 	/**
 	 * Answer the next JVM local. The initial value is chosen to skip over the
@@ -514,7 +535,6 @@ class JVMTranslator constructor(
 			register.registerKind().storeInstruction,
 			localNumberFromRegister(register))
 	}
-
 	/**
 	 * A `JVMTranslationPreparer` acts upon its enclosing [JVMTranslator] and an
 	 * [L2Operand] to map [L2Register]s to JVM [locals][nextLocal], map
@@ -547,7 +567,7 @@ class JVMTranslator constructor(
 		{
 			literals.computeIfAbsent(operand.value) {
 				LiteralAccessor(
-					LiteralAccessor.invalidIndex,
+					invalidIndex,
 					null,
 					{ method: MethodVisitor -> intConstant(method, it as Int) },
 					null)
@@ -558,7 +578,7 @@ class JVMTranslator constructor(
 		{
 			literals.computeIfAbsent(operand.value) { constant: Any ->
 				LiteralAccessor(
-					LiteralAccessor.invalidIndex,
+					invalidIndex,
 					null,
 					{ method: MethodVisitor ->
 						doubleConstant(method, constant as Double) },
@@ -568,10 +588,7 @@ class JVMTranslator constructor(
 
 		override fun doOperand(operand: L2PcOperand)
 		{
-			if (operand.counter !== null)
-			{
-				recordLiteralObject(operand.counter)
-			}
+			operand.counter?.let(this::recordLiteralObject)
 			labels.computeIfAbsent(operand.offset()) { Label() }
 		}
 
@@ -641,41 +658,72 @@ class JVMTranslator constructor(
 		}
 
 		/**
+		 * Convert the [A_String] into a suitable suffix for a symbolic static
+		 * constant name in Java decompilation and the debugger.
+		 */
+		private fun tidy(string: A_String): String =
+			tidy(string.asNativeString())
+
+		/**
+		 * Convert the [String] into a suitable suffix for a symbolic static
+		 * constant name in Java decompilation and the debugger.
+		 */
+		private fun tidy(string: String): String
+		{
+			val trimmed =
+				if (string.length > 30) string.take(30) + "…"
+				else string
+			return buildString {
+				trimmed.forEach { c ->
+					when (c)
+					{
+						'.' -> append("dot")
+						';' -> append("semicolon")
+						'[' -> append("opensquare")
+						'/' -> append("slash")
+						'\\' -> append("backslash")
+						in '\u0000'..'\u0020' -> append("__")
+						else -> append(c)
+					}
+				}
+			}
+		}
+
+		/**
 		 * Create a literal slot for the given arbitrary [Object].
 		 *
 		 * @param value
 		 *   The actual literal value to capture.
 		 */
-		private fun recordLiteralObject(value: Any?)
+		private fun recordLiteralObject(value: Any)
 		{
-			literals.computeIfAbsent(value!!) { constant: Any ->
+			literals.computeIfAbsent(value) { constant: Any ->
 				// Choose an index and name for the literal.
 				val index = nextClassLoaderIndex++
-				val description: String =
-					when (value)
-					{
-						is AvailObject ->
-						{
-							tagEndPattern
-								.matcher(value.typeTag().name)
-								.replaceAll("")
-						}
-						is Primitive ->
-						{
-							value.fieldName()
-						}
-						else ->
-						{
-							value.javaClass.simpleName
-						}
-					}
-				val name = "literal_" + index + "_" + description
+				var name: String = when
+				{
+					value is Primitive -> value.fieldName()
+					value !is AvailObject -> value.javaClass.simpleName
+					value.isInstanceOf(stringType()) ->
+						"STRING_${tidy(value.asNativeString())}"
+					value.isInstanceOfKind(Types.ATOM.o) ->
+						"ATOM_${tidy(value.atomName())}"
+					value.isInstanceOfKind(Types.MESSAGE_BUNDLE.o) ->
+						"BUNDLE_${tidy(value.message().atomName())}"
+					value.isInstanceOfKind(mostGeneralFunctionType()) ->
+						"FUNCTION_${tidy(value.code().methodName())}"
+					value.isInstanceOfKind(mostGeneralCompiledCodeType()) ->
+						"CODE_${tidy(value.methodName())}"
+					else ->
+						"literal_" + tagEndPattern
+							.matcher(value.makeShared().typeTag().name)
+							.replaceAll("")
+				}
+				name += "_$index"
 				val type: Class<*> = constant.javaClass
 				// Generate a field that will hold the literal at runtime.
 				val field = classWriter.visitField(
-					ACC_PRIVATE
-						or ACC_STATIC
-						or ACC_FINAL,
+					ACC_PRIVATE or ACC_STATIC or ACC_FINAL,
 					name,
 					Type.getDescriptor(type),
 					null,
@@ -707,6 +755,7 @@ class JVMTranslator constructor(
 		}
 	}
 
+
 	/**
 	 * Prepare for JVM translation by [visiting][JVMTranslationPreparer] each of
 	 * the [L2Instruction]s to be translated.
@@ -714,16 +763,25 @@ class JVMTranslator constructor(
 	fun prepare()
 	{
 		val preparer = JVMTranslationPreparer()
-		for (instruction in instructions)
-		{
-			if (instruction.isEntryPoint)
+		instructions.forEachIndexed { offset, instruction ->
+			var include = instruction.isEntryPoint
+			if (debugNicerJavaDecompilation && !include)
+			{
+				// Normally we only keep L2_ENTER_L2_CHUNK entry points in the
+				// main switch, but when debugNicerJavaDecompilation is true,
+				// we include every basic block's first instruction for extra
+				// clarity.
+				include =
+					instruction.offset() == instruction.basicBlock().offset()
+			}
+			if (include)
 			{
 				val label = Label()
 				entryPoints[instruction.offset()] = label
 				labels[instruction.offset()] = label
 			}
-			instruction.operandsDo { operand: L2Operand ->
-				operand.dispatchOperand(preparer)
+			instruction.operandsDo {
+				it.dispatchOperand(preparer)
 			}
 		}
 	}
@@ -771,7 +829,7 @@ class JVMTranslator constructor(
 
 	/**
 	 * Finish visiting the [MethodVisitor] by calling
-	 * [visitMaxs][MethodVisitor.visitMaxs] and then
+	 * [MethodVisitor.visitMaxs] and then
 	 * [visitEnd][MethodVisitor.visitEnd]. If [debugJVM] is `true`, then an
 	 * attempt will be made to write out a trace file.
 	 *
@@ -779,6 +837,7 @@ class JVMTranslator constructor(
 	 *   The [method][MethodVisitor] into which the generated JVM instructions
 	 *   will be written.
 	 */
+	@Suppress("SpellCheckingInspection")
 	private fun finishMethod(method: MethodVisitor)
 	{
 		method.visitMaxs(0, 0)
@@ -945,7 +1004,7 @@ class JVMTranslator constructor(
 	{
 		when (value)
 		{
-			0L ->method.visitInsn(LCONST_0)
+			0L -> method.visitInsn(LCONST_0)
 			1L -> method.visitInsn(LCONST_1)
 			in Int.MIN_VALUE..Int.MAX_VALUE ->
 			{
@@ -1052,6 +1111,7 @@ class JVMTranslator constructor(
 	 * @return
 	 *   The branch opcode with the reversed sense.
 	 */
+	@Suppress("SpellCheckingInspection")
 	fun reverseOpcode(opcode: Int): Int =
 		when (opcode)
 		{
@@ -1080,7 +1140,8 @@ class JVMTranslator constructor(
 
 	/**
 	 * Emit code to unconditionally branch to the specified
-	 * [program&#32;counter][L2PcOperand].
+	 * [program&#32;counter][L2PcOperand].  Skip if the edge indicates it
+	 * follows the given [instruction].
 	 *
 	 * @param method
 	 *   The [method][MethodVisitor] into which the generated JVM instructions
@@ -1095,12 +1156,72 @@ class JVMTranslator constructor(
 		instruction: L2Instruction,
 		operand: L2PcOperand)
 	{
-		val pc = operand.offset()
 		// If the jump target is the very next instruction, then don't emit a
 		// jump at all; just fall through.
-		if (instruction.offset() != pc - 1)
+		if (operand.offset() != instruction.offset() + 1)
+		{
+			jump(method, operand)
+		}
+	}
+
+	/**
+	 * Emit code to unconditionally branch to the specified
+	 * [program&#32;counter][L2PcOperand].
+	 *
+	 * @param method
+	 *   The [method][MethodVisitor] into which the generated JVM instructions
+	 *   will be written.
+	 * @param operand
+	 *   The `L2PcOperand` that specifies the branch target.
+	 */
+	fun jump(
+		method: MethodVisitor,
+		operand: L2PcOperand)
+	{
+		val pc = operand.offset()
+		if (debugNicerJavaDecompilation)
+		{
+			intConstant(method, pc)
+			method.visitVarInsn(ISTORE, offsetLocal())
+			method.visitJumpInsn(GOTO, jumper)
+		}
+		else
 		{
 			method.visitJumpInsn(GOTO, labelFor(pc))
+		}
+	}
+
+	/**
+	 * Emit code to jump to the target of the supplied edge conditionally, based
+	 * on the supplied JVM branch opcode and the value on top of the stack.
+	 * [program&#32;counter][L2PcOperand].  If condition is not satisfied,
+	 * control continues at the next JVM instruction.
+	 *
+	 * @param method
+	 *   The [method][MethodVisitor] into which the generated JVM instructions
+	 *   will be written.
+	 * @param branchOpcode
+	 *   The JVM opcode for the branch instruction, as an [Int].
+	 * @param edge
+	 *   The [L2PcOperand] that indicates where to jump to.
+	 */
+	fun jumpIf(
+		method: MethodVisitor,
+		branchOpcode: Int,
+		edge: L2PcOperand)
+	{
+		if (debugNicerJavaDecompilation)
+		{
+			val tempLabel = Label()
+			method.visitJumpInsn(reverseOpcode(branchOpcode), tempLabel)
+			intConstant(method, edge.offset())
+			method.visitVarInsn(ISTORE, offsetLocal())
+			method.visitJumpInsn(GOTO, jumper)
+			method.visitLabel(tempLabel)
+		}
+		else
+		{
+			method.visitJumpInsn(GOTO, labelFor(edge.offset()))
 		}
 	}
 
@@ -1128,6 +1249,7 @@ class JVMTranslator constructor(
 	 * @param failureCounter
 	 *   An [LongAdder] to increment each time the branch falls through.
 	 */
+	@Suppress("SpellCheckingInspection")
 	fun branch(
 		method: MethodVisitor,
 		instruction: L2Instruction,
@@ -1138,12 +1260,15 @@ class JVMTranslator constructor(
 		failureCounter: LongAdder)
 	{
 		val offset = instruction.offset()
-		val successPc = success.offset()
-		val failurePc = failure.offset()
-		if (offset == failurePc - 1)
+		if (offset + 1 == failure.offset())
 		{
+			// Note that *both* paths might lead to the next instruction.  This
+			// is potentially useful for collecting stats about the frequency of
+			// the branch directions.  Make sure to handle this case when
+			// collecting all blocks that are targets of non-fallthrough
+			// branches.
 			generateBranch(
-				method, opcode, successCounter, failureCounter, successPc)
+				method, opcode, successCounter, failureCounter, success)
 			// Fall through to failurePc.
 		}
 		else
@@ -1153,13 +1278,10 @@ class JVMTranslator constructor(
 				reverseOpcode(opcode),
 				failureCounter,
 				successCounter,
-				failurePc)
-			// If the success branch targets the next instruction, fall through,
-			// otherwise jump to it.
-			if (offset != successPc - 1)
-			{
-				method.visitJumpInsn(GOTO, labelFor(successPc))
-			}
+				failure)
+			// If the success branch targets the next instruction, jump() will
+			// fall through, otherwise it will jump to failure.
+			jump(method, instruction, success)
 		}
 	}
 
@@ -1186,78 +1308,24 @@ class JVMTranslator constructor(
 	 *   The [LongAdder] to increment when the branch is taken.
 	 * @param notTakenCounter
 	 *   The [LongAdder] to increment when the branch is not taken.
-	 * @param takenPc
-	 *   The L2 program counter to jump to if the branch is taken.
+	 * @param takenEdge
+	 *   The [L2PcOperand] to jump to if the branch is taken.
 	 */
 	private fun generateBranch(
 		method: MethodVisitor,
 		branchOpcode: Int,
 		takenCounter: LongAdder,
 		notTakenCounter: LongAdder,
-		takenPc: Int)
+		takenEdge: L2PcOperand)
 	{
 		val logNotTaken = Label()
 		method.visitJumpInsn(reverseOpcode(branchOpcode), logNotTaken)
 		literal(method, takenCounter)
 		longAdderIncrement.generateCall(method)
-		method.visitJumpInsn(GOTO, labelFor(takenPc))
+		jump(method, takenEdge)
 		method.visitLabel(logNotTaken)
 		literal(method, notTakenCounter)
 		longAdderIncrement.generateCall(method)
-	}
-
-	/**
-	 * Emit code to conditionally branch to one of the specified
-	 * [program&#32;counters][L2PcOperand].
-	 *
-	 * @param method
-	 *   The [method][MethodVisitor] into which the generated JVM instructions
-	 *   will be written.
-	 * @param instruction
-	 *   The [L2Instruction] that includes the operands.
-	 * @param opcode
-	 *   The JVM opcode, e.g., [Opcodes.IFEQ], that decides between the two
-	 *   branch targets.
-	 * @param success
-	 *   The `L2PcOperand` that specifies the branch target in the event that
-	 *   the opcode succeeds, i.e., actually branches.
-	 * @param failure
-	 *   The `L2PcOperand` that specifies the branch target in the event that
-	 *   the opcode fails, i.e., does not actually branch and falls through to a
-	 *   branch.
-	 */
-	fun branch(
-		method: MethodVisitor,
-		instruction: L2Instruction,
-		opcode: Int,
-		success: L2PcOperand,
-		failure: L2PcOperand)
-	{
-		val offset = instruction.offset()
-		val successPc = success.offset()
-		val failurePc = failure.offset()
-		when (offset)
-		{
-			failurePc - 1 ->
-			{
-				// The failure branch targets the next instruction, so just fall
-				// through to it.
-				method.visitJumpInsn(opcode, labelFor(successPc))
-			}
-			successPc - 1 ->
-			{
-				// The success branch targets the next instruction, so reverse
-				// the sense of the opcode and fall through.
-				method.visitJumpInsn(reverseOpcode(opcode), labelFor(failurePc))
-			}
-			else ->
-			{
-				// Neither branch target is next, so emit the most general
-				// version of the logic.
-				method.visitJumpInsn(opcode, labelFor(successPc))
-				method.visitJumpInsn(GOTO, labelFor(failurePc))
-			}
-		}
 	}
 
 	/**
@@ -1301,34 +1369,28 @@ class JVMTranslator constructor(
 	 * Dump the [L1&#32;instructions][L1Operation] that comprise the
 	 * [function][A_RawFunction] to an appropriately named file.
 	 *
+	 * @param fileName
+	 *   A [Path] to the file that should be written to.  The directory has been
+	 *   created already.
 	 * @return
 	 *   The absolute path of the resultant file, for inclusion in a
 	 *   [JVMChunkL1Source] annotation of the generated [JVMChunk] subclass, or
 	 *   `null` if the file could not be written.
 	 */
-	private fun dumpL1SourceToFile(): String? =
+	private fun dumpL1SourceToFile(fileName: Path): String? =
 		try
 		{
-			code!!
 			val builder = StringBuilder()
 			builder.append(chunkName)
 			builder.append(":\n\n")
-			val disassembler = L1Disassembler(code)
+			val disassembler = L1Disassembler(code!!)
 			disassembler.print(builder, IdentityHashMap(), 0)
-			val lastSlash = classInternalName.lastIndexOf('/')
-			val pkg = classInternalName.substring(0, lastSlash)
-			val tempDir = Paths.get("debug", "jvm")
-			val dir = tempDir.resolve(Paths.get(pkg))
-			Files.createDirectories(dir)
-			val base =
-				classInternalName.substring(lastSlash + 1)
-			val l1File = dir.resolve("$base.l1")
-			val buffer =
-				StandardCharsets.UTF_8.encode(builder.toString())
+
+			val buffer = StandardCharsets.UTF_8.encode(builder.toString())
 			val bytes = ByteArray(buffer.limit())
-			buffer[bytes]
-			Files.write(l1File, bytes)
-			l1File.toAbsolutePath().toString()
+			buffer.get(bytes)
+			Files.write(fileName, bytes)
+			fileName.toAbsolutePath().toString()
 		}
 		catch (e: IOException)
 		{
@@ -1344,35 +1406,33 @@ class JVMTranslator constructor(
 	 * Dump the [visualized][L2ControlFlowGraphVisualizer] [L2ControlFlowGraph]
 	 * for the [L2Chunk] to an appropriately named file.
 	 *
+	 * @param fileName
+	 *   A [Path] to the file that should be written to.  The directory has been
+	 *   created already.
 	 * @return
 	 *   The absolute path of the resultant file, for inclusion in a
 	 *   [JVMChunkL2Source] annotation of the generated [JVMChunk] subclass.
 	 */
-	private fun dumpL2SourceToFile(): String? =
+	private fun dumpL2SourceToFile(fileName: Path): String? =
 		try
 		{
 			val lastSlash = classInternalName.lastIndexOf('/')
-			val pkg = classInternalName.substring(0, lastSlash)
-			val tempDir = Paths.get("debug", "jvm")
-			val dir = tempDir.resolve(Paths.get(pkg))
-			Files.createDirectories(dir)
-			val base = classInternalName.substring(lastSlash + 1)
-			val l2File = dir.resolve("$base.dot")
 			val builder = StringBuilder()
 			val visualizer = L2ControlFlowGraphVisualizer(
-				base,
+				classInternalName.substring(lastSlash + 1),
 				chunkName,
 				80,
 				controlFlowGraph,
 				true,
 				false,
+				true,
 				builder)
 			visualizer.visualize()
 			val buffer = StandardCharsets.UTF_8.encode(builder.toString())
 			val bytes = ByteArray(buffer.limit())
-			buffer[bytes]
-			Files.write(l2File, bytes)
-			l2File.toAbsolutePath().toString()
+			buffer.get(bytes)
+			Files.write(fileName, bytes)
+			fileName.toAbsolutePath().toString()
 		}
 		catch (e: IOException)
 		{
@@ -1412,14 +1472,28 @@ class JVMTranslator constructor(
 			0,
 			Type.getDescriptor(Nonnull::class.java),
 			true)
-		method.visitParameter("offset", ACC_FINAL)
+		method.visitParameter(
+			"offset",
+			if (debugNicerJavaDecompilation) 0 else ACC_FINAL)
 		if (debugJVM)
 		{
+			val lastSlash = classInternalName.lastIndexOf('/')
+			val pkg = classInternalName.substring(0, lastSlash)
+			val tempDir = Paths.get("debug", "jvm")
+			val dir = tempDir.resolve(Paths.get(pkg))
+			Files.createDirectories(dir)
+			var baseFileName = classInternalName.substring(lastSlash + 1)
+			if (baseFileName.length > 100)
+			{
+				// Protect against overly long filenames.
+				baseFileName = baseFileName.substring(0, 100) + "…"
+			}
+
 			// Note that we have to break the sources up if they are too large
 			// for the constant pool.
 			if (code !== null)
 			{
-				val l1Path = dumpL1SourceToFile()
+				val l1Path = dumpL1SourceToFile(dir.resolve("$baseFileName.l1"))
 				if (l1Path !== null)
 				{
 					val annotation = method.visitAnnotation(
@@ -1429,7 +1503,7 @@ class JVMTranslator constructor(
 					annotation.visitEnd()
 				}
 			}
-			val l2Path = dumpL2SourceToFile()
+			val l2Path = dumpL2SourceToFile(dir.resolve("$baseFileName.dot"))
 			if (l2Path !== null)
 			{
 				val annotation = method.visitAnnotation(
@@ -1442,6 +1516,38 @@ class JVMTranslator constructor(
 		method.visitAnnotation(
 			Type.getDescriptor(Nullable::class.java),
 			true)
+		if (debugNicerJavaDecompilation)
+		{
+			// When jumps are implemented via setting the offset and jumping
+			// back to the main switch, the verifier can no longer prove that
+			// variables are set before use.  Explicitly initialize them here
+			// instead, before the methodHead.
+			for ((kind, localsOfKind) in locals)
+			{
+				for ((_, localIndex) in localsOfKind)
+				{
+					when (kind)
+					{
+						RegisterKind.BOXED -> {
+							method.visitInsn(ACONST_NULL)
+							method.visitVarInsn(ASTORE, localIndex)
+						}
+						RegisterKind.INTEGER -> {
+							intConstant(method, 0)
+							method.visitVarInsn(ISTORE, localIndex)
+						}
+						RegisterKind.FLOAT -> {
+							doubleConstant(method, 0.0)
+							method.visitVarInsn(DSTORE, localIndex)
+						}
+					}
+				}
+			}
+			// Also initialize the stackReifier local.
+			method.visitInsn(ACONST_NULL)
+			method.visitVarInsn(ASTORE, reifierLocal())
+		}
+		method.visitLabel(methodHead)
 		// Emit the lookupswitch instruction to select among the entry points.
 		val offsets = IntArray(entryPoints.size)
 		val entries = arrayOfNulls<Label>(entryPoints.size)
@@ -1450,8 +1556,6 @@ class JVMTranslator constructor(
 			entries[i] = value
 		}
 		method.visitCode()
-		val startLabel = Label()
-		method.visitLabel(startLabel)
 		// :: switch (offset) {…}
 		method.visitVarInsn(ILOAD, offsetLocal())
 		val badOffsetLabel = Label()
@@ -1494,8 +1598,7 @@ class JVMTranslator constructor(
 							load(
 								method,
 								operand.register())
-							javaUnboxIntegerMethod
-								.generateCall(method)
+							javaUnboxIntegerMethod.generateCall(method)
 							return@pushOneObject
 						}
 					}
@@ -1518,10 +1621,23 @@ class JVMTranslator constructor(
 		// shouldn't generate a return here.
 		method.visitLabel(badOffsetLabel)
 
+		// :: JVMChunk.badOffset(interpreter.offset);
+		method.visitVarInsn(ILOAD, offsetLocal())
+		JVMChunk.badOffsetMethod.generateCall(method)
+		method.visitInsn(ATHROW)
+
+		if (debugNicerJavaDecompilation)
+		{
+			method.visitLabel(jumper)
+			method.visitJumpInsn(GOTO, methodHead)
+		}
+
 		// Visit each of the local variables in order to bind them to artificial
 		// register names. At present, we just claim that every variable is live
-		// from the beginning of the method until the badOffsetLabel, but we can
-		// always tighten this up later if we care.
+		// from the methodHead until the endLabel, but we can always tighten
+		// this up later if we care.
+		val endLabel = Label()
+		method.visitLabel(endLabel)
 		for ((kind, value) in locals)
 		{
 			for ((finalIndex, localIndex) in value)
@@ -1530,37 +1646,30 @@ class JVMTranslator constructor(
 					kind.prefix + finalIndex,
 					kind.jvmTypeString,
 					null,
-					entries[0],
-					badOffsetLabel,
+					methodHead,
+					endLabel,
 					localIndex)
 			}
 		}
-		// :: JVMChunk.badOffset(interpreter.offset);
-		method.visitVarInsn(ALOAD, interpreterLocal())
-		Interpreter.offsetField.generateRead(method)
-		JVMChunk.badOffsetMethod.generateCall(method)
-		method.visitInsn(ATHROW)
-		val endLabel = Label()
-		method.visitLabel(endLabel)
 		method.visitLocalVariable(
 			"interpreter",
 			Type.getDescriptor(Interpreter::class.java),
 			null,
-			startLabel,
+			methodHead,
 			endLabel,
 			interpreterLocal())
 		method.visitLocalVariable(
 			"offset",
 			Type.INT_TYPE.descriptor,
 			null,
-			startLabel,
+			methodHead,
 			endLabel,
 			offsetLocal())
 		method.visitLocalVariable(
 			"reifier",
 			Type.getDescriptor(StackReifier::class.java),
 			null,
-			startLabel,
+			methodHead,
 			endLabel,
 			reifierLocal())
 		finishMethod(method)
@@ -1659,40 +1768,33 @@ class JVMTranslator constructor(
 	 * @param action
 	 *   What to do for this phase.
 	 */
+	@Suppress("unused")
 	internal enum class GenerationPhase constructor(
 		private val action: (JVMTranslator) -> Unit)
 	{
 		/** Prepare to generate the JVM translation.  */
-		@Suppress("unused")
-		PREPARE({ it.prepare() }),
+		PREPARE(JVMTranslator::prepare),
 
 		/** Create the static &lt;clinit&gt; method for capturing constants.  */
-		@Suppress("unused")
-		GENERATE_STATIC_INITIALIZER({  it.generateStaticInitializer() }),
+		GENERATE_STATIC_INITIALIZER(JVMTranslator::generateStaticInitializer),
 
 		/** Prepare the default constructor, invoked once via reflection.  */
-		@Suppress("unused")
-		GENERATE_CONSTRUCTOR_V({ it.generateConstructorV() }),
+		GENERATE_CONSTRUCTOR_V(JVMTranslator::generateConstructorV),
 
 		/** Generate the name() method.  */
-		@Suppress("unused")
-		GENERATE_NAME({ it.generateName() }),
+		GENERATE_NAME(JVMTranslator::generateName),
 
 		/** Generate the runChunk() method.  */
-		@Suppress("unused")
-		GENERATE_RUN_CHUNK({ it.generateRunChunk() }),
+		GENERATE_RUN_CHUNK(JVMTranslator::generateRunChunk),
 
 		/** Indicate code emission has completed.  */
-		@Suppress("unused")
-		VISIT_END({ it.classVisitEnd() }),
+		VISIT_END(JVMTranslator::classVisitEnd),
 
 		/** Create a byte array that would be the content of a class file.  */
-		@Suppress("unused")
-		CREATE_CLASS_BYTES({ it.createClassBytes() }),
+		CREATE_CLASS_BYTES(JVMTranslator::createClassBytes),
 
 		/** Load the class into the running system.  */
-		@Suppress("unused")
-		LOAD_CLASS({ it.loadClass() });
+		LOAD_CLASS(JVMTranslator::loadClass);
 
 		/** Statistic about this L2 -> JVM translation phase.  */
 		private val statistic =
@@ -1747,6 +1849,31 @@ class JVMTranslator constructor(
 	companion object
 	{
 		/**
+		 * When true, this produces slightly slower code that can be decompiled from
+		 * bytecodes into Java code without introduce tons of duplicated code. The
+		 * body of the method should be decompilable as something like:
+		 *
+		 * ```
+		 * while(true) {
+		 *   switch(offset) {
+		 *     case 0:...
+		 *     case 10:...
+		 *     etc.
+		 *   }
+		 * }
+		 * ```
+		 *
+		 * In this scenario, a jump to case X is coded as a write to the `offset`
+		 * variable, followed by a jump to the loop head, which will look like an
+		 * assignment and a continue statement.
+		 *
+		 * It's unclear how much slower this is than a direct jump (which is what
+		 * is generated when this flag is false), but it's probably not a big
+		 * difference.
+		 */
+		val debugNicerJavaDecompilation = true
+
+		/**
 		 * A regex [Pattern] to rewrite function names like '"foo_"[1][3]' to
 		 * 'foo_#1#3'.
 		 */
@@ -1764,6 +1891,7 @@ class JVMTranslator constructor(
 		 * A regex [Pattern] to find runs of characters that are forbidden in a
 		 * class name, and will be replaced with a single `'%'`.
 		 */
+		@Suppress("SpellCheckingInspection")
 		private val classNameForbiddenCharacters =
 			Pattern.compile("[\\[\\]\\\\/.:;\"'\\p{Cntrl}]+")
 
@@ -1833,8 +1961,11 @@ class JVMTranslator constructor(
 		cleanFunctionName =
 			classNameForbiddenCharacters.matcher(cleanFunctionName)
 				.replaceAll("\\%")
-		val safeUID =
-			UUID.randomUUID().toString().replace('-', '_')
+		if (cleanFunctionName.length > 100)
+		{
+			cleanFunctionName = cleanFunctionName.substring(0, 100) + "%%%"
+		}
+		val safeUID = UUID.randomUUID().toString().replace('-', '_')
 		className = (
 			"com.avail.optimizer.jvm.generated.$moduleName.$cleanFunctionName"
 				 + " - $safeUID.$moduleName - $cleanFunctionName")

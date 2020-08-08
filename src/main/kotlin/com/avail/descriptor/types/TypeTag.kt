@@ -67,6 +67,7 @@ enum class TypeTag
 	FUNCTION_TAG(TOP_TAG),
 	GRAMMATICAL_RESTRICTION_TAG(TOP_TAG),
 	LEXER_TAG(TOP_TAG),
+	MACRO_TAG(TOP_TAG),
 	MAP_TAG(TOP_TAG),
 	MAP_LINEAR_BIN_TAG(TOP_TAG),
 	MAP_HASHED_BIN_TAG(TOP_TAG),
@@ -151,8 +152,8 @@ enum class TypeTag
 
 	constructor (parent: TypeTag)
 	{
-		assert(parent.metaTag === null) { 
-			"Children of tags with metaTags should also have metaTags" 
+		assert(parent.metaTag === null) {
+			"Children of tags with metaTags should also have metaTags"
 		}
 		depth = parent.depth + 1
 		this.parent = parent
@@ -178,15 +179,15 @@ enum class TypeTag
 	}
 
 	val parent: TypeTag?
-	
+
 	private var metaTag: TypeTag? = null
-	
+
 	val depth: Int
-	
+
 	private val descendants = mutableListOf<TypeTag>()
-	
+
 	private var highOrdinal: Int
-	
+
 	fun metaTag (): TypeTag = metaTag!!
 
 	@Suppress("unused")

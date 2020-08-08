@@ -32,13 +32,22 @@
 package com.avail.descriptor.tuples
 
 import com.avail.annotations.ThreadSafe
+import com.avail.descriptor.character.CharacterDescriptor
 import com.avail.descriptor.character.CharacterDescriptor.Companion.fromCodePoint
+import com.avail.descriptor.character.CharacterDescriptor.Companion.maxCodePointInt
 import com.avail.descriptor.representation.AbstractDescriptor
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.IntegerSlotsEnum
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
+import com.avail.descriptor.tuples.A_Tuple.Companion.rawShortForCharacterAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAtPuttingCanDestroy
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
+import com.avail.descriptor.tuples.ByteStringDescriptor.Companion.createUninitializedByteString
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
+import com.avail.descriptor.tuples.TwoByteStringDescriptor.Companion.generateTwoByteString
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.TypeDescriptor.Types.CHARACTER
 import com.avail.serialization.SerializerOperation
@@ -105,6 +114,11 @@ abstract class StringDescriptor protected constructor(
 		throw unsupportedOperationException()
 	}
 
+	override fun o_TupleLongAt(self: AvailObject, index: Int): Long
+	{
+		throw unsupportedOperationException()
+	}
+
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter)
 	{
 		writer.write(self.asNativeString())
@@ -130,8 +144,8 @@ abstract class StringDescriptor protected constructor(
 		 *   A Java [String].
 		 * @return
 		 *   An Avail `StringDescriptor string` having the same length, but with
-		 *   surrogate pairs (D800-DBFF and DC00-DFFF) preserved in the Avail
-		 *   string.
+		 *   surrogate pairs (U+D800..U+DBFF and U+DC00..U+DFFF) preserved in
+		 *   the Avail string.
 		 */
 		@Suppress("unused")
 		fun stringWithSurrogatesFrom(aNativeString: String): A_String
@@ -156,8 +170,7 @@ abstract class StringDescriptor protected constructor(
 			}
 			else
 			{
-				TwoByteStringDescriptor
-					.generateTwoByteString(aNativeString.length)
+				generateTwoByteString(aNativeString.length)
 						{ aNativeString[it - 1].toInt() }
 			}
 			// Pack it into a TwoByteString, preserving surrogates.
@@ -213,6 +226,57 @@ abstract class StringDescriptor protected constructor(
 				charIndex += Character.charCount(codePoint)
 				fromCodePoint(codePoint)
 			}
+		}
+
+		/**
+		 * Produce an Avail string from the given generator of Unicode code
+		 * points.  Attempt to use a [ByteStringDescriptor] representation
+		 * first, but generalize it to a [TwoByteStringDescriptor] or even an
+		 * [ObjectTupleDescriptor] as needed.
+		 *
+		 * @param size
+		 *   The number of code points that will be in the resulting string,
+		 *   which is also the number of times the [generator] will be called.
+		 * @param generator
+		 *   A function that takes a one-based index and produces a code point
+		 *   to write to the string at that index.  The indices will be passed
+		 *   in ascending order, from 1 to size.
+		 */
+		fun generateStringFromCodePoints(
+			size: Int,
+			generator: (Int)->Int): A_String
+		{
+			// Start out with a byte-string, and only switch to a more general
+			// form if needed.
+			var string: A_Tuple = createUninitializedByteString(size)
+			var representationLimit = 255
+			for (i in 1..size)
+			{
+				val codePoint = generator(i)
+				val character = fromCodePoint(codePoint)
+				when
+				{
+					codePoint <= representationLimit -> { }
+					codePoint <= 65535 ->
+					{
+						string = generateTwoByteString(size) {
+							string.tupleCodePointAt(it)
+						}
+						representationLimit = 65535
+					}
+					else ->
+					{
+						assert(codePoint <= maxCodePointInt)
+						string = generateObjectTupleFrom(size) {
+							string.tupleAt(it)
+						}
+						representationLimit = maxCodePointInt
+					}
+				}
+				string = string.tupleAtPuttingCanDestroy(
+					i, character, true)
+			}
+			return string as A_String
 		}
 
 		/**

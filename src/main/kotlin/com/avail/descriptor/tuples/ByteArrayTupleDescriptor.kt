@@ -43,6 +43,16 @@ import com.avail.descriptor.representation.BitField
 import com.avail.descriptor.representation.IntegerSlotsEnum
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
+import com.avail.descriptor.tuples.A_Tuple.Companion.byteArray
+import com.avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithByteArrayTupleStartingAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.concatenateWith
+import com.avail.descriptor.tuples.A_Tuple.Companion.copyAsMutableIntTuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.copyAsMutableObjectTuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.treeTupleLevel
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAtPuttingCanDestroy
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
+import com.avail.descriptor.tuples.ByteArrayTupleDescriptor.ObjectSlots.BYTE_ARRAY_POJO
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor
 import com.avail.descriptor.types.TypeDescriptor
@@ -88,6 +98,7 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 			 * very rare * case that the hash value actually equals zero, the
 			 * hash value has to  be computed every time it is requested.
 			 */
+			@JvmField
 			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
 
 			init
@@ -125,7 +136,7 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 			{
 				// Convert to a ByteTupleDescriptor.
 				val array =
-					self.slot(ObjectSlots.BYTE_ARRAY_POJO)
+					self.slot(BYTE_ARRAY_POJO)
 						.javaObjectNotNull<ByteArray>()
 				return ByteTupleDescriptor
 					.generateByteTupleFrom(originalSize + 1)
@@ -151,7 +162,7 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 	override fun o_BitsPerEntry(self: AvailObject): Int = 8
 
 	override fun o_ByteArray(self: AvailObject): ByteArray =
-		self.slot(ObjectSlots.BYTE_ARRAY_POJO).javaObjectNotNull()
+		self.slot(BYTE_ARRAY_POJO).javaObjectNotNull()
 
 	override fun o_CompareFromToWithByteArrayTupleStartingAt(
 		self: AvailObject,
@@ -200,7 +211,7 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 	{
 		// See comment in superclass. This method must produce the same value.
 		val array =
-			self.slot(ObjectSlots.BYTE_ARRAY_POJO).javaObjectNotNull<ByteArray>()
+			self.slot(BYTE_ARRAY_POJO).javaObjectNotNull<ByteArray>()
 		var hash = 0
 		var index = end - 1
 		val first = start - 1
@@ -356,7 +367,7 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 			return false
 		}
 		// See if it's an acceptable size...
-		if (!aType.sizeRange().rangeIncludesInt(self.tupleSize()))
+		if (!aType.sizeRange().rangeIncludesLong(self.tupleSize().toLong()))
 		{
 			return false
 		}
@@ -375,15 +386,12 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 		{
 			return true
 		}
-		var i = breakIndex + 1
-		val end = self.tupleSize()
-		while (i <= end)
+		for (i in breakIndex + 1 .. self.tupleSize())
 		{
 			if (!self.tupleAt(i).isInstanceOf(defaultTypeObject))
 			{
 				return false
 			}
-			i++
 		}
 		return true
 	}
@@ -393,7 +401,7 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 		if (isMutable)
 		{
 			self.setDescriptor(immutable)
-			self.slot(ObjectSlots.BYTE_ARRAY_POJO).makeImmutable()
+			self.slot(BYTE_ARRAY_POJO).makeImmutable()
 		}
 		return self
 	}
@@ -403,7 +411,7 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 		if (!isShared)
 		{
 			self.setDescriptor(shared)
-			self.slot(ObjectSlots.BYTE_ARRAY_POJO).makeShared()
+			self.slot(BYTE_ARRAY_POJO).makeShared()
 		}
 		return self
 	}
@@ -425,7 +433,7 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 	{
 		// Answer the element at the given index in the tuple object.
 		val array =
-			self.slot(ObjectSlots.BYTE_ARRAY_POJO).javaObjectNotNull<ByteArray>()
+			self.slot(BYTE_ARRAY_POJO).javaObjectNotNull<ByteArray>()
 		return fromUnsignedByte((array[index - 1].toShort() and 0xFF))
 	}
 
@@ -458,7 +466,7 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 		val theByte =
 			(newValueObject as AvailObject).extractUnsignedByte().toByte()
 		val array =
-			self.slot(ObjectSlots.BYTE_ARRAY_POJO).javaObjectNotNull<ByteArray>()
+			self.slot(BYTE_ARRAY_POJO).javaObjectNotNull<ByteArray>()
 		array[index - 1] = theByte
 		self.setHashOrZero(0)
 		//  ...invalidate the hash value.
@@ -476,11 +484,17 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 
 	override fun o_TupleIntAt(self: AvailObject, index: Int): Int
 	{
-		// Answer the integer element at the given index in the tuple object.
 		assert(index >= 1 && index <= self.tupleSize())
 		val array =
-			self.slot(ObjectSlots.BYTE_ARRAY_POJO).javaObjectNotNull<ByteArray>()
+			self.slot(BYTE_ARRAY_POJO).javaObjectNotNull<ByteArray>()
 		return array[index - 1].toInt() and 0xFF
+	}
+
+	override fun o_TupleLongAt(self: AvailObject, index: Int): Long
+	{
+		assert(index >= 1 && index <= self.tupleSize())
+		val array = self.slot(BYTE_ARRAY_POJO).javaObjectNotNull<ByteArray>()
+		return array[index - 1].toLong() and 0xFF
 	}
 
 	override fun o_TupleReverse(self: AvailObject): A_Tuple
@@ -496,21 +510,20 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 		// newLike() if start is 1.  Make sure to mask the last word in that
 		// case.
 		val originalBytes = self.byteArray()
-		val result = ByteTupleDescriptor
-			.generateByteTupleFrom(size) {
-				originalBytes[size - it].toInt() and 255
-			}
+		val result = ByteTupleDescriptor.generateByteTupleFrom(size) {
+			originalBytes[size - it].toInt() and 255
+		}
 		result.setHashOrZero(0)
 		return result
 	}
 
 	override fun o_TupleSize(self: AvailObject): Int =
-		self.slot(ObjectSlots.BYTE_ARRAY_POJO).javaObjectNotNull<ByteArray>().size
+		self.slot(BYTE_ARRAY_POJO).javaObjectNotNull<ByteArray>().size
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter)
 	{
 		val bytes =
-			self.slot(ObjectSlots.BYTE_ARRAY_POJO).javaObjectNotNull<ByteArray>()
+			self.slot(BYTE_ARRAY_POJO).javaObjectNotNull<ByteArray>()
 		writer.startArray()
 		for (aByte in bytes)
 		{
@@ -554,7 +567,7 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 		private fun copyAsMutableByteArrayTuple(self: AvailObject): A_Tuple
 		{
 			val array =
-				self.slot(ObjectSlots.BYTE_ARRAY_POJO)
+				self.slot(BYTE_ARRAY_POJO)
 					.javaObjectNotNull<ByteArray>()
 			val copy = array.copyOf(array.size)
 			val result = tupleForByteArray(copy)
@@ -575,7 +588,7 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 		fun tupleForByteArray(array: ByteArray): AvailObject =
 			mutable.create {
 				setSlot(IntegerSlots.HASH_OR_ZERO, 0)
-				setSlot(ObjectSlots.BYTE_ARRAY_POJO, identityPojo(array))
+				setSlot(BYTE_ARRAY_POJO, identityPojo(array))
 			}
 	}
 }

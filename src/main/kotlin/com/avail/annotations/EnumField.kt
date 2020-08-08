@@ -114,6 +114,7 @@ annotation class EnumField(
 			 *   An instance that presents it in decimal.
 			 */
 			@ReferencedInGeneratedCode
+			@JvmStatic
 			fun decimal (value: Int) =  Converter(value.toString())
 		}
 	}

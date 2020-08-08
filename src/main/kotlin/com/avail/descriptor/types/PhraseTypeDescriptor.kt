@@ -111,6 +111,7 @@ open class PhraseTypeDescriptor protected constructor(
 			/**
 			 * The hash, or zero (`0`) if the hash has not yet been computed.
 			 */
+			@JvmField
 			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
 		}
 	}
@@ -242,7 +243,8 @@ open class PhraseTypeDescriptor protected constructor(
 		 * [permuted&#32;list&#32;phrase][PermutedListPhraseDescriptor].
 		 */
 		PERMUTED_LIST_PHRASE(
-			"permuted list phrase type", LIST_PHRASE,
+			"permuted list phrase type",
+			LIST_PHRASE,
 			TypeTag.PERMUTED_LIST_PHRASE_TAG)
 		{
 			/** Create a descriptor for this kind.  */
@@ -436,13 +438,13 @@ open class PhraseTypeDescriptor protected constructor(
 
 		init
 		{
-			depth = if (parentKind === null)
+			depth = if (parentKind !== null)
 			{
-				0
+				parentKind.depth + 1
 			}
 			else
 			{
-				parentKind.depth + 1
+				0
 			}
 			mutableDescriptor = createDescriptor(Mutability.MUTABLE)
 			sharedDescriptor = createDescriptor(Mutability.SHARED)

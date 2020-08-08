@@ -32,6 +32,7 @@
 package com.avail.interpreter.levelTwo
 
 import com.avail.interpreter.execution.Interpreter
+import com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose
 import com.avail.interpreter.levelTwo.operand.L2Operand
 import com.avail.interpreter.levelTwo.operand.L2PcOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadOperand
@@ -45,7 +46,6 @@ import com.avail.optimizer.L2ValueManifest
 import com.avail.optimizer.jvm.JVMTranslator
 import com.avail.optimizer.reoptimizer.L2Inliner
 import com.avail.optimizer.values.L2SemanticValue
-import com.avail.utility.Mutable
 import com.avail.utility.cast
 import org.objectweb.asm.MethodVisitor
 import java.util.EnumSet
@@ -163,13 +163,13 @@ class L2Instruction constructor(
 	 * if it is the same as the [edge][L2PcOperand] that is taken by this
 	 * `L2Instruction`.
 	 *
-	 * This is only applicable to an instruction which [altersControlFlow]
+	 * This is only applicable to an instruction which [getAltersControlFlow]
 	 *
 	 * @param consumer
 	 *  The lambda to evaluate.
 	 */
 	fun edgesAndPurposesDo(
-		consumer: (L2PcOperand, L2NamedOperandType.Purpose?) -> Unit)
+		consumer: (L2PcOperand, Purpose?) -> Unit)
 	{
 		for (i in operands.indices)
 		{
@@ -187,7 +187,7 @@ class L2Instruction constructor(
 	 * each outbound [edge][L2PcOperand] to indicate which writes have effect
 	 * along which outbound edges.
 	 *
-	 * This is only applicable to an instruction which [altersControlFlow]
+	 * This is only applicable to an instruction which [getAltersControlFlow]
 	 *
 	 * @param purpose
 	 *   The [L2NamedOperandType.Purpose] with which to filter
@@ -197,10 +197,10 @@ class L2Instruction constructor(
 	 *   [L2NamedOperandType.Purpose].
 	 */
 	fun writesForPurposeDo(
-		purpose: L2NamedOperandType.Purpose,
+		purpose: Purpose,
 		consumer: (L2WriteOperand<*>) -> Unit)
 	{
-		assert(altersControlFlow())
+		assert(altersControlFlow)
 		for (i in operands.indices)
 		{
 			val operand = operands[i]
@@ -298,15 +298,10 @@ class L2Instruction constructor(
 	 * @return
 	 *  The list of read operands.
 	 */
-	fun readOperands(): List<L2ReadOperand<*>>
-	{
-		val list = mutableListOf<L2ReadOperand<*>>()
-		for (operand in operands)
-		{
-			operand.addReadsTo(list)
+	fun readOperands(): List<L2ReadOperand<*>> =
+		mutableListOf<L2ReadOperand<*>>().also { list ->
+			operands.forEach { operand -> operand.addReadsTo(list) }
 		}
-		return list
-	}
 
 	/**
 	 * Answer a [List] of this instruction's [L2WriteOperand]s.
@@ -314,15 +309,10 @@ class L2Instruction constructor(
 	 * @return
 	 *   The list of write operands.
 	 */
-	fun writeOperands(): List<L2WriteOperand<*>>
-	{
-		val list = mutableListOf<L2WriteOperand<*>>()
-		for (operand in operands)
-		{
-			operand.addWritesTo(list)
+	fun writeOperands(): List<L2WriteOperand<*>> =
+		mutableListOf<L2WriteOperand<*>>().also { list ->
+			operands.forEach { operand -> operand.addWritesTo(list) }
 		}
-		return list
-	}
 
 	/**
 	 * Answer all possible [L2PcOperand]s within this instruction.  These edges
@@ -334,7 +324,7 @@ class L2Instruction constructor(
 	 * @return
 	 *   A [List] of [L2PcOperand]s leading to the successor [L2BasicBlock]s.
 	 */
-	fun targetEdges(): List<L2PcOperand> = operation().targetEdges(this)
+	val targetEdges get() = operation().targetEdges(this)
 
 	/**
 	 * Answer whether this instruction can alter control flow.  That's true for
@@ -348,7 +338,7 @@ class L2Instruction constructor(
 	 *   Whether this instruction can do something other than fall through to
 	 *   the next instruction of its basic block.
 	 */
-	fun altersControlFlow(): Boolean = operation().altersControlFlow()
+	val altersControlFlow get() = operation().altersControlFlow()
 
 	/**
 	 * Answer whether this instruction has any observable effect besides
@@ -357,7 +347,7 @@ class L2Instruction constructor(
 	 * @return
 	 *   s\Whether this instruction has side effects.
 	 */
-	fun hasSideEffect(): Boolean = operation().hasSideEffect(this)
+	val hasSideEffect get() = operation().hasSideEffect(this)
 
 	/**
 	 * Answer whether this instruction is an entry point, which uses the
@@ -366,8 +356,7 @@ class L2Instruction constructor(
 	 * @return
 	 *   Whether the instruction is an entry point.
 	 */
-	val isEntryPoint: Boolean
-		get() = operation().isEntryPoint(this)
+	val isEntryPoint get() = operation().isEntryPoint(this)
 
 	/**
 	 * The receiver has been declared dead code.  If there's an alternative form
@@ -394,9 +383,8 @@ class L2Instruction constructor(
 	 */
 	fun replaceRegisters(registerRemap: Map<L2Register, L2Register>)
 	{
-		val sourcesBefore: List<L2Register> = sourceRegisters.toMutableList()
-		val destinationsBefore: List<L2Register> =
-			destinationRegisters.toMutableList()
+		val sourcesBefore: List<L2Register> = sourceRegisters.toList()
+		val destinationsBefore: List<L2Register> = destinationRegisters.toList()
 		operandsDo { it.replaceRegisters(registerRemap, this) }
 		sourceRegisters.replaceAll { r -> registerRemap[r] ?: r }
 		destinationRegisters.replaceAll { r -> registerRemap[r] ?: r }
@@ -405,18 +393,29 @@ class L2Instruction constructor(
 	}
 
 	/**
+	 * For every read of a register which is restricted to a constant, replace
+	 * it with a read of a brand new register with that same restriction, but
+	 * having no definitions.  This pattern is acceptable in later phases,
+	 * starting just before phi replacement.  It should reduce register
+	 * pressure.
+	 */
+	fun replaceConstantRegisters() =
+		operands.forEach(L2Operand::replaceConstantRegisters)
+
+	/**
 	 * This instruction was just added to its [L2BasicBlock].
 	 *
 	 * @param manifest
 	 *   The [L2ValueManifest] that is active where this instruction was just
 	 *   added to its [L2BasicBlock].
 	 */
-	fun justAdded(manifest: L2ValueManifest?)
+	fun justAdded(manifest: L2ValueManifest)
 	{
-		assert(!isEntryPoint || basicBlock().instructions()[0] == this)
-			{ "Entry point instruction must be at start of a block" }
+		assert(!isEntryPoint || basicBlock().instructions()[0] == this) {
+			"Entry point instruction must be at start of a block"
+		}
 		operandsDo { it.setInstruction(this) }
-		operation().instructionWasAdded(this, manifest!!)
+		operation().instructionWasAdded(this, manifest)
 	}
 
 	/**
@@ -453,20 +452,10 @@ class L2Instruction constructor(
 	fun recreateIncomingManifest(): L2ValueManifest
 	{
 		// Start with the intersection of the incoming manifests.
-		val incomingEdges =
-			basicBlock().predecessorEdgesIterator()
-		val manifest: L2ValueManifest
-		if (!incomingEdges.hasNext())
-		{
-			// No incoming edges, so the manifest is empty.
-			manifest = L2ValueManifest()
-		}
-		else
-		{
-			manifest = L2ValueManifest(incomingEdges.next().manifest())
-			incomingEdges.forEachRemaining { edge: L2PcOperand ->
-				manifest.retainRegisters(edge.manifest().allRegisters()) }
-		}
+		val incomingEdges = basicBlock().predecessorEdges()
+		val manifest = L2ValueManifest.intersectionOfManifests(
+			incomingEdges.map(L2PcOperand::manifest)
+		)
 		// Now record all writes until we reach the instruction.
 		for (instruction in basicBlock().instructions())
 		{
@@ -493,10 +482,8 @@ class L2Instruction constructor(
 	@Suppress("unused")
 	fun updateManifest(
 		manifest: L2ValueManifest?,
-		optionalPurpose: L2NamedOperandType.Purpose?)
-	{
-		operation.updateManifest(this, manifest!!, optionalPurpose)
-	}
+		optionalPurpose: Purpose?
+	) = operation.updateManifest(this, manifest!!, optionalPurpose)
 
 	/**
 	 * Attempt to create a copy of this instruction, but using the
@@ -516,36 +503,28 @@ class L2Instruction constructor(
 	fun copyInstructionForManifest(
 		newBlock: L2BasicBlock, manifest: L2ValueManifest): L2Instruction?
 	{
-		val failed = Mutable(false)
+		var failed = false
 		val transform: (L2ReadOperand<*>) -> L2ReadOperand<*> =
-			 { read: L2ReadOperand<*> ->
-				val registers =
-					manifest.getDefinitions<L2Register>(
-						read.semanticValue(), read.registerKind())
-				if (registers.isEmpty())
+			 {
+				read: L2ReadOperand<*> ->
+				val registers = manifest.getDefinitions<L2Register>(
+					read.semanticValue(), read.registerKind())
+				when
 				{
-					failed.value = true
-					read
-				}
-				else
-				{
-					read.copyForRegister(registers[0])
+					registers.isEmpty() ->
+					{
+						failed = true
+						read
+					}
+					else -> read.copyForRegister(registers[0])
 				}
 			}
-		val operandsCopy = operands.clone()
-		for (i in operandsCopy.indices)
-		{
-			operandsCopy[i] = operandsCopy[i].transformEachRead(transform)
-		}
+		val operandsCopy = operands.map { operand ->
+			operand.transformEachRead(transform)
+		}.toTypedArray()
 
-		return if (failed.value)
-		{
-			null
-		}
-		else
-		{
-			L2Instruction(newBlock, operation, *operandsCopy)
-		}
+		return if (failed) null
+			else L2Instruction(newBlock, operation, *operandsCopy)
 	}
 
 	/**
@@ -556,7 +535,7 @@ class L2Instruction constructor(
 	 * @return
 	 *   Whether to preserve this instruction during final code generation.
 	 */
-	fun shouldEmit(): Boolean = operation().shouldEmit(this)
+	val shouldEmit: Boolean get() = operation().shouldEmit(this)
 
 	override fun toString(): String
 	{
@@ -606,10 +585,9 @@ class L2Instruction constructor(
 	 * @return
 	 *   The array of transformed [L2Operand]s.
 	 */
-	fun transformOperands(inliner: L2Inliner): Array<L2Operand> =
-		Array<L2Operand>(operands().size)
-		{
-			inliner.transformOperand(operand(it))
+	private fun transformOperands(inliner: L2Inliner) =
+		Array(operands().size) {
+			inliner.transformOperand<L2Operand>(operand(it))
 		}
 
 	/**
@@ -621,11 +599,9 @@ class L2Instruction constructor(
 	 *   The [L2Inliner] through which to write this instruction's equivalent
 	 *   effect.
 	 */
-	fun transformAndEmitOn(inliner: L2Inliner)
-	{
+	fun transformAndEmitOn(inliner: L2Inliner) =
 		operation().emitTransformedInstruction(
 			this, transformOperands(inliner), inliner)
-	}
 
 	/**
 	 * Translate the `L2Instruction` into corresponding JVM instructions.
@@ -636,10 +612,8 @@ class L2Instruction constructor(
 	 *   The [method][MethodVisitor] into which the generated JVM instructions
 	 *   will be written.
 	 */
-	fun translateToJVM(translator: JVMTranslator, method: MethodVisitor)
-	{
+	fun translateToJVM(translator: JVMTranslator, method: MethodVisitor) =
 		operation().translateToJVM(translator, method, this)
-	}
 
 	/**
 	 * Answer the [L2BasicBlock] to which this instruction belongs.
@@ -648,6 +622,29 @@ class L2Instruction constructor(
 	 *   This instruction's [L2BasicBlock].
 	 */
 	fun basicBlock(): L2BasicBlock = basicBlock!!
+
+	/**
+	 * Determine if this instruction is a place-holding instruction that will be
+	 * re-emitted as an arbitrary graph of instructions at some point, via
+	 * [L2Operation.generateReplacement].
+	 */
+	val isPlaceholder get() = operation.isPlaceholder(this)
+
+	/**
+	 * Now that chunk optimization has completed, remove information from this
+	 * instruction that will no longer be needed in the finished chunk.  Note
+	 * that during subsequent inlining of this chunk at a call site, the type
+	 * and synonym information will be reconstructed without too much cost.
+	 */
+	fun postOptimizationCleanup()
+	{
+		sourceRegisters.clear()
+		destinationRegisters.clear()
+		for (operand in operands)
+		{
+			operand.postOptimizationCleanup()
+		}
+	}
 
 	init
 	{

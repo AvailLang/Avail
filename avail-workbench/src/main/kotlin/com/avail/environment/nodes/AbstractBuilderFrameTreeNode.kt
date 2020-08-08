@@ -107,9 +107,7 @@ abstract class AbstractBuilderFrameTreeNode internal constructor(
 	fun icon(lineHeight: Int): ImageIcon?
 	{
 		val iconResourceName = iconResourceName() ?: return null
-		val pair = Pair(
-			iconResourceName,
-			if (lineHeight != 0) lineHeight else 19)
+		val pair = iconResourceName to lineHeight.ifZero { 19 }
 		return cachedScaledIcons[pair]
 	}
 

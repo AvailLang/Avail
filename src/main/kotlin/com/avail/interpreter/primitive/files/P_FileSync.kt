@@ -123,7 +123,7 @@ object P_FileSync : Primitive(4, CanInline, HasSideEffect)
 		succeed.makeShared()
 		fail.makeShared()
 
-		val runtime = interpreter.runtime()
+		val runtime = interpreter.runtime
 		runtime.ioSystem().executeFileTask(
 			Runnable {
                try
@@ -153,7 +153,7 @@ object P_FileSync : Primitive(4, CanInline, HasSideEffect)
 		functionType(
 			tuple(
 				ATOM.o,
-				functionType(emptyTuple, TOP.o),
+				functionType(emptyTuple(), TOP.o),
 				functionType(
 					tuple(instanceType(E_IO_ERROR.numericCode())),
 					TOP.o

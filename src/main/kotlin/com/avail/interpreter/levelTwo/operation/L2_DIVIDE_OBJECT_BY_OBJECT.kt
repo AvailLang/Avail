@@ -135,7 +135,7 @@ object L2_DIVIDE_OBJECT_BY_OBJECT : L2ControlFlowOperation(
 		// fall through, because the next instruction expects a
 		// ArithmeticException to be pushed onto the stack. So always do the
 		// jump.
-		method.visitJumpInsn(Opcodes.GOTO, translator.labelFor(success.offset()))
+		translator.jump(method, success)
 		// :: } catch (ArithmeticException e) {
 		method.visitLabel(catchStart)
 		method.visitInsn(Opcodes.POP)

@@ -74,6 +74,8 @@ import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.tokens.A_Token
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import com.avail.descriptor.tuples.TupleDescriptor
@@ -133,6 +135,7 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 			 * that exists outside of a particular [AvailRuntime].  Note that
 			 * this number is never serialized or exposed to the Avail language.
 			 */
+			@JvmField
 			@EnumField(
 				describedBy = Primitive::class,
 				lookupMethodName = "byPrimitiveNumberOrNull")
@@ -142,6 +145,10 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 			/**
 			 * The line number on which this block starts.
 			 */
+			@JvmField
+			@EnumField(
+				describedBy = EnumField.Converter::class,
+				lookupMethodName = "decimal")
 			val STARTING_LINE_NUMBER = BitField(
 				PRIMITIVE_AND_STARTING_LINE_NUMBER, 32, 32)
 		}

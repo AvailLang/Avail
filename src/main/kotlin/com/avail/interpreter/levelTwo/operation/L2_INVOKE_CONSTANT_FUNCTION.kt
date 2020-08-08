@@ -64,10 +64,10 @@ import org.objectweb.asm.MethodVisitor
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-@WritesHiddenVariable(value = [
+@WritesHiddenVariable(
 	CURRENT_FUNCTION::class,
 	CURRENT_ARGUMENTS::class,
-	LATEST_RETURN_VALUE::class])
+	LATEST_RETURN_VALUE::class)
 object L2_INVOKE_CONSTANT_FUNCTION : L2ControlFlowOperation(
 	L2OperandType.CONSTANT.named("constant function"),
 	L2OperandType.READ_BOXED_VECTOR.named("arguments"),
@@ -112,12 +112,9 @@ object L2_INVOKE_CONSTANT_FUNCTION : L2ControlFlowOperation(
 		method: MethodVisitor,
 		instruction: L2Instruction)
 	{
-		val constantFunction =
-			instruction.operand<L2ConstantOperand>(0)
-		val arguments =
-			instruction.operand<L2ReadBoxedVectorOperand>(1)
-		val result =
-			instruction.operand<L2WriteBoxedOperand>(2)
+		val constantFunction = instruction.operand<L2ConstantOperand>(0)
+		val arguments = instruction.operand<L2ReadBoxedVectorOperand>(1)
+		val result = instruction.operand<L2WriteBoxedOperand>(2)
 		val onReturn = instruction.operand<L2PcOperand>(3)
 		val onReification = instruction.operand<L2PcOperand>(4)
 		translator.loadInterpreter(method)

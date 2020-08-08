@@ -137,7 +137,7 @@ object P_BootstrapPrefixPostStatement : Primitive(4, CanInline, Bootstrap)
 					zeroOrMoreOf(
 						// The "_!" mechanism wrapped each statement or
 						// declaration inside a literal phrase, so expect a
-						// phrase here instead of TOP.o().
+						// phrase here instead of TOP.o.
 						STATEMENT_PHRASE.mostGeneralType()))),
 			TOP.o
 		)

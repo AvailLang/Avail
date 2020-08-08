@@ -51,7 +51,9 @@ import org.objectweb.asm.Opcodes
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-@ReadsHiddenVariable([CURRENT_CONTINUATION::class, STACK_REIFIER::class])
+@ReadsHiddenVariable(
+	CURRENT_CONTINUATION::class,
+	STACK_REIFIER::class)
 object L2_RETURN_FROM_REIFICATION_HANDLER : L2ControlFlowOperation()
 {
 	override fun hasSideEffect(): Boolean

@@ -35,6 +35,7 @@ import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.functions.ContinuationDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.toList
@@ -214,7 +215,7 @@ object P_RestartContinuationWithArguments : Primitive(
 			// moveRegister() uses to simply enlarge synonyms.
 			val newReads = tempSemanticValues.mapIndexed {
 				zeroIndex, temp ->
-				val newArg = generator.topFrame.slot(zeroIndex + 1, 1)
+				val newArg = translator.createSemanticSlot(zeroIndex + 1, 1)
 				val writeOperand = generator.boxedWrite(
 					newArg, manifest.restrictionFor(temp))
 				generator.addInstruction(

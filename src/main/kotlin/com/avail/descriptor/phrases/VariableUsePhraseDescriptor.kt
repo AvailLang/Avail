@@ -31,38 +31,38 @@
  */
 package com.avail.descriptor.phrases
 
- import com.avail.compiler.AvailCodeGenerator
- import com.avail.descriptor.phrases.A_Phrase.Companion.declaration
- import com.avail.descriptor.phrases.A_Phrase.Companion.declaredType
- import com.avail.descriptor.phrases.A_Phrase.Companion.isLastUse
- import com.avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
- import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKind
- import com.avail.descriptor.phrases.A_Phrase.Companion.token
- import com.avail.descriptor.phrases.A_Phrase.Companion.tokens
- import com.avail.descriptor.phrases.VariableUsePhraseDescriptor.IntegerSlots.Companion.LAST_USE
- import com.avail.descriptor.phrases.VariableUsePhraseDescriptor.IntegerSlots.FLAGS
- import com.avail.descriptor.phrases.VariableUsePhraseDescriptor.ObjectSlots.DECLARATION
- import com.avail.descriptor.phrases.VariableUsePhraseDescriptor.ObjectSlots.USE_TOKEN
- import com.avail.descriptor.representation.A_BasicObject
- import com.avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
- import com.avail.descriptor.representation.AbstractSlotsEnum
- import com.avail.descriptor.representation.AvailObject
- import com.avail.descriptor.representation.AvailObject.Companion.multiplier
- import com.avail.descriptor.representation.BitField
- import com.avail.descriptor.representation.IntegerSlotsEnum
- import com.avail.descriptor.representation.Mutability
- import com.avail.descriptor.representation.ObjectSlotsEnum
- import com.avail.descriptor.tokens.A_Token
- import com.avail.descriptor.tokens.TokenDescriptor
- import com.avail.descriptor.tuples.A_Tuple
- import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
- import com.avail.descriptor.types.A_Type
- import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
- import com.avail.descriptor.types.TypeDescriptor.Types.TOKEN
- import com.avail.descriptor.types.TypeTag
- import com.avail.serialization.SerializerOperation
- import com.avail.utility.json.JSONWriter
- import java.util.IdentityHashMap
+import com.avail.compiler.AvailCodeGenerator
+import com.avail.descriptor.phrases.A_Phrase.Companion.declaration
+import com.avail.descriptor.phrases.A_Phrase.Companion.declaredType
+import com.avail.descriptor.phrases.A_Phrase.Companion.isLastUse
+import com.avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKind
+import com.avail.descriptor.phrases.A_Phrase.Companion.token
+import com.avail.descriptor.phrases.A_Phrase.Companion.tokens
+import com.avail.descriptor.phrases.VariableUsePhraseDescriptor.IntegerSlots.Companion.LAST_USE
+import com.avail.descriptor.phrases.VariableUsePhraseDescriptor.IntegerSlots.FLAGS
+import com.avail.descriptor.phrases.VariableUsePhraseDescriptor.ObjectSlots.DECLARATION
+import com.avail.descriptor.phrases.VariableUsePhraseDescriptor.ObjectSlots.USE_TOKEN
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
+import com.avail.descriptor.representation.AbstractSlotsEnum
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.multiplier
+import com.avail.descriptor.representation.BitField
+import com.avail.descriptor.representation.IntegerSlotsEnum
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.ObjectSlotsEnum
+import com.avail.descriptor.tokens.A_Token
+import com.avail.descriptor.tokens.TokenDescriptor
+import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
+import com.avail.descriptor.types.TypeDescriptor.Types.TOKEN
+import com.avail.descriptor.types.TypeTag
+import com.avail.serialization.SerializerOperation
+import com.avail.utility.json.JSONWriter
+import java.util.IdentityHashMap
 
 /**
  * My instances represent the use of some
@@ -99,6 +99,7 @@ class VariableUsePhraseDescriptor private constructor(
 			 * the phrase is immutable.  It should not be made visible to the
 			 * Avail language.
 			 */
+			@JvmField
 			val LAST_USE = BitField(FLAGS, 0, 1)
 		}
 	}

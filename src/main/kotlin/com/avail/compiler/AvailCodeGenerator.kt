@@ -83,6 +83,8 @@ import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.tokens.A_Token
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.NybbleTupleDescriptor.Companion.generateNybbleTupleFrom
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
@@ -93,6 +95,7 @@ import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.ASSIGNMENT_PHRASE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LABEL_PHRASE
+import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import com.avail.descriptor.variables.VariableDescriptor
 import com.avail.interpreter.Primitive
@@ -105,7 +108,10 @@ import com.avail.interpreter.primitive.privatehelpers.P_PushConstant
 import com.avail.interpreter.primitive.privatehelpers.P_PushLastOuter
 import com.avail.io.NybbleOutputStream
 import java.util.ArrayDeque
+import java.util.ArrayList
 import java.util.BitSet
+import java.util.HashMap
+import java.util.HashSet
 
 /**
  * An [AvailCodeGenerator] is used to convert a [phrase][PhraseDescriptor] into
@@ -155,6 +161,9 @@ import java.util.BitSet
  *   Any needed outer variable/constant declarations.
  * @param resultType
  *   The return type of the function.
+ * @param resultTypeIfPrimitiveFails
+ *   The return type of the function, in the event that the primitive fails, or
+ *   there is no primitive.
  * @param exceptionSet
  *   The declared exception set of the function.
  * @param startingLineNumber
@@ -169,6 +178,7 @@ class AvailCodeGenerator private constructor(
 	labels: List<A_Phrase>,
 	private val outers: List<A_Phrase>,
 	private val resultType: A_Type,
+	private val resultTypeIfPrimitiveFails: A_Type,
 	private val exceptionSet: A_Set,
 	private val startingLineNumber: Int)
 {
@@ -401,6 +411,7 @@ class AvailCodeGenerator private constructor(
 			maxDepth,
 			functionType,
 			primitive,
+			resultTypeIfPrimitiveFails,
 			tupleFromList(literals),
 			localTypes,
 			constantTypes,
@@ -899,6 +910,13 @@ class AvailCodeGenerator private constructor(
 				BlockPhraseDescriptor.labels(blockPhrase),
 				toList(blockPhrase.neededVariables()),
 				blockPhrase.resultType(),
+				blockPhrase.statementsTuple().run {
+					when{
+						primitive == null -> blockPhrase.resultType()
+						tupleSize() == 0 -> Types.TOP.o
+						else -> tupleAt(tupleSize()).expressionType()
+					}
+				},
 				blockPhrase.declaredExceptions(),
 				blockPhrase.startingLineNumber())
 			generator.stackShouldBeEmpty()

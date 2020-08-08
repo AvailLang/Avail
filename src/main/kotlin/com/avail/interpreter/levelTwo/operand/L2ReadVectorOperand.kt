@@ -49,8 +49,10 @@ import java.util.Collections
  * @param R
  *   A subclass of L2Register
  */
-abstract class L2ReadVectorOperand<RR : L2ReadOperand<R>, R
-	: L2Register> constructor(elements: List<RR>) : L2Operand()
+abstract class L2ReadVectorOperand<
+	RR : L2ReadOperand<R>,
+	R : L2Register>
+constructor(elements: List<RR>) : L2Operand()
 {
 	/**
 	 * The [List] of [L2ReadBoxedOperand]s.
@@ -158,25 +160,34 @@ abstract class L2ReadVectorOperand<RR : L2ReadOperand<R>, R
 		elements.forEach { it.setInstruction(theInstruction) }
 	}
 
-	override fun appendTo(builder: StringBuilder) = with(builder) {
-		append("@<")
-		var first = true
-		elements.forEach { read ->
-			if (!first)
+	override fun appendTo(builder: StringBuilder) =
+		with(builder)
+		{
+			append("@<")
+			var first = true
+			for (read in elements)
 			{
-				append(", ")
+				if (!first)
+				{
+					append(", ")
+				}
+				append(read.registerString())
+				val restriction = read.restriction()
+				if (restriction.constantOrNull === null)
+				{
+					// Don't redundantly print restriction information for
+					// constants.
+					append(restriction.suffixString())
+				}
+				first = false
 			}
-			append(read.registerString())
-			val restriction = read.restriction()
-			if (restriction.constantOrNull === null)
-			{
-				// Don't redundantly print restriction information for
-				// constants.
-				append(restriction.suffixString())
-			}
-			first = false
+			append(">")
+			Unit
 		}
-		append(">")
-		Unit
-	}
+
+	override fun replaceConstantRegisters() =
+		elements.forEach { it.replaceConstantRegisters() }
+
+	override fun postOptimizationCleanup() =
+		elements.forEach { it.postOptimizationCleanup() }
 }

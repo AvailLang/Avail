@@ -75,13 +75,11 @@ object L2_BOX_INT : L2Operation(
 	{
 		assert(this == instruction.operation())
 		val source = instruction.operand<L2ReadIntOperand>(0)
-		val destination =
-			instruction.operand<L2WriteBoxedOperand>(1)
+		val destination = instruction.operand<L2WriteBoxedOperand>(1)
 
 		// Ensure the new write ends up in the same synonym as the source.
 		source.instructionWasAdded(manifest)
-		destination.instructionWasAddedForMove(
-			source.semanticValue(), manifest)
+		destination.instructionWasAddedForMove(source.semanticValue(), manifest)
 	}
 
 	override fun translateToJVM(
@@ -89,10 +87,8 @@ object L2_BOX_INT : L2Operation(
 		method: MethodVisitor,
 		instruction: L2Instruction)
 	{
-		val source =
-			instruction.operand<L2ReadIntOperand>(0)
-		val destination =
-			instruction.operand<L2WriteBoxedOperand>(1)
+		val source = instruction.operand<L2ReadIntOperand>(0)
+		val destination = instruction.operand<L2WriteBoxedOperand>(1)
 
 		// :: destination = IntegerDescriptor.fromInt(source);
 		translator.load(method, source.register())

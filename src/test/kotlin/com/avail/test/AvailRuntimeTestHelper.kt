@@ -81,15 +81,16 @@ class AvailRuntimeTestHelper
 {
 	/** The [module name resolver][ModuleNameResolver].  */
 	@Suppress("MemberVisibilityCanBePrivate")
-	val resolver: ModuleNameResolver
+	val resolver: ModuleNameResolver =
+		createModuleNameResolver(createModuleRoots())
 
 	/** The [Avail runtime][AvailRuntime].  */
 	@JvmField
-	val runtime: AvailRuntime
+	val runtime: AvailRuntime = createAvailRuntime(resolver)
 
 	/** The [Avail builder][AvailBuilder].  */
 	@JvmField
-	val builder: AvailBuilder
+	val builder: AvailBuilder = createAvailBuilder()
 
 	/** The last [System.currentTimeMillis] that an update was shown.  */
 	@Suppress("MemberVisibilityCanBePrivate")
@@ -248,7 +249,8 @@ class AvailRuntimeTestHelper
 	private fun localTrack(
 		moduleName: ModuleName,
 		moduleSize: Long,
-		position: Long)
+		position: Long,
+		line: Int)
 	{
 		// Skip non-final per-module updates if they're too frequent.
 		if (position < moduleSize
@@ -258,7 +260,11 @@ class AvailRuntimeTestHelper
 		}
 		val percent = (position * 100 / moduleSize).toInt()
 		var modName = moduleName.qualifiedName
-		val maxModuleNameLength = 61
+		var maxModuleNameLength = 61
+		if (line != Int.MAX_VALUE) {
+			modName += "\u001b[35m:$line"
+			maxModuleNameLength += 5  // Just the escape sequence.
+		}
 		val len = modName.length
 		if (len > maxModuleNameLength)
 		{
@@ -267,7 +273,7 @@ class AvailRuntimeTestHelper
 			)
 		}
 		val status = String.format(
-			"%s  |  \u001b[34m%-61s\u001b[0m - %3d%%",
+			"%s  |  \u001b[34m%-${maxModuleNameLength}s\u001b[0m - %3d%%",
 			globalStatus,
 			modName,
 			percent
@@ -308,8 +314,8 @@ class AvailRuntimeTestHelper
 			ModuleName(moduleName), null)
 		builder.buildTarget(
 			library,
-			{ name: ModuleName, moduleSize: Long, position: Long ->
-				localTrack(name, moduleSize, position)
+			{ name: ModuleName, moduleSize: Long, position: Long, line: Int ->
+				localTrack(name, moduleSize, position, line)
 			},
 			{ moduleBytes: Long, totalBytes: Long ->
 				globalTrack(moduleBytes, totalBytes)
@@ -396,12 +402,5 @@ class AvailRuntimeTestHelper
 		 */
 		fun createAvailRuntime(resolver: ModuleNameResolver): AvailRuntime =
 			AvailRuntime(resolver)
-	}
-
-	init
-	{
-		resolver = createModuleNameResolver(createModuleRoots())
-		runtime = createAvailRuntime(resolver)
-		builder = createAvailBuilder()
 	}
 }

@@ -718,22 +718,20 @@ Method "filter_by_" is
 	aTuple : tuple,
 	predicate : [⊥]→boolean
 |
-	index : natural number := 1;
 	end ::= |aTuple|;
 	result : tuple := <>;
 	[
-		$loop;
-		If index ≤ end then
+		index : natural number
+	|
+		$loop : ⊤;
+		Exit loop if end < index;
+		element ::= aTuple[index];
+		If predicate(element) then
 		[
-			element ::= aTuple[index];
-			If predicate(element) then
-			[
-				result := eject result ++ <element>;
-			];
-			index++;
-			Restart loop
+			result := eject result ++ <element>;
 		];
-	]();
+		Restart loop with <index + 1>
+	](1);
 	result
 ] : tuple;
 
@@ -759,22 +757,20 @@ Method "filter_by_" is
 	aTuple : tuple,
 	predicate : [⊥, ⊥]→boolean
 |
-	index : natural number := 1;
 	end ::= |aTuple|;
 	result : tuple := <>;
 	[
-		$loop;
-		If index ≤ end then
+		index : natural number
+	|
+		$loop : ⊤;
+		Exit loop if end < index;
+		element ::= aTuple[index];
+		If predicate(element, index) then
 		[
-			element ::= aTuple[index];
-			If predicate(element, index) then
-			[
-				result := eject result ++ <element>;
-			];
-			index++;
-			Restart loop
+			result := eject result ++ <element>;
 		];
-	]();
+		Restart loop with <index + 1>
+	](1);
 	result
 ] : tuple;
 

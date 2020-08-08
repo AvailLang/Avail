@@ -95,19 +95,18 @@ object P_IsInstanceOf : Primitive(2, CannotFail, CanFold, CanInline)
 	{
 		val (xReg, yTypeReg) = arguments
 
+		val generator = translator.generator
 		if (xReg.restriction().metaRestriction().intersection(
 			yTypeReg.restriction()).type.isVacuousType)
 		{
 			// The intersection is vacuous, so no further testing is required.
 			callSiteHelper.useAnswer(
-				translator.generator.boxedConstant(falseObject))
+				generator.boxedConstant(falseObject))
 			return true
 		}
 
-		val (ifInstance, ifNotInstance) = with(translator.generator) {
-			createBasicBlock("if instance") to
-				createBasicBlock("not instance")
-		}
+		val ifInstance = generator.createBasicBlock("if instance")
+		val ifNotInstance = generator.createBasicBlock("not instance")
 
 		val constantYType = yTypeReg.constantOrNull()
 		if (constantYType !== null)
@@ -127,12 +126,16 @@ object P_IsInstanceOf : Primitive(2, CannotFail, CanFold, CanInline)
 				edgeTo(ifInstance),
 				edgeTo(ifNotInstance))
 		}
-		translator.generator.startBlock(ifInstance)
-		callSiteHelper.useAnswer(
-			translator.generator.boxedConstant(trueObject))
-		translator.generator.startBlock(ifNotInstance)
-		callSiteHelper.useAnswer(
-			translator.generator.boxedConstant(falseObject))
+		generator.startBlock(ifInstance)
+		if (generator.currentlyReachable())
+		{
+			callSiteHelper.useAnswer(generator.boxedConstant(trueObject))
+		}
+		generator.startBlock(ifNotInstance)
+		if (generator.currentlyReachable())
+		{
+			callSiteHelper.useAnswer(generator.boxedConstant(falseObject))
+		}
 		return true
 	}
 }

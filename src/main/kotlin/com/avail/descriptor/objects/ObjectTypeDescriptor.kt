@@ -61,6 +61,9 @@ import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.component1
+import com.avail.descriptor.tuples.A_Tuple.Companion.component2
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
@@ -76,7 +79,9 @@ import com.avail.descriptor.types.TypeTag
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.Strings.newlineTab
 import com.avail.utility.json.JSONWriter
+import java.lang.ref.WeakReference
 import java.util.IdentityHashMap
+import java.util.WeakHashMap
 
 /**
  * [ObjectTypeDescriptor] represents an Avail object type. An object type
@@ -119,6 +124,7 @@ class ObjectTypeDescriptor internal constructor(
 			 * the very rare case that the hash value actually equals zero, the
 			 * hash value has to be computed every time it is requested.
 			 */
+			@JvmField
 			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
 		}
 	}
@@ -385,6 +391,37 @@ class ObjectTypeDescriptor internal constructor(
 			self.slot(FIELD_TYPES_, it).isVacuousType
 		}
 
+	override fun o_MakeShared(self: AvailObject): AvailObject
+	{
+		if (isShared) return self
+		self.setDescriptor(self.descriptor().shared())
+		self.makeSubobjectsShared()
+		var canonical: AvailObject?
+		do
+		{
+			canonical = synchronized(sharedCanonicalTypes) {
+				sharedCanonicalTypes.getOrPut(self) {
+					// Self was made shared above, but has not been made visible
+					// to other fibers yet.  Clobber it into an indirection
+					WeakReference(self)
+				}.get()
+			}
+			// An older soft reference might have been found, then cleared by
+			// the JVM.  Just try again until we're successful (and therefore
+			// have a strong reference that prevents it from dissolving).
+		}
+		while (canonical === null)
+
+		if (canonical.sameAddressAs(self)) return canonical
+		// This newly shared instance was *not* the one in the map.
+		// Therefore, no other fiber has seen it yet, so clobber it into an
+		// indirection.
+		self.setDescriptor(self.descriptor().mutable())
+		self.becomeIndirectionTo(canonical)
+		self.makeShared()
+		return canonical
+	}
+
 	override fun o_TypeIntersection(
 		self: AvailObject,
 		another: A_Type
@@ -579,6 +616,15 @@ class ObjectTypeDescriptor internal constructor(
 	override fun shared() = variant.sharedObjectTypeDescriptor
 
 	companion object {
+		/**
+		 * A canonical mapping of all object types that have become shared.
+		 * Without too much runtime cost, this should reduce the memory
+		 * footprint, as well as improve the efficiency of [ObjectDescriptor]'s
+		 * [vettings][ObjectDescriptor.ObjectSlots.TYPE_VETTINGS_CACHE] cache.
+		 */
+		val sharedCanonicalTypes =
+			WeakHashMap<AvailObject, WeakReference<AvailObject>>()
+
 		/**
 		 * Extract the field type at the specified slot index.
 		 *

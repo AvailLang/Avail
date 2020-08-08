@@ -32,9 +32,11 @@
 package com.avail.interpreter.levelTwo.operation
 
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.InstanceMetaDescriptor
+import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import com.avail.descriptor.types.TupleTypeDescriptor
-import com.avail.descriptor.types.TypeDescriptor.Types.ANY
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypesList
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypesForTypesArrayMethod
+import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2OperandType
 import com.avail.interpreter.levelTwo.L2Operation
@@ -72,8 +74,7 @@ object L2_CREATE_TUPLE_TYPE : L2Operation(
 			// The types are all constants, so create the tuple type statically.
 			val constants =
 				elements.map { registerSet.constantAt(it.register()) }
-			val newTupleType =
-				TupleTypeDescriptor.tupleTypeForTypes(constants)
+			val newTupleType = tupleTypeForTypesList(constants)
 			newTupleType.makeImmutable()
 			registerSet.constantAtPut(
 				tupleType.register(), newTupleType, instruction)
@@ -90,16 +91,16 @@ object L2_CREATE_TUPLE_TYPE : L2Operation(
 					}
 					else
 					{
-						ANY.o
+						Types.ANY.o
 					}
 				}
 				else
 				{
-					ANY.o
+					Types.ANY.o
 				}
 			}
-			val newTupleType = TupleTypeDescriptor.tupleTypeForTypes(newTypes)
-			val newTupleMeta = InstanceMetaDescriptor.instanceMeta(newTupleType)
+			val newTupleType = tupleTypeForTypesList(newTypes)
+			val newTupleMeta = instanceMeta(newTupleType)
 			newTupleMeta.makeImmutable()
 			registerSet.removeConstantAt(tupleType.register())
 			registerSet.typeAtPut(
@@ -137,7 +138,7 @@ object L2_CREATE_TUPLE_TYPE : L2Operation(
 
 		// :: tupleType = TupleTypeDescriptor.tupleTypeForTypes(types);
 		translator.objectArray(method, types.elements(), A_Type::class.java)
-		TupleTypeDescriptor.tupleTypesForTypesArrayMethod.generateCall(method)
+		tupleTypesForTypesArrayMethod.generateCall(method)
 		translator.store(method, tupleType.register())
 	}
 }

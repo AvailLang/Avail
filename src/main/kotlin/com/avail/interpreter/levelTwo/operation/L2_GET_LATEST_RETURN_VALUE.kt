@@ -48,7 +48,7 @@ import org.objectweb.asm.MethodVisitor
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-@ReadsHiddenVariable(theValue = [LATEST_RETURN_VALUE::class])
+@ReadsHiddenVariable(LATEST_RETURN_VALUE::class)
 object L2_GET_LATEST_RETURN_VALUE : L2Operation(
 	L2OperandType.WRITE_BOXED.named("latest result"))
 {
