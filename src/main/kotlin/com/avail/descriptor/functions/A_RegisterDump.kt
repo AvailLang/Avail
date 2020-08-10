@@ -31,17 +31,12 @@
  */
 package com.avail.descriptor.functions
 
-import com.avail.descriptor.methods.A_SemanticRestriction
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.interpreter.levelTwo.L2Chunk
-import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.optimizer.L2Generator
 import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
-import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
-import com.avail.optimizer.jvm.JVMChunk
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 
 /**

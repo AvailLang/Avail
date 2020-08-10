@@ -123,24 +123,18 @@ object L2_CONCATENATE_TUPLES : L2Operation(
 		val output = instruction.operand<L2WriteBoxedOperand>(1)
 		val elements = tuples.elements()
 		val tupleCount = elements.size
-		if (tupleCount == 0)
+		assert (tupleCount > 0)
+		translator.load(method, elements[0].register())
+		for (i in 1 until tupleCount)
 		{
-			translator.literal(method, emptyTuple)
+			translator.load(method, elements[i].register())
+			translator.intConstant(method, 1) // canDestroy = true
+			concatenateTupleMethod.generateCall(method)
 		}
-		else
-		{
-			translator.load(method, elements[0].register())
-			for (i in 1 until tupleCount)
-			{
-				translator.load(method, elements[i].register())
-				translator.intConstant(method, 1) // canDestroy = true
-				concatenateTupleMethod.generateCall(method)
-			}
-			// Strengthen the final result to AvailObject.
-			method.visitTypeInsn(
-				Opcodes.CHECKCAST,
-				Type.getInternalName(AvailObject::class.java))
-		}
+		// Strengthen the final result to AvailObject.
+		method.visitTypeInsn(
+			Opcodes.CHECKCAST,
+			Type.getInternalName(AvailObject::class.java))
 		translator.store(method, output.register())
 	}
 }

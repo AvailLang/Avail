@@ -112,7 +112,7 @@ class PojoDescriptor private constructor(
 	override fun o_MarshalToJava(
 		self: AvailObject,
 		classHint: Class<*>?
-	): Any? = self.slot(RAW_POJO).javaObject<Any>()
+	): Any? = self.slot(RAW_POJO).javaObject()
 
 	override fun o_RawPojo(self: AvailObject): AvailObject = self.slot(RAW_POJO)
 

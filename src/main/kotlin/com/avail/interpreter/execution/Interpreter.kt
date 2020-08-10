@@ -1812,9 +1812,9 @@ class Interpreter(
 	 *   `false`, this state will simply be discarded.
 	 * @param processInterrupt
 	 *   Whether a pending interrupt should be processed after reification.
-	 * @param categoryIndex
-	 *   The ordinal of a [StatisticCategory] under which to record reification
-	 *   statistics.
+	 * @param statisticPojo
+	 *   A raw pojo [AvailObject] holding a [Statistic] to maintain when a
+	 *   reification happens.
 	 * @return
 	 *   The new [StackReifier].
 	 */
@@ -1822,14 +1822,14 @@ class Interpreter(
 	fun reify(
 		actuallyReify: Boolean,
 		processInterrupt: Boolean,
-		categoryIndex: Int
+		statisticPojo: AvailObject
 	): StackReifier = when {
 		processInterrupt -> {
 			// Reify-and-interrupt.
 			isReifying = true
 			StackReifier(
 				actuallyReify,
-				StatisticCategory.lookup(categoryIndex).statistic
+				statisticPojo.javaObjectNotNull()
 			) {
 				returnNow = false
 				isReifying = false
@@ -1847,7 +1847,7 @@ class Interpreter(
 			isReifying = true
 			StackReifier(
 				actuallyReify,
-				StatisticCategory.lookup(categoryIndex).statistic
+				statisticPojo.javaObjectNotNull()
 			) {
 				val continuation = getReifiedContinuation()!!
 				function = savedFunction
@@ -2832,7 +2832,7 @@ class Interpreter(
 			StackReifier::class.java,
 			Boolean::class.javaPrimitiveType!!,
 			Boolean::class.javaPrimitiveType!!,
-			Int::class.javaPrimitiveType!!)
+			AvailObject::class.java)
 
 		/**
 		 * The [CheckedMethod] for [reifierToRestartWithArguments].

@@ -458,7 +458,7 @@ class TypeRestriction private constructor(
 		val constant = constantOrNull
 		return when
 		{
-			constant == null ->
+			constant === null ->
 			{
 				when
 				{

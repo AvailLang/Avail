@@ -32,7 +32,6 @@
 package com.avail.descriptor.tuples
 
 import com.avail.annotations.ThreadSafe
-import com.avail.descriptor.character.CharacterDescriptor
 import com.avail.descriptor.character.CharacterDescriptor.Companion.fromCodePoint
 import com.avail.descriptor.character.CharacterDescriptor.Companion.maxCodePointInt
 import com.avail.descriptor.representation.AbstractDescriptor

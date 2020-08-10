@@ -55,6 +55,8 @@ import com.avail.descriptor.phrases.A_Phrase.Companion.neededVariables
 import com.avail.descriptor.phrases.A_Phrase.Companion.token
 import com.avail.descriptor.phrases.BlockPhraseDescriptor.Companion.constants
 import com.avail.descriptor.phrases.BlockPhraseDescriptor.Companion.locals
+import com.avail.descriptor.pojos.RawPojoDescriptor
+import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
@@ -66,7 +68,6 @@ import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
-import com.avail.descriptor.types.BottomTypeDescriptor
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.ContinuationTypeDescriptor.Companion.continuationTypeForFunctionType
 import com.avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralContinuationType
@@ -2512,13 +2513,15 @@ class L1Translator private constructor(
 			L2_REIFY,
 			L2IntImmediateOperand(1),
 			L2IntImmediateOperand(1),
-			L2IntImmediateOperand(
-				StatisticCategory.INTERRUPT_OFF_RAMP_IN_L2.ordinal),
+			L2ConstantOperand(
+				identityPojo(
+					StatisticCategory.INTERRUPT_OFF_RAMP_IN_L2.statistic)),
 			edgeTo(onReification))
 		generator.startBlock(onReification)
 		generator.addInstruction(
 			L2_ENTER_L2_CHUNK,
-			L2IntImmediateOperand(ChunkEntryPoint.TRANSIENT.offsetInDefaultChunk),
+			L2IntImmediateOperand(
+				ChunkEntryPoint.TRANSIENT.offsetInDefaultChunk),
 			L2CommentOperand(
 				"Transient, for interrupt - cannot be invalid."))
 
@@ -2771,7 +2774,7 @@ class L1Translator private constructor(
 						RestrictionFlagEncoding.BOXED))
 				addInstruction(
 					L2_GET_ARGUMENT,
-					L2IntImmediateOperand(i),
+					L2IntImmediateOperand(i - 1),
 					argReg)
 			}
 		}
@@ -3360,7 +3363,6 @@ class L1Translator private constructor(
 				"default chunk")
 
 			// 0. First try to run it as a primitive.
-//		final L2ControlFlowGraph controlFlowGraph = new L2ControlFlowGraph();
 			generator.startBlock(initialBlock)
 			generator.addInstruction(
 				L2_TRY_OPTIONAL_PRIMITIVE)

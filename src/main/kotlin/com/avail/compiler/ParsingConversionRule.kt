@@ -45,6 +45,7 @@ import com.avail.descriptor.phrases.MacroSubstitutionPhraseDescriptor.Companion.
 import com.avail.descriptor.phrases.PhraseDescriptor
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken
+import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 

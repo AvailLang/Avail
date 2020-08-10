@@ -33,7 +33,6 @@ package com.avail.interpreter.levelTwo.operand
 
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.types.CompiledCodeTypeDescriptor
 import com.avail.descriptor.types.CompiledCodeTypeDescriptor.Companion.mostGeneralCompiledCodeType
 import com.avail.interpreter.levelOne.L1Decompiler.Companion.decompile
 import com.avail.interpreter.levelTwo.L2OperandDispatcher

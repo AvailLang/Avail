@@ -44,7 +44,6 @@ import com.avail.optimizer.L2Generator
 import com.avail.optimizer.L2ValueManifest
 import com.avail.optimizer.RegisterSet
 import com.avail.optimizer.jvm.JVMTranslator
-import com.avail.optimizer.values.L2SemanticConstant
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 

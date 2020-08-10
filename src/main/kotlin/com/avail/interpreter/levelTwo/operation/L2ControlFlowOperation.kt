@@ -107,7 +107,7 @@ abstract class L2ControlFlowOperation protected constructor(
 	 */
 	override fun targetEdges(instruction: L2Instruction): List<L2PcOperand> =
 		// Requires explicit parameter typing
-		labelOperandIndices.map<L2PcOperand> { instruction.operand(it) }
+		labelOperandIndices.map { instruction.operand<L2PcOperand>(it) }
 
 	init
 	{

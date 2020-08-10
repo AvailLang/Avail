@@ -43,14 +43,14 @@ import kotlin.reflect.KClass
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *
- * @property theValue
+ * @property value
  *   The classes of [HiddenVariable] read by an [L2Instruction] using the
  *   annotated [L2Operation].
  *
  * @constructor
  *   Construct a [ReadsHiddenVariable].
  *
- * @param theValue
+ * @param value
  *   The classes of [HiddenVariable] read by an [L2Instruction] using the
  *   annotated [L2Operation].
  */

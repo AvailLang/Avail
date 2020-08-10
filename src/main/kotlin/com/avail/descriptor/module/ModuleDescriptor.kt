@@ -68,7 +68,7 @@ import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.ALL_ANCESTORS
 import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.BUNDLES
 import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.CONSTANT_BINDINGS
 import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.ENTRY_POINTS
-import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.EXPORTED_NAMES
+import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.CACHED_EXPORTED_NAMES
 import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.GRAMMATICAL_RESTRICTIONS
 import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.IMPORTED_NAMES
 import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.IS_OPEN
@@ -215,9 +215,11 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 		/**
 		 * A redundant cached [set][A_Set] of [atoms][A_Atom] that have been
 		 * exported. These are precisely the [imported names][IMPORTED_NAMES]
-		 * less the [private names][PRIVATE_NAMES].
+		 * less the [private names][PRIVATE_NAMES].  This is [nil] during module
+		 * loading or compiling, but can be computed and cached if requested
+		 * afterward.
 		 */
-		EXPORTED_NAMES,
+		CACHED_EXPORTED_NAMES,
 
 		/**
 		 * The [set][A_Set] of [bundles][A_Bundle] defined within this module.
@@ -296,7 +298,7 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 				|| e === IMPORTED_NAMES
 				|| e === PRIVATE_NAMES
 				|| e === VISIBLE_NAMES
-				|| e === EXPORTED_NAMES
+				|| e === CACHED_EXPORTED_NAMES
 				|| e === BUNDLES
 				|| e === METHOD_DEFINITIONS_SET
 				|| e === MACRO_DEFINITIONS_SET
@@ -361,19 +363,27 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 
 	override fun o_ExportedNames(self: AvailObject): A_Set
 	{
-		var exportedNames = emptySet
+		var exportedNames: A_Set
 		synchronized(self) {
-			for ((_, value) in
-				self.slot(IMPORTED_NAMES).mapIterable())
+			exportedNames = self.slot(CACHED_EXPORTED_NAMES)
+			if (exportedNames.equalsNil())
 			{
-				exportedNames = exportedNames.setUnionCanDestroy(
-					value.makeShared(), true)
-			}
-			for ((_, value) in
-				self.slot(PRIVATE_NAMES).mapIterable())
-			{
-				exportedNames = exportedNames.setMinusCanDestroy(
-					value.makeShared(), true)
+				// Compute it.
+				exportedNames = emptySet
+				self.slot(IMPORTED_NAMES).forEach { _, value ->
+					exportedNames = exportedNames.setUnionCanDestroy(
+						value.makeShared(), true)
+				}
+				self.slot(PRIVATE_NAMES).forEach { _, value ->
+					exportedNames = exportedNames.setMinusCanDestroy(
+						value.makeShared(), true)
+				}
+				exportedNames = exportedNames.makeShared()
+				if (self.slot(IS_OPEN).extractBoolean())
+				{
+					// The module is closed, so cache it for next time.
+					self.setSlot(CACHED_EXPORTED_NAMES, exportedNames)
+				}
 			}
 		}
 		return exportedNames
@@ -509,9 +519,6 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 				}
 				self.setSlot(PRIVATE_NAMES, privateNames.makeShared())
 			}
-			self.updateSlotShared(EXPORTED_NAMES) {
-				setWithElementCanDestroy(trueName, true)
-			}
 			self.updateSlotShared(VISIBLE_NAMES) {
 				setWithElementCanDestroy(trueName, true)
 			}
@@ -555,9 +562,6 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 			}
 			self.setSlot(IMPORTED_NAMES, importedNames.makeShared())
 			self.setSlot(PRIVATE_NAMES, privateNames.makeShared())
-			self.updateSlotShared(EXPORTED_NAMES) {
-				setUnionCanDestroy(trueNames, true)
-			}
 			self.updateSlotShared(VISIBLE_NAMES) {
 				setUnionCanDestroy(trueNames, true)
 			}
@@ -598,14 +602,6 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 			self.updateSlotShared(VISIBLE_NAMES) {
 				setWithElementCanDestroy(trueName, true)
 			}
-			val importedNames: A_Map = self.slot(IMPORTED_NAMES)
-			if (!importedNames.hasKey(string)
-				|| !importedNames.mapAt(string).hasElement(trueName))
-			{
-				self.updateSlotShared(EXPORTED_NAMES) {
-					setWithoutElementCanDestroy(trueName, true)
-				}
-			}
 		}
 
 	override fun o_AddPrivateNames(self: AvailObject, trueNames: A_Set) =
@@ -615,8 +611,6 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 				|| throw AvailRuntimeException(E_MODULE_IS_CLOSED)
 			var privateNames: A_Map = self.slot(PRIVATE_NAMES)
 			var visibleNames: A_Set = self.slot(VISIBLE_NAMES)
-			var exportedNames: A_Set = self.slot(EXPORTED_NAMES)
-			val importedNames: A_Map = self.slot(IMPORTED_NAMES)
 			for (trueName in trueNames)
 			{
 				val string: A_String = trueName.atomName()
@@ -629,16 +623,9 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 					true)
 				visibleNames = visibleNames.setWithElementCanDestroy(
 					trueName, true)
-				if (!importedNames.hasKey(string)
-					|| !importedNames.mapAt(string).hasElement(trueName))
-				{
-					exportedNames = exportedNames.setWithoutElementCanDestroy(
-						trueName, true)
-				}
 			}
 			self.setSlot(PRIVATE_NAMES, privateNames.makeShared())
 			self.setSlot(VISIBLE_NAMES, visibleNames.makeShared())
-			self.setSlot(EXPORTED_NAMES, exportedNames.makeShared())
 		}
 
 	override fun o_AddEntryPoint(
@@ -1009,7 +996,7 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 				setSlot(IMPORTED_NAMES, emptyMap)
 				setSlot(PRIVATE_NAMES, emptyMap)
 				setSlot(VISIBLE_NAMES, emptySet)
-				setSlot(EXPORTED_NAMES, emptySet)
+				setSlot(CACHED_EXPORTED_NAMES, nil)  // Only valid after loading.
 				setSlot(BUNDLES, emptySet)
 				setSlot(METHOD_DEFINITIONS_SET, emptySet)
 				setSlot(MACRO_DEFINITIONS_SET, emptySet)

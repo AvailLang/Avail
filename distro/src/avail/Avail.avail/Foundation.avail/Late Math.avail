@@ -1158,8 +1158,9 @@ Private method "factor_by hybrid-fermat" is
 	// The 4th root of n makes for a nice-sounding waypoint in trial division.
 	firstThreshold ::= if n > 2^32 then [⌊√sqrt⌋] else [sqrt];
 
-	// Running fermat's factorizaton up to c effectively checks for all divisors
-	// from c down to c - √(c² - n) so we can stop trial division at that point.
+	// Running Fermat's factorization up to c effectively checks for all
+	// divisors from c down to c - √(c² - n) so we can stop trial division at
+	// that point.
 	secondThreshold ::= (fermatLimit - ⌊√|fermatLimit^2 - n|⌋) ?→ whole number;
 
 	// Phase 0 - Use the primality tests for n < 2^64.

@@ -49,7 +49,6 @@ import com.avail.descriptor.types.PojoTypeDescriptor.Companion.resolvePojoType
 import com.avail.interpreter.primitive.pojos.P_InvokeCallback
 import com.avail.interpreter.primitive.pojos.PrimitiveHelper.rawPojoInvokerFunctionFromFunctionType
 import com.avail.utility.SimpleThreadFactory
-import java.util.Collections
 import java.util.WeakHashMap
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor

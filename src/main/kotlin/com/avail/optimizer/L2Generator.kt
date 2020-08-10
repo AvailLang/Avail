@@ -132,6 +132,8 @@ import com.avail.utility.notNullAnd
  *   optimization attempt.
  * @property topFrame
  *   The topmost [Frame] for translation.
+ * @property codeName
+ *   The descriptive name of the code being translated.
  *
  * @constructor
  * Construct a new `L2Generator`.
@@ -141,12 +143,12 @@ import com.avail.utility.notNullAnd
  * @param topFrame
  *   The topmost [Frame] for code generation.
  * @param codeName
- *   The descriptive name of the code being generated.
+ *   The descriptive name of the code being translated.
  */
 class L2Generator internal constructor(
 	val optimizationLevel: OptimizationLevel,
 	val topFrame: Frame,
-	codeName: String)
+	val codeName: String)
 {
 	/**
 	 * An indication of the possible degrees of optimization effort.  These are

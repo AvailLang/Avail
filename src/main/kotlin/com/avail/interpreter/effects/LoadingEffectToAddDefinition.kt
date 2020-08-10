@@ -39,7 +39,6 @@ import com.avail.descriptor.methods.A_Method
 import com.avail.descriptor.methods.DefinitionDescriptor
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.ABSTRACT_DEFINER
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.FORWARD_DEFINER
-import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.MACRO_DEFINER
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.METHOD_DEFINER
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.interpreter.levelOne.L1InstructionWriter

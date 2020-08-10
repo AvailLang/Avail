@@ -116,12 +116,9 @@ object L2_FUNCTION_PARAMETER_TYPE : L2Operation(
 		warningStyleChange: (Boolean) -> Unit)
 	{
 		assert(this == instruction.operation())
-		val function =
-			instruction.operand<L2ReadBoxedOperand>(0)
-		val parameterIndex =
-			instruction.operand<L2IntImmediateOperand>(1)
-		val parameterType =
-			instruction.operand<L2WriteBoxedOperand>(2)
+		val function = instruction.operand<L2ReadBoxedOperand>(0)
+		val parameterIndex = instruction.operand<L2IntImmediateOperand>(1)
+		val parameterType = instruction.operand<L2WriteBoxedOperand>(2)
 		renderPreamble(instruction, builder)
 		builder.append(' ')
 		builder.append(parameterType.registerString())
@@ -137,12 +134,9 @@ object L2_FUNCTION_PARAMETER_TYPE : L2Operation(
 		method: MethodVisitor,
 		instruction: L2Instruction)
 	{
-		val function =
-			instruction.operand<L2ReadBoxedOperand>(0)
-		val parameterIndex =
-			instruction.operand<L2IntImmediateOperand>(1)
-		val parameterType =
-			instruction.operand<L2WriteBoxedOperand>(2)
+		val function = instruction.operand<L2ReadBoxedOperand>(0)
+		val parameterIndex = instruction.operand<L2IntImmediateOperand>(1)
+		val parameterType = instruction.operand<L2WriteBoxedOperand>(2)
 
 		// :: paramType = function.code().functionType().argsTupleType()
 		// ::    .typeAtIndex(param)

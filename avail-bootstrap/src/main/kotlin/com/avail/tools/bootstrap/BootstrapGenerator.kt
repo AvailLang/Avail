@@ -115,7 +115,6 @@ import com.avail.tools.bootstrap.Resources.specialObjectKey
 import com.avail.tools.bootstrap.Resources.specialObjectTypeKey
 import com.avail.tools.bootstrap.Resources.specialObjectsBaseName
 import com.avail.tools.bootstrap.Resources.stringify
-import com.avail.utility.Tuple4
 import com.avail.utility.UTF8ResourceBundleControl
 import com.avail.utility.t
 import java.io.File

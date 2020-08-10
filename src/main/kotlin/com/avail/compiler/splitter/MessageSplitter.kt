@@ -56,7 +56,7 @@ import com.avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.bundles.A_BundleTree
-import com.avail.descriptor.methods.A_Definition
+import com.avail.descriptor.methods.A_Macro
 import com.avail.descriptor.methods.DefinitionDescriptor
 import com.avail.descriptor.methods.MacroDescriptor
 import com.avail.descriptor.methods.MethodDefinitionDescriptor
@@ -405,7 +405,7 @@ class MessageSplitter
 		/**
 		 * A section sign (§) indicates where, in the parsing of a macro
 		 * invocation, it should invoke one of its
-		 * [prefix&#32;functions][A_Definition.prefixFunctions].  The order of
+		 * [prefix&#32;functions][A_Macro.prefixFunctions].  The order of
 		 * section signs in the method name corresponds with the order of the
 		 * prefix functions.
 		 *
@@ -1205,7 +1205,7 @@ class MessageSplitter
 	 * @param sectionNumber
 	 *   The [SectionCheckpoint]'s subscript if this is a check of a
 	 *   [macro][MacroDescriptor]'s,
-	 *   [prefix&#32;function][A_Definition.prefixFunctions], otherwise any
+	 *   [prefix&#32;function][A_Macro.prefixFunctions], otherwise any
 	 *   value past the total [numberOfSectionCheckpoints] for a method or macro
 	 *   body.
 	 * @throws SignatureException

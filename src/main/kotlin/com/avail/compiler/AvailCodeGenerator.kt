@@ -108,10 +108,7 @@ import com.avail.interpreter.primitive.privatehelpers.P_PushConstant
 import com.avail.interpreter.primitive.privatehelpers.P_PushLastOuter
 import com.avail.io.NybbleOutputStream
 import java.util.ArrayDeque
-import java.util.ArrayList
 import java.util.BitSet
-import java.util.HashMap
-import java.util.HashSet
 
 /**
  * An [AvailCodeGenerator] is used to convert a [phrase][PhraseDescriptor] into

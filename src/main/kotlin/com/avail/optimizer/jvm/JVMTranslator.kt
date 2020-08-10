@@ -763,7 +763,7 @@ class JVMTranslator constructor(
 	fun prepare()
 	{
 		val preparer = JVMTranslationPreparer()
-		instructions.forEachIndexed { offset, instruction ->
+		instructions.forEach { instruction ->
 			var include = instruction.isEntryPoint
 			if (debugNicerJavaDecompilation && !include)
 			{

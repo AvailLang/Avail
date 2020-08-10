@@ -1657,8 +1657,7 @@ enum class SerializerOperation constructor(
 				val module = atom.issuingModule()
 				if (!module.equalsNil())
 				{
-					pairs.add(
-						tuple(module.moduleName(), atom.atomName()))
+					pairs.add(tuple(module.moduleName(), atom.atomName()))
 				}
 				else
 				{
@@ -1673,11 +1672,10 @@ enum class SerializerOperation constructor(
 			deserializer: Deserializer): A_BasicObject
 		{
 			val pairs = subobjects[0]
-			val runtime = deserializer.runtime
 			for ((moduleName, atomName) in pairs)
 			{
 				if (!moduleName.equalsNil() &&
-					runtime.includesModuleNamed(moduleName))
+					deserializer.loadedModules.hasKey(moduleName))
 				{
 					val atom = lookupAtom(atomName, moduleName, deserializer)
 					val bundle = atom.bundleOrNil()
@@ -1896,7 +1894,7 @@ enum class SerializerOperation constructor(
 			{
 				currentModule
 			}
-			else deserializer.runtime.moduleAt(moduleName)
+			else deserializer.loadedModules.mapAt(moduleName)
 		}
 	},
 

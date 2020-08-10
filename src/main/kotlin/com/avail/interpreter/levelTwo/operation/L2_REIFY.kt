@@ -33,10 +33,14 @@ package com.avail.interpreter.levelTwo.operation
 
 import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.L2Instruction
-import com.avail.interpreter.levelTwo.L2NamedOperandType
+import com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose
 import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2OperandType.CONSTANT
+import com.avail.interpreter.levelTwo.L2OperandType.INT_IMMEDIATE
+import com.avail.interpreter.levelTwo.L2OperandType.PC
 import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.STACK_REIFIER
 import com.avail.interpreter.levelTwo.WritesHiddenVariable
+import com.avail.interpreter.levelTwo.operand.L2ConstantOperand
 import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import com.avail.interpreter.levelTwo.operand.L2Operand
 import com.avail.interpreter.levelTwo.operand.L2PcOperand
@@ -62,10 +66,10 @@ import org.objectweb.asm.Opcodes
  */
 @WritesHiddenVariable(STACK_REIFIER::class)
 object L2_REIFY : L2ControlFlowOperation(
-	L2OperandType.INT_IMMEDIATE.named("capture frames"),
-	L2OperandType.INT_IMMEDIATE.named("process interrupt"),
-	L2OperandType.INT_IMMEDIATE.named("statistic category"),
-	L2OperandType.PC.named("on reification", L2NamedOperandType.Purpose.OFF_RAMP))
+	INT_IMMEDIATE.named("capture frames"),
+	INT_IMMEDIATE.named("process interrupt"),
+	CONSTANT.named("statistic"),
+	PC.named("on reification", Purpose.OFF_RAMP))
 {
 	/**
 	 * An enumeration of reasons for reification, for the purpose of
@@ -77,12 +81,6 @@ object L2_REIFY : L2ControlFlowOperation(
 		 * For measuring reifications for interrupts in L2 code.
 		 */
 		INTERRUPT_OFF_RAMP_IN_L2,
-
-		/**
-		 * For measuring reifications required before label construction in L2
-		 * code.
-		 */
-		PUSH_LABEL_IN_L2,
 
 		/**
 		 * For measuring stack-clearing reifications prior to
@@ -130,12 +128,14 @@ object L2_REIFY : L2ControlFlowOperation(
 		assert(this == instruction.operation())
 		val actuallyReify = instruction.operand<L2IntImmediateOperand>(0)
 		val processInterrupt = instruction.operand<L2IntImmediateOperand>(1)
-		val categoryIndex = instruction.operand<L2IntImmediateOperand>(2)
+		val statisticConstant = instruction.operand<L2ConstantOperand>(2)
 		//		final L2PcOperand onReification = instruction.operand(3);
-		val category = StatisticCategory.values()[categoryIndex.value]
+
+		val statistic =
+			statisticConstant.constant.javaObjectNotNull<Statistic>()
 		renderPreamble(instruction, builder)
 		builder.append(' ')
-		builder.append(category.name.replace("_IN_L2", "").toLowerCase())
+		builder.append(statistic.name())
 		if (actuallyReify.value != 0 || processInterrupt.value != 0)
 		{
 			builder.append(" [")
@@ -172,7 +172,7 @@ object L2_REIFY : L2ControlFlowOperation(
 	{
 		val actuallyReify = instruction.operand<L2IntImmediateOperand>(0)
 		val processInterrupt = instruction.operand<L2IntImmediateOperand>(1)
-		val categoryIndex = instruction.operand<L2IntImmediateOperand>(2)
+		val statisticConstant = instruction.operand<L2ConstantOperand>(2)
 		val onReification = instruction.operand<L2PcOperand>(3)
 
 		// :: reifier = interpreter.reify(
@@ -180,7 +180,7 @@ object L2_REIFY : L2ControlFlowOperation(
 		translator.loadInterpreter(method)
 		translator.literal(method, actuallyReify.value)
 		translator.literal(method, processInterrupt.value)
-		translator.literal(method, categoryIndex.value)
+		translator.literal(method, statisticConstant.constant)
 		Interpreter.reifyMethod.generateCall(method)
 		method.visitVarInsn(Opcodes.ASTORE, translator.reifierLocal())
 		// Arrange to arrive at the onReification target, which must be an

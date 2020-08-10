@@ -797,7 +797,7 @@ class FiberDescriptor private constructor(
 	override fun o_AvailLoader(self: AvailObject): AvailLoader? {
 		val pojo = self.mutableSlot(LOADER)
 		return if (!pojo.equalsNil()) {
-			pojo.javaObject<AvailLoader>()
+			pojo.javaObject()
 		} else null
 	}
 
@@ -856,7 +856,7 @@ class FiberDescriptor private constructor(
 	override fun o_WakeupTask(self: AvailObject): TimerTask? {
 		val pojo = self.mutableSlot(WAKEUP_TASK)
 		return if (!pojo.equalsNil()) {
-			pojo.javaObject<TimerTask>()
+			pojo.javaObject()
 		} else null
 	}
 

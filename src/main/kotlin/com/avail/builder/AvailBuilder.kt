@@ -83,8 +83,6 @@ import java.nio.file.Path
 import java.nio.file.attribute.BasicFileAttributes
 import java.util.Collections.synchronizedList
 import java.util.Collections.synchronizedMap
-import java.util.HashMap
-import java.util.HashSet
 import java.util.concurrent.Semaphore
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
@@ -98,7 +96,6 @@ import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.set
 import kotlin.concurrent.read
-import kotlin.concurrent.write
 
 /**
  * An `AvailBuilder` [compiles][AvailCompiler] and installs into an

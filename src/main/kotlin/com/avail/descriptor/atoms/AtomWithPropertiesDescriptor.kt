@@ -51,7 +51,6 @@ import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.types.TypeTag
 import com.avail.serialization.Serializer
-import java.util.Collections.synchronizedMap
 import java.util.WeakHashMap
 
 /**

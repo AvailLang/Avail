@@ -33,12 +33,12 @@
 package com.avail.serialization
 
 import com.avail.AvailRuntime
+import com.avail.descriptor.maps.A_Map
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.tuples.A_String
-import com.avail.descriptor.tuples.StringDescriptor
 import java.io.IOException
 import java.io.InputStream
 
@@ -70,6 +70,12 @@ abstract class AbstractDeserializer constructor(
 {
 	/** The current [module][ModuleDescriptor]. */
 	var currentModule: A_Module = nil
+
+	/**
+	 * The [A_Module]s that were already loaded in the [runtime] during instance
+	 * creation.
+	 */
+	val loadedModules = runtime.loadedModules()
 
 	/**
 	 * Consume an unsigned byte from the input.  Return it as an [Int] to ensure
@@ -125,13 +131,15 @@ abstract class AbstractDeserializer constructor(
 		}
 
 	/**
-	 * Look up the module of the receiver's [AvailRuntime] which has the given
-	 * name.
+	 * Look up the module by name.  It must already have been loaded prior to
+	 * creating this [AbstractDeserializer], at which time the given
+	 * [AvailRuntime] was asked to provide its [A_Map] of loaded [A_Module]s.
+	 * Alternatively, it might be referring to the [currentModule].
 	 *
 	 * @param moduleName
-	 *   The [name][StringDescriptor] of the module.
+	 *   The [name][A_String] of the module.
 	 * @return
-	 *   The module with the specified name.
+	 *   The [A_Module] with the specified name.
 	 */
 	internal fun moduleNamed(moduleName: A_String): A_Module
 	{
@@ -141,11 +149,11 @@ abstract class AbstractDeserializer constructor(
 		{
 			return current
 		}
-		if (!runtime.includesModuleNamed(moduleName))
+		if (!loadedModules.hasKey(moduleName))
 		{
 			throw RuntimeException("Cannot locate module named $moduleName")
 		}
-		return runtime.moduleAt(moduleName)
+		return loadedModules.mapAt(moduleName)
 	}
 
 	/**

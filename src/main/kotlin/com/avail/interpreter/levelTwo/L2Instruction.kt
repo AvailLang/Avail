@@ -163,7 +163,7 @@ class L2Instruction constructor(
 	 * if it is the same as the [edge][L2PcOperand] that is taken by this
 	 * `L2Instruction`.
 	 *
-	 * This is only applicable to an instruction which [getAltersControlFlow]
+	 * This is only applicable to an instruction which [altersControlFlow]
 	 *
 	 * @param consumer
 	 *  The lambda to evaluate.
@@ -187,7 +187,7 @@ class L2Instruction constructor(
 	 * each outbound [edge][L2PcOperand] to indicate which writes have effect
 	 * along which outbound edges.
 	 *
-	 * This is only applicable to an instruction which [getAltersControlFlow]
+	 * This is only applicable to an instruction which [altersControlFlow]
 	 *
 	 * @param purpose
 	 *   The [L2NamedOperandType.Purpose] with which to filter
@@ -649,11 +649,11 @@ class L2Instruction constructor(
 	init
 	{
 		assert(operation.namedOperandTypes.size == theOperands.size)
-		for ((i, operandTypes)
+		for ((i, namedOperandType)
 			in operation.namedOperandTypes.withIndex())
 		{
 			assert(theOperands[i].operandType()
-					   === operandTypes.operandType())
+				=== namedOperandType.operandType())
 		}
 		operands =
 			Array(theOperands.size)

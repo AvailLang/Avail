@@ -221,8 +221,8 @@ internal class UnfusedPojoTypeDescriptor constructor(mutability: Mutability)
 
 	override fun o_MarshalToJava(
 		self: AvailObject,
-		classHint: Class<*>?): Any? =
-			self.slot(JAVA_CLASS).javaObject<Any>()
+		classHint: Class<*>?
+	): Any? = self.slot(JAVA_CLASS).javaObject()
 
 	/**
 	 * Lazily compute the self type of the specified

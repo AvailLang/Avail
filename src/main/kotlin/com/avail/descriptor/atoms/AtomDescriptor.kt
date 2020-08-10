@@ -186,9 +186,6 @@ open class AtomDescriptor protected constructor (
 		e: AbstractSlotsEnum
 	) = e === IntegerSlots.HASH_AND_MORE
 
-	/** A [Pattern] of one or more word characters.  */
-	private val wordPattern = Pattern.compile("\\w+")
-
 	override fun printObjectOnAvoidingIndent (
 		self: AvailObject,
 		builder: StringBuilder,

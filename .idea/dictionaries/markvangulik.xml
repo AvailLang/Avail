@@ -5,6 +5,7 @@
       <w>backpointer</w>
       <w>bgcolor</w>
       <w>boundedly</w>
+      <w>calendrical</w>
       <w>cardinalities</w>
       <w>cellspacing</w>
       <w>checkable</w>
@@ -23,6 +24,7 @@
       <w>fillcolor</w>
       <w>genericity</w>
       <w>hasher</w>
+      <w>hexadecitets</w>
       <w>incomparables</w>
       <w>inet</w>
       <w>intelli</w>
@@ -38,6 +40,7 @@
       <w>metametatype</w>
       <w>misconnected</w>
       <w>noninline</w>
+      <w>nonlocal</w>
       <w>nonprimitive</w>
       <w>nullness</w>
       <w>observerless</w>
@@ -50,6 +53,8 @@
       <w>resumable</w>
       <w>retranslator</w>
       <w>rewriter</w>
+      <w>rng's</w>
+      <w>runtime's</w>
       <w>seminumerical</w>
       <w>semistackless</w>
       <w>sendable</w>
@@ -66,6 +71,7 @@
       <w>subphrase</w>
       <w>subregion</w>
       <w>subtable</w>
+      <w>subtyped</w>
       <w>supernode</w>
       <w>superunion</w>
       <w>synchronizer</w>

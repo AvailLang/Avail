@@ -35,16 +35,8 @@ import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.methods.MacroDescriptor
 import com.avail.descriptor.methods.MethodDefinitionDescriptor
 import com.avail.descriptor.phrases.A_Phrase
-import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsTuple
-import com.avail.descriptor.phrases.A_Phrase.Companion.permutation
-import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
-import com.avail.descriptor.phrases.ListPhraseDescriptor
-import com.avail.descriptor.phrases.PermutedListPhraseDescriptor
 import com.avail.descriptor.phrases.PhraseDescriptor
-import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
-import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.PhraseTypeDescriptor
 import com.avail.exceptions.MalformedMessageException
 import com.avail.exceptions.SignatureException
 

@@ -31,6 +31,7 @@
  */
 package com.avail.interpreter.levelTwo.operation
 
+import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralContinuationType
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
@@ -41,6 +42,7 @@ import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2OperandType
 import com.avail.interpreter.levelTwo.L2Operation
 import com.avail.interpreter.levelTwo.operand.L2CommentOperand
+import com.avail.interpreter.levelTwo.operand.L2ConstantOperand
 import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import com.avail.interpreter.levelTwo.operand.L2PcOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
@@ -48,13 +50,14 @@ import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding
-import com.avail.interpreter.levelTwo.operation.L2_REIFY.StatisticCategory
 import com.avail.optimizer.L2ControlFlowGraph
 import com.avail.optimizer.L2ControlFlowGraph.ZoneType
 import com.avail.optimizer.L2Generator
 import com.avail.optimizer.L2Generator.Companion.backEdgeTo
 import com.avail.optimizer.L2Generator.Companion.edgeTo
 import com.avail.optimizer.jvm.JVMTranslator
+import com.avail.performance.Statistic
+import com.avail.performance.StatisticReport
 import com.avail.utility.PrefixSharingList.Companion.last
 import org.objectweb.asm.MethodVisitor
 
@@ -180,8 +183,12 @@ object L2_VIRTUAL_CREATE_LABEL : L2Operation(
 				L2_REIFY,
 				L2IntImmediateOperand(1),
 				L2IntImmediateOperand(0),
-				L2IntImmediateOperand(
-					StatisticCategory.PUSH_LABEL_IN_L2.ordinal),
+				L2ConstantOperand(
+					identityPojo(
+						Statistic(
+							"Reification for label creation in L2: "
+								+ generator.codeName.replace('\n', ' '),
+							StatisticReport.REIFICATIONS))),
 				edgeTo(onReification))
 			generator.startBlock(onReification)
 			generator.addInstruction(

@@ -553,7 +553,7 @@ class L2ControlFlowGraphVisualizer constructor(
 							}
 						}
 					}
-					attr.attribute("label", edgeLabel.toString())
+					attr.attribute("label", edgeLabel)
 				}
 		}
 		catch (e: IOException)

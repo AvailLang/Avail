@@ -94,6 +94,7 @@ import com.avail.descriptor.pojos.RawPojoDescriptor
 import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
@@ -353,9 +354,7 @@ class AvailRuntime constructor(val moduleNameResolver: ModuleNameResolver)
 		{
 			val atoms = mutableSetOf<A_Atom>()
 			val definitions = mutableSetOf<A_Definition>()
-			for (moduleEntry in modules.mapIterable())
-			{
-				val module: A_Module = moduleEntry.value()
+			modules.forEach { _, module ->
 				atoms.addAll(module.newNames().valuesAsTuple())
 				atoms.addAll(module.visibleNames())
 				var atomSets = module.importedNames().valuesAsTuple()
@@ -1240,7 +1239,8 @@ class AvailRuntime constructor(val moduleNameResolver: ModuleNameResolver)
 	}
 
 	/**
-	 * The loaded Avail modules: a [A_Map] from [A_String] to [A_Module].
+	 * The loaded Avail modules: a [A_Map] from [A_String] to [A_Module].  Must
+	 * always be [Mutability.SHARED].
 	 */
 	private var modules = emptyMap
 
@@ -1253,12 +1253,12 @@ class AvailRuntime constructor(val moduleNameResolver: ModuleNameResolver)
 	@ThreadSafe
 	fun addModule(module: A_Module)
 	{
-		modules = runtimeLock.safeWrite {
+		// Ensure that the module is closed before installing it globally.
+		module.closeModule()
+		runtimeLock.safeWrite {
 			assert(!includesModuleNamed(module.moduleName()))
-			// Ensure that the module is closed before installing it globally.
-			module.closeModule()
-			modules.mapAtPuttingCanDestroy(
-				module.moduleName(), module, true)
+			modules = modules.mapAtPuttingCanDestroy(
+				module.moduleName(), module, true).makeShared()
 		}
 	}
 
@@ -1271,10 +1271,10 @@ class AvailRuntime constructor(val moduleNameResolver: ModuleNameResolver)
 	 */
 	fun unlinkModule(module: A_Module)
 	{
-		modules = runtimeLock.safeWrite {
+		runtimeLock.safeWrite {
 			assert(includesModuleNamed(module.moduleName()))
-			modules.mapWithoutKeyCanDestroy(
-				module.moduleName(), true)
+			modules = modules.mapWithoutKeyCanDestroy(
+				module.moduleName(), true).makeShared()
 		}
 	}
 
@@ -1292,18 +1292,24 @@ class AvailRuntime constructor(val moduleNameResolver: ModuleNameResolver)
 	fun includesModuleNamed(moduleName: A_String): Boolean
 	{
 		assert(moduleName.isString)
-		return runtimeLock.read { modules.hasKey(moduleName) }
+		return runtimeLock.read {
+			assert(modules.descriptor().isShared)
+			modules.hasKey(moduleName)
+		}
 	}
 
 	/**
-	 * Answer my current map of modules.  Mark it
-	 * [shared][A_BasicObject.makeShared] first for safety.
+	 * Answer my current [A_Map] of [A_Module]s.  It's always
+	 * [Mutability.SHARED] for safety.
 	 *
 	 * @return
 	 *   A [map][MapDescriptor] from resolved module [names][ResolvedModuleName]
 	 *   ([strings][StringDescriptor]) to [modules][ModuleDescriptor].
 	 */
-	fun loadedModules(): A_Map = runtimeLock.read { modules.makeShared() }
+	fun loadedModules(): A_Map = runtimeLock.read {
+		assert(modules.descriptor().isShared)
+		modules
+	}
 
 	/**
 	 * Answer the [module][ModuleDescriptor] with the specified
