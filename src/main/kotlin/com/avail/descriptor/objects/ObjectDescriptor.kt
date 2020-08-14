@@ -39,6 +39,9 @@ import com.avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY
 import com.avail.descriptor.maps.A_Map
+import com.avail.descriptor.maps.A_Map.Companion.keysAsSet
+import com.avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
+import com.avail.descriptor.maps.A_Map.Companion.mapIterable
 import com.avail.descriptor.maps.MapDescriptor
 import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.objects.ObjectDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
@@ -692,7 +695,7 @@ class ObjectDescriptor internal constructor(
 		 * The maximum size that one of the four sets in the
 		 * [TYPE_VETTINGS_CACHE] may be before taking action to reduce it.
 		 */
-		private val maximumVettingSetSize = 20
+		private const val maximumVettingSetSize = 20
 	}
 }
 

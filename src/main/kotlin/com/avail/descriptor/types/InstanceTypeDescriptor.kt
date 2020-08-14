@@ -33,6 +33,7 @@ package com.avail.descriptor.types
 
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.maps.A_Map
+import com.avail.descriptor.maps.A_Map.Companion.mapSize
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.one
 import com.avail.descriptor.objects.ObjectDescriptor

@@ -62,6 +62,9 @@ internal class CaseInsensitive constructor(
 	positionInName: Int,
 	val expression: Expression) : Expression(positionInName)
 {
+	override val recursivelyContainsReorders: Boolean
+		get() = expression.recursivelyContainsReorders
+
 	override val yieldsValue
 		get() = expression.yieldsValue
 

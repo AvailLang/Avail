@@ -320,7 +320,7 @@ internal class BuildLoader constructor(
 			val deserializer = Deserializer(inputStream, availBuilder.runtime)
 			val header = ModuleHeader(moduleName)
 			header.deserializeHeaderFrom(deserializer)
-			val errorString = header.applyToModule(module, availBuilder.runtime)
+			val errorString = header.applyToModule(availLoader)
 			if (errorString !== null)
 			{
 				throw RuntimeException(errorString)

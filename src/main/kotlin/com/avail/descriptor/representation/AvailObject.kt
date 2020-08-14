@@ -53,7 +53,6 @@ import com.avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecode
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.maps.A_Map
 import com.avail.descriptor.maps.A_MapBin
-import com.avail.descriptor.maps.MapBinDescriptor
 import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.methods.A_GrammaticalRestriction
 import com.avail.descriptor.methods.A_Macro
@@ -1117,9 +1116,6 @@ class AvailObject private constructor(
 	override fun setHashOrZero(value: Int) =
 		dispatch(value) { it::o_SetHashOrZero }
 
-	override fun hasKey(keyObject: A_BasicObject) =
-		dispatch(keyObject) { it::o_HasKey }
-
 	override fun hasObjectInstance(potentialInstance: AvailObject) =
 		dispatch(potentialInstance) { it::o_HasObjectInstance }
 
@@ -1371,8 +1367,6 @@ class AvailObject private constructor(
 	override fun spliterator(): Spliterator<AvailObject> =
 		dispatch { it::o_Spliterator }
 
-	override fun keysAsSet() = dispatch { it::o_KeysAsSet }
-
 	override fun keyType() = dispatch { it::o_KeyType }
 
 	override fun levelTwoChunk() = dispatch { it::o_LevelTwoChunk }
@@ -1430,35 +1424,6 @@ class AvailObject private constructor(
 
 	override fun makeSubobjectsShared() =
 		dispatch { it::o_MakeSubobjectsShared }
-
-	override fun mapAt(keyObject: A_BasicObject) =
-		dispatch(keyObject) { it::o_MapAt }
-
-	override fun mapAtPuttingCanDestroy(
-		keyObject: A_BasicObject,
-		newValueObject: A_BasicObject,
-		canDestroy: Boolean
-	) = dispatch(keyObject, newValueObject, canDestroy) {
-		it::o_MapAtPuttingCanDestroy
-	}
-
-	override fun mapAtReplacingCanDestroy(
-		key: A_BasicObject,
-		notFoundValue: A_BasicObject,
-		transformer: (AvailObject, AvailObject) -> A_BasicObject,
-		canDestroy: Boolean
-	): A_Map = dispatch(key, notFoundValue, transformer, canDestroy) {
-		it::o_MapAtReplacingCanDestroy
-	}
-
-	override fun mapBinSize() = dispatch { it::o_MapBinSize }
-
-	override fun mapSize() = dispatch { it::o_MapSize }
-
-	override fun mapWithoutKeyCanDestroy(
-		keyObject: A_BasicObject,
-		canDestroy: Boolean
-	) = dispatch(keyObject, canDestroy) { it::o_MapWithoutKeyCanDestroy }
 
 	override fun maxStackDepth() = dispatch { it::o_MaxStackDepth }
 
@@ -1926,8 +1891,6 @@ class AvailObject private constructor(
 
 	override fun value() = dispatch { it::o_Value }
 
-	override fun valuesAsTuple() = dispatch { it::o_ValuesAsTuple }
-
 	override fun variableBindings() = dispatch { it::o_VariableBindings }
 
 	override fun visibleNames() = dispatch { it::o_VisibleNames }
@@ -1945,8 +1908,6 @@ class AvailObject private constructor(
 	override fun lineNumber() = dispatch { it::o_LineNumber }
 
 	override val isSetBin get() = dispatch { it::o_IsSetBin }
-
-	override fun mapIterable() = dispatch { it::o_MapIterable }
 
 	override fun declaredExceptions() = dispatch { it::o_DeclaredExceptions }
 
@@ -2125,58 +2086,6 @@ class AvailObject private constructor(
 	override fun serializerOperation() =
 		dispatch { it::o_SerializerOperation }
 
-	override fun mapBinAtHashPutLevelCanDestroy(
-		key: A_BasicObject,
-		keyHash: Int,
-		value: A_BasicObject,
-		myLevel: Int,
-		canDestroy: Boolean
-	) = dispatch(key, keyHash, value, myLevel, canDestroy) {
-		it::o_MapBinAtHashPutLevelCanDestroy
-	}
-
-	override fun mapBinRemoveKeyHashCanDestroy(
-		key: A_BasicObject,
-		keyHash: Int,
-		canDestroy: Boolean
-	) = dispatch(key, keyHash, canDestroy) {
-		it::o_MapBinRemoveKeyHashCanDestroy
-	}
-
-	override fun mapBinAtHashReplacingLevelCanDestroy(
-		key: A_BasicObject,
-		keyHash: Int,
-		notFoundValue: A_BasicObject,
-		transformer: (AvailObject, AvailObject) -> A_BasicObject,
-		myLevel: Int,
-		canDestroy: Boolean
-	): A_MapBin = dispatch(key, keyHash, notFoundValue, transformer, myLevel, canDestroy) { it::o_MapBinAtHashReplacingLevelCanDestroy }
-
-	override fun mapBinKeyUnionKind() = dispatch { it::o_MapBinKeyUnionKind }
-
-	override fun mapBinValueUnionKind() =
-		dispatch { it::o_MapBinValueUnionKind }
-
-	override fun isHashedMapBin() = dispatch { it::o_IsHashedMapBin }
-
-	/**
-	 * Look up the key in this [map&#32;bin][MapBinDescriptor].  If not found,
-	 * answer `null`.  Use the provided hash of the key.
-	 *
-	 * @param key
-	 *   The key to look up in this map.
-	 * @param keyHash
-	 *   The conveniently already computed hash of the key.
-	 * @return
-	 *   The value under that key in the map, or null if not found.
-	 */
-	override fun mapBinAtHash(key: A_BasicObject, keyHash: Int): AvailObject? =
-		dispatch(key, keyHash) { it::o_MapBinAtHash }
-
-	override fun mapBinKeysHash() = dispatch { it::o_MapBinKeysHash }
-
-	override fun mapBinValuesHash() = dispatch { it::o_MapBinValuesHash }
-
 	override val isPojoFusedType get() = dispatch { it::o_IsPojoFusedType }
 
 	override fun isSupertypeOfPojoBottomType(aPojoType: A_Type) =
@@ -2305,8 +2214,6 @@ class AvailObject private constructor(
 
 	override fun setElementsAreAllInstancesOfKind(kind: AvailObject) =
 		dispatch(kind) { it::o_SetElementsAreAllInstancesOfKind }
-
-	override fun mapBinIterable() = dispatch { it::o_MapBinIterable }
 
 	override fun rangeIncludesLong(aLong: Long) =
 		dispatch(aLong) { it::o_RangeIncludesLong }
@@ -2694,12 +2601,6 @@ class AvailObject private constructor(
 
 	override fun testingTree(): LookupTree<A_Definition, A_Tuple> =
 		dispatch { it::o_TestingTree }
-
-	override fun forEach(action: (AvailObject, AvailObject) -> Unit) =
-		dispatch(action) { it::o_ForEach }
-
-	override fun forEachInMapBin(action: (AvailObject, AvailObject) -> Unit) =
-		dispatch(action) { it::o_ForEachInMapBin }
 
 	override fun clearLexingState() = dispatch { it::o_ClearLexingState }
 

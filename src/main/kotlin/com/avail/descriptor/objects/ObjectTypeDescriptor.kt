@@ -43,6 +43,13 @@ import com.avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.OBJECT_TYPE_NAME_PROPERTY_KEY
 import com.avail.descriptor.maps.A_Map
+import com.avail.descriptor.maps.A_Map.Companion.hasKey
+import com.avail.descriptor.maps.A_Map.Companion.keysAsSet
+import com.avail.descriptor.maps.A_Map.Companion.mapAt
+import com.avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
+import com.avail.descriptor.maps.A_Map.Companion.mapIterable
+import com.avail.descriptor.maps.A_Map.Companion.mapSize
+import com.avail.descriptor.maps.A_Map.Companion.mapWithoutKeyCanDestroy
 import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.objects.ObjectLayoutVariant.Companion.variantForFields
 import com.avail.descriptor.objects.ObjectTypeDescriptor.IntegerSlots.Companion.HASH_OR_ZERO

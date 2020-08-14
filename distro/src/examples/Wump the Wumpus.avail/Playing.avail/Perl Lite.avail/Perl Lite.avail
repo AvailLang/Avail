@@ -44,8 +44,3 @@ Extends
 		…
 	)
 Body
-
-[
-	Copy macros from $"(Perl)`$…" to $"`$…";
-	Copy macros from $"(Perl)(«_‡,»)" to $"(«_‡,»)";
-]();

@@ -154,9 +154,7 @@ class IntegerDescriptor private constructor(
 		if (self.isLong) {
 			buildString {
 				append("(Integer")
-				if (isMutable) {
-					append("\u2133")
-				}
+				append(mutability.suffix)
 				append(") = ")
 				val longValue = self.extractLong()
 				describeLong(

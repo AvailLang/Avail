@@ -561,7 +561,7 @@ class CommentBuilder private constructor(
 	@Throws(ClassCastException::class, StacksCommentBuilderException::class)
 	fun addStacksModuleTag(tagContentTokens: List<AbstractStacksToken>)
 	{
-		if (tagContentTokens.size == 0)
+		if (tagContentTokens.isEmpty())
 		{
 			modules.add(StacksModuleTag())
 		}
@@ -941,7 +941,7 @@ class CommentBuilder private constructor(
 	@Throws(ClassCastException::class, StacksCommentBuilderException::class)
 	fun addStacksStickyTag(tagContentTokens: List<AbstractStacksToken>)
 	{
-		if (tagContentTokens.size == 0)
+		if (tagContentTokens.isEmpty())
 		{
 			stickies.add(StacksStickyTag())
 		}

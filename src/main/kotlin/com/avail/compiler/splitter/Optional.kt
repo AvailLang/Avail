@@ -85,6 +85,9 @@ internal class Optional constructor(
 	positionInName: Int,
 	private val sequence: Sequence) : Expression(positionInName)
 {
+	override val recursivelyContainsReorders: Boolean
+		get() = sequence.recursivelyContainsReorders
+
 	override val yieldsValue: Boolean
 		get() = true
 
@@ -220,7 +223,7 @@ internal class Optional constructor(
 			builder.append('«')
 			sequence.printWithArguments(
 				Collections.emptyIterator(), builder, indent)
-			builder.append("»?")
+			builder.append("»")
 		}
 	}
 

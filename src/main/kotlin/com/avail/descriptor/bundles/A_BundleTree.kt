@@ -58,7 +58,6 @@ import java.util.Deque
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 interface A_BundleTree : A_BasicObject {
-
 	companion object {
 		/**
 		 * Answer the bundle tree's map of all plans.

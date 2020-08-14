@@ -474,11 +474,3 @@ Public macro "_!for_" is
 		] : ⊤»
 	>» : ⊤ → statement phrase
 ];
-
-/**
- * Install the renamed macros.
- */
-[
-	Copy macros from $"_!;" to $"_!";
-	Copy macros from $"…" to $"(Perl)`$…";
-]();

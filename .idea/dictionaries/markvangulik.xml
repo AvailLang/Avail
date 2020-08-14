@@ -3,6 +3,7 @@
     <words>
       <w>api</w>
       <w>backpointer</w>
+      <w>bagwell's</w>
       <w>bgcolor</w>
       <w>boundedly</w>
       <w>calendrical</w>
@@ -23,6 +24,7 @@
       <w>fileanalyzer</w>
       <w>fillcolor</w>
       <w>genericity</w>
+      <w>getenv</w>
       <w>hasher</w>
       <w>hexadecitets</w>
       <w>incomparables</w>
@@ -39,6 +41,7 @@
       <w>metainvariance</w>
       <w>metametatype</w>
       <w>misconnected</w>
+      <w>mutable's</w>
       <w>noninline</w>
       <w>nonlocal</w>
       <w>nonprimitive</w>
@@ -67,6 +70,7 @@
       <w>subblock</w>
       <w>subgraphs</w>
       <w>subkey</w>
+      <w>sublists</w>
       <w>subnode</w>
       <w>subphrase</w>
       <w>subregion</w>

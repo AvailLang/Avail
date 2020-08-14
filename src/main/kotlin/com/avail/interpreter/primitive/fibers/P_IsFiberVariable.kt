@@ -38,6 +38,7 @@ import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.HERITABLE_KEY
 import com.avail.descriptor.fiber.FiberDescriptor
+import com.avail.descriptor.maps.A_Map.Companion.hasKey
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type

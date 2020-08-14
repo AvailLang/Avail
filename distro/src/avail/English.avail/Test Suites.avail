@@ -94,7 +94,7 @@ allEnglishTestSuiteNames ::=
  * @global "allEnglishTestSuites" "{atom|}"
  */
 allEnglishTestSuites : {atom|} :=
-	left fold <{English test suite}> ++ allEnglishTestSuiteNames through
+	left fold {English test suite} into allEnglishTestSuiteNames through
 	[
 		testSuiteName : nonempty string,
 		suites : {atom|}

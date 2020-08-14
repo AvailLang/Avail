@@ -50,6 +50,11 @@ import com.avail.descriptor.fiber.FiberDescriptor.Companion.commandPriority
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.setSuccessAndFailure
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunctionForPhrase
+import com.avail.descriptor.maps.A_Map.Companion.hasKey
+import com.avail.descriptor.maps.A_Map.Companion.mapAt
+import com.avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
+import com.avail.descriptor.maps.A_Map.Companion.mapSize
+import com.avail.descriptor.maps.A_Map.Companion.valuesAsTuple
 import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.module.ModuleDescriptor
@@ -61,6 +66,7 @@ import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.tuples.A_Tuple.Companion.asSet
 import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE
+import com.avail.interpreter.execution.AvailLoader
 import com.avail.interpreter.execution.Interpreter.Companion.debugWorkUnits
 import com.avail.interpreter.execution.Interpreter.Companion.runOutermostFunction
 import com.avail.io.SimpleCompletionHandler
@@ -887,10 +893,11 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 				stringFrom(
 					loadedModule.module.moduleName().asNativeString() +
 						" (command)"))
+			val loader = AvailLoader(module, runtime.textInterface())
 			val moduleImport = ModuleImport.extend(loadedModule.module)
 			val header = ModuleHeader(loadedModule.name)
 			header.importedModules.add(moduleImport)
-			header.applyToModule(module, runtime)
+			header.applyToModule(loader)
 			module.addImportedNames(
 				loadedModule.module.entryPoints().valuesAsTuple().asSet())
 			val compiler = AvailCompiler(

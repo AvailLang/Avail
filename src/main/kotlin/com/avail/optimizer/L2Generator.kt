@@ -503,7 +503,7 @@ class L2Generator internal constructor(
 	 * @return
 	 *   The [L2ReadFloatOperand] that retrieves the value.
 	 */
-	fun unboxedFloatConstant(value: Double): L2ReadFloatOperand
+	private fun unboxedFloatConstant(value: Double): L2ReadFloatOperand
 	{
 		val boxedValue = fromDouble(value)
 		val semanticConstant = constant(boxedValue)
@@ -949,8 +949,8 @@ class L2Generator internal constructor(
 				// Create a (shared) Avail string statically, and use that as
 				// the basis for the string that will be built, only editing the
 				// necessary parts.
-				generateStringFromCodePoints(size) {
-					elements[it - 1].constantOrNull().let {
+				generateStringFromCodePoints(size) { oneBasedIndex ->
+					elements[oneBasedIndex - 1].constantOrNull().let {
 						if (it === null) '?'.toInt() else it.codePoint()
 					}
 				}

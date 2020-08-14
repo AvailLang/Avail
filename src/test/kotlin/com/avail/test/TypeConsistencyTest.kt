@@ -34,6 +34,7 @@ package com.avail.test
 import com.avail.AvailRuntime
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.createAtom
+import com.avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.numbers.IntegerDescriptor
 import com.avail.descriptor.objects.ObjectTypeDescriptor

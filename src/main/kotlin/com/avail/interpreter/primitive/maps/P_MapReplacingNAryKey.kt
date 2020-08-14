@@ -33,6 +33,9 @@
 package com.avail.interpreter.primitive.maps
 
 import com.avail.descriptor.maps.A_Map
+import com.avail.descriptor.maps.A_Map.Companion.hasKey
+import com.avail.descriptor.maps.A_Map.Companion.mapAt
+import com.avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import com.avail.descriptor.maps.MapDescriptor
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.sets.SetDescriptor.Companion.set

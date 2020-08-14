@@ -752,7 +752,7 @@ Private method "report for_,⁇organized by_,⁇with headers given by_" is
 	For each key → results of organizer(report) do
 	[
 		desc := eject desc
-			++ left fold <heading(key)> ++ results through
+			++ left fold heading(key) into results through
 				[
 					result : unit test result,
 					partial : string

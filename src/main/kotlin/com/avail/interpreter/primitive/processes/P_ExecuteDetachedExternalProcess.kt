@@ -32,6 +32,7 @@
 
 package com.avail.interpreter.primitive.processes
 
+import com.avail.descriptor.maps.A_Map.Companion.mapIterable
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.SetDescriptor.Companion.set

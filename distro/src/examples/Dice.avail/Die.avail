@@ -424,7 +424,7 @@ Method "«using_,»roll_" is
 	individualOutcomes ::=
 		map each aDie in someDice's members through [using rng, roll aDie];
 	tabulaRasa ::= a dice outcome with detailed outcome ::= {}, result ::= 0;
-	left fold <tabulaRasa> ++ individualOutcomes through
+	left fold tabulaRasa into individualOutcomes through
 	[
 		individual : dice outcome,
 		partial : dice outcome
@@ -626,7 +626,7 @@ Method "«using_,»roll_" is
 	rng ::= optionalRNG[1] else [default pRNG];
 	outcome ::= using rng, roll expr's drop group;
 	allRolls ::=
-		left fold <<>> ++ outcome's detailed outcome's values through
+		left fold <> into outcome's detailed outcome's values through
 		[
 			rolls : <extended integer…|>,
 			partial : <extended integer…|>

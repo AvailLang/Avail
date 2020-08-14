@@ -44,6 +44,7 @@ import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.createFiber
 import com.avail.descriptor.functions.A_Function
+import com.avail.descriptor.maps.A_Map.Companion.mapAt
 import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.methods.A_Method
 import com.avail.descriptor.module.A_Module
@@ -140,7 +141,7 @@ class CallbackTest
 	 * @return
 	 *   The [A_Function] that's the body of the sole definition.
 	 */
-	fun monomorphicDefinitionBody(
+	private fun monomorphicDefinitionBody(
 		moduleName: A_String, entryPointMethodName: A_String): A_Function
 	{
 		val module: A_Module = helper().runtime.moduleAt(moduleName)

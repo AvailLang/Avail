@@ -69,6 +69,16 @@ internal abstract class Expression constructor(val positionInName: Int)
 	val canBeReordered: Boolean get() = yieldsValue
 
 	/**
+	 * Answer whether there are any reordered expressions anywhere inside this
+	 * entire expression.  Reordering is specified by placing circled numbers
+	 * (e.g., ①, ②) after all argument-yielding [Expression]s occurring in some
+	 * [Sequence].  Either none or all must be numbered within any sequence, and
+	 * the numbers must be a non-identity permutation (not simply ①, ②, ③,
+	 * etc.).  See [explicitOrdinal] and [Sequence.isReordered].
+	 */
+	open val recursivelyContainsReorders = false
+
+	/**
 	 * The one-based explicit numbering for this argument.  To specify this in a
 	 * message name, a circled number (0-50) immediately follows the underscore
 	 * or ellipsis (or the close guillemet for permuting [Group]s).

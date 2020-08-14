@@ -34,6 +34,7 @@ package com.avail.interpreter.primitive.controlflow
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.functions.ContinuationDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor
+import com.avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import com.avail.descriptor.objects.ObjectDescriptor.Companion.objectFromMap
 import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.exceptionType
 import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.stackDumpAtom

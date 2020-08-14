@@ -117,6 +117,10 @@ import kotlin.math.min
  */
 internal class Group : Expression
 {
+	override val recursivelyContainsReorders: Boolean
+		get() = beforeDagger.recursivelyContainsReorders ||
+			afterDagger.recursivelyContainsReorders
+
 	/**
 	 * Whether a [double&#32;dagger][Metacharacter.DOUBLE_DAGGER] (‡) has been
 	 * encountered in the tokens for this group.

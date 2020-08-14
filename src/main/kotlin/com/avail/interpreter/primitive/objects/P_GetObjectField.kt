@@ -33,6 +33,8 @@ package com.avail.interpreter.primitive.objects
 
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.maps.A_Map.Companion.hasKey
+import com.avail.descriptor.maps.A_Map.Companion.mapAt
 import com.avail.descriptor.objects.ObjectDescriptor
 import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectType
 import com.avail.descriptor.sets.SetDescriptor.Companion.set

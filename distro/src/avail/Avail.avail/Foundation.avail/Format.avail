@@ -317,7 +317,7 @@ Private method "minimum`|_after formatting`|" is
 [
 	template : string
 |
-	left fold <|template|> ++ format sites for template through
+	left fold |template| into format sites for template through
 	[
 		site : format site,
 		partial : whole number

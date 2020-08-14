@@ -33,6 +33,12 @@ package com.avail.descriptor.types
 
 import com.avail.annotations.ThreadSafe
 import com.avail.descriptor.maps.A_Map
+import com.avail.descriptor.maps.A_Map.Companion.hasKey
+import com.avail.descriptor.maps.A_Map.Companion.keysAsSet
+import com.avail.descriptor.maps.A_Map.Companion.mapAt
+import com.avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
+import com.avail.descriptor.maps.A_Map.Companion.mapIterable
+import com.avail.descriptor.maps.A_Map.Companion.mapSize
 import com.avail.descriptor.maps.MapDescriptor
 import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.pojos.PojoDescriptor
@@ -114,7 +120,7 @@ internal class FusedPojoTypeDescriptor constructor (mutability: Mutability)
 		 * A [map][MapDescriptor] from [pojos][PojoDescriptor] that wrap
 		 * [Java&#32;classes&#32;and&#32;interfaces][Class] to their
 		 * [type&#32;parameterizations][TupleDescriptor]. The
-		 * [keys][AvailObject.keysAsSet] constitute this type's complete
+		 * [keys][A_Map.keysAsSet] constitute this type's complete
 		 * [ancestry][SetDescriptor] of Java types.
 		 */
 		JAVA_ANCESTORS,
@@ -541,7 +547,7 @@ internal class FusedPojoTypeDescriptor constructor (mutability: Mutability)
 		 *   A [map][MapDescriptor] from [pojos][PojoDescriptor] that wrap
 		 *   [Java&#32;classes&#32;and&#32;interfaces][Class] to their
 		 *   [type&#32;parameterizations][TupleDescriptor]. The
-		 *   [keys][AvailObject.keysAsSet] constitute this type's complete
+		 *   [keys][A_Map.keysAsSet] constitute this type's complete
 		 *   [ancestry][SetDescriptor] of Java types.
 		 * @return
 		 *   The requested pojo type.

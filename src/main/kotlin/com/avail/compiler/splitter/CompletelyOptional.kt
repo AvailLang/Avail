@@ -71,6 +71,9 @@ internal class CompletelyOptional constructor(
 	positionInName: Int,
 	private val sequence: Sequence) : Expression(positionInName)
 {
+	override val recursivelyContainsReorders: Boolean
+		get() = sequence.recursivelyContainsReorders
+
 	override val isLowerCase: Boolean
 		get() = sequence.isLowerCase
 

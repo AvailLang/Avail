@@ -74,6 +74,7 @@ Names
 	"insertion index of|for_in_with_",
 	"last index of_where_",
 	"last index of…in_§where_",
+	"left fold_into_through_",
 	"left fold_through_",
 	"map each…,…in|of_§through_",
 	"merge sort_",
@@ -1799,6 +1800,113 @@ Semantic restriction "left fold_through_" is
 
 /**
  * Reduce {@param "aTuple"} via the binary function, traversing the tuple from
+ * left to right, but injecting an initial value. Answer the result of the
+ * reduction.
+ *
+ * @method "left fold_through_"
+ * @param "aTuple" "any+"
+ *        A nonempty tuple.
+ * @param "transformer" "[⊥, ⊥]→any"
+ *        A binary function whose second parameter type matches its return type.
+ *        The first parameter type must be general enough to accept each element
+ *        of {@param "aTuple"}.
+ * @returns "any"
+ *        The result of setting an accumulator to the {@param "initialValue"},
+ *        then applying the {@param "transformer"} to each tuple element and the
+ *        current accumulator, to produce the next accumulator.  Answer the
+ *        final accumulator.
+ * @category "Tuples" "Transformers"
+ */
+Public method "left fold_into_through_" is
+[
+	initialValue : any,
+	aTuple : any*,
+	transformer : [⊥, ⊥]→any
+|
+	[
+		index : natural number,
+		end : whole number,
+		accumulator : any,
+		innerTuple : tuple,
+		innerTransformer : [⊥, ⊥]→any
+	|
+		$loop : any;
+		pastEnd ::= index > end;
+		Exit loop with accumulator if pastEnd;
+		nextAccumulator ::= innerTransformer(innerTuple[index], accumulator);
+		Restart loop with <
+			index + 1,
+			end,
+			nextAccumulator,
+			innerTuple,
+			innerTransformer>
+	](1, |aTuple|, initialValue, aTuple, transformer)
+] : any;
+
+/**
+ * Injecting left fold has the following requirements:
+ *
+ * - The function's first parameter must accept every element of the tuple.
+ * - The function's second parameter must accept the provided initialValue and
+ *   also every value producible by the function.
+ *
+ * Injecting left fold answers either the provided initial value or the value
+ * produced by the final application of the function.
+ *
+ * @method "left fold_into_through_"
+ * @restricts "any's type"
+ * @restricts "any+'s type"
+ * @restricts "[⊥, ⊥]→any's type"
+ */
+Semantic restriction "left fold_into_through_" is
+[
+	initialValueType : any's type,
+	tupleType : any*'s type,
+	transformer : [⊥, ⊥]→any's type
+|
+	returnType ::= transformer's return type;
+	elementType ::= ∪ tupleType[1..∞];
+	If transformer[1] ≠ ⊥ ∧ elementType ⊈ transformer[1] then
+	[
+		Immediately reject parse, expected:
+			"repeatedly applied function's first parameter to accept each\
+			\| element of the tuple, typed "
+			++ “elementType”
+			++ ", but it only accepts "
+			++ “transformer[1]”
+	];
+	If transformer[2] ≠ ⊥ ∧ initialValueType ⊈ transformer[2] then
+	[
+		Immediately reject parse, expected:
+			"repeatedly applied function's second parameter to accept the\
+			\| initial value, "
+			++ “initialValueType”
+			++ ", but it only accepts "
+			++ “transformer[2]”
+	];
+	If transformer[2] ≠ ⊥ ∧ returnType ⊈ transformer[2] then
+	[
+		Immediately reject parse, expected:
+			"repeatedly applied function's second parameter to accept its own\
+			\| output, "
+			++ “returnType”
+			++ ", but it only accepts "
+			++ “transformer[1]”
+	];
+
+	if ⌈tupleType⌉ = 0 then
+	[
+		/* The tuple is always empty, so the transformer never runs. */
+		initialValueType
+	]
+	else
+	[
+		initialValueType ∪ returnType
+	]
+];
+
+/**
+ * Reduce {@param "aTuple"} via the binary function, traversing the tuple from
  * right to left. Answer the result of the reduction.
  *
  * @method "right fold_through_"
@@ -3492,7 +3600,7 @@ Public stable method "∑_" is
 [
 	numTuple : number*
 |
-	left fold <0> ++ numTuple through
+	left fold 0 into numTuple through
 		[i : number, ri : number | i + ri]
 ];
 
@@ -3604,7 +3712,7 @@ Public stable method "∏_" is
 [
 	numTuple : number*
 |
-	left fold <1> ++ numTuple through
+	left fold 1 into numTuple through
 		[i : number, ri : number | i × ri]
 ] : number;
 

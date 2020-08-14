@@ -34,6 +34,7 @@ package com.avail.interpreter.primitive.modules
 
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
+import com.avail.descriptor.maps.A_Map.Companion.hasKey
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.StringDescriptor

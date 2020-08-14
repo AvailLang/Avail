@@ -452,7 +452,7 @@ Private method "_'s⁇keys(prefix=_)" is
 	sets ::= map each k→sub of next in parallel 3-way through
 		[sub's keys (prefix=pre ++ <k>)];
 	localSet ::= if ↑t's payload is assigned then [{pre}] else [∅];
-	left fold <localSet> ++ sets' values through [s : set, sum : set | s ∪ sum]
+	left fold localSet into sets' values through [s : set, sum : set | s ∪ sum]
 ] : set;
 
 /**

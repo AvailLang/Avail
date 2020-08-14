@@ -85,7 +85,29 @@ package com.avail.descriptor.representation
  import com.avail.descriptor.functions.A_Function
  import com.avail.descriptor.functions.A_RawFunction
  import com.avail.descriptor.maps.A_Map
+ import com.avail.descriptor.maps.A_Map.Companion.forEach
+ import com.avail.descriptor.maps.A_Map.Companion.hasKey
+ import com.avail.descriptor.maps.A_Map.Companion.keysAsSet
+ import com.avail.descriptor.maps.A_Map.Companion.mapAt
+ import com.avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
+ import com.avail.descriptor.maps.A_Map.Companion.mapAtReplacingCanDestroy
+ import com.avail.descriptor.maps.A_Map.Companion.mapIterable
+ import com.avail.descriptor.maps.A_Map.Companion.mapSize
+ import com.avail.descriptor.maps.A_Map.Companion.mapWithoutKeyCanDestroy
+ import com.avail.descriptor.maps.A_Map.Companion.valuesAsTuple
  import com.avail.descriptor.maps.A_MapBin
+ import com.avail.descriptor.maps.A_MapBin.Companion.forEachInMapBin
+ import com.avail.descriptor.maps.A_MapBin.Companion.isHashedMapBin
+ import com.avail.descriptor.maps.A_MapBin.Companion.mapBinAtHash
+ import com.avail.descriptor.maps.A_MapBin.Companion.mapBinAtHashPutLevelCanDestroy
+ import com.avail.descriptor.maps.A_MapBin.Companion.mapBinAtHashReplacingLevelCanDestroy
+ import com.avail.descriptor.maps.A_MapBin.Companion.mapBinIterable
+ import com.avail.descriptor.maps.A_MapBin.Companion.mapBinKeyUnionKind
+ import com.avail.descriptor.maps.A_MapBin.Companion.mapBinKeysHash
+ import com.avail.descriptor.maps.A_MapBin.Companion.mapBinRemoveKeyHashCanDestroy
+ import com.avail.descriptor.maps.A_MapBin.Companion.mapBinSize
+ import com.avail.descriptor.maps.A_MapBin.Companion.mapBinValueUnionKind
+ import com.avail.descriptor.maps.A_MapBin.Companion.mapBinValuesHash
  import com.avail.descriptor.maps.MapDescriptor.MapIterable
  import com.avail.descriptor.methods.A_Definition
  import com.avail.descriptor.methods.A_GrammaticalRestriction

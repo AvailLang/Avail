@@ -31,6 +31,9 @@
  */
 package com.avail.descriptor.maps
 
+ import com.avail.descriptor.maps.A_MapBin.Companion.mapBinAtHashPutLevelCanDestroy
+ import com.avail.descriptor.maps.A_MapBin.Companion.mapBinKeysHash
+ import com.avail.descriptor.maps.A_MapBin.Companion.mapBinSize
  import com.avail.descriptor.maps.HashedMapBinDescriptor.Companion.checkHashedMapBin
  import com.avail.descriptor.maps.LinearMapBinDescriptor.IntegerSlots.COMBINED_HASHES
  import com.avail.descriptor.maps.LinearMapBinDescriptor.IntegerSlots.Companion.KEYS_HASH

@@ -1261,6 +1261,9 @@ class MessageSplitter
 	val containsGroups
 		get(): Boolean = rootSequence.expressions.any(Expression::isGroup)
 
+	val recursivelyContainsReorders
+		get(): Boolean = rootSequence.recursivelyContainsReorders
+
 	override fun toString(): String {
 		val builder = StringBuilder()
 		dumpForDebug(builder)

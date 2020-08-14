@@ -81,6 +81,9 @@ import java.util.Collections
 internal class NumberedChoice constructor(private val alternation: Alternation)
 : Expression(alternation.positionInName)
 {
+	override val recursivelyContainsReorders: Boolean
+		get() = alternation.recursivelyContainsReorders
+
 	override val yieldsValue: Boolean
 		get() = true
 

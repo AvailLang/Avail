@@ -34,6 +34,9 @@ package com.avail.serialization
 
 import com.avail.descriptor.character.A_Character.Companion.codePoint
 import com.avail.descriptor.character.CharacterDescriptor.Companion.fromCodePoint
+import com.avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
+import com.avail.descriptor.maps.A_Map.Companion.mapIterable
+import com.avail.descriptor.maps.A_Map.Companion.mapSize
 import com.avail.descriptor.maps.MapDescriptor
 import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.numbers.IntegerDescriptor
@@ -504,23 +507,23 @@ internal enum class SerializerOperandEncoding
 	{
 		override fun trace(obj: AvailObject, serializer: Serializer)
 		{
-			for (entry in obj.mapIterable())
+			for ((key, value) in obj.mapIterable())
 			{
-				serializer.traceOne(entry.key())
-				serializer.traceOne(entry.value())
+				serializer.traceOne(key)
+				serializer.traceOne(value)
 			}
 		}
 
 		override fun write(obj: AvailObject, serializer: Serializer)
 		{
 			writeCompressedPositiveInt(obj.mapSize(), serializer)
-			for (entry in obj.mapIterable())
+			for ((key, value) in obj.mapIterable())
 			{
 				writeCompressedPositiveInt(
-					serializer.indexOfExistingObject(entry.key()),
+					serializer.indexOfExistingObject(key),
 					serializer)
 				writeCompressedPositiveInt(
-					serializer.indexOfExistingObject(entry.value()),
+					serializer.indexOfExistingObject(value),
 					serializer)
 			}
 		}

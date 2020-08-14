@@ -83,6 +83,10 @@ internal class Sequence constructor(
 	positionInName: Int
 ) : Expression(positionInName)
 {
+	override val recursivelyContainsReorders: Boolean
+		get() = isReordered ||
+			expressions.any { it.recursivelyContainsReorders }
+
 	/** The sequence of expressions that I comprise. */
 	val expressions = mutableListOf<Expression>()
 
@@ -108,7 +112,7 @@ internal class Sequence constructor(
 	var isReordered = false
 
 	override val isLowerCase: Boolean
-		get() = expressions.stream().allMatch { it.isLowerCase }
+		get() = expressions.all(Expression::isLowerCase)
 
 	override fun applyCaseInsensitive(): Sequence {
 		val copy = Sequence(positionInName)

@@ -37,6 +37,7 @@ import com.avail.compiler.ModuleImport.Companion.fromSerializedTuple
 import com.avail.descriptor.atoms.A_Atom.Companion.extractBoolean
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
 import com.avail.descriptor.maps.A_Map
+import com.avail.descriptor.maps.A_Map.Companion.valuesAsTuple
 import com.avail.descriptor.maps.MapDescriptor
 import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom

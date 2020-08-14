@@ -34,6 +34,8 @@ package com.avail.serialization
 
 import com.avail.AvailRuntime
 import com.avail.descriptor.maps.A_Map
+import com.avail.descriptor.maps.A_Map.Companion.hasKey
+import com.avail.descriptor.maps.A_Map.Companion.mapAt
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.representation.AvailObject

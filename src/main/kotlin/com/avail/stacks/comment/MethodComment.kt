@@ -147,7 +147,7 @@ class MethodComment constructor(
 	{
 		signature.toJSON(nameOfGroup, isSticky, jsonWriter)
 
-		if (categories.size > 0)
+		if (categories.isNotEmpty())
 		{
 			categories[0].toJSON(
 				linkingFileMap,
@@ -160,7 +160,7 @@ class MethodComment constructor(
 			jsonWriter.endArray()
 		}
 
-		if (aliases.size > 0)
+		if (aliases.isNotEmpty())
 		{
 			aliases[0].toJSON(
 				linkingFileMap,

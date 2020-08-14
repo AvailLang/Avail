@@ -103,12 +103,11 @@ object L2_CREATE_MAP : L2Operation(
 		assert(limit == values.elements().size)
 		for (i in 0 until limit)
 		{
-			// :: map = map.mapAtPuttingCanDestroy(
-			// ::    «keysVector[i]», «valuesVector[i]», true);
+			// :: map = mapAtPuttingStatic(
+			// ::    map, «keysVector[i]», «valuesVector[i]»);
 			translator.load(method, keys.elements()[i].register())
 			translator.load(method, values.elements()[i].register())
-			translator.intConstant(method, 1)
-			A_Map.mapAtPuttingCanDestroyMethod.generateCall(method)
+			A_Map.mapAtPuttingStaticMethod.generateCall(method)
 		}
 		// :: destinationMap = map;
 		translator.store(method, map.register())

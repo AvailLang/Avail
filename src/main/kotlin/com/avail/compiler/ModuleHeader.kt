@@ -32,7 +32,6 @@
 
 package com.avail.compiler
 
-import com.avail.AvailRuntime
 import com.avail.builder.ModuleName
 import com.avail.builder.ResolvedModuleName
 import com.avail.builder.UnresolvedDependencyException
@@ -45,7 +44,14 @@ import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.MESSAGE_BUNDLE_KEY
 import com.avail.descriptor.atoms.AtomWithPropertiesDescriptor.Companion.createAtomWithProperties
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
+import com.avail.descriptor.bundles.A_Bundle.Companion.macrosTuple
+import com.avail.descriptor.bundles.A_Bundle.Companion.messageSplitter
 import com.avail.descriptor.bundles.MessageBundleDescriptor.Companion.newBundle
+import com.avail.descriptor.maps.A_Map.Companion.hasKey
+import com.avail.descriptor.maps.A_Map.Companion.keysAsSet
+import com.avail.descriptor.maps.A_Map.Companion.mapAt
+import com.avail.descriptor.maps.A_Map.Companion.mapIterable
+import com.avail.descriptor.maps.A_Map.Companion.valuesAsTuple
 import com.avail.descriptor.methods.MethodDescriptor
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.module.ModuleDescriptor
@@ -66,6 +72,7 @@ import com.avail.descriptor.tuples.StringDescriptor
 import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.toList
 import com.avail.exceptions.MalformedMessageException
+import com.avail.interpreter.execution.AvailLoader
 import com.avail.serialization.Deserializer
 import com.avail.serialization.MalformedSerialStreamException
 import com.avail.serialization.Serializer
@@ -234,19 +241,19 @@ class ModuleHeader constructor(val moduleName: ResolvedModuleName)
 	}
 
 	/**
-	 * Update the given module to correspond with information that has been
-	 * accumulated in this `ModuleHeader`.
+	 * Update the given [AvailLoader]'s module to correspond with information
+	 * that has been accumulated in this [ModuleHeader].
 	 *
-	 * @param module
-	 *   The module to update.
-	 * @param runtime
-	 *   The current [AvailRuntime].
+	 * @param loader
+	 *   The current [AvailLoader] for this [A_Module].
 	 * @return
 	 *   An error message [String] if there was a problem, or `null` if no
 	 *   problems were encountered.
 	 */
-	fun applyToModule(module: A_Module, runtime: AvailRuntime): String?
+	fun applyToModule(loader: AvailLoader): String?
 	{
+		val module = loader.module()
+		val runtime = loader.runtime()
 		val resolver = runtime.moduleNameResolver
 		module.setVersions(setFromCollection(versions))
 
@@ -369,8 +376,26 @@ class ModuleHeader constructor(val moduleName: ResolvedModuleName)
 				{
 					val oldBundle = oldAtom.bundleOrCreate()
 					val method = oldBundle.bundleMethod()
-					newBundle = newBundle(
-						newAtom, method, MessageSplitter(newString))
+					newBundle =
+						newBundle(newAtom, method, MessageSplitter(newString))
+					newAtom.setAtomProperty(MESSAGE_BUNDLE_KEY.atom, newBundle)
+					atomsToImport =
+						atomsToImport.setWithElementCanDestroy(newAtom, true)
+					val copyMacros =
+						!oldBundle.messageSplitter().recursivelyContainsReorders
+						&& !newBundle.messageSplitter()
+							.recursivelyContainsReorders
+					if (copyMacros)
+					{
+						// Neither bundle uses reordering.  Copy all macros.
+						for (macro in oldBundle.macrosTuple())
+						{
+							loader.addMacroBody(
+								newAtom,
+								macro.bodyBlock(),
+								macro.prefixFunctions())
+						}
+					}
 				}
 				catch (e: MalformedMessageException)
 				{
@@ -378,10 +403,6 @@ class ModuleHeader constructor(val moduleName: ResolvedModuleName)
 						"well-formed signature for $newString, a rename of "
 						+ "$oldString from \"${ref.qualifiedName}\"")
 				}
-
-				newAtom.setAtomProperty(MESSAGE_BUNDLE_KEY.atom, newBundle)
-				atomsToImport = atomsToImport.setWithElementCanDestroy(
-					newAtom, true)
 			}
 
 			// Actually make the atoms available in this module.

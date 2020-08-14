@@ -46,6 +46,9 @@ import com.avail.descriptor.bundles.A_Bundle.Companion.message
 import com.avail.descriptor.bundles.A_BundleTree
 import com.avail.descriptor.bundles.A_BundleTree.Companion.allParsingPlansInProgress
 import com.avail.descriptor.fiber.FiberDescriptor
+import com.avail.descriptor.maps.A_Map.Companion.keysAsSet
+import com.avail.descriptor.maps.A_Map.Companion.mapIterable
+import com.avail.descriptor.maps.A_Map.Companion.mapSize
 import com.avail.descriptor.maps.MapDescriptor
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.A_Phrase.Companion.copyConcatenating

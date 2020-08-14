@@ -32,6 +32,7 @@
 package com.avail.interpreter.primitive.maps
 
 import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.maps.A_Map.Companion.keysAsSet
 import com.avail.descriptor.maps.MapDescriptor
 import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple

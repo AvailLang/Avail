@@ -68,7 +68,7 @@ import java.nio.charset.StandardCharsets
  */
 class Message constructor(
 	val content: ByteArray,
-	val state: AvailServerChannel.ProtocolState,
+	private val state: AvailServerChannel.ProtocolState,
 	val closeAfterSending: Boolean = false)
 {
 	// TODO Process all message data as bytes and transform it just before

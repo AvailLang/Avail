@@ -53,6 +53,12 @@ import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.maps.A_Map
+import com.avail.descriptor.maps.A_Map.Companion.hasKey
+import com.avail.descriptor.maps.A_Map.Companion.mapAt
+import com.avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
+import com.avail.descriptor.maps.A_Map.Companion.mapAtReplacingCanDestroy
+import com.avail.descriptor.maps.A_Map.Companion.mapIterable
+import com.avail.descriptor.maps.A_Map.Companion.mapWithoutKeyCanDestroy
 import com.avail.descriptor.maps.MapDescriptor
 import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.methods.A_Definition
@@ -66,9 +72,9 @@ import com.avail.descriptor.methods.MethodDescriptor
 import com.avail.descriptor.methods.SemanticRestrictionDescriptor
 import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.ALL_ANCESTORS
 import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.BUNDLES
+import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.CACHED_EXPORTED_NAMES
 import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.CONSTANT_BINDINGS
 import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.ENTRY_POINTS
-import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.CACHED_EXPORTED_NAMES
 import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.GRAMMATICAL_RESTRICTIONS
 import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.IMPORTED_NAMES
 import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.IS_OPEN
@@ -370,11 +376,11 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 			{
 				// Compute it.
 				exportedNames = emptySet
-				self.slot(IMPORTED_NAMES).forEach { _, value ->
+				self.slot(IMPORTED_NAMES).mapIterable().forEach { (_, value) ->
 					exportedNames = exportedNames.setUnionCanDestroy(
 						value.makeShared(), true)
 				}
-				self.slot(PRIVATE_NAMES).forEach { _, value ->
+				self.slot(PRIVATE_NAMES).mapIterable().forEach { (_, value) ->
 					exportedNames = exportedNames.setMinusCanDestroy(
 						value.makeShared(), true)
 				}
@@ -449,8 +455,7 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 		self.slot(IS_OPEN).extractBoolean()
 			|| throw AvailRuntimeException(E_MODULE_IS_CLOSED)
 		self.updateSlotShared(SEALS) {
-			var tuple: A_Tuple
-			tuple = when
+			var tuple: A_Tuple = when
 			{
 				hasKey(methodName) -> mapAt(methodName)
 				else -> emptyTuple

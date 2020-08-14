@@ -35,6 +35,7 @@ package com.avail.interpreter.primitive.processes
 import com.avail.AvailRuntime.Companion.currentRuntime
 import com.avail.descriptor.fiber.A_Fiber
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
+import com.avail.descriptor.maps.A_Map.Companion.mapIterable
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt

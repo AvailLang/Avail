@@ -66,6 +66,9 @@ internal class Alternation constructor(
 	positionInName: Int,
 	alternatives: List<Expression>) : Expression(positionInName)
 {
+	override val recursivelyContainsReorders: Boolean
+		get() = alternatives.any { it.recursivelyContainsReorders }
+
 	/** The alternative [expressions][Expression].  */
 	internal val alternatives: List<Expression> = alternatives.toList()
 

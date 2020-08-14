@@ -45,6 +45,7 @@ import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import com.avail.descriptor.bundles.A_Bundle.Companion.definitionParsingPlans
 import com.avail.descriptor.bundles.A_BundleTree.Companion.addPlanInProgress
 import com.avail.descriptor.bundles.MessageBundleDescriptor.Companion.newBundle
+import com.avail.descriptor.maps.A_Map.Companion.forEach
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import com.avail.descriptor.parsing.ParsingPlanInProgressDescriptor.Companion.newPlanInProgress
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
@@ -130,8 +131,8 @@ object P_Alias : Primitive(2, CanInline, HasSideEffect)
 		{
 			val root = loader.rootBundleTree()
 			loader.module().lock {
-				newBundle.definitionParsingPlans().mapIterable().forEach {
-					(_, value) ->
+				newBundle.definitionParsingPlans().forEach {
+					_, value ->
 					root.addPlanInProgress(newPlanInProgress(value, 1))
 				}
 			}

@@ -41,6 +41,9 @@ import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
 import com.avail.descriptor.functions.PrimitiveCompiledCodeDescriptor.Companion.newPrimitiveRawFunction
 import com.avail.descriptor.maps.A_Map
+import com.avail.descriptor.maps.A_Map.Companion.hasKey
+import com.avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
+import com.avail.descriptor.maps.A_Map.Companion.mapSize
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.pojos.RawPojoDescriptor
 import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo

@@ -418,7 +418,7 @@ Private stable method "_'s⁇available moves@_" is
 	Assert: b @ xy is vacant;
 	<
 		xy,
-		left fold <1 to 9→set> ++ points in conflict with xy through
+		left fold 1 to 9→set into points in conflict with xy through
 			[p : point, moves : {Sudoku value|} | moves - b @ p]
 	>
 ];
@@ -484,7 +484,7 @@ Private stable method "_'s⁇optimal plays" is
 			For each area of <region, row, column> do
 			[
 				sets ::= map each p of area through [originalPlaysMap[p]];
-				union ::= left fold <∅> ++ sets→tuple through
+				union ::= left fold ∅ into sets→tuple through
 					[s : {Sudoku value|}, u : {Sudoku value|} | u ∪ s];
 				diff ::= originalPlaysMap[xy] \ union;
 				If ¬diff is empty then
@@ -562,7 +562,7 @@ is
 	Unless forcedPlays is empty then
 	[
 		boardAfterForcedPlays ::=
-			left fold <originalBoard> ++ forcedPlays through
+			left fold originalBoard into forcedPlays through
 				[p : plays, b : board | b @ p's location → only p's moves];
 		newEmptyCells ::= emptyCells - |forcedPlays|;
 		/* It's possible that the board is inconsistent after playing all of the

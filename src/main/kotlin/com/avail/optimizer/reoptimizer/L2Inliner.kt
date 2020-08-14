@@ -128,13 +128,13 @@ import java.util.Collections
 class L2Inliner internal constructor(
 	val targetGenerator: L2Generator,
 	val inlineFrame: Frame,
-	val invokeInstruction: L2Instruction,
+	private val invokeInstruction: L2Instruction,
 	val code: A_RawFunction,
 	outers: List<L2ReadBoxedOperand>,
 	arguments: List<L2ReadBoxedOperand>,
 	val result: L2WriteBoxedOperand,
-	val completionBlock: L2BasicBlock,
-	val reificationBlock: L2BasicBlock)
+	private val completionBlock: L2BasicBlock,
+	private val reificationBlock: L2BasicBlock)
 {
 	/**
 	 * An [L2OperandDispatcher] subclass suitable for copying operands for the

@@ -63,6 +63,13 @@ import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunctio
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.newCrashFunction
 import com.avail.descriptor.functions.PrimitiveCompiledCodeDescriptor.Companion.newPrimitiveRawFunction
 import com.avail.descriptor.maps.A_Map
+import com.avail.descriptor.maps.A_Map.Companion.forEach
+import com.avail.descriptor.maps.A_Map.Companion.hasKey
+import com.avail.descriptor.maps.A_Map.Companion.mapAt
+import com.avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
+import com.avail.descriptor.maps.A_Map.Companion.mapSize
+import com.avail.descriptor.maps.A_Map.Companion.mapWithoutKeyCanDestroy
+import com.avail.descriptor.maps.A_Map.Companion.valuesAsTuple
 import com.avail.descriptor.maps.MapDescriptor
 import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.methods.A_Definition

@@ -479,7 +479,7 @@ Public method "unit map“_”" is
 			[
 				“a” (unit atom) ≤ “b” (unit atom)
 			];
-		expr ::= left fold <""> ++ sortedAtoms through
+		expr ::= left fold "" into sortedAtoms through
 			[
 				unitAtom : atom,
 				partial : string

@@ -1248,6 +1248,7 @@ Extends
 		"last index of_where_",
 		"last index of…in_§where_",
 		"For each…,…in|of_§do_",
+		"left fold_into_through_",
 		"left fold_through_",
 		"map each…,…in|of_§through_",
 		"merge sort_",
@@ -1359,18 +1360,3 @@ Brand all visible atoms as hailing from Foundation;
 	/* Seal the asymmetric difference at every existing definition. */
 	Seal methods forbiddenOverrides \ specialOverrides at existing definitions;
 ]();
-
-/**
- * Add stability to the renamed methods that were declared stable, since macros
- * aren't made available under the new name.
- */
-
-
-Method $"constructor_(«_‡,»)" is stable at
-	[any's type, any's type*]→any;
-
-Method $"method_.…(«_‡,»)" is stable at
-	[any's type, token, any's type*]→function;
-
-Method $"static method_.…(«_‡,»)" is stable at
-	[any's type, token, any's type*]→function;

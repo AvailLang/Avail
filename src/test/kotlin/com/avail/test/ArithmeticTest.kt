@@ -283,7 +283,7 @@ class ArithmeticTest
 		val DoubleEpsilon = 0.5.pow(50.0)
 
 		/** An array of floats with which to test arithmetic. */
-		val sampleFloats = listOf(
+		private val sampleFloats = listOf(
 			0.0f,
 			-0.0f,
 			1.0f,
@@ -337,7 +337,7 @@ class ArithmeticTest
 		 *
 		 * In particular, use twenty bits of precision to compare floats.
 		 */
-		val FloatEpsilon = 0.5.pow(20.0).toFloat()
+		private val FloatEpsilon = 0.5.pow(20.0).toFloat()
 
 		/**
 		 * Check that two floats are either both NaNs or neither Nans but within
@@ -370,7 +370,7 @@ class ArithmeticTest
 		 * Values with which to test [BigInteger] conversion. Their negations
 		 * are also tested.
 		 */
-		val bigIntegerHexConversions: List<String> = listOf(
+		private val bigIntegerHexConversions: List<String> = listOf(
 			"1", "2",
 			"7F", "80", "81",
 			"FF", "100", "101", "102",

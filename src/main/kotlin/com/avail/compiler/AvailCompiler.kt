@@ -98,6 +98,14 @@ import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunctio
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunctionForPhrase
 import com.avail.descriptor.functions.PrimitiveCompiledCodeDescriptor.Companion.newPrimitiveRawFunction
 import com.avail.descriptor.maps.A_Map
+import com.avail.descriptor.maps.A_Map.Companion.forEach
+import com.avail.descriptor.maps.A_Map.Companion.hasKey
+import com.avail.descriptor.maps.A_Map.Companion.keysAsSet
+import com.avail.descriptor.maps.A_Map.Companion.mapAt
+import com.avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
+import com.avail.descriptor.maps.A_Map.Companion.mapAtReplacingCanDestroy
+import com.avail.descriptor.maps.A_Map.Companion.mapIterable
+import com.avail.descriptor.maps.A_Map.Companion.mapSize
 import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.maps.MapDescriptor.Companion.mapFromPairs
 import com.avail.descriptor.methods.A_Macro
@@ -3411,8 +3419,7 @@ class AvailCompiler(
 			// Run any side-effects implied by this module header against
 			// the module.
 			val errorString = moduleHeader.applyToModule(
-				compilationContext.module,
-				compilationContext.runtime)
+				compilationContext.loader)
 			if (errorString !== null)
 			{
 				compilationContext.progressReporter(
@@ -3639,7 +3646,8 @@ class AvailCompiler(
 		val solutions = mutableListOf<A_Phrase>()
 		compilationContext.noMoreWorkUnits = noMoreWorkUnits@ {
 			// The counters must be read in this order for correctness.
-			assert(compilationContext.workUnitsCompleted == compilationContext.workUnitsQueued)
+			assert(compilationContext.workUnitsCompleted ==
+				compilationContext.workUnitsQueued)
 			// If no solutions were found, then report an error.
 			if (solutions.isEmpty())
 			{
@@ -3661,16 +3669,14 @@ class AvailCompiler(
 			{
 				afterExpression.expected(
 					STRONG,
-					"a valid command, not just whitespace"
-				)
+					"a valid command, not just whitespace")
 				return@parseExpressionThen
 			}
 			if (expression.hasSuperCast())
 			{
 				afterExpression.expected(
 					STRONG,
-					"a valid command, not a supercast"
-				)
+					"a valid command, not a supercast")
 				return@parseExpressionThen
 			}
 			// Check that after the expression is only whitespace and
@@ -3684,9 +3690,7 @@ class AvailCompiler(
 				}
 				else
 				{
-					afterExpression.expected(
-						STRONG, "end of command"
-					)
+					afterExpression.expected(STRONG, "end of command")
 				}
 			}
 		}

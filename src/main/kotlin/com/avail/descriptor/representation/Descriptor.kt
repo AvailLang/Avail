@@ -2019,10 +2019,7 @@ abstract class Descriptor protected constructor (
 		{
 			typeName = typeName.substring(0, typeName.length - 10)
 		}
-		if (isMutable)
-		{
-			typeName += "\u2133"
-		}
+		typeName += mutability.suffix
 		return (
 			if (self.showValueInNameForDebugger())
 				"($typeName) = $self"

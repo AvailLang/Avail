@@ -41,6 +41,9 @@ import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_STAC
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.STATIC_TOKENS_KEY
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.maps.A_Map
+import com.avail.descriptor.maps.A_Map.Companion.hasKey
+import com.avail.descriptor.maps.A_Map.Companion.mapAt
+import com.avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.exceptionType
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.A_Phrase.Companion.declaredType

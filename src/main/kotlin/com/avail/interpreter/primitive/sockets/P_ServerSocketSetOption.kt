@@ -37,6 +37,7 @@ import com.avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
 import com.avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.SERVER_SOCKET_KEY
+import com.avail.descriptor.maps.A_Map.Companion.mapIterable
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -93,10 +94,9 @@ object P_ServerSocketSetOption : Primitive(2, CanInline, HasSideEffect)
 		val socket = pojo.javaObjectNotNull<AsynchronousServerSocketChannel>()
 		return try
 		{
-			for (entry in options.mapIterable())
+			for ((key, value) in options.mapIterable())
 			{
-				val option = socketOptions[entry.key().extractInt()]!!
-				val value = entry.value()
+				val option = socketOptions[key.extractInt()]!!
 				if (option.type() == java.lang.Boolean::class.java
 						&& value.isBoolean) {
 					val booleanOption: SocketOption<Boolean> = option.cast()

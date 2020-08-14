@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 8/7/20 8:30 PM
+ * * Last Generated: 8/10/20 11:41 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -1711,6 +1711,7 @@ Primitive "_has definition for_" is
  * @raises "incorrect-type-for-group exception"
  * @raises "ambiguous-name exception"
  * @raises "exclamation-mark-must-follow-an-alternation-group exception"
+ * @raises "redefined-with-same-argument-types exception"
  * @raises "special-atom exception"
  * @raises "incorrect-type-for-complex-group exception"
  * @raises "incorrect-use-of-double-dagger exception"
@@ -1743,6 +1744,7 @@ Primitive "Copy macros from_to_" is
 		incorrect-type-for-group code,
 		ambiguous-name code,
 		exclamation-mark-must-follow-an-alternation-group code,
+		redefined-with-same-argument-types code,
 		special-atom code,
 		incorrect-type-for-complex-group code,
 		incorrect-use-of-double-dagger code,

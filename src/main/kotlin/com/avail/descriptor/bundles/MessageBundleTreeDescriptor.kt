@@ -64,6 +64,13 @@ import com.avail.descriptor.bundles.MessageBundleTreeDescriptor.ObjectSlots.LAZY
 import com.avail.descriptor.bundles.MessageBundleTreeDescriptor.ObjectSlots.LAZY_TYPE_FILTER_TREE_POJO
 import com.avail.descriptor.bundles.MessageBundleTreeDescriptor.ObjectSlots.UNCLASSIFIED
 import com.avail.descriptor.maps.A_Map
+import com.avail.descriptor.maps.A_Map.Companion.forEach
+import com.avail.descriptor.maps.A_Map.Companion.hasKey
+import com.avail.descriptor.maps.A_Map.Companion.mapAt
+import com.avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
+import com.avail.descriptor.maps.A_Map.Companion.mapIterable
+import com.avail.descriptor.maps.A_Map.Companion.mapSize
+import com.avail.descriptor.maps.A_Map.Companion.mapWithoutKeyCanDestroy
 import com.avail.descriptor.maps.MapDescriptor
 import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.methods.A_Definition

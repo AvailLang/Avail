@@ -38,6 +38,10 @@ import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.ST
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.WEAK
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_MAP_KEY
+import com.avail.descriptor.maps.A_Map.Companion.hasKey
+import com.avail.descriptor.maps.A_Map.Companion.keysAsSet
+import com.avail.descriptor.maps.A_Map.Companion.mapAt
+import com.avail.descriptor.maps.A_Map.Companion.mapSize
 import com.avail.descriptor.phrases.A_Phrase.Companion.initializationExpression
 import com.avail.descriptor.phrases.A_Phrase.Companion.token
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newModuleConstant
@@ -119,7 +123,8 @@ object P_BootstrapVariableUseMacro
 		val module = loader.module()
 		if (module.variableBindings().hasKey(variableNameString))
 		{
-			val variableObject = module.variableBindings().mapAt(variableNameString)
+			val variableObject =
+				module.variableBindings().mapAt(variableNameString)
 			val moduleVarDecl =
 				newModuleVariable(actualToken, variableObject, nil, nil)
 			val variableUse = newUse(actualToken, moduleVarDecl)

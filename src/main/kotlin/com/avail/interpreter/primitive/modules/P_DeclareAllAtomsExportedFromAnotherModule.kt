@@ -81,14 +81,13 @@ object P_DeclareAllAtomsExportedFromAnotherModule : Primitive(
 		val sets = importedModuleNames.map { importedModuleName ->
 			val importedModule = runtime.moduleAt(importedModuleName)
 			importedModule.exportedNames()
-		}.sortedBy { -it.setSize() }
-		val iterator = sets.listIterator()
-		var union = emptySet
-		if (iterator.hasNext()) union = iterator.next()
-		iterator.forEachRemaining { union = union.setUnionCanDestroy(it, true) }
+		}.sortedByDescending(A_Set::setSize)
+		val union = sets.fold(emptySet) { union, nextSet ->
+			union.setUnionCanDestroy(nextSet, true)
+		}
 		when (isPublic.extractBoolean()) {
-			true -> module.addImportedNames(union)
-			else -> module.addPrivateNames(union)
+			true -> module.addImportedNames(union.makeShared())
+			else -> module.addPrivateNames(union.makeShared())
 		}
 		return interpreter.primitiveSuccess(nil)
 	}

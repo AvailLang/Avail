@@ -53,7 +53,6 @@ interface A_Character : A_BasicObject {
 		 * @return
 		 *   The character's numerical encoding in Unicode.
 		 */
-		fun A_Character.codePoint(): Int =
-			dispatch { o_CodePoint(it) }
+		fun A_Character.codePoint(): Int = dispatch { o_CodePoint(it) }
 	}
 }

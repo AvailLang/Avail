@@ -33,9 +33,6 @@
 Module "Smalltalk Lite"
 Versions
 	"1.4.0"
-Uses
-	"Avail",
-	"Smalltalk Lite Implementation"
 Extends
 	"Smalltalk Lite Implementation" =
 	(
@@ -45,9 +42,3 @@ Extends
 		…
 	)
 Body
-
-[
-	Copy macros from $"(Smalltalk)[]" to $"[]";
-	Copy macros from $"(Smalltalk)[§«_!»_!]" to $"[§«_!»_!]";
-	Copy macros from $"(Smalltalk)[§`|«…§»`|«_!»_!]" to $"[§`|«…§»`|«_!»_!]";
-]();

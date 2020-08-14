@@ -51,7 +51,7 @@ import com.avail.descriptor.representation.Mutability.SHARED
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-enum class Mutability
+enum class Mutability constructor(val suffix: String)
 {
 	/**
 	 * Indicates that instances of the [descriptor][Descriptor] are *mutable*.
@@ -60,7 +60,7 @@ enum class Mutability
 	 * sufficient condition for mutability. Most objects begin existence in the
 	 * *mutable* state. All slots of a *mutable* object may be modified.
 	 */
-	MUTABLE,
+	MUTABLE("\uD835\uDCDC"),
 
 	/**
 	 * Indicates that instances of the [descriptor][Descriptor] are *immutable*.
@@ -71,7 +71,7 @@ enum class Mutability
 	 * [slots][AbstractDescriptor.allowsImmutableToMutableReferenceInField] may
 	 * remain mutable.
 	 */
-	IMMUTABLE,
+	IMMUTABLE("\uD835\uDCD8"),
 
 	/**
 	 * Indicates that instances of the [descriptor][Descriptor] are immutable
@@ -87,5 +87,5 @@ enum class Mutability
 	 * *shared* just before assignment to the [object&#32;slot][ObjectSlotsEnum]
 	 * of a *shared* object.
 	 */
-	SHARED
+	SHARED("\uD835\uDCE2")
 }

@@ -37,6 +37,9 @@ import com.avail.builder.ModuleName
 import com.avail.builder.ModuleNameResolver
 import com.avail.builder.UnresolvedDependencyException
 import com.avail.compiler.ModuleHeader
+import com.avail.descriptor.maps.A_Map.Companion.keysAsSet
+import com.avail.descriptor.maps.A_Map.Companion.mapAt
+import com.avail.descriptor.maps.A_Map.Companion.valuesAsTuple
 import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
 import com.avail.descriptor.tokens.CommentTokenDescriptor
@@ -555,8 +558,7 @@ class CommentsModule constructor(
 					}
 
 					var removeSet = setFromCollection(
-						stacksUses.extendsMethodLeafNameToModuleName
-							.keys)
+						stacksUses.extendsMethodLeafNameToModuleName.keys)
 
 					removeSet = removeSet.setMinusCanDestroy(
 						collectedUsesNames, true)

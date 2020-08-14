@@ -33,6 +33,9 @@
 package com.avail.interpreter.primitive.tuples
 
 import com.avail.descriptor.maps.A_Map
+import com.avail.descriptor.maps.A_Map.Companion.hasKey
+import com.avail.descriptor.maps.A_Map.Companion.mapAt
+import com.avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import com.avail.descriptor.maps.MapDescriptor
 import com.avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt

@@ -44,6 +44,9 @@ import com.avail.descriptor.bundles.MessageBundleDescriptor.ObjectSlots.MACROS_T
 import com.avail.descriptor.bundles.MessageBundleDescriptor.ObjectSlots.MESSAGE
 import com.avail.descriptor.bundles.MessageBundleDescriptor.ObjectSlots.METHOD
 import com.avail.descriptor.maps.A_Map
+import com.avail.descriptor.maps.A_Map.Companion.hasKey
+import com.avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
+import com.avail.descriptor.maps.A_Map.Companion.mapWithoutKeyCanDestroy
 import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.methods.A_GrammaticalRestriction
@@ -257,9 +260,9 @@ class MessageBundleDescriptor private constructor(
 			}
 		}
 		// Install the macro.
-		val oldTuple: A_Tuple = self.slot(MACROS_TUPLE)
-		val newTuple = oldTuple.appendCanDestroy(macro, true)
-		self.setSlot(MACROS_TUPLE, newTuple.makeShared())
+		self.updateSlot(MACROS_TUPLE) {
+			appendCanDestroy(macro, true).makeShared()
+		}
 		// It's only a macro change, so don't invalidate dependent L2Chunks.
 		synchronized(self) {
 			macroTestingTree = null

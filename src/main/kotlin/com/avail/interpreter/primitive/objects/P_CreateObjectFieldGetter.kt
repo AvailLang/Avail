@@ -39,6 +39,7 @@ import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.functions.CompiledCodeDescriptor.Companion.newCompiledCode
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createExceptOuters
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createWithOuters1
+import com.avail.descriptor.maps.A_Map.Companion.hasKey
 import com.avail.descriptor.objects.ObjectDescriptor
 import com.avail.descriptor.objects.ObjectTypeDescriptor
 import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectMeta

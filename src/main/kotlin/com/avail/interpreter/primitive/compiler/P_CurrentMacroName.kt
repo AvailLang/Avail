@@ -36,6 +36,7 @@ import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.MACRO_BUNDLE_KEY
 import com.avail.descriptor.bundles.A_Bundle.Companion.message
 import com.avail.descriptor.fiber.FiberDescriptor.GeneralFlag.IS_EVALUATING_MACRO
+import com.avail.descriptor.maps.A_Map.Companion.mapAt
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type

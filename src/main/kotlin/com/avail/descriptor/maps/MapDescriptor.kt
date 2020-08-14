@@ -32,6 +32,21 @@
 package com.avail.descriptor.maps
 
 import com.avail.annotations.ThreadSafe
+import com.avail.descriptor.maps.A_Map.Companion.hasKey
+import com.avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
+import com.avail.descriptor.maps.A_Map.Companion.mapIterable
+import com.avail.descriptor.maps.A_Map.Companion.mapSize
+import com.avail.descriptor.maps.A_MapBin.Companion.forEachInMapBin
+import com.avail.descriptor.maps.A_MapBin.Companion.mapBinAtHash
+import com.avail.descriptor.maps.A_MapBin.Companion.mapBinAtHashPutLevelCanDestroy
+import com.avail.descriptor.maps.A_MapBin.Companion.mapBinAtHashReplacingLevelCanDestroy
+import com.avail.descriptor.maps.A_MapBin.Companion.mapBinIterable
+import com.avail.descriptor.maps.A_MapBin.Companion.mapBinKeyUnionKind
+import com.avail.descriptor.maps.A_MapBin.Companion.mapBinKeysHash
+import com.avail.descriptor.maps.A_MapBin.Companion.mapBinRemoveKeyHashCanDestroy
+import com.avail.descriptor.maps.A_MapBin.Companion.mapBinSize
+import com.avail.descriptor.maps.A_MapBin.Companion.mapBinValueUnionKind
+import com.avail.descriptor.maps.A_MapBin.Companion.mapBinValuesHash
 import com.avail.descriptor.maps.LinearMapBinDescriptor.Companion.emptyLinearMapBin
 import com.avail.descriptor.maps.MapDescriptor.ObjectSlots.ROOT_BIN
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt

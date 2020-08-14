@@ -1305,22 +1305,41 @@ Semantic restriction "_bit∧_" is
 	arg1 : integer's type,
 	arg2 : integer's type
 |
-	values : {extended integer|0..∞} := ∅;
 	include ::=
 	[
 		x : extended integer,
 		y : extended integer
 	|
-		$includeLabel : ⊤;
-		exit ::= [
-			moreValues : {extended integer|0..∞}
-		|
-			values := eject values ∪ moreValues;
-			Exit includeLabel
-		];
-		If x = ∞ then
+		cast x into
 		[
-			If y ≥ 0 then
+			xi : integer
+		|
+			cast y into
+			[
+				yi : integer
+			|
+				/* Particular finite values for x and y. */
+				{xi bit∧ yi}
+			]
+			else
+			[
+				/* y = ±∞. */
+				if x ≥ 0 then
+				[
+					/* x = ∞, y = ±∞. */
+					{0, ∞}
+				]
+				else
+				[
+					/* x = -∞, y = ±∞ */
+					{y}
+				]
+			]
+		]
+		else
+		[
+			/* x = ±∞. */
+			if y ≥ 0 then
 			[
 				/* For some finite positive y, there exists a large positive
 				 * number (implied by x) that has enough low zero bits to
@@ -1329,70 +1348,32 @@ Semantic restriction "_bit∧_" is
 				 * y is also arbitrarily large it can conspire with x to
 				 * produce any whole number.
 				 */
-				exit({0, y})
-			];
-			/* Arbitrarily large positive integers can mask a negative
-			 * number to ensure arbitrarily large positive integers are
-			 * possible.  Other limits will determine how low a (positive)
-			 * value can be produced.
-			 */
-			exit({x})
-		];
-		If x = -∞ then
-		[
-			If y ≥ 0 then
+				{0, y}
+			]
+			else
 			[
-				/* An arbitrarily large magnitude negative x can preserve any
-				 * positive y.  It could also knock it down to zero.
-				 */
-				exit({0, y})
-			];
-			/* An arbitrarily large magnitude negative x can preserve any
-			 * bits of y, but it can also zero any finite combination of
-			 * bits, keeping it negative.
-			 */
-			exit({x, y})
-		];
-		If x ≥ 0 then
-		[
-			/* A particular finite positive x. */
-			If y ∈ {∞, -∞} then
-			[
-				exit({0, x})
-			];
-			Cast x into
-			[
-				xi : integer
-			|
-				Cast y into
+				/* y < 0 */
+				if x = ∞ then
 				[
-					yi : integer
-				|
-					exit({xi bit∧ yi})
+					/* Arbitrarily large positive integers can mask a negative
+					 * number to ensure arbitrarily large positive integers are
+					 * possible.  Other limits will determine how low a
+					 * (positive) value can be produced.
+					 */
+					{∞}
+				]
+				else
+				[
+					/* x = -∞.  An arbitrarily large magnitude negative x can
+					 * preserve any bits of y, but it can also zero any finite
+					 * combination of bits, keeping it negative.
+					 */
+					{-∞, y}
 				]
 			]
-		];
-		/* A particular finite negative x. */
-		If y = ∞ then
-		[
-			exit({y})
-		];
-		If y = -∞ then
-		[
-			exit({x, y})
-		];
-		Cast x into
-		[
-			xi : integer
-		|
-			Cast y into
-			[
-				yi : integer
-			|
-				exit({xi bit∧ yi})
-			]
 		]
-	] : ⊤;
+	] : {extended integer|natural number};
+	union : {extended integer|whole number} := ∅;
 	arg1Ranges ::= arg1 range pairs;
 	arg2Ranges ::= arg2 range pairs;
 	From 1 to |arg1Ranges| do
@@ -1400,27 +1381,30 @@ Semantic restriction "_bit∧_" is
 		i1 : natural number
 	|
 		subrange1 ::= arg1Ranges[i1];
+		lower1 ::= ⌊subrange1⌋;
+		upper1 ::= ⌈subrange1⌉;
 		From 1 to |arg2Ranges| do
 		[
 			i2 : natural number
 		|
 			subrange2 ::= arg2Ranges[i2];
-			include(⌊subrange1⌋, ⌊subrange2⌋);
-			include(⌊subrange1⌋, ⌈subrange2⌉);
-			include(⌈subrange1⌉, ⌊subrange2⌋);
-			include(⌈subrange1⌉, ⌈subrange2⌉);
+			union := eject union
+				∪ include(lower1, ⌊subrange2⌋)
+				∪ include(lower1, ⌈subrange2⌉)
+				∪ include(upper1, ⌊subrange2⌋)
+				∪ include(upper1, ⌈subrange2⌉);
 			true
 		];
 		true
 	];
-	contentType ::= values' type's element type;
+	contentType ::= union' type's element type;
 	(⌊contentType⌋ - 1 .. ⌈contentType⌉ + 1)
 ] : integer's type;
 
 /**
  * Strengthen the result type of bounded bitshift, primarily based on the
  * truncation bit count.
-
+ *
  * Given a positive integer B, a shift factor S, and a truncation bit count T,
  * shift B to the left by S bits (treating a negative factor as a right shift),
  * then truncate the result to the bottom T bits by zeroing the rest.

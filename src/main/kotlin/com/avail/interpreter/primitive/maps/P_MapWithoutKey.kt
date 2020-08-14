@@ -32,6 +32,7 @@
 package com.avail.interpreter.primitive.maps
 
 import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.maps.A_Map.Companion.mapWithoutKeyCanDestroy
 import com.avail.descriptor.maps.MapDescriptor
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.one
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero

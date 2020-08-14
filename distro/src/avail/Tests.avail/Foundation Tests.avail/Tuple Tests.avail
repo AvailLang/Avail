@@ -413,6 +413,14 @@ Test "fold" in tuple test suite is
 		result ÷ input
 	] = 1;
 
+	Require: left fold 120 into <5, 4, 3, 2> through
+	[
+		input : integer,
+		result : integer
+	|
+		result ÷ input
+	] = 1;
+
 	Require: right fold <2,3,5> through
 	[
 		input : natural number,

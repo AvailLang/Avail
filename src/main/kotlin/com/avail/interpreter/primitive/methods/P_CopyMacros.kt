@@ -50,6 +50,7 @@ import com.avail.exceptions.AvailErrorCode.E_AMBIGUOUS_NAME
 import com.avail.exceptions.AvailErrorCode.E_ATOM_ALREADY_EXISTS
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
 import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
+import com.avail.exceptions.AvailErrorCode.E_REDEFINED_WITH_SAME_ARGUMENT_TYPES
 import com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
 import com.avail.exceptions.AvailException
 import com.avail.interpreter.Primitive
@@ -118,10 +119,11 @@ object P_CopyMacros : Primitive(2, CanSuspend, HasSideEffect)
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(
 			set(
-					E_LOADING_IS_OVER,
-					E_CANNOT_DEFINE_DURING_COMPILATION,
-					E_SPECIAL_ATOM,
-					E_AMBIGUOUS_NAME,
-					E_ATOM_ALREADY_EXISTS)
-				.setUnionCanDestroy(possibleErrors, true))
+				E_LOADING_IS_OVER,
+				E_CANNOT_DEFINE_DURING_COMPILATION,
+				E_REDEFINED_WITH_SAME_ARGUMENT_TYPES,
+				E_SPECIAL_ATOM,
+				E_AMBIGUOUS_NAME,
+				E_ATOM_ALREADY_EXISTS
+			).setUnionCanDestroy(possibleErrors, true))
 }

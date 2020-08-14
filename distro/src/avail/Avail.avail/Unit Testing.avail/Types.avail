@@ -560,7 +560,7 @@ Method "“_”" is
 	report : unit test report
 |
 	results ::= report's metrics;
-	description ::= left fold <""> ++ results through
+	description ::= left fold "" into results through
 		[
 			result : unit test result,
 			partial : string

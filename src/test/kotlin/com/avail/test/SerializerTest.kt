@@ -45,6 +45,7 @@ import com.avail.descriptor.character.CharacterDescriptor.Companion.fromCodePoin
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
+import com.avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.module.ModuleDescriptor.Companion.newModule
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
@@ -92,13 +93,13 @@ class SerializerTest
 	/**
 	 * The [AvailRuntime] for use by the [serializer] or the [deserializer].
 	 */
-	var runtime: AvailRuntime? = null
+	private var runtime: AvailRuntime? = null
 
 	/**
 	 * @return
 	 *   The [AvailRuntime] used by the serializer and deserializer.
 	 */
-	fun runtime(): AvailRuntime = runtime!!
+	private fun runtime(): AvailRuntime = runtime!!
 
 	/**
 	 * Test fixture: clear and then create all special objects well-known to the
@@ -151,35 +152,35 @@ class SerializerTest
 	/**
 	 * The [Serializer] which converts objects to bytes.
 	 */
-	var serializer: Serializer? = null
+	private var serializer: Serializer? = null
 
 	/**
 	 * @return
 	 *   The [Serializer] used by this test class.
 	 */
-	fun serializer(): Serializer = serializer!!
+	private fun serializer(): Serializer = serializer!!
 
 	/**
 	 * The source of bytes for the [Deserializer].
 	 */
-	var inStream: ByteArrayInputStream? = null
+	private var inStream: ByteArrayInputStream? = null
 
 	/**
 	 * @return
 	 *   The [ByteArrayInputStream] used by the deserializer.
 	 */
-	fun inStream(): ByteArrayInputStream = inStream!!
+	private fun inStream(): ByteArrayInputStream = inStream!!
 
 	/**
 	 * The [Deserializer] which (re)produces objects from bytes.
 	 */
-	var deserializer: Deserializer? = null
+	private var deserializer: Deserializer? = null
 
 	/**
 	 * @return
 	 *   The [Deserializer] used by this test class.
 	 */
-	fun deserializer(): Deserializer = deserializer!!
+	private fun deserializer(): Deserializer = deserializer!!
 
 	/**
 	 * Get ready to write objects to the [serializer].
@@ -436,8 +437,8 @@ class SerializerTest
 		val tuple = tuple(atom1, atom2)
 		prepareToWrite()
 		serializer().serialize(tuple)
-		prepareToReadBack()
 		runtime().addModule(inputModule)
+		prepareToReadBack()
 		deserializer().currentModule = currentModule
 		val newObject: A_BasicObject? = deserializer().deserialize()
 		assertNotNull(newObject)

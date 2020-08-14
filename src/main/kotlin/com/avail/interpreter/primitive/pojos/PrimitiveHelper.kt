@@ -36,6 +36,7 @@ import com.avail.AvailRuntime.HookType
 import com.avail.AvailRuntime.HookType.RAISE_JAVA_EXCEPTION_IN_AVAIL
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.maps.A_Map.Companion.mapIterable
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.APPLY
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil

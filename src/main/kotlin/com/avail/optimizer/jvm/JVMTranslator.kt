@@ -1871,7 +1871,7 @@ class JVMTranslator constructor(
 		 * is generated when this flag is false), but it's probably not a big
 		 * difference.
 		 */
-		val debugNicerJavaDecompilation = true
+		const val debugNicerJavaDecompilation = true
 
 		/**
 		 * A regex [Pattern] to rewrite function names like '"foo_"[1][3]' to

@@ -147,7 +147,7 @@ Public macro "`!Game class methodsFor:'wumping'`!«…:…§»`|«…§»`|«_!�
 	stmtsPhrase : list phrase ⇒ (statement phrase*)
 |
 	argsTuple ::= argsPhrase's expressions ?→ (list phrase ⇒ <token…|2>)+;
-	args, selector ::= left fold <<<>, "self ">> ++ argsTuple through
+	args, selector ::= left fold <<>, "self "> into argsTuple through
 		[
 			pairPhrase : list phrase ⇒ <token…|2>,
 			partial : <declaration phrase*, string…|2>
@@ -373,11 +373,3 @@ Public method "self currentGame:_during:_" is
 |
 	Use game ?→ Wump the Wumpus as the implied game and do action;
 ];
-
-/**
- * Install the renamed macros.
- */
-[
-	Copy macros from $"_!;" to $"_!.";
-	Copy macros from $"…:=_;" to $ "…:=_.";
-]();

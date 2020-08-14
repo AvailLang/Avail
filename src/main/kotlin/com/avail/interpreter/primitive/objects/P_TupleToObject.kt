@@ -34,6 +34,8 @@ package com.avail.interpreter.primitive.objects
 
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.maps.A_Map.Companion.hasKey
+import com.avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.objects.ObjectDescriptor
 import com.avail.descriptor.objects.ObjectDescriptor.Companion.objectFromTuple
@@ -108,13 +110,15 @@ object P_TupleToObject : Primitive(1, CannotFail, CanFold, CanInline)
 			if (!keyType.isEnumeration || !keyType.instanceCount().equalsInt(1))
 			{
 				// Can only strengthen if all key atoms are statically known.
-				return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
+				return super.returnTypeGuaranteedByVM(
+					rawFunction, argumentTypes)
 			}
 			val keyValue = keyType.instance()
 			if (fieldTypeMap.hasKey(keyValue))
 			{
 				// In case the semantics of this situation change.  Give up.
-				return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
+				return super.returnTypeGuaranteedByVM(
+					rawFunction, argumentTypes)
 			}
 			assert(keyValue.isAtom)
 			val valueType = pairType.typeAtIndex(2)

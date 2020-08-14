@@ -173,7 +173,7 @@ class MessageSplitterTest private constructor ()
 		 *   then a print representation of the numeric instructions converted
 		 *   to a [List].
 		 */
-		fun C (
+		private fun C (
 			message: String,
 			listPhraseType: A_Type,
 			tokens: Array<String>,
@@ -204,7 +204,7 @@ class MessageSplitterTest private constructor ()
 		 * @return A [list phrase type][ListPhraseTypeDescriptor].
 		 * 1
 		 */
-		fun List (
+		private fun List (
 			lowerBound: Int,
 			upperBound: Int,
 			vararg expressionPhraseTypes: A_Type
@@ -242,7 +242,7 @@ class MessageSplitterTest private constructor ()
 		 * @return
 		 *   A [phrase type][PhraseTypeDescriptor].
 		 */
-		fun Phrase (yieldType: A_Type?) =
+		private fun Phrase (yieldType: A_Type?) =
 			PhraseKind.PARSE_PHRASE.create(yieldType!!)
 
 		/**
@@ -253,7 +253,7 @@ class MessageSplitterTest private constructor ()
 		 * @return
 		 *   A [literal token type][LiteralTokenTypeDescriptor].
 		 */
-		fun LiteralToken (valueType: A_Type?) = literalTokenType(valueType!!)
+		private fun LiteralToken (valueType: A_Type?) = literalTokenType(valueType!!)
 
 		/**
 		 * Create a simple array.  This greatly reduces the syntactic noise of
@@ -1526,7 +1526,7 @@ class MessageSplitterTest private constructor ()
 		val splitter = MessageSplitter(message)
 		val parts = splitter.messageParts
 		assert(splitCase.tokens.size == parts.size)
-		for (i in 0 until parts.size)
+		for (i in parts.indices)
 		{
 			Assertions.assertEquals(
 				splitCase.tokens[i],

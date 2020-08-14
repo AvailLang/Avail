@@ -411,7 +411,7 @@ Method "_'s⁇edges" is
 		vertex : any,
 		incoming : set
 	|
-		edges := eject edges ∪ left fold <∅> ++ incoming→tuple through
+		edges := eject edges ∪ left fold ∅ into incoming→tuple through
 			[
 				predecessor : any,
 				partial : {edge|}
@@ -472,7 +472,7 @@ Method "_'s⁇edges" is
 			edgeLabel : any,
 			incoming : set
 		|
-			edges := eject edges ∪ left fold <∅> ++ incoming→tuple through
+			edges := eject edges ∪ left fold ∅ into incoming→tuple through
 				[
 					predecessor : any,
 					partial : {edge|}

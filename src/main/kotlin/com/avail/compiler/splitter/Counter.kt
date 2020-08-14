@@ -93,6 +93,9 @@ internal class Counter(
 		assert(group.afterDagger.yielders.isEmpty())
 	}
 
+	override val recursivelyContainsReorders: Boolean
+		get() = group.recursivelyContainsReorders
+
 	override val yieldsValue
 		get() = true
 
