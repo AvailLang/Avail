@@ -1634,14 +1634,17 @@ class IntegerDescriptor private constructor(
 				high.toDouble(),
 				(slotsCount - 1 shl 5) - exponentBias)
 			if (slotsCount > 1) {
-				val med = ((high and 0xFFFFFFFFL.inv())
-					+ self.rawUnsignedIntegerAt(slotsCount - 1))
+				// Don't sign-extend this component, since our initial estimate
+				// can only be too low, never too high.  Adding in the lower
+				// ints should increase the number, even if the first value was
+				// negative.
+				val med = self.rawUnsignedIntegerAt(slotsCount - 1)
 				d += scalb(
 					med.toDouble(),
 					(slotsCount - 2 shl 5) - exponentBias)
 				if (slotsCount > 2) {
-					val low = ((high and 0xFFFFFFFFL.inv())
-						+ self.rawUnsignedIntegerAt(slotsCount - 2))
+					// Again, don't sign-extend this component.
+					val low = self.rawUnsignedIntegerAt(slotsCount - 2)
 					d += scalb(
 						low.toDouble(),
 						(slotsCount - 3 shl 5) - exponentBias)
