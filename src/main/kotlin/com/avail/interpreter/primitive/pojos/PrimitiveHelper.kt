@@ -41,6 +41,8 @@ import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.APPLY
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.FunctionTypeDescriptor
@@ -235,6 +237,7 @@ object PrimitiveHelper
 		writer.primitive = primitive
 		writer.argumentTypes(*argTypesArray)
 		writer.returnType = returnType
+		writer.returnTypeIfPrimitiveFails = bottom
 		// Produce failure code.  First declare the local that holds primitive
 		// failure information.
 		val failureLocal = writer.createLocal(

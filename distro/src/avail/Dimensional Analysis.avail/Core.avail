@@ -103,10 +103,6 @@ Names
 
 	/* Comparison. */
 	"_≍_",
-	"_<_",
-	"_≤_",
-	"_>_",
-	"_≥_",
 	"«_‡«=|≤|<»!»",
 	"«_‡«=|≥|>»!»",
 
@@ -1737,7 +1733,7 @@ Semantic restriction "⌈_⌉" is
  * @raises "incompatible-quantities exception"
  *         If the arguments are incompatible.
  */
-Public method "_<_" is
+Method "_<_" is
 [
 	a : dimensioned quantity,
 	b : dimensioned quantity
@@ -1761,61 +1757,13 @@ Public method "_<_" is
  * @raises "incompatible-quantities exception"
  *         If the arguments are incompatible.
  */
-Public method "_≤_" is
+Method "_≤_" is
 [
 	a : dimensioned quantity,
 	b : dimensioned quantity
 |
 	Require: a and b are compatible;
 	a's extent ≤ b's extent
-] : boolean;
-
-/**
- * Is {@param "a"} > {@param "b"}?
- *
- * @category "Dimensional Analysis"
- * @method "_>_"
- * @param "a" "dimensioned quantity"
- *        A {@type "dimensioned quantity"}.
- * @param "b" "dimensioned quantity"
- *        A {@type "dimensioned quantity"}.
- * @returns "boolean"
- *          {@method "true"} if {@param "a"} > {@param "b"}, {@method "false"}
- *          otherwise.
- * @raises "incompatible-quantities exception"
- *         If the arguments are incompatible.
- */
-Public method "_>_" is
-[
-	a : dimensioned quantity,
-	b : dimensioned quantity
-|
-	Require: a and b are compatible;
-	a's extent > b's extent
-] : boolean;
-
-/**
- * Is {@param "a"} ≥ {@param "b"}?
- *
- * @category "Dimensional Analysis"
- * @method "_≥_"
- * @param "a" "dimensioned quantity"
- *        A {@type "dimensioned quantity"}.
- * @param "b" "dimensioned quantity"
- *        A {@type "dimensioned quantity"}.
- * @returns "boolean"
- *          {@method "true"} if {@param "a"} ≥ {@param "b"}, {@method "false"}
- *          otherwise.
- * @raises "incompatible-quantities exception"
- *         If the arguments are incompatible.
- */
-Public method "_≥_" is
-[
-	a : dimensioned quantity,
-	b : dimensioned quantity
-|
-	Require: a and b are compatible;
-	a's extent ≥ b's extent
 ] : boolean;
 
 Private method "comparison restriction function" is
@@ -1833,8 +1781,8 @@ Semantic restriction "_=_" is comparison restriction function;
 Semantic restriction "_≠_" is comparison restriction function;
 Semantic restriction "_<_" is comparison restriction function;
 Semantic restriction "_≤_" is comparison restriction function;
-Semantic restriction "_>_" is comparison restriction function;
-Semantic restriction "_≥_" is comparison restriction function;
+Semantic restriction "_②>_①" is comparison restriction function;
+Semantic restriction "_②≥_①" is comparison restriction function;
 
 Semantic restriction "«_‡=»" is
 [
@@ -2002,9 +1950,9 @@ Semantic restriction "«_‡«=|≥|>»!»" is
 [
 	binary ::=
 		{
-			$"_=_", $"_≤_", $"_<_", $"_≥_", $"_>_",
+			$"_=_", $"_≤_", $"_<_", $"_②≥_①", $"_②>_①",
 			Foundation $"_<_", Foundation $"_≤_",
-			Foundation $"_>_", Foundation $"_≥_"
+			Foundation $"_②>_①", Foundation $"_②≥_①"
 		};
 	chains ::=
 		{

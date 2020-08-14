@@ -128,8 +128,7 @@ private constructor(
 		// look up the best source semantic values.
 		val sources: L2ReadVectorOperand<RR, R> = instruction.operand(0)
 		val destination: L2WriteOperand<R> = instruction.operand(1)
-		val predecessorEdges =
-			instruction.basicBlock().predecessorEdgesCopy()
+		val predecessorEdges = instruction.basicBlock().predecessorEdges()
 		instructionWasAddedForPhi(sources, predecessorEdges)
 		destination.instructionWasAdded(manifest)
 	}
@@ -233,11 +232,10 @@ private constructor(
 				   == instruction.basicBlock().predecessorEdgesCount())
 		val list = mutableListOf<L2BasicBlock>()
 		var i = 0
-		instruction.basicBlock().predecessorEdgesDo { edge: L2PcOperand ->
+		instruction.basicBlock().predecessorEdges().forEach {
+			edge: L2PcOperand ->
 			if (sources.elements()[i++].register() === usedRegister)
-			{
 				list.add(edge.sourceBlock())
-			}
 		}
 		return list
 	}

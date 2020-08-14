@@ -39,6 +39,10 @@ import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.copyTupleFromToCanDestroy
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAtPuttingCanDestroy
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromArray
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
@@ -598,10 +602,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 				val upper = sizeRange.upperBound().extractInt()
 				return tupleTypeForSizesTypesDefaultType(
 					sizeRange,
-					typeTuple.copyTupleFromToCanDestroy(
-						1,
-						upper - 1,
-						false),
+					typeTuple.copyTupleFromToCanDestroy(1, upper - 1, false),
 					typeTuple.tupleAt(upper).makeImmutable())
 			}
 			if (typeTupleSize > 0
@@ -687,7 +688,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		/** Access the method [tupleTypeForTypes].  */
 		var tupleTypesForTypesArrayMethod = staticMethod(
 			TupleTypeDescriptor::class.java,
-			"tupleTypeForTypes",
+			::tupleTypeForTypes.name,
 			A_Type::class.java,
 			Array<A_Type>::class.java)
 
@@ -702,7 +703,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		 */
 		@ReferencedInGeneratedCode
 		@JvmStatic
-		fun tupleTypeForTypes(types: List<A_Type>): A_Type =
+		fun tupleTypeForTypesList(types: List<A_Type>): A_Type =
 			tupleTypeForSizesTypesDefaultType(
 				singleInt(types.size),
 				tupleFromList(types),
@@ -714,7 +715,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		@JvmField
 		val tupleTypesForTypesListMethod = staticMethod(
 			TupleTypeDescriptor::class.java,
-			"tupleTypeForTypes",
+			::tupleTypeForTypesList.name,
 			A_Type::class.java,
 			MutableList::class.java)
 
@@ -722,8 +723,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		 * Transform a tuple type into another tuple type by transforming each
 		 * of the element types.  Assume the transformation is stable.  The
 		 * resulting tuple type should have the same size range as the input
-		 * tuple type, except if normalization produces
-		 * [bottom][BottomTypeDescriptor.getBottom].
+		 * tuple type, except if normalization produces [bottom].
 		 *
 		 * @param aTupleType
 		 *   A tuple type whose element types should be transformed.

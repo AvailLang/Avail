@@ -33,6 +33,7 @@
 package com.avail.exceptions
 
 import com.avail.AvailRuntime
+import com.avail.compiler.splitter.Group
 import com.avail.compiler.splitter.MessageSplitter
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.bundles.A_Bundle
@@ -45,7 +46,7 @@ import com.avail.descriptor.maps.MapDescriptor
 import com.avail.descriptor.methods.AbstractDefinitionDescriptor
 import com.avail.descriptor.methods.DefinitionDescriptor
 import com.avail.descriptor.methods.ForwardDefinitionDescriptor
-import com.avail.descriptor.methods.MacroDefinitionDescriptor
+import com.avail.descriptor.methods.MacroDescriptor
 import com.avail.descriptor.methods.MethodDefinitionDescriptor
 import com.avail.descriptor.methods.MethodDescriptor
 import com.avail.descriptor.module.A_Module
@@ -55,6 +56,7 @@ import com.avail.descriptor.numbers.IntegerDescriptor
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.phrases.BlockPhraseDescriptor
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
+import com.avail.descriptor.phrases.PermutedListPhraseDescriptor
 import com.avail.descriptor.phrases.PhraseDescriptor
 import com.avail.descriptor.phrases.ReferencePhraseDescriptor
 import com.avail.descriptor.phrases.SequencePhraseDescriptor
@@ -253,7 +255,7 @@ enum class AvailErrorCode constructor(val code: Int)
 	E_NO_SPECIAL_OBJECT(33),
 
 	/**
-	 * A [macro][MacroDefinitionDescriptor] [body][FunctionDescriptor] must
+	 * A [macro][MacroDescriptor] [body][FunctionDescriptor] must
 	 * restrict each parameter to be at least as specific as a
 	 * [phrase][PhraseDescriptor].
 	 */
@@ -300,11 +302,11 @@ enum class AvailErrorCode constructor(val code: Int)
 
 	/**
 	 * A method's argument type was inconsistent with a
-	 * [complex&#32;guillemet&#32;group's][MessageSplitter] specific
-	 * requirements.  In particular, the corresponding argument position must be
-	 * a tuple of tuples whose sizes range from the number of argument
-	 * subexpressions left of the double-dagger, up to the number of argument
-	 * subexpressions on both sides of the double-dagger.
+	 * [complex&#32;guillemet&#32;group's][Group] specific requirements.  In
+	 * particular, the corresponding argument position must be a tuple of tuples
+	 * whose sizes range from the number of argument subexpressions left of the
+	 * double-dagger, up to the number of argument subexpressions on both sides
+	 * of the double-dagger.
 	 */
 	E_INCORRECT_TYPE_FOR_COMPLEX_GROUP(42),
 
@@ -451,14 +453,14 @@ enum class AvailErrorCode constructor(val code: Int)
 	E_BAD_YIELD_TYPE(66),
 
 	/**
-	 * A [macro][MacroDefinitionDescriptor]'s
+	 * A [macro][MacroDescriptor]'s
 	 * [prefix&#32;function][FunctionDescriptor] must restrict each parameter to
 	 * be at least as specific as a [phrase][PhraseDescriptor].
 	 */
 	E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PARSE_NODE(67),
 
 	/**
-	 * A [macro][MacroDefinitionDescriptor] [body][FunctionDescriptor] must
+	 * A [macro][MacroDescriptor] [body][FunctionDescriptor] must
 	 * produce a [phrase][PhraseDescriptor].
 	 */
 	E_MACRO_MUST_RETURN_A_PARSE_NODE(68),
@@ -650,7 +652,10 @@ enum class AvailErrorCode constructor(val code: Int)
 
 	/**
 	 * [MessageSplitter] encountered inconsistent argument reordering indicators
-	 * in a message name.
+	 * in a message name.  Also indicates when an attempt is made to create a
+	 * [permuted&#32;list][PermutedListPhraseDescriptor] with an invalid or
+	 * identity permutation.  Also indicates an invalid attempt to combine a
+	 * bundle with a differently permuted list to form a send phrase.
 	 */
 	E_INCONSISTENT_ARGUMENT_REORDERING(98),
 

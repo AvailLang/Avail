@@ -53,9 +53,9 @@ import org.objectweb.asm.Type
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-@ReadsHiddenVariable(theValue = [CURRENT_ARGUMENTS::class])
+@ReadsHiddenVariable(CURRENT_ARGUMENTS::class)
 object L2_GET_ARGUMENT : L2Operation(
-	L2OperandType.INT_IMMEDIATE.named("subscript into argsBuffer"),
+	L2OperandType.INT_IMMEDIATE.named("zeroIndex into argsBuffer"),
 	L2OperandType.WRITE_BOXED.named("argument"))
 {
 	// Keep this instruction pinned in place for safety during inlining.
@@ -68,10 +68,8 @@ object L2_GET_ARGUMENT : L2Operation(
 		warningStyleChange: (Boolean) -> Unit)
 	{
 		assert(this == instruction.operation())
-		val subscript =
-			instruction.operand<L2IntImmediateOperand>(0)
-		val argument =
-			instruction.operand<L2WriteBoxedOperand>(1)
+		val subscript = instruction.operand<L2IntImmediateOperand>(0)
+		val argument = instruction.operand<L2WriteBoxedOperand>(1)
 		renderPreamble(instruction, builder)
 		builder.append(' ')
 		builder.append(argument.registerString())
@@ -90,7 +88,7 @@ object L2_GET_ARGUMENT : L2Operation(
 		// :: argument = interpreter.argsBuffer.get(«subscript - 1»);
 		translator.loadInterpreter(method)
 		Interpreter.argsBufferField.generateRead(method)
-		translator.literal(method, subscript.value - 1)
+		translator.literal(method, subscript.value)
 		listGetMethod.generateCall(method)
 		method.visitTypeInsn(Opcodes.CHECKCAST, Type.getInternalName(AvailObject::class.java))
 		translator.store(method, argument.register())

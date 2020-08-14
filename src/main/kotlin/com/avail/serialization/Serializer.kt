@@ -369,7 +369,7 @@ class Serializer
 		 * that are `null` (i.e., unused entries} are not included.
 		 */
 		private val specialObjects =
-			AvailRuntime.specialObjects().withIndex().associate {
+			AvailRuntime.specialObjects.withIndex().associate {
 				it.value to it.index
 			}
 
@@ -378,7 +378,7 @@ class Serializer
 		 * list of [special&#32;atoms][AvailRuntime.specialAtoms].
 		 */
 		private val specialAtoms =
-			AvailRuntime.specialAtoms().withIndex().associate {
+			AvailRuntime.specialAtoms.withIndex().associate {
 				it.value to it.index
 			}
 

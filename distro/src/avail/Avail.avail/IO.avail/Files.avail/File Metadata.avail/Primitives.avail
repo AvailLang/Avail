@@ -38,7 +38,7 @@ Uses
 	"File Names",
 	"File Types" =
 	(
-		"file type"→"actual file type",
+		"file type" → "actual file type",
 		…
 	),
 	"Foundation" = (-"_'s⁇name", …)

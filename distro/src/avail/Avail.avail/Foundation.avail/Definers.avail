@@ -44,7 +44,7 @@ Uses
 	"Early Variables",
 	"Phrases"
 Names
-	"Method_is stable at_",
+	"Method_is stable at_«compute with_»?",
 	"Private stable abstract method_is_",
 	"Private stable forward method_is_",
 	"Private stable method_is_",
@@ -79,12 +79,12 @@ Private method "stable guard" is
 
 /**
  * This is the {@type "function"} that wraps invocations of stable methods in
- * generated macros produced by {@method "Method_is stable at_"}. The first
- * argument is a {@type "function"} that attempts to perform the stable method
- * with the correct arguments and, on success, produces a {@type
- * "literal phrase"} that wraps the result. In the event of failure, the second
- * argument is invoked to produce a {@type "send phrase"} that will try the
- * operation at runtime.
+ * generated macros produced by {@method "Method_is stable at_«compute
+ * with_»?"}. The first argument is a {@type "function"} that attempts to
+ * perform the stable method with the correct arguments and, on success,
+ * produces a {@type "literal phrase"} that wraps the result. In the event of
+ * failure, the second argument is invoked to produce a {@type "send phrase"}
+ * that will try the operation at runtime.
  *
  * @global "failureFunction"
  *         "[[]→literal phrase, []→send phrase⇒any]→expression phrase⇒any"
@@ -101,8 +101,8 @@ Method "stability failure function" is [failureFunction];
 
 /**
  * Set the {@global "failureFunction"} that wraps invocations of stable methods
- * in macros produced by {@method "Method_is stable at_"}. This is a bootstrap
- * method, and should not escape "Foundation".
+ * in macros produced by {@method "Method_is stable at_«compute with_»?"}. This
+ * is a bootstrap method, and should not escape "Foundation".
  *
  * @method "Set stability failure function to_"
  * @param "f" "[[]→type]→type"
@@ -125,8 +125,8 @@ Method "Run stability failure function protecting_with_" is
 ];
 
 /*
- * Utility method for {@method "Method_is stable at_"}.  Test whether the
- * given expression is constant-valued.
+ * Utility method for {@method "Method_is stable at_«compute with_»?"}.  Test
+ * whether the given expression is constant-valued.
  */
 Private method "_is constant expression" is
 [
@@ -244,11 +244,17 @@ Private method "extract constant value from_" is
 ];
 
 
+/* These methods are needed for autogeneration of stable method restrictions. */
+stabilityBodyAtom ::=
+	atom for "stability body for_with(«_‡,»)«evaluating with_»?";
 
-Private method "stability body for_with«_‡,»" is
+zeroOrOne ::= integer range from 0 (inclusive = true) to 1 (inclusive = true);
+
+Private method stabilityBodyAtom is
 [
 	methodName : atom,
-	argumentExpressions : <<>, expression phrase⇒any…|whole number>
+	argumentExpressions : <<>, expression phrase⇒any…|whole number>,
+	optionalEvaluator : <<>, […]→any…|zeroOrOne>
 |
 	argumentList ::= argumentExpressions → list phrase;
 	if argumentList is constant expression then
@@ -279,9 +285,6 @@ Private method "stability body for_with«_‡,»" is
 	]
 ];
 
-/* These methods are needed for autogeneration of stable method restrictions. */
-stabilityBodyAtom ::= atom for "stability body for_with«_‡,»";
-
 /* The zero-argument atom that gets the atom of the macro being evaluated. */
 getCurrentMacroNameAtom ::= atom for "current macro name";
 
@@ -292,18 +295,22 @@ getCurrentMacroNameAtom ::= atom for "current macro name";
  * that will fold the call site away, replacing it with a precisely known value
  * when all arguments types are themselves precisely known.
  *
- * @method "Method_is stable at_"
+ * @method "Method_is stable at_«compute with_»?"
  * @param "methodAtom" "atom"
  *        The name of the stable method.
  * @param "functionType" "function meta"
  *        The signature of the method that is being declared stable.
+ * @param "optionalEvaluator" "([…]→any)?"
+ *        The optional function to invoke in place of the method, to attempt to
+ *        produce the stable answer.
  * @returns "⊤"
  * @category "Declarations" "Methods"
  */
-Public method "Method_is stable at_" is
+Public method "Method_is stable at_«compute with_»?" is
 [
 	methodName : atom,
-	functionType : ([…]→any)'s type
+	functionType : ([…]→any)'s type,
+	optionalEvaluator : <<>, […]→any…|zeroOrOne>
 |
 	/* The goal is to take an invocation like:
 	 *
@@ -327,7 +334,12 @@ Public method "Method_is stable at_" is
 	argDecls : <<>, argument phrase…|whole number> := <>;
 	argUses : <<>, variable use phrase…|whole number> := <>;
 	/* Construct the tuples of argument declarations and argument uses. */
-	From 1 to |message methodName's name's parameters| do
+	messageParamCount ::= |message methodName's name's parameters|;
+	functionParamCount ::=
+		||functionType's parameters' type||'s genuine lower bound;
+	Assert: functionParamCount = messageParamCount
+		("Expected the right number of arguments for a stability function");
+	From 1 to messageParamCount do
 	[
 		index : natural number
 	|
@@ -343,7 +355,6 @@ Public method "Method_is stable at_" is
 			into [t : <<>, variable use phrase…|whole number> | t];
 		true
 	];
-	currentMacroToken ::= (this token: currentMacroName);
 	sendGetCurrentMacro ::=
 		bootstrap restricted send getCurrentMacroNameAtom with «<>» : atom;
 	sendStabilityBody ::=
@@ -351,12 +362,12 @@ Public method "Method_is stable at_" is
 		with
 			«<
 				sendGetCurrentMacro,
-				argUses → list phrase
+				argUses → list phrase,
+				`optionalEvaluator` → literal phrase
 			>»
 		: (expression phrase ⇒ any);
 	/* Construct the function. */
-	macroBody ::= «[argDecls | <sendStabilityBody>]
-		: expression phrase ⇒ any»;
+	macroBody ::= «[argDecls | <sendStabilityBody>] : expression phrase ⇒ any»;
 	macroFunction ::= macroBody → function;
 	/* Install the macro. */
 	Macro methodName is macroFunction;
@@ -370,21 +381,33 @@ Public method "Method_is stable at_" is
  * site to a precisely known value when all arguments are themselves precisely
  * known.
  *
- * @method "Method_is stable at_"
+ * @method "Method_is stable at_«compute with_»?"
  * @param "methodName" "string"
  *        The name of the stable.
  * @param "functionType" "function meta"
  *        The signature of the method that is being declared stable.
+ * @param "optionalEvaluator" "([…]→any)?"
+ *        The optional function to invoke in place of the method, to attempt to
+ *        produce the stable answer.
  * @returns "⊤"
  * @category "Declarations" "Methods"
  */
-Public method "Method_is stable at_" is
+Public method "Method_is stable at_«compute with_»?" is
 [
 	methodName : string,
-	functionType : ([…]→any)'s type
+	functionType : ([…]→any)'s type,
+	optionalEvaluator : <<>, […]→any…|zeroOrOne>
 |
 	methodAtom ::= atom for methodName;
-	Method methodAtom is stable at functionType;
+	if (optionalEvaluator = <>) then
+	[
+		Method methodAtom is stable at functionType;
+	]
+	else
+	[
+		evaluator ::= cast optionalEvaluator[1] into [f : […]→any | f];
+		Method methodAtom is stable at functionType compute with evaluator;
+	];
 ] : ⊤;
 
 /**

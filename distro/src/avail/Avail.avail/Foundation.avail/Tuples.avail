@@ -176,12 +176,15 @@ Method "For each of⁇_do_" is
 	aTuple : tuple,
 	action : [⊥]→⊤
 |
-	From 1 to |aTuple| do
 	[
-		index : natural number
+		index : natural number,
+		end : whole number
 	|
+		$loop : ⊤;
+		Exit loop if index > end;
 		action(aTuple[index]);
-	];
+		Restart loop with <index + 1, end>
+	](1, |aTuple|);
 ] : ⊤;
 
 /**
@@ -200,12 +203,15 @@ Method "For each of⁇_do_" is
 	aTuple : tuple,
 	action : [⊥, ⊥]→⊤
 |
-	From 1 to |aTuple| do
 	[
-		index : natural number
+		index : natural number,
+		end : whole number
 	|
+		$loop : ⊤;
+		Exit loop if index > end;
 		action(aTuple[index], index);
-	];
+		Restart loop with <index + 1, end>
+	](1, |aTuple|);
 ] : ⊤;
 
 /**
@@ -581,14 +587,20 @@ Method "map_through_" is
 	aTuple : tuple,
 	transformer : [⊥]→any
 |
-	result : tuple := <>;
-	From 1 to |aTuple| do
 	[
-		index : natural number
+		index : natural number,
+		end : whole number,
+		accumulator : tuple,
+		innerTuple : tuple,
+		innerTransformer : [⊥]→any
 	|
-		result ++= <transformer(aTuple[index])>;
-	];
-	result
+		$loop : tuple;
+		Exit loop with accumulator if index > end;
+		transformed ::= innerTransformer(innerTuple[index]);
+		newAccumulator ::= accumulator ++ <transformed>;
+		Restart loop
+			with <index + 1, end, newAccumulator, innerTuple, innerTransformer>
+	](1, |aTuple|, <>, aTuple, transformer)
 ] : tuple;
 
 /**
@@ -611,14 +623,16 @@ Method "map_through_" is
 	aTuple : tuple,
 	transformer : [⊥, ⊥]→any
 |
-	result : tuple := <>;
-	From 1 to |aTuple| do
 	[
-		index : natural number
+		index : natural number,
+		end : whole number,
+		accumulator : tuple
 	|
-		result ++= <transformer(aTuple[index], index)>;
-	];
-	result
+		$loop : tuple;
+		Exit loop with accumulator if index > end;
+		transformed ::= transformer(aTuple[index], index);
+		Restart loop with <index + 1, end, accumulator ++ <transformed>>
+	](1, |aTuple|, <>)
 ] : tuple;
 
 /**
@@ -718,23 +732,28 @@ Method "filter_by_" is
 	aTuple : tuple,
 	predicate : [⊥]→boolean
 |
-	index : natural number := 1;
-	end ::= |aTuple|;
-	result : tuple := <>;
 	[
-		$loop;
-		If index ≤ end then
-		[
-			element ::= aTuple[index];
-			If predicate(element) then
-			[
-				result := eject result ++ <element>;
-			];
-			index++;
-			Restart loop
-		];
-	]();
-	result
+		index : natural number,
+		end : whole number,
+		accumulator : tuple,
+		innerTuple : tuple,
+		innerPredicate : [⊥]→boolean
+	|
+		$loop : tuple;
+		pastEnd ::= index > end;
+		Exit loop with accumulator if pastEnd;
+		element ::= innerTuple[index];
+		concatenated ::= accumulator ++ <element>;
+		newAccumulator ::=
+			if innerPredicate(element) then [concatenated]
+			else [accumulator];
+		Restart loop with <
+			index + 1,
+			end,
+			newAccumulator,
+			innerTuple,
+			innerPredicate>
+	](1, |aTuple|, <>, aTuple, predicate)
 ] : tuple;
 
 /**
@@ -759,23 +778,28 @@ Method "filter_by_" is
 	aTuple : tuple,
 	predicate : [⊥, ⊥]→boolean
 |
-	index : natural number := 1;
-	end ::= |aTuple|;
-	result : tuple := <>;
 	[
-		$loop;
-		If index ≤ end then
-		[
-			element ::= aTuple[index];
-			If predicate(element, index) then
-			[
-				result := eject result ++ <element>;
-			];
-			index++;
-			Restart loop
-		];
-	]();
-	result
+		index : natural number,
+		end : whole number,
+		accumulator : tuple,
+		innerTuple : tuple,
+		innerPredicate : [⊥,⊥]→boolean
+	|
+		$loop : tuple;
+		pastEnd ::= index > end;
+		Exit loop with accumulator if pastEnd;
+		element ::= innerTuple[index];
+		concatenated ::= accumulator ++ <element>;
+		newAccumulator ::=
+			if innerPredicate(element, index) then [concatenated]
+			else [accumulator];
+		Restart loop with <
+			index + 1,
+			end,
+			newAccumulator,
+			innerTuple,
+			innerPredicate>
+	](1, |aTuple|, <>, aTuple, predicate)
 ] : tuple;
 
 /**
@@ -1171,12 +1195,23 @@ Method "any of_satisfies_" is
 	aTuple : tuple,
 	predicate : [⊥]→boolean
 |
-	$body : boolean;
-	For each element of aTuple do
 	[
-		Exit body with true if predicate(element);
-	];
-	false
+		index : natural number,
+		end : whole number,
+		innerTuple : tuple,
+		innerPredicate : [⊥]→boolean
+	|
+		$loop : boolean;
+		pastEnd ::= index > end;
+		Exit loop with false if pastEnd;
+		pass ::= innerPredicate(innerTuple[index]);
+		Exit loop with true if pass;
+		Restart loop with <
+			index + 1,
+			end,
+			innerTuple,
+			innerPredicate>
+	](1, |aTuple|, aTuple, predicate)
 ] : boolean;
 
 /**
@@ -1199,12 +1234,23 @@ Method "any of_satisfies_" is
 	aTuple : tuple,
 	predicate : [⊥, ⊥]→boolean
 |
-	$body : boolean;
-	For each element, index of aTuple do
 	[
-		Exit body with true if predicate(element, index);
-	];
-	false
+		index : natural number,
+		end : whole number,
+		innerTuple : tuple,
+		innerPredicate : [⊥,⊥]→boolean
+	|
+		$loop : boolean;
+		pastEnd ::= index > end;
+		Exit loop with false if pastEnd;
+		pass ::= innerPredicate(innerTuple[index], index);
+		Exit loop with true if pass;
+		Restart loop with <
+			index + 1,
+			end,
+			innerTuple,
+			innerPredicate>
+	](1, |aTuple|, aTuple, predicate)
 ] : boolean;
 
 /**
@@ -1243,12 +1289,23 @@ Method "each of_satisfies_" is
 	aTuple : tuple,
 	predicate : [⊥]→boolean
 |
-	$body : boolean;
-	For each element of aTuple do
 	[
-		Exit body with false if ¬predicate(element);
-	];
-	true
+		index : natural number,
+		end : whole number,
+		innerTuple : tuple,
+		innerPredicate : [⊥]→boolean
+	|
+		$loop : boolean;
+		pastEnd ::= index > end;
+		Exit loop with true if pastEnd;
+		fail ::= innerPredicate(innerTuple[index]) = false;
+		Exit loop with false if fail;
+		Restart loop with <
+			index + 1,
+			end,
+			innerTuple,
+			innerPredicate>
+	](1, |aTuple|, aTuple, predicate)
 ] : boolean;
 
 /**
@@ -1271,12 +1328,23 @@ Method "each of_satisfies_" is
 	aTuple : tuple,
 	predicate : [⊥, ⊥]→boolean
 |
-	$body : boolean;
-	For each element, index of aTuple do
 	[
-		Exit body with false if ¬predicate(element, index);
-	];
-	true
+		index : natural number,
+		end : whole number,
+		innerTuple : tuple,
+		innerPredicate : [⊥, ⊥]→boolean
+	|
+		$loop : boolean;
+		pastEnd ::= index > end;
+		Exit loop with true if pastEnd;
+		fail ::= innerPredicate(innerTuple[index], index) = false;
+		Exit loop with false if fail;
+		Restart loop with <
+			index + 1,
+			end,
+			innerTuple,
+			innerPredicate>
+	](1, |aTuple|, aTuple, predicate)
 ] : boolean;
 
 /**
@@ -1356,7 +1424,26 @@ Method "count of_where_" is
 	aTuple : tuple,
 	predicate : [⊥]→boolean
 |
-	|filter aTuple by predicate|
+	[
+		index : natural number,
+		end : whole number,
+		count : whole number,
+		innerTuple : tuple,
+		innerPredicate : [⊥]→boolean
+	|
+		$loop : whole number;
+		pastEnd ::= index > end;
+		Exit loop with count if pastEnd;
+		incrementedCount ::= count + 1;
+		pass ::= innerPredicate(innerTuple[index]);
+		newCount ::= if pass then [incrementedCount] else [count];
+		Restart loop with <
+			index + 1,
+			end,
+			newCount,
+			innerTuple,
+			innerPredicate>
+	](1, |aTuple|, 0, aTuple, predicate)
 ] : whole number;
 
 /**
@@ -1379,7 +1466,26 @@ Method "count of_where_" is
 	aTuple : tuple,
 	predicate : [⊥, ⊥]→boolean
 |
-	|filter aTuple by predicate|
+	[
+		index : natural number,
+		end : whole number,
+		count : whole number,
+		innerTuple : tuple,
+		innerPredicate : [⊥, ⊥]→boolean
+	|
+		$loop : whole number;
+		pastEnd ::= index > end;
+		Exit loop with count if pastEnd;
+		incrementedCount ::= count + 1;
+		pass ::= innerPredicate(innerTuple[index], index);
+		newCount ::= if pass then [incrementedCount] else [count];
+		Restart loop with <
+			index + 1,
+			end,
+			newCount,
+			innerTuple,
+			innerPredicate>
+	](1, |aTuple|, 0, aTuple, predicate)
 ] : whole number;
 
 /**
@@ -1618,12 +1724,24 @@ Public method "left fold_through_" is
 	aTuple : any+,
 	transformer : [⊥, ⊥]→any
 |
-	result : any := aTuple[1];
-	For each index from 2 to |aTuple| do
 	[
-		result := transformer(aTuple[index], eject result);
-	];
-	result
+		index : natural number,
+		end : whole number,
+		accumulator : any,
+		innerTuple : tuple,
+		innerTransformer : [⊥, ⊥]→any
+	|
+		$loop : any;
+		pastEnd ::= index > end;
+		Exit loop with accumulator if pastEnd;
+		nextAccumulator ::= innerTransformer(innerTuple[index], accumulator);
+		Restart loop with <
+			index + 1,
+			end,
+			nextAccumulator,
+			innerTuple,
+			innerTransformer>
+	](2, |aTuple|, aTuple[1], aTuple, transformer)
 ] : any;
 
 /**
@@ -1703,12 +1821,23 @@ Public method "right fold_through_" is
 	aTuple : any+,
 	transformer : [⊥, ⊥]→any
 |
-	result : any := aTuple[|aTuple|];
-	For each index from |aTuple| - 1 to 1 by -1 do
 	[
-		result := transformer(aTuple[index], eject result);
-	];
-	result
+		index : whole number,
+		accumulator : any,
+		innerTuple : tuple,
+		innerTransformer : [⊥, ⊥]→any
+	|
+		$loop : any;
+		Exit loop with accumulator if index < 1;
+		strongIndex ::= cast index into [i : natural number | i];
+		nextAccumulator ::=
+			innerTransformer(innerTuple[strongIndex], accumulator);
+		Restart loop with <
+			index - 1,
+			nextAccumulator,
+			innerTuple,
+			innerTransformer>
+	](|aTuple| - 1, aTuple[|aTuple|], aTuple, transformer)
 ] : any;
 
 /**
@@ -1785,12 +1914,18 @@ Public method "first index of_where_" is
 	aTuple : tuple,
 	predicate : [⊥]→boolean
 |
-	$body : natural number;
-	For each index from 1 to |aTuple| do
 	[
-		Exit body with index if predicate(aTuple[index]);
-	];
-	0
+		index: natural number,
+		end : whole number,
+		innerTuple : tuple,
+		innerPredicate : [⊥]→boolean
+	|
+		$loop : whole number;
+		Exit loop with 0 if index > end;
+		matched ::= innerPredicate(innerTuple[index]);
+		Exit loop with index if matched;
+		Restart loop with <index + 1, end, innerTuple, innerPredicate>
+	](1, |aTuple|, aTuple, predicate)
 ] : whole number;
 
 /**

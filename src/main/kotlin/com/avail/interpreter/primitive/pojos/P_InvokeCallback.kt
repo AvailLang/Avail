@@ -67,13 +67,12 @@ object P_InvokeCallback : Primitive(-1, Private, CanSuspend)
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.availLoaderOrNull()?.statementCanBeSummarized(false)
-		val runtime = interpreter.runtime()
 		val primitiveFunction = interpreter.function!!
 		assert(primitiveFunction.code().primitive() === this)
 		val callbackPojo = primitiveFunction.outerVarAt(1)
 		val argumentsTuple = tupleFromList(interpreter.argsBuffer)
 		return interpreter.suspendThen {
-			runtime.callbackSystem().executeCallbackTask(
+			interpreter.runtime.callbackSystem().executeCallbackTask(
 				callbackPojo.javaObjectNotNull(),
 				argumentsTuple,
 				object: CallbackCompletion {

@@ -208,13 +208,16 @@ Method "For each of⁇_do_" is
 	aSet : set,
 	action : [⊥]→⊤
 |
-	aTuple ::= aSet→tuple;
-	From 1 to |aTuple| do
 	[
-		index : natural number
+		index : natural number,
+		end : whole number,
+		aTuple : tuple
 	|
+		$loop : ⊤;
+		Exit loop if index > end;
 		action(aTuple[index]);
-	];
+		Restart loop with <index + 1, end, aTuple>
+	](1, |aSet|, aSet→tuple);
 ] : ⊤;
 
 /**
@@ -379,17 +382,16 @@ Method "map_through_" is
 	transformer : [⊥]→any
 |
 	aTuple ::= aSet→tuple;
-	index : natural number := 1;
-	end ::= |aTuple|;
-	result : set := ∅;
 	[
-		$loop : ⊤;
-		Exit loop if end < index;
-		result := eject result + transformer(aTuple[index]);
-		index++;
-		Restart loop
-	]();
-	result
+		index : natural number,
+		end : whole number,
+		outputSet : set
+	|
+		$loop : set;
+		Exit loop with outputSet if index > end;
+		transformed ::= transformer(aTuple[index]);
+		Restart loop with <index + 1, end, outputSet + transformed>
+	](1, |aSet|, ∅)
 ] : set;
 
 /**
@@ -681,12 +683,17 @@ Method "any of_satisfies_" is
 	aSet : set,
 	predicate : [⊥]→boolean
 |
-	$body : boolean;
-	For each element of aSet do
 	[
-		Exit body with true if predicate(element);
-	];
-	false
+		index : natural number,
+		end : whole number,
+		aTuple : tuple
+	|
+		$loop : boolean;
+		Exit loop with false if index > end;
+		test ::= predicate(aTuple[index]);
+		Exit loop with true if test;
+		Restart loop with <index + 1, end, aTuple>
+	](1, |aSet|, aSet→tuple)
 ] : boolean;
 
 /**
@@ -723,12 +730,17 @@ Method "each of_satisfies_" is
 	aSet : set,
 	predicate : [⊥]→boolean
 |
-	$body : boolean;
-	For each element of aSet do
+	aTuple ::= aSet→tuple;
 	[
-		Exit body with false if ¬predicate(element);
-	];
-	true
+		index : natural number,
+		end : whole number
+	|
+		$loop : boolean;
+		Exit loop with true if index > end;
+		test ::= predicate(aTuple[index]);
+		Exit loop with false if test = false;
+		Restart loop with <index + 1, end>
+	](1, |aTuple|)
 ] : boolean;
 
 /**
@@ -808,7 +820,18 @@ Method "count of_where_" is
 	aSet : set,
 	predicate : [⊥]→boolean
 |
-	|filter aSet by predicate|
+	aTuple ::= aSet→tuple;
+	[
+		index : natural number,
+		end : whole number,
+		count : whole number
+	|
+		$loop : whole number;
+		Exit loop with count if index > end;
+		test ::= predicate(aTuple[index]);
+		Restart loop
+			with <index + 1, end, if test then [count + 1] else [count]>
+	](1, |aTuple|, 0)
 ] : whole number;
 
 /**

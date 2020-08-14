@@ -80,8 +80,7 @@ class AvailCompilerBipartiteRendezvous
 	 *   `true` if parsing had already been started at this position, `false`
 	 *   otherwise.
 	 */
-	internal val andSetStartedParsing: Boolean
-		get() = hasStarted.getAndSet(true)
+	internal fun getAndSetStartedParsing(): Boolean = hasStarted.getAndSet(true)
 
 	/**
 	 * Record a new solution, and also run any waiting actions with it.

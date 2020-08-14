@@ -33,6 +33,9 @@
 Module "Perl Lite"
 Versions
 	"1.4.0"
+Uses
+	"Avail",
+	"Perl Lite Implementation"
 Extends
 	"Perl Lite Implementation" =
 	(
@@ -41,3 +44,8 @@ Extends
 		…
 	)
 Body
+
+[
+	Copy macros from $"(Perl)`$…" to $"`$…";
+	Copy macros from $"(Perl)(«_‡,»)" to $"(«_‡,»)";
+]();

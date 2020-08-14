@@ -85,7 +85,14 @@ import java.util.Collections
 internal class Counter(
 	positionInName: Int,
 	private val group: Group
-) : Expression(positionInName) {
+) : Expression(positionInName)
+{
+	init
+	{
+		assert(group.beforeDagger.yielders.isEmpty())
+		assert(group.afterDagger.yielders.isEmpty())
+	}
+
 	override val yieldsValue
 		get() = true
 
@@ -94,12 +101,6 @@ internal class Counter(
 
 	override fun applyCaseInsensitive() =
 		Counter(positionInName, group.applyCaseInsensitive())
-
-	init
-	{
-		assert(group.beforeDagger.yielders.isEmpty())
-		assert(group.afterDagger.yielders.isEmpty())
-	}
 
 	override val underscoreCount: Int
 		get()
@@ -205,4 +206,6 @@ internal class Counter(
 		assert(integerRangeType.isIntegerRangeType)
 		return integerRangeType.lowerBound().equalsInt(0)
 	}
+
+	override fun checkListStructure(phrase: A_Phrase): Boolean = true
 }

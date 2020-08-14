@@ -31,27 +31,27 @@
  */
 package com.avail.descriptor.phrases
 
- import com.avail.compiler.AvailCodeGenerator
- import com.avail.descriptor.atoms.A_Atom
- import com.avail.descriptor.phrases.A_Phrase.Companion.childrenDo
- import com.avail.descriptor.phrases.A_Phrase.Companion.emitValueOn
- import com.avail.descriptor.representation.A_BasicObject
- import com.avail.descriptor.representation.AbstractDescriptor
- import com.avail.descriptor.representation.AvailObject
- import com.avail.descriptor.representation.AvailObjectRepresentation.Companion.newLike
- import com.avail.descriptor.representation.Descriptor
- import com.avail.descriptor.representation.IntegerSlotsEnum
- import com.avail.descriptor.representation.Mutability
- import com.avail.descriptor.representation.NilDescriptor.Companion.nil
- import com.avail.descriptor.representation.ObjectSlotsEnum
- import com.avail.descriptor.tuples.A_Tuple
- import com.avail.descriptor.types.A_Type
- import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
- import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
- import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
- import com.avail.descriptor.types.TypeDescriptor
- import com.avail.descriptor.types.TypeTag
- import com.avail.serialization.SerializerOperation
+import com.avail.compiler.AvailCodeGenerator
+import com.avail.descriptor.atoms.A_Atom
+import com.avail.descriptor.phrases.A_Phrase.Companion.childrenDo
+import com.avail.descriptor.phrases.A_Phrase.Companion.emitValueOn
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AbstractDescriptor
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObjectRepresentation.Companion.newLike
+import com.avail.descriptor.representation.Descriptor
+import com.avail.descriptor.representation.IntegerSlotsEnum
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.descriptor.representation.ObjectSlotsEnum
+import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
+import com.avail.descriptor.types.TypeDescriptor
+import com.avail.descriptor.types.TypeTag
+import com.avail.serialization.SerializerOperation
 
 /**
  * I'm used to implement the abstract notion of phrases.  All concrete phrase

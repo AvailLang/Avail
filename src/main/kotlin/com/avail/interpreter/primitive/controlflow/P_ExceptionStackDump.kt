@@ -68,7 +68,7 @@ object P_ExceptionStackDump : Primitive(1, CanSuspend, Unknown)
 		interpreter.checkArgumentCount(1)
 		val exception = interpreter.argument(0)
 
-		val runtime = interpreter.runtime()
+		val runtime = interpreter.runtime
 		// The primitive is flagged CanSuspend to force the stack to be reified.
 		val continuation : A_Continuation =
 			try { exception.fieldAt(stackDumpAtom()) }

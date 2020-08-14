@@ -38,6 +38,8 @@ import com.avail.descriptor.methods.ForwardDefinitionDescriptor
 import com.avail.descriptor.methods.MethodDefinitionDescriptor
 import com.avail.descriptor.methods.MethodDescriptor
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.exceptions.AvailErrorCode.E_ABSTRACT_METHOD_DEFINITION
 import com.avail.exceptions.AvailErrorCode.E_AMBIGUOUS_METHOD_DEFINITION
 import com.avail.exceptions.AvailErrorCode.E_FORWARD_METHOD_DEFINITION

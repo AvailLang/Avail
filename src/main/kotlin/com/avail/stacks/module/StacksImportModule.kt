@@ -212,10 +212,10 @@ abstract class StacksImportModule constructor(
 			hashedName = hashedName and 0xFFFFFFFFL
 			val qualifiedName = (moduleName + "/"
 				+ hashedName + ".json")
-			newMap[qualifiedName] = Pair(name.asNativeString(), value)
+			newMap[qualifiedName] = name.asNativeString() to value
 			nameToLinkMap[name.asNativeString()] = qualifiedName
 		}
-		return Pair(newMap, nameToLinkMap)
+		return newMap to nameToLinkMap
 	}
 
 	/**
@@ -238,6 +238,6 @@ abstract class StacksImportModule constructor(
 		val aPair = qualifiedImplementationNameToImplementation()
 		newMap.putAll(aPair.first)
 		nameToLinkMap.putAll(aPair.second)
-		return Pair(newMap, nameToLinkMap)
+		return newMap to nameToLinkMap
 	}
 }

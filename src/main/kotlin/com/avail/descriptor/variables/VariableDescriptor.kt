@@ -37,11 +37,13 @@ import com.avail.annotations.HideFieldJustForPrinting
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.fiber.A_Fiber
 import com.avail.descriptor.functions.A_Function
-import com.avail.descriptor.functions.CompiledCodeDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor
+import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
+import com.avail.descriptor.functions.PrimitiveCompiledCodeDescriptor.Companion.newPrimitiveRawFunction
 import com.avail.descriptor.maps.A_Map
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.pojos.RawPojoDescriptor
+import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AbstractSlotsEnum
 import com.avail.descriptor.representation.AvailObject
@@ -52,18 +54,22 @@ import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.sets.A_Set
-import com.avail.descriptor.sets.SetDescriptor
-import com.avail.descriptor.tuples.TupleDescriptor
+import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor
 import com.avail.descriptor.types.TypeTag
 import com.avail.descriptor.types.VariableTypeDescriptor
+import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import com.avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithContentType
 import com.avail.descriptor.variables.VariableDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import com.avail.descriptor.variables.VariableDescriptor.ObjectSlots.KIND
 import com.avail.descriptor.variables.VariableDescriptor.ObjectSlots.VALUE
 import com.avail.descriptor.variables.VariableDescriptor.ObjectSlots.WRITE_REACTORS
 import com.avail.exceptions.AvailErrorCode
+import com.avail.exceptions.AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE
+import com.avail.exceptions.AvailErrorCode.E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE
+import com.avail.exceptions.AvailErrorCode.E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED
 import com.avail.exceptions.AvailException
 import com.avail.exceptions.VariableGetException
 import com.avail.exceptions.VariableSetException
@@ -228,8 +234,7 @@ open class VariableDescriptor protected constructor(
 		val value = self.slot(VALUE)
 		if (value.equalsNil())
 		{
-			throw VariableGetException(
-				AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE)
+			throw VariableGetException(E_CANNOT_READ_UNASSIGNED_VARIABLE)
 		}
 		if (mutability === Mutability.IMMUTABLE)
 		{
@@ -267,8 +272,7 @@ open class VariableDescriptor protected constructor(
 		val outerKind: A_Type = self.slot(KIND)
 		if (!newValue.isInstanceOf(outerKind.writeType()))
 		{
-			throw VariableSetException(
-				AvailErrorCode.E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
+			throw VariableSetException(E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
 		}
 		self.setSlot(VALUE, newValue)
 	}
@@ -290,8 +294,7 @@ open class VariableDescriptor protected constructor(
 		val outerKind = self.slot(KIND)
 		if (!newValue.isInstanceOf(outerKind.writeType()))
 		{
-			throw VariableSetException(
-				AvailErrorCode.E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
+			throw VariableSetException(E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
 		}
 		// The variable is not visible to multiple fibers, and cannot become
 		// visible to any other fiber except by an act of the current fiber,
@@ -299,8 +302,7 @@ open class VariableDescriptor protected constructor(
 		val value = self.slot(VALUE)
 		if (value.equalsNil())
 		{
-			throw VariableGetException(
-				AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE)
+			throw VariableGetException(E_CANNOT_READ_UNASSIGNED_VARIABLE)
 		}
 		self.setSlot(VALUE, newValue)
 		if (mutability === Mutability.MUTABLE)
@@ -320,8 +322,7 @@ open class VariableDescriptor protected constructor(
 		val outerKind = self.slot(KIND)
 		if (!newValue.isInstanceOf(outerKind.writeType()))
 		{
-			throw VariableSetException(
-				AvailErrorCode.E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
+			throw VariableSetException(E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
 		}
 		// The variable is not visible to multiple fibers, and cannot become
 		// visible to any other fiber except by an act of the current fiber,
@@ -329,8 +330,7 @@ open class VariableDescriptor protected constructor(
 		val value = self.slot(VALUE)
 		if (value.equalsNil())
 		{
-			throw VariableGetException(
-				AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE)
+			throw VariableGetException(E_CANNOT_READ_UNASSIGNED_VARIABLE)
 		}
 		val swap = value.equals(reference)
 		if (swap)
@@ -359,14 +359,12 @@ open class VariableDescriptor protected constructor(
 		val value: A_Number = self.slot(VALUE)
 		if (value.equalsNil())
 		{
-			throw VariableGetException(
-				AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE)
+			throw VariableGetException(E_CANNOT_READ_UNASSIGNED_VARIABLE)
 		}
 		val newValue = value.plusCanDestroy(addend, false)
 		if (!newValue.isInstanceOf(outerKind.writeType()))
 		{
-			throw VariableSetException(
-				AvailErrorCode.E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
+			throw VariableSetException(E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
 		}
 		self.setSlot(VALUE, newValue)
 		if (mutability === Mutability.MUTABLE)
@@ -389,8 +387,7 @@ open class VariableDescriptor protected constructor(
 		val oldMap: A_Map = self.slot(VALUE)
 		if (oldMap.equalsNil())
 		{
-			throw VariableGetException(
-				AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE)
+			throw VariableGetException(E_CANNOT_READ_UNASSIGNED_VARIABLE)
 		}
 		assert(oldMap.isMap)
 		if (readType.isMapType)
@@ -402,7 +399,7 @@ open class VariableDescriptor protected constructor(
 			    || !value.isInstanceOf(readType.valueType()))
 			{
 				throw VariableSetException(
-					AvailErrorCode.E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
+					E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
 			}
 			if (readType.sizeRange().upperBound().equalsInt(oldMap.mapSize()))
 			{
@@ -411,7 +408,7 @@ open class VariableDescriptor protected constructor(
 				if (!oldMap.hasKey(key))
 				{
 					throw VariableSetException(
-						AvailErrorCode.E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
+						E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
 				}
 			}
 		}
@@ -433,7 +430,7 @@ open class VariableDescriptor protected constructor(
 		if (oldMap.equalsNil())
 		{
 			throw VariableGetException(
-				AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE)
+				E_CANNOT_READ_UNASSIGNED_VARIABLE)
 		}
 		return oldMap.hasKey(key)
 	}
@@ -467,12 +464,13 @@ open class VariableDescriptor protected constructor(
 		var rawPojo = self.slot(WRITE_REACTORS)
 		if (rawPojo.equalsNil())
 		{
-			rawPojo = RawPojoDescriptor.identityPojo(
+			rawPojo = identityPojo(
 				mutableMapOf<A_Atom, VariableAccessReactor>())
 			self.setMutableSlot(WRITE_REACTORS, rawPojo)
 		}
 		val writeReactors =
-			rawPojo.javaObjectNotNull<MutableMap<A_Atom, VariableAccessReactor?>>()
+			rawPojo.javaObjectNotNull<
+				MutableMap<A_Atom, VariableAccessReactor?>>()
 		discardInvalidWriteReactors(writeReactors)
 		writeReactors[key] = reactor
 	}
@@ -486,7 +484,8 @@ open class VariableDescriptor protected constructor(
 			throw AvailException(AvailErrorCode.E_KEY_NOT_FOUND)
 		}
 		val writeReactors =
-			rawPojo.javaObjectNotNull<MutableMap<A_Atom, VariableAccessReactor?>>()
+			rawPojo.javaObjectNotNull<
+				MutableMap<A_Atom, VariableAccessReactor?>>()
 		discardInvalidWriteReactors(writeReactors)
 		if (writeReactors.remove(key) === null)
 		{
@@ -500,8 +499,9 @@ open class VariableDescriptor protected constructor(
 		if (!rawPojo.equalsNil())
 		{
 			val writeReactors =
-				rawPojo.javaObjectNotNull<MutableMap<A_Atom, VariableAccessReactor>>()
-			var set = SetDescriptor.emptySet
+				rawPojo.javaObjectNotNull<
+					MutableMap<A_Atom, VariableAccessReactor>>()
+			var set = emptySet
 			for ((_, value) in writeReactors)
 			{
 				val function = value.getAndClearFunction()
@@ -513,7 +513,7 @@ open class VariableDescriptor protected constructor(
 			writeReactors.clear()
 			return set
 		}
-		return SetDescriptor.emptySet
+		return emptySet
 	}
 
 	override fun o_Kind(self: AvailObject): A_Type =
@@ -615,7 +615,7 @@ open class VariableDescriptor protected constructor(
 		 * [record&#32;the&#32;write][A_Fiber.recordVariableAccess]. If variable
 		 * write tracing is disabled, but the variable has write reactors, then
 		 * raise an [exception][VariableSetException] with
-		 * [AvailErrorCode.E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED] as the
+		 * [E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED] as the
 		 * error code.
 		 *
 		 * @param self
@@ -641,14 +641,15 @@ open class VariableDescriptor protected constructor(
 					if (!rawPojo.equalsNil())
 					{
 						val writeReactors =
-							rawPojo.javaObjectNotNull<MutableMap<A_Atom, VariableAccessReactor?>>()
+							rawPojo.javaObjectNotNull<
+								MutableMap<A_Atom, VariableAccessReactor?>>()
 						discardInvalidWriteReactors(writeReactors)
 						// If there are write reactors, but write tracing isn't
 						// active, then raise an exception.
 						if (writeReactors.isNotEmpty())
 						{
 							throw VariableSetException(
-								AvailErrorCode.E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED)
+								E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED)
 						}
 					}
 				}
@@ -672,10 +673,10 @@ open class VariableDescriptor protected constructor(
 		 */
 		@JvmField
 		val bootstrapAssignmentFunction: A_Function =
-			FunctionDescriptor.createFunction(
-				CompiledCodeDescriptor.newPrimitiveRawFunction(
-					P_SetValue, nil, 0),
-			TupleDescriptor.emptyTuple).makeShared()
+			createFunction(
+				newPrimitiveRawFunction(P_SetValue, nil, 0),
+				emptyTuple
+			).makeShared()
 
 		/**
 		 * Create a `VariableDescriptor variable` which can only contain values
@@ -689,7 +690,7 @@ open class VariableDescriptor protected constructor(
 		@JvmStatic
 		fun newVariableWithContentType(contentType: A_Type): AvailObject =
 			newVariableWithOuterType(
-				VariableTypeDescriptor.variableTypeFor(contentType))
+				variableTypeFor(contentType))
 
 		/**
 		 * Create a `variable` of the specified

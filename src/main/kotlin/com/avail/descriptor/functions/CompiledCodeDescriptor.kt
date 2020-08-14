@@ -35,7 +35,6 @@ import com.avail.AvailRuntime
 import com.avail.AvailRuntimeSupport
 import com.avail.annotations.EnumField
 import com.avail.annotations.HideFieldInDebugger
-import com.avail.annotations.HideFieldJustForPrinting
 import com.avail.annotations.ThreadSafe
 import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.descriptor.functions.CompiledCodeDescriptor.Companion.initialMutableDescriptor
@@ -45,11 +44,9 @@ import com.avail.descriptor.functions.CompiledCodeDescriptor.IntegerSlots.Compan
 import com.avail.descriptor.functions.CompiledCodeDescriptor.IntegerSlots.Companion.NUM_CONSTANTS
 import com.avail.descriptor.functions.CompiledCodeDescriptor.IntegerSlots.Companion.NUM_LOCALS
 import com.avail.descriptor.functions.CompiledCodeDescriptor.IntegerSlots.Companion.NUM_OUTERS
-import com.avail.descriptor.functions.CompiledCodeDescriptor.IntegerSlots.Companion.PRIMITIVE
 import com.avail.descriptor.functions.CompiledCodeDescriptor.IntegerSlots.NYBBLECODES_
 import com.avail.descriptor.functions.CompiledCodeDescriptor.ObjectSlots.FUNCTION_TYPE
 import com.avail.descriptor.functions.CompiledCodeDescriptor.ObjectSlots.LITERAL_AT_
-import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import com.avail.descriptor.phrases.A_Phrase
@@ -68,6 +65,9 @@ import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.concatenate
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.NybbleTupleDescriptor
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
@@ -79,13 +79,12 @@ import com.avail.descriptor.types.FunctionTypeDescriptor
 import com.avail.descriptor.types.TypeDescriptor.Types.MODULE
 import com.avail.descriptor.types.TypeTag
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelOne.L1Disassembler
-import com.avail.interpreter.levelOne.L1InstructionWriter
 import com.avail.interpreter.levelOne.L1OperandType
 import com.avail.interpreter.levelOne.L1Operation
 import com.avail.interpreter.levelOne.L1Operation.Companion.lookup
 import com.avail.interpreter.levelTwo.L2Chunk
+import com.avail.interpreter.levelTwo.L2Chunk.InvalidationReason.CODE_COVERAGE
 import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import com.avail.performance.Statistic
@@ -138,16 +137,11 @@ import kotlin.concurrent.withLock
  *   The [Mutability] of the resulting descriptor.  This should only be
  *   [Mutability.MUTABLE] for the [initialMutableDescriptor], and
  *   [Mutability.SHARED] for normal instances.
- * @param primitive
- *   The optional [Primitive] that should run when this code is invoked. If the
- *   primitive [fails][Interpreter.primitiveFailure], this [A_RawFunction]'s
- *   nybblecodes will be executed instead, as determined by the current
- *   [L2Chunk].
  * @param originatingPhrase
  *   The [block&#32;phrase][BlockPhraseDescriptor] from which this raw function
  *   was generated.
  * @param module
- *   The [module][A_Module] creating this primitive function.
+ *   The [module][A_Module] creating this raw function.
  * @param lineNumber
  *   The starting [lineNumber] of this function, if known, otherwise `0`.
  * @param lineNumberEncodedDeltas
@@ -156,9 +150,8 @@ import kotlin.concurrent.withLock
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-class CompiledCodeDescriptor private constructor(
+open class CompiledCodeDescriptor protected constructor(
 	mutability: Mutability,
-	private val primitive: Primitive?,
 	private val originatingPhrase: A_Phrase,
 	private val module: A_Module,
 	private val lineNumber: Int,
@@ -179,7 +172,7 @@ class CompiledCodeDescriptor private constructor(
 	private var startingChunk = L2Chunk.unoptimizedChunk
 
 	/** A descriptive [A_String] that names this [A_RawFunction]. */
-	private var methodName = unknownFunctionName
+	protected var methodName = unknownFunctionName
 
 	/**
 	 * An [InvocationStatistic] for tracking invocations of this
@@ -190,13 +183,14 @@ class CompiledCodeDescriptor private constructor(
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	enum class IntegerSlots : IntegerSlotsEnum {
+	enum class IntegerSlots : IntegerSlotsEnum
+	{
 		/**
-		 * A compound field consisting of the hash value, computed at
-		 * construction time, the [Primitive] number or zero, and the number of
-		 * outer variables that my functions must lexically capture.
+		 * A compound field consisting of the hash value computed at
+		 * construction time, and the number of outer variables that my
+		 * functions must lexically capture.
 		 */
-		HASH_AND_PRIMITIVE_AND_OUTERS,
+		HASH_AND_OUTERS,
 
 		/**
 		 * A compound field consisting of the total number of slots to allocate
@@ -229,22 +223,7 @@ class CompiledCodeDescriptor private constructor(
 			 */
 			@JvmField
 			@HideFieldInDebugger
-			val HASH = BitField(HASH_AND_PRIMITIVE_AND_OUTERS, 32, 32)
-
-			/**
-			 * The primitive number or zero. This does not correspond with the
-			 * [ordinal][Enum.ordinal] of the [Primitive] enumeration, but
-			 * rather the value of its
-			 * [primitiveNumber][Primitive.primitiveNumber]. If a primitive is
-			 * specified then an attempt is made to execute it before running
-			 * any nybblecodes. The nybblecode instructions are only run if the
-			 * primitive was unsuccessful.
-			 */
-			@JvmField
-			@EnumField(
-				describedBy = Primitive::class,
-				lookupMethodName = "byPrimitiveNumberOrNull")
-			val PRIMITIVE = BitField(HASH_AND_PRIMITIVE_AND_OUTERS, 16, 16)
+			val HASH = BitField(HASH_AND_OUTERS, 32, 32)
 
 			/**
 			 * The number of outer variables that must be captured by my
@@ -254,7 +233,7 @@ class CompiledCodeDescriptor private constructor(
 			@EnumField(
 				describedBy = EnumField.Converter::class,
 				lookupMethodName = "decimal")
-			val NUM_OUTERS = BitField(HASH_AND_PRIMITIVE_AND_OUTERS, 0, 16)
+			val NUM_OUTERS = BitField(HASH_AND_OUTERS, 0, 16)
 
 			/**
 			 * The number of [frame&#32;slots][A_Continuation.frameAt] to
@@ -341,8 +320,7 @@ class CompiledCodeDescriptor private constructor(
 		 * An [AtomicLong] that indicates how many more invocations can take
 		 * place before the corresponding [L2Chunk] should be re-optimized.
 		 */
-		val countdownToReoptimize =
-			AtomicLong(L2Chunk.countdownForNewCode().toLong())
+		val countdownToReoptimize = AtomicLong(L2Chunk.countdownForNewCode())
 
 		/** A statistic for all functions that return. */
 		@Volatile
@@ -429,7 +407,7 @@ class CompiledCodeDescriptor private constructor(
 		}
 
 		/**
-		 * Consume the next nybblecode operation.
+		 * Consume the next nybblecode operation, but not operands.
 		 *
 		 * @return
 		 *   The [L1Operation] consumed at the current position.
@@ -440,6 +418,20 @@ class CompiledCodeDescriptor private constructor(
 				index = 16 + getNybble()
 			}
 			return lookup(index)
+		}
+
+		/**
+		 * Consume the next nybblecode operation, but not operands.
+		 *
+		 * @return
+		 *   The ordinal of the [L1Operation] consumed at the current position.
+		 */
+		fun getOperationOrdinal(): Int {
+			var index = getNybble()
+			if (index == 15) {
+				index = 16 + getNybble()
+			}
+			return index
 		}
 
 		/**
@@ -479,108 +471,6 @@ class CompiledCodeDescriptor private constructor(
 			/** A reusable array of longs for initializing instances.  */
 			private val emptyArray = LongArray(0)
 		}
-	}
-
-	/**
-	 * Used for describing logical aspects of the code in the Eclipse debugger.
-	 */
-	private enum class FakeSlots : ObjectSlotsEnum {
-		/**
-		 * Used for exploring the descriptor, which contains instance-specific
-		 * fields.
-		 */
-		@HideFieldJustForPrinting
-		DESCRIPTOR,
-
-		/** Used for showing an L1 disassembly of the code. */
-		@HideFieldJustForPrinting
-		L1_DISASSEMBLY,
-
-		/**
-		 * Used for showing a tuple of all literals of the code. They're grouped
-		 * together under one literal to reduce the amount of spurious
-		 * computation done in the IntelliJ or Eclipse debugger. Keeping this
-		 * entry collapsed avoids having to compute the print representations of
-		 * the literals.
-		 */
-		@HideFieldJustForPrinting
-		ALL_LITERALS,
-
-		/**
-		 * Used for showing literals referenced by index from the nybblecodes.
-		 */
-		@HideFieldJustForPrinting
-		BASE_LITERAL_,
-
-		/** Used for showing the types of captured variables and constants. */
-		@HideFieldJustForPrinting
-		OUTER_TYPE_,
-
-		/** Used for showing the types of local variables. */
-		@HideFieldJustForPrinting
-		LOCAL_TYPE_,
-
-		/** Used for showing the types of local constants. */
-		@HideFieldJustForPrinting
-		CONSTANT_TYPE_;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * Show the types of local variables and outer variables.
-	 */
-	override fun o_DescribeForDebugger(
-		self: AvailObject
-	): Array<AvailObjectFieldHelper> = with(self) {
-		val fields = mutableListOf(*super.o_DescribeForDebugger(self))
-		fields.add(AvailObjectFieldHelper(
-			self, FakeSlots.DESCRIPTOR, -1, this@CompiledCodeDescriptor))
-		val disassembled = L1Disassembler(self).disassembledAsSlots()
-		if (variableIntegerSlotsCount() > 0) {
-			fields.add(
-				AvailObjectFieldHelper(
-					self,
-					FakeSlots.L1_DISASSEMBLY,
-					-1,
-					null,
-					forcedName = "(disassembled L1)",
-					forcedChildren = disassembled.toTypedArray()))
-		}
-		val literalFields = mutableListOf<AvailObjectFieldHelper>()
-		val baseLiterals =
-			numLiterals() - numConstants() - numLocals() - numOuters()
-		(1..baseLiterals).forEach {
-			literalFields.add(
-				AvailObjectFieldHelper(
-					self, FakeSlots.BASE_LITERAL_, it, literalAt(it)))
-		}
-		(1..numOuters()).forEach {
-			literalFields.add(
-				AvailObjectFieldHelper(
-					self, FakeSlots.OUTER_TYPE_, it, outerTypeAt(it)))
-		}
-		(1..numLocals()).forEach {
-			literalFields.add(
-				AvailObjectFieldHelper(
-					self, FakeSlots.LOCAL_TYPE_, it, localTypeAt(it)))
-		}
-		(1..numConstants()).forEach {
-			literalFields.add(
-				AvailObjectFieldHelper(
-					self, FakeSlots.CONSTANT_TYPE_, it, constantTypeAt(it)))
-		}
-
-		val allLiterals = (1..numLiterals()).map { literalAt(it) }
-		fields.add(
-			AvailObjectFieldHelper(
-				self,
-				FakeSlots.ALL_LITERALS,
-				-1,
-				tupleFromList(allLiterals),
-				forcedName = "Literals",
-				forcedChildren = literalFields.toTypedArray()))
-		return fields.toTypedArray()
 	}
 
 	/**
@@ -632,21 +522,33 @@ class CompiledCodeDescriptor private constructor(
 			methodName)
 	}
 
-	override fun o_CountdownToReoptimize( self: AvailObject, value: Int)
-	{
-		invocationStatistic.countdownToReoptimize.set(value.toLong())
+	override fun printObjectOnAvoidingIndent(
+		self: AvailObject,
+		builder: StringBuilder,
+		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		indent: Int
+	) {
+		super.printObjectOnAvoidingIndent(self, builder, recursionMap, indent)
+		val longCount = self.variableIntegerSlotsCount()
+		if (longCount > 0) {
+			newlineTab(builder, indent)
+			builder.append("Nybblecodes:\n")
+			L1Disassembler(self).print(builder, recursionMap, indent + 1)
+		}
 	}
 
-	override fun o_TotalInvocations(self: AvailObject) =
-		invocationStatistic.totalInvocations.get()
+	override fun o_ConstantTypeAt(self: AvailObject, index: Int): A_Type
+	{
+		assert(1 <= index && index <= self.numConstants())
+		return self.literalAt(self.numLiterals()
+			- self.numConstants()
+			+ index)
+	}
 
-	override fun o_LiteralAt(self: AvailObject, index: Int) =
-		self.slot(LITERAL_AT_, index)
-
-	override fun o_FunctionType(self: AvailObject) =
-		self.slot(FUNCTION_TYPE)
-
-	override fun o_Hash(self: AvailObject) = self.slot(HASH)
+	override fun o_CountdownToReoptimize(self: AvailObject, value: Long)
+	{
+		invocationStatistic.countdownToReoptimize.set(value)
+	}
 
 	override fun o_DecrementCountdownToReoptimize(
 		self: AvailObject,
@@ -670,6 +572,130 @@ class CompiledCodeDescriptor private constructor(
 		}
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * Show the types of local variables and outer variables.
+	 */
+	override fun o_DescribeForDebugger(
+		self: AvailObject
+	): Array<AvailObjectFieldHelper> = with(self) {
+		val fields = mutableListOf(*super.o_DescribeForDebugger(self))
+		fields.add(AvailObjectFieldHelper(
+			self,
+			DebuggerObjectSlots("Descriptor"),
+			-1,
+			this@CompiledCodeDescriptor))
+		val disassembled = L1Disassembler(self).disassembledAsSlots()
+		if (variableIntegerSlotsCount() > 0)
+		{
+			val moduleName = self.module().run {
+				if (equalsNil()) "No module"
+				else moduleName().asNativeString().split("/").last()
+			}
+			fields.add(
+				AvailObjectFieldHelper(
+					self,
+					DebuggerObjectSlots("Disassembly"),
+					-1,
+					null,
+					forcedName = "L1 Disassembly ($moduleName)",
+					forcedChildren = disassembled.toTypedArray()))
+		}
+		val literalFields = mutableListOf<AvailObjectFieldHelper>()
+		val baseLiterals =
+			numLiterals() - numConstants() - numLocals() - numOuters()
+		(1..baseLiterals).mapTo(literalFields) {
+			AvailObjectFieldHelper(
+				self, DebuggerObjectSlots("Base literal"), it, literalAt(it))
+		}
+		(1..numOuters()).mapTo(literalFields) {
+			AvailObjectFieldHelper(
+				self, DebuggerObjectSlots("Outer type"), it, outerTypeAt(it))
+		}
+		(1..numLocals()).mapTo(literalFields) {
+			AvailObjectFieldHelper(
+				self, DebuggerObjectSlots("Local type"), it, localTypeAt(it))
+		}
+		(1..numConstants()).mapTo(literalFields) {
+			AvailObjectFieldHelper(
+				self,
+				DebuggerObjectSlots("Constant type"),
+				it,
+				constantTypeAt(it))
+		}
+		val allLiterals = (1..numLiterals()).map { literalAt(it) }
+		fields.add(
+			AvailObjectFieldHelper(
+				self,
+				DebuggerObjectSlots("All literals"),
+				-1,
+				tupleFromList(allLiterals),
+				forcedName = "Literals",
+				forcedChildren = literalFields.toTypedArray()))
+		return fields.toTypedArray()
+	}
+
+	override fun o_Equals(self: AvailObject, another: A_BasicObject) =
+		another.equalsCompiledCode(self)
+
+	override fun o_EqualsCompiledCode(
+		self: AvailObject,
+		aCompiledCode: A_RawFunction
+	) = self.sameAddressAs(aCompiledCode)
+
+	override fun o_FunctionType(self: AvailObject) =
+		self.slot(FUNCTION_TYPE)
+
+	override fun o_Hash(self: AvailObject) = self.slot(HASH)
+
+	override fun o_Kind(self: AvailObject): AvailObject =
+		compiledCodeTypeForFunctionType(self.functionType())
+
+	/**
+	 * Note - Answers nil if there is no line number information.
+	 *
+	 * @param self
+	 *   The raw function.
+	 * @return
+	 *   The tuple of encoded line number deltas, or nil.
+	 */
+	override fun o_LineNumberEncodedDeltas(self: AvailObject): A_Tuple =
+		lineNumberEncodedDeltas
+
+	override fun o_LiteralAt(self: AvailObject, index: Int) =
+		self.slot(LITERAL_AT_, index)
+
+	override fun o_LocalTypeAt(self: AvailObject, index: Int): A_Type {
+		assert(1 <= index && index <= self.numLocals())
+		return self.literalAt((self.numLiterals()
+			- self.numConstants()
+			- self.numLocals())
+			+ index)
+	}
+
+	override fun o_MaxStackDepth(self: AvailObject) =
+		(self.numSlots() - self.numArgs() - self.numLocals())
+
+	override fun o_MethodName(self: AvailObject): A_String = methodName
+
+	/**
+	 * Answer the module in which this code occurs.
+	 */
+	override fun o_Module(self: AvailObject): A_Module = module
+
+	override fun o_NameForDebugger(self: AvailObject) =
+		super.o_NameForDebugger(self) + ": " + methodName
+
+	override fun o_NumArgs(self: AvailObject) = self.slot(NUM_ARGS)
+
+	override fun o_NumConstants(self: AvailObject) = self.slot(NUM_CONSTANTS)
+
+	override fun o_NumLiterals(self: AvailObject) =
+		self.variableObjectSlotsCount()
+
+	override fun o_NumLocals(self: AvailObject) = self.slot(NUM_LOCALS)
+
 	override fun o_NumNybbles(self: AvailObject): Int {
 		val longCount = self.variableIntegerSlotsCount()
 		if (longCount == 0) {
@@ -680,6 +706,10 @@ class CompiledCodeDescriptor private constructor(
 		val unusedNybbles = firstLong.toInt() and 15
 		return (longCount shl 4) - unusedNybbles - 1
 	}
+
+	override fun o_NumOuters(self: AvailObject) = self.slot(NUM_OUTERS)
+
+	override fun o_NumSlots(self: AvailObject) = self.slot(FRAME_SLOTS)
 
 	override fun o_Nybbles(self: AvailObject): A_Tuple
 	{
@@ -697,32 +727,8 @@ class CompiledCodeDescriptor private constructor(
 		) { decoder.getNybble() }
 	}
 
-	override fun o_Equals(self: AvailObject, another: A_BasicObject) =
-		another.equalsCompiledCode(self)
-
-	override fun o_EqualsCompiledCode(
-		self: AvailObject,
-		aCompiledCode: A_RawFunction
-	) = self.sameAddressAs(aCompiledCode)
-
-	override fun o_Kind(self: AvailObject): AvailObject =
-		compiledCodeTypeForFunctionType(self.functionType())
-
-	override fun o_ConstantTypeAt(self: AvailObject, index: Int): A_Type
-	{
-		assert(1 <= index && index <= self.numConstants())
-		return self.literalAt(self.numLiterals()
-			- self.numConstants()
-			+ index)
-	}
-
-	override fun o_LocalTypeAt(self: AvailObject, index: Int): A_Type {
-		assert(1 <= index && index <= self.numLocals())
-		return self.literalAt((self.numLiterals()
-			- self.numConstants()
-			- self.numLocals())
-			+ index)
-	}
+	override fun o_OriginatingPhrase(self: AvailObject): A_Phrase =
+		originatingPhrase
 
 	override fun o_OuterTypeAt(self: AvailObject, index: Int): A_Type
 	{
@@ -734,189 +740,9 @@ class CompiledCodeDescriptor private constructor(
 			+ index)
 	}
 
-	override fun o_SetStartingChunkAndReoptimizationCountdown(
-		self: AvailObject,
-		chunk: L2Chunk,
-		countdown: Long
-	) {
-		synchronized(self) { startingChunk = chunk }
-		// Must be outside the synchronized section to ensure the write of
-		// the new chunk is committed before the counter reset is visible.
-		invocationStatistic.countdownToReoptimize.set(countdown)
-	}
+	override fun o_Primitive(self: AvailObject): Primitive? = null
 
-	override fun o_MaxStackDepth(self: AvailObject) =
-		(self.numSlots() - self.numArgs() - self.numLocals())
-
-	override fun o_NumArgs(self: AvailObject) = self.slot(NUM_ARGS)
-
-	override fun o_NumSlots(self: AvailObject) = self.slot(FRAME_SLOTS)
-
-	override fun o_NumLiterals(self: AvailObject) =
-		self.variableObjectSlotsCount()
-
-	override fun o_NumConstants(self: AvailObject) = self.slot(NUM_CONSTANTS)
-
-	override fun o_NumLocals(self: AvailObject) = self.slot(NUM_LOCALS)
-
-	override fun o_NumOuters(self: AvailObject) = self.slot(NUM_OUTERS)
-
-	override fun o_Primitive(self: AvailObject): Primitive? = primitive
-
-	override fun o_PrimitiveNumber(self: AvailObject) =
-		primitive?.primitiveNumber ?: 0
-
-	override fun o_StartingChunk(self: AvailObject): L2Chunk
-	{
-		val chunk = startingChunk
-		if (chunk != L2Chunk.unoptimizedChunk) {
-			L2Chunk.Generation.usedChunk(chunk)
-		}
-		return chunk
-	}
-
-	override fun o_TallyInvocation(self: AvailObject) {
-		invocationStatistic.totalInvocations.incrementAndGet()
-		invocationStatistic.hasRun = true
-	}
-
-	/**
-	 * Answer the starting line number for this block of code.
-	 */
-	override fun o_StartingLineNumber(self: AvailObject) = lineNumber
-
-	/**
-	 * Note - Answers nil if there is no line number information.
-	 *
-	 * @param self
-	 *   The raw function.
-	 * @return
-	 *   The tuple of encoded line number deltas, or nil.
-	 */
-	override fun o_LineNumberEncodedDeltas(self: AvailObject): A_Tuple =
-		lineNumberEncodedDeltas
-
-	override fun o_OriginatingPhrase(self: AvailObject): A_Phrase = originatingPhrase
-
-	/**
-	 * Answer the module in which this code occurs.
-	 */
-	override fun o_Module(self: AvailObject): A_Module = module
-
-	@ThreadSafe
-	override fun o_SerializerOperation(self: AvailObject) =
-		SerializerOperation.COMPILED_CODE
-
-	override fun o_SetMethodName(
-		self: AvailObject,
-		methodName: A_String
-	) {
-		assert(mutability === Mutability.SHARED)
-		assert(methodName.isString)
-		methodName.makeShared()
-		this.methodName = methodName
-		// Now scan all sub-blocks. Some literals will be functions and some
-		// will be compiled code objects.
-		var counter = 1
-		var i = 1
-		val limit = self.numLiterals()
-		while (i <= limit) {
-			val literal = self.literalAt(i)
-			val subCode: A_RawFunction?
-			subCode = when
-			{
-				literal.isFunction -> literal.code()
-				literal.isInstanceOf(mostGeneralCompiledCodeType()) -> literal
-				else -> null
-			}
-			if (subCode !== null) {
-				val suffix = "[$counter]"
-				counter++
-				val newName = A_Tuple.concatenate(
-					methodName, stringFrom(suffix), true)
-				subCode.setMethodName(newName)
-			}
-			i++
-		}
-	}
-
-	override fun o_MethodName(self: AvailObject): A_String = methodName
-
-	override fun o_NameForDebugger(self: AvailObject) =
-		super.o_NameForDebugger(self) + ": " + methodName
-
-	override fun o_ShowValueInNameForDebugger(self: AvailObject) = false
-
-	/**
-	 * Render the [receiver][AvailObject] as JSON.
-	 *
-	 * @param self
-	 *   The receiver.
-	 * @param writer
-	 *   The [JSONWriter].
-	 * @param writeFunctionType
-	 *   How to write the [function&#32;type][FUNCTION_TYPE].
-	 */
-	private fun writeTo(
-			self: AvailObject,
-			writer: JSONWriter,
-			writeFunctionType: A_Type.()->Unit
-	) = writer.writeObject {
-		at("kind") { write("function implementation") }
-		at("outers") { write(self.slot(NUM_OUTERS)) }
-		at("arguments") { write(self.slot(NUM_ARGS)) }
-		at("locals") { write(self.slot(NUM_LOCALS)) }
-		at("constants") { write(self.slot(NUM_CONSTANTS)) }
-		at("maximum stack depth") { write(self.slot(FRAME_SLOTS)) }
-		at("nybbles") { self.nybbles().writeTo(writer) }
-		at("function type") { self.slot(FUNCTION_TYPE).writeFunctionType() }
-		at("method") { self.methodName().writeTo(writer) }
-		if (!module.equalsNil())
-		{
-			at("module") { self.module().moduleName().writeTo(writer) }
-		}
-		at("starting line number") { write(self.startingLineNumber()) }
-		at("literals") {
-			writeArray {
-				val limit = self.variableObjectSlotsCount()
-				for (i in 1..limit)
-				{
-					var literal: A_BasicObject = self.slot(LITERAL_AT_, i)
-					if (literal.equalsNil())
-					{
-						// Value doesn't matter, but it can't be nil.  Use zero.
-						literal = zero()
-					}
-					literal.writeSummaryTo(writer)
-				}
-			}
-		}
-	}
-
-	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
-		writeTo(self, writer) {
-			writeTo(writer)
-		}
-
-	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
-		writeTo(self, writer) {
-			writeSummaryTo(writer)
-		}
-
-	override fun printObjectOnAvoidingIndent(
-		self: AvailObject,
-		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
-		indent: Int
-	) {
-		super.printObjectOnAvoidingIndent(self, builder, recursionMap, indent)
-		val longCount = self.variableIntegerSlotsCount()
-		if (longCount > 0) {
-			newlineTab(builder, indent)
-			builder.append("Nybblecodes:\n")
-			L1Disassembler(self).print(builder, recursionMap, indent + 1)
-		}
-	}
+	override fun o_PrimitiveNumber(self: AvailObject) = 0
 
 	/**
 	 * Answer the [Statistic] used to record the cost of explicitly type
@@ -975,6 +801,134 @@ class CompiledCodeDescriptor private constructor(
 		}
 		return returneeStat!!
 	}
+
+	override fun o_ReturnTypeIfPrimitiveFails(self: AvailObject): A_Type =
+		self.functionType().returnType()
+
+	@ThreadSafe
+	override fun o_SerializerOperation(self: AvailObject) =
+		SerializerOperation.COMPILED_CODE
+
+	override fun o_SetMethodName(
+		self: AvailObject,
+		methodName: A_String
+	) {
+		assert(mutability === Mutability.SHARED)
+		assert(methodName.isString)
+		methodName.makeShared()
+		this.methodName = methodName
+		// Now scan all sub-blocks. Some literals will be functions and some
+		// will be compiled code objects.
+		var counter = 1
+		for (i in 1..self.numLiterals())
+		{
+			val literal = self.literalAt(i)
+			val subCode: A_RawFunction?
+			subCode = when
+			{
+				literal.isFunction -> literal.code()
+				literal.isInstanceOf(mostGeneralCompiledCodeType()) -> literal
+				else -> null
+			}
+			if (subCode !== null) {
+				val suffix = "#$counter"
+				counter++
+				val newName = concatenate(methodName, stringFrom(suffix), true)
+				subCode.setMethodName(newName)
+			}
+		}
+	}
+
+	override fun o_SetStartingChunkAndReoptimizationCountdown(
+		self: AvailObject,
+		chunk: L2Chunk,
+		countdown: Long
+	) {
+		synchronized(self) { startingChunk = chunk }
+		// Must be outside the synchronized section to ensure the write of
+		// the new chunk is committed before the counter reset is visible.
+		invocationStatistic.countdownToReoptimize.set(countdown)
+	}
+
+	override fun o_ShowValueInNameForDebugger(self: AvailObject) = false
+
+	override fun o_StartingChunk(self: AvailObject): L2Chunk
+	{
+		val chunk = startingChunk
+		if (chunk != L2Chunk.unoptimizedChunk) {
+			L2Chunk.Generation.usedChunk(chunk)
+		}
+		return chunk
+	}
+
+	/**
+	 * Answer the starting line number for this block of code.
+	 */
+	override fun o_StartingLineNumber(self: AvailObject) = lineNumber
+
+	override fun o_TallyInvocation(self: AvailObject) {
+		invocationStatistic.totalInvocations.incrementAndGet()
+		invocationStatistic.hasRun = true
+	}
+
+	override fun o_TotalInvocations(self: AvailObject) =
+		invocationStatistic.totalInvocations.get()
+
+	/**
+	 * Render the [receiver][AvailObject] as JSON.
+	 *
+	 * @param self
+	 *   The receiver.
+	 * @param writer
+	 *   The [JSONWriter].
+	 * @param writeFunctionType
+	 *   How to write the [function&#32;type][FUNCTION_TYPE].
+	 */
+	private fun writeTo(
+			self: AvailObject,
+			writer: JSONWriter,
+			writeFunctionType: A_Type.()->Unit
+	) = writer.writeObject {
+		at("kind") { write("function implementation") }
+		at("outers") { write(self.slot(NUM_OUTERS)) }
+		at("arguments") { write(self.slot(NUM_ARGS)) }
+		at("locals") { write(self.slot(NUM_LOCALS)) }
+		at("constants") { write(self.slot(NUM_CONSTANTS)) }
+		at("maximum stack depth") { write(self.slot(FRAME_SLOTS)) }
+		at("nybbles") { self.nybbles().writeTo(writer) }
+		at("function type") { self.slot(FUNCTION_TYPE).writeFunctionType() }
+		at("method") { self.methodName().writeTo(writer) }
+		if (!module.equalsNil())
+		{
+			at("module") { self.module().moduleName().writeTo(writer) }
+		}
+		at("starting line number") { write(self.startingLineNumber()) }
+		at("literals") {
+			writeArray {
+				val limit = self.variableObjectSlotsCount()
+				for (i in 1..limit)
+				{
+					var literal: A_BasicObject = self.slot(LITERAL_AT_, i)
+					if (literal.equalsNil())
+					{
+						// Value doesn't matter, but it can't be nil.  Use zero.
+						literal = zero()
+					}
+					literal.writeSummaryTo(writer)
+				}
+			}
+		}
+	}
+
+	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
+		writeTo(self, writer) {
+			writeSummaryTo(writer)
+		}
+
+	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
+		writeTo(self, writer) {
+			writeTo(writer)
+		}
 
 	@Deprecated(
 		"Not supported",
@@ -1054,22 +1008,13 @@ class CompiledCodeDescriptor private constructor(
 							AbstractDescriptor, CompiledCodeDescriptor>()
 						descriptor.invocationStatistic.hasRun = false
 						if (!descriptor.module.equalsNil()) {
-							descriptor.startingChunk.invalidate(
-								invalidationForCodeCoverage)
+							descriptor.startingChunk.invalidate(CODE_COVERAGE)
 						}
 					}
 					AvailRuntime.currentRuntime().whenLevelOneUnsafeDo(
 						FiberDescriptor.commandPriority, resume)
 				}
 			}
-
-		/**
-		 * The [Statistic] tracking the cost of invalidations for code coverage
-		 * analysis.
-		 */
-		private val invalidationForCodeCoverage = Statistic(
-			"(invalidation for code coverage)",
-			StatisticReport.L2_OPTIMIZATION_TIME)
 
 		/**
 		 * Collect and return the code coverage reports for all the raw
@@ -1129,7 +1074,10 @@ class CompiledCodeDescriptor private constructor(
 		 * @param functionType
 		 *   The type that the code's functions will have.
 		 * @param primitive
-		 *   Which primitive to invoke, or zero.
+		 *   Which [Primitive] to invoke, or `null`.
+		 * @param returnTypeIfPrimitiveFails
+		 *   The [A_Type] that will be returned by the body if this is not a
+		 *   primitive, or if the primitive fails.
 		 * @param literals
 		 *   A tuple of literals.
 		 * @param localVariableTypes
@@ -1160,6 +1108,7 @@ class CompiledCodeDescriptor private constructor(
 			stackDepth: Int,
 			functionType: A_Type,
 			primitive: Primitive?,
+			returnTypeIfPrimitiveFails: A_Type,
 			literals: A_Tuple,
 			localVariableTypes: A_Tuple,
 			localConstantTypes: A_Tuple,
@@ -1187,14 +1136,13 @@ class CompiledCodeDescriptor private constructor(
 			val numLiterals = literals.tupleSize()
 			val numOuters = outerTypes.tupleSize()
 			val numSlots = numArgs + numLocals + numConstants + stackDepth
-			assert(numSlots and 0xFFFF.inv() == 0)
-			assert(numArgs and 0xFFFF.inv() == 0)
-			assert(numLocals and 0xFFFF.inv() == 0)
-			assert(numConstants and 0xFFFF.inv() == 0)
-			assert(numLiterals and 0xFFFF.inv() == 0)
-			assert(numOuters and 0xFFFF.inv() == 0)
-			assert(module.equalsNil()
-				|| module.isInstanceOf(MODULE.o))
+			assert(numSlots in 0..0xFFFF)
+			assert(numArgs in 0..0xFFFF)
+			assert(numLocals in 0..0xFFFF)
+			assert(numConstants in 0..0xFFFF)
+			assert(numLiterals in 0..0xFFFF)
+			assert(numOuters in 0..0xFFFF)
+			assert(module.equalsNil() || module.isInstanceOf(MODULE.o))
 			assert(lineNumber >= 0)
 			val nybbleCount = nybbles.tupleSize()
 			val code = newObjectIndexedIntegerIndexedDescriptor(
@@ -1205,7 +1153,6 @@ class CompiledCodeDescriptor private constructor(
 			code.setSlot(NUM_ARGS, numArgs)
 			code.setSlot(NUM_LOCALS, numLocals)
 			code.setSlot(NUM_CONSTANTS, numConstants)
-			code.setSlot(PRIMITIVE, primitive?.primitiveNumber ?: 0)
 			code.setSlot(NUM_OUTERS, numOuters)
 			code.setSlot(FUNCTION_TYPE, functionType.makeShared())
 
@@ -1241,14 +1188,28 @@ class CompiledCodeDescriptor private constructor(
 				literalIndex += tuple.tupleSize()
 			}
 			code.setSlot(HASH, AvailRuntimeSupport.nextNonzeroHash())
-			code.setDescriptor(
-				CompiledCodeDescriptor(
-					Mutability.SHARED,
-					primitive,
-					originatingPhrase.makeShared(),
-					module.makeShared(),
-					lineNumber,
-					lineNumberEncodedDeltas.makeShared()))
+			if (primitive != null)
+			{
+				code.setDescriptor(
+					PrimitiveCompiledCodeDescriptor(
+						Mutability.SHARED,
+						primitive,
+						returnTypeIfPrimitiveFails,
+						originatingPhrase.makeShared(),
+						module.makeShared(),
+						lineNumber,
+						lineNumberEncodedDeltas.makeShared()))
+			}
+			else
+			{
+				code.setDescriptor(
+					CompiledCodeDescriptor(
+						Mutability.SHARED,
+						originatingPhrase.makeShared(),
+						module.makeShared(),
+						lineNumber,
+						lineNumberEncodedDeltas.makeShared()))
+			}
 
 			// Add the newborn raw function to the weak set being used for code
 			// coverage tracking.
@@ -1257,44 +1218,11 @@ class CompiledCodeDescriptor private constructor(
 		}
 
 		/**
-		 * Construct a bootstrapped [A_RawFunction] that uses the specified
-		 * primitive.  The primitive failure code should invoke the
-		 * [SpecialMethodAtom.CRASH]'s bundle with a tuple of passed arguments
-		 * followed by the primitive failure value.
-		 *
-		 * @param primitive
-		 *   The [Primitive] to use.
-		 * @param module
-		 *   The [module][A_Module] making this primitive function.
-		 * @param lineNumber
-		 *   The line number on which the new function should be said to begin.
-		 * @return
-		 *   A function.
-		 */
-		@JvmStatic
-		fun newPrimitiveRawFunction(
-			primitive: Primitive,
-			module: A_Module,
-			lineNumber: Int
-		): A_RawFunction {
-			val writer = L1InstructionWriter(module, lineNumber, nil)
-			writer.primitive = primitive
-			val functionType = primitive.blockTypeRestriction()
-			val argsTupleType = functionType.argsTupleType()
-			val numArgs = argsTupleType.sizeRange().upperBound().extractInt()
-			val argTypes = (1..numArgs).map { argsTupleType.typeAtIndex(it) }
-			writer.argumentTypes(*argTypes.toTypedArray())
-			writer.returnType = functionType.returnType()
-			primitive.writeDefaultFailureCode(lineNumber, writer, numArgs)
-			return writer.compiledCode()
-		}
-
-		/**
 		 * The sole [mutable][Mutability.MUTABLE] descriptor, used only
 		 * while initializing a new [A_RawFunction].
 		 */
 		private val initialMutableDescriptor =
-			CompiledCodeDescriptor(Mutability.MUTABLE, null, nil, nil, -1, nil)
+			CompiledCodeDescriptor(Mutability.MUTABLE, nil, nil, -1, nil)
 
 		/**
 		 * A [ConcurrentMap] from A_String to Statistic, used to record type
@@ -1310,5 +1238,4 @@ class CompiledCodeDescriptor private constructor(
 		val returneeCheckStatisticsByName: ConcurrentMap<A_String, Statistic> =
 			ConcurrentHashMap()
 	}
-
 }

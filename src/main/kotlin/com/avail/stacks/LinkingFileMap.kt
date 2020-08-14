@@ -155,9 +155,7 @@ class LinkingFileMap
 		methodLeafName: String,
 		methodAndMethodLink: String)
 	{
-		val methodPair = Pair(
-			methodLeafName,
-			methodAndMethodLink)
+		val methodPair = methodLeafName to methodAndMethodLink
 		if (categoryMethodList.containsKey(categoryName))
 		{
 			categoryMethodList[categoryName]!!.add(methodPair)

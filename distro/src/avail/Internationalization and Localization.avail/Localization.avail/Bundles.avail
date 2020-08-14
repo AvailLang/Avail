@@ -403,8 +403,8 @@ Public macro "Localization of_for_§has bindings«_::=_§‡,»;" is
 		];
 	/* Build the field map for the new bundle. Inherit absent bindings from the
 	 * default bundle and then parents, i.e., copy missing bindings for
-	 * "en-Latn-US" from "en" and "en-Latn". Don't copy down the name or the tag
-	 * though.
+	 * "en-Latin-US" from "en" and "en-Latin". Don't copy down the name or the
+	 * tag though.
 	 */
 	fieldMap : {atom→any|} :=
 		try [the localization bundle bT for default language → map]

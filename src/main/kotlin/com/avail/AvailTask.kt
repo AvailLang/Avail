@@ -50,7 +50,7 @@ import com.avail.interpreter.execution.Interpreter.Companion.current
  *      The priority of the [task][AvailTask].  It must be a value in the range
  *      0..255. @see [quasiDeadline]
  * @constructor
- * Construct a new `AvailTask`.
+ *   Construct a new `AvailTask`.
  *
  * @param priority
  *   The desired priority, a long tied to milliseconds since the current epoch.
@@ -167,7 +167,7 @@ class AvailTask constructor(
 					}
 					fiber.failureContinuation().invoke(e)
 					fiber.setExecutionState(ExecutionState.RETIRED)
-					interpreter.runtime().unregisterFiber(fiber)
+					interpreter.runtime.unregisterFiber(fiber)
 				}
 				catch (e: Throwable)
 				{
@@ -194,7 +194,7 @@ class AvailTask constructor(
 					{
 						fiber.resultContinuation().invoke(fiber.fiberResult())
 						fiber.setExecutionState(ExecutionState.RETIRED)
-						interpreter.runtime().unregisterFiber(fiber)
+						interpreter.runtime.unregisterFiber(fiber)
 					}
 				}
 				assert(interpreter.fiberOrNull() === null)

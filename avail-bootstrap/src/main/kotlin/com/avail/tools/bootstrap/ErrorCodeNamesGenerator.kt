@@ -31,7 +31,7 @@
  */
 package com.avail.tools.bootstrap
 
-import com.avail.AvailRuntime.Companion.specialObjects
+import com.avail.AvailRuntime
 import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
@@ -162,7 +162,7 @@ class ErrorCodeNamesGenerator (locale: Locale?)
 		private fun allErrorCodesAreReachableFromPrimitives(): Boolean
 		{
 			// This forces initialization of Avail.
-			specialObjects()
+			AvailRuntime
 			var allErrorCodes = emptySet
 			AvailErrorCode.values().forEach { code ->
 				if (!code.isCausedByInstructionFailure)

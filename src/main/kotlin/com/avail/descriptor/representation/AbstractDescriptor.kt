@@ -58,6 +58,7 @@ import com.avail.descriptor.maps.A_MapBin
 import com.avail.descriptor.maps.MapDescriptor.MapIterable
 import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.methods.A_GrammaticalRestriction
+import com.avail.descriptor.methods.A_Macro
 import com.avail.descriptor.methods.A_Method
 import com.avail.descriptor.methods.A_SemanticRestriction
 import com.avail.descriptor.methods.DefinitionDescriptor
@@ -250,7 +251,8 @@ abstract class AbstractDescriptor protected constructor (
 	init
 	{
 		val objectSlots: Array<out ObjectSlotsEnum> =
-			if (objectSlotsEnumClass !== null) objectSlotsEnumClass.enumConstants
+			if (objectSlotsEnumClass !== null)
+				objectSlotsEnumClass.enumConstants
 			else arrayOf()
 		@Suppress("ConstantConditionIf")
 		debugObjectSlots =
@@ -295,7 +297,12 @@ abstract class AbstractDescriptor protected constructor (
 	 * @param name
 	 *   The name of the slot.
 	 */
-	class DebuggerObjectSlots (val name: String) : ObjectSlotsEnum
+	class DebuggerObjectSlots (
+		val name: String
+	) : ObjectSlotsEnum {
+		override fun fieldName(): String = name
+		override fun fieldOrdinal(): Int = 0
+	}
 
 	/**
 	 * Are [objects][AvailObject] using this [descriptor][AbstractDescriptor]
@@ -403,68 +410,62 @@ abstract class AbstractDescriptor protected constructor (
 		var enumClass: Class<Enum<*>>? =
 			try
 			{
-				loader.loadClass("${cls.canonicalName}\$IntegerSlots")
+				loader.loadClass("${cls.canonicalName}\$IntegerSlots").cast()
 			}
 			catch (e: ClassNotFoundException)
 			{
 				null
-			}.cast()
+			}
 		val fields = mutableListOf<AvailObjectFieldHelper>()
 		if (enumClass !== null)
 		{
 			val slots = enumClass.enumConstants
-			for (i in 0 until numberOfFixedIntegerSlots())
-			{
-				val slot = slots[i]
-				if (getAnnotation(
-						slot,
-						HideFieldInDebugger::class.java)
-					=== null)
-				{
-					fields.add(
-						AvailObjectFieldHelper(
-							self,
-							slot as IntegerSlotsEnum,
-							-1,
-							AvailIntegerValueHelper(
-								self.slot(slot as IntegerSlotsEnum))))
+			val fixed = numberOfFixedIntegerSlots()
+			(0 until fixed)
+				.map { slots[it] }
+				.filter {
+					(getAnnotation(it, HideFieldInDebugger::class.java)
+						=== null)
 				}
-			}
+				.mapTo(fields) {
+					AvailObjectFieldHelper(
+						self,
+						it as IntegerSlotsEnum,
+						-1,
+						AvailIntegerValueHelper(
+							self.slot(it as IntegerSlotsEnum)))
+				}
 			val slot = slots[slots.size - 1]
 			if (getAnnotation(slot, HideFieldInDebugger::class.java) === null)
 			{
-				for (i in numberOfFixedIntegerSlots()
-					until self.integerSlotsCount())
-				{
-					val subscript = i - numberOfFixedIntegerSlots() + 1
-					fields.add(
+				(fixed until self.integerSlotsCount())
+					.mapTo(fields) {
+						val subscript = it - fixed + 1
+						val enumSlot = slot as IntegerSlotsEnum
+						val value = self.slot(enumSlot, subscript)
 						AvailObjectFieldHelper(
 							self,
-							slot as IntegerSlotsEnum,
+							enumSlot,
 							subscript,
-							AvailIntegerValueHelper(
-								self.slot(
-									slot as IntegerSlotsEnum, subscript))))
-				}
+							AvailIntegerValueHelper(value))
+					}
 			}
 		}
 		enumClass = try
-					{
-						loader.loadClass("${cls.canonicalName}\$ObjectSlots")
-					}
-					catch (e: ClassNotFoundException)
-					{
-						null
-					}.cast()
+		{
+			loader.loadClass("${cls.canonicalName}\$ObjectSlots").cast()
+		}
+		catch (e: ClassNotFoundException)
+		{
+			null
+		}
 		if (enumClass !== null)
 		{
 			val slots: Array<Enum<*>> = enumClass.enumConstants
 			for (i in 0 until numberOfFixedObjectSlots())
 			{
 				val slot = slots[i]
-				if (getAnnotation(
-						slot,
-						HideFieldInDebugger::class.java)
+				if (getAnnotation(slot, HideFieldInDebugger::class.java)
 					=== null)
 				{
 					fields.add(
@@ -538,7 +539,7 @@ abstract class AbstractDescriptor protected constructor (
 	 */
 	inline fun create (
 		indexedSlotCount: Int = 0,
-		init: AvailObject.()->Unit): AvailObject
+		init: AvailObject.()->Unit = { }): AvailObject
 	{
 		val value = newIndexedDescriptor(indexedSlotCount, this)
 		value.init()
@@ -608,9 +609,7 @@ abstract class AbstractDescriptor protected constructor (
 	with(builder) {
 		append('a')
 		val className = this@AbstractDescriptor.javaClass.simpleName
-		val shortenedName = className.substring(
-			0,
-			className.length - 10)
+		val shortenedName = className.substring(0, className.length - 10)
 		when (shortenedName.codePointAt(0))
 		{
 			'A'.toInt(),
@@ -623,99 +622,86 @@ abstract class AbstractDescriptor protected constructor (
 		}
 		append(' ')
 		append(shortenedName)
-		if (isMutable)
+		when
 		{
 			// Circled Latin capital letter M.
-			append('\u24C2')
-		}
-		else if (isShared)
-		{
+			isMutable -> append('\u24C2')
 			// Circled Latin capital letter S.
-			append('\u24C8')
+			isShared -> append('\u24C8')
 		}
-		val cls: Class<Descriptor> = this@AbstractDescriptor.javaClass.cast<Class<out AbstractDescriptor>?, Class<Descriptor>>()
+		val cls = this@AbstractDescriptor.javaClass.cast()
 		val loader = cls.classLoader
-		val intEnumClass: Class<out IntegerSlotsEnum>? = try
-					{
-						loader.loadClass("${cls.canonicalName}\$IntegerSlots")
-					}
-					catch (e: ClassNotFoundException)
-					{
-						null
-					}.cast()
 		val intSlots: Array<out IntegerSlotsEnum> =
-			if (intEnumClass !== null) intEnumClass.enumConstants
-			else arrayOf()
-		run {
-			var i = 1
-			val limit = self.integerSlotsCount()
-			while (i <= limit)
+			try
 			{
-				val ordinal = min(i, intSlots.size) - 1
-				val slot = intSlots[ordinal]
-				if (getAnnotation(
-						slot as Enum<*>,
-						HideFieldInDebugger::class.java) === null
-					&& getAnnotation(
-						slot as Enum<*>,
-						HideFieldJustForPrinting::class.java) === null)
+				val intEnumClass: Class<out IntegerSlotsEnum> =
+					loader.loadClass("${cls.canonicalName}\$IntegerSlots")
+						.cast()
+				intEnumClass.enumConstants ?: emptyArray()
+			}
+			catch (e: ClassNotFoundException)
+			{
+				emptyArray()
+			}
+		for (i in 1..self.integerSlotsCount())
+		{
+			val ordinal = min(i, intSlots.size) - 1
+			val slot = intSlots[ordinal] as Enum<*>
+			if (getAnnotation(slot, HideFieldInDebugger::class.java) === null
+				&& getAnnotation(slot, HideFieldJustForPrinting::class.java)
+					=== null)
+			{
+				val intSlot = slot as IntegerSlotsEnum
+				newlineTab(builder, indent)
+				val slotName = intSlot.fieldName()
+				val bitFields = bitFieldsFor(intSlot)
+				if (slotName[slotName.length - 1] == '_')
 				{
-					newlineTab(builder, indent)
-					val slotName = slot.fieldName()
-					val bitFields = bitFieldsFor(slot)
-					if (slotName[slotName.length - 1] == '_')
+					val subscript = i - intSlots.size + 1
+					append(slotName, 0, slotName.length - 1)
+					append('[')
+					append(subscript)
+					append(']')
+				}
+				else
+				{
+					val value = self.slot(intSlot)
+					if (bitFields.isEmpty())
 					{
-						val subscript = i - intSlots.size + 1
-						append(slotName, 0, slotName.length - 1)
-						append('[')
-						append(subscript)
-						append(']')
+						append(slotName)
+						append(" = ")
+						append(value)
 					}
 					else
 					{
-						val value = self.slot(slot)
-						if (bitFields.isEmpty())
-						{
-							append(slotName)
-							append(" = ")
-							append(value)
-						}
-						else
-						{
-							describeIntegerSlot(
-								self, value, slot, bitFields, builder)
-						}
+						describeIntegerSlot(
+							self, value, slot, bitFields, builder)
 					}
 				}
-				i++
 			}
 		}
-		val objectEnumClass: Class<out ObjectSlotsEnum>? = try
-					{
-						loader.loadClass("${cls.canonicalName}\$ObjectSlots")
-					}
-					catch (e: ClassNotFoundException)
-					{
-						null
-					}.cast()
 		val objectSlots: Array<out ObjectSlotsEnum> =
-			if (objectEnumClass !== null) objectEnumClass.enumConstants
-			else arrayOf()
-		var i = 1
-		val limit = self.objectSlotsCount()
-		while (i <= limit)
+			try
+			{
+				val objectEnumClass: Class<out ObjectSlotsEnum> =
+					loader.loadClass("${cls.canonicalName}\$ObjectSlots").cast()
+				objectEnumClass.enumConstants ?: emptyArray()
+			}
+			catch (e: ClassNotFoundException)
+			{
+				emptyArray()
+			}
+		for (i in 1..self.objectSlotsCount())
 		{
 			val ordinal = min(i, objectSlots.size) - 1
-			val slot = objectSlots[ordinal]
-			if (getAnnotation(
-					slot as Enum<*>,
-					HideFieldInDebugger::class.java) === null
+			val slot = objectSlots[ordinal] as Enum<*>
+			if (getAnnotation(slot, HideFieldInDebugger::class.java) === null
 				&& getAnnotation(
-					slot as Enum<*>,
-					HideFieldJustForPrinting::class.java) === null)
+					slot, HideFieldJustForPrinting::class.java) === null)
 			{
 				newlineTab(builder, indent)
-				val slotName = slot.fieldName()
+				val objectSlot = slot as ObjectSlotsEnum
+				val slotName = objectSlot.fieldName()
 				if (slotName[slotName.length - 1] == '_')
 				{
 					val subscript = i - objectSlots.size + 1
@@ -723,22 +709,17 @@ abstract class AbstractDescriptor protected constructor (
 					append('[')
 					append(subscript)
 					append("] = ")
-					self.slot(slot, subscript).printOnAvoidingIndent(
-						builder,
-						recursionMap,
-						indent + 1)
+					self.slot(objectSlot, subscript).printOnAvoidingIndent(
+						builder, recursionMap, indent + 1)
 				}
 				else
 				{
 					append(slotName)
 					append(" = ")
-					self.slot(slot).printOnAvoidingIndent(
-						builder,
-						recursionMap,
-						indent + 1)
+					self.slot(objectSlot).printOnAvoidingIndent(
+						builder, recursionMap, indent + 1)
 				}
 			}
-			i++
 		}
 	}
 
@@ -1097,7 +1078,7 @@ abstract class AbstractDescriptor protected constructor (
 	 * @return
 	 *   `true` if the contents of the subranges match exactly, `false`
 	 *   otherwise.
-	 * @see AvailObject.compareFromToWithStartingAt
+	 * @see A_Tuple.compareFromToWithStartingAt
 	 */
 	abstract fun o_CompareFromToWithStartingAt (
 		self: AvailObject,
@@ -1152,7 +1133,7 @@ abstract class AbstractDescriptor protected constructor (
 	 * @return
 	 *   `true` if the contents of the subranges match exactly, `false`
 	 *   otherwise.
-	 * @see AvailObject.compareFromToWithByteStringStartingAt
+	 * @see A_Tuple.compareFromToWithByteStringStartingAt
 	 */
 	abstract fun o_CompareFromToWithByteStringStartingAt (
 		self: AvailObject,
@@ -1179,7 +1160,7 @@ abstract class AbstractDescriptor protected constructor (
 	 * @return
 	 *   `true` if the contents of the subranges match exactly, `false`
 	 *   otherwise.
-	 * @see AvailObject.compareFromToWithByteTupleStartingAt
+	 * @see A_Tuple.compareFromToWithByteTupleStartingAt
 	 */
 	abstract fun o_CompareFromToWithByteTupleStartingAt (
 		self: AvailObject,
@@ -1207,7 +1188,7 @@ abstract class AbstractDescriptor protected constructor (
 	 * @return
 	 *   `true` if the contents of the subranges match exactly, `false`
 	 *   otherwise.
-	 * @see AvailObject.compareFromToWithByteTupleStartingAt
+	 * @see A_Tuple.compareFromToWithByteTupleStartingAt
 	 */
 	abstract fun o_CompareFromToWithIntegerIntervalTupleStartingAt (
 		self: AvailObject,
@@ -1237,7 +1218,7 @@ abstract class AbstractDescriptor protected constructor (
 	 * @return
 	 *   `true` if the contents of the subranges match exactly, `false`
 	 *   otherwise.
-	 * @see AvailObject.compareFromToWithByteTupleStartingAt
+	 * @see A_Tuple.compareFromToWithByteTupleStartingAt
 	 */
 	abstract fun o_CompareFromToWithSmallIntegerIntervalTupleStartingAt (
 		self: AvailObject,
@@ -1265,7 +1246,7 @@ abstract class AbstractDescriptor protected constructor (
 	 * @return
 	 *   `true` if the contents of the subranges match exactly, `false`
 	 *   otherwise.
-	 * @see AvailObject.compareFromToWithByteTupleStartingAt
+	 * @see A_Tuple.compareFromToWithByteTupleStartingAt
 	 */
 	abstract fun o_CompareFromToWithRepeatedElementTupleStartingAt (
 		self: AvailObject,
@@ -1293,7 +1274,7 @@ abstract class AbstractDescriptor protected constructor (
 	 * @return
 	 *   `true` if the contents of the subranges match exactly, `false`
 	 *   otherwise.
-	 * @see AvailObject.compareFromToWithNybbleTupleStartingAt
+	 * @see A_Tuple.compareFromToWithNybbleTupleStartingAt
 	 */
 	abstract fun o_CompareFromToWithNybbleTupleStartingAt (
 		self: AvailObject,
@@ -1321,7 +1302,7 @@ abstract class AbstractDescriptor protected constructor (
 	 * @return
 	 *   `true` if the contents of the subranges match exactly, `false`
 	 *   otherwise.
-	 * @see AvailObject.compareFromToWithObjectTupleStartingAt
+	 * @see A_Tuple.compareFromToWithObjectTupleStartingAt
 	 */
 	abstract fun o_CompareFromToWithObjectTupleStartingAt (
 		self: AvailObject,
@@ -1349,7 +1330,7 @@ abstract class AbstractDescriptor protected constructor (
 	 * @return
 	 *   `true` if the contents of the subranges match exactly, `false`
 	 *   otherwise.
-	 * @see AvailObject.compareFromToWithTwoByteStringStartingAt
+	 * @see A_Tuple.compareFromToWithTwoByteStringStartingAt
 	 */
 	abstract fun o_CompareFromToWithTwoByteStringStartingAt (
 		self: AvailObject,
@@ -1518,7 +1499,7 @@ abstract class AbstractDescriptor protected constructor (
 		self: AvailObject,
 		flag: InterruptRequestFlag)
 
-	abstract fun o_CountdownToReoptimize (self: AvailObject, value: Int)
+	abstract fun o_CountdownToReoptimize (self: AvailObject, value: Long)
 
 	abstract fun o_IsSubsetOf (self: AvailObject, another: A_Set): Boolean
 
@@ -1917,6 +1898,8 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_TupleIntAt (self: AvailObject, index: Int): Int
 
+	abstract fun o_TupleLongAt (self: AvailObject, index: Int): Long
+
 	abstract fun o_TupleReverse (self: AvailObject): A_Tuple
 
 	abstract fun o_TypeAtIndex (self: AvailObject, index: Int): A_Type
@@ -2051,7 +2034,7 @@ abstract class AbstractDescriptor protected constructor (
 	 *   A tuple.
 	 * @return
 	 *   A set containing each element in the tuple.
-	 * @see AvailObject.asSet
+	 * @see A_Tuple.asSet
 	 */
 	abstract fun o_AsSet (self: AvailObject): A_Set
 
@@ -2107,6 +2090,8 @@ abstract class AbstractDescriptor protected constructor (
 	abstract fun o_Continuation (self: AvailObject): A_Continuation
 
 	abstract fun o_CopyAsMutableIntTuple (self: AvailObject): A_Tuple
+
+	abstract fun o_CopyAsMutableLongTuple (self: AvailObject): A_Tuple
 
 	abstract fun o_CopyAsMutableObjectTuple (self: AvailObject): A_Tuple
 
@@ -2195,6 +2180,8 @@ abstract class AbstractDescriptor protected constructor (
 	abstract fun o_MaxStackDepth (self: AvailObject): Int
 
 	abstract fun o_Message (self: AvailObject): A_Atom
+
+	abstract fun o_MessagePart (self: AvailObject, index: Int): A_String
 
 	abstract fun o_MessageParts (self: AvailObject): A_Tuple
 
@@ -2894,8 +2881,6 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_IsLastUse (self: AvailObject): Boolean
 
-	abstract fun o_IsMacroDefinition (self: AvailObject): Boolean
-
 	abstract fun o_CopyMutablePhrase (self: AvailObject): A_Phrase
 
 	abstract fun o_BinUnionKind (self: AvailObject): A_Type
@@ -3206,7 +3191,7 @@ abstract class AbstractDescriptor protected constructor (
 	 *   The actual Java object, which may be {code null}.
 	 * @see AvailObject.javaObject
 	 */
-	abstract fun <T> o_JavaObject (self: AvailObject): T?
+	abstract fun <T : Any> o_JavaObject (self: AvailObject): T?
 
 	abstract fun o_AsBigInteger (self: AvailObject): BigInteger
 
@@ -3323,7 +3308,7 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_MapBinIterable (self: AvailObject): MapIterable
 
-	abstract fun o_RangeIncludesInt (self: AvailObject, anInt: Int): Boolean
+	abstract fun o_RangeIncludesLong(self: AvailObject, aLong: Long): Boolean
 
 	abstract fun o_BitShiftLeftTruncatingToBits (
 		self: AvailObject,
@@ -3458,6 +3443,8 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_MethodAddBundle (self: AvailObject, bundle: A_Bundle)
 
+	abstract fun o_MethodRemoveBundle (self: AvailObject, bundle: A_Bundle)
+
 	abstract fun o_DefinitionModule (self: AvailObject): A_Module
 
 	abstract fun o_DefinitionModuleName (self: AvailObject): A_String
@@ -3510,6 +3497,10 @@ abstract class AbstractDescriptor protected constructor (
 	abstract fun o_EqualsIntTuple (
 		self: AvailObject,
 		anIntTuple: A_Tuple): Boolean
+
+	abstract fun o_EqualsLongTuple (
+		self: AvailObject,
+		aLongTuple: A_Tuple): Boolean
 
 	abstract fun o_EqualsSmallIntegerIntervalTuple (
 		self: AvailObject,
@@ -3623,7 +3614,7 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_HasSuperCast (self: AvailObject): Boolean
 
-	abstract fun o_MacroDefinitionsTuple (self: AvailObject): A_Tuple
+	abstract fun o_MacrosTuple (self: AvailObject): A_Tuple
 
 	abstract fun o_LookupMacroByPhraseTuple (
 		self: AvailObject,
@@ -3728,6 +3719,8 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_IsIntTuple (self: AvailObject): Boolean
 
+	abstract fun o_IsLongTuple (self: AvailObject): Boolean
+
 	abstract fun o_LexerMethod (self: AvailObject): A_Method
 
 	abstract fun o_LexerFilterFunction (self: AvailObject): A_Function
@@ -3811,6 +3804,33 @@ abstract class AbstractDescriptor protected constructor (
 	@Throws(AvailRuntimeException::class)
 	abstract fun o_CloseModule (self: AvailObject)
 
+	abstract fun o_MembershipChanged (self: AvailObject)
+
+	abstract fun o_DefinitionBundle (self: AvailObject): A_Bundle
+
+	abstract fun o_BundleAddMacro(
+		self: AvailObject,
+		macro: A_Macro)
+
+	abstract fun o_ModuleAddMacro (self: AvailObject, macro: A_Macro)
+
+	abstract fun o_ModuleMacros (self: AvailObject): A_Set
+
+	abstract fun o_RemoveMacro (self: AvailObject, macro: A_Macro)
+
+	abstract fun o_AddBundle (self: AvailObject, bundle: A_Bundle)
+
+	abstract fun o_ModuleBundles (self: AvailObject): A_Set
+
+	abstract fun o_ReturnTypeIfPrimitiveFails (self: AvailObject): A_Type
+
+	abstract fun o_ExtractDumpedObjectAt (
+		self: AvailObject,
+		index: Int
+	): AvailObject
+
+	abstract fun o_ExtractDumpedLongAt (self: AvailObject, index: Int): Long
+
 	companion object
 	{
 		/**
@@ -3818,7 +3838,7 @@ abstract class AbstractDescriptor protected constructor (
 		 */
 		val isMutableMethod: CheckedMethod = CheckedMethod.instanceMethod(
 			AbstractDescriptor::class.java,
-			"isMutable",
+			AbstractDescriptor::isMutable.name,
 			Boolean::class.javaPrimitiveType!!)
 
 		/**
@@ -3912,7 +3932,7 @@ abstract class AbstractDescriptor protected constructor (
 		 * @return
 		 *   The requested annotation or null.
 		 */
-		private fun <A : Annotation?> getAnnotation (
+		private fun <A : Annotation> getAnnotation (
 				enumConstant: Enum<out Enum<*>>,
 				annotationClass: Class<A>): A? =
 			try
@@ -4035,30 +4055,22 @@ abstract class AbstractDescriptor protected constructor (
 		{
 			bitFieldsLock.read {
 				// Vast majority of cases.
-				val bitFields = bitFieldsCache[slot]
-				if (bitFields !== null)
-				{
-					return@bitFieldsFor bitFields
-				}
+				bitFieldsCache[slot]?.let { return it }
 			}
 			bitFieldsLock.safeWrite {
 				// Try again, this time holding the write lock to avoid multiple
 				// threads trying to populate the cache.
-				var bitFields = bitFieldsCache[slot]
-				if (bitFields !== null)
-				{
-					return@bitFieldsFor bitFields
-				}
+				bitFieldsCache[slot]?.let { return it }
 				val slotAsEnum = slot as Enum<*>
-				val slotClass = slotAsEnum::class.java.declaringClass
-				bitFields = mutableListOf()
-				slotClass.declaredFields.forEach { field ->
+				val bitFields = mutableListOf<BitField>()
+				for (field in slotAsEnum::class.java.declaredFields)
+				{
 					if (Modifier.isStatic(field.modifiers)
 						&& BitField::class.java.isAssignableFrom(field.type))
 					{
 						try
 						{
-							val bitField = field[null].cast<Any, BitField>()
+							val bitField: BitField = field[null].cast()
 							if (bitField.integerSlot === slot)
 							{
 								if (field.getAnnotation(
@@ -4110,7 +4122,7 @@ abstract class AbstractDescriptor protected constructor (
 			if (enumAnnotation !== null)
 			{
 				val describingClass: Class<Enum<*>> =
-					enumAnnotation.describedBy.cast()
+					enumAnnotation.describedBy.java.cast()
 				val lookupName = enumAnnotation.lookupMethodName
 				if (lookupName.isEmpty())
 				{

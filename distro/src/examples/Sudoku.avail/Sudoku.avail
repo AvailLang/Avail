@@ -35,7 +35,7 @@ Versions
 	"1.4.0"
 Uses
 	"Avail",
-	"Dimensional Analysis" = ("__", "_≥_", "_'s⁇extent", "µs", "ms")
+	"Dimensional Analysis" = ("__", "_'s⁇extent", "µs", "ms")
 Extends
 	"Avail" =
 	(

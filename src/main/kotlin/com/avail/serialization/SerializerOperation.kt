@@ -47,7 +47,9 @@ import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.HERITABLE_KEY
 import com.avail.descriptor.atoms.AtomWithPropertiesDescriptor.Companion.createAtomWithProperties
+import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
+import com.avail.descriptor.bundles.A_Bundle.Companion.macrosTuple
 import com.avail.descriptor.bundles.A_Bundle.Companion.message
 import com.avail.descriptor.bundles.MessageBundleDescriptor
 import com.avail.descriptor.character.A_Character.Companion.codePoint
@@ -61,9 +63,9 @@ import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunctio
 import com.avail.descriptor.maps.MapDescriptor
 import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.methods.A_Definition
+import com.avail.descriptor.methods.A_Macro
 import com.avail.descriptor.methods.AbstractDefinitionDescriptor
 import com.avail.descriptor.methods.ForwardDefinitionDescriptor
-import com.avail.descriptor.methods.MacroDefinitionDescriptor
 import com.avail.descriptor.methods.MethodDefinitionDescriptor
 import com.avail.descriptor.methods.MethodDescriptor
 import com.avail.descriptor.numbers.DoubleDescriptor
@@ -144,6 +146,11 @@ import com.avail.descriptor.tokens.TokenDescriptor.Companion.newToken
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType.Companion.lookupTokenType
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.asSet
+import com.avail.descriptor.tuples.A_Tuple.Companion.component1
+import com.avail.descriptor.tuples.A_Tuple.Companion.component2
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
@@ -152,6 +159,7 @@ import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.toList
+import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import com.avail.descriptor.types.BottomPojoTypeDescriptor.Companion.pojoBottom
 import com.avail.descriptor.types.BottomTypeDescriptor
@@ -1166,6 +1174,7 @@ enum class SerializerOperation constructor(
 		36,
 		COMPRESSED_SHORT.named("Total number of frame slots"),
 		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.named("Primitive name"),
+		OBJECT_REFERENCE.named("Type if primitive fails"),
 		OBJECT_REFERENCE.named("Function type"),
 		UNCOMPRESSED_NYBBLE_TUPLE.named("Level one nybblecodes"),
 		TUPLE_OF_OBJECTS.named("Regular literals"),
@@ -1217,6 +1226,7 @@ enum class SerializerOperation constructor(
 			return array(
 				fromInt(obj.numSlots()),
 				primName,
+				obj.returnTypeIfPrimitiveFails(),
 				obj.functionType(),
 				obj.nybbles(),
 				regularLiterals,
@@ -1235,16 +1245,17 @@ enum class SerializerOperation constructor(
 		{
 			val numSlots = subobjects[0].extractInt()
 			val primitive = subobjects[1]
-			val functionType = subobjects[2]
-			val nybbles = subobjects[3]
-			val regularLiterals = subobjects[4]
-			val localTypes = subobjects[5]
-			val constantTypes = subobjects[6]
-			val outerTypes = subobjects[7]
-			val moduleName = subobjects[8]
-			val lineNumberInteger = subobjects[9]
-			val lineNumberEncodedDeltas = subobjects[10]
-			val originatingPhrase = subobjects[11]
+			val returnTypeIfPrimitiveFails = subobjects[2]
+			val functionType = subobjects[3]
+			val nybbles = subobjects[4]
+			val regularLiterals = subobjects[5]
+			val localTypes = subobjects[6]
+			val constantTypes = subobjects[7]
+			val outerTypes = subobjects[8]
+			val moduleName = subobjects[9]
+			val lineNumberInteger = subobjects[10]
+			val lineNumberEncodedDeltas = subobjects[11]
+			val originatingPhrase = subobjects[12]
 
 			val numArgsRange = functionType.argsTupleType().sizeRange()
 			val numArgs = numArgsRange.lowerBound().extractInt()
@@ -1261,6 +1272,7 @@ enum class SerializerOperation constructor(
 				numSlots - numConstants - numLocals - numArgs,
 				functionType,
 				primitiveByName(primitive.asNativeString()),
+				returnTypeIfPrimitiveFails,
 				regularLiterals,
 				localTypes,
 				constantTypes,
@@ -1645,8 +1657,7 @@ enum class SerializerOperation constructor(
 				val module = atom.issuingModule()
 				if (!module.equalsNil())
 				{
-					pairs.add(
-						tuple(module.moduleName(), atom.atomName()))
+					pairs.add(tuple(module.moduleName(), atom.atomName()))
 				}
 				else
 				{
@@ -1661,11 +1672,10 @@ enum class SerializerOperation constructor(
 			deserializer: Deserializer): A_BasicObject
 		{
 			val pairs = subobjects[0]
-			val runtime = deserializer.runtime
 			for ((moduleName, atomName) in pairs)
 			{
 				if (!moduleName.equalsNil() &&
-					runtime.includesModuleNamed(moduleName))
+					deserializer.loadedModules.hasKey(moduleName))
 				{
 					val atom = lookupAtom(atomName, moduleName, deserializer)
 					val bundle = atom.bundleOrNil()
@@ -1733,36 +1743,33 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * A reference to a [macro][MacroDefinitionDescriptor], which should be
-	 * reconstructed by looking it up.
+	 * A reference to a [macro][A_Macro], which should be reconstructed by
+	 * looking it up.
 	 */
 	MACRO_DEFINITION(
 		49,
-		OBJECT_REFERENCE.named("method"),
+		OBJECT_REFERENCE.named("bundle"),
 		OBJECT_REFERENCE.named("signature"))
 	{
 		override fun decompose(
 			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			assert(obj.isMacroDefinition())
 			return array(
-				obj.definitionMethod(),
+				obj.definitionBundle(),
 				obj.bodySignature())
 		}
 
-		@Suppress("RemoveRedundantQualifierName")
 		override fun compose(
 			subobjects: Array<AvailObject>,
 			deserializer: Deserializer): A_BasicObject
 		{
-			val (definitionMethod, signature) = subobjects
-			val definitions = definitionMethod.definitionsTuple()
+			val definitionBundle: A_Bundle = subobjects[0]
+			val signature: A_Type = subobjects[1]
+			val definitions = definitionBundle.macrosTuple()
 				.filter { it.bodySignature().equals(signature) }
 			assert(definitions.size == 1)
-			val definition = definitions[0]
-			assert(definition.isMacroDefinition())
-			return definition
+			return definitions[0]
 		}
 	},
 
@@ -1887,7 +1894,7 @@ enum class SerializerOperation constructor(
 			{
 				currentModule
 			}
-			else deserializer.runtime.moduleAt(moduleName)
+			else deserializer.loadedModules.mapAt(moduleName)
 		}
 	},
 

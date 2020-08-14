@@ -31,7 +31,7 @@
  */
 package com.avail.test
 
-import com.avail.AvailRuntime.Companion.specialAtoms
+import com.avail.AvailRuntime
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.createAtom
 import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
@@ -729,8 +729,7 @@ class TypeConsistencyTest
 			 * Create a phrase type Node with the given name, phrase kind, Node
 			 * indicating the expressionType, and the array of Nodes that are
 			 * supertypes of the expressionType.  Passing null for the
-			 * expressionType causes
-			 * [the&#32;bottom&#32;type][BottomTypeDescriptor.getBottom] to be
+			 * expressionType causes [the&#32;bottom&#32;type][bottom] to be
 			 * used.  We can't use the node [BOTTOM] because of circular
 			 * dependency.
 			 *
@@ -740,7 +739,7 @@ class TypeConsistencyTest
 			 *   The [kind][PhraseKind] of phrase type.
 			 * @param innerNode
 			 *   The expressionType of the resulting phrase type, or `null` to
-			 *   indicate [bottom][BottomTypeDescriptor.getBottom].
+			 *   indicate [bottom].
 			 * @param parentInnerNodes
 			 *   An array of parent nodes of the innerNode.
 			 */
@@ -1633,7 +1632,7 @@ class TypeConsistencyTest
 		{
 			// Force early initialization of the Avail runtime in order to
 			// prevent initialization errors.
-			specialAtoms()
+			AvailRuntime
 			Node.createTypes()
 			@Suppress("ConstantConditionIf")
 			if (false)

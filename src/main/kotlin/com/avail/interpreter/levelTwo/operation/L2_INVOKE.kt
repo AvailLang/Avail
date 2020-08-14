@@ -68,10 +68,10 @@ import org.objectweb.asm.Opcodes
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-@WritesHiddenVariable(value = [
+@WritesHiddenVariable(
 	CURRENT_ARGUMENTS::class,
 	LATEST_RETURN_VALUE::class,
-	STACK_REIFIER::class])
+	STACK_REIFIER::class)
 object L2_INVOKE : L2ControlFlowOperation(
 	L2OperandType.READ_BOXED.named("called function"),
 	L2OperandType.READ_BOXED_VECTOR.named("arguments"),
@@ -184,7 +184,8 @@ object L2_INVOKE : L2ControlFlowOperation(
 		}
 		else
 		{
-			translator.objectArray(method, argsRegsList, AvailObject::class.java)
+			translator.objectArray(
+				method, argsRegsList, AvailObject::class.java)
 			// :: [interpreter, callingChunk, interpreter, function, argsArray]
 			Interpreter.preinvokeMethod.generateCall(method)
 		}
@@ -204,14 +205,15 @@ object L2_INVOKE : L2ControlFlowOperation(
 		// :: onReificationPreamble: ...
 		val onReificationPreamble = Label()
 		method.visitJumpInsn(Opcodes.IFNONNULL, onReificationPreamble)
+
 		translator.loadInterpreter(method)
 		// :: [interpreter]
 		Interpreter.getLatestResultMethod.generateCall(method)
 		// :: [latestResult]
 		translator.store(method, result.register())
 		// :: []
-		method.visitJumpInsn(
-			Opcodes.GOTO, translator.labelFor(onNormalReturn.offset()))
+		translator.jump(method, onNormalReturn)
+
 		method.visitLabel(onReificationPreamble)
 		translator.generateReificationPreamble(method, onReification)
 	}

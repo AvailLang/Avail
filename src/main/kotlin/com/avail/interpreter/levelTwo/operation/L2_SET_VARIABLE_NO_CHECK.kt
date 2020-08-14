@@ -131,7 +131,7 @@ object L2_SET_VARIABLE_NO_CHECK : L2ControlFlowOperation(
 		// fall through, because the next instruction expects a
 		// VariableSetException to be pushed onto the stack. So always do the
 		// jump.
-		method.visitJumpInsn(Opcodes.GOTO, translator.labelFor(success.offset()))
+		translator.jump(method, success)
 		// :: } catch (VariableSetException e) {
 		method.visitLabel(catchStart)
 		method.visitInsn(Opcodes.POP)

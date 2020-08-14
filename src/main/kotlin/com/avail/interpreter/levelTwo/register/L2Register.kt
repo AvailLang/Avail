@@ -180,9 +180,10 @@ abstract class L2Register constructor (val uniqueValue: Int) : L2Entity
 					register as L2FloatRegister).cast<L2ReadOperand<*>?, RR>()
 			}
 		};
+
 		//		/**
 		//		 * The kind of register that holds the value of some variable prior to
-		//		 * the variable having escaped, if ever.
+		//		 * the variable having escaped, if ever.  TODO Implement this.
 		//		 */
 		//		UNESCAPED_VARIABLE_VALUE
 

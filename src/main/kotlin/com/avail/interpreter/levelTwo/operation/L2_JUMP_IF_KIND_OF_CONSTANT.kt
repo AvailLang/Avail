@@ -76,7 +76,7 @@ object L2_JUMP_IF_KIND_OF_CONSTANT : L2ConditionalJump(
 			oldRestriction.intersectionWithType(constantType.constant))
 		ifNotKind.manifest().setRestriction(
 			value.semanticValue(),
-			oldRestriction.minusValue(constantType.constant))
+			oldRestriction.minusType(constantType.constant))
 	}
 
 	override fun branchReduction(

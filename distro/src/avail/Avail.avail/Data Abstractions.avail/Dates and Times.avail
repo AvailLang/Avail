@@ -48,10 +48,6 @@ Names
 		"_'s⁇millisecond",
 		"_'s⁇Epoch milliseconds",
 		"_-_",
-		"_<_",
-		"_≤_",
-		"_≥_",
-		"_>_",
 		"«_‡«=|≤|<»!»",
 		"«_‡«=|≥|>»!»",
 		"“_”(ISO…#)",
@@ -246,7 +242,7 @@ Public stable method "_-_" is
  *          than {@param "b"}, or {@method "false"} otherwise.
  * @category "Timestamps" "Relations"
  */
-Public stable method "_<_" is
+Stable method "_<_" is
 [
 	a : timestamp,
 	b : timestamp
@@ -265,7 +261,7 @@ Public stable method "_<_" is
  *          or the same as {@param "b"}, or {@method "false"} otherwise.
  * @category "Timestamps" "Relations"
  */
-Public stable method "_≤_" is
+Stable method "_≤_" is
 [
 	a : timestamp,
 	b : timestamp
@@ -273,43 +269,6 @@ Public stable method "_≤_" is
 	a's Epoch milliseconds ≤ b's Epoch milliseconds
 ];
 
-/**
- * Does {@param "a"} represent a time later than or the same as {@param "b"}?
- *
- * @method "_≥_"
- * @param "a" "timestamp"
- * @param "b" "timestamp"
- * @returns "boolean"
- *          {@method "true"} if {@param "a"} represents a time later than or the
- *          same as {@param "b"}, or {@method "false"} otherwise.
- * @category "Timestamps" "Relations"
- */
-Public stable method "_≥_" is
-[
-	a : timestamp,
-	b : timestamp
-|
-	a's Epoch milliseconds ≥ b's Epoch milliseconds
-];
-
-/**
- * Does {@param "a"} represent a time strictly later than {@param "b"}?
- *
- * @method "_>_"
- * @param "a" "timestamp"
- * @param "b" "timestamp"
- * @returns "boolean"
- *          {@method "true"} if {@param "a"} represents a time strictly later
- *          than {@param "b"}, or {@method "false"} otherwise.
- * @category "Timestamps" "Relations"
- */
-Public stable method "_>_" is
-[
-	a : timestamp,
-	b : timestamp
-|
-	a's Epoch milliseconds > b's Epoch milliseconds
-];
 
 /* This table of functions is used by the chained inequality operations. */
 predicates ::=
@@ -399,7 +358,7 @@ Semantic restriction "«_‡«=|≥|>»!»" is
 
 /* Disallow mixing and recursive parsing of comparison operations. */
 [
-	binary ::= {"_=_", "_≤_", "_<_", "_≥_", "_>_"};
+	binary ::= {"_=_", "_≤_", "_<_", "_②≥_①", "_②>_①"};
 	chains ::= {"«_‡=»", "«_‡«=|≤|<»!»", "«_‡«=|≥|>»!»"};
 	restrictions ::= binary ∪ chains;
 	Grammatical restriction chains is <restrictions>;

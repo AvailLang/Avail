@@ -66,7 +66,7 @@ object P_SetResultDisagreedWithExpectedTypeFunction : Primitive(
 	{
 		interpreter.checkArgumentCount(1)
 		val function = interpreter.argument(0)
-		RESULT_DISAGREED_WITH_EXPECTED_TYPE[interpreter.runtime()] = function
+		RESULT_DISAGREED_WITH_EXPECTED_TYPE[interpreter.runtime] = function
 		interpreter.availLoaderOrNull()?.statementCanBeSummarized(false)
 		return interpreter.primitiveSuccess(nil)
 	}

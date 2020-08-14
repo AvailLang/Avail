@@ -61,7 +61,6 @@ import com.avail.interpreter.primitive.pojos.PrimitiveHelper.rawPojoInvokerFunct
 import com.avail.utility.cast
 import java.lang.reflect.Constructor
 import java.lang.reflect.Modifier
-import java.util.Collections.synchronizedMap
 import java.util.WeakHashMap
 
 /**
@@ -84,8 +83,7 @@ object P_CreatePojoConstructorFunction : Primitive(2, CanInline, CanFold)
 	/**
 	 * Cache of [A_RawFunction]s, keyed by the function [A_Type].
 	 */
-	private val rawFunctionCache =
-		synchronizedMap(WeakHashMap<A_Type, A_RawFunction>())
+	private val rawFunctionCache = WeakHashMap<A_Type, A_RawFunction>()
 
 	override fun attempt(interpreter: Interpreter): Result
 	{
@@ -121,14 +119,16 @@ object P_CreatePojoConstructorFunction : Primitive(2, CanInline, CanFold)
 		}
 
 		val functionType = functionType(paramTypes, pojoType)
-		val rawFunction = rawFunctionCache.computeIfAbsent(functionType) {
-			rawPojoInvokerFunctionFromFunctionType(
-				P_InvokePojoConstructor,
-				it,
-				// Outer#1 = Constructor to invoke.
-				RAW_POJO.o,
-				// Outer#2 = Marshaled type parameters.
-				zeroOrMoreOf(RAW_POJO.o))
+		val rawFunction = synchronized(rawFunctionCache) {
+			rawFunctionCache.computeIfAbsent(functionType) {
+				rawPojoInvokerFunctionFromFunctionType(
+					P_InvokePojoConstructor,
+					it,
+					// Outer#1 = Constructor to invoke.
+					RAW_POJO.o,
+					// Outer#2 = Marshaled type parameters.
+					zeroOrMoreOf(RAW_POJO.o))
+			}
 		}
 		val function = createWithOuters2(
 			rawFunction,

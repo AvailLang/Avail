@@ -43,6 +43,22 @@ import com.avail.descriptor.representation.Mutability.IMMUTABLE
 import com.avail.descriptor.representation.Mutability.MUTABLE
 import com.avail.descriptor.representation.Mutability.SHARED
 import com.avail.descriptor.representation.ObjectSlotsEnum
+import com.avail.descriptor.tuples.A_Tuple.Companion.childAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.childCount
+import com.avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithStartingAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.concatenateWith
+import com.avail.descriptor.tuples.A_Tuple.Companion.copyTupleFromToCanDestroy
+import com.avail.descriptor.tuples.A_Tuple.Companion.hashFromTo
+import com.avail.descriptor.tuples.A_Tuple.Companion.replaceFirstChild
+import com.avail.descriptor.tuples.A_Tuple.Companion.transferIntoByteBuffer
+import com.avail.descriptor.tuples.A_Tuple.Companion.treeTupleLevel
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAtPuttingCanDestroy
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleElementsInRangeAreInstancesOf
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleLongAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleReverse
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.TreeTupleDescriptor.Companion.maxWidth
 import com.avail.descriptor.tuples.TreeTupleDescriptor.Companion.minWidthOfNonRoot
@@ -77,9 +93,10 @@ import kotlin.math.min
  *   The height of the node in the tree tuple.
  */
 class TreeTupleDescriptor internal constructor(
-	mutability: Mutability?,
-	private val level: Int) : TupleDescriptor(
-		mutability, ObjectSlots::class.java, IntegerSlots::class.java)
+	mutability: Mutability,
+	private val level: Int
+) : TupleDescriptor(
+	mutability, ObjectSlots::class.java, IntegerSlots::class.java)
 {
 	/**
 	 * The layout of integer slots for my instances.
@@ -109,6 +126,7 @@ class TreeTupleDescriptor internal constructor(
 			 * subtuples is easily computable from the hashes of the subtuples
 			 * and their lengths.
 			 */
+			@JvmField
 			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
 
 			init
@@ -620,15 +638,20 @@ class TreeTupleDescriptor internal constructor(
 		return true
 	}
 
-	/**
-	 * Answer the integer element at the given index in the tuple object.
-	 */
 	override fun o_TupleIntAt(self: AvailObject, index: Int): Int
 	{
 		val childSubscript = childSubscriptForIndex(self, index)
 		val offset = offsetForChildSubscript(self, childSubscript)
 		val child: A_Tuple = self.slot(SUBTUPLE_AT_, childSubscript)
 		return child.tupleIntAt(index - offset)
+	}
+
+	override fun o_TupleLongAt(self: AvailObject, index: Int): Long
+	{
+		val childSubscript = childSubscriptForIndex(self, index)
+		val offset = offsetForChildSubscript(self, childSubscript)
+		val child: A_Tuple = self.slot(SUBTUPLE_AT_, childSubscript)
+		return child.tupleLongAt(index - offset)
 	}
 
 	/**

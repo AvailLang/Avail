@@ -46,10 +46,11 @@ import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralOb
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
-import com.avail.descriptor.tuples.ObjectTupleDescriptor
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
+import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
@@ -107,12 +108,13 @@ object P_CreateObjectFieldGetter : Primitive(2, CanFold, CanInline)
 		val rawFunction = newCompiledCode(
 			emptyTuple,
 			0,
-			functionType(ObjectTupleDescriptor.tuple(objectType), returnType),
+			functionType(tuple(objectType), returnType),
 			P_PrivateGetSpecificObjectField,
-			emptyTuple,
-			emptyTuple,
-			emptyTuple,
-			ObjectTupleDescriptor.tuple(instanceType(fieldAtom)),
+			bottom,
+			emptyTuple(),
+			emptyTuple(),
+			emptyTuple(),
+			tuple(instanceType(fieldAtom)),
 			module,
 			0,
 			emptyTuple,
@@ -135,21 +137,23 @@ object P_CreateObjectFieldGetter : Primitive(2, CanFold, CanInline)
 		objectType: A_Type,
 		value: A_BasicObject
 	) : A_Function {
-		val writer = L1InstructionWriter(nil, 0, nil)
-		writer.argumentTypes(objectType)
-		writer.returnType = instanceType(value)
-		writer.write(0, L1Operation.L1_doPushLiteral, writer.addLiteral(value))
-		return createExceptOuters(writer.compiledCode(), 0)
+		return L1InstructionWriter(nil, 0, nil).run {
+			argumentTypes(objectType)
+			returnType = instanceType(value)
+			returnTypeIfPrimitiveFails = returnType
+			write(0, L1Operation.L1_doPushLiteral, addLiteral(value))
+			createExceptOuters(compiledCode(), 0)
+		}
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			ObjectTupleDescriptor.tuple(
+			tuple(
 				mostGeneralObjectMeta(),
 				ATOM.o
 			),
 			functionType(
-				ObjectTupleDescriptor.tuple(
+				tuple(
 					mostGeneralObjectType()),
 				ANY.o
 			))

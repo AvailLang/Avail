@@ -90,7 +90,7 @@ object P_CreateDirectory : Primitive(5, CanInline, HasSideEffect)
 		val fail = interpreter.argument(3)
 		val priority = interpreter.argument(4)
 
-		val runtime = interpreter.runtime()
+		val runtime = interpreter.runtime
 		val fileSystem = IOSystem.fileSystem
 		val path: Path =
 			try

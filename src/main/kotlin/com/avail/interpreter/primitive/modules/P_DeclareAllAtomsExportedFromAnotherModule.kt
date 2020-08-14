@@ -37,6 +37,8 @@ import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.module.ModuleDescriptor.Companion.currentModule
 import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.descriptor.sets.A_Set
+import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.EnumerationTypeDescriptor
@@ -75,14 +77,18 @@ object P_DeclareAllAtomsExportedFromAnotherModule : Primitive(
 		val (importedModuleNames, isPublic) = interpreter.argsBuffer
 		val module = currentModule
 		assert(!module.equalsNil())
-		val runtime = interpreter.runtime()
-		importedModuleNames.forEach { importedModuleName ->
+		val runtime = interpreter.runtime
+		val sets = importedModuleNames.map { importedModuleName ->
 			val importedModule = runtime.moduleAt(importedModuleName)
-			val names = importedModule.exportedNames()
-			when(isPublic.extractBoolean()) {
-				true -> module.addImportedNames(names)
-				else -> module.addPrivateNames(names)
-			}
+			importedModule.exportedNames()
+		}.sortedBy { -it.setSize() }
+		val iterator = sets.listIterator()
+		var union = emptySet
+		if (iterator.hasNext()) union = iterator.next()
+		iterator.forEachRemaining { union = union.setUnionCanDestroy(it, true) }
+		when (isPublic.extractBoolean()) {
+			true -> module.addImportedNames(union)
+			else -> module.addPrivateNames(union)
 		}
 		return interpreter.primitiveSuccess(nil)
 	}

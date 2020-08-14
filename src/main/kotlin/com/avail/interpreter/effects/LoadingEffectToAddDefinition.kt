@@ -39,7 +39,6 @@ import com.avail.descriptor.methods.A_Method
 import com.avail.descriptor.methods.DefinitionDescriptor
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.ABSTRACT_DEFINER
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.FORWARD_DEFINER
-import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.MACRO_DEFINER
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.METHOD_DEFINER
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.interpreter.levelOne.L1InstructionWriter
@@ -103,30 +102,6 @@ internal class LoadingEffectToAddDefinition constructor(
 						0,
 						L1Operation.L1_doCall,
 						addLiteral(FORWARD_DEFINER.bundle),
-						addLiteral(TOP.o))
-				}
-				definition.isMacroDefinition() -> {
-					// NOTE: The prefix functions are dealt with as separate effects.
-					// Push the bundle's atom.
-					write(
-						0,
-						L1Operation.L1_doPushLiteral,
-						addLiteral(atom))
-					// Push the tuple of macro prefix functions.
-					write(
-						0,
-						L1Operation.L1_doPushLiteral,
-						addLiteral(definition.prefixFunctions()))
-					// Push the macro body function.
-					write(
-						0,
-						L1Operation.L1_doPushLiteral,
-						addLiteral(definition.bodyBlock()))
-					// Call the macro definition method.
-					write(
-						0,
-						L1Operation.L1_doCall,
-						addLiteral(MACRO_DEFINER.bundle),
 						addLiteral(TOP.o))
 				}
 				else -> {

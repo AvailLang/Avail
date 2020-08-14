@@ -47,9 +47,14 @@ import com.avail.descriptor.functions.ContinuationDescriptor.ObjectSlots.FUNCTIO
 import com.avail.descriptor.functions.ContinuationDescriptor.ObjectSlots.LEVEL_TWO_CHUNK
 import com.avail.descriptor.functions.ContinuationDescriptor.ObjectSlots.LEVEL_TWO_REGISTER_DUMP
 import com.avail.descriptor.functions.ContinuationRegisterDumpDescriptor.Companion.createRegisterDump
+import com.avail.descriptor.phrases.A_Phrase
+import com.avail.descriptor.phrases.A_Phrase.Companion.argumentsTuple
+import com.avail.descriptor.phrases.A_Phrase.Companion.token
+import com.avail.descriptor.phrases.BlockPhraseDescriptor
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AbstractSlotsEnum
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObjectFieldHelper
 import com.avail.descriptor.representation.AvailObjectRepresentation.Companion.newLike
 import com.avail.descriptor.representation.BitField
 import com.avail.descriptor.representation.Descriptor
@@ -58,6 +63,7 @@ import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.representation.ObjectSlotsEnum
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.ContinuationTypeDescriptor.Companion.continuationTypeForFunctionType
@@ -65,6 +71,7 @@ import com.avail.descriptor.types.TypeTag
 import com.avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithContentType
 import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.execution.Interpreter.Companion.stringifyThen
+import com.avail.interpreter.levelOne.L1Disassembler
 import com.avail.interpreter.levelOne.L1Operation
 import com.avail.interpreter.levelTwo.L1InstructionStepper
 import com.avail.interpreter.levelTwo.L2Chunk
@@ -215,6 +222,7 @@ class ContinuationDescriptor private constructor(
 		 * (growing downwards from the top).  At its deepest, the stack slots
 		 * will abut the last local.
 		 */
+		@HideFieldInDebugger
 		FRAME_AT_
 	}
 
@@ -271,11 +279,75 @@ class ContinuationDescriptor private constructor(
 			lineNumber += decodedDelta
 			// Now skip one nybblecode instruction.
 			val op = instructionDecoder.getOperation()
-			for (i in op.operandTypes.size - 1 downTo 0) {
-				instructionDecoder.getOperand()
-			}
+			repeat(op.operandTypes.size) { instructionDecoder.getOperand() }
 		}
 		return lineNumber
+	}
+
+	override fun o_DescribeForDebugger(
+		self: AvailObject
+	): Array<AvailObjectFieldHelper>
+	{
+		val fields = super.o_DescribeForDebugger(self).toMutableList()
+		val code = self.function().code()
+		val block = code.originatingPhrase()
+		val declarations = mutableListOf<A_Phrase>()
+		if (!block.equalsNil())
+		{
+			declarations.addAll(block.argumentsTuple())
+			declarations.addAll(BlockPhraseDescriptor.locals(block))
+			declarations.addAll(BlockPhraseDescriptor.constants(block))
+		}
+		for (i in 1..self.numSlots())
+		{
+			var name = if (i <= declarations.size)
+			{
+				val declName = declarations[i-1].token().string()
+				"FRAME[$i: ${declName.asNativeString()}]"
+			}
+			else
+			{
+				"Frame[$i]"
+			}
+			if (i == self.stackp()) name = "Stackp ==> $name"
+			fields.add(
+				AvailObjectFieldHelper(
+					self,
+					DebuggerObjectSlots(name),
+					-1,
+					self.frameAt(i)))
+		}
+		val moduleName = code.module().run {
+			if (equalsNil()) "No module"
+			else moduleName().asNativeString().split("/").last()
+		}
+
+		// Figure out the pc of the instruction before the current one, since
+		// (1) calls leave the pc at the next instruction after the call, and
+		// (2) other instructions are likewidse advanced past before running
+		// them.
+		val currentPc = self.pc()
+		var pcBefore = -1
+		val decoder = L1InstructionDecoder()
+		code.setUpInstructionDecoder(decoder)
+		decoder.pc(1)
+		while (decoder.pc() < currentPc)
+		{
+			pcBefore = decoder.pc()
+			val op = decoder.getOperation()
+			repeat(op.operandTypes.size) { decoder.getOperand() }
+		}
+
+		val disassembled = L1Disassembler(code).disassembledAsSlots(pcBefore)
+		fields.add(
+			AvailObjectFieldHelper(
+				self,
+				DebuggerObjectSlots("Disassembly"),
+				-1,
+				null,
+				forcedName = "L1 Disassembly ($moduleName)",
+				forcedChildren = disassembled.toTypedArray()))
+		return fields.toTypedArray()
 	}
 
 	/**
@@ -391,11 +463,23 @@ class ContinuationDescriptor private constructor(
 			append(": ")
 			val code = self.function().code()
 			append(code.methodName().asNativeString())
+			append(" (")
+			val module = code.module()
+			if (module.equalsNil())
+			{
+				append("?")
+			}
+			else
+			{
+				val name = module.moduleName().asNativeString()
+				append(name.split("/").last())
+			}
 			append(":")
 			append(self.currentLineNumber())
+			append(")")
 			val primitive = code.primitive()
 			if (primitive === P_CatchException) {
-				append(", CATCH var = ")
+				append(" CATCH var = ")
 				append(self.frameAt(4).value().value())
 			}
 		}

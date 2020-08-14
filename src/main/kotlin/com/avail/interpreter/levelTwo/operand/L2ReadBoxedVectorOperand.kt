@@ -71,4 +71,9 @@ class L2ReadBoxedVectorOperand constructor(
 	{
 		dispatcher.doOperand(this)
 	}
+
+	override fun replaceConstantRegisters()
+	{
+		elements.forEach(L2Operand::replaceConstantRegisters)
+	}
 }

@@ -45,6 +45,8 @@ import com.avail.descriptor.phrases.MacroSubstitutionPhraseDescriptor.Companion.
 import com.avail.descriptor.phrases.PhraseDescriptor
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken
+import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 
 /**
@@ -85,8 +87,8 @@ enum class ParsingConversionRule constructor(val number: Int)
 	/**
 	 * `1` - Convert a [list][ListPhraseDescriptor] into a
 	 * [literal&#32;phrase][LiteralPhraseDescriptor] that yields an
-	 * [integer][IntegerDescriptor] representing the
-	 * [size][AvailObject.tupleSize] of the original list.
+	 * [integer][IntegerDescriptor] representing the [size][A_Tuple.tupleSize]
+	 * of the original list.
 	 */
 	LIST_TO_SIZE(1)
 	{

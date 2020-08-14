@@ -70,13 +70,13 @@ object P_SealMethodsAtExistingDefinitions : Primitive(1, CanInline, HasSideEffec
 		interpreter.checkArgumentCount(1)
 		val methodNames = interpreter.argument(0)
 		val loader = interpreter.fiber().availLoader()
-		             ?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		if (!loader.phase().isExecuting)
 		{
 			return interpreter.primitiveFailure(
 				E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
-		val runtime = interpreter.runtime()
+		val runtime = interpreter.runtime
 		val module = interpreter.module()
 		for (name in methodNames)
 		{

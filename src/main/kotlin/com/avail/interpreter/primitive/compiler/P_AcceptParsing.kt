@@ -33,7 +33,7 @@ package com.avail.interpreter.primitive.compiler
 
 import com.avail.compiler.AvailAcceptedParseException
 import com.avail.descriptor.fiber.FiberDescriptor.GeneralFlag.CAN_REJECT_PARSE
-import com.avail.descriptor.methods.A_Definition
+import com.avail.descriptor.methods.A_Macro
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
@@ -48,7 +48,7 @@ import com.avail.interpreter.execution.Interpreter
 /**
  * **Primitive:** Either an expression is having an applicable
  * semantic checked, a macro body is being executed for some invocation site, or
- * a [prefix&#32;function][A_Definition.prefixFunctions] for a macro is being
+ * a [prefix&#32;function][A_Macro.prefixFunctions] for a macro is being
  * invoked for a tentative prefix of an invocation site.  The Avail code has
  * decided by invoking this primitive that the terms of the invocation are
  * acceptable.

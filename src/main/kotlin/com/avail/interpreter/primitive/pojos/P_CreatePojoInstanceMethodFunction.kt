@@ -40,8 +40,9 @@ import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.ObjectTupleDescriptor
+import com.avail.descriptor.tuples.A_Tuple.Companion.concatenateWith
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
@@ -68,7 +69,6 @@ import com.avail.interpreter.primitive.pojos.PrimitiveHelper.rawPojoInvokerFunct
 import com.avail.utility.Mutable
 import com.avail.utility.cast
 import java.lang.reflect.Method
-import java.util.Collections.synchronizedMap
 import java.util.WeakHashMap
 
 /**
@@ -92,8 +92,7 @@ object P_CreatePojoInstanceMethodFunction : Primitive(3, CanInline, CanFold)
 	/**
 	 * Cache of [A_RawFunction]s, keyed by the function [A_Type].
 	 */
-	private val rawFunctionCache =
-		synchronizedMap(WeakHashMap<A_Type, A_RawFunction>())
+	private val rawFunctionCache = WeakHashMap<A_Type, A_RawFunction>()
 
 	override fun attempt(interpreter: Interpreter): Result
 	{
@@ -136,16 +135,19 @@ object P_CreatePojoInstanceMethodFunction : Primitive(3, CanInline, CanFold)
 			method.genericReturnType,
 			if (pojoType.isPojoType) pojoType.typeVariables() else emptyMap)
 		val paramTypesWithReceiver =
-			ObjectTupleDescriptor.tuple(pojoType).concatenateWith(paramTypes, false)
+			tuple(pojoType).concatenateWith(paramTypes, false)
 		val functionType = functionType(paramTypesWithReceiver, returnType)
-		val rawFunction = rawFunctionCache.computeIfAbsent(functionType) {
-			rawPojoInvokerFunctionFromFunctionType(
-				P_InvokeInstancePojoMethod,
-				it,
-				// Outer#1 = Instance method to invoke.
-				RAW_POJO.o,
-				// Outer#2 = Marshaled type parameters, starting with receiver.
-				oneOrMoreOf(RAW_POJO.o))
+		val rawFunction = synchronized(rawFunctionCache) {
+			rawFunctionCache.computeIfAbsent(functionType) {
+				rawPojoInvokerFunctionFromFunctionType(
+					P_InvokeInstancePojoMethod,
+					it,
+					// Outer#1 = Instance method to invoke.
+					RAW_POJO.o,
+					// Outer#2 = Marshaled type parameters, starting with the
+					// receiver.
+					oneOrMoreOf(RAW_POJO.o))
+			}
 		}
 		val function = createWithOuters2(
 			rawFunction,
@@ -159,7 +161,7 @@ object P_CreatePojoInstanceMethodFunction : Primitive(3, CanInline, CanFold)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			ObjectTupleDescriptor.tuple(
+			tuple(
 				anyMeta(),
 				stringType(),
 				zeroOrMoreOf(anyMeta())),

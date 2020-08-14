@@ -35,7 +35,7 @@ import com.avail.compiler.AvailCodeGenerator
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.functions.A_RawFunction
-import com.avail.descriptor.methods.MacroDefinitionDescriptor
+import com.avail.descriptor.methods.MacroDescriptor
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.phrases.A_Phrase.Companion.apparentSendName
 import com.avail.descriptor.phrases.A_Phrase.Companion.argumentsListNode
@@ -96,7 +96,7 @@ import java.util.IdentityHashMap
 
 /**
  * A [macro&#32;substitution&#32;phrase][MacroSubstitutionPhraseDescriptor]
- * represents the result of applying a [macro][MacroDefinitionDescriptor] to its
+ * represents the result of applying a [macro][MacroDescriptor] to its
  * argument [expressions][PhraseDescriptor] to produce an output
  * [phrase][ObjectSlots.OUTPUT_PARSE_NODE].
  *

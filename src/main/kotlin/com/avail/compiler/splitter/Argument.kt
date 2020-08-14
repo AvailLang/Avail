@@ -39,7 +39,7 @@ import com.avail.compiler.splitter.MessageSplitter.Companion.throwSignatureExcep
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.BottomTypeDescriptor
+import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
 import com.avail.exceptions.SignatureException
 import java.util.IdentityHashMap
@@ -81,8 +81,7 @@ internal open class Argument constructor(
 
 	/**
 	 * A simple underscore/ellipsis can be arbitrarily restricted, other than
-	 * when it is restricted to the uninstantiable type
-	 * [bottom][BottomTypeDescriptor.getBottom].
+	 * when it is restricted to the uninstantiable type [bottom].
 	 */
 	@Throws(SignatureException::class)
 	override fun checkType(argumentType: A_Type, sectionNumber: Int)
@@ -128,4 +127,6 @@ internal open class Argument constructor(
 	override val shouldBeSeparatedOnLeft get() = true
 
 	override val shouldBeSeparatedOnRight get() = true
+
+	override fun checkListStructure(phrase: A_Phrase): Boolean = true
 }

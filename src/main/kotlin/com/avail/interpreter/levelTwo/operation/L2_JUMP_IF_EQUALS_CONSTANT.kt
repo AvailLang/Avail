@@ -38,7 +38,7 @@ import com.avail.interpreter.levelTwo.L2OperandType
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand
 import com.avail.interpreter.levelTwo.operand.L2PcOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import com.avail.interpreter.levelTwo.operand.TypeRestriction
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding
 import com.avail.optimizer.L2Generator
 import com.avail.optimizer.L2ValueManifest
@@ -79,7 +79,7 @@ object L2_JUMP_IF_EQUALS_CONSTANT :
 		val oldRestriction = reader.restriction()
 		ifEqual.manifest().setRestriction(
 			reader.semanticValue(),
-			TypeRestriction.restrictionForConstant(
+			restrictionForConstant(
 				constant.constant, RestrictionFlagEncoding.BOXED))
 		ifNotEqual.manifest().setRestriction(
 			reader.semanticValue(),
@@ -92,20 +92,18 @@ object L2_JUMP_IF_EQUALS_CONSTANT :
 		generator: L2Generator): BranchReduction
 	{
 		// Eliminate tests due to type propagation.
-		val value =
-			instruction.operand<L2ReadBoxedOperand>(0)
-		val constant =
-			instruction.operand<L2ConstantOperand>(1)
+		val value = instruction.operand<L2ReadBoxedOperand>(0)
+		val constant = instruction.operand<L2ConstantOperand>(1)
 		val valueOrNull: A_BasicObject? = value.constantOrNull()
 		return when
 		{
-			valueOrNull !== null && valueOrNull.equals(constant.constant) ->
-				BranchReduction.AlwaysTaken
-			valueOrNull !== null -> BranchReduction.NeverTaken
-			// They can't be equal.
-			!constant.constant.isInstanceOf(value.type()) ->
-				BranchReduction.NeverTaken
-			else -> BranchReduction.SometimesTaken
+			valueOrNull !== null -> when (valueOrNull) {
+				constant.constant -> BranchReduction.AlwaysTaken
+				else -> BranchReduction.NeverTaken
+			}
+			constant.constant.isInstanceOf(value.type()) ->
+				BranchReduction.SometimesTaken
+			else -> BranchReduction.NeverTaken
 		}
 	}
 

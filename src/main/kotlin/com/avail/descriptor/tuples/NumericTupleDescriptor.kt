@@ -61,4 +61,6 @@ abstract class NumericTupleDescriptor protected constructor(
 	: TupleDescriptor(mutability, objectSlotsEnumClass, integerSlotsEnumClass)
 {
 	abstract override fun o_TupleIntAt(self: AvailObject, index: Int): Int
+
+	abstract override fun o_TupleLongAt(self: AvailObject, index: Int): Long
 }

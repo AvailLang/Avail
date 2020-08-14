@@ -115,7 +115,6 @@ import com.avail.tools.bootstrap.Resources.specialObjectKey
 import com.avail.tools.bootstrap.Resources.specialObjectTypeKey
 import com.avail.tools.bootstrap.Resources.specialObjectsBaseName
 import com.avail.tools.bootstrap.Resources.stringify
-import com.avail.utility.Tuple4
 import com.avail.utility.UTF8ResourceBundleControl
 import com.avail.utility.t
 import java.io.File
@@ -148,9 +147,6 @@ class BootstrapGenerator constructor(private val locale: Locale)
 {
 	companion object
 	{
-		/** The Avail special objects.  */
-		private val specialObjects: List<AvailObject> = specialObjects()
-
 		/**
 		 * A [map][Map] from the special objects to their indices.
 		 */
@@ -1894,7 +1890,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 			}
 		}
 	}
-	
+
 	/**
 	 * Generate the package that comprises the generated [primitive][Primitive]
 	 * test cases.

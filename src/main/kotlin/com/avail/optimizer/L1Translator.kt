@@ -31,7 +31,6 @@
  */
 package com.avail.optimizer
 
-import com.avail.AvailRuntime
 import com.avail.AvailRuntime.HookType
 import com.avail.AvailRuntimeSupport
 import com.avail.descriptor.atoms.A_Atom.Companion.atomName
@@ -50,28 +49,35 @@ import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.methods.A_Method
 import com.avail.descriptor.methods.A_SemanticRestriction
 import com.avail.descriptor.methods.MethodDescriptor
+import com.avail.descriptor.phrases.A_Phrase
+import com.avail.descriptor.phrases.A_Phrase.Companion.argumentsTuple
+import com.avail.descriptor.phrases.A_Phrase.Companion.neededVariables
+import com.avail.descriptor.phrases.A_Phrase.Companion.token
+import com.avail.descriptor.phrases.BlockPhraseDescriptor.Companion.constants
+import com.avail.descriptor.phrases.BlockPhraseDescriptor.Companion.locals
+import com.avail.descriptor.pojos.RawPojoDescriptor
+import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
 import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
-import com.avail.descriptor.types.BottomTypeDescriptor
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.ContinuationTypeDescriptor.Companion.continuationTypeForFunctionType
 import com.avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralContinuationType
-import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
-import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int32
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypesList
 import com.avail.descriptor.types.TypeDescriptor
 import com.avail.descriptor.types.TypeDescriptor.Types
-import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import com.avail.descriptor.variables.A_Variable
 import com.avail.descriptor.variables.VariableDescriptor
 import com.avail.dispatch.InternalLookupTree
@@ -114,10 +120,8 @@ import com.avail.interpreter.levelTwo.operation.L2_GET_ARGUMENT
 import com.avail.interpreter.levelTwo.operation.L2_GET_CURRENT_CONTINUATION
 import com.avail.interpreter.levelTwo.operation.L2_GET_CURRENT_FUNCTION
 import com.avail.interpreter.levelTwo.operation.L2_GET_IMPLICIT_OBSERVE_FUNCTION
-import com.avail.interpreter.levelTwo.operation.L2_GET_INVALID_MESSAGE_RESULT_FUNCTION
 import com.avail.interpreter.levelTwo.operation.L2_GET_INVALID_MESSAGE_SEND_FUNCTION
 import com.avail.interpreter.levelTwo.operation.L2_GET_LATEST_RETURN_VALUE
-import com.avail.interpreter.levelTwo.operation.L2_GET_RETURNING_FUNCTION
 import com.avail.interpreter.levelTwo.operation.L2_GET_TYPE
 import com.avail.interpreter.levelTwo.operation.L2_GET_TYPE.sourceValueOf
 import com.avail.interpreter.levelTwo.operation.L2_GET_UNASSIGNED_VARIABLE_READ_FUNCTION
@@ -126,6 +130,7 @@ import com.avail.interpreter.levelTwo.operation.L2_GET_VARIABLE_CLEARING
 import com.avail.interpreter.levelTwo.operation.L2_INTERPRET_LEVEL_ONE
 import com.avail.interpreter.levelTwo.operation.L2_INVOKE
 import com.avail.interpreter.levelTwo.operation.L2_INVOKE_CONSTANT_FUNCTION
+import com.avail.interpreter.levelTwo.operation.L2_INVOKE_INVALID_MESSAGE_RESULT_FUNCTION
 import com.avail.interpreter.levelTwo.operation.L2_JUMP
 import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_EQUALS_CONSTANT
 import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_INTERRUPT
@@ -148,7 +153,6 @@ import com.avail.interpreter.levelTwo.operation.L2_RETURN
 import com.avail.interpreter.levelTwo.operation.L2_RETURN_FROM_REIFICATION_HANDLER
 import com.avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
 import com.avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE.Companion.argsOf
-import com.avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE.Companion.forPrimitive
 import com.avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE.Companion.primitiveOf
 import com.avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
 import com.avail.interpreter.levelTwo.operation.L2_SET_CONTINUATION
@@ -166,6 +170,7 @@ import com.avail.optimizer.L2Generator.Companion.backEdgeTo
 import com.avail.optimizer.L2Generator.Companion.edgeTo
 import com.avail.optimizer.L2Generator.OptimizationLevel
 import com.avail.optimizer.values.Frame
+import com.avail.optimizer.values.L2SemanticConstant
 import com.avail.optimizer.values.L2SemanticValue
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport
@@ -210,6 +215,49 @@ class L1Translator private constructor(
 	 * and the stack slots.
 	 */
 	private val numSlots: Int = code.numSlots()
+
+	/**
+	 * An array of names of arguments, if available, to make it easier to follow
+	 * [L2ControlFlowGraph]s.
+	 */
+	val slotNames = code.originatingPhrase().run {
+		val declarations = mutableListOf<A_Phrase>()
+		if (!equalsNil())
+		{
+			declarations.addAll(argumentsTuple())
+			declarations.addAll(locals(this))
+			declarations.addAll(constants(this))
+		}
+		val mutableSlotNames = mutableListOf<String?>()
+		declarations.mapTo(mutableSlotNames) {
+			it.token().string().asNativeString()
+		}
+		repeat(numSlots - declarations.size) {
+			mutableSlotNames.add(null)
+		}
+		mutableSlotNames.toList()
+	}
+
+	/**
+	 * An array of names of arguments, if available, to make it easier to follow
+	 * [L2ControlFlowGraph]s.
+	 */
+	val outerNames = code.originatingPhrase().run {
+		val declarations = mutableListOf<A_Phrase>()
+		if (!equalsNil())
+		{
+			val needed = neededVariables()
+			if (!needed.equalsNil()) declarations.addAll(needed)
+		}
+		val mutableOuterNames = mutableListOf<String?>()
+		declarations.mapTo(mutableOuterNames) {
+			it.token().string().asNativeString()
+		}
+		repeat(code.numOuters() - declarations.size) {
+			mutableOuterNames.add(null)
+		}
+		mutableOuterNames.toList()
+	}
 
 	/**
 	 * The [L2SemanticValue]s corresponding with the slots of the virtual
@@ -304,7 +352,7 @@ class L1Translator private constructor(
 	{
 		// Create a new semantic slot at the current pc, representing this
 		// newly written value.
-		val semanticValue = topFrame().slot(slotIndex, effectivePc)
+		val semanticValue = createSemanticSlot(slotIndex, effectivePc)
 		semanticSlots[slotIndex - 1] = semanticValue
 		return generator.boxedWrite(semanticValue, restriction)
 	}
@@ -357,7 +405,7 @@ class L1Translator private constructor(
 	{
 		// Create a new L2SemanticSlot at the effective pc, representing this
 		// newly written value.
-		val slotSemanticValue = topFrame().slot(slotIndex, effectivePc)
+		val slotSemanticValue = createSemanticSlot(slotIndex, effectivePc)
 		semanticSlots[slotIndex - 1] = slotSemanticValue
 		generator.moveRegister(
 			L2_MOVE.boxed,
@@ -438,7 +486,8 @@ class L1Translator private constructor(
 		outerIndex: Int,
 		outerType: A_Type): L2ReadBoxedOperand
 	{
-		val semanticOuter = topFrame().outer(outerIndex)
+		val semanticOuter = topFrame().outer(
+			outerIndex, outerNames[outerIndex - 1])
 		if (currentManifest().hasSemanticValue(semanticOuter))
 		{
 			return generator.readBoxed(semanticOuter)
@@ -477,26 +526,6 @@ class L1Translator private constructor(
 		addInstruction(L2_GET_LATEST_RETURN_VALUE, writer)
 		return readBoxed(writer)
 	}
-
-	/**
-	 * Capture the function that has just attempted to return via an [L2_RETURN]
-	 * instruction in this [Interpreter].
-	 *
-	 * @return
-	 *   An [L2ReadBoxedOperand] that now holds the function that is returning.
-	 */
-	private val returningFunctionRegister: L2ReadBoxedOperand
-		get()
-		{
-			val writer = generator.boxedWriteTemp(
-				restrictionForType(
-					mostGeneralFunctionType(),
-					RestrictionFlagEncoding.BOXED))
-			addInstruction(
-				L2_GET_RETURNING_FUNCTION,
-				writer)
-			return readBoxed(writer)
-		}
 
 	/**
 	 * Create and add an [L2Instruction] with the given [L2Operation] and
@@ -638,6 +667,7 @@ class L1Translator private constructor(
 		addInstruction(
 			L2_GET_CURRENT_CONTINUATION,
 			writeReifiedCaller)
+		val unreachable = L2BasicBlock("unreachable")
 		if (typeOfEntryPoint === ChunkEntryPoint.TRANSIENT)
 		{
 			// L1 can never see this continuation, so it can be minimal.
@@ -649,9 +679,7 @@ class L1Translator private constructor(
 				L2IntImmediateOperand(Int.MAX_VALUE),
 				L2ReadBoxedVectorOperand(emptyList()),
 				newContinuationWrite,
-				generator.readInt(
-					writeOffset.onlySemanticValue(),
-					generator.unreachablePcOperand().targetBlock()),
+				generator.readInt(writeOffset.onlySemanticValue(), unreachable),
 				generator.readBoxed(writeRegisterDump),
 				L2CommentOperand(
 					"Create a dummy reification continuation."))
@@ -669,9 +697,7 @@ class L1Translator private constructor(
 				L2IntImmediateOperand(stackp),
 				L2ReadBoxedVectorOperand(readSlotsBefore.toList()),
 				newContinuationWrite,
-				generator.readInt(
-					writeOffset.onlySemanticValue(),
-					generator.unreachablePcOperand().targetBlock()),
+				generator.readInt(writeOffset.onlySemanticValue(), unreachable),
 				generator.readBoxed(writeRegisterDump),
 				L2CommentOperand("Create a reification continuation."))
 		}
@@ -681,6 +707,9 @@ class L1Translator private constructor(
 
 		// Right after creating the continuation.
 		addInstruction(L2_RETURN_FROM_REIFICATION_HANDLER)
+
+		generator.startBlock(unreachable)
+		generator.addInstruction(L2_UNREACHABLE_CODE)
 
 		// Here it's returning into the reified continuation.
 		generator.startBlock(onReturnIntoReified)
@@ -694,32 +723,6 @@ class L1Translator private constructor(
 			generator.addUnreachableCode()
 		}
 	}
-
-	/**
-	 * Generate code to extract the current
-	 * [AvailRuntime.resultDisagreedWithExpectedTypeFunction] into a new
-	 * register, which is returned here.
-	 *
-	 * @return
-	 *   The new register that will hold the invalid return function.
-	 */
-	private val invalidResultFunctionRegister: L2ReadBoxedOperand
-		get()
-		{
-			val invalidResultFunction = generator.boxedWriteTemp(
-				restrictionForType(
-					functionType(
-						tuple(
-							mostGeneralFunctionType(),
-							topMeta(),
-							variableTypeFor(Types.ANY.o)),
-						bottom
-					),
-					RestrictionFlagEncoding.BOXED))
-			addInstruction(
-				L2_GET_INVALID_MESSAGE_RESULT_FUNCTION, invalidResultFunction)
-			return readBoxed(invalidResultFunction)
-		}
 
 	/**
 	 * A memento to be used for coordinating code generation between the
@@ -939,16 +942,16 @@ class L1Translator private constructor(
 		 */
 		fun generateAllInvocationSites()
 		{
-			invocationSitesToCreate.forEach {
-				(_, pair) -> pair.second()
+			invocationSitesToCreate.values.forEach {
+				(_, action) -> action.invoke()
 			}
 		}
 	}
 
 	/**
 	 * Generate code to perform a method invocation.  If a superUnionType other
-	 * than [bottom][BottomTypeDescriptor.getBottom] is supplied, produce a
-	 * super-directed multimethod invocation.
+	 * than [bottom] is supplied, produce a super-directed multimethod
+	 * invocation.
 	 *
 	 * @param bundle
 	 *   The [message bundle][MessageBundleDescriptor] to invoke.
@@ -956,8 +959,8 @@ class L1Translator private constructor(
 	 *   The expected return [type][TypeDescriptor].
 	 * @param superUnionType
 	 *   A tuple type to combine through a type union with the pushed arguments'
-	 *   dynamic types, to use during method lookup.  This is
-	 *   [bottom][BottomTypeDescriptor.getBottom] for non-super calls.
+	 *   dynamic types, to use during method lookup.  This is [bottom] for
+	 *   non-super calls.
 	 */
 	private fun generateCall(
 		bundle: A_Bundle,
@@ -1179,11 +1182,18 @@ class L1Translator private constructor(
 			if (generator.currentlyReachable())
 			{
 				// Capture the value being returned into the on-ramp.
-				forceSlotRegister(
-					stackp,
-					instructionDecoder.pc() - 1,
-					getLatestReturnValue(unionOfPossibleResults))
-				generator.jumpTo(callSiteHelper.afterCallWithCheck)
+				if (unionOfPossibleResults.isVacuousType)
+				{
+					generator.addUnreachableCode()
+				}
+				else
+				{
+					forceSlotRegister(
+						stackp,
+						instructionDecoder.pc() - 1,
+						getLatestReturnValue(unionOfPossibleResults))
+					generator.jumpTo(callSiteHelper.afterCallWithCheck)
+				}
 			}
 		}
 
@@ -1194,26 +1204,25 @@ class L1Translator private constructor(
 			reify(expectedType, ChunkEntryPoint.TO_RETURN_INTO)
 			if (generator.currentlyReachable())
 			{
-				val resultType =
-					unionOfPossibleResults.typeIntersection(expectedType)
-				if (resultType.isVacuousType)
+				// Capture the value being returned into the on-ramp.
+				val guaranteedType = unionOfPossibleResults.typeIntersection(
+					expectedType)
+				if (guaranteedType.isVacuousType)
 				{
-					// We proved it was actually ⊥-valued, so unreachable.
 					generator.addUnreachableCode()
 				}
 				else
 				{
-					// Capture the value being returned into the on-ramp.
 					forceSlotRegister(
 						stackp,
 						instructionDecoder.pc(),
-						getLatestReturnValue(resultType))
+						getLatestReturnValue(guaranteedType))
 					generator.jumpTo(callSiteHelper.afterCallNoCheck)
 				}
 			}
 		}
 
-		// #4:
+		// #4: Reification for unreturnable call.
 		generator.startBlock(callSiteHelper.onReificationUnreturnable)
 		if (generator.currentlyReachable())
 		{
@@ -1323,18 +1332,18 @@ class L1Translator private constructor(
 				if (block.predecessorEdgesCount() > 0)
 				{
 					generator.startBlock(block)
-					val arguments =
-						semanticArguments.map { currentManifest().readBoxed(it) }
 					generateGeneralFunctionInvocation(
 						generator.boxedConstant(function),
-						arguments,
+						semanticArguments.map {
+							currentManifest().readBoxed(it)
+						},
 						true,
 						callSiteHelper)
 					assert(!generator.currentlyReachable())
 				}
 			}
 			callSiteHelper.invocationSitesToCreate[function] =
-				Pair(block, newAction)
+				block to newAction
 		}
 		else
 		{
@@ -1500,7 +1509,9 @@ class L1Translator private constructor(
 			}
 			// A runtime test is needed, and it's not a small enumeration.
 			jumpIfKindOfConstant(
-				argRead, typeToTest, memento.passCheckBasicBlock,
+				argRead,
+				typeToTest,
+				memento.passCheckBasicBlock,
 				memento.failCheckBasicBlock)
 			return memento
 		}
@@ -1715,13 +1726,26 @@ class L1Translator private constructor(
 				// value against the constant.
 			}
 		}
-		// Generate the general case.
+		// Generate the general case.  In the pass case, flow through an
+		// intermediate block that uses a move to a temp to force the constant
+		// value to be visible in a register.
+		val innerPass = L2BasicBlock("strengthen to constant")
 		addInstruction(
 			L2_JUMP_IF_EQUALS_CONSTANT,
 			registerToTest,
 			L2ConstantOperand(constantValue),
-			edgeTo(passBlock),
+			edgeTo(innerPass),
 			edgeTo(failBlock))
+		generator.startBlock(innerPass)
+		val semanticConstant = L2SemanticConstant(constantValue)
+		if (!generator.currentManifest().hasSemanticValue(semanticConstant))
+		{
+			generator.moveRegister(
+				L2_MOVE.boxed,
+				registerToTest.semanticValue(),
+				semanticConstant)
+		}
+		generator.jumpTo(passBlock)
 	}
 
 	/**
@@ -1772,7 +1796,7 @@ class L1Translator private constructor(
 		val sizeRange = functionToCallReg.type().argsTupleType().sizeRange()
 		assert(sizeRange.isBottom
 		   || !sizeRange.lowerBound().equals(sizeRange.upperBound())
-		   || sizeRange.rangeIncludesInt(argumentCount))
+		   || sizeRange.rangeIncludesLong(argumentCount.toLong()))
 		val rawFunction = determineRawFunction(functionToCallReg)
 		if (rawFunction !== null)
 		{
@@ -1789,22 +1813,19 @@ class L1Translator private constructor(
 					// lookup was monomorphic *in the event of success*, so we
 					// can safely tighten the argument types here to conform to
 					// the only possible found function.
-					val strongArguments = mutableListOf<L2ReadBoxedOperand>()
 					val manifest = currentManifest()
-					for (i in 0 until argumentCount)
-					{
-						val arg = arguments[i]
+					val strongArguments = (0 until argumentCount).map {
+						val arg = arguments[it]
 						val argSemanticValue = arg.semanticValue()
 						val strongRestriction = arg.restriction()
 							.intersection(
 								manifest.restrictionFor(argSemanticValue))
 							.intersectionWithType(
-								argsTupleType.typeAtIndex(i + 1))
+								argsTupleType.typeAtIndex(it + 1))
 						manifest.setRestriction(
 							argSemanticValue, strongRestriction)
-						strongArguments.add(
-							L2ReadBoxedOperand(
-								argSemanticValue, strongRestriction, manifest))
+						L2ReadBoxedOperand(
+							argSemanticValue, strongRestriction, manifest)
 					}
 					tryToGenerateSpecialInvocation(
 						functionToCallReg,
@@ -1819,13 +1840,9 @@ class L1Translator private constructor(
 					// tryToGenerateSpecialPrimitiveInvocation(), so do not
 					// recurse again; just generate the best invocation possible
 					// given what we know.
-					val argumentTypes = mutableListOf<A_Type>()
-					for (i in 0 until argumentCount)
-					{
-						val argument = arguments[i]
-						val narrowedType = argument.type().typeIntersection(
+					val argumentTypes = (0 until argumentCount).map { i ->
+						arguments[i].type().typeIntersection(
 							argsTupleType.typeAtIndex(i + 1))
-						argumentTypes.add(narrowedType)
 					}
 					if (primitive.fallibilityForArgumentTypes(argumentTypes)
 						=== Fallibility.CallSiteCannotFail)
@@ -1846,7 +1863,7 @@ class L1Translator private constructor(
 							restrictionForType(
 								resultType, RestrictionFlagEncoding.BOXED))
 						addInstruction(
-							forPrimitive(primitive),
+							L2_RUN_INFALLIBLE_PRIMITIVE.forPrimitive(primitive),
 							L2ConstantOperand(rawFunction),
 							L2PrimitiveOperand(primitive),
 							L2ReadBoxedVectorOperand(arguments),
@@ -1873,36 +1890,25 @@ class L1Translator private constructor(
 		val guaranteedResultType = functionToCallReg.type().returnType()
 		val skipCheck =
 			guaranteedResultType.isSubtypeOf(callSiteHelper.expectedType)
-		val constantFunction: A_Function? =
-			functionToCallReg.constantOrNull()
+		val constantFunction: A_Function? = functionToCallReg.constantOrNull()
 		val canReturn = !guaranteedResultType.isVacuousType
-		val successBlock =
-			generator.createBasicBlock("successful invocation")
+		val successBlock = generator.createBasicBlock("successful invocation")
 		val targetBlock =
 			when
 			{
-				!canReturn ->
-				{
-					callSiteHelper.onReificationUnreturnable
-				}
-				skipCheck ->
-				{
-					callSiteHelper.onReificationNoCheck
-				}
-				else ->
-				{
-					callSiteHelper.onReificationWithCheck
-				}
+				!canReturn -> callSiteHelper.onReificationUnreturnable
+				skipCheck -> callSiteHelper.onReificationNoCheck
+				else -> callSiteHelper.onReificationWithCheck
 			}
 		val reificationTarget = generator.createBasicBlock(
-			"invoke reification target",
-			targetBlock.zone)
+			"invoke reification target", targetBlock.zone)
 		val writeResult = writeSlot(
 			stackp,
 			instructionDecoder.pc() + if (skipCheck) 0 else -1,
 			restrictionForType(
 				if (guaranteedResultType.isBottom) Types.ANY.o // unreachable
 				else guaranteedResultType, RestrictionFlagEncoding.BOXED))
+		val unreachable = L2BasicBlock("unreachable")
 		if (constantFunction !== null)
 		{
 			addInstruction(
@@ -1910,8 +1916,7 @@ class L1Translator private constructor(
 				L2ConstantOperand(constantFunction),
 				L2ReadBoxedVectorOperand(arguments),
 				writeResult,
-				if (canReturn) edgeTo(successBlock)
-				else generator.unreachablePcOperand(),
+				edgeTo(if (canReturn) successBlock else unreachable),
 				edgeTo(reificationTarget))
 		}
 		else
@@ -1921,10 +1926,12 @@ class L1Translator private constructor(
 				functionToCallReg,
 				L2ReadBoxedVectorOperand(arguments),
 				writeResult,
-				if (canReturn) edgeTo(successBlock)
-				else generator.unreachablePcOperand(),
+				edgeTo(if (canReturn) successBlock else unreachable),
 				edgeTo(reificationTarget))
 		}
+		generator.startBlock(unreachable)
+		generator.addInstruction(L2_UNREACHABLE_CODE)
+
 		generator.startBlock(reificationTarget)
 		generator.addInstruction(
 			L2_ENTER_L2_CHUNK,
@@ -1933,6 +1940,7 @@ class L1Translator private constructor(
 			L2CommentOperand(
 				"Transient - cannot be invalid."))
 		generator.jumpTo(targetBlock)
+
 		generator.startBlock(successBlock)
 		if (generator.currentlyReachable())
 		{
@@ -1946,11 +1954,14 @@ class L1Translator private constructor(
 	/**
 	 * Generate code to perform a type check of the top-of-stack register
 	 * against the given expectedType (an [A_Type] that has been strengthened by
-	 * semantic restrictions).  If the check fails, invoke the bottom-valued
-	 * function accessed via [invalidResultFunctionRegister], never to return
-	 * – but synthesizing a proper continuation in the event of reification
-	 * while it's running.  If the check passes, the value will be strengthened
-	 * in the top-of-stack register.
+	 * semantic restrictions).
+	 *
+	 * If the check fails, invoke the out-of-line ⊥-valued helper method
+	 * [Interpreter.reportWrongReturnType], passing enough information for it to
+	 * be able to construct a reified continuation if required.
+	 *
+	 * If the check passes, the value will be strengthened in the top-of-stack
+	 * register.
 	 *
 	 * It's incorrect to call this if the register's type is already strong
 	 * enough to satisfy the expectedType.
@@ -1960,10 +1971,11 @@ class L1Translator private constructor(
 	 */
 	private fun generateReturnTypeCheck(expectedType: A_Type)
 	{
+		// The unchecked return value is associated with the nybble just before
+		// the instruction after the call (which takes at least three nybbles).
 		val semanticValue =
-			topFrame().slot(stackp, instructionDecoder.pc() - 1)
-		val uncheckedValueRead =
-			currentManifest().readBoxed(semanticValue)
+			createSemanticSlot(stackp, instructionDecoder.pc() - 1)
+		val uncheckedValueRead = currentManifest().readBoxed(semanticValue)
 		if (uncheckedValueRead.type().isVacuousType)
 		{
 			// There are no return values possible, so we can't get here.  It
@@ -1977,10 +1989,8 @@ class L1Translator private constructor(
 		}
 
 		// Check the return value against the expectedType.
-		val passedCheck =
-			generator.createBasicBlock("passed return check")
-		val failedCheck =
-			generator.createBasicBlock("failed return check")
+		val passedCheck = generator.createBasicBlock("passed return check")
+		val failedCheck = generator.createBasicBlock("failed return check")
 		if (!uncheckedValueRead.restriction().intersectsType(expectedType))
 		{
 			// It's impossible to return a valid value here, since the value's
@@ -1998,59 +2008,23 @@ class L1Translator private constructor(
 
 		// The type check failed, so report it.
 		generator.startBlock(failedCheck)
-		val variableToHoldValueWrite = generator.boxedWriteTemp(
-			restrictionForType(
-				variableTypeFor(
-					Types.ANY.o
-				),
-				RestrictionFlagEncoding.BOXED))
-		addInstruction(
-			L2_CREATE_VARIABLE,
-			L2ConstantOperand(
-				variableTypeFor(
-					Types.ANY.o
-				)),
-			variableToHoldValueWrite)
-		val wroteVariable =
-			generator.createBasicBlock("wrote offending value into variable")
-		addInstruction(
-			L2_SET_VARIABLE_NO_CHECK,
-			readBoxed(variableToHoldValueWrite),
-			uncheckedValueRead,
-			edgeTo(wroteVariable),
-			edgeTo(wroteVariable))
-
-		// Whether the set succeeded or failed doesn't really matter, although
-		// it should always succeed for this freshly created variable.
-		generator.startBlock(wroteVariable)
-		// Recurse to generate the call to the failure handler.  Since it's
-		// bottom-valued, and can therefore skip the result check, the recursive
-		// call won't exceed two levels deep.
-		val onReificationInHandler = generator.createBasicBlock(
-			"continue reification for failed return check",
-			ZoneType.PROPAGATE_REIFICATION_FOR_INVOKE.createZone(
-				"Reification while handling failed return check"))
-		addInstruction(
-			L2_INVOKE,
-			invalidResultFunctionRegister,
-			L2ReadBoxedVectorOperand(
-				listOf(
-					returningFunctionRegister,
-					generator.boxedConstant(expectedType),
-					readBoxed(variableToHoldValueWrite))),
-			generator.boxedWriteTemp(TypeRestriction.anyRestriction),  // unreachable
-			generator.unreachablePcOperand(),
-			edgeTo(onReificationInHandler))
-
-		// Reification has been requested while the call is in progress.
-		generator.startBlock(onReificationInHandler)
 		generator.addInstruction(
-			L2_ENTER_L2_CHUNK,
-			L2IntImmediateOperand(
-				ChunkEntryPoint.TRANSIENT.offsetInDefaultChunk),
-			L2CommentOperand(
-				"Transient - cannot be invalid."))
-		reify(bottom, ChunkEntryPoint.TO_RETURN_INTO)
+			L2_INVOKE_INVALID_MESSAGE_RESULT_FUNCTION,
+			uncheckedValueRead,
+			L2ConstantOperand(expectedType),
+			L2IntImmediateOperand(instructionDecoder.pc()),
+			L2IntImmediateOperand(stackp),
+			L2ReadBoxedVectorOperand(
+				(1..numSlots).map {
+					when (it)
+					{
+						// Make it look like the expectedType has been pushed.
+						stackp -> generator.boxedConstant(expectedType)
+						else -> readSlot(it)
+					}
+				}
+			))
+		assert(!generator.currentlyReachable())
 
 		// Generate the much more likely passed-check flow.
 		generator.startBlock(passedCheck)
@@ -2216,8 +2190,7 @@ class L1Translator private constructor(
 		// equivalent to invocation.
 		val signatureTupleType = rawFunction.functionType().argsTupleType()
 		val narrowedArgTypes = mutableListOf<A_Type>()
-		val narrowedArguments =
-			mutableListOf<L2ReadBoxedOperand>()
+		val narrowedArguments = mutableListOf<L2ReadBoxedOperand>()
 		for (i in 0 until argumentCount)
 		{
 			val argument = generator.readBoxed(arguments[i].semanticValue())
@@ -2465,7 +2438,7 @@ class L1Translator private constructor(
 		val argTypes = argumentRestrictions.map { it.type }
 		val argumentsTupleWrite = generator.boxedWriteTemp(
 			restrictionForType(
-				tupleTypeForTypes(argTypes),
+				tupleTypeForTypesList(argTypes),
 				RestrictionFlagEncoding.BOXED))
 		addInstruction(
 			L2_CREATE_TUPLE,
@@ -2477,6 +2450,7 @@ class L1Translator private constructor(
 					callSiteHelper.quotedBundleName,
 				ZoneType.PROPAGATE_REIFICATION_FOR_INVOKE.createZone(
 			"Continue reification during lookup failure handler"))
+		val unreachable = L2BasicBlock("unreachable")
 		addInstruction(
 			L2_INVOKE,
 			readBoxed(invalidSendReg),
@@ -2486,8 +2460,11 @@ class L1Translator private constructor(
 					generator.boxedConstant(method),
 					readBoxed(argumentsTupleWrite))),
 			generator.boxedWriteTemp(TypeRestriction.anyRestriction),  // unreachable
-			generator.unreachablePcOperand(),
+			edgeTo(unreachable),
 			edgeTo(onReificationDuringFailure))
+
+		generator.startBlock(unreachable)
+		generator.addInstruction(L2_UNREACHABLE_CODE)
 
 		// Reification has been requested while the failure call is in
 		// progress.
@@ -2536,13 +2513,15 @@ class L1Translator private constructor(
 			L2_REIFY,
 			L2IntImmediateOperand(1),
 			L2IntImmediateOperand(1),
-			L2IntImmediateOperand(
-				StatisticCategory.INTERRUPT_OFF_RAMP_IN_L2.ordinal),
+			L2ConstantOperand(
+				identityPojo(
+					StatisticCategory.INTERRUPT_OFF_RAMP_IN_L2.statistic)),
 			edgeTo(onReification))
 		generator.startBlock(onReification)
 		generator.addInstruction(
 			L2_ENTER_L2_CHUNK,
-			L2IntImmediateOperand(ChunkEntryPoint.TRANSIENT.offsetInDefaultChunk),
+			L2IntImmediateOperand(
+				ChunkEntryPoint.TRANSIENT.offsetInDefaultChunk),
 			L2CommentOperand(
 				"Transient, for interrupt - cannot be invalid."))
 
@@ -2577,10 +2556,9 @@ class L1Translator private constructor(
 		makeImmutable: Boolean): L2ReadBoxedOperand
 	{
 		assert(getOperation.isVariableGet)
-		val success =
-			generator.createBasicBlock("successfully read variable")
-		val failure =
-			generator.createBasicBlock("failed to read variable")
+		val success = generator.createBasicBlock("successfully read variable")
+		val failure = generator.createBasicBlock("failed to read variable")
+		val unreachable = generator.createBasicBlock("unreachable")
 		val onReificationDuringFailure = generator.createBasicBlock(
 			"reify in read variable failure handler",
 			ZoneType.PROPAGATE_REIFICATION_FOR_INVOKE.createZone(
@@ -2614,8 +2592,12 @@ class L1Translator private constructor(
 			L2ReadBoxedVectorOperand(emptyList()),
 			//Unreachable:
 			generator.boxedWriteTemp(TypeRestriction.anyRestriction),
-			generator.unreachablePcOperand(),
+			edgeTo(unreachable),
 			edgeTo(onReificationDuringFailure))
+
+		// The invoke should not be able to return.
+		generator.startBlock(unreachable)
+		generator.addInstruction(L2_UNREACHABLE_CODE)
 
 		// Reification has been requested while the failure call is in progress.
 		generator.startBlock(onReificationDuringFailure)
@@ -2767,8 +2749,7 @@ class L1Translator private constructor(
 		if (generator.optimizationLevel == OptimizationLevel.UNOPTIMIZED)
 		{
 			// Optimize it again if it's called frequently enough.
-			code.countdownToReoptimize(
-				countdownForNewlyOptimizedCode())
+			code.countdownToReoptimize(countdownForNewlyOptimizedCode())
 			addInstruction(
 				L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO,
 				L2IntImmediateOperand(
@@ -2789,10 +2770,11 @@ class L1Translator private constructor(
 				// this newly written value.
 				val argReg = generator.boxedWrite(
 					semanticSlot(i),
-					restrictionForType(tupleType.typeAtIndex(i), RestrictionFlagEncoding.BOXED))
+					restrictionForType(tupleType.typeAtIndex(i),
+						RestrictionFlagEncoding.BOXED))
 				addInstruction(
 					L2_GET_ARGUMENT,
-					L2IntImmediateOperand(i),
+					L2IntImmediateOperand(i - 1),
 					argReg)
 			}
 		}
@@ -2828,12 +2810,17 @@ class L1Translator private constructor(
 			// doesn't need to support implicit observation, so no off-ramp
 			// is generated.
 			val success = generator.createBasicBlock("success")
+			val unreachable = L2BasicBlock("unreachable")
 			addInstruction(
 				L2_SET_VARIABLE_NO_CHECK,
 				readSlot(numArgs + 1),
 				getLatestReturnValue(code.localTypeAt(1).writeType()),
 				edgeTo(success),
-				generator.unreachablePcOperand())
+				edgeTo(unreachable))
+
+			generator.startBlock(unreachable)
+			generator.addInstruction(L2_UNREACHABLE_CODE)
+
 			generator.startBlock(success)
 		}
 
@@ -2908,6 +2895,9 @@ class L1Translator private constructor(
 		val beforeChunkGeneration = AvailRuntimeSupport.captureNanos()
 		generator.createChunk(code)
 		assert(code.startingChunk() == generator.chunk())
+
+		optimizer.postOptimizationCleanup()
+
 		L2Generator.finalGenerationStat.record(
 			AvailRuntimeSupport.captureNanos() - beforeChunkGeneration,
 			interpreter.interpreterIndex)
@@ -3084,11 +3074,10 @@ class L1Translator private constructor(
 	override fun L1_doMakeTuple()
 	{
 		val count = instructionDecoder.getOperand()
-		val vector =
-			mutableListOf<L2ReadBoxedOperand>()
+		val elements = mutableListOf<L2ReadBoxedOperand>()
 		for (i in 1 .. count)
 		{
-			vector.add(readSlot(stackp + count - i))
+			elements.add(readSlot(stackp + count - i))
 			// Clear all but the first pushed slot.
 			if (i != 1)
 			{
@@ -3097,34 +3086,8 @@ class L1Translator private constructor(
 		}
 		stackp += count - 1
 		// Fold into a constant tuple if possible
-		val constants = mutableListOf<A_BasicObject?>()
-		for (regRead in vector)
-		{
-			if (regRead.constantOrNull() === null)
-			{
-				break
-			}
-			constants.add(regRead.constantOrNull())
-		}
-		if (constants.size == count)
-		{
-			// The tuple elements are all constants.  Fold it.
-			moveConstantToSlot(
-				tupleFromList(constants), stackp)
-		}
-		else
-		{
-			val types = vector.map { it.type() }
-			addInstruction(
-				L2_CREATE_TUPLE,
-				L2ReadBoxedVectorOperand(vector),
-				writeSlot(
-					stackp,
-					instructionDecoder.pc(),
-					restrictionForType(
-						tupleTypeForTypes(types),
-						RestrictionFlagEncoding.BOXED)))
-		}
+		val tupleRead = generator.createTuple(elements)
+		forceSlotRegister(stackp, instructionDecoder.pc(), tupleRead)
 	}
 
 	override fun L1_doGetOuter()
@@ -3285,6 +3248,13 @@ class L1Translator private constructor(
 		stackp++
 	}
 
+	/**
+	 * Create a semantic slot for the given one-based [index], representing the
+	 * state just before reaching the specified [afterPc].
+	 */
+	fun createSemanticSlot(index: Int, afterPc: Int): L2SemanticValue =
+		generator.topFrame.slot(index, afterPc, slotNames[index - 1])
+
 	companion object
 	{
 		/**
@@ -3393,7 +3363,6 @@ class L1Translator private constructor(
 				"default chunk")
 
 			// 0. First try to run it as a primitive.
-//		final L2ControlFlowGraph controlFlowGraph = new L2ControlFlowGraph();
 			generator.startBlock(initialBlock)
 			generator.addInstruction(
 				L2_TRY_OPTIONAL_PRIMITIVE)
@@ -3438,8 +3407,7 @@ class L1Translator private constructor(
 
 			// 8. Unreachable.
 			generator.startBlock(unreachableBlock)
-			generator.addInstruction(
-				L2_UNREACHABLE_CODE)
+			generator.addInstruction(L2_UNREACHABLE_CODE)
 			return generator.controlFlowGraph
 		}
 
@@ -3482,10 +3450,24 @@ class L1Translator private constructor(
 			val savedFunction = interpreter.function
 			val savedArguments = interpreter.argsBuffer.toList()
 			val savedFailureValue = interpreter.latestResultOrNull()
+			val codeName = buildString {
+				append(code.methodName().asNativeString())
+				val module = code.module()
+				if (!module.equalsNil())
+				{
+					append("\n")
+					append(module.moduleName())
+					val line = code.startingLineNumber()
+					if (line != 0)
+					{
+						append(":$line")
+					}
+				}
+			}
 			val generator = L2Generator(
 				optimizationLevel,
 				Frame(null, code, "top frame"),
-				code.methodName().asNativeString())
+				codeName)
 			val translator = L1Translator(generator, interpreter, code)
 			translator.translate()
 			val chunk = generator.chunk()
@@ -3508,7 +3490,7 @@ class L1Translator private constructor(
 		exactFunctionOrNull = computeExactFunctionOrNullForCode(code)
 		semanticSlots = Array(numSlots)
 		{
-			topFrame().slot(it + 1, 1)
+			createSemanticSlot(it + 1, 1)
 		}
 		code.setUpInstructionDecoder(instructionDecoder)
 		instructionDecoder.pc(1)

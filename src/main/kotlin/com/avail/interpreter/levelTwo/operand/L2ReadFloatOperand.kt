@@ -106,6 +106,8 @@ class L2ReadFloatOperand : L2ReadOperand<L2FloatRegister>
 		L2ReadFloatOperand(
 			semanticValue(), restriction(), newRegister as L2FloatRegister)
 
+	override fun createNewRegister() = L2FloatRegister(-1)
+
 	override fun dispatchOperand(dispatcher: L2OperandDispatcher)
 	{
 		dispatcher.doOperand(this)

@@ -62,7 +62,7 @@ object P_SetRaiseJavaExceptionInAvailFunction
 	{
 		interpreter.checkArgumentCount(1)
 		val function = interpreter.argument(0)
-		RAISE_JAVA_EXCEPTION_IN_AVAIL[interpreter.runtime()] = function
+		RAISE_JAVA_EXCEPTION_IN_AVAIL[interpreter.runtime] = function
 		interpreter.availLoaderOrNull()?.statementCanBeSummarized(false)
 		return interpreter.primitiveSuccess(nil)
 	}

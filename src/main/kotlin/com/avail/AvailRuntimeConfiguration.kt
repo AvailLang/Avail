@@ -31,7 +31,7 @@
  */
 package com.avail
 
-import com.avail.descriptor.methods.MacroDefinitionDescriptor
+import com.avail.descriptor.methods.MacroDescriptor
 import com.avail.interpreter.execution.Interpreter
 import java.io.IOException
 import java.util.Scanner
@@ -74,7 +74,7 @@ object AvailRuntimeConfiguration
 	val maxInterpreters = availableProcessors
 
 	/**
-	 * Whether to show all [macro][MacroDefinitionDescriptor] expansions as
+	 * Whether to show all [macro][MacroDescriptor] expansions as
 	 * they happen.
 	 */
 	var debugMacroExpansions = false

@@ -67,7 +67,7 @@ object P_CreatePojoType : Primitive(2, CanFold, CanInline)
 
 		return try {
 			val pojoType =
-				interpreter.runtime().lookupJavaType(className, classParameters)
+				interpreter.runtime.lookupJavaType(className, classParameters)
 			interpreter.primitiveSuccess(canonicalPojoType(pojoType, true))
 		} catch (e: AvailRuntimeException) {
 			interpreter.primitiveFailure(e.numericCode)

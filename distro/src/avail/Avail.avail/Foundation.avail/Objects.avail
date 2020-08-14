@@ -318,7 +318,7 @@ Semantic restriction "_→tuple" is
  *          The requested object type.
  * @category "Objects" "Types" "Constructors"
  */
-Public method "extend_with«_:_‡,»" is
+Public stable method "extend_with«_:_‡,»" is
 [
 	supertype : object meta,
 	newDefinitions : <<atom, any meta…|2>…|1..>

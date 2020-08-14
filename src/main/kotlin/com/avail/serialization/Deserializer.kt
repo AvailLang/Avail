@@ -150,6 +150,6 @@ class Deserializer constructor(
 		 *   The special atom known to the virtual machine's runtime.
 		 */
 		internal fun specialAtom(index: Int): A_Atom =
-			AvailRuntime.specialAtoms()[index]
+			AvailRuntime.specialAtoms[index]
 	}
 }

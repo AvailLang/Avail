@@ -44,7 +44,7 @@ Names
 Body
 
 /**
- * Answer the field atom that represents an iterators's element type.
+ * Answer the field atom that represents an iterator's element type.
  *
  * @method "element type"
  * @returns "atom"

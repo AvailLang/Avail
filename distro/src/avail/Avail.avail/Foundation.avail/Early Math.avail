@@ -55,12 +55,16 @@ Names
 	"min_",
 	"«_‡max»",
 	"«_‡min»",
-	"_>_",
-	"_≥_",
+	"_②>_①",
+	"_②≥_①",
 
 	/* Exported for use by Math. */
 	"type promotion function for_"
 Body
+
+Alias "_②>_①" to atom for "_<_";
+
+Alias "_②≥_①" to atom for "_≤_";
 
 /**
  * Answer the semantic restriction function that should be used for each of
@@ -808,48 +812,6 @@ Semantic restriction "max_" is extremum semantic restriction (double);
  * @restricts "<float…|2..>'s type"
  */
 Semantic restriction "«_‡max»" is extremum semantic restriction (double);
-
-/**
- * Is {@param "a"} greater than {@param "b"}?
- *
- * @method "_>_"
- * @param "a" "number"
- *        A number.
- * @param "b" "number"
- *        A number.
- * @returns "boolean"
- *          {@method "true"} if {@param "a"} is greater than {@param "b"},
- *          {@method "false"} otherwise.
- * @category "Mathematics" "Relations" "Numbers"
- */
-Public stable method "_>_" is
-[
-	a : number,
-	b : number
-|
-	b < a
-] : boolean;
-
-/**
- * Is {@param "a"} greater than or equal to {@param "b"}?
- *
- * @method "_≥_"
- * @param "a" "number"
- *        A number.
- * @param "b" "number"
- *        A number.
- * @returns "boolean"
- *          {@method "true"} if {@param "a"} is greater than or equal to {@param
- *          "b"}, {@method "false"} otherwise.
- * @category "Mathematics" "Relations" "Numbers"
- */
-Public stable method "_≥_" is
-[
-	a : number,
-	b : number
-|
-	b ≤ a
-] : boolean;
 
 /* Make addition and subtraction left-associative. */
 Invoke

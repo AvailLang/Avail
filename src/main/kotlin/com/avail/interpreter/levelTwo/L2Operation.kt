@@ -31,23 +31,34 @@
  */
 package com.avail.interpreter.levelTwo
 
+import com.avail.descriptor.atoms.A_Atom.Companion.atomName
+import com.avail.descriptor.bundles.A_Bundle.Companion.message
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.CompiledCodeTypeDescriptor.Companion.mostGeneralCompiledCodeType
 import com.avail.descriptor.variables.A_Variable
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag
 import com.avail.interpreter.execution.Interpreter
+import com.avail.interpreter.levelTwo.operand.L2ConstantOperand
+import com.avail.interpreter.levelTwo.operand.L2FloatImmediateOperand
 import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import com.avail.interpreter.levelTwo.operand.L2Operand
 import com.avail.interpreter.levelTwo.operand.L2PcOperand
+import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand
+import com.avail.interpreter.levelTwo.operand.L2SelectorOperand
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import com.avail.interpreter.levelTwo.operand.L2WriteOperand
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding
 import com.avail.interpreter.levelTwo.operation.L2ControlFlowOperation
 import com.avail.interpreter.levelTwo.operation.L2_MOVE_OUTER_VARIABLE
 import com.avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
+import com.avail.interpreter.levelTwo.operation.L2_TUPLE_AT_CONSTANT
 import com.avail.interpreter.levelTwo.operation.L2_VIRTUAL_CREATE_LABEL
 import com.avail.interpreter.levelTwo.register.L2Register
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind
@@ -60,6 +71,7 @@ import com.avail.optimizer.jvm.JVMTranslator
 import com.avail.optimizer.reoptimizer.L2Inliner
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport
+import com.avail.utility.Strings.escape
 import com.avail.utility.Strings.increaseIndentation
 import com.avail.utility.cast
 import org.objectweb.asm.MethodVisitor
@@ -392,8 +404,7 @@ protected constructor(
 	 *   Whether the [L2Instruction] using this operation is a placeholder,
 	 *   subject to later substitution.
 	 */
-	open val isPlaceholder: Boolean
-		get() = false
+	open fun isPlaceholder(instruction: L2Instruction) = false
 
 	/**
 	 * Answer whether this operation causes unconditional control flow jump to
@@ -401,8 +412,8 @@ protected constructor(
 	 *
 	 * @return `true` iff this is an unconditional jump.
 	 */
-	open val isUnconditionalJump: Boolean
-		get() = false
+	open val isUnconditionalJump: Boolean get() = false
+
 	/**
 	 * This is the operation for the given instruction, which was just added to
 	 * its basic block.  Do any post-processing appropriate for having added
@@ -528,7 +539,7 @@ protected constructor(
 	{
 		assert(instruction.operation() === this)
 		val writer = generator.boxedWriteTemp(
-			TypeRestriction.restrictionForType(
+			restrictionForType(
 				outerType, RestrictionFlagEncoding.BOXED))
 		generator.addInstruction(
 			L2_MOVE_OUTER_VARIABLE,
@@ -699,6 +710,61 @@ protected constructor(
 	}
 
 	/**
+	 * Output the instruction compactly to the builder.
+	 */
+	fun simpleAppendTo(instruction: L2Instruction, builder: StringBuilder)
+	{
+		assert(this === instruction.operation())
+		renderPreamble(instruction, builder)
+		builder.append(": ")
+		val operands = instruction.operands()
+		val targets = mutableListOf<String>()
+		val sources = mutableListOf<String>()
+		val commands = mutableListOf<String>()
+		for (operand in operands)
+		{
+			when (operand)
+			{
+				is L2ConstantOperand -> {
+					val value = operand.constant
+					when {
+						value.isFunction ->
+							sources.add(
+								value.code().methodName().asNativeString())
+						value.isInstanceOf(mostGeneralCompiledCodeType()) ->
+							sources.add(value.methodName().asNativeString())
+						else -> sources.add(
+							escape(operand.constant.toString().run {
+								if (length > 20) substring(0, 20) + "…"
+								else this
+							}).run { substring(1, length - 1) })
+					}
+				}
+				is L2FloatImmediateOperand ->
+					sources.add(operand.value.toString())
+				is L2IntImmediateOperand ->
+					sources.add(operand.value.toString())
+				is L2PrimitiveOperand ->
+					commands.add(operand.primitive.fieldName())
+				is L2ReadOperand<*> ->
+					sources.add(operand.register().toString())
+				is L2ReadVectorOperand<*, *> -> sources.add(
+					operand.elements().joinToString(", ", "[", "]") {
+						it.register().toString()
+					})
+				is L2SelectorOperand ->
+					commands.add(operand.bundle.message().atomName().toString())
+				is L2WriteOperand<*> ->
+					targets.add(operand.register().toString())
+			}
+		}
+		targets.joinTo(builder)
+		builder.append(" ⇦ ")
+		commands.joinTo(builder, "/")
+		sources.joinTo(builder, ", ", "(", ")")
+	}
+
+	/**
 	 * Translate the specified [L2Instruction] into corresponding JVM
 	 * instructions.
 	 *
@@ -732,7 +798,8 @@ protected constructor(
 	 *   replacement code for this instruction.
 	 */
 	open fun generateReplacement(
-		instruction: L2Instruction, generator: L2Generator)
+		instruction: L2Instruction,
+		generator: L2Generator)
 	{
 		throw RuntimeException(
 			"A ${instruction.operation()} cannot be transformed " +
@@ -804,7 +871,7 @@ protected constructor(
 		var readMask = 0
 		if (readsAnnotation !== null)
 		{
-			for (hiddenVariableSubclass in readsAnnotation.theValue)
+			for (hiddenVariableSubclass in readsAnnotation.value)
 			{
 				val shiftAnnotation =
 					hiddenVariableSubclass.java.getAnnotation(
@@ -827,5 +894,39 @@ protected constructor(
 			}
 		}
 		writesHiddenVariablesMask = writeMask
+	}
+
+	/**
+	 * Produce an [L2ReadBoxedOperand] that provides the specified index of the
+	 * tuple in the given register.  If the source of that index is not readily
+	 * available, generate code to produce it from the tuple, and answer the
+	 * resulting [L2ReadBoxedOperand].
+	 *
+	 * @param tupleReg
+	 *   The [L2ReadBoxedOperand] holding the tuple.
+	 * @param index
+	 *   The one-based index of the tuple element to extract.
+	 * @param generator
+	 *   The [L2Generator] on which to write code to extract the tuple element,
+	 *   if necessary.
+	 * @param
+	 *   An [L2ReadBoxedOperand] that will contain the specified tuple element.
+	 */
+	open fun extractTupleElement(
+		tupleReg: L2ReadBoxedOperand,
+		index: Int,
+		generator: L2Generator): L2ReadBoxedOperand
+	{
+		// The default case is to dynamically extract the value from the tuple.
+		val elementWriter = generator.boxedWriteTemp(
+			restrictionForType(
+				tupleReg.type().typeAtIndex(index),
+				RestrictionFlagEncoding.BOXED))
+		generator.addInstruction(
+			L2_TUPLE_AT_CONSTANT,
+			tupleReg,
+			L2IntImmediateOperand(index),
+			elementWriter)
+		return generator.readBoxed(elementWriter)
 	}
 }

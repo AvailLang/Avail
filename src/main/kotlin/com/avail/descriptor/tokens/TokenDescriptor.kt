@@ -61,6 +61,8 @@ package com.avail.descriptor.tokens
  import com.avail.descriptor.tokens.TokenDescriptor.TokenType.Companion.lookupTokenType
  import com.avail.descriptor.tuples.A_String
  import com.avail.descriptor.tuples.A_Tuple
+ import com.avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
+ import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
  import com.avail.descriptor.tuples.StringDescriptor
  import com.avail.descriptor.types.A_Type
  import com.avail.descriptor.types.TokenTypeDescriptor.Companion.tokenType

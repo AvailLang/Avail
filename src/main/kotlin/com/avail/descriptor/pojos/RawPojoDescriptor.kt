@@ -109,8 +109,8 @@ open class RawPojoDescriptor protected constructor(
 
 	override fun o_IsRawPojo(self: AvailObject): Boolean = true
 
-	override fun <T> o_JavaObject(self: AvailObject): T? =
-		javaObject.cast<Any?, T?>()
+	override fun <T : Any> o_JavaObject(self: AvailObject): T? =
+		javaObject.cast()
 
 	override fun o_Kind(self: AvailObject): A_Type = RAW_POJO.o
 

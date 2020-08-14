@@ -45,6 +45,8 @@ import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor.Companion.generateSetFrom
 import com.avail.descriptor.sets.SetDescriptor.Companion.singletonSet
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.InstanceTypeDescriptor.ObjectSlots.INSTANCE
@@ -490,10 +492,10 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 	override fun o_ExpressionType(self: AvailObject): A_Type =
 		getInstance(self).expressionType()
 
-	override fun o_RangeIncludesInt(self: AvailObject, anInt: Int): Boolean
+	override fun o_RangeIncludesLong(self: AvailObject, aLong: Long): Boolean
 	{
 		val instance = getInstance(self)
-		return instance.isInt && instance.extractInt() == anInt
+		return instance.isLong && instance.extractLong() == aLong
 	}
 
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
@@ -614,7 +616,7 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 		 */
 		val instanceTypeMethod = staticMethod(
 			InstanceTypeDescriptor::class.java,
-			"instanceType",
+			::instanceType.name,
 			AvailObject::class.java,
 			A_BasicObject::class.java)
 	}

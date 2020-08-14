@@ -31,7 +31,8 @@
  */
 package com.avail.interpreter.levelTwo.operation
 
-import com.avail.descriptor.functions.ContinuationRegisterDumpDescriptor
+import com.avail.descriptor.functions.A_RegisterDump.Companion.extractDumpedLongAtMethod
+import com.avail.descriptor.functions.A_RegisterDump.Companion.extractDumpedObjectAtMethod
 import com.avail.descriptor.representation.AvailObject
 import com.avail.interpreter.JavaLibrary.bitCastLongToDoubleMethod
 import com.avail.interpreter.execution.Interpreter
@@ -58,7 +59,7 @@ import org.objectweb.asm.Opcodes
  * re-entered, such as returning into it, restarting it, or continuing it after
  * an interrupt has been handled.
  */
-@ReadsHiddenVariable([CURRENT_CONTINUATION::class])
+@ReadsHiddenVariable(CURRENT_CONTINUATION::class)
 @WritesHiddenVariable(CURRENT_CONTINUATION::class)
 object L2_ENTER_L2_CHUNK : L2Operation(
 	L2OperandType.INT_IMMEDIATE.named("entry point offset in default chunk"),
@@ -92,7 +93,8 @@ object L2_ENTER_L2_CHUNK : L2Operation(
 
 		// Skip the validity check for transient entry points, which can't
 		// become invalid during their lifetimes.
-		if (offsetInDefaultChunk.value != ChunkEntryPoint.TRANSIENT.offsetInDefaultChunk)
+		if (offsetInDefaultChunk.value !=
+			ChunkEntryPoint.TRANSIENT.offsetInDefaultChunk)
 		{
 			// :: if (!checkValidity()) {
 			translator.loadInterpreter(method)
@@ -137,46 +139,36 @@ object L2_ENTER_L2_CHUNK : L2Operation(
 						// Stack has two registerDumps if needed.
 					}
 					translator.intConstant(method, i + 1) //one-based
-					ContinuationRegisterDumpDescriptor.extractObjectAtMethod
-						.generateCall(method)
+					extractDumpedObjectAtMethod.generateCall(method)
 					method.visitVarInsn(
-						RegisterKind.BOXED.storeInstruction,
-						boxedList[i])
+						RegisterKind.BOXED.storeInstruction, boxedList[i])
 				}
-				var i = 0
-				while (i < intsCount)
+				var i = 1  //one-based
+				for (intRegisterIndex in intsList)
 				{
 					if (--countdown > 0)
 					{
 						method.visitInsn(Opcodes.DUP)
 						// Stack has two registerDumps if needed.
 					}
-					translator.intConstant(method, i + 1) //one-based
-					ContinuationRegisterDumpDescriptor.extractLongAtMethod
-						.generateCall(method)
+					translator.intConstant(method, i++) //one-based
+					extractDumpedLongAtMethod.generateCall(method)
 					method.visitInsn(Opcodes.L2I)
 					method.visitVarInsn(
-						RegisterKind.INTEGER.storeInstruction,
-						intsList[i])
-					i++
+						RegisterKind.INTEGER.storeInstruction, intRegisterIndex)
 				}
-				var j = 0
-				while (j < floatsCount)
+				for (floatRegisterIndex in floatsList)
 				{
 					if (--countdown > 0)
 					{
 						method.visitInsn(Opcodes.DUP)
 						// Stack has two registerDumps if needed.
 					}
-					translator.intConstant(method, i + 1) //one-based
-					ContinuationRegisterDumpDescriptor.extractLongAtMethod.generateCall(method)
-					bitCastLongToDoubleMethod.generateCall(
-						method)
+					translator.intConstant(method, i++) //one-based
+					extractDumpedLongAtMethod.generateCall(method)
+					bitCastLongToDoubleMethod.generateCall(method)
 					method.visitVarInsn(
-						RegisterKind.FLOAT.storeInstruction,
-						floatsList[j])
-					j++
-					i++
+						RegisterKind.FLOAT.storeInstruction, floatRegisterIndex)
 				}
 				assert(countdown == 0)
 				// The last copy of registerDumps was popped.

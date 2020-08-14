@@ -94,6 +94,7 @@ Extends
 		"Breakpoint",
 		"Cast|cast_into_else_",
 		"Close module_",
+		"Copy macros from_to_",
 		"Exit_if_",
 		"Exit_with_if_",
 		"Euler's number",
@@ -924,7 +925,7 @@ Extends
 	),
 	"Late Definers" =
 	(
-		"Method_is stable at_",
+		"Method_is stable at_«compute with_»?",
 		"Method_is_",
 		"Private abstract method_is_",
 		"Private forward method_is_",
@@ -985,8 +986,8 @@ Extends
 		"_is odd",
 		"_is prime",
 		"_(decimal)",
-		"_>_",
-		"_≥_",
+		"_②>_①",
+		"_②≥_①",
 		"_↑+=_", "_+=_",
 		"_↑-=_", "_-=_",
 		"_↑×=_", "_×=_",
@@ -1358,3 +1359,18 @@ Brand all visible atoms as hailing from Foundation;
 	/* Seal the asymmetric difference at every existing definition. */
 	Seal methods forbiddenOverrides \ specialOverrides at existing definitions;
 ]();
+
+/**
+ * Add stability to the renamed methods that were declared stable, since macros
+ * aren't made available under the new name.
+ */
+
+
+Method $"constructor_(«_‡,»)" is stable at
+	[any's type, any's type*]→any;
+
+Method $"method_.…(«_‡,»)" is stable at
+	[any's type, token, any's type*]→function;
+
+Method $"static method_.…(«_‡,»)" is stable at
+	[any's type, token, any's type*]→function;

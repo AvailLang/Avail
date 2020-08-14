@@ -288,7 +288,7 @@ internal class BuildLoader constructor(
 		sourceDigest: ByteArray,
 		completionAction: ()->Unit)
 	{
-		localTracker(moduleName, moduleName.moduleSize, 0L)
+		localTracker(moduleName, moduleName.moduleSize, 0L, 0)
 		val module = newModule(stringFrom(moduleName.qualifiedName))
 		val availLoader = AvailLoader(module, availBuilder.textInterface)
 		availLoader.prepareForLoadingModuleBody()
@@ -469,12 +469,12 @@ internal class BuildLoader constructor(
 			moduleName,
 			availBuilder.textInterface,
 			availBuilder.pollForAbort,
-			{ moduleName2, moduleSize, position ->
+			{ moduleName2, moduleSize, position, line ->
 				assert(moduleName == moduleName2)
 				// Don't reach the full module size yet.  A separate update at
 				// 100% will be sent after post-loading actions are complete.
 				localTracker(
-					moduleName, moduleSize, min(position, moduleSize - 1))
+					moduleName, moduleSize, min(position, moduleSize - 1), line)
 				globalTracker(
 					bytesCompiled.addAndGet(position - lastPosition),
 					globalCodeSize)
@@ -549,7 +549,7 @@ internal class BuildLoader constructor(
 		globalTracker(
 			bytesCompiled.addAndGet(moduleSize - lastPosition),
 			globalCodeSize)
-		localTracker(moduleName, moduleSize, moduleSize)
+		localTracker(moduleName, moduleSize, moduleSize, Int.MAX_VALUE)
 	}
 
 	/**

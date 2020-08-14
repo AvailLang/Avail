@@ -121,7 +121,11 @@ object P_BitShiftLeft : Primitive(2, CanFold, CanInline)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(integers, integers), integers)
+		functionType(
+			tuple(
+				integers,
+				integers),
+			integers)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_TOO_LARGE_TO_REPRESENT))

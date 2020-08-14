@@ -79,6 +79,8 @@ import com.avail.descriptor.tokens.TokenDescriptor.TokenType.KEYWORD
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType.LITERAL
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType.WHITESPACE
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.tuples.TupleDescriptor
@@ -431,11 +433,11 @@ enum class ParsingOperation constructor(
 		)
 		{
 			assert(successorTrees.tupleSize() == 1)
-			val partialSubexpressionList =
-				if (firstArgOrNull === null)
-					superexpressions!!.advancedTo(successorTrees.tupleAt(1))
-				else
-					superexpressions
+			val partialSubexpressionList = when (firstArgOrNull)
+			{
+				null -> superexpressions!!.advancedTo(successorTrees.tupleAt(1))
+				else -> superexpressions
+			}
 			compiler.parseSendArgumentWithExplanationThen(
 				start,
 				"top-valued argument",
@@ -1165,7 +1167,7 @@ enum class ParsingOperation constructor(
 
 	/**
 	 * `16*N+3` - Parse the `N`<sup>th</sup>
-	 * [message&#32;part][MessageSplitter.messagePartsTuple] of the current
+	 * [message&#32;part][MessageSplitter.messageParts] of the current
 	 * message. This will be a specific [token][TokenDescriptor]. It should be
 	 * matched case sensitively against the source token.
 	 */
@@ -1195,7 +1197,7 @@ enum class ParsingOperation constructor(
 
 	/**
 	 * `16*N+4` - Parse the `N`<sup>th</sup>
-	 * [message&#32;part][MessageSplitter.messagePartsTuple] of the current
+	 * [message&#32;part][MessageSplitter.messageParts] of the current
 	 * message. This will be a specific [token][TokenDescriptor]. It should be
 	 * matched case insensitively against the source token.
 	 */
@@ -1805,7 +1807,7 @@ enum class ParsingOperation constructor(
 
 	/**
 	 * Assume that the instruction encodes an operand that represents a
-	 * [message&#32;part][MessageSplitter.messagePartsTuple] index: answer the
+	 * [message&#32;part][MessageSplitter.messageParts] index: answer the
 	 * operand. Answer 0 if the operand does not represent a message part.
 	 *
 	 * @param instruction

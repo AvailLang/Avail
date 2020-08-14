@@ -35,9 +35,8 @@ package com.avail.dispatch
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypesList
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
-import kotlin.streams.toList
 
 /**
  * `LookupTreeAdaptor` is instantiated to construct and interpret a family
@@ -219,10 +218,8 @@ abstract class LookupTreeAdaptor<
 	{
 		return if (testsArgumentPositions())
 		{
-			tupleTypeForTypes(
-				argumentRestrictions.stream()
-					.map { r -> r.type }
-					.toList())
+			tupleTypeForTypesList(
+				argumentRestrictions.map(TypeRestriction::type))
 		}
 		else argumentRestrictions[0].type
 	}

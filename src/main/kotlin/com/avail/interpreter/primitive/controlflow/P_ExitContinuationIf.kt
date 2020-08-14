@@ -37,7 +37,7 @@ import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.functions.ContinuationDescriptor
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
-import com.avail.descriptor.tuples.ObjectTupleDescriptor
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import com.avail.descriptor.types.ContinuationTypeDescriptor.Companion.continuationTypeForFunctionType
@@ -79,18 +79,31 @@ object P_ExitContinuationIf : Primitive(
 			return interpreter.primitiveSuccess(nil)
 		}
 
-		interpreter.setReifiedContinuation(continuation.caller())
-		interpreter.function = null
-		interpreter.chunk = null
-		interpreter.offset = Integer.MAX_VALUE
-		interpreter.returnNow = true
-		interpreter.setLatestResult(nil)
+		val caller = continuation.caller()
+		val result = nil
+		if (caller.equalsNil())
+		{
+			interpreter.setReifiedContinuation(caller)
+			interpreter.function = null
+			interpreter.chunk = null
+			interpreter.offset = Int.MAX_VALUE
+			interpreter.returnNow = true
+		}
+		else
+		{
+			interpreter.setReifiedContinuation(caller)
+			interpreter.function = caller.function()
+			interpreter.chunk = caller.levelTwoChunk()
+			interpreter.offset = caller.levelTwoOffset()
+			interpreter.returnNow = false
+		}
+		interpreter.setLatestResult(result)
 		return CONTINUATION_CHANGED
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			ObjectTupleDescriptor.tuple(
+			tuple(
 				continuationTypeForFunctionType(
 					functionTypeReturning(TOP.o)),
 				booleanType),

@@ -74,7 +74,6 @@ internal class SpecialObjectNamesGenerator constructor(locale: Locale)
 		properties: Properties,
 		writer: PrintWriter
 	) = with(writer) {
-		val specialObjects = specialObjects()
 		val keys = mutableSetOf<String>()
 		specialObjects.indices.forEach { i ->
 			if (!specialObjects[i].equalsNil())

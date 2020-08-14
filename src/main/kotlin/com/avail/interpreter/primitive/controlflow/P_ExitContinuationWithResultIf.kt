@@ -70,7 +70,7 @@ object P_ExitContinuationWithResultIf : Primitive(
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(3)
-		val (con, result, condition) = interpreter.argsBuffer
+		val (continuation, result, condition) = interpreter.argsBuffer
 
 		if (!condition.extractBoolean())
 		{
@@ -81,17 +81,29 @@ object P_ExitContinuationWithResultIf : Primitive(
 		// label continuation's function's return type.  Any stronger check, as
 		// specified in a semantic restriction, will be tested in the caller.
 		if (!result.isInstanceOf(
-				con.function().code().functionType().returnType()))
+				continuation.function().code().functionType().returnType()))
 		{
 			return interpreter.primitiveFailure(
 				E_CONTINUATION_EXPECTED_STRONGER_TYPE)
 		}
 
-		interpreter.setReifiedContinuation(con.caller())
-		interpreter.function = null
-		interpreter.chunk = null
-		interpreter.offset = Integer.MAX_VALUE
-		interpreter.returnNow = true
+		val caller = continuation.caller()
+		if (caller.equalsNil())
+		{
+			interpreter.setReifiedContinuation(caller)
+			interpreter.function = null
+			interpreter.chunk = null
+			interpreter.offset = Int.MAX_VALUE
+			interpreter.returnNow = true
+		}
+		else
+		{
+			interpreter.setReifiedContinuation(caller)
+			interpreter.function = caller.function()
+			interpreter.chunk = caller.levelTwoChunk()
+			interpreter.offset = caller.levelTwoOffset()
+			interpreter.returnNow = false
+		}
 		interpreter.setLatestResult(result)
 		return CONTINUATION_CHANGED
 	}

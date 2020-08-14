@@ -349,6 +349,25 @@ abstract class L2Operand : PublicCloneable<L2Operand>()
 		instruction = theInstruction
 	}
 
+	/**
+	 * Destructively replace any constant-valued reads of registers with reads
+	 * of a fresh constant-valued register that has no writes.
+	 *
+	 * This pattern is recognized in later optimization passes.  It reduces the
+	 * register pressure for coloring, and eliminates pointless moves.
+	 *
+	 * Subclasses implement this as needed.
+	 */
+	open fun replaceConstantRegisters() { }
+
+	/**
+	 * Now that chunk optimization has completed, remove information from this
+	 * instruction that will no longer be needed in the finished chunk.  Note
+	 * that during subsequent inlining of this chunk at a call site, the type
+	 * and synonym information will be reconstructed without too much cost.
+	 */
+	open fun postOptimizationCleanup() { }
+
 	companion object
 	{
 		/**

@@ -128,8 +128,7 @@ object L2_ADD_INT_TO_INT : L2ControlFlowOperation(
 		// :: if (longSum != intSum) goto outOfRange;
 		method.visitInsn(Opcodes.I2L)
 		method.visitInsn(Opcodes.LCMP)
-		method.visitJumpInsn(
-			Opcodes.IFNE, translator.labelFor(outOfRange.offset()))
+		translator.jumpIf(method, Opcodes.IFNE, outOfRange)
 		// :: else {
 		// ::    sum = intSum;
 		// ::    goto inRange;

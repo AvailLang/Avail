@@ -249,7 +249,7 @@ Semantic restriction "Cast|cast_into_" is
 			“value”,
 			" is a subtype of ",
 			“accept[1]”>;
-		cast messageTuple into
+		Cast messageTuple into
 		[
 			message : string
 		|
@@ -263,7 +263,7 @@ Semantic restriction "Cast|cast_into_" is
 			“value”,
 			" is not a supertype of ",
 			“accept[1]”>;
-		cast messageTuple into
+		Cast messageTuple into
 		[
 			message : string
 		|
@@ -531,7 +531,8 @@ Public method "From_to_do_" is
 |
 	$loop : ⊤;
 	Exit loop if end < start;
-	Exit loop if invoke action with <start> = false;
+	shouldExit ::= invoke action with <start> = false;
+	Exit loop if shouldExit;
 	Restart loop with <start + 1, end, action>
 ] : ⊤;
 
@@ -581,6 +582,44 @@ Semantic restriction "From_to_do_" is
 		];
 	];
 	⊤
+];
+
+
+/* An error message for "Restart_with_". */
+sizesIncompatibleMessage ::=
+	"size of argument tuple to be compatible with size of\
+	\| continuation's parameter tuple";
+
+/**
+ * Reject the current parse if the argument tuple cannot possibly match the
+ * continuation's parameter tuple.
+ *
+ * @method "Restart_with_"
+ * @restricts "continuation meta"
+ * @restricts "tuple meta"
+ */
+Semantic restriction "Restart_with_" is
+[
+	continuationType : continuation meta,
+	argumentsType : tuple meta
+|
+	functionType ::= continuationType's function type;
+	parametersType ::= functionType's parameters' type;
+	parametersSizes ::= ||parametersType||;
+	/* If `parameterSizes` = ⊥, then `parametersType` = ⊥. In this case, we
+	 * cannot statically ascertain anything interesting about the function and
+	 * the arguments to apply.
+	 */
+	If (parametersSizes = ⊥) = false then
+	[
+		argumentsSizes ::= ||argumentsType||;
+		validSizes ::= parametersSizes ∩ argumentsSizes;
+		If validSizes = ⊥ then
+		[
+			Immediately reject parse, expected: sizesIncompatibleMessage
+		];
+	];
+	⊥
 ];
 
 /* Don't permit (_)  as the second argument of  Assert:_(_). */

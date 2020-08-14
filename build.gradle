@@ -95,8 +95,15 @@ dependencies {
 		name: 'jsr305',
 		version: "$jsr_version"
 
+	// Type renderer annotations, for debugger view.  Doesn't actually work.
+	compileOnly group: 'org.jetbrains',
+		name: 'annotations',
+		version: "$kotlin_annotations"
+
 	// ObjectWeb JVM code generation/analysis framework.
-	api group: 'org.ow2.asm', name: 'asm', version: "$asm_version"
+	api group: 'org.ow2.asm',
+		name: 'asm',
+		version: "$asm_version"
 	api group: 'org.ow2.asm',
 		name: 'asm-analysis',
 		version: "$asm_version"
@@ -238,6 +245,19 @@ task generatePrimitivesList {
 classes.dependsOn generateBuildTime
 classes.dependsOn generatePrimitivesList
 
+jar.doFirst {
+	delete fileTree("$projectDir/build/libs") {
+		include "**/*.jar"
+		exclude "**/*-all.jar"
+	}
+}
+
+shadowJar.doFirst {
+	delete fileTree("$projectDir/build/libs") {
+		include "**/*-all.jar"
+	}
+}
+
 // Copy the JAR into the distribution directory.
 task releaseAvail(type: Copy) {
 	group = 'release'
@@ -252,7 +272,12 @@ assemble.dependsOn releaseAvail
 
 // Remove released libraries.
 task scrubReleases(type: Delete) {
+	// distro/lib
 	delete fileTree("$projectDir/distro/lib") {
+		include '**/*.jar'
+	}
+	// And the publication staging directory, build/libs
+	delete fileTree("$projectDir/build/libs") {
 		include '**/*.jar'
 	}
 }
@@ -309,7 +334,7 @@ extended with custom module roots as you develop your own modules.
 }
 
 allprojects {
-	task sourcesJar(type: Jar) {
+	task sourceJar(type: Jar) {
 		description = 'Creates sources JAR.'
 		archiveClassifier.set("sources")
 		from sourceSets.main.allSource
@@ -349,10 +374,21 @@ publishing {
 	publications {
 		avail(MavenPublication) {
 			from components.java
-			artifact sourcesJar
+			artifact sourceJar
 		}
 	}
 }
+
+// Remove libraries from the staging directory after successful publication.
+// Otherwise they'll gradually build up in there.
+task cleanUpStagingDirectory(type: Delete) {
+	delete fileTree("$projectDir/build/libs") {
+		include '**/*.jar'
+	}
+	dependsOn publishAvailPublicationToGitHubRepository
+}
+
+publish.dependsOn cleanUpStagingDirectory
 
 publish.doFirst {
 	if (github_username == null || github_password == null)

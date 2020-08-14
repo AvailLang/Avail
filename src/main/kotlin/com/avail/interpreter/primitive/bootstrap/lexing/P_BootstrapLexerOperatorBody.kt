@@ -37,6 +37,8 @@ import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tokens.TokenDescriptor.Companion.newToken
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType.OPERATOR
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.interpreter.Primitive
@@ -74,7 +76,8 @@ object P_BootstrapLexerOperatorBody
 		val c = source.tupleCodePointAt(startPosition)
 		if (c == '/'.toInt())
 		{
-			if (startPosition < sourceSize && source.tupleCodePointAt(startPosition + 1) == '*'.toInt())
+			if (startPosition < sourceSize
+				&& source.tupleCodePointAt(startPosition + 1) == '*'.toInt())
 			{
 				// No solution in this case, but don't complain.
 				return interpreter.primitiveSuccess(emptySet)

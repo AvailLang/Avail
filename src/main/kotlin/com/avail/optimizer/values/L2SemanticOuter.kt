@@ -30,7 +30,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 package com.avail.optimizer.values
-
 /**
  * A semantic value which represents a numbered outer variable in the function
  * of some [Frame].
@@ -45,10 +44,17 @@ package com.avail.optimizer.values
  *   The frame for which this represents an outer.
  * @param outerIndex
  *   The one-based index of the outer in the frame's function.
+ * @param optionalName
+ *   Either a [String] providing a naming hint, or `null`.
  */
-internal class L2SemanticOuter constructor(frame: Frame, val outerIndex: Int)
-	: L2FrameSpecificSemanticValue(frame, outerIndex xor -0x22fc3786)
+internal class L2SemanticOuter
+constructor(
+	frame: Frame,
+	val outerIndex: Int,
+	val optionalName: String?
+) : L2FrameSpecificSemanticValue(frame, outerIndex xor -0x22fc3786)
 {
+	// Ignore the optionalName.
 	override fun equalsSemanticValue(other: L2SemanticValue): Boolean =
 		(other is L2SemanticOuter
 			&& super.equalsSemanticValue(other)
@@ -58,10 +64,16 @@ internal class L2SemanticOuter constructor(frame: Frame, val outerIndex: Int)
 		semanticValueTransformer: (L2SemanticValue) -> L2SemanticValue,
 		frameTransformer: (Frame) -> Frame): L2SemanticValue =
 			frameTransformer.invoke(frame) .let {
-				if (it == frame) this else L2SemanticOuter(it, outerIndex)
+				if (it == frame) this
+				else L2SemanticOuter(it, outerIndex, optionalName)
 			}
 
-	override fun toString(): String =
-		"Outer#$outerIndex${if (frame.depth() == 1) "" else " [$frame]"}"
-
+	override fun toString(): String = buildString {
+		when (optionalName)
+		{
+			null -> append("Outer#$outerIndex")
+			else -> append("Outer:$optionalName")
+		}
+		if (frame.depth() > 1) append(" [$frame]")
+	}
 }

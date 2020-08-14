@@ -145,7 +145,7 @@ abstract class AbstractTransportChannel<T> constructor(
 		adapter.sendUserData(
 			this,
 			message,
-			{
+			success = {
 				recurse { sendMore ->
 					val nextMessage: Message?
 					val pair: Pair<Message, ()->Unit>?
@@ -190,7 +190,7 @@ abstract class AbstractTransportChannel<T> constructor(
 					pair?.second?.invoke()
 				}
 			},
-			{  })
+			failure = {  })
 	}
 
 	override fun enqueueMessageThen(
@@ -225,8 +225,7 @@ abstract class AbstractTransportChannel<T> constructor(
 				else ->
 				{
 					assert(size == maxQueueDepth)
-					senders.addLast(Pair(
-						message, enqueueSucceeded))
+					senders.addLast(message to enqueueSucceeded)
 					beginTransmitting = false
 					invokeContinuationNow = false
 				}

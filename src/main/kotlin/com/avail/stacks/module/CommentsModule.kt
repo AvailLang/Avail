@@ -42,6 +42,7 @@ import com.avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
 import com.avail.descriptor.tokens.CommentTokenDescriptor
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.asSet
 import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.stacks.CommentGroup
 import com.avail.stacks.LinkingFileMap
@@ -473,7 +474,7 @@ class CommentsModule constructor(
 					{
 						for ((_, commentGroup) in value)
 						{
-							visibleValues.add(Pair(name, commentGroup))
+							visibleValues.add(name to commentGroup)
 						}
 					}
 
@@ -481,7 +482,7 @@ class CommentsModule constructor(
 					{
 						for ((_, commentGroup) in groupMap)
 						{
-							visibleValues.add(Pair(name, commentGroup))
+							visibleValues.add(name to commentGroup)
 						}
 					}
 
@@ -590,7 +591,7 @@ class CommentsModule constructor(
 					{
 						for ((_, commentGroup) in cGroupMap)
 						{
-							visibleValues.add(Pair(name, commentGroup))
+							visibleValues.add(name to commentGroup)
 						}
 					}
 
@@ -598,7 +599,7 @@ class CommentsModule constructor(
 					{
 						for ((_, commentGroup) in cGroupMap)
 						{
-							visibleValues.add(Pair(name, commentGroup))
+							visibleValues.add(name to commentGroup)
 						}
 					}
 
@@ -1146,7 +1147,7 @@ class CommentsModule constructor(
 				for (link in
 				linkingFileMap.aliasesToFileLink[key.asNativeString()]!!)
 				{
-					ambiguousLinks.add(Pair(link, link))
+					ambiguousLinks.add(link to link)
 				}
 			}
 

@@ -33,6 +33,7 @@ package com.avail.interpreter.levelTwo.operation
 
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import com.avail.descriptor.types.A_Type
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2NamedOperandType
@@ -85,6 +86,7 @@ import org.objectweb.asm.MethodVisitor
  */
 class L2_MOVE_CONSTANT<C : L2Operand, R : L2Register, WR : L2WriteOperand<R>>
 private constructor(
+	val variantName: String,
 	private val pushConstant: (JVMTranslator, MethodVisitor, C) -> Unit,
 	vararg theNamedOperandTypes: L2NamedOperandType)
 : L2Operation(*theNamedOperandTypes)
@@ -142,17 +144,21 @@ private constructor(
 		builder.append(constant)
 	}
 
-	override fun toString(): String
+	override fun toString(): String = "${super.toString()}($variantName)"
+
+	override fun extractTupleElement(
+		tupleReg: L2ReadBoxedOperand,
+		index: Int,
+		generator: L2Generator
+	): L2ReadBoxedOperand
 	{
-		val kind =
-			when (this)
-			{
-				boxed -> "boxed"
-				unboxedInt -> "int"
-				unboxedFloat -> "float"
-				else -> "unknown"
-			}
-		return super.toString() + "(" + kind + ")"
+		val instruction = tupleReg.definition().instruction()
+		val source: L2ConstantOperand = instruction.operand(0)
+		// val destination: WR = instruction.operand(1)
+
+		// Extract the element from the constant right now.
+		val tupleElement = source.constant.tupleAt(index)
+		return generator.boxedConstant(tupleElement)
 	}
 
 	override fun translateToJVM(
@@ -178,6 +184,7 @@ private constructor(
 				L2ConstantOperand,
 				L2BoxedRegister,
 				L2WriteBoxedOperand>(
+			"boxed",
 			{
 				translator: JVMTranslator,
 				method: MethodVisitor,
@@ -195,6 +202,7 @@ private constructor(
 				L2IntImmediateOperand,
 				L2IntRegister,
 				L2WriteIntOperand>(
+			"int",
 			{
 				translator: JVMTranslator,
 				method: MethodVisitor,
@@ -212,6 +220,7 @@ private constructor(
 				L2FloatImmediateOperand,
 				L2FloatRegister,
 				L2WriteFloatOperand>(
+			"float",
 			{
 				translator: JVMTranslator,
 				method: MethodVisitor,
@@ -234,8 +243,7 @@ private constructor(
 		fun constantOf(instruction: L2Instruction): AvailObject
 		{
 			assert(instruction.operation() === boxed)
-			val constant =
-				instruction.operand<L2ConstantOperand>(0)
+			val constant = instruction.operand<L2ConstantOperand>(0)
 			return constant.constant
 		}
 	}

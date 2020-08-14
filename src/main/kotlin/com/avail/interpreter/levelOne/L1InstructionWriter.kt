@@ -113,6 +113,12 @@ class L1InstructionWriter constructor(
 	/** The return type of the [FunctionDescriptor] under construction. */
 	var returnType: A_Type? = null
 
+	/**
+	 * The return type that will be produced if the function is not a primitive,
+	 * or if the primitive fails.
+	 */
+	var returnTypeIfPrimitiveFails: A_Type? = null
+
 	/** The types of the local variables. */
 	private val localTypes = mutableListOf<A_Type>()
 
@@ -379,6 +385,7 @@ class L1InstructionWriter constructor(
 			stackTracker.maxDepth,
 			functionType(tupleFromList(argumentTypes), returnType!!),
 			primitive,
+			returnTypeIfPrimitiveFails!!,
 			tupleFromList(literals),
 			tupleFromList(localTypes),
 			tupleFromList(constantTypes),

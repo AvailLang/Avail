@@ -59,7 +59,7 @@ import com.avail.serialization.SerializerOperation
  *  * [abstract&#32;declarations][AbstractDefinitionDescriptor],
  *  * [forward&#32;declarations][ForwardDefinitionDescriptor],
  *  * [method&#32;definitions][MethodDefinitionDescriptor], or
- *  * [macro&#32;definitions][MacroDefinitionDescriptor].
+ *  * [macro&#32;definitions][MacroDescriptor].
  *
  * @constructor
  * @param mutability
@@ -129,8 +129,6 @@ protected constructor(
 	override fun o_IsForwardDefinition(self: AvailObject) = false
 
 	override fun o_IsMethodDefinition(self: AvailObject) = false
-
-	override fun o_IsMacroDefinition(self: AvailObject) = false
 
 	abstract override fun o_Kind(self: AvailObject): A_Type
 

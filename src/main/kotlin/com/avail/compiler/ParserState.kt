@@ -40,6 +40,7 @@ import com.avail.descriptor.maps.A_Map
 import com.avail.descriptor.maps.MapDescriptor
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.interpreter.execution.Interpreter
 import com.avail.utility.evaluation.Describer
 import com.avail.utility.evaluation.SimpleDescriber
@@ -245,9 +246,9 @@ class ParserState internal constructor(
 	 *   What to pass as an argument to the provided function.
 	 */
 	internal fun <ArgType> workUnitDo(
-			continuation: (ArgType) -> Unit,
-			argument: ArgType) =
-		lexingState.workUnitDo(continuation, argument)
+		argument: ArgType,
+		continuation: (ArgType) -> Unit
+	) = lexingState.workUnitDo(continuation, argument)
 
 	/**
 	 * Queue an action to be performed later, with no arguments.

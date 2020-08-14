@@ -42,6 +42,15 @@ import com.avail.descriptor.representation.BitField
 import com.avail.descriptor.representation.IntegerSlotsEnum
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
+import com.avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithIntegerIntervalTupleStartingAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.concatenateWith
+import com.avail.descriptor.tuples.A_Tuple.Companion.copyAsMutableObjectTuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.copyTupleFromToCanDestroy
+import com.avail.descriptor.tuples.A_Tuple.Companion.treeTupleLevel
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAtPuttingCanDestroy
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.IntegerIntervalTupleDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import com.avail.descriptor.tuples.IntegerIntervalTupleDescriptor.IntegerSlots.Companion.SIZE
 import com.avail.descriptor.tuples.IntegerIntervalTupleDescriptor.ObjectSlots.DELTA
@@ -90,11 +99,12 @@ class IntegerIntervalTupleDescriptor private constructor(mutability: Mutability)
 			/**
 			 * The number of elements in the tuple.
 			 *
-			 * The API's [tuple size accessor][AvailObject.tupleSize] currently
+			 * The API's [tuple size accessor][A_Tuple.tupleSize] currently
 			 * returns a Java integer, because there wasn't much of a problem
 			 * limiting manually-constructed tuples to two billion elements.
 			 * This restriction will eventually be removed.
 			 */
+			@JvmField
 			val SIZE = BitField(HASH_AND_MORE, 32, 32)
 
 			/**
@@ -103,6 +113,7 @@ class IntegerIntervalTupleDescriptor private constructor(mutability: Mutability)
 			 * very rare case that the hash value actually equals zero, the hash
 			 * value has to be computed every time it is requested.
 			 */
+			@JvmField
 			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
 
 			init
@@ -433,9 +444,8 @@ class IntegerIntervalTupleDescriptor private constructor(mutability: Mutability)
 			}
 			return self
 		}
-		val result =
-			self.copyAsMutableObjectTuple().tupleAtPuttingCanDestroy(
-				index, newValueObject, true)
+		val result = self.copyAsMutableObjectTuple().tupleAtPuttingCanDestroy(
+			index, newValueObject, true)
 		if (!canDestroy)
 		{
 			self.makeImmutable()
@@ -469,9 +479,11 @@ class IntegerIntervalTupleDescriptor private constructor(mutability: Mutability)
 				self, startIndex, endIndex, type))
 	}
 
-	// Answer the value at the given index in the tuple object.
 	override fun o_TupleIntAt(self: AvailObject, index: Int): Int =
 		self.tupleAt(index).extractInt()
+
+	override fun o_TupleLongAt(self: AvailObject, index: Int): Long =
+		self.tupleAt(index).extractLong()
 
 	override fun o_TupleReverse(self: AvailObject): A_Tuple
 	{

@@ -112,13 +112,14 @@ class L2ReadBoxedOperand : L2ReadOperand<L2BoxedRegister>
 		L2ReadBoxedOperand(
 			semanticValue(), restriction(), newRegister as L2BoxedRegister)
 
+	override fun createNewRegister() = L2BoxedRegister(-1)
+
 	override fun dispatchOperand(dispatcher: L2OperandDispatcher)
 	{
 		dispatcher.doOperand(this)
 	}
 
 	override fun registerKind(): RegisterKind = RegisterKind.BOXED
-
 
 	/**
 	 * See if we can determine the exact type of this register, which holds a

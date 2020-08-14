@@ -9,7 +9,7 @@
  *  * Redistributions of source code must retain the above copyright notice, this
  *     list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this 
+ *  * Redistributions in binary form must reproduce the above copyright notice, this
  *     list of conditions and the following disclaimer in the documentation
  *     and/or other materials provided with the distribution.
  *
@@ -58,7 +58,8 @@ import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.tupleFromIntegerList
-import com.avail.descriptor.types.TypeDescriptor
+import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
+import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.interpreter.levelOne.L1InstructionWriter
 import com.avail.interpreter.primitive.floats.P_FloatFloor
 import com.avail.persistence.Repository.Companion.createTemporary
@@ -66,7 +67,9 @@ import com.avail.serialization.Deserializer
 import com.avail.serialization.MalformedSerialStreamException
 import com.avail.serialization.Serializer
 import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -218,7 +221,7 @@ class SerializerTest
 		serializer().serialize(`object`)
 		prepareToReadBack()
 		val newObject = deserializer().deserialize()!!
-		Assertions.assertEquals(
+		assertEquals(
 			0,
 			inStream().available(),
 			"Serialization stream was not fully emptied")
@@ -243,7 +246,7 @@ class SerializerTest
 	private fun checkObject(`object`: A_BasicObject)
 	{
 		val newObject: A_BasicObject = roundTrip(`object`)
-		Assertions.assertEquals(`object`, newObject)
+		assertEquals(`object`, newObject)
 	}
 
 	/**
@@ -423,17 +426,12 @@ class SerializerTest
 	@Throws(MalformedSerialStreamException::class)
 	fun testAtoms()
 	{
-		val inputModule = newModule(
-			stringFrom("Imported"))
-		val currentModule = newModule(
-			stringFrom("Current"))
-		val atom1: A_Atom = createAtom(
-			stringFrom("importAtom1"),
-			inputModule)
+		val inputModule = newModule(stringFrom("Imported"))
+		val currentModule = newModule(stringFrom("Current"))
+		val atom1: A_Atom = createAtom(stringFrom("importAtom1"), inputModule)
 		inputModule.addPrivateName(atom1)
 		val atom2: A_Atom = createAtom(
-			stringFrom("currentAtom2"),
-			currentModule)
+			stringFrom("currentAtom2"), currentModule)
 		currentModule.addPrivateName(atom2)
 		val tuple = tuple(atom1, atom2)
 		prepareToWrite()
@@ -442,14 +440,14 @@ class SerializerTest
 		runtime().addModule(inputModule)
 		deserializer().currentModule = currentModule
 		val newObject: A_BasicObject? = deserializer().deserialize()
-		Assertions.assertNotNull(newObject)
-		Assertions.assertEquals(
+		assertNotNull(newObject)
+		assertEquals(
 			0,
 			inStream().available(),
 			"Serialization stream was not fully emptied")
 		val nullObject: A_BasicObject? = deserializer().deserialize()
-		Assertions.assertNull(nullObject)
-		Assertions.assertEquals(tuple, newObject)
+		assertNull(nullObject)
+		assertEquals(tuple, newObject)
 	}
 
 	/**
@@ -464,23 +462,24 @@ class SerializerTest
 	{
 		val writer = L1InstructionWriter(
 			NilDescriptor.nil, 0, NilDescriptor.nil)
-		writer.argumentTypes(TypeDescriptor.Types.FLOAT.o)
+		writer.argumentTypes(Types.FLOAT.o)
 		writer.primitive = P_FloatFloor
-		writer.returnType = TypeDescriptor.Types.FLOAT.o
+		writer.returnType = Types.FLOAT.o
+		writer.returnTypeIfPrimitiveFails = bottom
 		val code: A_RawFunction = writer.compiledCode()
 		val function = createFunction(code, emptyTuple)
 		val newFunction: A_Function = roundTrip(function)
 		val code2 = newFunction.code()
-		Assertions.assertEquals(code.numOuters(), code2.numOuters())
-		Assertions.assertEquals(code.numSlots(), code2.numSlots())
-		Assertions.assertEquals(code.numArgs(), code2.numArgs())
-		Assertions.assertEquals(code.numLocals(), code2.numLocals())
-		Assertions.assertEquals(code.primitiveNumber(), code2.primitiveNumber())
-		Assertions.assertEquals(code.nybbles(), code2.nybbles())
-		Assertions.assertEquals(code.functionType(), code2.functionType())
+		assertEquals(code.numOuters(), code2.numOuters())
+		assertEquals(code.numSlots(), code2.numSlots())
+		assertEquals(code.numArgs(), code2.numArgs())
+		assertEquals(code.numLocals(), code2.numLocals())
+		assertEquals(code.primitive(), code2.primitive())
+		assertEquals(code.nybbles(), code2.nybbles())
+		assertEquals(code.functionType(), code2.functionType())
 		for (i in code.numLiterals() downTo 1)
 		{
-			Assertions.assertEquals(code.literalAt(i), code2.literalAt(i))
+			assertEquals(code.literalAt(i), code2.literalAt(i))
 		}
 	}
 }

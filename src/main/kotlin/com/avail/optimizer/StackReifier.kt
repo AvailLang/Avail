@@ -210,7 +210,7 @@ class StackReifier(
 		/** Access the [pushContinuationAction] method.  */
 		val pushContinuationActionMethod = instanceMethod(
 			StackReifier::class.java,
-			"pushContinuationAction",
+			StackReifier::pushContinuationAction.name,
 			StackReifier::class.java,
 			AvailObject::class.java)
 	}

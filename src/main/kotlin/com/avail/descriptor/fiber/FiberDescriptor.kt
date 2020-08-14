@@ -34,7 +34,6 @@ package com.avail.descriptor.fiber
 import com.avail.AvailRuntime
 import com.avail.AvailRuntime.Companion.currentRuntime
 import com.avail.AvailRuntimeSupport
-import com.avail.annotations.HideFieldInDebugger
 import com.avail.annotations.HideFieldJustForPrinting
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom
@@ -106,7 +105,6 @@ import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.L2Chunk
 import com.avail.io.TextInterface
 import com.avail.utility.json.JSONWriter
-import java.util.Collections.synchronizedMap
 import java.util.EnumSet
 import java.util.TimerTask
 import java.util.WeakHashMap
@@ -264,7 +262,6 @@ class FiberDescriptor private constructor(
 		DEBUG_UNIQUE_ID,
 
 		/** [BitField]s containing the hash, priority, and flags. */
-		@HideFieldInDebugger
 		FLAGS,
 
 		/**
@@ -281,6 +278,7 @@ class FiberDescriptor private constructor(
 			 * The hash of this fiber, which is chosen randomly on the first
 			 * demand.
 			 */
+			@JvmField
 			val HASH_OR_ZERO = BitField(FLAGS, 0, 32)
 
 			/**
@@ -288,33 +286,43 @@ class FiberDescriptor private constructor(
 			 * get at least as much opportunity to run as processes with lower
 			 * values.
 			 */
+			@JvmField
 			val PRIORITY = BitField(FLAGS, 32, 8)
 
 			/** See [InterruptRequestFlag.TERMINATION_REQUESTED]. */
+			@JvmField
 			val _TERMINATION_REQUESTED = BitField(FLAGS, 40, 1)
 
 			/** See [InterruptRequestFlag.REIFICATION_REQUESTED]. */
+			@JvmField
 			val _REIFICATION_REQUESTED = BitField(FLAGS, 41, 1)
 
 			/** See [SynchronizationFlag.BOUND]. */
+			@JvmField
 			val _BOUND = BitField(FLAGS, 42, 1)
 
 			/** See [SynchronizationFlag.SCHEDULED]. */
+			@JvmField
 			val _SCHEDULED = BitField(FLAGS, 43, 1)
 
 			/** See [SynchronizationFlag.PERMIT_UNAVAILABLE]. */
+			@JvmField
 			val _PERMIT_UNAVAILABLE = BitField(FLAGS, 44, 1)
 
 			/** See [TraceFlag.TRACE_VARIABLE_READS_BEFORE_WRITES]. */
+			@JvmField
 			val _TRACE_VARIABLE_READS_BEFORE_WRITES = BitField(FLAGS, 45, 1)
 
 			/** See [TraceFlag.TRACE_VARIABLE_WRITES]. */
+			@JvmField
 			val _TRACE_VARIABLE_WRITES = BitField(FLAGS, 46, 1)
 
 			/** See [GeneralFlag.CAN_REJECT_PARSE]. */
+			@JvmField
 			val _CAN_REJECT_PARSE = BitField(FLAGS, 47, 1)
 
 			/** See [GeneralFlag.CAN_REJECT_PARSE]. */
+			@JvmField
 			val _IS_EVALUATING_MACRO = BitField(FLAGS, 48, 1)
 		}
 	}
@@ -789,7 +797,7 @@ class FiberDescriptor private constructor(
 	override fun o_AvailLoader(self: AvailObject): AvailLoader? {
 		val pojo = self.mutableSlot(LOADER)
 		return if (!pojo.equalsNil()) {
-			pojo.javaObject<AvailLoader>()
+			pojo.javaObject()
 		} else null
 	}
 
@@ -848,7 +856,7 @@ class FiberDescriptor private constructor(
 	override fun o_WakeupTask(self: AvailObject): TimerTask? {
 		val pojo = self.mutableSlot(WAKEUP_TASK)
 		return if (!pojo.equalsNil()) {
-			pojo.javaObject<TimerTask>()
+			pojo.javaObject()
 		} else null
 	}
 
@@ -876,8 +884,11 @@ class FiberDescriptor private constructor(
 			xor (self.mutableSlot(_TRACE_VARIABLE_WRITES) == 1))
 		val rawPojo = self.slot(TRACED_VARIABLES)
 		val map = rawPojo.javaObjectNotNull<MutableMap<A_Variable, Boolean>>()
-		if (!map.containsKey(variable)) {
-			map[variable] = wasRead
+		synchronized(map) {
+			if (!map.containsKey(variable))
+			{
+				map[variable] = wasRead
+			}
 		}
 	}
 
@@ -887,12 +898,14 @@ class FiberDescriptor private constructor(
 		val rawPojo = self.slot(TRACED_VARIABLES)
 		val map = rawPojo.javaObjectNotNull<MutableMap<A_Variable, Boolean>>()
 		var set = emptySet
-		map.forEach { (key, value) ->
-			if (value) {
-				set = set.setWithElementCanDestroy(key, true)
+		synchronized(map) {
+			map.forEach { (key, value) ->
+				if (value) {
+					set = set.setWithElementCanDestroy(key, true)
+				}
 			}
+			map.clear()
 		}
-		map.clear()
 		return set
 	}
 
@@ -901,8 +914,11 @@ class FiberDescriptor private constructor(
 		assert(self.mutableSlot(_TRACE_VARIABLE_WRITES) != 1)
 		val rawPojo = self.slot(TRACED_VARIABLES)
 		val map = rawPojo.javaObjectNotNull<MutableMap<A_Variable, Boolean>>()
-		val set = setFromCollection(map.keys)
-		map.clear()
+		val set: A_Set
+		synchronized(map) {
+			set = setFromCollection(map.keys)
+			map.clear()
+		}
 		return set
 	}
 
@@ -1046,7 +1062,7 @@ class FiberDescriptor private constructor(
 		 */
 		@Suppress("RedundantLambdaArrow")
 		private val defaultResultContinuation: A_BasicObject = identityPojo(
-			{ _: AvailObject -> })
+			{ _: AvailObject -> }).makeShared()
 
 		/**
 		 * The default result continuation, answered when a
@@ -1056,7 +1072,7 @@ class FiberDescriptor private constructor(
 		 */
 		@Suppress("RedundantLambdaArrow")
 		private val defaultFailureContinuation: A_BasicObject =
-			identityPojo({ _: Throwable -> })
+			identityPojo({ _: Throwable -> }).makeShared()
 
 		/**
 		 * Lazily compute and install the hash of the specified
@@ -1235,14 +1251,14 @@ class FiberDescriptor private constructor(
 		fun createFiber(
 			resultType: A_Type,
 			priority: Int,
-			loaderPojoOrNil: AvailObject?,
+			loaderPojoOrNil: AvailObject,
 			nameSupplier: ()->A_String,
 			runtime: AvailRuntime
 		): A_Fiber {
 			assert(priority and 255.inv() == 0) { "Priority must be [0..255]" }
 			return mutable.create {
-				setSlot(RESULT_TYPE, resultType.makeImmutable())
-				setSlot(NAME_SUPPLIER, identityPojo(nameSupplier))
+				setSlot(RESULT_TYPE, resultType.makeShared())
+				setSlot(NAME_SUPPLIER, identityPojo(nameSupplier).makeShared())
 				setSlot(NAME_OR_NIL, nil)
 				setSlot(PRIORITY, priority)
 				setSlot(CONTINUATION, nil)
@@ -1253,15 +1269,14 @@ class FiberDescriptor private constructor(
 				setSlot(FIBER_GLOBALS, emptyMap)
 				setSlot(HERITABLE_FIBER_GLOBALS, emptyMap)
 				setSlot(RESULT, nil)
-				setSlot(LOADER, loaderPojoOrNil!!)
+				setSlot(LOADER, loaderPojoOrNil.makeShared())
 				setSlot(RESULT_CONTINUATION, defaultResultContinuation)
 				setSlot(FAILURE_CONTINUATION, defaultFailureContinuation)
 				setSlot(JOINING_FIBERS, emptySet)
 				setSlot(WAKEUP_TASK, nil)
 				setSlot(
 					TRACED_VARIABLES,
-					identityPojo(
-						synchronizedMap(WeakHashMap<A_Variable, Boolean>())))
+					identityPojo(WeakHashMap<A_Variable, Boolean>()))
 				setSlot(REIFICATION_WAITERS, emptySet)
 				setSlot(TEXT_INTERFACE, runtime.textInterfacePojo())
 				setSlot(

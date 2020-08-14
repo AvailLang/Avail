@@ -85,7 +85,7 @@ internal class DeadCodeAnalyzer constructor(
 		{
 			for (i in block.predecessorEdgesCount() - 1 downTo 0)
 			{
-				val edge = block.predecessorEdgeAt(i)
+				val edge = block.predecessorEdges()[i]
 				if (edge.forcedClampedEntities === null)
 				{
 					continue
@@ -143,7 +143,7 @@ internal class DeadCodeAnalyzer constructor(
 				// entities that are visible along any of its successor edges.
 				if (neededEntities.removeAll(
 						dataCouplingMode.writeEntitiesOf(instruction))
-					|| instruction.hasSideEffect())
+					|| instruction.hasSideEffect)
 				{
 					liveInstructions.add(instruction)
 					neededEntities.addAll(
@@ -169,7 +169,7 @@ internal class DeadCodeAnalyzer constructor(
 						val entities = entitiesByPredecessor[predecessorIndex]
 						if (entities.removeAll(
 								dataCouplingMode.writeEntitiesOf(phiInstruction))
-							|| phiInstruction.hasSideEffect())
+							|| phiInstruction.hasSideEffect)
 						{
 							liveInstructions.add(phiInstruction)
 							val readOperand =
@@ -196,9 +196,8 @@ internal class DeadCodeAnalyzer constructor(
 				("Instruction consumes $neededEntities but a preceding "
 					+ "definition was not found")
 			}
-			val entitySetIterator =
-				entitiesByPredecessor.iterator()
-			block.predecessorEdgesDo { predecessor: L2PcOperand ->
+			val entitySetIterator = entitiesByPredecessor.iterator()
+			block.predecessorEdges().forEach { predecessor: L2PcOperand ->
 				// No need to copy it, as it won't be modified again.
 				val entities = entitySetIterator.next()
 				assert(edgeNeeds.containsKey(predecessor)

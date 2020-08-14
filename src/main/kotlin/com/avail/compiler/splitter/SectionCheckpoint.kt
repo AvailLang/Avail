@@ -120,4 +120,8 @@ internal class SectionCheckpoint constructor(
 		get() = true
 
 	override fun mightBeEmpty(phraseType: A_Type) = true
+
+	override fun checkListStructure(phrase: A_Phrase): Boolean =
+		throw RuntimeException(
+			"checkListStructure() inapplicable for SectionCheckpoint.")
 }

@@ -44,12 +44,22 @@ import com.avail.descriptor.representation.BitField
 import com.avail.descriptor.representation.IntegerSlotsEnum
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
+import com.avail.descriptor.tuples.A_Tuple.Companion.byteBuffer
+import com.avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithByteBufferTupleStartingAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.concatenateWith
+import com.avail.descriptor.tuples.A_Tuple.Companion.copyAsMutableIntTuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.copyAsMutableObjectTuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.transferIntoByteBuffer
+import com.avail.descriptor.tuples.A_Tuple.Companion.treeTupleLevel
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAtPuttingCanDestroy
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.ByteBufferTupleDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import com.avail.descriptor.tuples.ByteBufferTupleDescriptor.ObjectSlots.BYTE_BUFFER
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor
-import com.avail.descriptor.types.TypeDescriptor
+import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.utility.json.JSONWriter
 import java.nio.ByteBuffer
 import kotlin.experimental.and
@@ -91,6 +101,7 @@ class ByteBufferTupleDescriptor constructor(mutability: Mutability)
 			 * very rare case that the hash value actually equals zero, the hash
 			 * value has to be computed every time it is requested.
 			 */
+			@JvmField
 			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
 
 			init
@@ -252,11 +263,12 @@ class ByteBufferTupleDescriptor constructor(mutability: Mutability)
 	{
 		when
 		{
-			aType.isSupertypeOfPrimitiveTypeEnum(TypeDescriptor.Types.NONTYPE) ->
+			aType.isSupertypeOfPrimitiveTypeEnum(Types.NONTYPE) ->
 				return true
 			!aType.isTupleType -> return false
 			// See if it's an acceptable size...
-			!aType.sizeRange().rangeIncludesInt(self.tupleSize()) -> return false
+			!aType.sizeRange().rangeIncludesLong(self.tupleSize().toLong()) ->
+				return false
 			// tuple's size is in range.
 			else ->
 			{
@@ -340,11 +352,16 @@ class ByteBufferTupleDescriptor constructor(mutability: Mutability)
 
 	override fun o_TupleIntAt(self: AvailObject, index: Int): Int
 	{
-		// Answer the integer element at the given index in the tuple object.
 		assert(index >= 1 && index <= self.tupleSize())
-		val buffer =
-			self.slot(BYTE_BUFFER).javaObjectNotNull<ByteBuffer>()
+		val buffer = self.slot(BYTE_BUFFER).javaObjectNotNull<ByteBuffer>()
 		return (buffer[index - 1].toInt() and 0xFF)
+	}
+
+	override fun o_TupleLongAt(self: AvailObject, index: Int): Long
+	{
+		assert(index >= 1 && index <= self.tupleSize())
+		val buffer = self.slot(BYTE_BUFFER).javaObjectNotNull<ByteBuffer>()
+		return (buffer[index - 1].toLong() and 0xFF)
 	}
 
 	override fun o_TupleReverse(self: AvailObject): A_Tuple

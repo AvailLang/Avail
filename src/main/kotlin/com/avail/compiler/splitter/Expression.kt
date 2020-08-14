@@ -31,7 +31,8 @@
  */
 package com.avail.compiler.splitter
 
-import com.avail.descriptor.methods.MacroDefinitionDescriptor
+import com.avail.descriptor.bundles.A_Bundle
+import com.avail.descriptor.methods.MacroDescriptor
 import com.avail.descriptor.methods.MethodDefinitionDescriptor
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.PhraseDescriptor
@@ -65,11 +66,7 @@ internal abstract class Expression constructor(val positionInName: Int)
 	 * @return
 	 *   Whether the expression can in theory be reordered.
 	 */
-	val canBeReordered: Boolean
-		get()
-		{
-			return yieldsValue
-		}
+	val canBeReordered: Boolean get() = yieldsValue
 
 	/**
 	 * The one-based explicit numbering for this argument.  To specify this in a
@@ -91,17 +88,15 @@ internal abstract class Expression constructor(val positionInName: Int)
 	/**
 	 * `true` iff this [expression][Expression] is expected to produce a value
 	 * to be consumed by a [method][MethodDefinitionDescriptor] or
-	 * [macro&#32;definition][MacroDefinitionDescriptor]. Not applicable to
+	 * [macro&#32;definition][MacroDescriptor]. Not applicable to
 	 * [Sequence]s.
 	 */
-	internal open val yieldsValue: Boolean
-		get() = false
+	internal open val yieldsValue: Boolean get() = false
 
 	/**
 	 * `true` if and only if this is an argument or group, `false` otherwise.
 	 */
-	internal open val isGroup: Boolean
-		get() = false
+	internal open val isGroup: Boolean get() = false
 
 	/**
 	 * Are all keywords of the expression comprised exclusively of lower case
@@ -111,8 +106,7 @@ internal abstract class Expression constructor(val positionInName: Int)
 	 *   `true` if all keywords of the expression are comprised exclusively of
 	 *   lower case characters, `false` otherwise.
 	 */
-	internal open val isLowerCase: Boolean
-		get() = true
+	internal open val isLowerCase: Boolean get() = true
 
 	/**
 	 * Transform this expression to be case-insensitive, failing with a
@@ -133,8 +127,7 @@ internal abstract class Expression constructor(val positionInName: Int)
 	 * @return
 	 *   The number of non-backquoted underscores/ellipses in the receiver.
 	 */
-	internal open val underscoreCount: Int
-		get() = 0
+	internal open val underscoreCount: Int get() = 0
 
 	/**
 	 * Extract all [SectionCheckpoint]s into the specified list.
@@ -143,7 +136,8 @@ internal abstract class Expression constructor(val positionInName: Int)
 	 *   Where to add section checkpoints found within this expression.
 	 */
 	internal open fun extractSectionCheckpointsInto(
-		sectionCheckpoints: MutableList<SectionCheckpoint>)
+		sectionCheckpoints: MutableList<SectionCheckpoint>
+	)
 	{
 		// Do nothing by default.
 	}
@@ -216,7 +210,8 @@ internal abstract class Expression constructor(val positionInName: Int)
 	internal abstract fun emitOn(
 		phraseType: A_Type,
 		generator: InstructionGenerator,
-		wrapState: WrapState): WrapState
+		wrapState: WrapState
+	): WrapState
 
 	override fun toString(): String = this@Expression.javaClass.simpleName
 
@@ -235,7 +230,8 @@ internal abstract class Expression constructor(val positionInName: Int)
 	internal abstract fun printWithArguments(
 		arguments: Iterator<A_Phrase>?,
 		builder: StringBuilder,
-		indent: Int)
+		indent: Int
+	)
 
 	/**
 	 * Answer whether the pretty-printed representation of this [Expression]
@@ -270,4 +266,17 @@ internal abstract class Expression constructor(val positionInName: Int)
 		// Most expressions can't match an empty sequence of tokens.
 		return false
 	}
+
+	/**
+	 * Answer whether the given phrase is correctly internally structured for
+	 * this expression.  Only check the cardinality of the (recursive) sublists,
+	 * and that the correct permutations are used when required.
+	 *
+	 * @param phrase
+	 *   The [A_Phrase] attempting to be supplied for this expression.
+	 * @return
+	 *   Whether the supplied phrase is recursively of the right shape to be
+	 *   used as this expression for a call of this splitter's [A_Bundle].
+	 */
+	abstract fun checkListStructure(phrase: A_Phrase): Boolean
 }

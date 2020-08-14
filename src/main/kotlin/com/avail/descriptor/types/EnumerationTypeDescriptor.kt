@@ -623,8 +623,8 @@ class EnumerationTypeDescriptor private constructor(mutability: Mutability)
 		return unionType
 	}
 
-	override fun o_RangeIncludesInt(self: AvailObject, anInt: Int): Boolean =
-		getInstances(self).hasElement(fromInt(anInt))
+	override fun o_RangeIncludesLong(self: AvailObject, aLong: Long): Boolean =
+		getInstances(self).any { it.isLong && it.extractLong() == aLong }
 
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		SerializerOperation.ENUMERATION_TYPE

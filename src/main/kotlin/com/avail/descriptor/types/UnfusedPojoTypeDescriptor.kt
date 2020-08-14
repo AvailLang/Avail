@@ -48,6 +48,8 @@ import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.StringDescriptor
 import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.tuples.TupleDescriptor
@@ -96,6 +98,7 @@ internal class UnfusedPojoTypeDescriptor constructor(mutability: Mutability)
 			 * A slot to hold the hash value, or zero if it has not been
 			 * computed. The hash of an atom is a random number, computed once.
 			 */
+			@JvmField
 			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
 		}
 	}
@@ -218,8 +221,8 @@ internal class UnfusedPojoTypeDescriptor constructor(mutability: Mutability)
 
 	override fun o_MarshalToJava(
 		self: AvailObject,
-		classHint: Class<*>?): Any? =
-			self.slot(JAVA_CLASS).javaObject<Any>()
+		classHint: Class<*>?
+	): Any? = self.slot(JAVA_CLASS).javaObject()
 
 	/**
 	 * Lazily compute the self type of the specified

@@ -51,6 +51,10 @@ package com.avail.descriptor.phrases
  import com.avail.descriptor.representation.ObjectSlotsEnum
  import com.avail.descriptor.tokens.A_Token
  import com.avail.descriptor.tuples.A_Tuple
+ import com.avail.descriptor.tuples.A_Tuple.Companion.appendCanDestroy
+ import com.avail.descriptor.tuples.A_Tuple.Companion.concatenateWith
+ import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+ import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
  import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
  import com.avail.descriptor.tuples.TupleDescriptor
  import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
@@ -58,6 +62,7 @@ package com.avail.descriptor.phrases
  import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
  import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
  import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
+ import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypesList
  import com.avail.descriptor.types.TypeTag
  import com.avail.serialization.SerializerOperation
  import com.avail.utility.json.JSONWriter
@@ -326,7 +331,7 @@ class ListPhraseDescriptor private constructor(
 				if (expressionType.isBottom) return bottom
 				expressionType
 			}
-			tupleType = tupleTypeForTypes(types).makeShared()
+			tupleType = tupleTypeForTypesList(types).makeShared()
 			self.setMutableSlot(TUPLE_TYPE, tupleType)
 			return tupleType
 		}

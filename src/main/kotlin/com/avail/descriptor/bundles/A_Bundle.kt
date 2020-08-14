@@ -37,6 +37,7 @@ import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.maps.A_Map
 import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.methods.A_GrammaticalRestriction
+import com.avail.descriptor.methods.A_Macro
 import com.avail.descriptor.methods.A_Method
 import com.avail.descriptor.methods.GrammaticalRestrictionDescriptor
 import com.avail.descriptor.methods.MethodDescriptor
@@ -47,6 +48,7 @@ import com.avail.descriptor.representation.A_BasicObject.Companion.dispatch
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.exceptions.SignatureException
 
 /**
  * `A_Bundle` is an interface that specifies the operations specific to
@@ -91,6 +93,13 @@ interface A_Bundle : A_BasicObject {
 		fun A_Bundle.addGrammaticalRestriction(
 			grammaticalRestriction: A_GrammaticalRestriction
 		) = dispatch { o_AddGrammaticalRestriction(it, grammaticalRestriction) }
+
+		/**
+		 *
+		 */
+		@Throws(SignatureException::class)
+		fun A_Bundle.bundleAddMacro(macro: A_Macro) =
+			dispatch { o_BundleAddMacro(it, macro) }
 
 		/**
 		 * Answer the [method][MethodDescriptor] that this bundle names.
@@ -139,6 +148,37 @@ interface A_Bundle : A_BasicObject {
 			dispatch { o_HasGrammaticalRestrictions(it) }
 
 		/**
+		 * Look up the macro [A_Definition] to invoke, given an [A_Tuple] of
+		 * argument phrases.  Use the [A_Method]'s macro testing tree to find the
+		 * macro definition to invoke.  Answer the [A_Tuple] of applicable macro
+		 * definitions.
+		 *
+		 * Note that this testing tree approach is only applicable if all of the
+		 * macro definitions are visible (defined in the current module or an
+		 * ancestor.  That should be the *vast* majority of the use of macros, but
+		 * when it isn't, other lookup approaches are necessary.
+		 *
+		 * @param argumentPhraseTuple
+		 *   The argument phrases destined to be transformed by the macro.
+		 * @return
+		 *   The selected macro definitions.
+		 */
+		fun A_Bundle.lookupMacroByPhraseTuple(
+			argumentPhraseTuple: A_Tuple
+		): A_Tuple = dispatch {
+			o_LookupMacroByPhraseTuple(it, argumentPhraseTuple)
+		}
+
+		/**
+		 * Answer a [tuple][A_Tuple] that comprises all [macros][A_Macro]
+		 * defined for this bundle.
+		 *
+		 * @return
+		 *   The current macros of this bundle.
+		 */
+		fun A_Bundle.macrosTuple(): A_Tuple = dispatch { o_MacrosTuple(it) }
+
+		/**
 		 * Answer the name of this bundle.  It must be parsable as a method name
 		 * according to the rules of the [MessageSplitter].
 		 *
@@ -146,6 +186,18 @@ interface A_Bundle : A_BasicObject {
 		 *   An [A_Atom] naming this bundle.
 		 */
 		fun A_Bundle.message(): A_Atom = dispatch { o_Message(it) }
+
+		/**
+		 * Answer a [message&#32;part][messageParts] produced by the
+		 * [MessageSplitter] when applied to this bundle's name.  The part is a
+		 * substring of the bundle name.  The index is one-based.
+		 *
+		 * @return
+		 *   A string extracted from part of the bundle's message.
+		 * @see [message]
+		 */
+		fun A_Bundle.messagePart(index: Int) : A_String =
+			dispatch { o_MessagePart(it, index) }
 
 		/**
 		 * Answer the message parts produced by the [MessageSplitter] when
@@ -156,7 +208,8 @@ interface A_Bundle : A_BasicObject {
 		 *   A tuple of strings extracted from the bundle's message.
 		 * @see [message]
 		 */
-		fun A_Bundle.messageParts() : A_Tuple = dispatch { o_MessageParts(it) }
+		fun A_Bundle.messageParts() : A_Tuple =
+			dispatch { o_MessageParts(it) }
 
 		/**
 		 * Answer the [MessageSplitter] holding parse planning information for
@@ -168,14 +221,35 @@ interface A_Bundle : A_BasicObject {
 		fun A_Bundle.messageSplitter() = dispatch { o_MessageSplitter(it) }
 
 		/**
+		 * Answer the arity of this [A_Bundle], which must be the same for all
+		 * bundles of its [A_Method].
+		 *
+		 * @return
+		 *   The arity of this bundle.
+		 */
+		fun A_Bundle.numArgs(): Int = dispatch { o_NumArgs(it) }
+
+		/**
 		 * Remove a [grammatical][GrammaticalRestrictionDescriptor] from the
 		 * receiver.
 		 *
-		 * @param obsoleteRestriction
+		 * @param grammaticalRestriction
 		 *   The grammatical restriction to remove.
 		 */
 		fun A_Bundle.removeGrammaticalRestriction(
-			obsoleteRestriction: A_GrammaticalRestriction
-		) = dispatch { o_RemoveGrammaticalRestriction(it, obsoleteRestriction) }
+			grammaticalRestriction: A_GrammaticalRestriction
+		) = dispatch {
+			o_RemoveGrammaticalRestriction(it, grammaticalRestriction)
+		}
+
+		/**
+		 * Remove a [macro][A_Macro] from the receiver.
+		 *
+		 * @param macro
+		 *   The [A_Macro] to remove from this bundle.
+		 */
+		fun A_Bundle.removeMacro(
+			macro: A_Macro
+		) = dispatch { o_RemoveMacro(it, macro) }
 	}
 }

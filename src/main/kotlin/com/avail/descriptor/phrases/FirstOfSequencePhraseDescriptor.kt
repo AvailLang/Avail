@@ -45,6 +45,8 @@ package com.avail.descriptor.phrases
  import com.avail.descriptor.representation.NilDescriptor.Companion.nil
  import com.avail.descriptor.representation.ObjectSlotsEnum
  import com.avail.descriptor.tuples.A_Tuple
+ import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+ import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
  import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
  import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
  import com.avail.descriptor.types.A_Type
