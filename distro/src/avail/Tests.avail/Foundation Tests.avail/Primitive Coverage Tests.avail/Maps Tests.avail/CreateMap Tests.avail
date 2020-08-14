@@ -37,8 +37,66 @@ Uses
 	"Primitive Test Common"
 Body
 
-Test "CreateMap ok" in primitive maps test suite if supported is
+Test "CreateMap ok" in primitive maps test suite is
 [
-	Skip test
-];
+    // All string tuples
+	Require: <<"avail", "language">> →map = {"avail" → "language"};
+	Require: <<"avail", "language">, <"bvail", "imaginary language">>
+		→map = {"avail" → "language", "bvail" → "imaginary language"};
 
+	// All integer tuples
+	Require: <<1, 2>, <2, 3>> →map = {1 → 2, 2 → 3};
+
+	// expressions in tuple
+	Require: <<"one plus two", 1 + 2>> →map = {"one plus two"→ 3};
+	Require: <<"one plus two", 1 + 2>> →map = {"one plus two"→ 1 + 2};
+
+	// All float tuples
+	Require: <<"one point eight, seven", 1.87>>
+		→map = {"one point eight, seven" → 1.87};
+
+	// Extreme numbers
+	Require:
+	<
+		<"one", 1>,
+		<"one quintillian", 1000000000000000000>,
+		<"infinity", ∞>,
+		<"negative infinity", -∞>
+	> →map = {
+		"one" → 1,
+		"one quintillian" → 1000000000000000000,
+		"infinity" → ∞,
+		"negative infinity" → -∞
+	};
+
+	// Mixed type tuples
+	Require: <<1, "one">, <2, "two">> →map = {1 → "one", 2 → "two"};
+
+	// Differently typed tuples
+	Require: <<"number", 5>, <"anything", "cat">>
+		→map = {"number" → 5, "anything" → "cat"};
+
+	// Tuple values
+	Require:
+	<
+		<"kids", <"jenny", "jack", "jill">>,
+		<"ages", <1, 7, 9>>,
+		<"random debris", <∞, -∞, "moss", 11, 5.9>>
+	> →map = {
+		"kids" → <"jenny", "jack", "jill">,
+		"ages" → <1, 7, 9>,
+		"random debris" → <∞, -∞, "moss", 11, 5.9>
+	};
+
+	// Map values, set values, CreateMap value expression
+	Require:
+	<
+		<"numbers", {"one" → 1, "two" → 2, "three" → 3}>,
+		<"letters", {"a", "b", "c"}>,
+		<"things", <<"my cat", "sally">,<"your age", 100>> →map>
+	> →map = {
+		"numbers" → {"one" → 1, "two" → 2, "three" → 3},
+		"letters" → {"a", "b", "c"},
+		"things" → {"my cat" → "sally", "your age" → 100}
+	};
+];

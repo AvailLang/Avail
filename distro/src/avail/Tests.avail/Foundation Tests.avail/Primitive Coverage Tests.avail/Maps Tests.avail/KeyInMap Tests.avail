@@ -37,8 +37,32 @@ Uses
 	"Primitive Test Common"
 Body
 
-Test "KeyInMap ok" in primitive maps test suite if supported is
+Test "KeyInMap ok" in primitive maps test suite is
 [
-	Skip test
+	Require: "one" ∈ {"one" → 1, "two" → 2 } = true;
+	Require: ("one" ∈ {"one" → 1, "two" → 2 } - "one") = false;
+	Require: 1 ∈ {"one" → 1, "two" → 2 } = false;
+	Require: ("three" ∈ {"one" → 1, "two" → 2 } + "three" → 3) = true;
+	Require: 1.9 ∈ {1.9 → "one point nine", 3.7 → "three point seven"} = true;
+	Require: 0.2 ∈ {1.9 → "one point nine", 3.7 → "three point seven"} = false;
+	Require: 1000000000000000000
+		∈ {1000000000000000000 → "lots", 2000000000000000000 → "a bunch"}
+		= true;
+	Require: 3000000000000000000
+		∈ {1000000000000000000 → "lots", 2000000000000000000 → "a bunch"}
+		= false;
+	Require: ∞ ∈ {1 → "one", ∞ → "infinity"} = true;
+	Require: -∞ ∈ {1 → "one", ∞ → "infinity"} = false;
+	Require: -∞
+		∈ {-1 → "negative one", -∞ → "negative infinity", 10 → "ten"}
+		= true;
+	Require: ∞
+		∈ {-1 → "negative one", -∞ → "negative infinity", 10 → "ten"}
+		= false;
+	Require: -890
+		∈ {32 → "ice cold", -10 → "frigid", -890 → "really cold"}
+		= true;
+	Require: -100
+    	∈ {32 → "ice cold", -10 → "frigid", -890 → "really cold"}
+    	= false;
 ];
-
