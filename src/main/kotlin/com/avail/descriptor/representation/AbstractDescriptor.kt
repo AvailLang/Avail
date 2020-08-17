@@ -562,7 +562,7 @@ abstract class AbstractDescriptor protected constructor (
 	{
 		val value = newIndexedDescriptor(indexedSlotCount, this)
 		value.init()
-		return value.makeImmutable()
+		return value.makeImmutable().apply { makeSubobjectsImmutable() }
 	}
 
 	/**
@@ -581,7 +581,7 @@ abstract class AbstractDescriptor protected constructor (
 	{
 		val value = newIndexedDescriptor(indexedSlotCount, this)
 		value.init()
-		return value.makeShared()
+		return value.makeShared().apply { makeSubobjectsShared() }
 	}
 
 	/**
