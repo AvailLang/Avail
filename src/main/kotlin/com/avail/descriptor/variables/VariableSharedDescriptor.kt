@@ -50,6 +50,7 @@ import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.TypeTag
 import com.avail.descriptor.types.VariableTypeDescriptor
 import com.avail.descriptor.variables.VariableSharedDescriptor.IntegerSlots.Companion.HASH_ALWAYS_SET
+import com.avail.descriptor.variables.VariableSharedDescriptor.IntegerSlots.HASH_AND_MORE
 import com.avail.descriptor.variables.VariableSharedDescriptor.ObjectSlots.DEPENDENT_CHUNKS_WEAK_SET_POJO
 import com.avail.descriptor.variables.VariableSharedDescriptor.ObjectSlots.KIND
 import com.avail.descriptor.variables.VariableSharedDescriptor.ObjectSlots.VALUE
@@ -182,7 +183,7 @@ open class VariableSharedDescriptor protected constructor(
 		|| e === VALUE
 		|| e === WRITE_REACTORS
 		|| e === DEPENDENT_CHUNKS_WEAK_SET_POJO
-		|| e === IntegerSlots.HASH_AND_MORE) // only for flags.
+		|| e === HASH_AND_MORE) // only for flags.
 
 	override fun o_Hash(self: AvailObject): Int =
 		self.slot(HASH_ALWAYS_SET)

@@ -33,7 +33,9 @@ package com.avail.descriptor.types
 
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.maps.A_Map
+import com.avail.descriptor.maps.A_Map.Companion.keysAsSet
 import com.avail.descriptor.maps.A_Map.Companion.mapSize
+import com.avail.descriptor.maps.A_Map.Companion.valuesAsTuple
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.one
 import com.avail.descriptor.objects.ObjectDescriptor
@@ -46,6 +48,7 @@ import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor.Companion.generateSetFrom
 import com.avail.descriptor.sets.SetDescriptor.Companion.singletonSet
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.asSet
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
@@ -471,7 +474,10 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 			getSuperkind(self).couldEverBeInvokedWith(argRestrictions)
 
 	override fun o_KeyType(self: AvailObject): A_Type =
-		getSuperkind(self).keyType()
+		enumerationWith(getInstance(self).keysAsSet())
+
+	override fun o_ValueType(self: AvailObject): A_Type =
+		enumerationWith(getInstance(self).valuesAsTuple().asSet())
 
 	override fun o_Parent(self: AvailObject): A_BasicObject
 	{
@@ -480,9 +486,6 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 
 	override fun o_ReturnType(self: AvailObject): A_Type =
 		getSuperkind(self).returnType()
-
-	override fun o_ValueType(self: AvailObject): A_Type =
-		getSuperkind(self).valueType()
 
 	override fun o_ReadType(self: AvailObject): A_Type =
 		getSuperkind(self).readType()

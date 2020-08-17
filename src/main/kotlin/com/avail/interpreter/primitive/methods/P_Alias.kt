@@ -38,8 +38,7 @@ import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
 import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrNil
 import com.avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
-import com.avail.descriptor.atoms.A_Atom.Companion.setAtomProperty
-import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.MESSAGE_BUNDLE_KEY
+import com.avail.descriptor.atoms.A_Atom.Companion.setAtomBundle
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import com.avail.descriptor.bundles.A_Bundle.Companion.definitionParsingPlans
@@ -126,13 +125,12 @@ object P_Alias : Primitive(2, CanInline, HasSideEffect)
 			return interpreter.primitiveFailure(e.errorCode)
 		}
 
-		newAtom.setAtomProperty(MESSAGE_BUNDLE_KEY.atom, newBundle)
+		newAtom.setAtomBundle(newBundle)
 		if (loader.phase() == EXECUTING_FOR_COMPILE)
 		{
 			val root = loader.rootBundleTree()
 			loader.module().lock {
-				newBundle.definitionParsingPlans().forEach {
-					_, value ->
+				newBundle.definitionParsingPlans().forEach { _, value ->
 					root.addPlanInProgress(newPlanInProgress(value, 1))
 				}
 			}

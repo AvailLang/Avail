@@ -678,34 +678,6 @@ interface A_Tuple : A_BasicObject, Iterable<AvailObject>
 			dispatch { o_RawByteForCharacterAt(it, index) }
 
 		/**
-		 * The receiver is a [two-byte string][TwoByteStringDescriptor]; extract the
-		 * [code point][A_Character.Companion.codePoint] of the
-		 * [character][A_Character] at the given index as an unsigned short.
-		 *
-		 * @param index
-		 *   The index of the character to extract.
-		 * @return
-		 *   The code point of the character at the given index, as a Java `int` in
-		 *   the range [0..65535].
-		 */
-		fun A_Tuple.rawShortForCharacterAt(index: Int): Int =
-			dispatch { o_RawShortForCharacterAt(it, index) }
-
-		/**
-		 * The receiver is a mutable [two-byte&#32;string][TwoByteStringDescriptor];
-		 * overwrite the [character][A_Character] at the given index with the
-		 * character having the given code point.
-		 *
-		 * @param index
-		 *   The index of the character to overwrite.
-		 * @param anInteger
-		 *   The code point of the character to write at the given index, as a Java
-		 *   `int` in the range [0..65535].
-		 */
-		fun A_Tuple.rawShortForCharacterAtPut(index: Int, anInteger: Int) =
-			dispatch { o_RawShortForCharacterAtPut(it, index, anInteger) }
-
-		/**
 		 * Replace the first child of this [tree&#32;tuple][TreeTupleDescriptor].
 		 * Make a copy to modify if the receiver is immutable.  Answer the modified
 		 * original or copy.

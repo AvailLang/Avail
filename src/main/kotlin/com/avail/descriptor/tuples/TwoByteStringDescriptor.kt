@@ -45,16 +45,18 @@ import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithTwoByteStringStartingAt
 import com.avail.descriptor.tuples.A_Tuple.Companion.concatenateWith
 import com.avail.descriptor.tuples.A_Tuple.Companion.copyAsMutableObjectTuple
-import com.avail.descriptor.tuples.A_Tuple.Companion.rawShortForCharacterAt
-import com.avail.descriptor.tuples.A_Tuple.Companion.rawShortForCharacterAtPut
 import com.avail.descriptor.tuples.A_Tuple.Companion.treeTupleLevel
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAtPuttingCanDestroy
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
+import com.avail.descriptor.tuples.ByteStringDescriptor.Companion.generateByteString
 import com.avail.descriptor.tuples.NybbleTupleDescriptor.Companion.mutableObjectOfSize
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.TreeTupleDescriptor.Companion.concatenateAtLeastOneTree
 import com.avail.descriptor.tuples.TreeTupleDescriptor.Companion.createTwoPartTreeTuple
 import com.avail.descriptor.tuples.TwoByteStringDescriptor.IntegerSlots
+import com.avail.descriptor.tuples.TwoByteStringDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
+import com.avail.descriptor.tuples.TwoByteStringDescriptor.IntegerSlots.RAW_LONGS_
 import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
@@ -68,13 +70,13 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode
  *   The number of shorts that are unused in the last [long
  *   slot][IntegerSlots.RAW_LONGS_]. Must be between 0 and 3.
  * @constructor
- * Construct a new `TwoByteStringDescriptor`.
+ *   Construct a new `TwoByteStringDescriptor`.
  *
  * @param mutability
- * The [mutability][Mutability] of the new descriptor.
+ *   The [mutability][Mutability] of the new descriptor.
  * @param unusedShortsOfLastLong
- *   The number of shorts that are unused in the last [long
- *   slot][IntegerSlots.RAW_LONGS_]. Must be between 0 and 3.
+ *   The number of shorts that are unused in the last [RAW_LONGS_] slot. Must be
+ *   between 0 and 3.
  */
 class TwoByteStringDescriptor private constructor(
 	mutability: Mutability,
@@ -147,8 +149,8 @@ class TwoByteStringDescriptor private constructor(
 		{
 			// Enlarge it in place, using more of the final partial int field.
 			self.setDescriptor(descriptorFor(Mutability.MUTABLE, newSize))
-			self.rawShortForCharacterAtPut(newSize, intValue)
-			self.setSlot(IntegerSlots.HASH_OR_ZERO, 0)
+			self.setShortSlot(RAW_LONGS_, newSize, intValue)
+			self.setSlot(HASH_OR_ZERO, 0)
 			return self
 		}
 		// Copy to a potentially larger ByteTupleDescriptor.
@@ -157,8 +159,8 @@ class TwoByteStringDescriptor private constructor(
 			self,
 			0,
 			if (originalSize and 3 == 0) 1 else 0)
-		result.rawShortForCharacterAtPut(newSize, intValue)
-		result.setSlot(IntegerSlots.HASH_OR_ZERO, 0)
+		result.setShortSlot(RAW_LONGS_, newSize, intValue)
+		result.setSlot(HASH_OR_ZERO, 0)
 		return result
 	}
 
@@ -185,19 +187,12 @@ class TwoByteStringDescriptor private constructor(
 		{
 			return true
 		}
-		var index1 = startIndex1
+		val strongOtherString = aTwoByteString as AvailObject
 		var index2 = startIndex2
-		while (index1 <= endIndex1)
-		{
-			if (self.rawShortForCharacterAt(index1)
-				!= aTwoByteString.rawShortForCharacterAt(index2))
-			{
-				return false
-			}
-			index1++
-			index2++
+		return (startIndex1..endIndex1).all { index1 ->
+			self.shortSlot(RAW_LONGS_, index1) ==
+				strongOtherString.shortSlot(RAW_LONGS_, index2++)
 		}
-		return true
 	}
 
 	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean =
@@ -257,29 +252,12 @@ class TwoByteStringDescriptor private constructor(
 		return self
 	}
 
-	/**
-	 * Answer the int that encodes the character at the given index.
-	 */
-	override fun o_RawShortForCharacterAt(self: AvailObject, index: Int): Int =
-		self.shortSlot(IntegerSlots.RAW_LONGS_, index)
-
-	override fun o_RawShortForCharacterAtPut(
-		self: AvailObject,
-		index: Int,
-		anInteger: Int)
-	{
-		// Set the character at the given index based on the given byte.
-		assert(isMutable)
-		self.setShortSlot(IntegerSlots.RAW_LONGS_, index, anInteger)
-	}
-
 	override fun o_TupleAt(self: AvailObject, index: Int): AvailObject
 	{
 		// Answer the element at the given index in the tuple object. It's a
 		// two-byte character.
 		assert(index >= 1 && index <= self.tupleSize())
-		return fromCodePoint(
-			self.shortSlot(IntegerSlots.RAW_LONGS_, index)) as AvailObject
+		return fromCodePoint(self.shortSlot(RAW_LONGS_, index)) as AvailObject
 	}
 
 	override fun o_TupleAtPuttingCanDestroy(
@@ -299,7 +277,7 @@ class TwoByteStringDescriptor private constructor(
 			{
 				if (canDestroy && isMutable)
 				{
-					self.rawShortForCharacterAtPut(index, codePoint)
+					self.setShortSlot(RAW_LONGS_, index, codePoint)
 					self.setHashOrZero(0)
 					return self
 				}
@@ -318,7 +296,7 @@ class TwoByteStringDescriptor private constructor(
 	override fun o_TupleCodePointAt(self: AvailObject, index: Int): Int
 	{
 		assert(index >= 1 && index <= self.tupleSize())
-		return self.shortSlot(IntegerSlots.RAW_LONGS_, index)
+		return self.shortSlot(RAW_LONGS_, index)
 	}
 
 	override fun o_TupleReverse(self: AvailObject): A_Tuple
@@ -331,7 +309,7 @@ class TwoByteStringDescriptor private constructor(
 		else
 		{
 			generateTwoByteString(size) {
-				self.shortSlot(IntegerSlots.RAW_LONGS_, size + 1 - it)
+				self.shortSlot(RAW_LONGS_, size + 1 - it)
 			}
 		}
 
@@ -356,7 +334,7 @@ class TwoByteStringDescriptor private constructor(
 		for (index in end downTo start)
 		{
 			val itemHash = (computeHashOfCharacterWithCodePoint(
-				self.shortSlot(IntegerSlots.RAW_LONGS_, index))
+				self.shortSlot(RAW_LONGS_, index))
 				xor preToggle)
 			hash = (hash + itemHash) * AvailObject.multiplier
 		}
@@ -413,13 +391,13 @@ class TwoByteStringDescriptor private constructor(
 			while (src <= size2)
 			{
 				result.setShortSlot(
-					IntegerSlots.RAW_LONGS_,
+					RAW_LONGS_,
 					dest,
-					otherTuple.rawShortForCharacterAt(src))
+					otherTuple.tupleCodePointAt(src))
 				src++
 				dest++
 			}
-			result.setSlot(IntegerSlots.HASH_OR_ZERO, 0)
+			result.setSlot(HASH_OR_ZERO, 0)
 			return result
 		}
 		if (!canDestroy)
@@ -446,20 +424,24 @@ class TwoByteStringDescriptor private constructor(
 		val tupleSize = self.tupleSize()
 		assert(1 <= start && start <= end + 1 && end <= tupleSize)
 		val size = end - start + 1
-		return if (size in 1 until tupleSize && size <= maximumCopySize)
-		{
-			// It's not empty, it's not a total copy, and it's reasonably small.
-			// Just copy the applicable shorts out.  In theory we could use
-			// newLike() if start is 1.  Make sure to mask the last word in that
-			// case.
-			generateTwoByteString(size) {
-				self.shortSlot(IntegerSlots.RAW_LONGS_, it + start - 1)
-			}
-		}
-		else
-		{
-			super.o_CopyTupleFromToCanDestroy(
-				self, start, end, canDestroy)
+		return when {
+			size == 0 -> emptyTuple
+			size == tupleSize ->
+				// It's the whole string.
+				if (canDestroy) self else self.makeImmutable()
+			size > maximumCopySize ->
+				// Too big for copying, so let the super create a subrange.
+				super.o_CopyTupleFromToCanDestroy(self, start, end, canDestroy)
+			(start..end).all { self.shortSlot(RAW_LONGS_, it) <= 255 } ->
+				// Can be a byte-string.
+				generateByteString(size) {
+					self.shortSlot(RAW_LONGS_, it + start - 1)
+				}
+			else ->
+				// Copy the two-byte codepoints.
+				generateTwoByteString(size) {
+					self.shortSlot(RAW_LONGS_, it + start - 1)
+				}
 		}
 	}
 
@@ -560,9 +542,7 @@ class TwoByteStringDescriptor private constructor(
 			val result = mutableTwoByteStringOfSize(size)
 			var counter = 1
 			// Aggregate four writes at a time for the bulk of the string.
-			var slotIndex = 1
-			val limit = size ushr 2
-			while (slotIndex <= limit)
+			for (slotIndex in 1..(size ushr 2))
 			{
 				var combined: Long = 0
 				var shift = 0
@@ -573,15 +553,14 @@ class TwoByteStringDescriptor private constructor(
 					combined += c shl shift
 					shift += 16
 				}
-				result.setSlot(IntegerSlots.RAW_LONGS_, slotIndex, combined)
-				slotIndex++
+				result.setSlot(RAW_LONGS_, slotIndex, combined)
 			}
 			// Do the last 0-3 writes the slow way.
 			for (index in (size and 3.inv()) + 1 .. size)
 			{
 				val c = generator(counter++).toLong()
 				assert(c and 0xFFFF == c)
-				result.setShortSlot(IntegerSlots.RAW_LONGS_, index, c.toInt())
+				result.setShortSlot(RAW_LONGS_, index, c.toInt())
 			}
 			return result
 		}

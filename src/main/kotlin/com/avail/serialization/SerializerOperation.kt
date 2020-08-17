@@ -46,7 +46,7 @@ import com.avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.HERITABLE_KEY
-import com.avail.descriptor.atoms.AtomWithPropertiesDescriptor.Companion.createAtomWithProperties
+import com.avail.descriptor.atoms.AtomWithPropertiesSharedDescriptor
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import com.avail.descriptor.bundles.A_Bundle.Companion.macrosTuple
@@ -3534,8 +3534,8 @@ enum class SerializerOperation constructor(
 				{
 					return trueNames.asTuple().tupleAt(1)
 				}
-				val atom = createAtomWithProperties(atomName, currentModule)
-				atom.makeImmutable()
+				val atom = AtomWithPropertiesSharedDescriptor.shared
+					.createInitialized(atomName, currentModule, nil, 0)
 				currentModule.addPrivateName(atom)
 				return atom
 			}

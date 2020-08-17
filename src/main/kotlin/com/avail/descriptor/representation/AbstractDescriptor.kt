@@ -1728,13 +1728,6 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_RawByteForCharacterAt (self: AvailObject, index: Int): Short
 
-	abstract fun o_RawShortForCharacterAt (self: AvailObject, index: Int): Int
-
-	abstract fun o_RawShortForCharacterAtPut (
-		self: AvailObject,
-		index: Int,
-		anInteger: Int)
-
 	abstract fun o_RawSignedIntegerAt (self: AvailObject, index: Int): Int
 
 	abstract fun o_RawSignedIntegerAtPut (
@@ -3830,6 +3823,8 @@ abstract class AbstractDescriptor protected constructor (
 	): AvailObject
 
 	abstract fun o_ExtractDumpedLongAt (self: AvailObject, index: Int): Long
+
+	abstract fun o_SetAtomBundle(self: AvailObject, bundle: A_Bundle)
 
 	companion object
 	{

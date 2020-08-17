@@ -455,7 +455,8 @@ abstract class PojoTypeDescriptor protected constructor(
 		 */
 		private val byteRange: A_Type =
 			IntegerRangeTypeDescriptor.inclusive(
-				java.lang.Byte.MIN_VALUE.toLong(), java.lang.Byte.MAX_VALUE.toLong()).makeShared()
+				Byte.MIN_VALUE.toLong(),
+				Byte.MAX_VALUE.toLong()).makeShared()
 
 		/**
 		 * Answer the [integer&#32;range&#32;type][IntegerRangeTypeDescriptor]
@@ -473,7 +474,8 @@ abstract class PojoTypeDescriptor protected constructor(
 		 */
 		private val shortRange: A_Type =
 			IntegerRangeTypeDescriptor.inclusive(
-				java.lang.Short.MIN_VALUE.toLong(), java.lang.Short.MAX_VALUE.toLong()).makeShared()
+				Short.MIN_VALUE.toLong(),
+				Short.MAX_VALUE.toLong()).makeShared()
 
 		/**
 		 * Answer the [integer&#32;range&#32;type][IntegerRangeTypeDescriptor]
@@ -523,8 +525,8 @@ abstract class PojoTypeDescriptor protected constructor(
 		 */
 		private val charRange: A_Type =
 			IntegerRangeTypeDescriptor.inclusive(
-				Character.MIN_VALUE.toLong(), Character.MAX_VALUE.toLong())
-				.makeShared()
+				Character.MIN_VALUE.toLong(),
+				Character.MAX_VALUE.toLong()).makeShared()
 
 		/**
 		 * Answer the [integer&#32;range&#32;type][IntegerRangeTypeDescriptor]

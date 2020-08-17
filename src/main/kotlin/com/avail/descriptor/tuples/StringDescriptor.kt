@@ -39,14 +39,15 @@ import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.IntegerSlotsEnum
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
-import com.avail.descriptor.tuples.A_Tuple.Companion.rawShortForCharacterAt
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAtPuttingCanDestroy
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.ByteStringDescriptor.Companion.createUninitializedByteString
+import com.avail.descriptor.tuples.ByteStringDescriptor.Companion.mutableObjectFromNativeByteString
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import com.avail.descriptor.tuples.TwoByteStringDescriptor.Companion.generateTwoByteString
+import com.avail.descriptor.tuples.TwoByteStringDescriptor.Companion.mutableObjectFromNativeTwoByteString
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.TypeDescriptor.Types.CHARACTER
 import com.avail.serialization.SerializerOperation
@@ -88,7 +89,7 @@ abstract class StringDescriptor protected constructor(
 		val size = self.tupleSize()
 		for (i in 1 .. size)
 		{
-			val codePoint = self.rawShortForCharacterAt(i)
+			val codePoint = self.tupleCodePointAt(i)
 			if (codePoint >= 256)
 			{
 				return SerializerOperation.SHORT_STRING
@@ -164,8 +165,7 @@ abstract class StringDescriptor protected constructor(
 			}
 			return if (maxChar <= 255)
 			{
-				ByteStringDescriptor
-					.mutableObjectFromNativeByteString(aNativeString)
+				mutableObjectFromNativeByteString(aNativeString)
 			}
 			else
 			{
@@ -209,13 +209,11 @@ abstract class StringDescriptor protected constructor(
 			}
 			if (maxCodePoint <= 255)
 			{
-				return ByteStringDescriptor
-					.mutableObjectFromNativeByteString(aNativeString)
+				return mutableObjectFromNativeByteString(aNativeString)
 			}
 			if (maxCodePoint <= 65535)
 			{
-				return TwoByteStringDescriptor
-					.mutableObjectFromNativeTwoByteString(aNativeString)
+				return mutableObjectFromNativeTwoByteString(aNativeString)
 			}
 			// Fall back to building a general object tuple containing Avail
 			// character objects.

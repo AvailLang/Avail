@@ -335,11 +335,11 @@ class InstanceMetaDescriptor private constructor(mutability: Mutability)
 
 	override fun o_KeyType(self: AvailObject): A_Type = unsupported
 
+	override fun o_ValueType(self: AvailObject): A_Type = unsupported
+
 	override fun o_Parent(self: AvailObject): A_BasicObject = unsupported
 
 	override fun o_ReturnType(self: AvailObject): A_Type = unsupported
-
-	override fun o_ValueType(self: AvailObject): A_Type = unsupported
 
 	override fun o_ReadType(self: AvailObject): A_Type = unsupported
 

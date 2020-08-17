@@ -83,6 +83,9 @@ interface A_Atom : A_BasicObject {
 		 */
 		fun A_Atom.extractBoolean(): Boolean = dispatch { o_ExtractBoolean(it) }
 
+		fun A_Atom.setAtomBundle(bundle: A_Bundle) =
+			dispatch { o_SetAtomBundle(it, bundle) }
+
 		/**
 		 * Set the specified property of this atom to the specified value.
 		 * Normal atoms have properties that can be set and read in this way,

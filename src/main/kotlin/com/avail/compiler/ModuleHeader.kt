@@ -39,9 +39,8 @@ import com.avail.compiler.splitter.MessageSplitter
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
 import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrNil
-import com.avail.descriptor.atoms.A_Atom.Companion.setAtomProperty
-import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.MESSAGE_BUNDLE_KEY
-import com.avail.descriptor.atoms.AtomWithPropertiesDescriptor.Companion.createAtomWithProperties
+import com.avail.descriptor.atoms.A_Atom.Companion.setAtomBundle
+import com.avail.descriptor.atoms.AtomWithPropertiesSharedDescriptor
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import com.avail.descriptor.bundles.A_Bundle.Companion.macrosTuple
@@ -57,6 +56,7 @@ import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
@@ -258,7 +258,8 @@ class ModuleHeader constructor(val moduleName: ResolvedModuleName)
 		module.setVersions(setFromCollection(versions))
 
 		val newAtoms = exportedNames.fold(emptySet) { set, name ->
-			val trueName = createAtomWithProperties(name, module)
+			val trueName = AtomWithPropertiesSharedDescriptor.shared
+				.createInitialized(name, module, nil, 0)
 			module.introduceNewName(trueName)
 			set.setWithElementCanDestroy(trueName, true)
 		}
@@ -366,7 +367,8 @@ class ModuleHeader constructor(val moduleName: ResolvedModuleName)
 				else
 				{
 					// Create it.
-					newAtom = createAtomWithProperties(newString, module)
+					newAtom = AtomWithPropertiesSharedDescriptor.shared
+						.createInitialized(newString, module, nil, 0)
 					module.introduceNewName(newAtom)
 				}
 				// Now tie the bundles together.
@@ -378,7 +380,7 @@ class ModuleHeader constructor(val moduleName: ResolvedModuleName)
 					val method = oldBundle.bundleMethod()
 					newBundle =
 						newBundle(newAtom, method, MessageSplitter(newString))
-					newAtom.setAtomProperty(MESSAGE_BUNDLE_KEY.atom, newBundle)
+					newAtom.setAtomBundle(newBundle)
 					atomsToImport =
 						atomsToImport.setWithElementCanDestroy(newAtom, true)
 					val copyMacros =
@@ -428,7 +430,8 @@ class ModuleHeader constructor(val moduleName: ResolvedModuleName)
 				{
 					0 ->
 					{
-						trueName = createAtomWithProperties(name, module)
+						trueName = AtomWithPropertiesSharedDescriptor.shared
+							.createInitialized(name, module, nil, 0)
 						module.addPrivateName(trueName)
 					}
 					1 ->

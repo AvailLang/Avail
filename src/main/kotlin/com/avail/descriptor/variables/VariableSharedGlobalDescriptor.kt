@@ -51,6 +51,7 @@ import com.avail.descriptor.types.TypeTag
 import com.avail.descriptor.types.VariableTypeDescriptor
 import com.avail.descriptor.variables.VariableSharedGlobalDescriptor.IntegerSlots.Companion.HASH_ALWAYS_SET
 import com.avail.descriptor.variables.VariableSharedGlobalDescriptor.IntegerSlots.Companion.VALUE_IS_STABLE
+import com.avail.descriptor.variables.VariableSharedGlobalDescriptor.IntegerSlots.HASH_AND_MORE
 import com.avail.descriptor.variables.VariableSharedGlobalDescriptor.ObjectSlots.DEPENDENT_CHUNKS_WEAK_SET_POJO
 import com.avail.descriptor.variables.VariableSharedGlobalDescriptor.ObjectSlots.GLOBAL_NAME
 import com.avail.descriptor.variables.VariableSharedGlobalDescriptor.ObjectSlots.KIND
@@ -203,7 +204,7 @@ class VariableSharedGlobalDescriptor private constructor(
 		|| e === VALUE
 		|| e === WRITE_REACTORS
 		|| e === DEPENDENT_CHUNKS_WEAK_SET_POJO
-		|| e === IntegerSlots.HASH_AND_MORE) // only for flags.
+		|| e === HASH_AND_MORE) // only for flags.
 
 	override fun o_GlobalModule(self: AvailObject): A_Module =
 		self.slot(MODULE)

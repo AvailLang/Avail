@@ -32,7 +32,11 @@
 package com.avail.descriptor.atoms
 
 import com.avail.annotations.HideFieldInDebugger
+import com.avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
+import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY
+import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.HERITABLE_KEY
 import com.avail.descriptor.atoms.AtomWithPropertiesDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
+import com.avail.descriptor.atoms.AtomWithPropertiesDescriptor.IntegerSlots.HASH_AND_MORE
 import com.avail.descriptor.atoms.AtomWithPropertiesDescriptor.ObjectSlots.ISSUING_MODULE
 import com.avail.descriptor.atoms.AtomWithPropertiesDescriptor.ObjectSlots.NAME
 import com.avail.descriptor.atoms.AtomWithPropertiesDescriptor.ObjectSlots.PROPERTY_MAP_POJO
@@ -51,6 +55,7 @@ import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.types.TypeTag
 import com.avail.serialization.Serializer
+import com.avail.serialization.SerializerOperation
 import java.util.WeakHashMap
 
 /**
@@ -143,7 +148,9 @@ open class AtomWithPropertiesDescriptor protected constructor(
 		ISSUING_MODULE,
 
 		/**
-		 * A weak map from this atom's property keys (atoms) to property values.
+		 * A pojo holding a weak map from this atom's property keys (atoms) to
+		 * property values.  It's never [nil] for this descriptor class, but it
+		 * may be [nil] in the [Mutability.SHARED] subclass.
 		 */
 		PROPERTY_MAP_POJO;
 
@@ -160,47 +167,7 @@ open class AtomWithPropertiesDescriptor protected constructor(
 	override fun allowsImmutableToMutableReferenceInField(
 		e: AbstractSlotsEnum
 	) = super.allowsImmutableToMutableReferenceInField(e)
-		|| e === IntegerSlots.HASH_AND_MORE
-		|| e === PROPERTY_MAP_POJO
-
-	override fun o_MakeShared(self: AvailObject): AvailObject {
-		assert(!isShared)
-		// The layout of the destination descriptor is the same, so nothing
-		// special needs to happen, i.e., object doesn't need to become an
-		// indirection.
-		val propertyMapPojo = self.slot(PROPERTY_MAP_POJO)
-		propertyMapPojo.makeShared()
-		val propertyMap: Map<A_Atom, AvailObject> =
-			propertyMapPojo.javaObjectNotNull()
-		// No need to lock it, since it hasn't been shared with other fibers.
-		for ((key, value) in propertyMap.entries) {
-			key.makeShared()
-			value.makeShared()
-		}
-		self.setDescriptor(AtomWithPropertiesSharedDescriptor.shared)
-		return self
-	}
-
-	/**
-	 * Add or replace a property of this
-	 * [atom&#32;with&#32;properties][AtomDescriptor].
-	 */
-	override fun o_SetAtomProperty(
-		self: AvailObject,
-		key: A_Atom,
-		value: A_BasicObject
-	) {
-		assert(key.isAtom)
-		val propertyMapPojo = self.slot(PROPERTY_MAP_POJO)
-		val map: MutableMap<A_Atom, A_BasicObject> =
-			propertyMapPojo.javaObjectNotNull()
-		synchronized(map) {
-			when {
-				value.equalsNil() -> map.remove(key)
-				else -> map[key.makeShared()] = value.makeShared()
-			}
-		}
-	}
+		|| e === HASH_AND_MORE
 
 	/**
 	 * Extract the property value of this atom at the specified key.  Return
@@ -214,7 +181,57 @@ open class AtomWithPropertiesDescriptor protected constructor(
 		val propertyMapPojo: A_BasicObject = self.slot(PROPERTY_MAP_POJO)
 		val propertyMap: Map<A_Atom, AvailObject> =
 			propertyMapPojo.javaObjectNotNull()
-		return synchronized(propertyMap) { propertyMap[key] } ?: nil
+		return propertyMap[key] ?: nil
+	}
+
+	override fun o_MakeShared(self: AvailObject): AvailObject {
+		assert(!isShared)
+		val propertyMapPojo = self.slot(PROPERTY_MAP_POJO)
+		assert(!propertyMapPojo.equalsNil())
+		val substituteAtom: AvailObject =
+			AtomWithPropertiesSharedDescriptor.shared.createInitialized(
+				self.slot(NAME),
+				self.slot(ISSUING_MODULE),
+				propertyMapPojo,
+				self.slot(HASH_OR_ZERO))
+		self.becomeIndirectionTo(substituteAtom)
+		// In case a property key is the atom itself, only make the property
+		// keys and atoms shared after making self shared.  Otherwise there
+		// could be unbounded recursion.
+		val propertyMap: Map<A_Atom, AvailObject> =
+			propertyMapPojo.javaObjectNotNull()
+		propertyMap.forEach { (key, value) ->
+			key.makeShared()
+			value.makeShared()
+		}
+		return substituteAtom
+	}
+
+	override fun o_SerializerOperation (self: AvailObject) = when {
+		!self.getAtomProperty(HERITABLE_KEY.atom).equalsNil() ->
+			SerializerOperation.HERITABLE_ATOM
+		!self.getAtomProperty(EXPLICIT_SUBCLASSING_KEY.atom).equalsNil() ->
+			SerializerOperation.EXPLICIT_SUBCLASS_ATOM
+		else -> SerializerOperation.ATOM
+	}
+
+	/**
+	 * Add or replace a property of this
+	 * [atom&#32;with&#32;properties][AtomWithPropertiesDescriptor].
+	 */
+	override fun o_SetAtomProperty(
+		self: AvailObject,
+		key: A_Atom,
+		value: A_BasicObject
+	) {
+		assert(key.isAtom)
+		val propertyMapPojo = self.slot(PROPERTY_MAP_POJO)
+		val map: MutableMap<A_Atom, A_BasicObject> =
+			propertyMapPojo.javaObjectNotNull()
+		when {
+			value.equalsNil() -> map.remove(key)
+			else -> map[key.makeShared()] = value.makeShared()
+		}
 	}
 
 	override fun mutable() = mutable
@@ -222,33 +239,6 @@ open class AtomWithPropertiesDescriptor protected constructor(
 	override fun immutable() = immutable
 
 	companion object {
-		/**
-		 * Create a new atom with the given name.  The name is not globally
-		 * unique, but serves to help to visually distinguish atoms.  In this
-		 * class, the created object already has an empty property map.
-		 *
-		 * @param name
-		 *   A string used to help identify the new atom.
-		 * @param issuingModule
-		 *   Which [module][ModuleDescriptor] was active when the atom was
-		 *   created.
-		 * @return
-		 *   The new atom, not equal to any object in use before this method was
-		 *   invoked.
-		 */
-		@JvmStatic
-		fun createAtomWithProperties(
-			name: A_String,
-			issuingModule: A_Module
-		): AvailObject = mutable.createShared {
-			setSlot(NAME, name)
-			setSlot(ISSUING_MODULE, issuingModule)
-			setSlot(
-				PROPERTY_MAP_POJO,
-				identityPojo(WeakHashMap<A_Atom, A_BasicObject>()))
-			setSlot(HASH_OR_ZERO, 0)
-		}
-
 		/**
 		 * Create a new atom with the given name, module, and hash value.  The
 		 * name is not globally unique, but serves to help to visually
@@ -262,24 +252,24 @@ open class AtomWithPropertiesDescriptor protected constructor(
 		 *   An [A_String] used to help identify the new atom.
 		 * @param issuingModule
 		 *   The [A_Module] that issued this atom.
-		 * @param originalHash
-		 *   The hash value that must be set for this atom, or zero if it
-		 *   doesn't matter.
+		 * @param originalHashOrZero
+		 *   The hash value that must be set for this atom, or zero if it has
+		 *   not yet been computed.
 		 * @return
 		 *   The new atom, not equal to any object in use before this method was
 		 *   invoked.
 		 */
-		fun createWithNameAndModuleAndHash(
+		fun createWithProperties(
 			name: A_String,
 			issuingModule: A_Module,
-			originalHash: Int
-		): AvailObject = mutable.createShared {
+			originalHashOrZero: Int
+		): AvailObject = mutable.create {
 			setSlot(NAME, name)
 			setSlot(ISSUING_MODULE, issuingModule)
 			setSlot(
 				PROPERTY_MAP_POJO,
 				identityPojo(WeakHashMap<A_Atom, A_BasicObject>()))
-			setSlot(HASH_OR_ZERO, originalHash)
+			setSlot(HASH_OR_ZERO, originalHashOrZero)
 		}
 
 		/** The mutable [AtomWithPropertiesDescriptor].  */

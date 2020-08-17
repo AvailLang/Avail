@@ -43,7 +43,6 @@ import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
 import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrNil
 import com.avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
-import com.avail.descriptor.atoms.A_Atom.Companion.setAtomProperty
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
@@ -51,7 +50,6 @@ import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import com.avail.descriptor.bundles.A_Bundle.Companion.definitionParsingPlans
-import com.avail.descriptor.bundles.A_Bundle.Companion.message
 import com.avail.descriptor.bundles.A_Bundle.Companion.removeGrammaticalRestriction
 import com.avail.descriptor.bundles.A_Bundle.Companion.removeMacro
 import com.avail.descriptor.character.CharacterDescriptor
@@ -1200,7 +1198,6 @@ class AvailRuntime constructor(val moduleNameResolver: ModuleNameResolver)
 			put(SpecialAtom.FILE_KEY.atom)
 			put(SpecialAtom.HERITABLE_KEY.atom)
 			put(SpecialAtom.MACRO_BUNDLE_KEY.atom)
-			put(SpecialAtom.MESSAGE_BUNDLE_KEY.atom)
 			put(SpecialAtom.OBJECT_TYPE_NAME_PROPERTY_KEY.atom)
 			put(SpecialAtom.SERVER_SOCKET_KEY.atom)
 			put(SpecialAtom.SOCKET_KEY.atom)
@@ -1339,8 +1336,7 @@ class AvailRuntime constructor(val moduleNameResolver: ModuleNameResolver)
 
 	/**
 	 * Unbind the specified [definition][DefinitionDescriptor] from the runtime
-	 * system.  If no definitions or grammatical restrictions remain in its
-	 * [method][MethodDescriptor], then remove all of its bundles.
+	 * system.
 	 *
 	 * @param definition
 	 *   A definition.
@@ -1349,19 +1345,7 @@ class AvailRuntime constructor(val moduleNameResolver: ModuleNameResolver)
 	fun removeDefinition(definition: A_Definition)
 	{
 		runtimeLock.write{
-			val method = definition.definitionMethod()
-			method.removeDefinition(definition)
-			if (method.isMethodEmpty())
-			{
-				for (bundle in method.bundles())
-				{
-					// Remove the desiccated message bundle from its atom.
-					val atom: A_Atom = bundle.message()
-					atom.setAtomProperty(
-						SpecialAtom.MESSAGE_BUNDLE_KEY.atom,
-						nil)
-				}
-			}
+			definition.definitionMethod().removeDefinition(definition)
 		}
 	}
 

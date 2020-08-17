@@ -174,7 +174,7 @@ Test "is mutable (set)" in mutability visitors test suite is
 [
 	var : string;
 	Require: ¬1 to 100→set is mutable;
-	Require: ¬¢"a" to ¢ "z"→set is mutable;
+	Require: ¬¢"a" to ¢"z"→set is mutable;
 	Require: ¬{
 			"Nerva",
 			"Trajan",
@@ -190,7 +190,7 @@ Test "is mutable (tuple)" in mutability visitors test suite is
 [
 	var : string;
 	Require: ¬1 to 100 is mutable;
-	Require: ¬¢"a" to ¢ "z" is mutable;
+	Require: ¬¢"a" to ¢"z" is mutable;
 	Require: ¬<
 		"Nerva",
 		"Trajan",

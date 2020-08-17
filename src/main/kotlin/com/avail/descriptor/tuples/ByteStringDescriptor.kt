@@ -47,7 +47,6 @@ import com.avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithByteString
 import com.avail.descriptor.tuples.A_Tuple.Companion.concatenateWith
 import com.avail.descriptor.tuples.A_Tuple.Companion.copyAsMutableObjectTuple
 import com.avail.descriptor.tuples.A_Tuple.Companion.rawByteForCharacterAt
-import com.avail.descriptor.tuples.A_Tuple.Companion.rawShortForCharacterAtPut
 import com.avail.descriptor.tuples.A_Tuple.Companion.treeTupleLevel
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAtPuttingCanDestroy
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
@@ -56,11 +55,12 @@ import com.avail.descriptor.tuples.ByteStringDescriptor.IntegerSlots.RAW_LONGS_
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.TreeTupleDescriptor.Companion.concatenateAtLeastOneTree
 import com.avail.descriptor.tuples.TreeTupleDescriptor.Companion.createTwoPartTreeTuple
-import com.avail.descriptor.tuples.TwoByteStringDescriptor.Companion.mutableTwoByteStringOfSize
+import com.avail.descriptor.tuples.TwoByteStringDescriptor.Companion.generateTwoByteString
 import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.serialization.SerializerOperation
+import com.avail.utility.structures.EnumMap.Companion.enumMap
 
 /**
  * `ByteStringDescriptor` represents a string of Latin-1 characters.
@@ -249,8 +249,7 @@ class ByteStringDescriptor private constructor(
 	{
 		if (isMutable)
 		{
-			self.setDescriptor(
-				descriptorFor(Mutability.IMMUTABLE, self.tupleSize()))
+			self.setDescriptor(immutable())
 		}
 		return self
 	}
@@ -259,8 +258,7 @@ class ByteStringDescriptor private constructor(
 	{
 		if (!isShared)
 		{
-			self.setDescriptor(
-				descriptorFor(Mutability.SHARED, self.tupleSize()))
+			self.setDescriptor(shared())
 		}
 		return self
 	}
@@ -522,9 +520,7 @@ class ByteStringDescriptor private constructor(
 			val result = descriptor.mutableObjectOfSize(size)
 			var counter = 1
 			// Aggregate eight writes at a time for the bulk of the string.
-			var slotIndex = 1
-			val limit = size ushr 3
-			while (slotIndex <= limit)
+			for (slotIndex in 1..(size ushr 3))
 			{
 				var combined: Long = 0
 				var shift = 0
@@ -536,7 +532,6 @@ class ByteStringDescriptor private constructor(
 					shift += 8
 				}
 				result.setSlot(RAW_LONGS_, slotIndex, combined)
-				slotIndex++
 			}
 			// Do the last 0-7 writes the slow way.
 			for (index in (size and 7.inv()) + 1 .. size)
@@ -560,16 +555,10 @@ class ByteStringDescriptor private constructor(
 		private fun copyAsMutableTwoByteString(
 			self: AvailObject): A_String
 		{
-			val result: A_String = mutableTwoByteStringOfSize(self.tupleSize())
-			result.setHashOrZero(self.hashOrZero())
-			var i = 1
-			val end = self.tupleSize()
-			while (i <= end)
-			{
-				result.rawShortForCharacterAtPut(
-					i, self.byteSlot(RAW_LONGS_, i).toInt())
-				i++
+			val result = generateTwoByteString(self.tupleSize()) {
+				self.byteSlot(RAW_LONGS_, it).toInt()
 			}
+			result.setHashOrZero(self.hashOrZero())
 			return result
 		}
 
@@ -583,9 +572,11 @@ class ByteStringDescriptor private constructor(
 		 *   A corresponding Avail [A_String].
 		 */
 		fun mutableObjectFromNativeByteString(
-			aNativeByteString: String): AvailObject =
-				generateByteString(aNativeByteString.length)
-					{ aNativeByteString[it - 1].toInt() }
+			aNativeByteString: String
+		): AvailObject =
+			generateByteString(aNativeByteString.length) {
+				aNativeByteString[it - 1].toInt()
+			}
 
 		/**
 		 * Create a mutable byte string of the specified size, where all
@@ -609,14 +600,22 @@ class ByteStringDescriptor private constructor(
 			AvailObject::class.java,
 			Int::class.javaPrimitiveType!!)
 
-		/** The [ByteStringDescriptor] instances.  */
-		private val descriptors = arrayOfNulls<ByteStringDescriptor>(8 * 3)
+		/**
+		 * The [ByteStringDescriptor] instances.  Each [Array] is indexed by the
+		 * number of spare bytes it contains, [0..7], which is *not* in the
+		 * order of tuple sizes.
+		 */
+		private val descriptors = enumMap(Mutability.values()) { mut ->
+			Array(8) {
+				ByteStringDescriptor(mut, it)
+			}
+		}
 
 		/**
 		 * Answer the appropriate `ByteStringDescriptor` to represent an
 		 * [object][AvailObject] of the specified mutability and size.
 		 *
-		 * @param flag
+		 * @param mutability
 		 *   The [mutability][Mutability] of the new descriptor.
 		 * @param size
 		 *   The desired number of elements.
@@ -625,34 +624,17 @@ class ByteStringDescriptor private constructor(
 		 *   the given mutability and [size][A_Tuple.tupleSize].
 		 */
 		private fun descriptorFor(
-			flag: Mutability,
-			size: Int): ByteStringDescriptor =
-				descriptors[(size and 7) * 3 + flag.ordinal]!!
-
-		init
-		{
-			var i = 0
-			for (excess in intArrayOf(0, 7, 6, 5, 4, 3, 2, 1))
-			{
-				descriptors[i++] =
-					ByteStringDescriptor(Mutability.MUTABLE, excess)
-				descriptors[i++] =
-					ByteStringDescriptor(Mutability.IMMUTABLE, excess)
-				descriptors[i++] =
-					ByteStringDescriptor(Mutability.SHARED, excess)
-			}
-		}
+			mutability: Mutability,
+			size: Int
+		): ByteStringDescriptor = descriptors[mutability][-size and 7]
 	}
 
 	override fun mutable(): ByteStringDescriptor =
-		descriptors[(8 - unusedBytesOfLastLong and 7) * 3
-			+ Mutability.MUTABLE.ordinal]!!
+		descriptors[Mutability.MUTABLE][unusedBytesOfLastLong]
 
 	override fun immutable(): ByteStringDescriptor =
-		descriptors[(8 - unusedBytesOfLastLong and 7) * 3
-		   + Mutability.IMMUTABLE.ordinal]!!
+		descriptors[Mutability.IMMUTABLE][unusedBytesOfLastLong]
 
 	override fun shared(): ByteStringDescriptor =
-		descriptors[(8 - unusedBytesOfLastLong and 7) * 3
-					+ Mutability.SHARED.ordinal]!!
+		descriptors[Mutability.SHARED][unusedBytesOfLastLong]
 }

@@ -32,6 +32,7 @@
 
 package com.avail.builder
 
+import com.avail.AvailTask
 import com.avail.compiler.ModuleHeader
 import com.avail.compiler.problems.Problem
 import com.avail.compiler.problems.ProblemHandler
@@ -244,7 +245,13 @@ internal class DocumentationTracer constructor(
 	 */
 	fun load(problemHandler: ProblemHandler) =
 		availBuilder.moduleGraph.parallelVisit { moduleName, completionAction ->
-			scheduleLoadComments(moduleName, problemHandler, completionAction)
+			availBuilder.runtime.execute(
+				AvailTask(loaderPriority) {
+					scheduleLoadComments(
+						moduleName,
+						problemHandler,
+						completionAction)
+				})
 		}
 
 	/**

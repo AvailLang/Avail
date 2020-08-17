@@ -39,6 +39,7 @@ package com.avail.descriptor.tokens
  import com.avail.descriptor.atoms.A_Atom.Companion.setAtomProperty
  import com.avail.descriptor.atoms.AtomDescriptor.Companion.createSpecialAtom
  import com.avail.descriptor.numbers.IntegerDescriptor
+ import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
  import com.avail.descriptor.pojos.RawPojoDescriptor
  import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
  import com.avail.descriptor.representation.A_BasicObject
@@ -217,7 +218,7 @@ open class TokenDescriptor protected constructor(
 			createSpecialAtom(name.toLowerCase().replace('_', ' ')).apply {
 				setAtomProperty(
 					StaticInit.tokenTypeOrdinalKey,
-					IntegerDescriptor.fromInt(ordinal))
+					fromInt(ordinal))
 			}
 
 		companion object

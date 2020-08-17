@@ -36,7 +36,7 @@ import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.atoms.A_Atom.Companion.atomName
 import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrNil
 import com.avail.descriptor.atoms.A_Atom.Companion.extractBoolean
-import com.avail.descriptor.atoms.A_Atom.Companion.setAtomProperty
+import com.avail.descriptor.atoms.A_Atom.Companion.setAtomBundle
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
@@ -780,10 +780,7 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 		for (bundle in self.slot(BUNDLES))
 		{
 			// Remove the bundle from the atom.
-			val atom: A_Atom = bundle.message()
-			atom.setAtomProperty(
-				AtomDescriptor.SpecialAtom.MESSAGE_BUNDLE_KEY.atom,
-				nil)
+			bundle.message().setAtomBundle(nil)
 			// Remove the bundle from the method.
 			bundle.bundleMethod().methodRemoveBundle(bundle)
 		}

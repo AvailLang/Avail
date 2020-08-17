@@ -36,7 +36,6 @@ import org.jetbrains.annotations.Contract
 import java.util.ArrayDeque
 import java.util.Comparator
 import java.util.Deque
-import java.util.concurrent.Semaphore
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -588,14 +587,39 @@ class Graph<Vertex> constructor ()
 	fun parallelVisit (visitAction: (Vertex, () -> Unit) -> Unit)
 	{
 		assert(!isCyclic)
-		val semaphore = Semaphore(0)
 		val safetyCheck = AtomicBoolean(false)
-		parallelVisitThen(visitAction) {
-			val old = safetyCheck.getAndSet(true)
-			assert(!old) { "Reached end of graph traversal twice" }
-			semaphore.release()
+		val workQueue = ArrayDeque<() -> Unit>()
+		val monitor = Object()
+		val wrappedAction = { vertex: Vertex, doneOne: () -> Unit ->
+			synchronized(monitor) {
+				workQueue.add { visitAction(vertex, doneOne) }
+				monitor.notify()
+			}
 		}
-		semaphore.acquireUninterruptibly()
+		var allDoneFlag = false
+		parallelVisitThen(
+			wrappedAction,
+			{
+				val old = safetyCheck.getAndSet(true)
+				assert(!old) { "Reached end of graph traversal twice" }
+				synchronized(monitor) {
+					allDoneFlag = true
+					monitor.notify()
+				}
+			})
+		var isDone: Boolean
+		synchronized(monitor) {
+			do
+			{
+				while (workQueue.isNotEmpty())
+				{
+					workQueue.remove()()
+				}
+				isDone = allDoneFlag
+				if (!isDone) monitor.wait()
+			}
+			while (!isDone)
+		}
 	}
 
 	/**

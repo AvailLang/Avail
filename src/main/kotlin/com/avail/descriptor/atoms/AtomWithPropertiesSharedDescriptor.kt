@@ -31,20 +31,45 @@
  */
 package com.avail.descriptor.atoms
 
+import com.avail.AvailRuntimeSupport
 import com.avail.annotations.HideFieldInDebugger
+import com.avail.compiler.splitter.MessageSplitter
+import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrNil
+import com.avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
+import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY
+import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.HERITABLE_KEY
 import com.avail.descriptor.atoms.AtomWithPropertiesSharedDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
+import com.avail.descriptor.atoms.AtomWithPropertiesSharedDescriptor.IntegerSlots.HASH_AND_MORE
+import com.avail.descriptor.atoms.AtomWithPropertiesSharedDescriptor.ObjectSlots.BUNDLE_OR_NIL
+import com.avail.descriptor.atoms.AtomWithPropertiesSharedDescriptor.ObjectSlots.ISSUING_MODULE
+import com.avail.descriptor.atoms.AtomWithPropertiesSharedDescriptor.ObjectSlots.NAME
+import com.avail.descriptor.atoms.AtomWithPropertiesSharedDescriptor.ObjectSlots.PROPERTY_MAP_POJO
 import com.avail.descriptor.bundles.A_Bundle
+import com.avail.descriptor.bundles.MessageBundleDescriptor.Companion.newBundle
+import com.avail.descriptor.methods.A_Method
+import com.avail.descriptor.methods.MethodDescriptor.Companion.newMethod
+import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.module.ModuleDescriptor
+import com.avail.descriptor.pojos.RawPojoDescriptor
+import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AbstractSlotsEnum
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObjectFieldHelper
 import com.avail.descriptor.representation.BitField
+import com.avail.descriptor.representation.IndirectionDescriptor
 import com.avail.descriptor.representation.IntegerSlotsEnum
 import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.Mutability.MUTABLE
 import com.avail.descriptor.representation.Mutability.SHARED
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.representation.ObjectSlotsEnum
+import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.types.TypeTag
 import com.avail.exceptions.MalformedMessageException
 import com.avail.serialization.Serializer
+import com.avail.serialization.SerializerOperation
+import java.util.WeakHashMap
 
 /**
  * An `atom` is an object that has identity by fiat, i.e., it is distinguished
@@ -66,6 +91,10 @@ import com.avail.serialization.Serializer
  *
  * @constructor
  *
+ * @param mutability
+ *   The [mutability][Mutability] of the new descriptor.  While at first it
+ *   seems this could always be [Mutability.SHARED], we still need a private
+ *   mutable form for a moment to make use of [createShared].
  * @param isSpecial
  *   Whether this particular descriptor is used to represent an atom that has
  *   special meaning to the Avail virtual machine.
@@ -77,10 +106,11 @@ import com.avail.serialization.Serializer
  * @see AtomWithPropertiesDescriptor
  */
 internal class AtomWithPropertiesSharedDescriptor private constructor(
+	mutability: Mutability,
 	private val isSpecial: Boolean,
 	typeTag: TypeTag
 ) : AtomWithPropertiesDescriptor(
-	SHARED, typeTag, ObjectSlots::class.java, IntegerSlots::class.java)
+	mutability, typeTag, ObjectSlots::class.java, IntegerSlots::class.java)
 {
 	/**
 	 * The layout of integer slots for my instances.
@@ -132,7 +162,13 @@ internal class AtomWithPropertiesSharedDescriptor private constructor(
 		/**
 		 * A weak map from this atom's property keys (atoms) to property values.
 		 */
-		PROPERTY_MAP_POJO;
+		PROPERTY_MAP_POJO,
+
+		/**
+		 * The [A_Bundle] associated with this [A_Atom], or [nil] if there is
+		 * none.
+		 */
+		BUNDLE_OR_NIL;
 
 		companion object {
 			init {
@@ -140,75 +176,203 @@ internal class AtomWithPropertiesSharedDescriptor private constructor(
 					== NAME.ordinal)
 				assert(AtomDescriptor.ObjectSlots.ISSUING_MODULE.ordinal
 					== ISSUING_MODULE.ordinal)
-				assert(AtomWithPropertiesDescriptor.ObjectSlots.PROPERTY_MAP_POJO.ordinal
+				assert(AtomWithPropertiesDescriptor.ObjectSlots
+					.PROPERTY_MAP_POJO.ordinal
 					== PROPERTY_MAP_POJO.ordinal)
 			}
 		}
 	}
 
-	override fun o_MakeImmutable(self: AvailObject) = self
+	override fun allowsImmutableToMutableReferenceInField(
+		e: AbstractSlotsEnum
+	) = super.allowsImmutableToMutableReferenceInField(e)
+		|| e === PROPERTY_MAP_POJO
+		|| e === BUNDLE_OR_NIL
+		|| e === HASH_AND_MORE
 
-	override fun o_MakeShared(self: AvailObject): AvailObject = self
-
-	override fun o_Hash(self: AvailObject): Int {
-		val hash = self.slot(HASH_OR_ZERO)
-		if (hash == 0) {
-			synchronized(self) {
-				return super.o_Hash(self)
-			}
+	@Throws(MalformedMessageException::class)
+	override fun o_BundleOrCreate (self: AvailObject): A_Bundle
+	{
+		var bundle: A_Bundle = self.volatileSlot(BUNDLE_OR_NIL)
+		if (!bundle.equalsNil()) return bundle
+		synchronized(self) {
+			val name: A_String = self.slot(NAME)
+			val splitter = MessageSplitter(name)
+			val method: A_Method = newMethod(splitter.numberOfArguments)
+			bundle = newBundle(self, method, splitter)
+			self.setVolatileSlot(BUNDLE_OR_NIL, bundle)
 		}
-		return hash
+		return bundle
+	}
+
+	override fun o_BundleOrNil(self: AvailObject): A_Bundle =
+		self.volatileSlot(BUNDLE_OR_NIL)
+
+	override fun o_DescribeForDebugger(
+		self: AvailObject
+	): Array<AvailObjectFieldHelper> {
+		val fields = super.o_DescribeForDebugger(self).toMutableList()
+		val bundle = self.bundleOrNil()
+		if (!bundle.equalsNil())
+		{
+			fields.add(
+				AvailObjectFieldHelper(
+					self,
+					DebuggerObjectSlots("Message bundle"),
+					-1,
+					bundle))
+		}
+		return fields.toTypedArray()
+	}
+
+	override fun o_ExtractBoolean (self: AvailObject): Boolean = when (this) {
+		sharedForTrue -> true
+		sharedForFalse -> false
+		else -> error("Atom is not a boolean")
 	}
 
 	override fun o_GetAtomProperty(
 		self: AvailObject,
 		key: A_Atom
-	): AvailObject = synchronized(self) {
-		return super.o_GetAtomProperty(self, key)
+	): AvailObject = when
+	{
+		self.volatileSlot(PROPERTY_MAP_POJO).equalsNil() -> nil
+		else -> synchronized(self) { super.o_GetAtomProperty(self, key) }
+	}
+
+	override fun o_Hash(self: AvailObject): Int {
+		// Always set (to non-zero) during construction of a shared atom.
+		return self.slot(HASH_OR_ZERO)
+	}
+
+	override fun o_IsAtomSpecial(self: AvailObject) = isSpecial
+
+	override fun o_IsBoolean (self: AvailObject) =
+		this === sharedForTrue || this === sharedForFalse
+
+	override fun o_MakeImmutable(self: AvailObject) = self
+
+	override fun o_MakeShared(self: AvailObject): AvailObject = self
+
+	override fun o_MarshalToJava (
+		self: AvailObject,
+		classHint: Class<*>?
+	): Any? = when {
+		this === sharedForTrue -> java.lang.Boolean.TRUE
+		this === sharedForFalse -> java.lang.Boolean.FALSE
+		else -> super.o_MarshalToJava(self, classHint)
+	}
+
+	override fun o_SerializerOperation (self: AvailObject) = when {
+		isSpecial -> SerializerOperation.SPECIAL_ATOM
+		!self.getAtomProperty(HERITABLE_KEY.atom).equalsNil() ->
+			SerializerOperation.HERITABLE_ATOM
+		!self.getAtomProperty(EXPLICIT_SUBCLASSING_KEY.atom).equalsNil() ->
+			SerializerOperation.EXPLICIT_SUBCLASS_ATOM
+		else -> SerializerOperation.ATOM
+	}
+
+	override fun o_SetAtomBundle(self: AvailObject, bundle: A_Bundle)
+	{
+		synchronized(self) {
+			self.setVolatileSlot(BUNDLE_OR_NIL, bundle)
+		}
 	}
 
 	override fun o_SetAtomProperty(
 		self: AvailObject,
 		key: A_Atom,
-		value: A_BasicObject
-	) = synchronized(self) {
-		super.o_SetAtomProperty(self, key.makeShared(), value.makeShared())
+		value: A_BasicObject)
+	{
+		var map = self.volatileSlot(PROPERTY_MAP_POJO)
+		if (map.equalsNil())
+		{
+			synchronized(self)
+			{
+				// Re-check the volatile field.
+				map = self.volatileSlot(PROPERTY_MAP_POJO)
+				if (map.equalsNil())
+				{
+					map = identityPojo(WeakHashMap<A_Atom, A_BasicObject>())
+					self.setVolatileSlot(PROPERTY_MAP_POJO, map)
+				}
+			}
+		}
+		synchronized(self) {
+			super.o_SetAtomProperty(self, key.makeShared(), value.makeShared())
+		}
 	}
 
-	@Throws(MalformedMessageException::class)
-	override fun o_BundleOrCreate(self: AvailObject): A_Bundle =
-		synchronized(self) {
-			return super.o_BundleOrCreate(self)
+	/**
+	 * Create a new atom with the given initialization values, then setting the
+	 * descriptor to the receiver.  The name is not globally unique, but serves
+	 * to help to visually distinguish atoms. The hash value is provided to
+	 * allow an existing non-shared [atom][AtomDescriptor] to be converted to
+	 * this shared form, after which the client can convert the original atom
+	 * into an [indirection][IndirectionDescriptor] to the new shared one.
+	 *
+	 * Note that the properties in the map, if present, are not made shared
+	 * here, as this could lead to unbounded recursion if an atom is used inside
+	 * one of its own properties.  The client should make these shared after
+	 * this method returns.
+	 *
+	 * @param name
+	 *   An [A_String] used to help identify the new atom.
+	 * @param issuingModule
+	 *   The [A_Module] that issued this atom.
+	 * @param propertyMapPojoOrNil
+	 *   Either a raw [pojo][RawPojoDescriptor] containing the weak property
+	 *   map for the new [A_Atom], or [nil].
+	 * @param originalHashOrZero
+	 *   The hash value that must be set for this atom, or zero if a non-zero
+	 *   hash should be generated now for the new atom.
+	 * @return
+	 *   The new atom, not equal to any object in use before this method was
+	 *   invoked.
+	 */
+	fun createInitialized(
+		name: A_String,
+		issuingModule: A_Module,
+		propertyMapPojoOrNil: AvailObject,
+		originalHashOrZero: Int
+	): AvailObject = initialPrivateMutable.create {
+		setSlot(NAME, name.makeShared())
+		setSlot(ISSUING_MODULE, issuingModule.makeShared())
+		setVolatileSlot(PROPERTY_MAP_POJO, propertyMapPojoOrNil)
+		val hash = when (originalHashOrZero)
+		{
+			0 -> AvailRuntimeSupport.nextNonzeroHash()
+			else -> originalHashOrZero
 		}
-
-	override fun o_BundleOrNil(self: AvailObject): A_Bundle =
-		synchronized(self) {
-			return super.o_BundleOrNil(self)
-		}
-
-	override fun o_IsAtomSpecial(self: AvailObject) = isSpecial
+		setSlot(HASH_OR_ZERO, hash)
+		setSlot(BUNDLE_OR_NIL, nil)
+		setDescriptor(this@AtomWithPropertiesSharedDescriptor)
+	}
 
 	companion object {
-		/** The shared [AtomWithPropertiesDescriptor].  */
-		val shared = AtomWithPropertiesSharedDescriptor(false, TypeTag.ATOM_TAG)
+		private val initialPrivateMutable =
+			AtomWithPropertiesSharedDescriptor(MUTABLE, false, TypeTag.ATOM_TAG)
 
-		/** The sharedAndSpecial [AtomWithPropertiesDescriptor].  */
-		val sharedAndSpecial = AtomWithPropertiesSharedDescriptor(
-			true, TypeTag.ATOM_TAG)
+		/** The shared [AtomWithPropertiesDescriptor].  */
+		val shared =
+			AtomWithPropertiesSharedDescriptor(SHARED, false, TypeTag.ATOM_TAG)
+
+		/** The shared [AtomWithPropertiesDescriptor].  */
+		val sharedSpecial =
+			AtomWithPropertiesSharedDescriptor(SHARED, true, TypeTag.ATOM_TAG)
 
 		/**
 		 * The descriptor reserved for the
 		 * [true&#32;atom][AtomDescriptor.trueObject].
 		 */
-		val sharedAndSpecialForTrue = AtomWithPropertiesSharedDescriptor(
-			true, TypeTag.TRUE_TAG)
+		val sharedForTrue =
+			AtomWithPropertiesSharedDescriptor(SHARED, true, TypeTag.TRUE_TAG)
 
 		/**
 		 * The descriptor reserved for the
 		 * [false&#32;atom][AtomDescriptor.falseObject].
 		 */
-		val sharedAndSpecialForFalse = AtomWithPropertiesSharedDescriptor(
-			true, TypeTag.FALSE_TAG)
+		val sharedForFalse =
+			AtomWithPropertiesSharedDescriptor(SHARED, true, TypeTag.FALSE_TAG)
 	}
-
 }

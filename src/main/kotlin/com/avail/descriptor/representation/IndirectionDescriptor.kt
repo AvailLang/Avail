@@ -43,6 +43,7 @@ package com.avail.descriptor.representation
  import com.avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
  import com.avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
  import com.avail.descriptor.atoms.A_Atom.Companion.issuingModule
+ import com.avail.descriptor.atoms.A_Atom.Companion.setAtomBundle
  import com.avail.descriptor.atoms.A_Atom.Companion.setAtomProperty
  import com.avail.descriptor.bundles.A_Bundle
  import com.avail.descriptor.bundles.A_Bundle.Companion.addDefinitionParsingPlan
@@ -213,8 +214,6 @@ package com.avail.descriptor.representation
  import com.avail.descriptor.tuples.A_Tuple.Companion.isBetterRepresentationThan
  import com.avail.descriptor.tuples.A_Tuple.Companion.parallelStream
  import com.avail.descriptor.tuples.A_Tuple.Companion.rawByteForCharacterAt
- import com.avail.descriptor.tuples.A_Tuple.Companion.rawShortForCharacterAt
- import com.avail.descriptor.tuples.A_Tuple.Companion.rawShortForCharacterAtPut
  import com.avail.descriptor.tuples.A_Tuple.Companion.replaceFirstChild
  import com.avail.descriptor.tuples.A_Tuple.Companion.stream
  import com.avail.descriptor.tuples.A_Tuple.Companion.transferIntoByteBuffer
@@ -1297,17 +1296,6 @@ class IndirectionDescriptor private constructor(
 		self: AvailObject,
 		index: Int
 	): Short = self .. { rawByteForCharacterAt(index) }
-
-	override fun o_RawShortForCharacterAt(
-		self: AvailObject,
-		index: Int
-	): Int = self .. { rawShortForCharacterAt(index) }
-
-	override fun o_RawShortForCharacterAtPut(
-		self: AvailObject,
-		index: Int,
-		anInteger: Int
-	) = self .. { rawShortForCharacterAtPut(index, anInteger) }
 
 	override fun o_RawSignedIntegerAt(self: AvailObject, index: Int): Int =
 		self .. { rawSignedIntegerAt(index) }
@@ -3411,4 +3399,7 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_CloseModule(self: AvailObject) =
 		self .. { closeModule() }
+
+	override fun o_SetAtomBundle(self: AvailObject, bundle: A_Bundle) =
+		self .. { setAtomBundle(bundle) }
 }

@@ -32,6 +32,7 @@
 
 package com.avail.builder
 
+import com.avail.AvailTask
 import com.avail.builder.AvailBuilder.LoadedModule
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.loaderPriority
 import com.avail.interpreter.execution.AvailLoader
@@ -202,10 +203,16 @@ internal class BuildUnloader constructor(private val availBuilder: AvailBuilder)
 	fun unloadModified()
 	{
 		availBuilder.moduleGraph.parallelVisit { moduleName, done ->
-			determineDirtyModules(moduleName, done)
+			availBuilder.runtime.execute(
+				AvailTask(loaderPriority) {
+					determineDirtyModules(moduleName, done)
+				})
 		}
 		availBuilder.moduleGraph.reverse.parallelVisit { moduleName, done ->
-			scheduleUnloadOneModule(moduleName, done)
+			availBuilder.runtime.execute(
+				AvailTask(loaderPriority) {
+					scheduleUnloadOneModule(moduleName, done)
+				})
 		}
 		// Unloading of each A_Module is complete.  Update my local structures
 		// to agree.
@@ -248,10 +255,16 @@ internal class BuildUnloader constructor(private val availBuilder: AvailBuilder)
 		}
 		var moduleCount = availBuilder.moduleGraph.vertexCount
 		availBuilder.moduleGraph.parallelVisit { moduleName, done ->
-			determineSuccessorModules(moduleName, done)
+			availBuilder.runtime.execute(
+				AvailTask(loaderPriority) {
+					determineSuccessorModules(moduleName, done)
+				})
 		}
 		availBuilder.moduleGraph.reverse.parallelVisit { moduleName, done ->
-			scheduleUnloadOneModule(moduleName, done)
+			availBuilder.runtime.execute(
+				AvailTask(loaderPriority) {
+					scheduleUnloadOneModule(moduleName, done)
+				})
 		}
 		// Unloading of each A_Module is complete.  Update my local structures
 		// to agree.

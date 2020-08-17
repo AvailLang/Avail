@@ -36,6 +36,8 @@ import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import com.avail.descriptor.maps.A_Map
+import com.avail.descriptor.maps.A_Map.Companion.keysAsSet
+import com.avail.descriptor.maps.A_Map.Companion.valuesAsTuple
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.objects.ObjectDescriptor
@@ -50,6 +52,7 @@ import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.asSet
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottomMeta
 import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
@@ -586,17 +589,29 @@ class EnumerationTypeDescriptor private constructor(mutability: Mutability)
 		anotherObject: A_BasicObject): Boolean =
 			!self.mutableSlot(CACHED_SUPERKIND).equalsNil()
 
-	override fun o_KeyType(self: AvailObject): A_Type =
-		getSuperkind(self).keyType()
+	override fun o_KeyType(self: AvailObject): A_Type
+	{
+		val possibleMaps = self.instances()
+		val possibleKeys = possibleMaps.fold(emptySet) { union, instance ->
+			union.setUnionCanDestroy(instance.keysAsSet(), false)
+		}
+		return enumerationWith(possibleKeys)
+	}
+
+	override fun o_ValueType(self: AvailObject): A_Type
+	{
+		val possibleMaps = self.instances()
+		val possibleKeys = possibleMaps.fold(emptySet) { union, instance ->
+			union.setUnionCanDestroy(instance.valuesAsTuple().asSet(), false)
+		}
+		return enumerationWith(possibleKeys)
+	}
 
 	override fun o_Parent(self: AvailObject): A_BasicObject =
 		getSuperkind(self).parent()
 
 	override fun o_ReturnType(self: AvailObject): A_Type =
 		getSuperkind(self).returnType()
-
-	override fun o_ValueType(self: AvailObject): A_Type =
-		getSuperkind(self).valueType()
 
 	override fun o_MarshalToJava(self: AvailObject, classHint: Class<*>?): Any?
 	{

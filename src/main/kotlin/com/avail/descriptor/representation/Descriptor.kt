@@ -666,15 +666,6 @@ abstract class Descriptor protected constructor (
 		self: AvailObject,
 		index: Int): Short = unsupported
 
-	override fun o_RawShortForCharacterAt (
-		self: AvailObject,
-		index: Int): Int = unsupported
-
-	override fun o_RawShortForCharacterAtPut (
-		self: AvailObject,
-		index: Int,
-		anInteger: Int): Unit = unsupported
-
 	override fun o_RawSignedIntegerAt (self: AvailObject, index: Int): Int =
 		unsupported
 
@@ -2638,4 +2629,7 @@ abstract class Descriptor protected constructor (
 	override fun o_IsOpen(self: AvailObject): Boolean = unsupported
 
 	override fun o_CloseModule (self: AvailObject): Unit = unsupported
+
+	override fun o_SetAtomBundle(self: AvailObject, bundle: A_Bundle): Unit =
+		unsupported
 }
