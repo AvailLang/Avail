@@ -36,7 +36,7 @@ import com.avail.AvailThread
 import com.avail.descriptor.atoms.A_Atom.Companion.atomName
 import com.avail.descriptor.bundles.A_Bundle.Companion.message
 import com.avail.descriptor.functions.A_RawFunction
-import com.avail.descriptor.functions.ContinuationDescriptor
+import com.avail.descriptor.functions.ContinuationDescriptor.Companion.createDummyContinuationMethod
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.NilDescriptor
@@ -302,8 +302,7 @@ class JVMTranslator constructor(
 		// [reifier, function, AvailObject[], long[], chunk]
 		intConstant(method, onReification.offset())
 		// [reifier, function, AvailObject[], long[], chunk, offset]
-		ContinuationDescriptor.createDummyContinuationMethod
-			.generateCall(method)
+		createDummyContinuationMethod.generateCall(method)
 		// [reifier, dummyContinuation]
 		// Push an action to the current StackReifier which will run the dummy
 		// continuation.

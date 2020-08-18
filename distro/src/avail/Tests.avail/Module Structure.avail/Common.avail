@@ -30,14 +30,15 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Tests"
+Module "Common"
 Versions
 	"1.4.0"
 Uses
 	"Avail"
-Extends
-	"Data Abstractions Tests",
-	"Foundation Tests",
-	"IO Tests",
-	"Module Structure"
+Names
+	"module structure test suite"
 Body
+
+/* The module structure test suite identifier. */
+"module structure test suite" is a new atom;
+module structure test suite is a new test suite;

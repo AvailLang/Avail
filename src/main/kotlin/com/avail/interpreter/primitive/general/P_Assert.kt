@@ -54,12 +54,9 @@ import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.Primitive.Flag.Unknown
 import com.avail.interpreter.Primitive.Result.FIBER_SUSPENDED
 import com.avail.interpreter.execution.Interpreter
-import com.avail.interpreter.levelTwo.operand.L2ConstantOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_EQUALS_CONSTANT
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
-import com.avail.optimizer.L2Generator.Companion.edgeTo
 
 /**
  * **Primitive:** Assert the specified
@@ -150,12 +147,11 @@ object P_Assert : Primitive(2, Unknown, CanSuspend, CannotFail)
 		val failPath = translator.generator.createBasicBlock("assertion failed")
 		val passPath = translator.generator.createBasicBlock("after assertion")
 
-		translator.addInstruction(
-			L2_JUMP_IF_EQUALS_CONSTANT,
+		translator.jumpIfEqualsConstant(
 			arguments[0],
-			L2ConstantOperand(trueObject),
-			edgeTo(passPath),
-			edgeTo(failPath))
+			trueObject,
+			passPath,
+			failPath)
 
 		translator.generator.startBlock(failPath)
 		// Since this invocation will also be optimized, pass the constant false

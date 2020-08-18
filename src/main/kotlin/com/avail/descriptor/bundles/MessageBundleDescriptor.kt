@@ -248,15 +248,20 @@ class MessageBundleDescriptor private constructor(
 	@Throws(SignatureException::class)
 	override fun o_BundleAddMacro(
 		self: AvailObject,
-		macro: A_Macro
+		macro: A_Macro,
+		ignoreSeals: Boolean
 	) = L2Chunk.invalidationLock.withLock {
-		val paramTypes = macro.bodySignature().argsTupleType()
-		val seals: A_Tuple = self.bundleMethod().sealedArgumentsTypesTuple()
-		seals.forEach { seal: A_Tuple ->
-			val sealType = tupleTypeForSizesTypesDefaultType(
-				singleInt(seal.tupleSize()), seal, bottom)
-			if (paramTypes.isSubtypeOf(sealType)) {
-				throw SignatureException(AvailErrorCode.E_METHOD_IS_SEALED)
+		if (!ignoreSeals)
+		{
+			val paramTypes = macro.bodySignature().argsTupleType()
+			val seals: A_Tuple = self.bundleMethod().sealedArgumentsTypesTuple()
+			seals.forEach { seal: A_Tuple ->
+				val sealType = tupleTypeForSizesTypesDefaultType(
+					singleInt(seal.tupleSize()), seal, bottom)
+				if (paramTypes.isSubtypeOf(sealType))
+				{
+					throw SignatureException(AvailErrorCode.E_METHOD_IS_SEALED)
+				}
 			}
 		}
 		// Install the macro.

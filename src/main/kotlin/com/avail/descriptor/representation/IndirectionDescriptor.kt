@@ -3360,8 +3360,11 @@ class IndirectionDescriptor private constructor(
 	override fun o_RegisterDump(self: AvailObject): AvailObject =
 		self .. { registerDump() }
 
-	override fun o_BundleAddMacro(self: AvailObject, macro: A_Macro) =
-		self .. { bundleAddMacro(macro) }
+	override fun o_BundleAddMacro(
+		self: AvailObject,
+		macro: A_Macro,
+		ignoreSeals: Boolean
+	) = self .. { bundleAddMacro(macro, ignoreSeals) }
 
 	override fun o_DefinitionBundle(self: AvailObject): A_Bundle =
 		self .. { definitionBundle() }

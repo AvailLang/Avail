@@ -30,14 +30,14 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Tests"
+Module "Module Structure"
 Versions
 	"1.4.0"
 Uses
-	"Avail"
-Extends
-	"Data Abstractions Tests",
-	"Foundation Tests",
-	"IO Tests",
-	"Module Structure"
+	"Avail",
+	"Renamed Sealed Import Test"
 Body
+
+/**
+ * A place to verify that aspects of module imports work as expected.
+ */

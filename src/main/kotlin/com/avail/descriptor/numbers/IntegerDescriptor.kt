@@ -71,6 +71,7 @@ import kotlin.experimental.and
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.random.Random
 
 /**
  * An Avail [integer][IntegerDescriptor] is represented by a little endian
@@ -1691,6 +1692,23 @@ class IntegerDescriptor private constructor(
 		private const val finalHashAddend = 0x5127ee66
 
 		/**
+		 * A table of random values.  This has different content on every run.
+		 */
+		private val byteHashes = IntArray(256) {
+			Random.nextBits(32)
+		}
+
+		private fun combineHash(currentHash: Int, nextInt: Int): Int
+		{
+			var hash = currentHash xor nextInt
+			var index = hash xor (hash shr 16)
+			index -= (index shr 8)
+			hash += byteHashes[index and 0xFF]
+			hash -= byteHashes[(index shr 8) and 0xFF]
+			return hash xor postMultiplyHashToggle
+		}
+
+		/**
 		 * Hash the passed [Int].  Note that it must have the same value as what
 		 * [computeHashOfIntegerObject] would return, given an encoding of the
 		 * [Int] as an Avail integer.
@@ -1702,12 +1720,10 @@ class IntegerDescriptor private constructor(
 		 */
 		@JvmStatic
 		fun computeHashOfInt(anInt: Int): Int {
-			var h = initialHashValue + anInt
-			h *= multiplier
-			h = h xor postMultiplyHashToggle
-			h *= multiplier
-			h += finalHashAddend
-			return h
+			var output = combineHash(initialHashValue, anInt)
+			output *= multiplier
+			output += finalHashAddend
+			return output
 		}
 
 		/**
@@ -1725,22 +1741,18 @@ class IntegerDescriptor private constructor(
 		fun computeHashOfLong(aLong: Long): Int {
 			val lowInt = aLong.toInt()
 			if (aLong == lowInt.toLong()) return computeHashOfInt(lowInt)
-			var h = initialHashValue
+			var output = initialHashValue
 
 			// First unrolled loop iteration (high 32).
-			h += (aLong shr 32).toInt()
-			h *= multiplier
-			h = h xor postMultiplyHashToggle
+			output = combineHash(output, (aLong shr 32).toInt())
 
 			// Second unrolled loop iteration (low 32)
-			h += lowInt
-			h *= multiplier
-			h = h xor postMultiplyHashToggle
+			output = combineHash(output, lowInt)
 
 			// After loop.
-			h *= multiplier
-			h += finalHashAddend
-			return h
+			output *= multiplier
+			output += finalHashAddend
+			return output
 		}
 
 		/**
@@ -1757,9 +1769,8 @@ class IntegerDescriptor private constructor(
 		): Int {
 			var output = initialHashValue
 			for (i in intCount(anIntegerObject) downTo 1) {
-				output += anIntegerObject.rawSignedIntegerAt(i)
-				output *= multiplier
-				output = output xor postMultiplyHashToggle
+				output = combineHash(
+					output, anIntegerObject.rawSignedIntegerAt(i))
 			}
 			output *= multiplier
 			output += finalHashAddend

@@ -944,7 +944,8 @@ class MethodDescriptor private constructor(
 											newPrimitiveRawFunction(
 												prefixPrimitive, nil, 0),
 											emptyTuple())
-									})))
+									})),
+							true)
 					}
 				}
 				catch (e: SignatureException)

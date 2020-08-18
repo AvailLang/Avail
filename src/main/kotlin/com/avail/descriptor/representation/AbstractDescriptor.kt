@@ -3803,7 +3803,8 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_BundleAddMacro(
 		self: AvailObject,
-		macro: A_Macro)
+		macro: A_Macro,
+		ignoreSeals: Boolean)
 
 	abstract fun o_ModuleAddMacro (self: AvailObject, macro: A_Macro)
 

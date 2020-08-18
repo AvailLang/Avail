@@ -1092,8 +1092,7 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 			{
 				val block = zeroed.removeLast()
 				order.add(block)
-				val iterator =
-					block!!.successorEdgesIterator()
+				val iterator = block!!.successorEdgesIterator()
 				while (iterator.hasNext())
 				{
 					val edge = iterator.next()
@@ -1234,7 +1233,7 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 		}
 
 		/** Create an instance with no tracking information.  */
-		internal constructor()
+		constructor()
 		{
 			val kinds = RegisterKind.values()
 			liveRegistersByKind = Array(kinds.size) { BitSet() }
@@ -1246,7 +1245,7 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 		 * @param original
 		 *   The existing instance to duplicate.
 		 */
-		internal constructor(original: UsedRegisters)
+		constructor(original: UsedRegisters)
 		{
 			val kinds = RegisterKind.values()
 			liveRegistersByKind = Array(kinds.size)

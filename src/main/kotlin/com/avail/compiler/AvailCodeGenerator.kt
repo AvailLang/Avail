@@ -92,6 +92,7 @@ import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.toList
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.tupleFromIntegerList
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.ASSIGNMENT_PHRASE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LABEL_PHRASE
@@ -898,6 +899,16 @@ class AvailCodeGenerator private constructor(
 			blockPhrase: A_Phrase): A_RawFunction
 		{
 			val primitive = blockPhrase.primitive()
+			val resultTypeIfPrimitiveFails =
+				blockPhrase.statementsTuple().run {
+					when
+					{
+						primitive == null -> blockPhrase.resultType()
+						primitive.hasFlag(Flag.CannotFail) -> bottom
+						tupleSize() == 0 -> Types.TOP.o
+						else -> tupleAt(tupleSize()).expressionType()
+					}
+				}
 			val generator = AvailCodeGenerator(
 				module,
 				toList(blockPhrase.argumentsTuple()),
@@ -907,13 +918,7 @@ class AvailCodeGenerator private constructor(
 				BlockPhraseDescriptor.labels(blockPhrase),
 				toList(blockPhrase.neededVariables()),
 				blockPhrase.resultType(),
-				blockPhrase.statementsTuple().run {
-					when{
-						primitive == null -> blockPhrase.resultType()
-						tupleSize() == 0 -> Types.TOP.o
-						else -> tupleAt(tupleSize()).expressionType()
-					}
-				},
+				resultTypeIfPrimitiveFails,
 				blockPhrase.declaredExceptions(),
 				blockPhrase.startingLineNumber())
 			generator.stackShouldBeEmpty()

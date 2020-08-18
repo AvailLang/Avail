@@ -150,7 +150,11 @@ object P_SimpleMacroDeclaration : Primitive(3, CanSuspend, HasSideEffect)
 			try
 			{
 				val atom = loader.lookupName(string)
-				loader.addMacroBody(atom, function, prefixFunctions)
+				loader.addMacroBody(
+					atom,
+					function,
+					prefixFunctions,
+					false)
 				var counter = 1
 				for (prefixFunction in prefixFunctions)
 				{

@@ -98,8 +98,8 @@ interface A_Bundle : A_BasicObject {
 		 *
 		 */
 		@Throws(SignatureException::class)
-		fun A_Bundle.bundleAddMacro(macro: A_Macro) =
-			dispatch { o_BundleAddMacro(it, macro) }
+		fun A_Bundle.bundleAddMacro(macro: A_Macro, ignoreSeals: Boolean) =
+			dispatch { o_BundleAddMacro(it, macro, ignoreSeals) }
 
 		/**
 		 * Answer the [method][MethodDescriptor] that this bundle names.

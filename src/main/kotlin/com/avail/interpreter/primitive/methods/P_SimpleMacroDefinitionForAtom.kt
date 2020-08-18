@@ -152,7 +152,11 @@ object P_SimpleMacroDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 		return interpreter.suspendInLevelOneSafeThen {
 			try
 			{
-				loader.addMacroBody(atom, function, prefixFunctions)
+				loader.addMacroBody(
+					atom,
+					function,
+					prefixFunctions,
+					false)
 				val atomName = atom.atomName()
 				for ((zeroIndex, prefixFunction) in prefixFunctions.withIndex())
 				{

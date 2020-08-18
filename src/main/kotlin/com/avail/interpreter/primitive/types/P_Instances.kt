@@ -41,8 +41,8 @@ import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import com.avail.descriptor.types.SetTypeDescriptor.Companion.mostGeneralSetType
 import com.avail.exceptions.AvailErrorCode.E_NOT_AN_ENUMERATION
 import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Fallibility.CallSiteCanFail
 import com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail
-import com.avail.interpreter.Primitive.Fallibility.CallSiteMustFail
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.execution.Interpreter
@@ -74,10 +74,8 @@ object P_Instances : Primitive(1, CanFold, CanInline)
 		argumentTypes: List<A_Type>): Fallibility
 	{
 		val meta = argumentTypes[0]
-		return if (meta.instance().isEnumeration)
-			CallSiteCannotFail
-		else
-			CallSiteMustFail
+		return if (meta.instance().isEnumeration) CallSiteCannotFail
+		else CallSiteCanFail
 	}
 
 	override fun privateFailureVariableType(): A_Type =

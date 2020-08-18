@@ -85,7 +85,9 @@ import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.AvailErrorCode.E_NO_METHOD_DEFINITION
 import com.avail.exceptions.MethodDefinitionException
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Fallibility
+import com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail
+import com.avail.interpreter.Primitive.Fallibility.CallSiteMustFail
+import com.avail.interpreter.Primitive.Flag
 import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.execution.Interpreter.Companion.assignmentFunction
 import com.avail.interpreter.execution.Interpreter.Companion.log
@@ -1796,97 +1798,114 @@ class L1Translator private constructor(
 		assert(sizeRange.isBottom
 		   || !sizeRange.lowerBound().equals(sizeRange.upperBound())
 		   || sizeRange.rangeIncludesLong(argumentCount.toLong()))
+		val guaranteedResultType: A_Type
 		val rawFunction = determineRawFunction(functionToCallReg)
-		if (rawFunction !== null)
+		val primitive = rawFunction?.primitive()
+		if (primitive !== null)
 		{
-			val primitive = rawFunction.primitive()
-			if (primitive !== null)
+			val argsTupleType = rawFunction.functionType().argsTupleType()
+			val argumentTypes: List<A_Type>
+			val generated: Boolean
+			if (tryToGenerateSpecialPrimitiveInvocation)
 			{
-				val generated: Boolean
-				val argsTupleType = rawFunction.functionType().argsTupleType()
-				generated = if (tryToGenerateSpecialPrimitiveInvocation)
+				// We are not recursing here from a primitive override of
+				// tryToGenerateSpecialPrimitiveInvocation(), so try to generate
+				// a special primitive invocation.  Note that this lookup was
+				// monomorphic *in the event of success*, so we can safely
+				// tighten the argument types here to conform to the only
+				// possible found function.
+				val manifest = currentManifest()
+				val strongArguments = (0 until argumentCount).map {
+					val arg = arguments[it]
+					val argSemanticValue = arg.semanticValue()
+					val strongRestriction = arg.restriction()
+						.intersection(manifest.restrictionFor(argSemanticValue))
+						.intersectionWithType(argsTupleType.typeAtIndex(it + 1))
+					manifest.setRestriction(argSemanticValue, strongRestriction)
+					L2ReadBoxedOperand(
+						argSemanticValue, strongRestriction, manifest)
+				}
+				argumentTypes = strongArguments.map { it.type() }
+				generated = tryToGenerateSpecialInvocation(
+					functionToCallReg,
+					rawFunction,
+					primitive,
+					strongArguments,
+					callSiteHelper)
+			}
+			else
+			{
+				// We are recursing here from a primitive override of
+				// tryToGenerateSpecialPrimitiveInvocation(), so do not
+				// recurse again; just generate the best invocation possible
+				// given what we know.
+				argumentTypes = arguments.mapIndexed { zeroIndex, argument ->
+					argument.type().typeIntersection(
+						argsTupleType.typeAtIndex(zeroIndex + 1))
+				}
+				if (primitive.fallibilityForArgumentTypes(argumentTypes)
+					=== CallSiteCannotFail)
 				{
-					// We are not recursing here from a primitive override of
-					// tryToGenerateSpecialPrimitiveInvocation(), so try to
-					// generate a special primitive invocation.  Note that this
-					// lookup was monomorphic *in the event of success*, so we
-					// can safely tighten the argument types here to conform to
-					// the only possible found function.
-					val manifest = currentManifest()
-					val strongArguments = (0 until argumentCount).map {
-						val arg = arguments[it]
-						val argSemanticValue = arg.semanticValue()
-						val strongRestriction = arg.restriction()
-							.intersection(
-								manifest.restrictionFor(argSemanticValue))
-							.intersectionWithType(
-								argsTupleType.typeAtIndex(it + 1))
-						manifest.setRestriction(
-							argSemanticValue, strongRestriction)
-						L2ReadBoxedOperand(
-							argSemanticValue, strongRestriction, manifest)
+					// The primitive cannot fail at this site. Output code
+					// to run the primitive as simply as possible, feeding a
+					// register with as strong a type as possible.
+					var resultType = primitive.returnTypeGuaranteedByVM(
+						rawFunction, argumentTypes)
+					if (resultType.isBottom) {
+						// Even though the Invoke primitive can't fail, the
+						// ultimately called function won't return.  In this
+						// case, weaken the resultType to avoid ⊥, just to
+						// keep the call machinery happy.
+						resultType = Types.ANY.o
 					}
-					tryToGenerateSpecialInvocation(
-						functionToCallReg,
-						rawFunction,
-						primitive,
-						strongArguments,
-						callSiteHelper)
+					val writer = generator.boxedWriteTemp(
+						restrictionForType(
+							resultType, RestrictionFlagEncoding.BOXED))
+					addInstruction(
+						L2_RUN_INFALLIBLE_PRIMITIVE.forPrimitive(primitive),
+						L2ConstantOperand(rawFunction),
+						L2PrimitiveOperand(primitive),
+						L2ReadBoxedVectorOperand(arguments),
+						writer)
+					callSiteHelper.useAnswer(readBoxed(writer))
+					generated = true
 				}
 				else
 				{
-					// We are recursing here from a primitive override of
-					// tryToGenerateSpecialPrimitiveInvocation(), so do not
-					// recurse again; just generate the best invocation possible
-					// given what we know.
-					val argumentTypes = (0 until argumentCount).map { i ->
-						arguments[i].type().typeIntersection(
-							argsTupleType.typeAtIndex(i + 1))
-					}
-					if (primitive.fallibilityForArgumentTypes(argumentTypes)
-						=== Fallibility.CallSiteCannotFail)
-					{
-						// The primitive cannot fail at this site. Output code
-						// to run the primitive as simply as possible, feeding a
-						// register with as strong a type as possible.
-						var resultType = primitive.returnTypeGuaranteedByVM(
-							rawFunction, argumentTypes)
-						if (resultType.isBottom) {
-							// Even though the Invoke primitive can't fail, the
-							// ultimately called function won't return.  In this
-							// case, weaken the resultType to avoid ⊥, just to
-							// keep the call machinery happy.
-							resultType = Types.ANY.o
-						}
-						val writer = generator.boxedWriteTemp(
-							restrictionForType(
-								resultType, RestrictionFlagEncoding.BOXED))
-						addInstruction(
-							L2_RUN_INFALLIBLE_PRIMITIVE.forPrimitive(primitive),
-							L2ConstantOperand(rawFunction),
-							L2PrimitiveOperand(primitive),
-							L2ReadBoxedVectorOperand(arguments),
-							writer)
-						callSiteHelper.useAnswer(readBoxed(writer))
-						true
-					}
-					else
-					{
-						false
-					}
-				}
-				if (generated)
-				{
-					assert(!generator.currentlyReachable())
-					return
+					generated = false
 				}
 			}
+			if (generated)
+			{
+				assert(!generator.currentlyReachable())
+				return
+			}
+			// The raw function is known.  Ask the primitive what it guarantees
+			// if successful, and take the union with what the raw function says
+			// it'll produce if the primitive is unsuccessful.  Take into
+			// account whether the primitive will never, always, or sometimes
+			// fail for the given argument types.
+			guaranteedResultType =
+				when (primitive.fallibilityForArgumentTypes(argumentTypes))
+				{
+					CallSiteCannotFail -> primitive.returnTypeGuaranteedByVM(
+						rawFunction, argumentTypes)
+					CallSiteMustFail ->
+						rawFunction.returnTypeIfPrimitiveFails()
+					else -> rawFunction.returnTypeIfPrimitiveFails().typeUnion(
+						primitive.returnTypeGuaranteedByVM(
+							rawFunction, argumentTypes))
+				}
+		}
+		else
+		{
+			// Exact function was unknown, or it wasn't a primitive.
+			guaranteedResultType = functionToCallReg.type().returnType()
 		}
 
 		// The function isn't known to be a particular primitive function, or
 		// the primitive wasn't able to generate special code for it, so just
 		// invoke it like a non-primitive.
-		val guaranteedResultType = functionToCallReg.type().returnType()
 		val skipCheck =
 			guaranteedResultType.isSubtypeOf(callSiteHelper.expectedType)
 		val constantFunction: A_Function? = functionToCallReg.constantOrNull()
@@ -2136,7 +2155,7 @@ class L1Translator private constructor(
 		callSiteHelper: CallSiteHelper): Boolean
 	{
 		val argumentCount = arguments.size
-		if (primitive.hasFlag(Primitive.Flag.CanFold))
+		if (primitive.hasFlag(Flag.CanFold))
 		{
 			// It can be folded, if supplied with constants.
 			val constants = mutableListOf<AvailObject>()
@@ -2181,7 +2200,7 @@ class L1Translator private constructor(
 					return true
 				}
 				assert(success === Primitive.Result.FAILURE)
-				assert(!primitive.hasFlag(Primitive.Flag.CannotFail))
+				assert(!primitive.hasFlag(Flag.CannotFail))
 			}
 		}
 
@@ -2719,7 +2738,7 @@ class L1Translator private constructor(
 			addInstruction(
 				L2_TRY_PRIMITIVE,
 				L2PrimitiveOperand(primitive))
-			if (primitive.hasFlag(Primitive.Flag.CannotFail))
+			if (primitive.hasFlag(Flag.CannotFail))
 			{
 				// Infallible primitives don't need any other L2 code.
 				return
@@ -2804,7 +2823,7 @@ class L1Translator private constructor(
 		// Capture the primitive failure value in the first local if applicable.
 		if (primitive !== null)
 		{
-			assert(!primitive.hasFlag(Primitive.Flag.CannotFail))
+			assert(!primitive.hasFlag(Flag.CannotFail))
 			// Move the primitive failure value into the first local.  This
 			// doesn't need to support implicit observation, so no off-ramp
 			// is generated.

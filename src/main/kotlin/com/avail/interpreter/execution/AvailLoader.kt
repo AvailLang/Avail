@@ -1040,7 +1040,8 @@ class AvailLoader(
 	fun addMacroBody(
 		methodName: A_Atom,
 		macroBody: A_Function,
-		prefixFunctions: A_Tuple
+		prefixFunctions: A_Tuple,
+		ignoreSeals: Boolean
 	) {
 		assert(methodName.isAtom)
 		assert(macroBody.isFunction)
@@ -1069,7 +1070,7 @@ class AvailLoader(
 		}) {
 			throw SignatureException(E_REDEFINED_WITH_SAME_ARGUMENT_TYPES)
 		}
-		bundle.bundleAddMacro(macroDefinition)
+		bundle.bundleAddMacro(macroDefinition, ignoreSeals)
 		module.moduleAddMacro(macroDefinition)
 		if (phase == EXECUTING_FOR_COMPILE) {
 			recordEffect(LoadingEffectToAddMacro(bundle, macroDefinition))

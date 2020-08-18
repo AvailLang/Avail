@@ -2599,8 +2599,11 @@ abstract class Descriptor protected constructor (
 
 	override fun o_DefinitionBundle(self: AvailObject): A_Bundle = unsupported
 
-	override fun o_BundleAddMacro(self: AvailObject, macro: A_Macro): Unit =
-		unsupported
+	override fun o_BundleAddMacro(
+		self: AvailObject,
+		macro: A_Macro,
+		ignoreSeals: Boolean
+	): Unit = unsupported
 
 	override fun o_ModuleAddMacro(self: AvailObject, macro: A_Macro): Unit =
 		unsupported

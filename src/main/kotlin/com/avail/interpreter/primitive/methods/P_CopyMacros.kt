@@ -95,7 +95,10 @@ object P_CopyMacros : Primitive(2, CanSuspend, HasSideEffect)
 				for (macro in oldBundle.macrosTuple())
 				{
 					loader.addMacroBody(
-						newAtom, macro.bodyBlock(), macro.prefixFunctions())
+						newAtom,
+						macro.bodyBlock(),
+						macro.prefixFunctions(),
+						false)
 				}
 				succeed(nil)
 			}

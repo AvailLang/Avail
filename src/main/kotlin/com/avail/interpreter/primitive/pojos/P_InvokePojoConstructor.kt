@@ -32,6 +32,7 @@
 package com.avail.interpreter.primitive.pojos
 
 import com.avail.AvailRuntime.HookType
+import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.pojos.PojoDescriptor.Companion.newPojo
 import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import com.avail.descriptor.tuples.A_Tuple
@@ -130,6 +131,14 @@ object P_InvokePojoConstructor : Primitive(-1, Private)
 	 * primitive could only be applied if the function returns any.
 	 */
 	override fun privateBlockTypeRestriction(): A_Type = bottom
+
+	override fun returnTypeGuaranteedByVM(
+		rawFunction: A_RawFunction,
+		argumentTypes: List<A_Type>
+	): A_Type
+	{
+		return rawFunction.functionType().returnType()
+	}
 
 	override fun privateFailureVariableType(): A_Type =
 		pojoTypeForClass(Throwable::class.java)

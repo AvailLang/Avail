@@ -30,14 +30,20 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Tests"
+Module "Renamed Sealed Import Test"
 Versions
 	"1.4.0"
 Uses
-	"Avail"
-Extends
-	"Data Abstractions Tests",
-	"Foundation Tests",
-	"IO Tests",
-	"Module Structure"
+	"Avail",
+	"Common",
+	"Dimensional Analysis" = (
+		"second" → "blargle",
+		"second" → "glargle"
+		…
+	)
 Body
+
+Test "Renamed import of sealed macro" in module structure test suite is
+[
+	Assert: 5 blargle = 5 glargle = 5 s;
+];

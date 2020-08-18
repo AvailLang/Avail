@@ -32,6 +32,7 @@
 package com.avail.interpreter.primitive.pojos
 
 import com.avail.AvailRuntime.HookType
+import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.pojos.PojoDescriptor.Companion.newPojo
 import com.avail.descriptor.pojos.PojoDescriptor.Companion.nullPojo
 import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
@@ -122,6 +123,14 @@ object P_InvokeStaticPojoMethod : Primitive(-1, Private)
 			interpreter.primitiveFailure(
 				newPojo(identityPojo(e), pojoTypeForClass(e.javaClass)))
 		}
+	}
+
+	override fun returnTypeGuaranteedByVM(
+		rawFunction: A_RawFunction,
+		argumentTypes: List<A_Type>
+	): A_Type
+	{
+		return rawFunction.functionType().returnType()
 	}
 
 	/**

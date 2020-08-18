@@ -395,7 +395,8 @@ class ModuleHeader constructor(val moduleName: ResolvedModuleName)
 							loader.addMacroBody(
 								newAtom,
 								macro.bodyBlock(),
-								macro.prefixFunctions())
+								macro.prefixFunctions(),
+								true)
 						}
 					}
 				}
