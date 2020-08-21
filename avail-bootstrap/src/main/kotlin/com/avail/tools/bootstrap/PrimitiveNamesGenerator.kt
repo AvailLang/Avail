@@ -32,9 +32,8 @@
 package com.avail.tools.bootstrap
 
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.instances
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Companion.byPrimitiveNumberOrNull
-import com.avail.interpreter.Primitive.Companion.maxPrimitiveNumber
 import com.avail.tools.bootstrap.Resources.escape
 import com.avail.tools.bootstrap.Resources.primitiveCommentKey
 import com.avail.tools.bootstrap.Resources.primitiveParameterNameKey
@@ -76,18 +75,16 @@ class PrimitiveNamesGenerator constructor(locale: Locale)
 		writer: PrintWriter
 	) = with(writer) {
 		val keys = mutableSetOf<String>()
-		for (primitiveNumber in 1 .. maxPrimitiveNumber())
-		{
-			val primitive = byPrimitiveNumberOrNull(primitiveNumber)
-			if (primitive !== null
-				&& !primitive.hasFlag(Primitive.Flag.Private))
+		Primitive.holdersByName.forEach { (_, holder) ->
+			val primitive = holder.primitive
+			if (!primitive.hasFlag(Primitive.Flag.Private))
 			{
 				// Write a comment that gives the primitive number and its
 				// arity.
 				keys.add(primitive.javaClass.simpleName)
 				format(
 					"# %s : _=%d%n",
-					primitive.fieldName(),
+					primitive.name,
 					primitive.argCount)
 				// Write the primitive key and any name already associated with
 				// it.

@@ -181,7 +181,7 @@ class CheckedMethod private constructor(
 		 * problem.
 		 *
 		 * @param receiverClass
-		 *   The type of the receiver of the method.
+		 *   The [Class] that defines the method.
 		 * @param methodName
 		 *   The name of the method.
 		 * @param returnClass

@@ -41,6 +41,7 @@ package com.avail.descriptor.phrases
  import com.avail.descriptor.phrases.A_Phrase.Companion.lastExpression
  import com.avail.descriptor.phrases.A_Phrase.Companion.list
  import com.avail.descriptor.phrases.A_Phrase.Companion.permutation
+ import com.avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
  import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKind
  import com.avail.descriptor.phrases.A_Phrase.Companion.stripMacro
  import com.avail.descriptor.phrases.A_Phrase.Companion.superUnionType
@@ -60,6 +61,9 @@ package com.avail.descriptor.phrases
  import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
  import com.avail.descriptor.tuples.TupleDescriptor
  import com.avail.descriptor.types.A_Type
+ import com.avail.descriptor.types.A_Type.Companion.lowerBound
+ import com.avail.descriptor.types.A_Type.Companion.sizeRange
+ import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
  import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
  import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
  import com.avail.descriptor.types.TypeTag
@@ -175,8 +179,8 @@ class PermutedListPhraseDescriptor private constructor(
 	override fun o_ExpressionsTuple(self: AvailObject): A_Tuple =
 		self.slot(LIST).expressionsTuple()
 
-	override fun o_ExpressionType(self: AvailObject): A_Type =
-		self.synchronizeIf(isShared) { expressionType(self) }
+	override fun o_PhraseExpressionType(self: AvailObject): A_Type =
+		self.synchronizeIf(isShared) { computeExpressionType(self) }
 
 	override fun o_Hash(self: AvailObject): Int =
 		((self.slot(LIST).hash() xor -0x3703d84e)
@@ -194,7 +198,8 @@ class PermutedListPhraseDescriptor private constructor(
 	override fun o_PhraseKind(self: AvailObject): PhraseKind =
 		PhraseKind.PERMUTED_LIST_PHRASE
 
-	override fun o_Permutation(self: AvailObject): A_Tuple = self.slot(PERMUTATION)
+	override fun o_Permutation(self: AvailObject): A_Tuple =
+		self.slot(PERMUTATION)
 
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		SerializerOperation.PERMUTED_LIST_PHRASE
@@ -279,10 +284,10 @@ class PermutedListPhraseDescriptor private constructor(
 		 * @return
 		 *   The tuple type that this phrase will produce.
 		 */
-		private fun expressionType(self: AvailObject): A_Type {
+		private fun computeExpressionType(self: AvailObject): A_Type {
 			var expressionType: A_Type = self.mutableSlot(EXPRESSION_TYPE)
 			if (!expressionType.equalsNil()) return expressionType
-			val originalTupleType = self.slot(LIST).expressionType()
+			val originalTupleType = self.slot(LIST).phraseExpressionType()
 			val permutation: A_Tuple = self.slot(PERMUTATION)
 			val size = permutation.tupleSize()
 			assert(originalTupleType.sizeRange().lowerBound().extractInt()

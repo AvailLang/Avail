@@ -53,6 +53,11 @@ import com.avail.descriptor.phrases.PermutedListPhraseDescriptor
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.tupleFromIntegerList
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.lowerBound
+import com.avail.descriptor.types.A_Type.Companion.sizeRange
+import com.avail.descriptor.types.A_Type.Companion.subexpressionsTupleType
+import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
+import com.avail.descriptor.types.A_Type.Companion.upperBound
 import com.avail.descriptor.types.ListPhraseTypeDescriptor.Companion.emptyListPhraseType
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PERMUTED_LIST_PHRASE

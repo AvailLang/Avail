@@ -34,6 +34,13 @@ package com.avail.interpreter.primitive.functions
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.argsTupleType
+import com.avail.descriptor.types.A_Type.Companion.defaultType
+import com.avail.descriptor.types.A_Type.Companion.instance
+import com.avail.descriptor.types.A_Type.Companion.lowerBound
+import com.avail.descriptor.types.A_Type.Companion.sizeRange
+import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
+import com.avail.descriptor.types.A_Type.Companion.upperBound
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionMeta
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType

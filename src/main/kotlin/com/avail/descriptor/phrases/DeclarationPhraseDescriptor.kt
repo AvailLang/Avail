@@ -35,9 +35,10 @@ package com.avail.descriptor.phrases
  import com.avail.descriptor.phrases.A_Phrase.Companion.declaredType
  import com.avail.descriptor.phrases.A_Phrase.Companion.emitEffectOn
  import com.avail.descriptor.phrases.A_Phrase.Companion.emitValueOn
- import com.avail.descriptor.phrases.A_Phrase.Companion.expressionType
  import com.avail.descriptor.phrases.A_Phrase.Companion.initializationExpression
  import com.avail.descriptor.phrases.A_Phrase.Companion.literalObject
+ import com.avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
+ import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKind
  import com.avail.descriptor.phrases.A_Phrase.Companion.token
  import com.avail.descriptor.phrases.A_Phrase.Companion.tokens
  import com.avail.descriptor.phrases.A_Phrase.Companion.typeExpression
@@ -64,6 +65,9 @@ package com.avail.descriptor.phrases
  import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
  import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
  import com.avail.descriptor.types.A_Type
+ import com.avail.descriptor.types.A_Type.Companion.functionType
+ import com.avail.descriptor.types.A_Type.Companion.readType
+ import com.avail.descriptor.types.A_Type.Companion.returnType
  import com.avail.descriptor.types.ContinuationTypeDescriptor
  import com.avail.descriptor.types.FunctionTypeDescriptor
  import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
@@ -572,7 +576,7 @@ class DeclarationPhraseDescriptor(
 	override fun o_DeclarationKind(self: AvailObject): DeclarationKind =
 		declarationKind
 
-	override fun o_ExpressionType(self: AvailObject): A_Type = TOP.o
+	override fun o_PhraseExpressionType(self: AvailObject): A_Type = TOP.o
 
 	/**
 	 * This is a declaration, so it was handled on a separate pass.  Do nothing.
@@ -817,7 +821,7 @@ class DeclarationPhraseDescriptor(
 		): A_Phrase = newDeclaration(
 			DeclarationKind.LOCAL_CONSTANT,
 			token,
-			initializationExpression.expressionType(),
+			initializationExpression.phraseExpressionType(),
 			nil,
 			initializationExpression,
 			nil)

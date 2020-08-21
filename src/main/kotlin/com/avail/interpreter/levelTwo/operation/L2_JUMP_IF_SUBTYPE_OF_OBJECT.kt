@@ -32,6 +32,7 @@
 package com.avail.interpreter.levelTwo.operation
 
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2NamedOperandType
 import com.avail.interpreter.levelTwo.L2OperandType

@@ -35,6 +35,8 @@ package com.avail.dispatch
 import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.phraseTypeExpressionType
+import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
 import com.avail.descriptor.types.BottomTypeDescriptor
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 
@@ -166,7 +168,7 @@ enum class TypeComparison
 			assert(argumentRestrictions.size == 1)
 			val restriction = argumentRestrictions[0]
 			val intersection = restriction.intersectionWithType(someType)
-			if (intersection.type.expressionType().isBottom)
+			if (intersection.type.phraseTypeExpressionType().isBottom)
 			{
 				// For the purpose of parsing, if the intersection of these
 				// phrase types produces a yield type that's ⊥, treat the types

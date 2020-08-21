@@ -40,6 +40,11 @@ import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.isSupertypeOfPrimitiveTypeEnum
+import com.avail.descriptor.types.A_Type.Companion.lowerBound
+import com.avail.descriptor.types.A_Type.Companion.lowerInclusive
+import com.avail.descriptor.types.A_Type.Companion.upperBound
+import com.avail.descriptor.types.A_Type.Companion.upperInclusive
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInteger
 import com.avail.descriptor.types.TypeDescriptor.Types

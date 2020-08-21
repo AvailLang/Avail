@@ -42,6 +42,8 @@ import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import com.avail.descriptor.types.A_Type.Companion.typeUnion
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
@@ -475,7 +477,7 @@ abstract class AbstractEnumerationTypeDescriptor protected constructor(
 
 	abstract override fun o_WriteType(self: AvailObject): A_Type
 
-	abstract override fun o_ExpressionType(self: AvailObject): A_Type
+	abstract override fun o_PhraseTypeExpressionType(self: AvailObject): A_Type
 
 	override fun o_IsBottom(self: AvailObject): Boolean = false
 

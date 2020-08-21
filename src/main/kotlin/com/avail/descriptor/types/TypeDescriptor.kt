@@ -63,6 +63,8 @@ import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.tokens.LiteralTokenDescriptor
 import com.avail.descriptor.tokens.TokenDescriptor
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import com.avail.descriptor.types.A_Type.Companion.typeUnion
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.descriptor.variables.VariableDescriptor
@@ -72,7 +74,7 @@ import java.beans.MethodDescriptor
 
 /**
  * Every object in Avail has a type.  Types are also Avail objects.  The types
- * are related to each other by the [subtype][AvailObject.isSubtypeOf] relation
+ * are related to each other by the [subtype][A_Type.isSubtypeOf] relation
  * in such a way that they form a lattice.  The top of the lattice is
  * [⊤&#32;(pronounced&#32;&quot;top&quot;)][Types.TOP], which is the most
  * general type.  Every object conforms with this type, and every subtype is a
@@ -403,8 +405,7 @@ abstract class TypeDescriptor protected constructor(
 					if (spec.parent !== null)
 					{
 						assert(spec.o.isSubtypeOf(spec.parent.o))
-						assert(spec.o.isInstanceOfKind(
-							spec.parent.o.kind()))
+						assert(spec.o.isInstanceOfKind(spec.parent.o.kind()))
 					}
 				}
 			}

@@ -51,6 +51,8 @@ import com.avail.descriptor.sets.HashedSetBinDescriptor.ObjectSlots.BIN_UNION_TY
 import com.avail.descriptor.sets.LinearSetBinDescriptor.Companion.emptyLinearSetBin
 import com.avail.descriptor.sets.SetDescriptor.SetIterator
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import com.avail.descriptor.types.A_Type.Companion.typeUnion
 import com.avail.descriptor.types.TypeTag
 import java.util.ArrayDeque
 import java.util.NoSuchElementException

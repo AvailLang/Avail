@@ -37,6 +37,7 @@ import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createExceptOuters
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.typeIntersection
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2OperandType
 import com.avail.interpreter.levelTwo.L2Operation

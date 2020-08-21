@@ -50,6 +50,8 @@ import com.avail.descriptor.tokens.LiteralTokenDescriptor.ObjectSlots.STRING
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.StringDescriptor
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.isSupertypeOfPrimitiveTypeEnum
+import com.avail.descriptor.types.A_Type.Companion.literalType
 import com.avail.descriptor.types.InstanceTypeDescriptor
 import com.avail.descriptor.types.LiteralTokenTypeDescriptor
 import com.avail.descriptor.types.TypeDescriptor.Types.TOKEN

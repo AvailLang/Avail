@@ -142,6 +142,7 @@ package com.avail.descriptor.representation
  import com.avail.descriptor.phrases.A_Phrase.Companion.copyMutablePhrase
  import com.avail.descriptor.phrases.A_Phrase.Companion.copyWith
  import com.avail.descriptor.phrases.A_Phrase.Companion.declaration
+ import com.avail.descriptor.phrases.A_Phrase.Companion.declaredExceptions
  import com.avail.descriptor.phrases.A_Phrase.Companion.declaredType
  import com.avail.descriptor.phrases.A_Phrase.Companion.emitAllValuesOn
  import com.avail.descriptor.phrases.A_Phrase.Companion.emitEffectOn
@@ -164,6 +165,8 @@ package com.avail.descriptor.representation
  import com.avail.descriptor.phrases.A_Phrase.Companion.neededVariables
  import com.avail.descriptor.phrases.A_Phrase.Companion.outputPhrase
  import com.avail.descriptor.phrases.A_Phrase.Companion.permutation
+ import com.avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
+ import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
  import com.avail.descriptor.phrases.A_Phrase.Companion.statements
  import com.avail.descriptor.phrases.A_Phrase.Companion.statementsDo
  import com.avail.descriptor.phrases.A_Phrase.Companion.statementsTuple
@@ -227,6 +230,100 @@ package com.avail.descriptor.representation
  import com.avail.descriptor.tuples.A_Tuple.Companion.tupleReverse
  import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
  import com.avail.descriptor.types.A_Type
+ import com.avail.descriptor.types.A_Type.Companion.acceptsArgTypesFromFunctionType
+ import com.avail.descriptor.types.A_Type.Companion.acceptsListOfArgTypes
+ import com.avail.descriptor.types.A_Type.Companion.acceptsListOfArgValues
+ import com.avail.descriptor.types.A_Type.Companion.acceptsTupleOfArgTypes
+ import com.avail.descriptor.types.A_Type.Companion.acceptsTupleOfArguments
+ import com.avail.descriptor.types.A_Type.Companion.argsTupleType
+ import com.avail.descriptor.types.A_Type.Companion.computeSuperkind
+ import com.avail.descriptor.types.A_Type.Companion.contentType
+ import com.avail.descriptor.types.A_Type.Companion.couldEverBeInvokedWith
+ import com.avail.descriptor.types.A_Type.Companion.defaultType
+ import com.avail.descriptor.types.A_Type.Companion.fieldTypeMap
+ import com.avail.descriptor.types.A_Type.Companion.fieldTypeTuple
+ import com.avail.descriptor.types.A_Type.Companion.hasObjectInstance
+ import com.avail.descriptor.types.A_Type.Companion.instance
+ import com.avail.descriptor.types.A_Type.Companion.instanceCount
+ import com.avail.descriptor.types.A_Type.Companion.instances
+ import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
+ import com.avail.descriptor.types.A_Type.Companion.isSupertypeOfCompiledCodeType
+ import com.avail.descriptor.types.A_Type.Companion.isSupertypeOfContinuationType
+ import com.avail.descriptor.types.A_Type.Companion.isSupertypeOfEnumerationType
+ import com.avail.descriptor.types.A_Type.Companion.isSupertypeOfFiberType
+ import com.avail.descriptor.types.A_Type.Companion.isSupertypeOfFunctionType
+ import com.avail.descriptor.types.A_Type.Companion.isSupertypeOfIntegerRangeType
+ import com.avail.descriptor.types.A_Type.Companion.isSupertypeOfListNodeType
+ import com.avail.descriptor.types.A_Type.Companion.isSupertypeOfLiteralTokenType
+ import com.avail.descriptor.types.A_Type.Companion.isSupertypeOfMapType
+ import com.avail.descriptor.types.A_Type.Companion.isSupertypeOfObjectType
+ import com.avail.descriptor.types.A_Type.Companion.isSupertypeOfPhraseType
+ import com.avail.descriptor.types.A_Type.Companion.isSupertypeOfPojoBottomType
+ import com.avail.descriptor.types.A_Type.Companion.isSupertypeOfPojoType
+ import com.avail.descriptor.types.A_Type.Companion.isSupertypeOfPrimitiveTypeEnum
+ import com.avail.descriptor.types.A_Type.Companion.isSupertypeOfSetType
+ import com.avail.descriptor.types.A_Type.Companion.isSupertypeOfTokenType
+ import com.avail.descriptor.types.A_Type.Companion.isSupertypeOfTupleType
+ import com.avail.descriptor.types.A_Type.Companion.isSupertypeOfVariableType
+ import com.avail.descriptor.types.A_Type.Companion.keyType
+ import com.avail.descriptor.types.A_Type.Companion.literalType
+ import com.avail.descriptor.types.A_Type.Companion.lowerBound
+ import com.avail.descriptor.types.A_Type.Companion.lowerInclusive
+ import com.avail.descriptor.types.A_Type.Companion.parent
+ import com.avail.descriptor.types.A_Type.Companion.phraseKind
+ import com.avail.descriptor.types.A_Type.Companion.phraseTypeExpressionType
+ import com.avail.descriptor.types.A_Type.Companion.rangeIncludesLong
+ import com.avail.descriptor.types.A_Type.Companion.readType
+ import com.avail.descriptor.types.A_Type.Companion.returnType
+ import com.avail.descriptor.types.A_Type.Companion.sizeRange
+ import com.avail.descriptor.types.A_Type.Companion.subexpressionsTupleType
+ import com.avail.descriptor.types.A_Type.Companion.tupleOfTypesFromTo
+ import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
+ import com.avail.descriptor.types.A_Type.Companion.typeIntersection
+ import com.avail.descriptor.types.A_Type.Companion.typeIntersectionOfCompiledCodeType
+ import com.avail.descriptor.types.A_Type.Companion.typeIntersectionOfContinuationType
+ import com.avail.descriptor.types.A_Type.Companion.typeIntersectionOfFiberType
+ import com.avail.descriptor.types.A_Type.Companion.typeIntersectionOfFunctionType
+ import com.avail.descriptor.types.A_Type.Companion.typeIntersectionOfIntegerRangeType
+ import com.avail.descriptor.types.A_Type.Companion.typeIntersectionOfListNodeType
+ import com.avail.descriptor.types.A_Type.Companion.typeIntersectionOfLiteralTokenType
+ import com.avail.descriptor.types.A_Type.Companion.typeIntersectionOfMapType
+ import com.avail.descriptor.types.A_Type.Companion.typeIntersectionOfObjectType
+ import com.avail.descriptor.types.A_Type.Companion.typeIntersectionOfPhraseType
+ import com.avail.descriptor.types.A_Type.Companion.typeIntersectionOfPojoFusedType
+ import com.avail.descriptor.types.A_Type.Companion.typeIntersectionOfPojoType
+ import com.avail.descriptor.types.A_Type.Companion.typeIntersectionOfPojoUnfusedType
+ import com.avail.descriptor.types.A_Type.Companion.typeIntersectionOfPrimitiveTypeEnum
+ import com.avail.descriptor.types.A_Type.Companion.typeIntersectionOfSetType
+ import com.avail.descriptor.types.A_Type.Companion.typeIntersectionOfTokenType
+ import com.avail.descriptor.types.A_Type.Companion.typeIntersectionOfTupleType
+ import com.avail.descriptor.types.A_Type.Companion.typeIntersectionOfVariableType
+ import com.avail.descriptor.types.A_Type.Companion.typeTuple
+ import com.avail.descriptor.types.A_Type.Companion.typeUnion
+ import com.avail.descriptor.types.A_Type.Companion.typeUnionOfCompiledCodeType
+ import com.avail.descriptor.types.A_Type.Companion.typeUnionOfContinuationType
+ import com.avail.descriptor.types.A_Type.Companion.typeUnionOfFiberType
+ import com.avail.descriptor.types.A_Type.Companion.typeUnionOfFunctionType
+ import com.avail.descriptor.types.A_Type.Companion.typeUnionOfIntegerRangeType
+ import com.avail.descriptor.types.A_Type.Companion.typeUnionOfListNodeType
+ import com.avail.descriptor.types.A_Type.Companion.typeUnionOfLiteralTokenType
+ import com.avail.descriptor.types.A_Type.Companion.typeUnionOfMapType
+ import com.avail.descriptor.types.A_Type.Companion.typeUnionOfObjectType
+ import com.avail.descriptor.types.A_Type.Companion.typeUnionOfPhraseType
+ import com.avail.descriptor.types.A_Type.Companion.typeUnionOfPojoFusedType
+ import com.avail.descriptor.types.A_Type.Companion.typeUnionOfPojoType
+ import com.avail.descriptor.types.A_Type.Companion.typeUnionOfPojoUnfusedType
+ import com.avail.descriptor.types.A_Type.Companion.typeUnionOfPrimitiveTypeEnum
+ import com.avail.descriptor.types.A_Type.Companion.typeUnionOfSetType
+ import com.avail.descriptor.types.A_Type.Companion.typeUnionOfTokenType
+ import com.avail.descriptor.types.A_Type.Companion.typeUnionOfTupleType
+ import com.avail.descriptor.types.A_Type.Companion.typeUnionOfVariableType
+ import com.avail.descriptor.types.A_Type.Companion.typeVariables
+ import com.avail.descriptor.types.A_Type.Companion.unionOfTypesAtThrough
+ import com.avail.descriptor.types.A_Type.Companion.upperBound
+ import com.avail.descriptor.types.A_Type.Companion.upperInclusive
+ import com.avail.descriptor.types.A_Type.Companion.valueType
+ import com.avail.descriptor.types.A_Type.Companion.writeType
  import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
  import com.avail.descriptor.types.TypeDescriptor
  import com.avail.descriptor.types.TypeTag
@@ -1783,9 +1880,6 @@ class IndirectionDescriptor private constructor(
 	override fun o_IsString(self: AvailObject): Boolean =
 		self .. { isString }
 
-	override fun o_IsSupertypeOfBottom(self: AvailObject): Boolean =
-		self .. { isSupertypeOfBottom }
-
 	override fun o_IsTuple(self: AvailObject): Boolean =
 		self .. { isTuple }
 
@@ -1983,9 +2077,6 @@ class IndirectionDescriptor private constructor(
 	override fun o_Primitive(self: AvailObject): Primitive? =
 		self .. { primitive() }
 
-	override fun o_PrimitiveNumber(self: AvailObject): Int =
-		self .. { primitiveNumber() }
-
 	override fun o_DeclaredType(self: AvailObject): A_Type =
 		self .. { declaredType() }
 
@@ -2019,8 +2110,11 @@ class IndirectionDescriptor private constructor(
 	override fun o_Declaration(self: AvailObject): A_Phrase =
 		self .. { declaration() }
 
-	override fun o_ExpressionType(self: AvailObject): A_Type =
-		self .. { expressionType() }
+	override fun o_PhraseExpressionType(self: AvailObject): A_Type =
+		self .. { phraseExpressionType() }
+
+	override fun o_PhraseTypeExpressionType(self: AvailObject): A_Type =
+		self .. { phraseTypeExpressionType() }
 
 	override fun o_EmitEffectOn(
 		self: AvailObject,

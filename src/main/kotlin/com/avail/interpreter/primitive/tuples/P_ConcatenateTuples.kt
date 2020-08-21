@@ -42,6 +42,12 @@ import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.defaultType
+import com.avail.descriptor.types.A_Type.Companion.lowerBound
+import com.avail.descriptor.types.A_Type.Companion.sizeRange
+import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
+import com.avail.descriptor.types.A_Type.Companion.typeTuple
+import com.avail.descriptor.types.A_Type.Companion.upperBound
 import com.avail.descriptor.types.ConcatenatedTupleTypeDescriptor.Companion.concatenatingAnd
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType

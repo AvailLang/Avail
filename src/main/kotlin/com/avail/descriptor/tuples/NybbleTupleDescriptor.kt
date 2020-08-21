@@ -62,6 +62,13 @@ import com.avail.descriptor.tuples.NybbleTupleDescriptor.IntegerSlots.RAW_LONG_A
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.TwoByteStringDescriptor.Companion.generateTwoByteString
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.defaultType
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import com.avail.descriptor.types.A_Type.Companion.isSupertypeOfPrimitiveTypeEnum
+import com.avail.descriptor.types.A_Type.Companion.rangeIncludesLong
+import com.avail.descriptor.types.A_Type.Companion.sizeRange
+import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
+import com.avail.descriptor.types.A_Type.Companion.typeTuple
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor
 import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.optimizer.jvm.CheckedMethod

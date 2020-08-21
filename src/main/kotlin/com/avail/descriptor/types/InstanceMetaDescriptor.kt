@@ -43,6 +43,12 @@ import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor.Companion.singletonSet
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.types.A_Type.Companion.instance
+import com.avail.descriptor.types.A_Type.Companion.instances
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import com.avail.descriptor.types.A_Type.Companion.isSupertypeOfPrimitiveTypeEnum
+import com.avail.descriptor.types.A_Type.Companion.typeIntersection
+import com.avail.descriptor.types.A_Type.Companion.typeUnion
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.InstanceMetaDescriptor.ObjectSlots.INSTANCE
 import com.avail.descriptor.types.TypeDescriptor.Types
@@ -345,7 +351,8 @@ class InstanceMetaDescriptor private constructor(mutability: Mutability)
 
 	override fun o_WriteType(self: AvailObject): A_Type = unsupported
 
-	override fun o_ExpressionType(self: AvailObject): A_Type = unsupported
+	override fun o_PhraseTypeExpressionType(self: AvailObject): A_Type =
+		unsupported
 
 	override fun o_HasObjectInstance(
 		self: AvailObject,

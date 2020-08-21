@@ -40,6 +40,16 @@ import com.avail.descriptor.representation.IntegerSlotsEnum
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromArray
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import com.avail.descriptor.types.A_Type.Companion.isSupertypeOfListNodeType
+import com.avail.descriptor.types.A_Type.Companion.phraseKind
+import com.avail.descriptor.types.A_Type.Companion.phraseKindIsUnder
+import com.avail.descriptor.types.A_Type.Companion.phraseTypeExpressionType
+import com.avail.descriptor.types.A_Type.Companion.subexpressionsTupleType
+import com.avail.descriptor.types.A_Type.Companion.typeIntersection
+import com.avail.descriptor.types.A_Type.Companion.typeIntersectionOfListNodeType
+import com.avail.descriptor.types.A_Type.Companion.typeUnion
+import com.avail.descriptor.types.A_Type.Companion.typeUnionOfListNodeType
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import com.avail.descriptor.types.ListPhraseTypeDescriptor.ObjectSlots.EXPRESSION_TYPE
@@ -58,13 +68,13 @@ import java.util.IdentityHashMap
  * lattice related to list phrases.
  *
  * A list phrase type preserves more than the
- * [yield&#32;type][A_Type.expressionType] of list phrases that comply with it.
- * It also preserves the types of the phrases in the tuple of subexpressions
- * (i.e., not just the types that those phrases yield).  For example, a valid
- * list phrase type might indicate that a complying list phrase has a tuple of
- * subexpressions with between 2 and 5 elements, where the first subexpression
- * must be a declaration and the other subexpressions are all assignment
- * phrases.
+ * [yield&#32;type][A_Type.phraseTypeExpressionType] of list phrases that comply
+ * with it. It also preserves the types of the phrases in the tuple of
+ * subexpressions (i.e., not just the types that those phrases yield).  For
+ * example, a valid list phrase type might indicate that a complying list phrase
+ * has a tuple of subexpressions with between 2 and 5 elements, where the first
+ * subexpression must be a declaration and the other subexpressions are all
+ * assignment phrases.
  *
  * This descriptor is also used for [ permuted list phrase
  * types][PhraseKind.PERMUTED_LIST_PHRASE].  In that case, the subexpressions
@@ -184,7 +194,7 @@ class ListPhraseTypeDescriptor internal constructor(
 		assert(aListNodeType.phraseKindIsUnder(PhraseKind.LIST_PHRASE))
 		return (self.phraseKind() === aListNodeType.phraseKind()
 		        && self.slot(EXPRESSION_TYPE).equals(
-			aListNodeType.expressionType())
+			aListNodeType.phraseTypeExpressionType())
 		        && self.slot(SUBEXPRESSIONS_TUPLE_TYPE).equals(
 			aListNodeType.subexpressionsTupleType()))
 	}
@@ -215,7 +225,7 @@ class ListPhraseTypeDescriptor internal constructor(
 		self: AvailObject,
 		aListNodeType: A_Type): Boolean =
 			(aListNodeType.phraseKindIsUnder(self.phraseKind())
-			        && aListNodeType.expressionType().isSubtypeOf(
+			        && aListNodeType.phraseTypeExpressionType().isSubtypeOf(
 				self.slot(EXPRESSION_TYPE))
 			        && aListNodeType.subexpressionsTupleType().isSubtypeOf(
 				self.slot(SUBEXPRESSIONS_TUPLE_TYPE)))
@@ -245,8 +255,8 @@ class ListPhraseTypeDescriptor internal constructor(
 		assert(intersectionKind.isSubkindOf(PhraseKind.LIST_PHRASE))
 		return createListNodeType(
 			intersectionKind,
-			self.expressionType().typeIntersection(
-				aListNodeType.expressionType()),
+			self.phraseTypeExpressionType().typeIntersection(
+				aListNodeType.phraseTypeExpressionType()),
 			self.subexpressionsTupleType().typeIntersection(
 				aListNodeType.subexpressionsTupleType()))
 	}
@@ -262,8 +272,8 @@ class ListPhraseTypeDescriptor internal constructor(
 		assert(intersectionKind.isSubkindOf(PhraseKind.LIST_PHRASE))
 		return createListNodeType(
 			intersectionKind,
-			self.expressionType().typeIntersection(
-				aPhraseType.expressionType()),
+			self.phraseTypeExpressionType().typeIntersection(
+				aPhraseType.phraseTypeExpressionType()),
 			self.subexpressionsTupleType())
 	}
 
@@ -283,7 +293,8 @@ class ListPhraseTypeDescriptor internal constructor(
 		assert(unionKind.isSubkindOf(PhraseKind.LIST_PHRASE))
 		return createListNodeType(
 			unionKind,
-			self.expressionType().typeUnion(aListNodeType.expressionType()),
+			self.phraseTypeExpressionType().typeUnion(
+				aListNodeType.phraseTypeExpressionType()),
 			self.subexpressionsTupleType().typeUnion(
 				aListNodeType.subexpressionsTupleType()))
 	}
@@ -300,7 +311,8 @@ class ListPhraseTypeDescriptor internal constructor(
 			otherKind)
 		assert(!unionKind.isSubkindOf(PhraseKind.LIST_PHRASE))
 		return unionKind.create(
-			self.expressionType().typeUnion(aPhraseType.expressionType()))
+			self.phraseTypeExpressionType().typeUnion(
+				aPhraseType.phraseTypeExpressionType()))
 	}
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter)
@@ -434,11 +446,12 @@ class ListPhraseTypeDescriptor internal constructor(
 			}
 			val phraseTypesAsYields =
 				tupleTypeFromTupleOfTypes(subexpressionsTupleType) {
-				val descriptorTraversed = it.traversed().descriptor()
-				assert(descriptorTraversed is PhraseTypeDescriptor
-				       || descriptorTraversed is BottomTypeDescriptor)
-				it.expressionType()
-			}
+					val descriptorTraversed = it.traversed().descriptor()
+					assert(
+						descriptorTraversed is PhraseTypeDescriptor
+							|| descriptorTraversed is BottomTypeDescriptor)
+					it.phraseTypeExpressionType()
+				}
 			return createListNodeTypeNoCheck(
 				kind,
 				yieldType.typeIntersection(phraseTypesAsYields),
@@ -461,11 +474,12 @@ class ListPhraseTypeDescriptor internal constructor(
 			assert(subexpressionsTupleType.isTupleType)
 			val phraseTypesAsYields =
 				tupleTypeFromTupleOfTypes(subexpressionsTupleType) {
-				val descriptorTraversed = it.traversed().descriptor()
-				assert(descriptorTraversed is PhraseTypeDescriptor
-				       || descriptorTraversed is BottomTypeDescriptor)
-				it.expressionType()
-			}
+					val descriptorTraversed = it.traversed().descriptor()
+					assert(
+						descriptorTraversed is PhraseTypeDescriptor
+							|| descriptorTraversed is BottomTypeDescriptor)
+					it.phraseTypeExpressionType()
+				}
 			return createListNodeTypeNoCheck(
 				PhraseKind.LIST_PHRASE,
 				phraseTypesAsYields,

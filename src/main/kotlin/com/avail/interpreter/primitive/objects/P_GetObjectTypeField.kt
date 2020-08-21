@@ -40,6 +40,10 @@ import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralOb
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.fieldTypeMap
+import com.avail.descriptor.types.A_Type.Companion.instance
+import com.avail.descriptor.types.A_Type.Companion.instances
+import com.avail.descriptor.types.A_Type.Companion.typeUnion
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType

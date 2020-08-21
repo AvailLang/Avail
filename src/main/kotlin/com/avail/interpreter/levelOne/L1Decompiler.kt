@@ -94,6 +94,11 @@ import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.argsTupleType
+import com.avail.descriptor.types.A_Type.Companion.declaredExceptions
+import com.avail.descriptor.types.A_Type.Companion.returnType
+import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
+import com.avail.descriptor.types.A_Type.Companion.writeType
 import com.avail.descriptor.types.ContinuationTypeDescriptor.Companion.continuationTypeForFunctionType
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.FIRST_OF_SEQUENCE_PHRASE
@@ -257,7 +262,7 @@ class L1Decompiler constructor(
 		block = newBlockNode(
 			tupleFromArray(*args),
 			code.
-			primitiveNumber(),
+			primitive(),
 			tupleFromList(statements),
 			code.functionType().returnType(),
 			code.functionType().declaredExceptions(),

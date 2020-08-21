@@ -36,6 +36,9 @@ import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import com.avail.descriptor.types.A_Type.Companion.tupleOfTypesFromTo
+import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import java.lang.String.format
 import kotlin.math.max

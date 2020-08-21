@@ -230,9 +230,6 @@ abstract class AbstractTypeDescriptor protected constructor(
 		self: AvailObject,
 		aPojoType: A_Type): Boolean
 
-	// All types are supertypes of bottom.
-	override fun o_IsSupertypeOfBottom(self: AvailObject): Boolean = true
-
 	abstract override fun o_IsTupleType(self: AvailObject): Boolean
 
 	override fun o_IsType(self: AvailObject): Boolean = true

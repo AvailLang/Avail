@@ -45,6 +45,14 @@ import com.avail.descriptor.representation.IntegerSlotsEnum
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.instances
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import com.avail.descriptor.types.A_Type.Companion.lowerBound
+import com.avail.descriptor.types.A_Type.Companion.lowerInclusive
+import com.avail.descriptor.types.A_Type.Companion.typeIntersection
+import com.avail.descriptor.types.A_Type.Companion.typeUnion
+import com.avail.descriptor.types.A_Type.Companion.upperBound
+import com.avail.descriptor.types.A_Type.Companion.upperInclusive
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedIntegers
 import com.avail.descriptor.types.TypeDescriptor.Types.DOUBLE
@@ -168,8 +176,7 @@ abstract class AbstractNumberDescriptor protected constructor(
 
 		/**
 		 * The first number is not comparable to the second number.  This is the
-		 * case precisely when one of the values is a
-		 * [not-a-number][Double.NaN].
+		 * case precisely when one of the values is a not-a-number.
 		 */
 		INCOMPARABLE;
 
@@ -246,7 +253,8 @@ abstract class AbstractNumberDescriptor protected constructor(
 		/**
 		 * Answer whether the first value is more than the second value.
 		 *
-		 * @return Whether the relation between the two values is [.MORE].
+		 * @return
+		 *   Whether the relation between the two values is [MORE].
 		 */
 		@ReferencedInGeneratedCode
 		fun isMore(): Boolean = this == MORE
@@ -255,8 +263,8 @@ abstract class AbstractNumberDescriptor protected constructor(
 		 * Answer whether the first value is more than or equivalent to the
 		 * second value.
 		 *
-		 * @return Whether the relation between the two values is [.MORE]
-		 * or [.EQUAL].
+		 * @return
+		 *   Whether the relation between the two values is [MORE] or [EQUAL].
 		 */
 		@ReferencedInGeneratedCode
 		fun isMoreOrEqual(): Boolean = this == MORE || this == EQUAL
@@ -265,16 +273,18 @@ abstract class AbstractNumberDescriptor protected constructor(
 		 * Answer whether the first value is numerically equivalent to the
 		 * second value.
 		 *
-		 * @return Whether the relation between the two values is [.EQUAL].
+		 * @return
+		 *   Whether the relation between the two values is [EQUAL].
 		 */
 		fun isEqual(): Boolean = this == EQUAL
 
 		/**
 		 * Answer whether the first value is numerically incomparable to the
 		 * second value.  This is the case precisely when one of the values is a
-		 * [Double.NaN] not-a-number
+		 * not-a-number.
 		 *
-		 * @return Whether the relation between the two values is [.EQUAL].
+		 * @return
+		 *   Whether the relation between the two values is [INCOMPARABLE].
 		 */
 		fun isIncomparable(): Boolean = this == INCOMPARABLE
 	}

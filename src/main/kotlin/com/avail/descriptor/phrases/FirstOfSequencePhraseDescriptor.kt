@@ -36,6 +36,7 @@ package com.avail.descriptor.phrases
  import com.avail.descriptor.phrases.A_Phrase.Companion.emitValueOn
  import com.avail.descriptor.phrases.A_Phrase.Companion.flattenStatementsInto
  import com.avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
+ import com.avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
  import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKind
  import com.avail.descriptor.phrases.A_Phrase.Companion.statements
  import com.avail.descriptor.phrases.A_Phrase.Companion.statementsDo
@@ -144,10 +145,10 @@ class FirstOfSequencePhraseDescriptor private constructor(
 		&& self.phraseKind() == aPhrase.phraseKind()
 		&& self.slot(STATEMENTS).equals(aPhrase.statements()))
 
-	override fun o_ExpressionType(self: AvailObject): A_Type {
+	override fun o_PhraseExpressionType(self: AvailObject): A_Type {
 		val statements: A_Tuple = self.slot(STATEMENTS)
 		assert(statements.tupleSize() > 0)
-		return statements.tupleAt(1).expressionType()
+		return statements.tupleAt(1).phraseExpressionType()
 	}
 
 	override fun o_FlattenStatementsInto(

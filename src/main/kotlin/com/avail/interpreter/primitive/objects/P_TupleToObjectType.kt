@@ -44,6 +44,12 @@ import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.objectTypeFro
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.instance
+import com.avail.descriptor.types.A_Type.Companion.instanceCount
+import com.avail.descriptor.types.A_Type.Companion.lowerBound
+import com.avail.descriptor.types.A_Type.Companion.sizeRange
+import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
+import com.avail.descriptor.types.A_Type.Companion.upperBound
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
@@ -103,14 +109,16 @@ object P_TupleToObjectType : Primitive(1, CannotFail, CanFold, CanInline)
 			if (!keyType.isEnumeration || !keyType.instanceCount().equalsInt(1))
 			{
 				// Can only strengthen if all key atoms are statically known.
-				return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
+				return super.returnTypeGuaranteedByVM(
+					rawFunction, argumentTypes)
 			}
 			val keyValue = keyType.instance()
 			assert(keyValue.isAtom)
 			if (fieldTypeMap.hasKey(keyValue))
 			{
 				// In case the semantics of this situation change.  Give up.
-				return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
+				return super.returnTypeGuaranteedByVM(
+					rawFunction, argumentTypes)
 			}
 			val valueMeta = pairType.typeAtIndex(2)
 			assert(valueMeta.isInstanceMeta)

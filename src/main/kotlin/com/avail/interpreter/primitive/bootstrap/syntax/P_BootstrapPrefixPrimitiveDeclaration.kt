@@ -48,6 +48,7 @@ import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE
@@ -117,9 +118,9 @@ object P_BootstrapPrefixPrimitiveDeclaration
 				blockArgumentPhrases.add(declaration)
 			}
 		}
-		validatePrimitiveAcceptsArguments(
-				prim.primitiveNumber, blockArgumentPhrases)
-			?.let { p -> throw AvailRejectedParseException(STRONG, p) }
+		validatePrimitiveAcceptsArguments(prim, blockArgumentPhrases)?.let {
+			throw AvailRejectedParseException(STRONG, it)
+		}
 
 		// The section marker occurs inside the optionality of the primitive
 		// clause, but outside the primitive failure variable declaration.

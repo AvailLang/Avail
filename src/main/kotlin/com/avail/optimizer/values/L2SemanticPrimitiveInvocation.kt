@@ -72,7 +72,7 @@ class L2SemanticPrimitiveInvocation internal constructor(
 			&& argumentSemanticValues == other.argumentSemanticValues)
 
 	override fun toString(): String = buildString {
-		append(primitive.fieldName())
+		append(primitive.name)
 		append(argumentSemanticValues.joinToString(
 			separator = ", ", prefix = "(", postfix = ")" ))
 	}
@@ -97,9 +97,7 @@ class L2SemanticPrimitiveInvocation internal constructor(
 	companion object
 	{
 		/**
-		 * Compute the permanent hash for this semantic value.  Note that it
-		 * uses the [Primitive.primitiveNumber], which may have different
-		 * values on different runs of an Avail program.
+		 * Compute the permanent hash for this semantic value.
 		 *
 		 * @param primitive
 		 *   The primitive that was invoked.
@@ -113,7 +111,7 @@ class L2SemanticPrimitiveInvocation internal constructor(
 			primitive: Primitive,
 			argumentSemanticValues: List<L2SemanticValue>): Int
 		{
-			var h = primitive.primitiveNumber xor 0x72C5FD8B
+			var h = primitive.name.hashCode() xor 0x72C5FD8B
 			for (argument in argumentSemanticValues)
 			{
 				h *= AvailObject.multiplier

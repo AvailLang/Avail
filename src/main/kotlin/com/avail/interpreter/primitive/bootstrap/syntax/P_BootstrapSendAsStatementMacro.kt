@@ -34,6 +34,9 @@ package com.avail.interpreter.primitive.bootstrap.syntax
 
 import com.avail.compiler.AvailRejectedParseException
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.WEAK
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKind
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
 import com.avail.descriptor.phrases.A_Phrase.Companion.token
 import com.avail.descriptor.phrases.ExpressionAsStatementPhraseDescriptor
 import com.avail.descriptor.phrases.ExpressionAsStatementPhraseDescriptor.Companion.newExpressionAsStatement
@@ -79,12 +82,12 @@ object P_BootstrapSendAsStatementMacro : Primitive(1, CanInline, Bootstrap)
 					"statement to be a ⊤-valued send phrase, not "
 					+ "a ${sendPhrase.phraseKind().name}: $sendPhrase"))
 		}
-		if (!sendPhrase.expressionType().isTop)
+		if (!sendPhrase.phraseExpressionType().isTop)
 		{
 			throw AvailRejectedParseException(
 				WEAK,
 				StringDescriptor.stringFrom("statement to yield ⊤, "
-                    + "but it yields ${sendPhrase.expressionType()}.  "
+                    + "but it yields ${sendPhrase.phraseExpressionType()}.  "
                     + "Expression is: $sendPhrase"))
 		}
 		val sendAsStatement = newExpressionAsStatement(sendPhrase)

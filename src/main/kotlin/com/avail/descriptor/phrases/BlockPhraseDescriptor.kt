@@ -31,7 +31,6 @@
  */
 package com.avail.descriptor.phrases
 
-import com.avail.AvailRuntime
 import com.avail.annotations.EnumField
 import com.avail.compiler.AvailCodeGenerator
 import com.avail.compiler.AvailCodeGenerator.Companion.generateFunction
@@ -42,26 +41,30 @@ import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.phrases.A_Phrase.Companion.argumentsTuple
 import com.avail.descriptor.phrases.A_Phrase.Companion.childrenDo
 import com.avail.descriptor.phrases.A_Phrase.Companion.declaration
+import com.avail.descriptor.phrases.A_Phrase.Companion.declaredExceptions
 import com.avail.descriptor.phrases.A_Phrase.Companion.declaredType
 import com.avail.descriptor.phrases.A_Phrase.Companion.flattenStatementsInto
 import com.avail.descriptor.phrases.A_Phrase.Companion.generateInModule
 import com.avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
 import com.avail.descriptor.phrases.A_Phrase.Companion.neededVariables
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
 import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKind
 import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
 import com.avail.descriptor.phrases.A_Phrase.Companion.primitive
 import com.avail.descriptor.phrases.A_Phrase.Companion.statementsTuple
 import com.avail.descriptor.phrases.A_Phrase.Companion.tokens
 import com.avail.descriptor.phrases.A_Phrase.Companion.validateLocally
-import com.avail.descriptor.phrases.BlockPhraseDescriptor.IntegerSlots.Companion.PRIMITIVE
 import com.avail.descriptor.phrases.BlockPhraseDescriptor.IntegerSlots.Companion.STARTING_LINE_NUMBER
 import com.avail.descriptor.phrases.BlockPhraseDescriptor.ObjectSlots.ARGUMENTS_TUPLE
 import com.avail.descriptor.phrases.BlockPhraseDescriptor.ObjectSlots.DECLARED_EXCEPTIONS
 import com.avail.descriptor.phrases.BlockPhraseDescriptor.ObjectSlots.NEEDED_VARIABLES
+import com.avail.descriptor.phrases.BlockPhraseDescriptor.ObjectSlots.PRIMITIVE_POJO
 import com.avail.descriptor.phrases.BlockPhraseDescriptor.ObjectSlots.RESULT_TYPE
 import com.avail.descriptor.phrases.BlockPhraseDescriptor.ObjectSlots.STATEMENTS_TUPLE
 import com.avail.descriptor.phrases.BlockPhraseDescriptor.ObjectSlots.TOKENS
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
+import com.avail.descriptor.pojos.RawPojoDescriptor
+import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AbstractSlotsEnum
 import com.avail.descriptor.representation.AvailObject
@@ -92,7 +95,6 @@ import com.avail.descriptor.types.TypeTag
 import com.avail.exceptions.AvailErrorCode.E_BLOCK_MUST_NOT_CONTAIN_OUTERS
 import com.avail.exceptions.AvailRuntimeException
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Companion.byNumber
 import com.avail.interpreter.Primitive.Flag
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.Strings.newlineTab
@@ -123,25 +125,11 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 	 */
 	enum class IntegerSlots : IntegerSlotsEnum {
 		/**
-		 * A slot containing multiple [BitField]s.
+		 * A slot containing multiple [BitField]s, potentially.
 		 */
-		PRIMITIVE_AND_STARTING_LINE_NUMBER;
+		STARTING_LINE_NUMBER_AND_MORE;
 
 		companion object {
-			/**
-			 * The [primitive][Primitive] number to invoke for this block. This
-			 * is the ephemeral number that was assigned as primitives were
-			 * loaded, found in [Primitive.primitiveNumber], not a numbering
-			 * that exists outside of a particular [AvailRuntime].  Note that
-			 * this number is never serialized or exposed to the Avail language.
-			 */
-			@JvmField
-			@EnumField(
-				describedBy = Primitive::class,
-				lookupMethodName = "byPrimitiveNumberOrNull")
-			val PRIMITIVE = BitField(
-				PRIMITIVE_AND_STARTING_LINE_NUMBER, 0, 32)
-
 			/**
 			 * The line number on which this block starts.
 			 */
@@ -150,7 +138,7 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 				describedBy = EnumField.Converter::class,
 				lookupMethodName = "decimal")
 			val STARTING_LINE_NUMBER = BitField(
-				PRIMITIVE_AND_STARTING_LINE_NUMBER, 32, 32)
+				STARTING_LINE_NUMBER_AND_MORE, 0, 32)
 		}
 	}
 
@@ -189,7 +177,13 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 		/**
 		 * The tuple of tokens forming this block phrase, if any.
 		 */
-		TOKENS
+		TOKENS,
+
+		/**
+		 * Either [nil] or a raw [pojo][RawPojoDescriptor] holding the
+		 * [Primitive] to invoke for this block.
+		 */
+		PRIMITIVE_POJO
 	}
 
 	override fun printObjectOnAvoidingIndent(
@@ -206,7 +200,7 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 		val statementsSize = statementsTuple.tupleSize()
 		var explicitResultType: A_Type?  = self.resultType()
 		if (statementsSize >= 1
-			&& statementsTuple.tupleAt(statementsSize).expressionType()
+			&& statementsTuple.tupleAt(statementsSize).phraseExpressionType()
 				.equals(explicitResultType!!)) {
 			explicitResultType = null
 		}
@@ -214,7 +208,8 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 			if (it.setSize() == 0) null else it
 		}
 		val endsWithStatement = (statementsSize < 1
-			|| statementsTuple.tupleAt(statementsSize).expressionType().isTop)
+			|| statementsTuple.tupleAt(statementsSize)
+				.phraseExpressionType().isTop)
 		if (argCount == 0
 			&& primitive === null
 			&& statementsSize == 1
@@ -259,7 +254,7 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 			wroteAnything = true
 			newlineTab(builder, indent)
 			builder.append("Primitive ")
-			builder.append(primitive.fieldName())
+			builder.append(primitive.name)
 			if (!primitive.hasFlag(Flag.CannotFail)) {
 				builder.append(" (")
 				statementsTuple.tupleAt(1).printOnAvoidingIndent(
@@ -372,7 +367,7 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 			&& self.primitive() === aPhrase.primitive())
 	}
 
-	override fun o_ExpressionType(self: AvailObject): A_Type =
+	override fun o_PhraseExpressionType(self: AvailObject): A_Type =
 		functionType(
 			tupleFromList(self.argumentsTuple().map { it.declaredType() }),
 			self.resultType())
@@ -398,7 +393,7 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 		var h = self.argumentsTuple().hash()
 		h = h * multiplier + self.statementsTuple().hash()
 		h = h * multiplier + self.resultType().hash()
-		h = h * multiplier + (self.primitive()?.fieldName()?.hashCode() ?: 0)
+		h = h * multiplier + (self.primitive()?.name?.hashCode() ?: 0)
 		h = h * multiplier xor 0x05E6A04A
 		return h
 	}
@@ -415,7 +410,9 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 		BLOCK_PHRASE
 
 	override fun o_Primitive(self: AvailObject): Primitive? =
-		byNumber(self.slot(PRIMITIVE))
+		self.slot(PRIMITIVE_POJO).run {
+			if (equalsNil()) null else javaObject()
+		}
 
 	override fun o_ResultType(self: AvailObject): A_Type =
 		self.slot(RESULT_TYPE)
@@ -449,7 +446,7 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("block phrase") }
-			at("primitive") { write(self.primitive()?.fieldName() ?: "") }
+			at("primitive") { write(self.primitive()?.name ?: "") }
 			at("starting line") { write(self.slot(STARTING_LINE_NUMBER)) }
 			at("arguments") { self.slot(ARGUMENTS_TUPLE).writeTo(writer) }
 			at("statements") { self.slot(STATEMENTS_TUPLE).writeTo(writer) }
@@ -466,7 +463,7 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("block phrase") }
-			at("primitive") { write(self.primitive()?.fieldName() ?: "") }
+			at("primitive") { write(self.primitive()?.name ?: "") }
 			at("starting line") { write(self.slot(STARTING_LINE_NUMBER)) }
 			at("arguments") {
 				self.slot(ARGUMENTS_TUPLE).writeSummaryTo(writer)
@@ -587,8 +584,8 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 		 *   The [tuple][TupleDescriptor] of argument
 		 *   [declarations][DeclarationPhraseDescriptor].
 		 * @param primitive
-		 *   The index of the primitive that the resulting block will invoke, or
-		 *   zero if this is not a primitive.
+		 *   The [Primitive] that the resulting block will invoke, or `null` if
+		 *   this is not a primitive.
 		 * @param statements
 		 *   The [tuple][A_Tuple] of statement [phrases][PhraseDescriptor].
 		 * @param resultType
@@ -605,7 +602,7 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 		 */
 		fun newBlockNode(
 			arguments: A_Tuple,
-			primitive: Int,
+			primitive: Primitive?,
 			statements: A_Tuple,
 			resultType: A_Type,
 			declaredExceptions: A_Set,
@@ -628,13 +625,13 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 			}
 			return mutable.createShared {
 				setSlot(ARGUMENTS_TUPLE, arguments)
-				setSlot(PRIMITIVE, primitive)
 				setSlot(STATEMENTS_TUPLE, tupleFromList(flattenedStatements))
 				setSlot(RESULT_TYPE, resultType)
 				setSlot(NEEDED_VARIABLES, nil)
 				setSlot(DECLARED_EXCEPTIONS, declaredExceptions)
 				setSlot(TOKENS, tokens)
 				setSlot(STARTING_LINE_NUMBER, lineNumber)
+				setSlot(PRIMITIVE_POJO, primitive?.let(::identityPojo) ?: nil)
 			}
 		}
 

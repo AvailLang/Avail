@@ -52,6 +52,16 @@ import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
+import com.avail.descriptor.types.A_Type.Companion.contentType
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import com.avail.descriptor.types.A_Type.Companion.lowerBound
+import com.avail.descriptor.types.A_Type.Companion.sizeRange
+import com.avail.descriptor.types.A_Type.Companion.typeIntersection
+import com.avail.descriptor.types.A_Type.Companion.typeIntersectionOfPojoType
+import com.avail.descriptor.types.A_Type.Companion.typeUnionOfPojoFusedType
+import com.avail.descriptor.types.A_Type.Companion.typeUnionOfPojoType
+import com.avail.descriptor.types.A_Type.Companion.typeUnionOfPojoUnfusedType
+import com.avail.descriptor.types.A_Type.Companion.upperBound
 import com.avail.descriptor.types.ArrayPojoTypeDescriptor.IntegerSlots.HASH_AND_MORE
 import com.avail.descriptor.types.ArrayPojoTypeDescriptor.ObjectSlots.CONTENT_TYPE
 import com.avail.descriptor.types.ArrayPojoTypeDescriptor.ObjectSlots.JAVA_ANCESTORS

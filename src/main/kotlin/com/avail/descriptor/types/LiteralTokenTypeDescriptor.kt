@@ -37,6 +37,13 @@ import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.tokens.LiteralTokenDescriptor
 import com.avail.descriptor.tokens.TokenDescriptor
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import com.avail.descriptor.types.A_Type.Companion.isSupertypeOfLiteralTokenType
+import com.avail.descriptor.types.A_Type.Companion.literalType
+import com.avail.descriptor.types.A_Type.Companion.typeIntersection
+import com.avail.descriptor.types.A_Type.Companion.typeIntersectionOfLiteralTokenType
+import com.avail.descriptor.types.A_Type.Companion.typeUnion
+import com.avail.descriptor.types.A_Type.Companion.typeUnionOfLiteralTokenType
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.LiteralTokenTypeDescriptor.ObjectSlots.LITERAL_TYPE
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY

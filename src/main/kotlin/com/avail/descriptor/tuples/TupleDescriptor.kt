@@ -64,10 +64,15 @@ import com.avail.descriptor.tuples.NybbleTupleDescriptor.Companion.mutableObject
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import com.avail.descriptor.tuples.TupleDescriptor.IntegerSlots
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.defaultType
+import com.avail.descriptor.types.A_Type.Companion.isSupertypeOfPrimitiveTypeEnum
+import com.avail.descriptor.types.A_Type.Companion.rangeIncludesLong
+import com.avail.descriptor.types.A_Type.Companion.sizeRange
+import com.avail.descriptor.types.A_Type.Companion.typeTuple
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.instanceTypeOrMetaOn
 import com.avail.descriptor.types.BottomTypeDescriptor
 import com.avail.descriptor.types.TupleTypeDescriptor
-import com.avail.descriptor.types.TypeDescriptor
+import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.descriptor.types.TypeTag
 import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
@@ -377,8 +382,7 @@ abstract class TupleDescriptor protected constructor(
 
 	override fun o_IsInstanceOfKind(self: AvailObject, aType: A_Type): Boolean
 	{
-		if (aType.isSupertypeOfPrimitiveTypeEnum(
-				TypeDescriptor.Types.NONTYPE))
+		if (aType.isSupertypeOfPrimitiveTypeEnum(Types.NONTYPE))
 		{
 			return true
 		}
@@ -408,7 +412,7 @@ abstract class TupleDescriptor protected constructor(
 		}
 		val defaultTypeObject = aType.defaultType()
 		return (defaultTypeObject.isSupertypeOfPrimitiveTypeEnum(
-				TypeDescriptor.Types.ANY)
+				Types.ANY)
 			|| self.tupleElementsInRangeAreInstancesOf(
 		breakIndex + 1, tupleSize, defaultTypeObject))
 	}
@@ -957,7 +961,7 @@ abstract class TupleDescriptor protected constructor(
 	 * @param tuple
 	 *   The tuple over which to iterate.
 	 */
-	private class TupleIterator internal constructor(
+	private class TupleIterator(
 		private val tuple: AvailObject) : Iterator<AvailObject>
 	{
 		/**
@@ -1004,7 +1008,7 @@ abstract class TupleDescriptor protected constructor(
 	 * @param fence
 	 *   One past the last index to visit.
 	 */
-	private class TupleSpliterator internal constructor(
+	private class TupleSpliterator(
 		private val tuple: A_Tuple,
 		private var index: Int,
 		private val fence: Int) : Spliterator<AvailObject>

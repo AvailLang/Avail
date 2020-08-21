@@ -33,7 +33,11 @@ package com.avail.interpreter.levelTwo.operation
 
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.tupleAtMethod
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor
+import com.avail.descriptor.types.A_Type.Companion.lowerBound
+import com.avail.descriptor.types.A_Type.Companion.typeIntersection
+import com.avail.descriptor.types.A_Type.Companion.unionOfTypesAtThrough
+import com.avail.descriptor.types.A_Type.Companion.upperBound
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int32
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2OperandType
 import com.avail.interpreter.levelTwo.L2Operation
@@ -65,7 +69,7 @@ object L2_TUPLE_AT_NO_FAIL : L2Operation(
 		val subscript = instruction.operand<L2ReadIntOperand>(1)
 		val destination = instruction.operand<L2WriteBoxedOperand>(2)
 		val tupleType = tuple.type()
-		val bounded = subscript.type().typeIntersection(IntegerRangeTypeDescriptor.int32)
+		val bounded = subscript.type().typeIntersection(int32)
 		val minInt = bounded.lowerBound().extractInt()
 		val maxInt = bounded.upperBound().extractInt()
 		registerSet.typeAtPut(

@@ -40,6 +40,9 @@ import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.A_Phrase.Companion.token
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import com.avail.descriptor.types.A_Type.Companion.lowerBound
+import com.avail.descriptor.types.A_Type.Companion.phraseTypeExpressionType
 import com.avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
@@ -151,7 +154,7 @@ internal class Counter(
 		 * under-pop parse position (remove 2nd from top of stack)
 		 */
 		generator.flushDelayed()
-		val phraseCountRange = phraseType.expressionType()
+		val phraseCountRange = phraseType.phraseTypeExpressionType()
 		val emptyTupleType = instanceType(emptyTuple)
 		val tupleOfEmptyTuplesType = tupleTypeForSizesTypesDefaultType(
 			phraseCountRange, emptyTuple, emptyTupleType)
@@ -205,7 +208,7 @@ internal class Counter(
 
 	override fun mightBeEmpty(phraseType: A_Type): Boolean
 	{
-		val integerRangeType = phraseType.expressionType()
+		val integerRangeType = phraseType.phraseTypeExpressionType()
 		assert(integerRangeType.isIntegerRangeType)
 		return integerRangeType.lowerBound().equalsInt(0)
 	}

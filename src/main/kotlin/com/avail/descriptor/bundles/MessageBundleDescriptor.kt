@@ -78,6 +78,8 @@ import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.toList
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.tupleWithout
+import com.avail.descriptor.types.A_Type.Companion.argsTupleType
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
@@ -435,7 +437,7 @@ class MessageBundleDescriptor private constructor(
 		 * this bundle.  This is performed to make the bundle agree with the
 		 * method's definitions and macro definitions.
 		 *
-		 * @param self
+		 * @param self
 		 *   The affected message bundle.
 		 * @param plan
 		 *   A definition parsing plan.
@@ -453,7 +455,7 @@ class MessageBundleDescriptor private constructor(
 		 * Remove an [A_Macro] from this bundle.  This is performed to make the
 		 * bundle agree with the method's definitions and macro definitions.
 		 *
-		 * @param self
+		 * @param self
 		 *   The affected message bundle.
 		 * @param macro
 		 *   The [A_Macro] to be removed.
@@ -469,7 +471,7 @@ class MessageBundleDescriptor private constructor(
 		 * to make the bundle agree with the method's definitions and macro
 		 * definitions.
 		 *
-		 * @param self
+		 * @param self
 		 *   The affected message bundle.
 		 * @param definition
 		 *   A definition whose plan should be removed.
@@ -502,7 +504,7 @@ class MessageBundleDescriptor private constructor(
 		/**
 		 * Remove a grammatical restriction from this bundle.
 		 *
-		 * @param self
+		 * @param self
 		 *   A message bundle.
 		 * @param obsoleteRestriction
 		 *   The [grammatical&#32;restriction][A_GrammaticalRestriction] to

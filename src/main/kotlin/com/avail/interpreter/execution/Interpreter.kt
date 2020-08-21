@@ -79,6 +79,8 @@ import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import com.avail.descriptor.tuples.StringDescriptor.Companion.formatString
 import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.argsTupleType
+import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.descriptor.types.TypeTag
@@ -1067,7 +1069,7 @@ class Interpreter(
 				Level.FINER,
 				"{0}          inline prim = {1}",
 				debugModeString,
-				primitive.fieldName())
+				primitive.name)
 		}
 		val timeBefore = beforeAttemptPrimitive(primitive)
 		val result = primitive.attempt(this)
@@ -1171,7 +1173,7 @@ class Interpreter(
 				Level.FINER,
 				"{0}          reifying for {1}",
 				debugModeString,
-				primitive.fieldName())
+				primitive.name)
 		}
 		val stepper = levelOneStepper
 		val savedChunk = chunk!!
@@ -1204,7 +1206,7 @@ class Interpreter(
 					Level.FINER,
 					"{0}          reified, now starting {1}",
 					debugModeString,
-					primitive.fieldName())
+					primitive.name)
 			}
 			val timeBefore = beforeAttemptPrimitive(primitive)
 			val result = primitive.attempt(this)
@@ -1278,7 +1280,7 @@ class Interpreter(
 				Level.FINER,
 				"{0}attempt {1}{2}",
 				debugModeString,
-				primitive.fieldName(),
+				primitive.name,
 				builder.toString())
 		}
 		returnNow = false
@@ -1331,7 +1333,7 @@ class Interpreter(
 					Level.FINER,
 					"{0}... completed primitive {1} => {2}{3}",
 					debugModeString,
-					primitive.fieldName(),
+					primitive.name,
 					success.name,
 					detailPart)
 				if (success !== SUCCESS) {
@@ -1613,7 +1615,8 @@ class Interpreter(
 					assert(handlerTuple.isTuple)
 					handlerTuple.forEach { handler ->
 						if (exceptionValue.isInstanceOf(
-								handler.kind().argsTupleType().typeAtIndex(1))) {
+								handler.kind().argsTupleType().typeAtIndex(1)))
+						{
 							// Mark this frame: we don't want it to handle an
 							// exception raised from within one of its handlers.
 							if (debugL2) {

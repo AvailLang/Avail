@@ -34,15 +34,20 @@ package com.avail.interpreter
 
 import com.avail.AvailRuntime.HookType.IMPLICIT_OBSERVE
 import com.avail.descriptor.functions.A_RawFunction
-import com.avail.descriptor.functions.CompiledCodeDescriptor
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.A_Phrase.Companion.declaredType
 import com.avail.descriptor.phrases.A_Phrase.Companion.token
 import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.representation.IntegerEnumSlotDescriptionEnum
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.argsTupleType
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import com.avail.descriptor.types.A_Type.Companion.lowerBound
+import com.avail.descriptor.types.A_Type.Companion.returnType
+import com.avail.descriptor.types.A_Type.Companion.sizeRange
+import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
+import com.avail.descriptor.types.A_Type.Companion.upperBound
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.FunctionTypeDescriptor
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
@@ -96,7 +101,6 @@ import com.avail.optimizer.values.L2SemanticPrimitiveInvocation
 import com.avail.optimizer.values.L2SemanticValue
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport
-import com.avail.serialization.Serializer
 import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes.ACONST_NULL
@@ -188,7 +192,6 @@ import java.util.regex.Pattern
  *   primitive.
  */
 abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
-	: IntegerEnumSlotDescriptionEnum
 {
 	/**
 	 * A [function&#32;type][FunctionTypeDescriptor] that restricts the
@@ -199,21 +202,13 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	private var cachedBlockTypeRestriction: A_Type? = null
 
 	/**
-	 * A [type][TypeDescriptor] to constrain the [AvailObject.writeType] of the
+	 * A [type][TypeDescriptor] to constrain the [A_Type.writeType] of the
 	 * variable declaration within the primitive declaration of a block.  The
 	 * actual variable's inner type must be this or a supertype.
 	 */
 	@Suppress("LeakingThis")
 	val failureVariableType : AvailObject =
 		privateFailureVariableType().makeShared()
-
-	/**
-	 * This primitive's number.  The Avail source code refers to primitives by
-	 * name, but it has a number associated with it by its position in the list
-	 * within All_Primitives.txt.  [compiled&#32;code][CompiledCodeDescriptor]
-	 * stores the primitive number internally for speed.
-	 */
-	val primitiveNumber: Int
 
 	/**
 	 * The flags that indicate to the [L2Generator] how an invocation of
@@ -236,7 +231,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		private set
 
 	/** Capture the name of the primitive class once for performance.  */
-	private var name = ""
+	val name: String
 
 	/**
 	 * A performance metric indicating how long was spent executing each
@@ -258,8 +253,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	init
 	{
 		val holder = holdersByClassName[javaClass.name]
-		primitiveNumber = holder!!.number
-		name = holder.name
+		name = holder!!.name
 		assert(primitiveFlags.isEmpty())
 		for (flag in flags)
 		{
@@ -639,11 +633,6 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	 *   The name by which a primitive function is declared in Avail code.
 	 * @property className
 	 *   The full name of the Java class implementing the primitive.
-	 * @property number
-	 *   The numeric index of the primitive in the [holdersByNumber]
-	 *   array.  This ordering may be arbitrary, specific to the currently
-	 *   running Java VM instance.  The number should never be included in any
-	 *   serialization of primitive functions.
 	 *
 	 * @constructor
 	 * Construct a new `PrimitiveHolder`.
@@ -652,28 +641,18 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	 *   The primitive's textual name.
 	 * @param className
 	 *   The fully qualified name of the Primitive subclass.
-	 * @param number
-	 *   The primitive's assigned index in the
 	 */
-	private open class PrimitiveHolder internal constructor(
-		internal val name: String,
-		internal val className: String,
-		internal val number: Int)
+	class PrimitiveHolder internal constructor(
+		val name: String,
+		val className: String)
 	{
-		/**
-		 * `false` if this holding is holding a "real" [Primitive]. `true` if
-		 * this is acting as a `null` in a collection that strictly requires
-		 * non-nulls.
-		 */
-		internal open val isNull = false
-
 		/**
 		 * The sole instance of the specific subclass of [Primitive].  It is
 		 * initialized only when needed for the first time, since that causes
 		 * Java class loading to happen, and we'd rather smear out that startup
 		 * performance cost.
 		 */
-		internal val primitive: Primitive by lazy {
+		val primitive: Primitive by lazy {
 			val loader = Primitive::class.java.classLoader
 			try
 			{
@@ -702,18 +681,6 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	}
 
 	/**
-	 * In order to enable the code paradigm in init, this object is used in
-	 * place of null.
-	 */
-	private object NullPrimitiveHolder : PrimitiveHolder(
-		"NULLPRIMITIVEHOLDER",
-			"Primitive.NullPrimitiveHolder",
-			Integer.MIN_VALUE)
-	{
-		override val isNull: Boolean = true
-	}
-
-	/**
 	 * Answer whether a raw function using this primitive can/should have
 	 * nybblecode instructions.
 	 *
@@ -728,7 +695,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	 * most (fallible) primitives follow the same pattern.
 	 *
 	 * @param lineNumber
-	 *   The line number at which to consider these
+	 *   The line number at which to consider a future failure to occur.
 	 * @param writer
 	 *   Where to write the failure code.
 	 * @param numArgs
@@ -757,28 +724,6 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 				writer.addLiteral(SpecialMethodAtom.CRASH.bundle),
 				writer.addLiteral(bottom))
 		}
-	}
-
-	/**
-	 * Answer the name of this primitive, which is just the class's simple name,
-	 * as previously captured by the [fieldName] field during init.
-	 *
-	 * @return The name of this primitive.
-	 */
-	override fun fieldName(): String = name
-
-	/**
-	 * Be compliant with [IntegerEnumSlotDescriptionEnum] – although it
-	 * shouldn't really be used, since we want to index by primitive number
-	 * instead of ordinal.
-	 *
-	 * @return The ordinal of this primitive, in theory.
-	 */
-	@Deprecated("")
-	override fun fieldOrdinal(): Int
-	{
-		throw UnsupportedOperationException(
-			"Primitive ordinal() should not be used.")
 	}
 
 	/**
@@ -903,26 +848,10 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	companion object
 	{
 		/** A map of all [PrimitiveHolder]s, by name.  */
-		private val holdersByName: Map<String, PrimitiveHolder>
+		val holdersByName: Map<String, PrimitiveHolder>
 
 		/** A map of all [PrimitiveHolder]s, by class name.  */
 		private val holdersByClassName: Map<String, PrimitiveHolder>
-
-		/**
-		 * An array of all [Primitive]s encountered so far, indexed by
-		 * primitive number.  Note that the primitive numbers may get assigned
-		 * differently on different runs, so the [Serializer] always uses the
-		 * primitive's textual name.
-		 *
-		 * If this array is insufficient to hold all the primitives, it can be
-		 * replaced with a larger one as needed.  However, be careful of the
-		 * lack of write barrier for array elements.  Reads should always be
-		 * safe, as they couldn't be caching stale data from the replacement
-		 * array, because they can't see it until after it has been populated at
-		 * least to the extent that the previous array was.  Writing new
-		 * elements to the array has to be protected
-		 */
-		private val holdersByNumber: Array<PrimitiveHolder>
 
 		/**
 		 * The name of a generated file which lists all primitive classes.  The
@@ -942,10 +871,6 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	     */
 		init
 		{
-			val byNumbers = mutableListOf<PrimitiveHolder>()
-			// Entry zero is reserved for not-a-primitive.
-			byNumbers.add(NullPrimitiveHolder)
-			var counter = 1
 			val byNames = mutableMapOf<String, PrimitiveHolder>()
 			val byClassNames = mutableMapOf<String, PrimitiveHolder>()
 			try
@@ -967,12 +892,9 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 						{
 							val name = matcher.group(1)
 							assert(!byNames.containsKey(name))
-							val holder = PrimitiveHolder(
-								name, className, counter)
+							val holder = PrimitiveHolder(name, className)
 							byNames[name] = holder
 							byClassNames[className] = holder
-							byNumbers.add(holder)
-							counter++
 						}
 					}
 				}
@@ -981,18 +903,9 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 			{
 				throw RuntimeException(e)
 			}
-
 			holdersByName = byNames
 			holdersByClassName = byClassNames
-			holdersByNumber = byNumbers.toTypedArray()
 		}
-
-		/**
-		 * Answer the largest primitive number.
-		 *
-		 * @return The largest primitive number.
-		 */
-		fun maxPrimitiveNumber(): Int = holdersByNumber.size - 1
 
 		/**
 		 * Given a primitive name, look it up and answer the `Primitive` if
@@ -1007,44 +920,12 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 			holdersByName[name]?.primitive
 
 		/**
-		 * Given a primitive number, look it up and answer the `Primitive` if
-		 * found, or `null` if not found.
-		 *
-		 * @param primitiveNumber
-		 *   The primitive number to look up.
-		 * @return The primitive, or null if the name is not a valid primitive.
-		 */
-		fun byNumber(primitiveNumber: Int): Primitive?
-		{
-			assert(primitiveNumber >= 0 && primitiveNumber <= maxPrimitiveNumber())
-			val holder = holdersByNumber[primitiveNumber]
-			return if (holder.isNull) { null } else { holder.primitive }
-		}
-
-		/**
-		 * Locate the primitive that has the specified primitive number.
-		 *
-		 * This is @JvmStatic because it's currently used for debugger's
-		 * nice description of a [CompiledCodeDescriptor]'s primitive.
-		 *
-		 * @param primitiveNumber The primitive number for which to search.
-		 * @return The primitive with the specified primitive number.
-		 */
-		@JvmStatic
-		fun byPrimitiveNumberOrNull(primitiveNumber: Int): Primitive? =
-			if (primitiveNumber == 0)
-			{
-				null
-			}
-			else holdersByNumber[primitiveNumber].primitive
-
-		/**
 		 * Determine whether the specified primitive declaration is acceptable
 		 * to be used with the given list of parameter declarations.  Answer
 		 * null if they are acceptable, otherwise answer a suitable `String`
 		 * that is expected to appear after the prefix "Expecting...".
 		 *
-		 * @param primitiveNumber
+		 * @param primitive
 		 *   Which primitive.
 		 * @param arguments
 		 *   The argument declarations that we should check are legal for this
@@ -1053,10 +934,9 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		 *   conform to the given argument declarations.
 		 */
 		fun validatePrimitiveAcceptsArguments(
-			primitiveNumber: Int,
+			primitive: Primitive,
 			arguments: List<A_Phrase>): String?
 		{
-			val primitive = byPrimitiveNumberOrNull(primitiveNumber)!!
 			val expected = primitive.argCount
 			if (expected == -1) return null
 			if (arguments.size != expected)
@@ -1083,7 +963,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 									"subtype of %s, not %s.",
 								i,
 								arguments[i - 1].token().string(),
-								primitive.fieldName(),
+								primitive.name,
 								expectedType,
 								declaredType))
 					}
@@ -1129,7 +1009,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	) {
 		// :: argsBuffer = interpreter.argsBuffer;
 		translator.loadInterpreter(method)
-		// [interpreter]
+		// [interpreter]
 		argsBufferField.generateRead(method)
 		// [argsBuffer]
 		// :: argsBuffer.clear();
@@ -1153,25 +1033,25 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		}
 		// []
 		translator.loadInterpreter(method)
-		// [interpreter]
+		// [interpreter]
 		translator.literal(method, this)
-		// [interpreter, prim]
+		// [interpreter, prim]
 		method.visitInsn(DUP2)
-		// [interpreter, prim, interpreter, prim]
+		// [interpreter, prim, interpreter, prim]
 		method.visitInsn(DUP2)
-		// [interpreter, prim, interpreter, prim, interpreter, prim]
+		// [interpreter, prim, interpreter, prim, interpreter, prim]
 		// :: long timeBefore = beforeAttemptPrimitive(primitive);
 		beforeAttemptPrimitiveMethod.generateCall(method)
-		// [interpreter, prim, interpreter, prim, timeBeforeLong]
+		// [interpreter, prim, interpreter, prim, timeBeforeLong]
 		method.visitInsn(DUP2_X2) // Form 2: v3,v2,v1x2 -> v1x2,v3,v2,v1x2
-		// [interpreter, prim, timeBeforeLong, interpreter, prim, timeBeforeLong]
+		// [interpreter, prim, timeBeforeLong, interpreter, prim, timeBeforeLong]
 		method.visitInsn(POP2) // Form 2: v1x2 -> empty
-		// [interpreter, prim, timeBeforeLong, interpreter, prim]
+		// [interpreter, prim, timeBeforeLong, interpreter, prim]
 		method.visitInsn(SWAP)
-		// [interpreter, prim, timeBeforeLong, prim, interpreter]
+		// [interpreter, prim, timeBeforeLong, prim, interpreter]
 		// :: Result success = primitive.attempt(interpreter)
 		attemptMethod.generateCall(method)
-		// [interpreter, prim, timeBeforeLong, success]
+		// [interpreter, prim, timeBeforeLong, success]
 
 		// :: afterAttemptPrimitive(primitive, timeBeforeLong, success);
 		afterAttemptPrimitiveMethod.generateCall(method)

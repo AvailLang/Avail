@@ -32,6 +32,7 @@
 
 package com.avail.interpreter.levelOne
 
+import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.functions.CompiledCodeDescriptor
 import com.avail.descriptor.functions.CompiledCodeDescriptor.Companion.newCompiledCode
 import com.avail.descriptor.functions.ContinuationDescriptor
@@ -133,8 +134,8 @@ class L1InstructionWriter constructor(
 	private val outerTypes = mutableListOf<A_Type>()
 
 	/**
-	 * The [primitive][Primitive] [number][Primitive.primitiveNumber] of the
-	 * [compile&#32;code&#32;object] being generated.
+	 * The [primitive][Primitive] of the [compiled&#32;code][A_RawFunction]
+	 * being generated.
 	 */
 	var primitive: Primitive? = null
 		set(newValue)

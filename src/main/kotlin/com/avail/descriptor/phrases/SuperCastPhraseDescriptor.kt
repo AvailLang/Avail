@@ -47,6 +47,7 @@ package com.avail.descriptor.phrases
  import com.avail.descriptor.representation.ObjectSlotsEnum
  import com.avail.descriptor.tuples.A_Tuple
  import com.avail.descriptor.types.A_Type
+ import com.avail.descriptor.types.A_Type.Companion.typeUnion
  import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
  import com.avail.descriptor.types.TypeTag
  import com.avail.serialization.SerializerOperation
@@ -135,7 +136,7 @@ class SuperCastPhraseDescriptor private constructor(
 	 * Answer the lookup type to ensure polymorphic macro substitutions happen
 	 * the right way.
 	 */
-	override fun o_ExpressionType(self: AvailObject): A_Type =
+	override fun o_PhraseExpressionType(self: AvailObject): A_Type =
 		self.slot(TYPE_FOR_LOOKUP)
 
 	override fun o_Hash(self: AvailObject): Int {

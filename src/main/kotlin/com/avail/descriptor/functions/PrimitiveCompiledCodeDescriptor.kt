@@ -46,6 +46,11 @@ import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.argsTupleType
+import com.avail.descriptor.types.A_Type.Companion.returnType
+import com.avail.descriptor.types.A_Type.Companion.sizeRange
+import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
+import com.avail.descriptor.types.A_Type.Companion.upperBound
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.FunctionTypeDescriptor
 import com.avail.interpreter.Primitive
@@ -275,9 +280,6 @@ class PrimitiveCompiledCodeDescriptor constructor(
 		returnTypeIfPrimitiveFails
 
 	override fun o_Primitive(self: AvailObject): Primitive = primitive
-
-	override fun o_PrimitiveNumber(self: AvailObject) =
-		primitive.primitiveNumber
 
 	companion object {
 		/**

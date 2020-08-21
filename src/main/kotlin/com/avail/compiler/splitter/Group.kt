@@ -67,6 +67,15 @@ import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.tupleFromIntegerList
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.defaultType
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import com.avail.descriptor.types.A_Type.Companion.lowerBound
+import com.avail.descriptor.types.A_Type.Companion.phraseTypeExpressionType
+import com.avail.descriptor.types.A_Type.Companion.sizeRange
+import com.avail.descriptor.types.A_Type.Companion.subexpressionsTupleType
+import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
+import com.avail.descriptor.types.A_Type.Companion.typeTuple
+import com.avail.descriptor.types.A_Type.Companion.upperBound
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeType
 import com.avail.descriptor.types.ListPhraseTypeDescriptor.Companion.createListNodeType
 import com.avail.descriptor.types.ListPhraseTypeDescriptor.Companion.emptyListPhraseType
@@ -419,7 +428,8 @@ internal class Group : Expression
 				val innerPhraseType = subexpressionsTupleType.typeAtIndex(index)
 				val singularListType = createListNodeType(
 					LIST_PHRASE,
-					tupleTypeForTypes(innerPhraseType.expressionType()),
+					tupleTypeForTypes(
+						innerPhraseType.phraseTypeExpressionType()),
 					tupleTypeForTypes(innerPhraseType))
 				beforeDagger.emitOn(
 					singularListType,
@@ -459,7 +469,7 @@ internal class Group : Expression
 			val innerPhraseType = subexpressionsTupleType.defaultType()
 			val singularListType = createListNodeType(
 				LIST_PHRASE,
-				tupleTypeForTypes(innerPhraseType.expressionType()),
+				tupleTypeForTypes(innerPhraseType.phraseTypeExpressionType()),
 				tupleTypeForTypes(innerPhraseType))
 			beforeDagger.emitOn(singularListType, generator, PUSHED_LIST)
 			if (endOfVariation < maxSize)
@@ -984,7 +994,7 @@ internal class Group : Expression
 	override fun mightBeEmpty(phraseType: A_Type): Boolean
 	{
 		// This group can consume no tokens iff it can have zero repetitions.
-		val tupleType = phraseType.expressionType()
+		val tupleType = phraseType.phraseTypeExpressionType()
 		assert(tupleType.isTupleType)
 		return tupleType.sizeRange().lowerBound().equalsInt(0)
 	}

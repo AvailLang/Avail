@@ -31,7 +31,8 @@
  */
 package com.avail.interpreter.levelTwo.operation
 
-import com.avail.descriptor.types.VariableTypeDescriptor
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import com.avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 import com.avail.descriptor.variables.A_Variable
 import com.avail.descriptor.variables.VariableDescriptor
 import com.avail.exceptions.VariableSetException
@@ -74,7 +75,7 @@ object L2_SET_VARIABLE : L2ControlFlowOperation(
 		val registerSet = registerSets[0]
 		assert(registerSet.hasTypeAt(variable.register()))
 		val varType = registerSet.typeAt(variable.register())
-		assert(varType.isSubtypeOf(VariableTypeDescriptor.mostGeneralVariableType()))
+		assert(varType.isSubtypeOf(mostGeneralVariableType()))
 	}
 
 	override fun hasSideEffect(): Boolean = true

@@ -37,6 +37,8 @@ import com.avail.descriptor.maps.MapDescriptor
 import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.keyType
+import com.avail.descriptor.types.A_Type.Companion.sizeRange
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.MapTypeDescriptor.Companion.mostGeneralMapType
 import com.avail.descriptor.types.SetTypeDescriptor.Companion.mostGeneralSetType

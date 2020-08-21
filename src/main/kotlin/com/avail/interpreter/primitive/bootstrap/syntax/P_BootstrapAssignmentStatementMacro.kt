@@ -41,6 +41,7 @@ import com.avail.descriptor.maps.A_Map.Companion.hasKey
 import com.avail.descriptor.maps.A_Map.Companion.mapAt
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.A_Phrase.Companion.declaredType
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
 import com.avail.descriptor.phrases.A_Phrase.Companion.token
 import com.avail.descriptor.phrases.AssignmentPhraseDescriptor.Companion.newAssignment
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newModuleConstant
@@ -52,6 +53,7 @@ import com.avail.descriptor.tokens.TokenDescriptor.TokenType
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.StringDescriptor.Companion.formatString
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.EXPRESSION_AS_STATEMENT_PHRASE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE
@@ -136,7 +138,7 @@ object P_BootstrapAssignmentStatementMacro
 					declaration.declarationKind().nativeKindName())
 			}
 		}
-		if (!valueExpression.expressionType().isSubtypeOf(
+		if (!valueExpression.phraseExpressionType().isSubtypeOf(
 				declaration.declaredType()))
 		{
 			throw AvailRejectedParseException(STRONG)
@@ -144,7 +146,7 @@ object P_BootstrapAssignmentStatementMacro
 				formatString(
 					"assignment expression's type (%s) "
 						+ "to match variable type (%s)",
-					valueExpression.expressionType(),
+					valueExpression.phraseExpressionType(),
 					declaration.declaredType())
 			}
 		}

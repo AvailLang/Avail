@@ -42,6 +42,7 @@ import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor
 import com.avail.interpreter.Primitive
@@ -181,15 +182,12 @@ interface A_RawFunction : A_BasicObject {
 	fun numArgs(): Int
 
 	/**
-	 * Answer the number of slots to reserve in a [A_Continuation] based on this
-	 * raw function. This is the arity, plus number of local variables and
-	 * constants, plus number of stack slots.
+	 * Answer the number of local constants specified by this [A_RawFunction].
 	 *
 	 * @return
-	 *   The number of continuation slots to reserve for executing this raw
-	 *   function.
+	 *   The number of local constants of this function implementation.
 	 */
-	fun numSlots(): Int
+	fun numConstants(): Int
 
 	/**
 	 * Answer the number of literal values embedded into this [A_RawFunction].
@@ -208,14 +206,6 @@ interface A_RawFunction : A_BasicObject {
 	fun numLocals(): Int
 
 	/**
-	 * Answer the number of local constants specified by this [A_RawFunction].
-	 *
-	 * @return
-	 *   The number of local constants of this function implementation.
-	 */
-	fun numConstants(): Int
-
-	/**
 	 * Answer how many nybbles are taken up by the nybblecodes of this raw
 	 * function.
 	 *
@@ -231,6 +221,17 @@ interface A_RawFunction : A_BasicObject {
 	 *   The number of outer variables of this function implementation.
 	 */
 	fun numOuters(): Int
+
+	/**
+	 * Answer the number of slots to reserve in a [A_Continuation] based on this
+	 * raw function. This is the arity, plus number of local variables and
+	 * constants, plus number of stack slots.
+	 *
+	 * @return
+	 *   The number of continuation slots to reserve for executing this raw
+	 *   function.
+	 */
+	fun numSlots(): Int
 
 	/**
 	 * Answer the [tuple][A_Tuple] of nybblecodes that implements this raw
@@ -269,17 +270,6 @@ interface A_RawFunction : A_BasicObject {
 	 */
 	@ReferencedInGeneratedCode
 	fun primitive(): Primitive?
-
-	/**
-	 * Answer the [primitive][Primitive] number associated with this `function
-	 * implementation`. The [Interpreter] will execute the indicated primitive
-	 * before falling back on the Avail code (in the event of failure only).
-	 *
-	 * @return
-	 *   The primitive number, or zero (`0`) if the function implementation is
-	 *   not linked to a primitive.
-	 */
-	fun primitiveNumber(): Int
 
 	/**
 	 * Answer a [Statistic] for recording returns from this raw function.

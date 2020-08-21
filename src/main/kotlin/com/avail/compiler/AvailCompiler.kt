@@ -144,7 +144,6 @@ import com.avail.descriptor.phrases.A_Phrase.Companion.copyMutablePhrase
 import com.avail.descriptor.phrases.A_Phrase.Companion.declaration
 import com.avail.descriptor.phrases.A_Phrase.Companion.declaredType
 import com.avail.descriptor.phrases.A_Phrase.Companion.expression
-import com.avail.descriptor.phrases.A_Phrase.Companion.expressionType
 import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsSize
 import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsTuple
 import com.avail.descriptor.phrases.A_Phrase.Companion.hasSuperCast
@@ -152,6 +151,7 @@ import com.avail.descriptor.phrases.A_Phrase.Companion.initializationExpression
 import com.avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
 import com.avail.descriptor.phrases.A_Phrase.Companion.macroOriginalSendNode
 import com.avail.descriptor.phrases.A_Phrase.Companion.outputPhrase
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
 import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKind
 import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
 import com.avail.descriptor.phrases.A_Phrase.Companion.statementsDo
@@ -213,6 +213,16 @@ import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.toList
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.acceptsArgTypesFromFunctionType
+import com.avail.descriptor.types.A_Type.Companion.acceptsListOfArgValues
+import com.avail.descriptor.types.A_Type.Companion.argsTupleType
+import com.avail.descriptor.types.A_Type.Companion.couldEverBeInvokedWith
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import com.avail.descriptor.types.A_Type.Companion.phraseTypeExpressionType
+import com.avail.descriptor.types.A_Type.Companion.returnType
+import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
+import com.avail.descriptor.types.A_Type.Companion.typeIntersection
+import com.avail.descriptor.types.A_Type.Companion.typeUnion
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.instanceTypeOrMetaOn
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.BLOCK_PHRASE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.DECLARATION_PHRASE
@@ -1515,7 +1525,7 @@ class AvailCompiler(
 							stringifyThen(
 								compilationContext.runtime,
 								compilationContext.textInterface,
-								latestPhrase.expressionType()
+								latestPhrase.phraseExpressionType()
 							) { actualTypeString ->
 								describeFailedTypeTestThen(
 									actualTypeString,
@@ -1775,7 +1785,8 @@ class AvailCompiler(
 						TYPE_CHECK_ARGUMENT.typeCheckArgumentIndex(instruction)
 					// TODO(MvG) Present the full phrase type if it can be a
 					// macro argument.
-					val argType = constantForIndex(typeIndex).expressionType()
+					val argType =
+						constantForIndex(typeIndex).phraseTypeExpressionType()
 					typeSet.add(argType)
 					// Add the type under the given plan *string*, even if it's
 					// a different underlying message bundle.
@@ -2148,7 +2159,7 @@ class AvailCompiler(
 			// The macro's semantic type (expressionType) is the authoritative
 			// type to check against the macro body's actual return phrase's
 			// semantic type.  Semantic restrictions may still narrow it below.
-			macroOrNil.bodySignature().returnType().expressionType()
+			macroOrNil.bodySignature().returnType().phraseTypeExpressionType()
 		}
 		// Determine which semantic restrictions are relevant.
 		val restrictionsToTry = mutableListOf<A_SemanticRestriction>()
@@ -2608,9 +2619,9 @@ class AvailCompiler(
 		// function return types will be reached by the method definition(s)
 		// actually being invoked.
 		val argTupleType = argumentsListNode.superUnionType().typeUnion(
-			argumentsListNode.expressionType())
+			argumentsListNode.phraseExpressionType())
 		val argCount = argumentsListNode.expressionsSize()
-		val argTypes = (1..argCount).map(argTupleType::typeAtIndex)
+		val argTypes = (1..argCount).map { argTupleType.typeAtIndex(it) }
 		// Parsing a macro send must not affect the scope.
 		val afterState = stateAfterCall.withMap(stateBeforeCall.clientDataMap)
 		// Validate the message send before reifying a send phrase.
@@ -2698,7 +2709,7 @@ class AvailCompiler(
 				}
 				return
 			}
-			val expressionType = firstArgOrNull.expressionType()
+			val expressionType = firstArgOrNull.phraseExpressionType()
 			when
 			{
 				expressionType.isTop ->
@@ -2723,7 +2734,7 @@ class AvailCompiler(
 			// wrapInLiteral is true.
 			if (!wrapInLiteral)
 			{
-				val type = argument.expressionType()
+				val type = argument.phraseExpressionType()
 				val badTypeName =
 					when
 					{
@@ -2967,9 +2978,9 @@ class AvailCompiler(
 								tokens(),
 								bundle(),
 								argumentsListNode(),
-								expressionType()
+								phraseExpressionType()
 									.typeIntersection(expectedYieldType))
-						expressionType().isSubtypeOf(expectedYieldType) ->
+						phraseExpressionType().isSubtypeOf(expectedYieldType) ->
 							replacement
 						else ->
 						{
@@ -3113,7 +3124,7 @@ class AvailCompiler(
 	 * @param methodName
 	 *   The name of the primitive method being defined.
 	 * @param primitiveName
-	 *   The [primitive&#32;name][Primitive.fieldName] of the
+	 *   The [primitive&#32;name][Primitive.name] of the
 	 *   [method][MethodDescriptor] being defined.
 	 * @param success
 	 *   What to do after the method is bootstrapped successfully.
@@ -3248,10 +3259,10 @@ class AvailCompiler(
 	 * @param lexerAtom
 	 *   The name (an [atom][A_Atom]) of the lexer being defined.
 	 * @param filterPrimitiveName
-	 *   The [primitive&#32;name][Primitive.fieldName] of the filter for the
-	 *   lexer being defined.
+	 *   The [name][Primitive.name] of the filter primitive for the lexer being
+	 *   defined.
 	 * @param bodyPrimitiveName
-	 *   The [primitive&#32;name][Primitive.fieldName] of the body of the
+	 *   The [name][Primitive.name] of the body primitive of the
 	 *   [lexer][A_Lexer] being defined.
 	 * @param success
 	 *   What to do after the method is bootstrapped successfully.

@@ -68,6 +68,8 @@ import com.avail.descriptor.phrases.A_Phrase.Companion.declaredType
 import com.avail.descriptor.phrases.A_Phrase.Companion.emitEffectOn
 import com.avail.descriptor.phrases.A_Phrase.Companion.emitValueOn
 import com.avail.descriptor.phrases.A_Phrase.Companion.neededVariables
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
 import com.avail.descriptor.phrases.A_Phrase.Companion.primitive
 import com.avail.descriptor.phrases.A_Phrase.Companion.startingLineNumber
 import com.avail.descriptor.phrases.A_Phrase.Companion.statementsTuple
@@ -906,7 +908,7 @@ class AvailCodeGenerator private constructor(
 						primitive == null -> blockPhrase.resultType()
 						primitive.hasFlag(Flag.CannotFail) -> bottom
 						tupleSize() == 0 -> Types.TOP.o
-						else -> tupleAt(tupleSize()).expressionType()
+						else -> tupleAt(tupleSize()).phraseExpressionType()
 					}
 				}
 			val generator = AvailCodeGenerator(
@@ -942,7 +944,7 @@ class AvailCodeGenerator private constructor(
 					val lastStatement = statementsTuple.tupleAt(statementsCount)
 					if (lastStatement.phraseKindIsUnder(LABEL_PHRASE)
 						|| (lastStatement.phraseKindIsUnder(ASSIGNMENT_PHRASE)
-							&& lastStatement.expressionType().isTop))
+							&& lastStatement.phraseExpressionType().isTop))
 					{
 						// Either the block 1) ends with the label declaration
 						// or 2) is top-valued and ends with an assignment. Push

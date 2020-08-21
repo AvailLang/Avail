@@ -69,6 +69,12 @@ import com.avail.descriptor.tuples.StringDescriptor
 import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import com.avail.descriptor.types.A_Type.Companion.isSupertypeOfPojoType
+import com.avail.descriptor.types.A_Type.Companion.typeIntersection
+import com.avail.descriptor.types.A_Type.Companion.typeIntersectionOfPojoType
+import com.avail.descriptor.types.A_Type.Companion.typeUnion
+import com.avail.descriptor.types.A_Type.Companion.typeUnionOfPojoType
 import com.avail.descriptor.types.ArrayPojoTypeDescriptor.Companion.arrayPojoType
 import com.avail.descriptor.types.BottomPojoTypeDescriptor.Companion.pojoBottom
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
@@ -133,8 +139,7 @@ abstract class PojoTypeDescriptor protected constructor(
 	 * `Canon` specifies a [map][Map] from [Java&#32;classes][Class] to
 	 * [type&#32;parameterization][TupleDescriptor].
 	 */
-	private class Canon internal constructor()
-		: LinkedHashMap<Class<*>, AvailObject>(5)
+	private class Canon : LinkedHashMap<Class<*>, AvailObject>(5)
 	{
 		/**
 		 * Answer the locally canonical [raw&#32;pojo][RawPojoDescriptor] that
@@ -180,7 +185,7 @@ abstract class PojoTypeDescriptor protected constructor(
 	 * @param javaClass
 	 *   A Java class or interface.
 	 */
-	private class TypeVariableMap internal constructor(javaClass: Class<*>)
+	private class TypeVariableMap(javaClass: Class<*>)
 		: LinkedHashMap<String, Int>(2)
 	{
 		init
@@ -877,7 +882,7 @@ abstract class PojoTypeDescriptor protected constructor(
 
 		/**
 		 * Resolve the specified [type][Type] using the given
-		 * [type&#32;variables][AvailObject.typeVariables].
+		 * [type&#32;variables][A_Type.typeVariables].
 		 *
 		 * @param type
 		 *   A type.

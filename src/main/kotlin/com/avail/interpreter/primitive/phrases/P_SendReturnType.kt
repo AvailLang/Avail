@@ -32,6 +32,7 @@
 
 package com.avail.interpreter.primitive.phrases
 
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
 import com.avail.descriptor.phrases.SendPhraseDescriptor
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
@@ -58,7 +59,7 @@ object P_SendReturnType : Primitive(1, CannotFail, CanFold, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val send = interpreter.argument(0)
-		return interpreter.primitiveSuccess(send.expressionType())
+		return interpreter.primitiveSuccess(send.phraseExpressionType())
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

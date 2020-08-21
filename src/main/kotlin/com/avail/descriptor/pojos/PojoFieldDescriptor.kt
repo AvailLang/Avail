@@ -43,6 +43,7 @@ import com.avail.descriptor.representation.Descriptor
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.readType
 import com.avail.descriptor.types.PojoTypeDescriptor
 import com.avail.descriptor.types.TypeDescriptor
 import com.avail.descriptor.types.TypeTag

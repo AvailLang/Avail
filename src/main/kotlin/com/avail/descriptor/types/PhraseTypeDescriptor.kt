@@ -32,8 +32,6 @@
 package com.avail.descriptor.types
 
 import com.avail.descriptor.phrases.A_Phrase
-import com.avail.descriptor.phrases.A_Phrase.Companion.expressionType
-import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
 import com.avail.descriptor.phrases.AssignmentPhraseDescriptor
 import com.avail.descriptor.phrases.BlockPhraseDescriptor
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor
@@ -41,7 +39,6 @@ import com.avail.descriptor.phrases.FirstOfSequencePhraseDescriptor
 import com.avail.descriptor.phrases.ListPhraseDescriptor
 import com.avail.descriptor.phrases.LiteralPhraseDescriptor
 import com.avail.descriptor.phrases.PermutedListPhraseDescriptor
-import com.avail.descriptor.phrases.PhraseDescriptor
 import com.avail.descriptor.phrases.ReferencePhraseDescriptor
 import com.avail.descriptor.phrases.SendPhraseDescriptor
 import com.avail.descriptor.phrases.SequencePhraseDescriptor
@@ -55,6 +52,15 @@ import com.avail.descriptor.representation.IntegerEnumSlotDescriptionEnum
 import com.avail.descriptor.representation.IntegerSlotsEnum
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import com.avail.descriptor.types.A_Type.Companion.isSupertypeOfPhraseType
+import com.avail.descriptor.types.A_Type.Companion.phraseKind
+import com.avail.descriptor.types.A_Type.Companion.phraseTypeExpressionType
+import com.avail.descriptor.types.A_Type.Companion.subexpressionsTupleType
+import com.avail.descriptor.types.A_Type.Companion.typeIntersection
+import com.avail.descriptor.types.A_Type.Companion.typeIntersectionOfPhraseType
+import com.avail.descriptor.types.A_Type.Companion.typeUnion
+import com.avail.descriptor.types.A_Type.Companion.typeUnionOfPhraseType
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
 import com.avail.descriptor.types.ListPhraseTypeDescriptor.Companion.createListNodeType
@@ -90,11 +96,13 @@ import java.util.IdentityHashMap
  */
 @Suppress("LeakingThis")
 open class PhraseTypeDescriptor protected constructor(
-	mutability: Mutability?,
+	mutability: Mutability,
 	/** The `PhraseKind` of instances that use this descriptor.  */
 	protected val kind: PhraseKind,
 	objectSlotsEnumClass: Class<out ObjectSlotsEnum?>?,
-	integerSlotsEnumClass: Class<out IntegerSlotsEnum?>?) : TypeDescriptor(mutability!!, kind.typeTag, objectSlotsEnumClass, integerSlotsEnumClass)
+	integerSlotsEnumClass: Class<out IntegerSlotsEnum?>?
+) : TypeDescriptor(
+	mutability, kind.typeTag, objectSlotsEnumClass, integerSlotsEnumClass)
 {
 	/**
 	 * My slots of type [int][Integer].
@@ -636,7 +644,7 @@ open class PhraseTypeDescriptor protected constructor(
 	 *   The [type][TypeDescriptor] of the [AvailObject] that will be produced
 	 *   by a phrase of this type.
 	 */
-	override fun o_ExpressionType(self: AvailObject): A_Type =
+	override fun o_PhraseTypeExpressionType(self: AvailObject): A_Type =
 		self.slot(EXPRESSION_TYPE)
 
 	/**
@@ -659,7 +667,7 @@ open class PhraseTypeDescriptor protected constructor(
 		aPhraseType: A_Type): Boolean =
 			(kind === aPhraseType.phraseKind()
 		        && self.slot(EXPRESSION_TYPE).equals(
-					aPhraseType.expressionType()))
+					aPhraseType.phraseTypeExpressionType()))
 
 	/**
 	 * Subclasses of `PhraseTypeDescriptor` must implement [phrases][A_Phrase]
@@ -684,8 +692,8 @@ open class PhraseTypeDescriptor protected constructor(
 		self: AvailObject,
 		aListNodeType: A_Type): Boolean =
 			(PhraseKind.LIST_PHRASE.isSubkindOf(kind)
-		        && aListNodeType.expressionType().isSubtypeOf(
-					self.expressionType()))
+		        && aListNodeType.phraseTypeExpressionType().isSubtypeOf(
+					self.phraseTypeExpressionType()))
 
 	override fun o_IsSupertypeOfPhraseType(
 		self: AvailObject,
@@ -693,8 +701,8 @@ open class PhraseTypeDescriptor protected constructor(
 	{
 		val otherKind = aPhraseType.phraseKind()
 		return (otherKind.isSubkindOf(kind)
-		        && aPhraseType.expressionType().isSubtypeOf(
-			self.expressionType()))
+		        && aPhraseType.phraseTypeExpressionType().isSubtypeOf(
+			self.phraseTypeExpressionType()))
 	}
 
 	/**
@@ -737,8 +745,8 @@ open class PhraseTypeDescriptor protected constructor(
 		assert(intersectionKind.isSubkindOf(PhraseKind.LIST_PHRASE))
 		return createListNodeType(
 			intersectionKind,
-			self.expressionType().typeIntersection(
-				aListNodeType.expressionType()),
+			self.phraseTypeExpressionType().typeIntersection(
+				aListNodeType.phraseTypeExpressionType()),
 			aListNodeType.subexpressionsTupleType())
 	}
 
@@ -753,7 +761,7 @@ open class PhraseTypeDescriptor protected constructor(
 		// always a subtype of the mostGeneralType() of a superkind.
 		return intersectionKind.createNoCheck(
 			self.slot(EXPRESSION_TYPE).typeIntersection(
-				aPhraseType.expressionType()))
+				aPhraseType.phraseTypeExpressionType()))
 	}
 
 	override fun o_TypeUnion(self: AvailObject, another: A_Type): A_Type =
@@ -770,7 +778,8 @@ open class PhraseTypeDescriptor protected constructor(
 		val unionKind = kind.commonAncestorWith(otherKind)
 		assert(!unionKind.isSubkindOf(PhraseKind.LIST_PHRASE))
 		return unionKind.create(
-			self.expressionType().typeUnion(aListNodeType.expressionType()))
+			self.phraseTypeExpressionType().typeUnion(
+				aListNodeType.phraseTypeExpressionType()))
 	}
 
 	override fun o_TypeUnionOfPhraseType(
@@ -781,7 +790,7 @@ open class PhraseTypeDescriptor protected constructor(
 			aPhraseType.phraseKind())
 		return unionKind.createNoCheck(
 			self.slot(EXPRESSION_TYPE).typeUnion(
-				aPhraseType.expressionType()))
+				aPhraseType.phraseTypeExpressionType()))
 	}
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter)
@@ -810,7 +819,7 @@ open class PhraseTypeDescriptor protected constructor(
 			builder.append(name)
 		}
 		builder.append('⇒')
-		self.expressionType().printOnAvoidingIndent(
+		self.phraseTypeExpressionType().printOnAvoidingIndent(
 			builder, recursionMap, indent + 1)
 	}
 
@@ -831,52 +840,4 @@ open class PhraseTypeDescriptor protected constructor(
 	override fun immutable(): PhraseTypeDescriptor = kind.sharedDescriptor
 
 	override fun shared(): PhraseTypeDescriptor = kind.sharedDescriptor
-
-	companion object
-	{
-		/**
-		 * Does the specified [flat][A_Phrase.Companion.flattenStatementsInto]
-		 * [list][List] of [phrases][PhraseDescriptor] contain only statements?
-		 *
-		 * TODO MvG - REVISIT to make this work sensibly.  Probably only allow
-		 * statements in a sequence/first-of-sequence, and have blocks hold an
-		 * optional final *expression*.
-		 *
-		 * @param flat
-		 *   A flattened list of statements.
-		 * @param resultType
-		 *   The result type of the sequence. Use
-		 *   [top][TypeDescriptor.Types.TOP] if unconcerned about result type.
-		 * @return
-		 *   `true` if the list contains only statements, `false` otherwise.
-		 */
-		fun containsOnlyStatements(
-			flat: List<A_Phrase>,
-			resultType: A_Type): Boolean
-		{
-			val statementCount = flat.size
-			for (i in 0 until statementCount)
-			{
-				val statement = flat[i]
-				assert(!statement.phraseKindIsUnder(PhraseKind.SEQUENCE_PHRASE))
-				val valid: Boolean
-				valid = if (i + 1 < statementCount)
-				{
-					((statement.phraseKindIsUnder(PhraseKind.STATEMENT_PHRASE)
-					  ||statement.phraseKindIsUnder(PhraseKind.ASSIGNMENT_PHRASE)
-					  || statement.phraseKindIsUnder(PhraseKind.SEND_PHRASE))
-					 && statement.expressionType().isTop)
-				}
-				else
-				{
-					statement.expressionType().isSubtypeOf(resultType)
-				}
-				if (!valid)
-				{
-					return false
-				}
-			}
-			return true
-		}
-	}
 }

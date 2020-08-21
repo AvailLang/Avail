@@ -41,6 +41,7 @@ import com.avail.descriptor.maps.A_Map.Companion.valuesAsTuple
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.objects.ObjectDescriptor
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AbstractSlotsEnum
 import com.avail.descriptor.representation.AvailObject
@@ -53,6 +54,38 @@ import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.A_Tuple.Companion.asSet
+import com.avail.descriptor.types.A_Type.Companion.acceptsArgTypesFromFunctionType
+import com.avail.descriptor.types.A_Type.Companion.acceptsListOfArgTypes
+import com.avail.descriptor.types.A_Type.Companion.acceptsListOfArgValues
+import com.avail.descriptor.types.A_Type.Companion.acceptsTupleOfArgTypes
+import com.avail.descriptor.types.A_Type.Companion.acceptsTupleOfArguments
+import com.avail.descriptor.types.A_Type.Companion.argsTupleType
+import com.avail.descriptor.types.A_Type.Companion.contentType
+import com.avail.descriptor.types.A_Type.Companion.couldEverBeInvokedWith
+import com.avail.descriptor.types.A_Type.Companion.declaredExceptions
+import com.avail.descriptor.types.A_Type.Companion.defaultType
+import com.avail.descriptor.types.A_Type.Companion.fieldTypeMap
+import com.avail.descriptor.types.A_Type.Companion.fieldTypeTuple
+import com.avail.descriptor.types.A_Type.Companion.functionType
+import com.avail.descriptor.types.A_Type.Companion.instance
+import com.avail.descriptor.types.A_Type.Companion.instances
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import com.avail.descriptor.types.A_Type.Companion.isSupertypeOfPrimitiveTypeEnum
+import com.avail.descriptor.types.A_Type.Companion.lowerBound
+import com.avail.descriptor.types.A_Type.Companion.lowerInclusive
+import com.avail.descriptor.types.A_Type.Companion.parent
+import com.avail.descriptor.types.A_Type.Companion.readType
+import com.avail.descriptor.types.A_Type.Companion.returnType
+import com.avail.descriptor.types.A_Type.Companion.sizeRange
+import com.avail.descriptor.types.A_Type.Companion.tupleOfTypesFromTo
+import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
+import com.avail.descriptor.types.A_Type.Companion.typeIntersection
+import com.avail.descriptor.types.A_Type.Companion.typeTuple
+import com.avail.descriptor.types.A_Type.Companion.typeUnion
+import com.avail.descriptor.types.A_Type.Companion.unionOfTypesAtThrough
+import com.avail.descriptor.types.A_Type.Companion.upperBound
+import com.avail.descriptor.types.A_Type.Companion.upperInclusive
+import com.avail.descriptor.types.A_Type.Companion.writeType
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottomMeta
 import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
@@ -628,12 +661,12 @@ class EnumerationTypeDescriptor private constructor(mutability: Mutability)
 	override fun o_WriteType(self: AvailObject): A_Type =
 		getSuperkind(self).writeType()
 
-	override fun o_ExpressionType(self: AvailObject): A_Type
+	override fun o_PhraseTypeExpressionType(self: AvailObject): A_Type
 	{
 		var unionType = bottom
 		for (instance in getInstances(self))
 		{
-			unionType = unionType.typeUnion(instance.expressionType())
+			unionType = unionType.typeUnion(instance.phraseExpressionType())
 		}
 		return unionType
 	}

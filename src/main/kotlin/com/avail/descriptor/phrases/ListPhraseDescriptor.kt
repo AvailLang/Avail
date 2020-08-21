@@ -36,6 +36,7 @@ package com.avail.descriptor.phrases
  import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsTuple
  import com.avail.descriptor.phrases.A_Phrase.Companion.hasSuperCast
  import com.avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
+ import com.avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
  import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKind
  import com.avail.descriptor.phrases.A_Phrase.Companion.stripMacro
  import com.avail.descriptor.phrases.A_Phrase.Companion.superUnionType
@@ -59,6 +60,8 @@ package com.avail.descriptor.phrases
  import com.avail.descriptor.tuples.TupleDescriptor
  import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
  import com.avail.descriptor.types.A_Type
+ import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
+ import com.avail.descriptor.types.A_Type.Companion.subexpressionsTupleType
  import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
  import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
  import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
@@ -208,7 +211,7 @@ class ListPhraseDescriptor private constructor(
 	override fun o_ExpressionsTuple(self: AvailObject): A_Tuple =
 		self.slot(EXPRESSIONS_TUPLE)
 
-	override fun o_ExpressionType(self: AvailObject): A_Type =
+	override fun o_PhraseExpressionType(self: AvailObject): A_Type =
 		self.synchronizeIf(isShared) { expressionType(self) }
 
 	override fun o_Hash(self: AvailObject): Int =
@@ -327,7 +330,7 @@ class ListPhraseDescriptor private constructor(
 			var tupleType: A_Type = self.mutableSlot(TUPLE_TYPE)
 			if (!tupleType.equalsNil()) return tupleType
 			val types = self.expressionsTuple().map {
-				val expressionType = it.expressionType()
+				val expressionType = it.phraseExpressionType()
 				if (expressionType.isBottom) return bottom
 				expressionType
 			}

@@ -48,6 +48,20 @@ import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.TupleDescriptor
+import com.avail.descriptor.types.A_Type.Companion.argsTupleType
+import com.avail.descriptor.types.A_Type.Companion.declaredExceptions
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import com.avail.descriptor.types.A_Type.Companion.isSupertypeOfFunctionType
+import com.avail.descriptor.types.A_Type.Companion.lowerBound
+import com.avail.descriptor.types.A_Type.Companion.returnType
+import com.avail.descriptor.types.A_Type.Companion.sizeRange
+import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
+import com.avail.descriptor.types.A_Type.Companion.typeIntersection
+import com.avail.descriptor.types.A_Type.Companion.typeIntersectionOfFunctionType
+import com.avail.descriptor.types.A_Type.Companion.typeTuple
+import com.avail.descriptor.types.A_Type.Companion.typeUnion
+import com.avail.descriptor.types.A_Type.Companion.typeUnionOfFunctionType
+import com.avail.descriptor.types.A_Type.Companion.upperBound
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.FunctionTypeDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import com.avail.descriptor.types.FunctionTypeDescriptor.IntegerSlots.HASH_AND_MORE
@@ -60,8 +74,8 @@ import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.Strings.newlineTab
 import com.avail.utility.json.JSONWriter
+import java.lang.Integer.max
 import java.util.IdentityHashMap
-import kotlin.math.max
 
 /**
  * Function types are the types of [functions][FunctionDescriptor]. They contain
@@ -639,7 +653,7 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 		 *   [types][TypeDescriptor].
 		 * @return
 		 *   A normalized exception [set][SetDescriptor].
-		 * @see AvailObject.declaredExceptions
+		 * @see [A_Type.declaredExceptions]
 		 */
 		private fun normalizeExceptionSet(exceptionSet: A_Set): A_Set
 		{

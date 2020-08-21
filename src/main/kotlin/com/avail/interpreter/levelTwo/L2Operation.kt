@@ -35,6 +35,7 @@ import com.avail.descriptor.atoms.A_Atom.Companion.atomName
 import com.avail.descriptor.bundles.A_Bundle.Companion.message
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
 import com.avail.descriptor.types.CompiledCodeTypeDescriptor.Companion.mostGeneralCompiledCodeType
 import com.avail.descriptor.variables.A_Variable
 import com.avail.interpreter.Primitive
@@ -745,7 +746,7 @@ protected constructor(
 				is L2IntImmediateOperand ->
 					sources.add(operand.value.toString())
 				is L2PrimitiveOperand ->
-					commands.add(operand.primitive.fieldName())
+					commands.add(operand.primitive.name)
 				is L2ReadOperand<*> ->
 					sources.add(operand.register().toString())
 				is L2ReadVectorOperand<*, *> -> sources.add(

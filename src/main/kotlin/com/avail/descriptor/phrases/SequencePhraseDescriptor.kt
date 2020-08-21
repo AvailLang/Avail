@@ -36,6 +36,7 @@ package com.avail.descriptor.phrases
  import com.avail.descriptor.phrases.A_Phrase.Companion.emitValueOn
  import com.avail.descriptor.phrases.A_Phrase.Companion.flattenStatementsInto
  import com.avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
+ import com.avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
  import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKind
  import com.avail.descriptor.phrases.A_Phrase.Companion.statements
  import com.avail.descriptor.phrases.SequencePhraseDescriptor.ObjectSlots.STATEMENTS
@@ -126,11 +127,12 @@ class SequencePhraseDescriptor private constructor(
 		&& self.phraseKind() == aPhrase.phraseKind()
 		&& self.slot(STATEMENTS).equals(aPhrase.statements()))
 
-	override fun o_ExpressionType(self: AvailObject): A_Type {
+	override fun o_PhraseExpressionType(self: AvailObject): A_Type {
 		val statements: A_Tuple = self.slot(STATEMENTS)
 		return when(statements.tupleSize()) {
 			0 -> TOP.o
-			else -> statements.tupleAt(statements.tupleSize()).expressionType()
+			else -> statements.tupleAt(statements.tupleSize())
+				.phraseExpressionType()
 		}
 	}
 

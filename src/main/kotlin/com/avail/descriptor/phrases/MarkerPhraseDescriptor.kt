@@ -138,7 +138,7 @@ class MarkerPhraseDescriptor private constructor(
 		&& self.markerValue().equals(aPhrase.markerValue()))
 
 	/** This shouldn't make a difference. */
-	override fun o_ExpressionType(self: AvailObject): A_Type = TOP.o
+	override fun o_PhraseExpressionType(self: AvailObject): A_Type = TOP.o
 
 	override fun o_Hash(self: AvailObject): Int =
 		self.markerValue().hash() xor -0x34353534

@@ -56,4 +56,4 @@ inline fun <I, O : I?> I.cast (): O = this as O
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 inline fun <T> T?.notNullAnd (body: T.() -> Boolean): Boolean =
-	this !== null && body(this)
+	this !== null && this.body()

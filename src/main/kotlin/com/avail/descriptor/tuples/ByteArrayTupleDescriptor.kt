@@ -54,7 +54,14 @@ import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAtPuttingCanDestroy
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.ByteArrayTupleDescriptor.ObjectSlots.BYTE_ARRAY_POJO
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor
+import com.avail.descriptor.types.A_Type.Companion.defaultType
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import com.avail.descriptor.types.A_Type.Companion.isSupertypeOfPrimitiveTypeEnum
+import com.avail.descriptor.types.A_Type.Companion.rangeIncludesLong
+import com.avail.descriptor.types.A_Type.Companion.sizeRange
+import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
+import com.avail.descriptor.types.A_Type.Companion.typeTuple
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.bytes
 import com.avail.descriptor.types.TypeDescriptor
 import com.avail.utility.json.JSONWriter
 import java.nio.ByteBuffer
@@ -382,7 +389,7 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 			}
 		}
 		val defaultTypeObject = aType.defaultType()
-		if (IntegerRangeTypeDescriptor.bytes.isSubtypeOf(defaultTypeObject))
+		if (bytes.isSubtypeOf(defaultTypeObject))
 		{
 			return true
 		}
@@ -478,7 +485,7 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 		startIndex: Int,
 		endIndex: Int,
 		type: A_Type): Boolean =
-			(IntegerRangeTypeDescriptor.bytes.isSubtypeOf(type)
+			(bytes.isSubtypeOf(type)
 					|| super.o_TupleElementsInRangeAreInstancesOf(
 						self, startIndex, endIndex, type))
 

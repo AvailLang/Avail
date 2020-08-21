@@ -72,6 +72,7 @@ import com.avail.descriptor.tokens.TokenDescriptor
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import com.avail.descriptor.types.TypeDescriptor
 import com.avail.descriptor.types.TypeTag
@@ -1049,9 +1050,6 @@ abstract class Descriptor protected constructor (
 
 	override fun o_IsPositive (self: AvailObject): Boolean = unsupported
 
-	override fun o_IsSupertypeOfBottom (self: AvailObject): Boolean =
-		unsupported
-
 	override fun o_KeysAsSet (self: AvailObject): A_Set = unsupported
 
 	override fun o_KeyType (self: AvailObject): A_Type = unsupported
@@ -1102,8 +1100,6 @@ abstract class Descriptor protected constructor (
 	override fun o_Parent (self: AvailObject): A_BasicObject = unsupported
 
 	override fun o_Pc (self: AvailObject): Int = unsupported
-
-	override fun o_PrimitiveNumber (self: AvailObject): Int = unsupported
 
 	override fun o_Priority (self: AvailObject): Int = unsupported
 
@@ -1600,8 +1596,6 @@ abstract class Descriptor protected constructor (
 
 	override fun o_Declaration (self: AvailObject): A_Phrase = unsupported
 
-	override fun o_ExpressionType (self: AvailObject): A_Type = unsupported
-
 	override fun o_EmitEffectOn (
 		self: AvailObject,
 		codeGenerator: AvailCodeGenerator): Unit = unsupported
@@ -1708,10 +1702,18 @@ abstract class Descriptor protected constructor (
 
 	override fun o_WriteType (self: AvailObject): A_Type = unsupported
 
-	override fun o_SetVersions (self: AvailObject, versionStrings: A_Set): Unit =
-		unsupported
+	override fun o_SetVersions (
+		self: AvailObject,
+		versionStrings: A_Set
+	): Unit = unsupported
 
 	override fun o_Versions (self: AvailObject): A_Set = unsupported
+
+	override fun o_PhraseExpressionType (self: AvailObject): A_Type =
+		unsupported
+
+	override fun o_PhraseTypeExpressionType (self: AvailObject): A_Type =
+		unsupported
 
 	override fun o_PhraseKind (self: AvailObject): PhraseKind = unsupported
 

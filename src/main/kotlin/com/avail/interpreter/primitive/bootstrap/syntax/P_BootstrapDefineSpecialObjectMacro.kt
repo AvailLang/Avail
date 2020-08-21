@@ -39,6 +39,7 @@ import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.CREATE_LI
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.MACRO_DEFINER
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.METHOD_DEFINER
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
 import com.avail.descriptor.phrases.A_Phrase.Companion.token
 import com.avail.descriptor.phrases.BlockPhraseDescriptor.Companion.newBlockNode
 import com.avail.descriptor.phrases.ExpressionAsStatementPhraseDescriptor.Companion.newExpressionAsStatement
@@ -104,6 +105,7 @@ object P_BootstrapDefineSpecialObjectMacro
 
 		// Create a send of the bootstrap method definer that, when actually
 		// sent, will produce a method that answers the special object.
+		val literalType = specialObjectLiteral.phraseExpressionType()
 		val defineMethod = newSendNode(
 			emptyTuple,
 			METHOD_DEFINER.bundle,
@@ -112,9 +114,9 @@ object P_BootstrapDefineSpecialObjectMacro
 					nameLiteral,
 					newBlockNode(
 						emptyTuple,
-						0,
+						null,
 						tuple(specialObjectLiteral),
-						specialObjectLiteral.expressionType(),
+						literalType,
 						emptySet,
 						0,
 						emptyTuple))),
@@ -127,7 +129,7 @@ object P_BootstrapDefineSpecialObjectMacro
 				emptyTuple,
 				bundle,
 				newListNode(emptyTuple),
-				specialObjectLiteral.expressionType())
+				literalType)
 		val createLiteralToken =
 			newSendNode(
 				emptyTuple,
@@ -141,13 +143,13 @@ object P_BootstrapDefineSpecialObjectMacro
 							fromInt(0)),
 						syntheticLiteralNodeFor(
 							fromInt(0)))),
-				literalTokenType(specialObjectLiteral.expressionType()))
+				literalTokenType(literalType))
 		val createLiteralNode =
 			newSendNode(
 				emptyTuple,
 				CREATE_LITERAL_PHRASE.bundle,
 				newListNode(tuple(createLiteralToken)),
-				LITERAL_PHRASE.create(specialObjectLiteral.expressionType()))
+				LITERAL_PHRASE.create(literalType))
 		val defineMacro =
 			newSendNode(
 				emptyTuple,
@@ -158,10 +160,10 @@ object P_BootstrapDefineSpecialObjectMacro
 						emptyListNode(),
 						newBlockNode(
 							emptyTuple,
-							0,
+							null,
 							tuple(createLiteralNode),
 							LITERAL_PHRASE.create(
-								specialObjectLiteral.expressionType()),
+								literalType),
 							emptySet,
 							0,
 							emptyTuple))),

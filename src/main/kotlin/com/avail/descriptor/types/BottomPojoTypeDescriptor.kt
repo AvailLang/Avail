@@ -38,6 +38,7 @@ import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.NilDescriptor
+import com.avail.descriptor.types.A_Type.Companion.isSupertypeOfPojoBottomType
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter

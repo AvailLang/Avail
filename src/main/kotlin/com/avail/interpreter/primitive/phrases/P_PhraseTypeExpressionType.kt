@@ -34,6 +34,8 @@ package com.avail.interpreter.primitive.phrases
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.instance
+import com.avail.descriptor.types.A_Type.Companion.phraseTypeExpressionType
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
@@ -57,7 +59,8 @@ object P_PhraseTypeExpressionType : Primitive(1, CannotFail, CanFold, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val phraseType = interpreter.argument(0)
-		return interpreter.primitiveSuccess(phraseType.expressionType())
+		return interpreter.primitiveSuccess(
+			phraseType.phraseTypeExpressionType())
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
@@ -71,6 +74,6 @@ object P_PhraseTypeExpressionType : Primitive(1, CannotFail, CanFold, CanInline)
 		argumentTypes: List<A_Type>): A_Type
 	{
 		val phraseMeta = argumentTypes[0]
-		return instanceMeta(phraseMeta.instance().expressionType())
+		return instanceMeta(phraseMeta.instance().phraseTypeExpressionType())
 	}
 }

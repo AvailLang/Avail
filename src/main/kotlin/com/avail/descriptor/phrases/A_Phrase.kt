@@ -298,8 +298,8 @@ interface A_Phrase : A_BasicObject {
 		 *   The [type][TypeDescriptor] of the [AvailObject] that will be
 		 *   produced by this phrase.
 		 */
-		fun A_Phrase.expressionType(): A_Type =
-			dispatch { o_ExpressionType(it) }
+		fun A_Phrase.phraseExpressionType(): A_Type =
+			dispatch { o_PhraseExpressionType(it) }
 
 		/**
 		 * If this phrase is a [sequence][SequencePhraseDescriptor], take any

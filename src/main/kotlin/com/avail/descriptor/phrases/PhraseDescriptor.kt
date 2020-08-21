@@ -35,6 +35,9 @@ import com.avail.compiler.AvailCodeGenerator
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.phrases.A_Phrase.Companion.childrenDo
 import com.avail.descriptor.phrases.A_Phrase.Companion.emitValueOn
+import com.avail.descriptor.phrases.A_Phrase.Companion.flattenStatementsInto
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AbstractDescriptor
 import com.avail.descriptor.representation.AvailObject
@@ -46,9 +49,16 @@ import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import com.avail.descriptor.types.A_Type.Companion.phraseKind
+import com.avail.descriptor.types.A_Type.Companion.phraseTypeExpressionType
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.ASSIGNMENT_PHRASE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEQUENCE_PHRASE
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.STATEMENT_PHRASE
 import com.avail.descriptor.types.TypeDescriptor
 import com.avail.descriptor.types.TypeTag
 import com.avail.serialization.SerializerOperation
@@ -193,7 +203,7 @@ abstract class PhraseDescriptor protected constructor(
 	 *   The [type][TypeDescriptor] of the [AvailObject] that will be produced
 	 *   by evaluating this phrase.
 	 */
-	abstract override fun o_ExpressionType(self: AvailObject): A_Type
+	abstract override fun o_PhraseExpressionType(self: AvailObject): A_Type
 
 	override fun o_FlattenStatementsInto(
 		self: AvailObject,
@@ -226,13 +236,14 @@ abstract class PhraseDescriptor protected constructor(
 		PARSE_PHRASE.mostGeneralType().isSubtypeOf(aType) -> true
 		!aType.isSubtypeOf(PARSE_PHRASE.mostGeneralType()) -> false
 		!self.phraseKindIsUnder(aType.phraseKind()) -> false
-		else -> self.expressionType().isSubtypeOf(aType.expressionType())
+		else -> self.phraseExpressionType().isSubtypeOf(
+			aType.phraseTypeExpressionType())
 	}
 
 	override fun o_IsMacroSubstitutionNode(self: AvailObject): Boolean = false
 
 	override fun o_Kind(self: AvailObject): A_Type =
-		self.phraseKind().create(self.expressionType())
+		self.phraseKind().create(self.phraseExpressionType())
 
 	/**
 	 * None of the subclasses define an immutable descriptor, so make the
@@ -306,10 +317,56 @@ abstract class PhraseDescriptor protected constructor(
 		fun treeDoWithParent(
 			self: A_Phrase,
 			aBlock: (A_Phrase, A_Phrase?) -> Unit,
-			parentNode: A_Phrase?
-		) {
+			parentNode: A_Phrase?)
+		{
 			self.childrenDo { child -> treeDoWithParent(child, aBlock, self) }
 			aBlock(self, parentNode)
 		}
+
+		/**
+		 * Does the specified [flat][A_Phrase.Companion.flattenStatementsInto]
+		 * [list][List] of [phrases][PhraseDescriptor] contain only statements?
+		 *
+		 * TODO MvG - REVISIT to make this work sensibly.  Probably only allow
+		 * statements in a sequence/first-of-sequence, and have blocks hold an
+		 * optional final *expression*.
+		 *
+		 * @param flat
+		 *   A flattened list of statements.
+		 * @param resultType
+		 *   The result type of the sequence. Use
+		 *   [top][TypeDescriptor.Types.TOP] if unconcerned about result type.
+		 * @return
+		 *   `true` if the list contains only statements, `false` otherwise.
+		 */
+		fun containsOnlyStatements(
+			flat: List<A_Phrase>,
+			resultType: A_Type): Boolean
+		{
+			val statementCount = flat.size
+			for (i in 0 until statementCount)
+			{
+				val statement = flat[i]
+				assert(!statement.phraseKindIsUnder(SEQUENCE_PHRASE))
+				val valid: Boolean
+				valid = if (i + 1 < statementCount)
+				{
+					((statement.phraseKindIsUnder(STATEMENT_PHRASE)
+						||statement.phraseKindIsUnder(ASSIGNMENT_PHRASE)
+						|| statement.phraseKindIsUnder(SEND_PHRASE))
+						&& statement.phraseExpressionType().isTop)
+				}
+				else
+				{
+					statement.phraseExpressionType().isSubtypeOf(resultType)
+				}
+				if (!valid)
+				{
+					return false
+				}
+			}
+			return true
+		}
+
 	}
 }

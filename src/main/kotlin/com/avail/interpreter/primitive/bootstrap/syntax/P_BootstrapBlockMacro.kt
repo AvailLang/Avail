@@ -51,6 +51,7 @@ import com.avail.descriptor.phrases.A_Phrase.Companion.expressionAt
 import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsSize
 import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsTuple
 import com.avail.descriptor.phrases.A_Phrase.Companion.lastExpression
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
 import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
 import com.avail.descriptor.phrases.A_Phrase.Companion.token
 import com.avail.descriptor.phrases.BlockPhraseDescriptor
@@ -67,6 +68,10 @@ import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromArra
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.functionType
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import com.avail.descriptor.types.A_Type.Companion.returnType
+import com.avail.descriptor.types.A_Type.Companion.typeUnion
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
@@ -211,8 +216,7 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 
 		// Deal with the primitive declaration if present.
 		assert(optionalPrimitive.expressionsSize() <= 1)
-		val prim: Primitive?
-		val primNumber: Int
+		val primitive: Primitive?
 		val primitiveReturnType: A_Type?
 		var canHaveStatements = true
 		val allStatements = mutableListOf<A_Phrase>()
@@ -228,14 +232,13 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 						+ "literal keyword token")
 			}
 			val primName = primNamePhrase.token().string()
-			prim = primitiveByName(primName.asNativeString())
-			if (prim === null)
+			primitive = primitiveByName(primName.asNativeString())
+			if (primitive === null)
 			{
 				return interpreter.primitiveFailure(
 					E_INCONSISTENT_PREFIX_FUNCTION)
 			}
-			primNumber = prim.primitiveNumber
-			canHaveStatements = !prim.hasFlag(CannotFail)
+			canHaveStatements = !primitive.hasFlag(CannotFail)
 			val optionalFailurePair = primPhrase.expressionAt(2)
 			assert(optionalFailurePair.expressionsSize() <= 1)
 			if (optionalFailurePair.expressionsSize() == 1 != canHaveStatements)
@@ -262,12 +265,11 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 					scopeMap.mapAt(failureDeclarationName)
 				allStatements.add(failureDeclaration)
 			}
-			primitiveReturnType = prim.blockTypeRestriction().returnType()
+			primitiveReturnType = primitive.blockTypeRestriction().returnType()
 		}
 		else
 		{
-			prim = null
-			primNumber = 0
+			primitive = null
 			primitiveReturnType = null
 		}
 
@@ -315,19 +317,20 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 
 				if (labelReturnType === null)
 				{
-					returnExpression.expressionType()
+					returnExpression.phraseExpressionType()
 				}
 				else
 				{
-					returnExpression.expressionType().typeUnion(labelReturnType)
+					returnExpression.phraseExpressionType().typeUnion(
+						labelReturnType)
 				}
 			}
 			else
 			{
-				if (prim !== null && prim.hasFlag(CannotFail))
+				if (primitive !== null && primitive.hasFlag(CannotFail))
 				{
 					// An infallible primitive must have no statements.
-					prim.blockTypeRestriction().returnType()
+					primitive.blockTypeRestriction().returnType()
 				}
 				else
 				{
@@ -415,7 +418,7 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 			else  { tokens.tupleAt(1).lineNumber() }
 		val block = newBlockNode(
 			tupleFromList(argumentDeclarationsList),
-			primNumber,
+			primitive,
 			tupleFromList(allStatements),
 			returnType,
 			exceptionsSet,

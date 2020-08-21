@@ -35,6 +35,7 @@ package com.avail.interpreter.primitive.bootstrap.syntax
 import com.avail.compiler.AvailRejectedParseException
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.WEAK
 import com.avail.descriptor.phrases.A_Phrase.Companion.lastExpression
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
 import com.avail.descriptor.phrases.A_Phrase.Companion.token
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -81,7 +82,7 @@ object P_BootstrapPrefixPostStatement : Primitive(4, CanInline, Bootstrap)
 		// only be invoked if there is at least one statement.
 		val latestStatementLiteral = statementsPhrase.lastExpression()
 		val latestStatement = latestStatementLiteral.token().literal()
-		if (!latestStatement.expressionType().equals(TOP.o))
+		if (!latestStatement.phraseExpressionType().equals(TOP.o))
 		{
 			throw AvailRejectedParseException(WEAK, "statement to have type ⊤")
 		}

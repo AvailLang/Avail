@@ -34,12 +34,13 @@ package com.avail.tools.bootstrap
 import com.avail.AvailRuntime
 import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.instances
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import com.avail.descriptor.types.A_Type.Companion.readType
 import com.avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.AvailErrorCode.Companion.byNumericCode
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Companion.byPrimitiveNumberOrNull
-import com.avail.interpreter.Primitive.Companion.maxPrimitiveNumber
 import com.avail.tools.bootstrap.Resources.errorCodeCommentKey
 import com.avail.tools.bootstrap.Resources.errorCodeExceptionKey
 import com.avail.tools.bootstrap.Resources.errorCodeKey
@@ -152,7 +153,7 @@ class ErrorCodeNamesGenerator (locale: Locale?)
 	companion object
 	{
 		/**
-		 * Check if all [error codes][AvailErrorCode] are reachable from
+		 * Check if all [error][AvailErrorCode] codes are reachable from
 		 * [primitive][Primitive] [failure variable
 		 * types][Primitive.failureVariableType].
 		 *
@@ -173,25 +174,24 @@ class ErrorCodeNamesGenerator (locale: Locale?)
 				}
 			}
 			var reachableErrorCodes = emptySet
-			for (primitiveNumber in 1 .. maxPrimitiveNumber())
-			{
-				val primitive = byPrimitiveNumberOrNull(primitiveNumber)
-				if (primitive !== null && !primitive.hasFlag(Primitive.Flag.CannotFail))
+			Primitive.holdersByName.forEach { (_, holder) ->
+				val primitive = holder.primitive
+				if (!primitive.hasFlag(Primitive.Flag.CannotFail))
 				{
 					val failureType: A_Type = primitive.failureVariableType
 					if (failureType.isEnumeration)
 					{
-						reachableErrorCodes = reachableErrorCodes.setUnionCanDestroy(
-							failureType.instances(),
-							true)
+						reachableErrorCodes =
+							reachableErrorCodes.setUnionCanDestroy(
+								failureType.instances(), true)
 					}
 					else if (failureType.isSubtypeOf(mostGeneralVariableType()))
 					{
 						// This supports P_CatchException, which hides its error
 						// codes inside a variable type.
-						reachableErrorCodes = reachableErrorCodes.setUnionCanDestroy(
-							failureType.readType().instances(),
-							true)
+						reachableErrorCodes =
+							reachableErrorCodes.setUnionCanDestroy(
+								failureType.readType().instances(), true)
 					}
 				}
 			}

@@ -31,7 +31,8 @@
  */
 package com.avail.interpreter.levelTwo.operation
 
-import com.avail.descriptor.types.VariableTypeDescriptor
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import com.avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 import com.avail.descriptor.variables.VariableDescriptor
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2OperandType
@@ -61,7 +62,7 @@ object L2_CLEAR_VARIABLE : L2Operation(
 			instruction.operand<L2ReadBoxedOperand>(0)
 		assert(registerSet.hasTypeAt(variableReg.register()))
 		val varType = registerSet.typeAt(variableReg.register())
-		assert(varType.isSubtypeOf(VariableTypeDescriptor.mostGeneralVariableType()))
+		assert(varType.isSubtypeOf(mostGeneralVariableType()))
 	}
 
 	override fun hasSideEffect(): Boolean

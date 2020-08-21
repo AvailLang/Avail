@@ -40,6 +40,15 @@ import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.argsTupleType
+import com.avail.descriptor.types.A_Type.Companion.instanceCount
+import com.avail.descriptor.types.A_Type.Companion.instances
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import com.avail.descriptor.types.A_Type.Companion.lowerBound
+import com.avail.descriptor.types.A_Type.Companion.returnType
+import com.avail.descriptor.types.A_Type.Companion.sizeRange
+import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
+import com.avail.descriptor.types.A_Type.Companion.upperBound
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
@@ -49,8 +58,6 @@ import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.AvailErrorCode.Companion.byNumericCode
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Companion.byPrimitiveNumberOrNull
-import com.avail.interpreter.Primitive.Companion.maxPrimitiveNumber
 import com.avail.interpreter.primitive.controlflow.P_InvokeWithTuple
 import com.avail.interpreter.primitive.general.P_EmergencyExit
 import com.avail.interpreter.primitive.methods.P_AddSemanticRestriction
@@ -116,6 +123,7 @@ import com.avail.tools.bootstrap.Resources.specialObjectTypeKey
 import com.avail.tools.bootstrap.Resources.specialObjectsBaseName
 import com.avail.tools.bootstrap.Resources.stringify
 import com.avail.utility.UTF8ResourceBundleControl
+import com.avail.utility.notNullAnd
 import com.avail.utility.t
 import java.io.File
 import java.io.IOException
@@ -206,26 +214,20 @@ class BootstrapGenerator constructor(private val locale: Locale)
 		 * @return
 		 *   The selected primitives.
 		 */
-		private fun primitives(fallible: Boolean?): List<Primitive>
-		{
-			val primitives = mutableListOf<Primitive>()
-			for (i in 1 .. maxPrimitiveNumber())
-			{
-				val primitive = byPrimitiveNumberOrNull(i)
-				if (primitive !== null)
-				{
-					if (!primitive.hasFlag(Primitive.Flag.Private)
-					    && !primitive.hasFlag(Primitive.Flag.Bootstrap)
-					    && (fallible === null
-					        || primitive.hasFlag(
-								Primitive.Flag.CannotFail) == !fallible))
+		private fun primitives(fallible: Boolean?): List<Primitive> =
+			Primitive.holdersByName.flatMap { (_, holder) ->
+				holder.primitive.run {
+					when
 					{
-						primitives.add(primitive)
+						hasFlag(Primitive.Flag.Private) -> emptyList()
+						hasFlag(Primitive.Flag.Bootstrap) -> emptyList()
+						fallible.notNullAnd {
+							equals(hasFlag(Primitive.Flag.CannotFail))
+						} -> emptyList()
+						else -> listOf(this@run)
 					}
 				}
 			}
-			return primitives
-		}
 
 		/**
 		 * Answer the [primitive error codes][AvailErrorCode] for which Avail
@@ -732,7 +734,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 		append('\t')
 		append(preamble.getString(primitiveKeyword.name))
 		append(' ')
-		append(primitive.fieldName())
+		append(primitive.name)
 		if (!primitive.hasFlag(Primitive.Flag.CannotFail))
 		{
 			append(" (")
@@ -863,7 +865,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
                    primitive.hasFlag(Primitive.Flag.CannotFail) -> 0
                    primitive.failureVariableType.isEnumeration ->
 	                   primitive.failureVariableType
-		                   .instanceCount().extractInt()
+						   .instanceCount().extractInt()
                    else -> 1
                }
 			val formatArgs = arrayOfNulls<Any>(templateArgCount)
@@ -1013,7 +1015,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 			append('\t')
 			append(preamble.getString(primitiveKeyword.name))
 			append(' ')
-			append(primitive.fieldName())
+			append(primitive.name)
 			append(";\n")
 		}
 		val block = block(
@@ -1037,7 +1039,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 			append('\t')
 			append(preamble.getString(primitiveKeyword.name))
 			append(' ')
-			append(primitive.fieldName())
+			append(primitive.name)
 			append(";\n")
 		}
 		val block = block(
@@ -1062,7 +1064,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 			append('\t')
 			append(preamble.getString(primitiveKeyword.name))
 			append(' ')
-			append(primitive.fieldName())
+			append(primitive.name)
 			append(";\n")
 		}
 		val block = block(
@@ -1176,7 +1178,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 			append('\t')
 			append(preamble.getString(primitiveKeyword.name))
 			append(' ')
-			append(primitive.fieldName())
+			append(primitive.name)
 			append(" (")
 			append(preamble.getString(primitiveFailureVariableName.name))
 			append(" : ")
@@ -1220,7 +1222,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 			append('\t')
 			append(preamble.getString(primitiveKeyword.name))
 			append(' ')
-			append(primitive.fieldName())
+			append(primitive.name)
 			append(" (")
 			append(preamble.getString(primitiveFailureVariableName.name))
 			append(" : ")

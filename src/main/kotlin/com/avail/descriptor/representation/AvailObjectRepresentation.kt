@@ -64,6 +64,19 @@ abstract class AvailObjectRepresentation protected constructor(
 	objectSlotsSize: Int,
 	integerSlotsCount: Int
 ) : AbstractAvailObject(initialDescriptor), A_BasicObject {
+
+	init {
+		// Record the allocation in the statistic.
+		initialDescriptor.allocationStat.record(
+			// Assume 64-bit pointers and 16-byte headers.  Don't count any
+			// pojos that might have been captured.
+			40   // 16 header + 3*8 for fields (descriptor, objects[], longs[])
+				+ (if (objectSlotsSize == 0) 0 else 24) // object slots header
+				+ (if (integerSlotsCount == 0) 0 else 24) // long slots header
+				+ ((objectSlotsSize + integerSlotsCount) shl 3).toLong()
+		)
+	}
+
 	/** An array of all my references to other [AvailObject]s.  */
 	private var objectSlots: Array<AvailObject?> =
 		if (objectSlotsSize == 0) emptyObjectSlots

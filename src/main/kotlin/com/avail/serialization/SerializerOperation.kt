@@ -87,6 +87,7 @@ import com.avail.descriptor.phrases.A_Phrase.Companion.argumentsListNode
 import com.avail.descriptor.phrases.A_Phrase.Companion.argumentsTuple
 import com.avail.descriptor.phrases.A_Phrase.Companion.bundle
 import com.avail.descriptor.phrases.A_Phrase.Companion.declaration
+import com.avail.descriptor.phrases.A_Phrase.Companion.declaredExceptions
 import com.avail.descriptor.phrases.A_Phrase.Companion.declaredType
 import com.avail.descriptor.phrases.A_Phrase.Companion.expression
 import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsTuple
@@ -96,6 +97,7 @@ import com.avail.descriptor.phrases.A_Phrase.Companion.literalObject
 import com.avail.descriptor.phrases.A_Phrase.Companion.macroOriginalSendNode
 import com.avail.descriptor.phrases.A_Phrase.Companion.outputPhrase
 import com.avail.descriptor.phrases.A_Phrase.Companion.permutation
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
 import com.avail.descriptor.phrases.A_Phrase.Companion.statements
 import com.avail.descriptor.phrases.A_Phrase.Companion.statementsTuple
 import com.avail.descriptor.phrases.A_Phrase.Companion.superUnionType
@@ -164,6 +166,27 @@ import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.toList
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.argsTupleType
+import com.avail.descriptor.types.A_Type.Companion.contentType
+import com.avail.descriptor.types.A_Type.Companion.defaultType
+import com.avail.descriptor.types.A_Type.Companion.fieldTypeMap
+import com.avail.descriptor.types.A_Type.Companion.instance
+import com.avail.descriptor.types.A_Type.Companion.instances
+import com.avail.descriptor.types.A_Type.Companion.keyType
+import com.avail.descriptor.types.A_Type.Companion.literalType
+import com.avail.descriptor.types.A_Type.Companion.lowerBound
+import com.avail.descriptor.types.A_Type.Companion.lowerInclusive
+import com.avail.descriptor.types.A_Type.Companion.phraseKind
+import com.avail.descriptor.types.A_Type.Companion.phraseTypeExpressionType
+import com.avail.descriptor.types.A_Type.Companion.readType
+import com.avail.descriptor.types.A_Type.Companion.returnType
+import com.avail.descriptor.types.A_Type.Companion.sizeRange
+import com.avail.descriptor.types.A_Type.Companion.subexpressionsTupleType
+import com.avail.descriptor.types.A_Type.Companion.typeTuple
+import com.avail.descriptor.types.A_Type.Companion.upperBound
+import com.avail.descriptor.types.A_Type.Companion.upperInclusive
+import com.avail.descriptor.types.A_Type.Companion.valueType
+import com.avail.descriptor.types.A_Type.Companion.writeType
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import com.avail.descriptor.types.BottomPojoTypeDescriptor.Companion.pojoBottom
 import com.avail.descriptor.types.BottomTypeDescriptor
@@ -1225,7 +1248,7 @@ enum class SerializerOperation constructor(
 				}
 				else
 				{
-					stringFrom(primitive.fieldName())
+					stringFrom(primitive.name)
 				}
 			return array(
 				fromInt(obj.numSlots()),
@@ -2185,11 +2208,11 @@ enum class SerializerOperation constructor(
 			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			val primitive = obj.primitive()
-			val primitiveName = if (primitive === null)
-				emptyTuple
-			else
-				stringFrom(primitive.fieldName())
+			val primitiveName = when (val primitive = obj.primitive())
+			{
+				null -> emptyTuple
+				else -> stringFrom(primitive.name)
+			}
 			return array(
 				obj.argumentsTuple(),
 				primitiveName,
@@ -2211,14 +2234,13 @@ enum class SerializerOperation constructor(
 			val declaredExceptionsTuple = subobjects[4]
 			val startingLineNumber = subobjects[5]
 			val tokens = subobjects[6]
-			val primitiveNumber = when {
-				primitiveName.tupleSize() == 0 -> 0
+			val primitive = when {
+				primitiveName.tupleSize() == 0 -> null
 				else -> primitiveByName(primitiveName.asNativeString())!!
-					.primitiveNumber
 			}
 			return newBlockNode(
 				argumentsTuple,
-				primitiveNumber,
+				primitive,
 				statementsTuple,
 				resultType,
 				declaredExceptionsTuple.asSet(),
@@ -2455,7 +2477,7 @@ enum class SerializerOperation constructor(
 			return array(
 				obj.bundle(),
 				obj.argumentsListNode(),
-				obj.expressionType(),
+				obj.phraseExpressionType(),
 				obj.tokens())
 		}
 
@@ -3270,7 +3292,7 @@ enum class SerializerOperation constructor(
 		{
 			return array(
 				fromInt(obj.phraseKind().ordinal),
-				obj.expressionType())
+				obj.phraseTypeExpressionType())
 		}
 
 		override fun compose(
@@ -3298,7 +3320,7 @@ enum class SerializerOperation constructor(
 		{
 			return array(
 				fromInt(obj.phraseKind().ordinal),
-				obj.expressionType(),
+				obj.phraseTypeExpressionType(),
 				obj.subexpressionsTupleType())
 		}
 

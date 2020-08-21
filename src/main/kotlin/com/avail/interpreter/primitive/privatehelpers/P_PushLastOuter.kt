@@ -33,6 +33,7 @@ package com.avail.interpreter.primitive.privatehelpers
 
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.returnType
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline

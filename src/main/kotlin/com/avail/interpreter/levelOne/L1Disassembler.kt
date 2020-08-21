@@ -43,6 +43,7 @@ import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.AvailObjectFieldHelper
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
+import com.avail.descriptor.types.A_Type.Companion.instance
 import com.avail.descriptor.types.PrimitiveTypeDescriptor
 import com.avail.descriptor.types.TypeDescriptor.Types.MESSAGE_BUNDLE
 import com.avail.descriptor.types.TypeDescriptor.Types.METHOD

@@ -33,9 +33,9 @@ package com.avail.descriptor.phrases
 
  import com.avail.compiler.AvailCodeGenerator
  import com.avail.descriptor.phrases.A_Phrase.Companion.declaration
- import com.avail.descriptor.phrases.A_Phrase.Companion.expressionType
  import com.avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
  import com.avail.descriptor.phrases.A_Phrase.Companion.literalObject
+ import com.avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
  import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKind
  import com.avail.descriptor.phrases.A_Phrase.Companion.token
  import com.avail.descriptor.phrases.A_Phrase.Companion.tokens
@@ -110,12 +110,12 @@ class ReferencePhraseDescriptor(
 	 * The value I represent is a variable itself.  Answer an appropriate
 	 * variable type.
 	 */
-	override fun o_ExpressionType(self: AvailObject): A_Type {
+	override fun o_PhraseExpressionType(self: AvailObject): A_Type {
 		val variable: A_Phrase = self.slot(VARIABLE)
 		val declaration = variable.declaration()
 		return when (declaration.declarationKind()) {
 			MODULE_VARIABLE -> instanceType(declaration.literalObject())
-			else -> variableTypeFor(variable.expressionType())
+			else -> variableTypeFor(variable.phraseExpressionType())
 		}
 	}
 

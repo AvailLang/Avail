@@ -62,6 +62,6 @@ class L2PrimitiveOperand constructor(val primitive: Primitive) : L2Operand()
 
 	override fun appendTo(builder: StringBuilder)
 	{
-		builder.append("*").append(primitive.fieldName())
+		builder.append("*").append(primitive.name)
 	}
 }

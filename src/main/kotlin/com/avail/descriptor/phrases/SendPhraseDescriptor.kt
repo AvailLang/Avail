@@ -42,8 +42,8 @@ import com.avail.descriptor.methods.A_Method
 import com.avail.descriptor.phrases.A_Phrase.Companion.argumentsListNode
 import com.avail.descriptor.phrases.A_Phrase.Companion.bundle
 import com.avail.descriptor.phrases.A_Phrase.Companion.emitAllValuesOn
-import com.avail.descriptor.phrases.A_Phrase.Companion.expressionType
 import com.avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
 import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKind
 import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
 import com.avail.descriptor.phrases.A_Phrase.Companion.superUnionType
@@ -158,12 +158,12 @@ class SendPhraseDescriptor private constructor(
 		val superUnionType = arguments.superUnionType()
 		when {
 			superUnionType.isBottom -> codeGenerator.emitCall(
-				self.tokens(), argCount, bundle, self.expressionType())
+				self.tokens(), argCount, bundle, self.phraseExpressionType())
 			else -> codeGenerator.emitSuperCall(
 				self.tokens(),
 				argCount,
 				bundle,
-				self.expressionType(),
+				self.phraseExpressionType(),
 				superUnionType)
 		}
 	}
@@ -175,9 +175,9 @@ class SendPhraseDescriptor private constructor(
 		&& self.phraseKind() == aPhrase.phraseKind()
 		&& self.slot(BUNDLE).equals(aPhrase.bundle())
 		&& self.slot(ARGUMENTS_LIST_NODE).equals(aPhrase.argumentsListNode())
-		&& self.slot(RETURN_TYPE).equals(aPhrase.expressionType()))
+		&& self.slot(RETURN_TYPE).equals(aPhrase.phraseExpressionType()))
 
-	override fun o_ExpressionType(self: AvailObject): A_Type =
+	override fun o_PhraseExpressionType(self: AvailObject): A_Type =
 		self.slot(RETURN_TYPE)
 
 	override fun o_Hash(self: AvailObject): Int =

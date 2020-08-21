@@ -37,6 +37,20 @@ import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
+import com.avail.descriptor.types.A_Type.Companion.computeSuperkind
+import com.avail.descriptor.types.A_Type.Companion.instanceCount
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import com.avail.descriptor.types.A_Type.Companion.isSupertypeOfMapType
+import com.avail.descriptor.types.A_Type.Companion.keyType
+import com.avail.descriptor.types.A_Type.Companion.lowerBound
+import com.avail.descriptor.types.A_Type.Companion.sizeRange
+import com.avail.descriptor.types.A_Type.Companion.typeIntersection
+import com.avail.descriptor.types.A_Type.Companion.typeIntersectionOfMapType
+import com.avail.descriptor.types.A_Type.Companion.typeUnion
+import com.avail.descriptor.types.A_Type.Companion.typeUnionOfMapType
+import com.avail.descriptor.types.A_Type.Companion.upperBound
+import com.avail.descriptor.types.A_Type.Companion.upperInclusive
+import com.avail.descriptor.types.A_Type.Companion.valueType
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
@@ -343,7 +357,8 @@ class MapTypeDescriptor private constructor(mutability: Mutability)
 			}
 			assert(sizeRange.lowerBound().isFinite)
 			assert(zero().lessOrEqual(sizeRange.lowerBound()))
-			assert(sizeRange.upperBound().isFinite || !sizeRange.upperInclusive())
+			assert(sizeRange.upperBound().isFinite
+				|| !sizeRange.upperInclusive())
 			val sizeRangeKind =
 				if (sizeRange.isEnumeration) sizeRange.computeSuperkind()
 				else sizeRange

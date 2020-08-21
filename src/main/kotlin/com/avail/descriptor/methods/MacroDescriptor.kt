@@ -55,6 +55,11 @@ import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.argsTupleType
+import com.avail.descriptor.types.A_Type.Companion.lowerBound
+import com.avail.descriptor.types.A_Type.Companion.phraseTypeExpressionType
+import com.avail.descriptor.types.A_Type.Companion.sizeRange
+import com.avail.descriptor.types.A_Type.Companion.upperBound
 import com.avail.descriptor.types.ListPhraseTypeDescriptor
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeFromTupleOfTypes
@@ -174,7 +179,9 @@ class MacroDescriptor private constructor(
 		// TODO MvG - 2016-08-21 deal with permutation of main list.
 		return ListPhraseTypeDescriptor.createListNodeType(
 			PhraseKind.LIST_PHRASE,
-			tupleTypeFromTupleOfTypes(argsTupleType) { it.expressionType() },
+			tupleTypeFromTupleOfTypes(argsTupleType) {
+				it.phraseTypeExpressionType()
+			},
 			argsTupleType)
 	}
 

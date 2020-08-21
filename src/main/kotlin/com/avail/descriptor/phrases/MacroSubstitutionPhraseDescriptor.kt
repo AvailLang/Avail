@@ -44,6 +44,7 @@ import com.avail.descriptor.phrases.A_Phrase.Companion.bundle
 import com.avail.descriptor.phrases.A_Phrase.Companion.copyConcatenating
 import com.avail.descriptor.phrases.A_Phrase.Companion.copyWith
 import com.avail.descriptor.phrases.A_Phrase.Companion.declaration
+import com.avail.descriptor.phrases.A_Phrase.Companion.declaredExceptions
 import com.avail.descriptor.phrases.A_Phrase.Companion.declaredType
 import com.avail.descriptor.phrases.A_Phrase.Companion.emitAllValuesOn
 import com.avail.descriptor.phrases.A_Phrase.Companion.emitEffectOn
@@ -66,9 +67,13 @@ import com.avail.descriptor.phrases.A_Phrase.Companion.markerValue
 import com.avail.descriptor.phrases.A_Phrase.Companion.neededVariables
 import com.avail.descriptor.phrases.A_Phrase.Companion.outputPhrase
 import com.avail.descriptor.phrases.A_Phrase.Companion.permutation
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKind
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
 import com.avail.descriptor.phrases.A_Phrase.Companion.statements
 import com.avail.descriptor.phrases.A_Phrase.Companion.statementsDo
 import com.avail.descriptor.phrases.A_Phrase.Companion.statementsTuple
+import com.avail.descriptor.phrases.A_Phrase.Companion.stripMacro
 import com.avail.descriptor.phrases.A_Phrase.Companion.superUnionType
 import com.avail.descriptor.phrases.A_Phrase.Companion.token
 import com.avail.descriptor.phrases.A_Phrase.Companion.tokens
@@ -242,8 +247,8 @@ class MacroSubstitutionPhraseDescriptor(
 	override fun o_ExpressionsTuple(self: AvailObject): A_Tuple =
 		self.slot(OUTPUT_PARSE_NODE).expressionsTuple()
 
-	override fun o_ExpressionType(self: AvailObject): A_Type =
-		self.slot(OUTPUT_PARSE_NODE).expressionType()
+	override fun o_PhraseExpressionType(self: AvailObject): A_Type =
+		self.slot(OUTPUT_PARSE_NODE).phraseExpressionType()
 
 	override fun o_FlattenStatementsInto(
 		self: AvailObject,

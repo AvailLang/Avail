@@ -34,7 +34,9 @@ package com.avail.interpreter.levelTwo.operation
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AbstractAvailObject
 import com.avail.descriptor.representation.AbstractDescriptor
-import com.avail.descriptor.types.VariableTypeDescriptor
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import com.avail.descriptor.types.A_Type.Companion.readType
+import com.avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 import com.avail.descriptor.variables.A_Variable
 import com.avail.descriptor.variables.VariableDescriptor
 import com.avail.exceptions.VariableGetException
@@ -83,7 +85,7 @@ object L2_GET_VARIABLE_CLEARING : L2ControlFlowOperation(
 		val registerSet = registerSets[1]
 		assert(registerSet.hasTypeAt(variableReg.register()))
 		val varType = registerSet.typeAt(variableReg.register())
-		assert(varType.isSubtypeOf(VariableTypeDescriptor.mostGeneralVariableType()))
+		assert(varType.isSubtypeOf(mostGeneralVariableType()))
 		registerSet.removeConstantAt(destReg.register())
 		registerSet.typeAtPut(
 			destReg.register(), varType.readType(), instruction)

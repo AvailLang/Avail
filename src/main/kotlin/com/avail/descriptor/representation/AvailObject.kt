@@ -50,7 +50,6 @@ import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.functions.A_RegisterDump
 import com.avail.descriptor.functions.CompiledCodeDescriptor
 import com.avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
-import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.maps.A_Map
 import com.avail.descriptor.maps.A_MapBin
 import com.avail.descriptor.methods.A_Definition
@@ -95,9 +94,6 @@ import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor
 import com.avail.descriptor.types.FunctionTypeDescriptor
-import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
-import com.avail.descriptor.types.TypeDescriptor
-import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.descriptor.variables.A_Variable
 import com.avail.descriptor.variables.VariableDescriptor
 import com.avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
@@ -392,80 +388,6 @@ class AvailObject private constructor(
 	override fun hash() = dispatch { it::o_Hash }
 
 	/**
-	 * Answer whether the [argument&#32;types][AvailObject#argsTupleType]
-	 * supported by the specified [function&#32;type][FunctionTypeDescriptor]
-	 * are acceptable argument types for invoking a
-	 * [function][FunctionDescriptor] whose type is the receiver.
-	 *
-	 * @param functionType
-	 *   A function type.
-	 * @return
-	 *   `true` if the arguments of the receiver are, pairwise, more general
-	 *   than those of `functionType`, `false` otherwise.
-	 */
-	override fun acceptsArgTypesFromFunctionType(functionType: A_Type) =
-		dispatch(functionType) { it::o_AcceptsArgTypesFromFunctionType }
-
-	/**
-	 * Answer whether these are acceptable [argument&#32;types][TypeDescriptor]
-	 * for invoking a [function][FunctionDescriptor] whose type is the receiver.
-	 *
-	 * @param argTypes
-	 *   A list containing the argument types to be checked.
-	 * @return
-	 *   `true` if the arguments of the receiver are, pairwise, more general
-	 *   than those within the `argTypes` list, `false` otherwise.
-	 */
-	override fun acceptsListOfArgTypes(argTypes: List<A_Type>): Boolean =
-		dispatch(argTypes) { it::o_AcceptsListOfArgTypes }
-
-	/**
-	 * Answer whether these are acceptable arguments for invoking a
-	 * [function][FunctionDescriptor] whose type is the receiver.
-	 *
-	 * @param argValues
-	 *   A list containing the argument values to be checked.
-	 * @return
-	 *   `true` if the arguments of the receiver are, pairwise, more general
-	 *   than the types of the values within the `argValues` list, `false`
-	 *   otherwise.
-	 */
-	override fun acceptsListOfArgValues(argValues: List<A_BasicObject>) =
-		dispatch(argValues) { it::o_AcceptsListOfArgValues }
-
-	/**
-	 * Answer whether these are acceptable [argument&#32;types][TypeDescriptor]
-	 * for invoking a [function][FunctionDescriptor] that is an instance of the
-	 * receiver. There may be more entries in the [tuple][TupleDescriptor] than
-	 * are required by the [function&#32;type][FunctionTypeDescriptor].
-	 *
-	 * @param argTypes
-	 *   A tuple containing the argument types to be checked.
-	 * @return
-	 *   `true` if the arguments of the receiver are, pairwise, more general
-	 *   than the corresponding elements of the `argTypes` tuple, `false`
-	 *   otherwise.
-	 */
-	override fun acceptsTupleOfArgTypes(argTypes: A_Tuple) =
-		dispatch(argTypes) { it::o_AcceptsTupleOfArgTypes }
-
-	/**
-	 * Answer whether these are acceptable arguments for invoking a
-	 * [function][FunctionDescriptor] that is an instance of the receiver. There
-	 * may be more entries in the [tuple][TupleDescriptor] than are required by
-	 * the [function&#32;type][FunctionTypeDescriptor].
-	 *
-	 * @param arguments
-	 *   A tuple containing the argument values to be checked.
-	 * @return
-	 *   `true` if the arguments of the receiver are, pairwise, more general
-	 *   than the types of the corresponding elements of the `arguments` tuple,
-	 *   `false` otherwise.
-	 */
-	override fun acceptsTupleOfArguments(arguments: A_Tuple) =
-		dispatch(arguments) { it::o_AcceptsTupleOfArguments }
-
-	/**
 	 * Add the [chunk][L2Chunk] with the given index to the receiver's list of
 	 * chunks that depend on it.  The receiver is a [method][MethodDescriptor].
 	 * A change in the method's membership (e.g., adding a new method
@@ -641,8 +563,6 @@ class AvailObject private constructor(
 
 	override fun constantBindings() = dispatch { it::o_ConstantBindings }
 
-	override fun contentType() = dispatch { it::o_ContentType }
-
 	override fun continuation() = dispatch { it::o_Continuation }
 
 	override fun setContinuation(value: A_Continuation) =
@@ -664,12 +584,6 @@ class AvailObject private constructor(
 	override fun copyStringFromToCanDestroy(
 		start: Int, end: Int, canDestroy: Boolean
 	): A_String = dispatch(start, end, canDestroy) { it::o_CopyTupleFromToCanDestroy }.cast()
-
-	override fun couldEverBeInvokedWith(
-		argRestrictions: List<TypeRestriction>
-	) = dispatch(argRestrictions) { it::o_CouldEverBeInvokedWith }
-
-	override fun defaultType() = dispatch { it::o_DefaultType }
 
 	/**
 	 * Divide the receiver by the argument `aNumber` and answer the result.
@@ -931,9 +845,9 @@ class AvailObject private constructor(
 	 *   The function type used in the comparison.
 	 * @return
 	 *   `true` IFF the receiver is also a function type and:
-	 *   * The [argument&#32;types][argsTupleType] correspond,
-	 *   * The [return&#32;types][returnType] correspond, and
-	 *   * The [declared&#32;exceptions][declaredExceptions] correspond.
+	 *   * The [argument&#32;types][A_Type.argsTupleType] correspond,
+	 *   * The [return&#32;types][A_Type.returnType] correspond, and
+	 *   * The [declared&#32;exceptions][A_Type.declaredExceptions] correspond.
 	 */
 	override fun equalsFunctionType(aFunctionType: A_Type) =
 		dispatch(aFunctionType) { it::o_EqualsFunctionType }
@@ -1091,8 +1005,6 @@ class AvailObject private constructor(
 
 	override fun fieldMap() = dispatch { it::o_FieldMap }
 
-	override fun fieldTypeMap() = dispatch { it::o_FieldTypeMap }
-
 	override fun filterByTypes(argTypes: List<A_Type>) =
 		dispatch(argTypes) { it::o_FilterByTypes }
 
@@ -1115,9 +1027,6 @@ class AvailObject private constructor(
 
 	override fun setHashOrZero(value: Int) =
 		dispatch(value) { it::o_SetHashOrZero }
-
-	override fun hasObjectInstance(potentialInstance: AvailObject) =
-		dispatch(potentialInstance) { it::o_HasObjectInstance }
 
 	override fun definitionsAtOrBelow(argRestrictions: List<TypeRestriction>) =
 		dispatch(argRestrictions) { it::o_DefinitionsAtOrBelow }
@@ -1286,61 +1195,6 @@ class AvailObject private constructor(
 	 */
 	override val isString get() = dispatch { it::o_IsString }
 
-	override fun isSubtypeOf(aType: A_Type) =
-		dispatch(aType) { it::o_IsSubtypeOf }
-
-	override fun isSupertypeOfVariableType(aVariableType: A_Type) =
-		dispatch(aVariableType) { it::o_IsSupertypeOfVariableType }
-
-	override fun isSupertypeOfContinuationType(aContinuationType: A_Type) =
-		dispatch(aContinuationType) { it::o_IsSupertypeOfContinuationType }
-
-	override fun isSupertypeOfFiberType(aFiberType: A_Type) =
-		dispatch(aFiberType) { it::o_IsSupertypeOfFiberType }
-
-	override fun isSupertypeOfFunctionType(aFunctionType: A_Type) =
-		dispatch(aFunctionType) { it::o_IsSupertypeOfFunctionType }
-
-	override fun isSupertypeOfIntegerRangeType(anIntegerRangeType: A_Type) =
-		dispatch(anIntegerRangeType) { it::o_IsSupertypeOfIntegerRangeType }
-
-	override fun isSupertypeOfListNodeType(aListNodeType: A_Type) =
-		dispatch(aListNodeType) { it::o_IsSupertypeOfListNodeType }
-
-	override fun isSupertypeOfTokenType(aTokenType: A_Type) =
-		dispatch(aTokenType) { it::o_IsSupertypeOfTokenType }
-
-	override fun isSupertypeOfLiteralTokenType(aLiteralTokenType: A_Type) =
-		dispatch(aLiteralTokenType) { it::o_IsSupertypeOfLiteralTokenType }
-
-	override fun isSupertypeOfMapType(aMapType: AvailObject) =
-		dispatch(aMapType) { it::o_IsSupertypeOfMapType }
-
-	override fun isSupertypeOfObjectType(anObjectType: AvailObject) =
-		dispatch(anObjectType) { it::o_IsSupertypeOfObjectType }
-
-	override fun isSupertypeOfPhraseType(aPhraseType: A_Type) =
-		dispatch(aPhraseType) { it::o_IsSupertypeOfPhraseType }
-
-	override fun isSupertypeOfPojoType(aPojoType: A_Type) =
-		dispatch(aPojoType) { it::o_IsSupertypeOfPojoType }
-
-	override fun isSupertypeOfPrimitiveTypeEnum(primitiveTypeEnum: Types) =
-		dispatch(primitiveTypeEnum) { it::o_IsSupertypeOfPrimitiveTypeEnum }
-
-	override fun isSupertypeOfSetType(aSetType: A_Type) =
-		dispatch(aSetType) { it::o_IsSupertypeOfSetType }
-
-	override val isSupertypeOfBottom
-		get() = dispatch { it::o_IsSupertypeOfBottom }
-
-	override fun isSupertypeOfTupleType(aTupleType: A_Type) =
-		dispatch(aTupleType) { it::o_IsSupertypeOfTupleType }
-
-	override fun isSupertypeOfEnumerationType(
-		anEnumerationType: A_Type
-	) = dispatch(anEnumerationType) { it::o_IsSupertypeOfEnumerationType }
-
 	/**
 	 * Is the receiver an Avail tuple?
 	 *
@@ -1366,8 +1220,6 @@ class AvailObject private constructor(
 
 	override fun spliterator(): Spliterator<AvailObject> =
 		dispatch { it::o_Spliterator }
-
-	override fun keyType() = dispatch { it::o_KeyType }
 
 	override fun levelTwoChunk() = dispatch { it::o_LevelTwoChunk }
 
@@ -1398,10 +1250,6 @@ class AvailObject private constructor(
 	@Throws(MethodDefinitionException::class)
 	override fun lookupByValuesFromList(argumentList: List<A_BasicObject>) =
 		dispatch(argumentList) { it::o_LookupByValuesFromList }
-
-	override fun lowerBound() = dispatch { it::o_LowerBound }
-
-	override fun lowerInclusive() = dispatch { it::o_LowerInclusive }
 
 	override fun makeImmutable() =
 		descriptor().let {
@@ -1545,8 +1393,6 @@ class AvailObject private constructor(
 	override fun outerVarAtPut(index: Int, value: AvailObject) =
 		dispatch(index, value) { it::o_OuterVarAtPut }
 
-	override fun parent() = dispatch { it::o_Parent }
-
 	override fun pc() = dispatch { it::o_Pc }
 
 	/**
@@ -1592,8 +1438,6 @@ class AvailObject private constructor(
 			error("noFailPlusCanDestroy failed!")
 		}
 
-	override fun primitiveNumber() = dispatch { it::o_PrimitiveNumber }
-
 	override fun priority() = dispatch { it::o_Priority }
 
 	override fun setPriority(value: Int) =
@@ -1629,8 +1473,6 @@ class AvailObject private constructor(
 
 	override fun resolveForward(forwardDefinition: A_BasicObject) =
 		dispatch(forwardDefinition) { it::o_ResolveForward }
-
-	override fun returnType() = dispatch { it::o_ReturnType }
 
 	override fun scanSubobjects(visitor: AvailSubobjectVisitor) =
 		dispatch(visitor) { it::o_ScanSubobjects }
@@ -1668,8 +1510,6 @@ class AvailObject private constructor(
 	) = dispatch(elementObjectToExclude, canDestroy) {
 		it::o_SetWithoutElementCanDestroy
 	}
-
-	override fun sizeRange() = dispatch { it::o_SizeRange }
 
 	override fun stackAt(slotIndex: Int) =
 		dispatch(slotIndex) { it::o_StackAt }
@@ -1789,106 +1629,6 @@ class AvailObject private constructor(
 
 	override fun kind() = dispatch { it::o_Kind }
 
-	override fun typeAtIndex(index: Int) =
-		dispatch(index) { it::o_TypeAtIndex }
-
-	override fun typeIntersection(another: A_Type) =
-		dispatch(another) { it::o_TypeIntersection }
-
-	override fun typeIntersectionOfCompiledCodeType(aCompiledCodeType: A_Type) =
-		dispatch(aCompiledCodeType) {
-			it::o_TypeIntersectionOfCompiledCodeType
-		}
-
-	override fun typeIntersectionOfContinuationType(aContinuationType: A_Type) =
-		dispatch(aContinuationType) {
-			it::o_TypeIntersectionOfContinuationType
-		}
-
-	override fun typeIntersectionOfFiberType(aFiberType: A_Type) =
-		dispatch(aFiberType) { it::o_TypeIntersectionOfFiberType }
-
-	override fun typeIntersectionOfFunctionType(aFunctionType: A_Type) =
-		dispatch(aFunctionType) { it::o_TypeIntersectionOfFunctionType }
-
-	override fun typeIntersectionOfIntegerRangeType(
-		anIntegerRangeType: A_Type
-	) = dispatch(anIntegerRangeType) {
-		it::o_TypeIntersectionOfIntegerRangeType
-	}
-
-	override fun typeIntersectionOfListNodeType(aListNodeType: A_Type) =
-		dispatch(aListNodeType) { it::o_TypeIntersectionOfListNodeType }
-
-	override fun typeIntersectionOfMapType(aMapType: A_Type) =
-		dispatch(aMapType) { it::o_TypeIntersectionOfMapType }
-
-	override fun typeIntersectionOfObjectType(anObjectType: AvailObject) =
-		dispatch(anObjectType) { it::o_TypeIntersectionOfObjectType }
-
-	override fun typeIntersectionOfPhraseType(aPhraseType: A_Type) =
-		dispatch(aPhraseType) { it::o_TypeIntersectionOfPhraseType }
-
-	override fun typeIntersectionOfPojoType(aPojoType: A_Type) =
-		dispatch(aPojoType) { it::o_TypeIntersectionOfPojoType }
-
-	override fun typeIntersectionOfSetType(aSetType: A_Type) =
-		dispatch(aSetType) { it::o_TypeIntersectionOfSetType }
-
-	override fun typeIntersectionOfTupleType(aTupleType: A_Type) =
-		dispatch(aTupleType) { it::o_TypeIntersectionOfTupleType }
-
-	override fun typeIntersectionOfVariableType(aVariableType: A_Type) =
-		dispatch(aVariableType) { it::o_TypeIntersectionOfVariableType }
-
-	override fun typeTuple() = dispatch { it::o_TypeTuple }
-
-	override fun typeUnion(another: A_Type) =
-		dispatch(another) { it::o_TypeUnion }
-
-	override fun typeUnionOfFiberType(aFiberType: A_Type) =
-		dispatch(aFiberType) { it::o_TypeUnionOfFiberType }
-
-	override fun typeUnionOfFunctionType(aFunctionType: A_Type) =
-		dispatch(aFunctionType) { it::o_TypeUnionOfFunctionType }
-
-	override fun typeUnionOfVariableType(aVariableType: A_Type) =
-		dispatch(aVariableType) { it::o_TypeUnionOfVariableType }
-
-	override fun typeUnionOfContinuationType(aContinuationType: A_Type) =
-		dispatch(aContinuationType) { it::o_TypeUnionOfContinuationType }
-
-	override fun typeUnionOfIntegerRangeType(anIntegerRangeType: A_Type) =
-		dispatch(anIntegerRangeType) { it::o_TypeUnionOfIntegerRangeType }
-
-	override fun typeUnionOfListNodeType(aListNodeType: A_Type) =
-		dispatch(aListNodeType) { it::o_TypeUnionOfListNodeType }
-
-	override fun typeUnionOfMapType(aMapType: A_Type) =
-		dispatch(aMapType) { it::o_TypeUnionOfMapType }
-
-	override fun typeUnionOfObjectType(anObjectType: AvailObject) =
-		dispatch(anObjectType) { it::o_TypeUnionOfObjectType }
-
-	override fun typeUnionOfPhraseType(aPhraseType: A_Type) =
-		dispatch(aPhraseType) { it::o_TypeUnionOfPhraseType }
-
-	override fun typeUnionOfPojoType(aPojoType: A_Type) =
-		dispatch(aPojoType) { it::o_TypeUnionOfPojoType }
-
-	override fun typeUnionOfSetType(aSetType: A_Type) =
-		dispatch(aSetType) { it::o_TypeUnionOfSetType }
-
-	override fun typeUnionOfTupleType(aTupleType: A_Type) =
-		dispatch(aTupleType) { it::o_TypeUnionOfTupleType }
-
-	override fun unionOfTypesAtThrough(startIndex: Int, endIndex: Int) =
-		dispatch(startIndex, endIndex) { it::o_UnionOfTypesAtThrough }
-
-	override fun upperBound() = dispatch { it::o_UpperBound }
-
-	override fun upperInclusive() = dispatch { it::o_UpperInclusive }
-
 	override fun value() = dispatch { it::o_Value }
 
 	override fun variableBindings() = dispatch { it::o_VariableBindings }
@@ -1901,26 +1641,18 @@ class AvailObject private constructor(
 
 	override fun declarationKind() = dispatch { it::o_DeclarationKind }
 
-	override fun expressionType() = dispatch { it::o_ExpressionType }
-
 	override fun binUnionKind() = dispatch { it::o_BinUnionKind }
 
 	override fun lineNumber() = dispatch { it::o_LineNumber }
 
 	override val isSetBin get() = dispatch { it::o_IsSetBin }
 
-	override fun declaredExceptions() = dispatch { it::o_DeclaredExceptions }
-
 	override val isInt get() = dispatch { it::o_IsInt }
 
 	override val isLong get() = dispatch { it::o_IsLong }
 
-	override fun argsTupleType() = dispatch { it::o_ArgsTupleType }
-
 	override fun equalsInstanceTypeFor(anInstanceType: AvailObject) =
 		dispatch(anInstanceType) { it::o_EqualsInstanceTypeFor }
-
-	override fun instances() = dispatch { it::o_Instances }
 
 	/**
 	 * Determine whether the receiver is an
@@ -1940,35 +1672,16 @@ class AvailObject private constructor(
 	override fun enumerationIncludesInstance(potentialInstance: AvailObject) =
 		dispatch(potentialInstance) { it::o_EnumerationIncludesInstance }
 
-	override fun valueType() = dispatch { it::o_ValueType }
-
-	override fun computeSuperkind() = dispatch { it::o_ComputeSuperkind }
-
 	override fun equalsCompiledCodeType(aCompiledCodeType: A_Type) =
 		dispatch(aCompiledCodeType) { it::o_EqualsCompiledCodeType }
 
-	override fun isSupertypeOfCompiledCodeType(aCompiledCodeType: A_Type) =
-		dispatch(aCompiledCodeType) { it::o_IsSupertypeOfCompiledCodeType }
-
-	override fun typeUnionOfCompiledCodeType(aCompiledCodeType: A_Type) =
-		dispatch(aCompiledCodeType) { it::o_TypeUnionOfCompiledCodeType }
-
 	override fun equalsEnumerationType(anEnumerationType: A_BasicObject) =
 		dispatch(anEnumerationType) { it::o_EqualsEnumerationType }
-
-	override fun readType() = dispatch { it::o_ReadType }
-
-	override fun writeType() = dispatch { it::o_WriteType }
 
 	override fun setVersions(versionStrings: A_Set) =
 		dispatch(versionStrings) { it::o_SetVersions }
 
 	override fun versions() = dispatch { it::o_Versions }
-
-	override fun phraseKind() = dispatch { it::o_PhraseKind }
-
-	override fun phraseKindIsUnder(expectedPhraseKind: PhraseKind) =
-		dispatch(expectedPhraseKind) { it::o_PhraseKindIsUnder }
 
 	override val isRawPojo get() = dispatch { it::o_IsRawPojo }
 
@@ -2088,32 +1801,15 @@ class AvailObject private constructor(
 
 	override val isPojoFusedType get() = dispatch { it::o_IsPojoFusedType }
 
-	override fun isSupertypeOfPojoBottomType(aPojoType: A_Type) =
-		dispatch(aPojoType) { it::o_IsSupertypeOfPojoBottomType }
-
 	override fun equalsPojoBottomType() =
 		dispatch { it::o_EqualsPojoBottomType }
 
 	override fun javaAncestors() = dispatch { it::o_JavaAncestors }
 
-	override fun typeIntersectionOfPojoFusedType(aFusedPojoType: A_Type) =
-		dispatch(aFusedPojoType) { it::o_TypeIntersectionOfPojoFusedType }
-
-	override fun typeIntersectionOfPojoUnfusedType(anUnfusedPojoType: A_Type) =
-		dispatch(anUnfusedPojoType) {it::o_TypeIntersectionOfPojoUnfusedType }
-
-	override fun typeUnionOfPojoFusedType(aFusedPojoType: A_Type) =
-		dispatch(aFusedPojoType) { it::o_TypeUnionOfPojoFusedType }
-
-	override fun typeUnionOfPojoUnfusedType(anUnfusedPojoType: A_Type) =
-		dispatch(anUnfusedPojoType) { it::o_TypeUnionOfPojoUnfusedType }
-
 	override val isPojoArrayType get() = dispatch { it::o_IsPojoArrayType }
 
 	override fun marshalToJava(classHint: Class<*>?) =
 		dispatch(classHint) { it::o_MarshalToJava }
-
-	override fun typeVariables() = dispatch { it::o_TypeVariables }
 
 	override fun equalsPojoField(field: AvailObject, receiver: AvailObject) =
 		dispatch(field, receiver) { it::o_EqualsPojoField }
@@ -2141,29 +1837,11 @@ class AvailObject private constructor(
 
 	override fun lowerCaseString() = dispatch { it::o_LowerCaseString }
 
-	override fun instanceCount() = dispatch { it::o_InstanceCount }
-
 	override fun totalInvocations() = dispatch { it::o_TotalInvocations }
 
 	override fun tallyInvocation() = dispatch { it::o_TallyInvocation }
 
-	override fun fieldTypeTuple() = dispatch { it::o_FieldTypeTuple }
-
 	override fun fieldTuple() = dispatch { it::o_FieldTuple }
-
-	override fun literalType() = dispatch { it::o_LiteralType }
-
-	override fun typeIntersectionOfTokenType(aTokenType: A_Type) =
-		dispatch(aTokenType) { it::o_TypeIntersectionOfTokenType }
-
-	override fun typeIntersectionOfLiteralTokenType(aLiteralTokenType: A_Type) =
-		dispatch(aLiteralTokenType) { it::o_TypeIntersectionOfLiteralTokenType }
-
-	override fun typeUnionOfTokenType(aTokenType: A_Type) =
-		dispatch(aTokenType) { it::o_TypeUnionOfTokenType }
-
-	override fun typeUnionOfLiteralTokenType(aLiteralTokenType: A_Type) =
-		dispatch(aLiteralTokenType) { it::o_TypeUnionOfLiteralTokenType }
 
 	override val isTokenType get() = dispatch { it::o_IsTokenType }
 
@@ -2198,8 +1876,6 @@ class AvailObject private constructor(
 
 	override val isInstanceMeta get() = dispatch { it::o_IsInstanceMeta }
 
-	override fun instance() = dispatch { it::o_Instance }
-
 	override fun setMethodName(methodName: A_String) =
 		dispatch(methodName) { it::o_SetMethodName }
 
@@ -2214,9 +1890,6 @@ class AvailObject private constructor(
 
 	override fun setElementsAreAllInstancesOfKind(kind: AvailObject) =
 		dispatch(kind) { it::o_SetElementsAreAllInstancesOfKind }
-
-	override fun rangeIncludesLong(aLong: Long) =
-		dispatch(aLong) { it::o_RangeIncludesLong }
 
 	override fun bitShiftLeftTruncatingToBits(
 		shiftFactor: A_Number,
@@ -2480,17 +2153,6 @@ class AvailObject private constructor(
 	override fun writeSummaryTo(writer: JSONWriter) =
 		dispatch(writer) { it::o_WriteSummaryTo }
 
-	override fun typeIntersectionOfPrimitiveTypeEnum(primitiveTypeEnum: Types) =
-		dispatch(primitiveTypeEnum) {
-			it::o_TypeIntersectionOfPrimitiveTypeEnum
-		}
-
-	override fun typeUnionOfPrimitiveTypeEnum(primitiveTypeEnum: Types) =
-		dispatch(primitiveTypeEnum) { it::o_TypeUnionOfPrimitiveTypeEnum }
-
-	override fun tupleOfTypesFromTo(startIndex: Int, endIndex: Int) =
-		dispatch(startIndex, endIndex) { it::o_TupleOfTypesFromTo }
-
 	override fun macrosTuple() =
 		dispatch { it::o_MacrosTuple }
 
@@ -2512,9 +2174,6 @@ class AvailObject private constructor(
 
 	override fun equalsListNodeType(listNodeType: A_Type) =
 		dispatch(listNodeType) { it::o_EqualsListNodeType }
-
-	override fun subexpressionsTupleType() =
-		dispatch { it::o_SubexpressionsTupleType }
 
 	override fun parsingSignature() = dispatch { it::o_ParsingSignature }
 

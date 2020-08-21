@@ -45,6 +45,7 @@ import com.avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.setSuccessAndFailure
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsTuple
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
 import com.avail.descriptor.phrases.ListPhraseDescriptor
 import com.avail.descriptor.phrases.SendPhraseDescriptor
 import com.avail.descriptor.phrases.SendPhraseDescriptor.Companion.newSendNode
@@ -56,6 +57,11 @@ import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.acceptsListOfArgValues
+import com.avail.descriptor.types.A_Type.Companion.instance
+import com.avail.descriptor.types.A_Type.Companion.returnType
+import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
+import com.avail.descriptor.types.A_Type.Companion.typeIntersection
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
@@ -138,7 +144,7 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 			return interpreter.primitiveFailure(e)
 		}
 
-		val argsTupleType = argsListPhrase.expressionType()
+		val argsTupleType = argsListPhrase.phraseExpressionType()
 		val argTypesList = (1..argsCount).map { index ->
 			argsTupleType.typeAtIndex(index).makeShared()
 		}

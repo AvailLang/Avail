@@ -36,6 +36,7 @@ package com.avail.descriptor.phrases
  import com.avail.descriptor.phrases.A_Phrase.Companion.emitValueOn
  import com.avail.descriptor.phrases.A_Phrase.Companion.expression
  import com.avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
+ import com.avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
  import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKind
  import com.avail.descriptor.phrases.A_Phrase.Companion.token
  import com.avail.descriptor.phrases.A_Phrase.Companion.tokens
@@ -146,9 +147,9 @@ class AssignmentPhraseDescriptor private constructor(
 	override fun o_Expression(self: AvailObject): A_Phrase =
 		self.slot(EXPRESSION)
 
-	override fun o_ExpressionType(self: AvailObject): A_Type =
+	override fun o_PhraseExpressionType(self: AvailObject): A_Type =
 		when {
-			isInline(self) -> self.slot(EXPRESSION).expressionType()
+			isInline(self) -> self.slot(EXPRESSION).phraseExpressionType()
 			else -> TOP.o
 		}
 

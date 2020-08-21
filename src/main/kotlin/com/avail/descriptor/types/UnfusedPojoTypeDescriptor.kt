@@ -59,6 +59,10 @@ import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.StringDescriptor
 import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.tuples.TupleDescriptor
+import com.avail.descriptor.types.A_Type.Companion.typeIntersectionOfPojoType
+import com.avail.descriptor.types.A_Type.Companion.typeIntersectionOfPojoUnfusedType
+import com.avail.descriptor.types.A_Type.Companion.typeUnionOfPojoType
+import com.avail.descriptor.types.A_Type.Companion.typeUnionOfPojoUnfusedType
 import com.avail.descriptor.types.BottomPojoTypeDescriptor.Companion.pojoBottom
 import com.avail.descriptor.types.FusedPojoTypeDescriptor.Companion.createFusedPojoType
 import com.avail.descriptor.types.UnfusedPojoTypeDescriptor.IntegerSlots.Companion.HASH_OR_ZERO

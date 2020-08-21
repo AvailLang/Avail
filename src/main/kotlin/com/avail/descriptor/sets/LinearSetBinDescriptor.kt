@@ -43,6 +43,7 @@ import com.avail.descriptor.sets.LinearSetBinDescriptor.IntegerSlots.Companion.B
 import com.avail.descriptor.sets.LinearSetBinDescriptor.ObjectSlots.BIN_ELEMENT_AT_
 import com.avail.descriptor.sets.SetDescriptor.SetIterator
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.typeUnion
 import com.avail.descriptor.types.TypeTag
 import java.util.NoSuchElementException
 

@@ -65,6 +65,7 @@ import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.tuples.A_Tuple.Companion.asSet
 import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
+import com.avail.descriptor.types.A_Type.Companion.returnType
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE
 import com.avail.interpreter.execution.AvailLoader
 import com.avail.interpreter.execution.Interpreter.Companion.debugWorkUnits

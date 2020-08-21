@@ -137,7 +137,7 @@ class LiteralPhraseDescriptor(
 	override fun o_ExpressionsTuple(self: AvailObject): A_Tuple =
 		tupleFromList(self.map { syntheticLiteralNodeFor(it) })
 
-	override fun o_ExpressionType(self: AvailObject): A_Type {
+	override fun o_PhraseExpressionType(self: AvailObject): A_Type {
 		val token: A_Token = self.slot(TOKEN)
 		assert(token.tokenType() === TokenType.LITERAL)
 		return instanceTypeOrMetaOn(token.literal()).makeImmutable()

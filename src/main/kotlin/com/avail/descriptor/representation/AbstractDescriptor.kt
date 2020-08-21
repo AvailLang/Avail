@@ -40,6 +40,7 @@ import com.avail.compiler.scanning.LexingState
 import com.avail.compiler.splitter.MessageSplitter
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.bundles.A_Bundle
+import com.avail.descriptor.bundles.A_Bundle.Companion.addGrammaticalRestriction
 import com.avail.descriptor.bundles.A_BundleTree
 import com.avail.descriptor.bundles.MessageBundleDescriptor
 import com.avail.descriptor.fiber.A_Fiber
@@ -84,6 +85,14 @@ import com.avail.descriptor.tokens.A_Token
 import com.avail.descriptor.tokens.TokenDescriptor
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.asSet
+import com.avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithAnyTupleStartingAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithByteStringStartingAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithByteTupleStartingAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithNybbleTupleStartingAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithObjectTupleStartingAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithStartingAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithTwoByteStringStartingAt
 import com.avail.descriptor.tuples.ByteStringDescriptor
 import com.avail.descriptor.tuples.ByteTupleDescriptor
 import com.avail.descriptor.tuples.IntegerIntervalTupleDescriptor
@@ -96,6 +105,14 @@ import com.avail.descriptor.tuples.TreeTupleDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.tuples.TwoByteStringDescriptor
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.acceptsArgTypesFromFunctionType
+import com.avail.descriptor.types.A_Type.Companion.acceptsListOfArgTypes
+import com.avail.descriptor.types.A_Type.Companion.acceptsListOfArgValues
+import com.avail.descriptor.types.A_Type.Companion.acceptsTupleOfArgTypes
+import com.avail.descriptor.types.A_Type.Companion.acceptsTupleOfArguments
+import com.avail.descriptor.types.A_Type.Companion.argsTupleType
+import com.avail.descriptor.types.A_Type.Companion.declaredExceptions
+import com.avail.descriptor.types.A_Type.Companion.returnType
 import com.avail.descriptor.types.FiberTypeDescriptor
 import com.avail.descriptor.types.FunctionTypeDescriptor
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
@@ -122,6 +139,7 @@ import com.avail.io.TextInterface
 import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.performance.Statistic
+import com.avail.performance.StatisticReport.ALLOCATIONS_BY_DESCRIPTOR_CLASS
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.Strings.newlineTab
 import com.avail.utility.cast
@@ -135,6 +153,7 @@ import java.util.Deque
 import java.util.IdentityHashMap
 import java.util.Spliterator
 import java.util.TimerTask
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.locks.ReadWriteLock
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.stream.Stream
@@ -247,6 +266,11 @@ abstract class AbstractDescriptor protected constructor (
 	 * Populated automatically by the constructor.
 	 */
 	private val numberOfFixedIntegerSlots: Int
+
+	/**
+	 * A [Statistic] that records the number and size of each allocation.
+	 */
+	val allocationStat = allocationStatisticFor(this)
 
 	init
 	{
@@ -838,7 +862,7 @@ abstract class AbstractDescriptor protected constructor (
 	}
 
 	/**
-	 * Answer whether the [argument&#32;types][AvailObject.argsTupleType]
+	 * Answer whether the [argument&#32;types][A_Type.argsTupleType]
 	 * supported by the specified [function&#32;type][FunctionTypeDescriptor]
 	 * are acceptable argument types for invoking a
 	 * [function][FunctionDescriptor] whose type is `self`.
@@ -850,7 +874,7 @@ abstract class AbstractDescriptor protected constructor (
 	 * @return
 	 *   `true` if the arguments of self are, pairwise, more general than those
 	 *   of `functionType`, `false` otherwise.
-	 * @see AvailObject.acceptsArgTypesFromFunctionType
+	 * @see A_Type.acceptsArgTypesFromFunctionType
 	 */
 	abstract fun o_AcceptsArgTypesFromFunctionType (
 		self: AvailObject,
@@ -867,7 +891,7 @@ abstract class AbstractDescriptor protected constructor (
 	 * @return
 	 *   `true` if the arguments of the receiver are, pairwise, more general
 	 *   than those within the `argTypes` list, `false` otherwise.
-	 * @see AvailObject.acceptsListOfArgTypes
+	 * @see A_Type.acceptsListOfArgTypes
 	 */
 	abstract fun o_AcceptsListOfArgTypes (
 		self: AvailObject,
@@ -885,7 +909,7 @@ abstract class AbstractDescriptor protected constructor (
 	 *   `true` if the arguments of the receiver are, pairwise, more general
 	 *   than the types of the values within the `argValues` list, `false`
 	 *   otherwise.
-	 * @see AvailObject.acceptsListOfArgValues
+	 * @see A_Type.acceptsListOfArgValues
 	 */
 	abstract fun o_AcceptsListOfArgValues (
 		self: AvailObject,
@@ -905,7 +929,7 @@ abstract class AbstractDescriptor protected constructor (
 	 *   `true` if the arguments of the receiver are, pairwise, more general
 	 *   than the corresponding elements of the `argTypes` tuple, `false`
 	 *   otherwise.
-	 * @see AvailObject.acceptsTupleOfArgTypes
+	 * @see A_Type.acceptsTupleOfArgTypes
 	 */
 	abstract fun o_AcceptsTupleOfArgTypes (
 		self: AvailObject,
@@ -925,7 +949,7 @@ abstract class AbstractDescriptor protected constructor (
 	 *   `true` if the arguments of the receiver are, pairwise, more general
 	 *   than the types of the corresponding elements of the `arguments` tuple,
 	 *   `false` otherwise.
-	 * @see AvailObject.acceptsTupleOfArguments
+	 * @see A_Type.acceptsTupleOfArguments
 	 */
 	abstract fun o_AcceptsTupleOfArguments (
 		self: AvailObject,
@@ -2152,8 +2176,6 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_IsPositive (self: AvailObject): Boolean
 
-	abstract fun o_IsSupertypeOfBottom (self: AvailObject): Boolean
-
 	abstract fun o_KeysAsSet (self: AvailObject): A_Set
 
 	abstract fun o_KeyType (self: AvailObject): A_Type
@@ -2215,8 +2237,6 @@ abstract class AbstractDescriptor protected constructor (
 	abstract fun o_Parent (self: AvailObject): A_BasicObject
 
 	abstract fun o_Pc (self: AvailObject): Int
-
-	abstract fun o_PrimitiveNumber (self: AvailObject): Int
 
 	abstract fun o_Priority (self: AvailObject): Int
 
@@ -2390,10 +2410,10 @@ abstract class AbstractDescriptor protected constructor (
 	 *   The function type used in the comparison.
 	 * @return
 	 *   `true` IFF the receiver is also a function type and:
-	 *   * The [argument&#32;types][AvailObject.argsTupleType] correspond,
-	 *   * The [return&#32;types][AvailObject.returnType] correspond, and
-	 *   * The [raise&#32;types][AvailObject.declaredExceptions] correspond.
-	 * @see AvailObject.equalsFunctionType
+	 *   * The [argument&#32;types][A_Type.argsTupleType] correspond,
+	 *   * The [return&#32;types][A_Type.returnType] correspond, and
+	 *   * The [raise&#32;types][A_Type.declaredExceptions] correspond.
+	 * @see A_Type.equalsFunctionType
 	 */
 	abstract fun o_EqualsFunctionType (
 		self: AvailObject,
@@ -2823,7 +2843,9 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_Declaration (self: AvailObject): A_Phrase
 
-	abstract fun o_ExpressionType (self: AvailObject): A_Type
+	abstract fun o_PhraseExpressionType (self: AvailObject): A_Type
+
+	abstract fun o_PhraseTypeExpressionType (self: AvailObject): A_Type
 
 	abstract fun o_EmitEffectOn (
 		self: AvailObject,
@@ -4205,6 +4227,36 @@ abstract class AbstractDescriptor protected constructor (
 				value ushr 32 and 0xFFFF,
 				value ushr 16 and 0xFFFF,
 				value and 0xFFFF))
+		}
+
+		/**
+		 * A thread-safe, low-contention map from each encountered
+		 * [AbstractDescriptor] class to the [Statistic] that tracks its
+		 * allocations.
+ 		 */
+		val allocationStatisticsByClass =
+			ConcurrentHashMap<Class<AbstractDescriptor>, Statistic>()
+
+		/**
+		 * Answer a Statistic for recording allocations for the given
+		 * [AbstractDescriptor].  It will be cached within the descriptor for
+		 * performance.
+		 *
+		 * @param descriptor
+		 *   The [AbstractDescriptor] for which to find or create a [Statistic].
+		 */
+		fun allocationStatisticFor(descriptor: AbstractDescriptor): Statistic
+		{
+			return allocationStatisticsByClass.computeIfAbsent(
+				descriptor.javaClass
+			) {
+				var name = it.simpleName
+				if (name.endsWith("Descriptor"))
+				{
+					name = name.substring(0, name.length - 10)
+				}
+				Statistic(name, ALLOCATIONS_BY_DESCRIPTOR_CLASS)
+			}
 		}
 	}
 }

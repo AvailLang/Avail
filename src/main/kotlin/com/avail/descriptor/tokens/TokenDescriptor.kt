@@ -38,7 +38,6 @@ package com.avail.descriptor.tokens
  import com.avail.descriptor.atoms.A_Atom
  import com.avail.descriptor.atoms.A_Atom.Companion.setAtomProperty
  import com.avail.descriptor.atoms.AtomDescriptor.Companion.createSpecialAtom
- import com.avail.descriptor.numbers.IntegerDescriptor
  import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
  import com.avail.descriptor.pojos.RawPojoDescriptor
  import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
@@ -66,6 +65,8 @@ package com.avail.descriptor.tokens
  import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
  import com.avail.descriptor.tuples.StringDescriptor
  import com.avail.descriptor.types.A_Type
+ import com.avail.descriptor.types.A_Type.Companion.isSupertypeOfPrimitiveTypeEnum
+ import com.avail.descriptor.types.A_Type.Companion.tokenType
  import com.avail.descriptor.types.TokenTypeDescriptor.Companion.tokenType
  import com.avail.descriptor.types.TypeDescriptor.Types
  import com.avail.descriptor.types.TypeTag

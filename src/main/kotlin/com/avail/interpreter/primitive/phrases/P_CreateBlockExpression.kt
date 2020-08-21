@@ -37,6 +37,7 @@ import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.A_Phrase.Companion.flattenStatementsInto
 import com.avail.descriptor.phrases.BlockPhraseDescriptor
 import com.avail.descriptor.phrases.BlockPhraseDescriptor.Companion.newBlockNode
+import com.avail.descriptor.phrases.PhraseDescriptor.Companion.containsOnlyStatements
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -46,7 +47,6 @@ import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.en
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
-import com.avail.descriptor.types.PhraseTypeDescriptor.Companion.containsOnlyStatements
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.ARGUMENT_PHRASE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.BLOCK_PHRASE
@@ -84,15 +84,12 @@ object P_CreateBlockExpression : Primitive(5, CanFold, CanInline)
 		// "resultType".
 		val flat = mutableListOf<A_Phrase>()
 		statements.forEach { it.flattenStatementsInto(flat) }
-		val primNumber = when {
-			primitiveName.tupleSize() == 0 -> 0
-			else -> {
-				val primitive =
-					primitiveByName(primitiveName.asNativeString())
-						?: return interpreter.primitiveFailure(
-							E_INVALID_PRIMITIVE_NUMBER)
-				primitive.primitiveNumber
-			}
+		val primitive = when
+		{
+			primitiveName.tupleSize() == 0 -> null
+			else -> primitiveByName(primitiveName.asNativeString())
+				?: return interpreter.primitiveFailure(
+					E_INVALID_PRIMITIVE_NUMBER)
 		}
 		if (!containsOnlyStatements(flat, resultType))
 		{
@@ -101,7 +98,7 @@ object P_CreateBlockExpression : Primitive(5, CanFold, CanInline)
 		}
 		val block = newBlockNode(
 			argDecls,
-			primNumber,
+			primitive,
 			statements,
 			resultType,
 			exceptions,

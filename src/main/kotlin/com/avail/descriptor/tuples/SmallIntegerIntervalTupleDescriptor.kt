@@ -58,6 +58,7 @@ import com.avail.descriptor.tuples.SmallIntegerIntervalTupleDescriptor.IntegerSl
 import com.avail.descriptor.tuples.TreeTupleDescriptor.Companion.concatenateAtLeastOneTree
 import com.avail.descriptor.tuples.TreeTupleDescriptor.Companion.createTwoPartTreeTuple
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.isSupertypeOfIntegerRangeType
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import java.util.IdentityHashMap
 

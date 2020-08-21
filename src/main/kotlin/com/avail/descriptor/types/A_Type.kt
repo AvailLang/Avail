@@ -40,6 +40,7 @@ import com.avail.descriptor.phrases.BlockPhraseDescriptor
 import com.avail.descriptor.phrases.PhraseDescriptor
 import com.avail.descriptor.phrases.SendPhraseDescriptor
 import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.A_BasicObject.Companion.dispatch
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.tokens.TokenDescriptor
@@ -48,7 +49,7 @@ import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.optimizer.jvm.CheckedMethod
-import com.avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
+import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 
 /**
@@ -60,144 +61,6 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode
  */
 interface A_Type : A_BasicObject
 {
-	/**
-	 * Answer whether the [argument&#32;types][AvailObject.argsTupleType]
-	 * supported by the specified [function type][FunctionTypeDescriptor] are
-	 * acceptable argument types for invoking a [function][FunctionDescriptor]
-	 * whose type is the receiver.
-	 *
-	 * @param functionType
-	 *   A function type.
-	 * @return
-	 *   `true` if the arguments of the receiver are, pairwise, more general
-	 *   than those of `functionType`, `false` otherwise.
-	 */
-	fun acceptsArgTypesFromFunctionType(functionType: A_Type): Boolean
-
-	/**
-	 * Answer whether these are acceptable
-	 * [argument&#32;types][TypeDescriptor] for invoking a
-	 * [function][FunctionDescriptor] whose type is the receiver.
-	 *
-	 * @param argTypes
-	 *   A list containing the argument types to be checked.
-	 * @return
-	 *   `true` if the arguments of the receiver are, pairwise, more general
-	 *   than those within the `argTypes` list, `false` otherwise.
-	 */
-	fun acceptsListOfArgTypes(argTypes: List<A_Type>): Boolean
-
-	/**
-	 * Answer whether these are acceptable arguments for invoking a
-	 * [function][FunctionDescriptor] whose type is the receiver.
-	 *
-	 * @param argValues
-	 *   A list containing the argument values to be checked.
-	 * @return
-	 *   `true` if the arguments of the receiver are, pairwise, more general
-	 *   than the types of the values within the `argValues` list, `false`
-	 *   otherwise.
-	 */
-	fun acceptsListOfArgValues(argValues: List<A_BasicObject>): Boolean
-
-	/**
-	 * Answer whether these are acceptable
-	 * [argument&#32;types][TypeDescriptor] for invoking a
-	 * [function][FunctionDescriptor] that is an instance of the receiver. There
-	 * may be more entries in the [tuple][TupleDescriptor] than are required by
-	 * the [function type][FunctionTypeDescriptor].
-	 *
-	 * @param argTypes
-	 *   A tuple containing the argument types to be checked.
-	 * @return
-	 *   `true` if the arguments of the receiver are, pairwise, more general
-	 *   than the corresponding elements of the `argTypes` tuple, `false`
-	 *   otherwise.
-	 */
-	fun acceptsTupleOfArgTypes(argTypes: A_Tuple): Boolean
-
-	/**
-	 * Answer whether these are acceptable arguments for invoking a
-	 * [function][FunctionDescriptor] that is an instance of the receiver. There
-	 * may be more entries in the [tuple][TupleDescriptor] than are required by
-	 * the [function type][FunctionTypeDescriptor].
-	 *
-	 * @param arguments
-	 *   A tuple containing the argument values to be checked.
-	 * @return
-	 *   `true` if the arguments of the receiver are, pairwise, more general
-	 *   than the types of the corresponding elements of the `arguments` tuple,
-	 *   `false` otherwise.
-	 */
-	fun acceptsTupleOfArguments(arguments: A_Tuple): Boolean
-
-	/**
-	 * Answer the tuple type describing this function type's argument types.
-	 *
-	 * @return
-	 *   The tuple type for a function type's arguments.
-	 */
-	@ReferencedInGeneratedCode
-	fun argsTupleType(): A_Type
-
-	/**
-	 * Answer the type of elements that this set type's sets may hold.
-	 *
-	 * @return
-	 *   The set type's content type.
-	 */
-	fun contentType(): A_Type
-
-	/**
-	 * Dispatch to the descriptor.
-	 *
-	 * @param argRestrictions
-	 * @return
-	 */
-	fun couldEverBeInvokedWith(argRestrictions: List<TypeRestriction>): Boolean
-
-	/**
-	 * Also declared in [A_Phrase] for
-	 * [block&#32;phrases][BlockPhraseDescriptor] and
-	 * [send&#32;phrases][SendPhraseDescriptor].
-	 *
-	 * @return
-	 *   The set of declared exception types.
-	 */
-	fun declaredExceptions(): A_Set
-
-	/**
-	 * Dispatch to the descriptor.
-	 *
-	 * @return
-	 */
-	fun defaultType(): A_Type
-
-	/**
-	 * Return the phrase type's expression type, which is the type of object
-	 * that will be produced by phrases of that type.
-	 *
-	 * Also implemented in [A_Phrase] (for phrase instances).
-	 *
-	 * @return
-	 *   The [type][TypeDescriptor] of the [AvailObject] that will be produced
-	 *   by this type of phrase.
-	 */
-	fun expressionType(): A_Type
-
-	/**
-	 * Given an [object&#32;type][ObjectTypeDescriptor], answer its map from
-	 * fields to types.
-	 *
-	 * @return
-	 *   The map of field types.
-	 */
-	fun fieldTypeMap(): A_Map
-
-	/**
-	 * @return
-	 */
-	fun functionType(): A_Type
 
 	/**
 	 * Answer whether this type is ⊥ ([bottom][BottomTypeDescriptor]), the most
@@ -209,155 +72,9 @@ interface A_Type : A_BasicObject
 	val isBottom: Boolean
 
 	/**
-	 * Answer whether this type is known to have no instances.  For example, the
-	 * [bottom type][BottomTypeDescriptor] (denoted ⊥) has no instances.
-	 *
-	 * @return
-	 *   Whether the type is known to have no instances.
-	 */
-	val isVacuousType: Boolean
-
-	/**
-	 * Dispatch to the descriptor.
-	 *
-	 * @param aType
 	 * @return
 	 */
-	@ReferencedInGeneratedCode
-	fun isSubtypeOf(aType: A_Type): Boolean
-
-	/**
-	 * Dispatch to the descriptor.
-	 *
-	 * @param aVariableType
-	 * @return
-	 */
-	fun isSupertypeOfVariableType(aVariableType: A_Type): Boolean
-
-	/**
-	 * Dispatch to the descriptor.
-	 *
-	 * @param aContinuationType
-	 * @return
-	 */
-	fun isSupertypeOfContinuationType(aContinuationType: A_Type): Boolean
-
-	/**
-	 * Dispatch to the descriptor.
-	 *
-	 * @param aFiberType
-	 * @return
-	 */
-	fun isSupertypeOfFiberType(aFiberType: A_Type): Boolean
-
-	/**
-	 * Dispatch to the descriptor.
-	 * @param aFunctionType
-	 * @return
-	 */
-	fun isSupertypeOfFunctionType(aFunctionType: A_Type): Boolean
-
-	/**
-	 * Dispatch to the descriptor.
-	 * @param anIntegerRangeType
-	 * @return
-	 */
-	fun isSupertypeOfIntegerRangeType(anIntegerRangeType: A_Type): Boolean
-
-	/**
-	 * Dispatch to the descriptor.
-	 * @param aTokenType
-	 * @return
-	 */
-	fun isSupertypeOfTokenType(aTokenType: A_Type): Boolean
-
-	/**
-	 * Dispatch to the descriptor.
-	 *
-	 * @param aLiteralTokenType
-	 * @return
-	 */
-	fun isSupertypeOfLiteralTokenType(aLiteralTokenType: A_Type): Boolean
-
-	/**
-	 * Dispatch to the descriptor.
-	 *
-	 * @param aMapType
-	 * @return
-	 */
-	fun isSupertypeOfMapType(aMapType: AvailObject): Boolean
-
-	/**
-	 * Dispatch to the descriptor.
-	 *
-	 * @param anObjectType
-	 * @return
-	 */
-	fun isSupertypeOfObjectType(anObjectType: AvailObject): Boolean
-
-	/**
-	 * @param aPhraseType
-	 * @return
-	 */
-	fun isSupertypeOfPhraseType(aPhraseType: A_Type): Boolean
-
-	/**
-	 * Dispatch to the descriptor
-	 *
-	 * @param aPojoType
-	 * @return
-	 */
-	fun isSupertypeOfPojoType(aPojoType: A_Type): Boolean
-
-	/**
-	 * Dispatch to the descriptor.
-	 *
-	 * @param primitiveTypeEnum
-	 * @return
-	 */
-	fun isSupertypeOfPrimitiveTypeEnum(
-		primitiveTypeEnum: TypeDescriptor.Types): Boolean
-
-	/**
-	 * Dispatch to the descriptor.
-	 *
-	 * @param aSetType
-	 * @return
-	 */
-	fun isSupertypeOfSetType(aSetType: A_Type): Boolean
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	val isSupertypeOfBottom: Boolean
-
-	/**
-	 * Dispatch to the descriptor.
-	 *
-	 * @param aTupleType
-	 * @return
-	 */
-	fun isSupertypeOfTupleType(aTupleType: A_Type): Boolean
-
-	/**
-	 * Dispatch to the descriptor.
-	 *
-	 * @param anEnumerationType
-	 * @return
-	 */
-	fun isSupertypeOfEnumerationType(anEnumerationType: A_Type): Boolean
-
-	/**
-	 * @param aCompiledCodeType
-	 * @return
-	 */
-	fun isSupertypeOfCompiledCodeType(aCompiledCodeType: A_Type): Boolean
-
-	/**
-	 * @param aPojoType
-	 * @return
-	 */
-	fun isSupertypeOfPojoBottomType(aPojoType: A_Type): Boolean
+	val isEnumeration: Boolean
 
 	/**
 	 * Answer whether this type is ⊤ ([top][TypeDescriptor.Types.TOP]), the most
@@ -369,514 +86,973 @@ interface A_Type : A_BasicObject
 	val isTop: Boolean
 
 	/**
-	 * Dispatch to the descriptor.
-	 * @return
-	 */
-	fun keyType(): A_Type
-
-	/**
-	 * Dispatch to the descriptor.
-	 * @return
-	 */
-	fun lowerBound(): A_Number
-
-	/**
-	 * Dispatch to the descriptor.
-	 * @return
-	 */
-	fun lowerInclusive(): Boolean
-
-	/**
-	 * Dispatch to the descriptor.
-	 * @return
-	 */
-	fun parent(): A_BasicObject
-
-	/**
-	 * Also declared in [A_Phrase] for [phrases][PhraseDescriptor], not just
-	 * phrase types.
+	 * Answer whether this type is known to have no instances.  For example, the
+	 * [bottom&#32;type][BottomTypeDescriptor] (denoted ⊥) has no instances.
 	 *
 	 * @return
-	 *   Answer the phrase's PhraseKind.
+	 *   Whether the type is known to have no instances.
 	 */
-	fun phraseKind(): PhraseKind
-
-	/**
-	 * @return
-	 */
-	fun readType(): A_Type
-
-	/**
-	 * Also declared in [A_Phrase] for
-	 * [block&#32;phrases][BlockPhraseDescriptor] and [send
-	 * phrases][SendPhraseDescriptor].
-	 * @return
-	 */
-	fun returnType(): A_Type
-
-	/**
-	 * Dispatch to the descriptor.
-	 * @return
-	 */
-	fun sizeRange(): A_Type
-
-	/**
-	 * Dispatch to the descriptor.
-	 *
-	 * @param startIndex
-	 * @param endIndex
-	 * @return
-	 */
-	fun tupleOfTypesFromTo(startIndex: Int, endIndex: Int): A_Tuple
-
-	/**
-	 * Dispatch to the descriptor.
-	 *
-	 * @param index
-	 * @return
-	 */
-	@ReferencedInGeneratedCode
-	fun typeAtIndex(index: Int): A_Type
-
-	/**
-	 * Dispatch to the descriptor.
-	 *
-	 * @return
-	 */
-	fun typeTuple(): A_Tuple
-
-	/**
-	 * @param aCompiledCodeType
-	 * @return
-	 */
-	fun typeUnionOfCompiledCodeType(aCompiledCodeType: A_Type): A_Type
-
-	/**
-	 * @param aFusedPojoType
-	 * @return
-	 */
-	fun typeIntersectionOfPojoFusedType(aFusedPojoType: A_Type): A_Type
-
-	/**
-	 * @param anUnfusedPojoType
-	 * @return
-	 */
-	fun typeIntersectionOfPojoUnfusedType(anUnfusedPojoType: A_Type): A_Type
-
-	/**
-	 * @param aFusedPojoType
-	 * @return
-	 */
-	fun typeUnionOfPojoFusedType(aFusedPojoType: A_Type): A_Type
-
-	/**
-	 * @param anUnfusedPojoType
-	 * @return
-	 */
-	fun typeUnionOfPojoUnfusedType(anUnfusedPojoType: A_Type): A_Type
-
-	/**
-	 * @param aTokenType
-	 * @return
-	 */
-	fun typeIntersectionOfTokenType(aTokenType: A_Type): A_Type
-
-	/**
-	 * @param aLiteralTokenType
-	 * @return
-	 */
-	fun typeIntersectionOfLiteralTokenType(aLiteralTokenType: A_Type): A_Type
-
-	/**
-	 * @param aTokenType
-	 * @return
-	 */
-	fun typeUnionOfTokenType(aTokenType: A_Type): A_Type
-
-	/**
-	 * @param aLiteralTokenType
-	 * @return
-	 */
-	fun typeUnionOfLiteralTokenType(aLiteralTokenType: A_Type): A_Type
-
-	/**
-	 * Dispatch to the descriptor.
-	 *
-	 * @param another
-	 * @return
-	 */
-	fun typeIntersection(another: A_Type): A_Type
-
-	/**
-	 * @param aCompiledCodeType
-	 * @return
-	 */
-	fun typeIntersectionOfCompiledCodeType(aCompiledCodeType: A_Type): A_Type
-
-	/**
-	 * Dispatch to the descriptor.
-	 *
-	 * @param aFiberType
-	 * @return
-	 */
-	fun typeIntersectionOfFiberType(aFiberType: A_Type): A_Type
-
-	/**
-	 * Dispatch to the descriptor.
-	 *
-	 * @param aFunctionType
-	 * @return
-	 */
-	fun typeIntersectionOfFunctionType(aFunctionType: A_Type): A_Type
-
-	/**
-	 * Dispatch to the descriptor.
-	 *
-	 * @param aListNodeType
-	 * @return
-	 */
-	fun typeIntersectionOfListNodeType(aListNodeType: A_Type): A_Type
-
-	/**
-	 * Dispatch to the descriptor.
-	 *
-	 * @param aVariableType
-	 * @return
-	 */
-	fun typeIntersectionOfVariableType(aVariableType: A_Type): A_Type
-
-	/**
-	 * Dispatch to the descriptor.
-	 *
-	 * @param aContinuationType
-	 * @return
-	 */
-	fun typeIntersectionOfContinuationType(aContinuationType: A_Type): A_Type
-
-	/**
-	 * Dispatch to the descriptor.
-	 *
-	 * @param anIntegerRangeType
-	 * @return
-	 */
-	fun typeIntersectionOfIntegerRangeType(anIntegerRangeType: A_Type): A_Type
-
-	/**
-	 * Dispatch to the descriptor.
-	 *
-	 * @param aMapType
-	 * @return
-	 */
-	fun typeIntersectionOfMapType(aMapType: A_Type): A_Type
-
-	/**
-	 * Dispatch to the descriptor.
-	 *
-	 * @param anObjectType
-	 * @return
-	 */
-	fun typeIntersectionOfObjectType(anObjectType: AvailObject): A_Type
-
-	/**
-	 * @param aPhraseType
-	 * @return
-	 */
-	fun typeIntersectionOfPhraseType(aPhraseType: A_Type): A_Type
-
-	/**
-	 * @param aPojoType
-	 * @return
-	 */
-	fun typeIntersectionOfPojoType(aPojoType: A_Type): A_Type
-
-	/**
-	 * @param primitiveTypeEnum
-	 * @return
-	 */
-	fun typeIntersectionOfPrimitiveTypeEnum(
-		primitiveTypeEnum: TypeDescriptor.Types): A_Type
-
-	/**
-	 * Dispatch to the descriptor.
-	 *
-	 * @param aSetType
-	 * @return
-	 */
-	fun typeIntersectionOfSetType(aSetType: A_Type): A_Type
-
-	/**
-	 * Dispatch to the descriptor.
-	 *
-	 * @param aTupleType
-	 * @return
-	 */
-	fun typeIntersectionOfTupleType(aTupleType: A_Type): A_Type
-
-	/**
-	 * Dispatch to the descriptor.
-	 *
-	 * @param another
-	 * @return
-	 */
-	@ReferencedInGeneratedCode
-	fun typeUnion(another: A_Type): A_Type
-
-	/**
-	 * Dispatch to the descriptor.
-	 *
-	 * @param aFiberType
-	 * @return
-	 */
-	fun typeUnionOfFiberType(aFiberType: A_Type): A_Type
-
-	/**
-	 * Dispatch to the descriptor.
-	 *
-	 * @param aFunctionType
-	 * @return
-	 */
-	fun typeUnionOfFunctionType(aFunctionType: A_Type): A_Type
-
-	/**
-	 * Dispatch to the descriptor.
-	 *
-	 * @param aVariableType
-	 * @return
-	 */
-	fun typeUnionOfVariableType(aVariableType: A_Type): A_Type
-
-	/**
-	 * Dispatch to the descriptor.
-	 *
-	 * @param aContinuationType
-	 * @return
-	 */
-	fun typeUnionOfContinuationType(aContinuationType: A_Type): A_Type
-
-	/**
-	 * Dispatch to the descriptor.
-	 *
-	 * @param anIntegerRangeType
-	 * @return
-	 */
-	fun typeUnionOfIntegerRangeType(anIntegerRangeType: A_Type): A_Type
-
-	/**
-	 * Dispatch to the descriptor.
-	 *
-	 * @param aListNodeType
-	 * @return
-	 */
-	fun typeUnionOfListNodeType(aListNodeType: A_Type): A_Type
-
-	/**
-	 * Dispatch to the descriptor.
-	 *
-	 * @param aMapType
-	 * @return
-	 */
-	fun typeUnionOfMapType(aMapType: A_Type): A_Type
-
-	/**
-	 * Dispatch to the descriptor.
-	 *
-	 * @param anObjectType
-	 * @return
-	 */
-	fun typeUnionOfObjectType(anObjectType: AvailObject): A_Type
-
-	/**
-	 * @param aPhraseType
-	 * @return
-	 */
-	fun typeUnionOfPhraseType(aPhraseType: A_Type): A_Type
-
-	/**
-	 * @param aPojoType
-	 * @return
-	 */
-	fun typeUnionOfPojoType(aPojoType: A_Type): A_Type
-
-	/**
-	 * @param primitiveTypeEnum
-	 * @return
-	 */
-	fun typeUnionOfPrimitiveTypeEnum(
-		primitiveTypeEnum: TypeDescriptor.Types): A_Type
-
-	/**
-	 * Dispatch to the descriptor.
-	 *
-	 * @param aSetType
-	 * @return
-	 */
-	fun typeUnionOfSetType(aSetType: A_Type): A_Type
-
-	/**
-	 * Dispatch to the descriptor.
-	 *
-	 * @param aTupleType
-	 * @return
-	 */
-	fun typeUnionOfTupleType(aTupleType: A_Type): A_Type
-
-	/**
-	 * @return
-	 */
-	fun typeVariables(): A_Map
-
-	/**
-	 * Dispatch to the descriptor.
-	 *
-	 * @param startIndex
-	 * @param endIndex
-	 * @return
-	 */
-	fun unionOfTypesAtThrough(startIndex: Int, endIndex: Int): A_Type
-
-	/**
-	 * Dispatch to the descriptor.
-	 *
-	 * @return
-	 */
-	fun upperBound(): A_Number
-
-	/**
-	 * Dispatch to the descriptor.
-	 *
-	 * @return
-	 */
-	fun upperInclusive(): Boolean
-
-	/**
-	 * @return
-	 */
-	fun writeType(): A_Type
-
-	/**
-	 * Compute a [type][TypeDescriptor] that is an ancestor of the receiver, but
-	 * is not an [enumeration][AbstractEnumerationTypeDescriptor].  Choose the
-	 * most specific such type.  Fail if the receiver is not itself an
-	 * enumeration.  Also fail if the receiver is
-	 * [bottom][BottomTypeDescriptor].
-	 *
-	 * @return
-	 *   The must specific non-union supertype.
-	 */
-	fun computeSuperkind(): A_Type
-
-	/**
-	 * @return
-	 */
-	val isEnumeration: Boolean
-
-	/**
-	 * @return
-	 */
-	fun valueType(): A_Type
-
-	/**
-	 * @return
-	 */
-	fun fieldTypeTuple(): A_Tuple
-
-	/**
-	 * Dispatch to the descriptor.
-	 *
-	 * @param potentialInstance
-	 * @return
-	 */
-	fun hasObjectInstance(potentialInstance: AvailObject): Boolean
-
-	/**
-	 * @return
-	 */
-	fun instance(): AvailObject
-
-	/**
-	 * @return
-	 */
-	fun instanceCount(): A_Number
-
-	/**
-	 * @return
-	 */
-	fun instances(): A_Set
-
-	/**
-	 * @return
-	 */
-	fun tokenType(): TokenDescriptor.TokenType
-
-	/**
-	 * @return
-	 */
-	fun literalType(): A_Type
-
-	/**
-	 * @param aLong
-	 * @return
-	 */
-	fun rangeIncludesLong(aLong: Long): Boolean
-
-	/**
-	 * Also declared in A_Phrase, so the same operation applies both to phrases
-	 * and to phrase types.
-	 *
-	 * @param expectedPhraseKind
-	 *   The [PhraseKind] to test this phrase type against.
-	 * @return
-	 *   Whether the receiver, a phrase type, has a [.phraseKind] at or below
-	 *   the specified [PhraseKind].
-	 */
-	fun phraseKindIsUnder(expectedPhraseKind: PhraseKind): Boolean
-
-	/**
-	 * Answer the type of the subexpressions tuple that instances (list phrases)
-	 * of me (a list phrase type) must have.
-	 *
-	 * @return
-	 *   A tuple type of phrases.
-	 */
-	fun subexpressionsTupleType(): A_Type
-
-	/**
-	 * Answer whether the receiver, a type, is a supertype of the given
-	 * [list&#32;phrase&#32;type][ListPhraseTypeDescriptor].
-	 *
-	 * @param aListNodeType
-	 *   The list phrase type.
-	 * @return
-	 *   Whether the receiver is a supertype of the given type.
-	 */
-	fun isSupertypeOfListNodeType(aListNodeType: A_Type): Boolean
+	val isVacuousType: Boolean
 
 	companion object
 	{
-		/** The [CheckedMethod] for [argsTupleType].  */
-		val argsTupleTypeMethod = instanceMethod(
+		/**
+		 * Answer whether the [argument&#32;types][AvailObject.argsTupleType]
+		 * supported by the specified
+		 * [function&#32;type][FunctionTypeDescriptor] are acceptable argument
+		 * types for invoking a [function][FunctionDescriptor] whose type is the
+		 * receiver.
+		 *
+		 * @param functionType
+		 *   A function type.
+		 * @return
+		 *   `true` if the arguments of the receiver are, pairwise, more general
+		 *   than those of `functionType`, `false` otherwise.
+		 */
+		fun A_Type.acceptsArgTypesFromFunctionType(
+			functionType: A_Type
+		): Boolean = dispatch {
+			o_AcceptsArgTypesFromFunctionType(it, functionType)
+		}
+
+		/**
+		 * Answer whether these are acceptable
+		 * [argument&#32;types][TypeDescriptor] for invoking a
+		 * [function][FunctionDescriptor] whose type is the receiver.
+		 *
+		 * @param argTypes
+		 *   A list containing the argument types to be checked.
+		 * @return
+		 *   `true` if the arguments of the receiver are, pairwise, more general
+		 *   than those within the `argTypes` list, `false` otherwise.
+		 */
+		fun A_Type.acceptsListOfArgTypes(
+			argTypes: List<A_Type>
+		): Boolean = dispatch { o_AcceptsListOfArgTypes(it, argTypes) }
+
+		/**
+		 * Answer whether these are acceptable arguments for invoking a
+		 * [function][FunctionDescriptor] whose type is the receiver.
+		 *
+		 * @param argValues
+		 *   A list containing the argument values to be checked.
+		 * @return
+		 *   `true` if the arguments of the receiver are, pairwise, more general
+		 *   than the types of the values within the `argValues` list, `false`
+		 *   otherwise.
+		 */
+		fun A_Type.acceptsListOfArgValues(
+			argValues: List<A_BasicObject>
+		): Boolean = dispatch { o_AcceptsListOfArgValues(it, argValues) }
+
+		/**
+		 * Answer whether these are acceptable
+		 * [argument&#32;types][TypeDescriptor] for invoking a
+		 * [function][FunctionDescriptor] that is an instance of the receiver.
+		 * There may be more entries in the [tuple][TupleDescriptor] than are
+		 * required by the [function type][FunctionTypeDescriptor].
+		 *
+		 * @param argTypes
+		 *   A tuple containing the argument types to be checked.
+		 * @return
+		 *   `true` if the arguments of the receiver are, pairwise, more general
+		 *   than the corresponding elements of the `argTypes` tuple, `false`
+		 *   otherwise.
+		 */
+		fun A_Type.acceptsTupleOfArgTypes(argTypes: A_Tuple): Boolean =
+			dispatch { o_AcceptsTupleOfArgTypes(it, argTypes) }
+
+		/**
+		 * Answer whether these are acceptable arguments for invoking a
+		 * [function][FunctionDescriptor] that is an instance of the receiver.
+		 * There may be more entries in the [tuple][TupleDescriptor] than are
+		 * required by the [function type][FunctionTypeDescriptor].
+		 *
+		 * @param arguments
+		 *   A tuple containing the argument values to be checked.
+		 * @return
+		 *   `true` if the arguments of the receiver are, pairwise, more general
+		 *   than the types of the corresponding elements of the `arguments`
+		 *   tuple, `false` otherwise.
+		 */
+		fun A_Type.acceptsTupleOfArguments(arguments: A_Tuple): Boolean =
+			dispatch { o_AcceptsTupleOfArguments(it, arguments) }
+
+		/**
+		 * Answer the tuple type describing this function type's argument types.
+		 *
+		 * @return
+		 *   The tuple type for a function type's arguments.
+		 */
+		fun A_Type.argsTupleType(): A_Type =
+			dispatch { o_ArgsTupleType(it) }
+
+		/**
+		 * Answer the type of elements that this set type's sets may hold.
+		 *
+		 * @return
+		 *   The set type's content type.
+		 */
+		fun A_Type.contentType(): A_Type = dispatch { o_ContentType(it) }
+
+		/**
+		 * Dispatch to the descriptor.
+		 *
+		 * @param argRestrictions
+		 * @return
+		 */
+		fun A_Type.couldEverBeInvokedWith(
+			argRestrictions: List<TypeRestriction>
+		): Boolean = dispatch { o_CouldEverBeInvokedWith(it, argRestrictions) }
+
+		/**
+		 * Also declared in [A_Phrase] for
+		 * [block&#32;phrases][BlockPhraseDescriptor] and
+		 * [send&#32;phrases][SendPhraseDescriptor].
+		 *
+		 * @return
+		 *   The set of declared exception types.
+		 */
+		fun A_Type.declaredExceptions(): A_Set =
+			dispatch { o_DeclaredExceptions(it) }
+
+		/**
+		 * Dispatch to the descriptor.
+		 *
+		 * @return
+		 */
+		fun A_Type.defaultType(): A_Type = dispatch { o_DefaultType(it) }
+
+		/**
+		 * Return the phrase type's expression type, which is the type of object
+		 * that will be produced by phrases of that type.
+		 *
+		 * Also implemented in [A_Phrase] (for phrase instances).
+		 *
+		 * @return
+		 *   The [type][TypeDescriptor] of the [AvailObject] that will be
+		 *   produced by this type of phrase.
+		 */
+		fun A_Type.phraseTypeExpressionType(): A_Type =
+			dispatch { o_PhraseTypeExpressionType(it) }
+
+		/**
+		 * Given an [object&#32;type][ObjectTypeDescriptor], answer its map from
+		 * fields to types.
+		 *
+		 * @return
+		 *   The map of field types.
+		 */
+		fun A_Type.fieldTypeMap(): A_Map = dispatch { o_FieldTypeMap(it) }
+
+		/**
+		 * @return
+		 */
+		fun A_Type.functionType(): A_Type = dispatch { o_FunctionType(it) }
+
+		/**
+		 * Dispatch to the descriptor.
+		 *
+		 * @param aType
+		 * @return
+		 */
+		fun A_Type.isSubtypeOf(aType: A_Type): Boolean =
+			dispatch { o_IsSubtypeOf(it, aType) }
+
+		/**
+		 * Dispatch to the descriptor.
+		 *
+		 * @param aVariableType
+		 * @return
+		 */
+		fun A_Type.isSupertypeOfVariableType(aVariableType: A_Type): Boolean =
+			dispatch { o_IsSupertypeOfVariableType(it, aVariableType) }
+
+		/**
+		 * Dispatch to the descriptor.
+		 *
+		 * @param aContinuationType
+		 * @return
+		 */
+		fun A_Type.isSupertypeOfContinuationType(
+			aContinuationType: A_Type
+		): Boolean = dispatch {
+			o_IsSupertypeOfContinuationType(it, aContinuationType)
+		}
+
+		/**
+		 * Dispatch to the descriptor.
+		 *
+		 * @param aFiberType
+		 * @return
+		 */
+		fun A_Type.isSupertypeOfFiberType(aFiberType: A_Type): Boolean =
+			dispatch { o_IsSupertypeOfFiberType(it, aFiberType) }
+
+		/**
+		 * Dispatch to the descriptor.
+		 * @param aFunctionType
+		 * @return
+		 */
+		fun A_Type.isSupertypeOfFunctionType(aFunctionType: A_Type): Boolean =
+			dispatch { o_IsSupertypeOfFunctionType(it, aFunctionType) }
+
+		/**
+		 * Dispatch to the descriptor.
+		 * @param anIntegerRangeType
+		 * @return
+		 */
+		fun A_Type.isSupertypeOfIntegerRangeType(
+			anIntegerRangeType: A_Type
+		): Boolean = dispatch {
+			o_IsSupertypeOfIntegerRangeType(it, anIntegerRangeType)
+		}
+
+		/**
+		 * Dispatch to the descriptor.
+		 * @param aTokenType
+		 * @return
+		 */
+		fun A_Type.isSupertypeOfTokenType(aTokenType: A_Type): Boolean =
+			dispatch { o_IsSupertypeOfTokenType(it, aTokenType) }
+
+		/**
+		 * Dispatch to the descriptor.
+		 *
+		 * @param aLiteralTokenType
+		 * @return
+		 */
+		fun A_Type.isSupertypeOfLiteralTokenType(
+			aLiteralTokenType: A_Type
+		): Boolean = dispatch {
+			o_IsSupertypeOfLiteralTokenType(it, aLiteralTokenType)
+		}
+
+		/**
+		 * Dispatch to the descriptor.
+		 *
+		 * @param aMapType
+		 * @return
+		 */
+		fun A_Type.isSupertypeOfMapType(aMapType: AvailObject): Boolean =
+			dispatch { o_IsSupertypeOfMapType(it, aMapType) }
+
+		/**
+		 * Dispatch to the descriptor.
+		 *
+		 * @param anObjectType
+		 * @return
+		 */
+		fun A_Type.isSupertypeOfObjectType(anObjectType: AvailObject): Boolean =
+			dispatch { o_IsSupertypeOfObjectType(it, anObjectType) }
+
+		/**
+		 * @param aPhraseType
+		 * @return
+		 */
+		fun A_Type.isSupertypeOfPhraseType(aPhraseType: A_Type): Boolean =
+			dispatch { o_IsSupertypeOfPhraseType(it, aPhraseType) }
+
+		/**
+		 * Dispatch to the descriptor
+		 *
+		 * @param aPojoType
+		 * @return
+		 */
+		fun A_Type.isSupertypeOfPojoType(aPojoType: A_Type): Boolean =
+			dispatch { o_IsSupertypeOfPojoType(it, aPojoType) }
+
+		/**
+		 * Dispatch to the descriptor.
+		 *
+		 * @param primitiveTypeEnum
+		 * @return
+		 */
+		fun A_Type.isSupertypeOfPrimitiveTypeEnum(
+			primitiveTypeEnum: TypeDescriptor.Types
+		): Boolean = dispatch {
+			o_IsSupertypeOfPrimitiveTypeEnum(it, primitiveTypeEnum)
+		}
+
+		/**
+		 * Dispatch to the descriptor.
+		 *
+		 * @param aSetType
+		 * @return
+		 */
+		fun A_Type.isSupertypeOfSetType(aSetType: A_Type): Boolean =
+			dispatch { o_IsSupertypeOfSetType(it, aSetType) }
+
+		/**
+		 * Dispatch to the descriptor.
+		 *
+		 * @param aTupleType
+		 * @return
+		 */
+		fun A_Type.isSupertypeOfTupleType(aTupleType: A_Type): Boolean =
+			dispatch { o_IsSupertypeOfTupleType(it, aTupleType) }
+
+		/**
+		 * Dispatch to the descriptor.
+		 *
+		 * @param anEnumerationType
+		 * @return
+		 */
+		fun A_Type.isSupertypeOfEnumerationType(
+			anEnumerationType: A_Type
+		): Boolean = dispatch {
+			o_IsSupertypeOfEnumerationType(it, anEnumerationType)
+		}
+
+		/**
+		 * @param aCompiledCodeType
+		 * @return
+		 */
+		fun A_Type.isSupertypeOfCompiledCodeType(
+			aCompiledCodeType: A_Type
+		): Boolean = dispatch {
+			o_IsSupertypeOfCompiledCodeType(it, aCompiledCodeType)
+		}
+
+		/**
+		 * @param aPojoType
+		 * @return
+		 */
+		fun A_Type.isSupertypeOfPojoBottomType(aPojoType: A_Type): Boolean =
+			dispatch { o_IsSupertypeOfPojoBottomType(it, aPojoType) }
+
+		/**
+		 * Dispatch to the descriptor.
+		 * @return
+		 */
+		fun A_Type.keyType(): A_Type = dispatch { o_KeyType(it) }
+
+		/**
+		 * Dispatch to the descriptor.
+		 * @return
+		 */
+		fun A_Type.lowerBound(): A_Number = dispatch { o_LowerBound(it) }
+
+		/**
+		 * Dispatch to the descriptor.
+		 * @return
+		 */
+		fun A_Type.lowerInclusive(): Boolean = dispatch { o_LowerInclusive(it) }
+
+		/**
+		 * Dispatch to the descriptor.
+		 * @return
+		 */
+		fun A_Type.parent(): A_BasicObject = dispatch { o_Parent(it) }
+
+		/**
+		 * Also declared in [A_Phrase] for [phrases][PhraseDescriptor], not just
+		 * phrase types.
+		 *
+		 * @return
+		 *   Answer the phrase's PhraseKind.
+		 */
+		fun A_Type.phraseKind(): PhraseKind = dispatch { o_PhraseKind(it) }
+
+		/**
+		 * @return
+		 */
+		fun A_Type.readType(): A_Type = dispatch { o_ReadType(it) }
+
+		/**
+		 * Also declared in [A_Phrase] for
+		 * [block&#32;phrases][BlockPhraseDescriptor] and
+		 * [send&#32;phrases][SendPhraseDescriptor].
+		 *
+		 * @return
+		 */
+		fun A_Type.returnType(): A_Type = dispatch { o_ReturnType(it) }
+
+		/**
+		 * Dispatch to the descriptor.
+		 * @return
+		 */
+		fun A_Type.sizeRange(): A_Type = dispatch { o_SizeRange(it) }
+
+		/**
+		 * Dispatch to the descriptor.
+		 *
+		 * @param startIndex
+		 * @param endIndex
+		 * @return
+		 */
+		fun A_Type.tupleOfTypesFromTo(startIndex: Int, endIndex: Int): A_Tuple =
+			dispatch { o_TupleOfTypesFromTo(it, startIndex, endIndex) }
+
+		/**
+		 * Dispatch to the descriptor.
+		 *
+		 * @param index
+		 * @return
+		 */
+		fun A_Type.typeAtIndex(index: Int): A_Type =
+			dispatch { o_TypeAtIndex(it, index) }
+
+		/**
+		 * Dispatch to the descriptor.
+		 *
+		 * @return
+		 */
+		fun A_Type.typeTuple(): A_Tuple = dispatch { o_TypeTuple(it) }
+
+		/**
+		 * @param aCompiledCodeType
+		 * @return
+		 */
+		fun A_Type.typeUnionOfCompiledCodeType(
+			aCompiledCodeType: A_Type
+		): A_Type = dispatch {
+			o_TypeUnionOfCompiledCodeType(it, aCompiledCodeType)
+		}
+
+		/**
+		 * @param aFusedPojoType
+		 * @return
+		 */
+		fun A_Type.typeIntersectionOfPojoFusedType(
+			aFusedPojoType: A_Type
+		): A_Type = dispatch {
+			o_TypeIntersectionOfPojoFusedType(it, aFusedPojoType)
+		}
+
+		/**
+		 * @param anUnfusedPojoType
+		 * @return
+		 */
+		fun A_Type.typeIntersectionOfPojoUnfusedType(
+			anUnfusedPojoType: A_Type
+		): A_Type = dispatch {
+			o_TypeIntersectionOfPojoUnfusedType(it, anUnfusedPojoType)
+		}
+
+		/**
+		 * @param aFusedPojoType
+		 * @return
+		 */
+		fun A_Type.typeUnionOfPojoFusedType(aFusedPojoType: A_Type): A_Type =
+			dispatch { o_TypeUnionOfPojoFusedType(it, aFusedPojoType) }
+
+		/**
+		 * @param anUnfusedPojoType
+		 * @return
+		 */
+		fun A_Type.typeUnionOfPojoUnfusedType(
+			anUnfusedPojoType: A_Type
+		): A_Type = dispatch {
+			o_TypeUnionOfPojoUnfusedType(it, anUnfusedPojoType)
+		}
+
+		/**
+		 * @param aTokenType
+		 * @return
+		 */
+		fun A_Type.typeIntersectionOfTokenType(aTokenType: A_Type): A_Type =
+			dispatch { o_TypeIntersectionOfTokenType(it, aTokenType) }
+
+		/**
+		 * @param aLiteralTokenType
+		 * @return
+		 */
+		fun A_Type.typeIntersectionOfLiteralTokenType(
+			aLiteralTokenType: A_Type
+		): A_Type = dispatch {
+			o_TypeIntersectionOfLiteralTokenType(it, aLiteralTokenType)
+		}
+
+		/**
+		 * @param aTokenType
+		 * @return
+		 */
+		fun A_Type.typeUnionOfTokenType(aTokenType: A_Type): A_Type =
+			dispatch { o_TypeUnionOfTokenType(it, aTokenType) }
+
+		/**
+		 * @param aLiteralTokenType
+		 * @return
+		 */
+		fun A_Type.typeUnionOfLiteralTokenType(
+			aLiteralTokenType: A_Type
+		): A_Type = dispatch {
+			o_TypeUnionOfLiteralTokenType(it, aLiteralTokenType)
+		}
+
+		/**
+		 * Dispatch to the descriptor.
+		 *
+		 * @param another
+		 * @return
+		 */
+		fun A_Type.typeIntersection(another: A_Type): A_Type =
+			dispatch { o_TypeIntersection(it, another) }
+
+		/**
+		 * @param aCompiledCodeType
+		 * @return
+		 */
+		fun A_Type.typeIntersectionOfCompiledCodeType(
+			aCompiledCodeType: A_Type
+		): A_Type = dispatch {
+			o_TypeIntersectionOfCompiledCodeType(it, aCompiledCodeType)
+		}
+
+		/**
+		 * Dispatch to the descriptor.
+		 *
+		 * @param aFiberType
+		 * @return
+		 */
+		fun A_Type.typeIntersectionOfFiberType(aFiberType: A_Type): A_Type =
+			dispatch { o_TypeIntersectionOfFiberType(it, aFiberType) }
+
+		/**
+		 * Dispatch to the descriptor.
+		 *
+		 * @param aFunctionType
+		 * @return
+		 */
+		fun A_Type.typeIntersectionOfFunctionType(
+			aFunctionType: A_Type
+		): A_Type = dispatch {
+			o_TypeIntersectionOfFunctionType(it, aFunctionType)
+		}
+
+		/**
+		 * Dispatch to the descriptor.
+		 *
+		 * @param aListNodeType
+		 * @return
+		 */
+		fun A_Type.typeIntersectionOfListNodeType(
+			aListNodeType: A_Type
+		): A_Type = dispatch {
+			o_TypeIntersectionOfListNodeType(it, aListNodeType)
+		}
+
+		/**
+		 * Dispatch to the descriptor.
+		 *
+		 * @param aVariableType
+		 * @return
+		 */
+		fun A_Type.typeIntersectionOfVariableType(
+			aVariableType: A_Type
+		): A_Type = dispatch {
+			o_TypeIntersectionOfVariableType(it, aVariableType)
+		}
+
+		/**
+		 * Dispatch to the descriptor.
+		 *
+		 * @param aContinuationType
+		 * @return
+		 */
+		fun A_Type.typeIntersectionOfContinuationType(
+			aContinuationType: A_Type
+		): A_Type = dispatch {
+			o_TypeIntersectionOfContinuationType(it, aContinuationType)
+		}
+
+		/**
+		 * Dispatch to the descriptor.
+		 *
+		 * @param anIntegerRangeType
+		 * @return
+		 */
+		fun A_Type.typeIntersectionOfIntegerRangeType(
+			anIntegerRangeType: A_Type
+		): A_Type = dispatch {
+			o_TypeIntersectionOfIntegerRangeType(it, anIntegerRangeType)
+		}
+
+		/**
+		 * Dispatch to the descriptor.
+		 *
+		 * @param aMapType
+		 * @return
+		 */
+		fun A_Type.typeIntersectionOfMapType(aMapType: A_Type): A_Type =
+			dispatch { o_TypeIntersectionOfMapType(it, aMapType) }
+
+		/**
+		 * Dispatch to the descriptor.
+		 *
+		 * @param anObjectType
+		 * @return
+		 */
+		fun A_Type.typeIntersectionOfObjectType(
+			anObjectType: AvailObject
+		): A_Type = dispatch {
+			o_TypeIntersectionOfObjectType(it, anObjectType)
+		}
+
+		/**
+		 * @param aPhraseType
+		 * @return
+		 */
+		fun A_Type.typeIntersectionOfPhraseType(aPhraseType: A_Type): A_Type =
+			dispatch { o_TypeIntersectionOfPhraseType(it, aPhraseType) }
+
+		/**
+		 * @param aPojoType
+		 * @return
+		 */
+		fun A_Type.typeIntersectionOfPojoType(aPojoType: A_Type): A_Type =
+			dispatch { o_TypeIntersectionOfPojoType(it, aPojoType) }
+
+		/**
+		 * @param primitiveTypeEnum
+		 * @return
+		 */
+		fun A_Type.typeIntersectionOfPrimitiveTypeEnum(
+			primitiveTypeEnum: TypeDescriptor.Types
+		): A_Type = dispatch {
+			o_TypeIntersectionOfPrimitiveTypeEnum(it, primitiveTypeEnum)
+		}
+
+		/**
+		 * Dispatch to the descriptor.
+		 *
+		 * @param aSetType
+		 * @return
+		 */
+		fun A_Type.typeIntersectionOfSetType(aSetType: A_Type): A_Type =
+			dispatch { o_TypeIntersectionOfSetType(it, aSetType) }
+
+		/**
+		 * Dispatch to the descriptor.
+		 *
+		 * @param aTupleType
+		 * @return
+		 */
+		fun A_Type.typeIntersectionOfTupleType(aTupleType: A_Type): A_Type =
+			dispatch { o_TypeIntersectionOfTupleType(it, aTupleType) }
+
+		/**
+		 * Dispatch to the descriptor.
+		 *
+		 * @param another
+		 * @return
+		 */
+		fun A_Type.typeUnion(another: A_Type): A_Type =
+			dispatch { o_TypeUnion(it, another) }
+
+		/**
+		 * Dispatch to the descriptor.
+		 *
+		 * @param aFiberType
+		 * @return
+		 */
+		fun A_Type.typeUnionOfFiberType(aFiberType: A_Type): A_Type =
+			dispatch { o_TypeUnionOfFiberType(it, aFiberType) }
+
+		/**
+		 * Dispatch to the descriptor.
+		 *
+		 * @param aFunctionType
+		 * @return
+		 */
+		fun A_Type.typeUnionOfFunctionType(aFunctionType: A_Type): A_Type =
+			dispatch { o_TypeUnionOfFunctionType(it, aFunctionType) }
+
+		/**
+		 * Dispatch to the descriptor.
+		 *
+		 * @param aVariableType
+		 * @return
+		 */
+		fun A_Type.typeUnionOfVariableType(aVariableType: A_Type): A_Type =
+			dispatch { o_TypeUnionOfVariableType(it, aVariableType) }
+
+		/**
+		 * Dispatch to the descriptor.
+		 *
+		 * @param aContinuationType
+		 * @return
+		 */
+		fun A_Type.typeUnionOfContinuationType(
+			aContinuationType: A_Type
+		): A_Type = dispatch {
+			o_TypeUnionOfContinuationType(it, aContinuationType)
+		}
+
+		/**
+		 * Dispatch to the descriptor.
+		 *
+		 * @param anIntegerRangeType
+		 * @return
+		 */
+		fun A_Type.typeUnionOfIntegerRangeType(
+			anIntegerRangeType: A_Type
+		): A_Type = dispatch {
+			o_TypeUnionOfIntegerRangeType(it, anIntegerRangeType)
+		}
+
+		/**
+		 * Dispatch to the descriptor.
+		 *
+		 * @param aListNodeType
+		 * @return
+		 */
+		fun A_Type.typeUnionOfListNodeType(aListNodeType: A_Type): A_Type =
+			dispatch { o_TypeUnionOfListNodeType(it, aListNodeType) }
+
+		/**
+		 * Dispatch to the descriptor.
+		 *
+		 * @param aMapType
+		 * @return
+		 */
+		fun A_Type.typeUnionOfMapType(aMapType: A_Type): A_Type =
+			dispatch { o_TypeUnionOfMapType(it, aMapType) }
+
+		/**
+		 * Dispatch to the descriptor.
+		 *
+		 * @param anObjectType
+		 * @return
+		 */
+		fun A_Type.typeUnionOfObjectType(anObjectType: AvailObject): A_Type =
+			dispatch { o_TypeUnionOfObjectType(it, anObjectType) }
+
+		/**
+		 * @param aPhraseType
+		 * @return
+		 */
+		fun A_Type.typeUnionOfPhraseType(aPhraseType: A_Type): A_Type =
+			dispatch { o_TypeUnionOfPhraseType(it, aPhraseType) }
+
+		/**
+		 * @param aPojoType
+		 * @return
+		 */
+		fun A_Type.typeUnionOfPojoType(aPojoType: A_Type): A_Type =
+			dispatch { o_TypeUnionOfPojoType(it, aPojoType) }
+
+		/**
+		 * @param primitiveTypeEnum
+		 * @return
+		 */
+		fun A_Type.typeUnionOfPrimitiveTypeEnum(
+			primitiveTypeEnum: TypeDescriptor.Types
+		): A_Type = dispatch {
+			o_TypeUnionOfPrimitiveTypeEnum(it, primitiveTypeEnum)
+		}
+
+		/**
+		 * Dispatch to the descriptor.
+		 *
+		 * @param aSetType
+		 * @return
+		 */
+		fun A_Type.typeUnionOfSetType(aSetType: A_Type): A_Type =
+			dispatch { o_TypeUnionOfSetType(it, aSetType) }
+
+		/**
+		 * Dispatch to the descriptor.
+		 *
+		 * @param aTupleType
+		 * @return
+		 */
+		fun A_Type.typeUnionOfTupleType(aTupleType: A_Type): A_Type =
+			dispatch { o_TypeUnionOfTupleType(it, aTupleType) }
+
+		/**
+		 * @return
+		 */
+		fun A_Type.typeVariables(): A_Map = dispatch { o_TypeVariables(it) }
+
+		/**
+		 * Dispatch to the descriptor.
+		 *
+		 * @param startIndex
+		 * @param endIndex
+		 * @return
+		 */
+		fun A_Type.unionOfTypesAtThrough(
+			startIndex: Int,
+			endIndex: Int
+		): A_Type = dispatch {
+			o_UnionOfTypesAtThrough(it, startIndex, endIndex)
+		}
+
+		/**
+		 * Dispatch to the descriptor.
+		 *
+		 * @return
+		 */
+		fun A_Type.upperBound(): A_Number = dispatch { o_UpperBound(it) }
+
+		/**
+		 * Dispatch to the descriptor.
+		 *
+		 * @return
+		 */
+		fun A_Type.upperInclusive(): Boolean = dispatch { o_UpperInclusive(it) }
+
+		/**
+		 * @return
+		 */
+		fun A_Type.writeType(): A_Type = dispatch { o_WriteType(it) }
+
+		/**
+		 * Compute a [type][TypeDescriptor] that is an ancestor of the receiver,
+		 * but is not an [enumeration][AbstractEnumerationTypeDescriptor].
+		 * Choose the most specific such type.  Fail if the receiver is not
+		 * itself an enumeration.  Also fail if the receiver is
+		 * [bottom][BottomTypeDescriptor].
+		 *
+		 * @return
+		 *   The must specific non-union supertype.
+		 */
+		fun A_Type.computeSuperkind(): A_Type =
+			dispatch { o_ComputeSuperkind(it) }
+
+		/**
+		 * @return
+		 */
+		fun A_Type.valueType(): A_Type = dispatch { o_ValueType(it) }
+
+		/**
+		 * @return
+		 */
+		fun A_Type.fieldTypeTuple(): A_Tuple = dispatch { o_FieldTypeTuple(it) }
+
+		/**
+		 * Dispatch to the descriptor.
+		 *
+		 * @param potentialInstance
+		 * @return
+		 */
+		fun A_Type.hasObjectInstance(potentialInstance: AvailObject): Boolean =
+			dispatch { o_HasObjectInstance(it, potentialInstance) }
+
+		/**
+		 * @return
+		 */
+		fun A_Type.instance(): AvailObject = dispatch { o_Instance(it) }
+
+		/**
+		 * @return
+		 */
+		fun A_Type.instanceCount(): A_Number = dispatch { o_InstanceCount(it) }
+
+		/**
+		 * @return
+		 */
+		fun A_Type.instances(): A_Set = dispatch { o_Instances(it) }
+
+		/**
+		 * @return
+		 */
+		fun A_Type.tokenType(): TokenDescriptor.TokenType =
+			dispatch { o_TokenType(it) }
+
+		/**
+		 * @return
+		 */
+		fun A_Type.literalType(): A_Type = dispatch { o_LiteralType(it) }
+
+		/**
+		 * @param aLong
+		 * @return
+		 */
+		fun A_Type.rangeIncludesLong(aLong: Long): Boolean =
+			dispatch { o_RangeIncludesLong(it, aLong) }
+
+		/**
+		 * Also declared in A_Phrase, so the same operation applies both to
+		 * phrases and to phrase types.
+		 *
+		 * @param expectedPhraseKind
+		 *   The [PhraseKind] to test this phrase type against.
+		 * @return
+		 *   Whether the receiver, a phrase type, has a [phraseKind] at or
+		 *   below the specified [PhraseKind].
+		 */
+		fun A_Type.phraseKindIsUnder(expectedPhraseKind: PhraseKind): Boolean =
+			dispatch { o_PhraseKindIsUnder(it, expectedPhraseKind) }
+
+		/**
+		 * Answer the type of the subexpressions tuple that instances (list
+		 * phrases) of me (a list phrase type) must have.
+		 *
+		 * @return
+		 *   A tuple type of phrases.
+		 */
+		fun A_Type.subexpressionsTupleType(): A_Type =
+			dispatch { o_SubexpressionsTupleType(it) }
+
+		/**
+		 * Answer whether the receiver, a type, is a supertype of the given
+		 * [list&#32;phrase&#32;type][ListPhraseTypeDescriptor].
+		 *
+		 * @param aListNodeType
+		 *   The list phrase type.
+		 * @return
+		 *   Whether the receiver is a supertype of the given type.
+		 */
+		fun A_Type.isSupertypeOfListNodeType(aListNodeType: A_Type): Boolean =
+			dispatch { o_IsSupertypeOfListNodeType(it, aListNodeType) }
+
+
+		// Static methods referenced from generated code.
+
+		/**
+		 * Static method to extract the [argsTupleType] of a function type.
+		 */
+		@JvmStatic
+		@ReferencedInGeneratedCode
+		fun argsTupleTypeStatic(self: AvailObject): AvailObject =
+			self.descriptor().o_ArgsTupleType(self) as AvailObject
+
+		/** The [CheckedMethod] for [argsTupleTypeStatic]. */
+		val argsTupleTypeMethod = staticMethod(
 			A_Type::class.java,
-			A_Type::argsTupleType.name,
+			::argsTupleTypeStatic.name,
+			AvailObject::class.java,
 			AvailObject::class.java)
 
-		/** The [CheckedMethod] for [isSubtypeOf].  */
-		val isSubtypeOfMethod = instanceMethod(
+		@JvmStatic
+		@ReferencedInGeneratedCode
+		fun isSubtypeOfStatic(self: AvailObject, aType: A_Type): Boolean =
+			self.descriptor().o_IsSubtypeOf(self, aType)
+
+		/** The [CheckedMethod] for [isSubtypeOfStatic]. */
+		val isSubtypeOfMethod = staticMethod(
 			A_Type::class.java,
-			A_Type::isSubtypeOf.name,
+			::isSubtypeOfStatic.name,
 			Boolean::class.javaPrimitiveType!!,
+			AvailObject::class.java,
 			A_Type::class.java)
 
-		/** The [CheckedMethod] for [typeAtIndex].  */
-		val typeAtIndexMethod = instanceMethod(
+		@JvmStatic
+		@ReferencedInGeneratedCode
+		fun typeAtIndexStatic(self: AvailObject, index: Int): AvailObject =
+			self.descriptor().o_TypeAtIndex(self, index) as AvailObject
+
+		/** The [CheckedMethod] for [typeAtIndexStatic]. */
+		val typeAtIndexMethod = staticMethod(
 			A_Type::class.java,
-			A_Type::typeAtIndex.name,
+			::typeAtIndexStatic.name,
+			AvailObject::class.java,
 			AvailObject::class.java,
 			Int::class.javaPrimitiveType!!)
 
-		/** The [CheckedMethod] for [typeUnion].  */
-		val typeUnionMethod = instanceMethod(
+		@JvmStatic
+		@ReferencedInGeneratedCode
+		fun typeUnionStatic(self: AvailObject, another: A_Type): AvailObject =
+			self.descriptor().o_TypeUnion(self, another) as AvailObject
+
+		/** The [CheckedMethod] for [typeUnionStatic]. */
+		val typeUnionMethod = staticMethod(
 			A_Type::class.java,
-			A_Type::typeUnion.name,
+			::typeUnionStatic.name,
+			AvailObject::class.java,
 			AvailObject::class.java,
 			A_Type::class.java)
 	}

@@ -42,6 +42,7 @@ import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.returnType
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.PojoTypeDescriptor.Companion.pojoTypeForClass
 import com.avail.descriptor.types.PojoTypeDescriptor.Companion.unmarshal

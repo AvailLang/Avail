@@ -34,11 +34,13 @@ package com.avail.interpreter.primitive.bootstrap.syntax
 
 import com.avail.compiler.AvailRejectedParseException
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
 import com.avail.descriptor.phrases.A_Phrase.Companion.token
 import com.avail.descriptor.phrases.SuperCastPhraseDescriptor
 import com.avail.descriptor.phrases.SuperCastPhraseDescriptor.Companion.newSuperCastNode
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE
@@ -76,7 +78,7 @@ object P_BootstrapSuperCastMacro
 				STRONG,
 				"supercast type to be something other than $type")
 		}
-		val expressionType = expressionNode.expressionType()
+		val expressionType = expressionNode.phraseExpressionType()
 		if (!expressionType.isSubtypeOf(type))
 		{
 			throw AvailRejectedParseException(

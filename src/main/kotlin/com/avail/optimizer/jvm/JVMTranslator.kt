@@ -701,7 +701,7 @@ class JVMTranslator constructor(
 				val index = nextClassLoaderIndex++
 				var name: String = when
 				{
-					value is Primitive -> value.fieldName()
+					value is Primitive -> value.name
 					value !is AvailObject -> value.javaClass.simpleName
 					value.isInstanceOf(stringType()) ->
 						"STRING_${tidy(value.asNativeString())}"

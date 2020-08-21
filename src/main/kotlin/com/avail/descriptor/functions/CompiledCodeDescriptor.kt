@@ -73,6 +73,12 @@ import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.argsTupleType
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import com.avail.descriptor.types.A_Type.Companion.lowerBound
+import com.avail.descriptor.types.A_Type.Companion.returnType
+import com.avail.descriptor.types.A_Type.Companion.sizeRange
+import com.avail.descriptor.types.A_Type.Companion.upperBound
 import com.avail.descriptor.types.CompiledCodeTypeDescriptor.Companion.compiledCodeTypeForFunctionType
 import com.avail.descriptor.types.CompiledCodeTypeDescriptor.Companion.mostGeneralCompiledCodeType
 import com.avail.descriptor.types.FunctionTypeDescriptor
@@ -741,8 +747,6 @@ open class CompiledCodeDescriptor protected constructor(
 	}
 
 	override fun o_Primitive(self: AvailObject): Primitive? = null
-
-	override fun o_PrimitiveNumber(self: AvailObject) = 0
 
 	/**
 	 * Answer the [Statistic] used to record the cost of explicitly type

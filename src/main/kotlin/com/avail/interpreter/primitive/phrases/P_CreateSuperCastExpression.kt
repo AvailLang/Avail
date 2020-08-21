@@ -31,11 +31,14 @@
  */
 package com.avail.interpreter.primitive.phrases
 
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
 import com.avail.descriptor.phrases.SuperCastPhraseDescriptor
 import com.avail.descriptor.phrases.SuperCastPhraseDescriptor.Companion.newSuperCastNode
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
@@ -66,7 +69,7 @@ object P_CreateSuperCastExpression : Primitive(2, CanFold, CanInline)
 		val expression = interpreter.argument(0)
 		val lookupType = interpreter.argument(1)
 
-		val expressionType = expression.expressionType()
+		val expressionType = expression.phraseExpressionType()
 		return when {
 			expressionType.isBottom || expressionType.isTop ->
 				interpreter.primitiveFailure(

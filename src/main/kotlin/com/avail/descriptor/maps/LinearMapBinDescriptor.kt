@@ -58,6 +58,7 @@ package com.avail.descriptor.maps
  import com.avail.descriptor.representation.NilDescriptor.Companion.nil
  import com.avail.descriptor.representation.ObjectSlotsEnum
  import com.avail.descriptor.types.A_Type
+ import com.avail.descriptor.types.A_Type.Companion.typeUnion
  import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
  import com.avail.descriptor.types.TypeTag
  import com.avail.utility.cast

@@ -33,6 +33,7 @@ package com.avail.interpreter.primitive.functions
 
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.argsTupleType
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionMeta
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
@@ -59,5 +60,8 @@ object P_ParamsType : Primitive(1, CannotFail, CanFold, CanInline)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(functionMeta()), instanceMeta(mostGeneralTupleType()))
+		functionType(
+			tuple(
+				functionMeta()),
+			instanceMeta(mostGeneralTupleType()))
 }

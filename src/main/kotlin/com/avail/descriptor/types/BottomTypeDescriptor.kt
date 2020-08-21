@@ -46,6 +46,9 @@ import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.RepeatedElementTupleDescriptor.Companion.createRepeatedElementTuple
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import com.avail.descriptor.types.A_Type.Companion.isSupertypeOfPrimitiveTypeEnum
+import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.serialization.SerializerOperation
@@ -193,7 +196,7 @@ class BottomTypeDescriptor private constructor()
 		self: AvailObject,
 		aSet: A_Set): Boolean = aSet.setSize() == 0
 
-	override fun o_ExpressionType(self: AvailObject): A_Type = self
+	override fun o_PhraseTypeExpressionType(self: AvailObject): A_Type = self
 
 	// All fields would be present for this type, but they would have type
 	// bottom.
@@ -404,7 +407,6 @@ class BottomTypeDescriptor private constructor()
 		val bottom: A_Type = shared.create { }
 
 		/** The meta-type with exactly one instance, [bottom].  */
-		val bottomMeta: A_Type =
-			InstanceMetaDescriptor.instanceMeta(bottom).makeShared()
+		val bottomMeta: A_Type = instanceMeta(bottom).makeShared()
 	}
 }

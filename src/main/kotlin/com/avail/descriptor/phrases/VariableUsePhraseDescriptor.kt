@@ -156,7 +156,7 @@ class VariableUsePhraseDescriptor private constructor(
 		&& self.slot(DECLARATION).equals(aPhrase.declaration())
 		&& self.isLastUse() == aPhrase.isLastUse())
 
-	override fun o_ExpressionType(self: AvailObject): A_Type =
+	override fun o_PhraseExpressionType(self: AvailObject): A_Type =
 		self.slot(DECLARATION).declaredType()
 
 	override fun o_Hash(self: AvailObject): Int =

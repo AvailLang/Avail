@@ -37,6 +37,11 @@ import com.avail.descriptor.representation.IntegerSlotsEnum
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.tokens.TokenDescriptor
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType.Companion.lookupTokenType
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import com.avail.descriptor.types.A_Type.Companion.isSupertypeOfTokenType
+import com.avail.descriptor.types.A_Type.Companion.tokenType
+import com.avail.descriptor.types.A_Type.Companion.typeIntersectionOfTokenType
+import com.avail.descriptor.types.A_Type.Companion.typeUnionOfTokenType
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.TokenTypeDescriptor.IntegerSlots.TOKEN_TYPE_CODE
 import com.avail.descriptor.types.TypeDescriptor.Types.TOKEN

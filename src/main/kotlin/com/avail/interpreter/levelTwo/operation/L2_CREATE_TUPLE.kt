@@ -49,6 +49,9 @@ import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromArra
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.tupleAtPuttingMethod
 import com.avail.descriptor.tuples.TwoByteStringDescriptor.Companion.createUninitializedTwoByteStringMethod
+import com.avail.descriptor.types.A_Type.Companion.instances
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import com.avail.descriptor.types.A_Type.Companion.typeUnion
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.bytes
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int32

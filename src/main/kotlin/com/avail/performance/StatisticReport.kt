@@ -33,7 +33,9 @@
 package com.avail.performance
 
 import com.avail.descriptor.bundles.A_BundleTree
+import com.avail.descriptor.bundles.A_BundleTree.Companion.expand
 import com.avail.optimizer.StackReifier
+import com.avail.performance.ReportingUnit.BYTES
 import com.avail.performance.ReportingUnit.DIMENSIONLESS_INTEGRAL
 import com.avail.performance.ReportingUnit.NANOSECONDS
 import com.avail.utility.ifZero
@@ -133,7 +135,13 @@ enum class StatisticReport constructor(
 	SERIALIZE_WRITE("Serialization writing", NANOSECONDS),
 
 	/** Time spent deserializing, by SerializerOperation. */
-	DESERIALIZE("Deserialization", NANOSECONDS);
+	DESERIALIZE("Deserialization", NANOSECONDS),
+
+	/**
+	 * The estimated number of bytes allocated for descriptors with the given
+	 * class name.
+	 */
+	ALLOCATIONS_BY_DESCRIPTOR_CLASS("Allocations by initial descriptor", BYTES);
 
 	/**
 	 * The [List] of [Statistic] objects that have been registered
