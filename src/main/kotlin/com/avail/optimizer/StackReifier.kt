@@ -157,7 +157,7 @@ class StackReifier(
 			if (Interpreter.debugL2)
 			{
 				traceL2(
-					dummyContinuation.levelTwoChunk(),
+					dummyContinuation.levelTwoChunk().executableChunk,
 					dummyContinuation.levelTwoOffset(),
 					"Starting a reifier action",
 					"")
@@ -172,8 +172,11 @@ class StackReifier(
 			interpreter.function = newDummy.function()
 			interpreter.chunk = newDummy.levelTwoChunk()
 			interpreter.setOffset(newDummy.levelTwoOffset())
+			interpreter.chunk!!.beforeRunChunk(interpreter.offset)
 			val result =
-				interpreter.chunk!!.runChunk(interpreter, interpreter.offset)
+				interpreter.chunk!!.executableChunk.runChunk(
+					interpreter,
+					interpreter.offset)
 			assert(result === null) { "Must not reify in dummy continuation!" }
 			// The dummy's code will have cleaned up the stack.  Let the
 			// next action run, or if exhausted, run the reifier's
@@ -181,7 +184,7 @@ class StackReifier(
 			if (Interpreter.debugL2)
 			{
 				traceL2(
-					dummyContinuation.levelTwoChunk(),
+					dummyContinuation.levelTwoChunk().executableChunk,
 					dummyContinuation.levelTwoOffset(),
 					"Finished a reifier action (offset is for "
 						+ "instruction that queued it)",

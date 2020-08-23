@@ -37,6 +37,7 @@ import com.avail.compiler.splitter.MessageSplitter.Metacharacter
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.methods.MethodDescriptor
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple

@@ -37,6 +37,8 @@ import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.DECLARE_S
 import com.avail.descriptor.phrases.ListPhraseDescriptor.Companion.newListNode
 import com.avail.descriptor.phrases.LiteralPhraseDescriptor.Companion.syntheticLiteralNodeFor
 import com.avail.descriptor.phrases.SendPhraseDescriptor.Companion.newSendNode
+import com.avail.descriptor.sets.A_Set.Companion.asTuple
+import com.avail.descriptor.sets.A_Set.Companion.setSize
 import com.avail.descriptor.tokens.A_Token
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple

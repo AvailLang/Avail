@@ -40,6 +40,7 @@ import com.avail.descriptor.bundles.A_Bundle.Companion.messageSplitter
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.phrases.PhraseDescriptor
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple

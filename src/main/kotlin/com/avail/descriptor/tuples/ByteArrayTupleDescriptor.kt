@@ -53,6 +53,8 @@ import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAtPuttingCanDestroy
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.ByteArrayTupleDescriptor.ObjectSlots.BYTE_ARRAY_POJO
+import com.avail.descriptor.tuples.TreeTupleDescriptor.Companion.concatenateAtLeastOneTree
+import com.avail.descriptor.tuples.TreeTupleDescriptor.Companion.createTwoPartTreeTuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.A_Type.Companion.defaultType
 import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
@@ -260,8 +262,7 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 		{
 			val bytes = ByteArray(size1 + size2)
 			System.arraycopy(self.byteArray(), 0, bytes, 0, size1)
-			System.arraycopy(
-				otherTuple.byteArray(), 0, bytes, size1, size2)
+			System.arraycopy(otherTuple.byteArray(), 0, bytes, size1, size2)
 			return tupleForByteArray(bytes)
 		}
 		if (!canDestroy)
@@ -271,11 +272,11 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 		}
 		return if (otherTuple.treeTupleLevel() == 0)
 		{
-			TreeTupleDescriptor.createTwoPartTreeTuple(self, otherTuple, 1, 0)
+			createTwoPartTreeTuple(self, otherTuple, 1, 0)
 		}
 		else
 		{
-			TreeTupleDescriptor.concatenateAtLeastOneTree(self, otherTuple, true)
+			concatenateAtLeastOneTree(self, otherTuple, true)
 		}
 	}
 

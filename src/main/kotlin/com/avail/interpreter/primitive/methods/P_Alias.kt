@@ -48,6 +48,7 @@ import com.avail.descriptor.maps.A_Map.Companion.forEach
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import com.avail.descriptor.parsing.ParsingPlanInProgressDescriptor.Companion.newPlanInProgress
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple

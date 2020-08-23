@@ -41,6 +41,12 @@ import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.representation.ObjectSlotsEnum
+import com.avail.descriptor.sets.A_Set.Companion.asTuple
+import com.avail.descriptor.sets.A_Set.Companion.hasElement
+import com.avail.descriptor.sets.A_Set.Companion.setElementsAreAllInstancesOfKind
+import com.avail.descriptor.sets.A_Set.Companion.setSize
+import com.avail.descriptor.sets.A_Set.Companion.setWithElementCanDestroy
+import com.avail.descriptor.sets.A_Set.Companion.setWithoutElementCanDestroy
 import com.avail.descriptor.sets.LinearSetBinDescriptor.Companion.createLinearSetBinPair
 import com.avail.descriptor.sets.LinearSetBinDescriptor.Companion.emptyLinearSetBin
 import com.avail.descriptor.sets.SetBinDescriptor.Companion.generateSetBinFrom

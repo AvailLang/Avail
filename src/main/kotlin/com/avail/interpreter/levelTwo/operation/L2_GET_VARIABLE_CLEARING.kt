@@ -43,8 +43,11 @@ import com.avail.exceptions.VariableGetException
 import com.avail.exceptions.VariableSetException
 import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.L2Instruction
-import com.avail.interpreter.levelTwo.L2NamedOperandType
+import com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose
 import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2OperandType.PC
+import com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED
+import com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
 import com.avail.interpreter.levelTwo.operand.L2PcOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
@@ -65,10 +68,10 @@ import org.objectweb.asm.Type
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_GET_VARIABLE_CLEARING : L2ControlFlowOperation(
-	L2OperandType.READ_BOXED.named("variable"),
-	L2OperandType.WRITE_BOXED.named("extracted value", L2NamedOperandType.Purpose.SUCCESS),
-	L2OperandType.PC.named("read succeeded", L2NamedOperandType.Purpose.SUCCESS),
-	L2OperandType.PC.named("read failed", L2NamedOperandType.Purpose.OFF_RAMP))
+	READ_BOXED.named("variable"),
+	WRITE_BOXED.named("extracted value", Purpose.SUCCESS),
+	PC.named("read succeeded", Purpose.SUCCESS),
+	PC.named("read failed", Purpose.OFF_RAMP))
 {
 	override fun propagateTypes(
 		instruction: L2Instruction,

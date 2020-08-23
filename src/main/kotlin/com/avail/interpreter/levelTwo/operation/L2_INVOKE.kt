@@ -36,8 +36,12 @@ import com.avail.descriptor.representation.AvailObject
 import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.L2Chunk
 import com.avail.interpreter.levelTwo.L2Instruction
-import com.avail.interpreter.levelTwo.L2NamedOperandType
+import com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose
 import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2OperandType.PC
+import com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED
+import com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR
+import com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
 import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_ARGUMENTS
 import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.LATEST_RETURN_VALUE
 import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.STACK_REIFIER
@@ -73,11 +77,11 @@ import org.objectweb.asm.Opcodes
 	LATEST_RETURN_VALUE::class,
 	STACK_REIFIER::class)
 object L2_INVOKE : L2ControlFlowOperation(
-	L2OperandType.READ_BOXED.named("called function"),
-	L2OperandType.READ_BOXED_VECTOR.named("arguments"),
-	L2OperandType.WRITE_BOXED.named("result", L2NamedOperandType.Purpose.SUCCESS),
-	L2OperandType.PC.named("on return", L2NamedOperandType.Purpose.SUCCESS),
-	L2OperandType.PC.named("on reification", L2NamedOperandType.Purpose.OFF_RAMP))
+	READ_BOXED.named("called function"),
+	READ_BOXED_VECTOR.named("arguments"),
+	WRITE_BOXED.named("result", Purpose.SUCCESS),
+	PC.named("on return", Purpose.SUCCESS),
+	PC.named("on reification", Purpose.OFF_RAMP))
 {
 	override fun hasSideEffect(): Boolean
 	{

@@ -112,7 +112,6 @@ Names
 	"_[_.._]else_",
 	"_[_..]else_",
 	"_[.._]else_",
-	"_[_.._]→_",
 	"_↑-=_",
 	"_-=_",
 	"«_‡zip»"
@@ -3367,40 +3366,8 @@ Semantic restriction "_[_]→_" is
 	<leadingTypes, defaultType… | ||tupleType||>
 ];
 
-/**
- * Compute and answer a tuple that is the result of replacing the specified
- * slice of {@param "aTuple"} with {@param "replacement"}.
- *
- * @method "_[_.._]→_"
- * @param "aTuple" "tuple"
- * @param "sliceStart" "natural number"
- *        The subscript of the first element of the target slice.
- * @param "sliceEnd" "whole number"
- *        The subscript of the last element of the target slice.
- * @param "replacement" "tuple"
- *        The tuple that should be spliced into {@param "aTuple"} instead of the
- *        specified slice.
- * @returns "tuple"
- *          A variant of {@param "aTuple"} whose elements from {@param
- *          "sliceStart"} (inclusive) to {@param "sliceEnd"} (inclusive) have
- *          been replaced with those of {@param "replacement"}. Elements before
- *          {@param "sliceStart"} and after {@param "sliceEnd"} will be present
- *          in the answer.
- * @category "Tuples" "Transformers"
- */
-Public stable method "_[_.._]→_" is
-[
-	aTuple : tuple,
-	sliceStart : natural number,
-	sliceEnd : whole number,
-	replacement : tuple
-|
-	If sliceEnd < sliceStart - 1 then
-	[
-		early failure function(subscript-out-of-bounds code)
-	];
-	aTuple[..sliceStart - 1] ++ replacement ++ aTuple[sliceEnd + 1..]
-] : tuple;
+Method "_[_.._]→_" is stable at
+	[tuple, natural number, whole number, tuple] → tuple;
 
 /**
  * Reject the parse if the target slice would never be valid.
@@ -4324,7 +4291,7 @@ Method "_-_" is
 	doomed : any
 |
 	index ::= first index of aTuple where [a : any | a = doomed];
-	cast index into [i : natural number | aTuple[..i-1] ++ aTuple[i+1..]]
+	cast index into [i : natural number | aTuple[i..i] → <>]
 	else [aTuple]
 ] : tuple;
 

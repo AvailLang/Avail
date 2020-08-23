@@ -46,6 +46,7 @@ import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.readType
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor
 import com.avail.descriptor.types.VariableTypeDescriptor
 import com.avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
@@ -175,7 +176,34 @@ interface A_Variable : A_ChunkDependable
 	 */
 	@Throws(VariableGetException::class, VariableSetException::class)
 	fun compareAndSwapValues(
-		reference: A_BasicObject, newValue: A_BasicObject): Boolean
+		reference: A_BasicObject,
+		newValue: A_BasicObject): Boolean
+
+	/**
+	 * Read the variable's value, compare it to a reference value via semantic
+	 * [equality][A_BasicObject.equals], and if they're equal, store a provided
+	 * new value into the variable and answer true. Otherwise answer false.  If
+	 * the variable is potentially [shared][Mutability.SHARED], then ensure
+	 * suitable locks bracket this entire sequence of operations.
+	 *
+	 * Don't check the [newValue]'s type.  It's the client's responsibility to
+	 * ensure it has a suitable type to be stored in this variable.
+	 *
+	 * If the variable was unassigned, treat it the same as a failed comparison
+	 * with the [reference].
+	 *
+	 * @param reference
+	 *   The value to compare against the variable's current value.
+	 * @param newValue
+	 *   The replacement value to store if the reference value is equal to the
+	 *   variable's old value.
+	 * @return
+	 *   Whether the replacement took place.
+	 */
+	@ReferencedInGeneratedCode
+	fun compareAndSwapValuesNoCheck(
+		reference: A_BasicObject,
+		newValue: A_BasicObject): Boolean
 
 	/**
 	 * Read the variable's value, add the addend to it, and store it back into
@@ -355,6 +383,15 @@ interface A_Variable : A_ChunkDependable
 			A_Variable::class.java,
 			A_Variable::setValueNoCheck.name,
 			Void.TYPE,
+			A_BasicObject::class.java)
+
+		/** The [CheckedMethod] for [compareAndSwapValuesNoCheck]. */
+		@JvmField
+		val compareAndSwapValuesNoCheckMethod = CheckedMethod.instanceMethod(
+			A_Variable::class.java,
+			A_Variable::compareAndSwapValuesNoCheck.name,
+			Boolean::class.javaPrimitiveType!!,
+			A_BasicObject::class.java,
 			A_BasicObject::class.java)
 	}
 }

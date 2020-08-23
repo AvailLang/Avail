@@ -40,6 +40,7 @@ import com.avail.descriptor.phrases.ListPhraseDescriptor
 import com.avail.descriptor.phrases.PermutedListPhraseDescriptor
 import com.avail.descriptor.phrases.PermutedListPhraseDescriptor.Companion.newPermutedListNode
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.sets.A_Set.Companion.setSize
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.A_Tuple.Companion.asSet

@@ -31,7 +31,6 @@
  */
 package com.avail.interpreter.levelTwo.operation
 
-import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor
 import com.avail.interpreter.levelTwo.L2Instruction
@@ -41,8 +40,6 @@ import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
-import org.objectweb.asm.Opcodes
-import org.objectweb.asm.Type
 
 /**
  * Create a set from the values in the specified vector of object registers.
@@ -85,13 +82,10 @@ object L2_CREATE_SET : L2Operation(
 		SetDescriptor.emptySetMethod.generateCall(method)
 		for (operand in values.elements())
 		{
-			// :: set = set.setWithElementCanDestroy(«register», true);
+			// :: set = setWithElementStatic(set, «register»);
 			translator.load(method, operand.register())
-			translator.intConstant(method, 1)
-			A_Set.setWithElementCanDestroyMethod.generateCall(method)
+			A_Set.setWithElementMethod.generateCall(method)
 		}
-		method.visitTypeInsn(
-			Opcodes.CHECKCAST, Type.getInternalName(AvailObject::class.java))
 		// :: destinationSet = set;
 		translator.store(method, set.register())
 	}

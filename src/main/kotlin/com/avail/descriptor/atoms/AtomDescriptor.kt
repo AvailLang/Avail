@@ -74,6 +74,7 @@ import com.avail.exceptions.MalformedMessageException
 import com.avail.io.IOSystem.FileHandle
 import com.avail.serialization.Serializer
 import com.avail.serialization.SerializerOperation
+import com.avail.utility.ifZero
 import com.avail.utility.json.JSONWriter
 import java.nio.channels.AsynchronousServerSocketChannel
 import java.nio.channels.AsynchronousSocketChannel
@@ -224,15 +225,13 @@ open class AtomDescriptor protected constructor (
 	 */
 	override fun o_GetAtomProperty (self: AvailObject, key: A_Atom) = nil
 
-	override fun o_Hash (self: AvailObject): Int {
-		var hash = self.slot(HASH_OR_ZERO)
-		if (hash == 0) {
+	override fun o_Hash (self: AvailObject): Int =
+		self.slot(HASH_OR_ZERO).ifZero {
 			// The shared subclass overrides to use synchronization.
-			hash = AvailRuntimeSupport.nextNonzeroHash()
-			self.setSlot(HASH_OR_ZERO, hash)
+			AvailRuntimeSupport.nextNonzeroHash().apply {
+				self.setSlot(HASH_OR_ZERO, this)
+			}
 		}
-		return hash
-	}
 
 	override fun o_IsAtom (self: AvailObject) = true
 

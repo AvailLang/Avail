@@ -103,6 +103,12 @@ import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.sets.A_Set
+import com.avail.descriptor.sets.A_Set.Companion.hasElement
+import com.avail.descriptor.sets.A_Set.Companion.setMinusCanDestroy
+import com.avail.descriptor.sets.A_Set.Companion.setSize
+import com.avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
+import com.avail.descriptor.sets.A_Set.Companion.setWithElementCanDestroy
+import com.avail.descriptor.sets.A_Set.Companion.setWithoutElementCanDestroy
 import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
@@ -386,7 +392,7 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 						value.makeShared(), true)
 				}
 				exportedNames = exportedNames.makeShared()
-				if (self.slot(IS_OPEN).extractBoolean())
+				if (!self.slot(IS_OPEN).extractBoolean())
 				{
 					// The module is closed, so cache it for next time.
 					self.setSlot(CACHED_EXPORTED_NAMES, exportedNames)
@@ -714,11 +720,11 @@ class ModuleDescriptor private constructor(mutability: Mutability)
 		// order.
 		loader.runUnloadFunctions(unloadFunctions) {
 			finishUnloading(self, loader)
+			// The module may already be closed, but ensure that it is closed
+			// following removal.
+			self.setSlot(IS_OPEN, falseObject)
 			afterRemoval()
 		}
-		// The module may already be closed, but ensure that it is closed
-		// following removal.
-		self.setSlot(IS_OPEN, falseObject)
 	}
 
 	/**

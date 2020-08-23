@@ -37,8 +37,10 @@ import com.avail.descriptor.variables.A_Variable
 import com.avail.descriptor.variables.VariableDescriptor
 import com.avail.exceptions.VariableSetException
 import com.avail.interpreter.levelTwo.L2Instruction
-import com.avail.interpreter.levelTwo.L2NamedOperandType
+import com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose
 import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2OperandType.PC
+import com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED
 import com.avail.interpreter.levelTwo.operand.L2PcOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.optimizer.L2Generator
@@ -56,10 +58,10 @@ import org.objectweb.asm.Type
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_SET_VARIABLE : L2ControlFlowOperation(
-	L2OperandType.READ_BOXED.named("variable"),
-	L2OperandType.READ_BOXED.named("value to write"),
-	L2OperandType.PC.named("write succeeded", L2NamedOperandType.Purpose.SUCCESS),
-	L2OperandType.PC.named("write failed", L2NamedOperandType.Purpose.OFF_RAMP))
+	READ_BOXED.named("variable"),
+	READ_BOXED.named("value to write"),
+	PC.named("write succeeded", Purpose.SUCCESS),
+	PC.named("write failed", Purpose.OFF_RAMP))
 {
 	override fun propagateTypes(
 		instruction: L2Instruction,

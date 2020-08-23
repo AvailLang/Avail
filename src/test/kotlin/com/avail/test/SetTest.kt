@@ -34,6 +34,12 @@ package com.avail.test
 
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.sets.A_Set
+import com.avail.descriptor.sets.A_Set.Companion.setIntersectionCanDestroy
+import com.avail.descriptor.sets.A_Set.Companion.setIntersects
+import com.avail.descriptor.sets.A_Set.Companion.setMinusCanDestroy
+import com.avail.descriptor.sets.A_Set.Companion.setSize
+import com.avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
+import com.avail.descriptor.sets.A_Set.Companion.setWithElementCanDestroy
 import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.descriptor.tuples.A_Tuple.Companion.asSet
 import com.avail.descriptor.tuples.SmallIntegerIntervalTupleDescriptor.Companion.createSmallInterval

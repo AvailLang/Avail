@@ -230,24 +230,26 @@ class IntegerRangeTypeDescriptor private constructor(
 		return self
 	}
 
-	override fun o_MarshalToJava(self: AvailObject, classHint: Class<*>?): Any? =
-		when
-		{
-			self.isSubtypeOf(byteRange()) ->
-				java.lang.Byte::class.javaPrimitiveType
-			self.isSubtypeOf(charRange()) ->
-				java.lang.Character::class.javaPrimitiveType
-			self.isSubtypeOf(shortRange()) ->
-				java.lang.Short::class.javaPrimitiveType
-			self.isSubtypeOf(intRange()) ->
-				java.lang.Integer::class.javaPrimitiveType
-			self.isSubtypeOf(longRange()) ->
-				java.lang.Long::class.javaPrimitiveType
-			// If the integer range type is something else, then treat the
-			// type as opaque.
-			self.isSubtypeOf(integers) -> BigInteger::class.java
-			else -> super.o_MarshalToJava(self, classHint)
-		}
+	override fun o_MarshalToJava(
+		self: AvailObject,
+		classHint: Class<*>?
+	): Any? = when
+	{
+		self.isSubtypeOf(byteRange()) ->
+			java.lang.Byte::class.javaPrimitiveType
+		self.isSubtypeOf(charRange()) ->
+			java.lang.Character::class.javaPrimitiveType
+		self.isSubtypeOf(shortRange()) ->
+			java.lang.Short::class.javaPrimitiveType
+		self.isSubtypeOf(intRange()) ->
+			java.lang.Integer::class.javaPrimitiveType
+		self.isSubtypeOf(longRange()) ->
+			java.lang.Long::class.javaPrimitiveType
+		// If the integer range type is something else, then treat the type as
+		// opaque.
+		self.isSubtypeOf(integers) -> BigInteger::class.java
+		else -> super.o_MarshalToJava(self, classHint)
+	}
 
 	override fun o_RangeIncludesLong(self: AvailObject, aLong: Long): Boolean
 	{
@@ -279,13 +281,15 @@ class IntegerRangeTypeDescriptor private constructor(
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		SerializerOperation.INTEGER_RANGE_TYPE
 
-	override fun o_TypeIntersection(self: AvailObject, another: A_Type): A_Type =
-		when
-		{
-			self.isSubtypeOf(another) -> self
-			another.isSubtypeOf(self) -> another
-			else -> another.typeIntersectionOfIntegerRangeType(self)
-		}
+	override fun o_TypeIntersection(
+		self: AvailObject,
+		another: A_Type
+	): A_Type = when
+	{
+		self.isSubtypeOf(another) -> self
+		another.isSubtypeOf(self) -> another
+		else -> another.typeIntersectionOfIntegerRangeType(self)
+	}
 
 	override fun o_TypeIntersectionOfIntegerRangeType(
 		self: AvailObject,
@@ -521,7 +525,7 @@ class IntegerRangeTypeDescriptor private constructor(
 				val lowInt = low.extractInt()
 				val highInt = high.extractInt()
 				if (lowInt in 0 until smallRangeLimit
-				    && 0 <= highInt && highInt < smallRangeLimit)
+				    && highInt in 0 until smallRangeLimit)
 				{
 					return smallRanges[highInt][lowInt]
 				}
@@ -558,11 +562,12 @@ class IntegerRangeTypeDescriptor private constructor(
 		 */
 		@JvmStatic
 		fun inclusive(lowerBound: Long, upperBound: Long): A_Type =
-			integerRangeType(fromLong(lowerBound), true, fromLong(upperBound), true)
+			integerRangeType(
+				fromLong(lowerBound), true, fromLong(upperBound), true)
 
 		/**
-		 * The array of descriptor instances of this class.  There are three boolean
-		 * decisions to make when selecting a descriptor, namely:
+		 * The array of descriptor instances of this class.  There are three
+		 * boolean decisions to make when selecting a descriptor, namely:
 		 *
 		 * * Whether the descriptor is *[ shared][Mutability.SHARED]*,
 		 * * Whether the descriptor's instances include their lower bound, and
@@ -606,20 +611,27 @@ class IntegerRangeTypeDescriptor private constructor(
 		}
 
 		/** One past the maximum lower or upper bound of a pre-built range.  */
-		private const val smallRangeLimit = 10
+		private const val smallRangeLimit = 20
 
 		/**
 		 * An array of arrays of small inclusive-inclusive ranges.  The first
-		 * index is the upper bound, and must be in [0..smallRangeLimit-1].  The
-		 * second index is the lower bound, and must be in the range [0..upper
-		 * bound]. This scheme allows both indices to start at zero and not
-		 * include any degenerate elements.
+		 * index is the upper bound, and must be in `[0..smallRangeLimit-1]`.
+		 * The second index is the lower bound, and must be in the range
+		 * `[0..upper bound]`. This scheme allows both indices to start at zero
+		 * and not include any degenerate elements.
 		 *
 		 * Use of these pre-built ranges is not mandatory, but is generally
 		 * recommended for performance.  The [create] operation uses them
 		 * whenever possible.
 		 */
-		private val smallRanges: Array<Array<A_Type>>
+		private val smallRanges = Array(smallRangeLimit) { upper ->
+			Array<A_Type>(upper + 1) { lower ->
+				lookupDescriptor(true, true, true).createShared {
+					setSlot(UPPER_BOUND, fromInt(upper))
+					setSlot(LOWER_BOUND, fromInt(lower))
+				}
+			}
+		}
 
 		/** The range [0..255]. */
 		val bytes: A_Type = inclusive(0, 255).makeShared()
@@ -673,18 +685,6 @@ class IntegerRangeTypeDescriptor private constructor(
 		 */
 		val extendedIntegersMeta: A_Type =
 			instanceMeta(extendedIntegers).makeShared()
-
-		init
-		{
-			smallRanges = Array(smallRangeLimit) { upper->
-				Array<A_Type>(upper + 1) { lower ->
-					lookupDescriptor(true, true, true).createShared {
-						setSlot(UPPER_BOUND, fromInt(upper))
-						setSlot(LOWER_BOUND, fromInt(lower))
-					}
-				}
-			}
-		}
 
 		/** The range [0..1]. */
 		val zeroOrOne = smallRanges[1][0]

@@ -36,6 +36,7 @@ import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.sets.A_Set
+import com.avail.descriptor.sets.A_Set.Companion.isSubsetOf
 import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
@@ -530,7 +531,7 @@ class TypeRestriction private constructor(
 			&& intersectedType.isEnumeration
 			&& !intersectedType.isInstanceMeta
 			&& intersectedType.instances().isSubsetOf(
-			setFromCollection(excludedValues)))
+				setFromCollection(excludedValues)))
 	}
 
 	/**

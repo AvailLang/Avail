@@ -41,6 +41,7 @@ import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.A_Type.Companion.lowerBound
 import com.avail.descriptor.types.A_Type.Companion.sizeRange
+import com.avail.descriptor.types.A_Type.Companion.tupleOfTypesFromTo
 import com.avail.descriptor.types.A_Type.Companion.unionOfTypesAtThrough
 import com.avail.descriptor.types.A_Type.Companion.upperBound
 import com.avail.descriptor.types.A_Type.Companion.upperInclusive
@@ -59,7 +60,6 @@ import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding
 import com.avail.interpreter.levelTwo.operation.L2_CREATE_SET
-import com.avail.interpreter.levelTwo.operation.L2_CREATE_TUPLE
 import com.avail.optimizer.L1Translator
 
 /**
@@ -123,8 +123,8 @@ object P_TupleToSet : Primitive(1, CannotFail, CanFold, CanInline)
 		callSiteHelper: L1Translator.CallSiteHelper): Boolean
 	{
 		val tupleReg = arguments[0]
-		val generator = translator.generator
 
+		val generator = translator.generator
 		if (!generator.currentlyReachable())
 		{
 			// Generator is not at a live position, so pretend we generated the
@@ -132,14 +132,18 @@ object P_TupleToSet : Primitive(1, CannotFail, CanFold, CanInline)
 			return true
 		}
 
-		val def = tupleReg.definitionSkippingMoves(false)
-		if (def.operation() != L2_CREATE_TUPLE)
-		{
+		val sizeRange = tupleReg.type().sizeRange()
+		val size = sizeRange.lowerBound()
+		if (!size.isInt || !sizeRange.upperBound().equals(size))
 			return false
-		}
+		val sizeInt = size.extractInt()
+		val elementRegs = generator.explodeTupleIfPossible(
+			tupleReg,
+			tupleReg.type().tupleOfTypesFromTo(1, sizeInt).toList())
+		elementRegs ?: return false
+
 		// Create the set directly from the values.  This may turn the tuple
 		// creation instruction into dead code.
-		val sources = L2_CREATE_TUPLE.tupleSourceRegistersOf(def)
 		val restriction = returnTypeGuaranteedByVM(rawFunction, argumentTypes)
 		val semanticResult = generator.primitiveInvocation(this, arguments)
 		val write = generator.boxedWrite(
@@ -147,7 +151,7 @@ object P_TupleToSet : Primitive(1, CannotFail, CanFold, CanInline)
 			restrictionForType(restriction, RestrictionFlagEncoding.BOXED))
 		generator.addInstruction(
 			L2_CREATE_SET,
-			L2ReadBoxedVectorOperand(sources),
+			L2ReadBoxedVectorOperand(elementRegs),
 			write)
 		callSiteHelper.useAnswer(translator.readBoxed(write))
 		return true

@@ -323,8 +323,8 @@ class TreeTupleDescriptor internal constructor(
 	override fun o_ConcatenateWith(
 		self: AvailObject,
 		otherTuple: A_Tuple,
-		canDestroy: Boolean): A_Tuple =
-			concatenateAtLeastOneTree(self, otherTuple, canDestroy)
+		canDestroy: Boolean
+	): A_Tuple = concatenateAtLeastOneTree(self, otherTuple, canDestroy)
 
 	/**
 	 * Make a tuple that only contains the given range of elements of the given

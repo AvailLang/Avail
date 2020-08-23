@@ -33,8 +33,12 @@ package com.avail.interpreter.levelTwo.operation
 
 import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.L2Instruction
-import com.avail.interpreter.levelTwo.L2NamedOperandType
+import com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose
 import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2OperandType.CONSTANT
+import com.avail.interpreter.levelTwo.L2OperandType.PC
+import com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR
+import com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
 import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_ARGUMENTS
 import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_FUNCTION
 import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.LATEST_RETURN_VALUE
@@ -69,14 +73,11 @@ import org.objectweb.asm.MethodVisitor
 	CURRENT_ARGUMENTS::class,
 	LATEST_RETURN_VALUE::class)
 object L2_INVOKE_CONSTANT_FUNCTION : L2ControlFlowOperation(
-	L2OperandType.CONSTANT.named("constant function"),
-	L2OperandType.READ_BOXED_VECTOR.named("arguments"),
-	L2OperandType.WRITE_BOXED.named(
-		"result", L2NamedOperandType.Purpose.SUCCESS),
-	L2OperandType.PC.named(
-		"on return", L2NamedOperandType.Purpose.SUCCESS),
-	L2OperandType.PC.named(
-		"on reification", L2NamedOperandType.Purpose.OFF_RAMP))
+	CONSTANT.named("constant function"),
+	READ_BOXED_VECTOR.named("arguments"),
+	WRITE_BOXED.named("result", Purpose.SUCCESS),
+	PC.named("on return", Purpose.SUCCESS),
+	PC.named("on reification", Purpose.OFF_RAMP))
 {
 	// Never remove invocations -- but inlining might make them go away.
 	override fun hasSideEffect(): Boolean = true

@@ -308,6 +308,8 @@ class IntegerIntervalTupleDescriptor private constructor(mutability: Mutability)
 			otherTuple.makeImmutable()
 		}
 
+		if (otherTuple.tupleSize() == 0) return self
+
 		// Assess the possibility that the concatenation will still be an
 		// integer interval tuple.
 		if (otherTuple.isIntegerIntervalTuple)

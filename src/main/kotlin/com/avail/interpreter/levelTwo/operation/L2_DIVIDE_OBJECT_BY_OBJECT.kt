@@ -34,8 +34,11 @@ package com.avail.interpreter.levelTwo.operation
 import com.avail.descriptor.numbers.A_Number
 import com.avail.exceptions.ArithmeticException
 import com.avail.interpreter.levelTwo.L2Instruction
-import com.avail.interpreter.levelTwo.L2NamedOperandType
+import com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose
 import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2OperandType.PC
+import com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED
+import com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
 import com.avail.interpreter.levelTwo.operand.L2PcOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
@@ -54,12 +57,12 @@ import org.objectweb.asm.Type
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_DIVIDE_OBJECT_BY_OBJECT : L2ControlFlowOperation(
-	L2OperandType.READ_BOXED.named("dividend"),
-	L2OperandType.READ_BOXED.named("divisor"),
-	L2OperandType.WRITE_BOXED.named("quotient", L2NamedOperandType.Purpose.SUCCESS),
-	L2OperandType.WRITE_BOXED.named("remainder", L2NamedOperandType.Purpose.SUCCESS),
-	L2OperandType.PC.named("if undefined", L2NamedOperandType.Purpose.OFF_RAMP),
-	L2OperandType.PC.named("success", L2NamedOperandType.Purpose.SUCCESS))
+	READ_BOXED.named("dividend"),
+	READ_BOXED.named("divisor"),
+	WRITE_BOXED.named("quotient", Purpose.SUCCESS),
+	WRITE_BOXED.named("remainder", Purpose.SUCCESS),
+	PC.named("if undefined", Purpose.OFF_RAMP),
+	PC.named("success", Purpose.SUCCESS))
 {
 	override fun hasSideEffect(): Boolean
 	{

@@ -32,21 +32,24 @@
 package com.avail.interpreter.primitive.tuples
 
 import com.avail.descriptor.functions.A_RawFunction
-import com.avail.descriptor.numbers.IntegerDescriptor.Companion.one
-import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
+import com.avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.A_Tuple.Companion.copyTupleFromToCanDestroy
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import com.avail.descriptor.tuples.TupleDescriptor
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.A_Type.Companion.defaultType
 import com.avail.descriptor.types.A_Type.Companion.lowerBound
 import com.avail.descriptor.types.A_Type.Companion.sizeRange
 import com.avail.descriptor.types.A_Type.Companion.typeTuple
+import com.avail.descriptor.types.A_Type.Companion.unionOfTypesAtThrough
 import com.avail.descriptor.types.A_Type.Companion.upperBound
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeType
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
@@ -54,9 +57,13 @@ import com.avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTuple
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
 import com.avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS
 import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Fallibility.CallSiteCanFail
+import com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail
+import com.avail.interpreter.Primitive.Fallibility.CallSiteMustFail
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.execution.Interpreter
+import kotlin.math.max
 import kotlin.math.min
 
 /**
@@ -78,14 +85,91 @@ object P_ExtractSubtuple : Primitive(3, CanFold, CanInline)
 		}
 		val startInt = start.extractInt()
 		val endInt = end.extractInt()
-		return if (startInt < 1
-			|| startInt > endInt + 1
-			|| endInt > tuple.tupleSize())
+		return when
 		{
-			interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS)
+			startInt < 1 ->
+				interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS)
+			startInt > endInt + 1 ->
+				interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS)
+			endInt > tuple.tupleSize() ->
+				interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS)
+			else ->
+				interpreter.primitiveSuccess(
+					tuple.copyTupleFromToCanDestroy(startInt, endInt, true))
 		}
-		else interpreter.primitiveSuccess(
-			tuple.copyTupleFromToCanDestroy(startInt, endInt, true))
+	}
+
+	override fun fallibilityForArgumentTypes(
+		argumentTypes: List<A_Type>
+	): Fallibility
+	{
+		val tupleType = argumentTypes[0]
+		val startIndexType = argumentTypes[1]
+		val endIndexType = argumentTypes[2]
+
+		return checkFallibility(
+			tupleType.sizeRange(), startIndexType, endIndexType)
+	}
+
+	/**
+	 * Check whether the given tuple size range can have a slice extracted with
+	 * start and end indices with the given range.  Answer a
+	 * [Primitive.Fallibility] that indicates whether the extraction would
+	 * always, sometimes, or never fail.
+	 *
+	 * @param sizeRange
+	 *   The integer range type describing the possible tuple sizes.
+	 * @param startIndexType
+	 *   An integer range type bounding the possible slice starting index.
+	 * @param endIndexType
+	 *   An integer range type bounding the possible slice ending index.
+	 * @return
+	 *   The fallibility guarantee of the tuple extraction attempt.
+	 */
+	fun checkFallibility(
+		sizeRange: A_Type,
+		startIndexType: A_Type,
+		endIndexType: A_Type
+	): Fallibility
+	{
+		val sizeLower = sizeRange.lowerBound().run {
+			if (!isInt) return CallSiteMustFail  // Call can't actually happen.
+			extractInt()
+		}
+		val sizeUpper = sizeRange.upperBound().run {
+			if (isInt) extractInt()
+			else Int.MAX_VALUE  // The *actual* tuple is constrained.
+		}
+
+		val startLower = startIndexType.lowerBound().run {
+			if (!isInt) return CallSiteMustFail
+			extractInt()
+		}
+		val endLower = endIndexType.lowerBound().run {
+			if (!isInt) return CallSiteMustFail
+			extractInt()
+		}
+		val startUpper = startIndexType.upperBound().run {
+			if (!isInt) return CallSiteCanFail
+			extractInt()
+		}
+		val endUpper = endIndexType.upperBound().run {
+			if (!isInt) return CallSiteCanFail
+			extractInt()
+		}
+		return when
+		{
+			// Definitely a degenerate slice.
+			endUpper < startLower - 1 -> CallSiteMustFail
+			// Definitely out-of-range.
+			startLower - 1 > sizeUpper -> CallSiteMustFail
+			// At this point, the slice is at least possible.  Check for
+			// possible degeneracy.
+			endLower < startUpper - 1 -> CallSiteCanFail
+			// And check for a possible out-of-range.
+			endUpper > sizeLower -> CallSiteCanFail
+			else -> CallSiteCannotFail
+		}
 	}
 
 	override fun returnTypeGuaranteedByVM(
@@ -93,39 +177,99 @@ object P_ExtractSubtuple : Primitive(3, CanFold, CanInline)
 		argumentTypes: List<A_Type>): A_Type
 	{
 		val tupleType = argumentTypes[0]
-		val startType = argumentTypes[1]
-		val endType = argumentTypes[2]
+		val startIndexType = argumentTypes[1]
+		val endIndexType = argumentTypes[2]
 
-		// If the start type is a fixed index (and it's an int) then strengthen
-		// the result easily.  Otherwise it's too tricky for now.
-		val startInteger = startType.lowerBound()
-		if (startInteger.equals(startType.upperBound()) && startInteger.isInt)
-		{
-			val startInt = startInteger.extractInt()
-			val adjustment =
-				startInteger.minusCanDestroy(one(), false).makeImmutable()
-			val oldSizes = tupleType.sizeRange()
-			val oldEnd1 = oldSizes.upperBound()
-			val oldEnd2 = endType.upperBound()
-			val oldEnd = if (oldEnd1.greaterOrEqual(oldEnd2))
-				oldEnd2
-			else
-				oldEnd1
-			val newLower =
-				endType.lowerBound().minusCanDestroy(adjustment, false)
-			val realLower = if (newLower.lessThan(zero())) zero() else newLower
-			val newEnd = oldEnd.minusCanDestroy(adjustment, false)
-			val newSizes = integerRangeType(
-				realLower, true, newEnd.plusCanDestroy(one(), true), false)
-			val originalLeading = tupleType.typeTuple()
-			val newLeading = originalLeading.copyTupleFromToCanDestroy(
-				min(startInt, originalLeading.tupleSize() + 1),
-				originalLeading.tupleSize(),
-				false)
-			return tupleTypeForSizesTypesDefaultType(
-				newSizes, newLeading, tupleType.defaultType())
+		return computeSliceType(tupleType, startIndexType, endIndexType)
+	}
+
+	/**
+	 * Compute the types that can be produced by extracting a subrange of a
+	 * tuple having the given [tupleType], starting at an index that falls in
+	 * the integer range type [startIndexType], and ending at an index that
+	 * falls in the integer range type [endIndexType].
+	 *
+	 * @param tupleType
+	 *   The type of the tuple being sliced.
+	 * @param startIndexType
+	 *   An integer range type bounding the possible slice starting index.
+	 * @param endIndexType
+	 *   An integer range type bounding the possible slice ending index.
+	 * @return
+	 *   The guaranteed type of the resulting tuple, in the event that it's
+	 *   successful.
+	 */
+	fun computeSliceType(
+		tupleType: A_Type,
+		startIndexType: A_Type,
+		endIndexType: A_Type
+	): A_Type
+	{
+		// Precompute a fallback return type for easy exits.
+		val fallback = mostGeneralTupleType()
+
+		val sizeRange = tupleType.sizeRange()
+		val sizeUpper = sizeRange.upperBound().run {
+			if (isInt) extractInt()
+			else Int.MAX_VALUE  // If it's very large or even infinity
 		}
-		return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
+		val startLower = startIndexType.lowerBound().run {
+			if (!isInt) return fallback
+			extractInt()
+		}
+		val startUpper = startIndexType.upperBound().run {
+			if (!isInt) Int.MAX_VALUE
+			else extractInt()
+		}
+		val endLower = endIndexType.lowerBound().run {
+			if (!isInt) return fallback
+			extractInt()
+		}
+		val endUpper = endIndexType.upperBound().run {
+			if (!isInt) Int.MAX_VALUE
+			else extractInt()
+		}
+
+		if (startLower > endUpper)
+		{
+			// It's always either empty or degenerate.
+			return instanceType(emptyTuple)
+		}
+
+		// No need to compute element types beyond this position, since
+		// they'll all have the same type.
+		val variationLimit =
+			min(tupleType.typeTuple().tupleSize() + 1, sizeUpper)
+
+		// The difference between extrema for starting positions.
+		val smearDelta = startUpper - startLower
+
+		val leadingTypes =
+			(startLower .. max(startLower, min(endUpper, variationLimit))).map {
+				tupleType.unionOfTypesAtThrough(
+					it,
+					// Don't exceed an int.
+					min(
+						it.toLong() + smearDelta,
+						Int.MAX_VALUE.toLong()
+					).toInt())
+			}
+		val minSize = max(endLower - startUpper + 1, 0)
+		val maxSize = min(endUpper, sizeUpper) - startLower + 1
+		val maxSizeObject = when
+		{
+			endUpper == Int.MAX_VALUE && sizeUpper == Int.MAX_VALUE ->
+				positiveInfinity()
+			else -> fromInt(maxSize)
+		}
+		return tupleTypeForSizesTypesDefaultType(
+			integerRangeType(
+				fromInt(minSize),
+				true,
+				maxSizeObject,
+				maxSizeObject.isFinite),
+			tupleFromList(leadingTypes),
+			leadingTypes.last()).makeImmutable()
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

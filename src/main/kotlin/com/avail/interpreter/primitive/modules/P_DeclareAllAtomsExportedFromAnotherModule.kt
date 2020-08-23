@@ -37,7 +37,8 @@ import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.module.ModuleDescriptor.Companion.currentModule
 import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
-import com.avail.descriptor.sets.A_Set
+import com.avail.descriptor.sets.A_Set.Companion.setSize
+import com.avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
 import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
@@ -81,7 +82,7 @@ object P_DeclareAllAtomsExportedFromAnotherModule : Primitive(
 		val sets = importedModuleNames.map { importedModuleName ->
 			val importedModule = runtime.moduleAt(importedModuleName)
 			importedModule.exportedNames()
-		}.sortedByDescending(A_Set::setSize)
+		}.sortedByDescending { it.setSize() }
 		val union = sets.fold(emptySet) { union, nextSet ->
 			union.setUnionCanDestroy(nextSet, true)
 		}

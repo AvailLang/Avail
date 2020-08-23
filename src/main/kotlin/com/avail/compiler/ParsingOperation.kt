@@ -72,6 +72,7 @@ import com.avail.descriptor.phrases.ReferencePhraseDescriptor
 import com.avail.descriptor.phrases.ReferencePhraseDescriptor.Companion.referenceNodeFromUse
 import com.avail.descriptor.phrases.SendPhraseDescriptor
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.sets.A_Set.Companion.setSize
 import com.avail.descriptor.tokens.A_Token
 import com.avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken
 import com.avail.descriptor.tokens.TokenDescriptor

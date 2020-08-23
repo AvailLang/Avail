@@ -40,6 +40,7 @@ import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.sets.A_Set.Companion.hasElement
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.variables.A_Variable
 import com.avail.serialization.SerializerOperation.ASSIGN_TO_VARIABLE

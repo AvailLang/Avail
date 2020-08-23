@@ -33,6 +33,8 @@ package com.avail.interpreter.primitive.methods
 
 import com.avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.descriptor.sets.A_Set.Companion.setSize
+import com.avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
 import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.sets.SetDescriptor.Companion.generateSetFrom
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
@@ -105,9 +107,11 @@ object P_GrammaticalRestriction : Primitive(2, Unknown)
 		}
 		try
 		{
-			val parentAtoms =
-				generateSetFrom(parentStrings.setSize(), parentStrings.iterator())
-				{ loader.lookupName(it) }
+			val parentAtoms = generateSetFrom(
+				parentStrings.setSize(), parentStrings.iterator())
+			{
+				loader.lookupName(it)
+			}
 			loader.addGrammaticalRestrictions(parentAtoms, excludedAtomSets)
 		}
 		catch (e: MalformedMessageException)

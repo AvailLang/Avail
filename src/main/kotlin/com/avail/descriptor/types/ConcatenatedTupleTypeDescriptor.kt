@@ -63,6 +63,7 @@ import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.ConcatenatedTupleTypeDescriptor.IntegerSlots.Companion.TUPLE_TYPE_COMPLEXITY
 import com.avail.descriptor.types.ConcatenatedTupleTypeDescriptor.ObjectSlots.FIRST_TUPLE_TYPE
 import com.avail.descriptor.types.ConcatenatedTupleTypeDescriptor.ObjectSlots.SECOND_TUPLE_TYPE
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
 import kotlin.math.max
@@ -107,6 +108,7 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 			 * type. This may become a conservatively large estimate due to my
 			 * subobjects being coalesced with more direct representations.
 			 */
+			@JvmField
 			val TUPLE_TYPE_COMPLEXITY =
 				BitField(TUPLE_TYPE_COMPLEXITY_AND_MORE, 0, 32)
 		}
@@ -359,7 +361,7 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 			self.typeAtIndex(newLeadingSize + 1).typeIntersection(
 				aTupleType.typeAtIndex(newLeadingSize + 1))
 		newDefault.makeImmutable()
-		return TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+		return tupleTypeForSizesTypesDefaultType(
 			newSizesObject, newLeading, newDefault)
 	}
 
@@ -419,7 +421,7 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 		val newDefault = self.typeAtIndex(newLeadingSize + 1).typeUnion(
 			aTupleType.typeAtIndex(newLeadingSize + 1))
 		newDefault.makeImmutable()
-		return TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+		return tupleTypeForSizesTypesDefaultType(
 			newSizesObject, newLeading, newDefault)
 	}
 
@@ -648,9 +650,8 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 		}
 
 		/**
-		 * Produce a fully reified concatenation (i.e., not a
-		 * [instance][ConcatenatedTupleTypeDescriptor] of the given pair of
-		 * tuple types.
+		 * Produce a fully reified concatenation from the given tuple types
+		 * (i.e., not a placeholder using [ConcatenatedTupleTypeDescriptor]).
 		 *
 		 * @param part1
 		 *   The left tuple type.
@@ -665,14 +666,14 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 		{
 			val sizes1 = part1.sizeRange()
 			val upper1 = sizes1.upperBound()
-			val limit1 = if (upper1.isFinite) upper1.extractInt()
+			val limit1 = if (upper1.isInt) upper1.extractInt()
 			else max(
 				part1.typeTuple().tupleSize() + 1,
 				sizes1.lowerBound().extractInt())
 			val sizes2 = part2.sizeRange()
 			val upper2 = sizes2.upperBound()
 			val limit2 =
-				if (upper2.isFinite) upper2.extractInt()
+				if (upper2.isInt) upper2.extractInt()
 				else part2.typeTuple().tupleSize() + 1
 			val total = limit1 + limit2
 			val section1 = min(sizes1.lowerBound().extractInt(), limit1)
@@ -680,7 +681,7 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 				if (it <= section1) part1.typeAtIndex(it)
 				else elementOfConcatenation(part1, part2, it)
 			}
-			return TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+			return tupleTypeForSizesTypesDefaultType(
 				sizeRangeOfConcatenation(sizes1, sizes2),
 				typeTuple,
 				defaultTypeOfConcatenation(part1, part2))

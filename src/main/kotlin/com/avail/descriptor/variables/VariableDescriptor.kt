@@ -57,6 +57,7 @@ import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.sets.A_Set
+import com.avail.descriptor.sets.A_Set.Companion.setWithElementCanDestroy
 import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
@@ -328,12 +329,12 @@ open class VariableDescriptor protected constructor(
 		reference: A_BasicObject,
 		newValue: A_BasicObject): Boolean
 	{
-		handleVariableWriteTracing(self)
 		val outerKind = self.slot(KIND)
 		if (!newValue.isInstanceOf(outerKind.writeType()))
 		{
 			throw VariableSetException(E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
 		}
+		handleVariableWriteTracing(self)
 		// The variable is not visible to multiple fibers, and cannot become
 		// visible to any other fiber except by an act of the current fiber,
 		// therefore do not worry about atomicity.
@@ -352,6 +353,26 @@ open class VariableDescriptor protected constructor(
 			value.makeImmutable()
 		}
 		return swap
+	}
+
+	@Throws(VariableSetException::class)
+	override fun o_CompareAndSwapValuesNoCheck(
+		self: AvailObject,
+		reference: A_BasicObject,
+		newValue: A_BasicObject): Boolean
+	{
+		handleVariableWriteTracing(self)
+		// The variable is not visible to multiple fibers, and cannot become
+		// visible to any other fiber except by an act of the current fiber,
+		// therefore do not worry about atomicity.
+		val oldValue = self.slot(VALUE)
+		if (oldValue.equalsNil() || !oldValue.equals(reference)) return false
+		self.setSlot(VALUE, newValue)
+		if (mutability === Mutability.MUTABLE)
+		{
+			oldValue.makeImmutable()
+		}
+		return true
 	}
 
 	@Throws(VariableGetException::class, VariableSetException::class)
@@ -635,7 +656,7 @@ open class VariableDescriptor protected constructor(
 		 *   reactors.
 		 */
 		@Throws(VariableSetException::class)
-		private fun handleVariableWriteTracing(self: AvailObject)
+		internal fun handleVariableWriteTracing(self: AvailObject)
 		{
 			try
 			{

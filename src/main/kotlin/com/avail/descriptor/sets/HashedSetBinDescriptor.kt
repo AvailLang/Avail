@@ -47,7 +47,7 @@ import com.avail.descriptor.sets.HashedSetBinDescriptor.IntegerSlots.BIT_VECTOR
 import com.avail.descriptor.sets.HashedSetBinDescriptor.IntegerSlots.Companion.BIN_HASH
 import com.avail.descriptor.sets.HashedSetBinDescriptor.IntegerSlots.Companion.BIN_SIZE
 import com.avail.descriptor.sets.HashedSetBinDescriptor.ObjectSlots.BIN_ELEMENT_AT_
-import com.avail.descriptor.sets.HashedSetBinDescriptor.ObjectSlots.BIN_UNION_TYPE_OR_NIL
+import com.avail.descriptor.sets.HashedSetBinDescriptor.ObjectSlots.BIN_UNION_KIND_OR_NIL
 import com.avail.descriptor.sets.LinearSetBinDescriptor.Companion.emptyLinearSetBin
 import com.avail.descriptor.sets.SetDescriptor.SetIterator
 import com.avail.descriptor.types.A_Type
@@ -102,9 +102,9 @@ class HashedSetBinDescriptor private constructor(
 	level
 ) {
 	/**
-	 * The amount to shift a hash rightward by before masking with 63 to get
-	 * the local logical index.  The *physical* index depends how many
-	 * bits are set below that position in the bit vector.
+	 * The amount to shift a hash rightward by before masking with 63 to get the
+	 * local logical index.  The *physical* index depends how many bits are set
+	 * below that position in the bit vector.
 	 */
 	val shift: Int = (level * 6).also {
 		assert(it < 32)
@@ -157,7 +157,7 @@ class HashedSetBinDescriptor private constructor(
 		 * The union of the types of all elements recursively within this bin.
 		 * If this is [nil], then it can be recomputed when needed and cached.
 		 */
-		BIN_UNION_TYPE_OR_NIL,
+		BIN_UNION_KIND_OR_NIL,
 
 		/**
 		 * The actual bin elements or sub-bins.  Each slot corresponds to a 1
@@ -168,7 +168,7 @@ class HashedSetBinDescriptor private constructor(
 
 	override fun allowsImmutableToMutableReferenceInField(
 		e: AbstractSlotsEnum
-	): Boolean = e === BIN_UNION_TYPE_OR_NIL
+	): Boolean = e === BIN_UNION_KIND_OR_NIL
 
 	override fun o_SetBinSize(self: AvailObject): Int = self.slot(BIN_SIZE)
 
@@ -186,7 +186,7 @@ class HashedSetBinDescriptor private constructor(
 	 *   A type.
 	 */
 	private fun binUnionKind(self: AvailObject): A_Type {
-		var union: A_Type = self.slot(BIN_UNION_TYPE_OR_NIL)
+		var union: A_Type = self.slot(BIN_UNION_KIND_OR_NIL)
 		if (union.equalsNil()) {
 			union = self.slot(BIN_ELEMENT_AT_, 1).binUnionKind()
 			for (i in 2..self.variableObjectSlotsCount()) {
@@ -196,7 +196,7 @@ class HashedSetBinDescriptor private constructor(
 			if (isShared) {
 				union = union.makeShared()
 			}
-			self.setSlot(BIN_UNION_TYPE_OR_NIL, union)
+			self.setSlot(BIN_UNION_KIND_OR_NIL, union)
 		}
 		return union
 	}
@@ -252,7 +252,7 @@ class HashedSetBinDescriptor private constructor(
 			//  The element had to be added.
 			val hashDelta = entry.setBinHash() - previousEntryHash
 			val newSize = self.slot(BIN_SIZE) + delta
-			typeUnion = self.slot(BIN_UNION_TYPE_OR_NIL)
+			typeUnion = self.slot(BIN_UNION_KIND_OR_NIL)
 			if (!typeUnion.equalsNil()) {
 				typeUnion = typeUnion.typeUnion(entry.binUnionKind())
 			}
@@ -268,7 +268,7 @@ class HashedSetBinDescriptor private constructor(
 			return objectToModify.apply {
 				setSlot(BIN_HASH, previousTotalHash + hashDelta)
 				setSlot(BIN_SIZE, newSize)
-				setSlot(BIN_UNION_TYPE_OR_NIL, typeUnion)
+				setSlot(BIN_UNION_KIND_OR_NIL, typeUnion)
 				setSlot(BIN_ELEMENT_AT_, physicalIndex, entry)
 			}
 		}
@@ -276,7 +276,7 @@ class HashedSetBinDescriptor private constructor(
 		if (!canDestroy && isMutable) {
 			self.makeSubobjectsImmutable()
 		}
-		typeUnion = self.mutableSlot(BIN_UNION_TYPE_OR_NIL)
+		typeUnion = self.mutableSlot(BIN_UNION_KIND_OR_NIL)
 		if (!typeUnion.equalsNil()) {
 			typeUnion = typeUnion.typeUnion(elementObject.kind())
 		}
@@ -405,7 +405,7 @@ class HashedSetBinDescriptor private constructor(
 				setSlot(BIN_ELEMENT_AT_, physicalIndex, replacementEntry)
 				setSlot(BIN_HASH, oldTotalHash + deltaHash)
 				setSlot(BIN_SIZE, oldTotalSize + deltaSize)
-				setSlot(BIN_UNION_TYPE_OR_NIL, nil)
+				setSlot(BIN_UNION_KIND_OR_NIL, nil)
 			}
 		}
 		return result
@@ -580,7 +580,7 @@ class HashedSetBinDescriptor private constructor(
 				setSlot(BIN_HASH, hash)
 				setSlot(BIN_SIZE, totalSize)
 				setSlot(BIT_VECTOR, bitVector)
-				setSlot(BIN_UNION_TYPE_OR_NIL, unionKindOrNil)
+				setSlot(BIN_UNION_KIND_OR_NIL, unionKindOrNil)
 			}
 		}
 
@@ -630,7 +630,7 @@ class HashedSetBinDescriptor private constructor(
 			generator: (Int)->A_BasicObject
 		): AvailObject {
 			// First, group the elements by the relevant 6 bits of hash.
-			val groups = arrayOfNulls<MutableList<A_BasicObject>?>(64)
+			val groups = arrayOfNulls<MutableList<A_BasicObject>>(64)
 			val shift = 6 * level
 			for (i in 1..size) {
 				val element = generator(i)

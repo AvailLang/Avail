@@ -644,32 +644,32 @@ internal enum class SerializerOperandEncoding
 			serializer: Serializer)
 		{
 			assert(index >= 0) { "Expected a positive int to write" }
-			when
+			when (index)
 			{
-				index < 128 ->
+				in 0..0x7F ->
 					// 0..127 are written as a single byte.
 					serializer.writeByte(index)
-				index < 64 shl 8 ->
+				in 0x80..0x3FFF ->
 				{
 					// 128..16383 are written with six bits of the first byte
 					// used for the high byte (first byte is 128..191).  The
 					// second byte is the low byte.
-					serializer.writeByte((index shr 8) + 128)
+					serializer.writeByte((index shr 8) + 0x80)
 					serializer.writeByte(index and 0xFF)
 				}
-				index < 63 shl 16 ->
+				in 0x4000..0x003E_FFFF ->
 				{
 					// The first byte is 192..254, or almost six bits (after
 					// dealing with the 192 bias).  The middle and low bytes
-					// follow.  That allows up to 0x003EFFFF to be written in
+					// follow.  That allows up to 0x003E_FFFF to be written in
 					// only three bytes. The middle and low bytes follow.
-					serializer.writeByte((index shr 16) + 192)
+					serializer.writeByte((index shr 16) + 0xC0)
 					serializer.writeShort(index and 0xFFFF)
 				}
 				else ->
 				{
 					// All the way up to 2^31-1.
-					serializer.writeByte(255)
+					serializer.writeByte(0xFF)
 					serializer.writeInt(index)
 				}
 			}
@@ -689,26 +689,21 @@ internal enum class SerializerOperandEncoding
 		 * @return
 		 *   The integer that was read.
 		 */
-		fun readCompressedPositiveInt(deserializer: AbstractDeserializer): Int
-		{
-			val firstByte = deserializer.readByte()
-			if (firstByte < 128)
+		fun readCompressedPositiveInt(deserializer: AbstractDeserializer): Int =
+			when (val firstByte = deserializer.readByte())
 			{
-				// One byte, 0..127
-				return firstByte
+				in 0..0x7F ->
+					// One byte, 0..127
+					firstByte
+				in 0x80..0xBF ->
+					// Two bytes, 128..16383
+					(firstByte - 0x80 shl 8) + deserializer.readByte()
+				in 0xC0..0xFE ->
+					// Three bytes, 0x4000..0x3E_FFFF
+					(firstByte - 0xC0 shl 16) + deserializer.readShort()
+				else ->
+					// Five bytes, 0x3F_0000..0x7FFF_FFFF
+					deserializer.readInt()
 			}
-			if (firstByte < 192)
-			{
-				// Two bytes, 128..16383
-				return (firstByte - 128 shl 8) + deserializer.readByte()
-			}
-			return if (firstByte < 255)
-			{
-				// Three bytes, 16384..0x3EFFFF
-				(firstByte - 192 shl 16) + deserializer.readShort()
-			}
-			// Five bytes, 0x3F0000..0x7FFFFFFF
-			else deserializer.readInt()
-		}
 	}
 }

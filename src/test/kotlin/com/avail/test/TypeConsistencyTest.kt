@@ -41,7 +41,6 @@ import com.avail.descriptor.objects.ObjectTypeDescriptor
 import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectType
 import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.objectTypeFromMap
 import com.avail.descriptor.representation.A_BasicObject
-import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.descriptor.tokens.TokenDescriptor
@@ -49,6 +48,11 @@ import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.instance
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import com.avail.descriptor.types.A_Type.Companion.phraseTypeExpressionType
+import com.avail.descriptor.types.A_Type.Companion.typeIntersection
+import com.avail.descriptor.types.A_Type.Companion.typeUnion
 import com.avail.descriptor.types.BottomPojoTypeDescriptor.Companion.pojoBottom
 import com.avail.descriptor.types.BottomTypeDescriptor
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
@@ -791,7 +795,7 @@ class TypeConsistencyTest
 					else -> phraseKind.create(innerType)
 				}
 				assert(
-					newType.expressionType().equals(innerType)) {
+					newType.phraseTypeExpressionType().equals(innerType)) {
 					"phrase kind was not parameterized as expected"
 				}
 				val newNode = Node(nodeName, newType, *parents.toTypedArray())
@@ -1078,7 +1082,7 @@ class TypeConsistencyTest
 		 * @param rightNode
 		 *   The `Node` for the right side of the union.
 		 * @return
-		 *   The [type&#32;union][AvailObject.typeUnion] of the receiver's [t]
+		 *   The [type&#32;union][A_Type.typeUnion] of the receiver's [t]
 		 *   and the argument's `t`.
 		 */
 		fun union(rightNode: Node): A_Type
@@ -1102,7 +1106,7 @@ class TypeConsistencyTest
 		 * @param rightNode
 		 *   The `Node` for the right side of the intersection.
 		 * @return
-		 *   The [type intersection][AvailObject.typeIntersection] of the
+		 *   The [type intersection][A_Type.typeIntersection] of the
 		 *   receiver's [t] and the argument's `t`.
 		 */
 		fun intersect(rightNode: Node): A_Type

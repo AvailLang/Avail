@@ -51,6 +51,7 @@ import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.
 import com.avail.descriptor.phrases.VariableUsePhraseDescriptor
 import com.avail.descriptor.phrases.VariableUsePhraseDescriptor.Companion.newUse
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.descriptor.sets.A_Set.Companion.asTuple
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple

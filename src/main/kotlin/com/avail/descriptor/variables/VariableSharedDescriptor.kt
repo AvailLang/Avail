@@ -47,6 +47,7 @@ import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.writeType
 import com.avail.descriptor.types.TypeTag
 import com.avail.descriptor.types.VariableTypeDescriptor
 import com.avail.descriptor.variables.VariableSharedDescriptor.IntegerSlots.Companion.HASH_ALWAYS_SET
@@ -55,6 +56,8 @@ import com.avail.descriptor.variables.VariableSharedDescriptor.ObjectSlots.DEPEN
 import com.avail.descriptor.variables.VariableSharedDescriptor.ObjectSlots.KIND
 import com.avail.descriptor.variables.VariableSharedDescriptor.ObjectSlots.VALUE
 import com.avail.descriptor.variables.VariableSharedDescriptor.ObjectSlots.WRITE_REACTORS
+import com.avail.exceptions.AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE
+import com.avail.exceptions.AvailErrorCode.E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE
 import com.avail.exceptions.AvailException
 import com.avail.exceptions.VariableGetException
 import com.avail.exceptions.VariableSetException
@@ -283,18 +286,64 @@ open class VariableSharedDescriptor protected constructor(
 		newValue: A_BasicObject): Boolean
 	{
 		val newValueShared = newValue.makeShared()
+		val outerKind = self.slot(KIND)
+		// Verify that the new value's type complies *prior* to acquiring the
+		// lock.
+		if (!newValueShared.isInstanceOf(outerKind.writeType()))
+		{
+			throw VariableSetException(E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
+		}
 		// Because the separate read, compare, and write operations are all
 		// performed within the critical section, atomicity is ensured.
 		try
 		{
+			handleVariableWriteTracing(self)
 			return synchronized(self) {
-				super.o_CompareAndSwapValues(self, reference, newValueShared)
+				val value = self.slot(VALUE)
+				if (value.equalsNil())
+				{
+					throw VariableGetException(
+						E_CANNOT_READ_UNASSIGNED_VARIABLE)
+				}
+				when
+				{
+					value.equals(reference) ->
+					{
+						self.setSlot(VALUE, newValueShared)
+						true
+					}
+					else -> false
+				}
 			}
 		}
 		finally
 		{
 			recordWriteToSharedVariable()
 		}
+	}
+
+	@Throws(VariableSetException::class)
+	override fun o_CompareAndSwapValuesNoCheck(
+		self: AvailObject,
+		reference: A_BasicObject,
+		newValue: A_BasicObject
+	): Boolean = try
+	{
+		handleVariableWriteTracing(self)
+		val newValueShared = newValue.makeShared()
+		// Because the separate read, compare, and write operations are all
+		// performed within the critical section, atomicity is ensured.
+		synchronized(self) {
+			val oldValue = self.slot(VALUE)
+			if (oldValue.equalsNil() || !oldValue.equals(reference))
+				return false
+			self.setSlot(VALUE, newValueShared)
+			return true
+		}
+	}
+	finally
+	{
+		recordWriteToSharedVariable()
 	}
 
 	@Throws(VariableGetException::class, VariableSetException::class)

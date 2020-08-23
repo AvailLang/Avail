@@ -50,6 +50,8 @@ import com.avail.descriptor.phrases.ListPhraseDescriptor
 import com.avail.descriptor.phrases.SendPhraseDescriptor
 import com.avail.descriptor.phrases.SendPhraseDescriptor.Companion.newSendNode
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.sets.A_Set.Companion.hasElement
+import com.avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize

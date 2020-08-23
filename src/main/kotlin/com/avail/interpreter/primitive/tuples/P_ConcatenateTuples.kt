@@ -45,6 +45,7 @@ import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.A_Type.Companion.defaultType
 import com.avail.descriptor.types.A_Type.Companion.lowerBound
 import com.avail.descriptor.types.A_Type.Companion.sizeRange
+import com.avail.descriptor.types.A_Type.Companion.tupleOfTypesFromTo
 import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
 import com.avail.descriptor.types.A_Type.Companion.typeTuple
 import com.avail.descriptor.types.A_Type.Companion.upperBound
@@ -65,9 +66,9 @@ import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restriction
 import com.avail.interpreter.levelTwo.operation.L2_CONCATENATE_TUPLES
-import com.avail.interpreter.levelTwo.operation.L2_CREATE_TUPLE
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
+import com.avail.utility.notNullAnd
 
 /**
  * **Primitive:** Concatenate a [tuple][TupleDescriptor] of tuples together into
@@ -155,16 +156,28 @@ object P_ConcatenateTuples : Primitive(1, CannotFail, CanFold, CanInline)
 	): Boolean {
 		assert(arguments.size == 1)
 		val tupleOfTuplesReg = arguments[0]
-		val def = tupleOfTuplesReg.definitionSkippingMoves(false)
-		if (def.operation() != L2_CREATE_TUPLE)
-		{
+
+		val generator = translator.generator
+		val range = tupleOfTuplesReg.type().sizeRange()
+		val size = range.lowerBound()
+		if (!size.isInt || !range.upperBound().equals(size))
 			return false
+		val sizeInt = size.extractInt()
+		var elementRegs = generator.explodeTupleIfPossible(
+			tupleOfTuplesReg,
+			tupleOfTuplesReg.type().tupleOfTypesFromTo(1, sizeInt).toList())
+		elementRegs ?: return false
+		// Strip out any always-empty tuples.
+		elementRegs = elementRegs.filter {
+			!it.constantOrNull().notNullAnd { tupleSize() == 0 }
 		}
-		val sources = L2_CREATE_TUPLE.tupleSourceRegistersOf(def)
+		// Statically concatenate adjacent constants, since tuple concatenation
+		// associates.
+
 		// Collapse together adjacent constants, dropping empties
 		var currentTuple: A_Tuple? = null
 		val adjustedSources = mutableListOf<L2ReadBoxedOperand>()
-		for (source in sources)
+		for (source in elementRegs)
 		{
 			val restriction = source.restriction()
 			val sizeRange = restriction.type.sizeRange()

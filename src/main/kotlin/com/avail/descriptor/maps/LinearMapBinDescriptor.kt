@@ -183,10 +183,11 @@ internal class LinearMapBinDescriptor private constructor(
 		key: A_BasicObject,
 		keyHash: Int
 	): AvailObject? {
-		(1..entryCount(self)).forEach {
-			if (self.intSlot(KEY_HASHES_AREA_, it) == keyHash
-				&& self.slot(BIN_SLOT_AT_, (it shl 1) - 1).equals(key)) {
-				return self.slot(BIN_SLOT_AT_, it shl 1)
+		for (i in 1..entryCount(self))
+		{
+			if (self.intSlot(KEY_HASHES_AREA_, i) == keyHash
+				&& self.slot(BIN_SLOT_AT_, (i shl 1) - 1).equals(key)) {
+				return self.slot(BIN_SLOT_AT_, i shl 1)
 			}
 		}
 		// Not found. Answer null.

@@ -58,12 +58,10 @@ import com.avail.interpreter.levelTwo.register.L2FloatRegister
 import com.avail.interpreter.levelTwo.register.L2IntRegister
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuation
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments
-import com.avail.optimizer.ExecutableChunk
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L2BasicBlock
 import com.avail.optimizer.L2ControlFlowGraph
 import com.avail.optimizer.L2ControlFlowGraph.ZoneType
-import com.avail.optimizer.StackReifier
 import com.avail.optimizer.jvm.JVMChunk
 import com.avail.optimizer.jvm.JVMTranslator
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
@@ -130,6 +128,12 @@ import kotlin.concurrent.withLock
  * @property controlFlowGraph
  *   The optimized, non-SSA [L2ControlFlowGraph] from which the chunk was
  *   created.  Useful for debugging.
+ * @property contingentValues
+ *   The set of [contingent&#32;values][A_ChunkDependable] on which this chunk
+ *   depends. If one of these changes significantly, this chunk must be
+ *   invalidated (at which time this set will be emptied).
+ * @property executableChunk
+ *   The [JVMChunk] permanently associated with this L2Chunk.
  *
  * @constructor
  * Create a new `L2Chunk` with the given information.
@@ -150,7 +154,9 @@ import kotlin.concurrent.withLock
  *   Eventually we'll want to capture a copy of the graph prior to conversion
  *   from SSA to support inlining.
  * @param contingentValues
- *   The set of contingent [A_ChunkDependable].
+ *   The set of [contingent&#32;values][A_ChunkDependable] on which this chunk
+ *   depends. If one of these changes significantly, this chunk must be
+ *   invalidated (at which time this set will be emptied).
  * @param executableChunk
  *   The [JVMChunk] permanently associated with this L2Chunk.
  */
@@ -162,9 +168,11 @@ class L2Chunk private constructor(
 	private val offsetAfterInitialTryPrimitive: Int,
 	instructions: List<L2Instruction>,
 	private val controlFlowGraph: L2ControlFlowGraph,
-	contingentValues: A_Set,
-	executableChunk: JVMChunk) : ExecutableChunk
+	private var contingentValues: A_Set,
+	val executableChunk: JVMChunk)
 {
+	/** Allow reads but not writes of this property. */
+	fun contingentValues() = contingentValues
 
 	/**
 	 * An indication of how recently this chunk has been accessed, expressed as
@@ -365,13 +373,6 @@ class L2Chunk private constructor(
 		private set
 
 	/**
-	 * The set of [contingent&#32;values][A_ChunkDependable] on which this chunk
-	 * depends. If one of these changes significantly, this chunk must be
-	 * invalidated (at which time this set will be emptied).
-	 */
-	var contingentValues: A_Set private set
-
-	/**
 	 * The sequence of [L2Instruction]s that make up this L2Chunk.
 	 */
 	@JvmField
@@ -383,7 +384,7 @@ class L2Chunk private constructor(
 	val chunkPojo: AvailObject =
 		RawPojoDescriptor.identityPojo(this).makeShared()
 
-	override fun name(): String = name(code)
+	fun name(): String = name(code)
 
 	override fun toString(): String
 	{
@@ -510,13 +511,14 @@ class L2Chunk private constructor(
 	fun controlFlowGraph(): L2ControlFlowGraph = controlFlowGraph
 
 	/**
-	 * An [ExecutableChunk] that implements the logic of this [L2Chunk] more
-	 * directly, and should be executed instead by [runChunk].
+	 * Called just before running the [JVMChunk] inside this [L2Chunk].
+	 * This gives the opportunity for logging the chunk execution.
+	 *
+	 * @param offset
+	 *   The L2 offset at which we're about to start or continue running this
+	 *   chunk.
 	 */
-	private val executableChunk: ExecutableChunk
-	override fun runChunk(
-		interpreter: Interpreter,
-		offset: Int): StackReifier?
+	fun beforeRunChunk(offset: Int)
 	{
 		if (Interpreter.debugL2)
 		{
@@ -527,11 +529,6 @@ class L2Chunk private constructor(
 				name(),
 				offset)
 		}
-		// TODO Some of these might be mutable and could be clobbered by the call.
-//		val copiedArgumentsForDebug = interpreter.argsBuffer.toTypedArray()
-//		val copiedLatestValueForDebug = interpreter.latestResultOrNull()
-//		val copiedReifiedStackForDebug = interpreter.getReifiedContinuation()
-		return executableChunk.runChunk(interpreter, offset)
 	}
 
 	/**
@@ -864,11 +861,5 @@ class L2Chunk private constructor(
 				   == ChunkEntryPoint.UNREACHABLE.offsetInDefaultChunk)
 			return defaultChunk
 		}
-	}
-	init
-	{
-		// A new chunk starts out valid.
-		this.contingentValues = contingentValues
-		this.executableChunk = executableChunk
 	}
 }

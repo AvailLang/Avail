@@ -32,6 +32,7 @@
 package com.avail.interpreter.primitive.sets
 
 import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.sets.A_Set.Companion.asTuple
 import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.TupleDescriptor

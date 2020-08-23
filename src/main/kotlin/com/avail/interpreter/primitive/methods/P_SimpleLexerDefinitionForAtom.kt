@@ -41,6 +41,7 @@ import com.avail.descriptor.parsing.LexerDescriptor.Companion.lexerBodyFunctionT
 import com.avail.descriptor.parsing.LexerDescriptor.Companion.lexerFilterFunctionType
 import com.avail.descriptor.parsing.LexerDescriptor.Companion.newLexer
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom

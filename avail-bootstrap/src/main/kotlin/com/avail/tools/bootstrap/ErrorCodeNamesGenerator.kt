@@ -32,6 +32,10 @@
 package com.avail.tools.bootstrap
 
 import com.avail.AvailRuntime
+import com.avail.descriptor.sets.A_Set.Companion.setMinusCanDestroy
+import com.avail.descriptor.sets.A_Set.Companion.setSize
+import com.avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
+import com.avail.descriptor.sets.A_Set.Companion.setWithElementCanDestroy
 import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.A_Type.Companion.instances

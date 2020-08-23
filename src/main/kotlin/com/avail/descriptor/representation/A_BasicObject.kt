@@ -56,6 +56,9 @@ import com.avail.descriptor.tuples.LongTupleDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.tuples.TwoByteStringDescriptor
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.argsTupleType
+import com.avail.descriptor.types.A_Type.Companion.declaredExceptions
+import com.avail.descriptor.types.A_Type.Companion.returnType
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor
 import com.avail.descriptor.types.FiberTypeDescriptor
 import com.avail.descriptor.types.FunctionTypeDescriptor
@@ -66,7 +69,6 @@ import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.serialization.SerializerOperation
-import com.avail.utility.cast
 import com.avail.utility.json.JSONFriendly
 import com.avail.utility.json.JSONWriter
 import com.avail.utility.visitor.AvailSubobjectVisitor
@@ -377,9 +379,9 @@ interface A_BasicObject : JSONFriendly {
 	 *
 	 * @param aFunctionType The function type used in the comparison.
 	 * @return `true` IFF the receiver is also a function type and:
-	 *  * The [argument&#32;types][AvailObject.argsTupleType] correspond,
-	 *  * The [return&#32;types][AvailObject.returnType] correspond, and
-	 *  * The [raise&#32;types][AvailObject.declaredExceptions] correspond.
+	 *  * The [argument&#32;types][A_Type.argsTupleType] correspond,
+	 *  * The [return&#32;types][A_Type.returnType] correspond, and
+	 *  * The [raise&#32;types][A_Type.declaredExceptions] correspond.
 	 */
 	fun equalsFunctionType(aFunctionType: A_Type): Boolean
 
@@ -1235,7 +1237,7 @@ interface A_BasicObject : JSONFriendly {
 		 */
 		inline fun <R> A_BasicObject.dispatch(
 			f: AbstractDescriptor.(AvailObject) -> R): R =
-				descriptor().f(this.cast())
+				descriptor().f(this as AvailObject)
 
 		/**
 		 * If the provided condition is true, synchronize with the receiver's

@@ -1,5 +1,5 @@
 /*
- * L2_GET_VARIABLE.kt
+ * L2_VARIABLE_COMPARE_AND_SWAP_NO_CHECK.kt
  * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,18 +32,19 @@
 package com.avail.interpreter.levelTwo.operation
 
 import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.variables.A_Variable
-import com.avail.exceptions.VariableGetException
-import com.avail.interpreter.execution.Interpreter
+import com.avail.exceptions.VariableSetException
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose
 import com.avail.interpreter.levelTwo.L2OperandType
 import com.avail.interpreter.levelTwo.L2OperandType.PC
 import com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED
-import com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.GLOBAL_STATE
+import com.avail.interpreter.levelTwo.ReadsHiddenVariable
+import com.avail.interpreter.levelTwo.WritesHiddenVariable
 import com.avail.interpreter.levelTwo.operand.L2PcOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
@@ -51,22 +52,33 @@ import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
 
 /**
- * Extract the value of a variable. If the variable is unassigned, then branch
- * to the specified [offset][Interpreter.setOffset].
+ * Read the variable's value, compare it to a reference value via semantic
+ * [equality][A_BasicObject.equals], and if they're equal, store a provided new
+ * value into the variable and answer true. Otherwise answer false.  If the
+ * variable is [shared][Mutability.SHARED], then ensure suitable locks bracket
+ * this entire sequence of operations.
+ *
+ * Trust that the variable can type-safely hold the provided new value.
+ *
+ * Take either the `swap succeeded` or `swap failed` branch, depending on
+ * whether the write was successful.  If the write to the variable failed due to
+ * a [VariableSetException], take the `variable set exception` path.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
- * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object L2_GET_VARIABLE : L2ControlFlowOperation(
+@ReadsHiddenVariable(GLOBAL_STATE::class)
+@WritesHiddenVariable(GLOBAL_STATE::class)
+object L2_VARIABLE_COMPARE_AND_SWAP_NO_CHECK : L2ControlFlowOperation(
 	READ_BOXED.named("variable"),
-	WRITE_BOXED.named("extracted value", Purpose.SUCCESS),
-	PC.named("read succeeded", Purpose.SUCCESS),
-	PC.named("read failed", Purpose.OFF_RAMP))
+	READ_BOXED.named("reference"),
+	READ_BOXED.named("value to write"),
+	PC.named("swap succeeded", Purpose.SUCCESS),
+	PC.named("swap failed", Purpose.FAILURE),
+	PC.named("variable set exception", Purpose.FAILURE))
 {
-	// Subtle. Reading from a variable can fail, so don't remove this.
 	override fun hasSideEffect(): Boolean = true
 
-	override val isVariableGet: Boolean
+	override val isVariableSet: Boolean
 		get() = true
 
 	override fun appendToWithWarnings(
@@ -75,17 +87,18 @@ object L2_GET_VARIABLE : L2ControlFlowOperation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation())
 		val variable = instruction.operand<L2ReadBoxedOperand>(0)
-		val value = instruction.operand<L2WriteBoxedOperand>(1)
-		//		final L2PcOperand success = instruction.operand(2);
-//		final L2PcOperand failure = instruction.operand(3);
+		val reference = instruction.operand<L2ReadBoxedOperand>(1)
+		val newValue = instruction.operand<L2ReadBoxedOperand>(2)
+		assert(this == instruction.operation())
 		renderPreamble(instruction, builder)
-		builder.append(' ')
-		builder.append(value.registerString())
-		builder.append(" ← ↓")
+		builder.append(" ↓")
 		builder.append(variable.registerString())
-		renderOperandsStartingAt(instruction, 2, desiredTypes, builder)
+		builder.append(" ← ")
+		builder.append(newValue.registerString())
+		builder.append(" only if it was ")
+		builder.append(reference.registerString())
+		renderOperandsStartingAt(instruction, 3, desiredTypes, builder)
 	}
 
 	override fun translateToJVM(
@@ -94,9 +107,11 @@ object L2_GET_VARIABLE : L2ControlFlowOperation(
 		instruction: L2Instruction)
 	{
 		val variable = instruction.operand<L2ReadBoxedOperand>(0)
-		val value = instruction.operand<L2WriteBoxedOperand>(1)
-		val success = instruction.operand<L2PcOperand>(2)
-		val failure = instruction.operand<L2PcOperand>(3)
+		val reference = instruction.operand<L2ReadBoxedOperand>(1)
+		val newValue = instruction.operand<L2ReadBoxedOperand>(2)
+		val success = instruction.operand<L2PcOperand>(3)
+		val failure = instruction.operand<L2PcOperand>(4)
+		val exception = instruction.operand<L2PcOperand>(5)
 
 		// :: try {
 		val tryStart = Label()
@@ -105,24 +120,26 @@ object L2_GET_VARIABLE : L2ControlFlowOperation(
 			tryStart,
 			catchStart,
 			catchStart,
-			Type.getInternalName(VariableGetException::class.java))
+			Type.getInternalName(VariableSetException::class.java))
 		method.visitLabel(tryStart)
-		// ::    dest = variable.getValue().makeImmutable();
+		// ::    variable.setValueNoCheck(value);
 		translator.load(method, variable.register())
-		A_Variable.getValueMethod.generateCall(method)
-		A_BasicObject.makeImmutableMethod.generateCall(method)
-		translator.store(method, value.register())
+		translator.load(method, reference.register())
+		translator.load(method, newValue.register())
+		A_Variable.compareAndSwapValuesNoCheckMethod.generateCall(method)
+		// ::    ifeq failure
+		translator.jumpIf(method, Opcodes.IFEQ, failure)
 		// ::    goto success;
 		// Note that we cannot potentially eliminate this branch with a
 		// fall through, because the next instruction expects a
-		// VariableGetException to be pushed onto the stack. So always do the
+		// VariableSetException to be pushed onto the stack. So always do the
 		// jump.
 		translator.jump(method, success)
-		// :: } catch (VariableGetException e) {
+		// :: } catch (VariableSetException e) {
 		method.visitLabel(catchStart)
 		method.visitInsn(Opcodes.POP)
-		// ::    goto failure;
-		translator.jump(method, instruction, failure)
+		// ::    goto exception;
+		translator.jump(method, instruction, exception)
 		// :: }
 	}
 }

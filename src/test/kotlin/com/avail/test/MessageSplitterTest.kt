@@ -67,6 +67,12 @@ import com.avail.descriptor.parsing.A_DefinitionParsingPlan
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromArray
 import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import com.avail.descriptor.types.A_Type.Companion.lowerBound
+import com.avail.descriptor.types.A_Type.Companion.phraseTypeExpressionType
+import com.avail.descriptor.types.A_Type.Companion.sizeRange
+import com.avail.descriptor.types.A_Type.Companion.tupleOfTypesFromTo
+import com.avail.descriptor.types.A_Type.Companion.upperBound
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
@@ -84,7 +90,7 @@ import com.avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTuple
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
-import com.avail.descriptor.types.TypeDescriptor
+import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.descriptor.types.TypeDescriptor.Types.NUMBER
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.MalformedMessageException
@@ -185,7 +191,7 @@ class MessageSplitterTest private constructor ()
 					List(
 						0,
 						-1,
-						Phrase(TypeDescriptor.Types.ANY.o))))
+						Phrase(Types.ANY.o))))
 			return Case(message, listPhraseType, tokens, instructions)
 		}
 
@@ -1534,7 +1540,7 @@ class MessageSplitterTest private constructor ()
 				"Split was not as expected"
 			)
 		}
-		val tupleType = splitCase.listPhraseType.expressionType()
+		val tupleType = splitCase.listPhraseType.phraseTypeExpressionType()
 		val sizeRange = tupleType.sizeRange()
 		assert(sizeRange.lowerBound().equals(sizeRange.upperBound()))
 		val typeTuple = tupleType.tupleOfTypesFromTo(
@@ -1546,7 +1552,8 @@ class MessageSplitterTest private constructor ()
 				TOP.o
 			)
 		)
-		val instructionsTuple = splitter.instructionsTupleFor(splitCase.listPhraseType)
+		val instructionsTuple =
+			splitter.instructionsTupleFor(splitCase.listPhraseType)
 		val instructionsList = mutableListOf<Int>()
 		for (instruction in instructionsTuple)
 		{

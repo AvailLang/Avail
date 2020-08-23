@@ -143,6 +143,8 @@ import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.descriptor.sets.A_Set.Companion.asTuple
+import com.avail.descriptor.sets.A_Set.Companion.setSize
 import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.tokens.CommentTokenDescriptor.Companion.newCommentToken
 import com.avail.descriptor.tokens.LiteralTokenDescriptor

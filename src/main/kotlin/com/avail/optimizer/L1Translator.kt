@@ -59,6 +59,7 @@ import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.descriptor.sets.A_Set.Companion.setSize
 import com.avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
@@ -2674,10 +2675,8 @@ class L1Translator private constructor(
 		newValue: L2ReadBoxedOperand)
 	{
 		assert(setOperation.isVariableSet)
-		val success =
-			generator.createBasicBlock("set local success")
-		val failure =
-			generator.createBasicBlock("set local failure")
+		val success = generator.createBasicBlock("set local success")
+		val failure = generator.createBasicBlock("set local failure")
 		val onReificationDuringFailure = generator.createBasicBlock(
 			"reify during set local failure",
 			ZoneType.PROPAGATE_REIFICATION_FOR_INVOKE.createZone(

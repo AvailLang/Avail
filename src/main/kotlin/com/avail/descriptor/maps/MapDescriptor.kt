@@ -470,7 +470,7 @@ class MapDescriptor private constructor(
 	override fun o_KeysAsSet(self: AvailObject): A_Set
 	{
 		return generateSetFrom(self.mapSize(), self.mapIterable()) {
-			(key) -> key.makeImmutable()
+			(key, _) -> key.makeImmutable()
 		}
 	}
 

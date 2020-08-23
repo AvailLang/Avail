@@ -240,7 +240,7 @@ class AvailObject private constructor(
 	 */
 	override fun describeForDebugger(): Array<AvailObjectFieldHelper> =
 		try {
-			dispatch { it::o_DescribeForDebugger }
+			descriptor().o_DescribeForDebugger(this)
 		}
 		catch (e: Throwable)
 		{
@@ -268,7 +268,7 @@ class AvailObject private constructor(
 	 */
 	override fun nameForDebugger(): String =
 		try {
-			dispatch { it::o_NameForDebugger }
+			descriptor().o_NameForDebugger(this)
 		}
 		catch (e: Throwable)
 		{
@@ -282,7 +282,7 @@ class AvailObject private constructor(
 	 * @return Whether to show the value.
 	 */
 	override fun showValueInNameForDebugger(): Boolean =
-		dispatch { it::o_ShowValueInNameForDebugger }
+		descriptor().o_ShowValueInNameForDebugger(this)
 
 	override fun toString() = buildString {
 		val recursionMap = IdentityHashMap<A_BasicObject, Void>(10)
@@ -385,7 +385,7 @@ class AvailObject private constructor(
 	 * @return
 	 *   An [Int] hash value.
 	 */
-	override fun hash() = dispatch { it::o_Hash }
+	override fun hash() = descriptor().o_Hash(this)
 
 	/**
 	 * Add the [chunk][L2Chunk] with the given index to the receiver's list of
@@ -394,7 +394,7 @@ class AvailObject private constructor(
 	 * definition) will cause the chunk to be invalidated.
 	 */
 	override fun addDependentChunk(chunk: L2Chunk) =
-		dispatch(chunk) { it::o_AddDependentChunk }
+		descriptor().o_AddDependentChunk(this, chunk)
 
 	/**
 	 * Add the [definition][DefinitionDescriptor] to the receiver, a
@@ -409,7 +409,7 @@ class AvailObject private constructor(
 	 */
 	@Throws(SignatureException::class)
 	override fun methodAddDefinition(definition: A_Definition) =
-		dispatch(definition) { it::o_MethodAddDefinition }
+		descriptor().o_MethodAddDefinition(this, definition)
 
 	/**
 	 * Add a [grammatical&32;restriction][GrammaticalRestrictionDescriptor] to
@@ -420,9 +420,7 @@ class AvailObject private constructor(
 	 */
 	override fun moduleAddGrammaticalRestriction(
 		grammaticalRestriction: A_GrammaticalRestriction
-	) = dispatch(grammaticalRestriction) {
-		it::o_ModuleAddGrammaticalRestriction
-	}
+	) = descriptor().o_ModuleAddGrammaticalRestriction(this, grammaticalRestriction)
 
 	/**
 	 * Add the receiver and the argument `anInfinity` and answer the
@@ -443,7 +441,7 @@ class AvailObject private constructor(
 	override fun addToInfinityCanDestroy(
 		sign: Sign,
 		canDestroy: Boolean
-	) = dispatch(sign, canDestroy) { it::o_AddToInfinityCanDestroy }
+	) = descriptor().o_AddToInfinityCanDestroy(this, sign, canDestroy)
 
 	/**
 	 * Add the receiver and the argument [anInteger] and answer the
@@ -464,7 +462,7 @@ class AvailObject private constructor(
 	override fun addToIntegerCanDestroy(
 		anInteger: AvailObject,
 		canDestroy: Boolean
-	) = dispatch(anInteger, canDestroy) { it::o_AddToIntegerCanDestroy }
+	) = descriptor().o_AddToIntegerCanDestroy(this, anInteger, canDestroy)
 
 	/**
 	 * Construct a Java [string][String] from the receiver, an Avail
@@ -473,17 +471,7 @@ class AvailObject private constructor(
 	 * @return
 	 *   The corresponding Java string.
 	 */
-	override fun asNativeString() = dispatch { it::o_AsNativeString }
-
-	/**
-	 * Construct a [tuple][TupleDescriptor] from the receiver, a
-	 * [set][SetDescriptor]. Element ordering in the tuple is arbitrary and
-	 * unstable.
-	 *
-	 * @return
-	 *   A tuple containing each element of the set.
-	 */
-	override fun asTuple() = dispatch { it::o_AsTuple }
+	override fun asNativeString() = descriptor().o_AsNativeString(this)
 
 	/**
 	 * Add a [definition][DefinitionDescriptor] to this
@@ -493,19 +481,19 @@ class AvailObject private constructor(
 	 *   The definition to add to the module.
 	 */
 	override fun moduleAddDefinition(definition: A_Definition) =
-		dispatch(definition) { it::o_ModuleAddDefinition }
+		descriptor().o_ModuleAddDefinition(this, definition)
 
 	override fun addImportedName(trueName: A_Atom) =
-		dispatch(trueName) { it::o_AddImportedName }
+		descriptor().o_AddImportedName(this, trueName)
 
 	override fun addImportedNames(trueNames: A_Set) =
-		dispatch(trueNames) { it::o_AddImportedNames }
+		descriptor().o_AddImportedNames(this, trueNames)
 
 	override fun introduceNewName(trueName: A_Atom) =
-		dispatch(trueName) { it::o_IntroduceNewName }
+		descriptor().o_IntroduceNewName(this, trueName)
 
 	override fun addPrivateName(trueName: A_Atom) =
-		dispatch(trueName) { it::o_AddPrivateName }
+		descriptor().o_AddPrivateName(this, trueName)
 
 	override fun setBinAddingElementHashLevelCanDestroy(
 		elementObject: A_BasicObject,
@@ -513,60 +501,55 @@ class AvailObject private constructor(
 		myLevel: Int,
 		canDestroy: Boolean
 	): A_BasicObject =
-		dispatch(elementObject, elementObjectHash, myLevel, canDestroy) {
-			it::o_SetBinAddingElementHashLevelCanDestroy }
+		descriptor().o_SetBinAddingElementHashLevelCanDestroy(this, elementObject, elementObjectHash, myLevel, canDestroy)
 
-	override fun setBinSize() = dispatch { it::o_SetBinSize }
+	override fun setBinSize() = descriptor().o_SetBinSize(this)
 
 	override fun binElementAt(index: Int) =
-		dispatch(index) { it::o_BinElementAt }
+		descriptor().o_BinElementAt(this, index)
 
 	override fun binHasElementWithHash(
 		elementObject: A_BasicObject,
 		elementObjectHash: Int
-	): Boolean = dispatch(elementObject, elementObjectHash) {
-		it::o_BinHasElementWithHash
-	}
+	): Boolean = descriptor().o_BinHasElementWithHash(this, elementObject, elementObjectHash)
 
-	override fun setBinHash() = dispatch { it::o_SetBinHash }
+	override fun setBinHash() = descriptor().o_SetBinHash(this)
 
 	override fun binRemoveElementHashLevelCanDestroy(
 		elementObject: A_BasicObject,
 		elementObjectHash: Int,
 		myLevel: Int,
 		canDestroy: Boolean
-	) = dispatch(elementObject, elementObjectHash, myLevel, canDestroy) {
-		it::o_BinRemoveElementHashLevelCanDestroy
-	}
+	) = descriptor().o_BinRemoveElementHashLevelCanDestroy(this, elementObject, elementObjectHash, myLevel, canDestroy)
 
-	override fun bodyBlock() = dispatch { it::o_BodyBlock }
+	override fun bodyBlock() = descriptor().o_BodyBlock(this)
 
-	override fun bodySignature() = dispatch { it::o_BodySignature }
+	override fun bodySignature() = descriptor().o_BodySignature(this)
 
-	override fun breakpointBlock() = dispatch { it::o_BreakpointBlock }
+	override fun breakpointBlock() = descriptor().o_BreakpointBlock(this)
 
 	override fun setBreakpointBlock(value: AvailObject) =
-		dispatch(value) { it::o_SetBreakpointBlock }
+		descriptor().o_SetBreakpointBlock(this, value)
 
 	override fun buildFilteredBundleTree() =
-		dispatch { it::o_BuildFilteredBundleTree }
+		descriptor().o_BuildFilteredBundleTree(this)
 
-	override fun caller() = dispatch { it::o_Caller }
+	override fun caller() = descriptor().o_Caller(this)
 
-	override fun clearValue() = dispatch { it::o_ClearValue }
+	override fun clearValue() = descriptor().o_ClearValue(this)
 
-	override fun function() = dispatch { it::o_Function }
+	override fun function() = descriptor().o_Function(this)
 
-	override fun functionType() = dispatch { it::o_FunctionType }
+	override fun functionType() = descriptor().o_FunctionType(this)
 
-	override fun code() = dispatch { it::o_Code }
+	override fun code() = descriptor().o_Code(this)
 
-	override fun constantBindings() = dispatch { it::o_ConstantBindings }
+	override fun constantBindings() = descriptor().o_ConstantBindings(this)
 
-	override fun continuation() = dispatch { it::o_Continuation }
+	override fun continuation() = descriptor().o_Continuation(this)
 
 	override fun setContinuation(value: A_Continuation) =
-		dispatch(value) { it::o_SetContinuation }
+		descriptor().o_SetContinuation(this, value)
 
 	/**
 	 * A convenience method that exposes the fact that a subtuple of a string is
@@ -583,7 +566,7 @@ class AvailObject private constructor(
 	 */
 	override fun copyStringFromToCanDestroy(
 		start: Int, end: Int, canDestroy: Boolean
-	): A_String = dispatch(start, end, canDestroy) { it::o_CopyTupleFromToCanDestroy }.cast()
+	): A_String = descriptor().o_CopyTupleFromToCanDestroy(this, start, end, canDestroy).cast()
 
 	/**
 	 * Divide the receiver by the argument `aNumber` and answer the result.
@@ -602,7 +585,7 @@ class AvailObject private constructor(
 	 * @see InfinityDescriptor
 	 */
 	override fun divideCanDestroy(aNumber: A_Number, canDestroy: Boolean) =
-		dispatch(aNumber, canDestroy) { it::o_DivideCanDestroy }
+		descriptor().o_DivideCanDestroy(this, aNumber, canDestroy)
 
 	/**
 	 * Divide the receiver by the argument `aNumber` and answer the result. The
@@ -623,7 +606,7 @@ class AvailObject private constructor(
 	override fun noFailDivideCanDestroy(
 		aNumber: A_Number, canDestroy: Boolean
 	) = try {
-		dispatch(aNumber, canDestroy) { it::o_DivideCanDestroy }
+		descriptor().o_DivideCanDestroy(this, aNumber, canDestroy)
 	} catch (e: ArithmeticException) {
 		// This had better not happen, otherwise the caller has violated the
 		// intention of this method.
@@ -647,7 +630,7 @@ class AvailObject private constructor(
 	 * @see InfinityDescriptor
 	 */
 	override fun divideIntoInfinityCanDestroy(sign: Sign, canDestroy: Boolean) =
-		dispatch(sign, canDestroy) { it::o_DivideIntoInfinityCanDestroy }
+		descriptor().o_DivideIntoInfinityCanDestroy(this, sign, canDestroy)
 
 	/**
 	 * Divide the argument `anInteger` by the receiver and answer the result.
@@ -666,9 +649,9 @@ class AvailObject private constructor(
 	 */
 	override fun divideIntoIntegerCanDestroy(
 		anInteger: AvailObject, canDestroy: Boolean
-	) = dispatch(anInteger, canDestroy) { it::o_DivideIntoIntegerCanDestroy }
+	) = descriptor().o_DivideIntoIntegerCanDestroy(this, anInteger, canDestroy)
 
-	override fun ensureMutable() = dispatch { it::o_EnsureMutable }
+	override fun ensureMutable() = descriptor().o_EnsureMutable(this)
 
 	/**
 	 * Answer whether the receiver and the argument, both [AvailObject]s, are
@@ -718,7 +701,7 @@ class AvailObject private constructor(
 	 *   `false` otherwise.
 	 */
 	override fun equalsAnyTuple(aTuple: A_Tuple) =
-		dispatch(aTuple) { it::o_EqualsAnyTuple }
+		descriptor().o_EqualsAnyTuple(this, aTuple)
 
 	/**
 	 * Answer whether the receiver, an [AvailObject], and the argument, a
@@ -731,7 +714,7 @@ class AvailObject private constructor(
 	 *   argument, `false` otherwise.
 	 */
 	override fun equalsByteString(aByteString: A_String) =
-		dispatch(aByteString) { it::o_EqualsByteString }
+		descriptor().o_EqualsByteString(this, aByteString)
 
 	/**
 	 * Answer whether the receiver, an [AvailObject], and the argument, a
@@ -744,7 +727,7 @@ class AvailObject private constructor(
 	 *   argument, `false` otherwise.
 	 */
 	override fun equalsByteTuple(aByteTuple: A_Tuple) =
-		dispatch(aByteTuple) { it::o_EqualsByteTuple }
+		descriptor().o_EqualsByteTuple(this, aByteTuple)
 
 	/**
 	 * Answer whether the receiver, an [AvailObject], and the argument, an
@@ -758,7 +741,7 @@ class AvailObject private constructor(
 	 *   to the argument, `false` otherwise.
 	 */
 	override fun equalsIntegerIntervalTuple(anIntegerIntervalTuple: A_Tuple) =
-		dispatch(anIntegerIntervalTuple) { it::o_EqualsIntegerIntervalTuple }
+		descriptor().o_EqualsIntegerIntervalTuple(this, anIntegerIntervalTuple)
 
 	/**
 	 * Answer whether the receiver, an [AvailObject], and the argument, an
@@ -771,7 +754,7 @@ class AvailObject private constructor(
 	 *   otherwise.
 	 */
 	override fun equalsIntTuple(anIntTuple: A_Tuple) =
-		dispatch(anIntTuple) { it::o_EqualsIntTuple }
+		descriptor().o_EqualsIntTuple(this, anIntTuple)
 
 	/**
 	 * Answer whether the receiver, an [AvailObject], and the argument, a
@@ -784,7 +767,7 @@ class AvailObject private constructor(
 	 *   otherwise.
 	 */
 	override fun equalsLongTuple(aLongTuple: A_Tuple) =
-		dispatch(aLongTuple) { it::o_EqualsLongTuple }
+		descriptor().o_EqualsLongTuple(this, aLongTuple)
 
 	/**
 	 * Answer whether the receiver, an [AvailObject], and the argument, a
@@ -799,9 +782,7 @@ class AvailObject private constructor(
 	 */
 	override fun equalsSmallIntegerIntervalTuple(
 		aSmallIntegerIntervalTuple: A_Tuple
-	) = dispatch(aSmallIntegerIntervalTuple) {
-		it::o_EqualsSmallIntegerIntervalTuple
-	}
+	) = descriptor().o_EqualsSmallIntegerIntervalTuple(this, aSmallIntegerIntervalTuple)
 
 	/**
 	 * Answer whether the receiver, an [AvailObject], and the argument, a
@@ -815,7 +796,7 @@ class AvailObject private constructor(
 	 *   to the argument, `false` otherwise.
 	 */
 	override fun equalsRepeatedElementTuple(aRepeatedElementTuple: A_Tuple) =
-		dispatch(aRepeatedElementTuple) { it::o_EqualsRepeatedElementTuple }
+		descriptor().o_EqualsRepeatedElementTuple(this, aRepeatedElementTuple)
 
 	/**
 	 * Answer whether the receiver, an [AvailObject], is a
@@ -829,13 +810,13 @@ class AvailObject private constructor(
 	 *   argument, `false` otherwise.
 	 */
 	override fun equalsCharacterWithCodePoint(aCodePoint: Int) =
-		dispatch(aCodePoint) { it::o_EqualsCharacterWithCodePoint }
+		descriptor().o_EqualsCharacterWithCodePoint(this, aCodePoint)
 
 	override fun equalsFiberType(aFiberType: A_Type) =
-		dispatch(aFiberType) { it::o_EqualsFiberType }
+		descriptor().o_EqualsFiberType(this, aFiberType)
 
 	override fun equalsFunction(aFunction: A_Function) =
-		dispatch(aFunction) { it::o_EqualsFunction }
+		descriptor().o_EqualsFunction(this, aFunction)
 
 	/**
 	 * Answer whether the receiver, an [AvailObject], and the
@@ -850,7 +831,7 @@ class AvailObject private constructor(
 	 *   * The [declared&#32;exceptions][A_Type.declaredExceptions] correspond.
 	 */
 	override fun equalsFunctionType(aFunctionType: A_Type) =
-		dispatch(aFunctionType) { it::o_EqualsFunctionType }
+		descriptor().o_EqualsFunctionType(this, aFunctionType)
 
 	/**
 	 * Answer whether the receiver, an [AvailObject], and a
@@ -863,7 +844,7 @@ class AvailObject private constructor(
 	 *   argument, `false` otherwise.
 	 */
 	override fun equalsCompiledCode(aCompiledCode: A_RawFunction) =
-		dispatch(aCompiledCode) { it::o_EqualsCompiledCode }
+		descriptor().o_EqualsCompiledCode(this, aCompiledCode)
 
 	/**
 	 * Answer whether the receiver, an [AvailObject], and a
@@ -880,22 +861,22 @@ class AvailObject private constructor(
 	 *   argument, `false` otherwise.
 	 */
 	override fun equalsVariable(aVariable: A_Variable) =
-		dispatch(aVariable) { it::o_EqualsVariable }
+		descriptor().o_EqualsVariable(this, aVariable)
 
 	override fun equalsVariableType(aVariableType: A_Type) =
-		dispatch(aVariableType) { it::o_EqualsVariableType }
+		descriptor().o_EqualsVariableType(this, aVariableType)
 
 	override fun equalsContinuation(aContinuation: A_Continuation) =
-		dispatch(aContinuation) { it::o_EqualsContinuation }
+		descriptor().o_EqualsContinuation(this, aContinuation)
 
 	override fun equalsContinuationType(aContinuationType: A_Type) =
-		dispatch(aContinuationType) { it::o_EqualsContinuationType }
+		descriptor().o_EqualsContinuationType(this, aContinuationType)
 
 	override fun equalsDouble(aDouble: Double) =
-		dispatch(aDouble) { it::o_EqualsDouble }
+		descriptor().o_EqualsDouble(this, aDouble)
 
 	override fun equalsFloat(aFloat: Float) =
-		dispatch(aFloat) { it::o_EqualsFloat }
+		descriptor().o_EqualsFloat(this, aFloat)
 
 	/**
 	 * Answer whether the receiver is an [infinity][InfinityDescriptor] with the
@@ -908,44 +889,44 @@ class AvailObject private constructor(
 	 *   otherwise.
 	 */
 	override fun equalsInfinity(sign: Sign) =
-		dispatch(sign) { it::o_EqualsInfinity }
+		descriptor().o_EqualsInfinity(this, sign)
 
 	override fun equalsInteger(anAvailInteger: AvailObject) =
-		dispatch(anAvailInteger) { it::o_EqualsInteger }
+		descriptor().o_EqualsInteger(this, anAvailInteger)
 
 	override fun equalsIntegerRangeType(anIntegerRangeType: A_Type) =
-		dispatch(anIntegerRangeType) { it::o_EqualsIntegerRangeType }
+		descriptor().o_EqualsIntegerRangeType(this, anIntegerRangeType)
 
-	override fun equalsMap(aMap: A_Map) = dispatch(aMap) { it::o_EqualsMap }
+	override fun equalsMap(aMap: A_Map) = descriptor().o_EqualsMap(this, aMap)
 
 	override fun equalsMapType(aMapType: A_Type) =
-		dispatch(aMapType) { it::o_EqualsMapType }
+		descriptor().o_EqualsMapType(this, aMapType)
 
 	override fun equalsNybbleTuple(aNybbleTuple: A_Tuple) =
-		dispatch(aNybbleTuple) { it::o_EqualsNybbleTuple }
+		descriptor().o_EqualsNybbleTuple(this, aNybbleTuple)
 
 	override fun equalsObject(anObject: AvailObject) =
-		dispatch(anObject) { it::o_EqualsObject }
+		descriptor().o_EqualsObject(this, anObject)
 
 	override fun equalsObjectTuple(anObjectTuple: A_Tuple) =
-		dispatch(anObjectTuple) { it::o_EqualsObjectTuple }
+		descriptor().o_EqualsObjectTuple(this, anObjectTuple)
 
 	override fun equalsPhraseType(aPhraseType: A_Type) =
-		dispatch(aPhraseType) { it::o_EqualsPhraseType }
+		descriptor().o_EqualsPhraseType(this, aPhraseType)
 
 	override fun equalsPojo(aPojo: AvailObject) =
-		dispatch(aPojo) { it::o_EqualsPojo }
+		descriptor().o_EqualsPojo(this, aPojo)
 
 	override fun equalsPojoType(aPojoType: AvailObject) =
-		dispatch(aPojoType) { it::o_EqualsPojoType }
+		descriptor().o_EqualsPojoType(this, aPojoType)
 
 	override fun equalsPrimitiveType(aPrimitiveType: A_Type) =
-		dispatch(aPrimitiveType) { it::o_EqualsPrimitiveType }
+		descriptor().o_EqualsPrimitiveType(this, aPrimitiveType)
 
 	override fun equalsRawPojoFor(
 		otherRawPojo: AvailObject,
 		otherJavaObject: Any?
-	) = dispatch(otherRawPojo, otherJavaObject) { it::o_EqualsRawPojoFor }
+	) = descriptor().o_EqualsRawPojoFor(this, otherRawPojo, otherJavaObject)
 
 	/**
 	 * Answer whether the receiver and the argument tuple, both [AvailObject]s,
@@ -964,98 +945,86 @@ class AvailObject private constructor(
 	 *   `true` if the two objects are of equal value, `false` otherwise.
 	 */
 	override fun equalsReverseTuple(aTuple: A_Tuple) =
-		dispatch(aTuple) { it::o_EqualsReverseTuple }
+		descriptor().o_EqualsReverseTuple(this, aTuple)
 
-	override fun equalsSet(aSet: A_Set) = dispatch(aSet) { it::o_EqualsSet }
+	override fun equalsSet(aSet: A_Set) = descriptor().o_EqualsSet(this, aSet)
 
 	override fun equalsSetType(aSetType: A_Type) =
-		dispatch(aSetType) { it::o_EqualsSetType }
+		descriptor().o_EqualsSetType(this, aSetType)
 
 	override fun equalsTupleType(aTupleType: A_Type) =
-		dispatch(aTupleType) { it::o_EqualsTupleType }
+		descriptor().o_EqualsTupleType(this, aTupleType)
 
 	override fun equalsTwoByteString(aTwoByteString: A_String) =
-		dispatch(aTwoByteString) { it::o_EqualsTwoByteString }
+		descriptor().o_EqualsTwoByteString(this, aTwoByteString)
 
 	/** Note: [nil] is never the target of an indirection. */
 	override fun equalsNil() = this === nil
 
-	override fun executionState() = dispatch { it::o_ExecutionState }
+	override fun executionState() = descriptor().o_ExecutionState(this)
 
 	override fun setExecutionState(value: ExecutionState) =
-		dispatch(value) { it::o_SetExecutionState }
+		descriptor().o_SetExecutionState(this, value)
 
 	override fun extractUnsignedByte() =
-		dispatch { it::o_ExtractUnsignedByte }
+		descriptor().o_ExtractUnsignedByte(this)
 
-	override fun extractDouble() = dispatch { it::o_ExtractDouble }
+	override fun extractDouble() = descriptor().o_ExtractDouble(this)
 
-	override fun extractFloat() = dispatch { it::o_ExtractFloat }
+	override fun extractFloat() = descriptor().o_ExtractFloat(this)
 
-	override fun extractInt() = dispatch { it::o_ExtractInt }
+	override fun extractInt() = descriptor().o_ExtractInt(this)
 
 	/**
 	 * Extract a 64-bit signed Kotlin [Long] from the receiver
 	 *
 	 * @return A 64-bit signed Kotlin [Long].
 	 */
-	override fun extractLong() = dispatch { it::o_ExtractLong }
+	override fun extractLong() = descriptor().o_ExtractLong(this)
 
-	override fun extractNybble() = dispatch { it::o_ExtractNybble }
+	override fun extractNybble() = descriptor().o_ExtractNybble(this)
 
-	override fun fieldMap() = dispatch { it::o_FieldMap }
+	override fun fieldMap() = descriptor().o_FieldMap(this)
 
 	override fun filterByTypes(argTypes: List<A_Type>) =
-		dispatch(argTypes) { it::o_FilterByTypes }
+		descriptor().o_FilterByTypes(this, argTypes)
 
 	@Throws(VariableGetException::class)
-	override fun getValue() = dispatch { it::o_GetValue }
+	override fun getValue() = descriptor().o_GetValue(this)
 
-	/**
-	 * Answer whether the receiver, a [set][SetDescriptor], contains the
-	 * specified element.
-	 *
-	 * @param elementObject
-	 *   The element.
-	 * @return
-	 *   `true` if the receiver contains the element, `false` otherwise.
-	 */
-	override fun hasElement(elementObject: A_BasicObject) =
-		dispatch(elementObject) { it::o_HasElement }
-
-	override fun hashOrZero() = dispatch { it::o_HashOrZero }
+	override fun hashOrZero() = descriptor().o_HashOrZero(this)
 
 	override fun setHashOrZero(value: Int) =
-		dispatch(value) { it::o_SetHashOrZero }
+		descriptor().o_SetHashOrZero(this, value)
 
 	override fun definitionsAtOrBelow(argRestrictions: List<TypeRestriction>) =
-		dispatch(argRestrictions) { it::o_DefinitionsAtOrBelow }
+		descriptor().o_DefinitionsAtOrBelow(this, argRestrictions)
 
-	override fun definitionsTuple() = dispatch { it::o_DefinitionsTuple }
+	override fun definitionsTuple() = descriptor().o_DefinitionsTuple(this)
 
 	override fun includesDefinition(imp: A_Definition) =
-		dispatch(imp) { it::o_IncludesDefinition }
+		descriptor().o_IncludesDefinition(this, imp)
 
 	override fun setInterruptRequestFlag(flag: InterruptRequestFlag) =
-		dispatch(flag) { it::o_SetInterruptRequestFlag }
+		descriptor().o_SetInterruptRequestFlag(this, flag)
 
 	override fun decrementCountdownToReoptimize(
 		continuation: (Boolean) -> Unit
-	) = dispatch(continuation) { it::o_DecrementCountdownToReoptimize }
+	) = descriptor().o_DecrementCountdownToReoptimize(this, continuation)
 
 	override fun countdownToReoptimize(value: Long) =
-		dispatch(value) { it::o_CountdownToReoptimize }
+		descriptor().o_CountdownToReoptimize(this, value)
 
-	override val isAbstract get() = dispatch { it::o_IsAbstract }
+	override val isAbstract get() = descriptor().o_IsAbstract(this)
 
 	override fun isAbstractDefinition() =
-		dispatch { it::o_IsAbstractDefinition }
+		descriptor().o_IsAbstractDefinition(this)
 
 	override fun representationCostOfTupleType() =
-		dispatch { it::o_RepresentationCostOfTupleType }
+		descriptor().o_RepresentationCostOfTupleType(this)
 
 	override fun isBinSubsetOf(potentialSuperset: A_Set) =
-		dispatch(potentialSuperset) { it::o_IsBinSubsetOf }
+		descriptor().o_IsBinSubsetOf(this, potentialSuperset)
 
 	/**
 	 * Is the receiver an Avail boolean?
@@ -1063,7 +1032,7 @@ class AvailObject private constructor(
 	 * @return
 	 *   `true` if the receiver is a boolean, `false` otherwise.
 	 */
-	override val isBoolean get() = dispatch { it::o_IsBoolean }
+	override val isBoolean get() = descriptor().o_IsBoolean(this)
 
 	/**
 	 * Is the receiver an Avail unsigned byte?
@@ -1071,7 +1040,7 @@ class AvailObject private constructor(
 	 * @return
 	 *   `true` if the argument is an unsigned byte, `false` otherwise.
 	 */
-	override val isUnsignedByte get() = dispatch { it::o_IsUnsignedByte }
+	override val isUnsignedByte get() = descriptor().o_IsUnsignedByte(this)
 
 	/**
 	 * Is the receiver an Avail byte tuple?
@@ -1079,7 +1048,7 @@ class AvailObject private constructor(
 	 * @return
 	 *   `true` if the receiver is a byte tuple, `false` otherwise.
 	 */
-	override val isByteTuple get() = dispatch { it::o_IsByteTuple }
+	override val isByteTuple get() = descriptor().o_IsByteTuple(this)
 
 	/**
 	 * Is the receiver an Avail character?
@@ -1087,7 +1056,7 @@ class AvailObject private constructor(
 	 * @return
 	 *   `true` if the receiver is a character, `false` otherwise.
 	 */
-	override val isCharacter get() = dispatch { it::o_IsCharacter }
+	override val isCharacter get() = descriptor().o_IsCharacter(this)
 
 	/**
 	 * Is the receiver an Avail function?
@@ -1095,7 +1064,7 @@ class AvailObject private constructor(
 	 * @return
 	 *   `true` if the receiver is a function, `false` otherwise.
 	 */
-	override val isFunction get() = dispatch { it::o_IsFunction }
+	override val isFunction get() = descriptor().o_IsFunction(this)
 
 	/**
 	 * Is the receiver an Avail atom?
@@ -1103,7 +1072,7 @@ class AvailObject private constructor(
 	 * @return
 	 *   `true` if the receiver is an atom, `false` otherwise.
 	 */
-	override val isAtom get() = dispatch { it::o_IsAtom }
+	override val isAtom get() = descriptor().o_IsAtom(this)
 
 	/**
 	 * Is the receiver an Avail extended integer?
@@ -1112,9 +1081,9 @@ class AvailObject private constructor(
 	 *   `true` if the receiver is an extended integer, `false` otherwise.
 	 */
 	override val isExtendedInteger get() =
-		dispatch { it::o_IsExtendedInteger }
+		descriptor().o_IsExtendedInteger(this)
 
-	override val isFinite get() = dispatch { it::o_IsFinite }
+	override val isFinite get() = descriptor().o_IsFinite(this)
 
 	/**
 	 * Is the receiver a [forward&#32;declaration][ForwardDefinitionDescriptor]?
@@ -1123,36 +1092,36 @@ class AvailObject private constructor(
 	 *   `true` if the receiver is a forward declaration site.
 	 */
 	override fun isForwardDefinition() =
-		dispatch { it::o_IsForwardDefinition }
+		descriptor().o_IsForwardDefinition(this)
 
 	/**
 	 * Is the receiver a [method&#32;definition][MethodDefinitionDescriptor]?
 	 *
 	 * @return `true` if the receiver is a method definition.
 	 */
-	override fun isMethodDefinition() = dispatch { it::o_IsMethodDefinition }
+	override fun isMethodDefinition() = descriptor().o_IsMethodDefinition(this)
 
 	override fun isInstanceOf(aType: A_Type) =
-		dispatch(aType) { it::o_IsInstanceOf }
+		descriptor().o_IsInstanceOf(this, aType)
 
 	override fun isInstanceOfKind(aType: A_Type) =
-		dispatch(aType) { it::o_IsInstanceOfKind }
+		descriptor().o_IsInstanceOfKind(this, aType)
 
 	override val isIntegerIntervalTuple get() =
-		dispatch { it::o_IsIntegerIntervalTuple }
+		descriptor().o_IsIntegerIntervalTuple(this)
 
-	override val isIntTuple get() = dispatch { it::o_IsIntTuple }
+	override val isIntTuple get() = descriptor().o_IsIntTuple(this)
 
-	override val isLongTuple get() = dispatch { it::o_IsLongTuple }
+	override val isLongTuple get() = descriptor().o_IsLongTuple(this)
 
 	override val isSmallIntegerIntervalTuple get() =
-		dispatch { it::o_IsSmallIntegerIntervalTuple }
+		descriptor().o_IsSmallIntegerIntervalTuple(this)
 
 	override val isRepeatedElementTuple get() =
-		dispatch { it::o_IsRepeatedElementTuple }
+		descriptor().o_IsRepeatedElementTuple(this)
 
 	override val isIntegerRangeType get() =
-		dispatch { it::o_IsIntegerRangeType }
+		descriptor().o_IsIntegerRangeType(this)
 
 	/**
 	 * Is the receiver an Avail map?
@@ -1160,9 +1129,9 @@ class AvailObject private constructor(
 	 * @return
 	 *   `true` if the receiver is a map, `false` otherwise.
 	 */
-	override val isMap get() = dispatch { it::o_IsMap }
+	override val isMap get() = descriptor().o_IsMap(this)
 
-	override val isMapType get() = dispatch { it::o_IsMapType }
+	override val isMapType get() = descriptor().o_IsMapType(this)
 
 	/**
 	 * Is the receiver an Avail nybble?
@@ -1170,9 +1139,9 @@ class AvailObject private constructor(
 	 * @return
 	 *   `true` if the receiver is a nybble, `false` otherwise.
 	 */
-	override val isNybble get() = dispatch { it::o_IsNybble }
+	override val isNybble get() = descriptor().o_IsNybble(this)
 
-	override fun isPositive() = dispatch { it::o_IsPositive }
+	override fun isPositive() = descriptor().o_IsPositive(this)
 
 	/**
 	 * Is the receiver an Avail set?
@@ -1180,12 +1149,9 @@ class AvailObject private constructor(
 	 * @return
 	 *   `true` if the receiver is a set, `false` otherwise.
 	 */
-	override val isSet get() = dispatch { it::o_IsSet }
+	override val isSet get() = descriptor().o_IsSet(this)
 
-	override val isSetType get() = dispatch { it::o_IsSetType }
-
-	override fun isSubsetOf(another: A_Set) =
-		dispatch(another) { it::o_IsSubsetOf }
+	override val isSetType get() = descriptor().o_IsSetType(this)
 
 	/**
 	 * Is the receiver an Avail string?
@@ -1193,7 +1159,7 @@ class AvailObject private constructor(
 	 * @return
 	 *   `true` if the receiver is an Avail string, `false` otherwise.
 	 */
-	override val isString get() = dispatch { it::o_IsString }
+	override val isString get() = descriptor().o_IsString(this)
 
 	/**
 	 * Is the receiver an Avail tuple?
@@ -1201,11 +1167,11 @@ class AvailObject private constructor(
 	 * @return
 	 *   `true` if the receiver is a tuple, `false` otherwise.
 	 */
-	override val isTuple get() = dispatch { it::o_IsTuple }
+	override val isTuple get() = descriptor().o_IsTuple(this)
 
-	override val isTupleType get() = dispatch { it::o_IsTupleType }
+	override val isTupleType get() = descriptor().o_IsTupleType(this)
 
-	override val isType get() = dispatch { it::o_IsType }
+	override val isType get() = descriptor().o_IsType(this)
 
 	/**
 	 * Answer an [iterator][Iterator] suitable for traversing the
@@ -1216,40 +1182,40 @@ class AvailObject private constructor(
 	 */
 	@ReferencedInGeneratedCode
 	override fun iterator(): Iterator<AvailObject> =
-		dispatch { it::o_Iterator }
+		descriptor().o_Iterator(this)
 
 	override fun spliterator(): Spliterator<AvailObject> =
-		dispatch { it::o_Spliterator }
+		descriptor().o_Spliterator(this)
 
-	override fun levelTwoChunk() = dispatch { it::o_LevelTwoChunk }
+	override fun levelTwoChunk() = descriptor().o_LevelTwoChunk(this)
 
 	override fun levelTwoChunkOffset(chunk: L2Chunk, offset: Int) =
-		dispatch(chunk, offset) { it::o_LevelTwoChunkOffset }
+		descriptor().o_LevelTwoChunkOffset(this, chunk, offset)
 
-	override fun levelTwoOffset() = dispatch { it::o_LevelTwoOffset }
+	override fun levelTwoOffset() = descriptor().o_LevelTwoOffset(this)
 
-	override fun literal() = dispatch { it::o_Literal }
+	override fun literal() = descriptor().o_Literal(this)
 
-	override fun literalAt(index: Int) = dispatch(index) { it::o_LiteralAt }
+	override fun literalAt(index: Int) = descriptor().o_LiteralAt(this, index)
 
 	@ReferencedInGeneratedCode
 	override fun frameAt(index: Int) =
-		dispatch(index) { it::o_FrameAt }
+		descriptor().o_FrameAt(this, index)
 
 	@ReferencedInGeneratedCode
 	override fun frameAtPut(index: Int, value: AvailObject): AvailObject =
-		dispatch(index, value) { it::o_FrameAtPut }
+		descriptor().o_FrameAtPut(this, index, value)
 
 	override fun localTypeAt(index: Int) =
-		dispatch(index) { it::o_LocalTypeAt }
+		descriptor().o_LocalTypeAt(this, index)
 
 	@Throws(MethodDefinitionException::class)
 	override fun lookupByTypesFromTuple(argumentTypeTuple: A_Tuple) =
-		dispatch(argumentTypeTuple) { it::o_LookupByTypesFromTuple }
+		descriptor().o_LookupByTypesFromTuple(this, argumentTypeTuple)
 
 	@Throws(MethodDefinitionException::class)
 	override fun lookupByValuesFromList(argumentList: List<A_BasicObject>) =
-		dispatch(argumentList) { it::o_LookupByValuesFromList }
+		descriptor().o_LookupByValuesFromList(this, argumentList)
 
 	override fun makeImmutable() =
 		descriptor().let {
@@ -1268,14 +1234,14 @@ class AvailObject private constructor(
 		}
 
 	override fun makeSubobjectsImmutable() =
-		dispatch { it::o_MakeSubobjectsImmutable }
+		descriptor().o_MakeSubobjectsImmutable(this)
 
 	override fun makeSubobjectsShared() =
-		dispatch { it::o_MakeSubobjectsShared }
+		descriptor().o_MakeSubobjectsShared(this)
 
-	override fun maxStackDepth() = dispatch { it::o_MaxStackDepth }
+	override fun maxStackDepth() = descriptor().o_MaxStackDepth(this)
 
-	override fun methodDefinitions() = dispatch { it::o_MethodDefinitions }
+	override fun methodDefinitions() = descriptor().o_MethodDefinitions(this)
 
 	/**
 	 * Subtract the argument [aNumber] from the receiver and answer the result.
@@ -1294,7 +1260,7 @@ class AvailObject private constructor(
 	 * @see InfinityDescriptor
 	 */
 	override fun minusCanDestroy(aNumber: A_Number, canDestroy: Boolean) =
-		dispatch(aNumber, canDestroy) { it::o_MinusCanDestroy }
+		descriptor().o_MinusCanDestroy(this, aNumber, canDestroy)
 
 	/**
 	 * Difference the receiver and the argument [aNumber] and answer the result.
@@ -1313,7 +1279,7 @@ class AvailObject private constructor(
 	 */
 	override fun noFailMinusCanDestroy(aNumber: A_Number, canDestroy: Boolean) =
 		try {
-			dispatch(aNumber, canDestroy) { it::o_MinusCanDestroy }
+			descriptor().o_MinusCanDestroy(this, aNumber, canDestroy)
 		} catch (e: ArithmeticException) {
 			// This had better not happen, otherwise the caller has violated the
 			// intention of this method.
@@ -1337,7 +1303,7 @@ class AvailObject private constructor(
 	 * @see InfinityDescriptor
 	 */
 	override fun multiplyByInfinityCanDestroy(sign: Sign, canDestroy: Boolean) =
-		dispatch(sign, canDestroy) { it::o_MultiplyByInfinityCanDestroy }
+		descriptor().o_MultiplyByInfinityCanDestroy(this, sign, canDestroy)
 
 	/**
 	 * Multiply the receiver and the argument [anInteger] and answer the result.
@@ -1357,43 +1323,43 @@ class AvailObject private constructor(
 	override fun multiplyByIntegerCanDestroy(
 		anInteger: AvailObject,
 		canDestroy: Boolean
-	) = dispatch(anInteger, canDestroy) { it::o_MultiplyByIntegerCanDestroy }
+	) = descriptor().o_MultiplyByIntegerCanDestroy(this, anInteger, canDestroy)
 
-	override fun importedNames() = dispatch { it::o_ImportedNames }
+	override fun importedNames() = descriptor().o_ImportedNames(this)
 
 	override fun nameVisible(trueName: A_Atom) =
-		dispatch(trueName) { it::o_NameVisible }
+		descriptor().o_NameVisible(this, trueName)
 
-	override fun newNames() = dispatch { it::o_NewNames }
+	override fun newNames() = descriptor().o_NewNames(this)
 
-	override fun numArgs() = dispatch { it::o_NumArgs }
+	override fun numArgs() = descriptor().o_NumArgs(this)
 
-	override fun numSlots() = dispatch { it::o_NumSlots }
+	override fun numSlots() = descriptor().o_NumSlots(this)
 
-	override fun numLiterals() = dispatch { it::o_NumLiterals }
+	override fun numLiterals() = descriptor().o_NumLiterals(this)
 
-	override fun numLocals() = dispatch { it::o_NumLocals }
+	override fun numLocals() = descriptor().o_NumLocals(this)
 
-	override fun numConstants() = dispatch { it::o_NumConstants }
+	override fun numConstants() = descriptor().o_NumConstants(this)
 
-	override fun numOuters() = dispatch { it::o_NumOuters }
+	override fun numOuters() = descriptor().o_NumOuters(this)
 
-	override fun numOuterVars() = dispatch { it::o_NumOuterVars }
+	override fun numOuterVars() = descriptor().o_NumOuterVars(this)
 
-	override fun nybbles() = dispatch { it::o_Nybbles }
+	override fun nybbles() = descriptor().o_Nybbles(this)
 
 	override fun optionallyNilOuterVar(index: Int) =
-		dispatch(index) { it::o_OptionallyNilOuterVar }
+		descriptor().o_OptionallyNilOuterVar(this, index)
 
 	override fun outerTypeAt(index: Int) =
-		dispatch(index) { it::o_OuterTypeAt }
+		descriptor().o_OuterTypeAt(this, index)
 
-	override fun outerVarAt(index: Int) = dispatch(index) { it::o_OuterVarAt }
+	override fun outerVarAt(index: Int) = descriptor().o_OuterVarAt(this, index)
 
 	override fun outerVarAtPut(index: Int, value: AvailObject) =
-		dispatch(index, value) { it::o_OuterVarAtPut }
+		descriptor().o_OuterVarAtPut(this, index, value)
 
-	override fun pc() = dispatch { it::o_Pc }
+	override fun pc() = descriptor().o_Pc(this)
 
 	/**
 	 * Add the receiver and the argument [aNumber] and answer the result.
@@ -1412,7 +1378,7 @@ class AvailObject private constructor(
 	 * @see InfinityDescriptor
 	 */
 	override fun plusCanDestroy(aNumber: A_Number, canDestroy: Boolean) =
-		dispatch(aNumber, canDestroy) { it::o_PlusCanDestroy }
+		descriptor().o_PlusCanDestroy(this, aNumber, canDestroy)
 
 	/**
 	 * Add the receiver and the argument [aNumber] and answer the result. The
@@ -1431,103 +1397,74 @@ class AvailObject private constructor(
 	 */
 	override fun noFailPlusCanDestroy(aNumber: A_Number, canDestroy: Boolean) =
 		try {
-			dispatch(aNumber, canDestroy) { it::o_PlusCanDestroy }
+			descriptor().o_PlusCanDestroy(this, aNumber, canDestroy)
 		} catch (e: ArithmeticException) {
 			// This had better not happen, otherwise the caller has violated the
 			// intention of this method.
 			error("noFailPlusCanDestroy failed!")
 		}
 
-	override fun priority() = dispatch { it::o_Priority }
+	override fun priority() = descriptor().o_Priority(this)
 
 	override fun setPriority(value: Int) =
-		dispatch(value) { it::o_SetPriority }
+		descriptor().o_SetPriority(this, value)
 
-	override fun privateNames() = dispatch { it::o_PrivateNames }
+	override fun privateNames() = descriptor().o_PrivateNames(this)
 
-	override fun fiberGlobals() = dispatch { it::o_FiberGlobals }
+	override fun fiberGlobals() = descriptor().o_FiberGlobals(this)
 
 	override fun setFiberGlobals(value: A_Map) =
-		dispatch(value) { it::o_SetFiberGlobals }
+		descriptor().o_SetFiberGlobals(this, value)
 
 	override fun rawSignedIntegerAt(index: Int) =
-		dispatch(index) { it::o_RawSignedIntegerAt }
+		descriptor().o_RawSignedIntegerAt(this, index)
 
 	override fun rawSignedIntegerAtPut(index: Int, value: Int) =
-		dispatch(index, value) { it::o_RawSignedIntegerAtPut }
+		descriptor().o_RawSignedIntegerAtPut(this, index, value)
 
 	override fun rawUnsignedIntegerAt(index: Int) =
-		dispatch(index) { it::o_RawUnsignedIntegerAt }
+		descriptor().o_RawUnsignedIntegerAt(this, index)
 
 	override fun rawUnsignedIntegerAtPut(index: Int, value: Int) =
-		dispatch(index, value) { it::o_RawUnsignedIntegerAtPut }
+		descriptor().o_RawUnsignedIntegerAtPut(this, index, value)
 
 	override fun removeDependentChunk(chunk: L2Chunk) =
-		dispatch(chunk) { it::o_RemoveDependentChunk }
+		descriptor().o_RemoveDependentChunk(this, chunk)
 
 	override fun removeFrom(loader: AvailLoader, afterRemoval: () -> Unit) =
-		dispatch(loader, afterRemoval) { it::o_RemoveFrom }
+		descriptor().o_RemoveFrom(this, loader, afterRemoval)
 
 	override fun removeDefinition(definition: A_Definition) =
-		dispatch(definition) { it::o_RemoveDefinition }
+		descriptor().o_RemoveDefinition(this, definition)
 
 	override fun resolveForward(forwardDefinition: A_BasicObject) =
-		dispatch(forwardDefinition) { it::o_ResolveForward }
+		descriptor().o_ResolveForward(this, forwardDefinition)
 
 	override fun scanSubobjects(visitor: AvailSubobjectVisitor) =
-		dispatch(visitor) { it::o_ScanSubobjects }
-
-	override fun setIntersectionCanDestroy(
-		otherSet: A_Set,
-		canDestroy: Boolean
-	) = dispatch(otherSet, canDestroy) { it::o_SetIntersectionCanDestroy }
-
-	override fun setMinusCanDestroy(otherSet: A_Set, canDestroy: Boolean) =
-		dispatch(otherSet, canDestroy) { it::o_SetMinusCanDestroy }
-
-	override fun setSize() = dispatch { it::o_SetSize }
-
-	override fun setUnionCanDestroy(otherSet: A_Set, canDestroy: Boolean) =
-		dispatch(otherSet, canDestroy) { it::o_SetUnionCanDestroy }
+		descriptor().o_ScanSubobjects(this, visitor)
 
 	@Throws(VariableSetException::class)
 	override fun setValue(newValue: A_BasicObject) =
-		dispatch(newValue) { it::o_SetValue }
+		descriptor().o_SetValue(this, newValue)
 
 	override fun setValueNoCheck(newValue: A_BasicObject) =
-		dispatch(newValue) { it::o_SetValueNoCheck }
-
-	override fun setWithElementCanDestroy(
-		newElementObject: A_BasicObject,
-		canDestroy: Boolean
-	) = dispatch(newElementObject, canDestroy) {
-		it::o_SetWithElementCanDestroy
-	}
-
-	override fun setWithoutElementCanDestroy(
-		elementObjectToExclude: A_BasicObject,
-		canDestroy: Boolean
-	) = dispatch(elementObjectToExclude, canDestroy) {
-		it::o_SetWithoutElementCanDestroy
-	}
+		descriptor().o_SetValueNoCheck(this, newValue)
 
 	override fun stackAt(slotIndex: Int) =
-		dispatch(slotIndex) { it::o_StackAt }
+		descriptor().o_StackAt(this, slotIndex)
 
-	override fun stackp() = dispatch { it::o_Stackp }
+	override fun stackp() = descriptor().o_Stackp(this)
 
-	override fun start() = dispatch { it::o_Start }
+	override fun start() = descriptor().o_Start(this)
 
-	override fun startingChunk() = dispatch { it::o_StartingChunk }
+	override fun startingChunk() = descriptor().o_StartingChunk(this)
 
 	override fun setStartingChunkAndReoptimizationCountdown(
 		chunk: L2Chunk,
 		countdown: Long
-	) = dispatch(chunk, countdown) {
-		it::o_SetStartingChunkAndReoptimizationCountdown
-	}
+	) = descriptor().o_SetStartingChunkAndReoptimizationCountdown(this, chunk, countdown)
 
-	override fun string() = dispatch { it::o_String }
+	override fun string() = descriptor().o_String(this)
 
 	/**
 	 * Difference the operands and answer the result.
@@ -1547,7 +1484,7 @@ class AvailObject private constructor(
 	override fun subtractFromInfinityCanDestroy(
 		sign: Sign,
 		canDestroy: Boolean
-	) = dispatch(sign, canDestroy) { it::o_SubtractFromInfinityCanDestroy }
+	) = descriptor().o_SubtractFromInfinityCanDestroy(this, sign, canDestroy)
 
 	/**
 	 * Difference the operands and answer the result.
@@ -1567,7 +1504,7 @@ class AvailObject private constructor(
 	override fun subtractFromIntegerCanDestroy(
 		anInteger: AvailObject,
 		canDestroy: Boolean
-	) = dispatch(anInteger, canDestroy) { it::o_SubtractFromIntegerCanDestroy }
+	) = descriptor().o_SubtractFromIntegerCanDestroy(this, anInteger, canDestroy)
 
 	/**
 	 * Multiply the receiver and the argument [aNumber] and answer the result.
@@ -1586,7 +1523,7 @@ class AvailObject private constructor(
 	 * @see InfinityDescriptor
 	 */
 	override fun timesCanDestroy(aNumber: A_Number, canDestroy: Boolean) =
-		dispatch(aNumber, canDestroy) { it::o_TimesCanDestroy }
+		descriptor().o_TimesCanDestroy(this, aNumber, canDestroy)
 
 	/**
 	 * Multiply the receiver and the argument [aNumber] and answer the result.
@@ -1609,7 +1546,7 @@ class AvailObject private constructor(
 	) =
 		try
 		{
-			dispatch(aNumber, canDestroy) { it::o_TimesCanDestroy }
+			descriptor().o_TimesCanDestroy(this, aNumber, canDestroy)
 		}
 		catch (e: ArithmeticException)
 		{
@@ -1618,41 +1555,41 @@ class AvailObject private constructor(
 			error("noFailTimesCanDestroy failed!")
 		}
 
-	override fun tokenType(): TokenType = dispatch { it::o_TokenType }
+	override fun tokenType(): TokenType = descriptor().o_TokenType(this)
 
-	override fun traversed() = dispatch { it::o_Traversed }
+	override fun traversed() = descriptor().o_Traversed(this)
 
-	override fun trimExcessInts() = dispatch { it::o_TrimExcessInts }
+	override fun trimExcessInts() = descriptor().o_TrimExcessInts(this)
 
 	override fun trueNamesForStringName(stringName: A_String) =
-		dispatch(stringName) { it::o_TrueNamesForStringName }
+		descriptor().o_TrueNamesForStringName(this, stringName)
 
-	override fun kind() = dispatch { it::o_Kind }
+	override fun kind() = descriptor().o_Kind(this)
 
-	override fun value() = dispatch { it::o_Value }
+	override fun value() = descriptor().o_Value(this)
 
-	override fun variableBindings() = dispatch { it::o_VariableBindings }
+	override fun variableBindings() = descriptor().o_VariableBindings(this)
 
-	override fun visibleNames() = dispatch { it::o_VisibleNames }
+	override fun visibleNames() = descriptor().o_VisibleNames(this)
 
-	override fun resultType() = dispatch { it::o_ResultType }
+	override fun resultType() = descriptor().o_ResultType(this)
 
-	override fun primitive(): Primitive? = dispatch { it::o_Primitive }
+	override fun primitive(): Primitive? = descriptor().o_Primitive(this)
 
-	override fun declarationKind() = dispatch { it::o_DeclarationKind }
+	override fun declarationKind() = descriptor().o_DeclarationKind(this)
 
-	override fun binUnionKind() = dispatch { it::o_BinUnionKind }
+	override fun binUnionKind() = descriptor().o_BinUnionKind(this)
 
-	override fun lineNumber() = dispatch { it::o_LineNumber }
+	override fun lineNumber() = descriptor().o_LineNumber(this)
 
-	override val isSetBin get() = dispatch { it::o_IsSetBin }
+	override val isSetBin get() = descriptor().o_IsSetBin(this)
 
-	override val isInt get() = dispatch { it::o_IsInt }
+	override val isInt get() = descriptor().o_IsInt(this)
 
-	override val isLong get() = dispatch { it::o_IsLong }
+	override val isLong get() = descriptor().o_IsLong(this)
 
 	override fun equalsInstanceTypeFor(anInstanceType: AvailObject) =
-		dispatch(anInstanceType) { it::o_EqualsInstanceTypeFor }
+		descriptor().o_EqualsInstanceTypeFor(this, anInstanceType)
 
 	/**
 	 * Determine whether the receiver is an
@@ -1665,247 +1602,241 @@ class AvailObject private constructor(
 	 *   Whether the receiver is an enumeration with the given membership.
 	 */
 	override fun equalsEnumerationWithSet(aSet: A_Set) =
-		dispatch(aSet) { it::o_EqualsEnumerationWithSet }
+		descriptor().o_EqualsEnumerationWithSet(this, aSet)
 
-	override val isEnumeration get() = dispatch { it::o_IsEnumeration }
+	override val isEnumeration get() = descriptor().o_IsEnumeration(this)
 
 	override fun enumerationIncludesInstance(potentialInstance: AvailObject) =
-		dispatch(potentialInstance) { it::o_EnumerationIncludesInstance }
+		descriptor().o_EnumerationIncludesInstance(this, potentialInstance)
 
 	override fun equalsCompiledCodeType(aCompiledCodeType: A_Type) =
-		dispatch(aCompiledCodeType) { it::o_EqualsCompiledCodeType }
+		descriptor().o_EqualsCompiledCodeType(this, aCompiledCodeType)
 
 	override fun equalsEnumerationType(anEnumerationType: A_BasicObject) =
-		dispatch(anEnumerationType) { it::o_EqualsEnumerationType }
+		descriptor().o_EqualsEnumerationType(this, anEnumerationType)
 
 	override fun setVersions(versionStrings: A_Set) =
-		dispatch(versionStrings) { it::o_SetVersions }
+		descriptor().o_SetVersions(this, versionStrings)
 
-	override fun versions() = dispatch { it::o_Versions }
+	override fun versions() = descriptor().o_Versions(this)
 
-	override val isRawPojo get() = dispatch { it::o_IsRawPojo }
+	override val isRawPojo get() = descriptor().o_IsRawPojo(this)
 
 	override fun addSemanticRestriction(restriction: A_SemanticRestriction) =
-		dispatch(restriction) { it::o_AddSemanticRestriction }
+		descriptor().o_AddSemanticRestriction(this, restriction)
 
 	override fun removeSemanticRestriction(restriction: A_SemanticRestriction) =
-		dispatch(restriction) { it::o_RemoveSemanticRestriction }
+		descriptor().o_RemoveSemanticRestriction(this, restriction)
 
 	override fun semanticRestrictions() =
-		dispatch { it::o_SemanticRestrictions }
+		descriptor().o_SemanticRestrictions(this)
 
 	override fun addSealedArgumentsType(typeTuple: A_Tuple) =
-		dispatch(typeTuple) { it::o_AddSealedArgumentsType }
+		descriptor().o_AddSealedArgumentsType(this, typeTuple)
 
 	override fun removeSealedArgumentsType(typeTuple: A_Tuple) =
-		dispatch(typeTuple) { it::o_RemoveSealedArgumentsType }
+		descriptor().o_RemoveSealedArgumentsType(this, typeTuple)
 
 	override fun sealedArgumentsTypesTuple() =
-		dispatch { it::o_SealedArgumentsTypesTuple }
+		descriptor().o_SealedArgumentsTypesTuple(this)
 
 	override fun moduleAddSemanticRestriction(
 		semanticRestriction: A_SemanticRestriction
-	) = dispatch(semanticRestriction) { it::o_ModuleAddSemanticRestriction }
+	) = descriptor().o_ModuleAddSemanticRestriction(this, semanticRestriction)
 
 	override fun addConstantBinding(
 		name: A_String,
 		constantBinding: A_Variable
-	) = dispatch(name, constantBinding) { it::o_AddConstantBinding }
+	) = descriptor().o_AddConstantBinding(this, name, constantBinding)
 
 	override fun addVariableBinding(
 		name: A_String,
 		variableBinding: A_Variable
-	) = dispatch(name, variableBinding) { it::o_AddVariableBinding }
+	) = descriptor().o_AddVariableBinding(this, name, variableBinding)
 
-	override fun isMethodEmpty() = dispatch { it::o_IsMethodEmpty }
+	override fun isMethodEmpty() = descriptor().o_IsMethodEmpty(this)
 
-	override val isPojoSelfType get() = dispatch { it::o_IsPojoSelfType }
+	override val isPojoSelfType get() = descriptor().o_IsPojoSelfType(this)
 
-	override fun pojoSelfType() = dispatch { it::o_PojoSelfType }
+	override fun pojoSelfType() = descriptor().o_PojoSelfType(this)
 
-	override fun javaClass() = dispatch { it::o_JavaClass }
+	override fun javaClass() = descriptor().o_JavaClass(this)
 
-	override val isUnsignedShort get() = dispatch { it::o_IsUnsignedShort }
+	override val isUnsignedShort get() = descriptor().o_IsUnsignedShort(this)
 
 	override fun extractUnsignedShort() =
-		dispatch { it::o_ExtractUnsignedShort }
+		descriptor().o_ExtractUnsignedShort(this)
 
-	override val isFloat get() = dispatch { it::o_IsFloat }
+	override val isFloat get() = descriptor().o_IsFloat(this)
 
-	override val isDouble get() = dispatch { it::o_IsDouble }
+	override val isDouble get() = descriptor().o_IsDouble(this)
 
-	override fun rawPojo() = dispatch { it::o_RawPojo }
+	override fun rawPojo() = descriptor().o_RawPojo(this)
 
-	override val isPojo get() = dispatch { it::o_IsPojo }
+	override val isPojo get() = descriptor().o_IsPojo(this)
 
-	override val isPojoType get() = dispatch { it::o_IsPojoType }
+	override val isPojoType get() = descriptor().o_IsPojoType(this)
 
 	override fun numericCompare(another: A_Number) =
-		dispatch(another) { it::o_NumericCompare }
+		descriptor().o_NumericCompare(this, another)
 
 	override fun numericCompareToInfinity(sign: Sign) =
-		dispatch(sign) { it::o_NumericCompareToInfinity }
+		descriptor().o_NumericCompareToInfinity(this, sign)
 
 	override fun numericCompareToDouble(aDouble: Double) =
-		dispatch(aDouble) { it::o_NumericCompareToDouble }
+		descriptor().o_NumericCompareToDouble(this, aDouble)
 
 	override fun numericCompareToInteger(anInteger: AvailObject) =
-		dispatch(anInteger) { it::o_NumericCompareToInteger }
+		descriptor().o_NumericCompareToInteger(this, anInteger)
 
 	override fun addToDoubleCanDestroy(
 		doubleObject: A_Number,
 		canDestroy: Boolean
-	) = dispatch(doubleObject, canDestroy) { it::o_AddToDoubleCanDestroy }
+	) = descriptor().o_AddToDoubleCanDestroy(this, doubleObject, canDestroy)
 
 	override fun addToFloatCanDestroy(
 		floatObject: A_Number,
 		canDestroy: Boolean
-	) = dispatch(floatObject, canDestroy) { it::o_AddToFloatCanDestroy }
+	) = descriptor().o_AddToFloatCanDestroy(this, floatObject, canDestroy)
 
 	override fun subtractFromDoubleCanDestroy(
 		doubleObject: A_Number,
 		canDestroy: Boolean
-	) = dispatch(doubleObject, canDestroy) {
-		it::o_SubtractFromDoubleCanDestroy
-	}
+	) = descriptor().o_SubtractFromDoubleCanDestroy(
+		this, doubleObject, canDestroy)
 
 	override fun subtractFromFloatCanDestroy(
 		floatObject: A_Number,
 		canDestroy: Boolean
-	) = dispatch(floatObject, canDestroy) { it::o_SubtractFromFloatCanDestroy }
+	) = descriptor().o_SubtractFromFloatCanDestroy(this, floatObject, canDestroy)
 
 	override fun multiplyByDoubleCanDestroy(
 		doubleObject: A_Number,
 		canDestroy: Boolean
-	) = dispatch(doubleObject, canDestroy) {
-		it:: o_MultiplyByDoubleCanDestroy
-	}
+	) = descriptor().o_MultiplyByDoubleCanDestroy(
+		this, doubleObject, canDestroy)
 
 	override fun multiplyByFloatCanDestroy(
 		floatObject: A_Number,
 		canDestroy: Boolean
-	) = dispatch(floatObject, canDestroy) { it::o_MultiplyByFloatCanDestroy }
+	) = descriptor().o_MultiplyByFloatCanDestroy(this, floatObject, canDestroy)
 
 	override fun divideIntoDoubleCanDestroy(
 		doubleObject: A_Number,
 		canDestroy: Boolean
-	) = dispatch(doubleObject, canDestroy) { it::o_DivideIntoDoubleCanDestroy }
+	) = descriptor().o_DivideIntoDoubleCanDestroy(
+		this, doubleObject, canDestroy)
 
 	override fun divideIntoFloatCanDestroy(
 		floatObject: A_Number,
 		canDestroy: Boolean
-	) = dispatch(floatObject, canDestroy) { it::o_DivideIntoFloatCanDestroy }
+	) = descriptor().o_DivideIntoFloatCanDestroy(this, floatObject, canDestroy)
 
 	override fun serializerOperation() =
-		dispatch { it::o_SerializerOperation }
+		descriptor().o_SerializerOperation(this)
 
-	override val isPojoFusedType get() = dispatch { it::o_IsPojoFusedType }
+	override val isPojoFusedType get() = descriptor().o_IsPojoFusedType(this)
 
 	override fun equalsPojoBottomType() =
-		dispatch { it::o_EqualsPojoBottomType }
+		descriptor().o_EqualsPojoBottomType(this)
 
-	override fun javaAncestors() = dispatch { it::o_JavaAncestors }
+	override fun javaAncestors() = descriptor().o_JavaAncestors(this)
 
-	override val isPojoArrayType get() = dispatch { it::o_IsPojoArrayType }
+	override val isPojoArrayType get() = descriptor().o_IsPojoArrayType(this)
 
 	override fun marshalToJava(classHint: Class<*>?) =
-		dispatch(classHint) { it::o_MarshalToJava }
+		descriptor().o_MarshalToJava(this, classHint)
 
 	override fun equalsPojoField(field: AvailObject, receiver: AvailObject) =
-		dispatch(field, receiver) { it::o_EqualsPojoField }
+		descriptor().o_EqualsPojoField(this, field, receiver)
 
-	override val isSignedByte get() = dispatch { it::o_IsSignedByte }
+	override val isSignedByte get() = descriptor().o_IsSignedByte(this)
 
-	override val isSignedShort get() = dispatch { it::o_IsSignedShort }
+	override val isSignedShort get() = descriptor().o_IsSignedShort(this)
 
-	override fun extractSignedByte() = dispatch { it::o_ExtractSignedByte }
+	override fun extractSignedByte() = descriptor().o_ExtractSignedByte(this)
 
-	override fun extractSignedShort() = dispatch { it::o_ExtractSignedShort }
+	override fun extractSignedShort() = descriptor().o_ExtractSignedShort(this)
 
 	override fun equalsEqualityRawPojoFor(
 		otherEqualityRawPojo: AvailObject,
 		otherJavaObject: Any?
-	) = dispatch(otherEqualityRawPojo, otherJavaObject) {
-		it::o_EqualsEqualityRawPojo
-	}
+	) = descriptor().o_EqualsEqualityRawPojo(
+		this, otherEqualityRawPojo, otherJavaObject)
 
-	override fun <T : Any> javaObject() = dispatch<T?> { it::o_JavaObject }
+	override fun <T : Any> javaObject(): T? = descriptor().o_JavaObject(this)
 
-	override fun <T : Any> javaObjectNotNull(): T = javaObject()!!
+	override fun <T : Any> javaObjectNotNull(): T =
+		descriptor().o_JavaObject(this)!!
 
-	override fun asBigInteger() = dispatch { it::o_AsBigInteger }
+	override fun asBigInteger() = descriptor().o_AsBigInteger(this)
 
-	override fun lowerCaseString() = dispatch { it::o_LowerCaseString }
+	override fun lowerCaseString() = descriptor().o_LowerCaseString(this)
 
-	override fun totalInvocations() = dispatch { it::o_TotalInvocations }
+	override fun totalInvocations() = descriptor().o_TotalInvocations(this)
 
-	override fun tallyInvocation() = dispatch { it::o_TallyInvocation }
+	override fun tallyInvocation() = descriptor().o_TallyInvocation(this)
 
-	override fun fieldTuple() = dispatch { it::o_FieldTuple }
+	override fun fieldTuple() = descriptor().o_FieldTuple(this)
 
-	override val isTokenType get() = dispatch { it::o_IsTokenType }
+	override val isTokenType get() = descriptor().o_IsTokenType(this)
 
 	override val isLiteralTokenType
-		get() = dispatch { it::o_IsLiteralTokenType }
+		get() = descriptor().o_IsLiteralTokenType(this)
 
-	override fun isLiteralToken() = dispatch { it::o_IsLiteralToken }
+	override fun isLiteralToken() = descriptor().o_IsLiteralToken(this)
 
 	override fun equalsTokenType(aTokenType: A_Type) =
-		dispatch(aTokenType) { it::o_EqualsTokenType }
+		descriptor().o_EqualsTokenType(this, aTokenType)
 
 	override fun equalsLiteralTokenType(aLiteralTokenType: A_Type) =
-		dispatch(aLiteralTokenType) { it::o_EqualsLiteralTokenType }
+		descriptor().o_EqualsLiteralTokenType(this, aLiteralTokenType)
 
 	override fun equalsObjectType(anObjectType: AvailObject) =
-		dispatch(anObjectType) { it::o_EqualsObjectType }
+		descriptor().o_EqualsObjectType(this, anObjectType)
 
 	override fun equalsToken(aToken: A_Token) =
-		dispatch(aToken) { it::o_EqualsToken }
+		descriptor().o_EqualsToken(this, aToken)
 
 	override fun bitwiseAnd(anInteger: A_Number, canDestroy: Boolean) =
-		dispatch(anInteger, canDestroy) { it::o_BitwiseAnd }
+		descriptor().o_BitwiseAnd(this, anInteger, canDestroy)
 
 	override fun bitwiseOr(anInteger: A_Number, canDestroy: Boolean) =
-		dispatch(anInteger, canDestroy) { it::o_BitwiseOr }
+		descriptor().o_BitwiseOr(this, anInteger, canDestroy)
 
 	override fun bitwiseXor(anInteger: A_Number, canDestroy: Boolean) =
-		dispatch(anInteger, canDestroy) { it::o_BitwiseXor }
+		descriptor().o_BitwiseXor(this, anInteger, canDestroy)
 
 	override fun addSeal(methodName: A_Atom, sealSignature: A_Tuple) =
-		dispatch(methodName, sealSignature) { it::o_AddSeal }
+		descriptor().o_AddSeal(this, methodName, sealSignature)
 
-	override val isInstanceMeta get() = dispatch { it::o_IsInstanceMeta }
+	override val isInstanceMeta get() = descriptor().o_IsInstanceMeta(this)
 
 	override fun setMethodName(methodName: A_String) =
-		dispatch(methodName) { it::o_SetMethodName }
+		descriptor().o_SetMethodName(this, methodName)
 
-	override fun startingLineNumber() = dispatch { it::o_StartingLineNumber }
+	override fun startingLineNumber() = descriptor().o_StartingLineNumber(this)
 
-	override fun module() = dispatch { it::o_Module }
+	override fun module() = descriptor().o_Module(this)
 
-	override fun methodName() = dispatch { it::o_MethodName }
+	override fun methodName() = descriptor().o_MethodName(this)
 
 	override fun binElementsAreAllInstancesOfKind(kind: A_Type) =
-		dispatch(kind) { it::o_BinElementsAreAllInstancesOfKind }
-
-	override fun setElementsAreAllInstancesOfKind(kind: AvailObject) =
-		dispatch(kind) { it::o_SetElementsAreAllInstancesOfKind }
+		descriptor().o_BinElementsAreAllInstancesOfKind(this, kind)
 
 	override fun bitShiftLeftTruncatingToBits(
 		shiftFactor: A_Number,
 		truncationBits: A_Number,
 		canDestroy: Boolean
-	) = dispatch(shiftFactor, truncationBits, canDestroy) {
-		it::o_BitShiftLeftTruncatingToBits
-	}
+	) = descriptor().o_BitShiftLeftTruncatingToBits(this, shiftFactor, truncationBits, canDestroy)
 
-	override fun setBinIterator() = dispatch { it::o_SetBinIterator }
+	override fun setBinIterator() = descriptor().o_SetBinIterator(this)
 
 	override fun bitShift(shiftFactor: A_Number, canDestroy: Boolean) =
-		dispatch(shiftFactor, canDestroy) { it::o_BitShift }
+		descriptor().o_BitShift(this, shiftFactor, canDestroy)
 
 	override fun equalsPhrase(aPhrase: A_Phrase) =
-		dispatch(aPhrase) { it::o_EqualsPhrase }
+		descriptor().o_EqualsPhrase(this, aPhrase)
 
 	/**
 	 * Answer the [method][MethodDescriptor] that this
@@ -1914,17 +1845,16 @@ class AvailObject private constructor(
 	 * @return
 	 *   The definition's method.
 	 */
-	override fun definitionMethod() = dispatch { it::o_DefinitionMethod }
+	override fun definitionMethod() = descriptor().o_DefinitionMethod(this)
 
-	override fun prefixFunctions() = dispatch { it::o_PrefixFunctions }
+	override fun prefixFunctions() = descriptor().o_PrefixFunctions(this)
 
 	override fun equalsByteArrayTuple(aByteArrayTuple: A_Tuple) =
-		dispatch(aByteArrayTuple) { it::o_EqualsByteArrayTuple }
+		descriptor().o_EqualsByteArrayTuple(this, aByteArrayTuple)
 
-	override val isByteArrayTuple get() = dispatch { it::o_IsByteArrayTuple }
+	override val isByteArrayTuple get() = descriptor().o_IsByteArrayTuple(this)
 
-	override fun <T> lock(body: () -> T): T =
-		dispatch<T, () -> T>(body) { it::o_Lock }
+	override fun <T> lock(body: () -> T): T = descriptor().o_Lock(this, body)
 
 	/**
 	 * Answer the [loader][AvailLoader] bound to the
@@ -1935,12 +1865,12 @@ class AvailObject private constructor(
 	 *   An Avail loader, or `null` if no Avail loader is associated with the
 	 *   specified fiber.
 	 */
-	override fun availLoader(): AvailLoader? = dispatch { it::o_AvailLoader }
+	override fun availLoader(): AvailLoader? = descriptor().o_AvailLoader(this)
 
 	override fun setAvailLoader(loader: AvailLoader?) =
-		dispatch(loader) { it::o_SetAvailLoader }
+		descriptor().o_SetAvailLoader(this, loader)
 
-	override fun moduleName() = dispatch { it::o_ModuleName }
+	override fun moduleName() = descriptor().o_ModuleName(this)
 
 	/**
 	 * Answer the continuation that accepts the result produced by the
@@ -1950,7 +1880,7 @@ class AvailObject private constructor(
 	 *   A continuation.
 	 */
 	override fun resultContinuation(): (AvailObject) -> Unit =
-		dispatch { it::o_ResultContinuation }
+		descriptor().o_ResultContinuation(this)
 
 	/**
 	 * Answer the continuation that accepts the [throwable][Throwable]
@@ -1960,15 +1890,13 @@ class AvailObject private constructor(
 	 *   A continuation.
 	 */
 	override fun failureContinuation(): (Throwable) -> Unit =
-		dispatch { it::o_FailureContinuation }
+		descriptor().o_FailureContinuation(this)
 
 
 	override fun setSuccessAndFailureContinuations(
 		onSuccess: (AvailObject) -> Unit,
 		onFailure: (Throwable) -> Unit
-	) = dispatch(onSuccess, onFailure) {
-		it::o_SetSuccessAndFailureContinuations
-	}
+	) = descriptor().o_SetSuccessAndFailureContinuations(this, onSuccess, onFailure)
 
 	/**
 	 * Is the specified [interrupt&#32;request&#32;flag][InterruptRequestFlag]
@@ -1980,316 +1908,319 @@ class AvailObject private constructor(
 	 *   `true` if the interrupt request flag is set, `false` otherwise.
 	 */
 	override fun interruptRequestFlag(flag: InterruptRequestFlag) =
-		dispatch(flag) { it::o_InterruptRequestFlag }
+		descriptor().o_InterruptRequestFlag(this, flag)
 
 	@Throws(VariableGetException::class, VariableSetException::class)
 	override fun getAndSetValue(newValue: A_BasicObject) =
-		dispatch(newValue) { it::o_GetAndSetValue }
+		descriptor().o_GetAndSetValue(this, newValue)
 
 	@Throws(VariableGetException::class, VariableSetException::class)
 	override fun compareAndSwapValues(
 		reference: A_BasicObject,
 		newValue: A_BasicObject
-	) = dispatch(reference, newValue) { it::o_CompareAndSwapValues }
+	) = descriptor().o_CompareAndSwapValues(this, reference, newValue)
+
+	@Throws(VariableSetException::class)
+	override fun compareAndSwapValuesNoCheck(
+		reference: A_BasicObject,
+		newValue: A_BasicObject
+	) = descriptor().o_CompareAndSwapValuesNoCheck(this, reference, newValue)
 
 	@Throws(VariableGetException::class, VariableSetException::class)
 	override fun fetchAndAddValue(addend: A_Number) =
-		dispatch(addend) { it::o_FetchAndAddValue }
+		descriptor().o_FetchAndAddValue(this, addend)
 
 	override fun getAndClearInterruptRequestFlag(flag: InterruptRequestFlag) =
-		dispatch(flag) { it::o_GetAndClearInterruptRequestFlag }
+		descriptor().o_GetAndClearInterruptRequestFlag(this, flag)
 
 	override fun getAndSetSynchronizationFlag(
 		flag: SynchronizationFlag,
 		value: Boolean
-	) = dispatch(flag, value) { it::o_GetAndSetSynchronizationFlag }
+	) = descriptor().o_GetAndSetSynchronizationFlag(this, flag, value)
 
-	override fun fiberResult() = dispatch { it::o_FiberResult }
+	override fun fiberResult() = descriptor().o_FiberResult(this)
 
 	override fun setFiberResult(result: A_BasicObject) =
-		dispatch(result) { it::o_SetFiberResult }
+		descriptor().o_SetFiberResult(this, result)
 
-	override fun joiningFibers() = dispatch { it::o_JoiningFibers }
+	override fun joiningFibers() = descriptor().o_JoiningFibers(this)
 
-	override fun wakeupTask(): TimerTask? = dispatch { it::o_WakeupTask }
+	override fun wakeupTask(): TimerTask? = descriptor().o_WakeupTask(this)
 
 	override fun setWakeupTask(task: TimerTask?) =
-		dispatch(task) { it::o_SetWakeupTask }
+		descriptor().o_SetWakeupTask(this, task)
 
 	override fun setJoiningFibers(joiners: A_Set) =
-		dispatch(joiners) { it::o_SetJoiningFibers }
+		descriptor().o_SetJoiningFibers(this, joiners)
 
 	override fun heritableFiberGlobals() =
-		dispatch { it::o_HeritableFiberGlobals }
+		descriptor().o_HeritableFiberGlobals(this)
 
 	override fun setHeritableFiberGlobals(globals: A_Map) =
-		dispatch(globals) { it::o_SetHeritableFiberGlobals }
+		descriptor().o_SetHeritableFiberGlobals(this, globals)
 
 	override fun generalFlag(flag: GeneralFlag) =
-		dispatch(flag) { it::o_GeneralFlag }
+		descriptor().o_GeneralFlag(this, flag)
 
 	override fun setGeneralFlag(flag: GeneralFlag) =
-		dispatch(flag) { it::o_SetGeneralFlag }
+		descriptor().o_SetGeneralFlag(this, flag)
 
 	override fun clearGeneralFlag(flag: GeneralFlag) =
-		dispatch(flag) { it::o_ClearGeneralFlag }
+		descriptor().o_ClearGeneralFlag(this, flag)
 
 	override fun equalsByteBufferTuple(aByteBufferTuple: A_Tuple) =
-		dispatch(aByteBufferTuple) { it::o_EqualsByteBufferTuple }
+		descriptor().o_EqualsByteBufferTuple(this, aByteBufferTuple)
 
 	override val isByteBufferTuple get() =
-		dispatch { it::o_IsByteBufferTuple }
+		descriptor().o_IsByteBufferTuple(this)
 
-	override fun fiberName() = dispatch { it::o_FiberName }
+	override fun fiberName() = descriptor().o_FiberName(this)
 
 	override fun fiberNameSupplier(supplier: () -> A_String) =
-		dispatch(supplier) { it::o_FiberNameSupplier }
+		descriptor().o_FiberNameSupplier(this, supplier)
 
-	override fun bundles() = dispatch { it::o_Bundles }
+	override fun bundles() = descriptor().o_Bundles(this)
 
 	override fun methodAddBundle(bundle: A_Bundle) =
-		dispatch(bundle) { it::o_MethodAddBundle }
+		descriptor().o_MethodAddBundle(this, bundle)
 
 	override fun methodRemoveBundle(bundle: A_Bundle) =
-		dispatch(bundle) { it::o_MethodRemoveBundle }
+		descriptor().o_MethodRemoveBundle(this, bundle)
 
 	override fun definitionBundle(): A_Bundle =
-		dispatch { it::o_DefinitionBundle }
+		descriptor().o_DefinitionBundle(this)
 
-	override fun definitionModule() = dispatch { it::o_DefinitionModule }
+	override fun definitionModule() = descriptor().o_DefinitionModule(this)
 
 	override fun definitionModuleName() =
-		dispatch { it::o_DefinitionModuleName }
+		descriptor().o_DefinitionModuleName(this)
 
-	override fun entryPoints() = dispatch { it::o_EntryPoints }
+	override fun entryPoints() = descriptor().o_EntryPoints(this)
 
 	override fun addEntryPoint(stringName: A_String, trueName: A_Atom) =
-		dispatch(stringName, trueName) { it::o_AddEntryPoint }
+		descriptor().o_AddEntryPoint(this, stringName, trueName)
 
-	override fun allAncestors() = dispatch { it::o_AllAncestors }
+	override fun allAncestors() = descriptor().o_AllAncestors(this)
 
 	override fun addAncestors(moreAncestors: A_Set) =
-		dispatch(moreAncestors) { it::o_AddAncestors }
+		descriptor().o_AddAncestors(this, moreAncestors)
 
 	override fun argumentRestrictionSets() =
-		dispatch { it::o_ArgumentRestrictionSets }
+		descriptor().o_ArgumentRestrictionSets(this)
 
-	override fun restrictedBundle() = dispatch { it::o_RestrictedBundle }
+	override fun restrictedBundle() = descriptor().o_RestrictedBundle(this)
 
 	override fun adjustPcAndStackp(pc: Int, stackp: Int) =
-		dispatch(pc, stackp) { it::o_AdjustPcAndStackp }
+		descriptor().o_AdjustPcAndStackp(this, pc, stackp)
 
-	override val isByteString get() = dispatch { it::o_IsByteString }
+	override val isByteString get() = descriptor().o_IsByteString(this)
 
-	override val isTwoByteString get() = dispatch { it::o_IsTwoByteString }
+	override val isTwoByteString get() = descriptor().o_IsTwoByteString(this)
 
 	override fun addWriteReactor(key: A_Atom, reactor: VariableAccessReactor) =
-		dispatch(key, reactor) { it::o_AddWriteReactor }
+		descriptor().o_AddWriteReactor(this, key, reactor)
 
 	@Throws(AvailException::class)
 	override fun removeWriteReactor(key: A_Atom) =
-		dispatch(key) { it::o_RemoveWriteReactor }
+		descriptor().o_RemoveWriteReactor(this, key)
 
 	override fun traceFlag(flag: TraceFlag) =
-		dispatch(flag) { it::o_TraceFlag }
+		descriptor().o_TraceFlag(this, flag)
 
 	override fun setTraceFlag(flag: TraceFlag) =
-		dispatch(flag) { it::o_SetTraceFlag }
+		descriptor().o_SetTraceFlag(this, flag)
 
 	override fun clearTraceFlag(flag: TraceFlag) =
-		dispatch(flag) { it::o_ClearTraceFlag }
+		descriptor().o_ClearTraceFlag(this, flag)
 
 	override fun recordVariableAccess(variable: A_Variable, wasRead: Boolean) =
-		dispatch(variable, wasRead) { it::o_RecordVariableAccess }
+		descriptor().o_RecordVariableAccess(this, variable, wasRead)
 
 	override fun variablesReadBeforeWritten() =
-		dispatch { it::o_VariablesReadBeforeWritten }
+		descriptor().o_VariablesReadBeforeWritten(this)
 
-	override fun variablesWritten() = dispatch { it::o_VariablesWritten }
+	override fun variablesWritten() = descriptor().o_VariablesWritten(this)
 
 	override fun validWriteReactorFunctions() =
-		dispatch { it::o_ValidWriteReactorFunctions }
+		descriptor().o_ValidWriteReactorFunctions(this)
 
 	override fun replacingCaller(newCaller: A_Continuation) =
-		dispatch(newCaller) { it::o_ReplacingCaller }
+		descriptor().o_ReplacingCaller(this, newCaller)
 
 	override fun whenContinuationIsAvailableDo(
 		whenReified: (A_Continuation) -> Unit
-	) = dispatch(whenReified) { it::o_WhenContinuationIsAvailableDo }
+	) = descriptor().o_WhenContinuationIsAvailableDo(this, whenReified)
 
 	override fun getAndClearReificationWaiters() =
-		dispatch { it::o_GetAndClearReificationWaiters }
+		descriptor().o_GetAndClearReificationWaiters(this)
 
-	override val isBottom get() = dispatch { it::o_IsBottom }
+	override val isBottom get() = descriptor().o_IsBottom(this)
 
-	override val isVacuousType get() = dispatch { it::o_IsVacuousType }
+	override val isVacuousType get() = descriptor().o_IsVacuousType(this)
 
-	override val isTop get() = dispatch { it::o_IsTop }
+	override val isTop get() = descriptor().o_IsTop(this)
 
 	override fun addPrivateNames(trueNames: A_Set) =
-		dispatch(trueNames) { it::o_AddPrivateNames }
+		descriptor().o_AddPrivateNames(this, trueNames)
 
-	override fun hasValue() = dispatch { it::o_HasValue }
+	override fun hasValue() = descriptor().o_HasValue(this)
 
 	override fun addUnloadFunction(unloadFunction: A_Function) =
-		dispatch(unloadFunction) { it::o_AddUnloadFunction }
+		descriptor().o_AddUnloadFunction(this, unloadFunction)
 
-	override fun exportedNames() = dispatch { it::o_ExportedNames }
+	override fun exportedNames() = descriptor().o_ExportedNames(this)
 
 	override val isInitializedWriteOnceVariable get() =
-		dispatch { it::o_IsInitializedWriteOnceVariable }
+		descriptor().o_IsInitializedWriteOnceVariable(this)
 
 	override fun isNumericallyIntegral() =
-		dispatch { it::o_IsNumericallyIntegral }
+		descriptor().o_IsNumericallyIntegral(this)
 
-	override fun textInterface() = dispatch { it::o_TextInterface }
+	override fun textInterface() = descriptor().o_TextInterface(this)
 
 	override fun setTextInterface(textInterface: TextInterface) =
-		dispatch(textInterface) { it::o_SetTextInterface }
+		descriptor().o_SetTextInterface(this, textInterface)
 
 	override fun writeTo(writer: JSONWriter) =
-		dispatch(writer) { it::o_WriteTo }
+		descriptor().o_WriteTo(this, writer)
 
 	override fun writeSummaryTo(writer: JSONWriter) =
-		dispatch(writer) { it::o_WriteSummaryTo }
+		descriptor().o_WriteSummaryTo(this, writer)
 
 	override fun macrosTuple() =
-		dispatch { it::o_MacrosTuple }
+		descriptor().o_MacrosTuple(this)
 
-	override fun equalsInt(theInt: Int) = dispatch(theInt) { it::o_EqualsInt }
+	override fun equalsInt(theInt: Int) = descriptor().o_EqualsInt(this, theInt)
 
 	override fun chooseBundle(currentModule: A_Module) =
-		dispatch(currentModule) { it::o_ChooseBundle }
+		descriptor().o_ChooseBundle(this, currentModule)
 
 	override fun valueWasStablyComputed() =
-		dispatch { it::o_ValueWasStablyComputed }
+		descriptor().o_ValueWasStablyComputed(this)
 
 	override fun setValueWasStablyComputed(wasStablyComputed: Boolean) =
-		dispatch(wasStablyComputed) { it::o_SetValueWasStablyComputed }
+		descriptor().o_SetValueWasStablyComputed(this, wasStablyComputed)
 
-	override fun uniqueId() = dispatch { it::o_UniqueId }
-
-	override fun setIntersects(otherSet: A_Set) =
-		dispatch(otherSet) { it::o_SetIntersects }
+	override fun uniqueId() = descriptor().o_UniqueId(this)
 
 	override fun equalsListNodeType(listNodeType: A_Type) =
-		dispatch(listNodeType) { it::o_EqualsListNodeType }
+		descriptor().o_EqualsListNodeType(this, listNodeType)
 
-	override fun parsingSignature() = dispatch { it::o_ParsingSignature }
+	override fun parsingSignature() = descriptor().o_ParsingSignature(this)
 
 	override fun moduleSemanticRestrictions() =
-		dispatch { it::o_ModuleSemanticRestrictions }
+		descriptor().o_ModuleSemanticRestrictions(this)
 
 	override fun moduleGrammaticalRestrictions() =
-		dispatch { it::o_ModuleGrammaticalRestrictions }
+		descriptor().o_ModuleGrammaticalRestrictions(this)
 
 	@ReferencedInGeneratedCode
-	override fun fieldAt(field: A_Atom) = dispatch(field) { it::o_FieldAt }
+	override fun fieldAt(field: A_Atom) = descriptor().o_FieldAt(this, field)
 
 	override fun fieldAtOrNull(field: A_Atom) =
-		dispatch(field) { it::o_FieldAtOrNull }
+		descriptor().o_FieldAtOrNull(this, field)
 
 	override fun fieldAtPuttingCanDestroy(
 		field: A_Atom,
 		value: A_BasicObject,
 		canDestroy: Boolean
-	) = dispatch(field, value, canDestroy) { it::o_FieldAtPuttingCanDestroy }
+	) = descriptor().o_FieldAtPuttingCanDestroy(this, field, value, canDestroy)
 
 	override fun fieldTypeAt(field: A_Atom) =
-		dispatch(field) { it::o_FieldTypeAt }
+		descriptor().o_FieldTypeAt(this, field)
 
 	override fun fieldTypeAtOrNull(field: A_Atom) =
-		dispatch(field) { it::o_FieldTypeAtOrNull }
+		descriptor().o_FieldTypeAtOrNull(this, field)
 
 	@Throws(VariableGetException::class, VariableSetException::class)
 	override fun atomicAddToMap(key: A_BasicObject, value: A_BasicObject) =
-		dispatch(key, value) { it::o_AtomicAddToMap }
+		descriptor().o_AtomicAddToMap(this, key, value)
 
 	@Throws(VariableGetException::class)
 	override fun variableMapHasKey(key: A_BasicObject) =
-		dispatch(key) { it::o_VariableMapHasKey }
+		descriptor().o_VariableMapHasKey(this, key)
 
-	override fun setLexer(lexer: A_Lexer) = dispatch(lexer) { it::o_SetLexer }
+	override fun setLexer(lexer: A_Lexer) = descriptor().o_SetLexer(this, lexer)
 
-	override fun addLexer(lexer: A_Lexer) = dispatch(lexer) { it::o_AddLexer }
+	override fun addLexer(lexer: A_Lexer) = descriptor().o_AddLexer(this, lexer)
 
-	override fun originatingPhrase() = dispatch { it::o_OriginatingPhrase }
+	override fun originatingPhrase() = descriptor().o_OriginatingPhrase(this)
 
-	override fun isGlobal() = dispatch { it::o_IsGlobal }
+	override fun isGlobal() = descriptor().o_IsGlobal(this)
 
-	override fun globalModule() = dispatch { it::o_GlobalModule }
+	override fun globalModule() = descriptor().o_GlobalModule(this)
 
-	override fun globalName() = dispatch { it::o_GlobalName }
+	override fun globalName() = descriptor().o_GlobalName(this)
 
 	override fun nextLexingState(): LexingState =
-		dispatch { it::o_NextLexingState }
+		descriptor().o_NextLexingState(this)
 
 	override fun nextLexingStatePojo(): AvailObject =
-		dispatch { it::o_NextLexingStatePojo }
+		descriptor().o_NextLexingStatePojo(this)
 
 	override fun setNextLexingStateFromPrior(priorLexingState: LexingState) =
-		dispatch(priorLexingState) { it::o_SetNextLexingStateFromPrior }
+		descriptor().o_SetNextLexingStateFromPrior(this, priorLexingState)
 
 	override fun createLexicalScanner() =
-		dispatch { it::o_CreateLexicalScanner }
+		descriptor().o_CreateLexicalScanner(this)
 
-	override fun lexer() = dispatch { it::o_Lexer }
+	override fun lexer() = descriptor().o_Lexer(this)
 
 	override fun setSuspendingFunction(suspendingFunction: A_Function) =
-		dispatch(suspendingFunction) { it::o_SetSuspendingFunction }
+		descriptor().o_SetSuspendingFunction(this, suspendingFunction)
 
-	override fun suspendingFunction() = dispatch { it::o_SuspendingFunction }
+	override fun suspendingFunction() = descriptor().o_SuspendingFunction(this)
 
-	override fun debugLog() = dispatch { it::o_DebugLog }
+	override fun debugLog() = descriptor().o_DebugLog(this)
 
 	override fun constantTypeAt(index: Int) =
-		dispatch(index) { it::o_ConstantTypeAt }
+		descriptor().o_ConstantTypeAt(this, index)
 
-	override fun returnerCheckStat() = dispatch { it::o_ReturnerCheckStat }
+	override fun returnerCheckStat() = descriptor().o_ReturnerCheckStat(this)
 
-	override fun returneeCheckStat() = dispatch { it::o_ReturneeCheckStat }
+	override fun returneeCheckStat() = descriptor().o_ReturneeCheckStat(this)
 
-	override fun numNybbles() = dispatch { it::o_NumNybbles }
+	override fun numNybbles() = descriptor().o_NumNybbles(this)
 
 	override fun lineNumberEncodedDeltas() =
-		dispatch { it::o_LineNumberEncodedDeltas }
+		descriptor().o_LineNumberEncodedDeltas(this)
 
-	override fun currentLineNumber() = dispatch { it::o_CurrentLineNumber }
+	override fun currentLineNumber() = descriptor().o_CurrentLineNumber(this)
 
-	override fun fiberResultType() = dispatch { it::o_FiberResultType }
+	override fun fiberResultType() = descriptor().o_FiberResultType(this)
 
 	override fun testingTree(): LookupTree<A_Definition, A_Tuple> =
-		dispatch { it::o_TestingTree }
+		descriptor().o_TestingTree(this)
 
-	override fun clearLexingState() = dispatch { it::o_ClearLexingState }
+	override fun clearLexingState() = descriptor().o_ClearLexingState(this)
 
 	@ReferencedInGeneratedCode
-	override fun registerDump() = dispatch { it::o_RegisterDump }
+	override fun registerDump() = descriptor().o_RegisterDump(this)
 
-	override fun isOpen() = dispatch { it::o_IsOpen }
+	override fun isOpen() = descriptor().o_IsOpen(this)
 
-	override fun closeModule() = dispatch { it::o_CloseModule }
+	override fun closeModule() = descriptor().o_CloseModule(this)
 
-	override fun membershipChanged() = dispatch { it::o_MembershipChanged }
+	override fun membershipChanged() = descriptor().o_MembershipChanged(this)
 
 	override fun moduleAddMacro(macro: A_Macro) =
-		dispatch(macro) { it::o_ModuleAddMacro }
+		descriptor().o_ModuleAddMacro(this, macro)
 
-	override fun moduleMacros(): A_Set = dispatch { it::o_ModuleMacros }
+	override fun moduleMacros(): A_Set = descriptor().o_ModuleMacros(this)
 
 	override fun addBundle(bundle: A_Bundle) =
-		dispatch(bundle) { it::o_AddBundle  }
+		descriptor().o_AddBundle(this, bundle)
 
-	override fun moduleBundles() = dispatch { it::o_ModuleBundles }
+	override fun moduleBundles() = descriptor().o_ModuleBundles(this)
 
 	override fun returnTypeIfPrimitiveFails(): A_Type =
-		dispatch { it::o_ReturnTypeIfPrimitiveFails }
+		descriptor().o_ReturnTypeIfPrimitiveFails(this)
 
 	override fun extractDumpedObjectAt(index: Int): AvailObject =
-		dispatch(index) { it::o_ExtractDumpedObjectAt }
+		descriptor().o_ExtractDumpedObjectAt(this, index)
 
 	override fun extractDumpedLongAt(index: Int): Long =
-		dispatch(index) { it::o_ExtractDumpedLongAt }
+		descriptor().o_ExtractDumpedLongAt(this, index)
 
 	companion object {
 		/**
@@ -2369,216 +2300,6 @@ class AvailObject private constructor(
 				numberOfFixedObjectSlots() + variableObjectSlots,
 				numberOfFixedIntegerSlots() + variableIntegerSlots)
 		}
-
-		/**
-		 * Dispatcher helper function for routing 0-argument messages to the
-		 * descriptor, inserting the receiver as the first argument.
-		 *
-		 * @param R
-		 *   The result type of this call.
-		 * @param f
-		 *   A lambda that produces a method reference to invoke with the
-		 *   receiver cast to an [AvailObject].
-		 */
-		inline fun <R> AvailObject.dispatch(
-			f: (AbstractDescriptor) -> (AvailObject) -> R): R =
-				f(descriptor())(this)
-
-		/**
-		 * Dispatcher helper function for routing 1-argument messages to the
-		 * descriptor, inserting the receiver as the first argument.
-		 *
-		 * @param R
-		 *   The result type of this call.
-		 * @param A1
-		 *   The type of the first supplied argument.
-		 * @param arg1
-		 *   The first supplied argument for the method.
-		 * @param f
-		 *   A lambda that produces a method reference to invoke with the
-		 *   receiver cast to an [AvailObject], followed by the supplied
-		 *   arguments.
-		 */
-		inline fun <R, A1> AvailObject.dispatch(
-			arg1: A1,
-			f: (AbstractDescriptor) -> (AvailObject, A1) -> R): R =
-				f(descriptor())(this, arg1)
-
-		/**
-		 * Dispatcher helper function for routing 2-argument messages to the
-		 * descriptor, inserting the receiver as the first argument.
-		 *
-		 * @param R
-		 *   The result type of this call.
-		 * @param A1
-		 *   The type of the first supplied argument.
-		 * @param A2
-		 *   The type of the second supplied argument.
-		 * @param arg1
-		 *   The first supplied argument for the method.
-		 * @param arg2
-		 *   The second supplied argument for the method.
-		 * @param f
-		 *   A lambda that produces a method reference to invoke with the
-		 *   receiver cast to an [AvailObject], followed by the supplied
-		 *   arguments.
-		 */
-		inline fun <R, A1, A2> AvailObject.dispatch(
-			arg1: A1,
-			arg2: A2,
-			f: (AbstractDescriptor) -> (AvailObject, A1, A2) -> R): R =
-				f(descriptor())(this, arg1, arg2)
-
-		/**
-		 * Dispatcher helper function for routing 3-argument messages to the
-		 * descriptor, inserting the receiver as the first argument.
-		 *
-		 * @param R
-		 *   The result type of this call.
-		 * @param A1
-		 *   The type of the first supplied argument.
-		 * @param A2
-		 *   The type of the second supplied argument.
-		 * @param A3
-		 *   The type of the third supplied argument.
-		 * @param arg1
-		 *   The first supplied argument for the method.
-		 * @param arg2
-		 *   The second supplied argument for the method.
-		 * @param arg3
-		 *   The third supplied argument for the method.
-		 * @param f
-		 *   A lambda that produces a method reference to invoke with the
-		 *   receiver cast to an [AvailObject], followed by the supplied
-		 *   arguments.
-		 */
-		inline fun <R, A1, A2, A3> AvailObject.dispatch(
-			arg1: A1,
-			arg2: A2,
-			arg3: A3,
-			f: (AbstractDescriptor) -> (AvailObject, A1, A2, A3) -> R): R =
-				f(descriptor())(this, arg1, arg2, arg3)
-
-		/**
-		 * Dispatcher helper function for routing 4-argument messages to the
-		 * descriptor, inserting the receiver as the first argument.
-		 *
-		 * @param R
-		 *   The result type of this call.
-		 * @param A1
-		 *   The type of the first supplied argument.
-		 * @param A2
-		 *   The type of the second supplied argument.
-		 * @param A3
-		 *   The type of the third supplied argument.
-		 * @param A4
-		 *   The type of the fourth supplied argument.
-		 * @param arg1
-		 *   The first supplied argument for the method.
-		 * @param arg2
-		 *   The second supplied argument for the method.
-		 * @param arg3
-		 *   The third supplied argument for the method.
-		 * @param arg4
-		 *   The fourth supplied argument for the method.
-		 * @param f
-		 *   A lambda that produces a method reference to invoke with the
-		 *   receiver cast to an [AvailObject], followed by the supplied
-		 *   arguments.
-		 */
-		inline fun <R, A1, A2, A3, A4> AvailObject.dispatch(
-			arg1: A1,
-			arg2: A2,
-			arg3: A3,
-			arg4: A4,
-			f: (AbstractDescriptor) -> (AvailObject, A1, A2, A3, A4) -> R): R =
-				f(descriptor())(this, arg1, arg2, arg3, arg4)
-
-		/**
-		 * Dispatcher helper function for routing 5-argument messages to the
-		 * descriptor, inserting the receiver as the first argument.
-		 *
-		 * @param R
-		 *   The result type of this call.
-		 * @param A1
-		 *   The type of the first supplied argument.
-		 * @param A2
-		 *   The type of the second supplied argument.
-		 * @param A3
-		 *   The type of the third supplied argument.
-		 * @param A4
-		 *   The type of the fourth supplied argument.
-		 * @param A5
-		 *   The type of the fifth supplied argument.
-		 * @param arg1
-		 *   The first supplied argument for the method.
-		 * @param arg2
-		 *   The second supplied argument for the method.
-		 * @param arg3
-		 *   The third supplied argument for the method.
-		 * @param arg4
-		 *   The fourth supplied argument for the method.
-		 * @param arg5
-		 *   The fifth supplied argument for the method.
-		 * @param f
-		 *   A lambda that produces a method reference to invoke with the
-		 *   receiver cast to an [AvailObject], followed by the supplied
-		 *   arguments.
-		 */
-		inline fun <R, A1, A2, A3, A4, A5> AvailObject.dispatch(
-			arg1: A1,
-			arg2: A2,
-			arg3: A3,
-			arg4: A4,
-			arg5: A5,
-			f: (AbstractDescriptor) -> (AvailObject, A1, A2, A3, A4, A5) -> R
-		): R = f(descriptor())(this, arg1, arg2, arg3, arg4, arg5)
-
-		/**
-		 * Dispatcher helper function for routing 6-argument messages to the
-		 * descriptor, inserting the receiver as the first argument.
-		 *
-		 * @param R
-		 *   The result type of this call.
-		 * @param A1
-		 *   The type of the first supplied argument.
-		 * @param A2
-		 *   The type of the second supplied argument.
-		 * @param A3
-		 *   The type of the third supplied argument.
-		 * @param A4
-		 *   The type of the fourth supplied argument.
-		 * @param A5
-		 *   The type of the fifth supplied argument.
-		 * @param A6
-		 *   The type of the sixth supplied argument.
-		 * @param arg1
-		 *   The first supplied argument for the method.
-		 * @param arg2
-		 *   The second supplied argument for the method.
-		 * @param arg3
-		 *   The third supplied argument for the method.
-		 * @param arg4
-		 *   The fourth supplied argument for the method.
-		 * @param arg5
-		 *   The fifth supplied argument for the method.
-		 * @param arg6
-		 *   The sixth supplied argument for the method.
-		 * @param f
-		 *   A lambda that produces a method reference to invoke with the
-		 *   receiver cast to an [AvailObject], followed by the supplied
-		 *   arguments.
-		 */
-		inline fun <R, A1, A2, A3, A4, A5, A6> AvailObject.dispatch(
-			arg1: A1,
-			arg2: A2,
-			arg3: A3,
-			arg4: A4,
-			arg5: A5,
-			arg6: A6,
-			f: (AbstractDescriptor) ->
-				(AvailObject, A1, A2, A3, A4, A5, A6) -> R
-		): R = f(descriptor())(this, arg1, arg2, arg3, arg4, arg5, arg6)
 
 		/** The [CheckedMethod] for [iterator]. */
 		@Suppress("unused")

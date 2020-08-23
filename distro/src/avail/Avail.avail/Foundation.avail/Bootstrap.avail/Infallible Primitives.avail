@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 8/21/20 3:41 AM
+ * * Last Generated: 8/23/20 2:40 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -1745,7 +1745,8 @@ Primitive "_'s⁇keys" is
 /**
  * Construct and answer a map that is based on the supplied map. The answer
  * (potentially) differs from the argument in that it contains a binding from
- * {@param "key"} to {@param "value"}; any value previously bound to  * {@param "key"} is "forgotten" in the new map.
+ * {@param "key"} to {@param "value"}; any value previously bound to
+ * {@param "key"} is "forgotten" in the new map.
  *
  * @category "Primitives" "Maps" "Transformers"
  * @method "_+_→_"

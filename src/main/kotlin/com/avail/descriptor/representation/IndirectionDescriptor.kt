@@ -180,6 +180,17 @@ package com.avail.descriptor.representation
  import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
  import com.avail.descriptor.representation.IndirectionDescriptor.ObjectSlots.INDIRECTION_TARGET
  import com.avail.descriptor.sets.A_Set
+ import com.avail.descriptor.sets.A_Set.Companion.asTuple
+ import com.avail.descriptor.sets.A_Set.Companion.hasElement
+ import com.avail.descriptor.sets.A_Set.Companion.isSubsetOf
+ import com.avail.descriptor.sets.A_Set.Companion.setElementsAreAllInstancesOfKind
+ import com.avail.descriptor.sets.A_Set.Companion.setIntersectionCanDestroy
+ import com.avail.descriptor.sets.A_Set.Companion.setIntersects
+ import com.avail.descriptor.sets.A_Set.Companion.setMinusCanDestroy
+ import com.avail.descriptor.sets.A_Set.Companion.setSize
+ import com.avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
+ import com.avail.descriptor.sets.A_Set.Companion.setWithElementCanDestroy
+ import com.avail.descriptor.sets.A_Set.Companion.setWithoutElementCanDestroy
  import com.avail.descriptor.sets.SetDescriptor.SetIterator
  import com.avail.descriptor.tokens.A_Token
  import com.avail.descriptor.tokens.TokenDescriptor
@@ -2818,6 +2829,13 @@ class IndirectionDescriptor private constructor(
 		reference: A_BasicObject,
 		newValue: A_BasicObject
 	): Boolean = self .. { compareAndSwapValues(reference, newValue) }
+
+	@Throws(VariableSetException::class)
+	override fun o_CompareAndSwapValuesNoCheck(
+		self: AvailObject,
+		reference: A_BasicObject,
+		newValue: A_BasicObject
+	): Boolean = self .. { compareAndSwapValuesNoCheck(reference, newValue) }
 
 	@Throws(VariableGetException::class, VariableSetException::class)
 	override fun o_FetchAndAddValue(

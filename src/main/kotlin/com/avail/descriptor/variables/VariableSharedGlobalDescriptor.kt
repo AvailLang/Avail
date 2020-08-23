@@ -267,6 +267,20 @@ class VariableSharedGlobalDescriptor private constructor(
 		return super.o_CompareAndSwapValues(self, reference, newValue)
 	}
 
+	@Throws(VariableSetException::class)
+	override fun o_CompareAndSwapValuesNoCheck(
+		self: AvailObject,
+		reference: A_BasicObject,
+		newValue: A_BasicObject): Boolean
+	{
+		if (writeOnce)
+		{
+			throw VariableSetException(
+				AvailErrorCode.E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE)
+		}
+		return super.o_CompareAndSwapValuesNoCheck(self, reference, newValue)
+	}
+
 	@Throws(VariableGetException::class, VariableSetException::class)
 	override fun o_FetchAndAddValue(
 		self: AvailObject, addend: A_Number): A_Number

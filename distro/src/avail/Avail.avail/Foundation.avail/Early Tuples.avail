@@ -687,18 +687,10 @@ Public method "tuple type of_[_.._]" is
 	[
 		i : natural number
 	|
-		union : type := ⊥;
 		smearEnd ::= cast (i + smearDelta) min limit
 			into [t : natural number | t];
-		From i to smearEnd do
-		[
-			j : natural number
-		|
-			union := eject union ∪ aTupleType[j];
-			true
-		];
-		types := cast concatenate <types, <union>>
-			into [ t : tuple of any meta | t ];
+		union ::= ∪ aTupleType[i..smearEnd];
+		types := concatenate <types, <union>>;
 		true
 	];
 	/* Unless `types` is empty, the last element is the default type. */
@@ -774,18 +766,10 @@ Private method "tuple meta of_[_.._]" is
 	[
 		i : natural number
 	|
-		union : type := ⊥;
 		smearEnd ::= cast (i + smearDelta) min limit
 			into [ t : natural number | t ];
-		From i to smearEnd do
-		[
-			j : natural number
-		|
-			union := eject union ∪ (aTupleType[j]'s type);
-			true
-		];
-		types := cast concatenate <types, <union>>
-			into [ t : <<>, any meta's type…|whole number> | t ];
+		union ::= (∪ aTupleType[i..smearEnd])'s type;
+		types := concatenate <types, <union>>;
 		true
 	];
 	/* Unless `types` is empty, the last element is the default type. */

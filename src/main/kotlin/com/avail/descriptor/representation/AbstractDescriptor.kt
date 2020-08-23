@@ -270,6 +270,7 @@ abstract class AbstractDescriptor protected constructor (
 	/**
 	 * A [Statistic] that records the number and size of each allocation.
 	 */
+	@Suppress("LeakingThis")
 	val allocationStat = allocationStatisticFor(this)
 
 	init
@@ -796,9 +797,8 @@ abstract class AbstractDescriptor protected constructor (
 	}
 
 	/**
-	 * Throw an
-	 * [unsupported&#32;operation&#32;exception][AvailUnsupportedOperationException]
-	 * suitable to be thrown by the sender.
+	 * Throw an [AvailUnsupportedOperationException] suitable to be thrown by
+	 * the sender.
 	 *
 	 * The exception indicates that the receiver does not meaningfully implement
 	 * the method that immediately invoked this.  This is a strong indication
@@ -826,7 +826,7 @@ abstract class AbstractDescriptor protected constructor (
 	 * executed, but is a much shorter expression.
 	 */
 	val unsupported: Nothing
-		inline get() = unsupportedOperation()
+		get() = unsupportedOperation()
 
 	/**
 	 * Throw an
@@ -1492,7 +1492,6 @@ abstract class AbstractDescriptor protected constructor (
 	 *   The element.
 	 * @return
 	 *   `true` if the receiver contains the element, `false` otherwise.
-	 * @see AvailObject.hasElement
 	 */
 	abstract fun o_HasElement (
 		self: AvailObject,
@@ -2063,7 +2062,6 @@ abstract class AbstractDescriptor protected constructor (
 	 *   A set.
 	 * @return
 	 *   A tuple containing each element in the set.
-	 * @see AvailObject.asTuple
 	 */
 	abstract fun o_AsTuple (self: AvailObject): A_Tuple
 
@@ -3379,6 +3377,12 @@ abstract class AbstractDescriptor protected constructor (
 
 	@Throws(VariableGetException::class, VariableSetException::class)
 	abstract fun o_CompareAndSwapValues (
+		self: AvailObject,
+		reference: A_BasicObject,
+		newValue: A_BasicObject): Boolean
+
+	@Throws(VariableSetException::class)
+	abstract fun o_CompareAndSwapValuesNoCheck (
 		self: AvailObject,
 		reference: A_BasicObject,
 		newValue: A_BasicObject): Boolean

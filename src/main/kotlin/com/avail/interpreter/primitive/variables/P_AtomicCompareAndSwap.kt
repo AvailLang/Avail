@@ -32,10 +32,15 @@
 
 package com.avail.interpreter.primitive.variables
 
+import com.avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
+import com.avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
+import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import com.avail.descriptor.types.A_Type.Companion.writeType
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
@@ -54,6 +59,10 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
 import com.avail.interpreter.execution.Interpreter
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import com.avail.interpreter.levelTwo.operation.L2_VARIABLE_COMPARE_AND_SWAP_NO_CHECK
+import com.avail.optimizer.L1Translator
+import com.avail.optimizer.L2Generator.Companion.edgeTo
 
 /**
  * **Primitive:** Atomically read and conditionally overwrite the specified
@@ -80,6 +89,56 @@ object P_AtomicCompareAndSwap : Primitive(3, CanInline, HasSideEffect)
 		} catch (e: VariableSetException) {
 			interpreter.primitiveFailure(e)
 		}
+	}
+
+	override fun tryToGenerateSpecialPrimitiveInvocation(
+		functionToCallReg: L2ReadBoxedOperand,
+		rawFunction: A_RawFunction,
+		arguments: List<L2ReadBoxedOperand>,
+		argumentTypes: List<A_Type>,
+		translator: L1Translator,
+		callSiteHelper: L1Translator.CallSiteHelper
+	): Boolean
+	{
+		val variableReg = arguments[0]
+		val referenceReg = arguments[1]
+		val newValueReg = arguments[2]
+
+		if (!newValueReg.type().isSubtypeOf(variableReg.type().writeType()))
+		{
+			// We can't guarantee the type being assigned is strong enough.
+			// Fall back.
+			return super.tryToGenerateSpecialPrimitiveInvocation(
+				functionToCallReg,
+				rawFunction,
+				arguments,
+				argumentTypes,
+				translator,
+				callSiteHelper)
+		}
+		val generator = translator.generator
+		val success = generator.createBasicBlock("swap success")
+		val failure = generator.createBasicBlock("swap failure")
+		val exception = generator.createBasicBlock("swap exception")
+		translator.addInstruction(
+			L2_VARIABLE_COMPARE_AND_SWAP_NO_CHECK,
+			variableReg,
+			referenceReg,
+			newValueReg,
+			edgeTo(success),
+			edgeTo(failure),
+			edgeTo(exception))
+		generator.startBlock(success)
+		callSiteHelper.useAnswer(generator.boxedConstant(trueObject))
+
+		generator.startBlock(failure)
+		callSiteHelper.useAnswer(generator.boxedConstant(falseObject))
+
+		generator.startBlock(exception)
+		translator.generateGeneralFunctionInvocation(
+			functionToCallReg, arguments, false, callSiteHelper)
+
+		return true
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

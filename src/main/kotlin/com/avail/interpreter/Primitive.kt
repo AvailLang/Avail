@@ -611,11 +611,10 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	 *   The fallibility of the call site.
 	 */
 	open fun fallibilityForArgumentTypes(
-		argumentTypes: List<A_Type>): Fallibility =
-			if (hasFlag(CannotFail))
-				CallSiteCannotFail
-			else
-				CallSiteCanFail
+		argumentTypes: List<A_Type>
+	): Fallibility =
+		if (hasFlag(CannotFail)) CallSiteCannotFail
+		else CallSiteCanFail
 
 	/**
 	 * Test whether the specified [Flag] is set for this primitive.
@@ -776,8 +775,9 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	 *   The [L1Translator] on which to emit code, if possible.
 	 * @param callSiteHelper
 	 *   Information about the call site being generated.
-	 * @return `true` if a specialized [L2Instruction] sequence was generated,
-	 *   `false` if nothing was emitted and the general mechanism should be used
+	 * @return
+	 *   `true` if a specialized [L2Instruction] sequence was generated, `false`
+	 *   if nothing was emitted and the general mechanism should be used
 	 *   instead.
 	 */
 	open fun tryToGenerateSpecialPrimitiveInvocation(

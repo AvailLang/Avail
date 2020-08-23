@@ -64,6 +64,7 @@ import com.avail.descriptor.parsing.A_ParsingPlanInProgress
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
 import com.avail.descriptor.sets.A_Set
+import com.avail.descriptor.sets.A_Set.Companion.hasElement
 import com.avail.descriptor.sets.LinearSetBinDescriptor.Companion.createLinearSetBinPair
 import com.avail.descriptor.sets.LinearSetBinDescriptor.Companion.emptyLinearSetBin
 import com.avail.descriptor.sets.SetDescriptor.SetIterator
@@ -2119,6 +2120,12 @@ abstract class Descriptor protected constructor (
 
 	@Throws(VariableGetException::class, VariableSetException::class)
 	override fun o_CompareAndSwapValues (
+		self: AvailObject,
+		reference: A_BasicObject,
+		newValue: A_BasicObject): Boolean = unsupported
+
+	@Throws(VariableSetException::class)
+	override fun o_CompareAndSwapValuesNoCheck (
 		self: AvailObject,
 		reference: A_BasicObject,
 		newValue: A_BasicObject): Boolean = unsupported

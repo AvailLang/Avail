@@ -268,6 +268,8 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 			otherTuple.makeImmutable()
 		}
 
+		if (otherTuple.tupleSize() == 0) return self
+
 		// Assess the possibility that the concatenation will still be a small
 		// integer interval tuple.
 		if (otherTuple.isSmallIntegerIntervalTuple)

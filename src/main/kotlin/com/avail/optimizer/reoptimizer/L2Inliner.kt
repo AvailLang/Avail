@@ -330,7 +330,7 @@ class L2Inliner internal constructor(
 			}
 		}
 		// Add the inlined chunk's dependencies.
-		for (dependency in inlinedChunk.contingentValues)
+		for (dependency in inlinedChunk.contingentValues())
 		{
 			targetGenerator.addContingentValue(dependency)
 		}

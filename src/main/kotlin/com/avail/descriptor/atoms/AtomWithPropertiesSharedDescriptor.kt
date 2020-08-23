@@ -69,6 +69,7 @@ import com.avail.descriptor.types.TypeTag
 import com.avail.exceptions.MalformedMessageException
 import com.avail.serialization.Serializer
 import com.avail.serialization.SerializerOperation
+import com.avail.utility.ifZero
 import java.util.WeakHashMap
 
 /**
@@ -339,10 +340,8 @@ internal class AtomWithPropertiesSharedDescriptor private constructor(
 		setSlot(NAME, name.makeShared())
 		setSlot(ISSUING_MODULE, issuingModule.makeShared())
 		setVolatileSlot(PROPERTY_MAP_POJO, propertyMapPojoOrNil)
-		val hash = when (originalHashOrZero)
-		{
-			0 -> AvailRuntimeSupport.nextNonzeroHash()
-			else -> originalHashOrZero
+		val hash = originalHashOrZero.ifZero {
+			AvailRuntimeSupport.nextNonzeroHash()
 		}
 		setSlot(HASH_OR_ZERO, hash)
 		setSlot(BUNDLE_OR_NIL, nil)

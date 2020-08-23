@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 8/21/20 3:41 AM
+ * * Last Generated: 8/23/20 2:40 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -85,6 +85,7 @@ Uses
 		"_<<_keeping_bits",
 		"_>>_",
 		"_[_.._]",
+		"_[_.._]→_",
 		"_[_]",
 		"_[_]:=_",
 		"_[_]→_",
@@ -3754,11 +3755,50 @@ Primitive "_«[_]»→_" is
 ] : tuple;
 
 /**
+ * Given a tuple and range of indices, produce a new tuple that has that range
+ * replaced by the given replacement tuple.  The replacement does not need to be
+ * the same size as the range.
+ *
+ * @category "Primitives"
+ * @method "_[_.._]→_"
+ * @param "aTuple" "tuple"
+ *        The basis tuple.
+ * @param "startIndex" "[1..∞)"
+ *        The inclusive start of the range to replace.  This may be as high as
+ *        the tuple's size plus one, to indicate the replacement should be
+ *        appended.
+ * @param "endIndex" "[0..∞)"
+ *        The inclusive end of the range to replace.  This may be as low as one
+ *        less than the start.
+ * @param "replacementSubtuple" "tuple"
+ *        The replacement subtuple.
+ * @returns "tuple"
+ *    A tuple consisting of the first {@param "startIndex"} - 1 elements of
+ *    {@param "aTuple"}, followed by the elements of
+ *    {@param "replacementSubtuple"}, followed by the elements of
+ *    {@param "aTuple"} starting at {@param "endIndex"} + 1,
+ * @raises "subscript-out-of-bounds exception"
+ * @raises "negative-size exception"
+ */
+Primitive "_[_.._]→_" is
+[
+	aTuple : tuple,
+	startIndex : natural number,
+	endIndex : whole number,
+	replacementSubtuple : tuple
+|
+	Primitive TupleReplaceRange (failureCode : {
+		subscript-out-of-bounds code,
+		negative-size code}ᵀ);
+	Private invoke _fail_primitive with failureCode
+] : tuple;
+
+/**
  * Given a multi-level data structure where the outermost layer is a tuple, the
- * intervening layers are maps or tuples, and the innermost target reached by the
- * provided path is a tuple, answer a variant of the data structure such that the
- * indicated slice of the innermost target has been replaced with the provided
- * tuple. The replacement tuple can differ in size from the slice.
+ * intervening layers are maps or tuples, and the innermost target reached by
+ * the provided path is a tuple, answer a variant of the data structure such
+ * that the indicated slice of the innermost target has been replaced with the
+ * provided tuple. The replacement tuple can differ in size from the slice.
  *
  * @category "Primitives" "Tuples" "Maps" "Transformers"
  * @method "_«[_]»[_.._]→_"

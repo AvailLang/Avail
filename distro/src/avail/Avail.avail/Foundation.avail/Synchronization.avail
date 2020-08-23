@@ -242,7 +242,7 @@ Public method "priority enqueue_on_" is
 		basis ::= ↓queue;
 		index ::= insertion index of aFiber in basis
 			with [a : fiber, b : fiber | a's priority ≥ b's priority];
-		withFiber ::= basis[..index - 1] ++ <aFiber> ++ basis[index..];
+		withFiber ::= basis[index..index - 1] → <aFiber>;
 		swapped ::= atomically compare queue to basis and,
 			if equal, store withFiber;
 		If swapped then [lockAcquired := basis is empty;];
@@ -274,7 +274,17 @@ Public method "dequeue_from_" is
 	Until
 	[
 		basis ::= ↓queue;
-		sans ::= basis - aFiber;
+		index ::= first index of basis where [f : fiber | f = aFiber];
+		sans ::= cast index into
+		[
+			i : natural number
+		|
+			basis[i..i] → <>
+		]
+		else
+		[
+			basis
+		];
 		swapped ::= atomically compare queue to basis and,
 			if equal, store sans;
 		If swapped then [lockReleased := sans is empty;];

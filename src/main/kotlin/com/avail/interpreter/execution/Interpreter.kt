@@ -72,6 +72,7 @@ import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.AvailObjectFieldHelper
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.A_Set
+import com.avail.descriptor.sets.A_Set.Companion.setSize
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.A_Tuple.Companion.copyTupleFromToCanDestroy
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
@@ -1395,7 +1396,8 @@ class Interpreter(
 				}
 			}
 			traceL2(
-				(if (chunk !== null) chunk else L2Chunk.unoptimizedChunk)!!,
+				(chunk?.executableChunk
+					?: L2Chunk.unoptimizedChunk.executableChunk),
 				-999999,
 				"Set continuation = ",
 				text)
@@ -1425,7 +1427,8 @@ class Interpreter(
 				ptr = ptr.caller()
 			}
 			traceL2(
-				(if (chunk !== null) chunk else L2Chunk.unoptimizedChunk)!!,
+				(chunk?.executableChunk
+					?: L2Chunk.unoptimizedChunk.executableChunk),
 				-100000,
 				"POPPING CONTINUATION from:",
 				builder)
@@ -2198,7 +2201,9 @@ class Interpreter(
 		assert(!exitNow)
 		var reifier: StackReifier? = null
 		while (!returnNow && !exitNow && reifier === null) {
-			reifier = chunk!!.runChunk(this, offset)
+			val currentChunk = chunk!!
+			currentChunk.beforeRunChunk(offset)
+			reifier = currentChunk.executableChunk.runChunk(this, offset)
 		}
 		return reifier
 	}
@@ -2588,7 +2593,7 @@ class Interpreter(
 		 * instruction.
 		 *
 		 * @param executableChunk
-		 *   The L2 executable chunk being executed.
+		 *   The [ExecutableChunk] being executed.
 		 * @param offset
 		 *   The current L2 offset.
 		 * @param description
@@ -2602,7 +2607,8 @@ class Interpreter(
 			executableChunk: ExecutableChunk,
 			offset: Int,
 			description: String,
-			firstReadOperandValue: Any) {
+			firstReadOperandValue: Any)
+		{
 			if (debugL2) {
 				if (mainLogger.isLoggable(Level.SEVERE)) {
 					val str = ("L2 = "
