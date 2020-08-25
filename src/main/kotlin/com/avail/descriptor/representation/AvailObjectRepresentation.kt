@@ -36,6 +36,7 @@ import com.avail.descriptor.functions.A_Continuation
 import com.avail.descriptor.functions.CompiledCodeDescriptor
 import com.avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
 import com.avail.descriptor.functions.ContinuationDescriptor
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import com.avail.descriptor.types.TypeTag
@@ -126,7 +127,7 @@ abstract class AvailObjectRepresentation protected constructor(
 			// Java-specific mechanism for now.  Requires more complex solution
 			// when Avail starts using raw memory again.
 			objectSlots = arrayOfNulls(1)
-			objectSlots[0] = NilDescriptor.nil
+			objectSlots[0] = nil
 		}
 		if (currentDescriptor.isMutable) {
 			scanSubobjects(MarkUnreachableSubobjectVisitor(anotherObject))
@@ -1202,14 +1203,31 @@ abstract class AvailObjectRepresentation protected constructor(
 		}
 
 		/**
+		 * Perform an atomic get-and-set to the given [Array] and index,
+		 * writing the new [value] and returning the previous content of that
+		 * array slot.
+		 */
+		fun getAndSet(
+			objects: Array<AvailObject?>,
+			subscript: Int,
+			value: AvailObject
+		): AvailObject {
+			assert(0 <= subscript && subscript < objects.size)
+			val byteOffset = (subscript.toLong() shl objectArrayShift) +
+				objectArrayBaseOffset
+			return unsafe.getAndSetObject(objects, byteOffset, value)
+				as AvailObject
+		}
+
+		/**
 		 * Perform an atomic compare-and-set to the given [Array] and index,
 		 * replacing the [expected] value with the new [value].  If the value
-		 * that was read is not the same Kotlin object (under `===`) as the
+		 * that was read is not *the same Kotlin object* (under `===`) as the
 		 * expected value, answer `false` and do not write the new value.
 		 * Otherwise write the new value and answer `true`.
 		 */
 		fun compareAndSet(
-			objects: Array<AvailObject>,
+			objects: Array<AvailObject?>,
 			subscript: Int,
 			expected: AvailObject,
 			value: AvailObject
@@ -1321,6 +1339,60 @@ abstract class AvailObjectRepresentation protected constructor(
 		} else {
 			objectSlots[field.fieldOrdinal()] = anAvailObject as AvailObject
 		}
+	}
+
+	/**
+	 * Store the [AvailObject] in the specified slot of the receiver, and answer
+	 * the value that was previously in that slot.  Use atomic write semantics
+	 * that are compatible with volatile access.  Note that this may answer
+	 * [nil] if it's used on an unassigned variable's value slot.
+	 *
+	 * @param field
+	 *   An enumeration value that defines the field ordering.
+	 * @param anAvailObject
+	 *   The object to store at the specified slot.
+	 * @return
+	 *   The previous value from the specified slot.
+	 */
+	fun getAndSetVolatileSlot(
+		field: ObjectSlotsEnum,
+		anAvailObject: A_BasicObject
+	): AvailObject {
+		assert(anAvailObject.descriptor().isShared)
+		checkSlot(field)
+		checkWriteForField(field)
+		return VolatileSlotHelper.getAndSet(
+			objectSlots, field.fieldOrdinal(), anAvailObject as AvailObject)
+	}
+
+	/**
+	 * Perform an atomic compare-and-set on a slot of the given array.  If the
+	 * value in the slot is the same Kotlin object (under `===`) as the
+	 * reference, replace it with the newValue and answer `true`.  Otherwise
+	 * answer `false`.
+	 *
+	 * @param field
+	 *   An enumeration value that defines the field ordering.
+	 * @param reference
+	 *   The object to compare (by identity) against the current slot value.
+	 * @param newValue
+	 *   The object to store at the specified slot.
+	 * @return
+	 *   The previous value from the specified slot.
+	 */
+	fun compareAndSetVolatileSlot(
+		field: ObjectSlotsEnum,
+		reference: A_BasicObject,
+		newValue: A_BasicObject
+	): Boolean {
+		assert(newValue.descriptor().isShared)
+		checkSlot(field)
+		checkWriteForField(field)
+		return VolatileSlotHelper.compareAndSet(
+			objectSlots,
+			field.fieldOrdinal(),
+			reference as AvailObject,
+			newValue as AvailObject)
 	}
 
 	/**

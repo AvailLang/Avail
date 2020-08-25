@@ -53,8 +53,10 @@ import com.avail.descriptor.tuples.A_Tuple.Companion.tupleReverse
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import com.avail.descriptor.tuples.ReverseTupleDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import com.avail.descriptor.tuples.ReverseTupleDescriptor.IntegerSlots.Companion.SIZE
 import com.avail.descriptor.tuples.ReverseTupleDescriptor.ObjectSlots.ORIGIN_TUPLE
+import com.avail.descriptor.tuples.TreeTupleDescriptor.Companion.internalTreeReverse
 import com.avail.descriptor.types.A_Type
 
 /**
@@ -150,10 +152,8 @@ class ReverseTupleDescriptor private constructor(mutability: Mutability)
 	{
 		if (!self.descriptor().isShared)
 		{
-			val treeTuple =
-				TreeTupleDescriptor.internalTreeReverse(
-					self.slot(ORIGIN_TUPLE))
-			treeTuple.setHashOrZero(self.slot(IntegerSlots.HASH_OR_ZERO))
+			val treeTuple = internalTreeReverse(self.slot(ORIGIN_TUPLE))
+			treeTuple.setHashOrZero(self.slot(HASH_OR_ZERO))
 			self.becomeIndirectionTo(treeTuple)
 			return treeTuple.childAt(childIndex)
 		}
@@ -248,7 +248,7 @@ class ReverseTupleDescriptor private constructor(mutability: Mutability)
 			else TreeTupleDescriptor.concatenateAtLeastOneTree(
 				self, otherTuple, true)
 		}
-		val newTree = TreeTupleDescriptor.internalTreeReverse(
+		val newTree = internalTreeReverse(
 			self.slot(ORIGIN_TUPLE))
 		return TreeTupleDescriptor
 			.concatenateAtLeastOneTree(newTree, otherTuple, true)
@@ -293,7 +293,7 @@ class ReverseTupleDescriptor private constructor(mutability: Mutability)
 			{
 				result.makeSubobjectsImmutable()
 			}
-			result.setSlot(IntegerSlots.HASH_OR_ZERO, 0)
+			result.setSlot(HASH_OR_ZERO, 0)
 			return result
 		}
 		val subrangeOnOrigin =

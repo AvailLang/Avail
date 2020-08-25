@@ -46,6 +46,7 @@ import com.avail.descriptor.tuples.A_Tuple.Companion.isBetterRepresentationThan
 import com.avail.descriptor.tuples.A_Tuple.Companion.treeTupleLevel
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.ObjectSlots.TUPLE_AT_
 import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
@@ -134,7 +135,7 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 		}
 		val newTuple = newLike(mutable, self, 1, 0)
 		newTuple.setSlot(TUPLE_AT_, originalSize + 1, newElement)
-		newTuple.setSlot(IntegerSlots.HASH_OR_ZERO, 0)
+		newTuple.setSlot(HASH_OR_ZERO, 0)
 		return newTuple
 	}
 
@@ -219,7 +220,7 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 			val deltaSlots = newSize - self.variableObjectSlotsCount()
 			val result = newLike(mutable(), self, deltaSlots, 0)
 			result.setSlotsFromTuple(TUPLE_AT_, size1 + 1, otherTuple, 1, size2)
-			result.setSlot(IntegerSlots.HASH_OR_ZERO, 0)
+			result.setSlot(HASH_OR_ZERO, 0)
 			return result
 		}
 		if (!canDestroy)
@@ -282,7 +283,7 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 			{
 				result.makeSubobjectsImmutable()
 			}
-			result.setSlot(IntegerSlots.HASH_OR_ZERO, 0)
+			result.setSlot(HASH_OR_ZERO, 0)
 			return result
 		}
 		return super.o_CopyTupleFromToCanDestroy(
@@ -389,7 +390,7 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 	 * @param tuple
 	 *   The tuple over which to iterate.
 	 */
-	private class ObjectTupleIterator internal constructor(
+	private class ObjectTupleIterator constructor(
 		private val tuple: AvailObject) : Iterator<AvailObject>
 	{
 
@@ -454,7 +455,7 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 			}
 		}
 		result.setSlot(TUPLE_AT_, index, newValueObject)
-		result.setSlot(IntegerSlots.HASH_OR_ZERO, 0)
+		result.setSlot(HASH_OR_ZERO, 0)
 		return result
 	}
 

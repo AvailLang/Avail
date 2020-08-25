@@ -55,6 +55,8 @@ import com.avail.descriptor.tuples.ByteStringDescriptor.Companion.generateByteSt
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
+import com.avail.descriptor.tuples.RepeatedElementTupleDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
+import com.avail.descriptor.tuples.RepeatedElementTupleDescriptor.IntegerSlots.Companion.SIZE
 import com.avail.descriptor.tuples.RepeatedElementTupleDescriptor.ObjectSlots.ELEMENT
 import com.avail.descriptor.tuples.TreeTupleDescriptor.Companion.concatenateAtLeastOneTree
 import com.avail.descriptor.tuples.TreeTupleDescriptor.Companion.createTwoPartTreeTuple
@@ -141,7 +143,7 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int)
 	{
-		val size = self.slot(IntegerSlots.SIZE)
+		val size = self.slot(SIZE)
 		if (size < minimumRepeatSize)
 		{
 			super.printObjectOnAvoidingIndent(
@@ -168,7 +170,7 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 		canDestroy: Boolean): A_Tuple
 	{
 		// Ensure parameters are in bounds
-		val oldSize = self.slot(IntegerSlots.SIZE)
+		val oldSize = self.slot(SIZE)
 		assert(1 <= start && start <= end + 1 && end <= oldSize)
 		val newSize = end - start + 1
 
@@ -178,7 +180,7 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 			if (isMutable && canDestroy)
 			{
 				// Recycle the object.
-				self.setSlot(IntegerSlots.SIZE, newSize)
+				self.setSlot(SIZE, newSize)
 				return self
 			}
 			return createRepeatedElementTuple(
@@ -226,7 +228,7 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 		{
 			// The elements are the same, so the subranges must be as well.
 			// Coalesce equal tuples as a nicety.
-			if (self.slot(IntegerSlots.SIZE)
+			if (self.slot(SIZE)
 				== aRepeatedElementTuple.tupleSize())
 			{
 				// Indirect one to the other if it is not shared.
@@ -273,21 +275,20 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 			if (element.equals(otherDirect.slot(ELEMENT)))
 			{
 				// then we can be concatenated.
-				val newSize = self.slot(IntegerSlots.SIZE) +
-							  otherDirect.slot(IntegerSlots.SIZE)
+				val newSize = self.slot(SIZE) + otherDirect.slot(SIZE)
 
 				// If we can do replacement in place,
 				// use me for the return value.
 				if (isMutable)
 				{
-					self.setSlot(IntegerSlots.SIZE, newSize)
+					self.setSlot(SIZE, newSize)
 					self.setHashOrZero(0)
 					return self
 				}
 				// Or the other one.
 				if (otherTuple.descriptor().isMutable)
 				{
-					otherDirect.setSlot(IntegerSlots.SIZE, newSize)
+					otherDirect.setSlot(SIZE, newSize)
 					otherDirect.setHashOrZero(0)
 					return otherDirect
 				}
@@ -332,14 +333,14 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 		val secondTraversed = aRepeatedElementTuple.traversed()
 
 		// Check that the slots match.
-		val firstHash = self.slot(IntegerSlots.HASH_OR_ZERO)
-		val secondHash = secondTraversed.slot(IntegerSlots.HASH_OR_ZERO)
+		val firstHash = self.slot(HASH_OR_ZERO)
+		val secondHash = secondTraversed.slot(HASH_OR_ZERO)
 		if (firstHash != 0 && secondHash != 0 && firstHash != secondHash)
 		{
 			return false
 		}
-		if (self.slot(IntegerSlots.SIZE) != secondTraversed.slot(
-				IntegerSlots.SIZE))
+		if (self.slot(SIZE) != secondTraversed.slot(
+				SIZE))
 		{
 			return false
 		}
@@ -372,7 +373,7 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 	{
 		// Answer the value at the given index in the tuple object.
 		// Every element in this tuple is identical.
-		assert(index >= 1 && index <= self.slot(IntegerSlots.SIZE))
+		assert(index >= 1 && index <= self.slot(SIZE))
 		return self.slot(ELEMENT)
 	}
 
@@ -385,7 +386,7 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 		// Answer a tuple with all the elements of object except at the given
 		// index we should have newValueObject. This may destroy the original
 		// tuple if canDestroy is true.
-		val size = self.slot(IntegerSlots.SIZE)
+		val size = self.slot(SIZE)
 		assert(index in 1 .. size)
 		val element = self.slot(ELEMENT)
 		if (element.equals(newValueObject))
@@ -449,8 +450,8 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 			val result =
 				if (canDestroy && isMutable) self
 				else newLike(mutable, self, 0, 0)
-			result.setSlot(IntegerSlots.SIZE, self.slot(IntegerSlots.SIZE) + 1)
-			result.setSlot(IntegerSlots.HASH_OR_ZERO, 0)
+			result.setSlot(SIZE, self.slot(SIZE) + 1)
+			result.setSlot(HASH_OR_ZERO, 0)
 			return result
 		}
 		// Transition to a tree tuple.
@@ -460,20 +461,20 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 
 	override fun o_TupleIntAt(self: AvailObject, index: Int): Int
 	{
-		assert(1 <= index && index <= self.slot(IntegerSlots.SIZE))
+		assert(1 <= index && index <= self.slot(SIZE))
 		return self.slot(ELEMENT).extractInt()
 	}
 
 	override fun o_TupleLongAt(self: AvailObject, index: Int): Long
 	{
-		assert(1 <= index && index <= self.slot(IntegerSlots.SIZE))
+		assert(1 <= index && index <= self.slot(SIZE))
 		return self.slot(ELEMENT).extractLong()
 	}
 
 	override fun o_TupleReverse(self: AvailObject): A_Tuple = self
 
 	override fun o_TupleSize(self: AvailObject): Int =
-		self.slot(IntegerSlots.SIZE)
+		self.slot(SIZE)
 
 	override fun o_TupleElementsInRangeAreInstancesOf(
 		self: AvailObject,
@@ -556,8 +557,8 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 			size: Int,
 			element: A_BasicObject?
 		): A_Tuple = mutable.create {
-			setSlot(IntegerSlots.HASH_OR_ZERO, 0)
-			setSlot(IntegerSlots.SIZE, size)
+			setSlot(HASH_OR_ZERO, 0)
+			setSlot(SIZE, size)
 			setSlot(ELEMENT, element!!)
 		}
 	}

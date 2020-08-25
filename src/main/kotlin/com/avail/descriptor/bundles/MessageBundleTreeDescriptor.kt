@@ -49,6 +49,7 @@ import com.avail.descriptor.bundles.A_Bundle.Companion.grammaticalRestrictions
 import com.avail.descriptor.bundles.A_Bundle.Companion.messagePart
 import com.avail.descriptor.bundles.A_BundleTree.Companion.addPlanInProgress
 import com.avail.descriptor.bundles.A_BundleTree.Companion.allParsingPlansInProgress
+import com.avail.descriptor.bundles.A_BundleTree.Companion.expand
 import com.avail.descriptor.bundles.A_BundleTree.Companion.latestBackwardJump
 import com.avail.descriptor.bundles.MessageBundleTreeDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import com.avail.descriptor.bundles.MessageBundleTreeDescriptor.IntegerSlots.Companion.HAS_BACKWARD_JUMP_INSTRUCTION
@@ -122,7 +123,7 @@ import com.avail.descriptor.tuples.TupleDescriptor.Companion.toList
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.PhraseTypeDescriptor
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
-import com.avail.descriptor.types.TypeDescriptor
+import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.descriptor.types.TypeTag
 import com.avail.dispatch.LookupTree
 import com.avail.dispatch.LookupTreeAdaptor
@@ -706,7 +707,7 @@ class MessageBundleTreeDescriptor private constructor(
 	}
 
 	override fun o_Kind(self: AvailObject): A_Type =
-		TypeDescriptor.Types.MESSAGE_BUNDLE_TREE.o
+		Types.MESSAGE_BUNDLE_TREE.o
 
 	override fun o_LazyActions(self: AvailObject): A_Map
 	{

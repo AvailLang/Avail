@@ -281,13 +281,11 @@ open class VariableDescriptor protected constructor(
 	@Throws(VariableSetException::class)
 	override fun o_SetValue(self: AvailObject, newValue: A_BasicObject)
 	{
-		handleVariableWriteTracing(self)
-		val outerKind: A_Type = self.slot(KIND)
-		if (!newValue.isInstanceOf(outerKind.writeType()))
+		if (!newValue.isInstanceOf(self.slot(KIND).writeType()))
 		{
 			throw VariableSetException(E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
 		}
-		self.setSlot(VALUE, newValue)
+		o_SetValueNoCheck(self, newValue)
 	}
 
 	@Throws(VariableSetException::class)
@@ -331,8 +329,7 @@ open class VariableDescriptor protected constructor(
 		reference: A_BasicObject,
 		newValue: A_BasicObject): Boolean
 	{
-		val outerKind = self.slot(KIND)
-		if (!newValue.isInstanceOf(outerKind.writeType()))
+		if (!newValue.isInstanceOf(self.slot(KIND).writeType()))
 		{
 			throw VariableSetException(E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
 		}
@@ -494,73 +491,55 @@ open class VariableDescriptor protected constructor(
 		key: A_Atom,
 		reactor: VariableAccessReactor)
 	{
-		var rawPojo = self.slot(WRITE_REACTORS)
-		if (rawPojo.equalsNil())
-		{
-			rawPojo = identityPojo(
-				mutableMapOf<A_Atom, VariableAccessReactor>())
-			self.setMutableSlot(WRITE_REACTORS, rawPojo)
+		withWriteReactorsToModify(self, true) { writeReactors ->
+			discardInvalidWriteReactors(writeReactors!!)
+			writeReactors[key] = reactor
 		}
-		val writeReactors =
-			rawPojo.javaObjectNotNull<
-				MutableMap<A_Atom, VariableAccessReactor?>>()
-		discardInvalidWriteReactors(writeReactors)
-		writeReactors[key] = reactor
 	}
 
 	@Throws(AvailException::class)
 	override fun o_RemoveWriteReactor(self: AvailObject, key: A_Atom)
 	{
-		val rawPojo = self.slot(WRITE_REACTORS)
-		if (rawPojo.equalsNil())
-		{
-			throw AvailException(AvailErrorCode.E_KEY_NOT_FOUND)
-		}
-		val writeReactors =
-			rawPojo.javaObjectNotNull<
-				MutableMap<A_Atom, VariableAccessReactor?>>()
-		discardInvalidWriteReactors(writeReactors)
-		if (writeReactors.remove(key) === null)
-		{
-			throw AvailException(AvailErrorCode.E_KEY_NOT_FOUND)
+		withWriteReactorsToModify(self, true) { writeReactors ->
+			discardInvalidWriteReactors(writeReactors!!)
+			if (writeReactors.remove(key) === null)
+			{
+				throw AvailException(AvailErrorCode.E_KEY_NOT_FOUND)
+			}
 		}
 	}
 
 	override fun o_ValidWriteReactorFunctions(self: AvailObject): A_Set
 	{
-		val rawPojo = self.slot(WRITE_REACTORS)
-		if (!rawPojo.equalsNil())
-		{
-			val writeReactors =
-				rawPojo.javaObjectNotNull<
-					MutableMap<A_Atom, VariableAccessReactor>>()
+		return withWriteReactorsToModify(self, false) { writeReactors ->
 			var set = emptySet
-			for ((_, value) in writeReactors)
+			if (writeReactors !== null)
 			{
-				val function = value.getAndClearFunction()
-				if (!function.equalsNil())
+				for ((_, value) in writeReactors)
 				{
-					set = set.setWithElementCanDestroy(function, true)
+					val function = value.getAndClearFunction()
+					if (!function.equalsNil())
+					{
+						set = set.setWithElementCanDestroy(function, true)
+					}
 				}
+				writeReactors.clear()
 			}
-			writeReactors.clear()
-			return set
+			set
 		}
-		return emptySet
 	}
 
-	override fun o_Kind(self: AvailObject): A_Type =
-		self.slot(KIND)
+	override fun o_Kind(self: AvailObject): A_Type = self.slot(KIND)
 
 	override fun o_Equals(
 		self: AvailObject,
-		another: A_BasicObject): Boolean =
-			another.equalsVariable(self)
+		another: A_BasicObject
+	): Boolean = another.equalsVariable(self)
 
 	override fun o_EqualsVariable(
 		self: AvailObject,
-		aVariable: A_Variable): Boolean =
-			self.sameAddressAs(aVariable)
+		aVariable: A_Variable
+	): Boolean = self.sameAddressAs(aVariable)
 
 	override fun o_MakeImmutable(self: AvailObject): AvailObject
 	{
@@ -577,6 +556,7 @@ open class VariableDescriptor protected constructor(
 	override fun o_MakeShared(self: AvailObject): AvailObject
 	{
 		assert(!isShared)
+		//TODO: Determine if we should be transferring the write-reactors.
 		return VariableSharedDescriptor.createSharedFrom(
 			self.slot(KIND),
 			self.hash(),
@@ -618,6 +598,89 @@ open class VariableDescriptor protected constructor(
 			}
 		}
 
+	/**
+	 * Extract the given variable's write-reactors map, and pass it into the
+	 * [body] function.  If toModify is true, initialize the field if
+	 * needed.  If toModify is false and the field has not yet been set, use
+	 * `null` instead.  Ensure that the map can not be read or written by
+	 * other threads during the body.
+	 *
+	 * @param self
+	 *   The [A_Variable] to examine and/or update.
+	 * @param toModify
+	 *   Whether to initialize the field if it has not yet been initialized.
+	 * @body
+	 *   A function that runs with either this variable's [MutableMap] from
+	 *   [A_Atom] to [VariableAccessReactor], or `null`.
+	 */
+	open fun<T> withWriteReactorsToModify(
+		self: AvailObject,
+		toModify: Boolean,
+		body: (MutableMap<A_Atom, VariableAccessReactor>?)->T): T
+	{
+		assert(this == self.descriptor())
+		var pojo = self.volatileSlot(WRITE_REACTORS)
+		if (pojo.equalsNil())
+		{
+			if (!toModify)
+			{
+				return body(null)
+			}
+			pojo = identityPojo(mutableMapOf<A_Atom, VariableAccessReactor>())
+			self.setVolatileSlot(WRITE_REACTORS, pojo)
+		}
+		return body(pojo.javaObjectNotNull())
+	}
+
+
+	/**
+	 * If [variable&#32;write&#32;tracing][Interpreter.traceVariableWrites]
+	 * is enabled, then
+	 * [record&#32;the&#32;write][A_Fiber.recordVariableAccess]. If variable
+	 * write tracing is disabled, but the variable has write reactors, then
+	 * raise an [exception][VariableSetException] with
+	 * [E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED] as the
+	 * error code.
+	 *
+	 * @param self
+	 *   The variable.
+	 * @throws VariableSetException
+	 *   If variable write tracing is disabled, but the variable has write
+	 *   reactors.
+	 */
+	@Throws(VariableSetException::class)
+	internal fun handleVariableWriteTracing(self: AvailObject)
+	{
+		try
+		{
+			val interpreter = Interpreter.current()
+			if (interpreter.traceVariableWrites())
+			{
+				interpreter.fiber().recordVariableAccess(self, false)
+			}
+			else
+			{
+				withWriteReactorsToModify(self, false) { writeReactors ->
+					if (writeReactors !== null)
+					{
+						discardInvalidWriteReactors(writeReactors)
+						// If there are write reactors, but write tracing isn't
+						// active, then raise an exception.
+						if (writeReactors.isNotEmpty())
+						{
+							throw VariableSetException(
+								E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED)
+						}
+					}
+				}
+			}
+		}
+		catch (e: ClassCastException)
+		{
+			// No implementation required.
+		}
+	}
+
 	override fun mutable() = mutable
 
 	override fun immutable() = immutable
@@ -635,62 +698,9 @@ open class VariableDescriptor protected constructor(
 		 *   The map of write reactors.
 		 */
 		fun discardInvalidWriteReactors(
-			writeReactors: MutableMap<A_Atom, VariableAccessReactor?>)
+			writeReactors: MutableMap<A_Atom, VariableAccessReactor>)
 		{
-			writeReactors.values.removeIf { obj: VariableAccessReactor? ->
-				obj!!.isInvalid()
-			}
-		}
-
-		/**
-		 * If [variable&#32;write&#32;tracing][Interpreter.traceVariableWrites]
-		 * is enabled, then
-		 * [record&#32;the&#32;write][A_Fiber.recordVariableAccess]. If variable
-		 * write tracing is disabled, but the variable has write reactors, then
-		 * raise an [exception][VariableSetException] with
-		 * [E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED] as the
-		 * error code.
-		 *
-		 * @param self
-		 *   The variable.
-		 * @throws VariableSetException
-		 *   If variable write tracing is disabled, but the variable has write
-		 *   reactors.
-		 */
-		@Throws(VariableSetException::class)
-		internal fun handleVariableWriteTracing(self: AvailObject)
-		{
-			try
-			{
-				val interpreter = Interpreter.current()
-				if (interpreter.traceVariableWrites())
-				{
-					val fiber = interpreter.fiber()
-					fiber.recordVariableAccess(self, false)
-				}
-				else
-				{
-					val rawPojo = self.slot(WRITE_REACTORS)
-					if (!rawPojo.equalsNil())
-					{
-						val writeReactors =
-							rawPojo.javaObjectNotNull<
-								MutableMap<A_Atom, VariableAccessReactor?>>()
-						discardInvalidWriteReactors(writeReactors)
-						// If there are write reactors, but write tracing isn't
-						// active, then raise an exception.
-						if (writeReactors.isNotEmpty())
-						{
-							throw VariableSetException(
-								E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED)
-						}
-					}
-				}
-			}
-			catch (e: ClassCastException)
-			{
-				// No implementation required.
-			}
+			writeReactors.values.removeIf(VariableAccessReactor::isInvalid)
 		}
 
 		/** The [CheckedMethod] for [A_Variable.clearValue].  */
@@ -722,13 +732,17 @@ open class VariableDescriptor protected constructor(
 		 */
 		@JvmStatic
 		fun newVariableWithContentType(contentType: A_Type): AvailObject =
-			newVariableWithOuterType(
-				variableTypeFor(contentType))
+			newVariableWithOuterType(variableTypeFor(contentType))
 
 		/**
 		 * Create a `variable` of the specified
 		 * [variable&#32;type][VariableTypeDescriptor].  The new variable
 		 * initially holds no value.
+		 *
+		 * Note that [WRITE_REACTORS] and [VALUE] can be initialized with
+		 * ordinary slot writes here, because should the variable become
+		 * shared, a volatile write to its descriptor (and subsequent volatile
+		 * read by other threads) protects us.
 		 *
 		 * @param variableType
 		 *   The [variable&#32;type][VariableTypeDescriptor].

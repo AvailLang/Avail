@@ -62,6 +62,7 @@ import com.avail.descriptor.types.A_Type.Companion.typeUnionOfPojoFusedType
 import com.avail.descriptor.types.A_Type.Companion.typeUnionOfPojoType
 import com.avail.descriptor.types.A_Type.Companion.typeUnionOfPojoUnfusedType
 import com.avail.descriptor.types.A_Type.Companion.upperBound
+import com.avail.descriptor.types.ArrayPojoTypeDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import com.avail.descriptor.types.ArrayPojoTypeDescriptor.IntegerSlots.HASH_AND_MORE
 import com.avail.descriptor.types.ArrayPojoTypeDescriptor.ObjectSlots.CONTENT_TYPE
 import com.avail.descriptor.types.ArrayPojoTypeDescriptor.ObjectSlots.JAVA_ANCESTORS
@@ -391,7 +392,7 @@ internal class ArrayPojoTypeDescriptor private constructor(
 		 */
 		private fun hash(self: AvailObject): Int
 		{
-			var hash = self.slot(IntegerSlots.HASH_OR_ZERO)
+			var hash = self.slot(HASH_OR_ZERO)
 			if (hash == 0)
 			{
 				// Note that this definition produces a value compatible with a
@@ -400,7 +401,7 @@ internal class ArrayPojoTypeDescriptor private constructor(
 				hash =
 					self.slot(JAVA_ANCESTORS).keysAsSet().hash() xor
 						-0x5fea43bc
-				self.setSlot(IntegerSlots.HASH_OR_ZERO, hash)
+				self.setSlot(HASH_OR_ZERO, hash)
 			}
 			return hash
 		}

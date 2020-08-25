@@ -55,6 +55,7 @@ import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAtPuttingCanDestroy
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
+import com.avail.descriptor.tuples.IntTupleDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import com.avail.descriptor.tuples.IntTupleDescriptor.IntegerSlots.RAW_LONG_AT_
 import com.avail.descriptor.tuples.LongTupleDescriptor.Companion.generateLongTupleFrom
 import com.avail.descriptor.tuples.NybbleTupleDescriptor.Companion.mutableObjectOfSize
@@ -168,7 +169,7 @@ class IntTupleDescriptor private constructor(
 			// Enlarge it in place, using more of the final partial int field.
 			self.setDescriptor(descriptorFor(Mutability.MUTABLE, newSize))
 			self.setIntSlot(RAW_LONG_AT_, newSize, intValue)
-			self.setSlot(IntegerSlots.HASH_OR_ZERO, 0)
+			self.setSlot(HASH_OR_ZERO, 0)
 			return self
 		}
 		// Copy to a potentially larger IntTupleDescriptor.
@@ -178,7 +179,7 @@ class IntTupleDescriptor private constructor(
 			0,
 			if (originalSize and 1 == 0) 1 else 0)
 		result.setIntSlot(RAW_LONG_AT_, newSize, intValue)
-		result.setSlot(IntegerSlots.HASH_OR_ZERO, 0)
+		result.setSlot(HASH_OR_ZERO, 0)
 		return result
 	}
 
@@ -315,7 +316,7 @@ class IntTupleDescriptor private constructor(
 				source++
 				destination++
 			}
-			result.setSlot(IntegerSlots.HASH_OR_ZERO, 0)
+			result.setSlot(HASH_OR_ZERO, 0)
 			return result
 		}
 		if (!canDestroy)

@@ -234,7 +234,7 @@ import com.avail.descriptor.types.TokenTypeDescriptor
 import com.avail.descriptor.types.TokenTypeDescriptor.Companion.tokenType
 import com.avail.descriptor.types.TupleTypeDescriptor
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
-import com.avail.descriptor.types.TypeDescriptor
+import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.descriptor.types.VariableTypeDescriptor
 import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableReadWriteType
 import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
@@ -1683,7 +1683,7 @@ enum class SerializerOperation constructor(
 			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			assert(obj.isInstanceOf(TypeDescriptor.Types.METHOD.o))
+			assert(obj.isInstanceOf(Types.METHOD.o))
 			val pairs = mutableListOf<A_Tuple>()
 			for (bundle in obj.bundles())
 			{
@@ -2591,7 +2591,7 @@ enum class SerializerOperation constructor(
 			subobjects: Array<AvailObject>,
 			deserializer: Deserializer): A_BasicObject
 		{
-			return TypeDescriptor.Types.all()[subobjects[0].extractInt()].o
+			return Types.all()[subobjects[0].extractInt()].o
 		}
 	},
 

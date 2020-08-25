@@ -40,6 +40,7 @@ import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.sets.HashedSetBinDescriptor.Companion.generateHashedSetBinFrom
 import com.avail.descriptor.sets.LinearSetBinDescriptor.Companion.generateLinearSetBinFrom
+import com.avail.descriptor.sets.SetBinDescriptor.IntegerSlots.Companion.BIN_HASH
 import com.avail.descriptor.sets.SetDescriptor.SetIterator
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.TypeTag
@@ -100,7 +101,7 @@ abstract class SetBinDescriptor protected constructor(
 	}
 
 	override fun o_SetBinHash(self: AvailObject): Int =
-		self.slot(IntegerSlots.BIN_HASH)
+		self.slot(BIN_HASH)
 
 	override fun o_IsSetBin(self: AvailObject) = true
 

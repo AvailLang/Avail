@@ -37,6 +37,7 @@ import com.avail.annotations.HideFieldInDebugger
 import com.avail.descriptor.fiber.A_Fiber
 import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
+import com.avail.descriptor.functions.ContinuationDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import com.avail.descriptor.functions.ContinuationDescriptor.IntegerSlots.Companion.LEVEL_TWO_OFFSET
 import com.avail.descriptor.functions.ContinuationDescriptor.IntegerSlots.Companion.PROGRAM_COUNTER
 import com.avail.descriptor.functions.ContinuationDescriptor.IntegerSlots.Companion.STACK_POINTER
@@ -384,12 +385,12 @@ class ContinuationDescriptor private constructor(
 		// Hashing a continuation isn't expected to be common, but it's
 		// sufficiently expensive that we need to cache the hash value in the
 		// rare case that we do need it.
-		var hash = self.slot(IntegerSlots.HASH_OR_ZERO)
+		var hash = self.slot(HASH_OR_ZERO)
 		if (hash == 0) {
 			val caller = self.caller().traversed().cast()
 			var callerHash = 0
 			if (!caller.equalsNil()
-				&& caller.slot(IntegerSlots.HASH_OR_ZERO) == 0) {
+				&& caller.slot(HASH_OR_ZERO) == 0) {
 				// The caller isn't hashed yet either.  Iteratively hash the
 				// call chain bottom-up to avoid potentially deep recursion.
 				val chain: Deque<AvailObject> = ArrayDeque()
@@ -398,7 +399,7 @@ class ContinuationDescriptor private constructor(
 					chain.addFirst(ancestor)
 					ancestor = ancestor.caller().traversed()
 				} while (!ancestor.equalsNil()
-					&& ancestor.slot(IntegerSlots.HASH_OR_ZERO) == 0)
+					&& ancestor.slot(HASH_OR_ZERO) == 0)
 				for (c in chain) {
 					callerHash = c.hashCode()
 				}
@@ -419,7 +420,7 @@ class ContinuationDescriptor private constructor(
 				// tends to produce zero.  May as well play this one safely.
 				hash = 0x4693F664
 			}
-			self.setSlot(IntegerSlots.HASH_OR_ZERO, hash)
+			self.setSlot(HASH_OR_ZERO, hash)
 		}
 		return hash
 	}

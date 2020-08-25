@@ -54,7 +54,7 @@ import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
-import com.avail.descriptor.types.TypeDescriptor
+import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.AvailErrorCode.Companion.byNumericCode
@@ -765,7 +765,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 				}
 				else
 				{
-					append(specialObjectName(TypeDescriptor.Types.ANY.o))
+					append(specialObjectName(Types.ANY.o))
 				}
 			}
 			else
@@ -922,8 +922,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 					}
 					else
 					{
-						formatArgs[raiseIndex] =
-							specialObjectName(TypeDescriptor.Types.ANY.o)
+						formatArgs[raiseIndex] = specialObjectName(Types.ANY.o)
 					}
 				}
 				else
@@ -1097,7 +1096,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 			print(preamble.getString(parameterPrefix.name))
 			print(1)
 			print(" : ")
-			println(specialObjectName(TypeDescriptor.Types.ANY.o))
+			println(specialObjectName(Types.ANY.o))
 			println("\t|")
 			print("\t\t")
 			print(MessageFormat.format(

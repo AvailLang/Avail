@@ -52,6 +52,7 @@ import com.avail.descriptor.types.A_Type.Companion.typeUnion
 import com.avail.descriptor.types.A_Type.Companion.typeUnionOfListNodeType
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
+import com.avail.descriptor.types.ListPhraseTypeDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import com.avail.descriptor.types.ListPhraseTypeDescriptor.ObjectSlots.EXPRESSION_TYPE
 import com.avail.descriptor.types.ListPhraseTypeDescriptor.ObjectSlots.SUBEXPRESSIONS_TUPLE_TYPE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
@@ -201,7 +202,7 @@ class ListPhraseTypeDescriptor internal constructor(
 
 	override fun o_Hash(self: AvailObject): Int
 	{
-		var hash = self.slot(IntegerSlots.HASH_OR_ZERO)
+		var hash = self.slot(HASH_OR_ZERO)
 		if (hash == 0)
 		{
 			hash = self.slot(EXPRESSION_TYPE).hash()
@@ -210,7 +211,7 @@ class ListPhraseTypeDescriptor internal constructor(
 			hash *= AvailObject.multiplier
 			hash = hash xor self.slot(SUBEXPRESSIONS_TUPLE_TYPE).hash()
 			hash *= AvailObject.multiplier
-			self.setSlot(IntegerSlots.HASH_OR_ZERO, hash)
+			self.setSlot(HASH_OR_ZERO, hash)
 		}
 		return hash
 	}
