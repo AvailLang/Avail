@@ -126,6 +126,7 @@ import com.avail.descriptor.methods.SemanticRestrictionDescriptor
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.module.ModuleDescriptor.Companion.newModule
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
 import com.avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.parsingInstructions
 import com.avail.descriptor.parsing.A_Lexer
 import com.avail.descriptor.parsing.A_ParsingPlanInProgress.Companion.nameHighlightingPc

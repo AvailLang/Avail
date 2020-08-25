@@ -49,6 +49,7 @@ import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.methods.A_Method
 import com.avail.descriptor.methods.A_SemanticRestriction
 import com.avail.descriptor.methods.MethodDescriptor
+import com.avail.descriptor.numbers.A_Number.Companion.equalsInt
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.A_Phrase.Companion.argumentsTuple
 import com.avail.descriptor.phrases.A_Phrase.Companion.neededVariables

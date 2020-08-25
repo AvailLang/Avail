@@ -121,7 +121,7 @@ object L2_DIVIDE_OBJECT_BY_OBJECT : L2ControlFlowOperation(
 		method.visitInsn(Opcodes.DUP)
 		translator.load(method, divisor.register())
 		method.visitInsn(Opcodes.ICONST_0)
-		A_Number.divideCanDestroyMethod.generateCall(method)
+		A_Number.divideMethod.generateCall(method)
 		method.visitInsn(Opcodes.DUP)
 		translator.store(method, quotient.register())
 		// ::    remainder = dividend.minusCanDestroy(

@@ -31,6 +31,7 @@
  */
 package com.avail.interpreter.levelTwo.operation
 
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.tupleAtMethod
 import com.avail.descriptor.types.A_Type.Companion.lowerBound

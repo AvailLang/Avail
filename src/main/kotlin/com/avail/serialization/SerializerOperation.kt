@@ -72,6 +72,11 @@ import com.avail.descriptor.methods.AbstractDefinitionDescriptor
 import com.avail.descriptor.methods.ForwardDefinitionDescriptor
 import com.avail.descriptor.methods.MethodDefinitionDescriptor
 import com.avail.descriptor.methods.MethodDescriptor
+import com.avail.descriptor.numbers.A_Number.Companion.equalsInt
+import com.avail.descriptor.numbers.A_Number.Companion.extractDouble
+import com.avail.descriptor.numbers.A_Number.Companion.extractFloat
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
+import com.avail.descriptor.numbers.A_Number.Companion.extractUnsignedByte
 import com.avail.descriptor.numbers.DoubleDescriptor
 import com.avail.descriptor.numbers.DoubleDescriptor.Companion.fromDouble
 import com.avail.descriptor.numbers.FloatDescriptor

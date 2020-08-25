@@ -32,6 +32,7 @@
 package com.avail.interpreter.primitive.numbers
 
 import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.numbers.A_Number.Companion.divideCanDestroy
 import com.avail.descriptor.numbers.AbstractNumberDescriptor.Companion.binaryNumericOperationTypeBound
 import com.avail.descriptor.numbers.InfinityDescriptor.Companion.negativeInfinity
 import com.avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity

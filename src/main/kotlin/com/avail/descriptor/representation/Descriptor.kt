@@ -65,6 +65,7 @@ import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.A_Set.Companion.hasElement
+import com.avail.descriptor.sets.A_SetBin
 import com.avail.descriptor.sets.LinearSetBinDescriptor.Companion.createLinearSetBinPair
 import com.avail.descriptor.sets.LinearSetBinDescriptor.Companion.emptyLinearSetBin
 import com.avail.descriptor.sets.SetDescriptor.SetIterator
@@ -1426,7 +1427,7 @@ abstract class Descriptor protected constructor (
 		elementObject: A_BasicObject,
 		elementObjectHash: Int,
 		myLevel: Int,
-		canDestroy: Boolean): A_BasicObject
+		canDestroy: Boolean): A_SetBin
 	{
 		// Add the given element to this bin, potentially modifying it if
 		// canDestroy and it's mutable. Answer the new bin. Note that the client
@@ -1477,7 +1478,7 @@ abstract class Descriptor protected constructor (
 		elementObject: A_BasicObject,
 		elementObjectHash: Int,
 		myLevel: Int,
-		canDestroy: Boolean): AvailObject
+		canDestroy: Boolean): A_SetBin
 	{
 		if (self.equals(elementObject))
 		{

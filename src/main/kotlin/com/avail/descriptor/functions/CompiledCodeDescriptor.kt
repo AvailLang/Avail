@@ -48,6 +48,7 @@ import com.avail.descriptor.functions.CompiledCodeDescriptor.IntegerSlots.NYBBLE
 import com.avail.descriptor.functions.CompiledCodeDescriptor.ObjectSlots.FUNCTION_TYPE
 import com.avail.descriptor.functions.CompiledCodeDescriptor.ObjectSlots.LITERAL_AT_
 import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.BlockPhraseDescriptor

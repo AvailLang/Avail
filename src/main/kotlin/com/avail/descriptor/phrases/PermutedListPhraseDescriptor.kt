@@ -32,6 +32,7 @@
 package com.avail.descriptor.phrases
 
  import com.avail.compiler.AvailCodeGenerator
+ import com.avail.descriptor.numbers.A_Number.Companion.extractInt
  import com.avail.descriptor.phrases.A_Phrase.Companion.emitAllValuesOn
  import com.avail.descriptor.phrases.A_Phrase.Companion.expressionAt
  import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsSize

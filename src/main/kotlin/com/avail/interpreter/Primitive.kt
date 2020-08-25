@@ -35,6 +35,7 @@ package com.avail.interpreter
 import com.avail.AvailRuntime.HookType.IMPLICIT_OBSERVE
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.A_Phrase.Companion.declaredType
 import com.avail.descriptor.phrases.A_Phrase.Companion.token
@@ -48,6 +49,7 @@ import com.avail.descriptor.types.A_Type.Companion.returnType
 import com.avail.descriptor.types.A_Type.Companion.sizeRange
 import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
 import com.avail.descriptor.types.A_Type.Companion.upperBound
+import com.avail.descriptor.types.A_Type.Companion.writeType
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.FunctionTypeDescriptor
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers

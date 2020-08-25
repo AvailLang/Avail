@@ -43,6 +43,15 @@ import com.avail.descriptor.representation.IntegerSlotsEnum
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.representation.ObjectSlotsEnum
+import com.avail.descriptor.sets.A_SetBin.Companion.binElementAt
+import com.avail.descriptor.sets.A_SetBin.Companion.binHasElementWithHash
+import com.avail.descriptor.sets.A_SetBin.Companion.binRemoveElementHashLevelCanDestroy
+import com.avail.descriptor.sets.A_SetBin.Companion.binUnionKind
+import com.avail.descriptor.sets.A_SetBin.Companion.isBinSubsetOf
+import com.avail.descriptor.sets.A_SetBin.Companion.isSetBin
+import com.avail.descriptor.sets.A_SetBin.Companion.setBinAddingElementHashLevelCanDestroy
+import com.avail.descriptor.sets.A_SetBin.Companion.setBinHash
+import com.avail.descriptor.sets.A_SetBin.Companion.setBinSize
 import com.avail.descriptor.sets.HashedSetBinDescriptor.IntegerSlots.BIT_VECTOR
 import com.avail.descriptor.sets.HashedSetBinDescriptor.IntegerSlots.Companion.BIN_HASH
 import com.avail.descriptor.sets.HashedSetBinDescriptor.IntegerSlots.Companion.BIN_SIZE
@@ -221,7 +230,8 @@ class HashedSetBinDescriptor private constructor(
 		elementObjectHash: Int,
 		myLevel: Int,
 		canDestroy: Boolean
-	): A_BasicObject {
+	): A_SetBin
+	{
 		assert(myLevel == level)
 		//  First, grab the appropriate 6 bits from the hash.
 		val objectEntryCount = self.variableObjectSlotsCount()
@@ -234,7 +244,7 @@ class HashedSetBinDescriptor private constructor(
 		var typeUnion: A_Type
 		if (vector and logicalBitValue != 0L) {
 			// The appropriate bil is already present.
-			var entry: A_BasicObject = self.slot(BIN_ELEMENT_AT_, physicalIndex)
+			var entry: A_SetBin = self.slot(BIN_ELEMENT_AT_, physicalIndex)
 			val previousBinSize = entry.setBinSize()
 			val previousEntryHash = entry.setBinHash()
 			val previousTotalHash = self.setBinHash()
@@ -321,7 +331,7 @@ class HashedSetBinDescriptor private constructor(
 		// zero-relative physicalIndex.
 		val masked = vector and logicalBitValue - 1
 		val physicalIndex: Int = java.lang.Long.bitCount(masked) + 1
-		val subBin: A_BasicObject = self.slot(BIN_ELEMENT_AT_, physicalIndex)
+		val subBin: A_SetBin = self.slot(BIN_ELEMENT_AT_, physicalIndex)
 		return subBin.binHasElementWithHash(elementObject, elementObjectHash)
 	}
 
@@ -335,7 +345,8 @@ class HashedSetBinDescriptor private constructor(
 		elementObjectHash: Int,
 		myLevel: Int,
 		canDestroy: Boolean
-	): AvailObject {
+	): A_SetBin
+	{
 		assert(level == myLevel)
 		val objectEntryCount = self.variableObjectSlotsCount()
 		val logicalIndex = elementObjectHash ushr shift and 63
@@ -349,7 +360,7 @@ class HashedSetBinDescriptor private constructor(
 		}
 		val masked = vector and logicalBitValue - 1
 		val physicalIndex: Int = java.lang.Long.bitCount(masked) + 1
-		val oldEntry: A_BasicObject = self.slot(BIN_ELEMENT_AT_, physicalIndex)
+		val oldEntry: A_SetBin = self.slot(BIN_ELEMENT_AT_, physicalIndex)
 		val oldEntryHash = oldEntry.setBinHash()
 		val oldEntrySize = oldEntry.setBinSize()
 		val oldTotalHash = self.setBinHash()
@@ -436,12 +447,12 @@ class HashedSetBinDescriptor private constructor(
 	 *   The root bin over which to iterate.
 	 */
 	internal class HashedSetBinIterator(
-		root: AvailObject
+		root: A_SetBin
 	) : SetIterator() {
 		/**
 		 * The path through set bins, excluding the leaf (non-bin) element.
 		 */
-		private val binStack = ArrayDeque<AvailObject>()
+		private val binStack = ArrayDeque<A_SetBin>()
 
 		/**
 		 * The position navigated through each bin.  It should always contain
@@ -453,7 +464,7 @@ class HashedSetBinDescriptor private constructor(
 		 * The next value that will returned by [next], or null if the iterator
 		 * is exhausted.
 		 */
-		private var currentElement: AvailObject? = null
+		private var currentElement: A_SetBin? = null
 
 		init {
 			traceDownward(root)
@@ -468,7 +479,7 @@ class HashedSetBinDescriptor private constructor(
 		 * @param binOrElement
 		 *   The bin or element to begin enumerating.
 		 */
-		private fun traceDownward(binOrElement: AvailObject) {
+		private fun traceDownward(binOrElement: A_SetBin) {
 			var current = binOrElement
 			while (current.isSetBin) {
 				binStack.add(current)
@@ -484,7 +495,7 @@ class HashedSetBinDescriptor private constructor(
 			if (currentElement === null) {
 				throw NoSuchElementException()
 			}
-			val result: AvailObject = currentElement!!
+			val result: A_SetBin = currentElement!!
 			assert(binStack.isNotEmpty())
 			assert(binStack.size == subscriptStack.size)
 			do {
@@ -495,14 +506,14 @@ class HashedSetBinDescriptor private constructor(
 					subscriptStack.add(nextIndex)
 					assert(binStack.size == subscriptStack.size)
 					traceDownward(leafBin.binElementAt(nextIndex))
-					return result
+					return result as AvailObject
 				}
 				// Exhausted the bin.
 				binStack.removeLast()
 				assert(binStack.size == subscriptStack.size)
 			} while (!binStack.isEmpty())
 			currentElement = null
-			return result
+			return result as AvailObject
 		}
 
 		override fun hasNext(): Boolean = currentElement !== null

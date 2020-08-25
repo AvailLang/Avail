@@ -37,6 +37,7 @@ import com.avail.descriptor.methods.DefinitionDescriptor.ObjectSlots.DEFINITION_
 import com.avail.descriptor.methods.DefinitionDescriptor.ObjectSlots.MODULE
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.module.ModuleDescriptor
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.Descriptor

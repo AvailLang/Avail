@@ -31,6 +31,10 @@
  */
 package com.avail.descriptor.types
 
+import com.avail.descriptor.numbers.A_Number.Companion.equalsInt
+import com.avail.descriptor.numbers.A_Number.Companion.lessOrEqual
+import com.avail.descriptor.numbers.A_Number.Companion.minusCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.plusCanDestroy
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.one
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import com.avail.descriptor.representation.A_BasicObject

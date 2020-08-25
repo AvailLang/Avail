@@ -32,6 +32,7 @@
 package com.avail.tools.bootstrap
 
 import com.avail.AvailRuntime
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
 import com.avail.descriptor.sets.A_Set.Companion.setMinusCanDestroy
 import com.avail.descriptor.sets.A_Set.Companion.setSize
 import com.avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy

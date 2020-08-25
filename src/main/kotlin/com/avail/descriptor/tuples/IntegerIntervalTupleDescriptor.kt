@@ -33,6 +33,17 @@ package com.avail.descriptor.tuples
 
 import com.avail.annotations.HideFieldInDebugger
 import com.avail.descriptor.numbers.A_Number
+import com.avail.descriptor.numbers.A_Number.Companion.addToIntegerCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.divideCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.equalsInt
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
+import com.avail.descriptor.numbers.A_Number.Companion.extractLong
+import com.avail.descriptor.numbers.A_Number.Companion.greaterThan
+import com.avail.descriptor.numbers.A_Number.Companion.lessThan
+import com.avail.descriptor.numbers.A_Number.Companion.minusCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.multiplyByIntegerCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.plusCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.timesCanDestroy
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import com.avail.descriptor.representation.A_BasicObject
@@ -275,8 +286,7 @@ class IntegerIntervalTupleDescriptor private constructor(mutability: Mutability)
 				fromInt(start - 1).multiplyByIntegerCanDestroy(delta, true),
 				canDestroy) as AvailObject
 			val newEndValue = newStartValue.plusCanDestroy(
-				fromInt(newSize - 1).multiplyByIntegerCanDestroy(
-					delta, true),
+				fromInt(newSize - 1).multiplyByIntegerCanDestroy(delta, true),
 				false) as AvailObject
 			if (isMutable && canDestroy)
 			{

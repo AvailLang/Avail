@@ -32,6 +32,17 @@
 package com.avail.test
 
 import com.avail.descriptor.numbers.A_Number
+import com.avail.descriptor.numbers.A_Number.Companion.asBigInteger
+import com.avail.descriptor.numbers.A_Number.Companion.bitShift
+import com.avail.descriptor.numbers.A_Number.Companion.divideCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.extractFloat
+import com.avail.descriptor.numbers.A_Number.Companion.extractLong
+import com.avail.descriptor.numbers.A_Number.Companion.isPositive
+import com.avail.descriptor.numbers.A_Number.Companion.lessOrEqual
+import com.avail.descriptor.numbers.A_Number.Companion.minusCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.numericCompare
+import com.avail.descriptor.numbers.A_Number.Companion.plusCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.timesCanDestroy
 import com.avail.descriptor.numbers.DoubleDescriptor.Companion.doubleTruncatedToExtendedInteger
 import com.avail.descriptor.numbers.DoubleDescriptor.Companion.fromDouble
 import com.avail.descriptor.numbers.FloatDescriptor
@@ -370,6 +381,7 @@ class ArithmeticTest
 		 * Values with which to test [BigInteger] conversion. Their negations
 		 * are also tested.
 		 */
+		@Suppress("SpellCheckingInspection")
 		private val bigIntegerHexConversions: List<String> = listOf(
 			"1", "2",
 			"7F", "80", "81",
@@ -427,7 +439,7 @@ class ArithmeticTest
 		/**
 		 * Hex strings used as bases for shift testing. Negatives of these are
 		 * also tested, as well as
-		 * [smallperturbations][.baseOffsetsForShifting].
+		 * small perturbations from [baseOffsetsForShifting].
 		 */
 		val baseNeighborhoodsForShifting = arrayOf(
 			"0",
@@ -465,7 +477,7 @@ class ArithmeticTest
 		)
 
 		/**
-		 * Check that the [bit shift][AvailObject.bitShift] operation defined in
+		 * Check that the [bit shift][A_Number.bitShift] operation defined in
 		 * [AvailObject] produces a result that agrees with [BigInteger]'s
 		 * implementation. Use the provided `BigInteger` base and left shift
 		 * `int`.
@@ -494,6 +506,7 @@ class ArithmeticTest
 		 * A list of BigIntegers, initially written in hexadecimal, to use for
 		 * testing integer addition and subtraction.
 		 */
+		@Suppress("SpellCheckingInspection")
 		val additionAndSubtractionCases: MutableList<BigInteger> = Stream.of(
 			"0",
 			"1",

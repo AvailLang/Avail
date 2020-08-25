@@ -36,6 +36,8 @@ import com.avail.compiler.ParsingOperation.CONVERT
 import com.avail.compiler.splitter.MessageSplitter.Companion.throwSignatureException
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter
 import com.avail.compiler.splitter.WrapState.SHOULD_NOT_PUSH_LIST
+import com.avail.descriptor.numbers.A_Number.Companion.equalsInt
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.A_Phrase.Companion.token
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple

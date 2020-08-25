@@ -31,6 +31,7 @@
  */
 package com.avail.interpreter.primitive.tuples
 
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
 import com.avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple

@@ -33,6 +33,9 @@ package com.avail.descriptor.tuples
 
 import com.avail.annotations.HideFieldInDebugger
 import com.avail.descriptor.numbers.A_Number
+import com.avail.descriptor.numbers.A_Number.Companion.extractLong
+import com.avail.descriptor.numbers.A_Number.Companion.greaterThan
+import com.avail.descriptor.numbers.A_Number.Companion.lessThan
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.computeHashOfLong
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero

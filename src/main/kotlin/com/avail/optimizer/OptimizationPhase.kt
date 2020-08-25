@@ -167,7 +167,8 @@ internal enum class OptimizationPhase constructor(
 	 * that no two registers that have to maintain distinct values at the same
 	 * time will have the same number.
 	 */
-	COALESCE_REGISTERS_IN_NONINTERFERING_MOVES({ coalesceNoninterferingMoves() }),
+	COALESCE_REGISTERS_IN_NONINTERFERING_MOVES(
+		{ coalesceNoninterferingMoves() }),
 
 	/** Compute and assign final register colors.  */
 	ASSIGN_REGISTER_COLORS({ computeColors() }),

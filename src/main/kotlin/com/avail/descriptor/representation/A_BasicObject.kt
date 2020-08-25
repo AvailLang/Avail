@@ -38,14 +38,11 @@ import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.functions.CompiledCodeDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.maps.A_Map
-import com.avail.descriptor.numbers.AbstractNumberDescriptor.Sign
-import com.avail.descriptor.numbers.InfinityDescriptor
 import com.avail.descriptor.objects.ObjectDescriptor
 import com.avail.descriptor.objects.ObjectTypeDescriptor
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
 import com.avail.descriptor.sets.A_Set
-import com.avail.descriptor.sets.SetDescriptor.SetIterator
 import com.avail.descriptor.tokens.A_Token
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
@@ -235,46 +232,6 @@ interface A_BasicObject : JSONFriendly {
 	override fun hashCode(): Int
 
 	/**
-	 * Dispatch to the descriptor.
-	 */
-	fun setBinAddingElementHashLevelCanDestroy(
-		elementObject: A_BasicObject,
-		elementObjectHash: Int,
-		myLevel: Int,
-		canDestroy: Boolean): A_BasicObject
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	fun binElementAt(index: Int): A_BasicObject
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	fun binHasElementWithHash(
-		elementObject: A_BasicObject,
-		elementObjectHash: Int): Boolean
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	fun setBinHash(): Int
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	fun binRemoveElementHashLevelCanDestroy(
-		elementObject: A_BasicObject,
-		elementObjectHash: Int,
-		myLevel: Int,
-		canDestroy: Boolean): AvailObject
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	fun setBinSize(): Int
-
-	/**
 	 * {@inheritDoc}
 	 *
 	 * This comparison operation takes an [Object] as its argument to avoid
@@ -341,16 +298,6 @@ interface A_BasicObject : JSONFriendly {
 	 * to the argument, `false` otherwise.
 	 */
 	fun equalsByteTuple(aByteTuple: A_Tuple): Boolean
-
-	/**
-	 * Answer whether the receiver, an [object][AvailObject], is a
-	 * character with a code point equal to the integer argument.
-	 *
-	 * @param aCodePoint The code point to be compared to the receiver.
-	 * @return `true` if the receiver is a character with a code point
-	 * equal to the argument, `false` otherwise.
-	 */
-	fun equalsCharacterWithCodePoint(aCodePoint: Int): Boolean
 
 	/**
 	 * Answer whether the receiver, an [object][AvailObject], and the
@@ -524,39 +471,6 @@ interface A_BasicObject : JSONFriendly {
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	fun equalsSet(aSet: A_Set): Boolean
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	fun equalsDouble(aDouble: Double): Boolean
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	fun equalsFloat(aFloat: Float): Boolean
-
-	/**
-	 * Answer whether the [receiver][AvailObject] is an
-	 * [infinity][InfinityDescriptor] with the specified [Sign].
-	 *
-	 * @param sign
-	 *   The type of infinity for comparison.
-	 * @return
-	 *   `true` if the receiver is an infinity of the specified sign, `false`
-	 *   otherwise.
-	 */
-	fun equalsInfinity(sign: Sign): Boolean
-
-	/**
-	 * Dispatch to the descriptor.
-	 * @param anAvailInteger
-	 */
-	fun equalsInteger(anAvailInteger: AvailObject): Boolean
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	fun equalsSetType(aSetType: A_Type): Boolean
 
 	/**
@@ -600,11 +514,6 @@ interface A_BasicObject : JSONFriendly {
 	fun representationCostOfTupleType(): Int
 
 	/**
-	 * Dispatch to the descriptor.
-	 */
-	fun isBinSubsetOf(potentialSuperset: A_Set): Boolean
-
-	/**
 	 * Is the [receiver][AvailObject] an Avail boolean?
 	 *
 	 * @return `true` if the receiver is a boolean, `false`
@@ -637,14 +546,6 @@ interface A_BasicObject : JSONFriendly {
 	 *   `true` if the receiver is a byte tuple, `false` otherwise.
 	 */
 	val isByteTuple: Boolean
-
-	/**
-	 * Is the [receiver][AvailObject] an Avail character?
-	 *
-	 * @return `true` if the receiver is a character, `false`
-	 * otherwise.
-	 */
-	val isCharacter: Boolean
 
 	/**
 	 * Is the [receiver][AvailObject] an Avail function?
@@ -733,13 +634,6 @@ interface A_BasicObject : JSONFriendly {
 	val isNybble: Boolean
 
 	/**
-	 * Is the [receiver][AvailObject] an Avail set?
-	 *
-	 * @return `true` if the receiver is a set, `false` otherwise.
-	 */
-	val isSet: Boolean
-
-	/**
 	 * Dispatch to the descriptor.
 	 */
 	val isSetType: Boolean
@@ -826,16 +720,6 @@ interface A_BasicObject : JSONFriendly {
 	 * @return
 	 */
 	fun declarationKind(): DeclarationKind
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	fun binUnionKind(): A_Type
-
-	/**
-	 * @return
-	 */
-	val isSetBin: Boolean
 
 	/**
 	 * @return
@@ -1040,17 +924,6 @@ interface A_BasicObject : JSONFriendly {
 	 * @return
 	 */
 	val isInstanceMeta: Boolean
-
-	/**
-	 * @param kind
-	 * @return
-	 */
-	fun binElementsAreAllInstancesOfKind(kind: A_Type): Boolean
-
-	/**
-	 * @return
-	 */
-	fun setBinIterator(): SetIterator
 
 	/**
 	 * @param aPhrase

@@ -33,6 +33,7 @@ package com.avail.interpreter.primitive.continuations
 
 import com.avail.descriptor.functions.ContinuationDescriptor
 import com.avail.descriptor.functions.ContinuationDescriptor.Companion.createContinuationWithFrame
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize

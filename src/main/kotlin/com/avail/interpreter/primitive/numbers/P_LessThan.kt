@@ -35,6 +35,7 @@ import com.avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.numbers.A_Number.Companion.lessThan
 import com.avail.descriptor.numbers.AbstractNumberDescriptor.Companion.possibleOrdersWhenComparingInstancesOf
 import com.avail.descriptor.numbers.AbstractNumberDescriptor.Order.EQUAL
 import com.avail.descriptor.numbers.AbstractNumberDescriptor.Order.INCOMPARABLE

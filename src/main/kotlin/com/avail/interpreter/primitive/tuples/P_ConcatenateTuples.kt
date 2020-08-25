@@ -32,6 +32,11 @@
 package com.avail.interpreter.primitive.tuples
 
 import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.numbers.A_Number.Companion.equalsInt
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
+import com.avail.descriptor.numbers.A_Number.Companion.greaterThan
+import com.avail.descriptor.numbers.A_Number.Companion.plusCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.timesCanDestroy
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.one
 import com.avail.descriptor.tuples.A_Tuple

@@ -31,6 +31,17 @@
  */
 package com.avail.descriptor.numbers
 
+import com.avail.descriptor.numbers.A_Number.Companion.addToInfinityCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.divideIntoInfinityCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.equalsInfinity
+import com.avail.descriptor.numbers.A_Number.Companion.equalsInt
+import com.avail.descriptor.numbers.A_Number.Companion.extractDouble
+import com.avail.descriptor.numbers.A_Number.Companion.extractFloat
+import com.avail.descriptor.numbers.A_Number.Companion.greaterThan
+import com.avail.descriptor.numbers.A_Number.Companion.isPositive
+import com.avail.descriptor.numbers.A_Number.Companion.multiplyByInfinityCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.numericCompareToInfinity
+import com.avail.descriptor.numbers.A_Number.Companion.subtractFromInfinityCanDestroy
 import com.avail.descriptor.numbers.AbstractNumberDescriptor.Sign.POSITIVE
 import com.avail.descriptor.numbers.DoubleDescriptor.Companion.compareDoubles
 import com.avail.descriptor.numbers.DoubleDescriptor.Companion.fromDoubleRecycling
@@ -107,7 +118,7 @@ class InfinityDescriptor private constructor(
 	override fun o_Equals(
 		self: AvailObject,
 		another: A_BasicObject
-	): Boolean = another.equalsInfinity(sign)
+	): Boolean = (another as A_Number).equalsInfinity(sign)
 
 	override fun o_EqualsInfinity(
 		self: AvailObject,

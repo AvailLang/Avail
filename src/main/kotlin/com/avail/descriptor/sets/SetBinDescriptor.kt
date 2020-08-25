@@ -137,10 +137,10 @@ abstract class SetBinDescriptor protected constructor(
 			level: Int,
 			size: Int,
 			generator: (Int)->A_BasicObject
-		): A_BasicObject {
+		): A_SetBin {
 			if (size == 1) {
 				// Special case, exactly one value occurs, so return it.
-				return generator(1)
+				return generator(1) as A_SetBin
 			}
 			return if (size < LinearSetBinDescriptor.thresholdToHash
 				|| level >= HashedSetBinDescriptor.numberOfLevels - 1) {

@@ -34,6 +34,8 @@ package com.avail.interpreter.primitive.maps
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import com.avail.descriptor.maps.MapDescriptor
+import com.avail.descriptor.numbers.A_Number.Companion.equalsInt
+import com.avail.descriptor.numbers.A_Number.Companion.plusCanDestroy
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.one
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.two
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple

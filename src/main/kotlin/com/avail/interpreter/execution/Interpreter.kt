@@ -66,6 +66,8 @@ import com.avail.descriptor.functions.ContinuationRegisterDumpDescriptor.Compani
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.numbers.A_Number
+import com.avail.descriptor.numbers.A_Number.Companion.equalsInt
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots
 import com.avail.descriptor.representation.AvailObject

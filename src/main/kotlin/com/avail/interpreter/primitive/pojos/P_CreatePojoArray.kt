@@ -31,6 +31,7 @@
  */
 package com.avail.interpreter.primitive.pojos
 
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
 import com.avail.descriptor.numbers.IntegerDescriptor
 import com.avail.descriptor.pojos.PojoDescriptor.Companion.newPojo
 import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo

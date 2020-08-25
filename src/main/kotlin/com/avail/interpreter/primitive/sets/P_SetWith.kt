@@ -32,6 +32,7 @@
 package com.avail.interpreter.primitive.sets
 
 import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.numbers.A_Number.Companion.plusCanDestroy
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.one
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.two
 import com.avail.descriptor.representation.AvailObject

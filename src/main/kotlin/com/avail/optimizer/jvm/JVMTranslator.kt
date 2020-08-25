@@ -1220,7 +1220,7 @@ class JVMTranslator constructor(
 		}
 		else
 		{
-			method.visitJumpInsn(GOTO, labelFor(edge.offset()))
+			method.visitJumpInsn(branchOpcode, labelFor(edge.offset()))
 		}
 	}
 
@@ -1848,9 +1848,10 @@ class JVMTranslator constructor(
 	companion object
 	{
 		/**
-		 * When true, this produces slightly slower code that can be decompiled from
-		 * bytecodes into Java code without introduce tons of duplicated code. The
-		 * body of the method should be decompilable as something like:
+		 * When true, this produces slightly slower code that can be decompiled
+		 * from bytecodes into Java code without introduce tons of duplicated
+		 * code. The body of the method should be decompilable as something
+		 * like:
 		 *
 		 * ```
 		 * while(true) {
@@ -1862,15 +1863,15 @@ class JVMTranslator constructor(
 		 * }
 		 * ```
 		 *
-		 * In this scenario, a jump to case X is coded as a write to the `offset`
-		 * variable, followed by a jump to the loop head, which will look like an
-		 * assignment and a continue statement.
+		 * In this scenario, a jump to case X is coded as a write to the
+		 * `offset` variable, followed by a jump to the loop head, which will
+		 * look like an assignment and a continue statement.
 		 *
-		 * It's unclear how much slower this is than a direct jump (which is what
-		 * is generated when this flag is false), but it's probably not a big
-		 * difference.
+		 * It's unclear how much slower this is than a direct jump (which is
+		 * what is generated when this flag is false), but it's probably not a
+		 * big difference.
 		 */
-		const val debugNicerJavaDecompilation = true
+		const val debugNicerJavaDecompilation = false //TODO true
 
 		/**
 		 * A regex [Pattern] to rewrite function names like '"foo_"[1][3]' to

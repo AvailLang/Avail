@@ -31,6 +31,7 @@
  */
 package com.avail.interpreter.primitive.general
 
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type

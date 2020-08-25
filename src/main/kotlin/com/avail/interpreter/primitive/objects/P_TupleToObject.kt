@@ -37,6 +37,8 @@ import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.maps.A_Map.Companion.hasKey
 import com.avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
+import com.avail.descriptor.numbers.A_Number.Companion.equalsInt
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
 import com.avail.descriptor.objects.ObjectDescriptor
 import com.avail.descriptor.objects.ObjectDescriptor.Companion.objectFromTuple
 import com.avail.descriptor.objects.ObjectLayoutVariant.Companion.variantForFields

@@ -49,6 +49,8 @@ import com.avail.compiler.splitter.MessageSplitter.Metacharacter
 import com.avail.compiler.splitter.WrapState.PUSHED_LIST
 import com.avail.compiler.splitter.WrapState.SHOULD_NOT_HAVE_ARGUMENTS
 import com.avail.compiler.splitter.WrapState.SHOULD_NOT_PUSH_LIST
+import com.avail.descriptor.numbers.A_Number.Companion.equalsInt
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
 import com.avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero

@@ -34,6 +34,7 @@ package com.avail.descriptor.tuples
 import com.avail.annotations.HideFieldInDebugger
 import com.avail.descriptor.character.A_Character
 import com.avail.descriptor.character.A_Character.Companion.codePoint
+import com.avail.descriptor.character.A_Character.Companion.isCharacter
 import com.avail.descriptor.character.CharacterDescriptor.Companion.computeHashOfCharacterWithCodePoint
 import com.avail.descriptor.character.CharacterDescriptor.Companion.fromCodePoint
 import com.avail.descriptor.representation.A_BasicObject
@@ -131,13 +132,14 @@ class TwoByteStringDescriptor private constructor(
 		canDestroy: Boolean): A_Tuple
 	{
 		val originalSize = self.tupleSize()
-		if (originalSize >= maximumCopySize || !newElement.isCharacter)
+		if (originalSize >= maximumCopySize ||
+			!(newElement as A_Character).isCharacter)
 		{
 			// Transition to a tree tuple.
 			val singleton = tuple(newElement)
 			return self.concatenateWith(singleton, canDestroy)
 		}
-		val intValue: Int = (newElement as A_Character).codePoint ()
+		val intValue: Int = newElement.codePoint ()
 		if (intValue and 0xFFFF.inv() != 0)
 		{
 			// Transition to a tree tuple.
@@ -270,9 +272,9 @@ class TwoByteStringDescriptor private constructor(
 		// index we should have newValueObject. This may destroy the original
 		// tuple if canDestroy is true.
 		assert(index >= 1 && index <= self.tupleSize())
-		if (newValueObject.isCharacter)
+		if ((newValueObject as A_Character).isCharacter)
 		{
-			val codePoint: Int = (newValueObject as A_Character).codePoint()
+			val codePoint: Int = newValueObject.codePoint()
 			if (codePoint and 0xFFFF == codePoint)
 			{
 				if (canDestroy && isMutable)

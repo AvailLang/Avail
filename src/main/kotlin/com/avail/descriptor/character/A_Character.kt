@@ -54,5 +54,25 @@ interface A_Character : A_BasicObject {
 		 *   The character's numerical encoding in Unicode.
 		 */
 		fun A_Character.codePoint(): Int = dispatch { o_CodePoint(it) }
+
+		/**
+		 * Answer whether the receiver, an [object][AvailObject], is a
+		 * character with a code point equal to the integer argument.
+		 *
+		 * @param aCodePoint The code point to be compared to the receiver.
+		 * @return `true` if the receiver is a character with a code point
+		 * equal to the argument, `false` otherwise.
+		 */
+		fun A_Character.equalsCharacterWithCodePoint(aCodePoint: Int): Boolean =
+			dispatch { o_EqualsCharacterWithCodePoint(it, aCodePoint) }
+
+		/**
+		 * Is the [receiver][AvailObject] an Avail character?
+		 *
+		 * @return `true` if the receiver is a character, `false`
+		 * otherwise.
+		 */
+		val A_Character.isCharacter: Boolean get() =
+			dispatch { o_IsCharacter(it) }
 	}
 }

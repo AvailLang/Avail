@@ -39,6 +39,7 @@ import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.maps.A_Map.Companion.mapIterable
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.APPLY
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple

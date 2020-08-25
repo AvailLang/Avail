@@ -33,6 +33,9 @@ package com.avail.descriptor.tuples
 
 import com.avail.annotations.HideFieldInDebugger
 import com.avail.descriptor.character.A_Character.Companion.codePoint
+import com.avail.descriptor.character.A_Character.Companion.isCharacter
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
+import com.avail.descriptor.numbers.A_Number.Companion.extractLong
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.AvailObjectRepresentation.Companion.newLike

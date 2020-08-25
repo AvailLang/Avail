@@ -38,6 +38,11 @@ import com.avail.descriptor.representation.BitField
 import com.avail.descriptor.representation.IntegerSlotsEnum
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
+import com.avail.descriptor.sets.A_SetBin.Companion.binHasElementWithHash
+import com.avail.descriptor.sets.A_SetBin.Companion.isBinSubsetOf
+import com.avail.descriptor.sets.A_SetBin.Companion.setBinAddingElementHashLevelCanDestroy
+import com.avail.descriptor.sets.A_SetBin.Companion.setBinHash
+import com.avail.descriptor.sets.A_SetBin.Companion.setBinSize
 import com.avail.descriptor.sets.HashedSetBinDescriptor.Companion.createInitializedHashSetBin
 import com.avail.descriptor.sets.LinearSetBinDescriptor.IntegerSlots.Companion.BIN_HASH
 import com.avail.descriptor.sets.LinearSetBinDescriptor.ObjectSlots.BIN_ELEMENT_AT_
@@ -122,7 +127,8 @@ class LinearSetBinDescriptor private constructor(
 		elementObjectHash: Int,
 		myLevel: Int,
 		canDestroy: Boolean
-	): A_BasicObject {
+	): A_SetBin
+	{
 		// Add the given element to this bin, potentially modifying it if
 		// canDestroy and it's mutable.  Answer the new bin.  Note that the
 		// client is responsible for marking elementObject as immutable if
@@ -141,7 +147,7 @@ class LinearSetBinDescriptor private constructor(
 		if (oldSize == 0) {
 			// Bin transitioned from empty to single, but every object can act
 			// as a singleton set bin.
-			return elementObject
+			return elementObject as A_SetBin
 		}
 		val oldHash = self.setBinHash()
 		val result: AvailObject
@@ -208,7 +214,8 @@ class LinearSetBinDescriptor private constructor(
 		elementObjectHash: Int,
 		myLevel: Int,
 		canDestroy: Boolean
-	): AvailObject {
+	): A_SetBin
+	{
 		assert(level == myLevel)
 		val oldSize = self.variableObjectSlotsCount()
 		(1..oldSize).forEach { searchIndex ->

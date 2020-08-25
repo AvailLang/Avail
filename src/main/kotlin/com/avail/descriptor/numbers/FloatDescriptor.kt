@@ -32,6 +32,14 @@
 package com.avail.descriptor.numbers
 
 import com.avail.annotations.ThreadSafe
+import com.avail.descriptor.numbers.A_Number.Companion.addToFloatCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.divideIntoFloatCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.equalsFloat
+import com.avail.descriptor.numbers.A_Number.Companion.extractDouble
+import com.avail.descriptor.numbers.A_Number.Companion.extractFloat
+import com.avail.descriptor.numbers.A_Number.Companion.multiplyByFloatCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.numericCompareToDouble
+import com.avail.descriptor.numbers.A_Number.Companion.subtractFromFloatCanDestroy
 import com.avail.descriptor.numbers.AbstractNumberDescriptor.Order.EQUAL
 import com.avail.descriptor.numbers.AbstractNumberDescriptor.Order.INCOMPARABLE
 import com.avail.descriptor.numbers.AbstractNumberDescriptor.Order.LESS
@@ -193,7 +201,7 @@ class FloatDescriptor private constructor(
 		another: A_BasicObject
 	): Boolean {
 		when {
-			!another.equalsFloat(getFloat(self)) -> return false
+			!(another as A_Number).equalsFloat(getFloat(self)) -> return false
 			!isShared -> self.becomeIndirectionTo(another.makeImmutable())
 			!another.descriptor().isShared ->
 				another.becomeIndirectionTo(self.makeImmutable())
@@ -482,7 +490,8 @@ class FloatDescriptor private constructor(
 		}
 
 		/**
-		 * Answer the Avail object representing [Float.POSITIVE_INFINITY].
+		 * Answer the Avail object representing
+		 * [java.lang.Float.POSITIVE_INFINITY].
 		 *
 		 * @return
 		 *   The Avail object for float positive infinity.
@@ -491,7 +500,8 @@ class FloatDescriptor private constructor(
 		fun floatPositiveInfinity(): A_Number = Sign.POSITIVE.limitFloatObject()
 
 		/**
-		 * Answer the Avail object representing [Float.NEGATIVE_INFINITY].
+		 * Answer the Avail object representing
+		 * [java.lang.Float.NEGATIVE_INFINITY].
 		 *
 		 * @return
 		 *   The Avail object for float negative infinity.

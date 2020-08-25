@@ -31,6 +31,7 @@
  */
 package com.avail.interpreter.primitive.floats
 
+import com.avail.descriptor.numbers.A_Number.Companion.extractFloat
 import com.avail.descriptor.numbers.FloatDescriptor
 import com.avail.descriptor.numbers.FloatDescriptor.Companion.fromFloatRecycling
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -55,7 +56,8 @@ object P_FloatLn : Primitive(1, CannotFail, CanFold, CanInline)
 		interpreter.checkArgumentCount(1)
 		val a = interpreter.argument(0)
 		return interpreter.primitiveSuccess(
-			fromFloatRecycling(ln(a.extractFloat().toDouble()).toFloat(), a, true))
+			fromFloatRecycling(
+				ln(a.extractFloat().toDouble()).toFloat(), a, true))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

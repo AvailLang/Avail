@@ -34,6 +34,7 @@ package com.avail.interpreter.primitive.controlflow
 
 import com.avail.descriptor.functions.A_Continuation
 import com.avail.descriptor.functions.ContinuationDescriptor.Companion.dumpStackThen
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
 import com.avail.descriptor.objects.ObjectTypeDescriptor
 import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.exceptionType
 import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.stackDumpAtom

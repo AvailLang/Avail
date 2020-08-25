@@ -33,6 +33,7 @@
 package com.avail.interpreter.primitive.files
 
 import com.avail.descriptor.atoms.A_Atom.Companion.extractBoolean
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
 import com.avail.descriptor.numbers.IntegerDescriptor
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.A_Set

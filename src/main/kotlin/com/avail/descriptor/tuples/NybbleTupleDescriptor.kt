@@ -33,8 +33,12 @@ package com.avail.descriptor.tuples
 
 import com.avail.annotations.HideFieldInDebugger
 import com.avail.descriptor.character.A_Character.Companion.codePoint
+import com.avail.descriptor.character.A_Character.Companion.isCharacter
 import com.avail.descriptor.functions.CompiledCodeDescriptor
 import com.avail.descriptor.numbers.A_Number
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
+import com.avail.descriptor.numbers.A_Number.Companion.extractLong
+import com.avail.descriptor.numbers.A_Number.Companion.extractNybble
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromUnsignedByte
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.hashOfUnsignedByte
 import com.avail.descriptor.representation.A_BasicObject
@@ -69,7 +73,7 @@ import com.avail.descriptor.types.A_Type.Companion.rangeIncludesLong
 import com.avail.descriptor.types.A_Type.Companion.sizeRange
 import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
 import com.avail.descriptor.types.A_Type.Companion.typeTuple
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.nybbles
 import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
@@ -451,22 +455,11 @@ class NybbleTupleDescriptor private constructor(
 					}
 				}
 				val defaultTypeObject = aType.defaultType()
-				if (IntegerRangeTypeDescriptor.nybbles
-						.isSubtypeOf(defaultTypeObject))
-				{
+				if (nybbles.isSubtypeOf(defaultTypeObject))
 					return true
+				return (breakIndex + 1 .. self.tupleSize()).all {
+					self.tupleAt(it).isInstanceOf(defaultTypeObject)
 				}
-				var i = breakIndex + 1
-				val end = self.tupleSize()
-				while (i <= end)
-				{
-					if (!self.tupleAt(i).isInstanceOf(defaultTypeObject))
-					{
-						return false
-					}
-					i++
-				}
-				return true
 			}
 		}
 	}
@@ -561,10 +554,10 @@ class NybbleTupleDescriptor private constructor(
 		self: AvailObject,
 		startIndex: Int,
 		endIndex: Int,
-		type: A_Type): Boolean =
-			(IntegerRangeTypeDescriptor.nybbles.isSubtypeOf(type)
-				|| super.o_TupleElementsInRangeAreInstancesOf(
-					self, startIndex, endIndex, type))
+		type: A_Type
+	): Boolean = (nybbles.isSubtypeOf(type)
+		|| super.o_TupleElementsInRangeAreInstancesOf(
+			self, startIndex, endIndex, type))
 
 	override fun o_TupleIntAt(self: AvailObject, index: Int): Int =
 		getNybble(self, index).toInt()

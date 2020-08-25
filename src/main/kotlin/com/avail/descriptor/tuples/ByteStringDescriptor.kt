@@ -35,6 +35,7 @@ import com.avail.annotations.HideFieldInDebugger
 import com.avail.annotations.ThreadSafe
 import com.avail.descriptor.character.A_Character
 import com.avail.descriptor.character.A_Character.Companion.codePoint
+import com.avail.descriptor.character.A_Character.Companion.isCharacter
 import com.avail.descriptor.character.CharacterDescriptor.Companion.fromByteCodePoint
 import com.avail.descriptor.character.CharacterDescriptor.Companion.hashOfByteCharacterWithCodePoint
 import com.avail.descriptor.representation.A_BasicObject
@@ -132,13 +133,14 @@ class ByteStringDescriptor private constructor(
 		canDestroy: Boolean): A_Tuple
 	{
 		val originalSize = self.tupleSize()
-		if (originalSize >= maximumCopySize || !newElement.isCharacter)
+		if (originalSize >= maximumCopySize
+			|| !(newElement as A_Character).isCharacter)
 		{
 			// Transition to a tree tuple.
 			val singleton = tuple(newElement)
 			return self.concatenateWith(singleton, canDestroy)
 		}
-		val intValue: Int = (newElement as A_Character).codePoint()
+		val intValue: Int = newElement.codePoint()
 		if (intValue and 255.inv() != 0)
 		{
 			// Transition to a tree tuple.
@@ -170,12 +172,13 @@ class ByteStringDescriptor private constructor(
 		startIndex1: Int,
 		endIndex1: Int,
 		anotherObject: A_Tuple,
-		startIndex2: Int): Boolean =
-			anotherObject.compareFromToWithByteStringStartingAt(
-				startIndex2,
-				startIndex2 + endIndex1 - startIndex1,
-				self,
-				startIndex1)
+		startIndex2: Int
+	): Boolean =
+		anotherObject.compareFromToWithByteStringStartingAt(
+			startIndex2,
+			startIndex2 + endIndex1 - startIndex1,
+			self,
+			startIndex1)
 
 	override fun o_CompareFromToWithByteStringStartingAt(
 		self: AvailObject,
@@ -289,9 +292,9 @@ class ByteStringDescriptor private constructor(
 		// index we should have newValueObject.  This may destroy the original
 		// tuple if canDestroy is true.
 		assert(index >= 1 && index <= self.tupleSize())
-		if (newValueObject.isCharacter)
+		if ((newValueObject as A_Character).isCharacter)
 		{
-			val codePoint: Int = (newValueObject as A_Character).codePoint()
+			val codePoint: Int = newValueObject.codePoint()
 			if (codePoint and 0xFF == codePoint)
 			{
 				val result =

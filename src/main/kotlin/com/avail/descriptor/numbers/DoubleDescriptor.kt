@@ -32,6 +32,20 @@
 package com.avail.descriptor.numbers
 
 import com.avail.annotations.ThreadSafe
+import com.avail.descriptor.numbers.A_Number.Companion.addToDoubleCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.bitShift
+import com.avail.descriptor.numbers.A_Number.Companion.divideIntoDoubleCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.equalsDouble
+import com.avail.descriptor.numbers.A_Number.Companion.extractDouble
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
+import com.avail.descriptor.numbers.A_Number.Companion.minusCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.multiplyByDoubleCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.noFailMinusCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.numericCompare
+import com.avail.descriptor.numbers.A_Number.Companion.numericCompareToDouble
+import com.avail.descriptor.numbers.A_Number.Companion.rawUnsignedIntegerAtPut
+import com.avail.descriptor.numbers.A_Number.Companion.subtractFromDoubleCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.trimExcessInts
 import com.avail.descriptor.numbers.AbstractNumberDescriptor.Order.EQUAL
 import com.avail.descriptor.numbers.AbstractNumberDescriptor.Order.INCOMPARABLE
 import com.avail.descriptor.numbers.AbstractNumberDescriptor.Order.LESS
@@ -201,7 +215,7 @@ class DoubleDescriptor private constructor(
 		another: A_BasicObject
 	): Boolean {
 		when {
-			!another.equalsDouble(getDouble(self)) -> return false
+			!(another as A_Number).equalsDouble(getDouble(self)) -> return false
 			!isShared -> self.becomeIndirectionTo(another.makeImmutable())
 			!another.descriptor().isShared ->
 				another.becomeIndirectionTo(self.makeImmutable())
@@ -644,7 +658,8 @@ class DoubleDescriptor private constructor(
 		}
 
 		/**
-		 * Answer the Avail object representing [Double.POSITIVE_INFINITY].
+		 * Answer the Avail object representing
+		 * [java.lang.Double.POSITIVE_INFINITY].
 		 *
 		 * @return
 		 *   The Avail object for double-precision positive infinity.
@@ -654,7 +669,8 @@ class DoubleDescriptor private constructor(
 			Sign.POSITIVE.limitDoubleObject()
 
 		/**
-		 * Answer the Avail object representing [Double.NEGATIVE_INFINITY].
+		 * Answer the Avail object representing
+		 * [java.lang.Double.NEGATIVE_INFINITY].
 		 *
 		 * @return
 		 *   The Avail object for double-precision negative infinity.
@@ -664,7 +680,7 @@ class DoubleDescriptor private constructor(
 			Sign.NEGATIVE.limitDoubleObject()
 
 		/**
-		 * Answer the Avail object representing [Double.NaN].
+		 * Answer the Avail object representing [java.lang.Double.NaN].
 		 *
 		 * @return The Avail object for double-precision not-a-number.
 		 */

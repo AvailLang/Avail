@@ -31,6 +31,10 @@
  */
 package com.avail.interpreter.primitive.functions
 
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
+import com.avail.descriptor.numbers.A_Number.Companion.greaterThan
+import com.avail.descriptor.numbers.A_Number.Companion.lessOrEqual
+import com.avail.descriptor.numbers.A_Number.Companion.lessThan
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type

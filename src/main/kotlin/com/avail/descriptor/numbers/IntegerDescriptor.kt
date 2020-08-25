@@ -31,6 +31,31 @@
  */
 package com.avail.descriptor.numbers
 
+import com.avail.descriptor.numbers.A_Number.Companion.addToIntegerCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.asBigInteger
+import com.avail.descriptor.numbers.A_Number.Companion.bitwiseXor
+import com.avail.descriptor.numbers.A_Number.Companion.divideCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.divideIntoIntegerCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.equalsInteger
+import com.avail.descriptor.numbers.A_Number.Companion.extractDouble
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
+import com.avail.descriptor.numbers.A_Number.Companion.extractLong
+import com.avail.descriptor.numbers.A_Number.Companion.extractSignedByte
+import com.avail.descriptor.numbers.A_Number.Companion.extractSignedShort
+import com.avail.descriptor.numbers.A_Number.Companion.extractUnsignedByte
+import com.avail.descriptor.numbers.A_Number.Companion.greaterThan
+import com.avail.descriptor.numbers.A_Number.Companion.lessOrEqual
+import com.avail.descriptor.numbers.A_Number.Companion.lessThan
+import com.avail.descriptor.numbers.A_Number.Companion.minusCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.multiplyByIntegerCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.noFailMinusCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.numericCompareToInteger
+import com.avail.descriptor.numbers.A_Number.Companion.rawSignedIntegerAt
+import com.avail.descriptor.numbers.A_Number.Companion.rawSignedIntegerAtPut
+import com.avail.descriptor.numbers.A_Number.Companion.rawUnsignedIntegerAt
+import com.avail.descriptor.numbers.A_Number.Companion.subtractFromIntegerCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.timesCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.trimExcessInts
 import com.avail.descriptor.numbers.DoubleDescriptor.Companion.addDoubleAndIntegerCanDestroy
 import com.avail.descriptor.numbers.DoubleDescriptor.Companion.compareDoubleAndInteger
 import com.avail.descriptor.numbers.DoubleDescriptor.Companion.fromDoubleRecycling
@@ -192,7 +217,7 @@ class IntegerDescriptor private constructor(
 	) = self.setIntSlot(RAW_LONG_SLOTS_, index, value)
 
 	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean =
-		another.equalsInteger(self)
+		(another as A_Number).equalsInteger(self)
 
 	/**
 	 * Compare two integers for equality.

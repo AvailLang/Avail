@@ -36,6 +36,7 @@ import com.avail.compiler.AvailRejectedParseException
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.WEAK
 import com.avail.descriptor.character.CharacterDescriptor
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
 import com.avail.descriptor.parsing.LexerDescriptor.Companion.lexerBodyFunctionType
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken

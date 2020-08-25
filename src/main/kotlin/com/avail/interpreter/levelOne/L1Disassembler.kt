@@ -34,6 +34,7 @@ package com.avail.interpreter.levelOne
 
 import com.avail.descriptor.atoms.A_Atom.Companion.atomName
 import com.avail.descriptor.bundles.A_Bundle.Companion.message
+import com.avail.descriptor.character.A_Character.Companion.isCharacter
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.functions.CompiledCodeDescriptor
 import com.avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
@@ -298,9 +299,9 @@ class L1Disassembler constructor(
 					value.isAtom -> value.atomName() to true
 					value.isCharacter -> value to false
 					!value.isType -> value to true
+					value.isTop -> value to false
 					value.traversed().descriptor() is PrimitiveTypeDescriptor ->
 						value to false
-					value.isTop -> value to false
 					value.isBottom -> value to false
 					else -> null to true
 				}

@@ -85,6 +85,12 @@ interface A_Set : A_BasicObject, Iterable<AvailObject> {
 		fun A_Set.asTuple(): A_Tuple = dispatch { o_AsTuple(it) }
 
 		/**
+		 * Dispatch to the descriptor.
+		 */
+		fun A_Set.equalsSet(aSet: A_Set): Boolean =
+			dispatch { o_EqualsSet(it, aSet) }
+
+		/**
 		 * Answer whether this set contains the specified element.
 		 *
 		 * @param elementObject
@@ -94,6 +100,13 @@ interface A_Set : A_BasicObject, Iterable<AvailObject> {
 		 */
 		fun A_Set.hasElement(elementObject: A_BasicObject): Boolean =
 			dispatch { o_HasElement(it, elementObject) }
+
+		/**
+		 * Is the [receiver][AvailObject] an Avail set?
+		 *
+		 * @return `true` if the receiver is a set, `false` otherwise.
+		 */
+		val A_Set.isSet: Boolean get() = dispatch { o_IsSet(it) }
 
 		/**
 		 * Answer true if and only if every element of the receiver is also
@@ -240,7 +253,6 @@ interface A_Set : A_BasicObject, Iterable<AvailObject> {
 			self.descriptor().o_SetSize(self)
 
 		/** The [CheckedMethod] for [setSizeStatic]. */
-		@JvmField
 		val setSizeMethod: CheckedMethod = staticMethod(
 			A_Set::class.java,
 			::setSizeStatic.name,
@@ -260,7 +272,6 @@ interface A_Set : A_BasicObject, Iterable<AvailObject> {
 			self, newElementObject, true) as AvailObject
 
 		/** The [CheckedMethod] for [setWithElementStatic]. */
-		@JvmField
 		val setWithElementMethod: CheckedMethod = staticMethod(
 			A_Set::class.java,
 			::setWithElementStatic.name,

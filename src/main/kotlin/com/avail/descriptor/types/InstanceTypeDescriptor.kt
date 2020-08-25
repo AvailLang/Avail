@@ -37,6 +37,7 @@ import com.avail.descriptor.maps.A_Map.Companion.keysAsSet
 import com.avail.descriptor.maps.A_Map.Companion.mapSize
 import com.avail.descriptor.maps.A_Map.Companion.valuesAsTuple
 import com.avail.descriptor.numbers.A_Number
+import com.avail.descriptor.numbers.A_Number.Companion.extractLong
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.one
 import com.avail.descriptor.objects.ObjectDescriptor
 import com.avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
@@ -47,6 +48,7 @@ import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.A_Set.Companion.hasElement
+import com.avail.descriptor.sets.A_Set.Companion.isSet
 import com.avail.descriptor.sets.A_Set.Companion.setSize
 import com.avail.descriptor.sets.A_Set.Companion.setWithElementCanDestroy
 import com.avail.descriptor.sets.SetDescriptor.Companion.generateSetFrom
@@ -389,7 +391,7 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 
 	override fun o_SizeRange(self: AvailObject): A_Type
 	{
-		val instance: A_BasicObject = getInstance(self)
+		val instance: AvailObject = getInstance(self)
 		return when
 		{
 			instance.isTuple ->

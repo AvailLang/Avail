@@ -60,6 +60,7 @@ import com.avail.descriptor.methods.A_Macro
 import com.avail.descriptor.methods.DefinitionDescriptor
 import com.avail.descriptor.methods.MacroDescriptor
 import com.avail.descriptor.methods.MethodDefinitionDescriptor
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
 import com.avail.descriptor.numbers.IntegerDescriptor
 import com.avail.descriptor.parsing.A_Lexer
 import com.avail.descriptor.phrases.A_Phrase
