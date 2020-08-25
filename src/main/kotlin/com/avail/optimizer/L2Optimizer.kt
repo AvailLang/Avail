@@ -54,7 +54,7 @@ import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind
 import com.avail.optimizer.L2ControlFlowGraph.StateFlag
 import com.avail.optimizer.values.L2SemanticValue
 import com.avail.performance.Statistic
-import com.avail.performance.StatisticReport
+import com.avail.performance.StatisticReport.L2_OPTIMIZATION_TIME
 import com.avail.utility.Strings.increaseIndentation
 import com.avail.utility.cast
 import com.avail.utility.mapToSet
@@ -1525,8 +1525,7 @@ class L2Optimizer internal constructor(val generator: L2Generator)
 
 		/** Statistic for tracking the cost of sanity checks.  */
 		private val sanityCheckStat = Statistic(
-			"(Sanity check)",
-			StatisticReport.L2_OPTIMIZATION_TIME)
+			L2_OPTIMIZATION_TIME, "(Sanity check)")
 
 		/**
 		 * If this instruction can be moved/duplicated into one or more successor

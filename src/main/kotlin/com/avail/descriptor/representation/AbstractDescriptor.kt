@@ -71,11 +71,17 @@ import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.numbers.A_Number.Companion.addToInfinityCanDestroy
 import com.avail.descriptor.numbers.A_Number.Companion.addToIntegerCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.divideCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.divideIntoInfinityCanDestroy
 import com.avail.descriptor.numbers.A_Number.Companion.divideIntoIntegerCanDestroy
 import com.avail.descriptor.numbers.A_Number.Companion.equalsInfinity
+import com.avail.descriptor.numbers.A_Number.Companion.minusCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.multiplyByInfinityCanDestroy
 import com.avail.descriptor.numbers.A_Number.Companion.multiplyByIntegerCanDestroy
 import com.avail.descriptor.numbers.A_Number.Companion.plusCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.subtractFromInfinityCanDestroy
 import com.avail.descriptor.numbers.A_Number.Companion.subtractFromIntegerCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.timesCanDestroy
 import com.avail.descriptor.numbers.AbstractNumberDescriptor
 import com.avail.descriptor.numbers.AbstractNumberDescriptor.Order
 import com.avail.descriptor.numbers.AbstractNumberDescriptor.Sign
@@ -4269,7 +4275,7 @@ abstract class AbstractDescriptor protected constructor (
 				{
 					name = name.substring(0, name.length - 10)
 				}
-				Statistic(name, ALLOCATIONS_BY_DESCRIPTOR_CLASS)
+				Statistic(ALLOCATIONS_BY_DESCRIPTOR_CLASS, name)
 			}
 		}
 	}

@@ -58,7 +58,6 @@ import com.avail.descriptor.methods.MethodDescriptor.IntegerSlots.Companion.HASH
 import com.avail.descriptor.methods.MethodDescriptor.IntegerSlots.Companion.NUM_ARGS
 import com.avail.descriptor.methods.MethodDescriptor.ObjectSlots.DEFINITIONS_TUPLE
 import com.avail.descriptor.methods.MethodDescriptor.ObjectSlots.LEXER_OR_NIL
-import com.avail.descriptor.methods.MethodDescriptor.ObjectSlots.OWNING_BUNDLES
 import com.avail.descriptor.methods.MethodDescriptor.ObjectSlots.SEALED_ARGUMENTS_TYPES_TUPLE
 import com.avail.descriptor.methods.MethodDescriptor.ObjectSlots.SEMANTIC_RESTRICTIONS_SET
 import com.avail.descriptor.module.A_Module
@@ -152,6 +151,8 @@ import com.avail.interpreter.primitive.rawfunctions.P_SetCompiledCodeName
 import com.avail.interpreter.primitive.variables.P_AtomicAddToMap
 import com.avail.interpreter.primitive.variables.P_GetValue
 import com.avail.optimizer.L2Generator
+import com.avail.performance.Statistic
+import com.avail.performance.StatisticReport.DYNAMIC_LOOKUP_TIME
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
 import java.util.Collections.emptyList
@@ -192,8 +193,17 @@ class MethodDescriptor private constructor(
 	mutability,
 	TypeTag.RAW_FUNCTION_TAG,
 	ObjectSlots::class.java,
-	IntegerSlots::class.java
-) {
+	IntegerSlots::class.java)
+{
+	/**
+	 * A [set][SetDescriptor] of [message&#32;bundles][MessageBundleDescriptor]
+	 * that name this method. The method itself has no intrinsic name, as its
+	 * bundles completely determine what it is called in various modules (based
+	 * on the module scope of the bundles' [atomic&#32;names][AtomDescriptor]).
+	 */
+	@Volatile
+	var owningBundles = emptySet
+
 	/**
 	 * A [LookupTree] used to determine the most specific method definition that
 	 * satisfies the supplied argument types.  A `null` indicates the tree has
@@ -201,6 +211,15 @@ class MethodDescriptor private constructor(
 	 */
 	@Volatile
 	private var methodTestingTree: LookupTree<A_Definition, A_Tuple>? = null
+
+	val dynamicLookupStat = Statistic(DYNAMIC_LOOKUP_TIME) {
+		when (owningBundles.setSize())
+		{
+			0 -> "(no name)"
+			1 -> owningBundles.single().message().toString()
+			else -> owningBundles.iterator().next().toString() + " & aliases"
+		}
+	}
 
 	/**
 	 * A weak set (implemented as the [key&#32;set][Map.keys] of a
@@ -244,15 +263,6 @@ class MethodDescriptor private constructor(
 	 * The fields that are of type `AvailObject`.
 	 */
 	enum class ObjectSlots : ObjectSlotsEnum {
-		/**
-		 * A [set][SetDescriptor] of
-		 * [message&#32;bundles][MessageBundleDescriptor] that name this method.
-		 * The method itself has no intrinsic name, as its bundles completely
-		 * determine what it is called in various modules (based on the module
-		 * scope of the bundles' [atomic&#32;names][AtomDescriptor]).
-		 */
-		OWNING_BUNDLES,
-
 		/**
 		 * The [tuple][TupleDescriptor] of [definitions][DefinitionDescriptor]
 		 * that constitute this multimethod.
@@ -321,8 +331,7 @@ class MethodDescriptor private constructor(
 
 	override fun allowsImmutableToMutableReferenceInField(
 		e: AbstractSlotsEnum
-	) = e === OWNING_BUNDLES
-		|| e === DEFINITIONS_TUPLE
+	) = e === DEFINITIONS_TUPLE
 		|| e === SEMANTIC_RESTRICTIONS_SET
 		|| e === SEALED_ARGUMENTS_TYPES_TUPLE
 		|| e === LEXER_OR_NIL
@@ -331,17 +340,16 @@ class MethodDescriptor private constructor(
 		self: AvailObject,
 		builder: StringBuilder,
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
-		indent: Int
-	) = with(builder) {
-		when (val size = self.definitionsTuple().tupleSize())
-		{
-			1 -> append("1 definition")
-			else -> append("$size definitions")
-		}
-		append(" of ")
-		self.bundles().forEachIndexed { i, eachBundle ->
-			if (i > 0) append(" a.k.a. ")
-			append(eachBundle.message())
+		indent: Int)
+	{
+		builder.run {
+			when (val size = self.definitionsTuple().tupleSize())
+			{
+				1 -> append("1 definition")
+				else -> append("$size definitions")
+			}
+			append(" of ")
+			self.bundles().joinTo(this, " a.k.a. ") { it.message().toString() }
 		}
 	}
 
@@ -379,14 +387,14 @@ class MethodDescriptor private constructor(
 		self.setSlot(SEMANTIC_RESTRICTIONS_SET, set.makeShared())
 	}
 
-	override fun o_Bundles(self: AvailObject): A_Set = self.slot(OWNING_BUNDLES)
+	override fun o_Bundles(self: AvailObject): A_Set = owningBundles
 
 	override fun o_ChooseBundle(
 		self: AvailObject,
 		currentModule: A_Module
 	): A_Bundle {
 		val visibleModules = currentModule.allAncestors()
-		val bundles: A_Set = self.slot(OWNING_BUNDLES)
+		val bundles: A_Set = owningBundles
 		return bundles.find {
 			visibleModules.hasElement(it.message().issuingModule())
 		} ?: bundles.iterator().next() // Fall back to any bundle.
@@ -481,9 +489,7 @@ class MethodDescriptor private constructor(
 		self.slot(DEFINITIONS_TUPLE).tupleSize() == 0
 			&& self.slot(SEMANTIC_RESTRICTIONS_SET).setSize() == 0
 			&& self.slot(SEALED_ARGUMENTS_TYPES_TUPLE).tupleSize() == 0
-			&& self.slot(OWNING_BUNDLES).all {
-				it.macrosTuple().tupleSize() == 0
-		}
+			&& owningBundles.all { it.macrosTuple().tupleSize() == 0 }
 	}
 
 	override fun o_Kind(self: AvailObject): A_Type = METHOD.o
@@ -524,16 +530,19 @@ class MethodDescriptor private constructor(
 
 	override fun o_MethodAddBundle(
 		self: AvailObject,
-		bundle: A_Bundle
-	) = self.updateSlotShared(OWNING_BUNDLES) {
-		setWithElementCanDestroy(bundle, false)
+		bundle: A_Bundle)
+	{
+		owningBundles =
+			owningBundles.setWithElementCanDestroy(bundle, false).makeShared()
 	}
 
 	override fun o_MethodRemoveBundle(
 		self: AvailObject,
-		bundle: A_Bundle
-	) = self.updateSlotShared(OWNING_BUNDLES) {
-		setWithoutElementCanDestroy(bundle, false)
+		bundle: A_Bundle)
+	{
+		owningBundles =
+			owningBundles.setWithoutElementCanDestroy(bundle, false)
+				.makeShared()
 	}
 
 	/**
@@ -564,7 +573,7 @@ class MethodDescriptor private constructor(
 		val oldTuple: A_Tuple = self.slot(DEFINITIONS_TUPLE)
 		val newTuple = oldTuple.appendCanDestroy(definition, true)
 		self.setSlot(DEFINITIONS_TUPLE, newTuple.makeShared())
-		self.slot(OWNING_BUNDLES).forEach {
+		owningBundles.forEach {
 			it.addDefinitionParsingPlan(newParsingPlan(it, definition))
 		}
 		self.membershipChanged()
@@ -591,7 +600,7 @@ class MethodDescriptor private constructor(
 		var definitionsTuple: A_Tuple = self.slot(DEFINITIONS_TUPLE)
 		definitionsTuple = tupleWithout(definitionsTuple, definition)
 		self.setSlot(DEFINITIONS_TUPLE, definitionsTuple.makeShared())
-		self.slot(OWNING_BUNDLES).forEach { bundle ->
+		owningBundles.forEach { bundle ->
 			bundle.removePlanForDefinition(definition)
 		}
 		self.membershipChanged()
@@ -655,14 +664,14 @@ class MethodDescriptor private constructor(
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("method") }
-			at("aliases") { self.slot(OWNING_BUNDLES).writeTo(writer) }
+			at("aliases") { owningBundles.writeTo(writer) }
 			at("definitions") { self.slot(DEFINITIONS_TUPLE).writeTo(writer) }
 		}
 
 	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("method") }
-			at("aliases") { self.slot(OWNING_BUNDLES).writeSummaryTo(writer) }
+			at("aliases") { owningBundles.writeSummaryTo(writer) }
 			at("definitions") {
 				self.slot(DEFINITIONS_TUPLE).writeSummaryTo(writer)
 			}
@@ -1036,7 +1045,6 @@ class MethodDescriptor private constructor(
 			initialMutableDescriptor.create {
 				setSlot(HASH, AvailRuntimeSupport.nextNonzeroHash())
 				setSlot(NUM_ARGS, numArgs)
-				setSlot(OWNING_BUNDLES, emptySet)
 				setSlot(DEFINITIONS_TUPLE, emptyTuple)
 				setSlot(SEMANTIC_RESTRICTIONS_SET, emptySet)
 				setSlot(SEALED_ARGUMENTS_TYPES_TUPLE, emptyTuple)

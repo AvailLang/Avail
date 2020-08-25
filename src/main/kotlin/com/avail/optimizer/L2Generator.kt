@@ -127,7 +127,7 @@ import com.avail.optimizer.values.L2SemanticValue
 import com.avail.optimizer.values.L2SemanticValue.Companion.constant
 import com.avail.optimizer.values.L2SemanticValue.Companion.primitiveInvocation
 import com.avail.performance.Statistic
-import com.avail.performance.StatisticReport
+import com.avail.performance.StatisticReport.L2_OPTIMIZATION_TIME
 import com.avail.utility.cast
 import com.avail.utility.notNullAnd
 
@@ -1596,6 +1596,6 @@ class L2Generator internal constructor(
 		 * [L2ControlFlowGraph].
 		 */
 		val finalGenerationStat = Statistic(
-			"Final chunk generation", StatisticReport.L2_OPTIMIZATION_TIME)
+			L2_OPTIMIZATION_TIME, "Final chunk generation")
 	}
 }

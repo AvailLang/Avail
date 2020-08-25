@@ -83,7 +83,7 @@ import com.avail.optimizer.L2ControlFlowGraphVisualizer
 import com.avail.optimizer.StackReifier
 import com.avail.optimizer.jvm.JVMTranslator.LiteralAccessor.Companion.invalidIndex
 import com.avail.performance.Statistic
-import com.avail.performance.StatisticReport
+import com.avail.performance.StatisticReport.FINAL_JVM_TRANSLATION_TIME
 import com.avail.utility.Strings.traceFor
 import com.avail.utility.structures.EnumMap
 import com.avail.utility.structures.EnumMap.Companion.enumMap
@@ -1796,8 +1796,7 @@ class JVMTranslator constructor(
 		LOAD_CLASS(JVMTranslator::loadClass);
 
 		/** Statistic about this L2 -> JVM translation phase.  */
-		private val statistic =
-			Statistic(name, StatisticReport.FINAL_JVM_TRANSLATION_TIME)
+		private val statistic = Statistic(FINAL_JVM_TRANSLATION_TIME, name)
 
 		companion object
 		{

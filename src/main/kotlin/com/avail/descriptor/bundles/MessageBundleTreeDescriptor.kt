@@ -133,7 +133,7 @@ import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding
 import com.avail.performance.Statistic
-import com.avail.performance.StatisticReport
+import com.avail.performance.StatisticReport.EXPANDING_PARSING_INSTRUCTIONS
 import com.avail.utility.Mutable
 import com.avail.utility.Strings.newlineTab
 import java.util.ArrayDeque
@@ -879,7 +879,7 @@ class MessageBundleTreeDescriptor private constructor(
 
 		/** A [Statistic] for tracking bundle tree invalidations.  */
 		private val invalidationsStat = Statistic(
-			"(invalidations)", StatisticReport.EXPANDING_PARSING_INSTRUCTIONS)
+			EXPANDING_PARSING_INSTRUCTIONS, "(invalidations)")
 
 		/**
 		 * Invalidate the internal expansion of the given bundle tree.  Note

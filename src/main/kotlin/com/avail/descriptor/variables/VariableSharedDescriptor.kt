@@ -68,7 +68,7 @@ import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.L2Chunk
 import com.avail.interpreter.levelTwo.L2Chunk.InvalidationReason.SLOW_VARIABLE
 import com.avail.performance.Statistic
-import com.avail.performance.StatisticReport
+import com.avail.performance.StatisticReport.L2_OPTIMIZATION_TIME
 import com.avail.utility.json.JSONWriter
 import java.util.Collections.newSetFromMap
 import java.util.Collections.synchronizedSet
@@ -573,8 +573,8 @@ open class VariableSharedDescriptor protected constructor(
 		 * nearly-constant variable.
 		 */
 		private val invalidationForSlowVariable = Statistic(
-			"(invalidation for slow variable change)",
-			StatisticReport.L2_OPTIMIZATION_TIME)
+			L2_OPTIMIZATION_TIME,
+			"(invalidation for slow variable change)")
 
 		/**
 		 * Create a [shared][Mutability.SHARED] [variable][A_Variable]. This

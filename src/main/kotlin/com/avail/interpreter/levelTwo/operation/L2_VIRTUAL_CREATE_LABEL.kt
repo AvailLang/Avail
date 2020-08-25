@@ -57,7 +57,7 @@ import com.avail.optimizer.L2Generator.Companion.backEdgeTo
 import com.avail.optimizer.L2Generator.Companion.edgeTo
 import com.avail.optimizer.jvm.JVMTranslator
 import com.avail.performance.Statistic
-import com.avail.performance.StatisticReport
+import com.avail.performance.StatisticReport.REIFICATIONS
 import com.avail.utility.PrefixSharingList.Companion.last
 import org.objectweb.asm.MethodVisitor
 
@@ -186,17 +186,16 @@ object L2_VIRTUAL_CREATE_LABEL : L2Operation(
 				L2ConstantOperand(
 					identityPojo(
 						Statistic(
+							REIFICATIONS,
 							"Reification for label creation in L2: "
-								+ generator.codeName.replace('\n', ' '),
-							StatisticReport.REIFICATIONS))),
+								+ generator.codeName.replace('\n', ' ')))),
 				edgeTo(onReification))
 			generator.startBlock(onReification)
 			generator.addInstruction(
 				L2_ENTER_L2_CHUNK,
 				L2IntImmediateOperand(
 					ChunkEntryPoint.TRANSIENT.offsetInDefaultChunk),
-				L2CommentOperand(
-					"Transient, cannot be invalid."))
+				L2CommentOperand("Transient, cannot be invalid."))
 			val tempOffset = generator.intWriteTemp(
 				restrictionForType(
 					int32,

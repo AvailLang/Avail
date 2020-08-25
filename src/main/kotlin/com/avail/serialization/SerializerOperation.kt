@@ -251,7 +251,9 @@ import com.avail.interpreter.levelTwo.L2Chunk.Companion.unoptimizedChunk
 import com.avail.interpreter.primitive.pojos.P_CreatePojoConstructorFunction
 import com.avail.interpreter.primitive.pojos.P_CreatePojoInstanceMethodFunction
 import com.avail.performance.Statistic
-import com.avail.performance.StatisticReport
+import com.avail.performance.StatisticReport.DESERIALIZE
+import com.avail.performance.StatisticReport.SERIALIZE_TRACE
+import com.avail.performance.StatisticReport.SERIALIZE_WRITE
 import com.avail.serialization.SerializerOperandEncoding.BIG_INTEGER_DATA
 import com.avail.serialization.SerializerOperandEncoding.BYTE
 import com.avail.serialization.SerializerOperandEncoding.BYTE_CHARACTER_TUPLE
@@ -3432,13 +3434,13 @@ enum class SerializerOperation constructor(
 		get() = false
 
 	/** The [Statistic] for tracing for serialization, by operation. */
-	internal val traceStat = Statistic(name, StatisticReport.SERIALIZE_TRACE)
+	internal val traceStat = Statistic(SERIALIZE_TRACE, name)
 
 	/** The [Statistic] for serializing traced objects, by operation. */
-	internal val serializeStat = Statistic(name, StatisticReport.SERIALIZE_WRITE)
+	internal val serializeStat = Statistic(SERIALIZE_WRITE, name)
 
 	/** The [Statistic] for deserialization, by operation. */
-	internal val deserializeStat = Statistic(name, StatisticReport.DESERIALIZE)
+	internal val deserializeStat = Statistic(DESERIALIZE, name)
 
 	init
 	{

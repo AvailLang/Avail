@@ -45,6 +45,7 @@ import com.avail.descriptor.atoms.A_Atom.Companion.atomName
 import com.avail.descriptor.bundles.A_Bundle.Companion.message
 import com.avail.descriptor.bundles.A_BundleTree
 import com.avail.descriptor.bundles.A_BundleTree.Companion.allParsingPlansInProgress
+import com.avail.descriptor.bundles.A_BundleTree.Companion.expand
 import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.descriptor.maps.A_Map.Companion.keysAsSet
 import com.avail.descriptor.maps.A_Map.Companion.mapIterable
@@ -90,6 +91,7 @@ import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.toList
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.defaultType
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import com.avail.descriptor.types.TypeDescriptor.Types.NUMBER
@@ -1763,14 +1765,14 @@ enum class ParsingOperation constructor(
 	 * executing occurrences of this [ParsingOperation].
 	 */
 	val parsingStatisticInNanoseconds: Statistic = Statistic(
-		name, RUNNING_PARSING_INSTRUCTIONS)
+		RUNNING_PARSING_INSTRUCTIONS, name)
 
 	/**
 	 * A [Statistic] that records the number of nanoseconds spent while
 	 * expanding occurrences of this [ParsingOperation].
 	 */
 	val expandingStatisticInNanoseconds: Statistic = Statistic(
-		name, EXPANDING_PARSING_INSTRUCTIONS)
+		EXPANDING_PARSING_INSTRUCTIONS, name)
 
 	/** The instruction coding of the receiver. */
 	val encoding: Int

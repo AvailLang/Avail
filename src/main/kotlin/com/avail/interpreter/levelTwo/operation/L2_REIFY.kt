@@ -48,7 +48,7 @@ import com.avail.interpreter.primitive.controlflow.P_RestartContinuation
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments
 import com.avail.optimizer.jvm.JVMTranslator
 import com.avail.performance.Statistic
-import com.avail.performance.StatisticReport
+import com.avail.performance.StatisticReport.REIFICATIONS
 import com.avail.utility.Strings.increaseIndentation
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
@@ -91,8 +91,7 @@ object L2_REIFY : L2ControlFlowOperation(
 
 		/** [Statistic] for reifying in L1 interrupt-handler preamble.  */
 		val statistic = Statistic(
-			"Explicit L2_REIFY for $name",
-			StatisticReport.REIFICATIONS)
+			REIFICATIONS, "Explicit L2_REIFY for $name")
 
 		companion object
 		{

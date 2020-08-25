@@ -191,7 +191,9 @@ import com.avail.optimizer.values.Frame
 import com.avail.optimizer.values.L2SemanticConstant
 import com.avail.optimizer.values.L2SemanticValue
 import com.avail.performance.Statistic
-import com.avail.performance.StatisticReport
+import com.avail.performance.StatisticReport.L1_NAIVE_TRANSLATION_TIME
+import com.avail.performance.StatisticReport.L2_OPTIMIZATION_TIME
+import com.avail.performance.StatisticReport.L2_TRANSLATION_VALUES
 import java.util.logging.Level
 
 /**
@@ -3348,13 +3350,12 @@ class L1Translator private constructor(
 
 		/** Statistic for generating an L2Chunk's preamble.  */
 		private val preambleGenerationStat = Statistic(
-			"(generate preamble)",
-			StatisticReport.L1_NAIVE_TRANSLATION_TIME)
+			L1_NAIVE_TRANSLATION_TIME, "(generate preamble)")
 
 		/** Statistics for timing the translation per L1Operation.  */
 		private val levelOneGenerationStats: Array<Statistic> =
 			L1Operation.values().map {
-				Statistic(it.name, StatisticReport.L1_NAIVE_TRANSLATION_TIME)
+				Statistic(L1_NAIVE_TRANSLATION_TIME, it.name)
 			}.toTypedArray()
 
 		/**
@@ -3446,16 +3447,15 @@ class L1Translator private constructor(
 
 		/** Statistic for number of instructions in L2 translations.  */
 		private val translationSizeStat = Statistic(
-			"L2 instruction count", StatisticReport.L2_TRANSLATION_VALUES)
+			L2_TRANSLATION_VALUES, "L2 instruction count")
 
 		/** Statistic for number of methods depended on by L2 translations.  */
 		private val translationDependenciesStat = Statistic(
-			"Number of methods depended upon",
-			StatisticReport.L2_TRANSLATION_VALUES)
+			L2_TRANSLATION_VALUES, "Number of methods depended upon")
 
 		/** Statistics about the naive L1 to L2 translation.  */
 		private val translateL1Stat = Statistic(
-			"L1 naive translation", StatisticReport.L2_OPTIMIZATION_TIME)
+			L2_OPTIMIZATION_TIME, "L1 naive translation")
 
 		/**
 		 * Translate the provided [A_RawFunction] to produce an optimized

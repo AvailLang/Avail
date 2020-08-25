@@ -66,7 +66,7 @@ import com.avail.optimizer.jvm.JVMChunk
 import com.avail.optimizer.jvm.JVMTranslator
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.performance.Statistic
-import com.avail.performance.StatisticReport
+import com.avail.performance.StatisticReport.L2_OPTIMIZATION_TIME
 import com.avail.utility.safeWrite
 import java.util.ArrayDeque
 import java.util.Collections.newSetFromMap
@@ -569,8 +569,7 @@ class L2Chunk private constructor(
 		 * reason.
 		 */
 		val statistic = Statistic(
-			"(invalidation from $name)",
-			StatisticReport.L2_OPTIMIZATION_TIME)
+			L2_OPTIMIZATION_TIME, "(invalidation from $name)")
 	}
 
 	/**

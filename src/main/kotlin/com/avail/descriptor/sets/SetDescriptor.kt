@@ -260,6 +260,7 @@ private constructor(
 		else -> {
 			val expectedContentType = aType.contentType()
 			when {
+				expectedContentType.equals(Types.ANY.o) -> true
 				expectedContentType.isEnumeration ->
 					// Check the complete membership.
 					self.all {

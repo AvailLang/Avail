@@ -50,7 +50,8 @@ import com.avail.interpreter.execution.Interpreter
  *   The report under which this statistic is classified.
  */
 class Statistic constructor(
-	private val nameSupplier: () -> String, report: StatisticReport)
+	report: StatisticReport,
+	private val nameSupplier: () -> String)
 {
 	/** The array of [PerInterpreterStatistic]s.  */
 	val statistics = Array(maxInterpreters) { PerInterpreterStatistic() }
@@ -77,7 +78,7 @@ class Statistic constructor(
 	 * @param report
 	 *   The report under which this statistic is classified.
 	 */
-	constructor(name: String, report: StatisticReport) : this({ name }, report)
+	constructor(report: StatisticReport, name: String) : this(report, { name })
 
 	/**
 	 * Record a sample in my [PerInterpreterStatistic] having the specified

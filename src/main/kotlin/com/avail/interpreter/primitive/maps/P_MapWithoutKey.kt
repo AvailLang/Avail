@@ -87,13 +87,13 @@ object P_MapWithoutKey : Primitive(2, CannotFail, CanFold, CanInline)
 
 		val mapSizes = mapType.sizeRange()
 		assert(mapSizes.lowerInclusive())
-		var minSize = mapSizes.lowerBound()
 		if (mapType.keyType().typeIntersection(keyType).isBottom)
 		{
 			// That key will not be found.
 			return mapType
 		}
 		// It's possible that the new map will be smaller by one.
+		var minSize = mapSizes.lowerBound()
 		if (minSize.greaterThan(zero()))
 		{
 			minSize = minSize.minusCanDestroy(one(), false)

@@ -102,7 +102,9 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.optimizer.values.L2SemanticPrimitiveInvocation
 import com.avail.optimizer.values.L2SemanticValue
 import com.avail.performance.Statistic
-import com.avail.performance.StatisticReport
+import com.avail.performance.StatisticReport.PRIMITIVES
+import com.avail.performance.StatisticReport.PRIMITIVE_RETURNER_TYPE_CHECKS
+import com.avail.performance.StatisticReport.REIFICATIONS
 import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes.ACONST_NULL
@@ -249,8 +251,8 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	 * the level two optimizer to skip more checks.
 	 */
 	private val resultTypeCheckingNanos = Statistic(
-		"${this@Primitive.javaClass.simpleName} (checking result)",
-		StatisticReport.PRIMITIVE_RETURNER_TYPE_CHECKS)
+		PRIMITIVE_RETURNER_TYPE_CHECKS,
+		"${this@Primitive.javaClass.simpleName} (checking result)")
 
 	init
 	{
@@ -279,20 +281,18 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 				"without CanInline")
 		}
 		runningNanos = Statistic(
+			PRIMITIVES,
 			(if (hasFlag(CanInline)) "" else "[NOT INLINE] ")
-				+ "${this@Primitive.javaClass.simpleName} (running)",
-			StatisticReport.PRIMITIVES)
+				+ "${this@Primitive.javaClass.simpleName} (running)")
 		if (hasFlag(CanSwitchContinuations))
 		{
 			reificationAbandonmentStat = Statistic(
-				"Abandoned for CONTINUATION_CHANGED from $name",
-				StatisticReport.REIFICATIONS)
+				REIFICATIONS, "Abandoned for CONTINUATION_CHANGED from $name")
 		}
 		if (!hasFlag(CanInline))
 		{
 			reificationForNoninlineStat = Statistic(
-				"Reification for non-inline $name",
-				StatisticReport.REIFICATIONS)
+				REIFICATIONS, "Reification for non-inline $name")
 		}
 	}
 
