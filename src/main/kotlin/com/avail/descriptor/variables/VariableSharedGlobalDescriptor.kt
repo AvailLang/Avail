@@ -44,9 +44,11 @@ import com.avail.descriptor.representation.BitField
 import com.avail.descriptor.representation.IntegerSlotsEnum
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.NilDescriptor
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.writeType
 import com.avail.descriptor.types.TypeTag
 import com.avail.descriptor.types.VariableTypeDescriptor
 import com.avail.descriptor.variables.VariableSharedGlobalDescriptor.IntegerSlots.Companion.HASH_ALWAYS_SET
@@ -58,7 +60,8 @@ import com.avail.descriptor.variables.VariableSharedGlobalDescriptor.ObjectSlots
 import com.avail.descriptor.variables.VariableSharedGlobalDescriptor.ObjectSlots.MODULE
 import com.avail.descriptor.variables.VariableSharedGlobalDescriptor.ObjectSlots.VALUE
 import com.avail.descriptor.variables.VariableSharedGlobalDescriptor.ObjectSlots.WRITE_REACTORS
-import com.avail.exceptions.AvailErrorCode
+import com.avail.exceptions.AvailErrorCode.E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE
+import com.avail.exceptions.AvailErrorCode.E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE
 import com.avail.exceptions.VariableGetException
 import com.avail.exceptions.VariableSetException
 import com.avail.interpreter.effects.LoadingEffect
@@ -189,8 +192,9 @@ class VariableSharedGlobalDescriptor private constructor(
 					== VALUE.ordinal)
 				assert(VariableSharedDescriptor.ObjectSlots.KIND.ordinal
 					== KIND.ordinal)
-				assert(VariableSharedDescriptor.ObjectSlots.WRITE_REACTORS.ordinal
-					== WRITE_REACTORS.ordinal)
+				assert(VariableSharedDescriptor.ObjectSlots
+					.WRITE_REACTORS.ordinal
+						== WRITE_REACTORS.ordinal)
 				assert(VariableSharedDescriptor.ObjectSlots
 			       .DEPENDENT_CHUNKS_WEAK_SET_POJO.ordinal
 						== DEPENDENT_CHUNKS_WEAK_SET_POJO.ordinal)
@@ -215,30 +219,38 @@ class VariableSharedGlobalDescriptor private constructor(
 	@Throws(VariableSetException::class)
 	override fun o_SetValue(self: AvailObject, newValue: A_BasicObject)
 	{
-		synchronized(self) {
-			if (writeOnce && self.hasValue())
-			{
-				throw VariableSetException(
-					AvailErrorCode.E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE)
-			}
-			bypass_VariableDescriptor_SetValue(self, newValue.makeShared())
+		val outerKind = self.slot(KIND)
+		if (!newValue.isInstanceOf(outerKind.writeType()))
+		{
+			throw VariableSetException(
+				E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
 		}
-		recordWriteToSharedVariable()
+		o_SetValueNoCheck(self, newValue)
 	}
 
-	override fun o_SetValueNoCheck(
-		self: AvailObject, newValue: A_BasicObject)
+	override fun o_SetValueNoCheck(self: AvailObject, newValue: A_BasicObject)
 	{
-		synchronized(self) {
-			if (writeOnce && self.hasValue())
-			{
-				throw VariableSetException(
-					AvailErrorCode.E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE)
-			}
-			bypass_VariableDescriptor_SetValueNoCheck(
-				self, newValue.makeShared())
+		if (!writeOnce)
+		{
+			super.o_SetValueNoCheck(self, newValue)
+			return
 		}
-		recordWriteToSharedVariable()
+		assert(!newValue.equalsNil())
+		try
+		{
+			handleVariableWriteTracing(self)
+			if (!self.compareAndSetVolatileSlot(
+					VALUE, nil, newValue.makeShared()))
+			{
+				// The variable is writeOnce, but was not nil.
+				throw VariableSetException(
+					E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE)
+			}
+		}
+		finally
+		{
+			recordWriteToSharedVariable()
+		}
 	}
 
 	@Throws(VariableGetException::class, VariableSetException::class)
@@ -248,23 +260,9 @@ class VariableSharedGlobalDescriptor private constructor(
 		if (writeOnce)
 		{
 			throw VariableSetException(
-				AvailErrorCode.E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE)
+				E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE)
 		}
 		return super.o_GetAndSetValue(self, newValue)
-	}
-
-	@Throws(VariableGetException::class, VariableSetException::class)
-	override fun o_CompareAndSwapValues(
-		self: AvailObject,
-		reference: A_BasicObject,
-		newValue: A_BasicObject): Boolean
-	{
-		if (writeOnce)
-		{
-			throw VariableSetException(
-				AvailErrorCode.E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE)
-		}
-		return super.o_CompareAndSwapValues(self, reference, newValue)
 	}
 
 	@Throws(VariableSetException::class)
@@ -276,7 +274,7 @@ class VariableSharedGlobalDescriptor private constructor(
 		if (writeOnce)
 		{
 			throw VariableSetException(
-				AvailErrorCode.E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE)
+				E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE)
 		}
 		return super.o_CompareAndSwapValuesNoCheck(self, reference, newValue)
 	}
@@ -288,7 +286,7 @@ class VariableSharedGlobalDescriptor private constructor(
 		if (writeOnce)
 		{
 			throw VariableSetException(
-				AvailErrorCode.E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE)
+				E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE)
 		}
 		return super.o_FetchAndAddValue(self, addend)
 	}
@@ -301,8 +299,7 @@ class VariableSharedGlobalDescriptor private constructor(
 	{
 		if (writeOnce)
 		{
-			throw VariableSetException(
-				AvailErrorCode.E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE)
+			throw VariableSetException(E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE)
 		}
 		super.o_AtomicAddToMap(self, key, value)
 	}
@@ -311,8 +308,7 @@ class VariableSharedGlobalDescriptor private constructor(
 	{
 		if (writeOnce)
 		{
-			throw VariableSetException(
-				AvailErrorCode.E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE)
+			throw VariableSetException(E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE)
 		}
 		super.o_ClearValue(self)
 	}
@@ -367,9 +363,9 @@ class VariableSharedGlobalDescriptor private constructor(
 			return mutableInitial.create {
 				setSlot(KIND, variableType!!)
 				setSlot(HASH_ALWAYS_SET, AvailRuntimeSupport.nextNonzeroHash())
-				setSlot(VALUE, NilDescriptor.nil)
-				setSlot(WRITE_REACTORS, NilDescriptor.nil)
-				setSlot(DEPENDENT_CHUNKS_WEAK_SET_POJO, NilDescriptor.nil)
+				setSlot(VALUE, nil)
+				setSlot(WRITE_REACTORS, nil)
+				setSlot(DEPENDENT_CHUNKS_WEAK_SET_POJO, nil)
 				setSlot(MODULE, module.makeShared())
 				setSlot(GLOBAL_NAME, name.makeShared())
 				setDescriptor(if (writeOnce) sharedWriteOnce else shared)

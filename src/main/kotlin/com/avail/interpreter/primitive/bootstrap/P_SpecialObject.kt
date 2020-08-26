@@ -32,6 +32,7 @@
 package com.avail.interpreter.primitive.bootstrap
 
 import com.avail.AvailRuntime
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
 import com.avail.descriptor.phrases.A_Phrase.Companion.token
 import com.avail.descriptor.phrases.LiteralPhraseDescriptor.Companion.syntheticLiteralNodeFor
 import com.avail.descriptor.representation.AvailObject

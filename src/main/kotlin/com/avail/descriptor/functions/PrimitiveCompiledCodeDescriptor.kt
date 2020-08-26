@@ -35,6 +35,7 @@ import com.avail.annotations.EnumField
 import com.avail.annotations.HideFieldInDebugger
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.BlockPhraseDescriptor
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.ARGUMENT

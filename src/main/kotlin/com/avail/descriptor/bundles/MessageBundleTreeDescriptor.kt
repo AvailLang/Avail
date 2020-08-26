@@ -49,6 +49,7 @@ import com.avail.descriptor.bundles.A_Bundle.Companion.grammaticalRestrictions
 import com.avail.descriptor.bundles.A_Bundle.Companion.messagePart
 import com.avail.descriptor.bundles.A_BundleTree.Companion.addPlanInProgress
 import com.avail.descriptor.bundles.A_BundleTree.Companion.allParsingPlansInProgress
+import com.avail.descriptor.bundles.A_BundleTree.Companion.expand
 import com.avail.descriptor.bundles.A_BundleTree.Companion.latestBackwardJump
 import com.avail.descriptor.bundles.MessageBundleTreeDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import com.avail.descriptor.bundles.MessageBundleTreeDescriptor.IntegerSlots.Companion.HAS_BACKWARD_JUMP_INSTRUCTION
@@ -122,7 +123,7 @@ import com.avail.descriptor.tuples.TupleDescriptor.Companion.toList
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.PhraseTypeDescriptor
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
-import com.avail.descriptor.types.TypeDescriptor
+import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.descriptor.types.TypeTag
 import com.avail.dispatch.LookupTree
 import com.avail.dispatch.LookupTreeAdaptor
@@ -132,7 +133,7 @@ import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding
 import com.avail.performance.Statistic
-import com.avail.performance.StatisticReport
+import com.avail.performance.StatisticReport.EXPANDING_PARSING_INSTRUCTIONS
 import com.avail.utility.Mutable
 import com.avail.utility.Strings.newlineTab
 import java.util.ArrayDeque
@@ -706,7 +707,7 @@ class MessageBundleTreeDescriptor private constructor(
 	}
 
 	override fun o_Kind(self: AvailObject): A_Type =
-		TypeDescriptor.Types.MESSAGE_BUNDLE_TREE.o
+		Types.MESSAGE_BUNDLE_TREE.o
 
 	override fun o_LazyActions(self: AvailObject): A_Map
 	{
@@ -878,7 +879,7 @@ class MessageBundleTreeDescriptor private constructor(
 
 		/** A [Statistic] for tracking bundle tree invalidations.  */
 		private val invalidationsStat = Statistic(
-			"(invalidations)", StatisticReport.EXPANDING_PARSING_INSTRUCTIONS)
+			EXPANDING_PARSING_INSTRUCTIONS, "(invalidations)")
 
 		/**
 		 * Invalidate the internal expansion of the given bundle tree.  Note

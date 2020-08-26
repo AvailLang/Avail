@@ -31,6 +31,7 @@
  */
 package com.avail.interpreter.primitive.floats
 
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
 import com.avail.descriptor.numbers.FloatDescriptor
 import com.avail.descriptor.numbers.FloatDescriptor.Companion.fromFloat
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple

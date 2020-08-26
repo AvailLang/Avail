@@ -33,6 +33,8 @@ package com.avail.descriptor.tuples
 
 import com.avail.annotations.HideFieldInDebugger
 import com.avail.descriptor.numbers.A_Number
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
+import com.avail.descriptor.numbers.A_Number.Companion.extractUnsignedByte
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromUnsignedByte
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.hashOfUnsignedByte
 import com.avail.descriptor.pojos.RawPojoDescriptor
@@ -52,6 +54,7 @@ import com.avail.descriptor.tuples.A_Tuple.Companion.treeTupleLevel
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAtPuttingCanDestroy
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
+import com.avail.descriptor.tuples.ByteArrayTupleDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import com.avail.descriptor.tuples.ByteArrayTupleDescriptor.ObjectSlots.BYTE_ARRAY_POJO
 import com.avail.descriptor.tuples.TreeTupleDescriptor.Companion.concatenateAtLeastOneTree
 import com.avail.descriptor.tuples.TreeTupleDescriptor.Companion.createTwoPartTreeTuple
@@ -64,7 +67,7 @@ import com.avail.descriptor.types.A_Type.Companion.sizeRange
 import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
 import com.avail.descriptor.types.A_Type.Companion.typeTuple
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.bytes
-import com.avail.descriptor.types.TypeDescriptor
+import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.utility.json.JSONWriter
 import java.nio.ByteBuffer
 import kotlin.experimental.and
@@ -366,7 +369,7 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 		self: AvailObject,
 		aType: A_Type): Boolean
 	{
-		if (aType.isSupertypeOfPrimitiveTypeEnum(TypeDescriptor.Types.NONTYPE))
+		if (aType.isSupertypeOfPrimitiveTypeEnum(Types.NONTYPE))
 		{
 			return true
 		}
@@ -579,7 +582,7 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 					.javaObjectNotNull<ByteArray>()
 			val copy = array.copyOf(array.size)
 			val result = tupleForByteArray(copy)
-			result.setSlot(IntegerSlots.HASH_OR_ZERO, self.hashOrZero())
+			result.setSlot(HASH_OR_ZERO, self.hashOrZero())
 			return result
 		}
 
@@ -595,7 +598,7 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 		@JvmStatic
 		fun tupleForByteArray(array: ByteArray): AvailObject =
 			mutable.create {
-				setSlot(IntegerSlots.HASH_OR_ZERO, 0)
+				setSlot(HASH_OR_ZERO, 0)
 				setSlot(BYTE_ARRAY_POJO, identityPojo(array))
 			}
 	}

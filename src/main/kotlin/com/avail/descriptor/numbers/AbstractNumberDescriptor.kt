@@ -31,6 +31,11 @@
  */
 package com.avail.descriptor.numbers
 
+import com.avail.descriptor.numbers.A_Number.Companion.greaterThan
+import com.avail.descriptor.numbers.A_Number.Companion.isNumericallyIntegral
+import com.avail.descriptor.numbers.A_Number.Companion.isPositive
+import com.avail.descriptor.numbers.A_Number.Companion.lessThan
+import com.avail.descriptor.numbers.A_Number.Companion.numericCompare
 import com.avail.descriptor.numbers.AbstractNumberDescriptor.Order.EQUAL
 import com.avail.descriptor.numbers.AbstractNumberDescriptor.Order.INCOMPARABLE
 import com.avail.descriptor.numbers.AbstractNumberDescriptor.Order.LESS

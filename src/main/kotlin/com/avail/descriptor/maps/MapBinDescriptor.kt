@@ -31,6 +31,7 @@
  */
 package com.avail.descriptor.maps
 
+import com.avail.descriptor.maps.MapBinDescriptor.IntegerSlots.Companion.KEYS_HASH
 import com.avail.descriptor.maps.MapDescriptor.MapIterable
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
@@ -106,7 +107,7 @@ abstract class MapBinDescriptor protected constructor(
 	}
 
 	override fun o_MapBinKeysHash(self: AvailObject) =
-		self.slot(IntegerSlots.KEYS_HASH)
+		self.slot(KEYS_HASH)
 
 	abstract override fun o_ForEachInMapBin(
 		self: AvailObject,

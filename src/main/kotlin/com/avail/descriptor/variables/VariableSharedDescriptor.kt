@@ -34,8 +34,12 @@ package com.avail.descriptor.variables
 import com.avail.annotations.HideFieldInDebugger
 import com.avail.annotations.HideFieldJustForPrinting
 import com.avail.descriptor.atoms.A_Atom
+import com.avail.descriptor.maps.A_Map.Companion.hasKey
+import com.avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import com.avail.descriptor.numbers.A_Number
+import com.avail.descriptor.numbers.A_Number.Companion.plusCanDestroy
 import com.avail.descriptor.pojos.RawPojoDescriptor
+import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AbstractSlotsEnum
 import com.avail.descriptor.representation.AvailObject
@@ -45,7 +49,6 @@ import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.representation.ObjectSlotsEnum
-import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.A_Type.Companion.writeType
 import com.avail.descriptor.types.TypeTag
@@ -65,9 +68,10 @@ import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.L2Chunk
 import com.avail.interpreter.levelTwo.L2Chunk.InvalidationReason.SLOW_VARIABLE
 import com.avail.performance.Statistic
-import com.avail.performance.StatisticReport
+import com.avail.performance.StatisticReport.L2_OPTIMIZATION_TIME
 import com.avail.utility.json.JSONWriter
-import java.util.Collections
+import java.util.Collections.newSetFromMap
+import java.util.Collections.synchronizedSet
 import java.util.WeakHashMap
 
 /**
@@ -194,84 +198,99 @@ open class VariableSharedDescriptor protected constructor(
 	override fun o_Value(self: AvailObject): AvailObject
 	{
 		recordReadFromSharedVariable(self)
-		return synchronized(self) { super.o_Value(self) }
+		return self.volatileSlot(VALUE)
 	}
 
 	@Throws(VariableGetException::class)
 	override fun o_GetValue(self: AvailObject): AvailObject
 	{
 		recordReadFromSharedVariable(self)
-		return synchronized(self) { super.o_GetValue(self) }
+		try
+		{
+			val interpreter = Interpreter.current()
+			if (interpreter.traceVariableReadsBeforeWrites())
+			{
+				val fiber = interpreter.fiber()
+				fiber.recordVariableAccess(self, true)
+			}
+		}
+		catch (e: ClassCastException)
+		{
+			// No implementation required.
+		}
+		// Answer the current value of the variable. Fail if no value is
+		// currently assigned.
+		val value = self.volatileSlot(VALUE)
+		if (value.equalsNil())
+		{
+			throw VariableGetException(E_CANNOT_READ_UNASSIGNED_VARIABLE)
+		}
+		assert(value.descriptor().isShared)
+		return value
 	}
 
 	override fun o_HasValue(self: AvailObject): Boolean
 	{
 		recordReadFromSharedVariable(self)
-		return synchronized(self) { super.o_HasValue(self) }
+		try
+		{
+			val interpreter = Interpreter.current()
+			if (interpreter.traceVariableReadsBeforeWrites())
+			{
+				val fiber = interpreter.fiber()
+				fiber.recordVariableAccess(self, true)
+			}
+		}
+		catch (e: ClassCastException)
+		{
+			// No implementation required.
+		}
+		return !self.volatileSlot(VALUE).equalsNil()
 	}
 
 	@Throws(VariableSetException::class)
 	override fun o_SetValue(self: AvailObject, newValue: A_BasicObject)
 	{
-		synchronized(self) {
-			super.o_SetValue(self, newValue.makeShared())
+		val outerKind: A_Type = self.slot(KIND)
+		if (!newValue.isInstanceOf(outerKind.writeType()))
+		{
+			throw VariableSetException(E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
 		}
+		handleVariableWriteTracing(self)
+		self.setVolatileSlot(VALUE, newValue.makeShared())
 		recordWriteToSharedVariable()
 	}
-
-	/**
-	 * Write to a newly-constructed variable, bypassing synchronization and
-	 * the capture of writes to shared variables for detecting top-level
-	 * statements that have side-effect.
-	 *
-	 * @param self
-	 *   The variable.
-	 * @param newValue
-	 *   The value to write.
-	 */
-	@Suppress("FunctionName")
-	protected fun bypass_VariableDescriptor_SetValue(
-		self: AvailObject,
-		newValue: A_BasicObject
-	) = super.o_SetValue(self, newValue)
 
 	override fun o_SetValueNoCheck(
 		self: AvailObject,
 		newValue: A_BasicObject)
 	{
-		synchronized(self) {
-			super.o_SetValueNoCheck(self, newValue.makeShared())
-		}
+		assert(!newValue.equalsNil())
+		handleVariableWriteTracing(self)
+		self.setVolatileSlot(VALUE, newValue.makeShared())
 		recordWriteToSharedVariable()
 	}
-
-	/**
-	 * Write to a newly-constructed variable, bypassing synchronization, type
-	 * checking, and the capture of writes to shared variables for detecting
-	 * top-level statements that have side-effect.
-	 *
-	 * @param self
-	 *   The variable.
-	 * @param newValue
-	 *   The value to write.
-	 */
-	@Suppress("FunctionName")
-	protected fun bypass_VariableDescriptor_SetValueNoCheck(
-		self: AvailObject,
-		newValue: A_BasicObject
-	) = super.o_SetValueNoCheck(self, newValue)
 
 	@Throws(VariableGetException::class, VariableSetException::class)
 	override fun o_GetAndSetValue(
 		self: AvailObject, newValue: A_BasicObject): AvailObject
 	{
-		// Because the separate read and write operations are performed within
-		// the critical section, atomicity is ensured.
 		try
 		{
-			synchronized(self) {
-				return super.o_GetAndSetValue(self, newValue.makeShared())
+			handleVariableWriteTracing(self)
+			val outerKind = self.slot(KIND)
+			if (!newValue.isInstanceOf(outerKind.writeType()))
+			{
+				throw VariableSetException(
+					E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
 			}
+			val oldValue = self.getAndSetVolatileSlot(VALUE, newValue)
+			if (oldValue.equalsNil())
+			{
+				// NOTE: It writes the new value, but still reports an error.
+				throw VariableGetException(E_CANNOT_READ_UNASSIGNED_VARIABLE)
+			}
+			return oldValue
 		}
 		finally
 		{
@@ -285,41 +304,11 @@ open class VariableSharedDescriptor protected constructor(
 		reference: A_BasicObject,
 		newValue: A_BasicObject): Boolean
 	{
-		val newValueShared = newValue.makeShared()
-		val outerKind = self.slot(KIND)
-		// Verify that the new value's type complies *prior* to acquiring the
-		// lock.
-		if (!newValueShared.isInstanceOf(outerKind.writeType()))
+		if (!newValue.isInstanceOf(self.slot(KIND).writeType()))
 		{
 			throw VariableSetException(E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
 		}
-		// Because the separate read, compare, and write operations are all
-		// performed within the critical section, atomicity is ensured.
-		try
-		{
-			handleVariableWriteTracing(self)
-			return synchronized(self) {
-				val value = self.slot(VALUE)
-				if (value.equalsNil())
-				{
-					throw VariableGetException(
-						E_CANNOT_READ_UNASSIGNED_VARIABLE)
-				}
-				when
-				{
-					value.equals(reference) ->
-					{
-						self.setSlot(VALUE, newValueShared)
-						true
-					}
-					else -> false
-				}
-			}
-		}
-		finally
-		{
-			recordWriteToSharedVariable()
-		}
+		return o_CompareAndSwapValuesNoCheck(self, reference, newValue)
 	}
 
 	@Throws(VariableSetException::class)
@@ -327,42 +316,53 @@ open class VariableSharedDescriptor protected constructor(
 		self: AvailObject,
 		reference: A_BasicObject,
 		newValue: A_BasicObject
-	): Boolean = try
-	{
-		handleVariableWriteTracing(self)
-		val newValueShared = newValue.makeShared()
-		// Because the separate read, compare, and write operations are all
-		// performed within the critical section, atomicity is ensured.
-		synchronized(self) {
-			val oldValue = self.slot(VALUE)
-			if (oldValue.equalsNil() || !oldValue.equals(reference))
-				return false
-			self.setSlot(VALUE, newValueShared)
-			return true
+	): Boolean =
+		try
+		{
+			handleVariableWriteTracing(self)
+			// Test if the reference value happens to be semantically equal to
+			// the value in the slot.  If so, we use the value from the slot as
+			// the reference for the compare-and-set, because it's defined in
+			// terms of Kotlin object identity.
+			//
+			// This doesn't prevent spurious failure from using a reference
+			// that's semantically equal but not identical to the value, because
+			// the slot can change after we read it to normalize the reference
+			// to it (if it's equal).  However, it does prevent *repeated*
+			// collisions, and ensures at least somebody is able to write a
+			// value using equality for the reference – because the spurious
+			// failures can only be a result of some other fiber successfully
+			// writing new values to the slot.
+			val peek = self.volatileSlot(VALUE)
+			val normalizedReference =
+				if (reference !== peek && reference.equals(peek)) peek
+				else reference
+			self.compareAndSetVolatileSlot(
+				VALUE, normalizedReference, newValue.makeShared())
 		}
-	}
-	finally
-	{
-		recordWriteToSharedVariable()
-	}
+		finally
+		{
+			recordWriteToSharedVariable()
+		}
 
 	@Throws(VariableGetException::class, VariableSetException::class)
 	override fun o_FetchAndAddValue(
 		self: AvailObject,
 		addend: A_Number): A_Number
 	{
-		// Because the separate read and write operations are all performed
-		// within the critical section, atomicity is ensured.
-		try
+		// Simply read, add, and compare-and-set until it succeeds.
+		var oldValue: A_Number
+		var success: Boolean
+		do
 		{
-			synchronized(self) {
-				return super.o_FetchAndAddValue(self, addend.makeShared())
-			}
+			oldValue = self.value()
+			if (oldValue.equalsNil())
+				throw VariableGetException(E_CANNOT_READ_UNASSIGNED_VARIABLE)
+			val newValue = oldValue.plusCanDestroy(addend, false)
+			success = o_CompareAndSwapValues(self, oldValue, newValue)
 		}
-		finally
-		{
-			recordWriteToSharedVariable()
-		}
+		while (!success)
+		return oldValue
 	}
 
 	@Throws(VariableGetException::class, VariableSetException::class)
@@ -371,26 +371,32 @@ open class VariableSharedDescriptor protected constructor(
 		key: A_BasicObject,
 		value: A_BasicObject)
 	{
-		// Because the separate read and write operations are all performed
-		// within the critical section, atomicity is ensured.
-		synchronized(self) {
-			super.o_AtomicAddToMap(
-				self, key.makeShared(), value.makeShared())
+		// Simply read, add, and compare-and-set until it succeeds.
+		var success: Boolean
+		do
+		{
+			val oldValue = self.volatileSlot(VALUE)
+			if (oldValue.equalsNil())
+				throw VariableGetException(E_CANNOT_READ_UNASSIGNED_VARIABLE)
+			val newValue = oldValue.mapAtPuttingCanDestroy(key, value, false)
+			success = o_CompareAndSwapValues(self, oldValue, newValue)
 		}
+		while (!success)
 	}
 
 	@Throws(VariableGetException::class)
 	override fun o_VariableMapHasKey(
 		self: AvailObject, key: A_BasicObject): Boolean
 	{
-		synchronized(self) {
-			return super.o_VariableMapHasKey(self, key)
-		}
+		val map = o_GetValue(self)
+		assert(map.isMap)
+		return map.hasKey(key)
 	}
 
 	override fun o_ClearValue(self: AvailObject)
 	{
-		synchronized(self) { super.o_ClearValue(self) }
+		handleVariableWriteTracing(self)
+		self.setVolatileSlot(VALUE, nil)
 		recordWriteToSharedVariable()
 	}
 
@@ -403,37 +409,33 @@ open class VariableSharedDescriptor protected constructor(
 		// changing.  Local synchronization is sufficient, since invalidation
 		// can't happen while L2 code is running (and therefore when the
 		// L2Generator could be calling this).
-		synchronized(self) {
-			val pojo: A_BasicObject =
-				self.slot(DEPENDENT_CHUNKS_WEAK_SET_POJO)
-			val chunkSet: MutableSet<L2Chunk>
-			if (pojo.equalsNil())
-			{
-				chunkSet = Collections.synchronizedSet(
-					Collections.newSetFromMap(WeakHashMap()))
-				self.setSlot(
-					DEPENDENT_CHUNKS_WEAK_SET_POJO,
-					RawPojoDescriptor.identityPojo(chunkSet).makeShared())
-			}
-			else
-			{
-				chunkSet = pojo.javaObjectNotNull()
-			}
-			chunkSet.add(chunk)
+		var pojo = self.volatileSlot(DEPENDENT_CHUNKS_WEAK_SET_POJO)
+		if (pojo.equalsNil())
+		{
+			pojo = identityPojo(
+				synchronizedSet<L2Chunk>(newSetFromMap(WeakHashMap())))
+			self.compareAndSetVolatileSlot(
+				DEPENDENT_CHUNKS_WEAK_SET_POJO,
+				nil,
+				pojo.makeShared())
+			// Ignore the result of the compare, and simply read it back.  If
+			// the write failed due to somebody initializing this field first,
+			// we'll use that version and ignore the weak set that we created.
+			pojo = self.volatileSlot(DEPENDENT_CHUNKS_WEAK_SET_POJO)
 		}
+		val chunkSet: MutableSet<L2Chunk> = pojo.javaObjectNotNull()
+		chunkSet.add(chunk)
 	}
 
 	override fun o_RemoveDependentChunk(self: AvailObject, chunk: L2Chunk)
 	{
 		assert(L2Chunk.invalidationLock.isHeldByCurrentThread)
-		val pojo: A_BasicObject =
-			self.slot(DEPENDENT_CHUNKS_WEAK_SET_POJO)
-		if (!pojo.equalsNil())
-		{
-			val chunkSet =
-				pojo.javaObjectNotNull<MutableSet<L2Chunk>>()
-			chunkSet.remove(chunk)
-		}
+		// Remove this chunk from the variable's set of dependent chunks.
+		// The weak set *must* have been initialized first.
+		val pojo = self.volatileSlot(DEPENDENT_CHUNKS_WEAK_SET_POJO)
+		assert(!pojo.equalsNil())
+		val chunkSet: MutableSet<L2Chunk> = pojo.javaObjectNotNull()
+		chunkSet.remove(chunk)
 	}
 
 	override fun o_AddWriteReactor(
@@ -442,23 +444,14 @@ open class VariableSharedDescriptor protected constructor(
 		reactor: VariableAccessReactor)
 	{
 		recordReadFromSharedVariable(self)
-		synchronized(self) {
-			super.o_AddWriteReactor(self, key, reactor)
-		}
+		super.o_AddWriteReactor(self, key, reactor)
 	}
 
 	@Throws(AvailException::class)
 	override fun o_RemoveWriteReactor(self: AvailObject, key: A_Atom)
 	{
 		recordReadFromSharedVariable(self)
-		synchronized(self) { super.o_RemoveWriteReactor(self, key) }
-	}
-
-	override fun o_ValidWriteReactorFunctions(self: AvailObject): A_Set
-	{
-		synchronized(self) {
-			return super.o_ValidWriteReactorFunctions(self)
-		}
+		super.o_RemoveWriteReactor(self, key)
 	}
 
 	override fun o_MakeImmutable(self: AvailObject): AvailObject =
@@ -481,6 +474,42 @@ open class VariableSharedDescriptor protected constructor(
 			at("kind") { write("variable") }
 			at("variable type") { self.kind().writeSummaryTo(writer) }
 		}
+
+	/**
+	 * Extract the given variable's write-reactors map, and pass it into the
+	 * [body] function.  If toModify is true, initialize the field if
+	 * needed.  If toModify is false and the field has not yet been set, use
+	 * `null` instead.  Ensure that the map can not be read or written by
+	 * other threads during the body.
+	 *
+	 * Use a lock on the write-reactors map itself, to ensure atomicity.  If the
+	 * map is `null` (and therefore toModify was false), don't lock anything.
+	 *
+	 * @param T
+	 *   The type of value produced by the body and returned by this method.
+	 * @param self
+	 *   The [A_Variable] to examine and/or update.
+	 * @param toModify
+	 *   Whether to initialize the field if it has not yet been initialized.
+	 * @param body
+	 *   A function that runs with either this variable's [MutableMap] from
+	 *   [A_Atom] to [VariableDescriptor.VariableAccessReactor], or `null`.
+	 */
+	override fun<T> withWriteReactorsToModify(
+		self: AvailObject,
+		toModify: Boolean,
+		body: (MutableMap<A_Atom, VariableAccessReactor>?)->T
+	): T = super.withWriteReactorsToModify(self, toModify) { map ->
+		if (map == null)
+		{
+			assert(!toModify)
+			body(null)
+		}
+		else
+		{
+			synchronized(map) { body(map) }
+		}
+	}
 
 	companion object
 	{
@@ -526,13 +555,11 @@ open class VariableSharedDescriptor protected constructor(
 		{
 			assert(L2Chunk.invalidationLock.isHeldByCurrentThread)
 			// Invalidate any affected level two chunks.
-			val pojo: A_BasicObject = self.slot(
-				DEPENDENT_CHUNKS_WEAK_SET_POJO)
+			val pojo: A_BasicObject = self.slot(DEPENDENT_CHUNKS_WEAK_SET_POJO)
 			if (!pojo.equalsNil())
 			{
-				// Copy the set of chunks to avoid modification during iteration.
-				val originalSet =
-					pojo.javaObjectNotNull<Set<L2Chunk>>()
+				// Copy the set of chunks to avoid modification while iterating.
+				val originalSet = pojo.javaObjectNotNull<Set<L2Chunk>>()
 				val chunksToInvalidate = originalSet.toSet()
 				chunksToInvalidate.forEach {
 					it.invalidate(SLOW_VARIABLE)
@@ -546,8 +573,8 @@ open class VariableSharedDescriptor protected constructor(
 		 * nearly-constant variable.
 		 */
 		private val invalidationForSlowVariable = Statistic(
-			"(invalidation for slow variable change)",
-			StatisticReport.L2_OPTIMIZATION_TIME)
+			L2_OPTIMIZATION_TIME,
+			"(invalidation for slow variable change)")
 
 		/**
 		 * Create a [shared][Mutability.SHARED] [variable][A_Variable]. This
@@ -589,9 +616,9 @@ open class VariableSharedDescriptor protected constructor(
 				assert(!oldVariable.descriptor().isShared)
 				oldVariable.becomeIndirectionTo(this)
 
-				// Make the parts shared.  This may recurse, but it will terminate
-				// when it sees this variable again.  Write back the shared versions
-				// for efficiency.
+				// Make the parts shared.  This may recurse, but it will
+				// terminate when it sees this variable again.  Write back the
+				// shared versions for efficiency.
 				setSlot(KIND, kind.makeShared())
 				setSlot(VALUE, value.makeShared())
 				assert(descriptor() === mutableInitial)

@@ -925,8 +925,8 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	 * @param streamStyle
 	 *   What [StreamStyle] should this stream render with?
 	 */
-	private inner class BuildOutputStream internal constructor(
-		internal val streamStyle: StreamStyle) : ByteArrayOutputStream(1)
+	private inner class BuildOutputStream constructor(
+		val streamStyle: StreamStyle) : ByteArrayOutputStream(1)
 	{
 		/**
 		 * Transfer any data in my buffer into the updateQueue, starting up a UI
@@ -2546,11 +2546,11 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 
 		/** The [Statistic] for tracking text insertions.  */
 		private val insertStringStat =
-			Statistic("Insert string", WORKBENCH_TRANSCRIPT)
+			Statistic(WORKBENCH_TRANSCRIPT, "Insert string")
 
 		/** The [Statistic] for tracking text deletions.  */
 		private val removeStringStat =
-			Statistic("Remove string", WORKBENCH_TRANSCRIPT)
+			Statistic(WORKBENCH_TRANSCRIPT, "Remove string")
 
 		/** The user-specific [Preferences] for this application to use.  */
 		private val basePreferences =
@@ -2700,19 +2700,19 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 
 		/** Statistic for waiting for updateQueue's monitor.  */
 		internal val waitForDequeLockStat = Statistic(
-			"Wait for lock to trim old entries",
-			WORKBENCH_TRANSCRIPT)
+			WORKBENCH_TRANSCRIPT,
+			"Wait for lock to trim old entries")
 
 		/** Statistic for trimming excess leading entries.  */
 		internal val discardExcessLeadingStat = Statistic(
-			"Trim old entries (not counting lock)",
-			WORKBENCH_TRANSCRIPT)
+			WORKBENCH_TRANSCRIPT,
+			"Trim old entries (not counting lock)")
 
 		/**
 		 * Statistic for invoking writeText, including waiting for the monitor.
 		 */
 		internal val writeTextStat =
-			Statistic("Call writeText", WORKBENCH_TRANSCRIPT)
+			Statistic(WORKBENCH_TRANSCRIPT, "Call writeText")
 
 		/**
 		 * The [DefaultTreeCellRenderer] that knows how to render tree nodes for

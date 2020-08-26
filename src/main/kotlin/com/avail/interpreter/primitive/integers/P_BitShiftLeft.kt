@@ -33,6 +33,9 @@
 package com.avail.interpreter.primitive.integers
 
 import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.numbers.A_Number.Companion.bitShift
+import com.avail.descriptor.numbers.A_Number.Companion.greaterOrEqual
+import com.avail.descriptor.numbers.A_Number.Companion.lessOrEqual
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple

@@ -48,6 +48,7 @@ import com.avail.descriptor.functions.CompiledCodeDescriptor.IntegerSlots.NYBBLE
 import com.avail.descriptor.functions.CompiledCodeDescriptor.ObjectSlots.FUNCTION_TYPE
 import com.avail.descriptor.functions.CompiledCodeDescriptor.ObjectSlots.LITERAL_AT_
 import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.BlockPhraseDescriptor
@@ -94,7 +95,8 @@ import com.avail.interpreter.levelTwo.L2Chunk.InvalidationReason.CODE_COVERAGE
 import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import com.avail.performance.Statistic
-import com.avail.performance.StatisticReport
+import com.avail.performance.StatisticReport.NON_PRIMITIVE_RETURNEE_TYPE_CHECKS
+import com.avail.performance.StatisticReport.NON_PRIMITIVE_RETURNER_TYPE_CHECKS
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.Strings.newlineTab
 import com.avail.utility.cast
@@ -769,8 +771,8 @@ open class CompiledCodeDescriptor protected constructor(
 				name
 			) {
 				Statistic(
-					"Checked return from " + name.asNativeString(),
-					StatisticReport.NON_PRIMITIVE_RETURNER_TYPE_CHECKS)
+					NON_PRIMITIVE_RETURNER_TYPE_CHECKS,
+					"Checked return from " + name.asNativeString())
 			}
 			invocationStatistic.returnerCheckStat = returnerStat
 		}
@@ -798,8 +800,8 @@ open class CompiledCodeDescriptor protected constructor(
 				name
 			) {
 				Statistic(
-					"Checked return into " + name.asNativeString(),
-					StatisticReport.NON_PRIMITIVE_RETURNEE_TYPE_CHECKS)
+					NON_PRIMITIVE_RETURNEE_TYPE_CHECKS,
+					"Checked return into " + name.asNativeString())
 			}
 			invocationStatistic.returneeCheckStat = returneeStat
 		}

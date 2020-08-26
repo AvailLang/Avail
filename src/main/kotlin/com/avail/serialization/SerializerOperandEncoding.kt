@@ -39,6 +39,12 @@ import com.avail.descriptor.maps.A_Map.Companion.mapIterable
 import com.avail.descriptor.maps.A_Map.Companion.mapSize
 import com.avail.descriptor.maps.MapDescriptor
 import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
+import com.avail.descriptor.numbers.A_Number.Companion.extractLong
+import com.avail.descriptor.numbers.A_Number.Companion.extractUnsignedByte
+import com.avail.descriptor.numbers.A_Number.Companion.extractUnsignedShort
+import com.avail.descriptor.numbers.A_Number.Companion.rawSignedIntegerAt
+import com.avail.descriptor.numbers.A_Number.Companion.rawSignedIntegerAtPut
 import com.avail.descriptor.numbers.IntegerDescriptor
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.createUninitializedInteger
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt

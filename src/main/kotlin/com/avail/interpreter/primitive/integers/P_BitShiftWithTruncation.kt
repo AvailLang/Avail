@@ -32,6 +32,7 @@
 
 package com.avail.interpreter.primitive.integers
 
+import com.avail.descriptor.numbers.A_Number.Companion.bitShiftLeftTruncatingToBits
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type

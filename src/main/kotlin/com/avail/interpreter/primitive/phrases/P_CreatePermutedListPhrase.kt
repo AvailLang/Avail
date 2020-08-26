@@ -32,6 +32,7 @@
 
 package com.avail.interpreter.primitive.phrases
 
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.one
 import com.avail.descriptor.phrases.A_Phrase
@@ -39,7 +40,6 @@ import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsTuple
 import com.avail.descriptor.phrases.ListPhraseDescriptor
 import com.avail.descriptor.phrases.PermutedListPhraseDescriptor
 import com.avail.descriptor.phrases.PermutedListPhraseDescriptor.Companion.newPermutedListNode
-import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.sets.A_Set.Companion.setSize
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.A_Tuple
@@ -89,7 +89,7 @@ object P_CreatePermutedListPhrase : Primitive(2, CanInline)
 			size != permutation.asSet().setSize() ->
 				interpreter.primitiveFailure(E_INCONSISTENT_ARGUMENT_REORDERING)
 			// Entries are unique, but don't cover 1..N (pigeonhole principle).
-			permutation.maxBy(AvailObject::extractInt)!!.extractInt() != size ->
+			permutation.maxBy { it.extractInt() }!!.extractInt() != size ->
 				interpreter.primitiveFailure(E_INCONSISTENT_ARGUMENT_REORDERING)
 			// Permutation is the forbidden identity.
 			permutation.equals(createInterval(one(), fromInt(size), one())) ->

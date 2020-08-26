@@ -33,6 +33,9 @@ package com.avail.descriptor.methods
 
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.FunctionDescriptor
+import com.avail.descriptor.methods.SemanticRestrictionDescriptor.ObjectSlots.DEFINITION_METHOD
+import com.avail.descriptor.methods.SemanticRestrictionDescriptor.ObjectSlots.DEFINITION_MODULE
+import com.avail.descriptor.methods.SemanticRestrictionDescriptor.ObjectSlots.FUNCTION
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.representation.A_BasicObject
@@ -103,17 +106,17 @@ private constructor(mutability: Mutability) : Descriptor(
 	}
 
 	override fun o_Hash(self: AvailObject) =
-		((self.slot(ObjectSlots.FUNCTION).hash() xor 0x0E0D9C10)
-			+ self.slot(ObjectSlots.DEFINITION_METHOD).hash())
+		((self.slot(FUNCTION).hash() xor 0x0E0D9C10)
+			+ self.slot(DEFINITION_METHOD).hash())
 
 	override fun o_Function(self: AvailObject): A_Function =
-		self.slot(ObjectSlots.FUNCTION)
+		self.slot(FUNCTION)
 
 	override fun o_DefinitionMethod(self: AvailObject): A_Method =
-		self.slot(ObjectSlots.DEFINITION_METHOD)
+		self.slot(DEFINITION_METHOD)
 
 	override fun o_DefinitionModule(self: AvailObject): A_Module =
-		self.slot(ObjectSlots.DEFINITION_MODULE)
+		self.slot(DEFINITION_MODULE)
 
 	/** Compare by identity. */
 	override fun o_Equals(self: AvailObject, another: A_BasicObject) =
@@ -155,9 +158,9 @@ private constructor(mutability: Mutability) : Descriptor(
 			method: A_Method,
 			module: A_Module
 		): A_SemanticRestriction = mutable.createShared {
-			setSlot(ObjectSlots.FUNCTION, function)
-			setSlot(ObjectSlots.DEFINITION_METHOD, method)
-			setSlot(ObjectSlots.DEFINITION_MODULE, module)
+			setSlot(FUNCTION, function)
+			setSlot(DEFINITION_METHOD, method)
+			setSlot(DEFINITION_MODULE, module)
 		}
 	}
 }

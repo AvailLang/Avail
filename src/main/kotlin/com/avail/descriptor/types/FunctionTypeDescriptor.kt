@@ -33,6 +33,9 @@ package com.avail.descriptor.types
 
 import com.avail.annotations.ThreadSafe
 import com.avail.descriptor.functions.FunctionDescriptor
+import com.avail.descriptor.numbers.A_Number.Companion.equalsInt
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
+import com.avail.descriptor.numbers.A_Number.Companion.lessThan
 import com.avail.descriptor.objects.ObjectTypeDescriptor
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AbstractSlotsEnum

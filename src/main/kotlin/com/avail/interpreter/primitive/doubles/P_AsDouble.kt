@@ -31,6 +31,7 @@
  */
 package com.avail.interpreter.primitive.doubles
 
+import com.avail.descriptor.numbers.A_Number.Companion.extractDouble
 import com.avail.descriptor.numbers.DoubleDescriptor
 import com.avail.descriptor.numbers.DoubleDescriptor.Companion.fromDouble
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple

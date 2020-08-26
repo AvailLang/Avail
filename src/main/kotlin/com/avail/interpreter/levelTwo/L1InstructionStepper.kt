@@ -102,7 +102,7 @@ import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.performance.Statistic
-import com.avail.performance.StatisticReport
+import com.avail.performance.StatisticReport.REIFICATIONS
 import com.avail.utility.cast
 import java.util.logging.Level
 import java.util.regex.Pattern
@@ -207,8 +207,8 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 	 * suitable [StackReifier] (to update and return again from here).
 	 *
 	 * @return
-	 * `null` if the current function returns normally, otherwise
-	 * a [StackReifier] with which to reify the stack.
+	 *   `null` if the current function returns normally, otherwise a
+	 *   [StackReifier] with which to reify the stack.
 	 */
 	@ReferencedInGeneratedCode
 	fun run(): StackReifier?
@@ -1046,8 +1046,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 	{
 		/** The [Statistic] for reifications prior to label creation in L1.  */
 		private val reificationBeforeLabelCreationStat = Statistic(
-			"Reification before label creation in L1",
-			StatisticReport.REIFICATIONS)
+			REIFICATIONS, "Reification before label creation in L1")
 
 		/** An empty array used for clearing the pointers quickly.  */
 		private val emptyPointersArray = arrayOf<AvailObject>()

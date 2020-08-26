@@ -33,6 +33,9 @@
 package com.avail.interpreter.primitive.tuples
 
 import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
+import com.avail.descriptor.numbers.A_Number.Companion.noFailMinusCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.noFailPlusCanDestroy
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.one
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.A_Tuple
@@ -58,7 +61,6 @@ import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumb
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import com.avail.exceptions.AvailErrorCode.E_NEGATIVE_SIZE
 import com.avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS
-import com.avail.exceptions.AvailException
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Fallibility.CallSiteCanFail
 import com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail

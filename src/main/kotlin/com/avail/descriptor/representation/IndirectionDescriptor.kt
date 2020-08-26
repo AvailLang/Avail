@@ -77,6 +77,8 @@ package com.avail.descriptor.representation
  import com.avail.descriptor.bundles.A_BundleTree.Companion.removePlanInProgress
  import com.avail.descriptor.bundles.A_BundleTree.Companion.updateForNewGrammaticalRestriction
  import com.avail.descriptor.character.A_Character.Companion.codePoint
+ import com.avail.descriptor.character.A_Character.Companion.equalsCharacterWithCodePoint
+ import com.avail.descriptor.character.A_Character.Companion.isCharacter
  import com.avail.descriptor.fiber.FiberDescriptor.ExecutionState
  import com.avail.descriptor.fiber.FiberDescriptor.GeneralFlag
  import com.avail.descriptor.fiber.FiberDescriptor.InterruptRequestFlag
@@ -117,6 +119,57 @@ package com.avail.descriptor.representation
  import com.avail.descriptor.methods.A_SemanticRestriction
  import com.avail.descriptor.module.A_Module
  import com.avail.descriptor.numbers.A_Number
+ import com.avail.descriptor.numbers.A_Number.Companion.addToDoubleCanDestroy
+ import com.avail.descriptor.numbers.A_Number.Companion.addToFloatCanDestroy
+ import com.avail.descriptor.numbers.A_Number.Companion.addToInfinityCanDestroy
+ import com.avail.descriptor.numbers.A_Number.Companion.addToIntegerCanDestroy
+ import com.avail.descriptor.numbers.A_Number.Companion.asBigInteger
+ import com.avail.descriptor.numbers.A_Number.Companion.bitShift
+ import com.avail.descriptor.numbers.A_Number.Companion.bitShiftLeftTruncatingToBits
+ import com.avail.descriptor.numbers.A_Number.Companion.bitwiseAnd
+ import com.avail.descriptor.numbers.A_Number.Companion.bitwiseOr
+ import com.avail.descriptor.numbers.A_Number.Companion.bitwiseXor
+ import com.avail.descriptor.numbers.A_Number.Companion.divideCanDestroy
+ import com.avail.descriptor.numbers.A_Number.Companion.divideIntoDoubleCanDestroy
+ import com.avail.descriptor.numbers.A_Number.Companion.divideIntoFloatCanDestroy
+ import com.avail.descriptor.numbers.A_Number.Companion.divideIntoInfinityCanDestroy
+ import com.avail.descriptor.numbers.A_Number.Companion.divideIntoIntegerCanDestroy
+ import com.avail.descriptor.numbers.A_Number.Companion.equalsDouble
+ import com.avail.descriptor.numbers.A_Number.Companion.equalsFloat
+ import com.avail.descriptor.numbers.A_Number.Companion.equalsInfinity
+ import com.avail.descriptor.numbers.A_Number.Companion.equalsInt
+ import com.avail.descriptor.numbers.A_Number.Companion.equalsInteger
+ import com.avail.descriptor.numbers.A_Number.Companion.extractDouble
+ import com.avail.descriptor.numbers.A_Number.Companion.extractFloat
+ import com.avail.descriptor.numbers.A_Number.Companion.extractInt
+ import com.avail.descriptor.numbers.A_Number.Companion.extractLong
+ import com.avail.descriptor.numbers.A_Number.Companion.extractNybble
+ import com.avail.descriptor.numbers.A_Number.Companion.extractSignedByte
+ import com.avail.descriptor.numbers.A_Number.Companion.extractSignedShort
+ import com.avail.descriptor.numbers.A_Number.Companion.extractUnsignedByte
+ import com.avail.descriptor.numbers.A_Number.Companion.extractUnsignedShort
+ import com.avail.descriptor.numbers.A_Number.Companion.isNumericallyIntegral
+ import com.avail.descriptor.numbers.A_Number.Companion.isPositive
+ import com.avail.descriptor.numbers.A_Number.Companion.minusCanDestroy
+ import com.avail.descriptor.numbers.A_Number.Companion.multiplyByDoubleCanDestroy
+ import com.avail.descriptor.numbers.A_Number.Companion.multiplyByFloatCanDestroy
+ import com.avail.descriptor.numbers.A_Number.Companion.multiplyByInfinityCanDestroy
+ import com.avail.descriptor.numbers.A_Number.Companion.multiplyByIntegerCanDestroy
+ import com.avail.descriptor.numbers.A_Number.Companion.numericCompare
+ import com.avail.descriptor.numbers.A_Number.Companion.numericCompareToDouble
+ import com.avail.descriptor.numbers.A_Number.Companion.numericCompareToInfinity
+ import com.avail.descriptor.numbers.A_Number.Companion.numericCompareToInteger
+ import com.avail.descriptor.numbers.A_Number.Companion.plusCanDestroy
+ import com.avail.descriptor.numbers.A_Number.Companion.rawSignedIntegerAt
+ import com.avail.descriptor.numbers.A_Number.Companion.rawSignedIntegerAtPut
+ import com.avail.descriptor.numbers.A_Number.Companion.rawUnsignedIntegerAt
+ import com.avail.descriptor.numbers.A_Number.Companion.rawUnsignedIntegerAtPut
+ import com.avail.descriptor.numbers.A_Number.Companion.subtractFromDoubleCanDestroy
+ import com.avail.descriptor.numbers.A_Number.Companion.subtractFromFloatCanDestroy
+ import com.avail.descriptor.numbers.A_Number.Companion.subtractFromInfinityCanDestroy
+ import com.avail.descriptor.numbers.A_Number.Companion.subtractFromIntegerCanDestroy
+ import com.avail.descriptor.numbers.A_Number.Companion.timesCanDestroy
+ import com.avail.descriptor.numbers.A_Number.Companion.trimExcessInts
  import com.avail.descriptor.numbers.AbstractNumberDescriptor
  import com.avail.descriptor.numbers.AbstractNumberDescriptor.Sign
  import com.avail.descriptor.parsing.A_DefinitionParsingPlan
@@ -181,7 +234,9 @@ package com.avail.descriptor.representation
  import com.avail.descriptor.representation.IndirectionDescriptor.ObjectSlots.INDIRECTION_TARGET
  import com.avail.descriptor.sets.A_Set
  import com.avail.descriptor.sets.A_Set.Companion.asTuple
+ import com.avail.descriptor.sets.A_Set.Companion.equalsSet
  import com.avail.descriptor.sets.A_Set.Companion.hasElement
+ import com.avail.descriptor.sets.A_Set.Companion.isSet
  import com.avail.descriptor.sets.A_Set.Companion.isSubsetOf
  import com.avail.descriptor.sets.A_Set.Companion.setElementsAreAllInstancesOfKind
  import com.avail.descriptor.sets.A_Set.Companion.setIntersectionCanDestroy
@@ -191,6 +246,18 @@ package com.avail.descriptor.representation
  import com.avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
  import com.avail.descriptor.sets.A_Set.Companion.setWithElementCanDestroy
  import com.avail.descriptor.sets.A_Set.Companion.setWithoutElementCanDestroy
+ import com.avail.descriptor.sets.A_SetBin
+ import com.avail.descriptor.sets.A_SetBin.Companion.binElementAt
+ import com.avail.descriptor.sets.A_SetBin.Companion.binElementsAreAllInstancesOfKind
+ import com.avail.descriptor.sets.A_SetBin.Companion.binHasElementWithHash
+ import com.avail.descriptor.sets.A_SetBin.Companion.binRemoveElementHashLevelCanDestroy
+ import com.avail.descriptor.sets.A_SetBin.Companion.binUnionKind
+ import com.avail.descriptor.sets.A_SetBin.Companion.isBinSubsetOf
+ import com.avail.descriptor.sets.A_SetBin.Companion.isSetBin
+ import com.avail.descriptor.sets.A_SetBin.Companion.setBinAddingElementHashLevelCanDestroy
+ import com.avail.descriptor.sets.A_SetBin.Companion.setBinHash
+ import com.avail.descriptor.sets.A_SetBin.Companion.setBinIterator
+ import com.avail.descriptor.sets.A_SetBin.Companion.setBinSize
  import com.avail.descriptor.sets.SetDescriptor.SetIterator
  import com.avail.descriptor.tokens.A_Token
  import com.avail.descriptor.tokens.TokenDescriptor
@@ -698,7 +765,7 @@ class IndirectionDescriptor private constructor(
 		elementObjectHash: Int,
 		myLevel: Int,
 		canDestroy: Boolean
-	): A_BasicObject = self.. {
+	): A_SetBin = self.. {
 		setBinAddingElementHashLevelCanDestroy(
 			elementObject, elementObjectHash, myLevel, canDestroy)
 	}
@@ -722,7 +789,7 @@ class IndirectionDescriptor private constructor(
 		elementObjectHash: Int,
 		myLevel: Int,
 		canDestroy: Boolean
-	): AvailObject = self .. {
+	): A_SetBin = self .. {
 		binRemoveElementHashLevelCanDestroy(
 			elementObject, elementObjectHash, myLevel, canDestroy)
 	}

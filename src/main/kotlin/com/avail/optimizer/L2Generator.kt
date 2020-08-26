@@ -37,6 +37,9 @@ import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.methods.A_ChunkDependable
 import com.avail.descriptor.numbers.A_Number
+import com.avail.descriptor.numbers.A_Number.Companion.extractDouble
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
+import com.avail.descriptor.numbers.A_Number.Companion.extractLong
 import com.avail.descriptor.numbers.DoubleDescriptor.Companion.fromDouble
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
@@ -124,7 +127,7 @@ import com.avail.optimizer.values.L2SemanticValue
 import com.avail.optimizer.values.L2SemanticValue.Companion.constant
 import com.avail.optimizer.values.L2SemanticValue.Companion.primitiveInvocation
 import com.avail.performance.Statistic
-import com.avail.performance.StatisticReport
+import com.avail.performance.StatisticReport.L2_OPTIMIZATION_TIME
 import com.avail.utility.cast
 import com.avail.utility.notNullAnd
 
@@ -596,44 +599,6 @@ class L2Generator internal constructor(
 		}
 		return currentManifest.readBoxed(semanticValue)
 	}
-//	{
-//		val restriction = currentManifest.restrictionFor(semanticValue)
-//		if (restriction.isBoxed)
-//		{
-//			return currentManifest.readBoxed(semanticValue)
-//		}
-//		when
-//		{
-//			restriction.isUnboxedInt ->
-//			{
-//				val reader = currentManifest.readInt(semanticValue)
-//				val boxedRestriction =
-//					restriction.withFlag(RestrictionFlagEncoding.BOXED)
-//				currentManifest.setRestriction(semanticValue, boxedRestriction)
-//				val writer = L2WriteBoxedOperand(
-//					currentManifest.semanticValueToSynonym(semanticValue)
-//						.semanticValues(),
-//					boxedRestriction,
-//					L2BoxedRegister(nextUnique()))
-//				addInstruction(L2_BOX_INT, reader, writer)
-//			}
-//			restriction.isUnboxedFloat ->
-//			{
-//				val reader = currentManifest.readFloat(semanticValue)
-//				val boxedRestriction =
-//					restriction.withFlag(RestrictionFlagEncoding.BOXED)
-//				currentManifest.setRestriction(semanticValue, boxedRestriction)
-//				val writer = L2WriteBoxedOperand(
-//					currentManifest.semanticValueToSynonym(semanticValue)
-//						.semanticValues(),
-//					boxedRestriction,
-//					L2BoxedRegister(nextUnique()))
-//				addInstruction(L2_BOX_FLOAT, reader, writer)
-//			}
-//			else -> error("Unknown unboxed type")
-//		}
-//		return currentManifest.readBoxed(semanticValue)
-//	}
 
 	/**
 	 * Return an [L2ReadIntOperand] for the given [L2SemanticValue]. The
@@ -1631,6 +1596,6 @@ class L2Generator internal constructor(
 		 * [L2ControlFlowGraph].
 		 */
 		val finalGenerationStat = Statistic(
-			"Final chunk generation", StatisticReport.L2_OPTIMIZATION_TIME)
+			L2_OPTIMIZATION_TIME, "Final chunk generation")
 	}
 }

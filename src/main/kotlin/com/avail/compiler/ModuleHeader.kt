@@ -54,6 +54,7 @@ import com.avail.descriptor.maps.A_Map.Companion.valuesAsTuple
 import com.avail.descriptor.methods.MethodDescriptor
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.module.ModuleDescriptor
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil

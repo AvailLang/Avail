@@ -31,6 +31,9 @@
  */
 package com.avail.interpreter.primitive.floats
 
+import com.avail.descriptor.numbers.A_Number.Companion.extractFloat
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
+import com.avail.descriptor.numbers.A_Number.Companion.greaterOrEqual
 import com.avail.descriptor.numbers.FloatDescriptor
 import com.avail.descriptor.numbers.FloatDescriptor.Companion.fromFloatRecycling
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.two

@@ -31,6 +31,10 @@
  */
 package com.avail.descriptor.types
 
+import com.avail.descriptor.numbers.A_Number.Companion.equalsInt
+import com.avail.descriptor.numbers.A_Number.Companion.lessOrEqual
+import com.avail.descriptor.numbers.A_Number.Companion.minusCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.plusCanDestroy
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.one
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import com.avail.descriptor.representation.A_BasicObject
@@ -57,6 +61,8 @@ import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInteger
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import com.avail.descriptor.types.SetTypeDescriptor.ObjectSlots
+import com.avail.descriptor.types.SetTypeDescriptor.ObjectSlots.CONTENT_TYPE
+import com.avail.descriptor.types.SetTypeDescriptor.ObjectSlots.SIZE_RANGE
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
@@ -107,17 +113,17 @@ class SetTypeDescriptor private constructor(mutability: Mutability)
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int)
 	{
-		if (self.slot(ObjectSlots.CONTENT_TYPE).equals(ANY.o)
-		    && self.slot(ObjectSlots.SIZE_RANGE).equals(wholeNumbers))
+		if (self.slot(CONTENT_TYPE).equals(ANY.o)
+		    && self.slot(SIZE_RANGE).equals(wholeNumbers))
 		{
 			builder.append("set")
 			return
 		}
 		builder.append('{')
-		self.slot(ObjectSlots.CONTENT_TYPE).printOnAvoidingIndent(
+		self.slot(CONTENT_TYPE).printOnAvoidingIndent(
 			builder, recursionMap, indent + 1)
 		builder.append('|')
-		val sizeRange: A_Type = self.slot(ObjectSlots.SIZE_RANGE)
+		val sizeRange: A_Type = self.slot(SIZE_RANGE)
 		if (sizeRange.equals(wholeNumbers))
 		{
 			builder.append('}')
@@ -135,10 +141,10 @@ class SetTypeDescriptor private constructor(mutability: Mutability)
 	}
 
 	override fun o_ContentType(self: AvailObject): A_Type =
-		self.slot(ObjectSlots.CONTENT_TYPE)
+		self.slot(CONTENT_TYPE)
 
 	override fun o_SizeRange(self: AvailObject): A_Type =
-		self.slot(ObjectSlots.SIZE_RANGE)
+		self.slot(SIZE_RANGE)
 
 	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean =
 		another.equalsSetType(self)
@@ -146,8 +152,8 @@ class SetTypeDescriptor private constructor(mutability: Mutability)
 	// Set types are equal iff both their sizeRange and contentType match.
 	override fun o_EqualsSetType(self: AvailObject, aSetType: A_Type): Boolean =
 		if (self.sameAddressAs(aSetType)) true
-		else self.slot(ObjectSlots.SIZE_RANGE).equals(aSetType.sizeRange())
-		     && self.slot(ObjectSlots.CONTENT_TYPE)
+		else self.slot(SIZE_RANGE).equals(aSetType.sizeRange())
+		     && self.slot(CONTENT_TYPE)
 			     .equals(aSetType.contentType())
 
 	// Answer a 32-bit integer that is always the same for equal objects,
@@ -167,15 +173,15 @@ class SetTypeDescriptor private constructor(mutability: Mutability)
 		// Set type A is a subtype of B if and only if their size ranges are
 		// covariant and their content types are covariant.
 		val otherType = aSetType as AvailObject
-		return (otherType.slot(ObjectSlots.SIZE_RANGE).isSubtypeOf(
-			self.slot(ObjectSlots.SIZE_RANGE))
-		        && otherType.slot(ObjectSlots.CONTENT_TYPE).isSubtypeOf(
-			self.slot(ObjectSlots.CONTENT_TYPE)))
+		return (otherType.slot(SIZE_RANGE).isSubtypeOf(
+			self.slot(SIZE_RANGE))
+		        && otherType.slot(CONTENT_TYPE).isSubtypeOf(
+			self.slot(CONTENT_TYPE)))
 	}
 
 	override fun o_IsVacuousType(self: AvailObject): Boolean =
-		(!self.slot(ObjectSlots.SIZE_RANGE).lowerBound().equalsInt(0)
-	        && self.slot(ObjectSlots.CONTENT_TYPE).isVacuousType)
+		(!self.slot(SIZE_RANGE).lowerBound().equalsInt(0)
+	        && self.slot(CONTENT_TYPE).isVacuousType)
 
 	// Answer the most general type that is still at least as specific as
 	// these.
@@ -194,9 +200,9 @@ class SetTypeDescriptor private constructor(mutability: Mutability)
 		aSetType: A_Type): A_Type
 	{
 		return setTypeForSizesContentType(
-			self.slot(ObjectSlots.SIZE_RANGE)
+			self.slot(SIZE_RANGE)
 				.typeIntersection(aSetType.sizeRange()),
-			self.slot(ObjectSlots.CONTENT_TYPE)
+			self.slot(CONTENT_TYPE)
 				.typeIntersection(aSetType.contentType()))
 	}
 
@@ -213,9 +219,9 @@ class SetTypeDescriptor private constructor(mutability: Mutability)
 		self: AvailObject,
 		aSetType: A_Type): A_Type =
 			setTypeForSizesContentType(
-				self.slot(ObjectSlots.SIZE_RANGE)
+				self.slot(SIZE_RANGE)
 					.typeUnion(aSetType.sizeRange()),
-				self.slot(ObjectSlots.CONTENT_TYPE)
+				self.slot(CONTENT_TYPE)
 					.typeUnion(aSetType.contentType()))
 
 	override fun o_IsSetType(self: AvailObject): Boolean =  true
@@ -239,9 +245,9 @@ class SetTypeDescriptor private constructor(mutability: Mutability)
 		writer.write("kind")
 		writer.write("set type")
 		writer.write("content type")
-		self.slot(ObjectSlots.CONTENT_TYPE).writeTo(writer)
+		self.slot(CONTENT_TYPE).writeTo(writer)
 		writer.write("cardinality")
-		self.slot(ObjectSlots.SIZE_RANGE).writeTo(writer)
+		self.slot(SIZE_RANGE).writeTo(writer)
 		writer.endObject()
 	}
 
@@ -251,9 +257,9 @@ class SetTypeDescriptor private constructor(mutability: Mutability)
 		writer.write("kind")
 		writer.write("set type")
 		writer.write("content type")
-		self.slot(ObjectSlots.CONTENT_TYPE).writeSummaryTo(writer)
+		self.slot(CONTENT_TYPE).writeSummaryTo(writer)
 		writer.write("cardinality")
-		self.slot(ObjectSlots.SIZE_RANGE).writeTo(writer)
+		self.slot(SIZE_RANGE).writeTo(writer)
 		writer.endObject()
 	}
 
@@ -370,8 +376,8 @@ class SetTypeDescriptor private constructor(mutability: Mutability)
 				}
 			}
 			return mutable.createShared {
-				setSlot(ObjectSlots.SIZE_RANGE, newSizeRange)
-				setSlot(ObjectSlots.CONTENT_TYPE, newContentType)
+				setSlot(SIZE_RANGE, newSizeRange)
+				setSlot(CONTENT_TYPE, newContentType)
 			}
 		}
 

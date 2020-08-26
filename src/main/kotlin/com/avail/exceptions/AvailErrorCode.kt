@@ -51,6 +51,10 @@ import com.avail.descriptor.methods.MethodDefinitionDescriptor
 import com.avail.descriptor.methods.MethodDescriptor
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.numbers.A_Number
+import com.avail.descriptor.numbers.A_Number.Companion.divideCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.minusCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.plusCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.timesCanDestroy
 import com.avail.descriptor.numbers.InfinityDescriptor
 import com.avail.descriptor.numbers.IntegerDescriptor
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
@@ -386,8 +390,8 @@ enum class AvailErrorCode constructor(val code: Int)
 	E_VERTICAL_BAR_MUST_SEPARATE_TOKENS_OR_SIMPLE_GROUPS(55),
 
 	/**
-	 * A [Double] [not-a-number][Double.NaN] or [Float]
-	 * [not-a-number][Float.NaN] can not be converted to an extended
+	 * A [Double] value [not-a-number][java.lang.Double.NaN] or [Float] value
+	 * [not-a-number][java.lang.Float.NaN] cannot be converted to an extended
 	 * integer (neither truncation, floor, nor ceiling).
 	 */
 	E_CANNOT_CONVERT_NOT_A_NUMBER_TO_INTEGER(56),

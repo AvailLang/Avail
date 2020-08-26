@@ -126,6 +126,7 @@ import com.avail.descriptor.methods.SemanticRestrictionDescriptor
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.module.ModuleDescriptor.Companion.newModule
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
 import com.avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.parsingInstructions
 import com.avail.descriptor.parsing.A_Lexer
 import com.avail.descriptor.parsing.A_ParsingPlanInProgress.Companion.nameHighlightingPc
@@ -4641,18 +4642,18 @@ class AvailCompiler(
 
 		/** Statistic for matching an exact token.  */
 		private val matchTokenStat = Statistic(
-			"(Match particular token)",
-			RUNNING_PARSING_INSTRUCTIONS)
+			RUNNING_PARSING_INSTRUCTIONS,
+			"(Match particular token)")
 
 		/** Statistic for matching a token case-insensitively.  */
 		private val matchTokenInsensitivelyStat = Statistic(
-			"(Match insensitive token)",
-			RUNNING_PARSING_INSTRUCTIONS)
+			RUNNING_PARSING_INSTRUCTIONS,
+			"(Match insensitive token)")
 
 		/** Statistic for type-checking an argument.  */
 		private val typeCheckArgumentStat = Statistic(
-			"(type-check argument)",
-			RUNNING_PARSING_INSTRUCTIONS)
+			RUNNING_PARSING_INSTRUCTIONS,
+			"(type-check argument)")
 
 		/** Marker phrase to signal cleanly reaching the end of the input.  */
 		private val endOfFileMarkerPhrase =

@@ -34,6 +34,9 @@ package com.avail.descriptor.tuples
 import com.avail.annotations.HideFieldInDebugger
 import com.avail.annotations.ThreadSafe
 import com.avail.descriptor.character.A_Character.Companion.codePoint
+import com.avail.descriptor.character.A_Character.Companion.isCharacter
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
+import com.avail.descriptor.numbers.A_Number.Companion.extractLong
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AbstractSlotsEnum
@@ -63,6 +66,7 @@ import com.avail.descriptor.tuples.LongTupleDescriptor.Companion.generateLongTup
 import com.avail.descriptor.tuples.NybbleTupleDescriptor.Companion.mutableObjectOfSize
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import com.avail.descriptor.tuples.TupleDescriptor.IntegerSlots
+import com.avail.descriptor.tuples.TupleDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.A_Type.Companion.defaultType
 import com.avail.descriptor.types.A_Type.Companion.isSupertypeOfPrimitiveTypeEnum
@@ -157,12 +161,12 @@ abstract class TupleDescriptor protected constructor(
 			synchronized(self) {
 				// The synchronized section is only to ensure other BitFields
 				// in the same long slot don't get clobbered.
-				self.setSlot(IntegerSlots.HASH_OR_ZERO, value)
+				self.setSlot(HASH_OR_ZERO, value)
 			}
 		}
 		else
 		{
-			self.setSlot(IntegerSlots.HASH_OR_ZERO, value)
+			self.setSlot(HASH_OR_ZERO, value)
 		}
 	}
 
@@ -173,7 +177,7 @@ abstract class TupleDescriptor protected constructor(
 	// tuple isn't shared then only one thread can be reading or writing the
 	// hash field.  So either way we don't need synchronization.
 	override fun o_HashOrZero(self: AvailObject): Int =
-		self.slot(IntegerSlots.HASH_OR_ZERO)
+		self.slot(HASH_OR_ZERO)
 
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,

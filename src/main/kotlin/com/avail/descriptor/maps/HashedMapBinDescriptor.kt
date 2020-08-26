@@ -66,6 +66,8 @@ package com.avail.descriptor.maps
  import com.avail.descriptor.representation.NilDescriptor.Companion.nil
  import com.avail.descriptor.representation.ObjectSlotsEnum
  import com.avail.descriptor.sets.A_Set
+ import com.avail.descriptor.sets.A_SetBin.Companion.binElementAt
+ import com.avail.descriptor.sets.A_SetBin.Companion.isBinSubsetOf
  import com.avail.descriptor.sets.HashedSetBinDescriptor
  import com.avail.descriptor.sets.SetDescriptor
  import com.avail.descriptor.types.A_Type

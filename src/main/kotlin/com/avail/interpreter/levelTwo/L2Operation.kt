@@ -71,7 +71,7 @@ import com.avail.optimizer.RegisterSet
 import com.avail.optimizer.jvm.JVMTranslator
 import com.avail.optimizer.reoptimizer.L2Inliner
 import com.avail.performance.Statistic
-import com.avail.performance.StatisticReport
+import com.avail.performance.StatisticReport.L2_TO_JVM_TRANSLATION_TIME
 import com.avail.utility.Strings.escape
 import com.avail.utility.Strings.increaseIndentation
 import com.avail.utility.cast
@@ -213,8 +213,7 @@ protected constructor(
 	 * executing [L2Instruction]s that use this operation.
 	 */
 	@JvmField
-	val jvmTranslationTime = Statistic(
-		name(), StatisticReport.L2_TO_JVM_TRANSLATION_TIME)
+	val jvmTranslationTime = Statistic(L2_TO_JVM_TRANSLATION_TIME, name())
 
 	/**
 	 * Answer a suitable default symbolic name for this operation.

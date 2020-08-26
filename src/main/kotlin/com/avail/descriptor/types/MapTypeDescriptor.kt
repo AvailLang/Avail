@@ -31,6 +31,10 @@
  */
 package com.avail.descriptor.types
 
+import com.avail.descriptor.numbers.A_Number.Companion.equalsInt
+import com.avail.descriptor.numbers.A_Number.Companion.lessOrEqual
+import com.avail.descriptor.numbers.A_Number.Companion.minusCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.plusCanDestroy
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.one
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import com.avail.descriptor.representation.A_BasicObject
@@ -57,6 +61,9 @@ import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInteger
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import com.avail.descriptor.types.MapTypeDescriptor.ObjectSlots
+import com.avail.descriptor.types.MapTypeDescriptor.ObjectSlots.KEY_TYPE
+import com.avail.descriptor.types.MapTypeDescriptor.ObjectSlots.SIZE_RANGE
+import com.avail.descriptor.types.MapTypeDescriptor.ObjectSlots.VALUE_TYPE
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
@@ -106,13 +113,13 @@ class MapTypeDescriptor private constructor(mutability: Mutability)
 	}
 
 	override fun o_KeyType(self: AvailObject): A_Type =
-		self.slot(ObjectSlots.KEY_TYPE)
+		self.slot(KEY_TYPE)
 
 	override fun o_SizeRange(self: AvailObject): A_Type =
-		self.slot(ObjectSlots.SIZE_RANGE)
+		self.slot(SIZE_RANGE)
 
 	override fun o_ValueType(self: AvailObject): A_Type =
-		self.slot(ObjectSlots.VALUE_TYPE)
+		self.slot(VALUE_TYPE)
 
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
@@ -120,9 +127,9 @@ class MapTypeDescriptor private constructor(mutability: Mutability)
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int)
 	{
-		if (self.slot(ObjectSlots.KEY_TYPE).equals(ANY.o)
-		    && self.slot(ObjectSlots.VALUE_TYPE).equals(ANY.o)
-		    && self.slot(ObjectSlots.SIZE_RANGE).equals(wholeNumbers))
+		if (self.slot(KEY_TYPE).equals(ANY.o)
+		    && self.slot(VALUE_TYPE).equals(ANY.o)
+		    && self.slot(SIZE_RANGE).equals(wholeNumbers))
 		{
 			builder.append("map")
 			return
@@ -134,7 +141,7 @@ class MapTypeDescriptor private constructor(mutability: Mutability)
 		self.valueType().printOnAvoidingIndent(
 			builder, recursionMap, indent + 1)
 		builder.append('|')
-		val sizeRange: A_Type = self.slot(ObjectSlots.SIZE_RANGE)
+		val sizeRange: A_Type = self.slot(SIZE_RANGE)
 		if (sizeRange.equals(wholeNumbers))
 		{
 			builder.append('}')
@@ -156,17 +163,17 @@ class MapTypeDescriptor private constructor(mutability: Mutability)
 
 	override fun o_EqualsMapType(self: AvailObject, aMapType: A_Type): Boolean =
 		if (self.sameAddressAs(aMapType)) true
-		else self.slot(ObjectSlots.SIZE_RANGE).equals(aMapType.sizeRange())
-		     && self.slot(ObjectSlots.KEY_TYPE).equals(aMapType.keyType())
-		     && self.slot(ObjectSlots.VALUE_TYPE).equals(aMapType.valueType())
+		else self.slot(SIZE_RANGE).equals(aMapType.sizeRange())
+		     && self.slot(KEY_TYPE).equals(aMapType.keyType())
+		     && self.slot(VALUE_TYPE).equals(aMapType.valueType())
 
 	// Answer a 32-bit integer that is always the same for equal objects,
 	// but statistically different for different objects.
 	override fun o_Hash(self: AvailObject): Int =
 		computeHashForSizeRangeHashKeyTypeHashValueTypeHash(
-			self.slot(ObjectSlots.SIZE_RANGE).hash(),
-			self.slot(ObjectSlots.KEY_TYPE).hash(),
-			self.slot(ObjectSlots.VALUE_TYPE).hash())
+			self.slot(SIZE_RANGE).hash(),
+			self.slot(KEY_TYPE).hash(),
+			self.slot(VALUE_TYPE).hash())
 
 	override fun o_IsMapType(self: AvailObject): Boolean = true
 
@@ -180,17 +187,17 @@ class MapTypeDescriptor private constructor(mutability: Mutability)
 	override fun o_IsSupertypeOfMapType(
 		self: AvailObject,
 		aMapType: AvailObject): Boolean =
-			(aMapType.slot(ObjectSlots.SIZE_RANGE).isSubtypeOf(
-					self.slot(ObjectSlots.SIZE_RANGE))
-		        && aMapType.slot(ObjectSlots.KEY_TYPE).isSubtypeOf(
-					self.slot(ObjectSlots.KEY_TYPE))
-		        && aMapType.slot(ObjectSlots.VALUE_TYPE).isSubtypeOf(
-					self.slot(ObjectSlots.VALUE_TYPE)))
+			(aMapType.slot(SIZE_RANGE).isSubtypeOf(
+					self.slot(SIZE_RANGE))
+		        && aMapType.slot(KEY_TYPE).isSubtypeOf(
+					self.slot(KEY_TYPE))
+		        && aMapType.slot(VALUE_TYPE).isSubtypeOf(
+					self.slot(VALUE_TYPE)))
 
 	override fun o_IsVacuousType(self: AvailObject): Boolean =
-		(!self.slot(ObjectSlots.SIZE_RANGE).lowerBound().equalsInt(0)
-			&& (self.slot(ObjectSlots.KEY_TYPE).isVacuousType
-		        || self.slot(ObjectSlots.VALUE_TYPE).isVacuousType))
+		(!self.slot(SIZE_RANGE).lowerBound().equalsInt(0)
+			&& (self.slot(KEY_TYPE).isVacuousType
+		        || self.slot(VALUE_TYPE).isVacuousType))
 
 	// Answer the most general type that is still at least as specific as
 	// these.
@@ -212,11 +219,11 @@ class MapTypeDescriptor private constructor(mutability: Mutability)
 		self: AvailObject,
 		aMapType: A_Type): A_Type =
 			mapTypeForSizesKeyTypeValueType(
-				self.slot(ObjectSlots.SIZE_RANGE).typeIntersection(
+				self.slot(SIZE_RANGE).typeIntersection(
 					aMapType.sizeRange()).makeImmutable(),
-				self.slot(ObjectSlots.KEY_TYPE).typeIntersection(
+				self.slot(KEY_TYPE).typeIntersection(
 					aMapType.keyType()).makeImmutable(),
-				self.slot(ObjectSlots.VALUE_TYPE).typeIntersection(
+				self.slot(VALUE_TYPE).typeIntersection(
 					aMapType.valueType()).makeImmutable())
 
 	// Answer the most specific type that is still at least as general as
@@ -240,11 +247,11 @@ class MapTypeDescriptor private constructor(mutability: Mutability)
 		self: AvailObject,
 		aMapType: A_Type): A_Type =
 			mapTypeForSizesKeyTypeValueType(
-				self.slot(ObjectSlots.SIZE_RANGE).typeUnion(
+				self.slot(SIZE_RANGE).typeUnion(
 					aMapType.sizeRange()).makeImmutable(),
-				self.slot(ObjectSlots.KEY_TYPE).typeUnion(
+				self.slot(KEY_TYPE).typeUnion(
 					aMapType.keyType()).makeImmutable(),
-				self.slot(ObjectSlots.VALUE_TYPE).typeUnion(
+				self.slot(VALUE_TYPE).typeUnion(
 					aMapType.valueType()).makeImmutable())
 
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
@@ -265,11 +272,11 @@ class MapTypeDescriptor private constructor(mutability: Mutability)
 		writer.write("kind")
 		writer.write("map type")
 		writer.write("key type")
-		self.slot(ObjectSlots.KEY_TYPE).writeTo(writer)
+		self.slot(KEY_TYPE).writeTo(writer)
 		writer.write("value type")
-		self.slot(ObjectSlots.VALUE_TYPE).writeTo(writer)
+		self.slot(VALUE_TYPE).writeTo(writer)
 		writer.write("cardinality")
-		self.slot(ObjectSlots.SIZE_RANGE).writeTo(writer)
+		self.slot(SIZE_RANGE).writeTo(writer)
 		writer.endObject()
 	}
 
@@ -279,11 +286,11 @@ class MapTypeDescriptor private constructor(mutability: Mutability)
 		writer.write("kind")
 		writer.write("map type")
 		writer.write("key type")
-		self.slot(ObjectSlots.KEY_TYPE).writeSummaryTo(writer)
+		self.slot(KEY_TYPE).writeSummaryTo(writer)
 		writer.write("value type")
-		self.slot(ObjectSlots.VALUE_TYPE).writeSummaryTo(writer)
+		self.slot(VALUE_TYPE).writeSummaryTo(writer)
 		writer.write("cardinality")
-		self.slot(ObjectSlots.SIZE_RANGE).writeTo(writer)
+		self.slot(SIZE_RANGE).writeTo(writer)
 		writer.endObject()
 	}
 
@@ -416,9 +423,9 @@ class MapTypeDescriptor private constructor(mutability: Mutability)
 				newValueType = valueType
 			}
 			return mutable.create {
-				setSlot(ObjectSlots.SIZE_RANGE, newSizeRange)
-				setSlot(ObjectSlots.KEY_TYPE, newKeyType)
-				setSlot(ObjectSlots.VALUE_TYPE, newValueType)
+				setSlot(SIZE_RANGE, newSizeRange)
+				setSlot(KEY_TYPE, newKeyType)
+				setSlot(VALUE_TYPE, newValueType)
 			}
 		}
 

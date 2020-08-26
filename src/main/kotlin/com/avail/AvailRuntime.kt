@@ -81,6 +81,7 @@ import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import com.avail.descriptor.methods.SemanticRestrictionDescriptor
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.module.ModuleDescriptor
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
 import com.avail.descriptor.numbers.DoubleDescriptor.Companion.fromDouble
 import com.avail.descriptor.numbers.InfinityDescriptor.Companion.negativeInfinity
 import com.avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity

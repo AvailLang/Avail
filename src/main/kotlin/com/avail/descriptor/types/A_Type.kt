@@ -97,7 +97,7 @@ interface A_Type : A_BasicObject
 	companion object
 	{
 		/**
-		 * Answer whether the [argument&#32;types][AvailObject.argsTupleType]
+		 * Answer whether the [argument&#32;types][A_Type.argsTupleType]
 		 * supported by the specified
 		 * [function&#32;type][FunctionTypeDescriptor] are acceptable argument
 		 * types for invoking a [function][FunctionDescriptor] whose type is the

@@ -33,6 +33,9 @@ package com.avail.descriptor.tuples
 
 import com.avail.annotations.HideFieldInDebugger
 import com.avail.descriptor.numbers.A_Number
+import com.avail.descriptor.numbers.A_Number.Companion.extractLong
+import com.avail.descriptor.numbers.A_Number.Companion.greaterThan
+import com.avail.descriptor.numbers.A_Number.Companion.lessThan
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.computeHashOfLong
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
@@ -68,7 +71,7 @@ import com.avail.descriptor.types.A_Type.Companion.sizeRange
 import com.avail.descriptor.types.A_Type.Companion.typeTuple
 import com.avail.descriptor.types.A_Type.Companion.upperBound
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int64
-import com.avail.descriptor.types.TypeDescriptor
+import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
@@ -438,7 +441,7 @@ class LongTupleDescriptor private constructor(
 		self: AvailObject,
 		aType: A_Type): Boolean
 	{
-		if (aType.isSupertypeOfPrimitiveTypeEnum(TypeDescriptor.Types.NONTYPE))
+		if (aType.isSupertypeOfPrimitiveTypeEnum(Types.NONTYPE))
 		{
 			return true
 		}

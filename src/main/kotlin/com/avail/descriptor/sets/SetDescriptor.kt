@@ -42,11 +42,20 @@ import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.sets.A_Set.Companion.asTuple
+import com.avail.descriptor.sets.A_Set.Companion.equalsSet
 import com.avail.descriptor.sets.A_Set.Companion.hasElement
 import com.avail.descriptor.sets.A_Set.Companion.setElementsAreAllInstancesOfKind
 import com.avail.descriptor.sets.A_Set.Companion.setSize
 import com.avail.descriptor.sets.A_Set.Companion.setWithElementCanDestroy
 import com.avail.descriptor.sets.A_Set.Companion.setWithoutElementCanDestroy
+import com.avail.descriptor.sets.A_SetBin.Companion.binElementsAreAllInstancesOfKind
+import com.avail.descriptor.sets.A_SetBin.Companion.binHasElementWithHash
+import com.avail.descriptor.sets.A_SetBin.Companion.binRemoveElementHashLevelCanDestroy
+import com.avail.descriptor.sets.A_SetBin.Companion.isBinSubsetOf
+import com.avail.descriptor.sets.A_SetBin.Companion.setBinAddingElementHashLevelCanDestroy
+import com.avail.descriptor.sets.A_SetBin.Companion.setBinHash
+import com.avail.descriptor.sets.A_SetBin.Companion.setBinIterator
+import com.avail.descriptor.sets.A_SetBin.Companion.setBinSize
 import com.avail.descriptor.sets.LinearSetBinDescriptor.Companion.createLinearSetBinPair
 import com.avail.descriptor.sets.LinearSetBinDescriptor.Companion.emptyLinearSetBin
 import com.avail.descriptor.sets.SetBinDescriptor.Companion.generateSetBinFrom
@@ -199,7 +208,7 @@ private constructor(
 	}.toTypedArray()
 
 	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean =
-		another.equalsSet(self)
+		(another as A_Set).equalsSet(self)
 
 	override fun o_EqualsSet(self: AvailObject, aSet: A_Set): Boolean = when {
 		self.sameAddressAs(aSet) -> true
@@ -251,6 +260,7 @@ private constructor(
 		else -> {
 			val expectedContentType = aType.contentType()
 			when {
+				expectedContentType.equals(Types.ANY.o) -> true
 				expectedContentType.isEnumeration ->
 					// Check the complete membership.
 					self.all {

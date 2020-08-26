@@ -72,6 +72,11 @@ import com.avail.descriptor.methods.AbstractDefinitionDescriptor
 import com.avail.descriptor.methods.ForwardDefinitionDescriptor
 import com.avail.descriptor.methods.MethodDefinitionDescriptor
 import com.avail.descriptor.methods.MethodDescriptor
+import com.avail.descriptor.numbers.A_Number.Companion.equalsInt
+import com.avail.descriptor.numbers.A_Number.Companion.extractDouble
+import com.avail.descriptor.numbers.A_Number.Companion.extractFloat
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
+import com.avail.descriptor.numbers.A_Number.Companion.extractUnsignedByte
 import com.avail.descriptor.numbers.DoubleDescriptor
 import com.avail.descriptor.numbers.DoubleDescriptor.Companion.fromDouble
 import com.avail.descriptor.numbers.FloatDescriptor
@@ -229,7 +234,7 @@ import com.avail.descriptor.types.TokenTypeDescriptor
 import com.avail.descriptor.types.TokenTypeDescriptor.Companion.tokenType
 import com.avail.descriptor.types.TupleTypeDescriptor
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
-import com.avail.descriptor.types.TypeDescriptor
+import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.descriptor.types.VariableTypeDescriptor
 import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableReadWriteType
 import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
@@ -246,7 +251,9 @@ import com.avail.interpreter.levelTwo.L2Chunk.Companion.unoptimizedChunk
 import com.avail.interpreter.primitive.pojos.P_CreatePojoConstructorFunction
 import com.avail.interpreter.primitive.pojos.P_CreatePojoInstanceMethodFunction
 import com.avail.performance.Statistic
-import com.avail.performance.StatisticReport
+import com.avail.performance.StatisticReport.DESERIALIZE
+import com.avail.performance.StatisticReport.SERIALIZE_TRACE
+import com.avail.performance.StatisticReport.SERIALIZE_WRITE
 import com.avail.serialization.SerializerOperandEncoding.BIG_INTEGER_DATA
 import com.avail.serialization.SerializerOperandEncoding.BYTE
 import com.avail.serialization.SerializerOperandEncoding.BYTE_CHARACTER_TUPLE
@@ -1678,7 +1685,7 @@ enum class SerializerOperation constructor(
 			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			assert(obj.isInstanceOf(TypeDescriptor.Types.METHOD.o))
+			assert(obj.isInstanceOf(Types.METHOD.o))
 			val pairs = mutableListOf<A_Tuple>()
 			for (bundle in obj.bundles())
 			{
@@ -2586,7 +2593,7 @@ enum class SerializerOperation constructor(
 			subobjects: Array<AvailObject>,
 			deserializer: Deserializer): A_BasicObject
 		{
-			return TypeDescriptor.Types.all()[subobjects[0].extractInt()].o
+			return Types.all()[subobjects[0].extractInt()].o
 		}
 	},
 
@@ -3427,13 +3434,13 @@ enum class SerializerOperation constructor(
 		get() = false
 
 	/** The [Statistic] for tracing for serialization, by operation. */
-	internal val traceStat = Statistic(name, StatisticReport.SERIALIZE_TRACE)
+	internal val traceStat = Statistic(SERIALIZE_TRACE, name)
 
 	/** The [Statistic] for serializing traced objects, by operation. */
-	internal val serializeStat = Statistic(name, StatisticReport.SERIALIZE_WRITE)
+	internal val serializeStat = Statistic(SERIALIZE_WRITE, name)
 
 	/** The [Statistic] for deserialization, by operation. */
-	internal val deserializeStat = Statistic(name, StatisticReport.DESERIALIZE)
+	internal val deserializeStat = Statistic(DESERIALIZE, name)
 
 	init
 	{

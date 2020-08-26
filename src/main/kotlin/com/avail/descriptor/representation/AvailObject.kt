@@ -36,7 +36,6 @@ import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.bundles.A_BundleTree
 import com.avail.descriptor.character.A_Character
-import com.avail.descriptor.character.CharacterDescriptor
 import com.avail.descriptor.fiber.A_Fiber
 import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.descriptor.fiber.FiberDescriptor.ExecutionState
@@ -65,10 +64,6 @@ import com.avail.descriptor.methods.MethodDescriptor
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.numbers.A_Number
-import com.avail.descriptor.numbers.AbstractNumberDescriptor
-import com.avail.descriptor.numbers.AbstractNumberDescriptor.Sign
-import com.avail.descriptor.numbers.InfinityDescriptor
-import com.avail.descriptor.numbers.IntegerDescriptor
 import com.avail.descriptor.parsing.A_DefinitionParsingPlan
 import com.avail.descriptor.parsing.A_Lexer
 import com.avail.descriptor.parsing.A_ParsingPlanInProgress
@@ -76,6 +71,7 @@ import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.A_Set
+import com.avail.descriptor.sets.A_SetBin
 import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.tokens.A_Token
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType
@@ -92,13 +88,15 @@ import com.avail.descriptor.tuples.SmallIntegerIntervalTupleDescriptor
 import com.avail.descriptor.tuples.StringDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.argsTupleType
+import com.avail.descriptor.types.A_Type.Companion.declaredExceptions
+import com.avail.descriptor.types.A_Type.Companion.returnType
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor
 import com.avail.descriptor.types.FunctionTypeDescriptor
 import com.avail.descriptor.variables.A_Variable
 import com.avail.descriptor.variables.VariableDescriptor
 import com.avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
 import com.avail.dispatch.LookupTree
-import com.avail.exceptions.ArithmeticException
 import com.avail.exceptions.AvailException
 import com.avail.exceptions.MethodDefinitionException
 import com.avail.exceptions.SignatureException
@@ -179,9 +177,10 @@ class AvailObject private constructor(
 	A_RegisterDump,
 	A_SemanticRestriction,
 	A_Set,
+	A_SetBin,
+	A_String,
 	A_Token,
 	A_Tuple,
-	A_String,
 	A_Type,
 	A_Variable
 {
@@ -291,50 +290,6 @@ class AvailObject private constructor(
 	}
 
 	/**
-	 * Answer whether the receiver is numerically greater than the argument.
-	 *
-	 * @param another
-	 *   A [numeric&#32;object][AbstractNumberDescriptor].
-	 * @return
-	 *   Whether the receiver is strictly greater than the argument.
-	 */
-	override fun greaterThan(another: A_Number) = numericCompare(another).isMore()
-
-	/**
-	 * Answer whether the receiver is numerically greater than or equivalent to
-	 * the argument.
-	 *
-	 * @param another
-	 *   A [numeric&#32;object][AbstractNumberDescriptor].
-	 * @return
-	 *   Whether the receiver is greater than or equivalent to the argument.
-	 */
-	override fun greaterOrEqual(another: A_Number) =
-		numericCompare(another).isMoreOrEqual()
-
-	/**
-	 * Answer whether the receiver is numerically less than the argument.
-	 *
-	 * @param another
-	 *   A [numeric&#32;object][AbstractNumberDescriptor].
-	 * @return
-	 *   Whether the receiver is strictly less than the argument.
-	 */
-	override fun lessThan(another: A_Number) = numericCompare(another).isLess()
-
-	/**
-	 * Answer whether the receiver is numerically less than or equivalent to
-	 * the argument.
-	 *
-	 * @param another
-	 *   A [numeric&#32;object][AbstractNumberDescriptor].
-	 * @return
-	 *   Whether the receiver is less than or equivalent to the argument.
-	 */
-	override fun lessOrEqual(another: A_Number) =
-		numericCompare(another).isLessOrEqual()
-
-	/**
 	 * Helper method for transferring this object's longSlots into an
 	 * [L1InstructionDecoder].  The receiver's descriptor must be a
 	 * [CompiledCodeDescriptor].
@@ -423,48 +378,6 @@ class AvailObject private constructor(
 	) = descriptor().o_ModuleAddGrammaticalRestriction(this, grammaticalRestriction)
 
 	/**
-	 * Add the receiver and the argument `anInfinity` and answer the
-	 * `AvailObject result`.
-	 *
-	 * This method should only be called from [plusCanDestroy]. It exists for
-	 * double-dispatch only.
-	 *
-	 * @param sign
-	 *   The [Sign] of the infinity.
-	 * @param canDestroy
-	 *   `true` if the operation may modify either operand, `false` otherwise.
-	 * @return
-	 *   The result of adding the operands.
-	 * @see IntegerDescriptor
-	 * @see InfinityDescriptor
-	 */
-	override fun addToInfinityCanDestroy(
-		sign: Sign,
-		canDestroy: Boolean
-	) = descriptor().o_AddToInfinityCanDestroy(this, sign, canDestroy)
-
-	/**
-	 * Add the receiver and the argument [anInteger] and answer the
-	 * result.
-	 *
-	 * This method should only be called from [plusCanDestroy]. It exists for
-	 * double-dispatch only.
-	 *
-	 * @param anInteger
-	 *   An [integer][IntegerDescriptor].
-	 * @param canDestroy
-	 *   `true` if the operation may modify either operand, `false` otherwise.
-	 * @return
-	 *   The result of adding the operands.
-	 * @see IntegerDescriptor
-	 * @see InfinityDescriptor
-	 */
-	override fun addToIntegerCanDestroy(
-		anInteger: AvailObject,
-		canDestroy: Boolean
-	) = descriptor().o_AddToIntegerCanDestroy(this, anInteger, canDestroy)
-
-	/**
 	 * Construct a Java [string][String] from the receiver, an Avail
 	 * [string][StringDescriptor].
 	 *
@@ -494,33 +407,6 @@ class AvailObject private constructor(
 
 	override fun addPrivateName(trueName: A_Atom) =
 		descriptor().o_AddPrivateName(this, trueName)
-
-	override fun setBinAddingElementHashLevelCanDestroy(
-		elementObject: A_BasicObject,
-		elementObjectHash: Int,
-		myLevel: Int,
-		canDestroy: Boolean
-	): A_BasicObject =
-		descriptor().o_SetBinAddingElementHashLevelCanDestroy(this, elementObject, elementObjectHash, myLevel, canDestroy)
-
-	override fun setBinSize() = descriptor().o_SetBinSize(this)
-
-	override fun binElementAt(index: Int) =
-		descriptor().o_BinElementAt(this, index)
-
-	override fun binHasElementWithHash(
-		elementObject: A_BasicObject,
-		elementObjectHash: Int
-	): Boolean = descriptor().o_BinHasElementWithHash(this, elementObject, elementObjectHash)
-
-	override fun setBinHash() = descriptor().o_SetBinHash(this)
-
-	override fun binRemoveElementHashLevelCanDestroy(
-		elementObject: A_BasicObject,
-		elementObjectHash: Int,
-		myLevel: Int,
-		canDestroy: Boolean
-	) = descriptor().o_BinRemoveElementHashLevelCanDestroy(this, elementObject, elementObjectHash, myLevel, canDestroy)
 
 	override fun bodyBlock() = descriptor().o_BodyBlock(this)
 
@@ -567,89 +453,6 @@ class AvailObject private constructor(
 	override fun copyStringFromToCanDestroy(
 		start: Int, end: Int, canDestroy: Boolean
 	): A_String = descriptor().o_CopyTupleFromToCanDestroy(this, start, end, canDestroy).cast()
-
-	/**
-	 * Divide the receiver by the argument `aNumber` and answer the result.
-	 *
-	 * Implementations may double-dispatch to [divideIntoIntegerCanDestroy] or
-	 * similar methods, where actual implementations of the division operation
-	 * should reside.
-	 *
-	 * @param aNumber
-	 *   An integral numeric.
-	 * @param canDestroy
-	 *   `true` if the operation may modify either operand, `false` otherwise.
-	 * @return
-	 *   The `AvailObject result` of dividing the operands.
-	 * @see IntegerDescriptor
-	 * @see InfinityDescriptor
-	 */
-	override fun divideCanDestroy(aNumber: A_Number, canDestroy: Boolean) =
-		descriptor().o_DivideCanDestroy(this, aNumber, canDestroy)
-
-	/**
-	 * Divide the receiver by the argument `aNumber` and answer the result. The
-	 * operation is not allowed to fail, so the caller must ensure that the
-	 * arguments are valid, i.e. the divisor is not
-	 * [zero][IntegerDescriptor.zero].
-	 *
-	 * @param aNumber
-	 *   An integral numeric.
-	 * @param canDestroy
-	 *   `true` if the operation may modify either [number][A_Number], `false`
-	 *   otherwise.
-	 * @return
-	 *   The `AvailObject result` of dividing the operands.
-	 * @see IntegerDescriptor
-	 * @see InfinityDescriptor
-	 */
-	override fun noFailDivideCanDestroy(
-		aNumber: A_Number, canDestroy: Boolean
-	) = try {
-		descriptor().o_DivideCanDestroy(this, aNumber, canDestroy)
-	} catch (e: ArithmeticException) {
-		// This had better not happen, otherwise the caller has violated the
-		// intention of this method.
-		error("noFailDivideCanDestroy failed!")
-	}
-
-	/**
-	 * Divide an infinity with the given [sign][Sign] by the receiver and answer
-	 * the result.
-	 *
-	 * This method should only be called from [divideCanDestroy]. It exists for
-	 * double-dispatch only.
-	 *
-	 * @param sign
-	 *   The sign of the infinity.
-	 * @param canDestroy
-	 *   `true` if the operation may modify either operand, `false` otherwise.
-	 * @return
-	 *   The result of dividing the operands.
-	 * @see IntegerDescriptor
-	 * @see InfinityDescriptor
-	 */
-	override fun divideIntoInfinityCanDestroy(sign: Sign, canDestroy: Boolean) =
-		descriptor().o_DivideIntoInfinityCanDestroy(this, sign, canDestroy)
-
-	/**
-	 * Divide the argument `anInteger` by the receiver and answer the result.
-	 *
-	 * This method should only be called from [divideCanDestroy]. It exists for
-	 * double-dispatch only.
-	 *
-	 * @param anInteger
-	 *   An [integer][IntegerDescriptor].
-	 * @param canDestroy
-	 *   `true` if the operation may modify either operand, `false` otherwise.
-	 * @return
-	 *   The `AvailObject result` of dividing the operands.
-	 * @see IntegerDescriptor
-	 * @see InfinityDescriptor
-	 */
-	override fun divideIntoIntegerCanDestroy(
-		anInteger: AvailObject, canDestroy: Boolean
-	) = descriptor().o_DivideIntoIntegerCanDestroy(this, anInteger, canDestroy)
 
 	override fun ensureMutable() = descriptor().o_EnsureMutable(this)
 
@@ -798,20 +601,6 @@ class AvailObject private constructor(
 	override fun equalsRepeatedElementTuple(aRepeatedElementTuple: A_Tuple) =
 		descriptor().o_EqualsRepeatedElementTuple(this, aRepeatedElementTuple)
 
-	/**
-	 * Answer whether the receiver, an [AvailObject], is a
-	 * [character][CharacterDescriptor] with a code point equal to the integer
-	 * argument.
-	 *
-	 * @param aCodePoint
-	 *   The code point to be compared to the receiver's.
-	 * @return
-	 *   `true` if the receiver is a character with a code point equal to the
-	 *   argument, `false` otherwise.
-	 */
-	override fun equalsCharacterWithCodePoint(aCodePoint: Int) =
-		descriptor().o_EqualsCharacterWithCodePoint(this, aCodePoint)
-
 	override fun equalsFiberType(aFiberType: A_Type) =
 		descriptor().o_EqualsFiberType(this, aFiberType)
 
@@ -872,28 +661,6 @@ class AvailObject private constructor(
 	override fun equalsContinuationType(aContinuationType: A_Type) =
 		descriptor().o_EqualsContinuationType(this, aContinuationType)
 
-	override fun equalsDouble(aDouble: Double) =
-		descriptor().o_EqualsDouble(this, aDouble)
-
-	override fun equalsFloat(aFloat: Float) =
-		descriptor().o_EqualsFloat(this, aFloat)
-
-	/**
-	 * Answer whether the receiver is an [infinity][InfinityDescriptor] with the
-	 * specified [Sign].
-	 *
-	 * @param sign
-	 *   The type of infinity for comparison.
-	 * @return
-	 *   `true` if the receiver is an infinity of the specified sign, `false`
-	 *   otherwise.
-	 */
-	override fun equalsInfinity(sign: Sign) =
-		descriptor().o_EqualsInfinity(this, sign)
-
-	override fun equalsInteger(anAvailInteger: AvailObject) =
-		descriptor().o_EqualsInteger(this, anAvailInteger)
-
 	override fun equalsIntegerRangeType(anIntegerRangeType: A_Type) =
 		descriptor().o_EqualsIntegerRangeType(this, anIntegerRangeType)
 
@@ -947,8 +714,6 @@ class AvailObject private constructor(
 	override fun equalsReverseTuple(aTuple: A_Tuple) =
 		descriptor().o_EqualsReverseTuple(this, aTuple)
 
-	override fun equalsSet(aSet: A_Set) = descriptor().o_EqualsSet(this, aSet)
-
 	override fun equalsSetType(aSetType: A_Type) =
 		descriptor().o_EqualsSetType(this, aSetType)
 
@@ -965,24 +730,6 @@ class AvailObject private constructor(
 
 	override fun setExecutionState(value: ExecutionState) =
 		descriptor().o_SetExecutionState(this, value)
-
-	override fun extractUnsignedByte() =
-		descriptor().o_ExtractUnsignedByte(this)
-
-	override fun extractDouble() = descriptor().o_ExtractDouble(this)
-
-	override fun extractFloat() = descriptor().o_ExtractFloat(this)
-
-	override fun extractInt() = descriptor().o_ExtractInt(this)
-
-	/**
-	 * Extract a 64-bit signed Kotlin [Long] from the receiver
-	 *
-	 * @return A 64-bit signed Kotlin [Long].
-	 */
-	override fun extractLong() = descriptor().o_ExtractLong(this)
-
-	override fun extractNybble() = descriptor().o_ExtractNybble(this)
 
 	override fun fieldMap() = descriptor().o_FieldMap(this)
 
@@ -1023,9 +770,6 @@ class AvailObject private constructor(
 	override fun representationCostOfTupleType() =
 		descriptor().o_RepresentationCostOfTupleType(this)
 
-	override fun isBinSubsetOf(potentialSuperset: A_Set) =
-		descriptor().o_IsBinSubsetOf(this, potentialSuperset)
-
 	/**
 	 * Is the receiver an Avail boolean?
 	 *
@@ -1049,14 +793,6 @@ class AvailObject private constructor(
 	 *   `true` if the receiver is a byte tuple, `false` otherwise.
 	 */
 	override val isByteTuple get() = descriptor().o_IsByteTuple(this)
-
-	/**
-	 * Is the receiver an Avail character?
-	 *
-	 * @return
-	 *   `true` if the receiver is a character, `false` otherwise.
-	 */
-	override val isCharacter get() = descriptor().o_IsCharacter(this)
 
 	/**
 	 * Is the receiver an Avail function?
@@ -1140,16 +876,6 @@ class AvailObject private constructor(
 	 *   `true` if the receiver is a nybble, `false` otherwise.
 	 */
 	override val isNybble get() = descriptor().o_IsNybble(this)
-
-	override fun isPositive() = descriptor().o_IsPositive(this)
-
-	/**
-	 * Is the receiver an Avail set?
-	 *
-	 * @return
-	 *   `true` if the receiver is a set, `false` otherwise.
-	 */
-	override val isSet get() = descriptor().o_IsSet(this)
 
 	override val isSetType get() = descriptor().o_IsSetType(this)
 
@@ -1243,88 +969,6 @@ class AvailObject private constructor(
 
 	override fun methodDefinitions() = descriptor().o_MethodDefinitions(this)
 
-	/**
-	 * Subtract the argument [aNumber] from the receiver and answer the result.
-	 *
-	 * Implementations may double-dispatch to methods like
-	 * [subtractFromIntegerCanDestroy] or [subtractFromInfinityCanDestroy],
-	 * where actual implementations of the subtraction operation should reside.
-	 *
-	 * @param aNumber
-	 *   An integral numeric.
-	 * @param canDestroy
-	 *   `true` if the operation may modify either operand, `false` otherwise.
-	 * @return
-	 *   The result of subtracting the operands.
-	 * @see IntegerDescriptor
-	 * @see InfinityDescriptor
-	 */
-	override fun minusCanDestroy(aNumber: A_Number, canDestroy: Boolean) =
-		descriptor().o_MinusCanDestroy(this, aNumber, canDestroy)
-
-	/**
-	 * Difference the receiver and the argument [aNumber] and answer the result.
-	 * The operation is not allowed to fail, so the caller must ensure that the
-	 * arguments are valid, i.e. not [infinities][InfinityDescriptor] of like
-	 * [Sign].
-	 *
-	 * @param aNumber
-	 *   An integral numeric.
-	 * @param canDestroy
-	 *   `true` if the operation may modify either operand, `false` otherwise.
-	 * @return
-	 *   The result of differencing the operands.
-	 * @see IntegerDescriptor
-	 * @see InfinityDescriptor
-	 */
-	override fun noFailMinusCanDestroy(aNumber: A_Number, canDestroy: Boolean) =
-		try {
-			descriptor().o_MinusCanDestroy(this, aNumber, canDestroy)
-		} catch (e: ArithmeticException) {
-			// This had better not happen, otherwise the caller has violated the
-			// intention of this method.
-			error("noFailMinusCanDestroy failed!")
-		}
-
-	/**
-	 * Multiply the receiver and an infinity with the given [Sign], and answer
-	 * the result.
-	 *
-	 * This method should only be called from [timesCanDestroy]. It exists for
-	 * double-dispatch only.
-	 *
-	 * @param sign
-	 *   The [Sign] of an [infinity][InfinityDescriptor].
-	 * @param canDestroy
-	 *   `true` if the operation may modify either operand, `false` otherwise.
-	 * @return
-	 *   The result of multiplying the operands.
-	 * @see IntegerDescriptor
-	 * @see InfinityDescriptor
-	 */
-	override fun multiplyByInfinityCanDestroy(sign: Sign, canDestroy: Boolean) =
-		descriptor().o_MultiplyByInfinityCanDestroy(this, sign, canDestroy)
-
-	/**
-	 * Multiply the receiver and the argument [anInteger] and answer the result.
-	 *
-	 * This method should only be called from [timesCanDestroy]. It exists for
-	 * double-dispatch only.
-	 *
-	 * @param anInteger
-	 *   An [integer][IntegerDescriptor].
-	 * @param canDestroy
-	 *   `true` if the operation may modify either operand, `false` otherwise.
-	 * @return
-	 *   The result of multiplying the operands.
-	 * @see IntegerDescriptor
-	 * @see InfinityDescriptor
-	 */
-	override fun multiplyByIntegerCanDestroy(
-		anInteger: AvailObject,
-		canDestroy: Boolean
-	) = descriptor().o_MultiplyByIntegerCanDestroy(this, anInteger, canDestroy)
-
 	override fun importedNames() = descriptor().o_ImportedNames(this)
 
 	override fun nameVisible(trueName: A_Atom) =
@@ -1361,49 +1005,6 @@ class AvailObject private constructor(
 
 	override fun pc() = descriptor().o_Pc(this)
 
-	/**
-	 * Add the receiver and the argument [aNumber] and answer the result.
-	 *
-	 * Implementations may double-dispatch to [addToIntegerCanDestroy] or
-	 * [addToInfinityCanDestroy], where actual implementations of the addition
-	 * operation should reside.
-	 *
-	 * @param aNumber
-	 *   An integral numeric.
-	 * @param canDestroy
-	 *   `true` if the operation may modify either operand, `false` otherwise.
-	 * @return
-	 *   The result of adding the operands.
-	 * @see IntegerDescriptor
-	 * @see InfinityDescriptor
-	 */
-	override fun plusCanDestroy(aNumber: A_Number, canDestroy: Boolean) =
-		descriptor().o_PlusCanDestroy(this, aNumber, canDestroy)
-
-	/**
-	 * Add the receiver and the argument [aNumber] and answer the result. The
-	 * operation is not allowed to fail, so the caller must ensure that the
-	 * arguments are valid, i.e. not [infinities][InfinityDescriptor] of unlike
-	 * [Sign].
-	 *
-	 * @param aNumber
-	 *   An integral numeric.
-	 * @param canDestroy
-	 *   `true` if the operation may modify either operand, `false` otherwise.
-	 * @return
-	 *   The result of adding the operands.
-	 * @see IntegerDescriptor
-	 * @see InfinityDescriptor
-	 */
-	override fun noFailPlusCanDestroy(aNumber: A_Number, canDestroy: Boolean) =
-		try {
-			descriptor().o_PlusCanDestroy(this, aNumber, canDestroy)
-		} catch (e: ArithmeticException) {
-			// This had better not happen, otherwise the caller has violated the
-			// intention of this method.
-			error("noFailPlusCanDestroy failed!")
-		}
-
 	override fun priority() = descriptor().o_Priority(this)
 
 	override fun setPriority(value: Int) =
@@ -1415,18 +1016,6 @@ class AvailObject private constructor(
 
 	override fun setFiberGlobals(value: A_Map) =
 		descriptor().o_SetFiberGlobals(this, value)
-
-	override fun rawSignedIntegerAt(index: Int) =
-		descriptor().o_RawSignedIntegerAt(this, index)
-
-	override fun rawSignedIntegerAtPut(index: Int, value: Int) =
-		descriptor().o_RawSignedIntegerAtPut(this, index, value)
-
-	override fun rawUnsignedIntegerAt(index: Int) =
-		descriptor().o_RawUnsignedIntegerAt(this, index)
-
-	override fun rawUnsignedIntegerAtPut(index: Int, value: Int) =
-		descriptor().o_RawUnsignedIntegerAtPut(this, index, value)
 
 	override fun removeDependentChunk(chunk: L2Chunk) =
 		descriptor().o_RemoveDependentChunk(this, chunk)
@@ -1466,100 +1055,9 @@ class AvailObject private constructor(
 
 	override fun string() = descriptor().o_String(this)
 
-	/**
-	 * Difference the operands and answer the result.
-	 *
-	 * This method should only be called from [minusCanDestroy]. It exists for
-	 * double-dispatch only.
-	 *
-	 * @param sign
-	 *   The sign of the [infinity][InfinityDescriptor] from which to subtract.
-	 * @param canDestroy
-	 *   `true` if the operation may modify either operand, `false` otherwise.
-	 * @return
-	 *   The result of differencing the operands.
-	 * @see IntegerDescriptor
-	 * @see InfinityDescriptor
-	 */
-	override fun subtractFromInfinityCanDestroy(
-		sign: Sign,
-		canDestroy: Boolean
-	) = descriptor().o_SubtractFromInfinityCanDestroy(this, sign, canDestroy)
-
-	/**
-	 * Difference the operands and answer the result.
-	 *
-	 * This method should only be called from [minusCanDestroy]. It exists for
-	 * double-dispatch only.
-	 *
-	 * @param anInteger
-	 *   An [integer][IntegerDescriptor].
-	 * @param canDestroy
-	 *   `true` if the operation may modify either operand, `false` otherwise.
-	 * @return
-	 *   The result of differencing the operands.
-	 * @see IntegerDescriptor
-	 * @see InfinityDescriptor
-	 */
-	override fun subtractFromIntegerCanDestroy(
-		anInteger: AvailObject,
-		canDestroy: Boolean
-	) = descriptor().o_SubtractFromIntegerCanDestroy(this, anInteger, canDestroy)
-
-	/**
-	 * Multiply the receiver and the argument [aNumber] and answer the result.
-	 *
-	 * Implementations may double-dispatch to methods like
-	 * [multiplyByIntegerCanDestroy] or [multiplyByInfinityCanDestroy], where
-	 * actual implementations of the multiplication operation should reside.
-	 *
-	 * @param aNumber
-	 *   An integral numeric.
-	 * @param canDestroy
-	 *   `true` if the operation may modify either operand, `false` otherwise.
-	 * @return
-	 *   The result of multiplying the operands.
-	 * @see IntegerDescriptor
-	 * @see InfinityDescriptor
-	 */
-	override fun timesCanDestroy(aNumber: A_Number, canDestroy: Boolean) =
-		descriptor().o_TimesCanDestroy(this, aNumber, canDestroy)
-
-	/**
-	 * Multiply the receiver and the argument [aNumber] and answer the result.
-	 * The operation is not allowed to fail, so the caller must ensure that the
-	 * arguments are valid, i.e. not [zero][IntegerDescriptor.zero] and
-	 * [infinity][InfinityDescriptor].
-	 *
-	 * @param aNumber
-	 *   An integral numeric.
-	 * @param canDestroy
-	 *   `true` if the operation may modify either operand, `false` otherwise.
-	 * @return
-	 *   The `AvailObject result` of adding the operands.
-	 * @see IntegerDescriptor
-	 * @see InfinityDescriptor
-	 */
-	override fun noFailTimesCanDestroy(
-		aNumber: A_Number,
-		canDestroy: Boolean
-	) =
-		try
-		{
-			descriptor().o_TimesCanDestroy(this, aNumber, canDestroy)
-		}
-		catch (e: ArithmeticException)
-		{
-			// This had better not happen, otherwise the caller has violated the
-			// intention of this method.
-			error("noFailTimesCanDestroy failed!")
-		}
-
 	override fun tokenType(): TokenType = descriptor().o_TokenType(this)
 
 	override fun traversed() = descriptor().o_Traversed(this)
-
-	override fun trimExcessInts() = descriptor().o_TrimExcessInts(this)
 
 	override fun trueNamesForStringName(stringName: A_String) =
 		descriptor().o_TrueNamesForStringName(this, stringName)
@@ -1578,11 +1076,7 @@ class AvailObject private constructor(
 
 	override fun declarationKind() = descriptor().o_DeclarationKind(this)
 
-	override fun binUnionKind() = descriptor().o_BinUnionKind(this)
-
 	override fun lineNumber() = descriptor().o_LineNumber(this)
-
-	override val isSetBin get() = descriptor().o_IsSetBin(this)
 
 	override val isInt get() = descriptor().o_IsInt(this)
 
@@ -1664,9 +1158,6 @@ class AvailObject private constructor(
 
 	override val isUnsignedShort get() = descriptor().o_IsUnsignedShort(this)
 
-	override fun extractUnsignedShort() =
-		descriptor().o_ExtractUnsignedShort(this)
-
 	override val isFloat get() = descriptor().o_IsFloat(this)
 
 	override val isDouble get() = descriptor().o_IsDouble(this)
@@ -1676,61 +1167,6 @@ class AvailObject private constructor(
 	override val isPojo get() = descriptor().o_IsPojo(this)
 
 	override val isPojoType get() = descriptor().o_IsPojoType(this)
-
-	override fun numericCompare(another: A_Number) =
-		descriptor().o_NumericCompare(this, another)
-
-	override fun numericCompareToInfinity(sign: Sign) =
-		descriptor().o_NumericCompareToInfinity(this, sign)
-
-	override fun numericCompareToDouble(aDouble: Double) =
-		descriptor().o_NumericCompareToDouble(this, aDouble)
-
-	override fun numericCompareToInteger(anInteger: AvailObject) =
-		descriptor().o_NumericCompareToInteger(this, anInteger)
-
-	override fun addToDoubleCanDestroy(
-		doubleObject: A_Number,
-		canDestroy: Boolean
-	) = descriptor().o_AddToDoubleCanDestroy(this, doubleObject, canDestroy)
-
-	override fun addToFloatCanDestroy(
-		floatObject: A_Number,
-		canDestroy: Boolean
-	) = descriptor().o_AddToFloatCanDestroy(this, floatObject, canDestroy)
-
-	override fun subtractFromDoubleCanDestroy(
-		doubleObject: A_Number,
-		canDestroy: Boolean
-	) = descriptor().o_SubtractFromDoubleCanDestroy(
-		this, doubleObject, canDestroy)
-
-	override fun subtractFromFloatCanDestroy(
-		floatObject: A_Number,
-		canDestroy: Boolean
-	) = descriptor().o_SubtractFromFloatCanDestroy(this, floatObject, canDestroy)
-
-	override fun multiplyByDoubleCanDestroy(
-		doubleObject: A_Number,
-		canDestroy: Boolean
-	) = descriptor().o_MultiplyByDoubleCanDestroy(
-		this, doubleObject, canDestroy)
-
-	override fun multiplyByFloatCanDestroy(
-		floatObject: A_Number,
-		canDestroy: Boolean
-	) = descriptor().o_MultiplyByFloatCanDestroy(this, floatObject, canDestroy)
-
-	override fun divideIntoDoubleCanDestroy(
-		doubleObject: A_Number,
-		canDestroy: Boolean
-	) = descriptor().o_DivideIntoDoubleCanDestroy(
-		this, doubleObject, canDestroy)
-
-	override fun divideIntoFloatCanDestroy(
-		floatObject: A_Number,
-		canDestroy: Boolean
-	) = descriptor().o_DivideIntoFloatCanDestroy(this, floatObject, canDestroy)
 
 	override fun serializerOperation() =
 		descriptor().o_SerializerOperation(this)
@@ -1754,10 +1190,6 @@ class AvailObject private constructor(
 
 	override val isSignedShort get() = descriptor().o_IsSignedShort(this)
 
-	override fun extractSignedByte() = descriptor().o_ExtractSignedByte(this)
-
-	override fun extractSignedShort() = descriptor().o_ExtractSignedShort(this)
-
 	override fun equalsEqualityRawPojoFor(
 		otherEqualityRawPojo: AvailObject,
 		otherJavaObject: Any?
@@ -1768,8 +1200,6 @@ class AvailObject private constructor(
 
 	override fun <T : Any> javaObjectNotNull(): T =
 		descriptor().o_JavaObject(this)!!
-
-	override fun asBigInteger() = descriptor().o_AsBigInteger(this)
 
 	override fun lowerCaseString() = descriptor().o_LowerCaseString(this)
 
@@ -1798,15 +1228,6 @@ class AvailObject private constructor(
 	override fun equalsToken(aToken: A_Token) =
 		descriptor().o_EqualsToken(this, aToken)
 
-	override fun bitwiseAnd(anInteger: A_Number, canDestroy: Boolean) =
-		descriptor().o_BitwiseAnd(this, anInteger, canDestroy)
-
-	override fun bitwiseOr(anInteger: A_Number, canDestroy: Boolean) =
-		descriptor().o_BitwiseOr(this, anInteger, canDestroy)
-
-	override fun bitwiseXor(anInteger: A_Number, canDestroy: Boolean) =
-		descriptor().o_BitwiseXor(this, anInteger, canDestroy)
-
 	override fun addSeal(methodName: A_Atom, sealSignature: A_Tuple) =
 		descriptor().o_AddSeal(this, methodName, sealSignature)
 
@@ -1820,20 +1241,6 @@ class AvailObject private constructor(
 	override fun module() = descriptor().o_Module(this)
 
 	override fun methodName() = descriptor().o_MethodName(this)
-
-	override fun binElementsAreAllInstancesOfKind(kind: A_Type) =
-		descriptor().o_BinElementsAreAllInstancesOfKind(this, kind)
-
-	override fun bitShiftLeftTruncatingToBits(
-		shiftFactor: A_Number,
-		truncationBits: A_Number,
-		canDestroy: Boolean
-	) = descriptor().o_BitShiftLeftTruncatingToBits(this, shiftFactor, truncationBits, canDestroy)
-
-	override fun setBinIterator() = descriptor().o_SetBinIterator(this)
-
-	override fun bitShift(shiftFactor: A_Number, canDestroy: Boolean) =
-		descriptor().o_BitShift(this, shiftFactor, canDestroy)
 
 	override fun equalsPhrase(aPhrase: A_Phrase) =
 		descriptor().o_EqualsPhrase(this, aPhrase)
@@ -2073,9 +1480,6 @@ class AvailObject private constructor(
 	override val isInitializedWriteOnceVariable get() =
 		descriptor().o_IsInitializedWriteOnceVariable(this)
 
-	override fun isNumericallyIntegral() =
-		descriptor().o_IsNumericallyIntegral(this)
-
 	override fun textInterface() = descriptor().o_TextInterface(this)
 
 	override fun setTextInterface(textInterface: TextInterface) =
@@ -2089,8 +1493,6 @@ class AvailObject private constructor(
 
 	override fun macrosTuple() =
 		descriptor().o_MacrosTuple(this)
-
-	override fun equalsInt(theInt: Int) = descriptor().o_EqualsInt(this, theInt)
 
 	override fun chooseBundle(currentModule: A_Module) =
 		descriptor().o_ChooseBundle(this, currentModule)

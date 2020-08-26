@@ -33,6 +33,9 @@
 package com.avail.interpreter.primitive.bootstrap.lexing
 
 import com.avail.descriptor.numbers.A_Number
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
+import com.avail.descriptor.numbers.A_Number.Companion.plusCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.timesCanDestroy
 import com.avail.descriptor.numbers.IntegerDescriptor
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.cachedSquareOfQuintillion
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong

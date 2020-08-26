@@ -33,6 +33,7 @@
 package com.avail.interpreter.primitive.integers
 
 import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.numbers.A_Number.Companion.bitwiseXor
 import com.avail.descriptor.numbers.IntegerDescriptor
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type

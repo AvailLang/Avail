@@ -44,6 +44,7 @@ import com.avail.compiler.splitter.WrapState.PUSHED_LIST
 import com.avail.compiler.splitter.WrapState.SHOULD_NOT_HAVE_ARGUMENTS
 import com.avail.compiler.splitter.WrapState.SHOULD_NOT_PUSH_LIST
 import com.avail.descriptor.bundles.A_Bundle
+import com.avail.descriptor.numbers.A_Number.Companion.equalsInt
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsTuple
 import com.avail.descriptor.phrases.A_Phrase.Companion.permutation

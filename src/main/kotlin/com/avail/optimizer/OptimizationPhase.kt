@@ -38,7 +38,7 @@ import com.avail.optimizer.annotations.Requires
 import com.avail.optimizer.annotations.RequiresNot
 import com.avail.optimizer.annotations.Sets
 import com.avail.performance.Statistic
-import com.avail.performance.StatisticReport
+import com.avail.performance.StatisticReport.L2_OPTIMIZATION_TIME
 import java.lang.reflect.Field
 import java.util.Collections
 import kotlin.reflect.KClass
@@ -167,7 +167,8 @@ internal enum class OptimizationPhase constructor(
 	 * that no two registers that have to maintain distinct values at the same
 	 * time will have the same number.
 	 */
-	COALESCE_REGISTERS_IN_NONINTERFERING_MOVES({ coalesceNoninterferingMoves() }),
+	COALESCE_REGISTERS_IN_NONINTERFERING_MOVES(
+		{ coalesceNoninterferingMoves() }),
 
 	/** Compute and assign final register colors.  */
 	ASSIGN_REGISTER_COLORS({ computeColors() }),
@@ -221,7 +222,7 @@ internal enum class OptimizationPhase constructor(
 	//		-Leverage more inter-primitive identities.
 
 	/** The [Statistic] for tracking this pass's cost.  */
-	val stat: Statistic = Statistic(name, StatisticReport.L2_OPTIMIZATION_TIME)
+	val stat: Statistic = Statistic(L2_OPTIMIZATION_TIME, name)
 
 	/** The [StateFlag]s to require to already be set as preconditions.  */
 	val requiresFlags = mutableListOf<KClass<out StateFlag>>()

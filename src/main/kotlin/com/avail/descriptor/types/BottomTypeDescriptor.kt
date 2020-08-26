@@ -50,6 +50,7 @@ import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import com.avail.descriptor.types.A_Type.Companion.isSupertypeOfPrimitiveTypeEnum
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
+import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.serialization.SerializerOperation
@@ -360,8 +361,7 @@ class BottomTypeDescriptor private constructor()
 	// answer ⊥.
 	override fun o_ValueType(self: AvailObject): A_Type = self
 
-	override fun o_ReadType(self: AvailObject): A_Type =
-		TypeDescriptor.Types.TOP.o
+	override fun o_ReadType(self: AvailObject): A_Type = Types.TOP.o
 
 	// Answer the tuple of types over the given range of indices.  Any
 	// indices out of range for this tuple type will be ⊥.

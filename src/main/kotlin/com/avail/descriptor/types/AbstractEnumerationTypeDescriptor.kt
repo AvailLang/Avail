@@ -45,6 +45,7 @@ import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import com.avail.descriptor.types.A_Type.Companion.typeUnion
+import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
@@ -191,7 +192,7 @@ abstract class AbstractEnumerationTypeDescriptor protected constructor(
 
 	override fun o_TypeIntersectionOfPrimitiveTypeEnum(
 		self: AvailObject,
-		primitiveTypeEnum: TypeDescriptor.Types): A_Type =
+		primitiveTypeEnum: Types): A_Type =
 			computeIntersectionWith(self, primitiveTypeEnum.o)
 
 	override fun o_TypeIntersectionOfVariableType(
@@ -281,7 +282,7 @@ abstract class AbstractEnumerationTypeDescriptor protected constructor(
 
 	override fun o_TypeUnionOfPrimitiveTypeEnum(
 		self: AvailObject,
-		primitiveTypeEnum: TypeDescriptor.Types): A_Type =
+		primitiveTypeEnum: Types): A_Type =
 			computeUnionWith(self, primitiveTypeEnum.o)
 
 	override fun o_TypeUnionOfSetType(
@@ -444,7 +445,7 @@ abstract class AbstractEnumerationTypeDescriptor protected constructor(
 
 	override fun o_IsSupertypeOfPrimitiveTypeEnum(
 		self: AvailObject,
-		primitiveTypeEnum: TypeDescriptor.Types): Boolean = false
+		primitiveTypeEnum: Types): Boolean = false
 
 	override fun o_IsSupertypeOfSetType(
 		self: AvailObject,
@@ -548,7 +549,7 @@ abstract class AbstractEnumerationTypeDescriptor protected constructor(
 				return InstanceMetaDescriptor.instanceMeta(typesUnion)
 			}
 			// It's a mix of types and non-types.
-			return TypeDescriptor.Types.ANY.o
+			return Types.ANY.o
 		}
 
 		/**

@@ -33,6 +33,8 @@ package com.avail.descriptor.tuples
 
 import com.avail.annotations.HideFieldInDebugger
 import com.avail.descriptor.numbers.A_Number
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
+import com.avail.descriptor.numbers.A_Number.Companion.extractUnsignedByte
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromUnsignedByte
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.hashOfUnsignedByte
 import com.avail.descriptor.representation.A_BasicObject
@@ -50,6 +52,7 @@ import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAtPuttingCanDestroy
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
+import com.avail.descriptor.tuples.ByteTupleDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import com.avail.descriptor.tuples.ByteTupleDescriptor.IntegerSlots.RAW_LONG_AT_
 import com.avail.descriptor.tuples.NybbleTupleDescriptor.Companion.mutableObjectOfSize
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -157,7 +160,7 @@ class ByteTupleDescriptor private constructor(
 			// Enlarge it in place, using more of the final partial int field.
 			self.setDescriptor(descriptorFor(Mutability.MUTABLE, newSize))
 			self.setByteSlot(RAW_LONG_AT_, newSize, intValue.toShort())
-			self.setSlot(IntegerSlots.HASH_OR_ZERO, 0)
+			self.setSlot(HASH_OR_ZERO, 0)
 			return self
 		}
 		// Copy to a potentially larger ByteTupleDescriptor.
@@ -168,7 +171,7 @@ class ByteTupleDescriptor private constructor(
 			if (originalSize and 7 == 0) 1 else 0)
 		result.setByteSlot(
 			RAW_LONG_AT_, newSize, intValue.toShort())
-		result.setSlot(IntegerSlots.HASH_OR_ZERO, 0)
+		result.setSlot(HASH_OR_ZERO, 0)
 		return result
 	}// Answer approximately how many bits per entry are taken up by this
 	// object.
@@ -280,7 +283,7 @@ class ByteTupleDescriptor private constructor(
 				source++
 				destination++
 			}
-			result.setSlot(IntegerSlots.HASH_OR_ZERO, 0)
+			result.setSlot(HASH_OR_ZERO, 0)
 			return result
 		}
 		if (!canDestroy)

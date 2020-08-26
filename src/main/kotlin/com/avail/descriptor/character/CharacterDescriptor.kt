@@ -31,6 +31,7 @@
  */
 package com.avail.descriptor.character
 
+import com.avail.descriptor.character.A_Character.Companion.equalsCharacterWithCodePoint
 import com.avail.descriptor.character.CharacterDescriptor.IntegerSlots.Companion.CODE_POINT
 import com.avail.descriptor.character.CharacterDescriptor.IntegerSlots.Companion.HASH
 import com.avail.descriptor.numbers.IntegerDescriptor
@@ -144,7 +145,9 @@ class CharacterDescriptor private constructor(
 	override fun o_Equals(
 		self: AvailObject,
 		another: A_BasicObject
-	): Boolean = another.equalsCharacterWithCodePoint(self.slot(CODE_POINT))
+	): Boolean =
+		(another as A_Character).equalsCharacterWithCodePoint(
+			self.slot(CODE_POINT))
 
 	override fun o_EqualsCharacterWithCodePoint(
 		self: AvailObject,

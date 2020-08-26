@@ -43,6 +43,8 @@ import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.bundles.A_Bundle.Companion.addGrammaticalRestriction
 import com.avail.descriptor.bundles.A_BundleTree
 import com.avail.descriptor.bundles.MessageBundleDescriptor
+import com.avail.descriptor.character.A_Character
+import com.avail.descriptor.character.A_Character.Companion.equalsCharacterWithCodePoint
 import com.avail.descriptor.fiber.A_Fiber
 import com.avail.descriptor.fiber.FiberDescriptor.ExecutionState
 import com.avail.descriptor.fiber.FiberDescriptor.GeneralFlag
@@ -67,6 +69,19 @@ import com.avail.descriptor.methods.GrammaticalRestrictionDescriptor
 import com.avail.descriptor.methods.MethodDescriptor
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.numbers.A_Number
+import com.avail.descriptor.numbers.A_Number.Companion.addToInfinityCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.addToIntegerCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.divideCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.divideIntoInfinityCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.divideIntoIntegerCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.equalsInfinity
+import com.avail.descriptor.numbers.A_Number.Companion.minusCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.multiplyByInfinityCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.multiplyByIntegerCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.plusCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.subtractFromInfinityCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.subtractFromIntegerCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.timesCanDestroy
 import com.avail.descriptor.numbers.AbstractNumberDescriptor
 import com.avail.descriptor.numbers.AbstractNumberDescriptor.Order
 import com.avail.descriptor.numbers.AbstractNumberDescriptor.Sign
@@ -79,6 +94,7 @@ import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
 import com.avail.descriptor.representation.AvailObject.Companion.newIndexedDescriptor
 import com.avail.descriptor.sets.A_Set
+import com.avail.descriptor.sets.A_SetBin
 import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.sets.SetDescriptor.SetIterator
 import com.avail.descriptor.tokens.A_Token
@@ -1006,7 +1022,7 @@ abstract class AbstractDescriptor protected constructor (
 	 * Add the [operands][AvailObject] and answer the result.
 	 *
 	 * This method should only be called from
-	 * [plusCanDestroy][AvailObject.plusCanDestroy]. It exists for
+	 * [plusCanDestroy][A_Number.plusCanDestroy]. It exists for
 	 * double-dispatch only.
 	 *
 	 * @param self
@@ -1018,7 +1034,7 @@ abstract class AbstractDescriptor protected constructor (
 	 *   `false` otherwise.
 	 * @return
 	 *   The [result][AvailObject] of adding the operands.
-	 * @see AvailObject.addToInfinityCanDestroy
+	 * @see A_Number.addToInfinityCanDestroy
 	 */
 	abstract fun o_AddToInfinityCanDestroy (
 		self: AvailObject,
@@ -1029,8 +1045,8 @@ abstract class AbstractDescriptor protected constructor (
 	 * Add the [operands][AvailObject] and answer the result.
 	 *
 	 * This method should only be called from
-	 * [plusCanDestroy][AvailObject.plusCanDestroy]. It exists for
-	 * double-dispatch only.
+	 * [plusCanDestroy][A_Number.plusCanDestroy]. It exists for double-dispatch
+	 * only.
 	 *
 	 * @param self
 	 *   An integral numeric.
@@ -1041,7 +1057,7 @@ abstract class AbstractDescriptor protected constructor (
 	 *   `false` otherwise.
 	 * @return
 	 *   The [result][AvailObject] of adding the operands.
-	 * @see AvailObject.addToIntegerCanDestroy
+	 * @see A_Number.addToIntegerCanDestroy
 	 */
 	abstract fun o_AddToIntegerCanDestroy (
 		self: AvailObject,
@@ -1410,7 +1426,7 @@ abstract class AbstractDescriptor protected constructor (
 	 *
 	 * Implementations may double-dispatch to
 	 * [divideIntoIntegerCanDestroy][A_Number.divideIntoIntegerCanDestroy] or
-	 * [divideIntoInfinityCanDestroy][AvailObject.divideIntoInfinityCanDestroy],
+	 * [divideIntoInfinityCanDestroy][A_Number.divideIntoInfinityCanDestroy],
 	 * where actual implementations of the division operation should reside.
 	 *
 	 * @param self
@@ -1421,7 +1437,7 @@ abstract class AbstractDescriptor protected constructor (
 	 *   `true` if the operation may modify either [operand][AvailObject],
 	 *   `false` otherwise.
 	 * @return The [result][AvailObject] of dividing the operands.
-	 * @see AvailObject.divideCanDestroy
+	 * @see A_Number.divideCanDestroy
 	 */
 	abstract fun o_DivideCanDestroy (
 		self: AvailObject,
@@ -1433,7 +1449,7 @@ abstract class AbstractDescriptor protected constructor (
 	 * [object][AvailObject] and answer the [result][AvailObject].
 	 *
 	 * This method should only be called from
-	 * [divideCanDestroy][AvailObject.divideCanDestroy]. It exists for
+	 * [divideCanDestroy][A_Number.divideCanDestroy]. It exists for
 	 * double-dispatch only.
 	 *
 	 * @param self
@@ -1444,7 +1460,7 @@ abstract class AbstractDescriptor protected constructor (
 	 *   `true` if the operation may modify either [operand][AvailObject],
 	 *   `false` otherwise.
 	 * @return The [result][AvailObject] of dividing the operands.
-	 * @see AvailObject.divideIntoInfinityCanDestroy
+	 * @see A_Number.divideIntoInfinityCanDestroy
 	 */
 	abstract fun o_DivideIntoInfinityCanDestroy (
 		self: AvailObject,
@@ -1455,7 +1471,7 @@ abstract class AbstractDescriptor protected constructor (
 	 * Divide the [operands][AvailObject] and answer the result.
 	 *
 	 * This method should only be called from
-	 * [divideCanDestroy][AvailObject.divideCanDestroy]. It exists for
+	 * [divideCanDestroy][A_Number.divideCanDestroy]. It exists for
 	 * double-dispatch only.
 	 *
 	 * @param self
@@ -1465,7 +1481,7 @@ abstract class AbstractDescriptor protected constructor (
 	 * @param canDestroy
 	 *   `true` if the operation may modify either operand, `false` otherwise.
 	 * @return The result of dividing the operands.
-	 * @see AvailObject.divideIntoIntegerCanDestroy
+	 * @see A_Number.divideIntoIntegerCanDestroy
 	 */
 	abstract fun o_DivideIntoIntegerCanDestroy (
 		self: AvailObject,
@@ -1640,7 +1656,7 @@ abstract class AbstractDescriptor protected constructor (
 	 * Implementations may double-dispatch to
 	 * [subtractFromIntegerCanDestroy][A_Number.subtractFromIntegerCanDestroy]
 	 * or
-	 * [subtractFromInfinityCanDestroy][AvailObject.subtractFromInfinityCanDestroy],
+	 * [subtractFromInfinityCanDestroy][A_Number.subtractFromInfinityCanDestroy],
 	 * where actual implementations of the subtraction operation should reside.
 	 *
 	 * @param self
@@ -1652,7 +1668,7 @@ abstract class AbstractDescriptor protected constructor (
 	 *   `false` otherwise.
 	 * @return
 	 *   The [result][AvailObject] of differencing the operands.
-	 * @see AvailObject.minusCanDestroy
+	 * @see A_Number.minusCanDestroy
 	 */
 	abstract fun o_MinusCanDestroy (
 		self: AvailObject,
@@ -1663,7 +1679,7 @@ abstract class AbstractDescriptor protected constructor (
 	 * Multiply the [operands][AvailObject] and answer the result.
 	 *
 	 * This method should only be called from
-	 * [timesCanDestroy][AvailObject.timesCanDestroy]. It exists for
+	 * [timesCanDestroy][A_Number.timesCanDestroy]. It exists for
 	 * double-dispatch only.
 	 *
 	 * @param self
@@ -1677,7 +1693,7 @@ abstract class AbstractDescriptor protected constructor (
 	 *   The [result][AvailObject] of multiplying the operands. If the
 	 *   [operands][AvailObject] were [zero][IntegerDescriptor.zero] and
 	 *   [infinity][InfinityDescriptor].
-	 * @see AvailObject.multiplyByInfinityCanDestroy
+	 * @see A_Number.multiplyByInfinityCanDestroy
 	 */
 	abstract fun o_MultiplyByInfinityCanDestroy (
 		self: AvailObject,
@@ -1688,7 +1704,7 @@ abstract class AbstractDescriptor protected constructor (
 	 * Multiply the [operands][AvailObject] and answer the result.
 	 *
 	 * This method should only be called from
-	 * [timesCanDestroy][AvailObject.timesCanDestroy]. It exists for
+	 * [timesCanDestroy][A_Number.timesCanDestroy]. It exists for
 	 * double-dispatch only.
 	 *
 	 * @param self
@@ -1700,7 +1716,7 @@ abstract class AbstractDescriptor protected constructor (
 	 *   `false` otherwise.
 	 * @return
 	 *   The [result][AvailObject] of multiplying the operands.
-	 * @see AvailObject.multiplyByIntegerCanDestroy
+	 * @see A_Number.multiplyByIntegerCanDestroy
 	 */
 	abstract fun o_MultiplyByIntegerCanDestroy (
 		self: AvailObject,
@@ -1727,7 +1743,7 @@ abstract class AbstractDescriptor protected constructor (
 	 *
 	 * Implementations may double-dispatch to
 	 * [addToIntegerCanDestroy][A_Number.addToIntegerCanDestroy] or
-	 * [addToInfinityCanDestroy][AvailObject.addToInfinityCanDestroy], where
+	 * [addToInfinityCanDestroy][A_Number.addToInfinityCanDestroy], where
 	 * actual implementations of the addition operation should reside.
 	 *
 	 * @param self
@@ -1831,7 +1847,7 @@ abstract class AbstractDescriptor protected constructor (
 	 * Implementations may double-dispatch to
 	 * [subtractFromIntegerCanDestroy][A_Number.subtractFromIntegerCanDestroy]
 	 * or
-	 * [subtractFromInfinityCanDestroy][AvailObject.subtractFromInfinityCanDestroy],
+	 * [subtractFromInfinityCanDestroy][A_Number.subtractFromInfinityCanDestroy],
 	 * where actual implementations of the subtraction operation should reside.
 	 *
 	 * @param self
@@ -1843,7 +1859,7 @@ abstract class AbstractDescriptor protected constructor (
 	 *   `false` otherwise.
 	 * @return
 	 *   The [result][AvailObject] of differencing the operands.
-	 * @see AvailObject.subtractFromInfinityCanDestroy
+	 * @see A_Number.subtractFromInfinityCanDestroy
 	 */
 	abstract fun o_SubtractFromInfinityCanDestroy (
 		self: AvailObject,
@@ -1856,7 +1872,7 @@ abstract class AbstractDescriptor protected constructor (
 	 * Implementations may double-dispatch to
 	 * [subtractFromIntegerCanDestroy][A_Number.subtractFromIntegerCanDestroy]
 	 * or
-	 * [subtractFromInfinityCanDestroy][AvailObject.subtractFromInfinityCanDestroy],
+	 * [subtractFromInfinityCanDestroy][A_Number.subtractFromInfinityCanDestroy],
 	 * where actual implementations of the subtraction operation should reside.
 	 *
 	 * @param self
@@ -1868,7 +1884,7 @@ abstract class AbstractDescriptor protected constructor (
 	 *   `false` otherwise.
 	 * @return
 	 *   The [result][AvailObject] of differencing the operands.
-	 * @see AvailObject.subtractFromIntegerCanDestroy
+	 * @see A_Number.subtractFromIntegerCanDestroy
 	 */
 	abstract fun o_SubtractFromIntegerCanDestroy (
 		self: AvailObject,
@@ -1880,7 +1896,7 @@ abstract class AbstractDescriptor protected constructor (
 	 *
 	 * Implementations may double-dispatch to
 	 * [multiplyByIntegerCanDestroy][A_Number.multiplyByIntegerCanDestroy] or
-	 * [multiplyByInfinityCanDestroy][AvailObject.multiplyByInfinityCanDestroy],
+	 * [multiplyByInfinityCanDestroy][A_Number.multiplyByInfinityCanDestroy],
 	 * where actual implementations of the multiplication operation should
 	 * reside.  Other implementations may exist for other type families (e.g.,
 	 * floating point).
@@ -1893,7 +1909,7 @@ abstract class AbstractDescriptor protected constructor (
 	 *   `true` if the operation may modify either operand, `false` otherwise.
 	 * @return
 	 *   The [result][AvailObject] of multiplying the operands.
-	 * @see AvailObject.timesCanDestroy
+	 * @see A_Number.timesCanDestroy
 	 */
 	abstract fun o_TimesCanDestroy (
 		self: AvailObject,
@@ -2358,7 +2374,7 @@ abstract class AbstractDescriptor protected constructor (
 	 * @return
 	 *   `true` if the receiver is a character with a code point equal to the
 	 *   argument, `false` otherwise.
-	 * @see AvailObject.equalsCharacterWithCodePoint
+	 * @see A_Character.equalsCharacterWithCodePoint
 	 */
 	abstract fun o_EqualsCharacterWithCodePoint (
 		self: AvailObject,
@@ -2641,7 +2657,7 @@ abstract class AbstractDescriptor protected constructor (
 	 *   An [AvailObject].
 	 * @return
 	 *   `true` if the argument is a character, `false` otherwise.
-	 * @see AvailObject.isCharacter
+	 * @see A_Character.isCharacter
 	 */
 	abstract fun o_IsCharacter (self: AvailObject): Boolean
 
@@ -2698,7 +2714,7 @@ abstract class AbstractDescriptor protected constructor (
 	 *   An [AvailObject].
 	 * @return
 	 *   `true` if the argument is a set, `false` otherwise.
-	 * @see AvailObject.isSet
+	 * @see A_Set.isSet
 	 */
 	abstract fun o_IsSet (self: AvailObject): Boolean
 
@@ -2707,19 +2723,19 @@ abstract class AbstractDescriptor protected constructor (
 		elementObject: A_BasicObject,
 		elementObjectHash: Int,
 		myLevel: Int,
-		canDestroy: Boolean): A_BasicObject
+		canDestroy: Boolean): A_SetBin
 
 	abstract fun o_BinHasElementWithHash (
 		self: AvailObject,
 		elementObject: A_BasicObject,
 		elementObjectHash: Int): Boolean
 
-	abstract fun o_BinRemoveElementHashLevelCanDestroy (
+	internal abstract fun o_BinRemoveElementHashLevelCanDestroy (
 		self: AvailObject,
 		elementObject: A_BasicObject,
 		elementObjectHash: Int,
 		myLevel: Int,
-		canDestroy: Boolean): AvailObject
+		canDestroy: Boolean): A_SetBin
 
 	abstract fun o_IsBinSubsetOf (
 		self: AvailObject,
@@ -4259,7 +4275,7 @@ abstract class AbstractDescriptor protected constructor (
 				{
 					name = name.substring(0, name.length - 10)
 				}
-				Statistic(name, ALLOCATIONS_BY_DESCRIPTOR_CLASS)
+				Statistic(ALLOCATIONS_BY_DESCRIPTOR_CLASS, name)
 			}
 		}
 	}

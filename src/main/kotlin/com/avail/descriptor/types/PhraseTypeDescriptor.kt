@@ -47,6 +47,7 @@ import com.avail.descriptor.phrases.VariableUsePhraseDescriptor
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AbstractSlotsEnum
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.multiplier
 import com.avail.descriptor.representation.BitField
 import com.avail.descriptor.representation.IntegerEnumSlotDescriptionEnum
 import com.avail.descriptor.representation.IntegerSlotsEnum
@@ -66,6 +67,7 @@ import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFu
 import com.avail.descriptor.types.ListPhraseTypeDescriptor.Companion.createListNodeType
 import com.avail.descriptor.types.ListPhraseTypeDescriptor.Companion.createListNodeTypeNoCheck
 import com.avail.descriptor.types.LiteralTokenTypeDescriptor.Companion.literalTokenType
+import com.avail.descriptor.types.PhraseTypeDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import com.avail.descriptor.types.PhraseTypeDescriptor.ObjectSlots.EXPRESSION_TYPE
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
@@ -675,12 +677,12 @@ open class PhraseTypeDescriptor protected constructor(
 	 */
 	override fun o_Hash(self: AvailObject): Int
 	{
-		var hash = self.slot(IntegerSlots.HASH_OR_ZERO)
+		var hash = self.slot(HASH_OR_ZERO)
 		if (hash == 0)
 		{
 			hash = (self.slot(EXPRESSION_TYPE).hash()
-				xor kind.ordinal * AvailObject.multiplier)
-			self.setSlot(IntegerSlots.HASH_OR_ZERO, hash)
+				xor kind.ordinal * multiplier)
+			self.setSlot(HASH_OR_ZERO, hash)
 		}
 		return hash
 	}

@@ -42,6 +42,7 @@ import com.avail.descriptor.methods.A_Method
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.module.ModuleDescriptor
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.A_Phrase.Companion.generateInModule
 import com.avail.descriptor.phrases.A_Phrase.Companion.tokens

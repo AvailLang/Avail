@@ -92,6 +92,11 @@ object L2_JUMP_IF_GREATER_THAN_CONSTANT : L2ConditionalJump(
 		// :: else goto ifFalse;
 		AbstractNumberDescriptor.Order.isMoreMethod.generateCall(method)
 		emitBranch(
-			translator, method, instruction, Opcodes.IFNE, ifGreater, ifNotGreater)
+			translator,
+			method,
+			instruction,
+			Opcodes.IFNE,
+			ifGreater,
+			ifNotGreater)
 	}
 }

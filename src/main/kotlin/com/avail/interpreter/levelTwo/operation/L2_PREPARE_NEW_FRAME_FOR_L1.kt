@@ -50,7 +50,7 @@ import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.JVMTranslator
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.performance.Statistic
-import com.avail.performance.StatisticReport
+import com.avail.performance.StatisticReport.REIFICATIONS
 import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
@@ -107,8 +107,7 @@ object L2_PREPARE_NEW_FRAME_FOR_L1 : L2Operation()
 
 	/** [Statistic] for reifying in L1 interrupt-handler preamble.  */
 	private val reificationForInterruptInL1Stat = Statistic(
-		"Reification for interrupt in L1 preamble",
-		StatisticReport.REIFICATIONS)
+		REIFICATIONS, "Reification for interrupt in L1 preamble")
 
 	/**
 	 * Prepare a new frame for L1 interpretation.

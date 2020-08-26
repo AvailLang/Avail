@@ -34,6 +34,12 @@ package com.avail.descriptor.types
 import com.avail.annotations.ThreadSafe
 import com.avail.descriptor.character.CharacterDescriptor
 import com.avail.descriptor.numbers.A_Number
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
+import com.avail.descriptor.numbers.A_Number.Companion.extractLong
+import com.avail.descriptor.numbers.A_Number.Companion.isPositive
+import com.avail.descriptor.numbers.A_Number.Companion.lessThan
+import com.avail.descriptor.numbers.A_Number.Companion.noFailMinusCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.noFailPlusCanDestroy
 import com.avail.descriptor.numbers.InfinityDescriptor
 import com.avail.descriptor.numbers.InfinityDescriptor.Companion.negativeInfinity
 import com.avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity

@@ -39,6 +39,7 @@ import com.avail.descriptor.maps.A_Map
 import com.avail.descriptor.maps.A_Map.Companion.keysAsSet
 import com.avail.descriptor.maps.A_Map.Companion.valuesAsTuple
 import com.avail.descriptor.numbers.A_Number
+import com.avail.descriptor.numbers.A_Number.Companion.extractLong
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.objects.ObjectDescriptor
 import com.avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
@@ -50,6 +51,7 @@ import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.A_Set.Companion.hasElement
+import com.avail.descriptor.sets.A_Set.Companion.isSet
 import com.avail.descriptor.sets.A_Set.Companion.setElementsAreAllInstancesOfKind
 import com.avail.descriptor.sets.A_Set.Companion.setSize
 import com.avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy

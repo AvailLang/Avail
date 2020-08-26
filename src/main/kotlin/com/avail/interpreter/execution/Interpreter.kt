@@ -37,10 +37,8 @@ import com.avail.AvailRuntimeConfiguration.maxInterpreters
 import com.avail.AvailRuntimeSupport
 import com.avail.AvailTask
 import com.avail.AvailThread
-import com.avail.descriptor.atoms.A_Atom.Companion.atomName
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
-import com.avail.descriptor.bundles.A_Bundle.Companion.message
 import com.avail.descriptor.fiber.A_Fiber
 import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
@@ -64,8 +62,11 @@ import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.functions.ContinuationDescriptor.Companion.createContinuationWithFrame
 import com.avail.descriptor.functions.ContinuationRegisterDumpDescriptor.Companion.createRegisterDump
 import com.avail.descriptor.functions.FunctionDescriptor
+import com.avail.descriptor.methods.MethodDescriptor
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.numbers.A_Number
+import com.avail.descriptor.numbers.A_Number.Companion.equalsInt
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots
 import com.avail.descriptor.representation.AvailObject
@@ -127,22 +128,17 @@ import com.avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import com.avail.optimizer.jvm.JVMTranslator
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-import com.avail.performance.PerInterpreterStatistic
 import com.avail.performance.Statistic
-import com.avail.performance.StatisticReport
+import com.avail.performance.StatisticReport.TOP_LEVEL_STATEMENTS
 import com.avail.utility.Strings.tab
-import com.avail.utility.safeWrite
 import org.jetbrains.annotations.Debug.Renderer
 import java.text.MessageFormat
 import java.util.WeakHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
-import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.function.Supplier
 import java.util.logging.Level
 import java.util.logging.Logger
-import javax.annotation.concurrent.GuardedBy
-import kotlin.concurrent.read
 
 /**
  * This class is used to execute [Level&#32;Two&#32;code][L2Chunk], which is a
@@ -2299,24 +2295,6 @@ class Interpreter(
 	}
 
 	/**
-	 * A *non-static* field of this interpreter that holds a mapping from the
-	 * number of definitions considered in a lookup, to a
-	 * [PerInterpreterStatistic] specific to this interpreter.  This is accessed
-	 * without a lock, and only by the thread accessing this interpreter (other
-	 * than to view the momentary statistics).
-	 *
-	 * If the desired key is not found, acquire the [dynamicLookupStatsLock]
-	 * with read access, extracting the [PerInterpreterStatistic] from the
-	 * [Statistic] in [dynamicLookupStatsByCount].  If the key was not present,
-	 * release the lock, acquire it for write access, try looking it up again
-	 * (in case the map changed while the lock wasn't held), and if necessary
-	 * add a new entry for that size, including the bundle name as an example in
-	 * the name of the statistic.
-	 */
-	private val dynamicLookupPerInterpreterStat =
-		mutableMapOf<Int, PerInterpreterStatistic>()
-
-	/**
 	 * Record the fact that a lookup in the specified [A_Bundle] has just taken
 	 * place, and that it took the given time in nanoseconds.
 	 *
@@ -2334,36 +2312,9 @@ class Interpreter(
 		bundle: A_Bundle,
 		nanos: Double
 	) {
-		val size: Int = bundle.bundleMethod().definitionsTuple().tupleSize()
-		var perInterpreterStat = dynamicLookupPerInterpreterStat[size]
-		if (perInterpreterStat === null) {
-			// See if we can find it in the global map.
-			var globalStat = dynamicLookupStatsLock.read {
-				dynamicLookupStatsByCount[size]
-			}
-			if (globalStat === null) {
-				// It didn't exist when we looked for it while holding the read
-				// lock.  Having released the read lock, grab the write lock,
-				// double-check for the element, then if necessary create it.
-				dynamicLookupStatsLock.safeWrite {
-					globalStat = dynamicLookupStatsByCount[size]
-					if (globalStat === null) {
-						// Create it.
-						globalStat = Statistic(
-							"Dynamic lookup time for size "
-								+ size
-								+ " (example: "
-								+ bundle.message().atomName()
-								+ ")",
-							StatisticReport.DYNAMIC_LOOKUP_TIME)
-						dynamicLookupStatsByCount[size] = globalStat!!
-					}
-				}
-			}
-			perInterpreterStat = globalStat!!.statistics[interpreterIndex]
-			dynamicLookupPerInterpreterStat[size] = perInterpreterStat
-		}
-		perInterpreterStat.record(nanos)
+		val method = bundle.bundleMethod()
+		val descriptor = method.traversed().descriptor() as MethodDescriptor
+		descriptor.dynamicLookupStat.record(nanos)
 	}
 
 	/**
@@ -2386,8 +2337,8 @@ class Interpreter(
 				moduleTraversed
 			) { mod ->
 				Statistic(
-					mod.moduleName().asNativeString(),
-					StatisticReport.TOP_LEVEL_STATEMENTS)
+					TOP_LEVEL_STATEMENTS,
+					mod.moduleName().asNativeString())
 			}
 		}
 		statistic.record(sample, interpreterIndex)
@@ -3317,21 +3268,6 @@ class Interpreter(
 				}
 			}
 		}
-
-		/**
-		 * A [Statistic] measuring the performance of dynamic lookups, keyed by
-		 * the number of definitions in the method being looked up.  Tho name of
-		 * the statistic includes this count, as well as the name of the first
-		 * bundle encountered which had that count.
-		 */
-		@GuardedBy("dynamicLookupStatsLock")
-		private val dynamicLookupStatsByCount =
-			mutableMapOf<Int, Statistic>()
-
-		/**
-		 * The lock that protects access to [dynamicLookupStatsByCount].
-		 */
-		private val dynamicLookupStatsLock = ReentrantReadWriteLock(false)
 
 		/**
 		 * Top-level statement evaluation statistics, keyed by module.

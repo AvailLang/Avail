@@ -31,6 +31,7 @@
  */
 package com.avail.optimizer
 
+import com.avail.descriptor.numbers.A_Number.Companion.equalsInt
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.NilDescriptor

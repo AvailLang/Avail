@@ -32,6 +32,7 @@
 
 package com.avail.interpreter.primitive.bootstrap.lexing
 
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
 import com.avail.descriptor.parsing.LexerDescriptor.Companion.lexerBodyFunctionType
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tokens.TokenDescriptor.Companion.newToken
