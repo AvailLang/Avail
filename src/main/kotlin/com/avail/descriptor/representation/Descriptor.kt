@@ -947,6 +947,11 @@ abstract class Descriptor protected constructor (
 		key: A_BasicObject,
 		value: A_BasicObject): Unit = unsupported
 
+	@Throws(VariableGetException::class, VariableSetException::class)
+	override fun o_AtomicRemoveFromMap (
+		self: AvailObject,
+		key: A_BasicObject): Unit = unsupported
+
 	@Throws(VariableGetException::class)
 	override fun o_VariableMapHasKey (
 		self: AvailObject,

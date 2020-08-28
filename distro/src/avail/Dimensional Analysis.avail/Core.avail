@@ -340,9 +340,9 @@ Public method "Prefer_for printing_" is
 	symbol : string,
 	aUnit : unit
 |
-	Lock stateLock for [namesByUnit := namesByUnit + aUnit→symbol;];
+	namesByUnit [aUnit] := symbol;
 	After the current module is unloaded,
-		do [Lock stateLock for [namesByUnit := namesByUnit - aUnit (Avail);];];
+		do [↑namesByUnit -= aUnit;];
 ] : ⊤;
 
 /**
@@ -394,12 +394,12 @@ Public method "Prefer_for printing_in a dimensioned quantity" is
 	[
 		/* No implementation required. */
 	];
-	Lock stateLock for [symbolsByUnit := symbolsByUnit + aUnit→symbol;];
+	symbolsByUnit [aUnit] := symbol;
 	After the current module is unloaded, do
 	[
 		Lock stateLock for
 		[
-			symbolsByUnit := symbolsByUnit - aUnit (Avail);
+			↑symbolsByUnit -= aUnit;
 			If unitAtom is assigned then
 			[
 				If oldSymbol ≠ bogus then

@@ -1538,6 +1538,10 @@ class AvailObject private constructor(
 	override fun atomicAddToMap(key: A_BasicObject, value: A_BasicObject) =
 		descriptor().o_AtomicAddToMap(this, key, value)
 
+	@Throws(VariableGetException::class, VariableSetException::class)
+	override fun atomicRemoveFromMap(key: A_BasicObject) =
+		descriptor().o_AtomicRemoveFromMap(this, key)
+
 	@Throws(VariableGetException::class)
 	override fun variableMapHasKey(key: A_BasicObject) =
 		descriptor().o_VariableMapHasKey(this, key)

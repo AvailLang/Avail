@@ -3405,6 +3405,12 @@ class IndirectionDescriptor private constructor(
 		value: A_BasicObject
 	) = self .. { atomicAddToMap(key, value) }
 
+	@Throws(VariableGetException::class, VariableSetException::class)
+	override fun o_AtomicRemoveFromMap(
+		self: AvailObject,
+		key: A_BasicObject
+	) = self .. { atomicRemoveFromMap(key) }
+
 	@Throws(VariableGetException::class)
 	override fun o_VariableMapHasKey(
 		self: AvailObject, key: A_BasicObject

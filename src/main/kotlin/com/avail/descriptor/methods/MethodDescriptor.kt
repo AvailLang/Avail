@@ -149,6 +149,7 @@ import com.avail.interpreter.primitive.phrases.P_CreateLiteralExpression
 import com.avail.interpreter.primitive.phrases.P_CreateLiteralToken
 import com.avail.interpreter.primitive.rawfunctions.P_SetCompiledCodeName
 import com.avail.interpreter.primitive.variables.P_AtomicAddToMap
+import com.avail.interpreter.primitive.variables.P_AtomicRemoveFromMap
 import com.avail.interpreter.primitive.variables.P_GetValue
 import com.avail.optimizer.L2Generator
 import com.avail.performance.Statistic
@@ -749,6 +750,11 @@ class MethodDescriptor private constructor(
 		ADD_TO_MAP_VARIABLE(
 			"vm_↑[_]:=_",
 			P_AtomicAddToMap),
+
+		/** The special atom for removing from a map inside a variable. */
+		REMOVE_FROM_MAP_VARIABLE(
+			"vm_↑-=_",
+			P_AtomicRemoveFromMap),
 
 		/** The special atom for adding a module unload function. */
 		ADD_UNLOADER(

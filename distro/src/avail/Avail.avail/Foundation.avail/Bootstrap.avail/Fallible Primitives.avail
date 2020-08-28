@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 8/23/20 2:40 PM
+ * * Last Generated: 8/27/20 8:07 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -80,6 +80,7 @@ Uses
 		"_'s⁇issuing module",
 		"_'s⁇result",
 		"_+_",
+		"_-=_",
 		"_-_",
 		"_<<_",
 		"_<<_keeping_bits",
@@ -3935,6 +3936,31 @@ Primitive "_[_]:=_" is
 	value : any
 |
 	Primitive AtomicAddToMap (failureCode : {
+		cannot-read-unassigned-variable code,
+		cannot-store-incorrectly-typed-value code}ᵀ);
+	Private invoke _fail_primitive with failureCode
+] : ⊤;
+
+/**
+ * Atomically remove a key from the map within a variable.
+ *
+ * @category "Primitives"
+ * @method "_-=_"
+ * @param "var" "read map/write ⊥"
+ *        The variable containing a map.
+ * @param "key" "any"
+ *        The key to remove.
+ * @returns "⊤"
+ *    Nothing.
+ * @raises "cannot-read-unassigned-variable exception"
+ * @raises "cannot-store-incorrectly-typed-value exception"
+ */
+Primitive "_-=_" is
+[
+	var : map variable,
+	key : any
+|
+	Primitive AtomicRemoveFromMap (failureCode : {
 		cannot-read-unassigned-variable code,
 		cannot-store-incorrectly-typed-value code}ᵀ);
 	Private invoke _fail_primitive with failureCode

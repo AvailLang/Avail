@@ -304,6 +304,16 @@ class VariableSharedGlobalDescriptor private constructor(
 		super.o_AtomicAddToMap(self, key, value)
 	}
 
+	@Throws(VariableGetException::class, VariableSetException::class)
+	override fun o_AtomicRemoveFromMap(self: AvailObject, key: A_BasicObject)
+	{
+		if (writeOnce)
+		{
+			throw VariableSetException(E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE)
+		}
+		super.o_AtomicRemoveFromMap(self, key)
+	}
+
 	override fun o_ClearValue(self: AvailObject)
 	{
 		if (writeOnce)

@@ -2097,6 +2097,11 @@ abstract class AbstractDescriptor protected constructor (
 		key: A_BasicObject,
 		value: A_BasicObject)
 
+	@Throws(VariableGetException::class, VariableSetException::class)
+	abstract fun o_AtomicRemoveFromMap (
+		self: AvailObject,
+		key: A_BasicObject)
+
 	@Throws(VariableGetException::class)
 	abstract fun o_VariableMapHasKey (
 		self: AvailObject,

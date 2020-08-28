@@ -193,11 +193,7 @@ object P_TupleToObject : Primitive(1, CannotFail, CanFold, CanInline)
 		generator.addInstruction(
 			L2_CREATE_OBJECT,
 			L2ConstantOperand(variant.thisPojo),
-			L2ReadBoxedVectorOperand(
-				Array(sourcesByFieldIndex.size)
-				{
-					sourcesByFieldIndex[it]!!
-				}.toList()),
+			L2ReadBoxedVectorOperand(sourcesByFieldIndex.map { it!! }),
 			write)
 		callSiteHelper.useAnswer(generator.readBoxed(write))
 		return true
