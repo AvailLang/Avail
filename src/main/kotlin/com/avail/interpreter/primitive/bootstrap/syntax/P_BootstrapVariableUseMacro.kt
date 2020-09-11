@@ -1,6 +1,6 @@
 /*
  * P_BootstrapVariableUseMacro.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,33 +33,45 @@
 package com.avail.interpreter.primitive.bootstrap.syntax
 
 import com.avail.compiler.AvailRejectedParseException
-import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.*
-import com.avail.descriptor.NilDescriptor.nil
+import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.SILENT
+import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
+import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.WEAK
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_MAP_KEY
+import com.avail.descriptor.maps.A_Map.Companion.hasKey
+import com.avail.descriptor.maps.A_Map.Companion.keysAsSet
+import com.avail.descriptor.maps.A_Map.Companion.mapAt
+import com.avail.descriptor.maps.A_Map.Companion.mapSize
+import com.avail.descriptor.phrases.A_Phrase.Companion.initializationExpression
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
+import com.avail.descriptor.phrases.A_Phrase.Companion.token
+import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newModuleConstant
+import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newModuleVariable
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.LOCAL_CONSTANT
-import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.newModuleConstant
-import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.newModuleVariable
 import com.avail.descriptor.phrases.VariableUsePhraseDescriptor
-import com.avail.descriptor.phrases.VariableUsePhraseDescriptor.newUse
+import com.avail.descriptor.phrases.VariableUsePhraseDescriptor.Companion.newUse
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.descriptor.sets.A_Set.Companion.asTuple
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType
 import com.avail.descriptor.tuples.A_String
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.tuples.StringDescriptor.stringFrom
-import com.avail.descriptor.tuples.TupleDescriptor.toList
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.toList
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
 import com.avail.descriptor.types.TypeDescriptor.Types.TOKEN
 import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.Bootstrap
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * The `P_BootstrapVariableUseMacro` primitive is used to create
- * [variable use][VariableUsePhraseDescriptor] phrases.
+ * [variable&#32;use][VariableUsePhraseDescriptor] phrases.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -79,7 +91,7 @@ object P_BootstrapVariableUseMacro
 		val literalToken = variableNameLiteral.token()
 		assert(literalToken.tokenType() == TokenType.LITERAL)
 		val actualToken = literalToken.literal()
-		assert(actualToken.isInstanceOf(TOKEN.o()))
+		assert(actualToken.isInstanceOf(TOKEN.o))
 		val variableNameString = actualToken.string()
 		if (actualToken.tokenType() != TokenType.KEYWORD)
 		{
@@ -113,7 +125,8 @@ object P_BootstrapVariableUseMacro
 		val module = loader.module()
 		if (module.variableBindings().hasKey(variableNameString))
 		{
-			val variableObject = module.variableBindings().mapAt(variableNameString)
+			val variableObject =
+				module.variableBindings().mapAt(variableNameString)
 			val moduleVarDecl =
 				newModuleVariable(actualToken, variableObject, nil, nil)
 			val variableUse = newUse(actualToken, moduleVarDecl)
@@ -156,6 +169,6 @@ object P_BootstrapVariableUseMacro
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(LITERAL_PHRASE.create(TOKEN.o())), // Variable name
+			tuple(LITERAL_PHRASE.create(TOKEN.o)), // Variable name
 			EXPRESSION_PHRASE.mostGeneralType())
 }

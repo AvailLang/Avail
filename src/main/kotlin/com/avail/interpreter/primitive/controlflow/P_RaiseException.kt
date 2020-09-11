@@ -1,6 +1,6 @@
 /*
  * P_RaiseException.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,17 +34,18 @@ package com.avail.interpreter.primitive.controlflow
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.functions.ContinuationDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor
-import com.avail.descriptor.objects.ObjectDescriptor.objectFromMap
-import com.avail.descriptor.objects.ObjectTypeDescriptor.exceptionType
-import com.avail.descriptor.objects.ObjectTypeDescriptor.stackDumpAtom
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
+import com.avail.descriptor.objects.ObjectDescriptor.Companion.objectFromMap
+import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.exceptionType
+import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.stackDumpAtom
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.BottomTypeDescriptor.bottom
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.interpreter.Interpreter
+import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanSuspend
 import com.avail.interpreter.Primitive.Flag.CanSwitchContinuations
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Raise an exception. Scan the stack of
@@ -64,12 +65,15 @@ object P_RaiseException : Primitive(1, CanSuspend, CanSwitchContinuations)
 	{
 		interpreter.checkArgumentCount(1)
 		val exception = interpreter.argument(0)
+
+		assert(interpreter.unreifiedCallDepth() == 0)
+
 		// Attach the current continuation to the exception, so that a stack
 		// dump can be obtained later.
 		val fieldMap = exception.fieldMap()
 		val newFieldMap = fieldMap.mapAtPuttingCanDestroy(
 			stackDumpAtom(),
-			interpreter.reifiedContinuation!!.makeImmutable(),
+			interpreter.getReifiedContinuation()!!.makeImmutable(),
 			false)
 		val newException = objectFromMap(newFieldMap)
 		// Search for an applicable exception handler, and invoke it if found.
@@ -77,7 +81,7 @@ object P_RaiseException : Primitive(1, CanSuspend, CanSwitchContinuations)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(exceptionType()), bottom())
+		functionType(tuple(exceptionType()), bottom)
 
 	override fun privateFailureVariableType(): A_Type = exceptionType()
 }

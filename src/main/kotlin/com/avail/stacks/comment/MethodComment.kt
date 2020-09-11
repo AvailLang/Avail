@@ -1,19 +1,19 @@
 /*
  * MethodCommentImplementation.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  Redistributions of source code must retain the above copyright notice, this
+ * * Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- *  Redistributions in binary form must reproduce the above copyright notice,
+ * * Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
  *
- *  Neither the name of the copyright holder nor the names of the contributors
+ * * Neither the name of the copyright holder nor the names of the contributors
  *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
@@ -33,16 +33,21 @@
 package com.avail.stacks.comment
 
 import com.avail.descriptor.tuples.A_String
-import com.avail.descriptor.tuples.StringDescriptor.stringFrom
+import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.stacks.CommentGroup
 import com.avail.stacks.LinkingFileMap
 import com.avail.stacks.StacksDescription
 import com.avail.stacks.StacksErrorLog
 import com.avail.stacks.comment.signature.MethodCommentSignature
 import com.avail.stacks.module.StacksImportModule
-import com.avail.stacks.tags.*
+import com.avail.stacks.tags.StacksAliasTag
+import com.avail.stacks.tags.StacksAuthorTag
+import com.avail.stacks.tags.StacksCategoryTag
+import com.avail.stacks.tags.StacksParameterTag
+import com.avail.stacks.tags.StacksRaisesTag
+import com.avail.stacks.tags.StacksReturnTag
+import com.avail.stacks.tags.StacksSeeTag
 import com.avail.utility.json.JSONWriter
-import java.util.*
 
 /**
  * A comment that describes a particular method implementation
@@ -60,13 +65,14 @@ import java.util.*
  * Construct a new [MethodComment].
  *
  * @param signature
- * The [signature][MethodCommentSignature] of the class/method the comment describes.
+ *   The [signature][MethodCommentSignature] of the class/method the comment
+ *   describes.
  * @param commentStartLine
  *   The start line in the module the comment being parsed appears.
  * @param author
  *   The [author][StacksAuthorTag] of the implementation.
  * @param sees
- *   A [ArrayList] of any [&quot;@sees&quot;][StacksSeeTag] references.
+ *   A list of any [&quot;@sees&quot;][StacksSeeTag] references.
  * @param description
  *   The overall description of the implementation
  * @param categories
@@ -141,7 +147,7 @@ class MethodComment constructor(
 	{
 		signature.toJSON(nameOfGroup, isSticky, jsonWriter)
 
-		if (categories.size > 0)
+		if (categories.isNotEmpty())
 		{
 			categories[0].toJSON(
 				linkingFileMap,
@@ -154,7 +160,7 @@ class MethodComment constructor(
 			jsonWriter.endArray()
 		}
 
-		if (aliases.size > 0)
+		if (aliases.isNotEmpty())
 		{
 			aliases[0].toJSON(
 				linkingFileMap,

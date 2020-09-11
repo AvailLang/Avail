@@ -1,6 +1,6 @@
 /*
  * ValidationException.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,8 +34,8 @@ package com.avail.utility.fsm
 
 /**
  * Exception thrown by the [factory][StateMachineFactory]'s validation process
- * in the event that the client-specified [state machine][StateMachine] fails
- * validation.
+ * in the event that the client-specified [state&#32;machine][StateMachine]
+ * fails validation.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  *
@@ -45,8 +45,8 @@ package com.avail.utility.fsm
  *
  * @param message
  *   A (hopefully) informative message explaining why the
- *   [factory][StateMachineFactory] could not validate the specified [state
- *   machine][StateMachine].
+ *   [factory][StateMachineFactory] could not validate the specified
+ *   [state&#32;machine][StateMachine].
  */
 class ValidationException
 internal constructor(message: String) : RuntimeException(message)

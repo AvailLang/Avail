@@ -1,6 +1,6 @@
 /*
  * L1Operation.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,9 +32,20 @@
 
 package com.avail.interpreter.levelOne
 
-import com.avail.descriptor.*
+import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.bundles.MessageBundleDescriptor
-import com.avail.interpreter.levelOne.L1OperandType.*
+import com.avail.descriptor.functions.CompiledCodeDescriptor
+import com.avail.descriptor.functions.FunctionDescriptor
+import com.avail.descriptor.methods.MethodDefinitionDescriptor
+import com.avail.descriptor.methods.MethodDescriptor
+import com.avail.descriptor.representation.AbstractDescriptor
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.variables.VariableDescriptor
+import com.avail.interpreter.levelOne.L1OperandType.IMMEDIATE
+import com.avail.interpreter.levelOne.L1OperandType.LITERAL
+import com.avail.interpreter.levelOne.L1OperandType.LOCAL
+import com.avail.interpreter.levelOne.L1OperandType.OUTER
 import com.avail.interpreter.levelOne.L1Operation.L1_doExtension
 import com.avail.io.NybbleOutputStream
 
@@ -56,13 +67,13 @@ import com.avail.io.NybbleOutputStream
  *
  * Construct a new `L1Operation`.  The expected [ordinal][Enum.ordinal] is
  * passed as a cross-check so that each operation's definition shows the
- * ordinal.  The rest of the arguments are the [operand types][L1OperandType]
- * that this operation expects.
+ * ordinal.  The rest of the arguments are the
+ * [operand&#32;types][L1OperandType] that this operation expects.
  *
  * @param ordinalCheck
  *   This operation's ordinal.
  * @param operandTypes
- *   This operation's list of [operand types][L1OperandType].
+ *   This operation's list of [operand&#32;types][L1OperandType].
  */
 @Suppress("EnumEntryName")
 enum class L1Operation constructor(
@@ -73,16 +84,16 @@ enum class L1Operation constructor(
 	 * Invoke a method.
 	 *
 	 * The first operand is an index into the current code's
-	 * [literals][AvailObject.literalAt], which specifies a
-	 * [method][MethodDescriptor] that contains a collection of [method
-	 * definitions][MethodDefinitionDescriptor] that might be invoked.  The
-	 * arguments are expected to already have been pushed. They are popped from
-	 * the stack and the literal specified by the second operand is pushed. This
-	 * is the expected type of the send.  When the invoked method eventually
-	 * returns, the proposed return value is checked against the pushed type,
-	 * and if it agrees then this stack entry is replaced by the returned value.
-	 * If it disagrees, some sort of runtime exception should take place
-	 * instead.
+	 * [literals][AvailObject.literalAt], which specifies an [A_Bundle] which
+	 * names a [method][MethodDescriptor] that contains a collection of
+	 * [method&#32;definitions][MethodDefinitionDescriptor] that might be
+	 * invoked.  The arguments are expected to already have been pushed. They
+	 * are popped from the stack and the literal specified by the second operand
+	 * is pushed. This is the expected type of the send.  When the invoked
+	 * method eventually returns, the proposed return value is checked against
+	 * the pushed type, and if it agrees then this stack entry is replaced by
+	 * the returned value. If it disagrees, some sort of runtime exception
+	 * should take place instead.
 	 */
 	L1_doCall(0, LITERAL, LITERAL)
 	{
@@ -143,7 +154,7 @@ enum class L1Operation constructor(
 
 	/**
 	 * Create a function from the specified number of pushed outer variables and
-	 * the specified literal [compiled code][CompiledCodeDescriptor].
+	 * the specified literal [compiled&#32;code][CompiledCodeDescriptor].
 	 */
 	L1_doClose(5, IMMEDIATE, LITERAL)
 	{
@@ -245,7 +256,7 @@ enum class L1Operation constructor(
 	 * Process an extension nybblecode, which involves consuming the next nybble
 	 * and dispatching it as though 16 were added to it.
 	 */
-	L1_doExtension(15, EXTENSION)
+	L1_doExtension(15)
 	{
 		override fun dispatch(operationDispatcher: L1OperationDispatcher) =
 			operationDispatcher.L1_doExtension()
@@ -321,15 +332,15 @@ enum class L1Operation constructor(
 	 * Invoke a method with a supercall.
 	 *
 	 * The first operand is an index into the current code's
-	 * [literals][AvailObject.literalAt], which specifies a [message
-	 * bundle][MessageBundleDescriptor] that is a particular naming of a
-	 * [method][MethodDescriptor] which itself contains a collection of [method
-	 * definitions][MethodDefinitionDescriptor] that might be invoked.  The
-	 * stack is expected to contain the top-level arguments, from which their
-	 * types will be extracted and assembled into a tuple type, which itself
-	 * will undergo a [A_Type.typeUnion] with this instruction's third operand,
-	 * a literal tuple type.  The resulting tuple type (the union) will be used
-	 * to select the method definition to invoke.
+	 * [literals][AvailObject.literalAt], which specifies a
+	 * [message&#32;bundle][MessageBundleDescriptor] that is a particular naming
+	 * of a [method][MethodDescriptor] which itself contains a collection of
+	 * [method&#32;definitions][MethodDefinitionDescriptor] that might be
+	 * invoked.  The stack is expected to contain the top-level arguments, from
+	 * which their types will be extracted and assembled into a tuple type,
+	 * which itself will undergo a [A_Type.typeUnion] with this instruction's
+	 * third operand, a literal tuple type.  The resulting tuple type (the
+	 * union) will be used to select the method definition to invoke.
 	 *
 	 * The second operand specifies a literal which is the expected return type
 	 * of the end.  When the invoked method eventually returns, the proposed
@@ -359,13 +370,13 @@ enum class L1Operation constructor(
 	};
 
 	/** This operation's collection of [operand types][L1OperandType]. */
-	val operandTypes: Array<out L1OperandType>
-
-	init
-	{
+	val operandTypes = operandTypes.also {
 		assert(ordinalCheck == ordinal)
-		this.operandTypes = operandTypes
 	}
+
+	private val shortName = name.replace(Regex("L1_do|L1Ext_do"), "")
+
+	fun shortName() = shortName
 
 	/**
 	 * Dispatch this operation through an [L1OperationDispatcher].
@@ -392,10 +403,6 @@ enum class L1Operation constructor(
 		else
 		{
 			assert(nybble < 32)
-			// Kotlin is 100% wrong about the L1_doExtension being redundant
-			// here. We must explicitly use L1_doExtension's ordinal, not our
-			// own ordinal!
-			@Suppress("RemoveRedundantQualifierName")
 			stream.write(L1_doExtension.ordinal)
 			stream.write(nybble - 16)
 		}

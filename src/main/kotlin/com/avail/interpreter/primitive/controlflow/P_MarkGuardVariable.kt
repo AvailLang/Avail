@@ -1,6 +1,6 @@
 /*
  * P_MarkGuardVariable.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,18 +32,22 @@
 
 package com.avail.interpreter.primitive.controlflow
 
-import com.avail.descriptor.sets.SetDescriptor.set
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
-import com.avail.descriptor.types.VariableTypeDescriptor.variableTypeFor
-import com.avail.exceptions.AvailErrorCode.*
-import com.avail.interpreter.Interpreter
+import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
+import com.avail.exceptions.AvailErrorCode.E_CANNOT_MARK_HANDLER_FRAME
+import com.avail.exceptions.AvailErrorCode.E_HANDLER_SENTINEL
+import com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
+import com.avail.exceptions.AvailErrorCode.E_REQUIRED_FAILURE
+import com.avail.exceptions.AvailErrorCode.E_UNWIND_SENTINEL
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.Unknown
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Mark a primitive failure variable from a nearby invocation of
@@ -78,7 +82,8 @@ object P_MarkGuardVariable : Primitive(2, CanInline, Unknown)
 							E_UNWIND_SENTINEL))),
 				enumerationWith(
 					set(E_HANDLER_SENTINEL, E_UNWIND_SENTINEL))),
-			TOP.o())
+			TOP.o
+		)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_CANNOT_MARK_HANDLER_FRAME))

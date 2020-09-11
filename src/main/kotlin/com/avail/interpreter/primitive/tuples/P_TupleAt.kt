@@ -1,6 +1,6 @@
 /*
  * P_TupleAt.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,35 +32,47 @@
 package com.avail.interpreter.primitive.tuples
 
 import com.avail.descriptor.functions.A_RawFunction
-import com.avail.descriptor.numbers.IntegerDescriptor.one
-import com.avail.descriptor.sets.SetDescriptor.set
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
+import com.avail.descriptor.numbers.A_Number.Companion.greaterOrEqual
+import com.avail.descriptor.numbers.A_Number.Companion.greaterThan
+import com.avail.descriptor.numbers.A_Number.Companion.lessOrEqual
+import com.avail.descriptor.numbers.A_Number.Companion.lessThan
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.one
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.int32
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.naturalNumbers
-import com.avail.descriptor.types.TupleTypeDescriptor.mostGeneralTupleType
+import com.avail.descriptor.types.A_Type.Companion.lowerBound
+import com.avail.descriptor.types.A_Type.Companion.sizeRange
+import com.avail.descriptor.types.A_Type.Companion.typeIntersection
+import com.avail.descriptor.types.A_Type.Companion.unionOfTypesAtThrough
+import com.avail.descriptor.types.A_Type.Companion.upperBound
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int32
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT
-import com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForType
 import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_COMPARE_INT
 import com.avail.interpreter.levelTwo.operation.L2_TUPLE_AT_CONSTANT
 import com.avail.interpreter.levelTwo.operation.L2_TUPLE_AT_NO_FAIL
 import com.avail.interpreter.levelTwo.operation.L2_TUPLE_SIZE
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
-import com.avail.optimizer.L2Generator.edgeTo
+import com.avail.optimizer.L2Generator.Companion.edgeTo
 import java.lang.Integer.MAX_VALUE
 
 /**
@@ -90,8 +102,10 @@ object P_TupleAt : Primitive(2, CanFold, CanInline)
 		functionType(
 			tuple(
 				mostGeneralTupleType(),
-				naturalNumbers()),
-			ANY.o())
+				naturalNumbers
+			),
+			ANY.o
+		)
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,
@@ -146,12 +160,12 @@ object P_TupleAt : Primitive(2, CanFold, CanInline)
 			val semanticSize = generator.primitiveInvocation(
 				P_TupleSize, listOf(tupleReg))
 			val intSizeRestriction = restrictionForType(
-				tupleReg.type().sizeRange().typeIntersection(int32()),
+				tupleReg.type().sizeRange().typeIntersection(int32),
 				UNBOXED_INT)
 			val sizeWriter = generator.intWrite(
 				semanticSize, intSizeRestriction)
 			translator.addInstruction(
-				L2_TUPLE_SIZE.instance,
+				L2_TUPLE_SIZE,
 				tupleReg,
 				sizeWriter)
 			val readSubscript = generator.readInt(
@@ -199,7 +213,7 @@ object P_TupleAt : Primitive(2, CanFold, CanInline)
 				val writeResult =
 					generator.boxedWrite(semanticResult, resultRestriction)
 				generator.addInstruction(
-					L2_TUPLE_AT_NO_FAIL.instance,
+					L2_TUPLE_AT_NO_FAIL,
 					tupleReg,
 					readSubscript,
 					writeResult)
@@ -234,7 +248,7 @@ object P_TupleAt : Primitive(2, CanFold, CanInline)
 			// The subscript is a constant (and it's within range).
 			val subscriptInt = lower.extractInt()
 			translator.addInstruction(
-				L2_TUPLE_AT_CONSTANT.instance,
+				L2_TUPLE_AT_CONSTANT,
 				tupleReg,
 				L2IntImmediateOperand(subscriptInt),
 				writer)
@@ -249,7 +263,7 @@ object P_TupleAt : Primitive(2, CanFold, CanInline)
 			subscriptConversionFailure)
 		assert(subscriptConversionFailure.predecessorEdgesCount() == 0)
 		translator.addInstruction(
-			L2_TUPLE_AT_NO_FAIL.instance,
+			L2_TUPLE_AT_NO_FAIL,
 			tupleReg,
 			subscriptIntReg,
 			writer)

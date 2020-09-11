@@ -1,6 +1,6 @@
 /*
  * Statistic.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@
 package com.avail.performance
 
 import com.avail.AvailRuntimeConfiguration.maxInterpreters
-import com.avail.interpreter.Interpreter
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * An immutable collection of related statistics.
@@ -50,7 +50,8 @@ import com.avail.interpreter.Interpreter
  *   The report under which this statistic is classified.
  */
 class Statistic constructor(
-	private val nameSupplier: () -> String, report: StatisticReport)
+	report: StatisticReport,
+	private val nameSupplier: () -> String)
 {
 	/** The array of [PerInterpreterStatistic]s.  */
 	val statistics = Array(maxInterpreters) { PerInterpreterStatistic() }
@@ -62,7 +63,7 @@ class Statistic constructor(
 	 * @return
 	 *   The statistic's current name.
 	 */
-	fun name(): String = nameSupplier.invoke()
+	fun name(): String = nameSupplier()
 
 	init
 	{
@@ -77,7 +78,7 @@ class Statistic constructor(
 	 * @param report
 	 *   The report under which this statistic is classified.
 	 */
-	constructor(name: String, report: StatisticReport) : this({ name }, report)
+	constructor(report: StatisticReport, name: String) : this(report, { name })
 
 	/**
 	 * Record a sample in my [PerInterpreterStatistic] having the specified

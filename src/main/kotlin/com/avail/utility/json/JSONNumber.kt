@@ -1,6 +1,6 @@
 /*
  * JSONNumber.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,6 +45,7 @@ import java.math.BigInteger
 class JSONNumber : JSONData
 {
 	/** The [BigDecimal] that encodes the value.  */
+	@Suppress("MemberVisibilityCanBePrivate")
 	val bigDecimal: BigDecimal
 
 	override val isNumber: Boolean
@@ -63,10 +64,10 @@ class JSONNumber : JSONData
 		get() = bigDecimal.toBigIntegerExact()
 
 	/**
-	 * Extract an `Int`.
+	 * Extract an [Int].
 	 *
 	 * @return
-	 *   A `Int`.
+	 *   A [Int].
 	 * @throws ArithmeticException
 	 *   If the fractional part of the value is nonzero.
 	 */
@@ -134,7 +135,7 @@ class JSONNumber : JSONData
 	 * Construct a new [JSONNumber].
 	 *
 	 * @param value
-	 *   The `Int` that encodes the value.
+	 *   The [Int] that encodes the value.
 	 */
 	constructor(value: Int)
 	{

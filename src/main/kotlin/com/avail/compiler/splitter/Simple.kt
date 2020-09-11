@@ -1,6 +1,6 @@
 /*
  * Simple.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,8 @@ import com.avail.compiler.ParsingOperation.PARSE_PART
 import com.avail.compiler.ParsingOperation.PARSE_PART_CASE_INSENSITIVELY
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.tuples.A_String
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.types.A_Type
 
 /**
@@ -44,20 +46,15 @@ import com.avail.descriptor.types.A_Type
  * @property token
  *   The [A_String] for this simple expression.
  * @property tokenIndex
+ *   The one-based index of this token within the (zero-based)
+ *   [MessageSplitter.messageParts].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
- *   The one-based index of this token within the
- *   [MessageSplitter.messagePartsList].
+ *
  * @constructor
+ *   Construct a new `Simple` expression representing a specific token expected
+ *   in the input.
  *
- * Construct a new `Simple` expression representing a specific token expected in
- * the input.
- *
- * @param token
- *   An [A_String] containing the token's characters.
- * @param tokenIndex
- *   The one-based index of the token within the
- *   [MessageSplitter.messagePartsList].
  * @param positionInName
  *   The one-based index of the token within the entire name string.
  */
@@ -101,7 +98,8 @@ internal class Simple constructor(
 		return wrapState
 	}
 
-	override fun toString(): String = "${javaClass.simpleName}($token)"
+	override fun toString(): String =
+		"${this@Simple.javaClass.simpleName}($token)"
 
 	override fun printWithArguments(
 		arguments: Iterator<A_Phrase>?,
@@ -130,6 +128,10 @@ internal class Simple constructor(
 				|| charactersThatLikeSpacesAfter.indexOf(
 					lastCharacter.toChar()) >= 0
 		}
+
+	override fun checkListStructure(phrase: A_Phrase): Boolean =
+		throw RuntimeException(
+			"checkListStructure() inapplicable for Simple expression.")
 
 	companion object
 	{

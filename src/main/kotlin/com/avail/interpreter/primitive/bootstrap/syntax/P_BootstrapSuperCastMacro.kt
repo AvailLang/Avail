@@ -1,6 +1,6 @@
 /*
  * P_BootstrapSuperCastMacro.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,23 +34,30 @@ package com.avail.interpreter.primitive.bootstrap.syntax
 
 import com.avail.compiler.AvailRejectedParseException
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
+import com.avail.descriptor.phrases.A_Phrase.Companion.token
 import com.avail.descriptor.phrases.SuperCastPhraseDescriptor
-import com.avail.descriptor.phrases.SuperCastPhraseDescriptor.newSuperCastNode
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.phrases.SuperCastPhraseDescriptor.Companion.newSuperCastNode
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.InstanceMetaDescriptor.anyMeta
-import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.*
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SUPER_CAST_PHRASE
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.Bootstrap
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.execution.Interpreter
 
 /**
- * The `P_BootstrapSuperCastMacro` primitive is used to create a [super-cast
- * phrase][SuperCastPhraseDescriptor].  This is used to control method lookup,
- * and is a generalization of the concept of `super` found in some
- * object-oriented languages.
+ * The `P_BootstrapSuperCastMacro` primitive is used to create a
+ * [super-cast&#32;phrase][SuperCastPhraseDescriptor].  This is used to control
+ * method lookup, and is a generalization of the concept of `super` found in
+ * some object-oriented languages.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -71,7 +78,7 @@ object P_BootstrapSuperCastMacro
 				STRONG,
 				"supercast type to be something other than $type")
 		}
-		val expressionType = expressionNode.expressionType()
+		val expressionType = expressionNode.phraseExpressionType()
 		if (!expressionType.isSubtypeOf(type))
 		{
 			throw AvailRejectedParseException(
@@ -80,14 +87,13 @@ object P_BootstrapSuperCastMacro
 					+ "expression's type ($expressionType)")
 		}
 		val superCast = newSuperCastNode(expressionNode, type)
-		superCast.makeImmutable()
-		return interpreter.primitiveSuccess(superCast)
+		return interpreter.primitiveSuccess(superCast.makeImmutable())
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				EXPRESSION_PHRASE.create(ANY.o()),
+				EXPRESSION_PHRASE.create(ANY.o),
 				LITERAL_PHRASE.create(anyMeta())),
 			SUPER_CAST_PHRASE.mostGeneralType())
 }

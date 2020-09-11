@@ -1,6 +1,6 @@
 /*
  * Types.avail
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -560,7 +560,7 @@ Method "“_”" is
 	report : unit test report
 |
 	results ::= report's metrics;
-	description ::= left fold <""> ++ results through
+	description ::= left fold "" into results through
 		[
 			result : unit test result,
 			partial : string

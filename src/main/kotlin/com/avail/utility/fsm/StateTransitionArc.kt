@@ -1,6 +1,6 @@
 /*
  * StateTransitionArc.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,20 +36,21 @@ package com.avail.utility.fsm
  * A state transition, effectively the "compiled form" of a single state
  * transition arc.
  *
- * @param <State>
+ * @param State
  *   The type of the new state.
- * @param <Event>
+ * @param Event
  *   The type of the triggering event.
- * @param <GuardKey>
+ * @param GuardKey
  *   The type of guard keys.
- * @param <ActionKey>
+ * @param ActionKey
  *   The type of action keys.
- * @param <Memento>
+ * @param Memento
  *   The type of object passed to guards and actions.
  * @property event
  *   The event upon whose receipt the transition will occur.
  * @property guardKey
- *   The guard key whose bound guard will be performed to determine if a transition can be taken.
+ *   The guard key whose bound guard will be performed to determine if a
+ *   transition can be taken.
  * @property actionKey
  *   The action key whose bound action will be performed during transition.
  * @property newState
@@ -95,8 +96,8 @@ internal class StateTransitionArc<
 		private set
 
     /**
-     * Set my guard and action based on the
-     * supplied mappings from guard keys and action keys, respectively.
+     * Set my guard and action based on the supplied mappings from guard keys
+     * and action keys, respectively.
      *
      * @param guardMap
      *   The mapping from GuardKey to guard.

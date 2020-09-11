@@ -1,6 +1,6 @@
 /*
  * AvailBuilder.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,35 +33,54 @@
 package com.avail.builder
 
 import com.avail.AvailRuntime
-import com.avail.compiler.*
+import com.avail.compiler.AvailCompiler
+import com.avail.compiler.CompilerProgressReporter
+import com.avail.compiler.FiberTerminationException
+import com.avail.compiler.GlobalProgressReporter
+import com.avail.compiler.ModuleHeader
+import com.avail.compiler.ModuleImport
 import com.avail.compiler.problems.Problem
 import com.avail.compiler.problems.ProblemHandler
-import com.avail.compiler.problems.ProblemType.*
-import com.avail.descriptor.A_Module
-import com.avail.descriptor.AvailObject
-import com.avail.descriptor.FiberDescriptor.commandPriority
-import com.avail.descriptor.FiberDescriptor.newFiber
-import com.avail.descriptor.ModuleDescriptor
-import com.avail.descriptor.ModuleDescriptor.newModule
-import com.avail.descriptor.NilDescriptor.nil
+import com.avail.compiler.problems.ProblemType.EXECUTION
+import com.avail.compiler.problems.ProblemType.PARSE
+import com.avail.compiler.problems.ProblemType.TRACE
+import com.avail.descriptor.atoms.A_Atom.Companion.atomName
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY
-import com.avail.descriptor.functions.FunctionDescriptor.createFunctionForPhrase
-import com.avail.descriptor.maps.MapDescriptor.emptyMap
+import com.avail.descriptor.fiber.FiberDescriptor.Companion.commandPriority
+import com.avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
+import com.avail.descriptor.fiber.FiberDescriptor.Companion.setSuccessAndFailure
+import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunctionForPhrase
+import com.avail.descriptor.maps.A_Map.Companion.hasKey
+import com.avail.descriptor.maps.A_Map.Companion.mapAt
+import com.avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
+import com.avail.descriptor.maps.A_Map.Companion.mapSize
+import com.avail.descriptor.maps.A_Map.Companion.valuesAsTuple
+import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
+import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.module.ModuleDescriptor
+import com.avail.descriptor.module.ModuleDescriptor.Companion.newModule
 import com.avail.descriptor.phrases.A_Phrase
-import com.avail.descriptor.tuples.StringDescriptor.formatString
-import com.avail.descriptor.tuples.StringDescriptor.stringFrom
+import com.avail.descriptor.phrases.A_Phrase.Companion.apparentSendName
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.descriptor.tuples.A_Tuple.Companion.asSet
+import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
+import com.avail.descriptor.types.A_Type.Companion.returnType
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE
-import com.avail.interpreter.Interpreter.debugWorkUnits
-import com.avail.interpreter.Interpreter.runOutermostFunction
+import com.avail.interpreter.execution.AvailLoader
+import com.avail.interpreter.execution.Interpreter.Companion.debugWorkUnits
+import com.avail.interpreter.execution.Interpreter.Companion.runOutermostFunction
 import com.avail.io.SimpleCompletionHandler
 import com.avail.io.TextInterface
 import com.avail.persistence.Repository
-import com.avail.persistence.Repository.*
+import com.avail.persistence.Repository.ModuleArchive
+import com.avail.persistence.Repository.ModuleCompilation
+import com.avail.persistence.Repository.ModuleVersion
 import com.avail.serialization.MalformedSerialStreamException
 import com.avail.serialization.Serializer
 import com.avail.utility.Graph
-import com.avail.utility.Locks.auto
-import com.avail.utility.StackPrinter.trace
+import com.avail.utility.StackPrinter.Companion.trace
+import com.avail.utility.safeWrite
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -69,8 +88,8 @@ import java.lang.String.format
 import java.nio.ByteBuffer
 import java.nio.file.Path
 import java.nio.file.attribute.BasicFileAttributes
-import java.util.*
-import java.util.Collections.*
+import java.util.Collections.synchronizedList
+import java.util.Collections.synchronizedMap
 import java.util.concurrent.Semaphore
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
@@ -86,9 +105,9 @@ import kotlin.collections.set
 import kotlin.concurrent.read
 
 /**
- * An `AvailBuilder` [compiles][AvailCompiler] and installs into an [Avail
- * runtime][AvailRuntime] a target [module][ModuleDescriptor] and each of its
- * dependencies.
+ * An `AvailBuilder` [compiles][AvailCompiler] and installs into an
+ * [Avail&#32;runtime][AvailRuntime] a target [module][ModuleDescriptor] and
+ * each of its dependencies.
  *
  * @property runtime
  *   The [runtime][AvailRuntime] into which the [builder][AvailBuilder] will
@@ -111,8 +130,8 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	private val builderLock = ReentrantReadWriteLock()
 
 	/**
-	 * The [text interface][TextInterface] for the [builder][AvailBuilder] and
-	 * downstream components.
+	 * The [text&#32;interface][TextInterface] for the [builder][AvailBuilder]
+	 * and downstream components.
 	 */
 	var textInterface: TextInterface = runtime.textInterface()
 
@@ -129,10 +148,10 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	 * [LoadedModule].
 	 */
 	private val allLoadedModules =
-		synchronizedMap(HashMap<ResolvedModuleName, LoadedModule>())
+		synchronizedMap(mutableMapOf<ResolvedModuleName, LoadedModule>())
 
 	/** Whom to notify when modules load and unload.  */
-	private val subscriptions = HashSet<(LoadedModule, Boolean)->Unit>()
+	private val subscriptions = mutableSetOf<(LoadedModule, Boolean)->Unit>()
 
 	/**
 	 * If not-`null`, an indication of why the current build should stop.
@@ -182,12 +201,12 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	 *   The list of modules currently loaded.
 	 */
 	fun loadedModulesCopy(): List<LoadedModule> =
-		builderLock.read { ArrayList(allLoadedModules.values) }
+		builderLock.read { allLoadedModules.values.toList() }
 
 	/**
-	 * Look up the currently loaded module with the specified [resolved module
-	 * name][ResolvedModuleName].  Return `null` if the module is not currently
-	 * loaded.
+	 * Look up the currently loaded module with the specified
+	 * [resolved&#32;module&#32;name][ResolvedModuleName].  Return `null` if the
+	 * module is not currently loaded.
 	 *
 	 * @param resolvedModuleName
 	 *   The name of the module to locate.
@@ -209,7 +228,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 		resolvedModuleName: ResolvedModuleName,
 		loadedModule: LoadedModule)
 	{
-		auto(builderLock.writeLock()).use {
+		builderLock.safeWrite {
 			allLoadedModules[resolvedModuleName] = loadedModule
 			for (subscription in subscriptions)
 			{
@@ -227,7 +246,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	 */
 	internal fun removeLoadedModule(resolvedModuleName: ResolvedModuleName)
 	{
-		auto(builderLock.writeLock()).use {
+		builderLock.safeWrite {
 			val loadedModule = allLoadedModules[resolvedModuleName]!!
 			allLoadedModules.remove(resolvedModuleName)
 			subscriptions.forEach { it(loadedModule, false) }
@@ -240,15 +259,14 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	 */
 	internal fun trimGraphToLoadedModules()
 	{
-		for (moduleName in ArrayList(moduleGraph.vertices()))
+		for (moduleName in moduleGraph.vertices.toList())
 		{
-			if (getLoadedModule(moduleName) ==
-				null)
+			if (getLoadedModule(moduleName) === null)
 			{
 				moduleGraph.exciseVertex(moduleName)
 			}
 		}
-		assert(moduleGraph.vertexCount() == allLoadedModules.size)
+		assert(moduleGraph.vertexCount == allLoadedModules.size)
 	}
 
 	/**
@@ -257,12 +275,12 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	fun checkStableInvariants()
 	{
 		val loadedRuntimeModules = runtime.loadedModules()
-		val moduleGraphSize = moduleGraph.vertexCount()
+		val moduleGraphSize = moduleGraph.vertexCount
 		val allLoadedModulesSize = allLoadedModules.size
 		val loadedRuntimeModulesSize = loadedRuntimeModules.mapSize()
 		assert(moduleGraphSize == allLoadedModulesSize)
 		assert(moduleGraphSize == loadedRuntimeModulesSize)
-		for (graphModuleName in ArrayList(moduleGraph.vertices()))
+		for (graphModuleName in moduleGraph.vertices.toList())
 		{
 			val qualifiedAvailName = stringFrom(graphModuleName.qualifiedName)
 			assert(allLoadedModules.containsKey(graphModuleName))
@@ -276,7 +294,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	 * `true` iff the current build should stop, `false` otherwise.
 	 */
 	val shouldStopBuild: Boolean
-		get() = privateStopBuildReason.get() != null
+		get() = privateStopBuildReason.get() !== null
 
 	/**
 	 * The reason why the current build should stop, or `null` if a stop is not
@@ -286,7 +304,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 		get() = privateStopBuildReason.get()
 		set(why)
 		{
-			auto(builderLock.writeLock()).use {
+			builderLock.safeWrite {
 				val old = privateStopBuildReason.getAndSet(why)
 				if (debugWorkUnits)
 				{
@@ -313,8 +331,8 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	}
 
 	/**
-	 * Serialize the specified [module header][ModuleHeader] into the [module
-	 * version][ModuleVersion].
+	 * Serialize the specified [module&#32;header][ModuleHeader] into the
+	 * [module&#32;version][ModuleVersion].
 	 *
 	 * @param header
 	 *   A module header.
@@ -403,7 +421,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	 * @property label
 	 *   The textual label of the corresponding node in the graph layout.
 	 * @property resolvedModuleName
-	 *   The represented module's [resolved name][ResolvedModuleName].
+	 *   The represented module's [resolved&#32;name][ResolvedModuleName].
 	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 *
 	 * @constructor
@@ -430,7 +448,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 		 * The list of children of this package or module (in which case it must
 		 * be empty.
 		 */
-		val children: MutableList<ModuleTree> = ArrayList()
+		val children=  mutableListOf<ModuleTree>()
 
 		/**
 		 * Add a child to this node.
@@ -467,7 +485,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 		/**
 		 * Enumerate the modules in this tree, invoking the `enter` callback
 		 * before visiting children, and invoking the `exit` callback after.
-		 * Both callbacks take an `int` indicating the current depth in the
+		 * Both callbacks take an [Int] indicating the current depth in the
 		 * tree, relative to the initial passed value.
 		 *
 		 * @param enter
@@ -496,8 +514,8 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	 * Build the [target][ModuleDescriptor] and its dependencies.
 	 *
 	 * @param target
-	 *   The [canonical name][ModuleName] of the module that the builder must
-	 *   (recursively) load into the [AvailRuntime].
+	 *   The [canonical&#32;name][ModuleName] of the module that the builder
+	 *   must (recursively) load into the [AvailRuntime].
 	 * @param localTracker
 	 *   A [CompilerProgressReporter].
 	 * @param globalTracker
@@ -540,7 +558,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 						0,
 						TRACE,
 						"Cycle detected in ancestor modules: {0}",
-						moduleGraph.findCycle().stream()
+						moduleGraph.firstCycle.stream()
 							.map { it.qualifiedName }
 							.collect(joining("\n\t", "\n\t", "")))
 					{
@@ -567,8 +585,8 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	 * current [Thread] until it's done.
 	 *
 	 * @param target
-	 *   The [canonical name][ModuleName] of the module that the builder must
-	 *   (recursively) load into the [AvailRuntime].
+	 *   The [canonical&#32;name][ModuleName] of the module that the builder
+	 *   must (recursively) load into the [AvailRuntime].
 	 * @param localTracker
 	 *   A [CompilerProgressReporter].
 	 * @param globalTracker
@@ -594,12 +612,12 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	}
 
 	/**
-	 * Unload the [target module][ModuleDescriptor] and its dependents.  If
+	 * Unload the [target&#32;module][ModuleDescriptor] and its dependents.  If
 	 * `null` is provided, unload all modules.
 	 *
 	 * @param target
-	 *   The [resolved name][ResolvedModuleName] of the module to be unloaded,
-	 *   or `null` to unload all modules.
+	 *   The [resolved&#32;name][ResolvedModuleName] of the module to be
+	 *   unloaded, or `null` to unload all modules.
 	 */
 	fun unloadTarget(target: ResolvedModuleName?)
 	{
@@ -730,7 +748,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	 * commands.
 	 *
 	 * @property moduleName
-	 *   The [module name][ResolvedModuleName] of the [module][LoadedModule]
+	 *   The [module&#32;name][ResolvedModuleName] of the [module][LoadedModule]
 	 *   that declares the entry point.
 	 * @property entryPointName
 	 *   The name of the entry point.
@@ -743,7 +761,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	 * Construct a new `CompiledCommand`.
 	 *
 	 * @param moduleName
-	 *   The [module name][ResolvedModuleName] of the [module][LoadedModule]
+	 *   The [module&#32;name][ResolvedModuleName] of the [module][LoadedModule]
 	 *   that declares the entry point.
 	 * @param entryPointName
 	 *   The name of the entry point.
@@ -774,8 +792,8 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	 *   The command to attempt to parse and run.
 	 * @param onAmbiguity
 	 *   What to do if the entry point is ambiguous. Accepts a [List] of
-	 *   [compiled commands][CompiledCommand] and the function to invoke with
-	 *   the selected command (or `null` if no command should be run).
+	 *   [compiled&#32;commands][CompiledCommand] and the function to invoke
+	 *   with the selected command (or `null` if no command should be run).
 	 * @param onSuccess
 	 *   What to do if the command parsed and ran to completion.  It should be
 	 *   passed both the result of execution and a cleanup function to invoke
@@ -785,7 +803,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	 */
 	fun attemptCommand(
 		command: String,
-		onAmbiguity: (List<CompiledCommand>, (CompiledCommand)->Unit)->Unit,
+		onAmbiguity: (List<CompiledCommand>, (CompiledCommand?)->Unit)->Unit,
 		onSuccess: (AvailObject, (()->Unit)->Unit)->Unit,
 		onFailure: ()->Unit)
 	{
@@ -812,8 +830,8 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	 *   The command to attempt to parse and run.
 	 * @param onAmbiguity
 	 *   What to do if the entry point is ambiguous. Accepts a [List] of
-	 *   [compiled commands][CompiledCommand] and the function to invoke with
-	 *   the selected command (or `null` if no command should be run).
+	 *   [compiled&#32;commands][CompiledCommand] and the function to invoke
+	 *   with the selected command (or `null` if no command should be run).
 	 * @param onSuccess
 	 *   What to do if the command parsed and ran to completion.  It should be
 	 *   passed both the result of execution and a cleanup function to invoke
@@ -823,11 +841,11 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	 */
 	private fun scheduleAttemptCommand(
 		command: String,
-		onAmbiguity: (List<CompiledCommand>, (CompiledCommand)->Unit)->Unit,
+		onAmbiguity: (List<CompiledCommand>, (CompiledCommand?)->Unit)->Unit,
 		onSuccess: (AvailObject, (()->Unit)->Unit)->Unit,
 		onFailure: ()->Unit)
 	{
-		val modulesWithEntryPoints = HashSet<LoadedModule>()
+		val modulesWithEntryPoints = mutableSetOf<LoadedModule>()
 		for (loadedModule in loadedModulesCopy())
 		{
 			if (loadedModule.entryPoints.isNotEmpty())
@@ -851,11 +869,11 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 		}
 
 		val allSolutions =
-			synchronizedMap(HashMap<LoadedModule, List<A_Phrase>>())
+			synchronizedMap(mutableMapOf<LoadedModule, List<A_Phrase>>())
 		val allCleanups =
-			synchronizedList(ArrayList<(()->Unit)->Unit>())
+			synchronizedList(mutableListOf<(()->Unit)->Unit>())
 		val allProblems =
-			synchronizedMap(HashMap<LoadedModule, MutableList<Problem>>())
+			synchronizedMap(mutableMapOf<LoadedModule, MutableList<Problem>>())
 		val outstanding = AtomicInteger(modulesWithEntryPoints.size)
 		val decrement = {
 			if (outstanding.decrementAndGet() == 0)
@@ -876,10 +894,11 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 				stringFrom(
 					loadedModule.module.moduleName().asNativeString() +
 						" (command)"))
+			val loader = AvailLoader(module, runtime.textInterface())
 			val moduleImport = ModuleImport.extend(loadedModule.module)
 			val header = ModuleHeader(loadedModule.name)
 			header.importedModules.add(moduleImport)
-			header.applyToModule(module, runtime)
+			header.applyToModule(loader)
 			module.addImportedNames(
 				loadedModule.module.entryPoints().valuesAsTuple().asSet())
 			val compiler = AvailCompiler(
@@ -888,7 +907,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 				stringFrom(command),
 				textInterface,
 				pollForAbort,
-				{ _, _, _ -> },
+				{ _, _, _, _ -> },
 				object : BuilderProblemHandler(this, "«collection only»")
 				{
 					override fun handleGeneric(
@@ -912,7 +931,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 							}
 						}
 						allProblems.compute(loadedModule) { _, oldV ->
-							val v = oldV ?: ArrayList()
+							val v = oldV ?: mutableListOf()
 							v.add(copy)
 							v
 						}
@@ -922,15 +941,15 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 					@Suppress("RedundantLambdaArrow")
 					override fun handleInternal(
 						problem: Problem,
-						decider: (Boolean)->Unit)
-					{
-						SimpleCompletionHandler<Int, Void?>(
+						decider: (Boolean)->Unit
+					) {
+						SimpleCompletionHandler<Int>(
 							{ handleGeneric(problem, decider) },
-							{ _ -> handleGeneric(problem, decider) }
-						).guardedDo(
-							textInterface.errorChannel::write,
-							problem.toString(),
-							null)
+							{ handleGeneric(problem, decider) }
+						).guardedDo {
+							textInterface.errorChannel.write(
+								problem.toString(), dummy, handler)
+						}
 					}
 
 					@Suppress("RedundantLambdaArrow")
@@ -939,13 +958,13 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 						decider: (Boolean)->Unit)
 					{
 						// Same as handleInternal (2015.04.24)
-						SimpleCompletionHandler<Int, Void?>(
+						SimpleCompletionHandler<Int>(
 							{ handleGeneric(problem, decider) },
-							{ _ -> handleGeneric(problem, decider) }
-						).guardedDo(
-							textInterface.errorChannel::write,
-							problem.toString(),
-							null)
+							{ handleGeneric(problem, decider) }
+						).guardedDo {
+							textInterface.errorChannel.write(
+								problem.toString(), dummy, handler)
+						}
 					}
 				})
 			compiler.parseCommand(
@@ -1000,7 +1019,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	 *   encountered.
 	 * @param onAmbiguity
 	 *   What to do if the entry point is ambiguous. Accepts a [List] of
-	 *   [compiled commands][CompiledCommand] and the continuation to invoke
+	 *   [compiled&#32;commands][CompiledCommand] and the continuation to invoke
 	 *   with the selected command (or `null` if no command should be run).
 	 * @param onSuccess
 	 *   What to do with the result of a successful unambiguous command.
@@ -1012,7 +1031,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	private fun processParsedCommand(
 		solutions: Map<LoadedModule, List<A_Phrase>>,
 		problems: Map<LoadedModule, List<Problem>>,
-		onAmbiguity: (List<CompiledCommand>, (CompiledCommand)->Unit)->Unit,
+		onAmbiguity: (List<CompiledCommand>, (CompiledCommand?)->Unit)->Unit,
 		onSuccess: (AvailObject, (()->Unit)->Unit)->Unit,
 		postSuccessCleanup: (()->Unit)->Unit,
 		onFailure: ()->Unit)
@@ -1023,7 +1042,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 			// encountered.  Actually, choose the modules that tied for the
 			// deepest parse, and only show those problems.
 			var deepestPosition = Long.MIN_VALUE
-			val deepestProblems = ArrayList<Problem>()
+			val deepestProblems = mutableListOf<Problem>()
 			for ((_, value) in problems)
 			{
 				for (problem in value)
@@ -1047,7 +1066,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 			return
 		}
 		// Filter the solutions to invocations of entry points.
-		val commands = ArrayList<CompiledCommand>()
+		val commands = mutableListOf<CompiledCommand>()
 		for ((key, value) in solutions)
 		{
 			val moduleEntryPoints = key.entryPoints
@@ -1060,9 +1079,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 					if (moduleEntryPoints.contains(nameString))
 					{
 						commands.add(CompiledCommand(
-							key.name,
-							nameString,
-							solution))
+							key.name, nameString, solution))
 					}
 				}
 			}
@@ -1090,13 +1107,13 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 			val fiber = newFiber(
 				function.kind().returnType(),
 				commandPriority
-			) { formatString("Running command: %s", phrase) }
+			) { stringFrom("Running command: $phrase") }
 			var fiberGlobals = fiber.fiberGlobals()
 			fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
-				CLIENT_DATA_GLOBAL_KEY.atom, emptyMap(), true)
-			fiber.fiberGlobals(fiberGlobals)
-			fiber.textInterface(textInterface)
-			fiber.setSuccessAndFailureContinuations(
+				CLIENT_DATA_GLOBAL_KEY.atom, emptyMap, true)
+			fiber.setFiberGlobals(fiberGlobals)
+			fiber.setTextInterface(textInterface)
+			fiber.setSuccessAndFailure(
 				{ result -> onSuccess(result, postSuccessCleanup) },
 				{ e ->
 					if (e is FiberTerminationException)
@@ -1111,7 +1128,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 							1,
 							EXECUTION,
 							"Error executing command:{0}\n{1}",
-							if (e.message != null) " " + e.message else "",
+							if (e.message !== null) " " + e.message else "",
 							trace(e))
 						{
 							override fun abortCompilation() = onFailure()
@@ -1130,7 +1147,18 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 		}
 
 		// Otherwise, report the possible commands for disambiguation.
-		onAmbiguity(commands, unambiguous)
+		onAmbiguity(commands) { choice ->
+			when (choice) {
+				null -> SimpleCompletionHandler<Int>(
+					{ onFailure() },
+					{ onFailure() }  /* Ignore I/O error */
+				).guardedDo {
+					textInterface.errorChannel.write(
+						"Action was cancelled by user", dummy, handler)
+				}
+				else -> unambiguous(choice)
+			}
+		}
 	}
 
 	companion object
@@ -1148,7 +1176,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 		 * Log the specified message if [debugging][debugBuilder] is enabled.
 		 *
 		 * @param level
-		 *   The [severity level][Level].
+		 *   The [severity&#32;level][Level].
 		 * @param format
 		 *   The format string.
 		 * @param args
@@ -1170,7 +1198,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 		 * Log the specified message if [debugging][debugBuilder] is enabled.
 		 *
 		 * @param level
-		 *   The [severity level][Level].
+		 *   The [severity&#32;level][Level].
 		 * @param exception
 		 *   The [exception][Throwable] that motivated this log entry.
 		 * @param format
@@ -1204,7 +1232,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 		internal const val maximumStaleRepositoryMs = 2000L
 
 		/**
-		 * Given a byte array, compute the [CRC32] checksum and append the `int`
+		 * Given a byte array, compute the [CRC32] checksum and append the [Int]
 		 * value as four bytes (Big Endian), answering the new augmented byte
 		 * array.
 		 *

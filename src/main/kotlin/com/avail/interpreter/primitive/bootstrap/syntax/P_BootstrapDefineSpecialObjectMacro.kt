@@ -1,6 +1,6 @@
 /*
  * P_BootstrapDefineSpecialObjectMacro.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,34 +32,40 @@
 
 package com.avail.interpreter.primitive.bootstrap.syntax
 
+import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
 import com.avail.descriptor.bundles.A_Bundle
-import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.*
-import com.avail.descriptor.numbers.IntegerDescriptor.fromInt
-import com.avail.descriptor.phrases.BlockPhraseDescriptor.newBlockNode
-import com.avail.descriptor.phrases.ExpressionAsStatementPhraseDescriptor.newExpressionAsStatement
-import com.avail.descriptor.phrases.ListPhraseDescriptor.emptyListNode
-import com.avail.descriptor.phrases.ListPhraseDescriptor.newListNode
-import com.avail.descriptor.phrases.LiteralPhraseDescriptor.syntheticLiteralNodeFor
-import com.avail.descriptor.phrases.SendPhraseDescriptor.newSendNode
-import com.avail.descriptor.phrases.SequencePhraseDescriptor.newSequence
-import com.avail.descriptor.sets.SetDescriptor.emptySet
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.CREATE_LITERAL_PHRASE
+import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.CREATE_LITERAL_TOKEN
+import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.MACRO_DEFINER
+import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.METHOD_DEFINER
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
+import com.avail.descriptor.phrases.A_Phrase.Companion.token
+import com.avail.descriptor.phrases.BlockPhraseDescriptor.Companion.newBlockNode
+import com.avail.descriptor.phrases.ExpressionAsStatementPhraseDescriptor.Companion.newExpressionAsStatement
+import com.avail.descriptor.phrases.ListPhraseDescriptor.Companion.emptyListNode
+import com.avail.descriptor.phrases.ListPhraseDescriptor.Companion.newListNode
+import com.avail.descriptor.phrases.LiteralPhraseDescriptor.Companion.syntheticLiteralNodeFor
+import com.avail.descriptor.phrases.SendPhraseDescriptor.Companion.newSendNode
+import com.avail.descriptor.phrases.SequencePhraseDescriptor.Companion.newSequence
+import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.LiteralTokenTypeDescriptor.literalTokenType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.LiteralTokenTypeDescriptor.Companion.literalTokenType
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEQUENCE_PHRASE
-import com.avail.descriptor.types.TupleTypeDescriptor.nonemptyStringType
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.nonemptyStringType
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AmbiguousNameException
 import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import com.avail.exceptions.MalformedMessageException
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.Bootstrap
 import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive**: Construct a method and an accompanying literalizing macro that
@@ -85,7 +91,8 @@ object P_BootstrapDefineSpecialObjectMacro
 		val bundle: A_Bundle =
 			try
 			{
-				loader.lookupName(nameLiteral.token().literal()).bundleOrCreate()
+				loader.lookupName(nameLiteral.token().literal())
+					.bundleOrCreate()
 			}
 			catch (e: AmbiguousNameException)
 			{
@@ -98,32 +105,34 @@ object P_BootstrapDefineSpecialObjectMacro
 
 		// Create a send of the bootstrap method definer that, when actually
 		// sent, will produce a method that answers the special object.
+		val literalType = specialObjectLiteral.phraseExpressionType()
 		val defineMethod = newSendNode(
-			emptyTuple(),
+			emptyTuple,
 			METHOD_DEFINER.bundle,
 			newListNode(
 				tuple(
 					nameLiteral,
 					newBlockNode(
-						emptyTuple(),
-						0,
+						emptyTuple,
+						null,
 						tuple(specialObjectLiteral),
-						specialObjectLiteral.expressionType(),
-						emptySet(),
+						literalType,
+						emptySet,
 						0,
-						emptyTuple()))),
-			TOP.o())
+						emptyTuple))),
+			TOP.o
+		)
 		// Create a send of the bootstrap macro definer that, when actually
 		// sent, will produce a method that literalizes the special object.
 		val getValue =
 			newSendNode(
-				emptyTuple(),
+				emptyTuple,
 				bundle,
-				newListNode(emptyTuple()),
-				specialObjectLiteral.expressionType())
+				newListNode(emptyTuple),
+				literalType)
 		val createLiteralToken =
 			newSendNode(
-				emptyTuple(),
+				emptyTuple,
 				CREATE_LITERAL_TOKEN.bundle,
 				newListNode(
 					tuple(
@@ -134,31 +143,32 @@ object P_BootstrapDefineSpecialObjectMacro
 							fromInt(0)),
 						syntheticLiteralNodeFor(
 							fromInt(0)))),
-				literalTokenType(specialObjectLiteral.expressionType()))
+				literalTokenType(literalType))
 		val createLiteralNode =
 			newSendNode(
-				emptyTuple(),
+				emptyTuple,
 				CREATE_LITERAL_PHRASE.bundle,
 				newListNode(tuple(createLiteralToken)),
-				LITERAL_PHRASE.create(specialObjectLiteral.expressionType()))
+				LITERAL_PHRASE.create(literalType))
 		val defineMacro =
 			newSendNode(
-				emptyTuple(),
+				emptyTuple,
 				MACRO_DEFINER.bundle,
 				newListNode(
 					tuple(
 						nameLiteral,
 						emptyListNode(),
 						newBlockNode(
-							emptyTuple(),
-							0,
+							emptyTuple,
+							null,
 							tuple(createLiteralNode),
 							LITERAL_PHRASE.create(
-								specialObjectLiteral.expressionType()),
-							emptySet(),
+								literalType),
+							emptySet,
 							0,
-							emptyTuple()))),
-				TOP.o())
+							emptyTuple))),
+				TOP.o
+			)
 		return interpreter.primitiveSuccess(
 			newSequence(
 				tuple(
@@ -170,6 +180,6 @@ object P_BootstrapDefineSpecialObjectMacro
 		functionType(
 			tuple(
 				LITERAL_PHRASE.create(nonemptyStringType()),
-				LITERAL_PHRASE.create(ANY.o())),
+				LITERAL_PHRASE.create(ANY.o)),
 			SEQUENCE_PHRASE.mostGeneralType())
 }

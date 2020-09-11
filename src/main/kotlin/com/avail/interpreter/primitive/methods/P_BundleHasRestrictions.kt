@@ -1,6 +1,6 @@
 /*
  * P_BundleHasRestrictions.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,16 +32,17 @@
 package com.avail.interpreter.primitive.methods
 
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
+import com.avail.descriptor.bundles.A_Bundle.Companion.hasGrammaticalRestrictions
 import com.avail.descriptor.bundles.MessageBundleDescriptor
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.EnumerationTypeDescriptor.booleanType
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.TypeDescriptor.Types.MESSAGE_BUNDLE
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Answer whether precedence restrictions have been defined (yet)
@@ -59,5 +60,5 @@ object P_BundleHasRestrictions : Primitive(1, CanInline, CannotFail)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(MESSAGE_BUNDLE.o()), booleanType())
+		functionType(tuple(MESSAGE_BUNDLE.o), booleanType)
 }

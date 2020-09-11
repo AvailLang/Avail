@@ -1,6 +1,6 @@
 /*
  * P_AddWriteReactor.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,28 +32,30 @@
 
 package com.avail.interpreter.primitive.variables
 
-import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
 import com.avail.descriptor.atoms.AtomDescriptor
-import com.avail.descriptor.sets.SetDescriptor.set
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.A_Type.Companion.instance
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
-import com.avail.descriptor.types.VariableTypeDescriptor.mostGeneralVariableType
+import com.avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 import com.avail.descriptor.variables.VariableDescriptor
 import com.avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
 import com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Add a [write reactor][VariableAccessReactor] to the specified
- * [variable][VariableDescriptor]. The supplied [key][AtomDescriptor] may be
- * used subsequently to remove the write reactor.
+ * **Primitive:** Add a [write&#32;reactor][VariableAccessReactor] to the
+ * specified [variable][VariableDescriptor]. The supplied [key][AtomDescriptor]
+ * may be used subsequently to remove the write reactor.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -67,7 +69,7 @@ object P_AddWriteReactor : Primitive(3, HasSideEffect)
 		val key = interpreter.argument(1)
 		val reactorFunction = interpreter.argument(2)
 		// Forbid special atoms.
-		if (key.isAtomSpecial)
+		if (key.isAtomSpecial())
 		{
 			return interpreter.primitiveFailure(E_SPECIAL_ATOM)
 		}
@@ -81,11 +83,13 @@ object P_AddWriteReactor : Primitive(3, HasSideEffect)
 		functionType(
 			tuple(
 				mostGeneralVariableType(),
-				ATOM.o(),
+				ATOM.o,
 				functionType(
-					emptyTuple(),
-					TOP.o())),
-			TOP.o())
+					emptyTuple,
+					TOP.o
+				)),
+			TOP.o
+		)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_SPECIAL_ATOM))
@@ -98,8 +102,8 @@ object P_AddWriteReactor : Primitive(3, HasSideEffect)
 		//		final A_Type functionType = argumentTypes.get(2);
 		if (keyType.isEnumeration)
 		{
-			val allSpecial = keyType.instance().all { it.isAtomSpecial }
-			val noneSpecial = keyType.instance().none { it.isAtomSpecial }
+			val allSpecial = keyType.instance().all { it.isAtomSpecial() }
+			val noneSpecial = keyType.instance().none { it.isAtomSpecial() }
 			// The aggregate booleans can only both be true in the degenerate
 			// case that keyType is ⊥, which should be impossible.
 			when {

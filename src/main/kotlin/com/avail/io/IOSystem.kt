@@ -1,6 +1,6 @@
 /*
  * IOSystem.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,26 +35,37 @@ package com.avail.io
 import com.avail.AvailRuntime
 import com.avail.AvailRuntimeConfiguration.availableProcessors
 import com.avail.AvailThread
-import com.avail.descriptor.AvailObject.Companion.multiplier
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom
 import com.avail.descriptor.pojos.PojoDescriptor
+import com.avail.descriptor.representation.AvailObject.Companion.multiplier
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.utility.LRUCache
-import com.avail.utility.MutableOrNull
+import com.avail.utility.Mutable
 import com.avail.utility.SimpleThreadFactory
 import java.io.IOException
 import java.nio.channels.AsynchronousChannelGroup
 import java.nio.channels.AsynchronousFileChannel
 import java.nio.channels.AsynchronousServerSocketChannel
 import java.nio.channels.AsynchronousSocketChannel
-import java.nio.file.*
+import java.nio.file.FileSystem
+import java.nio.file.FileSystems
+import java.nio.file.LinkOption
+import java.nio.file.OpenOption
+import java.nio.file.Path
 import java.nio.file.attribute.FileAttribute
 import java.nio.file.attribute.PosixFilePermission
-import java.nio.file.attribute.PosixFilePermission.*
-import java.util.*
-import java.util.Collections.synchronizedMap
+import java.nio.file.attribute.PosixFilePermission.GROUP_EXECUTE
+import java.nio.file.attribute.PosixFilePermission.GROUP_READ
+import java.nio.file.attribute.PosixFilePermission.GROUP_WRITE
+import java.nio.file.attribute.PosixFilePermission.OTHERS_EXECUTE
+import java.nio.file.attribute.PosixFilePermission.OTHERS_READ
+import java.nio.file.attribute.PosixFilePermission.OTHERS_WRITE
+import java.nio.file.attribute.PosixFilePermission.OWNER_EXECUTE
+import java.nio.file.attribute.PosixFilePermission.OWNER_READ
+import java.nio.file.attribute.PosixFilePermission.OWNER_WRITE
+import java.util.WeakHashMap
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy
@@ -76,8 +87,9 @@ import java.util.concurrent.TimeUnit
 class IOSystem constructor(val runtime: AvailRuntime)
 {
 	/**
-	 * The [thread pool executor][ThreadPoolExecutor] for asynchronous file
-	 * operations performed on behalf of this [Avail runtime][AvailRuntime].
+	 * The [thread&#32;pool&#32;executor][ThreadPoolExecutor] for asynchronous
+	 * file operations performed on behalf of this
+	 * [Avail&#32;runtime][AvailRuntime].
 	 */
 	val fileExecutor = ThreadPoolExecutor(
 		availableProcessors,
@@ -89,8 +101,9 @@ class IOSystem constructor(val runtime: AvailRuntime)
 		CallerRunsPolicy())
 
 	/**
-	 * The [thread pool executor][ThreadPoolExecutor] for asynchronous socket
-	 * operations performed on behalf of this [Avail runtime][AvailRuntime].
+	 * The [thread&#32;pool&#32;executor][ThreadPoolExecutor] for asynchronous
+	 * socket operations performed on behalf of this
+	 * [Avail&#32;runtime][AvailRuntime].
 	 */
 	private val socketExecutor = ThreadPoolExecutor(
 		availableProcessors,
@@ -102,28 +115,20 @@ class IOSystem constructor(val runtime: AvailRuntime)
 		CallerRunsPolicy())
 
 	/**
-	 * The [asynchronous channel group][AsynchronousChannelGroup] that manages
-	 * [asynchronous socket][AsynchronousSocketChannel] on behalf of this
-	 * [Avail runtime][AvailRuntime].
-	 */
-	private val socketGroup: AsynchronousChannelGroup
-
-	/**
 	 * Maintain an [LRUCache] of file buffers.  This allows us to avoid a trip
 	 * to the operating system to re-fetch recently accessed buffers of data,
 	 * which is especially powerful since the buffers are shared (immutable and
 	 * thread-safe).
 	 *
-	 *
 	 * A miss for this cache doesn't actually read the necessary data from the
-	 * operating system.  Instead, it simply creates a [MutableOrNull]
-	 * initially.  The client is responsible for reading the actual data that
-	 * should be stored into the `MutableOrNull`.
+	 * operating system.  Instead, it simply creates a [Mutable] initially.  The
+	 * client is responsible for reading the actual data that should be stored
+	 * into the `Mutable`.
 	 */
-	private val cachedBuffers = LRUCache<BufferKey, MutableOrNull<A_Tuple>>(
+	private val cachedBuffers = LRUCache<BufferKey, Mutable<A_Tuple?>>(
 		10000,
 		10,
-		{ MutableOrNull() },
+		{ Mutable(null) },
 		{ _, value ->
 			// Just clear the mutable's value slot, freeing the actual
 			// buffer.
@@ -132,10 +137,10 @@ class IOSystem constructor(val runtime: AvailRuntime)
 
 	/**
 	 * Schedule the specified [task][Runnable] for eventual execution
-	 * by the [thread pool executor][ThreadPoolExecutor] for
+	 * by the [thread&#32;pool&#32;executor][ThreadPoolExecutor] for
 	 * asynchronous file operations. The implementation is free to run the task
 	 * immediately or delay its execution arbitrarily. The task will not execute
-	 * on an [Avail thread][AvailThread].
+	 * on an [Avail&#32;thread][AvailThread].
 	 *
 	 * @param task
 	 *   A task.
@@ -145,26 +150,27 @@ class IOSystem constructor(val runtime: AvailRuntime)
 		fileExecutor.execute(task)
 	}
 
-	init
-	{
+	/**
+	 * The [asynchronous&#32;channel&#32;group][AsynchronousChannelGroup] that
+	 * manages [asynchronous&#32;socket][AsynchronousSocketChannel] on behalf of
+	 * this [Avail&#32;runtime][AvailRuntime].
+	 */
+	private val socketGroup: AsynchronousChannelGroup =
 		try
 		{
-			socketGroup =
-				AsynchronousChannelGroup.withThreadPool(socketExecutor)
+			AsynchronousChannelGroup.withThreadPool(socketExecutor)
 		}
 		catch (e: IOException)
 		{
 			throw RuntimeException(e)
 		}
 
-	}
-
 	/**
 	 * Schedule the specified [task][Runnable] for eventual execution by the
-	 * [thread pool executor][ThreadPoolExecutor] for asynchronous socket
-	 * operations. The implementation is free to run the task immediately or
-	 * delay its execution arbitrarily. The task will not execute on an
-	 * [Avail thread][AvailThread].
+	 * [thread&#32;pool&#32;executor][ThreadPoolExecutor] for asynchronous
+	 * socket operations. The implementation is free to run the task immediately
+	 * or delay its execution arbitrarily. The task will not execute on an
+	 * [Avail&#32;thread][AvailThread].
 	 *
 	 * @param task A task.
 	 */
@@ -175,15 +181,16 @@ class IOSystem constructor(val runtime: AvailRuntime)
 	}
 
 	/**
-	 * Open an [asynchronous file channel][AsynchronousFileChannel] for the
-	 * specified [path][Path].
+	 * Open an [asynchronous&#32;file&#32;channel][AsynchronousFileChannel] for
+	 * the specified [path][Path].
 	 *
 	 * @param path
 	 *   A path.
 	 * @param options
-	 *   The [open options][OpenOption].
+	 *   The [open&#32;options][OpenOption].
 	 * @param attributes
-	 *   The [file attributes][FileAttribute] (for newly created files only).
+	 *   The [file&#32;attributes][FileAttribute] (for newly created files
+	 *   only).
 	 * @return
 	 *   An asynchronous file channel.
 	 * @throws IllegalArgumentException
@@ -191,7 +198,7 @@ class IOSystem constructor(val runtime: AvailRuntime)
 	 * @throws UnsupportedOperationException
 	 *   If an option is invalid for the specified path.
 	 * @throws SecurityException
-	 *   If the [security manager][SecurityManager] denies permission to
+	 *   If the [security&#32;manager][SecurityManager] denies permission to
 	 *   complete the operation.
 	 * @throws IOException
 	 *   If the open fails for any reason.
@@ -212,7 +219,7 @@ class IOSystem constructor(val runtime: AvailRuntime)
 	 * A `BufferKey` identifies a file buffer in the [cache][cachedBuffers].
 	 *
 	 * @property fileHandle
-	 *   The [file handle][FileHandle] that represents the provenance of the
+	 *   The [file&#32;handle][FileHandle] that represents the provenance of the
 	 *   associated buffer.
 	 * @property startPosition
 	 *  The start position of the buffer within the underlying file. This value
@@ -267,7 +274,7 @@ class IOSystem constructor(val runtime: AvailRuntime)
 	 * substantially similar technique.
 	 *
 	 * In addition, the `FileHandle` weakly tracks which buffers need
-	 * to be evicted from Avail's [file buffer cache][cachedBuffers].
+	 * to be evicted from Avail's [file&#32;buffer&#32;cache][cachedBuffers].
 	 *
 	 * @author Mark van Gulik&lt;mark@availlang.org&gt;
 	 *
@@ -276,7 +283,7 @@ class IOSystem constructor(val runtime: AvailRuntime)
 	 * @property alignment
 	 *   The buffer alignment for the file.  Reading is only ever attempted on
 	 *   this file at buffer boundaries.  There is a
-	 *   [global file buffer cache][getBuffer], which is an
+	 *   [global&#32;file&#32;buffer&#32;cache][getBuffer], which is an
 	 *   [LRUCache] of buffers across all open files.  Each buffer in the cache
 	 *   has a length exactly equal to that file handle's alignment. A file
 	 *   will often have a partial buffer at the end due to its size not being
@@ -318,24 +325,23 @@ class IOSystem constructor(val runtime: AvailRuntime)
 		 * explicitly when the file is closed.  This weak set allows the cache
 		 * removals to happen efficiently.
 		 */
-		val bufferKeys: MutableMap<BufferKey, Void> =
-			synchronizedMap(WeakHashMap())
+		val bufferKeys = WeakHashMap<BufferKey, Void>()
 	}
 
 	/**
-	 * Answer the [container][MutableOrNull] responsible for the
-	 * [buffer][A_Tuple] indicated by the supplied [key][BufferKey].
+	 * Answer the [container][Mutable] responsible for the [buffer][A_Tuple]
+	 * indicated by the supplied [key][BufferKey].
 	 *
 	 * @param key
 	 *   A key.
 	 * @return
 	 *   A container for a buffer, possibly empty.
 	 */
-	fun getBuffer(key: BufferKey): MutableOrNull<A_Tuple> = cachedBuffers[key]
+	fun getBuffer(key: BufferKey): Mutable<A_Tuple?> = cachedBuffers[key]
 
 	/**
-	 * Discard the [container][MutableOrNull] responsible for the
-	 * [buffer][A_Tuple] indicated by the supplied [key][BufferKey].
+	 * Discard the [container][Mutable] responsible for the [buffer][A_Tuple]
+	 * indicated by the supplied [key][BufferKey].
 	 *
 	 * @param key
 	 *   A key.
@@ -346,7 +352,7 @@ class IOSystem constructor(val runtime: AvailRuntime)
 	}
 
 	/**
-	 * Open an [asynchronous server][AsynchronousServerSocketChannel].
+	 * Open an [asynchronous&#32;server][AsynchronousServerSocketChannel].
 	 *
 	 * @return
 	 *   An asynchronous server socket channel.
@@ -358,7 +364,7 @@ class IOSystem constructor(val runtime: AvailRuntime)
 		AsynchronousServerSocketChannel.open(socketGroup)
 
 	/**
-	 * Open an [asynchronous socket][AsynchronousSocketChannel].
+	 * Open an [asynchronous&#32;socket][AsynchronousSocketChannel].
 	 *
 	 * @return
 	 *   An asynchronous socket channel.
@@ -412,19 +418,19 @@ class IOSystem constructor(val runtime: AvailRuntime)
 		val fileSystem: FileSystem = FileSystems.getDefault()
 
 		/**
-		 * The [link options][LinkOption] for following symbolic links.
+		 * The [link&#32;options][LinkOption] for following symbolic links.
 		 */
 		private val followSymlinks = arrayOf<LinkOption>()
 
 		/**
-		 * The [link options][LinkOption] for forbidding traversal of
+		 * The [link&#32;options][LinkOption] for forbidding traversal of
 		 * symbolic links.
 		 */
 		private val doNotFollowSymbolicLinks =
 			arrayOf(LinkOption.NOFOLLOW_LINKS)
 
 		/**
-		 * Answer the appropriate [link options][LinkOption] for
+		 * Answer the appropriate [link&#32;options][LinkOption] for
 		 * following, or not following, symbolic links.
 		 *
 		 * @param shouldFollow
@@ -437,8 +443,8 @@ class IOSystem constructor(val runtime: AvailRuntime)
 			if (shouldFollow) followSymlinks else doNotFollowSymbolicLinks
 
 		/**
-		 * The [POSIX file permissions][PosixFilePermission]. *The order of
-		 * these elements should not be changed!*
+		 * The [POSIX&#32;file&#32;permissions][PosixFilePermission]. *The order
+		 * of these elements should not be changed!*
 		 */
 		@JvmStatic
 		val posixPermissions = arrayOf(

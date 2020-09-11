@@ -1,6 +1,6 @@
 /*
  * CompilerProgressReporter.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,7 +38,10 @@ import com.avail.builder.ModuleName
  * The [compiler][AvailCompiler] notifies a `CompilerProgressReporter`
  * whenever a top-level statement is parsed unambiguously.
  *
- * The arguments are the module name, the module size in bytes, and the
- * current parse position in bytes within the module.
+ * The arguments are
+ * * the module name,
+ * * the module size in bytes,
+ * * the current parse position in bytes within the module, and
+ * * the line number, or [Int.MAX_VALUE] if completed.
  */
-typealias CompilerProgressReporter = (ModuleName, Long, Long)->Unit
+typealias CompilerProgressReporter = (ModuleName, Long, Long, Int)->Unit

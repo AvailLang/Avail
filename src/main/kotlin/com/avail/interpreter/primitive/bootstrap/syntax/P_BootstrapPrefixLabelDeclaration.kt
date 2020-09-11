@@ -1,6 +1,6 @@
 /*
  * P_BootstrapPrefixLabelDeclaration.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,31 +34,38 @@ package com.avail.interpreter.primitive.bootstrap.syntax
 
 import com.avail.compiler.AvailRejectedParseException
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
-import com.avail.descriptor.FiberDescriptor
-import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.descriptor.phrases.A_Phrase
+import com.avail.descriptor.phrases.A_Phrase.Companion.expressionAt
+import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsSize
+import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsTuple
+import com.avail.descriptor.phrases.A_Phrase.Companion.lastExpression
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
+import com.avail.descriptor.phrases.A_Phrase.Companion.token
+import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newLabel
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
-import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.newLabel
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.BottomTypeDescriptor.bottom
-import com.avail.descriptor.types.ContinuationTypeDescriptor.continuationTypeForFunctionType
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.InstanceMetaDescriptor.anyMeta
-import com.avail.descriptor.types.InstanceMetaDescriptor.topMeta
+import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
+import com.avail.descriptor.types.ContinuationTypeDescriptor.Companion.continuationTypeForFunctionType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
+import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
-import com.avail.descriptor.types.TupleTypeDescriptor.*
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrOneOf
 import com.avail.descriptor.types.TypeDescriptor.Types.TOKEN
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.Bootstrap
 import com.avail.interpreter.Primitive.Flag.CanInline
-import java.util.*
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * The `P_BootstrapPrefixLabelDeclaration` primitive is used for bootstrapping
@@ -111,12 +118,12 @@ object P_BootstrapPrefixLabelDeclaration : Primitive(3, CanInline, Bootstrap)
 				// Because of continuation return type contravariance, this is
 				// the most general answer.
 				labelReturnTypePhrase = nil
-				bottom()
+				bottom
 			}
 
 		// Re-extract all the argument types so we can specify the exact type of
 		// the continuation.
-		val blockArgumentTypes = ArrayList<A_Type>()
+		val blockArgumentTypes = mutableListOf<A_Type>()
 		if (optionalBlockArgumentsList.expressionsSize() > 0)
 		{
 			assert(optionalBlockArgumentsList.expressionsSize() == 1)
@@ -166,7 +173,7 @@ object P_BootstrapPrefixLabelDeclaration : Primitive(3, CanInline, Bootstrap)
 							/* An argument. */
 							tupleTypeForTypes(
 								/* Argument name, a token. */
-								TOKEN.o(),
+								TOKEN.o,
 								/* Argument type. */
 								anyMeta())))),
 				/* Macro argument is a phrase. */
@@ -176,13 +183,13 @@ object P_BootstrapPrefixLabelDeclaration : Primitive(3, CanInline, Bootstrap)
 						/* Primitive declaration */
 						tupleTypeForTypes(
 							/* Primitive name. */
-							TOKEN.o(),
+							TOKEN.o,
 							/* Optional failure variable declaration. */
 							zeroOrOneOf(
 								/* Primitive failure variable parts. */
 								tupleTypeForTypes(
 									/* Primitive failure variable name token */
-									TOKEN.o(),
+									TOKEN.o,
 									/* Primitive failure variable type */
 									anyMeta()))))),
 				/* Macro argument is a phrase. */
@@ -192,10 +199,11 @@ object P_BootstrapPrefixLabelDeclaration : Primitive(3, CanInline, Bootstrap)
 						/* Label parts. */
 						tupleTypeForTypes(
 							/* Label name */
-							TOKEN.o(),
+							TOKEN.o,
 							/* Optional label return type. */
 							zeroOrOneOf(
 								/* Label return type. */
 								topMeta()))))),
-			TOP.o())
+			TOP.o
+		)
 }

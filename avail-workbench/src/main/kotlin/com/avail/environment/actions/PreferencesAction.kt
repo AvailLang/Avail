@@ -1,6 +1,6 @@
 /*
  * PreferencesAction.java
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,10 +42,18 @@ import java.awt.Dimension
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
 import java.io.File
-import java.util.*
-import javax.swing.*
+import javax.swing.Action
+import javax.swing.GroupLayout
 import javax.swing.GroupLayout.Alignment
+import javax.swing.JButton
+import javax.swing.JDialog
+import javax.swing.JLabel
+import javax.swing.JPanel
+import javax.swing.JScrollPane
+import javax.swing.JTable
+import javax.swing.SwingConstants
 import javax.swing.SwingUtilities.invokeLater
+import javax.swing.UIManager
 import javax.swing.border.EmptyBorder
 import javax.swing.table.AbstractTableModel
 import kotlin.math.min
@@ -76,7 +84,7 @@ class PreferencesAction constructor(workbench: AvailWorkbench)
 		private val columnNames: Array<String> = arrayOf(*columnNames)
 		val rows = mutableListOf<MutableList<String>>()
 
-		override fun getColumnName(column: Int): String =  columnNames[column]
+		override fun getColumnName(column: Int): String = columnNames[column]
 
 		override fun getRowCount(): Int = rows.size
 
@@ -95,7 +103,7 @@ class PreferencesAction constructor(workbench: AvailWorkbench)
 
 	override fun actionPerformed(event: ActionEvent?)
 	{
-		if (preferencesDialog == null)
+		if (preferencesDialog === null)
 		{
 			createDialog()
 			preferencesDialog!!.isVisible = true
@@ -173,11 +181,11 @@ class PreferencesAction constructor(workbench: AvailWorkbench)
 		rootsTableModel.rows.clear()
 		for (root in workbench.resolver.moduleRoots.roots)
 		{
-			val triple = ArrayList<String>(3)
+			val triple = mutableListOf<String>()
 			triple.add(root.name)
 			triple.add(root.repository.fileName.path)
 			val source = root.sourceDirectory
-			triple.add(if (source == null) "" else source.path)
+			triple.add(if (source === null) "" else source.path)
 			rootsTableModel.rows.add(triple)
 		}
 		val rootsTable = JTable(rootsTableModel)
@@ -246,7 +254,7 @@ class PreferencesAction constructor(workbench: AvailWorkbench)
 		renamesTableModel.rows.clear()
 		for ((key, value) in workbench.resolver.renameRules)
 		{
-			val pair = ArrayList<String>(2)
+			val pair = mutableListOf<String>()
 			pair.add(key)
 			pair.add(value)
 			renamesTableModel.rows.add(pair)
@@ -320,7 +328,7 @@ class PreferencesAction constructor(workbench: AvailWorkbench)
 				savePreferences()
 				val trees = workbench.calculateRefreshedTrees()
 				invokeLater {
-					workbench.refreshFor(trees.first(), trees.second())
+					workbench.refreshFor(trees.first, trees.second)
 					preferencesDialog!!.isVisible = false
 				}
 			}

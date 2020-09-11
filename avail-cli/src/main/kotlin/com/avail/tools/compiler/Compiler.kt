@@ -1,6 +1,6 @@
 /*
  * Compiler.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,7 +38,7 @@ import com.avail.builder.ModuleNameResolver
 import com.avail.builder.RenamesFileParserException
 import com.avail.compiler.CompilerProgressReporter
 import com.avail.compiler.GlobalProgressReporter
-import com.avail.descriptor.ModuleDescriptor
+import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.io.ConsoleInputChannel
 import com.avail.io.ConsoleOutputChannel
 import com.avail.io.TextInterface
@@ -222,14 +222,18 @@ object Compiler
 	 */
 	private fun localTracker(
 			configuration: CompilerConfiguration): CompilerProgressReporter =
-		{ module, moduleSize, position ->
+		{ module, moduleSize, position, line ->
 			synchronized(statusLock) {
 				val level = configuration.verbosityLevel
 				if (level.displayLocalProgress)
 				{
 					val percent = (position * 100 / moduleSize).toInt()
 					var modName = module.qualifiedName
-					val maxModuleNameLength = 61
+					var maxModuleNameLength = 61
+					if (line != Int.MAX_VALUE) {
+						modName += "\u001b[35m:$line"
+						maxModuleNameLength += 5  // Just the escape sequence.
+					}
 					val len = modName.length
 					if (len > maxModuleNameLength)
 					{
@@ -238,7 +242,8 @@ object Compiler
 					}
 
 					val status = String.format(
-						"%s  |  \u001b[34m%-61s\u001b[0m - %3d%%",
+						"%s  |  \u001b[34m%-${maxModuleNameLength}s" +
+							"\u001b[0m - %3d%%",
 						globalStatus,
 						modName,
 						percent)
@@ -271,7 +276,7 @@ object Compiler
 	{
 		resolver.moduleRoots.roots.forEach { root ->
 			val dir = root.sourceDirectory
-			if (dir != null && dir.isDirectory)
+			if (dir !== null && dir.isDirectory)
 			{
 				root.clearRepository()
 			}

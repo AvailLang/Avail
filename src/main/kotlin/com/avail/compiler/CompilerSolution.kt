@@ -1,6 +1,6 @@
 /*
  * CompilerSolution.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,7 +38,8 @@ import com.avail.descriptor.phrases.PhraseDescriptor
 /**
  * An `CompilerSolution` is a record of having parsed some
  * [phrase][PhraseDescriptor] from a stream of tokens, combined with the
- * [position and state][ParserState] of the parser after the phrase was parsed.
+ * [position&#32;and&#32;state][ParserState] of the parser after the phrase was
+ * parsed.
  *
  * @property endState
  *   The parse position after this solution.
@@ -79,4 +80,10 @@ internal class CompilerSolution constructor(
 		return "Solution(@${endState.position}: ${endState.clientDataMap}) " +
 			   "= $phrase"
 	}
+
+	/** Support Kotlin deconstructor syntax for (endState, phrase). */
+	operator fun component1() = endState
+
+	/** Support Kotlin deconstructor syntax for (endState, phrase). */
+	operator fun component2() = phrase
 }

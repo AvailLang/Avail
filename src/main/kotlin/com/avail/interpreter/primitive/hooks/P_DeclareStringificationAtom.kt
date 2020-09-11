@@ -1,6 +1,6 @@
 /*
  * P_DeclareStringificationAtom.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,21 +33,27 @@
 package com.avail.interpreter.primitive.hooks
 
 import com.avail.AvailRuntime.HookType.STRINGIFICATION
-import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
 import com.avail.descriptor.atoms.AtomDescriptor
-import com.avail.descriptor.functions.FunctionDescriptor.createFunction
+import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
 import com.avail.descriptor.methods.MethodDescriptor
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.TupleTypeDescriptor.stringType
-import com.avail.descriptor.types.TypeDescriptor.Types.*
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
+import com.avail.descriptor.types.TypeDescriptor.Types.ANY
+import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
+import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailRuntimeException
 import com.avail.exceptions.MalformedMessageException
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.Primitive.Flag.Private
+import com.avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelOne.L1InstructionWriter
 import com.avail.interpreter.levelOne.L1Operation
 
@@ -68,8 +74,9 @@ object P_DeclareStringificationAtom : Primitive(
 		// Generate a function that will invoke the stringifier method for
 		// the specified value.
 		val writer = L1InstructionWriter(nil, 0, nil)
-		writer.argumentTypes(ANY.o())
+		writer.argumentTypes(ANY.o)
 		writer.returnType = stringType()
+		writer.returnTypeIfPrimitiveFails = stringType()
 		writer.write(0, L1Operation.L1_doPushLocal, 1)
 		try
 		{
@@ -85,15 +92,14 @@ object P_DeclareStringificationAtom : Primitive(
 			throw AvailRuntimeException(e.errorCode)
 		}
 
-		val function = createFunction(writer.compiledCode(), emptyTuple())
+		val function = createFunction(writer.compiledCode(), emptyTuple)
 		function.makeShared()
 		// Set the stringification function.
-		STRINGIFICATION.set(interpreter.runtime(), function)
-		val loader = interpreter.availLoaderOrNull()
-		loader?.statementCanBeSummarized(false)
+		STRINGIFICATION[interpreter.runtime] = function
+		interpreter.availLoaderOrNull()?.statementCanBeSummarized(false)
 		return interpreter.primitiveSuccess(nil)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(ATOM.o()), TOP.o())
+		functionType(tuple(ATOM.o), TOP.o)
 }

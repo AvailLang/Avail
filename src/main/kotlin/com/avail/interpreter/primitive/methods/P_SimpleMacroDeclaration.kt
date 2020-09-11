@@ -1,6 +1,6 @@
 /*
  * P_SimpleMacroDeclaration.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,37 +34,55 @@ package com.avail.interpreter.primitive.methods
 import com.avail.compiler.splitter.MessageSplitter
 import com.avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter
-import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.methods.MethodDescriptor
-import com.avail.descriptor.sets.SetDescriptor.set
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.tuples.StringDescriptor.stringFrom
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.types.FunctionTypeDescriptor.*
+import com.avail.descriptor.types.A_Type.Companion.argsTupleType
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import com.avail.descriptor.types.A_Type.Companion.returnType
+import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionTypeReturning
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
-import com.avail.descriptor.types.TupleTypeDescriptor.stringType
-import com.avail.descriptor.types.TupleTypeDescriptor.zeroOrMoreOf
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
-import com.avail.exceptions.AvailErrorCode.*
+import com.avail.exceptions.AvailErrorCode.E_AMBIGUOUS_NAME
+import com.avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
+import com.avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
+import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
+import com.avail.exceptions.AvailErrorCode.E_MACRO_ARGUMENT_MUST_BE_A_PARSE_NODE
+import com.avail.exceptions.AvailErrorCode.E_MACRO_MUST_RETURN_A_PARSE_NODE
+import com.avail.exceptions.AvailErrorCode.E_MACRO_PREFIX_FUNCTIONS_MUST_RETURN_TOP
+import com.avail.exceptions.AvailErrorCode.E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PARSE_NODE
+import com.avail.exceptions.AvailErrorCode.E_MACRO_PREFIX_FUNCTION_INDEX_OUT_OF_BOUNDS
+import com.avail.exceptions.AvailErrorCode.E_REDEFINED_WITH_SAME_ARGUMENT_TYPES
 import com.avail.exceptions.AvailException
 import com.avail.exceptions.MalformedMessageException
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanSuspend
-import com.avail.interpreter.Primitive.Flag.Unknown
+import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Simple macro definition.  The first argument is the macro
  * name, and the second argument is a [tuple][TupleDescriptor] of
  * [functions][FunctionDescriptor] returning ⊤, one for each occurrence of a
- * [section sign][Metacharacter.SECTION_SIGN] (§) in the macro name.  The third
- * argument is the function to invoke for the complete macro.  It is constrained
- * to answer a [method][MethodDescriptor].
+ * [section&#32;sign][Metacharacter.SECTION_SIGN] (§) in the macro name.  The
+ * third argument is the function to invoke for the complete macro.  It is
+ * constrained to answer a [method][MethodDescriptor].
  */
-object P_SimpleMacroDeclaration : Primitive(3, CanSuspend, Unknown)
+@Suppress("unused")
+object P_SimpleMacroDeclaration : Primitive(3, CanSuspend, HasSideEffect)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
@@ -133,12 +151,15 @@ object P_SimpleMacroDeclaration : Primitive(3, CanSuspend, Unknown)
 			return interpreter.primitiveFailure(
 				E_MACRO_MUST_RETURN_A_PARSE_NODE)
 		}
-		return interpreter.suspendAndDoInLevelOneSafe {
-			toSucceed, toFail ->
+		return interpreter.suspendInLevelOneSafeThen {
 			try
 			{
 				val atom = loader.lookupName(string)
-				loader.addMacroBody(atom, function, prefixFunctions)
+				loader.addMacroBody(
+					atom,
+					function,
+					prefixFunctions,
+					false)
 				var counter = 1
 				for (prefixFunction in prefixFunctions)
 				{
@@ -148,14 +169,14 @@ object P_SimpleMacroDeclaration : Primitive(3, CanSuspend, Unknown)
 				}
 				function.code().setMethodName(
 					stringFrom("Macro body of $string"))
-				toSucceed.value(nil)
+				succeed(nil)
 			}
 			catch (e: AvailException)
 			{
 				// MalformedMessageException
 				// SignatureException
 				// AmbiguousNameException
-				toFail.value(e.errorCode)
+				fail(e.errorCode)
 			}
 		}
 	}
@@ -166,7 +187,8 @@ object P_SimpleMacroDeclaration : Primitive(3, CanSuspend, Unknown)
 				stringType(),
 				zeroOrMoreOf(mostGeneralFunctionType()),
 				functionTypeReturning(PARSE_PHRASE.mostGeneralType())),
-			TOP.o())
+			TOP.o
+		)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(

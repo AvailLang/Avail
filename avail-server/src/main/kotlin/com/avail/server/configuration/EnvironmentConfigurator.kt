@@ -1,6 +1,6 @@
 /*
  * EnvironmentConfigurator.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,12 +38,12 @@ import com.avail.utility.configuration.Configurator
 
 /**
  * An `EnvironmentConfigurator` [updates][Configurator.updateConfiguration] a
- * [compiler configuration][AvailServerConfiguration] from the environment.
+ * [compiler&#32;configuration][AvailServerConfiguration] from the environment.
  *
  * The following environment variables are used by the compiler:
  *
- *  * **AVAIL_ROOTS**: The [Avail root][ModuleRoots], described by the following
- *  grammar:
+ *  * **AVAIL_ROOTS**: The [Avail&#32;root][ModuleRoots], described by the
+ *    following grammar:
  *  ```
  *  modulePath ::= binding ++ ";" ;
  *  binding ::= logicalRoot "=" objectRepository ("," sourceDirectory) ;
@@ -52,10 +52,13 @@ import com.avail.utility.configuration.Configurator
  *  sourceDirectory ::= [^;]+ ;
  *  ```
  *  `logicalRoot` represents a logical root name. `objectRepository` represents
- *  the absolute path of a binary module repository. `sourceDirectory` represents
- *  the absolute path of a package, i.e., a directory containing source modules,
- *  and may be sometimes be omitted (e.g., when compilation is not required).
- *  * **AVAIL_RENAMES**: The path to the [renames file][RenamesFileParser].
+ *  the absolute path of a binary module repository. `sourceDirectory`
+ *  represents the absolute path of a package, i.e., a directory containing
+ *  source modules, and may be sometimes be omitted (e.g., when compilation is
+ *  not required).
+ *
+ *  * **AVAIL_RENAMES**: The path to the
+ *  [renames&#32;file][RenamesFileParser].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  *
@@ -81,12 +84,12 @@ class EnvironmentConfigurator constructor(
 		if (!isConfigured)
 		{
 			val availRootPath = System.getenv("AVAIL_ROOTS")
-			if (availRootPath != null)
+			if (availRootPath !== null)
 			{
 				configuration.availRootsPath = availRootPath
 			}
 			val renamesFilePath = System.getenv("AVAIL_RENAMES")
-			if (renamesFilePath != null)
+			if (renamesFilePath !== null)
 			{
 				configuration.renamesFilePath = renamesFilePath
 			}

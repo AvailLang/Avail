@@ -1,6 +1,6 @@
 /*
  * ModuleRoot.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 
 package com.avail.builder
 
-import com.avail.descriptor.ModuleDescriptor
+import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.persistence.IndexedFileException
 import com.avail.persistence.Repository
 import com.avail.utility.json.JSONWriter
@@ -43,7 +43,7 @@ import java.io.File
  * themselves.
  *
  * @property name
- *   The [module root][ModuleRoot] name.
+ *   The [module&#32;root][ModuleRoot] name.
  * @property sourceDirectory
  *   If provided, then the [path][File] to the directory that contains source
  *   [modules][ModuleDescriptor] for this [root][ModuleRoot].
@@ -56,7 +56,7 @@ import java.io.File
  * @param name
  *   The name of the module root.
  * @param repository
- *   The [path][File] to the [indexed repository][Repository] that
+ *   The [path][File] to the [indexed&#32;repository][Repository] that
  *   contains compiled [modules][ModuleDescriptor] for this root.
  * @param sourceDirectory
  *   The [path][File] to the directory that contains source
@@ -72,7 +72,7 @@ class ModuleRoot
 	val sourceDirectory: File?)
 {
 	/**
-	 * The [indexed repository][Repository] that contains compiled
+	 * The [indexed&#32;repository][Repository] that contains compiled
 	 * [modules][ModuleDescriptor] for this [root][ModuleRoot].
 	 */
 	val repository: Repository = Repository(name, repository)
@@ -83,8 +83,9 @@ class ModuleRoot
 	fun clearRepository() = repository.clear()
 
 	/**
-	 * Write the [binary][Repository.fileName] and the [source
-	 * module][sourceDirectory] (respectively) into a new JSON array.
+	 * Write the [binary][Repository.fileName] and the
+	 * [source&#32;module][sourceDirectory] (respectively) into a new JSON
+	 * array.
 	 *
 	 * @param writer
 	 *   A [JSONWriter].
@@ -92,15 +93,11 @@ class ModuleRoot
 	fun writePathsOn(writer: JSONWriter)
 	{
 		writer.writeArray {
-			writer.write(repository.fileName.absolutePath)
-			val dir = sourceDirectory
-			if (dir == null)
+			write(repository.fileName.absolutePath)
+			when (val dir = sourceDirectory)
 			{
-				writer.writeNull()
-			}
-			else
-			{
-				writer.write(dir.absolutePath)
+				null -> writeNull()
+				else -> write(dir.absolutePath)
 			}
 		}
 	}

@@ -1,6 +1,6 @@
 /*
  * OSXUtility.java
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,6 @@
 
 package com.avail.environment
 
-import com.avail.utility.evaluation.Transformer1
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 import java.lang.reflect.Proxy
@@ -194,8 +193,11 @@ object OSXUtility
 	 * the CFBundleDocumentTypes dictionary in the application bundle's
 	 * Info.plist.
 	 *
+	 * // TODO: MvG
+	 *
 	 * @param fileHandler
 	 */
+	@Suppress("unused")
 	fun setFileHandler(fileHandler: (String) -> Boolean)
 	{
 		setHandler("handleOpenFile") { event ->
@@ -222,8 +224,8 @@ object OSXUtility
 	}
 
 	/**
-	 * Create a [Proxy] object around the provided [Transformer1] to invoke
-	 * it when the method with the specified name is invoked in the proxy.
+	 * Create a [Proxy] object around the provided transformer to invoke it when
+	 * the method with the specified name is invoked in the proxy.
 	 *
 	 * @param handlerMessage
 	 * @param handler
@@ -236,7 +238,7 @@ object OSXUtility
 				OSXUtility::class.java.classLoader,
 				arrayOf(applicationListenerClass))
 			{ thisProxy, method, args ->
-				assert(thisProxy != null)
+				assert(thisProxy !== null)
 				val success: Boolean =
 					if (method.name == handlerMessage)
 					{

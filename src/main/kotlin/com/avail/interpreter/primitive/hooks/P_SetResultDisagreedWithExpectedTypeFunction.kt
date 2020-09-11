@@ -1,6 +1,6 @@
 /*
  * P_SetResultDisagreedWithExpectedTypeFunction.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,26 +33,28 @@
 package com.avail.interpreter.primitive.hooks
 
 import com.avail.AvailRuntime.HookType.RESULT_DISAGREED_WITH_EXPECTED_TYPE
-import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.methods.MethodDescriptor
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.descriptor.tuples.ObjectTupleDescriptor
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.BottomTypeDescriptor.bottom
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.FunctionTypeDescriptor.mostGeneralFunctionType
-import com.avail.descriptor.types.InstanceMetaDescriptor.topMeta
+import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
+import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
-import com.avail.descriptor.types.VariableTypeDescriptor.variableTypeFor
-import com.avail.interpreter.Interpreter
+import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Set the [function][FunctionDescriptor] to invoke whenever the
- * result produced by a [method invocation][MethodDescriptor] disagrees with the
- * type decreed by the applicable semantic restrictions at the call site.
+ * result produced by a [method&#32;invocation][MethodDescriptor] disagrees with
+ * the type decreed by the applicable semantic restrictions at the call site.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -64,19 +66,21 @@ object P_SetResultDisagreedWithExpectedTypeFunction : Primitive(
 	{
 		interpreter.checkArgumentCount(1)
 		val function = interpreter.argument(0)
-		RESULT_DISAGREED_WITH_EXPECTED_TYPE.set(
-			interpreter.runtime(), function)
+		RESULT_DISAGREED_WITH_EXPECTED_TYPE[interpreter.runtime] = function
+		interpreter.availLoaderOrNull()?.statementCanBeSummarized(false)
 		return interpreter.primitiveSuccess(nil)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(
+			ObjectTupleDescriptor.tuple(
 				functionType(
-					tuple(
+					ObjectTupleDescriptor.tuple(
 						mostGeneralFunctionType(),
 						topMeta(),
-						variableTypeFor(ANY.o())),
-					bottom())),
-			TOP.o())
+						variableTypeFor(ANY.o)),
+					bottom
+				)),
+			TOP.o
+		)
 }

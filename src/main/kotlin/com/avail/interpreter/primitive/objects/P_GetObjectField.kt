@@ -1,6 +1,6 @@
 /*
  * P_GetObjectField.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,23 +33,28 @@ package com.avail.interpreter.primitive.objects
 
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.maps.A_Map.Companion.hasKey
+import com.avail.descriptor.maps.A_Map.Companion.mapAt
 import com.avail.descriptor.objects.ObjectDescriptor
-import com.avail.descriptor.objects.ObjectTypeDescriptor.mostGeneralObjectType
-import com.avail.descriptor.sets.SetDescriptor.set
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectType
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.types.BottomTypeDescriptor.bottom
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.A_Type.Companion.fieldTypeMap
+import com.avail.descriptor.types.A_Type.Companion.instances
+import com.avail.descriptor.types.A_Type.Companion.typeUnion
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
+import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
 import com.avail.exceptions.AvailErrorCode.E_NO_SUCH_FIELD
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Fallibility.CallSiteCanFail
 import com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Extract the specified [field][AtomDescriptor] from the
@@ -61,21 +66,17 @@ object P_GetObjectField : Primitive(2, CanFold, CanInline)
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
-		val obj = interpreter.argument(0)
-		val field = interpreter.argument(1)
+		val (obj, field) = interpreter.argsBuffer
 
-		val traversed = obj.traversed()
-		val descriptor = traversed.descriptor() as ObjectDescriptor
-		val slotIndex =
-			descriptor.variant.fieldToSlotIndex[field]
-                ?: return interpreter.primitiveFailure(E_NO_SUCH_FIELD)
-		return interpreter.primitiveSuccess(
-			if (slotIndex == 0) { field }
-			else { ObjectDescriptor.getField(traversed, slotIndex) })
+		return when (val fieldValue = obj.fieldAtOrNull(field))
+		{
+			null -> interpreter.primitiveFailure(E_NO_SUCH_FIELD)
+			else -> interpreter.primitiveSuccess(fieldValue)
+		}
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(mostGeneralObjectType(), ATOM.o()), ANY.o())
+		functionType(tuple(mostGeneralObjectType(), ATOM.o), ANY.o)
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type
@@ -85,18 +86,18 @@ object P_GetObjectField : Primitive(2, CanFold, CanInline)
 
 		if (objectType.isBottom)
 		{
-			return bottom()
+			return bottom
 		}
 		val fieldTypeMap = objectType.fieldTypeMap()
 		if (fieldType.isEnumeration)
 		{
-			var union = bottom()
+			var union = bottom
 			for (possibleField in fieldType.instances())
 			{
 				if (!fieldTypeMap.hasKey(possibleField))
 				{
 					// Unknown field, so the type could be anything.
-					return ANY.o()
+					return ANY.o
 				}
 				union = union.typeUnion(fieldTypeMap.mapAt(possibleField))
 			}

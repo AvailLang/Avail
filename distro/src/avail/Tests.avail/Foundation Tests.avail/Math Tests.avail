@@ -1,6 +1,6 @@
 /*
  * Math Tests.avail
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,22 +44,22 @@ New test suite math test suite extends foundation test suite;
 
 Test "integer range bounds" in math test suite is
 [
-	Require: -∞ = ⎣extended integer⎦;
-	Require: ⎣extended integer⎦ is inclusive;
-	Require: ∞ = ⎡extended integer⎤;
-	Require: ⎡extended integer⎤ is inclusive;
-	Require: -∞ = ⎣integer⎦;
-	Require: ¬⎣integer⎦ is inclusive;
-	Require: ∞ = ⎡integer⎤;
-	Require: ¬⎡integer⎤ is inclusive;
-	Require: 0 = ⎣whole number⎦;
-	Require: ⎣whole number⎦ is inclusive;
-	Require: ∞ = ⎡whole number⎤;
-	Require: ¬⎡whole number⎤ is inclusive;
-	Require: 1 = ⎣natural number⎦;
-	Require: ⎣natural number⎦ is inclusive;
-	Require: ∞ = ⎡natural number⎤;
-	Require: ¬⎡natural number⎤ is inclusive;
+	Require: -∞ = ⌊extended integer⌋;
+	Require: ⌊extended integer⌋ is inclusive;
+	Require: ∞ = ⌈extended integer⌉;
+	Require: ⌈extended integer⌉ is inclusive;
+	Require: -∞ = ⌊integer⌋;
+	Require: ¬⌊integer⌋ is inclusive;
+	Require: ∞ = ⌈integer⌉;
+	Require: ¬⌈integer⌉ is inclusive;
+	Require: 0 = ⌊whole number⌋;
+	Require: ⌊whole number⌋ is inclusive;
+	Require: ∞ = ⌈whole number⌉;
+	Require: ¬⌈whole number⌉ is inclusive;
+	Require: 1 = ⌊natural number⌋;
+	Require: ⌊natural number⌋ is inclusive;
+	Require: ∞ = ⌈natural number⌉;
+	Require: ¬⌈natural number⌉ is inclusive;
 	For each i from 1 to 10 do
 	[
 		For each j from 1 to 10 do
@@ -74,31 +74,31 @@ Test "integer range bounds" in math test suite is
 			]
 			else
 			[
-				Require: i = ⎣t1⎦;
-				Require: ⎣t1⎦ is inclusive;
-				Require: j = ⎡t1⎤;
-				Require: ⎡t1⎤ is inclusive;
+				Require: i = ⌊t1⌋;
+				Require: ⌊t1⌋ is inclusive;
+				Require: j = ⌈t1⌉;
+				Require: ⌈t1⌉ is inclusive;
 				If i = j then [ Require: t2 = t3 = t4 = ⊥; ]
 				else
 				[
 					Require: t2 ≠ ⊥;
 					Require: t3 ≠ ⊥;
-					Require: i = ⎣t2⎦;
-					Require: ⎣t2⎦ is inclusive;
-					Require: j - 1 = ⎡t2⎤;
-					Require: ⎡t2⎤ is inclusive;
-					Require: i + 1 = ⎣t3⎦;
-					Require: ⎣t3⎦ is inclusive;
-					Require: j = ⎡t3⎤;
-					Require: ⎡t3⎤ is inclusive;
+					Require: i = ⌊t2⌋;
+					Require: ⌊t2⌋ is inclusive;
+					Require: j - 1 = ⌈t2⌉;
+					Require: ⌈t2⌉ is inclusive;
+					Require: i + 1 = ⌊t3⌋;
+					Require: ⌊t3⌋ is inclusive;
+					Require: j = ⌈t3⌉;
+					Require: ⌈t3⌉ is inclusive;
 					If j - i = 1 then [ Require: t4 = ⊥; ]
 					else
 					[
 						Require: t4 ≠ ⊥;
-						Require: i + 1 = ⎣t4⎦;
-						Require: ⎣t4⎦ is inclusive;
-						Require: j - 1 = ⎡t4⎤;
-						Require: ⎡t4⎤ is inclusive;
+						Require: i + 1 = ⌊t4⌋;
+						Require: ⌊t4⌋ is inclusive;
+						Require: j - 1 = ⌈t4⌉;
+						Require: ⌈t4⌉ is inclusive;
 					];
 				];
 			];
@@ -149,153 +149,6 @@ Test "negation" in math test suite is
 	Require: -0 = 0;
 ];
 
-Test "addition" in math test suite is
-[
-	For each i from 1 to 10 do
-	[
-		Require: i + 0 = i;
-		Require: i + -i = 0;
-		Require: i + 1 > i;
-		Require: i + i = i × 2;
-		For each j from 1 to 10 do [Require: i + j = j + i;];
-	];
-	Require: 2147483647 + 1 = 2147483648;
-	Require: 9223372036854775807 + 1 = 9223372036854775808;
-	Require: 1111111111111111111111111 + 1111111111111111111111111
-		= 2222222222222222222222222;
-	Require: ∞ + 1 = ∞;
-	Require: ∞ + ∞ = ∞;
-	Require: -∞ + 1 = -∞;
-	Require: -∞ + -∞ = -∞;
-	Require: 1.0f + 1.0f = 2.0f;
-	Require: 1.0 + 1.0 = 2.0;
-	Require: 1 + 1.0f = 2.0f;
-	Require: 1 + 1.0 = 2.0;
-	Require: 1.0f + 1.0 = 2.0;
-];
-
-Test "cannot add unlike infinities" in math test suite is
-[
-	/* Hide ∞ from the compiler. */
-	v : extended integer := ∞;
-	Require: [v + -v] raises cannot-add-unlike-infinities exception;
-	Require: [-v + v] raises cannot-add-unlike-infinities exception;
-];
-
-Test "subtraction" in math test suite is
-[
-	For each i from 1 to 10 do
-	[
-		Require: i - 0 = i;
-		Require: i - i = 0;
-		Require: i - -i = i + i;
-		For each j from 1 to 10 do [Require: i - j = -(j - i); ];
-	];
-	Require: -2147483648 - 1 = -2147483649;
-	Require: -9223372036854775808 - 1 = -9223372036854775809;
-	Require: 2222222222222222222222222 - 1111111111111111111111111
-		= 1111111111111111111111111;
-	Require: ∞ - 1 = ∞;
-	Require: ∞ - -∞ = ∞;
-	Require: -∞ - 1 = -∞;
-	Require: -∞ - ∞ = -∞;
-	Require: 2.0f - 1.0f = 1.0f;
-	Require: 2.0 - 1.0 = 1.0;
-	Require: 2 - 1.0f = 1.0f;
-	Require: 2 - 1.0 = 1.0;
-	Require: 2.0f - 1.0 = 1.0;
-];
-
-Test "cannot subtract like infinities" in math test suite is
-[
-	/* Hide ∞ from the compiler. */
-	v : extended integer := ∞;
-	Require: [v - v] raises cannot-subtract-like-infinities exception;
-	Require: [-v - -v] raises cannot-subtract-like-infinities exception;
-];
-
-Test "multiplication" in math test suite is
-[
-	For each i from 1 to 10 do
-	[
-		Require: i × 0 = 0;
-		Require: i × 1 = i;
-		Require: i × -1 = -i;
-		Require: -i × -i = i × i;
-		Require: i × ∞ = ∞;
-		For each j from 1 to 10 do [Require: i × j = j × i; ];
-	];
-	Require: 2 × 2 = 4;
-	Require: 9 × 9 = 81;
-	Require: 65536 × 65536 = 4294967296;
-	Require: 4294967296 × 4294967296 = 18446744073709551616;
-	Require: 18446744073709551616 × 18446744073709551616
-		= 340282366920938463463374607431768211456;
-	Require: 65536 × -65536 = -4294967296;
-	Require: 4294967296 × -4294967296 = -18446744073709551616;
-	Require: 18446744073709551616 × -18446744073709551616
-		= -340282366920938463463374607431768211456;
-	Require: 2.0f × 2.0f = 4.0f;
-	Require: 2.0 × 2.0 = 4.0;
-	Require: 2 × 2.0f = 4.0f;
-	Require: 2 × 2.0 = 4.0;
-	Require: 2.0f × 2.0 = 4.0;
-];
-
-Test "cannot multiply zero and infinity" in math test suite is
-[
-	/* Hide ∞ from the compiler. */
-	v : extended integer := ∞;
-	Require: [0 × v] raises cannot-multiply-zero-and-infinity exception;
-	Require: [v × 0] raises cannot-multiply-zero-and-infinity exception;
-	Require: [0 × -v] raises cannot-multiply-zero-and-infinity exception;
-	Require: [-v × 0] raises cannot-multiply-zero-and-infinity exception;
-];
-
-Test "division" in math test suite is
-[
-	For each i from 1 to 10 do
-	[
-		Require: i ÷ 1 = i;
-		Require: i ÷ i = 1;
-		Require: i ÷ -1 = -i;
-		Require: -i ÷ 1 = -i;
-		Require: -i ÷ -1 = i;
-		Require: i ÷ ∞ = 0;
-		For each j from 1 to 10 do [Require: i÷j = j÷i → [i=j];];
-	];
-	Require: 4 ÷ 2 = 2;
-	Require: 81 ÷ 9 = 9;
-	Require: 82 ÷ 9 = 9;
-	Require: 89 ÷ 9 = 9;
-	Require: 90 ÷ 9 = 10;
-	Require: 4294967296 ÷ 65536 = 65536;
-	Require: 18446744073709551616 ÷ 4294967296 = 4294967296;
-	Require: 340282366920938463463374607431768211456 ÷ 18446744073709551616
-		= 18446744073709551616;
-	Require: 4294967296 ÷ -65536 = -65536;
-	Require: 18446744073709551616 ÷ -4294967296 = -4294967296;
-	Require: 340282366920938463463374607431768211456 ÷ -18446744073709551616
-		= -18446744073709551616;
-	Require: -2147483648 ÷ -1 = 2147483648;
-	Require: -9223372036854775808 ÷ -1 = 9223372036854775808;
-	/* Division should always round towards negative infinity. */
-	Require: 4 ÷ 3 = 1;
-	Require: -4 ÷ 3 = -2;
-	Require: 4 ÷ -3 = -2;
-	Require: -4 ÷ -3 = 1;
-	Require: 4.0f ÷ 2.0f = 2.0f;
-	Require: 4.0 ÷ 2.0 = 2.0;
-	Require: 4 ÷ 2.0f = 2.0f;
-	Require: 4 ÷ 2.0 = 2.0;
-	Require: 4.0f ÷ 2.0 = 2.0;
-	Ignore: 4.0f ÷ 0;
-	Ignore: 4.0f ÷ 0.0f;
-	Ignore: 4.0 ÷ 0.0;
-	Ignore: 4.0f ÷ -0.0f;
-	Ignore: 4.0 ÷ -0.0;
-];
-
 Test "mod" in math test suite is
 [
 	ref ::= concatenate 3 of (0 to 9);
@@ -304,24 +157,6 @@ Test "mod" in math test suite is
 		Require: i mod ∞ = i;
 		Require: i mod 10 = ref[i + 1];
 	];
-];
-
-Test "cannot divide by zero" in math test suite is
-[
-	/* Hide 0 from the compiler. */
-	v : extended integer := 0;
-	Require: [1 ÷ v] raises cannot-divide-by-zero exception;
-	Require: [1 mod v] raises cannot-divide-by-zero exception;
-];
-
-Test "cannot divide infinities" in math test suite is
-[
-	/* Hide ∞ from the compiler. */
-	v : extended integer := ∞;
-	Require: [v ÷ v] raises cannot-divide-infinities exception;
-	Require: [v ÷ -v] raises cannot-divide-infinities exception;
-	Require: [-v ÷ v] raises cannot-divide-infinities exception;
-	Require: [-v ÷ -v] raises cannot-divide-infinities exception;
 ];
 
 Test "even/odd" in math test suite is
@@ -407,7 +242,7 @@ Test "exhaustive exponentiation" in math test suite is
 			[
 				Require: |t| = 2 (“t[1]” ++ " ^ " ++ “t[2]”
 					++ " was undefined, not " ++ “t[3]”);
-		 	];
+			];
 		]
 		else
 		[
@@ -582,3 +417,108 @@ Test "double representation reinterpretation" in math test suite is
 	Require: (-1.0) reinterpreted as bits = 0xBFF0000000000000 - 2^64;
 	Require: 0_1.0_0e0_1 reinterpreted as bits = 0x4024000000000000;
 ];
+
+Test "numeric tuple operators" in math test suite is
+[
+	Require: ∑ <> = 0;
+	Require: ∏ <> = 1;
+	Require: ∑ <2> = 2;
+	Require: ∏ <2> = 2;
+
+	Require: ∑ 1 to 10 = 55;
+	Require: ∏ -3 to 3 = 0;
+	Require: ∏ ((-3 to 3) - 0) = -36;
+
+	mixedType ::= <1, 2.0f, 2.5>;
+	Require: ∑ mixedType = 5.5;
+	Require: ∏ mixedType = 5.0;
+];
+
+Test "integer square root" in math test suite is
+[
+	Require: ⌊√0⌋ = 0;
+	Require: ⌊√1⌋ = 1;
+	Require: ⌊√17⌋ = 4;
+	Require: ⌊√2^64⌋ = 2^32;
+	Require: ⌊√1111111⌋ = 1054;
+
+	// The corresponding double operation has an error ≥1 for this test
+	Require: ⌊√10^30⌋ = 10^15;
+];
+
+Test "factorization" in math test suite is
+[
+	Require: factor 1 = <1>;
+	Require: factor 2^10 = 10 occurrences of 2;
+	Require: factor 433494437 = <433494437>;
+	Require: quicksort factor 865268319203 = <930197, 930199>;
+	Require: quicksort factor 16079919820099 = <1997, 1999, 2003, 2011>;
+	Require: prime factorization of 15! =
+		{2→11, 3→6, 5→3, 7→2, 11→1, 13→1};
+];
+
+Test "modular exponent tests" in math test suite is
+[
+	Require: 110 ^ 45 mod 87 = 74;
+	Require: 1001 ^ 1001 mod 123 = 17;
+	Require: 30301829 ^ 1 mod (2^63) = 30301829;
+	/* Super-cast it to whole number to avoid attempting to fold the leading
+	 * part as an invocation of "_^_".
+	 */
+	Require: (12807421972::whole number) ^ 12345 mod 3201855493 = 0;
+];
+
+Test "primality tests" in math test suite is
+[
+	mersennePrimes ::= <2^13 - 1, 2^31 - 1, 2^61 - 1>;
+	mersenneComposites ::= <2^11 - 1, 2^23 - 1, 2^37 - 1>;
+
+	miscPrimes ::= <
+		257,
+		46649,
+		191161,
+		433494437,
+		1111111111111111111,
+		9223372036854775837,
+		18446744073709551557, // The last prime of [1..2^64].
+		18609811911861098611  // NOT TESTED BY DEFAULT, see below.
+	>;
+	miscComposites ::= <
+		1,
+		11!,
+		5050505,
+		2^4×3^5×179,
+		2222222222222222222,
+		9223372036854775809,
+		5^30
+	>;
+
+	// These numbers "fail" the 2-SPRP test (return true, but are composite).
+	// Note that not *all* Mersenne composites are strong pseudoprimes base 2,
+	// but those of a prime exponent are.
+	strongPseudoprimesBaseTwo ::= <
+		3277,
+		49141,
+		314821,
+		18446744073709551617  // 2^64 + 1
+	> ++ mersenneComposites;
+
+
+	primes ::= mersennePrimes ++ miscPrimes;
+	composites ::= strongPseudoprimesBaseTwo ++ miscComposites;
+
+	For each p in primes do
+	[
+		Require: p is a strong probable prime to base 2;
+		// NOTE: We do not test the primality of numbers beyond 2^64 in this
+		// test suite as our naive implementation will take minutes to hours.
+		If p ≤ 2^64 then [Require: p is prime;];
+	];
+	For each c in composites do
+	[
+		Require: ¬c is prime;
+		Require: (c is a strong probable prime to base 2)
+			↔ (c ∈ strongPseudoprimesBaseTwo);
+	];
+];
+

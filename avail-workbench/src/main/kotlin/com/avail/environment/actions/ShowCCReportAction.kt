@@ -1,6 +1,6 @@
 /*
  * ShowCCReportAction.java
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,8 +34,8 @@ package com.avail.environment.actions
 
 import com.avail.AvailRuntime
 import com.avail.builder.AvailBuilder
-import com.avail.descriptor.FiberDescriptor
-import com.avail.descriptor.functions.CompiledCodeDescriptor.codeCoverageReportsThen
+import com.avail.descriptor.fiber.FiberDescriptor
+import com.avail.descriptor.functions.CompiledCodeDescriptor.Companion.codeCoverageReportsThen
 import com.avail.environment.AvailWorkbench
 import com.avail.environment.AvailWorkbench.StreamStyle.INFO
 import java.awt.event.ActionEvent
@@ -43,7 +43,7 @@ import javax.swing.Action
 
 /**
  * A `DisplayCodeCoverageReportAction` instructs the
- * [Avail builder][AvailBuilder] to display the code coverage report.
+ * [Avail&#32;builder][AvailBuilder] to display the code coverage report.
  *
  * @author Leslie Schultz &lt;leslie@availlang.org&gt;
  *
@@ -66,10 +66,6 @@ class ShowCCReportAction constructor(
 		runtime.execute(FiberDescriptor.commandPriority)
 		{
 			codeCoverageReportsThen { reports ->
-				// Order the report items using the natural sort defined
-				// in the object.
-				reports.sort()
-
 				// Announce the beginning of the report dump.
 				val builder = StringBuilder()
 					.append("Code Coverage Report - all functions\n\n")
@@ -80,8 +76,9 @@ class ShowCCReportAction constructor(
 					.append("l: Starting line number\n")
 					.append("f: Function name and sub-function ordinals\n\n")
 
-				// Iterate over each report
-				for (r in reports)
+				// Iterate over each report. Order the report items using the
+				// natural sort defined in the object.
+				for (r in reports.sorted())
 				{
 					builder.append(r)
 					builder.append('\n')

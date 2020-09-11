@@ -1,6 +1,6 @@
 /*
  * P_CreateTupleType.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,21 +31,25 @@
  */
 package com.avail.interpreter.primitive.tuples
 
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.InstanceMetaDescriptor.anyMeta
-import com.avail.descriptor.types.InstanceMetaDescriptor.instanceMeta
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.wholeNumbers
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
+import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import com.avail.descriptor.types.TupleTypeDescriptor
-import com.avail.descriptor.types.TupleTypeDescriptor.*
-import com.avail.interpreter.Interpreter
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleMeta
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CanFold
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Construct a [tuple type][TupleTypeDescriptor] with the given
- * parameters. Canonize the data if necessary.
+ * **Primitive:** Construct a [tuple&#32;type][TupleTypeDescriptor] with the
+ * given parameters. Canonize the data if necessary.
  */
 @Suppress("unused")
 object P_CreateTupleType : Primitive(3, CannotFail, CanFold, CanInline)
@@ -66,6 +70,6 @@ object P_CreateTupleType : Primitive(3, CannotFail, CanFold, CanInline)
 			tuple(
 				zeroOrMoreOf(anyMeta()),
 				anyMeta(),
-				instanceMeta(wholeNumbers())),
+				instanceMeta(wholeNumbers)),
 			tupleMeta())
 }

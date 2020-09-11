@@ -1,6 +1,6 @@
 /*
  * P_EnvironmentMap.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,17 +33,20 @@
 package com.avail.interpreter.primitive.general
 
 import com.avail.descriptor.maps.A_Map
-import com.avail.descriptor.maps.MapDescriptor.emptyMap
-import com.avail.descriptor.tuples.StringDescriptor.stringFrom
-import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+import com.avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
+import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
+import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.wholeNumbers
-import com.avail.descriptor.types.MapTypeDescriptor.mapTypeForSizesKeyTypeValueType
-import com.avail.descriptor.types.TupleTypeDescriptor.stringType
-import com.avail.interpreter.Interpreter
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
+import com.avail.descriptor.types.MapTypeDescriptor.Companion.mapTypeForSizesKeyTypeValueType
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.execution.Interpreter
 import java.lang.ref.SoftReference
 
 /**
@@ -63,7 +66,7 @@ object P_EnvironmentMap : Primitive(0, CannotFail, CanInline, HasSideEffect)
 	private var environmentMap = SoftReference<A_Map>(null)
 
 	/**
-	 * Get the [environment map][environmentMap], creating a new one as
+	 * Get the [environment&#32;map][environmentMap], creating a new one as
 	 * necessary (either because it has never been created or because the
 	 * garbage collector has discarded it).
 	 *
@@ -77,7 +80,7 @@ object P_EnvironmentMap : Primitive(0, CannotFail, CanInline, HasSideEffect)
 		var result = environmentMap.get()
 		if (result === null)
 		{
-			result = emptyMap()
+			result = emptyMap
 			val map = System.getenv()
 			for ((key, value) in map)
 			{
@@ -99,7 +102,7 @@ object P_EnvironmentMap : Primitive(0, CannotFail, CanInline, HasSideEffect)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			emptyTuple(),
+			emptyTuple,
 			mapTypeForSizesKeyTypeValueType(
-				wholeNumbers(), stringType(), stringType()))
+				wholeNumbers, stringType(), stringType()))
 }

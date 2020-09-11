@@ -1,19 +1,19 @@
 /*
  * StacksToken.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  Redistributions of source code must retain the above copyright notice, this
+ * * Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- *  Redistributions in binary form must reproduce the above copyright notice,
+ * * Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
  *
- *  Neither the name of the copyright holder nor the names of the contributors
+ * * Neither the name of the copyright holder nor the names of the contributors
  *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
@@ -69,18 +69,20 @@ class StacksToken
 	{
 
 		/**
+		 * Create a [StacksToken].
 		 *
 		 * @param string
-		 * The string to be tokenized.
+		 *   The string to be tokenized.
 		 * @param lineNumber
-		 * The line number where the token occurs/begins
+		 *   The line number where the token occurs/begins
 		 * @param position
-		 * The absolute start position of the token
+		 *   The absolute start position of the token
 		 * @param startOfTokenLinePosition
-		 * The position on the line where the token starts.
+		 *   The position on the line where the token starts.
 		 * @param moduleName
-		 * The name of the module the token appears in
-		 * @return a new [stacks token][StacksToken]
+		 *   The name of the module the token appears in.
+		 * @return
+		 *   A new [stacks&#32;token][StacksToken]
 		 */
 		fun create(
 			string: String,

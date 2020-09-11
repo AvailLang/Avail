@@ -1,6 +1,6 @@
 /*
  * CommandMessage.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,8 +52,8 @@ abstract class CommandMessage
 	abstract val command: TextCommand
 
 	/**
-	 * Process this [command message][CommandMessage] on behalf of the specified
-	 * [channel][AvailServerChannel].
+	 * Process this [command&#32;message][CommandMessage] on behalf of the
+	 * specified [channel][AvailServerChannel].
 	 *
 	 * @param channel
 	 *   The channel that received this command message.

@@ -1,6 +1,6 @@
 /*
  * JSONReader.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,10 +37,11 @@ import java.io.IOException
 import java.io.Reader
 import java.math.BigDecimal
 import java.nio.charset.MalformedInputException
-import java.util.*
+import java.util.LinkedList
 
 /**
- * A `JSONReader` produces [JSON-friendly][JSONFriendly] [ ] given a valid JSON document.
+ * A `JSONReader` produces [JSON-friendly][JSONFriendly] value given a valid
+ * JSON document.
  *
  * @property reader
  *   The [source][Reader] of the raw JSON document.
@@ -52,7 +53,7 @@ import java.util.*
  *
  * @param reader
  *   The [source][Reader] of the raw JSON document. The reader must
- *   [support marking][Reader.markSupported].
+ *   [support&#32;marking][Reader.markSupported].
  * @throws IllegalArgumentException
  *   If the reader does not support marking.
  */
@@ -305,13 +306,11 @@ class JSONReader @Throws(IllegalArgumentException::class) constructor(
 				// Do nothing.
 			}
 		}
+		// Optional exponent sign.
 		if (peekFor('e'.toInt(), builder) || peekFor('E'.toInt(), builder))
 		{
 			// Engineering notation.
-			if (peekFor('-'.toInt(), builder) || peekFor('+'.toInt(), builder))
-			{
-				// Optional exponent sign.
-			}
+			peekFor('-'.toInt(), builder) || peekFor('+'.toInt(), builder)
 			while (peekForDigit(builder))
 			{
 				// Do nothing.
@@ -437,7 +436,7 @@ class JSONReader @Throws(IllegalArgumentException::class) constructor(
 		{
 			return JSONObject.empty
 		}
-		val map = HashMap<String, JSONData>()
+		val map = mutableMapOf<String, JSONData>()
 		do
 		{
 			skipWhitespace()

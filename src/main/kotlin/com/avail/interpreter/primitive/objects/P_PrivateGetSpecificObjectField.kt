@@ -31,18 +31,24 @@
  */
 package com.avail.interpreter.primitive.objects
 
-import com.avail.descriptor.functions.A_RawFunction
-import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.BottomTypeDescriptor.bottom
-import com.avail.descriptor.objects.ObjectDescriptor
 import com.avail.descriptor.atoms.A_Atom
-import com.avail.interpreter.Interpreter
+import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.numbers.A_Number.Companion.equalsInt
+import com.avail.descriptor.objects.ObjectDescriptor
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.instance
+import com.avail.descriptor.types.A_Type.Companion.instanceCount
+import com.avail.descriptor.types.A_Type.Companion.returnType
+import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Primitive.Flag.Private
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED
-import com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForType
 import com.avail.interpreter.levelTwo.operation.L2_GET_OBJECT_FIELD
 import com.avail.optimizer.L1Translator
 
@@ -76,7 +82,7 @@ object P_PrivateGetSpecificObjectField : Primitive(
 	}
 
 	/** Specific [A_RawFunction]s will have suitable signatures. */
-	override fun privateBlockTypeRestriction(): A_Type = bottom()
+	override fun privateBlockTypeRestriction(): A_Type = bottom
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,
@@ -124,7 +130,7 @@ object P_PrivateGetSpecificObjectField : Primitive(
 				val write = translator.generator.boxedWriteTemp(
 					restrictionForType(fieldType, BOXED))
 				translator.addInstruction(
-					L2_GET_OBJECT_FIELD.instance,
+					L2_GET_OBJECT_FIELD,
 					objectReg,
 					L2ConstantOperand(fieldAtom),
 					write)

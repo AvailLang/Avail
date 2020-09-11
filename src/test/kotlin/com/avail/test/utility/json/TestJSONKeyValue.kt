@@ -1,6 +1,6 @@
 /*
  * TestJSONKeyValue.java
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,8 +35,9 @@ package com.avail.test.utility.json
 import com.avail.utility.json.JSONNumber
 import com.avail.utility.json.JSONObject
 import com.avail.utility.json.JSONWriter
-
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertArrayEquals
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 
 /**
  * A `TestJSONKeyValue` is an enum used for creating static test data for
@@ -73,8 +74,7 @@ enum class TestJSONKeyValue constructor(val key: String)
 
 		override fun addValueToWriter(writer: JSONWriter)
 		{
-			writer.write(key)
-			writer.write(value)
+			writer.at(key) { write(value) }
 		}
 	},
 
@@ -96,8 +96,7 @@ enum class TestJSONKeyValue constructor(val key: String)
 
 		override fun addValueToWriter(writer: JSONWriter)
 		{
-			writer.write(key)
-			writer.write(value)
+			writer.at(key) { write(value) }
 		}
 	},
 
@@ -119,8 +118,7 @@ enum class TestJSONKeyValue constructor(val key: String)
 
 		override fun addValueToWriter(writer: JSONWriter)
 		{
-			writer.write(key)
-			writer.write(value)
+			writer.at(key) { write(value) }
 		}
 	},
 
@@ -142,8 +140,7 @@ enum class TestJSONKeyValue constructor(val key: String)
 
 		override fun addValueToWriter(writer: JSONWriter)
 		{
-			writer.write(key)
-			writer.write(value)
+			writer.at(key) { write(value) }
 		}
 	},
 
@@ -165,8 +162,7 @@ enum class TestJSONKeyValue constructor(val key: String)
 
 		override fun addValueToWriter(writer: JSONWriter)
 		{
-			writer.write(key)
-			writer.write(value)
+			writer.at(key) { write(value) }
 		}
 	},
 
@@ -188,8 +184,7 @@ enum class TestJSONKeyValue constructor(val key: String)
 
 		override fun addValueToWriter(writer: JSONWriter)
 		{
-			writer.write(key)
-			writer.write(value)
+			writer.at(key) { write(value) }
 		}
 	},
 
@@ -211,8 +206,7 @@ enum class TestJSONKeyValue constructor(val key: String)
 
 		override fun addValueToWriter(writer: JSONWriter)
 		{
-			writer.write(key)
-			writer.write(value)
+			writer.at(key) { write(value) }
 		}
 	},
 
@@ -234,8 +228,7 @@ enum class TestJSONKeyValue constructor(val key: String)
 
 		override fun addValueToWriter(writer: JSONWriter)
 		{
-			writer.write(key)
-			writer.writeNull()
+			writer.at(key) { writeNull() }
 		}
 	},
 
@@ -268,13 +261,11 @@ enum class TestJSONKeyValue constructor(val key: String)
 
 		override fun addValueToWriter(writer: JSONWriter)
 		{
-			writer.write(key)
-			writer.startArray()
-			for (v in value)
-			{
-				writer.write(v)
+			writer.at(key) {
+				writeArray {
+					value.forEach(this::write)
+				}
 			}
-			writer.endArray()
 		}
 	},
 
@@ -307,13 +298,11 @@ enum class TestJSONKeyValue constructor(val key: String)
 
 		override fun addValueToWriter(writer: JSONWriter)
 		{
-			writer.write(key)
-			writer.startArray()
-			for (v in value)
-			{
-				writer.write(v)
+			writer.at(key) {
+				writeArray {
+					value.forEach(this::write)
+				}
 			}
-			writer.endArray()
 		}
 	},
 
@@ -335,8 +324,7 @@ enum class TestJSONKeyValue constructor(val key: String)
 
 		override fun addValueToWriter(writer: JSONWriter)
 		{
-			writer.write(key)
-			writer.write(value)
+			writer.at(key) { write(value) }
 		}
 	},
 
@@ -358,8 +346,7 @@ enum class TestJSONKeyValue constructor(val key: String)
 
 		override fun addValueToWriter(writer: JSONWriter)
 		{
-			writer.write(key)
-			writer.write(value)
+			writer.at(key) { write(value) }
 		}
 	},
 
@@ -527,10 +514,9 @@ enum class TestJSONKeyValue constructor(val key: String)
 			writer: JSONWriter,
 			vararg keyValues: TestJSONKeyValue)
 		{
-			writer.write(keyName)
-			writer.startObject()
-			addToWriter(writer, *keyValues)
-			writer.endObject()
+			writer.at(keyName) {
+				writeObject { addToWriter(writer, *keyValues) }
+			}
 		}
 
 		/**

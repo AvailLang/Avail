@@ -1,6 +1,6 @@
 /*
  * Abstract Iterators.avail
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -67,6 +67,7 @@ Names
 	"reader",
 	"reader of_",
 	"take«at most»?_from_",
+	"drain_",
 	"writer",
 	"writer of_",
 	"Write_to_",
@@ -577,8 +578,8 @@ Semantic restriction "take«at most»?_from_" is
 		Reject parse, expected:
 			"'at most' clause to be specified when count may be ∞"
 	];
-	min ::= if isLax then [0] else [⎣count⎦ ?→ whole number];
-	<readerType's element type's instance… | min..⎡count⎤>
+	min ::= if isLax then [0] else [⌊count⌋ ?→ whole number];
+	<readerType's element type's instance… | min..⌈count⌉>
 ];
 
 /**
@@ -592,7 +593,7 @@ Semantic restriction "take«at most»?_from_" is
  */
 Public macro "_is not exhausted" is
 [
- 	aReader : expression phrase ⇒ reader
+	aReader : expression phrase ⇒ reader
 |
 	restricted send $"¬_"
 		with «<(restricted send $"_is exhausted" with «<aReader>» : boolean)>»
@@ -816,6 +817,26 @@ Semantic restriction "Drop from_until_" is
 ];
 
 /**
+* Answer a tuple comprising all elements of {@param "target"}.
+*
+* @macro "drain_"
+* @param "target" "expression phrase ⇒ reader"
+* @category "Readers"
+* @returns "send phrase ⇒ tuple"
+*/
+Public macro "drain_" is
+[
+  target : expression phrase ⇒ reader
+|
+  restricted send $"take«at most»?_from_" with
+     «<
+        ‘true’,
+        ‘∞’,
+        target
+     >» : tuple
+];
+
+/**
  * Write the elements of the specified {@type "tuple"} to the supplied {@type
  * "writer"}.
  *
@@ -827,7 +848,7 @@ Semantic restriction "Drop from_until_" is
  */
 Method "Write_to_" is
 [
- 	newElements : tuple,
+	newElements : tuple,
 	aWriter : writer
 |
 	For each element of newElements do

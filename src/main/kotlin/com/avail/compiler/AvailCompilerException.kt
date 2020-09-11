@@ -1,6 +1,6 @@
 /*
  * AvailCompilerException.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,11 +33,11 @@
 package com.avail.compiler
 
 import com.avail.builder.ModuleName
-import com.avail.descriptor.ModuleDescriptor
+import com.avail.descriptor.module.ModuleDescriptor
 
 /**
- * An `AvailCompilerException` is thrown by the [Avail compiler][AvailCompiler]
- * when compilation fails for any reason.
+ * An `AvailCompilerException` is thrown by the
+ * [Avail&#32;compiler][AvailCompiler] when compilation fails for any reason.
  *
  * @property moduleName
  *   The [fully-qualified name][ModuleName] of the [module][ModuleDescriptor]

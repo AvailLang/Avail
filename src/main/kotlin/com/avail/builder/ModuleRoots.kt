@@ -1,6 +1,6 @@
 /*
  * ModuleRoots.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,12 +33,11 @@
 package com.avail.builder
 
 import com.avail.annotations.ThreadSafe
-import com.avail.descriptor.ModuleDescriptor
+import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.persistence.Repository.Companion.isIndexedRepositoryFile
 import com.avail.utility.json.JSONWriter
 import java.io.File
 import java.io.IOException
-import java.util.*
 import java.util.Collections.unmodifiableSet
 
 /**
@@ -68,7 +67,7 @@ import java.util.Collections.unmodifiableSet
  *
  * @constructor
  *
- * Construct a new `ModuleRoots` from the specified Avail [ ] path.
+ * Construct a new `ModuleRoots` from the specified Avail roots path.
  *
  * @param modulePath
  *   An Avail [module][ModuleDescriptor] path.
@@ -79,7 +78,7 @@ import java.util.Collections.unmodifiableSet
 class ModuleRoots(modulePath: String) : Iterable<ModuleRoot>
 {
 	/**
-	 * A [map][Map] from logical root names to [module root][ModuleRoot]s.
+	 * A [map][Map] from logical root names to [module&#32;root][ModuleRoot]s.
 	 */
 	private val rootMap = LinkedHashMap<String, ModuleRoot>()
 
@@ -99,7 +98,7 @@ class ModuleRoots(modulePath: String) : Iterable<ModuleRoot>
 			builder.append("=")
 			builder.append(root.repository.fileName.path)
 			val sourceDirectory = root.sourceDirectory
-			if (sourceDirectory != null)
+			if (sourceDirectory !== null)
 			{
 				builder.append(",")
 				builder.append(sourceDirectory.path)
@@ -111,7 +110,7 @@ class ModuleRoots(modulePath: String) : Iterable<ModuleRoot>
 
 	/**
 	 * Parse the Avail [module][ModuleDescriptor] path into a [map][Map] of
-	 * logical root names to [module root][ModuleRoot]s.
+	 * logical root names to [module&#32;root][ModuleRoot]s.
 	 *
 	 * @param modulePath
 	 *   The module roots path string.
@@ -166,19 +165,19 @@ class ModuleRoots(modulePath: String) : Iterable<ModuleRoot>
 			val sourceDirectory =
 				if (paths.size == 2) File(paths[1])
 				else null
-			require(!(sourceDirectory != null && !sourceDirectory.isDirectory))
+			require(!(sourceDirectory !== null && !sourceDirectory.isDirectory))
 
 			addRoot(ModuleRoot(rootName, repositoryFile, sourceDirectory))
 		}
 	}
 
 	/**
-	 * Clear the [root map][rootMap].
+	 * Clear the [root&#32;map][rootMap].
 	 */
 	fun clearRoots() = rootMap.clear()
 
 	/**
-	 * Add a [root][ModuleRoot] to the [root map][rootMap].
+	 * Add a [root][ModuleRoot] to the [root&#32;map][rootMap].
 	 *
 	 * @param root
 	 *   The root.
@@ -195,18 +194,16 @@ class ModuleRoots(modulePath: String) : Iterable<ModuleRoot>
 	val rootNames: Set<String> get() = unmodifiableSet(rootMap.keys)
 
 	/**
-	 * The [module roots][ModuleRoot] in the order that they are specified in
-	 * the Avail [module][ModuleDescriptor] path.
+	 * The [module&#32;roots][ModuleRoot] in the order that they are specified
+	 * in the Avail [module][ModuleDescriptor] path.
 	 */
-	val roots: Set<ModuleRoot>
-		get() = unmodifiableSet(LinkedHashSet(rootMap.values))
+	val roots get () = rootMap.values.toSet()
 
-	override fun iterator(): Iterator<ModuleRoot> =
-		unmodifiableSet(roots).iterator()
+	override fun iterator () = roots.toSet().iterator()
 
 	/**
-	 * Answer the [module root][ModuleRoot] bound to the specified logical root
-	 * name.
+	 * Answer the [module&#32;root][ModuleRoot] bound to the specified logical
+	 * root name.
 	 *
 	 * @param rootName
 	 *   A logical root name, typically something owned by a vendor of Avail
@@ -230,16 +227,14 @@ class ModuleRoots(modulePath: String) : Iterable<ModuleRoot>
 	fun writeOn(writer: JSONWriter)
 	{
 		writer.writeArray {
-			for (root in roots)
-			{
-				writer.write(root.name)
-			}
+			roots.forEach { root -> write(root.name) }
 		}
 	}
 
 	/**
 	 * Write a JSON object whose fields are the module roots and whose values
-	 * are [JSON arrays][ModuleRoot.writePathsOn] containing path information.
+	 * are [JSON&#32;arrays][ModuleRoot.writePathsOn] containing path
+	 * information.
 	 *
 	 * @param writer
 	 *   A [JSONWriter].
@@ -247,10 +242,8 @@ class ModuleRoots(modulePath: String) : Iterable<ModuleRoot>
 	fun writePathsOn(writer: JSONWriter)
 	{
 		writer.writeArray {
-			for (root in roots)
-			{
-				writer.write(root.name)
-				root.writePathsOn(writer)
+			roots.forEach { root ->
+				at(root.name) { root.writePathsOn(writer) }
 			}
 		}
 	}

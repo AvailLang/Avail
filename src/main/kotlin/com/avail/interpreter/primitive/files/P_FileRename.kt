@@ -1,6 +1,6 @@
 /*
  * P_FileRename.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,36 +31,50 @@
  */
 package com.avail.interpreter.primitive.files
 
-import com.avail.AvailRuntime.currentRuntime
-import com.avail.descriptor.FiberDescriptor.newFiber
-import com.avail.descriptor.representation.A_BasicObject
-import com.avail.descriptor.sets.SetDescriptor.set
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromArray
+import com.avail.AvailRuntime.Companion.currentRuntime
+import com.avail.descriptor.atoms.A_Atom.Companion.extractBoolean
+import com.avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromArray
 import com.avail.descriptor.tuples.StringDescriptor
-import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.types.EnumerationTypeDescriptor.booleanType
-import com.avail.descriptor.types.FiberTypeDescriptor.fiberType
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.bytes
-import com.avail.descriptor.types.TupleTypeDescriptor.stringType
+import com.avail.descriptor.types.A_Type.Companion.returnType
+import com.avail.descriptor.types.A_Type.Companion.typeUnion
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
+import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
+import com.avail.descriptor.types.FiberTypeDescriptor.Companion.fiberType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.bytes
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
-import com.avail.exceptions.AvailErrorCode.*
-import com.avail.interpreter.Interpreter
+import com.avail.exceptions.AvailErrorCode.E_FILE_EXISTS
+import com.avail.exceptions.AvailErrorCode.E_INVALID_PATH
+import com.avail.exceptions.AvailErrorCode.E_IO_ERROR
+import com.avail.exceptions.AvailErrorCode.E_NO_FILE
+import com.avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.execution.Interpreter
 import com.avail.io.IOSystem
 import java.io.IOException
-import java.nio.file.*
-import java.util.*
+import java.nio.file.AccessDeniedException
+import java.nio.file.CopyOption
+import java.nio.file.FileAlreadyExistsException
+import java.nio.file.FileStore
+import java.nio.file.Files
+import java.nio.file.InvalidPathException
+import java.nio.file.NoSuchFileException
+import java.nio.file.Path
+import java.nio.file.StandardCopyOption
 
 /**
  * **Primitive:** Rename the source [path][Path] to the destination path. Try
  * not to overwrite an existing destination. This operation is only likely to
- * work for two paths provided by the same [file store][FileStore].
+ * work for two paths provided by the same [file&#32;store][FileStore].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -100,10 +114,10 @@ object P_FileRename : Primitive(6, CanInline, HasSideEffect)
 			StringDescriptor.stringFrom(
 				"Asynchronous file rename, $sourcePath → $destinationPath")
 		}
-		newFiber.availLoader(current.availLoader())
-		newFiber.heritableFiberGlobals(
+		newFiber.setAvailLoader(current.availLoader())
+		newFiber.setHeritableFiberGlobals(
 			current.heritableFiberGlobals().makeShared())
-		newFiber.textInterface(current.textInterface())
+		newFiber.setTextInterface(current.textInterface())
 		newFiber.makeShared()
 		succeed.makeShared()
 		fail.makeShared()
@@ -111,7 +125,7 @@ object P_FileRename : Primitive(6, CanInline, HasSideEffect)
 		val replace = replaceExisting.extractBoolean()
 		runtime.ioSystem().executeFileTask(
 			Runnable {
-               val options = ArrayList<CopyOption>()
+               val options = mutableListOf<CopyOption>()
                if (replace)
                {
                    options.add(StandardCopyOption.REPLACE_EXISTING)
@@ -173,7 +187,7 @@ object P_FileRename : Primitive(6, CanInline, HasSideEffect)
                    runtime,
                    newFiber,
                    succeed,
-                   emptyList<A_BasicObject>())
+                   emptyList())
            })
 		return interpreter.primitiveSuccess(newFiber)
 	}
@@ -183,8 +197,8 @@ object P_FileRename : Primitive(6, CanInline, HasSideEffect)
 			tupleFromArray(
 				stringType(),
 				stringType(),
-				booleanType(),
-				functionType(emptyTuple(), TOP.o()),
+				booleanType,
+				functionType(emptyTuple, TOP.o),
 				functionType(
 					tuple(enumerationWith(
 						set(
@@ -192,9 +206,11 @@ object P_FileRename : Primitive(6, CanInline, HasSideEffect)
 							E_FILE_EXISTS,
 							E_NO_FILE,
 							E_IO_ERROR))),
-					TOP.o()),
-				bytes()),
-			fiberType(TOP.o()))
+					TOP.o
+				),
+				bytes
+			),
+			fiberType(TOP.o))
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_INVALID_PATH))

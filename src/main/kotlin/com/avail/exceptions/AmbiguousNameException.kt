@@ -1,6 +1,6 @@
 /*
  * AmbiguousNameException.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,7 @@ import com.avail.descriptor.atoms.AtomDescriptor
 
 /**
  * An `AmbiguousNameException` is thrown when a simple string name could
- * represent multiple [true names][AtomDescriptor].
+ * represent multiple [true&#32;names][AtomDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  *

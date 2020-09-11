@@ -1,6 +1,6 @@
 /*
  * ArithmeticException.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,10 +46,10 @@ class ArithmeticException : AvailRuntimeException
 {
 	/**
 	 * Construct a new `ArithmeticException` with the specified
-	 * [error code][AvailErrorCode].
+	 * [error&#32;code][AvailErrorCode].
 	 *
 	 * @param errorCode
-	 *   The [error code][AvailErrorCode].
+	 *   The [error&#32;code][AvailErrorCode].
 	 */
 	constructor(errorCode: AvailErrorCode) : super(errorCode)
 
@@ -58,9 +58,9 @@ class ArithmeticException : AvailRuntimeException
 	 * [cause][Throwable].
 	 *
 	 * @param errorCode
-	 *   The [error code][AvailErrorCode].
+	 *   The [error&#32;code][AvailErrorCode].
 	 * @param cause
-	 *   The proximal [cause][Throwable] of the [        ].
+	 *   The proximal [cause][Throwable] of the [Exception].
 	 */
 	constructor(errorCode: AvailErrorCode, cause: Throwable)
 		: super(errorCode, cause)

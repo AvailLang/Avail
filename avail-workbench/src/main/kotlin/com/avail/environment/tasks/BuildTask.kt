@@ -1,6 +1,6 @@
 /*
  * BuildTask.java
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@
 package com.avail.environment.tasks
 
 import com.avail.builder.ResolvedModuleName
-import com.avail.descriptor.ModuleDescriptor
+import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.environment.AvailWorkbench
 import com.avail.environment.AvailWorkbench.AbstractWorkbenchTask
 import java.awt.Cursor
@@ -57,7 +57,7 @@ class BuildTask (
 {
 	override fun executeTask()
 	{
-		assert(targetModuleName != null)
+		assert(targetModuleName !== null)
 		workbench.availBuilder.buildTarget(
 			targetModuleName(),
 			workbench::eventuallyUpdatePerModuleProgress,

@@ -6,12 +6,12 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
  *
  *  * Neither the name of the copyright holder nor the names of the contributors
  *    may be used to endorse or promote products derived from this software
@@ -31,35 +31,45 @@
  */
 package com.avail.descriptor.representation
 
-import com.avail.descriptor.AbstractDescriptor
-import com.avail.descriptor.AvailObject
-import com.avail.descriptor.FillerDescriptor
-import com.avail.descriptor.IndirectionDescriptor
 import com.avail.descriptor.atoms.A_Atom
-import com.avail.descriptor.functions.*
+import com.avail.descriptor.functions.A_Continuation
+import com.avail.descriptor.functions.A_Function
+import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.functions.CompiledCodeDescriptor
+import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.maps.A_Map
-import com.avail.descriptor.numbers.AbstractNumberDescriptor.Sign
 import com.avail.descriptor.objects.ObjectDescriptor
 import com.avail.descriptor.objects.ObjectTypeDescriptor
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
 import com.avail.descriptor.sets.A_Set
-import com.avail.descriptor.sets.SetDescriptor.SetIterator
 import com.avail.descriptor.tokens.A_Token
-import com.avail.descriptor.tuples.*
+import com.avail.descriptor.tuples.A_String
+import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.ByteStringDescriptor
+import com.avail.descriptor.tuples.ByteTupleDescriptor
+import com.avail.descriptor.tuples.IntTupleDescriptor
+import com.avail.descriptor.tuples.LongTupleDescriptor
+import com.avail.descriptor.tuples.TupleDescriptor
+import com.avail.descriptor.tuples.TwoByteStringDescriptor
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.argsTupleType
+import com.avail.descriptor.types.A_Type.Companion.declaredExceptions
+import com.avail.descriptor.types.A_Type.Companion.returnType
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor
 import com.avail.descriptor.types.FiberTypeDescriptor
 import com.avail.descriptor.types.FunctionTypeDescriptor
+import com.avail.descriptor.types.ListPhraseTypeDescriptor
+import com.avail.descriptor.variables.A_Variable
 import com.avail.descriptor.variables.VariableDescriptor
 import com.avail.optimizer.jvm.CheckedMethod
-import com.avail.optimizer.jvm.CheckedMethod.instanceMethod
+import com.avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.serialization.SerializerOperation
-import com.avail.utility.evaluation.Continuation0
 import com.avail.utility.json.JSONFriendly
 import com.avail.utility.json.JSONWriter
 import com.avail.utility.visitor.AvailSubobjectVisitor
-import java.util.*
+import java.util.IdentityHashMap
 import java.util.function.Supplier
 
 /**
@@ -113,19 +123,17 @@ interface A_BasicObject : JSONFriendly {
 	fun sameAddressAs(anotherObject: A_BasicObject): Boolean
 
 	/**
-	 * Turn the receiver into an [indirection][IndirectionDescriptor]
-	 * to the specified [object][AvailObject].
+	 * Turn the receiver into an [indirection][IndirectionDescriptor] to the
+	 * specified [object][AvailObject].
 	 *
+	 * **WARNING:** This alters the receiver's slots and descriptor.
 	 *
-	 * **WARNING:** This alters the receiver's slots and
-	 * descriptor.
+	 * **WARNING:** A [shared][Mutability.SHARED] object may not become an
+	 * indirection. The caller must ensure that this method is not sent to a
+	 * shared object.
 	 *
-	 *
-	 * **WARNING:** A [shared][Mutability.SHARED]
-	 * object may not become an indirection. The caller must ensure that this
-	 * method is not sent to a shared object.
-	 *
-	 * @param anotherObject An object.
+	 * @param anotherObject
+	 *   An object.
 	 */
 	fun becomeIndirectionTo(anotherObject: A_BasicObject)
 
@@ -162,21 +170,22 @@ interface A_BasicObject : JSONFriendly {
 	fun variableObjectSlotsCount(): Int
 
 	/**
-	 * Recursively print the [receiver][AvailObject] to the [ ] unless it is already present in the [ recursion list][List]. Printing will begin at the specified indent level,
-	 * measured in horizontal tab characters.
-	 *
+	 * Recursively print the [receiver][AvailObject] to the [builder] unless it
+	 * is already present in the [recursionMap]. Printing will begin at the
+	 * specified [indent] level, measured in horizontal tab characters.
 	 *
 	 * This operation exists primarily to provide useful representations of
 	 * `AvailObject`s for Java-side debugging.
 	 *
 	 * @param builder
-	 * A [StringBuilder].
+	 *   A [StringBuilder].
 	 * @param recursionMap
-	 * An [IdentityHashMap] whose keys are [AvailObject]s
-	 * already visited during the recursive print.  The associated values
-	 * are unused.
+	 *   An [IdentityHashMap] whose keys are [AvailObject]s already visited (but
+	 *   not yet completed) during the recursive print.  The associated values
+	 *   are unused.
 	 * @param indent
-	 * The indent level, in horizontal tabs, at which the [        ] should be printed.
+	 *   The indent level, in horizontal tabs, at which new lines should be
+	 *   written.
 	 */
 	fun printOnAvoidingIndent(
 		builder: StringBuilder,
@@ -184,11 +193,11 @@ interface A_BasicObject : JSONFriendly {
 		indent: Int)
 
 	/**
-	 * Utility method for decomposing this object in the debugger.  See [ ] for instructions to enable this functionality in
-	 * Eclipse.
+	 * Utility method for decomposing this object in the debugger.
 	 *
-	 * @return An array of [AvailObjectFieldHelper] objects that help
-	 * describe the logical structure of the receiver to the debugger.
+	 * @return
+	 *   An array of [AvailObjectFieldHelper] objects that help describe the
+	 *   logical structure of the receiver to the debugger.
 	 */
 	fun describeForDebugger(): Array<AvailObjectFieldHelper>
 
@@ -217,72 +226,32 @@ interface A_BasicObject : JSONFriendly {
 	/**
 	 * Compute the 32-bit hash of the receiver.
 	 *
-	 * @return An `int` hash value.
+	 * @return An [Int] hash value.
 	 */
 	fun hash(): Int
 	override fun hashCode(): Int
 
 	/**
-	 * Dispatch to the descriptor.
-	 */
-	fun setBinAddingElementHashLevelCanDestroy(
-		elementObject: A_BasicObject,
-		elementObjectHash: Int,
-		myLevel: Byte,
-		canDestroy: Boolean): A_BasicObject
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	fun binElementAt(index: Int): A_BasicObject
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	fun binHasElementWithHash(
-		elementObject: A_BasicObject,
-		elementObjectHash: Int): Boolean
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	fun setBinHash(): Int
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	fun binRemoveElementHashLevelCanDestroy(
-		elementObject: A_BasicObject,
-		elementObjectHash: Int,
-		myLevel: Byte,
-		canDestroy: Boolean): AvailObject
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	fun setBinSize(): Int
-
-	/**
 	 * {@inheritDoc}
 	 *
-	 *
-	 *
-	 * This comparison operation takes an [Object] as its argument to
-	 * avoid accidentally calling this with, say, a [String] literal.
-	 * We mark it as deprecated to ensure we don't accidentally invoke
-	 * this method when we really mean the version that takes an `AvailObject` as an argument.  Eclipse conveniently shows such invocations
-	 * with a <span style="text-decoration: line-through">strike-out</span>.
-	 * That's a convenient warning for the programmer, but we also fail if this
-	 * method actually gets invoked AND the argument is not an `AvailObject`.  That means we don't allow AvailObjects to be added to Java
-	 * [sets][Set] and such, at least when they're intermixed with
-	 * things that are not AvailObjects.
-	 *
+	 * This comparison operation takes an [Object] as its argument to avoid
+	 * accidentally calling this with, say, a [String] literal. We mark it as
+	 * deprecated to ensure we don't accidentally invoke this method when we
+	 * really mean the version that takes an `AvailObject` as an argument.
+	 * Eclipse conveniently shows such invocations with a <span
+	 * style="text-decoration: line-through">strike-out</span>.  That's a
+	 * convenient warning for the programmer, but we also fail if this method
+	 * actually gets invoked AND the argument is not an `AvailObject`.  That
+	 * means we don't allow AvailObjects to be added to Java [sets][Set] and
+	 * such, at least when they're intermixed with things that are not
+	 * AvailObjects.
 	 */
 	@Deprecated("")
 	override fun equals(other: Any?): Boolean
 
 	/**
-	 * Answer whether the receiver and the argument, both [ ], are equal in value.
+	 * Answer whether the receiver and the argument, both [A_BasicObject]s, are
+	 * equal in value.
 	 *
 	 * Note that the argument is of type [AvailObject] so that correctly
 	 * typed uses (where the argument is statically known to be an AvailObject)
@@ -310,7 +279,7 @@ interface A_BasicObject : JSONFriendly {
 
 	/**
 	 * Answer whether the receiver, an [object][AvailObject], and the
-	 * argument, a [byte string][ByteStringDescriptor], are equal in
+	 * argument, a [byte&#32;string][ByteStringDescriptor], are equal in
 	 * value.
 	 *
 	 * @param aByteString The byte string to be compared to the receiver.
@@ -321,7 +290,7 @@ interface A_BasicObject : JSONFriendly {
 
 	/**
 	 * Answer whether the receiver, an [object][AvailObject], and the
-	 * argument, a [byte tuple][ByteTupleDescriptor], are equal in
+	 * argument, a [byte&#32;tuple][ByteTupleDescriptor], are equal in
 	 * value.
 	 *
 	 * @param aByteTuple The byte tuple to be compared to the receiver.
@@ -329,16 +298,6 @@ interface A_BasicObject : JSONFriendly {
 	 * to the argument, `false` otherwise.
 	 */
 	fun equalsByteTuple(aByteTuple: A_Tuple): Boolean
-
-	/**
-	 * Answer whether the receiver, an [object][AvailObject], is a
-	 * character with a code point equal to the integer argument.
-	 *
-	 * @param aCodePoint The code point to be compared to the receiver.
-	 * @return `true` if the receiver is a character with a code point
-	 * equal to the argument, `false` otherwise.
-	 */
-	fun equalsCharacterWithCodePoint(aCodePoint: Int): Boolean
 
 	/**
 	 * Answer whether the receiver, an [object][AvailObject], and the
@@ -352,7 +311,7 @@ interface A_BasicObject : JSONFriendly {
 
 	/**
 	 * Answer whether the receiver, an [object][AvailObject], and the
-	 * argument, a [fiber type][FiberTypeDescriptor], are equal in
+	 * argument, a [fiber&#32;type][FiberTypeDescriptor], are equal in
 	 * value.
 	 *
 	 * @param aFiberType A fiber type.
@@ -363,25 +322,19 @@ interface A_BasicObject : JSONFriendly {
 
 	/**
 	 * Answer whether the receiver, an [object][AvailObject], and the
-	 * argument, a [function type][FunctionTypeDescriptor], are equal.
+	 * argument, a [function&#32;type][FunctionTypeDescriptor], are equal.
 	 *
 	 * @param aFunctionType The function type used in the comparison.
 	 * @return `true` IFF the receiver is also a function type and:
-	 *
-	 *
-	 *  * The [argument types][AvailObject.argsTupleType]
-	 * correspond,
-	 *  * The [return types][AvailObject.returnType]
-	 * correspond, and
-	 *  * The [raise types][AvailObject.declaredExceptions]
-	 * correspond.
-	 *
+	 *  * The [argument&#32;types][A_Type.argsTupleType] correspond,
+	 *  * The [return&#32;types][A_Type.returnType] correspond, and
+	 *  * The [raise&#32;types][A_Type.declaredExceptions] correspond.
 	 */
 	fun equalsFunctionType(aFunctionType: A_Type): Boolean
 
 	/**
 	 * Answer whether the arguments, an [object][AvailObject] and a
-	 * [compiled code][CompiledCodeDescriptor], are equal.
+	 * [compiled&#32;code][CompiledCodeDescriptor], are equal.
 	 *
 	 * @param aCompiledCode The compiled code used in the comparison.
 	 * @return `true` if the receiver is a compiled code and of value
@@ -401,34 +354,40 @@ interface A_BasicObject : JSONFriendly {
 	 * @return `true` if the receiver is a variable with the same identity
 	 * as the argument, `false` otherwise.
 	 */
-	fun equalsVariable(aVariable: AvailObject): Boolean
+	fun equalsVariable(aVariable: A_Variable): Boolean
 
 	/**
-	 * Answer whether the receiver equals the argument, a [ ].
+	 * Answer whether the receiver equals the argument.
 	 *
-	 * @param aVariableType A variable type.
-	 * @return The result of comparing the receiver and aVariableType.
+	 * @param aVariableType
+	 *   A variable type.
+	 * @return
+	 *   The result of comparing the receiver and aVariableType.
 	 */
 	fun equalsVariableType(aVariableType: A_Type): Boolean
 
 	/**
-	 * Answer whether the receiver equals the argument, a [ ].
+	 * Answer whether the receiver equals the argument.
 	 *
-	 * @param aContinuation A continuation.
-	 * @return The result of comparing the receiver and aContinuation.
+	 * @param aContinuation
+	 *   A continuation.
+	 * @return
+	 *   The result of comparing the receiver and aContinuation.
 	 */
 	fun equalsContinuation(aContinuation: A_Continuation): Boolean
 
 	/**
-	 * Answer whether the receiver equals the argument, a [ ].
+	 * Answer whether the receiver equals the argument.
 	 *
-	 * @param aContinuationType A continuation type.
-	 * @return The result of comparing the receiver and aContinuationType.
+	 * @param aContinuationType
+	 *   A continuation type.
+	 * @return
+	 *   The result of comparing the receiver and aContinuationType.
 	 */
 	fun equalsContinuationType(aContinuationType: A_Type): Boolean
 
 	/**
-	 * Answer whether the receiver equals the argument, an [ ].
+	 * Answer whether the receiver equals the argument.
 	 *
 	 * @param anIntegerRangeType An integer range type.
 	 * @return The result of comparing the receiver and anIntegerRangeType.
@@ -437,18 +396,22 @@ interface A_BasicObject : JSONFriendly {
 		anIntegerRangeType: A_Type): Boolean
 
 	/**
-	 * Answer whether the receiver equals the argument, an Avail [ ].
+	 * Answer whether the receiver equals the argument.
 	 *
-	 * @param aMap An Avail map.
-	 * @return The result of comparing the receiver and aMap.
+	 * @param aMap
+	 *   An Avail map.
+	 * @return
+	 *   The result of comparing the receiver and aMap.
 	 */
 	fun equalsMap(aMap: A_Map): Boolean
 
 	/**
-	 * Answer whether the receiver equals the argument, a [ ].
+	 * Answer whether the receiver equals the argument.
 	 *
-	 * @param aMapType A map type.
-	 * @return The result of comparing the receiver and aMapType.
+	 * @param aMapType
+	 *   A map type.
+	 * @return
+	 *   The result of comparing the receiver and aMapType.
 	 */
 	fun equalsMapType(aMapType: A_Type): Boolean
 
@@ -508,36 +471,6 @@ interface A_BasicObject : JSONFriendly {
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	fun equalsSet(aSet: A_Set): Boolean
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	fun equalsDouble(aDouble: Double): Boolean
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	fun equalsFloat(aFloat: Float): Boolean
-
-	/**
-	 * Answer whether the [receiver][AvailObject] is an [ ] with the specified [Sign].
-	 *
-	 * @param sign The type of infinity for comparison.
-	 * @return `true` if the receiver is an infinity of the specified
-	 * sign, `false` otherwise.
-	 */
-	fun equalsInfinity(sign: Sign): Boolean
-
-	/**
-	 * Dispatch to the descriptor.
-	 * @param anAvailInteger
-	 */
-	fun equalsInteger(anAvailInteger: AvailObject): Boolean
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	fun equalsSetType(aSetType: A_Type): Boolean
 
 	/**
@@ -568,7 +501,7 @@ interface A_BasicObject : JSONFriendly {
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	fun hashOrZero(value: Int)
+	fun setHashOrZero(value: Int)
 
 	/**
 	 * Dispatch to the descriptor.
@@ -579,11 +512,6 @@ interface A_BasicObject : JSONFriendly {
 	 * Dispatch to the descriptor.
 	 */
 	fun representationCostOfTupleType(): Int
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	fun isBinSubsetOf(potentialSuperset: A_Set): Boolean
 
 	/**
 	 * Is the [receiver][AvailObject] an Avail boolean?
@@ -602,28 +530,22 @@ interface A_BasicObject : JSONFriendly {
 	val isUnsignedByte: Boolean
 
 	/**
-	 * Is the [receiver][AvailObject] an Avail [ ]?
+	 * Is the [receiver][AvailObject] an Avail
+	 * [byte&#32;string][ByteStringDescriptor]?
 	 *
-	 * @return `true` if the receiver is a byte string, `false`
-	 * otherwise.
+	 * @return
+	 *   `true` if the receiver is a byte string, `false` otherwise.
 	 */
 	val isByteString: Boolean
 
 	/**
-	 * Is the [receiver][AvailObject] an Avail [ ]?
+	 * Is the [receiver][AvailObject] an Avail
+	 * [byte&#32;tuple][ByteTupleDescriptor]?
 	 *
-	 * @return `true` if the receiver is a byte tuple, `false`
-	 * otherwise.
+	 * @return
+	 *   `true` if the receiver is a byte tuple, `false` otherwise.
 	 */
 	val isByteTuple: Boolean
-
-	/**
-	 * Is the [receiver][AvailObject] an Avail character?
-	 *
-	 * @return `true` if the receiver is a character, `false`
-	 * otherwise.
-	 */
-	val isCharacter: Boolean
 
 	/**
 	 * Is the [receiver][AvailObject] an Avail function?
@@ -670,14 +592,26 @@ interface A_BasicObject : JSONFriendly {
 	val isIntegerRangeType: Boolean
 
 	/**
-	 * Is the [receiver][AvailObject] an Avail [ ]?  This is conservative, in that some object
-	 * tuples *may* only contain ints but not be reported as being int
-	 * tuples.
+	 * Is the [receiver][AvailObject] an Avail [IntTupleDescriptor]?  This is
+	 * conservative, in that some object tuples *may* only contain ints but not
+	 * be reported as being int tuples.
 	 *
-	 * @return `true` if the receiver is easily determined to be an int
-	 * tuple, `false` otherwise.
+	 * @return
+	 *   `true` if the receiver is easily determined to be an int tuple, `false`
+	 *   otherwise.
 	 */
 	val isIntTuple: Boolean
+
+	/**
+	 * Is the [receiver][AvailObject] an Avail [LongTupleDescriptor]?  This is
+	 * conservative, in that some object tuples *may* only contain longs but not
+	 * be reported as being long tuples.
+	 *
+	 * @return
+	 *   `true` if the receiver is easily determined to be a long tuple, `false`
+	 *   otherwise.
+	 */
+	val isLongTuple: Boolean
 
 	/**
 	 * Is the [receiver][AvailObject] an Avail map?
@@ -698,13 +632,6 @@ interface A_BasicObject : JSONFriendly {
 	 * otherwise.
 	 */
 	val isNybble: Boolean
-
-	/**
-	 * Is the [receiver][AvailObject] an Avail set?
-	 *
-	 * @return `true` if the receiver is a set, `false` otherwise.
-	 */
-	val isSet: Boolean
 
 	/**
 	 * Dispatch to the descriptor.
@@ -732,10 +659,11 @@ interface A_BasicObject : JSONFriendly {
 	val isTupleType: Boolean
 
 	/**
-	 * Is the [receiver][AvailObject] an Avail [ ]?
+	 * Is the [receiver][AvailObject] an Avail
+	 * [two-byte&#32;string][TwoByteStringDescriptor]?
 	 *
-	 * @return `true` if the receiver is a two-byte string, `false`
-	 * otherwise.
+	 * @return
+	 *   `true` if the receiver is a two-byte string, `false` otherwise.
 	 */
 	val isTwoByteString: Boolean
 
@@ -765,7 +693,7 @@ interface A_BasicObject : JSONFriendly {
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	fun makeSubobjectsShared()
+	fun makeSubobjectsShared(): AvailObject
 
 	/**
 	 * Dispatch to the descriptor.
@@ -784,11 +712,6 @@ interface A_BasicObject : JSONFriendly {
 	fun kind(): A_Type
 
 	/**
-	 * Dispatch to the descriptor.
-	 */
-	fun value(value: A_BasicObject)
-
-	/**
 	 * @return
 	 */
 	fun resultType(): A_Type
@@ -797,16 +720,6 @@ interface A_BasicObject : JSONFriendly {
 	 * @return
 	 */
 	fun declarationKind(): DeclarationKind
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	fun binUnionKind(): A_Type
-
-	/**
-	 * @return
-	 */
-	val isSetBin: Boolean
 
 	/**
 	 * @return
@@ -826,7 +739,9 @@ interface A_BasicObject : JSONFriendly {
 	fun equalsInstanceTypeFor(anInstanceType: AvailObject): Boolean
 
 	/**
-	 * Determine whether the receiver is an [ ] with the given [ ] of instances.
+	 * Determine whether the receiver is an
+	 * [enumeration][AbstractEnumerationTypeDescriptor] with the given
+	 * [set][A_Set] of instances.
 	 *
 	 * @param aSet A set of objects.
 	 * @return Whether the receiver is an enumeration with the given
@@ -957,12 +872,12 @@ interface A_BasicObject : JSONFriendly {
 	/**
 	 * @return
 	 */
-	fun <T> javaObject(): T?
+	fun <T : Any> javaObject(): T?
 
 	/**
 	 * @return
 	 */
-	fun <T> javaObjectNotNull(): T
+	fun <T : Any> javaObjectNotNull(): T
 
 	/**
 	 * @return
@@ -1009,17 +924,6 @@ interface A_BasicObject : JSONFriendly {
 	 * @return
 	 */
 	val isInstanceMeta: Boolean
-
-	/**
-	 * @param kind
-	 * @return
-	 */
-	fun binElementsAreAllInstancesOfKind(kind: A_Type): Boolean
-
-	/**
-	 * @return
-	 */
-	fun setBinIterator(): SetIterator
 
 	/**
 	 * @param aPhrase
@@ -1087,6 +991,12 @@ interface A_BasicObject : JSONFriendly {
 	fun equalsIntTuple(anIntTuple: A_Tuple): Boolean
 
 	/**
+	 * @param aLongTuple
+	 * @return
+	 */
+	fun equalsLongTuple(aLongTuple: A_Tuple): Boolean
+
+	/**
 	 * @param aSmallIntegerIntervalTuple
 	 * @return
 	 */
@@ -1100,21 +1010,17 @@ interface A_BasicObject : JSONFriendly {
 	fun equalsRepeatedElementTuple(aRepeatedElementTuple: A_Tuple): Boolean
 
 	/**
-	 * @param critical
-	 */
-	fun lock(critical: Continuation0)
-
-	/**
 	 * Lock the fiber during evaluation of the [Supplier], and return the
 	 * produced value.
 	 *
-	 * @param supplier
-	 * The supplier to evaluate.
-	 * @param <T>
-	 * The type of value to produce while holding the lock.
-	 * @return The produced value.
-	</T> */
-	fun <T : Any> lock(supplier: Supplier<T>): T
+	 * @param T
+	 *   The type of value to produce while holding the lock.
+	 * @param body
+	 *   The body to evaluate.
+	 * @return
+	 *   The produced value.
+	 */
+	fun <T> lock(body: () -> T): T
 
 	/**
 	 * @return
@@ -1127,10 +1033,13 @@ interface A_BasicObject : JSONFriendly {
 	fun writeSummaryTo(writer: JSONWriter)
 
 	/**
-	 * Answer whether this value equals the given [ ].
+	 * Answer whether this value equals the given
+	 * [list&#32;phrase&#32;type][ListPhraseTypeDescriptor].
 	 *
-	 * @param listNodeType The list phrase type to compare against.
-	 * @return Whether the receiver equals the given list phrase type.
+	 * @param listNodeType
+	 *   The list phrase type to compare against.
+	 * @return
+	 *   Whether the receiver equals the given list phrase type.
 	 */
 	fun equalsListNodeType(listNodeType: A_Type): Boolean
 
@@ -1138,9 +1047,22 @@ interface A_BasicObject : JSONFriendly {
 	 * Extract a field from an [object][ObjectDescriptor].
 	 *
 	 * @param field
+	 *   The field to look up.
 	 * @return
+	 *   The field's value.
 	 */
 	fun fieldAt(field: A_Atom): AvailObject
+
+	/**
+	 * Extract a field from an [object][ObjectDescriptor], or answer null if
+	 * it's not present.
+	 *
+	 * @param field
+	 *   The field to look up.
+	 * @return
+	 *   The field's value or null.
+	 */
+	fun fieldAtOrNull(field: A_Atom): AvailObject?
 
 	/**
 	 * Add or replace a field of an [object][ObjectDescriptor].
@@ -1156,19 +1078,67 @@ interface A_BasicObject : JSONFriendly {
 		canDestroy: Boolean): A_BasicObject
 
 	/**
-	 * Extract a field type from an [object type][ObjectTypeDescriptor].
+	 * Extract a field type from an [object&#32;type][ObjectTypeDescriptor].
 	 *
 	 * @param field
+	 *   The field to look up.
 	 * @return
+	 *   The field's type.
 	 */
 	fun fieldTypeAt(field: A_Atom): A_Type
 
+	/**
+	 * Extract a field type from an [object&#32;type][ObjectTypeDescriptor],
+	 * or `null` if it's not present.
+	 *
+	 * @param field
+	 *   The field to look up.
+	 * @return
+	 *   The field's type or null.
+	 */
+	fun fieldTypeAtOrNull(field: A_Atom): A_Type?
+
 	companion object {
+		/**
+		 * Dispatcher helper function for routing messages to the descriptor.
+		 *
+		 * @param R
+		 *   The result type of this call.
+		 * @param f
+		 *   The [AbstractDescriptor] method to invoke, with the receiver cast
+		 *   to [AvailObject] as an additional first argument.
+		 */
+		inline fun <R> A_BasicObject.dispatch(
+			f: AbstractDescriptor.(AvailObject) -> R): R =
+				descriptor().f(this as AvailObject)
+
+		/**
+		 * If the provided condition is true, synchronize with the receiver's
+		 * monitor around the execution of the body function.  Otherwise, run
+		 * the body function without synchronization.
+		 *
+		 * @param R
+		 *   The type of result produced by the body, if any.
+		 * @param syncCondition
+		 *   Whether to synchronize on the receiver's monitor.
+		 * @param body
+		 *   The body to run, either synchronized or unsynchronized.
+		 * @receiver
+		 *   The result of running the body.
+		 */
+		inline fun <R> A_BasicObject.synchronizeIf(
+			syncCondition: Boolean,
+			body: A_BasicObject.() -> R
+		): R = when {
+			syncCondition -> synchronized(this) { body() }
+			else -> body()
+		}
+
 		/** The [CheckedMethod] for [.equals].  */
 		@JvmField
 		val equalsMethod: CheckedMethod = instanceMethod(
 			A_BasicObject::class.java,
-			"equals",
+			A_BasicObject::equals.name,
 			Boolean::class.javaPrimitiveType!!,
 			A_BasicObject::class.java)
 
@@ -1176,7 +1146,7 @@ interface A_BasicObject : JSONFriendly {
 		@JvmField
 		val isInstanceOfMethod: CheckedMethod = instanceMethod(
 			A_BasicObject::class.java,
-			"isInstanceOf",
+			A_BasicObject::isInstanceOf.name,
 			Boolean::class.javaPrimitiveType!!,
 			A_Type::class.java)
 
@@ -1184,35 +1154,36 @@ interface A_BasicObject : JSONFriendly {
 		@JvmField
 		val makeImmutableMethod: CheckedMethod = instanceMethod(
 			A_BasicObject::class.java,
-			"makeImmutable",
+			A_BasicObject::makeImmutable.name,
 			AvailObject::class.java)
 
 		/** The [CheckedMethod] for [.makeSubobjectsImmutable].  */
+		@Suppress("unused")
 		@JvmField
 		val makeSubobjectsImmutableMethod: CheckedMethod = instanceMethod(
 			A_BasicObject::class.java,
-			"makeSubobjectsImmutable",
+			A_BasicObject::makeSubobjectsImmutable.name,
 			AvailObject::class.java)
 
 		/** The [CheckedMethod] for [.traversed].  */
 		@JvmField
 		val traversedMethod: CheckedMethod = instanceMethod(
 			A_BasicObject::class.java,
-			"traversed",
+			A_BasicObject::traversed.name,
 			AvailObject::class.java)
 
 		/** The [CheckedMethod] for [.isInt].  */
 		@JvmField
 		val isIntMethod: CheckedMethod = instanceMethod(
 			A_BasicObject::class.java,
-			"isInt",
+			A_BasicObject::isInt.name,
 			Boolean::class.javaPrimitiveType!!)
 
 		/** The [CheckedMethod] for [.isDouble].  */
 		@JvmField
 		val isDoubleMethod: CheckedMethod = instanceMethod(
 			A_BasicObject::class.java,
-			"isDouble",
+			A_BasicObject::isDouble.name,
 			Boolean::class.javaPrimitiveType!!)
 	}
 }

@@ -1,6 +1,6 @@
 /*
  * Smalltalk Lite Implementation.avail
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -147,7 +147,7 @@ Public macro "`!Game class methodsFor:'wumping'`!«…:…§»`|«…§»`|«_!�
 	stmtsPhrase : list phrase ⇒ (statement phrase*)
 |
 	argsTuple ::= argsPhrase's expressions ?→ (list phrase ⇒ <token…|2>)+;
-	args, selector ::= left fold <<<>, "self ">> ++ argsTuple through
+	args, selector ::= left fold <<>, "self "> into argsTuple through
 		[
 			pairPhrase : list phrase ⇒ <token…|2>,
 			partial : <declaration phrase*, string…|2>

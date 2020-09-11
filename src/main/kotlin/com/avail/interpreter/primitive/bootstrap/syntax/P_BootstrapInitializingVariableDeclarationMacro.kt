@@ -1,6 +1,6 @@
 /*
  * P_BootstrapInitializingVariableDeclarationMacro.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,25 +34,33 @@ package com.avail.interpreter.primitive.bootstrap.syntax
 
 import com.avail.compiler.AvailRejectedParseException
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
-import com.avail.descriptor.FiberDescriptor
+import com.avail.descriptor.fiber.FiberDescriptor
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
+import com.avail.descriptor.phrases.A_Phrase.Companion.token
+import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newVariable
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
-import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.newVariable
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType.KEYWORD
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.InstanceMetaDescriptor.anyMeta
-import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.*
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LOCAL_VARIABLE_PHRASE
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.descriptor.types.TypeDescriptor.Types.TOKEN
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.Bootstrap
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * The `P_BootstrapInitializingVariableDeclarationMacro` primitive is used for
- * bootstrapping declaration of a [local
- * variable][DeclarationKind.LOCAL_VARIABLE] with an initializing expression.
+ * bootstrapping declaration of a
+ * [local&#32;variable][DeclarationKind.LOCAL_VARIABLE] with an initializing
+ * expression.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -83,7 +91,7 @@ object P_BootstrapInitializingVariableDeclarationMacro
 				"variable's declared type to be something other than $type")
 		}
 		val initializationType =
-			initializationExpression.expressionType()
+			initializationExpression.phraseExpressionType()
 		if (initializationType.isTop || initializationType.isBottom)
 		{
 			throw AvailRejectedParseException(
@@ -109,7 +117,8 @@ object P_BootstrapInitializingVariableDeclarationMacro
 				"local variable $nameString to have a name that doesn't shadow "
 				    + "an existing "
 					+ conflictingDeclaration.declarationKind().nativeKindName()
-					+ " (from line ${conflictingDeclaration.token().lineNumber()})")
+					+ " (from line " +
+					"${conflictingDeclaration.token().lineNumber()})")
 		}
 		return interpreter.primitiveSuccess(variableDeclaration)
 	}
@@ -118,10 +127,10 @@ object P_BootstrapInitializingVariableDeclarationMacro
 		functionType(
 			tuple(
 				/* Variable name token */
-				LITERAL_PHRASE.create(TOKEN.o()),
+				LITERAL_PHRASE.create(TOKEN.o),
 				/* Variable type */
 				LITERAL_PHRASE.create(anyMeta()),
 				/* Initialization expression */
-				EXPRESSION_PHRASE.create(ANY.o())),
+				EXPRESSION_PHRASE.create(ANY.o)),
 			LOCAL_VARIABLE_PHRASE.mostGeneralType())
 }

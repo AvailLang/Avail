@@ -1,6 +1,6 @@
 /*
  * JSONObject.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,7 @@ import kotlin.collections.Map.Entry
 
 /**
  * A `JSONObject` is produced by a [JSONReader] when an object is
- * read. Each key of the object is a [String] and each value is a [ ].
+ * read. Each key of the object is a [String] and each value is a [JSONData].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  *
@@ -162,16 +162,12 @@ class JSONObject internal constructor(
 	override fun iterator(): Iterator<Entry<String, JSONData>> =
 		map.entries.iterator()
 
-	override fun writeTo(writer: JSONWriter)
-	{
-		writer.startObject()
-		for ((key, value) in map)
-		{
-			writer.write(key)
-			value.writeTo(writer)
+	override fun writeTo(writer: JSONWriter) =
+		writer.writeObject {
+			map.forEach { (key, value) ->
+				at(key) { value.writeTo(writer) }
+			}
 		}
-		writer.endObject()
-	}
 
 	companion object
 	{

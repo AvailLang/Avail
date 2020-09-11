@@ -1,6 +1,6 @@
 /*
  * P_BundleMessageParts.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,21 +31,24 @@
  */
 package com.avail.interpreter.primitive.methods
 
+import com.avail.descriptor.bundles.A_Bundle.Companion.messageParts
 import com.avail.descriptor.bundles.MessageBundleDescriptor
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.TupleTypeDescriptor.stringType
-import com.avail.descriptor.types.TupleTypeDescriptor.zeroOrMoreOf
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import com.avail.descriptor.types.TypeDescriptor.Types.MESSAGE_BUNDLE
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CanFold
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Answer a [message bundle's][MessageBundleDescriptor] message
- * parts (a [tuple][TupleDescriptor] of strings).
+ * **Primitive:** Answer a [message&#32;bundle's][MessageBundleDescriptor]
+ * message parts (a [tuple][TupleDescriptor] of strings).
  */
 @Suppress("unused")
 object P_BundleMessageParts : Primitive(1, CannotFail, CanFold, CanInline)
@@ -59,5 +62,5 @@ object P_BundleMessageParts : Primitive(1, CannotFail, CanFold, CanInline)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(MESSAGE_BUNDLE.o()), zeroOrMoreOf(stringType()))
+		functionType(tuple(MESSAGE_BUNDLE.o), zeroOrMoreOf(stringType()))
 }

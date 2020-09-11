@@ -1,6 +1,6 @@
 /*
  * AvailErrorCode.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,22 +33,53 @@
 package com.avail.exceptions
 
 import com.avail.AvailRuntime
+import com.avail.compiler.splitter.Group
 import com.avail.compiler.splitter.MessageSplitter
-import com.avail.descriptor.AvailObject
-import com.avail.descriptor.FiberDescriptor
-import com.avail.descriptor.ModuleDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.bundles.A_Bundle
+import com.avail.descriptor.fiber.FiberDescriptor
+import com.avail.descriptor.functions.A_Function
+import com.avail.descriptor.functions.CompiledCodeDescriptor
+import com.avail.descriptor.functions.ContinuationDescriptor
+import com.avail.descriptor.functions.FunctionDescriptor
+import com.avail.descriptor.maps.MapDescriptor
+import com.avail.descriptor.methods.AbstractDefinitionDescriptor
+import com.avail.descriptor.methods.DefinitionDescriptor
+import com.avail.descriptor.methods.ForwardDefinitionDescriptor
+import com.avail.descriptor.methods.MacroDescriptor
+import com.avail.descriptor.methods.MethodDefinitionDescriptor
+import com.avail.descriptor.methods.MethodDescriptor
+import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.numbers.A_Number
-import com.avail.descriptor.numbers.IntegerDescriptor.fromInt
+import com.avail.descriptor.numbers.A_Number.Companion.divideCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.minusCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.plusCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.timesCanDestroy
+import com.avail.descriptor.numbers.InfinityDescriptor
+import com.avail.descriptor.numbers.IntegerDescriptor
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.phrases.BlockPhraseDescriptor
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
+import com.avail.descriptor.phrases.PermutedListPhraseDescriptor
 import com.avail.descriptor.phrases.PhraseDescriptor
+import com.avail.descriptor.phrases.ReferencePhraseDescriptor
+import com.avail.descriptor.phrases.SequencePhraseDescriptor
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.tuples.StringDescriptor
+import com.avail.descriptor.types.EnumerationTypeDescriptor
+import com.avail.descriptor.types.FiberTypeDescriptor
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
+import com.avail.descriptor.types.PojoTypeDescriptor
+import com.avail.descriptor.types.TupleTypeDescriptor
+import com.avail.descriptor.types.TypeDescriptor
+import com.avail.descriptor.variables.A_Variable
+import com.avail.descriptor.variables.VariableDescriptor
+import com.avail.descriptor.variables.VariableSharedGlobalDescriptor
 import com.avail.interpreter.levelOne.L1Operation
-import com.avail.interpreter.primitive.phrases.P_AcceptParsing
-import com.avail.interpreter.primitive.phrases.P_CurrentMacroName
-import com.avail.interpreter.primitive.phrases.P_RejectParsing
+import com.avail.interpreter.primitive.compiler.P_AcceptParsing
+import com.avail.interpreter.primitive.compiler.P_CurrentMacroName
+import com.avail.interpreter.primitive.compiler.P_RejectParsing
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.serialization.Deserializer
 import com.avail.serialization.Serializer
@@ -57,11 +88,10 @@ import java.lang.reflect.Field
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import java.nio.file.Path
-import java.util.*
 
 /**
  * `AvailErrorCode` is an enumeration of all possible failures of operations on
- * [Avail objects][AvailObject].
+ * [Avail&#32;objects][AvailObject].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  *
@@ -137,8 +167,9 @@ enum class AvailErrorCode constructor(val code: Int)
 	E_INCORRECT_ARGUMENT_TYPE(12),
 
 	/**
-	 * A [method definition][MethodDescriptor] did not declare the same return
-	 * type as its [forward declaration][ForwardDefinitionDescriptor].
+	 * A [method&#32;definition][MethodDescriptor] did not declare the same
+	 * return type as its
+	 * [forward&#32;declaration][ForwardDefinitionDescriptor].
 	 */
 	E_METHOD_RETURN_TYPE_NOT_AS_FORWARD_DECLARED(13),
 
@@ -151,7 +182,11 @@ enum class AvailErrorCode constructor(val code: Int)
 	/** The requested operation is not currently supported on this platform. */
 	E_OPERATION_NOT_SUPPORTED(15),
 
-	//	E_??? (16),
+	/**
+	 * The [module][A_Module] is permanently closed and does not support
+	 * mutative operations any longer.
+	 */
+	E_MODULE_IS_CLOSED(16),
 
 	/**
 	 * The specified type is not a finite
@@ -171,7 +206,7 @@ enum class AvailErrorCode constructor(val code: Int)
 	/**
 	 * The wrong number or [types][TypeDescriptor] of outers were specified for
 	 * creation of a [function][FunctionDescriptor] from a
-	 * [raw function][CompiledCodeDescriptor].
+	 * [raw&#32;function][CompiledCodeDescriptor].
 	 */
 	E_WRONG_OUTERS(20),
 
@@ -189,7 +224,7 @@ enum class AvailErrorCode constructor(val code: Int)
 
 	/**
 	 * The operation was forbidden by the platform or the Java
-	 * [security manager][SecurityManager] because of insufficient user
+	 * [security&#32;manager][SecurityManager] because of insufficient user
 	 * privilege.
 	 */
 	E_PERMISSION_DENIED(24),
@@ -216,7 +251,7 @@ enum class AvailErrorCode constructor(val code: Int)
 
 	/**
 	 * A method's argument type was inconsistent with a
-	 * [special object][AvailRuntime.specialObject] specific requirements.
+	 * [special&#32;object][AvailRuntime.specialObject] specific requirements.
 	 */
 	E_INCORRECT_TYPE_FOR_GROUP(32),
 
@@ -224,14 +259,14 @@ enum class AvailErrorCode constructor(val code: Int)
 	E_NO_SPECIAL_OBJECT(33),
 
 	/**
-	 * A [macro][MacroDefinitionDescriptor] [body][FunctionDescriptor] must
+	 * A [macro][MacroDescriptor] [body][FunctionDescriptor] must
 	 * restrict each parameter to be at least as specific as a
 	 * [phrase][PhraseDescriptor].
 	 */
 	E_MACRO_ARGUMENT_MUST_BE_A_PARSE_NODE(34),
 
 	/**
-	 * There are multiple [true names][AtomDescriptor] associated with the
+	 * There are multiple [true&#32;names][AtomDescriptor] associated with the
 	 * string.
 	 */
 	E_AMBIGUOUS_NAME(35),
@@ -241,7 +276,7 @@ enum class AvailErrorCode constructor(val code: Int)
 
 	/**
 	 * Cannot take a [reference][ReferencePhraseDescriptor] to this
-	 * [kind of declaration][DeclarationKind].
+	 * [kind&#32;of&#32;declaration][DeclarationKind].
 	 */
 	E_DECLARATION_KIND_DOES_NOT_SUPPORT_REFERENCE(37),
 
@@ -264,13 +299,14 @@ enum class AvailErrorCode constructor(val code: Int)
 	E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS(40),
 
 	/**
-	 * A [special atom][AvailRuntime.specialAtoms] was supplied where forbidden.
+	 * A [special&#32;atom][AvailRuntime.specialAtoms] was supplied where
+	 * forbidden.
 	 */
 	E_SPECIAL_ATOM(41),
 
 	/**
 	 * A method's argument type was inconsistent with a
-	 * [complex guillemet group's][MessageSplitter] specific requirements.  In
+	 * [complex&#32;guillemet&#32;group's][Group] specific requirements.  In
 	 * particular, the corresponding argument position must be a tuple of tuples
 	 * whose sizes range from the number of argument subexpressions left of the
 	 * double-dagger, up to the number of argument subexpressions on both sides
@@ -354,14 +390,14 @@ enum class AvailErrorCode constructor(val code: Int)
 	E_VERTICAL_BAR_MUST_SEPARATE_TOKENS_OR_SIMPLE_GROUPS(55),
 
 	/**
-	 * A [Double] [not-a-number][Double.NaN] or [Float]
-	 * [not-a-number][Float.NaN] can not be converted to an extended
+	 * A [Double] value [not-a-number][java.lang.Double.NaN] or [Float] value
+	 * [not-a-number][java.lang.Float.NaN] cannot be converted to an extended
 	 * integer (neither truncation, floor, nor ceiling).
 	 */
 	E_CANNOT_CONVERT_NOT_A_NUMBER_TO_INTEGER(56),
 
 	/**
-	 * A [numbered choice expression][MessageSplitter] should have its
+	 * A [numbered&#32;choice&#32;expression][MessageSplitter] should have its
 	 * corresponding argument typed as a subtype of [1..N] where N is the number
 	 * of listed choices.
 	 */
@@ -394,41 +430,41 @@ enum class AvailErrorCode constructor(val code: Int)
 
 	/**
 	 * An attempt was made to add a prefix [function][A_Function] to a
-	 * [message bundle][A_Bundle], but its index was not between 1 and the
+	 * [message&#32;bundle][A_Bundle], but its index was not between 1 and the
 	 * number of section markers (§) in the bundle's name.
 	 */
 	E_MACRO_PREFIX_FUNCTION_INDEX_OUT_OF_BOUNDS(63),
 
 	/**
-	 * The [current fiber][FiberDescriptor.currentFiber] attempted to
-	 * [accept the current parse][P_AcceptParsing], but it isn't
+	 * The [current&#32;fiber][FiberDescriptor.currentFiber] attempted to
+	 * [accept&#32;the&#32;current&#32;parse][P_AcceptParsing], but it isn't
 	 * actually running a semantic restriction.
 	 */
 	E_UNTIMELY_PARSE_ACCEPTANCE(64),
 
 	/**
-	 * The [current fiber][FiberDescriptor.currentFiber] attempted to determine
-	 * the [current macro name][P_CurrentMacroName], the name (atom) of a send
-	 * phrase which was undergoing macro substitution, but this fiber is not
-	 * performing a macro substitution.
+	 * The [current&#32;fiber][FiberDescriptor.currentFiber] attempted to
+	 * determine the [current&#32;macro&#32;name][P_CurrentMacroName], the name
+	 * (atom) of a send phrase which was undergoing macro substitution, but this
+	 * fiber is not performing a macro substitution.
 	 */
 	E_NOT_EVALUATING_MACRO(65),
 
 	/**
 	 * The yield type specified for a [PhraseKind] was not a subtype of the
-	 * [most general yield][PhraseKind.mostGeneralYieldType].
+	 * [most&#32;general&#32;yield][PhraseKind.mostGeneralYieldType].
 	 */
 	E_BAD_YIELD_TYPE(66),
 
 	/**
-	 * A [macro][MacroDefinitionDescriptor]'s
-	 * [prefix function][FunctionDescriptor] must restrict each parameter to be
-	 * at least as specific as a [phrase][PhraseDescriptor].
+	 * A [macro][MacroDescriptor]'s
+	 * [prefix&#32;function][FunctionDescriptor] must restrict each parameter to
+	 * be at least as specific as a [phrase][PhraseDescriptor].
 	 */
 	E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PARSE_NODE(67),
 
 	/**
-	 * A [macro][MacroDefinitionDescriptor] [body][FunctionDescriptor] must
+	 * A [macro][MacroDescriptor] [body][FunctionDescriptor] must
 	 * produce a [phrase][PhraseDescriptor].
 	 */
 	E_MACRO_MUST_RETURN_A_PARSE_NODE(68),
@@ -447,27 +483,27 @@ enum class AvailErrorCode constructor(val code: Int)
 	E_LOADING_IS_OVER(70),
 
 	/**
-	 * The [current fiber][FiberDescriptor.currentFiber] attempted to
-	 * [reject the current parse][P_RejectParsing], but it isn't actually
-	 * running a semantic restriction.
+	 * The [current&#32;fiber][FiberDescriptor.currentFiber] attempted to
+	 * [reject&#32;the&#32;current&#32;parse][P_RejectParsing], but it isn't
+	 * actually running a semantic restriction.
 	 */
 	E_UNTIMELY_PARSE_REJECTION(71),
 
 	/**
 	 * The method is sealed at the specified
-	 * [parameters type][TupleTypeDescriptor].
+	 * [parameters&#32;type][TupleTypeDescriptor].
 	 */
 	E_METHOD_IS_SEALED(72),
 
 	/**
 	 * Cannot overwrite or clear an initialized
-	 * [write-once variable][VariableSharedGlobalDescriptor].
+	 * [write-once&#32;variable][VariableSharedGlobalDescriptor].
 	 */
 	E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE(73),
 
 	/**
-	 * A [module][ModuleDescriptor] already has an [atom][AtomDescriptor]
-	 * associated with a particular [name][StringDescriptor].
+	 * A [module][A_Module] already has an [atom][AtomDescriptor] associated
+	 * with a particular [name][StringDescriptor].
 	 */
 	E_ATOM_ALREADY_EXISTS(74),
 
@@ -531,22 +567,22 @@ enum class AvailErrorCode constructor(val code: Int)
 	E_UNWIND_SENTINEL(83),
 
 	/**
-	 * No [method definition][MethodDefinitionDescriptor] satisfies the supplied
-	 * criteria.
+	 * No [method&#32;definition][MethodDefinitionDescriptor] satisfies the
+	 * supplied criteria.
 	 */
 	@ReferencedInGeneratedCode
 	E_NO_METHOD_DEFINITION(84),
 
 	/**
-	 * More than one [method definition][MethodDefinitionDescriptor] satisfies
-	 * the supplied criteria.
+	 * More than one [method&#32;definition][MethodDefinitionDescriptor]
+	 * satisfies the supplied criteria.
 	 */
 	@ReferencedInGeneratedCode
 	E_AMBIGUOUS_METHOD_DEFINITION(85),
 
 	/**
 	 * The resolved [definition][DefinitionDescriptor] is a
-	 * [forward definition][ForwardDefinitionDescriptor].
+	 * [forward&#32;definition][ForwardDefinitionDescriptor].
 	 */
 	@ReferencedInGeneratedCode
 	E_FORWARD_METHOD_DEFINITION(86)
@@ -557,7 +593,7 @@ enum class AvailErrorCode constructor(val code: Int)
 
 	/**
 	 * The resolved [definition][DefinitionDescriptor] is an
-	 * [abstract definition][AbstractDefinitionDescriptor].
+	 * [abstract&#32;definition][AbstractDefinitionDescriptor].
 	 */
 	@ReferencedInGeneratedCode
 	E_ABSTRACT_METHOD_DEFINITION(87)
@@ -569,7 +605,7 @@ enum class AvailErrorCode constructor(val code: Int)
 	/**
 	 * A [variable][A_Variable] which has write reactors was written when write
 	 * tracing was not active for the
-	 * [current fiber][FiberDescriptor.currentFiber].
+	 * [current&#32;fiber][FiberDescriptor.currentFiber].
 	 */
 	E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED(88),
 
@@ -589,7 +625,7 @@ enum class AvailErrorCode constructor(val code: Int)
 
 	/**
 	 * A [fiber][FiberDescriptor] produced a result of an incorrect type, in
-	 * violation of its [fiber type][FiberTypeDescriptor].
+	 * violation of its [fiber&#32;type][FiberTypeDescriptor].
 	 */
 	E_FIBER_PRODUCED_INCORRECTLY_TYPED_RESULT(92),
 
@@ -606,7 +642,7 @@ enum class AvailErrorCode constructor(val code: Int)
 	E_NOT_OPEN_FOR_WRITE(94),
 
 	/**
-	 * A value was passed that exceeded the allowed numeric range, either `Int`,
+	 * A value was passed that exceeded the allowed numeric range, either [Int],
 	 * `Long`, or some other limit imposed by the operating system or virtual
 	 * machine.
 	 */
@@ -620,15 +656,18 @@ enum class AvailErrorCode constructor(val code: Int)
 
 	/**
 	 * [MessageSplitter] encountered inconsistent argument reordering indicators
-	 * in a message name.
+	 * in a message name.  Also indicates when an attempt is made to create a
+	 * [permuted&#32;list][PermutedListPhraseDescriptor] with an invalid or
+	 * identity permutation.  Also indicates an invalid attempt to combine a
+	 * bundle with a differently permuted list to form a send phrase.
 	 */
 	E_INCONSISTENT_ARGUMENT_REORDERING(98),
 
 	//	E_??? (99)
 
 	/**
-	 * A proposed [block expression][BlockPhraseDescriptor] contains one or more
-	 * invalid statements.
+	 * A proposed [block&#32;expression][BlockPhraseDescriptor] contains one or
+	 * more invalid statements.
 	 */
 	E_BLOCK_CONTAINS_INVALID_STATEMENTS(100),
 
@@ -636,8 +675,8 @@ enum class AvailErrorCode constructor(val code: Int)
 	E_BLOCK_IS_INVALID(101),
 
 	/**
-	 * The [block expression][BlockPhraseDescriptor] references outers, but must
-	 * not.
+	 * The [block&#32;expression][BlockPhraseDescriptor] references outers, but
+	 * must not.
 	 */
 	E_BLOCK_MUST_NOT_CONTAIN_OUTERS(102),
 
@@ -670,10 +709,10 @@ enum class AvailErrorCode constructor(val code: Int)
 	 */
 	E_SUPERCAST_MUST_BE_STRICT_SUPERTYPE_OF_EXPRESSION_TYPE(108),
 
+	//	E_??? (109),
+
 	/** An external [process][Process] could not be launched. */
 	E_NO_EXTERNAL_PROCESS(150),
-
-	//	E_??? (109),
 
 	/** The specified [path][Path] does not name an existing file. */
 	E_NO_FILE(200),
@@ -703,7 +742,7 @@ enum class AvailErrorCode constructor(val code: Int)
 	E_JAVA_CLASS_NOT_AVAILABLE(500),
 
 	/**
-	 * A [pojo type][PojoTypeDescriptor] is abstract and therefore cannot be
+	 * A [pojo&#32;type][PojoTypeDescriptor] is abstract and therefore cannot be
 	 * instantiated or have a [constructor][Constructor] bound to a
 	 * [function][FunctionDescriptor].
 	 */
@@ -718,7 +757,7 @@ enum class AvailErrorCode constructor(val code: Int)
 	//	E_??? (503),
 
 	/**
-	 * Marshaling an [Avail object][AvailObject] to/from a Java counterpart
+	 * Marshaling an [Avail&#32;object][AvailObject] to/from a Java counterpart
 	 * failed.
 	 */
 	E_JAVA_MARSHALING_FAILED(504),
@@ -727,20 +766,20 @@ enum class AvailErrorCode constructor(val code: Int)
 	E_JAVA_FIELD_NOT_AVAILABLE(505),
 
 	/**
-	 * A reference to a [Java field][Field] is not uniquely resolvable for the
-	 * given [pojo type][PojoTypeDescriptor].
+	 * A reference to a [Java&#32;field][Field] is not uniquely resolvable for
+	 * the given [pojo&#32;type][PojoTypeDescriptor].
 	 */
 	E_JAVA_FIELD_REFERENCE_IS_AMBIGUOUS(506),
 
 	/**
 	 * An attempt was made to modify a [final][Modifier.isFinal]
-	 * [Java field][Field].
+	 * [Java&#32;field][Field].
 	 */
 	E_CANNOT_MODIFY_FINAL_JAVA_FIELD(507),
 
 	/**
-	 * A reference to a [Java method][Method] is not uniquely resolvable for the
-	 * given [pojo type][PojoTypeDescriptor] and parameter
+	 * A reference to a [Java&#32;method][Method] is not uniquely resolvable for
+	 * the given [pojo&#32;type][PojoTypeDescriptor] and parameter
 	 * [types][TypeDescriptor].
 	 */
 	E_JAVA_METHOD_REFERENCE_IS_AMBIGUOUS(508);
@@ -767,7 +806,7 @@ enum class AvailErrorCode constructor(val code: Int)
 	 * Answer the numeric error code as an [Avail][AvailObject].
 	 *
 	 * @return
-	 *   The [numeric error code][AvailObject].
+	 *   The [numeric&#32;error&#32;code][AvailObject].
 	 */
 	@ReferencedInGeneratedCode
 	fun numericCode(): A_Number = fromInt(code)
@@ -776,9 +815,9 @@ enum class AvailErrorCode constructor(val code: Int)
 	{
 
 		/**
-		 * The mapping from [numeric codes][code] to [AvailErrorCode]s.
+		 * The mapping from [numeric&#32;codes][code] to [AvailErrorCode]s.
 		 */
-		private val byNumericCode = HashMap<Int, AvailErrorCode>()
+		private val byNumericCode = mutableMapOf<Int, AvailErrorCode>()
 
 		// The enumeration values have been initialized, so build the map.
 		init
@@ -791,37 +830,22 @@ enum class AvailErrorCode constructor(val code: Int)
 		}
 
 		/**
-		 * Look up the `AvailErrorCode` with the given [numeric code][code].
+		 * Look up the `AvailErrorCode` with the given [numeric&#32;code][code].
 		 *
 		 * @param numericCode
-		 *   The `Int` to look up as a numeric code.
+		 *   The [Int] to look up as a numeric code.
 		 * @return
 		 *   The error code, or `null` if not defined.
 		 */
-		@JvmStatic
-		fun byNumericCode(numericCode: Int): AvailErrorCode? =
-			byNumericCode[numericCode]
+		fun byNumericCode(numericCode: Int) = byNumericCode[numericCode]
 
 		/**
-		 * Answer all valid [numeric error codes][code].
+		 * Answer all valid [numeric&#32;error&#32;codes][code].
 		 *
 		 * @return
 		 *   A [list][List] of all valid numeric error codes.
 		 */
-		@JvmStatic
-		fun allNumericCodes(): List<Int>
-		{
-			val codes = ArrayList<Int>(values().size)
-			for (code in values())
-			{
-				// All right, not quite *all* of the numeric error codes, just
-				// the ones that are encountered in typical ways.
-				if (code.code > 0)
-				{
-					codes.add(code.code)
-				}
-			}
-			return codes
-		}
+		fun allNumericCodes() =
+			values().filter { it.code > 0 }.map { it.code }
 	}
 }

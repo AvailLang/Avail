@@ -1,6 +1,6 @@
 /*
  * SubmitInputAction.java
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,13 +34,12 @@ package com.avail.environment.actions
 
 import com.avail.builder.AvailBuilder.CompiledCommand
 import com.avail.environment.AvailWorkbench
-import com.avail.interpreter.Interpreter
+import com.avail.interpreter.execution.Interpreter
 import com.avail.io.ConsoleInputChannel
 import com.avail.io.ConsoleOutputChannel
 import com.avail.io.TextInterface
 import java.awt.event.ActionEvent
 import java.awt.event.KeyEvent
-import java.util.*
 import javax.swing.Action
 import javax.swing.JOptionPane
 import javax.swing.KeyStroke
@@ -63,7 +62,7 @@ class SubmitInputAction constructor(workbench: AvailWorkbench)
 	{
 		if (workbench.inputField.isFocusOwner)
 		{
-			assert(workbench.backgroundTask == null)
+			assert(workbench.backgroundTask === null)
 			if (workbench.isRunning)
 			{
 				// Program is running.  Feed this new line of text to the
@@ -86,30 +85,22 @@ class SubmitInputAction constructor(workbench: AvailWorkbench)
 				ConsoleOutputChannel(workbench.outputStream()),
 				ConsoleOutputChannel(workbench.errorStream())))
 			workbench.availBuilder.attemptCommand(
-				string,
-				attemptCommand@ { commands, proceed ->
-					val array = commands.toTypedArray()
-					Arrays.sort(
-						array
-					) { o1, o2 ->
-						assert(o1 != null)
-						assert(o2 != null)
-						o1!!.toString().compareTo(
-							o2!!.toString())
-					}
+				command = string,
+				onAmbiguity = { commands, proceed ->
 					val selection = JOptionPane.showInputDialog(
 						workbench,
 						"Choose the desired entry point:",
 						"Disambiguate",
 						JOptionPane.QUESTION_MESSAGE,
 						null,
-						commands.toTypedArray(), null) as CompiledCommand
+						commands.sortedBy { it.toString() }.toTypedArray(),
+						null) as CompiledCommand?
 					// There may not be a selection, in which case the
 					// command will not be run – but any necessary cleanup
 					// will be run.
-					proceed.invoke(selection)
+					proceed(selection)
 				},
-				{ result, cleanup ->
+				onSuccess = { result, cleanup ->
 					val afterward = {
 						workbench.isRunning = false
 						invokeLater {
@@ -142,7 +133,7 @@ class SubmitInputAction constructor(workbench: AvailWorkbench)
 						cleanup.invoke(afterward)
 					}
 				},
-				{
+				onFailure = {
 					invokeLater {
 						workbench.isRunning = false
 						workbench.inputStream().clear()

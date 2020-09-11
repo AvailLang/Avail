@@ -1,6 +1,6 @@
 /*
  * ServerOutputChannel.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,7 +43,7 @@ package com.avail.server.io
  * Construct a new [ServerOutputChannel].
  *
  * @param channel
- *   The [server channel][AvailServerChannel] to adapt as a standard output
+ *   The [server&#32;channel][AvailServerChannel] to adapt as a standard output
  *   channel.
  */
 class ServerOutputChannel constructor(channel: AvailServerChannel)

@@ -1,6 +1,6 @@
 /*
  * P_MapBindings.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,20 +31,22 @@
  */
 package com.avail.interpreter.primitive.maps
 
+import com.avail.descriptor.maps.A_Map.Companion.mapIterable
 import com.avail.descriptor.maps.MapDescriptor
-import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromArray
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.MapTypeDescriptor.mostGeneralMapType
-import com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForTypes
-import com.avail.descriptor.types.TupleTypeDescriptor.zeroOrMoreOf
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.MapTypeDescriptor.Companion.mostGeneralMapType
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CanFold
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Answer the bindings of this [map][MapDescriptor] as a
@@ -58,17 +60,13 @@ object P_MapBindings : Primitive(1, CannotFail, CanFold, CanInline)
 		interpreter.checkArgumentCount(1)
 		val map = interpreter.argument(0)
 
-		val bindings = arrayOfNulls<A_Tuple>(map.mapSize())
-		var index = 0
-		for (entry in map.mapIterable())
-		{
-			bindings[index++] = tuple(entry.key(), entry.value())
-		}
-		return interpreter.primitiveSuccess(tupleFromArray(*bindings))
+		val bindings = tupleFromList(
+			map.mapIterable().map { (k, v) -> tuple(k, v) })
+		return interpreter.primitiveSuccess(bindings)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(mostGeneralMapType()),
-			zeroOrMoreOf(tupleTypeForTypes(ANY.o(), ANY.o())))
+			zeroOrMoreOf(tupleTypeForTypes(ANY.o, ANY.o)))
 }

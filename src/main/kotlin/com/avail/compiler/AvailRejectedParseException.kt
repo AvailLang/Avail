@@ -1,6 +1,6 @@
 /*
  * AvailRejectedParseException.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,9 +35,9 @@ package com.avail.compiler
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.StringDescriptor
-import com.avail.descriptor.tuples.StringDescriptor.stringFrom
+import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.exceptions.PrimitiveThrownException
-import com.avail.interpreter.primitive.phrases.P_RejectParsing
+import com.avail.interpreter.primitive.compiler.P_RejectParsing
 import java.lang.String.format
 import java.util.function.Supplier
 
@@ -58,8 +58,8 @@ class AvailRejectedParseException : PrimitiveThrownException
 	val level: ParseNotificationLevel
 
 	/**
-	 * The [error message][StringDescriptor] indicating why a particular parse
-	 * was rejected.
+	 * The [error&#32;message][StringDescriptor] indicating why a particular
+	 * parse was rejected.
 	 */
 	val rejectionString: A_String by lazy { rejectionSupplier() }
 
@@ -113,15 +113,15 @@ class AvailRejectedParseException : PrimitiveThrownException
 
 	/**
 	 * Construct a new instance the most general way, with a function to produce
-	 * an [Avail string][A_String] as needed.  If this diagnostic is deemed
+	 * an [Avail&#32;string][A_String] as needed.  If this diagnostic is deemed
 	 * relevant, the string will be presented after the word `"Expected..."`.
 	 *
 	 * @param level
 	 *   The [ParseNotificationLevel] that indicates the priority of the parse
 	 *   theory that failed.
 	 * @param supplier
-	 *   The function that produces a diagnostic [Avail string][A_String] upon
-	 *   first request.
+	 *   The function that produces a diagnostic [Avail&#32;string][A_String]
+	 *   upon first request.
 	 */
 	constructor(level: ParseNotificationLevel, supplier: ()-> A_String)
 	{

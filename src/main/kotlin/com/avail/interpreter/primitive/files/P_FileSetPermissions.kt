@@ -1,6 +1,6 @@
 /*
  * P_FileSetPermissions.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,25 +32,30 @@
 
 package com.avail.interpreter.primitive.files
 
-import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.atoms.A_Atom.Companion.extractBoolean
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
 import com.avail.descriptor.numbers.IntegerDescriptor
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor
-import com.avail.descriptor.sets.SetDescriptor.set
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.types.EnumerationTypeDescriptor.booleanType
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.inclusive
-import com.avail.descriptor.types.SetTypeDescriptor.setTypeForSizesContentType
-import com.avail.descriptor.types.TupleTypeDescriptor.stringType
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
+import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
+import com.avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
-import com.avail.exceptions.AvailErrorCode.*
-import com.avail.interpreter.Interpreter
+import com.avail.exceptions.AvailErrorCode.E_INVALID_PATH
+import com.avail.exceptions.AvailErrorCode.E_IO_ERROR
+import com.avail.exceptions.AvailErrorCode.E_OPERATION_NOT_SUPPORTED
+import com.avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.execution.Interpreter
 import com.avail.io.IOSystem
 import java.io.IOException
 import java.nio.file.AccessDeniedException
@@ -59,7 +64,7 @@ import java.nio.file.InvalidPathException
 import java.nio.file.Path
 import java.nio.file.attribute.PosixFileAttributeView
 import java.nio.file.attribute.PosixFilePermission
-import java.util.*
+import java.util.EnumSet
 
 /**
  * **Primitive:** Set the access rights for the file specified by the given
@@ -115,11 +120,12 @@ object P_FileSetPermissions : Primitive(3, CanInline, HasSideEffect)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(stringType(),
-			      setTypeForSizesContentType(
-				      inclusive(0, 9),
-				inclusive(1, 9)),
-			      booleanType()),
-			TOP.o())
+				  setTypeForSizesContentType(
+					  inclusive(0, 9),
+					  inclusive(1, 9)),
+				  booleanType),
+			TOP.o
+		)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(
@@ -131,8 +137,8 @@ object P_FileSetPermissions : Primitive(3, CanInline, HasSideEffect)
 
 	/**
 	 * Convert the specified [set][SetDescriptor] of
-	 * [ordinals][IntegerDescriptor] into the corresponding [set][Set] of [POSIX
-	 * file permissions][PosixFilePermission].
+	 * [ordinals][IntegerDescriptor] into the corresponding [set][Set] of
+	 * [POSIX&#32;file&#32;permissions][PosixFilePermission].
 	 *
 	 * @param ordinals
 	 *   Some ordinals.

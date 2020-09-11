@@ -1,6 +1,6 @@
 /*
  * TextOutputChannel.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -96,19 +96,19 @@ interface TextOutputChannel : AsynchronousChannel
 	 * Writes a sequence of characters to this `TextOutputChannel` from the
 	 * given [string][String].
 	 *
-	 *
 	 * This method initiates an series of asynchronous write operations to write
 	 * a sequence of characters to this channel from the given string. The
 	 * supplied [CompletionHandler] is invoked when the entire string has been
 	 * written (or when any intermediate write fails). The result passed to the
-	 * completion handler is the [number of][String.length] written.
+	 * completion handler is the [number&#32;of][String.length] written.
 	 *
 	 * @param A
 	 *   The type of attachment accepted by the `CompletionHandler`.
 	 * @param data
 	 *   The string to be written.
 	 * @param attachment
-	 *   An arbitrary value that should be made available to the `CompletionHandler`, irrespective of success.
+	 *   An arbitrary value that should be made available to the
+	 *   `CompletionHandler`, irrespective of success.
 	 * @param handler
 	 *   What to do when the I/O operation
 	 *   [succeeds][CompletionHandler.completed] or

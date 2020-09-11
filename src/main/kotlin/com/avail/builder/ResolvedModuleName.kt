@@ -1,6 +1,6 @@
 /*
  * ResolvedModuleName.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,14 +33,14 @@
 package com.avail.builder
 
 import com.avail.builder.ModuleNameResolver.Companion.availExtension
-import com.avail.descriptor.ModuleDescriptor
+import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.persistence.Repository
 import java.io.File
 
 /**
  * A `ResolvedModuleName` represents the canonical name of an Avail
  * [module][ModuleDescriptor] that has been resolved to an
- * [absolute][File.isAbsolute] [file reference][File].
+ * [absolute][File.isAbsolute] [file&#32;reference][File].
  *
  * @property moduleRoots
  *   The [ModuleRoots] in which to look up the root name.
@@ -51,7 +51,7 @@ import java.io.File
  * Construct a new [ResolvedModuleName].
  *
  * @param qualifiedName
- *   The just-resolved [module name][ModuleName].
+ *   The just-resolved [module&#32;name][ModuleName].
  * @param moduleRoots
  *   The [ModuleRoots] with which to look up the module.
  * @param isRename
@@ -64,8 +64,8 @@ internal constructor(
 	isRename: Boolean) : ModuleName(qualifiedName.qualifiedName, isRename)
 {
 	/**
-	 * `true` iff the [resolved module name][ResolvedModuleName] represents
-	 * a package, `false` otherwise.
+	 * `true` iff the [resolved&#32;module&#32;name][ResolvedModuleName]
+	 * represents a package, `false` otherwise.
 	 */
 	val isPackage: Boolean
 
@@ -78,7 +78,8 @@ internal constructor(
 	val repository get() = moduleRoot.repository
 
 	/**
-	 * The [resolved][ModuleNameResolver.resolve] source [file reference][File].
+	 * The [resolved][ModuleNameResolver.resolve] source
+	 * [file&#32;reference][File].
 	 */
 	val sourceReference: File
 		get()
@@ -108,7 +109,7 @@ internal constructor(
 		assert(ref.isFile)
 		val fileName = ref.name
 		val directoryName = ref.parentFile
-		this.isPackage = directoryName != null && fileName == directoryName.name
+		this.isPackage = directoryName !== null && fileName == directoryName.name
 	}
 
 	/**
@@ -118,7 +119,7 @@ internal constructor(
 	 * @param theLocalName
 	 *   A local module name.
 	 * @return
-	 *   A [module name][ModuleName].
+	 *   A [module&#32;name][ModuleName].
 	 */
 	fun asSibling(theLocalName: String) =
 		ModuleName(

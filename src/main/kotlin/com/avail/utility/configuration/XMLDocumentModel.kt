@@ -1,6 +1,6 @@
 /*
  * XMLElement.java
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,17 +34,18 @@ package com.avail.utility.configuration
 
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Modifier
-import java.util.*
 
 /**
  * An [XMLConfigurator] relies on an `XMLDocumentModel` to provide a schematic
  * description of the class of XML documents supported by a particular
  * [XMLElement] implementation. It offers:
  *
- *  * Access to the [root element][rootElement].
+ *  * Access to the [root&#32;element][rootElement].
  *  * [Lookup][elementWithQName] of an element by its qualified name.
- *  * Access to the [allowed parent][allowedParentsOf] of a specified element.
- *  * Access to the [allowed child][allowedChildrenOf] of a specified element.
+ *  * Access to the [allowed&#32;parent][allowedParentsOf] of a specified
+ *    element.
+ *  * Access to the [allowed&#32;child][allowedChildrenOf] of a specified
+ *    element.
  *
  * @param ConfigurationType
  *   A concrete [Configuration] class.
@@ -163,10 +164,10 @@ internal constructor(elementClass: Class<ElementType>) where
 		}
 
 		// Initialize other data structures.
-		elementsByQName = HashMap(elements!!.size)
-		allowedChildren = HashMap(elements.size)
+		elementsByQName = mutableMapOf()
+		allowedChildren = mutableMapOf()
 		var root: ElementType? = null
-		elements.forEach { element ->
+		elements!!.forEach { element ->
 			elementsByQName[element.qName] = element
 			if (element.allowedParents.isEmpty())
 			{

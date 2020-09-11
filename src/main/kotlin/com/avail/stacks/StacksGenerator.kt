@@ -1,6 +1,6 @@
 /*
  * StacksGenerator.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,25 +37,20 @@ import com.avail.builder.ModuleName
 import com.avail.builder.ModuleNameResolver
 import com.avail.compiler.ModuleHeader
 import com.avail.compiler.ModuleImport
-import com.avail.descriptor.ModuleDescriptor
+import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.tokens.CommentTokenDescriptor
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.stacks.module.CommentsModule
 import com.avail.utility.IO
-import com.avail.utility.Pair
 import java.io.FileInputStream
 import java.io.IOException
 import java.nio.ByteBuffer
-import java.nio.channels.FileChannel
 import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.nio.file.StandardOpenOption
 import java.nio.file.attribute.BasicFileAttributes
-import java.util.*
-import kotlin.collections.HashMap
 import kotlin.collections.set
 
 /**
@@ -117,10 +112,10 @@ class StacksGenerator @Throws(IllegalArgumentException::class) constructor(
 	private val linkingFileMap: LinkingFileMap
 
 	/**
-	 * A map of [module names][ModuleName] to a list of all the method
+	 * A map of [module&#32;names][ModuleName] to a list of all the method
 	 * names exported from said module
 	 */
-	private var moduleToComments: HashMap<String, CommentsModule>
+	private var moduleToComments: MutableMap<String, CommentsModule>
 
 	init
 	{
@@ -132,10 +127,8 @@ class StacksGenerator @Throws(IllegalArgumentException::class) constructor(
 		this.jsonPath = outputPath.resolve("json")
 		this.logPath = outputPath.resolve("logs")
 		this.errorLog = StacksErrorLog(logPath)
-
 		this.providedDocumentPath = outputPath
-
-		this.moduleToComments = HashMap(50)
+		this.moduleToComments = mutableMapOf()
 	}
 
 	/**
@@ -179,7 +172,7 @@ class StacksGenerator @Throws(IllegalArgumentException::class) constructor(
 	 * @param outermostModule
 	 *   The outermost [module][ModuleDescriptor] for the generation request.
 	 * @throws IOException
-	 *   If an [I/O exception][IOException] occurs.
+	 *   If an [I/O&#32;exception][IOException] occurs.
 	 */
 	@Synchronized @Throws(IOException::class)
 	fun generate(runtime: AvailRuntime, outermostModule: ModuleName)
@@ -255,56 +248,6 @@ class StacksGenerator @Throws(IllegalArgumentException::class) constructor(
 		 * documentation and data files.
 		 */
 		val defaultDocumentationPath: Path = Paths.get("resources/stacks")
-
-		/**
-		 * Given a template file path, create a new file with the provided new
-		 * file path and replace given template place holders with replacement
-		 * content.
-		 *
-		 * @param templateFilePath
-		 *   The [path][Path] to the template file.
-		 * @param newFilePath
-		 *   The [path][Path] to the new file.
-		 * @param replacementPairs
-		 *   The [pairs][Pair] of <template text, replacement text> </template>
-		 */
-		fun createFileFromTemplate(
-			templateFilePath: Path,
-			newFilePath: Path,
-			replacementPairs: ArrayList<Pair<String, String>>)
-		{
-			try
-			{
-				val newFile = FileChannel.open(
-					newFilePath,
-					EnumSet.of(
-						StandardOpenOption.CREATE,
-						StandardOpenOption.WRITE,
-						StandardOpenOption.TRUNCATE_EXISTING))
-				try
-				{
-					var newFileContent = getOuterTemplate(templateFilePath)
-					for (pair in replacementPairs)
-					{
-						newFileContent =
-							newFileContent.replace(pair.first(), pair.second())
-					}
-					newFile.write(
-						ByteBuffer.wrap(newFileContent.toByteArray(UTF_8)))
-				}
-				catch (e: IOException)
-				{
-					e.printStackTrace()
-				}
-
-				IO.close(newFile)
-			}
-			catch (e: IOException)
-			{
-				e.printStackTrace()
-			}
-
-		}
 
 		/**
 		 * Obtain a template file and return a string of that template.

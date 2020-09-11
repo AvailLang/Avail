@@ -1,17 +1,17 @@
 /*
  * P_ExitContinuationWithResultIf.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
  *
  *  * Neither the name of the copyright holder nor the names of the contributors
  *    may be used to endorse or promote products derived from this software
@@ -31,36 +31,38 @@
  */
 package com.avail.interpreter.primitive.controlflow
 
-import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.atoms.A_Atom.Companion.extractBoolean
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.functions.ContinuationDescriptor
-import com.avail.descriptor.sets.SetDescriptor.set
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.types.ContinuationTypeDescriptor.mostGeneralContinuationType
-import com.avail.descriptor.types.EnumerationTypeDescriptor.booleanType
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.A_Type.Companion.returnType
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
+import com.avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralContinuationType
+import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.E_CONTINUATION_EXPECTED_STRONGER_TYPE
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.CanSwitchContinuations
 import com.avail.interpreter.Primitive.Result.CONTINUATION_CHANGED
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operation.L2_RETURN
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
-import com.avail.optimizer.L2Generator.edgeTo
 
 /**
  * **Primitive:** Exit the given [continuation][ContinuationDescriptor]
  * (returning result to its caller), but only if the provided boolean is true.
  * Otherwise do nothing.
  */
+@Suppress("unused")
 object P_ExitContinuationWithResultIf : Primitive(
 	3,
 	CanInline,
@@ -69,7 +71,7 @@ object P_ExitContinuationWithResultIf : Primitive(
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(3)
-		val (con, result, condition) = interpreter.argsBuffer
+		val (continuation, result, condition) = interpreter.argsBuffer
 
 		if (!condition.extractBoolean())
 		{
@@ -80,17 +82,29 @@ object P_ExitContinuationWithResultIf : Primitive(
 		// label continuation's function's return type.  Any stronger check, as
 		// specified in a semantic restriction, will be tested in the caller.
 		if (!result.isInstanceOf(
-				con.function().code().functionType().returnType()))
+				continuation.function().code().functionType().returnType()))
 		{
 			return interpreter.primitiveFailure(
 				E_CONTINUATION_EXPECTED_STRONGER_TYPE)
 		}
 
-		interpreter.setReifiedContinuation(con.caller())
-		interpreter.function = null
-		interpreter.chunk = null
-		interpreter.offset = Integer.MAX_VALUE
-		interpreter.returnNow = true
+		val caller = continuation.caller()
+		if (caller.equalsNil())
+		{
+			interpreter.setReifiedContinuation(caller)
+			interpreter.function = null
+			interpreter.chunk = null
+			interpreter.offset = Int.MAX_VALUE
+			interpreter.returnNow = true
+		}
+		else
+		{
+			interpreter.setReifiedContinuation(caller)
+			interpreter.function = caller.function()
+			interpreter.chunk = caller.levelTwoChunk()
+			interpreter.offset = caller.levelTwoOffset()
+			interpreter.returnNow = false
+		}
 		interpreter.setLatestResult(result)
 		return CONTINUATION_CHANGED
 	}
@@ -99,9 +113,10 @@ object P_ExitContinuationWithResultIf : Primitive(
 		functionType(
 			tuple(
 				mostGeneralContinuationType(),
-				ANY.o(),
-				booleanType()),
-			TOP.o())
+				ANY.o,
+				booleanType),
+			TOP.o
+		)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(
@@ -133,12 +148,12 @@ object P_ExitContinuationWithResultIf : Primitive(
 			translator.jumpIfEqualsConstant(
 				generator.readBoxed(
 					conditionReg.originalBoxedWriteSkippingMoves(true)),
-				trueObject(),
+				trueObject,
 				exit,
 				dontExit)
 			generator.startBlock(exit)
 			generator.addInstruction(
-				L2_RETURN.instance,
+				L2_RETURN,
 				valueReg)
 			generator.startBlock(dontExit)
 			callSiteHelper.useAnswer(translator.generator.boxedConstant(nil))

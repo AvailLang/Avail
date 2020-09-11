@@ -1,6 +1,6 @@
 /*
  * StateMachine.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 
 package com.avail.utility.fsm
 
-import java.util.*
+import java.util.EnumMap
 
 /**
  * A finite state machine (**FSM**) comprises a finite set of states, a table of
@@ -57,9 +57,9 @@ import java.util.*
  * is, states and transitions are not bound directly to actions, but rather
  * indirectly to keys. This allows optimal type-safety and automated validation.
  * An action accepts a single argument of client-specified type. This object is
- * treated as a memento by the FSM, an opaque argument supplied at [execution
- * context][ExecutionContext] creation-time and passed through to an action upon
- * its performance.
+ * treated as a memento by the FSM, an opaque argument supplied at
+ * [execution&#32;context][ExecutionContext] creation-time and passed through to
+ * an action upon its performance.
  *
  * Executable guards are keyed by members of a guard key enumeration for the
  * same reasons as actions. An executable guard accepts a single argument of
@@ -81,21 +81,20 @@ import java.util.*
  * notification is thread-safe, and multiple contexts may simultaneously execute
  * on the same FSM.
  *
- * @param <State>
+ * @param State
  *   The kind of states.
- * @param <Event>
+ * @param Event
  *   The kind of events.
- * @param <ActionKey>
+ * @param ActionKey
  *   The kind of action keys.
- * @param <GuardKey>
+ * @param GuardKey
  *   The kind of guard keys.
- * @param <Memento>
+ * @param Memento
  *   The kind of argument that actions will receive.
  * @property initialState
  *   The state in which to start a new [state][ExecutionContext].
  * @author Todd L Smith &lt;todd@availlang.org&gt;
- * @see [Finite state
- * machine](http://en.wikipedia.org/wiki/Finite-state_machine)
+ * @see [Finite&#32;state&#32;machine](http://en.wikipedia.org/wiki/Finite-state_machine)
  *
  * @constructor
  *
@@ -104,7 +103,7 @@ import java.util.*
  * @param initialState
  *   The state in which a new [context][ExecutionContext] will start.
  * @param summaries
- *   The collection of [state summaries][StateSummary].
+ *   The collection of [state&#32;summaries][StateSummary].
  */
 class StateMachine<
 	State : Enum<State>,
@@ -118,8 +117,8 @@ internal constructor(
 		StateSummary<State, Event, GuardKey, ActionKey, Memento>>)
 {
 	/**
-	 * The complete transition table, a [map][EnumMap] from states to [state
-	 * summaries][StateSummary].
+	 * The complete transition table, a [map][EnumMap] from states to
+	 * [state&#32;summaries][StateSummary].
 	 */
 	private val transitionTable: EnumMap<
 			State, StateSummary<State, Event, GuardKey, ActionKey, Memento>> =
@@ -129,11 +128,11 @@ internal constructor(
 			initialState.declaringClass)
 
 	/**
-	 * Add the specified [state summary][StateSummary] to the transition table.
-	 * Ensure that a summary for the same state is not already present.
+	 * Add the specified [state&#32;summary][StateSummary] to the transition
+	 * table. Ensure that a summary for the same state is not already present.
 	 *
 	 * @param summary
-	 *   A [state summary][StateSummary].
+	 *   A [state&#32;summary][StateSummary].
 	 */
 	private fun addStateSummary(
 		summary: StateSummary<State, Event, GuardKey, ActionKey, Memento>)
@@ -156,7 +155,7 @@ internal constructor(
 	 * @param memento
 	 *   The memento to pass to each action.
 	 * @return
-	 *   A new [execution context][ExecutionContext].
+	 *   A new [execution&#32;context][ExecutionContext].
 	 */
 	fun createExecutionContext(memento: Memento):
 		ExecutionContext<State, Event, GuardKey, ActionKey, Memento>
@@ -175,7 +174,7 @@ internal constructor(
 	 * more viable transitions.
 	 *
 	 * @param executionContext
-	 *   The [execution context][ExecutionContext] to advance.
+	 *   The [execution&#32;context][ExecutionContext] to advance.
 	 */
 	private fun followAutomaticTransitions(
 		executionContext: ExecutionContext<
@@ -201,9 +200,9 @@ internal constructor(
 
 	/**
 	 * Handle an event. In particular, run the *exit* action for the current
-	 * state, run the action on the appropriate [transition
-	 * arc][StateTransitionArc], and run the *entry* action for the target
-	 * state. Set the current state to the target state.
+	 * state, run the action on the appropriate
+	 * [transition&#32;arc][StateTransitionArc], and run the *entry* action for
+	 * the target state. Set the current state to the target state.
 	 *
 	 * @param event
 	 *   The event to process.

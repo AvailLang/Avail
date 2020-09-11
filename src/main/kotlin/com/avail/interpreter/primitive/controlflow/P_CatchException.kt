@@ -1,6 +1,6 @@
 /*
  * P_CatchException.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,28 +32,38 @@
 package com.avail.interpreter.primitive.controlflow
 
 import com.avail.descriptor.functions.FunctionDescriptor
-import com.avail.descriptor.objects.ObjectTypeDescriptor.exceptionType
-import com.avail.descriptor.sets.SetDescriptor.set
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.exceptionType
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.types.BottomTypeDescriptor.bottom
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.TupleTypeDescriptor.zeroOrMoreOf
+import com.avail.descriptor.types.A_Type.Companion.argsTupleType
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
+import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
-import com.avail.descriptor.types.VariableTypeDescriptor.variableTypeFor
-import com.avail.descriptor.variables.VariableDescriptor.newVariableWithOuterType
-import com.avail.exceptions.AvailErrorCode.*
-import com.avail.interpreter.Interpreter
+import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
+import com.avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithOuterType
+import com.avail.exceptions.AvailErrorCode.E_HANDLER_SENTINEL
+import com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
+import com.avail.exceptions.AvailErrorCode.E_REQUIRED_FAILURE
+import com.avail.exceptions.AvailErrorCode.E_UNWIND_SENTINEL
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CatchException
+import com.avail.interpreter.Primitive.Flag.PreserveArguments
+import com.avail.interpreter.Primitive.Flag.PreserveFailureVariable
+import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Always fail. The Avail failure code invokes the [body
- * block][FunctionDescriptor]. A handler block is only invoked when an exception
- * is raised.
+ * **Primitive:** Always fail. The Avail failure code invokes the
+ * [body&#32;block][FunctionDescriptor]. A handler block is only invoked when an
+ * exception is raised.
  */
+@Suppress("unused")
 object P_CatchException : Primitive(
 	3,
 	CatchException,
@@ -90,10 +100,11 @@ object P_CatchException : Primitive(
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				functionType(emptyTuple(), TOP.o()),
-				zeroOrMoreOf(functionType(tuple(bottom()), TOP.o())),
-				functionType(emptyTuple(), TOP.o())),
-			TOP.o())
+				functionType(emptyTuple, TOP.o),
+				zeroOrMoreOf(functionType(tuple(bottom), TOP.o)),
+				functionType(emptyTuple, TOP.o)),
+			TOP.o
+		)
 
 	override fun privateFailureVariableType(): A_Type =
 		// Note: The failure value is itself a new variable stuffed into the

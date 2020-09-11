@@ -1,6 +1,6 @@
 /*
  * P_ServerSocketIPv4Bind.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,26 +32,36 @@
 
 package com.avail.interpreter.primitive.sockets
 
-import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
+import com.avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.SERVER_SOCKET_KEY
-import com.avail.descriptor.sets.SetDescriptor.set
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
+import com.avail.descriptor.numbers.A_Number.Companion.extractUnsignedShort
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.*
-import com.avail.descriptor.types.PojoTypeDescriptor.intRange
-import com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.bytes
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.unsignedShorts
+import com.avail.descriptor.types.PojoTypeDescriptor.Companion.intRange
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
 import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
-import com.avail.exceptions.AvailErrorCode.*
-import com.avail.interpreter.Interpreter
+import com.avail.exceptions.AvailErrorCode.E_INVALID_HANDLE
+import com.avail.exceptions.AvailErrorCode.E_IO_ERROR
+import com.avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED
+import com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
-import com.avail.utility.Casts.cast
+import com.avail.interpreter.execution.Interpreter
+import com.avail.utility.cast
 import java.io.IOException
 import java.net.Inet4Address
 import java.net.InetAddress.getByAddress
@@ -61,12 +71,13 @@ import java.nio.channels.AsynchronousServerSocketChannel
 
 /**
  * **Primitive:** Bind the [AsynchronousServerSocketChannel] referenced by the
- * specified [handle][AtomDescriptor] to an [IPv4 address][Inet4Address] and
+ * specified [handle][AtomDescriptor] to an [IPv4&#32;address][Inet4Address] and
  * port. The bytes of the address are specified in network byte order, i.e.,
  * big-endian.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_ServerSocketIPv4Bind : Primitive(4, CanInline, HasSideEffect)
 {
 	override fun attempt(interpreter: Interpreter): Result
@@ -80,7 +91,8 @@ object P_ServerSocketIPv4Bind : Primitive(4, CanInline, HasSideEffect)
 		if (pojo.equalsNil())
 		{
 			return interpreter.primitiveFailure(
-				if (handle.isAtomSpecial) E_SPECIAL_ATOM else E_INVALID_HANDLE)
+				if (handle.isAtomSpecial()) E_SPECIAL_ATOM
+				else E_INVALID_HANDLE)
 		}
 		val socket = pojo.javaObjectNotNull<AsynchronousServerSocketChannel>()
 		// Build the big-endian address byte array.
@@ -90,7 +102,7 @@ object P_ServerSocketIPv4Bind : Primitive(4, CanInline, HasSideEffect)
 		val backlogInt = backlog.extractInt()
 		return try
 		{
-			val inetAddress: Inet4Address = cast(getByAddress(addressBytes))
+			val inetAddress: Inet4Address = getByAddress(addressBytes).cast()
 			val address =
 				InetSocketAddress(inetAddress, port.extractUnsignedShort())
 			socket.bind(address, backlogInt)
@@ -120,14 +132,16 @@ object P_ServerSocketIPv4Bind : Primitive(4, CanInline, HasSideEffect)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				ATOM.o(),
+				ATOM.o,
 				tupleTypeForSizesTypesDefaultType(
 					singleInt(4),
-					emptyTuple(),
-					bytes()),
-				unsignedShorts(),
+					emptyTuple,
+					bytes
+				),
+				unsignedShorts,
 				intRange()),
-			TOP.o())
+			TOP.o
+		)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

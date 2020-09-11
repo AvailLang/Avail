@@ -1,6 +1,6 @@
 /*
  * P_ReadFromStandardInput.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,20 +31,19 @@
  */
 package com.avail.interpreter.primitive.general
 
-import com.avail.descriptor.A_Fiber
-import com.avail.descriptor.CharacterDescriptor.fromCodePoint
-import com.avail.descriptor.FiberDescriptor.ExecutionState
-import com.avail.descriptor.sets.SetDescriptor.set
-import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+import com.avail.descriptor.character.CharacterDescriptor.Companion.fromCodePoint
+import com.avail.descriptor.fiber.FiberDescriptor.ExecutionState
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.TypeDescriptor.Types.CHARACTER
 import com.avail.exceptions.AvailErrorCode.E_IO_ERROR
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanSuspend
 import com.avail.interpreter.Primitive.Flag.Unknown
+import com.avail.interpreter.execution.Interpreter
 import com.avail.io.SimpleCompletionHandler
 import java.nio.CharBuffer
 
@@ -62,20 +61,20 @@ object P_ReadFromStandardInput : Primitive(0, CanSuspend, Unknown)
 	{
 		interpreter.checkArgumentCount(0)
 		val fiber = interpreter.fiber()
-		return interpreter.suspendAndDo { toSucceed, toFail ->
+		return interpreter.suspendThen {
 			val buffer = CharBuffer.allocate(1)
-			SimpleCompletionHandler<Int, A_Fiber?>(
-				{ _ -> toSucceed.value(fromCodePoint(buffer.get(0).toInt())) },
-				{ toFail.value(E_IO_ERROR) }
-			).guardedDo(
-				fiber.textInterface().inputChannel::read,
-				buffer,
-				fiber)
+			SimpleCompletionHandler<Int>(
+				{ succeed(fromCodePoint(buffer.get(0).toInt())) },
+				{ fail(E_IO_ERROR) }
+			).guardedDo {
+				fiber.textInterface().inputChannel.read(
+					buffer, dummy, handler)
+			}
 		}
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(emptyTuple(), CHARACTER.o())
+		functionType(emptyTuple, CHARACTER.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_IO_ERROR))

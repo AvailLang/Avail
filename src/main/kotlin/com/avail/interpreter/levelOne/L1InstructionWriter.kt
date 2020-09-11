@@ -1,6 +1,6 @@
 /*
  * L1InstructionWriter.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,31 +32,38 @@
 
 package com.avail.interpreter.levelOne
 
-import com.avail.descriptor.A_Module
-import com.avail.descriptor.AvailObject
-import com.avail.descriptor.NilDescriptor
-import com.avail.descriptor.functions.CompiledCodeDescriptor.newCompiledCode
+import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.functions.CompiledCodeDescriptor
+import com.avail.descriptor.functions.CompiledCodeDescriptor.Companion.newCompiledCode
+import com.avail.descriptor.functions.ContinuationDescriptor
+import com.avail.descriptor.functions.FunctionDescriptor
+import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.numbers.IntegerDescriptor
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.NybbleTupleDescriptor.generateNybbleTupleFrom
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
-import com.avail.descriptor.tuples.TupleDescriptor.tupleFromIntegerList
+import com.avail.descriptor.tuples.NybbleTupleDescriptor
+import com.avail.descriptor.tuples.NybbleTupleDescriptor.Companion.generateNybbleTupleFrom
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
+import com.avail.descriptor.tuples.TupleDescriptor
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.tupleFromIntegerList
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.BottomTypeDescriptor.bottom
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.InstanceMetaDescriptor.topMeta
+import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
+import com.avail.descriptor.types.TypeDescriptor
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag
 import com.avail.interpreter.levelOne.L1Operation.L1_doExtension
 import com.avail.io.NybbleOutputStream
-import java.util.*
 import java.util.Collections.addAll
 
 /**
- * An instance of this class can be used to construct a [compiled code
- * object][CompiledCodeDescriptor] without detailed knowledge of the level one
- * nybblecode instruction set.
+ * An instance of this class can be used to construct a
+ * [compiled&#32;code&#32;object][CompiledCodeDescriptor] without detailed
+ * knowledge of the level one nybblecode instruction set.
  *
  * @property module
  *   The module containing this code.
@@ -90,39 +97,45 @@ class L1InstructionWriter constructor(
 	/**
 	 * The collection of literal objects that have been accumulated thus far.
 	 */
-	internal val literals: MutableList<AvailObject> = ArrayList()
+	internal val literals: MutableList<AvailObject> = mutableListOf()
 
 	/**
 	 * An inverse mapping of the literal objects encountered thus far.  The map
 	 * is from each literal object to its 1-based index.
 	 */
-	private val reverseLiterals = HashMap<A_BasicObject, Int>()
+	private val reverseLiterals = mutableMapOf<A_BasicObject, Int>()
 
 	/**
 	 * The [List] of argument [types][TypeDescriptor] for this
-	 * [compiled code][CompiledCodeDescriptor].
+	 * [compiled&#32;code][CompiledCodeDescriptor].
 	 */
-	private var argumentTypes: MutableList<A_Type> = ArrayList()
+	private var argumentTypes = mutableListOf<A_Type>()
 
 	/** The return type of the [FunctionDescriptor] under construction. */
 	var returnType: A_Type? = null
 
+	/**
+	 * The return type that will be produced if the function is not a primitive,
+	 * or if the primitive fails.
+	 */
+	var returnTypeIfPrimitiveFails: A_Type? = null
+
 	/** The types of the local variables. */
-	private val localTypes = ArrayList<A_Type>()
+	private val localTypes = mutableListOf<A_Type>()
 
 	/** The types of the local constants. */
-	private val constantTypes = ArrayList<A_Type>()
+	private val constantTypes = mutableListOf<A_Type>()
 
 	/**
 	 * The types of the outer (lexically captured) variables.  Note that
 	 * arguments of outer scopes can also be captured, which aren't technically
 	 * variables.
 	 */
-	private val outerTypes = ArrayList<A_Type>()
+	private val outerTypes = mutableListOf<A_Type>()
 
 	/**
-	 * The [primitive][Primitive] [number][Primitive.primitiveNumber] of the
-	 * [compile code object] being generated.
+	 * The [primitive][Primitive] of the [compiled&#32;code][A_RawFunction]
+	 * being generated.
 	 */
 	var primitive: Primitive? = null
 		set(newValue)
@@ -147,7 +160,7 @@ class L1InstructionWriter constructor(
 	 * magnitude.  This introduces an intentional encoding hole (the value 1
 	 * represents negative zero), which we may exploit at a later date.
 	 */
-	private val lineNumberEncodedDeltas = ArrayList<Int>()
+	private val lineNumberEncodedDeltas = mutableListOf<Int>()
 
 	/**
 	 * The [mechanism][L1StackTracker] used to ensure the stack is correctly
@@ -188,7 +201,7 @@ class L1InstructionWriter constructor(
 	fun argumentTypes(vararg argTypes: A_Type)
 	{
 		assert(argumentTypes.isEmpty())
-		assert(bottom() !in argTypes)
+		assert(bottom !in argTypes)
 		assert(localTypes.size == 0) {
 			"Must declare argument types before allocating locals"
 		}
@@ -196,8 +209,8 @@ class L1InstructionWriter constructor(
 	}
 
 	/**
-	 * Specify the types of the arguments that the resulting [compiled code
-	 * object][CompiledCodeDescriptor] will accept.
+	 * Specify the types of the arguments that the resulting
+	 * [compiled&#32;code&#32;object][CompiledCodeDescriptor] will accept.
 	 *
 	 * @param argTypes
 	 *   A [tuple][TupleDescriptor] of [types][TypeDescriptor] corresponding
@@ -207,7 +220,7 @@ class L1InstructionWriter constructor(
 	fun argumentTypesTuple(argTypes: A_Tuple)
 	{
 		assert(argumentTypes.isEmpty())
-		assert(bottom() !in argTypes)
+		assert(bottom !in argTypes)
 		assert(localTypes.size == 0) {
 			"Must declare argument types before allocating locals"
 		}
@@ -251,7 +264,7 @@ class L1InstructionWriter constructor(
 	 * and 65536..2^31-1 take nine nybbles.
 	 *
 	 * @param operand
-	 *   An `int`-encoded operand of some [operation][L1Operation].
+	 *   An [Int]-encoded operand of some [operation][L1Operation].
 	 */
 	private fun writeOperand(operand: Int)
 	{
@@ -307,7 +320,7 @@ class L1InstructionWriter constructor(
 	 * @param operation
 	 *   The [L1Operation] to write.
 	 * @param operands
-	 *   The `int` operands for the operation.
+	 *   The [Int] operands for the operation.
 	 */
 	fun write(lineNumber: Int, operation: L1Operation, vararg operands: Int)
 	{
@@ -333,8 +346,8 @@ class L1InstructionWriter constructor(
 	}
 
 	/**
-	 * Extract the [tuple of nybbles][NybbleTupleDescriptor] encoding the
-	 * instructions of the [compiled code][CompiledCodeDescriptor] under
+	 * Extract the [tuple&#32;of&#32;nybbles][NybbleTupleDescriptor] encoding
+	 * the instructions of the [compiled&#32;code][CompiledCodeDescriptor] under
 	 * construction.
 	 *
 	 * @return
@@ -354,8 +367,8 @@ class L1InstructionWriter constructor(
 	}
 
 	/**
-	 * Produce the [compiled code object][CompiledCodeDescriptor] which we have
-	 * just incrementally specified.
+	 * Produce the [compiled&#32;code&#32;object][CompiledCodeDescriptor] which
+	 * we have just incrementally specified.
 	 *
 	 * @return
 	 *   A compiled code object (which can be lexically closed to a
@@ -373,6 +386,7 @@ class L1InstructionWriter constructor(
 			stackTracker.maxDepth,
 			functionType(tupleFromList(argumentTypes), returnType!!),
 			primitive,
+			returnTypeIfPrimitiveFails!!,
 			tupleFromList(literals),
 			tupleFromList(localTypes),
 			tupleFromList(constantTypes),

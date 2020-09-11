@@ -1,6 +1,6 @@
 /*
  * LinkingFileMap.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,15 +33,15 @@
 package com.avail.stacks
 
 import com.avail.stacks.comment.ModuleComment
-import com.avail.utility.Pair
 import com.avail.utility.Strings.tabs
 import com.avail.utility.json.JSONWriter
 import java.io.IOException
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.StandardOpenOption.*
-import java.util.*
+import java.nio.file.StandardOpenOption.CREATE
+import java.nio.file.StandardOpenOption.TRUNCATE_EXISTING
+import java.nio.file.StandardOpenOption.WRITE
 
 /**
  * A holder for all categories in stacks
@@ -85,6 +85,7 @@ class LinkingFileMap
 	 * @param alias the alias to add to the map
 	 * @param fileLink the file that the alias links to
 	 */
+	@Suppress("unused")
 	fun addAlias(alias: String, fileLink: String)
 	{
 		if (aliasesToFileLink.containsKey(alias))
@@ -93,7 +94,7 @@ class LinkingFileMap
 		}
 		else
 		{
-			val newLinks = HashSet<String>()
+			val newLinks = mutableSetOf<String>()
 			newLinks.add(fileLink)
 			aliasesToFileLink[alias] = newLinks
 		}
@@ -135,6 +136,7 @@ class LinkingFileMap
 	 *   The key to search
 	 * @return Whether or not the name is a category
 	 */
+	@Suppress("unused")
 	fun isCategory(key: String): Boolean= categoryToDescription.containsKey(key)
 
 	/**
@@ -153,18 +155,14 @@ class LinkingFileMap
 		methodLeafName: String,
 		methodAndMethodLink: String)
 	{
-		val methodPair = Pair(
-			methodLeafName,
-			methodAndMethodLink)
+		val methodPair = methodLeafName to methodAndMethodLink
 		if (categoryMethodList.containsKey(categoryName))
 		{
 			categoryMethodList[categoryName]!!.add(methodPair)
 		}
 		else
 		{
-			val aList = ArrayList<Pair<String, String>>()
-			aList.add(methodPair)
-			categoryMethodList[categoryName] = aList
+			categoryMethodList[categoryName] = mutableListOf(methodPair)
 		}
 	}
 
@@ -200,11 +198,11 @@ class LinkingFileMap
 				jsonWriter.startArray()
 				for (pair in pairs)
 				{
-					val distinct = pair.first() + pair.second()
-					val relativeLink = pair.second().substring(1)
+					val distinct = pair.first + pair.second
+					val relativeLink = pair.second.substring(1)
 					jsonWriter.startObject()
 					jsonWriter.write("methodName")
-					jsonWriter.write(pair.first())
+					jsonWriter.write(pair.first)
 					jsonWriter.write("link")
 					jsonWriter.write(relativeLink)
 					jsonWriter.write("distinct")
@@ -231,11 +229,12 @@ class LinkingFileMap
 	 * links.
 	 * @return
 	 */
+	@Suppress("unused")
 	fun categoryMethodsToJson(): String
 	{
 		val stringBuilder = StringBuilder().append("[\n")
 
-		val categorySet = ArrayList(categoryMethodList.keys)
+		val categorySet = categoryMethodList.keys.toList()
 
 		val setSize = categorySet.size
 
@@ -267,12 +266,12 @@ class LinkingFileMap
 						stringBuilder
 							.append(tabs(3))
 							.append("{\"methodName\" : \"")
-							.append(pair.first())
+							.append(pair.first)
 							.append("\", \"link\" : \"")
-							.append(pair.second().substring(1))
+							.append(pair.second.substring(1))
 							.append("\", \"distinct\" : \"")
-							.append(pair.first())
-							.append(pair.second())
+							.append(pair.first)
+							.append(pair.second)
 							.append("\"},\n")
 					}
 
@@ -281,12 +280,12 @@ class LinkingFileMap
 					stringBuilder
 						.append(tabs(3))
 						.append("{\"methodName\" : \"")
-						.append(lastPair.first())
+						.append(lastPair.first)
 						.append("\", \"link\" : \"")
-						.append(lastPair.second().substring(1))
+						.append(lastPair.second.substring(1))
 						.append("\", \"distinct\" : \"")
-						.append(lastPair.first())
-						.append(lastPair.second())
+						.append(lastPair.first)
+						.append(lastPair.second)
 						.append("\"}\n")
 						.append(tabs(2))
 						.append("]\n")
@@ -320,12 +319,12 @@ class LinkingFileMap
 					stringBuilder
 						.append(tabs(3))
 						.append("{\"methodName\" : \"")
-						.append(pair.first())
+						.append(pair.first)
 						.append("\", \"link\" : \"")
-						.append(pair.second().substring(1))
+						.append(pair.second.substring(1))
 						.append("\", \"distinct\" : \"")
-						.append(pair.first())
-						.append(pair.second())
+						.append(pair.first)
+						.append(pair.second)
 						.append("\"},\n")
 				}
 
@@ -334,12 +333,12 @@ class LinkingFileMap
 				stringBuilder
 					.append(tabs(3))
 					.append("{\"methodName\" : \"")
-					.append(lastPair.first())
+					.append(lastPair.first)
 					.append("\", \"link\" : \"")
-					.append(lastPair.second().substring(1))
+					.append(lastPair.second.substring(1))
 					.append("\", \"distinct\" : \"")
-					.append(lastPair.first())
-					.append(lastPair.second())
+					.append(lastPair.first)
+					.append(lastPair.second)
 					.append("\"}\n")
 					.append(tabs(2))
 					.append("]\n")
@@ -396,8 +395,10 @@ class LinkingFileMap
 	}
 
 	/**
+	 * Add a [ModuleComment].
 	 *
-	 * @param comment the [ModuleComment] to add
+	 * @param comment
+	 *   The comment to add.
 	 */
 	fun addModuleComment(comment: ModuleComment)
 	{

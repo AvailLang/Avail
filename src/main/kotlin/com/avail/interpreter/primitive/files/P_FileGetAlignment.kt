@@ -1,6 +1,6 @@
 /*
  * P_FileGetAlignment.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,25 +31,26 @@
  */
 package com.avail.interpreter.primitive.files
 
+import com.avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.FILE_KEY
-import com.avail.descriptor.numbers.IntegerDescriptor.fromInt
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.InstanceTypeDescriptor.instanceType
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.naturalNumbers
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
 import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
 import com.avail.exceptions.AvailErrorCode.E_INVALID_HANDLE
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.execution.Interpreter
 import com.avail.io.IOSystem.FileHandle
 
 /**
  * **Primitive:** Determine the transfer alignment of the underlying file.  This
  * might not agree with the buffer size used in higher level abstractions, but
- * the VM manages buffers for the file along this  alignment.
+ * the VM manages buffers for the file along this alignment.
  *
  * @author Mark van Gulik&lt;mark@availlang.org&gt;
  */
@@ -70,7 +71,7 @@ object P_FileGetAlignment : Primitive(1, CanInline, HasSideEffect)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(ATOM.o()), naturalNumbers())
+		functionType(tuple(ATOM.o), naturalNumbers)
 
 	override fun privateFailureVariableType(): A_Type =
 		instanceType(E_INVALID_HANDLE.numericCode())

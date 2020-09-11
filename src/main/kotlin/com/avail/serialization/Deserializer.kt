@@ -1,6 +1,6 @@
 /*
  * Deserializer.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,11 +33,10 @@
 package com.avail.serialization
 
 import com.avail.AvailRuntime
-import com.avail.descriptor.AvailObject
-import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.atoms.A_Atom
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import java.io.InputStream
-import java.util.*
 
 /**
  * A [Deserializer] takes a stream of bytes and reconstructs objects that
@@ -60,14 +59,14 @@ class Deserializer constructor(
 	runtime: AvailRuntime) : AbstractDeserializer(input, runtime)
 {
 	/** The objects that have been assembled so far. */
-	private val assembledObjects = ArrayList<AvailObject>(1000)
+	private val assembledObjects = mutableListOf<AvailObject>()
 
 	/** The most recent object produced by deserialization. */
 	private var producedObject: AvailObject? = null
 
 	/** A reusable buffer of operand objects.  */
 	private val subobjectsBuffer =
-		Array<AvailObject>(SerializerOperation.maxSubobjects) { nil }
+		Array(SerializerOperation.maxSubobjects) { nil }
 
 	/**
 	 * Record a newly reconstituted object.
@@ -143,7 +142,7 @@ class Deserializer constructor(
 	companion object
 	{
 		/**
-		 * Look up the [special atom][AvailRuntime.specialAtoms].
+		 * Look up the [special&#32;atom][AvailRuntime.specialAtoms].
 		 *
 		 * @param index
 		 *   The special atom's ordinal.
@@ -151,6 +150,6 @@ class Deserializer constructor(
 		 *   The special atom known to the virtual machine's runtime.
 		 */
 		internal fun specialAtom(index: Int): A_Atom =
-			AvailRuntime.specialAtoms()[index]
+			AvailRuntime.specialAtoms[index]
 	}
 }

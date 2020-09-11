@@ -1,6 +1,6 @@
 /*
  * P_ResumeContinuation.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,21 +33,26 @@
 package com.avail.interpreter.primitive.controlflow
 
 import com.avail.descriptor.functions.A_Continuation
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.BottomTypeDescriptor.bottom
-import com.avail.descriptor.types.ContinuationTypeDescriptor.mostGeneralContinuationType
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.interpreter.Interpreter
+import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
+import com.avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralContinuationType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.AlwaysSwitchesContinuation
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CanSwitchContinuations
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Primitive.Flag.Private
 import com.avail.interpreter.Primitive.Result.CONTINUATION_CHANGED
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Resume the specified [continuation][A_Continuation].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_ResumeContinuation : Primitive(
 	1,
 	Private,
@@ -71,5 +76,5 @@ object P_ResumeContinuation : Primitive(
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(mostGeneralContinuationType()), bottom())
+		functionType(tuple(mostGeneralContinuationType()), bottom)
 }

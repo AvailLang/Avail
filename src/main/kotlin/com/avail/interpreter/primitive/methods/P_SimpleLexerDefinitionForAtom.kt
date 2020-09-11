@@ -1,6 +1,6 @@
 /*
  * P_SimpleLexerDefinitionForAtom.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,26 +33,32 @@
 package com.avail.interpreter.primitive.methods
 
 import com.avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
-import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.atoms.A_Atom.Companion.atomName
+import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
+import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
-import com.avail.descriptor.parsing.LexerDescriptor.*
-import com.avail.descriptor.sets.SetDescriptor.set
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.tuples.StringDescriptor.stringFrom
+import com.avail.descriptor.parsing.LexerDescriptor.Companion.lexerBodyFunctionType
+import com.avail.descriptor.parsing.LexerDescriptor.Companion.lexerFilterFunctionType
+import com.avail.descriptor.parsing.LexerDescriptor.Companion.newLexer
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
 import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import com.avail.exceptions.MalformedMessageException
-import com.avail.interpreter.AvailLoader.Phase.EXECUTING_FOR_COMPILE
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanSuspend
 import com.avail.interpreter.Primitive.Flag.Unknown
 import com.avail.interpreter.effects.LoadingEffectToRunPrimitive
+import com.avail.interpreter.execution.AvailLoader.Phase.EXECUTING_FOR_COMPILE
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Simple lexer definition.  The first argument is the lexer name
@@ -66,6 +72,7 @@ import com.avail.interpreter.effects.LoadingEffectToRunPrimitive
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
+@Suppress("unused")
 object P_SimpleLexerDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 {
 	override fun attempt(interpreter: Interpreter): Result
@@ -92,8 +99,7 @@ object P_SimpleLexerDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 		val lexer = newLexer(
 			filterFunction, bodyFunction, method, loader.module())
 
-		return interpreter.suspendAndDoInLevelOneSafe {
-			toSucceed, _ ->
+		return interpreter.suspendInLevelOneSafeThen {
 			filterFunction.code().setMethodName(
 				stringFrom("Filter for lexer ${atom.atomName()}"))
 			bodyFunction.code().setMethodName(
@@ -111,15 +117,16 @@ object P_SimpleLexerDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 					atom,
 					filterFunction,
 					bodyFunction))
-			toSucceed.value(nil)
+			succeed(nil)
 		}
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				ATOM.o(), lexerFilterFunctionType(), lexerBodyFunctionType()),
-			TOP.o())
+				ATOM.o, lexerFilterFunctionType(), lexerBodyFunctionType()),
+			TOP.o
+		)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(

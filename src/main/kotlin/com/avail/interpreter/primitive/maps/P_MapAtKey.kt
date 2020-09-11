@@ -1,6 +1,6 @@
 /*
  * P_MapAtKey.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,22 +32,29 @@
 package com.avail.interpreter.primitive.maps
 
 import com.avail.descriptor.functions.A_RawFunction
-import com.avail.descriptor.sets.SetDescriptor.emptySet
-import com.avail.descriptor.sets.SetDescriptor.set
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.maps.A_Map
+import com.avail.descriptor.maps.A_Map.Companion.hasKey
+import com.avail.descriptor.maps.A_Map.Companion.mapAt
+import com.avail.descriptor.sets.A_Set.Companion.setWithElementCanDestroy
+import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.MapTypeDescriptor.mostGeneralMapType
+import com.avail.descriptor.types.A_Type.Companion.instances
+import com.avail.descriptor.types.A_Type.Companion.valueType
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.MapTypeDescriptor.Companion.mostGeneralMapType
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.exceptions.AvailErrorCode.E_KEY_NOT_FOUND
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Look up the key in the [ ], answering the corresponding value.
+ * **Primitive:** Look up the key in the [map][A_Map], answering the
+ * corresponding value.
  */
 @Suppress("unused")
 object P_MapAtKey : Primitive(2, CanFold, CanInline)
@@ -65,7 +72,7 @@ object P_MapAtKey : Primitive(2, CanFold, CanInline)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(mostGeneralMapType(), ANY.o()), ANY.o())
+		functionType(tuple(mostGeneralMapType(), ANY.o), ANY.o)
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type
@@ -74,7 +81,7 @@ object P_MapAtKey : Primitive(2, CanFold, CanInline)
 		val keyType = argumentTypes[1]
 		if (mapType.isEnumeration && keyType.isEnumeration)
 		{
-			var values = emptySet()
+			var values = emptySet
 			val keyTypeInstances = keyType.instances()
 			for (mapInstance in mapType.instances())
 			{

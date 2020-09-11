@@ -1,6 +1,6 @@
 /*
  * P_PushLastOuter.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,10 +33,14 @@ package com.avail.interpreter.primitive.privatehelpers
 
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.BottomTypeDescriptor.bottom
-import com.avail.interpreter.Interpreter
+import com.avail.descriptor.types.A_Type.Companion.returnType
+import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Primitive.Flag.Private
+import com.avail.interpreter.Primitive.Flag.SpecialForm
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
@@ -44,6 +48,7 @@ import com.avail.optimizer.L1Translator.CallSiteHelper
 /**
  * **Primitive:** The sole outer value is being returned.
  */
+@Suppress("unused")
 object P_PushLastOuter : Primitive(
 	-1, SpecialForm, Private, CanInline, CannotFail)
 {
@@ -63,7 +68,7 @@ object P_PushLastOuter : Primitive(
 	 * This primitive is suitable for any block signature, although really the
 	 * primitive could only be applied if the function returns any.
 	 */
-	override fun privateBlockTypeRestriction(): A_Type = bottom()
+	override fun privateBlockTypeRestriction(): A_Type = bottom
 
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,

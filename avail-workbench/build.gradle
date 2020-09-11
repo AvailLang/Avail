@@ -1,6 +1,6 @@
 /*
  * build.gradle
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,12 +38,10 @@ plugins {
 	id 'java'
 	id 'org.jetbrains.kotlin.jvm'
 	id 'com.github.johnrengelman.shadow'
+	id 'org.jetbrains.dokka'
+	id 'maven-publish'
+	id 'publishing'
 }
-
-group 'org.availlang'
-version '1.4'
-
-sourceCompatibility = 1.8
 
 compileKotlin {
 	kotlinOptions {
@@ -61,27 +59,28 @@ compileTestKotlin {
 
 repositories {
 	mavenCentral()
-	flatDir {
-		dirs 'libs'
+	maven {
+		url("https://repo.spring.io/plugins-release/")
 	}
 }
 
 dependencies {
 	// Avail.
-	implementation rootProject
+	api rootProject
 
 	// Kotlin.
-	implementation group: 'org.jetbrains.kotlin',
+	api group: 'org.jetbrains.kotlin',
 		name: 'kotlin-stdlib-jdk8',
 		version: "$kotlin_version"
 
 	// JSR-305 null analysis framework.
-	implementation group: 'com.google.code.findbugs',
+	api group: 'com.google.code.findbugs',
 		name: 'jsr305',
 		version: "$jsr_version"
 
-	// Dark mode look & feel.
-	implementation name: 'darcula'
+	// Dark mode look & feel.  Embed the jar's contents in the fat shadow jar.
+	// This comes from https://repo.spring.io/plugins-release/
+	api group: 'com.bulenkov', name: 'darcula', version: '2018.2'
 }
 
 // Capture the time at which the build began and record it into a resource file.
@@ -105,7 +104,15 @@ task generateBuildTime {
 // Update the dependencies of "classes".
 classes.dependsOn generateBuildTime
 
-// Produce a fat JAR for the Avail workbench.
+shadowJar {
+	dependencies {
+		exclude(rootProject.path)
+	}
+	duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}
+
+// Produce a jar for the Avail workbench.  It should have a Gradle dependency on
+// the core Avail VM module.
 jar {
 	manifest {
 		attributes 'Main-Class': 'com.avail.environment.AvailWorkbench'
@@ -113,10 +120,11 @@ jar {
 }
 
 // Copy the JAR into the distribution directory.
-task releaseAvailWorkbench (type: Copy) {
+task releaseAvailWorkbench(type: Copy) {
 	group = 'release'
 	from shadowJar.outputs.files
 	into file("${rootProject.projectDir}/distro/lib")
+	rename '.*', 'avail-workbench.jar'
 }
 
 // Update the dependencies of "assemble".
@@ -140,6 +148,7 @@ task osx {
 		copy {
 			from appSrc
 			into file(appDst)
+			duplicatesStrategy = DuplicatesStrategy.INCLUDE
 		}
 
 		def resDir = "$projectDir/src/main/resources/resources/workbench"
@@ -148,6 +157,7 @@ task osx {
 		copy {
 			from resSrc
 			into resDst
+			duplicatesStrategy = DuplicatesStrategy.INCLUDE
 		}
 
 		def jarSrc = shadowJar.outputs.files
@@ -156,6 +166,8 @@ task osx {
 		copy {
 			from jarSrc
 			into jarDst
+			rename '.*', 'avail-workbench.jar'
+			duplicatesStrategy = DuplicatesStrategy.INCLUDE
 		}
 
 		exec {
@@ -165,6 +177,49 @@ task osx {
 
 		exec {
 			commandLine 'setfile', '-a', 'B', appDst
+		}
+	}
+}
+
+// Generate documentation
+dokka {
+	outputFormat='gfm'
+	// Outputting to documentation/docs/src-docs directly causes the contents of
+	// the directory to be deleted. Moving the directory post generation is the
+	// work around.
+	doLast {
+		ant.move file: "${buildDir}/dokka/avail-workbench",
+			todir: "../documentation/docs/src_docs"
+	}
+}
+
+task dokkaHTML(type: org.jetbrains.dokka.gradle.DokkaTask) {
+	outputFormat = 'html'
+	outputDirectory = "$buildDir/dokka"
+}
+
+publishing {
+	repositories {
+		maven {
+			name = "GitHub"
+			url = uri("https://maven.pkg.github.com/AvailLang/Avail")
+			credentials {
+				username = System.getenv("GITHUB_USER")
+				password = System.getenv("GITHUB_TOKEN")
+				if (username == null || password == null)
+				{
+					System.err.println("GITHUB_USER = $username")
+					System.err.println("GITHUB_TOKEN = $password")
+					System.err.println(credentialsWarning)
+				}
+			}
+		}
+	}
+
+	publications {
+		workbench(MavenPublication) {
+			from components.java
+			artifact sourceJar
 		}
 	}
 }

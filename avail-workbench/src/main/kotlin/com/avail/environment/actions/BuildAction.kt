@@ -1,6 +1,6 @@
 /*
  * BuildAction.java
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,7 +42,7 @@ import javax.swing.Action
 import javax.swing.KeyStroke
 
 /**
- * A `BuildAction` launches a [build task][BuildTask] in a
+ * A `BuildAction` launches a [build&#32;task][BuildTask] in a
  * Swing worker thread.
  *
  * @property forEntryPointModule
@@ -59,12 +59,13 @@ import javax.swing.KeyStroke
  *   than for the module tree's selection.
  */
 class BuildAction constructor (
-		workbench: AvailWorkbench, internal val forEntryPointModule: Boolean)
+		workbench: AvailWorkbench,
+		private val forEntryPointModule: Boolean)
 	: AbstractWorkbenchAction(workbench, "Build")
 {
 	override fun actionPerformed(event: ActionEvent?)
 	{
-		assert(workbench.backgroundTask == null)
+		assert(workbench.backgroundTask === null)
 		val selectedModule = (if (forEntryPointModule)
 			workbench.selectedEntryPointModule()
 		else

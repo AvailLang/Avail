@@ -1,6 +1,6 @@
 /*
  * AvailCloseCode.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,7 +41,7 @@ import com.avail.io.NybbleOutputStream
 
 /**
  * This instruction build a [function][FunctionDescriptor] from
- * [compiled code][CompiledCodeDescriptor] and some pushed variables.
+ * [compiled&#32;code][CompiledCodeDescriptor] and some pushed variables.
  *
  * @property numCopiedVars
  *   The number of variables that have been pushed on the stack to be captured

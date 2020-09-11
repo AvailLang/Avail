@@ -1,6 +1,6 @@
 /*
  * AvailServerConfiguration.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -70,7 +70,7 @@ class AvailServerConfiguration : Configuration
 		get()
 		{
 			var roots = privateAvailRoots
-			if (roots == null)
+			if (roots === null)
 			{
 				roots = ModuleRoots(availRootsPath)
 				privateAvailRoots = roots
@@ -105,14 +105,14 @@ class AvailServerConfiguration : Configuration
 	var serverPort = 40000
 
 	/**
-	 * Answer the [module name resolver][ModuleNameResolver] correct for the
-	 * current configuration.
+	 * Answer the [module&#32;name&#32;resolver][ModuleNameResolver] correct for
+	 * the current configuration.
 	 *
 	 * @return
 	 *   A module name resolver.
 	 * @throws FileNotFoundException
-	 *   If the [renames file path][RenamesFileParser] has been specified, but
-	 *   is invalid.
+	 *   If the [renames&#32;file&#32;path][RenamesFileParser] has been
+	 *   specified, but is invalid.
 	 * @throws RenamesFileParserException
 	 *   If the renames file is invalid.
 	 */
@@ -120,7 +120,7 @@ class AvailServerConfiguration : Configuration
 	fun moduleNameResolver(): ModuleNameResolver
 	{
 		var resolver = moduleNameResolver
-		if (resolver == null)
+		if (resolver === null)
 		{
 			val reader = when (val path = renamesFilePath)
 			{
@@ -138,5 +138,5 @@ class AvailServerConfiguration : Configuration
 	 * `true` if the server should serve up documents from the web root, `false`
 	 * otherwise.
 	 */
-	val shouldServeDocuments get() = documentPath != null
+	val shouldServeDocuments get() = documentPath !== null
 }

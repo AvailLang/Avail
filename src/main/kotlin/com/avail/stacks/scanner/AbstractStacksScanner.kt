@@ -1,19 +1,19 @@
 /*
  * AbstractStacksScanner.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  Redistributions of source code must retain the above copyright notice, this
+ * * Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- *  Redistributions in binary form must reproduce the above copyright notice,
+ * * Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
  *
- *  Neither the name of the copyright holder nor the names of the contributors
+ * * Neither the name of the copyright holder nor the names of the contributors
  *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
@@ -32,10 +32,14 @@
 
 package com.avail.stacks.scanner
 
-import com.avail.descriptor.CharacterDescriptor
+import com.avail.descriptor.character.CharacterDescriptor
 import com.avail.descriptor.tokens.CommentTokenDescriptor
 import com.avail.stacks.exceptions.StacksScannerException
-import com.avail.stacks.tokens.*
+import com.avail.stacks.tokens.AbstractStacksToken
+import com.avail.stacks.tokens.BracketedStacksToken
+import com.avail.stacks.tokens.KeywordStacksToken
+import com.avail.stacks.tokens.QuotedStacksToken
+import com.avail.stacks.tokens.StacksToken
 
 /**
  * The basics of a Stacks scanner.
@@ -54,8 +58,8 @@ abstract class AbstractStacksScanner internal constructor(
 	internal var moduleName: String)
 {
 	/**
-	 * The [comment token][CommentTokenDescriptor] text that has been lexed as
-	 * one long token.
+	 * The [comment&#32;token][CommentTokenDescriptor] text that has been lexed
+	 * as one long token.
 	 */
 	var tokenString: String = ""
 		private set
@@ -887,7 +891,7 @@ abstract class AbstractStacksScanner internal constructor(
 	{
 		/**
 		 * A table whose indices are Unicode code points (up to 65535) and whose
-		 * values are [scanner actions][StacksScanner.ScannerAction].
+		 * values are [scanner&#32;actions][StacksScanner.ScannerAction].
 		 */
 		internal val dispatchTable = ByteArray(65536)
 

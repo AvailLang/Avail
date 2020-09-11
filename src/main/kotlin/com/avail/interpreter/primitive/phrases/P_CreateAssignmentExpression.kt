@@ -1,6 +1,6 @@
 /*
  * P_CreateAssignmentExpression.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,28 +31,37 @@
  */
 package com.avail.interpreter.primitive.phrases
 
+import com.avail.descriptor.phrases.A_Phrase.Companion.declaration
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
 import com.avail.descriptor.phrases.AssignmentPhraseDescriptor
-import com.avail.descriptor.phrases.AssignmentPhraseDescriptor.newAssignment
-import com.avail.descriptor.sets.SetDescriptor.set
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+import com.avail.descriptor.phrases.AssignmentPhraseDescriptor.Companion.newAssignment
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.*
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.ASSIGNMENT_PHRASE
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LOCAL_VARIABLE_PHRASE
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.MODULE_VARIABLE_PHRASE
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE
 import com.avail.exceptions.AvailErrorCode.E_DECLARATION_KIND_DOES_NOT_SUPPORT_ASSIGNMENT
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Transform a variable reference and an expression into an inner
  * [assignment][AssignmentPhraseDescriptor]. Such a node also produces the
  * assigned value as its result, so it can be embedded as a subexpression.
  */
+@Suppress("unused")
 object P_CreateAssignmentExpression : Primitive(2, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result
@@ -68,12 +77,13 @@ object P_CreateAssignmentExpression : Primitive(2, CanFold, CanInline)
 			return interpreter.primitiveFailure(
 				E_DECLARATION_KIND_DOES_NOT_SUPPORT_ASSIGNMENT)
 		}
-		if (!expression.expressionType().isSubtypeOf(variable.expressionType()))
+		if (!expression.phraseExpressionType().isSubtypeOf(
+				variable.phraseExpressionType()))
 		{
 			return interpreter.primitiveFailure(
 				E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
 		}
-		val assignment = newAssignment(variable, expression, emptyTuple(), true)
+		val assignment = newAssignment(variable, expression, emptyTuple, true)
 		return interpreter.primitiveSuccess(assignment)
 	}
 
@@ -81,7 +91,7 @@ object P_CreateAssignmentExpression : Primitive(2, CanFold, CanInline)
 		functionType(
 			tuple(
 				VARIABLE_USE_PHRASE.mostGeneralType(),
-				EXPRESSION_PHRASE.create(ANY.o())),
+				EXPRESSION_PHRASE.create(ANY.o)),
 			ASSIGNMENT_PHRASE.mostGeneralType())
 
 	override fun privateFailureVariableType(): A_Type =

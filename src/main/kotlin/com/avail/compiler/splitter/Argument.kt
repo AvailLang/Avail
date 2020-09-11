@@ -1,6 +1,6 @@
 /*
  * Argument.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,16 +31,18 @@
  */
 package com.avail.compiler.splitter
 
-import com.avail.compiler.ParsingOperation.*
+import com.avail.compiler.ParsingOperation.CHECK_ARGUMENT
+import com.avail.compiler.ParsingOperation.PARSE_ARGUMENT
+import com.avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT
 import com.avail.compiler.splitter.MessageSplitter.Companion.indexForConstant
 import com.avail.compiler.splitter.MessageSplitter.Companion.throwSignatureException
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.BottomTypeDescriptor
+import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
 import com.avail.exceptions.SignatureException
-import java.util.*
+import java.util.IdentityHashMap
 
 /**
  * An `Argument` is an occurrence of [underscore][Metacharacter.UNDERSCORE] (_)
@@ -79,10 +81,7 @@ internal open class Argument constructor(
 
 	/**
 	 * A simple underscore/ellipsis can be arbitrarily restricted, other than
-	 * when it is restricted to the uninstantiable type
-	 * [bottom][BottomTypeDescriptor.bottom].
-	 *
-	 *
+	 * when it is restricted to the uninstantiable type [bottom].
 	 */
 	@Throws(SignatureException::class)
 	override fun checkType(argumentType: A_Type, sectionNumber: Int)
@@ -128,4 +127,6 @@ internal open class Argument constructor(
 	override val shouldBeSeparatedOnLeft get() = true
 
 	override val shouldBeSeparatedOnRight get() = true
+
+	override fun checkListStructure(phrase: A_Phrase): Boolean = true
 }

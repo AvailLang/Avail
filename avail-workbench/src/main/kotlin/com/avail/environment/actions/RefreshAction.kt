@@ -1,6 +1,6 @@
 /*
  * RefreshAction.java
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,8 +58,8 @@ class RefreshAction constructor(workbench: AvailWorkbench)
 			workbench.calculateRefreshedTrees()
 		invokeLater {
 			workbench.refreshFor(
-				modulesAndEntryPoints.first(),
-				modulesAndEntryPoints.second())
+				modulesAndEntryPoints.first,
+				modulesAndEntryPoints.second)
 		}
 	}
 

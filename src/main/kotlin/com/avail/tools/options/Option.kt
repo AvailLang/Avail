@@ -1,6 +1,6 @@
 /*
  * Option.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,12 +32,13 @@
 
 package com.avail.tools.options
 
-import com.avail.tools.options.OptionProcessorFactory.*
-import java.util.*
+import com.avail.tools.options.OptionProcessorFactory.Cardinality
+import com.avail.tools.options.OptionProcessorFactory.OptionInvocation
+import com.avail.tools.options.OptionProcessorFactory.OptionInvocationWithArgument
 
 /**
- * An `Option` comprises an [enumerated type][Enum] which defines the domain of
- * the option, the keywords which parsers may use to identify the option, an
+ * An `Option` comprises an [enumerated&#32;type][Enum] which defines the domain
+ * of the option, the keywords which parsers may use to identify the option, an
  * end-user friendly description of the option, and an action that should be
  * performed each time that the option is set.
  *
@@ -55,10 +56,10 @@ interface Option<OptionKeyType : Enum<OptionKeyType>>
 	val key: OptionKeyType
 
 	/**
-	 * The [set][LinkedHashSet] of keywords that indicate this
+	 * The [set][MutableSet] of keywords that indicate this
 	 * [option][GenericOption].
 	 */
-	val keywords: LinkedHashSet<String>
+	val keywords: MutableSet<String>
 
 	/**
 	 * Answer an end-user comprehensible description of the option.
@@ -90,5 +91,5 @@ interface Option<OptionKeyType : Enum<OptionKeyType>>
 	 */
 	val action2: (OptionInvocationWithArgument<OptionKeyType>.() -> Unit)?
 
-	val takesArgument: Boolean get() = action2 != null
+	val takesArgument: Boolean get() = action2 !== null
 }

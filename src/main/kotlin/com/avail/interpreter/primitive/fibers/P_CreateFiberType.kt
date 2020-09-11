@@ -1,6 +1,6 @@
 /*
  * P_CreateFiberType.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,20 +32,22 @@
 
 package com.avail.interpreter.primitive.fibers
 
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FiberTypeDescriptor
-import com.avail.descriptor.types.FiberTypeDescriptor.fiberMeta
-import com.avail.descriptor.types.FiberTypeDescriptor.fiberType
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.InstanceMetaDescriptor.topMeta
-import com.avail.interpreter.Interpreter
+import com.avail.descriptor.types.FiberTypeDescriptor.Companion.fiberMeta
+import com.avail.descriptor.types.FiberTypeDescriptor.Companion.fiberType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CanFold
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Create a [fiber type][FiberTypeDescriptor] whose result type
- * is the specified [type][A_Type].
+ * **Primitive:** Create a [fiber&#32;type][FiberTypeDescriptor] whose result
+ * type is the specified [type][A_Type].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

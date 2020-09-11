@@ -1,6 +1,6 @@
 /*
  * P_TupleReplaceAt.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,24 +32,34 @@
 package com.avail.interpreter.primitive.tuples
 
 import com.avail.descriptor.functions.A_RawFunction
-import com.avail.descriptor.numbers.IntegerDescriptor.fromInt
-import com.avail.descriptor.sets.SetDescriptor.set
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
+import com.avail.descriptor.numbers.A_Number.Companion.greaterThan
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAtPuttingCanDestroy
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.naturalNumbers
-import com.avail.descriptor.types.TupleTypeDescriptor.mostGeneralTupleType
-import com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType
+import com.avail.descriptor.types.A_Type.Companion.defaultType
+import com.avail.descriptor.types.A_Type.Companion.lowerBound
+import com.avail.descriptor.types.A_Type.Companion.sizeRange
+import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
+import com.avail.descriptor.types.A_Type.Companion.typeTuple
+import com.avail.descriptor.types.A_Type.Companion.typeUnion
+import com.avail.descriptor.types.A_Type.Companion.upperBound
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
-import java.util.*
+import com.avail.interpreter.execution.Interpreter
 import kotlin.math.max
 import kotlin.math.min
 
@@ -90,8 +100,9 @@ object P_TupleReplaceAt : Primitive(3, CanFold, CanInline)
 		functionType(
 			tuple(
 				mostGeneralTupleType(),
-				naturalNumbers(),
-				ANY.o()),
+				naturalNumbers,
+				ANY.o
+			),
 			mostGeneralTupleType())
 
 	override fun returnTypeGuaranteedByVM(
@@ -113,15 +124,15 @@ object P_TupleReplaceAt : Primitive(3, CanFold, CanInline)
 		}
 		val originalTypeTuple = originalTupleType.typeTuple()
 		val originalTypeTupleSize = originalTypeTuple.tupleSize()
-		val minSubscript = if (lowerBound.isInt)
-			max(lowerBound.extractInt(), 1)
-		else
-			1
-		val maxSubscript = if (upperBound.isFinite)
-			min(upperBound.extractInt(), originalTypeTupleSize)
-		else
-			Integer.MAX_VALUE
-		val typeList = ArrayList<A_Type>(originalTypeTuple.tupleSize())
+		val minSubscript =
+			if (lowerBound.isInt) max(lowerBound.extractInt(), 1)
+			else 1
+		val maxSubscript =
+			if (upperBound.isFinite)
+				min(upperBound.extractInt(), originalTypeTupleSize)
+			else
+				Integer.MAX_VALUE
+		val typeList = mutableListOf<A_Type>()
 		typeList.addAll(originalTypeTuple)
 		for (i in 1 until minSubscript)
 		{

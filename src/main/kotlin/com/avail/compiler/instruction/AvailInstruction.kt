@@ -1,6 +1,6 @@
 /*
  * AvailInstruction.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,8 @@ package com.avail.compiler.instruction
 import com.avail.compiler.AvailCodeGenerator
 import com.avail.descriptor.tokens.A_Token
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.io.NybbleOutputStream
 
 /**
@@ -120,7 +122,7 @@ abstract class AvailInstruction constructor(var relevantTokens: A_Tuple)
 	companion object
 	{
 		/**
-		 * Write a nybble-coded `int` in a variable-sized format to the
+		 * Write a nybble-coded [Int] in a variable-sized format to the
 		 * [NybbleOutputStream].  Small values take only one nybble, and we can
 		 * represent any int up to [Integer.MAX_VALUE].
 		 *

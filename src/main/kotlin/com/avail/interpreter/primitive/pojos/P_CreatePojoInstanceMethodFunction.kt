@@ -1,6 +1,6 @@
 /*
  * P_CreatePojoInstanceMethodFunction.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,39 +33,44 @@ package com.avail.interpreter.primitive.pojos
 
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.A_RawFunction
-import com.avail.descriptor.functions.FunctionDescriptor.createWithOuters2
-import com.avail.descriptor.maps.MapDescriptor.emptyMap
-import com.avail.descriptor.pojos.RawPojoDescriptor.equalityPojo
-import com.avail.descriptor.pojos.RawPojoDescriptor.identityPojo
-import com.avail.descriptor.sets.SetDescriptor.set
+import com.avail.descriptor.functions.FunctionDescriptor.Companion.createWithOuters2
+import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
+import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.equalityPojo
+import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.generateObjectTupleFrom
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.concatenateWith
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionTypeReturning
-import com.avail.descriptor.types.InstanceMetaDescriptor.anyMeta
-import com.avail.descriptor.types.PojoTypeDescriptor.*
-import com.avail.descriptor.types.TupleTypeDescriptor.*
+import com.avail.descriptor.types.A_Type.Companion.typeVariables
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionTypeReturning
+import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
+import com.avail.descriptor.types.PojoTypeDescriptor.Companion.marshalDefiningType
+import com.avail.descriptor.types.PojoTypeDescriptor.Companion.marshalTypes
+import com.avail.descriptor.types.PojoTypeDescriptor.Companion.resolvePojoType
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import com.avail.descriptor.types.TypeDescriptor.Types.RAW_POJO
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.AvailErrorCode.E_JAVA_METHOD_NOT_AVAILABLE
 import com.avail.exceptions.AvailErrorCode.E_JAVA_METHOD_REFERENCE_IS_AMBIGUOUS
 import com.avail.exceptions.MarshalingException
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.primitive.pojos.PrimitiveHelper.lookupMethod
 import com.avail.interpreter.primitive.pojos.PrimitiveHelper.rawPojoInvokerFunctionFromFunctionType
-import com.avail.utility.Casts.cast
-import com.avail.utility.MutableOrNull
+import com.avail.utility.Mutable
+import com.avail.utility.cast
 import java.lang.reflect.Method
-import java.util.*
-import java.util.Collections.synchronizedMap
+import java.util.WeakHashMap
 
 /**
  * **Primitive:** Given a [type][A_Type] that can be successfully marshaled to a
@@ -82,13 +87,13 @@ import java.util.Collections.synchronizedMap
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_CreatePojoInstanceMethodFunction : Primitive(3, CanInline, CanFold)
 {
 	/**
 	 * Cache of [A_RawFunction]s, keyed by the function [A_Type].
 	 */
-	private val rawFunctionCache =
-		synchronizedMap(WeakHashMap<A_Type, A_RawFunction>())
+	private val rawFunctionCache = WeakHashMap<A_Type, A_RawFunction>()
 
 	override fun attempt(interpreter: Interpreter): Result
 	{
@@ -105,12 +110,12 @@ object P_CreatePojoInstanceMethodFunction : Primitive(3, CanInline, CanFold)
 		try
 		{
 			val marshaledTypes = marshalTypes(paramTypes)
-			val errorOut = MutableOrNull<AvailErrorCode>()
+			val errorOut = Mutable<AvailErrorCode?>(null)
 			method = lookupMethod(
 				pojoType, methodName, marshaledTypes, errorOut)
 			if (method === null)
 			{
-				return interpreter.primitiveFailure(errorOut.value())
+				return interpreter.primitiveFailure(errorOut.value!!)
 			}
 			// The indices are fiddly because we need to make room for the
 			// receiver type at the front.
@@ -129,25 +134,29 @@ object P_CreatePojoInstanceMethodFunction : Primitive(3, CanInline, CanFold)
 
 		val returnType = resolvePojoType(
 			method.genericReturnType,
-			if (pojoType.isPojoType) pojoType.typeVariables() else emptyMap())
+			if (pojoType.isPojoType) pojoType.typeVariables() else emptyMap)
 		val paramTypesWithReceiver =
 			tuple(pojoType).concatenateWith(paramTypes, false)
 		val functionType = functionType(paramTypesWithReceiver, returnType)
-		val rawFunction = rawFunctionCache.computeIfAbsent(functionType) {
-			rawPojoInvokerFunctionFromFunctionType(
-				P_InvokeInstancePojoMethod,
-				it,
-				// Outer#1 = Instance method to invoke.
-				RAW_POJO.o(),
-				// Outer#2 = Marshaled type parameters, starting with receiver.
-				oneOrMoreOf(RAW_POJO.o()))
+		val rawFunction = synchronized(rawFunctionCache) {
+			rawFunctionCache.computeIfAbsent(functionType) {
+				rawPojoInvokerFunctionFromFunctionType(
+					P_InvokeInstancePojoMethod,
+					it,
+					// Outer#1 = Instance method to invoke.
+					RAW_POJO.o,
+					// Outer#2 = Marshaled type parameters, starting with the
+					// receiver.
+					oneOrMoreOf(RAW_POJO.o))
+			}
 		}
 		val function = createWithOuters2(
 			rawFunction,
 			// Outer#1 = Instance method to invoke.
 			equalityPojo(method),
 			// Outer#2 = Marshaled type parameters.
-			cast(marshaledTypesTuple))
+			marshaledTypesTuple.cast()
+		)
 		return interpreter.primitiveSuccess(function)
 	}
 
@@ -157,7 +166,7 @@ object P_CreatePojoInstanceMethodFunction : Primitive(3, CanInline, CanFold)
 				anyMeta(),
 				stringType(),
 				zeroOrMoreOf(anyMeta())),
-			functionTypeReturning(TOP.o()))
+			functionTypeReturning(TOP.o))
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(

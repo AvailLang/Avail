@@ -1,6 +1,6 @@
 /*
  * LoadingEffect.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,7 +44,7 @@ import com.avail.interpreter.levelOne.L1InstructionWriter
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-internal abstract class LoadingEffect
+abstract class LoadingEffect
 {
 	/**
 	 * Write to the [L1InstructionWriter] a statement capable of

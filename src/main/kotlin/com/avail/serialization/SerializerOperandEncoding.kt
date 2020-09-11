@@ -1,6 +1,6 @@
 /*
  * SerializerOperandEncoding.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,23 +32,38 @@
 
 package com.avail.serialization
 
-import com.avail.descriptor.AvailObject
-import com.avail.descriptor.CharacterDescriptor.fromCodePoint
+import com.avail.descriptor.character.A_Character.Companion.codePoint
+import com.avail.descriptor.character.CharacterDescriptor.Companion.fromCodePoint
+import com.avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
+import com.avail.descriptor.maps.A_Map.Companion.mapIterable
+import com.avail.descriptor.maps.A_Map.Companion.mapSize
 import com.avail.descriptor.maps.MapDescriptor
-import com.avail.descriptor.maps.MapDescriptor.emptyMap
+import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
+import com.avail.descriptor.numbers.A_Number.Companion.extractLong
+import com.avail.descriptor.numbers.A_Number.Companion.extractUnsignedByte
+import com.avail.descriptor.numbers.A_Number.Companion.extractUnsignedShort
+import com.avail.descriptor.numbers.A_Number.Companion.rawSignedIntegerAt
+import com.avail.descriptor.numbers.A_Number.Companion.rawSignedIntegerAtPut
 import com.avail.descriptor.numbers.IntegerDescriptor
-import com.avail.descriptor.numbers.IntegerDescriptor.*
-import com.avail.descriptor.tuples.ByteStringDescriptor.generateByteString
-import com.avail.descriptor.tuples.ByteTupleDescriptor.generateByteTupleFrom
-import com.avail.descriptor.tuples.NybbleTupleDescriptor.generateNybbleTupleFrom
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.generateObjectTupleFrom
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.createUninitializedInteger
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.intCount
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
+import com.avail.descriptor.tuples.ByteStringDescriptor.Companion.generateByteString
+import com.avail.descriptor.tuples.ByteTupleDescriptor.Companion.generateByteTupleFrom
+import com.avail.descriptor.tuples.NybbleTupleDescriptor.Companion.generateNybbleTupleFrom
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import com.avail.descriptor.tuples.TupleDescriptor
-import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
-import com.avail.descriptor.tuples.TupleDescriptor.tupleFromIntegerList
-import com.avail.descriptor.tuples.TwoByteStringDescriptor.generateTwoByteString
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.tupleFromIntegerList
+import com.avail.descriptor.tuples.TwoByteStringDescriptor.Companion.generateTwoByteString
 import com.avail.utility.Strings.increaseIndentation
 import java.io.OutputStream
-import java.util.*
 
 /**
  * A `SerializerOperandEncoding` is an encoding algorithm for part of a
@@ -74,9 +89,10 @@ internal enum class SerializerOperandEncoding
 	},
 
 	/**
-	 * This is an [AvailObject] that's always an [ ] in the range [0..65535].
-	 * Some system limits fall within this range (e.g., number of arguments to a
-	 * function), allowing this compact representation to be used.
+	 * This is an [AvailObject] that's always an [integer][IntegerDescriptor] in
+	 * the range [0..65535]. Some system limits fall within this range (e.g.,
+	 * number of arguments to a function), allowing this compact representation
+	 * to be used.
 	 *
 	 * This operand uses the compressed representation below, which may not be
 	 * effective for some uses, in which case [UNCOMPRESSED_SHORT] may be
@@ -219,7 +235,7 @@ internal enum class SerializerOperandEncoding
 	/**
 	 * This is an [AvailObject] that's an [integer][IntegerDescriptor] of any
 	 * size.  It writes a compressed int for the number of int slots, then the
-	 * big-endian sequence of (also internally big-endian) uncompressed `int`s.
+	 * big-endian sequence of (also internally big-endian) uncompressed [Int]s.
 	 * Only the first int in that sequence is to be considered to have a sign.
 	 */
 	BIG_INTEGER_DATA
@@ -258,7 +274,7 @@ internal enum class SerializerOperandEncoding
 			// Visit the *elements* of the tuple.
 			for (element in obj)
 			{
-				serializer.traceOne(element as AvailObject)
+				serializer.traceOne(element)
 			}
 		}
 
@@ -304,8 +320,8 @@ internal enum class SerializerOperandEncoding
 	},
 
 	/**
-	 * This is a [tuple][TupleDescriptor] of characters whose [code
-	 * points][AvailObject.codePoint] are in the range 0..255. Write a
+	 * This is a [tuple][TupleDescriptor] of characters whose
+	 * [code&#32;points][codePoint] are in the range 0..255. Write a
 	 * compressed size and the sequence of raw bytes.
 	 */
 	BYTE_CHARACTER_TUPLE
@@ -373,16 +389,16 @@ internal enum class SerializerOperandEncoding
 		{
 			val tupleSize = obj.tupleSize()
 			writeCompressedPositiveInt(tupleSize, serializer)
-			for (i in 1..tupleSize)
-			{
-				writeCompressedPositiveInt(
-					obj.tupleCodePointAt(i), serializer)
+			(1..tupleSize).forEach { i ->
+				writeCompressedPositiveInt(obj.tupleCodePointAt(i), serializer)
 			}
 		}
 
 		override fun read(deserializer: AbstractDeserializer): AvailObject
 		{
 			val tupleSize = readCompressedPositiveInt(deserializer)
+			// Update this when we have efficient 21-bit strings, three
+			// characters per 64-bit long.
 			return generateObjectTupleFrom(tupleSize) {
 				fromCodePoint(readCompressedPositiveInt(deserializer))
 			}
@@ -409,7 +425,7 @@ internal enum class SerializerOperandEncoding
 		{
 			// Reconstruct into whatever tuple representation is most compact.
 			val tupleSize = readCompressedPositiveInt(deserializer)
-			val list = ArrayList<Int>(tupleSize)
+			val list = mutableListOf<Int>()
 			for (i in 0 until tupleSize)
 			{
 				list.add(readCompressedPositiveInt(deserializer))
@@ -474,7 +490,7 @@ internal enum class SerializerOperandEncoding
 			if (tupleSize == 0)
 			{
 				// Reasonably common case.
-				return emptyTuple()
+				return emptyTuple
 			}
 			var twoNybbles = 0
 			return generateNybbleTupleFrom(tupleSize) { index ->
@@ -497,23 +513,23 @@ internal enum class SerializerOperandEncoding
 	{
 		override fun trace(obj: AvailObject, serializer: Serializer)
 		{
-			for (entry in obj.mapIterable())
+			for ((key, value) in obj.mapIterable())
 			{
-				serializer.traceOne(entry.key())
-				serializer.traceOne(entry.value())
+				serializer.traceOne(key)
+				serializer.traceOne(value)
 			}
 		}
 
 		override fun write(obj: AvailObject, serializer: Serializer)
 		{
 			writeCompressedPositiveInt(obj.mapSize(), serializer)
-			for (entry in obj.mapIterable())
+			for ((key, value) in obj.mapIterable())
 			{
 				writeCompressedPositiveInt(
-					serializer.indexOfExistingObject(entry.key()),
+					serializer.indexOfExistingObject(key),
 					serializer)
 				writeCompressedPositiveInt(
-					serializer.indexOfExistingObject(entry.value()),
+					serializer.indexOfExistingObject(value),
 					serializer)
 			}
 		}
@@ -521,7 +537,7 @@ internal enum class SerializerOperandEncoding
 		override fun read(deserializer: AbstractDeserializer): AvailObject
 		{
 			val mapSize = readCompressedPositiveInt(deserializer)
-			var map = emptyMap()
+			var map = emptyMap
 			for (index in 1..mapSize)
 			{
 				map = map.mapAtPuttingCanDestroy(
@@ -623,8 +639,8 @@ internal enum class SerializerOperandEncoding
 	companion object
 	{
 		/**
-		 * Write an unsigned integer in the range 0..2<sup>31</sup>-1.  Use a form
-		 * that uses less than 32 bits for small values.
+		 * Write an unsigned integer in the range 0..2<sup>31</sup>-1.  Use a
+		 * form that uses less than 32 bits for small values.
 		 *
 		 * @param index The integer to write.
 		 * @param serializer Where to write it.
@@ -634,32 +650,32 @@ internal enum class SerializerOperandEncoding
 			serializer: Serializer)
 		{
 			assert(index >= 0) { "Expected a positive int to write" }
-			when
+			when (index)
 			{
-				index < 128 ->
+				in 0..0x7F ->
 					// 0..127 are written as a single byte.
 					serializer.writeByte(index)
-				index < 64 shl 8 ->
+				in 0x80..0x3FFF ->
 				{
 					// 128..16383 are written with six bits of the first byte
 					// used for the high byte (first byte is 128..191).  The
 					// second byte is the low byte.
-					serializer.writeByte((index shr 8) + 128)
+					serializer.writeByte((index shr 8) + 0x80)
 					serializer.writeByte(index and 0xFF)
 				}
-				index < 63 shl 16 ->
+				in 0x4000..0x003E_FFFF ->
 				{
 					// The first byte is 192..254, or almost six bits (after
 					// dealing with the 192 bias).  The middle and low bytes
-					// follow.  That allows up to 0x003EFFFF to be written in
+					// follow.  That allows up to 0x003E_FFFF to be written in
 					// only three bytes. The middle and low bytes follow.
-					serializer.writeByte((index shr 16) + 192)
+					serializer.writeByte((index shr 16) + 0xC0)
 					serializer.writeShort(index and 0xFFFF)
 				}
 				else ->
 				{
 					// All the way up to 2^31-1.
-					serializer.writeByte(255)
+					serializer.writeByte(0xFF)
 					serializer.writeInt(index)
 				}
 			}
@@ -679,26 +695,21 @@ internal enum class SerializerOperandEncoding
 		 * @return
 		 *   The integer that was read.
 		 */
-		fun readCompressedPositiveInt(deserializer: AbstractDeserializer): Int
-		{
-			val firstByte = deserializer.readByte()
-			if (firstByte < 128)
+		fun readCompressedPositiveInt(deserializer: AbstractDeserializer): Int =
+			when (val firstByte = deserializer.readByte())
 			{
-				// One byte, 0..127
-				return firstByte
+				in 0..0x7F ->
+					// One byte, 0..127
+					firstByte
+				in 0x80..0xBF ->
+					// Two bytes, 128..16383
+					(firstByte - 0x80 shl 8) + deserializer.readByte()
+				in 0xC0..0xFE ->
+					// Three bytes, 0x4000..0x3E_FFFF
+					(firstByte - 0xC0 shl 16) + deserializer.readShort()
+				else ->
+					// Five bytes, 0x3F_0000..0x7FFF_FFFF
+					deserializer.readInt()
 			}
-			if (firstByte < 192)
-			{
-				// Two bytes, 128..16383
-				return (firstByte - 128 shl 8) + deserializer.readByte()
-			}
-			return if (firstByte < 255)
-			{
-				// Three bytes, 16384..0x3EFFFF
-				(firstByte - 192 shl 16) + deserializer.readShort()
-			}
-			// Five bytes, 0x3F0000..0x7FFFFFFF
-			else deserializer.readInt()
-		}
 	}
 }

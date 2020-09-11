@@ -1,6 +1,6 @@
 /*
  * P_ObjectTypeToTuple.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,25 +34,27 @@ package com.avail.interpreter.primitive.objects
 
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.objects.ObjectTypeDescriptor
-import com.avail.descriptor.objects.ObjectTypeDescriptor.mostGeneralObjectMeta
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectMeta
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.InstanceMetaDescriptor.anyMeta
-import com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForTypes
-import com.avail.descriptor.types.TupleTypeDescriptor.zeroOrMoreOf
+import com.avail.descriptor.types.A_Type.Companion.fieldTypeTuple
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
 import com.avail.exceptions.AvailErrorCode
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Answer the field definitions of the specified
- * [object type][ObjectTypeDescriptor]. A field definition is a 2-tuple whose
- * first element is an [atom][AtomDescriptor] that represents the field and whose
- * second element is the value [user-defined object type][ObjectTypeDescriptor].
+ * [object&#32;type][ObjectTypeDescriptor]. A field definition is a 2-tuple
+ * whose first element is an [atom][AtomDescriptor] that represents the field
+ * and whose second element is the value [user-defined object
+ * type][ObjectTypeDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -80,5 +82,5 @@ object P_ObjectTypeToTuple : Primitive(1, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(mostGeneralObjectMeta()),
-			zeroOrMoreOf(tupleTypeForTypes(ATOM.o(), anyMeta())))
+			zeroOrMoreOf(tupleTypeForTypes(ATOM.o, anyMeta())))
 }

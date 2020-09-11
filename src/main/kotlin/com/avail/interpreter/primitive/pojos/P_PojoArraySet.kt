@@ -1,6 +1,6 @@
 /*
  * P_PojoArraySet.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,24 +31,28 @@
  */
 package com.avail.interpreter.primitive.pojos
 
-import com.avail.descriptor.AvailObject
-import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
 import com.avail.descriptor.numbers.IntegerDescriptor
-import com.avail.descriptor.sets.SetDescriptor.set
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.naturalNumbers
+import com.avail.descriptor.types.A_Type.Companion.contentType
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
 import com.avail.descriptor.types.PojoTypeDescriptor
-import com.avail.descriptor.types.PojoTypeDescriptor.mostGeneralPojoArrayType
+import com.avail.descriptor.types.PojoTypeDescriptor.Companion.mostGeneralPojoArrayType
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
-import com.avail.exceptions.AvailErrorCode.*
+import com.avail.exceptions.AvailErrorCode.E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE
+import com.avail.exceptions.AvailErrorCode.E_JAVA_MARSHALING_FAILED
+import com.avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS
 import com.avail.exceptions.MarshalingException
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.execution.Interpreter
 import java.lang.reflect.Array
 
 /**
@@ -56,6 +60,7 @@ import java.lang.reflect.Array
  * [subscript][IntegerDescriptor] of the specified
  * [pojo&#32;array][PojoTypeDescriptor].
  */
+@Suppress("unused")
 object P_PojoArraySet : Primitive(3, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result
@@ -96,9 +101,11 @@ object P_PojoArraySet : Primitive(3, CanInline)
 		functionType(
 			tuple(
 				mostGeneralPojoArrayType(),
-				naturalNumbers(),
-				ANY.o()),
-			TOP.o())
+				naturalNumbers,
+				ANY.o
+			),
+			TOP.o
+		)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

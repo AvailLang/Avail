@@ -1,6 +1,6 @@
 /*
  * Catalog.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,9 +47,17 @@ import java.nio.CharBuffer
 import java.nio.channels.FileChannel
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
-import java.nio.file.*
+import java.nio.file.FileVisitOption
+import java.nio.file.FileVisitResult
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
+import java.nio.file.SimpleFileVisitor
+import java.nio.file.StandardOpenOption
 import java.nio.file.attribute.BasicFileAttributes
-import java.util.*
+import java.util.EnumSet
+import java.util.LinkedList
+import java.util.TreeSet
 import java.util.regex.Pattern
 
 /**
@@ -67,8 +75,8 @@ internal class Catalog
 	internal val allPaths: MutableList<Path> = LinkedList()
 
 	/**
-	 * The [set][Set] of all [Unicode code points][CharacterInfo] used by the
-	 * Avail project.
+	 * The [set][Set] of all [Unicode&#32;code&#32;points][CharacterInfo] used
+	 * by the Avail project.
 	 */
 	private var allCodePoints: MutableSet<CharacterInfo>? = null
 		@Synchronized
@@ -77,7 +85,7 @@ internal class Catalog
 			var codePoints = field
 			if (codePoints === null)
 			{
-				codePoints = HashSet()
+				codePoints = mutableSetOf()
 				field = codePoints
 				refresh()
 				codePoints = TreeSet(codePoints)
@@ -87,7 +95,7 @@ internal class Catalog
 		}
 
 	/**
-	 * The [set][Set] of all non-ASCII [code points][CharacterInfo].
+	 * The [set][Set] of all non-ASCII [code&#32;points][CharacterInfo].
 	 */
 	private var allNonAsciiCodePoints: MutableSet<CharacterInfo>? = null
 		@Synchronized
@@ -109,8 +117,8 @@ internal class Catalog
 		}
 
 	/**
-	 * The [set][Set] of all non-ASCII, non-alphanumeric [code
-	 * points][CharacterInfo].
+	 * The [set][Set] of all non-ASCII, non-alphanumeric
+	 * [code&#32;points][CharacterInfo].
 	 */
 	private var allSymbolicCodePoints: MutableSet<CharacterInfo>? = null
 		@Synchronized
@@ -178,7 +186,7 @@ internal class Catalog
 
 	/**
 	 * Accumulate into [allPaths] every matching path that resides beneath a
-	 * [root path][rootPaths].
+	 * [root&#32;path][rootPaths].
 	 *
 	 * @throws IOException
 	 *   If an I/O exception occurs.
@@ -266,7 +274,7 @@ internal class Catalog
 
 	/**
 	 * Accumulate into [allCodePoints] every Unicode code point encountered
-	 * within a [file of interest][allPaths].
+	 * within a [file&#32;of&#32;interest][allPaths].
 	 *
 	 * @throws IOException
 	 *   If an I/O exception occurs.
@@ -290,7 +298,7 @@ internal class Catalog
 	}
 
 	/**
-	 * Populate all [character info][CharacterInfo] using data obtained from
+	 * Populate all [character&#32;info][CharacterInfo] using data obtained from
 	 * [FileFormat.Info](http://www.fileformat.info). (Thanks, guys!)
 	 *
 	 * @throws IOException
@@ -320,8 +328,8 @@ internal class Catalog
 	}
 
 	/**
-	 * A [JSON-friendly representative][JSONFriendly] of the [complete set of
-	 * code points][allCodePoints].
+	 * A [JSON-friendly&#32;representative][JSONFriendly] of the
+	 * [complete&#32;set&#32;of&#32;code&#32;points][allCodePoints].
 	 *
 	 * @throws IOException
 	 *   If an I/O exception occurs.
@@ -335,17 +343,17 @@ internal class Catalog
 			{
 				override fun writeTo(writer: JSONWriter)
 				{
-					writer.startArray()
-					codePoints.forEach { writer.write(it) }
-					writer.endArray()
+					writer.writeArray {
+						codePoints.forEach(this::write)
+					}
 				}
 			}
 		}
 
 
 	/**
-	 * A [JSON-friendly representative][JSONFriendly] of the [complete set of
-	 * non-ASCII code][allNonAsciiCodePoints].
+	 * A [JSON-friendly&#32;representative][JSONFriendly] of the
+	 * [complete&#32;set&#32;of&#32;non-ASCII&#32;code&#32;points][allNonAsciiCodePoints].
 	 *
 	 * @throws IOException
 	 *   If an I/O exception occurs.
@@ -359,16 +367,17 @@ internal class Catalog
 			{
 				override fun writeTo(writer: JSONWriter)
 				{
-					writer.startArray()
-					codePoints.forEach { writer.write(it) }
-					writer.endArray()
+					writer.writeArray {
+						codePoints.forEach(this::write)
+					}
 				}
 			}
 		}
 
 	/**
-	 * Answer a [JSON-friendly representative][JSONFriendly] of the
-	 * [complete set of non-ASCII,][allSymbolicCodePoints].
+	 * Answer a [JSON-friendly&#32;representative][JSONFriendly] of the
+	 * [set][allSymbolicCodePoints] of code points that are neither ASCII nor
+	 * alpha-numeric.
 	 *
 	 * @return The representative.
 	 * @throws IOException
@@ -383,9 +392,9 @@ internal class Catalog
 			{
 				override fun writeTo(writer: JSONWriter)
 				{
-					writer.startArray()
-					codePoints.forEach { writer.write(it) }
-					writer.endArray()
+					writer.writeArray {
+						codePoints.forEach(this::write)
+					}
 				}
 			}
 		}
@@ -398,7 +407,7 @@ internal class Catalog
 	 */
 	private constructor(data: JSONData?)
 	{
-		val set = HashSet<CharacterInfo>()
+		val set = mutableSetOf<CharacterInfo>()
 		(data as? JSONArray)?.forEach { set.add(CharacterInfo.readFrom(it)) }
 		allCodePoints = TreeSet(set)
 	}
@@ -441,10 +450,8 @@ internal class Catalog
 		 * The file name extensions of files that should be searched for Unicode
 		 * characters.
 		 */
-		internal val extensions: Set<String> = HashSet(listOf(
-			"java",
-			"avail",
-			"properties"))
+		internal val extensions = setOf(
+			"java", "avail", "properties")
 
 		/** The source paths to search for matching files.  */
 		internal val rootPaths = listOf(
@@ -458,7 +465,7 @@ internal class Catalog
 		 * page that describes the requested code point.
 		 *
 		 * @param info
-		 *   A [code point][CharacterInfo].
+		 *   A [code&#32;point][CharacterInfo].
 		 * @return
 		 *   The appropriate URL.
 		 * @throws MalformedURLException

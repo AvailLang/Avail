@@ -1,6 +1,6 @@
 /*
  * AvailCodeGenerator.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,51 +32,103 @@
 
 package com.avail.compiler
 
-import com.avail.compiler.instruction.*
-import com.avail.descriptor.A_Module
-import com.avail.descriptor.NilDescriptor.nil
+import com.avail.compiler.instruction.AvailCall
+import com.avail.compiler.instruction.AvailCloseCode
+import com.avail.compiler.instruction.AvailDuplicate
+import com.avail.compiler.instruction.AvailGetLiteralVariable
+import com.avail.compiler.instruction.AvailGetLocalVariable
+import com.avail.compiler.instruction.AvailGetOuterVariable
+import com.avail.compiler.instruction.AvailInstruction
+import com.avail.compiler.instruction.AvailInstructionWithIndex
+import com.avail.compiler.instruction.AvailLabel
+import com.avail.compiler.instruction.AvailMakeTuple
+import com.avail.compiler.instruction.AvailPermute
+import com.avail.compiler.instruction.AvailPop
+import com.avail.compiler.instruction.AvailPushLabel
+import com.avail.compiler.instruction.AvailPushLiteral
+import com.avail.compiler.instruction.AvailPushLocalVariable
+import com.avail.compiler.instruction.AvailPushOuterVariable
+import com.avail.compiler.instruction.AvailSetLiteralVariable
+import com.avail.compiler.instruction.AvailSetLocalConstant
+import com.avail.compiler.instruction.AvailSetLocalVariable
+import com.avail.compiler.instruction.AvailSetOuterVariable
+import com.avail.compiler.instruction.AvailSuperCall
+import com.avail.compiler.instruction.AvailVariableAccessNote
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.functions.A_RawFunction
-import com.avail.descriptor.functions.CompiledCodeDescriptor.newCompiledCode
+import com.avail.descriptor.functions.CompiledCodeDescriptor
+import com.avail.descriptor.functions.CompiledCodeDescriptor.Companion.newCompiledCode
+import com.avail.descriptor.functions.ContinuationDescriptor
+import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.objects.ObjectTypeDescriptor
 import com.avail.descriptor.phrases.A_Phrase
+import com.avail.descriptor.phrases.A_Phrase.Companion.argumentsTuple
+import com.avail.descriptor.phrases.A_Phrase.Companion.declaredExceptions
+import com.avail.descriptor.phrases.A_Phrase.Companion.declaredType
+import com.avail.descriptor.phrases.A_Phrase.Companion.emitEffectOn
+import com.avail.descriptor.phrases.A_Phrase.Companion.emitValueOn
+import com.avail.descriptor.phrases.A_Phrase.Companion.neededVariables
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
+import com.avail.descriptor.phrases.A_Phrase.Companion.primitive
+import com.avail.descriptor.phrases.A_Phrase.Companion.startingLineNumber
+import com.avail.descriptor.phrases.A_Phrase.Companion.statementsTuple
+import com.avail.descriptor.phrases.A_Phrase.Companion.tokens
 import com.avail.descriptor.phrases.BlockPhraseDescriptor
+import com.avail.descriptor.phrases.DeclarationPhraseDescriptor
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.LOCAL_CONSTANT
 import com.avail.descriptor.phrases.PhraseDescriptor
 import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.A_Set
+import com.avail.descriptor.sets.SetDescriptor
+import com.avail.descriptor.tokens.A_Token
 import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.NybbleTupleDescriptor.generateNybbleTupleFrom
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.generateObjectTupleFrom
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
-import com.avail.descriptor.tuples.TupleDescriptor.*
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
+import com.avail.descriptor.tuples.NybbleTupleDescriptor.Companion.generateNybbleTupleFrom
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.toList
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.tupleFromIntegerList
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.ASSIGNMENT_PHRASE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LABEL_PHRASE
-import com.avail.descriptor.types.VariableTypeDescriptor.variableTypeFor
+import com.avail.descriptor.types.TypeDescriptor.Types
+import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
+import com.avail.descriptor.variables.VariableDescriptor
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag
-import com.avail.interpreter.primitive.privatehelpers.*
+import com.avail.interpreter.primitive.privatehelpers.P_GetGlobalVariableValue
+import com.avail.interpreter.primitive.privatehelpers.P_PushArgument1
+import com.avail.interpreter.primitive.privatehelpers.P_PushArgument2
+import com.avail.interpreter.primitive.privatehelpers.P_PushArgument3
+import com.avail.interpreter.primitive.privatehelpers.P_PushConstant
+import com.avail.interpreter.primitive.privatehelpers.P_PushLastOuter
 import com.avail.io.NybbleOutputStream
-import java.util.*
+import java.util.ArrayDeque
+import java.util.BitSet
 
 /**
  * An [AvailCodeGenerator] is used to convert a [phrase][PhraseDescriptor] into
- * the corresponding [raw function][CompiledCodeDescriptor].
+ * the corresponding [raw&#32;function][CompiledCodeDescriptor].
  *
  * @property module
  *   The module in which this code occurs.
  * @property args
  *   The [List] of argument [declarations][A_Phrase] that correspond with actual
- *   arguments with which the resulting [raw function][A_RawFunction] will be
- *   invoked.
+ *   arguments with which the resulting [raw&#32;function][A_RawFunction] will
+ *   be invoked.
  * @property locals
- *   The [List] of declarations of local variables that this [raw
- *   function][A_RawFunction] will use.
+ *   The [List] of declarations of local variables that this
+ *   [raw&#32;function][A_RawFunction] will use.
  * @property constants
- *   The [List] of declarations of local constants that this [raw function] will
- *   use.
+ *   The [List] of declarations of local constants that this [raw&#32;function]
+ *   will use.
  * @property outers
  *   The [List] of the lexically captured declarations of arguments, variables,
  *   locals, and labels from enclosing scopes which are used by this block.
@@ -109,6 +161,9 @@ import java.util.*
  *   Any needed outer variable/constant declarations.
  * @param resultType
  *   The return type of the function.
+ * @param resultTypeIfPrimitiveFails
+ *   The return type of the function, in the event that the primitive fails, or
+ *   there is no primitive.
  * @param exceptionSet
  *   The declared exception set of the function.
  * @param startingLineNumber
@@ -123,12 +178,13 @@ class AvailCodeGenerator private constructor(
 	labels: List<A_Phrase>,
 	private val outers: List<A_Phrase>,
 	private val resultType: A_Type,
+	private val resultTypeIfPrimitiveFails: A_Type,
 	private val exceptionSet: A_Set,
 	private val startingLineNumber: Int)
 {
 	/**
-	 * Which [primitive VM operation][Primitive] should be invoked, or `null` if
-	 * none.
+	 * Which [primitive&#32;VM&#32;operation][Primitive] should be invoked, or
+	 * `null` if none.
 	 */
 	private var primitive: Primitive? = primitive
 		set(thePrimitive)
@@ -140,7 +196,7 @@ class AvailCodeGenerator private constructor(
 	/**
 	 * The [list][List] of [instructions][AvailInstruction] generated so far.
 	 */
-	private val instructions = ArrayList<AvailInstruction>(10)
+	private val instructions = mutableListOf<AvailInstruction>()
 
 	/**
 	 * A stack of [A_Tuple]s of [A_Token]s, representing successive refinement
@@ -152,19 +208,19 @@ class AvailCodeGenerator private constructor(
 	 * A mapping from local variable/constant/argument/label declarations to
 	 * index.
 	 */
-	private val varMap = HashMap<A_Phrase, Int>()
+	private val varMap = mutableMapOf<A_Phrase, Int>()
 
 	/**
 	 * A mapping from lexically captured variable/constant/argument/label
 	 * declarations to the index within the list of outer variables that must be
 	 * provided when creating a function from the compiled code.
 	 */
-	private val outerMap = HashMap<A_Phrase, Int>()
+	private val outerMap = mutableMapOf<A_Phrase, Int>()
 
 	/**
 	 * The list of literal objects that have been encountered so far.
 	 */
-	private val literals = ArrayList<A_BasicObject>(10)
+	private val literals = mutableListOf<A_BasicObject>()
 
 	/**
 	 * The current stack depth, which is the number of objects that have been
@@ -181,7 +237,7 @@ class AvailCodeGenerator private constructor(
 	 * A mapping from [label][DeclarationKind.LABEL] to [AvailLabel], a
 	 * pseudo-instruction.
 	 */
-	private val labelInstructions = HashMap<A_Phrase, AvailLabel>()
+	private val labelInstructions = mutableMapOf<A_Phrase, AvailLabel>()
 
 	/**
 	 * Answer the index of the literal, adding it if not already present.
@@ -237,7 +293,7 @@ class AvailCodeGenerator private constructor(
 	 * @param originatingBlockPhrase
 	 *   The block phrase from which the raw function is created.
 	 * @return
-	 *   A [raw function][A_RawFunction] object.
+	 *   A [raw&#32;function][A_RawFunction] object.
 	 */
 	private fun endBlock(originatingBlockPhrase: A_Phrase): A_RawFunction
 	{
@@ -287,7 +343,7 @@ class AvailCodeGenerator private constructor(
 		val unusedOuters = BitSet(outerMap.size)
 		unusedOuters.flip(0, outerMap.size)
 		val nybbles = NybbleOutputStream(50)
-		val encodedLineNumberDeltas = ArrayList<Int>(50)
+		val encodedLineNumberDeltas = mutableListOf<Int>()
 		var currentLineNumber = startingLineNumber
 		for (instruction in instructions)
 		{
@@ -317,7 +373,7 @@ class AvailCodeGenerator private constructor(
 		}
 		if (!unusedOuters.isEmpty)
 		{
-			val unusedOuterDeclarations = HashSet<A_Phrase>()
+			val unusedOuterDeclarations = mutableSetOf<A_Phrase>()
 			for ((key, value) in outerMap)
 			{
 				if (unusedOuters.get(value - 1))
@@ -355,6 +411,7 @@ class AvailCodeGenerator private constructor(
 			maxDepth,
 			functionType,
 			primitive,
+			resultTypeIfPrimitiveFails,
 			tupleFromList(literals),
 			localTypes,
 			constantTypes,
@@ -501,9 +558,8 @@ class AvailCodeGenerator private constructor(
 	 * @param compiledCode
 	 *   The code from which to make a function.
 	 * @param neededVariables
-	 *   A [tuple][TupleDescriptor] of
-	 *   [declarations][DeclarationPhraseDescriptor] of variables that the code
-	 *   needs to access.
+	 *   A [tuple][A_Tuple] of [declarations][DeclarationPhraseDescriptor] of
+	 *   variables that the code needs to access.
 	 */
 	fun emitCloseCode(
 		tokens: A_Tuple,
@@ -531,7 +587,7 @@ class AvailCodeGenerator private constructor(
 	fun emitDuplicate()
 	{
 		increaseDepth()
-		addInstruction(AvailDuplicate(emptyTuple()))
+		addInstruction(AvailDuplicate(emptyTuple))
 	}
 
 	/**
@@ -597,8 +653,8 @@ class AvailCodeGenerator private constructor(
 	}
 
 	/**
-	 * Emit code to create a [tuple][TupleDescriptor] from the top `N` items on
-	 * the stack.
+	 * Emit code to create a [tuple][A_Tuple] from the top `N` items on the
+	 * stack.
 	 *
 	 * @param tokens
 	 *   The [A_Tuple] of [A_Token]s associated with this call.
@@ -632,7 +688,7 @@ class AvailCodeGenerator private constructor(
 	 */
 	fun emitPop()
 	{
-		addInstruction(AvailPop(emptyTuple()))
+		addInstruction(AvailPop(emptyTuple))
 		decreaseDepth(1)
 	}
 
@@ -809,7 +865,7 @@ class AvailCodeGenerator private constructor(
 			{
 				assert(!p.hasFlag(Flag.CannotFail))
 				val fakeFailureVariableUse = AvailGetLocalVariable(
-					emptyTuple(), numArgs + 1)
+					emptyTuple, numArgs + 1)
 				fakeFailureVariableUse.fixUsageFlags(
 					localData, outerData, this)
 			}
@@ -820,7 +876,7 @@ class AvailCodeGenerator private constructor(
 				for (index in 1 .. numArgs)
 				{
 					val fakeArgumentUse =
-						AvailPushLocalVariable(emptyTuple(), index)
+						AvailPushLocalVariable(emptyTuple, index)
 					fakeArgumentUse.fixUsageFlags(localData, outerData, this)
 				}
 			}
@@ -830,7 +886,7 @@ class AvailCodeGenerator private constructor(
 	companion object
 	{
 		/**
-		 * Generate a [function][FunctionDescriptor] with the supplied
+		 * Generate a [raw&#32;function][A_RawFunction] with the supplied
 		 * properties.
 		 *
 		 * @param module
@@ -845,6 +901,16 @@ class AvailCodeGenerator private constructor(
 			blockPhrase: A_Phrase): A_RawFunction
 		{
 			val primitive = blockPhrase.primitive()
+			val resultTypeIfPrimitiveFails =
+				blockPhrase.statementsTuple().run {
+					when
+					{
+						primitive == null -> blockPhrase.resultType()
+						primitive.hasFlag(Flag.CannotFail) -> bottom
+						tupleSize() == 0 -> Types.TOP.o
+						else -> tupleAt(tupleSize()).phraseExpressionType()
+					}
+				}
 			val generator = AvailCodeGenerator(
 				module,
 				toList(blockPhrase.argumentsTuple()),
@@ -854,6 +920,7 @@ class AvailCodeGenerator private constructor(
 				BlockPhraseDescriptor.labels(blockPhrase),
 				toList(blockPhrase.neededVariables()),
 				blockPhrase.resultType(),
+				resultTypeIfPrimitiveFails,
 				blockPhrase.declaredExceptions(),
 				blockPhrase.startingLineNumber())
 			generator.stackShouldBeEmpty()
@@ -863,7 +930,7 @@ class AvailCodeGenerator private constructor(
 				&& (primitive === null || primitive.canHaveNybblecodes()))
 			{
 				// Ideally, we could capture just the close-square-bracket here.
-				generator.emitPushLiteral(emptyTuple(), nil)
+				generator.emitPushLiteral(emptyTuple, nil)
 			}
 			else
 			{
@@ -877,14 +944,14 @@ class AvailCodeGenerator private constructor(
 					val lastStatement = statementsTuple.tupleAt(statementsCount)
 					if (lastStatement.phraseKindIsUnder(LABEL_PHRASE)
 						|| (lastStatement.phraseKindIsUnder(ASSIGNMENT_PHRASE)
-							&& lastStatement.expressionType().isTop))
+							&& lastStatement.phraseExpressionType().isTop))
 					{
 						// Either the block 1) ends with the label declaration
 						// or 2) is top-valued and ends with an assignment. Push
 						// the nil object as the return value. Ideally, we could
 						// capture just the close-square-bracket token here.
 						lastStatement.emitEffectOn(generator)
-						generator.emitPushLiteral(emptyTuple(), nil)
+						generator.emitPushLiteral(emptyTuple, nil)
 					}
 					else
 					{

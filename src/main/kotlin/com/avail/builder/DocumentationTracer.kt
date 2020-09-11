@@ -1,6 +1,6 @@
 /*
  * DocumentationTracer.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,13 +32,14 @@
 
 package com.avail.builder
 
+import com.avail.AvailTask
 import com.avail.compiler.ModuleHeader
 import com.avail.compiler.problems.Problem
 import com.avail.compiler.problems.ProblemHandler
 import com.avail.compiler.problems.ProblemType.INTERNAL
 import com.avail.compiler.problems.ProblemType.TRACE
-import com.avail.descriptor.FiberDescriptor.loaderPriority
-import com.avail.descriptor.ModuleDescriptor
+import com.avail.descriptor.fiber.FiberDescriptor.Companion.loaderPriority
+import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.tokens.CommentTokenDescriptor
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.persistence.Repository.ModuleVersion
@@ -71,13 +72,13 @@ internal class DocumentationTracer constructor(
 	documentationPath: Path)
 {
 	/**
-	 * The [Stacks documentation generator][StacksGenerator].
+	 * The [Stacks&#32;documentation&#32;generator][StacksGenerator].
 	 */
 	private val generator: StacksGenerator = StacksGenerator(
-		documentationPath, availBuilder.runtime.moduleNameResolver())
+		documentationPath, availBuilder.runtime.moduleNameResolver)
 
 	/**
-	 * Get the [module version][ModuleVersion] for the
+	 * Get the [module&#32;version][ModuleVersion] for the
 	 * [named][ResolvedModuleName] [module][ModuleDescriptor].
 	 *
 	 * @param moduleName
@@ -96,8 +97,8 @@ internal class DocumentationTracer constructor(
 
 	/**
 	 * Load [comments][CommentTokenDescriptor] for the
-	 * [named][ResolvedModuleName] [module][ModuleDescriptor] into the [Stacks
-	 * documentation generator][StacksGenerator].
+	 * [named][ResolvedModuleName] [module][ModuleDescriptor] into the
+	 * [Stacks&#32;documentation&#32;generator][StacksGenerator].
 	 *
 	 * @param moduleName
 	 *   A module name.
@@ -113,7 +114,7 @@ internal class DocumentationTracer constructor(
 		completionAction: ()->Unit)
 	{
 		val version = getVersion(moduleName)
-		if (version?.comments == null)
+		if (version?.comments === null)
 		{
 			val problem = object : Problem(
 				moduleName,
@@ -244,7 +245,13 @@ internal class DocumentationTracer constructor(
 	 */
 	fun load(problemHandler: ProblemHandler) =
 		availBuilder.moduleGraph.parallelVisit { moduleName, completionAction ->
-			scheduleLoadComments(moduleName, problemHandler, completionAction)
+			availBuilder.runtime.execute(
+				AvailTask(loaderPriority) {
+					scheduleLoadComments(
+						moduleName,
+						problemHandler,
+						completionAction)
+				})
 		}
 
 	/**

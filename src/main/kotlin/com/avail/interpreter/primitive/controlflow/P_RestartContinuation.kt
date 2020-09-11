@@ -1,6 +1,6 @@
 /*
  * P_RestartContinuation.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,24 +33,31 @@ package com.avail.interpreter.primitive.controlflow
 
 import com.avail.descriptor.functions.A_Continuation
 import com.avail.descriptor.functions.A_RawFunction
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.BottomTypeDescriptor.bottom
-import com.avail.descriptor.types.ContinuationTypeDescriptor.mostGeneralContinuationType
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.interpreter.Interpreter
+import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
+import com.avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralContinuationType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.AlwaysSwitchesContinuation
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CanSwitchContinuations
+import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.Primitive.Result.CONTINUATION_CHANGED
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
-import com.avail.interpreter.levelTwo.operation.*
+import com.avail.interpreter.levelTwo.operation.L2_JUMP
+import com.avail.interpreter.levelTwo.operation.L2_JUMP_BACK
+import com.avail.interpreter.levelTwo.operation.L2_MOVE
+import com.avail.interpreter.levelTwo.operation.L2_RESTART_CONTINUATION
+import com.avail.interpreter.levelTwo.operation.L2_STRIP_MANIFEST
 import com.avail.interpreter.levelTwo.register.L2Register
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
 import com.avail.optimizer.L2Entity
-import com.avail.optimizer.L2Generator.backEdgeTo
-import com.avail.optimizer.L2Generator.edgeTo
+import com.avail.optimizer.L2Generator.Companion.backEdgeTo
+import com.avail.optimizer.L2Generator.Companion.edgeTo
 import com.avail.optimizer.values.L2SemanticValue
 
 /**
@@ -59,6 +66,7 @@ import com.avail.optimizer.values.L2SemanticValue
  * continuation requires a value to be stored on its stack in order to resume
  * it, something this primitive does not do.
  */
+@Suppress("unused")
 object P_RestartContinuation : Primitive(
 	1,
 	CannotFail,
@@ -104,7 +112,7 @@ object P_RestartContinuation : Primitive(
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(mostGeneralContinuationType()), bottom())
+		functionType(tuple(mostGeneralContinuationType()), bottom)
 
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
@@ -151,7 +159,7 @@ object P_RestartContinuation : Primitive(
 
 			// Now keep only the new temps visible in the manifest.
 			generator.addInstruction(
-				L2_STRIP_MANIFEST.instance,
+				L2_STRIP_MANIFEST,
 				L2ReadBoxedVectorOperand(tempReads))
 
 			// Now move them into semantic slots n@1, so the phis at the
@@ -160,7 +168,7 @@ object P_RestartContinuation : Primitive(
 			// moveRegister() uses to simply enlarge synonyms.
 			val newReads = tempSemanticValues.mapIndexed {
 				zeroIndex, temp ->
-				val newArg = generator.topFrame.slot(zeroIndex + 1, 1)
+				val newArg = translator.createSemanticSlot(zeroIndex + 1, 1)
 				val writeOperand = generator.boxedWrite(
 					newArg, manifest.restrictionFor(temp))
 				generator.addInstruction(
@@ -175,7 +183,7 @@ object P_RestartContinuation : Primitive(
 
 			// Now keep only the new args visible in the manifest.
 			generator.addInstruction(
-				L2_STRIP_MANIFEST.instance,
+				L2_STRIP_MANIFEST,
 				L2ReadBoxedVectorOperand(newReads))
 
 			val trampolineBlock = generator.createBasicBlock(
@@ -183,7 +191,7 @@ object P_RestartContinuation : Primitive(
 
 			// Use an L2_JUMP_BACK to get to the trampoline block.
 			generator.addInstruction(
-				L2_JUMP_BACK.instance,
+				L2_JUMP_BACK,
 				edgeTo(trampolineBlock),
 				L2ReadBoxedVectorOperand(newReads))
 
@@ -191,7 +199,7 @@ object P_RestartContinuation : Primitive(
 			// slots will be added to the phis.
 			generator.startBlock(trampolineBlock)
 			generator.addInstruction(
-				L2_JUMP.instance,
+				L2_JUMP,
 				backEdgeTo(generator.restartLoopHeadBlock!!))
 
 			// Ensure only the n@1 slots and registers are considered live.
@@ -212,7 +220,7 @@ object P_RestartContinuation : Primitive(
 		// loop (which saves/restores the current frame and continues at the
 		// next L2 instruction).
 		translator.addInstruction(
-			L2_RESTART_CONTINUATION.instance, continuationReg)
+			L2_RESTART_CONTINUATION, continuationReg)
 		assert(!translator.generator.currentlyReachable())
 		return true
 	}

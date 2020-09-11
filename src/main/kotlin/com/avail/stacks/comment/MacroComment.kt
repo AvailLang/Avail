@@ -1,19 +1,19 @@
 /*
  * MacroComment.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  Redistributions of source code must retain the above copyright notice, this
+ * * Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- *  Redistributions in binary form must reproduce the above copyright notice,
+ * * Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
  *
- *  Neither the name of the copyright holder nor the names of the contributors
+ * * Neither the name of the copyright holder nor the names of the contributors
  *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
@@ -33,16 +33,21 @@
 package com.avail.stacks.comment
 
 import com.avail.descriptor.tuples.A_String
-import com.avail.descriptor.tuples.StringDescriptor.stringFrom
+import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.stacks.CommentGroup
 import com.avail.stacks.LinkingFileMap
 import com.avail.stacks.StacksDescription
 import com.avail.stacks.StacksErrorLog
 import com.avail.stacks.comment.signature.MethodCommentSignature
 import com.avail.stacks.module.StacksImportModule
-import com.avail.stacks.tags.*
+import com.avail.stacks.tags.StacksAliasTag
+import com.avail.stacks.tags.StacksAuthorTag
+import com.avail.stacks.tags.StacksCategoryTag
+import com.avail.stacks.tags.StacksParameterTag
+import com.avail.stacks.tags.StacksRaisesTag
+import com.avail.stacks.tags.StacksReturnTag
+import com.avail.stacks.tags.StacksSeeTag
 import com.avail.utility.json.JSONWriter
-import java.util.*
 
 /**
  * A comment that describes a particular macro implementation
@@ -52,7 +57,7 @@ import java.util.*
  * @property returnsContent
  *   The [&quot;@returns&quot;][StacksReturnTag] content
  * @property exceptions
- *   A [ArrayList] of any [exceptions][StacksRaisesTag] the method throws.
+ *   A list of any [exceptions][StacksRaisesTag] the method throws.
  *
  * @constructor
  * Construct a new [MacroComment].
@@ -76,31 +81,31 @@ import java.util.*
  * @param returnsContent
  *   The [&quot;@returns&quot;][StacksReturnTag] content
  * @param exceptions
- *   A [ArrayList] of any [exceptions][StacksRaisesTag] the method throws.
+ *   A list of any [exceptions][StacksRaisesTag] the method throws.
  * @param sticky
  *   Whether or not the method should be documented regardless of visibility
  */
 class MacroComment(
-		signature: MethodCommentSignature,
-		commentStartLine: Int,
-		author: ArrayList<StacksAuthorTag>,
-		sees: ArrayList<StacksSeeTag>,
-		description: StacksDescription,
-		categories: ArrayList<StacksCategoryTag>,
-		aliases: MutableList<StacksAliasTag>,
-		internal val parameters: MutableList<StacksParameterTag>,
-		val returnsContent: StacksReturnTag,
-		val exceptions: MutableList<StacksRaisesTag>,
-		sticky: Boolean)
-	: AvailComment(
-		signature,
-		commentStartLine,
-		author,
-		sees,
-		description,
-		categories,
-		aliases,
-		sticky)
+	signature: MethodCommentSignature,
+	commentStartLine: Int,
+	author: List<StacksAuthorTag>,
+	sees: List<StacksSeeTag>,
+	description: StacksDescription,
+	categories: List<StacksCategoryTag>,
+	aliases: List<StacksAliasTag>,
+	internal val parameters: List<StacksParameterTag>,
+	private val returnsContent: StacksReturnTag,
+	val exceptions: List<StacksRaisesTag>,
+	sticky: Boolean)
+: AvailComment(
+	signature,
+	commentStartLine,
+	author,
+	sees,
+	description,
+	categories,
+	aliases,
+	sticky)
 {
 
 	/**
@@ -143,7 +148,7 @@ class MacroComment(
 		jsonWriter.write("macro")
 		signature.toJSON(nameOfGroup, isSticky, jsonWriter)
 
-		if (categories.size > 0)
+		if (categories.isNotEmpty())
 		{
 			categories[0].toJSON(
 				linkingFileMap,
@@ -156,7 +161,7 @@ class MacroComment(
 			jsonWriter.endArray()
 		}
 
-		if (aliases.size > 0)
+		if (aliases.isNotEmpty())
 		{
 			aliases[0].toJSON(
 				linkingFileMap,

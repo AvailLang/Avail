@@ -1,6 +1,6 @@
 /*
  * LexingState.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,31 +37,36 @@ import com.avail.compiler.AvailRejectedParseException
 import com.avail.compiler.CompilationContext
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
-import com.avail.descriptor.A_Fiber
-import com.avail.descriptor.AvailObject
-import com.avail.descriptor.CharacterDescriptor
-import com.avail.descriptor.FiberDescriptor.GeneralFlag
-import com.avail.descriptor.FiberDescriptor.newLoaderFiber
-import com.avail.descriptor.numbers.IntegerDescriptor.fromInt
+import com.avail.descriptor.character.CharacterDescriptor
+import com.avail.descriptor.fiber.A_Fiber
+import com.avail.descriptor.fiber.FiberDescriptor.Companion.newLoaderFiber
+import com.avail.descriptor.fiber.FiberDescriptor.Companion.setSuccessAndFailure
+import com.avail.descriptor.fiber.FiberDescriptor.GeneralFlag
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.parsing.A_Lexer
-import com.avail.descriptor.parsing.LexerDescriptor.lexerBodyFunctionType
+import com.avail.descriptor.parsing.A_Lexer.Companion.lexerBodyFunction
+import com.avail.descriptor.parsing.LexerDescriptor.Companion.lexerBodyFunctionType
 import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.tokens.A_Token
+import com.avail.descriptor.tokens.TokenDescriptor.Companion.newToken
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType.END_OF_FILE
-import com.avail.descriptor.tokens.TokenDescriptor.newToken
 import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.StringDescriptor.formatString
-import com.avail.descriptor.tuples.StringDescriptor.stringFrom
-import com.avail.interpreter.Interpreter
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
+import com.avail.descriptor.tuples.StringDescriptor.Companion.formatString
+import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
+import com.avail.descriptor.types.A_Type.Companion.returnType
+import com.avail.interpreter.execution.Interpreter
+import com.avail.interpreter.execution.Interpreter.Companion.stringifyThen
 import com.avail.utility.evaluation.Describer
 import com.avail.utility.evaluation.SimpleDescriber
-import com.avail.utility.evaluation.Transformer1
 import java.io.PrintWriter
 import java.io.StringWriter
 import java.lang.String.format
-import java.util.*
-import java.util.Collections.unmodifiableList
+import java.util.Collections.singletonList
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.Function
@@ -125,7 +130,7 @@ class LexingState constructor(
 	 * waiting actions.  Newer actions are launched upon arrival after the
 	 * tokens have been computed.
 	 */
-	private var actions: MutableList<(List<A_Token>)->Unit>? = ArrayList()
+	private var actions: MutableList<(List<A_Token>)->Unit>? = mutableListOf()
 
 	/**
 	 * Eventually invoke the given functions, each with the given argument.
@@ -171,6 +176,20 @@ class LexingState constructor(
 	}
 
 	/**
+	 * Eventually invoke the given 0-argument function.  Track it as an
+	 * outstanding action, ensuring [CompilationContext.noMoreWorkUnits] is
+	 * invoked only when all such queued actions have completed.
+	 *
+	 * @param continuation
+	 *   What to execute eventually.
+	 */
+	fun workUnitDo(continuation: ()->Unit)
+	{
+		compilationContext.workUnitsDo(
+			this, singletonList { _ -> continuation() }, Unit)
+	}
+
+	/**
 	 * Eventually invoke the given function with the list of [tokens][A_Token]
 	 * at this position.  If necessary, launch [fibers][A_Fiber] to run
 	 * [lexers][A_Lexer], invoking the continuation only when all possible next
@@ -201,7 +220,7 @@ class LexingState constructor(
 		}
 		// This was the first action, so launch the lexers to produce the list
 		// of nextTokens and then run the queued actions.
-		nextTokens = ArrayList(2)
+		nextTokens = mutableListOf()
 		val nextTokens = nextTokens!!
 		val source = compilationContext.source
 		if (position > source.tupleSize())
@@ -218,7 +237,7 @@ class LexingState constructor(
 			this.actions = null
 			return
 		}
-		compilationContext.loader!!.lexicalScanner().getLexersForCodePointThen(
+		compilationContext.loader.lexicalScanner().getLexersForCodePointThen(
 			this,
 			source.tupleCodePointAt(position),
 			{ this.evaluateLexers(it) },
@@ -243,7 +262,7 @@ class LexingState constructor(
 		if (applicableLexers.tupleSize() == 0)
 		{
 			// No applicable lexers.
-			val scanner = compilationContext.loader!!.lexicalScanner()
+			val scanner = compilationContext.loader.lexicalScanner()
 			val codePoint =
 				compilationContext.source.tupleCodePointAt(position)
 			val charString =
@@ -296,7 +315,7 @@ class LexingState constructor(
 		arguments: List<A_BasicObject>,
 		countdown: AtomicInteger)
 	{
-		val loader = compilationContext.loader!!
+		val loader = compilationContext.loader
 		val fiber = newLoaderFiber(
 			lexerBodyFunctionType().returnType(),
 			loader
@@ -309,7 +328,7 @@ class LexingState constructor(
 		//		fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
 		//			CLIENT_DATA_GLOBAL_KEY.atom, clientParseData, true);
 		//		fiber.fiberGlobals(fiberGlobals);
-		fiber.textInterface(compilationContext.textInterface)
+		fiber.setTextInterface(compilationContext.textInterface)
 		fiber.setGeneralFlag(GeneralFlag.CAN_REJECT_PARSE)
 		setFiberContinuationsTrackingWork(
 			fiber,
@@ -367,7 +386,7 @@ class LexingState constructor(
 		// Wrap onSuccess and onFailure to maintain queued/completed counts.
 		compilationContext.startWorkUnits(1)
 		val oneWay = AtomicBoolean()
-		fiber.setSuccessAndFailureContinuations(
+		fiber.setSuccessAndFailure(
 			compilationContext.workUnitCompletion(this, oneWay, onSuccess),
 			compilationContext.workUnitCompletion(this, oneWay, onFailure))
 	}
@@ -511,13 +530,7 @@ class LexingState constructor(
 	 */
 	val knownToBeComputedTokensOrNull: List<A_Token>?
 		@Synchronized
-		get()
-		{
-			return if (nextTokens === null)
-				null
-			else
-				unmodifiableList(ArrayList(nextTokens!!))
-		}
+		get () = nextTokens?.toList()
 
 	/**
 	 * Record an expectation at the current parse position. The expectations
@@ -551,11 +564,11 @@ class LexingState constructor(
 	 *   The [ParseNotificationLevel] that indicates the priority of the parse
 	 *   theory that failed.
 	 * @param values
-	 *   A list of arbitrary [Avail values][AvailObject] that should be
+	 *   A list of arbitrary [Avail&#32;values][AvailObject] that should be
 	 *   stringified.
 	 * @param transformer
-	 *   A [transformer][Transformer1] that accepts the stringified values and
-	 *   answers an expectation message.
+	 *   A transformer that accepts the stringified values and answers an
+	 *   expectation message.
 	 */
 	fun expected(
 		level: ParseNotificationLevel,
@@ -563,8 +576,8 @@ class LexingState constructor(
 		transformer: Function<List<String>, String>)
 	{
 		expected(level) { continuation ->
-			Interpreter.stringifyThen(
-				compilationContext.loader!!.runtime(),
+			stringifyThen(
+				compilationContext.loader.runtime(),
 				compilationContext.textInterface,
 				values
 			) { list -> continuation(transformer.apply(list)) }
@@ -588,7 +601,7 @@ class LexingState constructor(
 
 	companion object
 	{
-		/** An Avail string for use as the lexeme in end-of-file tokens.  */
+		/** An Avail string for use as the lexeme in end-of-file tokens. */
 		private val endOfFileLexeme = stringFrom("end-of-file").makeShared()
 	}
 }

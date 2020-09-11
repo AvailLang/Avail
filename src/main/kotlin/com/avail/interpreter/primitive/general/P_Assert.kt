@@ -1,6 +1,6 @@
 /*
  * P_Assert.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,33 +31,32 @@
  */
 package com.avail.interpreter.primitive.general
 
-import com.avail.descriptor.FiberDescriptor.ExecutionState
-import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.atoms.A_Atom.Companion.extractBoolean
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
+import com.avail.descriptor.fiber.FiberDescriptor.ExecutionState
 import com.avail.descriptor.functions.A_RawFunction
-import com.avail.descriptor.functions.ContinuationDescriptor.dumpStackThen
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.functions.ContinuationDescriptor.Companion.dumpStackThen
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.BottomTypeDescriptor.bottom
+import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.EnumerationTypeDescriptor
-import com.avail.descriptor.types.EnumerationTypeDescriptor.booleanType
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.TupleTypeDescriptor
-import com.avail.descriptor.types.TupleTypeDescriptor.stringType
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailAssertionFailedException
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CanSuspend
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Primitive.Flag.Unknown
 import com.avail.interpreter.Primitive.Result.FIBER_SUSPENDED
-import com.avail.interpreter.levelTwo.operand.L2ConstantOperand
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_EQUALS_CONSTANT
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
-import com.avail.optimizer.L2Generator.edgeTo
-import java.lang.String.format
 
 /**
  * **Primitive:** Assert the specified
@@ -80,43 +79,41 @@ object P_Assert : Primitive(2, Unknown, CanSuspend, CannotFail)
 		}
 
 		val fiber = interpreter.fiber()
-		val continuation = interpreter.reifiedContinuation!!
+		val continuation = interpreter.getReifiedContinuation()!!
 		interpreter.primitiveSuspend(interpreter.function!!)
-		dumpStackThen(interpreter.runtime(), fiber.textInterface(), continuation)
-			{ stack ->
-				val builder = StringBuilder()
-				builder.append(failureMessage.asNativeString())
-				for (frame in stack)
-				{
-					builder.append(format("%n\t-- %s", frame))
-				}
-				builder.append("\n\n")
-				val killer = AvailAssertionFailedException(
-					builder.toString())
-				killer.fillInStackTrace()
-				fiber.executionState(ExecutionState.ABORTED)
-				fiber.failureContinuation().value(killer)
-			}
+		dumpStackThen(
+			interpreter.runtime, fiber.textInterface(), continuation
+		) { stack ->
+			val killer = AvailAssertionFailedException(
+				stack.joinToString(
+					prefix = failureMessage.asNativeString(),
+					separator = "",
+					postfix = "\n\n"
+				) { "\n\t-- $it" })
+			killer.fillInStackTrace()
+			fiber.setExecutionState(ExecutionState.ABORTED)
+			fiber.failureContinuation()(killer)
+		}
 		return FIBER_SUSPENDED
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(booleanType(), stringType()), TOP.o())
+		functionType(tuple(booleanType, stringType()), TOP.o)
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type
 	{
 		val booleanType = argumentTypes[0]
-		return if (trueObject().isInstanceOf(booleanType))
+		return if (trueObject.isInstanceOf(booleanType))
 		{
 			// The assertion might pass, so the type is top.
-			TOP.o()
+			TOP.o
 		}
 		else
 		{
 			// The assertion can't pass, so the fiber will always terminate.
 			// Thus, the type is bottom.
-			bottom()
+			bottom
 		}
 	}
 
@@ -130,14 +127,14 @@ object P_Assert : Primitive(2, Unknown, CanSuspend, CannotFail)
 	{
 		assert(arguments.size == 2)
 		val conditionType = argumentTypes[0]
-		if (!falseObject().isInstanceOf(conditionType))
+		if (!falseObject.isInstanceOf(conditionType))
 		{
 			// The condition can't be false, so skip the call.
 			callSiteHelper.useAnswer(
 				translator.generator.boxedConstant(nil))
 			return true
 		}
-		if (!trueObject().isInstanceOf(conditionType))
+		if (!trueObject.isInstanceOf(conditionType))
 		{
 			// The condition can't be true, so don't optimize the call.
 			return false
@@ -150,12 +147,11 @@ object P_Assert : Primitive(2, Unknown, CanSuspend, CannotFail)
 		val failPath = translator.generator.createBasicBlock("assertion failed")
 		val passPath = translator.generator.createBasicBlock("after assertion")
 
-		translator.addInstruction(
-			L2_JUMP_IF_EQUALS_CONSTANT.instance,
+		translator.jumpIfEqualsConstant(
 			arguments[0],
-			L2ConstantOperand(trueObject()),
-			edgeTo(passPath),
-			edgeTo(failPath))
+			trueObject,
+			passPath,
+			failPath)
 
 		translator.generator.startBlock(failPath)
 		// Since this invocation will also be optimized, pass the constant false
@@ -163,7 +159,7 @@ object P_Assert : Primitive(2, Unknown, CanSuspend, CannotFail)
 		translator.generateGeneralFunctionInvocation(
 			functionToCallReg,
 			listOf(
-				translator.generator.boxedConstant(falseObject()),
+				translator.generator.boxedConstant(falseObject),
 				arguments[1]),
 			true,
 			callSiteHelper)

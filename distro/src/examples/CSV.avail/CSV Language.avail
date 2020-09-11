@@ -1,6 +1,6 @@
 /*
  * CSV Language.avail
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -236,7 +236,7 @@ Semantic restriction "_padded to_character|characters" is
 	s : string's type,
 	fieldSize : whole number's type
 |
-	<character… | ⎣fieldSize⎦.. >
+	<character… | ⌊fieldSize⌋.. >
 ];
 
 /**
@@ -267,7 +267,7 @@ Public method "Display CSV(as a table«with headers»?)" is
 	If showHeaders then
 	[
 		record ::= records[1];
-		text := left fold <""> ++ 1 to |record| through
+		text := left fold "" into 1 to |record| through
 			[
 				index : natural number,
 				headerSoFar : string
@@ -278,7 +278,7 @@ Public method "Display CSV(as a table«with headers»?)" is
 					++ " "
 			];
 		text ++= "\n";
-		text := left fold <text> ++ 1 to |record| through
+		text := left fold text into 1 to |record| through
 			[
 				index : natural number,
 				textSoFar : string
@@ -291,7 +291,7 @@ Public method "Display CSV(as a table«with headers»?)" is
 	/* Accumulate each of the data records into the text collector. */
 	For each record of dataRecords do
 	[
-		text := left fold <text> ++ 1 to |record| through
+		text := left fold text into 1 to |record| through
 			[
 				index : natural number,
 				textSoFar : string

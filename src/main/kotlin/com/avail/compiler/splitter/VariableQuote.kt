@@ -1,6 +1,6 @@
 /*
  * VariableQuote.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,21 +31,23 @@
  */
 package com.avail.compiler.splitter
 
-import com.avail.compiler.ParsingOperation.*
+import com.avail.compiler.ParsingOperation.CHECK_ARGUMENT
+import com.avail.compiler.ParsingOperation.PARSE_VARIABLE_REFERENCE
+import com.avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT
 import com.avail.compiler.splitter.MessageSplitter.Companion.indexForConstant
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.ReferencePhraseDescriptor
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.variables.VariableDescriptor
-import java.util.*
+import java.util.IdentityHashMap
 
 /**
- * A `VariableQuote` is an occurrence of [up arrow][Metacharacter.UP_ARROW] (↑)
- * after an underscore in a message name. It indicates that the expression must
- * be the name of a [variable][VariableDescriptor] that is currently in-scope.
- * It produces a [reference][ReferencePhraseDescriptor] to the variable, rather
- * than extracting its value.
+ * A `VariableQuote` is an occurrence of [up&#32;arrow][Metacharacter.UP_ARROW]
+ * (↑) after an underscore in a message name. It indicates that the expression
+ * must be the name of a [variable][VariableDescriptor] that is currently
+ * in-scope. It produces a [reference][ReferencePhraseDescriptor] to the
+ * variable, rather than extracting its value.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *

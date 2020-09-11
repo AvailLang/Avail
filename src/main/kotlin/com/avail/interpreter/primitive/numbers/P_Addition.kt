@@ -1,6 +1,6 @@
 /*
  * P_Addition.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,36 +32,45 @@
 package com.avail.interpreter.primitive.numbers
 
 import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.numbers.A_Number.Companion.minusCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.plusCanDestroy
 import com.avail.descriptor.numbers.AbstractNumberDescriptor
-import com.avail.descriptor.numbers.AbstractNumberDescriptor.binaryNumericOperationTypeBound
-import com.avail.descriptor.numbers.InfinityDescriptor.negativeInfinity
-import com.avail.descriptor.numbers.InfinityDescriptor.positiveInfinity
-import com.avail.descriptor.numbers.IntegerDescriptor.one
-import com.avail.descriptor.sets.SetDescriptor.emptySet
-import com.avail.descriptor.sets.SetDescriptor.set
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.numbers.AbstractNumberDescriptor.Companion.binaryNumericOperationTypeBound
+import com.avail.descriptor.numbers.InfinityDescriptor.Companion.negativeInfinity
+import com.avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.one
+import com.avail.descriptor.sets.A_Set.Companion.setSize
+import com.avail.descriptor.sets.A_Set.Companion.setWithElementCanDestroy
+import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.int32
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.integerRangeType
+import com.avail.descriptor.types.A_Type.Companion.instances
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import com.avail.descriptor.types.A_Type.Companion.lowerBound
+import com.avail.descriptor.types.A_Type.Companion.typeIntersection
+import com.avail.descriptor.types.A_Type.Companion.upperBound
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int32
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeType
 import com.avail.descriptor.types.TypeDescriptor.Types.NUMBER
 import com.avail.exceptions.ArithmeticException
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_ADD_UNLIKE_INFINITIES
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Fallibility.CallSiteCanFail
 import com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT
-import com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForType
 import com.avail.interpreter.levelTwo.operation.L2_ADD_INT_TO_INT
-import com.avail.interpreter.levelTwo.operation.L2_ADD_INT_TO_INT_MOD_32_BITS
+import com.avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
-import com.avail.optimizer.L2Generator.edgeTo
+import com.avail.optimizer.L2Generator.Companion.edgeTo
 
 /**
  * **Primitive:** Add two [numbers][AbstractNumberDescriptor].
@@ -82,11 +91,13 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 		{
 			interpreter.primitiveFailure(e)
 		}
-
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(NUMBER.o(), NUMBER.o()), NUMBER.o())
+		functionType(tuple(NUMBER.o, NUMBER.o), NUMBER.o)
+
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_CANNOT_ADD_UNLIKE_INFINITIES))
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type
@@ -104,7 +115,7 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 				// be few enough entries.
 				if (aInstances.setSize() * bInstances.setSize().toLong() < 100)
 				{
-					var answers = emptySet()
+					var answers = emptySet
 					for (aInstance in aInstances)
 					{
 						for (bInstance in bInstances)
@@ -169,16 +180,14 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 		}
 	}
 
-	override fun privateFailureVariableType(): A_Type =
-		enumerationWith(set(E_CANNOT_ADD_UNLIKE_INFINITIES))
-
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
 		translator: L1Translator,
-		callSiteHelper: CallSiteHelper): Boolean
+		callSiteHelper: CallSiteHelper
+	): Boolean
 	{
 		val a = arguments[0]
 		val b = arguments[1]
@@ -187,20 +196,17 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 
 		// If either of the argument types does not intersect with int32, then
 		// fall back to the primitive invocation.
-		if (aType.typeIntersection(int32()).isBottom
-		    || bType.typeIntersection(int32()).isBottom)
+		if (aType.typeIntersection(int32).isBottom
+		    || bType.typeIntersection(int32).isBottom)
 		{
 			return false
 		}
 
 		// Attempt to unbox the arguments.
 		val generator = translator.generator
-		val fallback = generator.createBasicBlock(
-			"fall back to boxed addition")
-		val intA =
-			generator.readInt(a.semanticValue(), fallback)
-		val intB =
-			generator.readInt(b.semanticValue(), fallback)
+		val fallback = generator.createBasicBlock("fall back to boxed addition")
+		val intA = generator.readInt(a.semanticValue(), fallback)
+		val intB = generator.readInt(b.semanticValue(), fallback)
 		if (generator.currentlyReachable())
 		{
 			// The happy path is reachable.  Generate the most efficient
@@ -208,14 +214,13 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 			val returnTypeIfInts =
 				returnTypeGuaranteedByVM(
 					rawFunction,
-					argumentTypes.map { it.typeIntersection(int32()) })
-			val semanticTemp =
-				generator.topFrame.temp(generator.nextUnique())
+					argumentTypes.map { it.typeIntersection(int32) })
+			val semanticTemp = generator.topFrame.temp(generator.nextUnique())
 			val tempWriter =
 				generator.intWrite(
 					semanticTemp,
 					restrictionForType(returnTypeIfInts, UNBOXED_INT))
-			if (returnTypeIfInts.isSubtypeOf(int32()))
+			if (returnTypeIfInts.isSubtypeOf(int32))
 			{
 				// The result is guaranteed not to overflow, so emit an
 				// instruction that won't bother with an overflow check.  Note
@@ -223,18 +228,14 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 				// synonym, so subsequent uses of the result might use either
 				// register, depending whether an unboxed value is desired.
 				translator.addInstruction(
-					L2_ADD_INT_TO_INT_MOD_32_BITS.instance,
-					intA,
-					intB,
-					tempWriter)
+					L2_BIT_LOGIC_OP.wrappedAdd, intA, intB, tempWriter)
 			}
 			else
 			{
 				// The result could exceed an int32.
-				val success =
-					generator.createBasicBlock("sum is in range")
+				val success = generator.createBasicBlock("sum is in range")
 				translator.addInstruction(
-					L2_ADD_INT_TO_INT.instance,
+					L2_ADD_INT_TO_INT,
 					intA,
 					intB,
 					tempWriter,

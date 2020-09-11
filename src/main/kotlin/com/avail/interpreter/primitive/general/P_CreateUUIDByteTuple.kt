@@ -1,6 +1,6 @@
 /*
  * P_CreateUUIDByteTuple.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,18 +33,20 @@
 package com.avail.interpreter.primitive.general
 
 import com.avail.descriptor.tuples.ByteBufferTupleDescriptor
-import com.avail.descriptor.tuples.ByteBufferTupleDescriptor.tupleForByteBuffer
-import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+import com.avail.descriptor.tuples.ByteBufferTupleDescriptor.Companion.tupleForByteBuffer
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.bytes
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.singleInt
-import com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType
-import com.avail.interpreter.Interpreter
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.bytes
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.execution.Interpreter
 import java.nio.ByteBuffer
-import java.util.*
+import java.util.UUID
 
 /**
  * **Primitive:** Answer a cryptographically strong pseudo-random [UUID] as a
@@ -68,7 +70,8 @@ object P_CreateUUIDByteTuple : Primitive(0, CannotFail, CanInline, HasSideEffect
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			emptyTuple(),
+			emptyTuple,
 			tupleTypeForSizesTypesDefaultType(
-				singleInt(16), emptyTuple(), bytes()))
+				singleInt(16), emptyTuple, bytes
+			))
 }

@@ -1,6 +1,6 @@
 /*
  * Optional.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,29 +32,35 @@
 package com.avail.compiler.splitter
 
 import com.avail.compiler.ParsingOperation
-import com.avail.compiler.ParsingOperation.*
+import com.avail.compiler.ParsingOperation.DISCARD_SAVED_PARSE_POSITION
+import com.avail.compiler.ParsingOperation.ENSURE_PARSE_PROGRESS
+import com.avail.compiler.ParsingOperation.PUSH_LITERAL
+import com.avail.compiler.ParsingOperation.SAVE_PARSE_POSITION
 import com.avail.compiler.splitter.InstructionGenerator.Label
 import com.avail.compiler.splitter.MessageSplitter.Companion.indexForFalse
 import com.avail.compiler.splitter.MessageSplitter.Companion.indexForTrue
 import com.avail.compiler.splitter.MessageSplitter.Companion.throwSignatureException
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter
 import com.avail.compiler.splitter.WrapState.SHOULD_NOT_HAVE_ARGUMENTS
+import com.avail.descriptor.atoms.A_Atom.Companion.extractBoolean
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.phrases.A_Phrase
+import com.avail.descriptor.phrases.A_Phrase.Companion.token
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import com.avail.descriptor.types.EnumerationTypeDescriptor
-import com.avail.descriptor.types.EnumerationTypeDescriptor.booleanType
-import com.avail.descriptor.types.ListPhraseTypeDescriptor.emptyListPhraseType
+import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
+import com.avail.descriptor.types.ListPhraseTypeDescriptor.Companion.emptyListPhraseType
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_BOOLEAN_GROUP
 import com.avail.exceptions.SignatureException
-import java.util.*
+import java.util.Collections
 
 /**
  * An `Optional` is a [Sequence] wrapped in guillemets («»), and followed by a
  * question mark (?).  It may not contain [Argument]s or subgroups, and since it
- * is not a group it may not contain a [double
- * dagger][Metacharacter.DOUBLE_DAGGER] (‡).
+ * is not a group it may not contain a
+ * [double&#32;dagger][Metacharacter.DOUBLE_DAGGER] (‡).
  *
  * At a call site, an optional produces a
  * [boolean][EnumerationTypeDescriptor.booleanType] that indicates whether there
@@ -80,6 +86,9 @@ internal class Optional constructor(
 	positionInName: Int,
 	private val sequence: Sequence) : Expression(positionInName)
 {
+	override val recursivelyContainsReorders: Boolean
+		get() = sequence.recursivelyContainsReorders
+
 	override val yieldsValue: Boolean
 		get() = true
 
@@ -104,7 +113,7 @@ internal class Optional constructor(
 	override fun checkType(argumentType: A_Type, sectionNumber: Int)
 	{
 		// The declared type of the subexpression must be a subtype of boolean.
-		if (!argumentType.isSubtypeOf(booleanType()))
+		if (!argumentType.isSubtypeOf(booleanType))
 		{
 			throwSignatureException(E_INCORRECT_TYPE_FOR_BOOLEAN_GROUP)
 		}
@@ -132,7 +141,7 @@ internal class Optional constructor(
 		val `$absent` = Label()
 		generator.emitBranchForward(this, `$absent`)
 		generator.emitIf(needsProgressCheck, this, SAVE_PARSE_POSITION)
-		assert(sequence.yieldersAreReordered !== java.lang.Boolean.TRUE)
+		assert(!sequence.isReordered)
 		sequence.emitOn(
 			emptyListPhraseType(), generator, SHOULD_NOT_HAVE_ARGUMENTS)
 		generator.flushDelayed()
@@ -179,7 +188,7 @@ internal class Optional constructor(
 		val `$absent` = Label()
 		generator.emitBranchForward(this, `$absent`)
 		generator.emitIf(needsProgressCheck, this, SAVE_PARSE_POSITION)
-		assert(sequence.yieldersAreReordered !== java.lang.Boolean.TRUE)
+		assert(!sequence.isReordered)
 		sequence.emitOn(
 			emptyListPhraseType(), generator, SHOULD_NOT_HAVE_ARGUMENTS)
 		generator.flushDelayed()
@@ -198,7 +207,7 @@ internal class Optional constructor(
 		generator.emit(`$merge`)
 	}
 
-	override fun toString() = "${javaClass.simpleName}($sequence)"
+	override fun toString() = "${this@Optional.javaClass.simpleName}($sequence)"
 
 	override fun printWithArguments(
 		arguments: Iterator<A_Phrase>?,
@@ -215,7 +224,7 @@ internal class Optional constructor(
 			builder.append('«')
 			sequence.printWithArguments(
 				Collections.emptyIterator(), builder, indent)
-			builder.append("»?")
+			builder.append("»")
 		}
 	}
 
@@ -234,4 +243,6 @@ internal class Optional constructor(
 		// Optional things can be absent.
 		return true
 	}
+
+	override fun checkListStructure(phrase: A_Phrase): Boolean = true
 }

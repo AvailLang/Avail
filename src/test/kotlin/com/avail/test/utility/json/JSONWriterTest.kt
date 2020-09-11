@@ -1,6 +1,6 @@
 /*
  * JSONWriterTest.java
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,20 @@
 
 package com.avail.test.utility.json
 
-import com.avail.test.utility.json.TestJSONKeyValue.*
+import com.avail.test.utility.json.TestJSONKeyValue.Companion.addObjectToWriter
+import com.avail.test.utility.json.TestJSONKeyValue.Companion.addToWriter
+import com.avail.test.utility.json.TestJSONKeyValue.Companion.test
+import com.avail.test.utility.json.TestJSONKeyValue.IMACOMPACTARRAY
+import com.avail.test.utility.json.TestJSONKeyValue.IMAFALSE
+import com.avail.test.utility.json.TestJSONKeyValue.IMAFLOAT
+import com.avail.test.utility.json.TestJSONKeyValue.IMALONG
+import com.avail.test.utility.json.TestJSONKeyValue.IMANINT
+import com.avail.test.utility.json.TestJSONKeyValue.IMANOBJECT
+import com.avail.test.utility.json.TestJSONKeyValue.IMANULL
+import com.avail.test.utility.json.TestJSONKeyValue.IMASTRING
+import com.avail.test.utility.json.TestJSONKeyValue.IMATRUE
+import com.avail.test.utility.json.TestJSONKeyValue.OBJINT
+import com.avail.test.utility.json.TestJSONKeyValue.OBJSTRING
 import com.avail.utility.json.JSONException
 import com.avail.utility.json.JSONObject
 import com.avail.utility.json.JSONReader
@@ -101,7 +114,8 @@ class JSONWriterTest
 	 *   otherwise.
 	 */
 	private fun displayTestPayload(
-		writer: JSONWriter, printTestPayload: Boolean)
+		writer: JSONWriter,
+		printTestPayload: Boolean)
 	{
 		//noinspection ConstantConditions,ConstantIfStatement
 		if (printTestPayload)
@@ -116,18 +130,18 @@ class JSONWriterTest
 	{
 		val writer = JSONWriter()
 		writer.startObject()
-		Companion.addToWriter(
+		addToWriter(
 			writer, IMASTRING, IMANINT, IMALONG, IMAFLOAT, IMATRUE,
 			IMAFALSE, IMANULL, IMACOMPACTARRAY)
 		IMASTRING.addValueToWriter(writer)
-		Companion.addObjectToWriter(IMANOBJECT.key, writer, OBJSTRING, OBJINT)
+		addObjectToWriter(IMANOBJECT.key, writer, OBJSTRING, OBJINT)
 		writer.endObject()
 		val content = getJsonData(writer)
-		Companion.test(
+		test(
 			content!!, IMASTRING, IMANINT, IMALONG, IMAFLOAT,
 			IMATRUE, IMAFALSE, IMANULL, IMACOMPACTARRAY, IMANOBJECT)
 		val objContent = content.getObject(IMANOBJECT.key)
-		Companion.test(objContent, OBJSTRING, OBJINT)
+		test(objContent, OBJSTRING, OBJINT)
 		displayTestPayload(writer, false)
 	}
 

@@ -1,6 +1,6 @@
 /*
  * ConfigurationState.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,8 @@
 package com.avail.utility.configuration
 
 import java.lang.Thread.State
-import java.util.*
+import java.util.ArrayDeque
+import java.util.Deque
 
 /**
  * An `XMLConfiguratorState` encapsulates the state of an [XMLConfigurator].

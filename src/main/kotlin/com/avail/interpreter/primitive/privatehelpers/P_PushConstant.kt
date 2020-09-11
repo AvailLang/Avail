@@ -1,6 +1,6 @@
 /*
  * P_PushConstant.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,12 +34,15 @@ package com.avail.interpreter.primitive.privatehelpers
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.functions.CompiledCodeDescriptor
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn
-import com.avail.descriptor.types.BottomTypeDescriptor.bottom
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.instanceTypeOrMetaOn
+import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Primitive.Flag.Private
+import com.avail.interpreter.Primitive.Flag.SpecialForm
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.primitive.privatehelpers.P_PushConstant.tryToGenerateSpecialPrimitiveInvocation
 import com.avail.optimizer.L1Translator
@@ -55,6 +58,7 @@ import com.avail.optimizer.L1Translator.CallSiteHelper
  * normally skips making the actual called function available, so we must be
  * careful to expose it for the customized code generator.
  */
+@Suppress("unused")
 object P_PushConstant : Primitive(
 	-1, SpecialForm, Private, CanInline, CannotFail)
 {
@@ -66,14 +70,14 @@ object P_PushConstant : Primitive(
 	}
 
 	/** This primitive is suitable for any block signature. */
-	override fun privateBlockTypeRestriction(): A_Type = bottom()
+	override fun privateBlockTypeRestriction(): A_Type = bottom
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,
 		argumentTypes: List<A_Type>): A_Type
 	{
 		val value = rawFunction.literalAt(1)
-		return if (value.equalsNil()) TOP.o() else instanceTypeOrMetaOn(value)
+		return if (value.equalsNil()) TOP.o else instanceTypeOrMetaOn(value)
 	}
 
 	override fun tryToGenerateSpecialPrimitiveInvocation(

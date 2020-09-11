@@ -1,19 +1,19 @@
 /*
  * StacksImportModule.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  Redistributions of source code must retain the above copyright notice, this
+ * * Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- *  Redistributions in binary form must reproduce the above copyright notice,
+ * * Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
  *
- *  Neither the name of the copyright holder nor the names of the contributors
+ * * Neither the name of the copyright holder nor the names of the contributors
  *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
@@ -33,15 +33,13 @@
 package com.avail.stacks.module
 
 import com.avail.descriptor.tuples.A_String
-import com.avail.descriptor.tuples.StringDescriptor.stringFrom
+import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.stacks.CommentGroup
 import com.avail.stacks.StacksFilename
 import com.avail.stacks.comment.GrammaticalRestrictionComment
 import com.avail.stacks.comment.MacroComment
 import com.avail.stacks.comment.MethodComment
 import com.avail.stacks.comment.SemanticRestrictionComment
-import com.avail.utility.Pair
-
 /**
  * A grouping of all implementationGroups originating from the names section of
  * this module that this is being imported by another module.
@@ -214,10 +212,10 @@ abstract class StacksImportModule constructor(
 			hashedName = hashedName and 0xFFFFFFFFL
 			val qualifiedName = (moduleName + "/"
 				+ hashedName + ".json")
-			newMap[qualifiedName] = Pair(name.asNativeString(), value)
+			newMap[qualifiedName] = name.asNativeString() to value
 			nameToLinkMap[name.asNativeString()] = qualifiedName
 		}
-		return Pair(newMap, nameToLinkMap)
+		return newMap to nameToLinkMap
 	}
 
 	/**
@@ -234,12 +232,12 @@ abstract class StacksImportModule constructor(
 		for (extendsModule in moduleNameToExtendsList.values)
 		{
 			val pair = extendsModule.flattenImplementationGroups()
-			newMap.putAll(pair.first())
-			nameToLinkMap.putAll(pair.second())
+			newMap.putAll(pair.first)
+			nameToLinkMap.putAll(pair.second)
 		}
 		val aPair = qualifiedImplementationNameToImplementation()
-		newMap.putAll(aPair.first())
-		nameToLinkMap.putAll(aPair.second())
-		return Pair(newMap, nameToLinkMap)
+		newMap.putAll(aPair.first)
+		nameToLinkMap.putAll(aPair.second)
+		return newMap to nameToLinkMap
 	}
 }

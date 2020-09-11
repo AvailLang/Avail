@@ -1,6 +1,6 @@
 /*
  * P_CreateDirectory.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,34 +32,45 @@
 
 package com.avail.interpreter.primitive.files
 
-import com.avail.descriptor.A_Fiber
-import com.avail.descriptor.FiberDescriptor.newFiber
-import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.fiber.A_Fiber
+import com.avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
+import com.avail.descriptor.functions.A_Function
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
+import com.avail.descriptor.numbers.IntegerDescriptor
 import com.avail.descriptor.sets.A_Set
-import com.avail.descriptor.sets.SetDescriptor.set
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.tuples.StringDescriptor.formatString
-import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import com.avail.descriptor.tuples.StringDescriptor.Companion.formatString
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.types.FiberTypeDescriptor.fiberType
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.bytes
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.inclusive
-import com.avail.descriptor.types.SetTypeDescriptor.setTypeForSizesContentType
-import com.avail.descriptor.types.TupleTypeDescriptor.stringType
+import com.avail.descriptor.types.A_Type.Companion.returnType
+import com.avail.descriptor.types.A_Type.Companion.typeUnion
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
+import com.avail.descriptor.types.FiberTypeDescriptor.Companion.fiberType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.bytes
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
+import com.avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
-import com.avail.exceptions.AvailErrorCode.*
-import com.avail.interpreter.Interpreter
+import com.avail.exceptions.AvailErrorCode.E_FILE_EXISTS
+import com.avail.exceptions.AvailErrorCode.E_INVALID_PATH
+import com.avail.exceptions.AvailErrorCode.E_IO_ERROR
+import com.avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.execution.Interpreter
 import com.avail.io.IOSystem
 import java.io.IOException
-import java.nio.file.*
+import java.nio.file.AccessDeniedException
+import java.nio.file.FileAlreadyExistsException
+import java.nio.file.Files
+import java.nio.file.InvalidPathException
+import java.nio.file.Path
 import java.nio.file.attribute.PosixFilePermission
 import java.nio.file.attribute.PosixFilePermissions
-import java.util.*
+import java.util.EnumSet
 
 /**
  * **Primitive:** Create a directory with the indicated name and permissions.
@@ -82,7 +93,7 @@ object P_CreateDirectory : Primitive(5, CanInline, HasSideEffect)
 		val fail = interpreter.argument(3)
 		val priority = interpreter.argument(4)
 
-		val runtime = interpreter.runtime()
+		val runtime = interpreter.runtime
 		val fileSystem = IOSystem.fileSystem
 		val path: Path =
 			try
@@ -101,10 +112,10 @@ object P_CreateDirectory : Primitive(5, CanInline, HasSideEffect)
 				succeed.kind().returnType().typeUnion(fail.kind().returnType()),
 				priorityInt)
 			{ formatString("Asynchronous create directory, %s", path) }
-		newFiber.availLoader(current.availLoader())
-		newFiber.heritableFiberGlobals(
+		newFiber.setAvailLoader(current.availLoader())
+		newFiber.setHeritableFiberGlobals(
 			current.heritableFiberGlobals().makeShared())
-		newFiber.textInterface(current.textInterface())
+		newFiber.setTextInterface(current.textInterface())
 		newFiber.makeShared()
 		succeed.makeShared()
 		fail.makeShared()
@@ -168,31 +179,35 @@ object P_CreateDirectory : Primitive(5, CanInline, HasSideEffect)
                    runtime,
                    newFiber,
                    succeed,
-                   emptyList<A_BasicObject>())
+                   emptyList())
            })
 		return interpreter.primitiveSuccess(newFiber)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(stringType(),
-				setTypeForSizesContentType(
-				  inclusive(0, 9),
-				  inclusive(1, 9)),
-				functionType(emptyTuple(), TOP.o()),
-				functionType(tuple(
-					enumerationWith(
-						set(E_FILE_EXISTS, E_PERMISSION_DENIED, E_IO_ERROR))),
-				TOP.o()), bytes()),
-			fiberType(TOP.o()))
+			tuple(
+				stringType(),
+				setTypeForSizesContentType(inclusive(0, 9), inclusive(1, 9)),
+				functionType(emptyTuple, TOP.o),
+				functionType(
+					tuple(
+						enumerationWith(
+							set(
+								E_FILE_EXISTS,
+								E_PERMISSION_DENIED,
+								E_IO_ERROR))),
+						TOP.o),
+					bytes),
+			fiberType(TOP.o))
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_INVALID_PATH))
 
 	/**
-	 * Convert the specified [set][SetDescriptor] of
-	 * [ordinals][IntegerDescriptor] into the corresponding [set][Set] of [POSIX
-	 * file permissions][PosixFilePermission].
+	 * Convert the specified [set][A_Set] of
+	 * [ordinals][IntegerDescriptor] into the corresponding [set][Set] of
+	 * [POSIX&#32;file&#32;permissions][PosixFilePermission].
 	 *
 	 * @param ordinals
 	 *   Some ordinals.

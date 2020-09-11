@@ -1,6 +1,6 @@
 /*
  * BuildUnloader.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,9 +32,10 @@
 
 package com.avail.builder
 
+import com.avail.AvailTask
 import com.avail.builder.AvailBuilder.LoadedModule
-import com.avail.descriptor.FiberDescriptor.loaderPriority
-import com.avail.interpreter.AvailLoader
+import com.avail.descriptor.fiber.FiberDescriptor.Companion.loaderPriority
+import com.avail.interpreter.execution.AvailLoader
 import com.avail.utility.Graph
 import java.util.logging.Level
 
@@ -110,8 +111,8 @@ internal class BuildUnloader constructor(private val availBuilder: AvailBuilder)
 		moduleName: ResolvedModuleName?,
 		completionAction: (()->Unit)?)
 	{
-		assert(moduleName != null)
-		assert(completionAction != null)
+		assert(moduleName !== null)
+		assert(completionAction !== null)
 		availBuilder.runtime.execute(loaderPriority) {
 			var dirty = false
 			for (predecessor
@@ -161,7 +162,7 @@ internal class BuildUnloader constructor(private val availBuilder: AvailBuilder)
 	 * @param completionAction
 	 *   What to do after unloading completes.
 	 */
-	private fun unloadOneModule(
+	private fun scheduleUnloadOneModule(
 		moduleName: ResolvedModuleName,
 		completionAction: ()->Unit)
 	{
@@ -182,8 +183,7 @@ internal class BuildUnloader constructor(private val availBuilder: AvailBuilder)
 			// It's legal to just create a loader here, since it won't have any
 			// pending forwards to remove.
 			module.removeFrom(
-				AvailLoader.forUnloading(
-					module, availBuilder.textInterface)
+				AvailLoader.forUnloading(module, availBuilder.textInterface)
 			) {
 				availBuilder.runtime.unlinkModule(module)
 				AvailBuilder.log(
@@ -202,10 +202,16 @@ internal class BuildUnloader constructor(private val availBuilder: AvailBuilder)
 	fun unloadModified()
 	{
 		availBuilder.moduleGraph.parallelVisit { moduleName, done ->
-			determineDirtyModules(moduleName, done)
+			availBuilder.runtime.execute(
+				AvailTask(loaderPriority) {
+					determineDirtyModules(moduleName, done)
+				})
 		}
-		availBuilder.moduleGraph.reverse().parallelVisit { moduleName, done ->
-			unloadOneModule(moduleName, done)
+		availBuilder.moduleGraph.reverse.parallelVisit { moduleName, done ->
+			availBuilder.runtime.execute(
+				AvailTask(loaderPriority) {
+					scheduleUnloadOneModule(moduleName, done)
+				})
 		}
 		// Unloading of each A_Module is complete.  Update my local structures
 		// to agree.
@@ -231,7 +237,7 @@ internal class BuildUnloader constructor(private val availBuilder: AvailBuilder)
 	 */
 	fun unload(targetName: ResolvedModuleName?)
 	{
-		if (targetName == null)
+		if (targetName === null)
 		{
 			for (loadedModule in availBuilder.loadedModulesCopy())
 			{
@@ -241,17 +247,23 @@ internal class BuildUnloader constructor(private val availBuilder: AvailBuilder)
 		else
 		{
 			val target = availBuilder.getLoadedModule(targetName)
-			if (target != null)
+			if (target !== null)
 			{
 				target.deletionRequest = true
 			}
 		}
-		var moduleCount = availBuilder.moduleGraph.vertexCount()
+		var moduleCount = availBuilder.moduleGraph.vertexCount
 		availBuilder.moduleGraph.parallelVisit { moduleName, done ->
-			determineSuccessorModules(moduleName, done)
+			availBuilder.runtime.execute(
+				AvailTask(loaderPriority) {
+					determineSuccessorModules(moduleName, done)
+				})
 		}
-		availBuilder.moduleGraph.reverse().parallelVisit { moduleName, done ->
-			unloadOneModule(moduleName, done)
+		availBuilder.moduleGraph.reverse.parallelVisit { moduleName, done ->
+			availBuilder.runtime.execute(
+				AvailTask(loaderPriority) {
+					scheduleUnloadOneModule(moduleName, done)
+				})
 		}
 		// Unloading of each A_Module is complete.  Update my local structures
 		// to agree.
@@ -265,6 +277,6 @@ internal class BuildUnloader constructor(private val availBuilder: AvailBuilder)
 				moduleCount--
 			}
 		}
-		assert(availBuilder.moduleGraph.vertexCount() == moduleCount)
+		assert(availBuilder.moduleGraph.vertexCount == moduleCount)
 	}
 }

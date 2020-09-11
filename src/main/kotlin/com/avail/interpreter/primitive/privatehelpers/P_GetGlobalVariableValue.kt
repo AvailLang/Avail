@@ -1,6 +1,6 @@
 /*
  * P_GetGlobalVariableValue.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,11 +33,15 @@ package com.avail.interpreter.primitive.privatehelpers
 
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.BottomTypeDescriptor.bottom
+import com.avail.descriptor.types.A_Type.Companion.readType
+import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.exceptions.VariableGetException
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Primitive.Flag.Private
+import com.avail.interpreter.Primitive.Flag.SpecialForm
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operation.L2_GET_VARIABLE
 import com.avail.optimizer.L1Translator
@@ -46,6 +50,7 @@ import com.avail.optimizer.L1Translator.CallSiteHelper
 /**
  * **Primitive:** A global variable's value is being returned.
  */
+@Suppress("unused")
 object P_GetGlobalVariableValue : Primitive(
 	1, SpecialForm, CanInline, Private, CannotFail)
 {
@@ -55,7 +60,7 @@ object P_GetGlobalVariableValue : Primitive(
 		val literalVariable = code.literalAt(1)
 		try
 		{
-			return interpreter.primitiveSuccess(literalVariable.value)
+			return interpreter.primitiveSuccess(literalVariable.getValue())
 		}
 		catch (e: VariableGetException)
 		{
@@ -74,7 +79,7 @@ object P_GetGlobalVariableValue : Primitive(
 	 * This primitive is suitable for any function with any as the return type.
 	 * We can't express that yet, so we allow any function.
 	 */
-	override fun privateBlockTypeRestriction(): A_Type = bottom()
+	override fun privateBlockTypeRestriction(): A_Type = bottom
 
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
@@ -98,15 +103,14 @@ object P_GetGlobalVariableValue : Primitive(
 		{
 			// The variable is permanently set to this value.
 			callSiteHelper.useAnswer(
-				translator.generator.boxedConstant(variable.value))
+				translator.generator.boxedConstant(variable.getValue()))
 			return true
 		}
 		val valueReg = translator.emitGetVariableOffRamp(
-			L2_GET_VARIABLE.instance,
+			L2_GET_VARIABLE,
 			translator.generator.boxedConstant(variable),
 			false)
 		callSiteHelper.useAnswer(valueReg)
 		return true
 	}
-
 }

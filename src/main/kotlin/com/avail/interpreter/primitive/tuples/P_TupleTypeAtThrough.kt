@@ -1,6 +1,6 @@
 /*
  * P_TupleTypeAtThrough.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,27 +31,31 @@
  */
 package com.avail.interpreter.primitive.tuples
 
-import com.avail.descriptor.numbers.InfinityDescriptor.positiveInfinity
-import com.avail.descriptor.numbers.IntegerDescriptor.zero
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
+import com.avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.unionOfTypesAtThrough
 import com.avail.descriptor.types.BottomTypeDescriptor
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.InstanceMetaDescriptor.anyMeta
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.inclusive
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.naturalNumbers
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
 import com.avail.descriptor.types.TupleTypeDescriptor
-import com.avail.descriptor.types.TupleTypeDescriptor.tupleMeta
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleMeta
 import com.avail.descriptor.types.TypeDescriptor
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CanFold
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Answer the [type][TypeDescriptor] that is the union of the
- * types within the given range of indices of the given [tuple
- * type][TupleTypeDescriptor]. Answer [bottom][BottomTypeDescriptor] if all the
- * indices are out of range.
+ * types within the given range of indices of the given
+ * [tuple&#32;type][TupleTypeDescriptor]. Answer [bottom][BottomTypeDescriptor]
+ * if all the indices are out of range.
  */
 @Suppress("unused")
 object P_TupleTypeAtThrough : Primitive(3, CannotFail, CanFold, CanInline)
@@ -59,13 +63,15 @@ object P_TupleTypeAtThrough : Primitive(3, CannotFail, CanFold, CanInline)
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(3)
-		val tupleType = interpreter.argument(0)
-		val startIndex = interpreter.argument(1)
-		val endIndex = interpreter.argument(2)
-		val startInt = if (startIndex.isInt) startIndex.extractInt()
-		else Integer.MAX_VALUE
-		val endInt = if (endIndex.isInt) endIndex.extractInt()
-		else Integer.MAX_VALUE
+		val (tupleType, startIndex, endIndex) = interpreter.argsBuffer
+		val startInt = when {
+			startIndex.isInt -> startIndex.extractInt()
+			else -> Integer.MAX_VALUE
+		}
+		val endInt = when {
+			endIndex.isInt -> endIndex.extractInt()
+			else -> Integer.MAX_VALUE
+		}
 		return interpreter.primitiveSuccess(
 			tupleType.unionOfTypesAtThrough(startInt, endInt))
 	}
@@ -74,7 +80,7 @@ object P_TupleTypeAtThrough : Primitive(3, CannotFail, CanFold, CanInline)
 		functionType(
 			tuple(
 				tupleMeta(),
-				naturalNumbers(),
+				naturalNumbers,
 				inclusive(
 					zero(),
 					positiveInfinity())),

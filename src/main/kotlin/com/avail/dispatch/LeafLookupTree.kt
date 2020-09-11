@@ -1,6 +1,6 @@
 /*
  * LeafLookupTree.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,10 +32,13 @@
 
 package com.avail.dispatch
 
-import com.avail.descriptor.AvailObject.Companion.error
 import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject.Companion.error
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.argsTupleType
 import java.lang.String.format
 
 /**

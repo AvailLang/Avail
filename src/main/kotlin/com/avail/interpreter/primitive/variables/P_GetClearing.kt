@@ -1,6 +1,6 @@
 /*
  * P_GetClearing.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,28 +31,33 @@
  */
 package com.avail.interpreter.primitive.variables
 
-import com.avail.descriptor.AvailObject
 import com.avail.descriptor.functions.A_RawFunction
-import com.avail.descriptor.sets.SetDescriptor.set
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.A_Type.Companion.readType
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
-import com.avail.descriptor.types.VariableTypeDescriptor.mostGeneralVariableType
+import com.avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 import com.avail.descriptor.variables.A_Variable
-import com.avail.exceptions.AvailErrorCode.*
+import com.avail.exceptions.AvailErrorCode.E_CANNOT_MODIFY_FINAL_JAVA_FIELD
+import com.avail.exceptions.AvailErrorCode.E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE
+import com.avail.exceptions.AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE
+import com.avail.exceptions.AvailErrorCode.E_JAVA_MARSHALING_FAILED
+import com.avail.exceptions.AvailErrorCode.E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED
 import com.avail.exceptions.VariableGetException
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Get the value of the [variable][A_Variable], clear the variable, then answer the
- * previously extracted [value][AvailObject]. This operation
- * allows store-back patterns to be efficiently implemented in Level One
- * code while keeping the interpreter itself thread-safe and debugger-safe.
+ * **Primitive:** Get the value of the [variable][A_Variable], clear the
+ * variable, then answer the previously extracted [value][AvailObject]. This
+ * operation allows store-back patterns to be efficiently implemented in Level
+ * One code while keeping the interpreter itself thread-safe and debugger-safe.
  */
 @Suppress("unused")
 object P_GetClearing : Primitive(1, CanInline, HasSideEffect)
@@ -62,11 +67,11 @@ object P_GetClearing : Primitive(1, CanInline, HasSideEffect)
 		interpreter.checkArgumentCount(1)
 		val variable = interpreter.argument(0)
 		return try {
-			val valueObject = variable.value
+			val valueObject = variable.getValue()
 			variable.clearValue()
 			interpreter.primitiveSuccess(valueObject)
 		} catch (e: VariableGetException) {
-			interpreter.primitiveFailure(e.numericCode())
+			interpreter.primitiveFailure(e.numericCode)
 		}
 }
 
@@ -74,7 +79,8 @@ object P_GetClearing : Primitive(1, CanInline, HasSideEffect)
 		functionType(
 			tuple(
 				mostGeneralVariableType()),
-			ANY.o())
+			ANY.o
+		)
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,
@@ -82,7 +88,7 @@ object P_GetClearing : Primitive(1, CanInline, HasSideEffect)
 	{
 		val varType = argumentTypes[0]
 		val readType = varType.readType()
-		return if (readType.isTop) ANY.o() else readType
+		return if (readType.isTop) ANY.o else readType
 	}
 
 	override fun privateFailureVariableType(): A_Type =

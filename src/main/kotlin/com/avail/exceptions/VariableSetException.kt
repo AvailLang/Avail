@@ -1,6 +1,6 @@
 /*
  * VariableSetException.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 
 package com.avail.exceptions
 
-import com.avail.descriptor.AvailObject
+import com.avail.descriptor.representation.AvailObject
 
 /**
  * `VariableSetException` is thrown when [AvailObject.setValue] fails for any
@@ -46,7 +46,7 @@ class VariableSetException : AvailRuntimeException
 	 * Construct a new `VariableSetException`.
 	 *
 	 * @param errorCode
-	 *   An [error code][AvailErrorCode].
+	 *   An [error&#32;code][AvailErrorCode].
 	 */
 	constructor(errorCode: AvailErrorCode) : super(errorCode)
 
@@ -54,7 +54,7 @@ class VariableSetException : AvailRuntimeException
 	 * Construct a new `VariableSetException`.
 	 *
 	 * @param errorCode
-	 *   An [error code][AvailErrorCode].
+	 *   An [error&#32;code][AvailErrorCode].
 	 * @param cause
 	 *   The proximal [cause][Throwable] of the
 	 *   [exception][VariableSetException].

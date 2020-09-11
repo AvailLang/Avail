@@ -1,6 +1,6 @@
 /*
  * StacksOutputFile.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,6 @@ package com.avail.stacks
 
 import com.avail.AvailRuntime
 import com.avail.utility.IO
-import com.avail.utility.MutableLong
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousFileChannel
@@ -44,7 +43,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
 import java.nio.file.attribute.BasicFileAttributes
-import java.util.*
+import java.util.EnumSet
 
 /**
  * The way a file is created.
@@ -121,10 +120,10 @@ class StacksOutputFile @Throws(IOException::class) constructor(
 	{
 		val buffer = ByteBuffer.wrap(
 			outputText.toByteArray(StandardCharsets.UTF_8))
-		val pos = MutableLong(0L)
+		var pos = 0L
 		outputFile.write<Any>(
 			buffer,
-			pos.value,
+			pos,
 			null,
 			object: CompletionHandler<Int, Any>
 			{
@@ -132,8 +131,8 @@ class StacksOutputFile @Throws(IOException::class) constructor(
 				{
 					if (buffer.hasRemaining())
 					{
-						pos.value += result!!.toLong()
-						outputFile.write<Any>(buffer, pos.value, null, this)
+						pos += result!!.toLong()
+						outputFile.write<Any>(buffer, pos, null, this)
 					}
 					else
 					{

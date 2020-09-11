@@ -1,6 +1,6 @@
 /*
  * P_CastInto.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,30 +33,35 @@ package com.avail.interpreter.primitive.types
 
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.A_RawFunction
-import com.avail.descriptor.sets.SetDescriptor.set
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.numbers.A_Number.Companion.equalsInt
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.types.BottomTypeDescriptor.bottom
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.InstanceMetaDescriptor.anyMeta
+import com.avail.descriptor.types.A_Type.Companion.argsTupleType
+import com.avail.descriptor.types.A_Type.Companion.instance
+import com.avail.descriptor.types.A_Type.Companion.instanceCount
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import com.avail.descriptor.types.A_Type.Companion.returnType
+import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
+import com.avail.descriptor.types.A_Type.Companion.typeIntersection
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
+import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Fallibility.*
+import com.avail.interpreter.Primitive.Fallibility.CallSiteCanFail
+import com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail
+import com.avail.interpreter.Primitive.Fallibility.CallSiteMustFail
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.Invokes
-import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED
-import com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForType
-import com.avail.interpreter.levelTwo.operation.L2_FUNCTION_PARAMETER_TYPE
 import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
-import com.avail.optimizer.L2Generator.edgeTo
+import com.avail.optimizer.L2Generator.Companion.edgeTo
 
 /**
  * **Primitive:** If the second argument, a [function][A_Function], accepts the
@@ -89,12 +94,15 @@ object P_CastInto : Primitive(2, Invokes, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				ANY.o(),
+				ANY.o,
 				functionType(
 					tuple(
-						bottom()),
-					TOP.o())),
-			TOP.o())
+						bottom
+					),
+					TOP.o
+				)),
+			TOP.o
+		)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_INCORRECT_ARGUMENT_TYPE))
@@ -167,17 +175,13 @@ object P_CastInto : Primitive(2, Invokes, CanInline)
 				// actual castFunction's argument type.  Note that we can't
 				// phi-strengthen the valueRead along the branches, since we
 				// don't statically know the type that it was compared to.
-				val parameterTypeWrite = generator.boxedWriteTemp(
-					restrictionForType(anyMeta(), BOXED))
+				val parameterTypeRead =
+					translator.generator.extractParameterTypeFromFunction(
+						castFunctionRead, 1)
 				translator.addInstruction(
-					L2_FUNCTION_PARAMETER_TYPE.instance,
-					castFunctionRead,
-					L2IntImmediateOperand(1),
-					parameterTypeWrite)
-				translator.addInstruction(
-					L2_JUMP_IF_KIND_OF_OBJECT.instance,
+					L2_JUMP_IF_KIND_OF_OBJECT,
 					valueRead,
-					translator.readBoxed(parameterTypeWrite),
+					parameterTypeRead,
 					edgeTo(castBlock),
 					edgeTo(elseBlock))
 			}
@@ -185,7 +189,7 @@ object P_CastInto : Primitive(2, Invokes, CanInline)
 				// Couldn't prove or disprove type test, but we know statically
 				// the cast block's exact argument type.
 				translator.jumpIfKindOfConstant(
-					valueRead, typeTest, castBlock, elseBlock);
+					valueRead, typeTest, castBlock, elseBlock)
 			else ->
 				// We proved the test always passes or always fails.
 				translator.generator.jumpTo(

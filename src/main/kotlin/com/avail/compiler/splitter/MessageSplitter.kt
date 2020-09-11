@@ -1,6 +1,6 @@
 /*
  * MessageSplitter.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,38 +34,95 @@ package com.avail.compiler.splitter
 
 import com.avail.compiler.ParsingOperation
 import com.avail.compiler.problems.CompilerDiagnostics
-import com.avail.compiler.splitter.MessageSplitter.Metacharacter.*
+import com.avail.compiler.splitter.MessageSplitter.Metacharacter.BACK_QUOTE
+import com.avail.compiler.splitter.MessageSplitter.Metacharacter.CLOSE_GUILLEMET
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter.Companion.canBeBackQuoted
-import com.avail.descriptor.AvailObject
+import com.avail.compiler.splitter.MessageSplitter.Metacharacter.DOLLAR_SIGN
+import com.avail.compiler.splitter.MessageSplitter.Metacharacter.DOUBLE_DAGGER
+import com.avail.compiler.splitter.MessageSplitter.Metacharacter.DOUBLE_QUESTION_MARK
+import com.avail.compiler.splitter.MessageSplitter.Metacharacter.ELLIPSIS
+import com.avail.compiler.splitter.MessageSplitter.Metacharacter.EXCLAMATION_MARK
+import com.avail.compiler.splitter.MessageSplitter.Metacharacter.OCTOTHORP
+import com.avail.compiler.splitter.MessageSplitter.Metacharacter.OPEN_GUILLEMET
+import com.avail.compiler.splitter.MessageSplitter.Metacharacter.QUESTION_MARK
+import com.avail.compiler.splitter.MessageSplitter.Metacharacter.SECTION_SIGN
+import com.avail.compiler.splitter.MessageSplitter.Metacharacter.SINGLE_DAGGER
+import com.avail.compiler.splitter.MessageSplitter.Metacharacter.TILDE
+import com.avail.compiler.splitter.MessageSplitter.Metacharacter.UNDERSCORE
+import com.avail.compiler.splitter.MessageSplitter.Metacharacter.UP_ARROW
+import com.avail.compiler.splitter.MessageSplitter.Metacharacter.VERTICAL_BAR
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
+import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom
+import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.bundles.A_BundleTree
-import com.avail.descriptor.methods.A_Definition
+import com.avail.descriptor.methods.A_Macro
+import com.avail.descriptor.methods.DefinitionDescriptor
+import com.avail.descriptor.methods.MacroDescriptor
+import com.avail.descriptor.methods.MethodDefinitionDescriptor
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
+import com.avail.descriptor.numbers.IntegerDescriptor
 import com.avail.descriptor.parsing.A_Lexer
 import com.avail.descriptor.phrases.A_Phrase
+import com.avail.descriptor.phrases.A_Phrase.Companion.argumentsListNode
+import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsTuple
+import com.avail.descriptor.phrases.ListPhraseDescriptor
+import com.avail.descriptor.phrases.PermutedListPhraseDescriptor
+import com.avail.descriptor.phrases.ReferencePhraseDescriptor
+import com.avail.descriptor.phrases.SendPhraseDescriptor
+import com.avail.descriptor.phrases.VariableUsePhraseDescriptor
 import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.sets.A_Set
-import com.avail.descriptor.sets.SetDescriptor.set
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
+import com.avail.descriptor.tokens.LiteralTokenDescriptor
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
+import com.avail.descriptor.tuples.A_Tuple.Companion.appendCanDestroy
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.StringDescriptor
-import com.avail.descriptor.tuples.StringDescriptor.stringFrom
+import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.tuples.TupleDescriptor
-import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.argsTupleType
+import com.avail.descriptor.types.A_Type.Companion.lowerBound
+import com.avail.descriptor.types.A_Type.Companion.sizeRange
+import com.avail.descriptor.types.A_Type.Companion.upperBound
 import com.avail.descriptor.types.FunctionTypeDescriptor
 import com.avail.descriptor.types.PhraseTypeDescriptor
 import com.avail.descriptor.types.TupleTypeDescriptor
 import com.avail.exceptions.AvailErrorCode
-import com.avail.exceptions.AvailErrorCode.*
+import com.avail.exceptions.AvailErrorCode.E_ALTERNATIVE_MUST_NOT_CONTAIN_ARGUMENTS
+import com.avail.exceptions.AvailErrorCode.E_CASE_INSENSITIVE_EXPRESSION_CANONIZATION
+import com.avail.exceptions.AvailErrorCode.E_DOLLAR_SIGN_MUST_FOLLOW_AN_ELLIPSIS
+import com.avail.exceptions.AvailErrorCode.E_DOUBLE_QUESTION_MARK_MUST_FOLLOW_A_TOKEN_OR_SIMPLE_GROUP
+import com.avail.exceptions.AvailErrorCode.E_EXCLAMATION_MARK_MUST_FOLLOW_AN_ALTERNATION_GROUP
+import com.avail.exceptions.AvailErrorCode.E_EXPECTED_OPERATOR_AFTER_BACKQUOTE
+import com.avail.exceptions.AvailErrorCode.E_INCONSISTENT_ARGUMENT_REORDERING
+import com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
+import com.avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
+import com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_BOOLEAN_GROUP
+import com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_COMPLEX_GROUP
+import com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_COUNTING_GROUP
+import com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_GROUP
+import com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_NUMBERED_CHOICE
+import com.avail.exceptions.AvailErrorCode.E_INCORRECT_USE_OF_DOUBLE_DAGGER
+import com.avail.exceptions.AvailErrorCode.E_METHOD_NAME_IS_NOT_CANONICAL
+import com.avail.exceptions.AvailErrorCode.E_OCTOTHORP_MUST_FOLLOW_A_SIMPLE_GROUP_OR_ELLIPSIS
+import com.avail.exceptions.AvailErrorCode.E_QUESTION_MARK_MUST_FOLLOW_A_SIMPLE_GROUP
+import com.avail.exceptions.AvailErrorCode.E_UNBALANCED_GUILLEMETS
+import com.avail.exceptions.AvailErrorCode.E_UP_ARROW_MUST_FOLLOW_ARGUMENT
+import com.avail.exceptions.AvailErrorCode.E_VERTICAL_BAR_MUST_SEPARATE_TOKENS_OR_SIMPLE_GROUPS
 import com.avail.exceptions.MalformedMessageException
 import com.avail.exceptions.SignatureException
-import com.avail.utility.Casts.cast
-import com.avail.utility.Locks.auto
-import java.util.*
+import com.avail.utility.cast
+import com.avail.utility.safeWrite
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.locks.ReentrantReadWriteLock
+import kotlin.concurrent.read
 
 /**
  * `MessageSplitter` is used to split Avail message names into a sequence of
@@ -73,8 +130,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock
  *
  * Message splitting occurs in two phases.  In the first setPhase, the message
  * is tokenized and parsed into an abstract [Expression] tree. In the second
- * setPhase, a [tuple type][TupleTypeDescriptor] of [phrase
- * types][PhraseTypeDescriptor] is supplied, and produces a tuple of
+ * setPhase, a [tuple&#32;type][TupleTypeDescriptor] of
+ * [phrase&#32;types][PhraseTypeDescriptor] is supplied, and produces a tuple of
  * integer-encoded [ParsingOperation]s.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
@@ -103,76 +160,70 @@ class MessageSplitter
 	 * The individual tokens ([strings][StringDescriptor])
 	 * constituting the message.
 	 *
-	 *  * Alphanumerics are in runs, separated from other
-	 *   alphanumerics by a single space.
+	 *  * Alphanumerics are in runs, separated from other alphanumerics by a
+	 *    single space.
 	 *  * Operator characters are never beside spaces, and are always parsed as
 	 *    individual tokens.
-	 *  * [Open guillemet][Metacharacter.OPEN_GUILLEMET] («),
-	 *    [double dagger][Metacharacter.DOUBLE_DAGGER] (‡), and [close
-	 *    guillemet][Metacharacter.CLOSE_GUILLEMET] (») are used to indicate
-	 *    repeated or optional substructures.
+	 *  * [Open&#32;guillemet][Metacharacter.OPEN_GUILLEMET] («),
+	 *    [double&#32;dagger][Metacharacter.DOUBLE_DAGGER] (‡), and
+	 *    [close&#32;guillemet][Metacharacter.CLOSE_GUILLEMET] (») are used to
+	 *    indicate repeated or optional substructures.
 	 *  * The characters [octothorp][Metacharacter.OCTOTHORP]
-	 *    (#) and [question mark][Metacharacter.QUESTION_MARK] (?) modify the
-	 *    output of repeated substructures to produce either a count of the
+	 *    (#) and [question&#32;mark][Metacharacter.QUESTION_MARK] (?) modify
+	 *    the output of repeated substructures to produce either a count of the
 	 *    repetitions or a boolean indicating whether an optional subexpression
 	 *    (expecting no arguments) was present.
-	 *  * Placing a [question mark][Metacharacter.QUESTION_MARK]
-	 *    (?) after a group containing arguments but no [double
-	 *    dagger][Metacharacter.DOUBLE_DAGGER] (‡) will limit the repetitions of
-	 *    the group to at most one.  Although limiting the method definitions to
-	 *    only accept 0..1 occurrences would accomplish the same grammatical
-	 *    narrowing, the parser might still attempt to parse more than one
-	 *    occurrence, leading to unnecessarily confusing diagnostics.
-	 *  * An [exclamation mark][Metacharacter.EXCLAMATION_MARK] (!) can follow a
-	 *    group of alternations to produce the 1-based index of the alternative
-	 *    that actually occurred.
+	 *  * Placing a [question&#32;mark][Metacharacter.QUESTION_MARK]
+	 *    (?) after a group containing arguments but no
+	 *    [double&#32;dagger][Metacharacter.DOUBLE_DAGGER] (‡) will limit the
+	 *    repetitions of the group to at most one.  Although limiting the method
+	 *    definitions to only accept 0..1 occurrences would accomplish the same
+	 *    grammatical narrowing, the parser might still attempt to parse more
+	 *    than one occurrence, leading to unnecessarily confusing diagnostics.
+	 *  * An [exclamation&#32;mark][Metacharacter.EXCLAMATION_MARK] (!) can
+	 *    follow a group of alternations to produce the 1-based index of the
+	 *    alternative that actually occurred.
 	 *  * An [underscore][Metacharacter.UNDERSCORE] (_) indicates where an
 	 *    argument occurs.
-	 *  * A [single dagger][Metacharacter.SINGLE_DAGGER] (†) may occur
+	 *  * A [single&#32;dagger][Metacharacter.SINGLE_DAGGER] (†) may occur
 	 *    immediately after an underscore to cause the argument expression to be
 	 *    evaluated in the static scope during compilation, wrapping the value
-	 *    in a [literal phrase][LiteralPhraseDescriptor].  This is applicable to
-	 *    both methods and macros.  The expression is subject to grammatical
-	 *    restrictions, and it must yield a value of suitable type.
+	 *    in a [literal&#32;phrase][LiteralPhraseDescriptor].  This is
+	 *    applicable to both methods and macros.  The expression is subject to
+	 *    grammatical restrictions, and it must yield a value of suitable type.
 	 *  * An [up-arrow][Metacharacter.UP_ARROW] (↑) after an underscore
 	 *    indicates an in-scope variable name is to be parsed.  The
 	 *    subexpression causes the variable itself to be provided, rather than
 	 *    its value.
-	 *  * An [exclamation mark][Metacharacter.EXCLAMATION_MARK] (!) may occur
-	 *    after the underscore instead, to indicate the argument expression may
-	 *    be ⊤-valued or ⊥-valued.  Since a function (and therefore a method
-	 *    definition) cannot accept a ⊤-valued argument, this mechanism only
-	 *    makes sense for macros, since macros bodies are passed phrases, which
-	 *    may be typed as *yielding* a top-valued result.
-	 *  * An [ELLIPSIS][Metacharacter.ELLIPSIS] (…) matches a single [keyword
-	 *    token][TokenDescriptor].
-	 *  * An [exclamation mark][Metacharacter.EXCLAMATION_MARK] (!) after an
+	 *  * An [exclamation&#32;mark][Metacharacter.EXCLAMATION_MARK] (!) may
+	 *    occur after the underscore instead, to indicate the argument
+	 *    expression may be ⊤-valued or ⊥-valued.  Since a function (and
+	 *    therefore a method definition) cannot accept a ⊤-valued argument, this
+	 *    mechanism only makes sense for macros, since macros bodies are passed
+	 *    phrases, which may be typed as *yielding* a top-valued result.
+	 *  * An [ELLIPSIS][Metacharacter.ELLIPSIS] (…) matches a single
+	 *    [keyword&#32;token][A_Token].
+	 *  * An [exclamation&#32;mark][Metacharacter.EXCLAMATION_MARK] (!) after an
 	 *    ELLIPSIS indicates *any* token will be accepted at that position.
 	 *  * An [OCTOTHORP][Metacharacter.OCTOTHORP] (#) after an ellipsis
 	 *    indicates only a *literal* token will be accepted.
 	 *  * The N<sup>th</sup> [section][Metacharacter.SECTION_SIGN] (§) in a
-	 *    message name indicates where a macro's N<sup>th</sup> [prefix
-	 *    function][A_Definition.prefixFunctions] should be invoked with the
-	 *    current parse stack up to that point.
+	 *    message name indicates where a macro's N<sup>th</sup>
+	 *    [prefix&#32;function][A_Definition.prefixFunctions] should be invoked
+	 *    with the current parse stack up to that point.
 	 *  * A [backquote][Metacharacter.BACK_QUOTE] (`) can precede any operator
 	 *    character, such as guillemets or double dagger, to ensure it is not
 	 *    used in a special way. A backquote may also operate on another
 	 *    backquote (to indicate that an actual backquote token will appear in a
 	 *    call).
 	 */
-	private val messagePartsList: List<A_String>
-
-	/**
-	 * The [A_Tuple] of [A_String]s constituting discrete tokens of the message
-	 * name.
-	 */
-	val messagePartsTuple: A_Tuple
+	val messageParts: Array<A_String>
 
 	/**
 	 * A collection of one-based positions in the original string, corresponding
-	 * to the [messagePartsList] that have been extracted.
+	 * to the [messageParts] array that have been extracted.
 	 */
-	private val messagePartPositions: List<Int>
+	private val messagePartPositions: IntArray
 
 	/** The current one-based parsing position in the list of tokens.  */
 	private var messagePartPosition: Int = 0
@@ -184,10 +235,11 @@ class MessageSplitter
 	 * embedded underscores/ellipses is counted as `N`, not one.
 	 *
 	 * This count of underscores/ellipses is essential for expressing negative
-	 * precedence rules in the presence of repeated arguments.  Also note that
-	 * backquoted underscores are not counted, since they don't represent a
-	 * position at which a subexpression must occur.  Similarly, backquoted
-	 * ellipses are not a place where an arbitrary input token can go.
+	 * precedence rules (grammatical restrictions) in the presence of repeated
+	 * arguments.  Also note that backquoted underscores are not counted, since
+	 * they don't represent a position at which a subexpression must occur.
+	 * Similarly, backquoted ellipses are not a place where an arbitrary input
+	 * token can go.
 	 */
 	var leafArgumentCount = 0
 		private set
@@ -208,7 +260,7 @@ class MessageSplitter
 	 * Initialize an enum instance.
 	 *
 	 * @param javaString
-	 *        The Java [String] denoting the metacharacter.
+	 *   The Java [String] denoting the metacharacter.
 	 */
 	enum class Metacharacter constructor(javaString: String) {
 		/**
@@ -222,7 +274,7 @@ class MessageSplitter
 		 *
 		 * The only characters that can be backquoted (and must be to use
 		 * them in a non-special way) are the `Metacharacter`s, space, and
-		 * the [circled numbers][circledNumbersString].
+		 * the [circled&#32;numbers][circledNumbersString].
 		 */
 		BACK_QUOTE("`"),
 
@@ -357,10 +409,10 @@ class MessageSplitter
 
 		/**
 		 * A section sign (§) indicates where, in the parsing of a macro
-		 * invocation, it should invoke one of its [prefix
-		 * functions][A_Definition.prefixFunctions].  The order of section signs
-		 * in the method name corresponds with the order of the prefix
-		 * functions.
+		 * invocation, it should invoke one of its
+		 * [prefix&#32;functions][A_Macro.prefixFunctions].  The order of
+		 * section signs in the method name corresponds with the order of the
+		 * prefix functions.
 		 *
 		 * Prefix functions are passed all arguments that have been parsed so
 		 * far.  They can access a fiber-specific variable,
@@ -404,17 +456,18 @@ class MessageSplitter
 		 *    attempt to use any variables in the current scope. The expression
 		 *    will be evaluated at compile time, and wrapped in a literal
 		 *    phrase.
-		 *  * If followed by a [UP_ARROW] (↑), a [variable use
-		 *    phrase][VariableUsePhraseDescriptor] must be supplied, which is
-		 *    converted into a [reference phrase][ReferencePhraseDescriptor].
+		 *  * If followed by a [UP_ARROW] (↑), a
+		 *    [variable&#32;use&#32;phrase][VariableUsePhraseDescriptor] must be
+		 *    supplied, which is converted into a
+		 *    [reference&#32;phrase][ReferencePhraseDescriptor].
 		 */
 		UNDERSCORE("_"),
 
 		/**
 		 * If an up-arrow (↑) follows an [UNDERSCORE], a [VariableQuote] is
 		 * created, which expects a [VariableUsePhraseDescriptor], which will be
-		 * automatically converted into a [reference
-		 * phrase][ReferencePhraseDescriptor].
+		 * automatically converted into a
+		 * [reference&#32;phrase][ReferencePhraseDescriptor].
 		 */
 		UP_ARROW("↑"),
 
@@ -426,14 +479,12 @@ class MessageSplitter
 		VERTICAL_BAR("|");
 
 		/** The Avail [A_String] denoting this metacharacter.  */
-		val string: A_String = stringFrom(javaString).makeShared()
+		val string: A_String = stringFrom(javaString).makeShared().also {
+			assert(it.tupleSize() == 1)
+		}
 
 		/** The sole codepoint ([Int]) of this [Metacharacter] instance. */
 		val codepoint: Int = string.tupleCodePointAt(1)
-
-		init {
-			assert(string.tupleSize() == 1)
-		}
 
 		companion object {
 			/**
@@ -467,8 +518,8 @@ class MessageSplitter
 	init {
 		this.messageName = messageName.makeShared()
 		val tokenizer = MessageSplitterTokenizer(this.messageName)
-		this.messagePartsList = tokenizer.messagePartsList
-		this.messagePartPositions = tokenizer.messagePartPositions
+		this.messageParts = tokenizer.canonicalMessageParts()
+		this.messagePartPositions = tokenizer.messagePartPositions()
 		try {
 			messagePartPosition = 1
 			rootSequence = parseSequence()
@@ -489,7 +540,6 @@ class MessageSplitter
 					E_UNBALANCED_GUILLEMETS,
 					"Encountered unexpected character: $currentMessagePart")
 			}
-			messagePartsTuple = tupleFromList(messagePartsList).makeShared()
 		} catch (e: MalformedMessageException) {
 			// Add contextual text and rethrow it.
 			throw MalformedMessageException(e.errorCode)
@@ -528,7 +578,7 @@ class MessageSplitter
 	private fun dumpForDebug(builder: StringBuilder) = with(builder) {
 		append(messageName.asNativeString())
 		append("\n------\n")
-		messagePartsList.forEach {
+		messageParts.forEach {
 			append("\t${it.asNativeString()}\n")
 		}
 	}
@@ -552,7 +602,7 @@ class MessageSplitter
 	 * @return
 	 *   `true` if the current position has consumed the last message part.
 	 */
-	private val atEnd get() = messagePartPosition > messagePartsList.size
+	private val atEnd get() = messagePartPosition > messageParts.size
 
 	/**
 	 * Answer the current message part, or `null` if we are [atEnd].  Do not
@@ -562,8 +612,7 @@ class MessageSplitter
 	 *   The current message part or `null`.
 	 */
 	private val currentMessagePartOrNull
-		get() =
-			if (atEnd) null else messagePartsList[messagePartPosition - 1]
+		get() = if (atEnd) null else messageParts[messagePartPosition - 1]
 
 	/**
 	 * Answer the current message part.  We must not be [atEnd].  Do
@@ -575,14 +624,14 @@ class MessageSplitter
 	private val currentMessagePart
 		get(): A_String {
 			assert(!atEnd)
-			return messagePartsList[messagePartPosition - 1]
+			return messageParts[messagePartPosition - 1]
 		}
 
 	/**
 	 * Pretty-print a send of this message with given argument phrases.
 	 *
 	 * @param sendPhrase
-	 *   The [send phrase][SendPhraseDescriptor] that is being printed.
+	 *   The [send&#32;phrase][SendPhraseDescriptor] that is being printed.
 	 * @param builder
 	 *   A [StringBuilder] on which to pretty-print the send of my message with
 	 *   the given arguments.
@@ -621,10 +670,10 @@ class MessageSplitter
 	}
 
 	/**
-	 * Answer a [List] of [Expression] objects that correlates with the [parsing
-	 * instructions][instructionsTupleFor] generated for the message name and
-	 * the provided signature tuple type. Note that the list is 0-based and the
-	 * tuple is 1-based.
+	 * Answer a [List] of [Expression] objects that correlates with the
+	 * [parsing&#32;instructions][instructionsTupleFor] generated for the
+	 * message name and the provided signature tuple type. Note that the list is
+	 * 0-based and the tuple is 1-based.
 	 *
 	 * @param phraseType
 	 *   The phrase type (yielding a tuple type) for this signature.
@@ -764,7 +813,7 @@ class MessageSplitter
 	 * double-dagger (‡).
 	 *
 	 * @return
-	 *   A [Sequence] expression parsed from the [messagePartsList].
+	 *   A [Sequence] expression parsed from the [messageParts] array.
 	 * @throws MalformedMessageException
 	 *   If the method name is malformed.
 	 */
@@ -794,7 +843,7 @@ class MessageSplitter
 		!peekAheadFor(VERTICAL_BAR) && return firstExpression
 		// It must be an alternation.
 		checkAlternative(firstExpression)
-		val alternatives = ArrayList<Expression>()
+		val alternatives = mutableListOf<Expression>()
 		alternatives.add(firstExpression)
 		while (peekFor(VERTICAL_BAR)) {
 			val nextExpression = parseElement()
@@ -1080,7 +1129,7 @@ class MessageSplitter
 				// The guillemet group should have had a single element, an
 				// alternation.
 				val alternation: Alternation =
-					cast(group.beforeDagger.expressions[0])
+					group.beforeDagger.expressions[0].cast()
 				NumberedChoice(alternation)
 			}
 			else -> group
@@ -1160,9 +1209,10 @@ class MessageSplitter
 	 *   A function type.
 	 * @param sectionNumber
 	 *   The [SectionCheckpoint]'s subscript if this is a check of a
-	 *   [macro][MacroDefinitionDescriptor]'s, [prefix
-	 *   function][A_Definition.prefixFunctions], otherwise any value past the
-	 *   total [numberOfSectionCheckpoints] for a method or macro body.
+	 *   [macro][MacroDescriptor]'s,
+	 *   [prefix&#32;function][A_Macro.prefixFunctions], otherwise any
+	 *   value past the total [numberOfSectionCheckpoints] for a method or macro
+	 *   body.
 	 * @throws SignatureException
 	 *         If the function type is inappropriate for the method name.
 	 */
@@ -1189,6 +1239,25 @@ class MessageSplitter
 	}
 
 	/**
+	 * Answer whether the given list is correctly internally structured for a
+	 * send of this message.  It must recursively match the expected number of
+	 * arguments, as well as have the expected permutations in the corresponding
+	 * recursive [Expression]s.
+	 *
+	 * @param list
+	 *   The [list&#32;phrase][ListPhraseDescriptor] or
+	 *   [permuted&#32;list&#32;phrase][PermutedListPhraseDescriptor] being
+	 *   checked for conformance with the expected argument structure.
+	 * @return
+	 *   Whether the supplied list is recursively of the right shape to be used
+	 *   as the argument list for a call of this splitter's [A_Bundle].
+	 */
+	fun checkListStructure(list: A_Phrase): Boolean
+	{
+		return rootSequence.checkListStructure(list)
+	}
+
+	/**
 	 * Does the message contain any groups?
 	 *
 	 * @return
@@ -1196,6 +1265,9 @@ class MessageSplitter
 	 */
 	val containsGroups
 		get(): Boolean = rootSequence.expressions.any(Expression::isGroup)
+
+	val recursivelyContainsReorders
+		get(): Boolean = rootSequence.recursivelyContainsReorders
 
 	override fun toString(): String {
 		val builder = StringBuilder()
@@ -1206,7 +1278,7 @@ class MessageSplitter
 	companion object {
 		/**
 		 * The [set][A_Set] of all [errors][AvailErrorCode] that can happen
-		 * during [message splitting][MessageSplitter].
+		 * during [message&#32;splitting][MessageSplitter].
 		 */
 		@JvmStatic
 		val possibleErrors: A_Set = set(
@@ -1284,29 +1356,29 @@ class MessageSplitter
 		/**
 		 * The tuple of all encountered permutations (tuples of integers) found
 		 * in all message names.  Keeping a statically accessible tuple shared
-		 * between message names allows [bundle trees][A_BundleTree] to easily
-		 * get to the permutations they need without having a separate per-tree
-		 * structure.
+		 * between message names allows [bundle&#32;trees][A_BundleTree] to
+		 * easily get to the permutations they need without having a separate
+		 * per-tree structure.
 		 *
 		 * The field is an [AtomicReference], and is accessed in a wait-free way
 		 * with compare-and-set and retry.  The tuple itself should always be
 		 * marked as shared.  This mechanism is thread-safe.
 		 */
-		private val permutations = AtomicReference<A_Tuple>(emptyTuple())
+		private val permutations = AtomicReference<A_Tuple>(emptyTuple)
 
 		/**
 		 * A statically-scoped [List] of unique constants needed as operands of
 		 * some [ParsingOperation]s.  The inverse [Map] (but containing
 		 * one-based indices) is kept in #constantsMap}.
 		 */
-		private val constantsList = ArrayList<AvailObject>(100)
+		private val constantsList = mutableListOf<AvailObject>()
 
 		/**
 		 * A statically-scoped map from Avail object to one-based index (into
 		 * [constantsList], after adjusting to a zero-based [List]), for which
 		 * some [ParsingOperation] needed to hold that constant as an operand.
 		 */
-		private val constantsMap = HashMap<AvailObject, Int>(100)
+		private val constantsMap = mutableMapOf<AvailObject, Int>()
 
 		/**
 		 * A lock to protect [constantsList] and [constantsMap].
@@ -1371,14 +1443,14 @@ class MessageSplitter
 		@JvmStatic
 		fun indexForConstant(constant: A_BasicObject): Int {
 			val strongConstant = constant.makeShared()
-			auto(constantsLock.readLock()).use {
+			constantsLock.read {
 				val index = constantsMap[strongConstant]
 				if (index !== null) {
 					return index
 				}
 			}
 
-			auto(constantsLock.writeLock()).use {
+			constantsLock.safeWrite {
 				val index = constantsMap[strongConstant]
 				if (index !== null) {
 					return index
@@ -1393,11 +1465,11 @@ class MessageSplitter
 
 		/** The position at which true is stored in the [constantsList].  */
 		@JvmStatic
-		val indexForTrue = indexForConstant(trueObject())
+		val indexForTrue = indexForConstant(trueObject)
 
 		/** The position at which false is stored in the [constantsList].  */
 		@JvmStatic
-		val indexForFalse = indexForConstant(falseObject())
+		val indexForFalse = indexForConstant(falseObject)
 
 		/**
 		 * Answer the [AvailObject] having the given one-based index in the
@@ -1409,10 +1481,8 @@ class MessageSplitter
 		 *   The [AvailObject] at the given index.
 		 */
 		@JvmStatic
-		fun constantForIndex(index: Int): AvailObject {
-			auto(constantsLock.readLock())
-				.use { return constantsList[index - 1] }
-		}
+		fun constantForIndex(index: Int): AvailObject =
+			constantsLock.read { constantsList[index - 1] }
 
 		/**
 		 * If the condition is true, throw a [MalformedMessageException] with
@@ -1453,8 +1523,7 @@ class MessageSplitter
 		@Throws(MalformedMessageException::class)
 		private fun checkAlternative(expression: Expression) {
 			throwMalformedIf(
-				expression.yieldsValue
-					|| expression.underscoreCount > 0,
+				expression.yieldsValue || expression.underscoreCount > 0,
 				E_ALTERNATIVE_MUST_NOT_CONTAIN_ARGUMENTS,
 				"Alternatives must not contain arguments")
 		}

@@ -1,6 +1,6 @@
 /*
  * P_SetTypeSizes.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,23 +31,30 @@
  */
 package com.avail.interpreter.primitive.sets
 
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.sets.A_Set
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.InstanceMetaDescriptor.instanceMeta
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.wholeNumbers
-import com.avail.descriptor.types.SetTypeDescriptor.setMeta
-import com.avail.interpreter.Interpreter
+import com.avail.descriptor.types.A_Type.Companion.sizeRange
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
+import com.avail.descriptor.types.SetTypeDescriptor
+import com.avail.descriptor.types.SetTypeDescriptor.Companion.setMeta
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CanFold
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Extract a [set&#32;type][SetTypeDescriptor]'s
  * [range][IntegerRangeTypeDescriptor] of sizes. This is the range of sizes that
- * a [set][SetDescriptor] must fall in to be considered a member of the set
+ * a [set][A_Set] must fall in to be considered a member of the set
  * type, assuming the elements all satisfy the set type's element
- * [type][TypeDescriptor].
+ * [type][A_Type].
  */
+@Suppress("unused")
 object P_SetTypeSizes : Primitive(1, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result
@@ -61,5 +68,5 @@ object P_SetTypeSizes : Primitive(1, CannotFail, CanFold, CanInline)
 		functionType(
 			tuple(
 				setMeta()),
-			instanceMeta(wholeNumbers()))
+			instanceMeta(wholeNumbers))
 }

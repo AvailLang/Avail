@@ -1,6 +1,6 @@
 /*
  * InstructionGenerator.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,13 +33,21 @@
 package com.avail.compiler.splitter
 
 import com.avail.compiler.ParsingOperation
-import com.avail.compiler.ParsingOperation.*
+import com.avail.compiler.ParsingOperation.APPEND_ARGUMENT
+import com.avail.compiler.ParsingOperation.BRANCH_FORWARD
 import com.avail.compiler.ParsingOperation.Companion.decode
 import com.avail.compiler.ParsingOperation.Companion.operand
+import com.avail.compiler.ParsingOperation.EMPTY_LIST
+import com.avail.compiler.ParsingOperation.JUMP_BACKWARD
+import com.avail.compiler.ParsingOperation.JUMP_FORWARD
+import com.avail.compiler.ParsingOperation.PARSE_PART
+import com.avail.compiler.ParsingOperation.PARSE_PART_CASE_INSENSITIVELY
+import com.avail.compiler.ParsingOperation.PERMUTE_LIST
+import com.avail.compiler.ParsingOperation.WRAP_IN_LIST
 import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.TupleDescriptor.tupleFromIntegerList
-import com.avail.utility.Pair
-import java.util.*
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.tupleFromIntegerList
+import java.util.BitSet
+import java.util.Collections
 
 /**
  * `InstructionGenerator` is used by `MessageSplitter` to accumulate the
@@ -51,10 +59,10 @@ import java.util.*
 internal class InstructionGenerator
 {
 	/** The instructions generated so far.  */
-	private val instructions = ArrayList<Int>()
+	private val instructions = mutableListOf<Int>()
 
 	/** The [Expression] that produced the corresponding [instructions]. */
-	private val expressionList = ArrayList<Expression>()
+	private val expressionList = mutableListOf<Expression>()
 
 	/**
 	 * Holds a sequence of (relocatable) instructions that will perform grammar
@@ -63,13 +71,13 @@ internal class InstructionGenerator
 	 * checks (like token matching) to filter out incorrect matches, avoiding
 	 * expensive type tests.
 	 */
-	private val delayedArgumentInstructions = ArrayList<Int>()
+	private val delayedArgumentInstructions = mutableListOf<Int>()
 
 	/**
 	 * A [List] parallel to [delayedArgumentInstructions], which indicates the
 	 * expression that produced each delayed instruction.
 	 */
-	private val delayedExpressionList = ArrayList<Expression>()
+	private val delayedExpressionList = mutableListOf<Expression>()
 
 	/** Whether to emit case-insensitive keyword matches at the moment. */
 	var caseInsensitive = false
@@ -104,8 +112,7 @@ internal class InstructionGenerator
 		 * location after combining with this label's position to form a parsing
 		 * instruction.
 		 */
-		val operationsToFix: MutableList<Pair<Int, ParsingOperation>> =
-			ArrayList()
+		val operationsToFix = mutableListOf<Pair<Int, ParsingOperation>>()
 
 		/**  Has an instruction using this label as an operand been emitted? */
 		val isUsed: Boolean
@@ -185,7 +192,7 @@ internal class InstructionGenerator
 		{
 			// Label is still unresolved.  Promise to resolve this when the
 			// label is emitted.
-			label.operationsToFix.add(Pair(instructions.size + 1, operation))
+			label.operationsToFix.add(instructions.size + 1 to operation)
 			instructions.add(placeholderInstruction)
 		}
 		else
@@ -207,19 +214,19 @@ internal class InstructionGenerator
 		label.position = instructions.size + 1
 		for (pair in label.operationsToFix)
 		{
-			assert(instructions[pair.first() - 1] == placeholderInstruction)
-			if (pair.first() + 1 == label.position)
+			assert(instructions[pair.first - 1] == placeholderInstruction)
+			if (pair.first + 1 == label.position)
 			{
 				println("DEBUG: Operation target falls through.")
 			}
-			instructions[pair.first() - 1] =
-				pair.second().encoding(label.position)
+			instructions[pair.first - 1] =
+				pair.second.encoding(label.position)
 		}
 		label.operationsToFix.clear()
 	}
 
 	/**
-	 * Emit a [jump-forward instruction][ParsingOperation.JUMP_FORWARD]. The
+	 * Emit a [jump-forward&#32;instruction][ParsingOperation.JUMP_FORWARD]. The
 	 * target label must not have been emitted yet.
 	 *
 	 * @param label
@@ -232,13 +239,13 @@ internal class InstructionGenerator
 		}
 		expressionList.add(expression)
 		// Promise to resolve this when the label is emitted.
-		label.operationsToFix.add(Pair(instructions.size + 1, JUMP_FORWARD))
+		label.operationsToFix.add(instructions.size + 1 to JUMP_FORWARD)
 		instructions.add(placeholderInstruction)
 	}
 
 	/**
-	 * Emit a [jump-backward instruction][ParsingOperation.JUMP_BACKWARD]. The
-	 * target label must have been emitted already.
+	 * Emit a [jump-backward&#32;instruction][ParsingOperation.JUMP_BACKWARD].
+	 * The target label must have been emitted already.
 	 *
 	 * @param label
 	 *   The label to jump backward to.
@@ -266,8 +273,7 @@ internal class InstructionGenerator
 		assert(label.position == -1) { "Branches must be forward" }
 		expressionList.add(expression)
 		// Promise to resolve this when the label is emitted.
-		label.operationsToFix.add(
-			Pair(instructions.size + 1, BRANCH_FORWARD))
+		label.operationsToFix.add(instructions.size + 1 to BRANCH_FORWARD)
 		instructions.add(placeholderInstruction)
 	}
 

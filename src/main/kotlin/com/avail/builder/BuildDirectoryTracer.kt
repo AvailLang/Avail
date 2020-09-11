@@ -1,6 +1,6 @@
 /*
  * BuildDirectoryTracer.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,12 +38,14 @@ import com.avail.compiler.problems.Problem
 import com.avail.persistence.Repository.ModuleVersion
 import com.avail.persistence.Repository.ModuleVersionKey
 import java.io.IOException
-import java.nio.file.*
+import java.nio.file.FileVisitOption
+import java.nio.file.FileVisitResult
 import java.nio.file.FileVisitResult.CONTINUE
 import java.nio.file.FileVisitResult.SKIP_SUBTREE
+import java.nio.file.FileVisitor
+import java.nio.file.Files
+import java.nio.file.Path
 import java.nio.file.attribute.BasicFileAttributes
-import java.util.*
-import java.util.Collections.sort
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.logging.Level
 import javax.annotation.concurrent.GuardedBy
@@ -71,11 +73,11 @@ internal class BuildDirectoryTracer constructor(
 {
 	/** The trace requests that have been scheduled.  */
 	@GuardedBy("this")
-	private val traceRequests = HashSet<Path>()
+	private val traceRequests = mutableSetOf<Path>()
 
 	/** The traces that have been completed.  */
 	@GuardedBy("this")
-	private val traceCompletions = HashSet<Path>()
+	private val traceCompletions = mutableSetOf<Path>()
 
 	/** A flag to indicate when all requests have been queued.  */
 	@GuardedBy("this")
@@ -270,21 +272,19 @@ internal class BuildDirectoryTracer constructor(
 					nextReportMillis - System.currentTimeMillis() + 5)
 				if (System.currentTimeMillis() > nextReportMillis)
 				{
-					val outstanding = HashSet(traceRequests)
-					outstanding.removeAll(traceCompletions)
+					val outstanding = traceRequests.toSet() - traceCompletions
 					if (outstanding.isNotEmpty())
 					{
-						val sorted = ArrayList(outstanding)
-						sort(sorted)
-						val builder = StringBuilder()
-						builder.append("Still tracing files:\n")
-						for (path in sorted)
-						{
-							builder.append('\t')
-							builder.append(path)
-							builder.append('\n')
-						}
-						System.err.print(builder)
+						val sorted = outstanding.sorted()
+						System.err.print(buildString {
+							append("Still tracing files:\n")
+							for (path in sorted)
+							{
+								append('\t')
+								append(path)
+								append('\n')
+							}
+						})
 					}
 				}
 				nextReportMillis = System.currentTimeMillis() + period
@@ -327,7 +327,7 @@ internal class BuildDirectoryTracer constructor(
 		val digest = archive.digestForFile(resolvedName)
 		val versionKey = ModuleVersionKey(resolvedName, digest)
 		val existingVersion = archive.getVersion(versionKey)
-		if (existingVersion != null)
+		if (existingVersion !== null)
 		{
 			// This version was already traced and recorded for a subsequent
 			// replay... like right now.  Reuse it.
@@ -339,7 +339,7 @@ internal class BuildDirectoryTracer constructor(
 			resolvedName,
 			availBuilder.textInterface,
 			availBuilder.pollForAbort,
-			{ _, _, _ -> },
+			{ _, _, _, _ -> },
 			completedAction,
 			object : BuilderProblemHandler(availBuilder, "")
 			{

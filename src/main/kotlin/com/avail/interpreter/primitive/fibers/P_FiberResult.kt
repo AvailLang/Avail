@@ -1,6 +1,6 @@
 /*
  * P_FiberResult.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,21 +32,20 @@
 
 package com.avail.interpreter.primitive.fibers
 
-import com.avail.descriptor.FiberDescriptor
-import com.avail.descriptor.sets.SetDescriptor.set
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.fiber.FiberDescriptor
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.types.FiberTypeDescriptor.mostGeneralFiberType
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
+import com.avail.descriptor.types.FiberTypeDescriptor.Companion.mostGeneralFiberType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.exceptions.AvailErrorCode.E_FIBER_PRODUCED_INCORRECTLY_TYPED_RESULT
 import com.avail.exceptions.AvailErrorCode.E_FIBER_RESULT_UNAVAILABLE
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.ReadsFromHiddenGlobalState
-import java.util.function.Supplier
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Answer the result of the specified [fiber][FiberDescriptor].
@@ -61,8 +60,8 @@ object P_FiberResult : Primitive(
 	{
 		interpreter.checkArgumentCount(1)
 		val fiber = interpreter.argument(0)
-		return with (fiber) {
-			lock(Supplier {
+		return with(fiber) {
+			lock {
 				when {
 					!executionState().indicatesTermination()
 						|| fiberResult().equalsNil() ->
@@ -73,12 +72,12 @@ object P_FiberResult : Primitive(
 							E_FIBER_PRODUCED_INCORRECTLY_TYPED_RESULT)
 					else -> interpreter.primitiveSuccess(fiberResult())
 				}
-			})
+			}
 		}
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(mostGeneralFiberType()), ANY.o())
+		functionType(tuple(mostGeneralFiberType()), ANY.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		 enumerationWith(set(

@@ -1,6 +1,6 @@
 /*
  * InternalLookupTree.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,18 +34,20 @@ package com.avail.dispatch
 
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.TupleDescriptor.toList
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import com.avail.descriptor.types.A_Type.Companion.tupleOfTypesFromTo
+import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import java.lang.String.format
-import java.util.*
 import kotlin.math.max
 import kotlin.math.min
 
 /**
  * A `LookupTree` representing an incomplete search.  To further the search, the
- * indicated [type test][argumentTypeToTest] will be made.  If successful, the
- * [ifCheckHolds] child will be visited, otherwise the [ifCheckFails] child
+ * indicated [type&#32;test][argumentTypeToTest] will be made.  If successful,
+ * the [ifCheckHolds] child will be visited, otherwise the [ifCheckFails] child
  * will be visited.
  *
  * @param Element
@@ -96,12 +98,10 @@ internal constructor(
 	internal var argumentPositionToTest = -1
 
 	/** The tree to visit if the supplied arguments conform.  */
-	internal var ifCheckHolds: LookupTree<Element, Result>? =
-		null
+	internal var ifCheckHolds: LookupTree<Element, Result>? = null
 
 	/** The tree to visit if the supplied arguments do not conform.  */
-	internal var ifCheckFails: LookupTree<Element, Result>? =
-		null
+	internal var ifCheckFails: LookupTree<Element, Result>? = null
 
 	/** `true` if this node has been expanded, otherwise `false`. */
 	internal val isExpanded: Boolean
@@ -173,37 +173,34 @@ internal constructor(
 		// To reduce duplication of the same tests, any argument that has the
 		// same type in all definitions, but has not been proven yet, should be
 		// selected first.
-		if (adaptor.testsArgumentPositions
+		if (adaptor.testsArgumentPositions()
 			&& positiveElements.isEmpty()
 			&& undecidedElements.size > 1)
 		{
-			var commonArgTypes: MutableList<A_Type?>? = null
-			for (element in undecidedElements)
-			{
-				val signature = adaptor.restrictedSignature(element, bound)
-				val argTypes =
-					toList<A_Type>(signature.tupleOfTypesFromTo(1, numArgs))
-				if (commonArgTypes === null)
+			val iterator = undecidedElements.iterator()
+			assert(iterator.hasNext())
+			val firstElement = iterator.next()
+			val commonArgTypes =
+				adaptor.restrictedSignature(firstElement, bound)
+					.tupleOfTypesFromTo(1, numArgs)
+					.toMutableList<A_Type?>()
+			iterator.forEachRemaining { element ->
+				val argTypes = adaptor.restrictedSignature(element, bound)
+					.tupleOfTypesFromTo(1, numArgs)
+					.toList<A_Type>()
+				for (i in 0 until numArgs)
 				{
-					commonArgTypes = argTypes
-				}
-				else
-				{
-					for (i in 0 until numArgs)
+					val commonArgType = commonArgTypes[i]
+					if (commonArgType !== null
+						&& !commonArgType.equals(argTypes[i]))
 					{
-						val commonArgType = commonArgTypes[i]
-						if (commonArgType !== null && !commonArgType.equals(
-								argTypes[i]))
-						{
-							commonArgTypes[i] = null
-						}
+						commonArgTypes[i] = null
 					}
 				}
 			}
-			// assert commonArgTypes !== null;
 			for (argNumber in 1..numArgs)
 			{
-				val commonType = commonArgTypes!![argNumber - 1]
+				val commonType = commonArgTypes[argNumber - 1]
 				if (commonType !== null
 						&& !knownArgumentRestrictions[argNumber - 1]
 							.containedByType(commonType))
@@ -233,11 +230,12 @@ internal constructor(
 		for (criterionIndex in 0 until undecidedCount)
 		{
 			val criterion = undecidedElements[criterionIndex]
-			val criterionRestrictions = ArrayList(knownArgumentRestrictions)
+			val criterionRestrictions =
+				knownArgumentRestrictions.toMutableList()
 			val boundedCriterionSignature =
 				adaptor.restrictedSignature(criterion, bound)
 			assert(!boundedCriterionSignature.isBottom)
-			if (adaptor.testsArgumentPositions)
+			if (adaptor.testsArgumentPositions())
 			{
 				for (i in 1..numArgs)
 				{
@@ -309,7 +307,7 @@ internal constructor(
 		// that position.
 		var selectedTypeToTest: A_Type? = null
 		var positionToTest: Int
-		if (adaptor.testsArgumentPositions)
+		if (adaptor.testsArgumentPositions())
 		{
 			positionToTest = -999  // Must be replaced in the loop below.;
 			for (i in 1..numArgs)
@@ -355,7 +353,7 @@ internal constructor(
 		argumentPositionToTest = argumentIndex
 		val zeroBasedIndex: Int
 		val oldRestriction: TypeRestriction
-		if (adaptor.testsArgumentPositions)
+		if (adaptor.testsArgumentPositions())
 		{
 			zeroBasedIndex = argumentIndex - 1
 			oldRestriction = knownArgumentRestrictions[zeroBasedIndex]
@@ -366,13 +364,15 @@ internal constructor(
 			oldRestriction = knownArgumentRestrictions[0]
 		}
 
-		val positiveKnownRestrictions = ArrayList(knownArgumentRestrictions)
+		val positiveKnownRestrictions =
+			knownArgumentRestrictions.toMutableList()
 		positiveKnownRestrictions[zeroBasedIndex] =
 			oldRestriction.intersectionWithType(typeToTest)
 		val positiveBound =
 			adaptor.extractBoundingType(positiveKnownRestrictions)
 
-		val negativeKnownRestrictions = ArrayList(knownArgumentRestrictions)
+		val negativeKnownRestrictions =
+			knownArgumentRestrictions.toMutableList()
 		negativeKnownRestrictions[zeroBasedIndex] =
 			oldRestriction.minusType(typeToTest)
 		val negativeBound =
@@ -382,10 +382,10 @@ internal constructor(
 		// classify it as a positive hit in the holds branch, an undecided in
 		// the holds branch, an undecided in the fails branch, or some
 		// combination (but not both collections in the holds branch).
-		val positiveIfTrue = ArrayList(positiveElements)
-		val undecidedIfTrue = ArrayList<Element>()
-		val positiveIfFalse = ArrayList<Element>()
-		val undecidedIfFalse = ArrayList<Element>()
+		val positiveIfTrue = positiveElements.toMutableList()
+		val undecidedIfTrue = mutableListOf<Element>()
+		val positiveIfFalse = mutableListOf<Element>()
+		val undecidedIfFalse = mutableListOf<Element>()
 		for (undecidedElement in undecidedElements)
 		{
 			val positiveComparison = adaptor.compareTypes(

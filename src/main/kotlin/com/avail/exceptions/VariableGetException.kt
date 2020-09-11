@@ -1,6 +1,6 @@
 /*
  * VariableGetException.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 
 package com.avail.exceptions
 
-import com.avail.descriptor.AvailObject
+import com.avail.descriptor.representation.AvailObject
 
 /**
  * `VariableGetException` is thrown when [AvailObject.getValue] fails for any
@@ -46,7 +46,7 @@ class VariableGetException : AvailRuntimeException
 	 * Construct a new `VariableGetException`.
 	 *
 	 * @param errorCode
-	 *   An [error code][AvailErrorCode].
+	 *   An [error&#32;code][AvailErrorCode].
 	 */
 	constructor(errorCode: AvailErrorCode) : super(errorCode)
 
@@ -54,9 +54,9 @@ class VariableGetException : AvailRuntimeException
 	 * Construct a new `VariableGetException`.
 	 *
 	 * @param errorCode
-	 *   An [error code][AvailErrorCode].
+	 *   An [error&#32;code][AvailErrorCode].
 	 * @param cause
-	 *   The proximal [cause][Throwable] of the [        ].
+	 *   The proximal [cause][Throwable] of the [Exception].
 	 */
 	constructor(errorCode: AvailErrorCode, cause: Throwable)
 		: super(errorCode, cause)

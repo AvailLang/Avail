@@ -19,11 +19,13 @@
       <w>backquote</w>
       <w>backquoted</w>
       <w>backquotes</w>
+      <w>backticked</w>
       <w>bagwell</w>
       <w>bareword</w>
       <w>bestows</w>
       <w>bivalence</w>
       <w>bivalent</w>
+      <w>bufferful</w>
       <w>bytecode</w>
       <w>bytecodes</w>
       <w>callable</w>
@@ -59,6 +61,7 @@
       <w>cryptographically</w>
       <w>cyan</w>
       <w>cyclicity</w>
+      <w>davail</w>
       <w>decompilation</w>
       <w>deconstruct</w>
       <w>deconstructed</w>
@@ -77,6 +80,7 @@
       <w>disassociate</w>
       <w>disestablish</w>
       <w>disincentive</w>
+      <w>djava</w>
       <w>elide</w>
       <w>elided</w>
       <w>eliding</w>
@@ -179,6 +183,7 @@
       <w>orchestrating</w>
       <w>ordinals</w>
       <w>org</w>
+      <w>osargs</w>
       <w>ostensibly</w>
       <w>outbound</w>
       <w>parametrically</w>
@@ -193,6 +198,7 @@
       <w>polymorphic</w>
       <w>polymorphically</w>
       <w>polymorphism</w>
+      <w>populator</w>
       <w>pragma</w>
       <w>pragmas</w>
       <w>pre</w>
@@ -275,6 +281,7 @@
       <w>tally</w>
       <w>tastier</w>
       <w>throwable</w>
+      <w>throwables</w>
       <w>timestamp</w>
       <w>todd</w>
       <w>tokenization</w>
@@ -295,6 +302,7 @@
       <w>unfused</w>
       <w>unhandled</w>
       <w>unicode</w>
+      <w>unicolor</w>
       <w>uninstantiable</w>
       <w>unioned</w>
       <w>unloader</w>
@@ -313,6 +321,7 @@
       <w>verbosity</w>
       <w>versioned</w>
       <w>virtualized</w>
+      <w>vmargs</w>
       <w>whatnot</w>
       <w>wildcard</w>
       <w>wordcode</w>

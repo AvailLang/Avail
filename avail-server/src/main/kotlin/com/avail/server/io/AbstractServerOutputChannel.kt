@@ -1,6 +1,6 @@
 /*
  * AbstractServerOutputChannel.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,7 +44,7 @@ import java.nio.channels.CompletionHandler
  * ordinary output.
  *
  * @property channel
- *   The underlying [server channel][AvailServerChannel].
+ *   The underlying [server&#32;channel][AvailServerChannel].
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  *
  * @constructor
@@ -52,7 +52,7 @@ import java.nio.channels.CompletionHandler
  * Construct a new [AbstractServerOutputChannel].
  *
  * @param channel
- *   The [server channel][AvailServerChannel] to adapt for general output.
+ *   The [server&#32;channel][AvailServerChannel] to adapt for general output.
  */
 abstract class AbstractServerOutputChannel constructor(
 	private val channel: AvailServerChannel) : TextOutputChannel
@@ -81,10 +81,8 @@ abstract class AbstractServerOutputChannel constructor(
 	{
 		val writer = JSONWriter()
 		writer.writeObject {
-			writer.write("tag")
-			writer.write(channelTag)
-			writer.write("content")
-			writer.write(data)
+			at("tag") { write(channelTag) }
+			at("content") { write(data) }
 		}
 		return Message(writer.toString().toByteArray(), channel.state)
 	}

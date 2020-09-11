@@ -1,6 +1,6 @@
 /*
  * InvalidContextException.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,8 +33,8 @@
 package com.avail.utility.fsm
 
 /**
- * Exception thrown during a state transition when an invalid [execution
- * context][ExecutionContext] is detected
+ * Exception thrown during a state transition when an invalid
+ * [execution&#32;context][ExecutionContext] is detected.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  *

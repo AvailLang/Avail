@@ -1,6 +1,6 @@
 /*
  * NumberedChoice.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,25 +38,28 @@ import com.avail.compiler.splitter.MessageSplitter.Companion.indexForConstant
 import com.avail.compiler.splitter.MessageSplitter.Companion.throwSignatureException
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter
 import com.avail.compiler.splitter.WrapState.SHOULD_NOT_HAVE_ARGUMENTS
-import com.avail.descriptor.numbers.IntegerDescriptor.fromInt
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.phrases.A_Phrase
+import com.avail.descriptor.phrases.A_Phrase.Companion.token
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.BottomTypeDescriptor.bottom
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.inclusive
-import com.avail.descriptor.types.ListPhraseTypeDescriptor.emptyListPhraseType
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
+import com.avail.descriptor.types.ListPhraseTypeDescriptor.Companion.emptyListPhraseType
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_NUMBERED_CHOICE
 import com.avail.exceptions.SignatureException
-import java.util.*
+import java.util.Collections
 
 /**
  * A `NumberedChoice` is a special subgroup (i.e., not a root group) indicated
- * by an [exclamation mark][Metacharacter.EXCLAMATION_MARK] following a
- * [group][Group].  It must not contain [ ] or subgroups and it must not contain
- * a [double dagger][Metacharacter.DOUBLE_DAGGER].  The group contains an
- * [Alternation], and parsing the group causes exactly one of the alternatives
- * to be parsed. The 1-based index of the alternative is produced as a literal
- * constant argument.
+ * by an [exclamation&#32;mark][Metacharacter.EXCLAMATION_MARK] following a
+ * [group][Group].  It must not contain [arguments][Argument] or subgroups and
+ * it must not contain a [double&#32;dagger][Metacharacter.DOUBLE_DAGGER].  The
+ * group contains an [Alternation], and parsing the group causes exactly one of
+ * the alternatives to be parsed. The 1-based index of the alternative is
+ * produced as a literal constant argument.
  *
  * For example, consider parsing a send of the message "my«cheese|bacon|Elvis»!"
  * from the string "my bacon cheese".  The bacon token will be parsed, causing
@@ -80,6 +83,9 @@ import java.util.*
 internal class NumberedChoice constructor(private val alternation: Alternation)
 : Expression(alternation.positionInName)
 {
+	override val recursivelyContainsReorders: Boolean
+		get() = alternation.recursivelyContainsReorders
+
 	override val yieldsValue: Boolean
 		get() = true
 
@@ -181,7 +187,8 @@ internal class NumberedChoice constructor(private val alternation: Alternation)
 		return wrapState.processAfterPushedArgument(this, generator)
 	}
 
-	override fun toString(): String = "${javaClass.simpleName}($alternation)"
+	override fun toString(): String =
+		"${this@NumberedChoice.javaClass.simpleName}($alternation)"
 
 	override fun printWithArguments(
 		arguments: Iterator<A_Phrase>?,
@@ -210,5 +217,7 @@ internal class NumberedChoice constructor(private val alternation: Alternation)
 		get() = false
 
 	override fun mightBeEmpty(phraseType: A_Type): Boolean =
-		alternation.mightBeEmpty(bottom())
+		alternation.mightBeEmpty(bottom)
+
+	override fun checkListStructure(phrase: A_Phrase): Boolean = true
 }

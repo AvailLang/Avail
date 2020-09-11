@@ -1,6 +1,6 @@
 /*
  * Format.avail
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -317,7 +317,7 @@ Private method "minimum`|_after formatting`|" is
 [
 	template : string
 |
-	left fold <|template|> ++ format sites for template through
+	left fold |template| into format sites for template through
 	[
 		site : format site,
 		partial : whole number
@@ -545,13 +545,13 @@ Semantic restriction "partially format_with«…::=_‡,»" is
 		stringSites ::= select each site from sites where [site[2] = text];
 		stringVars ::= (stripe stringSites at 1)→set;
 		bindingVars : {string|} := ∅;
-		For each index from 1 to ⎣bindings⎦ do
+		For each index from 1 to ⌊bindings⌋ do
 		[
 			binding ::= bindings[index];
 			var ::= format variable for binding[1]'s instance;
 			If var ∈ stringVars ∧ ¬binding[2] ⊆ string then
 			[
-				Reject parse, expected:
+				Immediately reject parse, expected:
 					"format variable "
 					++ “var”
 					++ " ∈ string, not "
@@ -563,7 +563,7 @@ Semantic restriction "partially format_with«…::=_‡,»" is
 		unmentionedVars ::= bindingVars \ templateVars;
 		If unmentionedVars ≠ ∅ then
 		[
-			Reject parse, expected:
+			Immediately reject parse, expected:
 				"only bindings for format variables, but bindings also include "
 				++ “unmentionedVars”
 		];
@@ -640,13 +640,13 @@ Semantic restriction "format_with«…!::=_‡,»" is
 		stringSites ::= select each site from sites where [site[2] = text];
 		stringVars ::= (stripe stringSites at 1)→set;
 		bindingVars : {string|} := ∅;
-		For each index from 1 to ⎣bindings⎦ do
+		For each index from 1 to ⌊bindings⌋ do
 		[
 			binding ::= bindings[index];
 			var ::= format variable for binding[1]'s instance;
 			If var ∈ stringVars ∧ ¬binding[2] ⊆ string then
 			[
-				Reject parse, expected:
+				Immediately reject parse, expected:
 					"format variable "
 					++ “var”
 					++ " ∈ string, not "
@@ -658,14 +658,14 @@ Semantic restriction "format_with«…!::=_‡,»" is
 		unboundVars ::= templateVars \ bindingVars;
 		If unboundVars ≠ ∅ then
 		[
-			Reject parse, expected:
+			Immediately reject parse, expected:
 				"bindings for format variables "
 				++ “unboundVars”
 		];
 		unmentionedVars ::= bindingVars \ templateVars;
 		If unmentionedVars ≠ ∅ then
 		[
-			Reject parse, expected:
+			Immediately reject parse, expected:
 				"only bindings for format variables, but bindings also include "
 				++ “unmentionedVars”
 		];
@@ -845,13 +845,13 @@ Semantic restriction "format_with«_‡,»" is
 		templateVars ::= (stripe sites at 1)→set;
 		stringSites ::= select each site from sites where [site[2] = text];
 		stringVars ::= (stripe stringSites at 1)→set;
-		bindingVars ::= (map each index in 1 to ⎣bindingsType⎦ through
+		bindingVars ::= (map each index in 1 to ⌊bindingsType⌋ through
 			[
 				var ::= <circledNumbers[index]>;
 				bindingType ::= bindingsType[index];
 				If var ∈ stringVars ∧ ¬bindingType ⊆ string then
 				[
-					Reject parse, expected:
+					Immediately reject parse, expected:
 						"format variable "
 						++ “var”
 						++ " ∈ string, not "
@@ -863,14 +863,14 @@ Semantic restriction "format_with«_‡,»" is
 		unboundVars ::= templateVars \ bindingVars;
 		If unboundVars ≠ ∅ then
 		[
-			Reject parse, expected:
+			Immediately reject parse, expected:
 				"bindings for format variables "
 				++ “unboundVars”
 		];
 		unmentionedVars ::= bindingVars \ templateVars;
 		If unmentionedVars ≠ ∅ then
 		[
-			Reject parse, expected:
+			Immediately reject parse, expected:
 				"only bindings for format variables, but bindings also include "
 				++ “unmentionedVars”
 		];

@@ -1,6 +1,6 @@
 /*
  * ModuleHeader.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,39 +32,56 @@
 
 package com.avail.compiler
 
-import com.avail.AvailRuntime
 import com.avail.builder.ModuleName
 import com.avail.builder.ResolvedModuleName
 import com.avail.builder.UnresolvedDependencyException
 import com.avail.compiler.splitter.MessageSplitter
-import com.avail.descriptor.A_Module
-import com.avail.descriptor.AvailObject
-import com.avail.descriptor.ModuleDescriptor
 import com.avail.descriptor.atoms.A_Atom
-import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.MESSAGE_BUNDLE_KEY
-import com.avail.descriptor.atoms.AtomWithPropertiesDescriptor.Companion.createAtomWithProperties
+import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
+import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrNil
+import com.avail.descriptor.atoms.A_Atom.Companion.setAtomBundle
+import com.avail.descriptor.atoms.AtomWithPropertiesSharedDescriptor
 import com.avail.descriptor.bundles.A_Bundle
+import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
+import com.avail.descriptor.bundles.A_Bundle.Companion.macrosTuple
+import com.avail.descriptor.bundles.A_Bundle.Companion.messageSplitter
 import com.avail.descriptor.bundles.MessageBundleDescriptor.Companion.newBundle
+import com.avail.descriptor.maps.A_Map.Companion.hasKey
+import com.avail.descriptor.maps.A_Map.Companion.keysAsSet
+import com.avail.descriptor.maps.A_Map.Companion.mapAt
+import com.avail.descriptor.maps.A_Map.Companion.mapIterable
+import com.avail.descriptor.maps.A_Map.Companion.valuesAsTuple
 import com.avail.descriptor.methods.MethodDescriptor
-import com.avail.descriptor.numbers.IntegerDescriptor.fromInt
+import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.module.ModuleDescriptor
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.A_Set
-import com.avail.descriptor.sets.SetDescriptor.emptySet
-import com.avail.descriptor.sets.SetDescriptor.setFromCollection
+import com.avail.descriptor.sets.A_Set.Companion.setIntersects
+import com.avail.descriptor.sets.A_Set.Companion.setMinusCanDestroy
+import com.avail.descriptor.sets.A_Set.Companion.setSize
+import com.avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
+import com.avail.descriptor.sets.A_Set.Companion.setWithElementCanDestroy
+import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
+import com.avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
 import com.avail.descriptor.tokens.A_Token
 import com.avail.descriptor.tokens.LiteralTokenDescriptor
-import com.avail.descriptor.tokens.LiteralTokenDescriptor.literalToken
+import com.avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken
 import com.avail.descriptor.tokens.TokenDescriptor
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
+import com.avail.descriptor.tuples.A_Tuple.Companion.asSet
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import com.avail.descriptor.tuples.StringDescriptor
-import com.avail.descriptor.tuples.StringDescriptor.stringFrom
-import com.avail.descriptor.tuples.TupleDescriptor.toList
+import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.toList
 import com.avail.exceptions.MalformedMessageException
+import com.avail.interpreter.execution.AvailLoader
 import com.avail.serialization.Deserializer
 import com.avail.serialization.MalformedSerialStreamException
 import com.avail.serialization.Serializer
-import java.util.*
 
 /**
  * A module's header information.
@@ -79,7 +96,7 @@ import java.util.*
  * Construct a new `ModuleHeader`.
  *
  * @param moduleName
- *   The [resolved name][ResolvedModuleName] of the module.
+ *   The [resolved&#32;name][ResolvedModuleName] of the module.
  */
 class ModuleHeader constructor(val moduleName: ResolvedModuleName)
 {
@@ -87,32 +104,32 @@ class ModuleHeader constructor(val moduleName: ResolvedModuleName)
 	 * The versions for which the module undergoing compilation guarantees
 	 * support.
 	 */
-	val versions: MutableList<A_String> = ArrayList()
+	val versions = mutableListOf<A_String>()
 
 	/**
-	 * The [module imports][ModuleImport] imported by the module undergoing
+	 * The [module&#32;imports][ModuleImport] imported by the module undergoing
 	 * compilation.  This includes both modules being extended and modules being
 	 * simply used.
 	 */
-	val importedModules: MutableList<ModuleImport> = ArrayList()
+	val importedModules = mutableListOf<ModuleImport>()
 
 	/**
 	 * The [names][StringDescriptor] defined and exported by the
 	 * [module][ModuleDescriptor] undergoing compilation.
 	 */
-	val exportedNames: MutableSet<A_String> = LinkedHashSet()
+	val exportedNames = mutableSetOf<A_String>()
 
 	/**
 	 * The [names][StringDescriptor] of [methods][MethodDescriptor] that are
 	 * [module][ModuleDescriptor] entry points.
 	 */
-	val entryPoints: MutableList<A_String> = ArrayList()
+	val entryPoints = mutableListOf<A_String>()
 
 	/**
-	 * The [pragma tokens][TokenDescriptor], which are always string
+	 * The [pragma&#32;tokens][TokenDescriptor], which are always string
 	 * [literals][LiteralTokenDescriptor].
 	 */
-	val pragmas: MutableList<A_Token> = ArrayList()
+	val pragmas = mutableListOf<A_Token>()
 
 	/**
 	 * The position in the file where the body starts (right after the "body"
@@ -130,31 +147,15 @@ class ModuleHeader constructor(val moduleName: ResolvedModuleName)
 	 * The list of local module [names][String] imported by this module header,
 	 * in the order they appear in the `Uses` and `Extends` clauses.
 	 */
-	val importedModuleNames: List<String>
-		get()
-		{
-			val localNames = ArrayList<String>(importedModules.size)
-			for (moduleImport in importedModules)
-			{
-				localNames.add(moduleImport.moduleName.asNativeString())
-			}
-			return localNames
-		}
+	val importedModuleNames: List<String> get () =
+		importedModules.map { it.moduleName.asNativeString() }
 
 	/**
 	 * A [List] of [String]s which name entry points defined in this module
 	 * header.
 	 */
-	val entryPointNames: List<String>
-		get()
-		{
-			val javaStrings = ArrayList<String>(entryPoints.size)
-			for (entryPoint in entryPoints)
-			{
-				javaStrings.add(entryPoint.asNativeString())
-			}
-			return javaStrings
-		}
+	val entryPointNames: List<String> get () =
+		entryPoints.map { it.asNativeString() }
 
 	/**
 	 * Output the module header.
@@ -167,7 +168,7 @@ class ModuleHeader constructor(val moduleName: ResolvedModuleName)
 		serializer.serialize(stringFrom(moduleName.qualifiedName))
 		serializer.serialize(tupleFromList(versions))
 		serializer.serialize(tuplesForSerializingModuleImports)
-		serializer.serialize(tupleFromList(ArrayList(exportedNames)))
+		serializer.serialize(tupleFromList(exportedNames.toList()))
 		serializer.serialize(tupleFromList(entryPoints))
 		serializer.serialize(tupleFromList(pragmas))
 		serializer.serialize(fromInt(startOfBodyPosition))
@@ -178,16 +179,8 @@ class ModuleHeader constructor(val moduleName: ResolvedModuleName)
 	 * The information about the imported modules as a [tuple][A_Tuple] of
 	 * tuples suitable for serialization.
 	 */
-	private val tuplesForSerializingModuleImports: A_Tuple
-		get()
-		{
-			val list = ArrayList<A_Tuple>()
-			for (moduleImport in importedModules)
-			{
-				list.add(moduleImport.tupleForSerialization)
-			}
-			return tupleFromList(list)
-		}
+	private val tuplesForSerializingModuleImports: A_Tuple get () =
+		tupleFromList(importedModules.map { it.tupleForSerialization })
 
 	/**
 	 * Convert the information encoded in a tuple into a [List] of
@@ -202,15 +195,8 @@ class ModuleHeader constructor(val moduleName: ResolvedModuleName)
 	 */
 	@Throws(MalformedSerialStreamException::class)
 	private fun moduleImportsFromTuple(
-		serializedTuple: A_Tuple): List<ModuleImport>
-	{
-		val list = ArrayList<ModuleImport>()
-		for (importTuple in serializedTuple)
-		{
-			list.add(ModuleImport.fromSerializedTuple(importTuple))
-		}
-		return list
-	}
+			serializedTuple: A_Tuple): List<ModuleImport> =
+		serializedTuple.map { ModuleImport.fromSerializedTuple(it) }
 
 	/**
 	 * Extract the module's header information from the [Deserializer].
@@ -261,24 +247,25 @@ class ModuleHeader constructor(val moduleName: ResolvedModuleName)
 	}
 
 	/**
-	 * Update the given module to correspond with information that has been
-	 * accumulated in this `ModuleHeader`.
+	 * Update the given [AvailLoader]'s module to correspond with information
+	 * that has been accumulated in this [ModuleHeader].
 	 *
-	 * @param module
-	 *   The module to update.
-	 * @param runtime
-	 *   The current [AvailRuntime].
+	 * @param loader
+	 *   The current [AvailLoader] for this [A_Module].
 	 * @return
 	 *   An error message [String] if there was a problem, or `null` if no
 	 *   problems were encountered.
 	 */
-	fun applyToModule(module: A_Module, runtime: AvailRuntime): String?
+	fun applyToModule(loader: AvailLoader): String?
 	{
-		val resolver = runtime.moduleNameResolver()
-		module.versions(setFromCollection(versions))
+		val module = loader.module()
+		val runtime = loader.runtime()
+		val resolver = runtime.moduleNameResolver
+		module.setVersions(setFromCollection(versions))
 
-		val newAtoms = exportedNames.fold(emptySet()) { set, name ->
-			val trueName = createAtomWithProperties(name, module)
+		val newAtoms = exportedNames.fold(emptySet) { set, name ->
+			val trueName = AtomWithPropertiesSharedDescriptor.shared
+				.createInitialized(name, module, nil, 0)
 			module.introduceNewName(trueName)
 			set.setWithElementCanDestroy(trueName, true)
 		}
@@ -344,7 +331,7 @@ class ModuleHeader constructor(val moduleName: ResolvedModuleName)
 
 			// Look up the strings to get existing atoms.  Don't complain
 			// about ambiguity, just export all that match.
-			var atomsToImport = emptySet()
+			var atomsToImport = emptySet
 			for (string in stringsToImport)
 			{
 				if (!importedNamesMultimap.hasKey(string))
@@ -386,7 +373,8 @@ class ModuleHeader constructor(val moduleName: ResolvedModuleName)
 				else
 				{
 					// Create it.
-					newAtom = createAtomWithProperties(newString, module)
+					newAtom = AtomWithPropertiesSharedDescriptor.shared
+						.createInitialized(newString, module, nil, 0)
 					module.introduceNewName(newAtom)
 				}
 				// Now tie the bundles together.
@@ -396,8 +384,27 @@ class ModuleHeader constructor(val moduleName: ResolvedModuleName)
 				{
 					val oldBundle = oldAtom.bundleOrCreate()
 					val method = oldBundle.bundleMethod()
-					newBundle = newBundle(
-						newAtom, method, MessageSplitter(newString))
+					newBundle =
+						newBundle(newAtom, method, MessageSplitter(newString))
+					newAtom.setAtomBundle(newBundle)
+					atomsToImport =
+						atomsToImport.setWithElementCanDestroy(newAtom, true)
+					val copyMacros =
+						!oldBundle.messageSplitter().recursivelyContainsReorders
+						&& !newBundle.messageSplitter()
+							.recursivelyContainsReorders
+					if (copyMacros)
+					{
+						// Neither bundle uses reordering.  Copy all macros.
+						for (macro in oldBundle.macrosTuple())
+						{
+							loader.addMacroBody(
+								newAtom,
+								macro.bodyBlock(),
+								macro.prefixFunctions(),
+								true)
+						}
+					}
 				}
 				catch (e: MalformedMessageException)
 				{
@@ -405,10 +412,6 @@ class ModuleHeader constructor(val moduleName: ResolvedModuleName)
 						"well-formed signature for $newString, a rename of "
 						+ "$oldString from \"${ref.qualifiedName}\"")
 				}
-
-				newAtom.setAtomProperty(MESSAGE_BUNDLE_KEY.atom, newBundle)
-				atomsToImport = atomsToImport.setWithElementCanDestroy(
-					newAtom, true)
 			}
 
 			// Actually make the atoms available in this module.
@@ -434,7 +437,8 @@ class ModuleHeader constructor(val moduleName: ResolvedModuleName)
 				{
 					0 ->
 					{
-						trueName = createAtomWithProperties(name, module)
+						trueName = AtomWithPropertiesSharedDescriptor.shared
+							.createInitialized(name, module, nil, 0)
 						module.addPrivateName(trueName)
 					}
 					1 ->

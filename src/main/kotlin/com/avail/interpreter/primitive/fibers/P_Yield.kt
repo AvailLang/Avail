@@ -1,6 +1,6 @@
 /*
  * P_Yield.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,15 +32,17 @@
 
 package com.avail.interpreter.primitive.fibers
 
-import com.avail.descriptor.FiberDescriptor
-import com.avail.descriptor.NilDescriptor.nil
-import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+import com.avail.descriptor.fiber.FiberDescriptor
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CanSuspend
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Primitive.Flag.Unknown
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Yield the current [fiber][FiberDescriptor] so that higher
@@ -54,9 +56,9 @@ object P_Yield : Primitive(0, CannotFail, CanSuspend, Unknown)
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(0)
-		return interpreter.suspendAndDo { toSucceed, _ -> toSucceed.value(nil) }
+		return interpreter.suspendThen { succeed(nil) }
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(emptyTuple(), TOP.o())
+		functionType(emptyTuple, TOP.o)
 }

@@ -1,6 +1,6 @@
 /*
  * UnrecognizedKeywordException.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,8 +33,9 @@
 package com.avail.tools.options
 
 /**
- * Exception thrown during [option processing][OptionProcessor.processOptions]
- * upon discovery of an unrecognized option keyword.
+ * Exception thrown during
+ * [option&#32;processing][OptionProcessor.processOptions] upon discovery of an
+ * unrecognized option keyword.
  *
  * @property keyword
  *   The unrecognized keyword.

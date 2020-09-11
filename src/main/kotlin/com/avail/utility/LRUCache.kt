@@ -1,6 +1,6 @@
 /*
  * LRUCache.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,13 +35,11 @@ package com.avail.utility
 import java.lang.Boolean.parseBoolean
 import java.lang.ref.ReferenceQueue
 import java.lang.ref.SoftReference
-import java.util.*
 import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.Condition
 import java.util.concurrent.locks.ReentrantLock
 import java.util.function.Function
-import kotlin.collections.Map.Entry
 import kotlin.concurrent.withLock
 
 /**
@@ -54,9 +52,9 @@ import kotlin.concurrent.withLock
  * @param V
  *   The type of the values.
  * @property softCapacity
- *   The cardinality of the set of [softly held][SoftReference] cached values.
- *   This is the total capacity of the [cache][LRUCache], i.e. the capacity of
- *   [softMap].
+ *   The cardinality of the set of [softly&#32;held][SoftReference] cached
+ *   values. This is the total capacity of the [cache][LRUCache], i.e. the
+ *   capacity of [softMap].
  * @property strongCapacity
  *   The cardinality of the set of strongly held cached values, i.e. the
  *   capacity of [strongMap].
@@ -100,25 +98,26 @@ class LRUCache<K, V> @JvmOverloads constructor(
 	private val lock = ReentrantLock()
 
 	/**
-	 * A [reference queue][ReferenceQueue] of defunct [soft
-	 * references][SoftReference] to previously garbage-collected cached values.
+	 * A [reference&#32;queue][ReferenceQueue] of defunct
+	 * [soft&#32;references][SoftReference] to previously garbage-collected
+	 * cached values.
 	 */
 	private val defunctReferences = ReferenceQueue<V>()
 
 	/**
-	 * The access-ordered [map][SoftCacheMap] which maps access keys to [softly
-	 * held][SoftReference] cached values. All cached values are ultimately
-	 * retrieved from this map.
+	 * The access-ordered [map][SoftCacheMap] which maps access keys to
+	 * [softly&#32;held][SoftReference] cached values. All cached values are
+	 * ultimately retrieved from this map.
 	 */
 	private val softMap: SoftCacheMap
 
 	/**
-	 * A mapping from [softly held][SoftReference] cached values to their
+	 * A mapping from [softly&#32;held][SoftReference] cached values to their
 	 * associated keys. This data structure is necessary to clean up the
-	 * [primary map][softMap] after the garbage collector has reclaimed the
+	 * [primary&#32;map][softMap] after the garbage collector has reclaimed the
 	 * cached values.
 	 */
-	private val keysBySoftReference = HashMap<SoftReference<out V>, K>()
+	private val keysBySoftReference = mutableMapOf<SoftReference<out V>, K>()
 
 	/**
 	 * The access-ordered [map][StrongCacheMap] which maps access keys to
@@ -135,7 +134,7 @@ class LRUCache<K, V> @JvmOverloads constructor(
 	/**
 	 * The [Condition] used to make a thread wait until all futures have been
 	 * completed. A thread waiting on it will be signaled every time a future is
-	 * removed from [the map of futures][futures].
+	 * removed from [the&#32;map&#32;of&#32;futures][futures].
 	 */
 	private val futuresCondition = lock.newCondition()
 
@@ -177,14 +176,14 @@ class LRUCache<K, V> @JvmOverloads constructor(
 			assert(softMap.size <= softCapacity)
 			for ((key, value) in softMap)
 			{
-				assert(key != null)
+				assert(key !== null)
 				assert(keysBySoftReference.containsKey(value))
 				assert(keysBySoftReference[value] === key)
 			}
 			for ((key, value) in strongMap)
 			{
-				assert(key != null)
-				assert(value != null)
+				assert(key !== null)
+				assert(value !== null)
 			}
 		}
 	}
@@ -215,7 +214,7 @@ class LRUCache<K, V> @JvmOverloads constructor(
 			assert(this === softMap)
 			if (this@SoftCacheMap.size > capacity)
 			{
-				assert(eldest != null)
+				assert(eldest !== null)
 				val key = eldest!!.key
 				val reference = eldest.value
 				assert(softMap.containsKey(key))
@@ -223,7 +222,7 @@ class LRUCache<K, V> @JvmOverloads constructor(
 				softMap.remove(key)
 				keysBySoftReference.remove(reference)
 				val referent = reference.get()
-				if (referent != null)
+				if (referent !== null)
 				{
 					retire(key, referent)
 				}
@@ -316,7 +315,7 @@ class LRUCache<K, V> @JvmOverloads constructor(
 			}
 
 			// If an exception was set, then we now rethrow that exception.
-			if (exception != null)
+			if (exception !== null)
 			{
 				throw RuntimeException(exception)
 			}
@@ -337,14 +336,14 @@ class LRUCache<K, V> @JvmOverloads constructor(
 
 		softMap = SoftCacheMap(softCapacity)
 		strongMap = StrongCacheMap(strongCapacity)
-		futures = HashMap()
+		futures = mutableMapOf()
 	}
 
 	/**
-	 * Expunge any [references][SoftReference] from the [primary
-	 * cache][SoftCacheMap] whose referents have been reclaimed by the garbage
-	 * collector. This operation is cheap and may be called from most API
-	 * functions without negatively impacting performance.
+	 * Expunge any [references][SoftReference] from the
+	 * [primary&#32;cache][SoftCacheMap] whose referents have been reclaimed by
+	 * the garbage collector. This operation is cheap and may be called from
+	 * most API functions without negatively impacting performance.
 	 */
 	private fun expungeDefunctReferences()
 	{
@@ -353,9 +352,9 @@ class LRUCache<K, V> @JvmOverloads constructor(
 		while (true)
 		{
 			val reference = defunctReferences.poll() ?: break
-			assert(reference.get() == null)
+			assert(reference.get() === null)
 			val key = keysBySoftReference.remove(reference)
-			if (key != null)
+			if (key !== null)
 			{
 				assert(softMap.containsKey(key))
 				softMap.remove(key)
@@ -391,14 +390,14 @@ class LRUCache<K, V> @JvmOverloads constructor(
 			{
 				futuresCondition.await()
 			}
-			val entries = ArrayList<Entry<K, SoftReference<V>>>(softMap.entries)
+			val entries = softMap.entries.toList()
 			softMap.clear()
 			keysBySoftReference.clear()
 			strongMap.clear()
 			for ((key, reference) in entries)
 			{
 				val referent = reference.get()
-				if (referent != null)
+				if (referent !== null)
 				{
 					retire(key, referent)
 				}
@@ -439,7 +438,7 @@ class LRUCache<K, V> @JvmOverloads constructor(
 		lock.withLock {
 			expungeDefunctReferences()
 			val result: V? = softMap[key]?.get()
-			if (result != null)
+			if (result !== null)
 			{
 				// Update the map containing strong references to the most
 				// recently accessed cached values. The eldest entry will be
@@ -487,7 +486,7 @@ class LRUCache<K, V> @JvmOverloads constructor(
 			var reference: SoftReference<V>? = softMap[key]
 			var result: V? = reference?.get()
 
-			if (reference == null || result == null)
+			if (reference === null || result === null)
 			{
 				// We didn't find the desired value in the cache, so now we
 				// check the set of futures to see if some other thread is
@@ -496,7 +495,7 @@ class LRUCache<K, V> @JvmOverloads constructor(
 
 				// No other thread is computing a value for our key, so it is
 				// our responsibility.
-				if (future == null)
+				if (future === null)
 				{
 					future = ValueFuture()
 					futures[key] = future
@@ -521,7 +520,7 @@ class LRUCache<K, V> @JvmOverloads constructor(
 						// the exception to the future so that waiters can react
 						// appropriately.
 						lock.lock()
-						if (exception == null)
+						if (exception === null)
 						{
 							future.result = result
 						}
@@ -537,7 +536,7 @@ class LRUCache<K, V> @JvmOverloads constructor(
 					// attempting to retrieve the result from the future will
 					// throw a CacheException.
 					result = future.get()
-					reference = SoftReference<V>(result!!, defunctReferences)
+					reference = SoftReference(result!!, defunctReferences)
 
 					// Establish a binding between the key and its value in the
 					// cache's primary map. The eldest entry will be
@@ -581,8 +580,8 @@ class LRUCache<K, V> @JvmOverloads constructor(
 
 	/**
 	 * Remove the specified key and any value associated with it. If the key is
-	 * present, and the [softly held][SoftReference] corresponding value has not
-	 * been reclaimed by the garbage collector, then perform the retirement
+	 * present, and the [softly&#32;held][SoftReference] corresponding value has
+	 * not been reclaimed by the garbage collector, then perform the retirement
 	 * action, if any.
 	 *
 	 * @param key
@@ -600,7 +599,7 @@ class LRUCache<K, V> @JvmOverloads constructor(
 			val reference = softMap.remove(key)
 			strongMap.remove(key)
 			val result: V? = reference?.get()
-			if (result != null)
+			if (result !== null)
 			{
 				retire(key, result)
 			}
@@ -612,7 +611,7 @@ class LRUCache<K, V> @JvmOverloads constructor(
 	companion object
 	{
 		/**
-		 * The [system property][System.getProperty] that enables detailed
+		 * The [system&#32;property][System.getProperty] that enables detailed
 		 * invariant checking. This causes significant slowdown and should not
 		 * be used in a production application.
 		 */

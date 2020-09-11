@@ -6,12 +6,12 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
  *
  *  * Neither the name of the copyright holder nor the names of the contributors
  *    may be used to endorse or promote products derived from this software
@@ -30,47 +30,66 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+@file:Suppress(
+	"PLATFORM_CLASS_MAPPED_TO_KOTLIN",
+	"RemoveRedundantQualifierName"
+)
+
 package com.avail.interpreter
 
 import com.avail.optimizer.jvm.CheckedField
 import com.avail.optimizer.jvm.CheckedMethod
-import com.avail.optimizer.jvm.CheckedMethod.javaLibraryInstanceMethod
-import com.avail.optimizer.jvm.CheckedMethod.javaLibraryStaticMethod
+import com.avail.optimizer.jvm.CheckedMethod.Companion.javaLibraryInstanceMethod
+import com.avail.optimizer.jvm.CheckedMethod.Companion.javaLibraryStaticMethod
 import java.util.concurrent.atomic.LongAdder
+
+
+// Alias the Java primitive classes for convenience.
+typealias JavaVoid = java.lang.Void
+typealias JavaBoolean = java.lang.Boolean
+typealias JavaByte = java.lang.Byte
+typealias JavaShort = java.lang.Short
+typealias JavaInteger = java.lang.Integer
+typealias JavaLong = java.lang.Long
+typealias JavaFloat = java.lang.Float
+typealias JavaDouble = java.lang.Double
+
+// Alias some common Java utility classes.
+typealias JavaList = java.util.List<*>
 
 /**
  * [CheckedMethod]s and [CheckedField]s for the Java class library.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-@Suppress("unused")
+@Suppress("unused", "MemberVisibilityCanBePrivate")
 object JavaLibrary
 {
 	// The Java primitive classes.
-	val void = java.lang.Void::class.javaPrimitiveType!!
-	val boolean = java.lang.Boolean::class.javaPrimitiveType!!
-	val byte = java.lang.Byte::class.javaPrimitiveType!!
-	val short = java.lang.Short::class.javaPrimitiveType!!
-	val int = java.lang.Integer::class.javaPrimitiveType!!
-	val long = java.lang.Long::class.javaPrimitiveType!!
-	val float = java.lang.Float::class.javaPrimitiveType!!
-	val double = java.lang.Double::class.javaPrimitiveType!!
+	val void = JavaVoid::class.javaPrimitiveType!!
+	val boolean = JavaBoolean::class.javaPrimitiveType!!
+	val byte = JavaByte::class.javaPrimitiveType!!
+	val short = JavaShort::class.javaPrimitiveType!!
+	val int = JavaInteger::class.javaPrimitiveType!!
+	val long = JavaLong::class.javaPrimitiveType!!
+	val float = JavaFloat::class.javaPrimitiveType!!
+	val double = JavaDouble::class.javaPrimitiveType!!
 
 	// The Java boxed primitive classes.
-	val booleanBoxed = java.lang.Boolean::class.java
-	val byteBoxed = java.lang.Byte::class.java
-	val shortBoxed = java.lang.Short::class.java
-	val intBoxed = java.lang.Integer::class.java
-	val longBoxed = java.lang.Long::class.java
-	val floatBoxed = java.lang.Float::class.java
-	val doubleBoxed = java.lang.Double::class.java
+	val booleanBoxed = JavaBoolean::class.java
+	val byteBoxed = JavaByte::class.java
+	val shortBoxed = JavaShort::class.java
+	val intBoxed = JavaInteger::class.java
+	val longBoxed = JavaLong::class.java
+	val floatBoxed = JavaFloat::class.java
+	val doubleBoxed = JavaDouble::class.java
 
 	/** Static method to cast from `long` to `double`.  */
 	@JvmStatic
 	var bitCastLongToDoubleMethod: CheckedMethod =
 		javaLibraryStaticMethod(
 			doubleBoxed,
-			"longBitsToDouble",
+			java.lang.Double::longBitsToDouble.name,
 			double,
 			long)
 
@@ -79,7 +98,7 @@ object JavaLibrary
 	var bitCastDoubleToLongMethod: CheckedMethod =
 		javaLibraryStaticMethod(
 			doubleBoxed,
-			"doubleToRawLongBits",
+			java.lang.Double::doubleToRawLongBits.name,
 			long,
 			double)
 
@@ -88,7 +107,7 @@ object JavaLibrary
 	val getClassLoader: CheckedMethod =
 		javaLibraryInstanceMethod(
 			Class::class.java,
-			"getClassLoader",
+			java.lang.Class<*>::getClassLoader.name,
 			ClassLoader::class.java)
 
 	/** The [CheckedMethod] for *Java* [Integer.valueOf] boxing. */
@@ -103,7 +122,7 @@ object JavaLibrary
 	@JvmStatic
 	val listGetMethod: CheckedMethod = javaLibraryInstanceMethod(
 		java.util.List::class.java,
-		"get",
+		JavaList::get.name,
 		Object::class.java,
 		int)
 
@@ -111,7 +130,7 @@ object JavaLibrary
 	@JvmStatic
 	val listClearMethod: CheckedMethod = javaLibraryInstanceMethod(
 		java.util.List::class.java,
-		"clear",
+		JavaList::clear.name,
 		void)
 
 	/** The [CheckedMethod] for [java.util.List.add].  */
@@ -126,6 +145,6 @@ object JavaLibrary
 	@JvmStatic
 	val longAdderIncrement: CheckedMethod = javaLibraryInstanceMethod(
 		LongAdder::class.java,
-		"increment",
+		LongAdder::increment.name,
 		void)
 }

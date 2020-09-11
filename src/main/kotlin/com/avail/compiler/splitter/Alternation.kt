@@ -1,6 +1,6 @@
 /*
  * Alternation.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,20 +31,20 @@
  */
 package com.avail.compiler.splitter
 
-import com.avail.compiler.ParsingOperation.*
+import com.avail.compiler.ParsingOperation.DISCARD_SAVED_PARSE_POSITION
+import com.avail.compiler.ParsingOperation.ENSURE_PARSE_PROGRESS
+import com.avail.compiler.ParsingOperation.SAVE_PARSE_POSITION
 import com.avail.compiler.splitter.InstructionGenerator.Label
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.BottomTypeDescriptor.bottom
-import com.avail.descriptor.types.ListPhraseTypeDescriptor.emptyListPhraseType
-import java.util.*
-import java.util.Collections.unmodifiableList
+import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
+import com.avail.descriptor.types.ListPhraseTypeDescriptor.Companion.emptyListPhraseType
 
 /**
  * An `Alternation` is a special [expression][Expression] indicated by
- * interleaved [vertical bars][Metacharacter.VERTICAL_BAR] between
- * [simples][Simple] and [simple groups][Group]. It may not contain
+ * interleaved [vertical&#32;bars][Metacharacter.VERTICAL_BAR] between
+ * [simples][Simple] and [simple&#32;groups][Group]. It may not contain
  * [arguments][Argument].
  *
  * An alternation specifies several alternative parses but does not produce any
@@ -66,9 +66,11 @@ internal class Alternation constructor(
 	positionInName: Int,
 	alternatives: List<Expression>) : Expression(positionInName)
 {
+	override val recursivelyContainsReorders: Boolean
+		get() = alternatives.any { it.recursivelyContainsReorders }
+
 	/** The alternative [expressions][Expression].  */
-	internal val alternatives: List<Expression> =
-		unmodifiableList(ArrayList(alternatives))
+	internal val alternatives: List<Expression> = alternatives.toList()
 
 	override val isLowerCase: Boolean
 		get() = alternatives.stream().allMatch(Expression::isLowerCase)
@@ -111,7 +113,7 @@ internal class Alternation constructor(
 		 * pop the parse position.
 		 */
 		val needsProgressCheck =
-			alternatives.stream().anyMatch { it.mightBeEmpty(bottom()) }
+			alternatives.stream().anyMatch { it.mightBeEmpty(bottom) }
 		generator.flushDelayed()
 		generator.emitIf(needsProgressCheck, this, SAVE_PARSE_POSITION)
 		val `$after` = Label()
@@ -150,7 +152,7 @@ internal class Alternation constructor(
 	override fun toString(): String
 	{
 		val builder = StringBuilder()
-		builder.append(javaClass.simpleName)
+		builder.append(this@Alternation.javaClass.simpleName)
 		builder.append('(')
 		var first = true
 		for (expression in alternatives)
@@ -196,6 +198,10 @@ internal class Alternation constructor(
 			return last.shouldBeSeparatedOnRight
 		}
 
-	override fun mightBeEmpty(phraseType: A_Type): Boolean =
-		alternatives.stream().anyMatch { it.mightBeEmpty(bottom()) }
+	override fun mightBeEmpty (phraseType: A_Type): Boolean =
+		alternatives.any { it.mightBeEmpty(bottom) }
+
+	override fun checkListStructure (phrase: A_Phrase): Boolean =
+		throw RuntimeException(
+			"checkListStructure() inapplicable for Alternation.")
 }

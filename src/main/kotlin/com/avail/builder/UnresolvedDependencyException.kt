@@ -1,6 +1,6 @@
 /*
  * UnresolvedDependencyException.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 
 package com.avail.builder
 
-import com.avail.descriptor.ModuleDescriptor
+import com.avail.descriptor.module.ModuleDescriptor
 
 /**
  * A `UnresolvedDependencyException` is thrown by the [builder][AvailBuilder]
@@ -68,7 +68,7 @@ abstract class UnresolvedDependencyException internal constructor(
 	 */
 	override val message get(): String
 	{
-		return if (referringModuleName == null)
+		return if (referringModuleName === null)
 		{
 			"[Unknown module] refers to unresolved module " +
 				"\"$unresolvedModuleName\"."

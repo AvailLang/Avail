@@ -1,6 +1,6 @@
 /*
  * P_BitShiftRight.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,22 +32,33 @@
 
 package com.avail.interpreter.primitive.integers
 
-import com.avail.descriptor.numbers.IntegerDescriptor.zero
-import com.avail.descriptor.sets.SetDescriptor.set
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.numbers.A_Number.Companion.bitShift
+import com.avail.descriptor.numbers.A_Number.Companion.greaterOrEqual
+import com.avail.descriptor.numbers.A_Number.Companion.minusCanDestroy
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.integers
+import com.avail.descriptor.types.A_Type.Companion.lowerBound
+import com.avail.descriptor.types.A_Type.Companion.lowerInclusive
+import com.avail.descriptor.types.A_Type.Companion.upperBound
+import com.avail.descriptor.types.A_Type.Companion.upperInclusive
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
+import com.avail.exceptions.ArithmeticException
 import com.avail.exceptions.AvailErrorCode.E_TOO_LARGE_TO_REPRESENT
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Given any integer B, and a shift factor S, compute
- * ⎣B÷2<sup>S</sup>⎦.  This is the right-shift operation, but when S is negative
+ * ⌊B÷2<sup>S</sup>⌋.  This is the right-shift operation, but when S is negative
  * it acts as a left-shift.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
@@ -60,14 +71,67 @@ object P_BitShiftRight : Primitive(2, CanFold, CanInline)
 		interpreter.checkArgumentCount(2)
 		val baseInteger = interpreter.argument(0)
 		val shiftFactor = interpreter.argument(1)
-		return interpreter.primitiveSuccess(
-			baseInteger.bitShift(
-				zero().minusCanDestroy(shiftFactor, true),
-				true))
+		return try
+		{
+			interpreter.primitiveSuccess(
+				baseInteger.bitShift(
+					zero().minusCanDestroy(shiftFactor, true),
+					true))
+		}
+		catch (e: ArithmeticException)
+		{
+			interpreter.primitiveFailure(e)
+		}
+	}
+
+	override fun fallibilityForArgumentTypes(
+		argumentTypes: List<A_Type>
+	): Fallibility
+	{
+		val (_, shiftFactors) = argumentTypes
+		return when
+		{
+			shiftFactors.lowerBound().greaterOrEqual(zero()) ->
+			{
+				// It's always a right shift by a non-negative amount, so it
+				// can't exceed the limit if the base wasn't already in
+				// violation.
+				Fallibility.CallSiteCannotFail
+			}
+			else -> super.fallibilityForArgumentTypes(argumentTypes)
+		}
+	}
+
+	override fun returnTypeGuaranteedByVM(
+		rawFunction: A_RawFunction,
+		argumentTypes: List<A_Type>
+	): A_Type
+	{
+		val (baseIntegers: A_Type, shiftFactors: A_Type) = argumentTypes
+		val leastShift = shiftFactors.lowerBound()
+		return when
+		{
+			shiftFactors.upperBound().equals(leastShift) ->
+			{
+				// Shifting by a constant amount is a common case.
+				val negatedShift = zero().minusCanDestroy(leastShift, false)
+				integerRangeType(
+					baseIntegers.lowerBound().bitShift(negatedShift, false),
+					baseIntegers.lowerInclusive(),
+					baseIntegers.upperBound().bitShift(negatedShift, false),
+					baseIntegers.upperInclusive())
+			}
+			baseIntegers.lowerBound().greaterOrEqual(zero()) ->
+			{
+				// Be conservative for simplicity.
+				wholeNumbers
+			}
+			else -> super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
+		}
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(integers(), integers()), integers())
+		functionType(tuple(integers, integers), integers)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_TOO_LARGE_TO_REPRESENT))

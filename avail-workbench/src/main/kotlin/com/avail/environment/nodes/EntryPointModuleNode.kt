@@ -1,6 +1,6 @@
 /*
  * EntryPointModuleNode.java
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,14 +56,14 @@ class EntryPointModuleNode constructor(
 	: AbstractBuilderFrameTreeNode(builder)
 {
 	/**
-	 * Is the [module or package][ModuleOrPackageNode] loaded?
+	 * Is the [module&#32;or&#32;package][ModuleOrPackageNode] loaded?
 	 *
 	 * @return
 	 *   `true` if the module or package is already loaded, `false` otherwise.
 	 */
 	private val isLoaded: Boolean
 		get() = synchronized(builder) {
-			return builder.getLoadedModule(resolvedModuleName) != null
+			return builder.getLoadedModule(resolvedModuleName) !== null
 		}
 
 	override fun iconResourceName(): String = "ModuleInTree"

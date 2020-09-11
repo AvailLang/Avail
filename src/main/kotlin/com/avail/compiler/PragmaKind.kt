@@ -1,6 +1,6 @@
 /*
  * PragmaKind.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,17 +34,19 @@ package com.avail.compiler
 
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.DECLARE_STRINGIFIER
-import com.avail.descriptor.phrases.ListPhraseDescriptor.newListNode
-import com.avail.descriptor.phrases.LiteralPhraseDescriptor.syntheticLiteralNodeFor
-import com.avail.descriptor.phrases.SendPhraseDescriptor.newSendNode
+import com.avail.descriptor.phrases.ListPhraseDescriptor.Companion.newListNode
+import com.avail.descriptor.phrases.LiteralPhraseDescriptor.Companion.syntheticLiteralNodeFor
+import com.avail.descriptor.phrases.SendPhraseDescriptor.Companion.newSendNode
+import com.avail.descriptor.sets.A_Set.Companion.asTuple
+import com.avail.descriptor.sets.A_Set.Companion.setSize
 import com.avail.descriptor.tokens.A_Token
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.tuples.StringDescriptor.stringFrom
-import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.interpreter.Primitive.Companion.primitiveByName
 import java.lang.String.format
-import java.util.*
 
 /**
  * These are the tokens that are understood directly by the Avail compiler.
@@ -59,7 +61,7 @@ import java.util.*
  * Construct a new `PragmaKind`.
  *
  * @param lexeme
- *   The Java [lexeme string][String], i.e. the text of the token.
+ *   The Java [lexeme&#32;string][String], i.e. the text of the token.
  */
 enum class PragmaKind constructor(val lexeme: String)
 {
@@ -208,12 +210,13 @@ enum class PragmaKind constructor(val lexeme: String)
 			}
 			val atom = atoms.asTuple().tupleAt(1)
 			val send = newSendNode(
-				emptyTuple(),
+				emptyTuple,
 				DECLARE_STRINGIFIER.bundle,
 				newListNode(tuple(syntheticLiteralNodeFor(atom))),
-				TOP.o())
+				TOP.o
+			)
 			compiler.evaluateModuleStatementThen(
-				state, state, send, HashMap(), success)
+				state, state, send, mutableMapOf(), success)
 		}
 	},
 
@@ -306,15 +309,7 @@ enum class PragmaKind constructor(val lexeme: String)
 	companion object
 	{
 		/** Key the instances by lexeme.  */
-		private val kindsByLexeme = HashMap<String, PragmaKind>()
-
-		init
-		{
-			for (kind in values())
-			{
-				kindsByLexeme[kind.lexeme] = kind
-			}
-		}
+		private val kindsByLexeme = values().associateBy { it.lexeme }
 
 		/**
 		 * Answer the PragmaKind having the given lexeme, or `null` if it's not

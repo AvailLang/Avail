@@ -1,6 +1,6 @@
 /*
  * TransportAdapter.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,7 +50,7 @@ import java.util.concurrent.TimeUnit
 interface TransportAdapter<T> : AutoCloseable
 {
 	/**
-	 * The [Avail server][AvailServer] attached to this
+	 * The [Avail&#32;server][AvailServer] attached to this
 	 * [adapter][TransportAdapter].
 	 */
 	val server: AvailServer
@@ -80,8 +80,8 @@ interface TransportAdapter<T> : AutoCloseable
 	fun sendUserData(
 		channel: AbstractTransportChannel<T>,
 		payload: Message,
-		success: (()->Unit)?,
-		failure: ((Throwable)->Unit)?)
+		success: ()->Unit,
+		failure: (Throwable)->Unit)
 
 	/**
 	 * Send a polite close notification across the given
@@ -121,7 +121,7 @@ interface TransportAdapter<T> : AutoCloseable
 
 	/**
 	 * The [timer][ScheduledExecutorService] for
-	 * [scheduling activities][ScheduledFuture] related to managing
+	 * [scheduling&#32;activities][ScheduledFuture] related to managing
 	 * communication.
 	 */
 	val timer: ScheduledExecutorService

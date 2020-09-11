@@ -1,6 +1,6 @@
 /*
  * P_DeclareAllExportedAtoms.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,34 +32,39 @@
 
 package com.avail.interpreter.primitive.modules
 
-import com.avail.descriptor.ModuleDescriptor.ObjectSlots
-import com.avail.descriptor.ModuleDescriptor.currentModule
-import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.atoms.A_Atom.Companion.extractBoolean
 import com.avail.descriptor.atoms.AtomDescriptor
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.module.ModuleDescriptor.Companion.currentModule
+import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.EnumerationTypeDescriptor
-import com.avail.descriptor.types.EnumerationTypeDescriptor.booleanType
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.wholeNumbers
-import com.avail.descriptor.types.SetTypeDescriptor.setTypeForSizesContentType
+import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
+import com.avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
 import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.Primitive.Flag.Private
+import com.avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** This private primitive is used to ensure that a module can
  * deserialize correctly. It forces the given set of atoms to be included in the
- * current module's [public names][ObjectSlots.IMPORTED_NAMES] or [private
- * names][ObjectSlots.PRIVATE_NAMES], depending on the value of the supplied
- * [boolean][EnumerationTypeDescriptor.booleanType]
+ * current module's [public&#32;names][ObjectSlots.IMPORTED_NAMES] or
+ * [private&#32;names][ObjectSlots.PRIVATE_NAMES], depending on the value of the
+ * supplied [boolean][EnumerationTypeDescriptor.booleanType]
  * ([true][AtomDescriptor.trueObject] for public,
  * [false][AtomDescriptor.falseObject] for private).
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
+@Suppress("unused")
 object P_DeclareAllExportedAtoms : Primitive(
 	2, CannotFail, Private, HasSideEffect, WritesToHiddenGlobalState)
 {
@@ -68,7 +73,7 @@ object P_DeclareAllExportedAtoms : Primitive(
 		interpreter.checkArgumentCount(2)
 		val names = interpreter.argument(0)
 		val isPublic = interpreter.argument(1)
-		val module = currentModule()
+		val module = currentModule
 		assert(!module.equalsNil())
 		if (isPublic.extractBoolean())
 		{
@@ -84,7 +89,8 @@ object P_DeclareAllExportedAtoms : Primitive(
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				setTypeForSizesContentType(wholeNumbers(), ATOM.o()),
-				booleanType()),
-			TOP.o())
+				setTypeForSizesContentType(wholeNumbers, ATOM.o),
+				booleanType),
+			TOP.o
+		)
 }

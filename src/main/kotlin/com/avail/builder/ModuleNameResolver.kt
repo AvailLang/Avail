@@ -1,6 +1,6 @@
 /*
  * ModuleNameResolver.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,16 +33,18 @@
 package com.avail.builder
 
 import com.avail.annotations.ThreadSafe
-import com.avail.descriptor.ModuleDescriptor
+import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.persistence.Repository
 import com.avail.utility.LRUCache
 import java.io.File
-import java.util.*
+import java.util.Collections
+import java.util.Deque
+import java.util.LinkedList
 
 /**
  * A `ModuleNameResolver` resolves fully-qualified references to Avail
- * [modules][ModuleDescriptor] to [absolute][File.isAbsolute] [file
- * references][File].
+ * [modules][ModuleDescriptor] to [absolute][File.isAbsolute]
+ * [file&#32;references][File].
  *
  * Assuming that the Avail module path comprises four module roots listed in the
  * order _S_, _P_,_Q_, _R_, then the following algorithm is used for resolution
@@ -72,7 +74,7 @@ import java.util.*
  * An instance is obtained via [RenamesFileParser.parse].
  *
  * @property moduleRoots
- *   The [Avail module roots][ModuleRoots].
+ *   The [Avail&#32;module roots][ModuleRoots].
  * @author Todd L Smith &lt;todd@availlang.org &gt;
  * @author Leslie Schultz &lt;leslie@availlang.org &gt;
  *
@@ -81,7 +83,7 @@ import java.util.*
  * Construct a new `ModuleNameResolver`.
  *
  * @param moduleRoots
- *   The Avail [module roots][ModuleRoots].
+ *   The Avail [module&#32;roots][ModuleRoots].
  */
 @ThreadSafe
 class ModuleNameResolver constructor(val moduleRoots: ModuleRoots)
@@ -89,7 +91,7 @@ class ModuleNameResolver constructor(val moduleRoots: ModuleRoots)
 	/**
 	 * A [map][Map] from fully-qualified module names to their canonical names.
 	 */
-	private val renames = LinkedHashMap<String, String>()
+	private val renames = mutableMapOf<String, String>()
 
 	/**
 	 * A [cache][LRUCache] of [resolved][ResolvedModuleName], keyed by
@@ -142,18 +144,18 @@ class ModuleNameResolver constructor(val moduleRoots: ModuleRoots)
 
 	/**
 	 * Answer the canonical name that should be used in place of the
-	 * fully-qualified [module name][ModuleName].
+	 * fully-qualified [module&#32;name][ModuleName].
 	 *
 	 * @param qualifiedName
-	 *   A fully-qualified [module name][ModuleName].
+	 *   A fully-qualified [module&#32;name][ModuleName].
 	 * @return
 	 *   The canonical name that should be used in place of the fully-qualified
-	 *   [module name][ModuleName].
+	 *   [module&#32;name][ModuleName].
 	 */
 	private fun canonicalNameFor(qualifiedName: ModuleName): ModuleName
 	{
 		val substitute = renames[qualifiedName.qualifiedName]
-		return if (substitute != null)
+		return if (substitute !== null)
 		{
 			ModuleName(substitute, true)
 		}
@@ -210,7 +212,7 @@ class ModuleNameResolver constructor(val moduleRoots: ModuleRoots)
 		// If the source directory is available, then build a search stack of
 		// trials at ascending tiers of enclosing packages.
 		var sourceDirectory = root!!.sourceDirectory
-		if (sourceDirectory != null)
+		if (sourceDirectory !== null)
 		{
 			pathStack = LinkedList()
 			pathStack.addLast(sourceDirectory)
@@ -222,7 +224,7 @@ class ModuleNameResolver constructor(val moduleRoots: ModuleRoots)
 				"%s/%s",
 				nameStack.peekLast(),
 				components[index]))
-			if (sourceDirectory != null)
+			if (sourceDirectory !== null)
 			{
 				pathStack!!.addLast(File(
 					pathStack.peekLast(),
@@ -231,10 +233,10 @@ class ModuleNameResolver constructor(val moduleRoots: ModuleRoots)
 		}
 
 		// If the source directory is available, then search the file system.
-		val checkedPaths = ArrayList<ModuleName>()
+		val checkedPaths = mutableListOf<ModuleName>()
 		var repository: Repository? = null
 		var sourceFile: File? = null
-		if (sourceDirectory != null)
+		if (sourceDirectory !== null)
 		{
 			assert(!pathStack!!.isEmpty())
 			// Explore the search stack from most enclosing package to least
@@ -260,7 +262,7 @@ class ModuleNameResolver constructor(val moduleRoots: ModuleRoots)
 
 		// If resolution failed, then one final option is available: search the
 		// other roots.
-		if (repository == null)
+		if (repository === null)
 		{
 			for (rootName in moduleRoots.rootNames)
 			{
@@ -272,9 +274,9 @@ class ModuleNameResolver constructor(val moduleRoots: ModuleRoots)
 						canonicalName.isRename)
 					checkedPaths.add(canonicalName)
 					root = moduleRoots.moduleRootFor(rootName)
-					assert(root != null)
+					assert(root !== null)
 					sourceDirectory = root!!.sourceDirectory
-					if (sourceDirectory != null)
+					if (sourceDirectory !== null)
 					{
 						val trial = File(
 							sourceDirectory,
@@ -291,7 +293,7 @@ class ModuleNameResolver constructor(val moduleRoots: ModuleRoots)
 		}
 
 		// We found a candidate.
-		if (repository != null)
+		if (repository !== null)
 		{
 			// If the candidate is a package, then substitute
 			// the package representative.
@@ -340,11 +342,11 @@ class ModuleNameResolver constructor(val moduleRoots: ModuleRoots)
 		 * Whether the resolution produced a [ResolvedModuleName], rather than
 		 * an exception.
 		 */
-		val isResolved get() = resolvedModule != null
+		val isResolved get() = resolvedModule !== null
 
 		/**
 		 * Construct a new `ModuleNameResolutionResult`, upon successful
-		 * resolution, with the [resolved module][ResolvedModuleName].
+		 * resolution, with the [resolved&#32;module][ResolvedModuleName].
 		 *
 		 * @param resolvedModule
 		 *   The module that was successfully resolved.
@@ -372,17 +374,17 @@ class ModuleNameResolver constructor(val moduleRoots: ModuleRoots)
 	}
 
 	/**
-	 * Resolve a fully-qualified module name (as a reference to the [local
-	 * name][ModuleName.localName] made from within the
+	 * Resolve a fully-qualified module name (as a reference to the
+	 * [local&#32;name][ModuleName.localName] made from within the
 	 * [package][ModuleName.packageName]).
 	 *
 	 * @param qualifiedName
-	 *   A fully-qualified [module name][ModuleName].
+	 *   A fully-qualified [module&#32;name][ModuleName].
 	 * @param dependent
 	 *   The name of the module that requires this resolution, if any.
 	 * @return
-	 *   A [resolved module name][ResolvedModuleName] if the resolution was
-	 *   successful.
+	 *   A [resolved&#32;module&#32;name][ResolvedModuleName] if the resolution
+	 *   was successful.
 	 * @throws UnresolvedDependencyException
 	 *   If resolution fails.
 	 */
@@ -395,7 +397,7 @@ class ModuleNameResolver constructor(val moduleRoots: ModuleRoots)
 		if (!result.isResolved)
 		{
 			// The resolution failed.
-			if (dependent != null)
+			if (dependent !== null)
 			{
 				result.exception!!.referringModuleName = dependent
 			}

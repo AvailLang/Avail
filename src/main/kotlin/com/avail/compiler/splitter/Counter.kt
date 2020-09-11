@@ -1,6 +1,6 @@
 /*
  * Counter.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,32 +36,38 @@ import com.avail.compiler.ParsingOperation.CONVERT
 import com.avail.compiler.splitter.MessageSplitter.Companion.throwSignatureException
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter
 import com.avail.compiler.splitter.WrapState.SHOULD_NOT_PUSH_LIST
+import com.avail.descriptor.numbers.A_Number.Companion.equalsInt
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
 import com.avail.descriptor.phrases.A_Phrase
-import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+import com.avail.descriptor.phrases.A_Phrase.Companion.token
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.InstanceTypeDescriptor.instanceType
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import com.avail.descriptor.types.A_Type.Companion.lowerBound
+import com.avail.descriptor.types.A_Type.Companion.phraseTypeExpressionType
+import com.avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.wholeNumbers
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import com.avail.descriptor.types.ListPhraseTypeDescriptor
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
-import com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_COUNTING_GROUP
 import com.avail.exceptions.SignatureException
-import java.util.*
+import java.util.Collections
 
 /**
  * A `Counter` is a special subgroup (i.e., not a root group)
  * indicated by an [octothorp][Metacharacter.OCTOTHORP] following a
  * [group][Group]. It may not contain [arguments][Argument] or subgroups, though
- * it may contain a [double dagger][Metacharacter.DOUBLE_DAGGER].
+ * it may contain a [double&#32;dagger][Metacharacter.DOUBLE_DAGGER].
  *
- * When a double dagger appears in a counter, the counter produces a [whole
- * number][IntegerRangeTypeDescriptor.wholeNumbers] that indicates the number of
- * occurrences of the subexpression to the left of the double dagger. The
- * message "«very‡,»#good" accepts a single argument: the count of occurrences
- * of "very".
+ * When a double dagger appears in a counter, the counter produces a
+ * [whole&#32;number][IntegerRangeTypeDescriptor.wholeNumbers] that indicates
+ * the number of occurrences of the subexpression to the left of the double
+ * dagger. The message "«very‡,»#good" accepts a single argument: the count of
+ * occurrences of "very".
  *
  * When no double dagger appears in a counter, then the counter produces
  * a whole number that indicates the number of occurrences of the entire
@@ -84,7 +90,17 @@ import java.util.*
 internal class Counter(
 	positionInName: Int,
 	private val group: Group
-) : Expression(positionInName) {
+) : Expression(positionInName)
+{
+	init
+	{
+		assert(group.beforeDagger.yielders.isEmpty())
+		assert(group.afterDagger.yielders.isEmpty())
+	}
+
+	override val recursivelyContainsReorders: Boolean
+		get() = group.recursivelyContainsReorders
+
 	override val yieldsValue
 		get() = true
 
@@ -93,12 +109,6 @@ internal class Counter(
 
 	override fun applyCaseInsensitive() =
 		Counter(positionInName, group.applyCaseInsensitive())
-
-	init
-	{
-		assert(group.beforeDagger.yielders.isEmpty())
-		assert(group.afterDagger.yielders.isEmpty())
-	}
 
 	override val underscoreCount: Int
 		get()
@@ -116,7 +126,7 @@ internal class Counter(
 	{
 		// The declared type for the subexpression must be a subtype of whole
 		// number.
-		if (!argumentType.isSubtypeOf(wholeNumbers()))
+		if (!argumentType.isSubtypeOf(wholeNumbers))
 		{
 			throwSignatureException(E_INCORRECT_TYPE_FOR_COUNTING_GROUP)
 		}
@@ -146,12 +156,12 @@ internal class Counter(
 		 * under-pop parse position (remove 2nd from top of stack)
 		 */
 		generator.flushDelayed()
-		val phraseCountRange = phraseType.expressionType()
-		val emptyTupleType = instanceType(emptyTuple())
+		val phraseCountRange = phraseType.phraseTypeExpressionType()
+		val emptyTupleType = instanceType(emptyTuple)
 		val tupleOfEmptyTuplesType = tupleTypeForSizesTypesDefaultType(
-			phraseCountRange, emptyTuple(), emptyTupleType)
+			phraseCountRange, emptyTuple, emptyTupleType)
 		val tupleOfEmptyTuplePhrasesType = tupleTypeForSizesTypesDefaultType(
-			phraseCountRange, emptyTuple(), PARSE_PHRASE.create(emptyTupleType))
+			phraseCountRange, emptyTuple, PARSE_PHRASE.create(emptyTupleType))
 		val listPhraseType = ListPhraseTypeDescriptor.createListNodeType(
 			LIST_PHRASE, tupleOfEmptyTuplesType, tupleOfEmptyTuplePhrasesType)
 		val newWrapState = group.emitOn(listPhraseType, generator, wrapState)
@@ -161,7 +171,7 @@ internal class Counter(
 	}
 
 	override fun toString(): String =
-		"${javaClass.simpleName}($group)"
+		"${this@Counter.javaClass.simpleName}($group)"
 
 	override fun printWithArguments(
 		arguments: Iterator<A_Phrase>?,
@@ -200,8 +210,10 @@ internal class Counter(
 
 	override fun mightBeEmpty(phraseType: A_Type): Boolean
 	{
-		val integerRangeType = phraseType.expressionType()
+		val integerRangeType = phraseType.phraseTypeExpressionType()
 		assert(integerRangeType.isIntegerRangeType)
 		return integerRangeType.lowerBound().equalsInt(0)
 	}
+
+	override fun checkListStructure(phrase: A_Phrase): Boolean = true
 }

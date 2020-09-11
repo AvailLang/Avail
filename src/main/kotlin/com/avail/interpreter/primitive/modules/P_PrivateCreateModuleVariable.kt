@@ -1,6 +1,6 @@
 /*
  * P_PrivateCreateModuleVariable.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,24 +31,28 @@
  */
 package com.avail.interpreter.primitive.modules
 
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.atoms.A_Atom.Companion.extractBoolean
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.EnumerationTypeDescriptor.booleanType
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.TupleTypeDescriptor.stringType
+import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import com.avail.descriptor.types.TypeDescriptor.Types.MODULE
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
-import com.avail.descriptor.types.VariableTypeDescriptor.variableMeta
+import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableMeta
 import com.avail.descriptor.variables.VariableSharedGlobalDescriptor
-import com.avail.descriptor.variables.VariableSharedGlobalDescriptor.createGlobal
-import com.avail.interpreter.Interpreter
+import com.avail.descriptor.variables.VariableSharedGlobalDescriptor.Companion.createGlobal
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CanFold
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Primitive.Flag.Private
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Create a
- * [global variable or constant][VariableSharedGlobalDescriptor], registering it
- * with the given module.
+ * [global&#32;variable&#32;or&#32;constant][VariableSharedGlobalDescriptor],
+ * registering it with the given module.
  */
 object P_PrivateCreateModuleVariable
 	: Primitive(5, CanFold, CanInline, Private, CannotFail)
@@ -67,7 +71,7 @@ object P_PrivateCreateModuleVariable
 		val variable = createGlobal(varType, module, name, isConstant)
 		if (stablyComputed)
 		{
-			variable.valueWasStablyComputed(true)
+			variable.setValueWasStablyComputed(true)
 		}
 		// The compiler should ensure this will always succeed.
 		if (isConstant)
@@ -84,10 +88,11 @@ object P_PrivateCreateModuleVariable
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				MODULE.o(),
+				MODULE.o,
 				stringType(),
 				variableMeta(),
-				booleanType(),
-				booleanType()),
-			TOP.o())
+				booleanType,
+				booleanType),
+			TOP.o
+		)
 }

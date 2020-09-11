@@ -1,6 +1,6 @@
 /*
  * UpgradeCommandMessage.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@
 package com.avail.server.messages
 
 import com.avail.server.io.AvailServerChannel
-import java.util.*
+import java.util.UUID
 
 /**
  * An `UpgradeCommandMessage` represents an [UPGRADE][TextCommand.UPGRADE]

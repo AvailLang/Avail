@@ -1,6 +1,6 @@
 /*
  * P_MapReplacingNAryKey.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,24 +33,33 @@
 package com.avail.interpreter.primitive.maps
 
 import com.avail.descriptor.maps.A_Map
+import com.avail.descriptor.maps.A_Map.Companion.hasKey
+import com.avail.descriptor.maps.A_Map.Companion.mapAt
+import com.avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import com.avail.descriptor.maps.MapDescriptor
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
 import com.avail.descriptor.representation.A_BasicObject
-import com.avail.descriptor.sets.SetDescriptor.set
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAtPuttingCanDestroy
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.MapTypeDescriptor.mostGeneralMapType
-import com.avail.descriptor.types.TupleTypeDescriptor.oneOrMoreOf
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.MapTypeDescriptor.Companion.mostGeneralMapType
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
-import com.avail.exceptions.AvailErrorCode.*
+import com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
+import com.avail.exceptions.AvailErrorCode.E_KEY_NOT_FOUND
+import com.avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS
 import com.avail.exceptions.AvailException
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Replace the value at the location indicated by the path
@@ -100,16 +109,14 @@ object P_MapReplacingNAryKey : Primitive(3, CanInline, CanFold)
 			subtuple.isTuple ->
 			{
 				val newTuple = recursivelyUpdateTuple(
-					subtuple, pathTuple, pathIndex + 1,
-					newValue)
+					subtuple, pathTuple, pathIndex + 1, newValue)
 				return targetTuple.tupleAtPuttingCanDestroy(
 					targetIndex, newTuple, true)
 			}
 			subtuple.isMap ->
 			{
 				val newMap = recursivelyUpdateMap(
-					subtuple, pathTuple, pathIndex + 1,
-					newValue)
+					subtuple, pathTuple, pathIndex + 1, newValue)
 				return targetTuple.tupleAtPuttingCanDestroy(
 					targetIndex, newMap, true)
 			}
@@ -188,8 +195,8 @@ object P_MapReplacingNAryKey : Primitive(3, CanInline, CanFold)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(mostGeneralMapType(), oneOrMoreOf(ANY.o()), ANY.o()),
-            mostGeneralMapType())
+			tuple(mostGeneralMapType(), oneOrMoreOf(ANY.o), ANY.o),
+			mostGeneralMapType())
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

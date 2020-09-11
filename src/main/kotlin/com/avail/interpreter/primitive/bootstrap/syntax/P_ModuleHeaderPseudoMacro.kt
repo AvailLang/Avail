@@ -1,6 +1,6 @@
 /*
  * P_ModuleHeaderPseudoMacro.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,24 +34,29 @@ package com.avail.interpreter.primitive.bootstrap.syntax
 
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.MODULE_HEADER
-import com.avail.descriptor.phrases.ExpressionAsStatementPhraseDescriptor.newExpressionAsStatement
-import com.avail.descriptor.phrases.ListPhraseDescriptor.newListNode
-import com.avail.descriptor.phrases.SendPhraseDescriptor.newSendNode
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromArray
-import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+import com.avail.descriptor.phrases.ExpressionAsStatementPhraseDescriptor.Companion.newExpressionAsStatement
+import com.avail.descriptor.phrases.ListPhraseDescriptor.Companion.newListNode
+import com.avail.descriptor.phrases.SendPhraseDescriptor.Companion.newSendNode
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromArray
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.EnumerationTypeDescriptor.booleanType
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.inclusive
-import com.avail.descriptor.types.ListPhraseTypeDescriptor.*
+import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
+import com.avail.descriptor.types.ListPhraseTypeDescriptor.Companion.list
+import com.avail.descriptor.types.ListPhraseTypeDescriptor.Companion.zeroOrMoreList
+import com.avail.descriptor.types.ListPhraseTypeDescriptor.Companion.zeroOrOneList
 import com.avail.descriptor.types.PhraseTypeDescriptor.Constants.stringLiteralType
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.STATEMENT_PHRASE
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.Bootstrap
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Primitive.Flag.Private
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * The `P_ModuleHeaderPseudoMacro` primitive is used to parse module headers.
@@ -83,7 +88,7 @@ object P_ModuleHeaderPseudoMacro
 			newExpressionAsStatement(
 				newSendNode(
 					// Don't bother collecting tokens in header.
-					emptyTuple(),
+					emptyTuple,
 					MODULE_HEADER.bundle,
 					newListNode(
 						tupleFromArray(
@@ -93,7 +98,8 @@ object P_ModuleHeaderPseudoMacro
 							optionalNames,
 							optionalEntries,
 							optionalPragmas)),
-					TOP.o())))
+					TOP.o
+				)))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
@@ -119,14 +125,14 @@ object P_ModuleHeaderPseudoMacro
 								zeroOrOneList(list(
 									zeroOrMoreList(list(
 										// Negated import
-										LITERAL_PHRASE.create(booleanType()),
+										LITERAL_PHRASE.create(booleanType),
 										// Name
 										stringLiteralType,
 										// Replacement name
 										zeroOrOneList(stringLiteralType))),
 									// Final ellipsis (import all the rest)
 									LITERAL_PHRASE.create(
-										booleanType()))))))),
+										booleanType))))))),
 				/* Optional names */
 				zeroOrOneList(zeroOrMoreList(stringLiteralType)),
 				/* Optional entries */

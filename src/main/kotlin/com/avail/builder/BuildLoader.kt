@@ -1,6 +1,6 @@
 /*
  * BuildLoader.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,29 +43,31 @@ import com.avail.compiler.ModuleHeader
 import com.avail.compiler.problems.Problem
 import com.avail.compiler.problems.ProblemHandler
 import com.avail.compiler.problems.ProblemType.EXECUTION
-import com.avail.descriptor.FiberDescriptor.loaderPriority
-import com.avail.descriptor.FiberDescriptor.newLoaderFiber
-import com.avail.descriptor.ModuleDescriptor
-import com.avail.descriptor.ModuleDescriptor.newModule
+import com.avail.descriptor.fiber.FiberDescriptor.Companion.loaderPriority
+import com.avail.descriptor.fiber.FiberDescriptor.Companion.newLoaderFiber
+import com.avail.descriptor.fiber.FiberDescriptor.Companion.setSuccessAndFailure
 import com.avail.descriptor.functions.A_Function
-import com.avail.descriptor.tuples.StringDescriptor.formatString
-import com.avail.descriptor.tuples.StringDescriptor.stringFrom
-import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
-import com.avail.interpreter.AvailLoader
-import com.avail.interpreter.AvailLoader.Phase
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Interpreter.runOutermostFunction
+import com.avail.descriptor.module.ModuleDescriptor
+import com.avail.descriptor.module.ModuleDescriptor.Companion.newModule
+import com.avail.descriptor.tuples.StringDescriptor.Companion.formatString
+import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
+import com.avail.descriptor.types.A_Type.Companion.returnType
+import com.avail.interpreter.execution.AvailLoader
+import com.avail.interpreter.execution.AvailLoader.Phase
+import com.avail.interpreter.execution.Interpreter
+import com.avail.interpreter.execution.Interpreter.Companion.runOutermostFunction
 import com.avail.persistence.Repository
-import com.avail.persistence.Repository.*
+import com.avail.persistence.Repository.ModuleCompilation
+import com.avail.persistence.Repository.ModuleCompilationKey
+import com.avail.persistence.Repository.ModuleVersion
+import com.avail.persistence.Repository.ModuleVersionKey
 import com.avail.serialization.Deserializer
 import com.avail.serialization.MalformedSerialStreamException
 import com.avail.serialization.Serializer
-import com.avail.utility.MutableLong
 import com.avail.utility.evaluation.Combinator.recurse
 import java.io.ByteArrayOutputStream
 import java.lang.String.format
-import java.util.*
-import java.util.Collections.emptyList
 import java.util.concurrent.Semaphore
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
@@ -73,8 +75,8 @@ import java.util.logging.Level
 import kotlin.math.min
 
 /**
- * Used for parallel-loading modules in the [module
- * graph][AvailBuilder.moduleGraph].
+ * Used for parallel-loading modules in the
+ * [module&#32;graph][AvailBuilder.moduleGraph].
  *
  * @property availBuilder
  *   The [AvailBuilder] for which we're loading.
@@ -118,7 +120,7 @@ internal class BuildLoader constructor(
 	init
 	{
 		var size = 0L
-		for (mod in availBuilder.moduleGraph.vertices())
+		for (mod in availBuilder.moduleGraph.vertices)
 		{
 			size += mod.moduleSize
 		}
@@ -130,8 +132,8 @@ internal class BuildLoader constructor(
 	 * assumption that its predecessors have already been built.
 	 *
 	 * @param target
-	 *   The [resolved name][ResolvedModuleName] of the module that should be
-	 *   loaded.
+	 *   The [resolved&#32;name][ResolvedModuleName] of the module that should
+	 *   be loaded.
 	 * @param completionAction
 	 *   The action to perform after this module
 	 */
@@ -161,17 +163,17 @@ internal class BuildLoader constructor(
 	}
 
 	/**
-	 * Load the specified [module][ModuleDescriptor] into the [Avail
-	 * runtime][AvailRuntime]. If a current compiled module is available from
-	 * the [repository][Repository], then simply load it.
+	 * Load the specified [module][ModuleDescriptor] into the
+	 * [Avail&#32;runtime][AvailRuntime]. If a current compiled module is
+	 * available from the [repository][Repository], then simply load it.
 	 * Otherwise, [compile][AvailCompiler] the module, store it into the
 	 * repository, and then load it.
 	 *
 	 * Note that the predecessors of this module must have already been loaded.
 	 *
 	 * @param moduleName
-	 *   The [resolved name][ResolvedModuleName] of the module that should be
-	 *   loaded.
+	 *   The [resolved&#32;name][ResolvedModuleName] of the module that should
+	 *   be loaded.
 	 * @param completionAction
 	 *   What to do after loading the module successfully.
 	 */
@@ -182,7 +184,7 @@ internal class BuildLoader constructor(
 		globalTracker(bytesCompiled.get(), globalCodeSize)
 		// If the module is already loaded into the runtime, then we must not
 		// reload it.
-		val isLoaded = availBuilder.getLoadedModule(moduleName) != null
+		val isLoaded = availBuilder.getLoadedModule(moduleName) !== null
 
 		assert(isLoaded == availBuilder.runtime.includesModuleNamed(
 			stringFrom(moduleName.qualifiedName)))
@@ -205,8 +207,8 @@ internal class BuildLoader constructor(
 			val version = archive.getVersion(versionKey) ?: error(
 				"Version should have been populated during tracing")
 			val imports = version.imports
-			val resolver = availBuilder.runtime.moduleNameResolver()
-			val loadedModulesByName = HashMap<String, LoadedModule>()
+			val resolver = availBuilder.runtime.moduleNameResolver
+			val loadedModulesByName = mutableMapOf<String, LoadedModule>()
 			for (localName in imports)
 			{
 				val resolvedName: ResolvedModuleName
@@ -241,7 +243,7 @@ internal class BuildLoader constructor(
 			val compilationKey =
 				ModuleCompilationKey(predecessorCompilationTimes)
 			val compilation = version.getCompilation(compilationKey)
-			if (compilation != null)
+			if (compilation !== null)
 			{
 				// The current version of the module is already compiled, so
 				// load the repository's version.
@@ -268,8 +270,8 @@ internal class BuildLoader constructor(
 	 * Note that the predecessors of this module must have already been loaded.
 	 *
 	 * @param moduleName
-	 *   The [resolved name][ResolvedModuleName] of the module that should be
-	 *   loaded.
+	 *   The [resolved&#32;name][ResolvedModuleName] of the module that should
+	 *   be loaded.
 	 * @param version
 	 *   The [ModuleVersion] containing information about this module.
 	 * @param compilation
@@ -287,7 +289,7 @@ internal class BuildLoader constructor(
 		sourceDigest: ByteArray,
 		completionAction: ()->Unit)
 	{
-		localTracker(moduleName, moduleName.moduleSize, 0L)
+		localTracker(moduleName, moduleName.moduleSize, 0L, 0)
 		val module = newModule(stringFrom(moduleName.qualifiedName))
 		val availLoader = AvailLoader(module, availBuilder.textInterface)
 		availLoader.prepareForLoadingModuleBody()
@@ -300,7 +302,7 @@ internal class BuildLoader constructor(
 					1,
 					EXECUTION,
 					"Problem loading module: {0}",
-					e.localizedMessage)
+					e.localizedMessage ?: e.toString())
 				{
 					override fun abortCompilation()
 					{
@@ -319,8 +321,8 @@ internal class BuildLoader constructor(
 			val deserializer = Deserializer(inputStream, availBuilder.runtime)
 			val header = ModuleHeader(moduleName)
 			header.deserializeHeaderFrom(deserializer)
-			val errorString = header.applyToModule(module, availBuilder.runtime)
-			if (errorString != null)
+			val errorString = header.applyToModule(availLoader)
+			if (errorString !== null)
 			{
 				throw RuntimeException(errorString)
 			}
@@ -392,15 +394,13 @@ internal class BuildLoader constructor(
 							code.module().moduleName(),
 							code.startingLineNumber())
 					}
-					fiber.textInterface(availBuilder.textInterface)
+					fiber.setTextInterface(availBuilder.textInterface)
 					val before = captureNanos()
-					fiber.setSuccessAndFailureContinuations(
+					fiber.setSuccessAndFailure(
 						{
 							val after = captureNanos()
 							Interpreter.current().recordTopStatementEvaluation(
-								(after - before).toDouble(),
-								module,
-								function.code().startingLineNumber())
+								(after - before).toDouble(), module)
 							runNext()
 						},
 						fail)
@@ -439,14 +439,14 @@ internal class BuildLoader constructor(
 
 	/**
 	 * Compile the specified [module][ModuleDescriptor], store it into the
-	 * [repository][Repository], and then load it into the [Avail
-	 * runtime][AvailRuntime].
+	 * [repository][Repository], and then load it into the
+	 * [Avail&#32;runtime][AvailRuntime].
 	 *
 	 * Note that the predecessors of this module must have already been loaded.
 	 *
 	 * @param moduleName
-	 *   The [resolved name][ResolvedModuleName] of the module that should be
-	 *   loaded.
+	 *   The [resolved&#32;name][ResolvedModuleName] of the module that should
+	 *   be loaded.
 	 * @param compilationKey
 	 *   The circumstances of compilation of this module.  Currently this is
 	 *   just the compilation times (`long`s) of the module's currently loaded
@@ -464,25 +464,25 @@ internal class BuildLoader constructor(
 		val archive = repository.getArchive(moduleName.rootRelativeName)
 		val digest = archive.digestForFile(moduleName)
 		val versionKey = ModuleVersionKey(moduleName, digest)
-		val lastPosition = MutableLong(0L)
+		var lastPosition = 0L
 		val ranOnce = AtomicBoolean(false)
 		AvailCompiler.create(
 			moduleName,
 			availBuilder.textInterface,
 			availBuilder.pollForAbort,
-			{ moduleName2, moduleSize, position ->
+			{ moduleName2, moduleSize, position, line ->
 				assert(moduleName == moduleName2)
 				// Don't reach the full module size yet.  A separate update at
 				// 100% will be sent after post-loading actions are complete.
 				localTracker(
-					moduleName, moduleSize, min(position, moduleSize - 1))
+					moduleName, moduleSize, min(position, moduleSize - 1), line)
 				globalTracker(
-					bytesCompiled.addAndGet(position - lastPosition.value),
+					bytesCompiled.addAndGet(position - lastPosition),
 					globalCodeSize)
-				lastPosition.value = position
+				lastPosition = position
 			},
 			{
-				postLoad(moduleName, lastPosition.value)
+				postLoad(moduleName, lastPosition)
 				completionAction()
 			},
 			problemHandler
@@ -508,14 +508,14 @@ internal class BuildLoader constructor(
 					// TODO MvG - Capture "/**" comments for Stacks.
 					//		final A_Tuple comments = fromList(
 					//         module.commentTokens());
-					val comments = emptyTuple()
+					val comments = emptyTuple
 					serializer.serialize(comments)
 					val version = archive.getVersion(versionKey)!!
 					version.putComments(appendCRC(out.toByteArray()))
 
 					repository.commitIfStaleChanges(
 						AvailBuilder.maximumStaleRepositoryMs)
-					postLoad(moduleName, lastPosition.value)
+					postLoad(moduleName, lastPosition)
 					availBuilder.putLoadedModule(
 						moduleName,
 						LoadedModule(
@@ -527,7 +527,7 @@ internal class BuildLoader constructor(
 					completionAction()
 				},
 				{
-					postLoad(moduleName, lastPosition.value)
+					postLoad(moduleName, lastPosition)
 					completionAction()
 				})
 		}
@@ -539,7 +539,7 @@ internal class BuildLoader constructor(
 	 * the module.
 	 *
 	 * @param moduleName
-	 *   The [resolved name][ResolvedModuleName] of the module that just
+	 *   The [resolved&#32;name][ResolvedModuleName] of the module that just
 	 *   finished loading.
 	 * @param lastPosition
 	 *   The last local file position previously reported.
@@ -550,7 +550,7 @@ internal class BuildLoader constructor(
 		globalTracker(
 			bytesCompiled.addAndGet(moduleSize - lastPosition),
 			globalCodeSize)
-		localTracker(moduleName, moduleSize, moduleSize)
+		localTracker(moduleName, moduleSize, moduleSize, Int.MAX_VALUE)
 	}
 
 	/**
@@ -563,17 +563,17 @@ internal class BuildLoader constructor(
 	fun loadThen(afterAll: ()->Unit)
 	{
 		bytesCompiled.set(0L)
-		val vertexCountBefore = availBuilder.moduleGraph.vertexCount()
+		val vertexCountBefore = availBuilder.moduleGraph.vertexCount
 		availBuilder.moduleGraph.parallelVisitThen(
 			{ vertex, done -> scheduleLoadModule(vertex, done) },
 			{
 				try
 				{
 					assert(
-						availBuilder.moduleGraph.vertexCount()
+						availBuilder.moduleGraph.vertexCount
 							== vertexCountBefore)
 					availBuilder.runtime
-						.moduleNameResolver()
+						.moduleNameResolver
 						.commitRepositories()
 					// Parallel load has now completed or failed. Clean up any
 					// modules that didn't load.  There can be no loaded

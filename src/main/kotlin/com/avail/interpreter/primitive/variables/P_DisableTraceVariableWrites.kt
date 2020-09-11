@@ -1,6 +1,6 @@
 /*
  * P_DisableTraceVariableWrites.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,32 +32,36 @@
 
 package com.avail.interpreter.primitive.variables
 
-import com.avail.descriptor.FiberDescriptor
-import com.avail.descriptor.FiberDescriptor.TraceFlag
-import com.avail.descriptor.sets.SetDescriptor.emptySet
-import com.avail.descriptor.sets.SetDescriptor.set
-import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+import com.avail.descriptor.fiber.FiberDescriptor
+import com.avail.descriptor.fiber.FiberDescriptor.TraceFlag
+import com.avail.descriptor.functions.A_Function
+import com.avail.descriptor.sets.A_Set
+import com.avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
+import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.wholeNumbers
-import com.avail.descriptor.types.SetTypeDescriptor.setTypeForSizesContentType
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
+import com.avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
+import com.avail.descriptor.variables.A_Variable
 import com.avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
 import com.avail.exceptions.AvailErrorCode.E_ILLEGAL_TRACE_MODE
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
 import com.avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
+import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Disable [variable write tracing
- * ][TraceFlag.TRACE_VARIABLE_WRITES] for the [current fiber
- * ][FiberDescriptor.currentFiber]. For each [variable][A_Variable] that
- * survived tracing, accumulate the variable's [write
- * reactor][VariableAccessReactor] [functions][A_Function] into a [set][A_Set].
- * Clear the write reactors for each variable written. Answer the set of
- * functions.
+ * **Primitive:** Disable
+ * [variable&#32;write&#32;tracing][TraceFlag.TRACE_VARIABLE_WRITES] for
+ * the [current&#32;fiber][FiberDescriptor.currentFiber]. For each
+ * [variable][A_Variable] that survived tracing, accumulate the variable's
+ * [write&#32;reactor][VariableAccessReactor] [functions][A_Function] into a
+ * [set][A_Set]. Clear the write reactors for each variable written. Answer the
+ * set of functions.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -75,7 +79,7 @@ object P_DisableTraceVariableWrites : Primitive(
 		}
 		interpreter.setTraceVariableWrites(false)
 		val written = fiber.variablesWritten()
-		var functions = emptySet()
+		var functions = emptySet
 		for (variable in written)
 		{
 			functions = functions.setUnionCanDestroy(
@@ -86,12 +90,13 @@ object P_DisableTraceVariableWrites : Primitive(
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			emptyTuple(),
+			emptyTuple,
 			setTypeForSizesContentType(
-				wholeNumbers(),
+				wholeNumbers,
 				functionType(
-					emptyTuple(),
-					TOP.o())))
+					emptyTuple,
+					TOP.o
+				)))
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_ILLEGAL_TRACE_MODE))

@@ -1,6 +1,6 @@
 /*
  * AbstractBuilderFrameTreeNode.java
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,9 +41,8 @@ import com.avail.environment.nodes.AbstractBuilderFrameTreeNode.Companion.Rename
 import com.avail.environment.nodes.AbstractBuilderFrameTreeNode.Companion.RenamedState.Renamed
 import com.avail.environment.nodes.AbstractBuilderFrameTreeNode.Companion.SelectedState.Selected
 import com.avail.environment.nodes.AbstractBuilderFrameTreeNode.Companion.SelectedState.Unselected
-import com.avail.utility.Casts.cast
 import com.avail.utility.LRUCache
-import com.avail.utility.Pair
+import com.avail.utility.cast
 import com.avail.utility.ifZero
 import java.awt.Color
 import java.awt.Image
@@ -108,9 +107,7 @@ abstract class AbstractBuilderFrameTreeNode internal constructor(
 	fun icon(lineHeight: Int): ImageIcon?
 	{
 		val iconResourceName = iconResourceName() ?: return null
-		val pair = Pair(
-			iconResourceName,
-			if (lineHeight != 0) lineHeight else 19)
+		val pair = iconResourceName to lineHeight.ifZero { 19 }
 		return cachedScaledIcons[pair]
 	}
 
@@ -150,11 +147,11 @@ abstract class AbstractBuilderFrameTreeNode internal constructor(
 	 */
 	fun sortChildren()
 	{
-		if (children != null)
+		if (children !== null)
 		{
 			// HACK to make children (Vector!) sortable
 			val temp: MutableList<AbstractBuilderFrameTreeNode> =
-				cast(children.toMutableList())
+				children.toMutableList().cast()
 			temp.sort()
 			children.clear()
 			children.addAll(temp)
@@ -164,7 +161,7 @@ abstract class AbstractBuilderFrameTreeNode internal constructor(
 	/**
 	 * The primary order by which to sort this node relative to siblings.
 	 *
-	 * @return An `int`.  Lower values sort before higher ones.
+	 * @return An [Int].  Lower values sort before higher ones.
 	 */
 	open val sortMajor: Int get() = 0
 

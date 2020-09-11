@@ -1,6 +1,6 @@
 /*
  * P_IsSubtypeOf.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,20 +35,27 @@ import com.avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import com.avail.descriptor.functions.A_RawFunction
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.EnumerationTypeDescriptor.booleanType
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.InstanceMetaDescriptor.topMeta
-import com.avail.interpreter.Interpreter
+import com.avail.descriptor.types.A_Type.Companion.instance
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CanFold
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import com.avail.interpreter.levelTwo.operation.*
+import com.avail.interpreter.levelTwo.operation.L2_GET_TYPE
+import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT
+import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_SUBTYPE_OF_CONSTANT
+import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_SUBTYPE_OF_OBJECT
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
-import com.avail.optimizer.L2Generator.edgeTo
+import com.avail.optimizer.L2Generator.Companion.edgeTo
 
 /**
  * **Primitive:** Answer whether type1 is a subtype of type2 (or equal).
@@ -70,7 +77,7 @@ object P_IsSubtypeOf : Primitive(2, CannotFail, CanFold, CanInline)
 			tuple(
 				topMeta(),
 				topMeta()),
-			booleanType())
+			booleanType)
 
 	/**
 	 * Some identities apply.  The terms x and y are the values being compared
@@ -92,13 +99,10 @@ object P_IsSubtypeOf : Primitive(2, CannotFail, CanFold, CanInline)
 		translator: L1Translator,
 		callSiteHelper: CallSiteHelper): Boolean
 	{
-		val xTypeReg = arguments[0]
-		val yTypeReg = arguments[1]
+		val (xTypeReg, yTypeReg) = arguments
 
-		val xMeta = xTypeReg.type()
-		val yMeta = yTypeReg.type()
-		val xType = xMeta.instance()
-		val yType = yMeta.instance()
+		val xType = xTypeReg.type().instance()
+		val yType = yTypeReg.type().instance()
 
 		val constantYType = yTypeReg.constantOrNull()
 		if (constantYType !== null)
@@ -109,7 +113,7 @@ object P_IsSubtypeOf : Primitive(2, CannotFail, CanFold, CanInline)
 				// The y type is known precisely, and the x type is constrained
 				// to always be a subtype of it.
 				callSiteHelper.useAnswer(
-					translator.generator.boxedConstant(trueObject()))
+					translator.generator.boxedConstant(trueObject))
 				return true
 			}
 		}
@@ -125,7 +129,7 @@ object P_IsSubtypeOf : Primitive(2, CannotFail, CanFold, CanInline)
 				// specific at runtime, but x still can't be a subtype of the
 				// stronger y.
 				callSiteHelper.useAnswer(
-					translator.generator.boxedConstant(falseObject()))
+					translator.generator.boxedConstant(falseObject))
 				return true
 			}
 		}
@@ -136,7 +140,7 @@ object P_IsSubtypeOf : Primitive(2, CannotFail, CanFold, CanInline)
 			// looking for a constant x, since ⊥'s type is special and doesn't
 			// report that it only has one instance (i.e., ⊥).
 			callSiteHelper.useAnswer(
-				translator.generator.boxedConstant(trueObject()))
+				translator.generator.boxedConstant(trueObject))
 			return true
 		}
 
@@ -144,7 +148,7 @@ object P_IsSubtypeOf : Primitive(2, CannotFail, CanFold, CanInline)
 		val ifNotSubtype = translator.generator.createBasicBlock("not subtype")
 
 		val xDef = xTypeReg.definitionSkippingMoves(true)
-		if (xDef.operation() == L2_GET_TYPE.instance)
+		if (xDef.operation() == L2_GET_TYPE)
 		{
 			// X is an L2_GET_TYPE of some other register.
 			// Convert this into an L2_JUMP_IF_KIND_OF_OBJECT/CONSTANT, but
@@ -153,12 +157,12 @@ object P_IsSubtypeOf : Primitive(2, CannotFail, CanFold, CanInline)
 			if (constantYType !== null)
 			{
 				translator.jumpIfKindOfConstant(
-					xInstanceRead, constantYType, ifSubtype, ifNotSubtype);
+					xInstanceRead, constantYType, ifSubtype, ifNotSubtype)
 			}
 			else
 			{
 				translator.addInstruction(
-					L2_JUMP_IF_KIND_OF_OBJECT.instance,
+					L2_JUMP_IF_KIND_OF_OBJECT,
 					xInstanceRead,
 					yTypeReg,
 					edgeTo(ifSubtype),
@@ -168,7 +172,7 @@ object P_IsSubtypeOf : Primitive(2, CannotFail, CanFold, CanInline)
 		else if (constantYType !== null)
 		{
 			translator.addInstruction(
-				L2_JUMP_IF_SUBTYPE_OF_CONSTANT.instance,
+				L2_JUMP_IF_SUBTYPE_OF_CONSTANT,
 				xTypeReg,
 				L2ConstantOperand(constantYType),
 				edgeTo(ifSubtype),
@@ -177,7 +181,7 @@ object P_IsSubtypeOf : Primitive(2, CannotFail, CanFold, CanInline)
 		else
 		{
 			translator.addInstruction(
-				L2_JUMP_IF_SUBTYPE_OF_OBJECT.instance,
+				L2_JUMP_IF_SUBTYPE_OF_OBJECT,
 				xTypeReg,
 				yTypeReg,
 				edgeTo(ifSubtype),
@@ -185,10 +189,10 @@ object P_IsSubtypeOf : Primitive(2, CannotFail, CanFold, CanInline)
 		}
 		translator.generator.startBlock(ifSubtype)
 		callSiteHelper.useAnswer(
-			translator.generator.boxedConstant(trueObject()))
+			translator.generator.boxedConstant(trueObject))
 		translator.generator.startBlock(ifNotSubtype)
 		callSiteHelper.useAnswer(
-			translator.generator.boxedConstant(falseObject()))
+			translator.generator.boxedConstant(falseObject))
 		return true
 	}
 }

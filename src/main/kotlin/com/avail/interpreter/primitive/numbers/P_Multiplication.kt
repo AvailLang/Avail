@@ -1,6 +1,6 @@
 /*
  * P_Multiplication.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,36 +33,49 @@ package com.avail.interpreter.primitive.numbers
 
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.numbers.A_Number
-import com.avail.descriptor.numbers.AbstractNumberDescriptor.binaryNumericOperationTypeBound
-import com.avail.descriptor.numbers.InfinityDescriptor.negativeInfinity
-import com.avail.descriptor.numbers.InfinityDescriptor.positiveInfinity
-import com.avail.descriptor.numbers.IntegerDescriptor.*
-import com.avail.descriptor.sets.SetDescriptor.emptySet
-import com.avail.descriptor.sets.SetDescriptor.set
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.numbers.A_Number.Companion.equalsInt
+import com.avail.descriptor.numbers.A_Number.Companion.timesCanDestroy
+import com.avail.descriptor.numbers.AbstractNumberDescriptor.Companion.binaryNumericOperationTypeBound
+import com.avail.descriptor.numbers.InfinityDescriptor.Companion.negativeInfinity
+import com.avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.negativeOne
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.one
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
+import com.avail.descriptor.sets.A_Set.Companion.setSize
+import com.avail.descriptor.sets.A_Set.Companion.setWithElementCanDestroy
+import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.types.BottomTypeDescriptor.bottom
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.*
+import com.avail.descriptor.types.A_Type.Companion.instances
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import com.avail.descriptor.types.A_Type.Companion.lowerBound
+import com.avail.descriptor.types.A_Type.Companion.typeIntersection
+import com.avail.descriptor.types.A_Type.Companion.typeUnion
+import com.avail.descriptor.types.A_Type.Companion.upperBound
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
+import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int32
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
 import com.avail.descriptor.types.TypeDescriptor.Types.NUMBER
 import com.avail.exceptions.ArithmeticException
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_MULTIPLY_ZERO_AND_INFINITY
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Fallibility.CallSiteCanFail
 import com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT
-import com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForType
 import com.avail.interpreter.levelTwo.operation.L2_MULTIPLY_INT_BY_INT
 import com.avail.interpreter.levelTwo.operation.L2_MULTIPLY_INT_BY_INT_MOD_32_BITS
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
-import com.avail.optimizer.L2Generator.edgeTo
-import java.util.*
+import com.avail.optimizer.L2Generator.Companion.edgeTo
 
 /**
  * **Primitive:** Multiply two extended integers.
@@ -83,11 +96,10 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 		{
 			interpreter.primitiveFailure(e)
 		}
-
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(NUMBER.o(), NUMBER.o()), NUMBER.o())
+		functionType(tuple(NUMBER.o, NUMBER.o), NUMBER.o)
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type
@@ -106,7 +118,7 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 			// be few enough entries.
 			if (aValues.setSize() * bValues.setSize().toLong() < 100)
 			{
-				var answers = emptySet()
+				var answers = emptySet
 				for (aValue in aValues)
 				{
 					for (bValue in bValues)
@@ -159,10 +171,10 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 		private val aType: A_Type, private val bType: A_Type)
 	{
 		/** Accumulate the range.  */
-		private var union = bottom()
+		private var union = bottom
 
 		/** The infinities that should be included in the result.  */
-		private val includedInfinities = HashSet<A_Number>(2)
+		private val includedInfinities = mutableSetOf<A_Number>()
 
 		/**
 		 * Given an element from aType and an element from bType, extend the
@@ -220,7 +232,7 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 				}
 			}
 			// Trim off the infinities for now...
-			union = union.typeIntersection(integers())
+			union = union.typeIntersection(integers)
 			// ...and add them back if needed.
 			for (infinity in includedInfinities)
 			{
@@ -291,8 +303,8 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 
 		// If either of the argument types does not intersect with int32, then
 		// fall back to the primitive invocation.
-		if (aType.typeIntersection(int32()).isBottom
-		    || bType.typeIntersection(int32()).isBottom)
+		if (aType.typeIntersection(int32).isBottom
+		    || bType.typeIntersection(int32).isBottom)
 		{
 			return false
 		}
@@ -309,14 +321,13 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 			// available unboxed arithmetic.
 			val returnTypeIfInts = returnTypeGuaranteedByVM(
 				rawFunction,
-				argumentTypes.map { it.typeIntersection(int32()) })
-			val semanticTemp =
-				generator.topFrame.temp(generator.nextUnique())
+				argumentTypes.map { it.typeIntersection(int32) })
+			val semanticTemp = generator.topFrame.temp(generator.nextUnique())
 			val tempWriter =
 				generator.intWrite(
 					semanticTemp,
 					restrictionForType(returnTypeIfInts, UNBOXED_INT))
-			if (returnTypeIfInts.isSubtypeOf(int32()))
+			if (returnTypeIfInts.isSubtypeOf(int32))
 			{
 				// The result is guaranteed not to overflow, so emit an
 				// instruction that won't bother with an overflow check.  Note
@@ -324,7 +335,7 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 				// synonym, so subsequent uses of the result might use either
 				// register, depending whether an unboxed value is desired.
 				translator.addInstruction(
-					L2_MULTIPLY_INT_BY_INT_MOD_32_BITS.instance,
+					L2_MULTIPLY_INT_BY_INT_MOD_32_BITS,
 					intA,
 					intB,
 					tempWriter)
@@ -335,7 +346,7 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 				val success =
 					generator.createBasicBlock("product is in range")
 				translator.addInstruction(
-					L2_MULTIPLY_INT_BY_INT.instance,
+					L2_MULTIPLY_INT_BY_INT,
 					intA,
 					intB,
 					tempWriter,

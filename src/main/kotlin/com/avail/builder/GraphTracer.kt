@@ -1,6 +1,6 @@
 /*
  * GraphTracer.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,6 @@ package com.avail.builder
 import com.avail.builder.AvailBuilder.ModuleTree
 import com.avail.io.SimpleCompletionHandler
 import com.avail.utility.Graph
-import com.avail.utility.MutableInt
 import com.avail.utility.Strings.tab
 import com.avail.utility.dot.DotWriter
 import java.io.File
@@ -44,7 +43,7 @@ import java.lang.String.format
 import java.nio.channels.AsynchronousFileChannel
 import java.nio.charset.StandardCharsets
 import java.nio.file.StandardOpenOption
-import java.util.*
+import java.util.EnumSet
 
 /**
  * Used for graphics generation.
@@ -80,13 +79,13 @@ internal class GraphTracer constructor(
 	 * All full names that have been encountered for nodes so far, with their
 	 * more readable abbreviations.
 	 */
-	private val encounteredNames: MutableMap<String, String> = HashMap()
+	private val encounteredNames: MutableMap<String, String> = mutableMapOf()
 
 	/**
 	 * All abbreviated names that have been allocated so far as values of
 	 * [encounteredNames].
 	 */
-	private val allocatedNames: MutableSet<String> = HashSet()
+	private val allocatedNames = mutableSetOf<String>()
 
 	/**
 	 * Scan all module files in all visible source directories, writing the
@@ -98,7 +97,7 @@ internal class GraphTracer constructor(
 		{
 			val ancestry =
 				availBuilder.moduleGraph.ancestryOfAll(setOf(targetModule))
-			val dag = ancestry.spanningDag()
+			val dag = ancestry.spanningDag
 			val reduced = ancestry.withoutRedundantEdges(dag)
 			renderGraph(reduced, dag)
 		}
@@ -196,14 +195,14 @@ internal class GraphTracer constructor(
 		reducedGraph: Graph<ResolvedModuleName>,
 		spanningDag: Graph<ResolvedModuleName>)
 	{
-		assert(reducedGraph.vertexCount() == spanningDag.vertexCount())
-		val trees = HashMap<String, ModuleTree>()
+		assert(reducedGraph.vertexCount == spanningDag.vertexCount)
+		val trees = mutableMapOf<String, ModuleTree>()
 		val root = ModuleTree(
 			"root_",
 			"Module Dependencies",
 			null)
 		trees[""] = root
-		for (moduleName in reducedGraph.vertices())
+		for (moduleName in reducedGraph.vertices)
 		{
 			var string = moduleName.qualifiedName
 			var node: ModuleTree? = ModuleTree(
@@ -216,7 +215,7 @@ internal class GraphTracer constructor(
 				string = string.substring(0, string.lastIndexOf('/'))
 				val previous = node!!
 				node = trees[string]
-				if (node == null)
+				if (node === null)
 				{
 					node = ModuleTree(
 						asNodeName(string),
@@ -267,7 +266,7 @@ internal class GraphTracer constructor(
 							append(node.safeLabel)
 							append(";\n\n")
 						}
-						node.resolvedModuleName == null -> {
+						node.resolvedModuleName === null -> {
 							append("subgraph cluster_")
 							append(node.node)
 							append('\n')
@@ -295,7 +294,7 @@ internal class GraphTracer constructor(
 					if (node === root) {
 						append("\n")
 						// Output *all* the edges.
-						for (from in reducedGraph.vertices()) {
+						for (from in reducedGraph.vertices) {
 							val qualified = from.qualifiedName
 							val fromNode = trees[qualified]!!
 							val parts = qualified
@@ -310,7 +309,7 @@ internal class GraphTracer constructor(
 								append(fromNode.node)
 								append(" -> ")
 								append(toName)
-								val edgeStrings = ArrayList<String>()
+								val edgeStrings = mutableListOf<String>()
 								if (fromPackage) {
 									val parent = fromNode.parent!!
 									val parentName = "cluster_" + parent.node
@@ -333,7 +332,7 @@ internal class GraphTracer constructor(
 						}
 						tab(depth)
 						append("}\n")
-					} else if (node.resolvedModuleName == null) {
+					} else if (node.resolvedModuleName === null) {
 						tab(depth)
 						append("}\n")
 					}
@@ -353,16 +352,19 @@ internal class GraphTracer constructor(
 		}
 
 		val buffer = StandardCharsets.UTF_8.encode(out)
-		val position = MutableInt(0)
-		SimpleCompletionHandler<Int, Any?>(
-			{ result, _, handler ->
-				position.value += result
+		var position = 0
+		SimpleCompletionHandler<Int>(
+			{
+				position += value
 				if (buffer.hasRemaining()) {
-					handler.guardedDo(
-						channel::write, buffer, position.value.toLong(), null)
+					handler.guardedDo {
+						channel.write(buffer, position.toLong(), dummy, handler)
+					}
 				}
 			},
-			{ _, _, _ -> }
-		).guardedDo(channel::write, buffer, 0L, null)
+			{ }
+		).guardedDo {
+			channel.write(buffer, 0L, dummy, handler)
+		}
 	}
 }

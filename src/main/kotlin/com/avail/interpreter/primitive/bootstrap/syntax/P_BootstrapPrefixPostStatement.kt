@@ -1,6 +1,6 @@
 /*
  * P_BootstrapPrefixPostStatement.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,22 +34,28 @@ package com.avail.interpreter.primitive.bootstrap.syntax
 
 import com.avail.compiler.AvailRejectedParseException
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.WEAK
-import com.avail.descriptor.NilDescriptor.nil
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.phrases.A_Phrase.Companion.lastExpression
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
+import com.avail.descriptor.phrases.A_Phrase.Companion.token
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.InstanceMetaDescriptor.anyMeta
-import com.avail.descriptor.types.InstanceMetaDescriptor.topMeta
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
+import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.STATEMENT_PHRASE
-import com.avail.descriptor.types.TupleTypeDescriptor.*
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrOneOf
 import com.avail.descriptor.types.TypeDescriptor.Types.TOKEN
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.Bootstrap
 import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * The `P_BootstrapPrefixPostStatement` primitive is used for ensuring that
@@ -76,7 +82,7 @@ object P_BootstrapPrefixPostStatement : Primitive(4, CanInline, Bootstrap)
 		// only be invoked if there is at least one statement.
 		val latestStatementLiteral = statementsPhrase.lastExpression()
 		val latestStatement = latestStatementLiteral.token().literal()
-		if (!latestStatement.expressionType().equals(TOP.o()))
+		if (!latestStatement.phraseExpressionType().equals(TOP.o))
 		{
 			throw AvailRejectedParseException(WEAK, "statement to have type ⊤")
 		}
@@ -95,7 +101,7 @@ object P_BootstrapPrefixPostStatement : Primitive(4, CanInline, Bootstrap)
 							// An argument.
 							tupleTypeForTypes(
 								// Argument name, a token.
-								TOKEN.o(),
+								TOKEN.o,
 								// Argument type.
 								anyMeta())))),
 				// Macro argument is a phrase.
@@ -105,13 +111,13 @@ object P_BootstrapPrefixPostStatement : Primitive(4, CanInline, Bootstrap)
 						// Primitive declaration
 						tupleTypeForTypes(
 							// Primitive name.
-							TOKEN.o(),
+							TOKEN.o,
 							// Optional failure variable declaration.
 							zeroOrOneOf(
 								// Primitive failure variable parts.
 								tupleTypeForTypes(
 									// Primitive failure variable name token
-									TOKEN.o(),
+									TOKEN.o,
 									// Primitive failure variable type
 									anyMeta()))))),
 				// Macro argument is a phrase.
@@ -121,7 +127,7 @@ object P_BootstrapPrefixPostStatement : Primitive(4, CanInline, Bootstrap)
 						// Label parts.
 						tupleTypeForTypes(
 							// Label name
-							TOKEN.o(),
+							TOKEN.o,
 							// Optional label return type.
 							zeroOrOneOf(
 								// Label return type.
@@ -132,7 +138,8 @@ object P_BootstrapPrefixPostStatement : Primitive(4, CanInline, Bootstrap)
 					zeroOrMoreOf(
 						// The "_!" mechanism wrapped each statement or
 						// declaration inside a literal phrase, so expect a
-						// phrase here instead of TOP.o().
+						// phrase here instead of TOP.o.
 						STATEMENT_PHRASE.mostGeneralType()))),
-			TOP.o())
+			TOP.o
+		)
 }

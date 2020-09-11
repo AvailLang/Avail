@@ -1,6 +1,6 @@
 /*
  * PrimitiveThrownException.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,13 +32,13 @@
 
 package com.avail.exceptions
 
-import com.avail.descriptor.A_Fiber
-import com.avail.descriptor.FiberDescriptor
+import com.avail.descriptor.fiber.A_Fiber
+import com.avail.descriptor.fiber.FiberDescriptor
 
 /**
  * A `PrimitiveThrownException` may be thrown from a primitive as a way to
  * terminate a [fiber][FiberDescriptor], causing its
- * [failure continuation][A_Fiber.failureContinuation] to be executed.
+ * [failure&#32;continuation][A_Fiber.failureContinuation] to be executed.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */

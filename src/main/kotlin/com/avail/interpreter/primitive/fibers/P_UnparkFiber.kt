@@ -1,6 +1,6 @@
 /*
  * P_UnparkFiber.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,29 +32,30 @@
 
 package com.avail.interpreter.primitive.fibers
 
-import com.avail.AvailRuntime.currentRuntime
-import com.avail.descriptor.FiberDescriptor
-import com.avail.descriptor.FiberDescriptor.ExecutionState.PARKED
-import com.avail.descriptor.FiberDescriptor.ExecutionState.SUSPENDED
-import com.avail.descriptor.FiberDescriptor.SynchronizationFlag
-import com.avail.descriptor.FiberDescriptor.SynchronizationFlag.PERMIT_UNAVAILABLE
-import com.avail.descriptor.NilDescriptor.nil
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.AvailRuntime.Companion.currentRuntime
+import com.avail.descriptor.fiber.FiberDescriptor
+import com.avail.descriptor.fiber.FiberDescriptor.ExecutionState.PARKED
+import com.avail.descriptor.fiber.FiberDescriptor.ExecutionState.SUSPENDED
+import com.avail.descriptor.fiber.FiberDescriptor.SynchronizationFlag
+import com.avail.descriptor.fiber.FiberDescriptor.SynchronizationFlag.PERMIT_UNAVAILABLE
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.FiberTypeDescriptor.mostGeneralFiberType
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.FiberTypeDescriptor.Companion.mostGeneralFiberType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Interpreter.resumeFromSuccessfulPrimitive
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
-import com.avail.utility.evaluation.Continuation0
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.execution.Interpreter
+import com.avail.interpreter.execution.Interpreter.Companion.resumeFromSuccessfulPrimitive
 
 /**
  * **Primitive:** Unpark the specified [fiber][FiberDescriptor]. If the
- * [permit ][SynchronizationFlag.PERMIT_UNAVAILABLE] associated with the fiber
- * is available, then simply continue. If the permit is not available, then
- * restore the permit and schedule
+ * [permit][SynchronizationFlag.PERMIT_UNAVAILABLE] associated with the fiber is
+ * available, then simply continue. If the permit is not available, then restore
+ * the permit and schedule
  * [resumption][Interpreter.resumeFromSuccessfulPrimitive] of the fiber. A newly
  * unparked fiber should always recheck the basis for its having parked, to see
  * if it should park again. Low-level synchronization mechanisms may require the
@@ -70,13 +71,13 @@ object P_UnparkFiber : Primitive(1, CannotFail, CanInline, HasSideEffect)
 		interpreter.checkArgumentCount(1)
 		val fiber = interpreter.argument(0)
 		with(fiber) {
-			lock(Continuation0 {
+			lock {
 				// Restore the permit. If the fiber is parked, then unpark it.
 				getAndSetSynchronizationFlag(PERMIT_UNAVAILABLE, false)
 				when {
 					executionState() === PARKED -> {
 						// Wake up the fiber.
-						executionState(SUSPENDED)
+						setExecutionState(SUSPENDED)
 						val suspendingPrimitive =
 							suspendingFunction().code().primitive()!!
 						assert(suspendingPrimitive === P_ParkCurrentFiber
@@ -89,11 +90,11 @@ object P_UnparkFiber : Primitive(1, CannotFail, CanInline, HasSideEffect)
 						getAndSetSynchronizationFlag(PERMIT_UNAVAILABLE, false)
 					}
 				}
-			})
+			}
 		}
 		return interpreter.primitiveSuccess(nil)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(mostGeneralFiberType()), TOP.o())
+		functionType(tuple(mostGeneralFiberType()), TOP.o)
 }

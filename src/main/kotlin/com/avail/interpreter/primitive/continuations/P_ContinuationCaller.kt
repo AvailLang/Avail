@@ -1,6 +1,6 @@
 /*
  * P_ContinuationCaller.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,22 +32,25 @@
 package com.avail.interpreter.primitive.continuations
 
 import com.avail.descriptor.functions.ContinuationDescriptor
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.ContinuationTypeDescriptor.mostGeneralContinuationType
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.VariableTypeDescriptor.variableTypeFor
+import com.avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralContinuationType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import com.avail.descriptor.variables.VariableDescriptor
-import com.avail.descriptor.variables.VariableDescriptor.newVariableWithContentType
-import com.avail.interpreter.Interpreter
+import com.avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithContentType
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CanFold
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Answer a [variable][VariableDescriptor] containing the caller
  * of the specified [continuation][ContinuationDescriptor]. The variable will be
  * unassigned if the continuation has no caller.
  */
+@Suppress("unused")
 object P_ContinuationCaller : Primitive(1, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

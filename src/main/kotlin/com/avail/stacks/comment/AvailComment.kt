@@ -1,19 +1,19 @@
 /*
  * AvailComment.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  Redistributions of source code must retain the above copyright notice, this
+ * * Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- *  Redistributions in binary form must reproduce the above copyright notice,
+ * * Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
  *
- *  Neither the name of the copyright holder nor the names of the contributors
+ * * Neither the name of the copyright holder nor the names of the contributors
  *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
@@ -91,18 +91,19 @@ import com.avail.utility.json.JSONWriter
 abstract class AvailComment internal constructor(
 	internal val signature: CommentSignature,
 	internal val commentStartLine: Int,
-	internal val authors: MutableList<StacksAuthorTag>,
-	internal val sees: MutableList<StacksSeeTag>,
+	internal val authors: List<StacksAuthorTag>,
+	internal val sees: List<StacksSeeTag>,
 	internal val description: StacksDescription,
-	internal val categories: MutableList<StacksCategoryTag>,
-	internal val aliases: MutableList<StacksAliasTag>,
+	internal val categories: List<StacksCategoryTag>,
+	internal val aliases: List<StacksAliasTag>,
 	val isSticky: Boolean)
 {
 	/** A set of category String names for this implementation. */
+	@Suppress("unused")
 	val categorySet: MutableSet<String>
 		get()
 		{
-			val categorySet = HashSet<String>()
+			val categorySet = mutableSetOf<String>()
 			for (aTag in categories)
 			{
 				categorySet.addAll(aTag.categorySet)

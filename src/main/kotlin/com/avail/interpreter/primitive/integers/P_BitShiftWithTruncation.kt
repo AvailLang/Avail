@@ -1,6 +1,6 @@
 /*
  * P_BitShiftWithTruncation.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,19 +32,20 @@
 
 package com.avail.interpreter.primitive.integers
 
-import com.avail.descriptor.sets.SetDescriptor.set
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.numbers.A_Number.Companion.bitShiftLeftTruncatingToBits
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.integers
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.wholeNumbers
-import com.avail.exceptions.AvailErrorCode.E_SHIFT_AND_TRUNCATE_REQUIRES_NON_NEGATIVE
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
+import com.avail.exceptions.ArithmeticException
 import com.avail.exceptions.AvailErrorCode.E_TOO_LARGE_TO_REPRESENT
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Given a positive integer B, a shift factor S, and a truncation
@@ -63,18 +64,23 @@ object P_BitShiftWithTruncation : Primitive(3, CanInline, CanFold)
 		val baseInteger = interpreter.argument(0)
 		val shiftFactor = interpreter.argument(1)
 		val truncationBits = interpreter.argument(2)
-		return interpreter.primitiveSuccess(
-			baseInteger.bitShiftLeftTruncatingToBits(
-				shiftFactor, truncationBits, true))
+		return try
+		{
+			return interpreter.primitiveSuccess(
+				baseInteger.bitShiftLeftTruncatingToBits(
+					shiftFactor, truncationBits, true))
+		}
+		catch (e: ArithmeticException)
+		{
+			interpreter.primitiveFailure(e)
+		}
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(wholeNumbers(), integers(), wholeNumbers()), wholeNumbers())
+			tuple(wholeNumbers, integers, wholeNumbers), wholeNumbers
+		)
 
 	override fun privateFailureVariableType(): A_Type =
-		enumerationWith(
-			set(
-				E_SHIFT_AND_TRUNCATE_REQUIRES_NON_NEGATIVE,
-				E_TOO_LARGE_TO_REPRESENT))
+		enumerationWith(set(E_TOO_LARGE_TO_REPRESENT))
 }

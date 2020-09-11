@@ -1,19 +1,19 @@
 /*
  * SemanticRestrictionCommentSignature.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  Redistributions of source code must retain the above copyright notice, this
+ * * Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- *  Redistributions in binary form must reproduce the above copyright notice,
+ * * Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
  *
- *  Neither the name of the copyright holder nor the names of the contributors
+ * * Neither the name of the copyright holder nor the names of the contributors
  *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
@@ -34,34 +34,31 @@ package com.avail.stacks.comment.signature
 
 import com.avail.utility.json.JSONWriter
 import java.lang.String.format
-import java.util.*
 
 /**
  * The defining characteristic of a semantic restriction comment as it pertains
  * to the implementation it describes.
  *
+ * @property orderedInputTypes
+ *   The method parameter input types in order of input.
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
- */
-class SemanticRestrictionCommentSignature
-/**
+ *
+ * @constructor
+ *
  * Construct a new [SemanticRestrictionCommentSignature].
  *
  * @param name
- * The name of the class/method the comment describes.
+ *   The name of the class/method the comment describes.
  * @param module
- * The module this implementation appears in.
+ *   The module this implementation appears in.
  * @param orderedInputTypes
- * The semantic restriction parameter input types in order of input
+ *   The semantic restriction parameter input types in order of input
  */
-	(
+class SemanticRestrictionCommentSignature constructor(
 	name: String,
 	module: String,
-	/**
-	 * The method parameter input types in order of input
-	 */
-	internal val orderedInputTypes: ArrayList<String>) : CommentSignature(
-	name,
-	module)
+	internal val orderedInputTypes: MutableList<String>)
+: CommentSignature(name, module)
 {
 
 	override fun toString(): String

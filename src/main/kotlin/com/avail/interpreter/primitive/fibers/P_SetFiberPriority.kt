@@ -1,6 +1,6 @@
 /*
  * P_SetFiberPriority.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,17 +31,18 @@
  */
 package com.avail.interpreter.primitive.fibers
 
-import com.avail.descriptor.NilDescriptor.nil
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.FiberTypeDescriptor.mostGeneralFiberType
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.bytes
+import com.avail.descriptor.types.FiberTypeDescriptor.Companion.mostGeneralFiberType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.bytes
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Set the priority of a fiber.
@@ -56,10 +57,10 @@ object P_SetFiberPriority : Primitive(2, CannotFail, WritesToHiddenGlobalState)
 		val priority = interpreter.argument(0)
 		val priorityInt = priority.extractInt()
 		assert(priorityInt in 0 .. 255)
-		fiber.priority(priorityInt)
+		fiber.setPriority(priorityInt)
 		return interpreter.primitiveSuccess(nil)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(mostGeneralFiberType(), bytes()), TOP.o())
+		functionType(tuple(mostGeneralFiberType(), bytes), TOP.o)
 }

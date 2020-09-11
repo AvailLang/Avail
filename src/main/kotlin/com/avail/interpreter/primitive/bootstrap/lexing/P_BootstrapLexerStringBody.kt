@@ -1,6 +1,6 @@
 /*
  * P_BootstrapLexerStringBody.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,17 +35,23 @@ package com.avail.interpreter.primitive.bootstrap.lexing
 import com.avail.compiler.AvailRejectedParseException
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.WEAK
-import com.avail.descriptor.CharacterDescriptor
-import com.avail.descriptor.parsing.LexerDescriptor.lexerBodyFunctionType
-import com.avail.descriptor.sets.SetDescriptor.set
-import com.avail.descriptor.tokens.LiteralTokenDescriptor.literalToken
+import com.avail.descriptor.character.CharacterDescriptor
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
+import com.avail.descriptor.parsing.LexerDescriptor.Companion.lexerBodyFunctionType
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
+import com.avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken
 import com.avail.descriptor.tuples.A_String
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.tuples.StringDescriptor.stringFrom
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.types.A_Type
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.Bootstrap
+import com.avail.interpreter.Primitive.Flag.CanFold
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * The `P_BootstrapLexerStringBody` primitive is used for parsing quoted
@@ -221,7 +227,7 @@ object P_BootstrapLexerStringBody
 		 * @return `true` if there are more codepoints available,
 		 * otherwise `false`
 		 */
-		operator fun hasNext(): Boolean =  position <= sourceSize
+		operator fun hasNext(): Boolean = position <= sourceSize
 
 		/**
 		 * Answer the next codepoint from the source, without consuming it.
@@ -229,7 +235,7 @@ object P_BootstrapLexerStringBody
 		 *
 		 * @return The next codepoint.
 		 */
-		fun peek(): Int =  source.tupleCodePointAt(position)
+		fun peek(): Int = source.tupleCodePointAt(position)
 
 		/**
 		 * Answer the next codepoint from the source, and consume it.  Should

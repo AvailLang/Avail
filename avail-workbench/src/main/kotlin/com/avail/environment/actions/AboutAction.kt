@@ -1,6 +1,6 @@
 /*
  * AboutAction.java
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,7 +40,12 @@ import java.awt.Color
 import java.awt.Dialog.ModalityType
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
-import javax.swing.*
+import javax.swing.Action
+import javax.swing.ImageIcon
+import javax.swing.JDialog
+import javax.swing.JLabel
+import javax.swing.JPanel
+import javax.swing.SwingConstants
 import javax.swing.border.EmptyBorder
 
 /**
@@ -79,15 +84,15 @@ class AboutAction constructor(workbench: AvailWorkbench)
 		builder.append("<html><center>")
 		builder.append("<font size=+2>The Avail Workbench</font><br>")
 		builder.append("<font size=-1>Supported Versions:</font>")
-		for (version in AvailRuntimeConfiguration.activeVersions())
+		for (version in AvailRuntimeConfiguration.activeVersions)
 		{
 			builder.append("<br><font size=-2>")
-			builder.append(version.asNativeString())
+			builder.append(version)
 			builder.append("</font>")
 		}
 		builder.append("<br><br>")
 		builder.append(
-			"Copyright \u00A9 1993-2019 The Avail Foundation, LLC.<br>")
+			"Copyright \u00A9 1993-2020 The Avail Foundation, LLC.<br>")
 		builder.append("All rights reserved.<br><br>")
 		val siteColor = AdaptiveColor(
 			light = Color(16, 16, 192),

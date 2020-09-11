@@ -1,6 +1,6 @@
 /*
  * P_TupleToSet.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,25 +32,43 @@
 package com.avail.interpreter.primitive.sets
 
 import com.avail.descriptor.functions.A_RawFunction
-import com.avail.descriptor.numbers.IntegerDescriptor.one
-import com.avail.descriptor.numbers.IntegerDescriptor.zero
+import com.avail.descriptor.numbers.A_Number.Companion.equalsInt
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.one
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import com.avail.descriptor.sets.SetDescriptor
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.asSet
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.integerRangeType
-import com.avail.descriptor.types.SetTypeDescriptor.mostGeneralSetType
-import com.avail.descriptor.types.SetTypeDescriptor.setTypeForSizesContentType
-import com.avail.descriptor.types.TupleTypeDescriptor.mostGeneralTupleType
-import com.avail.interpreter.Interpreter
+import com.avail.descriptor.types.A_Type.Companion.lowerBound
+import com.avail.descriptor.types.A_Type.Companion.sizeRange
+import com.avail.descriptor.types.A_Type.Companion.tupleOfTypesFromTo
+import com.avail.descriptor.types.A_Type.Companion.unionOfTypesAtThrough
+import com.avail.descriptor.types.A_Type.Companion.upperBound
+import com.avail.descriptor.types.A_Type.Companion.upperInclusive
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeType
+import com.avail.descriptor.types.SetTypeDescriptor.Companion.mostGeneralSetType
+import com.avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CanFold
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.execution.Interpreter
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding
+import com.avail.interpreter.levelTwo.operation.L2_CREATE_SET
+import com.avail.optimizer.L1Translator
 
 /**
  * **Primitive:** Convert a [tuple][TupleDescriptor] into a
  * [set][SetDescriptor].
  */
+@Suppress("unused")
 object P_TupleToSet : Primitive(1, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result
@@ -96,5 +114,48 @@ object P_TupleToSet : Primitive(1, CannotFail, CanFold, CanInline)
 			tupleSizes.upperBound(),
 			tupleSizes.upperInclusive())
 		return setTypeForSizesContentType(setSizes, unionType)
+	}
+
+	override fun tryToGenerateSpecialPrimitiveInvocation(
+		functionToCallReg: L2ReadBoxedOperand,
+		rawFunction: A_RawFunction,
+		arguments: List<L2ReadBoxedOperand>,
+		argumentTypes: List<A_Type>,
+		translator: L1Translator,
+		callSiteHelper: L1Translator.CallSiteHelper): Boolean
+	{
+		val tupleReg = arguments[0]
+
+		val generator = translator.generator
+		if (!generator.currentlyReachable())
+		{
+			// Generator is not at a live position, so pretend we generated the
+			// code for this primitive invocation.
+			return true
+		}
+
+		val sizeRange = tupleReg.type().sizeRange()
+		val size = sizeRange.lowerBound()
+		if (!size.isInt || !sizeRange.upperBound().equals(size))
+			return false
+		val sizeInt = size.extractInt()
+		val elementRegs = generator.explodeTupleIfPossible(
+			tupleReg,
+			tupleReg.type().tupleOfTypesFromTo(1, sizeInt).toList())
+		elementRegs ?: return false
+
+		// Create the set directly from the values.  This may turn the tuple
+		// creation instruction into dead code.
+		val restriction = returnTypeGuaranteedByVM(rawFunction, argumentTypes)
+		val semanticResult = generator.primitiveInvocation(this, arguments)
+		val write = generator.boxedWrite(
+			semanticResult,
+			restrictionForType(restriction, RestrictionFlagEncoding.BOXED))
+		generator.addInstruction(
+			L2_CREATE_SET,
+			L2ReadBoxedVectorOperand(elementRegs),
+			write)
+		callSiteHelper.useAnswer(translator.readBoxed(write))
+		return true
 	}
 }

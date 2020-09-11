@@ -1,6 +1,6 @@
 /*
  * P_MessageBundleName.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,21 +32,24 @@
 package com.avail.interpreter.primitive.methods
 
 import com.avail.descriptor.atoms.AtomDescriptor
+import com.avail.descriptor.bundles.A_Bundle.Companion.message
 import com.avail.descriptor.bundles.MessageBundleDescriptor
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.types.TypeDescriptor.Types.MESSAGE_BUNDLE
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CanFold
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Answer the [true name][AtomDescriptor] associated with the
- * given [message bundle][MessageBundleDescriptor]. This is generally only used
- * when Avail code is saving or loading Avail code in the object dumper
- * / loader.
+ * **Primitive:** Answer the [true&#32;name][AtomDescriptor] associated with the
+ * given [message&#32;bundle][MessageBundleDescriptor]. This is generally only
+ * used when Avail code is saving or loading Avail code in the object dumper /
+ * loader.
  */
 @Suppress("unused")
 object P_MessageBundleName : Primitive(1, CannotFail, CanFold, CanInline)
@@ -59,5 +62,5 @@ object P_MessageBundleName : Primitive(1, CannotFail, CanFold, CanInline)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(MESSAGE_BUNDLE.o()), ATOM.o())
+		functionType(tuple(MESSAGE_BUNDLE.o), ATOM.o)
 }

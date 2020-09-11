@@ -1,19 +1,19 @@
 /*
  * StacksScanner.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  Redistributions of source code must retain the above copyright notice, this
+ * * Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- *  Redistributions in binary form must reproduce the above copyright notice,
+ * * Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
  *
- *  Neither the name of the copyright holder nor the names of the contributors
+ * * Neither the name of the copyright holder nor the names of the contributors
  *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
@@ -32,7 +32,7 @@
 
 package com.avail.stacks.scanner
 
-import com.avail.descriptor.CharacterDescriptor
+import com.avail.descriptor.character.CharacterDescriptor
 import com.avail.descriptor.tokens.A_Token
 import com.avail.descriptor.tokens.CommentTokenDescriptor
 import com.avail.stacks.LinkingFileMap
@@ -43,7 +43,6 @@ import com.avail.stacks.exceptions.StacksScannerException
 import com.avail.stacks.tokens.BracketedStacksToken
 import com.avail.stacks.tokens.SectionKeywordStacksToken
 import com.avail.stacks.tokens.StacksToken
-import java.util.*
 
 /**
  * A scanner for Stacks comments.
@@ -54,7 +53,8 @@ import java.util.*
  * Construct a new [StacksScanner].
  *
  * @param commentToken
- *   The [comment token][CommentTokenDescriptor] to be scanned and tokenized.
+ *   The [comment&#32;token][CommentTokenDescriptor] to be scanned and
+ *   tokenized.
  * @param moduleName
  *   The name of the module the comment is in.
  */
@@ -98,7 +98,7 @@ class StacksScanner constructor (commentToken: A_Token, moduleName: String)
 	 * The index locations where a new [section][SectionKeywordStacksToken]
 	 * begins in in the
 	 */
-	internal val sectionStartLocations: ArrayList<Int>
+	internal val sectionStartLocations = mutableListOf<Int>()
 
 	/**
 	 * Increment new line
@@ -198,7 +198,6 @@ class StacksScanner constructor (commentToken: A_Token, moduleName: String)
 		this.lineNumber(commentToken.lineNumber())
 		this.filePosition(commentToken.start())
 		this.startOfTokenLinePosition(0)
-		this.sectionStartLocations = ArrayList(9)
 	}
 
 	/**
@@ -216,7 +215,7 @@ class StacksScanner constructor (commentToken: A_Token, moduleName: String)
 	}
 
 	/**
-	 * Scan the already-specified [String] to produce [ ][outputTokens].
+	 * Scan the already-specified [String] to produce [tokens][outputTokens].
 	 *
 	 * @throws StacksScannerException
 	 */
@@ -738,7 +737,6 @@ class StacksScanner constructor (commentToken: A_Token, moduleName: String)
 		 * A slash was encountered. Check if it's the start of a nested comment,
 		 * and if so skip it. If not, add the slash as a [token][StacksToken].
 		 *
-		 *
 		 * Nested comments are supported.
 		 */
 		SLASH
@@ -827,10 +825,7 @@ class StacksScanner constructor (commentToken: A_Token, moduleName: String)
 		 * also known as the byte-order-mark and generally only appears at the
 		 * start of a file as a hint about the file's endianness.
 		 *
-		 *
-		 *
 		 * Treat it as whitespace even though Unicode says it isn't.
-		 *
 		 */
 		ZEROWIDTHWHITESPACE
 		{
@@ -901,16 +896,16 @@ class StacksScanner constructor (commentToken: A_Token, moduleName: String)
 
 		/**
 		 * Answer the [AvailComment]
-		 * that comprise a [Avail comment][CommentTokenDescriptor].
+		 * that comprise a [Avail&#32;comment][CommentTokenDescriptor].
 		 *
 		 * @param commentToken
-		 *   An [Avail comment][CommentTokenDescriptor] to be tokenized.
+		 *   An [Avail&#32;comment][CommentTokenDescriptor] to be tokenized.
 		 * @param moduleName
 		 *   The name of the module this comment appears in.
 		 * @param linkingFileMap
 		 *   A map for all the files for Stacks
 		 * @return A [List] of all tokenized words in the
-		 *   [Avail comment][CommentTokenDescriptor].
+		 *   [Avail&#32;comment][CommentTokenDescriptor].
 		 * @throws StacksScannerException If scanning fails.
 		 * @throws StacksCommentBuilderException
 		 */

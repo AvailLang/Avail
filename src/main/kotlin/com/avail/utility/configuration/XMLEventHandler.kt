@@ -1,6 +1,6 @@
 /*
  * XMLEventHandler.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,7 +39,7 @@ import javax.xml.parsers.SAXParser
 
 /**
  * An [XMLConfigurator] uses a `XMLEventHandler` to interface with the
- * [SAX parser][SAXParser].
+ * [SAX&#32;parser][SAXParser].
  *
  * @param ConfigurationType
  *   A concrete [Configuration] class.
@@ -50,7 +50,7 @@ import javax.xml.parsers.SAXParser
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  *
  * @property model
- *   The [document model][XMLDocumentModel].
+ *   The [document&#32;model][XMLDocumentModel].
  * @property state
  *   The current [state][XMLConfiguratorState] of the
  *   [configurator][Configurator].
@@ -59,9 +59,9 @@ import javax.xml.parsers.SAXParser
  * Construct a new `XMLEventHandler`.
  *
  * @param model
- * The [document model][XMLDocumentModel].
+ * The [document&#32;model][XMLDocumentModel].
  * @param state
- * The [configurator state][XMLConfiguratorState].
+ * The [configurator&#32;state][XMLConfiguratorState].
  */
 internal class XMLEventHandler<
 	ConfigurationType : Configuration,

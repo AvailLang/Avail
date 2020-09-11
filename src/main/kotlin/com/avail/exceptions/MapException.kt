@@ -1,6 +1,6 @@
 /*
  * MapException.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -61,6 +61,7 @@ class MapException : AvailRuntimeException
 	 * @param cause
 	 *   The proximal [cause][Throwable] of the `MapException`.
 	 */
+	@Suppress("unused")
 	constructor(errorCode: AvailErrorCode, cause: Throwable)
 		: super(errorCode, cause)
 }

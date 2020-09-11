@@ -1,6 +1,6 @@
 /*
  * L1StackTracker.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,8 +32,9 @@
 
 package com.avail.interpreter.levelOne
 
-import com.avail.descriptor.AvailObject
-import com.avail.descriptor.AvailObject.Companion.error
+import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.error
 import kotlin.math.max
 
 /**
@@ -64,7 +65,7 @@ internal abstract class L1StackTracker : L1OperationDispatcher
 	 * @param operation
 	 *   The [L1Operation].
 	 * @param operands
-	 *   The operation's `int` operands.
+	 *   The operation's [Int] operands.
 	 */
 	fun track(operation: L1Operation, vararg operands: Int)
 	{

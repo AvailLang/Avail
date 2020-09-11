@@ -1,6 +1,6 @@
 /*
  * P_BootstrapPrefixPrimitiveDeclaration.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,31 +34,41 @@ package com.avail.interpreter.primitive.bootstrap.syntax
 
 import com.avail.compiler.AvailRejectedParseException
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
-import com.avail.descriptor.FiberDescriptor
-import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.descriptor.phrases.A_Phrase
+import com.avail.descriptor.phrases.A_Phrase.Companion.expressionAt
+import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsSize
+import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsTuple
+import com.avail.descriptor.phrases.A_Phrase.Companion.lastExpression
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
+import com.avail.descriptor.phrases.A_Phrase.Companion.token
+import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newPrimitiveFailureVariable
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
-import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.newPrimitiveFailureVariable
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.InstanceMetaDescriptor.anyMeta
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
-import com.avail.descriptor.types.TupleTypeDescriptor.*
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrOneOf
 import com.avail.descriptor.types.TypeDescriptor.Types.TOKEN
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
-import java.util.*
+import com.avail.interpreter.Primitive.Flag.Bootstrap
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * The `P_BootstrapPrefixVariableDeclaration` primitive is used for
  * bootstrapping declaration of a primitive declaration, including an optional
- * [primitive failure variable][DeclarationKind.PRIMITIVE_FAILURE_REASON]
+ * [primitive&#32;failure&#32;variable][DeclarationKind.PRIMITIVE_FAILURE_REASON]
  * which holds the reason for a primitive's failure.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
@@ -92,14 +102,13 @@ object P_BootstrapPrefixPrimitiveDeclaration
 		           "a supported primitive name, not $primName")
 
 		// Check that the primitive signature agrees with the arguments.
-		val blockArgumentPhrases = ArrayList<A_Phrase>()
+		val blockArgumentPhrases = mutableListOf<A_Phrase>()
 		if (optionalBlockArgumentsList.expressionsSize() == 1)
 		{
 			val blockArgumentsList =
 				optionalBlockArgumentsList.lastExpression()
 			assert(blockArgumentsList.expressionsSize() >= 1)
-			for (pair in blockArgumentsList.expressionsTuple())
-			{
+			blockArgumentsList.expressionsTuple().forEach { pair ->
 				assert(pair.expressionsSize() == 2)
 				val namePhrase = pair.expressionAt(1)
 				val name = namePhrase.token().literal().string()
@@ -109,9 +118,9 @@ object P_BootstrapPrefixPrimitiveDeclaration
 				blockArgumentPhrases.add(declaration)
 			}
 		}
-		validatePrimitiveAcceptsArguments(
-				prim.primitiveNumber, blockArgumentPhrases)
-			?.let { p -> throw AvailRejectedParseException(STRONG, p) }
+		validatePrimitiveAcceptsArguments(prim, blockArgumentPhrases)?.let {
+			throw AvailRejectedParseException(STRONG, it)
+		}
 
 		// The section marker occurs inside the optionality of the primitive
 		// clause, but outside the primitive failure variable declaration.
@@ -174,7 +183,8 @@ object P_BootstrapPrefixPrimitiveDeclaration
 			throw AvailRejectedParseException(
 				STRONG,
 				"a primitive failure variable declaration for this "
-					+ "fallible primitive")
+					+ "fallible primitive.  Its type should be:\n\t"
+					+ prim.failureVariableType)
 		}
 		return interpreter.primitiveSuccess(nil)
 	}
@@ -191,7 +201,7 @@ object P_BootstrapPrefixPrimitiveDeclaration
 							/* An argument. */
 							tupleTypeForTypes(
 								/* Argument name, a token. */
-								TOKEN.o(),
+								TOKEN.o,
 								/* Argument type. */
 								anyMeta())))),
 				/* Macro argument is a phrase. */
@@ -201,14 +211,15 @@ object P_BootstrapPrefixPrimitiveDeclaration
 						/* Primitive declaration */
 						tupleTypeForTypes(
 							/* Primitive number. */
-							TOKEN.o(),
+							TOKEN.o,
 							/* Optional failure variable declaration. */
 							zeroOrOneOf(
 								/* Primitive failure variable parts. */
 								tupleTypeForTypes(
 									/* Primitive failure variable name token */
-									TOKEN.o(),
+									TOKEN.o,
 									/* Primitive failure variable type */
 									anyMeta())))))),
-			TOP.o())
+			TOP.o
+		)
 }

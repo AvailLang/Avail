@@ -1,6 +1,6 @@
 /*
  * P_InvokeCallback.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,18 +32,21 @@
 package com.avail.interpreter.primitive.pojos
 
 import com.avail.CallbackSystem
-import com.avail.CallbackSystem.*
+import com.avail.CallbackSystem.Callback
+import com.avail.CallbackSystem.CallbackCompletion
+import com.avail.CallbackSystem.CallbackFailure
 import com.avail.descriptor.pojos.PojoDescriptor
-import com.avail.descriptor.pojos.PojoDescriptor.newPojo
-import com.avail.descriptor.pojos.RawPojoDescriptor.identityPojo
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
+import com.avail.descriptor.pojos.PojoDescriptor.Companion.newPojo
+import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.BottomTypeDescriptor.bottom
-import com.avail.descriptor.types.PojoTypeDescriptor.pojoTypeForClass
-import com.avail.interpreter.Interpreter
+import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
+import com.avail.descriptor.types.PojoTypeDescriptor.Companion.pojoTypeForClass
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanSuspend
 import com.avail.interpreter.Primitive.Flag.Private
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelOne.L1InstructionWriter
 
 /**
@@ -58,33 +61,42 @@ import com.avail.interpreter.levelOne.L1InstructionWriter
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
+@Suppress("unused")
 object P_InvokeCallback : Primitive(-1, Private, CanSuspend)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.availLoaderOrNull()?.statementCanBeSummarized(false)
-		val runtime = interpreter.runtime()
 		val primitiveFunction = interpreter.function!!
 		assert(primitiveFunction.code().primitive() === this)
 		val callbackPojo = primitiveFunction.outerVarAt(1)
 		val argumentsTuple = tupleFromList(interpreter.argsBuffer)
-		return interpreter.suspendAndDoWithFailureObject { toSucceed, toFail ->
-			runtime.callbackSystem().executeCallbackTask(
+		return interpreter.suspendThen {
+			interpreter.runtime.callbackSystem().executeCallbackTask(
 				callbackPojo.javaObjectNotNull(),
 				argumentsTuple,
-				CallbackCompletion { toSucceed.value(it.makeShared()) },
-				CallbackFailure { throwable ->
-					toFail.value(
-						newPojo(
-							identityPojo(throwable),
-							pojoTypeForClass(throwable.javaClass)
-						).makeShared())
+				object: CallbackCompletion {
+					override fun complete(result: A_BasicObject)
+					{
+						succeed(result.makeShared())
+					}
+				},
+				object: CallbackFailure
+				{
+					override fun failed(throwable: Throwable)
+					{
+						fail(
+							newPojo(
+								identityPojo(throwable),
+								pojoTypeForClass(throwable.javaClass)
+							).makeShared())
+					}
 				})
 		}
 	}
 
 	/** This primitive is suitable for any block signature. */
-	override fun privateBlockTypeRestriction(): A_Type = bottom()
+	override fun privateBlockTypeRestriction(): A_Type = bottom
 
 	override fun privateFailureVariableType(): A_Type =
 		pojoTypeForClass(Throwable::class.java)
@@ -97,7 +109,7 @@ object P_InvokeCallback : Primitive(-1, Private, CanSuspend)
 		// Raw functions using this primitive should not be constructed through
 		// this default mechanism.  See CallbackSystem for details.
 		throw UnsupportedOperationException(
-			this.javaClass.simpleName
+			this@P_InvokeCallback.javaClass.simpleName
 			+ " must not create a function through the bootstrap mechanism")
 	}
 }

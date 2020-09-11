@@ -1,6 +1,6 @@
 /*
  * PrimitiveHelper.java
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,26 +34,41 @@ package com.avail.interpreter.primitive.pojos
 
 import com.avail.AvailRuntime.HookType
 import com.avail.AvailRuntime.HookType.RAISE_JAVA_EXCEPTION_IN_AVAIL
-import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.maps.A_Map.Companion.mapIterable
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.APPLY
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.BottomTypeDescriptor.bottom
+import com.avail.descriptor.types.A_Type.Companion.argsTupleType
+import com.avail.descriptor.types.A_Type.Companion.lowerBound
+import com.avail.descriptor.types.A_Type.Companion.returnType
+import com.avail.descriptor.types.A_Type.Companion.sizeRange
+import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
+import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.FunctionTypeDescriptor
-import com.avail.descriptor.types.PojoTypeDescriptor.marshalDefiningType
-import com.avail.descriptor.types.PojoTypeDescriptor.pojoTypeForClass
-import com.avail.descriptor.types.VariableTypeDescriptor.variableTypeFor
+import com.avail.descriptor.types.PojoTypeDescriptor.Companion.marshalDefiningType
+import com.avail.descriptor.types.PojoTypeDescriptor.Companion.pojoTypeForClass
+import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import com.avail.exceptions.AvailErrorCode
-import com.avail.exceptions.AvailErrorCode.*
+import com.avail.exceptions.AvailErrorCode.E_JAVA_FIELD_NOT_AVAILABLE
+import com.avail.exceptions.AvailErrorCode.E_JAVA_FIELD_REFERENCE_IS_AMBIGUOUS
+import com.avail.exceptions.AvailErrorCode.E_JAVA_MARSHALING_FAILED
+import com.avail.exceptions.AvailErrorCode.E_JAVA_METHOD_NOT_AVAILABLE
+import com.avail.exceptions.AvailErrorCode.E_JAVA_METHOD_REFERENCE_IS_AMBIGUOUS
 import com.avail.exceptions.MarshalingException
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.levelOne.L1InstructionWriter
-import com.avail.interpreter.levelOne.L1Operation.*
-import com.avail.utility.MutableOrNull
+import com.avail.interpreter.levelOne.L1Operation.L1_doCall
+import com.avail.interpreter.levelOne.L1Operation.L1_doMakeTuple
+import com.avail.interpreter.levelOne.L1Operation.L1_doPushLocal
+import com.avail.utility.Mutable
 import java.lang.reflect.Field
 import java.lang.reflect.Method
 
@@ -77,8 +92,8 @@ object PrimitiveHelper
 	 *   The array of [Class]es for the arguments, used to disambiguate
 	 *   overloaded methods.
 	 * @param errorOut
-	 *   A [MutableOrNull] into which an [AvailErrorCode] can be written in the
-	 *   event that a unique [Method] is not found.
+	 *   A [Mutable] into which an [AvailErrorCode] can be written in the event
+	 *   that a unique [Method] is not found.
 	 * @return
 	 *   Either the successfully looked up [Method] or `null`. Note that either
 	 *   the return is non-null or the errorOut will have a non-null value
@@ -88,17 +103,20 @@ object PrimitiveHelper
 		pojoType: A_Type,
 		methodName: A_String,
 		marshaledTypes: Array<Class<*>>,
-		errorOut: MutableOrNull<AvailErrorCode>
+		errorOut: Mutable<AvailErrorCode?>
 	): Method?
 	{
 		if (!pojoType.isPojoType || !pojoType.isPojoFusedType)
 		{
 			// It's not a fused type, so it has an immediate class that should
 			// be used to recursively look up the method.
-			return try {
+			return try
+			{
 				marshalDefiningType(pojoType).getMethod(
 					methodName.asNativeString(), *marshaledTypes)
-			} catch (e: NoSuchMethodException) {
+			}
+			catch (e: NoSuchMethodException)
+			{
 				errorOut.value = E_JAVA_METHOD_NOT_AVAILABLE
 				null
 			}
@@ -140,8 +158,8 @@ object PrimitiveHelper
 	 * @param fieldName
 	 *   The name of the field.
 	 * @param errorOut
-	 *   A [MutableOrNull] into which an [AvailErrorCode] can be written in the
-	 *   event that a unique [Field] is not found.
+	 *   A [Mutable] into which an [AvailErrorCode] can be written in the event
+	 *   that a unique [Field] is not found.
 	 * @return
 	 *   Either the successfully looked up [Field] or `null`. Note that either
 	 *   the return is non-null or the errorOut will have a non-null value
@@ -150,7 +168,7 @@ object PrimitiveHelper
 	internal fun lookupField(
 		pojoType: A_Type,
 		fieldName: A_String,
-		errorOut: MutableOrNull<AvailErrorCode>
+		errorOut: Mutable<AvailErrorCode?>
 	): Field?
 	{
 		if (!pojoType.isPojoType || !pojoType.isPojoFusedType)
@@ -218,7 +236,7 @@ object PrimitiveHelper
 	{
 		val argTypes = functionType.argsTupleType()
 		val numArgs = argTypes.sizeRange().lowerBound().extractInt()
-		val argTypesArray = Array<A_Type>(numArgs) {
+		val argTypesArray = Array(numArgs) {
 			argTypes.typeAtIndex(it + 1)
 		}
 		val returnType = functionType.returnType()
@@ -226,6 +244,7 @@ object PrimitiveHelper
 		writer.primitive = primitive
 		writer.argumentTypes(*argTypesArray)
 		writer.returnType = returnType
+		writer.returnTypeIfPrimitiveFails = bottom
 		// Produce failure code.  First declare the local that holds primitive
 		// failure information.
 		val failureLocal = writer.createLocal(
@@ -244,7 +263,7 @@ object PrimitiveHelper
 			0,
 			L1_doCall,
 			writer.addLiteral(APPLY.bundle),
-			writer.addLiteral(bottom())
+			writer.addLiteral(bottom)
 		)
 		// TODO: [TLS] When functions can be made non-reflective, then make
 		// this raw function non-reflective for safety.
@@ -253,30 +272,30 @@ object PrimitiveHelper
 
 	/**
 	 * Marshal the specified values using the provided
-	 * [marshaling types][A_Type].
+	 * [marshaling&#32;types][A_Type].
 	 *
 	 * @param marshaledTypes
 	 *   The marshaled types.
 	 * @param args
 	 *   The values to marshal using the corresponding types.
 	 * @param errorOut
-	 *   A [MutableOrNull] into which an [AvailErrorCode] can  be written in the
-	 *   event that marshaling fails for some value.
+	 *   A [Mutable] into which an [AvailErrorCode] can be written in the event
+	 *   that marshaling fails for some value.
 	 * @return
 	 *   The marshaled values.
 	 */
 	internal fun marshalValues(
 		marshaledTypes: A_Tuple,
 		args: A_Tuple,
-		errorOut: MutableOrNull<AvailErrorCode>
-	): Array<Any>?
+		errorOut: Mutable<AvailErrorCode?>
+	): Array<Any?>?
 	{
 		assert(marshaledTypes.tupleSize() == args.tupleSize())
 		return try
 		{
 			Array(args.tupleSize()) {
 				args.tupleAt(it + 1).marshalToJava(
-					marshaledTypes.tupleAt(it + 1).javaObjectNotNull())!!
+					marshaledTypes.tupleAt(it + 1).javaObjectNotNull())
 			}
 		}
 		catch (e: MarshalingException)

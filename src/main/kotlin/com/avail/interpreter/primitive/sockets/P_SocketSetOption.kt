@@ -1,6 +1,6 @@
 /*
  * P_SocketSetOption.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,26 +32,40 @@
 
 package com.avail.interpreter.primitive.sockets
 
-import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.atoms.A_Atom.Companion.extractBoolean
+import com.avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
+import com.avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.SOCKET_KEY
-import com.avail.descriptor.sets.SetDescriptor.set
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.maps.A_Map.Companion.mapIterable
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.inclusive
-import com.avail.descriptor.types.MapTypeDescriptor.mapTypeForSizesKeyTypeValueType
-import com.avail.descriptor.types.TypeDescriptor.Types.*
-import com.avail.exceptions.AvailErrorCode.*
-import com.avail.interpreter.Interpreter
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
+import com.avail.descriptor.types.MapTypeDescriptor.Companion.mapTypeForSizesKeyTypeValueType
+import com.avail.descriptor.types.TypeDescriptor.Types.ANY
+import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
+import com.avail.descriptor.types.TypeDescriptor.Types.TOP
+import com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
+import com.avail.exceptions.AvailErrorCode.E_INVALID_HANDLE
+import com.avail.exceptions.AvailErrorCode.E_IO_ERROR
+import com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
-import com.avail.utility.Casts.cast
+import com.avail.interpreter.execution.Interpreter
+import com.avail.utility.cast
 import java.io.IOException
 import java.net.SocketOption
-import java.net.StandardSocketOptions.*
+import java.net.StandardSocketOptions.SO_KEEPALIVE
+import java.net.StandardSocketOptions.SO_RCVBUF
+import java.net.StandardSocketOptions.SO_REUSEADDR
+import java.net.StandardSocketOptions.SO_SNDBUF
+import java.net.StandardSocketOptions.TCP_NODELAY
 import java.nio.channels.AsynchronousSocketChannel
 
 /**
@@ -61,6 +75,7 @@ import java.nio.channels.AsynchronousSocketChannel
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_SocketSetOption : Primitive(2, CanInline, HasSideEffect)
 {
 	/**
@@ -78,7 +93,7 @@ object P_SocketSetOption : Primitive(2, CanInline, HasSideEffect)
 		if (pojo.equalsNil())
 		{
 			return interpreter.primitiveFailure(
-				if (handle.isAtomSpecial) E_SPECIAL_ATOM else E_INVALID_HANDLE)
+				if (handle.isAtomSpecial()) E_SPECIAL_ATOM else E_INVALID_HANDLE)
 		}
 		val socket = pojo.javaObjectNotNull<AsynchronousSocketChannel>()
 		return try
@@ -90,13 +105,13 @@ object P_SocketSetOption : Primitive(2, CanInline, HasSideEffect)
 					if (type === java.lang.Boolean::class.java
 						&& value.isBoolean)
 					{
-						val booleanOption: SocketOption<Boolean> = cast(option)
+						val booleanOption: SocketOption<Boolean> = option.cast()
 						socket.setOption(booleanOption, value.extractBoolean())
 					}
 					else if (type === java.lang.Integer::class.java
 						&& value.isInt)
 					{
-						val intOption: SocketOption<Int> = cast(option)
+						val intOption: SocketOption<Int> = option.cast()
 						socket.setOption(intOption, value.extractInt())
 					}
 					else
@@ -121,12 +136,14 @@ object P_SocketSetOption : Primitive(2, CanInline, HasSideEffect)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				ATOM.o(),
+				ATOM.o,
 				mapTypeForSizesKeyTypeValueType(
 					inclusive(0, (socketOptions.size - 1).toLong()),
 					inclusive(1, (socketOptions.size - 1).toLong()),
-					ANY.o())),
-			TOP.o())
+					ANY.o
+				)),
+			TOP.o
+		)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

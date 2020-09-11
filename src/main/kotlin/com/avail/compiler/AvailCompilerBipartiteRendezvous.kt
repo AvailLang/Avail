@@ -1,6 +1,6 @@
 /*
  * AvailCompilerBipartiteRendezvous.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 
 package com.avail.compiler
 
-import java.util.*
+import com.avail.descriptor.phrases.A_Phrase
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -62,12 +62,12 @@ class AvailCompilerBipartiteRendezvous
 	 * The solutions that have been encountered so far, and will be passed to
 	 * new actions when they arrive.
 	 */
-	private val solutions = ArrayList<CompilerSolution>(3)
+	private val solutions = mutableListOf<CompilerSolution>()
 
 	/**
 	 * The actions that are waiting to run when new solutions arrive.
 	 */
-	private val actions = ArrayList<Con1>(3)
+	private val actions = mutableListOf<(ParserState, A_Phrase)->Unit>()
 
 	/** Whether we've started parsing at this position.  */
 	private val hasStarted = AtomicBoolean(false)
@@ -80,18 +80,22 @@ class AvailCompilerBipartiteRendezvous
 	 *   `true` if parsing had already been started at this position, `false`
 	 *   otherwise.
 	 */
-	internal val andSetStartedParsing: Boolean
-		get() = hasStarted.getAndSet(true)
+	internal fun getAndSetStartedParsing(): Boolean = hasStarted.getAndSet(true)
 
 	/**
 	 * Record a new solution, and also run any waiting actions with it.
 	 *
-	 * @param solution
-	 *   The new solution to record.
+	 * @param endState
+	 *   The [ParserState] after the specified phrase's tokens.
+	 * @param phrase
+	 *   The [phrase][A_Phrase] that ends at the specified `endState`.
 	 */
 	@Synchronized
-	internal fun addSolution(solution: CompilerSolution)
+	internal fun addSolution(
+		endState: ParserState,
+		phrase: A_Phrase)
 	{
+		val solution = CompilerSolution(endState, phrase)
 		if (solutions.contains(solution))
 		{
 			// TODO(MvG) - Should throw DuplicateSolutionException.
@@ -110,7 +114,7 @@ class AvailCompilerBipartiteRendezvous
 		solutions.add(solution)
 		for (action in actions)
 		{
-			action(solution)
+			action(endState, phrase)
 		}
 	}
 
@@ -121,12 +125,12 @@ class AvailCompilerBipartiteRendezvous
 	 *   The new action.
 	 */
 	@Synchronized
-	internal fun addAction(action: Con1)
+	internal fun addAction(action: (ParserState, A_Phrase)->Unit)
 	{
 		actions.add(action)
-		for (solution in solutions)
+		for ((after, phrase) in solutions)
 		{
-			action(solution)
+			action(after, phrase)
 		}
 	}
 }

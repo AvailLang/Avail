@@ -1,6 +1,6 @@
 /*
  * Definers.avail
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -166,6 +166,7 @@ Public method "_(_)is an SI base unit" is
 			Unless longName = shortName then
 			[
 				Alias shortName to longName;
+				Method shortName is stable at impl's type;
 				Unless current module has public name shortName then
 				[
 					Export shortName as a new name;
@@ -233,6 +234,7 @@ Public method "_(_)is an SI derived unit equivalent to_" is
 			Unless longName = shortName then
 			[
 				Alias shortName to longName;
+				Method shortName is stable at impl's type;
 				Unless current module has public name shortName then
 				[
 					Export shortName as a new name;

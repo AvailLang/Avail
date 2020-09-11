@@ -1,6 +1,6 @@
 /*
  * P_CreateModuleVariableDeclaration.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,21 +32,21 @@
 
 package com.avail.interpreter.primitive.phrases
 
-import com.avail.descriptor.NilDescriptor.nil
-import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.newModuleVariable
+import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newModuleVariable
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.tokens.TokenDescriptor
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.MODULE_VARIABLE_PHRASE
 import com.avail.descriptor.types.TypeDescriptor.Types.TOKEN
-import com.avail.descriptor.types.VariableTypeDescriptor.mostGeneralVariableType
+import com.avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 import com.avail.descriptor.variables.A_Variable
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Create a new
@@ -55,6 +55,7 @@ import com.avail.interpreter.Primitive.Flag.CannotFail
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
+@Suppress("unused")
 object P_CreateModuleVariableDeclaration : Primitive(2, CanInline, CannotFail)
 {
 	override fun attempt(interpreter: Interpreter): Result
@@ -70,6 +71,7 @@ object P_CreateModuleVariableDeclaration : Primitive(2, CanInline, CannotFail)
 		functionType(
 			tuple(
 				mostGeneralVariableType(),
-				TOKEN.o()),
+				TOKEN.o
+			),
 			MODULE_VARIABLE_PHRASE.mostGeneralType())
 }

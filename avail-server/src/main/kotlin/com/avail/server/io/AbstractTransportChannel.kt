@@ -1,6 +1,6 @@
 /*
  * AbstractTransportChannel.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,9 +35,9 @@ package com.avail.server.io
 import com.avail.server.AvailServer
 import com.avail.server.AvailServer.Companion.receiveMessageThen
 import com.avail.server.messages.Message
-import com.avail.utility.Pair
 import com.avail.utility.evaluation.Combinator.recurse
-import java.util.*
+import java.util.Deque
+import java.util.LinkedList
 
 /**
  * An `AbstractTransportChannel` represents an abstract connection between an
@@ -76,7 +76,7 @@ abstract class AbstractTransportChannel<T> constructor(
 
 	/**
 	 * Should the [channel][AbstractTransportChannel] close after emptying the
-	 * [message queue][sendQueue]?
+	 * [message&#32;queue][sendQueue]?
 	 */
 	@Suppress("MemberVisibilityCanBePrivate")
 	protected var shouldCloseAfterEmptyingSendQueue = false
@@ -145,7 +145,7 @@ abstract class AbstractTransportChannel<T> constructor(
 		adapter.sendUserData(
 			this,
 			message,
-			{
+			success = {
 				recurse { sendMore ->
 					val nextMessage: Message?
 					val pair: Pair<Message, ()->Unit>?
@@ -162,17 +162,17 @@ abstract class AbstractTransportChannel<T> constructor(
 						// Remove the oldest sender, but release the monitor
 						// before evaluating it.
 						pair = senders.pollFirst()
-						if (pair != null)
+						if (pair !== null)
 						{
-							sendQueue.addLast(pair.first())
+							sendQueue.addLast(pair.first)
 						}
 						nextMessage = sendQueue.peekFirst()
 						assert(sendQueue.size <= maximumSendQueueDepth)
 					}
 					// Begin transmission of the next message.
-					if (nextMessage != null)
+					if (nextMessage !== null)
 					{
-						adapter.sendUserData(this, nextMessage, sendMore, null)
+						adapter.sendUserData(this, nextMessage, sendMore, { })
 					}
 					else
 					{
@@ -187,10 +187,10 @@ abstract class AbstractTransportChannel<T> constructor(
 						}
 					}
 					// Proceed the paused client.
-					pair?.second()?.invoke()
+					pair?.second?.invoke()
 				}
 			},
-			null)
+			failure = {  })
 	}
 
 	override fun enqueueMessageThen(
@@ -225,8 +225,7 @@ abstract class AbstractTransportChannel<T> constructor(
 				else ->
 				{
 					assert(size == maxQueueDepth)
-					senders.addLast(Pair(
-						message, enqueueSucceeded))
+					senders.addLast(message to enqueueSucceeded)
 					beginTransmitting = false
 					invokeContinuationNow = false
 				}
@@ -280,7 +279,7 @@ abstract class AbstractTransportChannel<T> constructor(
 					adapter.readMessage(this)
 				}
 				// Process the next message.
-				if (nextMessage != null)
+				if (nextMessage !== null)
 				{
 					receiveMessageThen(nextMessage, this, receiveMore)
 				}

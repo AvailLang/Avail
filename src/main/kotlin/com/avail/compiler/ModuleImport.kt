@@ -1,6 +1,6 @@
 /*
  * ModuleImport.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,18 +34,31 @@ package com.avail.compiler
 
 import com.avail.builder.ModuleName
 import com.avail.compiler.ModuleImport.Companion.fromSerializedTuple
-import com.avail.descriptor.A_Module
-import com.avail.descriptor.NilDescriptor
+import com.avail.descriptor.atoms.A_Atom.Companion.extractBoolean
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
 import com.avail.descriptor.maps.A_Map
-import com.avail.descriptor.maps.MapDescriptor.emptyMap
+import com.avail.descriptor.maps.A_Map.Companion.valuesAsTuple
+import com.avail.descriptor.maps.MapDescriptor
+import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
+import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.representation.NilDescriptor
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.A_Set
-import com.avail.descriptor.sets.SetDescriptor.emptySet
+import com.avail.descriptor.sets.A_Set.Companion.isSubsetOf
+import com.avail.descriptor.sets.A_Set.Companion.setIntersectionCanDestroy
+import com.avail.descriptor.sets.A_Set.Companion.setSize
+import com.avail.descriptor.sets.SetDescriptor
+import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromArray
-import com.avail.descriptor.tuples.StringDescriptor.stringFrom
+import com.avail.descriptor.tuples.A_Tuple.Companion.asSet
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromArray
+import com.avail.descriptor.tuples.StringDescriptor
+import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
+import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.serialization.MalformedSerialStreamException
 
 /**
@@ -55,8 +68,8 @@ import com.avail.serialization.MalformedSerialStreamException
  *
  * @property isExtension
  *   Whether this [ModuleImport] is due to an Extends clause rather than a
- *   `Uses` clause, as indicated by [module
- *   header][SpecialMethodAtom.MODULE_HEADER].
+ *   `Uses` clause, as indicated by
+ *   [module&#32;header][SpecialMethodAtom.MODULE_HEADER].
  * @property wildcard
  *   Whether to include all names exported by the predecessor module that are
  *   not otherwise excluded by this import.
@@ -76,7 +89,7 @@ import com.avail.serialization.MalformedSerialStreamException
  *   `true` if these imported declarations are supposed to be re-exported from
  *   the current module.
  * @param names
- *   The [set][SetDescriptor] of names ([strings][String]) imported from the
+ *   The [set][SetDescriptor] of names ([strings][A_String]) imported from the
  *   module.  They will be cause atoms to be looked up within the predecessor
  *   module, and will be re-exported verbatim if `isExtension` is `true`.
  * @param renames
@@ -124,7 +137,7 @@ class ModuleImport
 	 * explicitly specified in this import declaration.  The keys are the newly
 	 * introduced names and the values are the names provided by the predecessor
 	 * module.  If no names or renames were specified, then this is
-	 * [nil][NilDescriptor.nil] instead.
+	 * [nil] instead.
 	 */
 	val renames: A_Map
 
@@ -258,9 +271,9 @@ class ModuleImport
 					stringFrom(name.localName),
 					module.versions(),
 					true,
-					emptySet(),
-					emptyMap(),
-					emptySet(),
+					emptySet,
+					emptyMap,
+					emptySet,
 					true)
 			}
 			catch (e: ImportValidationException)

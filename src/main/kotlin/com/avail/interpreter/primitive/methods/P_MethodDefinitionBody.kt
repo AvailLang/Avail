@@ -1,6 +1,6 @@
 /*
  * P_MethodDefinitionBody.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,17 +33,20 @@ package com.avail.interpreter.primitive.methods
 
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.methods.MethodDefinitionDescriptor
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.FunctionTypeDescriptor.mostGeneralFunctionType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
 import com.avail.descriptor.types.TypeDescriptor.Types.METHOD_DEFINITION
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CanFold
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Answer this [method signature's][MethodDefinitionDescriptor]
+ * **Primitive:** Answer this
+ * [method&#32;signature's][MethodDefinitionDescriptor]
  * [body][FunctionDescriptor].
  */
 @Suppress("unused")
@@ -58,5 +61,5 @@ object P_MethodDefinitionBody : Primitive(1, CannotFail, CanFold, CanInline)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(METHOD_DEFINITION.o()), mostGeneralFunctionType())
+		functionType(tuple(METHOD_DEFINITION.o), mostGeneralFunctionType())
 }

@@ -1,6 +1,6 @@
 /*
  * CompletelyOptional.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,21 +31,23 @@
  */
 package com.avail.compiler.splitter
 
-import com.avail.compiler.ParsingOperation.*
+import com.avail.compiler.ParsingOperation.DISCARD_SAVED_PARSE_POSITION
+import com.avail.compiler.ParsingOperation.ENSURE_PARSE_PROGRESS
+import com.avail.compiler.ParsingOperation.SAVE_PARSE_POSITION
 import com.avail.compiler.splitter.InstructionGenerator.Label
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter
 import com.avail.descriptor.phrases.A_Phrase
-import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.ListPhraseTypeDescriptor.emptyListPhraseType
+import com.avail.descriptor.types.ListPhraseTypeDescriptor.Companion.emptyListPhraseType
 
 /**
  * A `CompletelyOptional` is a special [expression][Expression] indicated by a
- * [double question mark][Metacharacter.DOUBLE_QUESTION_MARK] (⁇) following a
- * [simple][Simple] or [simple group][Group]. It may not contain
+ * [double&#32;question&#32;mark][Metacharacter.DOUBLE_QUESTION_MARK] (⁇)
+ * following a [simple][Simple] or [simple&#32;group][Group]. It may not contain
  * [arguments][Argument] or non-simple subgroups and it may not contain a
- * [double dagger][Metacharacter.DOUBLE_DAGGER]. The expression may appear zero
- * or one times.
+ * [double&#32;dagger][Metacharacter.DOUBLE_DAGGER]. The expression may appear
+ * zero or one times.
  *
  * A completely optional does not produce any information. No facility is
  * provided to determine whether there was an occurrence of the expression.
@@ -69,6 +71,9 @@ internal class CompletelyOptional constructor(
 	positionInName: Int,
 	private val sequence: Sequence) : Expression(positionInName)
 {
+	override val recursivelyContainsReorders: Boolean
+		get() = sequence.recursivelyContainsReorders
+
 	override val isLowerCase: Boolean
 		get() = sequence.isLowerCase
 
@@ -117,8 +122,7 @@ internal class CompletelyOptional constructor(
 		// when the optional section actually occurs.  Since no completely
 		// optional section can produce a value (argument, counter, etc),
 		// there's no problem.
-		for (expression in sequence.expressions)
-		{
+		sequence.expressions.forEach { expression ->
 			expression.emitOn(
 				emptyListPhraseType(),
 				generator,
@@ -132,7 +136,7 @@ internal class CompletelyOptional constructor(
 	}
 
 	override fun toString(): String =
-		"${javaClass.simpleName}(${sequence.expressions})"
+		"${this@CompletelyOptional.javaClass.simpleName}(${sequence.expressions})"
 
 	override fun printWithArguments(
 		arguments: Iterator<A_Phrase>?,
@@ -147,14 +151,14 @@ internal class CompletelyOptional constructor(
 		{
 			// A single optional token.
 			sequence.printWithArguments(
-				emptyTuple().iterator(), builder, indent)
+				emptyTuple.iterator(), builder, indent)
 		}
 		else
 		{
 			// A sequence of tokens that are optional (in aggregate).
 			builder.append('«')
 			sequence.printWithArguments(
-				emptyTuple().iterator(), builder, indent)
+				emptyTuple.iterator(), builder, indent)
 			builder.append('»')
 		}
 		builder.append('⁇')
@@ -173,4 +177,8 @@ internal class CompletelyOptional constructor(
 		// Completely optional expressions can be absent.
 		return true
 	}
+
+	override fun checkListStructure(phrase: A_Phrase): Boolean =
+		throw RuntimeException(
+			"checkListStructure() inapplicable for CompletelyOptional.")
 }

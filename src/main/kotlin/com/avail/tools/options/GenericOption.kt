@@ -1,6 +1,6 @@
 /*
  * GenericOption.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,8 +32,9 @@
 
 package com.avail.tools.options
 
-import com.avail.tools.options.OptionProcessorFactory.*
-import java.util.*
+import com.avail.tools.options.OptionProcessorFactory.Cardinality
+import com.avail.tools.options.OptionProcessorFactory.OptionInvocation
+import com.avail.tools.options.OptionProcessorFactory.OptionInvocationWithArgument
 
 /**
  * An implementation of [Option] whose accessible state is initialized during
@@ -88,8 +89,8 @@ internal open class GenericOption<OptionKeyType : Enum<OptionKeyType>>
 	: Option<OptionKeyType>
 {
 	/**
-	 * The [set][LinkedHashSet] of keywords that indicate this
+	 * The [set][MutableSet] of keywords that indicate this
 	 * [option][GenericOption].
 	 */
-	override val keywords: LinkedHashSet<String> = LinkedHashSet(keywords)
+	override val keywords = keywords.toMutableSet()
 }

@@ -311,6 +311,112 @@ maintenance. Our active team has shrunk in recent years, and the website suffers
 for it. Development of Avail itself is quite active, however, so GitHub might be
 your best source of Avail news.
 
+DOCUMENTATION
+--------------------------------------------------------------------------------
+Avail's codebase is extensively documented. Raw Markdown documentation can be
+ generated using [Dokka](https://github.com/Kotlin/dokka). The Avail Gradle 
+ `dokka` task has been set up to generate GitHub Flavored Markdown (gfm) by 
+default. This places the documentation in `documentation/docs/src_docs`. 
+
+On Unix:
+
+	$ ./gradlew dokka
+
+On vanilla Windows:
+
+    $ .\gradlew.bat dokka
+
+If you prefer to generate direct navigable HTML documentation, you can utilize 
+the Gradle task, `dokkaHTML`. That has been added to each project of Avail.
+
+On Unix:
+
+	$ ./gradlew dokkaHTML
+
+On vanilla Windows:
+
+    $ .\gradlew.bat dokkaHTML
+     
+If you prefer a more integrated documentation environment, you can optionally 
+follow the below instructions to generate a documentation website using
+[MkDocs](https://www.mkdocs.org/).
+
+
+#### MkDocs Generated Site
+The following lists the software that will be needed to complete this taks.
+
+- [Python 3](https://www.python.org/) / [pip 3](https://pip.pypa.io/en/stable/)
+- [MkDocs](https://www.mkdocs.org/)
+- [MkDocs Material](https://squidfunk.github.io/mkdocs-material/)
+
+The following instructions assume that both Python 3 (`python3`) and Pip 3 
+(`pip3`) are installed. If you have not done this please install them before 
+proceeding.
+
+**Automated Setup - (*Mac OSX Only*)** It is presumed you have Mac's Homebrew
+installed. Run the gradle task:
+    
+    $ ./gradlew installDocsToolsMac
+
+**Manual Setup MkDocs**
+
+***Mac OSX***
+
+It is recommended that you use Homebrew to install MkDocs. If you do not have 
+Homebrew installed, follow the 
+[installation instructions](https://docs.brew.sh/Installation). Once homebrew is 
+installed, in the terminal run:
+
+    $ brew install mkdocs
+
+***Linux***
+
+Depending on your Linux distro, a package manager may make MkDocs available to 
+you with an easy install. Using this path for installation is disrecommended as 
+the versions of the binaries available through the OS package managers may be 
+out of date.
+
+It is recommended that you follow the 
+[manual instructions](https://www.mkdocs.org/#installation) using `pip`. Be sure 
+to use `pip3` for installation of MkDocs. Doing this may prevent mkdocs from 
+being available on the PATH. The command `mkdocs` will need to be available on 
+the PATH for documentation to function. 
+
+***Windows***
+
+It is recommeneded that you follow the
+[manual instructions](https://www.mkdocs.org/#installation) using `pip`. Be sure 
+to use `pip3` for installation of MkDocs. 
+
+**Manual Setup MkDocs Material**
+
+The documentation site utilizes Material for MkDocs for its style theme. To 
+install Material, follow their 
+*[Getting Started](https://squidfunk.github.io/mkdocs-material/getting-started/)* 
+guide.
+
+At the time of writing this README, Material could be installed using PIP:
+
+```
+pip3 install mkdocs-material
+```
+
+**Building Documentation Website**
+
+To build the documentation website, first run the `dokka` gradle task as
+described above for your operating system. Then from the documentation directory
+in the terminal, run `$ mkdocs build`.  As the Avail codebase is large and
+extensively documented, the site may take several minutes to generate.
+
+**Serving Documentation**
+
+The documentation site is now available to be served up through your preferred
+method of local website serving. Some quick options include:
+ 
+ - Python: run `python3 -m http.server [PORT]` from `documentation/site`
+ - Node: 
+    - using npm, install `http-server`  
+    - run `http-server` from `documentation/site`
 
 REPORTING PROBLEMS
 --------------------------------------------------------------------------------
@@ -359,5 +465,6 @@ issue to let us know that you are no longer working on the problem.
 Thank you for using Avail!
 
                                                Todd L Smith <todd@availlang.org>
-                                       and Leslie Schultz <leslie@availlang.org>
+                                           Leslie Schultz <leslie@availlang.org>
+                                            Richard Arriaga <rich@availlang.org>
                                                on behalf of The Avail Foundation

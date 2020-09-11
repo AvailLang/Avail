@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Versioned As: $$Revision$$
+ * * Last Generated: 8/23/20 2:40 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -85,7 +85,7 @@ Names
 	/* 202 */ "directory-not-empty code",
 	/*  58 */ "dollar-sign-must-follow-an-ellipsis code",
 	/*  53 */ "double-question-mark-must-follow-a-token-or-simple-group code",
-	/*  95 */ "exceeds-vm-limit code",
+	/*  95 */ "exceeds-VM-limit code",
 	/*  38 */ "exclamation-mark-must-follow-an-alternation-group code",
 	/*  46 */ "expected-operator-after-backquote code",
 	/*  91 */ "fiber-cannot-join-itself code",
@@ -121,6 +121,7 @@ Names
 	/*  72 */ "method-is-sealed code",
 	/*  45 */ "method-name-is-not-canonical code",
 	/*  13 */ "method-return-type-not-as-forward-declared code",
+	/*  16 */ "module-is-closed code",
 	/*  22 */ "negative-size code",
 	/* 150 */ "no-external-process code",
 	/* 200 */ "no-file code",
@@ -235,6 +236,11 @@ Primitive "continuation-expected-stronger-type code" is
 Primitive "operation-not-supported code" is
 [
 	15
+];
+
+Primitive "module-is-closed code" is
+[
+	16
 ];
 
 Primitive "not-an-enumeration code" is
@@ -602,7 +608,7 @@ Primitive "not-open-for-write code" is
 	94
 ];
 
-Primitive "exceeds-vm-limit code" is
+Primitive "exceeds-VM-limit code" is
 [
 	95
 ];

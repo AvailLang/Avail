@@ -1,6 +1,6 @@
 /*
  * Serializer.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,17 +33,22 @@
 package com.avail.serialization
 
 import com.avail.AvailRuntime
-import com.avail.descriptor.A_Module
-import com.avail.descriptor.AvailObject
 import com.avail.descriptor.atoms.A_Atom
+import com.avail.descriptor.atoms.A_Atom.Companion.atomName
+import com.avail.descriptor.atoms.A_Atom.Companion.issuingModule
 import com.avail.descriptor.atoms.AtomDescriptor
+import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.sets.A_Set.Companion.hasElement
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.variables.A_Variable
-import com.avail.serialization.SerializerOperation.*
+import com.avail.serialization.SerializerOperation.ASSIGN_TO_VARIABLE
+import com.avail.serialization.SerializerOperation.CHECKPOINT
+import com.avail.serialization.SerializerOperation.SPECIAL_OBJECT
 import java.io.IOException
 import java.io.OutputStream
-import java.util.*
+import java.util.ArrayDeque
 
 /**
  * A `Serializer` converts a series of objects passed individually to
@@ -59,14 +64,14 @@ class Serializer
 	 * from each [AvailObject] to the [SerializerInstruction] that will be
 	 * output for it at the appropriate time.
 	 */
-	private val encounteredObjects:
-		MutableMap<A_BasicObject, SerializerInstruction> = HashMap(100)
+	private val encounteredObjects =
+		mutableMapOf<A_BasicObject, SerializerInstruction>()
 
 	/**
 	 * All variables that must have their values assigned to them upon
 	 * deserialization.  The set is cleared at every checkpoint.
 	 */
-	private val variablesToAssign = HashSet<A_Variable>(100)
+	private val variablesToAssign = mutableSetOf<A_Variable>()
 
 	/** The number of instructions that have been written to the [output]. */
 	private var instructionsWritten = 0
@@ -114,7 +119,7 @@ class Serializer
 	 * Output an unsigned byte.  It must be in the range 0 ≤ n ≤ 255.
 	 *
 	 * @param byteValue
-	 *   The unsigned byte to output, as an `int`,
+	 *   The unsigned byte to output, as an [Int],
 	 */
 	internal fun writeByte(byteValue: Int)
 	{
@@ -154,7 +159,7 @@ class Serializer
 	 * Output an int.  Use big endian order.
 	 *
 	 * @param intValue
-	 *   The `int` to output.
+	 *   The [Int] to output.
 	 */
 	internal fun writeInt(intValue: Int)
 	{
@@ -360,30 +365,36 @@ class Serializer
 	companion object
 	{
 		/**
-		 * The inverse of the [AvailRuntime]'s [special
-		 * objects][AvailRuntime.specialObjects] list.  Entries that are `null`
-		 * (i.e., unused entries} are not included.
+		 * The inverse of the [AvailRuntime]'s
+		 * [special&#32;objects][AvailRuntime.specialObjects] list.  Entries
+		 * that are `null` (i.e., unused entries} are not included.
 		 */
-		private val specialObjects = HashMap<A_BasicObject, Int>(1000)
+		private val specialObjects =
+			AvailRuntime.specialObjects.withIndex().associate {
+				it.value to it.index
+			}
 
 		/**
 		 * Special system [atoms][AtomDescriptor] that aren't already in the
-		 * list of [special atoms][AvailRuntime.specialAtoms].
+		 * list of [special&#32;atoms][AvailRuntime.specialAtoms].
 		 */
-		private val specialAtoms = HashMap<A_Atom, Int>(100)
+		private val specialAtoms =
+			AvailRuntime.specialAtoms.withIndex().associate {
+				it.value to it.index
+			}
 
 		/**
 		 * Special system [atoms][AtomDescriptor] that aren't already in the
-		 * list of [special atoms][AvailRuntime.specialAtoms], keyed by their
-		 * [A_String], where the value is the [A_Atom] itself.
+		 * list of [special&#32;atoms][AvailRuntime.specialAtoms], keyed by
+		 * their [A_String], where the value is the [A_Atom] itself.
 		 */
-		internal val specialAtomsByName: MutableMap<A_String, A_Atom> =
-			HashMap(100)
+		internal val specialAtomsByName =
+			specialAtoms.keys.associateBy { it.atomName() }
 
 		/**
-		 * Look up the object.  If it is a [special
-		 * object][AvailRuntime.specialObjects], then answer which special
-		 * object it is, otherwise answer -1.
+		 * Look up the object.  If it is a
+		 * [special&#32;object][AvailRuntime.specialObjects], then answer which
+		 * special object it is, otherwise answer -1.
 		 *
 		 * @param obj
 		 *   The object to look up.
@@ -394,41 +405,15 @@ class Serializer
 			specialObjects[obj] ?: -1
 
 		/**
-		 * Look up the object.  If it is a [special
-		 * atom][AvailRuntime.specialAtoms], then answer which special atom it
-		 * is, otherwise answer -1.
+		 * Look up the object.  If it is a
+		 * [special&#32;atom][AvailRuntime.specialAtoms], then answer which
+		 * special atom it is, otherwise answer `-1`.
 		 *
 		 * @param
 		 *   object The object to look up.
 		 * @return
 		 *   The object's zero-based index in `encounteredObjects`.
 		 */
-		internal fun indexOfSpecialAtom(obj: A_Atom): Int =
-			specialAtoms[obj] ?: -1
-
-		init
-		{
-			// Build the inverse of AvailRuntime#specialObjects().
-			val objectList = AvailRuntime.specialObjects()
-			for (i in objectList.indices)
-			{
-				val specialObject = objectList[i]
-				if (specialObject !== null)
-				{
-					specialObjects[specialObject] = i
-				}
-			}
-			// And build the inverse of AvailRuntime#specialAtoms().
-			val atomList = AvailRuntime.specialAtoms()
-			for (i in atomList.indices)
-			{
-				val specialAtom = atomList[i]
-				if (specialAtom !== null)
-				{
-					specialAtoms[specialAtom] = i
-					specialAtomsByName[specialAtom.atomName()] = specialAtom
-				}
-			}
-		}
+		internal fun indexOfSpecialAtom(obj: A_Atom) = specialAtoms[obj] ?: -1
 	}
 }

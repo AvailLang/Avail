@@ -1,6 +1,6 @@
 /*
  * Command.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,15 +36,16 @@ import com.avail.AvailRuntime
 import com.avail.builder.ModuleName
 import com.avail.builder.ModuleRoot
 import com.avail.builder.ModuleRoots
-import com.avail.descriptor.A_Fiber
-import com.avail.descriptor.A_Module
+import com.avail.descriptor.fiber.A_Fiber
+import com.avail.descriptor.module.A_Module
 import com.avail.persistence.Repository
 import com.avail.server.AvailServer
 import com.avail.server.io.AvailServerChannel
 import com.avail.server.messages.TextCommand.TrieNode
 import com.avail.server.messages.TextCommand.TrieNode.Companion.trie
 import java.lang.String.format
-import java.util.*
+import java.util.Formatter
+import java.util.UUID
 
 /**
  * To direct the activities of an [Avail server][AvailServer], a client sends
@@ -125,22 +126,23 @@ enum class TextCommand
 	COMMANDS,
 
 	/**
-	 * List all [module roots][ModuleRoot].
+	 * List all [module&#32;roots][ModuleRoot].
 	 */
 	MODULE_ROOTS,
 
 	/**
-	 * List all [module root paths][ModuleRoots.writePathsOn].
+	 * List all [module&#32;root&#32;paths][ModuleRoots.writePathsOn].
 	 */
 	MODULE_ROOT_PATHS,
 
 	/**
-	 * Answer the [module roots path][ModuleRoots.modulePath].
+	 * Answer the [module&#32;roots&#32;path][ModuleRoots.modulePath].
 	 */
 	MODULE_ROOTS_PATH,
 
 	/**
-	 * List all source modules reachable from the [module roots][ModuleRoot].
+	 * List all source modules reachable from the
+	 * [module&#32;roots][ModuleRoot].
 	 */
 	SOURCE_MODULES,
 
@@ -150,7 +152,7 @@ enum class TextCommand
 	ENTRY_POINTS,
 
 	/**
-	 * Clear all [binary module repositories][Repository].
+	 * Clear all [binary&#32;module&#32;repositories][Repository].
 	 */
 	CLEAR_REPOSITORIES,
 
@@ -318,7 +320,7 @@ enum class TextCommand
 		/**
 		 * The transition [map][Map], indexed by following [token][String].
 		 */
-		val nextNodes: MutableMap<String, TrieNode> = HashMap()
+		val nextNodes: MutableMap<String, TrieNode> = mutableMapOf()
 
 		companion object
 		{
@@ -346,7 +348,7 @@ enum class TextCommand
 					}
 				}
 				val existingCommand = node.command
-				assert(existingCommand == null) {
+				assert(existingCommand === null) {
 					format(
 						"Commands %s and %s have the same syntax!",
 						existingCommand!!.name,
@@ -397,7 +399,7 @@ enum class TextCommand
 			}
 
 			/**
-			 * Parse one or more [command messages][CommandMessage] from the
+			 * Parse one or more [command&#32;messages][CommandMessage] from the
 			 * specified [source][String].
 			 *
 			 * @param source
@@ -407,9 +409,9 @@ enum class TextCommand
 			 */
 			fun parseCommands(source: String): List<CommandMessage>
 			{
-				val parsedCommands = ArrayList<CommandMessage>()
+				val parsedCommands = mutableListOf<CommandMessage>()
 				val simpleCommand = parseSimpleCommand(source)
-				if (simpleCommand != null)
+				if (simpleCommand !== null)
 				{
 					parsedCommands.add(SimpleCommandMessage(simpleCommand))
 				}
@@ -418,7 +420,7 @@ enum class TextCommand
 					try
 					{
 						val commandMessage = command.parse(source)
-						if (commandMessage != null)
+						if (commandMessage !== null)
 						{
 							parsedCommands.add(commandMessage)
 						}
@@ -459,7 +461,7 @@ enum class TextCommand
 		val all = values()
 
 		/**
-		 * Parse an unambiguous [command message][CommandMessage] from the
+		 * Parse an unambiguous [command&#32;message][CommandMessage] from the
 		 * supplied raw [message][Message].
 		 *
 		 * @param message

@@ -1,6 +1,6 @@
 /*
  * AvailSubobjectVisitor.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 
 package com.avail.utility.visitor
 
-import com.avail.descriptor.AvailObject
+import com.avail.descriptor.representation.AvailObject
 
 /**
  * I provide an [invoke] operation which supports the ability to visit the
@@ -49,8 +49,9 @@ interface AvailSubobjectVisitor
 	 *
 	 * @param childObject
 	 *    An object referred to by the `parentObject`.
-	 * @return A replacement object for the childObject.  Subclasses may use
-	 * this to eliminate indirections, or for other purposes.
+	 * @return
+	 *   A replacement object for the childObject.  Subclasses may use this to
+	 *   eliminate indirections, or for other purposes.
 	 */
 	operator fun invoke(
 		childObject: AvailObject): AvailObject

@@ -1,6 +1,6 @@
 /*
  * P_AttemptJoinFiber.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,22 +32,25 @@
 
 package com.avail.interpreter.primitive.fibers
 
-import com.avail.descriptor.FiberDescriptor
-import com.avail.descriptor.FiberDescriptor.ExecutionState
-import com.avail.descriptor.FiberDescriptor.SynchronizationFlag.PERMIT_UNAVAILABLE
-import com.avail.descriptor.NilDescriptor.nil
-import com.avail.descriptor.sets.SetDescriptor.set
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.fiber.FiberDescriptor
+import com.avail.descriptor.fiber.FiberDescriptor.ExecutionState
+import com.avail.descriptor.fiber.FiberDescriptor.SynchronizationFlag.PERMIT_UNAVAILABLE
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.descriptor.sets.A_Set.Companion.setWithElementCanDestroy
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.types.FiberTypeDescriptor.mostGeneralFiberType
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
+import com.avail.descriptor.types.FiberTypeDescriptor.Companion.mostGeneralFiberType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.E_FIBER_CANNOT_JOIN_ITSELF
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
-import java.util.function.Supplier
+import com.avail.interpreter.Primitive.Flag.CanSuspend
+import com.avail.interpreter.Primitive.Flag.ReadsFromHiddenGlobalState
+import com.avail.interpreter.Primitive.Flag.Unknown
+import com.avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** If the [fiber][FiberDescriptor] has
@@ -69,6 +72,7 @@ import java.util.function.Supplier
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_AttemptJoinFiber : Primitive(
 	1,
 	CanSuspend,
@@ -87,9 +91,9 @@ object P_AttemptJoinFiber : Primitive(
 		{
 			return interpreter.primitiveFailure(E_FIBER_CANNOT_JOIN_ITSELF)
 		}
-		val succeed = joinee.lock( Supplier<Boolean> {
+		val succeed = joinee.lock {
 			if (joinee.executionState().indicatesTermination()) {
-				return@Supplier true
+				return@lock true
 			}
 			// Add to the joinee's set of joining fibers.  To avoid deadlock,
 			// this step is done while holding only the joinee's lock, which
@@ -112,14 +116,14 @@ object P_AttemptJoinFiber : Primitive(
 			// no longer in the joinee's set – in fact, the set will have been
 			// replaced by nil.  The attempt to remove the joiner from the set
 			// is simply skipped in that case.
-			joinee.joiningFibers(
+			joinee.setJoiningFibers(
 				joinee.joiningFibers().setWithElementCanDestroy(
 					current, false))
 			false
-		})
+		}
 		return when {
 			succeed -> interpreter.primitiveSuccess(nil)
-			else -> current.lock( Supplier {
+			else -> current.lock {
 				// If permit is not available, then park this fiber.
 				when {
 					current.getAndSetSynchronizationFlag(
@@ -127,12 +131,12 @@ object P_AttemptJoinFiber : Primitive(
 						interpreter.primitivePark(interpreter.function!!)
 					else -> interpreter.primitiveSuccess(nil)
 				}
-			})
+			}
 		}
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(mostGeneralFiberType()), TOP.o())
+		functionType(tuple(mostGeneralFiberType()), TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_FIBER_CANNOT_JOIN_ITSELF))

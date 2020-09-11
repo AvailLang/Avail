@@ -1,6 +1,6 @@
 /*
  * P_TupleToObjectType.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,25 +34,42 @@ package com.avail.interpreter.primitive.objects
 
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.functions.A_RawFunction
-import com.avail.descriptor.maps.MapDescriptor.emptyMap
-import com.avail.descriptor.objects.ObjectTypeDescriptor.*
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.maps.A_Map.Companion.hasKey
+import com.avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
+import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
+import com.avail.descriptor.numbers.A_Number.Companion.equalsInt
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
+import com.avail.descriptor.objects.ObjectTypeDescriptor
+import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectMeta
+import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.objectTypeFromMap
+import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.objectTypeFromTuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.InstanceMetaDescriptor.anyMeta
-import com.avail.descriptor.types.InstanceMetaDescriptor.instanceMeta
-import com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForTypes
-import com.avail.descriptor.types.TupleTypeDescriptor.zeroOrMoreOf
+import com.avail.descriptor.types.A_Type.Companion.instance
+import com.avail.descriptor.types.A_Type.Companion.instanceCount
+import com.avail.descriptor.types.A_Type.Companion.lowerBound
+import com.avail.descriptor.types.A_Type.Companion.sizeRange
+import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
+import com.avail.descriptor.types.A_Type.Companion.upperBound
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
+import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
+import com.avail.descriptor.types.TypeDescriptor
 import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CanFold
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Convert a [tuple][TupleDescriptor] of field definitions into
- * an [object type][ObjectTypeDescriptor]. A field definition is a 2-tuple whose
- * first element is an [atom][AtomDescriptor] that represents the field and
- * whose second element is the value [type][TypeDescriptor].
+ * an [object&#32;type][ObjectTypeDescriptor]. A field definition is a 2-tuple
+ * whose first element is an [atom][AtomDescriptor] that represents the field
+ * and whose second element is the value [type][TypeDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -68,7 +85,7 @@ object P_TupleToObjectType : Primitive(1, CannotFail, CanFold, CanInline)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(zeroOrMoreOf(tupleTypeForTypes(ATOM.o(), anyMeta()))),
+			tuple(zeroOrMoreOf(tupleTypeForTypes(ATOM.o, anyMeta()))),
 			mostGeneralObjectMeta())
 
 	override fun returnTypeGuaranteedByVM(
@@ -84,7 +101,7 @@ object P_TupleToObjectType : Primitive(1, CannotFail, CanFold, CanInline)
 			return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
 		}
 		val tupleSize = tupleSizeLowerBound.extractInt()
-		var fieldTypeMap = emptyMap()
+		var fieldTypeMap = emptyMap
 		for (i in 1 .. tupleSize)
 		{
 			val pairType = tupleType.typeAtIndex(i)
@@ -94,14 +111,16 @@ object P_TupleToObjectType : Primitive(1, CannotFail, CanFold, CanInline)
 			if (!keyType.isEnumeration || !keyType.instanceCount().equalsInt(1))
 			{
 				// Can only strengthen if all key atoms are statically known.
-				return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
+				return super.returnTypeGuaranteedByVM(
+					rawFunction, argumentTypes)
 			}
 			val keyValue = keyType.instance()
 			assert(keyValue.isAtom)
 			if (fieldTypeMap.hasKey(keyValue))
 			{
 				// In case the semantics of this situation change.  Give up.
-				return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
+				return super.returnTypeGuaranteedByVM(
+					rawFunction, argumentTypes)
 			}
 			val valueMeta = pairType.typeAtIndex(2)
 			assert(valueMeta.isInstanceMeta)

@@ -1,6 +1,6 @@
 /*
  * P_GetContinuationOfOtherFiber.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,17 +32,21 @@
 
 package com.avail.interpreter.primitive.fibers
 
-import com.avail.descriptor.sets.SetDescriptor.set
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.types.ContinuationTypeDescriptor.mostGeneralContinuationType
-import com.avail.descriptor.types.FiberTypeDescriptor.mostGeneralFiberType
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
+import com.avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralContinuationType
+import com.avail.descriptor.types.FiberTypeDescriptor.Companion.mostGeneralFiberType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.exceptions.AvailErrorCode.E_FIBER_IS_TERMINATED
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CanSuspend
+import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.Primitive.Flag.ReadsFromHiddenGlobalState
+import com.avail.interpreter.Primitive.Flag.Unknown
+import com.avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Ask another fiber what it's doing.  Fail if the fiber's
@@ -66,15 +70,11 @@ object P_GetContinuationOfOtherFiber : Primitive(
 		interpreter.checkArgumentCount(1)
 		val otherFiber = interpreter.argument(0)
 
-		return interpreter.suspendAndDo { toSucceed, toFail ->
+		return interpreter.suspendThen {
 			otherFiber.whenContinuationIsAvailableDo { theContinuation ->
-				if (!theContinuation.equalsNil())
-				{
-					toSucceed.value(theContinuation)
-				}
-				else
-				{
-					toFail.value(E_FIBER_IS_TERMINATED)
+				when {
+					!theContinuation.equalsNil() -> succeed(theContinuation)
+					else -> fail(E_FIBER_IS_TERMINATED)
 				}
 			}
 		}

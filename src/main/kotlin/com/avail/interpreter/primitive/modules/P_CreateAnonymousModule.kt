@@ -1,17 +1,17 @@
 /*
  * P_CreateAnonymousModule.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
  *
  *  * Neither the name of the copyright holder nor the names of the contributors
  *    may be used to endorse or promote products derived from this software
@@ -32,81 +32,46 @@
 
 package com.avail.interpreter.primitive.modules
 
-import com.avail.descriptor.ModuleDescriptor
-import com.avail.descriptor.ModuleDescriptor.currentModule
-import com.avail.descriptor.ModuleDescriptor.newModule
-import com.avail.descriptor.sets.SetDescriptor.set
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.tuples.TupleDescriptor
-import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.types.EnumerationTypeDescriptor.booleanType
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.TupleTypeDescriptor.*
+import com.avail.descriptor.atoms.AtomDescriptor
+import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.module.ModuleDescriptor.Companion.newModule
+import com.avail.descriptor.sets.A_Set
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
+import com.avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
+import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.types.TypeDescriptor.Types.MODULE
-import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Answer the [module][ModuleDescriptor] currently undergoing
- * compilation. Fails at runtime (if compilation is over).
+ * **Primitive:** Create an anonymous [module][A_Module] that privately
+ * imports only and exactly the supplied [set][A_Set] of
+ * [atoms][AtomDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object P_CreateAnonymousModule : Primitive(1, CanInline)
+@Suppress("unused")
+object P_CreateAnonymousModule : Primitive(1, CanInline, CannotFail)
 {
-	override fun attempt(interpreter: Interpreter): Result
+	override fun attempt (interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
-//		val allUses: A_Tuple = interpreter.argument(0)
+		val allUses: A_Set = interpreter.argument(0)
 
-		val currentModule = currentModule()
-		val newModule = newModule(TupleDescriptor.emptyTuple())
-//		val loader = interpreter.availLoaderOrNull() ?:
-//			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
-//		for ((moduleName, importsForModule) in allUses) {
-//			val importedModule = moduleName
-//			//TODO finish this
-//		}
-
-		if (currentModule.equalsNil())
-		{
-			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
-		}
+		val newModule = newModule(emptyTuple)
+		newModule.addPrivateNames(allUses)
 		return interpreter.primitiveSuccess(newModule)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type = functionType(
-		tuple(
-			// Entire 'uses' argument
-			oneOrMoreOf(
-				// One imported module.
-				tupleTypeForTypes(
-					// Imported module name. Must be imported in current module.
-					nonemptyStringType(),
-					// Optional imported names list section.
-					zeroOrOneOf(
-						// Imported names list section.
-						tupleTypeForTypes(
-							// Imported names list.
-							zeroOrMoreOf(
-								// Single imported name.
-								tupleTypeForTypes(
-									// Negated import.
-									booleanType(),
-									// Name being imported.
-									nonemptyStringType(),
-									// Optional rename string.
-									zeroOrOneOf(
-										// Rename string.
-										nonemptyStringType()))),
-							// Wildcard for imported names.
-							booleanType()))))),
-		MODULE.o())
-
-	override fun privateFailureVariableType(): A_Type = enumerationWith(
-		set(
-			E_LOADING_IS_OVER))
+	override fun privateBlockTypeRestriction () =
+		functionType(
+			// All atoms that should be imported privately.
+			tuple(setTypeForSizesContentType(wholeNumbers, ATOM.o)),
+			MODULE.o
+		)
 }

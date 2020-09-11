@@ -1,6 +1,6 @@
 /*
  * P_RemoveTypeName.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,24 +31,26 @@
  */
 package com.avail.interpreter.primitive.objects
 
-import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.objects.ObjectTypeDescriptor
-import com.avail.descriptor.objects.ObjectTypeDescriptor.mostGeneralObjectType
-import com.avail.descriptor.objects.ObjectTypeDescriptor.removeNameFromType
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectType
+import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.removeNameFromType
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.InstanceMetaDescriptor.instanceMeta
-import com.avail.descriptor.types.TupleTypeDescriptor.stringType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Unbind a name from a
- * [user-defined object type][ObjectTypeDescriptor]. This can be useful for
- * removing the effect of [P_RecordNewTypeName] when unloading a module.
+ * [user-defined&#32;object&#32;type][ObjectTypeDescriptor]. This can be useful
+ * for removing the effect of [P_RecordNewTypeName] when unloading a module.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -69,5 +71,6 @@ object P_RemoveTypeName : Primitive(2, CanInline, CannotFail, HasSideEffect)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(stringType(), instanceMeta(mostGeneralObjectType())), TOP.o())
+			tuple(stringType(), instanceMeta(mostGeneralObjectType())), TOP.o
+		)
 }

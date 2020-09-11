@@ -1,6 +1,6 @@
 /*
  * ExamineRepositoryAction.java
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@
 package com.avail.environment.actions
 
 import com.avail.AvailRuntime
-import com.avail.descriptor.FiberDescriptor
+import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.environment.AvailWorkbench
 import com.avail.persistence.Repository
 import com.avail.persistence.RepositoryDescriber

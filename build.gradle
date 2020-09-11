@@ -1,6 +1,6 @@
 /*
  * build.gradle
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,28 +33,51 @@
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import org.jetbrains.kotlin.gradle.tasks.*
 
 plugins {
 	id 'java'
-	id 'org.jetbrains.kotlin.jvm' version '1.3.61' // $kotlin_version
-	id 'com.github.johnrengelman.shadow' version '5.1.0' // $shadow_version
+	id 'org.jetbrains.kotlin.jvm' version '1.3.72' // $kotlin_version
+	id 'com.github.johnrengelman.shadow' version '6.0.0' // $shadow_version
+	id 'org.jetbrains.dokka' version '0.10.1'
+	id 'maven-publish'
+	id 'publishing'
+
+	id "com.dorongold.task-tree" version "1.5"  // adds 'taskTree' analysis task
 }
 
-group 'org.availlang'
-version '1.4'
+ext.versionToPublish = {
+	def formatter = DateTimeFormatter
+		.ofPattern("yyyyMMdd.HHmmss")
+		.withLocale(Locale.default)
+		.withZone(ZoneId.of("UTC"))
+	def timeString = formatter.format(Instant.now())
+	"1.4.0.$timeString"
+}()
 
-sourceCompatibility = 1.8
+allprojects {
+	group 'org.availlang'
+	version versionToPublish
+
+	sourceCompatibility = 1.8
+
+	tasks.withType(JavaCompile) {
+		options.encoding = 'UTF-8'
+	}
+}
 
 repositories {
 	mavenCentral()
+	jcenter()
 }
 
-tasks.withType(JavaCompile) {
-	options.encoding = 'UTF-8'
+compileKotlin {
+	kotlinOptions {
+		jvmTarget = '1.8'
+		freeCompilerArgs = ['-Xjvm-default=compatibility']
+	}
 }
 
-tasks.withType(KotlinCompile) {
+compileTestKotlin {
 	kotlinOptions {
 		jvmTarget = '1.8'
 		freeCompilerArgs = ['-Xjvm-default=compatibility']
@@ -63,55 +86,67 @@ tasks.withType(KotlinCompile) {
 
 dependencies {
 	// Kotlin.
-	implementation group: 'org.jetbrains.kotlin',
-			name: 'kotlin-stdlib-jdk8',
-			version: "$kotlin_version"
+	api group: 'org.jetbrains.kotlin',
+		name: 'kotlin-stdlib-jdk8',
+		version: "$kotlin_version"
 
 	// JSR-305 null analysis framework.
-	implementation group: 'com.google.code.findbugs',
-			name: 'jsr305',
-			version: "$jsr_version"
+	api group: 'com.google.code.findbugs',
+		name: 'jsr305',
+		version: "$jsr_version"
+
+	// Type renderer annotations, for debugger view.  Doesn't actually work.
+	compileOnly group: 'org.jetbrains',
+		name: 'annotations',
+		version: "$kotlin_annotations"
 
 	// ObjectWeb JVM code generation/analysis framework.
-	implementation group: 'org.ow2.asm', name: 'asm', version: "$asm_version"
-	implementation group: 'org.ow2.asm',
-			name: 'asm-analysis',
-			version: "$asm_version"
-	implementation group: 'org.ow2.asm',
-			name: 'asm-tree',
-			version: "$asm_version"
-	implementation group: 'org.ow2.asm',
-			name: 'asm-util',
-			version: "$asm_version"
+	api group: 'org.ow2.asm',
+		name: 'asm',
+		version: "$asm_version"
+	api group: 'org.ow2.asm',
+		name: 'asm-analysis',
+		version: "$asm_version"
+	api group: 'org.ow2.asm',
+		name: 'asm-tree',
+		version: "$asm_version"
+	api group: 'org.ow2.asm',
+		name: 'asm-util',
+		version: "$asm_version"
 
 	// JUnit 5.
 	testRuntimeOnly group: 'org.junit.jupiter',
-			name: 'junit-jupiter-engine',
-			version: "$junit_version"
+		name: 'junit-jupiter-engine',
+		version: "$junit_version"
 	testImplementation group: 'org.junit.jupiter',
-			name: 'junit-jupiter-api',
-			version: "$junit_version"
+		name: 'junit-jupiter-api',
+		version: "$junit_version"
 	testImplementation group: 'org.junit.jupiter',
-			name: 'junit-jupiter-params',
-			version: "$junit_version"
+		name: 'junit-jupiter-params',
+		version: "$junit_version"
 }
 
 // Compute the Avail roots. This is needed to properly configure "test".
-ext.computeAvailRoots = {
+def computeAvailRoots = {
 	def pathRepos = "$projectDir/repositories"
 	def pathRootsSrc = "$projectDir/distro/src"
-	def roots = "avail=$pathRepos/avail.repo,$pathRootsSrc/avail"
-	roots += ";experimental=$pathRepos/experimental.repo,$projectDir/experimental/even-newer-avail"
-	roots += ";examples=$pathRepos/examples.repo,$pathRootsSrc/examples"
-	roots += ";website=$pathRepos/website.repo,$pathRootsSrc/website"
-	roots
-}
+	def roots = [
+			["avail", "$pathRootsSrc/avail"],
+			["experimental", "$projectDir/experimental/even-newer-avail"],
+			["examples", "$pathRootsSrc/examples"],
+			["website", "$pathRootsSrc/website"]
+	]
+	return roots.collect {
+		"${it[0]}=$pathRepos/${it[0]}.repo,${it[1]}"
+	}.join(";")
+}()
 
 test {
 	useJUnitPlatform()
 	minHeapSize = "4g"
 	maxHeapSize = "6g"
-	systemProperty "availRoots", computeAvailRoots()
+	enableAssertions = true
+	systemProperty "availRoots", computeAvailRoots
 }
 
 // Capture the time at which the build began and record it into a resource file.
@@ -122,24 +157,71 @@ task generateBuildTime {
 
 	doLast {
 		def formatter = DateTimeFormatter
-				.ofPattern("yyyyMMdd.HHmmss.SSS")
-				.withLocale(Locale.default)
-				.withZone(ZoneId.systemDefault())
+			.ofPattern("yyyyMMdd.HHmmss.SSS")
+			.withLocale(Locale.default)
+			.withZone(ZoneId.systemDefault())
 		def now = formatter.format(Instant.now())
 
 		file(pathToBuildTime).text = "$now\n"
 	}
 }
 
+// DOCUMENTATION TASKS
+
+// Remove generated documentation files
+task cleanDocs {
+	description 'Cleaning up previously generated documentation website'
+	delete 'documentation/docs/src_docs'
+	delete 'documentation/site'
+}
+cleanDocs.dependsOn clean
+
+// Creates documentation/docs/index.md from README.md
+task copyReadMeToDocs(type: Copy) {
+	from file("README.md")
+	rename { String fileName ->
+		"index.md"
+	}
+	into file("documentation/docs")
+}
+copyReadMeToDocs.dependsOn cleanDocs
+
+// Generate Kotlin documentation
+dokka {
+	outputFormat='gfm'
+	outputDirectory='documentation/docs/src_docs'
+	subProjects = [
+		"avail-bootstrap",
+		"avail-cli",
+		"avail-server",
+		"avail-workbench",
+		"indexed-file-analyzer",
+		"unicode-catalog"
+	]
+}
+
+task dokkaHTML(type: org.jetbrains.dokka.gradle.DokkaTask) {
+	outputFormat = 'html'
+	outputDirectory = "$buildDir/dokka"
+}
+
+// Install MkDocs and other dependencies
+task installDocsToolsMac(type:Exec) {
+	description 'Installing documenation website dependencies'
+	commandLine './documentation/docs.sh', 'install'
+}
+
+// END DOCUMENTATION TASKS
+
 // Generate the list of all primitives, which a running Avail system uses during
 // setup to reflectively identify the complete catalog of primitives.
 task generatePrimitivesList {
 	// Un-Windows the path, if necessary.
 	def pathAvailBuildMain =
-			"$buildDir/classes/kotlin/main".replaceAll('\\\\', '/')
+		"$buildDir/classes/kotlin/main".replaceAll('\\\\', '/')
 	def allPrimitives = fileTree("$pathAvailBuildMain/com/avail/interpreter")
 	def pathToPrimitivesList =
-			file("$pathAvailBuildMain/com/avail/interpreter/All_Primitives.txt")
+		file("$pathAvailBuildMain/com/avail/interpreter/All_Primitives.txt")
 	allPrimitives.include "**/P_*.class"
 	allPrimitives.exclude '**/*$*.class'
 	allPrimitives.builtBy "compileJava"
@@ -149,9 +231,9 @@ task generatePrimitivesList {
 	doLast {
 		def allPrimitiveNames = allPrimitives.collect {
 			it.absolutePath
-				.replaceAll('\\\\', '/')
-				.replaceFirst("^$pathAvailBuildMain/", "")
-				.replaceFirst('\\.class', "\n")
+				.replaceAll("\\\\", '/')
+				.replaceFirst(/^$pathAvailBuildMain\//, "")
+				.replaceFirst(/\.class/, "\n")
 				.replaceAll("/", ".")
 		}.sort()
 
@@ -163,19 +245,39 @@ task generatePrimitivesList {
 classes.dependsOn generateBuildTime
 classes.dependsOn generatePrimitivesList
 
+jar.doFirst {
+	delete fileTree("$projectDir/build/libs") {
+		include "**/*.jar"
+		exclude "**/*-all.jar"
+	}
+}
+
+shadowJar.doFirst {
+	delete fileTree("$projectDir/build/libs") {
+		include "**/*-all.jar"
+	}
+}
+
 // Copy the JAR into the distribution directory.
-task releaseAvail (type: Copy) {
+task releaseAvail(type: Copy) {
 	group = 'release'
 	from shadowJar.outputs.files
 	into file("$projectDir/distro/lib")
+	rename '.*', 'avail.jar'
+	duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
 
 // Update the dependencies of "assemble".
 assemble.dependsOn releaseAvail
 
 // Remove released libraries.
-task scrubReleases (type: Delete) {
+task scrubReleases(type: Delete) {
+	// distro/lib
 	delete fileTree("$projectDir/distro/lib") {
+		include '**/*.jar'
+	}
+	// And the publication staging directory, build/libs
+	delete fileTree("$projectDir/build/libs") {
 		include '**/*.jar'
 	}
 }
@@ -229,4 +331,68 @@ This is convenient for experimenting with Avail, but must be
 extended with custom module roots as you develop your own modules.
 ====================================================================
 """
+}
+
+allprojects {
+	task sourceJar(type: Jar) {
+		description = 'Creates sources JAR.'
+		archiveClassifier.set("sources")
+		from sourceSets.main.allSource
+		duplicatesStrategy = DuplicatesStrategy.INCLUDE
+	}
+}
+
+ext.credentialsWarning = "Missing credentials.  To publish, you'll need to " +
+	"create a GitHub token:" +
+	"\n" +
+	(
+		"https://help.github.com/en/actions/" +
+			"configuring-and-managing-workflows/" +
+			"authenticating-with-the-github_token") +
+	"\n" +
+	"Then set GITHUB_USER and GITHUB_TOKEN variables to hold your github " +
+	"username and the (generated hexadecimal) token, respectively, in " +
+	"~/.bash_profile or other appropriate login script." +
+	"\n" +
+	'Remember to restart IntelliJ after this change.'
+
+ext.github_username = System.getenv("GITHUB_USER")
+ext.github_password = System.getenv("GITHUB_TOKEN")
+
+publishing {
+	repositories {
+		maven {
+			name = "GitHub"
+			url = uri("https://maven.pkg.github.com/AvailLang/Avail")
+			credentials {
+				username = github_username
+				password = github_password
+			}
+		}
+	}
+
+	publications {
+		avail(MavenPublication) {
+			from components.java
+			artifact sourceJar
+		}
+	}
+}
+
+// Remove libraries from the staging directory after successful publication.
+// Otherwise they'll gradually build up in there.
+task cleanUpStagingDirectory(type: Delete) {
+	delete fileTree("$projectDir/build/libs") {
+		include '**/*.jar'
+	}
+	dependsOn publishAvailPublicationToGitHubRepository
+}
+
+publish.dependsOn cleanUpStagingDirectory
+
+publish.doFirst {
+	if (github_username == null || github_password == null)
+	{
+		System.err.println(credentialsWarning)
+	}
 }

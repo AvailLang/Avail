@@ -1,6 +1,6 @@
 /*
  * P_BootstrapBlockMacro.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,31 +35,66 @@ package com.avail.interpreter.primitive.bootstrap.syntax
 import com.avail.compiler.AvailRejectedParseException
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.WEAK
-import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.*
+import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY
+import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_MAP_KEY
+import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_STACK_KEY
+import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.STATIC_TOKENS_KEY
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.maps.A_Map
-import com.avail.descriptor.objects.ObjectTypeDescriptor.exceptionType
+import com.avail.descriptor.maps.A_Map.Companion.hasKey
+import com.avail.descriptor.maps.A_Map.Companion.mapAt
+import com.avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
+import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.exceptionType
 import com.avail.descriptor.phrases.A_Phrase
+import com.avail.descriptor.phrases.A_Phrase.Companion.declaredType
+import com.avail.descriptor.phrases.A_Phrase.Companion.expressionAt
+import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsSize
+import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsTuple
+import com.avail.descriptor.phrases.A_Phrase.Companion.lastExpression
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
+import com.avail.descriptor.phrases.A_Phrase.Companion.token
 import com.avail.descriptor.phrases.BlockPhraseDescriptor
-import com.avail.descriptor.phrases.BlockPhraseDescriptor.newBlockNode
-import com.avail.descriptor.sets.SetDescriptor.*
+import com.avail.descriptor.phrases.BlockPhraseDescriptor.Companion.newBlockNode
+import com.avail.descriptor.sets.A_Set
+import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
+import com.avail.descriptor.sets.SetDescriptor.Companion.generateSetFrom
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromArray
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
-import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.copyTupleFromToCanDestroy
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromArray
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.InstanceMetaDescriptor.anyMeta
-import com.avail.descriptor.types.InstanceMetaDescriptor.topMeta
-import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.*
-import com.avail.descriptor.types.TupleTypeDescriptor.*
-import com.avail.descriptor.types.TypeDescriptor.Types.*
+import com.avail.descriptor.types.A_Type.Companion.functionType
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import com.avail.descriptor.types.A_Type.Companion.returnType
+import com.avail.descriptor.types.A_Type.Companion.typeUnion
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
+import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.BLOCK_PHRASE
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.STATEMENT_PHRASE
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrOneOf
+import com.avail.descriptor.types.TypeDescriptor.Types.ANY
+import com.avail.descriptor.types.TypeDescriptor.Types.TOKEN
+import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.E_INCONSISTENT_PREFIX_FUNCTION
 import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.Bootstrap
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * The `P_BootstrapBlockMacro` primitive is used for bootstrapping the
@@ -87,7 +122,7 @@ import com.avail.interpreter.Primitive.Flag.*
  * to the macro body (i.e., this primitive).  The body function has to look up
  * any arguments, primitive failure variable, and/or label that may have entered
  * scope due to execution of a prefix function.  The body answers a suitable
- * replacement phrase, in this case a [block phrase][BlockPhraseDescriptor].
+ * replacement phrase, in this case a [block&#32;phrase][BlockPhraseDescriptor].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -154,7 +189,7 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 
 		val argumentDeclarationPairs =
 			if (optionalArgumentDeclarations.expressionsSize() == 0)
-			{ emptyTuple() }
+			{ emptyTuple }
 			else
 			{
 				optionalArgumentDeclarations.expressionAt(1)
@@ -181,8 +216,7 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 
 		// Deal with the primitive declaration if present.
 		assert(optionalPrimitive.expressionsSize() <= 1)
-		val prim: Primitive?
-		val primNumber: Int
+		val primitive: Primitive?
 		val primitiveReturnType: A_Type?
 		var canHaveStatements = true
 		val allStatements = mutableListOf<A_Phrase>()
@@ -198,14 +232,13 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 						+ "literal keyword token")
 			}
 			val primName = primNamePhrase.token().string()
-			prim = primitiveByName(primName.asNativeString())
-			if (prim === null)
+			primitive = primitiveByName(primName.asNativeString())
+			if (primitive === null)
 			{
 				return interpreter.primitiveFailure(
 					E_INCONSISTENT_PREFIX_FUNCTION)
 			}
-			primNumber = prim.primitiveNumber
-			canHaveStatements = !prim.hasFlag(CannotFail)
+			canHaveStatements = !primitive.hasFlag(CannotFail)
 			val optionalFailurePair = primPhrase.expressionAt(2)
 			assert(optionalFailurePair.expressionsSize() <= 1)
 			if (optionalFailurePair.expressionsSize() == 1 != canHaveStatements)
@@ -232,12 +265,11 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 					scopeMap.mapAt(failureDeclarationName)
 				allStatements.add(failureDeclaration)
 			}
-			primitiveReturnType = prim.blockTypeRestriction().returnType()
+			primitiveReturnType = primitive.blockTypeRestriction().returnType()
 		}
 		else
 		{
-			prim = null
-			primNumber = 0
+			primitive = null
 			primitiveReturnType = null
 		}
 
@@ -285,21 +317,25 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 
 				if (labelReturnType === null)
 				{
-					returnExpression.expressionType()
+					returnExpression.phraseExpressionType()
 				}
 				else
 				{
-					returnExpression.expressionType().typeUnion(labelReturnType)
+					returnExpression.phraseExpressionType().typeUnion(
+						labelReturnType)
 				}
 			}
 			else
 			{
-				if (prim !== null && prim.hasFlag(CannotFail))
+				if (primitive !== null && primitive.hasFlag(CannotFail))
 				{
 					// An infallible primitive must have no statements.
-					prim.blockTypeRestriction().returnType()
+					primitive.blockTypeRestriction().returnType()
 				}
-				else { TOP.o() }
+				else
+				{
+					TOP.o
+				}
 			}
 
 		if (allStatements.size > 0 && !canHaveStatements)
@@ -365,7 +401,7 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 				"primitive function to declare its return type")
 		}
 		val returnType = declaredReturnType ?: deducedReturnType
-		var exceptionsSet = emptySet()
+		var exceptionsSet: A_Set = emptySet
 		if (optionalExceptionTypes.expressionsSize() == 1)
 		{
 			val expressions =
@@ -382,7 +418,7 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 			else  { tokens.tupleAt(1).lineNumber() }
 		val block = newBlockNode(
 			tupleFromList(argumentDeclarationsList),
-			primNumber,
+			primitive,
 			tupleFromList(allStatements),
 			returnType,
 			exceptionsSet,
@@ -397,7 +433,7 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 			scopeStackKey, scopeStack, true)
 		fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
 			clientDataKey, clientData, true)
-		fiber.fiberGlobals(fiberGlobals.makeShared())
+		fiber.setFiberGlobals(fiberGlobals.makeShared())
 		return interpreter.primitiveSuccess(block)
 	}
 
@@ -413,7 +449,7 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 							/* An argument. */
 							tupleTypeForTypes(
 								/* Argument name, a token. */
-								TOKEN.o(),
+								TOKEN.o,
 								/* Argument type. */
 								anyMeta())))),
 				/* Macro argument is a phrase. */
@@ -423,13 +459,13 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 						/* Primitive declaration */
 						tupleTypeForTypes(
 							/* Primitive name. */
-							TOKEN.o(),
+							TOKEN.o,
 							/* Optional failure variable declaration. */
 							zeroOrOneOf(
 								/* Primitive failure variable parts. */
 								tupleTypeForTypes(
 									/* Primitive failure variable name token */
-									TOKEN.o(),
+									TOKEN.o,
 									/* Primitive failure variable type */
 									anyMeta()))))),
 				/* Macro argument is a phrase. */
@@ -439,7 +475,7 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 						/* Label parts. */
 						tupleTypeForTypes(
 							/* Label name */
-							TOKEN.o(),
+							TOKEN.o,
 							/* Optional label return type. */
 							zeroOrOneOf(
 								/* Label return type. */
@@ -450,11 +486,11 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 					zeroOrMoreOf(
 						/* The "_!" mechanism wrapped each statement inside a
 						 * literal phrase, so expect a phrase here instead of
-						 * TOP.o().
+						 * TOP.o.
 						 */
 						STATEMENT_PHRASE.mostGeneralType())),
 				/* Optional return expression */
-				LIST_PHRASE.create(zeroOrOneOf(PARSE_PHRASE.create(ANY.o()))),
+				LIST_PHRASE.create(zeroOrOneOf(PARSE_PHRASE.create(ANY.o))),
 				/* Optional return type */
 				LIST_PHRASE.create(zeroOrOneOf(topMeta())),
 				/* Optional tuple of exception types */
@@ -463,5 +499,8 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 			BLOCK_PHRASE.mostGeneralType())
 
 	override fun privateFailureVariableType(): A_Type =
-		enumerationWith(set(E_LOADING_IS_OVER, E_INCONSISTENT_PREFIX_FUNCTION))
+		enumerationWith(
+			set(
+				E_LOADING_IS_OVER,
+				E_INCONSISTENT_PREFIX_FUNCTION))
 }

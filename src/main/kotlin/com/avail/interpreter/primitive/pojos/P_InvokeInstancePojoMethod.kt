@@ -1,6 +1,6 @@
 /*
  * P_InvokeInstancePojoMethod.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,22 +32,27 @@
 package com.avail.interpreter.primitive.pojos
 
 import com.avail.AvailRuntime.HookType
-import com.avail.descriptor.pojos.PojoDescriptor.newPojo
-import com.avail.descriptor.pojos.PojoDescriptor.nullPojo
-import com.avail.descriptor.pojos.RawPojoDescriptor.identityPojo
+import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.pojos.PojoDescriptor.Companion.newPojo
+import com.avail.descriptor.pojos.PojoDescriptor.Companion.nullPojo
+import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
+import com.avail.descriptor.tuples.A_Tuple.Companion.copyTupleFromToCanDestroy
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.BottomTypeDescriptor.bottom
-import com.avail.descriptor.types.PojoTypeDescriptor.pojoTypeForClass
-import com.avail.descriptor.types.PojoTypeDescriptor.unmarshal
+import com.avail.descriptor.types.A_Type.Companion.returnType
+import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
+import com.avail.descriptor.types.PojoTypeDescriptor.Companion.pojoTypeForClass
+import com.avail.descriptor.types.PojoTypeDescriptor.Companion.unmarshal
 import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.MarshalingException
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.Private
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.primitive.pojos.PrimitiveHelper.marshalValues
-import com.avail.utility.MutableOrNull
+import com.avail.utility.Mutable
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 
@@ -66,6 +71,7 @@ import java.lang.reflect.Method
  * [P_CreatePojoInstanceMethodFunction], and has two outer values: the Java
  * [Method] and the [tuple][A_Tuple] of marshaled types.
  */
+@Suppress("unused")
 object P_InvokeInstancePojoMethod : Primitive(-1, Private)
 {
 	override fun attempt(interpreter: Interpreter): Result
@@ -85,7 +91,7 @@ object P_InvokeInstancePojoMethod : Primitive(-1, Private)
 
 		// Marshal the arguments.
 		val method = methodPojo.javaObjectNotNull<Method>()
-		val errorOut = MutableOrNull<AvailErrorCode>()
+		val errorOut = Mutable<AvailErrorCode?>(null)
 		val receiver = methodArgs.tupleAt(1).marshalToJava(
 			marshaledTypes.tupleAt(1).javaObject())
 		val marshaledArgs = marshalValues(
@@ -96,7 +102,7 @@ object P_InvokeInstancePojoMethod : Primitive(-1, Private)
 			errorOut)
 		if (errorOut.value !== null)
 		{
-			val e = errorOut.value()
+			val e = errorOut.value!!
 			return interpreter.primitiveFailure(
 				newPojo(identityPojo(e), pojoTypeForClass(e.javaClass)))
 		}
@@ -131,11 +137,19 @@ object P_InvokeInstancePojoMethod : Primitive(-1, Private)
 		}
 	}
 
+	override fun returnTypeGuaranteedByVM(
+		rawFunction: A_RawFunction,
+		argumentTypes: List<A_Type>
+	): A_Type
+	{
+		return rawFunction.functionType().returnType()
+	}
+
 	/**
 	 * This primitive is suitable for any block signature, although really the
 	 * primitive could only be applied if the function returns any.
 	 */
-	override fun privateBlockTypeRestriction(): A_Type = bottom()
+	override fun privateBlockTypeRestriction(): A_Type = bottom
 
 	override fun privateFailureVariableType(): A_Type =
 		pojoTypeForClass(Throwable::class.java)

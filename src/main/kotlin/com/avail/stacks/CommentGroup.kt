@@ -1,6 +1,6 @@
 /*
  * ImplementationGroup.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,12 +34,17 @@ package com.avail.stacks
 
 import com.avail.AvailRuntime
 import com.avail.descriptor.tuples.A_String
-import com.avail.stacks.comment.*
+import com.avail.stacks.comment.AvailComment
+import com.avail.stacks.comment.ClassComment
+import com.avail.stacks.comment.GlobalComment
+import com.avail.stacks.comment.GrammaticalRestrictionComment
+import com.avail.stacks.comment.MacroComment
+import com.avail.stacks.comment.MethodComment
+import com.avail.stacks.comment.SemanticRestrictionComment
 import com.avail.utility.json.JSONWriter
 import java.io.IOException
 import java.nio.file.Path
 import java.nio.file.attribute.BasicFileAttributes
-import java.util.*
 
 /**
  * A grouping of [AvailComment]s from an Avail module.
@@ -102,17 +107,17 @@ class CommentGroup
 	val macros: MutableMap<String, MacroComment>
 
 	/**
-	 * A list of [semantic restrictions][SemanticRestrictionComment]
+	 * A list of [semantic&#32;restrictions][SemanticRestrictionComment]
 	 */
 	val semanticRestrictions: MutableMap<String, SemanticRestrictionComment>
 
 	/**
-	 * A list of [ grammatical restrictions][GrammaticalRestrictionComment]
+	 * A list of [grammatical restrictions][GrammaticalRestrictionComment]
 	 */
 	val grammaticalRestrictions: MutableMap<String, GrammaticalRestrictionComment>
 
 	/**
-	 * A [class comment][ClassComment]
+	 * A [class&#32;comment][ClassComment]
 	 */
 	var classImplementation: ClassComment? = null
 		private set
@@ -129,8 +134,8 @@ class CommentGroup
 	val isPopulated: Boolean
 		get() = methods.isNotEmpty() ||
 			macros.isNotEmpty() ||
-			global != null ||
-			classImplementation != null
+			global !== null ||
+			classImplementation !== null
 
 	/**
 	 * set the boolean, [hasStickyComment], presumably to true as the default is
@@ -189,7 +194,8 @@ class CommentGroup
 	}
 
 	/**
-	 * @param newSemanticRestriction the new [ ] to add
+	 * @param newSemanticRestriction
+	 *   the new [SemanticRestrictionComment] to add
 	 */
 	fun addSemanticRestriction(
 		newSemanticRestriction: SemanticRestrictionComment)
@@ -269,13 +275,13 @@ class CommentGroup
 		isPrivate: Boolean)
 	{
 		this.name = name
-		this.methods = HashMap()
-		this.macros = HashMap()
-		this.semanticRestrictions = HashMap()
-		this.grammaticalRestrictions = HashMap()
-		this.aliases = HashSet()
+		this.methods = mutableMapOf()
+		this.macros = mutableMapOf()
+		this.semanticRestrictions = mutableMapOf()
+		this.grammaticalRestrictions = mutableMapOf()
+		this.aliases = mutableSetOf()
 		this.namingModule = namingModule
-		this.categories = HashSet()
+		this.categories = mutableSetOf()
 		this.filepath = filename
 		this.isPrivate = isPrivate
 		this.hasStickyComment = false
@@ -334,7 +340,7 @@ class CommentGroup
 	 * @param errorLog
 	 *   The accumulating [StacksErrorLog]
 	 * @throws IOException
-	 *   If an [I/O exception][IOException] occurs.
+	 *   If an [I/O&#32;exception][IOException] occurs.
 	 */
 	@Throws(IOException::class)
 	fun toJSON(
@@ -361,8 +367,7 @@ class CommentGroup
 			if (grammaticalRestrictions.isNotEmpty())
 			{
 				val listSize = grammaticalRestrictions.size
-				val restrictions = ArrayList(
-					grammaticalRestrictions.values)
+				val restrictions = grammaticalRestrictions.values.toList()
 				if (listSize > 1)
 				{
 					for (i in 1 until listSize)
@@ -372,8 +377,8 @@ class CommentGroup
 								restrictions[i])
 					}
 				}
-				restrictions[0]
-					.toJSON(linkingFileMap, nameOfGroup, errorLog, jsonWriter)
+				restrictions[0].toJSON(
+					linkingFileMap, nameOfGroup, errorLog, jsonWriter)
 
 			}
 			jsonWriter.write("definitions")
@@ -412,8 +417,7 @@ class CommentGroup
 			if (grammaticalRestrictions.isNotEmpty())
 			{
 				val listSize = grammaticalRestrictions.size
-				val restrictions = ArrayList(
-					grammaticalRestrictions.values)
+				val restrictions = grammaticalRestrictions.values.toList()
 				if (listSize > 1)
 				{
 					for (i in 1 until listSize)
@@ -423,8 +427,8 @@ class CommentGroup
 								restrictions[i])
 					}
 				}
-				restrictions[0]
-					.toJSON(linkingFileMap, nameOfGroup, errorLog, jsonWriter)
+				restrictions[0].toJSON(
+					linkingFileMap, nameOfGroup, errorLog, jsonWriter)
 			}
 			jsonWriter.write("definitions")
 			jsonWriter.startArray()
@@ -454,11 +458,11 @@ class CommentGroup
 				jsonWriter.endArray()
 			}
 		}
-		else if (global != null)
+		else if (global !== null)
 		{
 			global!!.toJSON(linkingFileMap, nameOfGroup, errorLog, jsonWriter)
 		}
-		else if (classImplementation != null)
+		else if (classImplementation !== null)
 		{
 			jsonWriter.write("type")
 			jsonWriter.write("class")

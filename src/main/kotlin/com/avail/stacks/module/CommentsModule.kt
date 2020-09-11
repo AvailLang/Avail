@@ -1,19 +1,19 @@
 /*
  * StacksCommentsModule.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  Redistributions of source code must retain the above copyright notice, this
+ * * Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- *  Redistributions in binary form must reproduce the above copyright notice,
+ * * Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
  *
- *  Neither the name of the copyright holder nor the names of the contributors
+ * * Neither the name of the copyright holder nor the names of the contributors
  *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
@@ -37,25 +37,35 @@ import com.avail.builder.ModuleName
 import com.avail.builder.ModuleNameResolver
 import com.avail.builder.UnresolvedDependencyException
 import com.avail.compiler.ModuleHeader
-import com.avail.descriptor.sets.SetDescriptor.emptySet
-import com.avail.descriptor.sets.SetDescriptor.setFromCollection
+import com.avail.descriptor.maps.A_Map.Companion.keysAsSet
+import com.avail.descriptor.maps.A_Map.Companion.mapAt
+import com.avail.descriptor.maps.A_Map.Companion.valuesAsTuple
+import com.avail.descriptor.sets.A_Set.Companion.hasElement
+import com.avail.descriptor.sets.A_Set.Companion.setMinusCanDestroy
+import com.avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
+import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
+import com.avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
 import com.avail.descriptor.tokens.CommentTokenDescriptor
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.StringDescriptor.stringFrom
-import com.avail.stacks.*
+import com.avail.descriptor.tuples.A_Tuple.Companion.asSet
+import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
+import com.avail.stacks.CommentGroup
+import com.avail.stacks.LinkingFileMap
+import com.avail.stacks.StacksErrorLog
+import com.avail.stacks.StacksFilename
+import com.avail.stacks.StacksOutputFile
+import com.avail.stacks.StacksSynchronizer
 import com.avail.stacks.comment.AvailComment
 import com.avail.stacks.exceptions.StacksCommentBuilderException
 import com.avail.stacks.exceptions.StacksScannerException
 import com.avail.stacks.scanner.StacksScanner
-import com.avail.utility.Pair
 import com.avail.utility.json.JSONWriter
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import java.nio.file.Path
 import java.nio.file.attribute.BasicFileAttributes
-import java.util.*
 
 /**
  * A representation of all the fully parsed [comments][CommentTokenDescriptor]
@@ -78,7 +88,7 @@ import java.util.*
  * @param resolver
  *   The [ModuleNameResolver] for resolving module paths.
  * @param moduleToComments
- *   A map of [module names][ModuleName] to a list of all the method names
+ *   A map of [module&#32;names][ModuleName] to a list of all the method names
  *   exported from said module
  * @param linkingFileMap
  *   A map for all output files in Stacks
@@ -90,9 +100,9 @@ class CommentsModule constructor(
 	commentTokens: A_Tuple,
 	errorLog: StacksErrorLog,
 	resolver: ModuleNameResolver,
-	moduleToComments: HashMap<String, CommentsModule>,
+	moduleToComments: MutableMap<String, CommentsModule>,
 	linkingFileMap: LinkingFileMap,
-	val linkPrefix: String)
+	private val linkPrefix: String)
 {
 	/**
 	 *  A map of the modules extended by this module to the
@@ -107,9 +117,10 @@ class CommentsModule constructor(
 	private val fileExtensionName: String = "json"
 
 	/**
-	 * A map of the modules extended by this module to the [ ] content.
+	 * A map of the modules extended by this module to the
+	 * [comment&#32;group][CommentGroup] content.
 	 */
-	val stickyNamesImplementations =
+	private val stickyNamesImplementations =
 		mutableMapOf<A_String, MutableMap<String, CommentGroup>>()
 
 	/**
@@ -117,13 +128,6 @@ class CommentsModule constructor(
 	 * content.
 	 */
 	var usesNamesImplementations = mutableMapOf<String, StacksUsesModule>()
-
-	/**
-	 * A map keyed by the qualified module names used by this module to a map
-	 * keyed by a method name to implementations created in this module.
-	 */
-	private val usesModuleToImplementedNamesToImplementation =
-		mutableMapOf<String, HashMap<A_String, ArrayList<AvailComment>>>()
 
 	/**
 	 * The name of the module that contains these Stacks Comments.
@@ -139,10 +143,10 @@ class CommentsModule constructor(
 	/**
 	 * A map keyed by exported method names to the file path-name.
 	 */
-	val inScopeMethodsToFileNames: MutableMap<A_String, StacksFilename>
+	private val inScopeMethodsToFileNames: MutableMap<A_String, StacksFilename>
 
 	/**
-	 * All the [named implementations][CommentGroup] exported out of this
+	 * All the [named&#32;implementations][CommentGroup] exported out of this
 	 * module that will be documented if this is The outermost
 	 * [module][CommentsModule] for the generation request.
 	 */
@@ -151,8 +155,8 @@ class CommentsModule constructor(
 
 	/**
 	 * A map keyed by a method name with no path to a map keyed by the qualified
-	 * module path it is originally named from to the [ ].  These are all the methods exported from this
-	 * [module][CommentsModule]
+	 * module path it is originally named from to the [CommentGroup].  These are
+	 * all the methods exported from this [module][CommentsModule]
 	 */
 	val extendsMethodLeafNameToModuleName =
 		mutableMapOf<A_String, MutableMap<String, CommentGroup>>()
@@ -161,7 +165,8 @@ class CommentsModule constructor(
 	 * A map keyed by a method name with no path to a map keyed by the qualified
 	 * module path it is originally named from to the [CommentGroup].
 	 * These are all the methods defined in this [module][CommentsModule]
-	 * and are "public" because it uses a module where the name is exported from.
+	 * and are "public" because it uses a module where the name is exported
+	 * from.
 	 */
 	val usesMethodLeafNameToModuleName =
 		mutableMapOf<A_String, MutableMap<String, CommentGroup>>()
@@ -183,7 +188,7 @@ class CommentsModule constructor(
 			for ((key, value) in comment.stickyNamesImplementations)
 			{
 				val localEntry = stickyNamesImplementations[key]
-				if (localEntry != null)
+				if (localEntry !== null)
 				{
 					localEntry.putAll(value)
 					stickyNamesImplementations[key] = localEntry
@@ -203,7 +208,7 @@ class CommentsModule constructor(
 			this.namedPublicCommentImplementations[implementationName] = group
 
 			val moduleNameToImplementation =
-				HashMap<String, CommentGroup>()
+				mutableMapOf<String, CommentGroup>()
 			moduleNameToImplementation[this.moduleName] = group
 
 			this.extendsMethodLeafNameToModuleName[implementationName] =
@@ -225,7 +230,7 @@ class CommentsModule constructor(
 				val implementation = StacksScanner.processCommentString(
 					aToken, moduleName, linkingFileMap)
 
-				if (implementation != null)
+				if (implementation !== null)
 				{
 					addImplementation(implementation)
 				}
@@ -258,23 +263,6 @@ class CommentsModule constructor(
 				newLogEntry.toString().toByteArray(StandardCharsets.UTF_8))
 			errorLog.addLogEntry(errorBuffer, errorCount)
 		}
-	}
-
-	/**
-	 * Get namedPublicCommentImplementations
-	 * @return
-	 */
-	fun namedPublicCommentImplementations(): Map<A_String, CommentGroup>
-	{
-		return namedPublicCommentImplementations
-	}
-
-	/**
-	 * @return the inScopeMethodsToFileNames
-	 */
-	fun exportedMethodsTofileNames(): Map<A_String, StacksFilename>
-	{
-		return inScopeMethodsToFileNames
 	}
 
 	/**
@@ -364,16 +352,15 @@ class CommentsModule constructor(
 	 * @param resolver
 	 *   The [ModuleNameResolver] for resolving module paths.
 	 * @param moduleToComments
-	 *   A map of [module names][ModuleName] to a list of all the method names
-	 *   exported from said module
+	 *   A map of [module&#32;names][ModuleName] to a list of all the method
+	 *   names exported from said module
 	 */
 	private fun buildModuleImportMaps(
 		header: ModuleHeader,
 		resolver: ModuleNameResolver,
-		moduleToComments: HashMap<String, CommentsModule>)
+		moduleToComments: MutableMap<String, CommentsModule>)
 	{
-		val usesMap = HashMap<String, StacksUsesModule>()
-
+		val usesMap = mutableMapOf<String, StacksUsesModule>()
 		for (moduleImport in header.importedModules)
 		{
 			try
@@ -385,7 +372,7 @@ class CommentsModule constructor(
 
 				if (moduleImport.isExtension)
 				{
-					var collectedExtendedNames = emptySet()
+					var collectedExtendedNames = emptySet
 
 					if (moduleImport.wildcard)
 					{
@@ -402,10 +389,10 @@ class CommentsModule constructor(
 								setFromCollection(
 									moduleToComments[moduleImportName]
 										?.namedPublicCommentImplementations
-										?.keys ?: Collections.emptySet()),
+										?.keys ?: emptySet()),
 								true)
 					}
-					if (!moduleImport.excludes.equals(emptySet()))
+					if (!moduleImport.excludes.equals(emptySet))
 					{
 						collectedExtendedNames = collectedExtendedNames
 							.setMinusCanDestroy(moduleImport.excludes, true)
@@ -427,7 +414,7 @@ class CommentsModule constructor(
 						StacksExtendsModule(
 							moduleToComments[moduleImportName]!!)
 
-					val renameValues = ArrayList<A_String>()
+					val renameValues = mutableListOf<A_String>()
 
 					for (rename in moduleImport.renames.keysAsSet())
 					{
@@ -488,12 +475,12 @@ class CommentsModule constructor(
 					}
 
 					val visibleValues =
-						ArrayList<Pair<A_String, CommentGroup>>()
+						mutableListOf<Pair<A_String, CommentGroup>>()
 					for ((name, value) in usesMethodLeafNameToModuleName)
 					{
 						for ((_, commentGroup) in value)
 						{
-							visibleValues.add(Pair(name, commentGroup))
+							visibleValues.add(name to commentGroup)
 						}
 					}
 
@@ -501,7 +488,7 @@ class CommentsModule constructor(
 					{
 						for ((_, commentGroup) in groupMap)
 						{
-							visibleValues.add(Pair(name, commentGroup))
+							visibleValues.add(name to commentGroup)
 						}
 					}
 
@@ -512,7 +499,7 @@ class CommentsModule constructor(
 				}
 				else
 				{
-					var collectedUsesNames = emptySet()
+					var collectedUsesNames = emptySet
 
 					if (moduleImport.wildcard)
 					{
@@ -531,7 +518,7 @@ class CommentsModule constructor(
 										.keys),
 								true)
 					}
-					if (!moduleImport.excludes.equals(emptySet()))
+					if (!moduleImport.excludes.equals(emptySet))
 					{
 						collectedUsesNames = collectedUsesNames
 							.setMinusCanDestroy(moduleImport.excludes, true)
@@ -552,7 +539,7 @@ class CommentsModule constructor(
 						moduleToComments[moduleImportName]!!,
 						moduleImport.renames)
 
-					val renameValues = ArrayList<A_String>()
+					val renameValues = mutableListOf<A_String>()
 
 					for (rename in moduleImport.renames.keysAsSet())
 					{
@@ -574,8 +561,7 @@ class CommentsModule constructor(
 					}
 
 					var removeSet = setFromCollection(
-						stacksUses.extendsMethodLeafNameToModuleName
-							.keys)
+						stacksUses.extendsMethodLeafNameToModuleName.keys)
 
 					removeSet = removeSet.setMinusCanDestroy(
 						collectedUsesNames, true)
@@ -610,7 +596,7 @@ class CommentsModule constructor(
 					{
 						for ((_, commentGroup) in cGroupMap)
 						{
-							visibleValues.add(Pair(name, commentGroup))
+							visibleValues.add(name to commentGroup)
 						}
 					}
 
@@ -618,7 +604,7 @@ class CommentsModule constructor(
 					{
 						for ((_, commentGroup) in cGroupMap)
 						{
-							visibleValues.add(Pair(name, commentGroup))
+							visibleValues.add(name to commentGroup)
 						}
 					}
 
@@ -659,7 +645,7 @@ class CommentsModule constructor(
 									//Create map used down below this block
 									namesExtendsImplementationsMap.putAll(
 										extendsModule.flattenImplementationGroups()
-											.first())
+											.first)
 
 									if (extendsModule
 											.extendsMethodLeafNameToModuleName
@@ -700,17 +686,17 @@ class CommentsModule constructor(
 				}
 
 				val namesUsesExtendsImplementationsMap =
-					HashMap<String, Pair<String, CommentGroup>>()
+					mutableMapOf<String, Pair<String, CommentGroup>>()
 
 				for (usesExtendsModule in
 					usesModule.moduleNameToExtendsList.values)
 				{
 					val first =
-						usesExtendsModule.flattenImplementationGroups().first()
+						usesExtendsModule.flattenImplementationGroups().first
 
 					for (key in first.keys)
 					{
-						if (first[key]!!.second().isPopulated)
+						if (first[key]!!.second.isPopulated)
 						{
 							namesUsesExtendsImplementationsMap[key] =
 								first[key]!!
@@ -722,9 +708,9 @@ class CommentsModule constructor(
 				{
 					if (namesExtendsImplementationsMap.containsKey(key))
 					{
-						namesExtendsImplementationsMap[key]!!.second()
+						namesExtendsImplementationsMap[key]!!.second
 							.mergeWith(
-								namesUsesExtendsImplementationsMap[key]!!.second())
+								namesUsesExtendsImplementationsMap[key]!!.second)
 					}
 				}
 			}
@@ -732,16 +718,16 @@ class CommentsModule constructor(
 	}
 
 	/**
-	 * * Obtain implementations defined in this [module's][CommentsModule]
-	 * [usesNamesImplementations] ([uses modules][StacksUsesModule]) that are
-	 * defined in one of this module's [extendedNamesImplementations]
-	 * [extends modules][StacksExtendsModule]) and include them with the
+	 * Obtain implementations defined in this [module's][CommentsModule]
+	 * [usesNamesImplementations] ([uses&#32;modules][StacksUsesModule]) that
+	 * are defined in one of this module's [extendedNamesImplementations]
+	 * [extends&#32;modules][StacksExtendsModule]) and include them with the
 	 * extended names from this module. Additionally, obtain implementations
-	 * defined in this [module's][CommentsModule]
-	 * [extendedNamesImplementations] [extends modules][StacksExtendsModule]})
-	 * that are defined in one of this module's other
-	 * `extendsNamesImplementation` ([extends modules][StacksExtendsModule]) and
-	 * include them with the extended names from this module.
+	 * defined in this [module's][CommentsModule] [extendedNamesImplementations]
+	 * [extends&#32;modules][StacksExtendsModule]}) that are defined in one of
+	 * this module's other `extendsNamesImplementation`
+	 * ([extends&#32;modules][StacksExtendsModule]) and include them with the
+	 * extended names from this module.
 	 */
 	private fun populateExtendsFromUsesExtends()
 	{
@@ -801,7 +787,7 @@ class CommentsModule constructor(
 	 * Create the String file names for the methods defined in this module.
 	 *
 	 * @param names
-	 *   A pair of [[A_String] and [CommentGroup] that are to have file names
+	 *   A pair of [A_String] and [CommentGroup] that are to have file names
 	 *   constructed for them.
 	 * @param fileExtension
 	 *   The string extension the stacks output files should have (e.g. "json")
@@ -810,21 +796,21 @@ class CommentsModule constructor(
 	 */
 	private fun createFileNames(
 		names: List<Pair<A_String, CommentGroup>>,
-		fileExtension: String): HashMap<A_String, StacksFilename>
+		fileExtension: String): MutableMap<A_String, StacksFilename>
 	{
-		val newHashNameMap = HashMap<A_String, Int>()
+		val newHashNameMap = mutableMapOf<A_String, Int>()
 
-		val namesToFileNames = HashMap<A_String, StacksFilename>()
+		val namesToFileNames = mutableMapOf<A_String, StacksFilename>()
 
 		for (pair in names)
 		{
-			var nameToBeHashed = pair.first()
-			if (newHashNameMap.containsKey(pair.first()))
+			var nameToBeHashed = pair.first
+			if (newHashNameMap.containsKey(pair.first))
 			{
-				newHashNameMap[pair.first()] =
-					newHashNameMap[pair.first()]!! + 1
+				newHashNameMap[pair.first] =
+					newHashNameMap[pair.first]!! + 1
 				nameToBeHashed =
-					stringFrom(pair.first().asNativeString() + newHashNameMap[pair.first()])
+					stringFrom(pair.first.asNativeString() + newHashNameMap[pair.first])
 			}
 			else
 			{
@@ -836,8 +822,8 @@ class CommentsModule constructor(
 			val fileName = (hashedName.toString() + "."
 				+ fileExtension)
 
-			namesToFileNames[pair.first()] =
-				StacksFilename(pair.second().namingModule, fileName)
+			namesToFileNames[pair.first] =
+				StacksFilename(pair.second.namingModule, fileName)
 		}
 		return namesToFileNames
 	}
@@ -854,11 +840,11 @@ class CommentsModule constructor(
 	 */
 	private fun createFileNames(
 		names: Collection<A_String>, originatingModuleName: String,
-		fileExtension: String): HashMap<A_String, StacksFilename>
+		fileExtension: String): MutableMap<A_String, StacksFilename>
 	{
-		val newHashNameMap = HashMap<A_String, Int>()
+		val newHashNameMap = mutableMapOf<A_String, Int>()
 
-		val namesToFileNames = HashMap<A_String, StacksFilename>()
+		val namesToFileNames = mutableMapOf<A_String, StacksFilename>()
 
 		for (key in names)
 		{
@@ -899,7 +885,7 @@ class CommentsModule constructor(
 	 *   The folder that the Avail documentation sits in above the
 	 *   providedDocumentPath.
 	 * @return The number of files to be created
-	 * @throws IOException If an [I/O exception][IOException] occurs.
+	 * @throws IOException If an [I/O&#32;exception][IOException] occurs.
 	 */
 	@Throws(IOException::class)
 	fun calculateFinalImplementationGroupsMap(
@@ -925,7 +911,7 @@ class CommentsModule constructor(
 			/* If there is a sticky implementation group, force it into
 			 * the filteredMap for exporting.  If a duplicate file is created,
 			 * the documentation should be updated. */
-			if (stickyMap != null)
+			if (stickyMap !== null)
 			{
 				value.putAll(stickyMap)
 			}
@@ -947,7 +933,7 @@ class CommentsModule constructor(
 							mutableMapOf<String, CommentGroup>()
 						modToImplement[modName] = implementation
 						filteredMap[key] = modToImplement
-					}.invoke()
+					}()
 
 					for (category in implementation.categories())
 					{
@@ -981,7 +967,7 @@ class CommentsModule constructor(
 		{
 			val exportMap = extendsMethodLeafNameToModuleName[key]
 
-			if (exportMap == null)
+			if (exportMap === null)
 			{
 				if (value.size > 1)
 				{
@@ -996,10 +982,10 @@ class CommentsModule constructor(
 						it[tempEntry.key] = implementation
 					} ?: {
 						val modToImplement =
-							HashMap<String, CommentGroup>()
+							mutableMapOf<String, CommentGroup>()
 						modToImplement[tempEntry.key] = implementation
 						filteredMap[key] = modToImplement
-					}.invoke()
+					}()
 
 					for (category in implementation.categories())
 					{
@@ -1065,7 +1051,8 @@ class CommentsModule constructor(
 	 *   A map for all files in stacks.
 	 * @param errorLog
 	 *   The file for outputting all errors.
-	 * @throws IOException If an [I/O exception][IOException] occurs.
+	 * @throws IOException
+	 *   If an [I/O&#32;exception][IOException] occurs.
 	 */
 	@Throws(IOException::class)
 	fun writeMethodsToJSONFiles(
@@ -1115,7 +1102,8 @@ class CommentsModule constructor(
 	 *   The map of ambiguous names requiring ambiguous files.
 	 * @param linkingFileMap
 	 *   A map for all files in Stacks
-	 * @throws IOException If an [I/O exception][IOException] occurs.
+	 * @throws IOException
+	 *   If an [I/O&#32;exception][IOException] occurs.
 	 */
 	@Throws(IOException::class)
 	private fun writeAmbiguousMethodsJSONFiles(
@@ -1125,7 +1113,7 @@ class CommentsModule constructor(
 		ambiguousMethodFileMap: Map<A_String, Map<String, CommentGroup>>,
 		linkingFileMap: LinkingFileMap)
 	{
-		val internalLinks = HashMap<String, String>()
+		val internalLinks = mutableMapOf<String, String>()
 
 		val outputFolder = outputPath
 			.resolve("_Ambiguities")
@@ -1156,7 +1144,7 @@ class CommentsModule constructor(
 		{
 			val tempImplementationMap = ambiguousMethodFileMap[key]
 
-			val ambiguousLinks = HashSet<Pair<String, String>>()
+			val ambiguousLinks = mutableSetOf<Pair<String, String>>()
 
 			if (linkingFileMap.aliasesToFileLink
 					.containsKey(key.asNativeString()))
@@ -1164,12 +1152,12 @@ class CommentsModule constructor(
 				for (link in
 				linkingFileMap.aliasesToFileLink[key.asNativeString()]!!)
 				{
-					ambiguousLinks.add(Pair(link, link))
+					ambiguousLinks.add(link to link)
 				}
 			}
 
 			//Create ambiguous link list
-			val ambiguousNoLinks = HashSet<String>()
+			val ambiguousNoLinks = mutableSetOf<String>()
 			for (modulePath in tempImplementationMap!!.keys)
 			{
 				tempImplementationMap[modulePath]?.let {group ->
@@ -1199,9 +1187,9 @@ class CommentsModule constructor(
 			{
 				jsonWriter.startObject()
 				jsonWriter.write("link")
-				jsonWriter.write(link.first())
+				jsonWriter.write(link.first)
 				jsonWriter.write("module")
-				jsonWriter.write(link.second())
+				jsonWriter.write(link.second)
 				jsonWriter.endObject()
 			}
 
@@ -1252,7 +1240,7 @@ class CommentsModule constructor(
 	 * @param linkingFileMap
 	 *   A map for all files in Stacks
 	 * @throws IOException
-	 *   If an [I/O exception][IOException] occurs.
+	 *   If an [I/O&#32;exception][IOException] occurs.
 	 */
 	@Throws(IOException::class)
 	private fun writeAmbiguousAliasJSONFiles(

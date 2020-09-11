@@ -1,6 +1,6 @@
 /*
  * AvailAcceptedParseException.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@
 package com.avail.compiler
 
 import com.avail.exceptions.PrimitiveThrownException
-import com.avail.interpreter.primitive.phrases.P_AcceptParsing
+import com.avail.interpreter.primitive.compiler.P_AcceptParsing
 
 /**
  * An `AvailAcceptedParseException` is thrown by primitive [P_AcceptParsing] to

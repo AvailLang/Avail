@@ -1,6 +1,6 @@
 /*
  * P_EmergencyExit.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,25 +31,30 @@
  */
 package com.avail.interpreter.primitive.general
 
-import com.avail.descriptor.FiberDescriptor
-import com.avail.descriptor.FiberDescriptor.ExecutionState
+import com.avail.descriptor.fiber.FiberDescriptor
+import com.avail.descriptor.fiber.FiberDescriptor.ExecutionState
 import com.avail.descriptor.functions.A_RawFunction
-import com.avail.descriptor.functions.ContinuationDescriptor.dumpStackThen
+import com.avail.descriptor.functions.ContinuationDescriptor.Companion.dumpStackThen
 import com.avail.descriptor.numbers.A_Number
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.BottomTypeDescriptor.bottom
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.exceptions.AvailEmergencyExitException
 import com.avail.exceptions.AvailErrorCode
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.AlwaysSwitchesContinuation
+import com.avail.interpreter.Primitive.Flag.CanSuspend
+import com.avail.interpreter.Primitive.Flag.CanSwitchContinuations
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Primitive.Flag.Unknown
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
-import com.avail.utility.Casts.cast
+import com.avail.utility.cast
 import java.lang.String.format
 
 /**
@@ -74,13 +79,11 @@ object P_EmergencyExit : Primitive(
 		interpreter.checkArgumentCount(1)
 		val errorMessageProducer = interpreter.argument(0)
 		val fiber = interpreter.fiber()
-		val continuation = interpreter.reifiedContinuation!!
+		val continuation = interpreter.getReifiedContinuation()!!
 		interpreter.primitiveSuspend(interpreter.function!!)
 		dumpStackThen(
-			interpreter.runtime(),
-			fiber.textInterface(),
-			continuation)
-		{ stack ->
+			interpreter.runtime, fiber.textInterface(), continuation
+		) { stack ->
 			val builder = StringBuilder()
 			builder.append(format(
 				"A fiber (%s) has exited: %s",
@@ -88,7 +91,7 @@ object P_EmergencyExit : Primitive(
 				errorMessageProducer))
 			if (errorMessageProducer.isInt)
 			{
-				val errorNumber: A_Number = cast(errorMessageProducer)
+				val errorNumber: A_Number = errorMessageProducer.cast()
 				val intValue = errorNumber.extractInt()
 				val code = AvailErrorCode.byNumericCode(intValue)
 				if (code !== null)
@@ -103,8 +106,8 @@ object P_EmergencyExit : Primitive(
 			builder.append("\n\n")
 			val killer = AvailEmergencyExitException(builder.toString())
 			killer.fillInStackTrace()
-			fiber.executionState(ExecutionState.ABORTED)
-			fiber.failureContinuation().value(killer)
+			fiber.setExecutionState(ExecutionState.ABORTED)
+			fiber.failureContinuation()(killer)
 			// If we're still here, the handler didn't do anything with the
 			// exception.  Output it and throw it as a runtime exception.
 			System.err.print(builder)
@@ -114,7 +117,7 @@ object P_EmergencyExit : Primitive(
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(ANY.o()), bottom())
+		functionType(tuple(ANY.o), bottom)
 
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,

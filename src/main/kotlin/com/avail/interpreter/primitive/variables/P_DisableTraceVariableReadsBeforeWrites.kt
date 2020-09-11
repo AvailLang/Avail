@@ -1,6 +1,6 @@
 /*
  * P_DisableTraceVariableReadsBeforeWrites.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,33 +32,34 @@
 
 package com.avail.interpreter.primitive.variables
 
-import com.avail.descriptor.FiberDescriptor
-import com.avail.descriptor.FiberDescriptor.TraceFlag
-import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.atoms.A_Atom
+import com.avail.descriptor.fiber.FiberDescriptor
+import com.avail.descriptor.fiber.FiberDescriptor.TraceFlag
 import com.avail.descriptor.functions.FunctionDescriptor
-import com.avail.descriptor.sets.SetDescriptor.set
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.descriptor.variables.A_Variable
 import com.avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
 import com.avail.exceptions.AvailErrorCode.E_ILLEGAL_TRACE_MODE
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
 import com.avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
+import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Disable variable [read-before-write
- * tracing][TraceFlag.TRACE_VARIABLE_READS_BEFORE_WRITES] for the [current
- * fiber][FiberDescriptor.currentFiber]. To each [variable][A_Variable] that
- * survived tracing, add a [write reactor][VariableAccessReactor] that wraps the
- * specified [function][FunctionDescriptor], associating it with the specified
+ * **Primitive:** Disable variable
+ * [read-before-write&#32;tracing][TraceFlag.TRACE_VARIABLE_READS_BEFORE_WRITES]
+ * for the [current&#32;fiber][FiberDescriptor.currentFiber]. To each
+ * [variable][A_Variable] that survived tracing, add a
+ * [write&#32;reactor][VariableAccessReactor] that wraps the specified
+ * [function][FunctionDescriptor], associating it with the specified
  * [atom][A_Atom] (for potential pre-activation removal).
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -90,9 +91,10 @@ object P_DisableTraceVariableReadsBeforeWrites : Primitive(
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				ATOM.o(),
-				functionType(emptyTuple(), TOP.o())),
-			TOP.o())
+				ATOM.o,
+				functionType(emptyTuple, TOP.o)),
+			TOP.o
+		)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_ILLEGAL_TRACE_MODE))

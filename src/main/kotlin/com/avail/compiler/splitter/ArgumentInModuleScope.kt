@@ -1,6 +1,6 @@
 /*
  * ArgumentInModuleScope.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,19 +32,24 @@
 package com.avail.compiler.splitter
 
 import com.avail.compiler.ParsingConversionRule.EVALUATE_EXPRESSION
-import com.avail.compiler.ParsingOperation.*
+import com.avail.compiler.ParsingOperation.CHECK_ARGUMENT
+import com.avail.compiler.ParsingOperation.CONVERT
+import com.avail.compiler.ParsingOperation.PARSE_ARGUMENT_IN_MODULE_SCOPE
+import com.avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT
 import com.avail.compiler.splitter.MessageSplitter.Companion.indexForConstant
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.LiteralPhraseDescriptor
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.phraseTypeExpressionType
+import com.avail.descriptor.types.A_Type.Companion.typeTuple
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE
-import java.util.*
+import java.util.IdentityHashMap
 
 /**
  * A `ArgumentInModuleScope` is an occurrence of an
  * [underscore][Metacharacter.UNDERSCORE] (_) in a message name, followed
- * immediately by a [single dagger][Metacharacter.SINGLE_DAGGER] (†). It
+ * immediately by a [single&#32;dagger][Metacharacter.SINGLE_DAGGER] (†). It
  * indicates where an argument is expected, but the argument must not make use
  * of any local declarations. The argument expression will be evaluated at
  * compile time and replaced by a [literal][LiteralPhraseDescriptor] based on
@@ -75,7 +80,7 @@ internal class ArgumentInModuleScope constructor(
 	 * that argument position).  Also ensure that no local declarations that
 	 * were in scope before parsing the argument are used by the argument.
 	 * Then evaluate the argument expression (at compile time) and replace
-	 * it with a [literal phrase][LiteralPhraseDescriptor] wrapping the
+	 * it with a [literal&#32;phrase][LiteralPhraseDescriptor] wrapping the
 	 * produced value.
 	 *
 	 * @param phraseType
@@ -103,7 +108,7 @@ internal class ArgumentInModuleScope constructor(
 		// Check that it's any kind of expression with the right yield type,
 		// since it's going to be evaluated and wrapped in a literal phrase.
 		val expressionType = EXPRESSION_PHRASE.create(
-			phraseType.expressionType())
+			phraseType.phraseTypeExpressionType())
 		generator.emitDelayed(
 			this,
 			TYPE_CHECK_ARGUMENT,

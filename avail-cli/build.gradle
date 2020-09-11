@@ -1,6 +1,6 @@
 /*
  * build.gradle
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,12 +38,8 @@ plugins {
 	id 'java'
 	id 'org.jetbrains.kotlin.jvm'
 	id 'com.github.johnrengelman.shadow'
+	id 'org.jetbrains.dokka'
 }
-
-group 'org.availlang'
-version '1.4'
-
-sourceCompatibility = 1.8
 
 compileKotlin {
 	kotlinOptions {
@@ -99,21 +95,34 @@ jar {
 	manifest {
 		attributes 'Main-Class': 'com.avail.tools.compiler.Compiler'
 	}
-}
-
-// Produce a fat JAR for the IndexFileAnalyzer.
-jar {
-	manifest {
-		attributes 'Main-Class': 'com.avail.tools.fileanalyzer.IndexedFileAnalyzer'
-	}
+	duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
 
 // Copy the JAR into the distribution directory.
-task releaseAvailCLI (type: Copy) {
+task releaseAvailCLI(type: Copy) {
 	group = 'release'
 	from shadowJar.outputs.files
 	into file("${rootProject.projectDir}/distro/lib")
+	rename '.*', 'avail-cli.jar'
+	duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
 
 // Update the dependencies of "assemble".
 assemble.dependsOn releaseAvailCLI
+
+// Generate documentation
+dokka {
+	outputFormat='gfm'
+	// Outputting to documentation/docs/src-docs directly causes the contents of
+	// the directory to be deleted. Moving the directory post generation is the
+	// work around.
+	doLast {
+		ant.move file: "${buildDir}/dokka/avail-cli",
+			todir: "../documentation/docs/src_docs"
+	}
+}
+
+task dokkaHTML(type: org.jetbrains.dokka.gradle.DokkaTask) {
+	outputFormat = 'html'
+	outputDirectory = "$buildDir/dokka"
+}

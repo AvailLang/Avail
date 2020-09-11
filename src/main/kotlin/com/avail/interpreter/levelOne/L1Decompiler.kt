@@ -1,6 +1,6 @@
 /*
  * L1Decompiler.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,50 +32,95 @@
 
 package com.avail.interpreter.levelOne
 
-import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.atoms.A_Atom
+import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.functions.CompiledCodeDescriptor
 import com.avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
+import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.phrases.A_Phrase
-import com.avail.descriptor.phrases.AssignmentPhraseDescriptor.newAssignment
+import com.avail.descriptor.phrases.A_Phrase.Companion.declaration
+import com.avail.descriptor.phrases.A_Phrase.Companion.declaredType
+import com.avail.descriptor.phrases.A_Phrase.Companion.expressionAt
+import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsSize
+import com.avail.descriptor.phrases.A_Phrase.Companion.initializationExpression
+import com.avail.descriptor.phrases.A_Phrase.Companion.isLastUse
+import com.avail.descriptor.phrases.A_Phrase.Companion.list
+import com.avail.descriptor.phrases.A_Phrase.Companion.permutation
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKind
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
+import com.avail.descriptor.phrases.A_Phrase.Companion.statements
+import com.avail.descriptor.phrases.A_Phrase.Companion.token
+import com.avail.descriptor.phrases.A_Phrase.Companion.typeExpression
+import com.avail.descriptor.phrases.AssignmentPhraseDescriptor.Companion.newAssignment
 import com.avail.descriptor.phrases.BlockPhraseDescriptor
-import com.avail.descriptor.phrases.BlockPhraseDescriptor.newBlockNode
-import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.*
-import com.avail.descriptor.phrases.FirstOfSequencePhraseDescriptor.newFirstOfSequenceNode
-import com.avail.descriptor.phrases.ListPhraseDescriptor.newListNode
-import com.avail.descriptor.phrases.LiteralPhraseDescriptor.*
+import com.avail.descriptor.phrases.BlockPhraseDescriptor.Companion.newBlockNode
+import com.avail.descriptor.phrases.DeclarationPhraseDescriptor
+import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newArgument
+import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newConstant
+import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newLabel
+import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newModuleVariable
+import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newVariable
+import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
+import com.avail.descriptor.phrases.FirstOfSequencePhraseDescriptor.Companion.newFirstOfSequenceNode
+import com.avail.descriptor.phrases.ListPhraseDescriptor
+import com.avail.descriptor.phrases.ListPhraseDescriptor.Companion.newListNode
+import com.avail.descriptor.phrases.LiteralPhraseDescriptor
+import com.avail.descriptor.phrases.LiteralPhraseDescriptor.Companion.fromTokenForDecompiler
+import com.avail.descriptor.phrases.LiteralPhraseDescriptor.Companion.literalNodeFromToken
+import com.avail.descriptor.phrases.LiteralPhraseDescriptor.Companion.syntheticLiteralNodeFor
+import com.avail.descriptor.phrases.MarkerPhraseDescriptor
 import com.avail.descriptor.phrases.MarkerPhraseDescriptor.MarkerTypes.DUP
 import com.avail.descriptor.phrases.MarkerPhraseDescriptor.MarkerTypes.PERMUTE
-import com.avail.descriptor.phrases.PermutedListPhraseDescriptor.newPermutedListNode
+import com.avail.descriptor.phrases.PermutedListPhraseDescriptor.Companion.newPermutedListNode
 import com.avail.descriptor.phrases.PhraseDescriptor
-import com.avail.descriptor.phrases.ReferencePhraseDescriptor.referenceNodeFromUse
-import com.avail.descriptor.phrases.SendPhraseDescriptor.newSendNode
-import com.avail.descriptor.phrases.SuperCastPhraseDescriptor.newSuperCastNode
-import com.avail.descriptor.phrases.VariableUsePhraseDescriptor.newUse
-import com.avail.descriptor.tokens.LiteralTokenDescriptor.literalToken
+import com.avail.descriptor.phrases.ReferencePhraseDescriptor
+import com.avail.descriptor.phrases.ReferencePhraseDescriptor.Companion.referenceNodeFromUse
+import com.avail.descriptor.phrases.SendPhraseDescriptor.Companion.newSendNode
+import com.avail.descriptor.phrases.SuperCastPhraseDescriptor
+import com.avail.descriptor.phrases.SuperCastPhraseDescriptor.Companion.newSuperCastNode
+import com.avail.descriptor.phrases.VariableUsePhraseDescriptor.Companion.newUse
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken
+import com.avail.descriptor.tokens.TokenDescriptor.Companion.newToken
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType.KEYWORD
-import com.avail.descriptor.tokens.TokenDescriptor.newToken
 import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.*
-import com.avail.descriptor.tuples.StringDescriptor.stringFrom
-import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.appendCanDestroy
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromArray
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
+import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.ContinuationTypeDescriptor.continuationTypeForFunctionType
-import com.avail.descriptor.types.FunctionTypeDescriptor.mostGeneralFunctionType
-import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.*
-import com.avail.descriptor.types.VariableTypeDescriptor.variableTypeFor
-import com.avail.descriptor.variables.VariableDescriptor.newVariableWithOuterType
-import com.avail.utility.PrefixSharingList.last
-import java.util.*
+import com.avail.descriptor.types.A_Type.Companion.argsTupleType
+import com.avail.descriptor.types.A_Type.Companion.declaredExceptions
+import com.avail.descriptor.types.A_Type.Companion.returnType
+import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
+import com.avail.descriptor.types.A_Type.Companion.writeType
+import com.avail.descriptor.types.ContinuationTypeDescriptor.Companion.continuationTypeForFunctionType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.FIRST_OF_SEQUENCE_PHRASE
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LABEL_PHRASE
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.MARKER_PHRASE
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PERMUTED_LIST_PHRASE
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.REFERENCE_PHRASE
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE
+import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
+import com.avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithOuterType
+import com.avail.utility.PrefixSharingList.Companion.last
 import java.util.function.Function
 import java.util.function.UnaryOperator
 
 /**
- * The [L1Decompiler] converts a [compiled code][CompiledCodeDescriptor] object
- * into an equivalent [parse tree][PhraseDescriptor].
+ * The [L1Decompiler] converts a [compiled&#32;code][CompiledCodeDescriptor]
+ * object into an equivalent [parse&#32;tree][PhraseDescriptor].
  *
  * @property code
- *   The [compiled code][CompiledCodeDescriptor] which is being decompiled.
+ *   The [compiled&#32;code][CompiledCodeDescriptor] which is being decompiled.
  * @property tempGenerator
  *   Something to generate unique variable names from a prefix.
  * @author Mark van Gulik &lt;todd@availlang.org&gt;
@@ -114,12 +159,12 @@ class L1Decompiler constructor(
 	internal val outers: Array<A_Phrase> = outerDeclarations.clone()
 
 	/**
-	 * The [arguments declarations][DeclarationKind.ARGUMENT] for this code.
+	 * The [arguments&#32;declarations][DeclarationKind.ARGUMENT] for this code.
 	 */
 	internal val args: Array<A_Phrase>
 
 	/**
-	 * The [local variables][DeclarationKind.LOCAL_VARIABLE] defined by this
+	 * The [local&#32;variables][DeclarationKind.LOCAL_VARIABLE] defined by this
 	 * code.
 	 */
 	internal val locals: Array<A_Phrase>
@@ -131,7 +176,7 @@ class L1Decompiler constructor(
 	private val mentionedLocals: BooleanArray
 
 	/**
-	 * The [local constants][DeclarationKind.LOCAL_CONSTANT] defined by this
+	 * The [local&#32;constants][DeclarationKind.LOCAL_CONSTANT] defined by this
 	 * code.
 	 */
 	internal val constants: Array<A_Phrase?> = arrayOfNulls(code.numConstants())
@@ -146,12 +191,12 @@ class L1Decompiler constructor(
 	 * The stack of expressions roughly corresponding to the subexpressions that
 	 * have been parsed but not yet integrated into their parent expressions.
 	 */
-	internal val expressionStack: MutableList<A_Phrase> = ArrayList()
+	internal val expressionStack = mutableListOf<A_Phrase>()
 
 	/**
 	 * The list of completely decompiled [ statements][PhraseDescriptor].
 	 */
-	internal val statements: MutableList<A_Phrase> = ArrayList()
+	internal val statements = mutableListOf<A_Phrase>()
 
 	/**
 	 * A flag to indicate that the last instruction was a push of the null
@@ -160,7 +205,7 @@ class L1Decompiler constructor(
 	internal var endsWithPushNil = false
 
 	/**
-	 * The decompiled [block phrase][BlockPhraseDescriptor].
+	 * The decompiled [block&#32;phrase][BlockPhraseDescriptor].
 	 */
 	internal var block: A_Phrase
 		private set
@@ -195,7 +240,7 @@ class L1Decompiler constructor(
 		val dispatcher = DecompilerDispatcher()
 		while (!instructionDecoder.atEnd())
 		{
-			instructionDecoder.operation.dispatch(dispatcher)
+			instructionDecoder.getOperation().dispatch(dispatcher)
 		}
 		// Infallible primitives don't have nybblecodes, except ones marked as
 		// Primitive.Flag.SpecialForm.
@@ -216,12 +261,13 @@ class L1Decompiler constructor(
 		}
 		block = newBlockNode(
 			tupleFromArray(*args),
-			code.primitiveNumber(),
+			code.
+			primitive(),
 			tupleFromList(statements),
 			code.functionType().returnType(),
 			code.functionType().declaredExceptions(),
 			0,
-			emptyTuple())
+			emptyTuple)
 	}
 
 	/**
@@ -284,10 +330,8 @@ class L1Decompiler constructor(
 	 */
 	internal fun popExpressions(count: Int): List<A_Phrase>
 	{
-		val result = ArrayList<A_Phrase>(count)
-		(1 .. count).forEach { _ ->
-			result.add(0, popExpression())
-		}
+		val result = mutableListOf<A_Phrase>()
+		(1 .. count).forEach { _ -> result.add(0, popExpression()) }
 		return result
 	}
 
@@ -306,8 +350,8 @@ class L1Decompiler constructor(
 	{
 		override fun L1_doCall()
 		{
-			val bundle = code.literalAt(instructionDecoder.operand)
-			val type = code.literalAt(instructionDecoder.operand)
+			val bundle = code.literalAt(instructionDecoder.getOperand())
+			val type = code.literalAt(instructionDecoder.getOperand())
 			val method = bundle.bundleMethod()
 			val nArgs = method.numArgs()
 			var permutationTuple: A_Tuple? = null
@@ -330,13 +374,13 @@ class L1Decompiler constructor(
 			{
 				listNode = newPermutedListNode(listNode, permutationTuple)
 			}
-			val sendNode = newSendNode(emptyTuple(), bundle, listNode, type)
+			val sendNode = newSendNode(emptyTuple, bundle, listNode, type)
 			pushExpression(sendNode)
 		}
 
 		override fun L1_doPushLiteral()
 		{
-			val value = code.literalAt(instructionDecoder.operand)
+			val value = code.literalAt(instructionDecoder.getOperand())
 			if (value.isInstanceOfKind(mostGeneralFunctionType()))
 			{
 				val functionOuters = Array(value.numOuterVars()) {
@@ -387,7 +431,7 @@ class L1Decompiler constructor(
 
 		override fun L1_doPushLastLocal()
 		{
-			val declaration = argOrLocalOrConstant(instructionDecoder.operand)
+			val declaration = argOrLocalOrConstant(instructionDecoder.getOperand())
 			val use = newUse(declaration.token(), declaration)
 			use.isLastUse(true)
 			if (declaration.declarationKind().isVariable)
@@ -402,7 +446,7 @@ class L1Decompiler constructor(
 
 		override fun L1_doPushLocal()
 		{
-			val declaration = argOrLocalOrConstant(instructionDecoder.operand)
+			val declaration = argOrLocalOrConstant(instructionDecoder.getOperand())
 			val use = newUse(declaration.token(), declaration)
 			if (declaration.declarationKind().isVariable)
 			{
@@ -421,8 +465,8 @@ class L1Decompiler constructor(
 
 		override fun L1_doClose()
 		{
-			val nOuters = instructionDecoder.operand
-			val theCode = code.literalAt(instructionDecoder.operand)
+			val nOuters = instructionDecoder.getOperand()
+			val theCode = code.literalAt(instructionDecoder.getOperand())
 			val theOuters = popExpressions(nOuters)
 			for (outer in theOuters)
 			{
@@ -441,7 +485,7 @@ class L1Decompiler constructor(
 		override fun L1_doSetLocal()
 		{
 			val previousStatementCount = statements.size
-			val indexInFrame = instructionDecoder.operand
+			val indexInFrame = instructionDecoder.getOperand()
 			val declaration = argOrLocalOrConstant(indexInFrame)
 			assert(declaration.declarationKind().isVariable)
 			if (statements.size > previousStatementCount)
@@ -469,7 +513,7 @@ class L1Decompiler constructor(
 			val valueNode = popExpression()
 			val variableUse = newUse(declaration.token(), declaration)
 			val assignmentNode = newAssignment(
-				variableUse, valueNode, emptyTuple(), false)
+				variableUse, valueNode, emptyTuple, false)
 			if (expressionStack.isEmpty()
 				|| peekExpression.phraseKind() !== MARKER_PHRASE)
 			{
@@ -493,7 +537,7 @@ class L1Decompiler constructor(
 
 		override fun L1_doPushOuter()
 		{
-			pushExpression(outers[instructionDecoder.operand - 1])
+			pushExpression(outers[instructionDecoder.getOperand() - 1])
 		}
 
 		override fun L1_doPop()
@@ -534,7 +578,7 @@ class L1Decompiler constructor(
 
 		override fun L1_doSetOuter()
 		{
-			val outer = outers[instructionDecoder.operand - 1]
+			val outer = outers[instructionDecoder.getOperand() - 1]
 			val declaration: A_Phrase
 			declaration =
 				if (outer.phraseKindIsUnder(LITERAL_PHRASE))
@@ -554,7 +598,7 @@ class L1Decompiler constructor(
 			val use = newUse(declaration.token(), declaration)
 			val valueExpr = popExpression()
 			val assignmentNode = newAssignment(
-				use, valueExpr, emptyTuple(), false)
+				use, valueExpr, emptyTuple, false)
 			if (expressionStack.isEmpty())
 			{
 				statements.add(assignmentNode)
@@ -573,7 +617,7 @@ class L1Decompiler constructor(
 		override fun L1_doGetLocal()
 		{
 			val localDeclaration = argOrLocalOrConstant(
-				instructionDecoder.operand)
+				instructionDecoder.getOperand())
 			assert(localDeclaration.declarationKind().isVariable)
 			val useNode = newUse(localDeclaration.token(), localDeclaration)
 			pushExpression(useNode)
@@ -581,7 +625,7 @@ class L1Decompiler constructor(
 
 		override fun L1_doMakeTuple()
 		{
-			val count = instructionDecoder.operand
+			val count = instructionDecoder.getOperand()
 			var permutationTuple: A_Tuple? = null
 			if (count > 1 && peekExpression.equals(PERMUTE.marker))
 			{
@@ -605,7 +649,7 @@ class L1Decompiler constructor(
 
 		override fun L1_doGetOuter()
 		{
-			val outer = outers[instructionDecoder.operand - 1]
+			val outer = outers[instructionDecoder.getOperand() - 1]
 			if (outer.phraseKindIsUnder(LITERAL_PHRASE))
 			{
 				pushExpression(outer)
@@ -654,7 +698,7 @@ class L1Decompiler constructor(
 				0,
 				KEYWORD)
 			val globalVar = code.literalAt(
-				instructionDecoder.operand)
+				instructionDecoder.getOperand())
 			val declaration = newModuleVariable(
 				globalToken, globalVar, nil, nil)
 			pushExpression(newUse(globalToken, declaration))
@@ -668,12 +712,12 @@ class L1Decompiler constructor(
 				0,
 				KEYWORD)
 			val globalVar = code.literalAt(
-				instructionDecoder.operand)
+				instructionDecoder.getOperand())
 			val declaration = newModuleVariable(
 				globalToken, globalVar, nil, nil)
 			val varUse = newUse(globalToken, declaration)
 			val assignmentNode = newAssignment(
-				varUse, popExpression(), emptyTuple(), false)
+				varUse, popExpression(), emptyTuple, false)
 			if (expressionStack.isEmpty())
 			{
 				statements.add(assignmentNode)
@@ -695,9 +739,10 @@ class L1Decompiler constructor(
 		 * non-void valued [block][FunctionDescriptor].
 		 *
 		 * Pop the expression (that represents the right hand side of the
-		 * assignment), push a special [ marker phrase][MarkerPhraseDescriptor]
-		 * representing the dup, then push the right-hand side expression back
-		 * onto the expression stack.
+		 * assignment), push a special
+		 * [marker&#32;phrase][MarkerPhraseDescriptor] representing the dup,
+		 * then push the right-hand side expression back onto the expression
+		 * stack.
 		 */
 		override fun L1Ext_doDuplicate()
 		{
@@ -709,23 +754,21 @@ class L1Decompiler constructor(
 		override fun L1Ext_doPermute()
 		{
 			// Note that this applies to any guillemet group, not just the top
-			// level implicit list of arguments to a call.  It's also used for
-			// permuting both the arguments and their types in the case of a
-			// super-call to a bundle containing permutations.
-			val permutation = code.literalAt(instructionDecoder.operand)
+			// level implicit list of arguments to a call.
+			val permutation = code.literalAt(instructionDecoder.getOperand())
 			pushExpression(syntheticLiteralNodeFor(permutation))
 			pushExpression(PERMUTE.marker)
 		}
 
 		override fun L1Ext_doSuperCall()
 		{
-			val bundle = code.literalAt(instructionDecoder.operand)
-			val type = code.literalAt(instructionDecoder.operand)
-			val superUnionType = code.literalAt(instructionDecoder.operand)
+			val bundle = code.literalAt(instructionDecoder.getOperand())
+			val type = code.literalAt(instructionDecoder.getOperand())
+			val superUnionType = code.literalAt(instructionDecoder.getOperand())
 			val method = bundle.bundleMethod()
 			val nArgs = method.numArgs()
 			val argsNode = reconstructListWithSuperUnionType(nArgs, superUnionType)
-			val sendNode = newSendNode(emptyTuple(), bundle, argsNode, type)
+			val sendNode = newSendNode(emptyTuple, bundle, argsNode, type)
 			pushExpression(sendNode)
 		}
 
@@ -737,8 +780,8 @@ class L1Decompiler constructor(
 			// inline-assignment form of constant declaration, so we don't need
 			// to look for a DUP marker.
 			val constSubscript =
-				(instructionDecoder.operand - code.numArgs()
-				 	- code.numLocals() - 1)
+				(instructionDecoder.getOperand() - code.numArgs()
+	- code.numLocals() - 1)
 			val token = newToken(
 				stringFrom(tempGenerator.apply("const")),
 				0,
@@ -797,8 +840,8 @@ class L1Decompiler constructor(
 	companion object
 	{
 		/**
-		 * Convert some of the descendants within a [list
-		 * phrase][ListPhraseDescriptor] into
+		 * Convert some of the descendants within a
+		 * [list&#32;phrase][ListPhraseDescriptor] into
 		 * [supercasts][SuperCastPhraseDescriptor], based on the given
 		 * superUnionType.  Because the phrase is processed recursively, some
 		 * invocations will pass a non-list phrase.
@@ -852,7 +895,7 @@ class L1Decompiler constructor(
 		 * @param type
 		 *   The type of the outer.
 		 * @return
-		 *   A [variable reference phrase][ReferencePhraseDescriptor].
+		 *   A [variable&#32;reference&#32;phrase][ReferencePhraseDescriptor].
 		 */
 		private fun outerPhraseForDecompiler(
 			outerIndex: Int, type: A_Type): A_Phrase
@@ -877,7 +920,7 @@ class L1Decompiler constructor(
 		@JvmStatic
 		fun decompile(code: A_RawFunction): A_Phrase
 		{
-			val counts = HashMap<String, Int>()
+			val counts = mutableMapOf<String, Int>()
 			// Synthesize fake outers to allow decompilation.
 			val outerCount = code.numOuters()
 			val functionOuters = Array(outerCount) {

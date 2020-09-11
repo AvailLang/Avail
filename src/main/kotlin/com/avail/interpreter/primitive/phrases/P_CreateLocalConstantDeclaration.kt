@@ -1,6 +1,6 @@
 /*
  * P_CreateLocalConstantDeclaration.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,20 +32,20 @@
 
 package com.avail.interpreter.primitive.phrases
 
-import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.newConstant
+import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newConstant
 import com.avail.descriptor.tokens.TokenDescriptor
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LOCAL_CONSTANT_PHRASE
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.descriptor.types.TypeDescriptor.Types.TOKEN
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Answer a
@@ -55,6 +55,7 @@ import com.avail.interpreter.Primitive.Flag.CannotFail
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_CreateLocalConstantDeclaration : Primitive(2, CanInline, CannotFail)
 {
 	override fun attempt(interpreter: Interpreter): Result
@@ -68,7 +69,7 @@ object P_CreateLocalConstantDeclaration : Primitive(2, CanInline, CannotFail)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				TOKEN.o(),
-				EXPRESSION_PHRASE.create(ANY.o())),
+				TOKEN.o,
+				EXPRESSION_PHRASE.create(ANY.o)),
 			LOCAL_CONSTANT_PHRASE.mostGeneralType())
 }

@@ -1,6 +1,6 @@
 /*
  * AvailAssertionFailedException.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,7 @@ package com.avail.exceptions
 
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.StringDescriptor
-import com.avail.descriptor.tuples.StringDescriptor.stringFrom
+import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import java.lang.String.format
 
 /**
@@ -46,7 +46,7 @@ import java.lang.String.format
 class AvailAssertionFailedException : Exception
 {
 	/**
-	 * The [error message][StringDescriptor] describing the assertion.
+	 * The [error&#32;message][StringDescriptor] describing the assertion.
 	 */
 	val assertionString: A_String
 
@@ -54,8 +54,9 @@ class AvailAssertionFailedException : Exception
 	 * Construct a new `AvailAssertionFailedException`.
 	 *
 	 * @param assertionString
-	 *   The [error message][StringDescriptor] describing the assertion.
+	 *   The [error&#32;message][StringDescriptor] describing the assertion.
 	 */
+	@Suppress("unused")
 	constructor(assertionString: A_String)
 	{
 		assert(assertionString.isString)
@@ -66,7 +67,7 @@ class AvailAssertionFailedException : Exception
 	 * Construct a new `AvailAssertionFailedException`.
 	 *
 	 * @param assertionString
-	 *   The [error message][StringDescriptor] describing the assertion.
+	 *   The [error&#32;message][StringDescriptor] describing the assertion.
 	 */
 	constructor(assertionString: String)
 	{

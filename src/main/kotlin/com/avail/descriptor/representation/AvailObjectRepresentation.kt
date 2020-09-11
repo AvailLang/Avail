@@ -6,12 +6,12 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
  *
  *  * Neither the name of the copyright holder nor the names of the contributors
  *    may be used to endorse or promote products derived from this software
@@ -31,17 +31,19 @@
  */
 package com.avail.descriptor.representation
 
-import com.avail.descriptor.*
+import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.descriptor.functions.A_Continuation
 import com.avail.descriptor.functions.CompiledCodeDescriptor
 import com.avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
 import com.avail.descriptor.functions.ContinuationDescriptor
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import com.avail.descriptor.types.TypeTag
 import com.avail.utility.visitor.MarkUnreachableSubobjectVisitor
 import sun.misc.Unsafe
 import java.lang.Integer.numberOfTrailingZeros
-import java.util.*
+import java.util.Arrays
 import kotlin.math.min
 
 /**
@@ -63,17 +65,28 @@ abstract class AvailObjectRepresentation protected constructor(
 	objectSlotsSize: Int,
 	integerSlotsCount: Int
 ) : AbstractAvailObject(initialDescriptor), A_BasicObject {
-	/** An array of all my references to other [AvailObject]s.  */
-	private var objectSlots: Array<AvailObject?> = when (objectSlotsSize) {
-		0 -> emptyObjectSlots
-		else -> arrayOfNulls(objectSlotsSize)
+
+	init {
+		// Record the allocation in the statistic.
+		initialDescriptor.allocationStat.record(
+			// Assume 64-bit pointers and 16-byte headers.  Don't count any
+			// pojos that might have been captured.
+			40   // 16 header + 3*8 for fields (descriptor, objects[], longs[])
+				+ (if (objectSlotsSize == 0) 0 else 24) // object slots header
+				+ (if (integerSlotsCount == 0) 0 else 24) // long slots header
+				+ ((objectSlotsSize + integerSlotsCount) shl 3).toLong()
+		)
 	}
 
+	/** An array of all my references to other [AvailObject]s.  */
+	private var objectSlots: Array<AvailObject?> =
+		if (objectSlotsSize == 0) emptyObjectSlots
+		else arrayOfNulls(objectSlotsSize)
+
 	/** A `LongArray` encoding all of my digital state.  */
-	private var longSlots: LongArray = when (integerSlotsCount) {
-		0 -> emptyIntegerSlots
-		else -> LongArray(integerSlotsCount)
-	}
+	private var longSlots: LongArray =
+		if (integerSlotsCount == 0) emptyIntegerSlots
+		else LongArray(integerSlotsCount)
 
 	/**
 	 * Helper method for transferring this object's longSlots into an
@@ -114,7 +127,7 @@ abstract class AvailObjectRepresentation protected constructor(
 			// Java-specific mechanism for now.  Requires more complex solution
 			// when Avail starts using raw memory again.
 			objectSlots = arrayOfNulls(1)
-			objectSlots[0] = NilDescriptor.nil
+			objectSlots[0] = nil
 		}
 		if (currentDescriptor.isMutable) {
 			scanSubobjects(MarkUnreachableSubobjectVisitor(anotherObject))
@@ -141,10 +154,11 @@ abstract class AvailObjectRepresentation protected constructor(
 	 *   The object slot to validate for the receiver.
 	 */
 	private fun checkSlot(field: ObjectSlotsEnum) {
+		@Suppress("ConstantConditionIf")
 		if (shouldCheckSlots) {
 			val debugSlots = currentDescriptor.debugObjectSlots
 			val permittedFields = debugSlots[field.fieldOrdinal()]
-			if (permittedFields != null) {
+			if (permittedFields !== null) {
 				for (permittedField in permittedFields) {
 					if (permittedField === field) {
 						return
@@ -178,10 +192,11 @@ abstract class AvailObjectRepresentation protected constructor(
 	 *   The integer slot to validate for the receiver.
 	 */
 	private fun checkSlot(field: IntegerSlotsEnum) {
+		@Suppress("ConstantConditionIf")
 		if (shouldCheckSlots) {
 			val debugSlots = currentDescriptor.debugIntegerSlots
 			val permittedFields = debugSlots[field.fieldOrdinal()]
-			if (permittedFields != null) {
+			if (permittedFields !== null) {
 				for (permittedField in permittedFields) {
 					if (permittedField === field) {
 						return
@@ -192,7 +207,7 @@ abstract class AvailObjectRepresentation protected constructor(
 			val definitionClass = field.javaClass.enclosingClass
 			assert(definitionClass.isInstance(currentDescriptor))
 			// Cache that field for next time.
-			val newPermittedFields: Array<IntegerSlotsEnum?>
+			val newPermittedFields: Array<IntegerSlotsEnum>
 			when (permittedFields) {
 				null -> newPermittedFields = arrayOf(field)
 				else -> {
@@ -207,12 +222,12 @@ abstract class AvailObjectRepresentation protected constructor(
 
 	/**
 	 * Extract the value of the [BitField] of the receiver.  Note that it's an
-	 * `int` even though the underlying longSlots array contains `long`s.
+	 * [Int] even though the underlying longSlots array contains `long`s.
 	 *
 	 * @param bitField
 	 *   A `BitField` that defines the object's layout.
 	 * @return
-	 *   An `int` extracted from this object.
+	 *   An [Int] extracted from this object.
 	 */
 	fun slot(bitField: BitField): Int {
 		checkSlot(bitField.integerSlot)
@@ -226,7 +241,7 @@ abstract class AvailObjectRepresentation protected constructor(
 	 * @param bitField
 	 *   A `BitField` that defines the object's layout.
 	 * @param anInteger
-	 *   An `int` to store in the indicated bit field.
+	 *   An [Int] to store in the indicated bit field.
 	 */
 	fun setSlot(bitField: BitField, anInteger: Int) {
 		checkWriteForField(bitField.integerSlot)
@@ -293,7 +308,7 @@ abstract class AvailObjectRepresentation protected constructor(
 	 * @param shortIndex
 	 *   The one-base index in shorts.
 	 * @return
-	 *   The unsigned `short` (as an `int` found at the given short-index.
+	 *   The unsigned `short` (as an [Int] found at the given short-index.
 	 */
 	fun shortSlot(field: IntegerSlotsEnum, shortIndex: Int): Int {
 		checkSlot(field)
@@ -310,7 +325,7 @@ abstract class AvailObjectRepresentation protected constructor(
 	 * @param shortIndex
 	 *   The one-based index in shorts.
 	 * @param aShort
-	 *   The `short` to store at the given short-index, passed as an `int` for
+	 *   The `short` to store at the given short-index, passed as an [Int] for
 	 *   safety.
 	 */
 	fun setShortSlot(
@@ -329,14 +344,14 @@ abstract class AvailObjectRepresentation protected constructor(
 	}
 
 	/**
-	 * Extract a (32-bit signed) `int` at the given int-index of the receiver.
+	 * Extract a (32-bit signed) [Int] at the given int-index of the receiver.
 	 *
 	 * @param field
 	 *   The enumeration value that identifies the base field.
 	 * @param intIndex
 	 *   The one-base index in ints.
 	 * @return
-	 *   The signed `int` found at the given int-index.
+	 *   The signed [Int] found at the given int-index.
 	 */
 	fun intSlot(
 		field: IntegerSlotsEnum,
@@ -348,14 +363,14 @@ abstract class AvailObjectRepresentation protected constructor(
 	}
 
 	/**
-	 * Store the (32-bit signed) `int` at the given int-index of the receiver.
+	 * Store the (32-bit signed) [Int] at the given int-index of the receiver.
 	 *
 	 * @param field
 	 *   The enumeration value that identifies the base field.
 	 * @param intIndex
 	 *   The one-based index in ints.
 	 * @param anInt
-	 *   The `int` to store at the given int-index.
+	 *   The [Int] to store at the given int-index.
 	 */
 	fun setIntSlot(
 		field: IntegerSlotsEnum,
@@ -476,6 +491,7 @@ abstract class AvailObjectRepresentation protected constructor(
 	 * @param anInteger
 	 *   A [Long] to store in the indicated slot.
 	 */
+	@Suppress("unused")
 	fun setMutableSlot(
 		field: IntegerSlotsEnum,
 		anInteger: Long
@@ -574,6 +590,7 @@ abstract class AvailObjectRepresentation protected constructor(
 	 * @param anInteger
 	 *   A [Long] to store in the indicated slot.
 	 */
+	@Suppress("unused")
 	fun setMutableSlot(
 		field: IntegerSlotsEnum,
 		subscript: Int,
@@ -614,20 +631,57 @@ abstract class AvailObjectRepresentation protected constructor(
 	 *
 	 * @param field
 	 *   An enumeration value that defines the field ordering.
-	 * @param anAvailObject
-	 *   The object to store at the specified slot.
+	 * @param newValue
+	 *   The [A_BasicObject] to store at the specified slot.
 	 */
 	fun setSlot(
 		field: ObjectSlotsEnum,
-		anAvailObject: A_BasicObject
+		newValue: A_BasicObject
 	) {
 		// If the receiver is shared, then the new value must become shared
 		// before it can be stored.
 		assert(!currentDescriptor.isShared
-			|| anAvailObject.descriptor().isShared)
+			|| newValue.descriptor().isShared)
 		checkSlot(field)
 		checkWriteForField(field)
-		objectSlots[field.fieldOrdinal()] = anAvailObject as AvailObject
+		objectSlots[field.fieldOrdinal()] = newValue as AvailObject
+	}
+
+	/**
+	 * Extract the current value of the slot, pass it to the supplied inline
+	 * Kotlin function, and write the result back to the slot.
+	 */
+	fun updateSlot(
+		field: ObjectSlotsEnum,
+		updater: AvailObject.()->A_BasicObject
+	) {
+		// If the receiver is shared, then the new value must become shared
+		// before it can be stored.
+		checkSlot(field)
+		checkWriteForField(field)
+		val ordinal = field.fieldOrdinal()
+		val oldValue = objectSlots[ordinal]!!
+		val newValue = oldValue.updater() as AvailObject
+		assert(!currentDescriptor.isShared || newValue.descriptor().isShared)
+		objectSlots[ordinal] = newValue
+	}
+
+	/**
+	 * Extract the current value of the slot, pass it to the supplied inline
+	 * Kotlin function, make it shared, and write the result back to the slot.
+	 */
+	fun updateSlotShared(
+		field: ObjectSlotsEnum,
+		updater: AvailObject.()->A_BasicObject
+	) {
+		// If the receiver is shared, then the new value must become shared
+		// before it can be stored.
+		checkSlot(field)
+		checkWriteForField(field)
+		val ordinal = field.fieldOrdinal()
+		val oldValue = objectSlots[ordinal]!!
+		val newValue = oldValue.updater() as AvailObject
+		objectSlots[ordinal] = newValue.makeShared()
 	}
 
 	/**
@@ -722,12 +776,12 @@ abstract class AvailObjectRepresentation protected constructor(
 	fun setSlotsFromList(
 		field: ObjectSlotsEnum,
 		startSubscript: Int,
-		sourceList: List<A_BasicObject>,
+		sourceList: List<A_BasicObject?>,
 		zeroBasedStartSourceSubscript: Int,
-		count: Int
-	) {
+		count: Int)
+	{
 		assert(!currentDescriptor.isShared
-			|| sourceList.all { it.descriptor().isShared })
+			|| sourceList.all { it!!.descriptor().isShared })
 		checkSlot(field)
 		checkWriteForField(field)
 		var slotIndex = field.fieldOrdinal() + startSubscript - 1
@@ -742,7 +796,7 @@ abstract class AvailObjectRepresentation protected constructor(
 	 * consecutive slots of the receiver.  It's the client's responsibility to
 	 * ensure the values are suitably immutable or shared.
 	 *
-	 * @param <T>
+	 * @param T
 	 *   The type of array to copy from.
 	 * @param targetField
 	 *   The field of the receiver into which to write values.
@@ -756,7 +810,7 @@ abstract class AvailObjectRepresentation protected constructor(
 	 *   reading.
 	 * @param count
 	 *   How many values to transfer.
-	</T> */
+	 */
 	fun <T : A_BasicObject> setSlotsFromArray(
 		targetField: ObjectSlotsEnum,
 		startTargetSubscript: Int,
@@ -830,6 +884,7 @@ abstract class AvailObjectRepresentation protected constructor(
 	 * @param count
 	 *   How many longs to transfer.
 	 */
+	@Suppress("unused")
 	fun slotsIntoArray(
 		sourceField: IntegerSlotsEnum,
 		startSourceSubscript: Int,
@@ -946,6 +1001,7 @@ abstract class AvailObjectRepresentation protected constructor(
 	 * @param count
 	 *   How many longs to transfer.
 	 */
+	@Suppress("unused")
 	fun setSlotsFromLongSlots(
 		targetField: IntegerSlotsEnum,
 		startTargetSubscript: Int,
@@ -1147,14 +1203,31 @@ abstract class AvailObjectRepresentation protected constructor(
 		}
 
 		/**
+		 * Perform an atomic get-and-set to the given [Array] and index,
+		 * writing the new [value] and returning the previous content of that
+		 * array slot.
+		 */
+		fun getAndSet(
+			objects: Array<AvailObject?>,
+			subscript: Int,
+			value: AvailObject
+		): AvailObject {
+			assert(0 <= subscript && subscript < objects.size)
+			val byteOffset = (subscript.toLong() shl objectArrayShift) +
+				objectArrayBaseOffset
+			return unsafe.getAndSetObject(objects, byteOffset, value)
+				as AvailObject
+		}
+
+		/**
 		 * Perform an atomic compare-and-set to the given [Array] and index,
 		 * replacing the [expected] value with the new [value].  If the value
-		 * that was read is not the same Kotlin object (under `===`) as the
+		 * that was read is not *the same Kotlin object* (under `===`) as the
 		 * expected value, answer `false` and do not write the new value.
 		 * Otherwise write the new value and answer `true`.
 		 */
 		fun compareAndSet(
-			objects: Array<AvailObject>,
+			objects: Array<AvailObject?>,
 			subscript: Int,
 			expected: AvailObject,
 			value: AvailObject
@@ -1178,6 +1251,7 @@ abstract class AvailObjectRepresentation protected constructor(
 	 * @return
 	 *   The object found at the specified slot in the receiver.
 	 */
+	@Suppress("MemberVisibilityCanBePrivate")
 	fun volatileSlot(
 		field: ObjectSlotsEnum,
 		subscript: Int
@@ -1221,6 +1295,7 @@ abstract class AvailObjectRepresentation protected constructor(
 	 * @param anAvailObject
 	 *   The object to store at the specified slot.
 	 */
+	@Suppress("unused")
 	fun setVolatileSlot(
 		field: ObjectSlotsEnum,
 		subscript: Int,
@@ -1264,6 +1339,60 @@ abstract class AvailObjectRepresentation protected constructor(
 		} else {
 			objectSlots[field.fieldOrdinal()] = anAvailObject as AvailObject
 		}
+	}
+
+	/**
+	 * Store the [AvailObject] in the specified slot of the receiver, and answer
+	 * the value that was previously in that slot.  Use atomic write semantics
+	 * that are compatible with volatile access.  Note that this may answer
+	 * [nil] if it's used on an unassigned variable's value slot.
+	 *
+	 * @param field
+	 *   An enumeration value that defines the field ordering.
+	 * @param anAvailObject
+	 *   The object to store at the specified slot.
+	 * @return
+	 *   The previous value from the specified slot.
+	 */
+	fun getAndSetVolatileSlot(
+		field: ObjectSlotsEnum,
+		anAvailObject: A_BasicObject
+	): AvailObject {
+		assert(anAvailObject.descriptor().isShared)
+		checkSlot(field)
+		checkWriteForField(field)
+		return VolatileSlotHelper.getAndSet(
+			objectSlots, field.fieldOrdinal(), anAvailObject as AvailObject)
+	}
+
+	/**
+	 * Perform an atomic compare-and-set on a slot of the given array.  If the
+	 * value in the slot is the same Kotlin object (under `===`) as the
+	 * reference, replace it with the newValue and answer `true`.  Otherwise
+	 * answer `false`.
+	 *
+	 * @param field
+	 *   An enumeration value that defines the field ordering.
+	 * @param reference
+	 *   The object to compare (by identity) against the current slot value.
+	 * @param newValue
+	 *   The object to store at the specified slot.
+	 * @return
+	 *   The previous value from the specified slot.
+	 */
+	fun compareAndSetVolatileSlot(
+		field: ObjectSlotsEnum,
+		reference: A_BasicObject,
+		newValue: A_BasicObject
+	): Boolean {
+		assert(newValue.descriptor().isShared)
+		checkSlot(field)
+		checkWriteForField(field)
+		return VolatileSlotHelper.compareAndSet(
+			objectSlots,
+			field.fieldOrdinal(),
+			reference as AvailObject,
+			newValue as AvailObject)
 	}
 
 	/**
@@ -1339,7 +1468,7 @@ abstract class AvailObjectRepresentation protected constructor(
 	}
 
 	/**
-	 * Slice the current [[AvailObject] into two objects, the left one (at the
+	 * Slice the current [AvailObject] into two objects, the left one (at the
 	 * same starting address as the input), and the right one (a
 	 * [filler&#32;object][FillerDescriptor] that nobody should ever create a
 	 * pointer to). The new Filler can have zero post-header slots (i.e., just
@@ -1504,16 +1633,16 @@ abstract class AvailObjectRepresentation protected constructor(
 			deltaObjectSlots: Int,
 			deltaIntegerSlots: Int
 		): AvailObject {
-			assert(deltaObjectSlots == 0 || descriptor.hasVariableObjectSlots)
-			assert(deltaIntegerSlots == 0 || descriptor.hasVariableIntegerSlots)
+			assert(deltaObjectSlots == 0 || descriptor.hasVariableObjectSlots())
+			assert(deltaIntegerSlots == 0 || descriptor.hasVariableIntegerSlots())
 			assert(descriptor.javaClass == objectToCopy.currentDescriptor.javaClass)
 			val newObjectSlotCount = objectToCopy.objectSlots.size + deltaObjectSlots
-			assert(newObjectSlotCount >= descriptor.numberOfFixedObjectSlots)
+			assert(newObjectSlotCount >= descriptor.numberOfFixedObjectSlots())
 			val newIntegerSlotCount = objectToCopy.longSlots.size + deltaIntegerSlots
-			assert(newIntegerSlotCount >= descriptor.numberOfFixedIntegerSlots)
+			assert(newIntegerSlotCount >= descriptor.numberOfFixedIntegerSlots())
 			val newObject = AvailObject.newObjectIndexedIntegerIndexedDescriptor(
-				newObjectSlotCount - descriptor.numberOfFixedObjectSlots,
-				newIntegerSlotCount - descriptor.numberOfFixedIntegerSlots,
+				newObjectSlotCount - descriptor.numberOfFixedObjectSlots(),
+				newIntegerSlotCount - descriptor.numberOfFixedIntegerSlots(),
 				descriptor)
 			// Even though we define the private fields in this class we aren't
 			// allowed to access them in an instance of something that we know is a
@@ -1547,7 +1676,7 @@ abstract class AvailObjectRepresentation protected constructor(
 		private val emptyObjectSlots = arrayOfNulls<AvailObject>(0)
 
 		/**
-		 * A reusable empty array of `int`s for objects that have no int
+		 * A reusable empty array of [Int]s for objects that have no int
 		 * slots.
 		 */
 		private val emptyIntegerSlots = LongArray(0)

@@ -1,6 +1,6 @@
 /*
  * UnloadAction.java
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,7 +40,8 @@ import java.awt.event.ActionEvent
 import javax.swing.Action
 
 /**
- * An `UnloadAction` launches an [unload task][UnloadTask] in a Swing worker thread.
+ * An `UnloadAction` launches an [unload&#32;task][UnloadTask] in a Swing worker
+ * thread.
  *
  * @constructor
  * Construct a new [UnloadAction].
@@ -53,7 +54,7 @@ class UnloadAction constructor(workbench: AvailWorkbench)
 {
 	override fun actionPerformed(event: ActionEvent?)
 	{
-		assert(workbench.backgroundTask == null)
+		assert(workbench.backgroundTask === null)
 		val selectedModule = workbench.selectedModule()!!
 
 		// Update the UI.

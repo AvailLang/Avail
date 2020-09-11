@@ -1,6 +1,6 @@
 /*
  * Heartbeat.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,8 @@
 
 package com.avail.server.io
 
-import java.util.*
+import java.util.Random
+import java.util.UUID
 import java.util.concurrent.ScheduledFuture
 
 /**

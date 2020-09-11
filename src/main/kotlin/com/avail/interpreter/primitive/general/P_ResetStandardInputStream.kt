@@ -1,6 +1,6 @@
 /*
  * P_ResetStandardInputStream.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,24 +32,24 @@
 
 package com.avail.interpreter.primitive.general
 
-import com.avail.descriptor.NilDescriptor.nil
-import com.avail.descriptor.sets.SetDescriptor.set
-import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.E_IO_ERROR
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.execution.Interpreter
 import com.avail.io.TextInputChannel
 import java.io.IOException
 
 /**
- * **Primitive:** Reset the [ current fiber][Interpreter.fiber]'s [standard
- * input channel][TextInputChannel] to the previously set
+ * **Primitive:** Reset the [current&#32;fiber][Interpreter.fiber]'s
+ * [standard&#32;input&#32;channel][TextInputChannel] to the previously set
  * [mark][P_MarkStandardInputStream].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -74,7 +74,7 @@ object P_ResetStandardInputStream : Primitive(0, CanInline, HasSideEffect)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(emptyTuple(), TOP.o())
+		functionType(emptyTuple, TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_IO_ERROR))

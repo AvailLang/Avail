@@ -1,19 +1,19 @@
 /*
  * ClassCommentImplementation.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  Redistributions of source code must retain the above copyright notice, this
+ * * Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- *  Redistributions in binary form must reproduce the above copyright notice,
+ * * Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
  *
- *  Neither the name of the copyright holder nor the names of the contributors
+ * * Neither the name of the copyright holder nor the names of the contributors
  *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
@@ -33,16 +33,20 @@
 package com.avail.stacks.comment
 
 import com.avail.descriptor.tuples.A_String
-import com.avail.descriptor.tuples.StringDescriptor.stringFrom
+import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.stacks.CommentGroup
 import com.avail.stacks.LinkingFileMap
 import com.avail.stacks.StacksDescription
 import com.avail.stacks.StacksErrorLog
 import com.avail.stacks.comment.signature.CommentSignature
 import com.avail.stacks.module.StacksImportModule
-import com.avail.stacks.tags.*
+import com.avail.stacks.tags.StacksAliasTag
+import com.avail.stacks.tags.StacksAuthorTag
+import com.avail.stacks.tags.StacksCategoryTag
+import com.avail.stacks.tags.StacksFieldTag
+import com.avail.stacks.tags.StacksSeeTag
+import com.avail.stacks.tags.StacksSuperTypeTag
 import com.avail.utility.json.JSONWriter
-import java.util.*
 
 /**
  * A comment that describes a particular class.
@@ -55,7 +59,7 @@ import java.util.*
  * @property commentStartLine
  *   The start line in the module the comment being parsed appears.
  * @property sees
- *   A [ArrayList] of any [&quot;@sees&quot;][StacksSeeTag] references.
+ *   A list of any [&quot;@sees&quot;][StacksSeeTag] references.
  * @property description
  *   The overall description of the implementation
  * @property categories
@@ -63,9 +67,9 @@ import java.util.*
  * @property aliases
  *   The aliases the implementation is known by
  * @property supertypes
- *   The [ArrayList] of the class's [supertypes][StacksSuperTypeTag]
+ *   The list of the class's [supertypes][StacksSuperTypeTag]
  * @property fields
- *   The [ArrayList] of the class's [fields][StacksFieldTag]
+ *   The list of the class's [fields][StacksFieldTag]
  *
  * @constructor
  * Construct a new [ClassComment].
@@ -78,7 +82,7 @@ import java.util.*
  * @param author
  *   The [author][StacksAuthorTag] of the implementation.
  * @param sees
- *   A [ArrayList] of any [&quot;@sees&quot;][StacksSeeTag] references.
+ *   A list of any [&quot;@sees&quot;][StacksSeeTag] references.
  * @param description
  *   The overall description of the implementation
  * @param categories
@@ -86,22 +90,22 @@ import java.util.*
  * @param aliases
  *   The aliases the implementation is known by
  * @param supertypes
- *   The [ArrayList] of the class's [supertypes][StacksSuperTypeTag]
+ *   The list of the class's [supertypes][StacksSuperTypeTag]
  * @param fields
- *   The [ArrayList] of the class's [fields][StacksFieldTag]
+ *   The list of the class's [fields][StacksFieldTag]
  * @param sticky
  *   Whether or not the method should be documented regardless of visibility
  */
 class ClassComment constructor (
 		signature: CommentSignature,
 		commentStartLine: Int,
-		author: ArrayList<StacksAuthorTag>,
-		sees: ArrayList<StacksSeeTag>,
+		author: List<StacksAuthorTag>,
+		sees: List<StacksSeeTag>,
 		description: StacksDescription,
-		categories: ArrayList<StacksCategoryTag>,
-		aliases: ArrayList<StacksAliasTag>,
-		private val supertypes: ArrayList<StacksSuperTypeTag>,
-		internal val fields: ArrayList<StacksFieldTag>, sticky: Boolean)
+		categories: List<StacksCategoryTag>,
+		aliases: List<StacksAliasTag>,
+		private val supertypes: List<StacksSuperTypeTag>,
+		internal val fields: List<StacksFieldTag>, sticky: Boolean)
 	: AvailComment(
 			signature, commentStartLine, author, sees, description, categories,
 			aliases, sticky)
@@ -136,7 +140,7 @@ class ClassComment constructor (
 		}
 		jsonWriter.endArray()
 
-		if (categories.size > 0)
+		if (categories.isNotEmpty())
 		{
 			categories[0].toJSON(
 				linkingFileMap,
@@ -149,7 +153,7 @@ class ClassComment constructor (
 			jsonWriter.endArray()
 		}
 
-		if (aliases.size > 0)
+		if (aliases.isNotEmpty())
 		{
 			aliases[0].toJSON(
 				linkingFileMap,

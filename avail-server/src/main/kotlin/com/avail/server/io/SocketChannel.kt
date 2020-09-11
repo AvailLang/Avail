@@ -1,6 +1,6 @@
 /*
  * SocketChannel.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,7 +44,8 @@ import java.nio.channels.AsynchronousSocketChannel
  * @property adapter
  *   The [SocketAdapter] that created this [channel][SocketChannel].
  * @property transport
- *   The [channel][AsynchronousSocketChannel] used by the associated [SocketAdapter].
+ *   The [channel][AsynchronousSocketChannel] used by the associated
+ *   [SocketAdapter].
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  *
  * @constructor

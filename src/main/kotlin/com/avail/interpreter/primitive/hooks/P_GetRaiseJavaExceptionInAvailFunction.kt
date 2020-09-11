@@ -1,6 +1,6 @@
 /*
  * P_GetRaiseJavaExceptionInAvailFunction.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,12 +35,14 @@ package com.avail.interpreter.primitive.hooks
 import com.avail.AvailRuntime.HookType.RAISE_JAVA_EXCEPTION_IN_AVAIL
 import com.avail.CallbackSystem.Callback
 import com.avail.descriptor.functions.FunctionDescriptor
-import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.interpreter.Interpreter
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.Primitive.Flag.ReadsFromHiddenGlobalState
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Get the [function][FunctionDescriptor] to invoke to raise a
@@ -58,11 +60,10 @@ object P_GetRaiseJavaExceptionInAvailFunction
 	{
 		interpreter.checkArgumentCount(0)
 
-		val raiseFunction =
-			RAISE_JAVA_EXCEPTION_IN_AVAIL.get(interpreter.runtime())
+		val raiseFunction = RAISE_JAVA_EXCEPTION_IN_AVAIL[interpreter.runtime]
 		return interpreter.primitiveSuccess(raiseFunction)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(emptyTuple(), RAISE_JAVA_EXCEPTION_IN_AVAIL.functionType)
+		functionType(emptyTuple, RAISE_JAVA_EXCEPTION_IN_AVAIL.functionType)
 }

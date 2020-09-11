@@ -1,6 +1,6 @@
 /*
  * Exceptions.avail
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -65,6 +65,7 @@ Names
 	"causal exception",
 	"descriptive_",
 	"error message",
+	"restricted send_with_:_",
 	"try_else_",
 	"_caused by_",
 	"_'s⁇causal exception",
@@ -88,7 +89,7 @@ Names
 	"definition exception",
 	"descriptive exception",
 	"element-access exception",
-	"I/O exception",
+	"general-I/O exception",
 	"instantiation exception",
 	"invocation exception",
 	"security exception",
@@ -104,7 +105,12 @@ Names
 	/* Java exceptions. */
 	"Java exception",
 	"a Java exception caused by_",
-	"_'s⁇throwable"
+	"_'s⁇throwable",
+
+	/* Rejecting/accepting parses safely. */
+	"Accept parse",
+	"Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_",
+	"Unwind fiber and run_"
 
 	/* Quite a few names are introduced, but all dynamically by the
 	 * "Public exception_(_)extends_" defining method.
@@ -562,11 +568,11 @@ Semantic restriction "Guard|guard_«intercept_»«ensure_»" is
 	unwindType : ([]→⊤)?'s type
 |
 	returnType : type := bodyType's return type;
-	handlerCount ::= ⎣handlersType⎦;
-	unwindCount ::= ⎣unwindType⎦;
+	handlerCount ::= ⌊handlersType⌋;
+	unwindCount ::= ⌊unwindType⌋;
 	If handlerCount = 0 ∧ unwindCount = 0 then
 	[
-		Reject parse, expected:
+		Immediately reject parse, expected:
 			"at least one exception handler or an unwind handler"
 	];
 	For each index from 1 to handlerCount do
@@ -575,14 +581,14 @@ Semantic restriction "Guard|guard_«intercept_»«ensure_»" is
 		argType ::= handlerType[1];
 		If argType = ⊥ then
 		[
-			Reject parse, expected: format
+			Immediately reject parse, expected: format
 				"exception handler #“①”'s parameter type to be \
 				\|statically known"
 				with index
 		];
 		If ¬argType ⊆ exception then
 		[
-			Reject parse, expected: format
+			Immediately reject parse, expected: format
 				"exception handler to accept only exceptions (not “①”)"
 				with argType
 		];
@@ -597,7 +603,7 @@ Semantic restriction "Guard|guard_«intercept_»«ensure_»" is
 		];
 		If ¬hidingArgTypes is empty then
 		[
-			Reject parse, expected: format
+			Immediately reject parse, expected: format
 			"exception handler for “①” to be reachable \
 			\|(but it is hidden by each of: “②”)"
 			with argType, hidingArgTypes
@@ -692,7 +698,7 @@ Public macro "Guard|guard_«intercept_»«ensure_»" is
 	realHandlers ::=
 		(wrappedHandlers ++ if needCatchAll then [<catchAll()>] else [<>])
 			→ list phrase;
-	restricted send $"Private guard_intercept_ensure_" with
+	bootstrap restricted send $"Private guard_intercept_ensure_" with
 		«<
 			bodyPhrase,
 			realHandlers,
@@ -743,7 +749,7 @@ Semantic restriction "try_else_" is
  *
  * @type "system exception"
  * @field "error code" "natural number"
- * 		The vm error code.
+ * 		The VM error code.
  * @field "error name" "string"
  * 		The full name of the system exception including the word "exception"
  * 		at the end.
@@ -879,7 +885,7 @@ Public explicit class "code-generation exception" extends exception;
 
 /**
  * A definition exception describes error conditions related to defining Avail
- * methods, restrictions, types, and other entities.
+ * methods, restrictions, types, modules, and other entities.
  *
  * @type "definition exception"
  * @supertype "exception"
@@ -899,14 +905,14 @@ Public explicit class "definition exception" extends exception;
 Public explicit class "element-access exception" extends exception;
 
 /**
- * An I/O exception describes error conditions related to program input or
- * output.
+ * A general I/O exception describes error conditions related to program input
+ * or output.
  *
- * @type "I/O exception"
+ * @type "general-I/O exception"
  * @supertype "exception"
  * @category "Exceptions"
  */
-Public explicit class "I/O exception" extends exception;
+Public explicit class "general-I/O exception" extends exception;
 
 /**
  * An invocation exception describes error conditions related to invoking
@@ -978,7 +984,7 @@ Public explicit class "variable-use exception" extends exception;
  * @type "cannot-add-unlike-infinities exception"
  * @supertype "arithmetic exception"
  * @field "error code" "1's type"
- * 		The vm error code.
+ * 		The VM error code.
  * @field "error name" "string"
  * 		The full name of the system exception including the word "exception"
  * 		at the end.
@@ -994,7 +1000,7 @@ System exception "cannot-add-unlike-infinities" (1)
  * @type "cannot-subtract-like-infinities exception"
  * @supertype "arithmetic exception"
  * @field "error code" "2's type"
- * 		The vm error code.
+ * 		The VM error code.
  * @field "error name" "string"
  * 		The full name of the system exception including the word "exception"
  * 		at the end.
@@ -1009,7 +1015,7 @@ System exception "cannot-subtract-like-infinities" (2)
  * @type "cannot-multiply-zero-and-infinity exception"
  * @supertype "arithmetic exception"
  * @field "error code" "3's type"
- * 		The vm error code.
+ * 		The VM error code.
  * @field "error name" "string"
  * 		The full name of the system exception including the word "exception"
  * 		at the end.
@@ -1024,7 +1030,7 @@ System exception "cannot-multiply-zero-and-infinity" (3)
  * @type "cannot-divide-by-zero exception"
  * @supertype "arithmetic exception"
  * @field "error code" "4's type"
- * 		The vm error code.
+ * 		The VM error code.
  * @field "error name" "string"
  * 		The full name of the system exception including the word "exception"
  * 		at the end.
@@ -1039,7 +1045,7 @@ System exception "cannot-divide-by-zero" (4)
  * @type "cannot-divide-infinities exception"
  * @supertype "arithmetic exception"
  * @field "error code" "5's type"
- * 		The vm error code.
+ * 		The VM error code.
  * @field "error name" "string"
  * 		The full name of the system exception including the word "exception"
  * 		at the end.
@@ -1055,7 +1061,7 @@ System exception "cannot-divide-infinities" (5)
  * @type "cannot-read-unassigned-variable exception"
  * @supertype "variable-use exception"
  * @field "error code" "6's type"
- * 		The vm error code.
+ * 		The VM error code.
  * @field "error name" "string"
  * 		The full name of the system exception including the word "exception"
  * 		at the end.
@@ -1071,7 +1077,7 @@ System exception "cannot-read-unassigned-variable" (6)
  * @type "cannot-store-incorrectly-typed-value exception"
  * @supertype "variable-use exception"
  * @field "error code" "7's type"
- * 		The vm error code.
+ * 		The VM error code.
  * @field "error name" "string"
  * 		The full name of the system exception including the word "exception"
  * 		at the end.
@@ -1087,7 +1093,7 @@ System exception "cannot-store-incorrectly-typed-value" (7)
  * @type "cannot-swap-contents-of-differently-typed-variables exception"
  * @supertype "variable-use exception"
  * @field "error code" "8's type"
- * 		The vm error code.
+ * 		The VM error code.
  * @field "error name" "string"
  * 		The full name of the system exception including the word "exception"
  * 		at the end.
@@ -1102,7 +1108,7 @@ System exception "cannot-swap-contents-of-differently-typed-variables" (8)
  * @type "no-such-fiber-variable exception"
  * @supertype "element-access exception"
  * @field "error code" "9's type"
- * 		The vm error code.
+ * 		The VM error code.
  * @field "error name" "string"
  * 		The full name of the system exception including the word "exception"
  * 		at the end.
@@ -1119,7 +1125,7 @@ System exception "no-such-fiber-variable" (9)
  * @type "subscript-out-of-bounds exception"
  * @supertype "element-access exception"
  * @field "error code" "10's type"
- * 		The vm error code.
+ * 		The VM error code.
  * @field "error name" "string"
  * 		The full name of the system exception including the word "exception"
  * 		at the end.
@@ -1134,7 +1140,7 @@ System exception "subscript-out-of-bounds" (10)
  * @type "incorrect-number-of-arguments exception"
  * @supertype "invocation exception"
  * @field "error code" "11's type"
- * 		The vm error code.
+ * 		The VM error code.
  * @field "error name" "string"
  * 		The full name of the system exception including the word "exception"
  * 		at the end.
@@ -1150,7 +1156,7 @@ System exception "incorrect-number-of-arguments" (11)
  * @type "incorrect-argument-type exception"
  * @supertype "invocation exception"
  * @field "error code" "12's type"
- * 		The vm error code.
+ * 		The VM error code.
  * @field "error name" "string"
  * 		The full name of the system exception including the word "exception"
  * 		at the end.
@@ -1168,7 +1174,7 @@ System exception "incorrect-argument-type" (12)
  * @type "method-return-type-not-as-forward-declared exception"
  * @supertype "definition exception"
  * @field "error code" "13's type"
- * 		The vm error code.
+ * 		The VM error code.
  * @field "error name" "string"
  * 		The full name of the system exception including the word "exception"
  * 		at the end.
@@ -1185,7 +1191,7 @@ System exception "method-return-type-not-as-forward-declared" (13)
  * @type "continuation-expected-stronger-type exception"
  * @supertype "invocation exception"
  * @field "error code" "14's type"
- * 		The vm error code.
+ * 		The VM error code.
  * @field "error name" "string"
  * 		The full name of the system exception including the word "exception"
  * 		at the end.
@@ -1199,9 +1205,9 @@ System exception "continuation-expected-stronger-type" (14)
  * the underlying platform.
  *
  * @type "operation-not-supported exception"
- * @supertype "unsupported-operation"
+ * @supertype "unsupported-operation exception"
  * @field "error code" "15's type"
- * 		The vm error code.
+ * 		The VM error code.
  * @field "error name" "string"
  * 		The full name of the system exception including the word "exception"
  * 		at the end.
@@ -1211,13 +1217,29 @@ System exception "operation-not-supported" (15)
 	extends unsupported-operation exception;
 
 /**
+ * Raised when attempting to perform a side effect upon a {@type "module"} that
+ * has been closed for further side effects.
+ *
+ * @type "module-is-closed exception"
+ * @supertype "definition exception"
+ * @field "error code" "16's type"
+ *      The VM error code.
+ * @field "error name" "string"
+ * 		The full name of the system exception including the word "exception"
+ * 		at the end.
+ * @category "Exceptions" "Modules"
+ */
+System exception "module-is-closed" (16)
+	extends definition exception;
+
+/**
  * Raised when invoking an operation that expects an enumeration type with an
  * argument that is not an enumeration type.
  *
  * @type "not-an-enumeration exception"
  * @supertype "invocation exception"
  * @field "error code" "17's type"
- * 		The vm error code.
+ * 		The VM error code.
  * @field "error name" "string"
  * 		The full name of the system exception including the word "exception"
  * 		at the end.
@@ -1232,7 +1254,7 @@ System exception "not-an-enumeration" (17)
  * @type "shift-and-truncate-requires-non-negative exception"
  * @supertype "arithmetic exception"
  * @field "error code" "18's type"
- * 		The vm error code.
+ * 		The VM error code.
  * @field "error name" "string"
  * 		The full name of the system exception including the word "exception"
  * 		at the end.
@@ -1247,7 +1269,7 @@ System exception "shift-and-truncate-requires-non-negative" (18)
  * @type "no-method exception"
  * @supertype "element-access exception"
  * @field "error code" "19's type"
- * 		The vm error code.
+ * 		The VM error code.
  * @field "error name" "string"
  * 		The full name of the system exception including the word "exception"
  * 		at the end.
@@ -1263,7 +1285,7 @@ System exception "no-method" (19)
  * @type "wrong-outers exception"
  * @supertype "code-generation"
  * @field "error code" "20's type"
- * 		The vm error code.
+ * 		The VM error code.
  * @field "error name" "string"
  * 		The full name of the system exception including the word "exception"
  * 		at the end.
@@ -1276,8 +1298,8 @@ System exception "key-not-found" (21)
 	extends element-access exception;
 System exception "negative-size" (22)
 	extends bad-argument exception;
-System exception "general-I/O" (23)
-	extends I/O exception;
+System exception "I/O" (23)
+	extends general-I/O exception;
 System exception "permission-denied" (24)
 	extends security exception;
 System exception "invalid-handle" (25)
@@ -1328,7 +1350,7 @@ System exception "incorrect-type-for-boolean-group" (47)
 	extends bad-message exception;
 System exception "incorrect-type-for-counting-group" (48)
 	extends bad-message exception;
-System exception "octothorp-must-follow-a-simple-group" (49)
+System exception "octothorp-must-follow-a-simple-group-or-ellipsis" (49)
 	extends bad-message exception;
 System exception "question-mark-must-follow-a-simple-group" (50)
 	extends bad-message exception;
@@ -1344,22 +1366,22 @@ System exception "cannot-convert-not-a-number-to-integer" (56)
 	extends bad-argument exception;
 System exception "incorrect-type-for-numbered-choice" (57)
 	extends bad-message exception;
-System exception "infallible-primitive-must-not-have-statements" (58)
+System exception "dollar-sign-must-follow-an-ellipsis" (58)
 	extends bad-phrase exception;
 System exception "macro-prefix-functions-must-return-top" (59)
 	extends definition exception;
 System exception "primitive-fallibility-disagrees-with-failure-variable" (60)
 	extends definition exception;
-System exception "final-expression-should-agree-with-declared-return-type" (61)
+System exception "incorrect-continuation-stack-size" (61)
+	extends bad-argument exception;
+System exception "cannot-define-during-compilation" (62)
 	extends definition exception;
-System exception "primitive-should-agree-with-declared-return-type" (62)
+System exception "macro-prefix-function-index-out-of-bounds" (63)
 	extends definition exception;
-System exception "label-type-should-agree-with-declared-return-type" (63)
-	extends definition exception;
-System exception "return-type-is-mandatory-with-primitives-or-labels" (64)
-	extends definition exception;
+System exception "untimely-parse-acceptance" (64)
+	extends system exception;
 System exception "not-evaluating-macro" (65)
-	extends definition exception;
+	extends system exception;
 System exception "bad-yield-type" (66)
 	extends bad-phrase exception;
 System exception "macro-prefix-function-argument-must-be-a-phrase" (67)
@@ -1418,7 +1440,7 @@ System exception "not-open-for-read" (93)
 	extends bad-argument exception;
 System exception "not-open-for-write" (94)
 	extends bad-argument exception;
-System exception "exceeds-vm-limit" (95)
+System exception "exceeds-VM-limit" (95)
 	extends bad-argument exception;
 System exception "serialization-failed" (96)
 	extends bad-argument exception;
@@ -1443,13 +1465,13 @@ System exception "supercast-expression-must-not-also-be-a-supercast" (107)
 System exception "supercast-must-be-strict-supertype-of-expression-type" (108)
 	extends bad-phrase exception;
 System exception "no-external-process" (150)
-	extends I/O exception;
+	extends general-I/O exception;
 System exception "no-file" (200)
-	extends I/O exception;
+	extends general-I/O exception;
 System exception "file-exists" (201)
-	extends I/O exception;
+	extends general-I/O exception;
 System exception "directory-not-empty" (202)
-	extends I/O exception;
+	extends general-I/O exception;
 System exception "partial-success" (203)
 	extends system exception;
 System exception "illegal-option" (204)
@@ -1534,7 +1556,7 @@ Semantic restriction "Ensure:all error codes have corresponding exceptions" is
 	];
 	If |missingSystemExceptions| ≠ 0 ∨ |missingExceptionClasses| ≠ 0 then
 	[
-		Reject parse, expected: problem
+		Immediately reject parse, expected: problem
 	];
 	⊤
 ];
@@ -1706,7 +1728,7 @@ Method "“_”(stack summary)" is
  *        {@code 1}. If the ceiling of the range is out of bounds for the stack,
  *        then substitute the actual size of the stack.
  * @param "start" "natural number"
- *        If specified, then the ordinal to present for the {@code ⎣range⎦}-th
+ *        If specified, then the ordinal to present for the {@code ⌊range⌋}-th
  *        frame of the stack.
  * @returns "string"
  * @category "Exceptions" "Stringification"
@@ -1720,7 +1742,7 @@ Public method "“_”(frames_of stack summary«,⁇renumbered starting at_»)" 
 	dump ::= e's stack summary;
 	text : string := "";
 	ordinal : natural number := start[1] else [1];
-	For each index from ⎣range⎦ to ⎡range⎤ min |dump| do
+	For each index from ⌊range⌋ to ⌈range⌉ min |dump| do
 	[
 		frame ::= dump[index];
 		colon ::= first index of ":" in frame;
@@ -1760,7 +1782,7 @@ Method "“_”(frames_of stack summary«,⁇renumbered starting at_»)" is
  *        base frame is {@code 1}. If the ceiling of the range is out of bounds
  *        for the stack, then substitute the actual size of the stack.
  * @param "start" "natural number"
- *        If specified, then the ordinal to present for the {@code ⎣range⎦}-th
+ *        If specified, then the ordinal to present for the {@code ⌊range⌋}-th
  *        frame of {@param "e"}'s stack.
  * @returns "string"
  * @category "Exceptions" "Stringification"
@@ -2113,7 +2135,7 @@ noUnhandledExceptionHandler :=
 		 */
 		If current fiber can reject a parse then
 		[
-			Reject parse, expected: msg
+			Immediately reject parse, expected: msg
 		];
 		/* If the unhandled exception is a termination-requested exception, then
 		 * arrange to exit the current fiber cleanly. Note that this will only
@@ -2158,9 +2180,9 @@ originalStabilityFailureFunction ::= stability failure function;
 After the current module is unloaded,
 	do [Set stability failure function to originalStabilityFailureFunction;];
 
-/* Henceforth, when a macro generated by "Method_is stable at_" raises an
- * exception, the exception will be suppressed. recover() will be invoked to
- * produce an appropriate send of the original message.
+/* Henceforth, when a macro generated by "Method_is stable at_«compute with_»?"
+ * raises an exception, the exception will be suppressed. recover() will be
+ * invoked to produce an appropriate send of the original message.
  */
 Set stability failure function to
 [
@@ -2172,8 +2194,200 @@ Set stability failure function to
 	[
 		e : exception
 	|
-		Reject parse, expected:
+		Immediately reject parse, expected:
 			"stable method not to fail during macro evaluation:\n"
 			++ “e” (stack summary)
 	]
 ] : expression phrase ⇒ any;
+
+
+/* Set up the base frame hook that affects every newly created fiber. */
+
+"action" is a new field atom;
+
+Explicit class "private-unwind-to-base-frame exception"
+extends exception with field action : [] → ⊤;
+
+Private method "install base frame hook:_" is
+[
+	newHook : [[…] → ⊤, tuple] → ⊤
+|
+	Primitive InstallBaseFrameFunction;
+] : [[…] → ⊤, tuple] → ⊤;
+
+/** Install the hook for setting up the base frame of every fiber. */
+[
+	originalBaseFrameFunction ::= install base frame hook:
+	[
+		fn : function,
+		args : tuple
+	|
+		Guard
+		[
+			Invoke fn with args;
+		]
+		intercept
+		[
+			e : private-unwind-to-base-frame exception
+		|
+			/* Here, the fiber is unwound to essentially its base frame. */
+			e's action();
+		];
+	];
+
+	/** Undo the effect of this hook when unloading this module. */
+	After the current module is unloaded, do
+	[Ignore: install base frame hook: originalBaseFrameFunction;];
+]();
+
+
+/**
+ * Raise a private exception to unwind the current fiber, then in the handler
+ * set up by the base frame, execute the provided zero-argument function.
+ */
+Public method "Unwind fiber and run_" is
+[
+	f : [] → ⊥
+|
+	Raise a private-unwind-to-base-frame exception with action ::= f
+] : ⊥;
+
+
+/**
+ * This function rejects the current parse immediately, exiting the fiber.  It
+ * should only be used in the early bootstrapping (i.e., before this point, via
+ * the "Immediately reject..." form), or with proper unwinding of the stack
+ * first, which is what we're about to define.
+ */
+privateReject ::=
+[
+	level : parse rejection level,
+	expected : string
+|
+	Primitive RejectParsing (
+		failureCode : untimely-parse-rejection code's type);
+	Crash: "Unable to reject parse here."
+] : ⊥;
+
+/**
+ * Define a new method for rejecting a parse.  The "Immediately reject..."
+ * form was fine for bootstrapping, but now we're ready to honor unwinds.
+ */
+Public method "Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_"
+is
+[
+	level : parse rejection level,
+	expected : string
+|
+	Unwind fiber and run [privateReject(level, expected)]
+] : ⊥;
+
+/**
+ * This function accepts the current parse immediately, exiting the fiber.  It
+ * should only be used in the early bootstrapping (i.e., before this point, via
+ * the "Immediately accept parse" form), or with proper unwinding of the stack
+ * first, which is what we're about to define.
+ */
+privateAccept ::=
+[
+	Primitive AcceptParsing (
+		failureCode : untimely-parse-acceptance code's type);
+	Crash: "Unable to accept parse here; must be running semantic restriction."
+] : ⊥;
+
+/**
+ * Unwind the stack safely, then accept the current parse, terminating the
+ * fiber.
+ *
+ * This is equivalent to returning a type from the outermost stack frame of the
+ * fiber, but has the advantage that the body of the semantic restriction can be
+ * typed as ⊥, allowing the parser to know that the potential call being parsed
+ * won't have its type strengthened (by this semantic restriction).  This is
+ * expected to improve performance and diagnostics related to some ⊤-valued
+ * statements, as they won't be nestable except within macros.
+ *
+ * This function may only be invoked from the body of a semantic restriction
+ * function.  It should only be invoked by the Avail compiler, never by a
+ * semantically valid Avail program.
+ */
+Public method "Accept parse" is
+[
+	Unwind fiber and run privateAccept
+] : ⊥;
+
+
+/**
+ * Implement the non-bootstrap version of "restricted send_with_:_".  The
+ * bootstrap version doesn't respect the unwind mechanism, and uses
+ * "Immediate reject parse..." instead of the "Reject parse..." that we just
+ * implemented above.  Use that instead.
+ *
+ * Create a send phrase from the supplied message name (atom), list phrase of
+ * arguments, and return type.  Strengthen the return type based on the
+ * applicable method definitions.  Also launch a fiber for each applicable
+ * semantic restriction and strengthen the return type with their eventual
+ * results.
+ *
+ * If any semantic restrictions reject parsing, reject it again immediately in
+ * the current fiber.  This ignores unwind blocks, so don't export this
+ * mechanism past Exceptions, where a safer form is created.
+ *
+ * @method "restricted send_with_:_"
+ * @param "message" "atom"
+ *        The atom that names the method to be invoked by the send phrase.
+ * @param "args" "list phrase"
+ *        The list phrase of phrases that are supplied as arguments of the send
+ *        phrase.
+ * @param "basicReturnType" "type"
+ *        The return type of the send phrase, prior to strengthening by
+ *        applicable method definitions and semantic restrictions.
+ * @returns "send phrase⇒⊤"
+ *        The strengthened send phrase.
+ * @raises "incorrect-number-of-arguments exception"
+ * @raises "incorrect-argument-type exception"
+ * @raises "incorrect-type-for-group exception"
+ * @raises "exclamation-mark-must-follow-an-alternation-group exception"
+ * @raises "incorrect-type-for-complex-group exception"
+ * @raises "incorrect-use-of-double-dagger exception"
+ * @raises "unbalanced-guillemets exception"
+ * @raises "method-name-is-not-canonical exception"
+ * @raises "expected-operator-after-backquote exception"
+ * @raises "incorrect-type-for-boolean-group exception"
+ * @raises "incorrect-type-for-counting-group exception"
+ * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
+ * @raises "question-mark-must-follow-a-simple-group exception"
+ * @raises "case-insensitive-expression-canonization exception"
+ * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
+ * @raises "alternative-must-not-contain-arguments exception"
+ * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
+ * @raises "incorrect-type-for-numbered-choice exception"
+ * @raises "dollar-sign-must-follow-an-ellipsis exception"
+ * @raises "loading-is-over exception"
+ */
+Public method "restricted send_with_:_" is
+[
+	message : atom,
+	args : list phrase,
+	basicReturnType : type
+|
+	pair ::= restricted report and send message with args : basicReturnType;
+	optionalPhrase ::= pair[1];
+	If optionalPhrase = <> then
+	[
+		Immediately reject parse strongly, expected: pair[2]
+	];
+	optionalPhrase[1]
+] : send phrase;
+
+/**
+ * Restrict the resulting send node to have a yield type at least as strong as
+ * the supplied yield type constraint.
+ */
+Semantic restriction "restricted send_with_:_" is
+[
+	messageType : atom's type,
+	argsType : list phrase's type,
+	basicReturnMeta : type's type
+|
+	send phrase ⇒ basicReturnMeta's instance
+];

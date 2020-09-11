@@ -1,6 +1,6 @@
 /*
  * SimpleCompletionHandler.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,78 +32,40 @@
 
 package com.avail.io
 
+import com.avail.io.SimpleCompletionHandler.Dummy
 import java.nio.channels.CompletionHandler
 
 /**
  * A convenient [CompletionHandler] implementation that takes two lambdas at
  * construction, avoiding the hideous inner class notation.
  *
+ * @constructor
+ *
+ * @property completed
+ *   What to do on successful completion.
+ * @property failed
+ *   What to do upon failure.
  * @param V
  *   The kind of values produced on success.
- * @param A
- *   A memento to pass back on success or failure.
  */
-class SimpleCompletionHandler<V, A> : CompletionHandler<V, A>
+class SimpleCompletionHandler<V> constructor (
+	private val completed: SuccessHelper<V>.() -> Unit,
+	private val failed: FailureHelper<V>.() -> Unit
+) : CompletionHandler<V, Dummy>
 {
-	/** What to do on successful completion.  */
-	private val completed: (V, A) -> Unit
-
-	/** What to do upon failure.  */
-	private val failed: (Throwable, A) -> Unit
-
-	/**
-	 * Create a completion handler with the given completed and failed lambdas.
-	 *
-	 * @param completed
-	 *   What to do upon success.
-	 * @param
-	 *   failed What to do upon failure.
-	 */
-	constructor(completed: (V, A) -> Unit, failed: (Throwable, A) -> Unit)
-	{
-		this.completed = completed
-		this.failed = failed
+	/** A dummy class to automatically provide as the attachment. */
+	class Dummy {
+		companion object {
+			/** The singleton dummy value. */
+			val dummy = Dummy()
+		}
 	}
 
-	/**
-	 * Create a completion handler with the given completed and failed lambdas.
-	 * These lambdas take single arguments, for the common case that the
-	 * "attachment" value can be ignored.
-	 *
-	 * @param completed
-	 *   What to do upon success.
-	 * @param failed
-	 *   What to do upon failure.
-	 */
-	constructor(completed: (V) -> Unit, failed: (Throwable) -> Unit)
-	{
-		this.completed = { v, _ -> completed(v) }
-		this.failed = { t, _ -> failed(t) }
-	}
+	override fun completed(result: V, attachment: Dummy) =
+		SuccessHelper(result, this).completed()
 
-	/**
-	 * Create a completion handler with the given completed and failed lambdas.
-	 * These lambdas take three arguments, for the common case that the handler
-	 * itself is needed inside one of the lambdas.
-	 *
-	 * @param completed
-	 *   What to do upon success.
-	 * @param failed
-	 *   What to do upon failure.
-	 */
-	constructor(
-		completed: (V, A, SimpleCompletionHandler<V, A>) -> Unit,
-		failed: (Throwable, A, SimpleCompletionHandler<V, A>) -> Unit)
-	{
-		this.completed = { v, a -> completed(v, a, this) }
-		this.failed = { t, a -> failed(t, a, this) }
-	}
-
-	override fun completed(result: V, attachment: A) =
-		completed.invoke(result, attachment)
-
-	override fun failed(exc: Throwable, attachment: A) =
-		failed.invoke(exc, attachment)
+	override fun failed(exc: Throwable, attachment: Dummy) =
+		FailureHelper(exc, this).failed()
 
 	/**
 	 * Perform the specified I/O operation, guarded by a `try/catch` that
@@ -112,77 +74,55 @@ class SimpleCompletionHandler<V, A> : CompletionHandler<V, A>
 	 *
 	 * @param op
 	 *   The I/O operation.
-	 * @param attachment
-	 *   The attachment.
 	 */
 	fun guardedDo(
-		op: (A, CompletionHandler<V, A>)->Unit,
-		attachment: A)
-	{
-		try
-		{
-			op(attachment, this)
-		}
-		catch (e: Throwable)
-		{
-			failed(e, attachment)
-		}
+		op: GuardHelper<V>.() -> Unit
+	) = try {
+		GuardHelper(this).op()
+	} catch (e: Throwable) {
+		FailureHelper(e, this).failed()
 	}
 
-	/**
-	 * Perform the specified I/O operation, guarded by a `try/catch` that
-	 * invokes the same failure handler as the operation itself would in the
-	 * event of an asynchronous failure.
-	 *
-	 * @param op
-	 *   The I/O operation.
-	 * @param arg
-	 *   The principal argument for the operation.
-	 * @param attachment
-	 *   The attachment.
-	 */
-	fun <T> guardedDo(
-		op: (T, A, CompletionHandler<V, A>)->Unit,
-		arg: T,
-		attachment: A)
-	{
-		try
-		{
-			op(arg, attachment, this)
-		}
-		catch (e: Throwable)
-		{
-			failed(e, attachment)
-		}
-	}
+	companion object {
+		/**
+		 * A helper syntax class for completion successes.
+		 *
+		 * @constructor
+		 * @property value
+		 *   The value produced by the successful completion handler.
+		 * @property handler
+		 *   The current completion handler itself.
+		 */
+		class SuccessHelper<V>(
+			val value: V,
+			val handler: SimpleCompletionHandler<V>
+		)
 
-	/**
-	 * Perform the specified I/O operation, guarded by a `try/catch` that
-	 * invokes the same failure handler as the operation itself would in the
-	 * event of an asynchronous failure.
-	 *
-	 * @param op
-	 *   The I/O operation.
-	 * @param arg1
-	 *   A principal argument for the operation.
-	 * @param arg2
-	 *   A principal argument for the operation.
-	 * @param attachment
-	 *   The attachment.
-	 */
-	fun <T, U> guardedDo(
-		op: (T, U, A, CompletionHandler<V, A>)->Unit,
-		arg1: T,
-		arg2: U,
-		attachment: A)
-	{
-		try
-		{
-			op(arg1, arg2, attachment, this)
-		}
-		catch (e: Throwable)
-		{
-			failed(e, attachment)
+		/**
+		 * A helper syntax class for completion failures.
+		 *
+		 * @constructor
+		 * @property throwable
+		 *   The exception that indicates failure.
+		 * @property
+		 *   The current [SimpleCompletionHandler] itself.
+		 */
+		class FailureHelper<V>(
+			val throwable: Throwable,
+			val handler: SimpleCompletionHandler<V>)
+
+		/**
+		 * A helper syntax class for [guardedDo] invocations.
+		 *
+		 * @constructor
+		 * @property handler
+		 *   The current [SimpleCompletionHandler] itself.
+		 */
+		class GuardHelper<V>(
+			val handler: SimpleCompletionHandler<V>
+		) {
+			/** The singleton dummy, for use as the attachment. */
+			val dummy get() = Dummy.dummy
 		}
 	}
 }

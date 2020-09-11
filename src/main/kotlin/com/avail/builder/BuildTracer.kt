@@ -1,6 +1,6 @@
 /*
  * BuildTracer.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,11 +36,10 @@ import com.avail.compiler.AvailCompiler
 import com.avail.compiler.problems.Problem
 import com.avail.compiler.problems.ProblemHandler
 import com.avail.compiler.problems.ProblemType.TRACE
-import com.avail.descriptor.FiberDescriptor.tracerPriority
-import com.avail.descriptor.ModuleDescriptor
+import com.avail.descriptor.fiber.FiberDescriptor.Companion.tracerPriority
+import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.io.SimpleCompletionHandler
 import com.avail.persistence.Repository.ModuleVersionKey
-import java.util.*
 import java.util.logging.Level
 
 /**
@@ -67,18 +66,18 @@ internal class BuildTracer constructor(val availBuilder: AvailBuilder)
 
 	/**
 	 * Schedule tracing of the imports of the [module][ModuleDescriptor]
-	 * specified by the given [module name][ModuleName].  The [traceRequests]
-	 * counter has been incremented already for this tracing, and the
-	 * [traceCompletions] will eventually be incremented by this method, but
-	 * only *after* increasing the [traceRequests] for each recursive trace that
-	 * is scheduled here.  That ensures the two counters won't accidentally be
-	 * equal at any time except after the last trace has completed.
+	 * specified by the given [module&#32;name][ModuleName].  The
+	 * [traceRequests] counter has been incremented already for this tracing,
+	 * and the [traceCompletions] will eventually be incremented by this method,
+	 * but only *after* increasing the [traceRequests] for each recursive trace
+	 * that is scheduled here.  That ensures the two counters won't accidentally
+	 * be equal at any time except after the last trace has completed.
 	 *
 	 * When traceCompletions finally does reach traceRequests, a notifyAll] will
 	 * be sent to the `BuildTracer`.
 	 *
 	 * @param qualifiedName
-	 *   A fully-qualified [module name][ModuleName].
+	 *   A fully-qualified [module&#32;name][ModuleName].
 	 * @param resolvedSuccessor
 	 *   The resolved name of the module using or extending this module, or
 	 *   `null` if this module is the start of the recursive resolution (i.e.,
@@ -92,7 +91,7 @@ internal class BuildTracer constructor(val availBuilder: AvailBuilder)
 	private fun scheduleTraceModuleImports(
 		qualifiedName: ModuleName,
 		resolvedSuccessor: ResolvedModuleName?,
-		recursionSet: LinkedHashSet<ResolvedModuleName>,
+		recursionSet: MutableSet<ResolvedModuleName>,
 		problemHandler: ProblemHandler)
 	{
 		availBuilder.runtime.execute(tracerPriority) {
@@ -108,7 +107,7 @@ internal class BuildTracer constructor(val availBuilder: AvailBuilder)
 			{
 				AvailBuilder.log(
 					Level.FINEST, "Resolve: %s", qualifiedName)
-				resolvedName = availBuilder.runtime.moduleNameResolver().resolve(
+				resolvedName = availBuilder.runtime.moduleNameResolver.resolve(
 					qualifiedName, resolvedSuccessor)
 			}
 			catch (e: Throwable)
@@ -147,18 +146,18 @@ internal class BuildTracer constructor(val availBuilder: AvailBuilder)
 
 	/**
 	 * Trace the imports of the [module][ModuleDescriptor] specified by the
-	 * given [module name][ModuleName].  If a [Problem] occurs, log it and set
-	 * [AvailBuilder.stopBuildReason]. Whether a success or failure happens, end
-	 * by invoking [indicateTraceCompleted].
+	 * given [module&#32;name][ModuleName].  If a [Problem] occurs, log it and
+	 * set [AvailBuilder.stopBuildReason]. Whether a success or failure happens,
+	 * end by invoking [indicateTraceCompleted].
 	 *
 	 * @param resolvedName
-	 *   A resolved [module name][ModuleName] to trace.
+	 *   A resolved [module&#32;name][ModuleName] to trace.
 	 * @param resolvedSuccessor
 	 *   The resolved name of the module using or extending this module, or
 	 *   `null` if this module is the start of the recursive resolution (i.e.,
 	 *   it will be the last one compiled).
 	 * @param recursionSet
-	 *   A [LinkedHashSet] that remembers all modules visited along this branch
+	 *   A [MutableSet] that remembers all modules visited along this branch
 	 *   of the trace, and the order they were encountered.
 	 * @param problemHandler
 	 *   How to handle or report [Problem]s that arise during the build.
@@ -166,7 +165,7 @@ internal class BuildTracer constructor(val availBuilder: AvailBuilder)
 	private fun traceModuleImports(
 		resolvedName: ResolvedModuleName,
 		resolvedSuccessor: ResolvedModuleName?,
-		recursionSet: LinkedHashSet<ResolvedModuleName>,
+		recursionSet: MutableSet<ResolvedModuleName>,
 		problemHandler: ProblemHandler)
 	{
 		// Detect recursion into this module.
@@ -198,7 +197,7 @@ internal class BuildTracer constructor(val availBuilder: AvailBuilder)
 			{
 				availBuilder.moduleGraph.addVertex(resolvedName)
 			}
-			if (resolvedSuccessor != null)
+			if (resolvedSuccessor !== null)
 			{
 				// Note that a module can be both Extended and Used from the
 				// same module.  That's to support selective import and renames.
@@ -218,7 +217,7 @@ internal class BuildTracer constructor(val availBuilder: AvailBuilder)
 		val digest = archive.digestForFile(resolvedName)
 		val versionKey = ModuleVersionKey(resolvedName, digest)
 		val version = archive.getVersion(versionKey)
-		if (version != null)
+		if (version !== null)
 		{
 			// This version was already traced and recorded for a subsequent
 			// replay… like right now.  Reuse it.
@@ -233,7 +232,7 @@ internal class BuildTracer constructor(val availBuilder: AvailBuilder)
 			resolvedName,
 			availBuilder.textInterface,
 			availBuilder.pollForAbort,
-			{ _, _, _ -> },
+			{ _, _, _, _ -> },
 			this::indicateTraceCompleted,
 			problemHandler) {
 				compiler ->
@@ -282,21 +281,19 @@ internal class BuildTracer constructor(val availBuilder: AvailBuilder)
 	private fun traceModuleNames(
 		moduleName: ResolvedModuleName,
 		importNames: List<String>,
-		recursionSet: LinkedHashSet<ResolvedModuleName>,
+		recursionSet: MutableSet<ResolvedModuleName>,
 		problemHandler: ProblemHandler)
 	{
 		// Copy the recursion set to ensure the independence of each path of the
 		// tracing algorithm.
-		val newSet = LinkedHashSet(recursionSet)
-		newSet.add(moduleName)
+		val newSet = (recursionSet + moduleName).toMutableSet()
 
 		synchronized(this) {
 			traceRequests += importNames.size
 		}
 
 		// Recurse in parallel into each import.
-		for (localImport in importNames)
-		{
+		importNames.forEach { localImport ->
 			val importName = moduleName.asSibling(localImport)
 			scheduleTraceModuleImports(
 				importName, moduleName, newSet, problemHandler)
@@ -346,7 +343,7 @@ internal class BuildTracer constructor(val availBuilder: AvailBuilder)
 			traceCompletions = 0
 		}
 		scheduleTraceModuleImports(
-			target, null, LinkedHashSet(), problemHandler)
+			target, null, mutableSetOf(), problemHandler)
 		// Wait until the parallel recursive trace completes.
 		synchronized(this) {
 			while (traceRequests != traceCompletions)
@@ -362,24 +359,24 @@ internal class BuildTracer constructor(val availBuilder: AvailBuilder)
 				}
 
 			}
-			availBuilder.runtime.moduleNameResolver().commitRepositories()
+			availBuilder.runtime.moduleNameResolver.commitRepositories()
 		}
 		if (availBuilder.shouldStopBuild)
 		{
-			SimpleCompletionHandler<Int, Void?>(
+			SimpleCompletionHandler<Int>(
 				{ },
-				{ _ -> }
-			).guardedDo(
-				availBuilder.textInterface.errorChannel::write,
-				"Load failed.\n",
-				null)
+				{ }
+			).guardedDo {
+				availBuilder.textInterface.errorChannel.write(
+					"Load failed.\n", dummy, handler)
+			}
 		}
 		else
 		{
 			val graphSize: Int
 			val completions: Int
 			synchronized(this) {
-				graphSize = availBuilder.moduleGraph.size()
+				graphSize = availBuilder.moduleGraph.size
 				completions = traceCompletions
 			}
 			AvailBuilder.log(

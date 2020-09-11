@@ -1,6 +1,6 @@
 /*
  * IndexedFile.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,7 @@
 package com.avail.persistence
 
 import com.avail.utility.LRUCache
+import com.avail.utility.safeWrite
 import java.io.DataOutputStream
 import java.io.File
 import java.io.IOException
@@ -40,7 +41,7 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.channels.FileChannel
 import java.nio.channels.FileLock
-import java.util.*
+import java.util.Arrays
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.zip.CRC32
 import java.util.zip.Deflater
@@ -48,13 +49,12 @@ import java.util.zip.Deflater.BEST_COMPRESSION
 import java.util.zip.DeflaterOutputStream
 import java.util.zip.Inflater
 import kotlin.concurrent.read
-import kotlin.concurrent.write
 import kotlin.math.abs
 import kotlin.math.min
 
 /**
  * `IndexedFile` is a record journal. Records may be [added][add], explicitly
- * [committed][commit], and [looked up by record number][get]. A single
+ * [committed][commit], and [looked&#32;up by record number][get]. A single
  * arbitrary [metadata] section can be attached to an indexed file (and will be
  * replaced by subsequent attachments). Concurrent read access is supported for
  * multiple [threads][Thread], drivers, and external
@@ -211,7 +211,7 @@ class IndexedFile internal constructor(
 				val block = fetchSizedFromFile(blockPosition)
 				val inflater = Inflater()
 				inflater.setInput(block)
-				val buffers = ArrayList<ByteArray>(10)
+				val buffers = mutableListOf<ByteArray>()
 				var size = 0
 				var bufferPos = -1
 				while (!inflater.needsInput())
@@ -260,8 +260,8 @@ class IndexedFile internal constructor(
 	 *
 	 * @property serialNumber
 	 *   The serial number of the current master node. Viewed alternatively, the
-	 *   *next* serial number that should be committed to the [indexed
-	 *   file][IndexedFile].
+	 *   *next* serial number that should be committed to the
+	 *   [indexed&#32;file][IndexedFile].
 	 * @property fileLimit
 	 *   The virtual end of file.
 	 * @constructor
@@ -371,7 +371,7 @@ class IndexedFile internal constructor(
 
 	/**
 	 * `RecordCoordinates` are the two-dimension coordinates of an uncompressed
-	 * record within a [indexed file][IndexedFile]. The first axis is the
+	 * record within a [indexed&#32;file][IndexedFile]. The first axis is the
 	 * absolute position within the indexed file of the compressed block
 	 * containing the record. The second axis is the position of the record
 	 * within the *uncompressed* block.
@@ -387,7 +387,7 @@ class IndexedFile internal constructor(
 	 * Construct a new `RecordCoordinates`.
 	 *
 	 * @param filePosition
-	 *   The absolute position within the [indexed file][IndexedFile] of the
+	 *   The absolute position within the [indexed&#32;file][IndexedFile] of the
 	 *   compressed block containing the record.
 	 * @param blockPosition
 	 *   The position within the *uncompressed* block of the record.
@@ -421,7 +421,7 @@ class IndexedFile internal constructor(
 	 * file instead.
 	 */
 	init {
-		if (setupActionIfNew == null)
+		if (setupActionIfNew === null)
 		{
 			// Open the existing file.
 			readHeaderData(versionCheck)
@@ -441,20 +441,20 @@ class IndexedFile internal constructor(
 	}
 
 	/**
-	 * Acquire an exclusive [file lock][FileLock] on the last byte of a logical
-	 * 64-bit file range. This prevents other conforming [indexed
-	 * file][IndexedFile] drivers (operating in other OS processes) from
-	 * deciding that they can also write to the file.
+	 * Acquire an exclusive [file&#32;lock][FileLock] on the last byte of a
+	 * logical 64-bit file range. This prevents other conforming
+	 * [indexed&#32;file][IndexedFile] drivers (operating in other OS processes)
+	 * from deciding that they can also write to the file.
 	 *
 	 * @param wait
 	 *   `true` if the lock attempt should block until successful, `false` if
 	 *   the lock attempt should fail immediately if unsuccessful.
 	 * @return
-	 *   The [file lock][FileLock], or `null` if the argument was `true` but the
-	 *   file is already locked by another indexed file driver in another
+	 *   The [file&#32;lock][FileLock], or `null` if the argument was `true` but
+	 *   the file is already locked by another indexed file driver in another
 	 *   process.
 	 * @throws IOException
-	 *   If an [I/O exception][IOException] occurs.
+	 *   If an [I/O&#32;exception][IOException] occurs.
 	 */
 	@Throws(IOException::class)
 	private fun acquireLockForWriting(wait: Boolean = true): FileLock =
@@ -471,7 +471,7 @@ class IndexedFile internal constructor(
 	 * @param level
 	 *   The level at which to add this orphan.
 	 * @throws IOException
-	 *   If an [I/O exception][IOException] occurs.
+	 *   If an [I/O&#32;exception][IOException] occurs.
 	 */
 	@Throws(IOException::class)
 	private fun addOrphan(orphanLocation: RecordCoordinates, level: Int)
@@ -479,7 +479,7 @@ class IndexedFile internal constructor(
 		val m = master!!
 		if (level >= m.orphansByLevel.size)
 		{
-			m.orphansByLevel.add(ArrayList(fanout))
+			m.orphansByLevel.add(mutableListOf())
 		}
 		val orphans = m.orphansByLevel[level]
 		orphans.add(orphanLocation)
@@ -505,7 +505,7 @@ class IndexedFile internal constructor(
 	 * @param bytes
 	 *   The byte array to be appended.
 	 * @throws IOException
-	 *   If an [I/O exception][IOException] occurs.
+	 *   If an [I/O&#32;exception][IOException] occurs.
 	 */
 	@Throws(IOException::class)
 	private fun appendRawBytes(bytes: ByteArray)
@@ -550,7 +550,7 @@ class IndexedFile internal constructor(
 	 * @param compressedBytes
 	 *   A compressed byte array.
 	 * @throws IOException
-	 *   If an [I/O exception][IOException] occurs.
+	 *   If an [I/O&#32;exception][IOException] occurs.
 	 */
 	@Throws(IOException::class)
 	private fun appendSizedBytes(compressedBytes: ByteArray)
@@ -583,12 +583,12 @@ class IndexedFile internal constructor(
 	}
 
 	/**
-	 * If the [compression buffer][MasterNode.uncompressedData] has filled up,
-	 * then actually compress its contents and append them to the virtual end of
-	 * the indexed file.
+	 * If the [compression&#32;buffer][MasterNode.uncompressedData] has filled
+	 * up, then actually compress its contents and append them to the virtual
+	 * end of the indexed file.
 	 *
 	 * @throws IOException
-	 *   If an [I/O exception][IOException] occurs.
+	 *   If an [I/O&#32;exception][IOException] occurs.
 	 */
 	@Throws(IOException::class)
 	private fun compressAndFlushIfFull()
@@ -632,7 +632,7 @@ class IndexedFile internal constructor(
 	 *   An action to perform after the header and master blocks have been
 	 *   written, but before the temporary file is renamed.
 	 * @throws IOException
-	 *   If an [I/O exception][IOException] occurs.
+	 *   If an [I/O&#32;exception][IOException] occurs.
 	 */
 	@Throws(IOException::class)
 	private fun setUpNewFile(action: (IndexedFile.() -> Unit))
@@ -704,7 +704,7 @@ class IndexedFile internal constructor(
 	}
 
 	/**
-	 * Construct and answer a [master node][MasterNode] from the data at the
+	 * Construct and answer a [master&#32;node][MasterNode] from the data at the
 	 * given file position. If the node has a bad CRC, then answer `null`.
 	 *
 	 * @param nodePosition
@@ -712,7 +712,7 @@ class IndexedFile internal constructor(
 	 * @return
 	 *   A master node, or `null` if the data was corrupt.
 	 * @throws IOException
-	 *   If an [I/O exception][IOException] occurs.
+	 *   If an [I/O&#32;exception][IOException] occurs.
 	 */
 	@Throws(IOException::class)
 	private fun decodeMasterNode(nodePosition: Long): MasterNode?
@@ -738,7 +738,7 @@ class IndexedFile internal constructor(
 		node.metadataLocation = RecordCoordinates(
 			b.long,
 			b.int)
-		val orphans = ArrayList<MutableList<RecordCoordinates>>()
+		val orphans = mutableListOf<MutableList<RecordCoordinates>>()
 		for (left in b.int downTo 1)
 		{
 			val level = b.get() - 1
@@ -747,7 +747,7 @@ class IndexedFile internal constructor(
 				b.int)
 			while (level >= orphans.size)
 			{
-				orphans.add(ArrayList(fanout))
+				orphans.add(mutableListOf())
 			}
 			orphans[level].add(orphan)
 		}
@@ -778,7 +778,7 @@ class IndexedFile internal constructor(
 	 * @return
 	 *   A byte array.
 	 * @throws IOException
-	 *   If an [I/O exception][IOException] occurs.
+	 *   If an [I/O&#32;exception][IOException] occurs.
 	 */
 	@Throws(IOException::class)
 	internal fun fetchSizedFromFile(startFilePosition: Long): ByteArray
@@ -802,7 +802,7 @@ class IndexedFile internal constructor(
 	 * @param startFilePosition
 	 *   The position in the file at which to begin reading bytes.
 	 * @throws IOException
-	 *   If an [I/O exception][IOException] occurs.
+	 *   If an [I/O&#32;exception][IOException] occurs.
 	 */
 	@Throws(IOException::class)
 	private fun fillBuffer(bytes: ByteArray, startFilePosition: Long)
@@ -858,7 +858,7 @@ class IndexedFile internal constructor(
 	 *   How to check if the file's version is acceptable, relative to the
 	 *   code's current version.
 	 * @throws IOException
-	 *   If an [I/O exception][IOException] occurs.
+	 *   If an [I/O&#32;exception][IOException] occurs.
 	 * @throws IndexedFileException
 	 *   If something else goes wrong.
 	 */
@@ -980,7 +980,7 @@ class IndexedFile internal constructor(
 	@JvmOverloads
 	fun add(record: ByteArray, start: Int = 0, length: Int = record.size)
 	{
-		lock.write {
+		lock.safeWrite {
 			try {
 				val m = master!!
 				val coordinates = RecordCoordinates(
@@ -1000,8 +1000,8 @@ class IndexedFile internal constructor(
 	 */
 	fun close()
 	{
-		lock.write {
-			if (longTermLock != null) {
+		lock.safeWrite {
+			if (longTermLock !== null) {
 				try {
 					longTermLock!!.release()
 				} catch (e: IOException) {
@@ -1037,11 +1037,11 @@ class IndexedFile internal constructor(
 	 * and metadata buffers to disk.
 	 *
 	 * @throws IOException
-	 *   If an [I/O exception][IOException] occurs.
+	 *   If an [I/O&#32;exception][IOException] occurs.
 	 */
 	@Throws(IOException::class)
 	fun commit() =
-		lock.write {
+		lock.safeWrite {
 			val m = master!!
 			val c = channel
 			val b = masterNodeBuffer
@@ -1134,7 +1134,7 @@ class IndexedFile internal constructor(
 			// why we only grab a read lock.
 			metadataCache ?: master!!.run {
 				when {
-					metadataCache != null -> metadataCache
+					metadataCache !== null -> metadataCache
 					metadataLocation == RecordCoordinates.origin -> null
 					else -> {
 						val block =
@@ -1149,9 +1149,9 @@ class IndexedFile internal constructor(
 				}
 			}
 		}
-		set(newMetadata) = lock.write {
+		set(newMetadata) = lock.safeWrite {
 			// Note that the metadata is not committed by this write.
-			if (Arrays.equals(newMetadata, metadata)) return@write
+			if (Arrays.equals(newMetadata, metadata)) return
 			master!!.run {
 				metadataCache = newMetadata?.clone()
 				when (newMetadata) {
@@ -1172,26 +1172,26 @@ class IndexedFile internal constructor(
 	 * of the indexed file.
 	 *
 	 * @throws IOException
-	 *   If an [I/O exception][IOException] occurs.
+	 *   If an [I/O&#32;exception][IOException] occurs.
 	 * @throws IndexedFileException
 	 *   If something else goes wrong.
 	 */
 	@Throws(IOException::class, IndexedFileException::class)
 	fun refresh() =
-		lock.write {
+		lock.safeWrite {
 			val fileLock = channel.lock(
 				pageSize.toLong(), masterNodeSize.toLong() shl 1, false)
 			try {
 				// Determine the newest valid master node.
 				val previous = decodeMasterNode(previousMasterPosition)
 				var current = decodeMasterNode(masterPosition)
-				if (previous == null && current == null) {
+				if (previous === null && current === null) {
 					throw IndexedFileException(
 						"Invalid indexed file -- both master nodes are " +
 							"corrupt.")
 				}
 				var delta: Int? = null
-				if (previous != null && current != null) {
+				if (previous !== null && current !== null) {
 					delta = current.serialNumber - previous.serialNumber
 					if (abs(delta) != 1) {
 						throw IndexedFileException(
@@ -1200,14 +1200,14 @@ class IndexedFile internal constructor(
 					}
 				}
 				// Swap the previous and current nodes if necessary.
-				if (previous != null && Integer.valueOf(1) != delta) {
+				if (previous !== null && Integer.valueOf(1) != delta) {
 					current = previous
 					// previous is unused after this point.
 					val tempPos = previousMasterPosition
 					previousMasterPosition = masterPosition
 					masterPosition = tempPos
 				}
-				if (master != null &&
+				if (master !== null &&
 					master!!.serialNumber != current!!.serialNumber) {
 					// Clear the cached metadata if it has changed.
 					if (master!!.metadataLocation != current.metadataLocation) {
@@ -1227,5 +1227,5 @@ class IndexedFile internal constructor(
 		}
 
 	override fun toString(): String =
-		"${javaClass.simpleName}[$size] (for $fileReference)"
+		"${this@IndexedFile.javaClass.simpleName}[$size] (for $fileReference)"
 }

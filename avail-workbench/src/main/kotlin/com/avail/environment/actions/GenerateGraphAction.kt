@@ -1,6 +1,6 @@
 /*
  * GenerateGraphAction.java
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,7 +41,7 @@ import java.awt.event.ActionEvent
 import javax.swing.Action
 
 /**
- * A `GenerateGraphAction` instructs the [Avail builder][AvailBuilder] to
+ * A `GenerateGraphAction` instructs the [Avail&#32;builder][AvailBuilder] to
  * generate a graphical representation of the selected module's dependencies.
  *
  * @constructor
@@ -55,7 +55,7 @@ class GenerateGraphAction constructor(workbench: AvailWorkbench)
 {
 	override fun actionPerformed(event: ActionEvent?)
 	{
-		assert(workbench.backgroundTask == null)
+		assert(workbench.backgroundTask === null)
 		val selectedModule = workbench.selectedModule()!!
 
 		// Update the UI.

@@ -6,12 +6,12 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
  *
  *  * Neither the name of the copyright holder nor the names of the contributors
  *    may be used to endorse or promote products derived from this software
@@ -31,10 +31,11 @@
  */
 package com.avail.descriptor.representation
 
-import com.avail.descriptor.AbstractDescriptor
-import com.avail.descriptor.AvailObject
-import com.avail.utility.Casts.cast
+import com.avail.descriptor.representation.AbstractDescriptor.Companion.bitFieldsFor
+import com.avail.descriptor.representation.AbstractDescriptor.Companion.describeIntegerSlot
 import com.avail.utility.StackPrinter
+import com.avail.utility.cast
+import org.jetbrains.annotations.Debug.Renderer
 
 /**
  * This class assists with the presentation of [AvailObject]s in the IntelliJ
@@ -64,7 +65,7 @@ import com.avail.utility.StackPrinter
  * 1. Preferences...  Java  Debug  Logical Structures
  *
  *     Add:
- *    * Qualified name: com.avail.descriptor.AvailObject
+ *    * Qualified name: com.avail.descriptor.representation.AvailObject
  *    * Description: Present Avail objects
  *    * Structure type: Single value
  *    * Code: `return describeForDebugger();`
@@ -72,7 +73,7 @@ import com.avail.utility.StackPrinter
  * 1. Preferences...  Java  Debug  Logical Structures
  *
  *    Add:
- *    * Qualified name: com.avail.interpreter.Interpreter
+ *    * Qualified name: com.avail.interpreter.execution.Interpreter
  *    * Description: Present Interpreter as stack frames
  *    * Structure type: Single value
  *    * Code: `return describeForDebugger();`
@@ -107,14 +108,25 @@ import com.avail.utility.StackPrinter
  *   not a repeating slot.
  * @param value
  *   The value being presented in that slot.
+ * @param forcedName
+ *   When set to non-`null`, forces this exact name to be presented, regardless
+ *   of the [value].
+ * @param forcedChildren
+ *   When set to non-`null`, forces the given [Array] to be presented as the
+ *   children of this node in the debugger.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
+@Renderer(
+	text = "nameForDebugger()",
+	childrenArray = "describeForDebugger()")
 class AvailObjectFieldHelper(
 	private val parentObject: A_BasicObject?,
 	val slot: AbstractSlotsEnum,
 	val subscript: Int,
-	val value: Any?
+	val value: Any?,
+	val forcedName: String? = null,
+	val forcedChildren: Array<*>? = null
 ) {
 	/**
 	 * The name to present for this field.
@@ -134,9 +146,16 @@ class AvailObjectFieldHelper(
 	 * @return A suitable [String] to present for this helper.
 	 */
 	private fun privateComputeNameForDebugger() = buildString {
+		if (forcedName !== null)
+		{
+			append(forcedName)
+			return@buildString
+		}
 		when {
 			subscript != -1 -> {
-				append(slot.fieldName(), 0, slot.fieldName().length - 1)
+				val name = slot.fieldName()
+				append(name)
+				if (name.endsWith("_")) setLength(length - 1)
 				append("[$subscript]")
 			}
 			else -> append(slot.fieldName())
@@ -146,19 +165,19 @@ class AvailObjectFieldHelper(
 			is AvailObject -> append(' ').append(value.nameForDebugger())
 			is AvailIntegerValueHelper -> {
 				try {
-					val strongSlot: IntegerSlotsEnum = cast(slot)
-					val bitFields = AbstractDescriptor.bitFieldsFor(strongSlot)
+					val strongSlot: IntegerSlotsEnum = slot.cast()
+					val bitFields = bitFieldsFor(strongSlot)
 					if (bitFields.isNotEmpty()) {
 						// Remove the name.
 						delete(0, length)
 					}
-					AbstractDescriptor.describeIntegerSlot(
+					describeIntegerSlot(
 						parentObject as AvailObject,
 						value.longValue,
 						strongSlot,
 						bitFields,
 						this)
-				} catch (e: RuntimeException) {
+				} catch (e: Throwable) {
 					append("PROBLEM DESCRIBING INTEGER FIELD:\n")
 					append(StackPrinter.trace(e))
 				}
@@ -170,9 +189,10 @@ class AvailObjectFieldHelper(
 	}
 
 	@Suppress("unused")
-	fun describeForDebugger(): Any? = when (value) {
-		is AvailObject -> value.describeForDebugger()
-		is AvailIntegerValueHelper -> arrayOfNulls<Any>(0)
+	fun describeForDebugger(): Any? = when {
+		forcedChildren !== null -> forcedChildren
+		value is AvailObject -> value.describeForDebugger()
+		value is AvailIntegerValueHelper -> emptyArray<Any>()
 		else -> value
 	}
 }

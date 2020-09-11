@@ -1,6 +1,6 @@
 /*
  * P_TupleTypeSequenceOfTypes.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,29 +31,32 @@
  */
 package com.avail.interpreter.primitive.tuples
 
-import com.avail.descriptor.sets.SetDescriptor.set
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.generateObjectTupleFrom
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
+import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.InstanceMetaDescriptor.anyMeta
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.naturalNumbers
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.wholeNumbers
-import com.avail.descriptor.types.TupleTypeDescriptor.tupleMeta
-import com.avail.descriptor.types.TupleTypeDescriptor.zeroOrMoreOf
+import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
+import com.avail.descriptor.types.BottomTypeDescriptor
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleMeta
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import com.avail.exceptions.AvailErrorCode.E_NEGATIVE_SIZE
 import com.avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Answer a [tuple][TupleDescriptor] of [types][TypeDescriptor]
- * representing the types of the given range of indices within the
- * [tuple][TupleTypeDescriptor]. Use [bottom][BottomTypeDescriptor] for indices
- * out of range.
+ * **Primitive:** Answer a [tuple][A_Tuple] of [types][A_Type] representing the
+ * types of the given range of indices within the [tuple][A_Type]. Use
+ * [bottom][BottomTypeDescriptor] for indices out of range.
  */
 @Suppress("unused")
 object P_TupleTypeSequenceOfTypes : Primitive(3, CanFold, CanInline)
@@ -85,8 +88,9 @@ object P_TupleTypeSequenceOfTypes : Primitive(3, CanFold, CanInline)
 		functionType(
 			tuple(
 				tupleMeta(),
-				naturalNumbers(),
-				wholeNumbers()),
+				naturalNumbers,
+				wholeNumbers
+			),
 			zeroOrMoreOf(anyMeta()))
 
 	override fun privateFailureVariableType(): A_Type =

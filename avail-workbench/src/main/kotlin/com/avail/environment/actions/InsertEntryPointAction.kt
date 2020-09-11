@@ -1,6 +1,6 @@
 /*
  * InsertEntryPointAction.java
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,7 +54,7 @@ class InsertEntryPointAction constructor(workbench: AvailWorkbench)
 {
 	override fun actionPerformed(event: ActionEvent?)
 	{
-		assert(workbench.backgroundTask == null)
+		assert(workbench.backgroundTask === null)
 
 		val selectedEntryPoint = workbench.selectedEntryPoint() ?: return
 		// Strip back-ticks as a nicety.  Also put spaces around underscores
@@ -64,9 +64,9 @@ class InsertEntryPointAction constructor(workbench: AvailWorkbench)
 		// We could do more, but this should be sufficient for now.
 		val entryPointText =
 			selectedEntryPoint
-							.replace("`".toRegex(), "")
-							.replace("\\B_".toRegex(), " _")
-							.replace("_\\B".toRegex(), "_ ")
+				.replace("`".toRegex(), "")
+				.replace("\\B_".toRegex(), " _")
+				.replace("_\\B".toRegex(), "_ ")
 		workbench.inputField.text = entryPointText
 		val offsetToUnderscore = entryPointText.indexOf('_')
 		val offset: Int
@@ -85,9 +85,9 @@ class InsertEntryPointAction constructor(workbench: AvailWorkbench)
 
 		val moduleName =
 			workbench.selectedEntryPointModule()
-		if (moduleName != null)
+		if (moduleName !== null)
 		{
-			if (workbench.availBuilder.getLoadedModule(moduleName) == null)
+			if (workbench.availBuilder.getLoadedModule(moduleName) === null)
 			{
 				// Start loading the module as a convenience.
 				workbench.cursor = getPredefinedCursor(WAIT_CURSOR)

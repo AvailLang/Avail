@@ -1,6 +1,6 @@
 /*
  * P_DeclarationInitializingExpression.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,26 +35,27 @@ package com.avail.interpreter.primitive.phrases
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
+import com.avail.descriptor.phrases.A_Phrase.Companion.initializationExpression
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor
-import com.avail.descriptor.sets.SetDescriptor.set
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.types.BottomTypeDescriptor.bottom
-import com.avail.descriptor.types.EnumerationTypeDescriptor.booleanType
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
+import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
+import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.DECLARATION_PHRASE
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.descriptor.types.VariableTypeDescriptor
-import com.avail.descriptor.types.VariableTypeDescriptor.variableReadWriteType
+import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableReadWriteType
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE
 import com.avail.exceptions.AvailErrorCode.E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED
 import com.avail.exceptions.VariableSetException
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** If the specified [declaration][DeclarationPhraseDescriptor]
@@ -64,6 +65,7 @@ import com.avail.interpreter.Primitive.Flag.HasSideEffect
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_DeclarationInitializingExpression : Primitive(2, CanInline, HasSideEffect)
 {
 	override fun attempt(interpreter: Interpreter): Result
@@ -73,11 +75,11 @@ object P_DeclarationInitializingExpression : Primitive(2, CanInline, HasSideEffe
 		val decl = interpreter.argument(1)
 		val initializer = decl.initializationExpression()
 		if (initializer.equalsNil()) {
-			return interpreter.primitiveSuccess(falseObject())
+			return interpreter.primitiveSuccess(falseObject)
 		}
 		return try {
 			variable.setValue(initializer)
-			interpreter.primitiveSuccess(trueObject())
+			interpreter.primitiveSuccess(trueObject)
 		} catch (e: VariableSetException) {
 			interpreter.primitiveFailure(e)
 		}
@@ -86,9 +88,9 @@ object P_DeclarationInitializingExpression : Primitive(2, CanInline, HasSideEffe
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				variableReadWriteType(TOP.o(), bottom()),
+				variableReadWriteType(TOP.o, bottom),
 				DECLARATION_PHRASE.mostGeneralType()),
-			booleanType())
+			booleanType)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(

@@ -1,6 +1,6 @@
 /*
  * JSONWriter.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,20 +32,24 @@
 
 package com.avail.utility.json
 
-import com.avail.utility.json.JSONWriter.JSONState.*
+import com.avail.utility.json.JSONWriter.JSONState.EXPECTING_FIRST_OBJECT_KEY_OR_OBJECT_END
+import com.avail.utility.json.JSONWriter.JSONState.EXPECTING_FIRST_VALUE_OR_ARRAY_END
+import com.avail.utility.json.JSONWriter.JSONState.EXPECTING_SINGLE_VALUE
 import java.io.IOException
 import java.io.StringWriter
 import java.io.Writer
 import java.math.BigDecimal
 import java.math.BigInteger
-import java.util.*
+import java.util.Deque
+import java.util.Formatter
+import java.util.LinkedList
 
 /**
  * A `JSONWriter` produces ASCII-only documents that adhere strictly to
  * ECMA 404: "The JSON Data Interchange Format".
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
- * @see [ECMA 404: "The JSON Data Interchange Format"](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf)
+ * @see [ECMA&#32;404:&#32;"The&#32;JSON&#32;Data&#32;Interchange&#32;Format"](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf)
  */
 @Suppress("unused")
 class JSONWriter : AutoCloseable
@@ -515,11 +519,11 @@ class JSONWriter : AutoCloseable
 	}
 
 	/**
-	 * Write the specified `Int` to the underlying document [writer][Writer] as
+	 * Write the specified [Int] to the underlying document [writer][Writer] as
 	 * a JSON number.
 	 *
 	 * @param value
-	 *   A `Int` value.
+	 *   A [Int] value.
 	 * @throws JSONIOException
 	 *   If an I/O exception occurs.
 	 * @throws IllegalStateException
@@ -799,19 +803,29 @@ class JSONWriter : AutoCloseable
 	/**
 	 * Write an object, using an action to supply the contents.
 	 *
+	 * @param R
+	 *   The type of value, if any, returned by the action.
 	 * @param action
 	 *   An action that writes the contents of an object.
+	 * @return
+	 *   The value, if any, returned by the action.
 	 * @throws JSONIOException
 	 *   If an I/O exception occurs.
 	 * @throws IllegalStateException
 	 *   If an object cannot be written.
 	 */
 	@Throws(JSONIOException::class, IllegalStateException::class)
-	fun writeObject(action: ()->Unit)
+	inline fun <R> writeObject(action: JSONWriter.()->R): R
 	{
 		startObject()
-		action()
-		endObject()
+		try
+		{
+			return this.action()
+		}
+		finally
+		{
+			endObject()
+		}
 	}
 
 	/**
@@ -860,11 +874,17 @@ class JSONWriter : AutoCloseable
 	 *   If an array cannot be written.
 	 */
 	@Throws(JSONIOException::class, IllegalStateException::class)
-	fun writeArray(action: ()->Unit)
+	inline fun <R> writeArray(action: JSONWriter.()->R): R
 	{
 		startArray()
-		action()
-		endArray()
+		try
+		{
+			return this.action()
+		}
+		finally
+		{
+			endArray()
+		}
 	}
 
 	/**
@@ -889,10 +909,10 @@ class JSONWriter : AutoCloseable
 	}
 
 	/**
-	 * Write an array of `Int` values.
+	 * Write an array of [Int] values.
 	 *
 	 * @param values
-	 *   An array of `Int` values.
+	 *   An array of [Int] values.
 	 * @throws JSONIOException
 	 *   If an I/O exception occurs.
 	 * @throws IllegalStateException
@@ -1012,6 +1032,25 @@ class JSONWriter : AutoCloseable
 			write(value)
 		}
 		endArray()
+	}
+
+	/**
+	 * Write the given non-null [String] as the name of an entity, then
+	 * evaluate the action, generally to write the associated value.
+	 *
+	 * @param R
+	 *   The type of value, if any, returned by the action.
+	 * @param key
+	 *   The key [String] to write first.
+	 * @param action
+	 *   The action to invoke to do additional writing.
+	 * @return
+	 *   The value, if any, returned by the action.
+	 */
+	inline fun <reified R> at(key: String, action: JSONWriter.()->R): R
+	{
+		write(key)
+		return this.action()
 	}
 
 	/**

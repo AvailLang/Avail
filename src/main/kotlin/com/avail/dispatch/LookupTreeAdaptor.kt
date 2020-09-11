@@ -1,6 +1,6 @@
 /*
  * LookupTreeAdaptor.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,11 +35,11 @@ package com.avail.dispatch
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForTypes
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
+import com.avail.descriptor.types.A_Type.Companion.typeIntersection
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypesList
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
-import java.util.*
-import java.util.Collections.emptyList
-import kotlin.streams.toList
 
 /**
  * `LookupTreeAdaptor` is instantiated to construct and interpret a family
@@ -103,13 +103,13 @@ abstract class LookupTreeAdaptor<
 	 * `true` if the tree uses whole type testing, or `false` if the tree tests
 	 * individual elements of a tuple type.
 	 */
-	abstract val testsArgumentPositions: Boolean
+	abstract fun testsArgumentPositions(): Boolean
 
 	/**
-	 * `true` if [Element]s  with more specific signatures exclude those with
+	 * `true` if [Element]s with more specific signatures exclude those with
 	 * strictly more general signatures, `false` otherwise.
 	 */
-	abstract val subtypesHideSupertypes: Boolean
+	abstract fun subtypesHideSupertypes(): Boolean
 
 	/**
 	 * Extract the signature of the element, then intersect it with the given
@@ -149,14 +149,14 @@ abstract class LookupTreeAdaptor<
 	{
 		// Do all type testing intersected with the known type bounds.
 		val bound = extractBoundingType(knownArgumentRestrictions)
-		val prequalified = ArrayList<Element>(1)
-		val undecided = ArrayList<Element>(allElements.size)
+		val prequalified = mutableListOf<Element>()
+		val undecided = mutableListOf<Element>()
 		for (element in allElements)
 		{
 			val signatureType = restrictedSignature(element, bound)
 			var allComply = true
 			var impossible = false
-			if (testsArgumentPositions)
+			if (testsArgumentPositions())
 			{
 				val numArgs = knownArgumentRestrictions.size
 				for (i in 1..numArgs)
@@ -219,12 +219,10 @@ abstract class LookupTreeAdaptor<
 	 */
 	fun extractBoundingType(argumentRestrictions: List<TypeRestriction>): A_Type
 	{
-		return if (testsArgumentPositions)
+		return if (testsArgumentPositions())
 		{
-			tupleTypeForTypes(
-				argumentRestrictions.stream()
-					.map { r -> r.type }
-					.toList())
+			tupleTypeForTypesList(
+				argumentRestrictions.map(TypeRestriction::type))
 		}
 		else argumentRestrictions[0].type
 	}
@@ -252,12 +250,12 @@ abstract class LookupTreeAdaptor<
 		if (undecided.isEmpty())
 		{
 			// Find the most specific applicable definitions.
-			if (!subtypesHideSupertypes || positive.size <= 1)
+			if (!subtypesHideSupertypes() || positive.size <= 1)
 			{
 				return LeafLookupTree(constructResult(positive, memento))
 			}
 			val size = positive.size
-			val mostSpecific = ArrayList<Element>(1)
+			val mostSpecific = mutableListOf<Element>()
 			outer@ for (outer in 0 until size)
 			{
 				// Use the actual signatures for dominance checking, since using

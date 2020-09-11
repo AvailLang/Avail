@@ -1,6 +1,6 @@
 /*
  * CleanAction.java
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,7 +53,7 @@ class CleanAction constructor(workbench: AvailWorkbench)
 	override fun actionPerformed(event: ActionEvent?)
 	{
 		workbench.availBuilder.unloadTarget(null)
-		assert(workbench.backgroundTask == null)
+		assert(workbench.backgroundTask === null)
 		// Clear all repositories.
 		for (root in workbench.resolver.moduleRoots.roots)
 		{

@@ -1,6 +1,6 @@
 /*
  * StatisticReport.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,15 +33,14 @@
 package com.avail.performance
 
 import com.avail.descriptor.bundles.A_BundleTree
+import com.avail.descriptor.bundles.A_BundleTree.Companion.expand
 import com.avail.optimizer.StackReifier
+import com.avail.performance.ReportingUnit.BYTES
 import com.avail.performance.ReportingUnit.DIMENSIONLESS_INTEGRAL
 import com.avail.performance.ReportingUnit.NANOSECONDS
-import com.avail.utility.Pair
 import com.avail.utility.ifZero
 import java.text.Collator
-import java.util.ArrayList
 import java.util.EnumSet
-import kotlin.Comparator
 
 /**
  * The statistic reports requested of the compiler:
@@ -136,13 +135,19 @@ enum class StatisticReport constructor(
 	SERIALIZE_WRITE("Serialization writing", NANOSECONDS),
 
 	/** Time spent deserializing, by SerializerOperation. */
-	DESERIALIZE("Deserialization", NANOSECONDS);
+	DESERIALIZE("Deserialization", NANOSECONDS),
+
+	/**
+	 * The estimated number of bytes allocated for descriptors with the given
+	 * class name.
+	 */
+	ALLOCATIONS_BY_DESCRIPTOR_CLASS("Allocations by initial descriptor", BYTES);
 
 	/**
 	 * The [List] of [Statistic] objects that have been registered
 	 * for this particular [StatisticReport].
 	 */
-	internal val statistics: MutableList<Statistic> = ArrayList()
+	internal val statistics = mutableListOf<Statistic>()
 
 	/**
 	 * Register a [Statistic] with this `StatisticReport`.  This happens when
@@ -170,8 +175,7 @@ enum class StatisticReport constructor(
 	fun sortedPairs(): MutableList<Pair<String, PerInterpreterStatistic>> =
 		synchronized(statistics) {
 			val namedSnapshots =
-				statistics.map { Pair(it.name(), it.aggregate()) }
-					.toMutableList()
+				statistics.map { it.name() to it.aggregate() }.toMutableList()
 			namedSnapshots.removeIf {
 				(_, aggregate) -> aggregate.count() == 0L
 			}
@@ -217,7 +221,7 @@ enum class StatisticReport constructor(
 					if (pairs.isNotEmpty()) {
 						val total = PerInterpreterStatistic()
 						pairs.forEach { (_, stat) -> stat.addTo(total) }
-						pairs.add(0, Pair("TOTAL", total))
+						pairs.add(0, "TOTAL" to total)
 						pairs.forEach { (name, stat) ->
 							stat.describeOn(this@apply, report.unit)
 							append(" $name\n")

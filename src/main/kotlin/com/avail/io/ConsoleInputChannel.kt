@@ -1,6 +1,6 @@
 /*
  * ConsoleInputChannel.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,11 @@
 
 package com.avail.io
 
-import java.io.*
+import java.io.BufferedReader
+import java.io.IOException
+import java.io.InputStream
+import java.io.InputStreamReader
+import java.io.Reader
 import java.nio.CharBuffer
 import java.nio.channels.CompletionHandler
 import java.nio.charset.CodingErrorAction
@@ -40,8 +44,8 @@ import java.nio.charset.StandardCharsets
 
 /**
  * A `ConsoleInputChannel` provides a faux
- * [asynchronous interface][TextInputChannel] to a synchronous
- * [input stream][InputStream]. The reader must supply
+ * [asynchronous&#32;interface][TextInputChannel] to a synchronous
+ * [input&#32;stream][InputStream]. The reader must supply
  * [UTF-8][StandardCharsets.UTF_8] encoded characters.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;

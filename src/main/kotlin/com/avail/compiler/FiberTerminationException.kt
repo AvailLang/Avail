@@ -1,6 +1,6 @@
 /*
  * FiberTerminationException.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 
 package com.avail.compiler
 
-import com.avail.descriptor.A_Fiber
+import com.avail.descriptor.fiber.A_Fiber
 import com.avail.exceptions.PrimitiveThrownException
 
 /**

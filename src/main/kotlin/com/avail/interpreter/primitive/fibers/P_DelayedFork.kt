@@ -1,6 +1,6 @@
 /*
  * P_DelayedFork.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,33 +32,42 @@
 
 package com.avail.interpreter.primitive.fibers
 
-import com.avail.AvailRuntime.currentRuntime
-import com.avail.descriptor.AvailObject
-import com.avail.descriptor.FiberDescriptor
-import com.avail.descriptor.FiberDescriptor.newFiber
+import com.avail.AvailRuntime.Companion.currentRuntime
+import com.avail.descriptor.fiber.FiberDescriptor
+import com.avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
 import com.avail.descriptor.functions.FunctionDescriptor
-import com.avail.descriptor.numbers.InfinityDescriptor.positiveInfinity
-import com.avail.descriptor.numbers.IntegerDescriptor.zero
-import com.avail.descriptor.sets.SetDescriptor.set
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.tuples.StringDescriptor.formatString
-import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+import com.avail.descriptor.numbers.A_Number.Companion.equalsInt
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
+import com.avail.descriptor.numbers.A_Number.Companion.extractLong
+import com.avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import com.avail.descriptor.tuples.StringDescriptor.Companion.formatString
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.types.FiberTypeDescriptor.mostGeneralFiberType
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionTypeReturning
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.bytes
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.inclusive
-import com.avail.descriptor.types.TupleTypeDescriptor.mostGeneralTupleType
+import com.avail.descriptor.types.A_Type.Companion.argsTupleType
+import com.avail.descriptor.types.A_Type.Companion.returnType
+import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
+import com.avail.descriptor.types.FiberTypeDescriptor.Companion.mostGeneralFiberType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionTypeReturning
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.bytes
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Interpreter.runOutermostFunction
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
-import java.util.*
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
+import com.avail.interpreter.execution.Interpreter
+import com.avail.interpreter.execution.Interpreter.Companion.runOutermostFunction
+import java.util.TimerTask
 
 /**
  * **Primitive:** Schedule a new [fiber][FiberDescriptor] to execute the
@@ -75,10 +84,7 @@ object P_DelayedFork : Primitive(
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(4)
-		val sleepMillis = interpreter.argument(0)
-		val function = interpreter.argument(1)
-		val argTuple = interpreter.argument(2)
-		val priority = interpreter.argument(3)
+		val (sleepMillis, function, argTuple, priority) = interpreter.argsBuffer
 
 		// Ensure that the function is callable with the specified arguments.
 		val numArgs = argTuple.tupleSize()
@@ -87,24 +93,19 @@ object P_DelayedFork : Primitive(
 		{
 			return interpreter.primitiveFailure(E_INCORRECT_NUMBER_OF_ARGUMENTS)
 		}
-		val callArgs = ArrayList<AvailObject>(numArgs)
 		val tupleType = function.kind().argsTupleType()
-		for (i in 1 .. numArgs)
-		{
-			val anArg = argTuple.tupleAt(i)
-			if (!anArg.isInstanceOf(tupleType.typeAtIndex(i)))
+		val callArgs = (1 .. numArgs).map {
+			val anArg = argTuple.tupleAt(it)
+			if (!anArg.isInstanceOf(tupleType.typeAtIndex(it)))
 			{
 				return interpreter.primitiveFailure(E_INCORRECT_ARGUMENT_TYPE)
 			}
-			callArgs.add(anArg)
+			anArg
 		}
 		// Now that we know that the call will really happen, share the function
 		// and the arguments.
 		function.makeShared()
-		for (arg in callArgs)
-		{
-			arg.makeShared()
-		}
+		callArgs.forEach { it.makeShared() }
 		val current = interpreter.fiber()
 		val newFiber = newFiber(
 			function.kind().returnType(),
@@ -114,19 +115,19 @@ object P_DelayedFork : Primitive(
 				"Delayed fork, %s, %s:%d",
 				code.methodName(),
 				if (code.module().equalsNil())
-					emptyTuple()
+					emptyTuple
 				else
 					code.module().moduleName(),
 				code.startingLineNumber())
 		}
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.
-		newFiber.availLoader(current.availLoader())
+		newFiber.setAvailLoader(current.availLoader())
 		// Share and inherit any heritable variables.
-		newFiber.heritableFiberGlobals(
+		newFiber.setHeritableFiberGlobals(
 			current.heritableFiberGlobals().makeShared())
 		// Inherit the fiber's text interface.
-		newFiber.textInterface(current.textInterface())
+		newFiber.setTextInterface(current.textInterface())
 		// Share the fiber, since it will be visible in the caller.
 		newFiber.makeShared()
 		// If the requested sleep time is 0 milliseconds, then fork immediately.
@@ -136,7 +137,7 @@ object P_DelayedFork : Primitive(
 		}
 		else if (sleepMillis.isLong)
 		{
-			val runtime = interpreter.runtime()
+			val runtime = interpreter.runtime
 			runtime.timer.schedule(
 				object : TimerTask()
 				{
@@ -156,9 +157,10 @@ object P_DelayedFork : Primitive(
 		functionType(
 			tuple(
 				inclusive(zero(), positiveInfinity()),
-				functionTypeReturning(TOP.o()),
+				functionTypeReturning(TOP.o),
 				mostGeneralTupleType(),
-				bytes()),
+				bytes
+			),
 			mostGeneralFiberType())
 
 	override fun privateFailureVariableType(): A_Type =

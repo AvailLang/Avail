@@ -1,6 +1,6 @@
 /*
  * P_BootstrapLexerWholeNumberBody.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,18 +33,26 @@
 package com.avail.interpreter.primitive.bootstrap.lexing
 
 import com.avail.descriptor.numbers.A_Number
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
+import com.avail.descriptor.numbers.A_Number.Companion.plusCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.timesCanDestroy
 import com.avail.descriptor.numbers.IntegerDescriptor
-import com.avail.descriptor.numbers.IntegerDescriptor.cachedSquareOfQuintillion
-import com.avail.descriptor.numbers.IntegerDescriptor.fromLong
-import com.avail.descriptor.parsing.LexerDescriptor.lexerBodyFunctionType
-import com.avail.descriptor.sets.SetDescriptor.set
-import com.avail.descriptor.tokens.LiteralTokenDescriptor.literalToken
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.cachedSquareOfQuintillion
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
+import com.avail.descriptor.parsing.LexerDescriptor.Companion.lexerBodyFunctionType
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
+import com.avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken
 import com.avail.descriptor.tuples.A_String
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.Bootstrap
+import com.avail.interpreter.Primitive.Flag.CanFold
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * The `P_BootstrapLexerWholeNumberBody` primitive is used for parsing
@@ -133,8 +141,7 @@ object P_BootstrapLexerWholeNumberBody
 		// recurse on the remaining left digits to get L, then compute
 		// (10^18)^N * L + R.
 		val groupCount = (digitCount + 17) / 18
-		val logGroupCount =
-			31 - Integer.numberOfLeadingZeros(groupCount - 1)
+		val logGroupCount = 31 - Integer.numberOfLeadingZeros(groupCount - 1)
 		val rightGroupCount = 1 shl logGroupCount
 		assert(rightGroupCount < groupCount)
 		assert(rightGroupCount shl 1 >= groupCount)
@@ -142,16 +149,11 @@ object P_BootstrapLexerWholeNumberBody
 
 		val rightCount = 18 shl logGroupCount
 		val leftPart = readInteger(
-			string,
-			startPosition,
-			digitCount - rightCount)
+			string, startPosition, digitCount - rightCount)
 		val rightPart = readInteger(
-			string,
-			startPosition + digitCount - rightCount,
-			rightCount)
+			string, startPosition + digitCount - rightCount, rightCount)
 		val squareOfQuintillion = cachedSquareOfQuintillion(logGroupCount)
-		val shiftedLeft =
-			leftPart.timesCanDestroy(squareOfQuintillion, true)
+		val shiftedLeft = leftPart.timesCanDestroy(squareOfQuintillion, true)
 		return shiftedLeft.plusCanDestroy(rightPart, true)
 	}
 }

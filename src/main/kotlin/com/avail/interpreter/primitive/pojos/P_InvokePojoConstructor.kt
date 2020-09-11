@@ -1,6 +1,6 @@
 /*
  * P_InvokePojoConstructor.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,21 +32,23 @@
 package com.avail.interpreter.primitive.pojos
 
 import com.avail.AvailRuntime.HookType
-import com.avail.descriptor.pojos.PojoDescriptor.newPojo
-import com.avail.descriptor.pojos.RawPojoDescriptor.identityPojo
+import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.pojos.PojoDescriptor.Companion.newPojo
+import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.BottomTypeDescriptor.bottom
-import com.avail.descriptor.types.PojoTypeDescriptor.pojoTypeForClass
-import com.avail.descriptor.types.PojoTypeDescriptor.unmarshal
+import com.avail.descriptor.types.A_Type.Companion.returnType
+import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
+import com.avail.descriptor.types.PojoTypeDescriptor.Companion.pojoTypeForClass
+import com.avail.descriptor.types.PojoTypeDescriptor.Companion.unmarshal
 import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.MarshalingException
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.Private
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.primitive.pojos.PrimitiveHelper.marshalValues
-import com.avail.utility.MutableOrNull
+import com.avail.utility.Mutable
 import java.lang.reflect.Constructor
 import java.lang.reflect.InvocationTargetException
 
@@ -64,6 +66,7 @@ import java.lang.reflect.InvocationTargetException
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
+@Suppress("unused")
 object P_InvokePojoConstructor : Primitive(-1, Private)
 {
 	override fun attempt(interpreter: Interpreter): Result
@@ -83,12 +86,12 @@ object P_InvokePojoConstructor : Primitive(-1, Private)
 
 		// Marshal the arguments.
 		val constructor = constructorPojo.javaObjectNotNull<Constructor<*>>()
-		val errorOut = MutableOrNull<AvailErrorCode>()
+		val errorOut = Mutable<AvailErrorCode?>(null)
 		val marshaledArgs = marshalValues(
 			marshaledTypes, constructorArgs, errorOut)
 		if (errorOut.value !== null)
 		{
-			val e = errorOut.value()
+			val e = errorOut.value!!
 			return interpreter.primitiveFailure(
 				newPojo(identityPojo(e), pojoTypeForClass(e.javaClass)))
 		}
@@ -128,7 +131,15 @@ object P_InvokePojoConstructor : Primitive(-1, Private)
 	 * This primitive is suitable for any block signature, although really the
 	 * primitive could only be applied if the function returns any.
 	 */
-	override fun privateBlockTypeRestriction(): A_Type = bottom()
+	override fun privateBlockTypeRestriction(): A_Type = bottom
+
+	override fun returnTypeGuaranteedByVM(
+		rawFunction: A_RawFunction,
+		argumentTypes: List<A_Type>
+	): A_Type
+	{
+		return rawFunction.functionType().returnType()
+	}
 
 	override fun privateFailureVariableType(): A_Type =
 		pojoTypeForClass(Throwable::class.java)

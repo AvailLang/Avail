@@ -1,6 +1,6 @@
 /*
  * CaseInsensitive.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,9 +39,9 @@ import com.avail.exceptions.SignatureException
 
 /**
  * `CaseInsensitive` is a special decorator [expression][Expression] that causes
- * the decorated expression's keywords to generate [parse
- * instructions][ParsingOperation] that cause case insensitive parsing. It is
- * indicated by a trailing [tilde][Metacharacter.TILDE] ("~").
+ * the decorated expression's keywords to generate
+ * [parse&#32;instructions][ParsingOperation] that cause case insensitive
+ * parsing. It is indicated by a trailing [tilde][Metacharacter.TILDE] ("~").
  *
  * @property expression
  *   The [expression][Expression] whose keywords should be matched
@@ -62,6 +62,9 @@ internal class CaseInsensitive constructor(
 	positionInName: Int,
 	val expression: Expression) : Expression(positionInName)
 {
+	override val recursivelyContainsReorders: Boolean
+		get() = expression.recursivelyContainsReorders
+
 	override val yieldsValue
 		get() = expression.yieldsValue
 
@@ -112,7 +115,8 @@ internal class CaseInsensitive constructor(
 		return newWrapState
 	}
 
-	override fun toString(): String = "${javaClass.simpleName}($expression)"
+	override fun toString(): String =
+		"${this@CaseInsensitive.javaClass.simpleName}($expression)"
 
 	override fun printWithArguments(
 		arguments: Iterator<A_Phrase>?,
@@ -137,4 +141,7 @@ internal class CaseInsensitive constructor(
 
 	override fun mightBeEmpty(phraseType: A_Type) =
 		expression.mightBeEmpty(phraseType)
+
+	override fun checkListStructure(phrase: A_Phrase): Boolean =
+		expression.checkListStructure(phrase)
 }

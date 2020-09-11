@@ -1,6 +1,6 @@
 /*
  * UnloadAllAction.java
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,8 +44,9 @@ import javax.swing.Action
 import javax.swing.KeyStroke
 
 /**
- * A `GenerateDocumentationAction` instructs the [Avail builder][AvailBuilder]
- * to recursively [generate Stacks documentation][StacksGenerator].
+ * A `GenerateDocumentationAction` instructs the
+ * [Avail&#32;builder][AvailBuilder] to recursively
+ * [generate&#32;Stacks&#32;documentation][StacksGenerator].
  *
  * @constructor
  * Construct a new [GenerateDocumentationAction].
@@ -58,7 +59,7 @@ class GenerateDocumentationAction constructor (workbench: AvailWorkbench)
 {
 	override fun actionPerformed(event: ActionEvent?)
 	{
-		assert(workbench.backgroundTask == null)
+		assert(workbench.backgroundTask === null)
 		val selectedModule =
 			workbench.selectedModule()!!
 

@@ -1,6 +1,6 @@
 /*
  * P_Type.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,16 +32,18 @@
 package com.avail.interpreter.primitive.types
 
 import com.avail.descriptor.functions.A_RawFunction
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.InstanceMetaDescriptor.anyMeta
-import com.avail.descriptor.types.InstanceMetaDescriptor.instanceMeta
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.instanceTypeOrMetaOn
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
+import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CanFold
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operation.L2_GET_TYPE
 import com.avail.optimizer.L1Translator
@@ -62,7 +64,7 @@ object P_Type : Primitive(1, CannotFail, CanFold, CanInline)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(ANY.o()),
+			tuple(ANY.o),
 			anyMeta())
 
 	override fun returnTypeGuaranteedByVM(
@@ -83,7 +85,7 @@ object P_Type : Primitive(1, CannotFail, CanFold, CanInline)
 		val writer = translator.generator.boxedWriteTemp(
 			arguments[0].restriction().metaRestriction())
 		translator.addInstruction(
-			L2_GET_TYPE.instance,
+			L2_GET_TYPE,
 			arguments[0],
 			writer)
 		callSiteHelper.useAnswer(translator.readBoxed(writer))

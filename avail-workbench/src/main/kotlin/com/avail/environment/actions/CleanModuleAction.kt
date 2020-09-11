@@ -1,6 +1,6 @@
 /*
  * CleanModuleAction.java
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,10 +55,10 @@ class CleanModuleAction constructor(workbench: AvailWorkbench)
 {
 	override fun actionPerformed(event: ActionEvent?)
 	{
-		assert(workbench.backgroundTask == null)
+		assert(workbench.backgroundTask === null)
 
 		val root = workbench.selectedModuleRoot()
-		if (root != null)
+		if (root !== null)
 		{
 			// Delete an entire repository.
 			try

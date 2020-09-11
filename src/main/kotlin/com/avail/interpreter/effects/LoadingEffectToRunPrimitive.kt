@@ -1,6 +1,6 @@
 /*
  * LoadingEffectToRunPrimitive.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,8 +33,9 @@
 package com.avail.interpreter.effects
 
 import com.avail.descriptor.bundles.A_Bundle
+import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import com.avail.descriptor.representation.A_BasicObject
-import com.avail.descriptor.types.TypeDescriptor.Types
+import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.interpreter.levelOne.L1InstructionWriter
 import com.avail.interpreter.levelOne.L1Operation
 
@@ -60,12 +61,11 @@ internal class LoadingEffectToRunPrimitive constructor(
 	vararg arguments: A_BasicObject) : LoadingEffect()
 {
 	/** The array of arguments to pass to the primitive.  */
-	internal val arguments: Array<out A_BasicObject>
+	internal val arguments: Array<out A_BasicObject> = arguments.clone()
 
 	init
 	{
 		assert(primitiveBundle.bundleMethod().numArgs() == arguments.size)
-		this.arguments = arguments.clone()
 	}
 
 	override fun writeEffectTo(writer: L1InstructionWriter)
@@ -83,6 +83,6 @@ internal class LoadingEffectToRunPrimitive constructor(
 			0,
 			L1Operation.L1_doCall,
 			writer.addLiteral(primitiveBundle),
-			writer.addLiteral(Types.TOP.o()))
+			writer.addLiteral(TOP.o))
 	}
 }

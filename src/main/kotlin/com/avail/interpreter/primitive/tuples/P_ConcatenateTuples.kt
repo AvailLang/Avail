@@ -1,6 +1,6 @@
 /*
  * P_ConcatenateTuples.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,29 +32,48 @@
 package com.avail.interpreter.primitive.tuples
 
 import com.avail.descriptor.functions.A_RawFunction
-import com.avail.descriptor.numbers.IntegerDescriptor.fromInt
-import com.avail.descriptor.numbers.IntegerDescriptor.one
+import com.avail.descriptor.numbers.A_Number.Companion.equalsInt
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
+import com.avail.descriptor.numbers.A_Number.Companion.greaterThan
+import com.avail.descriptor.numbers.A_Number.Companion.plusCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.timesCanDestroy
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.one
 import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.concatenateTuplesCanDestroy
+import com.avail.descriptor.tuples.A_Tuple.Companion.concatenateWith
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.TupleDescriptor
-import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.ConcatenatedTupleTypeDescriptor.concatenatingAnd
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.InstanceTypeDescriptor.instanceType
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.integerRangeType
-import com.avail.descriptor.types.TupleTypeDescriptor.*
-import com.avail.interpreter.Interpreter
+import com.avail.descriptor.types.A_Type.Companion.defaultType
+import com.avail.descriptor.types.A_Type.Companion.lowerBound
+import com.avail.descriptor.types.A_Type.Companion.sizeRange
+import com.avail.descriptor.types.A_Type.Companion.tupleOfTypesFromTo
+import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
+import com.avail.descriptor.types.A_Type.Companion.typeTuple
+import com.avail.descriptor.types.A_Type.Companion.upperBound
+import com.avail.descriptor.types.ConcatenatedTupleTypeDescriptor.Companion.concatenatingAnd
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeType
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CanFold
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
-import com.avail.interpreter.levelTwo.operand.TypeRestriction.restriction
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restriction
 import com.avail.interpreter.levelTwo.operation.L2_CONCATENATE_TUPLES
-import com.avail.interpreter.levelTwo.operation.L2_CREATE_TUPLE
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
+import com.avail.utility.notNullAnd
 
 /**
  * **Primitive:** Concatenate a [tuple][TupleDescriptor] of tuples together into
@@ -99,7 +118,7 @@ object P_ConcatenateTuples : Primitive(1, CannotFail, CanFold, CanInline)
 			val bound = lowerBound.extractInt()
 			if (bound == 0)
 			{
-				return instanceType(emptyTuple())
+				return instanceType(emptyTuple)
 			}
 			var concatenatedType = tuplesType.typeAtIndex(1)
 			for (i in 2 .. bound)
@@ -125,7 +144,7 @@ object P_ConcatenateTuples : Primitive(1, CannotFail, CanFold, CanInline)
 				val newSizeRange = integerRangeType(
 					minSize, true, maxSize.plusCanDestroy(one(), true), false)
 				return tupleTypeForSizesTypesDefaultType(
-					newSizeRange, emptyTuple(), innerTupleType.defaultType())
+					newSizeRange, emptyTuple, innerTupleType.defaultType())
 			}
 		}
 		// Too tricky to bother narrowing.
@@ -142,16 +161,28 @@ object P_ConcatenateTuples : Primitive(1, CannotFail, CanFold, CanInline)
 	): Boolean {
 		assert(arguments.size == 1)
 		val tupleOfTuplesReg = arguments[0]
-		val def = tupleOfTuplesReg.definitionSkippingMoves(false)
-		if (def.operation() != L2_CREATE_TUPLE.instance)
-		{
+
+		val generator = translator.generator
+		val range = tupleOfTuplesReg.type().sizeRange()
+		val size = range.lowerBound()
+		if (!size.isInt || !range.upperBound().equals(size))
 			return false
+		val sizeInt = size.extractInt()
+		var elementRegs = generator.explodeTupleIfPossible(
+			tupleOfTuplesReg,
+			tupleOfTuplesReg.type().tupleOfTypesFromTo(1, sizeInt).toList())
+		elementRegs ?: return false
+		// Strip out any always-empty tuples.
+		elementRegs = elementRegs.filter {
+			!it.constantOrNull().notNullAnd { tupleSize() == 0 }
 		}
-		val sources = L2_CREATE_TUPLE.tupleSourceRegistersOf(def)
+		// Statically concatenate adjacent constants, since tuple concatenation
+		// associates.
+
 		// Collapse together adjacent constants, dropping empties
 		var currentTuple: A_Tuple? = null
 		val adjustedSources = mutableListOf<L2ReadBoxedOperand>()
-		for (source in sources)
+		for (source in elementRegs)
 		{
 			val restriction = source.restriction()
 			val sizeRange = restriction.type.sizeRange()
@@ -179,7 +210,7 @@ object P_ConcatenateTuples : Primitive(1, CannotFail, CanFold, CanInline)
 		}
 		when (adjustedSources.size) {
 			0 -> callSiteHelper.useAnswer(
-				translator.generator.boxedConstant(emptyTuple()))
+				translator.generator.boxedConstant(emptyTuple))
 			1 -> callSiteHelper.useAnswer(adjustedSources[0])
 			else -> {
 				val guaranteedType = returnTypeGuaranteedByVM(
@@ -188,7 +219,7 @@ object P_ConcatenateTuples : Primitive(1, CannotFail, CanFold, CanInline)
 					translator.generator.boxedWriteTemp(
 						restriction(guaranteedType, null))
 				translator.addInstruction(
-					L2_CONCATENATE_TUPLES.instance,
+					L2_CONCATENATE_TUPLES,
 					L2ReadBoxedVectorOperand(adjustedSources),
 					writer)
 				callSiteHelper.useAnswer(translator.readBoxed(writer))

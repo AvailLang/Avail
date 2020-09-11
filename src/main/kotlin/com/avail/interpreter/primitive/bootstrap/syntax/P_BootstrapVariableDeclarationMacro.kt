@@ -1,6 +1,6 @@
 /*
  * P_BootstrapVariableDeclarationMacro.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,26 +34,29 @@ package com.avail.interpreter.primitive.bootstrap.syntax
 
 import com.avail.compiler.AvailRejectedParseException
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
-import com.avail.descriptor.FiberDescriptor
-import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.fiber.FiberDescriptor
+import com.avail.descriptor.phrases.A_Phrase.Companion.token
+import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newVariable
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
-import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.newVariable
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.InstanceMetaDescriptor.anyMeta
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.DECLARATION_PHRASE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
 import com.avail.descriptor.types.TypeDescriptor.Types.TOKEN
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.Bootstrap
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * The `P_BootstrapVariableDeclarationMacro` primitive is used for bootstrapping
- * declaration of a [local variable][DeclarationKind.LOCAL_VARIABLE] (without an
- * initializing expression).
+ * declaration of a [local&#32;variable][DeclarationKind.LOCAL_VARIABLE]
+ * (without an initializing expression).
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -98,7 +101,7 @@ object P_BootstrapVariableDeclarationMacro
 		functionType(
 			tuple(
 				/* Variable name phrase. */
-				LITERAL_PHRASE.create(TOKEN.o()),
+				LITERAL_PHRASE.create(TOKEN.o),
 				/* Variable type's literal phrase. */
 				LITERAL_PHRASE.create(anyMeta())),
 			DECLARATION_PHRASE.mostGeneralType())

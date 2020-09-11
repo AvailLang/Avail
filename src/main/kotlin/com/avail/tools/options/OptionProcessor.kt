@@ -1,6 +1,6 @@
 /*
  * OptionProcessor.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,13 +32,15 @@
 
 package com.avail.tools.options
 
-import com.avail.tools.options.OptionProcessorFactory.*
-import com.avail.utility.CollectionExtensions.populatedEnumMap
-import com.avail.utility.MutableInt
+import com.avail.tools.options.OptionProcessorFactory.Cardinality
+import com.avail.tools.options.OptionProcessorFactory.OptionInvocation
+import com.avail.tools.options.OptionProcessorFactory.OptionInvocationWithArgument
 import com.avail.utility.ParagraphFormatter
 import com.avail.utility.ParagraphFormatterStream
+import com.avail.utility.structures.EnumMap
+import com.avail.utility.toEnumMap
 import java.io.IOException
-import java.util.*
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * An `OptionProcessor` serves primarily to support command-line argument
@@ -106,15 +108,15 @@ class OptionProcessor<OptionKeyType : Enum<OptionKeyType>> internal constructor(
 	 * A mapping between recognizable keywords and the option keys that they
 	 * indicate.
 	 */
-	private val allKeywords = HashMap(keywords)
+	private val allKeywords = keywords.toMap()
 
-	/** A mapping between option keys and [options][Option].  */
+	/** A mapping between option keys and [options][Option]. */
 	private val allOptions: EnumMap<OptionKeyType, Option<OptionKeyType>> =
-		options.associateByTo(EnumMap(optionKeyType)) { it.key }
+		options.associateByTo(EnumMap(optionKeyType.enumConstants)) { it.key }
 
-	/** A mapping from option key to times encountered during processing.  */
-	private val timesEncountered: EnumMap<OptionKeyType, MutableInt> =
-		populatedEnumMap(optionKeyType) { MutableInt(0) }
+	/** A mapping from option key to times encountered during processing. */
+	private val timesEncountered: EnumMap<OptionKeyType, AtomicInteger> =
+		optionKeyType.enumConstants.toEnumMap { AtomicInteger(0) }
 
 	/**
 	 * Perform the action associated with the option key bound to the specified
@@ -134,8 +136,8 @@ class OptionProcessor<OptionKeyType : Enum<OptionKeyType>> internal constructor(
 	{
 		val optionKey = allKeywords[keyword]
 			?: throw UnrecognizedKeywordException(keyword)
-		val option = allOptions[optionKey]!!
-		timesEncountered[optionKey]!!.value++
+		val option = allOptions[optionKey]
+		timesEncountered[optionKey].getAndIncrement()
 		// Make sure we haven't exceeded the maximum count.
 		checkEncountered(optionKey, option.cardinality.max)
 		if (option.takesArgument) {
@@ -145,7 +147,7 @@ class OptionProcessor<OptionKeyType : Enum<OptionKeyType>> internal constructor(
 			}
 		}
 		else {
-			if (argument != null)
+			if (argument !== null)
 			{
 				throw InvalidArgumentException(keyword)
 			}
@@ -216,7 +218,7 @@ class OptionProcessor<OptionKeyType : Enum<OptionKeyType>> internal constructor(
 			val keyword = keywords.substring(i, i + 1)
 			val optionKey = allKeywords[keyword]
 				?: throw UnrecognizedKeywordException(keyword)
-			val option = allOptions[optionKey]!!
+			val option = allOptions[optionKey]
 			if (option.takesArgument) {
 				throw OptionProcessingException(
 					"\"$keyword\" requires an argument, so it may only be at "
@@ -228,7 +230,7 @@ class OptionProcessor<OptionKeyType : Enum<OptionKeyType>> internal constructor(
 		val keyword = keywords.takeLast(1)
 		val optionKey = allKeywords[keyword]
 			?: throw UnrecognizedKeywordException(keyword)
-		val option = allOptions[optionKey]!!
+		val option = allOptions[optionKey]
 		var argument: String? = null
 		if (option.takesArgument)
 		{
@@ -362,7 +364,7 @@ class OptionProcessor<OptionKeyType : Enum<OptionKeyType>> internal constructor(
 	 * @return
 	 *   The number of times that the option has been processed.
 	 */
-	fun timesEncountered(key: OptionKeyType) = timesEncountered[key]!!.value
+	fun timesEncountered(key: OptionKeyType) = timesEncountered[key].get()
 
 	/**
 	 * If the specified key was encountered more times than allowed, then throw
@@ -398,7 +400,7 @@ class OptionProcessor<OptionKeyType : Enum<OptionKeyType>> internal constructor(
 	 * @param appendable
 	 *   An [Appendable].
 	 * @throws IOException
-	 *   If an [I/O exception][IOException] occurs.
+	 *   If an [I/O&#32;exception][IOException] occurs.
 	 */
 	@Throws(IOException::class)
 	fun writeOptionDescriptions(appendable: Appendable)
@@ -414,7 +416,7 @@ class OptionProcessor<OptionKeyType : Enum<OptionKeyType>> internal constructor(
 			val descriptionFormatter = ParagraphFormatter(80, 4, 4)
 			val descriptionStream =
 				ParagraphFormatterStream(descriptionFormatter, appendable)
-			val keywords = LinkedHashSet(option.keywords)
+			val keywords = option.keywords.toSet()
 			keywords.forEach { keyword ->
 				if (option is DefaultOption<*>)
 				{

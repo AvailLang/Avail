@@ -1,6 +1,6 @@
 /*
  * P_FileOpen.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,40 +31,52 @@
  */
 package com.avail.interpreter.primitive.files
 
-import com.avail.AvailRuntime.currentRuntime
-import com.avail.descriptor.NilDescriptor.nil
+import com.avail.AvailRuntime.Companion.currentRuntime
+import com.avail.descriptor.atoms.A_Atom.Companion.setAtomProperty
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.createAtom
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.FILE_KEY
-import com.avail.descriptor.pojos.RawPojoDescriptor.identityPojo
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
+import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor
-import com.avail.descriptor.sets.SetDescriptor.set
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.inclusive
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.wholeNumbers
-import com.avail.descriptor.types.SetTypeDescriptor.setTypeForSizesContentType
-import com.avail.descriptor.types.TupleTypeDescriptor.stringType
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
+import com.avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
-import com.avail.exceptions.AvailErrorCode.*
-import com.avail.interpreter.Interpreter
+import com.avail.exceptions.AvailErrorCode.E_EXCEEDS_VM_LIMIT
+import com.avail.exceptions.AvailErrorCode.E_ILLEGAL_OPTION
+import com.avail.exceptions.AvailErrorCode.E_INVALID_PATH
+import com.avail.exceptions.AvailErrorCode.E_IO_ERROR
+import com.avail.exceptions.AvailErrorCode.E_OPERATION_NOT_SUPPORTED
+import com.avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.execution.Interpreter
 import com.avail.io.IOSystem
 import com.avail.io.IOSystem.FileHandle
 import java.io.IOException
 import java.nio.channels.AsynchronousFileChannel
-import java.nio.file.*
+import java.nio.file.AccessDeniedException
+import java.nio.file.FileSystem
+import java.nio.file.InvalidPathException
+import java.nio.file.OpenOption
+import java.nio.file.Path
+import java.nio.file.StandardOpenOption
 import java.nio.file.StandardOpenOption.READ
 import java.nio.file.StandardOpenOption.WRITE
 import java.nio.file.attribute.FileAttribute
 import java.nio.file.attribute.PosixFilePermission
 import java.nio.file.attribute.PosixFilePermissions
-import java.util.*
+import java.util.EnumSet
 
 /**
  * **Primitive:** Open an [file][AsynchronousFileChannel]. Answer a
@@ -155,12 +167,13 @@ object P_FileOpen : Primitive(4, CanInline, HasSideEffect)
 		functionType(
 			tuple(
 				stringType(),
-				wholeNumbers(),
+				wholeNumbers,
 				setTypeForSizesContentType(
-					wholeNumbers(), inclusive(0, 9)),
+					wholeNumbers, inclusive(0, 9)),
 				setTypeForSizesContentType(
-					wholeNumbers(), inclusive(1, 9))),
-			ATOM.o())
+					wholeNumbers, inclusive(1, 9))),
+			ATOM.o
+		)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(
@@ -197,7 +210,7 @@ object P_FileOpen : Primitive(4, CanInline, HasSideEffect)
 	}
 
 	/**
-	 * Construct the [set][EnumSet] of [file attributes][FileAttribute] that
+	 * Construct the [set][EnumSet] of [file&#32;attributes][FileAttribute] that
 	 * specify the [POSIX][PosixFilePermission] that correspond to the supplied
 	 * [set][SetDescriptor] of integral option indicators.
 	 *
@@ -205,7 +218,7 @@ object P_FileOpen : Primitive(4, CanInline, HasSideEffect)
 	 *   Some integral option indicators.
 	 * @return An array whose lone element is a set containing an attribute that
 	 *   specifies the implied POSIX file permissions, or an empty array if the
-	 *   [file system][FileSystem] does not support POSIX file permissions.
+	 *   [file&#32;system][FileSystem] does not support POSIX file permissions.
 	 */
 	private fun permissionsFor(optionInts: A_Set): Array<FileAttribute<*>> =
 		if (IOSystem.fileSystem.supportedFileAttributeViews().contains("posix"))

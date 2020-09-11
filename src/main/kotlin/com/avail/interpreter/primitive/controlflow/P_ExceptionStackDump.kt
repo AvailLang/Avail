@@ -1,6 +1,6 @@
 /*
  * P_ExceptionStackDump.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,32 +33,31 @@
 package com.avail.interpreter.primitive.controlflow
 
 import com.avail.descriptor.functions.A_Continuation
-import com.avail.descriptor.functions.ContinuationDescriptor.dumpStackThen
+import com.avail.descriptor.functions.ContinuationDescriptor.Companion.dumpStackThen
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
 import com.avail.descriptor.objects.ObjectTypeDescriptor
-import com.avail.descriptor.objects.ObjectTypeDescriptor.exceptionType
-import com.avail.descriptor.objects.ObjectTypeDescriptor.stackDumpAtom
-import com.avail.descriptor.sets.SetDescriptor.set
-import com.avail.descriptor.tuples.A_String
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
-import com.avail.descriptor.tuples.StringDescriptor.stringFrom
+import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.exceptionType
+import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.stackDumpAtom
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
+import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.TupleTypeDescriptor.stringType
-import com.avail.descriptor.types.TupleTypeDescriptor.zeroOrMoreOf
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
 import com.avail.exceptions.AvailErrorCode.E_KEY_NOT_FOUND
 import com.avail.exceptions.MapException
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanSuspend
 import com.avail.interpreter.Primitive.Flag.Unknown
-import java.util.*
+import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Get the [ ][ObjectTypeDescriptor.stackDumpAtom] associated
- * with the specified [exception][ObjectTypeDescriptor.exceptionType].
+ * **Primitive:** Get the [ObjectTypeDescriptor.stackDumpAtom] associated with
+ * the specified [exception][ObjectTypeDescriptor.exceptionType].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -70,28 +69,24 @@ object P_ExceptionStackDump : Primitive(1, CanSuspend, Unknown)
 		interpreter.checkArgumentCount(1)
 		val exception = interpreter.argument(0)
 
-		val runtime = interpreter.runtime()
+		val runtime = interpreter.runtime
 		// The primitive is flagged CanSuspend to force the stack to be reified.
 		val continuation : A_Continuation =
 			try { exception.fieldAt(stackDumpAtom()) }
 			catch (e: MapException)
 			{
-				assert(e.numericCode().extractInt()
+				assert(e.numericCode.extractInt()
 					       == E_KEY_NOT_FOUND.nativeCode())
 				return interpreter.primitiveFailure(E_INCORRECT_ARGUMENT_TYPE)
 			}
 
 		val textInterface = interpreter.fiber().textInterface()
-		return interpreter.suspendAndDo { toSucceed, _ ->
+		return interpreter.suspendThen {
 			dumpStackThen(runtime, textInterface, continuation)
-			{ stack ->
-				val frames = ArrayList<A_String>(stack.size)
-				for (i in stack.indices.reversed())
-				{
-					frames.add(stringFrom(stack[i]))
-				}
-				val stackDump = tupleFromList(frames)
-				toSucceed.value(stackDump)
+			{	stack ->
+				succeed(tupleFromList(stack.indices.reversed().map {
+					stringFrom(stack[it])
+				}))
 			}
 		}
 	}

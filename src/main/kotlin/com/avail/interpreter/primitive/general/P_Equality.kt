@@ -1,6 +1,6 @@
 /*
  * P_Equality.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,15 +35,23 @@ import com.avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import com.avail.descriptor.functions.A_RawFunction
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.numbers.A_Number.Companion.equalsInt
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.instanceCount
+import com.avail.descriptor.types.A_Type.Companion.instances
+import com.avail.descriptor.types.A_Type.Companion.typeIntersection
 import com.avail.descriptor.types.EnumerationTypeDescriptor
-import com.avail.descriptor.types.EnumerationTypeDescriptor.*
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
+import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.falseType
+import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.trueType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CanFold
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
@@ -73,7 +81,7 @@ object P_Equality : Primitive(2, CannotFail, CanFold, CanInline)
 		if (type1.typeIntersection(type2).isBottom)
 		{
 			// The actual values cannot be equal at runtime.
-			return falseType()
+			return falseType
 		}
 		if (type1.isEnumeration
 		    && type1.equals(type2)
@@ -86,14 +94,14 @@ object P_Equality : Primitive(2, CannotFail, CanFold, CanInline)
 			if (!value.isType)
 			{
 				// The actual values will have to be equal at runtime.
-				return trueType()
+				return trueType
 			}
 		}
 		return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(ANY.o(), ANY.o()), booleanType())
+		functionType(tuple(ANY.o, ANY.o), booleanType)
 
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
@@ -111,7 +119,7 @@ object P_Equality : Primitive(2, CannotFail, CanFold, CanInline)
 			// A value is being compared to itself, even though we might not
 			// know anything specific about what it is.
 			callSiteHelper.useAnswer(
-				translator.generator.boxedConstant(trueObject()))
+				translator.generator.boxedConstant(trueObject))
 			return true
 		}
 
@@ -121,7 +129,7 @@ object P_Equality : Primitive(2, CannotFail, CanFold, CanInline)
 		{
 			// The actual values cannot be equal at runtime.
 			callSiteHelper.useAnswer(
-				translator.generator.boxedConstant(falseObject()))
+				translator.generator.boxedConstant(falseObject))
 			return true
 		}
 		// Because of metacovariance, a meta may actually have many instances.
@@ -132,7 +140,7 @@ object P_Equality : Primitive(2, CannotFail, CanFold, CanInline)
 		    && !type1.isInstanceMeta)
 		{
 			callSiteHelper.useAnswer(
-				translator.generator.boxedConstant(trueObject()))
+				translator.generator.boxedConstant(trueObject))
 			return true
 		}
 

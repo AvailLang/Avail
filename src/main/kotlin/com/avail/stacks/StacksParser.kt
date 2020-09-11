@@ -1,6 +1,6 @@
 /*
  * StacksParser.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,10 +39,9 @@ import com.avail.stacks.comment.CommentBuilder
 import com.avail.stacks.exceptions.StacksCommentBuilderException
 import com.avail.stacks.tokens.AbstractStacksToken
 import com.avail.stacks.tokens.SectionKeywordStacksToken
-import java.util.*
 
 /**
- * Parses a List of [stacks tokens][AbstractStacksToken].
+ * Parses a List of [stacks&#32;tokens][AbstractStacksToken].
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
@@ -81,13 +80,12 @@ class StacksParser private constructor(
 {
 	/**
 	 * The [builder][CommentBuilder] responsible for
-	 * building the [comment implementation][AvailComment]
+	 * building the [comment&#32;implementation][AvailComment]
 	 */
 	internal val builder: CommentBuilder = CommentBuilder
 		.createBuilder(moduleName, commentStartLine, linkingFileMap)
 
 	/**
-	 *
 	 * The collection of section keywords that a comment can have.
 	 *
 	 * @author Richard Arriaga &lt;rich@availlang.org&gt;
@@ -113,7 +111,7 @@ class StacksParser private constructor(
 				StacksCommentBuilderException::class)
 			override fun addTokensToBuilder(
 				builder: CommentBuilder,
-				tagContentTokens: ArrayList<AbstractStacksToken>,
+				tagContentTokens: List<AbstractStacksToken>,
 				categories: LinkingFileMap)
 			{
 				builder.addStacksAliasTag(tagContentTokens, categories)
@@ -126,7 +124,7 @@ class StacksParser private constructor(
 		{
 			override fun addTokensToBuilder(
 				builder: CommentBuilder,
-				tagContentTokens: ArrayList<AbstractStacksToken>,
+				tagContentTokens: List<AbstractStacksToken>,
 				categories: LinkingFileMap)
 			{
 				builder.addStacksAuthorTag(tagContentTokens)
@@ -144,7 +142,7 @@ class StacksParser private constructor(
 				StacksCommentBuilderException::class)
 			override fun addTokensToBuilder(
 				builder: CommentBuilder,
-				tagContentTokens: ArrayList<AbstractStacksToken>,
+				tagContentTokens: List<AbstractStacksToken>,
 				categories: LinkingFileMap)
 			{
 				builder.addStacksCategoryTag(tagContentTokens, categories)
@@ -161,7 +159,7 @@ class StacksParser private constructor(
 				StacksCommentBuilderException::class)
 			override fun addTokensToBuilder(
 				builder: CommentBuilder,
-				tagContentTokens: ArrayList<AbstractStacksToken>,
+				tagContentTokens: List<AbstractStacksToken>,
 				categories: LinkingFileMap)
 			{
 
@@ -180,7 +178,7 @@ class StacksParser private constructor(
 				StacksCommentBuilderException::class)
 			override fun addTokensToBuilder(
 				builder: CommentBuilder,
-				tagContentTokens: ArrayList<AbstractStacksToken>,
+				tagContentTokens: List<AbstractStacksToken>,
 				categories: LinkingFileMap)
 			{
 				builder.addStacksForbidTag(tagContentTokens)
@@ -196,7 +194,7 @@ class StacksParser private constructor(
 				StacksCommentBuilderException::class)
 			override fun addTokensToBuilder(
 				builder: CommentBuilder,
-				tagContentTokens: ArrayList<AbstractStacksToken>,
+				tagContentTokens: List<AbstractStacksToken>,
 				categories: LinkingFileMap)
 			{
 				builder.addStacksGlobalTag(tagContentTokens)
@@ -213,7 +211,7 @@ class StacksParser private constructor(
 				StacksCommentBuilderException::class)
 			override fun addTokensToBuilder(
 				builder: CommentBuilder,
-				tagContentTokens: ArrayList<AbstractStacksToken>,
+				tagContentTokens: List<AbstractStacksToken>,
 				categories: LinkingFileMap)
 			{
 				builder.addStacksMacroTag(tagContentTokens)
@@ -230,7 +228,7 @@ class StacksParser private constructor(
 				StacksCommentBuilderException::class)
 			override fun addTokensToBuilder(
 				builder: CommentBuilder,
-				tagContentTokens: ArrayList<AbstractStacksToken>,
+				tagContentTokens: List<AbstractStacksToken>,
 				categories: LinkingFileMap)
 			{
 				builder.addStacksMethodTag(tagContentTokens)
@@ -247,7 +245,7 @@ class StacksParser private constructor(
 				StacksCommentBuilderException::class)
 			override fun addTokensToBuilder(
 				builder: CommentBuilder,
-				tagContentTokens: ArrayList<AbstractStacksToken>,
+				tagContentTokens: List<AbstractStacksToken>,
 				categories: LinkingFileMap)
 			{
 				builder.addStacksModuleTag(tagContentTokens)
@@ -265,7 +263,7 @@ class StacksParser private constructor(
 				StacksCommentBuilderException::class)
 			override fun addTokensToBuilder(
 				builder: CommentBuilder,
-				tagContentTokens: ArrayList<AbstractStacksToken>,
+				tagContentTokens: List<AbstractStacksToken>,
 				categories: LinkingFileMap)
 			{
 				builder.addStacksParameterTag(tagContentTokens)
@@ -283,7 +281,7 @@ class StacksParser private constructor(
 				StacksCommentBuilderException::class)
 			override fun addTokensToBuilder(
 				builder: CommentBuilder,
-				tagContentTokens: ArrayList<AbstractStacksToken>,
+				tagContentTokens: List<AbstractStacksToken>,
 				categories: LinkingFileMap)
 			{
 				builder.addStacksRaisesTag(tagContentTokens)
@@ -301,7 +299,7 @@ class StacksParser private constructor(
 				StacksCommentBuilderException::class)
 			override fun addTokensToBuilder(
 				builder: CommentBuilder,
-				tagContentTokens: ArrayList<AbstractStacksToken>,
+				tagContentTokens: List<AbstractStacksToken>,
 				categories: LinkingFileMap)
 			{
 				builder.addStacksRestrictsTag(tagContentTokens)
@@ -319,7 +317,7 @@ class StacksParser private constructor(
 				StacksCommentBuilderException::class)
 			override fun addTokensToBuilder(
 				builder: CommentBuilder,
-				tagContentTokens: ArrayList<AbstractStacksToken>,
+				tagContentTokens: List<AbstractStacksToken>,
 				categories: LinkingFileMap)
 			{
 				builder.addStacksReturnsTag(tagContentTokens)
@@ -337,7 +335,7 @@ class StacksParser private constructor(
 				StacksCommentBuilderException::class)
 			override fun addTokensToBuilder(
 				builder: CommentBuilder,
-				tagContentTokens: ArrayList<AbstractStacksToken>,
+				tagContentTokens: List<AbstractStacksToken>,
 				categories: LinkingFileMap)
 			{
 				builder.addStacksSeesTag(tagContentTokens)
@@ -355,7 +353,7 @@ class StacksParser private constructor(
 				StacksCommentBuilderException::class)
 			override fun addTokensToBuilder(
 				builder: CommentBuilder,
-				tagContentTokens: ArrayList<AbstractStacksToken>,
+				tagContentTokens: List<AbstractStacksToken>,
 				categories: LinkingFileMap)
 			{
 				builder.addStacksStickyTag(tagContentTokens)
@@ -373,7 +371,7 @@ class StacksParser private constructor(
 				StacksCommentBuilderException::class)
 			override fun addTokensToBuilder(
 				builder: CommentBuilder,
-				tagContentTokens: ArrayList<AbstractStacksToken>,
+				tagContentTokens: List<AbstractStacksToken>,
 				categories: LinkingFileMap)
 			{
 				builder.addStacksSupertypeTag(tagContentTokens)
@@ -390,7 +388,7 @@ class StacksParser private constructor(
 				StacksCommentBuilderException::class)
 			override fun addTokensToBuilder(
 				builder: CommentBuilder,
-				tagContentTokens: ArrayList<AbstractStacksToken>,
+				tagContentTokens: List<AbstractStacksToken>,
 				categories: LinkingFileMap)
 			{
 				builder.addStacksTypeTag(tagContentTokens)
@@ -410,7 +408,7 @@ class StacksParser private constructor(
 		@Throws(ClassCastException::class, StacksCommentBuilderException::class)
 		internal abstract fun addTokensToBuilder(
 			builder: CommentBuilder,
-			tagContentTokens: ArrayList<AbstractStacksToken>,
+			tagContentTokens: List<AbstractStacksToken>,
 			categories: LinkingFileMap)
 
 		companion object
@@ -430,7 +428,7 @@ class StacksParser private constructor(
 			 * A [mapping][Map] from the string lexeme of the keyword to
 			 * the [StacksKeywords][Enum]
 			 */
-			internal val keywordTable = HashMap<String, StacksTagKeyword>()
+			internal val keywordTable = mutableMapOf<String, StacksTagKeyword>()
 
 			// Learn the lexeme's of the keywords.
 			init
@@ -465,11 +463,13 @@ class StacksParser private constructor(
 
 		if (sectionStartLocations[0] != 0)
 		{
-			val description = ArrayList(
+			val description =
 				tokens()
 					.subList(
 						0,
-						sectionStartLocations[currentSectionStartLocationsIndex]))
+						sectionStartLocations[currentSectionStartLocationsIndex]
+					)
+					.toList()
 			builder.addStacksCommentDescription(description)
 		}
 
@@ -498,8 +498,7 @@ class StacksParser private constructor(
 			//Add the new tag section to the map.
 			StacksTagKeyword.keywordTable[key]?.addTokensToBuilder(
 				builder,
-				ArrayList(
-					tokens().subList(getDataStartingFrom, getDataUntil)),
+				tokens().subList(getDataStartingFrom, getDataUntil).toList(),
 				linkingFileMap)
 			currentSectionStartLocationsIndex = nextSectionStartLocationsIndex
 		}
@@ -512,10 +511,10 @@ class StacksParser private constructor(
 
 		/**
 		 * Answer the [list][List] of [tokens][TokenDescriptor]
-		 * that comprise a [Avail comment][CommentTokenDescriptor].
+		 * that comprise a [Avail&#32;comment][CommentTokenDescriptor].
 		 *
 		 * @param tokens
-		 *   The [Stacks tokens][AbstractStacksToken] to be parsed.
+		 *   The [Stacks&#32;tokens][AbstractStacksToken] to be parsed.
 		 * @param sectionStartLocations
 		 *   The index locations where a new `SectionKeywordStacksToken`
 		 *   begins in in the token list to be parsed.

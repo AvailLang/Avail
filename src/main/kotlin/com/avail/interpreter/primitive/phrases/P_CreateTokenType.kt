@@ -1,6 +1,6 @@
 /*
  * P_CreateTokenType.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,29 +32,42 @@
 
 package com.avail.interpreter.primitive.phrases
 
+import com.avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
 import com.avail.descriptor.functions.A_RawFunction
-import com.avail.descriptor.sets.SetDescriptor.set
+import com.avail.descriptor.numbers.A_Number.Companion.equalsInt
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
+import com.avail.descriptor.tokens.TokenDescriptor
 import com.avail.descriptor.tokens.TokenDescriptor.StaticInit.tokenTypeOrdinalKey
-import com.avail.descriptor.tokens.TokenDescriptor.TokenType.*
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tokens.TokenDescriptor.TokenType.COMMENT
+import com.avail.descriptor.tokens.TokenDescriptor.TokenType.END_OF_FILE
+import com.avail.descriptor.tokens.TokenDescriptor.TokenType.KEYWORD
+import com.avail.descriptor.tokens.TokenDescriptor.TokenType.OPERATOR
+import com.avail.descriptor.tokens.TokenDescriptor.TokenType.WHITESPACE
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.InstanceMetaDescriptor.instanceMeta
-import com.avail.descriptor.types.InstanceTypeDescriptor.instanceType
-import com.avail.descriptor.types.LiteralTokenTypeDescriptor.mostGeneralLiteralTokenType
+import com.avail.descriptor.types.A_Type.Companion.instance
+import com.avail.descriptor.types.A_Type.Companion.instanceCount
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
+import com.avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
+import com.avail.descriptor.types.LiteralTokenTypeDescriptor.Companion.mostGeneralLiteralTokenType
 import com.avail.descriptor.types.TokenTypeDescriptor
-import com.avail.descriptor.types.TokenTypeDescriptor.tokenType
-import com.avail.interpreter.Interpreter
+import com.avail.descriptor.types.TokenTypeDescriptor.Companion.tokenType
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CanFold
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Construct a [token&#32;type][TokenTypeDescriptor] with the
+* **Primitive:** Construct a [token&#32;type][TokenTypeDescriptor] with the
  * given parameterization.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_CreateTokenType : Primitive(1, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result
@@ -63,7 +76,7 @@ object P_CreateTokenType : Primitive(1, CannotFail, CanFold, CanInline)
 		val type = interpreter.argument(0)
 		return interpreter.primitiveSuccess(
 			tokenType(
-				lookupTokenType(
+				TokenDescriptor.TokenType.lookupTokenType(
 					type.getAtomProperty(tokenTypeOrdinalKey).extractInt())))
 	}
 
@@ -76,7 +89,7 @@ object P_CreateTokenType : Primitive(1, CannotFail, CanFold, CanInline)
 		{
 			return instanceType(
 				tokenType(
-					lookupTokenType(
+					TokenDescriptor.TokenType.lookupTokenType(
 						atomType.instance().getAtomProperty(tokenTypeOrdinalKey)
 							.extractInt())))
 

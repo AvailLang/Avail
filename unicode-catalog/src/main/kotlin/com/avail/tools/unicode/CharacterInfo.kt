@@ -1,6 +1,6 @@
 /*
  * CharacterInfo.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -96,17 +96,15 @@ internal class CharacterInfo constructor(internal val codePoint: Int)
 	private val htmlEntityHexadecimal: String
 		get() = format("&#x%x;", codePoint)
 
-	override fun writeTo(writer: JSONWriter)
-	{
-		writer.startArray()
-		writer.write(codePoint)
-		writer.write(character)
-		writer.write(unicodeName)
-		writer.write(htmlEntityDecimal)
-		writer.write(htmlEntityHexadecimal)
-		writer.write(htmlEntityName)
-		writer.endArray()
-	}
+	override fun writeTo(writer: JSONWriter) =
+		writer.writeArray {
+			write(codePoint)
+			write(character)
+			write(unicodeName)
+			write(htmlEntityDecimal)
+			write(htmlEntityHexadecimal)
+			write(htmlEntityName)
+		}
 
 	override fun toString(): String = format("U+%04x", codePoint)
 

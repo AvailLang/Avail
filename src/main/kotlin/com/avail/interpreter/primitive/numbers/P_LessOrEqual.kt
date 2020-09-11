@@ -1,6 +1,6 @@
 /*
  * P_LessOrEqual.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,17 +33,25 @@ package com.avail.interpreter.primitive.numbers
 
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
 import com.avail.descriptor.functions.A_RawFunction
-import com.avail.descriptor.numbers.AbstractNumberDescriptor.Order.*
-import com.avail.descriptor.numbers.AbstractNumberDescriptor.possibleOrdersWhenComparingInstancesOf
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.numbers.A_Number.Companion.lessOrEqual
+import com.avail.descriptor.numbers.AbstractNumberDescriptor.Companion.possibleOrdersWhenComparingInstancesOf
+import com.avail.descriptor.numbers.AbstractNumberDescriptor.Order.EQUAL
+import com.avail.descriptor.numbers.AbstractNumberDescriptor.Order.INCOMPARABLE
+import com.avail.descriptor.numbers.AbstractNumberDescriptor.Order.LESS
+import com.avail.descriptor.numbers.AbstractNumberDescriptor.Order.MORE
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.EnumerationTypeDescriptor
-import com.avail.descriptor.types.EnumerationTypeDescriptor.*
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
+import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.falseType
+import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.trueType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.TypeDescriptor.Types.NUMBER
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CanFold
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
@@ -52,6 +60,7 @@ import com.avail.optimizer.L1Translator.CallSiteHelper
  * **Primitive:** Compare two extended integers and answer a
  * [boolean][EnumerationTypeDescriptor.booleanType].
  */
+@Suppress("unused")
 object P_LessOrEqual : Primitive(2, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result
@@ -64,7 +73,7 @@ object P_LessOrEqual : Primitive(2, CannotFail, CanFold, CanInline)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(NUMBER.o(), NUMBER.o()), booleanType())
+		functionType(tuple(NUMBER.o, NUMBER.o), booleanType)
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type
@@ -79,11 +88,11 @@ object P_LessOrEqual : Primitive(2, CannotFail, CanFold, CanInline)
 		assert(canBeTrue || canBeFalse)
 		return if (canBeTrue)
 		{
-			if (canBeFalse) { booleanType() } else { trueType() }
+			if (canBeFalse) { booleanType } else { trueType }
 		}
 		else
 		{
-			falseType()
+			falseType
 		}
 	}
 

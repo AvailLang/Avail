@@ -1,6 +1,6 @@
 /*
  * P_SocketWrite.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,38 +32,50 @@
 
 package com.avail.interpreter.primitive.sockets
 
-import com.avail.AvailRuntime.currentRuntime
-import com.avail.descriptor.FiberDescriptor
-import com.avail.descriptor.FiberDescriptor.newFiber
+import com.avail.AvailRuntime.Companion.currentRuntime
 import com.avail.descriptor.atoms.A_Atom
+import com.avail.descriptor.atoms.A_Atom.Companion.atomName
+import com.avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
+import com.avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.SOCKET_KEY
+import com.avail.descriptor.fiber.FiberDescriptor
+import com.avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
 import com.avail.descriptor.functions.FunctionDescriptor
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
 import com.avail.descriptor.numbers.IntegerDescriptor
-import com.avail.descriptor.sets.SetDescriptor.set
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.tuples.StringDescriptor.formatString
-import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
+import com.avail.descriptor.tuples.A_Tuple.Companion.byteArray
+import com.avail.descriptor.tuples.A_Tuple.Companion.byteBuffer
+import com.avail.descriptor.tuples.A_Tuple.Companion.transferIntoByteBuffer
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import com.avail.descriptor.tuples.StringDescriptor.Companion.formatString
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.types.FiberTypeDescriptor.mostGeneralFiberType
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.InstanceTypeDescriptor.instanceType
+import com.avail.descriptor.types.A_Type.Companion.returnType
+import com.avail.descriptor.types.A_Type.Companion.typeUnion
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
+import com.avail.descriptor.types.FiberTypeDescriptor.Companion.mostGeneralFiberType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.bytes
-import com.avail.descriptor.types.TupleTypeDescriptor.zeroOrMoreOf
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.bytes
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode
-import com.avail.exceptions.AvailErrorCode.*
-import com.avail.interpreter.Interpreter
+import com.avail.exceptions.AvailErrorCode.E_INVALID_HANDLE
+import com.avail.exceptions.AvailErrorCode.E_IO_ERROR
+import com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.execution.Interpreter
+import com.avail.interpreter.execution.Interpreter.Companion.runOutermostFunction
 import com.avail.io.SimpleCompletionHandler
+import com.avail.io.SimpleCompletionHandler.Dummy.Companion.dummy
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousSocketChannel
-import java.util.Collections.emptyList
-
 
 /**
  * **Primitive:** Initiate an asynchronous write from the
@@ -95,7 +107,7 @@ object P_SocketWrite : Primitive(5, CanInline, HasSideEffect)
 		if (pojo.equalsNil())
 		{
 			return interpreter.primitiveFailure(
-				if (handle.isAtomSpecial) E_SPECIAL_ATOM else E_INVALID_HANDLE)
+				if (handle.isAtomSpecial()) E_SPECIAL_ATOM else E_INVALID_HANDLE)
 		}
 		val socket = pojo.javaObjectNotNull<AsynchronousSocketChannel>()
 		// Obtain a buffer for writing.
@@ -114,12 +126,12 @@ object P_SocketWrite : Primitive(5, CanInline, HasSideEffect)
 		) { formatString("Socket write, %s", handle.atomName()) }
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.
-		newFiber.availLoader(current.availLoader())
+		newFiber.setAvailLoader(current.availLoader())
 		// Share and inherit any heritable variables.
-		newFiber.heritableFiberGlobals(
+		newFiber.setHeritableFiberGlobals(
 			current.heritableFiberGlobals().makeShared())
 		// Inherit the fiber's text interface.
-		newFiber.textInterface(current.textInterface())
+		newFiber.setTextInterface(current.textInterface())
 		// Share everything that will potentially be visible to the fiber.
 		newFiber.makeShared()
 		succeed.makeShared()
@@ -130,23 +142,23 @@ object P_SocketWrite : Primitive(5, CanInline, HasSideEffect)
 		{
 			socket.write(
 				buffer,
-				null,
+				dummy,
 				SimpleCompletionHandler(
-					{ _, _, handler ->
+					{
 						if (buffer.hasRemaining())
 						{
 							// Not done all writing.  Continue.
-							socket.write(buffer, null, handler)
+							socket.write(buffer, dummy, handler)
 						}
 						else
 						{
 							// Done all writing.  Report success.
-							Interpreter.runOutermostFunction(
+							runOutermostFunction(
 								runtime, newFiber, succeed, emptyList())
 						}
 					},
-					{ _, _, _ ->
-						Interpreter.runOutermostFunction(
+					{
+						runOutermostFunction(
 							runtime,
 							newFiber,
 							fail,
@@ -163,15 +175,18 @@ object P_SocketWrite : Primitive(5, CanInline, HasSideEffect)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				zeroOrMoreOf(bytes()),
-				ATOM.o(),
+				zeroOrMoreOf(bytes),
+				ATOM.o,
 				functionType(
-					emptyTuple(),
-					TOP.o()),
+					emptyTuple,
+					TOP.o
+				),
 				functionType(
 					tuple(instanceType(E_IO_ERROR.numericCode())),
-					TOP.o()),
-				bytes()),
+					TOP.o
+				),
+				bytes
+			),
 			mostGeneralFiberType())
 
 	override fun privateFailureVariableType(): A_Type =

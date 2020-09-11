@@ -1,6 +1,6 @@
 /*
  * P_DeclareAllAtomsExportedFromAnotherModule.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,22 +32,29 @@
 
 package com.avail.interpreter.primitive.modules
 
-import com.avail.descriptor.ModuleDescriptor.ObjectSlots
-import com.avail.descriptor.ModuleDescriptor.currentModule
-import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.atoms.A_Atom.Companion.extractBoolean
 import com.avail.descriptor.atoms.AtomDescriptor
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.module.ModuleDescriptor.Companion.currentModule
+import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.descriptor.sets.A_Set.Companion.setSize
+import com.avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
+import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.EnumerationTypeDescriptor
-import com.avail.descriptor.types.EnumerationTypeDescriptor.booleanType
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.naturalNumbers
-import com.avail.descriptor.types.SetTypeDescriptor.setTypeForSizesContentType
-import com.avail.descriptor.types.TupleTypeDescriptor.stringType
+import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
+import com.avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
+import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.Primitive.Flag.Private
+import com.avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** This private primitive is used to ensure that a module can
@@ -61,6 +68,7 @@ import com.avail.interpreter.Primitive.Flag.*
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
+@Suppress("unused")
 object P_DeclareAllAtomsExportedFromAnotherModule : Primitive(
 	2, CannotFail, Private, HasSideEffect, WritesToHiddenGlobalState)
 {
@@ -68,16 +76,19 @@ object P_DeclareAllAtomsExportedFromAnotherModule : Primitive(
 	{
 		interpreter.checkArgumentCount(2)
 		val (importedModuleNames, isPublic) = interpreter.argsBuffer
-		val module = currentModule()
+		val module = currentModule
 		assert(!module.equalsNil())
-		val runtime = interpreter.runtime()
-		importedModuleNames.forEach { importedModuleName ->
+		val runtime = interpreter.runtime
+		val sets = importedModuleNames.map { importedModuleName ->
 			val importedModule = runtime.moduleAt(importedModuleName)
-			val names = importedModule.exportedNames()
-			when(isPublic.extractBoolean()) {
-				true -> module.addImportedNames(names)
-				else -> module.addPrivateNames(names)
-			}
+			importedModule.exportedNames()
+		}.sortedByDescending { it.setSize() }
+		val union = sets.fold(emptySet) { union, nextSet ->
+			union.setUnionCanDestroy(nextSet, true)
+		}
+		when (isPublic.extractBoolean()) {
+			true -> module.addImportedNames(union.makeShared())
+			else -> module.addPrivateNames(union.makeShared())
 		}
 		return interpreter.primitiveSuccess(nil)
 	}
@@ -86,8 +97,10 @@ object P_DeclareAllAtomsExportedFromAnotherModule : Primitive(
 		functionType(
 			tuple(
 				setTypeForSizesContentType(
-					naturalNumbers(),
-					stringType()),
-				booleanType()),
-			TOP.o())
+					naturalNumbers,
+					Types.ANY.o  /* stringType() - weakened for performance. */
+				),
+				booleanType),
+			TOP.o
+		)
 }

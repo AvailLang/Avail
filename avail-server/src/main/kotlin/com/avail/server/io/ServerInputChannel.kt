@@ -1,6 +1,6 @@
 /*
  * ServerInputChannel.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,13 +34,14 @@ package com.avail.server.io
 
 import com.avail.io.TextInputChannel
 import com.avail.server.messages.Message
-import com.avail.utility.Casts.cast
+import com.avail.utility.cast
 import java.io.IOException
 import java.nio.BufferOverflowException
 import java.nio.CharBuffer
 import java.nio.channels.ClosedChannelException
 import java.nio.channels.CompletionHandler
-import java.util.*
+import java.util.ArrayDeque
+import java.util.Deque
 import kotlin.math.min
 
 /**
@@ -48,7 +49,7 @@ import kotlin.math.min
  * input channel.
  *
  * @property channel
- *   The underlying [server channel][AvailServerChannel].
+ *   The underlying [server&#32;channel][AvailServerChannel].
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  *
  * @constructor
@@ -56,7 +57,7 @@ import kotlin.math.min
  * Construct a new [ServerInputChannel].
  *
  * @param channel
- *   The [server channel][ServerInputChannel] to adapt as a standard input
+ *   The [server&#32;channel][ServerInputChannel] to adapt as a standard input
  *   channel.
  */
 class ServerInputChannel constructor(
@@ -107,8 +108,8 @@ class ServerInputChannel constructor(
 	 * @param attachment
 	 *   The attachment, of `null` if none.
 	 * @param handler
-	 *   The [completion handler][CompletionHandler] provided for notification
-	 *   of data availability.
+	 *   The [completion&#32;handler][CompletionHandler] provided for
+	 *   notification of data availability.
 	 */
 	private class Waiter internal constructor(
 		internal val buffer: CharBuffer,
@@ -116,10 +117,10 @@ class ServerInputChannel constructor(
 		handler: CompletionHandler<Int, *>)
 	{
 		/**
-		 * The [completion handler][CompletionHandler] provided for notification
-		 * of data availability.
+		 * The [completion&#32;handler][CompletionHandler] provided for
+		 * notification of data availability.
 		 */
-		internal val handler: CompletionHandler<Int, Any> = cast(handler)
+		internal val handler: CompletionHandler<Int, Any> = handler.cast()
 
 		/** The number of bytes read. */
 		internal var bytesRead = 0
@@ -143,7 +144,7 @@ class ServerInputChannel constructor(
 	@Throws(IOException::class)
 	override fun reset()
 	{
-		val ready = ArrayList<Waiter>()
+		val ready: MutableList<Waiter>
 		synchronized(this) {
 			val buffer = markBuffer ?: throw IOException()
 			// Discard the mark.
@@ -158,6 +159,7 @@ class ServerInputChannel constructor(
 			}
 			assert(messages.isEmpty())
 			assert(position == 0)
+			ready = mutableListOf()
 			val content = buffer.toString()
 			val contentLength = content.length
 			while (position != contentLength && !waiters.isEmpty())
@@ -232,7 +234,7 @@ class ServerInputChannel constructor(
 				// If the channel has been marked, then duplicate message data
 				// into the mark buffer.
 				val mark = markBuffer
-				if (mark != null)
+				if (mark !== null)
 				{
 					try
 					{
@@ -257,7 +259,7 @@ class ServerInputChannel constructor(
 			// necessary in order to keep positioning simple (by eliminating
 			// redundant data).
 			val mark = markBuffer
-			if (mark != null && position != 0 && !messages.isEmpty())
+			if (mark !== null && position != 0 && !messages.isEmpty())
 			{
 				val message = messages.removeFirst()
 				val newMessage = Message(
@@ -291,7 +293,7 @@ class ServerInputChannel constructor(
 			// Otherwise, attempt to feed the message into any waiters.
 			assert(messages.isEmpty())
 			assert(position == 0)
-			ready = ArrayList()
+			ready = mutableListOf()
 			val content = message.stringContent
 			val contentLength = content.length
 			while (position != contentLength && !waiters.isEmpty())
@@ -305,7 +307,7 @@ class ServerInputChannel constructor(
 				// If the channel has been marked, then duplicate message data
 				// into the mark buffer.
 				val mark = markBuffer
-				if (mark != null)
+				if (mark !== null)
 				{
 					try
 					{
@@ -326,7 +328,7 @@ class ServerInputChannel constructor(
 				// If data has been marked, then truncate the current message if
 				// necessary in order to keep positioning simple (by eliminating
 				// redundant data). Reset the position.
-				if (mark != null)
+				if (mark !== null)
 				{
 					val newMessage = Message(
 						message.stringContent.substring(position).toByteArray(),

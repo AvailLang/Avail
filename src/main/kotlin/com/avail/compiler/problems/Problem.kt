@@ -1,6 +1,6 @@
 /*
  * Problem.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@
 package com.avail.compiler.problems
 
 import com.avail.builder.ModuleName
-import com.avail.descriptor.CharacterDescriptor
+import com.avail.descriptor.character.CharacterDescriptor
 import java.nio.charset.Charset
 import java.text.MessageFormat
 
@@ -58,12 +58,12 @@ import java.text.MessageFormat
  *   found, no read access, etc.), a line number of `0` can indicate this.
  * @property characterInFile
  *   The approximate location of the problem within the source file as a
- *   zero-based subscript of the full-Unicode [code
- *   points][CharacterDescriptor] of the file.  [Surrogate
- *   pairs][Character.isSurrogate] are treated as a single code point. It is
- *   *strongly* recommended that Avail source files are always encoded in the
- *   UTF-8 [character set][Charset].  The current compiler as of 2014.01.26
- *   *requires* source files to be in UTF-8 encoding.
+ *   zero-based subscript of the full-Unicode
+ *   [code&#32;points][CharacterDescriptor] of the file.
+ *   [Surrogate&#32;pairs][Character.isSurrogate] are treated as a single code
+ *   point. It is *strongly* recommended that Avail source files are always
+ *   encoded in the UTF-8 [character&#32;set][Charset].  The current compiler as
+ *   of 2014.01.26 *requires* source files to be in UTF-8 encoding.
  * @property type
  *   The [type][ProblemType] of problem that was encountered.
  * @property messagePattern
@@ -124,7 +124,7 @@ abstract class Problem constructor(
 	 * compile is inappropriate or impossible for the receiver, then as a
 	 * convenience, this method simply calls [abortCompilation].
 	 */
-	open fun continueCompilation() =  abortCompilation()
+	open fun continueCompilation() = abortCompilation()
 
 	/**
 	 * Give up compilation.  Note that either [continueCompilation] or this

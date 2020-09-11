@@ -1,19 +1,19 @@
 /*
  * GlobalCommentImplementation.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  Redistributions of source code must retain the above copyright notice, this
+ * * Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- *  Redistributions in binary form must reproduce the above copyright notice,
+ * * Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
  *
- *  Neither the name of the copyright holder nor the names of the contributors
+ * * Neither the name of the copyright holder nor the names of the contributors
  *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
@@ -40,17 +40,20 @@ import com.avail.stacks.StacksErrorLog
 import com.avail.stacks.comment.signature.CommentSignature
 import com.avail.stacks.comment.signature.MethodCommentSignature
 import com.avail.stacks.module.StacksImportModule
-import com.avail.stacks.tags.*
+import com.avail.stacks.tags.StacksAliasTag
+import com.avail.stacks.tags.StacksAuthorTag
+import com.avail.stacks.tags.StacksCategoryTag
+import com.avail.stacks.tags.StacksGlobalTag
+import com.avail.stacks.tags.StacksSeeTag
 import com.avail.utility.json.JSONWriter
-import java.util.*
 
 /**
  * A module global variable comment
  *
- * @author Richard Arriaga &lt;rich@availlang.org&gt;
- *
  * @property globalTag
  *   A global module variable comment tag
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ *
  * @constructor
  * Construct a new [GlobalComment].
  *
@@ -62,47 +65,45 @@ import java.util.*
  * @param author
  *   The [author][StacksAuthorTag] of the implementation.
  * @param sees
- *   A [ArrayList] of any [&quot;@sees&quot;][StacksSeeTag] references.
+ *   A list of any [&quot;@sees&quot;][StacksSeeTag] references.
  * @param description
- *   The overall description of the implementation
+ *   The overall description of the implementation.
  * @param categories
- *   The categories the implementation appears in
+ *   The categories the implementation appears in.
  * @param aliases
- *   The aliases the implementation
+ *   The aliases the implementation.
  * @param globalTag
- *   A global module variable comment tag
+ *   A global module variable comment tag.
  */
 class GlobalComment constructor (
-		signature: CommentSignature,
-		commentStartLine: Int,
-		author: ArrayList<StacksAuthorTag>,
-		sees: ArrayList<StacksSeeTag>,
-		description: StacksDescription,
-		categories: ArrayList<StacksCategoryTag>,
-		aliases: ArrayList<StacksAliasTag>,
-		val globalTag: StacksGlobalTag)
-	: AvailComment(
-		signature,
-		commentStartLine,
-		author,
-		sees,
-		description,
-		categories,
-		aliases,
-		false)
+	signature: CommentSignature,
+	commentStartLine: Int,
+	author: List<StacksAuthorTag>,
+	sees: List<StacksSeeTag>,
+	description: StacksDescription,
+	categories: List<StacksCategoryTag>,
+	aliases: List<StacksAliasTag>,
+	private val globalTag: StacksGlobalTag)
+: AvailComment(
+	signature,
+	commentStartLine,
+	author,
+	sees,
+	description,
+	categories,
+	aliases,
+	false)
 {
-
-	override fun addToImplementationGroup(
-		commentGroup: CommentGroup)
+	override fun addToImplementationGroup (commentGroup: CommentGroup)
 	{
 		commentGroup.global(this)
 	}
 
-	//Do nothing as globals will never be defined outside of its module.
+	// Do nothing as globals will never be defined outside of its module.
 	override fun addImplementationToImportModule(
 		name: A_String, importModule: StacksImportModule) = Unit
 
-	//DO NOTHING AS GLOBALS AREN'T WRITTEN TO DOCUMENTATION
+	// DO NOTHING AS GLOBALS AREN'T WRITTEN TO DOCUMENTATION
 	override fun toJSON(
 		linkingFileMap: LinkingFileMap,
 		nameOfGroup: String,

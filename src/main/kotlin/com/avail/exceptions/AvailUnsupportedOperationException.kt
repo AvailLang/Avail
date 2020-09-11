@@ -1,6 +1,6 @@
 /*
  * AvailUnsupportedOperationException.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,14 +32,14 @@
 
 package com.avail.exceptions
 
-import com.avail.descriptor.AbstractDescriptor
-import com.avail.descriptor.AvailObject
-import com.avail.descriptor.Descriptor
+import com.avail.descriptor.representation.AbstractDescriptor
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.Descriptor
 
 /**
  * An `AvailUnsupportedOperationException` is thrown whenever an
- * [Avail object][AvailObject]'s [descriptor][Descriptor] is asked to perform an
- * unsupported operation.
+ * [Avail&#32;object][AvailObject]'s [descriptor][Descriptor] is asked to
+ * perform an unsupported operation.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  *

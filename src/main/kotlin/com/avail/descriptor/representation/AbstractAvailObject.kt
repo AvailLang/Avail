@@ -6,12 +6,12 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
  *
  *  * Neither the name of the copyright holder nor the names of the contributors
  *    may be used to endorse or promote products derived from this software
@@ -31,12 +31,8 @@
  */
 package com.avail.descriptor.representation
 
-import com.avail.descriptor.AbstractDescriptor
-import com.avail.descriptor.AvailObject
-import com.avail.descriptor.FillerDescriptor
-import com.avail.descriptor.IndirectionDescriptor
 import com.avail.optimizer.jvm.CheckedMethod
-import com.avail.optimizer.jvm.CheckedMethod.instanceMethod
+import com.avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 
 /**
@@ -67,7 +63,9 @@ abstract class AbstractAvailObject protected constructor(
 	 * semantics. The descriptor essentially says how this object should behave,
 	 * including how its fields are laid out.
 	 */
-	protected @field:Volatile var currentDescriptor = initialDescriptor
+	@field:Volatile
+	@JvmField
+	protected var currentDescriptor = initialDescriptor
 
 	/** Retrieve this object's current [descriptor][AbstractDescriptor]. */
 	@ReferencedInGeneratedCode
@@ -205,7 +203,7 @@ abstract class AbstractAvailObject protected constructor(
 		@JvmField
 		val descriptorMethod: CheckedMethod = instanceMethod(
 			AbstractAvailObject::class.java,
-			"descriptor",
+			AbstractAvailObject::descriptor.name,
 			AbstractDescriptor::class.java)
 	}
 }

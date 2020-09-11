@@ -1,6 +1,6 @@
 /*
  * StateSummary.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,20 +32,21 @@
 
 package com.avail.utility.fsm
 
-import java.util.*
+import java.util.Collections
+import java.util.EnumMap
 
 /**
  * The complete runtime representation of a state.
  *
- * @param <Event>
+ * @param Event
  *   The event type.
- * @param <GuardKey>
+ * @param GuardKey
  *   The guard key type.
- * @param <ActionKey>
+ * @param ActionKey
  *   The action key type.
- * @param <State>
+ * @param State
  *   The state type.
- * @param <Memento>
+ * @param Memento
  *   The type of memento passed to guards and actions.
  * @property state
  *   The state for which the receiver is a [summary][StateSummary].
@@ -119,7 +120,7 @@ internal class StateSummary<
 
 	init
 	{
-		automaticTransitionTable = ArrayList()
+		automaticTransitionTable = mutableListOf()
 	}
 
 	/**
@@ -144,13 +145,13 @@ internal class StateSummary<
 	}
 
 	/**
-	 * Set the [state transition arc][StateTransitionArc] for the specified
-	 * event. If the event is null, define an automatic transition.
+	 * Set the [state&#32;transition&#32;arc][StateTransitionArc] for the
+	 * specified event. If the event is null, define an automatic transition.
 	 *
 	 * @param event
 	 *   An event, null to indicate an automatic transition.
 	 * @param arc
-	 *   A [state transition arc][StateTransitionArc].
+	 *   A [state&#32;transition&#32;arc][StateTransitionArc].
 	 */
 	fun addTransitionArc(
 		event: Event?,
@@ -164,7 +165,7 @@ internal class StateSummary<
 				}
 				else
 				{
-					transitionTable.computeIfAbsent(event) { ArrayList() }
+					transitionTable.computeIfAbsent(event) { mutableListOf() }
 				}
 		collection.add(arc)
 	}
@@ -182,17 +183,17 @@ internal class StateSummary<
 	}
 
 	/**
-	 * Obtain all [state transition arcs][StateTransitionArc] for the
+	 * Obtain all [state&#32;transition&#32;arcs][StateTransitionArc] for the
 	 * `StateSummary`'s state.
 	 *
 	 * @return
-	 *   A [collection][Collection] of [state transition
-	 *   arcs][StateTransitionArc].
+	 *   A [collection][Collection] of
+	 *   [state&#32;transition&#32;arcs][StateTransitionArc].
 	 */
 	fun allTransitionArcs(): Collection<StateTransitionArc<
 		State, Event, GuardKey, ActionKey, Memento>>
 	{
-		val aggregate = ArrayList<StateTransitionArc<
+		val aggregate = mutableListOf<StateTransitionArc<
 			State, Event, GuardKey, ActionKey, Memento>>()
 		for (transitionArcs in transitionTable.values)
 		{
@@ -203,7 +204,7 @@ internal class StateSummary<
 	}
 
 	/**
-	 * Answer the appropriate [transition arc][StateTransitionArc] for the
+	 * Answer the appropriate [transition&#32;arc][StateTransitionArc] for the
 	 * starting state and the specified event. The event may be null, in which
 	 * case an automatic transition may be found. Guards are performed at this
 	 * time to determine which, if any, transition should be taken. The
@@ -213,10 +214,10 @@ internal class StateSummary<
 	 * @param event
 	 *   An event, or null if searching for automatic transitions.
 	 * @param executionContext
-	 *   The [execution context][ExecutionContext].
+	 *   The [execution&#32;context][ExecutionContext].
 	 * @return
-	 *   A [state transition arc][StateTransitionArc], or null if none are
-	 *   applicable.
+	 *   A [state&#32;transition&#32;arc][StateTransitionArc], or null if none
+	 *   are applicable.
 	 */
 	fun getTransitionArc(
 			event: Event?,

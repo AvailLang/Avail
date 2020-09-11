@@ -1,6 +1,6 @@
 /*
  * MarshalingException.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,13 +32,13 @@
 
 package com.avail.exceptions
 
-import com.avail.descriptor.AvailObject
+import com.avail.descriptor.representation.AvailObject
 
 import com.avail.exceptions.AvailErrorCode.E_JAVA_MARSHALING_FAILED
 
 /**
  * `MarshalingException` indicates that an error occurred during the
- * marshaling of an [Avail object][AvailObject] to Java.
+ * marshaling of an [Avail&#32;object][AvailObject] to Java.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

@@ -1,6 +1,6 @@
 /*
  * JSONData.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,7 @@ package com.avail.utility.json
 
 /**
  * `JSONData` is the superclass of [JSONValue], [JSONNumber], [JSONArray], and
- * [JSONObject]. A [JSONReader] [ ][JSONReader.read] a single `JSONData`.
+ * [JSONObject]. A [JSONReader] [reads][JSONReader.read] a single `JSONData`.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

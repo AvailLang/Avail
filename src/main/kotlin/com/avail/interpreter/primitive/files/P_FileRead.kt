@@ -1,6 +1,6 @@
 /*
  * P_FileRead.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,34 +31,51 @@
  */
 package com.avail.interpreter.primitive.files
 
-import com.avail.descriptor.FiberDescriptor.newFiber
+import com.avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
+import com.avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.FILE_KEY
+import com.avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
 import com.avail.descriptor.functions.FunctionDescriptor
-import com.avail.descriptor.numbers.InfinityDescriptor.positiveInfinity
-import com.avail.descriptor.numbers.IntegerDescriptor.one
-import com.avail.descriptor.sets.SetDescriptor.set
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
+import com.avail.descriptor.numbers.A_Number.Companion.extractLong
+import com.avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.one
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.concatenateTuplesCanDestroy
+import com.avail.descriptor.tuples.A_Tuple.Companion.copyTupleFromToCanDestroy
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.ByteArrayTupleDescriptor
-import com.avail.descriptor.tuples.ByteBufferTupleDescriptor.tupleForByteBuffer
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.*
-import com.avail.descriptor.tuples.StringDescriptor.formatString
-import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+import com.avail.descriptor.tuples.ByteBufferTupleDescriptor.Companion.tupleForByteBuffer
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromArray
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
+import com.avail.descriptor.tuples.StringDescriptor.Companion.formatString
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.types.FiberTypeDescriptor.fiberType
-import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.types.InstanceTypeDescriptor.instanceType
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.*
-import com.avail.descriptor.types.TupleTypeDescriptor.zeroOrMoreOf
+import com.avail.descriptor.types.A_Type.Companion.returnType
+import com.avail.descriptor.types.A_Type.Companion.typeUnion
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
+import com.avail.descriptor.types.FiberTypeDescriptor.Companion.fiberType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.bytes
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
-import com.avail.exceptions.AvailErrorCode.*
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Interpreter.runOutermostFunction
+import com.avail.exceptions.AvailErrorCode.E_EXCEEDS_VM_LIMIT
+import com.avail.exceptions.AvailErrorCode.E_INVALID_HANDLE
+import com.avail.exceptions.AvailErrorCode.E_IO_ERROR
+import com.avail.exceptions.AvailErrorCode.E_NOT_OPEN_FOR_READ
+import com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.execution.Interpreter
+import com.avail.interpreter.execution.Interpreter.Companion.runOutermostFunction
 import com.avail.io.IOSystem.BufferKey
 import com.avail.io.IOSystem.FileHandle
 import com.avail.io.SimpleCompletionHandler
@@ -68,8 +85,8 @@ import java.nio.channels.AsynchronousFileChannel
 import kotlin.math.min
 
 /**
- * **Primitive:** Read the requested number of bytes from the [file
- * channel][AsynchronousFileChannel] associated with the specified
+ * **Primitive:** Read the requested number of bytes from the
+ * [file&#32;channel][AsynchronousFileChannel] associated with the specified
  * [handle][AtomDescriptor], starting at the requested one-based position.
  * Produce them as a [tuple][ByteArrayTupleDescriptor] of bytes. If fewer bytes
  * are available, then simply produce a shorter tuple; an empty tuple
@@ -77,14 +94,11 @@ import kotlin.math.min
  * request amount is infinite or very large, fewer bytes may be returned, at the
  * discretion of the Avail VM.
  *
- *
- *
  * Answer a new fiber which, if the read is eventually successful, will be
- * started to apply the [success function][FunctionDescriptor] to the resulting
- * tuple of bytes.  If the read is unsuccessful, the fiber will be started to
- * apply the `failure function` to the error code.  The fiber runs at the
- * specified priority.
- *
+ * started to apply the [success&#32;function][FunctionDescriptor] to the
+ * resulting tuple of bytes.  If the read is unsuccessful, the fiber will be
+ * started to apply the `failure function` to the error code.  The fiber runs at
+ * the specified priority.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
@@ -121,7 +135,7 @@ object P_FileRead : Primitive(6, CanInline, HasSideEffect)
 		if (pojo.equalsNil())
 		{
 			return interpreter.primitiveFailure(
-				if (atom.isAtomSpecial) E_SPECIAL_ATOM else E_INVALID_HANDLE)
+				if (atom.isAtomSpecial()) E_SPECIAL_ATOM else E_INVALID_HANDLE)
 		}
 		val handle = pojo.javaObjectNotNull<FileHandle>()
 		if (!handle.canRead)
@@ -133,7 +147,7 @@ object P_FileRead : Primitive(6, CanInline, HasSideEffect)
 		{
 			return interpreter.primitiveFailure(E_EXCEEDS_VM_LIMIT)
 		}
-		val runtime = interpreter.runtime()
+		val runtime = interpreter.runtime
 		val ioSystem = runtime.ioSystem()
 		val oneBasedPositionLong = positionObject.extractLong()
 		// Guaranteed positive by argument constraint.
@@ -229,12 +243,12 @@ object P_FileRead : Primitive(6, CanInline, HasSideEffect)
 		}
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.
-		newFiber.availLoader(current.availLoader())
+		newFiber.setAvailLoader(current.availLoader())
 		// Share and inherit any heritable variables.
-		newFiber.heritableFiberGlobals(
+		newFiber.setHeritableFiberGlobals(
 			current.heritableFiberGlobals().makeShared())
 		// Inherit the fiber's text interface.
-		newFiber.textInterface(current.textInterface())
+		newFiber.setTextInterface(current.textInterface())
 		// Share everything that will potentially be visible to the fiber.
 		newFiber.makeShared()
 		succeed.makeShared()
@@ -244,13 +258,9 @@ object P_FileRead : Primitive(6, CanInline, HasSideEffect)
 			// We began with buffer hits, so don't fetch anything.
 			// Concatenate the buffers we have.
 			val buffersTuple = tupleFromList(buffers)
-			val concatenated =
-				buffersTuple.concatenateTuplesCanDestroy(false)
+			val concatenated = buffersTuple.concatenateTuplesCanDestroy(false)
 			runOutermostFunction(
-				runtime,
-				newFiber,
-				succeed,
-				listOf(concatenated))
+				runtime, newFiber, succeed, listOf(concatenated))
 			return interpreter.primitiveSuccess(newFiber)
 		}
 		// We began with buffer misses, and we can figure out how many...
@@ -259,26 +269,26 @@ object P_FileRead : Primitive(6, CanInline, HasSideEffect)
 		size = buffers.size * alignment
 		// Now start the asynchronous read.
 		val buffer = ByteBuffer.allocateDirect(size)
-		SimpleCompletionHandler<Int, Any?>(
+		SimpleCompletionHandler<Int>(
 			// completion
-			{ bytesRead ->
+			{
 				buffer.flip()
 				val bytesTuple: A_Tuple
-				if (bytesRead == -1)
+				if (value == -1)
 				{
 					// We started reading after the last byte of the file. Avail
 					// expects an empty buffer in this case.
 					assert(buffer.remaining() == 0)
-					bytesTuple = emptyTuple()
+					bytesTuple = emptyTuple
 				}
 				else
 				{
-					assert(buffer.remaining() == bytesRead)
+					assert(buffer.remaining() == value)
 					bytesTuple = tupleForByteBuffer(buffer).makeShared()
-					assert(bytesTuple.tupleSize() == bytesRead)
+					assert(bytesTuple.tupleSize() == value)
 					// Seed the file cache, except for the final partial buffer.
 					val lastPosition =
-						oneBasedPositionLong + bytesRead - 1
+						oneBasedPositionLong + value - 1
 					val lastFullBufferStart =
 						lastPosition / alignment * alignment - alignment + 1
 					var offsetInBuffer = 1
@@ -318,21 +328,25 @@ object P_FileRead : Primitive(6, CanInline, HasSideEffect)
 					fail,
 					listOf(E_IO_ERROR.numericCode()))
 			}
-		).guardedDo(fileChannel::read, buffer, oneBasedPositionLong - 1, null)
+		).guardedDo {
+			fileChannel.read(buffer, oneBasedPositionLong - 1, dummy, handler)
+		}
 		return interpreter.primitiveSuccess(newFiber)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tupleFromArray(
-				naturalNumbers(),
+				naturalNumbers,
 				inclusive(one(), positiveInfinity()),
-				ATOM.o(),
-				functionType(tuple(zeroOrMoreOf(bytes())), TOP.o()),
+				ATOM.o,
+				functionType(tuple(zeroOrMoreOf(bytes)), TOP.o),
 				functionType(
-					tuple(instanceType(E_IO_ERROR.numericCode())), TOP.o()),
-				bytes()),
-			fiberType(TOP.o()))
+					tuple(instanceType(E_IO_ERROR.numericCode())), TOP.o
+				),
+				bytes
+			),
+			fiberType(TOP.o))
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

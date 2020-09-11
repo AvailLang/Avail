@@ -1,6 +1,6 @@
 /*
  * AvailEmergencyExitException.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,7 @@ package com.avail.exceptions
 
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.StringDescriptor
-import com.avail.descriptor.tuples.StringDescriptor.stringFrom
+import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import java.lang.String.format
 
 /**
@@ -46,18 +46,20 @@ import java.lang.String.format
 class AvailEmergencyExitException : Exception
 {
 	/**
-	 * The [error message][StringDescriptor] describing the emergency exit
+	 * The [error&#32;message][StringDescriptor] describing the emergency exit
 	 * situation.
 	 */
+	@Suppress("MemberVisibilityCanBePrivate")
 	val failureString: A_String
 
 	/**
 	 * Construct a new [AvailEmergencyExitException].
 	 *
 	 * @param failureString
-	 *   The [error message][StringDescriptor] describing the emergency exit
+	 *   The [error&#32;message][StringDescriptor] describing the emergency exit
 	 *   situation.
 	 */
+	@Suppress("unused")
 	constructor(failureString: A_String)
 	{
 		assert(failureString.isString)
@@ -68,7 +70,7 @@ class AvailEmergencyExitException : Exception
 	 * Construct a new [AvailEmergencyExitException].
 	 *
 	 * @param failureString
-	 *   The [error message][StringDescriptor] describing the emergency exit
+	 *   The [error&#32;message][StringDescriptor] describing the emergency exit
 	 *   situation.
 	 */
 	constructor(failureString: String)

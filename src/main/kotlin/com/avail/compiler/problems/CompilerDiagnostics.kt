@@ -1,6 +1,6 @@
 /*
  * CompilerDiagnostics.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,42 +32,46 @@
 
 package com.avail.compiler.problems
 
-import com.avail.AvailRuntime.currentRuntime
+import com.avail.AvailRuntime.Companion.currentRuntime
 import com.avail.builder.ModuleName
 import com.avail.compiler.ParserState
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.SILENT
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
 import com.avail.compiler.problems.ProblemType.PARSE
 import com.avail.compiler.scanning.LexingState
-import com.avail.descriptor.CharacterDescriptor.fromCodePoint
-import com.avail.descriptor.FiberDescriptor
+import com.avail.descriptor.character.CharacterDescriptor.Companion.fromCodePoint
+import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.descriptor.tokens.A_Token
+import com.avail.descriptor.tokens.TokenDescriptor.Companion.newToken
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType.END_OF_FILE
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType.WHITESPACE
-import com.avail.descriptor.tokens.TokenDescriptor.newToken
 import com.avail.descriptor.tuples.A_String
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
-import com.avail.descriptor.tuples.StringDescriptor.stringFrom
-import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.appendCanDestroy
+import com.avail.descriptor.tuples.A_Tuple.Companion.concatenateTuplesCanDestroy
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
+import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.persistence.Repository
-import com.avail.utility.Locks.auto
-import com.avail.utility.Locks.lockWhile
 import com.avail.utility.Mutable
 import com.avail.utility.Strings.addLineNumbers
 import com.avail.utility.Strings.lineBreakPattern
 import com.avail.utility.evaluation.Combinator.recurse
 import com.avail.utility.evaluation.Describer
 import com.avail.utility.evaluation.SimpleDescriber
+import com.avail.utility.safeWrite
 import java.lang.String.format
-import java.util.*
-import java.util.Collections.*
+import java.util.Collections.emptyIterator
+import java.util.Collections.reverseOrder
+import java.util.PriorityQueue
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.locks.ReadWriteLock
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.function.BooleanSupplier
 import java.util.regex.Matcher
 import javax.annotation.concurrent.GuardedBy
 import kotlin.collections.set
+import kotlin.concurrent.read
 import kotlin.math.min
 
 /**
@@ -127,7 +131,7 @@ class CompilerDiagnostics(
 	 * A collection of tokens that have been encountered during parsing since
 	 * the last time this list was cleared.
 	 */
-	private var liveTokens: MutableList<A_Token> = ArrayList(100)
+	private var liveTokens = mutableListOf<A_Token>()
 
 	/** A lock to protect access to [liveTokens].  */
 	private val liveTokensLock = ReentrantReadWriteLock()
@@ -224,7 +228,7 @@ class CompilerDiagnostics(
 		/**
 		 * The [List] of [Describer]s that describe problems at this position.
 		 */
-		val problems: MutableList<Describer> = ArrayList()
+		val problems = mutableListOf<Describer>()
 
 		/**
 		 * All [LexingState]s at which problems for the current notification
@@ -235,7 +239,7 @@ class CompilerDiagnostics(
 		 * code excerpt during error reporting.  This is relevant for multi-line
 		 * tokens like string literals.
 		 */
-		val lexingStates: MutableSet<LexingState> = HashSet()
+		val lexingStates = mutableSetOf<LexingState>()
 
 		/**
 		 * Record a new problem in this instance.  Discard problems that have a
@@ -280,7 +284,7 @@ class CompilerDiagnostics(
 	private inner class ExpectationsList
 	{
 		/** Guards access to [expectations] and expectationsIndexHeap]. */
-		internal val expectationsLock: ReadWriteLock = ReentrantReadWriteLock()
+		internal val expectationsLock = ReentrantReadWriteLock()
 
 		/**
 		 * The rightmost few positions at which potential problems have been
@@ -294,7 +298,7 @@ class CompilerDiagnostics(
 		 * the problem at an exact character position.
 		 */
 		@GuardedBy("expectationsLock")
-		private val expectations = HashMap<Int, ExpectationsAtPosition>()
+		private val expectations = mutableMapOf<Int, ExpectationsAtPosition>()
 
 		/**
 		 * A priority heap that keeps track of the rightmost `N` positions at
@@ -306,16 +310,14 @@ class CompilerDiagnostics(
 
 		/** `true` iff there are no expectations recorded herein. */
 		internal val isEmpty: Boolean
-			get() = lockWhile<Boolean>(expectationsLock.readLock()) {
-				expectations.isEmpty()
-			}
+			get() = expectationsLock.read { expectations.isEmpty() }
 
 		/**
 		 * Remove all expectations in preparation for parsing another top-level
 		 * expression.
 		 */
 		fun clear() =
-			lockWhile(expectationsLock.writeLock()) {
+			expectationsLock.safeWrite {
 				expectations.clear()
 				expectationsIndexHeap.clear()
 			}
@@ -338,7 +340,7 @@ class CompilerDiagnostics(
 			describer: Describer,
 			lexingState: LexingState)
 		{
-			auto(expectationsLock.writeLock()).use {
+			expectationsLock.safeWrite {
 				val position = lexingState.position
 				var localExpectations = expectations[position]
 				if (localExpectations === null)
@@ -389,8 +391,7 @@ class CompilerDiagnostics(
 				failureReporter!!()
 				return
 			}
-			val ascending = ArrayList(groupedProblems)
-			sort(ascending)
+			val ascending = groupedProblems.sorted()
 
 			// Figure out where to start showing the file content.  Never show
 			// the content before the line on which startOfStatement resides.
@@ -431,7 +432,7 @@ class CompilerDiagnostics(
 
 			// Insert the problem location indicators...
 			var sourcePosition = startOfFirstLine
-			val parts = ArrayList<A_String>(10)
+			val parts = mutableListOf<A_String>()
 			for (eachProblem in ascending)
 			{
 				val newPosition = eachProblem.position
@@ -470,7 +471,7 @@ class CompilerDiagnostics(
 			// off with an empty problemIterator to keep the code simple.
 			val groupIterator = groupedProblems.iterator()
 			val problemIterator = Mutable(emptyIterator<Describer>())
-			val alreadySeen = HashSet<String>()
+			val alreadySeen = mutableSetOf<String>()
 			// Initiate all the grouped error printing.
 			recurse { continueReport ->
 				if (!problemIterator.value.hasNext())
@@ -548,14 +549,13 @@ class CompilerDiagnostics(
 		{
 			assert(!isEmpty)
 			val descendingIndices =
-				lockWhile<ArrayList<Int>>(expectationsLock.readLock()) {
-					ArrayList(expectationsIndexHeap)
-				}
-			descendingIndices.sortWith(reverseOrder())
+				expectationsLock.read {
+					expectationsIndexHeap.toList()
+				}.sortedWith(reverseOrder())
 			accumulateErrorsThen(
 				descendingIndices.iterator(),
 				IndicatorGenerator(),
-				ArrayList()
+				mutableListOf()
 			) { groups -> reportGroupedErrors(groups, headerMessagePattern) }
 		}
 
@@ -577,7 +577,7 @@ class CompilerDiagnostics(
 			headerMessagePattern: String,
 			message: String)
 		{
-			auto(expectationsLock.writeLock()).use {
+			expectationsLock.safeWrite {
 				// Delete any potential parsing errors already encountered,
 				// and replace them with the new error.
 				expectations.clear()
@@ -621,20 +621,20 @@ class CompilerDiagnostics(
 				return
 			}
 			val sourcePosition = descendingIterator.next()
-			var describers: List<Describer>? = null
-			var lexingStates: Set<LexingState>? = null
-			auto(expectationsLock.readLock()).use {
+			lateinit var describers: List<Describer>
+			lateinit var lexingStates: Set<LexingState>
+			expectationsLock.read {
 				val localExpectations = expectations[sourcePosition]!!
-				describers = ArrayList(localExpectations.problems)
-				lexingStates = HashSet(localExpectations.lexingStates)
+				describers = localExpectations.problems.toList()
+				lexingStates = localExpectations.lexingStates.toSet()
 			}
-			assert(describers!!.isNotEmpty())
+			assert(describers.isNotEmpty())
 			// Due to local lexer ambiguity, there may be multiple possible
 			// tokens at this position.  Choose the longest for the purpose
 			// of displaying the diagnostics.  We only care about the tokens
 			// that have already been formed, not ones in progress.
-			findLongestTokenThen(lexingStates!!) { longestToken ->
-				val before = lexingStates!!.iterator().next()
+			findLongestTokenThen(lexingStates) { longestToken ->
+				val before = lexingStates.iterator().next()
 				groupedProblems.add(
 					ProblemsAtPosition(
 						before,
@@ -643,7 +643,7 @@ class CompilerDiagnostics(
 						else
 							longestToken.nextLexingState(),
 						indicatorGenerator.next(),
-						describers!!))
+						describers))
 				accumulateErrorsThen(
 					descendingIterator,
 					indicatorGenerator,
@@ -668,9 +668,9 @@ class CompilerDiagnostics(
 		expectationsList.clear()
 		silentExpectationsList.clear()
 		// Tidy up all tokens from the previous top-level statement.
-		val priorTokens = lockWhile<List<A_Token>>(liveTokensLock.writeLock()) {
+		val priorTokens = liveTokensLock.safeWrite {
 			val old = liveTokens
-			liveTokens = emptyList()
+			liveTokens = mutableListOf()
 			old
 		}
 
@@ -679,13 +679,14 @@ class CompilerDiagnostics(
 			token.clearLexingState()
 		}
 
-		lockWhile(liveTokensLock.writeLock()) {
-			liveTokens = ArrayList(100)
+		liveTokensLock.safeWrite {
+			liveTokens = mutableListOf()
 		}
 	}
 
 	/**
-	 * Handle a [problem][Problem] via the [problem handler][problemHandler].
+	 * Handle a [problem][Problem] via the
+	 * [problem&#32;handler][problemHandler].
 	 *
 	 * @param problem
 	 *   The problem to handle.
@@ -748,10 +749,8 @@ class CompilerDiagnostics(
 	 * @param token
 	 *   The token that was encountered.
 	 */
-	fun recordToken(token: A_Token)
-	{
-		lockWhile<Boolean>(liveTokensLock.writeLock()) { liveTokens.add(token) }
-	}
+	fun recordToken(token: A_Token): Unit =
+		liveTokensLock.safeWrite { liveTokens.add(token) }
 
 	/**
 	 * An `IndicatorGenerator` creates successive circled letters via its [next]
@@ -912,20 +911,14 @@ class CompilerDiagnostics(
 			startLexingStates: Collection<LexingState>,
 			continuation: (A_Token) -> Unit)
 		{
-			val candidates = ArrayList<A_Token>()
-			for (startState in startLexingStates)
-			{
-				val known = startState.knownToBeComputedTokensOrNull
-				if (known !== null)
-				{
-					candidates.addAll(known)
-				}
-			}
+			val candidates = startLexingStates
+				.mapNotNull { it.knownToBeComputedTokensOrNull }
+				.flatten()
 			if (candidates.isEmpty())
 			{
 				val state = startLexingStates.iterator().next()
 				val emptyToken = newToken(
-					emptyTuple(),
+					emptyTuple,
 					state.position,
 					state.lineNumber,
 					WHITESPACE)

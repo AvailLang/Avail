@@ -1,6 +1,6 @@
 /*
  * OptionProcessorFactory.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,13 +34,13 @@ package com.avail.tools.options
 
 import com.avail.tools.options.OptionProcessorFactory.Cardinality.Companion.OPTIONAL
 import com.avail.utility.configuration.Configuration
-import java.util.*
+import java.util.EnumSet
 
 /**
  * An `OptionProcessorFactory` enables a client to dynamically specify and
- * assemble an [option processor][OptionProcessor]. In particular, the factory
- * allows a client to flexibly define a particular option processor while
- * ignoring specification and evaluation order dependency. Validation is
+ * assemble an [option&#32;processor][OptionProcessor]. In particular, the
+ * factory allows a client to flexibly define a particular option processor
+ * while ignoring specification and evaluation order dependency. Validation is
  * postponed until final assembly time, at which time a `[ValidationException]`
  * will be thrown in the event of incorrect or incomplete specification;
  * otherwise, the constructed option processor provably reflects the client
@@ -84,7 +84,7 @@ class OptionProcessorFactory<OptionKeyType : Enum<OptionKeyType>>
 	}
 
 	/** The [set][Set] of all [options][Option].  */
-	private val allOptions = HashSet<Option<OptionKeyType>>()
+	private val allOptions = mutableSetOf<Option<OptionKeyType>>()
 
 	/** The rules to check, in order, for valid options and arguments. */
 	private val allRules =
@@ -183,7 +183,7 @@ class OptionProcessorFactory<OptionKeyType : Enum<OptionKeyType>>
 	 *   The text to display if the rule fails.
 	 * @param
 	 *   The rule's body, which returns `true` iff the rule is satisfied.
- 	 */
+	 */
 	@Throws(OptionProcessingException::class)
 	fun <C : Configuration> C.rule(
 		ruleText: String,
@@ -193,8 +193,8 @@ class OptionProcessorFactory<OptionKeyType : Enum<OptionKeyType>>
 	}
 
 	/**
-	 * Check that the resulting [option processor][OptionProcessor] will have no
-	 * defects. In particular:
+	 * Check that the resulting [option&#32;processor][OptionProcessor] will
+	 * have no defects. In particular:
 	 *
 	 * * Every option key uniquely specifies an option.
 	 * * Every keyword must uniquely indicate an option key.
@@ -203,8 +203,8 @@ class OptionProcessorFactory<OptionKeyType : Enum<OptionKeyType>>
 	 * * All option keys must be bound to options.
 	 *
 	 * @throws ValidationException
-	 *   If the specified [option processor][OptionProcessor] fails validation
-	 *   for any reason.
+	 *   If the specified [option&#32;processor][OptionProcessor] fails
+	 *   validation for any reason.
 	 */
 	@Throws(ValidationException::class)
 	private fun validateFactory()
@@ -221,7 +221,7 @@ class OptionProcessorFactory<OptionKeyType : Enum<OptionKeyType>>
 			optionKeys.add(it.key)
 		}
 
-		val keywords = HashSet<String>()
+		val keywords = mutableSetOf<String>()
 		allOptions.forEach { option ->
 			option.keywords.forEach { keyword ->
 				if (keywords.contains(keyword))
@@ -252,11 +252,11 @@ class OptionProcessorFactory<OptionKeyType : Enum<OptionKeyType>>
 	}
 
 	/**
-	 * Create an instance of the [option processor][OptionProcessor]
+	 * Create an instance of the [option&#32;processor][OptionProcessor]
 	 * described by the receiver.
 	 *
 	 * @return
-	 *   The new validated [option processor][OptionProcessor].
+	 *   The new validated [option&#32;processor][OptionProcessor].
 	 * @throws ValidationException
 	 *   If validation fails.
 	 */
@@ -264,7 +264,7 @@ class OptionProcessorFactory<OptionKeyType : Enum<OptionKeyType>>
 	private fun createOptionProcessor(): OptionProcessor<OptionKeyType>
 	{
 		validateFactory()
-		val keywords = HashMap<String, OptionKeyType>()
+		val keywords = mutableMapOf<String, OptionKeyType>()
 		allOptions.forEach { option ->
 			option.keywords.forEach { keyword ->
 				keywords[keyword] = option.key

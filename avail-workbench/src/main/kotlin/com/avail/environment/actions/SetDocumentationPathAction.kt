@@ -1,6 +1,6 @@
 /*
  * SetDocumentationPathAction.java
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,8 +41,8 @@ import javax.swing.JOptionPane
 import javax.swing.filechooser.FileFilter
 
 /**
- * A `SetDocumentationPathAction` displays a [modal dialog][JOptionPane] that
- * prompts the user for the Stacks documentation path.
+ * A `SetDocumentationPathAction` displays a [modal&#32;dialog][JOptionPane]
+ * that prompts the user for the Stacks documentation path.
  *
  * @constructor
  * Construct a new [SetDocumentationPathAction].
@@ -69,7 +69,7 @@ class SetDocumentationPathAction constructor(workbench: AvailWorkbench)
 
 			   override fun accept(f: File?): Boolean
 			   {
-			       assert(f != null)
+			       assert(f !== null)
 			       return f!!.isDirectory && f.canWrite()
 			   }
 			})

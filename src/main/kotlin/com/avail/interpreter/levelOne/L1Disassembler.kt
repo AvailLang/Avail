@@ -1,6 +1,6 @@
 /*
  * L1Disassembler.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,155 +32,325 @@
 
 package com.avail.interpreter.levelOne
 
-import com.avail.descriptor.AvailObject.Companion.error
+import com.avail.descriptor.atoms.A_Atom.Companion.atomName
+import com.avail.descriptor.bundles.A_Bundle.Companion.message
+import com.avail.descriptor.character.A_Character.Companion.isCharacter
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.functions.CompiledCodeDescriptor
 import com.avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
 import com.avail.descriptor.representation.A_BasicObject
-import java.util.*
+import com.avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObjectFieldHelper
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
+import com.avail.descriptor.types.A_Type.Companion.instance
+import com.avail.descriptor.types.PrimitiveTypeDescriptor
+import com.avail.descriptor.types.TypeDescriptor.Types.MESSAGE_BUNDLE
+import com.avail.descriptor.types.TypeDescriptor.Types.METHOD
+import com.avail.descriptor.types.TypeDescriptor.Types.NUMBER
+import com.avail.utility.Strings
+import java.util.IdentityHashMap
 
 /**
- * An instance of `L1Disassembler` converts a [compiled code
- * object][CompiledCodeDescriptor] into a textual representation of its sequence
- * of [level one operations][L1Operation] and their [operands][L1OperandType].
+ * An instance of `L1Disassembler` converts a
+ * [compiled&#32;code&#32;object][CompiledCodeDescriptor] into a textual
+ * representation of its sequence of [level&#32;one&#32;operations][L1Operation]
+ * and their [operands][L1OperandType].
  *
  * @property code
- *   The [compiled code object][CompiledCodeDescriptor] being disassembled.
- * @property builder
- *   The [StringBuilder] onto which to describe the level one instructions.
- * @property recursionMap
- *   The (mutable) [IdentityHashMap] of [A_BasicObject]s to avoid recursing into
- *   while printing the [level one][L1Operation].
- * @property indent
- *   The number of tabs to output after each line break.
+ *   The [compiled&#32;code object][CompiledCodeDescriptor] being disassembled.
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *
  * @constructor
  *
- * Parse the given compiled code object into a sequence of L1 instructions,
- * printing them on the provided stream.
- *
  * @param code
  *   The [code][CompiledCodeDescriptor] to decompile.
- * @param builder
- *   Where to write the decompilation.
- * @param recursionMap
- *   Which objects are already being visited.
- * @param indent
- *   The indentation level.
  */
-class L1Disassembler private constructor(
-	internal val code: A_RawFunction,
-	internal val builder: StringBuilder,
-	internal val recursionMap: IdentityHashMap<A_BasicObject, Void>,
-	internal val indent: Int)
+class L1Disassembler constructor(
+	internal val code: A_RawFunction)
 {
-	/** The current position in the code. */
-	internal val instructionDecoder = L1InstructionDecoder()
+	interface L1DisassemblyVisitor : L1OperandTypeDispatcher
+	{
+		/**
+		 * The given L1Operation was just encountered, and its operands will be
+		 * visited before the corresponding [endOperation] is called.
+		 *
+		 * @param operation
+		 *   The [L1Operation] that was encountered.
+		 * @param pc
+		 *   The nybblecode index at which the operation occurs.
+		 * @param line
+		 *   The source code line number associated with this operation.
+		 */
+		fun startOperation(operation: L1Operation, pc: Int, line: Int)
+
+		/**
+		 * We're between processing operands of an operation.
+		 */
+		fun betweenOperands()
+
+		/**
+		 * The given [L1Operation] has now been completely processed.
+		 *
+		 * @param operation
+		 *   The operation that we're ending.
+		 */
+		fun endOperation(operation: L1Operation)
+	}
 
 	/**
-	 * An [L1OperandTypeDispatcher] suitably specialized to decode and print the
-	 * instruction operands.
+	 * Visit the given [L1DisassemblyVisitor] with my [L1Operation]s and
+	 * [Int]-valued [L1OperandType].
+	 *
+	 * @param visitor
+	 *   The [L1DisassemblyVisitor] to tell about the operations and operands.
 	 */
-	private val operandTypePrinter: L1OperandTypeDispatcher =
-		object : L1OperandTypeDispatcher
-		{
-			override fun doImmediate()
-			{
-				builder.append("immediate=").append(instructionDecoder.operand)
-			}
+	fun visit(visitor: L1DisassemblyVisitor) = with (L1InstructionDecoder()) {
+		val encodedDeltas = code.lineNumberEncodedDeltas()
+		var lineNumber = code.startingLineNumber()
+		var instructionCounter = 1
+		code.setUpInstructionDecoder(this@with)
+		pc(1)
+		while (!atEnd()) {
+			// Track the line number change from this operation.
+			val encodedDelta = encodedDeltas.tupleIntAt(instructionCounter++)
+			val decodedDelta =
+				if (encodedDelta and 1 == 0) encodedDelta shr 1
+				else -(encodedDelta shr 1)
+			lineNumber += decodedDelta
 
-			override fun doLiteral()
-			{
-				val index = instructionDecoder.operand
-				builder.append("literal#").append(index).append("=")
-				code.literalAt(index).printOnAvoidingIndent(
-					builder,
-					recursionMap,
-					indent + 1)
+			val pc = pc()
+			val operation = getOperation()
+			visitor.startOperation(operation, pc, lineNumber)
+			operation.operandTypes.forEachIndexed { i, operandType ->
+				if (i > 0) visitor.betweenOperands()
+				operandType.dispatch(visitor, getOperand())
 			}
-
-			override fun doLocal()
-			{
-				val index = instructionDecoder.operand
-				if (index <= code.numArgs())
-				{
-					builder.append("arg#").append(index)
-				}
-				else
-				{
-					builder.append("local#").append(index - code.numArgs())
-				}
-			}
-
-			override fun doOuter()
-			{
-				builder.append("outer#").append(instructionDecoder.operand)
-			}
-
-			override fun doExtension()
-			{
-				error("Extension nybblecode should be dealt with another way.")
-			}
-		}
-
-	init
-	{
-		code.setUpInstructionDecoder(instructionDecoder)
-		instructionDecoder.pc(1)
-		var first = true
-		while (!instructionDecoder.atEnd())
-		{
-			if (!first)
-			{
-				builder.append("\n")
-			}
-			first = false
-			(indent downTo 1).forEach { _ -> builder.append("\t") }
-			builder.append(instructionDecoder.pc()).append(": ")
-
-			val operation = instructionDecoder.operation
-			val operandTypes = operation.operandTypes
-			builder.append(operation.name)
-			if (operandTypes.isNotEmpty())
-			{
-				builder.append("(")
-				operandTypes.indices.forEach { i ->
-					if (i > 0)
-					{
-						builder.append(", ")
-					}
-					operandTypes[i].dispatch(operandTypePrinter)
-				}
-				builder.append(")")
-			}
+			visitor.endOperation(operation)
 		}
 	}
 
-	companion object
+	/**
+	 * Output the disassembly to the given StringBuilder.
+	 *
+	 * @property builder
+	 *   The [StringBuilder] onto which to describe the level one instructions.
+	 * @property recursionMap
+	 *   The (mutable) [IdentityHashMap] of [A_BasicObject]s to avoid recursing
+	 *   into while printing the [level&#32;one][L1Operation].
+	 * @property indent
+	 *   The number of tabs to output after each line break.
+	 */
+	fun print(
+		builder: StringBuilder,
+		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		indent: Int,
+		highlightPc: Int = -1)
 	{
-		/**
-		 * Parse the given compiled code object into a sequence of L1
-		 * instructions, printing them on the provided stream.
-		 *
-		 * @param code
-		 *   The [code][CompiledCodeDescriptor] to decompile.
-		 * @param builder
-		 *   Where to write the decompilation.
-		 * @param recursionMap
-		 *   Which objects are already being visited.
-		 * @param indent
-		 *   The indentation level.
-		 */
-		@JvmStatic
-		fun disassemble(
-			code: A_RawFunction,
-			builder: StringBuilder,
-			recursionMap: IdentityHashMap<A_BasicObject, Void>,
-			indent: Int)
+		val tabs = Strings.repeated("\t", indent)
+		val visitor = object : L1DisassemblyVisitor
 		{
-			// The constructor does all the work...
-			L1Disassembler(code, builder, recursionMap, indent)
+			override fun startOperation(
+				operation: L1Operation,
+				pc: Int,
+				line: Int)
+			{
+				if (pc != 1)
+				{
+					builder.append("\n")
+				}
+				if (pc == highlightPc) {
+					builder.append(" ==> ")
+				}
+				builder.append("$tabs$pc. [:$line] ")
+				builder.append(operation.name)
+				if (operation.operandTypes.isNotEmpty()) {
+					builder.append("(")
+				}
+			}
+
+			override fun betweenOperands()
+			{
+				builder.append(", ")
+			}
+
+			override fun endOperation(operation: L1Operation)
+			{
+				if (operation.operandTypes.isNotEmpty())
+				{
+					builder.append(")")
+				}
+			}
+
+			override fun doImmediate(index: Int)
+			{
+				builder.append("immediate=$index")
+			}
+
+			override fun doLiteral(index: Int)
+			{
+				builder.append("literal#$index")
+				val literal = code.literalAt(index)
+				builder.append(" = ")
+				literal.printOnAvoidingIndent(builder, recursionMap, indent + 1)
+			}
+
+			override fun doLocal(index: Int)
+			{
+				when {
+					index <= code.numArgs() -> builder.append("arg#$index")
+					else -> builder.append("local#${index - code.numArgs()}")
+				}
+			}
+
+			override fun doOuter(index: Int)
+			{
+				builder.append("outer#$index")
+			}
 		}
+		visit(visitor)
+	}
+
+	/**
+	 * Output the disassembly to the given {@link List} of
+	 * {@link AvailObjectFieldHelper}s.
+	 *
+	 * @return
+	 *   A [List] of [AvailObjectFieldHelper]s, one per disassembled
+	 *   instruction.
+	 */
+	fun disassembledAsSlots(
+		highlightPc: Int = -1
+	): List<AvailObjectFieldHelper>
+	{
+		val slots = mutableListOf<AvailObjectFieldHelper>()
+		var currentOperationPc: Int = Int.MIN_VALUE
+		val operandValues = mutableListOf<AvailObject>()
+		val nameBuilder = StringBuilder()
+
+		val visitor = object : L1DisassemblyVisitor
+		{
+			override fun startOperation(
+				operation: L1Operation,
+				pc: Int,
+				line: Int)
+			{
+				currentOperationPc = pc
+				operandValues.clear()
+				nameBuilder.clear()
+				if (pc == highlightPc) {
+					nameBuilder.append(" ==> ")
+				}
+				nameBuilder.append("$pc. [:$line] ${operation.shortName()}")
+				if (operation.operandTypes.isNotEmpty()) {
+					nameBuilder.append(" (")
+				}
+			}
+
+			override fun betweenOperands()
+			{
+				nameBuilder.append(", ")
+			}
+
+			override fun endOperation(operation: L1Operation)
+			{
+				if (operation.operandTypes.isNotEmpty())
+				{
+					nameBuilder.append(")")
+				}
+				slots.add(AvailObjectFieldHelper(
+					code,
+					DebuggerObjectSlots("Instruction"),
+					currentOperationPc,
+					tupleFromList(operandValues),
+					forcedName = nameBuilder.toString(),
+					forcedChildren = operandValues.toTypedArray()))
+			}
+
+			override fun doImmediate(index: Int)
+			{
+				nameBuilder.append("immediate=$index")
+			}
+
+			/**
+			 * Answer two things: (1) What object to print directly after the
+			 * operand index, or null if none; (2) Whether to present the object
+			 * as a sub-object for navigating in the debugger.
+			 *
+			 * When invoked on the instance of an instanceMeta (or the
+			 * instance's instance of a meta-metatype) the nullity of the first
+			 * value determines whether the original value should be printed,
+			 * and the second value is ignored.
+			 *
+			 * @param value
+			 *        The value to check for simple printability.
+			 * @return Whether to print the value instead of deconstructing it.
+			 */
+			private fun simplePrintable(value: AvailObject) =
+				when {
+					// Show some things textually.
+					value.equalsNil() -> value to false
+					value.isString -> value to false
+					value.isInstanceOf(NUMBER.o) -> value to false
+					value.isInstanceOf(MESSAGE_BUNDLE.o) ->
+						value.message().atomName() to true
+					value.isInstanceOf(METHOD.o) -> value to true
+					value.isAtom -> value.atomName() to true
+					value.isCharacter -> value to false
+					!value.isType -> value to true
+					value.isTop -> value to false
+					value.traversed().descriptor() is PrimitiveTypeDescriptor ->
+						value to false
+					value.isBottom -> value to false
+					else -> null to true
+				}
+
+			override fun doLiteral(index: Int)
+			{
+				nameBuilder.append("literal#$index")
+				val value = code.literalAt(index)
+				val (print, expand) = simplePrintable(value)
+				if (expand) operandValues.add(value)
+				if (print !== null)
+				{
+					nameBuilder.append(" = $print")
+				}
+				else if (value.isInstanceMeta)
+				{
+					val instance = value.instance()
+					val (print2, _) = simplePrintable(instance)
+					if (print2 !== null)
+					{
+						nameBuilder.append(" = $print2")
+					}
+					else if (instance.isInstanceMeta)
+					{
+						val instanceInstance = instance.instance()
+						val (print3, _) = simplePrintable(instanceInstance)
+						if (print3 !== null)
+						{
+							nameBuilder.append(" = $print3")
+						}
+					}
+				}
+			}
+
+			override fun doLocal(index: Int)
+			{
+				nameBuilder.append(
+					when {
+						index <= code.numArgs() -> "arg#$index"
+						else -> "local#${index - code.numArgs()}"
+					})
+			}
+
+			override fun doOuter(index: Int)
+			{
+				nameBuilder.append("outer#$index")
+			}
+		}
+		visit(visitor)
+		return slots
 	}
 }

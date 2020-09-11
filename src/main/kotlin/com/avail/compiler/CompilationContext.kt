@@ -1,6 +1,6 @@
 /*
  * CompilationContext.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@
 package com.avail.compiler
 
 import com.avail.AvailRuntime
-import com.avail.AvailRuntime.currentRuntime
+import com.avail.AvailRuntime.Companion.currentRuntime
 import com.avail.AvailRuntimeSupport
 import com.avail.builder.ModuleName
 import com.avail.builder.ResolvedModuleName
@@ -44,36 +44,43 @@ import com.avail.compiler.problems.ProblemType
 import com.avail.compiler.problems.ProblemType.EXECUTION
 import com.avail.compiler.problems.ProblemType.INTERNAL
 import com.avail.compiler.scanning.LexingState
-import com.avail.descriptor.*
-import com.avail.descriptor.FiberDescriptor.newLoaderFiber
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY
+import com.avail.descriptor.fiber.A_Fiber
+import com.avail.descriptor.fiber.FiberDescriptor
+import com.avail.descriptor.fiber.FiberDescriptor.Companion.newLoaderFiber
+import com.avail.descriptor.fiber.FiberDescriptor.Companion.setSuccessAndFailure
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.FunctionDescriptor
-import com.avail.descriptor.functions.FunctionDescriptor.createFunction
-import com.avail.descriptor.functions.FunctionDescriptor.createFunctionForPhrase
+import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
+import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunctionForPhrase
 import com.avail.descriptor.maps.A_Map
-import com.avail.descriptor.maps.MapDescriptor.emptyMap
+import com.avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
+import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
+import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.PhraseDescriptor
 import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.tokens.A_Token
 import com.avail.descriptor.tuples.A_String
-import com.avail.descriptor.tuples.StringDescriptor.formatString
-import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
-import com.avail.descriptor.types.TypeDescriptor.Types
+import com.avail.descriptor.tuples.StringDescriptor.Companion.formatString
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
+import com.avail.descriptor.types.A_Type.Companion.returnType
+import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailAssertionFailedException
 import com.avail.exceptions.AvailEmergencyExitException
-import com.avail.interpreter.AvailLoader
-import com.avail.interpreter.Interpreter
+import com.avail.interpreter.execution.AvailLoader
+import com.avail.interpreter.execution.Interpreter
+import com.avail.interpreter.levelOne.L1Decompiler
 import com.avail.interpreter.levelOne.L1InstructionWriter
 import com.avail.interpreter.levelOne.L1Operation
 import com.avail.io.TextInterface
 import com.avail.serialization.Serializer
-import com.avail.utility.StackPrinter.trace
+import com.avail.utility.StackPrinter.Companion.trace
 import java.io.ByteArrayOutputStream
 import java.lang.String.format
-import java.util.Collections.emptyList
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 import java.util.logging.Level
@@ -91,8 +98,8 @@ import java.util.logging.Logger
  *   The source text of the Avail [module][ModuleDescriptor] undergoing
  *   compilation.
  * @property textInterface
- *   The [text interface][TextInterface] for any [fibers][A_Fiber] started by
- *   this [compiler][AvailCompiler].
+ *   The [text&#32;interface][TextInterface] for any [fibers][A_Fiber] started
+ *   by this [compiler][AvailCompiler].
  * @property progressReporter
  *   The [CompilerProgressReporter] that reports compilation progress at various
  *   checkpoints. It accepts the [name][ResolvedModuleName] of the
@@ -106,15 +113,15 @@ import java.util.logging.Logger
  * Create a `CompilationContext` for compiling an [A_Module].
  *
  * @param moduleHeader
- *   The [module header][ModuleHeader] of the module to compile. May be null for
- *   synthetic modules (for entry points), or when parsing the header.
+ *   The [module&#32;header][ModuleHeader] of the module to compile. May be null
+ *   for synthetic modules (for entry points), or when parsing the header.
  * @param module
  *   The current [module][ModuleDescriptor].`
  * @param source
  *   The source [A_String].
  * @param textInterface
- *   The [text interface][TextInterface] for any [fibers][A_Fiber] started by
- *   this compiler.
+ *   The [text&#32;interface][TextInterface] for any [fibers][A_Fiber] started
+ *   by this compiler.
  * @param pollForAbort
  *   How to quickly check if the client wants to abort compilation.
  * @param progressReporter
@@ -140,7 +147,8 @@ class CompilationContext(
 	 * The [CompilerDiagnostics] that tracks potential errors during
 	 * compilation.
 	 */
-	val diagnostics: CompilerDiagnostics
+	val diagnostics = CompilerDiagnostics(
+		source, moduleName, pollForAbort, problemHandler)
 
 	/**
 	 * The [AvailRuntime] for the compiler. Since a compiler cannot migrate
@@ -154,7 +162,7 @@ class CompilationContext(
 	 * [compiler][AvailCompiler] to facilitate the loading of
 	 * [modules][ModuleDescriptor].
 	 */
-	var loader: AvailLoader? = null
+	val loader = AvailLoader(module, textInterface)
 
 	/** The number of work units that have been queued.  */
 	private val atomicWorkUnitsQueued = AtomicLong(0)
@@ -216,7 +224,7 @@ class CompilationContext(
 	 * The serializer that captures the sequence of bytes representing the
 	 * module during compilation.
 	 */
-	internal val serializer: Serializer
+	internal val serializer = Serializer(serializerOutputStream, module)
 
 	/** The cached module name.  */
 	@Volatile
@@ -234,14 +242,6 @@ class CompilationContext(
 
 	/** The current number of work units that have been completed. */
 	val workUnitsCompleted get() = atomicWorkUnitsCompleted.get()
-
-	init
-	{
-		this.loader = AvailLoader(module, textInterface)
-		this.diagnostics = CompilerDiagnostics(
-			source, moduleName, pollForAbort, problemHandler)
-		this.serializer = Serializer(serializerOutputStream, module)
-	}
 
 	/**
 	 * Record the fact that this token was encountered while parsing the current
@@ -362,9 +362,9 @@ class CompilationContext(
 
 	/**
 	 * Construct and answer a function that wraps the specified continuation in
-	 * logic that will increment the [count of completed work
-	 * units][workUnitsCompleted] and potentially call the [unambiguous
-	 * statement][noMoreWorkUnits].
+	 * logic that will increment the
+	 * [count&#32;of&#32;completed&#32;work&#32;units][workUnitsCompleted] and
+	 * potentially call the [unambiguous&#32;statement][noMoreWorkUnits].
 	 *
 	 * @param ArgType
 	 *   The type of value that will be passed to the continuation.
@@ -382,7 +382,8 @@ class CompilationContext(
 	fun <ArgType> workUnitCompletion(
 		lexingState: LexingState,
 		optionalSafetyCheck: AtomicBoolean?,
-		continuation: (ArgType)->Unit): (ArgType)->Unit
+		continuation: (ArgType)->Unit
+	): (ArgType)->Unit
 	{
 		assert(noMoreWorkUnits !== null)
 		val hasRunSafetyCheck = optionalSafetyCheck ?: AtomicBoolean(false)
@@ -532,7 +533,6 @@ class CompilationContext(
 	{
 		val code = function.code()
 		assert(code.numArgs() == args.size)
-		val loader = loader!!
 		val fiber = newLoaderFiber(
 			function.kind().returnType(),
 			loader
@@ -546,8 +546,8 @@ class CompilationContext(
 		var fiberGlobals = fiber.fiberGlobals()
 		fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
 			CLIENT_DATA_GLOBAL_KEY.atom, clientParseData, true)
-		fiber.fiberGlobals(fiberGlobals)
-		fiber.textInterface(textInterface)
+		fiber.setFiberGlobals(fiberGlobals)
+		fiber.setTextInterface(textInterface)
 		if (shouldSerialize)
 		{
 			loader.startRecordingEffects()
@@ -559,7 +559,7 @@ class CompilationContext(
 			adjustedSuccess = { successValue ->
 				val after = AvailRuntimeSupport.captureNanos()
 				Interpreter.current().recordTopStatementEvaluation(
-					(after - before).toDouble(), module, lexingState.lineNumber)
+					(after - before).toDouble(), module)
 				loader.stopRecordingEffects()
 				serializeAfterRunning(function)
 				onSuccess(successValue)
@@ -579,7 +579,7 @@ class CompilationContext(
 		}
 		else
 		{
-			fiber.setSuccessAndFailureContinuations(adjustedSuccess, onFailure)
+			fiber.setSuccessAndFailure(adjustedSuccess, onFailure)
 		}
 		Interpreter.runOutermostFunction(runtime, fiber, function, args)
 	}
@@ -618,7 +618,7 @@ class CompilationContext(
 				expressionNode, module, lexingState.lineNumber),
 			lexingState,
 			emptyList(),
-			emptyMap(),
+			emptyMap,
 			shouldSerialize,
 			trackTasks,
 			onSuccess,
@@ -645,7 +645,12 @@ class CompilationContext(
 		onFailure: (Throwable)->Unit)
 	{
 		evaluatePhraseThen(
-			expression, lexingState, false, true, continuation, onFailure)
+			expressionNode = expression,
+			lexingState = lexingState,
+			shouldSerialize = false,
+			trackTasks = true,
+			onSuccess = continuation,
+			onFailure = onFailure)
 	}
 
 	/**
@@ -663,7 +668,6 @@ class CompilationContext(
 	{
 		val code = function.code()
 		val startingLineNumber = code.startingLineNumber()
-		val loader = loader!!
 		if (loader.statementCanBeSummarized())
 		{
 			// Output summarized functions instead of what ran.  Associate the
@@ -678,7 +682,8 @@ class CompilationContext(
 					startingLineNumber,
 					code.originatingPhrase())
 				writer.argumentTypes()
-				writer.returnType = Types.TOP.o()
+				writer.returnType = TOP.o
+				writer.returnTypeIfPrimitiveFails = TOP.o
 				var batchCount = 0
 				while (batchCount < 100 && iterator.hasNext())
 				{
@@ -693,14 +698,15 @@ class CompilationContext(
 				assert(batchCount > 0)
 				// Flush the batch.
 				val summaryFunction =
-					createFunction(writer.compiledCode(), emptyTuple())
+					createFunction(writer.compiledCode(), emptyTuple)
 				if (AvailLoader.debugUnsummarizedStatements)
 				{
 					println(
 						module.moduleName().asNativeString()
 						+ ':'.toString() + startingLineNumber
-						+ " Summary -- " + function
-						+ "(batch = " + batchCount + ')'.toString())
+						+ " Summary -- \n"
+						+ L1Decompiler.decompile(summaryFunction.code())
+						+ "(batch = $batchCount)")
 				}
 				serializer.serialize(summaryFunction)
 			}
@@ -711,9 +717,9 @@ class CompilationContext(
 			if (AvailLoader.debugUnsummarizedStatements)
 			{
 				println(
-					module.toString()
+					module.moduleName().asNativeString()
 					+ ":" + startingLineNumber
-					+ " Unsummarized -- " + function)
+					+ " Unsummarized -- \n" + function)
 			}
 			serializer.serialize(function)
 		}
@@ -733,9 +739,9 @@ class CompilationContext(
 		if (AvailLoader.debugUnsummarizedStatements)
 		{
 			println(
-				module.toString()
+				module.moduleName().asNativeString()
 				+ ":" + function.code().startingLineNumber()
-				+ " Forced -- " + function)
+				+ " Forced -- \n" + function)
 		}
 		serializer.serialize(function)
 	}
@@ -828,14 +834,15 @@ class CompilationContext(
 	}
 
 	/**
-	 * Report an [assertion failure][ProblemType.EXECUTION] [problem][Problem].
+	 * Report an [assertion&#32;failure][ProblemType.EXECUTION]
+	 * [problem][Problem].
 	 *
 	 * @param lineNumber
 	 *   The one-based line number on which the problem occurs.
 	 * @param position
 	 *   The one-based position in the source at which the problem occurs.
 	 * @param e
-	 *   The [assertion failure][AvailAssertionFailedException].
+	 *   The [assertion&#32;failure][AvailAssertionFailedException].
 	 */
 	internal fun reportAssertionFailureProblem(
 		lineNumber: Int,
@@ -859,14 +866,14 @@ class CompilationContext(
 	}
 
 	/**
-	 * Report an [emergency exit][ProblemType.EXECUTION] [problem][Problem].
+	 * Report an [emergency&#32;exit][ProblemType.EXECUTION] [problem][Problem].
 	 *
 	 * @param lineNumber
 	 *   The one-based line number on which the problem occurs.
 	 * @param position
 	 *   The one-based position in the source at which the problem occurs.
 	 * @param e
-	 *   The [emergency exit][AvailEmergencyExitException].
+	 *   The [emergency&#32;exit][AvailEmergencyExitException].
 	 */
 	internal fun reportEmergencyExitProblem(
 		lineNumber: Int,

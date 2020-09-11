@@ -1,6 +1,6 @@
 /*
  * LookupTreeTraverser.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,9 +34,7 @@ package com.avail.dispatch
 
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.types.A_Type
-import com.avail.utility.Casts.cast
-import com.avail.utility.MutableOrNull
-import java.util.*
+import com.avail.utility.cast
 
 /**
  * `LookupTreeTraverser` is used to enumerate the nodes of a [LookupTree].
@@ -88,7 +86,7 @@ protected constructor(
 	 * The stack of outstanding actions, which allows the tree to be traversed
 	 * without recursion, only iteration.
 	 */
-	private val actionStack: MutableList<() -> Unit> = ArrayList()
+	private val actionStack = mutableListOf<() -> Unit>()
 
 	/**
 	 * An expanded internal node has been reached, having expanded it if it
@@ -161,8 +159,7 @@ protected constructor(
 			visitLeafNode(solution)
 			return
 		}
-		val internalNode: InternalLookupTree<Element, Result> =
-			cast(node)
+		val internalNode: InternalLookupTree<Element, Result> = node.cast()
 		if (expandAll)
 		{
 			internalNode.expandIfNecessary(adaptor, adaptorMemento)
@@ -176,16 +173,18 @@ protected constructor(
 		// Create a memento to share between the below actions operating at the
 		// same position in the tree.  Push them in *reverse* order of their
 		// execution.
-		val memento = MutableOrNull<TraversalMemento>()
-		actionStack.add { visitPostInternalNode(memento.value()) }
-		actionStack.add { visit(internalNode.ifCheckFails!!) }
-		actionStack.add { visitIntraInternalNode(memento.value()) }
-		actionStack.add { visit(internalNode.ifCheckHolds!!) }
-		actionStack.add {
-			memento.value = visitPreInternalNode(
-				internalNode.argumentPositionToTest,
-				internalNode.argumentTypeToTest!!)
-		}
+		var memento: TraversalMemento? = null
+		actionStack.addAll(
+			arrayOf(
+				{ visitPostInternalNode(memento!!) },
+				{ visit(internalNode.ifCheckFails!!) },
+				{ visitIntraInternalNode(memento!!) },
+				{ visit(internalNode.ifCheckHolds!!) },
+				{
+					memento = visitPreInternalNode(
+						internalNode.argumentPositionToTest,
+						internalNode.argumentTypeToTest!!)
+				}))
 	}
 
 	/**

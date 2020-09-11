@@ -6,12 +6,12 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
  *
  *  * Neither the name of the copyright holder nor the names of the contributors
  *    may be used to endorse or promote products derived from this software
@@ -31,12 +31,15 @@
  */
 package com.avail.descriptor.representation
 
-import com.avail.descriptor.*
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.bundles.A_BundleTree
+import com.avail.descriptor.fiber.A_Fiber
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.methods.MethodDescriptor
-import com.avail.descriptor.representation.Mutability.*
+import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.representation.Mutability.IMMUTABLE
+import com.avail.descriptor.representation.Mutability.MUTABLE
+import com.avail.descriptor.representation.Mutability.SHARED
 
 /**
  * A description of the mutability of an [AvailObject]. This information is not
@@ -48,7 +51,8 @@ import com.avail.descriptor.representation.Mutability.*
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-enum class Mutability {
+enum class Mutability constructor(val suffix: String)
+{
 	/**
 	 * Indicates that instances of the [descriptor][Descriptor] are *mutable*.
 	 * An [object][AvailObject] can be *mutable* only if there exists but a
@@ -56,24 +60,24 @@ enum class Mutability {
 	 * sufficient condition for mutability. Most objects begin existence in the
 	 * *mutable* state. All slots of a *mutable* object may be modified.
 	 */
-	MUTABLE,
+	MUTABLE("\uD835\uDCDC"),
 
 	/**
 	 * Indicates that instances of the [descriptor][Descriptor] are *immutable*.
 	 * An [object][AvailObject] that is *immutable* may have more than one
 	 * reference, but must be reachable only by a single
-	 * [fiber][FiberDescriptor]. An *immutable* object may not be modified, in
+	 * [fiber][A_Fiber]. An *immutable* object may not be modified, in
 	 * general, though some
 	 * [slots][AbstractDescriptor.allowsImmutableToMutableReferenceInField] may
 	 * remain mutable.
 	 */
-	IMMUTABLE,
+	IMMUTABLE("\uD835\uDCD8"),
 
 	/**
 	 * Indicates that instances of the [descriptor][Descriptor] are immutable
 	 * and shared. An [object][AvailObject] that is shared may have more than
-	 * one reference and may be reachable by multiple [fibers][FiberDescriptor].
-	 * [Modules][ModuleDescriptor], [methods][MethodDescriptor],
+	 * one reference and may be reachable by multiple [fibers][A_Fiber].
+	 * [Modules][A_Module], [methods][MethodDescriptor],
 	 * [message&32;bundle&#32;trees][A_BundleTree], and
 	 * [special&#32;atoms][A_Atom] begin existence in the *shared* state. A
 	 * fiber begins existence *shared* only if the parent fiber retains a
@@ -83,5 +87,5 @@ enum class Mutability {
 	 * *shared* just before assignment to the [object&#32;slot][ObjectSlotsEnum]
 	 * of a *shared* object.
 	 */
-	SHARED
+	SHARED("\uD835\uDCE2")
 }

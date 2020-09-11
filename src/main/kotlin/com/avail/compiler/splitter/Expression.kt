@@ -1,6 +1,6 @@
 /*
  * Expression.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,14 +31,14 @@
  */
 package com.avail.compiler.splitter
 
-import com.avail.descriptor.methods.MacroDefinitionDescriptor
+import com.avail.descriptor.bundles.A_Bundle
+import com.avail.descriptor.methods.MacroDescriptor
 import com.avail.descriptor.methods.MethodDefinitionDescriptor
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.PhraseDescriptor
 import com.avail.descriptor.types.A_Type
 import com.avail.exceptions.MalformedMessageException
 import com.avail.exceptions.SignatureException
-import java.util.*
 
 /**
  * An `Expression` represents a structural view of part of the
@@ -66,11 +66,17 @@ internal abstract class Expression constructor(val positionInName: Int)
 	 * @return
 	 *   Whether the expression can in theory be reordered.
 	 */
-	val canBeReordered: Boolean
-		get()
-		{
-			return yieldsValue
-		}
+	val canBeReordered: Boolean get() = yieldsValue
+
+	/**
+	 * Answer whether there are any reordered expressions anywhere inside this
+	 * entire expression.  Reordering is specified by placing circled numbers
+	 * (e.g., ①, ②) after all argument-yielding [Expression]s occurring in some
+	 * [Sequence].  Either none or all must be numbered within any sequence, and
+	 * the numbers must be a non-identity permutation (not simply ①, ②, ③,
+	 * etc.).  See [explicitOrdinal] and [Sequence.isReordered].
+	 */
+	open val recursivelyContainsReorders = false
 
 	/**
 	 * The one-based explicit numbering for this argument.  To specify this in a
@@ -91,17 +97,16 @@ internal abstract class Expression constructor(val positionInName: Int)
 
 	/**
 	 * `true` iff this [expression][Expression] is expected to produce a value
-	 * to be consumed by a [method][MethodDefinitionDescriptor] or [macro
-	 * definition][MacroDefinitionDescriptor]. Not applicable to [Sequence]s.
+	 * to be consumed by a [method][MethodDefinitionDescriptor] or
+	 * [macro&#32;definition][MacroDescriptor]. Not applicable to
+	 * [Sequence]s.
 	 */
-	internal open val yieldsValue: Boolean
-		get() = false
+	internal open val yieldsValue: Boolean get() = false
 
 	/**
 	 * `true` if and only if this is an argument or group, `false` otherwise.
 	 */
-	internal open val isGroup: Boolean
-		get() = false
+	internal open val isGroup: Boolean get() = false
 
 	/**
 	 * Are all keywords of the expression comprised exclusively of lower case
@@ -111,8 +116,7 @@ internal abstract class Expression constructor(val positionInName: Int)
 	 *   `true` if all keywords of the expression are comprised exclusively of
 	 *   lower case characters, `false` otherwise.
 	 */
-	internal open val isLowerCase: Boolean
-		get() = true
+	internal open val isLowerCase: Boolean get() = true
 
 	/**
 	 * Transform this expression to be case-insensitive, failing with a
@@ -133,8 +137,7 @@ internal abstract class Expression constructor(val positionInName: Int)
 	 * @return
 	 *   The number of non-backquoted underscores/ellipses in the receiver.
 	 */
-	internal open val underscoreCount: Int
-		get() = 0
+	internal open val underscoreCount: Int get() = 0
 
 	/**
 	 * Extract all [SectionCheckpoint]s into the specified list.
@@ -143,7 +146,8 @@ internal abstract class Expression constructor(val positionInName: Int)
 	 *   Where to add section checkpoints found within this expression.
 	 */
 	internal open fun extractSectionCheckpointsInto(
-		sectionCheckpoints: MutableList<SectionCheckpoint>)
+		sectionCheckpoints: MutableList<SectionCheckpoint>
+	)
 	{
 		// Do nothing by default.
 	}
@@ -156,12 +160,10 @@ internal abstract class Expression constructor(val positionInName: Int)
 	 *   `true` if this expression recursively contains any section checkpoints,
 	 *   otherwise `false`.
 	 */
-	internal val hasSectionCheckpoints: Boolean
-		get()
-		{
-			val any = ArrayList<SectionCheckpoint>()
-			extractSectionCheckpointsInto(any)
-			return any.isNotEmpty()
+	internal val hasSectionCheckpoints: Boolean get () =
+		mutableListOf<SectionCheckpoint>().let {
+			extractSectionCheckpointsInto(it)
+			it.isNotEmpty()
 		}
 
 	/**
@@ -169,25 +171,25 @@ internal abstract class Expression constructor(val positionInName: Int)
 	 * expression. If not, throw a [SignatureException].
 	 *
 	 * This is also called recursively on subcomponents, and it checks that
-	 * [group arguments][Argument] have the correct structure for what will be
-	 * parsed. The method may reject parses based on the number of repetitions
-	 * of a [group][Group] at a call site, but not the number of arguments
-	 * actually delivered by each repetition. For example, the message "«_:_‡,»"
-	 * can limit the number of _:_ pairs to at most 5 by declaring the tuple
-	 * type's size to be [5..5]. However, the message ```"«_:_‡[_]»"``` will
-	 * always produce a tuple of 3-tuples followed by a 2-tuple (if any elements
-	 * at all occur). Attempting to add a method implementation for this message
-	 * that only accepted a tuple of 7-tuples would be inappropriate (and
-	 * ineffective). Instead, it should be required to accept a tuple whose size
-	 * is in the range [2..3].
+	 * [group&#32;arguments][Argument] have the correct structure for what will
+	 * be parsed. The method may reject parses based on the number of
+	 * repetitions of a [group][Group] at a call site, but not the number of
+	 * arguments actually delivered by each repetition. For example, the message
+	 * "«_:_‡,»" can limit the number of _:_ pairs to at most 5 by declaring the
+	 * tuple type's size to be [5..5]. However, the message ```"«_:_‡[_]»"```
+	 * will always produce a tuple of 3-tuples followed by a 2-tuple (if any
+	 * elements at all occur). Attempting to add a method implementation for
+	 * this message that only accepted a tuple of 7-tuples would be
+	 * inappropriate (and ineffective). Instead, it should be required to accept
+	 * a tuple whose size is in the range [2..3].
 	 *
 	 * Note that the outermost (pseudo)group represents the entire message, so
-	 * the caller should synthesize a fixed-length [tuple
-	 * type][TupleTypeDescriptor] for the outermost check.
+	 * the caller should synthesize a fixed-length
+	 * [tuple&#32;type][TupleTypeDescriptor] for the outermost check.
 	 *
 	 * @param argumentType
-	 *   A [tuple type][TupleTypeDescriptor] describing the types of arguments
-	 *   that a method being added will accept.
+	 *   A [tuple&#32;type][TupleTypeDescriptor] describing the types of
+	 *   arguments that a method being added will accept.
 	 * @param sectionNumber
 	 *   Which [SectionCheckpoint] section marker this list of argument types
 	 *   are being validated against.  To validate the final method or macro
@@ -218,9 +220,10 @@ internal abstract class Expression constructor(val positionInName: Int)
 	internal abstract fun emitOn(
 		phraseType: A_Type,
 		generator: InstructionGenerator,
-		wrapState: WrapState): WrapState
+		wrapState: WrapState
+	): WrapState
 
-	override fun toString(): String = javaClass.simpleName
+	override fun toString(): String = this@Expression.javaClass.simpleName
 
 	/**
 	 * Pretty-print this part of the message, using the provided argument
@@ -237,7 +240,8 @@ internal abstract class Expression constructor(val positionInName: Int)
 	internal abstract fun printWithArguments(
 		arguments: Iterator<A_Phrase>?,
 		builder: StringBuilder,
-		indent: Int)
+		indent: Int
+	)
 
 	/**
 	 * Answer whether the pretty-printed representation of this [Expression]
@@ -272,4 +276,17 @@ internal abstract class Expression constructor(val positionInName: Int)
 		// Most expressions can't match an empty sequence of tokens.
 		return false
 	}
+
+	/**
+	 * Answer whether the given phrase is correctly internally structured for
+	 * this expression.  Only check the cardinality of the (recursive) sublists,
+	 * and that the correct permutations are used when required.
+	 *
+	 * @param phrase
+	 *   The [A_Phrase] attempting to be supplied for this expression.
+	 * @return
+	 *   Whether the supplied phrase is recursively of the right shape to be
+	 *   used as this expression for a call of this splitter's [A_Bundle].
+	 */
+	abstract fun checkListStructure(phrase: A_Phrase): Boolean
 }

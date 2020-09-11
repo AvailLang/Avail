@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Versioned As: $$Revision$$
+ * * Last Generated: 8/23/20 2:40 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -56,7 +56,7 @@ Names
 	"\
 		\|[§\
 			\|««…:_†§‡,»`|»?\
-			\|«Primitive…«(…:_†)»?§;»?\
+			\|«Primitive…«(…:_†)»?;§»?\
 			\|«`$…«:_†»?;§»?\
 			\|«_!§»\
 			\|«_!»?\
@@ -93,7 +93,7 @@ Pragma
 		\|BootstrapBlockMacro=\
 			\|[§\
 				\|««…:_†§‡,»`|»?\
-				\|«Primitive…«(…:_†)»?§;»?\
+				\|«Primitive…«(…:_†)»?;§»?\
 				\|«`$…«:_†»?;§»?\
 				\|«_!§»\
 				\|«_!»?\
@@ -118,7 +118,7 @@ Body
  *     "\
  *          \|[§\
  *              \|««…:_†§‡,»`|»?\
- *              \|«Primitive…«(…:_†)»?§;»?\
+ *              \|«Primitive…«(…:_†)»?;§»?\
  *              \|«`$…«:_†»?;§»?\
  *              \|«_!§»\
  *              \|«_!»?\

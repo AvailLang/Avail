@@ -1,6 +1,6 @@
 /*
  * MalformedMessageException.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,11 +50,11 @@ import java.util.function.Supplier
  *
  * @constructor
  * Construct a new `MalformedMessageException` with the specified
- * [error code][AvailErrorCode] and the specified [Supplier] that describes the
- * problem.
+ * [error&#32;code][AvailErrorCode] and the specified [Supplier] that describes
+ * the problem.
  *
  * @param errorCode
- *   The [error code][AvailErrorCode].
+ *   The [error&#32;code][AvailErrorCode].
  * @param descriptionSupplier
  *   A [Supplier] that produces a [String] describing what was malformed about
  *   the signature that failed to be parsed by a [MessageSplitter].
@@ -70,5 +70,5 @@ class MalformedMessageException constructor(
 	 * @return
 	 *   A description of what is wrong with the signature being analyzed.
 	 */
-	fun describeProblem(): String = descriptionSupplier.invoke()
+	fun describeProblem(): String = descriptionSupplier()
 }
