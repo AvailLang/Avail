@@ -34,9 +34,9 @@ package com.avail.server.io.files
 
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.StringDescriptor
 import com.avail.io.SimpleCompletionHandler
-import com.avail.utility.Casts
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.CharBuffer
@@ -86,69 +86,68 @@ internal class AvailServerTextFile constructor(
 		val input = ByteBuffer.allocateDirect(4096)
 		val decoder = charset.newDecoder()
 		val output = CharBuffer.allocate(4096)
-		this.file.read<Any>(
-			input,
-			0L,
-			null,
-			SimpleCompletionHandler<Int, Any?>(
-				{ bytesRead, _, handler ->
-					try
+//		this.file.read<Any>(
+//			input,
+//			0L,
+//			null,
+		SimpleCompletionHandler<Int>(
+			{
+				try
+				{
+					var moreInput = true
+					if (value == -1)
 					{
-						var moreInput = true
-						if (bytesRead == -1)
-						{
-							moreInput = false
-						}
-						else
-						{
-							filePosition += bytesRead.toLong()
-						}
-						input.flip()
+						moreInput = false
+					}
+					else
+					{
+						filePosition += value.toLong()
+					}
+					input.flip()
 
-						// TODO not sure if we should care about result
-						val result = decoder.decode(
-							input, output, !moreInput)
-						// If the decoder didn't consume all of the bytes,
-						// then preserve the unconsumed bytes in the next
-						// buffer (for decoding).
-						if (input.hasRemaining())
-						{
-							input.compact()
-						}
-						else
-						{
-							input.clear()
-						}
-						output.flip()
-						sourceBuilder.append(output)
-						// If more input remains, then queue another read.
-						if (moreInput)
-						{
-							output.clear()
-							this.file.read<Any>(
-								input,
-								filePosition,
-								null,
-								handler)
-						}
-						// Otherwise, notify the serverFileWrapper of completion
-						else
-						{
-							decoder.flush(output)
-							sourceBuilder.append(output)
-							content = StringDescriptor.stringWithSurrogatesFrom(
-								sourceBuilder.toString())
-							serverFileWrapper.notifyReady()
-						}
-					}
-					catch (e: IOException)
+					// TODO not sure if we should care about result
+					val result = decoder.decode(
+						input, output, !moreInput)
+					// If the decoder didn't consume all of the bytes,
+					// then preserve the unconsumed bytes in the next
+					// buffer (for decoding).
+					if (input.hasRemaining())
 					{
-						TODO("Handle AvailServerTextFile read decode bytes fail")
+						input.compact()
 					}
-				},
-				{ e, _, _ ->
-					TODO("Handle AvailServerTextFile read fail")
-				}))
+					else
+					{
+						input.clear()
+					}
+					output.flip()
+					sourceBuilder.append(output)
+					// If more input remains, then queue another read.
+					if (moreInput)
+					{
+						output.clear()
+						handler.guardedDo {
+							file.read(input, filePosition, dummy, handler)
+						}
+					}
+					// Otherwise, notify the serverFileWrapper of completion
+					else
+					{
+						decoder.flush(output)
+						sourceBuilder.append(output)
+						content = StringDescriptor.stringWithSurrogatesFrom(
+							sourceBuilder.toString())
+						serverFileWrapper.notifyReady()
+					}
+				}
+				catch (e: IOException)
+				{
+					TODO("Handle AvailServerTextFile read decode bytes fail")
+				}
+			},
+			{
+				val e = throwable
+				TODO("Handle AvailServerTextFile read fail")
+			}).guardedDo { file.read(input, 0L, dummy, handler) }
 	}
 
 	/**
@@ -194,17 +193,15 @@ internal class AvailServerTextFile constructor(
 		// The client will use 0-based indexing in its request, so we must
 		// adjust by 1. Here using the start as inclusive is good enough to
 		// offset by 1.
-		val first = content
-			.copyTupleFromToCanDestroy(1, start, false)
+		val first = content.copyStringFromToCanDestroy(1, start, false)
 
 		// As stated above, must add 1 to end to keep from preserving the last
 		// character marked for removal.
-		val third = content.copyTupleFromToCanDestroy(
+		val third = content.copyStringFromToCanDestroy(
 			end + 1, content.tupleSize(), false)
 
-		content = Casts.cast(
-			first.concatenateWith(text, false)
-				.concatenateWith(third, false))
+		content = A_Tuple.concatenate(
+			A_Tuple.concatenate(first, text, false), third, false)
 
 		markDirty()
 		return TracedAction(

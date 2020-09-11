@@ -75,6 +75,17 @@ dependencies {
 
 	// https://tika.apache.org for file MIME type detection
 	implementation 'org.apache.tika:tika-core:1.22'
+
+	// JUnit 5.
+	testRuntimeOnly group: 'org.junit.jupiter',
+		name: 'junit-jupiter-engine',
+		version: "$junit_version"
+	testImplementation group: 'org.junit.jupiter',
+		name: 'junit-jupiter-api',
+		version: "$junit_version"
+	testImplementation group: 'org.junit.jupiter',
+		name: 'junit-jupiter-params',
+		version: "$junit_version"
 }
 
 // Capture the time at which the build began and record it into a resource file.
@@ -121,6 +132,13 @@ jar {
 		attributes 'Main-Class': 'com.avail.server.AvailServer'
 	}
 	duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}
+
+test {
+	useJUnitPlatform()
+	minHeapSize = "4g"
+	maxHeapSize = "6g"
+	enableAssertions = true
 }
 
 // Copy the JAR into the distribution directory.

@@ -42,10 +42,11 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
- * A `ServerFileWrapper` holds an [AvailServerFile]. The purpose of this is to
- * enable the Avail server [FileManager] cache to delay establishing the type
- * of `AvailServerFile` until the file type can be read without delaying adding
- * a file object to the `FileManager` cache.
+ * A `AbstractServerFileWrapper` is an abstraction for holding an
+ * [AvailServerFile]. The purpose of this is to enable the Avail server
+ * [FileManager] cache to delay establishing the type of `AvailServerFile`
+ * until the file type can be read without delaying adding a file object to the
+ * `FileManager` cache.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
@@ -57,7 +58,7 @@ import java.util.concurrent.atomic.AtomicInteger
  *   The [FileManager] this [ServerFileWrapper] belongs to.
  *
  * @constructor
- * Construct a [ServerFileWrapper].
+ * Construct a [AbstractServerFileWrapper].
  *
  * @param id
  *   The [FileManager.fileCache] key.
@@ -65,18 +66,32 @@ import java.util.concurrent.atomic.AtomicInteger
  *   The String path to the target file on disk.
  * @param fileManager
  *   The [FileManager] this [ServerFileWrapper] belongs to.
- * @param fileChannel
- *   The [AsynchronousFileChannel] used to access the file.
  */
-internal class ServerFileWrapper constructor(
+abstract class AbstractServerFileWrapper constructor(
 	val id: UUID,
 	val path: String,
-	private val fileManager: FileManager,
-	fileChannel: AsynchronousFileChannel)
+	protected val fileManager: FileManager)
 {
+	/**
+	 * `true` indicates that there was an error; `false` otherwise.
+	 */
+	open val isError = false
+
+	/**
+	 * The associated [ServerErrorCode] if [error] is not `null`; `null`
+	 * otherwise
+	 */
+	open val errorCode: ServerErrorCode? = null
+
+	/**
+	 * The [Throwable] if one was encountered when opening the file, `null`
+	 * otherwise.
+	 */
+	open val error: Throwable? = null
+
 	/** The [AvailServerFile] wrapped by this [ServerFileWrapper]. */
-	lateinit var file: AvailServerFile
-		private set
+	abstract var file: AvailServerFile
+		protected set
 
 	/**
 	 * `true` indicates that [file] is fully populated with the content of the
@@ -84,16 +99,6 @@ internal class ServerFileWrapper constructor(
 	 * loaded into memory.
 	 */
 	private val isAvailable = AtomicBoolean(false)
-
-	init
-	{
-		// TODO handle this externally
-		fileManager.executeFileTask {
-			val p = Paths.get(path)
-			val mimeType = Tika().detect(p)
-			file = createFile(path, fileChannel, mimeType, this)
-		}
-	}
 
 	/**
 	 * The [queue][ConcurrentLinkedQueue] of [FileRequestHandler]s that are
@@ -244,6 +249,11 @@ internal class ServerFileWrapper constructor(
 		consumer: (UUID, String, ByteArray) -> Unit,
 		failureHandler: (ServerErrorCode, Throwable?) -> Unit)
 	{
+		if (isError)
+		{
+			failureHandler(errorCode!!, error)
+			return
+		}
 		interestCount.incrementAndGet()
 		if (isAvailable.get())
 		{
@@ -293,6 +303,54 @@ internal class ServerFileWrapper constructor(
 
 		}
 	}
+}
+
+/**
+ * A `ServerFileWrapper` holds an [AvailServerFile]. The purpose of this is to
+ * enable the Avail server [FileManager] cache to delay establishing the type
+ * of `AvailServerFile` until the file type can be read without delaying adding
+ * a file object to the `FileManager` cache.
+ *
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ *
+ * @property id
+ *   The [FileManager.fileCache] key.
+ * @property path
+ *   The String path to the target file on disk.
+ * @property fileManager
+ *   The [FileManager] this [ServerFileWrapper] belongs to.
+ *
+ * @constructor
+ * Construct a [ServerFileWrapper].
+ *
+ * @param id
+ *   The [FileManager.fileCache] key.
+ * @param path
+ *   The String path to the target file on disk.
+ * @param fileManager
+ *   The [FileManager] this [ServerFileWrapper] belongs to.
+ * @param fileChannel
+ *   The [AsynchronousFileChannel] used to access the file.
+ */
+class ServerFileWrapper constructor(
+	id: UUID,
+	path: String,
+	fileManager: FileManager,
+	fileChannel: AsynchronousFileChannel)
+		: AbstractServerFileWrapper(id, path, fileManager)
+{
+	/** The [AvailServerFile] wrapped by this [ServerFileWrapper]. */
+	override lateinit var file: AvailServerFile
+
+	init
+	{
+		// TODO handle this externally
+		fileManager.executeFileTask {
+			val p = Paths.get(path)
+			val mimeType = Tika().detect(p)
+			file = createFile(path, fileChannel, mimeType, this)
+		}
+	}
 
 	companion object
 	{
@@ -314,16 +372,57 @@ internal class ServerFileWrapper constructor(
 			file: AsynchronousFileChannel,
 			mimeType: String,
 			serverFileWrapper: ServerFileWrapper): AvailServerFile =
-				when (mimeType)
-				{
-					"text/avail", "text/plain", "text/json" ->
-						AvailServerTextFile(
-							path, file, mimeType, serverFileWrapper)
-					else ->
-						AvailServerBinaryFile(
-							path, file, mimeType, serverFileWrapper)
-				}
+			when (mimeType)
+			{
+				"text/avail", "text/plain", "text/json" ->
+					AvailServerTextFile(
+						path, file, mimeType, serverFileWrapper)
+				else ->
+					AvailServerBinaryFile(
+						path, file, mimeType, serverFileWrapper)
+			}
 	}
+}
+
+/**
+ * A `ErrorServerFileWrapper` is a [AbstractServerFileWrapper] that encountered
+ * an error when accessing the underlying file.
+ *
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ *
+ * @property id
+ *   The [FileManager.fileCache] key.
+ * @property path
+ *   The String path to the target file on disk.
+ * @property fileManager
+ *   The [FileManager] this [ServerFileWrapper] belongs to.
+ *
+ * @constructor
+ * Construct a [ServerFileWrapper].
+ *
+ * @param id
+ *   The [FileManager.fileCache] key.
+ * @param path
+ *   The String path to the target file on disk.
+ * @param fileManager
+ *   The [FileManager] this [ServerFileWrapper] belongs to.
+ * @param e
+ *   The [Throwable] that was encountered.
+ */
+class ErrorServerFileWrapper constructor(
+	id: UUID,
+	path: String,
+	fileManager: FileManager,
+	e: Throwable,
+	errorCode: ServerErrorCode)
+	: AbstractServerFileWrapper(id, path, fileManager)
+{
+	/** The [AvailServerFile] wrapped by this [ServerFileWrapper]. */
+	override lateinit var file: AvailServerFile
+
+	override val isError = true
+	override val error: Throwable? = e
+	override val errorCode: ServerErrorCode? = errorCode
 }
 
 /**

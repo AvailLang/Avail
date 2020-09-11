@@ -42,7 +42,7 @@ import com.avail.server.io.files.UndoAction.execute
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-internal enum class FileActionType
+enum class FileActionType
 {
 	/** Represents the canonical non-action when nothing is to be done. */
 	NO_ACTION,
@@ -73,7 +73,7 @@ internal enum class FileActionType
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-internal interface FileAction
+interface FileAction
 {
 	/**
 	 * Executes the action on the provided [AvailServerFile] and answer the
@@ -246,7 +246,7 @@ internal class SaveAction constructor(
  * @property reverseAction
  *   The [FileAction] that reverses the `forwardAction`.
  */
-internal class TracedAction constructor(
+class TracedAction constructor(
 	val timestamp: Long,
 	private val forwardAction: FileAction,
 	private val reverseAction: FileAction)

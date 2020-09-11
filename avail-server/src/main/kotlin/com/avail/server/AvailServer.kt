@@ -104,7 +104,6 @@ import java.util.Collections.synchronizedMap
 import java.util.EnumSet
 import java.util.TimerTask
 import java.util.UUID
-import java.util.Collections.unmodifiableSet
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Semaphore
 import java.util.logging.Level
@@ -119,7 +118,7 @@ import kotlin.collections.set
  * @property configuration
  *   The [configuration][AvailServerConfiguration].
  * @property runtime
- *   The [Avail&#32;runtime][AvailRuntime] managed by this
+ *   The [Avail runtime][AvailRuntime] managed by this
  *   [server][AvailServer].
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
@@ -127,7 +126,7 @@ import kotlin.collections.set
  * @constructor
  *
  * Construct a new `AvailServer` that manages the given
- * [Avail&#32;runtime][AvailRuntime].
+ * [Avail runtime][AvailRuntime].
  *
  * @param configuration
  *   An [configuration][AvailServerConfiguration].
@@ -140,7 +139,7 @@ class AvailServer constructor(
 	val runtime: AvailRuntime)
 {
 	/**
-	 * The [Avail&#32;builder][AvailBuilder] responsible for managing build and
+	 * The [Avail builder][AvailBuilder] responsible for managing build and
 	 * execution tasks.
 	 */
 	private val builder: AvailBuilder = AvailBuilder(runtime)
@@ -213,7 +212,7 @@ class AvailServer constructor(
 	}
 
 	/**
-	 * List all [module&#32;roots][ModuleRoot].
+	 * List all [module roots][ModuleRoot].
 	 *
 	 * @param channel
 	 *   The [channel][AvailServerChannel] on which the
@@ -229,7 +228,7 @@ class AvailServer constructor(
 		command: SimpleCommandMessage,
 		continuation: ()->Unit)
 	{
-		assert(command.command === Command.MODULE_ROOTS)
+		assert(command.command === TextCommand.MODULE_ROOTS)
 		val message = newSuccessMessage(channel, command) {
 			runtime.moduleRoots().writeOn(this)
 		}
@@ -237,7 +236,7 @@ class AvailServer constructor(
 	}
 
 	/**
-	 * List all [module&#32;root&#32;paths][ModuleRoots.writePathsOn].
+	 * List all [module root paths][ModuleRoots.writePathsOn].
 	 *
 	 * @param channel
 	 *   The [channel][AvailServerChannel] on which the
@@ -253,7 +252,7 @@ class AvailServer constructor(
 		command: SimpleCommandMessage,
 		continuation: ()->Unit)
 	{
-		assert(command.command === Command.MODULE_ROOT_PATHS)
+		assert(command.command === TextCommand.MODULE_ROOT_PATHS)
 		val message = newSuccessMessage(channel, command) {
 			runtime.moduleRoots().writePathsOn(this)
 		}
@@ -261,7 +260,7 @@ class AvailServer constructor(
 	}
 
 	/**
-	 * Answer the [module&#32;roots&#32;path][ModuleRoots.modulePath].
+	 * Answer the [module roots path][ModuleRoots.modulePath].
 	 *
 	 * @param channel
 	 *   The [channel][AvailServerChannel] on which the
@@ -277,7 +276,7 @@ class AvailServer constructor(
 		command: SimpleCommandMessage,
 		continuation: ()->Unit)
 	{
-		assert(command.command === Command.MODULE_ROOTS_PATH)
+		assert(command.command === TextCommand.MODULE_ROOTS_PATH)
 		val message = newSuccessMessage(channel, command) {
 			write(runtime.moduleRoots().modulePath)
 		}
@@ -412,7 +411,7 @@ class AvailServer constructor(
 
 		/**
 		 * Write information that requires
-		 * [module&#32;resolution][ModuleNameResolver].
+		 * [module resolution][ModuleNameResolver].
 		 *
 		 * @param writer
 		 *   A `JSONWriter`.
@@ -463,7 +462,7 @@ class AvailServer constructor(
 
 	/**
 	 * Answer a [visitor][FileVisitor] able to visit every source module
-	 * beneath the specified [module&#32;root][ModuleRoot].
+	 * beneath the specified [module root][ModuleRoot].
 	 *
 	 * @param root
 	 *   A module root.
@@ -600,7 +599,7 @@ class AvailServer constructor(
 
 	/**
 	 * List all source modules reachable from the
-	 * [module&#32;roots][ModuleRoots].
+	 * [module roots][ModuleRoots].
 	 *
 	 * @param channel
 	 *   The [channel][AvailServerChannel] on which the
@@ -649,7 +648,7 @@ class AvailServer constructor(
 
 	/**
 	 * List all source modules reachable from the
-	 * [module&#32;roots][ModuleRoots].
+	 * [module roots][ModuleRoots].
 	 *
 	 * @param channel
 	 *   The [channel][AvailServerChannel] on which the
@@ -692,7 +691,7 @@ class AvailServer constructor(
 	}
 
 	/**
-	 * Clear all [binary&#32;module&#32;repositories][Repository].
+	 * Clear all [binary module repositories][Repository].
 	 *
 	 * @param channel
 	 *   The [channel][AvailServerChannel] on which the
@@ -968,7 +967,7 @@ class AvailServer constructor(
 
 	/**
 	 * Request new I/O-upgraded [channels][AvailServerChannel] to support
-	 * [module&#32;unloading][AvailBuilder.unloadTarget].
+	 * [module unloading][AvailBuilder.unloadTarget].
 	 *
 	 * @param channel
 	 *   The [channel][AvailServerChannel] on which the
@@ -1477,7 +1476,7 @@ class AvailServer constructor(
 
 		/**
 		 * Negotiate a version. If the
-		 * [requested&#32;version][VersionCommandMessage.version] is
+		 * [requested version][VersionCommandMessage.version] is
 		 * [supported][supportedProtocolVersions], then echo this version back
 		 * to the client. Otherwise, send a list of the supported versions for
 		 * the client to examine. If the client cannot (or does not wish to)
@@ -1586,7 +1585,7 @@ class AvailServer constructor(
 
 		/**
 		 * The entry point for command-line invocation of the
-		 * [Avail&#32;server][AvailServer].
+		 * [Avail server][AvailServer].
 		 *
 		 * @param args
 		 *   The command-line arguments.

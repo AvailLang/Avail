@@ -38,10 +38,10 @@ import com.avail.server.AvailServer
 import com.avail.server.error.ServerErrorCode
 import com.avail.server.error.ServerErrorCode.*
 import com.avail.utility.LRUCache
-import com.avail.utility.MutableOrNull
+import com.avail.utility.Mutable
 import java.io.IOException
+import java.nio.file.NoSuchFileException
 import java.nio.file.Path
-import java.nio.file.Paths
 import java.nio.file.StandardOpenOption
 import java.util.*
 import java.util.concurrent.ThreadPoolExecutor
@@ -62,15 +62,8 @@ import java.util.concurrent.ThreadPoolExecutor
  * @param runtime
  *   The [AvailRuntime] that is associated with the running [AvailServer].
  */
-internal abstract class FileManager constructor(
-	protected val runtime: AvailRuntime)
+abstract class FileManager constructor(protected val runtime: AvailRuntime)
 {
-	/**
-	 * The [EnumSet] of [StandardOpenOption]s used when opening files.
-	 */
-	private val fileOpenOptions =
-		EnumSet.of(StandardOpenOption.READ, StandardOpenOption.WRITE)
-
 	/**
 	 * The [EnumSet] of [StandardOpenOption]s used when creating files.
 	 */
@@ -79,6 +72,15 @@ internal abstract class FileManager constructor(
 			StandardOpenOption.READ,
 			StandardOpenOption.WRITE,
 			StandardOpenOption.CREATE_NEW)
+
+	companion object
+	{
+		// TODO make the softCapacity and strongCapacity configurable,
+		//  not magic numbers
+		// The LRUCache capacities
+		const val SOFT_CAPACITY = 10000
+		const val STRONG_CAPACITY = 10
+	}
 
 	/**
 	 * The [thread pool executor][ThreadPoolExecutor] for asynchronous file
@@ -92,10 +94,10 @@ internal abstract class FileManager constructor(
 	 * This cache works in conjunction with [pathToIdMap] to maintain links
 	 * between
 	 */
-	// TODO make the softCapacity and strongCapacity configurable, not magic numbers
-	protected val fileCache = LRUCache<UUID, MutableOrNull<ServerFileWrapper>>(
-		10000,
-		10,
+
+	protected val fileCache = LRUCache<UUID, Mutable<AbstractServerFileWrapper?>>(
+		SOFT_CAPACITY,
+		STRONG_CAPACITY,
 		{
 			var path = ""
 			pathToIdMap.forEach { (k, v) ->
@@ -105,23 +107,30 @@ internal abstract class FileManager constructor(
 					return@forEach
 				}
 			}
-			MutableOrNull(
-				if (path.isEmpty())
+			val wrapper: AbstractServerFileWrapper? =
+				try
 				{
-					null
+					if (path.isEmpty())
+					{
+						null
+					}
+					else
+					{
+						serverFileWrapper(it, path)
+					}
 				}
-				else
+				catch (e: NoSuchFileException)
 				{
-					// TODO make this not use an AsyncFileChannel, instead
-					//  inject the file somehow
-					ServerFileWrapper(
-						it,
-						path,
-						this,
-						runtime.ioSystem().openFile(
-							Paths.get(path), fileOpenOptions))
-				})
+					ErrorServerFileWrapper(
+						it, path, this, e, FILE_NOT_FOUND)
+				}
 
+				catch (e: NoSuchFileException)
+				{
+					ErrorServerFileWrapper(
+						it, path, this, e, UNSPECIFIED)
+				}
+			Mutable(wrapper)
 		},
 		{ _, value ->
 			try
@@ -133,6 +142,19 @@ internal abstract class FileManager constructor(
 				// Do nothing
 			}
 		})
+
+	/**
+	 * Answer a [ServerFileWrapper] for the targeted file.
+	 *
+	 * @param id
+	 *   The [ServerFileWrapper.id].
+	 * @param path
+	 *   The location of the file.
+	 * @return
+	 *   A `ServerFileWrapper`.
+	 */
+	protected abstract fun serverFileWrapper(
+		id: UUID, path: String): ServerFileWrapper
 
 	/**
 	 * Fully remove the file associated with the provided [fileCache] id. This
@@ -160,8 +182,8 @@ internal abstract class FileManager constructor(
 	 */
 	fun deregisterInterest (id: UUID)
 	{
-		fileCache[id].value?.let {
-			if (it.interestCount.decrementAndGet() == 0)
+		fileCache[id].value.let {
+			if (it?.interestCount?.decrementAndGet() == 0)
 			{
 				remove(id)
 				it.close()

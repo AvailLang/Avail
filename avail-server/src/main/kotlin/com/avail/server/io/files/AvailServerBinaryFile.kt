@@ -72,22 +72,23 @@ internal class AvailServerBinaryFile constructor(
 	{
 		var filePosition = 0L
 		val input = ByteBuffer.allocateDirect(4096)
-		this.file.read<Any>(
-			input,
-			0L,
-			null,
-			SimpleCompletionHandler<Int, Any?>(
-				{ bytesRead, _, handler ->
+
+//		this.file.read<Any>(
+//			input,
+//			0L,
+//			null,
+			SimpleCompletionHandler<Int>(
+				{
 					try
 					{
 						var moreInput = true
-						if (bytesRead == -1)
+						if (value == -1)
 						{
 							moreInput = false
 						}
 						else
 						{
-							filePosition += bytesRead.toLong()
+							filePosition += value.toLong()
 						}
 						input.flip()
 						val data = ByteArray(input.limit())
@@ -96,11 +97,9 @@ internal class AvailServerBinaryFile constructor(
 						// If more input remains, then queue another read.
 						if (moreInput)
 						{
-							this.file.read<Any>(
-								input,
-								filePosition,
-								null,
-								handler)
+							handler.guardedDo {
+								file.read(input, filePosition, dummy, handler)
+							}
 						}
 						// Otherwise, close the file channel and notify the
 						// serverFileWrapper of completion. No reason to keep
@@ -116,10 +115,10 @@ internal class AvailServerBinaryFile constructor(
 							ServerErrorCode.IO_EXCEPTION, e)
 					}
 				},
-				{ e, _, _ ->
+				{
 					serverFileWrapper.notifyOpenFailure(
-						ServerErrorCode.IO_EXCEPTION, e)
-				}))
+						ServerErrorCode.IO_EXCEPTION, throwable)
+				}).guardedDo { file.read(input, 0L, dummy, handler) }
 	}
 
 	override fun editRange(

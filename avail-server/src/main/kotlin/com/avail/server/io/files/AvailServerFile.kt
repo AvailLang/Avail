@@ -63,7 +63,7 @@ import java.util.logging.Level
  * @param serverFileWrapper
  *   The [ServerFileWrapper] that wraps this [AvailServerFile].
  */
-internal abstract class AvailServerFile constructor(
+abstract class AvailServerFile constructor(
 	val path: String,
 	protected val file: AsynchronousFileChannel,
 	val mimeType: String,

@@ -33,11 +33,11 @@
 package com.avail.server.io.files
 
 import com.avail.AvailRuntime
-import com.avail.io.SimpleCompletionHandler
 import com.avail.server.error.ServerErrorCode
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousFileChannel
+import java.nio.channels.CompletionHandler
 import java.nio.file.FileAlreadyExistsException
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -54,6 +54,16 @@ import java.util.*
 internal class LocalFileManager constructor(runtime: AvailRuntime)
 	: FileManager(runtime)
 {
+	override fun serverFileWrapper(
+		id: UUID,
+		path: String): ServerFileWrapper =
+			ServerFileWrapper(
+				id,
+				path,
+				this,
+				runtime.ioSystem().openFile(
+					Paths.get(path), fileOpenOptions))
+
 	override fun readFile (
 		path: String,
 		consumer: (UUID, String, ByteArray) -> Unit,
@@ -112,8 +122,23 @@ internal class LocalFileManager constructor(runtime: AvailRuntime)
 			data,
 			0,
 			null,
-			SimpleCompletionHandler<Int, ServerErrorCode?>(
-				{ _, _, _ ->
+//			SimpleCompletionHandler<ServerErrorCode>(
+//				{
+//					if (data.hasRemaining())
+//					{
+//						save(file, data, data.position().toLong(), failure)
+//					}
+//					else
+//					{
+//						availServerFile.conditionallyClearDirty(saveTimeStart)
+//					}
+//				})
+//			{ e, code ->
+//				failure(code ?: ServerErrorCode.UNSPECIFIED, e)
+//			})
+			object : CompletionHandler<Int, ServerErrorCode?> {
+				override fun completed(result: Int?, attachment: ServerErrorCode?)
+				{
 					if (data.hasRemaining())
 					{
 						save(file, data, data.position().toLong(), failure)
@@ -122,9 +147,12 @@ internal class LocalFileManager constructor(runtime: AvailRuntime)
 					{
 						availServerFile.conditionallyClearDirty(saveTimeStart)
 					}
-				})
-			{ e, code, _ ->
-				failure(code ?: ServerErrorCode.UNSPECIFIED, e)
+				}
+
+				override fun failed(exc: Throwable?, attachment: ServerErrorCode?)
+				{
+					failure(attachment ?: ServerErrorCode.UNSPECIFIED, exc)
+				}
 			})
 	}
 
@@ -149,15 +177,29 @@ internal class LocalFileManager constructor(runtime: AvailRuntime)
 			data,
 			writePosition,
 			null,
-			SimpleCompletionHandler<Int, ServerErrorCode?>(
-				{ result, _, _ ->
+//			SimpleCompletionHandler<Int, ServerErrorCode?>(
+//				{ result, _, _ ->
+//					if (data.hasRemaining())
+//					{
+//						save(file, data, data.position().toLong(), failure)
+//					}
+//				})
+//			{ e, code, _ ->
+//				failure(code ?: ServerErrorCode.UNSPECIFIED, e)
+//			})
+			object : CompletionHandler<Int, ServerErrorCode?> {
+				override fun completed(result: Int?, attachment: ServerErrorCode?)
+				{
 					if (data.hasRemaining())
 					{
 						save(file, data, data.position().toLong(), failure)
 					}
-				})
-			{ e, code, _ ->
-				failure(code ?: ServerErrorCode.UNSPECIFIED, e)
+				}
+
+				override fun failed(exc: Throwable?, attachment: ServerErrorCode?)
+				{
+					failure(attachment ?: ServerErrorCode.UNSPECIFIED, exc)
+				}
 			})
 	}
 
