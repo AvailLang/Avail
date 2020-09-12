@@ -70,10 +70,10 @@ class APITests
 	companion object
 	{
 		/** Edit text used in tests w/ [sampleFilePath]. */
-		const val sampleReplace = " pi"
+		const val sampleReplace = " count Dracula's"
 
 		/** Edited contents of [sampleFilePath]. */
-		const val sampleContentsEdited = "This is pi" +
+		const val sampleContentsEdited = "This is count Dracula's" +
 			"\tsample\n" +
 			"text!"
 

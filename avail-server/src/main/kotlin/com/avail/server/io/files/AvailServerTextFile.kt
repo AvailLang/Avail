@@ -145,7 +145,6 @@ internal class AvailServerTextFile constructor(
 				}
 			},
 			{
-				val e = throwable
 				TODO("Handle AvailServerTextFile read fail")
 			}).guardedDo { file.read(input, 0L, dummy, handler) }
 	}
