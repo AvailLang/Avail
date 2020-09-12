@@ -287,7 +287,7 @@ class FileManagerTest
 		assert(fileContents.value!!.isEmpty())
 		val editMade = Mutable(false)
 		val edit = EditRange(createdFileContent
-			.toByteArray(StandardCharsets.UTF_8), 0, 0)
+			.toByteArray(StandardCharsets.UTF_16BE), 0, 0)
 		fileManager.executeAction(
 			firstId,
 			edit,
