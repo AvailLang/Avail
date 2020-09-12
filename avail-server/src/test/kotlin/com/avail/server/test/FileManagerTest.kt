@@ -30,15 +30,14 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.server.test.files
+package com.avail.server.test
 
 import com.avail.server.error.ServerErrorCode
 import com.avail.server.io.files.EditRange
 import com.avail.server.io.files.FileManager
-import com.avail.server.io.files.LocalFileManager
 import com.avail.server.io.files.ReplaceContents
 import com.avail.server.io.files.SaveAction
-import com.avail.server.test.utility.AvailRuntimeTestHelper
+import com.avail.server.test.utility.FileManagerTestHelper
 import com.avail.server.test.utility.FileStateHolder
 import com.avail.utility.Mutable
 import org.junit.jupiter.api.AfterAll
@@ -69,42 +68,25 @@ import java.util.concurrent.Semaphore
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
 class FileManagerTest
 {
-	/**
-	 * The [AvailRuntimeTestHelper] that provides Avail state needed to conduct
-	 * tests.
-	 */
-	private val helper: AvailRuntimeTestHelper by lazy {
-		AvailRuntimeTestHelper()
+	/** The [FileManagerTestHelper] used in these tests. */
+	private val helper: FileManagerTestHelper by lazy {
+		FileManagerTestHelper("fmt")
 	}
 
 	/** The [FileManager] used in this test. */
-	private val fileManager: FileManager by lazy {
-		LocalFileManager(helper.runtime)
-	}
+	private val fileManager get() = helper.fileManager
 
 	/** Directory where all files will go/be. */
-	private val resourcesDir: String by lazy {
-		"${System.getProperty("user.dir")}/src/test/resources"
-	}
+	private val resourcesDir get() = helper.resourcesDir
 
 	/** File path for `created.txt` file. */
-	private val createdFilePath: String by lazy {
-		"$resourcesDir/created.txt"
-	}
+	private val createdFilePath get() = helper.createdFilePath
 
 	/** Path for `sample.txt file.` */
-	private val sampleFilePath: String by lazy {
-		"$resourcesDir/sample.txt"
-	}
+	private val sampleFilePath get() = helper.sampleFilePath
 
 	companion object
 	{
-		/** Initial contents of [sampleFilePath]. */
-		const val sampleContents = "This is\n" +
-			"some\n" +
-			"\tsample\n" +
-			"text!"
-
 		/** Edit text used in tests w/ [sampleFilePath]. */
 		const val sampleReplace = " pi"
 
@@ -118,24 +100,10 @@ class FileManagerTest
 	}
 
 	@BeforeAll
-	fun initialize ()
-	{
-		val created = File(createdFilePath)
-		if (created.exists()) { created.delete() }
-		val sampleFile = File(sampleFilePath)
-		if (sampleFile.exists()) { sampleFile.delete() }
-		sampleFile.createNewFile()
-		sampleFile.writeText(sampleContents)
-	}
+	fun initialize () = helper.initialize()
 
 	@AfterAll
-	fun cleanUp ()
-	{
-		val created = File(createdFilePath)
-		if (created.exists()) { created.delete() }
-		val sampleFile = File(sampleFilePath)
-		if (sampleFile.exists()) { sampleFile.delete() }
-	}
+	fun cleanUp () = helper.cleanUp()
 
 	@Test
 	@DisplayName("Open files successfully")
@@ -160,7 +128,7 @@ class FileManagerTest
 		semaphore.acquire()
 		state.conditionallyThrowError()
 		assertEquals("text/plain", state.fileMime)
-		assertEquals(sampleContents, state.fileContents)
+		assertEquals(FileManagerTestHelper.sampleContents, state.fileContents)
 		assertEquals(firstId, state.fileId)
 		state.reset()
 		fileManager.readFile(sampleFilePath, {id, mime, raw ->
@@ -176,7 +144,7 @@ class FileManagerTest
 		}
 		semaphore.acquire()
 		assertEquals("text/plain", state.fileMime)
-		assertEquals(sampleContents, state.fileContents)
+		assertEquals(FileManagerTestHelper.sampleContents, state.fileContents)
 		assertEquals(firstId, state.fileId)
 	}
 
@@ -229,7 +197,7 @@ class FileManagerTest
 		semaphore.acquire()
 		state.conditionallyThrowError()
 		assertEquals("text/plain", state.fileMime)
-		assertEquals(sampleContents, state.fileContents)
+		assertEquals(FileManagerTestHelper.sampleContents, state.fileContents)
 		state.reset()
 		val editMade = Mutable(false)
 		val edit = EditRange(
@@ -425,7 +393,7 @@ class FileManagerTest
 		state.conditionallyThrowError()
 		assertNotEquals(firstId, state.fileId)
 		assertEquals("text/plain",state.fileMime)
-		assertEquals(sampleContents, state.fileContents)
+		assertEquals(FileManagerTestHelper.sampleContents, state.fileContents)
 	}
 
 	@Test
