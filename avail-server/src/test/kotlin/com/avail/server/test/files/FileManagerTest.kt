@@ -36,13 +36,17 @@ import com.avail.server.error.ServerErrorCode
 import com.avail.server.io.files.EditRange
 import com.avail.server.io.files.FileManager
 import com.avail.server.io.files.LocalFileManager
+import com.avail.server.io.files.ReplaceContents
 import com.avail.server.io.files.SaveAction
-import com.avail.server.test.AvailRuntimeTestHelper
+import com.avail.server.test.utility.AvailRuntimeTestHelper
+import com.avail.server.test.utility.FileStateHolder
 import com.avail.utility.Mutable
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
-import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertNotEquals
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.MethodOrderer
 import org.junit.jupiter.api.Order
@@ -53,11 +57,11 @@ import java.io.File
 import java.lang.RuntimeException
 import java.nio.charset.StandardCharsets
 import java.nio.file.FileAlreadyExistsException
-import java.util.UUID
 import java.util.concurrent.Semaphore
 
 /**
- * A `FileManagerTest` is tests the [FileManager].
+ * A `FileManagerTest` tests the [FileManager] with interleaved ordered tests
+ * on two different files.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
@@ -65,40 +69,72 @@ import java.util.concurrent.Semaphore
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
 class FileManagerTest
 {
-	/** Setup for the test.  */
+	/**
+	 * The [AvailRuntimeTestHelper] that provides Avail state needed to conduct
+	 * tests.
+	 */
 	private val helper: AvailRuntimeTestHelper by lazy {
 		AvailRuntimeTestHelper()
 	}
 
+	/** The [FileManager] used in this test. */
 	private val fileManager: FileManager by lazy {
 		LocalFileManager(helper.runtime)
 	}
 
+	/** Directory where all files will go/be. */
 	private val resourcesDir: String by lazy {
 		"${System.getProperty("user.dir")}/src/test/resources"
 	}
 
+	/** File path for `created.txt` file. */
 	private val createdFilePath: String by lazy {
-		"$resourcesDir/$createdFileName"
+		"$resourcesDir/created.txt"
+	}
+
+	/** Path for `sample.txt file.` */
+	private val sampleFilePath: String by lazy {
+		"$resourcesDir/sample.txt"
 	}
 
 	companion object
 	{
+		/** Initial contents of [sampleFilePath]. */
 		const val sampleContents = "This is\n" +
 			"some\n" +
 			"\tsample\n" +
 			"text!"
 
-		const val createdFileName = "created.txt"
+		/** Edit text used in tests w/ [sampleFilePath]. */
+		const val sampleReplace = " pi"
 
+		/** Edited contents of [sampleFilePath]. */
+		const val sampleContentsEdited = "This is pi" +
+			"\tsample\n" +
+			"text!"
+
+		/** Contents added to [createdFilePath]. */
 		const val createdFileContent = "Some more\n\ttext"
+	}
+
+	@BeforeAll
+	fun initialize ()
+	{
+		val created = File(createdFilePath)
+		if (created.exists()) { created.delete() }
+		val sampleFile = File(sampleFilePath)
+		if (sampleFile.exists()) { sampleFile.delete() }
+		sampleFile.createNewFile()
+		sampleFile.writeText(sampleContents)
 	}
 
 	@AfterAll
 	fun cleanUp ()
 	{
-		val created = File(createdFilePath);
+		val created = File(createdFilePath)
 		if (created.exists()) { created.delete() }
+		val sampleFile = File(sampleFilePath)
+		if (sampleFile.exists()) { sampleFile.delete() }
 	}
 
 	@Test
@@ -107,48 +143,41 @@ class FileManagerTest
 	internal fun openFilesTest()
 	{
 		val semaphore = Semaphore(0)
-		val target = "$resourcesDir/sample.txt"
-		val error : Mutable<RuntimeException?> = Mutable(null)
-		val fileId : Mutable<UUID?> = Mutable(null)
-		val fileMime : Mutable<String?> = Mutable(null)
-		val fileContents: Mutable<String?> = Mutable(null)
-		fileManager.readFile(target, { id, mime, raw ->
-			fileId.value = id
-			fileMime.value = mime
-			fileContents.value = String(raw, Charsets.UTF_16BE)
+		val state = FileStateHolder()
+		val firstId = fileManager.readFile(
+			sampleFilePath,
+			{ id, mime, raw ->
+				state.updateFile(id, mime, raw)
+				semaphore.release()
+			})
+			{ code, e ->
+				state.updateError(
+					code,
+					RuntimeException(
+						"ReadFile1: Error Code: $code (${e?.message})", e))
+				semaphore.release()
+			}
+		semaphore.acquire()
+		state.conditionallyThrowError()
+		assertEquals("text/plain", state.fileMime)
+		assertEquals(sampleContents, state.fileContents)
+		assertEquals(firstId, state.fileId)
+		state.reset()
+		fileManager.readFile(sampleFilePath, {id, mime, raw ->
+			state.updateFile(id, mime, raw)
 			semaphore.release()
 		})
 		{ code, e ->
-			error.value =
-				RuntimeException("Error Code: $code (${e?.message})", e)
+			state.updateError(
+				code,
+				RuntimeException(
+					"ReadFile2: Error Code: $code (${e?.message})", e))
 			semaphore.release()
 		}
 		semaphore.acquire()
-		val e = error.value
-		if (e != null) { throw e }
-		assertEquals("text/plain", fileMime.value)
-		assertEquals(sampleContents, fileContents.value)
-		val firstId = fileId.value
-		assertNotNull(firstId)
-		firstId!!
-		fileId.value = null
-		fileContents.value = null
-		fileMime.value = null
-		fileManager.readFile(target, {id, mime, raw ->
-			fileId.value = id
-			fileMime.value = mime
-			fileContents.value = String(raw, Charsets.UTF_16BE)
-			semaphore.release()
-		})
-		{ code, e ->
-			error.value =
-				RuntimeException("Error Code: $code (${e?.message})", e)
-			semaphore.release()
-		}
-		semaphore.acquire()
-		assertEquals("text/plain", fileMime.value)
-		assertEquals(sampleContents, fileContents.value)
-		assertEquals(fileId.value, firstId)
+		assertEquals("text/plain", state.fileMime)
+		assertEquals(sampleContents, state.fileContents)
+		assertEquals(firstId, state.fileId)
 	}
 
 	@Test
@@ -179,115 +208,282 @@ class FileManagerTest
 	}
 
 	@Test
-	@DisplayName("Create file success")
+	@DisplayName("Edit file action test")
 	@Order(3)
-	internal fun createFileTest()
+	fun executeEditAction ()
 	{
 		val semaphore = Semaphore(0)
-		val error : Mutable<RuntimeException?> = Mutable(null)
-		val fileMime : Mutable<String?> = Mutable(null)
-		val fileContents: Mutable<String?> = Mutable(null)
-		val firstId = fileManager.createFile(
-			createdFilePath,
-			{ _, mime, raw ->
-				fileMime.value = mime
-				fileContents.value = String(raw, Charsets.UTF_16BE)
+		val state = FileStateHolder()
+		val firstId = fileManager.readFile(
+			sampleFilePath,
+			{ id, mime, raw ->
+				state.updateFile(id, mime, raw)
 				semaphore.release()
 			})
-			{ code, e ->
-				error.value =
-					RuntimeException("Error Code: $code (${e?.message})", e)
-				semaphore.release()
-			}
-		semaphore.acquire()
-		val e1 = error.value
-		if (e1 != null) { throw e1 }
-		assertNotNull(firstId)
-		firstId!!
-		assertEquals("text/plain", fileMime.value)
-		assert(fileContents.value!!.isEmpty())
-		fileMime.value = null
-		fileContents.value = null
-
-		val fileId : Mutable<UUID?> = Mutable(null)
-		fileManager.readFile(createdFilePath, { id, mime, raw ->
-			fileId.value = id
-			fileMime.value = mime
-			fileContents.value = String(raw, Charsets.UTF_16BE)
-			semaphore.release()
-		})
 		{ code, e ->
-			error.value =
-				RuntimeException("Error Code: $code (${e?.message})", e)
+			state.updateError(
+				code,
+				RuntimeException("ReadFile1: Error Code: $code (${e?.message})", e))
 			semaphore.release()
 		}
 		semaphore.acquire()
-		val e2 = error.value
-		if (e2 != null) { throw e2 }
-		assertEquals(firstId, fileId.value)
-		assertEquals("text/plain", fileMime.value)
-		assert(fileContents.value!!.isEmpty())
+		state.conditionallyThrowError()
+		assertEquals("text/plain", state.fileMime)
+		assertEquals(sampleContents, state.fileContents)
+		state.reset()
+		val editMade = Mutable(false)
+		val edit = EditRange(
+			sampleReplace.toByteArray(StandardCharsets.UTF_16BE), 7, 13)
+		fileManager.executeAction(
+			firstId,
+			edit,
+			{
+				editMade.value = true
+				semaphore.release()
+			})
+		{ code, e ->
+			state.updateError(
+				code,
+				RuntimeException(
+					"EditRange: Error Code: $code (${e?.message})", e))
+			semaphore.release()
+		}
+		semaphore.acquire()
+		state.conditionallyThrowError()
+		assert(editMade.value)
+		state.reset()
+
+		fileManager.readFile(sampleFilePath, {id, mime, raw ->
+			state.updateFile(id, mime, raw)
+			semaphore.release()
+		})
+		{ code, e ->
+			state.updateError(
+				code,
+				RuntimeException(
+					"ReadFile2: Error Code: $code (${e?.message})", e))
+		}
+		semaphore.acquire()
+		state.conditionallyThrowError()
+		assertEquals(firstId, state.fileId)
+		assertEquals("text/plain", state.fileMime)
+		assertEquals(sampleContentsEdited, state.fileContents)
+	}
+
+	@Test
+	@DisplayName("Replace file contents action test")
+	@Order(4)
+	fun replaceContentsActionTest ()
+	{
+		val semaphore = Semaphore(0)
+		val state = FileStateHolder()
+		val firstId = fileManager.readFile(
+			sampleFilePath,
+			{ id, mime, raw ->
+				state.updateFile(id, mime, raw)
+				semaphore.release()
+			})
+		{ code, e ->
+			state.updateError(
+				code,
+				RuntimeException(
+					"ReadFile1: Error Code: $code (${e?.message})", e))
+			semaphore.release()
+		}
+		semaphore.acquire()
+		state.conditionallyThrowError()
+		assertEquals("text/plain", state.fileMime)
+		assertEquals(sampleContentsEdited, state.fileContents)
+		assertEquals(firstId, state.fileId)
+		val editMade = Mutable(false)
+		val replace = ReplaceContents(
+			sampleReplace.toByteArray(StandardCharsets.UTF_16BE))
+		fileManager.executeAction(
+			firstId,
+			replace,
+			{
+				editMade.value = true
+				semaphore.release()
+			})
+		{ code, e ->
+			state.updateError(
+				code,
+				RuntimeException(
+					"ReplaceAction: Error Code: $code (${e?.message})", e))
+			semaphore.release()
+		}
+		semaphore.acquire()
+		state.conditionallyThrowError()
+		assert(editMade.value)
+		state.reset()
+
+		fileManager.readFile(sampleFilePath, {id, mime, raw ->
+			state.updateFile(id, mime, raw)
+			semaphore.release()
+		})
+		{ code, e ->
+			state.updateError(
+				code,
+				RuntimeException(
+					"ReadFile2: Error Code: $code (${e?.message})", e))
+			semaphore.release()
+		}
+		semaphore.acquire()
+		state.conditionallyThrowError()
+		assertEquals(firstId, state.fileId)
+		assertEquals("text/plain", state.fileMime)
+		assertEquals(sampleReplace, state.fileContents)
+	}
+
+	@Test
+	@DisplayName("Create file success")
+	@Order(1)
+	internal fun createFileTest()
+	{
+		val semaphore = Semaphore(0)
+		val state = FileStateHolder()
+		val firstId = fileManager.createFile(
+			createdFilePath,
+			{ id, mime, raw ->
+				state.updateFile(id, mime, raw)
+				semaphore.release()
+			})
+			{ code, e ->
+				state.updateError(
+					code,
+					RuntimeException(
+						"CreateFile: Error Code: $code (${e?.message})", e))
+				semaphore.release()
+			}
+		semaphore.acquire()
+		state.conditionallyThrowError()
+		assertEquals(firstId, state.fileId)
+		assertEquals("text/plain", state.fileMime)
+		assert(state.fileContents!!.isEmpty())
+		state.reset()
+
+		val secondId = fileManager.readFile(createdFilePath, { id, mime, raw ->
+			state.updateFile(id, mime, raw)
+			semaphore.release()
+		})
+		{ code, e ->
+			state.updateError(
+				code,
+				RuntimeException(
+					"ReadFile1: Error Code: $code (${e?.message})", e))
+			semaphore.release()
+		}
+		semaphore.acquire()
+		state.conditionallyThrowError()
+		assertEquals(firstId, state.fileId)
+		assertEquals(firstId, secondId)
+		assertEquals("text/plain", state.fileMime)
+		assert(state.fileContents!!.isEmpty())
+	}
+
+	@Test
+	@DisplayName("Ensure updates not saved without save test")
+	@Order(5)
+	fun notSavedChangesNotInFile ()
+	{
+		val semaphore = Semaphore(0)
+		val state = FileStateHolder()
+		val firstId = fileManager.readFile(
+			sampleFilePath,
+			{ id, mime, raw ->
+				state.updateFile(id, mime, raw)
+				semaphore.release()
+			})
+		{ code, e ->
+			state.updateError(
+				code,
+				RuntimeException(
+					"ReadFile1: Error Code: $code (${e?.message})", e))
+			semaphore.release()
+		}
+		semaphore.acquire()
+		state.conditionallyThrowError()
+		assertEquals("text/plain", state.fileMime)
+		assertEquals(sampleReplace, state.fileContents)
+		assertEquals(firstId, state.fileId)
+
+		fileManager.remove(firstId)
+		state.reset()
+
+		fileManager.readFile(sampleFilePath, {id, mime, raw ->
+			state.updateFile(id, mime, raw)
+			semaphore.release()
+		})
+		{ code, e ->
+			state.updateError(
+				code,
+				RuntimeException(
+					"ReadFile2: Error Code: $code (${e?.message})", e))
+			semaphore.release()
+		}
+		semaphore.acquire()
+		state.conditionallyThrowError()
+		assertNotEquals(firstId, state.fileId)
+		assertEquals("text/plain",state.fileMime)
+		assertEquals(sampleContents, state.fileContents)
 	}
 
 	@Test
 	@DisplayName("Create file already exists")
-	@Order(4)
+	@Order(2)
 	internal fun createFileTestExists()
 	{
 		assert(File(createdFilePath).exists())
 		val semaphore = Semaphore(0)
 		val fileCreated = Mutable(false)
-		val errorCode : Mutable<ServerErrorCode?> = Mutable(null)
-		val error : Mutable<Throwable?> = Mutable(null)
+		val state = FileStateHolder()
 		val firstId = fileManager.createFile(
 			createdFilePath,
-			{ _, mime, raw ->
-				fileCreated.value = true
+			{ id, mime, raw ->
+				state.updateFile(id, mime, raw)
 				semaphore.release()
 			})
 		{ code, e ->
-			errorCode.value = code
-			error.value = e
+			state.updateError(code, e)
 			semaphore.release()
 		}
 		semaphore.acquire()
+		assertNull(firstId)
 		assertFalse(fileCreated.value)
-		assertEquals(ServerErrorCode.FILE_ALREADY_EXISTS, errorCode.value)
-		assert(error.value is FileAlreadyExistsException)
+		assertEquals(ServerErrorCode.FILE_ALREADY_EXISTS, state.errorCode)
+		assert(state.error is FileAlreadyExistsException)
 	}
 
 	@Test
-	@DisplayName("Edit file test")
-	@Order(5)
-	fun executeEditAction ()
+	@DisplayName("Add text to new file test")
+	@Order(3)
+	fun addTextToNewFileTest ()
 	{
 		assert(File(createdFilePath).exists())
 		val semaphore = Semaphore(0)
-		val fileId : Mutable<UUID?> = Mutable(null)
-		val error : Mutable<RuntimeException?> = Mutable(null)
-		val fileMime : Mutable<String?> = Mutable(null)
-		val fileContents: Mutable<String?> = Mutable(null)
+		val state = FileStateHolder()
 		val firstId = fileManager.readFile(
 			createdFilePath,
 			{ id, mime, raw ->
-				fileId.value = id
-				fileMime.value = mime
-				fileContents.value = String(raw, Charsets.UTF_16BE)
+				state.updateFile(id, mime, raw)
 				semaphore.release()
 			})
 			{ code, e ->
-				error.value =
-					RuntimeException("Error Code: $code (${e?.message})", e)
+				state.updateError(
+					code,
+					RuntimeException(
+						"ReadFile1: Error Code: $code (${e?.message})", e))
 				semaphore.release()
 			}
 		semaphore.acquire()
-		val e1 = error.value
-		if (e1 != null) { throw e1 }
-		assertEquals("text/plain", fileMime.value)
-		assert(fileContents.value!!.isEmpty())
+		state.conditionallyThrowError()
+		assertEquals("text/plain", state.fileMime)
+		assert(state.fileContents!!.isEmpty())
+		assertEquals(firstId, state.fileId)
+		state.reset()
 		val editMade = Mutable(false)
-		val edit = EditRange(createdFileContent
-			.toByteArray(StandardCharsets.UTF_16BE), 0, 0)
+		val edit = EditRange(
+			createdFileContent.toByteArray(StandardCharsets.UTF_16BE), 0, 0)
 		fileManager.executeAction(
 			firstId,
 			edit,
@@ -296,49 +492,48 @@ class FileManagerTest
 				semaphore.release()
 			})
 			{ code, e ->
-				error.value =
-					RuntimeException("Error Code: $code (${e?.message})", e)
-				semaphore.release()
+				state.updateError(
+					code,
+					RuntimeException(
+						"EditRange: Error Code: $code (${e?.message})", e))
 			}
-		val e2 = error.value
-		if (e2 != null) { throw e2 }
+		semaphore.acquire()
+		state.conditionallyThrowError()
 		assert(editMade.value)
 	}
 
 	@Test
 	@DisplayName("Save file test")
-	@Order(6)
+	@Order(4)
 	internal fun saveFileTest()
 	{
 		assert(File(createdFilePath).exists())
 		val semaphore = Semaphore(0)
-		val error : Mutable<RuntimeException?> = Mutable(null)
-		val fileMime : Mutable<String?> = Mutable(null)
-		val fileContents: Mutable<String?> = Mutable(null)
-		val fileId : Mutable<UUID?> = Mutable(null)
+		val state = FileStateHolder()
 		val firstId = fileManager.readFile(
 			createdFilePath,
 			{ id, mime, raw ->
-				fileId.value = id
-				fileMime.value = mime
-				fileContents.value = String(raw, Charsets.UTF_16BE)
+				state.updateFile(id, mime, raw)
 				semaphore.release()
 			})
 			{ code, e ->
-				error.value =
-					RuntimeException("Error Code: $code (${e?.message})", e)
-				semaphore.release()
+				state.updateError(
+					code,
+					RuntimeException(
+						"ReadFile1: Error Code: $code (${e?.message})", e))
 			}
 		semaphore.acquire()
-		val e2 = error.value
-		if (e2 != null) { throw e2 }
-		assertEquals("text/plain", fileMime.value)
-		assertEquals(createdFileContent, fileContents.value)
+		state.conditionallyThrowError()
+		assertEquals("text/plain", state.fileMime)
+		assertEquals(createdFileContent, state.fileContents)
+		assertEquals(firstId, state.fileId)
 		val saved = Mutable(false)
 		val saveAction = SaveAction(fileManager)
 		{ code, e ->
-			error.value =
-				RuntimeException("Error Code(save action): $code (${e?.message})", e)
+			state.updateError(
+				code,
+				RuntimeException(
+					"SaveAction1: Error Code: $code (${e?.message})", e))
 			semaphore.release()
 		}
 		fileManager.executeAction(
@@ -349,24 +544,25 @@ class FileManagerTest
 				semaphore.release()
 			})
 		{ code, e ->
-			error.value =
-				RuntimeException("Error Code: $code (${e?.message})", e)
+			state.updateError(
+				code,
+				RuntimeException(
+					"SaveAction2: Error Code: $code (${e?.message})", e))
 			semaphore.release()
 		}
 		semaphore.acquire()
-		val e3 = error.value
-		if (e3 != null) { throw e3 }
+		state.conditionallyThrowError()
 		assert(saved.value)
 	}
 
 	@Test
 	@DisplayName("Delete file test")
-	@Order(7)
+	@Order(5)
 	internal fun deleteFileTest()
 	{
 		assert(File(createdFilePath).exists())
 		val semaphore = Semaphore(0)
-		val error : Mutable<RuntimeException?> = Mutable(null)
+		val state = FileStateHolder()
 		val deleted = Mutable(false)
 		fileManager.delete(
 			createdFilePath,
@@ -375,13 +571,14 @@ class FileManagerTest
 				semaphore.release()
 			})
 			{ code, e ->
-				error.value =
-					RuntimeException("Error Code: $code (${e?.message})", e)
+				state.updateError(
+					code,
+					RuntimeException(
+						"DeleteAction: Error Code: $code (${e?.message})", e))
 				semaphore.release()
 			}
 		semaphore.acquire()
-		val e = error.value
-		if (e != null) { throw e }
+		state.conditionallyThrowError()
 		assert(deleted.value)
 	}
 }

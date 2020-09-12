@@ -163,19 +163,11 @@ internal class EditRange constructor(
  *
  * @param data
  *   The [ByteArray] that is to be inserted in the file.
- * @param start
- *   The location in the file to insert/overwrite the data.
- * @param end
- *   The location in the file to stop overwriting, exclusive. All data from
- *   this point should be preserved.
  */
-internal class ReplaceContents constructor(
-	val data: ByteArray,
-	private val start: Int,
-	private val end: Int): FileAction
+internal class ReplaceContents constructor(val data: ByteArray): FileAction
 {
 	override fun execute(file: AvailServerFile, timestamp: Long): TracedAction =
-		file.editRange(data, start, end, timestamp)
+		file.replaceFile(data, timestamp)
 
 	override val type: FileActionType = FileActionType.REPLACE_CONTENTS
 

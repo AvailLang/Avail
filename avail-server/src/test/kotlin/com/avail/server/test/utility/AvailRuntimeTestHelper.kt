@@ -29,7 +29,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.server.test
+package com.avail.server.test.utility
 
 import com.avail.AvailRuntime
 import com.avail.builder.AvailBuilder
@@ -44,7 +44,6 @@ import com.avail.io.TextInterface
 import com.avail.io.TextOutputChannel
 import com.avail.utility.IO.closeIfNotNull
 import com.avail.utility.cast
-import org.junit.jupiter.api.Assertions
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileInputStream

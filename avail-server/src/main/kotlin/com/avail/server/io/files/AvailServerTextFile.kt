@@ -150,6 +150,9 @@ internal class AvailServerTextFile constructor(
 			}).guardedDo { file.read(input, 0L, dummy, handler) }
 	}
 
+	override fun replaceFile(data: ByteArray, timestamp: Long): TracedAction =
+		editRange(data, 0, content.tupleSize())
+
 	/**
 	 * Insert the [ByteArray] data into the file at the specified location. This
 	 * should remove existing data in the file in this range and replace it

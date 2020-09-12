@@ -121,6 +121,9 @@ internal class AvailServerBinaryFile constructor(
 				}).guardedDo { file.read(input, 0L, dummy, handler) }
 	}
 
+	override fun replaceFile(data: ByteArray, timestamp: Long): TracedAction =
+		editRange(data, 0, content.size)
+
 	override fun editRange(
 		data: ByteArray, start: Int, end: Int, timestamp: Long): TracedAction
 	{

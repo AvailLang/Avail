@@ -148,4 +148,18 @@ abstract class AvailServerFile constructor(
 		start: Int,
 		end: Int,
 		timestamp: Long = System.currentTimeMillis()): TracedAction
+
+	/**
+	 * Replace the entire contents of the file with the provided byte array.
+	 *
+	 * @param data
+	 *   The `ByteArray` data to add to this [AvailServerFile].
+	 * @param timestamp
+	 *   The time in milliseconds since the Unix Epoch UTC the update occurred.
+	 * @return
+	 *   The [TracedAction] that preserves this edit and how to reverse it.
+	 */
+	abstract fun replaceFile (
+		data: ByteArray,
+		timestamp: Long = System.currentTimeMillis()): TracedAction
 }
