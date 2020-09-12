@@ -111,7 +111,7 @@ internal class LocalFileManager constructor(runtime: AvailRuntime)
 
 	override fun saveFile (
 		availServerFile: AvailServerFile,
-		failure: (ServerErrorCode, Throwable?) -> Unit)
+		failureHandler: (ServerErrorCode, Throwable?) -> Unit)
 	{
 		val content = availServerFile.rawContent
 		val data = ByteBuffer.wrap(content)
@@ -141,7 +141,7 @@ internal class LocalFileManager constructor(runtime: AvailRuntime)
 				{
 					if (data.hasRemaining())
 					{
-						save(file, data, data.position().toLong(), failure)
+						save(file, data, data.position().toLong(), failureHandler)
 					}
 					else
 					{
@@ -151,7 +151,7 @@ internal class LocalFileManager constructor(runtime: AvailRuntime)
 
 				override fun failed(exc: Throwable?, attachment: ServerErrorCode?)
 				{
-					failure(attachment ?: ServerErrorCode.UNSPECIFIED, exc)
+					failureHandler(attachment ?: ServerErrorCode.UNSPECIFIED, exc)
 				}
 			})
 	}

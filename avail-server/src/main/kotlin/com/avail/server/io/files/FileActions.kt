@@ -59,6 +59,11 @@ enum class FileActionType
 	EDIT_RANGE,
 
 	/**
+	 * This is an [EDIT_RANGE] but overwrites the entire file.
+	 */
+	REPLACE_CONTENTS,
+
+	/**
 	 * Undo the most recently performed [EDIT_RANGE].
 	 */
 	UNDO,
@@ -135,6 +140,44 @@ internal class EditRange constructor(
 		file.editRange(data, start, end, timestamp)
 
 	override val type: FileActionType = FileActionType.EDIT_RANGE
+
+	override val isTraced: Boolean = true
+}
+
+/**
+ * `ReplaceContents` is a [FileAction] that replaces the entire contents of a
+ * file.
+ *
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ *
+ * @property data
+ *   The [ByteArray] that is to be inserted in the file.
+ * @property start
+ *   The location in the file to inserting/overwriting the data.
+ * @property end
+ *   The location in the file to stop overwriting, exclusive. All data from
+ *   this point should be preserved.
+ *
+ * @constructor
+ * Construct an [EditRange].
+ *
+ * @param data
+ *   The [ByteArray] that is to be inserted in the file.
+ * @param start
+ *   The location in the file to insert/overwrite the data.
+ * @param end
+ *   The location in the file to stop overwriting, exclusive. All data from
+ *   this point should be preserved.
+ */
+internal class ReplaceContents constructor(
+	val data: ByteArray,
+	private val start: Int,
+	private val end: Int): FileAction
+{
+	override fun execute(file: AvailServerFile, timestamp: Long): TracedAction =
+		file.editRange(data, start, end, timestamp)
+
+	override val type: FileActionType = FileActionType.REPLACE_CONTENTS
 
 	override val isTraced: Boolean = true
 }
