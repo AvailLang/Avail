@@ -113,6 +113,17 @@ class BinaryMessageBuilder
 			relativePath.toByteArray(Charsets.UTF_8))
 
 	/**
+	 * Create a [BinaryCommand.OPEN_FILE] message.
+	 *
+	 * @param relativePath
+	 *   The [ModuleRoot] relative path of the file to open.
+	 */
+	fun createFile (relativePath: String): Message =
+		encodeMessage(
+			BinaryCommand.CREATE_FILE,
+			relativePath.toByteArray(Charsets.UTF_8))
+
+	/**
 	 * Create a [BinaryCommand.REPLACE_CONTENTS] message.
 	 *
 	 * @param fileId

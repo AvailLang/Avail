@@ -94,6 +94,7 @@ class BinaryAPITests
 	{
 		const val relativeTestModule = "/tests/Some Test.avail/Some Test.avail"
 		const val relativeOtherTestModule = "/tests/Some Test.avail/Some Other Test.avail"
+		const val randomTestModule = "/tests/Some Test.avail/Random Module.avail"
 		const val someTestContent =
 			"Module \"Some Test\"\n" +
 				"Uses \"Avail\"\n" +
@@ -130,6 +131,10 @@ class BinaryAPITests
 		if (sample.exists()) { sample.delete() }
 		sample.createNewFile()
 		sample.writeText(someTestContent)
+
+		val randomModule = File(
+			"${System.getProperty("user.dir")}/src/test/resources$randomTestModule")
+		if (randomModule.exists()) { randomModule.delete() }
 	}
 
 	@Test
@@ -430,6 +435,54 @@ class BinaryAPITests
 			sampleTestFileId = fileId
 			channel.expectedMessageCount.set(0)
 			channel.sendQueue.clear()
+		}
+		else
+		{
+			// Shouldn't get here
+			throw RuntimeException("Received no messages!")
+		}
+	}
+
+	@Test
+	@DisplayName("Create file API successfully")
+	@Order(4)
+	internal fun createFileAPITest()
+	{
+		channel.sendQueue.clear()
+		val createFile = builder.createFile(randomTestModule)
+		channel.expectedMessageCount.set(2)
+		channel.receiveMessage(createFile)
+		channel.semaphore.acquire()
+
+		if (channel.sendQueue.size > 0)
+		{
+			val first = channel.sendQueue[0]
+			assertEquals(builder.transactionId.get() - 1, first.commandId)
+			assertEquals(BinaryCommand.FILE_OPENED, first.binaryCommand)
+			val fileId = first.buffer.int
+			val fileSize = first.buffer.int
+			val mimeSize = first.buffer.int
+			val mimeBytes = ByteArray(mimeSize)
+			first.buffer.get(mimeBytes)
+			val mime = String(mimeBytes, StandardCharsets.UTF_8)
+			assertEquals("text/avail", mime)
+			assertEquals(2, channel.sendQueue.size)
+			val second = channel.sendQueue[1]
+			assertEquals(builder.transactionId.get() - 1, second.commandId)
+			assertEquals(BinaryCommand.FILE_STREAM, second.binaryCommand)
+			val secondFileId = second.buffer.int
+			assertEquals(fileId, secondFileId)
+			assertEquals(fileSize, second.buffer.remaining())
+			val raw = ByteArray(fileSize)
+			second.buffer.get(raw)
+			val fileContents = String(raw, Charsets.UTF_16BE)
+			assert(fileContents.isEmpty())
+			sampleTestFileId = fileId
+			channel.expectedMessageCount.set(0)
+			channel.sendQueue.clear()
+			val randomModule = File(
+				"${System.getProperty("user.dir")}/src/test/resources$randomTestModule")
+			assert(randomModule.exists())
 		}
 		else
 		{

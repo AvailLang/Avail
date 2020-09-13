@@ -201,7 +201,7 @@ enum class BinaryCommand constructor(val id: Int)
 										val fileId =
 											session.addFileCacheId(uuid)
 										FileOpenedMessage(
-												commandId, id, bytes.size, mime)
+												commandId, fileId, bytes.size, mime)
 											.processThen(channel)
 											{
 												FileStreamMessage(
