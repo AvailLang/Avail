@@ -39,14 +39,17 @@ import com.avail.server.messages.binary.editor.BinaryCommand
 import com.avail.server.test.utility.AvailRuntimeTestHelper
 import com.avail.server.test.utility.BinaryMessageBuilder
 import com.avail.server.test.utility.TestAvailServerChannel
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.MethodOrderer
 import org.junit.jupiter.api.Order
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.TestMethodOrder
+import java.io.File
 import java.lang.RuntimeException
 import java.nio.charset.StandardCharsets
 
@@ -71,6 +74,11 @@ class BinaryAPITests
 	private var sampleTestFileId = -1
 
 	/**
+	 * Temp variable to store the sample test session-specific file cache id
+	 */
+	private var sampleOtherTestFileId = -1
+
+	/**
 	 * The [BinaryMessageBuilder] used to construct binary client messages.
 	 */
 	private val builder = BinaryMessageBuilder()
@@ -85,14 +93,22 @@ class BinaryAPITests
 	companion object
 	{
 		const val relativeTestModule = "/tests/Some Test.avail/Some Test.avail"
+		const val relativeOtherTestModule = "/tests/Some Test.avail/Some Other Test.avail"
 		const val someTestContent =
 			"Module \"Some Test\"\n" +
-			"Uses \"Avail\"\n" +
-			"Body"
+				"Uses \"Avail\"\n" +
+				"Extends \"Some Other Test\"\n" +
+				"Body"
+
+		const val someOtherTestContent =
+			"Module \"Some Other Test\"\n" +
+				"Uses \"Avail\"\n" +
+				"Body"
 
 		const val someTestContentReplace =
 			"Module \"Some Test\"\n" +
 				"Uses \"Avail\"\n" +
+				"Extends \"Some Other Test\"\n" +
 				"Names\n" +
 				"\t\"_is not empty\"\n" +
 				"Body\n" +
@@ -103,6 +119,17 @@ class BinaryAPITests
 				"|\n" +
 				"\t|aTuple| > 0\n" +
 				"] : boolean;"
+	}
+
+	@BeforeAll
+	@AfterAll
+	fun reset ()
+	{
+		val sample = File(
+			"${System.getProperty("user.dir")}/src/test/resources$relativeTestModule")
+		if (sample.exists()) { sample.delete() }
+		sample.createNewFile()
+		sample.writeText(someTestContent)
 	}
 
 	@Test
@@ -155,6 +182,7 @@ class BinaryAPITests
 	internal fun replaceContentAPITest()
 	{
 		// Make sure we have a valid file id
+		channel.sendQueue.clear()
 		assertNotEquals(-1, sampleTestFileId)
 		channel.runContinuation = true
 		val replaceMessage = builder.replaceFile(
@@ -178,6 +206,210 @@ class BinaryAPITests
 			assertEquals(builder.transactionId.get() - 1, first.commandId)
 			assertEquals(BinaryCommand.FILE_OPENED, first.binaryCommand)
 			val fileId = first.buffer.int
+			assertEquals(sampleTestFileId, fileId)
+			val fileSize = first.buffer.int
+			val mimeSize = first.buffer.int
+			val mimeBytes = ByteArray(mimeSize)
+			first.buffer.get(mimeBytes)
+			val mime = String(mimeBytes, StandardCharsets.UTF_8)
+			assertEquals("text/avail", mime)
+			assertEquals(2, channel.sendQueue.size)
+			val second = channel.sendQueue[1]
+			assertEquals(builder.transactionId.get() - 1, second.commandId)
+			assertEquals(BinaryCommand.FILE_STREAM, second.binaryCommand)
+			val secondFileId = second.buffer.int
+			assertEquals(fileId, secondFileId)
+			assertEquals(fileSize, second.buffer.remaining())
+			val raw = ByteArray(fileSize)
+			second.buffer.get(raw)
+			val fileContents = String(raw, Charsets.UTF_16BE)
+			assertEquals(someTestContentReplace, fileContents)
+			sampleTestFileId = fileId
+			channel.expectedMessageCount.set(0)
+			channel.sendQueue.clear()
+		}
+		else
+		{
+			// Shouldn't get here
+			throw RuntimeException("Received no messages!")
+		}
+	}
+
+	@Test
+	@DisplayName("Close the file, non-saved work will be lost")
+	@Order(2)
+	internal fun closeFileAPITest()
+	{
+		// Make sure we have a valid file id
+		assertNotEquals(-1, sampleTestFileId)
+		channel.sendQueue.clear()
+		val closeMessage = builder.closeFile(sampleTestFileId)
+		channel.receiveMessage(closeMessage)
+		channel.semaphore.acquire()
+		if (channel.sendQueue.size == 1)
+		{
+			val first = channel.sendQueue[0]
+			assertEquals(builder.transactionId.get() - 1, first.commandId)
+			assertEquals(BinaryCommand.OK, first.binaryCommand)
+		}
+		else
+		{
+			throw RuntimeException("Expected an OK message but got none")
+		}
+
+		channel.sendQueue.clear()
+		val openOtherMessage = builder.openFile(relativeOtherTestModule)
+		channel.expectedMessageCount.set(2)
+		channel.receiveMessage(openOtherMessage)
+		channel.semaphore.acquire()
+
+		// Open other file to adjust the file id
+		if (channel.sendQueue.size > 0)
+		{
+			val first = channel.sendQueue[0]
+			assertEquals(builder.transactionId.get() - 1, first.commandId)
+			assertEquals(BinaryCommand.FILE_OPENED, first.binaryCommand)
+			val fileId = first.buffer.int
+			val fileSize = first.buffer.int
+			val mimeSize = first.buffer.int
+			val mimeBytes = ByteArray(mimeSize)
+			first.buffer.get(mimeBytes)
+			val mime = String(mimeBytes, StandardCharsets.UTF_8)
+			assertEquals("text/avail", mime)
+			assertEquals(2, channel.sendQueue.size)
+			val second = channel.sendQueue[1]
+			assertEquals(builder.transactionId.get() - 1, second.commandId)
+			assertEquals(BinaryCommand.FILE_STREAM, second.binaryCommand)
+			val secondFileId = second.buffer.int
+			assertEquals(fileId, secondFileId)
+			assertEquals(fileSize, second.buffer.remaining())
+			val raw = ByteArray(fileSize)
+			second.buffer.get(raw)
+			val fileContents = String(raw, Charsets.UTF_16BE)
+			assertEquals(someOtherTestContent, fileContents)
+			channel.sendQueue.clear()
+			sampleOtherTestFileId = fileId
+		}
+		else
+		{
+			// Shouldn't get here
+			throw RuntimeException("Received no other messages!")
+		}
+
+		channel.sendQueue.clear()
+		channel.runContinuation = false
+		val openMessage = builder.openFile(relativeTestModule)
+		channel.expectedMessageCount.set(2)
+		channel.receiveMessage(openMessage)
+		channel.semaphore.acquire()
+		if (channel.sendQueue.size > 0)
+		{
+			val first = channel.sendQueue[0]
+			assertEquals(builder.transactionId.get() - 1, first.commandId)
+			assertEquals(BinaryCommand.FILE_OPENED, first.binaryCommand)
+			val fileId = first.buffer.int
+			// No files opened in between so next free space id = 0
+			assertNotEquals(sampleTestFileId, fileId)
+			val fileSize = first.buffer.int
+			val mimeSize = first.buffer.int
+			val mimeBytes = ByteArray(mimeSize)
+			first.buffer.get(mimeBytes)
+			val mime = String(mimeBytes, StandardCharsets.UTF_8)
+			assertEquals("text/avail", mime)
+			assertEquals(2, channel.sendQueue.size)
+			val second = channel.sendQueue[1]
+			assertEquals(builder.transactionId.get() - 1, second.commandId)
+			assertEquals(BinaryCommand.FILE_STREAM, second.binaryCommand)
+			val secondFileId = second.buffer.int
+			assertEquals(fileId, secondFileId)
+			assertEquals(fileSize, second.buffer.remaining())
+			val raw = ByteArray(fileSize)
+			second.buffer.get(raw)
+			val fileContents = String(raw, Charsets.UTF_16BE)
+			assertEquals(someTestContent, fileContents)
+			sampleTestFileId = fileId
+			channel.expectedMessageCount.set(0)
+			channel.sendQueue.clear()
+			sampleTestFileId = fileId
+		}
+		else
+		{
+			// Shouldn't get here
+			throw RuntimeException("Received no messages!")
+		}
+	}
+
+	@Test
+	@DisplayName("Fully replace and save the content of the file")
+	@Order(3)
+	internal fun replaceSaveContentAPITest()
+	{
+		channel.sendQueue.clear()
+		channel.runContinuation = true
+		val closeOtherMessage = builder.closeFile(sampleOtherTestFileId)
+		channel.receiveMessage(closeOtherMessage)
+		channel.semaphore.acquire()
+		if (channel.sendQueue.size == 1)
+		{
+			val first = channel.sendQueue[0]
+			assertEquals(builder.transactionId.get() - 1, first.commandId)
+			assertEquals(BinaryCommand.OK, first.binaryCommand)
+		}
+		else
+		{
+			throw RuntimeException("Expected an OK message but got none")
+		}
+
+		// Make sure we have a valid file id
+		channel.sendQueue.clear()
+		channel.runContinuation = true
+		val replaceMessage = builder.replaceFile(
+			sampleTestFileId, someTestContentReplace)
+		channel.receiveMessage(replaceMessage)
+		channel.semaphore.acquire()
+		if (channel.sendQueue.size > 0)
+		{
+			throw RuntimeException(
+				"Expected no message but got ${channel.sendQueue[0]}")
+		}
+
+		channel.runContinuation = true
+		val saveMessage = builder.saveFile(sampleTestFileId)
+		channel.receiveMessage(saveMessage)
+		channel.semaphore.acquire()
+		if (channel.sendQueue.size > 0)
+		{
+			throw RuntimeException(
+				"Expected no message but got ${channel.sendQueue[0]}")
+		}
+
+		val closeMessage = builder.closeFile(sampleTestFileId)
+		channel.receiveMessage(closeMessage)
+		channel.semaphore.acquire()
+		if (channel.sendQueue.size == 1)
+		{
+			val first = channel.sendQueue[0]
+			assertEquals(builder.transactionId.get() - 1, first.commandId)
+			assertEquals(BinaryCommand.OK, first.binaryCommand)
+		}
+		else
+		{
+			throw RuntimeException("Expected an OK message but got none")
+		}
+
+		channel.sendQueue.clear()
+		channel.runContinuation = false
+		val openMessage = builder.openFile(relativeTestModule)
+		channel.expectedMessageCount.set(2)
+		channel.receiveMessage(openMessage)
+		channel.semaphore.acquire()
+		if (channel.sendQueue.size > 0)
+		{
+			val first = channel.sendQueue[0]
+			assertEquals(builder.transactionId.get() - 1, first.commandId)
+			assertEquals(BinaryCommand.FILE_OPENED, first.binaryCommand)
+			val fileId = first.buffer.int
+			assertEquals(sampleTestFileId, fileId)
 			val fileSize = first.buffer.int
 			val mimeSize = first.buffer.int
 			val mimeBytes = ByteArray(mimeSize)

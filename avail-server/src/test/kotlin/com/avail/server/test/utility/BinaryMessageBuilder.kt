@@ -68,6 +68,39 @@ class BinaryMessageBuilder
 		return  Message(raw, AvailServerChannel.ProtocolState.BINARY)
 	}
 
+	/** Encode the message. */
+	private fun encodeFileIdMessage (
+		command: BinaryCommand, fileId: Int, content: ByteArray): Message
+	{
+		val size = BinaryMessage.PREFIX_SIZE + content.size + 4
+		val raw = ByteArray(size)
+		ByteBuffer.allocate(size).apply {
+			this.putInt(command.id)
+				.putLong(transactionId.getAndIncrement())
+				putInt(fileId)
+				.put(content)
+				.flip()
+		}.get(raw)
+
+		return  Message(raw, AvailServerChannel.ProtocolState.BINARY)
+	}
+
+	/** Encode the message. */
+	private fun encodeFileIdMessage (
+		command: BinaryCommand, fileId: Int): Message
+	{
+		val size = BinaryMessage.PREFIX_SIZE + 4
+		val raw = ByteArray(size)
+		ByteBuffer.allocate(size).apply {
+			this.putInt(command.id)
+				.putLong(transactionId.getAndIncrement())
+				.putInt(fileId)
+				.flip()
+		}.get(raw)
+
+		return  Message(raw, AvailServerChannel.ProtocolState.BINARY)
+	}
+
 	/**
 	 * Create a [BinaryCommand.OPEN_FILE] message.
 	 *
@@ -87,16 +120,54 @@ class BinaryMessageBuilder
 	 * @param replace
 	 *   The full text to replace the file with.
 	 */
-	fun replaceFile (fileId: Int, replace: String): Message
-	{
-		val content = replace.toByteArray(Charsets.UTF_16BE)
-		val size = content.size + 4
-		val raw = ByteArray(size)
-		ByteBuffer.allocate(size).apply {
-			this.putInt(fileId)
-				.put(content)
-				.flip()
-		}.get(raw)
-		return encodeMessage(BinaryCommand.REPLACE_CONTENTS, raw)
-	}
+	fun replaceFile (fileId: Int, replace: String): Message =
+		encodeFileIdMessage(
+			BinaryCommand.REPLACE_CONTENTS,
+			fileId,
+			replace.toByteArray(Charsets.UTF_16BE))
+
+	/**
+	 * Create a [BinaryCommand.SAVE_FILE] message.
+	 *
+	 * @param fileId
+	 *   The session-specific file cache id.
+	 */
+	fun saveFile (fileId: Int): Message =
+		encodeFileIdMessage(BinaryCommand.SAVE_FILE, fileId)
+
+	/**
+	 * Create a [BinaryCommand.CLOSE_FILE] message.
+	 *
+	 * @param fileId
+	 *   The session-specific file cache id.
+	 */
+	fun closeFile (fileId: Int): Message =
+		encodeFileIdMessage(BinaryCommand.CLOSE_FILE, fileId)
+
+	/**
+	 * Create a [BinaryCommand.UNDO_FILE_EDIT] message.
+	 *
+	 * @param fileId
+	 *   The session-specific file cache id.
+	 */
+	fun undoFile (fileId: Int): Message =
+		encodeFileIdMessage(BinaryCommand.UNDO_FILE_EDIT, fileId)
+
+	/**
+	 * Create a [BinaryCommand.REDO_FILE_EDIT] message.
+	 *
+	 * @param fileId
+	 *   The session-specific file cache id.
+	 */
+	fun redoFile (fileId: Int): Message =
+		encodeFileIdMessage(BinaryCommand.REDO_FILE_EDIT, fileId)
+
+	/**
+	 * Create a [BinaryCommand.DELETE_FILE] message.
+	 *
+	 * @param fileId
+	 *   The session-specific file cache id.
+	 */
+	fun deleteFile (fileId: Int): Message =
+		encodeFileIdMessage(BinaryCommand.DELETE_FILE, fileId)
 }

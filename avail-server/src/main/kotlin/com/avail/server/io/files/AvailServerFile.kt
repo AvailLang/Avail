@@ -72,6 +72,8 @@ abstract class AvailServerFile constructor(
 	/** The raw bytes of the file. */
 	abstract val rawContent: ByteArray
 
+	open fun getSaveContent (): ByteArray = rawContent
+
 	/**
 	 * Time in milliseconds since the unix epoch UTC when this file was lasted
 	 * edited.

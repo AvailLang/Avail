@@ -32,11 +32,8 @@
 
 package com.avail.server.test.utility
 
-import com.avail.server.AvailServer
-import com.avail.server.configuration.AvailServerConfiguration
 import com.avail.server.io.files.FileManager
 import com.avail.server.io.files.LocalFileManager
-import java.io.File
 
 /**
  * `FileManagerTestHelper` provides reusable test utilities for interacting

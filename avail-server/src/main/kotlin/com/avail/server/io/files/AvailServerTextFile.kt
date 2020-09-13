@@ -42,6 +42,7 @@ import java.nio.ByteBuffer
 import java.nio.CharBuffer
 import java.nio.channels.AsynchronousFileChannel
 import java.nio.charset.Charset
+import java.nio.charset.StandardCharsets
 
 /**
  * An `AvailServerTextFile` is an [AvailServerFile] that is specific to textual
@@ -77,7 +78,10 @@ internal class AvailServerTextFile constructor(
 	private lateinit var content: A_String
 
 	override val rawContent: ByteArray get() =
-		content.asNativeString().toByteArray(Charsets.UTF_16BE)
+		content.asNativeString().toByteArray(StandardCharsets.UTF_16BE)
+
+	override fun getSaveContent(): ByteArray =
+		content.asNativeString().toByteArray(StandardCharsets.UTF_8)
 
 	init
 	{

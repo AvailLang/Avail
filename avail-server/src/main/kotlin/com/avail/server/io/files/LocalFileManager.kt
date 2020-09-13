@@ -113,7 +113,7 @@ internal class LocalFileManager constructor(runtime: AvailRuntime)
 		availServerFile: AvailServerFile,
 		failureHandler: (ServerErrorCode, Throwable?) -> Unit)
 	{
-		val content = availServerFile.rawContent
+		val content = availServerFile.getSaveContent()
 		val data = ByteBuffer.wrap(content)
 		val saveTimeStart = System.currentTimeMillis()
 		val file = runtime.ioSystem().openFile(
