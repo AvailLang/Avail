@@ -32,6 +32,7 @@
 
 package com.avail.server.test.utility
 
+import com.avail.builder.ModuleRoot
 import com.avail.server.io.AvailServerChannel
 import com.avail.server.messages.Message
 import com.avail.server.messages.binary.editor.BinaryCommand
@@ -52,7 +53,8 @@ class BinaryMessageBuilder
 	val transactionId = AtomicLong(1)
 
 	/** Encode the message. */
-	private fun encodeMessage (command: BinaryCommand, content: ByteArray): Message
+	private fun encodeMessage (
+		command: BinaryCommand, content: ByteArray): Message
 	{
 		val size = BinaryMessage.PREFIX_SIZE + content.size
 		val raw = ByteArray(size)
@@ -66,8 +68,35 @@ class BinaryMessageBuilder
 		return  Message(raw, AvailServerChannel.ProtocolState.BINARY)
 	}
 
+	/**
+	 * Create a [BinaryCommand.OPEN_FILE] message.
+	 *
+	 * @param relativePath
+	 *   The [ModuleRoot] relative path of the file to open.
+	 */
 	fun openFile (relativePath: String): Message =
 		encodeMessage(
 			BinaryCommand.OPEN_FILE,
 			relativePath.toByteArray(Charsets.UTF_8))
+
+	/**
+	 * Create a [BinaryCommand.REPLACE_CONTENTS] message.
+	 *
+	 * @param fileId
+	 *   The session-specific file cache id.
+	 * @param replace
+	 *   The full text to replace the file with.
+	 */
+	fun replaceFile (fileId: Int, replace: String): Message
+	{
+		val content = replace.toByteArray(Charsets.UTF_16BE)
+		val size = content.size + 4
+		val raw = ByteArray(size)
+		ByteBuffer.allocate(size).apply {
+			this.putInt(fileId)
+				.put(content)
+				.flip()
+		}.get(raw)
+		return encodeMessage(BinaryCommand.REPLACE_CONTENTS, raw)
+	}
 }

@@ -41,6 +41,7 @@ import com.avail.server.error.ServerErrorCode.*
 import com.avail.server.io.AvailServerChannel
 import com.avail.server.io.files.EditRange
 import com.avail.server.io.files.RedoAction
+import com.avail.server.io.files.ReplaceContents
 import com.avail.server.io.files.SaveAction
 import com.avail.server.io.files.UndoAction
 import com.avail.server.messages.Message
@@ -644,6 +645,51 @@ enum class BinaryCommand constructor(val id: Int)
 					continuation)
 			}()
 		}
+	},
+
+	/**
+	 * A [ReplaceContents] request. Write access for the Avail root must be held
+	 * by the client for this to be allowed. (TODO RAA - do this)
+	 *
+	 * The message expects the standard 12-byte header with additional content.
+	 *
+	 * **Message Format**
+	 * * [BinaryCommand.id] (4-bytes): The int id that identifies the command
+	 * * [BinaryMessage.commandId] (8-bytes): The long transaction id that
+	 *    identifies the transaction the message is part of.
+	 * * `File Id` (4-bytes): The `Session` specific cache id of the file to
+	 *    edit.
+	 * * `replacement content` (n-bytes) - The bytes used to replace in the file.
+	 *    If a text file is being edited, the encoding should be UTF-16BE.
+	 */
+	REPLACE_CONTENTS(12)
+	{
+		override fun receiveThen(
+			id: Int,
+			commandId: Long,
+			buffer: ByteBuffer,
+			channel: AvailServerChannel,
+			continuation: () -> Unit)
+		{
+			val fileId = buffer.int
+			val uuid = channel.session?.getFile(fileId)
+			if (uuid == null)
+			{
+				ErrorBinaryMessage(commandId, NO_SESSION, false)
+					.processThen(channel)
+				return
+			}
+			val data = ByteArray(buffer.remaining())
+			buffer.get(data)
+			channel.server.fileManager.executeAction(
+				uuid, ReplaceContents(data),
+				continuation)
+				{ code, e ->
+					logger.log(Level.SEVERE, "Edit file range error: $code", e)
+					ErrorBinaryMessage(commandId, code, false)
+						.processThen(channel)
+				}
+		}
 	};
 
 	/**
@@ -698,6 +744,7 @@ enum class BinaryCommand constructor(val id: Int)
 				9 -> UNDO_FILE_EDIT
 				10 -> REDO_FILE_EDIT
 				11 -> DELETE_FILE
+				12 -> REPLACE_CONTENTS
 				else -> INVALID
 			}
 	}

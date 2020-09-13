@@ -32,6 +32,7 @@
 
 package com.avail.server.test.utility
 
+import com.avail.server.error.ServerErrorCode
 import com.avail.server.messages.Message
 import com.avail.server.messages.binary.editor.BinaryCommand
 import java.nio.ByteBuffer
@@ -55,4 +56,20 @@ class TestBinaryMessageHolder constructor(val message: Message)
 
 	/** The [Message] command id that identifies the transaction exchange. */
 	val commandId = buffer.long
+
+	override fun toString(): String
+	{
+		return if (binaryCommand == BinaryCommand.ERROR)
+		{
+			val ec = buffer.int
+			buffer.flip()
+			buffer.putInt(ec)
+			ServerErrorCode.code(ec).name
+			"${binaryCommand.name}: ${ServerErrorCode.code(ec).name}"
+		}
+		else
+		{
+			binaryCommand.name
+		}
+	}
 }

@@ -35,7 +35,6 @@ package com.avail.server.messages.binary.editor
 import com.avail.server.io.AvailServerChannel
 import com.avail.server.messages.Message
 import java.nio.ByteBuffer
-import java.nio.ByteOrder
 
 /**
  * A `BinaryMessage` represents a fully parsed [BinaryCommand].

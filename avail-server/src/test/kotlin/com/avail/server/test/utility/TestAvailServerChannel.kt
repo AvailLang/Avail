@@ -63,6 +63,8 @@ class TestAvailServerChannel constructor(
 	/** Semaphore used to sync async actions. */
 	val semaphore = Semaphore(0)
 
+	var runContinuation = false
+
 	/**
 	 * Queue that contains messages that have been
 	 * [enqueued][enqueueMessageThen]
@@ -112,7 +114,7 @@ class TestAvailServerChannel constructor(
 	{
 		val testMessage = TestBinaryMessageHolder(message)
 		sendQueue.add(testMessage)
-		if (expectedMessageCount.decrementAndGet() == 0
+		if (expectedMessageCount.decrementAndGet() <= 0
 			|| exitConditions.contains(testMessage.binaryCommand))
 		{
 			semaphore.release()
@@ -130,6 +132,10 @@ class TestAvailServerChannel constructor(
 		val id = buffer.int
 		val commandId = buffer.long
 		BinaryCommand.command(id).receiveThen(
-			id, commandId, buffer, this) { }
+			id, commandId, buffer, this) {
+			if (runContinuation) {
+				semaphore.release()
+			}
+		}
 	}
 }

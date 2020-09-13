@@ -152,11 +152,6 @@ internal class EditRange constructor(
  *
  * @property data
  *   The [ByteArray] that is to be inserted in the file.
- * @property start
- *   The location in the file to inserting/overwriting the data.
- * @property end
- *   The location in the file to stop overwriting, exclusive. All data from
- *   this point should be preserved.
  *
  * @constructor
  * Construct an [EditRange].
