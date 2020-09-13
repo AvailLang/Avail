@@ -1,5 +1,5 @@
 /*
- * FileManagerTestHelper.kt
+ * BinaryMessageBuilder.kt
  * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,45 +32,42 @@
 
 package com.avail.server.test.utility
 
-import com.avail.server.AvailServer
-import com.avail.server.configuration.AvailServerConfiguration
-import com.avail.server.io.files.FileManager
-import com.avail.server.io.files.LocalFileManager
-import java.io.File
+import com.avail.server.io.AvailServerChannel
+import com.avail.server.messages.Message
+import com.avail.server.messages.binary.editor.BinaryCommand
+import com.avail.server.messages.binary.editor.BinaryMessage
+import java.nio.ByteBuffer
+import java.util.concurrent.atomic.AtomicLong
 
 /**
- * `FileManagerTestHelper` provides reusable test utilities for interacting
- * w/ a [FileManager] during tests.
+ * `BinaryMessageBuilder` is a helper for creating client binary messages.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-class FileManagerTestHelper constructor(val testName: String)
+class BinaryMessageBuilder
 {
 	/**
-	 * The [AvailRuntimeTestHelper] that provides Avail state needed to conduct
-	 * tests.
+	 * A counter for the transaction command id
 	 */
-	private val helper: AvailRuntimeTestHelper by lazy {
-		AvailRuntimeTestHelper.helper
+	val transactionId = AtomicLong(1)
+
+	/** Encode the message. */
+	private fun encodeMessage (command: BinaryCommand, content: ByteArray): Message
+	{
+		val size = BinaryMessage.PREFIX_SIZE + content.size
+		val raw = ByteArray(size)
+		ByteBuffer.allocate(size).apply {
+			this.putInt(command.id)
+				.putLong(transactionId.getAndIncrement())
+				.put(content)
+				.flip()
+		}.get(raw)
+
+		return  Message(raw, AvailServerChannel.ProtocolState.BINARY)
 	}
 
-	/** The [FileManager] used in this test. */
-	val fileManager: FileManager by lazy {
-		LocalFileManager(helper.runtime)
-	}
-
-	/** Directory where all files will go/be. */
-	val resourcesDir: String by lazy {
-		"${System.getProperty("user.dir")}/src/test/resources"
-	}
-
-	/** File path for `created.txt` file. */
-	val createdFilePath: String by lazy {
-		"$resourcesDir/$testName-created.txt"
-	}
-
-	/** Path for `sample.txt file.` */
-	val sampleFilePath: String by lazy {
-		"$resourcesDir/$testName-sample.txt"
-	}
+	fun openFile (relativePath: String): Message =
+		encodeMessage(
+			BinaryCommand.OPEN_FILE,
+			relativePath.toByteArray(Charsets.UTF_8))
 }

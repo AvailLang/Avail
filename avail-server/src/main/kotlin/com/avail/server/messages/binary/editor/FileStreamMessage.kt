@@ -36,7 +36,6 @@ import com.avail.server.io.AvailServerChannel
 import com.avail.server.io.files.FileManager
 import com.avail.server.messages.Message
 import com.avail.server.session.Session
-import java.nio.ByteBuffer
 
 /**
  * `FileStreamMessage` is a [BinaryMessage] that contains the contents of a

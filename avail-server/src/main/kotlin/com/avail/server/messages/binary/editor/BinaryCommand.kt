@@ -33,6 +33,7 @@
 package com.avail.server.messages.binary.editor
 
 import com.avail.builder.ModuleName
+import com.avail.builder.ModuleRoot
 import com.avail.server.AvailServer.Companion.logger
 import com.avail.server.io.files.FileManager
 import com.avail.server.error.ServerErrorCode
@@ -43,6 +44,7 @@ import com.avail.server.io.files.RedoAction
 import com.avail.server.io.files.SaveAction
 import com.avail.server.io.files.UndoAction
 import com.avail.server.messages.Message
+import com.avail.server.session.Session
 import java.lang.UnsupportedOperationException
 import java.nio.ByteBuffer
 import java.nio.file.Paths
@@ -51,7 +53,13 @@ import java.util.logging.Level
 /**
  * `BinaryCommand` enumerates the set of possible commands available for use
  * over a [binary][AvailServerChannel.ProtocolState.BINARY]
- * [channel][AvailServerChannel]
+ * [channel][AvailServerChannel].
+ *
+ * All command [Message]s have the same 12 prefix bytes:
+ *
+ * * [BinaryCommand.id] (4-bytes): The int id that identifies the command
+ * * [BinaryMessage.commandId] (8-bytes): The long transaction id that
+ *    identifies the transaction the message is part of.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
@@ -83,7 +91,17 @@ enum class BinaryCommand constructor(val id: Int)
 		}
 	},
 
-	/** Confirmation of successful completion of a request/command. */
+	/**
+	 * Confirmation of successful completion of a request/command.
+	 *
+	 * The message is only expected to have the standard 12-byte header with
+	 * no body:
+	 *
+	 * **Message Format**
+	 * * [BinaryCommand.id] (4-bytes): The int id that identifies the command
+	 * * [BinaryMessage.commandId] (8-bytes): The long transaction id that
+	 *    identifies the transaction the message is part of.
+	 */
 	OK(0)
 	{
 		override fun receiveThen(
@@ -97,7 +115,19 @@ enum class BinaryCommand constructor(val id: Int)
 		}
 	},
 
-	/** Indicates an [error][ServerErrorCode] has occurred. */
+	/**
+	 * Indicates an [error][ServerErrorCode] has occurred.
+	 *
+	 * The message expects the standard 12-byte header with an optional error
+	 * code.
+	 *
+	 * **Message Format**
+	 * * [BinaryCommand.id] (4-bytes): The int id that identifies the command
+	 * * [BinaryMessage.commandId] (8-bytes): The long transaction id that
+	 *    identifies the transaction the message is part of.
+	 * * [ServerErrorCode.ordinal] (4-bytes): The int value that identifies the
+	 *    error code the describes the problem.
+	 */
 	ERROR(1)
 	{
 		override fun receiveThen(
@@ -129,7 +159,20 @@ enum class BinaryCommand constructor(val id: Int)
 		}
 	},
 
-	/** [Create][FileManager.createFile] a new file. */
+	/**
+	 * [Create][FileManager.createFile] a new file in the file hierarchy of a
+	 * loaded [Avail root][ModuleRoot]. Write access for the Avail root must
+	 * be held by the client for this to be allowed. (TODO RAA - do this)
+	 *
+	 * The message expects the standard 12-byte header with additional content.
+	 *
+	 * **Message Format**
+	 * * [BinaryCommand.id] (4-bytes): The int id that identifies the command
+	 * * [BinaryMessage.commandId] (8-bytes): The long transaction id that
+	 *    identifies the transaction the message is part of.
+	 * * `Path` (n-bytes): The path relative to the Avail root where the file
+	 *    is to be created. ex: `/avail/Avail.avail/Some New File`
+	 */
 	CREATE_FILE(2)
 	{
 		override fun receiveThen(
@@ -203,7 +246,19 @@ enum class BinaryCommand constructor(val id: Int)
 		}
 	},
 
-	/** Request to open a file in the [FileManager]. */
+	/**
+	 * Request to open a file in the [FileManager]. Read access for the Avail
+	 * root must be held by the client for this to be allowed. (TODO RAA - do this)
+	 *
+	 * The message expects the standard 12-byte header with additional content.
+	 *
+	 * **Message Format**
+	 * * [BinaryCommand.id] (4-bytes): The int id that identifies the command
+	 * * [BinaryMessage.commandId] (8-bytes): The long transaction id that
+	 *    identifies the transaction the message is part of.
+	 * * `Path` (n-bytes): The path relative to the Avail root where the file
+	 *    is located. ex: `/avail/Avail.avail/Some New File`
+	 */
 	OPEN_FILE(3)
 	{
 		override fun receiveThen(
@@ -273,7 +328,21 @@ enum class BinaryCommand constructor(val id: Int)
 		}
 	},
 
-	/** Request to close a file in the [FileManager]. */
+	/**
+	 * Request to close a file in the [FileManager]. This indicates the
+	 * [Session] no longer wishes cached access to the file. If number of
+	 * sessions interested in the file is 0 as a result of this close, the file
+	 * will be removed from the [FileManager].
+	 *
+	 * The message expects the standard 12-byte header with additional content.
+	 *
+	 * **Message Format**
+	 * * [BinaryCommand.id] (4-bytes): The int id that identifies the command
+	 * * [BinaryMessage.commandId] (8-bytes): The long transaction id that
+	 *    identifies the transaction the message is part of.
+	 * * `File Id` (4-bytes): The `Session` specific cache id of the file to
+	 *    close.
+	 */
 	CLOSE_FILE(4)
 	{
 		override fun receiveThen(
@@ -296,7 +365,19 @@ enum class BinaryCommand constructor(val id: Int)
 		}
 	},
 
-	/** Request to save a file in the [FileManager] to disk. */
+	/**
+	 * Request to save a file in the [FileManager] to disk. This writes the file
+	 * as it exists in the `FileManager` cache to disk.
+	 *
+	 * The message expects the standard 12-byte header with additional content.
+	 *
+	 * **Message Format**
+	 * * [BinaryCommand.id] (4-bytes): The int id that identifies the command
+	 * * [BinaryMessage.commandId] (8-bytes): The long transaction id that
+	 *    identifies the transaction the message is part of.
+	 * * `File Id` (4-bytes): The `Session` specific cache id of the file to
+	 *    save.
+	 */
 	SAVE_FILE(5)
 	{
 		override fun receiveThen(
@@ -328,30 +409,65 @@ enum class BinaryCommand constructor(val id: Int)
 		}
 	},
 
-	/** Response to open a file in the [FileManager]. */
+	/**
+	 * Response to to the client to [OPEN_FILE] or [CREATE_FILE].
+	 *
+	 * The message expects the standard 12-byte header with additional content.
+	 *
+	 * **Message Format**
+	 * * [BinaryCommand.id] (4-bytes): The int id that identifies the command
+	 * * [BinaryMessage.commandId] (8-bytes): The long transaction id that
+	 *    identifies the transaction the message is part of.
+	 * * `File Id` (4-bytes): The `Session` specific cache id of the file being
+	 *    opened.
+	 * * `mime size` (4-bytes) - The number of bytes that makes up the string `mime`
+	 * * `file size` (4-bytes) - The total number of bytes that makes up the file.
+	 * * `mime` (n-bytes) - The UTF-8 encoded mime. ex: "text/avail"
+	 *
+	 * See [FileOpenedMessage].
+	 */
 	FILE_OPENED(6),
 
-	/** Stream the contents of a file to the client. */
+	/**
+	 * Stream the contents of a file to the client. This follows the
+	 * [FILE_OPENED] message in response to a [OPEN_FILE] request or
+	 * [CREATE_FILE] request.
+	 *
+	 * The message expects the standard 12-byte header with additional content.
+	 *
+	 * **Message Format**
+	 * * [BinaryCommand.id] (4-bytes): The int id that identifies the command
+	 * * [BinaryMessage.commandId] (8-bytes): The long transaction id that
+	 *    identifies the transaction the message is part of.
+	 * * `File Id` (4-bytes): The `Session` specific cache id of the file being
+	 *    streamed.
+	 * * `file` (n-bytes) - The UTF-16BE encoded file contents.
+	 */
 	FILE_STREAM(7),
 
-	/** An [EditRange] request. */
+	/**
+	 * An [EditRange] request. Write access for the Avail root must be held by
+	 * the client for this to be allowed. (TODO RAA - do this)
+	 *
+	 * The message expects the standard 12-byte header with additional content.
+	 *
+	 * **Message Format**
+	 * * [BinaryCommand.id] (4-bytes): The int id that identifies the command
+	 * * [BinaryMessage.commandId] (8-bytes): The long transaction id that
+	 *    identifies the transaction the message is part of.
+	 * * `File Id` (4-bytes): The `Session` specific cache id of the file to
+	 *    edit.
+	 * * `start index` (4-bytes): The index into the target file to start
+	 *    replacing text or bytes for a binary file. This marks the place where
+	 *    new text (or bytes) will be entered.
+	 * * `end index` (4-bytes): The index, exclusive, that marks the end of
+	 *    where text (or bytes) is being replaced. Effectively [start, end)
+	 *    marks the range of content to delete.
+	 * * `replacement content` (n-bytes) - The bytes used to replace in the file.
+	 *    If a text file is being edited, the encoding should be UTF-16BE.
+	 */
 	EDIT_FILE_RANGE(8)
 	{
-		/**
-		 * Process the
-		 *
-		 * @param id
-		 *   The [BinaryCommand.id].
-		 * @param commandId
-		 *   The identifier of the [message][BinaryMessage]. This identifier should
-		 *   appear in any responses to this message.
-		 * @param buffer
-		 *   The [ByteBuffer] that contains the [Message].
-		 * @param channel
-		 *   The channel that is associated with this message.
-		 * @param continuation
-		 *   What to do when sufficient processing has occurred.
-		 */
 		override fun receiveThen(
 			id: Int,
 			commandId: Long,
@@ -381,7 +497,18 @@ enum class BinaryCommand constructor(val id: Int)
 		}
 	},
 
-	/** An [UndoAction] request. */
+	/**
+	 * An [UndoAction] request. This will undo the last [EditRange] action.
+	 * Write access for the Avail root must be held by the client for this to be
+	 * allowed. (TODO RAA - do this)
+	 *
+	 * **Message Format**
+	 * * [BinaryCommand.id] (4-bytes): The int id that identifies the command
+	 * * [BinaryMessage.commandId] (8-bytes): The long transaction id that
+	 *    identifies the transaction the message is part of.
+	 * * `File Id` (4-bytes): The `Session` specific cache id of the file to
+	 *    undo edit.
+	 */
 	UNDO_FILE_EDIT(9)
 	{
 		override fun receiveThen(
@@ -408,7 +535,18 @@ enum class BinaryCommand constructor(val id: Int)
 		}
 	},
 
-	/** A [RedoAction] request. */
+	/**
+	 * A [RedoAction] request. This will redo the last [UNDO_FILE_EDIT] action.
+	 * Write access for the Avail root must be held by the client for this to
+	 * be allowed. (TODO RAA - do this)
+	 *
+	 * **Message Format**
+	 * * [BinaryCommand.id] (4-bytes): The int id that identifies the command
+	 * * [BinaryMessage.commandId] (8-bytes): The long transaction id that
+	 *    identifies the transaction the message is part of.
+	 * * `File Id` (4-bytes): The `Session` specific cache id of the file to
+	 *    redo edit.
+	 */
 	REDO_FILE_EDIT(10)
 	{
 		override fun receiveThen(
@@ -435,7 +573,18 @@ enum class BinaryCommand constructor(val id: Int)
 		}
 	},
 
-	/** A request to delete a file. */
+	/**
+	 * A request to delete a file from the file system. Write access for the
+	 * Avail root must be held by the client for this to be allowed.
+	 * (TODO RAA - do this)
+	 *
+	 * **Message Format**
+	 * * [BinaryCommand.id] (4-bytes): The int id that identifies the command
+	 * * [BinaryMessage.commandId] (8-bytes): The long transaction id that
+	 *    identifies the transaction the message is part of.
+	 * * `File Id` (4-bytes): The `Session` specific cache id of the file to
+	 *    delete.
+	 */
 	DELETE_FILE(11)
 	{
 		override fun receiveThen(

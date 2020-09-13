@@ -97,13 +97,39 @@ class FileManagerTest
 
 		/** Contents added to [createdFilePath]. */
 		const val createdFileContent = "Some more\n\ttext"
+
+		/** Initial contents of [sampleFilePath]. */
+		const val sampleContents = "This is\n" +
+			"some\n" +
+			"\tsample\n" +
+			"text!"
 	}
 
+	/**
+	 * Initialize the files for this test.
+	 */
 	@BeforeAll
-	fun initialize () = helper.initialize()
+	fun initialize ()
+	{
+		val created = File(createdFilePath)
+		if (created.exists()) { created.delete() }
+		val sampleFile = File(sampleFilePath)
+		if (sampleFile.exists()) { sampleFile.delete() }
+		sampleFile.createNewFile()
+		sampleFile.writeText(sampleContents)
+	}
 
+	/**
+	 * Clean up the files from this test.
+	 */
 	@AfterAll
-	fun cleanUp () = helper.cleanUp()
+	fun cleanUp ()
+	{
+		val created = File(createdFilePath)
+		if (created.exists()) { created.delete() }
+		val sampleFile = File(sampleFilePath)
+		if (sampleFile.exists()) { sampleFile.delete() }
+	}
 
 	@Test
 	@DisplayName("Open files successfully")
@@ -128,7 +154,7 @@ class FileManagerTest
 		semaphore.acquire()
 		state.conditionallyThrowError()
 		assertEquals("text/plain", state.fileMime)
-		assertEquals(FileManagerTestHelper.sampleContents, state.fileContents)
+		assertEquals(sampleContents, state.fileContents)
 		assertEquals(firstId, state.fileId)
 		state.reset()
 		fileManager.readFile(sampleFilePath, {id, mime, raw ->
@@ -144,7 +170,7 @@ class FileManagerTest
 		}
 		semaphore.acquire()
 		assertEquals("text/plain", state.fileMime)
-		assertEquals(FileManagerTestHelper.sampleContents, state.fileContents)
+		assertEquals(sampleContents, state.fileContents)
 		assertEquals(firstId, state.fileId)
 	}
 
@@ -197,7 +223,7 @@ class FileManagerTest
 		semaphore.acquire()
 		state.conditionallyThrowError()
 		assertEquals("text/plain", state.fileMime)
-		assertEquals(FileManagerTestHelper.sampleContents, state.fileContents)
+		assertEquals(sampleContents, state.fileContents)
 		state.reset()
 		val editMade = Mutable(false)
 		val edit = EditRange(
@@ -393,7 +419,7 @@ class FileManagerTest
 		state.conditionallyThrowError()
 		assertNotEquals(firstId, state.fileId)
 		assertEquals("text/plain",state.fileMime)
-		assertEquals(FileManagerTestHelper.sampleContents, state.fileContents)
+		assertEquals(sampleContents, state.fileContents)
 	}
 
 	@Test

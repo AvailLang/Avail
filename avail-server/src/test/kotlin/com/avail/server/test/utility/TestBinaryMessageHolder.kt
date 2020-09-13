@@ -1,5 +1,5 @@
 /*
- * APITests.kt
+ * TestMessageHolder.kt
  * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,62 +30,29 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.server.test
+package com.avail.server.test.utility
 
-import com.avail.server.AvailServer
-import com.avail.server.io.files.FileManager
-import com.avail.server.test.utility.FileManagerTestHelper
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.MethodOrderer
-import org.junit.jupiter.api.TestInstance
-import org.junit.jupiter.api.TestMethodOrder
+import com.avail.server.messages.Message
+import com.avail.server.messages.binary.editor.BinaryCommand
+import java.nio.ByteBuffer
 
 /**
- * `APITests` test the [AvailServer] API.
+ * A `TestBinaryMessageHolder` contains a binary message and performs basic
+ * message parsing.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@TestMethodOrder(MethodOrderer.OrderAnnotation::class)
-class APITests
+class TestBinaryMessageHolder constructor(val message: Message)
 {
-	/** The [FileManagerTestHelper] used in these tests. */
-	private val helper: FileManagerTestHelper by lazy {
-		FileManagerTestHelper("api")
-	}
+	/** [ByteBuffer] wrapping the [Message.content]. */
+	val buffer = ByteBuffer.wrap(message.content)
 
-	/** The [FileManager] used in this test. */
-	private val fileManager get() = helper.fileManager
+	/** The [BinaryCommand.id]. */
+	val binaryCommandId = buffer.int
 
-	/** Directory where all files will go/be. */
-	private val resourcesDir get() = helper.resourcesDir
+	/** The associated [BinaryCommand]. */
+	val binaryCommand = BinaryCommand.command(binaryCommandId)
 
-	/** File path for `created.txt` file. */
-	private val createdFilePath get() = helper.createdFilePath
-
-	/** Path for `sample.txt file.` */
-	private val sampleFilePath get() = helper.sampleFilePath
-
-	companion object
-	{
-		/** Edit text used in tests w/ [sampleFilePath]. */
-		const val sampleReplace = " count Dracula's"
-
-		/** Edited contents of [sampleFilePath]. */
-		const val sampleContentsEdited = "This is count Dracula's" +
-			"\tsample\n" +
-			"text!"
-
-		/** Contents added to [createdFilePath]. */
-		const val createdFileContent = "Some more\n\ttext"
-	}
-
-	@BeforeAll
-	fun initialize () = helper.initialize()
-
-	@AfterAll
-	fun cleanUp () = helper.cleanUp()
-
-	// TODO create necessary mocks to run tests
+	/** The [Message] command id that identifies the transaction exchange. */
+	val commandId = buffer.long
 }

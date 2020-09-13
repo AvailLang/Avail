@@ -327,7 +327,13 @@ class AvailRuntimeTestHelper
 
 	companion object
 	{
-//		const val roots = "avail=/Users/Rich/Development/Avail/repositories/avail.repo,/Users/Rich/Development/Avail/distro/src/avail;experimental=/Users/Rich/Development/Avail/repositories/experimental.repo,/Users/Rich/Development/Avail/experimental/even-newer-avail;examples=/Users/Rich/Development/Avail/repositories/examples.repo,/Users/Rich/Development/Avail/distro/src/examples;website=/Users/Rich/Development/Avail/repositories/website.repo,/Users/Rich/Development/Avail/distro/src/website"
+		/**
+		 * The [AvailRuntimeTestHelper] used for all Avail Server tests. It is
+		 * important that only one of these exists across all tests.
+		 */
+		val helper: AvailRuntimeTestHelper by lazy {
+			AvailRuntimeTestHelper()
+		}
 
 		/**
 		 * Create [ModuleRoots] from the information supplied in the
@@ -338,16 +344,10 @@ class AvailRuntimeTestHelper
 		 */
 		fun createModuleRoots(): ModuleRoots
 		{
-//			val rootsString = System.getProperty("availRoots", null)
-//			if (rootsString == null)
-//			{
-//				Assertions.fail<Any>(
-//					"system property \"availRoots\" is not set")
-//			}
-			val path = System.getProperty("user.dir").replace("/avail-server", "")
-//			val roots = "resources=$path/resources/resources.repo,$path/resources"
-//			val roots = rootsString.replace("avail-server/", "")
-			val roots = "avail=$path/repositories/avail.repo,$path/distro/src/avail"
+			val userDir = System.getProperty("user.dir")
+			val path = userDir.replace("/avail-server", "")
+			val roots = "avail=$path/repositories/avail.repo,$path/distro/src/avail;" +
+				"tests=$userDir/src/test/resources/repos/tests.repo,$userDir/src/test/resources/tests"
 			return ModuleRoots(roots)
 		}
 
