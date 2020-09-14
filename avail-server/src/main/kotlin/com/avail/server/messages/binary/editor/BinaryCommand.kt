@@ -361,7 +361,13 @@ enum class BinaryCommand constructor(val id: Int)
 				return
 			}
 			val fileId = buffer.int
-			session.removeFileCacheId(fileId)
+			val removedId = session.removeFileCacheId(fileId)
+			if (removedId == null)
+			{
+				ErrorBinaryMessage(commandId, BAD_FILE_ID, false)
+					.processThen(channel)
+				return
+			}
 			OkMessage(commandId).processThen(channel, continuation)
 		}
 	},
@@ -605,10 +611,17 @@ enum class BinaryCommand constructor(val id: Int)
 					mr.sourceDirectory?.let {
 						val path =
 							Paths.get(it.path, target.rootRelativeName).toString()
-
 						channel.server.fileManager.delete(
 							path,
-							{
+							{ fileId ->
+								if (fileId != null)
+								{
+									channel.server.sessions.values
+										.forEach { session ->
+											session.removeFile(fileId)
+											// TODO RAA notify interested parties?
+										}
+								}
 								OkMessage(commandId)
 									.processThen(channel, continuation)
 							}) { code, throwable ->

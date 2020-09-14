@@ -164,19 +164,24 @@ abstract class AbstractServerFileWrapper constructor(
 		val tracedAction =
 			fileAction.execute(file, System.currentTimeMillis())
 
-		if (undoStackDepth > 0)
+		if (tracedAction.isTraced())
 		{
-			// Must remove all TracedActions above the undoStackDepth
-			// pointer as they are no longer valid.
-			do
+			val stackSize = tracedActionStack.size
+			val undoPointer = stackSize - undoStackDepth.get()
+			if (undoPointer < stackSize)
 			{
-				val ta = tracedActionStack.pop()
-				// TODO remove ta from the project cache?
+				// Must remove all TracedActions above the undoStackDepth
+				// pointer as they are no longer valid.
+				do
+				{
+					val ta = tracedActionStack.pop()
+					// TODO remove ta from the project cache?
+				}
+				while (undoStackDepth.decrementAndGet() > 0)
 			}
-			while (--undoStackDepth > 0)
+			tracedActionStack.push(tracedAction)
 		}
-		tracedActionStack.push(tracedAction)
-		// TODO update Avail VM somehow
+
 		continuation()
 	}
 
@@ -184,7 +189,7 @@ abstract class AbstractServerFileWrapper constructor(
 	 * The number of places from the top of the [tracedActionStack] that have
 	 * been undone.
 	 */
-	var undoStackDepth = 0
+	private val undoStackDepth = AtomicInteger(0)
 
 	/**
 	 * [Undo][TracedAction.undo] the [FileAction] performed on the [file] from
@@ -196,11 +201,13 @@ abstract class AbstractServerFileWrapper constructor(
 	 */
 	fun undo ()
 	{
-		if (tracedActionStack.size >= undoStackDepth + 1)
+		if (tracedActionStack.size >= undoStackDepth.get() + 1)
 		{
 			// We are not at the bottom of the stack; there are TracedActions
 			// eligible to be reverted.
-			tracedActionStack[tracedActionStack.size + ++undoStackDepth].undo(file)
+			val tracedActionIndex =
+				tracedActionStack.size - undoStackDepth.incrementAndGet()
+			tracedActionStack[tracedActionIndex].undo(file)
 		}
 	}
 
@@ -214,15 +221,15 @@ abstract class AbstractServerFileWrapper constructor(
 	 */
 	fun redo ()
 	{
-		if (undoStackDepth == 0)
+		if (undoStackDepth.get() == 0)
 		{
 			// There have been no TracedActions undone.
 			return
 		}
-		val index = tracedActionStack.size - undoStackDepth
+		val index = tracedActionStack.size - undoStackDepth.get()
 		// TODO validate in range
 		tracedActionStack[index].redo(file)
-		undoStackDepth--
+		undoStackDepth.decrementAndGet()
 	}
 
 	/**

@@ -188,8 +188,8 @@ class Session constructor(val commandChannel: AvailServerChannel)
 			}
 
 	/**
-	 * Add the [FileManager] cache id to this [Session] and answer a
-	 * `Session`-specific cache key for the file.
+	 * Remove the file associated with the session file id from this [Session]
+	 * and answer the `Session`-specific cache key for the file if removed.
 	 *
 	 * @param id
 	 *   The session id for the file to remove.
@@ -201,6 +201,21 @@ class Session constructor(val commandChannel: AvailServerChannel)
 		sessionFileCache.remove(id)?.let {
 			commandChannel.server.fileManager.deregisterInterest(it)
 			fileCacheIdSessionId.remove(it)
+		}
+
+	/**
+	 * Remove the file associated with the [FileManager] id from this [Session]
+	 * and answer the `Session`-specific cache key for the file if removed.
+	 *
+	 * @param fileManagerId
+	 *   The `FileManager` id for the file to remove.
+	 * @return
+	 *   The provided `id` if there were something at that location to remove
+	 *   or `null` if that location was invalid or empty.
+	 */
+	fun removeFile (fileManagerId: UUID) =
+		fileCacheIdSessionId[fileManagerId]?.let {
+			removeFileCacheId(it)
 		}
 
 	/**

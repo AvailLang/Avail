@@ -211,9 +211,12 @@ class BinaryMessageBuilder
 	/**
 	 * Create a [BinaryCommand.DELETE_FILE] message.
 	 *
-	 * @param fileId
-	 *   The session-specific file cache id.
+	 * @param relativePath
+	 *   The [ModuleRoot] relative path of the file to open.
 	 */
-	fun deleteFile (fileId: Int): Message =
-		encodeFileIdMessage(BinaryCommand.DELETE_FILE, fileId)
+	fun deleteFile (relativePath: String): Message =
+		encodeMessage(
+			BinaryCommand.DELETE_FILE,
+			relativePath.toByteArray(Charsets.UTF_8))
+
 }

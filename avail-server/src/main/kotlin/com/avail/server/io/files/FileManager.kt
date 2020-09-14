@@ -123,12 +123,14 @@ abstract class FileManager constructor(protected val runtime: AvailRuntime)
 				{
 					ErrorServerFileWrapper(
 						it, path, this, e, FILE_NOT_FOUND)
+					null
 				}
 
-				catch (e: NoSuchFileException)
+				catch (e: Throwable)
 				{
 					ErrorServerFileWrapper(
 						it, path, this, e, UNSPECIFIED)
+					null
 				}
 			Mutable(wrapper)
 		},
@@ -205,6 +207,15 @@ abstract class FileManager constructor(protected val runtime: AvailRuntime)
 	protected val pathToIdMap = mutableMapOf<String, UUID>()
 
 	/**
+	 * Answer the [FileManager] file id for the provided path.
+	 *
+	 * @param path
+	 *   The path of the file to get the file id for.
+	 * @return The file id or `null` if not in file manager.
+	 */
+	fun fileId (path: String): UUID? = pathToIdMap[path]
+
+	/**
 	 * A [Map] from the file cache [id][UUID] that uniquely identifies that file
 	 * in the [fileCache] to the String [Path] location of a
 	 * [file][AvailServerFile].
@@ -269,13 +280,16 @@ abstract class FileManager constructor(protected val runtime: AvailRuntime)
 	 *
 	 * @param path
 	 *   The String path to the file to be deleted.
+	 * @param success
+	 *   Accepts the [FileManager] file id if remove successful. Maybe `null`
+	 *   if file not present in `FileManager`.
 	 * @param failure
 	 *   A function that accepts a [ServerErrorCode] that describes the nature
 	 *   of the failure and an optional [Throwable].
 	 */
 	abstract fun delete (
 		path: String,
-		success: () -> Unit,
+		success: (UUID?) -> Unit,
 		failure: (ServerErrorCode, Throwable?) -> Unit)
 
 	/**

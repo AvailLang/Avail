@@ -120,6 +120,8 @@ import kotlin.collections.set
  * @property runtime
  *   The [Avail runtime][AvailRuntime] managed by this
  *   [server][AvailServer].
+ * @property fileManager
+ *   The [FileManager] used to manage files by this [AvailServer].
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
@@ -132,20 +134,21 @@ import kotlin.collections.set
  *   An [configuration][AvailServerConfiguration].
  * @param runtime
  *   An Avail runtime.
+ * @param fileManager
+ *   The [FileManager] used to manage files by this [AvailServer].
+ *   [LocalFileManager] by default.
  */
 class AvailServer constructor(
 	@Suppress("MemberVisibilityCanBePrivate")
 	val configuration: AvailServerConfiguration,
-	val runtime: AvailRuntime)
+	val runtime: AvailRuntime,
+	internal val fileManager: FileManager = LocalFileManager(runtime))
 {
 	/**
 	 * The [Avail builder][AvailBuilder] responsible for managing build and
 	 * execution tasks.
 	 */
 	private val builder: AvailBuilder = AvailBuilder(runtime)
-
-	/** The [FileManager] used to manage files by this [AvailServer]. */
-	internal val fileManager = LocalFileManager(runtime)
 
 	/**
 	 * The catalog of pending upgrade requests, as a [map][Map] from [UUID]s to

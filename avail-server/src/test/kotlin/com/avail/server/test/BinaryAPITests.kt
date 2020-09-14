@@ -34,6 +34,7 @@ package com.avail.server.test
 
 import com.avail.server.AvailServer
 import com.avail.server.configuration.AvailServerConfiguration
+import com.avail.server.error.ServerErrorCode
 import com.avail.server.io.AvailServerChannel
 import com.avail.server.messages.binary.editor.BinaryCommand
 import com.avail.server.test.utility.AvailRuntimeTestHelper
@@ -513,7 +514,6 @@ class BinaryAPITests
 	{
 		// Make sure we have a valid file id
 		assertNotEquals(-1, sampleTestFileId)
-		channel.sendQueue.clear()
 		channel.runContinuation = true
 		val editFile = builder.editFile(
 			sampleTestFileId, 141, 153, someEdit)
@@ -563,5 +563,266 @@ class BinaryAPITests
 			// Shouldn't get here
 			throw RuntimeException("Received no messages!")
 		}
+		channel.reset()
 	}
+
+	@Test
+	@DisplayName("Undo edit in a file")
+	@Order(6)
+	internal fun undoAPITest()
+	{
+		// Make sure we have a valid file id
+		assertNotEquals(-1, sampleTestFileId)
+
+		val openMessage = builder.openFile(relativeTestModule)
+		channel.expectedMessageCount.set(2)
+		channel.receiveMessage(openMessage)
+		channel.semaphore.acquire()
+		if (channel.sendQueue.size > 0)
+		{
+			val first = channel.sendQueue[0]
+			assertEquals(builder.transactionId.get() - 1, first.commandId)
+			assertEquals(BinaryCommand.FILE_OPENED, first.binaryCommand)
+			val fileId = first.buffer.int
+			assertEquals(sampleTestFileId, fileId)
+			val fileSize = first.buffer.int
+			val mimeSize = first.buffer.int
+			val mimeBytes = ByteArray(mimeSize)
+			first.buffer.get(mimeBytes)
+			val mime = String(mimeBytes, StandardCharsets.UTF_8)
+			assertEquals("text/avail", mime)
+			assertEquals(2, channel.sendQueue.size)
+			val second = channel.sendQueue[1]
+			assertEquals(builder.transactionId.get() - 1, second.commandId)
+			assertEquals(BinaryCommand.FILE_STREAM, second.binaryCommand)
+			val secondFileId = second.buffer.int
+			assertEquals(fileId, secondFileId)
+			assertEquals(fileSize, second.buffer.remaining())
+			val raw = ByteArray(fileSize)
+			second.buffer.get(raw)
+			val fileContents = String(raw, Charsets.UTF_16BE)
+			assertEquals(someReplaceEditContent, fileContents)
+			sampleTestFileId = fileId
+			channel.expectedMessageCount.set(0)
+			channel.sendQueue.clear()
+		}
+		else
+		{
+			// Shouldn't get here
+			throw RuntimeException("Received no messages!")
+		}
+
+		channel.reset()
+		channel.runContinuation = true
+		val undoEdit = builder.undoFile(sampleTestFileId)
+		channel.receiveMessage(undoEdit)
+		channel.semaphore.acquire()
+		if (channel.sendQueue.size > 0)
+		{
+			throw RuntimeException(
+				"Expected no message but got ${channel.sendQueue[0]}")
+		}
+
+		channel.reset()
+		channel.expectedMessageCount.set(2)
+		channel.receiveMessage(openMessage)
+		channel.semaphore.acquire()
+		if (channel.sendQueue.size > 0)
+		{
+			val first = channel.sendQueue[0]
+			assertEquals(BinaryCommand.FILE_OPENED, first.binaryCommand)
+			val fileId = first.buffer.int
+			assertEquals(sampleTestFileId, fileId)
+			val fileSize = first.buffer.int
+			val mimeSize = first.buffer.int
+			val mimeBytes = ByteArray(mimeSize)
+			first.buffer.get(mimeBytes)
+			val mime = String(mimeBytes, StandardCharsets.UTF_8)
+			assertEquals("text/avail", mime)
+			assertEquals(2, channel.sendQueue.size)
+			val second = channel.sendQueue[1]
+			assertEquals(BinaryCommand.FILE_STREAM, second.binaryCommand)
+			val secondFileId = second.buffer.int
+			assertEquals(fileId, secondFileId)
+			assertEquals(fileSize, second.buffer.remaining())
+			val raw = ByteArray(fileSize)
+			second.buffer.get(raw)
+			val fileContents = String(raw, Charsets.UTF_16BE)
+			assertEquals(someTestContentReplace, fileContents)
+			channel.expectedMessageCount.set(0)
+			channel.sendQueue.clear()
+		}
+		else
+		{
+			// Shouldn't get here
+			throw RuntimeException("Received no messages!")
+		}
+		channel.reset()
+	}
+
+	@Test
+	@DisplayName("Redo edit in a file")
+	@Order(7)
+	internal fun redoAPITest()
+	{
+		// Make sure we have a valid file id
+		assertNotEquals(-1, sampleTestFileId)
+
+		val openMessage = builder.openFile(relativeTestModule)
+		channel.expectedMessageCount.set(2)
+		channel.receiveMessage(openMessage)
+		channel.semaphore.acquire()
+		if (channel.sendQueue.size > 0)
+		{
+			val first = channel.sendQueue[0]
+			assertEquals(builder.transactionId.get() - 1, first.commandId)
+			assertEquals(BinaryCommand.FILE_OPENED, first.binaryCommand)
+			val fileId = first.buffer.int
+			assertEquals(sampleTestFileId, fileId)
+			val fileSize = first.buffer.int
+			val mimeSize = first.buffer.int
+			val mimeBytes = ByteArray(mimeSize)
+			first.buffer.get(mimeBytes)
+			val mime = String(mimeBytes, StandardCharsets.UTF_8)
+			assertEquals("text/avail", mime)
+			assertEquals(2, channel.sendQueue.size)
+			val second = channel.sendQueue[1]
+			assertEquals(builder.transactionId.get() - 1, second.commandId)
+			assertEquals(BinaryCommand.FILE_STREAM, second.binaryCommand)
+			val secondFileId = second.buffer.int
+			assertEquals(fileId, secondFileId)
+			assertEquals(fileSize, second.buffer.remaining())
+			val raw = ByteArray(fileSize)
+			second.buffer.get(raw)
+			val fileContents = String(raw, Charsets.UTF_16BE)
+			assertEquals(someTestContentReplace, fileContents)
+			sampleTestFileId = fileId
+		}
+		else
+		{
+			// Shouldn't get here
+			throw RuntimeException("Received no messages!")
+		}
+
+		channel.reset()
+		channel.runContinuation = true
+		val redoEdit = builder.redoFile(sampleTestFileId)
+		channel.receiveMessage(redoEdit)
+		channel.semaphore.acquire()
+		if (channel.sendQueue.size > 0)
+		{
+			throw RuntimeException(
+				"Expected no message but got ${channel.sendQueue[0]}")
+		}
+
+		channel.reset()
+		channel.expectedMessageCount.set(2)
+		channel.receiveMessage(openMessage)
+		channel.semaphore.acquire()
+		if (channel.sendQueue.size > 0)
+		{
+			val first = channel.sendQueue[0]
+			assertEquals(BinaryCommand.FILE_OPENED, first.binaryCommand)
+			val fileId = first.buffer.int
+			assertEquals(sampleTestFileId, fileId)
+			val fileSize = first.buffer.int
+			val mimeSize = first.buffer.int
+			val mimeBytes = ByteArray(mimeSize)
+			first.buffer.get(mimeBytes)
+			val mime = String(mimeBytes, StandardCharsets.UTF_8)
+			assertEquals("text/avail", mime)
+			assertEquals(2, channel.sendQueue.size)
+			val second = channel.sendQueue[1]
+			assertEquals(BinaryCommand.FILE_STREAM, second.binaryCommand)
+			val secondFileId = second.buffer.int
+			assertEquals(fileId, secondFileId)
+			assertEquals(fileSize, second.buffer.remaining())
+			val raw = ByteArray(fileSize)
+			second.buffer.get(raw)
+			val fileContents = String(raw, Charsets.UTF_16BE)
+			assertEquals(someReplaceEditContent, fileContents)
+		}
+		else
+		{
+			// Shouldn't get here
+			throw RuntimeException("Received no messages!")
+		}
+		channel.reset()
+	}
+
+	@Test
+	@DisplayName("Delete file API successfully")
+	@Order(8)
+	internal fun deleteFileAPITest()
+	{
+		val openMessage = builder.openFile(randomTestModule)
+		channel.expectedMessageCount.set(2)
+		channel.receiveMessage(openMessage)
+		channel.semaphore.acquire()
+		if (channel.sendQueue.size > 0)
+		{
+			val first = channel.sendQueue[0]
+			assertEquals(builder.transactionId.get() - 1, first.commandId)
+			assertEquals(BinaryCommand.FILE_OPENED, first.binaryCommand)
+			val fileId = first.buffer.int
+			val fileSize = first.buffer.int
+			val mimeSize = first.buffer.int
+			val mimeBytes = ByteArray(mimeSize)
+			first.buffer.get(mimeBytes)
+			val mime = String(mimeBytes, StandardCharsets.UTF_8)
+			assertEquals("text/avail", mime)
+			assertEquals(2, channel.sendQueue.size)
+			val second = channel.sendQueue[1]
+			assertEquals(BinaryCommand.FILE_STREAM, second.binaryCommand)
+			val secondFileId = second.buffer.int
+			assertEquals(fileId, secondFileId)
+			assertEquals(fileSize, second.buffer.remaining())
+			val raw = ByteArray(fileSize)
+			second.buffer.get(raw)
+			val fileContents = String(raw, Charsets.UTF_16BE)
+			assert(fileContents.isEmpty())
+		}
+		else
+		{
+			// Shouldn't get here
+			throw RuntimeException("Received no messages from open!")
+		}
+
+		channel.reset()
+		val deleteFile = builder.deleteFile(randomTestModule)
+		channel.receiveMessage(deleteFile)
+		channel.semaphore.acquire()
+		if (channel.sendQueue.size == 1)
+		{
+			val first = channel.sendQueue[0]
+			assertEquals(builder.transactionId.get() - 1, first.commandId)
+			assertEquals(BinaryCommand.OK, first.binaryCommand)
+		}
+		else
+		{
+			throw RuntimeException("Expected an OK message but got none")
+		}
+		channel.reset()
+
+		channel.expectedMessageCount.set(1)
+		channel.receiveMessage(openMessage)
+		channel.semaphore.acquire()
+
+		if (channel.sendQueue.size > 0)
+		{
+			val first = channel.sendQueue[0]
+			assertEquals(BinaryCommand.ERROR, first.binaryCommand)
+			val errorCodeId = first.buffer.int
+			val errorCode = ServerErrorCode.code(errorCodeId)
+			assertEquals(ServerErrorCode.FILE_NOT_FOUND, errorCode)
+		}
+		else
+		{
+			throw RuntimeException("Expected an Error message but got none")
+		}
+	}
+
+	// TODO more tests on REDO/UNDO stack to ensure proper behavior when edit
+	//  occurs after undo performed
+	// TODO RAA add bad/failed request tests
 }

@@ -282,6 +282,14 @@ class TracedAction constructor(
 	private val reverseAction: FileAction)
 {
 	/**
+	 * Answer whether or not this [TracedAction] is traceable on the traced
+	 * action stack.
+	 *
+	 * @return `true` indicates it is; `false` otherwise.
+	 */
+	fun isTraced () : Boolean = forwardAction.isTraced && reverseAction.isTraced
+
+	/**
 	 * Run the [reverseAction] on the provided [AvailServerFile].
 	 *
 	 * @param file

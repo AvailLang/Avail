@@ -122,20 +122,6 @@ internal class LocalFileManager constructor(runtime: AvailRuntime)
 			data,
 			0,
 			null,
-//			SimpleCompletionHandler<ServerErrorCode>(
-//				{
-//					if (data.hasRemaining())
-//					{
-//						save(file, data, data.position().toLong(), failure)
-//					}
-//					else
-//					{
-//						availServerFile.conditionallyClearDirty(saveTimeStart)
-//					}
-//				})
-//			{ e, code ->
-//				failure(code ?: ServerErrorCode.UNSPECIFIED, e)
-//			})
 			object : CompletionHandler<Int, ServerErrorCode?> {
 				override fun completed(result: Int?, attachment: ServerErrorCode?)
 				{
@@ -205,14 +191,15 @@ internal class LocalFileManager constructor(runtime: AvailRuntime)
 
 	override fun delete (
 		path: String,
-		success: () -> Unit,
+		success: (UUID?) -> Unit,
 		failure: (ServerErrorCode, Throwable?) -> Unit)
 	{
-		pathToIdMap.remove(path)?.let {id ->
+		val removedId = pathToIdMap.remove(path)?.let {id ->
 			// TODO send notifications file deleted?
 			//  might need to track more session-file interest info
 			fileCache.remove(id)
 			idToPathMap.remove(id)
+			id
 		}
 		if (!Files.deleteIfExists(Paths.get(path)))
 		{
@@ -220,7 +207,7 @@ internal class LocalFileManager constructor(runtime: AvailRuntime)
 		}
 		else
 		{
-			success()
+			success(removedId)
 		}
 	}
 
