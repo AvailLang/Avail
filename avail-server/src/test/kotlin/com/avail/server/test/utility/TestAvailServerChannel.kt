@@ -87,6 +87,16 @@ class TestAvailServerChannel constructor(
 		state = ProtocolState.BINARY
 	}
 
+	/**
+	 * Reset all of the tracking state.
+	 */
+	fun reset ()
+	{
+		expectedMessageCount.set(0)
+		sendQueue.clear()
+		runContinuation = false
+	}
+
 	private val open = AtomicBoolean(false)
 
 	override val isOpen: Boolean

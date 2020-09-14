@@ -77,7 +77,7 @@ class BinaryMessageBuilder
 		ByteBuffer.allocate(size).apply {
 			this.putInt(command.id)
 				.putLong(transactionId.getAndIncrement())
-				putInt(fileId)
+				.putInt(fileId)
 				.put(content)
 				.flip()
 		}.get(raw)
@@ -136,6 +136,41 @@ class BinaryMessageBuilder
 			BinaryCommand.REPLACE_CONTENTS,
 			fileId,
 			replace.toByteArray(Charsets.UTF_16BE))
+
+	/**
+	 * Create a [BinaryCommand.REPLACE_CONTENTS] message.
+	 *
+	 * @param fileId
+	 *   The session-specific file cache id.
+	 * @param start
+	 *   The location in the file to insert/overwrite the data.
+	 * @param end
+	 *   The location in the file to stop overwriting, exclusive. All data from
+	 *   this point should be preserved.
+	 * @param edit
+	 *   The text to insert.
+	 */
+	fun editFile (
+		fileId: Int,
+		start: Int,
+		end: Int,
+		edit: String): Message
+	{
+		val content = edit.toByteArray(Charsets.UTF_16BE)
+		val size = BinaryMessage.PREFIX_SIZE + content.size + 12
+		val raw = ByteArray(size)
+		ByteBuffer.allocate(size).apply {
+			this.putInt(BinaryCommand.EDIT_FILE_RANGE.id)
+				.putLong(transactionId.getAndIncrement())
+				.putInt(fileId)
+				.putInt(start)
+				.putInt(end)
+				.put(content)
+				.flip()
+		}.get(raw)
+
+		return  Message(raw, AvailServerChannel.ProtocolState.BINARY)
+	}
 
 	/**
 	 * Create a [BinaryCommand.SAVE_FILE] message.

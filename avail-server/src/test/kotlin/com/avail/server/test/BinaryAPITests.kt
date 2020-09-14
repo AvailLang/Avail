@@ -120,6 +120,23 @@ class BinaryAPITests
 				"|\n" +
 				"\t|aTuple| > 0\n" +
 				"] : boolean;"
+
+		const val someEdit = "¬aTuple is empty"
+
+		const val someReplaceEditContent =
+			"Module \"Some Test\"\n" +
+				"Uses \"Avail\"\n" +
+				"Extends \"Some Other Test\"\n" +
+				"Names\n" +
+				"\t\"_is not empty\"\n" +
+				"Body\n" +
+				"\n" +
+				"Public method \"_is not empty\" is\n" +
+				"[\n" +
+				"\taTuple : tuple\n" +
+				"|\n" +
+				"\t¬aTuple is empty\n" +
+				"] : boolean;"
 	}
 
 	@BeforeAll
@@ -179,6 +196,7 @@ class BinaryAPITests
 			// Shouldn't get here
 			throw RuntimeException("Received no messages!")
 		}
+		channel.reset()
 	}
 
 	@Test
@@ -187,7 +205,6 @@ class BinaryAPITests
 	internal fun replaceContentAPITest()
 	{
 		// Make sure we have a valid file id
-		channel.sendQueue.clear()
 		assertNotEquals(-1, sampleTestFileId)
 		channel.runContinuation = true
 		val replaceMessage = builder.replaceFile(
@@ -200,7 +217,7 @@ class BinaryAPITests
 				"Expected no message but got ${channel.sendQueue[0]}")
 		}
 
-		channel.runContinuation = false
+		channel.reset()
 		val openMessage = builder.openFile(relativeTestModule)
 		channel.expectedMessageCount.set(2)
 		channel.receiveMessage(openMessage)
@@ -238,6 +255,7 @@ class BinaryAPITests
 			// Shouldn't get here
 			throw RuntimeException("Received no messages!")
 		}
+		channel.reset()
 	}
 
 	@Test
@@ -247,7 +265,6 @@ class BinaryAPITests
 	{
 		// Make sure we have a valid file id
 		assertNotEquals(-1, sampleTestFileId)
-		channel.sendQueue.clear()
 		val closeMessage = builder.closeFile(sampleTestFileId)
 		channel.receiveMessage(closeMessage)
 		channel.semaphore.acquire()
@@ -262,7 +279,7 @@ class BinaryAPITests
 			throw RuntimeException("Expected an OK message but got none")
 		}
 
-		channel.sendQueue.clear()
+		channel.reset()
 		val openOtherMessage = builder.openFile(relativeOtherTestModule)
 		channel.expectedMessageCount.set(2)
 		channel.receiveMessage(openOtherMessage)
@@ -301,8 +318,7 @@ class BinaryAPITests
 			throw RuntimeException("Received no other messages!")
 		}
 
-		channel.sendQueue.clear()
-		channel.runContinuation = false
+		channel.reset()
 		val openMessage = builder.openFile(relativeTestModule)
 		channel.expectedMessageCount.set(2)
 		channel.receiveMessage(openMessage)
@@ -342,6 +358,7 @@ class BinaryAPITests
 			// Shouldn't get here
 			throw RuntimeException("Received no messages!")
 		}
+		channel.reset()
 	}
 
 	@Test
@@ -349,7 +366,6 @@ class BinaryAPITests
 	@Order(3)
 	internal fun replaceSaveContentAPITest()
 	{
-		channel.sendQueue.clear()
 		channel.runContinuation = true
 		val closeOtherMessage = builder.closeFile(sampleOtherTestFileId)
 		channel.receiveMessage(closeOtherMessage)
@@ -365,8 +381,7 @@ class BinaryAPITests
 			throw RuntimeException("Expected an OK message but got none")
 		}
 
-		// Make sure we have a valid file id
-		channel.sendQueue.clear()
+		channel.reset()
 		channel.runContinuation = true
 		val replaceMessage = builder.replaceFile(
 			sampleTestFileId, someTestContentReplace)
@@ -378,6 +393,7 @@ class BinaryAPITests
 				"Expected no message but got ${channel.sendQueue[0]}")
 		}
 
+		channel.reset()
 		channel.runContinuation = true
 		val saveMessage = builder.saveFile(sampleTestFileId)
 		channel.receiveMessage(saveMessage)
@@ -402,8 +418,7 @@ class BinaryAPITests
 			throw RuntimeException("Expected an OK message but got none")
 		}
 
-		channel.sendQueue.clear()
-		channel.runContinuation = false
+		channel.reset()
 		val openMessage = builder.openFile(relativeTestModule)
 		channel.expectedMessageCount.set(2)
 		channel.receiveMessage(openMessage)
@@ -441,6 +456,7 @@ class BinaryAPITests
 			// Shouldn't get here
 			throw RuntimeException("Received no messages!")
 		}
+		channel.reset()
 	}
 
 	@Test
@@ -448,7 +464,6 @@ class BinaryAPITests
 	@Order(4)
 	internal fun createFileAPITest()
 	{
-		channel.sendQueue.clear()
 		val createFile = builder.createFile(randomTestModule)
 		channel.expectedMessageCount.set(2)
 		channel.receiveMessage(createFile)
@@ -477,12 +492,71 @@ class BinaryAPITests
 			second.buffer.get(raw)
 			val fileContents = String(raw, Charsets.UTF_16BE)
 			assert(fileContents.isEmpty())
-			sampleTestFileId = fileId
 			channel.expectedMessageCount.set(0)
 			channel.sendQueue.clear()
 			val randomModule = File(
 				"${System.getProperty("user.dir")}/src/test/resources$randomTestModule")
 			assert(randomModule.exists())
+		}
+		else
+		{
+			// Shouldn't get here
+			throw RuntimeException("Received no messages!")
+		}
+		channel.reset()
+	}
+
+	@Test
+	@DisplayName("Edit a range in a file")
+	@Order(5)
+	internal fun editContentAPITest()
+	{
+		// Make sure we have a valid file id
+		assertNotEquals(-1, sampleTestFileId)
+		channel.sendQueue.clear()
+		channel.runContinuation = true
+		val editFile = builder.editFile(
+			sampleTestFileId, 141, 153, someEdit)
+		channel.receiveMessage(editFile)
+		channel.semaphore.acquire()
+		if (channel.sendQueue.size > 0)
+		{
+			throw RuntimeException(
+				"Expected no message but got ${channel.sendQueue[0]}")
+		}
+
+		channel.reset()
+		val openMessage = builder.openFile(relativeTestModule)
+		channel.expectedMessageCount.set(2)
+		channel.receiveMessage(openMessage)
+		channel.semaphore.acquire()
+		if (channel.sendQueue.size > 0)
+		{
+			val first = channel.sendQueue[0]
+			assertEquals(builder.transactionId.get() - 1, first.commandId)
+			assertEquals(BinaryCommand.FILE_OPENED, first.binaryCommand)
+			val fileId = first.buffer.int
+			assertEquals(sampleTestFileId, fileId)
+			val fileSize = first.buffer.int
+			val mimeSize = first.buffer.int
+			val mimeBytes = ByteArray(mimeSize)
+			first.buffer.get(mimeBytes)
+			val mime = String(mimeBytes, StandardCharsets.UTF_8)
+			assertEquals("text/avail", mime)
+			assertEquals(2, channel.sendQueue.size)
+			val second = channel.sendQueue[1]
+			assertEquals(builder.transactionId.get() - 1, second.commandId)
+			assertEquals(BinaryCommand.FILE_STREAM, second.binaryCommand)
+			val secondFileId = second.buffer.int
+			assertEquals(fileId, secondFileId)
+			assertEquals(fileSize, second.buffer.remaining())
+			val raw = ByteArray(fileSize)
+			second.buffer.get(raw)
+			val fileContents = String(raw, Charsets.UTF_16BE)
+			assertEquals(someReplaceEditContent, fileContents)
+			sampleTestFileId = fileId
+			channel.expectedMessageCount.set(0)
+			channel.sendQueue.clear()
 		}
 		else
 		{
