@@ -61,9 +61,9 @@ class TestBinaryMessageHolder constructor(val message: Message)
 	{
 		return if (binaryCommand == BinaryCommand.ERROR)
 		{
+			val position = buffer.position()
 			val ec = buffer.int
-			buffer.flip()
-			buffer.putInt(ec)
+			buffer.position(position)
 			ServerErrorCode.code(ec).name
 			"${binaryCommand.name}: ${ServerErrorCode.code(ec).name}"
 		}

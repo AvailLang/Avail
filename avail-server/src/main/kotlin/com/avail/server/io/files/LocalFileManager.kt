@@ -117,7 +117,8 @@ internal class LocalFileManager constructor(runtime: AvailRuntime)
 		val data = ByteBuffer.wrap(content)
 		val saveTimeStart = System.currentTimeMillis()
 		val file = runtime.ioSystem().openFile(
-			Paths.get(availServerFile.path), fileOpenOptions)
+			Paths.get(availServerFile.path),
+			EnumSet.of(StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.READ, StandardOpenOption.WRITE))
 		file.write(
 			data,
 			0,

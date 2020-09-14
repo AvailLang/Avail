@@ -395,10 +395,17 @@ enum class BinaryCommand constructor(val id: Int)
 			continuation: () -> Unit)
 		{
 			val fileId = buffer.int
-			val uuid = channel.session?.getFile(fileId)
-			if (uuid == null)
+			val session = channel.session
+			if (session == null)
 			{
 				ErrorBinaryMessage(commandId, NO_SESSION, false)
+					.processThen(channel)
+				return
+			}
+			val uuid = session.getFile(fileId)
+			if (uuid == null)
+			{
+				ErrorBinaryMessage(commandId, BAD_FILE_ID, false)
 					.processThen(channel)
 				return
 			}
@@ -483,10 +490,17 @@ enum class BinaryCommand constructor(val id: Int)
 			continuation: () -> Unit)
 		{
 			val fileId = buffer.int
-			val uuid = channel.session?.getFile(fileId)
-			if (uuid == null)
+			val session = channel.session
+			if (session == null)
 			{
 				ErrorBinaryMessage(commandId, NO_SESSION, false)
+					.processThen(channel)
+				return
+			}
+			val uuid = session.getFile(fileId)
+			if (uuid == null)
+			{
+				ErrorBinaryMessage(commandId, BAD_FILE_ID, false)
 					.processThen(channel)
 				return
 			}
@@ -526,10 +540,17 @@ enum class BinaryCommand constructor(val id: Int)
 			continuation: () -> Unit)
 		{
 			val fileId = buffer.int
-			val uuid = channel.session?.getFile(fileId)
-			if (uuid == null)
+			val session = channel.session
+			if (session == null)
 			{
 				ErrorBinaryMessage(commandId, NO_SESSION, false)
+					.processThen(channel)
+				return
+			}
+			val uuid = session.getFile(fileId)
+			if (uuid == null)
+			{
+				ErrorBinaryMessage(commandId, BAD_FILE_ID, false)
 					.processThen(channel)
 				return
 			}
@@ -564,10 +585,17 @@ enum class BinaryCommand constructor(val id: Int)
 			continuation: () -> Unit)
 		{
 			val fileId = buffer.int
-			val uuid = channel.session?.getFile(fileId)
-			if (uuid == null)
+			val session = channel.session
+			if (session == null)
 			{
 				ErrorBinaryMessage(commandId, NO_SESSION, false)
+					.processThen(channel)
+				return
+			}
+			val uuid = session.getFile(fileId)
+			if (uuid == null)
+			{
+				ErrorBinaryMessage(commandId, BAD_FILE_ID, false)
 					.processThen(channel)
 				return
 			}
@@ -685,10 +713,17 @@ enum class BinaryCommand constructor(val id: Int)
 			continuation: () -> Unit)
 		{
 			val fileId = buffer.int
-			val uuid = channel.session?.getFile(fileId)
-			if (uuid == null)
+			val session = channel.session
+			if (session == null)
 			{
 				ErrorBinaryMessage(commandId, NO_SESSION, false)
+					.processThen(channel)
+				return
+			}
+			val uuid = session.getFile(fileId)
+			if (uuid == null)
+			{
+				ErrorBinaryMessage(commandId, BAD_FILE_ID, false)
 					.processThen(channel)
 				return
 			}
