@@ -506,7 +506,7 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 
 	override fun o_Parent(self: AvailObject): A_BasicObject
 	{
-		throw unsupportedOperationException()
+		unsupportedOperation()
 	}
 
 	override fun o_ReturnType(self: AvailObject): A_Type =

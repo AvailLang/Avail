@@ -831,7 +831,12 @@ abstract class AbstractDescriptor protected constructor (
 			}
 			catch (e: Exception)
 			{
-				e.stackTrace[1].methodName
+				var name = e.stackTrace[1].methodName
+				if (name == "getUnsupported")  // ::unsupported property getter.
+				{
+					name = e.stackTrace[2].methodName
+				}
+				name
 			}
 		throw AvailUnsupportedOperationException(javaClass, callerName)
 	}
@@ -843,39 +848,6 @@ abstract class AbstractDescriptor protected constructor (
 	 */
 	val unsupported: Nothing
 		get() = unsupportedOperation()
-
-	/**
-	 * Throw an
-	 * [unsupported&#32;operation&#32;exception][AvailUnsupportedOperationException]
-	 * suitable to be thrown by the sender.
-	 *
-	 * The exception indicates that the receiver does not meaningfully implement
-	 * the method that immediately invoked this.  This is a strong indication
-	 * that the wrong kind of object is being used somewhere.
-	 *
-	 * This is a variant on [unsupported] to support Java implementations of
-	 * [AbstractDescriptor] until porting of the hierarchy is finished. It
-	 * should be thrown by Java callers, which cannot correctly reason about
-	 * flow around non-returning functions.
-	 *
-	 * @return
-	 *   Never returns anything; always throws.
-	 * @throws AvailUnsupportedOperationException
-	 *   Always.
-	 */
-	fun unsupportedOperationException (): AvailUnsupportedOperationException
-	{
-		val callerName =
-			try
-			{
-				throw Exception("just want the caller's frame")
-			}
-			catch (e: Exception)
-			{
-				e.stackTrace[1].methodName
-			}
-		throw AvailUnsupportedOperationException(javaClass, callerName)
-	}
 
 	/**
 	 * Answer whether the [argument&#32;types][A_Type.argsTupleType]
@@ -3873,6 +3845,31 @@ abstract class AbstractDescriptor protected constructor (
 	abstract fun o_ExtractDumpedLongAt (self: AvailObject, index: Int): Long
 
 	abstract fun o_SetAtomBundle(self: AvailObject, bundle: A_Bundle)
+
+	abstract fun o_OriginatingPhraseAtIndex(
+		self: AvailObject,
+		index: Int
+	): A_Phrase
+
+	abstract fun o_RecordBlockPhrase(
+		self: AvailObject,
+		blockPhrase: A_Phrase
+	): A_Number
+
+	abstract fun o_GetAndSetTupleOfBlockPhrases(
+		self: AvailObject,
+		newValue: AvailObject
+	): AvailObject
+
+	abstract fun o_OriginatingPhraseOrIndex(self: AvailObject): AvailObject
+
+	abstract fun o_DeclarationNames(self: AvailObject): A_Tuple
+
+	abstract fun o_PackedDeclarationNames(self: AvailObject): A_String
+
+	abstract fun o_SetOriginatingPhraseOrIndex(
+		self: AvailObject,
+		phraseOrIndex: AvailObject)
 
 	companion object
 	{

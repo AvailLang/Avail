@@ -320,7 +320,7 @@ open class TokenDescriptor protected constructor(
 		priorLexingState: LexingState
 	) {
 		// First, figure out where the token ends.
-		val string: A_Tuple = self.slot(STRING)
+		val string: A_String = self.slot(STRING)
 		val stringSize = string.tupleSize()
 		val positionAfter = self.slot(START) + stringSize
 		var line = self.slot(LINE_NUMBER)

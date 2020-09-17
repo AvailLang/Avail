@@ -64,7 +64,9 @@ import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.representation.ObjectSlotsEnum
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.A_Type.Companion.argsTupleType
 import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
@@ -293,20 +295,13 @@ class ContinuationDescriptor private constructor(
 	{
 		val fields = super.o_DescribeForDebugger(self).toMutableList()
 		val code = self.function().code()
-		val block = code.originatingPhrase()
-		val declarations = mutableListOf<A_Phrase>()
-		if (!block.equalsNil())
-		{
-			declarations.addAll(block.argumentsTuple())
-			declarations.addAll(BlockPhraseDescriptor.locals(block))
-			declarations.addAll(BlockPhraseDescriptor.constants(block))
-		}
+		val declarationNames = code.declarationNames()
 		for (i in 1..self.numSlots())
 		{
-			var name = if (i <= declarations.size)
+			var name = if (i <= declarationNames.tupleSize())
 			{
-				val declName = declarations[i-1].token().string()
-				"FRAME[$i: ${declName.asNativeString()}]"
+				val declName = declarationNames.tupleAt(i).asNativeString()
+				"FRAME[$i: $declName]"
 			}
 			else
 			{

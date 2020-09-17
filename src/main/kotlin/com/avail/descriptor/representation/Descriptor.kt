@@ -2650,4 +2650,32 @@ abstract class Descriptor protected constructor (
 
 	override fun o_SetAtomBundle(self: AvailObject, bundle: A_Bundle): Unit =
 		unsupported
+
+	override fun o_OriginatingPhraseAtIndex(
+		self: AvailObject,
+		index: Int
+	): A_Phrase = unsupported
+
+	override fun o_RecordBlockPhrase(
+		self: AvailObject,
+		blockPhrase: A_Phrase
+	): A_Number = unsupported
+
+	override fun o_GetAndSetTupleOfBlockPhrases(
+		self: AvailObject,
+		newValue: AvailObject
+	): AvailObject = unsupported
+
+	override fun o_OriginatingPhraseOrIndex(self: AvailObject): AvailObject =
+		unsupported
+
+	override fun o_DeclarationNames(self: AvailObject): A_Tuple = unsupported
+
+	override fun o_PackedDeclarationNames(self: AvailObject): A_String =
+		unsupported
+
+	override fun o_SetOriginatingPhraseOrIndex(
+		self: AvailObject,
+		phraseOrIndex: AvailObject
+	): Unit = unsupported
 }

@@ -36,8 +36,6 @@ import com.avail.annotations.HideFieldInDebugger
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.numbers.A_Number.Companion.extractInt
-import com.avail.descriptor.phrases.A_Phrase
-import com.avail.descriptor.phrases.BlockPhraseDescriptor
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.ARGUMENT
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.BitField
@@ -45,6 +43,7 @@ import com.avail.descriptor.representation.IntegerSlotsEnum
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.representation.ObjectSlotsEnum
+import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.A_Type.Companion.argsTupleType
@@ -78,11 +77,13 @@ import com.avail.interpreter.levelTwo.L2Chunk
  *   will be executed instead, as determined by the current [L2Chunk].
  * @param returnTypeIfPrimitiveFails
  *   The type that will be returned by the nybblecodes, if they run.
- * @param originatingPhrase
- *   The [block&#32;phrase][BlockPhraseDescriptor] from which this raw function
- *   was generated.
  * @param module
  *   The [module][A_Module] creating this primitive function.
+ * @param originatingPhraseOrIndex
+ *   Usually a one-based index into the module's tuple of block phrases.  This
+ *   mechanism allows the tuple to be loaded from a repository on demand,
+ *   reducing the memory footprint when this information is not in use.  If the
+ *   module is [nil], the value should be the originating phrase itself.
  * @param lineNumber
  *   The starting [lineNumber] of this function, if known, otherwise `0`.
  * @param lineNumberEncodedDeltas
@@ -95,14 +96,16 @@ class PrimitiveCompiledCodeDescriptor constructor(
 	mutability: Mutability,
 	private val primitive: Primitive,
 	private val returnTypeIfPrimitiveFails: A_Type,
-	originatingPhrase: A_Phrase,
 	module: A_Module,
+	originatingPhraseOrIndex: AvailObject,
+	packedDeclarationNames: A_String,
 	lineNumber: Int,
 	lineNumberEncodedDeltas: A_Tuple
 ) : CompiledCodeDescriptor(
 	mutability,
-	originatingPhrase,
 	module,
+	originatingPhraseOrIndex,
+	packedDeclarationNames,
 	lineNumber,
 	lineNumberEncodedDeltas
 ) {

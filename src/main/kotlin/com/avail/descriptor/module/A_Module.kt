@@ -41,9 +41,13 @@ import com.avail.descriptor.methods.A_GrammaticalRestriction
 import com.avail.descriptor.methods.A_Macro
 import com.avail.descriptor.methods.A_Method
 import com.avail.descriptor.methods.A_SemanticRestriction
+import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.parsing.A_Lexer
+import com.avail.descriptor.phrases.A_Phrase
+import com.avail.descriptor.phrases.BlockPhraseDescriptor
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.tuples.A_String
@@ -409,4 +413,24 @@ interface A_Module : A_BasicObject
 	 * Answer the [A_Set] of [A_Bundle]s that have been defined in this module.
 	 */
 	fun moduleBundles (): A_Set
+
+	/**
+	 * Look up a one-based index in this module's tuple of block phrases.  If
+	 * the tuple is [nil], first fetch it from the repository and overwrite the
+	 * field.
+	 */
+	fun originatingPhraseAtIndex(index: Int): A_Phrase
+
+	/**
+	 * Record a [block&#32;phrase][BlockPhraseDescriptor] in this module,
+	 * answering the unique one-based Avail integer index at which it can later
+	 * be retrieved.
+	 */
+	fun recordBlockPhrase(blockPhrase: A_Phrase): A_Number
+
+	/**
+	 * Extract the module's tuple of block phrases that it accumulated during
+	 * compilation.  Also set the field to nil.
+	 */
+	fun getAndSetTupleOfBlockPhrases(newValue: AvailObject): AvailObject
 }

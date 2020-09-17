@@ -34,7 +34,6 @@ package com.avail.builder
 
 import com.avail.AvailRuntime
 import com.avail.AvailRuntimeSupport.captureNanos
-import com.avail.builder.AvailBuilder.Companion.appendCRC
 import com.avail.builder.AvailBuilder.LoadedModule
 import com.avail.compiler.AvailCompiler
 import com.avail.compiler.CompilerProgressReporter
@@ -49,6 +48,8 @@ import com.avail.descriptor.fiber.FiberDescriptor.Companion.setSuccessAndFailure
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.module.ModuleDescriptor.Companion.newModule
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.tuples.StringDescriptor.Companion.formatString
 import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
@@ -57,6 +58,9 @@ import com.avail.interpreter.execution.AvailLoader
 import com.avail.interpreter.execution.AvailLoader.Phase
 import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.execution.Interpreter.Companion.runOutermostFunction
+import com.avail.persistence.IndexedFile
+import com.avail.persistence.IndexedFile.Companion.appendCRC
+import com.avail.persistence.IndexedFile.Companion.validatedBytesFrom
 import com.avail.persistence.cache.Repository
 import com.avail.persistence.cache.Repository.ModuleCompilation
 import com.avail.persistence.cache.Repository.ModuleCompilationKey
@@ -66,7 +70,6 @@ import com.avail.serialization.Deserializer
 import com.avail.serialization.MalformedSerialStreamException
 import com.avail.serialization.Serializer
 import com.avail.utility.evaluation.Combinator.recurse
-import java.io.ByteArrayOutputStream
 import java.lang.String.format
 import java.util.concurrent.Semaphore
 import java.util.concurrent.atomic.AtomicBoolean
@@ -298,6 +301,10 @@ internal class BuildLoader constructor(
 	{
 		localTracker(moduleName, moduleName.moduleSize, 0L, 0)
 		val module = newModule(stringFrom(moduleName.qualifiedName))
+		// Set up the block phrases field with an A_Number, so that requests for
+		// block phrases will retrieve them from the repository.
+		module.getAndSetTupleOfBlockPhrases(
+			fromLong(compilation.recordNumberOfBlockPhrases))
 		val availLoader = AvailLoader(module, availBuilder.textInterface)
 		availLoader.prepareForLoadingModuleBody()
 		val fail = { e: Throwable ->
@@ -324,7 +331,7 @@ internal class BuildLoader constructor(
 		try
 		{
 			val bytes = version.moduleHeader
-			val inputStream = AvailBuilder.validatedBytesFrom(bytes)
+			val inputStream = validatedBytesFrom(bytes)
 			val deserializer = Deserializer(inputStream, availBuilder.runtime)
 			val header = ModuleHeader(moduleName)
 			header.deserializeHeaderFrom(deserializer)
@@ -350,7 +357,7 @@ internal class BuildLoader constructor(
 		{
 			// Read the module data from the repository.
 			val bytes = compilation.bytes!!
-			val inputStream = AvailBuilder.validatedBytesFrom(bytes)
+			val inputStream = validatedBytesFrom(bytes)
 			deserializer = Deserializer(inputStream, availBuilder.runtime)
 			deserializer.currentModule = module
 		}
@@ -505,24 +512,43 @@ internal class BuildLoader constructor(
 							assert(!old) { "Completed module compilation twice!" }
 							val stream =
 								compiler.compilationContext.serializerOutputStream
+							appendCRC(stream)
+
+							// Also produce the serialization of the module's
+							// tuple of block phrases.
+							val blockPhrasesOutputStream =
+								IndexedFile.ByteArrayOutputStream(5000)
+							Serializer(
+								blockPhrasesOutputStream,
+								module).serialize(
+								module.getAndSetTupleOfBlockPhrases(nil))
+							appendCRC(blockPhrasesOutputStream)
+
+							//TODO Remove
+							println("(${stream.size()}, ${blockPhrasesOutputStream.size()})  ${moduleName.localName}")
+
 							// This is the moment of compilation.
 							val compilationTime = System.currentTimeMillis()
 							val compilation = repository.ModuleCompilation(
 								compilationTime,
-								appendCRC(stream.toByteArray()))
+								stream.toByteArray(),
+								blockPhrasesOutputStream.toByteArray())
 							archive.putCompilation(
 								versionKey, compilationKey, compilation)
 
 							// Serialize the Stacks comments.
-							val out = ByteArrayOutputStream(5000)
-							val serializer = Serializer(out, module)
+							val out = IndexedFile.ByteArrayOutputStream(100)
 							// TODO MvG - Capture "/**" comments for Stacks.
 							//		final A_Tuple comments = fromList(
 							//         module.commentTokens());
 							val comments = emptyTuple
-							serializer.serialize(comments)
+							Serializer(out, module).serialize(comments)
+							module.getAndSetTupleOfBlockPhrases(
+								fromLong(compilation.recordNumberOfBlockPhrases))
+							appendCRC(out)
+
 							val version = archive.getVersion(versionKey)!!
-							version.putComments(appendCRC(out.toByteArray()))
+							version.putComments(out.toByteArray())
 
 							repository.commitIfStaleChanges(
 								AvailBuilder.maximumStaleRepositoryMs)

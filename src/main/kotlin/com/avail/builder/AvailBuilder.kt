@@ -72,20 +72,18 @@ import com.avail.interpreter.execution.Interpreter.Companion.debugWorkUnits
 import com.avail.interpreter.execution.Interpreter.Companion.runOutermostFunction
 import com.avail.io.SimpleCompletionHandler
 import com.avail.io.TextInterface
+import com.avail.persistence.IndexedFile
+import com.avail.persistence.IndexedFile.Companion.appendCRC
 import com.avail.persistence.cache.Repository
 import com.avail.persistence.cache.Repository.ModuleArchive
 import com.avail.persistence.cache.Repository.ModuleCompilation
 import com.avail.persistence.cache.Repository.ModuleVersion
-import com.avail.serialization.MalformedSerialStreamException
 import com.avail.serialization.Serializer
 import com.avail.utility.Graph
 import com.avail.utility.StackPrinter.Companion.trace
 import com.avail.utility.safeWrite
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
 import java.io.File
 import java.lang.String.format
-import java.nio.ByteBuffer
 import java.nio.file.Path
 import java.nio.file.attribute.BasicFileAttributes
 import java.util.Collections.synchronizedList
@@ -98,7 +96,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.logging.Level
 import java.util.logging.Logger
 import java.util.stream.Collectors.joining
-import java.util.zip.CRC32
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.set
@@ -341,11 +338,10 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	 */
 	internal fun serialize(header: ModuleHeader, version: ModuleVersion)
 	{
-		val out = ByteArrayOutputStream(1000)
-		val serializer = Serializer(out)
-		header.serializeHeaderOn(serializer)
-		val bytes = appendCRC(out.toByteArray())
-		version.putModuleHeader(bytes)
+		val out = IndexedFile.ByteArrayOutputStream(1000)
+		header.serializeHeaderOn(Serializer(out))
+		appendCRC(out)
+		version.putModuleHeader(out.toByteArray())
 	}
 
 	/**
@@ -1205,55 +1201,5 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 		 * attempt failed before its data could be committed.
 		 */
 		internal const val maximumStaleRepositoryMs = 2000L
-
-		/**
-		 * Given a byte array, compute the [CRC32] checksum and append the [Int]
-		 * value as four bytes (Big Endian), answering the new augmented byte
-		 * array.
-		 *
-		 * @param bytes
-		 *   The input bytes.
-		 * @return
-		 *   The bytes followed by the checksum.
-		 */
-		internal fun appendCRC(bytes: ByteArray): ByteArray
-		{
-			val checksum = CRC32()
-			checksum.update(bytes)
-			val checksumInt = checksum.value.toInt()
-			val combined = ByteBuffer.allocate(bytes.size + 4)
-			combined.put(bytes)
-			combined.putInt(checksumInt)
-			val combinedBytes = ByteArray(bytes.size + 4)
-			combined.flip()
-			combined.get(combinedBytes)
-			return combinedBytes
-		}
-
-		/**
-		 * Given an array of bytes, check that the last four bytes, when treated
-		 * as a Big Endian unsigned int, agree with the [CRC32] checksum of the
-		 * bytes excluding the last four.  Fail if they disagree.  Answer a
-		 * ByteArrayInputStream on the bytes excluding the last four.
-		 *
-		 * @param bytes
-		 *   An array of bytes.
-		 * @return
-		 *   A ByteArrayInputStream on the non-CRC portion of the bytes.
-		 * @throws MalformedSerialStreamException
-		 *   If the CRC check fails.
-		 */
-		@Throws(MalformedSerialStreamException::class)
-		fun validatedBytesFrom(bytes: ByteArray): ByteArrayInputStream
-		{
-			val storedChecksum = ByteBuffer.wrap(bytes).getInt(bytes.size - 4)
-			val checksum = CRC32()
-			checksum.update(bytes, 0, bytes.size - 4)
-			if (checksum.value.toInt() != storedChecksum)
-			{
-				throw MalformedSerialStreamException(null)
-			}
-			return ByteArrayInputStream(bytes, 0, bytes.size - 4)
-		}
 	}
 }

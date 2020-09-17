@@ -56,11 +56,11 @@ import com.avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.ByteStringDescriptor.Companion.generateByteString
 import com.avail.descriptor.tuples.ByteTupleDescriptor.Companion.generateByteTupleFrom
+import com.avail.descriptor.tuples.IntTupleDescriptor.Companion.generateIntTupleFrom
 import com.avail.descriptor.tuples.NybbleTupleDescriptor.Companion.generateNybbleTupleFrom
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
-import com.avail.descriptor.tuples.TupleDescriptor.Companion.tupleFromIntegerList
 import com.avail.descriptor.tuples.TwoByteStringDescriptor.Companion.generateTwoByteString
 import com.avail.utility.Strings.increaseIndentation
 import java.io.OutputStream
@@ -293,6 +293,7 @@ internal enum class SerializerOperandEncoding
 		override fun read(deserializer: AbstractDeserializer): AvailObject
 		{
 			val tupleSize = readCompressedPositiveInt(deserializer)
+			if (tupleSize == 0) return emptyTuple
 			val newTuple = generateObjectTupleFrom(tupleSize) {
 				deserializer.objectFromIndex(
 					readCompressedPositiveInt(deserializer))
@@ -339,6 +340,7 @@ internal enum class SerializerOperandEncoding
 		override fun read(deserializer: AbstractDeserializer): AvailObject
 		{
 			val tupleSize = readCompressedPositiveInt(deserializer)
+			if (tupleSize == 0) return emptyTuple
 			return generateByteString(tupleSize) { deserializer.readByte() }
 		}
 	},
@@ -368,6 +370,7 @@ internal enum class SerializerOperandEncoding
 		override fun read(deserializer: AbstractDeserializer): AvailObject
 		{
 			val tupleSize = readCompressedPositiveInt(deserializer)
+			if (tupleSize == 0) return emptyTuple
 			return generateTwoByteString(tupleSize) {
 				val codePoint = readCompressedPositiveInt(deserializer)
 				assert(codePoint and 0xFFFF == codePoint)
@@ -397,6 +400,7 @@ internal enum class SerializerOperandEncoding
 		override fun read(deserializer: AbstractDeserializer): AvailObject
 		{
 			val tupleSize = readCompressedPositiveInt(deserializer)
+			if (tupleSize == 0) return emptyTuple
 			// Update this when we have efficient 21-bit strings, three
 			// characters per 64-bit long.
 			return generateObjectTupleFrom(tupleSize) {
@@ -425,12 +429,10 @@ internal enum class SerializerOperandEncoding
 		{
 			// Reconstruct into whatever tuple representation is most compact.
 			val tupleSize = readCompressedPositiveInt(deserializer)
-			val list = mutableListOf<Int>()
-			for (i in 0 until tupleSize)
-			{
-				list.add(readCompressedPositiveInt(deserializer))
-			}
-			return tupleFromIntegerList(list).makeImmutable()
+			if (tupleSize == 0) return emptyTuple
+			return generateIntTupleFrom(tupleSize) {
+				readCompressedPositiveInt(deserializer)
+			}.makeImmutable()
 		}
 	},
 
@@ -453,6 +455,7 @@ internal enum class SerializerOperandEncoding
 		override fun read(deserializer: AbstractDeserializer): AvailObject
 		{
 			val tupleSize = readCompressedPositiveInt(deserializer)
+			if (tupleSize == 0) return emptyTuple
 			return generateByteTupleFrom(tupleSize) { deserializer.readByte() }
 		}
 	},
@@ -537,6 +540,7 @@ internal enum class SerializerOperandEncoding
 		override fun read(deserializer: AbstractDeserializer): AvailObject
 		{
 			val mapSize = readCompressedPositiveInt(deserializer)
+			if (mapSize == 0) return emptyMap as AvailObject
 			var map = emptyMap
 			for (index in 1..mapSize)
 			{

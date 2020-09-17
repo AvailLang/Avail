@@ -73,13 +73,17 @@ import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
 import com.avail.descriptor.phrases.A_Phrase.Companion.primitive
 import com.avail.descriptor.phrases.A_Phrase.Companion.startingLineNumber
 import com.avail.descriptor.phrases.A_Phrase.Companion.statementsTuple
+import com.avail.descriptor.phrases.A_Phrase.Companion.token
 import com.avail.descriptor.phrases.A_Phrase.Companion.tokens
 import com.avail.descriptor.phrases.BlockPhraseDescriptor
+import com.avail.descriptor.phrases.BlockPhraseDescriptor.Companion.constants
+import com.avail.descriptor.phrases.BlockPhraseDescriptor.Companion.locals
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.LOCAL_CONSTANT
 import com.avail.descriptor.phrases.PhraseDescriptor
 import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor
@@ -90,6 +94,7 @@ import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.NybbleTupleDescriptor.Companion.generateNybbleTupleFrom
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
+import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.toList
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.tupleFromIntegerList
@@ -405,6 +410,18 @@ class AvailCodeGenerator private constructor(
 			i -> outerType(outers[i - 1])
 		}
 
+		val declarations = mutableListOf<A_Phrase>()
+		declarations.addAll(originatingBlockPhrase.argumentsTuple())
+		declarations.addAll(locals(originatingBlockPhrase))
+		declarations.addAll(constants(originatingBlockPhrase))
+		val packedDeclarationNames = declarations.joinToString(",") {
+			// Quote-escape any name that contains a comma (,) or quote (").
+			val name = it.token().string().asNativeString()
+			if (name.contains(',') || name.contains('\"'))
+				stringFrom(name).toString()
+			else name
+		}
+
 		val functionType = functionType(argTypes, resultType, exceptionSet)
 		val code = newCompiledCode(
 			nybbleTuple,
@@ -419,7 +436,8 @@ class AvailCodeGenerator private constructor(
 			module,
 			startingLineNumber,
 			tupleFromIntegerList(encodedLineNumberDeltas),
-			originatingBlockPhrase)
+			originatingBlockPhrase as AvailObject,
+			stringFrom(packedDeclarationNames))
 		return code.makeShared()
 	}
 
@@ -915,8 +933,8 @@ class AvailCodeGenerator private constructor(
 				module,
 				toList(blockPhrase.argumentsTuple()),
 				primitive,
-				BlockPhraseDescriptor.locals(blockPhrase),
-				BlockPhraseDescriptor.constants(blockPhrase),
+				locals(blockPhrase),
+				constants(blockPhrase),
 				BlockPhraseDescriptor.labels(blockPhrase),
 				toList(blockPhrase.neededVariables()),
 				blockPhrase.resultType(),

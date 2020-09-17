@@ -50,12 +50,6 @@ import com.avail.descriptor.methods.A_Method
 import com.avail.descriptor.methods.A_SemanticRestriction
 import com.avail.descriptor.methods.MethodDescriptor
 import com.avail.descriptor.numbers.A_Number.Companion.equalsInt
-import com.avail.descriptor.phrases.A_Phrase
-import com.avail.descriptor.phrases.A_Phrase.Companion.argumentsTuple
-import com.avail.descriptor.phrases.A_Phrase.Companion.neededVariables
-import com.avail.descriptor.phrases.A_Phrase.Companion.token
-import com.avail.descriptor.phrases.BlockPhraseDescriptor.Companion.constants
-import com.avail.descriptor.phrases.BlockPhraseDescriptor.Companion.locals
 import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
@@ -240,44 +234,16 @@ class L1Translator private constructor(
 	 * An array of names of arguments, if available, to make it easier to follow
 	 * [L2ControlFlowGraph]s.
 	 */
-	val slotNames = code.originatingPhrase().run {
-		val declarations = mutableListOf<A_Phrase>()
-		if (!equalsNil())
-		{
-			declarations.addAll(argumentsTuple())
-			declarations.addAll(locals(this))
-			declarations.addAll(constants(this))
-		}
-		val mutableSlotNames = mutableListOf<String?>()
-		declarations.mapTo(mutableSlotNames) {
-			it.token().string().asNativeString()
-		}
-		repeat(numSlots - declarations.size) {
-			mutableSlotNames.add(null)
-		}
-		mutableSlotNames.toList()
-	}
+	val slotNames =
+		code.declarationNames().map { it.asNativeString() }.toTypedArray()
 
 	/**
 	 * An array of names of arguments, if available, to make it easier to follow
 	 * [L2ControlFlowGraph]s.
+	 *
+	 * TODO: Extend declarationNames() for outers.
 	 */
-	val outerNames = code.originatingPhrase().run {
-		val declarations = mutableListOf<A_Phrase>()
-		if (!equalsNil())
-		{
-			val needed = neededVariables()
-			if (!needed.equalsNil()) declarations.addAll(needed)
-		}
-		val mutableOuterNames = mutableListOf<String?>()
-		declarations.mapTo(mutableOuterNames) {
-			it.token().string().asNativeString()
-		}
-		repeat(code.numOuters() - declarations.size) {
-			mutableOuterNames.add(null)
-		}
-		mutableOuterNames.toList()
-	}
+	val outerNames = Array(code.numOuters()) { "Outer#${it+1}" }
 
 	/**
 	 * The [L2SemanticValue]s corresponding with the slots of the virtual
@@ -3288,7 +3254,10 @@ class L1Translator private constructor(
 	 * state just before reaching the specified [afterPc].
 	 */
 	fun createSemanticSlot(index: Int, afterPc: Int): L2SemanticValue =
-		generator.topFrame.slot(index, afterPc, slotNames[index - 1])
+		generator.topFrame.slot(
+			index,
+			afterPc,
+			if (index < slotNames.size) slotNames[index - 1] else null)
 
 	companion object
 	{

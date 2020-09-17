@@ -3590,4 +3590,33 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_SetAtomBundle(self: AvailObject, bundle: A_Bundle) =
 		self .. { setAtomBundle(bundle) }
+
+	override fun o_OriginatingPhraseAtIndex(
+		self: AvailObject,
+		index: Int
+	): A_Phrase = self .. { originatingPhraseAtIndex(index) }
+
+	override fun o_RecordBlockPhrase(
+		self: AvailObject,
+		blockPhrase: A_Phrase
+	): A_Number = self .. { recordBlockPhrase(blockPhrase) }
+
+	override fun o_GetAndSetTupleOfBlockPhrases(
+		self: AvailObject,
+		newValue: AvailObject
+	): AvailObject = self .. { getAndSetTupleOfBlockPhrases(newValue) }
+
+	override fun o_OriginatingPhraseOrIndex(self: AvailObject): AvailObject =
+		self .. { originatingPhraseOrIndex() }
+
+	override fun o_DeclarationNames(self: AvailObject): A_Tuple =
+		self .. { declarationNames() }
+
+	override fun o_PackedDeclarationNames(self: AvailObject): A_String =
+		self .. { packedDeclarationNames() }
+
+	override fun o_SetOriginatingPhraseOrIndex(
+		self: AvailObject,
+		phraseOrIndex: AvailObject
+	) = self .. { setOriginatingPhraseOrIndex(phraseOrIndex) }
 }

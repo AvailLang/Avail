@@ -523,7 +523,7 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 
 	override fun shared(): ConcatenatedTupleTypeDescriptor
 	{
-		throw unsupportedOperationException()
+		unsupportedOperation()
 	}
 
 	companion object

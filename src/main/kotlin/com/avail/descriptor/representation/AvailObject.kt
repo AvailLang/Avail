@@ -1552,6 +1552,9 @@ class AvailObject private constructor(
 
 	override fun originatingPhrase() = descriptor().o_OriginatingPhrase(this)
 
+	override fun originatingPhraseOrIndex() =
+		descriptor().o_OriginatingPhraseOrIndex(this)
+
 	override fun isGlobal() = descriptor().o_IsGlobal(this)
 
 	override fun globalModule() = descriptor().o_GlobalModule(this)
@@ -1627,6 +1630,22 @@ class AvailObject private constructor(
 
 	override fun extractDumpedLongAt(index: Int): Long =
 		descriptor().o_ExtractDumpedLongAt(this, index)
+
+	override fun originatingPhraseAtIndex(index: Int): A_Phrase =
+		descriptor().o_OriginatingPhraseAtIndex(this, index)
+
+	override fun recordBlockPhrase(blockPhrase: A_Phrase): A_Number =
+		descriptor().o_RecordBlockPhrase(this, blockPhrase)
+
+	override fun getAndSetTupleOfBlockPhrases(
+		newValue: AvailObject
+	): AvailObject = descriptor().o_GetAndSetTupleOfBlockPhrases(this, newValue)
+
+	override fun packedDeclarationNames(): A_String =
+		descriptor().o_PackedDeclarationNames(this)
+
+	override fun setOriginatingPhraseOrIndex(phraseOrIndex: AvailObject) =
+		descriptor().o_SetOriginatingPhraseOrIndex(this, phraseOrIndex)
 
 	companion object {
 		/**

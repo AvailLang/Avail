@@ -746,7 +746,7 @@ class AvailRuntime constructor(
 		{
 			assert(function.isInstanceOf(functionType))
 			function.code().setMethodName(hookName)
-			runtime.hooks[this] = function
+			runtime.hooks[this] = function.makeShared()
 		}
 	}
 

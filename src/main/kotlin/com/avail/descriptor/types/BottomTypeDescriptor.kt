@@ -217,7 +217,7 @@ class BottomTypeDescriptor private constructor()
 		// unchecked exception. Or if we ever implement more precise map types
 		// containing key type -> value type pairs we might be able to change
 		// the object type interface to use one of those instead of a map.
-		throw unsupportedOperationException()
+		unsupportedOperation()
 	}
 
 	override fun o_FunctionType(self: AvailObject): A_Type = self
@@ -315,7 +315,7 @@ class BottomTypeDescriptor private constructor()
 
 	override fun o_Parent(self: AvailObject): A_BasicObject
 	{
-		throw unsupportedOperationException()
+		unsupportedOperation()
 	}
 
 	override fun o_RangeIncludesLong(self: AvailObject, aLong: Long): Boolean =
@@ -387,12 +387,12 @@ class BottomTypeDescriptor private constructor()
 
 	override fun mutable(): BottomTypeDescriptor
 	{
-		throw unsupportedOperationException()
+		unsupportedOperation()
 	}
 
 	override fun immutable(): BottomTypeDescriptor
 	{
-		throw unsupportedOperationException()
+		unsupportedOperation()
 	}
 
 	override fun shared(): BottomTypeDescriptor = shared

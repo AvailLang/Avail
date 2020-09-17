@@ -185,7 +185,7 @@ class PojoFieldDescriptor private constructor(
 		{
 			return SerializerOperation.STATIC_POJO_FIELD
 		}
-		throw unsupportedOperationException()
+		unsupportedOperation()
 	}
 
 	override fun o_SetValue(

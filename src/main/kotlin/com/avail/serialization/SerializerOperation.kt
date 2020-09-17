@@ -1220,12 +1220,33 @@ enum class SerializerOperation constructor(
 		OBJECT_REFERENCE.named("Module name"),
 		UNSIGNED_INT.named("Line number"),
 		COMPRESSED_INT_TUPLE.named("Encoded line number deltas"),
-		OBJECT_REFERENCE.named("Originating phrase"))
+		OBJECT_REFERENCE.named("Originating phrase"),
+		OBJECT_REFERENCE.named("Packed declaration names"))
 	{
 		override fun decompose(
 			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
+			val originatingPhraseOrIndex = obj.originatingPhraseOrIndex()
+			val module = obj.module()
+			val phraseOrIndex = when
+			{
+				module.equalsNil()
+					|| !module.isOpen()
+					|| serializer.module === null
+					|| !serializer.module.allAncestors().contains(module)
+					|| originatingPhraseOrIndex.equalsNil()
+					|| originatingPhraseOrIndex.isInt
+				-> originatingPhraseOrIndex
+				else ->
+				{
+					val index = module.recordBlockPhrase(
+						originatingPhraseOrIndex.makeShared())
+					obj.setOriginatingPhraseOrIndex(index as AvailObject)
+					index
+				}
+			}
+
 			val numLocals = obj.numLocals()
 			val numConstants = obj.numConstants()
 			val numOuters = obj.numOuters()
@@ -1234,31 +1255,19 @@ enum class SerializerOperation constructor(
 			val regularLiterals = generateObjectTupleFrom(numRegularLiterals) {
 				obj.literalAt(it)
 			}
-			val localTypes = generateObjectTupleFrom(numLocals) {
-				obj.localTypeAt(it)
-			}
-			val constantTypes = generateObjectTupleFrom(numConstants) {
-				obj.constantTypeAt(it)
-			}
-			val outerTypes = generateObjectTupleFrom(numOuters) {
-				obj.outerTypeAt(it)
-			}
-			val module = obj.module()
-			val moduleName = if (module.equalsNil())
-				emptyTuple
-			else
-				module.moduleName()
+			val localTypes =
+				generateObjectTupleFrom(numLocals) { obj.localTypeAt(it) }
+			val constantTypes =
+				generateObjectTupleFrom(numConstants) { obj.constantTypeAt(it) }
+			val outerTypes =
+				generateObjectTupleFrom(numOuters) { obj.outerTypeAt(it) }
+			val moduleName =
+				if (module.equalsNil()) emptyTuple
+				else module.moduleName()
 			val primitive = obj.primitive()
-			val primName: A_String
-			primName =
-				if (primitive === null)
-				{
-					emptyTuple
-				}
-				else
-				{
-					stringFrom(primitive.name)
-				}
+			val primName =
+				if (primitive === null) emptyTuple
+				else stringFrom(primitive.name)
 			return array(
 				fromInt(obj.numSlots()),
 				primName,
@@ -1272,7 +1281,8 @@ enum class SerializerOperation constructor(
 				moduleName,
 				fromInt(obj.startingLineNumber()),
 				obj.lineNumberEncodedDeltas(),
-				obj.originatingPhrase())
+				phraseOrIndex,
+				obj.packedDeclarationNames())
 		}
 
 		override fun compose(
@@ -1292,6 +1302,7 @@ enum class SerializerOperation constructor(
 			val lineNumberInteger = subobjects[10]
 			val lineNumberEncodedDeltas = subobjects[11]
 			val originatingPhrase = subobjects[12]
+			val packedDeclarationNames = subobjects[13]
 
 			val numArgsRange = functionType.argsTupleType().sizeRange()
 			val numArgs = numArgsRange.lowerBound().extractInt()
@@ -1299,10 +1310,9 @@ enum class SerializerOperation constructor(
 			val numLocals = localTypes.tupleSize()
 			val numConstants = constantTypes.tupleSize()
 
-			val module = if (moduleName.tupleSize() == 0)
-				nil
-			else
-				deserializer.moduleNamed(moduleName)
+			val module =
+				if (moduleName.tupleSize() == 0) nil
+				else deserializer.moduleNamed(moduleName)
 			return newCompiledCode(
 				nybbles,
 				numSlots - numConstants - numLocals - numArgs,
@@ -1316,7 +1326,8 @@ enum class SerializerOperation constructor(
 				module,
 				lineNumberInteger.extractInt(),
 				lineNumberEncodedDeltas,
-				originatingPhrase)
+				originatingPhrase,
+				packedDeclarationNames)
 		}
 	},
 

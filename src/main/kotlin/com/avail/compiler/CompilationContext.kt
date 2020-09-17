@@ -77,9 +77,9 @@ import com.avail.interpreter.levelOne.L1Decompiler
 import com.avail.interpreter.levelOne.L1InstructionWriter
 import com.avail.interpreter.levelOne.L1Operation
 import com.avail.io.TextInterface
+import com.avail.persistence.IndexedFile
 import com.avail.serialization.Serializer
 import com.avail.utility.StackPrinter.Companion.trace
-import java.io.ByteArrayOutputStream
 import java.lang.String.format
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
@@ -218,7 +218,7 @@ class CompilationContext constructor(
 		}
 
 	/** The output stream on which the serializer writes.  */
-	val serializerOutputStream = ByteArrayOutputStream(1000)
+	val serializerOutputStream = IndexedFile.ByteArrayOutputStream(1000)
 
 	/**
 	 * The serializer that captures the sequence of bytes representing the

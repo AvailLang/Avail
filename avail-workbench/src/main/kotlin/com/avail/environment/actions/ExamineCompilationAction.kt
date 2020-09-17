@@ -66,8 +66,7 @@ class ExamineCompilationAction constructor (
 		workbench.clearTranscript()
 		runtime.execute(FiberDescriptor.commandPriority)
 		execute@{
-			val moduleName =
-				workbench.selectedModule()!!
+			val moduleName = workbench.selectedModule()!!
 			moduleName.repository.use { repository ->
 				repository.reopenIfNecessary()
 				val archive = repository.getArchive(moduleName.rootRelativeName)
@@ -91,13 +90,18 @@ class ExamineCompilationAction constructor (
 						else
 						{
 							null
-						}).cast<Any, ModuleCompilation?>()
-					?: return@execute // Nothing was selected, so abort the command silently.
-
-				val describer = RepositoryDescriber(repository)
-				val description = describer.describeCompilation(
-					selectedCompilation.recordNumber)
-				workbench.outputStream.println(description)
+						})
+				when (selectedCompilation)
+				{
+					is ModuleCompilation ->
+					{
+						val describer = RepositoryDescriber(repository)
+						val description = describer.describeCompilation(
+							selectedCompilation.recordNumber)
+						workbench.outputStream.println(description)
+					}
+					is Any -> assert(false) { "Unknown type selected" }
+				}
 			}
 		}
 	}
