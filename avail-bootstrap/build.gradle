@@ -1,19 +1,19 @@
 /*
  * build.gradle
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  Redistributions of source code must retain the above copyright notice, this
+ * * Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- *  Redistributions in binary form must reproduce the above copyright notice,
+ * * Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
  *
- *  Neither the name of the copyright holder nor the names of the contributors
+ * * Neither the name of the copyright holder nor the names of the contributors
  *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
@@ -32,12 +32,23 @@
 
 plugins {
 	id 'java'
+	id 'org.jetbrains.kotlin.jvm'
+	id 'org.jetbrains.dokka'
 }
 
-group 'org.availlang'
-version '1.4'
+compileKotlin {
+	kotlinOptions {
+		jvmTarget = "1.8"
+		freeCompilerArgs = ['-Xjvm-default=compatibility']
+	}
+}
 
-sourceCompatibility = 1.8
+compileTestKotlin {
+	kotlinOptions {
+		jvmTarget = "1.8"
+		freeCompilerArgs = ['-Xjvm-default=compatibility']
+	}
+}
 
 repositories {
 	mavenCentral()
@@ -47,6 +58,11 @@ dependencies {
 	// Avail.
 	implementation rootProject
 
+	// Kotlin.
+	implementation group: 'org.jetbrains.kotlin',
+		name: 'kotlin-stdlib-jdk8',
+		version: "$kotlin_version"
+
 	// JSR-305 null analysis framework.
 	implementation group: 'com.google.code.findbugs',
 		name: 'jsr305',
@@ -55,28 +71,30 @@ dependencies {
 
 // Copy the generated bootstrap property files into the build directory, so that
 // the executable tools can find them as resources.
-task relocateGeneratedPropertyFiles (type: Copy) {
+task relocateGeneratedPropertyFiles(type: Copy) {
 	def pathBootstrap =
-		fileTree("$projectDir/src/main/java/com/avail/tools/bootstrap")
+		fileTree("$projectDir/src/main/kotlin/com/avail/tools/bootstrap")
 	def movedPropertyFiles =
-		file("$buildDir/classes/java/main/com/avail/tools/bootstrap")
+		file("$buildDir/classes/kotlin/main/com/avail/tools/bootstrap")
 	def lang = System.getProperty("user.language")
 	pathBootstrap.include "**/*_${lang}.properties"
 	// This is a lie, but it ensures that this rule will not run until after the
-	// Java source is compiled.
-	pathBootstrap.builtBy "compileJava"
+	// Kotlin source is compiled.
+	pathBootstrap.builtBy "compileKotlin"
 	inputs.files pathBootstrap
 	outputs.dir movedPropertyFiles
 
 	from pathBootstrap
 	into movedPropertyFiles
+
+	duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
 
 // Update the dependencies of "classes".
 classes.dependsOn relocateGeneratedPropertyFiles
 
 // Bootstrap Primitive_<lang>.properties for the current locale.
-task generatePrimitiveNames (type: JavaExec) {
+task generatePrimitiveNames(type: JavaExec) {
 	group = 'bootstrap'
 	main = 'com.avail.tools.bootstrap.PrimitiveNamesGenerator'
 	classpath = sourceSets.main.runtimeClasspath
@@ -84,7 +102,7 @@ task generatePrimitiveNames (type: JavaExec) {
 }
 
 // Bootstrap ErrorCodeNames_<lang>.properties for the current locale.
-task generateErrorCodeNames (type: JavaExec) {
+task generateErrorCodeNames(type: JavaExec) {
 	group = 'bootstrap'
 	main = 'com.avail.tools.bootstrap.ErrorCodeNamesGenerator'
 	classpath = sourceSets.main.runtimeClasspath
@@ -92,7 +110,7 @@ task generateErrorCodeNames (type: JavaExec) {
 }
 
 // Bootstrap ErrorCodeNames_<lang>.properties for the current locale.
-task generateSpecialObjectNames (type: JavaExec) {
+task generateSpecialObjectNames(type: JavaExec) {
 	group = 'bootstrap'
 	main = 'com.avail.tools.bootstrap.SpecialObjectNamesGenerator'
 	classpath = sourceSets.main.runtimeClasspath
@@ -108,7 +126,7 @@ task generateAllNames {
 }
 
 // Generate the new bootstrap Avail modules for the current locale.
-task internalGenerateBootstrap (type: JavaExec) {
+task internalGenerateBootstrap(type: JavaExec) {
 	group = 'internal'
 	main = 'com.avail.tools.bootstrap.BootstrapGenerator'
 	classpath = sourceSets.main.runtimeClasspath
@@ -117,8 +135,8 @@ task internalGenerateBootstrap (type: JavaExec) {
 
 // Generate the new bootstrap Avail modules for the current locale and copy them
 // to the appropriate location for distribution.
-task generateBootstrap (type: Copy) {
-	def source = "$projectDir/src/main/java"
+task generateBootstrap(type: Copy) {
+	def source = "$projectDir/src/main/kotlin"
 	def lang = System.getProperty("user.language")
 	def pathBootstrap = fileTree(
 		"$source/com/avail/tools/bootstrap/generated/$lang/Bootstrap.avail")
@@ -134,7 +152,26 @@ task generateBootstrap (type: Copy) {
 
 	from pathBootstrap
 	into distroBootstrap
+
+	duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
 
 // Don't build any JAR files, since these are bootstrap tools only.
 jar.enabled = false
+
+// Generate documentation
+dokka {
+	outputFormat='gfm'
+	// Outputting to documentation/docs/src-docs directly causes the contents of
+	// the directory to be deleted. Moving the directory post generation is the
+	// work around.
+	doLast {
+		ant.move file: "${buildDir}/dokka/avail-bootstrap",
+			todir: "../documentation/docs/src_docs"
+	}
+}
+
+task dokkaHTML(type: org.jetbrains.dokka.gradle.DokkaTask) {
+	outputFormat = 'html'
+	outputDirectory = "$buildDir/dokka"
+}

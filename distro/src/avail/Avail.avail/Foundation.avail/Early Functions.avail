@@ -1,6 +1,6 @@
 /*
  * Early Functions.avail
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -67,11 +67,11 @@ Semantic restriction "_'s⁇parameters'type" is
 	if paramsType = ⊥ then [⊤]
 	else
 	[
-		if ⎣paramsType⎦ = 0 then [<>'s type's type]
+		if ⌊paramsType⌋ = 0 then [<>'s type's type]
 		else
 		[
 			params : tuple := <>;
-			size ::= 1 max ⎣paramsType⎦;
+			size ::= 1 max ⌊paramsType⌋;
 			From 1 to size do
 			[
 				index : natural number
@@ -134,7 +134,7 @@ Semantic restriction "Invoke|invoke_with_" is
 		validSizes ::= parametersSizes ∩ argumentsSizes;
 		If validSizes = ⊥ then
 		[
-			Reject parse, expected: sizesIncompatibleMessage
+			Immediately reject parse, expected: sizesIncompatibleMessage
 		];
 	];
 	functionType's return type
@@ -187,17 +187,17 @@ Semantic restriction "_(«_‡,»)" is
 		validSizes ::= parametersSizes ∩ argumentsSizes;
 		If validSizes = ⊥ then
 		[
-			Reject parse, expected: sizesIncompatibleMessage
+			Immediately reject parse, expected: sizesIncompatibleMessage
 		];
 		/* Verify each of the arguments. */
-		From 1 to ⎣argumentsSizes⎦ do
+		From 1 to ⌊argumentsSizes⌋ do
 		[
 			index : natural number
 		|
 			parameterType ::= parametersType[index];
 			If parameterType ≠ ⊥ ∧ ¬argumentsType[index] ⊆ parameterType then
 			[
-				Reject parse, expected:
+				Immediately reject parse, expected:
 					"argument #"
 					++ “index”
 					++ " of type ("
@@ -235,24 +235,24 @@ Semantic restriction "_[_]" is
 	]
 	else
 	[
-		limit ::= cast ⎡parametersType⎤
+		limit ::= cast ⌈parametersType⌉
 			into [ t : whole number | t ];
-		start ::= ⎣index⎦;
+		start ::= ⌊index⌋;
 		If start > limit then
 		[
-			Reject parse, expected:
+			Immediately reject parse, expected:
 				"a subscript ("
 				++ “start”
 				++ " ≤ theSubscript ≤ "
-				++ “⎡index⎤”
+				++ “⌈index⌉”
 				++ ") that could ever be valid ("
-				++ “⎣parametersType⎦”
+				++ “⌊parametersType⌋”
 				++ " ≤ |theFunctionType| ≤ "
 				++ “limit”
 				++ ")"
 		];
 		result : any's type := ⊥;
-		end ::= ⎡index⎤ min limit;
+		end ::= ⌈index⌉ min limit;
 		From start to end min limit do
 		[
 			subscript : natural number

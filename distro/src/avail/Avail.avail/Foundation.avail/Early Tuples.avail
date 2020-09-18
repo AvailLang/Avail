@@ -1,6 +1,6 @@
 /*
  * Early Tuples.avail
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -78,7 +78,7 @@ Semantic restriction "_'s⁇default type" is
 	meta : tuple meta's type
 |
 	t ::= meta's instance;
-	(∪ t[1 max ⎣t⎦..⎡t⎤])'s type
+	(∪ t[1 max ⌊t⌋..⌈t⌉])'s type
 ];
 
 /**
@@ -122,26 +122,26 @@ Semantic restriction "_[_]else_" is
 	index : integer's type,
 	else : (function accepting <> and returning any)'s type
 |
-	if ⎣index⎦ ≥ 1 ∧ ⎡index⎤ ≤ ⎣tupleType⎦ then
+	if ⌊index⌋ ≥ 1 ∧ ⌈index⌉ ≤ ⌊tupleType⌋ then
 	[
-		Reject parse, expected:
+		Immediately reject parse, expected:
 			"alternative block to be necessary, but the subscript is \
 			\|guaranteed to be valid"
 	]
 	else
 	[
-		if ⎣index⎦ > ⎡tupleType⎤ ∨ ⎡index⎤ < 1 then
+		if ⌊index⌋ > ⌈tupleType⌉ ∨ ⌈index⌉ < 1 then
 		[
-			Reject parse, expected:
+			Immediately reject parse, expected:
 				"a subscript that could ever be valid"
 		]
 		else
 		[
-			min ::= ⎣index⎦ max 1;
-			max ::= cast ⎡index⎤ min (|tupleType's leading types| + 1)
+			min ::= ⌊index⌋ max 1;
+			max ::= cast ⌈index⌉ min (|tupleType's leading types| + 1)
 				into [t : whole number | t];
 			union ::= ∪ tupleType[min..max];
-			if index ⊆ [1..⎣tupleType⎦] then [union]
+			if index ⊆ [1..⌊tupleType⌋] then [union]
 			else [union ∪ else's return type]
 		]
 	]
@@ -178,12 +178,11 @@ Semantic restriction "concatenate_" is
 |
 	sizes ::= ||tupleType||;
 	limit ::=
-		if ⎡sizes⎤ is infinite then
+		if ⌈sizes⌉ is infinite then
 		[
-			⎣sizes⎦ max (cast |tupleType's leading types| + 1
-				into [t : natural number | t])
+			⌊sizes⌋ max (|tupleType's leading types| + 1)
 		]
-		else [⎡sizes⎤];
+		else [⌈sizes⌉];
 	result : tuple meta := <>'s type;
 	From 1 to limit do
 	[
@@ -192,29 +191,42 @@ Semantic restriction "concatenate_" is
 		result := eject result ++ tupleType[index];
 		true
 	];
-	If ⎡sizes⎤ is infinite then
+	If ⌈sizes⌉ is infinite then
 	[
-		slice ::= result[1 .. cast limit into [t : whole number | t]];
+		/* The result's size is unbounded, so smear the last distinct tuple's
+		 * element types, extend the resulting type with that, then truncate it
+		 * to suitable bounds.
+		 */
 		default ::= tupleType's default type;
-		union ::= ∪ default[1 ..
-			cast |default's leading types| + 1 into [t : whole number | t]];
-		result := <slice, union… | [⎣result⎦..∞)>;
+		smear ::= ∪ default[1..∞];
+		result := result ++ <<>, smear…|[0..∞)>;
 	];
-	/* Now figure out how short the tuple can be. */
-	minCount ::= ⎣sizes⎦;
+	/* Now figure out how long or short the tuple can be. */
+	minCount ::= ⌊sizes⌋;
 	minSize : extended integer := 0;
-	From 1 to limit min minCount do
+	maxSize : extended integer := 0;
+	From 1 to minCount do
 	[
 		index : natural number
 	|
-		minSize := minSize + ⎣tupleType[index]⎦;
+		t ::= tupleType[index];
+		minSize := minSize + ⌊t⌋;
+		maxSize := maxSize + ⌈t⌉;
 		true
 	];
-	If minCount > limit then
+	if ⌈sizes⌉ is infinite then
 	[
-		minSize := minSize + ((minCount - limit) × ⎣tupleType's default type⎦);
+		maxSize := ∞;
+	]
+	else
+	[
+		minCountPlusOne ::= minCount + 1;
+		From minCountPlusOne to ⌈sizes⌉ do [i : natural number |
+			maxSize := maxSize + ⌈tupleType[i]⌉;
+			true
+		];
 	];
-	range ::= cast [minSize..⎡result⎤ + 1) into [t : whole number's type | t];
+	range ::= cast [minSize..maxSize + 1) into [t : whole number's type | t];
 	<result's leading types, result's default type…|range>
 ];
 
@@ -233,7 +245,7 @@ Macro "_++_" is
 	left : expression phrase ⇒ tuple,
 	right : expression phrase ⇒ tuple
 |
-	restricted send $"concatenate_" with «<«<left, right>»>» : tuple
+	bootstrap restricted send $"concatenate_" with «<«<left, right>»>» : tuple
 ] : expression phrase ⇒ tuple;
 
 /**
@@ -354,7 +366,7 @@ Macro "_++_" is
 					folded ::= ‘concatenate
 						<lit's token's value, right's token's value>’;
 					Exit body with
-						restricted send $"concatenate_"
+						bootstrap restricted send $"concatenate_"
 							with concatenate <unfolded, <folded>> → list phrase
 							: tuple
 				]
@@ -363,7 +375,7 @@ Macro "_++_" is
 		]
 		else [/* Fall through. */];
 	];
-	restricted send $"concatenate_" with «<«<left, right>»>» : tuple
+	bootstrap restricted send $"concatenate_" with «<«<left, right>»>» : tuple
 ] : expression phrase ⇒ tuple;
 
 /**
@@ -410,7 +422,7 @@ Macro "_++_" is
 					unfolded ::= cast args[2 .. upper] into
 						[t : <<>, expression phrase ⇒ tuple…|whole number> | t];
 					Exit body with
-						restricted send $"concatenate_"
+						bootstrap restricted send $"concatenate_"
 							with concatenate <<folded>, unfolded> → list phrase
 							: tuple
 				]
@@ -419,7 +431,7 @@ Macro "_++_" is
 		]
 		else [/* Fall through. */];
 	];
-	restricted send $"concatenate_" with «<«<left, right>»>» : tuple
+	bootstrap restricted send $"concatenate_" with «<«<left, right>»>» : tuple
 ] : expression phrase ⇒ tuple;
 
 /**
@@ -510,7 +522,7 @@ Macro "_++_" is
 						|
 							t
 						];
-					Exit body with restricted send $"concatenate_"
+					Exit body with bootstrap restricted send $"concatenate_"
 						with
 							(concatenate <leftUnfolded, folded, rightUnfolded>)
 								→ list phrase
@@ -521,7 +533,7 @@ Macro "_++_" is
 		]
 		else [/* Fall through. */];
 	];
-	restricted send $"concatenate_" with «<«<left, right>»>» : tuple
+	bootstrap restricted send $"concatenate_" with «<«<left, right>»>» : tuple
 ] : expression phrase ⇒ tuple;
 
 /**
@@ -551,9 +563,9 @@ Public method "relevant`|_`|" is
 [
 	tupleType : tuple meta
 |
-	lower ::= ⎣tupleType⎦ max 0;
+	lower ::= ⌊tupleType⌋ max 0;
 	count ::= |tupleType's leading types| + 1;
-	cast lower min count into [ t : whole number | t ]
+	lower min count
 ] : whole number;
 
 /**
@@ -590,44 +602,44 @@ Public method "Require:_[_.._]is ever valid" is
 	sliceStart : natural number's type,
 	sliceEnd : whole number's type
 |
-	If ⎣sliceStart⎦ > ⎡aTuple⎤+1 then
+	If ⌊sliceStart⌋ > ⌈aTuple⌉+1 then
 	[
-		Reject parse, expected:
+		Immediately reject parse, expected:
 			"a subscript ("
-			++ “⎣sliceStart⎦”
+			++ “⌊sliceStart⌋”
 			++ " ≤ sliceStart ≤ "
-			++ “⎡sliceStart⎤”
+			++ “⌈sliceStart⌉”
 			++ ") that could ever be valid ("
-			++ “⎣aTuple⎦”
+			++ “⌊aTuple⌋”
 			++ " ≤ |theTuple| ≤ "
-			++ “⎡aTuple⎤”
+			++ “⌈aTuple⌉”
 			++ ")"
 	];
-	If ⎣sliceEnd⎦ > ⎡aTuple⎤ then
+	If ⌊sliceEnd⌋ > ⌈aTuple⌉ then
 	[
-		Reject parse, expected:
+		Immediately reject parse, expected:
 			"a subscript ("
-			++ “⎣sliceEnd⎦”
+			++ “⌊sliceEnd⌋”
 			++ " ≤ sliceEnd ≤ "
-			++ “⎡sliceEnd⎤”
+			++ “⌈sliceEnd⌉”
 			++ ") that could ever be valid ("
-			++ “⎣aTuple⎦”
+			++ “⌊aTuple⌋”
 			++ " ≤ |theTuple| ≤ "
-			++ “⎡aTuple⎤”
+			++ “⌈aTuple⌉”
 			++ ")"
 	];
-	If ⎡sliceEnd⎤ < ⎣sliceStart⎦ - 1 then
+	If ⌈sliceEnd⌉ < ⌊sliceStart⌋ - 1 then
 	[
-		Reject parse, expected:
+		Immediately reject parse, expected:
 			"a slice end subscript ("
-			++ “⎣sliceEnd⎦”
+			++ “⌊sliceEnd⌋”
 			++ " ≤ theEndSubscript ≤ "
-			++ “⎡sliceEnd⎤”
+			++ “⌈sliceEnd⌉”
 			++ ") not guaranteed more than one less than the start\
 			\| subscript ("
-			++ “⎣sliceStart⎦”
+			++ “⌊sliceStart⌋”
 			++ " ≤ theStartSubscript ≤ "
-			++ “⎡sliceStart⎤”
+			++ “⌈sliceStart⌉”
 			++ ")"
 	];
 ] : ⊤;
@@ -655,13 +667,12 @@ Public method "tuple type of_[_.._]" is
 	sliceEnd : whole number's type
 |
 	Require: aTupleType[sliceStart..sliceEnd] is ever valid;
-	minStart ::= 1 max ⎣sliceStart⎦;
-	maxStart ::= 1 max ⎡sliceStart⎤;
-	minEnd ::= 0 max ⎣sliceEnd⎦;
-	maxEnd ::= 0 max ⎡sliceEnd⎤;
-	tupleEnd ::= ⎡aTupleType⎤;
-	tupleDefaultTypeIndex ::= cast |aTupleType's leading types| + 1
-		into [ t : natural number | t ];
+	minStart ::= 1 max ⌊sliceStart⌋;
+	maxStart ::= 1 max ⌈sliceStart⌉;
+	minEnd ::= 0 max ⌊sliceEnd⌋;
+	maxEnd ::= 0 max ⌈sliceEnd⌉;
+	tupleEnd ::= ⌈aTupleType⌉;
+	tupleDefaultTypeIndex ::= |aTupleType's leading types| + 1;
 	limit ::= maxEnd min tupleEnd min tupleDefaultTypeIndex;
 	minLoopStart ::= (minStart min limit) max 1;
 	maxLoopStart ::= (maxStart min limit) max 1;
@@ -676,18 +687,10 @@ Public method "tuple type of_[_.._]" is
 	[
 		i : natural number
 	|
-		union : type := ⊥;
 		smearEnd ::= cast (i + smearDelta) min limit
 			into [t : natural number | t];
-		From i to smearEnd do
-		[
-			j : natural number
-		|
-			union := eject union ∪ aTupleType[j];
-			true
-		];
-		types := cast concatenate <types, <union>>
-			into [ t : tuple of any meta | t ];
+		union ::= ∪ aTupleType[i..smearEnd];
+		types := concatenate <types, <union>>;
 		true
 	];
 	/* Unless `types` is empty, the last element is the default type. */
@@ -698,8 +701,7 @@ Public method "tuple type of_[_.._]" is
 	resultMaxEnd ::= maxEnd min tupleEnd;
 	resultStart ::= cast (resultMinEnd - maxStart + 1) max 0
 		into [t : whole number | t];
-	resultEnd ::= cast ((resultMaxEnd - minStart + 1) max 0) + 1
-		into [t : [1..∞] | t];
+	resultEnd ::= ((resultMaxEnd - minStart + 1) max 0) + 1;
 	resultSizes ::= [resultStart..resultEnd);
 	result ::= <types, defaultType…|resultSizes>;
 	result
@@ -744,13 +746,12 @@ Private method "tuple meta of_[_.._]" is
 |
 	aTupleType ::= aTupleMeta's instance;
 	Require: aTupleType[sliceStart..sliceEnd] is ever valid;
-	minStart ::= 1 max ⎣sliceStart⎦;
-	maxStart ::= 1 max ⎡sliceStart⎤;
-	minEnd ::= 0 max ⎣sliceEnd⎦;
-	maxEnd ::= 0 max ⎡sliceEnd⎤;
-	tupleEnd ::= ⎡aTupleType⎤;
-	tupleDefaultTypeIndex ::= cast |aTupleType's leading types| + 1
-		into [ t : natural number | t ];
+	minStart ::= 1 max ⌊sliceStart⌋;
+	maxStart ::= 1 max ⌈sliceStart⌉;
+	minEnd ::= 0 max ⌊sliceEnd⌋;
+	maxEnd ::= 0 max ⌈sliceEnd⌉;
+	tupleEnd ::= ⌈aTupleType⌉;
+	tupleDefaultTypeIndex ::= |aTupleType's leading types| + 1;
 	limit ::= maxEnd min tupleEnd min tupleDefaultTypeIndex;
 	minLoopStart ::= (minStart min limit) max 1;
 	maxLoopStart ::= (maxStart min limit) max 1;
@@ -765,18 +766,10 @@ Private method "tuple meta of_[_.._]" is
 	[
 		i : natural number
 	|
-		union : type := ⊥;
 		smearEnd ::= cast (i + smearDelta) min limit
 			into [ t : natural number | t ];
-		From i to smearEnd do
-		[
-			j : natural number
-		|
-			union := eject union ∪ (aTupleType[j]'s type);
-			true
-		];
-		types := cast concatenate <types, <union>>
-			into [ t : <<>, any meta's type…|whole number> | t ];
+		union ::= (∪ aTupleType[i..smearEnd])'s type;
+		types := concatenate <types, <union>>;
 		true
 	];
 	/* Unless `types` is empty, the last element is the default type. */
@@ -787,8 +780,7 @@ Private method "tuple meta of_[_.._]" is
 	resultMaxEnd ::= maxEnd min tupleEnd;
 	resultStart ::= cast (resultMinEnd - maxStart + 1) max 0
 		into [ t : whole number | t ];
-	resultEnd ::= cast ((resultMaxEnd - minStart + 1) max 0) + 1
-		into [ t : [1..∞] | t ];
+	resultEnd ::= ((resultMaxEnd - minStart + 1) max 0) + 1;
 	resultSizes ::= [resultStart..resultEnd);
 	result ::= <types, defaultType…|resultSizes>;
 	result
@@ -892,7 +884,7 @@ Public method "_[.._]" is
  * Construct and answer a slice (i.e., subtuple) that begins at the start of the
  * tuple and continues to subscript {@param "sliceEnd"}.
  *
- * @method "_[.._]"
+ * @macro "_[.._]"
  * @param "aTuple" "tuple"
  *        A tuple.
  * @param "sliceEnd" "whole number"
@@ -901,13 +893,15 @@ Public method "_[.._]" is
  *           The requested tuple.
  * @category "Tuples" "Types" "Queries"
  */
-Public stable method "_[.._]" is
+Public macro "_[.._]" is
 [
-	aTuple : tuple,
-	sliceEnd : whole number
+	aTuple : expression phrase ⇒ tuple,
+	sliceEnd : expression phrase ⇒ whole number
 |
-	aTuple[1..sliceEnd]
-] : tuple;
+	bootstrap restricted send $"_[_.._]"
+		with «<aTuple, ‘1’, sliceEnd>»
+		: tuple
+] : expression phrase ⇒ tuple;
 
 /**
  * Strengthen the tuple type produced by {@param "_[.._]"} to the strongest
@@ -970,11 +964,10 @@ Semantic restriction "_→set" is
 [
 	tupleType : tuple meta
 |
-	typeLimit ::= cast |tupleType's leading types| + 1
-		into [ t : natural number | t ];
+	typeLimit ::= |tupleType's leading types| + 1;
 	union ::= ∪ tupleType[1..typeLimit];
-	if ⎣tupleType⎦ = ⎡tupleType⎤
-		∧ |union| = ⎣tupleType⎦
+	if ⌊tupleType⌋ = ⌈tupleType⌉
+		∧ |union| = ⌊tupleType⌋
 		∧ ¬union ⊆ type
 	then
 	[
@@ -986,7 +979,7 @@ Semantic restriction "_→set" is
 		 * compensating >1 valued enumerations.
 		 */
 		allSingularEnumerations : boolean := true;
-		From 1 to ⎣tupleType⎦ do
+		From 1 to ⌊tupleType⌋ do
 		[
 			index : natural number
 		|
@@ -1002,8 +995,8 @@ Semantic restriction "_→set" is
 		]
 		else
 		[
-			lower ::= ⎣tupleType⎦ min 1;
-			{union | [lower..⎡tupleType⎤ + 1)}
+			lower ::= ⌊tupleType⌋ min 1;
+			{union | [lower..⌈tupleType⌉ + 1)}
 		]
 	]
 	else
@@ -1011,8 +1004,8 @@ Semantic restriction "_→set" is
 		/* If the tuple could be empty, then so could the set. Otherwise, the
 		 * set must contain at least one element.
 		 */
-		lower ::= ⎣tupleType⎦ min 1;
-		{union | [lower..⎡tupleType⎤ + 1)}
+		lower ::= ⌊tupleType⌋ min 1;
+		{union | [lower..⌈tupleType⌉ + 1)}
 	]
 ];
 
@@ -1030,9 +1023,8 @@ Semantic restriction "_→map" is
 	/* If the tuple could be empty, then so could the map. Otherwise, the
 	 * map must contain at least one element.
 	 */
-	lower ::= ⎣tupleType⎦ min 1;
-	typeLimit ::= cast |tupleType's leading types| + 1
-		into [ t : natural number | t ];
+	lower ::= ⌊tupleType⌋ min 1;
+	typeLimit ::= |tupleType's leading types| + 1;
 	keyType : any meta := ⊥;
 	valueType : any meta := ⊥;
 	From 1 to typeLimit do
@@ -1047,7 +1039,7 @@ Semantic restriction "_→map" is
 			into [ t : any meta | t ];
 		true
 	];
-	{keyType→valueType | [lower..⎡tupleType⎤ + 1)}
+	{keyType→valueType | [lower..⌈tupleType⌉ + 1)}
 ];
 
 /**
@@ -1252,8 +1244,8 @@ Semantic restriction "SHA-_digest of_" is
 	bytes : byte*'s type
 |
 	sizes ::= {1 → 20, 256 → 32, 384 → 48, 512 → 64};
-	low ::= cast sizes[⎣algorithm⎦] into [t : natural number | t];
-	high ::= cast sizes[⎡algorithm⎤] into [t : natural number | t];
+	low ::= cast sizes[⌊algorithm⌋] into [t : natural number | t];
+	high ::= cast sizes[⌈algorithm⌉] into [t : natural number | t];
 	<<>, byte… | [low .. high]>
 ];
 
@@ -1283,7 +1275,8 @@ Semantic restriction "_↑++=_" is
 	resultType ::= varType's read type ++ tupleType;
 	If ¬resultType ⊆ varType's write type then
 	[
-		Reject parse, expected: "variable to accept " ++ “resultType”
+		Immediately reject parse,
+			expected: "variable to accept " ++ “resultType”
 	];
 	⊤
 ];
@@ -1338,12 +1331,12 @@ Macro "_↑++=_" is
 	varPhrase : variable reference phrase ⇒ read tuple/write ⊥,
 	elemPhrase : expression phrase ⇒ <<>, any…|[1..1]>
 |
-	restricted send $"_`?=_" with
+	bootstrap restricted send $"_`?=_" with
 	«<
 		varPhrase,
-		restricted send $"_with_appended" with
+		bootstrap restricted send $"_with_appended" with
 		«<
-			restricted send $"eject_↑" with «<varPhrase>» : any,
+			bootstrap restricted send $"eject_↑" with «<varPhrase>» : any,
 			cast elemPhrase into
 			[
 				lit : literal phrase ⇒ <<>, any…|[1..1]>
@@ -1352,7 +1345,7 @@ Macro "_↑++=_" is
 			]
 			else
 			[
-				restricted send $"_[_]" with «<elemPhrase, ‘1’>» : any
+				bootstrap restricted send $"_[_]" with «<elemPhrase, ‘1’>» : any
 			]
 		>» : tuple
 	>» : ⊤
@@ -1368,7 +1361,7 @@ Semantic restriction "_reversed" is
 [
 	tType : tuple meta
 |
-	<<>, ∪ tType[1..⎡tType⎤]… | ||tType||>
+	<<>, ∪ tType[1..⌈tType⌉]… | ||tType||>
 ];
 
 Method "_reversed" is stable at function accepting <tuple> and returning tuple;

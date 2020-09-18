@@ -1,6 +1,6 @@
 /*
  * Origin.avail
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Versioned As: $$Revision$$
+ * * Last Generated: 8/23/20 2:40 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -56,7 +56,7 @@ Names
 	"\
 		\|[§\
 			\|««…:_†§‡,»`|»?\
-			\|«Primitive…«(…:_†)»?§;»?\
+			\|«Primitive…«(…:_†)»?;§»?\
 			\|«`$…«:_†»?;§»?\
 			\|«_!§»\
 			\|«_!»?\
@@ -93,7 +93,7 @@ Pragma
 		\|BootstrapBlockMacro=\
 			\|[§\
 				\|««…:_†§‡,»`|»?\
-				\|«Primitive…«(…:_†)»?§;»?\
+				\|«Primitive…«(…:_†)»?;§»?\
 				\|«`$…«:_†»?;§»?\
 				\|«_!§»\
 				\|«_!»?\
@@ -108,7 +108,7 @@ Pragma
 	"macro=BootstrapSendAsStatementMacro=_!;",
 	"macro=BootstrapSuperCastMacro=(_::_†)",
 	"macro=BootstrapStringLiteral=…$",
-	"macro=BootstrapIntegerLiteral=…#"
+	"macro=BootstrapNumericLiteral=…#"
 Body
 
 /**
@@ -118,7 +118,7 @@ Body
  *     "\
  *          \|[§\
  *              \|««…:_†§‡,»`|»?\
- *              \|«Primitive…«(…:_†)»?§;»?\
+ *              \|«Primitive…«(…:_†)»?;§»?\
  *              \|«`$…«:_†»?;§»?\
  *              \|«_!§»\
  *              \|«_!»?\
@@ -314,12 +314,12 @@ Body
 
 /**
  * Construct and answer a literal phrase based on the parsed non-negative
- * integer literal token.
+ * numeric literal token.
  *
  * @macro "…#"
- * @param "integerLiteralPhrase" "literal phrase⇒literal token⇒whole number"
+ * @param "numericLiteralPhrase" "literal phrase⇒literal token⇒number"
  *        The {@type "literal phrase"} built by parsing the argument denoted
  *        by the macro metacharacters '…#'.
- * @returns "literal phrase→whole number"
+ * @returns "literal phrase→number"
  * @category "Avail Syntax"
  */

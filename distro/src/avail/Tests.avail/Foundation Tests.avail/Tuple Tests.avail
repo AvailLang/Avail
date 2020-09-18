@@ -1,6 +1,6 @@
 /*
  * Tuple Tests.avail
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,26 +43,6 @@ Body
 "tuple test suite" is a new atom;
 
 New test suite tuple test suite extends foundation test suite;
-
-Test "tuple cardinality" in tuple test suite is
-[
-	a ::= <1,2,3,4>;
-	Require: |a| = 4;
-	Require: |<>| = 0;
-	Require: <> is empty = true;
-];
-
-Test "tuple concatenation" in tuple test suite is
-[
-	a ::= <1,2>;
-	b ::= <3,4>;
-	c ::= <"foo", "bar">;
-	Require: a ++ b = <1,2,3,4>;
-	Require: a ++ c = <1,2,"foo", "bar">;
-	Require: c[1] ++ c[2] = "foobar";
-	Require: concatenate c = "foobar";
-	Require: concatenate <> = <>;
-];
 
 Test "tuple ranges" in tuple test suite is
 [
@@ -156,7 +136,7 @@ Test "macro for each of do" in tuple test suite is
 	b : natural number* := <>;
 	For each element of a do
 	[
-	 	If element is even then [b := eject b ++ <element>;];
+		If element is even then [b := eject b ++ <element>;];
 	];
 	Require: b = <2,4>;
 
@@ -433,6 +413,14 @@ Test "fold" in tuple test suite is
 		result ÷ input
 	] = 1;
 
+	Require: left fold 120 into <5, 4, 3, 2> through
+	[
+		input : integer,
+		result : integer
+	|
+		result ÷ input
+	] = 1;
+
 	Require: right fold <2,3,5> through
 	[
 		input : natural number,
@@ -638,9 +626,9 @@ Test "complex quicksort macro" in tuple test suite is
 	ref := quicksort n, m in
 		<14,4,6,1,2,3,20,18,19,17,16,15,12,13,5,7,8,9,10,11> by
 		[
-		 	(n is odd ∧ m is even)
-		 		∨ (n is odd ∧ m is odd ∧ n ≤ m)
-		 		∨ (n is even ∧ m is even ∧ n ≥ m)
+			(n is odd ∧ m is even)
+				∨ (n is odd ∧ m is odd ∧ n ≤ m)
+				∨ (n is even ∧ m is even ∧ n ≥ m)
 		];
 	Require: <1,3,5,7,9,11,13,15,17,19,20,18,16,14,12,10,8,6,4,2> = ref;
 ];
@@ -942,32 +930,14 @@ Test "tuple appending" in tuple test suite is
 	Require: s = "ĀbcdefghijĐz!";
 ];
 
-Test "tuple range replacement" in tuple test suite is
-[
-	t1 ::= <1,2,3,<0,4,<5,5,5,5>,6>,3,7,8>;
-	t2 ::= <1,2,3,<0,4,<5,9,9,9,5>,6>,3,7,8>;
-	t3 ::= t1[4][3](1..4)→<9,9,9>;
-	Require: t3 = t2;
-	Require: [t1[4][3](1..5)→<9,9,9>] raises subscript-out-of-bounds exception;
-	Require: [t1[4][3](4..1)→<9,9,9>] raises negative-size exception;
-
-	t4 ::= <1,2,3,{"foo"→<4,<5,5,5,5>,6>},7,8>;
-	t5 ::= <1,2,3,{"foo"→<4,<5,9,9,5,5>,6>},7,8>;
-	t6 ::= t4[4]["foo"][2](1..3)→<9,9>;
-	Require: t6 = t5;
-	Require: [t4[4]["boo"][2](1..3)→<9,9>] raises key-not-found exception;
-	Require: [t4[4](2..4)→<9,9>]
-		raises incorrect-argument-type exception;
-];
-
 Test "tuple insertion index" in tuple test suite is
 [
 	less ::= [a : integer, b : integer | a < b];
 	lessOrEqual ::= [a : integer, b : integer | a ≤ b];
 	/* Make sure comparison isn't called when examining empty tuple. */
 	Assert: insertion index of 10 in <>
-	 	with [a : integer, b : integer | Shouldn't happen]
-	 	= 1;
+		with [a : integer, b : integer | Shouldn't happen]
+		= 1;
 	For each subtuple in
 		<
 			<10, <>, 1, 1>,

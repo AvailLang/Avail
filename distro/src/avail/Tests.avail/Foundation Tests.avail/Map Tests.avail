@@ -1,6 +1,6 @@
 /*
  * Map Tests.avail
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,14 +44,6 @@ Body
 
 New test suite map test suite extends foundation test suite;
 
-Test "map cardinality" in map test suite is
-[
-	a ::= {1→"foo",2→"bar",3→"frog",4→"prince"};
-	Require: 4 = |a|;
-	Require: 0 = |{}|;
-	Require: true = {} is empty;
-];
-
 Test "keys values and bindings" in map test suite is
 [
 	a ::= {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
@@ -63,7 +55,8 @@ Test "keys values and bindings" in map test suite is
 	/*Require: a's type's key type ⊆ string;*/
 	/*Require: a's type's value type ⊆ [1..4];*/
 	Require: "foo" ∈ a;
-	Require: <<"foo",1>,<"bar",2>,<"frog",3>,<"prince",4>> = a's bindings;
+	Require: <<"foo",1>,<"bar",2>,<"frog",3>,<"prince",4>> → set
+		= a's bindings → set;
 
 ];
 
@@ -85,52 +78,52 @@ Test "alternative answer via else" in map test suite is
 
 Test "map through" in map test suite is
 [
- 	a ::= {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
- 	b ::= map a through [s : string, n : natural number | n × 2];
- 	Require: b = {"foo"→2,"bar"→4,"frog"→6,"prince"→8};
+	a ::= {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
+	b ::= map a through [s : string, n : natural number | n × 2];
+	Require: b = {"foo"→2,"bar"→4,"frog"→6,"prince"→8};
 ];
 
 Test "map through (macro)" in map test suite is
 [
- 	a ::= {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
- 	b ::= map each s→n in a through [n × 2];
- 	Require: b = {"foo"→2,"bar"→4,"frog"→6,"prince"→8};
+	a ::= {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
+	b ::= map each s→n in a through [n × 2];
+	Require: b = {"foo"→2,"bar"→4,"frog"→6,"prince"→8};
 ];
 
 Test "map and filter" in map test suite is
 [
 	a ::= {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
- 	b ::= map and filter a by
- 	[
- 	 	s : string,
- 	 	n : natural number,
- 	 	accept : [natural number]→⊤
- 	 |
- 	 	m ::= n + 2;
- 		If m mod 2 = 0 then
- 		[
- 		 	accept(m);
- 		];
- 	];
- 	Require: b = {"bar"→4,"prince"→6};
+	b ::= map and filter a by
+	[
+		s : string,
+		n : natural number,
+		accept : [natural number]→⊤
+	 |
+		m ::= n + 2;
+		If m mod 2 = 0 then
+		[
+			accept(m);
+		];
+	];
+	Require: b = {"bar"→4,"prince"→6};
 ];
 
 Test "any satisfies" in map test suite is
 [
- 	a ::= {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
- 	b ::= any of a satisfies [s : string, n : natural number | n mod 2 = 0];
- 	c ::= any of a satisfies [s : string, n : natural number | n > 200];
- 	Require: b = true;
- 	Require: c = false;
+	a ::= {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
+	b ::= any of a satisfies [s : string, n : natural number | n mod 2 = 0];
+	c ::= any of a satisfies [s : string, n : natural number | n > 200];
+	Require: b = true;
+	Require: c = false;
 ];
 
 Test "any satisfies (macro)" in map test suite is
 [
- 	a ::= {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
- 	b ::= any s→n of a satisfies [n mod 2 = 0];
- 	c ::= any s→n of a satisfies [n > 200];
- 	Require: b = true;
- 	Require: c = false;
+	a ::= {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
+	b ::= any s→n of a satisfies [n mod 2 = 0];
+	c ::= any s→n of a satisfies [n > 200];
+	Require: b = true;
+	Require: c = false;
 ];
 
 Test "for each of do" in map test suite is
@@ -139,10 +132,10 @@ Test "for each of do" in map test suite is
 	b : map := {};
 	For each of a do
 	[
-	 	s : string,
-	 	n : natural number
+		s : string,
+		n : natural number
 	 |
-	 	b := b + s→n;
+		b := b + s→n;
 	];
 	Require: a = b;
 ];
@@ -158,128 +151,129 @@ Test "macro for each of do" in map test suite is
 Test "count of where" in map test suite is
 [
 	a ::= {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
- 	b ::= count of a where [s : string, n : natural number | n mod 2 = 0];
- 	c ::= count of a where [s : string, n : natural number | n > 2000];
- 	Require: b = 2;
- 	Require: c = 0;
+	b ::= count of a where [s : string, n : natural number | n mod 2 = 0];
+	c ::= count of a where [s : string, n : natural number | n > 2000];
+	Require: b = 2;
+	Require: c = 0;
 ];
 
 Test "count of where (macro)" in map test suite is
 [
 	a ::= {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
- 	b ::= count of s → n in a where [n mod 2 = 0];
- 	c ::= count of s → n in a where [n > 2000];
- 	Require: b = 2;
- 	Require: c = 0;
+	b ::= count of s → n in a where [n mod 2 = 0];
+	c ::= count of s → n in a where [n > 2000];
+	Require: b = 2;
+	Require: c = 0;
 ];
 
 Test "each of satisfies" in map test suite is
 [
 	a ::= {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
-	counter : whole number := 0;
- 	b ::= each s→n of a satisfies
- 	[
-		counter := counter +1;
- 		n ≤ 2
- 	];
- 	c ::= each s→n of a satisfies [n > 0];
- 	Require: b = false;
- 	Require: counter = 3;
- 	Require: c = true;
+	anyFailed : boolean := false;
+	b ::= each s→n of a satisfies
+	[
+		Require: anyFailed = false;
+		anyFailed := n ≤ 2;
+		¬anyFailed
+	];
+	Require: anyFailed = true;
+	Require: b = false;
+	c ::= each s→n of a satisfies [n > 0];
+	Require: c = true;
 ];
 
 Test "filter by" in map test suite is
 [
 	a ::= {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
- 	b ::= filter a by [s : string, n : natural number | n mod 2 = 0];
- 	c ::= filter a by [s : string, n : natural number | n > 2000];
- 	Require: b = {"bar"→2,"prince"→4};
- 	Require: c = {};
+	b ::= filter a by [s : string, n : natural number | n mod 2 = 0];
+	c ::= filter a by [s : string, n : natural number | n > 2000];
+	Require: b = {"bar"→2,"prince"→4};
+	Require: c = {};
 ];
 
 Test "select each (macro)" in map test suite is
 [
 	a ::= {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
- 	b ::= select each s→n from a where [n mod 2 = 0];
- 	c ::= select each s→n from a where [n > 2000];
- 	Require: b = {"bar"→2,"prince"→4};
- 	Require: c = {};
+	b ::= select each s→n from a where [n mod 2 = 0];
+	c ::= select each s→n from a where [n > 2000];
+	Require: b = {"bar"→2,"prince"→4};
+	Require: c = {};
 ];
 
 Test "reject each (macro)" in map test suite is
 [
 	a ::= {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
- 	b ::= reject each s→n from a where [n mod 2 = 0];
- 	c ::= reject each s→n from a where [n < 2000];
- 	Require: b = {"foo"→1,"frog"→3};
- 	Require: c = {};
+	b ::= reject each s→n from a where [n mod 2 = 0];
+	c ::= reject each s→n from a where [n < 2000];
+	Require: b = {"foo"→1,"frog"→3};
+	Require: c = {};
 ];
 
 
 Test "group by (tuples)" in map test suite is
 [
- 	/* Group by values */
- 	a ::= <1,2,3,4,5>;
- 	b ::= group a by [n: natural number | n is even];
- 	Require: b = {false→<1, 3, 5>, true→<2, 4>};
+	/* Group by values */
+	a ::= <1,2,3,4,5>;
+	b ::= group a by [n: natural number | n is even];
+	Require: b = {false→<1, 3, 5>, true→<2, 4>};
 
- 	/*Group by types*/
- 	c ::= <whole number, string, natural number, boolean, 5's type>;
- 	d ::= group c by [t : type | t ⊆ number];
- 	Require: d =
- 		{true→<whole number, natural number, 5's type>,
- 		false→<string, boolean>};
+	/*Group by types*/
+	c ::= <whole number, string, natural number, boolean, 5's type>;
+	d ::= group c by [t : type | t ⊆ number];
+	Require: d =
+		{true→<whole number, natural number, 5's type>,
+		false→<string, boolean>};
 ];
 
 Test "group by (sets)" in map test suite is
 [
- 	/* Group by values */
- 	a ::= {1,2,3,4,5};
- 	b ::= group a by [n: natural number | n is even];
- 	Require: b = {false→{1, 3, 5}, true→{2, 4}};
+	/* Group by values */
+	a ::= {1,2,3,4,5};
+	b ::= group a by [n: natural number | n is even];
+	Require: b = {false→{1, 3, 5}, true→{2, 4}};
 
- 	/*Group by types*/
- 	c ::= {whole number, string, natural number, boolean, 5's type};
- 	d ::= group c by [t : type | t ⊆ number];
- 	Require: d =
- 		{true→{whole number, natural number, 5's type},
- 		false→{string, boolean}};
+	/*Group by types*/
+	c ::= {whole number, string, natural number, boolean, 5's type};
+	d ::= group c by [t : type | t ⊆ number];
+	Require: d =
+		{true→{whole number, natural number, 5's type},
+		false→{string, boolean}};
 ];
 
 Test "macro group by (tuples)" in map test suite is
 [
- 	/* Group by values */
- 	a ::= <1,2,3,4,5>;
- 	b ::= group each n in a by [n is even];
- 	Require: b = {false→<1, 3, 5>, true→<2, 4>};
+	/* Group by values */
+	a ::= <1,2,3,4,5>;
+	b ::= group each n in a by [n is even];
+	Require: b = {false→<1, 3, 5>, true→<2, 4>};
 
- 	/*Group by types*/
- 	c ::= <whole number, string, natural number, boolean, 5's type>;
- 	d ::= group each t in c by [t ⊆ number];
- 	Require: d =
- 		{true→<whole number, natural number, 5's type>,
- 		false→<string, boolean>};
+	/*Group by types*/
+	c ::= <whole number, string, natural number, boolean, 5's type>;
+	d ::= group each t in c by [t ⊆ number];
+	Require: d =
+		{true→<whole number, natural number, 5's type>,
+		false→<string, boolean>};
 ];
 
 Test "macro group by (sets)" in map test suite is
 [
- 	/* Group by values */
- 	a ::= {1,2,3,4,5};
- 	b ::= group each n in a by [n is even];
- 	Require: b = {false→{1, 3, 5}, true→{2, 4}};
+	/* Group by values */
+	a ::= {1,2,3,4,5};
+	b ::= group each n in a by [n is even];
+	Require: b = {false→{1, 3, 5}, true→{2, 4}};
 
- 	/*Group by types*/
- 	c ::= {whole number, string, natural number, boolean, 5's type};
- 	d ::= group each t in c by [t ⊆ number];
- 	Require: d =
- 		{true→{whole number, natural number, 5's type},
- 		false→{string, boolean}};
+	/*Group by types*/
+	c ::= {whole number, string, natural number, boolean, 5's type};
+	d ::= group each t in c by [t ⊆ number];
+	Require: d =
+		{true→{whole number, natural number, 5's type},
+		false→{string, boolean}};
 ];
 
 Test "counts for" in map test suite is
 [
- 	a ::= <"foo","bar","frog","prince","prince","foo","nickel","foo">;
- 	Require: counts for a = {"foo"→3,"bar"→1,"frog"→1,"prince"→2,"nickel"→1};
+	a ::= <"foo","bar","frog","prince","prince","foo","nickel","foo">;
+	Require: counts for a = {"foo"→3,"bar"→1,"frog"→1,"prince"→2,"nickel"→1};
 ];
 
 Test "integrate maps" in map test suite is
@@ -369,16 +363,4 @@ Test "quasi-destructive n-ary very complex map update" in map test suite is
 				"zippo"→<"weevil","sarlak">},
 				5>
 		};
-];
-
-Test "tuple range replacement" in map test suite is
-[
- 	m1 ::= {"1"→1,"2"→2,"3"→{"foo"→<3,3>,"boo"→<33,33,33>},"4"→4};
- 	m2 ::= {"1"→1,"2"→2,"3"→{"foo"→<3,3>,"boo"→<33,9,9,33>},"4"→4};
- 	m3 ::= m1["3"]["boo"](1..3)→<9,9>;
- 	Require: m3 = m2;
- 	Require: [m1["boo"][2](1..3)→<9,9>] raises key-not-found exception;
- 	Require: [m1["3"]["boo"](1..5)→<9,9,9>]
- 		raises subscript-out-of-bounds exception;
-	Require: [m1["3"]["boo"](10..5)→<9,9,9>] raises negative-size exception;
 ];

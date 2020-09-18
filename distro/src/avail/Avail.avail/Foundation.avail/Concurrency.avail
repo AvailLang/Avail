@@ -1,6 +1,6 @@
 /*
  * Concurrency.avail
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -769,7 +769,7 @@ Private method "«indexed»?return type(_,_,_,_,_)" is
 	optionalLimitType ::= optionalLimit's semantic type;
 	blockType ::= if indexed then
 	[
-		indexingType ::= (0 .. ⎡aTupleType⎤+1);
+		indexingType ::= (0 .. ⌈aTupleType⌉+1);
 		[elementType, indexingType]→(action's semantic type's return type)
 	] else
 	[
@@ -885,7 +885,7 @@ Semantic restriction "For each of⁇_in parallel«_-way»do_" is
 	action : function meta
 |
 	Require: action accepts tupleType (check indices);
-	if ⎣tupleType⎦ > 0 ∧ action's return type = ⊥ then [⊥] else [⊤]
+	if ⌊tupleType⌋ > 0 ∧ action's return type = ⊥ then [⊥] else [⊤]
 ];
 
 /*
@@ -1150,7 +1150,7 @@ Semantic restriction "For each of⁇_in parallel«_-way»do_" is
 	action : [⊥]→⊤'s type
 |
 	Require: action accepts setType;
-	if ⎣setType⎦ > 0 ∧ action's return type = ⊥ then [⊥] else [⊤]
+	if ⌊setType⌋ > 0 ∧ action's return type = ⊥ then [⊥] else [⊤]
 ];
 
 /**
@@ -1230,7 +1230,7 @@ Semantic restriction "For each of⁇_in parallel«_-way»do_" is
 	action : [⊥, ⊥]→⊤'s type
 |
 	Require: action accepts mapType;
-	if ⎣mapType⎦ > 0 ∧ action's return type = ⊥ then [⊥] else [⊤]
+	if ⌊mapType⌋ > 0 ∧ action's return type = ⊥ then [⊥] else [⊤]
 ];
 
 /*
@@ -1362,12 +1362,14 @@ Public method "map_in parallel«_-way»through_" is
 	limit ::= optionalLimit[1] else [default maximum worker fibers];
 	lock ::= a non-reentrant mutex named "results mutex";
 	results : tuple := |aTuple| of filler;
+	nameSuffix ::= " from " ++ current fiber's name;
 	injector ::=
 		injector from 1 to |aTuple| by 1 doing
 		[
 			index : natural number
 		|
-			current fiber's name := "parallel map fiber #" ++ “index”;
+			current fiber's name :=
+				"parallel map fiber #" ++ “index” ++ nameSuffix;
 			workUnitRunner(
 				[
 					result ::= transformer(aTuple[index], index);
@@ -1437,7 +1439,7 @@ Semantic restriction "map_in parallel«_-way»through_" is
 	transformer : […]→any's type
 |
 	Require: transformer accepts tupleType (check indices);
-	If ⎣tupleType⎦ > 0 then
+	If ⌊tupleType⌋ > 0 then
 	[
 		If transformer's return type = ⊥ then
 		[
@@ -1547,12 +1549,14 @@ Public method "map_in parallel«_-way»through_" is
 	limit ::= optionalLimit[1] else [default maximum worker fibers];
 	lock ::= a non-reentrant mutex named "results mutex";
 	results : set := ∅;
+	nameSuffix ::= " from " ++ current fiber's name;
 	injector ::=
 		injector from 1 to |aSet| by 1 doing
 		[
 			index : natural number
 		|
-			current fiber's name := "parallel map fiber #" ++ “index”;
+			current fiber's name :=
+				"parallel map fiber #" ++ “index” ++ nameSuffix;
 			workUnitRunner(
 				[
 					result ::= transformer(aTuple[index]);
@@ -1585,7 +1589,7 @@ Semantic restriction "map_in parallel«_-way»through_" is
 	transformer : [⊥]→any's type
 |
 	Require: transformer accepts setType;
-	If ⎣setType⎦ > 0 then
+	If ⌊setType⌋ > 0 then
 	[
 		If transformer's return type = ⊥ then
 		[
@@ -1594,7 +1598,7 @@ Semantic restriction "map_in parallel«_-way»through_" is
 				\| ⊥"
 		];
 	];
-	{transformer's return type | 1..⎡setType⎤}
+	{transformer's return type | 1..⌈setType⌉}
 ];
 
 /**
@@ -1665,12 +1669,14 @@ Public method "map_in parallel«_-way»through_" is
 	limit ::= optionalLimit[1] else [default maximum worker fibers];
 	lock ::= a non-reentrant mutex named "results mutex";
 	results : map := {};
+	nameSuffix ::= " from " ++ current fiber's name;
 	injector ::=
 		injector from 1 to |aMap| by 1 doing
 		[
 			index : natural number
 		|
-			current fiber's name := "parallel map fiber #" ++ “index”;
+			current fiber's name :=
+				"parallel map fiber #" ++ “index” ++ nameSuffix;
 			workUnitRunner(
 				[
 					binding ::= bindings[index];
@@ -1704,7 +1710,7 @@ Semantic restriction "map_in parallel«_-way»through_" is
 	transformer : [⊥, ⊥]→any's type
 |
 	Require: transformer accepts mapType;
-	If ⎣mapType⎦ > 0 then
+	If ⌊mapType⌋ > 0 then
 	[
 		If transformer's return type = ⊥ then
 		[
@@ -1876,7 +1882,7 @@ Semantic restriction "filter_in parallel«_-way»by_" is
 		union ::= ∪ tupleType[1..|tupleType's leading types| + 1];
 		sizes ::=
 			if predicate's return type = false's type then [0's type]
-			else [[0..⎡tupleType⎤ + 1)];
+			else [[0..⌈tupleType⌉ + 1)];
 		<<>, union…|sizes>
 	]
 ];
@@ -1962,7 +1968,7 @@ Semantic restriction "filter_in parallel«_-way»by_" is
 	Require: predicate accepts setType;
 	if predicate's return type = true's type then [setType]
 	else if predicate's return type = false's type then [∅'s type]
-	else [{setType's element type|[0..⎡setType⎤ + 1)}]
+	else [{setType's element type|[0..⌈setType⌉ + 1)}]
 ];
 
 /**
@@ -2046,7 +2052,7 @@ Semantic restriction "filter_in parallel«_-way»by_" is
 	Require: predicate accepts mapType;
 	if predicate's return type = true's type then [mapType]
 	else if predicate's return type = false's type then [{}'s type]
-	else [{mapType's key type → mapType's value type|[0..⎡mapType⎤ + 1)}]
+	else [{mapType's key type → mapType's value type|[0..⌈mapType⌉ + 1)}]
 ];
 
 /**
@@ -2634,9 +2640,9 @@ Semantic restriction "map and filter_in parallel«_-way»by_" is
 	paramsType ::= accumulator's parameters' type;
 	<
 		<>,
-		cast accumulator[⎣paramsType⎦] into [t : function meta | t[1]]…
+		cast accumulator[⌊paramsType⌋] into [t : function meta | t[1]]…
 	|
-		[0..⎡tupleType⎤ + 1)
+		[0..⌈tupleType⌉ + 1)
 	>
 ];
 
@@ -2745,9 +2751,9 @@ Semantic restriction "map and filter_in parallel«_-way»by_" is
 	paramsType ::= accumulator's parameters' type;
 	<
 		<>,
-		cast accumulator[⎣paramsType⎦] into [t : function meta | t[1]]…
+		cast accumulator[⌊paramsType⌋] into [t : function meta | t[1]]…
 	|
-		[0..⎡tupleType⎤ + 1)
+		[0..⌈tupleType⌉ + 1)
 	>
 ];
 
@@ -2856,7 +2862,7 @@ Semantic restriction "map and filter_in parallel«_-way»by_" is
 	{
 		cast accumulator[2] into [t : function meta | t[1]]
 	|
-		[0..⎡setType⎤ + 1)
+		[0..⌈setType⌉ + 1)
 	}
 ];
 
@@ -2965,7 +2971,7 @@ Semantic restriction "map and filter_in parallel«_-way»by_" is
 			"repeatedly applied function to have return type ⊤"
 	];
 	valueType ::= cast accumulator[3] into [t : function meta | t[1]];
-	{mapType's key type → valueType | [0..⎡mapType⎤ + 1)}
+	{mapType's key type → valueType | [0..⌈mapType⌉ + 1)}
 ];
 
 /**

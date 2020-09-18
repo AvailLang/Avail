@@ -1,6 +1,6 @@
 /*
  * Early Enumeration Support.avail
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -61,20 +61,16 @@ Public method "_'s⁇instance" is
 ] : any;
 
 /**
- * Is {@param "value"} an instance of {@param "aType"}?
+ * Improve the bounds on metatypes.
  *
- * @method "_∈_"
- * @param "value" "any"
- * @param "aType" "type"
- * @returns "boolean"
- *          {@method "true"} if {@param "value"} is an instance of {@param
- *          "aType"}, {@method "false"} otherwise.
- * @category "Types" "Queries"
+ * @method "_'s⁇instance"
+ * @restricts "type's type"
  */
-Method "_∈_" is
+Semantic restriction "_'s⁇instance" is
 [
-	value : any,
-	aType : type
+	aMeta : type's type
 |
-	value's type ⊆ aType
+	result : type;
+	Cast aMeta's instance into [t : type | result := t;] else [];
+	result
 ];

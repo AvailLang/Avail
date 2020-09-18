@@ -1,6 +1,6 @@
 /*
  * Strings.avail
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,14 +54,6 @@ Uses
 	"Types",
 	"Variables"
 Names
-	/* Formatting. */
-	"format_with unchecked_",
-	"format_with_",
-	"format_with«…!::=_‡,»",
-	"format_with«_‡,»",
-	"partially format_with_",
-	"partially format_with«…::=_‡,»",
-
 	/* English language. */
 	"(A`|An)“_”«else_»",
 	"(The)“_”«else_»",
@@ -101,827 +93,6 @@ Names
 	/* Avail message metacharacter escaping. */
 	"_with Avail message⁇metacharacters escaped"
 Body
-
-/* These are the circled numbers. */
-circledNumbers ::=
-	"①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳㉑㉒㉓㉔㉕\
-	\|㉖㉗㉘㉙㉚㉛㉜㉝㉞㉟㊱㊲㊳㊴㊵㊶㊷㊸㊹㊺㊻㊼㊽㊾㊿";
-
-/* This is a map from circled numbers to their implied numeric values. */
-circledNumberValues ::= (circledNumbers zip 1 to 50)→map;
-
-"description" is a new atom;
-"text" is a new atom;
-"escape" is a new atom;
-interpolationMode ::= enumeration of {description, text, escape};
-
-/**
- * Answer the enumeration of variable interpolation modes:
- *
- * <ul>
- * <li>{@method "description"} : The result of converting the corresponding
- *     argument, which may be any value, to a string via {@method "“_”"} will be
- *     copied into the formatted output.</li>
- * <li>{@method "text"} : The corresponding argument is a string and should be
- *     copied directly into the formatted output.</li>
- * <li>{@method "escape"} : There is no corresponding argument. There is an
- *     escaped metacharacter at the format site that should be copied,
- *     unescaped, into the result.</li>
- * <ul>
- *
- * @method "interpolation mode"
- * @returns "{description, text, escape}ᵀ"
- */
-Private method "interpolation mode" is [interpolationMode];
-
-/**
- * Answer the type of a format site. Each instance is a 4-tuple whose elements
- * are:
- *
- * <ol>
- * <li>The format variable whose value should be interpolated at this site.</li>
- * <li>The variable interpolation type.</li>
- * <li>The start subscript of the site.</li>
- * <li>The end subscript of the site.</li>
- * </ol>
- *
- * @method "format site"
- * @returns "<string, interpolation mode, natural number, natural number…|4>"
- *          The tuple type described above.
- */
-Private method "format site" is
-[
-	<string, interpolation mode, natural number, natural number…|4>
-];
-
-/**
- * Answer the enumeration of format metacharacters:
- *
- * <ul>
- * <li>{@code "¢“"} : Begins a format site whose interpolation mode is
- *     {@method "description"}.</li>
- * <li>{@code "¢”"} : Ends a format site whose interpolation mode is {@method
- *     "description"}.</li>
- * <li>{@code "¢‘"} : Begins a format site whose interpolation mode is {@method
- *     "text"}.</li>
- * <li>{@code "¢’"} : Ends a format site whose interpolation mode is {@method
- *     "text"}.</li>
- * <li>{@code "¢`"} : Indicates a format site whose interpolation mode is
- *     {@method "$escape"}.</li>
- * <li>{@code "¢① .. ¢㊿"} : Indicates a positional format variable.</li>
- * </ul>
- *
- * @method "format metacharacters"
- * @returns "character's type"
- *          An enumeration of the characters listed above.
- */
-Private method "format metacharacters" is
-[
-	enumeration of ("“”‘’`" ++ circledNumbers)→set
-];
-
-/**
- * Compute and answer the tuple of format sites for the specified template.
- *
- * @method "format sites for_"
- * @param "template" "string"
- *        A template.
- * @returns "format site*"
- *          A tuple comprising the format sites for the specified template.
- */
-Private stable method "format sites for_" is
-[
-	template : string
-|
-	sites : <format site…|> := <>;
-	index : natural number := 1;
-	addSite ::=
-		[
-			closeDelimiter : character,
-			interpType : interpolation mode
-		|
-			start ::= index;
-			Do [ index++; ] while
-			[
-				If index > |template| then
-				[
-					early failure function(runaway-format-variable code)
-				];
-				template[index] ≠ closeDelimiter
-			];
-			If index - start = 1 then
-			[
-				early failure function(empty-format-variable code)
-			];
-			varName ::= template[start + 1..index - 1];
-			sites := eject sites ++ <<varName, interpType, start, index>>;
-		];
-	invalid ::= [early failure function(invalid-format-metacharacter-use code)];
-	While index ≤ |template| do
-	[
-		/* Handle a metacharacter. */
-		Cast template[index] into
-		[
-			metachar : format metacharacters
-		|
-			Choose metachar from format metacharacters where
-				¢‘ is [ addSite(¢’, text); ],
-				¢“ is [ addSite(¢”, description); ],
-				¢` is
-				[
-					start ::= (index++);
-					If index > |template|
-						∨ ¬template[index] ∈ format metacharacters
-					then
-					[
-						early failure function(
-							invalid-format-metacharacter-escape code)
-					];
-					escaped ::= <template[index]>;
-					sites := eject sites ++ <<escaped, escape, start, index>>;
-				],
-				¢’ is invalid,
-				¢” is invalid,
-				else
-				[
-					Assert: metachar ∈ circledNumberValues;
-					invalid()
-				];
-		]
-		/* The typical case: this is an ordinary character. */
-		else
-		[
-			/* No implementation required. */
-		];
-		/* Each case above must position `index` at the last character of
-		 * interest to it. The following statement skips that character. This
-		 * factoring ensures that progress is always made through the template.
-		 */
-		index++;
-	];
-	sites
-] : format site*;
-
-/**
- * Answer the result of partially formatting the specified template using format
- * variable bindings contained in the given map. If a format variable does not
- * have a corresponding binding in the map, then re-emit it into the (partially)
- * formatted result.
- *
- * A template intermixes raw character data with format variable interpolation
- * sites. An interpolation site begins with either the ¢‘ or ¢“ metacharacter
- * and ends with the corresponding close metacharacter, either ¢’ or ¢”,
- * respectively. An interpolation site may contain any character except the
- * expected close metacharacter. The contents are understood to name a variable
- * that may appear as a key within the specified map; the associated value is
- * this variable's value. If an interpolation site uses ¢“ (and ¢”), then the
- * value will be converted to a string via `“_”` when it is copied into the
- * result. If an interpolation site uses ¢‘ (and ¢’), then the value must be a
- * string and will be copied directly into the result. To escape a
- * metacharacter, precede it immediately by ¢`.
- *
- * For example:
- *
- *    {@code Assert:
- *        partially format "‘greeting’, ‘recipient’!\n"
- *            with {"greeting"→"Hello"}
- *        = "Hello, ‘recipient’!\n";
- *    Assert:
- *        partially format
- *            (partially format "‘greeting’, ‘recipient’!\n"
- *                with {"greeting"→"Hello"})
- *            with {"recipient"→"world"}
- *       = "Hello, world!\n";}
- *
- * @method "partially format_with_"
- * @param "template" "string"
- *        A template string.
- * @param "vars" "{string→any|}"
- *        A map from format variables to their bindings.
- * @returns "string"
- *          The result of partially formatting the template using the specified
- *          bindings.
- * @category "Formatting" "Strings"
- */
-Public stable method "partially format_with_" is
-[
-	template : string,
-	vars : {string→any|}
-|
-	sites ::= format sites for template;
-	formatted : string := "";
-	badType ::=
-		[early failure function(format-variable-interpolation-failed code)];
-	index : natural number := 1;
-	For each site of sites do
-	[
-		/* Append any characters between the last site and the previous site
-		 * onto the output.
-		 */
-		formatted := eject formatted ++ template[index..site[3] - 1];
-		/* Interpolate the variable. */
-		var ::= site[1];
-		interpolation ::= choose site[2] from interpolation mode where
-			description is
-			[
-				“vars[var] else ["“" ++ var ++ "”"]”
-			],
-			text is
-			[
-				If var ∈ vars ∧ ¬var ∈ string then badType;
-				cast vars[var] else ["‘" ++ var ++ "’"] into [ t : string | t ]
-			],
-			escape is
-			[
-				"`" ++ var
-			];
-		formatted := eject formatted ++ interpolation;
-		/* Update the template subscript (to point just beyond this site). */
-		index := site[4] + 1;
-	];
-	Assert: 1 ≤ index ≤ |template| + 1;
-	formatted := eject formatted ++ template[index..];
-	formatted
-] : string;
-
-/**
- * Compute and answer the minimum size of the result of formatting the specified
- * template.
- *
- * @method "minimum`|_after formatting`|"
- * @param "template" "string"
- *        A template.
- * @returns "whole number"
- *          The minimum size of the formatted string.
- */
-Private method "minimum`|_after formatting`|" is
-[
-	template : string
-|
-	left fold <|template|> ++ format sites for template through
-	[
-		site : format site,
-		partial : whole number
-	|
-		cast partial - (|site[1]| + 2) into [ t : whole number | t ]
-	]
-] : whole number;
-
-/**
- * @method "partially format_with_"
- * @restricts "string's type"
- * @restricts "{string→any|}'s type"
- */
-Semantic restriction "partially format_with_" is
-[
-	template : string's type,
-	vars : {string→any|}'s type
-|
-	if |template| = 1 then
-	[
-		<character… | minimum |template's instance after formatting|..>
-	]
-	else
-	[
-		⊤
-	]
-];
-
-/**
- * Answer the result of fully formatting the specified template using format
- * variable bindings contained in the given map. The map must contain bindings
- * for all variables embedded within the template.
- *
- * A template intermixes raw character data with format variable interpolation
- * sites. An interpolation site begins with either the ¢‘ or ¢“ metacharacter
- * and ends with the corresponding close metacharacter, either ¢’ or ¢”,
- * respectively. An interpolation site may contain any character except the
- * expected close metacharacter. The contents are understood to name a variable
- * that may appear as a key within the specified map; the associated value is
- * this variable's value. If an interpolation site uses ¢“ (and ¢”), then the
- * value will be converted to a string via `“_”` when it is copied into the
- * result. If an interpolation site uses ¢‘ (and ¢’), then the value must be a
- * string and will be copied directly into the result. To escape a
- * metacharacter, precede it immediately by ¢`.
- *
- * For example:
- *
- *    {@code Assert:
- *        format "‘greeting’, ‘recipient’!\n"
- *            with {"greeting"→"Hello", "recipient"→"world"}
- *        = "Hello, world!\n";}
- *
- * @method "format_with_"
- * @param "template" "string"
- *        A template string.
- * @param "vars" "{string→any|}"
- *        A map from format variables to their bindings. This map must include a
- *        binding for every variable mentioned within the template.
- * @returns "string"
- *          The result of formatting the template usings the specified bindings.
- * @category "Formatting" "Strings"
- */
-Public stable method "format_with_" is
-[
-	template : string,
-	vars : {string→any|}
-|
-	sites ::= format sites for template;
-	formatted : string := "";
-	missing ::= [early failure function(missing-format-variable-binding code)];
-	badType ::=
-		[early failure function(format-variable-interpolation-failed code)];
-	index : natural number := 1;
-	For each site of sites do
-	[
-		/* Append any characters between the last site and the previous site
-		 * onto the output.
-		 */
-		formatted := eject formatted ++ template[index..site[3] - 1];
-		/* Interpolate the variable. */
-		interpolation ::= choose site[2] from interpolation mode where
-			description is
-			[
-				value ::= vars[site[1]] else missing;
-				“value”
-			],
-			text is
-			[
-				value ::= vars[site[1]] else missing;
-				cast value into [ t : string | t ] else badType
-			],
-			escape is
-			[
-				site[1]
-			];
-		formatted := eject formatted ++ interpolation;
-		/* Update the template subscript (to point just beyond this site). */
-		index := site[4] + 1;
-	];
-	Assert: 1 ≤ index ≤ |template| + 1;
-	formatted := eject formatted ++ template[index..];
-	formatted
-] : string;
-
-/**
- * @method "format_with_"
- * @restricts "string's type"
- * @restricts "{string→any|}'s type"
- */
-Semantic restriction "format_with_" is
-[
-	template : string's type,
-	vars : {string→any|}'s type
-|
-	if |template| = 1 then
-	[
-		<character… | minimum |template's instance after formatting|..>
-	]
-	else
-	[
-		⊤
-	]
-];
-
-/**
- * Answer the name of the format variable that should be derived from the
- * specified token.
- *
- * @method "format variable for_"
- * @param "aToken" "token"
- * @returns "string"
- *          A format variable name.
- */
-Private method "format variable for_" is
-[
-	aToken : token
-|
-	cast aToken into
-	[
-		literal : literal token
-	|
-		value ::= literal's value;
-		cast value into [ t : string | t ]
-		else [ “value” ]
-	]
-	else
-	[
-		aToken's lexeme
-	]
-] : string;
-
-/**
- * Answer the result of partially formatting the specified template using
- * lexically specified format variable bindings. If a format variable does not
- * have a corresponding binding, then re-emit it into the (partially) formatted
- * result.
- *
- * A template intermixes raw character data with format variable interpolation
- * sites. An interpolation site begins with either the ¢‘ or ¢“ metacharacter
- * and ends with the corresponding close metacharacter, either ¢’ or ¢”,
- * respectively. An interpolation site may contain any character except the
- * expected close metacharacter. The contents are understood to name a variable
- * that may appear as a key within the specified map; the associated value is
- * this variable's value. If an interpolation site uses ¢“ (and ¢”), then the
- * value will be converted to a string via `“_”` when it is copied into the
- * result. If an interpolation site uses ¢‘ (and ¢’), then the value must be a
- * string and will be copied directly into the result. To escape a
- * metacharacter, precede it immediately by ¢`.
- *
- * For example:
- *
- *    {@code Assert:
- *        (partially format "‘greeting’, ‘recipient’!\n"
- *            with greeting ::= "Hello")
- *        = "Hello, “recipient”!\n";
- *    Assert:
- *        (partially format
- *            (partially format "‘greeting’, ‘recipient’!\n"
- *                with greeting ::= "Hello")
- *            with recipient ::= "world")
- *        = "Hello, world!\n";}
- *
- * The semantic restriction ensures that every lexically specified binding
- * corresponds to a format variable embedded within the template.
- *
- * @method "partially format_with«…::=_‡,»"
- * @param "template" "string"
- *        A template string.
- * @param "bindings" "<<token, any…|2>…|1..>"
- *        The format variable bindings.
- * @returns "string"
- *          The result of partially formatting the template usings the specified
- *          bindings.
- * @category "Formatting" "Strings"
- */
-Public stable method "partially format_with«…::=_‡,»" is
-[
-	template : string,
-	bindings : <<token, any…|2>…|1..>
-|
-	realBindings ::= map each binding in bindings through
-		[<format variable for binding[1], binding[2]>];
-	partially format template with realBindings→map
-] : string;
-
-/**
- * If the template is statically known, then ensure that 1) each lexical binding
- * references a valid format variable and 2) each format variable that uses
- * the $text interpolation mode is actually bound to a string.
- *
- * @method "partially format_with«…::=_‡,»"
- * @restricts "string's type"
- * @restricts "<<token, any…|2>…|1..>'s type"
- */
-Semantic restriction "partially format_with«…::=_‡,»" is
-[
-	templateType : string's type,
-	bindings : <<token, any…|2>…|1..>'s type
-|
-	If |templateType| = 1 then
-	[
-		template ::= templateType's instance;
-		sites ::= format sites for template;
-		templateVars ::= (stripe sites at 1)→set;
-		stringSites ::= select each site from sites where [site[2] = text];
-		stringVars ::= (stripe stringSites at 1)→set;
-		bindingVars : {string|} := ∅;
-		For each index from 1 to ⎣bindings⎦ do
-		[
-			binding ::= bindings[index];
-			var ::= format variable for binding[1]'s instance;
-			If var ∈ stringVars ∧ ¬binding[2] ⊆ string then
-			[
-				Reject parse, expected:
-					"format variable "
-					++ “var”
-					++ " ∈ string, not "
-					++ “binding[2]”
-					++ " (because at least one format site requires this)"
-			];
-			bindingVars := eject bindingVars + var;
-		];
-		unmentionedVars ::= bindingVars \ templateVars;
-		If unmentionedVars ≠ ∅ then
-		[
-			Reject parse, expected:
-				"only bindings for format variables, but bindings also include "
-				++ “unmentionedVars”
-		];
-		<character… | minimum |template after formatting|..>
-	]
-	else
-	[
-		⊤
-	]
-];
-
-/**
- * Answer the result of fully formatting the specified template using lexically
- * specified format variable bindings.
- *
- * A template intermixes raw character data with format variable interpolation
- * sites. An interpolation site begins with either the ¢‘ or ¢“ metacharacter
- * and ends with the corresponding close metacharacter, either ¢’ or ¢”,
- * respectively. An interpolation site may contain any character except the
- * expected close metacharacter. The contents are understood to name a variable
- * that may appear as a key within the specified map; the associated value is
- * this variable's value. If an interpolation site uses ¢“ (and ¢”), then the
- * value will be converted to a string via `“_”` when it is copied into the
- * result. If an interpolation site uses ¢‘ (and ¢’), then the value must be a
- * string and will be copied directly into the result. To escape a
- * metacharacter, precede it immediately by ¢`.
- *
- * For example:
- *
- *    {@code Assert:
- *        (format "‘greeting’, ‘recipient’!\n"
- *            with "greeting" ::= "Hello", "recipient" ::= "world")
- *        = "Hello, world!\n";}
- *
- * @method "format_with«…!::=_‡,»"
- * @param "template" "string"
- *        A template string.
- * @param "bindings" "<<token, any…|2>…|1..>"
- *        The complete format variable bindings.
- * @returns "string"
- *          The result of formatting the template usings the specified bindings.
- * @category "Formatting" "Strings"
- */
-Public stable method "format_with«…!::=_‡,»" is
-[
-	template : string,
-	bindings : <<token, any…|2>…|1..>
-|
-	realBindings ::= map each binding in bindings through
-		[<format variable for binding[1], binding[2]>];
-	format template with realBindings→map
-] : string;
-
-/**
- * If the template is statically known, then ensure that 1) each lexical binding
- * references a valid format variable, 2) each format variable is bound, and
- * 3) each format variable that uses the $text interpolation mode is actually
- * bound to a string.
- *
- * @method "format_with«…!::=_‡,»"
- * @restricts "string's type"
- * @restricts "<<token, any…|2>…|1..>'s type"
- */
-Semantic restriction "format_with«…!::=_‡,»" is
-[
-	templateType : string's type,
-	bindings : <<token, any…|2>…|1..>'s type
-|
-	If |templateType| = 1 then
-	[
-		template ::= templateType's instance;
-		sites ::= format sites for template;
-		templateVars ::= (stripe sites at 1)→set;
-		stringSites ::= select each site from sites where [site[2] = text];
-		stringVars ::= (stripe stringSites at 1)→set;
-		bindingVars : {string|} := ∅;
-		For each index from 1 to ⎣bindings⎦ do
-		[
-			binding ::= bindings[index];
-			var ::= format variable for binding[1]'s instance;
-			If var ∈ stringVars ∧ ¬binding[2] ⊆ string then
-			[
-				Reject parse, expected:
-					"format variable "
-					++ “var”
-					++ " ∈ string, not "
-					++ “binding[2]”
-					++ " (because at least one format site requires this)"
-			];
-			bindingVars := eject bindingVars + var;
-		];
-		unboundVars ::= templateVars \ bindingVars;
-		If unboundVars ≠ ∅ then
-		[
-			Reject parse, expected:
-				"bindings for format variables "
-				++ “unboundVars”
-		];
-		unmentionedVars ::= bindingVars \ templateVars;
-		If unmentionedVars ≠ ∅ then
-		[
-			Reject parse, expected:
-				"only bindings for format variables, but bindings also include "
-				++ “unmentionedVars”
-		];
-		<character… | minimum |template after formatting|..>
-	]
-	else
-	[
-		⊤
-	]
-];
-
-/**
- * Answer the result of fully formatting the specified template using format
- * variable bindings contained in the given tuple. The tuple must contain
- * bindings for all variables embedded within the template.
- *
- * A template intermixes raw character data with format variable interpolation
- * sites. An interpolation site begins with either the ¢‘ or ¢“ metacharacter
- * and ends with the corresponding close metacharacter, either ¢’ or ¢”,
- * respectively. An interpolation site must contain one of the fifty circled
- * number characters (¢①, ¢②, ..., ¢㊿). The circled number character is
- * understood to indicate a subscript within the specified tuple; the value at
- * this subscript is this variable's value. If an interpolation site uses ¢“
- * (and ¢”), then the value will be converted to a string via `primitive
- * description of_` when it is copied into the result. If an interpolation site
- * uses ¢‘ (and ¢’), then the value must be a string and will be copied directly
- * into the result. To escape a metacharacter, precede it immediately by ¢`.
- *
- * For example:
- *
- *    {@code Assert:
- *        format "‘①’, ‘②’!\n" with unchecked <"Hello", "world">
- *        = "Hello, world!\n";}
- *
- * @method "format_with unchecked_"
- * @param "template" "string"
- *        A template string.
- * @param "vars" "tuple"
- *        A tuple of format variable bindings. This tuple must include a
- *        binding (i.e., subscript) for every variable mentioned within the
- *        template.
- * @returns "string"
- *          The result of formatting the template using the specified bindings.
- * @category "Formatting" "Strings"
- */
-Public stable method "format_with unchecked_" is
-[
-	template : string,
-	vars : tuple
-|
-	sites ::= format sites for template;
-	formatted : string := "";
-	badName ::= [early failure function(invalid-format-variable code)];
-	missing ::= [early failure function(missing-format-variable-binding code)];
-	badType ::=
-		[early failure function(format-variable-interpolation-failed code)];
-	index : natural number := 1;
-	For each site of sites do
-	[
-		/* Append any characters between the last site and the previous site
-		 * onto the output.
-		 */
-		formatted := eject formatted ++ template[index..site[3] - 1];
-		/* Interpolate the variable. */
-		If |site[1]| > 1 then badName;
-		var ::= site[1][1];
-		interpolation ::= choose site[2] from interpolation mode where
-			description is
-			[
-				varIndex ::= circledNumberValues[var] else badName;
-				value ::= if varIndex ≤ |vars|
-					then [ vars[varIndex] ]
-					else missing;
-				“value”
-			],
-			text is
-			[
-				varIndex ::= circledNumberValues[var] else badName;
-				value ::= if varIndex ≤ |vars|
-					then [ vars[varIndex] ]
-					else missing;
-				cast value into [ t : string | t ] else badType
-			],
-			escape is
-			[
-				site[1]
-			];
-		formatted := eject formatted ++ interpolation;
-		/* Update the template subscript (to point just beyond this site). */
-		index := site[4] + 1;
-	];
-	Assert: 1 ≤ index ≤ |template| + 1;
-	formatted := eject formatted ++ template[index..];
-	formatted
-] : string;
-
-/**
- * @method "format_with unchecked_"
- * @restricts "string's type"
- * @restricts "tuple's type"
- */
-Semantic restriction "format_with unchecked_" is
-[
-	template : string's type,
-	vars : tuple's type
-|
-	if |template| = 1 then
-	[
-		<character… | minimum |template's instance after formatting|..>
-	]
-	else
-	[
-		⊤
-	]
-];
-
-/**
- * Answer the result of fully formatting the specified template using lexically
- * specified format variable bindings.
- *
- * A template intermixes raw character data with format variable interpolation
- * sites. An interpolation site begins with either the ¢‘ or ¢“ metacharacter
- * and ends with the corresponding close metacharacter, either ¢’ or ¢”,
- * respectively. An interpolation site must contain one of the fifty circled
- * number characters (¢①, ¢②, ..., ¢㊿). The circled number character is
- * understood to indicate a subscript within the specified tuple; the value at
- * this subscript is this variable's value. If an interpolation site uses ¢“
- * (and ¢”), then the value will be converted to a string via `primitive
- * description of_` when it is copied into the result. If an interpolation site
- * uses ¢‘ (and ¢’), then the value must be a string and will be copied directly
- * into the result. To escape a metacharacter, precede it immediately by ¢`.
- *
- * For example:
- *
- *    {@code Assert:
- *        format "‘①’, ‘②’!\n" with "Hello", "world"
- *        = "Hello, world!\n";}
- *
- * @method "format_with«_‡,»"
- * @param "template" "string"
- *        A template string.
- * @param "vars" "<any…|1..50>"
- *        A tuple of format variable bindings. This tuple must include a
- *        binding (i.e., subscript) for every variable mentioned within the
- *        template.
- * @returns "string"
- *          The result of formatting the template usings the specified bindings.
- * @category "Formatting" "Strings"
- */
-Public stable method "format_with«_‡,»" is
-[
-	template : string,
-	vars : <any…|1..50>
-|
-	format template with unchecked vars
-] : string;
-
-/**
- * If the template is statically known, then ensure that 1) each lexical binding
- * references a valid format variable, 2) each format variable is bound, and
- * 3) each format variable that uses the $text interpolation mode is actually
- * bound to a string.
- *
- * @method "format_with«_‡,»"
- * @restricts "string's type"
- * @restricts "<any…|1..50>'s type"
- */
-Semantic restriction "format_with«_‡,»" is
-[
-	templateType : string's type,
-	bindingsType : <any…|1..50>'s type
-|
-	if |templateType| = 1 then
-	[
-		template ::= templateType's instance;
-		sites ::= format sites for template;
-		templateVars ::= (stripe sites at 1)→set;
-		stringSites ::= select each site from sites where [site[2] = text];
-		stringVars ::= (stripe stringSites at 1)→set;
-		bindingVars ::= (map each index in 1 to ⎣bindingsType⎦ through
-			[
-				var ::= <circledNumbers[index]>;
-				bindingType ::= bindingsType[index];
-				If var ∈ stringVars ∧ ¬bindingType ⊆ string then
-				[
-					Reject parse, expected:
-						"format variable "
-						++ “var”
-						++ " ∈ string, not "
-						++ “bindingType”
-						++ " (because at least one format site requires this)"
-				];
-				var
-			])→set;
-		unboundVars ::= templateVars \ bindingVars;
-		If unboundVars ≠ ∅ then
-		[
-			Reject parse, expected:
-				"bindings for format variables "
-				++ “unboundVars”
-		];
-		unmentionedVars ::= bindingVars \ templateVars;
-		If unmentionedVars ≠ ∅ then
-		[
-			Reject parse, expected:
-				"only bindings for format variables, but bindings also include "
-				++ “unmentionedVars”
-		];
-		<character… | minimum |template after formatting|..>
-	]
-	else
-	[
-		⊤
-	]
-];
 
 /* Code point constants needed by `_(base_)`. */
 baseAlphabetTuple ::=
@@ -995,6 +166,95 @@ Public stable method "_(base_)" is
 ] : extended integer;
 
 /**
+ * Convert the specified integer to a string in the requested radix.  Allow up
+ * radix 36, using upper-case ASCII letters for digits ten or higher.  Negative
+ * numbers are preceded by a "-".  Only the value zero (0) can start with a zero
+ * digit ("0").
+ *
+ * @method "_(base_)"
+ * @param "n" "integer"
+ *        The integer to convert to a string.
+ * @param "base" "[2..36]"
+ *        The base for the output string. This determines which characters may
+ *        occur as digits in the output.
+ * @returns "string"
+ *          A string representation of the given integer n, in the given radix.
+ * @category "Numbers" "Integers" "Conversions" "Stringification"
+ */
+Public stable method "_(base_)" is
+[
+	n : integer,
+	base : [2..36]
+|
+	if n = 0 then
+	[
+		"0"
+	]
+	else
+	[
+		out : string := "";
+		residue : whole number := |n|;
+		While residue > 0 do
+		[
+			out := <baseAlphabetTuple[residue mod base + 1]> ++ eject out;
+			/* Note: truncating division */
+			residue := residue ÷ base;
+		];
+		if n < 0 then ["-" ++ out] else [out]
+	]
+] : string;
+
+Semantic restriction "_(base_)" is
+[
+	n : integer's type,
+	base : [2..36]'s type
+|
+	alphabet ::= (baseAlphabetTuple[1..⌈base⌉] → set)'s type's element type;
+	if (⌊n⌋ ≠ -∞ ∧ ⌈n⌉ ≠ ∞) then
+	[
+		/* The magnitudes have known bounds.  Bound the string length. */
+		values : {extended integer|} := ∅;
+		hasNeg ::= ⌊n⌋ < 0;
+		If hasNeg then
+		[
+			values := values ∪ {⌊n ∩ (-∞..-1]⌋, ⌈n ∩ (-∞..-1]⌉};
+		];
+		hasPos ::= ⌈n⌉ ≥ 0;
+		If hasPos then
+		[
+			values := values ∪ {⌊n ∩ [0..∞)⌋, ⌈n ∩ [0..∞)⌉};
+		];
+		strings : {string|} := ∅;
+		For each value in values do
+		[
+			cast value into [v : integer |
+				strings := strings ∪ {v(base ⌊base⌋), v(base ⌈base⌉)};];
+		];
+		stringType ::= strings' type's element type;
+		sizeRange ::= ||stringType||;
+		firstChar : character's type := ⊥;
+		If hasNeg then [firstChar := firstChar ∪ {¢-}ᵀ;];
+		If hasPos then [firstChar := firstChar ∪ alphabet;];
+		<firstChar, alphabet…|⌊sizeRange⌋..⌈sizeRange⌉>
+	]
+	else if n ⊆ [0..∞) then
+	[
+		/* Unbounded, but all positive. */
+		alphabet+
+	]
+	else if n ⊆ (-∞..-1] then
+	[
+		/* Unbounded, but all negative. */
+		<{¢-}ᵀ, alphabet…|1..>
+	]
+	else
+	[
+		/* Unbounded, positive and negative. */
+		<alphabet ∪ {¢-}ᵀ, alphabet… |1..>
+	]
+];
+
+/**
  * Convert the specified string to an integer.
  *
  * @method "_→_"
@@ -1043,8 +303,8 @@ Method "_≤_" is
 	[
 		cp1 ::= s1[index]'s code point;
 		cp2 ::= s2[index]'s code point;
-		If cp1 < cp2 then [Exit body with true]
-		else if cp1 > cp2 then [Exit body with false];
+		Exit body with true if cp1 < cp2;
+		Exit body with false if cp1 > cp2;
 	];
 	|s1| ≤ |s2|
 ] : boolean;
@@ -1066,52 +326,6 @@ Method "_<_" is
 	s2 : string
 |
 	s1 ≤ s2 ∧ s1 ≠ s2
-] : boolean;
-
-/**
- * Compare two strings lexicographically by Unicode code point.
- *
- * @method "_≥_"
- * @param "s1" "string"
- * @param "s2" "string"
- * @returns "boolean"
- *          {@method "true"} if {@param "s1"} collates after {@param "s2"},
- *          {@method "false"} otherwise.
- * @category "Strings" "Relations"
- */
-Method "_≥_" is
-[
-	s1 : string,
-	s2 : string
-|
-	$body : boolean;
-	For each index from 1 to |s1| min |s2| do
-	[
-		cp1 ::= s1[index]'s code point;
-		cp2 ::= s2[index]'s code point;
-		If cp1 > cp2 then [Exit body with true]
-		else if cp1 < cp2 then [Exit body with false];
-	];
-	|s1| ≥ |s2|
-] : boolean;
-
-/**
- * Compare two strings lexicographically by Unicode code point.
- *
- * @method "_>_"
- * @param "s1" "string"
- * @param "s2" "string"
- * @returns "boolean"
- *          {@method "true"} if {@param "s1"} collates strictly after
- *          {@param "s2"}, {@method "false"} otherwise.
- * @category "Strings" "Relations"
- */
-Method "_>_" is
-[
-	s1 : string,
-	s2 : string
-|
-	s1 ≥ s2 ∧ s1 ≠ s2
 ] : boolean;
 
 /**
@@ -1215,6 +429,49 @@ Public method "“_”«else_»(as simple list)" is
 ] : string;
 
 /**
+ * Describe a code point that's either the start or end of a range, or a single
+ * value.
+ *
+ * @param c The ({@code character}) to describe.
+ */
+Private method "range element string for_" is
+[
+	c : character
+|
+	m ::= {
+		¢" " → " ",
+		¢"-" → "\\(2D)",
+		¢"[" → "\\(5B)",
+		¢"]" → "\\(5D)",
+		¢"\n" → "\\n",
+		¢"\r" → "\\r",
+		¢"\t" → "\\t",
+		¢"\\" → "\\\\",
+		¢"\"" → "\\\""
+	};
+	m[c] else [
+		if (c's character type name ∈ {
+			"combining spacing mark",
+			"control",
+			"enclosing mark",
+			"format",
+			"non-spacing mark",
+			"paragraph separator",
+			"private use",
+			"space separator",
+			"surrogate",
+			"unassigned"}) then
+		[
+			"\\(" ++ c's code point (base 16) ++ ")"
+		]
+		else
+		[
+			<c>
+		]
+	]
+];
+
+/**
  * Stringify the argument.
  *
  * @method "“_”"
@@ -1227,6 +484,42 @@ Method "“_”" is
 	aSet : set
 |
 	if aSet is empty then ["∅"]
+	else if aSet ∈ {character|} then
+	[
+		chars ::= cast aSet into [x : {character|} | x];
+		index : natural number := 1;
+		out : string := "¢[";
+		unorderedString ::= map each c of chars→tuple through [c's code point];
+		sorted ::= quicksort unorderedString;
+		size ::= |sorted|;
+		position : natural number := 1;
+		Do
+		[
+			runStart ::= sorted[(position++)];
+			runEnd : code point := runStart;
+			While
+			[
+				position ≤ size ∧ sorted[position] = runEnd + 1
+			]
+			do
+			[
+				position++;
+				runEnd++;
+			];
+			out ++= range element string for runStart → character;
+			If runEnd ≠ runStart then
+			[
+				/* Skip the dash if the start and end are consecutive. */
+				If runEnd ≠ runStart + 1 then
+				[
+					out ++= "-";
+				];
+				out ++= range element string for runEnd → character;
+			];
+		]
+		while position ≤ size;
+		out ++ "]"
+	]
 	else
 	[
 		Assert: ¬aSet is empty;
@@ -1899,7 +1192,7 @@ Semantic restriction "“_”(hex)" is
 [
 	bytes : byte*'s type
 |
-	<<>, character… | [⎣bytes⎦ × 2 .. ⎡bytes⎤ × 2 + 1)>
+	<<>, character… | [⌊bytes⌋ × 2 .. ⌈bytes⌉ × 2 + 1)>
 ];
 
 hexChar ::= enumeration of ¢0 to ¢9 ++ ¢A to ¢F → set;
@@ -1942,12 +1235,15 @@ Public stable method "“_”(UUID)" is
 	uuid : UUID
 |
 	hex ::= “uuid” (hex);
-	format "‘①’-‘②’-‘③’-‘④’-‘⑤’" with
-		hex[1..8],
-		hex[9..12],
-		hex[13..16],
-		hex[17..20],
-		(hex[21..32])
+	hex[1..8]
+		++ "-"
+		++ (hex[9..12])
+		++ "-"
+		++ (hex[13..16])
+		++ "-"
+		++ (hex[17..20])
+		++ "-"
+		++ (hex[21..32])
 ] : nonempty string;
 
 Semantic restriction "“_”(UUID)" is [uuid : UUID's type | UUID string];
@@ -2039,12 +1335,10 @@ Public method "Require:_contains no Avail message⁇metacharacters" is
 	metachars ::= select each c from s where [c is an Avail metacharacter];
 	If ¬metachars is empty then
 	[
-		Reject parse, expected:
-			format
-				"string “①” not to contain Avail message metacharacters, but \
-				\|the following included characters are Avail message \
-				\|metacharacters: ‘②’"
-			with s, “metachars” (as simple list)
+		Immediately reject parse, expected:
+			"string " ++ “s” ++ " not to contain Avail message metacharacters, \
+				\|but the following included characters are Avail message \
+        		\|metacharacters: " ++ “metachars” (as simple list)
 	];
 ];
 
@@ -2064,7 +1358,7 @@ Public method "Require:_contains no Avail message⁇metacharacters" is
 |
 	If |sT| ≠ 1 then
 	[
-		Reject parse, expected:
+		Immediately reject parse, expected:
 			"string that forbids Avail message metacharacters to be \
 			\|statically known"
 	];

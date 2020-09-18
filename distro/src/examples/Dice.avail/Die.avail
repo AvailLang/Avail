@@ -1,6 +1,6 @@
 /*
  * Die.avail
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -97,7 +97,7 @@ Semantic restriction "_'s⁇faces" is
 [
 	aDie : standard die's type
 |
-	[1..⎡aDie's face count⎤+1)
+	[1..⌈aDie's face count⌉+1)
 ];
 
 /**
@@ -129,7 +129,7 @@ Semantic restriction "a|an standard⁇_-sided die" is
 |
 	extend standard die with
 		face count : count,
-		result type : [1..⎡count⎤+1)'s type
+		result type : [1..⌈count⌉+1)'s type
 ];
 
 "face tuple" is a field atom;
@@ -303,10 +303,10 @@ Semantic restriction "_d|D_" is
 |
 	dieType ::= extend standard die with
 		face count : n,
-		result type : [1..⎡n⎤+1)'s type;
+		result type : [1..⌈n⌉+1)'s type;
 	extend dice group with
 		members : <<>, dieType…|count>,
-		result type : [⎣count⎦..⎡count⎤×⎡n⎤ + 1)'s type
+		result type : [⌊count⌋..⌈count⌉×⌈n⌉ + 1)'s type
 ];
 
 /**
@@ -424,7 +424,7 @@ Method "«using_,»roll_" is
 	individualOutcomes ::=
 		map each aDie in someDice's members through [using rng, roll aDie];
 	tabulaRasa ::= a dice outcome with detailed outcome ::= {}, result ::= 0;
-	left fold <tabulaRasa> ++ individualOutcomes through
+	left fold tabulaRasa into individualOutcomes through
 	[
 		individual : dice outcome,
 		partial : dice outcome
@@ -501,7 +501,7 @@ Public method "_(drop the⁇lowest«_»?)" is
 	min ::= min map each aDie in members through [min aDie's faces];
 	max ::= max map each aDie in members through [max aDie's faces];
 	groupType ::= group's result type;
-	resultType ::= (⎣groupType⎦-min-1..⎡groupType⎤-max+1);
+	resultType ::= (⌊groupType⌋-min-1..⌈groupType⌉-max+1);
 	a drop dice expression with
 		drop group ::= group,
 		drop count ::= -count,
@@ -514,32 +514,32 @@ Semantic restriction "_(drop the⁇lowest«_»?)" is
 	optionalCount : whole number?'s type
 |
 	members ::= group's members;
-	count ::= if ⎣optionalCount⎦ = 1 then [optionalCount[1]] else [1's type];
-	If ⎣count⎦ > ⎡members⎤ then
+	count ::= if ⌊optionalCount⌋ = 1 then [optionalCount[1]] else [1's type];
+	If ⌊count⌋ > ⌈members⌉ then
 	[
 		Reject parse, expected:
 			format
 				"the minimum count (“①”) not to exceed the maximum number \
 				\|(“②”) of members of the group"
-			with ⎣count⎦, ⎡members⎤
+			with ⌊count⌋, ⌈members⌉
 	];
 	ranges : <extended integer's type…|> := <>;
 	For each index from 1 to |members' leading types| + 1 do
 	[
 		ranges := eject ranges ++ <members[index]'s result type's instance>;
 	];
-	min ::= quicksort map each r in ranges through [⎣r⎦];
-	max ::= quicksort map each r in ranges through [⎡r⎤];
+	min ::= quicksort map each r in ranges through [⌊r⌋];
+	max ::= quicksort map each r in ranges through [⌈r⌉];
 	minDelta ::=
-		cast min[1..⎡count⎤ min |min|]
+		cast min[1..⌈count⌉ min |min|]
 		into [t : <extended integer…|1..> | ∑ t]
 		else [0];
 	maxDelta ::=
-		cast max[1..⎣count⎦ min |max|]
+		cast max[1..⌊count⌋ min |max|]
 		into [t : <extended integer…|1..> | ∑ t]
 		else [0];
 	groupType ::= group's result type's instance;
-	resultType ::= (⎣groupType⎦-minDelta-1..⎡groupType⎤-maxDelta+1);
+	resultType ::= (⌊groupType⌋-minDelta-1..⌈groupType⌉-maxDelta+1);
 	extend drop dice expression with
 		drop group : group,
 		drop count : cast -count into [t : (-∞..-1]'s type | t],
@@ -573,7 +573,7 @@ Public method "_(drop the⁇highest«_»?)" is
 	min ::= min map each aDie in members through [min aDie's faces];
 	max ::= max map each aDie in members through [max aDie's faces];
 	groupType ::= group's result type;
-	resultType ::= (⎣groupType⎦-min-1..⎡groupType⎤-max+1);
+	resultType ::= (⌊groupType⌋-min-1..⌈groupType⌉-max+1);
 	a drop dice expression with
 		drop group ::= group,
 		drop count ::= count,
@@ -586,32 +586,32 @@ Semantic restriction "_(drop the⁇highest«_»?)" is
 	optionalCount : whole number?'s type
 |
 	members ::= group's members;
-	count ::= if ⎣optionalCount⎦ = 1 then [optionalCount[1]] else [1's type];
-	If ⎣count⎦ > ⎡members⎤ then
+	count ::= if ⌊optionalCount⌋ = 1 then [optionalCount[1]] else [1's type];
+	If ⌊count⌋ > ⌈members⌉ then
 	[
 		Reject parse, expected:
 			format
 				"the mininum count (“①”) not to exceed the maximum number \
 				\|(“②”) of members of the group"
-			with ⎣count⎦, ⎡members⎤
+			with ⌊count⌋, ⌈members⌉
 	];
 	ranges : <extended integer's type…|> := <>;
 	For each index from 1 to |members' leading types| + 1 do
 	[
 		ranges := eject ranges ++ <members[index]'s result type's instance>;
 	];
-	min ::= quicksort map each r in ranges through [⎣r⎦];
-	max ::= quicksort map each r in ranges through [⎡r⎤];
+	min ::= quicksort map each r in ranges through [⌊r⌋];
+	max ::= quicksort map each r in ranges through [⌈r⌉];
 	minDelta ::=
-		cast min[1..⎡count⎤ min |min|]
+		cast min[1..⌈count⌉ min |min|]
 		into [t : <extended integer…|1..> | ∑ t]
 		else [0];
 	maxDelta ::=
-		cast max[1..⎣count⎦ min |max|]
+		cast max[1..⌊count⌋ min |max|]
 		into [t : <extended integer…|1..> | ∑ t]
 		else [0];
 	groupType ::= group's result type's instance;
-	resultType ::= (⎣groupType⎦-minDelta-1..⎡groupType⎤-maxDelta+1);
+	resultType ::= (⌊groupType⌋-minDelta-1..⌈groupType⌉-maxDelta+1);
 	extend drop dice expression with
 		drop group : group,
 		drop count : count,
@@ -626,7 +626,7 @@ Method "«using_,»roll_" is
 	rng ::= optionalRNG[1] else [default pRNG];
 	outcome ::= using rng, roll expr's drop group;
 	allRolls ::=
-		left fold <<>> ++ outcome's detailed outcome's values through
+		left fold <> into outcome's detailed outcome's values through
 		[
 			rolls : <extended integer…|>,
 			partial : <extended integer…|>
@@ -679,7 +679,7 @@ Method "«using_,»roll_" is
 					if newRolls is empty then [eject details - aDie]
 					else [eject details + aDie → newRolls];
 				mustDrop := eject mustDrop - doomed;
-				If mustDrop is empty then [Exit loop];
+				Exit loop if mustDrop is empty;
 				intersection := mustDrop→set ∩ newRolls→set;
 			];
 		];

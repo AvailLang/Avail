@@ -1,6 +1,6 @@
 /*
  * Primitives.avail
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Versioned As: $$Revision$$
+ * * Last Generated: 8/23/20 2:40 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -47,19 +47,23 @@ Uses
 Names
 	"<_,_`…`|_>",
 	"Abstract method_is_",
-	"Accept parse",
 	"After the current module is unloaded,⁇do_",
 	"Alias_to_",
 	"Assert:_(_)",
 	"Attempt to join_",
 	"Breakpoint",
 	"Cast|cast_into_else_",
+	"Close module_",
+	"Copy macros from_to_",
 	"Crash:_",
 	"Error:_",
-	"Exit_with_",
+	"Exit_if_",
+	"Exit_with_if_",
 	"Export_as a new name",
 	"Forward method_is_",
 	"Grammatical restriction_is_",
+	"Immediately accept parse",
+	"Immediately reject parse«silently|weakly|moderately|strongly⁇»!,expected:_",
 	"In_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_",
 	"Invoke_with_,⁇forked at priority_",
 	"Invoke|invoke_with_",
@@ -68,7 +72,6 @@ Names
 	"Mark for_character|characters of read ahead",
 	"Park current fiber",
 	"Print:_",
-	"Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_",
 	"Remove current fiber[_]",
 	"Remove_[_]",
 	"Request termination of_",
@@ -78,6 +81,7 @@ Names
 	"Seal method_at_",
 	"Seal method|methods_at existing definitions",
 	"Semantic restriction_is_",
+	"Set name of function implementation_to_",
 	"Sleep for_millisecond|milliseconds",
 	"Terminate current fiber",
 	"Unname_from_",
@@ -90,6 +94,7 @@ Names
 	"_'s⁇atom",
 	"_'s⁇bindings",
 	"_'s⁇caller",
+	"_'s⁇character type number",
 	"_'s⁇code point",
 	"_'s⁇declaration",
 	"_'s⁇declared exceptions",
@@ -159,6 +164,7 @@ Names
 	"_=_",
 	"_>>_",
 	"_[_.._]",
+	"_[_.._]→_",
 	"_[_]",
 	"_[_]:=_",
 	"_[_]→_",
@@ -169,10 +175,12 @@ Names
 	"_bit∨_",
 	"_bit⊕_",
 	"_has definition for_",
+	"_has public name_",
 	"_has result",
 	"_has terminated",
 	"_is a primitive",
 	"_is a valid message",
+	"_is open for side effects",
 	"_is special",
 	"_is unambiguous",
 	"_mod_",
@@ -184,7 +192,7 @@ Names
 	"_reinterpreted as float",
 	"_reversed",
 	"_to_by_",
-	"_«[_]»(_.._)→_",
+	"_«[_]»[_.._]→_",
 	"_«[_]»→_",
 	"_×_",
 	"_÷_",
@@ -264,6 +272,7 @@ Names
 	"method for_",
 	"method_._,⁇parameterized by_",
 	"milliseconds since the Epoch",
+	"new anonymous module importing_",
 	"new atom named_",
 	"new explicit subclass atom named_",
 	"new_[_]",
@@ -275,7 +284,7 @@ Names
 	"primfail`«_:_`»",
 	"primitive description of_",
 	"read_/write_",
-	"restricted send_with_:_",
+	"restricted report and send_with_:_",
 	"semantic restrictions for_given_",
 	"send_with_:_",
 	"seq`«_`»",
@@ -286,7 +295,7 @@ Names
 	"↓_",
 	"∪_",
 	"∪_[_.._]",
-	"⎡_⎤",
-	"⎣_⎦"
+	"⌈_⌉",
+	"⌊_⌋"
 Body
 

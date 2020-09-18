@@ -1,6 +1,6 @@
 /*
  * Avail.js
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -93,7 +93,7 @@ function Avail (hostParam, portParam)
 	{
 		get: function ()
 		{
-			return 4;
+			return 5;
 		}
 	});
 

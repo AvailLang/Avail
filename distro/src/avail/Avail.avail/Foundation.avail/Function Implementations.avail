@@ -1,6 +1,6 @@
 /*
  * Function Implementations.avail
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -992,3 +992,4 @@ Public stable method "“_”(L1 instructions)" is
 |
 	“L1 disassembly of f's implementation” (L1 instructions)
 ];
+

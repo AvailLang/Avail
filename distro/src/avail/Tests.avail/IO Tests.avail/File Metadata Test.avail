@@ -1,6 +1,6 @@
 /*
  * File Metadata Test.avail
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -101,7 +101,7 @@ Test "file times" in file metadata test suite is
 		≤ now;
 	Require: m's creation time = fn's creation time;
 	Require: m's last modification time = fn's last modification time;
-	Require: m's last access time = fn's last access time;
+	Require: m's last access time ≤ fn's last access time;
 ];
 
 Test "file size" in file metadata test suite is

@@ -1,2 +1,8 @@
 # Default ignored files
-workspace.xml
+/jarRepositories.xml
+/libraries
+/modules
+/workspace.xml
+/modules.xml
+/compiler.xml
+/**/*.iml

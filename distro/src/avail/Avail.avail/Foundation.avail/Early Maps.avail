@@ -1,6 +1,6 @@
 /*
  * Early Maps.avail
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,7 +50,8 @@ Uses
 	"Variables"
 Names
 	"environment map",
-	"`${…}«else_»"
+	"`${…}«else_»",
+	"`${…$}«else_»"
 Body
 
 Method "{_→_`|_.._}" is stable at
@@ -127,7 +128,7 @@ Semantic restriction "_∈_" is
 	if keyType ∩ mapKeyType = ⊥ then [false's type]
 	else
 	[
-		if |mapKeyType| = ⎣mapType⎦ ∧ keyType ⊆ mapKeyType then [true's type]
+		if |mapKeyType| = ⌊mapType⌋ ∧ keyType ⊆ mapKeyType then [true's type]
 		else [boolean]
 	]
 ];
@@ -207,8 +208,8 @@ Semantic restriction "_+_→_" is
 	oldKeyType ::= mapType's key type;
 	newKeyType ::= oldKeyType ∪ keyType;
 	newValueType ::= mapType's value type ∪ valueType;
-	lower : [0..∞) := ⎣mapType⎦;
-	bound : [0..∞] := ⎡mapType⎤;
+	lower : [0..∞) := ⌊mapType⌋;
+	bound : [0..∞] := ⌈mapType⌉;
 	/* If the type intersection of the key type and the new key type is
 	 * ⊥, then the new key cannot be present in the map. Adjust the
 	 * cardinality accordingly.
@@ -241,8 +242,8 @@ Semantic restriction "_-_" is
 	mapType : map meta,
 	keyType : any meta
 |
-	lower : [0..∞) := ⎣mapType⎦;
-	upper : [0..∞] := ⎡mapType⎤ + 1;
+	lower : [0..∞) := ⌊mapType⌋;
+	upper : [0..∞] := ⌈mapType⌉ + 1;
 	/* If the type intersection of the key type and the new key type is
 	 * ⊥, then the new key cannot be present in the map. Adjust the
 	 * cardinality accordingly.
@@ -338,16 +339,20 @@ Public method "`${…}«else_»" is
 	aToken : token,
 	else : ([]→string)?
 |
-	environment map[aToken's lexeme]
-		else else[1]
-			else [invoke early failure function with <key-not-found code>]
+	environment map[aToken's lexeme] else
+	[
+		invoke
+			else[1] else
+				[[invoke early failure function with <key-not-found code>]]
+		with <>
+	]
 ] : string;
 
 /**
  * Answer the value of the requested environment variable.
  *
- * @method "`${…}"
- * @param "aLiteralToken" "literalToken"
+ * @method "`${…$}«else_»"
+ * @param "aToken" "literal token ⇒ nonempty string"
  *        The name of the environment variable.
  * @param "else" "[]→string"
  *        The {@type "function"} to evaluate to produce a default if the
@@ -355,14 +360,16 @@ Public method "`${…}«else_»" is
  * @returns "string"
  * @category "Maps" "Queries"
  */
-Public method "`${…}«else_»" is
+Public method "`${…$}«else_»" is
 [
-	aToken : literal token,
+	aToken : literal token ⇒ nonempty string,
 	else : ([]→string)?
 |
-	environment map[
-		cast aToken's value into [t : string | t]
-		else [aToken's lexeme]]
-	else else[1] else
-		[invoke early failure function with <key-not-found code>]
+	environment map[aToken's value] else
+	[
+		invoke
+			else[1] else
+				[[invoke early failure function with <key-not-found code>]]
+		with <>
+	]
 ] : string;

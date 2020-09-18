@@ -1,6 +1,6 @@
 /*
  * Early Math.avail
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,38 +49,38 @@ Names
 	"(_.._)",
 	"_is finite",
 	"_is infinite",
-	"⎣_⎦is inclusive",
-	"⎡_⎤is inclusive",
+	"⌊_⌋is inclusive",
+	"⌈_⌉is inclusive",
 	"max_",
 	"min_",
 	"«_‡max»",
 	"«_‡min»",
-	"_>_",
-	"_≥_",
+	"_②>_①",
+	"_②≥_①",
 
 	/* Exported for use by Math. */
 	"type promotion function for_"
 Body
 
+Alias "_②>_①" to atom for "_<_";
+
+Alias "_②≥_①" to atom for "_≤_";
+
 /**
  * Answer the semantic restriction function that should be used for each of
  * {@method "_'s⁇genuine lower bound"} and {@method "_'s⁇genuine upper bound"}.
  *
- * @method "integer range genuine«lower»?«upper»?\
-		\|bound semantic restriction function"
- * @param "wantsLower" "boolean"
- * @param "wantsUpper" "boolean"
+ * @method "integer range genuine«lower|upper»!\
+ *         \|bound semantic restriction function"
+ * @param "lowerOrUpper" "[1..2]"
  * @returns "[extended integer meta's type]→([-∞..∞])'s type"
  *    A function that strengthens the integer range bounds methods.
  */
-Private method "integer range genuine«lower»?«upper»?\
-		\|bound semantic restriction function" is
+Private method
+"integer range genuine«lower|upper»!bound semantic restriction function" is
 [
-	wantsLower : boolean,
-	wantsUpper : boolean
+	lowerOrUpper : integer range from 1 (inclusive=true) to 2 (inclusive=true)
 |
-	Assert: wantsLower ≠ wantsUpper
-		("exactly one of {\"lower\", \"upper\"} to follow \"genuine\"");
 	[
 		range : extended integer meta's type
 	|
@@ -92,10 +92,10 @@ Private method "integer range genuine«lower»?«upper»?\
 		/* Must accommodate ⊥. It answers ∞ for its lower bound and -∞ for its
 		 * upper bound.
 		 */
-		lower ::= if wantsUpper
+		lower ::= if lowerOrUpper = 2
 			then [ -∞ ]
 			else [ instance's genuine lower bound ];
-		upper ::= if wantsLower
+		upper ::= if lowerOrUpper = 1
 			then [ ∞ ]
 			else [ instance's genuine upper bound ];
 		integer range from lower (inclusive=true) to upper (inclusive=true)
@@ -130,14 +130,14 @@ Semantic restriction "_'s⁇genuine upper bound" is
  * argument from being ⊥. It is intended as a practical (but not universal)
  * replacement.
  *
- * @method "⎣_⎦"
+ * @method "⌊_⌋"
  * @param "range" "extended integer meta"
  *        An integral range type. Must not be ⊥.
  * @returns "extended integer"
  *          The lower bound of the argument.
  * @category "Integers" "Types" "Queries"
  */
-Method "⎣_⎦" is
+Method "⌊_⌋" is
 [
 	range : extended integer meta
 |
@@ -151,14 +151,14 @@ Method "⎣_⎦" is
  * argument from being ⊥. It is intended as a practical (but not universal)
  * replacement.
  *
- * @method "⎡_⎤"
+ * @method "⌈_⌉"
  * @param "range" "extended integer meta"
  *        An integral range type. Must not be ⊥.
  * @returns "extended integer"
  *          The upper bound of the argument.
  * @category "Integers" "Types" "Queries"
  */
-Method "⎡_⎤" is
+Method "⌈_⌉" is
 [
 	range : extended integer meta
 |
@@ -175,7 +175,7 @@ Method "⎡_⎤" is
  * "(-∞..0]"} will answer {@method "false"} if asked whether its lower bound is
  * inclusive.
  *
- * @method "⎣_⎦is inclusive"
+ * @method "⌊_⌋is inclusive"
  * @param "range" "extended integer meta"
  *        An integer range.
  * @returns "boolean"
@@ -183,11 +183,11 @@ Method "⎡_⎤" is
  *          {@method "true"} otherwise.
  * @category "Integers" "Types" "Queries"
  */
-Public method "⎣_⎦is inclusive" is
+Public method "⌊_⌋is inclusive" is
 [
 	range : extended integer meta
 |
-	bound ::= ⎣range⎦;
+	bound ::= ⌊range⌋;
 	bound's type ⊆ range
 ] : boolean;
 
@@ -200,7 +200,7 @@ Public method "⎣_⎦is inclusive" is
  * "[0..∞)"} will answer {@method "false"} if asked whether its upper bound is
  * inclusive.
  *
- * @method "⎡_⎤is inclusive"
+ * @method "⌈_⌉is inclusive"
  * @param "range" "extended integer meta"
  *        An integer range.
  * @returns "boolean"
@@ -208,17 +208,17 @@ Public method "⎣_⎦is inclusive" is
  *          {@method "true"} otherwise.
  * @category "Integers" "Types" "Queries"
  */
-Public method "⎡_⎤is inclusive" is
+Public method "⌈_⌉is inclusive" is
 [
 	range : extended integer meta
 |
-	bound ::= ⎡range⎤;
+	bound ::= ⌈range⌉;
 	bound's type ⊆ range
 ] : boolean;
 
 /**
  * Answer the semantic restriction function that should be used for each of
- * {@method "⎣_⎦"} and {@method "⎡_⎤"}.
+ * {@method "⌊_⌋"} and {@method "⌈_⌉"}.
  *
  * @method "integer range bound semantic restriction function"
  * @param "range" "extended integer meta's type"
@@ -240,8 +240,8 @@ Private method
 			[t : extended integer meta | t];
 		/* Specifically do not accommodate ⊥. */
 		integer range
-			from ⎣instance⎦ (inclusive=⎣instance⎦ is inclusive ∨ mode = 1)
-			to ⎡instance⎤ (inclusive=⎡instance⎤ is inclusive ∨ mode = 2)
+			from ⌊instance⌋ (inclusive=⌊instance⌋ is inclusive ∨ mode = 1)
+			to ⌈instance⌉ (inclusive=⌈instance⌉ is inclusive ∨ mode = 2)
 	]
 ];
 
@@ -250,10 +250,10 @@ Private method
  * this is the strongest possible type because the argument's subtypes have
  * lower and upper bounds drawn from the argument's entire range.
  *
- * @method "⎣_⎦"
+ * @method "⌊_⌋"
  * @restricts "extended integer meta's type"
  */
-Semantic restriction "⎣_⎦" is
+Semantic restriction "⌊_⌋" is
 	integer range lower bound semantic restriction function;
 
 /**
@@ -261,10 +261,10 @@ Semantic restriction "⎣_⎦" is
  * this is the strongest possible type because the argument's subtypes have
  * lower and upper bounds drawn from the argument's entire range.
  *
- * @method "⎡_⎤"
+ * @method "⌈_⌉"
  * @restricts "extended integer meta's type"
  */
-Semantic restriction "⎡_⎤" is
+Semantic restriction "⌈_⌉" is
 	integer range upper bound semantic restriction function;
 
 /**
@@ -302,8 +302,8 @@ Semantic restriction "[_.._]" is
 	upperBound : extended integer meta
 |
 	(integer range
-		from ⎣lowerBound⎦ (inclusive=⎣lowerBound⎦ is inclusive)
-		to ⎡upperBound⎤ (inclusive=⎡upperBound⎤ is inclusive)
+		from ⌊lowerBound⌋ (inclusive=⌊lowerBound⌋ is inclusive)
+		to ⌈upperBound⌉ (inclusive=⌈upperBound⌉ is inclusive)
 	)'s type
 ];
 
@@ -342,8 +342,8 @@ Semantic restriction "[_.._)" is
 	upperBound : extended integer meta
 |
 	(integer range
-		from ⎣lowerBound⎦ (inclusive=⎣lowerBound⎦ is inclusive)
-		to ⎡upperBound⎤ (inclusive=false))'s type
+		from ⌊lowerBound⌋ (inclusive=⌊lowerBound⌋ is inclusive)
+		to ⌈upperBound⌉ (inclusive=false))'s type
 ];
 
 /**
@@ -381,8 +381,8 @@ Semantic restriction "(_.._]" is
 	upperBound : extended integer meta
 |
 	(integer range
-		from ⎣lowerBound⎦ (inclusive=false)
-		to ⎡upperBound⎤ (inclusive=⎡upperBound⎤ is inclusive)
+		from ⌊lowerBound⌋ (inclusive=false)
+		to ⌈upperBound⌉ (inclusive=⌈upperBound⌉ is inclusive)
 	)'s type
 ];
 
@@ -421,8 +421,8 @@ Semantic restriction "(_.._)" is
 	upperBound : extended integer meta
 |
 	(integer range
-		from ⎣lowerBound⎦ (inclusive=false)
-		to ⎡upperBound⎤ (inclusive=false))'s type
+		from ⌊lowerBound⌋ (inclusive=false)
+		to ⌈upperBound⌉ (inclusive=false))'s type
 ];
 
 /**
@@ -557,42 +557,41 @@ Private method "minimum semantic restriction" is
 		numbers : <<>, extended integer…|[1..∞)>'s type
 	|
 		first ::= cast numbers[1] into [ t : extended integer meta | t ];
-		min : extended integer := ⎣first⎦;
-		minInclusive : boolean := ⎣first⎦ is inclusive;
-		max : extended integer := ⎡first⎤;
-		maxInclusive : boolean := ⎡first⎤ is inclusive;
-		limit ::= cast |numbers' leading types| + 1
-			into [ t : natural number | t ];
+		min : extended integer := ⌊first⌋;
+		minInclusive : boolean := ⌊first⌋ is inclusive;
+		max : extended integer := ⌈first⌉;
+		maxInclusive : boolean := ⌈first⌉ is inclusive;
+		limit ::= |numbers' leading types| + 1;
 		From 2 to limit do
 		[
 			index : natural number
 		|
 			value ::= cast numbers[index]
 				into [ t : extended integer meta | t ];
-			lower ::= ⎣value⎦;
+			lower ::= ⌊value⌋;
 			If lower = min then
 			[
-				minInclusive := minInclusive ∨ ⎣value⎦ is inclusive;
+				minInclusive := minInclusive ∨ ⌊value⌋ is inclusive;
 			]
 			else
 			[
 				If lower < min then
 				[
 					min := lower;
-					minInclusive := ⎣value⎦ is inclusive;
+					minInclusive := ⌊value⌋ is inclusive;
 				];
 			];
-			upper ::= ⎡value⎤;
+			upper ::= ⌈value⌉;
 			If upper = max then
 			[
-				maxInclusive := maxInclusive ∧ ⎡value⎤ is inclusive;
+				maxInclusive := maxInclusive ∧ ⌈value⌉ is inclusive;
 			]
 			else
 			[
 				If upper < max then
 				[
 					max := upper;
-					maxInclusive := ⎡value⎤ is inclusive;
+					maxInclusive := ⌈value⌉ is inclusive;
 				];
 			];
 			true
@@ -710,42 +709,41 @@ Private method "maximum semantic restriction" is
 		numbers : <<>, extended integer…|[1..∞)>'s type
 	|
 		first ::= cast numbers[1] into [t : extended integer meta | t];
-		min : extended integer := ⎣first⎦;
-		minInclusive : boolean := ⎣first⎦ is inclusive;
-		max : extended integer := ⎡first⎤;
-		maxInclusive : boolean := ⎡first⎤ is inclusive;
-		limit ::= cast |numbers' leading types| + 1
-			into [t : natural number | t];
+		min : extended integer := ⌊first⌋;
+		minInclusive : boolean := ⌊first⌋ is inclusive;
+		max : extended integer := ⌈first⌉;
+		maxInclusive : boolean := ⌈first⌉ is inclusive;
+		limit ::= |numbers' leading types| + 1;
 		From 2 to limit do
 		[
 			index : natural number
 		|
 			value ::= cast numbers[index]
 				into [t : extended integer meta | t];
-			lower ::= ⎣value⎦;
+			lower ::= ⌊value⌋;
 			If min = lower then
 			[
-				minInclusive := minInclusive ∧ ⎣value⎦ is inclusive;
+				minInclusive := minInclusive ∧ ⌊value⌋ is inclusive;
 			]
 			else
 			[
 				If min < lower then
 				[
 					min := lower;
-					minInclusive := ⎣value⎦ is inclusive;
+					minInclusive := ⌊value⌋ is inclusive;
 				];
 			];
-			upper ::= ⎡value⎤;
+			upper ::= ⌈value⌉;
 			If max = upper then
 			[
-				maxInclusive := maxInclusive ∨ ⎡value⎤ is inclusive;
+				maxInclusive := maxInclusive ∨ ⌈value⌉ is inclusive;
 			]
 			else
 			[
 				If max < upper then
 				[
 					max := upper;
-					maxInclusive := ⎡value⎤ is inclusive;
+					maxInclusive := ⌈value⌉ is inclusive;
 				];
 			];
 			true
@@ -814,48 +812,6 @@ Semantic restriction "max_" is extremum semantic restriction (double);
  * @restricts "<float…|2..>'s type"
  */
 Semantic restriction "«_‡max»" is extremum semantic restriction (double);
-
-/**
- * Is {@param "a"} greater than {@param "b"}?
- *
- * @method "_>_"
- * @param "a" "number"
- *        A number.
- * @param "b" "number"
- *        A number.
- * @returns "boolean"
- *          {@method "true"} if {@param "a"} is greater than {@param "b"},
- *          {@method "false"} otherwise.
- * @category "Mathematics" "Relations" "Numbers"
- */
-Public stable method "_>_" is
-[
-	a : number,
-	b : number
-|
-	b < a
-] : boolean;
-
-/**
- * Is {@param "a"} greater than or equal to {@param "b"}?
- *
- * @method "_≥_"
- * @param "a" "number"
- *        A number.
- * @param "b" "number"
- *        A number.
- * @returns "boolean"
- *          {@method "true"} if {@param "a"} is greater than or equal to {@param
- *          "b"}, {@method "false"} otherwise.
- * @category "Mathematics" "Relations" "Numbers"
- */
-Public stable method "_≥_" is
-[
-	a : number,
-	b : number
-|
-	b ≤ a
-] : boolean;
 
 /* Make addition and subtraction left-associative. */
 Invoke
@@ -1043,7 +999,7 @@ Method "_+_" is type promotion function for
 |
 	If {a, b} = {-∞, ∞} then
 	[
-		Reject parse, expected: cannotAddMessage
+		Immediately reject parse, expected: cannotAddMessage
 	];
 	a + b
 ];
@@ -1072,7 +1028,7 @@ Method "_-_" is type promotion function for
 |
 	If {a, b} ∈ {{-∞}, {∞}} then
 	[
-		Reject parse, expected: cannotSubtractMessage
+		Immediately reject parse, expected: cannotSubtractMessage
 	];
 	a - b
 ];
@@ -1102,7 +1058,7 @@ Method "_×_" is type promotion function for
 	terms ::= {a, b};
 	If terms = {0, ∞} ∨ terms = {0, -∞} then
 	[
-		Reject parse, expected: cannotMultiplyMessage
+		Immediately reject parse, expected: cannotMultiplyMessage
 	];
 	a × b
 ];
@@ -1131,12 +1087,12 @@ Method "_÷_" is type promotion function for
 |
 	If b = 0 ∧ a's type ⊆ extended integer then
 	[
-		Reject parse, expected: cannotDivideByZeroMessage
+		Immediately reject parse, expected: cannotDivideByZeroMessage
 	];
 	infinities ::= {∞, -∞};
 	If a ∈ infinities ∧ b ∈ infinities then
 	[
-		Reject parse, expected: cannotDivideTwoInfinitiesMessage
+		Immediately reject parse, expected: cannotDivideTwoInfinitiesMessage
 	];
 	a ÷ b
 ];

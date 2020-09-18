@@ -1,6 +1,6 @@
 /*
  * Early Control Structures.avail
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,9 +42,12 @@ Uses
 	"Early Literals",
 	"Early Variables"
 Names
-	"Ignore:_",
-	"From_to_do_",
 	"Cast|cast_into_",
+	"Exit_",
+	"Exit_with_",
+	"From_to_do_",
+	"Ignore:_",
+	"bootstrap restricted send_with_:_",
 	"(_)",
 	"((_))"
 Body
@@ -84,7 +87,8 @@ Public macro "(_)" is
 |
 	If expr ∈ super cast phrase then
 	[
-		Reject parse, expected: "argument of parentheses not to be a supercast"
+		Immediately reject parse, expected:
+			"argument of parentheses not to be a supercast"
 	];
 	expr
 ];
@@ -163,23 +167,17 @@ Public method "Cast|cast_into_" is
 	value : any,
 	accept : function accepting <⊥> and returning ⊤
 |
-	if value's type ⊆ accept's type[1] then
-	[
-		invoke accept with <value>;
-	]
-	else
-	[
-		valueDescription ::= primitive description of value;
-		acceptedDescription ::= primitive description of accept's type[1];
-		t : tuple := concatenate <
-			"Failed run-time cast: ",
-			valueDescription,
-			" was not an instance of ",
-			acceptedDescription>;
-		s : string;
-		s ?= t;
-		Assert: false (s)
-	];
+	Primitive CastInto (failureCode : natural number);
+	valueDescription ::= primitive description of value;
+	acceptedDescription ::= primitive description of accept's type[1];
+	t : tuple := concatenate <
+		"Failed run-time cast: ",
+		valueDescription,
+		" was not an instance of ",
+		acceptedDescription>;
+	s : string;
+	s ?= t;
+	Assert: false (s)
 ] : ⊤;
 
 /**
@@ -209,7 +207,7 @@ Semantic restriction "Cast|cast_into_else_" is
 		[
 			message : string
 		|
-			Reject parse, expected: message
+			Immediately reject parse, expected: message
 		];
 	];
 	If accept[1] ∩ value = ⊥ then
@@ -224,7 +222,7 @@ Semantic restriction "Cast|cast_into_else_" is
 		[
 			message : string
 		|
-			Reject parse, expected: message
+			Immediately reject parse, expected: message
 		];
 	];
 	accept's return type ∪ reject's return type
@@ -251,11 +249,11 @@ Semantic restriction "Cast|cast_into_" is
 			“value”,
 			" is a subtype of ",
 			“accept[1]”>;
-		cast messageTuple into
+		Cast messageTuple into
 		[
 			message : string
 		|
-			Reject parse, expected: message
+			Immediately reject parse, expected: message
 		];
 	];
 	If value ∩ accept[1] = ⊥ then
@@ -265,11 +263,11 @@ Semantic restriction "Cast|cast_into_" is
 			“value”,
 			" is not a supertype of ",
 			“accept[1]”>;
-		cast messageTuple into
+		Cast messageTuple into
 		[
 			message : string
 		|
-			Reject parse, expected: message
+			Immediately reject parse, expected: message
 		];
 	];
 	accept's return type
@@ -300,7 +298,8 @@ Public macro "((_))" is
 [
 	expr : expression phrase
 |
-	Reject parse, expected: "something other than directly nested parentheses"
+	Immediately reject parse,
+		expected: "something other than directly nested parentheses"
 ];
 
 /**
@@ -334,6 +333,179 @@ Semantic restriction "Invoke|invoke_with_" is
 	aFunction's return type
 ];
 
+zeroOrOne ::= integer range from 0 (inclusive = true) to 1 (inclusive = true);
+optionalSendPhraseType ::= <<>, send phrase… | zeroOrOne>;
+
+/**
+ * Create a send phrase from the supplied message name (atom), list phrase of
+ * arguments, and return type.  Strengthen the return type based on the
+ * applicable method definitions.  Also launch a fiber for each applicable
+ * semantic restriction and strengthen the return type with their eventual
+ * results.
+ *
+ * If any semantic restrictions reject parsing, reject it again immediately in
+ * the current fiber.  This ignores unwind blocks, so don't export this
+ * mechanism past Exceptions, where a safer form is created.
+ *
+ * @method "restricted send_with_:_"
+ * @param "message" "atom"
+ *        The atom that names the method to be invoked by the send phrase.
+ * @param "args" "list phrase"
+ *        The list phrase of phrases that are supplied as arguments of the send
+ *        phrase.
+ * @param "basicReturnType" "type"
+ *        The return type of the send phrase, prior to strengthening by
+ *        applicable method definitions and semantic restrictions.
+ * @returns "send phrase⇒⊤"
+ *        The strengthened send phrase.
+ * @raises "incorrect-number-of-arguments exception"
+ * @raises "incorrect-argument-type exception"
+ * @raises "incorrect-type-for-group exception"
+ * @raises "exclamation-mark-must-follow-an-alternation-group exception"
+ * @raises "incorrect-type-for-complex-group exception"
+ * @raises "incorrect-use-of-double-dagger exception"
+ * @raises "unbalanced-guillemets exception"
+ * @raises "method-name-is-not-canonical exception"
+ * @raises "expected-operator-after-backquote exception"
+ * @raises "incorrect-type-for-boolean-group exception"
+ * @raises "incorrect-type-for-counting-group exception"
+ * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
+ * @raises "question-mark-must-follow-a-simple-group exception"
+ * @raises "case-insensitive-expression-canonization exception"
+ * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
+ * @raises "alternative-must-not-contain-arguments exception"
+ * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
+ * @raises "incorrect-type-for-numbered-choice exception"
+ * @raises "dollar-sign-must-follow-an-ellipsis exception"
+ * @raises "loading-is-over exception"
+ */
+Public method "bootstrap restricted send_with_:_" is
+[
+	message : atom,
+	args : list phrase,
+	basicReturnType : type
+|
+	pair ::= restricted report and send message with args : basicReturnType;
+	optionalPhrase ::= cast pair[1] into [opt : optionalSendPhraseType | opt];
+	If optionalPhrase = <> then
+	[
+		report ::= cast pair[2] into [s : string | s];
+		Immediately reject parse strongly, expected: report
+	];
+	cast optionalPhrase[1] into [p : send phrase | p]
+] : send phrase;
+
+
+/**
+ * Reject the current parse unless the value supplied upon exit of a
+ * continuation conforms to its function type's return type.
+ *
+ * @method "Exit_with_if_"
+ * @restricts "continuation meta"
+ * @restricts "any meta"
+ */
+Semantic restriction "Exit_with_if_" is
+[
+	continuationType : continuation meta,
+	exitType : any meta,
+	conditionType : boolean's type
+|
+	functionType ::= continuationType's function type;
+	Unless exitType ⊆ functionType's return type then
+	[
+		Immediately reject parse, expected:
+			cast concatenate <
+				"continuation (",
+				“continuationType”,
+				") to accept value (",
+				“exitType”,
+				")"
+			> into [s : string | s]
+	];
+	⊤
+];
+
+exitIfAtom ::= atom for "Exit_if_";
+
+/**
+ * Exit the continuation unconditionally. Execution proceeds as though the
+ * continuation had just returned from its current function, and the current
+ * continuation is completely replaced by the specified continuation's resumed
+ * caller.
+ *
+ * @method "Exit_"
+ * @param "aContinuation" "$[…]→⊤"
+ *        The continuation to exit.
+ * @returns "⊥"
+ * @category "Control Structures" "Continuations"
+ */
+Public macro "Exit_" is
+[
+	aContinuation : expression phrase ⇒ $[…]→⊤
+|
+	trueLiteral ::= `true`("true")@0:0 → literal phrase;
+	sendPhrase ::= bootstrap restricted send exitIfAtom
+		with <aContinuation, trueLiteral> → list phrase
+		: ⊥;
+	cast sendPhrase into [x : send phrase ⇒ ⊥ | x]
+] : send phrase ⇒ ⊥;
+
+exitWithIfAtom ::= atom for "Exit_with_if_";
+
+/**
+ * Exit the continuation unconditionally. Execution proceeds as though the
+ * continuation had just returned from its current function, and the current
+ * continuation is completely replaced by the specified continuation's resumed
+ * caller.
+ *
+ * @method "Exit_with_"
+ * @param "aContinuation" "$[…]→⊤"
+ *        The continuation to exit.
+ * @param "value" "any"
+          The value to return from the continuation.
+ * @returns "⊥"
+ * @category "Control Structures" "Continuations"
+ */
+Public macro "Exit_with_" is
+[
+	aContinuation : expression phrase ⇒ continuation,
+	value : expression phrase ⇒ any
+|
+	trueLiteral ::= `true`("true")@0:0 → literal phrase;
+	sendPhrase ::= bootstrap restricted send exitWithIfAtom
+		with <aContinuation, value, trueLiteral> → list phrase
+		: ⊥;
+	cast sendPhrase into [x : send phrase ⇒ ⊥ | x]
+] : send phrase ⇒ ⊥;
+
+/**
+ * Reject the current parse unless the value supplied upon exit of a
+ * continuation conforms to its function type's return type.
+ *
+ * @method "Exit_with_"
+ * @restricts "continuation meta"
+ * @restricts "any meta"
+ */
+Semantic restriction "Exit_with_" is
+[
+	continuationType : continuation meta,
+	exitType : any meta
+|
+	functionType ::= continuationType's function type;
+	Unless exitType ⊆ functionType's return type then
+	[
+		Immediately reject parse, expected:
+			cast concatenate <
+				"continuation (",
+				“continuationType”,
+				") to accept value (",
+				“exitType”,
+				")"
+			> into [s : string | s]
+	];
+	⊥
+];
+
 /**
  * Basic counting loop with early exit support. Invoke {@param "action"} once
  * with each consecutive number in the range established by {@param "start"} and
@@ -357,20 +529,11 @@ Public method "From_to_do_" is
 	end : integer range from 0 (inclusive=true) to ∞ (inclusive=true),
 	action : function accepting <⊥> and returning boolean
 |
-	$loop;
-	If start ≤ end then
-	[
-		continue ::= invoke action with <start>;
-		If continue then
-		[
-			Restart loop with
-			<
-				cast start + 1 into [ i : natural number | i ],
-				end,
-				action
-			>
-		];
-	];
+	$loop : ⊤;
+	Exit loop if end < start;
+	shouldExit ::= invoke action with <start> = false;
+	Exit loop if shouldExit;
+	Restart loop with <start + 1, end, action>
 ] : ⊤;
 
 /**
@@ -391,8 +554,7 @@ Semantic restriction "From_to_do_" is
 	lower ::= start's genuine lower bound;
 	If lower ≤ end's genuine upper bound then
 	[
-		upper ::= cast end's genuine upper bound + 1
-			into [ t : extended integer | t ];
+		upper ::= end's genuine upper bound + 1;
 		subscripts ::= integer range
 			from lower (inclusive = lower's type ⊆ start)
 			to upper (inclusive = false);
@@ -415,11 +577,49 @@ Semantic restriction "From_to_do_" is
 			[
 				message : string
 			|
-				Reject parse, expected: message
+				Immediately reject parse, expected: message
 			]
 		];
 	];
 	⊤
+];
+
+
+/* An error message for "Restart_with_". */
+sizesIncompatibleMessage ::=
+	"size of argument tuple to be compatible with size of\
+	\| continuation's parameter tuple";
+
+/**
+ * Reject the current parse if the argument tuple cannot possibly match the
+ * continuation's parameter tuple.
+ *
+ * @method "Restart_with_"
+ * @restricts "continuation meta"
+ * @restricts "tuple meta"
+ */
+Semantic restriction "Restart_with_" is
+[
+	continuationType : continuation meta,
+	argumentsType : tuple meta
+|
+	functionType ::= continuationType's function type;
+	parametersType ::= functionType's parameters' type;
+	parametersSizes ::= ||parametersType||;
+	/* If `parameterSizes` = ⊥, then `parametersType` = ⊥. In this case, we
+	 * cannot statically ascertain anything interesting about the function and
+	 * the arguments to apply.
+	 */
+	If (parametersSizes = ⊥) = false then
+	[
+		argumentsSizes ::= ||argumentsType||;
+		validSizes ::= parametersSizes ∩ argumentsSizes;
+		If validSizes = ⊥ then
+		[
+			Immediately reject parse, expected: sizesIncompatibleMessage
+		];
+	];
+	⊥
 ];
 
 /* Don't permit (_)  as the second argument of  Assert:_(_). */

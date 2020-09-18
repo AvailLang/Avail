@@ -1,6 +1,6 @@
 /*
  * Common.avail
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,7 +44,7 @@ Names
 Body
 
 /**
- * Answer the field atom that represents an iterators's element type.
+ * Answer the field atom that represents an iterator's element type.
  *
  * @method "element type"
  * @returns "atom"

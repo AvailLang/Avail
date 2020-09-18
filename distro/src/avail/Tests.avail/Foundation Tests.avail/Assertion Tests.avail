@@ -1,6 +1,6 @@
 /*
  * Assertion Tests.avail
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,7 +46,7 @@ Test "basic assertions" in assertion test suite is
 [
 	Guard
 	[
-	 	Assert: 5 = 5;
+		Assert: 5 = 5;
 		Assert: "foo" = "foo";
 		Assert: true = true;
 		Assert: 5 < 6;
@@ -57,51 +57,51 @@ Test "basic assertions" in assertion test suite is
 
 Test "assertion failed exception" in assertion test suite is
 [
- 	Require:
- 	[
- 	 	func :: =
- 	 	[
- 	 	 	a : natural number,
- 	 	 	b : natural number
- 	 	 |
- 	 	 	a = b
- 	 	];
- 	 	Assert: func(5,6);
- 	] raises assertion-failed exception;
+	Require:
+	[
+		func :: =
+		[
+			a : natural number,
+			b : natural number
+		 |
+			a = b
+		];
+		Assert: func(5,6);
+	] raises assertion-failed exception;
 
 	Require:
- 	[
-	 	func :: =
-	 	[
-	 	 	a : boolean,
-	 	 	b : boolean
-	 	 |
-	 	 	a = b
-	 	];
-	 	Assert: func(true,false);
- 	] raises assertion-failed exception;
+	[
+		func :: =
+		[
+			a : boolean,
+			b : boolean
+		 |
+			a = b
+		];
+		Assert: func(true,false);
+	] raises assertion-failed exception;
 
 	Require:
- 	[
-	 	func :: =
- 	 	[
- 	 	 	a : integer,
- 	 	 	b : integer
- 	 	 |
- 	 	 	a ≥ b
- 	 	];
- 	 	Assert: func(-10,62);
- 	] raises assertion-failed exception;
+	[
+		func :: =
+		[
+			a : integer,
+			b : integer
+		 |
+			a ≥ b
+		];
+		Assert: func(-10,62);
+	] raises assertion-failed exception;
 
 	Require:
- 	[
-	 	func :: =
- 	 	[
- 	 	 	a : extended integer,
- 	 	 	b : extended integer
- 	 	 |
- 	 	 	a ≥ b
- 	 	];
- 	 	Assert: func(-∞,∞);
- 	] raises assertion-failed exception;
+	[
+		func :: =
+		[
+			a : extended integer,
+			b : extended integer
+		 |
+			a ≥ b
+		];
+		Assert: func(-∞,∞);
+	] raises assertion-failed exception;
 ];

@@ -1,6 +1,6 @@
 /*
  * Avail Tests.avail
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -63,6 +63,7 @@ Extends
 		"counting reader test suite",
 		"Data|data abstractions test suite",
 		"dates and times test suite",
+		"decompiler test suite",
 		"delimited reader test suite",
 		"exception test suite",
 		"file access rights test suite",
@@ -83,6 +84,34 @@ Extends
 		"observation test suite",
 		"optional test suite",
 		"pojo test suite",
+		"primitive atoms test suite",
+		"primitive characters test suite",
+		"primitive compiler test suite",
+		"primitive continuations test suite",
+		"primitive controlflow test suite",
+		"primitive doubles test suite",
+		"primitive fibers test suite",
+		"primitive files test suite",
+		"primitive floats test suite",
+		"primitive functions test suite",
+		"primitive general test suite",
+		"primitive hooks test suite",
+		"primitive integers test suite",
+		"primitive maps test suite",
+		"primitive methods test suite",
+		"primitive modules test suite",
+		"primitive numbers test suite",
+		"primitive objects test suite",
+		"primitive phrases test suite",
+		"primitive pojos test suite",
+		"primitive processes test suite",
+		"primitive rawfunctions test suite",
+		"primitive sets test suite",
+		"primitive sockets test suite",
+		"primitive tuples test suite",
+		"primitive types test suite",
+		"primitive variables test suite",
+		"Primitives|primitives test suite",
 		"pRNG test suite",
 		"set test suite",
 		"string test suite",
@@ -115,7 +144,8 @@ Entries
 	"Run all tests",
 	"Run all tests in_",
 	"Run all tests repeatedly",
-	"Run all tests in_repeatedly"
+	"Run all tests in_repeatedly",
+	"Time all tests_time|times"
 Body
 
 /**
@@ -139,15 +169,51 @@ Private method "Show all test suites" is
 
 /**
  * Generate a test suite-oriented report for all test suites. Emit it to
- * standard output.
+ * standard output.  Answer false if any tests failed, otherwise true.
  *
  * @entry
  * @method "Run all tests"
- * @returns "⊤"
+ * @returns "boolean"
  */
 Private method "Run all tests" is
 [
-	Print: test suite-oriented “report on all tests”;
+	report ::= report on all tests;
+	Print: test suite-oriented “report”;
+	|bad results of report's metrics| = 0
+] : boolean;
+
+
+/**
+ * Run all tests the specified number of times, producing a report of how long
+ * each successive run took.  Do not break this down by test suite or test.  If
+ * any test fails, print the report and abort the loop.
+ *
+ * @entry
+ * @method "Run all tests"
+ * @param "count" "natural number"
+          The number of times to run all tests.
+ * @returns "boolean"
+ */
+Private method "Time all tests_time|times" is
+[
+	count : natural number
+|
+	$escape : ⊤;
+	Repeat
+	[
+		startTime ::= high-precision timer value;
+		report ::= report on all tests;
+		elapsed ::= high-precision timer value - startTime;
+
+		metrics ::= report's metrics;
+		If any of metrics satisfies [m : unit test result |
+			m ∈ unit test failure] then
+		[
+			Print: test suite-oriented “report”;
+			Exit escape
+		];
+		Print: “elapsed ÷ 1000000” ++ " ms\n";
+	] count times;
 ] : ⊤;
 
 /**
@@ -164,7 +230,9 @@ Public method "Run all tests in_" is
 [
 	suiteID : atom
 |
-	Print: test suite-oriented “report on all tests in suiteID”;
+	report ::= report on all tests in suiteID;
+	Print: test suite-oriented “report”;
+	|bad results of report's metrics| = 0
 ];
 
 /**
@@ -179,9 +247,9 @@ Private method "Run all tests repeatedly" is
 	For each x from 1 to ∞ do
 	[
 		Print: "Starting run #" ++ “x” ++ "\n";
-		Run all tests;
+		Ignore: Run all tests;
 	]
-] : ⊤;
+] : ⊥;
 
 /**
  * Loop forever running the test repeatedly.  Print the count with each run.
@@ -197,9 +265,9 @@ Public method "Run all tests in_repeatedly" is
 	For each x from 1 to ∞ do
 	[
 		Print: "Starting run #" ++ “x” ++ "\n";
-		Run all tests in suiteID;
+		Ignore: Run all tests in suiteID;
 	]
-] : ⊤;
+] : ⊥;
 
 _compareTests ::=
 [
@@ -275,7 +343,7 @@ Private method "Debug tests" is
 			[
 				If currentEntry[1] = root test suite ID then
 				[
-					Run all tests;
+					Ignore: Run all tests;
 				]
 				else
 				[

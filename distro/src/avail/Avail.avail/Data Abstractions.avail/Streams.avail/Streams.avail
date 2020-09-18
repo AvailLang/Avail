@@ -1,6 +1,6 @@
 /*
  * Streams.avail
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,6 +40,7 @@ Extends
 		"For each…in|of_§do_",
 		"an empty stream",
 		"concatenate_",
+		"drain_",
 		"drop from_until_",
 		"drop from_while_",
 		"drop«at most»?_from_",
@@ -103,7 +104,7 @@ Private method "a stream prefix function" is
 	|
 		Declare loop variable elementPhrase as
 		[
-		 	aStreamType ::= aStream's semantic type;
+			aStreamType ::= aStream's semantic type;
 			aStreamType's element type's instance
 		];
 	]
@@ -122,8 +123,8 @@ Private method "a stream prefix function" is
  */
 Private method "body function(_,_)" is
 [
- 	anAtom : atom,
- 	baseReturnType : type
+	anAtom : atom,
+	baseReturnType : type
 |
 	[
 		elementPhrase : literal phrase ⇒ token,
@@ -150,7 +151,7 @@ Private method "body function(_,_)" is
 			«[
 			  	<cast declaration into [d : argument phrase | d]>
 			 |
-			 	statements
+				statements
 			 ] : blockReturnType»
 		>» : returnType
 	] : send phrase ⇒ ⊤
@@ -176,8 +177,8 @@ Private method "body function(_,_)" is
  * @returns "send phrase ⇒ ⊤"
  * @category "Control Structures" "Loops" "Readers" "Data Abstractions"
  */
- Macro "For each…in|of_§do_" is a stream prefix function,
- 	body function($"For each of⁇_do_", ⊤);
+Macro "For each…in|of_§do_" is a stream prefix function,
+	body function($"For each of⁇_do_", ⊤);
 
 /**
  * Answer a tuple containing the prefix of {@param "aStream"} that answered
@@ -306,11 +307,11 @@ Macro "reject each…from_§where_" is a stream prefix function,
 
 	newStatements ::= if size = 0 then [<>] else
 	[
-	 	end : whole number := cast size-1 into [w : whole number | w];
-	 	i : natural number := cast size into [n : natural number | n];
-	 	c : expression phrase⇒any := cast statements[i] into
-		 	[e : expression phrase⇒any | e];
-	 	statements[..end] ++ <restricted send $"¬_" with «<c>» : boolean>
+		end : whole number := cast size-1 into [w : whole number | w];
+		i : natural number := cast size into [n : natural number | n];
+		c : expression phrase⇒any := cast statements[i] into
+			[e : expression phrase⇒any | e];
+		statements[..end] ++ <restricted send $"¬_" with «<c>» : boolean>
 	];
 	blockReturnType ::= cast newStatements
 		into [t : phrase+ | t[|t|]'s semantic type]

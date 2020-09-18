@@ -1,0 +1,75 @@
+/*
+ * CharacterType Tests.avail
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "CharacterType Tests"
+Versions
+	"1.4.0"
+Uses
+	"Primitive Test Common"
+Body
+
+Test "CharacterType ok" in primitive characters test suite if supported is
+[
+	Require: ¢A's character type number = 1; // Unicode category Lu
+	Require: ¢q's character type number = 2; // Unicode category Ll
+	Require: ¢ǈ's character type number = 3; // Unicode category Lt
+	Require: ¢ʱ's character type number = 4; // Unicode category Lm
+	Require: ¢ƻ's character type number = 5; // Unicode category Lo
+	Require: 769 →character's character type number = 6; // Unicode category Mn
+	Require: 1160 →character's character type number = 7; // Unicode category Me
+	Require: ¢ः's character type number = 8; // Unicode category Mc
+	Require: ¢٢'s character type number = 9; // Unicode category Nd
+	Require: ¢6's character type number = 9; // Unicode category Nd
+	Require: ¢ᛯ's character type number = 10; // Unicode category Nl
+	Require: ¢¼'s character type number = 11; // Unicode category No
+	Require: 5760 →character's character type number = 12; // Unicode category Zs
+	Require: 8232 →character's character type number = 13; // Unicode category Zl
+	Require: 8233 →character's character type number = 14; // Unicode category Zp
+	Require: 3 →character's character type number = 15; // Unicode category Cc
+	Require: 173 →character's character type number = 16; // Unicode category Cf
+	// No Unicode category Co (17) category not defined
+	// No Unicode category Co (18) Private Use
+	// No Unicode category Co (19) Surrogate
+	Require: ¢-'s character type number = 20; // Unicode category Pd
+	Require: ¢('s character type number = 21; // Unicode category Ps
+	Require: ¢)'s character type number = 22; // Unicode category Pe
+	Require: ¢༻'s character type number = 22; // Unicode category Pe
+	Require: ¢﹏'s character type number = 23; // Unicode category Pc
+	Require: ¢#'s character type number = 24; // Unicode category Po
+	Require: ¢¬'s character type number = 25; // Unicode category Sm
+	Require: ¢¥'s character type number = 26; // Unicode category Sc
+	Require: ¢˘'s character type number = 27; // Unicode category Sk
+	Require: ¢௵'s character type number = 28; // Unicode category So
+	Require: ¢«'s character type number = 29; // Unicode category Pi
+	Require: ¢⸡'s character type number = 30; // Unicode category Pf
+];
+

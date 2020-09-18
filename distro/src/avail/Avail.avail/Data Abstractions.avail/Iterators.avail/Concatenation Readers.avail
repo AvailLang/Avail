@@ -1,6 +1,6 @@
 /*
  * Concatenation Readers.avail
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -178,7 +178,7 @@ Private method "concatenation semantic restriction" is
 		readers : reader+'s type
 	|
 		elementType : any's type's type := ⊥;
-		For each i from 1 to (⎣readers⎦ min (|readers' leading types| + 1)) do
+		For each i from 1 to (⌊readers⌋ min (|readers' leading types| + 1)) do
 		[
 			elementType := eject elementType ∪ readers[i]'s element type;
 		];

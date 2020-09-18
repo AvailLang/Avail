@@ -1,0 +1,13 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Indexed File Analyzer" type="JarApplication">
+    <option name="JAR_PATH" value="$PROJECT_DIR$/distro/lib/indexed-file-analyzer.jar" />
+    <option name="VM_PARAMETERS" value="-ea" />
+    <option name="PROGRAM_PARAMETERS" value="-?" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+    <option name="ALTERNATIVE_JRE_PATH" />
+    <module name="avail.indexed-file-analyzer.main" />
+    <method v="2">
+      <option name="Gradle.BeforeRunTask" enabled="true" tasks="assemble" externalProjectPath="$PROJECT_DIR$/indexed-file-analyzer" vmOptions="" scriptParameters="" />
+    </method>
+  </configuration>
+</component>

@@ -1,6 +1,6 @@
 /*
  * Collection Readers.avail
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -181,7 +181,7 @@ Semantic restriction "a reader over_" is
 [
 	tupleType : tuple's type
 |
-	limit ::= ⎡tupleType⎤ min (|tupleType's leading types| + 1);
+	limit ::= ⌈tupleType⌉ min (|tupleType's leading types| + 1);
 	extend tuple reader with
 		element type : ∪ tupleType[1..limit]'s type,
 		position variable : naturalNumberVarType,
@@ -213,7 +213,7 @@ Semantic restriction "a reader over_" is
 [
 	setType : set's type
 |
-	variableType ::= cast read [1..⎡setType⎤+1)/write natural number
+	variableType ::= cast read [1..⌈setType⌉+1)/write natural number
 		into [n : (↑natural number)'s type | n];
 	extend tuple reader with
 		element type : setType's element type's type,
@@ -245,7 +245,7 @@ Semantic restriction "a reader over_" is
 [
 	mapType : map's type
 |
-	variableType ::= cast read [1..⎡mapType⎤+1)'s type/write natural number
+	variableType ::= cast read [1..⌈mapType⌉+1)'s type/write natural number
 		into [n : (↑natural number)'s type | n];
 	elementType ::= <mapType's key type, mapType's value type…|2>;
 	extend tuple reader with

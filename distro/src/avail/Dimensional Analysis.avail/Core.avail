@@ -1,6 +1,6 @@
 /*
  * Core.avail
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -103,10 +103,6 @@ Names
 
 	/* Comparison. */
 	"_≍_",
-	"_<_",
-	"_≤_",
-	"_>_",
-	"_≥_",
 	"«_‡«=|≤|<»!»",
 	"«_‡«=|≥|>»!»",
 
@@ -483,7 +479,7 @@ Public method "unit map“_”" is
 			[
 				“a” (unit atom) ≤ “b” (unit atom)
 			];
-		expr ::= left fold <""> ++ sortedAtoms through
+		expr ::= left fold "" into sortedAtoms through
 			[
 				unitAtom : atom,
 				partial : string
@@ -1440,17 +1436,17 @@ Semantic restriction "_mod_" is
 |
 	a ::= q's extent;
 	numericType ::=
-		if ⎣b⎦ = ⎡b⎤
-			∧ ⎣a⎦ is finite
-			∧ ⎡a⎤ is finite
-			∧ ⎣a⎦ ÷ ⎣b⎦ (Avail) = ⎡a⎤ ÷ ⎣b⎦ (Avail)
+		if ⌊b⌋ = ⌈b⌉
+			∧ ⌊a⌋ is finite
+			∧ ⌈a⌉ is finite
+			∧ ⌊a⌋ ÷ ⌊b⌋ (Avail) = ⌈a⌉ ÷ ⌊b⌋ (Avail)
 		then
 		[
-			[⎣a⎦ mod ⎣b⎦ (Avail) .. ⎡a⎤ mod ⎣b⎦ (Avail)]
+			[⌊a⌋ mod ⌊b⌋ (Avail) .. ⌈a⌉ mod ⌊b⌋ (Avail)]
 		]
 		else
 		[
-			[0..⎡b⎤)
+			[0..⌈b⌉)
 		];
 	if |q's metric| = 1 then
 	[
@@ -1493,9 +1489,9 @@ Method "_^_(unit map)" is
 	unitMap ::= aUnit's unit map;
 	For each key → exponent of unitMap do
 	[
-	 	exponentType ::= exponent's type × power (Avail);
-		minExponent := eject minExponent min ⎣exponentType⎦;
-		maxExponent := eject maxExponent max ⎡exponentType⎤;
+		exponentType ::= exponent's type × power (Avail);
+		minExponent := eject minExponent min ⌊exponentType⌋;
+		maxExponent := eject maxExponent max ⌈exponentType⌉;
 	];
 	valueType ::= (minExponent - 1 (Avail) .. maxExponent + 1 (Avail));
 	{atom→valueType | |unitMap|'s type}
@@ -1637,22 +1633,22 @@ Semantic restriction "`|_`|" is
 /**
  * Compute and answer the floor of the argument.
  *
- * @method "⎣_⎦"
+ * @method "⌊_⌋"
  * @param "quantity" "dimensioned extended integer"
  *        An integral {@type "dimensioned quantity"}.
  * @returns "dimensioned extended integer"
  *          The floor of the argument.
  */
-Stable abstract method "⎣_⎦" is [dimensioned quantity]→dimensioned quantity;
+Stable abstract method "⌊_⌋" is [dimensioned quantity]→dimensioned quantity;
 
-Method "⎣_⎦" is
+Method "⌊_⌋" is
 [
 	quantity : dimensioned extended integer
 |
 	quantity
 ] : dimensioned extended integer;
 
-Semantic restriction "⎣_⎦" is
+Semantic restriction "⌊_⌋" is
 [
 	valueType : dimensioned extended integer's type
 |
@@ -1662,22 +1658,22 @@ Semantic restriction "⎣_⎦" is
 /**
  * Compute and answer the ceiling of the argument.
  *
- * @method "⎣_⎦"
+ * @method "⌊_⌋"
  * @param "quantity" "dimensioned extended integer"
  *        An integral {@type "dimensioned quantity"}.
  * @returns "dimensioned extended integer"
  *          The ceiling of the argument.
  */
-Stable abstract method "⎡_⎤" is [dimensioned quantity]→dimensioned quantity;
+Stable abstract method "⌈_⌉" is [dimensioned quantity]→dimensioned quantity;
 
-Method "⎡_⎤" is
+Method "⌈_⌉" is
 [
 	quantity : dimensioned extended integer
 |
 	quantity
 ] : dimensioned extended integer;
 
-Semantic restriction "⎡_⎤" is
+Semantic restriction "⌈_⌉" is
 [
 	valueType : dimensioned extended integer's type
 |
@@ -1691,7 +1687,7 @@ Semantic restriction "⎡_⎤" is
 	jux      ::= {"__"};
 	power    ::= {"_^_"};
 	abs      ::= {"`|_`|"};
-	bounds   ::= {"⎣_⎦", "⎡_⎤"};
+	bounds   ::= {"⌊_⌋", "⌈_⌉"};
 
 	/* Establish the standard grammatical rules for arithmetic. */
 	Grammatical restriction sum is <∅, sum>;
@@ -1737,7 +1733,7 @@ Semantic restriction "⎡_⎤" is
  * @raises "incompatible-quantities exception"
  *         If the arguments are incompatible.
  */
-Public method "_<_" is
+Method "_<_" is
 [
 	a : dimensioned quantity,
 	b : dimensioned quantity
@@ -1761,61 +1757,13 @@ Public method "_<_" is
  * @raises "incompatible-quantities exception"
  *         If the arguments are incompatible.
  */
-Public method "_≤_" is
+Method "_≤_" is
 [
 	a : dimensioned quantity,
 	b : dimensioned quantity
 |
 	Require: a and b are compatible;
 	a's extent ≤ b's extent
-] : boolean;
-
-/**
- * Is {@param "a"} > {@param "b"}?
- *
- * @category "Dimensional Analysis"
- * @method "_>_"
- * @param "a" "dimensioned quantity"
- *        A {@type "dimensioned quantity"}.
- * @param "b" "dimensioned quantity"
- *        A {@type "dimensioned quantity"}.
- * @returns "boolean"
- *          {@method "true"} if {@param "a"} > {@param "b"}, {@method "false"}
- *          otherwise.
- * @raises "incompatible-quantities exception"
- *         If the arguments are incompatible.
- */
-Public method "_>_" is
-[
-	a : dimensioned quantity,
-	b : dimensioned quantity
-|
-	Require: a and b are compatible;
-	a's extent > b's extent
-] : boolean;
-
-/**
- * Is {@param "a"} ≥ {@param "b"}?
- *
- * @category "Dimensional Analysis"
- * @method "_≥_"
- * @param "a" "dimensioned quantity"
- *        A {@type "dimensioned quantity"}.
- * @param "b" "dimensioned quantity"
- *        A {@type "dimensioned quantity"}.
- * @returns "boolean"
- *          {@method "true"} if {@param "a"} ≥ {@param "b"}, {@method "false"}
- *          otherwise.
- * @raises "incompatible-quantities exception"
- *         If the arguments are incompatible.
- */
-Public method "_≥_" is
-[
-	a : dimensioned quantity,
-	b : dimensioned quantity
-|
-	Require: a and b are compatible;
-	a's extent ≥ b's extent
 ] : boolean;
 
 Private method "comparison restriction function" is
@@ -1833,8 +1781,8 @@ Semantic restriction "_=_" is comparison restriction function;
 Semantic restriction "_≠_" is comparison restriction function;
 Semantic restriction "_<_" is comparison restriction function;
 Semantic restriction "_≤_" is comparison restriction function;
-Semantic restriction "_>_" is comparison restriction function;
-Semantic restriction "_≥_" is comparison restriction function;
+Semantic restriction "_②>_①" is comparison restriction function;
+Semantic restriction "_②≥_①" is comparison restriction function;
 
 Semantic restriction "«_‡=»" is
 [
@@ -1968,7 +1916,7 @@ Private method "inequality chain restriction function" is
 	[
 		args : <<dimensioned quantity, [1..3]…|1..2>…|3..∞>'s type
 	|
-		exactSize ::= ⎣args⎦ - 1 (Avail);
+		exactSize ::= ⌊args⌋ - 1 (Avail);
 		allEquals : boolean := true;
 		ref ::= args[1][1];
 		For each index from 1 to exactSize do
@@ -2002,9 +1950,9 @@ Semantic restriction "«_‡«=|≥|>»!»" is
 [
 	binary ::=
 		{
-			$"_=_", $"_≤_", $"_<_", $"_≥_", $"_>_",
+			$"_=_", $"_≤_", $"_<_", $"_②≥_①", $"_②>_①",
 			Foundation $"_<_", Foundation $"_≤_",
-			Foundation $"_>_", Foundation $"_≥_"
+			Foundation $"_②>_①", Foundation $"_②≥_①"
 		};
 	chains ::=
 		{
@@ -2082,13 +2030,10 @@ Public stable method "_converted to_" is
 	key ::= <quantity's metric, targetUnit>;
 	converter ::= all converters[key] else
 		[
-			If quantity's metric = targetUnit then [Exit body with quantity]
-			else
-			[
-				Raise a no-such-conversion exception with
-					source unit ::= key[1],
-					target unit ::= key[2]
-			]
+			Exit body with quantity if quantity's metric = targetUnit;
+			Raise a no-such-conversion exception with
+				source unit ::= key[1],
+				target unit ::= key[2]
 		];
 	converter(quantity, targetUnit)
 ] : dimensioned quantity;
@@ -2220,10 +2165,7 @@ Semantic restriction "Conversion method is_,⁇inverse is_" is
 	inverseType : unit conversion function's type
 |
 	$body : ⊤'s type;
-	If ⊥ ∈ {functionType[1], functionType[2]} then
-	[
-		Exit body with ⊤
-	];
+	Exit body with ⊤ if ⊥ ∈ {functionType[1], functionType[2]};
 	Unless functionType[1] ⊆ dimensioned quantity ∧ functionType[2] ⊆ unit then
 	[
 		Reject parse, expected:

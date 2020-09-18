@@ -1,6 +1,6 @@
 /*
  * Perception.avail
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -109,7 +109,7 @@ Private method "nearby super bat swarm message" is
 		"An unusual odor sticks in your nose.\n",
 		"Your nose hairs are aquiver.\n",
 		"You hear the beating of wings.\n",
-		"Your feel a small draft.\n"
+		"You feel a small draft.\n"
 	>
 ] : string;
 

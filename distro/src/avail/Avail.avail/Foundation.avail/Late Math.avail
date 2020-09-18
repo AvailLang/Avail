@@ -1,6 +1,6 @@
 /*
  * Late Math.avail
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,8 +54,11 @@ Uses
 	"Early Tuples",
 	"Enumeration Support",
 	"Exceptions",
+	"Lexers",
 	"Literals",
+	"Maps",
 	"Objects",
+	"Phrases",
 	"Sets",
 	"Strings",
 	"Tuples",
@@ -66,14 +69,25 @@ Names
 	"_→_bytes",
 	"an integer from_",
 	"an unsigned integer from_",
+	"log_of_",
 	"low_bits of_",
 	"_(decimal)",
+	"π",
 
 	/* Compound assignment. */
 	"_↑+=_", "_+=_",
 	"_↑-=_", "_-=_",
 	"_↑×=_", "_×=_",
-	"_↑÷=_", "_÷=_"
+	"_↑÷=_", "_÷=_",
+
+	/* Number theory and primality testing. */
+	"⌊√_⌋",
+	"_is a perfect square",
+	"factor_",
+	"prime factorization of_",
+	"_^_mod_",
+	"_is a strong probable prime to base_",
+	"_is prime"
 Body
 
 cannotRaiseZeroToZero ::= "either base or exponent not to be 0";
@@ -175,14 +189,18 @@ Private method "exponentiation type promotion function for_" is
 ];
 
 /**
- * Establish type promotion rules for exponentiation. Also handle instance
- * types.
+ * Compute and answer the integer range type of the exponentiation of the
+ * argument types.
  *
  * @method "_^_"
- * @restricts "number"
- * @restricts "number"
+ * @param "a" "number's type"
+ * @param "b" "number's type"
+ * @returns "number's type"
+ *          The narrowest number range type general enough to hold all possible
+ *          exponentiations of the arguments' instances.
+ * @category "Mathematics" "Types"
  */
-Semantic restriction "_^_" is exponentiation type promotion function for
+Method "_^_" is exponentiation type promotion function for
 [
 	a : number,
 	b : number
@@ -208,6 +226,17 @@ Semantic restriction "_^_" is exponentiation type promotion function for
 	a ^ b
 ];
 
+/**
+ * Establish type promotion rules for exponentiation. Also handle instance
+ * types.
+ *
+ * @method "_^_"
+ * @restricts "number"
+ * @restricts "number"
+ */
+Semantic restriction "_^_" is
+    [a : number's type, b : number's type | a ^ b];
+
 Method "_^_" is
 [
 	base : extended integer,
@@ -218,8 +247,40 @@ Method "_^_" is
 	if base = 0 then [0] else [∞]
 ] : {0, ∞}ᵀ;
 
-Forward method "_recursive^_"
-	is [extended integer, whole number]→extended integer;
+/**
+ * Compute and answer the result of exponentiating {@param "base"} by {@param
+ * "exponent"}, and multiplying it by {@param "accumulator"}. Do not complain
+ * about indeterminate values, under the assumption that those are dealt with by
+ * the actual {@param "_^_"} method.
+ *
+ * @method "_simple^_onto_"
+ * @param "base" "extended integer"
+ * @param "exponent" "whole number"
+ * @param "accumulator" "extended integer"
+ * @returns "extended integer"
+ *          The result of raising {@param "base"} to the {@param "exponent"}
+ *          power.
+ * @category "Mathematics" "Numbers"
+ */
+Private method "_simple^_onto_" is
+[
+	base : integer,
+	exponent : whole number,
+	accumulator : integer
+|
+	$loop : extended integer;
+	newProduct ::= if exponent bit∧ 1 = 0 then
+	[
+		accumulator
+	]
+	else
+	[
+		accumulator × base
+	];
+	Exit loop with newProduct if exponent ≤ 1;
+	baseSquared ::= base × base;
+	Restart loop with <baseSquared, exponent >> 1, newProduct>
+] : extended integer;
 
 Method "_^_" is
 [
@@ -240,39 +301,20 @@ Method "_^_" is
 		];
 		1
 	]
-	else
+	else if base = ∞ then
 	[
-		intermediate ::= (base × base) recursive^ (exponent ÷ 2);
-		if exponent is odd then [ intermediate × base ] else [ intermediate ]
+		∞
 	]
-] : extended integer;
-
-/**
- * Compute and answer the result of exponentiating {@param "base"} by {@param
- * "exponent"}. Do not complain about indeterminate values, under the assumption
- * that those are dealt with by the actual {@param "_^_"} method.
- *
- * @method "_recursive^_"
- * @param "base" "extended integer"
- * @param "exponent" "whole number"
- * @returns "extended integer"
- *          The result of raising {@param "base"} to the {@param "exponent"}
- *          power.
- * @category "Mathematics" "Numbers"
- */
-Private method "_recursive^_" is
-[
-	base : extended integer,
-	exponent : whole number
-|
-	if exponent = 0 then
+	else if base = -∞ then
 	[
-		1
+		if exponent is odd then [-∞] else [∞]
 	]
 	else
 	[
-		intermediate ::= (base × base) recursive^ (exponent ÷ 2);
-		if exponent is odd then [ intermediate × base ] else [ intermediate ]
+		integerBase ::= base ?→ integer;
+		(integerBase × integerBase)
+			simple^ (exponent >> 1)
+			onto if exponent is odd then [integerBase] else [1]
 	]
 ] : extended integer;
 
@@ -323,26 +365,26 @@ Method "_^_" is
 	power : whole number's type
 |
 	interestingBases ::= {
-		⎣base⎦,
-		⎣base⎦ + 1,
+		⌊base⌋,
+		⌊base⌋ + 1,
 		-2,
 		-1,
 		0,
 		1,
 		2,
-		⎡base⎤ - 1,
-		⎡base⎤
+		⌈base⌉ - 1,
+		⌈base⌉
 	} → tuple;
 	interestingPowers ::= {
-		⎣power⎦,
-		⎣power⎦ + 1,
+		⌊power⌋,
+		⌊power⌋ + 1,
 		2,
 		3,
-		⎡power⎤ - 1 max 0,
-		⎡power⎤
+		⌈power⌉ - 1 max 0,
+		⌈power⌉
 	} → tuple;
-	augmentedBase ::= [⎣base⎦ .. ⎡base⎤];
-	augmentedPower ::= [⎣power⎦ .. ⎡power⎤];
+	augmentedBase ::= [⌊base⌋ .. ⌈base⌉];
+	augmentedPower ::= [⌊power⌋ .. ⌈power⌉];
 	range : extended integer's type := ⊥;
 	openLimits : extended integer's type := ⊥;
 	For each interestingBase of interestingBases do
@@ -379,10 +421,10 @@ Method "_^_" is
 			];
 		];
 	];
-	if range = ⊥ then [(⎣openLimits⎦..⎡openLimits⎤)]
+	if range = ⊥ then [(⌊openLimits⌋..⌈openLimits⌉)]
 	else if -∞ ∈ openLimits ∧ ∞ ∈ openLimits then [range ∪ integer]
-	else if -∞ ∈ openLimits then [range ∪ (-∞..⎡range⎤)]
-	else if ∞ ∈ openLimits then [range ∪ (⎣range⎦..∞)]
+	else if -∞ ∈ openLimits then [range ∪ (-∞..⌈range⌉)]
+	else if ∞ ∈ openLimits then [range ∪ (⌊range⌋..∞)]
 	else [range]
 ] : extended integer's type;
 
@@ -401,6 +443,74 @@ Semantic restriction "_^_" is
 |
 	base ^ power
 ];
+
+/**
+ * Calculate the logarithm of the specified number to the specified base.
+ *
+ * @method "log_of_"
+ * @param "b" "float"
+ *        The logarithm base to use.
+ * @param "n" "float"
+ *        The number whose logarithm should be computed.
+ * @returns "float"
+ *          The logarithm of {@param "n"} to base {@param "b"}.
+ * @category "Mathematics" "Numbers"
+ */
+Public stable method "log_of_" is
+[
+	b : float,
+	n : float
+|
+	if b ≤ 0.0f then
+	[
+		Raise a	cannot-compute-logarithm-for-nonpositive-base exception
+	]
+	else
+	[
+		if n ≤ 0.0f then
+		[
+			Raise a cannot-compute-logarithm-of-nonpositive-number exception
+		]
+		else
+		[
+			(ln n) ÷ (ln b)
+		]
+	]
+] : float;
+
+/**
+ * Calculate the logarithm of the specified number to the specified base.
+ *
+ * @method "log_of_"
+ * @param "b" "double"
+ *        The logarithm base to use.
+ * @param "n" "double"
+ *        The number whose logarithm should be computed.
+ * @returns "double"
+ *          The logarithm of {@param "n"} to base {@param "b"}.
+ * @category "Mathematics" "Numbers"
+ */
+Stable method "log_of_" is
+[
+	b : double,
+	n : double
+|
+	if b ≤ 0.0 then
+	[
+		Raise a cannot-compute-logarithm-for-nonpositive-base exception
+	]
+	else
+	[
+		if n ≤ 0.0 then
+		[
+			Raise a	cannot-compute-logarithm-of-nonpositive-number exception
+		]
+		else
+		[
+			(ln n) ÷ (ln b)
+		]
+	]
+] : double;
 
 /**
  * Calculate the logarithm of the specified number to the specified base, using
@@ -592,9 +702,9 @@ Semantic restriction "low_bits of_" is
 	bitsType : whole number's type,
 	integerType : integer's type
 |
-	max ::= cast ⎡bitsType⎤
+	max ::= cast ⌈bitsType⌉
 		into [maxBits : whole number | (1 << maxBits) - 1] else [∞];
-	if ⎣integerType⎦ < 0 then
+	if ⌊integerType⌋ < 0 then
 	[
 		/* It includes negatives, so let's assume pretty much any result is
 		 * possible.
@@ -606,7 +716,7 @@ Semantic restriction "low_bits of_" is
 		/* Number of output bits may be arbitrarily large. */
 		integerType
 	]
-	else if ⎡integerType⎤ ≤ max then
+	else if ⌈integerType⌉ ≤ max then
 	[
 		/* It falls within the range, so no truncation can happen. */
 		integerType
@@ -679,7 +789,7 @@ Semantic restriction "an integer from_" is
 [
 	bytesType : byte+'s type
 |
-	bits ::= ⎡bytesType⎤ × 8 - 1;
+	bits ::= ⌈bytesType⌉ × 8 - 1;
 	[-2^bits .. 2^bits)
 ];
 
@@ -707,7 +817,7 @@ Semantic restriction "an unsigned integer from_" is
 [
 	bytesType : byte+'s type
 |
-	bits ::= ⎡bytesType⎤ × 8;
+	bits ::= ⌈bytesType⌉ × 8;
 	[0 .. 2^bits)
 ];
 
@@ -763,3 +873,548 @@ Public stable method "_(decimal)" is
 		fraction=fractionalPart[2..] ?→ Arabic numeral*,
 		exponent=0
 ] : double;
+
+/**
+ * Answer an approximation of π, the ratio of the circumference of a circle to
+ * its diameter.
+ *
+ * @method "π"
+ * @returns "3.141592653589793's type"
+ *          {@code "3.141592653589793"}.
+ * @category "Mathematics" "Constants" "Numbers"
+ */
+Macro "π" is [`3.141592653589793` ("π") → literal phrase];
+
+/**
+ * Compute the fused modular exponentiation of the base to the exponent, modulo
+ * the provided modulus. This method executes much faster than its unfused
+ * variant by leveraging iterated squaring and moduli.
+ *
+ * @method "_^_mod_"
+ * @param "base" "whole number"
+ * @param "exponent" "whole number"
+ * @param "modulus" "natural number"
+ * @returns "whole number"
+ *
+ * @category "Mathematics" "Integers" "Types"
+ */
+Public stable method "_^_mod_" is
+[
+	base : whole number,
+	exponent : whole number,
+	modulus : natural number
+|
+	moddedBase : whole number := base mod modulus;
+	exponentRemaining : integer := exponent;
+	result : whole number := 1;
+	Until exponentRemaining = 0 do
+	[
+		If exponentRemaining bit∧ 1 = 1 then
+		[
+			result := (result × moddedBase) mod modulus;
+		];
+		exponentRemaining := (exponentRemaining >> 1);
+		moddedBase := (moddedBase × moddedBase) mod modulus;
+	];
+	result
+];
+
+/**
+ * Restrict modular exponentiation to the combined restrictions upon the unfused
+ * exponentiation and modulus methods.
+ *
+ * @method "_^_mod_"
+ * @restricts "whole number's type"
+ * @restricts "whole number's type"
+ * @restricts "natural number's type"
+ */
+Semantic restriction "_^_mod_" is
+[
+	base : whole number's type,
+	exponent : whole number's type,
+	modulus : natural number's type
+|
+	if base ⊆ [0..1024] ∧ exponent ⊆ [0..2] then [
+		// If the exponentiation is relatively cheap, leverage the restrictions
+		// of the unfused methods to determine range.
+		(base ^ exponent) mod modulus
+	]
+	else
+	[
+		// Otherwise assume anything in mod's range is possible.
+		[0..⌈modulus⌉)
+	]
+];
+
+Grammatical restriction "_^_" is <∅, {"_mod_"}>;
+Grammatical restriction "_mod_" is <{"_^_"}, ∅>;
+
+Forward method "⌊√_⌋" is [whole number]→whole number;
+isqrtLUT ::= <0, 1, 1, 1, 2, 2, 2, 2, 2>;
+
+/**
+ * Find the integer square root of a given {@type whole number} i.e. the largest
+ * integer not greater than the real square root.
+ *
+ * Unlike the exponentiation method, which will not consistently return a root
+ * that rounds to the correct integer due to the resolution of {@type double},
+ * this algorithm maintains accuracy for any whole number.
+ *
+ * @method "⌊√_⌋"
+ * @param "x" "whole number"
+ * @returns "whole number"
+ *          The square root if {@param "x"} is a perfect square, the integer
+ *          floor of said root otherwise.
+ * @category "Mathematics" "Integers" "Numbers"
+ */
+Public method "⌊√_⌋" is
+[
+	x : [0..∞)
+|
+	if x < 16 then [isqrtLUT[x + 1] else [3]] else
+	[
+		/* recursive bit-shifting */
+		candidate ::= 2 × ⌊√ (x >> 2)⌋;
+		if (candidate + 1)^2 > x then [candidate] else [candidate + 1]
+	]
+];
+
+/**
+ * Restrict integer square root to values equal to or towards zero from the
+ * input.
+ *
+ * @method "⌊√_⌋"
+ * @restricts "whole number's type"
+ */
+Semantic restriction "⌊√_⌋" is
+[
+	x : [0..∞)'s type
+|
+	// A simple range would be [0..⌈x⌉], but we shrink it slightly by observing:
+	//   0 is the only value for which ⌊√n⌋ = 0
+	//   1 is the largest value such that ⌊√n⌋ = n
+	// NOTE: This could certainly be improved by math on the input's bit length.
+	[(1 min ⌊x⌋)..(2 max ⌈x⌉))
+];
+
+/**
+ * Identify whether the integer is a perfect square.
+ *
+ * @method "_is a perfect square"
+ * @category "Integers"
+ * @param "n" "integer"
+ * @returns "boolean"
+ */
+Public method "_is a perfect square" is
+[
+	num : integer
+|
+	n ::= |num|;
+	// Only these remainders mod 16 can be perfect squares. (This residue list
+	// could be generated for any base, but 16 provides a good balance of
+	// reduction factor, a short constant list, and using a power of 2 for
+	// optimization as a bit operation.)
+	if n bit∧ 15 ∈ {0, 1, 4, 9} then
+	[
+		⌊√n⌋^2 = n
+	]
+	else [false]
+];
+
+// The first 31 primes, i.e. all 7-bit primes (actually covering [0..130])
+smallPrimes ::= {
+	2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71,
+	73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127
+};
+
+/**
+ * Attempt to use trial division within the given range to find a pair of
+ * nontrivial factors <p, q> such that p×q = n. If no such pair can be found,
+ * return the sentinel value <0, 0>.
+ *
+ * If bounds are provided, the algorithm will guarantee all values within are
+ * tested before returning a failure, but due to its naive windowing it does NOT
+ * guarantee it won't test some values outside this range as well.
+ *
+ * @method "trial division factorization of_«,⁇from_»?«,⁇to_»?"
+ * @category "Integers"
+ * @param "n" "natural number"
+ * @param "start" "whole number?"
+ * @param "end" "whole number?"
+ * @returns "<whole number…|2>"
+ */
+Private method "trial division factorization of_«,⁇from_»?«,⁇to_»?" is
+[
+	n : natural number,
+	start : whole number?,
+	end : whole number?
+|
+	$body : <whole number…|2>;
+	i : whole number := start[1] else [2];
+
+	// Only one prime factor could be larger than the square root, so it's
+	// sufficient to check that far for an exhaustive search, which is our
+	// default behavior.
+	stop ::= min end ++ <⌊√n⌋>;
+
+	// Might as well check our list of small primes since we have it
+	If i < 120 ∧ i ≤ stop then
+	[
+		For each p in smallPrimes do
+		[
+			Exit body with <n ÷ p, p> if n mod p = 0;
+		];
+		i := 120;
+	]
+	else
+	[
+		// The second phase handles possibilities in a window of size 30, so we
+		// round our index down to the nearest 30 to ensure we are aligned. This
+		// may "overtest" a few values, but the logic is simpler and N<30 extra
+		// checks are negligible to the overall time cost of the operation.
+		i := i - (i mod 30) ?→ whole number;
+	];
+	Until i > stop do
+	[
+		// micro-sieve: primes > 5 can only have these 8 remainders mod 30
+		For each m of <1, 7, 11, 13, 17, 19, 23, 29> do
+		[
+			Exit body with <n ÷ (i+m), i+m> if n mod (i+m) = 0;
+		];
+		i += 30;
+	];
+	<0, 0>
+];
+
+/**
+ * Use Fermat's factorization method to find nontrivial factors <p, q> of n,
+ * near the square root of n, checking values in the given range. If no such
+ * pair can be found, return the sentinel value <0, 0>.
+ *
+ * @method "fermat's factorization of_«,⁇from_»?«,⁇to_»?"
+ * @category "Integers"
+ * @param "n" "natural number"
+ * @param "start" "whole number?"
+ * @param "end" "whole number?"
+ * @returns "<whole number…|2>"
+ */
+Private method "fermat's factorization of_«,⁇from_»?«,⁇to_»?" is
+[
+	n : natural number,
+	start : whole number?,
+	end : whole number?
+|
+	$body : <whole number…|2>;
+	a : whole number := start[1] else [⌊√n⌋ + 1];
+	limit ::= min (end ++ <n>);
+	Exit body with <0, 0> if a > limit; // TODO: raise something instead?
+
+	bs : whole number := (a^2 - n) ?→ whole number;
+	Until bs is a perfect square do
+	[
+		// NOTE: We could implement some low-hanging "sieve-like" improvements.
+		// Wikipedia e.g. lists some great modulus logic to be leveraged here.
+		bs += 2×a + 1; // equivalent to plugging (a+1) in above
+		a++;
+		Exit body with <0, 0> if a > limit;
+	];
+
+	b ::= ⌊√bs⌋;
+	<a+b, (a-b) ?→ whole number>
+];
+
+Forward method "_is prime" is [natural number]→boolean;
+
+/**
+ * Factor the given number into a pair of divisors by using a combination of
+ * trial division and Fermat's factorization methods. If no factor is found,
+ * return <n, 1>.
+ *
+ * @method "fermat's factorization of_«,⁇from_»?«,⁇to_»?"
+ * @category "Integers"
+ * @param "n" "natural number"
+ * @param "start" "whole number?"
+ * @param "end" "whole number?"
+ * @returns "<whole number…|2>"
+ */
+/* NOTE: This method is not yet intended for consumption. The math 'should' be
+ * accurate (though it has not yet been reviewed), but the gain from the added
+ * complexity is unclear, and perhaps doesn't merit inclusion here. */
+/*
+Private method "factor_by hybrid-fermat" is
+[
+	n : natural number
+|
+	$body : <whole number…|2>;
+
+	sqrt ::= ⌊√n⌋;
+	foundFactors : <whole number…|2>;
+
+	// Unscientific guesswork at a "useful" number of fermat iterations;
+	// the "ideal" number depends greatly on the characteristics of our input.
+	fermatSteps ::= 10^6;
+	fermatLimit ::= fermatSteps + sqrt;
+
+	// The 4th root of n makes for a nice-sounding waypoint in trial division.
+	firstThreshold ::= if n > 2^32 then [⌊√sqrt⌋] else [sqrt];
+
+	// Running Fermat's factorization up to c effectively checks for all
+	// divisors from c down to c - √(c² - n) so we can stop trial division at
+	// that point.
+	secondThreshold ::= (fermatLimit - ⌊√|fermatLimit^2 - n|⌋) ?→ whole number;
+
+	// Phase 0 - Use the primality tests for n < 2^64.
+	// We're limited to this range by recursion as the general "_is prime" uses
+	// factoring as part of the primality test.
+	If n ≤ 2^64 then [Exit body with <n, 1> if n?→[1..2^64] is prime;];
+
+	// Phase I - Small trial division.
+	// NOTE: This is the ONLY phase for n < 2^32.
+	foundFactors :=
+		trial division factorization of n from 1 to firstThreshold;
+	Exit body with foundFactors if foundFactors ≠ <0, 0>;
+
+	// Phase IIa - Check for perfect square.
+	// Usually Fermat would start with the ceiling, ⌈√n⌉, but we only have an
+	// exact method for calculating the floor. Since n being a perfect square is
+	// worth examining early, we manually check it and start Fermat with ⌊√n⌋+1.
+	Exit body with <sqrt, sqrt> if sqrt^2 = n;
+
+	// Phase IIb - Fermat's factorization to find factors near √n.
+	foundFactors := fermat's factorization of n, from sqrt+1 to fermatLimit;
+	Exit body with foundFactors if foundFactors ≠ <0, 0>;
+
+	// Phase III - Finish the rest of the possibilities with trial division.
+	foundFactors :=
+		trial division factorization of n
+			from firstThreshold to secondThreshold;
+	if foundFactors = <0,0> then [<n, 1>] else [foundFactors]
+];
+*/
+
+/**
+ * Fully factor the given number into a tuple of its nontrivial prime divisors.
+ *
+ * @method "factor_"
+ * @category "Integers"
+ * @param "n" "natural number"
+ * @returns "natural number+"
+ */
+Method "factor_" is
+[
+	n : natural number
+|
+	found : natural number+ := <n>;
+	i : natural number := 1;
+	knownFactors : {natural number → <whole number…|2>|0..} := {};
+	While i ≤ |found| do
+	[
+		target ::= found[i];
+		knownFactors :=
+			knownFactors + target → (trial division factorization of target);
+		Cast knownFactors[target] into
+		[
+			pair : <[2..∞)…|2>
+		|
+			// We found non-trivial factors, splice them in place of the target
+			found := found[i..i] → pair;
+		]
+		else
+		[
+			// Only trivial factors found, move to the next possible dividend
+			i++;
+		];
+	];
+	found
+];
+
+/**
+* Answer a map of the given number's prime divisors to their exponents.
+*
+* @macro "prime factorization of_"
+* @param "target" "expression phrase ⇒ natural number"
+* @category "Integers"
+* @returns "send phrase ⇒ {natural number→natural number|1..}"
+*/
+Macro "prime factorization of_" is
+[
+	n : expression phrase ⇒ natural number
+|
+	restricted send $"counts for_" with
+	«<
+		restricted send $"factor_" with «<n>» : natural number+
+	>» : {natural number→natural number|1..}
+];
+
+
+/**
+ * Determine if an integer is a "strong probable prime" to a given base (said to
+ * be "b-SPRP" for short). Prime numbers will always return true for this test
+ * but some composites will as well, known as "strong pseudoprimes".
+ *
+ * Evaluating whether a number is a strong probable prime is a relatively fast
+ * and useful component of several probabilistic techniques for determining
+ * primality. Even checking against a random base in [2, n-2] returns
+ * false for ~75% of composites -- this particular process is known as the
+ * Miller-Rabin test.
+ *
+ * @method "_is a strong probable prime to base_"
+ * @param "n" "natural number"
+ * @param "base" "natural number"
+ * @returns "boolean"
+ *
+ * @category "Mathematics" "Integers" "Types"
+ */
+Public stable method "_is a strong probable prime to base_" is
+[
+	n : natural number,
+	base : natural number
+|
+	$body : boolean;
+	Exit body with true if base = 1;
+	Exit body with false if n = 1 ∨ n = base ∨ (n ≠ 2 ∧ n is even);
+	d : whole number := n - 1;
+	s : whole number := 0;
+	While d is even do
+	[
+		s := s + 1;
+		d := d >> 1;
+	];
+
+	test : whole number := base ^ d mod n;
+	if test ∈ {1, n-1} then [true]
+	else
+	[
+		first index of 1 to (s-1) where
+		[
+			i : natural number
+		|
+			test := test × test mod n;
+			test = n - 1
+		] > 0
+	]
+];
+
+/**
+ * Determine if a natural number is prime. This default implementation runs a
+ * brief round of probabilistic testing and then falls back to trial division.
+ *
+ * @method "_is prime"
+ * @param "x" "whole number"
+ * @returns "boolean"
+ *          {@method "true"} if {@param "x"} is prime, {@method "false"}
+ *          otherwise.
+ * @category "Mathematics" "Integers" "Numbers"
+ */
+Public method "_is prime" is
+[
+	x : natural number
+|
+	x is a strong probable prime to base 2
+		∧ trial division factorization of x = <0, 0>
+];
+
+/**
+ * Determine if a {@type "[1..130]" small integer} is prime. This method
+ * performs a lookup against a hard-coded list of the first 31 primes.
+ *
+ * @method "_is prime"
+ * @param "x" "whole number"
+ * @returns "boolean"
+ *          {@method "true"} if {@param "x"} is prime, {@method "false"}
+ *          otherwise.
+ * @category "Mathematics" "Integers" "Numbers"
+ */
+Public method "_is prime" is
+[
+	x : [1..130]
+|
+	x∈smallPrimes
+];
+
+fj32bases ::= <
+	15591, 2018, 166, 7429, 8064, 16045, 10503, 4399, 1949, 1295, 2776, 3620,
+	560, 3128, 5212, 2657, 2300, 2021, 4652, 1471, 9336, 4018, 2398, 20462,
+	10277, 8028, 2213, 6219, 620, 3763, 4852, 5012, 3185, 1333, 6227, 5298,
+	1074, 2391, 5113, 7061, 803, 1269, 3875, 422, 751, 580, 4729, 10239, 746,
+	2951, 556, 2206, 3778, 481, 1522, 3476, 481, 2487, 3266, 5633, 488, 3373,
+	6441, 3344, 17, 15105, 1490, 4154, 2036, 1882, 1813, 467, 3307, 14042, 6371,
+	658, 1005, 903, 737, 1887, 7447, 1888, 2848, 1784, 7559, 3400, 951, 13969,
+	4304, 177, 41, 19875, 3110, 13221, 8726, 571, 7043, 6943, 1199, 352, 6435,
+	165, 1169, 3315, 978, 233, 3003, 2562, 2994, 10587, 10030, 2377, 1902, 5354,
+	4447, 1555, 263, 27027, 2283, 305, 669, 1912, 601, 6186, 429, 1930, 14873,
+	1784, 1661, 524, 3577, 236, 2360, 6146, 2850, 55637, 1753, 4178, 8466, 222,
+	2579, 2743, 2031, 2226, 2276, 374, 2132, 813, 23788, 1610, 4422, 5159, 1725,
+	3597, 3366, 14336, 579, 165, 1375, 10018, 12616, 9816, 1371, 536, 1867,
+	10864, 857, 2206, 5788, 434, 8085, 17618, 727, 3639, 1595, 4944, 2129, 2029,
+	8195, 8344, 6232, 9183, 8126, 1870, 3296, 7455, 8947, 25017, 541, 19115,
+	368, 566, 5674, 411, 522, 1027, 8215, 2050, 6544, 10049, 614, 774, 2333,
+	3007, 35201, 4706, 1152, 1785, 1028, 1540, 3743, 493, 4474, 2521, 26845,
+	8354, 864, 18915, 5465, 2447, 42, 4511, 1660, 166, 1249, 6259, 2553, 304,
+	272, 7286, 73, 6554, 899, 2816, 5197, 13330, 7054, 2818, 3199, 811, 922,
+	350, 7514, 4452, 3449, 2663, 4708, 418, 1621, 1171, 3471, 88, 11345, 412,
+	1559, 194
+>;
+
+/**
+ * Determine if an integer in {@type "[0..2^32)"} is prime. This method uses the
+ * "FJ32_256" algorithm by Forǐsek and Jančina (2015).
+ *
+ * @method "_is prime"
+ * @param "x" "whole number"
+ * @returns "boolean"
+ *          {@method "true"} if {@param "x"} is prime, {@method "false"}
+ *          otherwise.
+ * @category "Mathematics" "Integers" "Numbers"
+ * @see "http://ceur-ws.org/Vol-1326/020-Forisek.pdf"
+ */
+Public method "_is prime" is
+[
+	x : [131..2^32)
+|
+	$body : boolean;
+
+	// This algorithm uses the limited range of input to turn the SPRP test into
+	// a deterministic test. In other approaches, this is often accomplished
+	// with multiple rounds of tests -- for [1, 2^32) this could be accomplished
+	// with a mere 3 -- however *this* approach reduces the number of SPRP
+	// checks to only 1 by first hashing the number into 256 buckets which each
+	// have a single base, defined above, proven correct for all hashed values.
+
+	/* Check small divisors and ensure x is coprime with 210 */
+	Exit body with false if x bit∧ 1 = 0;
+	Exit body with false if x mod 3 = 0;
+	Exit body with false if x mod 5 = 0;
+	Exit body with false if x mod 7 = 0;
+
+	hash : whole number := x;
+	hash := ((hash >> 16) bit⊕ hash) × 0x45d9f3b;
+	hash := ((hash >> 16) bit⊕ hash) × 0x45d9f3b;
+	hash := ((hash >> 16) bit⊕ hash) bit∧ 255;
+	x is a strong probable prime to base fj32bases[hash + 1]
+];
+
+/**
+ * Determine if an integer in {@type "[0..2^64]"} is prime. This method uses a
+ * deterministic repeated Miller-Rabin test against Sinclair's (2011) 7 bases.
+ *
+ * @method "_is prime"
+ * @param "x" "whole number"
+ * @returns "boolean"
+ *          {@method "true"} if {@param "x"} is prime, {@method "false"}
+ *          otherwise.
+ * @category "Mathematics" "Integers" "Numbers"
+ * @see "http://ceur-ws.org/Vol-1326/020-Forisek.pdf"
+ */
+Public method "_is prime" is
+[
+	x : [2^32..2^64]
+|
+	// This set of 7 probabilistic SPRP tests is guaranteed to provide a correct
+	// answer within the range [0..2^64]. The bases are arranged in ascending
+	// order to eliminate pseudoprimes with as few tests as possible.
+	sinclairBases ::= <2, 325, 9375, 28178, 450775, 9780504, 1795265022>;
+	each b of sinclairBases satisfies [x is a strong probable prime to base b]
+];
+
+Grammatical restriction "-_" is <{"_bit∧_", "_bit∨_", "_bit⊕_"}>;

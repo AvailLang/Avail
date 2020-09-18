@@ -1,6 +1,6 @@
 /*
  * Backtracking.avail
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -314,7 +314,7 @@ Semantic restriction "trial`#of_" is
 [
 	maxTrials : natural number's type
 |
-	[1..⎡maxTrials⎤+1)
+	[1..⌈maxTrials⌉+1)
 ];
 
 /**
@@ -338,8 +338,9 @@ Public method "trial element of_" is
 	aTuple : tuple
 |
 	$body : any;
-	For each element of aTuple do [
-		If first try then [Exit body with element];
+	For each element of aTuple do
+	[
+		Exit body with element if first try;
 	];
 	Try again
 ] : any;
@@ -352,7 +353,7 @@ Semantic restriction "trial element of_" is
 [
 	tupleType : tuple's type
 |
-	∪ tupleType[1..⎡tupleType⎤ min (|tupleType's leading types| + 1)]
+	∪ tupleType[1..⌈tupleType⌉ min (|tupleType's leading types| + 1)]
 ];
 
 /**
@@ -378,7 +379,7 @@ Public method "trial element of_" is
 	$body : any;
 	For each element of aSet→tuple do
 	[
-		If first try then [Exit body with element];
+		Exit body with element if first try;
 	];
 	Try again
 ] : any;
@@ -525,6 +526,6 @@ Semantic restriction "first«_»?value|values of_" is
 	functionType : []→any's type
 |
 	maxValues ::=
-		if ⎣optionalMaxValues⎦ = 1 then [optionalMaxValues[1]] else [1's type];
-	<functionType's return type…|0..⎡maxValues⎤>
+		if ⌊optionalMaxValues⌋ = 1 then [optionalMaxValues[1]] else [1's type];
+	<functionType's return type…|0..⌈maxValues⌉>
 ];

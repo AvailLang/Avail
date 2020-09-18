@@ -1,19 +1,19 @@
 /*
  * build.gradle
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  Redistributions of source code must retain the above copyright notice, this
+ * * Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- *  Redistributions in binary form must reproduce the above copyright notice,
+ * * Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
  *
- *  Neither the name of the copyright holder nor the names of the contributors
+ * * Neither the name of the copyright holder nor the names of the contributors
  *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
@@ -36,12 +36,24 @@ import java.time.format.DateTimeFormatter
 
 plugins {
 	id 'java'
+	id 'org.jetbrains.kotlin.jvm'
+	id 'com.github.johnrengelman.shadow'
+	id 'org.jetbrains.dokka'
 }
 
-group 'org.availlang'
-version '1.4'
+compileKotlin {
+	kotlinOptions {
+		jvmTarget = "1.8"
+		freeCompilerArgs = ['-Xjvm-default=compatibility']
+	}
+}
 
-sourceCompatibility = 1.8
+compileTestKotlin {
+	kotlinOptions {
+		jvmTarget = "1.8"
+		freeCompilerArgs = ['-Xjvm-default=compatibility']
+	}
+}
 
 repositories {
 	mavenCentral()
@@ -51,10 +63,29 @@ dependencies {
 	// Avail.
 	implementation rootProject
 
+	// Kotlin.
+	implementation group: 'org.jetbrains.kotlin',
+		name: 'kotlin-stdlib-jdk8',
+		version: "$kotlin_version"
+
 	// JSR-305 null analysis framework.
 	implementation group: 'com.google.code.findbugs',
 		name: 'jsr305',
 		version: "$jsr_version"
+
+	// https://tika.apache.org for file MIME type detection
+	implementation 'org.apache.tika:tika-core:1.22'
+
+	// JUnit 5.
+	testRuntimeOnly group: 'org.junit.jupiter',
+		name: 'junit-jupiter-engine',
+		version: "$junit_version"
+	testImplementation group: 'org.junit.jupiter',
+		name: 'junit-jupiter-api',
+		version: "$junit_version"
+	testImplementation group: 'org.junit.jupiter',
+		name: 'junit-jupiter-params',
+		version: "$junit_version"
 }
 
 // Capture the time at which the build began and record it into a resource file.
@@ -78,24 +109,45 @@ task generateBuildTime {
 // Update the dependencies of "classes".
 classes.dependsOn generateBuildTime
 
+// Generate documentation
+dokka {
+	outputFormat='gfm'
+	// Outputting to documentation/docs/src-docs directly causes the contents of
+	// the directory to be deleted. Moving the directory post generation is the
+	// work around.
+	doLast {
+		ant.move file: "${buildDir}/dokka/avail-server",
+			todir: "../documentation/docs/src_docs"
+	}
+}
+
+task dokkaHTML(type: org.jetbrains.dokka.gradle.DokkaTask) {
+	outputFormat = 'html'
+	outputDirectory = "$buildDir/dokka"
+}
+
 // Produce a fat JAR for the Avail server.
 jar {
 	manifest {
 		attributes 'Main-Class': 'com.avail.server.AvailServer'
 	}
+	duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}
 
-	from {
-		configurations.compileClasspath.collect {
-			it.isDirectory() ? it : zipTree(it)
-		}
-	}
+test {
+	useJUnitPlatform()
+	minHeapSize = "4g"
+	maxHeapSize = "6g"
+	enableAssertions = true
 }
 
 // Copy the JAR into the distribution directory.
-task releaseAvailServer (type: Copy) {
+task releaseAvailServer(type: Copy) {
 	group = 'release'
-	from jar.outputs.files
+	from shadowJar.outputs.files
 	into file("${rootProject.projectDir}/distro/lib")
+	rename '.*', 'avail-server.jar'
+	duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
 
 // Update the dependencies of "assemble".

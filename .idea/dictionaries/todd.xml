@@ -15,12 +15,17 @@
       <w>atomicity</w>
       <w>availlang</w>
       <w>backfire</w>
+      <w>backquotable</w>
       <w>backquote</w>
       <w>backquoted</w>
+      <w>backquotes</w>
+      <w>backticked</w>
       <w>bagwell</w>
+      <w>bareword</w>
       <w>bestows</w>
       <w>bivalence</w>
       <w>bivalent</w>
+      <w>bufferful</w>
       <w>bytecode</w>
       <w>bytecodes</w>
       <w>callable</w>
@@ -33,6 +38,7 @@
       <w>chevrons</w>
       <w>childless</w>
       <w>chromatic</w>
+      <w>clinit</w>
       <w>cloneable</w>
       <w>coda</w>
       <w>com</w>
@@ -55,6 +61,7 @@
       <w>cryptographically</w>
       <w>cyan</w>
       <w>cyclicity</w>
+      <w>davail</w>
       <w>decompilation</w>
       <w>deconstruct</w>
       <w>deconstructed</w>
@@ -73,6 +80,7 @@
       <w>disassociate</w>
       <w>disestablish</w>
       <w>disincentive</w>
+      <w>djava</w>
       <w>elide</w>
       <w>elided</w>
       <w>eliding</w>
@@ -101,8 +109,10 @@
       <w>foundational</w>
       <w>fudge</w>
       <w>gmail</w>
+      <w>graphviz</w>
       <w>guillemet</w>
       <w>guillemets</w>
+      <w>headlabel</w>
       <w>heritability</w>
       <w>heritable</w>
       <w>hexadecimal</w>
@@ -112,6 +122,7 @@
       <w>identityless</w>
       <w>inbound</w>
       <w>ineligible</w>
+      <w>inflater</w>
       <w>inline</w>
       <w>inlineable</w>
       <w>inlined</w>
@@ -120,13 +131,16 @@
       <w>int</w>
       <w>inter</w>
       <w>intermodular</w>
+      <w>interruptible</w>
       <w>iterable</w>
       <w>juxtaposition</w>
       <w>keyhole</w>
       <w>lexeme</w>
       <w>lineage</w>
+      <w>liveness</w>
       <w>locale</w>
       <w>locales</w>
+      <w>lookupswitch</w>
       <w>lowercase</w>
       <w>magenta</w>
       <w>malformed</w>
@@ -147,6 +161,7 @@
       <w>multigraphs</w>
       <w>multilingual</w>
       <w>multimacro</w>
+      <w>multimap</w>
       <w>multimethod</w>
       <w>multimethods</w>
       <w>myers</w>
@@ -156,6 +171,8 @@
       <w>nonalphanumeric</w>
       <w>noncontradiction</w>
       <w>nullary</w>
+      <w>nulling</w>
+      <w>nullprimitiveholder</w>
       <w>nybble</w>
       <w>nybblecode</w>
       <w>nybblecodes</w>
@@ -166,6 +183,7 @@
       <w>orchestrating</w>
       <w>ordinals</w>
       <w>org</w>
+      <w>osargs</w>
       <w>ostensibly</w>
       <w>outbound</w>
       <w>parametrically</w>
@@ -180,6 +198,7 @@
       <w>polymorphic</w>
       <w>polymorphically</w>
       <w>polymorphism</w>
+      <w>populator</w>
       <w>pragma</w>
       <w>pragmas</w>
       <w>pre</w>
@@ -241,6 +260,7 @@
       <w>subclassing</w>
       <w>subdirectories</w>
       <w>subdirectory</w>
+      <w>subgraph</w>
       <w>subkind</w>
       <w>subnodes</w>
       <w>subobject</w>
@@ -249,6 +269,7 @@
       <w>subtuples</w>
       <w>subtype</w>
       <w>subtypes</w>
+      <w>suicided</w>
       <w>supercast</w>
       <w>supercasts</w>
       <w>superexpressions</w>
@@ -256,9 +277,11 @@
       <w>supernodes</w>
       <w>supertype</w>
       <w>supertypes</w>
+      <w>taillabel</w>
       <w>tally</w>
       <w>tastier</w>
       <w>throwable</w>
+      <w>throwables</w>
       <w>timestamp</w>
       <w>todd</w>
       <w>tokenization</w>
@@ -274,23 +297,31 @@
       <w>unboxed</w>
       <w>unconstructible</w>
       <w>unconsumed</w>
+      <w>undescribed</w>
       <w>unexposed</w>
       <w>unfused</w>
       <w>unhandled</w>
       <w>unicode</w>
+      <w>unicolor</w>
       <w>uninstantiable</w>
+      <w>unioned</w>
+      <w>unloader</w>
       <w>unmarshal</w>
       <w>unmarshaled</w>
       <w>unpark</w>
       <w>unparked</w>
+      <w>unprefixed</w>
       <w>unproductive</w>
       <w>unstarted</w>
+      <w>upgrader</w>
+      <w>uppercased</w>
       <w>varargs</w>
       <w>ve</w>
       <w>veneer</w>
       <w>verbosity</w>
       <w>versioned</w>
       <w>virtualized</w>
+      <w>vmargs</w>
       <w>whatnot</w>
       <w>wildcard</w>
       <w>wordcode</w>

@@ -1,6 +1,6 @@
 /*
  * Special Objects.avail
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Versioned As: $$Revision$$
+ * * Last Generated: 8/23/20 2:40 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -61,10 +61,12 @@ Names
 	/*   2 */ "boolean",
 	/* 129 */ "byte",
 	/*   3 */ "character",
+	/* 169 */ "character type number",
 	/*  38 */ "code point",
 	/* 164 */ "comment",
 	/*   9 */ "continuation",
 	/*  10 */ "continuation meta",
+	/* 170 */ "continuation returning top",
 	/*  92 */ "continuation variable",
 	/*  61 */ "declaration phrase",
 	/* 123 */ "declaration tuple",
@@ -126,6 +128,7 @@ Names
 	/*  37 */ "natural number",
 	/*  97 */ "non-empty map",
 	/*  99 */ "non-empty set",
+	/* 171 */ "non-empty string of digits",
 	/* 136 */ "nonempty set of atom",
 	/* 135 */ "nonempty set of string",
 	/* 133 */ "nonempty string",
@@ -138,6 +141,7 @@ Names
 	/*  22 */ "object",
 	/*  23 */ "object meta",
 	/* 163 */ "operator",
+	/* 172 */ "optional send phrase and report string",
 	/* 143 */ "parse map key",
 	/* 168 */ "parse rejection level",
 	/* 151 */ "permutation tuple",
@@ -170,6 +174,7 @@ Names
 	/*  75 */ "set of string",
 	/* 167 */ "source line number",
 	/* 166 */ "source position",
+	/*  49 */ "stack dump key",
 	/* 148 */ "statement phrase",
 	/* 159 */ "static tokens key",
 	/*  28 */ "string",
@@ -568,22 +573,22 @@ Special object "integer" is special object 17;
  *
  * <ul>
  * <li>The lower bound is an integer which specifies the smallest allowed value.
- * The floor operation, {@method "⎣_⎦"}, answers the lower bound of an integral
+ * The floor operation, {@method "⌊_⌋"}, answers the lower bound of an integral
  * type.</li>
  * <li>The lower bound inclusion indicator is a {@type "boolean"} value that
  * establishes whether the lower bound is a member of the integral type. When
  * this value is {@method "true"}, then the lower bound is included in the
  * type's membership. When this value is {@method "false"}, then it is not so
- * included. The method {@method "⎣_⎦is inclusive"} answers the lower bound
+ * included. The method {@method "⌊_⌋is inclusive"} answers the lower bound
  * inclusion indicator of an integral type.</li>
  * <li>The upper bound is an integer which specifies the largest allowed value.
- * The ceiling operation, {@method "⎡_⎤"}, answers the upper bound of an
+ * The ceiling operation, {@method "⌈_⌉"}, answers the upper bound of an
  * integral type.</li>
  * <li>The upper bound inclusion indicator is a {@type "boolean"} value that
  * establishes whether the upper bound is a member of the integral type. When
  * this value is {@method "true"}, then the upper bound is included in the
  * type's membership. When this value is {@method "false"}, then it is not so
- * included. The method {@method "⎡_⎤is inclusive"} answers the upper bound
+ * included. The method {@method "⌈_⌉is inclusive"} answers the upper bound
  * inclusion indicator of an integral type.</li>
  * </ul>
  *
@@ -611,8 +616,8 @@ Special object "extended integer meta" is special object 18;
  * <li>The cardinality restriction is an {@method "extended integer meta"
  * integral type} that specifies the range of sizes that describe instances. The
  * method {@method "`|`|_`|`|"} answers the cardinality restriction of a map
- * type. The floor operation, {@method "⎣_⎦"}, answers the lower bound of a
- * map type's cardinality restriction. The ceiling operation, {@method "⎡_⎤"},
+ * type. The floor operation, {@method "⌊_⌋"}, answers the lower bound of a
+ * map type's cardinality restriction. The ceiling operation, {@method "⌈_⌉"},
  * answers the upper bound of a map type's cardinality restriction.</li>
  * </ul>
  *
@@ -742,8 +747,8 @@ Special object "set" is special object 26;
  * <li>The cardinality restriction is an {@method "extended integer meta"
  * integral type} that specifies the range of sizes that describe instances. The
  * method {@method "`|`|_`|`|"} answers the cardinality restriction of a set
- * type. The floor operation, {@method "⎣_⎦"}, answers the lower bound of a set
- * type's cardinality restriction. The ceiling operation, {@method "⎡_⎤"},
+ * type. The floor operation, {@method "⌊_⌋"}, answers the lower bound of a set
+ * type's cardinality restriction. The ceiling operation, {@method "⌈_⌉"},
  * answers the upper bound of a set type's cardinality restriction.</li>
  * </ul>
  *
@@ -1085,6 +1090,16 @@ Special object "macro definition" is special object 47;
  * @alias "<[…]→⊤…|>"
  */
 Special object "tuple of function" is special object 48;
+
+/**
+ * The {@code atom} under which the stack is captured within an 
+ * {@code exception} when it is raised.
+ *
+ * @category "Primitives" "Constants"
+ * @type "stack dump key"
+ * @returns "stack dump key's type"
+ */
+Special object "stack dump key" is special object 49;
 
 /**
  * TODO: Special object description goes here.
@@ -2215,4 +2230,43 @@ Special object "source line number" is special object 167;
  * @alias "parse rejection level"
  */
 Special object "parse rejection level" is special object 168;
+
+/**
+ * An integer indicating the nature of some Unicode code point.  For details,
+ * see {@code "java.lang.Character.getType(int)"}.
+ *
+ * @category "Primitives" "Types"
+ * @type "[0..31]"
+ * @alias "character type number"
+ */
+Special object "character type number" is special object 169;
+
+/**
+ * The continuation type for continuations based on ⊤-valued functions.
+ *
+ * @category "Primitives" "Types"
+ * @type "$[…]→⊤"
+ * @alias "continuation returning top"
+ */
+Special object "continuation returning top" is special object 170;
+
+/**
+ * The type for non-empty strings composed entirely of digit characters.
+ *
+ * @category "Primitives" "Types"
+ * @type "¢[0-9]ᵀ+"
+ * @alias "non-empty string of digits"
+ */
+Special object "non-empty string of digits" is special object 171;
+
+/**
+ * The 2-element tuple type where the first element is itself a tuple of zero
+ * or one occurrences of send phrase, and the second element is a (possibly
+ * empty) string.
+ *
+ * @category "Primitives" "Types"
+ * @type "<(send phrase→⊤)?, string…|2>"
+ * @alias "optional send phrase and report string"
+ */
+Special object "optional send phrase and report string" is special object 172;
 

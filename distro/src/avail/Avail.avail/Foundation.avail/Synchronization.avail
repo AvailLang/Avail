@@ -1,6 +1,6 @@
 /*
  * Synchronization.avail
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,6 +42,7 @@ Uses
 	"Early Conditionals",
 	"Enumeration Support",
 	"Exceptions",
+	"Format",
 	"Functions",
 	"Literals",
 	"Logic",
@@ -241,7 +242,7 @@ Public method "priority enqueue_on_" is
 		basis ::= ↓queue;
 		index ::= insertion index of aFiber in basis
 			with [a : fiber, b : fiber | a's priority ≥ b's priority];
-		withFiber ::= basis[..index - 1] ++ <aFiber> ++ basis[index..];
+		withFiber ::= basis[index..index - 1] → <aFiber>;
 		swapped ::= atomically compare queue to basis and,
 			if equal, store withFiber;
 		If swapped then [lockAcquired := basis is empty;];
@@ -273,7 +274,17 @@ Public method "dequeue_from_" is
 	Until
 	[
 		basis ::= ↓queue;
-		sans ::= basis - aFiber;
+		index ::= first index of basis where [f : fiber | f = aFiber];
+		sans ::= cast index into
+		[
+			i : natural number
+		|
+			basis[i..i] → <>
+		]
+		else
+		[
+			basis
+		];
 		swapped ::= atomically compare queue to basis and,
 			if equal, store sans;
 		If swapped then [lockReleased := sans is empty;];
@@ -442,7 +453,7 @@ Semantic restriction "a non-reentrant mutex«named_»" is
 [
 	optionalName : nonempty string?'s type
 |
-	myName ::= if ⎣optionalName⎦ = 1
+	myName ::= if ⌊optionalName⌋ = 1
 		then [optionalName[1]]
 		else [defaultName's type];
 	extend non-reentrant mutex with mutex name : myName
@@ -642,7 +653,7 @@ Semantic restriction "a reentrant mutex«named_»" is
 [
 	optionalName : nonempty string?'s type
 |
-	myName ::= if ⎣optionalName⎦ = 1
+	myName ::= if ⌊optionalName⌋ = 1
 		then [optionalName[1]]
 		else [defaultName's type];
 	extend reentrant mutex with mutex name : myName
@@ -757,7 +768,7 @@ Semantic restriction "a monitor«named_»" is
 [
 	optionalName : nonempty string?'s type
 |
-	myName ::= if ⎣optionalName⎦ = 1
+	myName ::= if ⌊optionalName⌋ = 1
 		then [optionalName[1]]
 		else [defaultName's type];
 	extend monitor with mutex name : myName
@@ -1142,10 +1153,10 @@ Semantic restriction "a semaphore«named_»with_«out of_»permit|permits" is
 	permits : [0..∞]'s type,
 	optionalMaximumPermits : [0..∞]?'s type
 |
-	myName ::= if ⎣optionalName⎦ = 1
+	myName ::= if ⌊optionalName⌋ = 1
 		then [optionalName[1]]
 		else [defaultName's type];
-	maximumPermits ::= if ⎣optionalMaximumPermits⎦ = 1
+	maximumPermits ::= if ⌊optionalMaximumPermits⌋ = 1
 		then [optionalMaximumPermits[1]]
 		else [∞'s type];
 	extend semaphore with

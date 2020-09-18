@@ -1,6 +1,12 @@
 /**/.DS_Store
 /**/*.jpage
+/**/*.ws.kts
 /.gradle
 /build
-/debug
 /stacks
+/modules.dot
+/out
+/debug
+/documentation/docs/src_docs
+/documentation/docs/index.md
+/documentation/site
