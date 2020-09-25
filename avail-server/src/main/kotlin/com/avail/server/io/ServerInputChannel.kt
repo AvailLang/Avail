@@ -33,15 +33,16 @@
 package com.avail.server.io
 
 import com.avail.io.TextInputChannel
+import com.avail.server.AvailServer
 import com.avail.server.messages.Message
 import com.avail.utility.cast
 import java.io.IOException
 import java.nio.BufferOverflowException
 import java.nio.CharBuffer
-import java.nio.channels.ClosedChannelException
 import java.nio.channels.CompletionHandler
 import java.util.ArrayDeque
 import java.util.Deque
+import java.util.logging.Level
 import kotlin.math.min
 
 /**
@@ -63,6 +64,26 @@ import kotlin.math.min
 class ServerInputChannel constructor(
 	private val channel: AvailServerChannel) : TextInputChannel
 {
+	/**
+	 * The [Throwable] that, when not `null` the execution of [read] can no
+	 * longer proceed, and thus should fail.
+	 */
+	private var error: Throwable? = null
+		private set(value)
+		{
+			if (field === null && value !== null)
+			{
+				field = value
+				failHandler?.invoke(value)
+			}
+		}
+
+	/**
+	 * The function that accepts a [Throwable] to fail a [read] in progress or
+	 * `null` if none.
+	 */
+	private var failHandler : ((Throwable) -> Unit)? = null
+
 	/**
 	 * The [queue][Deque] of [messages][Message] awaiting delivery. It is
 	 * invariant that there are either pending messages or pending [waiters].
@@ -198,33 +219,32 @@ class ServerInputChannel constructor(
 		attachment: A?,
 		handler: CompletionHandler<Int, A>)
 	{
-		// If the underlying channel is closed, then invoke the handler's
-		// failure entry point.
-		if (!isOpen)
-		{
-			try
-			{
-				throw ClosedChannelException()
-			}
-			catch (e: ClosedChannelException)
-			{
-				handler.failed(e, attachment)
-				return
-			}
-
-		}
 		var totalSize = 0
 		synchronized(this) {
+			if (error !== null)
+			{
+				handler.failed(error!!, attachment)
+			}
+			failHandler = { e ->
+				AvailServer.logger.log(
+					Level.SEVERE,
+					"ServerInputChannel failed to complete read for command " +
+						"channel ${channel.parentId}",
+					e)
+				handler.failed(e, attachment)
+			}
 			if (messages.isEmpty())
 			{
 				val waiter = Waiter(buffer, attachment, handler)
 				waiters.addLast(waiter)
 				return
 			}
+			assert(error !== null)
 			assert(waiters.isEmpty())
 			// Otherwise, attempt to fill the buffer.
 			while (buffer.hasRemaining() && !messages.isEmpty())
 			{
+				// TODO check the error queue
 				val message = messages.peekFirst()
 				val content = message.stringContent
 				val contentLength = content.length
@@ -268,6 +288,7 @@ class ServerInputChannel constructor(
 				messages.addFirst(newMessage)
 				position = 0
 			}
+			failHandler = null
 		}
 		handler.completed(totalSize, attachment)
 	}
@@ -285,6 +306,7 @@ class ServerInputChannel constructor(
 	{
 		val ready: MutableList<Waiter>
 		synchronized(this) {
+			assert(error === null)
 			if (waiters.isEmpty())
 			{
 				messages.addLast(message)
@@ -353,6 +375,20 @@ class ServerInputChannel constructor(
 			waiter.completed()
 		}
 		receiveNext()
+	}
+
+	/**
+	 * Receive an [error][Throwable] indicating this [ServerInputChannel] is
+	 * no longer viable.
+	 *
+	 * @param cause
+	 *   The [Throwable] cause for killing this [ServerInputChannel].
+	 */
+	fun receiveError(cause: Throwable)
+	{
+		synchronized(this) {
+			error = cause
+		}
 	}
 
 	override fun close()

@@ -108,15 +108,13 @@ internal class BuildUnloader constructor(private val availBuilder: AvailBuilder)
 	 *   `deletionRequest`) of the given module.
 	 */
 	private fun determineDirtyModules(
-		moduleName: ResolvedModuleName?,
-		completionAction: (()->Unit)?)
+		moduleName: ResolvedModuleName,
+		completionAction: (()->Unit))
 	{
-		assert(moduleName !== null)
-		assert(completionAction !== null)
 		availBuilder.runtime.execute(loaderPriority) {
 			var dirty = false
 			for (predecessor
-				in availBuilder.moduleGraph.predecessorsOf(moduleName!!))
+				in availBuilder.moduleGraph.predecessorsOf(moduleName))
 			{
 				val loadedModule = availBuilder.getLoadedModule(predecessor)!!
 				if (loadedModule.deletionRequest)
@@ -147,7 +145,7 @@ internal class BuildUnloader constructor(private val availBuilder: AvailBuilder)
 			loadedModule.deletionRequest = dirty
 			AvailBuilder.log(
 				Level.FINEST, "(Module %s is dirty)", moduleName)
-			completionAction!!()
+			completionAction()
 		}
 	}
 

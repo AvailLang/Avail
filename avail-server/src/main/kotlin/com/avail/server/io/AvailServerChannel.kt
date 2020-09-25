@@ -39,6 +39,7 @@ import com.avail.server.messages.CommandMessage
 import com.avail.server.messages.Message
 import com.avail.server.messages.UpgradeCommandMessage
 import com.avail.server.session.Session
+import java.nio.channels.ClosedChannelException
 import java.util.EnumSet
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicLong
@@ -70,6 +71,21 @@ abstract class AvailServerChannel constructor(
 	 * logic to be run after this [AvailServerChannel] is closed.
 	 */
 	val channelCloseHandler: ChannelCloseHandler by lazy {
+		if (state === ProtocolState.IO)
+		{
+	//		try
+	//		{
+	//			throw ClosedChannelException()
+	//		}
+	//		catch (e: ClosedChannelException)
+	//		{
+	//
+	//		}
+			val input =
+				textInterface!!.inputChannel as
+					ServerInputChannel
+			input.receiveError(ClosedChannelException())
+		}
 		ChannelCloseHandler(this, closeAction)
 	}
 
