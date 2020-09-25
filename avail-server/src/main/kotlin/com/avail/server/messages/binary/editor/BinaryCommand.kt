@@ -190,7 +190,7 @@ enum class BinaryCommand constructor(val id: Int)
 			val target = ModuleName(relativePath)
 			channel.server.runtime.moduleRoots()
 				.moduleRootFor(target.rootName)?.let { mr ->
-					mr.sourceDirectory?.let {
+					mr.sourceUri?.let {
 						val path =
 							Paths.get(it.path, target.rootRelativeName).toString()
 						channel.server.fileManager.createFile(
@@ -226,7 +226,7 @@ enum class BinaryCommand constructor(val id: Int)
 						channel.enqueueMessageThen(
 							ErrorBinaryMessage(
 								commandId,
-								NO_SOURCE_DIRECTORY,
+								NO_SOURCE_LOCATION,
 								false,
 								"No source directory found for " +
 								target.rootName
@@ -276,7 +276,7 @@ enum class BinaryCommand constructor(val id: Int)
 			val target = ModuleName(relativePath)
 			channel.server.runtime.moduleRoots()
 				.moduleRootFor(target.rootName)?.let { mr ->
-					mr.sourceDirectory?.let {
+					mr.sourceUri?.let {
 						val path =
 							Paths.get(it.path, target.rootRelativeName).toString()
 						channel.server.fileManager.readFile(
@@ -308,7 +308,7 @@ enum class BinaryCommand constructor(val id: Int)
 						channel.enqueueMessageThen(
 							ErrorBinaryMessage(
 								commandId,
-								NO_SOURCE_DIRECTORY,
+								NO_SOURCE_LOCATION,
 								false,
 								"No source directory found for " +
 								target.rootName
@@ -418,6 +418,7 @@ enum class BinaryCommand constructor(val id: Int)
 			channel.server.fileManager.executeAction(
 				uuid,
 				SaveAction(channel.server.fileManager, fail),
+				channel.sessionId!!,
 				continuation,
 				fail)
 		}
@@ -509,7 +510,11 @@ enum class BinaryCommand constructor(val id: Int)
 			val data = ByteArray(buffer.remaining())
 			buffer.get(data)
 			val edit = EditRange(data, start, end)
-			channel.server.fileManager.executeAction(uuid, edit, continuation)
+			channel.server.fileManager.executeAction(
+				uuid,
+				edit,
+				channel.sessionId!!,
+				continuation)
 			{ code, e ->
 				logger.log(Level.SEVERE, "Edit file range error: $code", e)
 				ErrorBinaryMessage(commandId, code, false)
@@ -555,7 +560,7 @@ enum class BinaryCommand constructor(val id: Int)
 				return
 			}
 			channel.server.fileManager.executeAction(
-				uuid, UndoAction, continuation) { code, e ->
+				uuid, UndoAction, channel.sessionId!!, continuation) { code, e ->
 					logger.log(Level.SEVERE, "Undo edit error: $code", e)
 					ErrorBinaryMessage(commandId, code, false)
 						.processThen(channel)
@@ -600,7 +605,7 @@ enum class BinaryCommand constructor(val id: Int)
 				return
 			}
 			channel.server.fileManager.executeAction(
-				uuid, RedoAction, continuation) { code, e ->
+				uuid, RedoAction, channel.sessionId!!, continuation) { code, e ->
 					logger.log(Level.SEVERE, "Redo file error: $code", e)
 					ErrorBinaryMessage(commandId, code, false)
 						.processThen(channel)
@@ -636,7 +641,7 @@ enum class BinaryCommand constructor(val id: Int)
 			val target = ModuleName(relativePath)
 			channel.server.runtime.moduleRoots()
 				.moduleRootFor(target.rootName)?.let { mr ->
-					mr.sourceDirectory?.let {
+					mr.sourceUri?.let {
 						val path =
 							Paths.get(it.path, target.rootRelativeName).toString()
 						channel.server.fileManager.delete(
@@ -648,6 +653,7 @@ enum class BinaryCommand constructor(val id: Int)
 										.forEach { session ->
 											session.removeFile(fileId)
 											// TODO RAA notify interested parties?
+
 										}
 								}
 								OkMessage(commandId)
@@ -667,7 +673,7 @@ enum class BinaryCommand constructor(val id: Int)
 						channel.enqueueMessageThen(
 							ErrorBinaryMessage(
 								commandId,
-								NO_SOURCE_DIRECTORY,
+								NO_SOURCE_LOCATION,
 								false,
 								"No source directory found for " +
 								target.rootName
@@ -731,6 +737,7 @@ enum class BinaryCommand constructor(val id: Int)
 			buffer.get(data)
 			channel.server.fileManager.executeAction(
 				uuid, ReplaceContents(data),
+				channel.sessionId!!,
 				continuation)
 				{ code, e ->
 					logger.log(Level.SEVERE, "Edit file range error: $code", e)

@@ -211,7 +211,7 @@ class ModuleNameResolver constructor(val moduleRoots: ModuleRoots)
 
 		// If the source directory is available, then build a search stack of
 		// trials at ascending tiers of enclosing packages.
-		var sourceDirectory = root!!.sourceDirectory
+		var sourceDirectory = root!!.sourceUri
 		if (sourceDirectory !== null)
 		{
 			pathStack = LinkedList()
@@ -275,7 +275,7 @@ class ModuleNameResolver constructor(val moduleRoots: ModuleRoots)
 					checkedPaths.add(canonicalName)
 					root = moduleRoots.moduleRootFor(rootName)
 					assert(root !== null)
-					sourceDirectory = root!!.sourceDirectory
+					sourceDirectory = root!!.sourceUri
 					if (sourceDirectory !== null)
 					{
 						val trial = File(

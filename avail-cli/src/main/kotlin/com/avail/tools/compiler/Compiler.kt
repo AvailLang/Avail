@@ -275,7 +275,7 @@ object Compiler
 	private fun doClearRepositories(resolver: ModuleNameResolver)
 	{
 		resolver.moduleRoots.roots.forEach { root ->
-			val dir = root.sourceDirectory
+			val dir = root.sourceUri
 			if (dir !== null && dir.isDirectory)
 			{
 				root.clearRepository()

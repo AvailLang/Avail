@@ -56,6 +56,7 @@ import java.io.File
 import java.lang.RuntimeException
 import java.nio.charset.StandardCharsets
 import java.nio.file.FileAlreadyExistsException
+import java.util.UUID
 import java.util.concurrent.Semaphore
 
 /**
@@ -103,6 +104,8 @@ class FileManagerTest
 			"some\n" +
 			"\tsample\n" +
 			"text!"
+
+		private val sessionId = UUID.nameUUIDFromBytes("TEST".toByteArray())
 	}
 
 	/**
@@ -198,7 +201,6 @@ class FileManagerTest
 		semaphore.acquire()
 		assertFalse(fileFound.value)
 		assertEquals(ServerErrorCode.FILE_NOT_FOUND, errorCode.value)
-		assert(error.value is java.nio.file.NoSuchFileException)
 	}
 
 	@Test
@@ -231,6 +233,7 @@ class FileManagerTest
 		fileManager.executeAction(
 			firstId,
 			edit,
+			sessionId,
 			{
 				editMade.value = true
 				semaphore.release()
@@ -295,6 +298,7 @@ class FileManagerTest
 		fileManager.executeAction(
 			firstId,
 			replace,
+			sessionId,
 			{
 				editMade.value = true
 				semaphore.release()
@@ -481,6 +485,7 @@ class FileManagerTest
 		fileManager.executeAction(
 			firstId,
 			edit,
+			sessionId,
 			{
 				editMade.value = true
 				semaphore.release()
@@ -533,6 +538,7 @@ class FileManagerTest
 		fileManager.executeAction(
 			firstId,
 			saveAction,
+			sessionId,
 			{
 				saved.value = true
 				semaphore.release()

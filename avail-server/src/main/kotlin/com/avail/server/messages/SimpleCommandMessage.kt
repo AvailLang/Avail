@@ -79,6 +79,12 @@ class SimpleCommandMessage internal constructor(override val command: TextComman
 				server.allFibersThen(channel, this, continuation)
 			OPEN_EDITOR ->
 				server.requestEditorThen(channel, this, continuation)
+			SUBSCRIBE_NOTIFICATIONS ->
+				server.requestSubscribeNotificationsThen(
+					channel, this, continuation)
+			UNSUBSCRIBE_NOTIFICATIONS ->
+				server.requestUnsubscribeNotificationsThen(
+					channel, this, continuation)
 			VERSION,
 			UPGRADE,
 			LOAD_MODULE,

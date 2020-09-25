@@ -37,6 +37,7 @@ import com.avail.server.error.ServerErrorCode
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousFileChannel
+import java.util.UUID
 
 /**
  * `AvailServerBinaryFile` is an [AvailServerFile] that contains a strictly
@@ -121,11 +122,16 @@ internal class AvailServerBinaryFile constructor(
 				}).guardedDo { file.read(input, 0L, dummy, handler) }
 	}
 
-	override fun replaceFile(data: ByteArray, timestamp: Long): TracedAction =
-		editRange(data, 0, content.size)
+	override fun replaceFile(
+		data: ByteArray, timestamp: Long, originator: UUID): TracedAction =
+			editRange(data, 0, content.size, originator = originator)
 
 	override fun editRange(
-		data: ByteArray, start: Int, end: Int, timestamp: Long): TracedAction
+		data: ByteArray,
+		start: Int,
+		end: Int,
+		timestamp: Long,
+		originator: UUID): TracedAction
 	{
 		val removed = content.copyOfRange(start, end)
 		content = content.copyOfRange(0, start) +
@@ -133,6 +139,7 @@ internal class AvailServerBinaryFile constructor(
 		markDirty()
 		return TracedAction(
 			timestamp,
+			originator,
 			EditRange(data, start, end),
 			EditRange(removed, start, start + data.size))
 	}

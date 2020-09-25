@@ -252,7 +252,19 @@ enum class TextCommand
 	 * [upgraded][UPGRADE] to a binary channel that will be used for interacting
 	 * with files.
 	 */
-	OPEN_EDITOR;
+	OPEN_EDITOR,
+
+	/**
+	 * Request that the command channel receive push notifications from the
+	 * [AvailServer].
+	 */
+	SUBSCRIBE_NOTIFICATIONS,
+
+	/**
+	 * Request that the command channel receive push notifications from the
+	 * [AvailServer].
+	 */
+	UNSUBSCRIBE_NOTIFICATIONS;
 
 	/**
 	 * The tokenized syntax of the [command][TextCommand], or `null` if the command

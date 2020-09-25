@@ -144,6 +144,11 @@ class AvailServer constructor(
 	val runtime: AvailRuntime,
 	internal val fileManager: FileManager = LocalFileManager(runtime))
 {
+	init
+	{
+		fileManager.server(this)
+	}
+
 	/**
 	 * The [Avail builder][AvailBuilder] responsible for managing build and
 	 * execution tasks.
@@ -625,7 +630,7 @@ class AvailServer constructor(
 				for (root in roots)
 				{
 					val tree = Mutable<ModuleNode?>(null)
-					val directory = root.sourceDirectory
+					val directory = root.sourceUri
 					if (directory !== null)
 					{
 						try
@@ -807,7 +812,7 @@ class AvailServer constructor(
 	}
 
 	/**
-	 * Request new file-editing [channel][AvailServerChannel].
+	 * Request to receive server push notifications.
 	 *
 	 * @param channel
 	 *   The [channel][AvailServerChannel] on which the
@@ -846,6 +851,62 @@ class AvailServer constructor(
 		channel.enqueueMessageThen(
 			newUpgradeRequestMessage(channel, command, uuid),
 			afterEnqueuing)
+	}
+
+	/**
+	 * Request server notifications be stopped.
+	 *
+	 * @param channel
+	 *   The [channel][AvailServerChannel] on which the
+	 *   [response][CommandMessage] should be sent.
+	 * @param command
+	 *   An [OPEN_EDITOR][TextCommand.OPEN_EDITOR] command message.
+	 * @param continuation
+	 *   What to do when sufficient processing has occurred (and the
+	 *   `AvailServer` wishes to begin receiving messages again).
+	 */
+	fun requestSubscribeNotificationsThen(
+		channel: AvailServerChannel,
+		command: CommandMessage,
+		continuation: () -> Unit)
+	{
+		assert(command.command === TextCommand.SUBSCRIBE_NOTIFICATIONS)
+		channel.session?.let {
+			it.receiveNotifications()
+			channel.enqueueMessageThen(
+				newSimpleSuccessMessage(channel, command),
+				continuation)
+		} ?: channel.enqueueMessageThen(
+			newErrorMessage(channel, command, "Could not locate session"),
+			continuation)
+	}
+
+	/**
+	 * Request new file-editing [channel][AvailServerChannel].
+	 *
+	 * @param channel
+	 *   The [channel][AvailServerChannel] on which the
+	 *   [response][CommandMessage] should be sent.
+	 * @param command
+	 *   An [OPEN_EDITOR][TextCommand.OPEN_EDITOR] command message.
+	 * @param continuation
+	 *   What to do when sufficient processing has occurred (and the
+	 *   `AvailServer` wishes to begin receiving messages again).
+	 */
+	fun requestUnsubscribeNotificationsThen(
+		channel: AvailServerChannel,
+		command: CommandMessage,
+		continuation: () -> Unit)
+	{
+		assert(command.command === TextCommand.SUBSCRIBE_NOTIFICATIONS)
+		channel.session?.let {
+			it.receiveNotifications()
+			channel.enqueueMessageThen(
+				newSimpleSuccessMessage(channel, command),
+				continuation)
+		} ?: channel.enqueueMessageThen(
+			newErrorMessage(channel, command, "Could not locate session"),
+			continuation)
 	}
 
 	/**
@@ -1600,7 +1661,9 @@ class AvailServer constructor(
 			val resolver: ModuleNameResolver
 			try
 			{
-				configuration = configure(args)
+
+//				configuration = configure(args)
+				configuration = configure(emptyArray())
 				resolver = configuration.moduleNameResolver()
 			}
 			catch (e: ConfigurationException)
@@ -1650,6 +1713,7 @@ class AvailServer constructor(
 			}
 			finally
 			{
+				server.fileManager.close()
 				runtime.destroy()
 			}
 		}

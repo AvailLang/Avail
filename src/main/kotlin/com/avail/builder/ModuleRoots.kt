@@ -97,7 +97,7 @@ class ModuleRoots(modulePath: String) : Iterable<ModuleRoot>
 			builder.append(root.name)
 			builder.append("=")
 			builder.append(root.repository.fileName.path)
-			val sourceDirectory = root.sourceDirectory
+			val sourceDirectory = root.sourceUri
 			if (sourceDirectory !== null)
 			{
 				builder.append(",")

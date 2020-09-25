@@ -33,6 +33,7 @@
 package com.avail.server.io.files
 
 import com.avail.server.error.ServerErrorCode
+import com.avail.server.session.Session
 import org.apache.tika.Tika
 import java.nio.channels.AsynchronousFileChannel
 import java.nio.file.Paths
@@ -155,14 +156,19 @@ abstract class AbstractServerFileWrapper constructor(
 	 *
 	 * @param fileAction
 	 *   The `FileAction` to perform.
+	 * @param originator
+	 *   The [Session.id] of the session that originated the change.
 	 * @param continuation
 	 *   What to do when sufficient processing has occurred.
 	 */
 	@Synchronized
-	fun execute (fileAction: FileAction, continuation: () -> Unit)
+	fun execute (
+		fileAction: FileAction,
+		originator: UUID,
+		continuation: ()->Unit)
 	{
 		val tracedAction =
-			fileAction.execute(file, System.currentTimeMillis())
+			fileAction.execute(file, System.currentTimeMillis(), originator)
 
 		if (tracedAction.isTraced())
 		{
@@ -198,8 +204,11 @@ abstract class AbstractServerFileWrapper constructor(
 	 *
 	 * This should only ever be called from [UndoAction.execute] to ensure it
 	 * is performed through the synchronized [execution][execute] path.
+	 *
+	 * @param originator
+	 *   The [Session.id] of the session that originated the undo.
 	 */
-	fun undo ()
+	fun undo(originator: UUID)
 	{
 		if (tracedActionStack.size >= undoStackDepth.get() + 1)
 		{
@@ -218,8 +227,11 @@ abstract class AbstractServerFileWrapper constructor(
 	 *
 	 * This should only ever be called from [RedoAction.execute] to ensure it
 	 * is performed through the synchronized [execution][execute] path.
+	 *
+	 * @param originator
+	 *   The [Session.id] of the session that originated the undo.
 	 */
-	fun redo ()
+	fun redo(originator: UUID)
 	{
 		if (undoStackDepth.get() == 0)
 		{

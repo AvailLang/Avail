@@ -72,7 +72,7 @@ class Message constructor(
 	val closeAfterSending: Boolean = false)
 {
 	// TODO Process all message data as bytes and transform it just before
-	// actually using the data when being read.
+	//  actually using the data when being read.
 	val stringContent: String get()
 	{
 		require(!state.generalBinary)

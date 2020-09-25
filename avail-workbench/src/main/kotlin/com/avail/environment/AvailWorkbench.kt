@@ -1452,7 +1452,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		roots.roots.forEach { root ->
 			// Obtain the path associated with the module root.
 			root.repository.reopenIfNecessary()
-			val rootDirectory = root.sourceDirectory!!
+			val rootDirectory = root.sourceUri!!
 			try
 			{
 				Files.walkFileTree(
@@ -1822,7 +1822,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 					root.repository.fileName.path)
 				childNode.put(
 					moduleRootsSourceSubkeyString,
-					root.sourceDirectory!!.path)
+					root.sourceUri!!.path)
 			}
 
 			val renamesNode =

@@ -39,6 +39,7 @@ import com.avail.server.io.ParentChannelDisconnect
 import com.avail.server.io.files.FileManager
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.logging.Level
 
 /**
@@ -66,7 +67,7 @@ import java.util.logging.Level
  *   [AvailServerChannel.ProtocolState.COMMAND] and is eligible to create child
  *   `AvailServerChannel`s.
  */
-class Session constructor(val commandChannel: AvailServerChannel)
+class Session constructor(private val commandChannel: AvailServerChannel)
 {
 	// TODO
 	//  - Maintain space for user data, this includes
@@ -78,6 +79,27 @@ class Session constructor(val commandChannel: AvailServerChannel)
 	 * [commandChannel]'s [AvailServerChannel.id].
 	 */
 	val id: UUID = commandChannel.id
+
+	/**
+	 * `true` indicates client wishes to receive server push; `false` otherwise.
+	 */
+	private val receiveNotifications = AtomicBoolean(false)
+
+	/**
+	 * Set session to receive notificaitons.
+	 */
+	fun receiveNotifications ()
+	{
+		receiveNotifications.set(true)
+	}
+
+	/**
+	 * Set session to not receive notificaitons.
+	 */
+	fun stopNotifications ()
+	{
+		receiveNotifications.set(false)
+	}
 
 	/**
 	 * The [Map] from [AvailServerChannel.id] to [AvailServerChannel] for all
@@ -159,7 +181,7 @@ class Session constructor(val commandChannel: AvailServerChannel)
 		}
 		commandChannel.server.sessions.remove(id)
 		fileCacheIdSessionId.keys.forEach {
-			commandChannel.server.fileManager.deregisterInterest(it)
+			commandChannel.server.fileManager.deregisterInterest(it, id)
 		}
 		AvailServer.logger.log(Level.INFO, "Session $id closed")
 	}
@@ -181,7 +203,7 @@ class Session constructor(val commandChannel: AvailServerChannel)
 			// it had a file open and re-requested it, then this Session would
 			// have been double-counted in the ServerFileWrapper's
 			// interestCount, which needs to be adjusted.
-			commandChannel.server.fileManager.deregisterInterest(uuid)
+			commandChannel.server.fileManager.deregisterInterest(uuid, id)
 			it
 		} ?: sessionFileCache.add(uuid).apply {
 				fileCacheIdSessionId[uuid] = this
@@ -199,7 +221,7 @@ class Session constructor(val commandChannel: AvailServerChannel)
 	 */
 	fun removeFileCacheId (id: Int) =
 		sessionFileCache.remove(id)?.let {
-			commandChannel.server.fileManager.deregisterInterest(it)
+			commandChannel.server.fileManager.deregisterInterest(it, this.id)
 			fileCacheIdSessionId.remove(it)
 		}
 

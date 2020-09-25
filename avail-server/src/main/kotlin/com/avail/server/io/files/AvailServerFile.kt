@@ -32,8 +32,10 @@
 package com.avail.server.io.files
 
 import com.avail.server.AvailServer
+import com.avail.server.session.Session
 import java.io.IOException
 import java.nio.channels.AsynchronousFileChannel
+import java.util.UUID
 import java.util.logging.Level
 
 /**
@@ -142,6 +144,8 @@ abstract class AvailServerFile constructor(
 	 *   should be preserved.
 	 * @param timestamp
 	 *   The time in milliseconds since the Unix Epoch UTC the update occurred.
+	 * @param originator
+	 *   The [Session.id] of the session that originated the change.
 	 * @return
 	 *   The [TracedAction] that preserves this edit and how to reverse it.
 	 */
@@ -149,7 +153,8 @@ abstract class AvailServerFile constructor(
 		data: ByteArray,
 		start: Int,
 		end: Int,
-		timestamp: Long = System.currentTimeMillis()): TracedAction
+		timestamp: Long = System.currentTimeMillis(),
+		originator: UUID): TracedAction
 
 	/**
 	 * Replace the entire contents of the file with the provided byte array.
@@ -158,10 +163,13 @@ abstract class AvailServerFile constructor(
 	 *   The `ByteArray` data to add to this [AvailServerFile].
 	 * @param timestamp
 	 *   The time in milliseconds since the Unix Epoch UTC the update occurred.
+	 * @param originator
+	 *   The [Session.id] of the session that originated the change.
 	 * @return
 	 *   The [TracedAction] that preserves this edit and how to reverse it.
 	 */
 	abstract fun replaceFile (
 		data: ByteArray,
-		timestamp: Long = System.currentTimeMillis()): TracedAction
+		timestamp: Long = System.currentTimeMillis(),
+		originator: UUID): TracedAction
 }

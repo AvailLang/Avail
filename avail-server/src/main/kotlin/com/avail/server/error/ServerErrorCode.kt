@@ -80,10 +80,9 @@ enum class ServerErrorCode constructor(val code: Int)
 	BAD_MODULE_ROOT(7),
 
 	/**
-	 * Located [ModuleRoot] has no
-	 * [source directory][ModuleRoot.sourceDirectory].
+	 * Located [ModuleRoot] has no [source location][ModuleRoot.sourceUri].
 	 */
-	NO_SOURCE_DIRECTORY(8),
+	NO_SOURCE_LOCATION(8),
 
 	/**
 	 * Could not locate a [Session].
@@ -112,7 +111,7 @@ enum class ServerErrorCode constructor(val code: Int)
 				5 -> INVALID_REQUEST
 				6 -> MALFORMED_MESSAGE
 				7 -> BAD_MODULE_ROOT
-				8 -> NO_SOURCE_DIRECTORY
+				8 -> NO_SOURCE_LOCATION
 				else -> UNSPECIFIED
 			}
 	}

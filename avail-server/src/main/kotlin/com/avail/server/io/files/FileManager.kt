@@ -34,9 +34,11 @@ package com.avail.server.io.files
 
 import com.avail.AvailRuntime
 import com.avail.AvailThread
+import com.avail.builder.ModuleRoot
 import com.avail.server.AvailServer
 import com.avail.server.error.ServerErrorCode
 import com.avail.server.error.ServerErrorCode.*
+import com.avail.server.session.Session
 import com.avail.utility.LRUCache
 import com.avail.utility.Mutable
 import java.io.IOException
@@ -45,25 +47,67 @@ import java.nio.file.Path
 import java.nio.file.StandardOpenOption
 import java.util.*
 import java.util.concurrent.ThreadPoolExecutor
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
- * `FileManager` manages the opened files of the Avail Server. It provides an
- * LRU caching mechanism by which files can be added and removed as needed to
- * control the number of open files in memory.
+ * `FileManager` manages the access to the source and resource files in Avail
+ * [ModuleRoot](s). It provides an LRU caching mechanism by which open files can
+ * be added and removed as needed to control the number of open files in memory.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
  * @property runtime
- *   The [AvailRuntime] that is associated with the running [AvailServer].
+ *   The [AvailRuntime] that is associated with the running `AvailServer`. TODO update comments
  *
  * @constructor
  * Construct a [FileManager].
  *
  * @param runtime
- *   The [AvailRuntime] that is associated with the running [AvailServer].
+ *   The [AvailRuntime] that is associated with the running `AvailServer`.
  */
 abstract class FileManager constructor(protected val runtime: AvailRuntime)
 {
+	/**
+	 * Answer a [ResourceResolver] that can be used to access module source
+	 * for modules in the provided [ModuleRoot].
+	 *
+	 * // TODO flush this out
+	 *
+	 * @param moduleRoot
+	 *   The [ModuleRoot] to provide a resolver for.
+	 */
+	abstract fun getResourceResolver (moduleRoot: ModuleRoot): ResourceResolver
+
+	/**
+	 * Close this [FileManager]. Should be called at shutdown to ensure proper
+	 * clean up of any open resources.
+	 */
+	open fun close () = Unit
+
+	/**
+	 * The [AvailServer] this [FileManager] is attached to.
+	 */
+	private lateinit var server: AvailServer
+
+	/**
+	 * Guard for ensuring [server] is only set once.
+	 */
+	private val serverNotSet = AtomicBoolean(true)
+
+	/**
+	 * Set the [AvailServer]. This can only be done once.
+	 *
+	 * @param server
+	 *   The [AvailServer] to set.
+	 */
+	fun server (server: AvailServer)
+	{
+		if (serverNotSet.getAndSet(false))
+		{
+			this.server = server
+		}
+	}
+
 	/**
 	 * The [EnumSet] of [StandardOpenOption]s used when creating files.
 	 */
@@ -81,6 +125,14 @@ abstract class FileManager constructor(protected val runtime: AvailRuntime)
 		const val SOFT_CAPACITY = 10000
 		const val STRONG_CAPACITY = 10
 	}
+
+	/**
+	 * Watch the [ModuleRoot] for file system changes outside of Anvil.
+	 *
+	 * @param root
+	 *   The root location.
+	 */
+	abstract fun watchRoot (root: ModuleRoot)
 
 	/**
 	 * The [thread pool executor][ThreadPoolExecutor] for asynchronous file
@@ -182,7 +234,7 @@ abstract class FileManager constructor(protected val runtime: AvailRuntime)
 	 * @param id
 	 *   The [UUID] that uniquely identifies the target file in the cache.
 	 */
-	fun deregisterInterest (id: UUID)
+	fun deregisterInterest (id: UUID, sessionId: UUID)
 	{
 		fileCache[id].value.let {
 			if (it?.interestCount?.decrementAndGet() == 0)
@@ -252,6 +304,8 @@ abstract class FileManager constructor(protected val runtime: AvailRuntime)
 	 *   The [ServerFileWrapper] cache id of the file to act upon.
 	 * @param fileAction
 	 *   The [FileAction] to execute.
+	 * @param originator
+	 *   The [Session.id] of the session that originated this change.
 	 * @param continuation
 	 *   What to do when sufficient processing has occurred.
 	 * @param failureHandler
@@ -261,10 +315,11 @@ abstract class FileManager constructor(protected val runtime: AvailRuntime)
 	fun executeAction (
 		id: UUID,
 		fileAction: FileAction,
-		continuation: () -> Unit,
-		failureHandler: (ServerErrorCode, Throwable?) -> Unit)
+		originator: UUID,
+		continuation: ()->Unit,
+		failureHandler: (ServerErrorCode, Throwable?)->Unit)
 	{
-		fileCache[id].value?.execute(fileAction, continuation)
+		fileCache[id].value?.execute(fileAction, originator, continuation)
 			?: failureHandler(BAD_FILE_ID, null)
 	}
 
@@ -333,4 +388,23 @@ abstract class FileManager constructor(protected val runtime: AvailRuntime)
 		path: String,
 		consumer: (UUID, String, ByteArray) -> Unit,
 		failureHandler: (ServerErrorCode, Throwable?) -> Unit): UUID?
+
+	/**
+	 * `FileSystemChange` is an enumeration of descriptive file system change
+	 * types for files and directories.
+	 */
+	enum class FileSystemChangeType
+	{
+		CREATE,
+		MODIFY,
+		DELETE
+	}
+
+	/**
+	 * TODO
+	 */
+	data class FileSystemChange constructor(
+		val type: FileSystemChangeType,
+		val target: String,
+		val root: ModuleRoot)
 }

@@ -184,7 +184,7 @@ class PreferencesAction constructor(workbench: AvailWorkbench)
 			val triple = mutableListOf<String>()
 			triple.add(root.name)
 			triple.add(root.repository.fileName.path)
-			val source = root.sourceDirectory
+			val source = root.sourceUri
 			triple.add(if (source === null) "" else source.path)
 			rootsTableModel.rows.add(triple)
 		}

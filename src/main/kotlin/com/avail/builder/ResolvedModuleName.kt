@@ -85,7 +85,7 @@ internal constructor(
 		get()
 		{
 			val builder = StringBuilder(100)
-			val sourceDirectory = moduleRoot.sourceDirectory!!
+			val sourceDirectory = moduleRoot.sourceUri!!
 			builder.append(sourceDirectory)
 			for (part in rootRelativeName.split("/"))
 			{

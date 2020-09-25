@@ -132,7 +132,7 @@ internal class BuildDirectoryTracer constructor(
 		val moduleRoots = availBuilder.runtime.moduleRoots()
 		for (moduleRoot in moduleRoots)
 		{
-			val rootDirectory = moduleRoot.sourceDirectory!!
+			val rootDirectory = moduleRoot.sourceUri!!
 			val rootPath = rootDirectory.toPath()
 			val visitor = object : FileVisitor<Path>
 			{

@@ -43,6 +43,7 @@ import java.nio.CharBuffer
 import java.nio.channels.AsynchronousFileChannel
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
+import java.util.UUID
 
 /**
  * An `AvailServerTextFile` is an [AvailServerFile] that is specific to textual
@@ -153,8 +154,9 @@ internal class AvailServerTextFile constructor(
 			}).guardedDo { file.read(input, 0L, dummy, handler) }
 	}
 
-	override fun replaceFile(data: ByteArray, timestamp: Long): TracedAction =
-		editRange(data, 0, content.tupleSize())
+	override fun replaceFile(
+		data: ByteArray, timestamp: Long, originator: UUID): TracedAction =
+			editRange(data, 0, content.tupleSize(), originator = originator)
 
 	/**
 	 * Insert the [ByteArray] data into the file at the specified location. This
@@ -184,7 +186,11 @@ internal class AvailServerTextFile constructor(
 	 *   it.
 	 */
 	override fun editRange(
-		data: ByteArray, start: Int, end: Int, timestamp: Long): TracedAction
+		data: ByteArray,
+		start: Int,
+		end: Int,
+		timestamp: Long,
+		originator: UUID): TracedAction
 	{
 		// The text to insert in the file
 		val text =
@@ -212,6 +218,7 @@ internal class AvailServerTextFile constructor(
 		markDirty()
 		return TracedAction(
 			timestamp,
+			originator,
 			EditRange(data, start, end),
 			EditRange(
 				removed.asNativeString().toByteArray(Charsets.UTF_16BE),
