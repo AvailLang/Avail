@@ -35,6 +35,7 @@ package com.avail.environment.actions
 import com.avail.AvailRuntimeConfiguration
 import com.avail.environment.AvailWorkbench
 import com.avail.environment.AvailWorkbench.AdaptiveColor
+import com.avail.environment.LayoutConfiguration.Companion.resource
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Dialog.ModalityType
@@ -77,7 +78,7 @@ class AboutAction constructor(workbench: AvailWorkbench)
 
 		val logo = ImageIcon(
 			this.javaClass.getResource(
-				AvailWorkbench.resource("Avail-logo-about.png")))
+				resource("Avail-logo-about.png")))
 		panel.add(JLabel(logo))
 
 		val builder = StringBuilder(200)

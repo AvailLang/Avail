@@ -45,13 +45,14 @@ import com.avail.builder.ResolvedModuleName
 import com.avail.builder.UnresolvedDependencyException
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.module.ModuleDescriptor
-import com.avail.environment.AvailWorkbench.StreamStyle.BUILD_PROGRESS
-import com.avail.environment.AvailWorkbench.StreamStyle.COMMAND
-import com.avail.environment.AvailWorkbench.StreamStyle.ERR
-import com.avail.environment.AvailWorkbench.StreamStyle.INFO
-import com.avail.environment.AvailWorkbench.StreamStyle.IN_ECHO
-import com.avail.environment.AvailWorkbench.StreamStyle.OUT
-import com.avail.environment.AvailWorkbench.StreamStyle.values
+import com.avail.environment.LayoutConfiguration.Companion.basePreferences
+import com.avail.environment.LayoutConfiguration.Companion.initialConfiguration
+import com.avail.environment.LayoutConfiguration.Companion.moduleRenameSourceSubkeyString
+import com.avail.environment.LayoutConfiguration.Companion.moduleRenameTargetSubkeyString
+import com.avail.environment.LayoutConfiguration.Companion.moduleRenamesKeyString
+import com.avail.environment.LayoutConfiguration.Companion.moduleRootsKeyString
+import com.avail.environment.LayoutConfiguration.Companion.moduleRootsRepoSubkeyString
+import com.avail.environment.LayoutConfiguration.Companion.moduleRootsSourceSubkeyString
 import com.avail.environment.actions.AboutAction
 import com.avail.environment.actions.BuildAction
 import com.avail.environment.actions.CancelAction
@@ -93,6 +94,16 @@ import com.avail.environment.nodes.EntryPointModuleNode
 import com.avail.environment.nodes.EntryPointNode
 import com.avail.environment.nodes.ModuleOrPackageNode
 import com.avail.environment.nodes.ModuleRootNode
+import com.avail.environment.streams.BuildInputStream
+import com.avail.environment.streams.BuildOutputStream
+import com.avail.environment.streams.BuildOutputStreamEntry
+import com.avail.environment.streams.BuildPrintStream
+import com.avail.environment.streams.StreamStyle
+import com.avail.environment.streams.StreamStyle.BUILD_PROGRESS
+import com.avail.environment.streams.StreamStyle.ERR
+import com.avail.environment.streams.StreamStyle.INFO
+import com.avail.environment.streams.StreamStyle.OUT
+import com.avail.environment.streams.StreamStyle.values
 import com.avail.environment.tasks.BuildTask
 import com.avail.io.ConsoleInputChannel
 import com.avail.io.ConsoleOutputChannel
@@ -102,17 +113,12 @@ import com.avail.performance.StatisticReport.WORKBENCH_TRANSCRIPT
 import com.avail.stacks.StacksGenerator
 import com.avail.utility.IO
 import com.avail.utility.cast
-import com.avail.utility.javaNotifyAll
-import com.avail.utility.javaWait
 import com.avail.utility.safeWrite
 import com.bulenkov.darcula.DarculaLaf
 import java.awt.Color
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.EventQueue
-import java.awt.Frame
-import java.awt.GraphicsEnvironment
-import java.awt.Rectangle
 import java.awt.Toolkit
 import java.awt.event.ActionEvent
 import java.awt.event.ComponentAdapter
@@ -121,20 +127,16 @@ import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.event.WindowEvent
 import java.io.BufferedReader
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
 import java.io.InputStreamReader
-import java.io.OutputStream
 import java.io.PrintStream
 import java.io.Reader
 import java.io.StringReader
 import java.io.UnsupportedEncodingException
 import java.lang.Integer.parseInt
 import java.lang.String.format
-import java.lang.System.arraycopy
 import java.lang.System.currentTimeMillis
 import java.nio.charset.StandardCharsets
 import java.nio.file.FileSystems
@@ -156,7 +158,6 @@ import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.prefs.BackingStoreException
-import java.util.prefs.Preferences
 import javax.swing.Action
 import javax.swing.BorderFactory
 import javax.swing.GroupLayout
@@ -184,7 +185,6 @@ import javax.swing.UIManager
 import javax.swing.WindowConstants
 import javax.swing.text.BadLocationException
 import javax.swing.text.SimpleAttributeSet
-import javax.swing.text.Style
 import javax.swing.text.StyleConstants
 import javax.swing.text.StyleContext
 import javax.swing.text.StyledDocument
@@ -621,27 +621,6 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	}
 
 	/**
-	 * A singular write to an output stream.  This write is considered atomic
-	 * with respect to writes from other threads, and will not have content from
-	 * other writes interspersed with its characters.
-	 *
-	 * @property style
-	 *   The [StreamStyle] with which to render the string.
-	 * @property string
-	 *   The [String] to output.
-	 *
-	 * @constructor
-	 * Create an entry that captures a [StreamStyle] and [String] to output.
-	 *
-	 * @param style
-	 *   The [StreamStyle] with which to render the string.
-	 * @param string
-	 *   The [String] to output.
-	 */
-	internal class BuildOutputStreamEntry constructor(
-		val style: StreamStyle, val string: String)
-
-	/**
 	 * Update the [transcript] by appending the (non-empty) queued
 	 * text to it.  Only output what was already queued by the time the UI
 	 * runnable starts; if additional output is detected afterward, another UI
@@ -825,317 +804,6 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 			get() = with(color) {
 				format("#%02x%02x%02x", red, green, blue)
 			}
-	}
-
-	/**
-	 * An abstraction of the styles of streams used by the workbench.
-	 *
-	 * @property styleName
-	 *   The name of this style.
-	 * @constructor
-	 * Construct a new `StreamStyle`.
-	 *
-	 * @param light
-	 *   The color of foreground text in this style for light mode.
-	 * @param dark
-	 *   The color of foreground text in this style for dark mode.
-	 */
-	enum class StreamStyle constructor(
-		private val styleName: String,
-		light: Color,
-		dark: Color)
-	{
-		/** The stream style used to echo user input.  */
-		IN_ECHO(
-			"input",
-			light = Color(32, 144, 32),
-			dark = Color(55, 156, 26)),
-
-		/** The stream style used to display normal output.  */
-		OUT(
-			"output",
-			light = Color.BLACK,
-			dark = Color(238, 238, 238)),
-
-		/** The stream style used to display error output.  */
-		ERR(
-			"error",
-			light = Color.RED,
-			dark = Color(231, 70, 68)),
-
-		/** The stream style used to display informational text.  */
-		INFO(
-			"info",
-			light = Color.BLUE,
-			dark = Color(83, 148, 236)),
-
-		/** The stream style used to echo commands.  */
-		COMMAND(
-			"command",
-			light = Color.MAGENTA,
-			dark = Color(174, 138, 190)),
-
-		/** Progress updates produced by a build.  */
-		BUILD_PROGRESS(
-			"build",
-			light = Color(128, 96, 0),
-			dark = Color(220, 196, 87));
-
-		/** Combine the light and dark into an AdaptiveColor. */
-		private val adaptiveColor = AdaptiveColor(light, dark)
-
-		/**
-		 * Create my corresponding [Style] in the [StyledDocument].
-		 *
-		 * @param doc
-		 * The document in which to define this style.
-		 */
-		internal fun defineStyleIn(doc: StyledDocument)
-		{
-			val defaultStyle =
-				StyleContext.getDefaultStyleContext().getStyle(
-					StyleContext.DEFAULT_STYLE)
-			val style = doc.addStyle(styleName, defaultStyle)
-			StyleConstants.setForeground(style, adaptiveColor.color)
-		}
-
-		/**
-		 * Extract this style from the given [document][StyledDocument].
-		 * Look up my [styleName].
-		 *
-		 * @param doc
-		 *   The document.
-		 * @return The [Style].
-		 */
-		fun styleIn(doc: StyledDocument): Style
-		{
-			return doc.getStyle(styleName)
-		}
-	}
-
-	/**
-	 * [BuildOutputStream] intercepts writes and updates the UI's
-	 * [transcript].
-	 *
-	 * @property streamStyle
-	 *   What [StreamStyle] should this stream render with?
-	 * @constructor
-	 * Construct a new `BuildOutputStream`.
-	 *
-	 * @param streamStyle
-	 *   What [StreamStyle] should this stream render with?
-	 */
-	private inner class BuildOutputStream constructor(
-		val streamStyle: StreamStyle) : ByteArrayOutputStream(1)
-	{
-		/**
-		 * Transfer any data in my buffer into the updateQueue, starting up a UI
-		 * task to transfer them to the document as needed.
-		 */
-		private fun queueForTranscript()
-		{
-			assert(Thread.holdsLock(this))
-			val text: String
-			try
-			{
-				text = toString(StandardCharsets.UTF_8.name())
-			}
-			catch (e: UnsupportedEncodingException)
-			{
-				assert(false) { "Somehow Java doesn't support characters" }
-				throw RuntimeException(e)
-			}
-
-			if (text.isEmpty())
-			{
-				// Nothing new to display.
-				return
-			}
-			reset()
-			writeText(text, streamStyle)
-		}
-
-		@Synchronized
-		override fun write(b: Int)
-		{
-			super.write(b)
-			queueForTranscript()
-		}
-
-		@Synchronized
-		@Throws(IOException::class)
-		override fun write(b: ByteArray?)
-		{
-			assert(b !== null)
-			super.write(b!!)
-			queueForTranscript()
-		}
-
-		@Synchronized
-		override fun write(
-			b: ByteArray?,
-			off: Int,
-			len: Int)
-		{
-			assert(b !== null)
-			super.write(b!!, off, len)
-			queueForTranscript()
-		}
-	}
-
-	/**
-	 * A PrintStream specialization for better println handling.
-	 *
-	 * @constructor
-	 * Because you can't inherit constructors.
-	 *
-	 * @param out
-	 *   The wrapped [OutputStream].
-	 * @throws UnsupportedEncodingException
-	 *   Because Java won't let you catch the pointless exception thrown by the
-	 *   super constructor.
-	 */
-	internal class BuildPrintStream
-	@Throws(UnsupportedEncodingException::class) constructor(
-		out: OutputStream
-	) : PrintStream(out, false, StandardCharsets.UTF_8.name())
-	{
-		override fun println(s: String)
-		{
-			print(s + "\n")
-		}
-
-		override fun println(o: Any)
-		{
-			print(o.toString() + "\n")
-		}
-	}
-
-	/**
-	 * [BuildInputStream] satisfies reads from the UI's
-	 * [input&#32;field][inputField]. It blocks reads unless some data is
-	 * available.
-	 *
-	 * @constructor
-	 * Construct a new `BuildInputStream`.
-	 */
-	inner class BuildInputStream
-		: ByteArrayInputStream(ByteArray(1024), 0, 0)
-	{
-		/**
-		 * Clear the input stream. All pending data is discarded and the stream
-		 * position is reset to zero (`0`).
-		 */
-		@Synchronized
-		fun clear()
-		{
-			count = 0
-			pos = 0
-		}
-
-		/**
-		 * Update the content of the stream with data from the
-		 * [input&#32;field][inputField].
-		 */
-		@Synchronized
-		fun update()
-		{
-			val text = inputField.text + "\n"
-			val bytes = text.toByteArray()
-			if (pos + bytes.size >= buf.size)
-			{
-				val newSize = max(
-					buf.size shl 1, bytes.size + buf.size)
-				val newBuf = ByteArray(newSize)
-				arraycopy(buf, 0, newBuf, 0, buf.size)
-				buf = newBuf
-			}
-			arraycopy(bytes, 0, buf, count, bytes.size)
-			count += bytes.size
-			writeText(text, IN_ECHO)
-			inputField.text = ""
-			javaNotifyAll()
-		}
-
-		/**
-		 * The specified command string was just entered.  Present it in the
-		 * [StreamStyle.COMMAND] style.  Force an extra leading new line
-		 * to keep the text area from looking stupid.  Also end with a new line.
-		 * The passed command should not itself have a new line included.
-		 *
-		 * @param commandText
-		 * The command that was entered, with no leading or trailing line
-		 * breaks.
-		 */
-		@Synchronized
-		fun feedbackForCommand(
-			commandText: String)
-		{
-			val textToInsert = "\n" + commandText + "\n"
-			writeText(textToInsert, COMMAND)
-		}
-
-		override fun markSupported(): Boolean
-		{
-			return false
-		}
-
-		override fun mark(readAheadLimit: Int)
-		{
-			throw UnsupportedOperationException()
-		}
-
-		@Synchronized
-		override fun reset()
-		{
-			throw UnsupportedOperationException()
-		}
-
-		@Synchronized
-		override fun read(): Int
-		{
-			// Block until data is available.
-			try
-			{
-				while (pos == count)
-				{
-					javaWait()
-				}
-			}
-			catch (e: InterruptedException)
-			{
-				return -1
-			}
-			return buf[pos++].toInt() and 0xFF
-		}
-
-		@Synchronized
-		override fun read(
-			readBuffer: ByteArray?, start: Int, requestSize: Int): Int
-		{
-			assert(readBuffer !== null)
-			if (requestSize <= 0)
-			{
-				return 0
-			}
-			// Block until data is available.
-			try
-			{
-				while (pos == count)
-				{
-					javaWait()
-				}
-			}
-			catch (e: InterruptedException)
-			{
-				return -1
-			}
-
-			val bytesToTransfer = min(requestSize, count - pos)
-			arraycopy(buf, pos, readBuffer!!, start, bytesToTransfer)
-			pos += bytesToTransfer
-			return bytesToTransfer
-		}
 	}
 
 	/**
@@ -1862,128 +1530,6 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	}
 
 	/**
-	 * Information about the window layout.
-	 */
-	class LayoutConfiguration
-	{
-		/** The preferred location and size of the window, if specified.  */
-		internal var placement: Rectangle? = null
-
-		/**
-		 * The width of the left region of the builder frame in pixels, if
-		 * specified
-		 */
-		internal var leftSectionWidth: Int? = null
-
-		/**
-		 * The proportion, if specified, as a float between `0.0` and `1.0` of
-		 * the height of the top left module region in relative proportional to
-		 * the height of the entire builder frame.
-		 */
-		internal var moduleVerticalProportion: Double? = null
-
-		/**
-		 * Answer this configuration's recommended width in pixels for the left
-		 * region of the window, supplying a suitable default if necessary.
-		 *
-		 * @return The recommended width of the left part.
-		 */
-		internal fun leftSectionWidth(): Int
-		{
-			val w = leftSectionWidth
-			return w ?: 200
-		}
-
-		/**
-		 * Add this configuration's recommended proportion of height of the
-		 * modules list versus the entire frame's height, supplying a default
-		 * if necessary.  It must be between 0.0 and 1.0 inclusive.
-		 *
-		 * @return The vertical proportion of the modules area.
-		 */
-		internal fun moduleVerticalProportion(): Double
-		{
-			val h = moduleVerticalProportion
-			return if (h !== null) max(0.0, min(1.0, h)) else 0.5
-		}
-
-		/**
-		 * Answer a string representation of this configuration that is suitable
-		 * for being stored and restored via the [LayoutConfiguration]
-		 * constructor that accepts a [String].
-		 *
-		 * The layout should be fairly stable to avoid treating older versions
-		 * as malformed.  To that end, we use a simple list of strings, adding
-		 * entries for new purposes to the end, and never removing or changing
-		 * the meaning of existing entries.
-		 *
-		 * Do not remove or repurpose old entries:
-		 *  * **0-3**: x,y,w,h of workbench window.
-		 *  * **4**: width in pixels of left section of workbench (modules and
-		 *    entry points.
-		 *  * **5**: vertical proportion between modules area and entry points
-		 *    area.
-		 *  * **6-9**: Reserved for compatibility.  These must be blank when
-		 *    writing.  They used to contain the rectangle for a module editor
-		 *    window, but that capability no longer exists.
-		 *
-		 * @return A string.
-		 */
-		fun stringToStore(): String
-		{
-			val strings = Array(10) { "" }
-			val p = placement
-			if (p !== null)
-			{
-				strings[0] = p.x.toString()
-				strings[1] = p.y.toString()
-				strings[2] = p.width.toString()
-				strings[3] = p.height.toString()
-			}
-			strings[4] = (leftSectionWidth ?: 200).toString()
-			strings[5] = (moduleVerticalProportion ?: 0.5).toString()
-
-			return strings.joinToString(",")
-		}
-
-		/**
-		 * Construct a new `LayoutConfiguration` with no preferences specified.
-		 */
-		constructor()
-		{
-			// all null
-		}
-
-		/**
-		 * Construct a new `LayoutConfiguration` with preferences specified by
-		 * some private encoding in the provided [String].
-		 *
-		 * @param input
-		 *   A string in some encoding compatible with that produced by
-		 *   [stringToStore].
-		 */
-		constructor(input: String)
-		{
-			if (input.isNotEmpty())
-			{
-				val substrings = input.split(',')
-				kotlin.runCatching {
-					val (x, y, w, h) = substrings.slice(0 .. 3).map(::parseInt)
-					placement = Rectangle(x, y, max(50, w), max(50, h))
-				}
-
-				leftSectionWidth = runCatching {
-					max(0, parseInt(substrings[4]))
-				}.getOrDefault(200)
-
-				moduleVerticalProportion = runCatching {
-					java.lang.Double.parseDouble(substrings[5])
-				}.getOrDefault(0.5)
-			}
-		}
-	}
-
-	/**
 	 * Write text to the transcript with the given [StreamStyle].
 	 *
 	 * @param text
@@ -2298,8 +1844,8 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		// Redirect the standard streams.
 		try
 		{
-			outputStream = BuildPrintStream(BuildOutputStream(OUT))
-			errorStream = BuildPrintStream(BuildOutputStream(ERR))
+			outputStream = BuildPrintStream(BuildOutputStream(this, OUT))
+			errorStream = BuildPrintStream(BuildOutputStream(this, ERR))
 		}
 		catch (e: UnsupportedEncodingException)
 		{
@@ -2307,7 +1853,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 			throw RuntimeException(e)
 		}
 
-		inputStream = BuildInputStream()
+		inputStream = BuildInputStream(this)
 		System.setOut(outputStream)
 		System.setErr(errorStream)
 		System.setIn(inputStream)
@@ -2418,16 +1964,12 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 
 	private fun saveWindowPosition()
 	{
-		val preferences =
-			placementPreferencesNodeForScreenNames(allScreenNames())
 		val saveConfiguration = LayoutConfiguration()
-
 		saveConfiguration.placement = bounds
 		saveConfiguration.leftSectionWidth = mainSplit.dividerLocation
 		saveConfiguration.moduleVerticalProportion =
 			leftPane.dividerLocation / max(leftPane.height.toDouble(), 1.0)
-		preferences.put(
-			placementLeafKeyString, saveConfiguration.stringToStore())
+		saveConfiguration.saveWindowPosition()
 	}
 
 	/**
@@ -2453,26 +1995,10 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	companion object
 	{
 		/**
-		 * The prefix string for resources related to the workbench.
-		 */
-		private const val resourcePrefix = "/resources/workbench/"
-
-		/**
 		 * Truncate progress reports containing more than this number of
 		 * individual modules in progress.
 		 */
 		private const val maximumModulesInProgressReport = 20
-
-		/**
-		 * Answer a properly prefixed [String] for accessing the resource having
-		 * the given local name.
-		 *
-		 * @param localResourceName
-		 *   The unqualified resource name.
-		 * @return The fully qualified resource name.
-		 */
-		fun resource(localResourceName: String): String =
-			resourcePrefix + localResourceName
 
 		/** Determine at startup whether we're on a Mac.  */
 		val runningOnMac =
@@ -2552,67 +2078,6 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		private val removeStringStat =
 			Statistic(WORKBENCH_TRANSCRIPT, "Remove string")
 
-		/** The user-specific [Preferences] for this application to use.  */
-		private val basePreferences =
-			Preferences.userNodeForPackage(AvailWorkbench::class.java)
-
-		/** The key under which to organize all placement information.  */
-		private const val placementByMonitorNamesString =
-			"placementByMonitorNames"
-
-		/** The leaf key under which to store a single window placement.  */
-		const val placementLeafKeyString = "placement"
-
-		/** The key under which to store the [ModuleRoots].  */
-		const val moduleRootsKeyString = "module roots"
-
-		/** The subkey that holds a root's repository name.  */
-		const val moduleRootsRepoSubkeyString = "repository"
-
-		/** The subkey that holds a root's source directory name.  */
-		const val moduleRootsSourceSubkeyString = "source"
-
-		/** The key under which to store the module rename rules.  */
-		const val moduleRenamesKeyString = "module renames"
-
-		/** The subkey that holds a rename rule's source module name.  */
-		const val moduleRenameSourceSubkeyString = "source"
-
-		/** The subkey that holds a rename rule's replacement module name.  */
-		const val moduleRenameTargetSubkeyString = "target"
-
-		/**
-		 * Answer a [List] of [Rectangle]s corresponding with the physical
-		 * monitors into which [Frame]s may be positioned.
-		 *
-		 * @return The list of rectangles to which physical screens are mapped.
-		 */
-		fun allScreenNames(): List<String> =
-			GraphicsEnvironment
-				.getLocalGraphicsEnvironment()
-				.screenDevices.map { it.iDstring }
-
-		/**
-		 * Answer the [Preferences] node responsible for holding the default
-		 * window position and size for the current monitor configuration.
-		 *
-		 * @param screenNames
-		 *   The list of id [String]s of all physical screens.
-		 * @return The `Preferences` node in which placement information for
-		 *   the current monitor configuration can be stored and retrieved.
-		 */
-		fun placementPreferencesNodeForScreenNames(screenNames: List<String>)
-			: Preferences
-		{
-			val allNamesString = StringBuilder()
-			screenNames.forEach { name ->
-				allNamesString.append(name)
-				allNamesString.append(";")
-			}
-			return basePreferences.node(
-				"$placementByMonitorNamesString/$allNamesString")
-		}
-
 		/**
 		 * Parse the [ModuleRoots] from the module roots preferences node.
 		 *
@@ -2680,23 +2145,6 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 					"Unable to read Avail rename rule preferences.")
 			}
 		}
-
-		/**
-		 * Figure out how to initially lay out the frame, based on previously
-		 * saved preference information.
-		 *
-		 * @return The initial [LayoutConfiguration].
-		 */
-		private val initialConfiguration: LayoutConfiguration
-			get()
-			{
-				val preferences =
-					placementPreferencesNodeForScreenNames(allScreenNames())
-				val configurationString = preferences.get(
-					placementLeafKeyString, null)
-					?: return LayoutConfiguration()
-				return LayoutConfiguration(configurationString)
-			}
 
 		/** Statistic for waiting for updateQueue's monitor.  */
 		internal val waitForDequeLockStat = Statistic(
