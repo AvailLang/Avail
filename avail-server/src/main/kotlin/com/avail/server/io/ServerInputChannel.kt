@@ -33,7 +33,6 @@
 package com.avail.server.io
 
 import com.avail.io.TextInputChannel
-import com.avail.server.AvailServer
 import com.avail.server.messages.Message
 import com.avail.utility.cast
 import java.io.IOException
@@ -42,7 +41,7 @@ import java.nio.CharBuffer
 import java.nio.channels.CompletionHandler
 import java.util.ArrayDeque
 import java.util.Deque
-import java.util.logging.Level
+import javax.annotation.concurrent.GuardedBy
 import kotlin.math.min
 
 /**
@@ -68,21 +67,15 @@ class ServerInputChannel constructor(
 	 * The [Throwable] that, when not `null` the execution of [read] can no
 	 * longer proceed, and thus should fail.
 	 */
+	@GuardedBy("this")
 	private var error: Throwable? = null
 		private set(value)
 		{
 			if (field === null && value !== null)
 			{
 				field = value
-				failHandler?.invoke(value)
 			}
 		}
-
-	/**
-	 * The function that accepts a [Throwable] to fail a [read] in progress or
-	 * `null` if none.
-	 */
-	private var failHandler : ((Throwable) -> Unit)? = null
 
 	/**
 	 * The [queue][Deque] of [messages][Message] awaiting delivery. It is
@@ -132,27 +125,39 @@ class ServerInputChannel constructor(
 	 *   The [completion&#32;handler][CompletionHandler] provided for
 	 *   notification of data availability.
 	 */
-	private class Waiter internal constructor(
-		internal val buffer: CharBuffer,
-		internal val attachment: Any?,
+	private class Waiter constructor(
+		val buffer: CharBuffer,
+		val attachment: Any?,
 		handler: CompletionHandler<Int, *>)
 	{
 		/**
 		 * The [completion&#32;handler][CompletionHandler] provided for
 		 * notification of data availability.
 		 */
-		internal val handler: CompletionHandler<Int, Any> = handler.cast()
+		val handler: CompletionHandler<Int, Any> = handler.cast()
 
 		/** The number of bytes read. */
-		internal var bytesRead = 0
+		var bytesRead = 0
 
 		/**
 		 * Invoke the [handler][CompletionHandler]'s
 		 * [success][CompletionHandler.completed] entry point.
 		 */
-		internal fun completed()
+		fun completed()
 		{
 			handler.completed(bytesRead, attachment)
+		}
+
+		/**
+		 * Invoke the [handler][CompletionHandler]'s
+		 * [failed][CompletionHandler.failed] entry point.
+		 *
+		 * @param exception
+		 *   The cause of the failure.
+		 */
+		fun failed(exception: Throwable)
+		{
+			handler.failed(exception, attachment)
 		}
 	}
 
@@ -221,17 +226,11 @@ class ServerInputChannel constructor(
 	{
 		var totalSize = 0
 		synchronized(this) {
+			assert(waiters.isEmpty())
 			if (error !== null)
 			{
 				handler.failed(error!!, attachment)
-			}
-			failHandler = { e ->
-				AvailServer.logger.log(
-					Level.SEVERE,
-					"ServerInputChannel failed to complete read for command " +
-						"channel ${channel.parentId}",
-					e)
-				handler.failed(e, attachment)
+				return
 			}
 			if (messages.isEmpty())
 			{
@@ -288,7 +287,6 @@ class ServerInputChannel constructor(
 				messages.addFirst(newMessage)
 				position = 0
 			}
-			failHandler = null
 		}
 		handler.completed(totalSize, attachment)
 	}
@@ -388,6 +386,11 @@ class ServerInputChannel constructor(
 	{
 		synchronized(this) {
 			error = cause
+			while (waiters.isNotEmpty())
+			{
+				val waiter = waiters.removeFirst()
+				waiter.failed(cause)
+			}
 		}
 	}
 
