@@ -36,6 +36,7 @@ import com.avail.server.AvailServer
 import com.avail.server.AvailServer.Companion.receiveMessageThen
 import com.avail.server.messages.Message
 import com.avail.utility.evaluation.Combinator.recurse
+import java.nio.channels.ClosedChannelException
 import java.util.Deque
 import java.util.LinkedList
 
@@ -127,6 +128,15 @@ abstract class AbstractTransportChannel<T> constructor(
 	override fun closeImmediately(reason: DisconnectReason)
 	{
 		channelCloseHandler.reason = reason
+		reason.error?.let {
+			if (state === ProtocolState.IO)
+			{
+				val input =
+					textInterface!!.inputChannel as
+						ServerInputChannel
+				input.receiveError(it)
+			}
+		}
 		closeTransport()
 	}
 
