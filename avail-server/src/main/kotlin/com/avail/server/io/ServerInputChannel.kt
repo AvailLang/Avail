@@ -248,7 +248,6 @@ class ServerInputChannel constructor(
 			// Otherwise, attempt to fill the buffer.
 			while (buffer.hasRemaining() && !messages.isEmpty())
 			{
-				// TODO check the error queue
 				val message = messages.peekFirst()
 				val content = message.stringContent
 				val contentLength = content.length
