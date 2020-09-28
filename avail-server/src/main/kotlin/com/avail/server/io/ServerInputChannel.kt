@@ -231,9 +231,9 @@ class ServerInputChannel constructor(
 	{
 		var totalSize = 0
 		synchronized(this) {
-			assert(waiters.isEmpty())
 			if (error !== null)
 			{
+				assert(waiters.isEmpty())
 				handler.failed(error!!, attachment)
 				return
 			}
@@ -243,7 +243,7 @@ class ServerInputChannel constructor(
 				waiters.addLast(waiter)
 				return
 			}
-			assert(error !== null)
+			assert(error === null)
 			assert(waiters.isEmpty())
 			// Otherwise, attempt to fill the buffer.
 			while (buffer.hasRemaining() && !messages.isEmpty())
