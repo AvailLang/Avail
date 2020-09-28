@@ -52,8 +52,8 @@ import java.nio.charset.StandardCharsets
  *
  *
  * @constructor
- * Construct a new [ConsoleInputChannel] that wraps the specified
- * [stream][InputStream].
+ *   Construct a new [ConsoleInputChannel] that wraps the specified
+ *   [stream][InputStream].
  *
  * @param stream
  *   An input stream. This should generally be [System. in].
