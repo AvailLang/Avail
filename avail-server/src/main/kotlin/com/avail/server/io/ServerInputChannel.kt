@@ -74,6 +74,11 @@ class ServerInputChannel constructor(
 			if (field === null && value !== null)
 			{
 				field = value
+				while (waiters.isNotEmpty())
+				{
+					val waiter = waiters.removeFirst()
+					waiter.failed(value)
+				}
 			}
 		}
 
@@ -386,11 +391,6 @@ class ServerInputChannel constructor(
 	{
 		synchronized(this) {
 			error = cause
-			while (waiters.isNotEmpty())
-			{
-				val waiter = waiters.removeFirst()
-				waiter.failed(cause)
-			}
 		}
 	}
 
