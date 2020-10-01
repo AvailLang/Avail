@@ -40,8 +40,3 @@ Extends
 	"IO",
 	"Unit Testing"
 Body
-
-Print: "Please provide input:\n";
-input ::= next line from standard input;
-Print: format "You entered: "①"\n" with input;
-Error: "An error message\n";
