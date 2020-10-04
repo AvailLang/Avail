@@ -2150,7 +2150,16 @@ noUnhandledExceptionHandler :=
 		]
 		else
 		[
-			Error: msg;
+			Guard
+			[
+				Error: msg;
+			]
+			intercept
+			[
+				e: exception
+			|
+				/* Ignore recursive error logging original error. */
+			];
 			Terminate current fiber
 		]
 	];

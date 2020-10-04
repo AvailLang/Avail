@@ -36,7 +36,7 @@ import com.avail.builder.ResolvedModuleName
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.environment.AvailWorkbench
 import com.avail.environment.AvailWorkbench.AbstractWorkbenchTask
-import com.avail.environment.AvailWorkbench.StreamStyle.INFO
+import com.avail.environment.streams.StreamStyle.INFO
 import java.awt.Cursor
 import java.io.File
 

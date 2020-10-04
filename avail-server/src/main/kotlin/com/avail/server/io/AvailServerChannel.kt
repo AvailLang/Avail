@@ -70,6 +70,13 @@ abstract class AvailServerChannel constructor(
 	 * logic to be run after this [AvailServerChannel] is closed.
 	 */
 	val channelCloseHandler: ChannelCloseHandler by lazy {
+//		if (state === ProtocolState.IO)
+//		{
+//			val input =
+//				textInterface!!.inputChannel as
+//					ServerInputChannel
+//			input.receiveError(ClosedChannelException())
+//		}
 		ChannelCloseHandler(this, closeAction)
 	}
 

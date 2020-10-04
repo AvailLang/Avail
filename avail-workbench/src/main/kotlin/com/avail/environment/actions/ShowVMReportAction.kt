@@ -33,7 +33,7 @@
 package com.avail.environment.actions
 
 import com.avail.environment.AvailWorkbench
-import com.avail.environment.AvailWorkbench.StreamStyle.INFO
+import com.avail.environment.streams.StreamStyle.INFO
 import com.avail.performance.StatisticReport
 import java.awt.event.ActionEvent
 import java.util.EnumSet

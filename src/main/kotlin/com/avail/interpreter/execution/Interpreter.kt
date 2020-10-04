@@ -228,8 +228,7 @@ import java.util.logging.Logger
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-@Renderer(
-	childrenArray = "describeForDebugger()")
+@Renderer(childrenArray = "describeForDebugger()")
 class Interpreter(
 	@JvmField
 	@ReferencedInGeneratedCode
@@ -267,9 +266,12 @@ class Interpreter(
 		val previousFiber = currentlyLockedFiber
 		assert(previousFiber === null || previousFiber === aFiber)
 		currentlyLockedFiber = aFiber
-		return try {
+		return try
+		{
 			supplier()
-		} finally {
+		}
+		finally
+		{
 			currentlyLockedFiber = previousFiber
 		}
 	}
@@ -302,8 +304,10 @@ class Interpreter(
 	 * @param delta
 	 *   How much to add.
 	 */
-	fun adjustUnreifiedCallDepthBy(delta: Int) {
-		if (debugL1 || debugL2) {
+	fun adjustUnreifiedCallDepthBy(delta: Int)
+	{
+		if (debugL1 || debugL2)
+		{
 			log(
 				loggerDebugL2,
 				Level.FINER,
@@ -330,7 +334,8 @@ class Interpreter(
 	 *   logical structure of the receiver to the debugger.
 	 */
 	@Suppress("unused")
-	fun describeForDebugger(): Array<AvailObjectFieldHelper?> {
+	fun describeForDebugger(): Array<AvailObjectFieldHelper?>
+	{
 		val helpers = mutableListOf<AvailObjectFieldHelper>()
 
 		// Produce the current function being executed...
@@ -358,9 +363,11 @@ class Interpreter(
 
 		// Build the stack frames...
 		var frame: A_Continuation? = getReifiedContinuation()
-		if (frame !== null) {
+		if (frame !== null)
+		{
 			val frames = mutableListOf<A_Continuation>()
-			while (!frame!!.equalsNil()) {
+			while (!frame!!.equalsNil())
+			{
 				frames.add(frame)
 				frame = frame.caller()
 			}
@@ -452,7 +459,8 @@ class Interpreter(
 	 *   A string describing the context of this operation.
 	 */
 	fun fiber(newFiber: A_Fiber?, tempDebug: String?) {
-		if (debugPrimitives) {
+		if (debugPrimitives)
+		{
 			val builder = StringBuilder()
 			builder
 				.append("[$interpreterIndex] fiber: ")
@@ -471,18 +479,20 @@ class Interpreter(
 				builder.toString())
 		}
 		assert((fiber === null) xor (newFiber === null))
-		assert(newFiber === null
-			|| newFiber.executionState() === RUNNING)
+		assert(newFiber === null || newFiber.executionState() === RUNNING)
 		fiber = newFiber
 		setReifiedContinuation(null)
-		if (newFiber !== null) {
+		if (newFiber !== null)
+		{
 			availLoader = newFiber.availLoader()
 			val readsBeforeWrites = newFiber.traceFlag(
 				TraceFlag.TRACE_VARIABLE_READS_BEFORE_WRITES)
 			traceVariableReadsBeforeWrites = readsBeforeWrites
 			traceVariableWrites = readsBeforeWrites
 				|| newFiber.traceFlag(TraceFlag.TRACE_VARIABLE_WRITES)
-		} else {
+		}
+		else
+		{
 			availLoader = null
 			traceVariableReadsBeforeWrites = false
 			traceVariableWrites = false
@@ -512,12 +522,14 @@ class Interpreter(
 	 *   `true` if the `Interpreter` should record which [A_Variable]s are read
 	 *   before written while running its current [A_Fiber], `false` otherwise.
 	 */
-	fun setTraceVariableReadsBeforeWrites(
-		traceVariableReadsBeforeWrites: Boolean
-	) {
-		if (traceVariableReadsBeforeWrites) {
+	fun setTraceVariableReadsBeforeWrites(traceVariableReadsBeforeWrites: Boolean)
+	{
+		if (traceVariableReadsBeforeWrites)
+		{
 			fiber().setTraceFlag(TraceFlag.TRACE_VARIABLE_READS_BEFORE_WRITES)
-		} else {
+		}
+		else
+		{
 			fiber().clearTraceFlag(TraceFlag.TRACE_VARIABLE_READS_BEFORE_WRITES)
 		}
 		this.traceVariableReadsBeforeWrites = traceVariableReadsBeforeWrites
@@ -547,10 +559,14 @@ class Interpreter(
 	 *   `true` if the `Interpreter` should record which [A_Variable]s are
 	 *   written while running its current [A_Fiber], `false` otherwise.
 	 */
-	fun setTraceVariableWrites(traceVariableWrites: Boolean) {
-		if (traceVariableWrites) {
+	fun setTraceVariableWrites(traceVariableWrites: Boolean)
+	{
+		if (traceVariableWrites)
+		{
 			fiber().setTraceFlag(TraceFlag.TRACE_VARIABLE_WRITES)
-		} else {
+		}
+		else
+		{
 			fiber().clearTraceFlag(TraceFlag.TRACE_VARIABLE_WRITES)
 		}
 		this.traceVariableWrites = traceVariableWrites
@@ -564,9 +580,7 @@ class Interpreter(
 	 *   The current loader's module under definition, or `nil` if loading is
 	 *   not taking place via this interpreter.
 	 */
-	fun module(): A_Module {
-		return fiber().availLoader()?.module() ?: nil
-	}
+	fun module(): A_Module = fiber().availLoader()?.module() ?: nil
 
 	/**
 	 * The latest result produced by a [successful][Result.SUCCESS]
@@ -587,7 +601,8 @@ class Interpreter(
 	 *   The latest result to record.
 	 */
 	@ReferencedInGeneratedCode
-	fun setLatestResult(newResult: A_BasicObject?) {
+	fun setLatestResult(newResult: A_BasicObject?)
+	{
 		assert(newResult !== null || !returnNow)
 		latestResult = newResult as AvailObject?
 		if (debugL2) {
@@ -664,20 +679,35 @@ class Interpreter(
 		return suspendThen {
 			runtime.whenLevelOneSafeDo(
 				priority,
-				AvailTask.forUnboundFiber(theFiber) {
-					action()
-				})
+				AvailTask.forUnboundFiber(theFiber) { action() })
 		}
 	}
 
 	/**
 	 * A helper class for making fiber suspension syntax more articulate.  It
 	 * provides [succeed] and [fail] methods that client code can invoke.
+	 *
+	 * @property toSucceed
+	 *   The function to call that accepts a value from the [Primitive] if the
+	 *   the `Primitive` is successful.
+	 * @property toFail
+	 *   The function to call that accepts an [A_BasicObject] that provides the
+	 *   reason for the [Primitive] failure.
+	 *
+	 * @constructor
+	 * Construct a [SuspensionHelper].
+	 *
+	 * @param toSucceed
+	 *   The function to call that accepts a value from the [Primitive] if the
+	 *   the `Primitive` is successful.
+	 * @param toFail
+	 *   The function to call that accepts an [A_BasicObject] that provides the
+	 *   reason for the [Primitive] failure.
 	 */
-	class SuspensionHelper<A>(
+	class SuspensionHelper<A> constructor (
 		private val toSucceed: (A)->Unit,
-		private val toFail: (A_BasicObject)->Unit
-	) {
+		private val toFail: (A_BasicObject)->Unit)
+	{
 		/**
 		 * Succeed from the suspended [Primitive], resuming its fiber.
 		 *
@@ -715,9 +745,8 @@ class Interpreter(
 	 * @param body
 	 *   What to do when the fiber has been suspended.
 	 */
-	fun suspendThen (
-		body: SuspensionHelper<A_BasicObject>.()->Unit
-	): Result {
+	fun suspendThen (body: SuspensionHelper<A_BasicObject>.()->Unit): Result
+	{
 		val copiedArgs = argsBuffer.map { it }
 		val primitiveFunction = function!!
 		val prim = primitiveFunction.code().primitive()!!
@@ -757,7 +786,8 @@ class Interpreter(
 	 * @return
 	 *   Primitive [Result.SUCCESS].
 	 */
-	fun primitiveSuccess(result: A_BasicObject): Result {
+	fun primitiveSuccess(result: A_BasicObject): Result
+	{
 		assert(fiber().executionState() === RUNNING)
 		setLatestResult(result)
 		return SUCCESS
@@ -812,7 +842,8 @@ class Interpreter(
 	 * @return
 	 *   Primitive [failure][Result.FAILURE].
 	 */
-	fun primitiveFailure(result: A_BasicObject): Result {
+	fun primitiveFailure(result: A_BasicObject): Result
+	{
 		assert(fiber().executionState() === RUNNING)
 		setLatestResult(result)
 		return FAILURE
@@ -848,9 +879,8 @@ class Interpreter(
 	 *   What to do after a [fiber][FiberDescriptor] has exited and been
 	 *   unbound, or `null` if nothing should be done.
 	 */
-	fun postExitContinuation(
-		continuation: (()->Unit)?
-	) {
+	fun postExitContinuation(continuation: (()->Unit)?)
+	{
 		assert(postExitContinuation === null || continuation === null)
 		postExitContinuation = continuation
 	}
@@ -865,7 +895,8 @@ class Interpreter(
 	 * @return
 	 *   [Result.FIBER_SUSPENDED], for convenience.
 	 */
-	private fun primitiveSuspend(state: ExecutionState): Result {
+	private fun primitiveSuspend(state: ExecutionState): Result
+	{
 		assert(!exitNow)
 		assert(state.indicatesSuspension())
 		assert(unreifiedCallDepth() == 0)
@@ -881,7 +912,8 @@ class Interpreter(
 			fiber(null, "primitiveSuspend")
 		}
 		startTick = -1L
-		if (debugL2) {
+		if (debugL2)
+		{
 			log(
 				loggerDebugL2,
 				Level.INFO,
@@ -905,7 +937,8 @@ class Interpreter(
 	 * @return
 	 *   [Result.FIBER_SUSPENDED], for convenience.
 	 */
-	fun primitiveSuspend(suspendingFunction: A_Function): Result {
+	fun primitiveSuspend(suspendingFunction: A_Function): Result
+	{
 		val prim = suspendingFunction.code().primitive()!!
 		assert(prim.hasFlag(CanSuspend))
 		fiber().setSuspendingFunction(suspendingFunction)
@@ -924,7 +957,8 @@ class Interpreter(
 	 * @return
 	 *   [Result.FIBER_SUSPENDED], for convenience.
 	 */
-	fun primitivePark(suspendingFunction: A_Function): Result {
+	fun primitivePark(suspendingFunction: A_Function): Result
+	{
 		fiber().setSuspendingFunction(suspendingFunction)
 		return primitiveSuspend(PARKED)
 	}
@@ -941,8 +975,8 @@ class Interpreter(
 	 */
 	private fun exitFiber(
 		finalObject: A_BasicObject,
-		state: ExecutionState
-	) {
+		state: ExecutionState)
+	{
 		assert(!exitNow)
 		assert(state.indicatesTermination())
 		val aFiber = fiber()
@@ -958,11 +992,13 @@ class Interpreter(
 		}
 		startTick = -1L
 		exitNow = true
-		if (debugL2) {
+		if (debugL2)
+		{
 			log(
 				loggerDebugL2,
-				Level.INFO, debugModeString
-				+ "Set exitNow and clear latestResult (exitFiber)")
+				Level.INFO,
+				debugModeString
+					+ "Set exitNow and clear latestResult (exitFiber)")
 		}
 		setLatestResult(null)
 		levelOneStepper.wipeRegisters()
@@ -978,7 +1014,8 @@ class Interpreter(
 					// Restore the permit. Resume the fiber if it was parked.
 					joiner.getAndSetSynchronizationFlag(
 						PERMIT_UNAVAILABLE, false)
-					if (joiner.executionState() === PARKED) {
+					if (joiner.executionState() === PARKED)
+					{
 						// Unpark it, whether it's still parked because of an
 						// attempted join on this fiber, an attempted join on
 						// another fiber (due to a spurious wakeup and giving up
@@ -1030,17 +1067,15 @@ class Interpreter(
 	@ReferencedInGeneratedCode
 	fun attemptThePrimitive(
 		primitiveFunction: A_Function,
-		primitive: Primitive): StackReifier?
-	{
-		return if (primitive.hasFlag(Primitive.Flag.CanInline))
-		{
-			attemptInlinePrimitive(primitiveFunction, primitive)
-		}
-		else
-		{
-			attemptNonInlinePrimitive(primitiveFunction, primitive)
-		}
-	}
+		primitive: Primitive): StackReifier? =
+			if (primitive.hasFlag(Primitive.Flag.CanInline))
+			{
+				attemptInlinePrimitive(primitiveFunction, primitive)
+			}
+			else
+			{
+				attemptNonInlinePrimitive(primitiveFunction, primitive)
+			}
 
 	/**
 	 * Attempt the [inlineable][Primitive.Flag.CanInline]
@@ -1253,13 +1288,17 @@ class Interpreter(
 	 *   The current time in nanoseconds since the Epoch, as a [Long].
 	 */
 	@ReferencedInGeneratedCode
-	fun beforeAttemptPrimitive(primitive: Primitive): Long {
-		if (debugPrimitives) {
+	fun beforeAttemptPrimitive(primitive: Primitive): Long
+	{
+		if (debugPrimitives)
+		{
 			val builder = StringBuilder()
 			var argCount = 1
-			for (arg in argsBuffer) {
+			for (arg in argsBuffer)
+			{
 				var argString = arg.toString()
-				if (argString.length > 70) {
+				if (argString.length > 70)
+				{
 					argString = argString.substring(0, 70) + "..."
 				}
 				argString = argString.replace("\\n".toRegex(), "\\\\n")
@@ -1304,7 +1343,8 @@ class Interpreter(
 		primitive: Primitive,
 		timeBefore: Long,
 		success: Result
-	): Result {
+	): Result
+	{
 		val timeAfter = AvailRuntimeSupport.captureNanos()
 		primitive.addNanosecondsRunning(
 			timeAfter - timeBefore, interpreterIndex)
@@ -1371,9 +1411,8 @@ class Interpreter(
 	 *   The [A_Continuation], [nil], or `null`.
 	 */
 	@ReferencedInGeneratedCode
-	fun setReifiedContinuation(
-		continuation: A_Continuation?
-	) {
+	fun setReifiedContinuation(continuation: A_Continuation?)
+	{
 		theReifiedContinuation = continuation as AvailObject?
 		if (debugL2) {
 			val text: String
@@ -1404,20 +1443,26 @@ class Interpreter(
 	 * Replace the [getReifiedContinuation] with its caller.
 	 */
 	@ReferencedInGeneratedCode
-	fun popContinuation() {
-		if (debugL2) {
+	fun popContinuation()
+	{
+		if (debugL2)
+		{
 			val builder = StringBuilder()
 			var ptr: A_Continuation = theReifiedContinuation!!
-			while (!ptr.equalsNil()) {
+			while (!ptr.equalsNil())
+			{
 				builder
 					.append("\n\t\toffset ")
 					.append(ptr.levelTwoOffset())
 					.append(" in ")
 				val ch = ptr.levelTwoChunk()
-				if (ch == L2Chunk.unoptimizedChunk) {
+				if (ch == L2Chunk.unoptimizedChunk)
+				{
 					builder.append("(L1) - ")
 						.append(ptr.function().code().methodName())
-				} else {
+				}
+				else
+				{
 					builder.append(ptr.levelTwoChunk().name())
 				}
 				ptr = ptr.caller()
