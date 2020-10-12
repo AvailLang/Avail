@@ -192,6 +192,7 @@ import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.AvailErrorCode.Companion.allNumericCodes
 import com.avail.exceptions.AvailRuntimeException
 import com.avail.exceptions.MalformedMessageException
+import com.avail.files.FileManager
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.L2Chunk
@@ -248,19 +249,22 @@ import kotlin.math.min
  * @param moduleNameResolver
  *   The [module name resolver][ModuleNameResolver] that this `AvailRuntime`
  *   should use to resolve unqualified [module][ModuleDescriptor] names.
+ * @param fileManager
+ *   The [FileManager] of the running Avail.
  */
-class AvailRuntime constructor(val moduleNameResolver: ModuleNameResolver)
+class AvailRuntime constructor(
+	val moduleNameResolver: ModuleNameResolver,
+	fileManager: FileManager)
 {
-	/** The [IOSystem] for this runtime. */
-	private val ioSystem = IOSystem(this)
+	init
+	{
+		fileManager.associateRuntime(this)
+	}
 
 	/**
-	 * Answer this runtime's [IOSystem].
-	 *
-	 * @return
-	 *   An [IOSystem].
+	 * The [IOSystem] for this runtime.
 	 */
-	fun ioSystem(): IOSystem =  ioSystem
+	val ioSystem: IOSystem = fileManager.ioSystem
 
 	/** The [CallbackSystem] for this runtime. */
 	private val callbackSystem = CallbackSystem()
@@ -297,7 +301,7 @@ class AvailRuntime constructor(val moduleNameResolver: ModuleNameResolver)
 	/**
 	 * The [thread pool executor][ThreadPoolExecutor] for this [Avail runtime][AvailRuntime].
 	 */
-	private val executor = ThreadPoolExecutor(
+	val executor = ThreadPoolExecutor(
 		min(availableProcessors, maxInterpreters),
 		maxInterpreters,
 		10L,

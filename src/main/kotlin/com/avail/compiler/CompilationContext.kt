@@ -134,7 +134,7 @@ import java.util.logging.Logger
  * @param problemHandler
  *   The [ProblemHandler] used for reporting compilation problems.
  */
-class CompilationContext(
+class CompilationContext constructor(
 	val moduleHeader: ModuleHeader?,
 	val module: A_Module,
 	internal val source: A_String,

@@ -34,6 +34,9 @@ package com.avail.server.error
 
 import com.avail.builder.ModuleRoot
 import com.avail.builder.ModuleRoots
+import com.avail.error.ErrorCode
+import com.avail.error.ErrorCodeRange
+import com.avail.error.InvalidErrorCode
 import com.avail.server.AvailServer
 import com.avail.server.messages.TextCommand
 import com.avail.server.messages.Message
@@ -41,66 +44,86 @@ import com.avail.server.messages.binary.editor.BinaryCommand
 import com.avail.server.session.Session
 
 /**
- * `ServerErrorCode` is an enumeration of all possible failures that can occur
- * while running an [AvailServer].
+ * `ServerErrorCodeRange` is an [ErrorCodeRange] that specifies errors that can
+ * happen while running an [AvailServer].
+ */
+object ServerErrorCodeRange : ErrorCodeRange
+{
+	override val range: IntRange = IntRange(100000, 199999)
+	override val name: String = "Server Error Codes"
+
+	override fun errorCode(code: Int): ErrorCode
+	{
+		assert(code in range)
+		return ServerErrorCode.code(code - minCode)
+	}
+}
+
+/**
+ * `ServerErrorCode` is an enumeration of [ErrorCode] that represent all
+ * possible failures that can occur while running an [AvailServer].
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-enum class ServerErrorCode constructor(val code: Int)
+enum class ServerErrorCode : ErrorCode
 {
 	/** An unspecified error has occurred. */
-	UNSPECIFIED(0),
+	UNSPECIFIED,
 
 	/**
 	 * Indicates a file that was attempted to be created already exists.
 	 */
-	FILE_ALREADY_EXISTS (1),
+	FILE_ALREADY_EXISTS,
 
 	/** Could not locate a file at specified location. */
-	FILE_NOT_FOUND(2),
+	FILE_NOT_FOUND,
 
 	/**
 	 * The cache id provided to refer to a file did not refer to any file.
 	 */
-	BAD_FILE_ID(3),
+	BAD_FILE_ID,
 
 	/** A general IO exception. */
-	IO_EXCEPTION(4),
+	IO_EXCEPTION,
 
 	/**
 	 * Indicates the request made by the client does not correspond with any
 	 * command ([TextCommand] nor [BinaryCommand]).
 	 */
-	INVALID_REQUEST(5),
+	INVALID_REQUEST,
 
 	/** Indicates a received [Message] is of an improper format. */
-	MALFORMED_MESSAGE(6),
+	MALFORMED_MESSAGE,
 
 	/** Could not [find][ModuleRoots.moduleRootFor] [ModuleRoot]. */
-	BAD_MODULE_ROOT(7),
+	BAD_MODULE_ROOT,
 
 	/**
-	 * Located [ModuleRoot] has no [source location][ModuleRoot.sourceUri].
+	 * Located [ModuleRoot] has no [source location][ModuleRoot.resolver].
 	 */
-	NO_SOURCE_LOCATION(8),
+	NO_SOURCE_LOCATION,
 
 	/**
 	 * Could not locate a [Session].
 	 */
-	NO_SESSION(9);
+	NO_SESSION;
+
+	override val code: Int = ordinal + errorCodeRange.minCode
+	override val errorCodeRange: ErrorCodeRange
+		get() = ServerErrorCodeRange
 
 	companion object
 	{
 		/**
-		 * Answer the [ServerErrorCode] for the provided [ServerErrorCode.code].
+		 * Answer the [ErrorCode] for the provided [ErrorCode.code].
 		 *
 		 * @param code
 		 *   The integer value used to identify the `ServerErrorCode`.
 		 * @return
-		 *   The associated `ServerErrorCode` or [ServerErrorCode.UNSPECIFIED]
-		 *   if the id is not found.
+		 *   The associated `ServerErrorCode` or [InvalidErrorCode] if the id is
+		 *   not found.
 		 */
-		fun code (code: Int): ServerErrorCode =
+		fun code (code: Int): ErrorCode =
 			when(code)
 			{
 				0 -> UNSPECIFIED
@@ -112,7 +135,7 @@ enum class ServerErrorCode constructor(val code: Int)
 				6 -> MALFORMED_MESSAGE
 				7 -> BAD_MODULE_ROOT
 				8 -> NO_SOURCE_LOCATION
-				else -> UNSPECIFIED
+				else -> InvalidErrorCode(code, ServerErrorCodeRange)
 			}
 	}
 }

@@ -39,6 +39,7 @@ import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.representation.AvailObject.Companion.multiplier
 import com.avail.descriptor.tokens.CommentTokenDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor
+import com.avail.error.ErrorCode
 import com.avail.serialization.Serializer
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
@@ -48,8 +49,6 @@ import java.io.DataOutputStream
 import java.io.File
 import java.io.IOException
 import java.io.RandomAccessFile
-import java.security.MessageDigest
-import java.security.NoSuchAlgorithmException
 import java.util.Collections.unmodifiableList
 import java.util.Collections.unmodifiableSortedMap
 import java.util.Formatter
@@ -221,57 +220,44 @@ class Repository constructor(
 		 * @param resolvedModuleName
 		 *   The [resolved&#32;name][ResolvedModuleName] of the module, in case
 		 *   the backing source file must be read to produce a digest.
-		 * @return
-		 *   The digest of the file, updating the [digestCache] if necessary.
+		 * @param forceRefreshDigest
+		 *   `true` forces a recalculation of the digest; `false` supplies the last
+		 *   known digest presuming the file has not changed.
+		 * @param failureHandler
+		 *   A function that accepts an [ErrorCode] and a `nullable` [Throwable]
+		 *   to be called in the event of failure.
 		 */
-		fun digestForFile(resolvedModuleName: ResolvedModuleName): ByteArray
+		fun digestForFile(
+			resolvedModuleName: ResolvedModuleName,
+			forceRefreshDigest: Boolean,
+			withDigest: (ByteArray)->Unit,
+			failureHandler: (ErrorCode, Throwable?) -> Unit)
 		{
 			assert(resolvedModuleName.rootRelativeName == rootRelativeName)
-			val sourceFile = resolvedModuleName.sourceReference
-			val lastModification = sourceFile.lastModified()
-			var digest: ByteArray? = digestCache[lastModification]
-			if (digest === null)
+			val sourceReference = resolvedModuleName.resolverReference
+			val lastModification = sourceReference.lastModified
+			val digest: ByteArray? = digestCache[lastModification]
+
+			if (digest !== null && !forceRefreshDigest)
 			{
-				// Don't bother protecting against computing the digest for the
-				// same file in multiple threads.  At worst it's extra work, and
-				// it's not likely that maintenance on the build mechanism would
-				// *ever* cause it to do that anyhow.
-				val newDigest: ByteArray =
-					try
+				withDigest(digest)
+				return
+			}
+
+			val success: (ByteArray, Long) -> Unit =
+				{ newDigest, lastModified ->
+					assert(newDigest.size == DIGEST_SIZE)
+					if (lastModified >= lastModification)
 					{
-						RandomAccessFile(sourceFile, "r").use { reader ->
-							val hasher =
-								MessageDigest.getInstance(DIGEST_ALGORITHM)
-							val buffer = ByteArray(4096)
-							while (true)
-							{
-								val bufferSize = reader.read(buffer)
-								if (bufferSize == -1)
-								{
-									break
-								}
-								hasher.update(buffer, 0, bufferSize)
-							}
-							hasher.digest()
+						lock.withLock {
+							digestCache[lastModified] = newDigest
+							markDirty()
 						}
 					}
-					catch (e: NoSuchAlgorithmException)
-					{
-						throw RuntimeException(e)
-					}
-					catch (e: IOException)
-					{
-						throw RuntimeException(e)
-					}
-
-				assert(newDigest.size == DIGEST_SIZE)
-				digest = newDigest
-				lock.withLock {
-					digestCache[lastModification] = newDigest
-					markDirty()
+					withDigest(newDigest)
 				}
-			}
-			return digest
+
+			sourceReference.digest(forceRefreshDigest, success, failureHandler)
 		}
 
 		/**
@@ -1306,9 +1292,6 @@ class Repository constructor(
 				}
 			}
 		}
-
-		/** The name of the [MessageDigest] used to detect file changes. */
-		private const val DIGEST_ALGORITHM = "SHA-256"
 
 		/** The size in bytes of the digest of a source file. */
 		private const val DIGEST_SIZE = 256 shr 3

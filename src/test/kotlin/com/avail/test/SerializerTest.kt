@@ -61,6 +61,7 @@ import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.tupleFromIntegerList
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.TypeDescriptor.Types
+import com.avail.files.FileManager
 import com.avail.interpreter.levelOne.L1InstructionWriter
 import com.avail.interpreter.primitive.floats.P_FloatFloor
 import com.avail.persistence.Repository.Companion.createTemporary
@@ -96,6 +97,11 @@ class SerializerTest
 	private var runtime: AvailRuntime? = null
 
 	/**
+	 * The [FileManager] used to conduct these tests.
+	 */
+	private val fileManager = FileManager()
+
+	/**
 	 * @return
 	 *   The [AvailRuntime] used by the serializer and deserializer.
 	 */
@@ -115,6 +121,7 @@ class SerializerTest
 		val repositoryFile = repository.fileName
 		repository.close()
 		val roots = ModuleRoots(
+			fileManager,
 			"avail=${repositoryFile.absolutePath}," +
 				File("distro/src/avail").absolutePath)
 		val parser = RenamesFileParser(StringReader(""), roots)
@@ -127,7 +134,8 @@ class SerializerTest
 		{
 			throw RuntimeException(e)
 		}
-		runtime = AvailRuntime(resolver)
+		runtime = AvailRuntime(resolver, fileManager)
+		fileManager.associateRuntime(runtime())
 	}
 
 	/**

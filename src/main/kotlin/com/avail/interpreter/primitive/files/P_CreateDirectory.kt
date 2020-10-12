@@ -123,7 +123,7 @@ object P_CreateDirectory : Primitive(5, CanInline, HasSideEffect)
 		val permissions = permissionsFor(ordinals)
 		val attr =
 			PosixFilePermissions.asFileAttribute(permissions)
-		runtime.ioSystem().executeFileTask(
+		runtime.ioSystem.executeFileTask(
 			Runnable {
                try
                {

@@ -602,12 +602,10 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	{
 		val semaphore = Semaphore(0)
 		buildTargetThen(
-				target,
-				localTracker,
-				globalTracker,
-				problemHandler) {
-			semaphore.release()
-		}
+			target,
+			localTracker,
+			globalTracker,
+			problemHandler) { semaphore.release() }
 		semaphore.acquireUninterruptibly()
 	}
 

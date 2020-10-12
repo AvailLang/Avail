@@ -30,39 +30,25 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.server.io.files
+package com.avail.files
 
-import com.avail.io.SimpleCompletionHandler
-import com.avail.server.error.ServerErrorCode
-import java.io.IOException
-import java.nio.ByteBuffer
-import java.nio.channels.AsynchronousFileChannel
 import java.util.UUID
 
 /**
- * `AvailServerBinaryFile` is an [AvailServerFile] that contains a strictly
+ * `AvailBinaryFile` is an [AvailFile] that contains a strictly
  * binary file.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
  * @constructor
- * Construct an [AvailServerBinaryFile].
+ * Construct an [AvailBinaryFile].
  *
- * @param path
- *   The on-disk absolute location of the file.
- * @param file
- *   The [AsynchronousFileChannel] used to access the file.
- * @param mimeType
- *   The MIME type of the file.
- * @param serverFileWrapper
- *   The [ServerFileWrapper] that wraps this [AvailServerFile].
+ * @param fileWrapper
+ *   The [AbstractFileWrapper] that wraps this [AvailFile].
  */
-internal class AvailServerBinaryFile constructor(
-		path: String,
-		file: AsynchronousFileChannel,
-		mimeType: String,
-		serverFileWrapper: ServerFileWrapper)
-	: AvailServerFile(path, file, mimeType, serverFileWrapper)
+internal class AvailBinaryFile constructor(
+		fileWrapper: AbstractFileWrapper)
+	: AvailFile(fileWrapper)
 {
 	/** The String content of the file. */
 	private var content = ByteArray(0)
@@ -71,55 +57,27 @@ internal class AvailServerBinaryFile constructor(
 
 	init
 	{
-		var filePosition = 0L
-		val input = ByteBuffer.allocateDirect(4096)
-
-//		this.file.read<Any>(
-//			input,
-//			0L,
-//			null,
-			SimpleCompletionHandler<Int>(
+		fileWrapper.reference.readFile(true,
+			{ bytes, _ ->
+				try
 				{
-					try
-					{
-						var moreInput = true
-						if (value == -1)
-						{
-							moreInput = false
-						}
-						else
-						{
-							filePosition += value.toLong()
-						}
-						input.flip()
-						val data = ByteArray(input.limit())
-						input.get(data)
-						content += data
-						// If more input remains, then queue another read.
-						if (moreInput)
-						{
-							handler.guardedDo {
-								file.read(input, filePosition, dummy, handler)
-							}
-						}
-						// Otherwise, close the file channel and notify the
-						// serverFileWrapper of completion. No reason to keep
-						// it open as it cannot be edited.
-						else
-						{
-							serverFileWrapper.notifyReady()
-						}
-					}
-					catch (e: IOException)
-					{
-						serverFileWrapper.notifyOpenFailure(
-							ServerErrorCode.IO_EXCEPTION, e)
-					}
-				},
+					content = bytes
+					fileWrapper.notifyReady()
+				}
+				catch (e: Throwable)
 				{
-					serverFileWrapper.notifyOpenFailure(
-						ServerErrorCode.IO_EXCEPTION, throwable)
-				}).guardedDo { file.read(input, 0L, dummy, handler) }
+					System.err.println(
+						"Attempted to decode bytes from supposed text file " +
+							fileWrapper.reference.uri)
+					System.err.println(e)
+				}
+			}) { code, ex ->
+			// TODO figure out what to do with these!!! Probably report them?
+			System.err.println(
+				"Received ErrorCode: $code while attempting read file: " +
+					"${fileWrapper.reference.uri} with exception:\n")
+			ex?.printStackTrace()
+		}
 	}
 
 	override fun replaceFile(

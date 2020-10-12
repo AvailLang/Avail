@@ -40,6 +40,7 @@ import com.avail.builder.ModuleRoots
 import com.avail.builder.RenamesFileParser
 import com.avail.builder.RenamesFileParserException
 import com.avail.builder.UnresolvedDependencyException
+import com.avail.files.FileManager
 import com.avail.io.TextInterface
 import com.avail.io.TextOutputChannel
 import com.avail.utility.IO.closeIfNotNull
@@ -63,6 +64,7 @@ import java.util.function.Consumer
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
  * @constructor
  * Construct an `AvailTest`.
@@ -79,14 +81,17 @@ class AvailRuntimeTestHelper
 		RenamesFileParserException::class)
 	constructor()
 {
+	/** The [FileManager] used in this test. */
+	val fileManager: FileManager = FileManager()
+
 	/** The [module name resolver][ModuleNameResolver].  */
 	@Suppress("MemberVisibilityCanBePrivate")
 	val resolver: ModuleNameResolver =
-		createModuleNameResolver(createModuleRoots())
+		createModuleNameResolver(createModuleRoots(fileManager))
 
 	/** The [Avail runtime][AvailRuntime].  */
 	@JvmField
-	val runtime: AvailRuntime = createAvailRuntime(resolver)
+	val runtime: AvailRuntime = createAvailRuntime(resolver, fileManager)
 
 	/** The [Avail builder][AvailBuilder].  */
 	@JvmField
@@ -332,10 +337,12 @@ class AvailRuntimeTestHelper
 		 * Create [ModuleRoots] from the information supplied in the
 		 * `availRoots` system property.
 		 *
+		 * @param fileManager
+		 *   The [FileManager] used to access files.
 		 * @return
 		 *   The specified Avail roots.
 		 */
-		fun createModuleRoots(): ModuleRoots
+		fun createModuleRoots(fileManager: FileManager): ModuleRoots
 		{
 			val rootsString = System.getProperty("availRoots", null)
 			if (rootsString == null)
@@ -343,7 +350,7 @@ class AvailRuntimeTestHelper
 				Assertions.fail<Any>(
 					"system property \"availRoots\" is not set")
 			}
-			return ModuleRoots(rootsString!!)
+			return ModuleRoots(fileManager, rootsString!!)
 		}
 
 		/**
@@ -397,10 +404,14 @@ class AvailRuntimeTestHelper
 		 *
 		 * @param resolver
 		 *   The [ModuleNameResolver] for resolving module names.
+		 * @param fileManager
+		 *   The system [FileManager].
 		 * @return
 		 *   An Avail runtime.
 		 */
-		fun createAvailRuntime(resolver: ModuleNameResolver): AvailRuntime =
-			AvailRuntime(resolver)
+		fun createAvailRuntime(
+			resolver: ModuleNameResolver,
+			fileManager: FileManager): AvailRuntime =
+			AvailRuntime(resolver, fileManager)
 	}
 }

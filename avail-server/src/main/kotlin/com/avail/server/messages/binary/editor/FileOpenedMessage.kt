@@ -33,12 +33,10 @@
 package com.avail.server.messages.binary.editor
 
 import com.avail.server.io.AvailServerChannel
-import com.avail.server.io.files.FileManager
+import com.avail.files.FileManager
 import com.avail.server.messages.Message
 import com.avail.server.session.Session
-import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
-import java.util.*
 
 /**
  * `FileOpenMessage` is a [BinaryMessage] response to an open file request.
@@ -64,7 +62,7 @@ import java.util.*
 internal class FileOpenedMessage constructor(
 	override var commandId: Long,
 	fileId: Int,
-	fileSize: Int,
+	fileSize: Long,
 	mime: String): BinaryMessage()
 {
 	override val command = BinaryCommand.FILE_OPENED
@@ -82,7 +80,7 @@ internal class FileOpenedMessage constructor(
 		val bufferSize = 24 + mimeBytes.size
 		val buffer = buffer(bufferSize)
 		buffer.putInt(fileId)
-		buffer.putInt(fileSize)
+		buffer.putLong(fileSize)
 		buffer.putInt(mimeBytes.size)
 		buffer.put(mimeBytes)
 		buffer.flip()

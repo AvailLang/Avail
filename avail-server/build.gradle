@@ -73,9 +73,6 @@ dependencies {
 		name: 'jsr305',
 		version: "$jsr_version"
 
-	// https://tika.apache.org for file MIME type detection
-	implementation 'org.apache.tika:tika-core:1.22'
-
 	// JUnit 5.
 	testRuntimeOnly group: 'org.junit.jupiter',
 		name: 'junit-jupiter-engine',

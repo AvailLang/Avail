@@ -40,8 +40,12 @@ import com.avail.builder.ModuleRoots
 import com.avail.builder.RenamesFileParser
 import com.avail.builder.RenamesFileParserException
 import com.avail.builder.UnresolvedDependencyException
+import com.avail.error.ErrorCodeRangeRegistry
+import com.avail.files.FileManager
 import com.avail.io.TextInterface
 import com.avail.io.TextOutputChannel
+import com.avail.resolver.ModuleRootResolver
+import com.avail.server.error.ServerErrorCodeRange
 import com.avail.utility.IO.closeIfNotNull
 import com.avail.utility.cast
 import java.io.BufferedReader
@@ -62,6 +66,7 @@ import java.util.function.Consumer
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
  * @constructor
  * Construct an `AvailTest`.
@@ -78,14 +83,25 @@ class AvailRuntimeTestHelper
 		RenamesFileParserException::class)
 	constructor()
 {
+	init
+	{
+		ErrorCodeRangeRegistry.register(ServerErrorCodeRange)
+	}
+
+	/** The [FileManager] used in this test. */
+	val fileManager: FileManager = FileManager()
+
+	val moduleRoots: ModuleRoots = createModuleRoots(fileManager)
+
 	/** The [module name resolver][ModuleNameResolver].  */
 	@Suppress("MemberVisibilityCanBePrivate")
-	val resolver: ModuleNameResolver =
-		createModuleNameResolver(createModuleRoots())
+	val resolver: ModuleNameResolver by lazy {
+		createModuleNameResolver(moduleRoots)
+	}
 
 	/** The [Avail runtime][AvailRuntime].  */
 	@JvmField
-	val runtime: AvailRuntime = createAvailRuntime(resolver)
+	val runtime: AvailRuntime = createAvailRuntime(resolver, fileManager)
 
 	/** The [Avail builder][AvailBuilder].  */
 	@JvmField
@@ -98,6 +114,14 @@ class AvailRuntimeTestHelper
 	/** The maximum notification rate for partially-loaded modules.  */
 	@Suppress("MemberVisibilityCanBePrivate")
 	var updateRateMillis: Long = 500
+
+	val testModuleRootResolver: ModuleRootResolver by lazy {
+		moduleRoots.moduleRootFor("tests")!!.resolver!!
+	}
+
+	val availModuleRootResolver: ModuleRootResolver by lazy {
+		moduleRoots.moduleRootFor("avail")!!.resolver!!
+	}
 
 	/**
 	 * A `TestErrorChannel` augments a [TextOutputChannel] with error detection.
@@ -339,16 +363,19 @@ class AvailRuntimeTestHelper
 		 * Create [ModuleRoots] from the information supplied in the
 		 * `availRoots` system property.
 		 *
+		 * @param fileManager
+		 *   The [FileManager] used to access files.
 		 * @return
 		 *   The specified Avail roots.
 		 */
-		fun createModuleRoots(): ModuleRoots
+		fun createModuleRoots(fileManager: FileManager): ModuleRoots
 		{
 			val userDir = System.getProperty("user.dir")
 			val path = userDir.replace("/avail-server", "")
-			val roots = "avail=$path/repositories/avail.repo,$path/distro/src/avail;" +
+			val uri = "file://$path"
+			val roots = "avail=$path/repositories/avail.repo,$uri/distro/src/avail;" +
 				"tests=$userDir/src/test/resources/repos/tests.repo,$userDir/src/test/resources/tests"
-			return ModuleRoots(roots)
+			return ModuleRoots(fileManager, roots)
 		}
 
 		/**
@@ -402,10 +429,14 @@ class AvailRuntimeTestHelper
 		 *
 		 * @param resolver
 		 *   The [ModuleNameResolver] for resolving module names.
+		 * @param fileManager
+		 *   The system [FileManager].
 		 * @return
 		 *   An Avail runtime.
 		 */
-		fun createAvailRuntime(resolver: ModuleNameResolver): AvailRuntime =
-			AvailRuntime(resolver)
+		fun createAvailRuntime(
+			resolver: ModuleNameResolver,
+			fileManager: FileManager): AvailRuntime =
+			AvailRuntime(resolver, fileManager)
 	}
 }

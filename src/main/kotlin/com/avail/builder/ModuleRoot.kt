@@ -35,9 +35,9 @@ package com.avail.builder
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.persistence.IndexedFileException
 import com.avail.persistence.Repository
+import com.avail.resolver.ModuleRootResolver
 import com.avail.utility.json.JSONWriter
 import java.io.File
-import java.net.URI
 
 /**
  * A `ModuleRoot` represents a vendor of Avail modules and/or the vended modules
@@ -45,10 +45,11 @@ import java.net.URI
  *
  * @property name
  *   The [module&#32;root][ModuleRoot] name.
- * @property sourceUri
+ * @property resolver
  *   If provided, then the [path][File] to the directory that contains source
  *   [modules][ModuleDescriptor] for this [root][ModuleRoot].
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
  * @constructor
  *
@@ -59,10 +60,10 @@ import java.net.URI
  * @param repository
  *   The [path][File] to the [indexed&#32;repository][Repository] that
  *   contains compiled [modules][ModuleDescriptor] for this root.
- * @param sourceUri
- *   The [path][File] to the directory that contains source
- *   [modules][ModuleDescriptor] for this [root][ModuleRoot], or `null` if no
- *   source path is available.
+ * @param resolver
+ *   The [ModuleRootResolver] used to provide access to the location that
+ *   contains source [modules][ModuleDescriptor] and resources for this
+ *   [root][ModuleRoot], or `null` if no `ModuleRootResolver` is available.
  * @throws IndexedFileException
  *   If the indexed repository could not be opened.
  */
@@ -70,7 +71,7 @@ class ModuleRoot
 @Throws(IndexedFileException::class) constructor(
 	val name: String,
 	repository: File,
-	val sourceUri: URI?)
+	val resolver: ModuleRootResolver?)
 {
 	/**
 	 * The [indexed&#32;repository][Repository] that contains compiled
@@ -85,7 +86,7 @@ class ModuleRoot
 
 	/**
 	 * Write the [binary][Repository.fileName] and the
-	 * [source&#32;module][sourceUri] (respectively) into a new JSON
+	 * [source&#32;module][resolver] (respectively) into a new JSON
 	 * array.
 	 *
 	 * @param writer
@@ -95,11 +96,13 @@ class ModuleRoot
 	{
 		writer.writeArray {
 			write(repository.fileName.absolutePath)
-			when (val dir = sourceUri)
+			when (val res = resolver)
 			{
 				null -> writeNull()
-				else -> write("${dir.scheme}:${dir.path}")
+				else -> write("${res.uri.scheme}:${res.uri.path}")
 			}
 		}
 	}
+
+	override fun toString(): String = name
 }

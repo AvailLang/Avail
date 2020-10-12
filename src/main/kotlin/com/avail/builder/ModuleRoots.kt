@@ -34,10 +34,13 @@ package com.avail.builder
 
 import com.avail.annotations.ThreadSafe
 import com.avail.descriptor.module.ModuleDescriptor
+import com.avail.files.FileManager
 import com.avail.persistence.Repository.Companion.isIndexedRepositoryFile
+import com.avail.resolver.ModuleRootResolverRegistry
 import com.avail.utility.json.JSONWriter
 import java.io.File
 import java.io.IOException
+import java.net.URI
 import java.util.Collections.unmodifiableSet
 
 /**
@@ -64,6 +67,7 @@ import java.util.Collections.unmodifiableSet
  * and may be sometimes be omitted (e.g., when compilation is not required).
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
  * @constructor
  *
@@ -75,7 +79,9 @@ import java.util.Collections.unmodifiableSet
  *   If the Avail [module][ModuleDescriptor] path is malformed.
  */
 @ThreadSafe
-class ModuleRoots(modulePath: String) : Iterable<ModuleRoot>
+class ModuleRoots constructor(
+	val fileManager: FileManager,
+	modulePath: String) : Iterable<ModuleRoot>
 {
 	/**
 	 * A [map][Map] from logical root names to [module&#32;root][ModuleRoot]s.
@@ -97,11 +103,11 @@ class ModuleRoots(modulePath: String) : Iterable<ModuleRoot>
 			builder.append(root.name)
 			builder.append("=")
 			builder.append(root.repository.fileName.path)
-			val sourceDirectory = root.sourceUri
-			if (sourceDirectory !== null)
+			val resolver = root.resolver
+			if (resolver !== null)
 			{
 				builder.append(",")
-				builder.append(sourceDirectory.path)
+				builder.append(resolver.uri.toString())
 			}
 			first = false
 		}
@@ -122,11 +128,16 @@ class ModuleRoots(modulePath: String) : Iterable<ModuleRoot>
 	{
 		clearRoots()
 		// Root definitions are separated by semicolons.
-		var components = modulePath.split(";")
-		if (modulePath.isEmpty())
-		{
-			components = listOf()
-		}
+		val components =
+			if (modulePath.isEmpty())
+			{
+				listOf()
+			}
+			else
+			{
+				modulePath.split(";")
+			}
+		val lock = ""
 		for (component in components)
 		{
 			// An equals separates the root name from its paths.
@@ -136,38 +147,54 @@ class ModuleRoots(modulePath: String) : Iterable<ModuleRoot>
 			// A comma separates the repository path from the source directory
 			// path.
 			val rootName = binding[0]
-			val paths = binding[1].split(",")
-			require(paths.size <= 2)
+			val locations = binding[1].split(",")
+			require(locations.size <= 2)
 
-			// All paths must be absolute.
-			for (path in paths)
-			{
-				val file = File(path)
-				require(file.isAbsolute)
-			}
+			val repositoryFile = File(locations[0])
+
+			// Repository file path must be absolute
+			require(repositoryFile.isAbsolute)
 
 			// If only one path is supplied, then it must reference a valid
 			// repository.
-			val repositoryFile = File(paths[0])
-			try
+			if (locations.size == 1)
 			{
-				require(!(paths.size == 1
-					&& !isIndexedRepositoryFile(repositoryFile)))
-			}
-			catch (e: IOException)
-			{
-				throw IllegalArgumentException(e)
+				try
+				{
+					require(!isIndexedRepositoryFile(repositoryFile))
+					addRoot(ModuleRoot(rootName, repositoryFile, null))
+					return
+				}
+				catch (e: IOException)
+				{
+					throw IllegalArgumentException(e)
+				}
 			}
 
 			// If two paths are provided, then the first path need not reference
 			// an existing file. The second path, however, must reference a
-			// directory.
-			val sourceDirectory =
-				if (paths.size == 2) File(paths[1])
-				else null
-			require(!(sourceDirectory !== null && !sourceDirectory.isDirectory))
+			// valid module root.
+			require(locations.size == 2)
+			val rootUri = URI(locations[1])
+			val resolver =
+				ModuleRootResolverRegistry.createResolver(
+					rootName,
+					repositoryFile,
+					rootUri,
+					fileManager)
 
-			addRoot(ModuleRoot(rootName, repositoryFile, sourceDirectory))
+			resolver.resolve(
+				{
+					synchronized(lock)
+					{
+						addRoot(resolver.moduleRoot)
+					}
+				}
+			) { code, ex ->
+				System.err.println(
+					"$code: Could not access module root, $rootName")
+				ex?.printStackTrace()
+			}
 		}
 	}
 

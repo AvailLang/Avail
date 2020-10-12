@@ -85,7 +85,7 @@ object P_FileRefresh : Primitive(1, CanInline, HasSideEffect)
 		synchronized(handle.bufferKeys) {
 			for (key in ArrayList(handle.bufferKeys.keys))
 			{
-				runtime.ioSystem().discardBuffer(key)
+				runtime.ioSystem.discardBuffer(key)
 			}
 		}
 		return interpreter.primitiveSuccess(nil)

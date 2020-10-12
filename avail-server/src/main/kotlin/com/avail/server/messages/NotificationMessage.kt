@@ -1,5 +1,5 @@
 /*
- * ResourceResolver.kt
+ * NotificationMessage.kt
  * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,32 +30,24 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.server.io.files
+package com.avail.server.messages
 
-import com.avail.builder.ModuleName
-import com.avail.builder.ModuleNameResolver
-import com.avail.builder.ModuleRoot
+import com.avail.server.io.AvailServerChannel
 
 /**
- * A `ResourceResolver` is an abstraction used to create an abstraction that the
- * file-directory connected [ModuleNameResolver] can use in an abstract way,
- * making the "file system" replaceable w/ a generic resource whether it be
- * a local file system, a networked resource, database, jar file, etc.
- *
- * // TODO update the comment after moving the class to its appropriate final home
+ * A `NotificationMessage` is TODO: Document this!
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-abstract class ResourceResolver (val moduleRoot: ModuleRoot)
+class NotificationMessage: CommandMessage()
 {
-	/**
-	 * Provide the source of the provided [ModuleName] to the provided
-	 * `consumer`.
-	 *
-	 * @param moduleName
-	 *   The [ModuleName] to retrieve the source for.
-	 * @param consumer
-	 *   The consumer that accepts the module source bytes.
-	 */
-	abstract fun fetch (moduleName: ModuleName, consumer: (ByteArray) -> Unit)
+	override val command: TextCommand
+		get() = TODO("Not yet implemented")
+
+	override fun processThen(
+		channel: AvailServerChannel,
+		continuation: ()->Unit)
+	{
+		TODO("Not yet implemented")
+	}
 }

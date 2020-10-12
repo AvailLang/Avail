@@ -38,6 +38,7 @@ import com.avail.builder.ModuleRoots
 import com.avail.builder.RenamesFileParser
 import com.avail.builder.RenamesFileParserException
 import com.avail.descriptor.module.ModuleDescriptor
+import com.avail.files.FileManager
 import com.avail.performance.StatisticReport
 import com.avail.stacks.StacksGenerator
 import com.avail.tools.compiler.Compiler
@@ -57,8 +58,19 @@ import java.util.EnumSet
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @author Leslie Schultz &lt;leslie@availlang.org&gt;
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ *
+ * @property fileManager
+ *   The [FileManager] that will manage the Avail files.
+ *
+ * @constructor
+ * Construct a new [CompilerConfiguration]
+ *
+ * @param fileManager
+ *   The [FileManager] that will manage the Avail files.
  */
-class CompilerConfiguration : Configuration
+class CompilerConfiguration constructor(private val fileManager: FileManager)
+	: Configuration
 {
 	/** The [Avail roots][ModuleRoots] path. */
 	internal var availRootsPath = ""
@@ -75,7 +87,7 @@ class CompilerConfiguration : Configuration
 			var roots = field
 			if (roots === null)
 			{
-				roots = ModuleRoots(availRootsPath)
+				roots = ModuleRoots(fileManager, availRootsPath)
 				availRoots = roots
 			}
 			return roots

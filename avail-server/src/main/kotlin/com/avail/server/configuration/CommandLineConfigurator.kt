@@ -218,6 +218,7 @@ class CommandLineConfigurator constructor(
 			}
 			catch (e: Exception)
 			{
+				e.printStackTrace()
 				throw ConfigurationException(
 					"unexpected configuration error", e)
 			}

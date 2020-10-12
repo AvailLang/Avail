@@ -32,6 +32,8 @@
 
 package com.avail.server.test.utility
 
+import com.avail.error.ErrorCodeRangeRegistry
+import com.avail.files.FileErrorCode
 import com.avail.server.error.ServerErrorCode
 import com.avail.server.messages.Message
 import com.avail.server.messages.binary.editor.BinaryCommand
@@ -64,8 +66,9 @@ class TestBinaryMessageHolder constructor(val message: Message)
 			val position = buffer.position()
 			val ec = buffer.int
 			buffer.position(position)
-			ServerErrorCode.code(ec).name
-			"${binaryCommand.name}: ${ServerErrorCode.code(ec).name}"
+			// TODO need way to get code
+			val errorCode = ErrorCodeRangeRegistry.errorCode(ec)
+			"${binaryCommand.name}: ${errorCode.name}"
 		}
 		else
 		{

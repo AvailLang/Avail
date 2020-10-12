@@ -752,7 +752,7 @@ class L2Chunk private constructor(
 									ModuleName(
 										module.moduleName().asNativeString()),
 									null)
-						sourceFileName = resolved.sourceReference.path
+						sourceFileName = resolved.resolverReference.uri.toString()
 					}
 					catch (e: UnresolvedDependencyException)
 					{

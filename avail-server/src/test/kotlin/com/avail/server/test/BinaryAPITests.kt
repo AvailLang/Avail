@@ -65,8 +65,12 @@ class BinaryAPITests
 {
 	/** The [AvailServer] used for these API tests. */
 	private val server: AvailServer by lazy {
-		val config = AvailServerConfiguration()
-		AvailServer(config, AvailRuntimeTestHelper.helper.runtime)
+		val config = AvailServerConfiguration(
+			AvailRuntimeTestHelper.helper.fileManager)
+		AvailServer(
+			config,
+			AvailRuntimeTestHelper.helper.runtime,
+			AvailRuntimeTestHelper.helper.fileManager)
 	}
 
 	/**

@@ -32,21 +32,11 @@
 
 package com.avail.builder
 
-import com.avail.builder.ModuleNameResolver.Companion.availExtension
 import com.avail.compiler.AvailCompiler
 import com.avail.compiler.problems.Problem
 import com.avail.persistence.Repository.ModuleVersion
 import com.avail.persistence.Repository.ModuleVersionKey
-import java.io.IOException
-import java.nio.file.FileVisitOption
-import java.nio.file.FileVisitResult
-import java.nio.file.FileVisitResult.CONTINUE
-import java.nio.file.FileVisitResult.SKIP_SUBTREE
-import java.nio.file.FileVisitor
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.attribute.BasicFileAttributes
-import java.util.concurrent.atomic.AtomicBoolean
+import java.net.URI
 import java.util.logging.Level
 import javax.annotation.concurrent.GuardedBy
 
@@ -67,17 +57,17 @@ import javax.annotation.concurrent.GuardedBy
  * @param originalAfterTraceCompletes
  *   The function to run when after module has been
  */
-internal class BuildDirectoryTracer constructor(
+class BuildDirectoryTracer constructor(
 	var availBuilder: AvailBuilder,
 	originalAfterTraceCompletes: ()->Unit)
 {
 	/** The trace requests that have been scheduled.  */
 	@GuardedBy("this")
-	private val traceRequests = mutableSetOf<Path>()
+	private val traceRequests = mutableSetOf<URI>()
 
 	/** The traces that have been completed.  */
 	@GuardedBy("this")
-	private val traceCompletions = mutableSetOf<Path>()
+	private val traceCompletions = mutableSetOf<URI>()
 
 	/** A flag to indicate when all requests have been queued.  */
 	@GuardedBy("this")
@@ -132,98 +122,13 @@ internal class BuildDirectoryTracer constructor(
 		val moduleRoots = availBuilder.runtime.moduleRoots()
 		for (moduleRoot in moduleRoots)
 		{
-			val rootDirectory = moduleRoot.sourceUri!!
-			val rootPath = rootDirectory.toPath()
-			val visitor = object : FileVisitor<Path>
-			{
-				override fun preVisitDirectory(
-					dir: Path,
-					unused: BasicFileAttributes): FileVisitResult
-				{
-					if (dir == rootPath)
-					{
-						// The base directory doesn't have the .avail
-						// extension.
-						return CONTINUE
-					}
-					val localName = dir.toFile().name
-					return if (localName.endsWith(availExtension))
-					{
-						CONTINUE
-					}
-					else SKIP_SUBTREE
-				}
-
-				override fun visitFile(
-					file: Path,
-					unused: BasicFileAttributes): FileVisitResult
-				{
-					val localName = file.toFile().name
-					if (!localName.endsWith(availExtension))
-					{
-						return CONTINUE
-					}
-					// It's a module file.
-					addTraceRequest(file)
-					availBuilder.runtime.execute(0) {
-						val builder = StringBuilder(100)
-						builder.append("/")
-						builder.append(moduleRoot.name)
-						val relative = rootPath.relativize(file)
-						for (element in relative)
-						{
-							val part = element.toString()
-							builder.append("/")
-							assert(part.endsWith(availExtension))
-							val noExtension = part.substring(
-								0,
-								part.length - availExtension.length)
-							builder.append(noExtension)
-						}
-						val moduleName = ModuleName(builder.toString())
-						val resolved = ResolvedModuleName(
-							moduleName, moduleRoots, false)
-						val ran = AtomicBoolean(false)
-						traceOneModuleHeader(
-							resolved,
-							moduleAction,
-							{
-								val oldRan = ran.getAndSet(true)
-								assert(!oldRan)
-								indicateFileCompleted(file)
-							})
-					}
-					return CONTINUE
-				}
-
-				override fun visitFileFailed(
-					file: Path,
-					exception: IOException): FileVisitResult
-				{
-					// Ignore the exception and continue.  We're just trying to
-					// populate the list of entry points, so it's not something
-					// worth reporting.
-					return CONTINUE
-				}
-
-				override fun postVisitDirectory(
-					dir: Path,
-					e: IOException?): FileVisitResult
-				{
-					return CONTINUE
-				}
-			}
-			try
-			{
-				Files.walkFileTree(
-					rootPath,
-					setOf(FileVisitOption.FOLLOW_LINKS),
-					Integer.MAX_VALUE,
-					visitor)
-			}
-			catch (e: IOException)
-			{
-				// Ignore it.
+			moduleRoot.resolver?.traceAllModuleHeaders(this, moduleAction)
+			{ name, code, ex ->
+				// TODO figure out what to do with these!!! Probably report them?
+				System.err.println(
+					"Received ErrorCode: $code while tracing $name with " +
+						"exception:\n")
+				ex?.printStackTrace()
 			}
 		}
 
@@ -236,14 +141,14 @@ internal class BuildDirectoryTracer constructor(
 	/**
 	 * Add a module name to traceRequests while holding the monitor.
 	 *
-	 * @param modulePath
-	 *   The [Path] to add to the requests.
+	 * @param moduleURI
+	 *   The [URI] to add to the requests.
 	 */
 	@Synchronized
-	fun addTraceRequest(modulePath: Path)
+	fun addTraceRequest(moduleURI: URI)
 	{
-		val added = traceRequests.add(modulePath)
-		assert(added) { "Attempting to trace file $modulePath twice" }
+		val added = traceRequests.add(moduleURI)
+		assert(added) { "Attempting to trace file $moduleURI twice" }
 	}
 
 	/**
@@ -321,54 +226,61 @@ internal class BuildDirectoryTracer constructor(
 	{
 		val repository = resolvedName.repository
 		repository.commitIfStaleChanges(AvailBuilder.maximumStaleRepositoryMs)
-		val sourceFile = resolvedName.sourceReference
+		val sourceReference = resolvedName.resolverReference
 		val archive = repository.getArchive(
 			resolvedName.rootRelativeName)
-		val digest = archive.digestForFile(resolvedName)
-		val versionKey = ModuleVersionKey(resolvedName, digest)
-		val existingVersion = archive.getVersion(versionKey)
-		if (existingVersion !== null)
-		{
-			// This version was already traced and recorded for a subsequent
-			// replay... like right now.  Reuse it.
-			action(resolvedName, existingVersion, completedAction)
-			return
-		}
-		// Trace the source and write it back to the repository.
-		AvailCompiler.create(
-			resolvedName,
-			availBuilder.textInterface,
-			availBuilder.pollForAbort,
-			{ _, _, _, _ -> },
-			completedAction,
-			object : BuilderProblemHandler(availBuilder, "")
-			{
-				override fun handleGeneric(
-					problem: Problem,
-					decider: (Boolean)->Unit)
+		archive.digestForFile(resolvedName, false,
+			{ digest ->
+				val versionKey = ModuleVersionKey(resolvedName, digest)
+				val existingVersion = archive.getVersion(versionKey)
+				if (existingVersion !== null)
 				{
-					// Simply ignore all problems when all we're doing is trying
-					// to locate the entry points within any syntactically valid
-					// modules.
-					decider(false)
+					// This version was already traced and recorded for a subsequent
+					// replay... like right now.  Reuse it.
+					action(resolvedName, existingVersion, completedAction)
+					return@digestForFile
+				}
+				// Trace the source and write it back to the repository.
+				AvailCompiler.create(
+					resolvedName,
+					availBuilder.textInterface,
+					availBuilder.pollForAbort,
+					{ _, _, _, _ -> },
+					completedAction,
+					object : BuilderProblemHandler(availBuilder, "")
+					{
+						override fun handleGeneric(
+							problem: Problem,
+							decider: (Boolean)->Unit)
+						{
+							// Simply ignore all problems when all we're doing is trying
+							// to locate the entry points within any syntactically valid
+							// modules.
+							decider(false)
+						}
+					}
+				) { compiler ->
+					compiler.compilationContext.diagnostics
+						.setSuccessAndFailureReporters({}, completedAction)
+					compiler.parseModuleHeader {
+						val header = compiler.compilationContext.moduleHeader!!
+						val importNames = header.importedModuleNames
+						val entryPoints = header.entryPointNames
+						val newVersion = repository.ModuleVersion(
+							sourceReference.size,
+							importNames,
+							entryPoints)
+						availBuilder.serialize(header, newVersion)
+						archive.putVersion(versionKey, newVersion)
+						action(resolvedName, newVersion, completedAction)
+					}
 				}
 			}
-		) {
-			compiler ->
-			compiler.compilationContext.diagnostics
-				.setSuccessAndFailureReporters({}, completedAction)
-			compiler.parseModuleHeader {
-				val header = compiler.compilationContext.moduleHeader!!
-				val importNames = header.importedModuleNames
-				val entryPoints = header.entryPointNames
-				val newVersion = repository.ModuleVersion(
-					sourceFile.length(),
-					importNames,
-					entryPoints)
-				availBuilder.serialize(header, newVersion)
-				archive.putVersion(versionKey, newVersion)
-				action(resolvedName, newVersion, completedAction)
-			}
+		) { code, ex ->
+			// TODO figure out what to do with these!!! Probably report them?
+			System.err.println(
+				"Received ErrorCode: $code with exception:\n")
+			ex?.printStackTrace()
 		}
 	}
 
@@ -376,14 +288,14 @@ internal class BuildDirectoryTracer constructor(
 	 * A module was just traced, so record that fact.  Note that the trace was
 	 * either successful or unsuccessful.
 	 *
-	 * @param modulePath
-	 *   The [Path] for which a trace just completed.
+	 * @param moduleURI
+	 *   The [URI] for which a trace just completed.
 	 */
 	@Synchronized
-	fun indicateFileCompleted(modulePath: Path)
+	fun indicateFileCompleted(moduleURI: URI)
 	{
-		val added = traceCompletions.add(modulePath)
-		assert(added) { "Completed trace of file $modulePath twice" }
+		val added = traceCompletions.add(moduleURI)
+		assert(added) { "Completed trace of file $moduleURI twice" }
 		AvailBuilder.log(
 			Level.FINEST,
 			"Build-directory traced one (%d/%d)",

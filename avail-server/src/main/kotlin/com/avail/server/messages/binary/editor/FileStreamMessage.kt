@@ -33,7 +33,7 @@
 package com.avail.server.messages.binary.editor
 
 import com.avail.server.io.AvailServerChannel
-import com.avail.server.io.files.FileManager
+import com.avail.files.FileManager
 import com.avail.server.messages.Message
 import com.avail.server.session.Session
 

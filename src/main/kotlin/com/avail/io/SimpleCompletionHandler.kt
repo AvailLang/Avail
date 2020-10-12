@@ -75,13 +75,15 @@ class SimpleCompletionHandler<V> constructor (
 	 * @param op
 	 *   The I/O operation.
 	 */
-	fun guardedDo(
-		op: GuardHelper<V>.() -> Unit
-	) = try {
-		GuardHelper(this).op()
-	} catch (e: Throwable) {
-		FailureHelper(e, this).failed()
-	}
+	fun guardedDo(op: GuardHelper<V>.() -> Unit) =
+		try
+		{
+			GuardHelper(this).op()
+		}
+		catch (e: Throwable)
+		{
+			FailureHelper(e, this).failed()
+		}
 
 	companion object {
 		/**

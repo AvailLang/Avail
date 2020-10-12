@@ -32,8 +32,9 @@
 
 package com.avail.server.test.utility
 
+import com.avail.error.ErrorCode
 import com.avail.server.error.ServerErrorCode
-import com.avail.server.io.files.FileManager
+import com.avail.files.FileManager
 import com.avail.utility.Mutable
 import java.util.UUID
 
@@ -51,7 +52,7 @@ class FileStateHolder
 	val error get() =  errorWrapper.value
 
 	/** Mutable holder for any [ServerErrorCode]s that have been reported. */
-	private val errorCodeWrapper: Mutable<ServerErrorCode?> = Mutable(null)
+	private val errorCodeWrapper: Mutable<ErrorCode?> = Mutable(null)
 
 	/** The currently wrapped [ServerErrorCode]. */
 	val errorCode get() = errorCodeWrapper.value
@@ -126,7 +127,7 @@ class FileStateHolder
 	 * @param e
 	 *   The contents of [errorWrapper].
 	 */
-	fun updateError (code: ServerErrorCode, e: Throwable?)
+	fun updateError (code: ErrorCode, e: Throwable?)
 	{
 		errorWrapper.value = e
 		errorCodeWrapper.value = code

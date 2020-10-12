@@ -42,6 +42,7 @@ import com.avail.descriptor.fiber.FiberDescriptor.Companion.loaderPriority
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.tokens.CommentTokenDescriptor
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.error.ErrorCode
 import com.avail.persistence.Repository.ModuleVersion
 import com.avail.persistence.Repository.ModuleVersionKey
 import com.avail.serialization.Deserializer
@@ -83,16 +84,29 @@ internal class DocumentationTracer constructor(
 	 *
 	 * @param moduleName
 	 *   A resolved module name.
-	 * @return
-	 *   A module version, or `null` if no version was available.
+	 * @param withVersion
+	 *   A function that accepts A module version, or `null` if no version was
+	 *   available.
+	 * @param failureHandler
+	 *   A function that accepts a [ErrorCode] that describes the nature
+	 *   of the failure and a `nullable` [Throwable].
 	 */
-	private fun getVersion(moduleName: ResolvedModuleName): ModuleVersion?
+	private fun getVersion(
+		moduleName: ResolvedModuleName,
+		withVersion: (ModuleVersion?) -> Unit,
+		failureHandler: (ErrorCode, Throwable?) -> Unit)
 	{
+		// TODO make async!
 		val repository = moduleName.repository
 		val archive = repository.getArchive(moduleName.rootRelativeName)
-		val digest = archive.digestForFile(moduleName)
-		val versionKey = ModuleVersionKey(moduleName, digest)
-		return archive.getVersion(versionKey)
+		archive.digestForFile(
+			moduleName,
+			false,
+			{ digest ->
+				val versionKey = ModuleVersionKey(moduleName, digest)
+				withVersion(archive.getVersion(versionKey))
+			},
+			failureHandler)
 	}
 
 	/**
@@ -113,16 +127,102 @@ internal class DocumentationTracer constructor(
 		problemHandler: ProblemHandler,
 		completionAction: ()->Unit)
 	{
-		val version = getVersion(moduleName)
-		if (version?.comments === null)
-		{
+		getVersion(moduleName,
+		{ version ->
+			if (version?.comments === null)
+			{
+				val problem = object : Problem(
+					moduleName,
+					1,
+					0,
+					TRACE,
+					"Module \"{0}\" should have been compiled already",
+					moduleName)
+				{
+					override fun abortCompilation()
+					{
+						availBuilder.stopBuildReason = "Comment loading failed"
+						completionAction()
+					}
+				}
+				problemHandler.handle(problem)
+				return@getVersion
+			}
+			val tuple: A_Tuple?
+			try
+			{
+				val bytes = version.comments!!
+				val `in` = AvailBuilder.validatedBytesFrom(bytes)
+				val deserializer = Deserializer(`in`, availBuilder.runtime)
+				tuple = deserializer.deserialize()
+				assert(tuple !== null)
+				assert(tuple!!.isTuple)
+				val residue = deserializer.deserialize()
+				assert(residue === null)
+			}
+			catch (e: MalformedSerialStreamException)
+			{
+				val problem = object : Problem(
+					moduleName,
+					1,
+					0,
+					INTERNAL,
+					"Couldn''t deserialize comment tuple for module \"{0}\"",
+					moduleName)
+				{
+					override fun abortCompilation()
+					{
+						availBuilder.stopBuildReason =
+							"Comment deserialization failed"
+						completionAction()
+					}
+				}
+				problemHandler.handle(problem)
+				return@getVersion
+			}
+
+			val header: ModuleHeader
+			try
+			{
+				val `in` = AvailBuilder.validatedBytesFrom(version.moduleHeader)
+				val deserializer = Deserializer(`in`, availBuilder.runtime)
+				header = ModuleHeader(moduleName)
+				header.deserializeHeaderFrom(deserializer)
+			}
+			catch (e: MalformedSerialStreamException)
+			{
+				val problem = object : Problem(
+					moduleName,
+					1,
+					0,
+					INTERNAL,
+					"Couldn''t deserialize header for module \"{0}\"",
+					moduleName)
+				{
+					override fun abortCompilation()
+					{
+						availBuilder.stopBuildReason =
+							"Module header deserialization failed when " +
+								"loading comments"
+						completionAction()
+					}
+				}
+				problemHandler.handle(problem)
+				return@getVersion
+			}
+
+			generator.add(header, tuple)
+			completionAction()
+		}) { code, ex ->
 			val problem = object : Problem(
 				moduleName,
 				1,
 				0,
 				TRACE,
-				"Module \"{0}\" should have been compiled already",
-				moduleName)
+				"Problem getting Module \"{0}\" to load comments: {1} - {2}",
+				moduleName,
+				code,
+				ex ?: "")
 			{
 				override fun abortCompilation()
 				{
@@ -131,73 +231,7 @@ internal class DocumentationTracer constructor(
 				}
 			}
 			problemHandler.handle(problem)
-			return
 		}
-		val tuple: A_Tuple?
-		try
-		{
-			val bytes = version.comments!!
-			val `in` = AvailBuilder.validatedBytesFrom(bytes)
-			val deserializer = Deserializer(`in`, availBuilder.runtime)
-			tuple = deserializer.deserialize()
-			assert(tuple !== null)
-			assert(tuple!!.isTuple)
-			val residue = deserializer.deserialize()
-			assert(residue === null)
-		}
-		catch (e: MalformedSerialStreamException)
-		{
-			val problem = object : Problem(
-				moduleName,
-				1,
-				0,
-				INTERNAL,
-				"Couldn''t deserialize comment tuple for module \"{0}\"",
-				moduleName)
-			{
-				override fun abortCompilation()
-				{
-					availBuilder.stopBuildReason =
-						"Comment deserialization failed"
-					completionAction()
-				}
-			}
-			problemHandler.handle(problem)
-			return
-		}
-
-		val header: ModuleHeader
-		try
-		{
-			val `in` = AvailBuilder.validatedBytesFrom(version.moduleHeader)
-			val deserializer = Deserializer(`in`, availBuilder.runtime)
-			header = ModuleHeader(moduleName)
-			header.deserializeHeaderFrom(deserializer)
-		}
-		catch (e: MalformedSerialStreamException)
-		{
-			val problem = object : Problem(
-				moduleName,
-				1,
-				0,
-				INTERNAL,
-				"Couldn''t deserialize header for module \"{0}\"",
-				moduleName)
-			{
-				override fun abortCompilation()
-				{
-					availBuilder.stopBuildReason =
-						"Module header deserialization failed when " +
-						"loading comments"
-					completionAction()
-				}
-			}
-			problemHandler.handle(problem)
-			return
-		}
-
-		generator.add(header, tuple)
-		completionAction()
 	}
 
 	/**

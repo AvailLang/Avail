@@ -35,6 +35,7 @@ package com.avail.environment.actions
 import com.avail.builder.ModuleRoot
 import com.avail.environment.AvailWorkbench
 import com.avail.persistence.IndexedFileException
+import com.avail.resolver.ModuleRootResolverRegistry
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Dialog.ModalityType
@@ -42,6 +43,7 @@ import java.awt.Dimension
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
 import java.io.File
+import java.net.URI
 import javax.swing.Action
 import javax.swing.GroupLayout
 import javax.swing.GroupLayout.Alignment
@@ -129,13 +131,20 @@ class PreferencesAction constructor(workbench: AvailWorkbench)
 			assert(triple.size == 3)
 			try
 			{
+				val name = triple[0]
+				val repository = File(triple[1])
 				val root = ModuleRoot(
-					triple[0],
-					File(triple[1]),
-					if (triple[2].isEmpty())
-						null
+					name,
+					repository,
+					if (triple[2].isEmpty()) null
 					else
-						File(triple[2]))
+					{
+						ModuleRootResolverRegistry.createResolver(
+							name,
+							repository,
+							URI(triple[2]),
+							roots.fileManager)
+					})
 				roots.addRoot(root)
 			}
 			catch (e: IndexedFileException)
@@ -184,8 +193,8 @@ class PreferencesAction constructor(workbench: AvailWorkbench)
 			val triple = mutableListOf<String>()
 			triple.add(root.name)
 			triple.add(root.repository.fileName.path)
-			val source = root.sourceUri
-			triple.add(if (source === null) "" else source.path)
+			val source = root.resolver
+			triple.add(source?.uri?.toString() ?: "")
 			rootsTableModel.rows.add(triple)
 		}
 		val rootsTable = JTable(rootsTableModel)

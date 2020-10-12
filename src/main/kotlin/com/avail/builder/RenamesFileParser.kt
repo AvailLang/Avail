@@ -362,7 +362,7 @@ class RenamesFileParser @ThreadSafe constructor(
 		 *   next [token][Token].
 		 */
 		@Throws(IOException::class)
-		internal abstract fun scan(
+		abstract fun scan(
 			parser: RenamesFileParser,
 			firstChar: Int): Token?
 

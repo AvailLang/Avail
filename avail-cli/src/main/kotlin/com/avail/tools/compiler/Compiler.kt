@@ -39,6 +39,7 @@ import com.avail.builder.RenamesFileParserException
 import com.avail.compiler.CompilerProgressReporter
 import com.avail.compiler.GlobalProgressReporter
 import com.avail.descriptor.module.ModuleDescriptor
+import com.avail.files.FileManager
 import com.avail.io.ConsoleInputChannel
 import com.avail.io.ConsoleOutputChannel
 import com.avail.io.TextInterface
@@ -131,12 +132,14 @@ import java.util.concurrent.locks.ReentrantLock
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @author Leslie Schultz &lt;leslie@availlang.org&gt;
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
 object Compiler
 {
 	/**
 	 * Configure the `Compiler` to build the target [module][ModuleDescriptor].
 	 *
+	 * @param fileManager
 	 * @param args
 	 *   The command-line arguments.
 	 * @return
@@ -145,9 +148,10 @@ object Compiler
 	 *   If configuration fails for any reason.
 	 */
 	@Throws(ConfigurationException::class)
-	private fun configure(args: Array<String>): CompilerConfiguration
+	private fun configure(fileManager: FileManager, args: Array<String>)
+		: CompilerConfiguration
 	{
-		val configuration = CompilerConfiguration()
+		val configuration = CompilerConfiguration(fileManager)
 		// Update the configuration using the environment first.
 		val environmentConfigurator = EnvironmentConfigurator(configuration)
 		environmentConfigurator.updateConfiguration()
@@ -275,8 +279,8 @@ object Compiler
 	private fun doClearRepositories(resolver: ModuleNameResolver)
 	{
 		resolver.moduleRoots.roots.forEach { root ->
-			val dir = root.sourceUri
-			if (dir !== null && dir.isDirectory)
+			val resolver = root.resolver
+			if (resolver !== null && resolver.resolvesToValidModuleRoot())
 			{
 				root.clearRepository()
 			}
@@ -292,13 +296,14 @@ object Compiler
 	@JvmStatic
 	fun main(args: Array<String>)
 	{
+		val fileManager = FileManager()
 		// Configure the compiler according to the command-line arguments and
 		// ensure that any supplied paths are syntactically valid.
 		val configuration: CompilerConfiguration
 		val resolver: ModuleNameResolver
 		try
 		{
-			configuration = configure(args)
+			configuration = configure(fileManager, args)
 			resolver = configuration.moduleNameResolver!!
 		}
 		catch (e: ConfigurationException)
@@ -327,7 +332,8 @@ object Compiler
 		}
 
 		val moduleName = configuration.targetModuleName
-		val runtime = AvailRuntime(resolver)
+		val runtime = AvailRuntime(resolver, fileManager)
+		fileManager.associateRuntime(runtime)
 
 		// Mute output, if requested.
 		if (configuration.quiet)

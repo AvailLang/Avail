@@ -113,7 +113,7 @@ class BinaryMessageBuilder
 			relativePath.toByteArray(Charsets.UTF_8))
 
 	/**
-	 * Create a [BinaryCommand.OPEN_FILE] message.
+	 * Create a [BinaryCommand.CREATE_FILE] message.
 	 *
 	 * @param relativePath
 	 *   The [ModuleRoot] relative path of the file to open.

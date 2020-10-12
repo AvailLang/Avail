@@ -127,7 +127,7 @@ object P_FileSync : Primitive(4, CanInline, HasSideEffect)
 		fail.makeShared()
 
 		val runtime = interpreter.runtime
-		runtime.ioSystem().executeFileTask(
+		runtime.ioSystem.executeFileTask(
 			Runnable {
                try
                {

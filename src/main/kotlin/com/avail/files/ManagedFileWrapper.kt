@@ -30,12 +30,13 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.server.io.files
+package com.avail.files
 
-import com.avail.server.error.ServerErrorCode
-import com.avail.server.session.Session
-import org.apache.tika.Tika
+import com.avail.error.ErrorCode
+import com.avail.resolver.ResolverReference
+import com.avail.resolver.ResourceType
 import java.nio.channels.AsynchronousFileChannel
+import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -43,34 +44,33 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
- * A `AbstractServerFileWrapper` is an abstraction for holding an
- * [AvailServerFile]. The purpose of this is to enable the Avail server
- * [FileManager] cache to delay establishing the type of `AvailServerFile`
- * until the file type can be read without delaying adding a file object to the
- * `FileManager` cache.
+ * A `AbstractFileWrapper` is an abstraction for holding an [AvailFile]. The
+ * purpose of this is to enable the Avail server  [FileManager] cache to delay
+ * establishing the type of `AvailFile` until the file type can be read without
+ * delaying adding a file object to the `FileManager` cache.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
  * @property id
  *   The [FileManager.fileCache] key.
- * @property path
- *   The String path to the target file on disk.
+ * @property reference
+ *   The [ResolverReference] of the target file on disk.
  * @property fileManager
- *   The [FileManager] this [ServerFileWrapper] belongs to.
+ *   The [FileManager] this [ManagedFileWrapper] belongs to.
  *
  * @constructor
- * Construct a [AbstractServerFileWrapper].
+ * Construct a [AbstractFileWrapper].
  *
  * @param id
  *   The [FileManager.fileCache] key.
- * @param path
- *   The String path to the target file on disk.
+ * @param reference
+ *   The [ResolverReference] of the target file.
  * @param fileManager
- *   The [FileManager] this [ServerFileWrapper] belongs to.
+ *   The [FileManager] this [ManagedFileWrapper] belongs to.
  */
-abstract class AbstractServerFileWrapper constructor(
+abstract class AbstractFileWrapper constructor(
 	val id: UUID,
-	val path: String,
+	val reference: ResolverReference,
 	protected val fileManager: FileManager)
 {
 	/**
@@ -79,10 +79,10 @@ abstract class AbstractServerFileWrapper constructor(
 	open val isError = false
 
 	/**
-	 * The associated [ServerErrorCode] if [error] is not `null`; `null`
+	 * The associated [ErrorCode] if [error] is not `null`; `null`
 	 * otherwise
 	 */
-	open val errorCode: ServerErrorCode? = null
+	open val errorCode: ErrorCode? = null
 
 	/**
 	 * The [Throwable] if one was encountered when opening the file, `null`
@@ -90,28 +90,28 @@ abstract class AbstractServerFileWrapper constructor(
 	 */
 	open val error: Throwable? = null
 
-	/** The [AvailServerFile] wrapped by this [ServerFileWrapper]. */
-	abstract var file: AvailServerFile
+	/** The [AvailFile] wrapped by this [ManagedFileWrapper]. */
+	abstract var file: AvailFile
 		protected set
 
 	/**
 	 * `true` indicates that [file] is fully populated with the content of the
-	 * file located at the [path]; `false` indicates the file has not been
-	 * loaded into memory.
+	 * file located at the [reference]; `false` indicates the file has
+	 * not been loaded into memory.
 	 */
 	private val isAvailable = AtomicBoolean(false)
 
 	/**
 	 * The [queue][ConcurrentLinkedQueue] of [FileRequestHandler]s that are
 	 * requesting receipt of the [file]'s
-	 * [raw bytes][AvailServerFile.rawContent].
+	 * [raw bytes][AvailFile.rawContent].
 	 */
 	private val fileRequestQueue = ConcurrentLinkedQueue<FileRequestHandler>()
 
 	/**
 	 * The [Stack] of [TracedAction] that tracks the [FileAction]s applied in
 	 * Stack order. To revert, pop the `TracedAction`s and apply
-	 * [TracedAction.reverseAction] to the [AvailServerFile]. This represents
+	 * [TracedAction.reverseAction] to the [AvailFile]. This represents
 	 * the _undo_ stack.
 	 */
 	private val tracedActionStack = Stack<TracedAction>()
@@ -121,6 +121,20 @@ abstract class AbstractServerFileWrapper constructor(
 	 * next time the [file]'s local history is saved.
 	 */
 	private var tracedActionStackSavePointer: Int = 0
+
+	/**
+	 * Delete the wrapped file from its storage location.
+	 *
+	 * @param success
+	 *   Accepts the [FileManager] file id if remove successful. Maybe `null`
+	 *   if file not present in `FileManager`.
+	 * @param failure
+	 *   A function that accepts a [ErrorCode] that describes the nature
+	 *   of the failure and an optional [Throwable].
+	 */
+	abstract fun delete (
+		success: (UUID?) -> Unit,
+		failure: (ErrorCode, Throwable?) -> Unit)
 
 	/**
 	 * Save the [tracedActionStack] to local history starting from the position
@@ -142,8 +156,8 @@ abstract class AbstractServerFileWrapper constructor(
 	}
 
 	/**
-	 * [Update][FileAction.execute] the wrapped [AvailServerFile] with the
-	 * provided [FileAction].
+	 * [Update][FileAction.execute] the wrapped [AvailFile] with the provided
+	 * [FileAction].
 	 *
 	 * This method is [Synchronized] to enforce performing actions
 	 * synchronously. All single-client edits are performed synchronously in
@@ -157,7 +171,7 @@ abstract class AbstractServerFileWrapper constructor(
 	 * @param fileAction
 	 *   The `FileAction` to perform.
 	 * @param originator
-	 *   The [Session.id] of the session that originated the change.
+	 *   The id of the entity that originated the change.
 	 * @param continuation
 	 *   What to do when sufficient processing has occurred.
 	 */
@@ -249,45 +263,72 @@ abstract class AbstractServerFileWrapper constructor(
 	 */
 	val interestCount = AtomicInteger(0)
 
-	/** Close this [ServerFileWrapper]. */
-	fun close () { file.close() }
+	/**
+	 * Is the file closed? `true` indicates it is; `false` otherwise.
+	 */
+	private val closed = AtomicBoolean(false)
 
 	/**
-	 * Provide the [raw bytes][AvailServerFile.rawContent] of the enclosed
-	 * [AvailServerFile] to the requesting consumer.
+	 * Is the file closed? `true` indicates it is; `false` otherwise.
+	 */
+	val isClosed: Boolean get() = closed.get()
+
+	/** Close this [ManagedFileWrapper]. */
+	fun close ()
+	{
+		closed.set(true)
+	}
+
+	/**
+	 * Provide the [raw bytes][AvailFile.rawContent] of the enclosed
+	 * [AvailFile] to the requesting consumer.
 	 *
-	 * @param consumer
+	 * @param registerInterest
+	 *   `true` if the intent is to let this [AbstractFileWrapper] know that
+	 *   the caller is interested in the file being kept in memory; `false`
+	 *   otherwise.
+	 * @param successHandler
 	 *   A function that accepts the [FileManager.fileCache] [UUID] that
 	 *   uniquely identifies the file, the String mime type, and the
-	 *   [raw bytes][AvailServerFile.rawContent] of an [AvailServerFile].
+	 *   [AvailFile].
 	 * @param failureHandler
-	 *   A function that accepts a [ServerErrorCode] that describes the nature
-	 *   of the failure and an optional [Throwable]. TODO refine error handling
+	 *   A function that accepts a [ErrorCode] that describes the nature
+	 *   of the failure and an optional [Throwable].
 	 */
 	fun provide(
-		consumer: (UUID, String, ByteArray) -> Unit,
-		failureHandler: (ServerErrorCode, Throwable?) -> Unit)
+		registerInterest: Boolean,
+		successHandler: (UUID, String, AvailFile) -> Unit,
+		failureHandler: (ErrorCode, Throwable?) -> Unit)
 	{
 		if (isError)
 		{
 			failureHandler(errorCode!!, error)
 			return
 		}
-		interestCount.incrementAndGet()
+		if (closed.get())
+		{
+			// This shouldn't really happen, but it gives an opportunity for
+			// the requester to potentially re-request the file.
+			failureHandler(FileErrorCode.FILE_CLOSED, null)
+		}
+		if (registerInterest)
+		{
+			interestCount.incrementAndGet()
+		}
 		if (isAvailable.get())
 		{
-			consumer(id, file.mimeType, file.rawContent)
+			successHandler(id, reference.mimeType, file)
 			return
 		}
 		else
 		{
 			fileRequestQueue.add(FileRequestHandler(
-				id, consumer, failureHandler))
+				id, successHandler, failureHandler))
 		}
 	}
 
 	/**
-	 * Notify this [ServerFileWrapper] that the [AvailServerFile] has been fully
+	 * Notify this [ManagedFileWrapper] that the [AvailFile] has been fully
 	 * read.
 	 */
 	fun notifyReady ()
@@ -295,26 +336,26 @@ abstract class AbstractServerFileWrapper constructor(
 		// We only want to notify that this file is ready once.
 		if (!isAvailable.getAndSet(true))
 		{
-			val fileBytes = file.rawContent
 			fileRequestQueue.forEach {
 				fileManager.executeFileTask {
-					it.requestConsumer(it.id, file.mimeType, fileBytes)
+					it.requestConsumer(it.id, reference.mimeType, file)
 				}
 			}
+			fileManager.checkInterest(id)
 		}
 	}
 
 	/**
-	 * Notify the [FileRequestHandler]s in [ServerFileWrapper.fileRequestQueue] that
+	 * Notify the [FileRequestHandler]s in [ManagedFileWrapper.fileRequestQueue] that
 	 * the file action encountered a failure while opening.
 	 *
 	 * @param errorCode
-	 *   The [ServerErrorCode] describing the failure.
+	 *   The [ErrorCode] describing the failure.
 	 * @param e
 	 *   The optional [Throwable] related to the failure if one exists; `null`
 	 *   otherwise.
 	 */
-	fun notifyOpenFailure (errorCode: ServerErrorCode, e: Throwable? = null)
+	fun notifyOpenFailure (errorCode: ErrorCode, e: Throwable? = null)
 	{
 		// TODO fix this up
 		fileRequestQueue.forEach {
@@ -325,57 +366,65 @@ abstract class AbstractServerFileWrapper constructor(
 }
 
 /**
- * A `ServerFileWrapper` holds an [AvailServerFile]. The purpose of this is to
- * enable the Avail server [FileManager] cache to delay establishing the type
- * of `AvailServerFile` until the file type can be read without delaying adding
- * a file object to the `FileManager` cache.
+ * A `ManagedFileWrapper` is an [AbstractFileWrapper] used by the [FileManager]
+ * to hold an [AvailFile] that is on the file system of the machine Avail is
+ * running. The purpose of this is to enable the [FileManager] cache to delay
+ * establishing the type of the `AvailFile` until the file type can be read
+ * without delaying adding a file object to the `FileManager` cache.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
- * @property id
- *   The [FileManager.fileCache] key.
- * @property path
- *   The String path to the target file on disk.
- * @property fileManager
- *   The [FileManager] this [ServerFileWrapper] belongs to.
- *
  * @constructor
- * Construct a [ServerFileWrapper].
+ * Construct a [ManagedFileWrapper].
  *
  * @param id
  *   The [FileManager.fileCache] key.
- * @param path
- *   The String path to the target file on disk.
+ * @param resolverReference
+ *   The [reference] of the target file.
  * @param fileManager
- *   The [FileManager] this [ServerFileWrapper] belongs to.
- * @param fileChannel
- *   The [AsynchronousFileChannel] used to access the file.
+ *   The [FileManager] this [ManagedFileWrapper] belongs to.
  */
-class ServerFileWrapper constructor(
+class ManagedFileWrapper constructor(
 	id: UUID,
-	path: String,
-	fileManager: FileManager,
-	fileChannel: AsynchronousFileChannel)
-		: AbstractServerFileWrapper(id, path, fileManager)
+	resolverReference: ResolverReference,
+	fileManager: FileManager)
+		: AbstractFileWrapper(id, resolverReference, fileManager)
 {
-	/** The [AvailServerFile] wrapped by this [ServerFileWrapper]. */
-	override lateinit var file: AvailServerFile
+	/** The [AvailFile] wrapped by this [ManagedFileWrapper]. */
+	override lateinit var file: AvailFile
 
 	init
 	{
-		// TODO handle this externally
-		fileManager.executeFileTask {
-			val p = Paths.get(path)
-			val mimeType = Tika().detect(p)
-			file = createFile(path, fileChannel, mimeType, this)
+		when
+		{
+			resolverReference.type == ResourceType.MODULE
+			 || resolverReference.mimeType == AvailFile.availMimeType ->
+					AvailModuleFile(this)
+			AvailFile.isTextFile(resolverReference.mimeType) ->
+				AvailTextFile(this)
+			else -> AvailBinaryFile(this)
+		}
+	}
+
+	override fun delete(
+		success: (UUID?)->Unit,
+		failure: (ErrorCode, Throwable?)->Unit)
+	{
+		if (!Files.deleteIfExists(Paths.get(reference.uri)))
+		{
+			failure(FileErrorCode.FILE_NOT_FOUND, null)
+		}
+		else
+		{
+			success(id)
 		}
 	}
 
 	companion object
 	{
 		/**
-		 * Answer a new [AvailServerFile] that will be associated with the
-		 * [ServerFileWrapper].
+		 * Answer a new [AvailFile] that will be associated with the
+		 * [ManagedFileWrapper].
 		 *
 		 * @param path
 		 *   The String path to the target file on disk.
@@ -383,65 +432,122 @@ class ServerFileWrapper constructor(
 		 *   The [AsynchronousFileChannel] used to access the file.
 		 * @param mimeType
 		 *   The MIME type of the file.
-		 * @param serverFileWrapper
+		 * @param fileWrapper
 		 *   The owning `ServerFileWrapper`.
 		 */
 		fun createFile (
-			path: String,
-			file: AsynchronousFileChannel,
 			mimeType: String,
-			serverFileWrapper: ServerFileWrapper): AvailServerFile =
-			when (mimeType)
-			{
-				"text/avail", "text/plain", "text/json" ->
-					AvailServerTextFile(
-						path, file, mimeType, serverFileWrapper)
-				else ->
-					AvailServerBinaryFile(
-						path, file, mimeType, serverFileWrapper)
-			}
+			fileWrapper: ManagedFileWrapper): AvailFile =
+				when
+				{
+					mimeType == "text/avail" -> AvailModuleFile(fileWrapper)
+					AvailFile.isTextFile(mimeType) ->
+						AvailTextFile(fileWrapper)
+					else -> AvailBinaryFile(fileWrapper)
+				}
 	}
 }
 
 /**
- * A `ErrorServerFileWrapper` is a [AbstractServerFileWrapper] that encountered
+ * A `NullFileWrapper` is an [AbstractFileWrapper] not used by the [FileManager]
+ * to hold an [AvailFile] that is on the file system of the machine Avail is
+ * running. The purpose of this is to enable access outside of the [FileManager].
+ *
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ *
+ * @constructor
+ * Construct a [NullFileWrapper].
+ *
+ * @param resolverReference
+ *   The [reference] of the target file.
+ * @param fileManager
+ *   The [FileManager] this [ManagedFileWrapper] belongs to.
+ */
+class NullFileWrapper constructor(
+		raw : ByteArray,
+		resolverReference: ResolverReference,
+		fileManager: FileManager)
+	: AbstractFileWrapper(nullUUID, resolverReference, fileManager)
+{
+	/** The [AvailFile] wrapped by this [NullFileWrapper]. */
+	override lateinit var file: AvailFile
+
+	init
+	{
+		when
+		{
+			resolverReference.type == ResourceType.MODULE
+				|| resolverReference.type == ResourceType.REPRESENTATIVE
+				|| resolverReference.mimeType == AvailFile.availMimeType ->
+				AvailModuleFile(this)
+			AvailFile.isTextFile(resolverReference.mimeType) ->
+				AvailTextFile(raw,this)
+			else -> AvailBinaryFile(this)
+		}
+	}
+
+	override fun delete(
+		success: (UUID?)->Unit,
+		failure: (ErrorCode, Throwable?)->Unit)
+	{
+		if (!Files.deleteIfExists(Paths.get(reference.uri)))
+		{
+			failure(FileErrorCode.FILE_NOT_FOUND, null)
+		}
+		else
+		{
+			success(id)
+		}
+	}
+
+	companion object
+	{
+		/**
+		 * UUID always used for
+		 */
+		private val nullUUID = UUID.nameUUIDFromBytes("Null UUID".toByteArray())
+	}
+}
+
+/**
+ * A `ErrorServerFileWrapper` is a [AbstractFileWrapper] that encountered
  * an error when accessing the underlying file.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
- * @property id
- *   The [FileManager.fileCache] key.
- * @property path
- *   The String path to the target file on disk.
- * @property fileManager
- *   The [FileManager] this [ServerFileWrapper] belongs to.
- *
  * @constructor
- * Construct a [ServerFileWrapper].
+ * Construct a [ManagedFileWrapper].
  *
  * @param id
  *   The [FileManager.fileCache] key.
- * @param path
- *   The String path to the target file on disk.
+ * @param resolverReference
+ *   The [reference] of the target file.
  * @param fileManager
- *   The [FileManager] this [ServerFileWrapper] belongs to.
+ *   The [FileManager] this [ManagedFileWrapper] belongs to.
  * @param e
  *   The [Throwable] that was encountered.
  */
-class ErrorServerFileWrapper constructor(
+class ErrorFileWrapper constructor(
 	id: UUID,
-	path: String,
+	resolverReference: ResolverReference,
 	fileManager: FileManager,
 	e: Throwable,
-	errorCode: ServerErrorCode)
-	: AbstractServerFileWrapper(id, path, fileManager)
+	errorCode: ErrorCode)
+		: AbstractFileWrapper(id, resolverReference, fileManager)
 {
-	/** The [AvailServerFile] wrapped by this [ServerFileWrapper]. */
-	override lateinit var file: AvailServerFile
+	/** The [AvailFile] wrapped by this [ManagedFileWrapper]. */
+	override lateinit var file: AvailFile
 
 	override val isError = true
 	override val error: Throwable? = e
-	override val errorCode: ServerErrorCode? = errorCode
+	override val errorCode: ErrorCode? = errorCode
+
+	override fun delete(
+		success: (UUID?)->Unit,
+		failure: (ErrorCode, Throwable?)->Unit)
+	{
+		throw UnsupportedOperationException("Not meaningful to support delete")
+	}
 }
 
 /**
@@ -455,9 +561,9 @@ class ErrorServerFileWrapper constructor(
  * @property requestConsumer
  *   A function that accepts the [FileManager.fileCache] [UUID] that
  *   uniquely identifies the file and the
- *   [raw bytes][AvailServerFile.rawContent] of an [AvailServerFile].
+ *   [raw bytes][AvailFile.rawContent] of an [AvailFile].
  * @property failureHandler
- *   A function that accepts a [ServerErrorCode] that describes the nature of
+ *   A function that accepts a [ErrorCode] that describes the nature of
  *   the failure and an optional [Throwable]. TODO refine error handling.
  *
  * @constructor
@@ -467,13 +573,12 @@ class ErrorServerFileWrapper constructor(
  *   The [FileManager.fileCache] [UUID] that uniquely identifies the file.
  * @param requestConsumer
  *   A function that accepts the [FileManager.fileCache] [UUID] that
- *   uniquely identifies the file, the String mime type, and the
- *   [raw bytes][AvailServerFile.rawContent] of an [AvailServerFile].
+ *   uniquely identifies the file, the String mime type, and the [AvailFile].
  * @param failureHandler
- *   A function that accepts a [ServerErrorCode] that describes the nature of
+ *   A function that accepts a [ErrorCode] that describes the nature of
  *   the failure and an optional [Throwable]. TODO refine error handling.
  */
 internal class FileRequestHandler constructor(
 	val id: UUID,
-	val requestConsumer: (UUID, String, ByteArray) -> Unit,
-	val failureHandler: (ServerErrorCode, Throwable?) -> Unit)
+	val requestConsumer: (UUID, String, AvailFile) -> Unit,
+	val failureHandler: (ErrorCode, Throwable?) -> Unit)

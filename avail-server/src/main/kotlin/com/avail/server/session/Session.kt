@@ -36,7 +36,8 @@ import com.avail.server.AvailServer
 import com.avail.server.io.AvailServerChannel
 import com.avail.server.io.DisconnectReason
 import com.avail.server.io.ParentChannelDisconnect
-import com.avail.server.io.files.FileManager
+import com.avail.files.FileManager
+import com.avail.io.AvailClient
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
@@ -67,7 +68,8 @@ import java.util.logging.Level
  *   [AvailServerChannel.ProtocolState.COMMAND] and is eligible to create child
  *   `AvailServerChannel`s.
  */
-class Session constructor(private val commandChannel: AvailServerChannel)
+class Session constructor(private val commandChannel: AvailServerChannel):
+	AvailClient
 {
 	// TODO
 	//  - Maintain space for user data, this includes
@@ -78,7 +80,7 @@ class Session constructor(private val commandChannel: AvailServerChannel)
 	 * The [UUID] that uniquely identifies this [Session]. This is also the
 	 * [commandChannel]'s [AvailServerChannel.id].
 	 */
-	val id: UUID = commandChannel.id
+	override val id: UUID = commandChannel.id
 
 	/**
 	 * `true` indicates client wishes to receive server push; `false` otherwise.

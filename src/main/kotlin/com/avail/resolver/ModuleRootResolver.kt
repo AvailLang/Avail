@@ -1,0 +1,371 @@
+/*
+ * ModuleRootResolver.kt
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *  * Redistributions of source code must retain the above copyright notice, this
+ *     list of conditions and the following disclaimer.
+ *
+ *  * Redistributions in binary form must reproduce the above copyright notice, this
+ *     list of conditions and the following disclaimer in the documentation
+ *     and/or other materials provided with the distribution.
+ *
+ *  * Neither the name of the copyright holder nor the names of the contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+package com.avail.resolver
+
+import com.avail.AvailThread
+import com.avail.builder.BuildDirectoryTracer
+import com.avail.builder.ModuleName
+import com.avail.builder.ModuleNameResolver
+import com.avail.builder.ModuleRoot
+import com.avail.builder.ResolvedModuleName
+import com.avail.error.ErrorCode
+import com.avail.files.AbstractFileWrapper
+import com.avail.files.FileManager
+import com.avail.persistence.Repository.ModuleVersion
+import java.net.URI
+import java.util.UUID
+
+/**
+ * `ModuleRootResolver` declares an interface for accessing Avail [ModuleRoot]s
+ * given a [URI]. It is responsible for asynchronously retrieving, creating,
+ * deleting, saving, files and packages where the `ModuleRoot` is stored.
+ *
+ * All file actions are conducted via the [ModuleRootResolver.fileManager].
+ * Given the files may originate anywhere from the local file system to a remote
+ * database accessed via network API, all file requests must be handled
+ * asynchronously.
+ *
+ * A `ModuleRootResolver` establishes access to a `ModuleRoot` based upon the
+ * [URI.scheme] given the appropriate `ModuleRootResolver` that supports the
+ * scheme is registered in the [ModuleRootResolverRegistry]. Only one
+ * registered `ModuleRootResolver` is allowed per `URI` scheme.
+ *
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ */
+interface ModuleRootResolver
+{
+	/**
+	 * The [URI] that identifies the location of the [ModuleRoot].
+	 */
+	val uri: URI
+
+	/**
+	 * The [ModuleRoot] this [ModuleRootResolver] resolves to.
+	 */
+	val moduleRoot: ModuleRoot
+
+	/**
+	 * The [FileManager] used to manage the files accessed via this
+	 * [ModuleRootResolver].
+	 */
+	val fileManager: FileManager
+
+	/**
+	 * The [exception][Throwable] that prevented most recent attempt at
+	 * accessing the source location of this [ModuleRootResolver].
+	 */
+	var accessException: Throwable?
+
+	/**
+	 * Provide the non-`null` [ResolverReference] that represents the
+	 * [moduleRoot].
+	 *
+	 * @param successHandler
+	 *   Accepts the [resolved][resolve] `ResolverReference`.
+	 * @param failureHandler
+	 *   A function that accepts an [ErrorCode] and a `nullable` [Throwable]
+	 *   to be called in the event of failure.
+	 *
+	 */
+	fun provideModuleRootTree (
+		successHandler: (ResolverReference) -> Unit,
+		failureHandler: (ErrorCode, Throwable?) -> Unit)
+
+	/**
+	 * Connect to the source of the [moduleRoot] and populate a
+	 * [ResolverReference] with all the `ResolverReference`s from the module
+	 * root.
+	 *
+	 * @param successHandler
+	 *   Accepts the [resolved][resolve] [ResolverReference].
+	 * @param failureHandler
+	 *   A function that accepts an [ErrorCode] and a `nullable` [Throwable]
+	 *   to be called in the event of failure.
+	 */
+	fun resolve (
+		successHandler: (ResolverReference) -> Unit,
+		failureHandler: (ErrorCode, Throwable?) -> Unit)
+
+	/**
+	 * Asynchronously execute the provided task.
+	 *
+	 * @param task
+	 *   The lambda to run outside the calling thread of execution.
+	 */
+	fun executeTask (task: () -> Unit)
+
+	/**
+	 * Close this [ModuleRootResolver]. Should be called at shutdown to ensure
+	 * proper clean up of any open resources.
+	 */
+	fun close () = Unit
+
+	/**
+	 * Watch [moduleRoot] for changes to files that occur in the root outside
+	 * of the currently running instance of Avail.
+	 */
+	fun watchRoot ()
+
+	/**
+	 * @return
+	 *   `true` indicates the [uri] resolves to a valid Avail [ModuleRoot];
+	 *   `false` otherwise.
+	 */
+	fun resolvesToValidModuleRoot (): Boolean
+
+	/**
+	 * Answer a [ModuleNameResolver.ModuleNameResolutionResult] when attempting
+	 * to locate a module in this [ModuleRootResolver].
+	 *
+	 * @param qualifiedName
+	 *   The [ModuleName] being searched for.
+	 * @param initialCanonicalName
+	 *   The canonical name used in case a rename is registered w/ the
+	 *   [ModuleRootResolver].
+	 * @param moduleNameResolver
+	 *   The [ModuleRootResolver].
+	 * @return
+	 *   A `ModuleNameResolutionResult` or `null` if could not be located in
+	 *   this root.
+	 */
+	fun find (
+		qualifiedName: ModuleName,
+		initialCanonicalName: ModuleName,
+		moduleNameResolver: ModuleNameResolver)
+			: ModuleNameResolver.ModuleNameResolutionResult?
+
+	/**
+	 * Provide the [ResolverReference] for the given qualified file name for a
+	 * a file in [moduleRoot].
+	 *
+	 * @param qualifiedName
+	 *   The qualified name of the target file.
+	 * @param withReference
+	 *   The lambda that accepts the retrieved reference.
+	 * @param failureHandler
+	 *   A function that accepts an [ErrorCode] and a `nullable` [Throwable]
+	 *   to be called in the event of failure.
+	 */
+	fun provideResolverReference (
+		qualifiedName: String,
+		withReference: (ResolverReference)->Unit,
+		failureHandler: (ErrorCode, Throwable?) -> Unit)
+
+	/**
+	 * Answer the [ResolverReference] for the given qualified file name for a
+	 * a file in [moduleRoot].
+	 *
+	 * This should not make async calls. Either the [ModuleRootResolver] has
+	 * it readily available or it does not.
+	 *
+	 * @param qualifiedName
+	 *   The qualified name of the target file.
+	 * @return
+	 *   The [ResolverReference] or `null` if not presently available.
+	 */
+	fun getResolverReference (qualifiedName: String): ResolverReference?
+
+	/**
+	 * Refresh the metrics (mutable state) of the provided [ResolverReference].
+	 * It should refresh:
+	 *
+	 *  * [ResolverReference.digest]
+	 *  * [ResolverReference.lastModified]
+	 *  * [ResolverReference.size]
+	 *
+	 * **NOTE:** This might be run on a separate standard thread. If it is
+	 * required that the callback(s) be run in an [AvailThread], that should be
+	 * handled *inside* the callback.
+	 *
+	 * @param reference
+	 *   The [ResolverReference] to refresh.
+	 * @param successHandler
+	 *   A function to call after it has been updated.
+	 * @param failureHandler
+	 *   A function that accepts an [ErrorCode] and a `nullable` [Throwable]
+	 *   to be called in the event of failure.
+	 */
+	fun refreshResolverReference (
+		reference: ResolverReference,
+		successHandler : () -> Unit,
+		failureHandler: (ErrorCode, Throwable?) -> Unit)
+
+	/**
+	 * Provide the full list of all [ResolverReference]s in this
+	 * [ModuleRootResolver].
+	 *
+	 * @param forceRefresh
+	 *   `true` indicates a requirement that the resolver refresh any locally
+	 *   cached list it may have directly from the [ModuleRoot] source location;
+	 *   `false` indicates, if there is a cached list, providing the cached list
+	 *   is acceptable.
+	 * @param withList
+	 *   The lambda that accepts the [List] of [ResolverReference]s.
+	 * @param failureHandler
+	 *   A function that accepts a [ErrorCode] that describes the nature
+	 *   of the failure and a `nullable` [Throwable].
+	 */
+	fun rootManifest (
+		forceRefresh: Boolean,
+		withList: (List<ResolverReference>)->Unit,
+		failureHandler: (ErrorCode, Throwable?) -> Unit)
+
+	/**
+	 * Retrieve the resource and provide it with a request to obtain
+	 * the raw file bytes.
+	 *
+	 * @param byPassFileManager
+	 *   `true` indicates the file should be read directly from the source
+	 *   location; `false` indicates an attempt to read from the [FileManager]
+	 *   should be made.
+	 * @param reference
+	 *   The [ResolverReference] that identifies the target file to read.
+	 * @param withContents
+	 *   A function that accepts the raw bytes of the file in the [moduleRoot]
+	 *   and optionally a [FileManager] file [UUID] or `null` if `cacheFile`
+	 *   is `false`.
+	 * @param failureHandler
+	 *   A function that accepts a [ErrorCode] that describes the nature
+	 *   of the failure and a `nullable` [Throwable].
+	 */
+	fun readFile (
+		byPassFileManager: Boolean,
+		reference: ResolverReference,
+		withContents: (ByteArray, UUID?)->Unit,
+		failureHandler: (ErrorCode, Throwable?)->Unit)
+
+	/**
+	 * Create a file.
+	 *
+	 * @param qualifiedName
+	 *   The [fully-qualified name][ModuleName] of the module or resource.
+	 * @param mimeType
+	 *   The MIME type of the file being created.
+	 * @param completion
+	 *   A function to be run upon the successful creation of the file.
+	 * @param failureHandler
+	 *   A function that accepts a [ErrorCode] that describes the failure
+	 *   and a `nullable` [Throwable].
+	 */
+	fun createFile (
+		qualifiedName: String,
+		mimeType: String,
+		completion: ()->Unit,
+		failureHandler: (ErrorCode, Throwable?)->Unit)
+
+	/**
+	 * Create a package and its representative Avail module.
+	 *
+	 * @param qualifiedName
+	 *   The [fully-qualified name][ModuleName] of the module or resource.
+	 * @param completion
+	 *   A function to be run upon the successful creation of the file.
+	 * @param failureHandler
+	 *   A function that accepts a [ErrorCode] that describes the failure
+	 *   and a `nullable` [Throwable].
+	 */
+	fun createPackage (
+		qualifiedName: String,
+		completion: ()->Unit,
+		failureHandler: (ErrorCode, Throwable?)->Unit)
+
+	/**
+	 * Save the file to where it is stored.
+	 *
+	 * @param reference
+	 *   The [ResolverReference] that identifies the target file to save.
+	 * @param fileContents
+	 *   The contents of the file to save.
+	 * @param failureHandler
+	 *   A function that accepts an [ErrorCode] that describes the nature
+	 *   of the failure and a `nullable` [Throwable].
+	 */
+	fun saveFile (
+		reference: ResolverReference,
+		fileContents: ByteArray,
+		successHandler: () -> Unit,
+		failureHandler: (ErrorCode, Throwable?) -> Unit)
+
+	/**
+	 * Answer a [AbstractFileWrapper] for the targeted file.
+	 *
+	 * @param id
+	 *   The [AbstractFileWrapper.id].
+	 * @param reference
+	 *   The [AbstractFileWrapper] of the file.
+	 * @return
+	 *   A `AbstractFileWrapper`.
+	 */
+	fun fileWrapper(
+		id: UUID, reference: ResolverReference): AbstractFileWrapper
+
+	/**
+	 * Answer the [URI] for a resource in the source [moduleRoot] given a
+	 * qualified name. There is no guarantee the target exists.
+	 *
+	 * @param qualifiedName
+	 *   The [fully-qualified name][ModuleName] of the module or resource.
+	 * @return
+	 *   A `URI` for the resource.
+	 */
+	fun fullResourceURI (qualifiedName: String): URI =
+		URI("$uri/$qualifiedName")
+
+	/**
+	 * Schedule a hierarchical tracing of all module files in all visible
+	 * subdirectories of the associated [moduleRoot].  Do not resolve the
+	 * imports.  Ignore any modules that have syntax errors in their headers.
+	 * Update the repositories with the latest module version information, or at
+	 * least cause the version caches to treat the current versions as having
+	 * been accessed most recently.
+	 *
+	 * Before a module header parsing starts, add the module name to the
+	 * [BuildDirectoryTracer] trace requests. When a module header's parsing is
+	 * complete, add it to trace completions.
+	 *
+	 * @param moduleAction
+	 *   What to do each time we've extracted or replayed a [ModuleVersion] from
+	 *   a valid module file.  It's passed a function to invoke when the module
+	 *   is considered effectively processed.
+	 * @param moduleFailureHandler
+	 *   A function that accepts the relative path of a file that failed the
+	 *   trace, an [ErrorCode] that describes the nature of the failure and an
+	 *   `nullable` [Throwable]. This is called once for each individual module
+	 *   that failed tracing; hence this failure handler can be called many
+	 *   times for multiple failed modules.
+	 */
+	fun traceAllModuleHeaders(
+		tracer: BuildDirectoryTracer,
+		moduleAction: (ResolvedModuleName, ModuleVersion, ()->Unit)->Unit,
+		moduleFailureHandler: (String, ErrorCode, Throwable?) -> Unit)
+}

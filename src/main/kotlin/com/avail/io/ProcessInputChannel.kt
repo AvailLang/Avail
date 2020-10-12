@@ -79,7 +79,7 @@ class ProcessInputChannel constructor(stream: InputStream) : TextInputChannel
 		buffer: CharBuffer, attachment: A?, handler: CompletionHandler<Int, A>)
 	{
 		val runtime = currentRuntime()
-		runtime.ioSystem().executeFileTask (Runnable {
+		runtime.ioSystem.executeFileTask (Runnable {
 			val charsRead: Int
 			try
 			{

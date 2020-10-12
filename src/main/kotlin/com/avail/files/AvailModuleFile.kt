@@ -1,5 +1,5 @@
 /*
- * AvailServerTextFile.kt
+ * AvailModuleFile.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,128 +30,106 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.server.io.files
+package com.avail.files
 
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.StringDescriptor
-import com.avail.io.SimpleCompletionHandler
-import java.io.IOException
 import java.nio.ByteBuffer
-import java.nio.CharBuffer
-import java.nio.channels.AsynchronousFileChannel
 import java.nio.charset.Charset
+import java.nio.charset.CodingErrorAction
 import java.nio.charset.StandardCharsets
 import java.util.UUID
 
 /**
- * An `AvailServerTextFile` is an [AvailServerFile] that is specific to textual
- * files.
+ * An `AvailModuleFile` is an [AvailFile] that is a text file that represents
+ * the source of an Avail module file.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
- *
- * @property charset
- *   The [Charset] of the file.
- * @constructor
- * Construct an [AvailServerTextFile].
- *
- * @param path
- *   The on-disk absolute location of the file.
- * @param file
- *   The [AsynchronousFileChannel] used to access the file.
- * @param mimeType
- *   The MIME type of the file.
- * @param serverFileWrapper
- *   The [ServerFileWrapper] that wraps this [AvailServerFile].
- * @param charset
- *   The [Charset] of the file.
  */
-internal class AvailServerTextFile constructor(
-		path: String,
-		file: AsynchronousFileChannel,
-		mimeType: String,
-		serverFileWrapper: ServerFileWrapper,
-		private val charset: Charset = Charsets.UTF_8)
-	: AvailServerFile(path, file, mimeType, serverFileWrapper)
+internal class AvailModuleFile : AbstractAvailTextFile
 {
 	/** The String content of the file. */
-	private lateinit var content: A_String
+	lateinit var content: A_String
+		private set
 
 	override val rawContent: ByteArray get() =
 		content.asNativeString().toByteArray(StandardCharsets.UTF_16BE)
 
-	override fun getSaveContent(): ByteArray =
+	override fun getSaveableContent(): ByteArray =
 		content.asNativeString().toByteArray(StandardCharsets.UTF_8)
 
-	init
+	/**
+	 * Construct an [AvailModuleFile].
+	 *
+	 * @param fileWrapper
+	 *   The [ManagedFileWrapper] that wraps this [AvailFile].
+	 * @param charset
+	 *   The [Charset] of the file.
+	 */
+	constructor(
+		fileWrapper: AbstractFileWrapper,
+		charset: Charset = Charsets.UTF_8): super(charset, fileWrapper)
 	{
-		val sourceBuilder = StringBuilder(4096)
-		var filePosition = 0L
-		val input = ByteBuffer.allocateDirect(4096)
-		val decoder = charset.newDecoder()
-		val output = CharBuffer.allocate(4096)
-//		this.file.read<Any>(
-//			input,
-//			0L,
-//			null,
-		SimpleCompletionHandler<Int>(
+		fileWrapper.reference.readFile(true,
+		{ bytes, _ ->
+			val decoder = charset.newDecoder()
+			decoder.onMalformedInput(CodingErrorAction.REPLACE)
+			decoder.onUnmappableCharacter(CodingErrorAction.REPLACE)
+			try
 			{
-				try
-				{
-					var moreInput = true
-					if (value == -1)
-					{
-						moreInput = false
-					}
-					else
-					{
-						filePosition += value.toLong()
-					}
-					input.flip()
+				content = StringDescriptor.stringWithSurrogatesFrom(
+					decoder.decode(ByteBuffer.wrap(bytes)).toString())
+				fileWrapper.notifyReady()
+			}
+			catch (e: Throwable)
+			{
+				System.err.println(
+					"Attempted to decode bytes from supposed text file " +
+						fileWrapper.reference.uri)
+				System.err.println(e)
+			}
+		}) { code, ex ->
+				// TODO figure out what to do with these!!! Probably report them?
+				System.err.println(
+					"Received ErrorCode: $code while attempting read file: " +
+						"${fileWrapper.reference.uri} with exception:\n")
+				ex?.printStackTrace()
+		}
+	}
 
-					// TODO not sure if we should care about result
-					val result = decoder.decode(
-						input, output, !moreInput)
-					// If the decoder didn't consume all of the bytes,
-					// then preserve the unconsumed bytes in the next
-					// buffer (for decoding).
-					if (input.hasRemaining())
-					{
-						input.compact()
-					}
-					else
-					{
-						input.clear()
-					}
-					output.flip()
-					sourceBuilder.append(output)
-					// If more input remains, then queue another read.
-					if (moreInput)
-					{
-						output.clear()
-						handler.guardedDo {
-							file.read(input, filePosition, dummy, handler)
-						}
-					}
-					// Otherwise, notify the serverFileWrapper of completion
-					else
-					{
-						decoder.flush(output)
-						sourceBuilder.append(output)
-						content = StringDescriptor.stringWithSurrogatesFrom(
-							sourceBuilder.toString())
-						serverFileWrapper.notifyReady()
-					}
-				}
-				catch (e: IOException)
-				{
-					TODO("Handle AvailServerTextFile read decode bytes fail")
-				}
-			},
-			{
-				TODO("Handle AvailServerTextFile read fail")
-			}).guardedDo { file.read(input, 0L, dummy, handler) }
+	/**
+	 * Construct an [AvailModuleFile].
+	 *
+	 * @param raw
+	 *   The raw binary contents of the file.
+	 * @param fileWrapper
+	 *   The [ManagedFileWrapper] that wraps this [AvailFile].
+	 * @param charset
+	 *   The [Charset] of the file.
+	 */
+	constructor(
+		raw : ByteArray,
+		fileWrapper: AbstractFileWrapper,
+		charset: Charset = Charsets.UTF_8): super(charset, fileWrapper)
+	{
+		val decoder = charset.newDecoder()
+		decoder.onMalformedInput(CodingErrorAction.REPLACE)
+		decoder.onUnmappableCharacter(CodingErrorAction.REPLACE)
+		try
+		{
+			content = StringDescriptor.stringWithSurrogatesFrom(
+				decoder.decode(ByteBuffer.wrap(raw)).toString())
+			fileWrapper.notifyReady()
+		}
+		catch (e: Throwable)
+		{
+			System.err.println(
+				"Attempted to decode bytes from supposed text file " +
+					fileWrapper.reference.uri)
+			System.err.println(e)
+		}
 	}
 
 	override fun replaceFile(
@@ -174,7 +152,7 @@ internal class AvailServerTextFile constructor(
 	 * (`end + 1`). Thus the inserted text happens after the `start` position.
 	 *
 	 * @param data
-	 *   The `ByteArray` data to add to this [AvailServerFile].
+	 *   The `ByteArray` data to add to this [AvailFile].
 	 * @param start
 	 *   The location in the file to inserting/overwriting the data, exclusive.
 	 * @param end

@@ -105,11 +105,13 @@ import com.avail.environment.streams.StreamStyle.INFO
 import com.avail.environment.streams.StreamStyle.OUT
 import com.avail.environment.streams.StreamStyle.values
 import com.avail.environment.tasks.BuildTask
+import com.avail.files.FileManager
 import com.avail.io.ConsoleInputChannel
 import com.avail.io.ConsoleOutputChannel
 import com.avail.io.TextInterface
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport.WORKBENCH_TRANSCRIPT
+import com.avail.resolver.ModuleRootResolverRegistry
 import com.avail.stacks.StacksGenerator
 import com.avail.utility.IO
 import com.avail.utility.cast
@@ -138,6 +140,7 @@ import java.io.UnsupportedEncodingException
 import java.lang.Integer.parseInt
 import java.lang.String.format
 import java.lang.System.currentTimeMillis
+import java.net.URI
 import java.nio.charset.StandardCharsets
 import java.nio.file.FileSystems
 import java.nio.file.FileVisitOption
@@ -206,18 +209,24 @@ import kotlin.math.min
  * [Avail&#32;builder][AvailBuilder].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
+ * @property fileManager
+ *   The [FileManager] used to manage Avail files.
  * @property resolver
  *   The [module&#32;name resolver][ModuleNameResolver].
  *
  * @constructor
  * Construct a new `AvailWorkbench`.
  *
+ * @param fileManager
+ *   The [FileManager] used to manage Avail files.
  * @param resolver
  *   The [module&#32;name resolver][ModuleNameResolver].
  */
-class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
-	: JFrame()
+class AvailWorkbench internal constructor (
+	private val fileManager: FileManager,
+	val resolver: ModuleNameResolver) : JFrame()
 {
 	/**
 	 * The [StyledDocument] into which to write both error and regular
@@ -1120,11 +1129,11 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		roots.roots.forEach { root ->
 			// Obtain the path associated with the module root.
 			root.repository.reopenIfNecessary()
-			val rootDirectory = root.sourceUri!!
+			val rootDirectory = root.resolver!!
 			try
 			{
 				Files.walkFileTree(
-					Paths.get(rootDirectory.absolutePath),
+					Paths.get(rootDirectory.uri),
 					EnumSet.of(FileVisitOption.FOLLOW_LINKS),
 					Integer.MAX_VALUE,
 					moduleTreeVisitor(stack, root))
@@ -1490,7 +1499,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 					root.repository.fileName.path)
 				childNode.put(
 					moduleRootsSourceSubkeyString,
-					root.sourceUri!!.path)
+					root.resolver!!.uri.toString())
 			}
 
 			val renamesNode =
@@ -1579,7 +1588,8 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 
 	init
 	{
-		val runtime = AvailRuntime(resolver)
+		val runtime = AvailRuntime(resolver, fileManager)
+		fileManager.associateRuntime(runtime)
 		availBuilder = AvailBuilder(runtime)
 
 		// Get the existing preferences early for plugging in at the right
@@ -2081,11 +2091,13 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		/**
 		 * Parse the [ModuleRoots] from the module roots preferences node.
 		 *
+		 * @param fileManager
+		 *   The [FileManager] used to manage Avail files.
 		 * @return The `ModuleRoots` constructed from the preferences node.
 		 */
-		private fun loadModuleRoots(): ModuleRoots
+		private fun loadModuleRoots(fileManager: FileManager): ModuleRoots
 		{
-			val roots = ModuleRoots("")
+			val roots = ModuleRoots(fileManager, "")
 			roots.clearRoots()
 			val node = basePreferences.node(moduleRootsKeyString)
 			try
@@ -2097,11 +2109,25 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 						moduleRootsRepoSubkeyString, "")
 					val sourceName = childNode.get(
 						moduleRootsSourceSubkeyString, "")
+					val repository = File(repoName)
+					val resolver =
+						if (sourceName.isEmpty())
+						{
+							null
+						}
+						else
+						{
+							ModuleRootResolverRegistry.createResolver(
+								childName,
+								repository,
+								URI(sourceName),
+								fileManager)
+						}
 					roots.addRoot(
 						ModuleRoot(
 							childName,
-							File(repoName),
-							File(sourceName)))
+							repository,
+							resolver))
 				}
 			}
 			catch (e: BackingStoreException)
@@ -2302,6 +2328,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		@JvmStatic
 		fun main(args: Array<String>)
 		{
+			val fileManager = FileManager()
 			if (runningOnMac)
 			{
 				setUpForMac()
@@ -2315,9 +2342,9 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 			val roots = when
 			{
 				// Read the persistent preferences file...
-				rootsString.isEmpty() -> loadModuleRoots()
+				rootsString.isEmpty() -> loadModuleRoots(fileManager)
 				// Providing availRoots on command line overrides preferences...
-				else -> ModuleRoots(rootsString)
+				else -> ModuleRoots(fileManager, rootsString)
 			}
 
 			val resolver: ModuleNameResolver
@@ -2354,7 +2381,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 
 			// Display the UI.
 			invokeLater {
-				val bench = AvailWorkbench(resolver)
+				val bench = AvailWorkbench(fileManager, resolver)
 				if (runningOnMac)
 				{
 					bench.setUpInstanceForMac()

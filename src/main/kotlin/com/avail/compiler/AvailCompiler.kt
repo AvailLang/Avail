@@ -266,7 +266,6 @@ import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED
 import com.avail.interpreter.primitive.compiler.P_RejectParsing
-import com.avail.io.SimpleCompletionHandler
 import com.avail.io.TextInterface
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport.RUNNING_PARSING_INSTRUCTIONS
@@ -280,18 +279,13 @@ import com.avail.utility.Strings.increaseIndentation
 import com.avail.utility.evaluation.Describer
 import com.avail.utility.evaluation.FormattingDescriber
 import com.avail.utility.safeWrite
-import java.io.IOException
 import java.lang.String.format
 import java.nio.ByteBuffer
-import java.nio.CharBuffer
-import java.nio.channels.AsynchronousFileChannel
 import java.nio.charset.CodingErrorAction
 import java.nio.charset.StandardCharsets
-import java.nio.file.StandardOpenOption
 import java.util.ArrayList
 import java.util.Arrays
 import java.util.Collections.emptyList
-import java.util.EnumSet
 import java.util.Formatter
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
@@ -4348,99 +4342,22 @@ class AvailCompiler(
 			withSource: (String)->Unit)
 		{
 			val runtime = currentRuntime()
-			val ref = resolvedName.sourceReference
+			val ref = resolvedName.resolverReference
 			val decoder = StandardCharsets.UTF_8.newDecoder()
 			decoder.onMalformedInput(CodingErrorAction.REPLACE)
 			decoder.onUnmappableCharacter(CodingErrorAction.REPLACE)
-			val input = ByteBuffer.allocateDirect(4096)
-			val output = CharBuffer.allocate(4096)
-			val file: AsynchronousFileChannel
-			try
-			{
-				file = runtime.ioSystem().openFile(
-					ref.toPath(), EnumSet.of(StandardOpenOption.READ))
-			}
-			catch (e: IOException)
-			{
-				val problem = object : Problem(
-					resolvedName,
-					1,
-					0,
-					PARSE,
-					"Unable to open source module \"{0}\" [{1}]: {2}",
-					resolvedName,
-					ref.absolutePath,
-					e.localizedMessage)
-				{
-					override fun abortCompilation()
-					{
-						fail()
-					}
-				}
-				problemHandler.handle(problem)
-				return
-			}
-
-			val sourceBuilder = StringBuilder(4096)
-			var filePosition = 0L
-			// Kick off the asynchronous read.
-			SimpleCompletionHandler<Int>(
-				{
+			ref.readFile(false,
+				{ content, _ ->
 					try
 					{
-						var moreInput = true
-						if (value == -1)
+						val source =
+							decoder.decode(ByteBuffer.wrap(content)).toString()
+						runtime.execute(FiberDescriptor.compilerPriority)
 						{
-							moreInput = false
-						}
-						else
-						{
-							filePosition += value.toLong()
-						}
-						input.flip()
-						val result = decoder.decode(
-							input, output, !moreInput)
-						// UTF-8 never compresses data, so the number of
-						// characters encoded can be no greater than the number
-						// of bytes encoded. The input buffer and the output
-						// buffer are equally sized (in units), so an overflow
-						// cannot occur.
-						assert(!result.isOverflow)
-						assert(!result.isError)
-						// If the decoder didn't consume all of the bytes, then
-						// preserve the unconsumed bytes in the next buffer (for
-						// decoding).
-						if (input.hasRemaining())
-						{
-							input.compact()
-						}
-						else
-						{
-							input.clear()
-						}
-						output.flip()
-						sourceBuilder.append(output)
-						// If more input remains, then queue another read.
-						if (moreInput)
-						{
-							output.clear()
-							handler.guardedDo {
-								file.read(input, filePosition, dummy, handler)
-							}
-						}
-						// Otherwise, close the file channel and queue the
-						// original continuation.
-						else
-						{
-							decoder.flush(output)
-							sourceBuilder.append(output)
-							file.close()
-							runtime.execute(
-								FiberDescriptor.compilerPriority
-							) { withSource(sourceBuilder.toString()) }
+							withSource(source)
 						}
 					}
-					catch (e: IOException)
+					catch (e: Throwable)
 					{
 						val problem = object : Problem(
 							resolvedName,
@@ -4460,27 +4377,26 @@ class AvailCompiler(
 						}
 						problemHandler.handle(problem)
 					}
-				},
-				// failure
+				})
+			{ code, ex ->
+				val problem = object : Problem(
+					resolvedName,
+					1,
+					0,
+					EXTERNAL,
+					"Unable to open source module \"{0}\" [{1}]: {2}: {3}",
+					resolvedName,
+					ref.uri,
+					code,
+					ex?.localizedMessage ?: "no exception")
 				{
-					val problem = object : Problem(
-						resolvedName,
-						1,
-						0,
-						EXTERNAL,
-						"Unable to read source module \"{0}\": {1}\n{2}",
-						resolvedName,
-						throwable.localizedMessage,
-						trace(throwable))
+					override fun abortCompilation()
 					{
-						override fun abortCompilation()
-						{
-							fail()
-						}
+						fail()
 					}
-					problemHandler.handle(problem)
 				}
-			).guardedDo { file.read(input, 0L, dummy, handler) }
+				problemHandler.handle(problem)
+			}
 		}
 
 		/**
