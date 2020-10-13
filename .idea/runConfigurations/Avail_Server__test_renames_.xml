@@ -2,7 +2,7 @@
   <configuration default="false" name="Avail Server (test renames)" type="JarApplication">
     <option name="JAR_PATH" value="$PROJECT_DIR$/distro/lib/avail-server.jar" />
     <option name="VM_PARAMETERS" value="-ea -Xmx4g -Djava.util.logging.config.file=$PROJECT_DIR$/distro/etc/logging.properties -DavailDeveloper=true" />
-    <option name="PROGRAM_PARAMETERS" value="--availRoots=avail=$PROJECT_DIR$/repositories/avail.repo,$PROJECT_DIR$/distro/src/avail;examples=$PROJECT_DIR$/repositories/examples.repo,$PROJECT_DIR$/distro/src/examples --availRenames=debug/test.renames" />
+    <option name="PROGRAM_PARAMETERS" value="--availRoots=avail=file://$PROJECT_DIR$/distro/src/avail;examples=file://$PROJECT_DIR$/distro/src/examples --availRenames=debug/test.renames" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
     <option name="ALTERNATIVE_JRE_PATH" />
     <method v="2">

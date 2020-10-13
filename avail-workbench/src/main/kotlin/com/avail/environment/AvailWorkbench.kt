@@ -2109,7 +2109,6 @@ class AvailWorkbench internal constructor (
 						moduleRootsRepoSubkeyString, "")
 					val sourceName = childNode.get(
 						moduleRootsSourceSubkeyString, "")
-					val repository = File(repoName)
 					val resolver =
 						if (sourceName.isEmpty())
 						{
@@ -2119,15 +2118,10 @@ class AvailWorkbench internal constructor (
 						{
 							ModuleRootResolverRegistry.createResolver(
 								childName,
-								repository,
 								URI(sourceName),
 								fileManager)
 						}
-					roots.addRoot(
-						ModuleRoot(
-							childName,
-							repository,
-							resolver))
+					roots.addRoot(ModuleRoot(childName, resolver))
 				}
 			}
 			catch (e: BackingStoreException)

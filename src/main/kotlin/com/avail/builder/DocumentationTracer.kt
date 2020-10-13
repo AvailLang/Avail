@@ -43,8 +43,8 @@ import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.tokens.CommentTokenDescriptor
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.error.ErrorCode
-import com.avail.persistence.Repository.ModuleVersion
-import com.avail.persistence.Repository.ModuleVersionKey
+import com.avail.persistence.cache.Repository.ModuleVersion
+import com.avail.persistence.cache.Repository.ModuleVersionKey
 import com.avail.serialization.Deserializer
 import com.avail.serialization.MalformedSerialStreamException
 import com.avail.stacks.StacksGenerator

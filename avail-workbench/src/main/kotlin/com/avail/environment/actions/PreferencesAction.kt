@@ -128,21 +128,18 @@ class PreferencesAction constructor(workbench: AvailWorkbench)
 		roots.clearRoots()
 		for (triple in rootsTableModel.rows)
 		{
-			assert(triple.size == 3)
+			assert(triple.size == 2)
 			try
 			{
 				val name = triple[0]
-				val repository = File(triple[1])
 				val root = ModuleRoot(
 					name,
-					repository,
 					if (triple[2].isEmpty()) null
 					else
 					{
 						ModuleRootResolverRegistry.createResolver(
 							name,
-							repository,
-							URI(triple[2]),
+							URI(triple[1]),
 							roots.fileManager)
 					})
 				roots.addRoot(root)

@@ -33,7 +33,7 @@
 package com.avail.builder
 
 import com.avail.descriptor.module.ModuleDescriptor
-import com.avail.persistence.Repository
+import com.avail.persistence.cache.Repository
 import com.avail.resolver.ResolverReference
 import java.io.File
 

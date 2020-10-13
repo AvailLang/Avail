@@ -40,6 +40,7 @@ import com.avail.builder.RenamesFileParserException
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.files.FileManager
 import com.avail.performance.StatisticReport
+import com.avail.persistence.cache.Repositories
 import com.avail.stacks.StacksGenerator
 import com.avail.tools.compiler.Compiler
 import com.avail.tools.compiler.configuration.VerbosityLevel.GLOBAL_LOCAL_PROGRESS
@@ -93,6 +94,15 @@ class CompilerConfiguration constructor(private val fileManager: FileManager)
 			return roots
 		}
 
+	/** The [Repositories] path. */
+	internal var repositoriesPath = ""
+		set (newValue)
+		{
+			require(File(newValue).isDirectory) {
+				"The Repositories location, $newValue, is not a directory!"
+			}
+			field = newValue
+		}
 
 	/** The path to the [renames file][RenamesFileParser].  */
 	internal var renamesFilePath: String? = null

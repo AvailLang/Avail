@@ -35,11 +35,9 @@ package com.avail.builder
 import com.avail.annotations.ThreadSafe
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.files.FileManager
-import com.avail.persistence.Repository.Companion.isIndexedRepositoryFile
+import com.avail.persistence.cache.Repositories
 import com.avail.resolver.ModuleRootResolverRegistry
 import com.avail.utility.json.JSONWriter
-import java.io.File
-import java.io.IOException
 import java.net.URI
 import java.util.Collections.unmodifiableSet
 
@@ -137,7 +135,7 @@ class ModuleRoots constructor(
 			{
 				modulePath.split(";")
 			}
-		val lock = ""
+		val lock = "" // TODO [RAA] Hey me, this is pretty fishy...
 		for (component in components)
 		{
 			// An equals separates the root name from its paths.
@@ -147,39 +145,12 @@ class ModuleRoots constructor(
 			// A comma separates the repository path from the source directory
 			// path.
 			val rootName = binding[0]
-			val locations = binding[1].split(",")
-			require(locations.size <= 2)
+			val location = binding[1]
 
-			val repositoryFile = File(locations[0])
-
-			// Repository file path must be absolute
-			require(repositoryFile.isAbsolute)
-
-			// If only one path is supplied, then it must reference a valid
-			// repository.
-			if (locations.size == 1)
-			{
-				try
-				{
-					require(!isIndexedRepositoryFile(repositoryFile))
-					addRoot(ModuleRoot(rootName, repositoryFile, null))
-					return
-				}
-				catch (e: IOException)
-				{
-					throw IllegalArgumentException(e)
-				}
-			}
-
-			// If two paths are provided, then the first path need not reference
-			// an existing file. The second path, however, must reference a
-			// valid module root.
-			require(locations.size == 2)
-			val rootUri = URI(locations[1])
+			val rootUri = URI(location)
 			val resolver =
 				ModuleRootResolverRegistry.createResolver(
 					rootName,
-					repositoryFile,
 					rootUri,
 					fileManager)
 
@@ -212,6 +183,20 @@ class ModuleRoots constructor(
 	fun addRoot(root: ModuleRoot)
 	{
 		rootMap[root.name] = root
+		Repositories.addRepo(root)
+	}
+
+	/**
+	 * Fully remove the provided [ModuleRoot.name].
+	 *
+	 * @param name
+	 *   The name of the root to remove.
+	 */
+	fun removeRoot (name: String)
+	{
+		rootMap.remove(name)?.let {
+			Repositories.deleteRepo(name)
+		}
 	}
 
 	/**

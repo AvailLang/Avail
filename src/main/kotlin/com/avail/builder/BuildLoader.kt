@@ -57,11 +57,11 @@ import com.avail.interpreter.execution.AvailLoader
 import com.avail.interpreter.execution.AvailLoader.Phase
 import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.execution.Interpreter.Companion.runOutermostFunction
-import com.avail.persistence.Repository
-import com.avail.persistence.Repository.ModuleCompilation
-import com.avail.persistence.Repository.ModuleCompilationKey
-import com.avail.persistence.Repository.ModuleVersion
-import com.avail.persistence.Repository.ModuleVersionKey
+import com.avail.persistence.cache.Repository
+import com.avail.persistence.cache.Repository.ModuleCompilation
+import com.avail.persistence.cache.Repository.ModuleCompilationKey
+import com.avail.persistence.cache.Repository.ModuleVersion
+import com.avail.persistence.cache.Repository.ModuleVersionKey
 import com.avail.serialization.Deserializer
 import com.avail.serialization.MalformedSerialStreamException
 import com.avail.serialization.Serializer

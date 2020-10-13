@@ -43,6 +43,7 @@ import com.avail.files.AvailFile
 import com.avail.files.AvailModuleFile
 import com.avail.files.FileManager
 import com.avail.files.NullFileWrapper
+import com.avail.persistence.cache.Repository
 import com.avail.utility.json.JSONWriter
 import java.io.IOException
 import java.lang.UnsupportedOperationException
@@ -107,6 +108,18 @@ class ResolverReference constructor(
 	val resources = mutableListOf<ResolverReference>()
 
 	/**
+	 * Answer the [Repository] where the source of this file should be stored.
+	 */
+	private val repository: Repository get() = resolver.moduleRoot.repository
+
+	/**
+	 * Answer the [Repository.ModuleArchive] for the file this
+	 * [ResolverReference] points to.
+	 */
+	private val archive: Repository.ModuleArchive get() =
+		repository.getArchive(qualifiedName)
+
+	/**
 	 * The file MIME type of the associated resource or empty String if
 	 * package/directory.
 	 */
@@ -127,12 +140,6 @@ class ResolverReference constructor(
 	}
 
 	/**
-	 * The [exception][Throwable] that prevented most recent attempt at
-	 * accessing the source location of this [ResolverReference].
-	 */
-	var accessException: Throwable? = null
-
-	/**
 	 * The last known time this was updated since the Unix Epoch.
 	 */
 	var lastModified: Long
@@ -143,6 +150,20 @@ class ResolverReference constructor(
 	 */
 	var size: Long
 		private set
+
+	/**
+	 * The cryptographic hash of the file's most recently reported contents.
+	 *
+	 * // TODO make this directly retrievealbe from the Repository.ModuleArchive
+	 * // TODO limited cache based on the last modified timestamp
+	 */
+	private val digest: ByteArray? get() = archive.provideDigest(this)
+
+	/**
+	 * The [exception][Throwable] that prevented most recent attempt at
+	 * accessing the source location of this [ResolverReference].
+	 */
+	var accessException: Throwable? = null
 
 	init
 	{
@@ -305,28 +326,21 @@ class ResolverReference constructor(
 	}
 
 	/**
-	 * The cryptographic hash of the file's most recently reported contents.
-	 */
-	private var digest: ByteArray? = null
-
-	/**
 	 * Update the mutable state of this [ResolverReference].
 	 *
-	 * @param contents
-	 *   The raw file bytes used to calculate the digest.
 	 * @param lastModified
 	 *   The last known time this was updated since the Unix Epoch.
 	 * @param size
 	 *   The size, in bytes, of the backing file, or 0 if [isPackage] is true.
 	 */
-	fun refresh (contents: ByteArray, lastModified: Long, size: Long)
+	fun refresh (lastModified: Long, size: Long)
 	{
-		val hasher =
-			MessageDigest.getInstance(DIGEST_ALGORITHM)
-		hasher.update(contents, 0, contents.size)
-		this.digest = hasher.digest()
-		this.lastModified = lastModified
-		this.size = size
+		if (this.lastModified < lastModified)
+		{
+			// this represents the latest and greatest!
+			this.lastModified = lastModified
+			this.size = size
+		}
 	}
 
 	/**
@@ -343,7 +357,7 @@ class ResolverReference constructor(
 	 *   A function that accepts an [ErrorCode] and a `nullable` [Throwable]
 	 *   to be called in the event of failure.
 	 */
-	fun digest (
+	internal fun digest (
 		refresh: Boolean = false,
 		withDigest: (ByteArray, Long)->Unit,
 		failureHandler: (ErrorCode, Throwable?) -> Unit)
@@ -370,15 +384,13 @@ class ResolverReference constructor(
 			withDigest(currentDigest, lastModified)
 			return
 		}
-		resolver.refreshResolverReference(
+		resolver.refreshResolverReferenceDigest(
 			this,
-			{
-				withDigest(digest!!, lastModified)
+			{ newDigest, fromSaveTime ->
+				withDigest(newDigest, fromSaveTime)
 			},
 			failureHandler)
 	}
-
-
 
 	/**
 	 * Retrieve the resource and provide it with a request to obtain
@@ -428,7 +440,7 @@ class ResolverReference constructor(
 	companion object
 	{
 		/** The name of the [MessageDigest] used to detect file changes. */
-		private const val DIGEST_ALGORITHM = "SHA-256"
+		internal const val DIGEST_ALGORITHM = "SHA-256"
 	}
 }
 

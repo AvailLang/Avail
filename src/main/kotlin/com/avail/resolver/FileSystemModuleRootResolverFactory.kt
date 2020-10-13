@@ -33,7 +33,6 @@
 package com.avail.resolver
 
 import com.avail.files.FileManager
-import java.io.File
 import java.net.URI
 
 /**
@@ -49,10 +48,9 @@ object FileSystemModuleRootResolverFactory: ModuleRootResolverFactory
 {
 	override fun resolver(
 		name: String,
-		repository: File,
 		uri: URI,
 		fileManager: FileManager): ModuleRootResolver =
-			FileSystemModuleRootResolver(name, repository, uri, fileManager)
+			FileSystemModuleRootResolver(name, uri, fileManager)
 
 	override val scheme: String = "file"
 }

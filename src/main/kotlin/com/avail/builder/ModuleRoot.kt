@@ -34,7 +34,8 @@ package com.avail.builder
 
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.persistence.IndexedFileException
-import com.avail.persistence.Repository
+import com.avail.persistence.cache.Repositories
+import com.avail.persistence.cache.Repository
 import com.avail.resolver.ModuleRootResolver
 import com.avail.utility.json.JSONWriter
 import java.io.File
@@ -70,14 +71,13 @@ import java.io.File
 class ModuleRoot
 @Throws(IndexedFileException::class) constructor(
 	val name: String,
-	repository: File,
 	val resolver: ModuleRootResolver?)
 {
 	/**
 	 * The [indexed&#32;repository][Repository] that contains compiled
 	 * [modules][ModuleDescriptor] for this [root][ModuleRoot].
 	 */
-	val repository: Repository = Repository(name, repository)
+	val repository: Repository get() = Repositories[name]!!
 
 	/**
 	 * Clear the content of the repository for this root.

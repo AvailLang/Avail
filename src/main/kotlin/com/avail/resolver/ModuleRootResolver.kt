@@ -41,7 +41,8 @@ import com.avail.builder.ResolvedModuleName
 import com.avail.error.ErrorCode
 import com.avail.files.AbstractFileWrapper
 import com.avail.files.FileManager
-import com.avail.persistence.Repository.ModuleVersion
+import com.avail.persistence.cache.Repository
+import com.avail.persistence.cache.Repository.ModuleVersion
 import java.net.URI
 import java.util.UUID
 
@@ -196,10 +197,12 @@ interface ModuleRootResolver
 	fun getResolverReference (qualifiedName: String): ResolverReference?
 
 	/**
-	 * Refresh the metrics (mutable state) of the provided [ResolverReference].
+	 * Specifically refresh the [ResolverReference.digest] in the
+	 * [Repository.ModuleArchive] for the most recent
+	 * [ResolverReference.lastModified] timestamp. This also refreshes the
+	 * metrics (mutable state) of the provided [ResolverReference].
 	 * It should refresh:
 	 *
-	 *  * [ResolverReference.digest]
 	 *  * [ResolverReference.lastModified]
 	 *  * [ResolverReference.size]
 	 *
@@ -210,14 +213,35 @@ interface ModuleRootResolver
 	 * @param reference
 	 *   The [ResolverReference] to refresh.
 	 * @param successHandler
-	 *   A function to call after it has been updated.
+	 *   A function that accepts the new digest and last modified time to call
+	 *   after the new digest has been created.
 	 * @param failureHandler
 	 *   A function that accepts an [ErrorCode] and a `nullable` [Throwable]
 	 *   to be called in the event of failure.
 	 */
-	fun refreshResolverReference (
+	fun refreshResolverReferenceDigest (
 		reference: ResolverReference,
-		successHandler : () -> Unit,
+		successHandler : (ByteArray, Long) -> Unit,
+		failureHandler: (ErrorCode, Throwable?) -> Unit)
+
+	/**
+	 * Specifically refresh the [ResolverReference] mutable state:
+	 *
+	 *  * [ResolverReference.lastModified]
+	 *  * [ResolverReference.size]
+	 *
+	 * @param reference
+	 *   The [ResolverReference] to refresh.
+	 * @param successHandler
+	 *   A function that accepts thelast modified time to call after the refresh
+	 *   is complete.
+	 * @param failureHandler
+	 *   A function that accepts an [ErrorCode] and a `nullable` [Throwable]
+	 *   to be called in the event of failure.
+	 */
+	fun refreshResolverMetaData (
+		reference: ResolverReference,
+		successHandler : (Long) -> Unit,
 		failureHandler: (ErrorCode, Throwable?) -> Unit)
 
 	/**

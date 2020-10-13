@@ -64,7 +64,7 @@ import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.files.FileManager
 import com.avail.interpreter.levelOne.L1InstructionWriter
 import com.avail.interpreter.primitive.floats.P_FloatFloor
-import com.avail.persistence.Repository.Companion.createTemporary
+import com.avail.persistence.cache.Repository.Companion.createTemporary
 import com.avail.serialization.Deserializer
 import com.avail.serialization.MalformedSerialStreamException
 import com.avail.serialization.Serializer

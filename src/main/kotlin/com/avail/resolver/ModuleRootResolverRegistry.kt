@@ -35,7 +35,7 @@ package com.avail.resolver
 import com.avail.builder.ModuleRoot
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.files.FileManager
-import com.avail.persistence.Repository
+import com.avail.persistence.cache.Repository
 import java.io.File
 import java.lang.UnsupportedOperationException
 import java.net.URI
@@ -78,9 +78,6 @@ object ModuleRootResolverRegistry
 	 *
 	 * @param name
 	 *   The name of the module root.
-	 * @param repository
-	 *   The [path][File] to the [indexed&#32;repository][Repository] that
-	 *   contains compiled [modules][ModuleDescriptor] for this root.
 	 * @param uri
 	 *   The [URI] that identifies the location of the [ModuleRoot].
 	 * @param fileManager
@@ -94,7 +91,6 @@ object ModuleRootResolverRegistry
 	 */
 	fun createResolver (
 		name: String,
-		repository: File,
 		uri: URI,
 		fileManager: FileManager): ModuleRootResolver
 	{
@@ -105,7 +101,7 @@ object ModuleRootResolverRegistry
 				"URI scheme, ${uri.scheme}, does not have a registered " +
 					"ModuleRootResolverFactory.")
 		}
-		return factory.resolver(name, repository, uri, fileManager)
+		return factory.resolver(name, uri, fileManager)
 	}
 
 	init

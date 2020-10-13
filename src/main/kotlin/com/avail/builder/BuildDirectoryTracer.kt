@@ -34,8 +34,8 @@ package com.avail.builder
 
 import com.avail.compiler.AvailCompiler
 import com.avail.compiler.problems.Problem
-import com.avail.persistence.Repository.ModuleVersion
-import com.avail.persistence.Repository.ModuleVersionKey
+import com.avail.persistence.cache.Repository.ModuleVersion
+import com.avail.persistence.cache.Repository.ModuleVersionKey
 import java.net.URI
 import java.util.logging.Level
 import javax.annotation.concurrent.GuardedBy

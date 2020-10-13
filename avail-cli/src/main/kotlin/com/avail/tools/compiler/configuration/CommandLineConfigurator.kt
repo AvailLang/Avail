@@ -37,6 +37,7 @@ import com.avail.builder.ModuleRoots
 import com.avail.builder.RenamesFileParser
 import com.avail.builder.RenamesFileParserException
 import com.avail.performance.StatisticReport
+import com.avail.persistence.cache.Repositories
 import com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.AVAIL_RENAMES
 import com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.AVAIL_ROOTS
 import com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.CLEAR_REPOSITORIES
@@ -45,6 +46,7 @@ import com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.
 import com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.GENERATE_DOCUMENTATION
 import com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.HELP
 import com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.QUIET
+import com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.REPOSITORIES
 import com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.SHOW_STATISTICS
 import com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.TARGET_MODULE_NAME
 import com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.VERBOSE_MODE
@@ -139,6 +141,11 @@ class CommandLineConfigurator constructor(
 		QUIET,
 
 		/**
+		 * The option to set the [Repositories.directory].
+		 */
+		REPOSITORIES,
+
+		/**
 		 * The option to emit performance statistics for the Avail Virtual
 		 * Machine.
 		 */
@@ -182,13 +189,12 @@ class CommandLineConfigurator constructor(
 			optionWithArgument(
 				AVAIL_ROOTS,
 				listOf("availRoots"),
-				"The Avail roots, as a semicolon (;) separated list of module root "
-				+ "specifications. Each module root specification comprises a "
-				+ "logical root name, then an equals (=), then a module root "
-				+ "location. A module root location comprises the absolute "
-				+ "path to a binary module repository, then optionally a comma "
-				+ "(,) and the absolute path to a source package. This option "
-				+ "overrides environment variables.")
+				"The Avail roots, as a semicolon (;) separated list of module "
+					+ "root specifications. Each module root specification "
+					+ "comprises a  logical root name, then an equals (=), then a "
+					+ "module root location. A module root location comprises the "
+					+ "absolute path to a source package. This option overrides "
+					+ "environment variables.")
 				{
 					configuration.availRootsPath = argument
 				}
@@ -250,6 +256,13 @@ class CommandLineConfigurator constructor(
 				{
 					configuration.quiet = true
 				}
+			optionWithArgument(
+				REPOSITORIES,
+				listOf("repositories"),
+				"The Avail repositories directory location")
+			{
+				configuration.repositoriesPath = argument
+			}
 			optionWithArgument(
 				SHOW_STATISTICS,
 				listOf("s", "showStatistics"),

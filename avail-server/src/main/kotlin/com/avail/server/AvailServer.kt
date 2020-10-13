@@ -47,7 +47,7 @@ import com.avail.descriptor.module.A_Module
 import com.avail.error.ErrorCodeRangeRegistry
 import com.avail.interpreter.execution.Interpreter
 import com.avail.persistence.IndexedFileException
-import com.avail.persistence.Repository
+import com.avail.persistence.cache.Repository
 import com.avail.server.configuration.AvailServerConfiguration
 import com.avail.server.configuration.CommandLineConfigurator
 import com.avail.server.configuration.EnvironmentConfigurator
@@ -439,6 +439,7 @@ class AvailServer constructor(
 		{
 			for (root in runtime.moduleNameResolver.moduleRoots.roots)
 			{
+				// TODO [RAA] only clear repos w/ resolvers
 				root.clearRepository()
 			}
 			newSimpleSuccessMessage(channel, command)

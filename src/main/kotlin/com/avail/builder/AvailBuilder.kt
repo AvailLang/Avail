@@ -72,10 +72,10 @@ import com.avail.interpreter.execution.Interpreter.Companion.debugWorkUnits
 import com.avail.interpreter.execution.Interpreter.Companion.runOutermostFunction
 import com.avail.io.SimpleCompletionHandler
 import com.avail.io.TextInterface
-import com.avail.persistence.Repository
-import com.avail.persistence.Repository.ModuleArchive
-import com.avail.persistence.Repository.ModuleCompilation
-import com.avail.persistence.Repository.ModuleVersion
+import com.avail.persistence.cache.Repository
+import com.avail.persistence.cache.Repository.ModuleArchive
+import com.avail.persistence.cache.Repository.ModuleCompilation
+import com.avail.persistence.cache.Repository.ModuleVersion
 import com.avail.serialization.MalformedSerialStreamException
 import com.avail.serialization.Serializer
 import com.avail.utility.Graph

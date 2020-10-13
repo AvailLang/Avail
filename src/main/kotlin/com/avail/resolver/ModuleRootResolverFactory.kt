@@ -35,7 +35,7 @@ package com.avail.resolver
 import com.avail.builder.ModuleRoot
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.files.FileManager
-import com.avail.persistence.Repository
+import com.avail.persistence.cache.Repository
 import java.io.File
 import java.net.URI
 
@@ -51,9 +51,6 @@ interface ModuleRootResolverFactory
 	 *
 	 * @param name
 	 *   The name of the module root.
-	 * @param repository
-	 *   The [path][File] to the [indexed&#32;repository][Repository] that
-	 *   contains compiled [modules][ModuleDescriptor] for this root.
 	 * @param uri
 	 *   The [URI] that identifies the location of the [ModuleRoot].
 	 * @param fileManager
@@ -65,7 +62,6 @@ interface ModuleRootResolverFactory
 	 */
 	fun resolver (
 		name: String,
-		repository: File,
 		uri: URI,
 		fileManager: FileManager): ModuleRootResolver
 

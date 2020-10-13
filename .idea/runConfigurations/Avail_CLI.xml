@@ -2,7 +2,7 @@
   <configuration default="false" name="Avail CLI" type="JarApplication">
     <option name="JAR_PATH" value="$PROJECT_DIR$/distro/lib/avail-cli.jar" />
     <option name="VM_PARAMETERS" value="-ea -Xmx10g -Djava.util.logging.config.file=$PROJECT_DIR$/distro/etc/logging.properties -DavailDeveloper=true" />
-    <option name="PROGRAM_PARAMETERS" value="--availRoots=avail=$PROJECT_DIR$/repositories/avail.repo,$PROJECT_DIR$/distro/src/avail;experimental=$PROJECT_DIR$/repositories/experimental.repo,$PROJECT_DIR$/experimental/even-newer-avail;examples=$PROJECT_DIR$/repositories/examples.repo,$PROJECT_DIR$/distro/src/examples;website=$PROJECT_DIR$/repositories/website.repo,$PROJECT_DIR$/distro/src/website --verboseMode=2 --compile /avail/Avail" />
+    <option name="PROGRAM_PARAMETERS" value="--availRoots=avail=file://$PROJECT_DIR$/distro/src/avail;experimental=file://$PROJECT_DIR$/experimental/even-newer-avail;examplesfile://$PROJECT_DIR$/distro/src/examples;website=file://$PROJECT_DIR$/distro/src/website --repositories=$PROJECT_DIR$/repositories/ --verboseMode=2 --compile /avail/Avail" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
     <option name="ALTERNATIVE_JRE_PATH" />
     <module name="avail.avail-cli" />

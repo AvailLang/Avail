@@ -6,16 +6,16 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * * Redistributions of source code must retain the above copyright notice, this
- *   list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice, this
+ *     list of conditions and the following disclaimer.
  *
- * * Redistributions in binary form must reproduce the above copyright notice,
- *   this list of conditions and the following disclaimer in the documentation
- *   and/or other materials provided with the distribution.
+ *  * Redistributions in binary form must reproduce the above copyright notice, this
+ *     list of conditions and the following disclaimer in the documentation
+ *     and/or other materials provided with the distribution.
  *
- * * Neither the name of the copyright holder nor the names of the contributors
- *   may be used to endorse or promote products derived from this software
- *   without specific prior written permission.
+ *  * Neither the name of the copyright holder nor the names of the contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.persistence
+package com.avail.persistence.cache
 
 import com.avail.builder.ModuleRoot
 import com.avail.builder.ResolvedModuleName
@@ -40,6 +40,10 @@ import com.avail.descriptor.representation.AvailObject.Companion.multiplier
 import com.avail.descriptor.tokens.CommentTokenDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.error.ErrorCode
+import com.avail.persistence.IndexedFile
+import com.avail.persistence.IndexedFileBuilder
+import com.avail.persistence.IndexedFileException
+import com.avail.resolver.ResolverReference
 import com.avail.serialization.Serializer
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
@@ -66,15 +70,55 @@ import kotlin.streams.toList
  * An `Repository` manages a persistent [IndexedFile] of compiled
  * [modules][ModuleDescriptor].
  *
+ * **Metadata:**
+ *  1. #modules
+ *  2. For each module,
+ *    2a. moduleArchive
+ * **ModuleArchive:**
+ * 1. UTF8 rootRelativeName
+ * 2. digestCache size
+ * 3. For each cached digest,
+ *    3a. timestamp (long)
+ *    3b. digest (32 bytes)
+ * 4. #versions
+ * 5. For each version,
+ *    5a. ModuleVersionKey
+ *    5b. ModuleVersion
+ * **ModuleVersionKey:**
+ * 1. isPackage (byte)
+ * 2. digest (32 bytes)
+ * **ModuleVersion:**
+ * 1. moduleSize (long)
+ * 2. localImportNames size (int)
+ * 3. For each import name,
+ *    3a. UTF8 import name
+ * 4. entryPoints size (int)
+ * 5. For each entry point,
+ *    5a. UTF8 entry point name
+ * 6. compilations size (int)
+ * 7. For each compilation.
+ *    7a. ModuleCompilationKey
+ *    7b. ModuleCompilation
+ * 8. moduleHeaderRecordNumber (long)
+ * 9. stacksRecordNumber (long)
+ * **ModuleCompilationKey:**
+ * 1. predecessorCompilationTimes length (int)
+ * 2. For each predecessor compilation time,
+ *    2a. predecessor compilation time (long)
+ * **ModuleCompilation:**
+ * 1. compilationTime (long)
+ * 2. recordNumber (long)
+ * 3. recordNumberOfBlockPhrases (long)
+ *
  * @property rootName
  *   The name of the [Avail&#32;root][ModuleRoot] represented by this
  *   [IndexedFile].
  * @property fileName
  *   The [filename][File] of the [IndexedFile].
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
  * @constructor
- *
  * Construct a new `Repository`.
  *
  * @param rootName
@@ -188,6 +232,11 @@ class Repository constructor(
 		internal val rootRelativeName: String
 
 		/**
+		 * The time of the most recent digest placed in the [digestCache].
+		 */
+		private var lastUpdate: Long = 0L
+
+		/**
 		 * A [LimitedCache] used to avoid computing digests of files when the
 		 * file's timestamp has not changed.  Each key is a [Long] representing
 		 * the file's [last][File.lastModified].  The value is a byte array
@@ -195,6 +244,15 @@ class Repository constructor(
 		 */
 		private val digestCache =
 			LimitedCache<Long, ByteArray>(MAX_RECORDED_DIGESTS_PER_MODULE)
+
+		internal fun provideDigest (reference: ResolverReference): ByteArray?
+		{
+			require(rootRelativeName == reference.qualifiedName) {
+				"${reference.qualifiedName} attempted to access archive for " +
+					rootRelativeName
+			}
+			return digestCache[reference.lastModified]
+		}
 
 		/**
 		 * Answer an immutable [Map] from [ModuleVersionKey] to [ModuleVersion],
@@ -251,6 +309,7 @@ class Repository constructor(
 					{
 						lock.withLock {
 							digestCache[lastModified] = newDigest
+							lastUpdate = lastModified
 							markDirty()
 						}
 					}

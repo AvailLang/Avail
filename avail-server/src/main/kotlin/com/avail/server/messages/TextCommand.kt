@@ -38,7 +38,7 @@ import com.avail.builder.ModuleRoot
 import com.avail.builder.ModuleRoots
 import com.avail.descriptor.fiber.A_Fiber
 import com.avail.descriptor.module.A_Module
-import com.avail.persistence.Repository
+import com.avail.persistence.cache.Repository
 import com.avail.server.AvailServer
 import com.avail.server.io.AvailServerChannel
 import com.avail.server.messages.TextCommand.TrieNode

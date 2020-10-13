@@ -40,7 +40,7 @@ import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.tracerPriority
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.io.SimpleCompletionHandler
-import com.avail.persistence.Repository.ModuleVersionKey
+import com.avail.persistence.cache.Repository.ModuleVersionKey
 import java.util.logging.Level
 
 /**

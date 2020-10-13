@@ -37,6 +37,7 @@ import com.avail.builder.ModuleRoots
 import com.avail.builder.RenamesFileParser
 import com.avail.builder.RenamesFileParserException
 import com.avail.files.FileManager
+import com.avail.persistence.cache.Repositories
 import com.avail.server.AvailServer
 import com.avail.utility.configuration.Configuration
 import java.io.File
@@ -97,6 +98,18 @@ class AvailServerConfiguration constructor(private val fileManager: FileManager)
 		{
 			field = value
 			moduleNameResolver = null
+		}
+
+	/** The [Repositories] path. */
+	internal var repositoriesPath = ""
+		set (newValue)
+		{
+			val dir = File(newValue)
+			require(dir.isDirectory) {
+				"The Repositories location, $newValue, is not a directory!"
+			}
+			Repositories.setDirectoryLocation(dir)
+			field = newValue
 		}
 
 	/** The [module name resolver][ModuleNameResolver]. */

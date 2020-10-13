@@ -269,7 +269,7 @@ import com.avail.interpreter.primitive.compiler.P_RejectParsing
 import com.avail.io.TextInterface
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport.RUNNING_PARSING_INSTRUCTIONS
-import com.avail.persistence.Repository
+import com.avail.persistence.cache.Repository
 import com.avail.utility.Mutable
 import com.avail.utility.PrefixSharingList
 import com.avail.utility.PrefixSharingList.Companion.append

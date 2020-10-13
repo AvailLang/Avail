@@ -49,7 +49,7 @@ import com.avail.files.FileManager
 import com.avail.files.ManagedFileWrapper
 import com.avail.io.SimpleCompletionHandler
 import com.avail.persistence.IndexedFileException
-import com.avail.persistence.Repository
+import com.avail.persistence.cache.Repository
 import org.apache.tika.Tika
 import java.io.File
 import java.io.IOException
@@ -70,12 +70,13 @@ import java.nio.file.WatchService
 import java.nio.file.attribute.BasicFileAttributes
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
-import com.avail.persistence.Repository.ModuleVersion
+import com.avail.persistence.cache.Repository.ModuleVersion
 import com.avail.resolver.ResourceType.*
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousFileChannel
 import java.nio.channels.CompletionHandler
 import java.nio.file.StandardOpenOption
+import java.security.MessageDigest
 import java.util.ArrayDeque
 import java.util.Deque
 import java.util.EnumSet
@@ -95,9 +96,6 @@ import java.util.LinkedList
  *
  * @param name
  *   The name of the module root.
- * @param repository
- *   The [path][File] to the [indexed&#32;repository][Repository] that
- *   contains compiled [modules][ModuleDescriptor] for this root.
  * @param uri
  *   The [URI] that identifies the location of the [ModuleRoot].
  * @param fileManager
@@ -108,7 +106,6 @@ import java.util.LinkedList
  */
 class FileSystemModuleRootResolver constructor(
 		val name: String,
-		repository: File,
 		override val uri: URI,
 		override val fileManager: FileManager)
 	: ModuleRootResolver
@@ -126,8 +123,7 @@ class FileSystemModuleRootResolver constructor(
 	 */
 	private var moduleRootTree: ResolverReference? = null
 
-	override val moduleRoot: ModuleRoot =
-		ModuleRoot(name, repository, this)
+	override val moduleRoot: ModuleRoot = ModuleRoot(name, this)
 
 	override fun provideModuleRootTree(
 		successHandler: (ResolverReference)->Unit,
@@ -316,20 +312,59 @@ class FileSystemModuleRootResolver constructor(
 		}()
 	}
 
-	override fun refreshResolverReference (
+	override fun refreshResolverMetaData(
 		reference: ResolverReference,
-		successHandler : () -> Unit,
+		successHandler: (Long)->Unit,
+		failureHandler: (ErrorCode, Throwable?)->Unit)
+	{
+		executeTask {
+			try
+			{
+				val file = Paths.get(reference.uri).toFile()
+				val modified = file.lastModified()
+				reference.refresh(modified, file.length())
+				successHandler(modified)
+			}
+			catch (e: Throwable)
+			{
+				failureHandler(
+					FileErrorCode.IO_EXCEPTION,
+					IOException(
+						"Could not refresh file metadata for " +
+							reference.qualifiedName,
+						e))
+			}
+		}
+	}
+
+	override fun refreshResolverReferenceDigest (
+		reference: ResolverReference,
+		successHandler : (ByteArray, Long) -> Unit,
 		failureHandler: (ErrorCode, Throwable?) -> Unit)
 	{
 		try
 		{
+			val f = Paths.get(reference.uri).toFile()
+			val initialModified = f.lastModified()
 			readFile(
 				false,
 				reference,
 				{ bytes, _ ->
-					val f = Paths.get(reference.uri).toFile()
-					reference.refresh(bytes, f.lastModified(), f.length())
-					successHandler()
+					val modified = f.lastModified()
+					if (modified != initialModified)
+					{
+						System.err.println(
+							"(${reference.qualifiedName})File changed during " +
+								"digest calculation: modified timestamp at " +
+								"file read start $initialModified, at finish " +
+								modified)
+					}
+					val hasher = MessageDigest.getInstance(
+						ResolverReference.DIGEST_ALGORITHM)
+					hasher.update(bytes, 0, bytes.size)
+					val newDigest = hasher.digest()
+					reference.refresh(modified, f.length())
+					successHandler(newDigest, modified)
 				},
 				failureHandler)
 		}
@@ -438,7 +473,6 @@ class FileSystemModuleRootResolver constructor(
 					else
 					{
 						reference.refresh(
-							fileContents,
 							System.currentTimeMillis(),
 							fileContents.size.toLong())
 						successHandler()
@@ -467,12 +501,13 @@ class FileSystemModuleRootResolver constructor(
 		}
 		if (!byPassFileManager)
 		{
+			val prevLastUpdate = reference.lastModified
 			val isBeingRead =
 				fileManager.optionallyProvideExistingFile(
 					reference,
 					{ uuid, availFile ->
+
 						reference.refresh(
-							availFile.rawContent,
 							availFile.lastModified,
 							availFile.rawContent.size.toLong())
 						withContents(availFile.rawContent, uuid)
