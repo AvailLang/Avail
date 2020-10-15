@@ -37,7 +37,6 @@ import com.avail.AvailRuntimeConfiguration.activeVersionSummary
 import com.avail.builder.AvailBuilder
 import com.avail.builder.ModuleName
 import com.avail.builder.ModuleNameResolver
-import com.avail.builder.ModuleNameResolver.Companion.availExtension
 import com.avail.builder.ModuleRoot
 import com.avail.builder.ModuleRoots
 import com.avail.builder.RenamesFileParser
@@ -51,7 +50,6 @@ import com.avail.environment.LayoutConfiguration.Companion.moduleRenameSourceSub
 import com.avail.environment.LayoutConfiguration.Companion.moduleRenameTargetSubkeyString
 import com.avail.environment.LayoutConfiguration.Companion.moduleRenamesKeyString
 import com.avail.environment.LayoutConfiguration.Companion.moduleRootsKeyString
-import com.avail.environment.LayoutConfiguration.Companion.moduleRootsRepoSubkeyString
 import com.avail.environment.LayoutConfiguration.Companion.moduleRootsSourceSubkeyString
 import com.avail.environment.actions.AboutAction
 import com.avail.environment.actions.BuildAction
@@ -113,6 +111,8 @@ import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport.WORKBENCH_TRANSCRIPT
 import com.avail.persistence.cache.Repositories
 import com.avail.resolver.ModuleRootResolverRegistry
+import com.avail.resolver.ResolverReference
+import com.avail.resolver.ResourceType
 import com.avail.stacks.StacksGenerator
 import com.avail.utility.IO
 import com.avail.utility.cast
@@ -144,17 +144,10 @@ import java.lang.System.currentTimeMillis
 import java.net.URI
 import java.nio.charset.StandardCharsets
 import java.nio.file.FileSystems
-import java.nio.file.FileVisitOption
-import java.nio.file.FileVisitResult
-import java.nio.file.FileVisitor
-import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.Paths
-import java.nio.file.attribute.BasicFileAttributes
 import java.util.ArrayDeque
 import java.util.Arrays
 import java.util.Deque
-import java.util.EnumSet
 import java.util.Enumeration
 import java.util.Queue
 import java.util.TimerTask
@@ -951,168 +944,6 @@ class AvailWorkbench internal constructor (
 	}
 
 	/**
-	 * Answer a [FileVisitor] suitable for recursively exploring an
-	 * Avail root. A new `FileVisitor` should be obtained for each Avail
-	 * root.
-	 *
-	 * @param stack
-	 *   The stack on which to place Avail roots and packages.
-	 * @param moduleRoot
-	 *   The [ModuleRoot] within which to scan recursively.
-	 * @return A `FileVisitor`.
-	 */
-	private fun moduleTreeVisitor(
-		stack: Deque<DefaultMutableTreeNode>,
-		moduleRoot: ModuleRoot
-	): FileVisitor<Path>
-	{
-		var isRoot = true
-		return object : FileVisitor<Path>
-		{
-			/**
-			 * Resolve a file name relative to an existing
-			 * [DefaultMutableTreeNode].
-			 *
-			 * @param parentNode
-			 *   The [DefaultMutableTreeNode] in which to resolve the file name.
-			 * @param fileName
-			 *   The [String] containing the file name to resolve.
-			 * @return The resolved [ModuleName].
-			 */
-			private fun resolveModule(
-				parentNode: DefaultMutableTreeNode,
-				fileName: String
-			): ModuleName
-			{
-				val localName = fileName.substring(
-					0, fileName.length - availExtension.length)
-				val moduleName: ModuleName
-				if (parentNode is ModuleRootNode)
-				{
-					// Add a top-level package.
-					val thisRoot = parentNode.moduleRoot
-					assert(thisRoot == moduleRoot)
-					moduleName = ModuleName(
-						"/" + moduleRoot.name + "/" + localName)
-				}
-				else
-				{
-					// Add a non-top-level package.
-					assert(parentNode is ModuleOrPackageNode)
-					val strongParentNode = parentNode as ModuleOrPackageNode
-					assert(strongParentNode.isPackage)
-					val parentModuleName =
-						strongParentNode.resolvedModuleName
-					// The (resolved) parent is a package representative
-					// module, so use its parent, the package itself.
-					moduleName = ModuleName(
-						parentModuleName.packageName, localName)
-				}
-				return moduleName
-			}
-
-			override fun preVisitDirectory(
-				dir: Path?, unused: BasicFileAttributes?
-			): FileVisitResult
-			{
-				assert(dir !== null)
-				val parentNode = stack.peekFirst()
-				if (isRoot)
-				{
-					// Add a ModuleRoot.
-					isRoot = false
-					assert(stack.size == 1)
-					val node = ModuleRootNode(availBuilder, moduleRoot)
-					parentNode.add(node)
-					stack.addFirst(node)
-					return FileVisitResult.CONTINUE
-				}
-				val fileName = dir!!.fileName.toString()
-				if (fileName.endsWith(availExtension))
-				{
-					val moduleName = resolveModule(parentNode, fileName)
-					val resolved: ResolvedModuleName
-					try
-					{
-						resolved = resolver.resolve(moduleName)
-					}
-					catch (e: UnresolvedDependencyException)
-					{
-						// The directory didn't contain the necessary package
-						// representative, so simply skip the whole directory.
-						return FileVisitResult.SKIP_SUBTREE
-					}
-
-					val node = ModuleOrPackageNode(
-						availBuilder, moduleName, resolved, true)
-					parentNode.add(node)
-					if (resolved.isRename)
-					{
-						// Don't examine modules inside a package which is the
-						// source of a rename.  They wouldn't have resolvable
-						// dependencies anyhow.
-						return FileVisitResult.SKIP_SUBTREE
-					}
-					stack.addFirst(node)
-					return FileVisitResult.CONTINUE
-				}
-				return FileVisitResult.SKIP_SUBTREE
-			}
-
-			override fun postVisitDirectory(
-				dir: Path?, ex: IOException?
-			): FileVisitResult
-			{
-				assert(dir !== null)
-				// Pop the node from the stack.
-				stack.removeFirst()
-				return FileVisitResult.CONTINUE
-			}
-
-			@Throws(IOException::class)
-			override fun visitFile(
-				file: Path?, attributes: BasicFileAttributes?
-			): FileVisitResult
-			{
-				assert(file !== null)
-				val parentNode = stack.peekFirst()
-				if (isRoot)
-				{
-					throw IOException("Avail root should be a directory")
-				}
-				val fileName = file!!.fileName.toString()
-				if (fileName.endsWith(availExtension))
-				{
-					val moduleName = resolveModule(parentNode, fileName)
-					try
-					{
-						val resolved =
-							resolver.resolve(moduleName)
-						val node = ModuleOrPackageNode(
-							availBuilder, moduleName, resolved, false)
-						if (resolved.isRename || !resolved.isPackage)
-						{
-							parentNode.add(node)
-						}
-					}
-					catch (e: UnresolvedDependencyException)
-					{
-						// TODO MvG - Find a better way of reporting broken
-						// dependencies. Ignore for now (during directory scan).
-						throw RuntimeException(e)
-					}
-				}
-				return FileVisitResult.CONTINUE
-			}
-
-			override fun visitFileFailed(
-				file: Path?, ex: IOException?
-			): FileVisitResult =
-				FileVisitResult.CONTINUE
-		}
-	}
-
-	/**
 	 * Answer a [tree&#32;node][TreeNode] that represents the (invisible) root
 	 * of the Avail module tree.
 	 *
@@ -1121,29 +952,34 @@ class AvailWorkbench internal constructor (
 	private fun newModuleTree(): TreeNode
 	{
 		val roots = resolver.moduleRoots
+		val sortedRoots = roots.roots.toList().sortedBy { it.name }
 		val treeRoot = DefaultMutableTreeNode(
 			"(packages hidden root)")
 		// Put the invisible root onto the work stack.
 		val stack = ArrayDeque<DefaultMutableTreeNode>()
+		val semaphore = Semaphore(0)
 		stack.add(treeRoot)
-		roots.roots.forEach { root ->
+		sortedRoots.forEach { root ->
 			// Obtain the path associated with the module root.
 			root.repository.reopenIfNecessary()
-			val rootDirectory = root.resolver!!
-			try
-			{
-				Files.walkFileTree(
-					Paths.get(rootDirectory.uri),
-					EnumSet.of(FileVisitOption.FOLLOW_LINKS),
-					Integer.MAX_VALUE,
-					moduleTreeVisitor(stack, root))
+			val resolver = root.resolver
+			availBuilder.runtime.executor.execute {
+				resolver.provideModuleRootTree({
+					val node = ModuleRootNode(availBuilder, root)
+					treeRoot.add(node)
+					stack.addFirst(node)
+					walkRoot(it, stack)
+					semaphore.release()
+				}) { code, ex ->
+					System.err.println(
+						"Workbench could not walk root, ${root.name}: $code")
+					ex?.printStackTrace()
+					stack.clear()
+					stack.add(treeRoot)
+					semaphore.release()
+				}
 			}
-			catch (e: IOException)
-			{
-				e.printStackTrace()
-				stack.clear()
-				stack.add(treeRoot)
-			}
+			semaphore.acquireUninterruptibly()
 		}
 		val enumeration: Enumeration<AbstractBuilderFrameTreeNode> =
 			treeRoot.preorderEnumeration().cast()
@@ -1154,6 +990,61 @@ class AvailWorkbench internal constructor (
 			node.sortChildren()
 		}
 		return treeRoot
+	}
+
+	private fun walkRoot (
+		parentRef: ResolverReference,
+		stack: Deque<DefaultMutableTreeNode>)
+	{
+		val parentNode = stack.peekFirst()
+		parentRef.modules.forEach {
+			if (it.type == ResourceType.MODULE)
+			{
+				try
+				{
+					val resolved =
+						resolver.resolve(it.moduleName)
+					val node = ModuleOrPackageNode(
+						availBuilder, it.moduleName, resolved, false)
+					parentNode.add(node)
+				}
+				catch (e: UnresolvedDependencyException)
+				{
+					// TODO MvG - Find a better way of reporting broken
+					// dependencies. Ignore for now (during directory scan).
+					throw RuntimeException(e)
+				}
+			}
+			else if (it.type == ResourceType.PACKAGE)
+			{
+				val moduleName = it.moduleName
+				val resolved: ResolvedModuleName
+				try
+				{
+					resolved = resolver.resolve(moduleName)
+				}
+				catch (e: UnresolvedDependencyException)
+				{
+					// The directory didn't contain the necessary package
+					// representative, so simply skip the whole directory.
+					return
+				}
+
+				val node = ModuleOrPackageNode(
+					availBuilder, moduleName, resolved, true)
+				parentNode.add(node)
+				if (resolved.isRename)
+				{
+					// Don't examine modules inside a package which is the
+					// source of a rename.  They wouldn't have resolvable
+					// dependencies anyhow.
+					return
+				}
+				stack.addFirst(node)
+				walkRoot(it, stack)
+			}
+		}
+		stack.removeFirst()
 	}
 
 	/**
@@ -1494,12 +1385,13 @@ class AvailWorkbench internal constructor (
 			}
 			roots.forEach { root ->
 				val childNode = rootsNode.node(root.name)
-				childNode.put(
-					moduleRootsRepoSubkeyString,
-					root.repository.fileName.path)
+				// TODO delete me
+//				childNode.put(
+//					moduleRootsRepoSubkeyString,
+//					root.repository.fileName.path)
 				childNode.put(
 					moduleRootsSourceSubkeyString,
-					root.resolver!!.uri.toString())
+					root.resolver.uri.toString())
 			}
 
 			val renamesNode =
@@ -2352,8 +2244,13 @@ class AvailWorkbench internal constructor (
 				else ->
 				{
 					val semaphore = Semaphore(0)
-					val mrs = ModuleRoots(fileManager, rootsString) {
-						System.err.println("Failed to initialize module roots fully")
+					val mrs = ModuleRoots(fileManager, rootsString) { resolved ->
+						if(!resolved)
+						{
+							System.err.println(
+								"Failed to initialize module roots fully: " +
+									rootsString)
+						}
 						semaphore.release()
 					}
 					semaphore.acquireUninterruptibly()

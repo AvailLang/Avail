@@ -75,7 +75,7 @@ class PreferencesAction constructor(workbench: AvailWorkbench)
 	internal var preferencesDialog: JDialog? = null
 
 	internal val rootsTableModel =
-		SimpleTableModel("root", "repository", "source")
+		SimpleTableModel("root", "source")
 
 	internal val renamesTableModel =
 		SimpleTableModel("module", "replacement path")
@@ -123,15 +123,15 @@ class PreferencesAction constructor(workbench: AvailWorkbench)
 		val roots = workbench.resolver.moduleRoots
 		Repositories.closeAllRepos()
 		roots.clearRoots()
-		for (triple in rootsTableModel.rows)
+		for (double in rootsTableModel.rows)
 		{
-			assert(triple.size == 2)
+			assert(double.size == 2)
 			try
 			{
-				val name = triple[0]
+				val name = double[0]
 				val root = ModuleRoot(
 					name,
-					if (triple[2].isEmpty())
+					if (double[1].isEmpty())
 					{
 						throw RuntimeException(
 							"ModuleRoot, $name, is missing a source URI")
@@ -140,7 +140,7 @@ class PreferencesAction constructor(workbench: AvailWorkbench)
 					{
 						ModuleRootResolverRegistry.createResolver(
 							name,
-							URI(triple[1]),
+							URI(double[1]),
 							roots.fileManager)
 					})
 				roots.addRoot(root)
@@ -188,12 +188,10 @@ class PreferencesAction constructor(workbench: AvailWorkbench)
 		rootsTableModel.rows.clear()
 		for (root in workbench.resolver.moduleRoots.roots)
 		{
-			val triple = mutableListOf<String>()
-			triple.add(root.name)
-			triple.add(root.repository.fileName.path)
-			val source = root.resolver
-			triple.add(source?.uri?.toString() ?: "")
-			rootsTableModel.rows.add(triple)
+			val double = mutableListOf<String>()
+			double.add(root.name)
+			double.add(root.resolver.uri.toString())
+			rootsTableModel.rows.add(double)
 		}
 		val rootsTable = JTable(rootsTableModel)
 		rootsTable.putClientProperty("terminateEditOnFocusLost", java.lang.Boolean.TRUE)
@@ -201,9 +199,7 @@ class PreferencesAction constructor(workbench: AvailWorkbench)
 		rootsColumns.getColumn(0).minWidth = 30
 		rootsColumns.getColumn(0).preferredWidth = 60
 		rootsColumns.getColumn(1).minWidth = 50
-		rootsColumns.getColumn(1).preferredWidth = 400
-		rootsColumns.getColumn(2).minWidth = 50
-		rootsColumns.getColumn(2).preferredWidth = 400
+		rootsColumns.getColumn(1).preferredWidth = 500
 		rootsTable.gridColor = Color.gray
 		rootsTable.fillsViewportHeight = true
 		val rootsScrollPane = JScrollPane(rootsTable)
@@ -219,7 +215,7 @@ class PreferencesAction constructor(workbench: AvailWorkbench)
 					insertionIndex = rootsTableModel.rowCount
 				}
 				rootsTableModel.rows.add(
-					insertionIndex, mutableListOf("", "", ""))
+					insertionIndex, mutableListOf("", ""))
 				rootsTableModel.fireTableDataChanged()
 				rootsTable.changeSelection(
 					insertionIndex, 0, false, false)

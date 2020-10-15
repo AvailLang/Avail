@@ -44,6 +44,7 @@ import com.avail.files.FileManager
 import com.avail.persistence.cache.Repository
 import com.avail.persistence.cache.Repository.ModuleVersion
 import java.net.URI
+import java.util.ArrayDeque
 import java.util.UUID
 
 /**
@@ -89,14 +90,15 @@ interface ModuleRootResolver
 
 	/**
 	 * Provide the non-`null` [ResolverReference] that represents the
-	 * [moduleRoot].
+	 * [moduleRoot]. There is no guarantee made by this interface as to how
+	 * this should be run. It can be all executed on the calling thread or it
+	 * can be executed on a separate thread.
 	 *
 	 * @param successHandler
 	 *   Accepts the [resolved][resolve] `ResolverReference`.
 	 * @param failureHandler
 	 *   A function that accepts an [ErrorCode] and a `nullable` [Throwable]
 	 *   to be called in the event of failure.
-	 *
 	 */
 	fun provideModuleRootTree (
 		successHandler: (ResolverReference) -> Unit,
@@ -105,7 +107,8 @@ interface ModuleRootResolver
 	/**
 	 * Connect to the source of the [moduleRoot] and populate a
 	 * [ResolverReference] with all the `ResolverReference`s from the module
-	 * root.
+	 * root. This is not required nor expected to be executed in the calling
+	 * thread.
 	 *
 	 * @param successHandler
 	 *   Accepts the [resolved][resolve] [ResolverReference].
@@ -392,4 +395,25 @@ interface ModuleRootResolver
 		tracer: BuildDirectoryTracer,
 		moduleAction: (ResolvedModuleName, ModuleVersion, ()->Unit)->Unit,
 		moduleFailureHandler: (String, ErrorCode, Throwable?) -> Unit)
+
+	companion object
+	{
+		fun walkRoot(
+			root: ResolverReference,
+			visitResources: Boolean,
+			withParentChild: (ResolverReference, ResolverReference)->Unit)
+		{
+			require(root.type == ResourceType.ROOT
+				|| root.isPackage
+				|| root.type == ResourceType.DIRECTORY)
+			{
+				"ModuleResourceResolver.walk must start with a Root, Package, " +
+					"or Directory; ${root.qualifiedName} is none of those " +
+					"things."
+			}
+			val stack = ArrayDeque<ResolverReference>()
+			stack.add(root)
+
+		}
+	}
 }

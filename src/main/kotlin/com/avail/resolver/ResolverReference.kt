@@ -101,6 +101,12 @@ class ResolverReference constructor(
 	 */
 	val isPackage: Boolean = type == ResourceType.PACKAGE
 
+	/**
+	 * `true` iff the [ResolverReference] represents a module, `false`
+	 *   otherwise.
+	 */
+	val isModule: Boolean = type == ResourceType.MODULE
+
 	/** The children of this [ResolverReference]. */
 	val modules = mutableListOf<ResolverReference>()
 

@@ -122,7 +122,7 @@ class BuildDirectoryTracer constructor(
 		val moduleRoots = availBuilder.runtime.moduleRoots()
 		for (moduleRoot in moduleRoots)
 		{
-			moduleRoot.resolver?.traceAllModuleHeaders(this, moduleAction)
+			moduleRoot.resolver.traceAllModuleHeaders(this, moduleAction)
 			{ name, code, ex ->
 				// TODO figure out what to do with these!!! Probably report them?
 				System.err.println(

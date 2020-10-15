@@ -194,9 +194,6 @@ class LayoutConfiguration constructor (input: String = "")
 		/** The key under which to store the [ModuleRoots].  */
 		const val moduleRootsKeyString = "module roots"
 
-		/** The subkey that holds a root's repository name.  */
-		const val moduleRootsRepoSubkeyString = "repository"
-
 		/** The subkey that holds a root's source directory name.  */
 		const val moduleRootsSourceSubkeyString = "source"
 

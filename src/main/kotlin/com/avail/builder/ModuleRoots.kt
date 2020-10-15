@@ -113,11 +113,8 @@ class ModuleRoots constructor(
 			builder.append("=")
 			builder.append(root.repository.fileName.path)
 			val resolver = root.resolver
-			if (resolver !== null)
-			{
-				builder.append(",")
-				builder.append(resolver.uri.toString())
-			}
+			builder.append(",")
+			builder.append(resolver.uri.toString())
 			first = false
 		}
 		builder.toString()
@@ -148,7 +145,7 @@ class ModuleRoots constructor(
 				modulePath.split(";")
 			}
 		val workCount = AtomicInteger(components.size)
-		val hasFailure = AtomicBoolean(false)
+		val hasNoFailure = AtomicBoolean(true)
 		val lock = "" // TODO [RAA] Hey me, this is pretty fishy...
 		for (component in components)
 		{
@@ -177,18 +174,18 @@ class ModuleRoots constructor(
 						addRoot(resolver.moduleRoot)
 						if (workCount.decrementAndGet() == 0)
 						{
-							then(hasFailure.get())
+							then(hasNoFailure.get())
 						}
 					}
 				}
 			) { code, ex ->
-				hasFailure.set(true)
+				hasNoFailure.set(false)
 				System.err.println(
 					"$code: Could not access module root, $rootName ($rootUri)")
 				ex?.printStackTrace()
 				if (workCount.decrementAndGet() == 0)
 				{
-					then(hasFailure.get())
+					then(hasNoFailure.get())
 				}
 			}
 		}
