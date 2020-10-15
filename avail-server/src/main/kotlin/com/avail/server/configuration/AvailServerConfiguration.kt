@@ -85,7 +85,9 @@ class AvailServerConfiguration constructor(private val fileManager: FileManager)
 			var roots = privateAvailRoots
 			if (roots === null)
 			{
-				roots = ModuleRoots(fileManager, availRootsPath)
+				roots = ModuleRoots(fileManager, availRootsPath) {
+					// TODO log if failed resolution?
+				}
 				privateAvailRoots = roots
 			}
 			return roots

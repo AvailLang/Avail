@@ -64,6 +64,7 @@ import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.files.FileManager
 import com.avail.interpreter.levelOne.L1InstructionWriter
 import com.avail.interpreter.primitive.floats.P_FloatFloor
+import com.avail.persistence.cache.Repositories
 import com.avail.persistence.cache.Repository.Companion.createTemporary
 import com.avail.serialization.Deserializer
 import com.avail.serialization.MalformedSerialStreamException
@@ -81,6 +82,7 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.StringReader
 import java.util.Random
+import java.util.concurrent.Semaphore
 import kotlin.math.min
 
 /**
@@ -114,16 +116,25 @@ class SerializerTest
 	@BeforeAll
 	fun initializeAllWellKnownObjects()
 	{
-		val repository = createTemporary(
-			"avail",
-			"test repository",
-			null)
-		val repositoryFile = repository.fileName
-		repository.close()
+//		val repository = createTemporary(
+//			"avail",
+//			"test_repository",
+//			null)
+//		val repositoryFile = repository.fileName
+		Repositories.setDirectoryLocation(File("repositories").absoluteFile)
+		val semaphore = Semaphore(0)
 		val roots = ModuleRoots(
 			fileManager,
-			"avail=${repositoryFile.absolutePath}," +
-				File("distro/src/avail").absolutePath)
+			"avail=${File("distro/src/avail").absolutePath}")
+		{
+			if (!it)
+			{
+				System.err.println(
+					"Serializer Test: Failed to fully resolve ModuleRoots")
+			}
+			semaphore.release()
+		}
+		semaphore.acquireUninterruptibly()
 		val parser = RenamesFileParser(StringReader(""), roots)
 		val resolver: ModuleNameResolver
 		resolver = try

@@ -34,6 +34,7 @@ package com.avail.builder
 
 import com.avail.annotations.ThreadSafe
 import com.avail.descriptor.module.ModuleDescriptor
+import com.avail.persistence.cache.Repositories
 import com.avail.utility.LRUCache
 import java.io.File
 import java.util.Collections
@@ -172,7 +173,7 @@ class ModuleNameResolver constructor(val moduleRoots: ModuleRoots)
 	 */
 	fun destroy()
 	{
-		moduleRoots.forEach { root -> root.repository.close() }
+		Repositories.closeAndRemoveAllRepos()
 	}
 
 	/**
@@ -226,13 +227,13 @@ class ModuleNameResolver constructor(val moduleRoots: ModuleRoots)
 				return result
 			}
 			// Try other roots
-			for (root in moduleRoots)
+			for (other in moduleRoots)
 			{
-				if (root.name != enclosingRoot)
+				if (other.name != enclosingRoot)
 				{
-					val resolver = root.resolver ?: continue
+					val resolver = other.resolver ?: continue
 					canonicalName = ModuleName(
-						"/${root.name}/${canonicalName.localName}",
+						"/${other.name}/${canonicalName.localName}",
 						canonicalName.isRename)
 					reference =
 						resolver.getResolverReference(
@@ -242,7 +243,7 @@ class ModuleNameResolver constructor(val moduleRoots: ModuleRoots)
 					{
 						// replace with package representative
 						canonicalName = ModuleName(
-							"/${root.name}/${canonicalName.localName}/${canonicalName.localName}",
+							"/${other.name}/${canonicalName.localName}/${canonicalName.localName}",
 							canonicalName.isRename)
 						reference =
 							resolver.getResolverReference(
@@ -475,7 +476,11 @@ class ModuleNameResolver constructor(val moduleRoots: ModuleRoots)
 		qualifiedName: ModuleName,
 		dependent: ResolvedModuleName? = null): ResolvedModuleName
 	{
-		val result = resolutionCache[qualifiedName]
+		var result = resolutionCache[qualifiedName]
+		if (!result.isResolved)
+		{
+			result = privateResolve(qualifiedName)
+		}
 		if (!result.isResolved)
 		{
 			// The resolution failed.

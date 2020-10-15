@@ -52,6 +52,7 @@ import java.io.Reader
 import java.io.StringReader
 import java.nio.charset.StandardCharsets.UTF_8
 import java.util.EnumSet
+import java.util.concurrent.Semaphore
 
 /**
  * A `CompilerConfiguration` instructs a [compiler][Compiler] on
@@ -88,7 +89,11 @@ class CompilerConfiguration constructor(private val fileManager: FileManager)
 			var roots = field
 			if (roots === null)
 			{
-				roots = ModuleRoots(fileManager, availRootsPath)
+				val semaphore = Semaphore(0)
+				roots = ModuleRoots(fileManager, availRootsPath) {
+					semaphore.release()
+				}
+				semaphore.acquireUninterruptibly()
 				availRoots = roots
 			}
 			return roots

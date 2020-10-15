@@ -43,6 +43,7 @@ import com.avail.builder.UnresolvedDependencyException
 import com.avail.files.FileManager
 import com.avail.io.TextInterface
 import com.avail.io.TextOutputChannel
+import com.avail.persistence.cache.Repositories
 import com.avail.utility.IO.closeIfNotNull
 import com.avail.utility.cast
 import org.junit.jupiter.api.Assertions
@@ -57,6 +58,7 @@ import java.io.StringReader
 import java.nio.CharBuffer
 import java.nio.channels.CompletionHandler
 import java.nio.charset.StandardCharsets
+import java.util.concurrent.Semaphore
 import java.util.function.Consumer
 
 /**
@@ -344,13 +346,26 @@ class AvailRuntimeTestHelper
 		 */
 		fun createModuleRoots(fileManager: FileManager): ModuleRoots
 		{
+			val repoString = System.getProperty("repositories", null)
+			if (repoString == null)
+			{
+				Assertions.fail<Any>(
+					"system property \"repositories\" is not set")
+			}
+			Repositories.setDirectoryLocation(File(repoString))
 			val rootsString = System.getProperty("availRoots", null)
 			if (rootsString == null)
 			{
 				Assertions.fail<Any>(
 					"system property \"availRoots\" is not set")
 			}
-			return ModuleRoots(fileManager, rootsString!!)
+			val semaphore = Semaphore(0)
+			val roots = ModuleRoots(fileManager, rootsString!!) {
+				System.err.println("Failed to initialize module roots fully")
+				semaphore.release()
+			}
+			semaphore.acquireUninterruptibly()
+			return roots
 		}
 
 		/**

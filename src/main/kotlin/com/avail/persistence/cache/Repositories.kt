@@ -124,4 +124,22 @@ object Repositories
 	{
 		repositories[rootName]?.clear()
 	}
+
+	/**
+	 * [Close][Repository.close] each [Repository] in [Repositories].
+	 */
+	fun closeAllRepos ()
+	{
+		repositories.values.forEach { it.close() }
+	}
+
+	/**
+	 * [Close][Repository.close] each [Repository] in [Repositories], then
+	 * completely remove them all.
+	 */
+	fun closeAndRemoveAllRepos ()
+	{
+		repositories.values.forEach { it.close() }
+		repositories.clear()
+	}
 }

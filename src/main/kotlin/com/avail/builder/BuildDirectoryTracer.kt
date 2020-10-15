@@ -243,6 +243,7 @@ class BuildDirectoryTracer constructor(
 				// Trace the source and write it back to the repository.
 				AvailCompiler.create(
 					resolvedName,
+					availBuilder.runtime,
 					availBuilder.textInterface,
 					availBuilder.pollForAbort,
 					{ _, _, _, _ -> },

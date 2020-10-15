@@ -35,6 +35,7 @@ package com.avail.environment.actions
 import com.avail.builder.ModuleRoot
 import com.avail.environment.AvailWorkbench
 import com.avail.persistence.IndexedFileException
+import com.avail.persistence.cache.Repositories
 import com.avail.resolver.ModuleRootResolverRegistry
 import java.awt.BorderLayout
 import java.awt.Color
@@ -42,7 +43,6 @@ import java.awt.Dialog.ModalityType
 import java.awt.Dimension
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
-import java.io.File
 import java.net.URI
 import javax.swing.Action
 import javax.swing.GroupLayout
@@ -121,10 +121,7 @@ class PreferencesAction constructor(workbench: AvailWorkbench)
 	{
 		// Rebuild the ModuleRoots from the rootsTableModel.
 		val roots = workbench.resolver.moduleRoots
-		for (root in roots.roots)
-		{
-			root.repository.close()
-		}
+		Repositories.closeAllRepos()
 		roots.clearRoots()
 		for (triple in rootsTableModel.rows)
 		{
@@ -134,7 +131,11 @@ class PreferencesAction constructor(workbench: AvailWorkbench)
 				val name = triple[0]
 				val root = ModuleRoot(
 					name,
-					if (triple[2].isEmpty()) null
+					if (triple[2].isEmpty())
+					{
+						throw RuntimeException(
+							"ModuleRoot, $name, is missing a source URI")
+					}
 					else
 					{
 						ModuleRootResolverRegistry.createResolver(

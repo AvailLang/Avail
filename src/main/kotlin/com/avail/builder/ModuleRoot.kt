@@ -39,6 +39,7 @@ import com.avail.persistence.cache.Repository
 import com.avail.resolver.ModuleRootResolver
 import com.avail.utility.json.JSONWriter
 import java.io.File
+import java.lang.RuntimeException
 
 /**
  * A `ModuleRoot` represents a vendor of Avail modules and/or the vended modules
@@ -58,9 +59,6 @@ import java.io.File
  *
  * @param name
  *   The name of the module root.
- * @param repository
- *   The [path][File] to the [indexed&#32;repository][Repository] that
- *   contains compiled [modules][ModuleDescriptor] for this root.
  * @param resolver
  *   The [ModuleRootResolver] used to provide access to the location that
  *   contains source [modules][ModuleDescriptor] and resources for this
@@ -71,13 +69,14 @@ import java.io.File
 class ModuleRoot
 @Throws(IndexedFileException::class) constructor(
 	val name: String,
-	val resolver: ModuleRootResolver?)
+	val resolver: ModuleRootResolver)
 {
 	/**
 	 * The [indexed&#32;repository][Repository] that contains compiled
 	 * [modules][ModuleDescriptor] for this [root][ModuleRoot].
 	 */
-	val repository: Repository get() = Repositories[name]!!
+	val repository: Repository get() = Repositories[name]
+		?: throw RuntimeException("Missing repository, $name")
 
 	/**
 	 * Clear the content of the repository for this root.
@@ -96,11 +95,7 @@ class ModuleRoot
 	{
 		writer.writeArray {
 			write(repository.fileName.absolutePath)
-			when (val res = resolver)
-			{
-				null -> writeNull()
-				else -> write("${res.uri.scheme}:${res.uri.path}")
-			}
+			write("${resolver.uri.scheme}:${resolver.uri.path}")
 		}
 	}
 

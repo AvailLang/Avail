@@ -40,6 +40,8 @@ import com.avail.resolver.ModuleRootResolverRegistry
 import com.avail.utility.json.JSONWriter
 import java.net.URI
 import java.util.Collections.unmodifiableSet
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * `ModuleRoots` encapsulates the Avail [module][ModuleDescriptor] path. The
@@ -67,19 +69,28 @@ import java.util.Collections.unmodifiableSet
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
+ * @property fileManager
+ *   The associated [FileManager].
+ *
  * @constructor
  *
  * Construct a new `ModuleRoots` from the specified Avail roots path.
  *
+ * @param fileManager
+ *   The associated [FileManager].
  * @param modulePath
  *   An Avail [module][ModuleDescriptor] path.
+ * @param then
+ *   A lambda that accepts `true` if `modulePath` parsed and resolved fully or
+ *   `false` if it didn't
  * @throws IllegalArgumentException
  *   If the Avail [module][ModuleDescriptor] path is malformed.
  */
 @ThreadSafe
 class ModuleRoots constructor(
 	val fileManager: FileManager,
-	modulePath: String) : Iterable<ModuleRoot>
+	modulePath: String,
+	then: (Boolean) -> Unit) : Iterable<ModuleRoot>
 {
 	/**
 	 * A [map][Map] from logical root names to [module&#32;root][ModuleRoot]s.
@@ -122,7 +133,8 @@ class ModuleRoots constructor(
 	 *   If any component of the Avail [module][ModuleDescriptor] path is
 	 *   invalid.
 	 */
-	private fun parseAvailModulePath(modulePath: String)
+	private fun parseAvailModulePathThen(
+		modulePath: String, then: (Boolean) -> Unit)
 	{
 		clearRoots()
 		// Root definitions are separated by semicolons.
@@ -135,12 +147,16 @@ class ModuleRoots constructor(
 			{
 				modulePath.split(";")
 			}
+		val workCount = AtomicInteger(components.size)
+		val hasFailure = AtomicBoolean(false)
 		val lock = "" // TODO [RAA] Hey me, this is pretty fishy...
 		for (component in components)
 		{
 			// An equals separates the root name from its paths.
 			val binding = component.split("=")
-			require(binding.size == 2)
+			require(binding.size == 2) {
+				"Bad module root location setting: $component"
+			}
 
 			// A comma separates the repository path from the source directory
 			// path.
@@ -159,12 +175,21 @@ class ModuleRoots constructor(
 					synchronized(lock)
 					{
 						addRoot(resolver.moduleRoot)
+						if (workCount.decrementAndGet() == 0)
+						{
+							then(hasFailure.get())
+						}
 					}
 				}
 			) { code, ex ->
+				hasFailure.set(true)
 				System.err.println(
-					"$code: Could not access module root, $rootName")
+					"$code: Could not access module root, $rootName ($rootUri)")
 				ex?.printStackTrace()
+				if (workCount.decrementAndGet() == 0)
+				{
+					then(hasFailure.get())
+				}
 			}
 		}
 	}
@@ -227,7 +252,7 @@ class ModuleRoots constructor(
 
 	init
 	{
-		parseAvailModulePath(modulePath)
+		parseAvailModulePathThen(modulePath, then)
 	}
 
 	/**

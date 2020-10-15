@@ -33,10 +33,7 @@
 package com.avail.resolver
 
 import com.avail.builder.ModuleRoot
-import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.files.FileManager
-import com.avail.persistence.cache.Repository
-import java.io.File
 import java.lang.UnsupportedOperationException
 import java.net.URI
 
@@ -94,14 +91,24 @@ object ModuleRootResolverRegistry
 		uri: URI,
 		fileManager: FileManager): ModuleRootResolver
 	{
-		val factory = resolvers[uri.scheme.toLowerCase()]
+
+		val lookup =
+			if (uri.scheme == null)
+			{
+				URI("file://$uri")
+			}
+			else
+			{
+				uri
+			}
+		val factory = resolvers[lookup.scheme]
 		if (factory === null)
 		{
 			throw UnsupportedOperationException(
 				"URI scheme, ${uri.scheme}, does not have a registered " +
 					"ModuleRootResolverFactory.")
 		}
-		return factory.resolver(name, uri, fileManager)
+		return factory.resolver(name, lookup, fileManager)
 	}
 
 	init

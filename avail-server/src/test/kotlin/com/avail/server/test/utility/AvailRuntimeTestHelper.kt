@@ -44,10 +44,12 @@ import com.avail.error.ErrorCodeRangeRegistry
 import com.avail.files.FileManager
 import com.avail.io.TextInterface
 import com.avail.io.TextOutputChannel
+import com.avail.persistence.cache.Repositories
 import com.avail.resolver.ModuleRootResolver
 import com.avail.server.error.ServerErrorCodeRange
 import com.avail.utility.IO.closeIfNotNull
 import com.avail.utility.cast
+import org.junit.jupiter.api.Assertions
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileInputStream
@@ -59,6 +61,7 @@ import java.io.StringReader
 import java.nio.CharBuffer
 import java.nio.channels.CompletionHandler
 import java.nio.charset.StandardCharsets
+import java.util.concurrent.Semaphore
 import java.util.function.Consumer
 
 /**
@@ -370,12 +373,25 @@ class AvailRuntimeTestHelper
 		 */
 		fun createModuleRoots(fileManager: FileManager): ModuleRoots
 		{
+			val repoString = System.getProperty("repositories", null)
+			if (repoString == null)
+			{
+				Assertions.fail<Any>(
+					"system property \"repositories\" is not set")
+			}
+			Repositories.setDirectoryLocation(File(repoString))
 			val userDir = System.getProperty("user.dir")
 			val path = userDir.replace("/avail-server", "")
 			val uri = "file://$path"
-			val roots = "avail=$path/repositories/avail.repo,$uri/distro/src/avail;" +
-				"tests=$userDir/src/test/resources/repos/tests.repo,$userDir/src/test/resources/tests"
-			return ModuleRoots(fileManager, roots)
+			val roots = "avail=$uri/distro/src/avail;" +
+				"tests=$userDir/src/test/resources/tests"
+			val semaphore = Semaphore(0)
+			val mrs = ModuleRoots(fileManager, roots) {
+				System.err.println("Failed to initialize module roots fully")
+				semaphore.release()
+			}
+			semaphore.acquireUninterruptibly()
+			return mrs
 		}
 
 		/**

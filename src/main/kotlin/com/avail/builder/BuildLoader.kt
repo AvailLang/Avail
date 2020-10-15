@@ -476,6 +476,7 @@ internal class BuildLoader constructor(
 				val ranOnce = AtomicBoolean(false)
 				AvailCompiler.create(
 					moduleName,
+					availBuilder.runtime,
 					availBuilder.textInterface,
 					availBuilder.pollForAbort,
 					{ moduleName2, moduleSize, position, line ->

@@ -234,6 +234,7 @@ internal class BuildTracer constructor(val availBuilder: AvailBuilder)
 				{
 					AvailCompiler.create(
 						resolvedName,
+						availBuilder.runtime,
 						availBuilder.textInterface,
 						availBuilder.pollForAbort,
 						{ _, _, _, _ -> },

@@ -111,6 +111,7 @@ import com.avail.io.ConsoleOutputChannel
 import com.avail.io.TextInterface
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport.WORKBENCH_TRANSCRIPT
+import com.avail.persistence.cache.Repositories
 import com.avail.resolver.ModuleRootResolverRegistry
 import com.avail.stacks.StacksGenerator
 import com.avail.utility.IO
@@ -158,6 +159,7 @@ import java.util.Enumeration
 import java.util.Queue
 import java.util.TimerTask
 import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.Semaphore
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.prefs.BackingStoreException
@@ -613,9 +615,7 @@ class AvailWorkbench internal constructor (
 			finally
 			{
 				// Close all the repositories.
-				workbench.resolver.moduleRoots.roots.forEach { root ->
-					root.repository.close()
-				}
+				Repositories.clearAllRepositories()
 				stopTimeMillis = currentTimeMillis()
 			}
 		}
@@ -2097,7 +2097,11 @@ class AvailWorkbench internal constructor (
 		 */
 		private fun loadModuleRoots(fileManager: FileManager): ModuleRoots
 		{
-			val roots = ModuleRoots(fileManager, "")
+			val outerSemaphore = Semaphore(0)
+			val roots = ModuleRoots(fileManager, "") {
+				outerSemaphore.release()
+			}
+			outerSemaphore.acquireUninterruptibly()
 			roots.clearRoots()
 			val node = basePreferences.node(moduleRootsKeyString)
 			try
@@ -2105,20 +2109,22 @@ class AvailWorkbench internal constructor (
 				val childNames = node.childrenNames()
 				childNames.forEach { childName ->
 					val childNode = node.node(childName)
-					val repoName = childNode.get(
-						moduleRootsRepoSubkeyString, "")
 					val sourceName = childNode.get(
 						moduleRootsSourceSubkeyString, "")
 					val resolver =
 						if (sourceName.isEmpty())
 						{
-							null
+							RuntimeException(
+								"ModuleRoot, $childName, is missing a source URI")
+								.printStackTrace()
+							return@forEach
 						}
 						else
 						{
+							val uri = URI(sourceName)
 							ModuleRootResolverRegistry.createResolver(
 								childName,
-								URI(sourceName),
+								uri,
 								fileManager)
 						}
 					roots.addRoot(ModuleRoot(childName, resolver))
@@ -2331,14 +2337,28 @@ class AvailWorkbench internal constructor (
 			{
 				UIManager.setLookAndFeel(DarculaLaf())
 			}
-
+			val repoString = System.getProperty("repositories", null)
+			require(repoString !== null)
+			{
+					"system property \"repositories\" is not set"
+			}
+			Repositories.setDirectoryLocation(File(repoString))
 			val rootsString = System.getProperty("availRoots", "")
 			val roots = when
 			{
 				// Read the persistent preferences file...
 				rootsString.isEmpty() -> loadModuleRoots(fileManager)
 				// Providing availRoots on command line overrides preferences...
-				else -> ModuleRoots(fileManager, rootsString)
+				else ->
+				{
+					val semaphore = Semaphore(0)
+					val mrs = ModuleRoots(fileManager, rootsString) {
+						System.err.println("Failed to initialize module roots fully")
+						semaphore.release()
+					}
+					semaphore.acquireUninterruptibly()
+					mrs
+				}
 			}
 
 			val resolver: ModuleNameResolver

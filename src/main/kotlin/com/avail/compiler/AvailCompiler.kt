@@ -33,7 +33,6 @@
 package com.avail.compiler
 
 import com.avail.AvailRuntime
-import com.avail.AvailRuntime.Companion.currentRuntime
 import com.avail.AvailRuntimeConfiguration
 import com.avail.AvailRuntimeSupport.captureNanos
 import com.avail.builder.ModuleName
@@ -4299,14 +4298,15 @@ class AvailCompiler(
 		@JvmStatic
 		fun create(
 			resolvedName: ResolvedModuleName,
+			runtime: AvailRuntime,
 			textInterface: TextInterface,
-			pollForAbort: () -> Boolean,
+			pollForAbort: ()->Boolean,
 			reporter: CompilerProgressReporter,
 			afterFail: ()->Unit,
 			problemHandler: ProblemHandler,
 			succeed: (AvailCompiler)->Unit)
 		{
-			extractSourceThen(resolvedName, afterFail, problemHandler) {
+			extractSourceThen(resolvedName, runtime, afterFail, problemHandler) {
 				sourceText ->
 				succeed(
 					AvailCompiler(
@@ -4337,11 +4337,11 @@ class AvailCompiler(
 		 */
 		private fun extractSourceThen(
 			resolvedName: ResolvedModuleName,
+			runtime: AvailRuntime,
 			fail: ()->Unit,
 			problemHandler: ProblemHandler,
 			withSource: (String)->Unit)
 		{
-			val runtime = currentRuntime()
 			val ref = resolvedName.resolverReference
 			val decoder = StandardCharsets.UTF_8.newDecoder()
 			decoder.onMalformedInput(CodingErrorAction.REPLACE)
