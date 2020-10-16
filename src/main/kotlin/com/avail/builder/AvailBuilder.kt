@@ -711,7 +711,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 		action: (ResolvedModuleName, ModuleVersion, ()->Unit)->Unit)
 	{
 		val semaphore = Semaphore(0)
-		traceDirectories(action) { semaphore.release() }
+		traceDirectoriesThen(action) { semaphore.release() }
 		// Trace is not currently interruptible.
 		semaphore.acquireUninterruptibly()
 	}
@@ -734,7 +734,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	 * @param afterAll
 	 *   What to do after all of the modules have been processed.
 	 */
-	private fun traceDirectories(
+	fun traceDirectoriesThen(
 		action: (ResolvedModuleName, ModuleVersion, ()->Unit)->Unit,
 		afterAll: ()->Unit)
 	{

@@ -392,6 +392,7 @@ class AvailServer constructor(
 		continuation: ()->Unit)
 	{
 		assert(command.command === TextCommand.ENTRY_POINTS)
+		// TODO [RAA] fix this!!!! needs to be async use "then" method
 		val message = newSuccessMessage(channel, command) {
 			val map = synchronizedMap(mutableMapOf<String, List<String>>())
 			builder.traceDirectories { name, version, after ->

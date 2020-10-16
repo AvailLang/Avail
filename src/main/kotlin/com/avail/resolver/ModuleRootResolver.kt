@@ -44,7 +44,6 @@ import com.avail.files.FileManager
 import com.avail.persistence.cache.Repository
 import com.avail.persistence.cache.Repository.ModuleVersion
 import java.net.URI
-import java.util.ArrayDeque
 import java.util.UUID
 
 /**
@@ -367,53 +366,4 @@ interface ModuleRootResolver
 	 */
 	fun fullResourceURI (qualifiedName: String): URI =
 		URI("$uri/$qualifiedName")
-
-	/**
-	 * Schedule a hierarchical tracing of all module files in all visible
-	 * subdirectories of the associated [moduleRoot].  Do not resolve the
-	 * imports.  Ignore any modules that have syntax errors in their headers.
-	 * Update the repositories with the latest module version information, or at
-	 * least cause the version caches to treat the current versions as having
-	 * been accessed most recently.
-	 *
-	 * Before a module header parsing starts, add the module name to the
-	 * [BuildDirectoryTracer] trace requests. When a module header's parsing is
-	 * complete, add it to trace completions.
-	 *
-	 * @param moduleAction
-	 *   What to do each time we've extracted or replayed a [ModuleVersion] from
-	 *   a valid module file.  It's passed a function to invoke when the module
-	 *   is considered effectively processed.
-	 * @param moduleFailureHandler
-	 *   A function that accepts the relative path of a file that failed the
-	 *   trace, an [ErrorCode] that describes the nature of the failure and an
-	 *   `nullable` [Throwable]. This is called once for each individual module
-	 *   that failed tracing; hence this failure handler can be called many
-	 *   times for multiple failed modules.
-	 */
-	fun traceAllModuleHeaders(
-		tracer: BuildDirectoryTracer,
-		moduleAction: (ResolvedModuleName, ModuleVersion, ()->Unit)->Unit,
-		moduleFailureHandler: (String, ErrorCode, Throwable?) -> Unit)
-
-	companion object
-	{
-		fun walkRoot(
-			root: ResolverReference,
-			visitResources: Boolean,
-			withParentChild: (ResolverReference, ResolverReference)->Unit)
-		{
-			require(root.type == ResourceType.ROOT
-				|| root.isPackage
-				|| root.type == ResourceType.DIRECTORY)
-			{
-				"ModuleResourceResolver.walk must start with a Root, Package, " +
-					"or Directory; ${root.qualifiedName} is none of those " +
-					"things."
-			}
-			val stack = ArrayDeque<ResolverReference>()
-			stack.add(root)
-
-		}
-	}
 }

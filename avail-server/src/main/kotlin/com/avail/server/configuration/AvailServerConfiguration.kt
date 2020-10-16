@@ -87,6 +87,7 @@ class AvailServerConfiguration constructor(private val fileManager: FileManager)
 			{
 				roots = ModuleRoots(fileManager, availRootsPath) {
 					// TODO log if failed resolution?
+					it.forEach { msg -> System.err.println(msg) }
 				}
 				privateAvailRoots = roots
 			}

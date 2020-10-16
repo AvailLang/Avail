@@ -36,12 +36,13 @@ import com.avail.annotations.ThreadSafe
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.files.FileManager
 import com.avail.persistence.cache.Repositories
+import com.avail.resolver.ModuleRootResolver
 import com.avail.resolver.ModuleRootResolverRegistry
 import com.avail.utility.json.JSONWriter
 import java.net.URI
 import java.util.Collections.unmodifiableSet
-import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.locks.ReentrantLock
 
 /**
  * `ModuleRoots` encapsulates the Avail [module][ModuleDescriptor] path. The
@@ -80,9 +81,9 @@ import java.util.concurrent.atomic.AtomicInteger
  *   The associated [FileManager].
  * @param modulePath
  *   An Avail [module][ModuleDescriptor] path.
- * @param then
- *   A lambda that accepts `true` if `modulePath` parsed and resolved fully or
- *   `false` if it didn't
+ * @param withFailures
+ *   A lambda that accepts [List] of the string [ModuleRoot] [URI]s that failed
+ *   to [resolve][ModuleRootResolver.resolve].
  * @throws IllegalArgumentException
  *   If the Avail [module][ModuleDescriptor] path is malformed.
  */
@@ -90,7 +91,7 @@ import java.util.concurrent.atomic.AtomicInteger
 class ModuleRoots constructor(
 	val fileManager: FileManager,
 	modulePath: String,
-	then: (Boolean) -> Unit) : Iterable<ModuleRoot>
+	withFailures: (List<String>) -> Unit) : Iterable<ModuleRoot>
 {
 	/**
 	 * A [map][Map] from logical root names to [module&#32;root][ModuleRoot]s.
@@ -126,12 +127,15 @@ class ModuleRoots constructor(
 	 *
 	 * @param modulePath
 	 *   The module roots path string.
+	 * @param withFailures
+	 *   A lambda that accepts [List] of the string [ModuleRoot] [URI]s that failed
+	 *   to [resolve][ModuleRootResolver.resolve].
 	 * @throws IllegalArgumentException
 	 *   If any component of the Avail [module][ModuleDescriptor] path is
 	 *   invalid.
 	 */
 	private fun parseAvailModulePathThen(
-		modulePath: String, then: (Boolean) -> Unit)
+		modulePath: String, withFailures: (List<String>) -> Unit)
 	{
 		clearRoots()
 		// Root definitions are separated by semicolons.
@@ -145,8 +149,8 @@ class ModuleRoots constructor(
 				modulePath.split(";")
 			}
 		val workCount = AtomicInteger(components.size)
-		val hasNoFailure = AtomicBoolean(true)
-		val lock = "" // TODO [RAA] Hey me, this is pretty fishy...
+		val failures = mutableListOf<String>()
+		val lock = ReentrantLock()
 		for (component in components)
 		{
 			// An equals separates the root name from its paths.
@@ -174,18 +178,22 @@ class ModuleRoots constructor(
 						addRoot(resolver.moduleRoot)
 						if (workCount.decrementAndGet() == 0)
 						{
-							then(hasNoFailure.get())
+							withFailures(failures)
 						}
 					}
 				}
 			) { code, ex ->
-				hasNoFailure.set(false)
-				System.err.println(
-					"$code: Could not access module root, $rootName ($rootUri)")
+				val message =
+					"$code: Could not resolve module root, $rootName ($rootUri)"
+				synchronized(lock)
+				{
+					failures.add(message)
+				}
+				System.err.println(message)
 				ex?.printStackTrace()
 				if (workCount.decrementAndGet() == 0)
 				{
-					then(hasNoFailure.get())
+					withFailures(failures)
 				}
 			}
 		}
@@ -249,7 +257,7 @@ class ModuleRoots constructor(
 
 	init
 	{
-		parseAvailModulePathThen(modulePath, then)
+		parseAvailModulePathThen(modulePath, withFailures)
 	}
 
 	/**

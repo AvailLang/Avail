@@ -315,7 +315,6 @@ class Repository constructor(
 					}
 					withDigest(newDigest)
 				}
-
 			sourceReference.digest(forceRefreshDigest, success, failureHandler)
 		}
 
@@ -416,7 +415,10 @@ class Repository constructor(
 		 */
 		fun putVersion(versionKey: ModuleVersionKey, version: ModuleVersion) =
 			lock.withLock {
-				assert(!versions.containsKey(versionKey))
+				assert(!versions.containsKey(versionKey)) {
+					"A version for $rootRelativeName has already been added " +
+						"for this ModuleVersionKey"
+				}
 				versions[versionKey] = version
 				markDirty()
 			}

@@ -40,7 +40,6 @@ import com.avail.builder.ModuleRoot
 import com.avail.builder.ModuleRoots
 import com.avail.builder.ResolvedModuleName
 import com.avail.builder.UnresolvedModuleException
-import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.error.ErrorCode
 import com.avail.files.AbstractFileWrapper
 import com.avail.files.AvailFile
@@ -129,9 +128,11 @@ class FileSystemModuleRootResolver constructor(
 		successHandler: (ResolverReference)->Unit,
 		failureHandler: (ErrorCode, Throwable?)->Unit)
 	{
-		moduleRootTree?.let { successHandler(it) } ?: {
-			resolve(successHandler, failureHandler)
-		}()
+		executeTask {
+			moduleRootTree?.let { successHandler(it) } ?: {
+				resolve(successHandler, failureHandler)
+			}()
+		}
 	}
 
 	override fun executeTask(task: ()->Unit) =
@@ -715,122 +716,6 @@ class FileSystemModuleRootResolver constructor(
 	 */
 	private val fileSystemWatcher = FileSystemWatcher()
 
-	// TODO fix up the use of the file walker
-	override fun traceAllModuleHeaders(
-		tracer: BuildDirectoryTracer,
-		moduleAction: (ResolvedModuleName, ModuleVersion, ()->Unit)->Unit,
-		moduleFailureHandler: (String, ErrorCode, Throwable?) -> Unit)
-	{
-		val rootPath = Paths.get(uri)
-		val visitor = object : FileVisitor<Path>
-		{
-			override fun preVisitDirectory(
-				dir: Path,
-				unused: BasicFileAttributes): FileVisitResult
-			{
-				if (dir == rootPath)
-				{
-					// The base directory doesn't have the .avail
-					// extension.
-					return FileVisitResult.CONTINUE
-				}
-				val localName = dir.toFile().name
-				return if (localName.endsWith(ModuleNameResolver.availExtension))
-				{
-					FileVisitResult.CONTINUE
-				}
-				else FileVisitResult.SKIP_SUBTREE
-			}
-
-			override fun visitFile(
-				file: Path,
-				unused: BasicFileAttributes): FileVisitResult
-			{
-				val localName = file.toFile().name
-				if (!localName.endsWith(ModuleNameResolver.availExtension))
-				{
-					return FileVisitResult.CONTINUE
-				}
-				// It's a module file.
-				val builder = StringBuilder(100)
-				builder.append("/")
-				builder.append(moduleRoot.name)
-				val relative = rootPath.relativize(file)
-				for (element in relative)
-				{
-					val part = element.toString()
-					builder.append("/")
-					assert(part.endsWith(ModuleNameResolver.availExtension))
-					val noExtension = part.substring(
-						0,
-						part.length - ModuleNameResolver.availExtension.length)
-					builder.append(noExtension)
-				}
-				val qualifiedName = builder.toString()
-				provideResolverReference(qualifiedName,
-				{ resolverReference ->
-					if (resolverReference.isPackage)
-					{
-						// We don't want trace packages
-						// TODO maybe jump to package representative?
-						tracer.indicateFileCompleted(resolverReference.uri)
-						return@provideResolverReference
-					}
-					tracer.addTraceRequest(resolverReference.uri)
-					fileManager.runtime().execute(0) {
-						val moduleName = ModuleName(qualifiedName)
-						val resolved = ResolvedModuleName(
-							moduleName,
-							fileManager.runtime().moduleRoots(),
-							resolverReference,
-							false)
-						val ran = AtomicBoolean(false)
-						tracer.traceOneModuleHeader(
-							resolved,
-							moduleAction,
-							{
-								val oldRan = ran.getAndSet(true)
-								assert(!oldRan)
-								tracer.indicateFileCompleted(resolverReference.uri)
-							})
-					}
-				}) { code, ex ->
-					moduleFailureHandler(qualifiedName, code, ex)
-				}
-				return FileVisitResult.CONTINUE
-			}
-
-			override fun visitFileFailed(
-				file: Path,
-				exception: IOException): FileVisitResult
-			{
-				// Ignore the exception and continue.  We're just trying to
-				// populate the list of entry points, so it's not something
-				// worth reporting.
-				return FileVisitResult.CONTINUE
-			}
-
-			override fun postVisitDirectory(
-				dir: Path,
-				e: IOException?): FileVisitResult
-			{
-				return FileVisitResult.CONTINUE
-			}
-		}
-		try
-		{
-			Files.walkFileTree(
-				rootPath,
-				setOf(FileVisitOption.FOLLOW_LINKS),
-				Integer.MAX_VALUE,
-				visitor)
-		}
-		catch (e: IOException)
-		{
-			// Ignore it.
-		}
-	}
-
 	/**
 	 * Answer a [visitor][FileVisitor] able to visit every source module
 	 * beneath the [module root][moduleRoot].
@@ -853,11 +738,16 @@ class FileSystemModuleRootResolver constructor(
 				// then recurse into it. Turn off the isRoot flag.
 				if (isRoot)
 				{
+					var dirURI = dir.toUri()
+					if (dirURI.scheme === null)
+					{
+						dirURI = URI("file://$dir")
+					}
 					isRoot = false
 					val qualifiedName = "/${moduleRoot.name}"
 					val reference = ResolverReference(
 						this@FileSystemModuleRootResolver,
-						uri,
+						dirURI,
 						qualifiedName,
 						ROOT,
 						"",
@@ -879,9 +769,14 @@ class FileSystemModuleRootResolver constructor(
 					val localName = fileName.substring(
 						0, fileName.length - extension.length)
 					val qualifiedName = "${parent.qualifiedName}/$localName"
+					var dirURI = dir.toUri()
+					if (dirURI.scheme === null)
+					{
+						dirURI = URI("file://$dir")
+					}
 					val reference = ResolverReference(
 						this@FileSystemModuleRootResolver,
-						uri,
+						dirURI,
 						qualifiedName,
 						ResourceType.PACKAGE,
 						"",
@@ -894,9 +789,14 @@ class FileSystemModuleRootResolver constructor(
 				}
 				// This is an ordinary directory.
 				val qualifiedName = "${parent.qualifiedName}/$fileName"
+				var dirURI = dir.toUri()
+				if (dirURI.scheme === null)
+				{
+					dirURI = URI("file://$dir")
+				}
 				val reference = ResolverReference(
 					this@FileSystemModuleRootResolver,
-					uri,
+					dirURI,
 					qualifiedName,
 					ResourceType.DIRECTORY,
 					"",
@@ -990,9 +890,14 @@ class FileSystemModuleRootResolver constructor(
 							mime = AvailFile.availMimeType
 							ResourceType.MODULE
 						}
+					var fileURI = file.toUri()
+					if (fileURI.scheme === null)
+					{
+						fileURI = URI("file://$file")
+					}
 					val reference = ResolverReference(
 						this@FileSystemModuleRootResolver,
-						uri,
+						fileURI,
 						qualifiedName,
 						type,
 						mime,
@@ -1005,9 +910,14 @@ class FileSystemModuleRootResolver constructor(
 				else
 				{
 					val qualifiedName = "${parent.qualifiedName}/$fileName"
+					var fileURI = file.toUri()
+					if (fileURI.scheme === null)
+					{
+						fileURI = URI("file://$file")
+					}
 					val reference = ResolverReference(
 						this@FileSystemModuleRootResolver,
-						uri,
+						fileURI,
 						qualifiedName,
 						if (isDirectory)
 							ResourceType.DIRECTORY

@@ -91,6 +91,7 @@ class CompilerConfiguration constructor(private val fileManager: FileManager)
 			{
 				val semaphore = Semaphore(0)
 				roots = ModuleRoots(fileManager, availRootsPath) {
+					it.forEach { msg -> System.err.println(msg) }
 					semaphore.release()
 				}
 				semaphore.acquireUninterruptibly()

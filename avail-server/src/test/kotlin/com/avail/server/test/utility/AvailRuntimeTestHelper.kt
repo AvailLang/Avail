@@ -387,7 +387,12 @@ class AvailRuntimeTestHelper
 				"tests=$userDir/src/test/resources/tests"
 			val semaphore = Semaphore(0)
 			val mrs = ModuleRoots(fileManager, roots) {
-				System.err.println("Failed to initialize module roots fully")
+				if (it.isNotEmpty())
+				{
+					System.err.println(
+						"Failed to initialize module roots fully")
+				}
+				it.forEach { msg -> System.err.println(msg) }
 				semaphore.release()
 			}
 			semaphore.acquireUninterruptibly()

@@ -127,10 +127,11 @@ class SerializerTest
 			fileManager,
 			"avail=${File("distro/src/avail").absolutePath}")
 		{
-			if (!it)
+			if (it.isNotEmpty())
 			{
 				System.err.println(
 					"Serializer Test: Failed to fully resolve ModuleRoots")
+				it.forEach { msg -> System.err.println(msg) }
 			}
 			semaphore.release()
 		}

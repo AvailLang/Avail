@@ -34,9 +34,14 @@ package com.avail.builder
 
 import com.avail.compiler.AvailCompiler
 import com.avail.compiler.problems.Problem
+import com.avail.error.ErrorCode
 import com.avail.persistence.cache.Repository.ModuleVersion
 import com.avail.persistence.cache.Repository.ModuleVersionKey
+import com.avail.resolver.ModuleRootResolver
 import java.net.URI
+import java.util.Collections
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.logging.Level
 import javax.annotation.concurrent.GuardedBy
 
@@ -63,15 +68,21 @@ class BuildDirectoryTracer constructor(
 {
 	/** The trace requests that have been scheduled.  */
 	@GuardedBy("this")
-	private val traceRequests = mutableSetOf<URI>()
+	private val traceRequests = Collections.synchronizedSet(mutableSetOf<URI>())
 
 	/** The traces that have been completed.  */
 	@GuardedBy("this")
-	private val traceCompletions = mutableSetOf<URI>()
+	private val traceCompletions =
+		Collections.synchronizedSet(mutableSetOf<URI>())
 
 	/** A flag to indicate when all requests have been queued.  */
 	@GuardedBy("this")
 	private var allQueued = false
+
+	/**
+	 * The number
+	 */
+	private val totalVisited = AtomicInteger(0)
 
 	/**
 	 * How to indicate to the caller that the tracing has completed.  Note that
@@ -120,21 +131,105 @@ class BuildDirectoryTracer constructor(
 		moduleAction: (ResolvedModuleName, ModuleVersion, ()->Unit)->Unit)
 	{
 		val moduleRoots = availBuilder.runtime.moduleRoots()
+		val countDown = AtomicInteger(moduleRoots.roots.size)
 		for (moduleRoot in moduleRoots)
 		{
-			moduleRoot.resolver.traceAllModuleHeaders(this, moduleAction)
+			traceAllModuleHeaders(moduleRoot.resolver, moduleAction,
 			{ name, code, ex ->
 				// TODO figure out what to do with these!!! Probably report them?
 				System.err.println(
 					"Received ErrorCode: $code while tracing $name with " +
 						"exception:\n")
 				ex?.printStackTrace()
+			}) {
+				totalVisited.addAndGet(it)
+				if (countDown.decrementAndGet() == 0)
+				{
+					synchronized(this) {
+						allQueued = true
+						checkForCompletion()
+					}
+				}
 			}
 		}
+	}
 
-		synchronized(this) {
-			allQueued = true
-			checkForCompletion()
+	/**
+	 * Schedule a hierarchical tracing of all module files in all visible
+	 * subdirectories of the associated [moduleRoot].  Do not resolve the
+	 * imports.  Ignore any modules that have syntax errors in their headers.
+	 * Update the repositories with the latest module version information, or at
+	 * least cause the version caches to treat the current versions as having
+	 * been accessed most recently.
+	 *
+	 * Before a module header parsing starts, add the module name to the
+	 * [BuildDirectoryTracer] trace requests. When a module header's parsing is
+	 * complete, add it to trace completions.
+	 *
+	 * @param moduleAction
+	 *   What to do each time we've extracted or replayed a [ModuleVersion] from
+	 *   a valid module file.  It's passed a function to invoke when the module
+	 *   is considered effectively processed.
+	 * @param moduleFailureHandler
+	 *   A function that accepts the relative path of a file that failed the
+	 *   trace, an [ErrorCode] that describes the nature of the failure and an
+	 *   `nullable` [Throwable]. This is called once for each individual module
+	 *   that failed tracing; hence this failure handler can be called many
+	 *   times for multiple failed modules.
+	 * @param afterAllQueued
+	 *   The lambda to run after all modules are queued. It accepts the number
+	 *   of module root module references visited.
+	 */
+	private fun traceAllModuleHeaders(
+		resolver: ModuleRootResolver,
+		moduleAction: (ResolvedModuleName, ModuleVersion, ()->Unit)->Unit,
+		moduleFailureHandler: (String, ErrorCode, Throwable?) -> Unit,
+		afterAllQueued: (Int) -> Unit)
+	{
+		resolver.provideModuleRootTree({ refRoot ->
+			refRoot.walkChildrenThen(false, { visited ->
+				if (visited.isRoot)
+				{
+					return@walkChildrenThen
+				}
+				if (visited.isPackage)
+				{
+					// We don't want trace packages
+					// TODO maybe jump to package representative?
+//					indicateFileCompleted(visited.uri)
+					return@walkChildrenThen
+				}
+				require(visited.isModule)
+				{
+					"BuildDirectoryTracer only operates on packages & modules " +
+						"but received $visited"
+				}
+				// It's a module file.
+				addTraceRequest(visited.uri)
+				resolver.fileManager.runtime().execute(0) {
+					val moduleName = ModuleName(visited.qualifiedName)
+					val resolved = ResolvedModuleName(
+						moduleName,
+						resolver.fileManager.runtime().moduleRoots(),
+						visited,
+						false)
+					val ran = AtomicBoolean(false)
+					traceOneModuleHeader(
+						resolved,
+						moduleAction,
+						{
+							val oldRan = ran.getAndSet(true)
+							assert(!oldRan)
+							indicateFileCompleted(visited.uri)
+						})
+				}
+			},
+			afterAllQueued)
+		}) { code, ex ->
+			moduleFailureHandler(
+				"Could not get ${resolver.moduleRoot.name} ResolverReference",
+				code,
+				ex)
 		}
 	}
 
@@ -296,7 +391,9 @@ class BuildDirectoryTracer constructor(
 	fun indicateFileCompleted(moduleURI: URI)
 	{
 		val added = traceCompletions.add(moduleURI)
-		assert(added) { "Completed trace of file $moduleURI twice" }
+		require(added) {
+			"Completed trace of file $moduleURI twice"
+		}
 		AvailBuilder.log(
 			Level.FINEST,
 			"Build-directory traced one (%d/%d)",
@@ -313,7 +410,9 @@ class BuildDirectoryTracer constructor(
 	{
 		assert(Thread.holdsLock(this))
 
-		if (allQueued && traceRequests.size == traceCompletions.size)
+		if (allQueued
+			&& traceCompletions.size == totalVisited.get()
+			&& traceRequests.minus(traceCompletions).isEmpty())
 		{
 			afterTraceCompletes()
 		}

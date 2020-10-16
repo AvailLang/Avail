@@ -145,14 +145,15 @@ import java.net.URI
 import java.nio.charset.StandardCharsets
 import java.nio.file.FileSystems
 import java.nio.file.Path
-import java.util.ArrayDeque
 import java.util.Arrays
-import java.util.Deque
+import java.util.Collections
 import java.util.Enumeration
 import java.util.Queue
 import java.util.TimerTask
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.Semaphore
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.prefs.BackingStoreException
@@ -894,18 +895,32 @@ class AvailWorkbench internal constructor (
 	}
 
 	/**
+	 * `true` indicates the entire tree is currently being calculated; `false`
+	 * permits a new calculation of the tree.
+	 */
+	private val treeCalculationInProgress = AtomicBoolean(false)
+
+	/**
 	 * Re-parse the package structure from scratch.  Answer a pair consisting
 	 * of the module tree and the entry points tree, but don't install them.
 	 * This can safely be run outside the UI thread.
 	 *
-	 * @return The &lt;module tree, entry points tree&gt; [Pair].
+	 * @param withPair
+	 *   Lambda that accepts the &lt;module tree, entry points tree&gt; [Pair].
 	 */
-	fun calculateRefreshedTrees(): Pair<TreeNode, TreeNode>
+	fun calculateRefreshedTreesThen(
+		withPair: (Pair<TreeNode, TreeNode>) -> Unit)
 	{
-		resolver.clearCache()
-		val modules = newModuleTree()
-		val entryPoints = newEntryPointsTree()
-		return modules to entryPoints
+		if (!treeCalculationInProgress.getAndSet(true))
+		{
+			resolver.clearCache()
+			newModuleTreeThen { modules ->
+				newEntryPointsTreeThen {
+					withPair(modules to it)
+					treeCalculationInProgress.set(false)
+				}
+			}
+		}
 	}
 
 	/**
@@ -947,57 +962,76 @@ class AvailWorkbench internal constructor (
 	 * Answer a [tree&#32;node][TreeNode] that represents the (invisible) root
 	 * of the Avail module tree.
 	 *
-	 * @return The (invisible) root of the module tree.
+	 * @param withTreeNode
+	 *   The lambda that accepts the (invisible) root of the module tree.
 	 */
-	private fun newModuleTree(): TreeNode
+	private fun newModuleTreeThen(withTreeNode: (TreeNode) -> Unit)
 	{
 		val roots = resolver.moduleRoots
-		val sortedRoots = roots.roots.toList().sortedBy { it.name }
+		val sortedRootNodes = Collections.synchronizedList(
+			mutableListOf<ModuleRootNode>())
+
 		val treeRoot = DefaultMutableTreeNode(
 			"(packages hidden root)")
+		val rootCount = AtomicInteger(roots.roots.size)
 		// Put the invisible root onto the work stack.
-		val stack = ArrayDeque<DefaultMutableTreeNode>()
-		val semaphore = Semaphore(0)
-		stack.add(treeRoot)
-		sortedRoots.forEach { root ->
+		roots.roots.forEach { root ->
 			// Obtain the path associated with the module root.
 			root.repository.reopenIfNecessary()
-			val resolver = root.resolver
-			availBuilder.runtime.executor.execute {
-				resolver.provideModuleRootTree({
-					val node = ModuleRootNode(availBuilder, root)
-					treeRoot.add(node)
-					stack.addFirst(node)
-					walkRoot(it, stack)
-					semaphore.release()
-				}) { code, ex ->
-					System.err.println(
-						"Workbench could not walk root, ${root.name}: $code")
-					ex?.printStackTrace()
-					stack.clear()
-					stack.add(treeRoot)
-					semaphore.release()
+			root.resolver.provideModuleRootTree({
+				val node = ModuleRootNode(availBuilder, root)
+				createRootNodes(node, it)
+				sortedRootNodes.add(node)
+
+				// Need to wait for every module to finish the resolution
+				// process before handing in the hidden, top level tree node.
+				if (rootCount.decrementAndGet() == 0)
+				{
+					sortedRootNodes.sort()
+					sortedRootNodes.forEach { m -> treeRoot.add(m) }
+					val enumeration: Enumeration<AbstractBuilderFrameTreeNode> =
+						treeRoot.preorderEnumeration().cast()
+					// Skip the invisible root.
+					enumeration.nextElement()
+					while (enumeration.hasMoreElements())
+					{
+						val subNode: AbstractBuilderFrameTreeNode =
+							enumeration.nextElement().cast()
+						subNode.sortChildren()
+					}
+					withTreeNode(treeRoot)
 				}
+			}) { code, ex ->
+				System.err.println(
+					"Workbench could not walk root, ${root.name}: $code")
+				ex?.printStackTrace()
 			}
-			semaphore.acquireUninterruptibly()
 		}
-		val enumeration: Enumeration<AbstractBuilderFrameTreeNode> =
-			treeRoot.preorderEnumeration().cast()
-		// Skip the invisible root.
-		enumeration.nextElement()
-		for (node in enumeration)
-		{
-			node.sortChildren()
-		}
-		return treeRoot
 	}
 
-	private fun walkRoot (
-		parentRef: ResolverReference,
-		stack: Deque<DefaultMutableTreeNode>)
+	/**
+	 * Populate the provided [rootNode][ModuleRootNode] with tree nodes to be
+	 * displayed in the workbench.
+	 *
+	 * @param rootNode
+	 *   The [ModuleRootNode] to populate.
+	 * @param parentRef
+	 *   The root's [ResolverReference] that will be
+	 *   [traversed][ResolverReference.walkChildrenThen].
+	 */
+	private fun createRootNodes (
+		rootNode: ModuleRootNode,
+		parentRef: ResolverReference)
 	{
-		val parentNode = stack.peekFirst()
-		parentRef.modules.forEach {
+		val parentMap = mutableMapOf<String, DefaultMutableTreeNode>()
+		parentMap[parentRef.qualifiedName] = rootNode
+		parentRef.walkChildrenThen(false, {
+			if (it.isRoot)
+			{
+				return@walkChildrenThen
+			}
+			val parentNode = parentMap[it.qualifiedLocation]
+				?: return@walkChildrenThen
 			if (it.type == ResourceType.MODULE)
 			{
 				try
@@ -1027,7 +1061,7 @@ class AvailWorkbench internal constructor (
 				{
 					// The directory didn't contain the necessary package
 					// representative, so simply skip the whole directory.
-					return
+					return@walkChildrenThen
 				}
 
 				val node = ModuleOrPackageNode(
@@ -1038,26 +1072,27 @@ class AvailWorkbench internal constructor (
 					// Don't examine modules inside a package which is the
 					// source of a rename.  They wouldn't have resolvable
 					// dependencies anyhow.
-					return
+					return@walkChildrenThen
 				}
-				stack.addFirst(node)
-				walkRoot(it, stack)
+				parentMap[it.qualifiedName] = node
 			}
-		}
-		stack.removeFirst()
+		}) {}
 	}
 
 	/**
 	 * Answer a [tree&#32;node][TreeNode] that represents the (invisible) root
 	 * of the Avail entry points tree.
 	 *
-	 * @return The (invisible) root of the entry points tree.
+	 * @param withTreeNode
+	 *   Function that accepts a [TreeNode] that contains all the
+	 *   [EntryPointModuleNode]s.
 	 */
-	private fun newEntryPointsTree(): TreeNode
+	private fun newEntryPointsTreeThen(withTreeNode: (TreeNode) -> Unit)
 	{
 		val mutex = ReentrantReadWriteLock()
-		val moduleNodes = mutableMapOf<String, DefaultMutableTreeNode>()
-		availBuilder.traceDirectories { resolvedName, moduleVersion, after ->
+		val moduleNodes = Collections.synchronizedMap(
+			mutableMapOf<String, DefaultMutableTreeNode>())
+		availBuilder.traceDirectoriesThen({ resolvedName, moduleVersion, after ->
 			val entryPoints = moduleVersion.getEntryPoints()
 			if (entryPoints.isNotEmpty())
 			{
@@ -1073,23 +1108,26 @@ class AvailWorkbench internal constructor (
 				}
 			}
 			after()
+		}) {
+			// TODO this all below needs to be moved into a continuation
+			val entryPointsTreeRoot =
+				DefaultMutableTreeNode("(entry points hidden root)")
+
+			val mapKeys = moduleNodes.keys.toTypedArray()
+			Arrays.sort(mapKeys)
+			mapKeys.forEach { moduleLabel ->
+				entryPointsTreeRoot.add(moduleNodes[moduleLabel])
+			}
+			val enumeration: Enumeration<AbstractBuilderFrameTreeNode> =
+				entryPointsTreeRoot.preorderEnumeration().cast()
+			// Skip the invisible root.
+			enumeration.nextElement()
+			for (node in enumeration)
+			{
+				node.sortChildren()
+			}
+			 withTreeNode(entryPointsTreeRoot)
 		}
-		val mapKeys = moduleNodes.keys.toTypedArray()
-		Arrays.sort(mapKeys)
-		val entryPointsTreeRoot =
-			DefaultMutableTreeNode("(entry points hidden root)")
-		mapKeys.forEach { moduleLabel ->
-			entryPointsTreeRoot.add(moduleNodes[moduleLabel])
-		}
-		val enumeration: Enumeration<AbstractBuilderFrameTreeNode> =
-			entryPointsTreeRoot.preorderEnumeration().cast()
-		// Skip the invisible root.
-		enumeration.nextElement()
-		for (node in enumeration)
-		{
-			node.sortChildren()
-		}
-		return entryPointsTreeRoot
 	}
 
 	/**
@@ -2232,9 +2270,11 @@ class AvailWorkbench internal constructor (
 			val repoString = System.getProperty("repositories", null)
 			require(repoString !== null)
 			{
-					"system property \"repositories\" is not set"
+				"system property \"repositories\" is not set"
 			}
 			Repositories.setDirectoryLocation(File(repoString))
+			val rootResolutionStart = currentTimeMillis()
+			val failedResolutions = mutableListOf<String>()
 			val rootsString = System.getProperty("availRoots", "")
 			val roots = when
 			{
@@ -2244,12 +2284,10 @@ class AvailWorkbench internal constructor (
 				else ->
 				{
 					val semaphore = Semaphore(0)
-					val mrs = ModuleRoots(fileManager, rootsString) { resolved ->
-						if(!resolved)
+					val mrs = ModuleRoots(fileManager, rootsString) { fails ->
+						if (fails.isNotEmpty())
 						{
-							System.err.println(
-								"Failed to initialize module roots fully: " +
-									rootsString)
+							failedResolutions.addAll(fails)
 						}
 						semaphore.release()
 					}
@@ -2257,7 +2295,7 @@ class AvailWorkbench internal constructor (
 					mrs
 				}
 			}
-
+			val resolutionTime = currentTimeMillis() - rootResolutionStart
 			val resolver: ModuleNameResolver
 			var reader: Reader? = null
 			try
@@ -2302,42 +2340,67 @@ class AvailWorkbench internal constructor (
 					{
 						override fun executeTask()
 						{
+							if (failedResolutions.isEmpty())
+							{
+								workbench.writeText(
+									format(
+										"Resolved all module roots in %,3dms\n",
+										resolutionTime),
+									INFO)
+							}
+							else
+							{
+								workbench.writeText(
+									format(
+										"Resolved module roots in %,3dms " +
+											"with failures:\n",
+										resolutionTime),
+									INFO)
+								failedResolutions.forEach {
+									workbench.writeText(
+										format("%s\n", it),
+										INFO)
+								}
+							}
 							// First refresh the module and entry point trees.
 							workbench.writeText(
-								"Scanning all module headers.\n",
+								"Scanning all module headers...\n",
 								INFO)
 							val before = currentTimeMillis()
-							val modulesAndEntryPoints =
-								workbench.calculateRefreshedTrees()
-							val after = currentTimeMillis()
-							workbench.writeText(
-								format("...done (%,3dms)\n", after - before),
-								INFO)
-							// Now select an initial module, if specified.
-							invokeLater {
-								workbench.refreshFor(
-									modulesAndEntryPoints.first,
-									modulesAndEntryPoints.second)
-								if (initial.isNotEmpty())
-								{
-									val path = workbench.modulePath(initial)
-									if (path !== null)
+							workbench.calculateRefreshedTreesThen {//////////////////////
+								modulesAndEntryPoints ->
+								val after = currentTimeMillis()
+								workbench.writeText(
+									format(
+										"...done (%,3dms)\n",
+										after - before),
+									INFO)
+								// Now select an initial module, if specified.
+								invokeLater {
+									workbench.refreshFor(
+										modulesAndEntryPoints.first,
+										modulesAndEntryPoints.second)
+									if (initial.isNotEmpty())
 									{
-										workbench.moduleTree.selectionPath = path
-										workbench.moduleTree.scrollRowToVisible(
-											workbench.moduleTree
-												.getRowForPath(path))
+										val path = workbench.modulePath(initial)
+										if (path !== null)
+										{
+											workbench.moduleTree.selectionPath = path
+											workbench.moduleTree.scrollRowToVisible(
+												workbench.moduleTree
+													.getRowForPath(path))
+										}
+										else
+										{
+											workbench.writeText(
+												"Command line argument '$initial' was "
+													+ "not a valid module path",
+												ERR)
+										}
 									}
-									else
-									{
-										workbench.writeText(
-											"Command line argument '$initial' was "
-												+ "not a valid module path",
-											ERR)
-									}
+									workbench.backgroundTask = null
+									workbench.setEnablements()
 								}
-								workbench.backgroundTask = null
-								workbench.setEnablements()
 							}
 						}
 					}

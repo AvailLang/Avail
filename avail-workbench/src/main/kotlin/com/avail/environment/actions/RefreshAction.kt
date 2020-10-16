@@ -54,12 +54,12 @@ class RefreshAction constructor(workbench: AvailWorkbench)
 {
 	override fun actionPerformed(event: ActionEvent?)
 	{
-		val modulesAndEntryPoints =
-			workbench.calculateRefreshedTrees()
-		invokeLater {
-			workbench.refreshFor(
-				modulesAndEntryPoints.first,
-				modulesAndEntryPoints.second)
+		workbench.calculateRefreshedTreesThen { modulesAndEntryPoints ->
+			invokeLater {
+				workbench.refreshFor(
+					modulesAndEntryPoints.first,
+					modulesAndEntryPoints.second)
+			}
 		}
 	}
 

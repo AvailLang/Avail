@@ -329,10 +329,11 @@ class PreferencesAction constructor(workbench: AvailWorkbench)
 			override fun actionPerformed(e: ActionEvent)
 			{
 				savePreferences()
-				val trees = workbench.calculateRefreshedTrees()
-				invokeLater {
-					workbench.refreshFor(trees.first, trees.second)
-					preferencesDialog!!.isVisible = false
+				workbench.calculateRefreshedTreesThen { trees ->
+					invokeLater {
+						workbench.refreshFor(trees.first, trees.second)
+						preferencesDialog!!.isVisible = false
+					}
 				}
 			}
 		}
