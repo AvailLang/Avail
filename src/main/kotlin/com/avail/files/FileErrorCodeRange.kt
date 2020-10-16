@@ -39,7 +39,8 @@ import com.avail.error.InvalidErrorCode
 import com.avail.resolver.ModuleRootResolver
 
 /**
- * A {@code FileErrorCodeRange} is TODO: Document this!
+ * A `FileErrorCodeRange` is an [ErrorCodeRange] that holds defined error codes
+ * that involve failures while handling files.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */

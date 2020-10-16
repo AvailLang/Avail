@@ -33,7 +33,6 @@
 package com.avail.resolver
 
 import com.avail.AvailRuntime
-import com.avail.builder.BuildDirectoryTracer
 import com.avail.builder.ModuleName
 import com.avail.builder.ModuleNameResolver
 import com.avail.builder.ModuleRoot
@@ -41,11 +40,9 @@ import com.avail.builder.ModuleRoots
 import com.avail.builder.ResolvedModuleName
 import com.avail.builder.UnresolvedModuleException
 import com.avail.error.ErrorCode
-import com.avail.files.AbstractFileWrapper
 import com.avail.files.AvailFile
 import com.avail.files.FileErrorCode
 import com.avail.files.FileManager
-import com.avail.files.ManagedFileWrapper
 import com.avail.io.SimpleCompletionHandler
 import com.avail.persistence.IndexedFileException
 import com.avail.persistence.cache.Repository
@@ -68,8 +65,6 @@ import java.nio.file.WatchKey
 import java.nio.file.WatchService
 import java.nio.file.attribute.BasicFileAttributes
 import java.util.UUID
-import java.util.concurrent.atomic.AtomicBoolean
-import com.avail.persistence.cache.Repository.ModuleVersion
 import com.avail.resolver.ResourceType.*
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousFileChannel
@@ -254,8 +249,7 @@ class FileSystemModuleRootResolver constructor(
 		return if (fileName.endsWith(ModuleNameResolver.availExtension))
 		{
 
-			if (file.isDirectory)
-				ResourceType.PACKAGE
+			if (file.isDirectory) PACKAGE
 			else
 			{
 				val components = fileName.split("/")
@@ -271,18 +265,14 @@ class FileSystemModuleRootResolver constructor(
 					0,
 					fileName.length
 						- ModuleNameResolver.availExtension.length)
-				if (parent == localName)
-					ResourceType.REPRESENTATIVE
-				else
-					ResourceType.MODULE
+				if (parent == localName) REPRESENTATIVE
+				else MODULE
 			}
 		}
 		else
 		{
-			if (file.isDirectory)
-				ResourceType.DIRECTORY
-			else
-				ResourceType.RESOURCE
+			if (file.isDirectory) DIRECTORY
+			else RESOURCE
 		}
 	}
 
@@ -386,7 +376,7 @@ class FileSystemModuleRootResolver constructor(
 		failureHandler: (ErrorCode, Throwable?)->Unit)
 	{
 		TODO("Not yet implemented")
-		// TODO add ResolverReference to referenceMap
+		// TODO RAA add ResolverReference to referenceMap
 	}
 
 	override fun createPackage(
@@ -395,7 +385,7 @@ class FileSystemModuleRootResolver constructor(
 		failureHandler: (ErrorCode, Throwable?)->Unit)
 	{
 		TODO("Not yet implemented")
-		// TODO must create package and module representative
+		// TODO RAA must create package and module representative
 		// TODO add ResolverReferences to referenceMap
 	}
 
@@ -594,14 +584,6 @@ class FileSystemModuleRootResolver constructor(
 				failureHandler(FileErrorCode.IO_EXCEPTION, ex)
 			}).guardedDo { file.read(buffer, 0L, dummy, handler) }
 	}
-
-	override fun fileWrapper(
-		id: UUID,
-		reference: ResolverReference): AbstractFileWrapper =
-			ManagedFileWrapper(
-				id,
-				reference,
-				fileManager)
 
 	override fun watchRoot()
 	{
@@ -1073,7 +1055,7 @@ class FileSystemModuleRootResolver constructor(
 			{
 				event.kind() == StandardWatchEventKinds.ENTRY_DELETE ->
 				{
-					// TODO send delete notification
+					// TODO RAA send delete notification
 					//  notification to sessions with
 					//  file open - probably just notify
 					//  file manager
@@ -1082,7 +1064,7 @@ class FileSystemModuleRootResolver constructor(
 				}
 				event.kind() == StandardWatchEventKinds.ENTRY_MODIFY ->
 				{
-					// TODO send file modify
+					// TODO RAA send file modify
 					//  notification to sessions with
 					//  file open - probably just notify
 					//  file manager
@@ -1091,7 +1073,7 @@ class FileSystemModuleRootResolver constructor(
 				}
 				event.kind() == StandardWatchEventKinds.ENTRY_CREATE ->
 				{
-					// TODO send file create
+					// TODO RAA send file create
 					//  notification to sessions with
 					//  file open - probably just notify
 					//  file manager, what else to

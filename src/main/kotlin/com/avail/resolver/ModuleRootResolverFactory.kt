@@ -33,14 +33,15 @@
 package com.avail.resolver
 
 import com.avail.builder.ModuleRoot
-import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.files.FileManager
-import com.avail.persistence.cache.Repository
-import java.io.File
 import java.net.URI
 
 /**
  * `ModuleRootResolverFactory` is used to create a [ModuleRootResolver].
+ *
+ * All implementations of [ModuleRootResolver] must  have an accompanying
+ * implementation of `ModuleRootResolverFactory` to enable the creation of the
+ * resolver.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */

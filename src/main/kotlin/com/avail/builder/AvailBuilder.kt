@@ -701,29 +701,6 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	 * Note that the action may be invoked in multiple [Thread]s simultaneously,
 	 * so the client may need to provide suitable synchronization.
 	 *
-	 * Also note that the method only returns after all tracing has completed.
-	 *
-	 * @param action
-	 *   What to do with each module version.  The third argument to it is a
-	 *   function to invoke when the module is considered processed.
-	 */
-	fun traceDirectories(
-		action: (ResolvedModuleName, ModuleVersion, ()->Unit)->Unit)
-	{
-		val semaphore = Semaphore(0)
-		traceDirectoriesThen(action) { semaphore.release() }
-		// Trace is not currently interruptible.
-		semaphore.acquireUninterruptibly()
-	}
-
-	/**
-	 * Scan all module files in all visible source directories, passing each
-	 * [ResolvedModuleName] and corresponding [ModuleVersion] to the provided
-	 * function.
-	 *
-	 * Note that the action may be invoked in multiple [Thread]s simultaneously,
-	 * so the client may need to provide suitable synchronization.
-	 *
 	 * The method may return before tracing has completed, but `afterAll` will
 	 * eventually be invoked in some [Thread] after all modules have been
 	 * processed.

@@ -96,7 +96,6 @@ internal class DocumentationTracer constructor(
 		withVersion: (ModuleVersion?) -> Unit,
 		failureHandler: (ErrorCode, Throwable?) -> Unit)
 	{
-		// TODO make async!
 		val repository = moduleName.repository
 		val archive = repository.getArchive(moduleName.rootRelativeName)
 		archive.digestForFile(

@@ -63,6 +63,8 @@ object ServerErrorCodeRange : ErrorCodeRange
  * `ServerErrorCode` is an enumeration of [ErrorCode] that represent all
  * possible failures that can occur while running an [AvailServer].
  *
+ * TODO RAA update these by removing file codes
+ *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
 enum class ServerErrorCode : ErrorCode

@@ -333,7 +333,7 @@ class AvailServer constructor(
 			completion()
 		}
 		val root = roots.next()
-		root.resolver?.provideModuleRootTree(
+		root.resolver.provideModuleRootTree(
 			{ ref ->
 				ref.writeOn(writer, builder)
 				if (roots.hasNext())
@@ -358,19 +358,7 @@ class AvailServer constructor(
 			{
 				completion()
 			}
-		} ?: {
-			val msg = "No module root resolver for root, ${root.name}"
-			logger.log(Level.FINEST) { msg}
-			newNotificationMessage(channel, msg)
-			if (roots.hasNext())
-			{
-				rootWriter(channel, writer, roots, completion)
-			}
-			else
-			{
-				completion()
-			}
-		}()
+		}
 	}
 
 	/**
@@ -392,30 +380,32 @@ class AvailServer constructor(
 		continuation: ()->Unit)
 	{
 		assert(command.command === TextCommand.ENTRY_POINTS)
-		// TODO [RAA] fix this!!!! needs to be async use "then" method
-		val message = newSuccessMessage(channel, command) {
+		newSuccessMessagePayloadThen(command) {
 			val map = synchronizedMap(mutableMapOf<String, List<String>>())
-			builder.traceDirectories { name, version, after ->
+			builder.traceDirectoriesThen({ name, version, after ->
 				val entryPoints = version.getEntryPoints()
 				if (entryPoints.isNotEmpty())
 				{
 					map[name.qualifiedName] = entryPoints
 				}
 				after()
-			}
-			writeArray {
-				map.forEach { (key, value) ->
-					writeObject {
-						at(key) {
-							writeArray {
-								value.forEach(this::write)
+			}) {
+				writeArray {
+					map.forEach { (key, value) ->
+						writeObject {
+							at(key) {
+								writeArray {
+									value.forEach(this::write)
+								}
 							}
 						}
 					}
 				}
 			}
+			channel.enqueueMessageThen(
+				Message(this.toString().toByteArray(), channel.state),
+				continuation)
 		}
-		channel.enqueueMessageThen(message, continuation)
 	}
 
 	/**
@@ -1137,6 +1127,29 @@ class AvailServer constructor(
 				content()
 			}
 			return Message(writer.toString().toByteArray(), channel.state)
+		}
+
+		/**
+		 * Provide a success [message][Message] initialized [JSONWriter]
+		 * to the specified content writer.
+		 *
+		 * @param command
+		 *   The [command][CommandMessage] for which this is a response.
+		 * @param content
+		 *   How to write the content of the message.
+		 */
+		internal fun newSuccessMessagePayloadThen(
+			command: CommandMessage,
+			content: JSONWriter.() -> Unit)
+		{
+			val writer = JSONWriter()
+			writer.writeObject {
+				writeStatusOn(true, writer)
+				writeCommandOn(command.command, writer)
+				writeCommandIdentifierOn(command.commandId, writer)
+				write("content")
+				content()
+			}
 		}
 
 		/**

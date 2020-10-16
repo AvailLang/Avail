@@ -33,16 +33,14 @@
 package com.avail.resolver
 
 import com.avail.AvailThread
-import com.avail.builder.BuildDirectoryTracer
 import com.avail.builder.ModuleName
 import com.avail.builder.ModuleNameResolver
 import com.avail.builder.ModuleRoot
-import com.avail.builder.ResolvedModuleName
 import com.avail.error.ErrorCode
 import com.avail.files.AbstractFileWrapper
 import com.avail.files.FileManager
+import com.avail.files.ManagedFileWrapper
 import com.avail.persistence.cache.Repository
-import com.avail.persistence.cache.Repository.ModuleVersion
 import java.net.URI
 import java.util.UUID
 
@@ -51,6 +49,10 @@ import java.util.UUID
  * given a [URI]. It is responsible for asynchronously retrieving, creating,
  * deleting, saving, files and packages where the `ModuleRoot` is stored.
  *
+ * It is responsible for producing [ResolverReference]s, the linking object
+ * between a resource in a module root to its actual file at the [URI] location
+ * of the module root.
+ *
  * All file actions are conducted via the [ModuleRootResolver.fileManager].
  * Given the files may originate anywhere from the local file system to a remote
  * database accessed via network API, all file requests must be handled
@@ -58,8 +60,14 @@ import java.util.UUID
  *
  * A `ModuleRootResolver` establishes access to a `ModuleRoot` based upon the
  * [URI.scheme] given the appropriate `ModuleRootResolver` that supports the
- * scheme is registered in the [ModuleRootResolverRegistry]. Only one
- * registered `ModuleRootResolver` is allowed per `URI` scheme.
+ * scheme. A `ModuleRootResolver` is created by a corresponding
+ * [ModuleRootResolverFactory]. For each `ModuleRootResolver` type implemented a
+ * `ModuleRootResolverFactory` must be implemented to enable resolver creation.
+ * The `ModuleRootResolverFactory` must be
+ * [registered][ModuleRootResolverRegistry.register] in the
+ * [ModuleRootResolverRegistry]. A `ModuleRootResolver` cannot be created if
+ * the factory has not been registered. Only one registered
+ * `ModuleRootResolverFactory` is allowed per `URI` scheme.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
@@ -353,7 +361,8 @@ interface ModuleRootResolver
 	 *   A `AbstractFileWrapper`.
 	 */
 	fun fileWrapper(
-		id: UUID, reference: ResolverReference): AbstractFileWrapper
+		id: UUID, reference: ResolverReference): AbstractFileWrapper =
+			ManagedFileWrapper(id, reference, fileManager)
 
 	/**
 	 * Answer the [URI] for a resource in the source [moduleRoot] given a

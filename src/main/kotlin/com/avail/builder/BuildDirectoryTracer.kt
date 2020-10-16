@@ -188,15 +188,9 @@ class BuildDirectoryTracer constructor(
 	{
 		resolver.provideModuleRootTree({ refRoot ->
 			refRoot.walkChildrenThen(false, { visited ->
-				if (visited.isRoot)
-				{
-					return@walkChildrenThen
-				}
-				if (visited.isPackage)
+				if (visited.isRoot || visited.isPackage)
 				{
 					// We don't want trace packages
-					// TODO maybe jump to package representative?
-//					indicateFileCompleted(visited.uri)
 					return@walkChildrenThen
 				}
 				require(visited.isModule)

@@ -82,12 +82,21 @@ object ErrorCodeRangeRegistry
 		}
 		ranges[errorCodeRange.range] = errorCodeRange
 	}
-	// TODO get a code
+
 	init
 	{
 		register(FileErrorCodeRange)
 	}
 
+	/**
+	 * Answer the appropriate key into [ranges] for the provided proposed
+	 * [ErrorCode.code].
+	 *
+	 * @param code
+	 *   The code to look up.
+	 * @return
+	 *   The [IntRange] if the code matches a valid key; `null` otherwise.
+	 */
 	private fun inRange (code: Int): IntRange?
 	{
 		for (range in ranges.keys)
