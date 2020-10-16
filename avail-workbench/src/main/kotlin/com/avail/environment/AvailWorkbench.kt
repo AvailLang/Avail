@@ -204,6 +204,7 @@ import kotlin.math.min
  * `AvailWorkbench` is a simple user interface for the
  * [Avail&#32;builder][AvailBuilder].
  *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
