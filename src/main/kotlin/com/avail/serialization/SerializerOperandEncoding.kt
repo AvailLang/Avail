@@ -208,27 +208,19 @@ internal enum class SerializerOperandEncoding
 			// Visit the object.
 			serializer.traceOne(obj)
 
-		override fun write(obj: AvailObject, serializer: Serializer)
-		{
-			val instruction = serializer.instructionForObject(obj)
-			val index = instruction.index
-			assert(index >= 0) {
-				"Attempted to write reference to untraced object."
-			}
-			writeCompressedPositiveInt(index, serializer)
-		}
+		override fun write(obj: AvailObject, serializer: Serializer) =
+			writeCompressedPositiveInt(
+				serializer.compressObjectIndex(obj),
+				serializer)
 
-		override fun read(deserializer: AbstractDeserializer): AvailObject
-		{
-			val index = readCompressedPositiveInt(deserializer)
-			return deserializer.objectFromIndex(index)
-		}
+		override fun read(deserializer: AbstractDeserializer): AvailObject =
+			deserializer.fromCompressedObjectIndex(
+				readCompressedPositiveInt(deserializer))
 
 		override fun describe(describer: DeserializerDescriber)
 		{
 			val index = readCompressedPositiveInt(describer)
-			describer.append("#")
-			describer.append(index.toString())
+			describer.printCompressedIndex(index)
 		}
 	},
 
@@ -285,7 +277,7 @@ internal enum class SerializerOperandEncoding
 			for (element in obj)
 			{
 				writeCompressedPositiveInt(
-					serializer.indexOfExistingObject(element),
+					serializer.compressObjectIndex(element),
 					serializer)
 			}
 		}
@@ -295,7 +287,7 @@ internal enum class SerializerOperandEncoding
 			val tupleSize = readCompressedPositiveInt(deserializer)
 			if (tupleSize == 0) return emptyTuple
 			val newTuple = generateObjectTupleFrom(tupleSize) {
-				deserializer.objectFromIndex(
+				deserializer.fromCompressedObjectIndex(
 					readCompressedPositiveInt(deserializer))
 			}
 			newTuple.makeImmutable()
@@ -313,8 +305,7 @@ internal enum class SerializerOperandEncoding
 					describer.append(", ")
 				}
 				val objectIndex = readCompressedPositiveInt(describer)
-				describer.append("#")
-				describer.append(objectIndex.toString())
+				describer.printCompressedIndex(objectIndex)
 			}
 			describer.append(">")
 		}
@@ -383,8 +374,6 @@ internal enum class SerializerOperandEncoding
 	 * This is a [tuple][TupleDescriptor] of Unicode characters with arbitrary
 	 * code points.  Write the size of the tuple (not the number of bytes), then
 	 * a sequence of compressed integers, one per character.
-	 *
-	 * @see .COMPRESSED_SHORT_CHARACTER_TUPLE
 	 */
 	COMPRESSED_ARBITRARY_CHARACTER_TUPLE
 	{
@@ -529,10 +518,10 @@ internal enum class SerializerOperandEncoding
 			for ((key, value) in obj.mapIterable())
 			{
 				writeCompressedPositiveInt(
-					serializer.indexOfExistingObject(key),
+					serializer.compressObjectIndex(key),
 					serializer)
 				writeCompressedPositiveInt(
-					serializer.indexOfExistingObject(value),
+					serializer.compressObjectIndex(value),
 					serializer)
 			}
 		}
@@ -545,9 +534,9 @@ internal enum class SerializerOperandEncoding
 			for (index in 1..mapSize)
 			{
 				map = map.mapAtPuttingCanDestroy(
-					deserializer.objectFromIndex(
+					deserializer.fromCompressedObjectIndex(
 						readCompressedPositiveInt(deserializer)),
-					deserializer.objectFromIndex(
+					deserializer.fromCompressedObjectIndex(
 						readCompressedPositiveInt(deserializer)),
 					true)
 			}
@@ -566,10 +555,9 @@ internal enum class SerializerOperandEncoding
 				}
 				val keyIndex = readCompressedPositiveInt(describer)
 				val valueIndex = readCompressedPositiveInt(describer)
-				describer.append("#")
-				describer.append(keyIndex.toString())
-				describer.append(" → #")
-				describer.append(valueIndex.toString())
+				describer.printCompressedIndex(keyIndex)
+				describer.append(" → ")
+				describer.printCompressedIndex(valueIndex)
 			}
 			describer.append("}")
 		}

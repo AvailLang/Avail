@@ -77,6 +77,12 @@ class Serializer
 	private var instructionsWritten = 0
 
 	/**
+	 * The [IndexCompressor] used for encoding indices.  This must agree with
+	 * the compressor which will be used later by the [Deserializer].
+	 */
+	private val compressor = FourStreamIndexCompressor()
+
+	/**
 	 * This maintains a stack of [serializer][SerializerInstruction] that need
 	 * to be processed.  It's a stack to ensure depth first writing of
 	 * instructions before their parents.  This mechanism avoids using the JVM's
@@ -177,19 +183,6 @@ class Serializer
 	}
 
 	/**
-	 * Look up the object.  If it is already in the [encounteredObjects] list,
-	 * answer the corresponding [SerializerInstruction].
-	 *
-	 * @param obj
-	 *   The object to look up.
-	 * @return
-	 *   The object's zero-based index in `encounteredObjects`.
-	 */
-	internal fun instructionForObject(
-			obj: A_BasicObject): SerializerInstruction =
-		encounteredObjects[obj]!!
-
-	/**
 	 * Look up the object and return the existing instruction that produces it.
 	 * The instruction must have an index other than -1, which indicates that
 	 * the instruction has not yet been written; that is, the instruction must
@@ -200,11 +193,11 @@ class Serializer
 	 * @return
 	 *   The (non-negative) index of the instruction that produced the object.
 	 */
-	internal fun indexOfExistingObject(obj: A_BasicObject): Int
+	internal fun compressObjectIndex(obj: A_BasicObject): Int
 	{
 		val instruction = encounteredObjects[obj]!!
 		assert(instruction.hasBeenWritten)
-		return instruction.index
+		return compressor.compress(instruction.index)
 	}
 
 	/**
@@ -341,8 +334,7 @@ class Serializer
 					ASSIGN_TO_VARIABLE,
 					variable,
 					this)
-				assignment.index = instructionsWritten
-				instructionsWritten++
+				assignment.index = instructionsWritten++
 				assignment.writeTo(this)
 				assert(assignment.hasBeenWritten)
 			}
@@ -355,8 +347,7 @@ class Serializer
 				CHECKPOINT,
 				strongObject,
 				this)
-			checkpoint.index = instructionsWritten
-			instructionsWritten++
+			checkpoint.index = instructionsWritten++
 			checkpoint.writeTo(this)
 			assert(checkpoint.hasBeenWritten)
 		}

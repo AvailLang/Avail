@@ -162,12 +162,15 @@ abstract class AbstractDeserializer constructor(
 	 * Convert an index into an object.  The object must already have been
 	 * assembled.
 	 *
-	 * @param index
-	 *   The zero-based index at which to fetch the object.
+	 * @param compressedIndex
+	 *   A compressed [Int] that can be decompressed by the [Deserializer]'s
+	 *   [IndexCompressor], when applied in the same order as the [Int]s that
+	 *   were previously compressed by a [Serializer].
 	 * @return
-	 *   The already constructed object at the specified index.
+	 *   The already constructed object at the specified relative index.
 	 */
-	internal abstract fun objectFromIndex(index: Int): AvailObject
+	internal abstract fun fromCompressedObjectIndex(
+		compressedIndex: Int): AvailObject
 
 	/**
 	 * Record the provided object as an end product of deserialization.

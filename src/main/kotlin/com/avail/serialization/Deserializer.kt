@@ -39,8 +39,8 @@ import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import java.io.InputStream
 
 /**
- * A [Deserializer] takes a stream of bytes and reconstructs objects that
- * had been previously [ serialized][Serializer.serialize] with a [Serializer].
+ * A [Deserializer] takes a stream of bytes and reconstructs objects that had
+ * been previously [serialized][Serializer.serialize] with a [Serializer].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *
@@ -67,6 +67,13 @@ class Deserializer constructor(
 	/** A reusable buffer of operand objects.  */
 	private val subobjectsBuffer =
 		Array(SerializerOperation.maxSubobjects) { nil }
+
+	/**
+	 * The [IndexCompressor] used to convert compressed indices into absolute
+	 * indices into previously deserialized objects.  This must be of the same
+	 * kind as the one used in [Serializer].
+	 */
+	private val compressor = FourStreamIndexCompressor()
 
 	/**
 	 * Record a newly reconstituted object.
@@ -123,8 +130,8 @@ class Deserializer constructor(
 		}
 	}
 
-	override fun objectFromIndex(index: Int): AvailObject =
-		assembledObjects[index]
+	override fun fromCompressedObjectIndex(compressedIndex: Int): AvailObject =
+		assembledObjects[compressor.decompress(compressedIndex)]
 
 	/**
 	 * Record the provided object as an end product of deserialization.
