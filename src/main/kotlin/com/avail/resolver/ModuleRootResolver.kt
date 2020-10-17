@@ -96,6 +96,15 @@ interface ModuleRootResolver
 	var accessException: Throwable?
 
 	/**
+	 * The [Map] from a UUID that represents an interested party to a lambda
+	 * that accepts a [WatchEventType] that describes the event that occurred
+	 * at the source location and a [ResolverReference] that identifies to what
+	 * the event occurred to.
+	 */
+	val watchEventSubscriptions:
+		MutableMap<UUID, (WatchEventType, ResolverReference)->Unit>
+
+	/**
 	 * Provide the non-`null` [ResolverReference] that represents the
 	 * [moduleRoot]. There is no guarantee made by this interface as to how
 	 * this should be run. It can be all executed on the calling thread or it
@@ -107,9 +116,9 @@ interface ModuleRootResolver
 	 *   A function that accepts an [ErrorCode] and a `nullable` [Throwable]
 	 *   to be called in the event of failure.
 	 */
-	fun provideModuleRootTree (
-		successHandler: (ResolverReference) -> Unit,
-		failureHandler: (ErrorCode, Throwable?) -> Unit)
+	fun provideModuleRootTree(
+		successHandler: (ResolverReference)->Unit,
+		failureHandler: (ErrorCode, Throwable?)->Unit)
 
 	/**
 	 * Connect to the source of the [moduleRoot] and populate a
@@ -123,9 +132,9 @@ interface ModuleRootResolver
 	 *   A function that accepts an [ErrorCode] and a `nullable` [Throwable]
 	 *   to be called in the event of failure.
 	 */
-	fun resolve (
-		successHandler: (ResolverReference) -> Unit,
-		failureHandler: (ErrorCode, Throwable?) -> Unit)
+	fun resolve(
+		successHandler: (ResolverReference)->Unit,
+		failureHandler: (ErrorCode, Throwable?)->Unit)
 
 	/**
 	 * Asynchronously execute the provided task.
@@ -133,7 +142,7 @@ interface ModuleRootResolver
 	 * @param task
 	 *   The lambda to run outside the calling thread of execution.
 	 */
-	fun executeTask (task: () -> Unit)
+	fun executeTask(task: ()->Unit)
 
 	/**
 	 * Close this [ModuleRootResolver]. Should be called at shutdown to ensure
@@ -146,6 +155,36 @@ interface ModuleRootResolver
 	 * of the currently running instance of Avail.
 	 */
 	fun watchRoot ()
+
+	/**
+	 * Subscribe to receive notifications of [WatchEventType]s occurring to this
+	 * [ModuleRoot].
+	 *
+	 * @param
+	 *   The lambda that accepts a [WatchEventType] that describes the event
+	 *   that occurred at the source location and a [ResolverReference] that
+	 *   identifies to what the event occurred to.
+	 * @return
+	 *   A [UUID] that uniquely identifies the subscription.
+	 */
+	fun subscribeRootWatcher(
+		watchAction: (WatchEventType, ResolverReference)->Unit): UUID
+	{
+		val id = UUID.randomUUID()
+		watchEventSubscriptions[id] = watchAction
+		return id
+	}
+
+	/**
+	 * Remove a watch subscription.
+	 *
+	 * @param id
+	 *   The watch subscription id of the subscription to remove.
+	 */
+	fun unsubscribeRootWatcher(id: UUID)
+	{
+		watchEventSubscriptions.remove(id)
+	}
 
 	/**
 	 * @return
@@ -169,7 +208,7 @@ interface ModuleRootResolver
 	 *   A `ModuleNameResolutionResult` or `null` if could not be located in
 	 *   this root.
 	 */
-	fun find (
+	fun find(
 		qualifiedName: ModuleName,
 		initialCanonicalName: ModuleName,
 		moduleNameResolver: ModuleNameResolver)
@@ -187,10 +226,10 @@ interface ModuleRootResolver
 	 *   A function that accepts an [ErrorCode] and a `nullable` [Throwable]
 	 *   to be called in the event of failure.
 	 */
-	fun provideResolverReference (
+	fun provideResolverReference(
 		qualifiedName: String,
 		withReference: (ResolverReference)->Unit,
-		failureHandler: (ErrorCode, Throwable?) -> Unit)
+		failureHandler: (ErrorCode, Throwable?)->Unit)
 
 	/**
 	 * Answer the [ResolverReference] for the given qualified file name for a
@@ -204,7 +243,7 @@ interface ModuleRootResolver
 	 * @return
 	 *   The [ResolverReference] or `null` if not presently available.
 	 */
-	fun getResolverReference (qualifiedName: String): ResolverReference?
+	fun getResolverReference(qualifiedName: String): ResolverReference?
 
 	/**
 	 * Specifically refresh the [ResolverReference.digest] in the
@@ -229,10 +268,10 @@ interface ModuleRootResolver
 	 *   A function that accepts an [ErrorCode] and a `nullable` [Throwable]
 	 *   to be called in the event of failure.
 	 */
-	fun refreshResolverReferenceDigest (
+	fun refreshResolverReferenceDigest(
 		reference: ResolverReference,
-		successHandler : (ByteArray, Long) -> Unit,
-		failureHandler: (ErrorCode, Throwable?) -> Unit)
+		successHandler: (ByteArray, Long)->Unit,
+		failureHandler: (ErrorCode, Throwable?)->Unit)
 
 	/**
 	 * Specifically refresh the [ResolverReference] mutable state:
@@ -249,10 +288,10 @@ interface ModuleRootResolver
 	 *   A function that accepts an [ErrorCode] and a `nullable` [Throwable]
 	 *   to be called in the event of failure.
 	 */
-	fun refreshResolverMetaData (
+	fun refreshResolverMetaData(
 		reference: ResolverReference,
-		successHandler : (Long) -> Unit,
-		failureHandler: (ErrorCode, Throwable?) -> Unit)
+		successHandler: (Long)->Unit,
+		failureHandler: (ErrorCode, Throwable?)->Unit)
 
 	/**
 	 * Provide the full list of all [ResolverReference]s in this
@@ -269,10 +308,10 @@ interface ModuleRootResolver
 	 *   A function that accepts a [ErrorCode] that describes the nature
 	 *   of the failure and a `nullable` [Throwable].
 	 */
-	fun rootManifest (
+	fun rootManifest(
 		forceRefresh: Boolean,
 		withList: (List<ResolverReference>)->Unit,
-		failureHandler: (ErrorCode, Throwable?) -> Unit)
+		failureHandler: (ErrorCode, Throwable?)->Unit)
 
 	/**
 	 * Retrieve the resource and provide it with a request to obtain
@@ -292,7 +331,7 @@ interface ModuleRootResolver
 	 *   A function that accepts a [ErrorCode] that describes the nature
 	 *   of the failure and a `nullable` [Throwable].
 	 */
-	fun readFile (
+	fun readFile(
 		byPassFileManager: Boolean,
 		reference: ResolverReference,
 		withContents: (ByteArray, UUID?)->Unit,
@@ -311,7 +350,7 @@ interface ModuleRootResolver
 	 *   A function that accepts a [ErrorCode] that describes the failure
 	 *   and a `nullable` [Throwable].
 	 */
-	fun createFile (
+	fun createFile(
 		qualifiedName: String,
 		mimeType: String,
 		completion: ()->Unit,
@@ -321,14 +360,53 @@ interface ModuleRootResolver
 	 * Create a package and its representative Avail module.
 	 *
 	 * @param qualifiedName
-	 *   The [fully-qualified name][ModuleName] of the module or resource.
+	 *   The [fully-qualified name][ModuleName] of the package.
 	 * @param completion
-	 *   A function to be run upon the successful creation of the file.
+	 *   A function to be run upon the successful creation of the package.
 	 * @param failureHandler
 	 *   A function that accepts a [ErrorCode] that describes the failure
 	 *   and a `nullable` [Throwable].
 	 */
-	fun createPackage (
+	fun createPackage(
+		qualifiedName: String,
+		completion: ()->Unit,
+		failureHandler: (ErrorCode, Throwable?)->Unit)
+
+	/**
+	 * Create a directory.
+	 *
+	 * @param qualifiedName
+	 *   The fully-qualified name of the directory.
+	 * @param completion
+	 *   A function to be run upon the successful creation of the directory.
+	 * @param failureHandler
+	 *   A function that accepts a [ErrorCode] that describes the failure
+	 *   and a `nullable` [Throwable].
+	 */
+	fun createDirectory(
+		qualifiedName: String,
+		completion: ()->Unit,
+		failureHandler: (ErrorCode, Throwable?)->Unit)
+
+	/**
+	 * Delete the [ResourceType] linked to the qualified name. If the
+	 * [ResourceType] is a [ResourceType.PACKAGE] or a [ResourceType.DIRECTORY],
+	 * all of its children should be deleted as well. All deleted references
+	 * should be removed from the [reference tree][provideResolverReference].
+	 *
+	 * If it is a [ResourceType.REPRESENTATIVE], the package it represents
+	 * should be deleted and handled as if the package were the target of
+	 * deletion.
+	 *
+	 * @param qualifiedName
+	 *   The fully-qualified name of the directory.
+	 * @param completion
+	 *   A function to be run upon the successful creation of the directory.
+	 * @param failureHandler
+	 *   A function that accepts a [ErrorCode] that describes the failure
+	 *   and a `nullable` [Throwable].
+	 */
+	fun deleteResource(
 		qualifiedName: String,
 		completion: ()->Unit,
 		failureHandler: (ErrorCode, Throwable?)->Unit)
@@ -344,11 +422,11 @@ interface ModuleRootResolver
 	 *   A function that accepts an [ErrorCode] that describes the nature
 	 *   of the failure and a `nullable` [Throwable].
 	 */
-	fun saveFile (
+	fun saveFile(
 		reference: ResolverReference,
 		fileContents: ByteArray,
-		successHandler: () -> Unit,
-		failureHandler: (ErrorCode, Throwable?) -> Unit)
+		successHandler: ()->Unit,
+		failureHandler: (ErrorCode, Throwable?)->Unit)
 
 	/**
 	 * Answer a [AbstractFileWrapper] for the targeted file.
@@ -373,6 +451,47 @@ interface ModuleRootResolver
 	 * @return
 	 *   A `URI` for the resource.
 	 */
-	fun fullResourceURI (qualifiedName: String): URI =
+	fun fullResourceURI(qualifiedName: String): URI =
 		URI("$uri/$qualifiedName")
+
+	/**
+	 * Answer a qualified name for the given [URI] that points to a file in the
+	 * [moduleRoot].
+	 *
+	 * @param targetURI
+	 *   The [URI] to transform into qualified name.
+	 * @return The qualified name.
+	 */
+	fun getQualifiedName(targetURI: URI): String
+	{
+		assert(targetURI.path.startsWith(uri.path)) {
+			"$targetURI is not in ModuleRoot, $moduleRoot"
+		}
+		val relative = targetURI.path.split(uri.path)[1]
+		return "/${moduleRoot.name}" +
+			if (relative.startsWith("/")) "" else "/" +
+				relative
+	}
+
+	/**
+	 * A `WatchEventType` indicates the types of events that can occur to
+	 * resources at the represented [ModuleRoot] source location.
+	 */
+	enum class WatchEventType
+	{
+		/**
+		 * A new [ResourceType] is created.
+		 */
+		CREATE,
+
+		/**
+		 * A [ResourceType] is changed. This should only happen to actual files.
+		 */
+		MODIFY,
+
+		/**
+		 * A [ResourceType] has been deleted.
+		 */
+		DELETE
+	}
 }

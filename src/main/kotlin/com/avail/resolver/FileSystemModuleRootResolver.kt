@@ -46,6 +46,8 @@ import com.avail.files.FileManager
 import com.avail.io.SimpleCompletionHandler
 import com.avail.persistence.IndexedFileException
 import com.avail.persistence.cache.Repository
+import com.avail.resolver.ModuleRootResolver.WatchEventType
+import com.avail.resolver.ModuleRootResolver.WatchEventType.*
 import org.apache.tika.Tika
 import java.io.File
 import java.io.IOException
@@ -72,6 +74,7 @@ import java.nio.channels.CompletionHandler
 import java.nio.file.StandardOpenOption
 import java.security.MessageDigest
 import java.util.ArrayDeque
+import java.util.Collections
 import java.util.Deque
 import java.util.EnumSet
 import java.util.LinkedList
@@ -105,6 +108,10 @@ class FileSystemModuleRootResolver constructor(
 	: ModuleRootResolver
 {
 	override var accessException: Throwable? = null
+
+	override val watchEventSubscriptions:
+		MutableMap<UUID, (WatchEventType, ResolverReference) -> Unit> =
+			Collections.synchronizedMap(mutableMapOf())
 
 	/**
 	 * The map from the [ModuleName.qualifiedName] to the respective
@@ -376,7 +383,7 @@ class FileSystemModuleRootResolver constructor(
 		failureHandler: (ErrorCode, Throwable?)->Unit)
 	{
 		TODO("Not yet implemented")
-		// TODO RAA add ResolverReference to referenceMap
+		// TODO RAA add ResolverReference to referenceMap and reference tree
 	}
 
 	override fun createPackage(
@@ -386,7 +393,25 @@ class FileSystemModuleRootResolver constructor(
 	{
 		TODO("Not yet implemented")
 		// TODO RAA must create package and module representative
-		// TODO add ResolverReferences to referenceMap
+		// TODO add ResolverReferences to referenceMap and reference tree
+	}
+
+	override fun createDirectory(
+		qualifiedName: String,
+		completion: ()->Unit,
+		failureHandler: (ErrorCode, Throwable?)->Unit)
+	{
+		TODO("Not yet implemented")
+		// TODO RAA add ResolverReference to referenceMap and reference tree
+	}
+
+	override fun deleteResource(
+		qualifiedName: String,
+		completion: ()->Unit,
+		failureHandler: (ErrorCode, Throwable?)->Unit)
+	{
+		TODO("Not yet implemented")
+		// TODO delete all children, update reference map and reference tree.
 	}
 
 	/**
@@ -1034,19 +1059,16 @@ class FileSystemModuleRootResolver constructor(
 			event: WatchEvent<*>)
 		{
 			// Mac stuff to ignore
-			if (event
-					.context()
-					.toString() == ".DS_Store")
+			if (event.context().toString() == ".DS_Store")
 			{
 				key.reset()
 				return
 			}
-			val file =
-				File("$path/${event.context()}")
+			val file = File("$path/${event.context()}")
 			val isDirectory = file.isDirectory
-			if (isDirectory && (
-					event.kind() == StandardWatchEventKinds.ENTRY_MODIFY
-						|| event.kind() == StandardWatchEventKinds.ENTRY_CREATE))
+			if (isDirectory
+				&& (event.kind() == StandardWatchEventKinds.ENTRY_MODIFY
+					|| event.kind() == StandardWatchEventKinds.ENTRY_CREATE))
 			{
 				key.reset()
 				return
@@ -1055,48 +1077,43 @@ class FileSystemModuleRootResolver constructor(
 			{
 				event.kind() == StandardWatchEventKinds.ENTRY_DELETE ->
 				{
-					// TODO RAA send delete notification
-					//  notification to sessions with
-					//  file open - probably just notify
-					//  file manager
-					println("$file deleted!")
+					val uriPath = URI("file://$path")
+					val qualifiedName = getQualifiedName(uriPath)
+					val ref = referenceMap.remove(qualifiedName) ?: return
+					// TODO remove from reference tree
+					watchEventSubscriptions.values.forEach {
+						it(DELETE, ref)
+					}
 					key.reset()
 				}
 				event.kind() == StandardWatchEventKinds.ENTRY_MODIFY ->
 				{
-					// TODO RAA send file modify
-					//  notification to sessions with
-					//  file open - probably just notify
-					//  file manager
-					println("$file modified!")
+					val uriPath = URI("file://$path")
+					val qualifiedName = getQualifiedName(uriPath)
+					val ref = referenceMap[qualifiedName] ?: return
+					watchEventSubscriptions.values.forEach {
+						 it(MODIFY, ref)
+					}
 					key.reset()
 				}
 				event.kind() == StandardWatchEventKinds.ENTRY_CREATE ->
 				{
-					// TODO RAA send file create
-					//  notification to sessions with
-					//  file open - probably just notify
-					//  file manager, what else to
-					//  notify?
-					val uriPath = uri.path + "/"
-					val qualifiedName =
-						"/${moduleRoot.name}/${uriPath.split(uriPath)[1]}"
+					val uriPath = URI("file://$path")
+					val qualifiedName = getQualifiedName(uriPath)
 					val type = determineResourceType(file)
-					// TODO figure out the type!
 					val ref =
 						resolverReference(
 							path,
 							qualifiedName,
 							type)
 					referenceMap[ref.qualifiedName] = ref
-					println("$file created!")
+					// TODO insert into reference tree
+					watchEventSubscriptions.values.forEach {
+						it(CREATE, ref)
+					}
 					key.reset()
 				}
 			}
-
-			println(
-				"Event kind:" + event.kind()
-					+ ". File affected: " + path + "/" + event.context() + ".")
 		}
 	}
 

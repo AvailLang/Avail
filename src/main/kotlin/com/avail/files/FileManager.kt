@@ -97,7 +97,7 @@ open class FileManager
 	 */
 	fun watchRoot (root: ModuleRoot)
 	{
-		root.resolver?.watchRoot()
+		root.resolver.watchRoot()
 	}
 
 

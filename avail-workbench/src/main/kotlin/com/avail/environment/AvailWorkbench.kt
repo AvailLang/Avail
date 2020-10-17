@@ -110,6 +110,7 @@ import com.avail.io.TextInterface
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport.WORKBENCH_TRANSCRIPT
 import com.avail.persistence.cache.Repositories
+import com.avail.resolver.ModuleRootResolver
 import com.avail.resolver.ModuleRootResolverRegistry
 import com.avail.resolver.ResolverReference
 import com.avail.resolver.ResourceType
@@ -2408,6 +2409,17 @@ class AvailWorkbench internal constructor (
 				bench.backgroundTask = initialRefreshTask
 				bench.setEnablements()
 				bench.isVisible = true
+				resolver.moduleRoots.roots.forEach {
+					it.resolver.watchRoot()
+					it.resolver.subscribeRootWatcher { event, ref ->
+						when (event)
+						{
+							ModuleRootResolver.WatchEventType.CREATE,
+							ModuleRootResolver.WatchEventType.DELETE ->
+								bench.refreshAction // TODO how is this run?
+						}
+					}
+				}
 				initialRefreshTask.execute()
 			}
 		}

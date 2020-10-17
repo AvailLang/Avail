@@ -38,6 +38,7 @@ import com.avail.error.ErrorCode
 import com.avail.persistence.cache.Repository.ModuleVersion
 import com.avail.persistence.cache.Repository.ModuleVersionKey
 import com.avail.resolver.ModuleRootResolver
+import com.avail.resolver.ResourceType
 import java.net.URI
 import java.util.Collections
 import java.util.concurrent.atomic.AtomicBoolean
@@ -80,7 +81,9 @@ class BuildDirectoryTracer constructor(
 	private var allQueued = false
 
 	/**
-	 * The number
+	 * The total number of modules [ResourceType.REPRESENTATIVE]s and
+	 * [ResourceType.MODULE]s visited. This should reflect the final number
+	 * of [traceRequests] and [traceCompletions].
 	 */
 	private val totalVisited = AtomicInteger(0)
 
