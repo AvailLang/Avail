@@ -35,13 +35,11 @@ package com.avail.server.configuration
 import com.avail.builder.ModuleRoots
 import com.avail.builder.RenamesFileParser
 import com.avail.builder.RenamesFileParserException
-import com.avail.persistence.cache.Repositories
 import com.avail.server.AvailServer
 import com.avail.server.configuration.CommandLineConfigurator.OptionKey.AVAIL_RENAMES
 import com.avail.server.configuration.CommandLineConfigurator.OptionKey.AVAIL_ROOTS
 import com.avail.server.configuration.CommandLineConfigurator.OptionKey.DOCUMENT_ROOT
 import com.avail.server.configuration.CommandLineConfigurator.OptionKey.HELP
-import com.avail.server.configuration.CommandLineConfigurator.OptionKey.REPOSITORIES
 import com.avail.server.configuration.CommandLineConfigurator.OptionKey.SERVER_AUTHORITY
 import com.avail.server.configuration.CommandLineConfigurator.OptionKey.SERVER_PORT
 import com.avail.tools.options.OptionProcessingException
@@ -100,11 +98,6 @@ class CommandLineConfigurator constructor(
 		AVAIL_ROOTS,
 
 		/**
-		 * The option to set the [Repositories.directory].
-		 */
-		REPOSITORIES,
-
-		/**
 		 * Specification of the server authority.
 		 */
 		SERVER_AUTHORITY,
@@ -155,13 +148,6 @@ class CommandLineConfigurator constructor(
 				{
 					configuration.availRootsPath = argument
 				}
-			optionWithArgument(
-				REPOSITORIES,
-				listOf("repositories"),
-				"The Avail repositories directory location")
-			{
-				configuration.repositoriesPath = argument
-			}
 			optionWithArgument(
 				SERVER_AUTHORITY,
 				listOf("serverAuthority"),

@@ -173,7 +173,7 @@ class ModuleNameResolver constructor(val moduleRoots: ModuleRoots)
 	 */
 	fun destroy()
 	{
-		Repositories.closeAndRemoveAllRepos()
+		Repositories.closeAndRemoveAllRepositories()
 	}
 
 	/**

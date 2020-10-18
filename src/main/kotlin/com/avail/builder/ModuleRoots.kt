@@ -213,7 +213,7 @@ class ModuleRoots constructor(
 	fun addRoot(root: ModuleRoot)
 	{
 		rootMap[root.name] = root
-		Repositories.addRepo(root)
+		Repositories.addRepository(root)
 	}
 
 	/**
@@ -225,7 +225,7 @@ class ModuleRoots constructor(
 	fun removeRoot (name: String)
 	{
 		rootMap.remove(name)?.let {
-			Repositories.deleteRepo(name)
+			Repositories.deleteRepository(name)
 		}
 	}
 

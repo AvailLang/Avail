@@ -103,18 +103,6 @@ class AvailServerConfiguration constructor(private val fileManager: FileManager)
 			moduleNameResolver = null
 		}
 
-	/** The [Repositories] path. */
-	internal var repositoriesPath = ""
-		set (newValue)
-		{
-			val dir = File(newValue)
-			require(dir.isDirectory) {
-				"The Repositories location, $newValue, is not a directory!"
-			}
-			Repositories.setDirectoryLocation(dir)
-			field = newValue
-		}
-
 	/** The [module name resolver][ModuleNameResolver]. */
 	@Transient
 	private var moduleNameResolver: ModuleNameResolver? = null

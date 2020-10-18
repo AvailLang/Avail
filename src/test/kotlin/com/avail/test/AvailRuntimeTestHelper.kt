@@ -352,7 +352,7 @@ class AvailRuntimeTestHelper
 				Assertions.fail<Any>(
 					"system property \"repositories\" is not set")
 			}
-			Repositories.setDirectoryLocation(File(repoString))
+//			Repositories.setDirectoryLocation(File(repoString))
 			val rootsString = System.getProperty("availRoots", null)
 			if (rootsString == null)
 			{

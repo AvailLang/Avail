@@ -6,16 +6,16 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ * * Redistributions in binary form must reproduce the above copyright notice, this
+ *   list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
  *
- *  * Neither the name of the copyright holder nor the names of the contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -36,18 +36,16 @@ import com.avail.builder.ModuleRoot
 import java.io.File
 
 /**
- * {@code Repositories} manages all the system repositories.
+ * {@code Repositories} manages all the system repositories. `Repositories`
+ * are stored in the user home directory (`System.getProperty("user.home")`)
+ * in the directory `.avail/repositories`. If the repositories directory does
+ * not exist it will be created. Additionally, if the .avail directory does not
+ * exist, it will be created.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
 object Repositories
 {
-	/**
-	 * The default directory location where [Repository] repo files will be
-	 * stored.
-	 */
-	private const val defaultDirectoryLocation: String = "repositories/"
-
 	/**
 	 * The file extension for a repo.
 	 */
@@ -56,21 +54,35 @@ object Repositories
 	/**
 	 * The [Repository]s directory.
 	 */
-	lateinit var directory: File
-		private set
+	val directory: File
 
-	/**
-	 * Set the [directory].
-	 *
-	 * @param file
-	 *   The directory to set.
-	 */
-	fun setDirectoryLocation (file: File)
+	init
 	{
-		require(file.isDirectory) {
-			"Repositories directory, $file, is not a directory!"
+		// Initialize the repositories directory. If it doesn't exist it will
+		// be created
+		val home = System.getProperty("user.home")
+		val repositoriesPath = "$home/.avail/repositories/"
+		val repos = File(repositoriesPath)
+		if (!repos.exists())
+		{
+			val availDir = File("$home/.avail")
+			if (!availDir.exists())
+			{
+				assert(availDir.mkdir()) {
+					"Could not create avail directory $availDir"
+				}
+			}
+			assert(repos.mkdir()) {
+				"Could not create repositories directory $repositoriesPath"
+			}
 		}
-		directory = file
+		else
+		{
+			assert(repos.isDirectory) {
+				"$repositoriesPath exists as a file but must be a directory"
+			}
+		}
+		directory = repos
 	}
 
 	/**
@@ -86,7 +98,7 @@ object Repositories
 	 * @param root
 	 *   The [ModuleRoot] to add a repo for.
 	 */
-	fun addRepo (root: ModuleRoot)
+	fun addRepository (root: ModuleRoot)
 	{
 		repositories[root.name] =
 			Repository(
@@ -100,7 +112,7 @@ object Repositories
 	 * @param rootName
 	 *   The name of the repo that should be removed.
 	 */
-	fun deleteRepo (rootName: String)
+	fun deleteRepository (rootName: String)
 	{
 		repositories.remove(rootName)
 	}
@@ -120,7 +132,7 @@ object Repositories
 	 * @param rootName
 	 *   The name of the repo that should be cleared.
 	 */
-	fun clearRepoFor (rootName: String)
+	fun clearRepositoryFor (rootName: String)
 	{
 		repositories[rootName]?.clear()
 	}
@@ -128,7 +140,7 @@ object Repositories
 	/**
 	 * [Close][Repository.close] each [Repository] in [Repositories].
 	 */
-	fun closeAllRepos ()
+	fun closeAllRepositories ()
 	{
 		repositories.values.forEach { it.close() }
 	}
@@ -137,7 +149,7 @@ object Repositories
 	 * [Close][Repository.close] each [Repository] in [Repositories], then
 	 * completely remove them all.
 	 */
-	fun closeAndRemoveAllRepos ()
+	fun closeAndRemoveAllRepositories ()
 	{
 		repositories.values.forEach { it.close() }
 		repositories.clear()

@@ -100,16 +100,6 @@ class CompilerConfiguration constructor(private val fileManager: FileManager)
 			return roots
 		}
 
-	/** The [Repositories] path. */
-	internal var repositoriesPath = ""
-		set (newValue)
-		{
-			require(File(newValue).isDirectory) {
-				"The Repositories location, $newValue, is not a directory!"
-			}
-			field = newValue
-		}
-
 	/** The path to the [renames file][RenamesFileParser].  */
 	internal var renamesFilePath: String? = null
 		set(newValue)

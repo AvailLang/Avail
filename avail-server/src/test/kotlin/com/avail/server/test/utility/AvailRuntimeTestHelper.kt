@@ -379,7 +379,7 @@ class AvailRuntimeTestHelper
 				Assertions.fail<Any>(
 					"system property \"repositories\" is not set")
 			}
-			Repositories.setDirectoryLocation(File(repoString))
+//			Repositories.setDirectoryLocation(File(repoString))
 			val userDir = System.getProperty("user.dir")
 			val path = userDir.replace("/avail-server", "")
 			val uri = "file://$path"

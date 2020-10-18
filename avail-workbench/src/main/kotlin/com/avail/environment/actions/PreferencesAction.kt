@@ -121,7 +121,7 @@ class PreferencesAction constructor(workbench: AvailWorkbench)
 	{
 		// Rebuild the ModuleRoots from the rootsTableModel.
 		val roots = workbench.resolver.moduleRoots
-		Repositories.closeAllRepos()
+		Repositories.closeAllRepositories()
 		roots.clearRoots()
 		for (double in rootsTableModel.rows)
 		{

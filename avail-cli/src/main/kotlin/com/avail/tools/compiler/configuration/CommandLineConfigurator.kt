@@ -37,7 +37,6 @@ import com.avail.builder.ModuleRoots
 import com.avail.builder.RenamesFileParser
 import com.avail.builder.RenamesFileParserException
 import com.avail.performance.StatisticReport
-import com.avail.persistence.cache.Repositories
 import com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.AVAIL_RENAMES
 import com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.AVAIL_ROOTS
 import com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.CLEAR_REPOSITORIES
@@ -46,7 +45,6 @@ import com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.
 import com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.GENERATE_DOCUMENTATION
 import com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.HELP
 import com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.QUIET
-import com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.REPOSITORIES
 import com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.SHOW_STATISTICS
 import com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.TARGET_MODULE_NAME
 import com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.VERBOSE_MODE
@@ -139,11 +137,6 @@ class CommandLineConfigurator constructor(
 		 * The option to mute all output originating from user code.
 		 */
 		QUIET,
-
-		/**
-		 * The option to set the [Repositories.directory].
-		 */
-		REPOSITORIES,
 
 		/**
 		 * The option to emit performance statistics for the Avail Virtual
@@ -256,13 +249,6 @@ class CommandLineConfigurator constructor(
 				{
 					configuration.quiet = true
 				}
-			optionWithArgument(
-				REPOSITORIES,
-				listOf("repositories"),
-				"The Avail repositories directory location")
-			{
-				configuration.repositoriesPath = argument
-			}
 			optionWithArgument(
 				SHOW_STATISTICS,
 				listOf("s", "showStatistics"),

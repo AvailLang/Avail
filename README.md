@@ -139,8 +139,8 @@ You should see output similar to this:
     valid module root path. If AVAIL_ROOTS is not set, then avail-dev
     temporarily sets it to:
     
-            avail=$HOME/.avail/repos/avail.repo,$PROJ/distro/src/avail;\
-            examples=$HOME/.avail/repos/examples.repo,$PROJ/distro/src/examples
+            avail=$PROJ/distro/src/avail;\
+            examples=$PROJ/distro/src/examples
     
     This is convenient for experimenting with Avail, but must be
     extended with custom module roots as you develop your own modules.
@@ -199,21 +199,28 @@ Foundation is called "examples". The Avail Foundation advises Avail developers
 to follow a reverse DNS name convention, like "com.acme.super-neato-project", to
 prevent collision between module root names among several vendors and projects.
 
-A "module root path" is actually a conjunction of a binary repository path and a
-source path, respectively, separated by a comma (","). A "binary repository
-path" locates a binary file that contains the compiled forms of Avail source
-modules. A "source path" locates a directory containing Avail source modules.
-The same binary repository path may be used for many source paths. If a binary
-repository path does not refer to an existing file, then "avail-dev" will create
-and populate this file as needed. A source path must always refer to an existing
-directory that is readable by the user running "avail-dev".
+A "module root path" can actually be represented by a URI (_Uniform_ _Resource_
+_Locator_). By default, Avail only supports local file system URIs. For
+the default case, a module root path can be represented by explicitly using
+the URI `file` scheme:
+```
+avail=file:///User/Home/Some/Directory/src/avail
+```
+For convenience the `file` scheme may be excluded from the root path when 
+linking a module root path to the local file system:
+```
+avail=/User/Home/Some/Directory/src/avail
+```
+
+Avail's module root resolution system allows for extension to support additional
+URI schemes. See _doc/extensions/Module Resolution.md_ for details.
 
 If AVAIL_ROOTS is not defined and the Avail workbench has not been used to
 define module roots, then "avail-dev" will use the following module roots path
 by default:
 
-	avail=$HOME/.avail/repos/avail.repo,$INSTALL/src/avail;
-	examples=$HOME/.avail/repos/examples.repo,$INSTALL/src/examples
+	avail=$INSTALL/src/avail;
+	examples=$INSTALL/src/examples
 
 (There is not really a line feed after the semicolon; the line feed was inserted
 as a formatting conceit only.)
@@ -223,6 +230,12 @@ Avail Foundation, but not for developing your own Avail modules. To develop your
 own Avail modules, your AVAIL_ROOTS environment variable must at least include a
 module root specification for the Avail standard library, and it must also
 include module root specifications for your own Avail projects.
+
+Avail caches compiled avail modules in the user's home directory in `.avail
+/repositories` in `.repo` files. There is a repository file for each module
+root loaded into Avail, named after the module root (e.g. `avail.repo` for 
+module root avail). If the repositories directory does not exist, it will be
+created.
 
 Note that "avail-dev.bat" makes no effort to configure the environment. You must
 preconfigure the environment yourself, customize "avail-dev.bat" to suit your
@@ -265,41 +278,7 @@ For those who wish to contribute source code to Avail itself, please use the
 latest version of IntelliJ IDEA. This practice assists the Avail team in
 maintaining consistency in coding, documentation, and formatting practices. You
 should also strive to imitate the existing stylistic conventions, just as you
-would for any other established code base.
-
-#### Avail Source
-Avail has a unique source-linking system. Avail source exists in `ModuleRoot`s. 
- A `ModuelRoot` is effectively a directory that contains Avail source packages
-that contain Avail source modules and resource files (e.g. image file) used by
-the Avail program. Additionally, it may contain regular directories (non-packages) 
-that strictly contain resource files only. 
-
-Many `ModuleRoot`s can be used in a single `AvailRuntime`. A `ModuleRoot` can be 
-added to Avail's runtime by providing Avail with a valid `URI` (_Universal
- Resource Identifier_). The implication of this is that Avail can use
- `ModuleRoots` located anywhere reachable by a URI. Avail uses
- `ModuleRootResolver`s to resolve URI locations and link it with Avail's
-  runtime. 
-
-By default, Avail provides a single standard `ModuleRootResolver`,
-`FileSystemModuleRootResolver`. It provides access to URI locations that use the
-_file://_ URI scheme. Additional resolvers that support other URI scheme may be
-added by implementing a `ModuleRootResolver` for the desired URI scheme. In
-order to make the custom `ModuleRootResolver` accessible to Avail, it must
-have a corresponding implementation of `ModuleRootResolverFactory` which Avail
-uses to create `ModuleRootResolver`s. Additionally, the 
-`ModuleRootResolverFactory` must be registered with the
- `ModuleRootResolverRegistry`:
-```
-ModuleRootResolverRegistry.register(MyCustomModuleRootResolverFactory)
-```
-
-The use of URIs to reach module source necessitates that all implementations of
-`ModuleRootResolver` must be handled asynchronously. The response time of
- source access will vary greatly between URI scheme types (_e.g. network vs
- local file system_). Avail must guarantee orders of certain operations
- involving the compilation of source files. The concurrent nature of the
- compiler also necessitates asynchronous implementations be thread-safe. 
+would for any other established code base. 
 
 STAYING CURRENT
 --------------------------------------------------------------------------------

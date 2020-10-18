@@ -2269,12 +2269,6 @@ class AvailWorkbench internal constructor (
 			{
 				UIManager.setLookAndFeel(DarculaLaf())
 			}
-			val repoString = System.getProperty("repositories", null)
-			require(repoString !== null)
-			{
-				"system property \"repositories\" is not set"
-			}
-			Repositories.setDirectoryLocation(File(repoString))
 			val rootResolutionStart = currentTimeMillis()
 			val failedResolutions = mutableListOf<String>()
 			val rootsString = System.getProperty("availRoots", "")

@@ -116,12 +116,6 @@ class SerializerTest
 	@BeforeAll
 	fun initializeAllWellKnownObjects()
 	{
-//		val repository = createTemporary(
-//			"avail",
-//			"test_repository",
-//			null)
-//		val repositoryFile = repository.fileName
-		Repositories.setDirectoryLocation(File("repositories").absoluteFile)
 		val semaphore = Semaphore(0)
 		val roots = ModuleRoots(
 			fileManager,
