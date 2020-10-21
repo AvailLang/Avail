@@ -55,10 +55,16 @@ class IndexCompressorTest
 		val compressor = FourStreamIndexCompressor()
 		val decompressor = FourStreamIndexCompressor()
 		repeat(10_000) {
+			if (random.nextFloat() < 0.1)
+			{
+				compressor.incrementIndex()
+				decompressor.incrementIndex()
+			}
 			val r = random.nextDouble()
-			val index = Math.min(
+			val deltaBack = Math.min(
 				kotlin.math.floor(Math.pow(2.0, r * 32.0)).toInt(),
 				Int.MAX_VALUE - 128)
+			val index = compressor.currentIndex() - deltaBack
 			val compressed = compressor.compress(index)
 			val decompressed = decompressor.decompress(compressed)
 			Assertions.assertEquals(index, decompressed)

@@ -92,13 +92,13 @@ class DeserializerDescriber constructor(
 	{
 		try
 		{
-			var objectNumber = 0
 			while (input.available() > 0)
 			{
-				append((objectNumber++).toString())
+				append((compressor.currentIndex()).toString())
 				append(": ")
 				SerializerOperation.byOrdinal(readByte()).describe(this)
 				append("\n")
+				compressor.incrementIndex()
 			}
 		}
 		catch (e: Exception)

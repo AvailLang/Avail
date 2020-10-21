@@ -84,6 +84,7 @@ class Deserializer constructor(
 	private fun addObject(newObject: AvailObject)
 	{
 		assembledObjects.add(newObject.makeImmutable())
+		compressor.incrementIndex()
 	}
 
 	/**

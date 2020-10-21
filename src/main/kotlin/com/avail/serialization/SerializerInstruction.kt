@@ -63,8 +63,7 @@ internal class SerializerInstruction constructor(
 	 * An array of subobjects resulting from decomposing the object.  These
 	 * correspond to the operation's [SerializerOperation.operands].
 	 */
-	private val subobjects =
-		operation.decompose(obj as AvailObject, serializer)
+	private val subobjects = operation.decompose(obj as AvailObject, serializer)
 
 	/**
 	 * The index of this instruction in the list of instructions produced by a
@@ -81,14 +80,12 @@ internal class SerializerInstruction constructor(
 	 * Whether this instruction has been assigned an instruction index, which
 	 * happens when the instruction is written.
 	 */
-	val hasBeenWritten: Boolean
-		get() = index >= 0
+	val hasBeenWritten: Boolean get() = index >= 0
 
 	/**
 	 * The number of subobjects that this instruction has.
 	 */
-	val subobjectsCount: Int
-		get() = subobjects.size
+	val subobjectsCount: Int get() = subobjects.size
 
 	/**
 	 * Answer the subobject at the given zero-based subscript.

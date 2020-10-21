@@ -56,8 +56,24 @@ import java.util.ArrayDeque
  * will reconstruct an analogous series of objects.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @constructor
+ *
+ * @param output
+ *   An [OutputStream] on which to write the serialized objects.
+ * @param module
+ *   The optional [A_Module] within which serialization is occurring.  If
+ *   non-null, it is used to detect capture of atoms that are not defined in
+ *   ancestor modules.
+ * @param pumpedObjects
+ *   An optional [Map] from [A_BasicObject] to [Int] to prime serialization, so
+ *   that the pumped objects will be output simply as a reference, which an
+ *   equivalently pumped [Deserializer] will be able to decode.
  */
-class Serializer
+class Serializer constructor(
+	val output: OutputStream,
+	val module: A_Module? = null,
+	val pumpedObjects: Map<A_BasicObject, Int> = emptyMap())
 {
 	/**
 	 * This keeps track of all objects that have been encountered.  It's a map
@@ -73,9 +89,6 @@ class Serializer
 	 */
 	private val variablesToAssign = mutableSetOf<A_Variable>()
 
-	/** The number of instructions that have been written to the [output]. */
-	private var instructionsWritten = 0
-
 	/**
 	 * The [IndexCompressor] used for encoding indices.  This must agree with
 	 * the compressor which will be used later by the [Deserializer].
@@ -90,15 +103,6 @@ class Serializer
 	 * deep.
 	 */
 	private val workStack = ArrayDeque<() -> Unit>(1000)
-
-	/** The [OutputStream] on which to write the serialized objects. */
-	private val output: OutputStream
-
-	/**
-	 * The module within which serialization is occurring.  If non-null, it is
-	 * used to detect capture of atoms that are not defined in ancestor modules.
-	 */
-	val module: A_Module?
 
 	/**
 	 * Check that the atom is defined in the ancestry of the current module, if
@@ -253,9 +257,10 @@ class Serializer
 			workStack.addLast {
 				if (!instruction.hasBeenWritten)
 				{
-					instruction.index = instructionsWritten++
+					instruction.index = compressor.currentIndex()
 					instruction.writeTo(this@Serializer)
 					assert(instruction.hasBeenWritten)
+					compressor.incrementIndex()
 				}
 			}
 			// Push actions for the subcomponents in reverse order to make the
@@ -285,32 +290,6 @@ class Serializer
 	}
 
 	/**
-	 * Construct a new `Serializer`.
-	 *
-	 * @param output
-	 *   An [OutputStream] on which to write the module.
-	 * @param module
-	 *   The [A_Module] being compiled.
-	 */
-	constructor(output: OutputStream, module: A_Module)
-	{
-		this.output = output
-		this.module = module
-	}
-
-	/**
-	 * Construct a new `Serializer`.
-	 *
-	 * @param output
-	 *   An [OutputStream] on which to write the module.
-	 */
-	constructor(output: OutputStream)
-	{
-		this.output = output
-		this.module = null
-	}
-
-	/**
 	 * Serialize this [AvailObject] so that it will appear as the next
 	 * checkpoint object during deserialization.
 	 *
@@ -334,9 +313,10 @@ class Serializer
 					ASSIGN_TO_VARIABLE,
 					variable,
 					this)
-				assignment.index = instructionsWritten++
+				assignment.index = compressor.currentIndex()
 				assignment.writeTo(this)
 				assert(assignment.hasBeenWritten)
+				compressor.incrementIndex()
 			}
 		}
 		variablesToAssign.clear()
@@ -347,9 +327,10 @@ class Serializer
 				CHECKPOINT,
 				strongObject,
 				this)
-			checkpoint.index = instructionsWritten++
+			checkpoint.index = compressor.currentIndex()
 			checkpoint.writeTo(this)
 			assert(checkpoint.hasBeenWritten)
+			compressor.incrementIndex()
 		}
 	}
 

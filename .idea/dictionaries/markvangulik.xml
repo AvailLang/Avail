@@ -49,6 +49,7 @@
       <w>noninline</w>
       <w>nonlocal</w>
       <w>nonprimitive</w>
+      <w>nulled</w>
       <w>nullness</w>
       <w>observerless</w>
       <w>postinvoke</w>
@@ -56,6 +57,7 @@
       <w>preinvoke</w>
       <w>printability</w>
       <w>pseudoprimes</w>
+      <w>recurses</w>
       <w>reifier's</w>
       <w>resumable</w>
       <w>retranslator</w>

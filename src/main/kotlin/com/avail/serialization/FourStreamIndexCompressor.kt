@@ -68,6 +68,12 @@ class FourStreamIndexCompressor : IndexCompressor
 	private val predecessors = IntArray(5) { (it + 4) % 5 }
 
 	/**
+	 * The current index, tracked to allow a negative relative offset to be used
+	 * when the requested index is too far from any of the pointers.
+	 */
+	private var currentIndex = 0
+
+	/**
 	 * Check if we're between 16 before and 15 after one of the pointers,
 	 * (always starting with the 0th one).  If so, bias the delta to be 0..31,
 	 * shift it left twice, and add the pointer number [0..3] that was used.
@@ -82,7 +88,6 @@ class FourStreamIndexCompressor : IndexCompressor
 	 */
 	override fun compress(index: Int): Int
 	{
-		assert(index in 0..Int.MAX_VALUE - 128)
 		for (pointerNumber in 0..3)
 		{
 			val delta = index - pointers[pointerNumber]
@@ -95,11 +100,12 @@ class FourStreamIndexCompressor : IndexCompressor
 		}
 		// It's not close enough to any of the pointers.  Replace the least
 		// recently used pointer, move it to the head of the augmented queue,
-		// and answer the given index + 128.
+		// and answer 128 plus the distance backward from the currentIndex to
+		// the given index.
 		val victimPointer = predecessors[4]
 		pointers[victimPointer] = index
 		moveToHead(victimPointer)
-		return index + 128
+		return (currentIndex - index) + 128
 	}
 
 	/**
@@ -119,11 +125,27 @@ class FourStreamIndexCompressor : IndexCompressor
 		{
 			// Choose the same victim pointer that compress did earlier.
 			val victimPointer = predecessors[4]
-			pointers[victimPointer] = index - 128
+			val absoluteIndex = currentIndex - (index - 128)
+			pointers[victimPointer] = absoluteIndex
 			moveToHead(victimPointer)
-			index - 128
+			absoluteIndex
 		}
 	}
+
+	/**
+	 * The current index has just advanced.  Track it to allow relative backward
+	 * offsets to be used when necessary.
+	 */
+	override fun incrementIndex()
+	{
+		currentIndex++
+	}
+
+	/**
+	 * The next value that would be used as an index.  Do not change the
+	 * currentIndex.
+	 */
+	override fun currentIndex(): Int = currentIndex
 
 	/**
 	 * Move the indicated stream to the head of the (augmented) ring.  While
@@ -135,10 +157,10 @@ class FourStreamIndexCompressor : IndexCompressor
 	private fun moveToHead(pointer: Int)
 	{
 		// Link around it to remove it.
-		val oldPred = predecessors[pointer]
-		val oldSucc = successors[pointer]
-		successors[oldPred] = oldSucc
-		predecessors[oldSucc] = oldPred
+		val oldPredecessor = predecessors[pointer]
+		val oldSuccessor = successors[pointer]
+		successors[oldPredecessor] = oldSuccessor
+		predecessors[oldSuccessor] = oldPredecessor
 		// Insert at the head.  First the outward links to the pointer.
 		val oldHead = successors[4]
 		successors[pointer] = oldHead

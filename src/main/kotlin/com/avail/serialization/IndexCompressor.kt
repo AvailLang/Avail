@@ -55,4 +55,16 @@ interface IndexCompressor
 	 * have done.
 	 */
 	fun decompress(index: Int): Int
+
+	/**
+	 * Advance the current index number.  This value can be tracked by
+	 * subclasses to support current-index-relative (backward) offsets.
+	 */
+	fun incrementIndex()
+
+	/**
+	 * The current index number, which is one more than the last value returned
+	 * by [incrementIndex].
+	 */
+	fun currentIndex(): Int
 }

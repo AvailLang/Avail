@@ -41,7 +41,6 @@ import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import com.avail.descriptor.types.TypeTag
 import com.avail.utility.visitor.MarkUnreachableSubobjectVisitor
-import org.jetbrains.annotations.Contract
 import sun.misc.Unsafe
 import java.lang.Integer.numberOfTrailingZeros
 import java.util.Arrays
