@@ -37,6 +37,9 @@ import com.avail.tools.fileanalyzer.configuration.CommandLineConfigurator.Option
 import com.avail.tools.fileanalyzer.configuration.CommandLineConfigurator.OptionKey.COUNTS
 import com.avail.tools.fileanalyzer.configuration.CommandLineConfigurator.OptionKey.EXPLODE
 import com.avail.tools.fileanalyzer.configuration.CommandLineConfigurator.OptionKey.HELP
+import com.avail.tools.fileanalyzer.configuration.CommandLineConfigurator.OptionKey.IMPLODE
+import com.avail.tools.fileanalyzer.configuration.CommandLineConfigurator.OptionKey.IMPLODE_HEADER
+import com.avail.tools.fileanalyzer.configuration.CommandLineConfigurator.OptionKey.IMPLODE_OUTPUT
 import com.avail.tools.fileanalyzer.configuration.CommandLineConfigurator.OptionKey.INDEXED_FILE
 import com.avail.tools.fileanalyzer.configuration.CommandLineConfigurator.OptionKey.LOWER
 import com.avail.tools.fileanalyzer.configuration.CommandLineConfigurator.OptionKey.METADATA
@@ -142,6 +145,33 @@ class CommandLineConfigurator constructor(
 		EXPLODE,
 
 		/**
+		 * Specifies a directory to read, from which records and/or metadata
+		 * will be retrieved and written to a new index file.  The directory is
+		 * expected to contain files with names '0' or '0.txt', '1' or '1.txt',
+		 * etc., and optionally either 'metadata' or 'metadata.txt'.  If the
+		 * numbered files do not form a contiguous range starting at 0, or if
+		 * there are files in the directory that do not match this pattern, fail
+		 * without creating the indexed file.
+		 *
+		 * This option is mutually exclusive of all others except
+		 * [IMPLODE_HEADER] and [IMPLODE_OUTPUT], which are required if
+		 * `IMPLODE` occurs.
+		 */
+		IMPLODE,
+
+		/**
+		 * Specifies the header string to encode at the start of the
+		 * indexed file being created by an [IMPLODE] command.
+		 */
+		IMPLODE_HEADER,
+
+		/**
+		 * Specifies the output file to be created by the [IMPLODE] command.  It
+		 * must not already exist.
+		 */
+		IMPLODE_OUTPUT,
+
+		/**
 		 * Whether to show the metadata content.  The [SIZES], [BINARY], and
 		 * [TEXT] flags determine how to present the metadata.  If there is no
 		 * metadata in the file, it is treated as though it were an empty
@@ -204,24 +234,24 @@ class CommandLineConfigurator constructor(
 				+ "-s nor -b nor -t is specified, only the undecorated count "
 				+ "of the number of eligible records is output.  In that case, "
 				+ "-m is forbidden.")
-				{
-					configuration.counts = true
-				}
+			{
+				configuration.counts = true
+			}
 			option(
 				SIZES,
 				listOf("s", "sizes"),
 				"Whether to show record sizes prior to each record.")
-				{
-					configuration.sizes = true
-				}
+			{
+				configuration.sizes = true
+			}
 			option(
 				BINARY,
 				listOf("b", "binary"),
 				"Whether to show each byte of records and/or metadata in "
 				+ "hexadecimal.  Can be combined with -t.")
-				{
-					configuration.binary = true
-				}
+			{
+				configuration.binary = true
+			}
 			option(
 				TEXT,
 				listOf("t", "text"),
@@ -229,18 +259,51 @@ class CommandLineConfigurator constructor(
 				+ "string, and output it as text.  If combined with -b, the "
 				+ "left side contains hex bytes and the right side contains "
 				+ "printable ASCII characters (0x20-0x7E) or a '.'.")
-				{
-					configuration.text = true
-				}
+			{
+				configuration.text = true
+			}
 			optionWithArgument(
 				EXPLODE,
 				listOf("x", "explode"),
 				"A directory to use or create, into which records and/or "
 				+ "metadata will be written in separate files.  If -t is "
 				+ "specified, '.txt' will be appended to the filenames.")
-				{
-					configuration.explodeDirectory = File(argument)
-				}
+			{
+				configuration.explodeDirectory = File(argument)
+			}
+			optionWithArgument(
+				IMPLODE,
+				listOf("implode"),
+				"Specifies a directory to read, from which records and/or "
+				+ "metadata will be retrieved and written to a new index "
+				+ "file.  The directory is expected to contain files with "
+				+ "names '0' or '0.txt', '1' or '1.txt', etc., and optionally "
+				+ "either 'metadata' or 'metadata.txt'.  If the numbered files "
+				+ "do not form a contiguous range starting at 0, or if there "
+				+ "are files in the directory that do not match this pattern, "
+				+ "the command will fail without creating the file.")
+			{
+				configuration.implodeDirectory = File(argument)
+			}
+			optionWithArgument(
+				IMPLODE_HEADER,
+				listOf("implode-header"),
+				"Specifies the header string that identifies the type of "
+					+ "indexed file that should be created via the 'implode' "
+					+ "command.  This option must be provided whenever"
+					+ "'implode' is specified, and vice-versa.")
+			{
+				configuration.implodeHeader = argument
+			}
+			optionWithArgument(
+				IMPLODE_OUTPUT,
+				listOf("implode-output"),
+				"Specifies the name of the indexed file that should be created "
+					+ "by the --implode command.  This option must be provided "
+					+ "whenever 'implode' is specified, and vice-versa.")
+			{
+				configuration.implodeOutput = File(argument)
+			}
 			option(
 				METADATA,
 				listOf("m", "metadata"),
@@ -248,66 +311,66 @@ class CommandLineConfigurator constructor(
 				+ "and if the metadata is present and non-empty, the metadata "
 				+ "will be processed in the same way as the records, after the "
 				+ "last record, if any.")
-				{
-					configuration.metadata = true
-				}
+			{
+				configuration.metadata = true
+			}
 			optionWithArgument(
 				LOWER,
 				listOf("l", "lower"),
 				"The lowest zero-based record number that may be processed.")
+			{
+				try
 				{
-					try
-					{
-						// Note: parseLong will (also) throw an exception if
-						// it tries to parse "" as a result of the illegal
-						// use of "=" without any items following.
-						val value = parseLong(argument)
-						if (value < 0L)
-						{
-							throw OptionProcessingException(
-								"$keyword: Argument must be ≥ 0")
-						}
-						configuration.lower = value
-					}
-					catch (e: NumberFormatException)
+					// Note: parseLong will (also) throw an exception if it
+					// tries to parse "" as a result of the illegal use of "="
+					// without any items following.
+					val value = parseLong(argument)
+					if (value < 0L)
 					{
 						throw OptionProcessingException(
-							"$keyword: Illegal argument.", e)
+							"$keyword: Argument must be ≥ 0")
 					}
+					configuration.lower = value
 				}
+				catch (e: NumberFormatException)
+				{
+					throw OptionProcessingException(
+						"$keyword: Illegal argument.", e)
+				}
+			}
 			optionWithArgument(
 				UPPER,
 				listOf("u", "upper"),
 				"The highest zero-based record number that may be processed.")
+			{
+				try
 				{
-					try
-					{
-						// Note: parseLong will (also) throw an exception if
-						// it tries to parse "" as a result of the illegal
-						// use of "=" without any items following.
-						val value = parseLong(argument)
-						if (value < -1L)
-						{
-							throw OptionProcessingException(
-								"$keyword: Argument must be ≥ -1")
-						}
-						configuration.upper = value
-					}
-					catch (e: NumberFormatException)
+					// Note: parseLong will (also) throw an exception if it
+					// tries to parse "" as a result of the illegal use of "="
+					// without any items following.
+					val value = parseLong(argument)
+					if (value < -1L)
 					{
 						throw OptionProcessingException(
-							"$keyword: Illegal argument.", e)
+							"$keyword: Argument must be ≥ -1")
 					}
+					configuration.upper = value
 				}
+				catch (e: NumberFormatException)
+				{
+					throw OptionProcessingException(
+						"$keyword: Illegal argument.", e)
+				}
+			}
 			optionWithArgument(
 				PATCH_RECORDS_STRIPPING_UTF8,
 				listOf("patch-utf-8"),
 				"TEMPORARY FEATURE – Create a new file, named by the argument, "
-					+ "unwrapping a layer of UTF-8 by decoding it as UTF-8 to "
-					+ "a string, failing immediately if any character is not "
-					+ "Latin-1 (U+0000 - U+00FF).  With each such string, "
-					+ "write the characters with Latin-1 encoding, i.e., one "
-					+ "byte per character.")
+				+ "unwrapping a layer of UTF-8 by decoding it as UTF-8 to "
+				+ "a string, failing immediately if any character is not "
+				+ "Latin-1 (U+0000 - U+00FF).  With each such string, "
+				+ "write the characters with Latin-1 encoding, i.e., one "
+				+ "byte per character.")
 			{
 				val file = File(argument)
 				configuration.patchOutputFile = file
@@ -321,31 +384,32 @@ class CommandLineConfigurator constructor(
 			defaultOption(
 				INDEXED_FILE,
 				"The indexed file to analyze.",
-				Cardinality.MANDATORY)
+				Cardinality.OPTIONAL)
+			{
+				try
 				{
-					try
-					{
-						if (!File(argument).isFile)
-						{
-							throw OptionProcessingException(
-								"File not found, or directory was specified")
-						}
-						configuration.inputFile = File(argument)
-					}
-					catch (e: OptionProcessingException)
+					if (!File(argument).isFile)
 					{
 						throw OptionProcessingException(
-							"«default»: ${e.message}",
-							e)
+							"File not found, or directory was specified")
 					}
+					configuration.inputFile = File(argument)
 				}
-			configuration.rule("No input file was specified"
-			) {
-				inputFile !== null
+				catch (e: OptionProcessingException)
+				{
+					throw OptionProcessingException(
+						"«default»: ${e.message}",
+						e)
+				}
 			}
 			configuration.rule(
-				"--explode cannot produce --binary + --text combination"
-			) {
+				"Neither an input file nor --implode was specified")
+			{
+				inputFile !== null || implodeDirectory !== null
+			}
+			configuration.rule(
+				"--explode cannot produce --binary & --text combination")
+			{
 				// Since bytes are transferred verbatim during an explode, and
 				// the text flag only affects the file name, it would be
 				// misleading to allow both binary and text to be set.
@@ -353,14 +417,35 @@ class CommandLineConfigurator constructor(
 			}
 			configuration.rule(
 				"If only --counts are requested (not --sizes, -binary, or "
-				+ "--text, then --metadata must not be specified"
-			) {
+				+ "--text, then --metadata must not be specified")
+			{
 				!(counts && !sizes && !binary && !text && metadata)
 			}
 			configuration.rule(
+				"The '--implode' option, the '--implode-header' option, and "
+				+ "--implode-output option must be used together, with no "
+				+ "other options.")
+			{
+				when
+				{
+					implodeDirectory === null
+						&& implodeHeader === null
+						&& implodeOutput === null -> true
+					implodeDirectory === null
+						|| implodeHeader === null
+						|| implodeOutput === null -> false
+					counts || sizes || binary || text || metadata -> false
+					lower !== null || upper !== null -> false
+					inputFile !== null -> false
+					explodeDirectory !== null -> false
+					patchOutputFile !== null -> false
+					else -> true
+				}
+			}
+			configuration.rule(
 				"The '--patch-utf-8' option is incompatible with --counts, "
-				+ "--sizes, --binary, --text, --explode, or --metadata."
-			) {
+				+ "--sizes, --binary, --text, --explode, or --metadata.")
+			{
 				patchOutputFile === null ||
 					(!counts
 						&& !sizes

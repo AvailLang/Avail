@@ -42,22 +42,22 @@ import java.io.RandomAccessFile
  * @constructor
  * @param headerString
  *   The [String] to check for at the start of a file implementing this kind of
- *   specialization of an [IndexedFile].
- * @return
- *   An array of bytes that uniquely identifies the purpose of the indexed
- *   file.
+ *   specialization of an [IndexedFile].  Note that the terminating NUL byte is
+ *   *NOT* expected to be part of the string supplied by the client (as of
+ *   2020.10.21).
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Skatje Myers &lt;skatje.myers@gmail.com&gt;
  */
-abstract class IndexedFileBuilder protected constructor(headerString: String)
+abstract class IndexedFileBuilder constructor(headerString: String)
 {
 	/**
 	 * The NUL-terminated header bytes that uniquely identify a particular usage
-	 * of the core [IndexedFile] technology.
+	 * of the core [IndexedFile] technology.  The NUL byte is added here, and
+	 * should not be supplied by the constructor.
 	 */
-	val headerBytes = headerString.toByteArray(Charsets.UTF_8)
+	val headerBytes = headerString.toByteArray(Charsets.UTF_8) + ByteArray(1)
 
 	/**
 	 * The default page size of the [IndexedFile]. This should be a multiple of
