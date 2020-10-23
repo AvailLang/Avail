@@ -311,55 +311,7 @@ object IndexedFileAnalyzer
 			with(configuration) {
 				if (implodeDirectory !== null)
 				{
-					assert(inputFile === null)
-					assert(implodeHeader !== null)
-					assert(implodeOutput !== null)
-					val dir = implodeDirectory!!
-					// The default option file is used as the output.
-					val outputFile = implodeOutput!!
-					if (outputFile.exists())
-					{
-						throw Exception(
-							"Output file must not already exist")
-					}
-					val files = dir.list()!!.toMutableList()
-					val metadata = when
-					{
-						files.remove("metadata") -> "metadata"
-						files.remove("metadata.txt") -> "metadata.txt"
-						else -> null
-					}
-					val regex = "^(\\d+)(\\.txt)?$".toRegex(IGNORE_CASE)
-					files.forEach {
-						if (!regex.matches(it))
-						{
-							throw Exception(
-								"Unexpected file '$it'. Implode directory "
-									+ "entries must be numeric, or numeric + "
-									+ "'.txt', and contiguous, starting at 0. "
-									+ "'metadata' or 'metadata.txt' is also "
-									+ "supported.")
-						}
-					}
-					files.sortBy { regex.replace(it, "$1").toInt() }
-					for (i in files.indices)
-					{
-						val name = files[i]
-						if (regex.replace(name, "$1").toInt() != i)
-						{
-							throw Exception(
-								"Cannot find file '$i' or '$i.txt'.")
-						}
-					}
-					val indexedFileBuilder =
-						object : IndexedFileBuilder(implodeHeader!!) { }
-					val out = indexedFileBuilder.openOrCreate(
-						outputFile, true)
-					files.forEach { out.add(dir.resolve(it).readBytes()) }
-					metadata?.let {
-						out.metadata = dir.resolve(it).readBytes()
-					}
-					out.commit()
+					implode()
 					return
 				}
 				val builder = ArbitraryIndexedFileBuilder(inputFile!!)
@@ -446,5 +398,77 @@ object IndexedFileAnalyzer
 			System.err.println(e.message)
 			exitProcess(OTHER_ERROR.value)
 		}
+	}
+
+	/**
+	 * Implode a directory of record files and optional metadata file into an
+	 * indexed file having the specified header.
+	 */
+	private fun IndexedFileAnalyzerConfiguration.implode()
+	{
+		assert(implodeDirectory !== null)
+		assert(implodeHeader !== null)
+		assert(implodeOutput !== null)
+		assert(inputFile === null)
+
+		val dir = implodeDirectory!!
+		val outputFile = implodeOutput!!
+		if (outputFile.exists())
+		{
+			throw Exception("Output file must not already exist")
+		}
+		val files = dir.list()!!.toMutableList()
+		val metadata = when
+		{
+			files.remove("metadata") -> {
+				if (files.contains("metadata.txt"))
+				{
+					throw Exception(
+						"Directory must not contain both 'metadata' and "
+							+ "'metadata.txt'.")
+				}
+				"metadata"
+			}
+			files.remove("metadata.txt") -> "metadata.txt"
+			else -> null
+		}
+		val regex = "^(\\d+)(\\.txt)?$".toRegex(IGNORE_CASE)
+		files.forEach {
+			if (!regex.matches(it))
+			{
+				throw Exception(
+					"Unexpected file '$it'. Implode directory entries must be "
+						+ "numeric, or numeric+'.txt', and contiguous, "
+						+ "starting at 0. Zero or one of 'metadata' or "
+						+ "'metadata.txt' is also supported.")
+			}
+		}
+		files.sortBy { regex.replace(it, "$1").toInt() }
+		for (i in files.indices)
+		{
+			val name = files[i]
+			val replacedName = regex.replace(name, "$1")
+			if (replacedName.toInt() != i)
+			{
+				if (replacedName.toInt() == i - 1)
+				{
+					throw Exception(
+						"Directory must not contain both $replacedName "
+							+ "and $replacedName.txt")
+				}
+				throw Exception(
+					"Cannot find file '$i' or '$i.txt'.")
+			}
+		}
+		val indexedFileBuilder =
+			object : IndexedFileBuilder(implodeHeader!!)
+			{}
+		val out = indexedFileBuilder.openOrCreate(
+			outputFile, true)
+		files.forEach { out.add(dir.resolve(it).readBytes()) }
+		metadata?.let {
+			out.metadata = dir.resolve(it).readBytes()
+		}
+		out.commit()
 	}
 }
