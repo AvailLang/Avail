@@ -30,39 +30,38 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 package com.avail.descriptor.maps
-
- import com.avail.descriptor.maps.A_MapBin.Companion.mapBinAtHashPutLevelCanDestroy
- import com.avail.descriptor.maps.A_MapBin.Companion.mapBinKeysHash
- import com.avail.descriptor.maps.A_MapBin.Companion.mapBinSize
- import com.avail.descriptor.maps.HashedMapBinDescriptor.Companion.checkHashedMapBin
- import com.avail.descriptor.maps.LinearMapBinDescriptor.IntegerSlots.COMBINED_HASHES
- import com.avail.descriptor.maps.LinearMapBinDescriptor.IntegerSlots.Companion.KEYS_HASH
- import com.avail.descriptor.maps.LinearMapBinDescriptor.IntegerSlots.Companion.VALUES_HASH_OR_ZERO
- import com.avail.descriptor.maps.LinearMapBinDescriptor.IntegerSlots.KEY_HASHES_AREA_
- import com.avail.descriptor.maps.LinearMapBinDescriptor.ObjectSlots.BIN_KEY_UNION_KIND_OR_NIL
- import com.avail.descriptor.maps.LinearMapBinDescriptor.ObjectSlots.BIN_SLOT_AT_
- import com.avail.descriptor.maps.LinearMapBinDescriptor.ObjectSlots.BIN_VALUE_UNION_KIND_OR_NIL
- import com.avail.descriptor.maps.MapDescriptor.MapIterable
- import com.avail.descriptor.representation.A_BasicObject
- import com.avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
- import com.avail.descriptor.representation.AbstractSlotsEnum
- import com.avail.descriptor.representation.AvailObject
- import com.avail.descriptor.representation.AvailObject.Companion.newObjectIndexedIntegerIndexedDescriptor
- import com.avail.descriptor.representation.AvailObjectRepresentation.Companion.newLike
- import com.avail.descriptor.representation.BitField
- import com.avail.descriptor.representation.IntegerSlotsEnum
- import com.avail.descriptor.representation.Mutability
- import com.avail.descriptor.representation.Mutability.IMMUTABLE
- import com.avail.descriptor.representation.Mutability.MUTABLE
- import com.avail.descriptor.representation.Mutability.SHARED
- import com.avail.descriptor.representation.NilDescriptor.Companion.nil
- import com.avail.descriptor.representation.ObjectSlotsEnum
- import com.avail.descriptor.types.A_Type
- import com.avail.descriptor.types.A_Type.Companion.typeUnion
- import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
- import com.avail.descriptor.types.TypeTag
- import com.avail.utility.cast
- import java.util.NoSuchElementException
+import com.avail.descriptor.maps.A_MapBin.Companion.mapBinAtHashPutLevelCanDestroy
+import com.avail.descriptor.maps.A_MapBin.Companion.mapBinKeysHash
+import com.avail.descriptor.maps.A_MapBin.Companion.mapBinSize
+import com.avail.descriptor.maps.HashedMapBinDescriptor.Companion.checkHashedMapBin
+import com.avail.descriptor.maps.LinearMapBinDescriptor.IntegerSlots.COMBINED_HASHES
+import com.avail.descriptor.maps.LinearMapBinDescriptor.IntegerSlots.Companion.KEYS_HASH
+import com.avail.descriptor.maps.LinearMapBinDescriptor.IntegerSlots.Companion.VALUES_HASH_OR_ZERO
+import com.avail.descriptor.maps.LinearMapBinDescriptor.IntegerSlots.KEY_HASHES_AREA_
+import com.avail.descriptor.maps.LinearMapBinDescriptor.ObjectSlots.BIN_KEY_UNION_KIND_OR_NIL
+import com.avail.descriptor.maps.LinearMapBinDescriptor.ObjectSlots.BIN_SLOT_AT_
+import com.avail.descriptor.maps.LinearMapBinDescriptor.ObjectSlots.BIN_VALUE_UNION_KIND_OR_NIL
+import com.avail.descriptor.maps.MapDescriptor.MapIterable
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
+import com.avail.descriptor.representation.AbstractSlotsEnum
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.newObjectIndexedIntegerIndexedDescriptor
+import com.avail.descriptor.representation.AvailObjectRepresentation.Companion.newLike
+import com.avail.descriptor.representation.BitField
+import com.avail.descriptor.representation.IntegerSlotsEnum
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.Mutability.IMMUTABLE
+import com.avail.descriptor.representation.Mutability.MUTABLE
+import com.avail.descriptor.representation.Mutability.SHARED
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.descriptor.representation.ObjectSlotsEnum
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.typeUnion
+import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
+import com.avail.descriptor.types.TypeTag
+import com.avail.utility.cast
+import java.util.NoSuchElementException
 
 /**
  * A [LinearMapBinDescriptor] is a leaf bin in a [map][MapDescriptor]'s

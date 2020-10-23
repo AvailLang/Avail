@@ -648,6 +648,44 @@ abstract class AvailObjectRepresentation protected constructor(
 	}
 
 	/**
+	 * Extract the current value of the indexable [Long] slot, pass it to the
+	 * supplied inline Kotlin function, and write the result back to the slot
+	 * with a compare-and-set, retrying from the beginning if it fails.
+	 *
+	 * @param field
+	 *   The indexable [Long] slot to access.
+	 * @param subscript
+	 *   The one-based subscript within the given indexable field.
+	 * @param updater
+	 *   The transformation to perform on the [Long] in the slot to produce a
+	 *   replacement [Long].  Note that this may run multiple times if the
+	 *   compare-and-set encounters contention.
+	 */
+	fun atomicUpdateSlot(
+		field: IntegerSlotsEnum,
+		subscript: Int,
+		updater: (Long)->Long)
+	{
+		checkSlot(field)
+		checkWriteForField(field)
+		val arrayIndex = field.fieldOrdinal() + subscript - 1
+		when {
+			currentDescriptor.isShared ->
+			{
+				while (true)
+				{
+					val oldValue = longSlots[arrayIndex]
+					val newValue = updater(oldValue)
+					if (VolatileSlotHelper.compareAndSet(
+							longSlots, subscript, oldValue, newValue)
+					) break
+				}
+			}
+			else -> longSlots[arrayIndex] = updater(longSlots[arrayIndex])
+		}
+	}
+
+	/**
 	 * Extract the current value of the slot, pass it to the supplied inline
 	 * Kotlin function, and write the result back to the slot.
 	 */

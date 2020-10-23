@@ -358,17 +358,16 @@ open class VariableSharedDescriptor protected constructor(
 	{
 		// Simply read, add, and compare-and-set until it succeeds.
 		var oldValue: A_Number
-		var success: Boolean
-		do
-		{
+		while (true) {
 			oldValue = self.value()
 			if (oldValue.equalsNil())
 				throw VariableGetException(E_CANNOT_READ_UNASSIGNED_VARIABLE)
 			val newValue = oldValue.plusCanDestroy(addend, false)
-			success = o_CompareAndSwapValues(self, oldValue, newValue)
+			if (o_CompareAndSwapValues(self, oldValue, newValue))
+			{
+				return oldValue
+			}
 		}
-		while (!success)
-		return oldValue
 	}
 
 	@Throws(VariableGetException::class, VariableSetException::class)
@@ -380,9 +379,7 @@ open class VariableSharedDescriptor protected constructor(
 		// Simply read, add, and compare-and-set until it succeeds.
 		val outerKind: A_Type = self.slot(KIND)
 		val writeType = outerKind.writeType()
-		var success: Boolean
-		do
-		{
+		while (true) {
 			val oldValue = self.volatileSlot(VALUE)
 			if (oldValue.equalsNil())
 				throw VariableGetException(E_CANNOT_READ_UNASSIGNED_VARIABLE)
@@ -409,9 +406,11 @@ open class VariableSharedDescriptor protected constructor(
 					throw VariableSetException(
 						E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
 			}
-			success = o_CompareAndSwapValuesNoCheck(self, oldValue, newMap)
+			if (o_CompareAndSwapValuesNoCheck(self, oldValue, newMap))
+			{
+				break
+			}
 		}
-		while (!success)
 	}
 
 	@Throws(VariableGetException::class, VariableSetException::class)
@@ -422,9 +421,7 @@ open class VariableSharedDescriptor protected constructor(
 		// Simply read, remove, and compare-and-set until it succeeds.
 		val outerKind: A_Type = self.slot(KIND)
 		val writeType = outerKind.writeType()
-		var success: Boolean
-		do
-		{
+		while (true) {
 			val oldValue = self.volatileSlot(VALUE)
 			if (oldValue.equalsNil())
 				throw VariableGetException(E_CANNOT_READ_UNASSIGNED_VARIABLE)
@@ -450,9 +447,11 @@ open class VariableSharedDescriptor protected constructor(
 					throw VariableSetException(
 						E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
 			}
-			success = o_CompareAndSwapValuesNoCheck(self, oldValue, newMap)
+			if (o_CompareAndSwapValuesNoCheck(self, oldValue, newMap))
+			{
+				break
+			}
 		}
-		while (!success)
 	}
 
 	@Throws(VariableGetException::class)

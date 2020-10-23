@@ -174,6 +174,7 @@ import java.util.concurrent.locks.ReadWriteLock
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.stream.Stream
 import kotlin.concurrent.read
+import kotlin.contracts.ExperimentalContracts
 import kotlin.math.max
 import kotlin.math.min
 
@@ -3870,6 +3871,16 @@ abstract class AbstractDescriptor protected constructor (
 	abstract fun o_SetOriginatingPhraseOrIndex(
 		self: AvailObject,
 		phraseOrIndex: AvailObject)
+
+	abstract fun o_LexerApplicability(
+		self: AvailObject,
+		codePoint: Int
+	): Boolean?
+
+	abstract fun o_SetLexerApplicability(
+		self: AvailObject,
+		codePoint: Int,
+		applicability: Boolean)
 
 	companion object
 	{

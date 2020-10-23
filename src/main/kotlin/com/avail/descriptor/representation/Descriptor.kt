@@ -99,13 +99,14 @@ import com.avail.utility.json.JSONWriter
 import com.avail.utility.visitor.AvailSubobjectVisitor
 import com.avail.utility.visitor.BeImmutableSubobjectVisitor
 import com.avail.utility.visitor.BeSharedSubobjectVisitor
- import java.math.BigInteger
- import java.nio.ByteBuffer
- import java.util.Deque
- import java.util.NoSuchElementException
- import java.util.Spliterator
- import java.util.TimerTask
- import java.util.stream.Stream
+import java.math.BigInteger
+import java.nio.ByteBuffer
+import java.util.Deque
+import java.util.NoSuchElementException
+import java.util.Spliterator
+import java.util.TimerTask
+import java.util.stream.Stream
+import kotlin.contracts.ExperimentalContracts
 
 /**
  * This is the primary subclass of [AbstractDescriptor]. It has the sibling
@@ -2677,5 +2678,16 @@ abstract class Descriptor protected constructor (
 	override fun o_SetOriginatingPhraseOrIndex(
 		self: AvailObject,
 		phraseOrIndex: AvailObject
+	): Unit = unsupported
+
+	override fun o_LexerApplicability(
+		self: AvailObject,
+		codePoint: Int
+	): Boolean? = unsupported
+
+	override fun o_SetLexerApplicability(
+		self: AvailObject,
+		codePoint: Int,
+		applicability: Boolean
 	): Unit = unsupported
 }
