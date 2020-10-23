@@ -48,6 +48,7 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.system.exitProcess
 import kotlin.text.Charsets.UTF_8
+import kotlin.text.RegexOption.IGNORE_CASE
 
 /**
  * The IndexedFileAnalyzer understands options that are specified in detail in
@@ -119,16 +120,14 @@ object IndexedFileAnalyzer
 		file: File
 	): IndexedFileBuilder(parseHeader(file))
 
-	/**
-	 * Extract the header string from the file with the given name.
-	 */
+	/** Extract the header string from the file with the given name. */
 	fun parseHeader(file: File): String =
 		file.inputStream().reader(UTF_8).buffered().use {
 			buildString {
 				while (true) {
 					val ch = it.read()
-					append(ch.toChar())
 					if (ch == 0) break
+					append(ch.toChar())
 				}
 			}
 		}
@@ -310,11 +309,17 @@ object IndexedFileAnalyzer
 			// and ensure that any supplied paths are syntactically valid.
 			configuration = configure(args)
 			with(configuration) {
+				if (implodeDirectory !== null)
+				{
+					implode()
+					return
+				}
 				val builder = ArbitraryIndexedFileBuilder(inputFile!!)
 				indexedFile = builder.openOrCreate(inputFile!!, false)
 				val indices = indices()
 				when {
-					patchOutputFile !== null -> {
+					patchOutputFile !== null ->
+					{
 						// Patch the file into an output file by transforming
 						// each record, stripping one level of UTF-8 encoding.
 						// Fail and delete the destination file if any record
@@ -348,7 +353,8 @@ object IndexedFileAnalyzer
 							throw e
 						}
 					}
-					explodeDirectory !== null -> {
+					explodeDirectory !== null ->
+					{
 						// Explode records into files.
 						val dir = explodeDirectory!!
 						val suffix = if (text) ".txt" else ""
@@ -365,14 +371,16 @@ object IndexedFileAnalyzer
 							}
 						}
 					}
-					counts && !binary && !text && !sizes -> {
+					counts && !binary && !text && !sizes ->
+					{
 						// Output a raw count, a linefeed, and nothing else.
 						assert(!metadata)
 						println(indices.count())
 					}
-					counts || sizes || binary || text -> {
+					counts || sizes || binary || text ->
+					{
 						// Output a stream of records.
-						indices().forEach {
+						indices.forEach {
 							writeRecord(it, System.out)
 						}
 						if (metadata) writeRecord(-1L, System.out)
@@ -390,5 +398,77 @@ object IndexedFileAnalyzer
 			System.err.println(e.message)
 			exitProcess(OTHER_ERROR.value)
 		}
+	}
+
+	/**
+	 * Implode a directory of record files and optional metadata file into an
+	 * indexed file having the specified header.
+	 */
+	private fun IndexedFileAnalyzerConfiguration.implode()
+	{
+		assert(implodeDirectory !== null)
+		assert(implodeHeader !== null)
+		assert(implodeOutput !== null)
+		assert(inputFile === null)
+
+		val dir = implodeDirectory!!
+		val outputFile = implodeOutput!!
+		if (outputFile.exists())
+		{
+			throw Exception("Output file must not already exist")
+		}
+		val files = dir.list()!!.toMutableList()
+		val metadata = when
+		{
+			files.remove("metadata") -> {
+				if (files.contains("metadata.txt"))
+				{
+					throw Exception(
+						"Directory must not contain both 'metadata' and "
+							+ "'metadata.txt'.")
+				}
+				"metadata"
+			}
+			files.remove("metadata.txt") -> "metadata.txt"
+			else -> null
+		}
+		val regex = "^(\\d+)(\\.txt)?$".toRegex(IGNORE_CASE)
+		files.forEach {
+			if (!regex.matches(it))
+			{
+				throw Exception(
+					"Unexpected file '$it'. Implode directory entries must be "
+						+ "numeric, or numeric+'.txt', and contiguous, "
+						+ "starting at 0. Zero or one of 'metadata' or "
+						+ "'metadata.txt' is also supported.")
+			}
+		}
+		files.sortBy { regex.replace(it, "$1").toInt() }
+		for (i in files.indices)
+		{
+			val name = files[i]
+			val replacedName = regex.replace(name, "$1")
+			if (replacedName.toInt() != i)
+			{
+				if (replacedName.toInt() == i - 1)
+				{
+					throw Exception(
+						"Directory must not contain both $replacedName "
+							+ "and $replacedName.txt")
+				}
+				throw Exception(
+					"Cannot find file '$i' or '$i.txt'.")
+			}
+		}
+		val indexedFileBuilder =
+			object : IndexedFileBuilder(implodeHeader!!)
+			{}
+		val out = indexedFileBuilder.openOrCreate(
+			outputFile, true)
+		files.forEach { out.add(dir.resolve(it).readBytes()) }
+		metadata?.let {
+			out.metadata = dir.resolve(it).readBytes()
+		}
+		out.commit()
 	}
 }
