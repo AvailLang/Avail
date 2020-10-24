@@ -40,7 +40,6 @@ import com.avail.builder.RenamesFileParserException
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.files.FileManager
 import com.avail.performance.StatisticReport
-import com.avail.persistence.cache.Repositories
 import com.avail.stacks.StacksGenerator
 import com.avail.tools.compiler.Compiler
 import com.avail.tools.compiler.configuration.VerbosityLevel.GLOBAL_LOCAL_PROGRESS
@@ -53,6 +52,8 @@ import java.io.StringReader
 import java.nio.charset.StandardCharsets.UTF_8
 import java.util.EnumSet
 import java.util.concurrent.Semaphore
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 /**
  * A `CompilerConfiguration` instructs a [compiler][Compiler] on
@@ -82,23 +83,34 @@ class CompilerConfiguration constructor(private val fileManager: FileManager)
 			availRoots = null
 		}
 
+	/**
+	 * A [ReentrantLock] for guarding the setting of [availRoots].
+	 */
+	private val lock = ReentrantLock()
+
 	/** The [Avail roots][ModuleRoots].  */
 	private var availRoots: ModuleRoots? = null
-		get()
-		{
-			var roots = field
-			if (roots === null)
-			{
-				val semaphore = Semaphore(0)
-				roots = ModuleRoots(fileManager, availRootsPath) {
-					it.forEach { msg -> System.err.println(msg) }
-					semaphore.release()
+		get() =
+			// It is possible for multiple threads to race to this condition
+			// if the value has not been set, we want to ensure only one thread
+			// can set availRoots
+			lock.withLock {
+				var roots = field
+				// If availRoots is not set, set it now
+				if (roots === null)
+				{
+					val semaphore = Semaphore(0)
+					roots = ModuleRoots(fileManager, availRootsPath) {
+						it.forEach { msg -> System.err.println(msg) }
+						semaphore.release()
+					}
+					semaphore.acquireUninterruptibly()
+					field = roots
 				}
-				semaphore.acquireUninterruptibly()
-				availRoots = roots
+				field
 			}
-			return roots
-		}
+
+
 
 	/** The path to the [renames file][RenamesFileParser].  */
 	internal var renamesFilePath: String? = null

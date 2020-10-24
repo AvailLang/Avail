@@ -34,6 +34,7 @@ package com.avail.server.messages
 
 import com.avail.server.AvailServer
 import com.avail.server.io.AvailServerChannel
+import com.avail.utility.json.JSONWriter
 import java.nio.charset.StandardCharsets
 
 /**
@@ -82,6 +83,24 @@ class Message constructor(
 		}
 		return String(content, StandardCharsets.UTF_8)
 	}
+
+	/**
+	 * Construct a new [Message].
+	 *
+	 * @param writer
+	 *   The [JSONWriter] that contains the message.
+	 * @param state
+	 *   The [AvailServerChannel.ProtocolState] the source/target
+	 *   [AvailServerChannel] was at when this `Message` was received/created.
+	 * @param closeAfterSending
+	 *   `true` if the [channel][AvailServerChannel] should be
+	 *   [closed][AvailServerChannel.scheduleClose] after transmitting this message.
+	 */
+	constructor(
+		writer: JSONWriter,
+		state: AvailServerChannel.ProtocolState,
+		closeAfterSending: Boolean = false):
+			this(writer.toString().toByteArray(), state, closeAfterSending)
 
 	companion object
 	{

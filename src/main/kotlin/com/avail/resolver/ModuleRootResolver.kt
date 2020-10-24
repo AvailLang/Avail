@@ -6,16 +6,16 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ * * Redistributions in binary form must reproduce the above copyright notice, this
+ *   list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
  *
- *  * Neither the name of the copyright holder nor the names of the contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -47,16 +47,16 @@ import java.util.UUID
 /**
  * `ModuleRootResolver` declares an interface for accessing Avail [ModuleRoot]s
  * given a [URI]. It is responsible for asynchronously retrieving, creating,
- * deleting, saving, files and packages where the `ModuleRoot` is stored.
+ * deleting, and saving files and packages where the `ModuleRoot` is stored.
  *
- * It is responsible for producing [ResolverReference]s, the linking object
- * between a resource in a module root to its actual file at the [URI] location
- * of the module root.
+ * It is responsible for producing [ResolverReference]s, the object linking a
+ * resource in a module root to its actual file at the [URI] location of the
+ * module root.
  *
  * All file actions are conducted via the [ModuleRootResolver.fileManager].
  * Given the files may originate anywhere from the local file system to a remote
- * database accessed via network API, all file requests must be handled
- * asynchronously.
+ * database accessed via network API, a RESTful webserver, etc., all file
+ * requests must be handled asynchronously.
  *
  * A `ModuleRootResolver` establishes access to a `ModuleRoot` based upon the
  * [URI.scheme] given the appropriate `ModuleRootResolver` that supports the
@@ -282,7 +282,7 @@ interface ModuleRootResolver
 	 * @param reference
 	 *   The [ResolverReference] to refresh.
 	 * @param successHandler
-	 *   A function that accepts thelast modified time to call after the refresh
+	 *   A function that accepts the last modified time to call after the refresh
 	 *   is complete.
 	 * @param failureHandler
 	 *   A function that accepts an [ErrorCode] and a `nullable` [Throwable]

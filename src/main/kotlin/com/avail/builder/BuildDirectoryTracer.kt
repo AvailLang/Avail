@@ -34,13 +34,14 @@ package com.avail.builder
 
 import com.avail.compiler.AvailCompiler
 import com.avail.compiler.problems.Problem
+import com.avail.descriptor.fiber.FiberDescriptor.Companion.tracerPriority
 import com.avail.error.ErrorCode
 import com.avail.persistence.cache.Repository.ModuleVersion
 import com.avail.persistence.cache.Repository.ModuleVersionKey
 import com.avail.resolver.ModuleRootResolver
 import com.avail.resolver.ResourceType
 import java.net.URI
-import java.util.Collections
+import java.util.Collections.synchronizedSet
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.logging.Level
@@ -69,12 +70,11 @@ class BuildDirectoryTracer constructor(
 {
 	/** The trace requests that have been scheduled.  */
 	@GuardedBy("this")
-	private val traceRequests = Collections.synchronizedSet(mutableSetOf<URI>())
+	private val traceRequests = synchronizedSet(mutableSetOf<URI>())
 
 	/** The traces that have been completed.  */
 	@GuardedBy("this")
-	private val traceCompletions =
-		Collections.synchronizedSet(mutableSetOf<URI>())
+	private val traceCompletions = synchronizedSet(mutableSetOf<URI>())
 
 	/** A flag to indicate when all requests have been queued.  */
 	@GuardedBy("this")
@@ -138,13 +138,13 @@ class BuildDirectoryTracer constructor(
 		for (moduleRoot in moduleRoots)
 		{
 			traceAllModuleHeaders(moduleRoot.resolver, moduleAction,
-			{ name, code, ex ->
-				// TODO figure out what to do with these!!! Probably report them?
-				System.err.println(
-					"Received ErrorCode: $code while tracing $name with " +
-						"exception:\n")
-				ex?.printStackTrace()
-			}) {
+				{ name, code, ex ->
+					// TODO figure out what to do with these!!! Probably report them?
+					System.err.println(
+						"Received ErrorCode: $code while tracing $name with " +
+							"exception:\n")
+					ex?.printStackTrace()
+				}) {
 				totalVisited.addAndGet(it)
 				if (countDown.decrementAndGet() == 0)
 				{
@@ -193,17 +193,17 @@ class BuildDirectoryTracer constructor(
 			refRoot.walkChildrenThen(false, { visited ->
 				if (visited.isRoot || visited.isPackage)
 				{
-					// We don't want trace packages
+					// We don't want to trace packages.
 					return@walkChildrenThen
 				}
 				require(visited.isModule)
 				{
-					"BuildDirectoryTracer only operates on packages & modules " +
-						"but received $visited"
+					"BuildDirectoryTracer only operates on packages and " +
+						"modules but received $visited"
 				}
 				// It's a module file.
 				addTraceRequest(visited.uri)
-				resolver.fileManager.runtime().execute(0) {
+				resolver.fileManager.runtime().execute(tracerPriority) {
 					val moduleName = ModuleName(visited.qualifiedName)
 					val resolved = ResolvedModuleName(
 						moduleName,
@@ -216,12 +216,15 @@ class BuildDirectoryTracer constructor(
 						moduleAction,
 						{
 							val oldRan = ran.getAndSet(true)
-							assert(!oldRan)
+							assert(!oldRan) {
+								"${visited.localName} already ran " +
+									"BuildDirectoryTracer.traceOneModuleHeader"
+							}
 							indicateFileCompleted(visited.uri)
 						})
 				}
 			},
-			afterAllQueued)
+				afterAllQueued)
 		}) { code, ex ->
 			moduleFailureHandler(
 				"Could not get ${resolver.moduleRoot.name} ResolverReference",
@@ -363,6 +366,7 @@ class BuildDirectoryTracer constructor(
 							sourceReference.size,
 							importNames,
 							entryPoints)
+
 						availBuilder.serialize(header, newVersion)
 						archive.putVersion(versionKey, newVersion)
 						action(resolvedName, newVersion, completedAction)

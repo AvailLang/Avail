@@ -89,6 +89,7 @@ import com.avail.descriptor.bundles.MessageBundleDescriptor
 import com.avail.descriptor.bundles.MessageBundleTreeDescriptor
 import com.avail.descriptor.fiber.A_Fiber
 import com.avail.descriptor.fiber.FiberDescriptor
+import com.avail.descriptor.fiber.FiberDescriptor.Companion.compilerPriority
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.newLoaderFiber
 import com.avail.descriptor.fiber.FiberDescriptor.GeneralFlag
 import com.avail.descriptor.functions.A_Function
@@ -4015,6 +4016,7 @@ class AvailCompiler(
 			}
 			catch (e: Exception)
 			{
+				// tODO we don't know which thing failed here?
 				compilationContext.diagnostics.reportError(
 					endState.lexingState,
 					"Unexpected exception encountered while processing "
@@ -4352,7 +4354,7 @@ class AvailCompiler(
 					{
 						val source =
 							decoder.decode(ByteBuffer.wrap(content)).toString()
-						runtime.execute(FiberDescriptor.compilerPriority)
+						runtime.execute(compilerPriority)
 						{
 							withSource(source)
 						}

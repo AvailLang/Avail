@@ -34,12 +34,15 @@ package com.avail.builder
 
 import com.avail.annotations.ThreadSafe
 import com.avail.descriptor.module.ModuleDescriptor
+import com.avail.error.ErrorCode
 import com.avail.files.FileManager
 import com.avail.persistence.cache.Repositories
 import com.avail.resolver.ModuleRootResolver
 import com.avail.resolver.ModuleRootResolverRegistry
+import com.avail.resolver.ResolverReference
 import com.avail.utility.json.JSONWriter
 import java.net.URI
+import java.util.Collections
 import java.util.Collections.unmodifiableSet
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantLock
@@ -254,6 +257,43 @@ class ModuleRoots constructor(
 	 *   The module root, or `null` if no such binding exists.
 	 */
 	fun moduleRootFor(rootName: String): ModuleRoot? = rootMap[rootName]
+
+	/**
+	 * Retrieve all of the root [ResolverReference]s for each [ModuleRoot] in
+	 * this [ModuleRoots] and pass them to the provided function.
+	 *
+	 * @param withResults
+	 *   A lambda that accepts a [list][List] of successfully resolved
+	 *   [ResolverReference]s and a list of [ModuleRoot.name] - [ErrorCode] -
+	 *   `nullable` [Throwable] [Triple]s that contains all failed resolutions.
+	 */
+	fun moduleRootTreesThen (
+		withResults: (List<
+			ResolverReference>,
+			List<Triple<String, ErrorCode, Throwable?>>)->Unit)
+	{
+		val rootsToAcquire = roots
+		val countdown = AtomicInteger(rootsToAcquire.size)
+		val references =
+			Collections.synchronizedList(mutableListOf<ResolverReference>())
+		val failures = Collections.synchronizedList(
+			mutableListOf<Triple<String, ErrorCode, Throwable?>>())
+		rootsToAcquire.iterator().forEach { mr ->
+			mr.resolver.provideModuleRootTree({
+				references.add(it)
+				if (countdown.decrementAndGet() == 0)
+				{
+					withResults(references, failures)
+				}
+			}) { code, ex ->
+				failures.add(Triple(mr.name, code, ex))
+				if (countdown.decrementAndGet() == 0)
+				{
+					withResults(references, failures)
+				}
+			}
+		}
+	}
 
 	init
 	{

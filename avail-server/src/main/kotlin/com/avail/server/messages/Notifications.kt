@@ -6,16 +6,16 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ * * Redistributions in binary form must reproduce the above copyright notice, this
+ *   list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
  *
- *  * Neither the name of the copyright holder nor the names of the contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -65,7 +65,7 @@ abstract class Notification constructor(
 	}
 
 	/**
-	 * Send this [Notification] to the provide [AvailServerChannel].
+	 * Send this [Notification] to the provided [AvailServerChannel].
 	 *
 	 * @param channel
 	 *   The `AvailServerChannel` to notify.
@@ -76,7 +76,7 @@ abstract class Notification constructor(
 			Message(
 				JSONWriter().apply {
 					this@Notification.writeTo(this)
-				}.toString().toByteArray(),
+				},
 				channel.state)
 		) { }
 	}
@@ -112,8 +112,8 @@ class SimpleNotification constructor(
 }
 
 /**
- * A `RootChange` is a [Notification] used to send a notification that an update
- * has occurred to a [ModuleRoot].
+ * A `RootChange` is a [Notification] indicating that an update has occurred to
+ * a [ModuleRoot].
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
@@ -140,18 +140,19 @@ open class RootChange constructor(
 	override fun writeTo(writer: JSONWriter)
 	{
 		super.writeTo(writer)
-		writer.write("notification")
-		writer.writeObject {
-			write("root")
-			write(root)
-			write("rootRelativeName")
-			write(rootRelativeName)
+		writer.at("notification") {
+			writeObject {
+				write("root")
+				write(root)
+				write("rootRelativeName")
+				write(rootRelativeName)
+			}
 		}
 	}
 }
 
 /**
- * `Create` is a [RootChange] that announces a resource has been created in a
+ * `Create` is a [RootChange] announcing a resource has been created in a
  * [ModuleRoot].
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
@@ -168,7 +169,7 @@ class Create constructor(root: String, rootRelativeName: String):
 	RootChange(root, rootRelativeName, CREATE)
 
 /**
- * `Delete` is a [RootChange] that announces a resource has been created in a
+ * `Delete` is a [RootChange] announcing that a resource has been created in a
  * [ModuleRoot].
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
@@ -185,7 +186,7 @@ class Delete constructor(root: String, rootRelativeName: String):
 	RootChange(root, rootRelativeName, DELETE)
 
 /**
- * `Modify` is a [RootChange] that announces a resource has been modified in a
+ * `Modify` is a [RootChange] announcing that a resource has been modified in a
  * [ModuleRoot].
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;

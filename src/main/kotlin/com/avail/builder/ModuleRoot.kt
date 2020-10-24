@@ -76,7 +76,7 @@ class ModuleRoot
 	 * [modules][ModuleDescriptor] for this [root][ModuleRoot].
 	 */
 	val repository: Repository get() = Repositories[name]
-		?: throw RuntimeException("Missing repository, $name")
+		?: throw RuntimeException("Missing repository: $name")
 
 	/**
 	 * Clear the content of the repository for this root.

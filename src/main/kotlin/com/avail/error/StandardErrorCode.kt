@@ -1,6 +1,6 @@
 /*
- * FileErrorCodeRange.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * ServerErrorCode.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,69 +30,44 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.files
-
-import com.avail.error.ErrorCode
-import com.avail.error.ErrorCodeRange
-import com.avail.error.InvalidErrorCode
+package com.avail.error
 
 /**
- * A `FileErrorCodeRange` is an [ErrorCodeRange] that holds defined error codes
- * that involve failures while handling files.
+ * `StandardErrorCodeRange` is an [ErrorCodeRange] that specifies standard
+ * errors that can occur during the regular function of Avail.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-object FileErrorCodeRange : ErrorCodeRange
+object StandardErrorCodeRange : ErrorCodeRange
 {
-	override val name: String = "File Error Code Range"
-
-	override val range: IntRange = IntRange(200000, 299999)
+	override val range: IntRange = IntRange(1000, 1999)
+	override val name: String = "Standard Error Codes"
 
 	override fun errorCode(code: Int): ErrorCode
 	{
 		assert(code in range)
-		return FileErrorCode.code(code - minCode)
+		return StandardErrorCode.code(code - minCode)
 	}
 }
 
 /**
- * `FileErrorCode` is an enumeration of [ErrorCode] that list errors that can
- * happen while dealing with files.
+ * `StandardErrorCode` is an enumeration of [ErrorCode] that represent standard
+ * failures that can occur while running Avail.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-enum class FileErrorCode(code: Int): ErrorCode
+enum class StandardErrorCode(code: Int) : ErrorCode
 {
 	/** An unspecified error has occurred. */
-	UNSPECIFIED(200000),
+	UNSPECIFIED(1000),
 
 	/**
-	 * Indicates a file that was attempted to be created already exists.
+	 * An error has occurred when performing IO functions.
 	 */
-	FILE_ALREADY_EXISTS(200001),
-
-	/** Could not locate a file at specified location. */
-	FILE_NOT_FOUND(200002),
-
-	/**
-	 * The cache id provided to refer to a file did not refer to any file.
-	 */
-	BAD_FILE_ID(200003),
-
-	/**
-	 * The permissions associated with the file does not allow the attempted
-	 * action.
-	 */
-	PERMISSIONS(200004),
-
-	/**
-	 * An attempt to access a [FileManager]-cached file that has been closed
-	 * and removed from the cache has occurred.
-	 */
-	FILE_CLOSED(200005);
+	IO_EXCEPTION(1001);
 
 	override val errorCodeRange: ErrorCodeRange
-		get() = FileErrorCodeRange
+		get() = StandardErrorCodeRange
 
 	override val code: Int
 
@@ -100,7 +75,7 @@ enum class FileErrorCode(code: Int): ErrorCode
 	{
 		val expectedCode = ordinal + errorCodeRange.minCode
 		require(code == expectedCode) {
-			"FileErrorCode $name's provided code did not match the ordinal " +
+			"StandardErrorCode $name's provided code did not match the ordinal " +
 				"+ errorCodeRange.minCode: ($ordinal + " +
 				"${errorCodeRange.minCode}). To ensure uniqueness the code " +
 				"must be its ordinal position in the enum added to the range " +
@@ -115,21 +90,17 @@ enum class FileErrorCode(code: Int): ErrorCode
 		 * Answer the [ErrorCode] for the provided [ErrorCode.code].
 		 *
 		 * @param code
-		 *   The integer value used to identify the [FileErrorCode].
+		 *   The integer value used to identify the [StandardErrorCode].
 		 * @return
-		 *   The associated `FileErrorCode` or [InvalidErrorCode] if the id is
-		 *   not found.
+		 *   The associated `StandardErrorCode` or [InvalidErrorCode] if the id
+		 *   is not found.
 		 */
 		fun code (code: Int): ErrorCode =
 			when(code)
 			{
 				UNSPECIFIED.code -> UNSPECIFIED
-				FILE_ALREADY_EXISTS.code -> FILE_ALREADY_EXISTS
-				FILE_NOT_FOUND.code -> FILE_NOT_FOUND
-				BAD_FILE_ID.code -> BAD_FILE_ID
-				PERMISSIONS.code -> PERMISSIONS
-				FILE_CLOSED.code -> FILE_CLOSED
-				else -> InvalidErrorCode(code, FileErrorCodeRange)
+				IO_EXCEPTION.code -> IO_EXCEPTION
+				else -> InvalidErrorCode(code, StandardErrorCodeRange)
 			}
 	}
 }

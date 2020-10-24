@@ -37,7 +37,6 @@ import com.avail.builder.ModuleRoots
 import com.avail.builder.RenamesFileParser
 import com.avail.builder.RenamesFileParserException
 import com.avail.files.FileManager
-import com.avail.persistence.cache.Repositories
 import com.avail.server.AvailServer
 import com.avail.utility.configuration.Configuration
 import java.io.File
@@ -86,7 +85,6 @@ class AvailServerConfiguration constructor(private val fileManager: FileManager)
 			if (roots === null)
 			{
 				roots = ModuleRoots(fileManager, availRootsPath) {
-					// TODO log if failed resolution?
 					it.forEach { msg -> System.err.println(msg) }
 				}
 				privateAvailRoots = roots

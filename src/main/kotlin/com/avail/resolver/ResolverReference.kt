@@ -6,16 +6,16 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ * * Redistributions in binary form must reproduce the above copyright notice, this
+ *   list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
  *
- *  * Neither the name of the copyright holder nor the names of the contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -98,8 +98,7 @@ class ResolverReference constructor(
 	localName: String = "")
 {
 	/**
-	 * `true` iff the [ResolverReference] represents a root, `false`
-	 *  otherwise.
+	 * `true` iff the [ResolverReference] represents a root, `false` otherwise.
 	 */
 	val isRoot: Boolean get() = type == ResourceType.ROOT
 
@@ -124,10 +123,9 @@ class ResolverReference constructor(
 		type == ResourceType.MODULE || type == ResourceType.REPRESENTATIVE
 
 	/**
-	 * Indicates whether or not this [ResolverReference] is resource, not a
-	 * [module][isModule] nor [package][ResourceType.PACKAGE]. `true` if it is
-	 * either a [ResourceType.RESOURCE] or [ResourceType.DIRECTORY]; `false`
-	 * otherwise.
+	 * Indicates whether or not this [ResolverReference] is a resource, not a
+	 * [module][isModule] nor [package][isPackage]. `true` if it is either a
+	 * [ResourceType.RESOURCE] or [ResourceType.DIRECTORY]; `false` otherwise.
 	 */
 	val isResource: Boolean get() =
 		type == ResourceType.RESOURCE || type == ResourceType.DIRECTORY
@@ -158,7 +156,7 @@ class ResolverReference constructor(
 	 *   [modules].
 	 */
 	fun childReferences (includeResources: Boolean): List<ResolverReference> =
-		if( includeResources) modules + resources
+		if (includeResources) modules + resources
 		else modules
 
 	/**
@@ -228,13 +226,13 @@ class ResolverReference constructor(
 		 * The last known time this was updated since the Unix Epoch.
 		 */
 		var lastModified: Long
-		private set
+			private set
 
 		/**
 		 * The size, in bytes, of the backing file, or 0 if [isPackage] is true.
 		 */
 		var size: Long
-		private set
+			private set
 
 		/**
 		 * The cryptographic hash of the file's most recently reported contents.
@@ -242,7 +240,7 @@ class ResolverReference constructor(
 		private val digest: ByteArray? get() = archive.provideDigest(this)
 
 		/**
-		 * The [exception][Throwable] that prevented most recent attempt at
+		 * The [exception][Throwable] that prevented the most recent attempt at
 		 * accessing the source location of this [ResolverReference].
 		 */
 		var accessException: Throwable? = null
@@ -467,13 +465,8 @@ class ResolverReference constructor(
 			if (this === other) return true
 			if (other !is ResolverReference) return false
 
-			if (resolver.uri != other.resolver.uri)
-			{
-				return false
-			}
-			if (qualifiedName != other.qualifiedName) return false
-
-			return true
+			return resolver.uri == other.resolver.uri
+				&& qualifiedName == other.qualifiedName
 		}
 
 		override fun hashCode(): Int
@@ -491,7 +484,7 @@ class ResolverReference constructor(
 		 * [package][ResourceType.PACKAGE], or
 		 * [directory][ResourceType.DIRECTORY].
 		 *
-		 * **NOTE** Graph is uses depth-first traversal to visit each reference.
+		 * **NOTE** Graph uses depth-first traversal to visit each reference.
 		 *
 		 * @param visitResources
 		 *   `true` indicates [resources][ResolverReference.isResource] should
@@ -502,8 +495,8 @@ class ResolverReference constructor(
 		 *   `ResolverReference` will not be provided to the lambda.
 		 * @param afterAllVisited
 		 *   The lambda that accepts the total number of
-		 *   [ResolverReference.isModule]s visited to be called after all
-		 *   `ResolverReference`s have been visited.
+		 *   [modules][ResolverReference.isModule] visited to be called after
+		 *   all `ResolverReference`s have been visited.
 		 */
 		fun walkChildrenThen(
 			visitResources: Boolean,
@@ -517,7 +510,7 @@ class ResolverReference constructor(
 				"ModuleResourceResolver.walk must start with a Root, Package, " +
 					"or Directory; $qualifiedName is none of those things."
 			}
-			if(!visitResources && isResource)
+			if (!visitResources && isResource)
 			{
 				System.err.println(
 					"ModuleRootResolver.walkRoot provided root, $this which " +
@@ -544,19 +537,19 @@ class ResolverReference constructor(
 			afterAllVisited(visited.get())
 		}
 
-		companion object
+	companion object
 	{
 		/** The name of the [MessageDigest] used to detect file changes. */
 		internal const val DIGEST_ALGORITHM = "SHA-256"
 
 		/**
 		 * Visit the provided [ResolverReference] by handing it to the provided
-		 * lambda then add all its [children][childReferences] to the provide
+		 * lambda then add all its [children][childReferences] to the provided
 		 * `stack`. Then pop the next `ResolverReference` and recursively visit
 		 * visit it by calling this function on it. An empty stack indicates all
 		 * children have been visited.
 		 *
-		 * **NOTE** Graph is uses depth-first traversal to visit each reference.
+		 * **NOTE** Graph uses depth-first traversal to visit each reference.
 		 *
 		 * @param reference
 		 *   The [ResolverReference] being visited.
@@ -565,7 +558,7 @@ class ResolverReference constructor(
 		 *   be included in the walk; `false` indicates walk should be
 		 *   restricted to packages and [modules][ResourceType.MODULE].
 		 * @param visited
-		 *   The count of visited [ResolverReference.isModule]s so far.
+		 *   The count of visited [modules][ResolverReference.isModule] so far.
 		 * @param stack
 		 *   The [Deque] containing all the `ResolverReference`s that still need
 		 *   to be visited.

@@ -291,78 +291,37 @@ class AvailServer constructor(
 		continuation: ()->Unit)
 	{
 		assert(command.command === TextCommand.SOURCE_MODULES)
-		val writer = JSONWriter()
-		writer.startObject()
-		writeStatusOn(true, writer)
-		writeCommandOn(command.command, writer)
-		writeCommandIdentifierOn(command.commandId, writer)
-		writer.write("content")
-		val roots = runtime.moduleRoots().roots.iterator()
-		writer.startArray()
-		rootWriter(channel, writer, roots) {
-			writer.endArray()
-			writer.endObject()
+		runtime.moduleRoots().moduleRootTreesThen { resolved, failed ->
+			val writer = JSONWriter()
+			writer.writeObject {
+				writeStatusOn(true, writer)
+				writeCommandOn(command.command, writer)
+				writeCommandIdentifierOn(command.commandId, writer)
+				at("content") {
+					writeArray {
+						resolved.forEach { it.writeOn(writer, builder) }
+					}
+				}
+				at("failures") {
+					writeArray {
+						failed.forEach {
+							writeObject {
+								at("root") { write(it.first) }
+								at("code") { write(it.second.code) }
+								System.err.println(it.third)
+							}
+						}
+					}
+				}
+			}
 			channel.enqueueMessageThen(
-				Message(writer.toString().toByteArray(), channel.state),
-				continuation)
+				Message(writer, channel.state), continuation)
+
 		}
 	}
 
 	/**
-	 * Write the [ModuleRoot]s in the provided [Iterator] to the provided
-	 * [JSONWriter].
-	 *
-	 * @param channel
-	 *   The [channel][AvailServerChannel] on which the
-	 *   [response][CommandMessage] should be sent.
-	 * @param writer
-	 *   The `JSONWriter` to write to.
-	 * @param roots
-	 *   The iterator that provides the `ModuleRoot`s to write.
-	 * @param completion
-	 *   The lambda to call when all roots have been written.
-	 */
-	private fun rootWriter (
-		channel: AvailServerChannel,
-		writer: JSONWriter,
-		roots: Iterator<ModuleRoot>,
-		completion: () -> Unit)
-	{
-		if (!roots.hasNext())
-		{
-			completion()
-		}
-		val root = roots.next()
-		root.resolver.provideModuleRootTree(
-			{ ref ->
-				ref.writeOn(writer, builder)
-				if (roots.hasNext())
-				{
-					rootWriter(channel, writer, roots, completion)
-				}
-				else
-				{
-					completion()
-				}
-			}
-		) { code, ex ->
-			val msg = "$code: Could not access root: ${root.name}"
-			logger.log(Level.SEVERE, ex) { msg }
-			newNotificationMessage(channel, msg)
-
-			if (roots.hasNext())
-			{
-				rootWriter(channel, writer, roots, completion)
-			}
-			else
-			{
-				completion()
-			}
-		}
-	}
-
-	/**
-	 * List all source modules reachable from the
+	 * Provide all source modules' entry points reachable from the
 	 * [module roots][ModuleRoots].
 	 *
 	 * @param channel
@@ -403,8 +362,7 @@ class AvailServer constructor(
 				}
 			}
 			channel.enqueueMessageThen(
-				Message(this.toString().toByteArray(), channel.state),
-				continuation)
+				Message(this, channel.state), continuation)
 		}
 	}
 
@@ -609,9 +567,9 @@ class AvailServer constructor(
 		command: CommandMessage,
 		continuation: () -> Unit)
 	{
-		assert(command.command === TextCommand.SUBSCRIBE_NOTIFICATIONS)
+		assert(command.command === TextCommand.UNSUBSCRIBE_NOTIFICATIONS)
 		channel.session?.let {
-			it.receiveNotifications()
+			it.receiveNotifications(false)
 			channel.enqueueMessageThen(
 				newSimpleSuccessMessage(channel, command),
 				continuation)
@@ -1047,10 +1005,7 @@ class AvailServer constructor(
 				}
 				at("reason") { write(reason) }
 			}
-			return Message(
-				writer.toString().toByteArray(),
-				channel.state,
-				closeAfterSending)
+			return Message(writer, channel.state, closeAfterSending)
 		}
 
 		/**
@@ -1074,10 +1029,7 @@ class AvailServer constructor(
 				writeCommandIdentifierOn(0, writer)
 				at("message") { write(message) }
 			}
-			return Message(
-				writer.toString().toByteArray(),
-				channel.state,
-				false)
+			return Message(writer, channel.state)
 		}
 
 		/**
@@ -1099,7 +1051,7 @@ class AvailServer constructor(
 				writeCommandOn(command.command, writer)
 				writeCommandIdentifierOn(command.commandId, writer)
 			}
-			return Message(writer.toString().toByteArray(), channel.state)
+			return Message(writer, channel.state)
 		}
 
 		/**
@@ -1126,7 +1078,7 @@ class AvailServer constructor(
 				write("content")
 				content()
 			}
-			return Message(writer.toString().toByteArray(), channel.state)
+			return Message(writer, channel.state)
 		}
 
 		/**
@@ -1147,8 +1099,7 @@ class AvailServer constructor(
 				writeStatusOn(true, writer)
 				writeCommandOn(command.command, writer)
 				writeCommandIdentifierOn(command.commandId, writer)
-				write("content")
-				content()
+				at("content", content)
 			}
 		}
 
@@ -1178,8 +1129,7 @@ class AvailServer constructor(
 				writeCommandIdentifierOn(command.commandId, writer)
 				at("upgrade") { write(uuid.toString()) }
 			}
-			return Message(
-				writer.toString().toByteArray(), channel.state)
+			return Message(writer, channel.state)
 		}
 
 		/**

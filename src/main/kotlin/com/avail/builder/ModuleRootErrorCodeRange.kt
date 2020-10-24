@@ -30,69 +30,58 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.files
+package com.avail.builder
 
 import com.avail.error.ErrorCode
 import com.avail.error.ErrorCodeRange
 import com.avail.error.InvalidErrorCode
+import com.avail.resolver.ModuleRootResolver
 
 /**
- * A `FileErrorCodeRange` is an [ErrorCodeRange] that holds defined error codes
- * that involve failures while handling files.
+ * A `ModuleRootErrorCodeRange` is an [ErrorCodeRange] that holds defined error
+ * codes that involve failures while dealing with [ModuleRoot]s.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-object FileErrorCodeRange : ErrorCodeRange
+object ModuleRootErrorCodeRange : ErrorCodeRange
 {
-	override val name: String = "File Error Code Range"
+	override val name: String = "Module Root Error Code Range"
 
-	override val range: IntRange = IntRange(200000, 299999)
+	override val range: IntRange = IntRange(10000, 19999)
 
 	override fun errorCode(code: Int): ErrorCode
 	{
 		assert(code in range)
-		return FileErrorCode.code(code - minCode)
+		return ModuleRootErrorCode.code(code - minCode)
 	}
 }
 
 /**
- * `FileErrorCode` is an enumeration of [ErrorCode] that list errors that can
- * happen while dealing with files.
+ * `ModuleRootErrorCode` is an enum of [ErrorCode]s specific to errors involving
+ * [ModuleRoot]s.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-enum class FileErrorCode(code: Int): ErrorCode
+enum class ModuleRootErrorCode(code: Int): ErrorCode
 {
 	/** An unspecified error has occurred. */
-	UNSPECIFIED(200000),
+	UNSPECIFIED(10000),
 
 	/**
-	 * Indicates a file that was attempted to be created already exists.
+	 * Located [ModuleRoot] has no [source location][ModuleRoot.resolver].
 	 */
-	FILE_ALREADY_EXISTS(200001),
+	NO_SOURCE_LOCATION(10001),
 
-	/** Could not locate a file at specified location. */
-	FILE_NOT_FOUND(200002),
-
-	/**
-	 * The cache id provided to refer to a file did not refer to any file.
-	 */
-	BAD_FILE_ID(200003),
+	/** Could not [find][ModuleRoots.moduleRootFor] [ModuleRoot]. */
+	BAD_MODULE_ROOT(10002),
 
 	/**
-	 * The permissions associated with the file does not allow the attempted
-	 * action.
+	 * The [ModuleRootResolver] could not be successfully [ModuleRoot].
 	 */
-	PERMISSIONS(200004),
-
-	/**
-	 * An attempt to access a [FileManager]-cached file that has been closed
-	 * and removed from the cache has occurred.
-	 */
-	FILE_CLOSED(200005);
+	MODULE_ROOT_RESOLUTION_FAILED(10003);
 
 	override val errorCodeRange: ErrorCodeRange
-		get() = FileErrorCodeRange
+		get() = ModuleRootErrorCodeRange
 
 	override val code: Int
 
@@ -100,8 +89,8 @@ enum class FileErrorCode(code: Int): ErrorCode
 	{
 		val expectedCode = ordinal + errorCodeRange.minCode
 		require(code == expectedCode) {
-			"FileErrorCode $name's provided code did not match the ordinal " +
-				"+ errorCodeRange.minCode: ($ordinal + " +
+			"ModuleRootErrorCode $name's provided code did not match the " +
+				"ordinal + errorCodeRange.minCode: ($ordinal + " +
 				"${errorCodeRange.minCode}). To ensure uniqueness the code " +
 				"must be its ordinal position in the enum added to the range " +
 				"minimum."
@@ -115,21 +104,19 @@ enum class FileErrorCode(code: Int): ErrorCode
 		 * Answer the [ErrorCode] for the provided [ErrorCode.code].
 		 *
 		 * @param code
-		 *   The integer value used to identify the [FileErrorCode].
+		 *   The integer value used to identify the [ModuleRootErrorCode].
 		 * @return
-		 *   The associated `FileErrorCode` or [InvalidErrorCode] if the id is
-		 *   not found.
+		 *   The associated `ModuleRootErrorCode` or [InvalidErrorCode] if the
+		 *   id is not found.
 		 */
 		fun code (code: Int): ErrorCode =
 			when(code)
 			{
 				UNSPECIFIED.code -> UNSPECIFIED
-				FILE_ALREADY_EXISTS.code -> FILE_ALREADY_EXISTS
-				FILE_NOT_FOUND.code -> FILE_NOT_FOUND
-				BAD_FILE_ID.code -> BAD_FILE_ID
-				PERMISSIONS.code -> PERMISSIONS
-				FILE_CLOSED.code -> FILE_CLOSED
-				else -> InvalidErrorCode(code, FileErrorCodeRange)
+				NO_SOURCE_LOCATION.code -> NO_SOURCE_LOCATION
+				BAD_MODULE_ROOT.code -> BAD_MODULE_ROOT
+				BAD_MODULE_ROOT.code -> BAD_MODULE_ROOT
+				else -> InvalidErrorCode(code, ModuleRootErrorCodeRange)
 			}
 	}
 }

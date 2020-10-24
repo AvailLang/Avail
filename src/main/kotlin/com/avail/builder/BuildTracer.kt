@@ -36,7 +36,7 @@ import com.avail.compiler.AvailCompiler
 import com.avail.compiler.problems.Problem
 import com.avail.compiler.problems.ProblemHandler
 import com.avail.compiler.problems.ProblemType.TRACE
-import com.avail.descriptor.fiber.FiberDescriptor
+import com.avail.descriptor.fiber.FiberDescriptor.Companion.compilerPriority
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.tracerPriority
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.io.SimpleCompletionHandler
@@ -230,7 +230,7 @@ internal class BuildTracer constructor(val availBuilder: AvailBuilder)
 					return@digestForFile
 				}
 				// Trace the source and write it back to the repository.
-				availBuilder.runtime.execute(FiberDescriptor.compilerPriority)
+				availBuilder.runtime.execute(compilerPriority)
 				{
 					AvailCompiler.create(
 						resolvedName,
@@ -239,7 +239,8 @@ internal class BuildTracer constructor(val availBuilder: AvailBuilder)
 						availBuilder.pollForAbort,
 						{ _, _, _, _ -> },
 						this::indicateTraceCompleted,
-						problemHandler) { compiler ->
+						problemHandler
+					) { compiler ->
 						compiler.compilationContext.diagnostics
 							.setSuccessAndFailureReporters(
 								{

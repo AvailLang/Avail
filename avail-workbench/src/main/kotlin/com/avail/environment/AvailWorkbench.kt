@@ -148,6 +148,7 @@ import java.nio.file.FileSystems
 import java.nio.file.Path
 import java.util.Arrays
 import java.util.Collections
+import java.util.Collections.synchronizedMap
 import java.util.Enumeration
 import java.util.Queue
 import java.util.TimerTask
@@ -611,7 +612,7 @@ class AvailWorkbench internal constructor (
 			finally
 			{
 				// Close all the repositories.
-				Repositories.clearAllRepositories()
+				Repositories.closeAllRepositories()
 				stopTimeMillis = currentTimeMillis()
 			}
 		}
@@ -1005,7 +1006,7 @@ class AvailWorkbench internal constructor (
 				}
 			}) { code, ex ->
 				System.err.println(
-					"Workbench could not walk root, ${root.name}: $code")
+					"Workbench could not walk root: ${root.name}: $code")
 				ex?.printStackTrace()
 			}
 		}
@@ -1082,7 +1083,7 @@ class AvailWorkbench internal constructor (
 	}
 
 	/**
-	 * Answer a [tree&#32;node][TreeNode] that represents the (invisible) root
+	 * Provide a [tree&#32;node][TreeNode] that represents the (invisible) root
 	 * of the Avail entry points tree.
 	 *
 	 * @param withTreeNode
@@ -1092,7 +1093,7 @@ class AvailWorkbench internal constructor (
 	private fun newEntryPointsTreeThen(withTreeNode: (TreeNode) -> Unit)
 	{
 		val mutex = ReentrantReadWriteLock()
-		val moduleNodes = Collections.synchronizedMap(
+		val moduleNodes = synchronizedMap(
 			mutableMapOf<String, DefaultMutableTreeNode>())
 		availBuilder.traceDirectoriesThen({ resolvedName, moduleVersion, after ->
 			val entryPoints = moduleVersion.getEntryPoints()
@@ -1111,7 +1112,6 @@ class AvailWorkbench internal constructor (
 			}
 			after()
 		}) {
-			// TODO this all below needs to be moved into a continuation
 			val entryPointsTreeRoot =
 				DefaultMutableTreeNode("(entry points hidden root)")
 
@@ -2363,7 +2363,7 @@ class AvailWorkbench internal constructor (
 								"Scanning all module headers...\n",
 								INFO)
 							val before = currentTimeMillis()
-							workbench.calculateRefreshedTreesThen {//////////////////////
+							workbench.calculateRefreshedTreesThen {
 								modulesAndEntryPoints ->
 								val after = currentTimeMillis()
 								workbench.writeText(

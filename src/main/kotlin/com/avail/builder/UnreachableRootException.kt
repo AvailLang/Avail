@@ -68,7 +68,7 @@ class UnreachableRootException internal constructor(
 		{
 			"module \"$unresolvedModuleName\" belongs to the module root, " +
 				"$unresolvedRootName, which is unreachable by the module root " +
-				"resolver at URI, ${resolver.uri}."
+				"resolver: ${resolver.uri}."
 		}
 		else
 		{

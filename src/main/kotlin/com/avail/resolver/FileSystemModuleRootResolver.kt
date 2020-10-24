@@ -6,16 +6,16 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ * * Redistributions in binary form must reproduce the above copyright notice, this
+ *   list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
  *
- *  * Neither the name of the copyright holder nor the names of the contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -36,10 +36,12 @@ import com.avail.AvailRuntime
 import com.avail.builder.ModuleName
 import com.avail.builder.ModuleNameResolver
 import com.avail.builder.ModuleRoot
+import com.avail.builder.ModuleRootErrorCode
 import com.avail.builder.ModuleRoots
 import com.avail.builder.ResolvedModuleName
 import com.avail.builder.UnresolvedModuleException
 import com.avail.error.ErrorCode
+import com.avail.error.StandardErrorCode
 import com.avail.files.AvailFile
 import com.avail.files.FileErrorCode
 import com.avail.files.FileManager
@@ -157,7 +159,7 @@ class FileSystemModuleRootResolver constructor(
 			if (!directory.isDirectory)
 			{
 				failureHandler(
-					FileErrorCode.MODULE_ROOT_RESOLUTION_FAILED,
+					ModuleRootErrorCode.MODULE_ROOT_RESOLUTION_FAILED,
 					null)
 				return@executeTask
 			}
@@ -178,7 +180,7 @@ class FileSystemModuleRootResolver constructor(
 			if (tree === null)
 			{
 				failureHandler(
-					FileErrorCode.MODULE_ROOT_RESOLUTION_FAILED,
+					ModuleRootErrorCode.MODULE_ROOT_RESOLUTION_FAILED,
 					null)
 				return@executeTask
 			}
@@ -326,7 +328,7 @@ class FileSystemModuleRootResolver constructor(
 			catch (e: Throwable)
 			{
 				failureHandler(
-					FileErrorCode.IO_EXCEPTION,
+					StandardErrorCode.IO_EXCEPTION,
 					IOException(
 						"Could not refresh file metadata for " +
 							reference.qualifiedName,
@@ -352,7 +354,7 @@ class FileSystemModuleRootResolver constructor(
 					if (modified != initialModified)
 					{
 						System.err.println(
-							"(${reference.qualifiedName})File changed during " +
+							"(${reference.qualifiedName}) File changed during " +
 								"digest calculation: modified timestamp at " +
 								"file read start $initialModified, at finish " +
 								modified)
@@ -522,7 +524,6 @@ class FileSystemModuleRootResolver constructor(
 				fileManager.optionallyProvideExistingFile(
 					reference,
 					{ uuid, availFile ->
-
 						reference.refresh(
 							availFile.lastModified,
 							availFile.rawContent.size.toLong())
@@ -541,7 +542,7 @@ class FileSystemModuleRootResolver constructor(
 		{
 			val ex =
 				IOException("Failed to read source: ${reference.uri}", e)
-			failureHandler(FileErrorCode.IO_EXCEPTION, ex)
+			failureHandler(StandardErrorCode.IO_EXCEPTION, ex)
 			return
 		}
 
@@ -591,7 +592,7 @@ class FileSystemModuleRootResolver constructor(
 					{
 						// Do nothing
 					}
-					failureHandler(FileErrorCode.IO_EXCEPTION, e)
+					failureHandler(StandardErrorCode.IO_EXCEPTION, e)
 				}
 			},
 			{
@@ -606,7 +607,7 @@ class FileSystemModuleRootResolver constructor(
 				val ex =
 					IOException("Failed to read: ${reference.uri}", throwable)
 				ex.printStackTrace()
-				failureHandler(FileErrorCode.IO_EXCEPTION, ex)
+				failureHandler(StandardErrorCode.IO_EXCEPTION, ex)
 			}).guardedDo { file.read(buffer, 0L, dummy, handler) }
 	}
 

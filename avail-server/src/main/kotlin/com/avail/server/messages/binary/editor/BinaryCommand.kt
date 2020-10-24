@@ -6,16 +6,16 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ * * Redistributions in binary form must reproduce the above copyright notice, this
+ *   list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
  *
- *  * Neither the name of the copyright holder nor the names of the contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -34,6 +34,7 @@ package com.avail.server.messages.binary.editor
 
 import com.avail.builder.ModuleName
 import com.avail.builder.ModuleRoot
+import com.avail.builder.ModuleRootErrorCode.*
 import com.avail.error.ErrorCode
 import com.avail.server.AvailServer.Companion.logger
 import com.avail.files.FileManager
@@ -41,6 +42,7 @@ import com.avail.server.error.ServerErrorCode
 import com.avail.server.error.ServerErrorCode.*
 import com.avail.server.io.AvailServerChannel
 import com.avail.files.EditRange
+import com.avail.files.FileErrorCode.*
 import com.avail.files.RedoAction
 import com.avail.files.ReplaceContents
 import com.avail.files.SaveAction
@@ -196,7 +198,7 @@ enum class BinaryCommand constructor(val id: Int)
 			val target = ModuleName(qualifiedName)
 			channel.server.runtime.moduleRoots()
 				.moduleRootFor(target.rootName)?.let { mr ->
-					mr.resolver?.let { resolver ->
+					mr.resolver.let { resolver ->
 						channel.server.fileManager.createFile(
 							qualifiedName,
 							mimeType, // TODO adjust for MIME type
@@ -251,18 +253,7 @@ enum class BinaryCommand constructor(val id: Int)
 							}
 						// Request is asynchronous, so continue
 						continuation()
-					} ?: {
-						// No source directory
-						channel.enqueueMessageThen(
-							ErrorBinaryMessage(
-								commandId,
-								NO_SOURCE_LOCATION,
-								false,
-								"No source directory found for " +
-								target.rootName
-							).message,
-							continuation)
-					}()
+					}
 				} ?: {
 				// No module root found
 				channel.enqueueMessageThen(
@@ -307,7 +298,7 @@ enum class BinaryCommand constructor(val id: Int)
 			val fileManager = channel.server.fileManager
 			channel.server.runtime.moduleRoots()
 				.moduleRootFor(target.rootName)?.let { mr ->
-					mr.resolver?.let {
+					mr.resolver.let {
 						it.provideResolverReference(target.qualifiedName, { ref ->
 							fileManager.readFile(
 								target.qualifiedName,
@@ -334,7 +325,7 @@ enum class BinaryCommand constructor(val id: Int)
 							) { code, throwable ->
 								throwable?.let { e ->
 									logger.log(Level.SEVERE, e) {
-										"Could not read file, ${ref.qualifiedName}"
+										"Could not read file: ${ref.qualifiedName}"
 									}
 									e.printStackTrace()
 								}
@@ -348,18 +339,7 @@ enum class BinaryCommand constructor(val id: Int)
 						}) { code, ex ->
 
 						}
-					} ?: {
-						// No source directory
-						channel.enqueueMessageThen(
-							ErrorBinaryMessage(
-								commandId,
-								NO_SOURCE_LOCATION,
-								false,
-								"No source directory found for " +
-								target.rootName
-							).message,
-							continuation)
-					}()
+					}
 				} ?: {
 				// No module root found
 				channel.enqueueMessageThen(
@@ -686,7 +666,7 @@ enum class BinaryCommand constructor(val id: Int)
 			val target = ModuleName(relativePath)
 			channel.server.runtime.moduleRoots()
 				.moduleRootFor(target.rootName)?.let { mr ->
-					mr.resolver?.let {
+					mr.resolver.let {
 						val path = Paths.get(
 								it.uri.toString(), target.rootRelativeName)
 							.toString()
@@ -709,7 +689,7 @@ enum class BinaryCommand constructor(val id: Int)
 								}) { code, throwable ->
 								throwable?.let { e ->
 									logger.log(Level.SEVERE, e) {
-										"Could not delete file, $path"
+										"Could not delete file: $path"
 									}
 								}
 								channel.enqueueMessageThen(
@@ -730,18 +710,7 @@ enum class BinaryCommand constructor(val id: Int)
 									).message,
 									continuation)
 						}
-					} ?: {
-						// No source directory
-						channel.enqueueMessageThen(
-							ErrorBinaryMessage(
-								commandId,
-								NO_SOURCE_LOCATION,
-								false,
-								"No source directory found for " +
-								target.rootName
-							).message,
-							continuation)
-					}()
+					}
 				} ?: {
 				// No module root found
 				channel.enqueueMessageThen(
