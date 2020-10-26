@@ -93,7 +93,7 @@ function Avail (hostParam, portParam)
 	{
 		get: function ()
 		{
-			return 5;
+			return 6;
 		}
 	});
 
@@ -703,6 +703,11 @@ AvailIO.prototype.dispatch = function (data)
 					this.stdout(ioData.content);
 					return;
 				}
+				case 'in':
+				{
+					this.stdinWanted();
+					return;
+				}
 			}
 		};
 		this.ready();
@@ -737,6 +742,15 @@ AvailIO.prototype.stdout = function (msg)
 	console.log(
 		'<stdout#' + this.id + '> '
 		+ JSON.stringify(msg));
+};
+
+/**
+ * Receive a notification that data is wanted on the standard input (stdin)
+ * subchannel.
+ */
+AvailIO.prototype.stdinWanted = function ()
+{
+	console.log('<stdin#' + this.id + '> ');
 };
 
 /**

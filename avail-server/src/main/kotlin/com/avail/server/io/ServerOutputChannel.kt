@@ -33,7 +33,7 @@
 package com.avail.server.io
 
 /**
- * A `ServerOutputChannel` adapts an [channel][AvailServerChannel] for use as a
+ * A `ServerOutputChannel` adapts a [channel][AvailServerChannel] for use as a
  * standard output channel.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;

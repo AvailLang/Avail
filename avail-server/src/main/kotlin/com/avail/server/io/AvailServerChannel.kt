@@ -177,6 +177,22 @@ abstract class AvailServerChannel constructor(
 	var textInterface: TextInterface? = null
 
 	/**
+	 * A `ServerInputNotificationChannel` adapts a [channel][AvailServerChannel]
+	 * for use as a notifier of a pending interest in receiving standard input.
+	 */
+	inner class ServerInputNotificationChannel
+		: AbstractServerOutputChannel(this)
+	{
+		override val channelTag = "in"
+	}
+
+	/**
+	 * The [ServerInputNotificationChannel], if any. Present only for I/O
+	 * channels.
+	 */
+	var inputNotificationChannel: ServerInputNotificationChannel? = null
+
+	/**
 	 * The [UUID]s of any upgrade requests issued by this
 	 * [channel][AvailServerChannel].
 	 */
@@ -312,6 +328,7 @@ abstract class AvailServerChannel constructor(
 			ServerInputChannel(this),
 			ServerOutputChannel(this),
 			ServerErrorChannel(this))
+		inputNotificationChannel = ServerInputNotificationChannel()
 	}
 
 	/**

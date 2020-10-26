@@ -106,7 +106,7 @@ textarea { background-color: white; }
 .key { color: red; }
 </style>
 <script language="javascript" type="text/javascript">
-	var protocolVersion = 5;
+	var protocolVersion = 6;
 	var supportedProtocolVersions = [protocolVersion];
 	var availUri = 'ws://localhost:40000/avail';
 	var cmdOutput = null, ioOutput = null;
@@ -586,6 +586,8 @@ textarea { background-color: white; }
 							'<span style="color: red">'
 							+ content
 							+ '</span>');
+						break;
+					case 'in':
 						break;
 				}
 			}

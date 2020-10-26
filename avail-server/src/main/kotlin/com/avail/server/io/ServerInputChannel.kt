@@ -32,6 +32,7 @@
 
 package com.avail.server.io
 
+import com.avail.io.SimpleCompletionHandler
 import com.avail.io.TextInputChannel
 import com.avail.server.messages.Message
 import com.avail.utility.cast
@@ -239,8 +240,26 @@ class ServerInputChannel constructor(
 			}
 			if (messages.isEmpty())
 			{
-				val waiter = Waiter(buffer, attachment, handler)
-				waiters.addLast(waiter)
+				// Send an input notification. We don't really care if this
+				// succeeds, per se, except that failure probably indicates that
+				// the transport is now defunct. It's only an advisory to the
+				// client that input is actively wanted; we assume that any sane
+				// user experience will independently make clear that input is
+				// wanted.
+				SimpleCompletionHandler<Int>(
+					{
+						val waiter = Waiter(buffer, attachment, handler)
+						synchronized(this) {
+							waiters.addLast(waiter)
+						}
+					},
+					{
+						handler.failed(throwable, attachment)
+					}
+				).guardedDo {
+					channel.inputNotificationChannel?.write(
+						"", dummy, this.handler)
+				}
 				return
 			}
 			assert(error === null)

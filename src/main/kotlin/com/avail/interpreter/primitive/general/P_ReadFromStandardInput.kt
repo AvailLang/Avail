@@ -56,8 +56,7 @@ import java.nio.CharBuffer
 object P_ReadFromStandardInput : Primitive(0, CanSuspend, Unknown)
 {
 	@Suppress("RedundantLambdaArrow")
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt (interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(0)
 		val fiber = interpreter.fiber()
@@ -73,9 +72,9 @@ object P_ReadFromStandardInput : Primitive(0, CanSuspend, Unknown)
 		}
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type =
+	override fun privateBlockTypeRestriction (): A_Type =
 		functionType(emptyTuple, CHARACTER.o)
 
-	override fun privateFailureVariableType(): A_Type =
+	override fun privateFailureVariableType (): A_Type =
 		enumerationWith(set(E_IO_ERROR))
 }
